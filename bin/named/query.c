@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.378 2011/11/16 09:44:31 each Exp $ */
+/* $Id: query.c,v 1.379 2012/01/04 03:06:49 each Exp $ */
 
 /*! \file */
 
@@ -1126,7 +1126,8 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 	if (name == mname)
 		mname = NULL;
 
-	*mnamep = mname;
+	if (mnamep != NULL)
+		*mnamep = mname;
 
 	CTRACE("query_isduplicate: false: done");
 	return (ISC_FALSE);
@@ -1373,6 +1374,8 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			if (sigrdataset == NULL)
 				goto addname;
 		}
+		if (query_isduplicate(client, fname, dns_rdatatype_a, NULL))
+			goto aaaa_lookup;
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_a, 0,
 					     client->now,
@@ -1416,6 +1419,9 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 					dns_rdataset_disassociate(sigrdataset);
 			}
 		}
+  aaaa_lookup:
+		if (query_isduplicate(client, fname, dns_rdatatype_aaaa, NULL))
+			goto addname;
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_aaaa, 0,
 					     client->now,
@@ -1583,7 +1589,13 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
 
-	if (qtype != dns_rdatatype_a) {
+	/*
+	 * If we don't have an additional cache call query_addadditional.
+	 */
+	client = additionalctx->client;
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	if (qtype != dns_rdatatype_a || client->view->acache == NULL) {
 		/*
 		 * This function is optimized for "address" types.  For other
 		 * types, use a generic routine.
@@ -1597,8 +1609,6 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 * Initialization.
 	 */
 	rdataset_base = additionalctx->rdataset;
-	client = additionalctx->client;
-	REQUIRE(NS_CLIENT_VALID(client));
 	eresult = ISC_R_SUCCESS;
 	fname = NULL;
 	rdataset = NULL;
@@ -1857,6 +1867,9 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	if (sigrdataset == NULL)
 		goto cleanup;
 
+	if (additionaltype == dns_rdatasetadditional_fromcache &&
+	    query_isduplicate(client, fname, dns_rdatatype_a, NULL))
+		goto aaaa_lookup;
 	/*
 	 * Find A RRset with sig RRset.  Even if we don't find a sig RRset
 	 * for a client using DNSSEC, we'll continue the process to make a
@@ -1901,6 +1914,10 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		}
 	}
 
+ aaaa_lookup:
+	if (additionaltype == dns_rdatasetadditional_fromcache &&
+	    query_isduplicate(client, fname, dns_rdatatype_aaaa, NULL))
+		goto foundcache;
 	/* Find AAAA RRset with sig RRset */
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_aaaa,
 				     0, client->now, rdataset, sigrdataset);

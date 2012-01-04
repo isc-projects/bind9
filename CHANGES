@@ -1,5 +1,5 @@
-3260.	[bug]		"rrset-order cyclic" could appears to not rotate
-			for some query patterns.  [RT #27170]
+3260.	[bug]		"rrset-order cyclic" could appear not to rotate
+			for some query patterns.  [RT #27170/27185]
 
 	--- 9.9.0rc1 released ---
 
