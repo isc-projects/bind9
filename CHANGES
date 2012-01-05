@@ -170,6 +170,11 @@
 			- improve ARM text including documenting rule precedence
 			- try to rewrite CNAME chains until first hit
 			- new "rpz" logging channel
+			- RDATA for CNAME rules can include wildcards
+			- replace "NO-OP" named.conf policy override with
+			  "PASSTHRU" and add "DISABLED" override ("NO-OP"
+                          is still recognized)
+                        [RT #25172]
 
 3169.	[func]		Catch db/version mis-matches when calling dns_db_*().
 			[RT #26017]
