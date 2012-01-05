@@ -1142,14 +1142,6 @@
 ./bin/tests/system/rpz/test5			X	2011
 ./bin/tests/system/rpz/tests.sh			SH	2011
 ./bin/tests/system/rrsetorder/clean.sh		SH	2006,2007,2008,2011
-./bin/tests/system/rrsetorder/dig.out.cyclic.fixed1	X	2011
-./bin/tests/system/rrsetorder/dig.out.cyclic.fixed2	X	2011
-./bin/tests/system/rrsetorder/dig.out.cyclic.fixed3	X	2011
-./bin/tests/system/rrsetorder/dig.out.cyclic.fixed4	X	2011
-./bin/tests/system/rrsetorder/dig.out.cyclic.good1	X	2011
-./bin/tests/system/rrsetorder/dig.out.cyclic.good2	X	2011
-./bin/tests/system/rrsetorder/dig.out.cyclic.good3	X	2011
-./bin/tests/system/rrsetorder/dig.out.cyclic.good4	X	2011
 ./bin/tests/system/rrsetorder/dig.out.fixed.good	X	2006
 ./bin/tests/system/rrsetorder/dig.out.random.good1	X	2006
 ./bin/tests/system/rrsetorder/dig.out.random.good10	X	2006
