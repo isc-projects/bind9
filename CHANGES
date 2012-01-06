@@ -1,3 +1,5 @@
+3261.	[func]		RRset ordering now defaults to random. [RT #27174]
+
 3260.	[bug]		"rrset-order cyclic" could appear not to rotate
 			for some query patterns.  [RT #27170/27185]
 

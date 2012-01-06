@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.121 2011/08/30 23:46:51 tbox Exp $ */
+/* $Id: config.c,v 1.122 2012/01/06 19:00:12 each Exp $ */
 
 /*! \file */
 
@@ -90,7 +90,7 @@ options {\n\
 "\
 	recursive-clients 1000;\n\
 	resolver-query-timeout 30;\n\
-	rrset-order {type NS order random; order cyclic; };\n\
+	rrset-order { order random; };\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\

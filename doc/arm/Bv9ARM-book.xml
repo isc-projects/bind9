@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.518 2011/11/23 18:58:39 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.519 2012/01/06 19:00:13 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8633,8 +8633,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
           </para>
           <para>
             If multiple <command>rrset-order</command> statements
-            appear,
-            they are not combined &mdash; the last one applies.
+            appear, they are not combined &mdash; the last one applies.
+          </para>
+          <para>
+            By default, all records are returned in random order.
           </para>
 
           <note>
