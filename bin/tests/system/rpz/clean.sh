@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3.8.1 2011/10/14 03:51:03 marka Exp $
+# $Id: clean.sh,v 1.3.8.2 2012/01/07 00:19:28 each Exp $
 
 
 # Clean up after rpz tests.
@@ -20,3 +20,5 @@
 rm -f proto.* dig.out* nsupdate.tmp
 rm -f  */named.memstats */named.run */named.rpz */session.key
 rm -f ns3/bl*.db */*.jnl */*.core */*.pid
+rm -f ns2/signed-tld2.db
+rm -f ns2/K*.private ns2/K*.key dsset-*

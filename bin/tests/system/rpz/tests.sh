@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3.8.6 2011/11/18 19:31:55 each Exp $
+# $Id: tests.sh,v 1.3.8.7 2012/01/07 00:19:28 each Exp $
 
 # test response policy zones (RPZ)
 
@@ -215,6 +215,10 @@ addr 57.57.57.57  a3-7.sub1.tld2	# 15 wildcard CNAME
 addr 127.0.0.16	  a4-5-cname3.tld2	# 16 CNAME chain
 addr 127.0.0.17	  a4-6-cname3.tld2	# 17 stop short in CNAME chain
 nxdomain c1.crash2.tld3			# 18 assert in rbtdb.c
+nochange a0-1.tld2      +norecurse
+nxdomain a0-1.tld2      +dnssec
+nxdomain a0-1.signed-tld2
+nochange a0-1.signed-tld2       +dnssec
 end_group
 
 start_group "IP rewrites" test2

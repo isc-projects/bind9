@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.353.8.20 2012/01/04 23:46:18 tbox Exp $ */
+/* $Id: query.c,v 1.353.8.21 2012/01/07 00:19:28 each Exp $ */
 
 /*! \file */
 
@@ -5480,6 +5480,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	if (!ISC_LIST_EMPTY(client->view->rpz_zones) &&
 	    RECURSIONOK(client) && !RECURSING(client) &&
+	    (!WANTDNSSEC(client) || sigrdataset == NULL ||
+	     !dns_rdataset_isassociated(sigrdataset)) &&
 	    (client->query.rpz_st == NULL ||
 	     (client->query.rpz_st->state & DNS_RPZ_REWRITTEN) == 0) &&
 	    !dns_name_equal(client->query.qname, dns_rootname)) {
