@@ -1,3 +1,6 @@
+3262.	[bug]		Signed responses were handled incorrectly by RPZ.
+			[RT #27316]
+
 3261.	[func]		RRset ordering now defaults to random. [RT #27174]
 
 3260.	[bug]		"rrset-order cyclic" could appear not to rotate
