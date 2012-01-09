@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.22 2011/10/11 02:39:03 marka Exp $ */
+/* $Id: builtin.c,v 1.23 2012/01/09 23:45:04 smann Exp $ */
 
 /*! \file
  * \brief
@@ -312,6 +312,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 		"Evan Hunt",
 		"JINMEI Tatuya",
 		"David Lawrence",
+		"Scott Mann",
 		"Danny Mayer",
 		"Damien Neil",
 		"Matt Nelson",

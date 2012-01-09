@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.379 2012/01/04 03:06:49 each Exp $ */
+/* $Id: query.c,v 1.381 2012/01/07 00:19:59 each Exp $ */
 
 /*! \file */
 
@@ -5659,6 +5659,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	if (!ISC_LIST_EMPTY(client->view->rpz_zones) &&
 	    RECURSIONOK(client) && !RECURSING(client) &&
+	    (!WANTDNSSEC(client) || sigrdataset == NULL ||
+	     !dns_rdataset_isassociated(sigrdataset)) &&
 	    (client->query.rpz_st == NULL ||
 	     (client->query.rpz_st->state & DNS_RPZ_REWRITTEN) == 0) &&
 	    !dns_name_equal(client->query.qname, dns_rootname)) {

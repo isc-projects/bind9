@@ -1,4 +1,4 @@
-# Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.10 2011/11/18 19:32:13 each Exp $
+# $Id: tests.sh,v 1.12 2012/01/07 23:46:53 tbox Exp $
 
 # test response policy zones (RPZ)
 
@@ -215,6 +215,10 @@ addr 57.57.57.57  a3-7.sub1.tld2	# 15 wildcard CNAME
 addr 127.0.0.16	  a4-5-cname3.tld2	# 16 CNAME chain
 addr 127.0.0.17	  a4-6-cname3.tld2	# 17 stop short in CNAME chain
 nxdomain c1.crash2.tld3			# 18 assert in rbtdb.c
+nochange a0-1.tld2      +norecurse
+nxdomain a0-1.tld2      +dnssec
+nxdomain a0-1.signed-tld2
+nochange a0-1.signed-tld2       +dnssec
 end_group
 
 start_group "IP rewrites" test2

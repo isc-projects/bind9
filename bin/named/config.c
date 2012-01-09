@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.121 2011/08/30 23:46:51 tbox Exp $ */
+/* $Id: config.c,v 1.123 2012/01/06 23:46:41 tbox Exp $ */
 
 /*! \file */
 
@@ -90,7 +90,7 @@ options {\n\
 "\
 	recursive-clients 1000;\n\
 	resolver-query-timeout 30;\n\
-	rrset-order {type NS order random; order cyclic; };\n\
+	rrset-order { order random; };\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
