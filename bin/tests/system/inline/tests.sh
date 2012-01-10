@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.11 2011/12/22 07:32:40 each Exp $
+# $Id: tests.sh,v 1.12 2012/01/10 18:13:36 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -37,6 +37,15 @@ do
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
 done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking expired signatures are updated on load ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 -p 5300 +noall +answer +dnssec expired SOA > dig.out.ns3.test$n
+expiry=`awk '$4 == "RRSIG" { print $9 }' dig.out.ns3.test$n`
+[ "$expiry" = "20110101000000" ] && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -635,6 +644,17 @@ do
     test $ret = 0 && break
     sleep 1
 done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check rndc sync removes both signed and unsigned journals ($n)"
+ret=0
+[ -e ns3/dynamic.db.jnl ] || ret=1
+[ -e ns3/dynamic.db.signed.jnl ] || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 sync -clean dynamic 2>&1 || ret=1
+[ -e ns3/dynamic.db.jnl ] && ret=1
+[ -e ns3/dynamic.db.signed.jnl ] && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

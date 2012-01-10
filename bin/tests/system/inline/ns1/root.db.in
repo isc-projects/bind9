@@ -12,7 +12,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: root.db.in,v 1.5 2011/12/22 07:32:40 each Exp $
+; $Id: root.db.in,v 1.6 2012/01/10 18:13:37 each Exp $
 
 $TTL 300
 . 			IN SOA	gson.nominum.com. a.root.servers.nil. (
@@ -41,3 +41,6 @@ ns3.dynamic.		A	10.53.0.3
 
 updated.			NS	ns3.updated.
 ns3.updated.		A	10.53.0.3
+
+expired.			NS	ns3.expired.
+ns3.expired.		A	10.53.0.3

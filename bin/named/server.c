@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.634 2011/12/22 12:58:13 marka Exp $ */
+/* $Id: server.c,v 1.635 2012/01/10 18:13:36 each Exp $ */
 
 /*! \file */
 
@@ -7256,7 +7256,14 @@ static isc_result_t
 synczone(dns_zone_t *zone, void *uap) {
 	isc_boolean_t cleanup = *(isc_boolean_t *)uap;
 	isc_result_t result;
+	dns_zone_t *raw = NULL;
 	char *journal;
+
+	dns_zone_getraw(zone, &raw);
+	if (raw != NULL) {
+		synczone(raw, uap);
+		dns_zone_detach(&raw);
+	}
 
 	result = dns_zone_flush(zone);
 	if (result != ISC_R_SUCCESS)
@@ -7266,6 +7273,7 @@ synczone(dns_zone_t *zone, void *uap) {
 		if (journal != NULL)
 			(void)isc_file_remove(journal);
 	}
+
 	return (result);
 }
 

@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.8 2011/12/22 07:32:40 each Exp $
+# $Id: setup.sh,v 1.9 2012/01/10 18:13:36 each Exp $
 
 sh clean.sh
 
@@ -23,29 +23,10 @@ touch ns2/trusted.conf
 cp ns2/bits.db.in ns2/bits.db
 rm -f ns2/bits.db.jnl
 
-rm -f ns3/bits.bk
-rm -f ns3/bits.bk.jnl
-rm -f ns3/bits.bk.signed
-rm -f ns3/bits.bk.signed.jnl
-
-rm -f ns3/noixfr.bk
-rm -f ns3/noixfr.bk.jnl
-rm -f ns3/noixfr.bk.signed
-rm -f ns3/noixfr.bk.signed.jnl
-
-rm -f ns3/master.db
-rm -f ns3/master.db.jnl
-rm -f ns3/master.db.signed
-rm -f ns3/master.db.signed.jnl
-
-rm -f ns3/dynamic.db
-rm -f ns3/dynamic.db.jnl
-rm -f ns3/dynamic.db.signed
-rm -f ns3/dynamic.db.signed.jnl
-
 cp ns3/master.db.in ns3/master.db
 cp ns3/master.db.in ns3/dynamic.db
 cp ns3/master.db.in ns3/updated.db
+cp ns3/master.db.in ns3/expired.db
 
 touch ns4/trusted.conf
 cp ns4/noixfr.db.in ns4/noixfr.db

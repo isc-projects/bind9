@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.659 2011/12/22 23:46:20 tbox Exp $ */
+/* $Id: zone.c,v 1.660 2012/01/10 18:13:37 each Exp $ */
 
 /*! \file */
 
@@ -1795,9 +1795,9 @@ get_master_options(dns_zone_t *zone) {
 		options |= DNS_MASTER_CHECKMXFAIL;
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKWILDCARD))
 		options |= DNS_MASTER_CHECKWILDCARD;
-	if (zone->type == dns_zone_master &&
+	if (inline_secure(zone) || (zone->type == dns_zone_master &&
 	    ((zone->update_acl != NULL && !dns_acl_isnone(zone->update_acl)) ||
-	      zone->ssutable != NULL))
+	      zone->ssutable != NULL)))
 		options |= DNS_MASTER_RESIGN;
 	return (options);
 }
