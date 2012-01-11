@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: pkcs11.xml,v 1.2.2.2 2010/02/06 07:42:44 marka Exp $ -->
+<!-- $Id: pkcs11.xml,v 1.2.2.3 2012/01/11 23:48:28 each Exp $ -->
 
 <sect1 id="pkcs11">
   <title>PKCS #11 (Cryptoki) support</title>
@@ -73,7 +73,7 @@
     </para>
     <note>
       The latest OpenSSL version at the time of the BIND release
-      is 0.9.8l.
+      is 0.9.8s.
       ISC will provide an updated patch as new versions of OpenSSL
       are released. The version number in the following examples
       is expected to change.</note>
@@ -82,18 +82,18 @@
     necessary to build OpenSSL with this patch in place and inform
     it of the path to the HSM-specific PKCS #11 provider
     library.</para>
-    <para>Obtain OpenSSL 0.9.8l:</para>
+    <para>Obtain OpenSSL 0.9.8s:</para>
     <screen>
-$ <userinput>wget <ulink>http://www.openssl.org/source/openssl-0.9.8l.tar.gz</ulink></userinput>
+$ <userinput>wget <ulink>http://www.openssl.org/source/openssl-0.9.8s.tar.gz</ulink></userinput>
 </screen>
     <para>Extract the tarball:</para>
     <screen>
-$ <userinput>tar zxf openssl-0.9.8l.tar.gz</userinput>
+$ <userinput>tar zxf openssl-0.9.8s.tar.gz</userinput>
 </screen>
     <para>Apply the patch from the BIND 9 release:</para>
     <screen>
-$ <userinput>patch -p1 -d openssl-0.9.8l \
-            &lt; bind-9.7.0/bin/pkcs11/openssl-0.9.8l-patch</userinput>
+$ <userinput>patch -p1 -d openssl-0.9.8s \
+            &lt; bind-9.7.0/bin/pkcs11/openssl-0.9.8s-patch</userinput>
 </screen>
     <note>(Note that the patch file may not be compatible with the
     "patch" utility on all operating systems. You may need to
@@ -124,7 +124,7 @@ $ <userinput>cp pkcs11.GCC4.0.2.so.4.05 /opt/pkcs11/usr/lib/libpkcs11.so</userin
       <para>Finally, the Keyper library requires threads, so we
       must specify -pthread.</para>
       <screen>
-$ <userinput>cd openssl-0.9.8l</userinput>
+$ <userinput>cd openssl-0.9.8s</userinput>
 $ <userinput>./Configure linux-generic32 -m32 -pthread \
             --pk11-libname=/opt/pkcs11/usr/lib/libpkcs11.so \
             --pk11-flavor=sign-only \
@@ -145,7 +145,7 @@ $ <userinput>./Configure linux-generic32 -m32 -pthread \
       <para>In this example, we are building on Solaris x86 on an
       AMD64 system.</para>
       <screen>
-$ <userinput>cd openssl-0.9.8l</userinput>
+$ <userinput>cd openssl-0.9.8s</userinput>
 $ <userinput>./Configure solaris64-x86_64-cc \
             --pk11-libname=/usr/lib/64/libpkcs11.so \
             --pk11-flavor=crypto-accelerator \
