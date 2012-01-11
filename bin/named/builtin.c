@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.20.14.2 2012/01/10 23:46:34 tbox Exp $ */
+/* $Id: builtin.c,v 1.20.14.3 2012/01/11 20:19:40 ckb Exp $ */
 
 /*! \file
  * \brief
@@ -300,6 +300,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 	const char **p;
 	static const char *authors[] = {
 		"Mark Andrews",
+		"Curtis Blackburn",
 		"James Brister",
 		"Ben Cottrell",
 		"Michael Graff",
