@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.103.22.22 2011/11/10 02:20:46 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.103.22.23 2012/01/12 01:39:35 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -1426,7 +1426,7 @@ $ <strong class="userinput"><code>dnssec-signzone -S -K keys example.net</code><
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
       The latest OpenSSL version at the time of the BIND release
-      is 0.9.8l.
+      is 0.9.8s.
       ISC will provide an updated patch as new versions of OpenSSL
       are released. The version number in the following examples
       is expected to change.</div>
@@ -1435,18 +1435,18 @@ $ <strong class="userinput"><code>dnssec-signzone -S -K keys example.net</code><
     necessary to build OpenSSL with this patch in place and inform
     it of the path to the HSM-specific PKCS #11 provider
     library.</p>
-<p>Obtain OpenSSL 0.9.8l:</p>
+<p>Obtain OpenSSL 0.9.8s:</p>
 <pre class="screen">
-$ <strong class="userinput"><code>wget <a href="" target="_top">http://www.openssl.org/source/openssl-0.9.8l.tar.gz</a></code></strong>
+$ <strong class="userinput"><code>wget <a href="" target="_top">http://www.openssl.org/source/openssl-0.9.8s.tar.gz</a></code></strong>
 </pre>
 <p>Extract the tarball:</p>
 <pre class="screen">
-$ <strong class="userinput"><code>tar zxf openssl-0.9.8l.tar.gz</code></strong>
+$ <strong class="userinput"><code>tar zxf openssl-0.9.8s.tar.gz</code></strong>
 </pre>
 <p>Apply the patch from the BIND 9 release:</p>
 <pre class="screen">
-$ <strong class="userinput"><code>patch -p1 -d openssl-0.9.8l \
-            &lt; bind-9.7.0/bin/pkcs11/openssl-0.9.8l-patch</code></strong>
+$ <strong class="userinput"><code>patch -p1 -d openssl-0.9.8s \
+            &lt; bind-9.7.0/bin/pkcs11/openssl-0.9.8s-patch</code></strong>
 </pre>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>(Note that the patch file may not be compatible with the
@@ -1478,7 +1478,7 @@ $ <strong class="userinput"><code>cp pkcs11.GCC4.0.2.so.4.05 /opt/pkcs11/usr/lib
 <p>Finally, the Keyper library requires threads, so we
       must specify -pthread.</p>
 <pre class="screen">
-$ <strong class="userinput"><code>cd openssl-0.9.8l</code></strong>
+$ <strong class="userinput"><code>cd openssl-0.9.8s</code></strong>
 $ <strong class="userinput"><code>./Configure linux-generic32 -m32 -pthread \
             --pk11-libname=/opt/pkcs11/usr/lib/libpkcs11.so \
             --pk11-flavor=sign-only \
@@ -1499,7 +1499,7 @@ $ <strong class="userinput"><code>./Configure linux-generic32 -m32 -pthread \
 <p>In this example, we are building on Solaris x86 on an
       AMD64 system.</p>
 <pre class="screen">
-$ <strong class="userinput"><code>cd openssl-0.9.8l</code></strong>
+$ <strong class="userinput"><code>cd openssl-0.9.8s</code></strong>
 $ <strong class="userinput"><code>./Configure solaris64-x86_64-cc \
             --pk11-libname=/usr/lib/64/libpkcs11.so \
             --pk11-flavor=crypto-accelerator \
