@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.13 2012/01/10 23:46:58 tbox Exp $
+# $Id: tests.sh,v 1.14 2012/01/12 00:37:18 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -650,11 +650,11 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check rndc sync removes both signed and unsigned journals ($n)"
 ret=0
-[ -e ns3/dynamic.db.jnl ] || ret=1
-[ -e ns3/dynamic.db.signed.jnl ] || ret=1
+[ -f ns3/dynamic.db.jnl ] || ret=1
+[ -f ns3/dynamic.db.signed.jnl ] || ret=1
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 sync -clean dynamic 2>&1 || ret=1
-[ -e ns3/dynamic.db.jnl ] && ret=1
-[ -e ns3/dynamic.db.signed.jnl ] && ret=1
+[ -f ns3/dynamic.db.jnl ] && ret=1
+[ -f ns3/dynamic.db.signed.jnl ] && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
