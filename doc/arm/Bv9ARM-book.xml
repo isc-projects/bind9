@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.520 2012/01/06 23:46:42 tbox Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.521 2012/01/15 21:16:04 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4665,11 +4665,17 @@ category notify { null; };
 		    </para>
 
                     <para>
-                      <computeroutput>client 127.0.0.1#62536: query: www.example.com IN AAAA +SE</computeroutput>
+                      <computeroutput>client 127.0.0.1#62536 (www.example.com): query: www.example.com IN AAAA +SE</computeroutput>
                     </para>
                     <para>
-                      <computeroutput>client ::1#62537: query: www.example.net IN AAAA -SE</computeroutput>
+                      <computeroutput>client ::1#62537 (www.example.net): query: www.example.net IN AAAA -SE</computeroutput>
                     </para>
+		    <para>
+                      (The first part of this log message, showing the
+                      client address/port number and query name, is
+                      repeated in all subsequent log messages related
+                      to the same query.)
+		    </para>
                   </entry>
                 </row>
                 <row rowsep="0">
