@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: pkcs11.xml,v 1.3.152.2 2012/01/12 23:46:43 tbox Exp $ -->
+<!-- $Id: pkcs11.xml,v 1.3.152.3 2012/01/16 19:08:43 each Exp $ -->
 
 <sect1 id="pkcs11">
   <title>PKCS #11 (Cryptoki) support</title>
@@ -68,12 +68,15 @@
         is an example of such a device.</para>
       </listitem>
     </itemizedlist>
-    <para>The modified OpenSSL code is included in the BIND 9.7.0
-    release, in the form of a context diff against the latest OpenSSL.
+    <para>The modified OpenSSL code is included in the BIND 9 release,
+        in the form of a context diff against the latest verions of
+        OpenSSL.  OpenSSL 0.9.8 and 1.0.0 are both supported; there are
+        separate diffs for each version.  In the examples to follow,
+        we use OpenSSL 0.9.8, but the same methods work with OpenSSL 1.0.0.
     </para>
     <note>
-      The latest OpenSSL version at the time of the BIND release
-      is 0.9.8s.
+      The latest OpenSSL versions at the time of the BIND release
+      are 0.9.8s and 1.0.0f.
       ISC will provide an updated patch as new versions of OpenSSL
       are released. The version number in the following examples
       is expected to change.</note>
@@ -93,7 +96,7 @@ $ <userinput>tar zxf openssl-0.9.8s.tar.gz</userinput>
     <para>Apply the patch from the BIND 9 release:</para>
     <screen>
 $ <userinput>patch -p1 -d openssl-0.9.8s \
-            &lt; bind-9.7.0/bin/pkcs11/openssl-0.9.8s-patch</userinput>
+            &lt; bind9/bin/pkcs11/openssl-0.9.8s-patch</userinput>
 </screen>
     <note>(Note that the patch file may not be compatible with the
     "patch" utility on all operating systems. You may need to
@@ -193,7 +196,7 @@ $ <userinput>./Configure solaris64-x86_64-cc \
       64-bit host, we must force a 32-bit build by adding "-m32" to
       the CC options on the "configure" command line.</para>
       <screen>
-$ <userinput>cd ../bind-9.7.0</userinput>
+$ <userinput>cd ../bind9</userinput>
 $ <userinput>./configure CC="gcc -m32" --enable-threads \
            --with-openssl=/opt/pkcs11/usr \
            --with-pkcs11=/opt/pkcs11/usr/lib/libpkcs11.so</userinput>
@@ -205,7 +208,7 @@ $ <userinput>./configure CC="gcc -m32" --enable-threads \
       <para>To link with the PKCS #11 provider, threads must be
       enabled in the BIND 9 build.</para>
       <screen>
-$ <userinput>cd ../bind-9.7.0</userinput>
+$ <userinput>cd ../bind9</userinput>
 $ <userinput>./configure CC="cc -xarch=amd64" --enable-threads \
             --with-openssl=/opt/pkcs11/usr \
             --with-pkcs11=/usr/lib/64/libpkcs11.so</userinput>
