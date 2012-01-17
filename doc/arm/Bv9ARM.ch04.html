@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.152 2012/01/16 01:14:56 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.153 2012/01/17 01:15:02 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -91,12 +91,12 @@
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#pkcs11">PKCS #11 (Cryptoki) support</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2611017">Prerequisites</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2608899">Building BIND 9 with PKCS#11</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2608994">PKCS #11 Tools</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2609093">Using the HSM</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2611339">Specifying the engine on the command line</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2611385">Running named with automatic zone re-signing</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2611347">Prerequisites</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2609255">Building BIND 9 with PKCS#11</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2635799">PKCS #11 Tools</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2635830">Using the HSM</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2636097">Specifying the engine on the command line</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2636142">Running named with automatic zone re-signing</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2572805">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
 <dd><dl>
@@ -1415,7 +1415,7 @@ $ <strong class="userinput"><code>dnssec-signzone -S -K keys example.net</code><
   Debian Linux, Solaris x86 and Windows Server 2003.</p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2611017"></a>Prerequisites</h3></div></div></div>
+<a name="id2611347"></a>Prerequisites</h3></div></div></div>
 <p>See the HSM vendor documentation for information about
     installing, initializing, testing and troubleshooting the
     HSM.</p>
@@ -1450,13 +1450,16 @@ $ <strong class="userinput"><code>dnssec-signzone -S -K keys example.net</code><
         other computationally-intensive operations. The AEP Keyper
         is an example of such a device.</p></li>
 </ul></div>
-<p>The modified OpenSSL code is included in the BIND 9.7.0
-    release, in the form of a context diff against the latest OpenSSL.
+<p>The modified OpenSSL code is included in the BIND 9 release,
+        in the form of a context diff against the latest verions of
+        OpenSSL.  OpenSSL 0.9.8 and 1.0.0 are both supported; there are
+        separate diffs for each version.  In the examples to follow,
+        we use OpenSSL 0.9.8, but the same methods work with OpenSSL 1.0.0.
     </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
-      The latest OpenSSL version at the time of the BIND release
-      is 0.9.8s.
+      The latest OpenSSL versions at the time of the BIND release
+      are 0.9.8s and 1.0.0f.
       ISC will provide an updated patch as new versions of OpenSSL
       are released. The version number in the following examples
       is expected to change.</div>
@@ -1476,7 +1479,7 @@ $ <strong class="userinput"><code>tar zxf openssl-0.9.8s.tar.gz</code></strong>
 <p>Apply the patch from the BIND 9 release:</p>
 <pre class="screen">
 $ <strong class="userinput"><code>patch -p1 -d openssl-0.9.8s \
-            &lt; bind-9.7.0/bin/pkcs11/openssl-0.9.8s-patch</code></strong>
+            &lt; bind9/bin/pkcs11/openssl-0.9.8s-patch</code></strong>
 </pre>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>(Note that the patch file may not be compatible with the
@@ -1489,7 +1492,7 @@ $ <strong class="userinput"><code>patch -p1 -d openssl-0.9.8s \
     when we configure BIND 9.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2571518"></a>Building OpenSSL for the AEP Keyper on Linux</h4></div></div></div>
+<a name="id2608302"></a>Building OpenSSL for the AEP Keyper on Linux</h4></div></div></div>
 <p>The AEP Keyper is a highly secure key storage device,
       but does not provide hardware cryptographic acceleration. It
       can carry out cryptographic operations, but it is probably
@@ -1521,7 +1524,7 @@ $ <strong class="userinput"><code>./Configure linux-generic32 -m32 -pthread \
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2608315"></a>Building OpenSSL for the SCA 6000 on Solaris</h4></div></div></div>
+<a name="id2608850"></a>Building OpenSSL for the SCA 6000 on Solaris</h4></div></div></div>
 <p>The SCA-6000 PKCS #11 provider is installed as a system
       library, libpkcs11. It is a true crypto accelerator, up to 4
       times faster than any CPU, so the flavor shall be
@@ -1540,11 +1543,50 @@ $ <strong class="userinput"><code>./Configure solaris64-x86_64-cc \
 <p>After configuring, run 
       <span><strong class="command">make</strong></span> and 
       <span><strong class="command">make test</strong></span>.</p>
+</div>
+<div class="sect3" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="id2608967"></a>Building OpenSSL for SoftHSM</h4></div></div></div>
+<p>SoftHSM is a software library provided by the OpenDNSSEC
+      project (http://www.opendnssec.org) which provides a PKCS#11
+      interface to a virtual HSM, implemented in the form of encrypted
+      data on the local filesystem.  It uses the Botan library for
+      encryption and SQLite3 for data storage.  Though less secure
+      than a true HSM, it can provide more secure key storage than
+      traditional key files, and can allow you to experiment with
+      PKCS#11 when an HSM is not available.</p>
+<p>The SoftHSM cryptographic store must be installed and
+      initialized before using it with OpenSSL, and the SOFTHSM_CONF
+      environment variable must always point to the SoftHSM configuration
+      file:</p>
+<pre class="screen">
+$ <strong class="userinput"><code> cd softhsm-1.3.0 </code></strong>
+$ <strong class="userinput"><code> configure --prefix=/opt/pkcs11/usr </code></strong>
+$ <strong class="userinput"><code> make </code></strong>
+$ <strong class="userinput"><code> make install </code></strong>
+$ <strong class="userinput"><code> export SOFTHSM_CONF=/opt/pkcs11/softhsm.conf </code></strong>
+$ <strong class="userinput"><code> echo "0:/opt/pkcs11/softhsm.db" &gt; $SOFTHSM_CONF </code></strong>
+$ <strong class="userinput"><code> /opt/pkcs11/usr/bin/softhsm --init-token 0 --slot 0 --label softhsm </code></strong>
+</pre>
+<p>SoftHSM can perform all cryptographic operations, but
+      since it only uses your system CPU, there is no need to use it
+      for anything but signing.  Therefore, we choose the 'sign-only'
+      flavor when building OpenSSL.</p>
+<pre class="screen">
+$ <strong class="userinput"><code>cd openssl-0.9.8s</code></strong>
+$ <strong class="userinput"><code>./Configure linux-x86_64 -pthread \
+            --pk11-libname=/opt/pkcs11/usr/lib/libpkcs11.so \
+            --pk11-flavor=sign-only \
+            --prefix=/opt/pkcs11/usr</code></strong>
+</pre>
+<p>After configuring, run "<span><strong class="command">make</strong></span>"
+      and "<span><strong class="command">make test</strong></span>".</p>
+</div>
 <p>Once you have built OpenSSL, run
-      "<span><strong class="command">apps/openssl engine pkcs11</strong></span>" to confirm
-      that PKCS #11 support was compiled in correctly. The output
-      should be one of the following lines, depending on the flavor
-      selected:</p>
+    "<span><strong class="command">apps/openssl engine pkcs11</strong></span>" to confirm
+    that PKCS #11 support was compiled in correctly. The output
+    should be one of the following lines, depending on the flavor
+    selected:</p>
 <pre class="screen">
         (pkcs11) PKCS #11 engine support (sign only)
 </pre>
@@ -1553,24 +1595,23 @@ $ <strong class="userinput"><code>./Configure solaris64-x86_64-cc \
         (pkcs11) PKCS #11 engine support (crypto accelerator)
 </pre>
 <p>Next, run
-      "<span><strong class="command">apps/openssl engine pkcs11 -t</strong></span>". This will
-      attempt to initialize the PKCS #11 engine. If it is able to
-      do so successfully, it will report
-      &#8220;<span class="quote"><code class="literal">[ available ]</code></span>&#8221;.</p>
+    "<span><strong class="command">apps/openssl engine pkcs11 -t</strong></span>". This will
+    attempt to initialize the PKCS #11 engine. If it is able to
+    do so successfully, it will report
+    &#8220;<span class="quote"><code class="literal">[ available ]</code></span>&#8221;.</p>
 <p>If the output is correct, run
-      "<span><strong class="command">make install</strong></span>" which will install the
-      modified OpenSSL suite to 
-      <code class="filename">/opt/pkcs11/usr</code>.</p>
-</div>
+    "<span><strong class="command">make install</strong></span>" which will install the
+    modified OpenSSL suite to 
+    <code class="filename">/opt/pkcs11/usr</code>.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608899"></a>Building BIND 9 with PKCS#11</h3></div></div></div>
+<a name="id2609255"></a>Building BIND 9 with PKCS#11</h3></div></div></div>
 <p>When building BIND 9, the location of the custom-built
     OpenSSL library must be specified via configure.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2608907"></a>Configuring BIND 9 for Linux</h4></div></div></div>
+<a name="id2609264"></a>Configuring BIND 9 for Linux with the AEP Keyper</h4></div></div></div>
 <p>To link with the PKCS #11 provider, threads must be
       enabled in the BIND 9 build.</p>
 <p>The PKCS #11 library for the AEP Keyper is currently
@@ -1578,7 +1619,7 @@ $ <strong class="userinput"><code>./Configure solaris64-x86_64-cc \
       64-bit host, we must force a 32-bit build by adding "-m32" to
       the CC options on the "configure" command line.</p>
 <pre class="screen">
-$ <strong class="userinput"><code>cd ../bind-9.7.0</code></strong>
+$ <strong class="userinput"><code>cd ../bind9</code></strong>
 $ <strong class="userinput"><code>./configure CC="gcc -m32" --enable-threads \
            --with-openssl=/opt/pkcs11/usr \
            --with-pkcs11=/opt/pkcs11/usr/lib/libpkcs11.so</code></strong>
@@ -1586,11 +1627,11 @@ $ <strong class="userinput"><code>./configure CC="gcc -m32" --enable-threads \
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2608938"></a>Configuring BIND 9 for Solaris</h4></div></div></div>
+<a name="id2611412"></a>Configuring BIND 9 for Solaris with the SCA 6000</h4></div></div></div>
 <p>To link with the PKCS #11 provider, threads must be
       enabled in the BIND 9 build.</p>
 <pre class="screen">
-$ <strong class="userinput"><code>cd ../bind-9.7.0</code></strong>
+$ <strong class="userinput"><code>cd ../bind9</code></strong>
 $ <strong class="userinput"><code>./configure CC="cc -xarch=amd64" --enable-threads \
             --with-openssl=/opt/pkcs11/usr \
             --with-pkcs11=/usr/lib/64/libpkcs11.so</code></strong>
@@ -1602,14 +1643,26 @@ $ <strong class="userinput"><code>./configure CC="cc -xarch=amd64" --enable-thre
       same as the --prefix argument to the OpenSSL
       Configure).</p>
 </div>
+<div class="sect3" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="id2611448"></a>Configuring BIND 9 for SoftHSM</h4></div></div></div>
+<pre class="screen">
+$ <strong class="userinput"><code>cd ../bind9</code></strong>
+$ <strong class="userinput"><code>./configure --enable-threads \
+           --with-openssl=/opt/pkcs11/usr \
+           --with-pkcs11=/opt/pkcs11/usr/lib/libpkcs11.so</code></strong>
+</pre>
+</div>
 <p>After configuring, run
     "<span><strong class="command">make</strong></span>",
     "<span><strong class="command">make test</strong></span>" and
     "<span><strong class="command">make install</strong></span>".</p>
+<p>(Note: If "make test" fails in the "pkcs11" system test, you may
+    have forgotten to set the SOFTHSM_CONF environment variable.)</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608994"></a>PKCS #11 Tools</h3></div></div></div>
+<a name="id2635799"></a>PKCS #11 Tools</h3></div></div></div>
 <p>BIND 9 includes a minimal set of tools to operate the
     HSM, including 
     <span><strong class="command">pkcs11-keygen</strong></span> to generate a new key pair
@@ -1627,7 +1680,7 @@ $ <strong class="userinput"><code>./configure CC="cc -xarch=amd64" --enable-thre
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2609093"></a>Using the HSM</h3></div></div></div>
+<a name="id2635830"></a>Using the HSM</h3></div></div></div>
 <p>First, we must set up the runtime environment so the
     OpenSSL and PKCS #11 libraries can be loaded:</p>
 <pre class="screen">
@@ -1715,7 +1768,7 @@ example.net.signed
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2611339"></a>Specifying the engine on the command line</h3></div></div></div>
+<a name="id2636097"></a>Specifying the engine on the command line</h3></div></div></div>
 <p>The OpenSSL engine can be specified in 
     <span><strong class="command">named</strong></span> and all of the BIND 
     <span><strong class="command">dnssec-*</strong></span> tools by using the "-E
@@ -1736,7 +1789,7 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2611385"></a>Running named with automatic zone re-signing</h3></div></div></div>
+<a name="id2636142"></a>Running named with automatic zone re-signing</h3></div></div></div>
 <p>If you want 
     <span><strong class="command">named</strong></span> to dynamically re-sign zones using HSM
     keys, and/or to to sign new records inserted via nsupdate, then
