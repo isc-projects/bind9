@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.15 2012/01/16 08:35:09 marka Exp $
+# $Id: tests.sh,v 1.16 2012/01/17 08:26:03 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -421,26 +421,11 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I:update master zone while shutdown ($n)"
-cp ns3/master3.db.in ns3/master.db
-
-n=`expr $n + 1`
 echo "I:restart bump in the wire signer server ($n)"
 ret=0
 $PERL ../start.pl --noclean --restart . ns3 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
-
-
-####n=`expr $n + 1`
-####echo "I:checking that update while server is offline is detected ($n)"
-####ret=0
-####$DIG $DIGOPTS @10.53.0.3 -p 5300 f.master A > dig.out.ns2.test$n
-####grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
-####grep "ANSWER: 2," dig.out.ns2.test$n > /dev/null || ret=1
-####grep "10.0.0.6" dig.out.ns2.test$n > /dev/null || ret=1
-####if [ $ret != 0 ]; then echo "I:failed"; fi
-####status=`expr $status + $ret`
 
 $NSUPDATE << EOF
 zone bits
