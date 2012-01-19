@@ -35,7 +35,7 @@
 
 set -e
 
-Prog_Name=`echo ${0} | sed 's;.*/;;'`
+Prog_Name=`echo "${0}" | sed 's;.*/;;'`
 
 MTN=
 ROOT=
