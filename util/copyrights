@@ -3387,7 +3387,7 @@
 ./unit/atf-src/atf-version/Makefile.am.inc	X	2011
 ./unit/atf-src/atf-version/atf-version.1	X	2011
 ./unit/atf-src/atf-version/atf-version.cpp	X	2011
-./unit/atf-src/atf-version/generate-revision.sh	X	2011
+./unit/atf-src/atf-version/generate-revision.sh	X	2011,2012
 ./unit/atf-src/bconfig.h.in			X	2011
 ./unit/atf-src/bootstrap/.cvsignore		X	2011
 ./unit/atf-src/bootstrap/Makefile.am.inc	X	2011
