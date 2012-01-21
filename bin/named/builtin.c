@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.25 2012/01/11 18:27:45 ckb Exp $ */
+/* $Id: builtin.c,v 1.26 2012/01/21 19:44:18 each Exp $ */
 
 /*! \file
  * \brief
@@ -306,6 +306,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 		"Curtis Blackburn",
 		"James Brister",
 		"Ben Cottrell",
+		"John H. DuBois III",
 		"Francis Dupont",
 		"Michael Graff",
 		"Andreas Gustafsson",
