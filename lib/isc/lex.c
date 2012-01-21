@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.31 2000/06/23 22:32:10 brister Exp $ */
+/* $Id: lex.c,v 1.31.2.2 2000/07/11 04:55:09 gson Exp $ */
 
 #include <config.h>
 
@@ -511,8 +511,13 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				if (c == ' ' || c == '\t' || c == '\r' ||
 				    c == '\n' || c == EOF ||
 				    lex->specials[c]) {
+					int base;
+					if ((options & ISC_LEXOPT_CNUMBER) != 0)
+						base = 0;
+					else
+						base = 10;
 					pushback(source, c);
-					ulong = strtoul(lex->data, &e, 0);
+					ulong = strtoul(lex->data, &e, base);
 					if (ulong == ULONG_MAX &&
 					    errno == ERANGE) {
 						return (ISC_R_RANGE);
@@ -717,4 +722,18 @@ isc_lex_getsourceline(isc_lex_t *lex) {
 		return(0);
 
 	return (source->line);
+}
+
+isc_boolean_t
+isc_lex_isfile(isc_lex_t *lex) {
+	inputsource *source;
+
+	REQUIRE(VALID_LEX(lex));
+
+	source = HEAD(lex->sources);
+
+	if (source == NULL)
+		return (ISC_FALSE);
+
+	return (source->is_file);
 }

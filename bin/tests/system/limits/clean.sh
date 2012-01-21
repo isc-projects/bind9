@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: clean.sh,v 1.3 2000/07/09 16:18:37 tale Exp $
+# $Id: clean.sh,v 1.1.2.2 2000/07/10 04:51:56 gson Exp $
 
 #
 # Clean up after limits tests.

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: file.c,v 1.18 2000/06/26 21:33:57 tale Exp $ */
+/* $Id: file.c,v 1.17.2.1 2000/09/11 19:27:52 explorer Exp $ */
 
 #include <config.h>
 
@@ -90,10 +90,12 @@ isc_file_settime(const char *file, isc_time_t *time) {
 	times[0].tv_sec = times[1].tv_sec = (long)isc_time_seconds(time);
 
 	/*
-	 * Here is the real check for the high bit being set.
+	 * Solaris 5.6 gives this warning about the left shift:
+	 *	warning: integer overflow detected: op "<<"
+	 * if the U(nsigned) qualifier is not on the 1.
 	 */
 	if ((times[0].tv_sec &
-	     (1ULL << (sizeof(times[0].tv_sec) * CHAR_BIT - 1))) != 0)
+	     (1U << (sizeof(times[0].tv_sec) * CHAR_BIT - 1))) != 0)
 		return (ISC_R_RANGE);
 
 	/*
@@ -175,6 +177,17 @@ isc_file_remove(const char *filename) {
 	int r;
 	
 	r = unlink(filename);
+	if (r == 0)
+		return (ISC_R_SUCCESS);
+	else
+		return (isc__errno2result(errno));
+}
+
+isc_result_t
+isc_file_rename(const char *oldname, const char *newname) {
+	int r;
+
+	r = rename(oldname, newname);
 	if (r == 0)
 		return (ISC_R_SUCCESS);
 	else

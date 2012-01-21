@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.23 2000/07/07 19:43:10 bwelling Exp $ */
+/* $Id: getnameinfo.c,v 1.18.2.5 2000/07/10 22:23:24 gson Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.

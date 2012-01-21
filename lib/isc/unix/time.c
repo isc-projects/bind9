@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: time.c,v 1.26 2000/06/22 21:58:50 tale Exp $ */
+/* $Id: time.c,v 1.26.2.1 2000/09/18 18:50:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -257,7 +257,7 @@ isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 
 	result->seconds = t->seconds + i->seconds;
 	result->nanoseconds = t->nanoseconds + i->nanoseconds;
-	if (result->nanoseconds > NS_PER_S) {
+	if (result->nanoseconds >= NS_PER_S) {
 		result->seconds++;
 		result->nanoseconds -= NS_PER_S;
 	}

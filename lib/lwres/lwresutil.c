@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwresutil.c,v 1.21 2000/06/27 18:51:51 bwelling Exp $ */
+/* $Id: lwresutil.c,v 1.17.2.1 2000/06/26 21:59:42 gson Exp $ */
 
 #include <config.h>
 
@@ -179,14 +179,14 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 		goto out;
 	}
 
+ next_suffix:
+
 	/*
 	 * First, if the name ends in a dot, do an exact search.  Lie and
 	 * pretend we have already done a search.
 	 */
 	if (last_was_dot)
 		tried_search = 1;
-
- next_suffix:
 
 	if (tried_exact && tried_search) {
 		ret = LWRES_R_NOTFOUND;

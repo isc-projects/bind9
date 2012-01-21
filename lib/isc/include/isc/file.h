@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: file.h,v 1.7 2000/06/22 21:57:32 tale Exp $ */
+/* $Id: file.h,v 1.7.2.1 2000/09/11 19:27:50 explorer Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -157,6 +157,12 @@ isc_result_t
 isc_file_remove(const char *filename);
 /*
  * Remove the file named by 'filename'.
+ */
+
+isc_result_t
+isc_file_rename(const char *oldname, const char *newname);
+/*
+ * Rename the file 'oldname' to 'newname'.
  */
 
 /*

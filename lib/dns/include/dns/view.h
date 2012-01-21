@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: view.h,v 1.44 2000/06/26 22:09:49 gson Exp $ */
+/* $Id: view.h,v 1.43 2000/06/22 21:56:23 tale Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -484,9 +484,6 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
  *
  *	If 'sigrdataset' is not NULL, and there is a SIG rdataset which
  *	covers 'type', then 'sigrdataset' will be bound to it.
- *
- *	If the DNS_DBFIND_NOEXACT option is set, then the zonecut returned
- *	(if any) will be the deepest known ancestor of 'name'. 
  *
  * Requires:
  *

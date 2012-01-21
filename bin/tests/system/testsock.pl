@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: testsock.pl,v 1.7 2000/06/26 23:46:20 mws Exp $
+# $Id: testsock.pl,v 1.5.2.2 2000/07/10 04:51:51 gson Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 

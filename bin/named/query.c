@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.113 2000/07/06 02:27:26 bwelling Exp $ */
+/* $Id: query.c,v 1.109.2.12 2000/09/19 22:52:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
@@ -169,6 +170,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.qname = NULL;
 	client->query.qrdataset = NULL;
 	client->query.dboptions = 0;
+	client->query.fetchoptions = 0;
 	client->query.gluedb = NULL;
 }
 
@@ -449,6 +451,11 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	dns_acl_t *queryacl;
 	ns_dbversion_t *dbversion;
 	unsigned int ztoptions;
+	dns_zone_t *zone = NULL;
+	dns_db_t *db = NULL;
+
+	REQUIRE(zonep != NULL && *zonep == NULL);
+	REQUIRE(dbp != NULL && *dbp == NULL);
 
 	/*
 	 * Find a zone database to answer the query.
@@ -457,12 +464,12 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		DNS_ZTFIND_NOEXACT : 0;
 
 	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
-			     zonep);
+			     &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
-		result = dns_zone_getdb(*zonep, dbp);
+		result = dns_zone_getdb(zone, &db);
 
 	if (result != ISC_R_SUCCESS)
-		return (result);
+		goto fail;
 
 	/*
 	 * If the zone has an ACL, we'll check it, otherwise
@@ -478,19 +485,20 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	/*
 	 * Get the current version of this database.
 	 */
-	dbversion = query_findversion(client, *dbp, &new_zone);
-	if (dbversion == NULL)
-		return (DNS_R_SERVFAIL);
-	*versionp = dbversion->version;
+	dbversion = query_findversion(client, db, &new_zone);
+	if (dbversion == NULL) {
+		result = DNS_R_SERVFAIL;
+		goto fail;
+	}
 	if (new_zone) {
-		queryacl = dns_zone_getqueryacl(*zonep);
 		check_acl = ISC_TRUE;
 	} else if (!dbversion->queryok) {
-		return (DNS_R_REFUSED);
+		goto refuse;
 	} else {
 		check_acl = ISC_FALSE;
 	}
 
+	queryacl = dns_zone_getqueryacl(zone);
 	if (queryacl == NULL) {
 		queryacl = client->view->queryacl;
 		if ((client->query.attributes &
@@ -504,7 +512,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 			check_acl = ISC_FALSE;
 			if ((client->query.attributes &
 			     NS_QUERYATTR_QUERYOK) == 0)
-				return (DNS_R_REFUSED);
+				goto refuse;
 		} else {
 			/*
 			 * We haven't evaluated the view's queryacl yet.
@@ -517,6 +525,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
 		result = ns_client_checkacl(client, "query", queryacl,
 					    ISC_TRUE, log);
+
 		if (queryacl == client->view->queryacl) {
 			if (result == ISC_R_SUCCESS) {
 				/*
@@ -532,38 +541,57 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 			 * the NS_QUERYATTR_QUERYOK attribute is now valid.
 			 */
 			client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
-		} 
-	} else
-		result = ISC_R_SUCCESS;
+		}
+
+		if (result != ISC_R_SUCCESS)
+			goto refuse;
+	}
+
+	/* Approved. */
 
 	/*
 	 * Remember the result of the ACL check so we
 	 * don't have to check again.
 	 */
-	if (result == ISC_R_SUCCESS)
-		dbversion->queryok = ISC_TRUE;
-		
+	dbversion->queryok = ISC_TRUE;
+
+	/* Transfer ownership. */
+	*zonep = zone;
+	*dbp = db;
+	*versionp = dbversion->version;
+
+	return (ISC_R_SUCCESS);
+
+ refuse:
+	result = DNS_R_REFUSED;
+ fail:
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	if (db != NULL)
+		dns_db_detach(&db);
+
 	return (result);
 }
-
-
 
 static inline isc_result_t
 query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 {
 	isc_result_t result;
 	isc_boolean_t check_acl;
+	dns_db_t *db = NULL;
+
+	REQUIRE(dbp != NULL && *dbp == NULL);
 
 	/*
 	 * Find a cache database to answer the query.
-	 * This may fail with ISC_R_REFUSED if the client
+	 * This may fail with DNS_R_REFUSED if the client
 	 * is not allowed to use the cache.
 	 */
 
 	if (!USECACHE(client))
 		return (DNS_R_REFUSED);
-	dns_db_attach(client->view->cachedb, dbp);
-	
+	dns_db_attach(client->view->cachedb, &db);
+
 	if ((client->query.attributes &
 	     NS_QUERYATTR_QUERYOKVALID) != 0) {
 		/*
@@ -575,14 +603,14 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 		check_acl = ISC_FALSE;
 		if ((client->query.attributes &
 		     NS_QUERYATTR_QUERYOK) == 0)
-			return (DNS_R_REFUSED);
+			goto refuse;
 	} else {
 		/*
 		 * We haven't evaluated the view's queryacl yet.
 		 */
 		check_acl = ISC_TRUE;
 	}
-	
+
 	if (check_acl) {
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
 		result = ns_client_checkacl(client, "query", client->view->queryacl,
@@ -601,9 +629,23 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 		 * the NS_QUERYATTR_QUERYOK attribute is now valid.
 		 */
 		client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
-		
-	} else
-		result = ISC_R_SUCCESS;
+
+		if (result != ISC_R_SUCCESS)
+			goto refuse;
+	}
+
+	/* Approved. */
+
+	/* Transfer ownership. */
+	*dbp = db;
+
+	return (ISC_R_SUCCESS);
+
+ refuse:
+	result = DNS_R_REFUSED;
+
+	if (db != NULL)
+		dns_db_detach(&db);
 
 	return (result);
 }
@@ -1414,7 +1456,8 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 	/*
 	 * Find the SOA.
 	 */
-	result = dns_db_find(db, name, NULL, dns_rdatatype_soa, 0, 0, &node,
+	result = dns_db_find(db, name, NULL, dns_rdatatype_soa,
+			     client->query.dboptions, 0, &node,
 			     fname, rdataset, sigrdataset);
 	if (result != ISC_R_SUCCESS) {
 		/*
@@ -1423,6 +1466,24 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 		 */
 		eresult = DNS_R_SERVFAIL;
 	} else {
+		/*
+		 * Extract the SOA MINIMUM.
+		 */
+		dns_rdata_soa_t soa;
+		dns_rdata_t rdata;
+		result = dns_rdataset_first(rdataset);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		dns_rdataset_current(rdataset, &rdata);
+		dns_rdata_tostruct(&rdata, &soa, NULL);
+
+		/*
+		 * Add the SOA and its SIG to the response, with the
+		 * TTLs adjusted per RFC2308 section 3.
+		 */
+		if (rdataset->ttl > soa.minimum)
+			rdataset->ttl = soa.minimum;
+		if (sigrdataset->ttl > soa.minimum)
+			sigrdataset->ttl = soa.minimum;
 		query_addrrset(client, &name, &rdataset, &sigrdataset, NULL,
 			       DNS_SECTION_AUTHORITY);
 	}
@@ -1479,7 +1540,8 @@ query_addns(ns_client_t *client, dns_db_t *db) {
 	 * Find the NS rdataset.
 	 */
 	CTRACE("query_addns: calling dns_db_find");
-	result = dns_db_find(db, name, NULL, dns_rdatatype_ns, 0, 0, &node,
+	result = dns_db_find(db, name, NULL, dns_rdatatype_ns,
+			     client->query.dboptions, 0, &node,
 			     fname, rdataset, sigrdataset);
 	CTRACE("query_addns: dns_db_find complete");
 	if (result != ISC_R_SUCCESS) {
@@ -1548,6 +1610,8 @@ query_addcname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	dns_name_toregion(tname, &r);
 	rdata->data = r.base;
 	rdata->length = r.length;
+	rdata->rdclass = client->message->rdclass;
+	rdata->type = dns_rdatatype_cname;
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
@@ -1619,7 +1683,7 @@ query_addbestns(ns_client_t *client) {
 	 */
 	if (is_zone) {
 		result = dns_db_find(db, client->query.qname, version,
-				     dns_rdatatype_ns, 0,
+				     dns_rdatatype_ns, client->query.dboptions,
 				     client->now, &node, fname,
 				     rdataset, sigrdataset);
 		if (result != DNS_R_DELEGATION)
@@ -1638,7 +1702,8 @@ query_addbestns(ns_client_t *client) {
 			goto db_find;
 		}
 	} else {
-		result = dns_db_findzonecut(db, client->query.qname, 0,
+		result = dns_db_findzonecut(db, client->query.qname,
+					    client->query.dboptions,
 					    client->now, &node, fname,
 					    rdataset, sigrdataset);
 		if (result == ISC_R_SUCCESS) {
@@ -1679,8 +1744,9 @@ query_addbestns(ns_client_t *client) {
 		zsigrdataset = NULL;
 	}
 
-	if ((client->message->flags & DNS_MESSAGEFLAG_CD) == 0 &&
-	    rdataset->trust == dns_trust_pending)
+	if ((client->query.dboptions & DNS_DBFIND_PENDINGOK) == 0 &&
+	    (rdataset->trust == dns_trust_pending ||
+	     sigrdataset->trust == dns_trust_pending))
 		goto cleanup;
 
 	query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
@@ -1812,7 +1878,6 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 {
 	isc_result_t result;
 	dns_rdataset_t *rdataset, *sigrdataset;
-	unsigned int options = 0;
 
 	/*
 	 * We are about to recurse, which means that this client will
@@ -1854,7 +1919,8 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	result = dns_resolver_createfetch(client->view->resolver,
 					  client->query.qname,
 					  qtype, qdomain, nameservers,
-					  NULL, options, client->task,
+					  NULL, client->query.fetchoptions,
+					  client->task,
 					  query_resume, client,
 					  rdataset, sigrdataset,
 					  &client->query.fetch);
@@ -1914,7 +1980,8 @@ query_findparentkey(ns_client_t *client, dns_name_t *name,
 		goto cleanup;
 	}
 		
-	result = dns_db_find(pdb, name, pversion, dns_rdatatype_key, 0,
+	result = dns_db_find(pdb, name, pversion, dns_rdatatype_key,
+			     client->query.dboptions,
 			     client->now, &pnode,
 			     dns_fixedname_name(&pfoundname),
 			     &prdataset, &psigrdataset);
@@ -2148,9 +2215,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	/*
 	 * Now look for an answer in the database.
 	 */
-	result = dns_db_find(db, client->query.qname, version, type, 0,
-			     client->now, &node, fname, rdataset,
-			     sigrdataset);
+	result = dns_db_find(db, client->query.qname, version, type,
+			     client->query.dboptions, client->now,
+			     &node, fname, rdataset, sigrdataset);
 
 	/*
 	 * We interrupt our normal query processing to bring you this special
@@ -2814,6 +2881,10 @@ log_query(ns_client_t *client) {
 	char text[256];
 	isc_region_t r;
 	dns_rdataset_t *rdataset;
+	int level = ISC_LOG_DEBUG(1);
+
+	if (! isc_log_wouldlog(ns_g_lctx, level))
+		return;
 
 	/* XXXRTH  Allow this to be turned off! */
 
@@ -2833,7 +2904,7 @@ log_query(ns_client_t *client) {
 	}
 	isc_buffer_usedregion(&b, &r);
 	ns_client_log(client, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
-		      ISC_LOG_DEBUG(1), "query: %s%.*s", namebuf,
+		      level, "query: %s%.*s", namebuf,
 		      (int)r.length, (char *)r.base);
 }
 
@@ -2949,6 +3020,16 @@ ns_query_start(ns_client_t *client) {
 	}
 
 	/*
+	 * If the client has requested that DNSSEC checking be disabled,
+	 * allow lookups to return pending data and instruct the resolver
+	 * to return data before validation has completed.
+	 */
+	if (message->flags & DNS_MESSAGEFLAG_CD) {
+		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
+		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
+	}
+
+	/*
 	 * This is an ordinary query.
 	 */
 	result = dns_message_reply(message, ISC_TRUE);
@@ -2966,9 +3047,6 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Set AD.  We need only clear it if we add "pending" data to
 	 * a response.
-	 *
-	 * Note: as currently written, the server does not return "pending"
-	 * data even if a client says it's OK to do so.
 	 */
 	message->flags |= DNS_MESSAGEFLAG_AD;
 

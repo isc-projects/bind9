@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: conf.sh.in,v 1.7 2000/07/06 19:37:47 mws Exp $
+# $Id: conf.sh.in,v 1.4.2.1 2000/07/10 04:51:44 gson Exp $
 
 # 
 # Common configuration data for system tests, to be sourced into

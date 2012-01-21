@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
@@ -15,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.142 2000/06/22 21:54:19 tale Exp $ */
+/* $Id: adb.c,v 1.142.2.1 2000/10/20 21:45:46 gson Exp $ */
 
 /*
  * Implementation notes
@@ -416,7 +417,10 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
 				 (r) == DNS_R_NCACHENXRRSET)
 #define AUTH_NX(r)		((r) == DNS_R_NXDOMAIN || \
 				 (r) == DNS_R_NXRRSET)
-
+#define NXDOMAIN_RESULT(r)	((r) == DNS_R_NXDOMAIN || \
+  				 (r) == DNS_R_NCACHENXDOMAIN)
+#define NXRRSET_RESULT(r)	((r) == DNS_R_NCACHENXRRSET || \
+				 (r) == DNS_R_NXRRSET)
 
 static void
 DP(int level, const char *format, ...) {
@@ -2537,10 +2541,17 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		}
 
 		/*
-		 * Listen to negative cache hints, and don't start
-		 * another query.
+		 * If the name doesn't exist at all, don't bother with
+		 * v6 queries; they won't work.
+		 *
+		 * If the name does exist but we didn't get our data, go
+		 * ahead and try a6.
+		 *
+		 * If the result is neigher of these, try a fetch for A.
 		 */
-		if (NCACHE_RESULT(result) || AUTH_NX(result))
+		if (NXDOMAIN_RESULT(result))
+			goto fetch;
+		else if (NXRRSET_RESULT(result))
 			goto v6;
 
 		wanted_fetches |= DNS_ADBFIND_INET;
@@ -2560,6 +2571,47 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
 		/*
 		 * Did we get a CNAME or DNAME?
+		 */
+		if (result == DNS_R_ALIAS) {
+			DP(DEF_LEVEL,
+			   "dns_adb_createfind: name %p is an alias",
+			   adbname);
+			alias = ISC_TRUE;
+			goto post_copy;
+		}
+
+		/*
+		 * If the name doesn't exist at all, jump to the fetch
+		 * code.
+		 *
+		 * If the name exists but the A6 doesn't, try starting
+		 * an aaaa database search.
+		 *
+		 * If neither of these are true, say we want an A6 fetch
+		 * and perhaps we'll get lucky.
+		 */
+		if (NXDOMAIN_RESULT(result))
+			goto fetch;
+		else if (NXRRSET_RESULT(result))
+			goto aaaa;
+		else {
+			wanted_fetches |= DNS_ADBFIND_INET6;
+			goto fetch;
+		}
+
+	    aaaa:
+		result = dbfind_name(adbname, now, dns_rdatatype_aaaa);
+		if (result == ISC_R_SUCCESS) {
+			DP(DEF_LEVEL,
+			   "dns_adb_createfind: found AAAA for name %p",
+			   adbname);
+			goto fetch;
+		}
+
+		/*
+		 * Did we get a CNAME or DNAME?  This should have hit
+		 * during the A6 query, but we'll reproduce it here Just
+		 * In Case.
 		 */
 		if (result == DNS_R_ALIAS) {
 			DP(DEF_LEVEL,
@@ -3211,7 +3263,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 		 * for now.
 		 */
 		DP(NCACHE_LEVEL,
-		   "adb name %p: Caching auth negative entry for AAAA",
+		   "adb name %p: Caching auth negative entry for A6",
 		   adbname);
 		adbname->expire_v6 = now + 30;
 		break;

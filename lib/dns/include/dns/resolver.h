@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.28 2000/06/26 22:09:37 gson Exp $ */
+/* $Id: resolver.h,v 1.27.2.1 2000/07/27 21:27:02 gson Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -89,6 +89,7 @@ typedef struct dns_fetchevent {
 #define DNS_FETCHOPT_RECURSIVE		0x04	     /* Set RD? */
 #define DNS_FETCHOPT_NOEDNS0		0x08	     /* Do not use EDNS. */
 #define DNS_FETCHOPT_FORWARDONLY	0x10	     /* Only use forwarders. */
+#define DNS_FETCHOPT_NOVALIDATE		0x20	     /* Disable validation. */
 
 /*
  * XXXRTH  Should this API be made semi-private?  (I.e.
@@ -273,13 +274,9 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  *
  *	This call starts a query for 'name', type 'type'.
  *
- *	The 'domain' is a parent domain of 'name' for which
- *	a set of name servers 'nameservers' is known.  If no
- *	such name server information is available, set 
- * 	'domain' and 'nameservers' to NULL.
- *
- *	'forwarders' is unimplemented, and subject to change when
- *	we figure out how selective forwarding will work.
+ *	XXXRTH  Explain query domain and nameservers.
+ *		'forwarders' is unimplemented, and subject to change when
+ *		we figure out how selective forwarding will work.
  *
  *	When the fetch completes (successfully or otherwise), a 
  *	DNS_EVENT_FETCHDONE event with action 'action' and arg 'arg' will be

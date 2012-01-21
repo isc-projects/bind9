@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.14 2000/07/01 01:41:53 tale Exp $ */
+/* $Id: ipv6.h,v 1.13.2.1 2000/07/03 21:57:55 gson Exp $ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1

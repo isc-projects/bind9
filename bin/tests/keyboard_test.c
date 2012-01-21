@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: keyboard_test.c,v 1.4 2000/06/28 16:19:57 explorer Exp $ */
+/* $Id: keyboard_test.c,v 1.3.2.1 2000/06/28 16:45:29 gson Exp $ */
 
 #include <config.h>
 

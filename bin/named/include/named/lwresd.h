@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwresd.h,v 1.3 2000/06/28 00:06:25 bwelling Exp $ */
+/* $Id: lwresd.h,v 1.2.2.1 2000/06/28 00:19:06 gson Exp $ */
 
 #ifndef NAMED_LWRESD_H
 #define NAMED_LWRESD_H 1

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: context.c,v 1.26 2000/07/07 19:10:00 bwelling Exp $ */
+/* $Id: context.c,v 1.24 2000/06/22 21:59:23 tale Exp $ */
 
 #include <config.h>
 
@@ -90,7 +90,7 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 	ctx->sock = -1;
 
 	ctx->timeout = LWRES_DEFAULT_TIMEOUT;
-	ctx->serial = time(NULL); /* XXXMLG or BEW */
+	ctx->serial = (lwres_uint32_t)ctx; /* XXXMLG */
 
 	if ((flags & LWRES_CONTEXT_SERVERMODE) == 0)
 		(void)context_connect(ctx); /* XXXMLG */
@@ -154,7 +154,7 @@ static void *
 lwres_malloc(void *arg, size_t len) {
 	void *mem;
 
-	UNUSED(arg);
+	(void)arg;
 
 	mem = malloc(len);
 	if (mem == NULL)
@@ -167,7 +167,7 @@ lwres_malloc(void *arg, size_t len) {
 
 static void
 lwres_free(void *arg, void *mem, size_t len) {
-	UNUSED(arg);
+	(void)arg;
 
 	memset(mem, 0xa9, len);
 	free(mem);
@@ -207,6 +207,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 {
 	int ret;
 	int ret2;
+	int flags;
 	struct sockaddr_in sin;
 	LWRES_SOCKADDR_LEN_T fromlen;
 	fd_set readfds;
@@ -231,9 +232,21 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 		return (LWRES_R_IOERROR);
 
  again:
+	flags = fcntl(ctx->sock, F_GETFL, 0);
+	flags |= O_NONBLOCK;
+	ret = fcntl(ctx->sock, F_SETFL, flags);
+	if (ret < 0)
+		return (LWRES_R_IOERROR);
+
 	FD_ZERO(&readfds);
 	FD_SET(ctx->sock, &readfds);
 	ret2 = select(ctx->sock + 1, &readfds, NULL, NULL, &timeout);
+
+	flags = fcntl(ctx->sock, F_GETFL, 0);
+	flags &= ~O_NONBLOCK;
+	ret = fcntl(ctx->sock, F_SETFL, flags);
+	if (ret < 0)
+		return (LWRES_R_IOERROR);
 
 	/*
 	 * What happened with select?

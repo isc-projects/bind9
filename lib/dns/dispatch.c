@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.58 2000/07/04 01:48:10 tale Exp $ */
+/* $Id: dispatch.c,v 1.57.2.4 2000/09/08 22:16:49 gson Exp $ */
 
 #include <config.h>
 
@@ -175,6 +175,9 @@ mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
 
+	if (! isc_log_wouldlog(dns_lctx, level))
+		return;
+
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	va_end(ap);
@@ -189,6 +192,9 @@ dispatch_log(dns_dispatch_t *disp, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
 
+	if (! isc_log_wouldlog(dns_lctx, level))
+		return;
+	
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	va_end(ap);
@@ -205,6 +211,9 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	char msgbuf[2048];
 	char peerbuf[256];
 	va_list ap;
+
+	if (! isc_log_wouldlog(dns_lctx, level))
+		return;
 
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
@@ -521,14 +530,14 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			return;
 		}
 
-		dispatch_log(disp, LVL(10),
-			     "odd socket result in udp_recv():  %s\n",
-			     ev->result);
-
 		/*
 		 * otherwise, on strange error, log it and restart.
 		 * XXXMLG
 		 */
+		dispatch_log(disp, ISC_LOG_ERROR,
+			     "odd socket result in udp_recv(): %s",
+			     isc_result_totext(ev->result));
+
 		goto restart;
 	}
 
@@ -631,11 +640,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 /*
  * General flow:
  *
- * If I/O result == CANCELED, free the buffer and notify everyone as
- * the various queues drain.
- *
- * If I/O is error (not canceled and not success) log it, free the buffer,
- * and restart.
+ * If I/O result == CANCELED, EOF, or error, free the buffer
+ * and notify everyone as the various queues drain.
  *
  * If query:
  *	if no listeners: free the buffer, restart.
@@ -688,18 +694,29 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		tcpmsg->result = ISC_R_CANCELED;
 	}
 
-	switch (tcpmsg->result) {
-	case ISC_R_SUCCESS:
-		break;
+	if (tcpmsg->result != ISC_R_SUCCESS) {
+		switch (tcpmsg->result) {
+		case ISC_R_CANCELED:
+			break;
+			
+		case ISC_R_EOF:
+			dispatch_log(disp, LVL(90), "shutting down on EOF");
+			disp->shutdown_why = ISC_R_EOF;
+			disp->shutting_down = 1;
+			do_cancel(disp, NULL);
+			break;
 
-	case ISC_R_EOF:
-		dispatch_log(disp, LVL(90), "shutting down on EOF");
-		disp->shutdown_why = ISC_R_EOF;
-		disp->shutting_down = 1;
-		do_cancel(disp, NULL);
-		/* FALLTHROUGH */
+		default:
+			dispatch_log(disp, ISC_LOG_ERROR,
+				     "shutting down due to TCP "
+				     "receive error: %s",
+				     isc_result_totext(tcpmsg->result));
+			disp->shutdown_why = ISC_R_EOF;
+			disp->shutting_down = 1;
+			do_cancel(disp, NULL);
+			break;
+		}
 
-	case ISC_R_CANCELED:
 		/*
 		 * The event is statically allocated in the tcpmsg	
 		 * structure, and destroy_disp() frees the tcpmsg, so we must
@@ -721,15 +738,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			if (killit)
 				destroy_mgr(&mgr);
 		}
-
 		return;
-
-	default:
-		/*
-		 * otherwise, on strange error, log it and restart.
-		 * XXXMLG
-		 */
-		goto restart;
 	}
 
 	dispatch_log(disp, LVL(90), "result %d, length == %d, addr = %p",
@@ -761,9 +770,6 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	queue_request = ISC_FALSE;
 	queue_response = ISC_FALSE;
 	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
-		/*
-		 * Query.
-		 */
 		resp = ISC_LIST_HEAD(disp->rq_handlers);
 		while (resp != NULL) {
 			if (resp->item_out == ISC_FALSE)
@@ -775,10 +781,9 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		rev = allocate_event(disp);
 		if (rev == NULL)
 			goto restart;
+		/* query */
 	} else {
- 		/*
-		 * Response.
-		 */
+ 		/* response */
 		bucket = dns_hash(disp, &tcpmsg->address, id);
 		resp = bucket_search(disp, &tcpmsg->address, id, bucket);
 		dispatch_log(disp, LVL(90),
@@ -1345,7 +1350,6 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(isc_socket_gettype(sock) == isc_sockettype_tcp);
 	REQUIRE((attributes & DNS_DISPATCHATTR_TCP) != 0);
-	REQUIRE((attributes & DNS_DISPATCHATTR_UDP) == 0);
 
 	attributes |= DNS_DISPATCHATTR_PRIVATE;  /* XXXMLG */
 
@@ -1379,6 +1383,8 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	dns_tcpmsg_init(mgr->mctx, disp->socket, &disp->tcpmsg);
 	disp->tcpmsg_valid = 1;
 
+	attributes &= ~DNS_DISPATCHATTR_UDP;
+	attributes |= DNS_DISPATCHATTR_TCP;
 	disp->attributes = attributes;
 
 	/*

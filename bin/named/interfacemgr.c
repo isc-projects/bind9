@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.45 2000/06/30 02:48:06 gson Exp $ */
+/* $Id: interfacemgr.c,v 1.44.2.2 2000/07/10 23:32:02 gson Exp $ */
 
 #include <config.h>
 

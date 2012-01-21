@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.36 2000/06/09 22:13:23 brister Exp $ */
+/* $Id: confview.c,v 1.36.2.2 2000/10/17 01:02:20 gson Exp $ */
 
 #include <config.h>
 
@@ -348,20 +348,6 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'fetch-glue' is not yet "
-				      "implemented");
-
-
-		if (dns_c_view_getnotify(elem, &bbval) != ISC_R_NOTFOUND)
-			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view 'notify' is not yet "
-				      "implemented");
-
-
-		if (dns_c_view_getrfc2308type1(elem, &bbval) != ISC_R_NOTFOUND)
-			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view 'rfc2308-type1' is not yet "
 				      "implemented");
 
 		if (dns_c_view_getrfc2308type1(elem, &bbval) != ISC_R_NOTFOUND)
@@ -1052,10 +1038,12 @@ dns_c_view_getalsonotify(dns_c_view_t *view,
 {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(ipl != NULL);
-	
-	*ipl = view->also_notify;
 
-	return (*ipl == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	if (view->also_notify == NULL)
+		return (ISC_R_NOTFOUND);
+
+	dns_c_iplist_attach(view->also_notify, ipl);
+	return (ISC_R_SUCCESS);
 }
 
 

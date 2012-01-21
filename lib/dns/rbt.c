@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.84 2000/07/06 23:54:43 tale Exp $ */
+/* $Id: rbt.c,v 1.83.2.1 2000/07/10 23:54:33 gson Exp $ */
 
 /* Principal Authors: DCL */
 

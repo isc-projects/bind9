@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: db.h,v 1.50 2000/06/22 21:55:33 tale Exp $ */
+/* $Id: db.h,v 1.50.2.1 2000/07/24 23:23:16 gson Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -1108,10 +1108,6 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *	allowed.
  *
  *	If 'covers' != 0, 'type' must be SIG.
- *
- * Ensures:
- *
- *	On success, 'rdataset' is associated with the found rdataset.
  *
  * Returns:
  *

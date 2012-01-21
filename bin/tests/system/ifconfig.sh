@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.18 2000/06/29 15:28:23 marka Exp $
+# $Id: ifconfig.sh,v 1.17.2.1 2000/07/10 04:51:47 gson Exp $
 
 #
 # Set up interface aliases for bind9 system tests.

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.101 2000/06/21 22:44:10 tale Exp $ */
+/* $Id: rdata.c,v 1.101.2.4 2000/09/26 21:40:55 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -162,6 +162,9 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 	       dns_rdatacallbacks_t *callbacks, const char *name,
 	       unsigned long line, isc_token_t *token, isc_result_t result);
 
+static void
+fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks);
+
 static isc_result_t
 rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	     isc_buffer_t *target);
@@ -225,8 +228,10 @@ static const char decdigits[] = "0123456789";
 	{ dns_tsigerror_badalg, "BADALG", 0}, \
 	{ 0, NULL, 0 }
 
+/* RFC2538 section 2.1 */
+
 #define CERTNAMES \
-	{ 1, "SKIX", 0}, \
+	{ 1, "PKIX", 0}, \
 	{ 2, "SPKI", 0}, \
 	{ 3, "PGP", 0}, \
 	{ 253, "URI", 0}, \
@@ -438,6 +443,12 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 
 	REQUIRE(rdata != NULL);
 
+	/*
+	 * Some DynDNS meta-RRs have empty rdata.
+	 */
+	if (rdata->length == 0)
+		return (ISC_R_SUCCESS);
+
 	st = *target;
 
 	TOWIRESWITCH
@@ -536,8 +547,11 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			fromtext_error(callback, callbacks, name, line,
 				       &token, result);
 			break;
-		} else
+		} else {
+			if (token.type == isc_tokentype_eof)
+				fromtext_warneof(lexer, callbacks);
 			break;
+		}
 	} while (1);
 
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
@@ -805,6 +819,12 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 		COMPARE("any", META, dns_rdataclass_any);
 		break;
 	case 'c':
+		/*
+		 * RFC1035 says the mnemonic for the CHAOS class is CH,
+		 * but historical BIND practice is to call it CHAOS.
+		 * We will accept both forms, but only generate CH.
+		 */
+		COMPARE("ch", 0, dns_rdataclass_chaos);
 		COMPARE("chaos", 0, dns_rdataclass_chaos);
 		break;
 	case 'h':
@@ -834,7 +854,7 @@ dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 	case dns_rdataclass_any:
 		return (str_totext("ANY", target));
 	case dns_rdataclass_chaos:
-		return (str_totext("CHAOS", target));
+		return (str_totext("CH", target));
 	case dns_rdataclass_hs:
 		return (str_totext("HS", target));
 	case dns_rdataclass_in:
@@ -1663,6 +1683,15 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *fmt,
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
+}
+
+static void
+fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks) {
+	if (isc_lex_isfile(lexer) && callbacks != NULL)
+		(*callbacks->warn)(callbacks,
+				   "%s:%lu: file does not end with newline",
+				    isc_lex_getsourcename(lexer),
+				    isc_lex_getsourceline(lexer));
 }
 
 static void

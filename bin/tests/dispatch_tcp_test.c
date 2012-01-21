@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch_tcp_test.c,v 1.33 2000/06/28 16:19:55 explorer Exp $ */
+/* $Id: dispatch_tcp_test.c,v 1.32.2.1 2000/06/28 16:45:26 gson Exp $ */
 
 #include <config.h>
 

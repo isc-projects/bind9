@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.24 2000/06/22 21:56:17 tale Exp $ */
+/* $Id: tsig.h,v 1.24.2.4 2000/07/28 23:39:23 gson Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -42,7 +42,7 @@ extern dns_name_t *dns_tsig_hmacmd5_name;
 #define DNS_TSIG_FUDGE			300
 
 struct dns_tsig_keyring {
-	ISC_LIST(dns_tsigkey_t) keys;
+	dns_rbt_t *keys;
 	isc_rwlock_t lock;
 	isc_mem_t *mctx;
 }; 
@@ -61,10 +61,8 @@ struct dns_tsigkey {
 	dns_tsig_keyring_t	*ring;		/* the enclosing keyring */
 	isc_mutex_t		lock;
 	/* Locked */
-	isc_boolean_t		deleted;	/* has this been deleted? */
 	isc_uint32_t		refs;		/* reference counter */
 	/* Unlocked */
-	ISC_LINK(dns_tsigkey_t)	link;
 };
 
 #define dns_tsigkey_empty(tsigkey) ((tsigkey)->key == NULL)
@@ -84,16 +82,19 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  *	not NULL, *key will contain a copy of the key.  The keys validity
  *	period is specified by (inception, expire), and will not expire if
  *	inception == expire.  If the key was generated, the creating identity,
- *	if there is one, should be in the creator parameter.
+ *	if there is one, should be in the creator parameter.  Specifying an
+ *	unimplemented algorithm will cause failure only if length > 0; this
+ *	allows a transient key with an invalid algorithm to exist long enough
+ *	to generate a BADKEY response.
  *
  *	Requires:
  *		'name' is a valid dns_name_t
  *		'algorithm' is a valid dns_name_t
  *		'secret' is a valid pointer
- *		'length' is an integer greater than 0
+ *		'length' is an integer >= 0
  *		'creator' points to a valid dns_name_t or is NULL
  *		'mctx' is a valid memory context
- *		'ring' is a valid TSIG keyring
+ *		'ring' is a valid TSIG keyring or NULL
  *		'key' or '*key' must be NULL
  *
  *	Returns:
@@ -116,25 +117,25 @@ dns_tsigkey_attach(dns_tsigkey_t *source, dns_tsigkey_t **targetp);
  */
 
 void
-dns_tsigkey_detach(dns_tsigkey_t **key);
+dns_tsigkey_detach(dns_tsigkey_t **keyp);
 /*
  *	Detaches from the tsig key structure pointed to by '*key'.
  *
  *	Requires:
- *		'key' not NULL and '*key' is a valid TSIG key
+ *		'keyp' is not NULL and '*keyp' is a valid TSIG key
  *
  *	Ensures:
- *		'key' points to NULL
+ *		'keyp' points to NULL
  */
 
 void
 dns_tsigkey_setdeleted(dns_tsigkey_t *key);
 /*
- *	Marks this key as deleted.  It will be deleted when no references
- *	exist.
+ *	Prevents this key from being used again.  It will be deleted when
+ *	no references *	exist.
  *
  *	Requires:
- *		'key' is a valid TSIG key
+ *		'key' is a valid TSIG key on a keyring
  */
 
 isc_result_t
@@ -157,7 +158,7 @@ dns_tsig_sign(dns_message_t *msg);
 
 isc_result_t
 dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
-		dns_tsig_keyring_t *sring, dns_tsig_keyring_t *dring);
+		dns_tsig_keyring_t *ring1, dns_tsig_keyring_t *ring2);
 /*
  *	Verifies the TSIG record in this message
  *
@@ -167,8 +168,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
  *		'msg->tsigkey' is a valid TSIG key if this is a response
  *		'msg->tsig' is NULL
  *		'msg->querytsig' is not NULL if this is a response
- *		'sring' is a valid keyring or NULL
- *		'dring' is a valid keyring or NULL
+ *		'ring1' and 'ring2' are each either a valid keyring or NULL
  *
  *	Returns:
  *		ISC_R_SUCCESS
@@ -201,13 +201,13 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 
 
 isc_result_t
-dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring);
+dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
 /*
  *	Create an empty TSIG key ring.
  *
  *	Requires:
  *		'mctx' is not NULL
- *		'ring' is not NULL, and '*ring' is NULL
+ *		'ringp' is not NULL, and '*ringp' is NULL
  *
  *	Returns:
  *		ISC_R_SUCCESS
@@ -216,12 +216,12 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring);
 
 
 void
-dns_tsigkeyring_destroy(dns_tsig_keyring_t **ring);
+dns_tsigkeyring_destroy(dns_tsig_keyring_t **ringp);
 /*
  *	Destroy a TSIG key ring.
  *
  *	Requires:
- *		'ring' is not NULL
+ *		'ringp' is not NULL
  */
 
 ISC_LANG_ENDDECLS

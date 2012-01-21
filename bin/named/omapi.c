@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.13 2000/05/08 14:32:57 tale Exp $ */
+/* $Id: omapi.c,v 1.13.2.1 2000/07/11 17:23:04 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -41,9 +41,6 @@ typedef struct control_object {
 
 static control_object_t control;
 static omapi_objecttype_t *control_type;
-
-static void
-listen_done(isc_task_t *task, isc_event_t *event);
 
 #undef REGION_FMT
 /*
@@ -171,75 +168,4 @@ ns_omapi_init(void) {
 	}
 
 	return (result);
-}
-
-isc_result_t
-ns_omapi_listen(omapi_object_t **managerp) {
-	omapi_object_t *manager = NULL;
-	isc_result_t result;
-	isc_sockaddr_t sockaddr;
-	isc_netaddr_t netaddr;
-	dns_acl_t *acl;		/* XXXDCL make a parameter */
-	dns_aclelement_t elt;
-	struct in_addr inaddr4;
-
-	REQUIRE(managerp != NULL && *managerp == NULL);
-
-	/*
-	 * Listen on localhost (127.0.0.1).
-	 * XXXDCL should be configurable.
-	 */
-	inaddr4.s_addr = htonl(0x7F000001);
-	isc_sockaddr_fromin(&sockaddr, &inaddr4, NS_OMAPI_PORT);
-
-	/*
-	 * XXXDCL this is not right either
-	 */
-	isc_netaddr_fromsockaddr(&netaddr, &sockaddr);
-	elt.type = dns_aclelementtype_ipprefix;
-	elt.negative = ISC_FALSE;
-	elt.u.ip_prefix.address = netaddr;
-	elt.u.ip_prefix.prefixlen = 32;
-
-	result = dns_acl_create(ns_g_mctx, 1, &acl);
-
-	if (result == ISC_R_SUCCESS)
-		result = dns_acl_appendelement(acl, &elt);
-
-	if (result == ISC_R_SUCCESS)
-		/*
-		 * Create a generic object to be the manager for handling
-		 * incoming server connections.
-		 */
-		result = omapi_object_create(&manager, NULL, 0);
-
-	if (result == ISC_R_SUCCESS) {
-		/*
-		 * Start listening for connections.
-		 */
-		result = omapi_protocol_listen(manager, &sockaddr, acl, 1,
-					       listen_done, ns_g_omapimgr);
-		dns_acl_detach(&acl);
-	}
-
-	if (result == ISC_R_SUCCESS)
-		*managerp = manager;
-
-	else
-		if (manager != NULL)
-			omapi_object_dereference(&manager);
-
-	return (result);
-}
-
-static void
-listen_done(isc_task_t *task, isc_event_t *event) {
-	isc_event_free(&event);
-
-	UNUSED(task);
-
-	if (ns_g_omapimgr != NULL)
-		omapi_object_dereference(&ns_g_omapimgr);
-
-	omapi_lib_destroy();
 }

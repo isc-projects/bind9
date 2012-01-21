@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.32 2000/06/30 15:39:23 bwelling Exp $ */
+/* $Id: confcommon.c,v 1.31.2.1 2000/06/30 15:51:46 gson Exp $ */
 
 #include <config.h>
 

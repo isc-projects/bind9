@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: check-instincludes.sh,v 1.4 2000/07/03 17:25:30 gson Exp $
+# $Id: check-instincludes.sh,v 1.2.2.2 2000/07/03 17:51:30 gson Exp $
 
 #
 # Check the installed bind9 header files to make sure that no header

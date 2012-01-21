@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: server.h,v 1.32 2000/06/22 21:49:51 tale Exp $ */
+/* $Id: server.h,v 1.32.2.1 2000/07/26 23:51:35 bwelling Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -30,6 +30,7 @@
 
 #define NS_EVENTCLASS		ISC_EVENTCLASS(0x4E43)
 #define NS_EVENT_RELOAD		(NS_EVENTCLASS + 0)
+#define NS_EVENT_CLIENTCONTROL	(NS_EVENTCLASS + 1)
 
 /*
  * Name server state.  Better here than in lots of separate global variables.

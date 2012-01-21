@@ -1,49 +1,50 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
- * Permission to use, copy, modify, and distribute this software for any
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2001  Internet Software Consortium.
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
- * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- * SOFTWARE.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.h,v 1.4 2000/06/22 21:56:18 tale Exp $ */
+/* $Id: tsigconf.h,v 1.18 2009/06/11 23:47:55 tbox Exp $ */
 
-#ifndef DNS_TSIGCONF_H
-#define DNS_TSIGCONF_H 1
+#ifndef NS_TSIGCONF_H
+#define NS_TSIGCONF_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 #include <isc/lang.h>
 
-#include <dns/confctx.h>
-
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
-			   isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
-/*
+ns_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
+			  isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
+/*%<
  * Create a TSIG key ring and configure it according to the 'key'
- * statements in 'confview' and 'confctx'.
+ * statements in the global and view configuration objects.
  *
  *	Requires:
- *		'confctx' is a valid configuration context.
- *		'mctx' is not NULL
- *		'ring' is not NULL, and '*ring' is NULL
+ *	\li	'config' is not NULL.
+ *	\li	'vconfig' is not NULL.
+ *	\li	'mctx' is not NULL
+ *	\li	'ringp' is not NULL, and '*ringp' is NULL
  *
  *	Returns:
- *		ISC_R_SUCCESS
- *		ISC_R_NOMEMORY
+ *	\li	ISC_R_SUCCESS
+ *	\li	ISC_R_NOMEMORY
  */
- 
+
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_TSIGCONF_H */
+#endif /* NS_TSIGCONF_H */

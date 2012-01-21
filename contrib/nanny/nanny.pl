@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: nanny.pl,v 1.5 2000/06/27 00:31:36 mws Exp $
+# $Id: nanny.pl,v 1.4.2.1 2000/06/27 00:38:24 gson Exp $
 
 # A simple nanny to make sure named stays running.
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.20 2000/06/27 23:13:26 bwelling Exp $ */
+/* $Id: gethost.c,v 1.17.2.3 2000/08/26 02:16:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,49 +31,43 @@
 
 #define LWRES_ALIGNBYTES (sizeof(char *) - 1)
 #define LWRES_ALIGN(p) \
-	(((unsigned long)(p) + LWRES_ALIGNBYTES) &~ LWRES_ALIGNBYTES)
+	(((unsigned int)(p) + LWRES_ALIGNBYTES) &~ LWRES_ALIGNBYTES)
 
 static struct hostent *he = NULL;
 static int copytobuf(struct hostent *, struct hostent *, char *, int);
 
 struct hostent *
 lwres_gethostbyname(const char *name) {
-	int error;
 
 	if (he != NULL)
 		lwres_freehostent(he);
 
-	he = lwres_getipnodebyname(name, AF_INET, 0, &error);
-	lwres_h_errno = error;
+	he = lwres_getipnodebyname(name, AF_INET, 0, &lwres_h_errno);
 	return (he);
 }
 
 struct hostent *
 lwres_gethostbyname2(const char *name, int af) {
-	int error;
-
 	if (he != NULL)
 		lwres_freehostent(he);
 
-	he = lwres_getipnodebyname(name, af, 0, &error);
-	lwres_h_errno = error;
+	he = lwres_getipnodebyname(name, af, 0, &lwres_h_errno);
 	return (he);
 }
 
 struct hostent *
 lwres_gethostbyaddr(const char *addr, int len, int type) {
-	int error;
 
 	if (he != NULL) 
 		lwres_freehostent(he);
 
-	he = lwres_getipnodebyaddr(addr, len, type, &error);
-	lwres_h_errno = error;
+	he = lwres_getipnodebyaddr(addr, len, type, &lwres_h_errno);
 	return (he);
 }
 
 struct hostent *
 lwres_gethostent(void) {
+
 	if (he != NULL)
 		lwres_freehostent(he);
 
@@ -82,10 +76,8 @@ lwres_gethostent(void) {
 
 void
 lwres_sethostent(int stayopen) {
-	/*
-	 * Empty.
-	 */
-	UNUSED(stayopen);
+	/* empty */
+	(void)stayopen;
 }
 
 void
@@ -138,19 +130,19 @@ lwres_gethostbyaddr_r(const char *addr, int len, int type,
 
 struct hostent  *
 lwres_gethostent_r(struct hostent *resbuf, char *buf, int buflen, int *error) {
-	UNUSED(resbuf);
-	UNUSED(buf);
-	UNUSED(buflen);
+	(void)resbuf;
+	(void)buf;
+	(void)buflen;
 	*error = 0;
 	return (NULL);
 }
 
 void
 lwres_sethostent_r(int stayopen) {
+	(void)stayopen;
 	/*
 	 * Empty.
 	 */
-	UNUSED(stayopen);
 }
 
 void
@@ -198,11 +190,10 @@ copytobuf(struct hostent *he, struct hostent *hptr, char *buf, int buflen) {
 	 * Copy address list.
 	 */
         hptr->h_addr_list = ptr;
-        for (i = 0; he->h_addr_list[i]; i++ , ptr++) {
+        for (i = 0; he->h_addr_list[i]; i++, ptr++) {
                 memcpy(cp, he->h_addr_list[i], n);
                 hptr->h_addr_list[i] = cp;
                 cp += n;
-                i++;
         }
         hptr->h_addr_list[i] = NULL;
         ptr++;
@@ -219,7 +210,7 @@ copytobuf(struct hostent *he, struct hostent *hptr, char *buf, int buflen) {
 	 * Copy aliases.
 	 */
         hptr->h_aliases = ptr;
-        for (i = 0 ; he->h_aliases[i]; i++) {
+        for (i = 0; he->h_aliases[i]; i++) {
                 n = strlen(he->h_aliases[i]) + 1;
                 strcpy(cp, he->h_aliases[i]);
                 hptr->h_aliases[i] = cp;

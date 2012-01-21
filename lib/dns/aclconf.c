@@ -15,10 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.18 2000/06/22 21:54:17 tale Exp $ */
+/* $Id: aclconf.c,v 1.18.2.2 2000/08/11 02:38:16 bwelling Exp $ */
 
 #include <config.h>
 
+#include <isc/mem.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
@@ -40,7 +41,6 @@ dns_aclconfctx_destroy(dns_aclconfctx_t *ctx) {
 	     dacl = next)
 	{
 		next = ISC_LIST_NEXT(dacl, nextincache);
-		dacl->name = NULL;
 		dns_acl_detach(&dacl);
 	}
 }
@@ -61,7 +61,7 @@ convert_named_acl(char *aclname, dns_c_ctx_t *cctx,
 	{
 		if (strcmp(aclname, dacl->name) == 0) {
 			dns_acl_attach(dacl, target);
-			return ISC_R_SUCCESS;
+			return (ISC_R_SUCCESS);
 		}
 	}
 	/* Not yet converted.  Convert now. */
@@ -75,7 +75,9 @@ convert_named_acl(char *aclname, dns_c_ctx_t *cctx,
 	result = dns_acl_fromconfig(cacl->ipml, cctx, ctx, mctx, &dacl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	dacl->name = aclname;
+	dacl->name = isc_mem_strdup(dacl->mctx, aclname);
+	if (dacl->name == NULL)
+		return (ISC_R_NOMEMORY);
 	ISC_LIST_APPEND(ctx->named_acl_cache, dacl, nextincache);
 	dns_acl_attach(dacl, target);
 	return (ISC_R_SUCCESS);

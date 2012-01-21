@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.39 2000/07/03 23:27:45 bwelling Exp $
+ * $Id: hmac_link.c,v 1.38.2.1 2000/07/03 23:48:08 gson Exp $
  */
 
 #include <config.h>

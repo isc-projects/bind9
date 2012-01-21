@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: view.c,v 1.71 2000/06/22 21:54:56 tale Exp $ */
+/* $Id: view.c,v 1.71.2.1 2000/09/25 20:20:26 gson Exp $ */
 
 #include <config.h>
 
@@ -231,6 +231,7 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->recursionacl);
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
+	isc_rwlock_destroy(&view->conflock);
 	isc_mutex_destroy(&view->lock);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_put(view->mctx, view, sizeof *view);

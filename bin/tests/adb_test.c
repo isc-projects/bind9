@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: adb_test.c,v 1.55 2000/06/28 16:19:52 explorer Exp $ */
+/* $Id: adb_test.c,v 1.54.2.1 2000/06/28 16:45:22 gson Exp $ */
 
 #include <config.h>
 

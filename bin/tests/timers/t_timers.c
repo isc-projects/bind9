@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.12 2000/06/30 22:01:40 gson Exp $ */
+/* $Id: t_timers.c,v 1.11 2000/06/22 21:53:28 tale Exp $ */
 
 #include <config.h>
 
@@ -140,15 +140,9 @@ tx_te(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (isc_result == ISC_R_SUCCESS) {
-		if (isc_time_compare(&llim, &now) > 0) {
-			t_info("timer range error: early by "
-			       "%lu microseconds\n",
-			       (unsigned long)isc_time_microdiff(&base, &now));
-			++Tx_nfails;
-		} else if (isc_time_compare(&ulim, &now) < 0) {
-			t_info("timer range error: late by "
-			       "%lu microseconds\n",
-			       (unsigned long)isc_time_microdiff(&now, &base));
+		if ((isc_time_compare(&llim, &now) > 0) ||
+		    (isc_time_compare(&ulim, &now) < 0)) {
+			t_info("timer range error\n");
 			++Tx_nfails;
 		}
 		Tx_lasttime = now;
@@ -473,15 +467,9 @@ t3_te(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (isc_result == ISC_R_SUCCESS) {
-		if (isc_time_compare(&llim, &now) > 0) {
-			t_info("timer range error: early by "
-			       "%lu microseconds\n",
-			       (unsigned long)isc_time_microdiff(&base, &now));
-			++Tx_nfails;
-		} else if (isc_time_compare(&ulim, &now) < 0) {
-			t_info("timer range error: late by "
-			       "%lu microseconds\n",
-			       (unsigned long)isc_time_microdiff(&now, &base));
+		if ((isc_time_compare(&llim, &now) > 0) ||
+		    (isc_time_compare(&ulim, &now) < 0)) {
+			t_info("timer range error\n");
 			++Tx_nfails;
 		}
 		Tx_lasttime = now;
@@ -605,15 +593,9 @@ t4_te(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (isc_result == ISC_R_SUCCESS) {
-		if (isc_time_compare(&llim, &now) > 0) {
-			t_info("timer range error: early by "
-			       "%lu microseconds\n",
-			       (unsigned long)isc_time_microdiff(&base, &now));
-			++Tx_nfails;
-		} else if (isc_time_compare(&ulim, &now) < 0) {
-			t_info("timer range error: late by "
-			       "%lu microseconds\n",
-			       (unsigned long)isc_time_microdiff(&now, &base));
+		if ((isc_time_compare(&llim, &now) > 0) ||
+		    (isc_time_compare(&ulim, &now) < 0)) {
+			t_info("timer range error\n");
 			++Tx_nfails;
 		}
 		Tx_lasttime = now;

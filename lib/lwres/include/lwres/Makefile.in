@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.10 2000/06/30 00:29:29 gson Exp $
+# $Id: Makefile.in,v 1.9.2.1 2000/06/30 01:25:27 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@

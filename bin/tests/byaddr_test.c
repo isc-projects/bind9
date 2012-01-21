@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: byaddr_test.c,v 1.17 2000/06/28 16:19:53 explorer Exp $ */
+/* $Id: byaddr_test.c,v 1.16.2.1 2000/06/28 16:45:24 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley

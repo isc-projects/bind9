@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.109 2000/07/04 04:28:44 marka Exp $ */
+/* $Id: rbtdb.c,v 1.108.2.4 2000/10/13 21:53:15 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1083,24 +1083,11 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 		 * may clear search->wild.
 		 */
 		search->wild = ISC_FALSE;
-		if (found->type == dns_rdatatype_dname) {
-			/*
-			 * Finding a DNAME stops all further searching.
-			 *
-			 * Note: We return DNS_R_PARTIALMATCH instead of
-			 * DNS_R_DNAME here because that way zone_find()
-			 * does fewer result code comparisions.
-			 */
-			result = DNS_R_PARTIALMATCH;
-		} else if ((search->options & DNS_DBFIND_GLUEOK) == 0) {
+		if ((search->options & DNS_DBFIND_GLUEOK) == 0) {
 			/*
 			 * If the caller does not want to find glue, then
 			 * this is the best answer and the search should
 			 * stop now.
-			 *
-			 * Note: We return DNS_R_PARTIALMATCH instead of
-			 * DNS_R_DELEGATION here because that way zone_find()
-			 * does fewer result code comparisions.
 			 */
 			result = DNS_R_PARTIALMATCH;
 		} else {
@@ -1506,15 +1493,11 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				/*
 				 * We've found the right NXT record.
 				 *
-				 * XXXRTH  Well, not necessarily.  If
-				 * someone adds an NS rdataset causing a
-				 * tree to be obscured, we might be looking
-				 * at a NXT record in the obscured part of
-				 * the tree.  To avoid this, we must either
-				 * erase all the NXT records (causing lots
-				 * of IXFR work), or we must somehow determine
-				 * that we're looking at one.  For now, we
-				 * do nothing.
+				 * Note: for this to really be the right
+				 * NXT record, it's essential that the NXT
+				 * records of any nodes obscured by a zone
+				 * cut have been removed; we assume this is
+				 * the case.
 				 */
 				if (rootname(name))
 					origin = NULL;
@@ -1534,6 +1517,17 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 						      foundsig, search->now,
 						      sigrdataset);
 				}
+			} else if (found == NULL && foundsig == NULL) {
+				/*
+				 * This node is active, but has no NXT or
+				 * SIG NXT.  That means it's glue or
+				 * other obscured zone data that isn't
+				 * relevant for our search.  Treat the
+				 * node as if it were empty and keep looking.
+				 */
+				empty_node = ISC_TRUE;
+				result = dns_rbtnodechain_prev(&search->chain,
+							       NULL, NULL);
 			} else {
 				/*
 				 * We found an active node, but either the
@@ -1542,30 +1536,6 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 */
 				result = DNS_R_BADDB;
 			}
-			/*
-			 * XXXRTH  This is where we'll deal with obscured
-			 * nodes.  We have to do this whether we found
-			 * a NXT or not, since we don't want to return
-			 * DNS_R_BADDB for an obscured node that has no
-			 * NXT (maybe the zone has been re-signed and the
-			 * obscured NXTs eliminated).  Here's what we'll
-			 * do:
-			 *
-			 *	Search the levels above us for a node
-			 *	with the find_callback bit set.
-			 *
-			 *	See if there is an active DNAME or zonecut.
-			 *
-			 *	If so, unbind any bindings we've made, and
-			 *	continue on.  If we really feel ambitious,
-			 *	we can unwind the chain to the cut point,
-			 *	and continue searching from there.  Probably
-			 *	not worth it for 9.0.0 since this will be a
-			 *	very uncommon case.
-			 *
-			 *	Otherwise, the result we got (a NXT or
-			 *	DNS_R_BADDB) is the right result.
-			 */
 		} else {
 			/*
 			 * This node isn't active.  We've got to keep
@@ -2522,7 +2492,20 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  tree_exit:
 	RWUNLOCK(&search.rbtdb->tree_lock, isc_rwlocktype_read);
 
-	INSIST(!search.need_cleanup);
+	/*
+	 * If we found a zonecut but aren't going to use it, we have to
+	 * let go of it.
+	 */
+	if (search.need_cleanup) {
+		node = search.zonecut;
+
+		LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+		INSIST(node->references > 0);
+		node->references--;
+		if (node->references == 0)
+			no_references(search.rbtdb, node, 0);
+		UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+	}
 
 	dns_rbtnodechain_reset(&search.chain);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.4 2000/06/26 20:49:57 bwelling Exp $ */
+/* $Id: lwdgabn.c,v 1.3.2.1 2000/06/26 21:47:33 gson Exp $ */
 
 #include <config.h>
 

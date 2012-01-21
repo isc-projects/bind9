@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.43 2000/06/22 21:54:57 tale Exp $ */
+/* $Id: zoneconf.c,v 1.43.2.2 2000/10/17 18:48:07 gson Exp $ */
 
 #include <config.h>
 
@@ -189,10 +189,14 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			result = dns_c_view_getalsonotify(cview, &iplist);
 		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getalsonotify(cctx, &iplist);
-		if (result == ISC_R_SUCCESS)
-			RETERR(dns_zone_setalsonotify(zone, iplist->ips,
-						      iplist->nextidx));
-		else
+		if (result == ISC_R_SUCCESS) {
+			result = dns_zone_setalsonotify(zone, iplist->ips,
+						        iplist->nextidx);
+			dns_c_iplist_detach(&iplist);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+
+		} else
 			RETERR(dns_zone_setalsonotify(zone, NULL, 0));
 		
 		RETERR(configure_zone_acl(czone, cctx, cview, ac, zone,
@@ -236,15 +240,9 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 					  dns_zone_setupdateacl,
 					  dns_zone_clearupdateacl));
 
-		dns_zone_getssutable(zone, &ssutable);
-		if (ssutable != NULL)
-			dns_ssutable_detach(&ssutable);
 		result = dns_c_zone_getssuauth(czone, &ssutable);
-		if (result == ISC_R_SUCCESS) {
-			dns_ssutable_t *newssutable = NULL;
-			dns_ssutable_attach(ssutable, &newssutable);
-			dns_zone_setssutable(zone, newssutable);
-		}
+		if (result == ISC_R_SUCCESS)
+			dns_zone_setssutable(zone, ssutable);
 
 		result = dns_c_zone_getsigvalidityinterval(czone, &uintval);
 		if (result != ISC_R_SUCCESS && cview != NULL)

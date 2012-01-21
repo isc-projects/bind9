@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: client.c,v 1.98 2000/06/22 23:48:07 marka Exp $ */
+/* $Id: client.c,v 1.98.2.4 2000/08/22 01:45:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -163,6 +163,8 @@ static void clientmgr_destroy(ns_clientmgr_t *manager);
 static isc_boolean_t exit_check(ns_client_t *client);
 static void ns_client_endrequest(ns_client_t *client);
 static void ns_client_checkactive(ns_client_t *client);
+static void client_start(isc_task_t *task, isc_event_t *event);
+static void client_request(isc_task_t *task, isc_event_t *event);
 
 /*
  * Enter the inactive state.
@@ -268,7 +270,7 @@ set_timeout(ns_client_t *client, unsigned int seconds) {
 	if (result != ISC_R_SUCCESS) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
-			      "setting timouet: %s",
+			      "setting timeout: %s",
 			      isc_result_totext(result));
 		/* Continue anyway. */
 	}
@@ -432,6 +434,45 @@ exit_check(ns_client_t *client) {
 }
 
 /*
+ * The client's task has received the client's control event
+ * as part of the startup process.
+ */
+static void
+client_start(isc_task_t *task, isc_event_t *event) {
+	ns_client_t *client = (ns_client_t *) event->ev_arg;
+	isc_result_t result;
+
+	INSIST(task == client->task);
+	
+	UNUSED(task);
+
+	if (TCP_CLIENT(client)) {
+		client_accept(client);
+	} else {
+		result = dns_dispatch_addrequest(client->dispatch,
+						 client->task,
+						 client_request,
+						 client,
+						 &client->dispentry);
+		
+		if (result != ISC_R_SUCCESS) {
+			ns_client_log(client,
+				      DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT,
+				      ISC_LOG_DEBUG(3),
+				      "dns_dispatch_addrequest() "
+				      "failed: %s",
+				      isc_result_totext(result));
+			/*
+			 * Not much we can do here but log the failure; 
+			 * the client will effectively go idle.
+			 */
+		}
+	}
+}
+
+
+/*
  * The client's task has received a shutdown event.
  */
 static void
@@ -559,13 +600,13 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
 	isc_socketevent_t *sevent = (isc_socketevent_t *) event;
 
-	UNUSED(task);
-
 	REQUIRE(sevent != NULL);
 	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_SENDDONE);
 	client = sevent->ev_arg;
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
+
+	UNUSED(task);
 
 	CTRACE("senddone");
 
@@ -816,6 +857,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view;
 	dns_rdataset_t *opt;
 	isc_boolean_t ra; 	/* Recursion available. */
+	isc_boolean_t rd; 	/* Recursion desired. */
 
 	REQUIRE(event != NULL);
 	client = event->ev_arg;
@@ -1041,16 +1083,19 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * responses to ordinary queries.
 	 */
 	ra = ISC_FALSE;
+	rd = ISC_TF((client->message->flags & DNS_MESSAGEFLAG_RD) != 0);
 	if (client->view->resolver != NULL &&
 	    client->view->recursion == ISC_TRUE &&
 	    /* XXX this will log too much too early */
 	    ns_client_checkacl(client, "recursion",
 			       client->view->recursionacl,
-			       ISC_TRUE, ISC_TRUE) == ISC_R_SUCCESS)
+			       ISC_TRUE, rd) == ISC_R_SUCCESS)
 		ra = ISC_TRUE;
 
 	if (ra == ISC_TRUE)
 		client->attributes |= NS_CLIENTATTR_RA;
+	else
+		client->attributes &= ~NS_CLIENTATTR_RA;
 
 	/*
 	 * Dispatch the request.
@@ -1191,6 +1236,9 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->recursionquota = NULL;
 	client->interface = NULL;
 	client->peeraddr_valid = ISC_FALSE;
+	ISC_EVENT_INIT(&client->ctlevent, sizeof(client->ctlevent), 0, NULL,
+		       NS_EVENT_CLIENTCONTROL, client_start, client, client,
+		       NULL, NULL);
 	ISC_LINK_INIT(client, link);
 	client->list = NULL;
 
@@ -1268,7 +1316,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	INSIST(client->state == NS_CLIENTSTATE_READY);
-	
+
 	INSIST(client->naccepts == 1);
 	client->naccepts--;
 
@@ -1525,6 +1573,7 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 	LOCK(&manager->lock);
 
 	for (i = 0; i < n; i++) {
+		isc_event_t *ev;
 		/*
 		 * Allocate a client.  First try to get a recycled one;
 		 * if that fails, make a new one.
@@ -1549,30 +1598,16 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 			client->attributes |= NS_CLIENTATTR_TCP;
 			isc_socket_attach(ifp->tcpsocket,
 					  &client->tcplistener);
-			client_accept(client);
 		} else {
 			dns_dispatch_attach(ifp->udpdispatch,
 					    &client->dispatch);
-			result = dns_dispatch_addrequest(client->dispatch,
-							 client->task,
-							 client_request,
-							 client,
-							 &client->dispentry);
-			if (result != ISC_R_SUCCESS) {
-				ns_client_log(client,
-					      DNS_LOGCATEGORY_SECURITY,
-					      NS_LOGMODULE_CLIENT,
-					      ISC_LOG_DEBUG(3),
-					      "dns_dispatch_addrequest() "
-					      "failed: %s",
-					      isc_result_totext(result));
-				isc_task_shutdown(client->task);
-				break;
-			}
 		}
 		client->manager = manager;
 		ISC_LIST_APPEND(manager->active, client, link);
 		client->list = &manager->active;
+
+		ev = &client->ctlevent;
+		isc_task_send(client->task, &ev);
 	}
 	if (i != 0) {
 		/*
@@ -1658,6 +1693,9 @@ ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 	   isc_logmodule_t *module, int level, const char *fmt, ...)
 {
 	va_list ap;
+
+	if (isc_log_wouldlog(ns_g_lctx, level) == ISC_FALSE)
+		return;
 
 	va_start(ap, fmt);
 	ns_client_logv(client, category, module, level, fmt, ap);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.12 2000/06/22 21:49:05 tale Exp $ */
+/* $Id: dnssectool.c,v 1.12.2.1 2000/08/07 16:41:38 gson Exp $ */
 
 #include <config.h>
 
@@ -201,7 +201,8 @@ kbdstop(isc_entropysource_t *source, void *arg) {
 
 	UNUSED(source);
 
-	fprintf(stderr, "stop typing.\r\n");
+	if (!isc_keyboard_canceled(kbd))
+		fprintf(stderr, "stop typing.\r\n");
 	(void)isc_keyboard_close(kbd, 3);
 }
 

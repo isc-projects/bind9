@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.4 2000/06/26 20:49:56 bwelling Exp $ */
+/* $Id: lwdclient.c,v 1.3.2.1 2000/06/26 21:47:32 gson Exp $ */
 
 #include <config.h>
 

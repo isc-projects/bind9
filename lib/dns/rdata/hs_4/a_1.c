@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.14 2000/06/01 18:26:39 tale Exp $ */
+/* $Id: a_1.c,v 1.14.2.1 2000/08/28 18:54:58 gson Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -116,7 +116,7 @@ compare_hs_a(ARGS_COMPARE) {
 	int order;
 	
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->rdclass == rdata2->type);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 1);
 	REQUIRE(rdata1->rdclass == 4);
 

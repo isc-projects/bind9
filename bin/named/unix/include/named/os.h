@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.h,v 1.8 2000/07/01 00:48:06 tale Exp $ */
+/* $Id: os.h,v 1.7.2.1 2000/07/10 22:07:58 gson Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1

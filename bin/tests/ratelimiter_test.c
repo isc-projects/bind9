@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ratelimiter_test.c,v 1.12 2000/06/28 16:27:36 gson Exp $ */
+/* $Id: ratelimiter_test.c,v 1.11.2.1 2000/06/28 17:59:06 gson Exp $ */
 
 #include <config.h>
 

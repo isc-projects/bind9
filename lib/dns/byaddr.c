@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.16 2000/06/22 21:54:20 tale Exp $ */
+/* $Id: byaddr.c,v 1.16.2.2 2000/09/23 00:24:29 gson Exp $ */
 
 #include <config.h>
 
@@ -68,14 +68,17 @@ static char hex_digits[] = {
 	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
 };
 
-static inline isc_result_t
-address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
+isc_result_t
+dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
+			 dns_name_t *name) {
 	char textname[128];
 	unsigned char *bytes;
 	int i;
 	char *cp;
 	isc_buffer_t buffer;
 	unsigned int len;
+
+	REQUIRE(address != NULL);
 
 	/*
 	 * The caller must be holding the byaddr's lock.
@@ -87,7 +90,6 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 	 * of the knowledge of wire format in the dns_name_ routines.
 	 */
 
-	dns_fixedname_init(&byaddr->name);
 	bytes = (unsigned char *)(&address->type);
 	if (address->family == AF_INET) {
 		(void)sprintf(textname, "%u.%u.%u.%u.in-addr.arpa.",
@@ -96,7 +98,7 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 			      (bytes[1] & 0xff),
 			      (bytes[0] & 0xff));
 	} else if (address->family == AF_INET6) {
-		if ((byaddr->options & DNS_BYADDROPT_IPV6NIBBLE) != 0) {
+		if (nibble) {
 			cp = textname;
 			for (i = 15; i >= 0; i--) {
 				*cp++ = hex_digits[bytes[i] & 0x0f];
@@ -124,8 +126,8 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 	len = (unsigned int)strlen(textname);
 	isc_buffer_init(&buffer, textname, len);
 	isc_buffer_add(&buffer, len);
-	return (dns_name_fromtext(dns_fixedname_name(&byaddr->name),
-				  &buffer, dns_rootname, ISC_FALSE, NULL));
+	return (dns_name_fromtext(name, &buffer, dns_rootname,
+				  ISC_FALSE, NULL));
 }
 
 static inline isc_result_t
@@ -409,7 +411,11 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_event;
 
-	result = address_to_ptr_name(byaddr, address);
+	dns_fixedname_init(&byaddr->name);
+
+	result = dns_byaddr_createptrname(address,
+			  ISC_TF(byaddr->options & DNS_BYADDROPT_IPV6NIBBLE),
+			  dns_fixedname_name(&byaddr->name));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 

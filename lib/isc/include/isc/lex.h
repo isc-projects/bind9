@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lex.h,v 1.19 2000/06/22 21:57:39 tale Exp $ */
+/* $Id: lex.h,v 1.19.2.1 2000/07/10 19:13:10 gson Exp $ */
 
 #ifndef ISC_LEX_H
 #define ISC_LEX_H 1
@@ -341,6 +341,20 @@ isc_lex_getsourceline(isc_lex_t *lex);
  * Returns:
  * 	Current line number or 0 if no current source.
  */
+
+isc_boolean_t
+isc_lex_isfile(isc_lex_t *lex);
+/*
+ * Return whether the current input source is a file.
+ *
+ * Requires:
+ *	'lex' is a valid lexer.
+ *
+ * Returns:
+ * 	ISC_TRUE if the current input is a file,
+ *	ISC_FALSE otherwise.
+ */
+
 
 ISC_LANG_ENDDECLS
 

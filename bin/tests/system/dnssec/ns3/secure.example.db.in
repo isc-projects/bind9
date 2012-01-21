@@ -13,7 +13,7 @@
 ; ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 ; SOFTWARE.
 
-; $Id: secure.example.db.in,v 1.5 2000/07/07 22:33:20 gson Exp $
+; $Id: secure.example.db.in,v 1.4.2.1 2000/07/10 04:51:55 gson Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (

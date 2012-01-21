@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: util.h,v 1.13 2000/06/22 21:58:12 tale Exp $ */
+/* $Id: util.h,v 1.13.2.1 2000/09/21 23:14:21 gson Exp $ */
 
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
@@ -93,6 +93,9 @@
 	ISC_UTIL_TRACE(fprintf(stderr, "UNLOCKED %p %s %d\n", \
 			       (lp), __FILE__, __LINE__)); \
 	} while (0)
+#define ISLOCKED(lp) (1)
+#define DESTROYLOCK(lp) \
+	RUNTIME_CHECK(isc_mutex_destroy((lp)) == ISC_R_SUCCESS)
 
 #define BROADCAST(cvp) do { \
 	ISC_UTIL_TRACE(fprintf(stderr, "BROADCAST %p %s %d\n", \

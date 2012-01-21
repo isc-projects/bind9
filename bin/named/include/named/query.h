@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.h,v 1.17 2000/06/22 21:49:50 tale Exp $ */
+/* $Id: query.h,v 1.17.2.1 2000/07/28 17:56:09 gson Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -42,6 +42,7 @@ struct ns_query {
 	dns_name_t *			origqname;
 	dns_rdataset_t *		qrdataset;
 	unsigned int			dboptions;
+	unsigned int			fetchoptions;
 	dns_db_t *			gluedb;
 	dns_fetch_t *			fetch;
 	dns_a6context_t			a6ctx;

@@ -5,17 +5,17 @@
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
- * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- * SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+ * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+ * INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+ * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.64 2000/07/07 00:44:01 bwelling Exp $ */
+/* $Id: validator.c,v 1.63.2.6 2000/09/12 19:20:36 gson Exp $ */
 
 #include <config.h>
 
@@ -72,6 +72,7 @@ struct dns_validator {
 
 #define VALATTR_SHUTDOWN		0x01
 #define VALATTR_FOUNDNONEXISTENCE	0x02
+#define VALATTR_TRIEDVERIFY		0x04
 #define SHUTDOWN(v)		(((v)->attributes & VALATTR_SHUTDOWN) != 0)
 
 static void
@@ -114,6 +115,28 @@ validator_done(dns_validator_t *val, isc_result_t result) {
 	val->event->ev_arg = val->arg;
 	isc_task_sendanddetach(&task, (isc_event_t **)&val->event);
 	
+}
+
+static void
+auth_nonpending(dns_message_t *message) {
+	isc_result_t result;
+	dns_name_t *name;
+	dns_rdataset_t *rdataset;
+
+	for (result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(message, DNS_SECTION_AUTHORITY))
+	{
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
+			if (rdataset->trust == dns_trust_pending)
+				rdataset->trust = dns_trust_authauthority;
+		}
+	}
 }
 
 static void
@@ -202,6 +225,15 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 			result = proveunsecure(val, ISC_TRUE);
 			if (result != DNS_R_WAIT)
 				validator_done(val, result);
+			else {
+				/*
+				 * Don't free rdataset & sigrdataset, since
+				 * they'll be freed in nullkeyvalidated.
+				 */
+				isc_event_free(&event);
+				UNLOCK(&val->lock);
+				return;
+			}
 		} else {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "found a keyset with a null key");
@@ -418,7 +450,9 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3), 
 			      "authvalidated: got %s",
 			      dns_result_totext(eresult));
-		validator_done(val, eresult);
+		result = nxtvalidate(val, ISC_TRUE);
+		if (result != DNS_R_WAIT)
+			validator_done(val, result);
 	} else {
 		if (rdataset->type == dns_rdatatype_nxt &&
 		    nxtprovesnonexistence(val, devent->name, rdataset,
@@ -458,6 +492,7 @@ negauthvalidated(isc_task_t *task, isc_event_t *event) {
 		val->attributes |= VALATTR_FOUNDNONEXISTENCE;
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "nonexistence proof found");
+		auth_nonpending(val->event->message);
 		validator_done(val, ISC_R_SUCCESS);
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3), 
@@ -495,7 +530,9 @@ nullkeyvalidated(isc_task_t *task, isc_event_t *event) {
 	if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "proved that name is in an unsecure domain");
+		validator_log(val, ISC_LOG_DEBUG(3), "marking as answer");
 		LOCK(&val->lock);
+		val->event->rdataset->trust = dns_trust_answer;
 		validator_done(val, ISC_R_SUCCESS);
 		UNLOCK(&val->lock);
 	} else {
@@ -922,6 +959,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		}
 
 		do {
+			val->attributes |= VALATTR_TRIEDVERIFY;
 			result = dns_dnssec_verify(event->name,
 						   event->rdataset,
 						   val->key, ISC_FALSE,
@@ -1026,14 +1064,8 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			val->currentset = NULL;
 			resume = ISC_FALSE;
 		}
-		else {
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link))
-				rdataset->trust = dns_trust_pending;
-
+		else
 			rdataset = ISC_LIST_HEAD(name->list);
-		}
 
 		for (;
 		     rdataset != NULL;
@@ -1054,6 +1086,22 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			if (sigrdataset == NULL)
 				continue;
 			val->seensig = ISC_TRUE;
+			if (val->event->type == dns_rdatatype_key &&
+			    dns_name_equal(name, val->event->name))
+			{
+				dns_rdata_t nxt;
+
+				if (rdataset->type != dns_rdatatype_nxt)
+					continue;
+
+				result = dns_rdataset_first(rdataset);
+				INSIST(result == ISC_R_SUCCESS);
+				dns_rdata_init(&nxt);
+				dns_rdataset_current(rdataset, &nxt);
+				if (dns_nxt_typepresent(&nxt,
+							dns_rdatatype_soa))
+					continue;
+			}
 			val->authvalidator = NULL;
 			val->currentset = rdataset;
 			result = dns_validator_create(val->view, name,
@@ -1269,6 +1317,8 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 	LOCK(&val->lock);
 
 	if (val->event->rdataset != NULL && val->event->sigrdataset != NULL) {
+		isc_result_t saved_result;
+
 		/*
 		 * This looks like a simple validation.  We say "looks like"
 		 * because we don't know if wildcards are involved yet so it
@@ -1278,6 +1328,16 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 			      "attempting positive response validation");
 	
 		result = validate(val, ISC_FALSE);
+		if (result == DNS_R_NOVALIDSIG &&
+		    (val->attributes & VALATTR_TRIEDVERIFY) == 0)
+		{
+			saved_result = result;
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "falling back to insecurity proof");
+			result = proveunsecure(val, ISC_FALSE);
+			if (result == DNS_R_NOTINSECURE)
+				result = saved_result;
+		}
 	} else if (val->event->rdataset != NULL) {
 		/*
 		 * This is either an unsecure subdomain or a response from
@@ -1511,6 +1571,10 @@ static void
 validator_log(dns_validator_t *val, int level, const char *fmt, ...)
 {
         va_list ap;
+
+	if (! isc_log_wouldlog(dns_lctx, level))
+		return;
+
 	va_start(ap, fmt);
 	validator_logv(val, DNS_LOGCATEGORY_DNSSEC,
 		       DNS_LOGMODULE_VALIDATOR, level, fmt, ap);

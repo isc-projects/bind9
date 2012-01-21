@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch_test.c,v 1.44 2000/06/28 16:19:56 explorer Exp $ */
+/* $Id: dispatch_test.c,v 1.43.2.1 2000/06/28 16:45:27 gson Exp $ */
 
 #include <config.h>
 

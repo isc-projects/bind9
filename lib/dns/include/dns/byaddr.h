@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: byaddr.h,v 1.8 2000/06/22 21:55:10 tale Exp $ */
+/* $Id: byaddr.h,v 1.8.2.1 2000/09/21 22:07:22 gson Exp $ */
 
 #ifndef DNS_BYADDR_H
 #define DNS_BYADDR_H 1
@@ -142,6 +142,20 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp);
  * Ensures:
  *
  *	*byaddrp == NULL.
+ */
+
+isc_result_t
+dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
+			 dns_name_t *name);
+/*
+ * Creates a name that would be used in a PTR query for this address.  The
+ * nibble flag indicates that the 'nibble' format is to be used if an IPv6
+ * address is provided, instead of the 'bitstring' format.
+ *
+ * Requires:
+ * 
+ * 	'address' is a valid address.
+ * 	'name' is a valid name with a dedicated buffer.
  */
 
 ISC_LANG_ENDDECLS

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.25 2000/07/09 12:48:43 marka Exp $ */
+/* $Id: t_master.c,v 1.23 2000/06/22 21:51:09 tale Exp $ */
 
 #include <config.h>
 
@@ -263,45 +263,6 @@ t7() {
 	t_result(result);
 }
 
-static const char *a8 =
-	"dns_master_loadfile understands $INCLUDE";
-
-static void
-t8() {
-	int	result;
-
-	t_assert("dns_master_loadfile", 8, T_REQUIRED, a8);
-	result = test_master_x("dns_master_load_8_data");
-
-	t_result(result);
-}
-
-static const char *a9 =
-	"dns_master_loadfile understands $INCLUDE with failure";
-
-static void
-t9() {
-	int	result;
-
-	t_assert("dns_master_loadfile", 9, T_REQUIRED, a9);
-	result = test_master_x("dns_master_load_9_data");
-
-	t_result(result);
-}
-
-static const char *a10 =
-	"dns_master_loadfile non-empty blank lines";
-
-static void
-t10() {
-	int	result;
-
-	t_assert("dns_master_loadfile", 10, T_REQUIRED, a10);
-	result = test_master_x("dns_master_load_10_data");
-
-	t_result(result);
-}
-
 testspec_t	T_testlist[] = {
 	{	t1,	"ISC_R_SUCCESS"		},
 	{	t2,	"ISC_R_UNEXPECTEDEND"	},
@@ -310,9 +271,6 @@ testspec_t	T_testlist[] = {
 	{	t5,	"DNS_BADCLASS"		},
 	{	t6,	"KEY RR 1"		},
 	{	t7,	"KEY RR 2"		},
-	{	t8,	"$INCLUDE"		},
-	{	t9,	"$INCLUDE w/ DNS_BADCLASS"	},
-	{	t10,	"non empty blank lines"	},
 	{	NULL,	NULL			}
 };
 

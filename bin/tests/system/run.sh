@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: run.sh,v 1.27 2000/07/05 18:48:55 bwelling Exp $
+# $Id: run.sh,v 1.26.2.1 2000/07/10 04:51:48 gson Exp $
 
 #
 # Run a system test.

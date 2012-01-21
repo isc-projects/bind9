@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: cleanall.sh,v 1.2 2000/07/06 19:54:02 mws Exp $
+# $Id: cleanall.sh,v 1.1.2.1 2000/07/10 04:51:43 gson Exp $
 
 #
 # Clean up after system tests.

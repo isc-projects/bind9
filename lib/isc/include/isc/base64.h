@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.h,v 1.9 2000/06/06 17:50:38 gson Exp $ */
+/* $Id: base64.h,v 1.9.2.1 2000/07/11 23:11:16 gson Exp $ */
 
 #ifndef ISC_BASE64_H
 #define ISC_BASE64_H 1
@@ -54,9 +54,30 @@ isc_base64_totext(isc_region_t *source, int wordlength,
  */
 
 isc_result_t
+isc_base64_decodestring(isc_mem_t *mctx, char *cstr, isc_buffer_t *target);
+/*
+ * Decode a null-terminated base64 string.
+ *
+ * Requires:
+ * 	'mctx' is non-null.
+ *	'cstr' is non-null.
+ *	'target' is a valid buffer.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	-- the entire decoded representation of 'cstring'
+ *			   fit in 'target'.
+ *	ISC_R_BADBASE64 -- 'cstr' is not a valid base64 encoding.
+ *
+ * 	Other error returns are any possible error code from:
+ *		isc_lex_create(),
+ *		isc_lex_openbuffer(),
+ *		isc_base64_tobuffer().
+ */
+
+isc_result_t
 isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
 /*
- * Convert base64 encoded text into data.
+ * Convert base64 encoded text from a lexer context into data.
  *
  * Requires:
  *	'lex' is a valid lexer context
@@ -69,6 +90,7 @@ isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
  *	if length is positive.  The 'used' pointer in target will be
  *	advanced as necessary.
  */
+
 
 
 ISC_LANG_ENDDECLS

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.h,v 1.60 2000/07/04 03:59:53 marka Exp $ */
+/* $Id: result.h,v 1.59.2.1 2000/07/05 20:49:06 gson Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1

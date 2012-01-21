@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.47 2000/06/05 09:17:09 brister Exp $ */
+/* $Id: confzone.c,v 1.47.2.4 2000/11/04 02:45:07 gson Exp $ */
 
 #include <config.h>
 
@@ -575,12 +575,17 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 	dns_c_iplist_t *iplist = NULL;
 	dns_ssutable_t *ssutable = NULL;
 	isc_result_t tmpres;
+	dns_c_forw_t tmpfwd;
 	isc_result_t result = ISC_R_SUCCESS;
 	const char *autherr = "zone '%s': allow-update is ignored when "
 		"update-policy is also used";
 	const char *nomasterserr = "zone '%s': missing 'masters' entry";
 	const char *emptymasterserr = "zone '%s': 'masters' value is empty";
 	const char *disabledzone = "zone '%s': is disabled";
+	const char *forwarderr = "zone '%s': the per-zone 'forward' statement "
+		"is not yet implemented";
+	const char *forwarderserr = "zone '%s': the per-zone 'forwarders' "
+		"statment is not yet implemented";
 	
 	/*
 	 * Check if zone is diabled. This isn't really a validation, just a
@@ -631,6 +636,18 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 				      zone->name);
 			result = ISC_R_FAILURE;
 		}
+	}
+
+	if (zone->ztype != dns_c_zone_hint) {
+		if (dns_c_zone_getforward(zone, &tmpfwd) == ISC_R_SUCCESS)
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+				      forwarderr, zone->name);
+
+		if (dns_c_zone_getforwarders(zone, &iplist) == ISC_R_SUCCESS)
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+				      forwarderserr, zone->name);
 	}
 
 	return (result);
@@ -1665,7 +1682,7 @@ dns_c_zone_getalsonotify(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 	}
 
 	if (p != NULL) {
-		*retval = p;
+		dns_c_iplist_attach(p, retval);
 		res = ISC_R_SUCCESS;
 	} else {
 		res = ISC_R_NOTFOUND;

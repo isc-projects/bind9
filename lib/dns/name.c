@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: name.c,v 1.93 2000/06/22 21:54:32 tale Exp $ */
+/* $Id: name.c,v 1.93.2.1 2000/10/16 23:32:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2704,6 +2704,15 @@ dns_name_split(dns_name_t *name,
 					memcpy(dst, src, len);
 
 			} else {
+				/*
+				 * p is adjusted to point to the last byte of
+				 * the starting bitstring label to make it
+				 * cheap to determine when bits from the next
+				 * byte should be shifted into the low order
+				 * bits of the current byte.
+				 */
+				p = src + (mod + *p - 1) / 8;
+
 				while (len--) {
 					*dst = *src++ << mod;
 					/*
@@ -2711,7 +2720,7 @@ dns_name_split(dns_name_t *name,
 					 * against arithmetic sign extension
 					 * by the right shift.
 					 */
-					if (len > 0)
+					if (src <= p)
 						*dst++ |=
 							(*src >> (8 - mod)) &
 							~(0xFF << mod);

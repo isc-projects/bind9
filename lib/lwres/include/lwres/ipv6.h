@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.5 2000/07/01 01:41:54 tale Exp $ */
+/* $Id: ipv6.h,v 1.4.2.1 2000/07/03 21:57:56 gson Exp $ */
 
 #ifndef LWRES_IPV6_H
 #define LWRES_IPV6_H 1

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: client.h,v 1.37 2000/06/22 21:49:38 tale Exp $ */
+/* $Id: client.h,v 1.37.2.1 2000/07/26 23:51:33 bwelling Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -122,6 +122,7 @@ struct ns_client {
 	isc_sockaddr_t		peeraddr;
 	isc_boolean_t		peeraddr_valid;
 	struct in6_pktinfo	pktinfo;
+	isc_event_t		ctlevent;
 	ISC_LINK(ns_client_t)	link;
 	/*
 	 * The list 'link' is part of, or NULL if not on any list.

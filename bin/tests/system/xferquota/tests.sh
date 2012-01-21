@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.15 2000/07/07 23:18:51 gson Exp $
+# $Id: tests.sh,v 1.11.2.2 2000/07/12 00:51:35 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -35,7 +35,7 @@ while [ $count != 300 ]; do
 	sleep 1
 	ticks=`expr $ticks + 1`
 	seconds=`expr $ticks \* 1`
-	if [ $ticks = 60 ]; then
+	if [ $ticks = 360 ]; then
 		echo "I:Took too long to load zones"
 		exit 1
 	fi

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.56 2000/07/09 12:52:34 marka Exp $ */
+/* $Id: master.c,v 1.54.2.6 2000/09/12 21:18:12 gson Exp $ */
 
 #include <config.h>
 
@@ -120,7 +120,18 @@ on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 		default: \
 			goto error_cleanup; \
 		} \
-	} while (0) \
+		if ((token)->type == isc_tokentype_special) \
+			goto error_cleanup; \
+	} while (0)
+
+#define WARNUNEXPECTEDEOF(lexer) \
+	do { \
+		if (isc_lex_isfile(lexer)) \
+			(*callbacks->warn)(callbacks, \
+			    	"%s:%lu: file does not end with newline", \
+				isc_lex_getsourcename(lexer), \
+				isc_lex_getsourceline(lexer)); \
+	} while (0)
 
 static inline isc_result_t
 gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
@@ -258,14 +269,8 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		GETTOKEN(lex, ISC_LEXOPT_INITIALWS, &token, ISC_TRUE);
 
 		if (token.type == isc_tokentype_eof) {
-			if (read_till_eol) {
-				(*callbacks->error)(callbacks,
-			    "dns_master_load: %s:%lu: unexpected end of file",
-					    isc_lex_getsourcename(lex),
-					    isc_lex_getsourceline(lex));
-				result = ISC_R_UNEXPECTEDEND;
-				goto cleanup;
-			}
+			if (read_till_eol)
+				WARNUNEXPECTEDEOF(lex);
 			done = ISC_TRUE;
 			continue;
 		}
@@ -332,7 +337,8 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					   isc_lex_getsourceline(lex));
 					goto cleanup;
 				}
-				GETTOKEN(lex, 0, &token, ISC_FALSE);
+				GETTOKEN(lex, ISC_LEXOPT_QSTRING, &token,
+					 ISC_FALSE);
 				if (include_file != NULL)
 					isc_mem_free(mctx, include_file);
 				include_file = isc_mem_strdup(mctx,
@@ -342,8 +348,11 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					goto error_cleanup;
 				}
 				GETTOKEN(lex, 0, &token, ISC_TRUE);
+
 				if (token.type == isc_tokentype_eol ||
 				    token.type == isc_tokentype_eof) {
+					if (token.type == isc_tokentype_eof)
+						WARNUNEXPECTEDEOF(lex);
 					/*
 					 * No origin field.
 					 */
@@ -556,12 +565,9 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			}
 
 			if (token.type == isc_tokentype_eof) {
-				(*callbacks->error)(callbacks,
-			    "dns_master_load: %s:%lu: unexpected end of file",
-					    isc_lex_getsourcename(lex),
-					    isc_lex_getsourceline(lex));
-				result = ISC_R_UNEXPECTEDEND;
-				goto cleanup;
+				WARNUNEXPECTEDEOF(lex);
+				done = ISC_TRUE;
+				continue;
 			}
 
 			if (!current_known) {
@@ -640,8 +646,16 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 
 		result = dns_rdatatype_fromtext(&type,
 						&token.value.as_textregion);
-		if (result != ISC_R_SUCCESS)
+               if (result != ISC_R_SUCCESS) {
+                       (*callbacks->warn)(callbacks,
+                                          "%s: %s:%lu: unknown RR type '%.*s'",
+                                          "dns_master_load",
+                                          isc_lex_getsourcename(lex),
+                                          isc_lex_getsourceline(lex),
+					  token.value.as_textregion.length,
+					  token.value.as_textregion.base);
 			goto cleanup;
+               }
 
 		/*
 		 * If the class specified does not match the zone's class

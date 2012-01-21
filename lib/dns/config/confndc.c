@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.19 2000/07/04 01:29:48 tale Exp $ */
+/* $Id: confndc.c,v 1.18.2.4 2000/07/27 21:47:19 gson Exp $ */
 
 /*
 **	options {
@@ -53,7 +53,9 @@
 #include <dns/confndc.h>
 #include <dns/log.h>
  
-/* Type keys for symtab lookup */
+/*
+ * Type keys for symtab lookup.
+ */
 #define KEYWORD_SYM_TYPE 0x1
 #define CLASS_SYM_TYPE 0x2
 #define ACL_SYM_TYPE 0x3
@@ -142,51 +144,39 @@ static struct keywordtoken misc_tokens[] = {
 
 
 
-static isc_result_t
-parse_file(ndcpcontext *pctx, dns_c_ndcctx_t **context);
+static isc_result_t parse_file(ndcpcontext *pctx, dns_c_ndcctx_t **context);
 
-static isc_result_t
-parse_statement(ndcpcontext *pctx);
-static isc_result_t
-parse_options(ndcpcontext *pctx, dns_c_ndcopts_t **opts);
-static isc_result_t
-parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server);
-static isc_result_t
-parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys);
+static isc_result_t parse_statement(ndcpcontext *pctx);
+static isc_result_t parse_options(ndcpcontext *pctx, dns_c_ndcopts_t **opts);
+static isc_result_t parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server);
+static isc_result_t parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys);
 
-static const char *
-keyword2str(isc_int32_t val);
-static isc_boolean_t
-eat(ndcpcontext *pctx, isc_uint32_t token);
-static isc_boolean_t
-eat_eos(ndcpcontext *pctx);
-static isc_boolean_t
-eat_lbrace(ndcpcontext *pctx);
-static isc_boolean_t
-eat_rbrace(ndcpcontext *pctx);
+static const char * keyword2str(isc_int32_t val);
+static isc_boolean_t eat(ndcpcontext *pctx, isc_uint32_t token);
+static isc_boolean_t eat_eos(ndcpcontext *pctx);
+static isc_boolean_t eat_lbrace(ndcpcontext *pctx);
+static isc_boolean_t eat_rbrace(ndcpcontext *pctx);
 
-static isc_boolean_t
-looking_at(ndcpcontext *pctx, isc_uint32_t token);
-static isc_boolean_t
-looking_at_anystring(ndcpcontext *pctx);
+static isc_boolean_t looking_at(ndcpcontext *pctx, isc_uint32_t token);
+static isc_boolean_t looking_at_anystring(ndcpcontext *pctx);
 
-static isc_result_t
-parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename);
-static void
-parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
-		ndcpcontext *pctx, const char *format, va_list args);
-static void
-parser_error(ndcpcontext *pctx, isc_boolean_t lasttoken, const char *fmt, ...);
-static void
-parser_warn(ndcpcontext *pctx, isc_boolean_t lasttoken, const char *fmt, ...);
-static isc_boolean_t
-is_ip6addr(const char *string, struct in6_addr *addr);
-static isc_boolean_t
-is_ip4addr(const char *string, struct in_addr *addr);
-static isc_result_t
-getnexttoken(ndcpcontext *pctx);
-static void
-syntax_error(ndcpcontext *pctx, isc_uint32_t keyword);
+static isc_boolean_t looking_at_stringoripaddr(ndcpcontext *pctx);
+
+
+static isc_result_t parser_setup(ndcpcontext *pctx, isc_mem_t *mem,
+				 const char *filename);
+static void parser_complain(isc_boolean_t is_warning,
+			    isc_boolean_t print_last_token,
+			    ndcpcontext *pctx, const char *format,
+			    va_list args);
+static void parser_error(ndcpcontext *pctx, isc_boolean_t lasttoken,
+			 const char *fmt, ...);
+static void parser_warn(ndcpcontext *pctx, isc_boolean_t lasttoken,
+			const char *fmt, ...);
+static isc_boolean_t is_ip6addr(const char *string, struct in6_addr *addr);
+static isc_boolean_t is_ip4addr(const char *string, struct in_addr *addr);
+static isc_result_t getnexttoken(ndcpcontext *pctx);
+static void syntax_error(ndcpcontext *pctx, isc_uint32_t keyword);
 
 
 /* *********************************************************************** */
@@ -214,7 +204,7 @@ dns_c_ndcctx_new(isc_mem_t *mem, dns_c_ndcctx_t **ctx) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_c_ndcctx_destroy(dns_c_ndcctx_t **ndcctx) {
 	dns_c_ndcctx_t *ctx;
 	isc_mem_t *mem;
@@ -241,8 +231,6 @@ dns_c_ndcctx_destroy(dns_c_ndcctx_t **ndcctx) {
 	isc_mem_put(mem, ctx, sizeof *ctx);
 
 	*ndcctx = NULL;
-
-	return (ISC_R_SUCCESS);
 }
 
 
@@ -802,7 +790,7 @@ dns_c_ndcparseconf(const char *filename, isc_mem_t *mem,
 {
 	ndcpcontext pctx;
 	isc_result_t result;
-	dns_c_ndcctx_t *aConfig;
+	dns_c_ndcctx_t *aConfig = NULL;
 	
 	result = parser_setup(&pctx, mem, filename);
 	if (result != ISC_R_SUCCESS)
@@ -950,7 +938,7 @@ parse_options(ndcpcontext *pctx, dns_c_ndcopts_t **opts) {
 		
 		switch (option) {
 		case L_DEFAULT_SERVER:
-			if (!looking_at_anystring(pctx))
+			if (!looking_at_stringoripaddr(pctx))
 				return (result);
 
 			result = dns_c_ndcopts_setdefserver(newopts,
@@ -1067,7 +1055,7 @@ parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server) {
 			break;
 
 		case L_HOST:
-			if (!looking_at_anystring(pctx)) {
+			if (!looking_at_stringoripaddr(pctx)) {
 				result = ISC_R_FAILURE;
 				goto done;
 			}
@@ -1347,6 +1335,20 @@ looking_at_anystring(ndcpcontext *pctx) {
 	return (ISC_TRUE);
 }
 
+
+static isc_boolean_t
+looking_at_stringoripaddr(ndcpcontext *pctx) {
+	if (pctx->currtok != L_STRING && pctx->currtok != L_QSTRING &&
+	    pctx->currtok != L_IP4ADDR && pctx->currtok != L_IP6ADDR) {
+		parser_error(pctx, ISC_TRUE,
+			     "expected a hostname or an ip address");
+		return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
+}
+		
+
 static isc_boolean_t
 eat_lbrace(ndcpcontext *pctx) {
 	return (eat(pctx, L_LBRACE));
@@ -1379,7 +1381,7 @@ parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename) {
 	pctx->thecontext = NULL;
 	pctx->errors = 0;
 	pctx->warnings = 0;
-	pctx->debug_lexer = ISC_TF(getenv("DEBUG_LEXER") != NULL);
+	pctx->debug_lexer = ISC_FALSE;
 
 	pctx->prevtok = pctx->currtok = 0;
 
@@ -1608,9 +1610,6 @@ getnexttoken(ndcpcontext *pctx) {
         case ISC_R_SUCCESS:
 		switch (token.type) {
 		case isc_tokentype_unknown:
-			if (pctx->debug_lexer)
-				fprintf(stderr, "unknown token\n");
-
 			result = ISC_R_FAILURE;
 			break;
 
@@ -1626,12 +1625,6 @@ getnexttoken(ndcpcontext *pctx) {
 					CONF_MAX_IDENT);
 				tokstr[CONF_MAX_IDENT - 1] = '\0';
 			}
-
-			if (pctx->debug_lexer)
-				fprintf(stderr, "lexer token: %s : %s\n",
-					(token.type == isc_tokentype_special ?
-					 "special" : "string"),
-					tokstr);
 
 			result = isc_symtab_lookup(pctx->thekeywords, tokstr,
 						   KEYWORD_SYM_TYPE,
@@ -1657,11 +1650,6 @@ getnexttoken(ndcpcontext *pctx) {
 			pctx->currtok = L_INTEGER;
 			sprintf(pctx->tokstr, "%lu",
 				(unsigned long)pctx->intval);
-
-			if(pctx->debug_lexer)
-				fprintf(stderr, "lexer token: number : %lu\n",
-					(unsigned long)pctx->intval);
-
 			break;
 
 		case isc_tokentype_qstring:
@@ -1670,12 +1658,6 @@ getnexttoken(ndcpcontext *pctx) {
 				CONF_MAX_IDENT);
 			pctx->tokstr[CONF_MAX_IDENT - 1] = '\0';
 			pctx->currtok = L_QSTRING;
-
-			if (pctx->debug_lexer)
-				fprintf(stderr,
-					"lexer token: qstring : \"%s\"\n",
-					pctx->tokstr);
-
 			break;
 
 		case isc_tokentype_eof:
@@ -1688,39 +1670,23 @@ getnexttoken(ndcpcontext *pctx) {
 				 * The only way to tell that we closed the
 				 * main file and not an included file.
 				 */
-				if (pctx->debug_lexer)
-					fprintf(stderr, "lexer token: EOF\n");
-
 				pctx->currtok = L_END_INPUT;
 
 			} else {
-				if (pctx->debug_lexer)
-					fprintf(stderr,
-						"lexer token: EOF (main)\n");
-
 				pctx->currtok = L_END_INCLUDE;
 			}
 			result = ISC_R_SUCCESS;
 			break;
 
 		case isc_tokentype_initialws:
-			if (pctx->debug_lexer)
-				fprintf(stderr, "lexer token: initial ws\n");
-
 			result = ISC_R_FAILURE;
 			break;
 
 		case isc_tokentype_eol:
-			if (pctx->debug_lexer)
-				fprintf(stderr, "lexer token: eol\n");
-
 			result = ISC_R_FAILURE;
 			break;
 
 		case isc_tokentype_nomore:
-			if (pctx->debug_lexer)
-				fprintf(stderr, "lexer token: nomore\n");
-
 			result = ISC_R_FAILURE;
 			break;
 		}

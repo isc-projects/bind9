@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwres_gnba.c,v 1.17 2000/06/27 18:03:22 bwelling Exp $ */
+/* $Id: lwres_gnba.c,v 1.16.2.1 2000/06/27 18:57:46 gson Exp $ */
 
 #include <config.h>
 

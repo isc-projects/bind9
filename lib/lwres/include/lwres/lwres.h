@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.41 2000/07/07 18:58:45 bwelling Exp $ */
+/* $Id: lwres.h,v 1.38.2.2 2000/07/10 20:58:08 gson Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1

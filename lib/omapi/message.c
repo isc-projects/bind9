@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.c,v 1.26 2000/06/28 05:24:41 tale Exp $ */
+/* $Id: message.c,v 1.25.2.1 2000/06/28 05:27:02 tale Exp $ */
 
 /*
  * Subroutines for dealing with message objects.

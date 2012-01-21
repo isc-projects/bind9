@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.30 2000/06/22 21:58:02 tale Exp $ */
+/* $Id: sockaddr.h,v 1.30.2.1 2000/09/21 22:15:00 gson Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -56,6 +56,9 @@ isc_sockaddr_any(isc_sockaddr_t *sockaddr);
 
 void
 isc_sockaddr_any6(isc_sockaddr_t *sockaddr);
+
+void
+isc_sockaddr_anyofpf(isc_sockaddr_t *sockaddr, int family);
 
 void
 isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,

@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: digcomp.pl,v 1.8 2000/07/08 16:37:43 tale Exp $
+# $Id: digcomp.pl,v 1.4.2.1 2000/07/10 04:51:46 gson Exp $
 
 # Compare two files, each with the output from dig, for differences.
 # Ignore "unimportant" differences, like ordering of NS lines, TTL's,

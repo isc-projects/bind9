@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.82 2000/07/05 20:28:34 gson Exp $ */
+/* $Id: xfrin.c,v 1.79.2.6 2000/09/01 01:06:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -311,6 +311,7 @@ axfr_commit(dns_xfrin_ctx_t *xfr) {
 static isc_result_t
 ixfr_init(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
+	char *journalfile;
 
 	if (xfr->reqtype != dns_rdatatype_ixfr) {
 		xfrin_log(xfr, ISC_LOG_ERROR, 
@@ -321,8 +322,12 @@ ixfr_init(dns_xfrin_ctx_t *xfr) {
 	xfr->is_ixfr = ISC_TRUE;
 	INSIST(xfr->db != NULL);
 	xfr->difflen = 0;
-        CHECK(dns_journal_open(xfr->mctx, dns_zone_getjournal(xfr->zone),
-			       ISC_TRUE, &xfr->ixfr.journal));
+
+	journalfile = dns_zone_getjournal(xfr->zone);
+	if (journalfile != NULL)
+		CHECK(dns_journal_open(xfr->mctx, journalfile,
+				       ISC_TRUE, &xfr->ixfr.journal));
+
 	result = ISC_R_SUCCESS;
  failure:
 	return (result);
@@ -354,10 +359,12 @@ ixfr_apply(dns_xfrin_ctx_t *xfr) {
 
 	if (xfr->ver == NULL) {
 		CHECK(dns_db_newversion(xfr->db, &xfr->ver));
-		CHECK(dns_journal_begin_transaction(xfr->ixfr.journal));
+		if (xfr->ixfr.journal != NULL)
+			CHECK(dns_journal_begin_transaction(xfr->ixfr.journal));
 	}
         CHECK(dns_diff_apply(&xfr->diff, xfr->db, xfr->ver));
-	dns_journal_writediff(xfr->ixfr.journal, &xfr->diff);
+	if (xfr->ixfr.journal != NULL)
+		dns_journal_writediff(xfr->ixfr.journal, &xfr->diff);
 	dns_diff_clear(&xfr->diff);
 	xfr->difflen = 0;
 	result = ISC_R_SUCCESS;
@@ -372,7 +379,8 @@ ixfr_commit(dns_xfrin_ctx_t *xfr) {
 	ixfr_apply(xfr);
 	if (xfr->ver != NULL) {
 		/* XXX enter ready-to-commit state here */
-		CHECK(dns_journal_commit(xfr->ixfr.journal));
+		if (xfr->ixfr.journal != NULL)
+			CHECK(dns_journal_commit(xfr->ixfr.journal));
 		dns_db_closeversion(xfr->db, &xfr->ver, ISC_TRUE);
 	}
 	result = ISC_R_SUCCESS;
@@ -653,7 +661,9 @@ xfrin_create(isc_mem_t *mctx,
 
 	xfr->nmsg = 0;
 
-	xfr->tsigkey = tsigkey;
+	xfr->tsigkey = NULL;
+	if (tsigkey != NULL)
+		dns_tsigkey_attach(tsigkey, &xfr->tsigkey);
 	xfr->lasttsig = NULL;
 	xfr->tsigctx = NULL;
 	xfr->sincetsig = 0;
@@ -863,6 +873,12 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	msg->id = ('b' << 8) | '9'; /* Arbitrary */
 
 	CHECK(render(msg, &xfr->qbuffer));
+
+	/*
+	 * Free the last tsig, if there is one.
+	 */
+	if (xfr->lasttsig != NULL)
+		isc_buffer_free(&xfr->lasttsig);
 
 	/*
 	 * Save the query TSIG and don't let message_destroy free it.
@@ -1154,6 +1170,9 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 	if (xfr->task != NULL)
 		isc_task_detach(&xfr->task);
 
+	if (xfr->tsigkey != NULL)
+		dns_tsigkey_detach(&xfr->tsigkey);
+
 	if (xfr->lasttsig != NULL)
 		isc_buffer_free(&xfr->lasttsig);
 
@@ -1215,6 +1234,9 @@ xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 {
         va_list ap;
 
+	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+		return;
+
 	va_start(ap, fmt);
 	xfrin_logv(level, zonename, masteraddr, fmt, ap);
 	va_end(ap);
@@ -1228,6 +1250,9 @@ static void
 xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
 {
         va_list ap;
+
+	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+		return;
 
 	va_start(ap, fmt);
 	xfrin_logv(level, &xfr->name, &xfr->masteraddr, fmt, ap);

@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.101 2000/07/07 23:11:45 brister Exp $ */
+/* $Id: confparser.y,v 1.99.2.5 2000/09/13 23:13:25 explorer Exp $ */
 
 #include <config.h>
 
@@ -122,7 +122,6 @@ static isc_lexspecials_t	specials;
 
 
 static isc_result_t	tmpres;
-static int		debug_lexer;
 static in_port_t	default_port;
 
 int			yyparse(void);
@@ -791,14 +790,10 @@ option: /* Empty */
 	}
 	| L_MAINTAIN_IXFR_BASE yea_or_nay
 	{
-		/*
-		 * Backwards compatibility, treated as
-		 * equivalent to provide-ixfr.
-		 */
-		tmpres = dns_c_ctx_setprovideixfr(currcfg, $2);
+		tmpres = dns_c_ctx_setmaintainixfrbase(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
-				     "cannot redefine provide-ixfr");
+				     "cannot redefine maintain-ixfr-base");
 			YYABORT;
 		}
 	}
@@ -3155,10 +3150,10 @@ address_name: any_string
 			tmpres = dns_c_acltable_getacl(currcfg->acls,
 						       $1, &acl);
 			if (tmpres == ISC_R_NOTFOUND) {
-				parser_warning(ISC_FALSE,
-					       "undefined acl '%s' "
-					       "referenced", $1);
-				elem = NULL;
+				parser_error(ISC_FALSE,
+					     "undefined acl '%s' "
+					     "referenced", $1);
+				YYABORT;
 			} else {
 				tmpres = dns_c_ipmatch_aclnew(currcfg->mem,
 							      &elem, $1);
@@ -5351,12 +5346,6 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 	INSIST(keywords == NULL);
 	INSIST(callbacks == NULL);
 
-#if 1
-	if (getenv("DEBUG_LEXER") != NULL) { /* XXX debug */
-		debug_lexer++;
-	}
-#endif
-
 	specials['{'] = 1;
 	specials['}'] = 1;
 	specials[';'] = 1;
@@ -5515,6 +5504,7 @@ yylex(void)
 	isc_result_t res;
 	int options = (ISC_LEXOPT_EOF |
 		       ISC_LEXOPT_NUMBER |
+		       ISC_LEXOPT_CNUMBER |
 		       ISC_LEXOPT_QSTRING |
 		       ISC_LEXOPT_NOMORE);
 
@@ -5764,10 +5754,6 @@ token_value(isc_token_t *token, isc_symtab_t *symtable)
 
 	switch (token->type) {
 	case isc_tokentype_unknown:
-		if (debug_lexer) {
-			fprintf(stderr, "unknown lexer token\n");
-		}
-
 		res = -1;
 		break;
 
@@ -5789,24 +5775,11 @@ token_value(isc_token_t *token, isc_symtab_t *symtable)
 		} else {
 			res = keywordtok.as_integer;
 		}
-
-		if (debug_lexer) {
-			fprintf(stderr, "lexer token: %s : %s (%d)\n",
-				(token->type == isc_tokentype_special ?
-				 "special" : "string"), tokstring, res);
-		}
-
 		break;
 
 	case isc_tokentype_number:
 		yylval.ul_int = (isc_uint32_t)token->value.as_ulong;
 		res = L_INTEGER;
-
-		if(debug_lexer) {
-			fprintf(stderr, "lexer token: number : %lu\n",
-				(unsigned long)yylval.ul_int);
-		}
-
 		break;
 
 	case isc_tokentype_qstring:
@@ -5817,12 +5790,6 @@ token_value(isc_token_t *token, isc_symtab_t *symtable)
 		} else {
 			res = L_QSTRING;
 		}
-
-		if (debug_lexer) {
-			fprintf(stderr, "lexer token: qstring : \"%s\"\n",
-				yylval.text);
-		}
-
 		break;
 
 	case isc_tokentype_eof:
@@ -5833,36 +5800,21 @@ token_value(isc_token_t *token, isc_symtab_t *symtable)
 			/* the only way to tell that we
 			 *  closed the main file and not an included file
 			 */
-			if (debug_lexer) {
-				fprintf(stderr, "lexer token: EOF\n");
-			}
 			res = 0;
 		} else {
-			if (debug_lexer) {
-				fprintf(stderr, "lexer token: EOF (main)\n");
-			}
 			res = L_END_INCLUDE;
 		}
 		break;
 
 	case isc_tokentype_initialws:
-		if (debug_lexer) {
-			fprintf(stderr, "lexer token: initial ws\n");
-		}
 		res = -1;
 		break;
 
 	case isc_tokentype_eol:
-		if (debug_lexer) {
-			fprintf(stderr, "lexer token: eol\n");
-		}
 		res = -1;
 		break;
 
 	case isc_tokentype_nomore:
-		if (debug_lexer) {
-			fprintf(stderr, "lexer token: nomore\n");
-		}
 		res = -1;
 		break;
 	}

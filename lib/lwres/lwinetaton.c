@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: lwinetaton.c,v 1.7 2000/06/28 22:57:42 bwelling Exp $";
+static char rcsid[] = "$Id: lwinetaton.c,v 1.5 2000/06/21 22:20:14 tale Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -81,8 +81,6 @@ static char rcsid[] = "$Id: lwinetaton.c,v 1.7 2000/06/28 22:57:42 bwelling Exp 
 
 #include <lwres/int.h>
 #include <lwres/net.h>
-
-#include "assert_p.h"
 
 /* 
  * Check whether "cp" is a valid ascii representation
@@ -100,8 +98,6 @@ lwres_net_aton(const char *cp, struct in_addr *addr) {
 	lwres_uint8_t *pp = parts;
 	int digit;
 
-	REQUIRE(cp != NULL);
-
 	c = *cp;
 	for (;;) {
 		/*
@@ -111,17 +107,14 @@ lwres_net_aton(const char *cp, struct in_addr *addr) {
 		 */
 		if (!isdigit(c & 0xff))
 			return (0);
-		val = 0;
-		base = 10;
-		digit = 0;
+		val = 0; base = 10; digit = 0;
 		if (c == '0') {
 			c = *++cp;
-			if (c == 'x' || c == 'X') {
-				base = 16;
-			       	c = *++cp;
-			} else {
+			if (c == 'x' || c == 'X')
+				base = 16, c = *++cp;
+			else {
 				base = 8;
-				digit = 1;
+				digit = 1 ;
 			}
 		}
 		for (;;) {

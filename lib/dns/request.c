@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: request.c,v 1.26 2000/06/22 21:54:44 tale Exp $ */
+/* $Id: request.c,v 1.26.2.4 2000/08/25 00:46:36 gson Exp $ */
 
 #include <config.h>
 
@@ -493,7 +493,8 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	request->event->ev_sender = task;
 	request->event->request = request;
 	request->event->result = ISC_R_FAILURE;
-	request->tsigkey = key;
+	if (key != NULL)
+		dns_tsigkey_attach(key, &request->tsigkey);
 	
  use_tcp:
 	if ((options & DNS_REQUESTOPT_TCP) != 0) {
@@ -502,7 +503,16 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 					   isc_sockettype_tcp, &socket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		isc_sockaddr_any(&bind_any);
+		switch (isc_sockaddr_pf(address)) {
+		case AF_INET:
+			isc_sockaddr_any(&bind_any);
+			break;
+		case AF_INET6:
+			isc_sockaddr_any6(&bind_any);
+			break;
+		default: 
+			INSIST(0);         
+		}                          
 		result = isc_socket_bind(socket, &bind_any);
 		if (result != ISC_R_SUCCESS) {
 			isc_socket_detach(&socket);
@@ -524,19 +534,23 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	} else {
+		dns_dispatch_t *disp = NULL;
 		switch (isc_sockaddr_pf(address)) {
 		case PF_INET:
-			dns_dispatch_attach(requestmgr->dispatchv4,
-					    &request->dispatch);
+			disp = requestmgr->dispatchv4;
 			break;
 		case PF_INET6:
-			dns_dispatch_attach(requestmgr->dispatchv6,
-					    &request->dispatch);
+			disp = requestmgr->dispatchv6;
 			break;
 		default:
 			result = ISC_R_NOTIMPLEMENTED;
 			goto cleanup;
 		}
+		if (disp == NULL) {
+			result = ISC_R_NETUNREACH;
+			goto cleanup;
+		}
+		dns_dispatch_attach(disp, &request->dispatch);
 	}
 	socket = dns_dispatch_getsocket(request->dispatch);
 	INSIST(socket != NULL);
@@ -734,6 +748,8 @@ isc_result_t
 dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 			isc_boolean_t preserve_order)
 {
+	isc_result_t result;
+
 	REQUIRE(VALID_REQUEST(request));
 	REQUIRE(request->answer != NULL);
 
@@ -742,7 +758,12 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 
 	dns_message_setquerytsig(message, request->tsig);
 	dns_message_settsigkey(message, request->tsigkey);
-	return (dns_message_parse(message, request->answer, preserve_order));
+	result = dns_message_parse(message, request->answer, preserve_order);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (request->tsigkey != NULL)
+		result = dns_tsig_verify(request->answer, message, NULL, NULL);
+	return (result);
 }
 
 isc_boolean_t
@@ -927,6 +948,8 @@ req_destroy(dns_request_t *request) {
 		isc_timer_detach(&request->timer);
 	if (request->tsig != NULL)
 		isc_buffer_free(&request->tsig);
+	if (request->tsigkey != NULL)
+		dns_tsigkey_detach(&request->tsigkey);
 	requestmgr_detach(&request->requestmgr);
 	mctx = request->mctx;
 	isc_mem_put(mctx, request, sizeof(*request));

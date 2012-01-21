@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.42 2000/06/22 21:57:12 tale Exp $ */
+/* $Id: sockaddr.c,v 1.42.2.1 2000/09/21 22:14:59 gson Exp $ */
 
 #include <config.h>
 
@@ -262,6 +262,20 @@ isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 	sockaddr->type.sin.sin_port = htons(port);
 	sockaddr->length = sizeof sockaddr->type.sin;
 	ISC_LINK_INIT(sockaddr, link);
+}
+
+void
+isc_sockaddr_anyofpf(isc_sockaddr_t *sockaddr, int pf) {
+     switch (pf) {
+     case AF_INET:
+	     isc_sockaddr_any(sockaddr);
+	     break;
+     case AF_INET6:
+	     isc_sockaddr_any6(sockaddr);
+	     break;
+     default:
+	     INSIST(0);
+     }
 }
 
 void

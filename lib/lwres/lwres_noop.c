@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwres_noop.c,v 1.11 2000/06/27 18:03:23 bwelling Exp $ */
+/* $Id: lwres_noop.c,v 1.10.2.1 2000/06/27 18:57:47 gson Exp $ */
 
 #include <config.h>
 

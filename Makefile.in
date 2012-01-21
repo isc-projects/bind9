@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.25 2000/06/27 00:09:58 gson Exp $
+# $Id: Makefile.in,v 1.21.2.6 2000/07/27 01:48:49 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -23,13 +23,14 @@ top_srcdir =	@top_srcdir@
 
 SUBDIRS =	make lib bin
 TARGETS =
-DISTFILES =	CHANGES Makefile.in README \
+DISTFILES =	CHANGES COPYRIGHT Makefile.in README \
 		acconfig.h aclocal.m4 config.guess config.h.in config.h.win32 \
 		config.status.win32 config.sub configure configure.in \
 		isc-config.sh.in install-sh libtool.m4 ltconfig ltmain.sh \
 		lib make contrib \
 		version
 DOCDISTFILES =	arm draft misc rfc
+DOCMANDISTFILES = bin dnssec
 BINDISTFILES =	Makefile.in dig dnssec named nsupdate rndc tests
 
 @BIND9_MAKE_RULES@
@@ -38,6 +39,8 @@ distclean::
 	rm -f config.cache config.h config.log config.status TAGS
 	rm -f libtool isc-config.sh
 	rm -f util/conf.sh
+
+cleandir: distclean
 
 install:: isc-config.sh
 	${INSTALL_PROGRAM} isc-config.sh ${DESTDIR}${bindir}
@@ -48,6 +51,9 @@ kit: kitclean
 	mkdir bind-${VERSION}/doc
 	@(cd bind-${VERSION}/doc; for i in ${DOCDISTFILES}; do \
 		ln -s ../../doc/$$i $$i; done)
+	mkdir bind-${VERSION}/doc/man
+	@(cd bind-${VERSION}/doc/man; for i in ${DOCMANDISTFILES}; do \
+		ln -s ../../../doc/man/$$i $$i; done)
 	mkdir bind-${VERSION}/bin
 	@(cd bind-${VERSION}/bin; for i in ${BINDISTFILES}; do \
 		ln -s ../../bin/$$i $$i; done)

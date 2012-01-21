@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.43 2000/06/06 22:00:47 bwelling Exp $
+ * $Id: dnssec.c,v 1.43.2.2 2000/08/21 23:17:29 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -322,7 +322,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	REQUIRE(mctx != NULL);
 	REQUIRE(sigrdata != NULL && sigrdata->type == dns_rdatatype_sig);
 
-	ret = dns_rdata_tostruct(sigrdata, &sig, mctx);
+	ret = dns_rdata_tostruct(sigrdata, &sig, NULL);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -581,12 +581,11 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	/*
 	 * Digest the fields of the SIG - we can cheat and use
 	 * dns_rdata_fromstruct.  Since siglen is 0, the digested data
-	 * is identical to dns format with the last 2 bytes removed.
+	 * is identical to dns format.
 	 */
 	RETERR(dns_rdata_fromstruct(NULL, dns_rdataclass_any,
 				    dns_rdatatype_sig, &sig, &databuf));
 	isc_buffer_usedregion(&databuf, &r);
-	r.length -= 2;
 	RETERR(dst_context_adddata(ctx, &r));
 
 	RETERR(dst_key_sigsize(key, &sigsize));
@@ -599,6 +598,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	isc_buffer_init(&sigbuf, sig.signature, sig.siglen);
 	RETERR(dst_context_sign(ctx, &sigbuf));
+	dst_context_destroy(&ctx);
 
 	rdata = NULL;
 	RETERR(dns_message_gettemprdata(msg, &rdata));
@@ -671,7 +671,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	RETERR(dns_rdataset_first(msg->sig0));
 	dns_rdataset_current(msg->sig0, &rdata);
 
-	RETERR(dns_rdata_tostruct(&rdata, &sig, mctx));
+	RETERR(dns_rdata_tostruct(&rdata, &sig, NULL));
 	signeedsfree = ISC_TRUE;
 
 	if (sig.labels != 0) {
@@ -691,7 +691,11 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 		goto failure;
 	}
 
-	/* XXXBEW ensure that sig.signer refers to this key */
+	if (!dns_name_equal(dst_key_name(key), &sig.signer)) {
+		result = DNS_R_SIGINVALID;
+		msg->sig0status = dns_tsigerror_badkey;
+		goto failure;
+	}
 
 	RETERR(dst_context_create(key, mctx, &ctx));
 
@@ -738,7 +742,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	dns_name_fromregion(&tname, &r);
 	dns_name_toregion(&tname, &r2);
 	isc_region_consume(&r, r2.length + 10);
-	r.length -= (sig.siglen + 2);
+	r.length -= sig.siglen;
 	RETERR(dst_context_adddata(ctx, &r));
 
 	sig_r.base = sig.signature;
@@ -751,6 +755,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 
 	msg->verified_sig = 1;
 
+	dst_context_destroy(&ctx);
 	dns_rdata_freestruct(&sig);
 
 	return (ISC_R_SUCCESS);

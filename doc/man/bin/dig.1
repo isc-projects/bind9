@@ -1,0 +1,462 @@
+.\" Copyright (C) @YEARS@  Internet Software Consortium.
+.\" 
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\" 
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+.\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+.\" INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+.\" INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+.\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+.\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+.\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" $Id: dig.1,v 1.3 2000/09/26 23:41:43 gson Exp $
+.\" 
+.Dd Jun 30, 2000
+.Dt DIG 1
+.Os BIND9 9
+.ds vT BIND9 Programmer's Manual
+.Sh NAME
+.Nm dig
+.Nd DNS lookup utility
+.Sh SYNOPSIS
+.Nm dig
+.Op @server
+.Op Fl b Ar address
+.Op Fl c Ar class
+.Op Fl f Ar filename
+.Op Fl k Ar filename
+.Op Fl p Ar port#
+.Op Fl t Ar type
+.Op Fl x Ar addr
+.Op Fl y Ar name:key
+.Op name
+.Op type
+.Op class
+.Op queryopt ...
+.Nm dig
+.Fl h
+.Nm dig
+.Op global-queryopt ...
+.Op query1
+.Op query2 ...
+.Sh DESCRIPTION
+.Pp
+.Nm dig 
+(domain information groper) is a flexible tool for interrogating DNS
+name servers.
+It performs DNS lookups and displays the answers that are returned from
+the name server(s) that were queried.
+Most DNS administrators use
+.Nm dig
+to troubleshoot DNS problems because of its flexibility, ease of use and
+clarity of output.
+Other lookup tools tend to have less functionality than
+.Nm dig .
+.Pp
+Although
+.Nm dig
+is normally used with command-line arguments, it also has a batch
+mode of operation for reading lookup requests from a file.
+A brief summary of its command-line arguments and options is printed
+when the
+.Fl h
+option is given.
+Unlike earlier versions, the BIND9 implementation of 
+.Nm dig
+allows multiple lookups to be issued from the command line.
+.Pp
+Unless it is told to query a specific name server,
+.Nm dig
+will try each of the servers listed in
+.Pa /etc/resolv.conf .
+.Pp
+When no command line arguments or options are given,
+will perform an NS query for "." (the root).
+.Sh SIMPLE USAGE
+.Pp
+A typical invocation of
+.Nm dig
+looks like:
+.Bd -ragged | -offset indent
+.Ic dig Ar @server name type
+.Ed
+.Pp
+where:
+.Bl -tag -width server
+.It Ar server
+is the name or IP address of the name server to query.
+An IPv4 address can be provided in dotted-decimal notation.
+When the supplied
+.Ar server
+argument is a hostname,
+.Nm dig
+resolves that name before querying that name server.
+If no
+.Ar server
+argument is provided,
+.Nm dig
+consults
+.Pa /etc/resolv.conf 
+and queries the name servers listed there.
+The reply from the name server that responds is displayed.
+.It Ar name
+is the name of the resource record that is to be looked up.
+.It Ar type
+indicates what type of query is required - ANY, A, MX, SIG, etc.
+.Ar type
+can be any valid query type.
+If no
+.Ar type
+argument is supplied,
+.Nm dig
+will perform a lookup for an A record.
+.El
+.Pp
+.Sh OPTIONS
+The 
+.Fl b
+option sets the source IP address of the query to
+.Ar address . 
+This must be a valid
+address on one of the host's network interfaces.
+.Pp
+The default query class (IN for internet) is overridden by the
+.Fl c
+option.
+.Ar class
+is any valid class, such as HS for Hesiod records or CH for
+CHAOSNET records.
+.Pp
+The
+.Fl f
+option makes
+.Nm dig 
+operate in batch mode by reading a list of lookup requests to process
+from the file
+.Ar filename .
+The file contains a number of queries, one per line.
+Each entry in the file should be organised in the same way they would be
+presented as queries to
+.Nm dig
+using the command-line interface.
+.Pp
+If a non-standard port number is to be queried, the
+.Fl p
+option is used.
+.Ar port#
+is the port number that
+.Nm dig
+will send its queries instead of the standard DNS port number 53.
+This option would be used to test a name server that has been configured
+to listen for queries on a non-standard port number.
+.Pp
+The
+.Fl t
+option sets the query type to
+.Ar type .
+It can be any valid query type which is supported in BIND9.
+The default query type "A", unless the
+.Fl x
+option is supplied to indicate a reverse lookup.
+A zone transfer can be requested by specifying a type of AXFR.
+When an incremental zone transfer (IXFR) is required,
+.Ar type
+is set to
+.Dv ixfr=N .
+The incremental zone transfer will contain the changes made to the zone
+since the serial number in the zone's SOA record was
+.Ar N .
+.Pp
+Reverse lookups - mapping addresses to names - are simplified
+by the
+.Fl x
+option.
+.Ar addr
+is an IPv4 address in dotted-decimal notation, or a colon-delimited
+IPv6 address.
+When this option is used, there is no need to provide the
+.Ar name ,
+.Ar class 
+and
+.Ar type
+arguments.
+.Nm dig
+automatically performs a lookup for a name like
+.Dv 11.12.13.10.in-addr.arpa
+and sets the query type and class to PTR and IN respectively.
+By default, IPv6 addresses are looked up using the
+IP6.ARPA domain and binary labels as defined in RFC2874.
+To use the older RFC1886 method using the IP6.INT domain and "nibble" labels,
+specify the
+.Fl n
+(nibble) option.
+.Pp
+To sign the DNS queries sent by
+.Nm dig
+and their responses using transaction signatures (TSIG),
+specify a TSIG key file using the
+.Fl k
+option.  You can also specify the TSIG key itself on the command
+line using the
+.Fl y
+option; 
+.Ar name
+is the name of the TSIG key and
+.Ar key
+is the actual key.  The key is a base-64 encoded string,
+ typically generated by
+.Xr dnssec-keygen 8 .
+Caution should be taken when using the
+.Fl y
+option on multi-user systems as the key can be visible
+in the output from
+.Xr ps 1
+or in the shell's history file.
+When using TSIG authentication with
+.Nm dig ,
+the name server that is queried needs to know the key and algorithm
+that is being used.
+In BIND, this is done by providing appropriate
+.Dv key{}
+and
+.Dv server{}
+statements in 
+.Pa named.conf .
+.Sh QUERY OPTIONS
+.Nm dig
+provides a number of query options which affect the way in which 
+lookups are made and the results displayed.
+Some of these set or reset flag bits in the query header,
+some determine which sections of the answer get printed,
+and others determine the timeout and retry strategies.
+.Pp
+Each query option is identified by a keyword preceded by a
+plus sign: \*q+\*q.
+Some keywords set or reset an option.
+These may be preceded by the string \*qno\*q to negate the meaning of
+that keyword.
+Other keywords assign values to options like the timeout interval.
+They have the form
+.Dv +keyword=value .
+The query options are:
+.Bl -tag -width +[no]additional
+.It +[no]tcp
+Use [do not use] TCP when querying name servers.
+The default behaviour is to use UDP unless an AXFR or IXFR query is
+requested, in which case a TCP connection is used.
+.It +[no]vc
+Use [do not use] TCP when querying name servers.
+This alternate syntax to
+.Ar +[no]tcp
+is provided for backwards compatibility.
+The "vc" stands for "virtual circuit".
+.It +[no]ignore
+Ignore truncation in UDP responses instead of 
+retrying with TCP.  By default, TCP retries are
+performed.
+.It +domain=somename
+Set the default domain to
+.Ar somename ,
+as if specified in a
+.Dv domain
+directive in 
+.Pa /etc/resolv.conf .
+.It +[no]search
+Use [do not use] the search list in 
+.Pa resolv.conf 
+(if any).
+The search list is not used by default.
+.It +[no]defname
+Use [do not use] the default domain name, if any, in
+.Pa resolv.conf 
+The default is not to append that name to 
+.Ar name
+when making queries. 
+.It +[no]aaonly
+This option does nothing.
+It is provided for compatibilty with old versions of
+.Nm dig
+where it set an unimplemented resolver flag.
+.It +[no]adflag
+Set [do not set] the AD (authentic data) bit in the query.
+The AD bit currently has a standard meaning only in responses,
+not in queries, but the ability to set the bit in the query
+is provided for completeness.
+.It +[no]cdflag
+Set [do not set] the CD (checking disabled) bit in the query.
+This requests the server to not perform DNSSEC validation
+of responses.
+.It +[no]recursive
+Toggle the setting of the RD (recursion desired) bit in the query.
+This bit is set by default, which means 
+.Nm dig .
+normally sends recursive queries.
+Recursion is automatically disabled when the
+.Ar +nssearch
+or
+.Ar +trace
+query options are used.
+.It +[no]nssearch
+When this option is set,
+.Nm dig
+attempts to find the authoritative name servers for the zone containing
+the name being looked up and
+display the SOA record that each name server has for the zone.
+.It +[no]trace
+Toggle tracing of the delegation path from the root name servers for
+the name being looked up.
+Tracing is disabled by default.
+When tracing is enabled,
+.Nm dig
+makes iterative queries to resolve the name being looked up.
+It will follow referrals from the root servers, showing
+the answer from each server that was used to resolve the lookup.
+.It +[no]cmd
+toggles the printing of the initial comment in the output identifying
+the version of
+.Nm dig
+and the query options that have been applied.
+This comment is printed by default.
+.It +[no]short
+Provide a terse answer.
+The default is to print the answer in a verbose form.
+.It +[no]identify
+Show [or do not show] the IP address and port number that supplied the
+answer when the
+.Ar +short
+option is enabled.
+If short form answers are requested, the default is not to show
+the source address and port number of the server that provided the
+answer.
+.It +[no]comments
+Toggle the display of comment lines in the output.
+The default is to print comments.
+.It +[no]sta
+This query option toggles the printing of statistics: when the query was
+made, the size of the reply and so on.
+The default behaviour is to print the query statistics.
+.It +[no]qr
+Print [do not print] the query as it is sent.
+before sending the query.  By default, the query is not printed.
+.It +[no]question
+Print [do not print] the question section of a query when an answer is
+returned.
+The default is to print the question section as a comment.
+.It +[no]answer
+Display [do not display] the answer section of a reply.
+The default is to display it.
+.It +[no]authority
+Display [do not display] the authority section of a reply.
+The default is to display it.
+.It +[no]additional
+Display [do not display] the additional section of a reply.
+The default is to display it.
+.It +[no]all
+Set or clear all display flags
+.It +time=T
+Sets the timeout for a query to
+.Dv T
+seconds.
+The default time out is 5 seconds.
+An attempt to set
+.Dv T
+to less than 1 will result in a query timeout of 1 second being applied.
+.It +tries=A
+Sets the number of times to retry UDP queries to server to
+.Dv T
+instead of the default, 3.
+If 
+.Dv T
+is less than or equal to zero, the number of retries is silently rounded
+up to 1.
+.It +ndots=D
+Set the number of dots that have to appear in
+.Ar name
+to
+.Dv D
+for it to be considered absolute.  The default value is that
+defined using the ndots statement in
+.Pa /etc/resolv.conf ,
+or 1 if no ndots statement is present.  Names with fewer
+dots are interpreted as relative names and will be searched 
+for in the domains listed in the 
+.Dv search
+or
+.Dv domain
+directive in
+.Pa /etc/resolv.conf .
+.It +bufsize=B
+Set the UDP message buffer size advertised using EDNS0 to
+.Dv B
+bytes.
+The maximum and minimum sizes of this buffer are 65535 and 0
+respectively.
+Values outside this range are rounded up or down appropriately.
+.El
+.Sh MULTIPLE QUERIES
+.Pp
+The BIND 9
+implementation of
+.Nm dig 
+supports specifying multiple queries on the command line
+(in addition to supporting the
+.Fl f
+batch file option).
+Each of those queries can be supplied with its own set of flags,
+options and query options.
+.Pp
+In this case,
+.Ar query1 ,
+.Ar query2 
+and so on represent an individual query in the command-line syntax described
+above.
+Each consists of any of the standard options and flags, the name to be looked
+up, an optional query type and class and any query options that should
+be applied to that query.
+.Pp
+A global set of query options, which should be applied to all queries, can
+also be supplied.
+These global query options must precede the first tuple of name, class, type,
+options, flags, and query options supplied on the command line.
+Any global query options can be overridden by a
+query-specific set of query options.
+For example:
+.Bd -literal
+dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
+.Ed
+.Pp
+shows how
+.Nm dig
+could be used from the command line to make three lookups: an ANY query
+for
+.Dv www.isc.org ,
+a reverse lookup of 127.0.0.1
+and
+a query for the NS records of
+.Dv isc.org .
+A global query option of
+.Ar +qr
+is applied, so that
+.Nm dig
+shows the initial query it made for each lookup.
+The final query has a local query option of
+.Ar +noqr
+which means that
+.Nm dig
+will not print the initial query when it looks up the
+NS records for
+.Dv isc.org .
+.Sh FILES
+.Pa /etc/resolv.conf
+.Sh SEE ALSO
+.Xr host 1 ,
+.Xr resolver 5 ,
+.Xr named 8 ,
+.Xr dnssec-keygen 8 ,
+.Xr RFC1035 .
+.Sh BUGS 
+There are probably too many query options. 

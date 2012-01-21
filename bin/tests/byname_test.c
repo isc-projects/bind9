@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: byname_test.c,v 1.19 2000/06/28 16:19:54 explorer Exp $ */
+/* $Id: byname_test.c,v 1.18.2.1 2000/06/28 16:45:25 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.h,v 1.17 2000/07/07 23:11:47 brister Exp $ */
+/* $Id: confctl.h,v 1.15.2.2 2000/07/12 16:37:12 gson Exp $ */
 
 #ifndef DNS_CONFCTL_H
 #define DNS_CONFCTL_H 1
@@ -86,7 +86,6 @@ struct dns_c_ctrl {
 	union {
 		struct {
 			isc_sockaddr_t addr;
-			in_port_t port;
 			dns_c_ipmatchlist_t *matchlist;
 		} inet_v; /* when control_type == dns_c_inet_control  */
 		struct {
@@ -162,6 +161,16 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control);
  *	ISC_R_SUCCESS
  */
 
+
+isc_result_t
+dns_c_ctrl_validate(dns_c_ctrl_t *ctrl);
+/*
+ * Validates one control statement enty.
+ * The KEYS must be used. UNIX types are ignored (so we issue a warning for
+ * that.
+ */
+
+
 void
 dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl);
 /*
@@ -186,6 +195,12 @@ dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist);
  * Returns:
  *	ISC_R_SUCCESS		-- all is well.
  *	ISC_R_NOMEMORY		-- insufficient memory available.
+ */
+
+isc_result_t
+dns_c_ctrllist_validate(dns_c_ctrllist_t *cl);
+/*
+ * Validates the subclauses of the control statement.
  */
 
 isc_result_t

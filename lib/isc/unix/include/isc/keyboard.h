@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: keyboard.h,v 1.2 2000/06/22 00:25:33 explorer Exp $ */
+/* $Id: keyboard.h,v 1.2.2.1 2000/08/07 16:39:59 gson Exp $ */
 
 #ifndef ISC_KEYBOARD_H
 #define ISC_KEYBOARD_H 1
@@ -30,6 +30,7 @@ ISC_LANG_BEGINDECLS
 typedef struct {
 	int fd;
 	struct termios saved_mode;
+	isc_result_t result;
 } isc_keyboard_t;
 
 isc_result_t
@@ -40,6 +41,9 @@ isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleepseconds);
 
 isc_result_t
 isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp);
+
+isc_boolean_t
+isc_keyboard_canceled(isc_keyboard_t *keyboard);
 
 ISC_LANG_ENDDECLS
 

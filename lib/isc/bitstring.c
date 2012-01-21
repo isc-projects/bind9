@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: bitstring.c,v 1.5 2000/06/22 21:56:50 tale Exp $ */
+/* $Id: bitstring.c,v 1.5.2.1 2000/09/12 23:29:25 gson Exp $ */
 
 #include <config.h>
 
@@ -90,20 +90,20 @@ isc_bitstring_copy(isc_bitstring_t *source, unsigned int sbitpos,
 	REQUIRE(VALID_BITSTRING(source));
 	REQUIRE(VALID_BITSTRING(target));
 	if (source->lsb0) {
-		REQUIRE(sbitpos < source->length);
-		sbitpos = PADDED(source->size) - sbitpos - 1;
-		REQUIRE(sbitpos >= n - 1);
-		sbitpos -= n - 1;
+		REQUIRE(sbitpos <= source->length);
+		sbitpos = PADDED(source->size) - sbitpos;
+		REQUIRE(sbitpos >= n);
+		sbitpos -= n;
 	} else
 		REQUIRE(sbitpos + n <= source->length);
 	tlast = tbitpos + n;
 	if (target->lsb0) {
 		REQUIRE(tbitpos <= target->length);
-		tbitpos = PADDED(target->size) - tbitpos - 1;
-		REQUIRE(tbitpos >= n - 1);
-		tbitpos -= n - 1;
+		tbitpos = PADDED(target->size) - tbitpos;
+		REQUIRE(tbitpos >= n);
+		tbitpos -= n;
 	} else		
-		REQUIRE(tlast<= target->size);
+		REQUIRE(tlast <= target->size);
 
 	if (tlast > target->length)
 		target->length = tlast;

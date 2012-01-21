@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.72 2000/07/07 22:57:53 brister Exp $ */
+/* $Id: confctx.c,v 1.70.2.6 2000/09/15 23:07:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -194,6 +194,7 @@ PVT_CONCAT(dns_c_ctx_unset, FUNC)(dns_c_ctx_t *cfg)		\
 	}							\
 								\
 	isc_mem_free(cfg->options->mem, cfg->options->FIELD);	\
+	cfg->options->FIELD = NULL;				\
 								\
 	return (ISC_R_SUCCESS);					\
 }
@@ -229,6 +230,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	isc_result_t		tmpres;
 	dns_c_rrsolist_t       *olist;
 	dns_c_lstnlist_t       *listenlist;
+	dns_c_ctrllist_t       *controls;
 
 	
 	if (dns_c_ctx_getnamedxfer(cfg, &cpval) != ISC_R_NOTFOUND) {
@@ -243,8 +245,16 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'dump-file' is not yet implemented");
 	}
-	
-		
+
+
+	if (dns_c_ctx_getstatsfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "option 'statistics-file' is not yet "
+			      "implemented");
+	}
+
+
 	if (dns_c_ctx_getmemstatsfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
@@ -253,7 +263,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if (dns_c_ctx_getauthnxdomain(cfg, &bval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getauthnxdomain(cfg, &bval) == ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "the default for the 'auth-nxdomain' option "
@@ -374,7 +384,14 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			      "option 'serial-queries' is not yet "
 			      "implemented");
 	}
-	
+
+
+	if (dns_c_ctx_getmaintainixfrbase(cfg, &bval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "option 'maintain-ixfr-base' is obsolete");
+	}
+
 
 	if (dns_c_ctx_getmaxlogsizeixfr(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
@@ -491,6 +508,14 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			result = tmpres;
 		}
 	}
+
+	if (dns_c_ctx_getcontrols(cfg, &controls) != ISC_R_NOTFOUND) {
+		tmpres = dns_c_ctrllist_validate(controls);
+		if (tmpres != ISC_R_SUCCESS) {
+			result = tmpres;
+		}
+	}
+	
 
 	return (result);
 }
@@ -976,7 +1001,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 
 	if (options->additional_data != NULL) {
 		dns_c_printtabs(fp, indent + 1);
-		fprintf(fp, "additional-data %s;\n",
+		fprintf(fp, "additional_data %s;\n",
 			dns_c_addata2string(*options->additional_data,
 					    ISC_TRUE));
 	}

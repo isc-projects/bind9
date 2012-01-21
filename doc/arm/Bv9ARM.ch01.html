@@ -1,0 +1,1028 @@
+<HTML
+><HEAD
+><TITLE
+>Introduction </TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.41"><LINK
+REL="HOME"
+HREF="Bv9ARM.html"><LINK
+REL="PREVIOUS"
+HREF="Bv9ARM.html"><LINK
+REL="NEXT"
+TITLE="BIND Resource Requirements"
+HREF="Bv9ARM.ch02.html"></HEAD
+><BODY
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="3"
+ALIGN="center"
+></TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="bottom"
+><A
+HREF="Bv9ARM.html"
+>Prev</A
+></TD
+><TD
+WIDTH="80%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="bottom"
+><A
+HREF="Bv9ARM.ch02.html"
+>Next</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><DIV
+CLASS="chapter"
+><H1
+><A
+NAME="ch01"
+>Chapter 1. Introduction </A
+></H1
+><DIV
+CLASS="TOC"
+><DL
+><DT
+><B
+>Table of Contents</B
+></DT
+><DT
+>1.1. <A
+HREF="Bv9ARM.ch01.html#AEN7"
+>Scope of Document</A
+></DT
+><DT
+>1.2. <A
+HREF="Bv9ARM.ch01.html#AEN13"
+>Organization of This Document</A
+></DT
+><DT
+>1.3. <A
+HREF="Bv9ARM.ch01.html#AEN32"
+>Conventions Used in This Document</A
+></DT
+><DT
+>1.4. <A
+HREF="Bv9ARM.ch01.html#AEN121"
+>Discussion of Domain Name System (<SPAN
+CLASS="acronym"
+>DNS</SPAN
+>) Basics and
+<SPAN
+CLASS="acronym"
+>BIND</SPAN
+></A
+></DT
+></DL
+></DIV
+><P
+>The Internet Domain Name System (<SPAN
+CLASS="acronym"
+>DNS</SPAN
+>) consists of the syntax
+  to specify the names of entities in the Internet in a hierarchical
+  manner, the rules used for delegating authority over names, and the
+  system implementation that actually maps names to Internet
+  addresses.  <SPAN
+CLASS="acronym"
+>DNS</SPAN
+> data is maintained in a group of distributed
+  hierarchical databases.</P
+><DIV
+CLASS="sect1"
+><H1
+CLASS="sect1"
+><A
+NAME="AEN7"
+>1.1. Scope of Document</A
+></H1
+><P
+>The Berkeley Internet Name Domain (<SPAN
+CLASS="acronym"
+>BIND</SPAN
+>) implements an
+    Internet nameserver for a number of operating systems. This
+    document provides basic information about the installation and
+    care of the Internet Software Consortium (<SPAN
+CLASS="acronym"
+>ISC</SPAN
+>) <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> version 9
+    software package for system administrators.</P
+></DIV
+><DIV
+CLASS="sect1"
+><H1
+CLASS="sect1"
+><A
+NAME="AEN13"
+>1.2. Organization of This Document</A
+></H1
+><P
+>In this document, <I
+CLASS="emphasis"
+>Section 1</I
+> introduces
+    the basic <SPAN
+CLASS="acronym"
+>DNS</SPAN
+> and <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> concepts. <I
+CLASS="emphasis"
+>Section 2</I
+>
+    describes resource requirements for running <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> in various
+    environments. Information in <I
+CLASS="emphasis"
+>Section 3</I
+> is
+    <I
+CLASS="emphasis"
+>task-oriented</I
+> in its presentation and is
+    organized functionally, to aid in the process of installing the
+    <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> 9 software. The task-oriented section is followed by
+    <I
+CLASS="emphasis"
+>Section 4</I
+>, which contains more advanced
+    concepts that the system administrator may need for implementing
+    certain options. Section 5 describes the <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> 9 lightweight
+    resolver.  The contents of <I
+CLASS="emphasis"
+>Section 6</I
+> are
+    organized as in a reference manual to aid in the ongoing
+    maintenance of the software. <I
+CLASS="emphasis"
+>Section 7
+    </I
+>addresses security considerations, and
+    <I
+CLASS="emphasis"
+>Section 8</I
+> contains troubleshooting help. The
+    main body of the document is followed by several
+    <I
+CLASS="emphasis"
+>Appendices</I
+> which contain useful reference
+    information, such as a <I
+CLASS="emphasis"
+>Bibliography</I
+> and
+    historic information related to <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> and the Domain Name
+    System.</P
+></DIV
+><DIV
+CLASS="sect1"
+><H1
+CLASS="sect1"
+><A
+NAME="AEN32"
+>1.3. Conventions Used in This Document</A
+></H1
+><P
+>In this document, we use the following general typographic
+    conventions:</P
+><DIV
+CLASS="informaltable"
+><P
+></P
+><TABLE
+BORDER="1"
+CLASS="CALSTABLE"
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>&#13;<P
+><I
+CLASS="emphasis"
+>To
+describe:</I
+></P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>&#13;<P
+><I
+CLASS="emphasis"
+>We use the style:</I
+></P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>&#13;<P
+>a pathname, filename, URL, hostname,
+mailing list name, or new term or concept</P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="filename"
+>Italic</TT
+></P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>literal user
+input</P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="userinput"
+><B
+>Fixed Width Bold</B
+></TT
+></P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>variable user
+input</P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>[<SPAN
+CLASS="optional"
+>Fixed Width Italic</SPAN
+>]</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>program output</P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="computeroutput"
+>Fixed Width Bold</TT
+></P
+></TD
+></TR
+></TABLE
+><P
+></P
+></DIV
+><P
+>The following conventions are used in descriptions of the
+<SPAN
+CLASS="acronym"
+>BIND</SPAN
+> configuration file:<DIV
+CLASS="informaltable"
+><P
+></P
+><TABLE
+BORDER="1"
+CLASS="CALSTABLE"
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><I
+CLASS="emphasis"
+>To
+describe:</I
+></P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><I
+CLASS="emphasis"
+>We use the style:</I
+></P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>keywords</P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="literal"
+>Sans Serif Bold</TT
+></P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>variables</P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="varname"
+>Sans Serif Italic</TT
+></P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>"meta-syntactic"
+information (within brackets when optional)</P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>[<SPAN
+CLASS="optional"
+>Fixed Width Italic</SPAN
+>]</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Command line
+input</P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="userinput"
+><B
+>Fixed Width Bold</B
+></TT
+></P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Program output</P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="computeroutput"
+>Fixed Width</TT
+></P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Optional input</P
+></TD
+><TD
+WIDTH="252"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>[<SPAN
+CLASS="optional"
+>Text is enclosed in square brackets</SPAN
+>]</P
+></TD
+></TR
+></TABLE
+><P
+></P
+></DIV
+></P
+></DIV
+><DIV
+CLASS="sect1"
+><H1
+CLASS="sect1"
+><A
+NAME="AEN121"
+>1.4. Discussion of Domain Name System (<SPAN
+CLASS="acronym"
+>DNS</SPAN
+>) Basics and
+<SPAN
+CLASS="acronym"
+>BIND</SPAN
+></A
+></H1
+><P
+>The purpose of this document is to explain the installation
+and basic upkeep of the <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> software package, and we begin by reviewing
+the fundamentals of the domain naming system as they relate to <SPAN
+CLASS="acronym"
+>BIND</SPAN
+>.
+<SPAN
+CLASS="acronym"
+>BIND</SPAN
+> consists of a <I
+CLASS="emphasis"
+>nameserver</I
+> (or "daemon")
+called <B
+CLASS="command"
+>named</B
+> and a <B
+CLASS="command"
+>resolver</B
+> library.
+The <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> server runs in the background, servicing queries on a well
+known network port. The standard port for the User Datagram Protocol
+(UDP) and Transmission Control Protocol (TCP), usually port 53,
+is specified in<B
+CLASS="command"
+> </B
+><TT
+CLASS="filename"
+>/etc/services</TT
+>.
+The <I
+CLASS="emphasis"
+>resolver</I
+> is a set of routines residing
+in a system library that provides the interface that programs can
+use to access the domain name services.</P
+><DIV
+CLASS="sect2"
+><H2
+CLASS="sect2"
+><A
+NAME="AEN136"
+>1.4.1. Nameservers</A
+></H2
+><P
+>A nameserver (NS) is a program that stores information about
+named resources and responds to queries from programs called <I
+CLASS="emphasis"
+>resolvers</I
+> which
+act as client processes. The basic function of an NS is to provide
+information about network objects by answering queries.</P
+><P
+>With the nameserver, the network can be broken into a hierarchy
+of domains. The name space is organized as a tree according to organizational
+or administrative boundaries. Each node of the tree, called a domain,
+is given a label. The name of the domain is the concatenation of
+all the labels of the domains from the root to the current domain.
+This is represented in written form as a string of labels listed
+from right to left and separated by dots. A label need only be unique
+within its domain. The whole name space is partitioned into areas
+called <I
+CLASS="emphasis"
+>zones</I
+>, each starting at a domain and
+extending down to the leaf domains or to domains where other zones
+start. Zones usually represent administrative boundaries. For example,
+a domain name for a host at the company <I
+CLASS="emphasis"
+>Example, Inc.</I
+> would
+be:</P
+><P
+><SPAN
+CLASS="systemitem"
+>ourhost.example.com</SPAN
+></P
+><P
+>where <SPAN
+CLASS="systemitem"
+>com</SPAN
+> is the top level domain to which <SPAN
+CLASS="systemitem"
+>ourhost.example.com</SPAN
+> belongs, <SPAN
+CLASS="systemitem"
+>example</SPAN
+> is
+a subdomain of <SPAN
+CLASS="systemitem"
+>com</SPAN
+>, and <SPAN
+CLASS="systemitem"
+>ourhost</SPAN
+> is the
+name of the host.</P
+><P
+>The specifications for the domain nameserver are defined in
+the RFC 1034, RFC 1035 and RFC 974. These documents can be found
+in
+<TT
+CLASS="filename"
+>/usr/src/etc/named/doc</TT
+> in 4.4BSD or are available
+via File Transfer Protocol (FTP) from
+<A
+HREF="ftp://www.isi.edu/in-notes/"
+TARGET="_top"
+>ftp://www.isi.edu/in-notes/</A
+> or via the Web at <A
+HREF="http://www.ietf.org/rfc/"
+TARGET="_top"
+>http://www.ietf.org/rfc/</A
+>.
+(See Appendix C for complete information on finding and retrieving
+RFCs.) It is also recommended that you read the related man pages: <B
+CLASS="command"
+>named</B
+> and <B
+CLASS="command"
+>resolver</B
+>.</P
+></DIV
+><DIV
+CLASS="sect2"
+><H2
+CLASS="sect2"
+><A
+NAME="AEN157"
+>1.4.2. Types of Zones</A
+></H2
+><P
+>As we stated previously, a zone is a point of delegation in
+the <SPAN
+CLASS="acronym"
+>DNS</SPAN
+> tree. A zone consists of those contiguous parts of the domain
+tree for which a domain server has complete information and over which
+it has authority. It contains all domain names from a certain point
+downward in the domain tree except those which are delegated to
+other zones. A delegation point has one or more NS records in the
+parent zone, which should be matched by equivalent NS records at
+the root of the delegated zone.</P
+><P
+>To properly operate a nameserver, it is important to understand
+the difference between a <I
+CLASS="emphasis"
+>zone</I
+> and a <I
+CLASS="emphasis"
+>domain</I
+>.</P
+><P
+>For instance, consider the <SPAN
+CLASS="systemitem"
+>example.com</SPAN
+> domain
+which includes names such as <SPAN
+CLASS="systemitem"
+>host.aaa.example.com </SPAN
+>and <SPAN
+CLASS="systemitem"
+>host.bbb.example.com</SPAN
+> even
+though the <SPAN
+CLASS="systemitem"
+>example.com</SPAN
+> zone includes only delegations
+for the <SPAN
+CLASS="systemitem"
+>aaa.example.com</SPAN
+> and <SPAN
+CLASS="systemitem"
+>bbb.example.com</SPAN
+> zones.
+A zone can map exactly to a single domain, but could also include
+only part of a domain, the rest of which could be delegated to other
+nameservers. Every name in the <SPAN
+CLASS="acronym"
+>DNS</SPAN
+> tree is a <I
+CLASS="emphasis"
+>domain</I
+>,
+even if it is <I
+CLASS="emphasis"
+>terminal</I
+>, that is, has no <I
+CLASS="emphasis"
+>subdomains</I
+>.
+Every subdomain is a domain and every domain except the root is
+also a subdomain. The terminology is not intuitive and we suggest
+that you read RFCs 1033, 1034 and 1035 to gain a complete understanding
+of this difficult and subtle topic.</P
+><P
+>Though <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> is a Domain Nameserver, it deals primarily in
+terms of zones. The master and slave declarations in the <TT
+CLASS="filename"
+>named.conf</TT
+> file
+specify zones, not domains. When you ask some other site if it is willing
+to be a slave server for your <I
+CLASS="emphasis"
+>domain</I
+>, you are
+actually asking for slave service for some collection of zones.</P
+><P
+>Each zone will have one <I
+CLASS="emphasis"
+>primary master</I
+> (also
+called <I
+CLASS="emphasis"
+>primary</I
+>) server which loads the zone
+contents from some local file edited by humans or perhaps generated
+mechanically from some other local file which is edited by humans.
+There there will be some number of <I
+CLASS="emphasis"
+>slave</I
+> (also
+called <I
+CLASS="emphasis"
+>secondary) </I
+>servers, which load the zone
+contents using the <SPAN
+CLASS="acronym"
+>DNS</SPAN
+> protocol (that is, the secondary servers
+will contact the primary and fetch the zone data using TCP). This
+set of servers &#8212; the primary and all of its secondaries &#8212; should be
+listed in the NS records in the parent zone and will constitute a <I
+CLASS="emphasis"
+>delegation</I
+>.
+This set of servers must also be listed in the zone file itself,
+usually under the <B
+CLASS="command"
+>@</B
+> name which indicates the <I
+CLASS="emphasis"
+>top
+level</I
+> or <I
+CLASS="emphasis"
+>root</I
+> of the current zone.
+You can list servers in the zone's top-level <B
+CLASS="command"
+>@</B
+> NS
+records that are not in the parent's NS delegation, but you cannot
+list servers in the parent's delegation that are not present in
+the zone's <B
+CLASS="command"
+>@</B
+>.</P
+><P
+>Any servers listed in the NS records must be configured as <I
+CLASS="emphasis"
+>authoritative</I
+> for
+the zone. A server is authoritative for a zone when it has been
+configured to answer questions for that zone with authority, which
+it does by setting the "authoritative answer" (AA) bit in reply
+packets. A server may be authoritative for more than one zone. The
+authoritative data for a zone is composed of all of the Resource
+Records (RRs) &#8212; the data associated with names in a tree-structured
+name space &#8212; attached to all of the nodes from the top node of the
+zone down to leaf nodes or nodes above cuts around the bottom edge
+of the zone.</P
+><P
+>Adding a zone as a type master or type slave will tell the
+server to answer questions for the zone authoritatively. If the
+server is able to load the zone into memory without any errors it
+will set the AA bit when it replies to queries for the zone. See
+RFCs 1034 and 1035 for more information about the AA bit.</P
+></DIV
+><DIV
+CLASS="sect2"
+><H2
+CLASS="sect2"
+><A
+NAME="AEN194"
+>1.4.3. Servers</A
+></H2
+><P
+>A <SPAN
+CLASS="acronym"
+>DNS</SPAN
+> server can be master for some zones and slave for others
+or can be only a master, or only a slave, or can serve no zones
+and just answer queries via its <I
+CLASS="emphasis"
+>cache</I
+>. Master
+servers are often also called <I
+CLASS="emphasis"
+>primaries</I
+> and
+slave servers are often also called <I
+CLASS="emphasis"
+>secondaries</I
+>.
+Both master/primary and slave/secondary servers are authoritative
+for a zone.</P
+><P
+>All servers keep data in their cache until the data expires,
+based on a Time To Live (TTL) field which is maintained for all
+resource records.</P
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
+NAME="AEN202"
+>1.4.3.1. Master Server</A
+></H3
+><P
+>The <I
+CLASS="emphasis"
+>primary master server</I
+> is the ultimate
+source of information about a domain. The primary master is an authoritative
+server configured to be the source of zone transfer for one or more
+secondary servers. The primary master server obtains data for the
+zone from a file on disk.</P
+></DIV
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
+NAME="AEN206"
+>1.4.3.2. Slave Server</A
+></H3
+><P
+>A <I
+CLASS="emphasis"
+>slave server</I
+>, also called a <I
+CLASS="emphasis"
+>secondary
+server</I
+>, is an authoritative server that uses zone transfers from
+the primary master server to retrieve the zone data. Optionally,
+the slave server obtains zone data from a cache on disk. Slave servers
+provide necessary redundancy. All secondary/slave servers are named
+in the NS RRs for the zone.</P
+></DIV
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
+NAME="AEN211"
+>1.4.3.3. Caching Only Server</A
+></H3
+><P
+>Some servers are <I
+CLASS="emphasis"
+>caching only servers</I
+>.
+This means that the server caches the information that it receives
+and uses it until the data expires. A caching only server is a server
+that is not authoritative for any zone. This server services queries
+and asks other servers, who have the authority, for the information
+it needs.</P
+></DIV
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
+NAME="AEN215"
+>1.4.3.4. Forwarding Server</A
+></H3
+><P
+>Instead of interacting with the nameservers for the root and
+other domains, a <I
+CLASS="emphasis"
+>forwarding server</I
+> always forwards
+queries it cannot satisfy from its authoritative data or cache to
+a fixed list of other servers. The forwarded queries are also known
+as <I
+CLASS="emphasis"
+>recursive queries</I
+>, the same type as a client would
+send to a server. There may be one or more servers forwarded to,
+and they are queried in turn until the list is exhausted or an answer
+is found. A forwarding server is typically used when you do not
+wish all the servers at a given site to interact with the rest of
+the Internet servers. A typical scenario would involve a number
+of internal <SPAN
+CLASS="acronym"
+>DNS</SPAN
+> servers and an Internet firewall. Servers unable
+to pass packets through the firewall would forward to the server
+that can do it, and that server would query the Internet <SPAN
+CLASS="acronym"
+>DNS</SPAN
+> servers
+on the internal server's behalf. An added benefit of using the forwarding
+feature is that the central machine develops a much more complete
+cache of information that all the workstations can take advantage
+of.</P
+><P
+>There is no prohibition against declaring a server to be a
+forwarder even though it has master and/or slave zones as well;
+the effect will still be that anything in the local server's cache
+or zones will be answered, and anything else will be forwarded using
+the forwarders list.</P
+></DIV
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
+NAME="AEN223"
+>1.4.3.5. Stealth Server</A
+></H3
+><P
+>A <I
+CLASS="emphasis"
+>stealth server</I
+> is a server that answers
+authoritatively for a zone, but is not listed in that zone's NS
+records. Stealth servers can be used as a way to centralize distribution
+of a zone, without having to edit the zone on a remote nameserver.
+Where the master file for a zone resides on a stealth server in
+this way, it is often referred to as a "hidden primary" configuration.
+Stealth servers can also be a way to keep a local copy of a zone
+for rapid access to the zone's records, even if all "official" nameservers
+for the zone are inaccessible.</P
+></DIV
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="Bv9ARM.html"
+>Prev</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="Bv9ARM.html"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="Bv9ARM.ch02.html"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><SPAN
+CLASS="acronym"
+>BIND</SPAN
+> Resource Requirements</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

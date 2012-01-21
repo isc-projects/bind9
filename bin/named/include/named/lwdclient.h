@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwdclient.h,v 1.3 2000/06/26 20:50:00 bwelling Exp $ */
+/* $Id: lwdclient.h,v 1.2.2.1 2000/06/26 21:47:36 gson Exp $ */
 
 #ifndef NAMED_LWDCLIENT_H
 #define NAMED_LWDCLIENT_H 1
