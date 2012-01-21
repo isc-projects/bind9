@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.636 2012/01/10 23:46:58 tbox Exp $ */
+/* $Id: server.c,v 1.637 2012/01/21 22:51:27 marka Exp $ */
 
 /*! \file */
 
@@ -7958,20 +7958,14 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 		CHECK(ISC_R_UNEXPECTEDEND);
 
 	if (clear) {
-		result = dns_zone_keydone(zone, keystr);
-		if (result == ISC_R_SUCCESS) {
-			isc_buffer_putstr(text, "request queued");
-			isc_buffer_putuint8(text, 0);
-		} else
-			CHECK(result);
+		CHECK(dns_zone_keydone(zone, keystr));
+		isc_buffer_putstr(text, "request queued");
+		isc_buffer_putuint8(text, 0);
 	} else if (chain) {
-		result = dns_zone_setnsec3param(zone, hash, flags, iter,
-						saltlen, salt, ISC_TRUE);
-		if (result == ISC_R_SUCCESS) {
-			isc_buffer_putstr(text, "request queued");
-			isc_buffer_putuint8(text, 0);
-		} else
-			CHECK(result);
+		CHECK(dns_zone_setnsec3param(zone, hash, flags, iter,
+						saltlen, salt, ISC_TRUE));
+		isc_buffer_putstr(text, "request queued");
+		isc_buffer_putuint8(text, 0);
 	} else if (list) {
 		privatetype = dns_zone_getprivatetype(zone);
 		origin = dns_zone_getorigin(zone);
