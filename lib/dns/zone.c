@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.661 2012/01/10 23:46:58 tbox Exp $ */
+/* $Id: zone.c,v 1.662 2012/01/22 04:56:41 marka Exp $ */
 
 /*! \file */
 
@@ -15874,14 +15874,11 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 		else
 			CHECK(ISC_R_FAILURE);
 
-		DE_CONST(algstr, r.base);
-		r.length = strlen(algstr);
-		result = dns_secalg_fromtext(&alg, (isc_textregion_t *) &r);
-
-		if (result != ISC_R_SUCCESS) {
-			n = sscanf(algstr, "%hhd", &alg);
-			if (n == 0)
-				CHECK(result);
+		n = sscanf(algstr, "%hhd", &alg);
+		if (n == 0) {
+			DE_CONST(algstr, r.base);
+			r.length = strlen(algstr);
+			CHECK(dns_secalg_fromtext(&alg, &r));
 		}
 
 		/* construct a private-type rdata */
