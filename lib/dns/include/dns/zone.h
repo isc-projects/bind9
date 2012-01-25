@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.199 2011/12/22 07:32:41 each Exp $ */
+/* $Id: zone.h,v 1.200 2012/01/25 02:46:53 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -2007,7 +2007,7 @@ dns_zone_getserialupdatemethod(dns_zone_t *zone);
  * \li	'zone' to be valid.
  */
 
-void
+isc_result_t
 dns_zone_link(dns_zone_t *zone, dns_zone_t *raw);
 
 void

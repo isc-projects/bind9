@@ -1,3 +1,6 @@
+3265.	[bug]		Address lock order reversal with inline-signing
+			support. [27557]
+
 3264.	[bug]		Automatic regeneration of signatures in an
 			inline-signing zone could stall when the server
 			was restarted. [RT #27344]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.637 2012/01/21 22:51:27 marka Exp $ */
+/* $Id: server.c,v 1.638 2012/01/25 02:46:53 marka Exp $ */
 
 /*! \file */
 
@@ -3472,10 +3472,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			dns_zone_setview(raw, view);
 			if (view->acache != NULL)
 				dns_zone_setacache(raw, view->acache);
-			CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr,
-						 raw));
 			dns_zone_setstats(raw, ns_g_server->zonestats);
-			dns_zone_link(zone, raw);
+			CHECK(dns_zone_link(zone, raw));
 		}
 	}
 
