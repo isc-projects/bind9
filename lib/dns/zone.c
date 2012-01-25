@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.663 2012/01/25 02:46:53 marka Exp $ */
+/* $Id: zone.c,v 1.664 2012/01/25 23:46:49 tbox Exp $ */
 
 /*! \file */
 
@@ -15744,7 +15744,7 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	/* dns_zone_attach(raw, &zone->raw); */
 	isc_refcount_increment(&raw->erefs, NULL);
 	zone->raw = raw;
-	
+
 	/* dns_zone_iattach(zone,  &raw->secure); */
 	zone_iattach(zone, &raw->secure);
 
