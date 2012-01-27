@@ -1,3 +1,7 @@
+3266.	[bug]		The maximum number of NSEC3 iterations for a
+			DNSKEY RRset was not being properly computed.
+			[RT #26543]
+
 3262.	[bug]		Signed responses were handled incorrectly by RPZ.
 			[RT #27316]
 
