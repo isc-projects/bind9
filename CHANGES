@@ -1,3 +1,7 @@
+3267.	[bug]		Memory allocation failures could be mis-reported as
+			unexpected error.  New ISC_R_UNSET result code.
+			[RT #27336]
+
 3266.	[bug]		The maximum number of NSEC3 iterations for a
 			DNSKEY RRset was not being properly computed.
 			[RT #26543]
