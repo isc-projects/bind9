@@ -1,3 +1,7 @@
+3266.	[bug]		The maximum number of NSEC3 iterations for a
+			DNSKEY RRset was not being properly computed.
+			[RT #26543]
+
 	--- 9.7.5rc1 released ---
 
 3260.	[bug]		"rrset-order cyclic" could appear not to rotate
