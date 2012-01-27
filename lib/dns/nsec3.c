@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.6.12.4 2009/11/03 23:47:46 tbox Exp $ */
+/* $Id: nsec3.c,v 1.6.12.5 2012/01/27 01:11:04 marka Exp $ */
 
 #include <config.h>
 
@@ -1378,7 +1378,7 @@ dns_nsec3_maxiterations(dns_db_t *db, dns_dbversion_t *version,
 	dst_key_t *key = NULL;
 	isc_buffer_t buffer;
 	isc_result_t result;
-	isc_uint16_t bits, minbits = 4096;
+	unsigned int bits, minbits = 4096;
 
 	result = dns_db_getoriginnode(db, &node);
 	if (result != ISC_R_SUCCESS)
@@ -1405,7 +1405,7 @@ dns_nsec3_maxiterations(dns_db_t *db, dns_dbversion_t *version,
 		isc_buffer_add(&buffer, rdata.length);
 		CHECK(dst_key_fromdns(dns_db_origin(db), rdataset.rdclass,
 				      &buffer, mctx, &key));
-		bits = dst_key_getbits(key);
+		bits = dst_key_size(key);
 		dst_key_free(&key);
 		if (minbits > bits)
 			minbits = bits;
