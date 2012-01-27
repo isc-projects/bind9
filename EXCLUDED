@@ -26,6 +26,12 @@
 3243.   [port]          freebsd,netbsd,bsdi: the thread defaults were not
                         being properly set.
 
+3239.   [bug]           dns_dnssec_findmatchingkeys needs to use a consistent
+                        timestamp. [RT #26883]
+
+3236.   [bug]           Backed out changes #3182 and #3202, related to
+                        EDNS(0) fallback behavior. [RT #26416]
+
 3233.   [bug]           'rndc freeze/thaw' didn't work for inline zones.
                         [RT #26632]
 
