@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.2.2.7 2012/01/27 00:59:06 marka Exp $
+# $Id: Makefile.in,v 1.2.2.8 2012/01/27 02:34:02 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -44,7 +44,7 @@ SRCS =		dnstest.c master_test.c time_test.c \
 SUBDIRS =
 TARGETS =	master_test@EXEEXT@ time_test@EXEEXT@ \
 		zonemgr_test@EXEEXT@ dbiterator_test@EXEEXT@ \
-		dbversion_test@EXEEXT@ nsec3_test.@EXEEXT@
+		dbversion_test@EXEEXT@ nsec3_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
