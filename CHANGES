@@ -61,11 +61,11 @@
 3231.	[bug]		named could fail to send a uncompressable zone.
 			[RT #26796]
 
-3230.	[bug[		'dig axfr' failed to properly handle a multi-message
+3230.	[bug]		'dig axfr' failed to properly handle a multi-message
 			axfr with a serial of 0. [RT #26796]
 
-3228.   [tuning]        Dynamically grow symbol table to improve zone
-                        loading performance. [RT #26523]
+3228.	[tuning]	Dynamically grow symbol table to improve zone
+			loading performance. [RT #26523]
 
 3227.	[bug]		Interim fix to make WKS's use of getprotobyname()
 			and getservbyname() self thread safe. [RT #26232]
@@ -82,7 +82,7 @@
 			nonexistent records, leading to an assertion
 			failure. [RT #26590]
 
-3216.   [bug]           resolver.c:validated() was not thread-safe. [RT #26478]
+3216.	[bug]		resolver.c:validated() was not thread-safe. [RT #26478]
 
 3213.	[doc]		Clarify ixfr-from-differences behavior. [RT #25188]
 
@@ -107,8 +107,8 @@
 3200.	[doc]		Some rndc functions were undocumented or were
 			missing from 'rndc -h' output. [RT #25555]
 
-3196.   [bug]           nsupdate: return nonzero exit code when target zone
-                        doesn't exist. [RT #25783]
+3196.	[bug]		nsupdate: return nonzero exit code when target zone
+			doesn't exist. [RT #25783]
 
 3194.	[doc]		Updated RFC references in the 'empty-zones-enable'
 			documentation. [RT #25203]
@@ -130,7 +130,7 @@
 
 3179.	[port]		kfreebsd: build issues. [RT #26273]
 
-3175.   [bug]           Fix how DNSSEC positive wildcard responses from a
+3175.	[bug]		Fix how DNSSEC positive wildcard responses from a
 			NSEC3 signed zone are validated.  Stop sending a
 			unnecessary NSEC3 record when generating such
 			responses. [RT #26200]
@@ -144,16 +144,16 @@
 			correctly tagged making them appear to not be cached.
 			[RT #25380]
 
-3162.   [test]          start.pl: modified to allow for "named.args" in
-                        ns*/ subdirectory to override stock arguments to
-                        named. Largely from RT#26044, but no separate ticket.
+3162.	[test]		start.pl: modified to allow for "named.args" in
+			ns*/ subdirectory to override stock arguments to
+			named. Largely from RT#26044, but no separate ticket.
 
 3157.	[tuning]	Reduce the time spent in "rndc reconfig" by parsing
 			the config file before pausing the server. [RT #21373]
 
-3156.   [bug]           Reconfiguring the server with an incorrectly
-                        formatted TSIG key could cause a crash during
-                        subsequent zone transfers.  [RT #20391]
+3156.	[bug]		Reconfiguring the server with an incorrectly
+			formatted TSIG key could cause a crash during
+			subsequent zone transfers.  [RT #20391]
 
 3154.	[bug]		Attempting to print an empty rdataset could trigger
 			an assert. [RT #25452]
@@ -188,12 +188,12 @@
 
 3139.	[test]		Added tests from RFC 6234, RFC 2202, and RFC 1321
 			for the hashing algorithms (md5, sha1 - sha512, and
-			their hmac counterparts).  [RT #25067] 
+			their hmac counterparts).  [RT #25067]
 
 3138.	[bug]		Address memory leaks and out-of-order operations when
 			shutting named down. [RT #25210]
 
-3136.	[func]		Add RFC 1918 reverse zones to the list of built-in 
+3136.	[func]		Add RFC 1918 reverse zones to the list of built-in
 			empty zones switched on by the 'empty-zones-enable'
 			option. [RT #24990]
 
@@ -236,7 +236,7 @@
                         trigger an off-by-one error in the ncache code
                         and crash named. [RT #24650]
 
-3120.	[bug]		Named could fail to validate zones list in a DLV
+3120.	[bug]		Named could fail to validate zones listed in a DLV
 			that validated insecure without using DLV and had
 			DS records in the parent zone. [RT #24631]
 
@@ -1883,8 +1883,8 @@
 2316.	[port]		Missing #include <isc/print.h> in lib/dns/gssapictx.c.
 			[RT #17513]
 
-2315.	[bug]           Used incorrect address family for mapped IPv4
-                        addresses in acl.c. [RT #17519]
+2315.	[bug]		Used incorrect address family for mapped IPv4
+			addresses in acl.c. [RT #17519]
 
 2314.	[bug]		Uninitialized memory use on error path in
 			bin/named/lwdnoop.c.  [RT #17476]
@@ -1895,8 +1895,8 @@
 2312.	[cleanup]	Silence Coverity warning in lib/isc/unix/socket.c.
 			[RT #17458]
 
-2311.	[bug]           IPv6 addresses could match IPv4 ACL entries and
-                        vice versa. [RT #17462]
+2311.	[bug]		IPv6 addresses could match IPv4 ACL entries and
+			vice versa. [RT #17462]
 
 2310.	[bug]		dig, host, nslookup: flush stdout before emitting
 			debug/fatal messages.  [RT #17501]
