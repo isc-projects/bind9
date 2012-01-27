@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.2.2.5 2011/11/04 07:36:58 marka Exp $ */
+/* $Id: dnstest.c,v 1.2.2.6 2012/01/27 02:13:06 marka Exp $ */
 
 /*! \file */
 
@@ -35,6 +35,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/name.h>
@@ -296,4 +297,28 @@ dns_test_nap(isc_uint32_t usec) {
 	 */
 	sleep((usec / 1000000) + 1);
 #endif
+}
+
+isc_result_t
+dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
+		const char *testfile)
+{
+	isc_result_t		result;
+	dns_fixedname_t		fixed;
+	dns_name_t		*name;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+
+	result = dns_name_fromstring(name, origin, 0, NULL);
+	if (result != ISC_R_SUCCESS)
+		return(result);
+
+	result = dns_db_create(mctx, "rbt", name, dbtype, dns_rdataclass_in,
+			       0, NULL, db);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = dns_db_load(*db, testfile);
+	return (result);
 }
