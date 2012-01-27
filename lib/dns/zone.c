@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.39 2012/01/27 01:47:29 marka Exp $ */
+/* $Id: zone.c,v 1.582.8.40 2012/01/27 23:46:29 tbox Exp $ */
 
 /*! \file */
 
@@ -4769,7 +4769,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 #if defined(STDTIME_ON_32BITS)
 		else
 			dns_zone_log(zone, ISC_LOG_ERROR,
-			     	     "key expiry warning time out of range");
+				     "key expiry warning time out of range");
 #endif
 	}
  failure:

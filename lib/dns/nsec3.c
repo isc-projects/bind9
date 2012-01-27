@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2008-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2008-2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.19.24.4 2012/01/27 00:59:06 marka Exp $ */
+/* $Id: nsec3.c,v 1.19.24.5 2012/01/27 23:46:29 tbox Exp $ */
 
 #include <config.h>
 
