@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.33.186.4 2011/03/09 23:46:26 tbox Exp $ */
+/* $Id: time.c,v 1.33.186.5 2012/01/27 01:48:13 marka Exp $ */
 
 /*! \file */
 
@@ -103,8 +103,8 @@ dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
-dns_time32_totext(isc_uint32_t value, isc_buffer_t *target) {
+isc_int64_t
+dns_time64_from32(isc_uint32_t value) {
 	isc_stdtime_t now;
 	isc_int64_t start;
 	isc_int64_t t;
@@ -121,7 +121,13 @@ dns_time32_totext(isc_uint32_t value, isc_buffer_t *target) {
 		t = start + (value - now);
 	else
 		t = start - (now - value);
-	return (dns_time64_totext(t, target));
+
+	return (t);
+}
+
+isc_result_t
+dns_time32_totext(isc_uint32_t value, isc_buffer_t *target) {
+	return (dns_time64_totext(dns_time64_from32(value), target));
 }
 
 isc_result_t

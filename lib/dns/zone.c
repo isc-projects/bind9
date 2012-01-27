@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.78 2011/12/20 00:30:16 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.79 2012/01/27 01:48:13 marka Exp $ */
 
 /*! \file */
 
@@ -75,6 +75,7 @@
 #include <dns/soa.h>
 #include <dns/ssu.h>
 #include <dns/stats.h>
+#include <dns/time.h>
 #include <dns/tsig.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
@@ -4515,7 +4516,7 @@ offline(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff, dns_name_t *name,
 }
 
 static void
-set_key_expiry_warning(dns_zone_t *zone, isc_stdtime_t when, isc_stdtime_t now)
+set_key_expiry_warning(dns_zone_t *zone, isc_uint64_t when, isc_stdtime_t now)
 {
 	unsigned int delta;
 	char timebuf[80];
@@ -4594,7 +4595,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	unsigned int i;
 	dns_rdata_rrsig_t rrsig;
 	isc_boolean_t found, changed;
-	isc_stdtime_t warn = 0, maybe = 0;
+	isc_int64_t warn = 0, maybe = 0;
 
 	dns_rdataset_init(&rdataset);
 
@@ -4696,21 +4697,20 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				 * iff there is a new offline signature.
 				 */
 				if (!dst_key_isprivate(keys[i])) {
-					if (warn != 0 &&
-					    warn > rrsig.timeexpire)
-						warn = rrsig.timeexpire;
+					isc_int64_t timeexpire =
+					   dns_time64_from32(rrsig.timeexpire);
+					if (warn != 0 && warn > timeexpire)
+						warn = timeexpire;
 					if (rdata.flags & DNS_RDATA_OFFLINE) {
 						if (maybe == 0 ||
-						    maybe > rrsig.timeexpire)
-							maybe =
-							     rrsig.timeexpire;
+						    maybe > timeexpire)
+							maybe = timeexpire;
 						break;
 					}
 					if (warn == 0)
 						warn = maybe;
-					if (warn == 0 ||
-					    warn > rrsig.timeexpire)
-						warn = rrsig.timeexpire;
+					if (warn == 0 || warn > timeexpire)
+						warn = timeexpire;
 					result = offline(db, ver, diff, name,
 							 rdataset.ttl, &rdata);
 					break;
@@ -4741,8 +4741,18 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdataset_disassociate(&rdataset);
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
-	if (warn != 0)
-		set_key_expiry_warning(zone, warn, now);
+	if (warn > 0) {
+#if defined(STDTIME_ON_32BITS)
+		isc_stdtime_t stdwarn = (isc_stdtime_t)warn;
+		if (warn == stdwarn)
+#endif
+			set_key_expiry_warning(zone, (isc_stdtime_t)warn, now);
+#if defined(STDTIME_ON_32BITS)
+		else
+			dns_zone_log(zone, ISC_LOG_ERROR,
+			     	     "key expiry warning time out of range");
+#endif
+	}
  failure:
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
