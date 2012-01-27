@@ -29,8 +29,56 @@
 3233.   [bug]           'rndc freeze/thaw' didn't work for inline zones.
                         [RT #26632]
 
+3220.   [bug]           Change #3186 was incomplete; dns_db_rpz_findips()
+                        could fail to set the database version correctly,
+                        causing an assertion failure. [RT #26180]
+
+3198.   [doc]           Clarified that dnssec-settime can alter keyfile
+                        permissions. [RT #24866]
+
+3195.   [cleanup]       Silence "file not found" warnings when loading
+                        managed-keys zone. [RT #26340]
+
+3186.   [bug]           Version/db mis-match in rpz code. [RT #26180]
+
+3184.   [bug]           named had excessive cpu usage when a redirect zone was
+                        configured. [RT #26013]
+
+3182.   [bug]           Auth servers behind firewalls which block packets
+                        greater than 512 bytes may cause other servers to
+                        perform poorly. Now, adb retains edns information
+                        and caches noedns servers. [RT #23392/24964]
+
+3172.   [port]          darwin 10.* and freebsd [89] are now built threaded by
+                        default.
+
+3171.   [bug]           Exclusively lock the task when adding a zone using
+                        'rndc addzone'.  [RT #25600]
+
+3168.   [bug]           Nxdomain redirection could trigger an assert with
+                        a ANY query. [RT #26017]
+
+3160.   [bug]           When printing out a NSEC3 record in multiline form
+                        the newline was not being printed causing type codes
+                        to be run together. [RT #25873]
+
 3141.   [bug]           Silence spurious "zone serial (0) unchanged" messages
                         associated with empty zones. [RT #25079]
+
+3131.   [tuning]        Improve scalability by allocating one zone task
+                        per 100 zones at startup time, rather than using a
+                        fixed-size task table. [RT #24406]
+
+3129.   [bug]           Named could crash on 'rndc reconfig' when
+                        allow-new-zones was set to yes and named ACLs
+                        were used. [RT #22739]
+
+3126.   [security]      Using DNAME record to generate replacements caused
+                        RPZ to exit with a assertion failure. [RT #24766]
+
+3125.   [security]      Using wildcard CNAME records as a replacement with
+                        RPZ caused named to exit with a assertion failure.
+                        [RT #24715]
 
 3100.   [security]      Certain response policy zone configurations could
                         trigger an INSIST when receiving a query of type
