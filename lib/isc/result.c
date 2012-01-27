@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.71 2008/09/25 04:02:39 tbox Exp $ */
+/* $Id: result.c,v 1.71.268.1 2012/01/27 01:27:30 marka Exp $ */
 
 /*! \file */
 
@@ -102,6 +102,7 @@ static const char *text[ISC_R_NRESULTS] = {
 	"max size",				/*%< 58 */
 	"invalid address format",		/*%< 59 */
 	"bad base32 encoding",			/*%< 60 */
+	"unset",				/*%< 61 */
 };
 
 #define ISC_RESULT_RESULTSET			2
