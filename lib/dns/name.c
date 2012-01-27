@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.165.120.5 2011/03/12 04:57:27 tbox Exp $ */
+/* $Id: name.c,v 1.165.120.6 2012/01/27 12:39:33 marka Exp $ */
 
 /*! \file */
 
@@ -1021,7 +1021,7 @@ dns_name_toregion(dns_name_t *name, isc_region_t *r) {
 
 isc_result_t
 dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
-		  dns_name_t *origin, unsigned int options,
+		  const dns_name_t *origin, unsigned int options,
 		  isc_buffer_t *target)
 {
 	unsigned char *ndata, *label = NULL;
