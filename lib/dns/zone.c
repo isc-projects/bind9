@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.45 2012/01/27 01:50:08 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.46 2012/01/27 02:36:02 marka Exp $ */
 
 /*! \file */
 
@@ -3709,8 +3709,8 @@ set_key_expiry_warning(dns_zone_t *zone, isc_uint64_t when, isc_stdtime_t now)
 			     "DNSKEY RRSIG(s) have expired");
 		isc_time_settoepoch(&zone->keywarntime);
 	} else if (when < now + 7 * 24 * 3600) {
-		dns_zone_log(zone, ISC_LOG_WARNING,
-			     "DNSKEY RRSIG(s) will expire at %u",
+		dns_zone_log(zone, ISC_LOG_WARNING, "DNSKEY RRSIG(s) will "
+			     "expire at %" ISC_PLATFORM_QUADFORMAT "u",
 			     when);	/* XXXMPA convert to date. */
 		delta = when - now;
 		delta--;		/* loop prevention */
@@ -3719,7 +3719,8 @@ set_key_expiry_warning(dns_zone_t *zone, isc_uint64_t when, isc_stdtime_t now)
 		isc_time_set(&zone->keywarntime, when - delta, 0);
 	}  else {
 		dns_zone_log(zone, ISC_LOG_NOTICE, /* XXMPA ISC_LOG_DEBUG(1) */
-			     "setting keywarntime to %u - 7 days",
+			     "setting keywarntime to "
+			     "%" ISC_PLATFORM_QUADFORMAT "u - 7 days",
 			     when);	/* XXXMPA convert to date. */
 		isc_time_set(&zone->keywarntime, when - 7 * 24 * 3600, 0);
 	}
