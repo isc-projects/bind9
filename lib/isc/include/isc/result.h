@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.71.48.1 2012/01/27 01:30:18 marka Exp $ */
+/* $Id: result.h,v 1.71.48.2 2012/01/27 23:45:34 tbox Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1

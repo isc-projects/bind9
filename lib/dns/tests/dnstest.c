@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.2.6.7 2012/01/27 02:36:44 marka Exp $ */
+/* $Id: dnstest.c,v 1.2.6.8 2012/01/27 23:45:33 tbox Exp $ */
 
 /*! \file */
 
@@ -114,8 +114,8 @@ create_managers() {
  * name->ndata and name->length may be changed.
  */
 #define BINDABLE(name) \
-        ((name->attributes & (DNS_NAMEATTR_READONLY|DNS_NAMEATTR_DYNAMIC)) \
-         == 0)
+	((name->attributes & (DNS_NAMEATTR_READONLY|DNS_NAMEATTR_DYNAMIC)) \
+	 == 0)
 
 static isc_result_t
 dns_name_fromstring2(dns_name_t *target, const char *src,
