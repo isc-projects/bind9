@@ -1,3 +1,47 @@
+3265.   [bug]           Address lock order reversal with inline-signing
+                        support. [27557]
+
+3265.   [bug]           Address lock order reversal with inline-signing
+                        support. [27557]
+
+3264.   [bug]           Automatic regeneration of signatures in an
+                        inline-signing zone could stall when the server
+                        was restarted. [RT #27344]
+
+3263.   [bug]           "rndc sync" did not affect the unsigned side of an
+                        inline-signing zone. [RT #27337]
+
+3262.   [bug]           Signed responses were handled incorrectly by RPZ.
+                        [RT #27316]
+
+3252.   [bug]           When master zones using inline-signing were
+                        updated while the server was offline, the source
+                        zone could fall out of sync with the signed
+                        copy. They can now resynchronize. [RT #26676]
+
+3246.   [bug]           Named failed to start with a empty also-notify list.
+                        [RT #27087]
+
+3243.   [port]          freebsd,netbsd,bsdi: the thread defaults were not
+                        being properly set.
+
+3236.   [bug]           Backed out changes #3182 and #3202, related to
+                        EDNS(0) fallback behavior. [RT #26416]
+
+3233.   [bug]           'rndc freeze/thaw' didn't work for inline zones.
+                        [RT #26632]
+
+3105.   [bug]           GOST support can be suppressed by "configure
+                        --without-gost" [RT #24367]
+
+3103.   [bug]           Configuring 'dnssec-validation auto' in a view
+                        instead of in the options statement could trigger
+                        an assertion failure in named-checkconf. [RT #24382]
+
+3100.   [security]      Certain response policy zone configurations could
+                        trigger an INSIST when receiving a query of type
+                        RRSIG. [RT #24280]
+
 2988.	[experimental]	Added a "dlopen" DLZ driver, allowing the creation
 			of external DLZ drivers that can be loaded as
 			shared objects at runtime rather than linked with
