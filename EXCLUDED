@@ -1,3 +1,41 @@
+3265.   [bug]           Address lock order reversal with inline-signing
+                        support. [27557]
+
+3264.   [bug]           Automatic regeneration of signatures in an
+                        inline-signing zone could stall when the server
+                        was restarted. [RT #27344]
+
+3263.   [bug]           "rndc sync" did not affect the unsigned side of an
+                        inline-signing zone. [RT #27337]
+
+3262.   [bug]           Signed responses were handled incorrectly by RPZ.
+                        [RT #27316]
+
+3252.   [bug]           When master zones using inline-signing were
+                        updated while the server was offline, the source
+                        zone could fall out of sync with the signed
+                        copy. They can now resynchronize. [RT #26676]
+
+3248.   [bug]           Configure options --enable-fixed-rrset and
+                        --enable-exportlib were incompatible with each
+                        other. [RT #27087]
+
+3246.   [bug]           Named failed to start with a empty also-notify list.
+                        [RT #27087]
+
+3243.   [port]          freebsd,netbsd,bsdi: the thread defaults were not
+                        being properly set.
+
+3233.   [bug]           'rndc freeze/thaw' didn't work for inline zones.
+                        [RT #26632]
+
+3141.   [bug]           Silence spurious "zone serial (0) unchanged" messages
+                        associated with empty zones. [RT #25079]
+
+3100.   [security]      Certain response policy zone configurations could
+                        trigger an INSIST when receiving a query of type
+                        RRSIG. [RT #24280]
+
 3005.   [port]          Solaris: Work around the lack of
                         gsskrb5_register_acceptor_identity() by setting
                         the KRB5_KTNAME environment variable to the
