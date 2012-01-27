@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.h,v 1.2.4.4 2011/11/04 07:33:47 marka Exp $ */
+/* $Id: dnstest.h,v 1.2.4.5 2012/01/27 02:10:20 marka Exp $ */
 
 /*! \file */
 
@@ -75,3 +75,7 @@ dns_test_closezonemgr(void);
 
 void
 dns_test_nap(isc_uint32_t usec);
+
+isc_result_t
+dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
+		const char *testfile);
