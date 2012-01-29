@@ -1,3 +1,5 @@
+	--- 9.8.2 released ---
+
 3268.	[bug]		Convert RRSIG expiry times to 64 timestamps to work
 			out the earliest expiry time. [RT #23311]
 
