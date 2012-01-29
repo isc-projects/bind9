@@ -11,8 +11,8 @@
 			DNSKEY RRset was not being properly computed.
 			[RT #26543]
 
-3265.	[bug]		Address lock order reversal with inline-signing
-			support. [27557]
+3265.	[bug]		Corrected a problem with lock ordering in the
+			inline-signing code. [RT #27557]
 
 3264.	[bug]		Automatic regeneration of signatures in an
 			inline-signing zone could stall when the server
