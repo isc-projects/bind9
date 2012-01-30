@@ -1,5 +1,7 @@
 	--- 9.9.0 released ---
 
+3269.	[port]		darwin 11 and later now built threaded by default.
+
 3268.	[bug]		Convert RRSIG expiry times to 64 timestamps to work
 			out the earliest expiry time. [RT #23311]
 
