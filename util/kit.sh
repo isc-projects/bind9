@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007-2010  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.33.44.3 2009/10/13 03:04:37 marka Exp $
+# $Id: kit.sh,v 1.33.44.4 2012/01/30 00:56:34 marka Exp $
 
 # Make a release kit
 #
@@ -76,8 +76,16 @@ then
     RELEASETYPE=s
     RELEASEVER=${dstamp}${releasetag}
     shift
-    tag="$@"
-    arg=-D
+    case $tag in
+    HEAD)
+	tag="$@"
+	arg=-D
+	;;
+    *)
+	arg="-r $tag -D"
+	tag="$@"
+	;;
+    esac
 fi
 
 version=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}
@@ -114,11 +122,16 @@ fi
 # we still delete them from releases just in case something 
 # gets accidentally resurrected.
 
-rm -rf TODO EXCLUDED conftools util doc/design doc/dev doc/expired \
-    doc/html doc/todo doc/private bin/lwresd doc/man \
+rm -rf TODO EXCLUDED conftools doc/design doc/dev doc/draft doc/expired \
+    doc/html doc/rfc doc/todo doc/private bin/lwresd doc/man \
     lib/lwres/man/resolver.5 \
     bin/tests/system/relay lib/cfg
 
+# Remove everything but mksymtbl.pl from util
+find util -name mksymtbl.pl -prune -o -type f -print | xargs rm -f
+find util -depth -type d -print | xargs rmdir 2>/dev/null
+
+# Remove all .cvsignore files
 find . -name .cvsignore -print | xargs rm
 
 # The following files should be executable.
@@ -142,7 +155,16 @@ done
 
 # check that documentation has been updated properly; issue a warning
 # if it hasn't
-if test doc/arm/Bv9ARM-book.xml -nt doc/arm/Bv9ARM.html
+ok=
+for f in doc/arm/*.html
+do
+	if test "$f" -nt doc/arm/Bv9ARM-book.xml
+	then
+		ok=ok
+	fi
+done
+
+if test "$ok" != ok
 then
 	echo "WARNING: ARM source is newer than the html version."
 fi
