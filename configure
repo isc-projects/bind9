@@ -1,5 +1,5 @@
 #! /bin/sh
-# Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1996-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.517 2011/12/20 00:49:49 marka Exp $
+# $Id: configure,v 1.518 2012/01/30 07:11:47 marka Exp $
 #
 # 	Portions of this code release fall under one or more of the
 # 	following Copyright notices.  Please see individual source
@@ -22176,7 +22176,9 @@ case $host in
 	# Linux kernels produce unusable core dumps from multithreaded
 	# programs, and because of limitations in setuid().
 	use_threads=false ;;
-*-darwin10.*)
+*-darwin[123456789].*)
+	use_threads=false ;;
+*-darwin*.*)
 	use_threads=true ;;
 *)
 	use_threads=false ;;
