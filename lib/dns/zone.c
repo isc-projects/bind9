@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.40 2012/01/27 23:46:29 tbox Exp $ */
+/* $Id: zone.c,v 1.582.8.41 2012/01/30 00:17:23 marka Exp $ */
 
 /*! \file */
 
@@ -4535,7 +4535,7 @@ offline(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff, dns_name_t *name,
 }
 
 static void
-set_key_expiry_warning(dns_zone_t *zone, isc_uint64_t when, isc_stdtime_t now)
+set_key_expiry_warning(dns_zone_t *zone, isc_stdtime_t when, isc_stdtime_t now)
 {
 	unsigned int delta;
 	char timebuf[80];
