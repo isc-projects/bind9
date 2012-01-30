@@ -686,6 +686,7 @@ dns_tcpmsg_readmessage
 dns_tcpmsg_setmaxsize
 dns_time32_fromtext
 dns_time32_totext
+dns_time64_from32
 dns_time64_fromtext
 dns_time64_totext
 dns_timer_setidle
