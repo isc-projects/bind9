@@ -60,7 +60,9 @@ case $host in
 	# Linux kernels produce unusable core dumps from multithreaded
 	# programs, and because of limitations in setuid().
 	use_threads=false ;;	
-*-darwin10.*)
+*-darwin[[123456789]].*)
+	use_threads=false ;;
+*-darwin*.*)
 	use_threads=true ;;
 *)
 	use_threads=false ;;
