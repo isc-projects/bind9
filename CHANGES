@@ -1,3 +1,7 @@
+3273.   [bug]           AAAA responses could be returned in the additional
+                        section even when filter-aaaa-on-v4 was in use.
+                        [RT #27292]
+
 3271.	[port]		darwin: mksymtbl is not always stable, loop several
 			times before giving up.  mksymtbl was using non
 			portable perl to covert 64 bit hex strings. [RT #27653]

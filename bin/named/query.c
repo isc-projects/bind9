@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.353.8.21 2012/01/07 00:19:28 each Exp $ */
+/* $Id: query.c,v 1.353.8.22 2012/01/31 17:54:11 each Exp $ */
 
 /*! \file */
 
@@ -1346,6 +1346,10 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	}
 
 	if (qtype == dns_rdatatype_a) {
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+		isc_boolean_t have_a = ISC_FALSE;
+#endif
+
 		/*
 		 * We now go looking for A and AAAA records, along with
 		 * their signatures.
@@ -1384,6 +1388,9 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		}
 		if (result == ISC_R_SUCCESS) {
 			mname = NULL;
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+			have_a = ISC_TRUE;
+#endif
 			if (!query_isduplicate(client, fname,
 					       dns_rdatatype_a, &mname)) {
 				if (mname != NULL) {
@@ -1430,6 +1437,17 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		}
 		if (result == ISC_R_SUCCESS) {
 			mname = NULL;
+			/*
+			 * There's an A; check whether we're filtering AAAA
+			 */
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+			if (have_a && 
+			    (client->filter_aaaa == dns_v4_aaaa_break_dnssec ||
+			    (client->filter_aaaa == dns_v4_aaaa_filter &&
+			     (!WANTDNSSEC(client) || sigrdataset == NULL ||
+			      !dns_rdataset_isassociated(sigrdataset)))))
+				goto addname;
+#endif
 			if (!query_isduplicate(client, fname,
 					       dns_rdatatype_aaaa, &mname)) {
 				if (mname != NULL) {
@@ -6451,9 +6469,21 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		need_wildcardproof = ISC_TRUE;
 	}
 
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+	if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
+	    is_v4_client(client) &&
+	    ns_client_checkaclsilent(client, NULL,
+				     client->view->v4_aaaa_acl,
+				     ISC_TRUE) == ISC_R_SUCCESS)
+		client->filter_aaaa = client->view->v4_aaaa;
+	else
+		client->filter_aaaa = dns_v4_aaaa_ok;
+
+#endif
+
 	if (type == dns_rdatatype_any) {
 #ifdef ALLOW_FILTER_AAAA_ON_V4
-		isc_boolean_t have_aaaa, have_a, have_sig, filter_aaaa;
+		isc_boolean_t have_aaaa, have_a, have_sig;
 
 		/*
 		 * The filter-aaaa-on-v4 option should
@@ -6465,14 +6495,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		have_aaaa = ISC_FALSE;
 		have_a = !authoritative;
 		have_sig = ISC_FALSE;
-		if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
-		    is_v4_client(client) &&
-		    ns_client_checkaclsilent(client, NULL,
-					     client->view->v4_aaaa_acl,
-					     ISC_TRUE) == ISC_R_SUCCESS)
-			filter_aaaa = ISC_TRUE;
-		else
-			filter_aaaa = ISC_FALSE;
 #endif
 		/*
 		 * XXXRTH  Need to handle zonecuts with special case
@@ -6507,7 +6529,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Notice the presence of A and AAAAs so
 			 * that AAAAs can be hidden from IPv4 clients.
 			 */
-			if (filter_aaaa) {
+			if (client->filter_aaaa != dns_v4_aaaa_ok) {
 				if (rdataset->type == dns_rdatatype_aaaa)
 					have_aaaa = ISC_TRUE;
 				else if (rdataset->type == dns_rdatatype_a)
@@ -6564,10 +6586,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * Filter AAAAs if there is an A and there is no signature
 		 * or we are supposed to break DNSSEC.
 		 */
-		if (filter_aaaa && have_aaaa && have_a &&
-		    (!have_sig || !WANTDNSSEC(client) ||
-		     client->view->v4_aaaa == dns_v4_aaaa_break_dnssec))
+		if (client->filter_aaaa == dns_v4_aaaa_break_dnssec)
 			client->attributes |= NS_CLIENTATTR_FILTER_AAAA;
+		else if (client->filter_aaaa != dns_v4_aaaa_ok &&
+			 have_aaaa && have_a &&
+			 (!have_sig || !WANTDNSSEC(client)))
+			  client->attributes |= NS_CLIENTATTR_FILTER_AAAA;
 #endif
 		if (fname != NULL)
 			dns_message_puttempname(client->message, &fname);
@@ -6628,15 +6652,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * so fundamentally wrong, unavoidably inaccurate, and
 		 * unneeded that it is best to keep it as short as possible.
 		 */
-		if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
-		    is_v4_client(client) &&
-		    ns_client_checkaclsilent(client, NULL,
-					     client->view->v4_aaaa_acl,
-					     ISC_TRUE) == ISC_R_SUCCESS &&
-		    (!WANTDNSSEC(client) ||
-		     sigrdataset == NULL ||
-		     !dns_rdataset_isassociated(sigrdataset) ||
-		     client->view->v4_aaaa == dns_v4_aaaa_break_dnssec)) {
+		if (client->filter_aaaa == dns_v4_aaaa_break_dnssec ||
+		    (client->filter_aaaa == dns_v4_aaaa_filter &&
+		     (!WANTDNSSEC(client) || sigrdataset == NULL ||
+		     !dns_rdataset_isassociated(sigrdataset))))
+		{
 			if (qtype == dns_rdatatype_aaaa) {
 				trdataset = query_newrdataset(client);
 				result = dns_db_findrdataset(db, node, version,
