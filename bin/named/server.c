@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.639 2012/01/31 01:13:09 each Exp $ */
+/* $Id: server.c,v 1.640 2012/01/31 03:35:39 each Exp $ */
 
 /*! \file */
 
@@ -8024,5 +8024,253 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 
+	return (result);
+}
+
+isc_result_t
+ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_zone_t *zone = NULL, *raw = NULL;
+	const char *type, *file, *zonename = NULL;
+	isc_uint32_t serial, signed_serial, nodes;
+	char serbuf[16], sserbuf[16], nodebuf[16], resignbuf[512];
+	char lbuf[80], xbuf[80], rbuf[80], kbuf[80], rtbuf[80];
+	isc_time_t loadtime, expiretime, refreshtime;
+	isc_time_t refreshkeytime, resigntime;
+	dns_zonetype_t zonetype;
+	isc_boolean_t dynamic = ISC_FALSE, frozen = ISC_FALSE;
+	isc_boolean_t hasraw = ISC_FALSE;
+	isc_boolean_t secure, maintain, allow;
+	dns_db_t *db = NULL, *rawdb = NULL;
+	char **incfiles = NULL;
+	int nfiles = 0;
+
+	isc_time_settoepoch(&loadtime);
+	isc_time_settoepoch(&refreshtime);
+	isc_time_settoepoch(&expiretime);
+	isc_time_settoepoch(&refreshkeytime);
+	isc_time_settoepoch(&resigntime);
+
+	CHECK(zone_from_args(server, args, &zone, &zonename, ISC_TRUE));
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (zone == NULL) {
+		result = ISC_R_UNEXPECTEDEND;
+		goto cleanup;
+	}
+
+	zonetype = dns_zone_gettype(zone);
+	switch (zonetype) {
+	case dns_zone_master:
+		type = "master";
+		break;
+	case dns_zone_slave:
+		type = "slave";
+		break;
+	case dns_zone_stub:
+		type = "stub";
+		break;
+	case dns_zone_staticstub:
+		type = "staticstub";
+		break;
+	case dns_zone_redirect:
+		type = "redirect";
+		break;
+	case dns_zone_key:
+		type = "key";
+		break;
+	case dns_zone_dlz:
+		type = "dlz";
+		break;
+	default:
+		type = "unknown";
+	}
+
+	/* Inline signing? */
+	CHECK(dns_zone_getdb(zone, &db));
+	dns_zone_getraw(zone, &raw);
+	hasraw = ISC_TF(raw != NULL);
+	if (hasraw)
+		CHECK(dns_zone_getdb(raw, &rawdb));
+ 
+	/* Serial number */
+	serial = dns_zone_getserial(hasraw ? raw : zone);
+	snprintf(serbuf, sizeof(serbuf), "%d", serial);
+	if (hasraw) {
+		signed_serial = dns_zone_getserial(zone);
+		snprintf(sserbuf, sizeof(sserbuf), "%d", signed_serial);
+	}
+
+	/* Database node count */
+	nodes = dns_db_nodecount(hasraw ? rawdb : db);
+	snprintf(nodebuf, sizeof(nodebuf), "%d", nodes);
+
+	/* Security */
+	secure = dns_db_issecure(db);
+	allow = ISC_TF((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_ALLOW) != 0);
+	maintain = ISC_TF((dns_zone_getkeyopts(zone) &
+			   DNS_ZONEKEY_MAINTAIN) != 0);
+
+	/* Master files */
+	file = dns_zone_getfile(hasraw ? raw : zone);
+	nfiles = dns_zone_getincludes(hasraw ? raw : zone, &incfiles);
+
+	/* Load time */
+	dns_zone_getloadtime(zone, &loadtime);
+	isc_time_formathttptimestamp(&loadtime, lbuf, sizeof(lbuf));
+
+	/* Refresh/expire times */
+	if (zonetype == dns_zone_slave ||
+	    zonetype == dns_zone_stub ||
+	    zonetype == dns_zone_redirect)
+	{
+		dns_zone_getexpiretime(zone, &expiretime);
+		isc_time_formathttptimestamp(&expiretime, xbuf, sizeof(xbuf));
+		dns_zone_getrefreshtime(zone, &refreshtime);
+		isc_time_formathttptimestamp(&refreshtime, rbuf, sizeof(rbuf));
+	}
+
+	/* Key refresh time */
+	if (zonetype == dns_zone_master ||
+	    (zonetype == dns_zone_slave && hasraw))
+	{
+		dns_zone_getrefreshkeytime(zone, &refreshkeytime);
+		isc_time_formathttptimestamp(&refreshkeytime, kbuf,
+					     sizeof(kbuf));
+	}
+
+	/* Dynamic? */
+	if (zonetype == dns_zone_master) {
+		dynamic = dns_zone_isdynamic(hasraw ? raw : zone, ISC_TRUE);
+		frozen = dynamic && !dns_zone_isdynamic(hasraw ? raw : zone,
+							ISC_FALSE);
+	}
+
+	/* Next resign event */
+	if (secure && (zonetype == dns_zone_master || 
+	     (zonetype == dns_zone_slave && hasraw)) &&
+	    ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_NORESIGN) == 0))
+	{
+		dns_name_t *name;
+		dns_fixedname_t fixed;
+		dns_rdataset_t next;
+		dns_db_t *signingdb;
+
+		dns_rdataset_init(&next);
+		dns_fixedname_init(&fixed);
+		name = dns_fixedname_name(&fixed);
+
+		signingdb = hasraw ? rawdb : db;
+
+		result = dns_db_getsigningtime(signingdb, &next, name);
+		if (result == ISC_R_SUCCESS) {
+			isc_stdtime_t timenow;
+			char namebuf[DNS_NAME_FORMATSIZE];
+			char typebuf[DNS_RDATATYPE_FORMATSIZE];
+
+			isc_stdtime_get(&timenow);
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			dns_rdatatype_format(next.covers,
+					     typebuf, sizeof(typebuf));
+			snprintf(resignbuf, sizeof(resignbuf),
+				     "%s/%s", namebuf, typebuf);
+			isc_time_set(&resigntime, next.resign, 0);
+			isc_time_formathttptimestamp(&resigntime, rtbuf,
+						     sizeof(rtbuf));
+			dns_rdataset_disassociate(&next);
+		}
+	}
+
+	/* Create text */
+	isc_buffer_putstr(text, "name: ");
+	isc_buffer_putstr(text, zonename);
+
+	isc_buffer_putstr(text, "\ntype: ");
+	isc_buffer_putstr(text, type);
+
+	if (file != NULL) {
+		int i;
+		isc_buffer_putstr(text, "\nfiles: ");
+		isc_buffer_putstr(text, dns_zone_getfile(zone));
+		for (i = 0; i < nfiles; i++) {
+			isc_buffer_putstr(text, ", ");
+			isc_buffer_putstr(text, incfiles[i]);
+		}
+	}
+
+	isc_buffer_putstr(text, "\nserial: ");
+	isc_buffer_putstr(text, serbuf);
+	if (hasraw) {
+		isc_buffer_putstr(text, "\nsigned serial: ");
+		isc_buffer_putstr(text, sserbuf);
+	}
+
+	isc_buffer_putstr(text, "\nnodes: ");
+	isc_buffer_putstr(text, nodebuf);
+
+	if (! isc_time_isepoch(&loadtime)) {
+		isc_buffer_putstr(text, "\nlast loaded: ");
+		isc_buffer_putstr(text, lbuf);
+	}
+
+	if (! isc_time_isepoch(&refreshtime)) {
+		isc_buffer_putstr(text, "\nnext refresh: ");
+		isc_buffer_putstr(text, rbuf);
+	}
+
+	if (! isc_time_isepoch(&expiretime)) {
+		isc_buffer_putstr(text, "\nexpires: ");
+		isc_buffer_putstr(text, lbuf);
+	}
+
+	if (secure) {
+		isc_buffer_putstr(text, "\nsecure: yes");
+		if (hasraw)
+			isc_buffer_putstr(text, "\ninline signing: yes");
+		else
+			isc_buffer_putstr(text, "\ninline signing: no");
+	} else
+		isc_buffer_putstr(text, "\nsecure: no");
+
+	if (maintain) {
+		isc_buffer_putstr(text, "\nkey maintenance: automatic");
+		if (! isc_time_isepoch(&refreshkeytime)) {
+			isc_buffer_putstr(text, "\nnext key event: ");
+			isc_buffer_putstr(text, kbuf);
+		}
+	} else if (allow)
+		isc_buffer_putstr(text, "\nkey maintenance: on command");
+	else if (secure || hasraw)
+		isc_buffer_putstr(text, "\nkey maintenance: none");
+
+	if (!isc_time_isepoch(&resigntime)) {
+		isc_buffer_putstr(text, "\nnext resign node: ");
+		isc_buffer_putstr(text, resignbuf);
+		isc_buffer_putstr(text, "\nnext resign time: ");
+		isc_buffer_putstr(text, rtbuf);
+	}
+
+	if (dynamic) {
+		isc_buffer_putstr(text, "\ndynamic: yes");
+		if (frozen)
+			isc_buffer_putstr(text, "\nfrozen: yes");
+		else
+			isc_buffer_putstr(text, "\nfrozen: no");
+	} else
+		isc_buffer_putstr(text, "\ndynamic: no");
+
+	isc_buffer_putuint8(text, 0);
+
+ cleanup:
+	if (db != NULL)
+		dns_db_detach(&db);
+	if (hasraw) {
+		dns_db_detach(&rawdb);
+		dns_zone_detach(&raw);
+	}
+	if (incfiles != NULL)
+		isc_mem_free(server->mctx, incfiles);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 	return (result);
 }

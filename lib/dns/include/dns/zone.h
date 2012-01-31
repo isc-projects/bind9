@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.201 2012/01/25 23:46:49 tbox Exp $ */
+/* $Id: zone.h,v 1.202 2012/01/31 03:35:41 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -2038,5 +2038,38 @@ dns_zone_setrawdata(dns_zone_t *zone, dns_masterrawheader_t *header);
  * binary format.
  */
 ISC_LANG_ENDDECLS
+
+isc_result_t
+dns_zone_getloadtime(dns_zone_t *zone, isc_time_t *loadtime);
+/*%
+ * Return the time when the zone was last loaded.
+ */
+
+isc_result_t
+dns_zone_getrefreshtime(dns_zone_t *zone, isc_time_t *refreshtime);
+/*%
+ * Return the time when the (slave) zone will need to be refreshed.
+ */
+
+isc_result_t
+dns_zone_getexpiretime(dns_zone_t *zone, isc_time_t *expiretime);
+/*%
+ * Return the time when the (slave) zone will expire.
+ */
+
+isc_result_t
+dns_zone_getrefreshkeytime(dns_zone_t *zone, isc_time_t *refreshkeytime);
+/*%
+ * Return the time of the next scheduled DNSSEC key event.
+ */
+
+int
+dns_zone_getincludes(dns_zone_t *zone, char ***includesp);
+/*%
+ * Return the number include files that were encountered
+ * during load.  If the number is greater than zero, 'includesp'
+ * will point to an array containing the filenames.
+ */
+
 
 #endif /* DNS_ZONE_H */

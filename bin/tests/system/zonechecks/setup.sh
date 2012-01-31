@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,10 +14,16 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.7 2012/01/31 03:35:39 each Exp $
+# $Id: setup.sh,v 1.2 2012/01/31 03:35:39 each Exp $
 
-rm -f *.out
-rm -f */named.memstats
-rm -f */*.db */*.db.signed */K*.key */K*.private */*.jnl */dsset-*
-rm -f rndc.out.*
-rm -f random.data
+sh clean.sh
+
+../../../tools/genrandom 400 random.data
+sh ../genzone.sh 1 > ns1/master.db
+cd ns1
+touch master.db.signed
+echo '$INCLUDE "master.db.signed"' >> master.db
+$KEYGEN -r ../random.data -3q master.example > /dev/null 2>&1
+$KEYGEN -r ../random.data -3qfk master.example > /dev/null 2>&1
+$SIGNER -SD -o master.example master.db > /dev/null 2>&1
+

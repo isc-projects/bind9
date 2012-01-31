@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.668 2012/01/31 01:13:10 each Exp $ */
+/* $Id: zone.c,v 1.669 2012/01/31 03:35:40 each Exp $ */
 
 /*! \file */
 
@@ -150,6 +150,7 @@ typedef struct dns_nsec3chain dns_nsec3chain_t;
 typedef ISC_LIST(dns_nsec3chain_t) dns_nsec3chainlist_t;
 typedef struct dns_keyfetch dns_keyfetch_t;
 typedef struct dns_asyncload dns_asyncload_t;
+typedef struct dns_include dns_include_t;
 
 #define DNS_ZONE_CHECKLOCK
 #ifdef DNS_ZONE_CHECKLOCK
@@ -203,6 +204,8 @@ struct dns_zone {
 	unsigned int		irefs;
 	dns_name_t		origin;
 	char			*masterfile;
+	ISC_LIST(dns_include_t)	includes;	/* Include files */
+	unsigned int		nincludes;
 	dns_masterformat_t	masterformat;
 	char			*journal;
 	isc_int32_t		journalsize;
@@ -617,6 +620,14 @@ struct dns_asyncload {
 	void *loaded_arg;
 };
 
+/*%
+ * Reference to an include file encountered during loading
+ */
+struct dns_include {
+	char *name;
+	ISC_LINK(dns_include_t)	link;
+};
+
 #define HOUR 3600
 #define DAY (24*HOUR)
 #define MONTH (30*DAY)
@@ -805,6 +816,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->strrdclass = NULL;
 	zone->strviewname = NULL;
 	zone->masterfile = NULL;
+	ISC_LIST_INIT(zone->includes);
+	zone->nincludes = 0;
 	zone->masterformat = dns_masterformat_none;
 	zone->keydirectory = NULL;
 	zone->journalsize = -1;
@@ -942,6 +955,7 @@ zone_free(dns_zone_t *zone) {
 	isc_mem_t *mctx = NULL;
 	dns_signing_t *signing;
 	dns_nsec3chain_t *nsec3chain;
+	dns_include_t *include;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(isc_refcount_current(&zone->erefs) == 0);
@@ -981,6 +995,13 @@ zone_free(dns_zone_t *zone) {
 		dns_db_detach(&nsec3chain->db);
 		dns_dbiterator_destroy(&nsec3chain->dbiterator);
 		isc_mem_put(zone->mctx, nsec3chain, sizeof *nsec3chain);
+	}
+	for (include = ISC_LIST_HEAD(zone->includes);
+	     include != NULL;
+	     include = ISC_LIST_HEAD(zone->includes)) {
+		ISC_LIST_UNLINK(zone->includes, include, link);
+		isc_mem_free(zone->mctx, include->name);
+		isc_mem_put(zone->mctx, include, sizeof *include);
 	}
 	if (zone->masterfile != NULL)
 		isc_mem_free(zone->mctx, zone->masterfile);
@@ -1811,6 +1832,25 @@ get_master_options(dns_zone_t *zone) {
 }
 
 static void
+zone_registerinclude(const char *filename, void *arg) {
+	dns_zone_t *zone = (dns_zone_t *) arg;
+	dns_include_t *inc = NULL;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	if (filename == NULL)
+		return;
+
+fprintf(stderr, "register callback: %s\n", filename);
+	inc = isc_mem_get(zone->mctx, sizeof(dns_include_t));
+	inc->name = isc_mem_strdup(zone->mctx, filename);
+	ISC_LINK_INIT(inc, link);
+
+	ISC_LIST_APPEND(zone->includes, inc, link);
+	zone->nincludes++;
+}
+
+static void
 zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	dns_load_t *load = event->ev_arg;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1826,14 +1866,16 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 
 	options = get_master_options(load->zone);
 
-	result = dns_master_loadfileinc3(load->zone->masterfile,
+	result = dns_master_loadfileinc4(load->zone->masterfile,
 					 dns_db_origin(load->db),
 					 dns_db_origin(load->db),
 					 load->zone->rdclass, options,
 					 load->zone->sigresigninginterval,
 					 &load->callbacks, task,
 					 zone_loaddone, load,
-					 &load->zone->lctx, load->zone->mctx,
+					 &load->zone->lctx,
+					 zone_registerinclude,
+					 load->zone, load->zone->mctx,
 					 load->zone->masterformat);
 	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE &&
 	    result != DNS_R_SEENINCLUDE)
@@ -1983,11 +2025,13 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			zone_idetach(&callbacks.zone);
 			return (result);
 		}
-		result = dns_master_loadfile3(zone->masterfile,
+		result = dns_master_loadfile4(zone->masterfile,
 					      &zone->origin, &zone->origin,
 					      zone->rdclass, options,
 					      zone->sigresigninginterval,
-					      &callbacks, zone->mctx,
+					      &callbacks,
+					      zone_registerinclude,
+					      zone, zone->mctx,
 					      zone->masterformat);
 		tresult = dns_db_endload(db, &callbacks.add_private);
 		if (result == ISC_R_SUCCESS)
@@ -16210,4 +16254,70 @@ dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
 		isc_event_free(&e);
 	UNLOCK_ZONE(zone);
 	return (result);
+}
+
+isc_result_t
+dns_zone_getloadtime(dns_zone_t *zone, isc_time_t *loadtime) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(loadtime != NULL);
+	LOCK_ZONE(zone);
+	*loadtime = zone->loadtime;
+	UNLOCK_ZONE(zone);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_zone_getexpiretime(dns_zone_t *zone, isc_time_t *expiretime) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(expiretime != NULL);
+	LOCK_ZONE(zone);
+	*expiretime = zone->expiretime;
+	UNLOCK_ZONE(zone);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_zone_getrefreshtime(dns_zone_t *zone, isc_time_t *refreshtime) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(refreshtime != NULL);
+	LOCK_ZONE(zone);
+	*refreshtime = zone->refreshtime;
+	UNLOCK_ZONE(zone);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_zone_getrefreshkeytime(dns_zone_t *zone, isc_time_t *refreshkeytime) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(refreshkeytime != NULL);
+	LOCK_ZONE(zone);
+	*refreshkeytime = zone->refreshkeytime;
+	UNLOCK_ZONE(zone);
+	return (ISC_R_SUCCESS);
+}
+
+int
+dns_zone_getincludes(dns_zone_t *zone, char ***includesp) {
+	dns_include_t *include;
+	char **array = NULL;
+	int n = 0;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(includesp != NULL && *includesp == NULL);
+
+	LOCK_ZONE(zone);
+	if (zone->nincludes == 0)
+		goto done;
+
+	array = isc_mem_allocate(zone->mctx, sizeof(char *) * n);
+	for (include = ISC_LIST_HEAD(zone->includes);
+	     include != NULL;
+	     include = ISC_LIST_NEXT(include, link)) {
+		array[n++] = include->name;
+	}
+	*includesp = array;
+
+ done:
+	UNLOCK_ZONE(zone);
+	return (n);
 }

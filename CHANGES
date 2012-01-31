@@ -1,3 +1,6 @@
+3271.	[func]		New "rndc zonestatus" command prints information
+			about the specified zone. [RT #21671]
+
 	--- 9.9.0rc2 released ---
 
 3270.	[bug]		"rndc reload" didn't reuse existing zones correctly

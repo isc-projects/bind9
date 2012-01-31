@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.6 2009/12/04 22:06:37 tbox Exp $
+# $Id: tests.sh,v 1.7 2012/01/31 03:35:39 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,13 +25,13 @@ status=0
 echo "I: checking that we detect a NS which refers to a CNAME"
 if $CHECKZONE . cname.db > cname.out 2>&1
 then
-	echo "I:failed (status)"; status=1
+	echo "I:failed (status)"; status=`expr $status + 1`
 else
 	if grep "is a CNAME" cname.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo "I:failed (message)"; status=`expr $status + 1`
 	fi
 fi
 
@@ -39,13 +39,13 @@ fi
 echo "I: checking that we detect a NS which is below a DNAME"
 if $CHECKZONE . dname.db > dname.out 2>&1
 then
-	echo "I:failed (status)"; status=1
+	echo "I:failed (status)"; status=`expr $status + 1`
 else
 	if grep "is below a DNAME" dname.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo "I:failed (message)"; status=`expr $status + 1`
 	fi
 fi
 
@@ -53,13 +53,13 @@ fi
 echo "I: checking that we detect a NS which has no address records (A/AAAA)"
 if $CHECKZONE . noaddress.db > noaddress.out
 then
-	echo "I:failed (status)"; status=1
+	echo "I:failed (status)"; status=`expr $status + 1`
 else
 	if grep "has no address records" noaddress.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo "I:failed (message)"; status=`expr $status + 1`
 	fi
 fi
 
@@ -67,13 +67,13 @@ fi
 echo "I: checking that we detect a NS which has no records"
 if $CHECKZONE . nxdomain.db > nxdomain.out
 then
-	echo "I:failed (status)"; status=1
+	echo "I:failed (status)"; status=`expr $status + 1`
 else
 	if grep "has no address records" noaddress.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo "I:failed (message)"; status=`expr $status + 1`
 	fi
 fi
 
@@ -81,13 +81,13 @@ fi
 echo "I: checking that we detect a NS which looks like a A record (fail)"
 if $CHECKZONE -n fail . a.db > a.out 2>&1
 then
-	echo "I:failed (status)"; status=1
+	echo "I:failed (status)"; status=`expr $status + 1`
 else
 	if grep "appears to be an address" a.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo "I:failed (message)"; status=`expr $status + 1`
 	fi
 fi
 
@@ -99,10 +99,10 @@ then
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo "I:failed (message)"; status=`expr $status + 1`
 	fi
 else
-	echo "I:failed (status)"; status=1
+	echo "I:failed (status)"; status=`expr $status + 1`
 fi
 
 #
@@ -111,25 +111,25 @@ if $CHECKZONE -n ignore . a.db > a.out 2>&1
 then
 	if grep "appears to be an address" a.out > /dev/null
 	then
-		echo "I:failed (message)"; status=1
+		echo "I:failed (message)"; status=`expr $status + 1`
 	else
 		:
 	fi
 else
-	echo "I:failed (status)"; status=1
+	echo "I:failed (status)"; status=`expr $status + 1`
 fi
 
 #
 echo "I: checking that we detect a NS which looks like a AAAA record (fail)"
 if $CHECKZONE -n fail . aaaa.db > aaaa.out 2>&1
 then
-	echo "I:failed (status)"; status=1
+	echo "I:failed (status)"; status=`expr $status + 1`
 else
 	if grep "appears to be an address" aaaa.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo "I:failed (message)"; status=`expr $status + 1`
 	fi
 fi
 
@@ -141,10 +141,10 @@ then
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo "I:failed (message)"; status=`expr $status + 1`
 	fi
 else
-	echo "I:failed (status)"; status=1
+	echo "I:failed (status)"; status=`expr $status + 1`
 fi
 
 #
@@ -153,12 +153,44 @@ if $CHECKZONE -n ignore . aaaa.db > aaaa.out 2>&1
 then
 	if grep "appears to be an address" aaaa.out > /dev/null
 	then
-		echo "I:failed (message)"; status=1
+		echo "I:failed (message)"; status=`expr $status + 1`
 	else
 		:
 	fi
 else
-	echo "I:failed (status)"; status=1
+	echo "I:failed (status)"; status=`expr $status + 1`
 fi
+
+#
+echo "I: checking 'rdnc zonestatus' output"
+ret=0 
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus master.example > rndc.out.master 2>&1
+grep "name: master.example" rndc.out.master > /dev/null 2>&1 || ret=1
+grep "type: master" rndc.out.master > /dev/null 2>&1 || ret=1
+grep "files: master.db, master.db.signed" rndc.out.master > /dev/null 2>&1 || ret=1
+grep "serial: " rndc.out.master > /dev/null 2>&1 || ret=1
+grep "nodes: " rndc.out.master > /dev/null 2>&1 || ret=1
+grep "last loaded: " rndc.out.master > /dev/null 2>&1 || ret=1
+grep "secure: yes" rndc.out.master > /dev/null 2>&1 || ret=1
+grep "inline signing: no" rndc.out.master > /dev/null 2>&1 || ret=1
+grep "key maintenance: automatic" rndc.out.master > /dev/null 2>&1 || ret=1
+grep "next key event: " rndc.out.master > /dev/null 2>&1 || ret=1
+grep "next resign node: " rndc.out.master > /dev/null 2>&1 || ret=1
+grep "next resign time: " rndc.out.master > /dev/null 2>&1 || ret=1
+grep "dynamic: yes" rndc.out.master > /dev/null 2>&1 || ret=1
+grep "frozen: no" rndc.out.master > /dev/null 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 zonestatus master.example > rndc.out.slave 2>&1
+grep "name: master.example" rndc.out.slave > /dev/null 2>&1 || ret=1
+grep "type: slave" rndc.out.slave > /dev/null 2>&1 || ret=1
+grep "files: slave.db" rndc.out.slave > /dev/null 2>&1 || ret=1
+grep "serial: " rndc.out.slave > /dev/null 2>&1 || ret=1
+grep "nodes: " rndc.out.slave > /dev/null 2>&1 || ret=1
+grep "next refresh: " rndc.out.slave > /dev/null 2>&1 || ret=1
+grep "expires: " rndc.out.slave > /dev/null 2>&1 || ret=1
+grep "secure: yes" rndc.out.slave > /dev/null 2>&1 || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
