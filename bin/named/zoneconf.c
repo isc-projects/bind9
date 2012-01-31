@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.161.4.9 2011/12/20 00:14:16 marka Exp $ */
+/* $Id: zoneconf.c,v 1.161.4.10 2012/01/31 22:33:27 marka Exp $ */
 
 /*% */
 
@@ -1122,8 +1122,11 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	zfilename = dns_zone_getfile(zone);
 	if (!((cfilename == NULL && zfilename == NULL) ||
 	      (cfilename != NULL && zfilename != NULL &&
-	       strcmp(cfilename, zfilename) == 0)))
-	    return (ISC_FALSE);
+	       strcmp(cfilename, zfilename) == 0))) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			"not reusable: filename mismatch");
+		return (ISC_FALSE);
+	}
 
 	return (ISC_TRUE);
 }

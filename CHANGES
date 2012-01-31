@@ -1,3 +1,6 @@
+3374.	[bug]		Log when a zone is not reusable.  Only set loadtime
+			on successful loads.  [RT #27650]
+
 3273.   [bug]           AAAA responses could be returned in the additional
                         section even when filter-aaaa-on-v4 was in use.
                         [RT #27292]
