@@ -220,7 +220,7 @@
 ./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007,2009,2011
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009
 ./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
-./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
+./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./bin/nsupdate/.cvsignore			X	2000,2001
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008,2009
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
@@ -964,6 +964,7 @@
 ./bin/tests/system/inline/ns2/named.conf	CONF-C	2011
 ./bin/tests/system/inline/ns3/master.db.in	ZONE	2011,2012
 ./bin/tests/system/inline/ns3/master2.db.in	ZONE	2011,2012
+./bin/tests/system/inline/ns3/master3.db.in	ZONE	2012
 ./bin/tests/system/inline/ns3/named.conf	CONF-C	2011,2012
 ./bin/tests/system/inline/ns3/sign.sh		SH	2011,2012
 ./bin/tests/system/inline/ns4/named.conf	CONF-C	2011
@@ -1561,11 +1562,11 @@
 ./bin/win32/BINDInstall/resource.h		X	2001,2005,2009
 ./bind.keys					X	2009,2010,2011
 ./config.guess					X	1998,1999,2000,2001,2004,2009
-./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
+./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./config.h.win32				C	1999,2000,2001,2004,2006,2007,2008,2009,2011
 ./config.sub					X	1998,1999,2000,2001,2004
-./config.threads.in				X	2005,2006,2010,2011
-./configure					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
+./config.threads.in				X	2005,2006,2010,2011,2012
+./configure					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./configure.in					SH	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./conftools/perllib/dnsconf/DNSConf-macros.h	C	2000,2001,2004,2007
 ./conftools/perllib/dnsconf/DNSConf.i		C	2000,2001,2004,2007
@@ -2137,7 +2138,7 @@
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007
 ./lib/bind9/.cvsignore				X	2001
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2009
-./lib/bind9/api					X	2001,2006,2008,2009,2010,2011
+./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007
 ./lib/bind9/include/.cvsignore			X	2001
@@ -2582,7 +2583,7 @@
 ./lib/export/samples/sample.c			C	2009
 ./lib/irs/.cvsignore				X	2009
 ./lib/irs/Makefile.in				MAKE	2009
-./lib/irs/api					X	2009,2010,2011
+./lib/irs/api					X	2009,2010,2011,2012
 ./lib/irs/context.c				C	2009
 ./lib/irs/dnsconf.c				C	2009
 ./lib/irs/gai_strerror.c			C	2009
@@ -2950,7 +2951,7 @@
 ./lib/isccc/.cvsignore				X	2001
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2009,2011
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/api					X	2001,2006,2008,2009,2010,2011
+./lib/isccc/api					X	2001,2006,2008,2009,2010,2011,2012
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005,2007
@@ -2985,7 +2986,7 @@
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009,2011
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011
-./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011
+./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012
 ./lib/isccfg/dnsconf.c				C	2009
 ./lib/isccfg/include/.cvsignore			X	2001
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004,2007
@@ -3010,7 +3011,7 @@
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007
-./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011
+./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011,2012
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007,2011
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008,2009
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007,2008
@@ -3152,7 +3153,7 @@
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007
 ./make/mkdep.in					X	1999,2000,2001,2006,2011
-./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011
+./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./mkinstalldirs					X	1996
 ./unit/.cvsignore				X	2011
 ./unit/Makefile.in				X	2011
@@ -3469,13 +3470,13 @@
 ./util/check-pullups.pl				PERL	2001,2002,2003,2004,2007
 ./util/check-sources.pl				PERL	2000,2001,2004,2007
 ./util/copyrights				X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
-./util/kit.sh					SH	2000,2001,2002,2003,2004,2007,2008,2009,2010
+./util/kit.sh					SH	2000,2001,2002,2003,2004,2007,2008,2009,2010,2012
 ./util/mandoc2docbook.pl			PERL	2001,2004,2007
 ./util/mdnbuildtest.sh				SH	2000,2001,2004,2007
 ./util/memleak.pl				PERL	1999,2000,2001,2004,2007
 ./util/merge_copyrights				PERL	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011
 ./util/mkreslib.pl				PERL	2000,2001,2004,2007
-./util/mksymtbl.pl				PERL	2009
+./util/mksymtbl.pl				PERL	2009,2012
 ./util/nanny.pl					PERL	2000,2001,2004,2007
 ./util/new-func					PERL	2005,2007
 ./util/nt-kit					SH	1999,2000,2001,2004,2007
