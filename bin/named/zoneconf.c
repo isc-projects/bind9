@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.161.4.10 2012/01/31 22:33:27 marka Exp $ */
+/* $Id: zoneconf.c,v 1.161.4.11 2012/01/31 22:40:37 marka Exp $ */
 
 /*% */
 
@@ -1110,8 +1110,11 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 
 	zoptions = cfg_tuple_get(zconfig, "options");
 
-	if (zonetype_fromconfig(zoptions) != dns_zone_gettype(zone))
+	if (zonetype_fromconfig(zoptions) != dns_zone_gettype(zone)) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			"not reusable: type mismatch");
 		return (ISC_FALSE);
+	}
 
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "file", &obj);
