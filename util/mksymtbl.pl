@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009, 2012  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,13 +14,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: mksymtbl.pl,v 1.5 2012/01/31 04:08:07 marka Exp $
+# $Id: mksymtbl.pl,v 1.6 2012/01/31 23:47:33 tbox Exp $
 
 use strict;
 use diagnostics;
 $^W = 1;
 
-my $rev = '$Id: mksymtbl.pl,v 1.5 2012/01/31 04:08:07 marka Exp $';
+my $rev = '$Id: mksymtbl.pl,v 1.6 2012/01/31 23:47:33 tbox Exp $';
 $rev =~ s/\$//g;
 $rev =~ s/,v//g;
 $rev =~ s/Id: //;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.48 2012/01/31 03:35:39 each Exp $ */
+/* $Id: control.c,v 1.49 2012/01/31 23:47:31 tbox Exp $ */
 
 /*! \file */
 

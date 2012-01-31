@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.640 2012/01/31 03:35:39 each Exp $ */
+/* $Id: server.c,v 1.641 2012/01/31 23:47:31 tbox Exp $ */
 
 /*! \file */
 
@@ -8092,7 +8092,7 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 	hasraw = ISC_TF(raw != NULL);
 	if (hasraw)
 		CHECK(dns_zone_getdb(raw, &rawdb));
- 
+
 	/* Serial number */
 	serial = dns_zone_getserial(hasraw ? raw : zone);
 	snprintf(serbuf, sizeof(serbuf), "%d", serial);
@@ -8147,7 +8147,7 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 	}
 
 	/* Next resign event */
-	if (secure && (zonetype == dns_zone_master || 
+	if (secure && (zonetype == dns_zone_master ||
 	     (zonetype == dns_zone_slave && hasraw)) &&
 	    ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_NORESIGN) == 0))
 	{

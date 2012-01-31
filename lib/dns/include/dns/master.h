@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.56 2012/01/31 03:35:41 each Exp $ */
+/* $Id: master.h,v 1.57 2012/01/31 23:47:33 tbox Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1

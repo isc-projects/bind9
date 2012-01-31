@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master_test.c,v 1.8 2012/01/31 03:35:41 each Exp $ */
+/* $Id: master_test.c,v 1.9 2012/01/31 23:47:33 tbox Exp $ */
 
 /*! \file */
 
@@ -345,7 +345,7 @@ ATF_TC_BODY(master_includelist, tc) {
 
 	dns_test_end();
 }
- 
+
 /* Include failure test */
 ATF_TC(includefail);
 ATF_TC_HEAD(includefail, tc) {
