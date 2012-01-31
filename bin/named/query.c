@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.353.8.22 2012/01/31 17:54:11 each Exp $ */
+/* $Id: query.c,v 1.353.8.23 2012/01/31 23:46:39 tbox Exp $ */
 
 /*! \file */
 
@@ -1441,7 +1441,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			 * There's an A; check whether we're filtering AAAA
 			 */
 #ifdef ALLOW_FILTER_AAAA_ON_V4
-			if (have_a && 
+			if (have_a &&
 			    (client->filter_aaaa == dns_v4_aaaa_break_dnssec ||
 			    (client->filter_aaaa == dns_v4_aaaa_filter &&
 			     (!WANTDNSSEC(client) || sigrdataset == NULL ||
