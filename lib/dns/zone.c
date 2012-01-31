@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.41 2012/01/30 00:17:23 marka Exp $ */
+/* $Id: zone.c,v 1.582.8.42 2012/01/31 22:31:46 marka Exp $ */
 
 /*! \file */
 
@@ -3397,9 +3397,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			needdump = ISC_TRUE;
 	}
 
-	zone->loadtime = loadtime;
-
-	dns_zone_log(zone, ISC_LOG_DEBUG(1), "loaded");
+	dns_zone_log(zone, ISC_LOG_DEBUG(1), "loaded; checking validity");
 	/*
 	 * Obtain ns, soa and cname counts for top of zone.
 	 */
@@ -3644,6 +3642,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u%s", serial,
 			     dns_db_issecure(db) ? " (DNSSEC signed)" : "");
 
+	zone->loadtime = loadtime;
 	return (result);
 
  cleanup:
