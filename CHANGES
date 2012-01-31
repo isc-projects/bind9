@@ -1,3 +1,7 @@
+3271.	[port]		darwin: mksymtbl is not always stable, loop several
+			times before giving up.  mksymtbl was using non
+			portable perl to covert 64 bit hex strings. [RT #27653]
+
 3271.	[func]		New "rndc zonestatus" command prints information
 			about the specified zone. [RT #21671]
 
