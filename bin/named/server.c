@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.638 2012/01/25 02:46:53 marka Exp $ */
+/* $Id: server.c,v 1.638.4.1 2012/01/31 01:11:54 each Exp $ */
 
 /*! \file */
 
@@ -3406,6 +3406,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		result = dns_view_findzone(pview, origin, &zone);
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 		goto cleanup;
+
 	if (zone != NULL && !ns_zone_reusable(zone, zconfig))
 		dns_zone_detach(&zone);
 

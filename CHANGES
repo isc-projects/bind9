@@ -1,5 +1,8 @@
 	--- 9.9.0 released ---
 
+3270.	[bug]		"rndc reload" didn't reuse existing zones correctly
+			when inline-signing was in use. [RT #27650]
+
 3269.	[port]		darwin 11 and later now built threaded by default.
 
 3268.	[bug]		Convert RRSIG expiry times to 64 timestamps to work
