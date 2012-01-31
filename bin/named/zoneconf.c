@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.186 2011/12/20 00:06:54 marka Exp $ */
+/* $Id: zoneconf.c,v 1.187 2012/01/31 01:13:09 each Exp $ */
 
 /*% */
 
@@ -1600,18 +1600,50 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	const char *zfilename;
 	dns_zone_t *raw = NULL;
 	isc_boolean_t has_raw;
+	dns_zonetype_t ztype;
 
 	zoptions = cfg_tuple_get(zconfig, "options");
-
-	if (zonetype_fromconfig(zoptions) != dns_zone_gettype(zone))
-		return (ISC_FALSE);
 
 	/*
 	 * We always reconfigure a static-stub zone for simplicity, assuming
 	 * the amount of data to be loaded is small.
 	 */
-	if (zonetype_fromconfig(zoptions) == dns_zone_staticstub)
+	if (zonetype_fromconfig(zoptions) == dns_zone_staticstub) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			     "not reusable: staticstub");
 		return (ISC_FALSE);
+	}
+
+	/* If there's a raw zone, use that for filename and type comparison */
+	dns_zone_getraw(zone, &raw);
+	if (raw != NULL) {
+		zfilename = dns_zone_getfile(raw);
+		ztype = dns_zone_gettype(raw);
+		dns_zone_detach(&raw);
+		has_raw = ISC_TRUE;
+	} else {
+		zfilename = dns_zone_getfile(zone);
+		ztype = dns_zone_gettype(zone);
+		has_raw = ISC_FALSE;
+	}
+
+	obj = NULL;
+	(void)cfg_map_get(zoptions, "inline-signing", &obj);
+	if ((obj == NULL || !cfg_obj_asboolean(obj)) && has_raw) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			     "not reusable: old zone was inline-signing");
+		return (ISC_FALSE);
+	} else if ((obj != NULL && cfg_obj_asboolean(obj)) && !has_raw) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			     "not reusable: old zone was not inline-signing");
+		return (ISC_FALSE);
+	}
+
+	if (zonetype_fromconfig(zoptions) != ztype) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			     "not reusable: type mismatch");
+		return (ISC_FALSE);
+	}
 
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "file", &obj);
@@ -1619,25 +1651,14 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 		cfilename = cfg_obj_asstring(obj);
 	else
 		cfilename = NULL;
-	zfilename = dns_zone_getfile(zone);
 	if (!((cfilename == NULL && zfilename == NULL) ||
 	      (cfilename != NULL && zfilename != NULL &&
 	       strcmp(cfilename, zfilename) == 0)))
+	{
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			     "not reusable: filename mismatch");
 		return (ISC_FALSE);
-
-	dns_zone_getraw(zone, &raw);
-	if (raw != NULL) {
-		dns_zone_detach(&raw);
-		has_raw = ISC_TRUE;
-	} else
-		has_raw = ISC_FALSE;
-
-	obj = NULL;
-	(void)cfg_map_get(zoptions, "inline-signing", &obj);
-	if ((obj == NULL || !cfg_obj_asboolean(obj)) && has_raw)
-		return (ISC_FALSE);
-	if ((obj != NULL && cfg_obj_asboolean(obj)) && !has_raw)
-		return (ISC_FALSE);
+	}
 
 	return (ISC_TRUE);
 }
