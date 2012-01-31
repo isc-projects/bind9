@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2.108.1 2012/01/31 17:54:11 each Exp $
+# $Id: tests.sh,v 1.2.108.2 2012/01/31 18:01:18 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -179,7 +179,7 @@ echo "I:checking that AAAA is omitted from additional section, qtype=NS ($n)"
 ret=0
 $DIG $DIGOPTS +add ns unsigned -b 10.53.0.1 @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep AAAA dig.out.ns1.test$n > /dev/null 2>&1 && ret=1
-grep "ADDITIONAL: 2" dig.out.ns1.test$n > /dev/null 2>&1 || ret=1
+grep "ADDITIONAL: 1" dig.out.ns1.test$n > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -347,7 +347,7 @@ echo "I:checking that AAAA is omitted from additional section, qtype=NS, with br
 ret=0
 $DIG $DIGOPTS +add ns unsigned -b 10.53.0.4 @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep AAAA dig.out.ns4.test$n > /dev/null 2>&1 && ret=1
-grep "ADDITIONAL: 2" dig.out.ns4.test$n > /dev/null 2>&1 || ret=1
+grep "ADDITIONAL: 1" dig.out.ns4.test$n > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -514,7 +514,7 @@ echo "I:checking that AAAA is omitted from additional section, qtype=NS ($n)"
 ret=0
 $DIG $DIGOPTS +add ns unsigned -b 10.53.0.2 @10.53.0.2 > dig.out.ns2.test$n || ret=1
 grep AAAA dig.out.ns2.test$n > /dev/null 2>&1 && ret=1
-grep "ADDITIONAL: 2" dig.out.ns2.test$n > /dev/null 2>&1 || ret=1
+grep "ADDITIONAL: 1" dig.out.ns2.test$n > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -681,7 +681,7 @@ echo "I:checking that AAAA is omitted from additional section, qtype=NS, recursi
 ret=0
 $DIG $DIGOPTS +add ns unsigned -b 10.53.0.3 @10.53.0.3 > dig.out.ns3.test$n || ret=1
 grep AAAA dig.out.ns3.test$n > /dev/null 2>&1 && ret=1
-grep "ADDITIONAL: 2" dig.out.ns3.test$n > /dev/null 2>&1 || ret=1
+grep "ADDITIONAL: 1" dig.out.ns3.test$n > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
