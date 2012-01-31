@@ -1,3 +1,7 @@
+3271.	[port]		darwin: mksymtbl is not always stable, loop several
+			times before giving up.  mksymtbl was using non
+			portable perl to covert 64 bit hex strings. [RT #27653]
+
 	--- 9.9.0rc2 released ---
 
 3270.	[bug]		"rndc reload" didn't reuse existing zones correctly
