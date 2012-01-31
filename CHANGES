@@ -1,4 +1,4 @@
-	--- 9.9.0 released ---
+	--- 9.9.0rc2 released ---
 
 3270.	[bug]		"rndc reload" didn't reuse existing zones correctly
 			when inline-signing was in use. [RT #27650]
