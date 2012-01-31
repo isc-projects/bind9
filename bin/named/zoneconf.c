@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.147.50.7 2012/01/31 22:37:36 marka Exp $ */
+/* $Id: zoneconf.c,v 1.147.50.8 2012/01/31 23:45:27 tbox Exp $ */
 
 /*% */
 
