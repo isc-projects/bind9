@@ -468,7 +468,9 @@ rt27344				new	each	// 2012-01-09 23:58 +0000
 rt27497				new	marka	// 2012-01-17 05:38 +0000
 rt27557				new	marka	// 2012-01-24 00:01 +0000
 rt27650				new	each	// 2012-01-30 20:46 +0000
+rt27650_v9_8			new	marka	// 2012-01-31 04:42 +0000
 rt27653				new	marka	// 2012-01-30 06:10 +0000
+rt27678				new	each	// 2012-01-31 16:38 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
