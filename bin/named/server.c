@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.641 2012/01/31 23:47:31 tbox Exp $ */
+/* $Id: server.c,v 1.642 2012/02/01 21:28:39 marka Exp $ */
 
 /*! \file */
 
@@ -8194,7 +8194,8 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 		isc_buffer_putstr(text, dns_zone_getfile(zone));
 		for (i = 0; i < nfiles; i++) {
 			isc_buffer_putstr(text, ", ");
-			isc_buffer_putstr(text, incfiles[i]);
+			if (incfiles[i] != NULL)
+				isc_buffer_putstr(text, incfiles[i]);
 		}
 	}
 
@@ -8264,12 +8265,19 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
  cleanup:
 	if (db != NULL)
 		dns_db_detach(&db);
-	if (hasraw) {
+	if (rawdb != NULL)
 		dns_db_detach(&rawdb);
-		dns_zone_detach(&raw);
+	if (incfiles != NULL) {
+		int i;
+		isc_mem_t *mctx = dns_zone_getmctx(hasraw ? raw : zone);
+
+		for (i = 0; i < nfiles; i++) 
+			if (incfiles[i] != NULL) 
+				isc_mem_free(mctx, incfiles[i]);
+		isc_mem_free(mctx, incfiles);
 	}
-	if (incfiles != NULL)
-		isc_mem_free(server->mctx, incfiles);
+	if (raw != NULL)
+		dns_zone_detach(&raw);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 	return (result);

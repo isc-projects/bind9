@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.669 2012/01/31 03:35:40 each Exp $ */
+/* $Id: zone.c,v 1.670 2012/02/01 21:28:39 marka Exp $ */
 
 /*! \file */
 
@@ -1841,9 +1841,12 @@ zone_registerinclude(const char *filename, void *arg) {
 	if (filename == NULL)
 		return;
 
-fprintf(stderr, "register callback: %s\n", filename);
 	inc = isc_mem_get(zone->mctx, sizeof(dns_include_t));
+	if (inc == NULL)
+		return;
 	inc->name = isc_mem_strdup(zone->mctx, filename);
+	if (inc->name == NULL)
+		isc_mem_put(zone->mctx, inc, sizeof(dns_include_t));
 	ISC_LINK_INIT(inc, link);
 
 	ISC_LIST_APPEND(zone->includes, inc, link);
@@ -15688,6 +15691,7 @@ dns_zone_nscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 void
 dns_zone_setadded(dns_zone_t *zone, isc_boolean_t added) {
 	REQUIRE(DNS_ZONE_VALID(zone));
+
 	LOCK_ZONE(zone);
 	zone->added = added;
 	UNLOCK_ZONE(zone);
@@ -16260,6 +16264,7 @@ isc_result_t
 dns_zone_getloadtime(dns_zone_t *zone, isc_time_t *loadtime) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(loadtime != NULL);
+
 	LOCK_ZONE(zone);
 	*loadtime = zone->loadtime;
 	UNLOCK_ZONE(zone);
@@ -16270,6 +16275,7 @@ isc_result_t
 dns_zone_getexpiretime(dns_zone_t *zone, isc_time_t *expiretime) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(expiretime != NULL);
+
 	LOCK_ZONE(zone);
 	*expiretime = zone->expiretime;
 	UNLOCK_ZONE(zone);
@@ -16280,6 +16286,7 @@ isc_result_t
 dns_zone_getrefreshtime(dns_zone_t *zone, isc_time_t *refreshtime) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(refreshtime != NULL);
+
 	LOCK_ZONE(zone);
 	*refreshtime = zone->refreshtime;
 	UNLOCK_ZONE(zone);
@@ -16290,17 +16297,18 @@ isc_result_t
 dns_zone_getrefreshkeytime(dns_zone_t *zone, isc_time_t *refreshkeytime) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(refreshkeytime != NULL);
+
 	LOCK_ZONE(zone);
 	*refreshkeytime = zone->refreshkeytime;
 	UNLOCK_ZONE(zone);
 	return (ISC_R_SUCCESS);
 }
 
-int
+unsigned int
 dns_zone_getincludes(dns_zone_t *zone, char ***includesp) {
 	dns_include_t *include;
 	char **array = NULL;
-	int n = 0;
+	unsigned int n = 0;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(includesp != NULL && *includesp == NULL);
@@ -16309,12 +16317,16 @@ dns_zone_getincludes(dns_zone_t *zone, char ***includesp) {
 	if (zone->nincludes == 0)
 		goto done;
 
-	array = isc_mem_allocate(zone->mctx, sizeof(char *) * n);
+	array = isc_mem_allocate(zone->mctx, sizeof(char *) * zone->nincludes);
+	if (array == NULL)
+		goto done;
 	for (include = ISC_LIST_HEAD(zone->includes);
 	     include != NULL;
 	     include = ISC_LIST_NEXT(include, link)) {
-		array[n++] = include->name;
+		INSIST(n < zone->nincludes);
+		array[n++] = isc_mem_strdup(zone->mctx, include->name);
 	}
+	INSIST(n == zone->nincludes);
 	*includesp = array;
 
  done:

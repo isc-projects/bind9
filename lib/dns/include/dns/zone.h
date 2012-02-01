@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.202 2012/01/31 03:35:41 each Exp $ */
+/* $Id: zone.h,v 1.203 2012/02/01 21:28:39 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -2063,12 +2063,14 @@ dns_zone_getrefreshkeytime(dns_zone_t *zone, isc_time_t *refreshkeytime);
  * Return the time of the next scheduled DNSSEC key event.
  */
 
-int
+unsigned int
 dns_zone_getincludes(dns_zone_t *zone, char ***includesp);
 /*%
  * Return the number include files that were encountered
  * during load.  If the number is greater than zero, 'includesp'
  * will point to an array containing the filenames.
+ *
+ * The array and its contents need to be freed using isc_mem_free.
  */
 
 
