@@ -1,6 +1,3 @@
-3275.	[bug]		"use out of scope" bug in unit test master_test.
-			[RT# 27674]
-
 3274.   [placeholder]
 
 3273.   [bug]           AAAA responses could be returned in the additional
