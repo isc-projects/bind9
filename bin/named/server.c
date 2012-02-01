@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.642 2012/02/01 21:28:39 marka Exp $ */
+/* $Id: server.c,v 1.643 2012/02/01 23:46:51 tbox Exp $ */
 
 /*! \file */
 
@@ -8271,8 +8271,8 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 		int i;
 		isc_mem_t *mctx = dns_zone_getmctx(hasraw ? raw : zone);
 
-		for (i = 0; i < nfiles; i++) 
-			if (incfiles[i] != NULL) 
+		for (i = 0; i < nfiles; i++)
+			if (incfiles[i] != NULL)
 				isc_mem_free(mctx, incfiles[i]);
 		isc_mem_free(mctx, incfiles);
 	}
