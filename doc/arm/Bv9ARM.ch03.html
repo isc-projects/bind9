@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.91 2012/01/07 01:14:55 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.92 2012/02/01 01:04:18 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568368">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568373">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570631">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570658">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -584,6 +584,21 @@ zone "eng.example.com" {
                         to examine the
                         modification times of the zones files.
                       </p></dd>
+<dt><span class="term"><strong class="userinput"><code>zonestatus
+                        [<span class="optional"><em class="replaceable"><code>zone</code></em>
+       [<span class="optional"><em class="replaceable"><code>class</code></em>
+           [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</span>]</code></strong></span></dt>
+<dd><p>
+                        Displays the current status of the given zone,
+                        including the master file name and any include
+                        files from which it was loaded, when it was most
+                        recently loaded, the current serial number, the
+                        number of nodes, whether the zone supports
+                        dynamic updates, whether the zone is DNSSEC
+                        signed, whether it uses automatic DNSSEC key
+                        management or inline signing, and the scheduled
+                        refresh or expiry times for the zone.
+                      </p></dd>
 <dt><span class="term"><strong class="userinput"><code>stats</code></strong></span></dt>
 <dd><p>
                         Write server statistics to the statistics file.
@@ -968,7 +983,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570631"></a>Signals</h3></div></div></div>
+<a name="id2570658"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
