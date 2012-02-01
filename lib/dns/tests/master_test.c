@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master_test.c,v 1.9 2012/01/31 23:47:33 tbox Exp $ */
+/* $Id: master_test.c,v 1.10 2012/02/01 00:20:09 marka Exp $ */
 
 /*! \file */
 
@@ -48,6 +48,8 @@ static dns_masterrawheader_t header;
 static isc_boolean_t headerset;
 
 dns_name_t dns_origin;
+char origin[sizeof(TEST_ORIGIN)];
+unsigned char name_buf[BUFLEN];
 dns_rdatacallbacks_t callbacks;
 char *include_file = NULL;
 
@@ -82,10 +84,8 @@ static isc_result_t
 setup_master() {
 	isc_result_t		result;
 	int			len;
-	char			origin[sizeof(TEST_ORIGIN)];
 	isc_buffer_t		source;
 	isc_buffer_t		target;
-	unsigned char		name_buf[BUFLEN];
 
 	strcpy(origin, TEST_ORIGIN);
 	len = strlen(origin);
