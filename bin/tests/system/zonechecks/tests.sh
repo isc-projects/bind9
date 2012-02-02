@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.8 2012/01/31 23:47:32 tbox Exp $
+# $Id: tests.sh,v 1.9 2012/02/02 03:08:02 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -164,7 +164,12 @@ fi
 #
 echo "I: checking 'rdnc zonestatus' output"
 ret=0 
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus master.example > rndc.out.master 2>&1
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus master.example > rndc.out.master 2>&1
+	grep "zone not loaded" rndc.out.master > /dev/null || break
+	sleep 1
+done
 grep "name: master.example" rndc.out.master > /dev/null 2>&1 || ret=1
 grep "type: master" rndc.out.master > /dev/null 2>&1 || ret=1
 grep "files: master.db, master.db.signed" rndc.out.master > /dev/null 2>&1 || ret=1
@@ -179,7 +184,12 @@ grep "next resign node: " rndc.out.master > /dev/null 2>&1 || ret=1
 grep "next resign time: " rndc.out.master > /dev/null 2>&1 || ret=1
 grep "dynamic: yes" rndc.out.master > /dev/null 2>&1 || ret=1
 grep "frozen: no" rndc.out.master > /dev/null 2>&1 || ret=1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 zonestatus master.example > rndc.out.slave 2>&1
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 zonestatus master.example > rndc.out.slave 2>&1
+	grep "zone not loaded" rndc.out.slave > /dev/null || break
+	sleep 1
+done
 grep "name: master.example" rndc.out.slave > /dev/null 2>&1 || ret=1
 grep "type: slave" rndc.out.slave > /dev/null 2>&1 || ret=1
 grep "files: slave.db" rndc.out.slave > /dev/null 2>&1 || ret=1
