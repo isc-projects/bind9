@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.9 2012/02/02 03:08:02 marka Exp $
+# $Id: tests.sh,v 1.10 2012/02/02 03:26:55 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -170,34 +170,40 @@ do
 	grep "zone not loaded" rndc.out.master > /dev/null || break
 	sleep 1
 done
-grep "name: master.example" rndc.out.master > /dev/null 2>&1 || ret=1
-grep "type: master" rndc.out.master > /dev/null 2>&1 || ret=1
-grep "files: master.db, master.db.signed" rndc.out.master > /dev/null 2>&1 || ret=1
-grep "serial: " rndc.out.master > /dev/null 2>&1 || ret=1
-grep "nodes: " rndc.out.master > /dev/null 2>&1 || ret=1
-grep "last loaded: " rndc.out.master > /dev/null 2>&1 || ret=1
-grep "secure: yes" rndc.out.master > /dev/null 2>&1 || ret=1
-grep "inline signing: no" rndc.out.master > /dev/null 2>&1 || ret=1
-grep "key maintenance: automatic" rndc.out.master > /dev/null 2>&1 || ret=1
-grep "next key event: " rndc.out.master > /dev/null 2>&1 || ret=1
-grep "next resign node: " rndc.out.master > /dev/null 2>&1 || ret=1
-grep "next resign time: " rndc.out.master > /dev/null 2>&1 || ret=1
-grep "dynamic: yes" rndc.out.master > /dev/null 2>&1 || ret=1
-grep "frozen: no" rndc.out.master > /dev/null 2>&1 || ret=1
+checkfor() {
+	grep "$1" $2 > /dev/null || {
+		ret=1;
+		echo "I: missing '$1' from '$2'"
+	}
+}
+checkfor "name: master.example" rndc.out.master
+checkfor "type: master" rndc.out.master
+checkfor "files: master.db, master.db.signed" rndc.out.master
+checkfor "serial: " rndc.out.master
+checkfor "nodes: " rndc.out.master
+checkfor "last loaded: " rndc.out.master
+checkfor "secure: yes" rndc.out.master
+checkfor "inline signing: no" rndc.out.master
+checkfor "key maintenance: automatic" rndc.out.master
+checkfor "next key event: " rndc.out.master
+checkfor "next resign node: " rndc.out.master
+checkfor "next resign time: " rndc.out.master
+checkfor "dynamic: yes" rndc.out.master
+checkfor "frozen: no" rndc.out.master
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 zonestatus master.example > rndc.out.slave 2>&1
 	grep "zone not loaded" rndc.out.slave > /dev/null || break
 	sleep 1
 done
-grep "name: master.example" rndc.out.slave > /dev/null 2>&1 || ret=1
-grep "type: slave" rndc.out.slave > /dev/null 2>&1 || ret=1
-grep "files: slave.db" rndc.out.slave > /dev/null 2>&1 || ret=1
-grep "serial: " rndc.out.slave > /dev/null 2>&1 || ret=1
-grep "nodes: " rndc.out.slave > /dev/null 2>&1 || ret=1
-grep "next refresh: " rndc.out.slave > /dev/null 2>&1 || ret=1
-grep "expires: " rndc.out.slave > /dev/null 2>&1 || ret=1
-grep "secure: yes" rndc.out.slave > /dev/null 2>&1 || ret=1
+checkfor "name: master.example" rndc.out.slave
+checkfor "type: slave" rndc.out.slave
+checkfor "files: slave.db" rndc.out.slave
+checkfor "serial: " rndc.out.slave
+checkfor "nodes: " rndc.out.slave
+checkfor "next refresh: " rndc.out.slave
+checkfor "expires: " rndc.out.slave
+checkfor "secure: yes" rndc.out.slave
 
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
