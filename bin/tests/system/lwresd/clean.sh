@@ -14,9 +14,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.1 2008/07/17 01:14:16 marka Exp $
+# $Id: clean.sh,v 1.1.962.1 2012/02/03 04:45:53 marka Exp $
 
 #
 # Clean up after lwresd tests.
 #
 rm -f */named.memstats
+rm -f dig.out
