@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.670 2012/02/01 21:28:39 marka Exp $ */
+/* $Id: zone.c,v 1.671 2012/02/03 12:59:03 marka Exp $ */
 
 /*! \file */
 
@@ -1845,8 +1845,10 @@ zone_registerinclude(const char *filename, void *arg) {
 	if (inc == NULL)
 		return;
 	inc->name = isc_mem_strdup(zone->mctx, filename);
-	if (inc->name == NULL)
+	if (inc->name == NULL) {
 		isc_mem_put(zone->mctx, inc, sizeof(dns_include_t));
+		return;
+	}
 	ISC_LINK_INIT(inc, link);
 
 	ISC_LIST_APPEND(zone->includes, inc, link);
