@@ -1,3 +1,7 @@
+3275.	[bug]		Corrected rndc -h output; the 'rndc sync -clean'
+			option had been missplled as '-clear'.  (To avoid
+			future confusion, both options now work.) [RT #27173]
+
 3274.   [placeholder]
 
 3273.   [bug]           AAAA responses could be returned in the additional
