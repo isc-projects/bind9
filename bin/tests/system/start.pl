@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.28 2011/10/13 01:32:32 vjs Exp $
+# $Id: start.pl,v 1.29 2012/02/06 23:20:38 marka Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -94,9 +94,8 @@ if ($server) {
 	&check_ports();
 	foreach $name(@ns, @lwresd, @ans) {
 		&start_server($name);
-	}
-	foreach $name(@ns) {
-		&verify_server($name);
+		&verify_server($name) if ($name =~ /^ns/);
+		
 	}
 }
 
