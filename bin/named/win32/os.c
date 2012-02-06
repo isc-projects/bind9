@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.37 2009/08/05 18:43:37 each Exp $ */
+/* $Id: os.c,v 1.37.360.1 2012/02/06 05:16:07 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -218,6 +218,7 @@ ns_os_openfile(const char *filename, int mode, isc_boolean_t switch_user) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ns_main_earlywarning("could not open file '%s': %s",
 				     filename, strbuf);
+		return (NULL);
 	}
 
 	fp = fdopen(fd, "w");
