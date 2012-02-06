@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.599.8.16 2011/12/22 08:25:16 marka Exp $ */
+/* $Id: server.c,v 1.599.8.17 2012/02/06 21:27:51 each Exp $ */
 
 /*! \file */
 
@@ -3454,6 +3454,12 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 * Add the zone to its view in the new view list.
 	 */
 	CHECK(dns_view_addzone(view, zone));
+
+	/*
+	 * Ensure that zone keys are reloaded on reconfig
+	 */
+	if ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_MAINTAIN) != 0)
+		dns_zone_rekey(zone, ISC_FALSE);
 
  cleanup:
 	if (zone != NULL)

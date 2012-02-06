@@ -1,3 +1,7 @@
+3277.	[bug]		Make sure automatic key maintenance is started
+			when "auto-dnssec maintain" is turned on during
+			"rndc reconfig". [RT #26805]
+
 3276.	[bug]		win32: ns_os_openfile failed to return NULL on
 			safe_open failure. [RT #27696]
 
