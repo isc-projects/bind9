@@ -1,3 +1,6 @@
+3276.	[bug]		win32: ns_os_openfile failed to return NULL on
+			safe_open failure. [RT #27696]
+
 3374.	[bug]		Log when a zone is not reusable.  Only set loadtime
 			on successful loads.  [RT #27650]
 
