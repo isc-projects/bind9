@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.44 2012/02/02 23:47:33 tbox Exp $
+# $Id: tests.sh,v 1.45 2012/02/06 21:33:50 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1113,6 +1113,29 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 sign . 2>&1 | sed 's/^/I:ns1 /
 $DIG $DIGOPTS . @10.53.0.1 dnskey > dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:test turning on auto-dnssec during reconfig ($n)"
+ret=0
+# first create a zone that doesn't have auto-dnssec
+rm -f ns3/*.nzf
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 addzone reconf.example '{ type master; file "reconf.example.db"; };' 2>&1 | sed 's/^/I:ns3 /'
+rekey_calls=`grep "zone reconf.example.*next key event" ns3/named.run | wc -l`
+[ "$rekey_calls" = 0 ] || ret=1
+# ...then we add auto-dnssec and reconfigure
+nzf=`ls ns3/*.nzf`
+echo 'zone reconf.example { type master; file "reconf.example.db"; allow-update { any; }; auto-dnssec maintain; };' > $nzf
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reconfig 2>&1 | sed 's/^/I:ns3 /'
+for i in 0 1 2 3 4 5 6 7 8 9; do
+    lret=0
+    rekey_calls=`grep "zone reconf.example.*next key event" ns3/named.run | wc -l`
+    [ "$rekey_calls" -gt 0 ] || lret=1
+    if [ "$lret" = 0 ]; then break; fi
+    sleep 1
+done
+n=`expr $n + 1`
+if [ "$lret" != 0 ]; then ret=$lret; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

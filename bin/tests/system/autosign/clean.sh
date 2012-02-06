@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.13 2011/10/30 23:05:13 each Exp $
+# $Id: clean.sh,v 1.14 2012/02/06 21:33:50 each Exp $
 
 rm -f */K* */dsset-* */*.signed */trusted.conf */tmp* */*.jnl */*.bk
 rm -f active.key inact.key del.key unpub.key standby.key rev.key
@@ -51,3 +51,4 @@ rm -f ns3/secure-to-insecure2.example.db
 rm -f ns3/nozsk.example.db ns3/inaczsk.example.db
 rm -f ns3/ttl*.db
 rm -f signing.out.*
+rm -f ns3/*.nzf
