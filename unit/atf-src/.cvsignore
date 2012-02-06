@@ -1,0 +1,11 @@
+.libs
+Makefile
+autom4te.cache
+bconfig.h
+config.log
+config.status
+configure.lineno
+libatf-c++.la
+libatf-c.la
+libtool
+stamp-h1

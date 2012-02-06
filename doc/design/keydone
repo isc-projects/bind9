@@ -1,0 +1,33 @@
+Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+$Id: keydone,v 1.2 2011/10/19 23:46:56 tbox Exp $
+
+        rndc keydone <rdata> zone [class [view]]
+
+        e.g.
+                rndc keydone 0549E00001 example
+
+        Last 4 characters need to be 0001 (00=no flags, 01=done)
+        First 2 characters (algorithm) not 00 (algorithm 0 which
+        is reserved, 00 => NSEC3PARAMETERS are encoded in the record)
+        All hexadecimal case insensitive.  length 10.
+                Err: DNS_R_SYNTAX
+
+        The control code will select the zone based on 'zone [class
+        [view]]'.
+                Err: DNS_R_NOTFOUND
+
+        zone must be a master (signed inline == master) or normal
+        dynamic zone.
+                Err: DNS_R_NOTMASTER
+
+        dns_zone_<something>(zone, text) which will send a event
+        to the zone so that the deletion gets run in the zone's
+        task.  The event handler will delete the record, update the
+        SOA and write out the journal.
+                Err: ISC_R_NOMEMORY
+
+        'zone' can refer to a normal dynamic master zone or a inline
+        zone.
+

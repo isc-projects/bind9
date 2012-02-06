@@ -1,0 +1,16 @@
+.deps
+.dirstamp
+.libs
+atf-c++.pc
+atf_c++_test
+build.lo
+build_test
+check.lo
+check_test
+config.lo
+config_test
+macros_test
+pkg_config_test
+tests.lo
+tests_test
+utils_test

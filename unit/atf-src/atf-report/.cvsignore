@@ -1,0 +1,9 @@
+.deps
+.dirstamp
+.libs
+atf-report
+fail_helper
+integration_test
+misc_helpers
+pass_helper
+reader_test
