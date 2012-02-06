@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.93 2011/11/29 01:03:47 marka Exp $ */
+/* $Id: socket.c,v 1.93.52.1 2012/02/06 04:23:43 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -1649,12 +1649,17 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	REQUIRE(socketp != NULL && *socketp == NULL);
 	REQUIRE(type != isc_sockettype_fdwatch);
 
+	if (dup_socket != NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+
 	result = allocate_socket(manager, type, &sock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	sock->pf = pf;
+#if 0
 	if (dup_socket == NULL) {
+#endif
 		switch (type) {
 		case isc_sockettype_udp:
 			sock->fd = socket(pf, SOCK_DGRAM, IPPROTO_UDP);
@@ -1680,6 +1685,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 			sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);
 			break;
 		}
+#if 0
 	} else {
 		/*
 		 * XXX: dup() is deprecated in windows, use _dup()
@@ -1690,6 +1696,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		sock->dupped = 1;
 		sock->bound = dup_socket->bound;
 	}
+#endif
 
 	if (sock->fd == INVALID_SOCKET) {
 		socket_errno = WSAGetLastError();
@@ -1826,8 +1833,12 @@ isc__socket_dup(isc_socket_t *sock, isc_socket_t **socketp) {
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
+#if 1
+	return (ISC_R_NOTIMPLEMENTED);
+#else
 	return (socket_create(sock->manager, sock->pf, sock->type,
 			      socketp, sock));
+#endif
 }
 
 isc_result_t

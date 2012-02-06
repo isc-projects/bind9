@@ -1,3 +1,8 @@
+3276.	[bug]		win32: isc_socket_dup is not implemented. [RT #27696]
+
+3276.	[bug]		win32: ns_os_openfile failed to return NULL on
+			safe_open failure. [RT #27696]
+
 3271.	[port]		darwin: mksymtbl is not always stable, loop several
 			times before giving up.  mksymtbl was using non
 			portable perl to covert 64 bit hex strings. [RT #27653]
