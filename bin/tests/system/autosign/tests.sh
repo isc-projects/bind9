@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.45 2012/02/06 21:33:50 each Exp $
+# $Id: tests.sh,v 1.46 2012/02/07 00:33:19 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1122,7 +1122,7 @@ ret=0
 rm -f ns3/*.nzf
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 addzone reconf.example '{ type master; file "reconf.example.db"; };' 2>&1 | sed 's/^/I:ns3 /'
 rekey_calls=`grep "zone reconf.example.*next key event" ns3/named.run | wc -l`
-[ "$rekey_calls" = 0 ] || ret=1
+[ "$rekey_calls" -eq 0 ] || ret=1
 # ...then we add auto-dnssec and reconfigure
 nzf=`ls ns3/*.nzf`
 echo 'zone reconf.example { type master; file "reconf.example.db"; allow-update { any; }; auto-dnssec maintain; };' > $nzf
