@@ -1,3 +1,7 @@
+3278.	[bug]		Hold a internal reference to the zone while performing
+			a asynchronous load.  Address potential memory leak
+			if the asynchronous is cancelled. [RT #27750]
+
 3277.	[bug]		Make sure automatic key maintenance is started
 			when "auto-dnssec maintain" is turned on during
 			"rndc reconfig". [RT #26805]
@@ -8,7 +12,7 @@
 			safe_open failure. [RT #27696]
 
 3275.	[bug]		Corrected rndc -h output; the 'rndc sync -clean'
-			option had been missplled as '-clear'.  (To avoid
+			option had been misspelled as '-clear'.  (To avoid
 			future confusion, both options now work.) [RT #27173]
 
 3274.   [placeholder]
