@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.667.2.1 2012/01/31 01:11:55 each Exp $ */
+/* $Id: zone.c,v 1.667.2.2 2012/02/07 00:52:05 marka Exp $ */
 
 /*! \file */
 
@@ -1690,7 +1690,7 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	if (result == ISC_R_CANCELED ||
 	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
-		return;
+		goto cleanup;
 
 	zone_load(zone, 0);
 
@@ -1702,7 +1702,9 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	if (asl->loaded != NULL)
 		(asl->loaded)(asl->loaded_arg, zone, task);
 
+ cleanup:
 	isc_mem_put(zone->mctx, asl, sizeof (*asl));
+	dns_zone_idetach(&zone);
 }
 
 isc_result_t
@@ -1720,7 +1722,7 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
 	if (asl == NULL)
 		CHECK(ISC_R_NOMEMORY);
 
-	asl->zone = zone;
+	asl->zone = NULL;
 	asl->loaded = done;
 	asl->loaded_arg = arg;
 
@@ -1732,6 +1734,7 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
 		CHECK(ISC_R_NOMEMORY);
 
 	LOCK_ZONE(zone);
+	zone_iattach(zone, &asl->zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	isc_task_send(zone->loadtask, &e);
 	UNLOCK_ZONE(zone);
