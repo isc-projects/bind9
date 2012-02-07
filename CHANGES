@@ -1,3 +1,6 @@
+3280.	[bug]		Potential double free of a rdataset on out of memory
+			with DNS64. [RT #27762]
+
 3277.	[bug]		Make sure automatic key maintenance is started
 			when "auto-dnssec maintain" is turned on during
 			"rndc reconfig". [RT #26805]
