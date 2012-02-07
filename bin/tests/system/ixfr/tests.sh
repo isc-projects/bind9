@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.8 2011/09/06 22:29:32 smann Exp $
+# $Id: tests.sh,v 1.8.134.1 2012/02/07 00:20:38 marka Exp $
 
 
 # WARNING: The test labelled "testing request-ixfr option in view vs zone"
@@ -153,7 +153,13 @@ fi
 
 cp ns3/mytest1.db ns3/mytest.db
 $RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf reload
-sleep 2
+
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG +tcp -p 5300 @10.53.0.4 SOA test > dig.out
+	grep -i "hostmaster\.test\..2" dig.out > /dev/null && break
+	sleep 1
+done
 
 # slave should have gotten notify and updated
 
@@ -173,7 +179,13 @@ echo "I:testing request-ixfr option in view vs zone"
 echo "I: this result should be AXFR"
 cp ns3/subtest1.db ns3/subtest.db # change to sub.test zone, should be AXFR
 $RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf reload
-sleep 2
+
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG +tcp -p 5300 @10.53.0.4 SOA sub.test > dig.out
+	grep -i "hostmaster\.test\..3" dig.out > /dev/null && break
+	sleep 1
+done
 
 echo "I: this result should be AXFR"
 NONINCR=`grep 'sub\.test/IN/primary' ns4/named.run|grep "got nonincremental" | wc -l`
@@ -188,7 +200,13 @@ fi
 echo "I: this result should be IXFR"
 cp ns3/mytest2.db ns3/mytest.db # change to test zone, should be IXFR
 $RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf reload
-sleep 2
+
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG +tcp -p 5300 @10.53.0.4 SOA test > dig.out
+	grep -i "hostmaster\.test\..4" dig.out > /dev/null && break
+	sleep 1
+done
 
 INCR=`grep "test/IN/primary" ns4/named.run|grep "got incremental"|wc -l`
 if [ $INCR -ne 2 ]
