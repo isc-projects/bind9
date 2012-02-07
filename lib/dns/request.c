@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.89 2011/03/12 04:59:48 tbox Exp $ */
+/* $Id: request.c,v 1.90 2012/02/07 19:50:20 marka Exp $ */
 
 /*! \file */
 
@@ -1133,9 +1133,7 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
  */
 static void
 send_if_done(dns_request_t *request, isc_result_t result) {
-	if (!DNS_REQUEST_CONNECTING(request) &&
-	    !DNS_REQUEST_SENDING(request) &&
-	    !request->canceling)
+	if (request->event != NULL && !request->canceling)
 		req_sendevent(request, result);
 }
 
@@ -1319,8 +1317,8 @@ req_senddone(isc_task_t *task, isc_event_t *event) {
 		else
 			send_if_done(request, ISC_R_CANCELED);
 	} else if (sevent->result != ISC_R_SUCCESS) {
-			req_cancel(request);
-			send_if_done(request, ISC_R_CANCELED);
+		req_cancel(request);
+		send_if_done(request, ISC_R_CANCELED);
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 
