@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.381 2012/01/07 00:19:59 each Exp $ */
+/* $Id: query.c,v 1.381.16.1 2012/02/07 01:09:42 marka Exp $ */
 
 /*! \file */
 
@@ -6114,6 +6114,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				query_putrdataset(client, &sigrdataset);
 			rdataset = client->query.dns64_aaaa;
 			sigrdataset = client->query.dns64_sigaaaa;
+			client->query.dns64_aaaa = NULL;
+			client->query.dns64_sigaaaa = NULL;
 			if (fname == NULL) {
 				dbuf = query_getnamebuf(client);
 				if (dbuf == NULL) {
@@ -6127,8 +6129,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				}
 			}
 			dns_name_copy(client->query.qname, fname, NULL);
-			client->query.dns64_aaaa = NULL;
-			client->query.dns64_sigaaaa = NULL;
 			dns64 = ISC_FALSE;
 #ifdef dns64_bis_return_excluded_addresses
 			/*
@@ -6373,6 +6373,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				query_putrdataset(client, &sigrdataset);
 			rdataset = client->query.dns64_aaaa;
 			sigrdataset = client->query.dns64_sigaaaa;
+			client->query.dns64_aaaa = NULL;
+			client->query.dns64_sigaaaa = NULL;
 			if (fname == NULL) {
 				dbuf = query_getnamebuf(client);
 				if (dbuf == NULL) {
@@ -6386,8 +6388,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				}
 			}
 			dns_name_copy(client->query.qname, fname, NULL);
-			client->query.dns64_aaaa = NULL;
-			client->query.dns64_sigaaaa = NULL;
 			dns64 = ISC_FALSE;
 #ifdef dns64_bis_return_excluded_addresses
 			if (dns64_excluded)

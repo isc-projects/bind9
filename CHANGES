@@ -1,3 +1,6 @@
+3280.	[bug]		Potential double free of a rdataset on out of memory
+			with DNS64. [RT #27762]
+
 3279.	[bug]		Hold a internal reference to the zone while performing
 			a asynchronous load.  Address potential memory leak
 			if the asynchronous is cancelled. [RT #27750]
