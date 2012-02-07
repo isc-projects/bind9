@@ -15,9 +15,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.6 2011/09/06 23:46:27 tbox Exp $
+# $Id: setup.sh,v 1.7 2012/02/07 00:19:45 marka Exp $
 
-rm -f ns1/*.db ns1/*.jnl ns3/*.jnl ns4/*.jnl
+rm -f ns1/*.db ns1/*.jnl ns3/*.jnl ns4/*.db ns4/*.jnl
 
 cat <<EOF >ns1/named.conf
 options {
