@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.638.4.2 2012/02/06 21:33:07 each Exp $ */
+/* $Id: server.c,v 1.638.4.3 2012/02/07 00:58:40 each Exp $ */
 
 /*! \file */
 
@@ -5898,11 +5898,10 @@ next_token(char **stringp, const char *delim) {
  * set '*zonep' to NULL.
  */
 static isc_result_t
-zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep,
-	       const char **zonename, isc_boolean_t skip)
+zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
+	       dns_zone_t **zonep, const char **zonename, isc_boolean_t skip)
 {
 	char *input, *ptr;
-	const char *zonetxt;
 	char *classtxt;
 	const char *viewtxt = NULL;
 	dns_fixedname_t name;
@@ -5923,7 +5922,8 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep,
 	}
 
 	/* Look for the zone name. */
-	zonetxt = next_token(&input, " \t");
+	if (zonetxt == NULL)
+		zonetxt = next_token(&input, " \t");
 	if (zonetxt == NULL)
 		return (ISC_R_SUCCESS);
 	if (zonename)
@@ -5988,7 +5988,7 @@ ns_server_retransfercommand(ns_server_t *server, char *args) {
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
 
-	result = zone_from_args(server, args, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -6012,7 +6012,7 @@ ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_zonetype_t type;
 	const char *msg = NULL;
 
-	result = zone_from_args(server, args, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL) {
@@ -6072,7 +6072,7 @@ ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_zone_t *zone = NULL;
 	const unsigned char msg[] = "zone notify queued";
 
-	result = zone_from_args(server, args, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -6097,7 +6097,7 @@ ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	const unsigned char msg2[] = "not a slave or stub zone";
 	dns_zonetype_t type;
 
-	result = zone_from_args(server, args, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -7228,7 +7228,7 @@ ns_server_rekey(ns_server_t *server, char *args) {
 	if (strncasecmp(args, NS_COMMAND_SIGN, strlen(NS_COMMAND_SIGN)) == 0)
 	    fullsign = ISC_TRUE;
 
-	result = zone_from_args(server, args, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -7289,21 +7289,19 @@ ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_zone_t *zone = NULL;
 	char classstr[DNS_RDATACLASS_FORMATSIZE];
 	char zonename[DNS_NAME_FORMATSIZE];
-	const char *vname, *sep, *msg = NULL;
+	const char *vname, *sep, *msg = NULL, *arg;
 	isc_boolean_t cleanup = ISC_FALSE;
-	char arg[8];
-	int n;
 
-	/* Did the user specify -clean? */
-	n = sscanf(args, "%*s %7s", arg);
-	if (n > 0 && strcmp(arg, "-clean") == 0) {
+	(void) next_token(&args, " \t");
+
+	arg = next_token(&args, " \t");
+	if (arg != NULL &&
+	    (strcmp(arg, "-clean") == 0 || strcmp(arg, "-clear") == 0)) {
 		cleanup = ISC_TRUE;
-
-		/* shift so that zone_from_args() won't be confused */
-		(void) next_token(&args, " \t");
+		arg = next_token(&args, " \t");
 	}
 
-	result = zone_from_args(server, args, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, arg, &zone, NULL, ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -7379,7 +7377,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 	isc_boolean_t frozen;
 	const char *msg = NULL;
 
-	result = zone_from_args(server, args, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL) {
@@ -7713,7 +7711,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 	FILE		      *ifp = NULL, *ofp = NULL;
 
 	/* Parse parameters */
-	CHECK(zone_from_args(server, args, &zone, &zonename, ISC_TRUE));
+	CHECK(zone_from_args(server, args, NULL, &zone, &zonename, ISC_TRUE));
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL) {
@@ -7915,7 +7913,8 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 	if (strcasecmp(ptr, "-list") == 0)
 		list = ISC_TRUE;
-	else if (strcasecmp(ptr, "-clear") == 0) {
+	else if ((strcasecmp(ptr, "-clear") == 0)  ||
+		 (strcasecmp(ptr, "-clean") == 0)) {
 		clear = ISC_TRUE;
 		ptr = next_token(&args, " \t");
 		if (ptr == NULL)
@@ -7958,7 +7957,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 	} else
 		CHECK(DNS_R_SYNTAX);
 
-	CHECK(zone_from_args(server, args, &zone, NULL, ISC_FALSE));
+	CHECK(zone_from_args(server, args, NULL, &zone, NULL, ISC_FALSE));
 	if (zone == NULL)
 		CHECK(ISC_R_UNEXPECTEDEND);
 

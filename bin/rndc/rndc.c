@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.139 2011/11/29 00:49:26 marka Exp $ */
+/* $Id: rndc.c,v 1.139.52.1 2012/02/07 00:58:40 each Exp $ */
 
 /*! \file */
 
@@ -114,9 +114,9 @@ command is one of the following:\n\
   thaw		Enable updates to all dynamic zones and reload them.\n\
   thaw zone [class [view]]\n\
 		Enable updates to a frozen dynamic zone and reload it.\n\
-  sync [-clear]	Dump changes to all dynamic zones to disk, and optionally\n\
+  sync [-clean]	Dump changes to all dynamic zones to disk, and optionally\n\
 		remove their journal files.\n\
-  sync [-clear] zone [class [view]]\n\
+  sync [-clean] zone [class [view]]\n\
 		Dump a single zone's changes to disk, and optionally\n\
 		remove its journal file.\n\
   notify zone [class [view]]\n\
