@@ -1,14 +1,21 @@
-3277.	[bug]		Make sure automatic key maintenance is started
+3280.	[bug]		Potential double free of a rdataset on out of memory
+			with DNS64. [RT #27762]
+
+3279.	[bug]		Hold a internal reference to the zone while performing
+			a asynchronous load.  Address potential memory leak
+			if the asynchronous is cancelled. [RT #27750]
+
+3278.	[bug]		Make sure automatic key maintenance is started
 			when "auto-dnssec maintain" is turned on during
 			"rndc reconfig". [RT #26805]
 
-3276.	[bug]		win32: isc_socket_dup is not implemented. [RT #27696]
+3277.	[bug]		win32: isc_socket_dup is not implemented. [RT #27696]
 
 3276.	[bug]		win32: ns_os_openfile failed to return NULL on
 			safe_open failure. [RT #27696]
 
 3275.	[bug]		Corrected rndc -h output; the 'rndc sync -clean'
-			option had been missplled as '-clear'.  (To avoid
+			option had been misspelled as '-clear'.  (To avoid
 			future confusion, both options now work.) [RT #27173]
 
 3274.   [placeholder]
