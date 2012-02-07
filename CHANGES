@@ -1,3 +1,7 @@
+3281.	[bug]		SOA refresh queries could be treated as cancelled
+			despite succeeding over the loopback interface.
+			[RT #27782]
+
 3374.	[bug]		Log when a zone is not reusable.  Only set loadtime
 			on successful loads.  [RT #27650]
 
