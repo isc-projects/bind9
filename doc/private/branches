@@ -479,6 +479,7 @@ rt27696a			new	fdupont	// 2012-02-07 15:22 +0000
 rt27696a_base			new	fdupont	// 2012-02-07 15:37 +0000
 rt27738				new	each	// 2012-02-07 18:13 +0000
 rt27782				new	marka	// 2012-02-07 05:00 +0000
+rt27792				new	marka	// 2012-02-08 02:19 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
