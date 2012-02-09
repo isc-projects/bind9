@@ -1,3 +1,6 @@
+3282.	[bug]		Restrict the TTL of NS RRset to no more than that
+			of the old NS RRset when replacing it. [RT #27792]
+
 3281.	[bug]		SOA refresh queries could be treated as cancelled
 			despite succeeding over the loopback interface.
 			[RT #27782]
