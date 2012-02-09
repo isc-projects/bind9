@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.19 2011/11/02 13:59:07 marka Exp $
+# $Id: tests.sh,v 1.20 2012/02/09 21:10:45 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -29,7 +29,7 @@ pfile=parent.db
 czone=child.parent.nil
 cfile=child.db
 
-echo I:generating keys
+echo "I:generating child's keys"
 # active zsk
 czsk1=`$KEYGEN -q -r $RANDFILE -L 30 $czone`
 
@@ -60,15 +60,17 @@ echo I:revoking key
 # revoking key changes its ID
 cksk3=`$KEYGEN -q -r $RANDFILE -fk $czone`
 cksk4=`$REVOKE $cksk3`
+
+echo I:generating parent keys
+pzsk=`$KEYGEN -q -r $RANDFILE $pzone`
+pksk=`$KEYGEN -q -r $RANDFILE -fk $pzone`
+
+echo "I:setting child's activation time"
 # using now+30s to fix RT 24561
 $SETTIME -A now+30s $cksk2 > /dev/null
 
 echo I:signing child zone
 czoneout=`$SIGNER -Sg -e now+1d -X now+2d -r $RANDFILE -o $czone $cfile 2>&1`
-
-echo I:generating keys
-pzsk=`$KEYGEN -q -r $RANDFILE $pzone`
-pksk=`$KEYGEN -q -r $RANDFILE -fk $pzone`
 
 echo I:signing parent zone
 pzoneout=`$SIGNER -Sg -r $RANDFILE -o $pzone $pfile 2>&1`
