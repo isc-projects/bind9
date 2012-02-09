@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2010-2012  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3.38.3 2012/02/09 21:01:47 marka Exp $
+# $Id: setup.sh,v 1.3.38.4 2012/02/09 23:46:25 tbox Exp $
 
 ../../../tools/genrandom 400 random.data
 
