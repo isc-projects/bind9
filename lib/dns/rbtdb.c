@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270.12.42 2012/02/09 21:05:29 marka Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.43 2012/02/09 23:45:25 tbox Exp $ */
 
 /*! \file */
 
@@ -5739,7 +5739,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * If we have will be replacing a NS RRset force its TTL
 		 * to be no more than the current NS RRset's TTL.  This
 		 * ensures the delegations that are withdrawn are honoured.
-		 */ 
+		 */
 		if (IS_CACHE(rbtdb) && header->rdh_ttl > now &&
 		    header->type == dns_rdatatype_ns &&
 		    !header_nx && !newheader_nx &&
