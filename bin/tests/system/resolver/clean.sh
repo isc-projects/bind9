@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.1.84.6 2011/03/13 23:46:03 tbox Exp $
+# $Id: clean.sh,v 1.1.84.7 2012/02/09 21:05:29 marka Exp $
 
 #
 # Clean up after resolver tests.
@@ -23,6 +23,9 @@ rm -f */named.memstats
 rm -f dig.out dig.*.out.*
 rm -f dig.*.foo.*
 rm -f dig.*.bar.*
+rm -f dig.*.prime.*
+rm -f ns4/tld.db
+rm -r ns6/to-be-removed.tld.db ns6/to-be-removed.tld.db.jnl
 rm -f ns6/K*
 rm -f ns6/example.net.db.signed ns6/example.net.db
 rm -f ns6/keyset-example.net. ns6/dsset-example.net.
