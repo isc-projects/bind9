@@ -12,11 +12,17 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.9 2011/12/08 16:07:20 each Exp $
+# $Id: setup.sh,v 1.9.36.1 2012/02/13 23:51:50 marka Exp $
 
 rm -f named-compilezone
 ln -s $CHECKZONE named-compilezone
 rm -f ns1/example.db.raw
 cp ns1/example.db ns2/
 cp ns2/formerly-text.db.in ns2/formerly-text.db
+cp ns1/large.db.in ns1/large.db
+awk 'END {
+	 for (i = 0; i < 512; i++ ) { print "a TXT", i; }
+	 for (i = 0; i < 1024; i++ ) { print "b TXT", i; }
+	 for (i = 0; i < 2000; i++ ) { print "c TXT", i; }
+}' < /dev/null >> ns1/large.db
 cd ns1 && sh compile.sh

@@ -1,3 +1,6 @@
+3283.	[bug]		Raw zones with with more than 512 records in a RRset
+			failed to load. [RT #27863]
+
 3282.	[bug]		Restrict the TTL of NS RRset to no more than that
 			of the old NS RRset when replacing it. [RT #27792]
 

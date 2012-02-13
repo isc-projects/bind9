@@ -14,15 +14,18 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.10 2011/12/22 07:32:40 each Exp $
+# $Id: clean.sh,v 1.10.20.1 2012/02/13 23:51:50 marka Exp $
 
 rm -f named-compilezone
 rm -f ns1/example.db.raw*
 rm -f ns1/example.db.compat
 rm -f ns1/example.db.serial.raw
-rm -f ns2/example.db
+rm -f ns1/large.db ns1/large.db.raw
 rm -f dig.out.*
+rm -f dig.out
 rm -f */named.memstats
+rm -f ns2/example.db
 rm -f ns2/transfer.db.*
 rm -f ns2/formerly-text.db
 rm -f ns2/db-*
+rm -f ns2/large.bk

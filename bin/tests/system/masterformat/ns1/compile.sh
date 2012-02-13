@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: compile.sh,v 1.9 2011/12/22 07:32:40 each Exp $
+# $Id: compile.sh,v 1.9.20.1 2012/02/13 23:51:51 marka Exp $
 
 ../named-compilezone -D -F raw -o example.db.raw example \
         example.db > /dev/null 2>&1
@@ -22,3 +22,4 @@
         example.db > /dev/null 2>&1
 ../named-compilezone -D -F raw -L 3333 -o example.db.serial.raw example \
         example.db > /dev/null 2>&1
+../named-compilezone -D -F raw -o large.db.raw large large.db > /dev/null 2>&1
