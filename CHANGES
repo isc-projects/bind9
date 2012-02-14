@@ -2,7 +2,8 @@
 			failed to load. [RT #27863]
 
 3282.	[bug]		Restrict the TTL of NS RRset to no more than that
-			of the old NS RRset when replacing it. [RT #27792]
+			of the old NS RRset when replacing it.
+			[RT #27792] [RT #27884]
 
 3281.	[bug]		SOA refresh queries could be treated as cancelled
 			despite succeeding over the loopback interface.
