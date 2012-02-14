@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.447 2012/02/14 00:22:54 marka Exp $ */
+/* $Id: resolver.c,v 1.448 2012/02/14 23:47:15 tbox Exp $ */
 
 /*! \file */
 
@@ -5513,7 +5513,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 	log_ns_ttl(fctx, "noanswer_response");
 
 	if (ns_rdataset != NULL && dns_name_equal(&fctx->domain, ns_name) &&
-            !dns_name_equal(ns_name, dns_rootname))
+	    !dns_name_equal(ns_name, dns_rootname))
 		trim_ns_ttl(fctx, ns_name, ns_rdataset);
 
 	/*
@@ -6210,7 +6210,7 @@ answer_response(fetchctx_t *fctx) {
 	log_ns_ttl(fctx, "answer_response");
 
 	if (ns_rdataset != NULL && dns_name_equal(&fctx->domain, ns_name) &&
-            !dns_name_equal(ns_name, dns_rootname))
+	    !dns_name_equal(ns_name, dns_rootname))
 		trim_ns_ttl(fctx, ns_name, ns_rdataset);
 
 	return (result);

@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2007, 2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2005-2007, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.10 2012/02/13 23:46:23 marka Exp $
+# $Id: setup.sh,v 1.11 2012/02/14 23:47:15 tbox Exp $
 
 rm -f named-compilezone
 ln -s $CHECKZONE named-compilezone
