@@ -1,5 +1,9 @@
 	--- 9.9.0rc3 released ---
 
+3285.	[bug]		val-frdataset was incorrectly disassociated in
+			proveunsecure after calling startfinddlvsep.
+			[RT #27928]
+
 3284.	[bug]		Address race conditions with the handling of
 			rbtnode.deadlink. [RT #27738]
 
