@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.446 2011/12/07 23:08:42 marka Exp $ */
+/* $Id: resolver.c,v 1.448 2012/02/14 23:47:15 tbox Exp $ */
 
 /*! \file */
 
@@ -216,6 +216,8 @@ struct fetchctx {
 	ISC_LIST(dns_validator_t)       validators;
 	dns_db_t *			cache;
 	dns_adb_t *			adb;
+	isc_boolean_t			ns_ttl_ok;
+	isc_uint32_t			ns_ttl;
 
 	/*%
 	 * The number of events we're waiting for.
@@ -3443,6 +3445,20 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_sockaddr_t *client,
 	return (ISC_R_SUCCESS);
 }
 
+static inline void
+log_ns_ttl(fetchctx_t *fctx, const char *where) {
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char domainbuf[DNS_NAME_FORMATSIZE];
+
+	dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
+	dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(10),
+		      "log_ns_ttl: fctx %p: %s: %s (in '%s'?): %u %u",
+		      fctx, where, namebuf, domainbuf,
+		      fctx->ns_ttl_ok, fctx->ns_ttl);
+}
+
 static isc_result_t
 fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	    dns_name_t *domain, dns_rdataset_t *nameservers,
@@ -3536,6 +3552,8 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->timeout = ISC_FALSE;
 	fctx->addrinfo = NULL;
 	fctx->client = NULL;
+	fctx->ns_ttl = 0;
+	fctx->ns_ttl_ok = ISC_FALSE;
 
 	dns_name_init(&fctx->nsname, NULL);
 	fctx->nsfetch = NULL;
@@ -3585,6 +3603,8 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 				dns_rdataset_disassociate(&fctx->nameservers);
 				goto cleanup_name;
 			}
+			fctx->ns_ttl = fctx->nameservers.ttl;
+			fctx->ns_ttl_ok = ISC_TRUE;
 		} else {
 			/*
 			 * We're in forward-only mode.  Set the query domain.
@@ -3602,7 +3622,11 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_name;
 		dns_rdataset_clone(nameservers, &fctx->nameservers);
+		fctx->ns_ttl = fctx->nameservers.ttl;
+		fctx->ns_ttl_ok = ISC_TRUE;
 	}
+
+	log_ns_ttl(fctx, "fctx_create");
 
 	INSIST(dns_name_issubdomain(&fctx->name, &fctx->domain));
 
@@ -5280,6 +5304,26 @@ is_answertarget_allowed(dns_view_t *view, dns_name_t *name,
 	return (ISC_TRUE);
 }
 
+static void
+trim_ns_ttl(fetchctx_t *fctx, dns_name_t *name, dns_rdataset_t *rdataset) {
+	char ns_namebuf[DNS_NAME_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char tbuf[DNS_RDATATYPE_FORMATSIZE];
+
+	if (fctx->ns_ttl_ok && rdataset->ttl > fctx->ns_ttl) {
+		dns_name_format(name, ns_namebuf, sizeof(ns_namebuf));
+		dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
+		dns_rdatatype_format(fctx->type, tbuf, sizeof(tbuf));
+
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(10),
+			      "fctx %p: trimming ttl of %s/NS for %s/%s: "
+			      "%u -> %u", fctx, ns_namebuf, namebuf, tbuf,
+			      rdataset->ttl, fctx->ns_ttl);
+		rdataset->ttl = fctx->ns_ttl;
+	}
+}
+
 /*
  * Handle a no-answer response (NXDOMAIN, NXRRSET, or referral).
  * If look_in_options has LOOK_FOR_NS_IN_ANSWER then we look in the answer
@@ -5465,6 +5509,12 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		else if (result != ISC_R_SUCCESS)
 			return (result);
 	}
+
+	log_ns_ttl(fctx, "noanswer_response");
+
+	if (ns_rdataset != NULL && dns_name_equal(&fctx->domain, ns_name) &&
+	    !dns_name_equal(ns_name, dns_rootname))
+		trim_ns_ttl(fctx, ns_name, ns_rdataset);
 
 	/*
 	 * A negative response has a SOA record (Type 2)
@@ -5684,6 +5734,8 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		fctx->attributes |= FCTX_ATTR_WANTCACHE;
+		fctx->ns_ttl_ok = ISC_FALSE;
+		log_ns_ttl(fctx, "DELEGATION");
 		return (DNS_R_DELEGATION);
 	}
 
@@ -5704,8 +5756,8 @@ static isc_result_t
 answer_response(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_message_t *message;
-	dns_name_t *name, *qname, tname;
-	dns_rdataset_t *rdataset;
+	dns_name_t *name, *qname, tname, *ns_name;
+	dns_rdataset_t *rdataset, *ns_rdataset;
 	isc_boolean_t done, external, chaining, aa, found, want_chaining;
 	isc_boolean_t have_answer, found_cname, found_type, wanted_chaining;
 	unsigned int aflag;
@@ -6105,6 +6157,8 @@ answer_response(fetchctx_t *fctx) {
 	 * in this section, and we expect that it is not external.
 	 */
 	done = ISC_FALSE;
+	ns_name = NULL;
+	ns_rdataset = NULL;
 	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
 	while (!done && result == ISC_R_SUCCESS) {
 		name = NULL;
@@ -6132,6 +6186,10 @@ answer_response(fetchctx_t *fctx) {
 						rdataset->trust =
 						    dns_trust_additional;
 
+					if (rdataset->type == dns_rdatatype_ns) {
+						ns_name = name;
+						ns_rdataset = rdataset;
+					}
 					/*
 					 * Mark any additional data related
 					 * to this rdataset.
@@ -6148,6 +6206,12 @@ answer_response(fetchctx_t *fctx) {
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
+
+	log_ns_ttl(fctx, "answer_response");
+
+	if (ns_rdataset != NULL && dns_name_equal(&fctx->domain, ns_name) &&
+	    !dns_name_equal(ns_name, dns_rootname))
+		trim_ns_ttl(fctx, ns_name, ns_rdataset);
 
 	return (result);
 }
@@ -6220,6 +6284,9 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		if (dns_rdataset_isassociated(&fctx->nameservers))
 			dns_rdataset_disassociate(&fctx->nameservers);
 		dns_rdataset_clone(fevent->rdataset, &fctx->nameservers);
+		fctx->ns_ttl = fctx->nameservers.ttl;
+		fctx->ns_ttl_ok = ISC_TRUE;
+		log_ns_ttl(fctx, "resume_dslookup");
 		dns_name_free(&fctx->domain,
 			      fctx->res->buckets[bucketnum].mctx);
 		dns_name_init(&fctx->domain, NULL);
@@ -7153,6 +7220,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 				return;
 			}
+			fctx->ns_ttl = fctx->nameservers.ttl;
+			fctx->ns_ttl_ok = ISC_TRUE;
 			fctx_cancelqueries(fctx, ISC_TRUE);
 			fctx_cleanupfinds(fctx);
 			fctx_cleanupaltfinds(fctx);
