@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.208 2011/11/04 05:36:28 each Exp $ */
+/* $Id: validator.c,v 1.209 2012/02/15 20:59:40 marka Exp $ */
 
 #include <config.h>
 
@@ -3743,9 +3743,8 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 				result = ISC_R_SUCCESS;
 				goto out;
 			}
-			result = startfinddlvsep(val,
-					      dns_fixedname_name(&val->fname));
-			goto out;
+			return(startfinddlvsep(val,
+					      dns_fixedname_name(&val->fname)));
 		}
 		val->labels++;
 	}
@@ -3881,8 +3880,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 						result = ISC_R_SUCCESS;
 						goto out;
 					}
-					result = startfinddlvsep(val, tname);
-					goto out;
+					return(startfinddlvsep(val, tname));
 				}
 				continue;
 			}
