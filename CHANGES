@@ -1,3 +1,5 @@
+	--- 9.6-ESV-R6rc2 released ---
+
 3284.	[bug]		Address race conditions with the handling of
 			rbtnode.deadlink. [RT #27738]
 
@@ -14,8 +16,6 @@
 
 3374.	[bug]		Log when a zone is not reusable.  Only set loadtime
 			on successful loads.  [RT #27650]
-
-	--- 9.6-ESV-R6 released ---
 
 3268.	[bug]		Convert RRSIG expiry times to 64 timestamps to work
 			out the earliest expiry time. [RT #23311]
