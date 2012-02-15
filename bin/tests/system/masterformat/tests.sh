@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.10.20.3 2012/02/13 23:51:51 marka Exp $
+# $Id: tests.sh,v 1.10.20.4 2012/02/15 01:22:47 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -117,11 +117,16 @@ done
 status=`expr $status + $ret`
 
 echo "I:checking that large rdatasets loaded"
+for i in 0 1 2 3 4 5 6 7 8 9
+do
 ret=0
 for a in a b c
 do
 	$DIG +tcp txt ${a}.large @10.53.0.2 -p 5300 > dig.out
 	grep "status: NOERROR" dig.out > /dev/null || ret=1
+done
+[ $ret -eq 0 ] && break
+sleep 1
 done
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
