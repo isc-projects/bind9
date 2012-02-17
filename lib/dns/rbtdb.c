@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.329 2012/02/15 02:00:47 marka Exp $ */
+/* $Id: rbtdb.c,v 1.330 2012/02/17 00:18:18 marka Exp $ */
 
 /*! \file */
 
@@ -1643,6 +1643,8 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	nodelock_t *nodelock = &rbtdb->node_locks[node->locknum].lock;
 	isc_boolean_t maybe_cleanup = ISC_FALSE;
 
+	POST(locktype);
+
 	NODE_STRONGLOCK(nodelock);
 	NODE_WEAKLOCK(nodelock, locktype);
 
@@ -1661,6 +1663,7 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		 */
 		NODE_WEAKUNLOCK(nodelock, locktype);
 		locktype = isc_rwlocktype_write;
+		POST(locktype);
 		NODE_WEAKLOCK(nodelock, locktype);
 		if (ISC_LINK_LINKED(node, deadlink))
 			ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum],
