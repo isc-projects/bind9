@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.17.32.2 2011/02/15 23:46:54 tbox Exp $
+# $Id: setup.sh,v 1.17.32.3 2012/02/22 00:31:56 each Exp $
 
 sh clean.sh 
 
@@ -25,4 +25,5 @@ cd ns1 && sh sign.sh
 
 echo "a.bogus.example.	A	10.0.0.22" >>../ns3/bogus.example.db.signed
 
+cd ../ns4 && cp -f named1.conf named.conf
 cd ../ns5 && cp -f trusted.conf.bad trusted.conf

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.174.4.8 2011/11/04 05:52:21 each Exp $ */
+/* $Id: zone.h,v 1.174.4.9 2012/02/22 00:31:58 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1865,6 +1865,13 @@ dns_zone_getadded(dns_zone_t *zone);
  *
  * Requires:
  * \li	'zone' to be valid.
+ */
+
+isc_result_t
+dns_zone_synckeyzone(dns_zone_t *zone);
+/*%
+ * Force the managed key zone to synchronize, and start the key
+ * maintenance timer.
  */
 
 ISC_LANG_ENDDECLS

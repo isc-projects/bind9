@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.49 2012/02/06 23:45:33 tbox Exp $ */
+/* $Id: server.c,v 1.556.8.50 2012/02/22 00:31:55 each Exp $ */
 
 /*! \file */
 
@@ -3110,6 +3110,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 		dns_zone_attach(pview->managed_keys, &view->managed_keys);
 		dns_zone_setview(pview->managed_keys, view);
 		dns_view_detach(&pview);
+		dns_zone_synckeyzone(view->managed_keys);
 		return (ISC_R_SUCCESS);
 	}
 
