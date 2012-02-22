@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.203 2012/02/01 21:28:39 marka Exp $ */
+/* $Id: zone.h,v 1.204 2012/02/22 00:37:54 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -2037,7 +2037,13 @@ dns_zone_setrawdata(dns_zone_t *zone, dns_masterrawheader_t *header);
  * Set the data to be included in the header when the zone is dumped in
  * binary format.
  */
-ISC_LANG_ENDDECLS
+
+isc_result_t
+dns_zone_synckeyzone(dns_zone_t *zone);
+/*%
+ * Force the managed key zone to synchronize, and start the key
+ * maintenance timer.
+ */
 
 isc_result_t
 dns_zone_getloadtime(dns_zone_t *zone, isc_time_t *loadtime);
@@ -2072,6 +2078,8 @@ dns_zone_getincludes(dns_zone_t *zone, char ***includesp);
  *
  * The array and its contents need to be freed using isc_mem_free.
  */
+
+ISC_LANG_ENDDECLS
 
 
 #endif /* DNS_ZONE_H */

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.107 2011/12/22 12:01:43 marka Exp $
+# $Id: tests.sh,v 1.108 2012/02/22 00:37:54 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1255,12 +1255,26 @@ else
     echo "I:The DNSSEC update test requires the Net::DNS library." >&2
 fi
 
+echo "I:checking managed key maintenance has not started yet ($n)"
+ret=0
+[ -f "ns4/managed-keys.bind.jnl" ] && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 # Reconfigure caching server to use "dnssec-validation auto", and repeat
 # some of the DNSSEC validation tests to ensure that it works correctly.
 echo "I:switching to automatic root key configuration"
 cp ns4/named2.conf ns4/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 reconfig 2>&1 | sed 's/^/I:ns4 /'
 sleep 5
+
+echo "I:checking managed key maintenance timer has now started ($n)"
+ret=0
+[ -f "ns4/managed-keys.bind.jnl" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:checking positive validation NSEC ($n)"
 ret=0
