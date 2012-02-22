@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_dlopen_driver.c,v 1.1.4.4 2011/03/17 09:41:06 fdupont Exp $ */
+/* $Id: dlz_dlopen_driver.c,v 1.1.4.5 2012/02/22 21:44:24 each Exp $ */
 
 #include <config.h>
 
@@ -313,6 +313,8 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		dl_load_symbol(cd, "dlz_subrdataset", ISC_FALSE);
 	cd->dlz_delrdataset = (dlz_dlopen_delrdataset_t *)
 		dl_load_symbol(cd, "dlz_delrdataset", ISC_FALSE);
+	cd->dlz_destroy = (dlz_dlopen_destroy_t *)
+		dl_load_symbol(cd, "dlz_destroy", ISC_FALSE);
 
 	/* Check the version of the API is the same */
 	cd->version = cd->dlz_version(&cd->flags);
