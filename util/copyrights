@@ -7,7 +7,7 @@
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./HISTORY					X	2010
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./RELEASE-NOTES-BIND-9.8.1.html			X	2011
 ./RELEASE-NOTES-BIND-9.8.1.pdf			X	2011
 ./RELEASE-NOTES-BIND-9.8.1.txt			X	2011
@@ -210,7 +210,7 @@
 ./bin/named/tsigconf.c				C	1999,2000,2001,2004,2005,2006,2007,2009,2011
 ./bin/named/unix/.cvsignore			X	1999,2000,2001
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009,2011
-./bin/named/unix/dlz_dlopen_driver.c		C	2011
+./bin/named/unix/dlz_dlopen_driver.c		C	2011,2012
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005,2007,2008,2009
 ./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011
 ./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
@@ -600,7 +600,7 @@
 ./bin/tests/system/allow_query/ns2/previous.db	ZONE	2010
 ./bin/tests/system/allow_query/setup.sh		SH	2010
 ./bin/tests/system/allow_query/tests.sh		SH	2010
-./bin/tests/system/ans.pl			PERL	2011
+./bin/tests/system/ans.pl			PERL	2011,2012
 ./bin/tests/system/autosign/clean.sh		SH	2009,2010,2011,2012
 ./bin/tests/system/autosign/ns1/.cvsignore	X	2009
 ./bin/tests/system/autosign/ns1/keygen.sh	SH	2009,2010,2011
@@ -765,7 +765,7 @@
 ./bin/tests/system/dlzexternal/ns1/named.conf.in	CONF-C	2011
 ./bin/tests/system/dlzexternal/prereq.sh	SH	2010,2011
 ./bin/tests/system/dlzexternal/setup.sh		X	2010
-./bin/tests/system/dlzexternal/tests.sh		X	2010,2011
+./bin/tests/system/dlzexternal/tests.sh		X	2010,2011,2012
 ./bin/tests/system/dname/clean.sh		SH	2011
 ./bin/tests/system/dname/ns1/named.conf		CONF-C	2011
 ./bin/tests/system/dname/ns1/root.db		ZONE	2011
@@ -793,7 +793,7 @@
 ./bin/tests/system/dns64/setup.sh		SH	2010
 ./bin/tests/system/dns64/tests.sh		SH	2010,2011
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004,2011
-./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011
+./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004,2007,2010
 ./bin/tests/system/dnssec/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001,2004,2006,2007
@@ -860,7 +860,7 @@
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006,2007,2009
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2009,2011
 ./bin/tests/system/dnssec/signer/example.db.in	ZONE	2010
-./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011
+./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./bin/tests/system/edns/ans2/ans.pl		PERL	2011
 ./bin/tests/system/edns/clean.sh		SH	2011
 ./bin/tests/system/edns/ns1/named.conf		CONF-C	2011
@@ -951,7 +951,7 @@
 ./bin/tests/system/ixfr/ns1/.cvsignore		X	2001
 ./bin/tests/system/ixfr/prereq.sh		SH	2001,2004,2007
 ./bin/tests/system/ixfr/setup.sh		SH	2001,2004,2007
-./bin/tests/system/ixfr/tests.sh		SH	2001,2004,2007,2011
+./bin/tests/system/ixfr/tests.sh		SH	2001,2004,2007,2011,2012
 ./bin/tests/system/limits/clean.sh		SH	2000,2001,2004,2007
 ./bin/tests/system/limits/knowngood.dig.out.1000	X	2000,2001
 ./bin/tests/system/limits/knowngood.dig.out.2000	X	2000,2001
@@ -1350,7 +1350,7 @@
 ./bin/tests/system/xfer/ans5/unknownkey		X	2011
 ./bin/tests/system/xfer/ans5/unsigned		X	2011
 ./bin/tests/system/xfer/ans5/wrongkey		X	2011
-./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004,2007,2011
+./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004,2007,2011,2012
 ./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009
 ./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009
 ./bin/tests/system/xfer/ns1/.cvsignore		X	2000,2001
@@ -1366,7 +1366,7 @@
 ./bin/tests/system/xfer/ns7/named.conf		CONF-C	2011
 ./bin/tests/system/xfer/prereq.sh		SH	2011
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004,2007,2011
-./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011
+./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2007
 ./bin/tests/system/xferquota/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/xferquota/ns1/changing1.db	ZONE	2000,2001,2004,2007
@@ -2207,7 +2207,7 @@
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009
-./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
+./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./lib/dns/include/dns/zonekey.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/include/dst/.cvsignore		X	2000,2001,2004
