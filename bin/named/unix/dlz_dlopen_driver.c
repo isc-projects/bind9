@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_dlopen_driver.c,v 1.1.4.5 2012/02/22 21:44:24 each Exp $ */
+/* $Id: dlz_dlopen_driver.c,v 1.1.4.6 2012/02/22 23:46:35 tbox Exp $ */
 
 #include <config.h>
 
