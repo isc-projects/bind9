@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.31.332.5 2011/12/01 01:05:02 marka Exp $
+# $Id: tests.sh,v 1.31.332.6 2012/02/22 14:32:59 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -277,7 +277,13 @@ sleep 1
 
 $RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
 
-sleep 2
+
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIGCMD nil. SOA > dig.out.ns4
+	grep SOA dig.out.ns4 > /dev/null && break
+	sleep 1
+done
 
 $DIGCMD nil. TXT | grep 'unsigned AXFR' >/dev/null && {
     echo "I:failed"

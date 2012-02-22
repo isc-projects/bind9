@@ -1,3 +1,5 @@
+3287.	[port]		Update ans.pl to work with Net::DNS 0.68. [RT #28028]
+
 	--- 9.6-ESV-R6rc2 released ---
 
 3285.	[bug]		val-frdataset was incorrectly disassociated in
