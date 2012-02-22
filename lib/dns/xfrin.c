@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.172 2011/12/22 07:32:41 each Exp $ */
+/* $Id: xfrin.c,v 1.172.54.1 2012/02/22 05:03:39 marka Exp $ */
 
 /*! \file */
 
@@ -1239,6 +1239,15 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	result = dns_message_parse(msg, &tcpmsg->buffer,
 				   DNS_MESSAGEPARSE_PRESERVEORDER);
+
+	if (result == ISC_R_SUCCESS)
+		dns_message_logpacket(msg, "received message:\n",
+				      DNS_LOGCATEGORY_XFER_IN,
+				      DNS_LOGMODULE_XFER_IN,
+				      ISC_LOG_DEBUG(10), xfr->mctx);
+	else
+		xfrin_log(xfr, ISC_LOG_DEBUG(10), "dns_message_parse: %s",
+			  dns_result_totext(result));
 
 	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror ||
 	    (xfr->checkid && msg->id != xfr->id)) {

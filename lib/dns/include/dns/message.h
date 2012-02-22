@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.132 2010/03/04 23:50:34 tbox Exp $ */
+/* $Id: message.h,v 1.132.528.1 2012/02/22 05:03:39 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -1349,6 +1349,16 @@ dns_message_gettimeadjust(dns_message_t *msg);
  * Requires:
  *\li	msg be a valid message.
  */
+void
+dns_message_logpacket(dns_message_t *message, const char *description, 
+                      isc_logcategory_t *category, isc_logmodule_t *module, 
+                      int level, isc_mem_t *mctx);
+/*%<
+ * Log 'message' at the specified logging parameters.
+ * 'description' will be emitted at the start of the message and will
+ * normally end with a newline.
+ */
+
 
 ISC_LANG_ENDDECLS
 
