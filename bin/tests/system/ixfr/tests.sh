@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.5.814.2 2011/03/05 23:52:08 tbox Exp $
+# $Id: tests.sh,v 1.5.814.3 2012/02/22 14:30:37 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -59,7 +59,12 @@ EOF
 
 $RNDCCMD reload
 
-sleep 2
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIGCMD nil. SOA > dig.out
+	grep "SOA" dig.out > /dev/null && break
+	sleep 1
+done
 
 $DIGCMD nil. TXT | grep 'initial AXFR' >/dev/null || {
     echo "I:failed"
