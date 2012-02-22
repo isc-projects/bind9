@@ -1,3 +1,5 @@
+3287.	[port]		Update ans.pl to work with Net::DNS 0.68. [RT #28028]
+
 3286.	[bug]		Managed key maintenance timer could fail to start
 			after 'rndc reconfig'. [RT #26786]
 
