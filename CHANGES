@@ -1,3 +1,6 @@
+3286.	[bug]		Managed key maintenance timer could fail to start
+			after 'rndc reconfig'. [RT #26786]
+
 	--- 9.9.0rc3 released ---
 
 3285.	[bug]		val-frdataset was incorrectly disassociated in

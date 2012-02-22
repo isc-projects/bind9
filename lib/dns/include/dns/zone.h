@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.201 2012/01/25 23:46:49 tbox Exp $ */
+/* $Id: zone.h,v 1.201.2.1 2012/02/22 00:35:53 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -2037,6 +2037,14 @@ dns_zone_setrawdata(dns_zone_t *zone, dns_masterrawheader_t *header);
  * Set the data to be included in the header when the zone is dumped in
  * binary format.
  */
+
+isc_result_t
+dns_zone_synckeyzone(dns_zone_t *zone);
+/*%
+ * Force the managed key zone to synchronize, and start the key
+ * maintenance timer.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_ZONE_H */

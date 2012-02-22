@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.667.2.2 2012/02/07 00:52:05 marka Exp $ */
+/* $Id: zone.c,v 1.667.2.3 2012/02/22 00:35:53 each Exp $ */
 
 /*! \file */
 
@@ -3556,6 +3556,26 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 		dns_db_closeversion(db, &ver, commit);
 	dns_diff_clear(&diff);
 
+	return (result);
+}
+
+isc_result_t
+dns_zone_synckeyzone(dns_zone_t *zone) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+
+	if (zone->type != dns_zone_key)
+		return (DNS_R_BADZONE);
+
+	CHECK(dns_zone_getdb(zone, &db));
+
+	LOCK_ZONE(zone);
+	result = sync_keyzone(zone, db);
+	UNLOCK_ZONE(zone);
+
+ failure:
+	if (db != NULL)
+		dns_db_detach(&db);
 	return (result);
 }
 
@@ -8389,7 +8409,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
 		CHECK(update_soa_serial(db, ver, &diff, zone->mctx,
 					zone->updatemethod));
-		CHECK(zone_journal(zone, &diff, NULL, "sync_keyzone"));
+		CHECK(zone_journal(zone, &diff, NULL, "zone_refreshkeys"));
 		commit = ISC_TRUE;
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
 		zone_needdump(zone, 30);
