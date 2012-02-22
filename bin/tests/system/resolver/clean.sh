@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.6.16.4 2012/02/09 23:46:24 tbox Exp $
+# $Id: clean.sh,v 1.6.16.5 2012/02/22 00:33:33 each Exp $
 
 #
 # Clean up after resolver tests.
@@ -28,6 +28,6 @@ rm -f ns4/tld.db
 rm -f ns6/K*
 rm -f ns6/example.net.db.signed ns6/example.net.db
 rm -f ns6/dsset-example.net. ns6/example.net.db.signed.jnl
-rm -r ns6/to-be-removed.tld.db ns6/to-be-removed.tld.db.jnl
+rm -f ns6/to-be-removed.tld.db ns6/to-be-removed.tld.db.jnl
 rm -f ns7/server.db ns7/server.db.jnl
 rm -f random.data

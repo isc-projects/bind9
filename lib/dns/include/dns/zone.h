@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.182.16.3 2011/11/04 05:51:39 each Exp $ */
+/* $Id: zone.h,v 1.182.16.4 2012/02/22 00:33:33 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1889,6 +1889,13 @@ isc_result_t
 dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db);
 /*%
  * Load the origin names for a writeable DLZ database.
+ */
+
+isc_result_t
+dns_zone_synckeyzone(dns_zone_t *zone);
+/*%
+ * Force the managed key zone to synchronize, and start the key
+ * maintenance timer.
  */
 
 ISC_LANG_ENDDECLS
