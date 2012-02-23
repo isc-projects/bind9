@@ -23,7 +23,7 @@
 			despite succeeding over the loopback interface.
 			[RT #27782]
 
-3277.	[bug]		Make sure automatic key maintenance is started
+3278.	[bug]		Make sure automatic key maintenance is started
 			when "auto-dnssec maintain" is turned on during
 			"rndc reconfig". [RT #26805]
 
