@@ -1,3 +1,5 @@
+	--- 9.9.0 released ---
+
 	--- 9.9.0rc4 released ---
 
 3289.	[bug]		'rndc retransfer' failed for inline zones. [RT #28036]
