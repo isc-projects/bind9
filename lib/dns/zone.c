@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.667.2.4 2012/02/23 07:02:20 marka Exp $ */
+/* $Id: zone.c,v 1.667.2.5 2012/02/23 07:09:02 tbox Exp $ */
 
 /*! \file */
 
@@ -12541,7 +12541,7 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdataset_current(rdataset, &rdata);
 	dns_rdata_tostruct(&rdata, &soa, NULL);
-	
+
 	if (isc_serial_gt(soa.serial, oldserial))
 		return (dns_db_addrdataset(db, node, version, 0, rdataset, 0,
 					   NULL));
@@ -12654,7 +12654,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 			if (rdataset.type == dns_rdatatype_soa &&
 			    have_oldserial) {
 				result = checkandaddsoa(db, node, version,
-						        &rdataset, oldserial);
+							&rdataset, oldserial);
 			} else
 				result = dns_db_addrdataset(db, node, version,
 							    0, &rdataset, 0,
