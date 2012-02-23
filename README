@@ -46,7 +46,7 @@ BIND 9
 	previous releases, see the CHANGES file.
 
         For up-to-date release notes and errata, see
-        https://kb.isc.org/category/81/0/10
+        http://www.isc.org/software/bind9/releasenotes
 
 BIND 9.6-ESV-R6 (Extended Support Version)
 
