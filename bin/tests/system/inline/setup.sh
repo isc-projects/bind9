@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.10 2012/01/10 23:46:58 tbox Exp $
+# $Id: setup.sh,v 1.11 2012/02/23 06:53:15 marka Exp $
 
 sh clean.sh
 
@@ -21,6 +21,7 @@ rm -f ns1/root.db.signed
 
 touch ns2/trusted.conf
 cp ns2/bits.db.in ns2/bits.db
+cp ns2/bits.db.in ns2/retransfer.db
 rm -f ns2/bits.db.jnl
 
 cp ns3/master.db.in ns3/master.db
