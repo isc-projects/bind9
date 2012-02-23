@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.638.4.4 2012/02/22 00:35:52 each Exp $ */
+/* $Id: server.c,v 1.638.4.5 2012/02/23 07:02:18 marka Exp $ */
 
 /*! \file */
 
@@ -5987,6 +5987,7 @@ isc_result_t
 ns_server_retransfercommand(ns_server_t *server, char *args) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
+	dns_zone_t *raw = NULL;
 	dns_zonetype_t type;
 
 	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
@@ -5994,6 +5995,12 @@ ns_server_retransfercommand(ns_server_t *server, char *args) {
 		return (result);
 	if (zone == NULL)
 		return (ISC_R_UNEXPECTEDEND);
+	dns_zone_getraw(zone, &raw);
+	if (raw != NULL) {
+		dns_zone_detach(&zone);
+		dns_zone_attach(raw, &zone);
+		dns_zone_detach(&raw);
+	}
 	type = dns_zone_gettype(zone);
 	if (type == dns_zone_slave || type == dns_zone_stub)
 		dns_zone_forcereload(zone);

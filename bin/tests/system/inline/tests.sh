@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.16.12.1 2012/01/31 01:11:54 each Exp $
+# $Id: tests.sh,v 1.16.12.2 2012/02/23 07:02:19 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -690,6 +690,55 @@ ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 sync -clean dynamic 2>&1 || ret=1
 [ -f ns3/dynamic.db.jnl ] && ret=1
 [ -f ns3/dynamic.db.signed.jnl ] && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+$NSUPDATE << EOF
+zone retransfer
+server 10.53.0.2 5300
+update add added.retransfer 0 A 1.2.3.4
+send
+
+EOF
+
+n=`expr $n + 1`
+echo "I:checking that the retransfer record is added on the hidden master ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.2 -p 5300 added.retransfer A > dig.out.ns2.test$n
+grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns2.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that the change has not been transfered due to notify ($n)"
+ret=0
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	ans=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 added.retransfer A > dig.out.ns3.test$n
+	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ans=1
+	[ $ans = 0 ] && break
+	sleep 1
+done
+if [ $ans != 1 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+echo "I:check rndc retransfer of a inline slave zone works ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 retransfer retransfer 2>&1 || ret=1
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	ans=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 added.retransfer A > dig.out.ns3.test$n
+	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ans=1
+	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
+	[ $ans = 0 ] && break
+	sleep 1
+done
+[ $ans = 1 ] && ret=1
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

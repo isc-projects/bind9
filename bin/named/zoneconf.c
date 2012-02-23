@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.186.22.2 2012/01/31 23:47:02 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.186.22.3 2012/02/23 07:02:19 marka Exp $ */
 
 /*% */
 
@@ -1134,7 +1134,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setoption(raw, DNS_ZONEOPT_IXFRFROMDIFFS,
 					   ISC_TRUE);
 			dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS,
-					   ISC_FALSE);
+					   ISC_TRUE);
 		} else
 			dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS,
 					   ixfrdiff);
