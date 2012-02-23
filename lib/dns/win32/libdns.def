@@ -925,6 +925,7 @@ dns_zone_setxfrsource4
 dns_zone_setxfrsource6
 dns_zone_setzeronosoattl
 dns_zone_signwithkey
+dns_zone_synckeyzone
 dns_zone_unload
 dns_zonekey_iszonekey
 dns_zonemgr_attach
