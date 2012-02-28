@@ -1,3 +1,5 @@
+3290.	[bug]		<isc/hmacsha.h> was not being installed. [RT #28169]
+
 	--- 9.9.0 released ---
 
 	--- 9.9.0rc4 released ---
