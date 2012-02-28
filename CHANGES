@@ -1,3 +1,5 @@
+3290.	[bug]		<isc/hmacsha.h> was not being installed. [RT #28169]
+
 3287.	[port]		Update ans.pl to work with Net::DNS 0.68. [RT #28028]
 
 3286.	[bug]		Managed key maintenance timer could fail to start
