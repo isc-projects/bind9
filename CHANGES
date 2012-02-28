@@ -1,3 +1,5 @@
+3290.	[bug]		<isc/hmacsha.h> was not being installed. [RT #28169]
+
 3288.	[bug]		dlz_destroy() function wasn't correctly registered
 			by the DLZ dlopen driver. [RT #28056]
 
