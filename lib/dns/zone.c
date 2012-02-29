@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.667.2.5 2012/02/23 07:09:02 tbox Exp $ */
+/* $Id: zone.c,v 1.667.2.6 2012/02/29 21:27:46 each Exp $ */
 
 /*! \file */
 
@@ -12368,6 +12368,14 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	/*
+<<<<<<< zone.c
+	 * zone->db may be NULL if the load from disk failed.
+	 */
+	if (zone->db == NULL)
+		CHECK(ISC_R_FAILURE);
+
+	/*
+=======
 	 * zone->db may be NULL if the load from disk failed.
 	 */
 	if (zone->db == NULL) {
@@ -12376,6 +12384,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+>>>>>>> 1.667.2.5
 	 * We first attempt to sync the raw zone to the secure zone
 	 * by using the raw zone's journal, applying all the deltas
 	 * from the latest source-serial of the secure zone up to
@@ -12525,6 +12534,58 @@ zone_send_secureserial(dns_zone_t *zone, isc_boolean_t locked,
 	return (ISC_R_SUCCESS);
 }
 
+<<<<<<< zone.c
+static isc_result_t
+checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+	       dns_rdataset_t *rdataset, isc_uint32_t oldserial)
+{
+	dns_rdata_soa_t soa;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdatalist_t temprdatalist;
+	dns_rdataset_t temprdataset;
+	isc_buffer_t b;
+	isc_result_t result;
+	unsigned char buf[DNS_SOA_BUFFERSIZE];
+
+	result = dns_rdataset_first(rdataset);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	dns_rdataset_current(rdataset, &rdata);
+	dns_rdata_tostruct(&rdata, &soa, NULL);
+	
+	if (isc_serial_gt(soa.serial, oldserial))
+		return (dns_db_addrdataset(db, node, version, 0, rdataset, 0,
+					   NULL));
+	/*
+	 * Alway bump the serial.
+	 */
+	oldserial++;
+	if (oldserial == 0)
+		oldserial++;
+	soa.serial = oldserial;
+
+	/*
+	 * Construct a replacement rdataset.
+	 */
+	dns_rdata_reset(&rdata);
+	isc_buffer_init(&b, buf, sizeof(buf));
+	result = dns_rdata_fromstruct(&rdata, rdataset->rdclass,
+				      dns_rdatatype_soa, &soa, &b);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	temprdatalist.rdclass = rdata.rdclass;
+	temprdatalist.type = rdata.type;
+	temprdatalist.covers = 0;
+	temprdatalist.ttl = rdataset->ttl;
+	ISC_LIST_INIT(temprdatalist.rdata);
+	ISC_LIST_APPEND(temprdatalist.rdata, &rdata, link);
+
+	dns_rdataset_init(&temprdataset);
+	result = dns_rdatalist_tordataset(&temprdatalist, &temprdataset);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	return (dns_db_addrdataset(db, node, version, 0, &temprdataset,
+				   0, NULL));
+}
+
+=======
 static isc_result_t
 checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	       dns_rdataset_t *rdataset, isc_uint32_t oldserial)
@@ -12575,6 +12636,7 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				   0, NULL));
 }
 
+>>>>>>> 1.667.2.5
 static void
 receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
@@ -12651,6 +12713,16 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 				dns_rdataset_disassociate(&rdataset);
 				continue;
 			}
+<<<<<<< zone.c
+			if (rdataset.type == dns_rdatatype_soa &&
+			    have_oldserial) {
+				result = checkandaddsoa(db, node, version,
+						        &rdataset, oldserial);
+			} else
+				result = dns_db_addrdataset(db, node, version,
+							    0, &rdataset, 0,
+							    NULL);
+=======
 			if (rdataset.type == dns_rdatatype_soa &&
 			    have_oldserial) {
 				result = checkandaddsoa(db, node, version,
@@ -12659,6 +12731,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 				result = dns_db_addrdataset(db, node, version,
 							    0, &rdataset, 0,
 							    NULL);
+>>>>>>> 1.667.2.5
 			if (result != ISC_R_SUCCESS)
 				goto failure;
 

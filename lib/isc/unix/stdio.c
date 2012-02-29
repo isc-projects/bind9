@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdio.c,v 1.11 2011/12/22 08:49:01 marka Exp $ */
+/* $Id: stdio.c,v 1.11.20.1 2012/02/29 21:27:47 each Exp $ */
 
 #include <config.h>
 
@@ -104,6 +104,13 @@ isc_stdio_flush(FILE *f) {
 	else
 		return (isc__errno2result(errno));
 }
+
+/*
+ * OpenBSD has deprecated ENOTSUP in favor of EOPNOTSUPP.
+ */
+#if defined(EOPNOTSUPP) && !defined(ENOTSUP)
+#define ENOTSUP EOPNOTSUPP
+#endif
 
 isc_result_t
 isc_stdio_sync(FILE *f) {
