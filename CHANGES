@@ -1,3 +1,6 @@
+3291.	[port]		Fixed a build error on systems without ENOTSUP.
+			[RT #28200]
+
 3290.	[bug]		<isc/hmacsha.h> was not being installed. [RT #28169]
 
 3289.	[bug]		'rndc retransfer' failed for inline zones. [RT #28036]
