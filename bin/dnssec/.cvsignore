@@ -1,9 +1,0 @@
-Makefile
-dnssec-dsfromkey
-dnssec-keyfromlabel
-dnssec-keygen
-dnssec-makekeyset
-dnssec-signkey
-dnssec-signzone
-*.lo
-.libs

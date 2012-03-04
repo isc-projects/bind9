@@ -1,0 +1,16 @@
+Makefile
+config.log
+config.h
+config.cache
+config.status
+libtool
+isc-config.sh
+configure.lineno
+autom4te.cache
+*.o
+*.lo
+*.so
+*.a
+*.la
+*_test
+timestamp
