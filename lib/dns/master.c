@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.181.36.2 2012/02/14 23:46:49 tbox Exp $ */
+/* $Id: master.c,v 1.184 2012/02/13 23:46:24 marka Exp $ */
 
 /*! \file */
 
@@ -145,6 +145,9 @@ struct dns_loadctx {
 	isc_uint32_t		references;
 	dns_incctx_t		*inc;
 	isc_uint32_t		resign;
+
+	dns_masterincludecb_t	include_cb;
+	void			*include_arg;
 };
 
 struct dns_incctx {
@@ -512,8 +515,9 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	       unsigned int options, isc_uint32_t resign, dns_name_t *top,
 	       dns_rdataclass_t zclass, dns_name_t *origin,
 	       dns_rdatacallbacks_t *callbacks, isc_task_t *task,
-	       dns_loaddonefunc_t done, void *done_arg, isc_lex_t *lex,
-	       dns_loadctx_t **lctxp)
+	       dns_loaddonefunc_t done, void *done_arg,
+	       dns_masterincludecb_t include_cb, void *include_arg,
+	       isc_lex_t *lex, dns_loadctx_t **lctxp)
 {
 	dns_loadctx_t *lctx;
 	isc_result_t result;
@@ -588,6 +592,8 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	lctx->zclass = zclass;
 	lctx->resign = resign;
 	lctx->result = ISC_R_SUCCESS;
+	lctx->include_cb = include_cb;
+	lctx->include_arg = include_arg;
 
 	dns_fixedname_init(&lctx->fixed_top);
 	lctx->top = dns_fixedname_name(&lctx->fixed_top);
@@ -2044,6 +2050,9 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 		goto cleanup;
 	new->parent = ictx;
 	lctx->inc = new;
+
+	if (lctx->include_cb != NULL)
+		lctx->include_cb(master_file, lctx->include_arg);
 	return (ISC_R_SUCCESS);
 
  cleanup:
@@ -2401,8 +2410,9 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 		    dns_rdataclass_t zclass, unsigned int options,
 		    dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
-	return (dns_master_loadfile3(master_file, top, origin, zclass, options,
-				     0, callbacks, mctx, dns_masterformat_text));
+	return (dns_master_loadfile4(master_file, top, origin, zclass, options,
+				     0, callbacks, NULL, NULL, mctx,
+				     dns_masterformat_text));
 }
 
 isc_result_t
@@ -2412,8 +2422,8 @@ dns_master_loadfile2(const char *master_file, dns_name_t *top,
 		     dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx,
 		     dns_masterformat_t format)
 {
-	return (dns_master_loadfile3(master_file, top, origin, zclass, options,
-				     0, callbacks, mctx, format));
+	return (dns_master_loadfile4(master_file, top, origin, zclass, options,
+				     0, callbacks, NULL, NULL, mctx, format));
 }
 
 isc_result_t
@@ -2423,12 +2433,25 @@ dns_master_loadfile3(const char *master_file, dns_name_t *top,
 		     dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx,
 		     dns_masterformat_t format)
 {
+	return (dns_master_loadfile4(master_file, top, origin, zclass, options,
+				     resign, callbacks, NULL, NULL, mctx,
+				     format));
+}
+
+isc_result_t
+dns_master_loadfile4(const char *master_file, dns_name_t *top,
+		     dns_name_t *origin, dns_rdataclass_t zclass,
+		     unsigned int options, isc_uint32_t resign,
+		     dns_rdatacallbacks_t *callbacks,
+		     dns_masterincludecb_t include_cb, void *include_arg,
+		     isc_mem_t *mctx, dns_masterformat_t format)
+{
 	dns_loadctx_t *lctx = NULL;
 	isc_result_t result;
 
 	result = loadctx_create(format, mctx, options, resign, top, zclass,
-				origin, callbacks, NULL, NULL, NULL, NULL,
-				&lctx);
+				origin, callbacks, NULL, NULL, NULL,
+				include_cb, include_arg, NULL, &lctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -2451,9 +2474,9 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 		       isc_task_t *task, dns_loaddonefunc_t done,
 		       void *done_arg, dns_loadctx_t **lctxp, isc_mem_t *mctx)
 {
-	return (dns_master_loadfileinc3(master_file, top, origin, zclass,
+	return (dns_master_loadfileinc4(master_file, top, origin, zclass,
 					options, 0, callbacks, task, done,
-					done_arg, lctxp, mctx,
+					done_arg, lctxp, NULL, NULL, mctx,
 					dns_masterformat_text));
 }
 
@@ -2465,9 +2488,10 @@ dns_master_loadfileinc2(const char *master_file, dns_name_t *top,
 			void *done_arg, dns_loadctx_t **lctxp, isc_mem_t *mctx,
 			dns_masterformat_t format)
 {
-	return (dns_master_loadfileinc3(master_file, top, origin, zclass,
+	return (dns_master_loadfileinc4(master_file, top, origin, zclass,
 					options, 0, callbacks, task, done,
-					done_arg, lctxp, mctx, format));
+					done_arg, lctxp, NULL, NULL, mctx,
+					format));
 }
 
 isc_result_t
@@ -2479,6 +2503,22 @@ dns_master_loadfileinc3(const char *master_file, dns_name_t *top,
 			dns_loadctx_t **lctxp, isc_mem_t *mctx,
 			dns_masterformat_t format)
 {
+	return (dns_master_loadfileinc4(master_file, top, origin, zclass,
+					options, resign, callbacks, task,
+					done, done_arg, lctxp, NULL, NULL,
+					mctx, format));
+}
+
+isc_result_t
+dns_master_loadfileinc4(const char *master_file, dns_name_t *top,
+			dns_name_t *origin, dns_rdataclass_t zclass,
+			unsigned int options, isc_uint32_t resign,
+			dns_rdatacallbacks_t *callbacks,
+			isc_task_t *task, dns_loaddonefunc_t done,
+			void *done_arg, dns_loadctx_t **lctxp,
+			dns_masterincludecb_t include_cb, void *include_arg,
+			isc_mem_t *mctx, dns_masterformat_t format)
+{
 	dns_loadctx_t *lctx = NULL;
 	isc_result_t result;
 
@@ -2486,8 +2526,8 @@ dns_master_loadfileinc3(const char *master_file, dns_name_t *top,
 	REQUIRE(done != NULL);
 
 	result = loadctx_create(format, mctx, options, resign, top, zclass,
-				origin, callbacks, task, done, done_arg, NULL,
-				&lctx);
+				origin, callbacks, task, done, done_arg,
+				include_cb, include_arg, NULL, &lctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -2518,7 +2558,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 
 	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, NULL, NULL, NULL,
-				NULL, &lctx);
+				NULL, NULL, NULL, &lctx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -2551,7 +2591,7 @@ dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
 
 	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, task, done,
-				done_arg, NULL, &lctx);
+				done_arg, NULL, NULL, NULL, &lctx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -2584,7 +2624,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 
 	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, NULL, NULL, NULL,
-				NULL, &lctx);
+				NULL, NULL, NULL, &lctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -2617,7 +2657,7 @@ dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
 
 	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, task, done,
-				done_arg, NULL, &lctx);
+				done_arg, NULL, NULL, NULL, &lctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -2649,7 +2689,7 @@ dns_master_loadlexer(isc_lex_t *lex, dns_name_t *top,
 
 	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, NULL, NULL, NULL,
-				lex, &lctx);
+				NULL, NULL, lex, &lctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -2677,7 +2717,7 @@ dns_master_loadlexerinc(isc_lex_t *lex, dns_name_t *top,
 
 	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, task, done,
-				done_arg, lex, &lctx);
+				done_arg, NULL, NULL, lex, &lctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

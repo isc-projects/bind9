@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.521 2012/01/15 21:16:04 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.522 2012/01/31 03:35:40 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1307,6 +1307,26 @@ zone "eng.example.com" {
                         is a large number of zones because it avoids the need
                         to examine the
                         modification times of the zones files.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>zonestatus
+                        <optional><replaceable>zone</replaceable>
+       <optional><replaceable>class</replaceable>
+           <optional><replaceable>view</replaceable></optional></optional></optional></userinput></term>
+                    <listitem>
+                      <para>
+                        Displays the current status of the given zone,
+                        including the master file name and any include
+                        files from which it was loaded, when it was most
+                        recently loaded, the current serial number, the
+                        number of nodes, whether the zone supports
+                        dynamic updates, whether the zone is DNSSEC
+                        signed, whether it uses automatic DNSSEC key
+                        management or inline signing, and the scheduled
+                        refresh or expiry times for the zone.
                       </para>
                     </listitem>
                   </varlistentry>

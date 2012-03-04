@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.93.52.2 2012/02/06 23:46:23 tbox Exp $ */
+/* $Id: socket.c,v 1.95 2012/02/06 23:46:49 tbox Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.

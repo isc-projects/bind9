@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.185.64.2 2012/02/06 23:46:22 tbox Exp $ */
+/* $Id: main.c,v 1.187 2012/02/06 23:46:44 tbox Exp $ */
 
 /*! \file */
 

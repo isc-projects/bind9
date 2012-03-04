@@ -3,10 +3,6 @@
 
 3290.	[bug]		<isc/hmacsha.h> was not being installed. [RT #28169]
 
-	--- 9.9.0 released ---
-
-	--- 9.9.0rc4 released ---
-
 3289.	[bug]		'rndc retransfer' failed for inline zones. [RT #28036]
 
 3288.	[bug]		dlz_destroy() function wasn't correctly registered
@@ -16,8 +12,6 @@
 
 3286.	[bug]		Managed key maintenance timer could fail to start
 			after 'rndc reconfig'. [RT #26786]
-
-	--- 9.9.0rc3 released ---
 
 3285.	[bug]		val-frdataset was incorrectly disassociated in
 			proveunsecure after calling startfinddlvsep.
@@ -56,6 +50,15 @@
 3275.	[bug]		Corrected rndc -h output; the 'rndc sync -clean'
 			option had been misspelled as '-clear'.  (To avoid
 			future confusion, both options now work.) [RT #27173]
+
+3274.   [placeholder]
+
+3273.   [bug]           AAAA responses could be returned in the additional
+                        section even when filter-aaaa-on-v4 was in use.
+                        [RT #27292]
+
+3272.	[func]		New "rndc zonestatus" command prints information
+			about the specified zone. [RT #21671]
 
 3271.	[port]		darwin: mksymtbl is not always stable, loop several
 			times before giving up.  mksymtbl was using non

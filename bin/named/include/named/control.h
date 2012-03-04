@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.36 2011/10/28 06:20:04 each Exp $ */
+/* $Id: control.h,v 1.38 2012/01/31 23:47:31 tbox Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -65,6 +65,7 @@
 #define NS_COMMAND_DELZONE	"delzone"
 #define NS_COMMAND_SYNC		"sync"
 #define NS_COMMAND_SIGNING	"signing"
+#define NS_COMMAND_ZONESTATUS	"zonestatus"
 
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);
