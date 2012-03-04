@@ -30,44 +30,48 @@
 
 arg=-r
 case $# in
-    3)
+    4)
 	case "$1" in
 	snapshot) ;;
-	*) echo "usage: sh kit.sh [snapshot] cvstag tmpdir" >&2
+	*) echo "usage: sh kit.sh [snapshot] gitdir gittag tmpdir" >&2
 	   exit 1
 	   ;;
 	esac
 	snapshot=true;
-	releasetag=$2
+        repodir=$2
+	releasetag=$3
+	tag=$3
+	tmpdir=$4
+	;;
+    3)
+	repodir=$1
 	tag=$2
 	tmpdir=$3
-	;;
-    2)
-	tag=$1
-	tmpdir=$2
 	case $tag in
-	    snapshot) tag=HEAD; snapshot=true ; releasetag="" ;;
+	    snapshot) tag=master; snapshot=true ; releasetag="" ;;
 	    *) snapshot=false ;;
 	esac
 	;;
-    *) echo "usage: sh kit.sh [snapshot] cvstag tmpdir" >&2
+    *) echo "usage: sh kit.sh [snapshot] gitdir gittag tmpdir" >&2
        exit 1
        ;;
 esac
 
-
-
+# create tmpdir
 test -d $tmpdir ||
 mkdir $tmpdir || {
     echo "$0: could not create directory $tmpdir" >&2
     exit 1
 }
 
+# make sure tmpdir is an absolute path
 cd $tmpdir || exit 1
+tmpdir=`pwd`
 
-cvs checkout -p -r $tag bind9/version >version.tmp
-. ./version.tmp
-
+cd $repodir || exit 1
+git pull
+git show $tag:version > $tmpdir/version.tmp
+. $tmpdir/version.tmp
 
 if $snapshot
 then
@@ -77,7 +81,7 @@ then
     RELEASEVER=${dstamp}${releasetag}
     shift
     case $tag in
-    HEAD)
+    master)
 	tag="$@"
 	arg=-D
 	;;
@@ -94,14 +98,16 @@ echo "building release kit for BIND version $version, hold on..."
 
 topdir=bind-$version
 
-test ! -d $topdir || {
-    echo "$0: directory `pwd`/$topdir already exists" >&2
+test ! -d $tmpdir/$topdir || {
+    echo "$0: directory $tmpdir/$topdir already exists" >&2
     exit 1
 }
 
-cvs -Q export $arg "$tag" -d $topdir bind9
+mkdir $tmpdir/$topdir || exit 1
 
-cd $topdir || exit 1
+git archive --format=tar $tag | ( cd $tmpdir/$topdir; tar xf -)
+
+cd $tmpdir/$topdir || exit 1
 
 if $snapshot
 then
@@ -131,8 +137,8 @@ rm -rf TODO EXCLUDED conftools doc/design doc/dev doc/draft doc/expired \
 find util -name mksymtbl.pl -prune -o -type f -print | xargs rm -f
 find util -depth -type d -print | xargs rmdir 2>/dev/null
 
-# Remove all .cvsignore files
-find . -name .cvsignore -print | xargs rm
+# Remove all .gitignore files
+find . -name .gitignore -print | xargs rm
 
 # The following files should be executable.
 chmod +x configure install-sh mkinstalldirs bin/tests/system/ifconfig.sh
@@ -188,7 +194,5 @@ done
 cd .. || exit 1
 
 kit=$topdir.tar.gz
-
 tar -c -f - $topdir | gzip > $kit
-
 echo "done, kit is in `pwd`/$kit"
