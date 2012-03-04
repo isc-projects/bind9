@@ -807,7 +807,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		 * Normal zone table does not have a match.
 		 * Try the DLZ database
 		 */
-		if (client->view->dlzdatabase != NULL) {
+		// Temporary: only searching the first DLZ database
+		if (! ISC_LIST_EMPTY(client->view->dlz_searched)) {
 			result = dns_dlzallowzonexfr(client->view,
 						     question_name,
 						     &client->peeraddr,

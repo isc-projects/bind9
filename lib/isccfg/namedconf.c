@@ -130,6 +130,7 @@ static cfg_type_t cfg_type_v4_aaaa;
 static cfg_clausedef_t
 dynamically_loadable_zones_clauses[] = {
 	{ "database", &cfg_type_astring, 0 },
+	{ "search", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -869,8 +870,7 @@ static cfg_clausedef_t
 namedconf_or_view_clauses[] = {
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
-	/* only 1 DLZ per view allowed */
-	{ "dlz", &cfg_type_dynamically_loadable_zones, 0 },
+	{ "dlz", &cfg_type_dynamically_loadable_zones, CFG_CLAUSEFLAG_MULTI },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
 	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
@@ -1430,6 +1430,7 @@ zone_only_clauses[] = {
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "update-policy", &cfg_type_updatepolicy, 0 },
 	{ "database", &cfg_type_astring, 0 },
+	{ "dlz", &cfg_type_astring, 0 },
 	{ "delegation-only", &cfg_type_boolean, 0 },
 	/*
 	 * Note that the format of the check-names option is different between

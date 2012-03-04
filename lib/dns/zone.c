@@ -45,6 +45,7 @@
 #include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#include <dns/dlz.h>
 #include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/journal.h>
@@ -1613,6 +1614,46 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	    (zone->db_argc < 2 || strcmp(zone->db_argv[1], "empty") != 0) &&
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
 		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+
+	/*
+	 * Zones associated with a DLZ don't need to be loaded either,
+	 * but we need to associate the database with the zone object.
+	 */
+	if (strcmp(zone->db_argv[0], "dlz") == 0) {
+		dns_dlzdb_t *dlzdb;
+		dns_db_t *db = NULL;
+		dns_dlzfindzone_t findzone;
+
+		for (dlzdb = ISC_LIST_HEAD(zone->view->dlz_searched);
+		     dlzdb != NULL;
+		     dlzdb = ISC_LIST_NEXT(dlzdb, link))
+		{
+			INSIST(DNS_DLZ_VALID(dlzdb));
+			if (strcmp(zone->db_argv[1], dlzdb->dlzname) == 0)
+				break;
+		}
+
+		if (dlzdb == NULL) {
+			result = ISC_R_NOTFOUND;
+			goto cleanup;
+		}
+
+		ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
+		/* ask SDLZ driver if the zone is supported */
+		findzone = dlzdb->implementation->methods->findzone;
+		result = (*findzone)(dlzdb->implementation->driverarg,
+				     dlzdb->dbdata, dlzdb->mctx,
+				     zone->view->rdclass, &zone->origin, &db);
+		if (result != ISC_R_NOTFOUND) {
+			if (zone->db != NULL)
+				zone_detachdb(zone);
+			zone_attachdb(zone, db);
+			dns_db_detach(&db);
+			result = ISC_R_SUCCESS;
+		}
+		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 		goto cleanup;
 	}
 
