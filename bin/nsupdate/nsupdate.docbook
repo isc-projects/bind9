@@ -240,19 +240,20 @@
       should be used.  This option may be specified multiple times.
     </para>
     <para>
-      The <option>-T</option> and <option>-P</option> print out a
-      lists of non-meta types for which the type specific presentation
-      format is known.  <option>-T</option> prints out the list of
-      assigned types.  <option>-P</option> prints out the list of
-      private types.  These options may be combined.  nsupdate will
-      exit after the lists are printed.
-    </para>
-    <para>
       Other types can be entered using "TYPEXXXXX" where "XXXXX" is the
       decimal value of the type with no leading zeros.  The rdata,
       if present, will be parsed using the UNKNOWN rdata format,
       (&lt;backslash&gt; &lt;hash&gt; &lt;space&gt; &lt;length&gt;
       &lt;space&gt; &lt;hexstring&gt;).
+    </para>
+    <para>
+      The <option>-T</option> and <option>-P</option> options print out
+      lists of non-meta types for which the type-specific presentation
+      formats are known.  <option>-T</option> prints out the list of
+      IANA-assigned types.  <option>-P</option> prints out the list of
+      private types specific to <command>named<command>.  These options
+      may be combined.  <command>nsupdate</command> will exit after the
+      lists are printed.
     </para>
   </refsect1>
 
