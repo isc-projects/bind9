@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.46 2012/01/30 23:47:17 tbox Exp $
+# $Id: kit.sh,v 1.45.2.1 2012/01/31 23:47:02 tbox Exp $
 
 # Make a release kit
 #

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.8 2012/02/07 23:47:24 tbox Exp $
+# $Id: setup.sh,v 1.6.134.2 2012/02/07 23:46:56 tbox Exp $
 
 rm -f ns1/*.db ns1/*.jnl ns3/*.jnl ns4/*.db ns4/*.jnl
 

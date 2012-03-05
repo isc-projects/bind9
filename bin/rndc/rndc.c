@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.142 2012/02/03 22:27:17 each Exp $ */
+/* $Id: rndc.c,v 1.139.52.2 2012/02/07 23:46:56 tbox Exp $ */
 
 /*! \file */
 
@@ -126,8 +126,6 @@ command is one of the following:\n\
 		Update zone keys, and sign as needed.\n\
   loadkeys zone [class [view]]\n\
 		Update keys without signing immediately.\n\
-  zonestatus zone [class [view]]\n\
-		Display the current status of a zone.\n\
   stats		Write server statistics to the statistics file.\n\
   querylog newstate\n\
 		Enable / disable query logging.\n\

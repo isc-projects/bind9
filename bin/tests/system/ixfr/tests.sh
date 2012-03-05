@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.11 2012/02/22 14:22:54 marka Exp $
+# $Id: tests.sh,v 1.8.134.3 2012/02/22 14:29:38 marka Exp $
 
 
 # WARNING: The test labelled "testing request-ixfr option in view vs zone"

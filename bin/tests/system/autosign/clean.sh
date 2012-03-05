@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.15 2012/02/06 23:46:45 tbox Exp $
+# $Id: clean.sh,v 1.13.94.2 2012/02/06 23:46:22 tbox Exp $
 
 rm -f */K* */dsset-* */*.signed */trusted.conf */tmp* */*.jnl */*.bk
 rm -f active.key inact.key del.key unpub.key standby.key rev.key

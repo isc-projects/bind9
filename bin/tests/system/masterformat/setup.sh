@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.11 2012/02/14 23:47:15 tbox Exp $
+# $Id: setup.sh,v 1.9.36.2 2012/02/14 23:46:48 tbox Exp $
 
 rm -f named-compilezone
 ln -s $CHECKZONE named-compilezone

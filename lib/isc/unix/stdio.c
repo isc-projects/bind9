@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdio.c,v 1.13 2012/02/29 23:47:21 tbox Exp $ */
+/* $Id: stdio.c,v 1.11.20.2 2012/02/29 23:46:55 tbox Exp $ */
 
 #include <config.h>
 

@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3 2012/02/03 23:46:58 tbox Exp $
+# $Id: clean.sh,v 1.1.962.2 2012/02/03 23:46:31 tbox Exp $
 
 #
 # Clean up after lwresd tests.
