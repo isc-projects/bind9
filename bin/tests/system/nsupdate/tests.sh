@@ -461,5 +461,25 @@ if [ $ret -ne 0 ]; then
     status=1
 fi
 
+n=`expr $n + 1`
+ret=0
+echo "I:check type list options ($n)"
+$NSUPDATE -T > typelist.out.T.${n} || { ret=1; echo "I: nsupdate -T failed"; }
+$NSUPDATE -P > typelist.out.P.${n} || { ret=1; echo "I: nsupdate -P failed"; }
+$NSUPDATE -TP > typelist.out.TP.${n} || { ret=1; echo "I: nsupdate -TP failed"; }
+grep ANY typelist.out.T.${n} > /dev/null && { ret=1; echo "I: failed: ANY found (-T)"; }
+grep ANY typelist.out.P.${n} > /dev/null && { ret=1; echo "I: failed: ANY found (-P)"; }
+grep ANY typelist.out.TP.${n} > /dev/null && { ret=1; echo "I: failed: ANY found (-TP)"; }
+grep KEYDATA typelist.out.T.${n} > /dev/null && { ret=1; echo "I: failed: KEYDATA found (-T)"; }
+grep KEYDATA typelist.out.P.${n} > /dev/null || { ret=1; echo "I: failed: KEYDATA not found (-P)"; }
+grep KEYDATA typelist.out.TP.${n} > /dev/null || { ret=1; echo "I: failed: KEYDATA not found (-TP)"; }
+grep AAAA typelist.out.T.${n} > /dev/null || { ret=1; echo "I: failed: AAAA not found (-T)"; }
+grep AAAA typelist.out.P.${n} > /dev/null && { ret=1; echo "I: failed: AAAA found (-P)"; }
+grep AAAA typelist.out.TP.${n} > /dev/null || { ret=1; echo "I: failed: AAAA not found (-TP)"; }
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
+fi
+
 echo "I:exit status: $status"
 exit $status

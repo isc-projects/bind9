@@ -934,11 +934,14 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	INSIST(count == 1);
 }
 
-#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:rR::t:u:"
+#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:PrR::t:Tu:"
 
 static void
 pre_parse_args(int argc, char **argv) {
+	dns_rdatatype_t t;
 	int ch;
+	char buf[100];
+	isc_boolean_t doexit = ISC_FALSE;
 
 	while ((ch = isc_commandline_parse(argc, argv, PARSE_ARGS_FMT)) != -1) {
 		switch (ch) {
@@ -960,10 +963,34 @@ pre_parse_args(int argc, char **argv) {
 				"[-v] [filename]\n");
 			exit(1);
 
+		case 'P':
+			for (t = 0xff00; t <= 0xfffe; t++) {
+				if (dns_rdatatype_ismeta(t))
+					continue;
+				dns_rdatatype_format(t, buf, sizeof(buf));
+				if (strncmp(buf, "TYPE", 4) != 0)
+					fprintf(stdout, "%s\n", buf);
+			}
+			doexit = ISC_TRUE;
+			break;
+
+		case 'T':
+			for (t = 1; t <= 0xfeff; t++) {
+				if (dns_rdatatype_ismeta(t))
+					continue;
+				dns_rdatatype_format(t, buf, sizeof(buf));
+				if (strncmp(buf, "TYPE", 4) != 0)
+					fprintf(stdout, "%s\n", buf);
+			}
+			doexit = ISC_TRUE;
+			break;
+
 		default:
 			break;
 		}
 	}
+	if (doexit)
+                exit(0);
 	isc_commandline_reset = ISC_TRUE;
 	isc_commandline_index = 1;
 }
