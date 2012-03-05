@@ -51,5 +51,11 @@ $CHECKCONF dnssec.3 2>&1 | grep '.*' && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I: checking named-checkconf DLZ warnings"
+ret=0
+$CHECKCONF dlz-bad.conf 2>&1 | grep "'dlz' and 'database'" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

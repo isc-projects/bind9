@@ -70,4 +70,21 @@ done
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
+echo "I:testing multiple DLZ drivers"
+test_update testdc1.alternate.nil. A "86400 A 10.53.0.10" "10.53.0.10" || ret=1
+status=`expr $status + $ret`
+
+echo "I:testing AXFR from DLZ drivers"
+$DIG $DIGOPTS +noall +answer axfr example.nil > dig.out.ns1.1
+n=`cat dig.out.ns1.1 | wc -l`
+[ "$n" -eq 7 ] || ret=1
+$DIG $DIGOPTS +noall +answer axfr alternate.nil > dig.out.ns1.2
+n=`cat dig.out.ns1.2 | wc -l`
+[ "$n" -eq 5 ] || ret=1
+status=`expr $status + $ret`
+
+echo "I:testing unsearched DLZ driver"
+$DIG $DIGOPTS +noall +answer ns other.nil > dig.out.ns1.3
+cat dig.out.ns1.3
+
 exit $status
