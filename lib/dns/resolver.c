@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.448 2012/02/14 23:47:15 tbox Exp $ */
+/* $Id: resolver.c,v 1.448.8.1 2012/02/22 05:03:38 marka Exp $ */
 
 /*! \file */
 
@@ -6463,43 +6463,6 @@ log_nsid(dns_rdataset_t *opt, resquery_t *query, int level, isc_mem_t *mctx)
 	return (ISC_R_SUCCESS);
 }
 
-static void
-log_packet(dns_message_t *message, int level, isc_mem_t *mctx) {
-	isc_buffer_t buffer;
-	char *buf = NULL;
-	int len = 1024;
-	isc_result_t result;
-
-	if (! isc_log_wouldlog(dns_lctx, level))
-		return;
-
-	/*
-	 * Note that these are multiline debug messages.  We want a newline
-	 * to appear in the log after each message.
-	 */
-
-	do {
-		buf = isc_mem_get(mctx, len);
-		if (buf == NULL)
-			break;
-		isc_buffer_init(&buffer, buf, len);
-		result = dns_message_totext(message, &dns_master_style_debug,
-					    0, &buffer);
-		if (result == ISC_R_NOSPACE) {
-			isc_mem_put(mctx, buf, len);
-			len += 1024;
-		} else if (result == ISC_R_SUCCESS)
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER, level,
-				      "received packet:\n%.*s",
-				      (int)isc_buffer_usedlength(&buffer),
-				      buf);
-	} while (result == ISC_R_NOSPACE);
-
-	if (buf != NULL)
-		isc_mem_put(mctx, buf, len);
-}
-
 static isc_boolean_t
 iscname(fetchctx_t *fctx) {
 	isc_result_t result;
@@ -6734,11 +6697,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
-
 	/*
 	 * Log the incoming packet.
 	 */
-	log_packet(message, ISC_LOG_DEBUG(10), fctx->res->mctx);
+	dns_message_logpacket(message, "received packet:\n",
+			      DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_DEBUG(10), fctx->res->mctx);
 
 	/*
 	 * Did we request NSID?  If so, and if the response contains
