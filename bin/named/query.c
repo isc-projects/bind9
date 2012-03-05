@@ -798,6 +798,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 
 	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
 			     &zone);
+
 	if (result == DNS_R_PARTIALMATCH)
 		partial = ISC_TRUE;
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
@@ -1028,11 +1029,14 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	/* See how many labels are in the zone's name.	  */
 	if (result == ISC_R_SUCCESS && zone != NULL)
 		zonelabels = dns_name_countlabels(dns_zone_getorigin(zone));
+
 	/*
 	 * If # zone labels < # name labels, try to find an even better match
-	 * Only try if a DLZ driver is loaded for this view
+	 * Only try if DLZ drivers are loaded for this view
 	 */
-	if (zonelabels < namelabels && client->view->dlzdatabase != NULL) {
+	if (zonelabels < namelabels &&
+	    !ISC_LIST_EMPTY(client->view->dlz_searched))
+	{
 		tresult = dns_dlzfindzone(client->view, name,
 					  zonelabels, &tdbp);
 		 /* If we successful, we found a better match. */

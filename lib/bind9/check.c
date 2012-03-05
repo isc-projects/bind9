@@ -1280,6 +1280,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	isc_buffer_t b;
 	isc_boolean_t root = ISC_FALSE;
 	const cfg_listelt_t *element;
+	isc_boolean_t dlz;
 
 	static optionstable options[] = {
 	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE | REDIRECTZONE |
@@ -1701,11 +1702,24 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * require file clauses.
 	 */
 	obj = NULL;
+	dlz = ISC_FALSE;
+	tresult = cfg_map_get(zoptions, "dlz", &obj);
+	if (tresult == ISC_R_SUCCESS)
+		dlz = ISC_TRUE;
+
+	obj = NULL;
 	tresult = cfg_map_get(zoptions, "database", &obj);
-	if (tresult == ISC_R_NOTFOUND ||
+	if (dlz && tresult == ISC_R_SUCCESS) {
+		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+				    "zone '%s': cannot specify both 'dlz' "
+				    "and 'database'", znamestr);
+		result = ISC_R_FAILURE;
+	} else if (!dlz &&
+	    (tresult == ISC_R_NOTFOUND ||
 	    (tresult == ISC_R_SUCCESS &&
 	     (strcmp("rbt", cfg_obj_asstring(obj)) == 0 ||
-	      strcmp("rbt64", cfg_obj_asstring(obj)) == 0))) {
+	      strcmp("rbt64", cfg_obj_asstring(obj)) == 0))))
+	{
 		obj = NULL;
 		tresult = cfg_map_get(zoptions, "file", &obj);
 		if (tresult != ISC_R_SUCCESS &&

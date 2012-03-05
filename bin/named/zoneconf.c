@@ -801,10 +801,11 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	isc_sockaddr_t *addrs;
 	dns_name_t **keynames;
 	isc_uint32_t count;
-	char *cpval;
 	unsigned int dbargc;
 	char **dbargv;
 	static char default_dbtype[] = "rbt";
+	static char dlz_dbtype[] = "dlz";
+	char *cpval = default_dbtype;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
 	dns_dialuptype_t dialup = dns_dialuptype_no;
 	dns_zonetype_t ztype;
@@ -867,11 +868,27 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	result = cfg_map_get(zoptions, "database", &obj);
 	if (result == ISC_R_SUCCESS)
 		cpval = isc_mem_strdup(mctx, cfg_obj_asstring(obj));
-	else
-		cpval = default_dbtype;
-
 	if (cpval == NULL)
 		return(ISC_R_NOMEMORY);
+
+	obj = NULL;
+	result = cfg_map_get(zoptions, "dlz", &obj);
+	if (result == ISC_R_SUCCESS) {
+		const char *dlzname = cfg_obj_asstring(obj);
+		size_t len;
+
+		if (cpval != default_dbtype) {
+		       isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				     NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				     "zone '%s': both 'database' and 'dlz' "
+				     "specified", zname);
+		       return (ISC_R_FAILURE);
+		}
+
+		len = strlen(dlzname) + 5;
+		cpval = isc_mem_allocate(mctx, len);
+		snprintf(cpval, len, "dlz %s", dlzname);
+	}
 
 	result = strtoargv(mctx, cpval, &dbargc, &dbargv);
 	if (result != ISC_R_SUCCESS && cpval != default_dbtype) {
@@ -886,7 +903,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 */
 	result = dns_zone_setdbtype(zone, dbargc, (const char * const *)dbargv);
 	isc_mem_put(mctx, dbargv, dbargc * sizeof(*dbargv));
-	if (cpval != default_dbtype)
+	if (cpval != default_dbtype && cpval != dlz_dbtype)
 		isc_mem_free(mctx, cpval);
 	if (result != ISC_R_SUCCESS)
 		return (result);

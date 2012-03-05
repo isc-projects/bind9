@@ -1672,7 +1672,8 @@ dns_sdlzfindzone(void *driverarg, void *dbdata, isc_mem_t *mctx,
 
 
 static isc_result_t
-dns_sdlzconfigure(void *driverarg, void *dbdata, dns_view_t *view)
+dns_sdlzconfigure(void *driverarg, void *dbdata,
+		  dns_view_t *view, dns_dlzdb_t *dlzdb)
 {
 	isc_result_t result;
 	dns_sdlzimplementation_t *imp;
@@ -1684,7 +1685,8 @@ dns_sdlzconfigure(void *driverarg, void *dbdata, dns_view_t *view)
 	/* Call SDLZ driver's configure method */
 	if (imp->methods->configure != NULL) {
 		MAYBE_LOCK(imp);
-		result = imp->methods->configure(view, imp->driverarg, dbdata);
+		result = imp->methods->configure(view, dlzdb,
+						 imp->driverarg, dbdata);
 		MAYBE_UNLOCK(imp);
 	} else {
 		result = ISC_R_SUCCESS;
