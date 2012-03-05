@@ -1,3 +1,5 @@
+3293.	[func]		nsupdate: list supported type. [RT #28261]
+
 3292.	[func]		Log messages in the axfr stream at debug 10.
 			[RT #28040]
 
