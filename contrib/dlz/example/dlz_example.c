@@ -466,8 +466,7 @@ dlz_configure(dns_view_t *view, void *dbdata) {
 		return (ISC_R_FAILURE);
 	}
 
-	result = state->writeable_zone(view, view->dlzdatabase,
-				       state->zone_name);
+	result = state->writeable_zone(view, state->zone_name);
 	if (result != ISC_R_SUCCESS) {
 		state->log(ISC_LOG_ERROR,
 			   "dlz_example: failed to configure zone %s",

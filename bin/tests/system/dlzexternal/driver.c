@@ -463,7 +463,7 @@ dlz_closeversion(const char *zone, isc_boolean_t commit,
  * Configure a writeable zone
  */
 isc_result_t
-dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata) {
+dlz_configure(dns_view_t *view, void *dbdata) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	isc_result_t result;
 
@@ -475,7 +475,7 @@ dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata) {
 		return (ISC_R_FAILURE);
 	}
 
-	result = state->writeable_zone(view, dlzdb, state->zone_name);
+	result = state->writeable_zone(view, state->zone_name);
 	if (result != ISC_R_SUCCESS) {
 		state->log(ISC_LOG_ERROR,
 			   "dlz_example: failed to configure zone %s",

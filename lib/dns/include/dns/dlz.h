@@ -169,8 +169,7 @@ typedef isc_result_t
 
 
 typedef isc_result_t
-(*dns_dlzconfigure_t)(void *driverarg, void *dbdata,
-		      dns_view_t *view, dns_dlzdb_t *dlzdb);
+(*dns_dlzconfigure_t)(void *driverarg, void *dbdata, dns_view_t *view);
 /*%<
  * Method prototype.  Drivers implementing the DLZ interface may
  * optionally supply a configure method. If supplied, this will be
@@ -210,8 +209,7 @@ struct dns_dlzimplementation {
 	ISC_LINK(dns_dlzimplementation_t)	link;
 };
 
-typedef isc_result_t (*dlzconfigure_callback_t)(dns_view_t *, dns_dlzdb_t *,
-						dns_zone_t *);
+typedef isc_result_t (*dlzconfigure_callback_t)(dns_view_t *, dns_zone_t *);
 
 /*% An instance of a DLZ driver */
 struct dns_dlzdb {
@@ -220,8 +218,6 @@ struct dns_dlzdb {
 	dns_dlzimplementation_t	*implementation;
 	void			*dbdata;
 	dlzconfigure_callback_t configure_callback;
-	char			*dlzname;
-	ISC_LINK(dns_dlzdb_t)	link;
 #ifdef BIND9
 	dns_ssutable_t 		*ssutable;
 #endif
@@ -323,7 +319,6 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp);
 
 
 typedef isc_result_t dns_dlz_writeablezone_t(dns_view_t *view,
-					     dns_dlzdb_t *dlzdb,
 					     const char *zone_name);
 dns_dlz_writeablezone_t dns_dlz_writeablezone;
 /*%<
@@ -333,8 +328,7 @@ dns_dlz_writeablezone_t dns_dlz_writeablezone;
 
 
 isc_result_t
-dns_dlzconfigure(dns_view_t *view, dns_dlzdb_t *dlzdb,
-		 dlzconfigure_callback_t callback);
+dns_dlzconfigure(dns_view_t *view, dlzconfigure_callback_t callback);
 /*%<
  * call a DLZ drivers configure method, if supplied
  */
