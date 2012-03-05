@@ -36,3 +36,4 @@ rm -f ns3/K*
 rm -f dig.out.*
 rm -f jp.out.ns3.*
 rm -f Kxxx.*
+rm -f typelist.out.*
