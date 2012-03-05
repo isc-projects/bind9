@@ -227,9 +227,8 @@ typedef void (*dns_sdlzcloseversion_t)(const char *zone, isc_boolean_t commit,
  * If the call is successful then *versionp should be set to NULL
  */
 
-typedef isc_result_t (*dns_sdlzconfigure_t)(dns_view_t *view,
-					    dns_dlzdb_t *dlzdb,
-					    void *driverarg, void *dbdata);
+typedef isc_result_t (*dns_sdlzconfigure_t)(dns_view_t *view, void *driverarg,
+					    void *dbdata);
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
  * supply a configure method. When supplied, it will be called

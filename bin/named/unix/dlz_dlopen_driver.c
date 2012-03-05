@@ -449,9 +449,7 @@ dlopen_dlz_closeversion(const char *zone, isc_boolean_t commit,
  * Called on startup to configure any writeable zones
  */
 static isc_result_t
-dlopen_dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb,
-		     void *driverarg, void *dbdata)
-{
+dlopen_dlz_configure(dns_view_t *view, void *driverarg, void *dbdata) {
 	dlopen_data_t *cd = (dlopen_data_t *) dbdata;
 	isc_result_t result;
 
@@ -462,7 +460,7 @@ dlopen_dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb,
 
 	MAYBE_LOCK(cd);
 	cd->in_configure = ISC_TRUE;
-	result = cd->dlz_configure(view, dlzdb, cd->dbdata);
+	result = cd->dlz_configure(view, cd->dbdata);
 	cd->in_configure = ISC_FALSE;
 	MAYBE_UNLOCK(cd);
 

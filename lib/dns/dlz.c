@@ -60,11 +60,10 @@
 
 #include <config.h>
 
-#include <dns/db.h>
-#include <dns/dlz.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/master.h>
+#include <dns/dlz.h>
 #include <dns/ssu.h>
 #include <dns/zone.h>
 
@@ -114,41 +113,26 @@ isc_result_t
 dns_dlzallowzonexfr(dns_view_t *view, dns_name_t *name,
 		    isc_sockaddr_t *clientaddr, dns_db_t **dbp)
 {
-	isc_result_t result = ISC_R_NOTFOUND;
+	isc_result_t result;
 	dns_dlzallowzonexfr_t allowzonexfr;
-	dns_dlzdb_t *dlzdb;
+	dns_dlzdb_t *dlzdatabase;
 
 	/*
 	 * Performs checks to make sure data is as we expect it to be.
 	 */
+	REQUIRE(DNS_DLZ_VALID(view->dlzdatabase));
 	REQUIRE(name != NULL);
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
-	/*
-	 * Find a driver in which the zone exists and transfer is supported
-	 */
-	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched);
-	     dlzdb != NULL;
-	     dlzdb = ISC_LIST_NEXT(dlzdb, link))
-	{
-		REQUIRE(DNS_DLZ_VALID(dlzdb));
-
-		allowzonexfr = dlzdb->implementation->methods->allowzonexfr;
-		result = (*allowzonexfr)(dlzdb->implementation->driverarg,
-					 dlzdb->dbdata, dlzdb->mctx,
-					 view->rdclass, name, clientaddr, dbp);
-
-		/*
-		 * if ISC_R_NOPERM, we found the right database but
-		 * the zone may not transfer.
-		 */
-		if (result == ISC_R_SUCCESS || result == ISC_R_NOPERM)
-			return (result);
-	}
+	/* ask driver if the zone is supported */
+	dlzdatabase = view->dlzdatabase;
+	allowzonexfr = dlzdatabase->implementation->methods->allowzonexfr;
+	result = (*allowzonexfr)(dlzdatabase->implementation->driverarg,
+				 dlzdatabase->dbdata, dlzdatabase->mctx,
+				 view->rdclass, name, clientaddr, dbp);
 
 	if (result == ISC_R_NOTIMPLEMENTED)
-		result = ISC_R_NOTFOUND;
-
+		return (ISC_R_NOTFOUND);
 	return (result);
 }
 
@@ -207,9 +191,6 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 
 	(*dbp)->implementation = impinfo;
 
-	if (dlzname != NULL)
-		(*dbp)->dlzname = isc_mem_strdup(mctx, dlzname);
-
 	/* Create a new database using implementation 'drivername'. */
 	result = ((impinfo->methods->create)(mctx, dlzname, argc, argv,
 					     impinfo->driverarg,
@@ -257,12 +238,9 @@ dns_dlzdestroy(dns_dlzdb_t **dbp) {
 	}
 #endif
 
-
 	/* call the drivers destroy method */
 	if ((*dbp) != NULL) {
 		mctx = (*dbp)->mctx;
-		if ((*dbp)->dlzname != NULL)
-			isc_mem_free(mctx, (*dbp)->dlzname);
 		destroy = (*dbp)->implementation->methods->destroy;
 		(*destroy)((*dbp)->implementation->driverarg,(*dbp)->dbdata);
 		/* return memory */
@@ -275,8 +253,8 @@ dns_dlzdestroy(dns_dlzdb_t **dbp) {
 
 
 isc_result_t
-dns_dlzfindzone(dns_view_t *view, dns_name_t *name,
-		unsigned int minlabels, dns_db_t **dbp)
+dns_dlzfindzone(dns_view_t *view, dns_name_t *name, unsigned int minlabels,
+		dns_db_t **dbp)
 {
 	dns_fixedname_t fname;
 	dns_name_t *zonename;
@@ -284,13 +262,12 @@ dns_dlzfindzone(dns_view_t *view, dns_name_t *name,
 	unsigned int i;
 	isc_result_t result;
 	dns_dlzfindzone_t findzone;
-	dns_dlzdb_t *dlzdb;
-	dns_db_t *db, *best = NULL;
+	dns_dlzdb_t *dlzdatabase;
 
 	/*
 	 * Performs checks to make sure data is as we expect it to be.
 	 */
-	REQUIRE(view != NULL);
+	REQUIRE(DNS_DLZ_VALID(view->dlzdatabase));
 	REQUIRE(name != NULL);
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
@@ -301,53 +278,33 @@ dns_dlzfindzone(dns_view_t *view, dns_name_t *name,
 	/* count the number of labels in the name */
 	namelabels = dns_name_countlabels(name);
 
-	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched);
-	     dlzdb != NULL;
-	     dlzdb = ISC_LIST_NEXT(dlzdb, link))
-	{
-		REQUIRE(DNS_DLZ_VALID(dlzdb));
+	/*
+	 * loop through starting with the longest domain name and
+	 * trying shorter names portions of the name until we find a
+	 * match, have an error, or are below the 'minlabels'
+	 * threshold.  minlabels is 0, if the standard database didn't
+	 * have a zone name match.  Otherwise minlabels is the number
+	 * of labels in that name.  We need to beat that for a
+	 * "better" match for the DLZ database to be authoritative
+	 * instead of the standard database.
+	 */
+	for (i = namelabels; i > minlabels && i > 1; i--) {
+		if (i == namelabels) {
+			result = dns_name_copy(name, zonename, NULL);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+		} else
+			dns_name_split(name, i, NULL, zonename);
 
-		/*
-		 * loop through starting with the longest domain name and
-		 * trying shorter names portions of the name until we find a
-		 * match, have an error, or are below the 'minlabels'
-		 * threshold.  minlabels is 0, if neither the standard
-		 * database nor any previous DLZ database had a zone name
-		 * match. Otherwise minlabels is the number of labels
-		 * in that name.  We need to beat that for a "better"
-		 * match for this DLZ database to be authoritative.
-		 */
-		for (i = namelabels; i > minlabels && i > 1; i--) {
-			if (i == namelabels) {
-				result = dns_name_copy(name, zonename, NULL);
-				if (result != ISC_R_SUCCESS)
-					return (result);
-			} else
-				dns_name_split(name, i, NULL, zonename);
-
-			/* ask SDLZ driver if the zone is supported */
-			db = NULL;
-			findzone = dlzdb->implementation->methods->findzone;
-			result = (*findzone)(dlzdb->implementation->driverarg,
-					     dlzdb->dbdata, dlzdb->mctx,
-					     view->rdclass, zonename, &db);
-
-			if (result != ISC_R_NOTFOUND) {
-				if (best != NULL)
-					dns_db_detach(&best);
-				dns_db_attach(db, &best);
-				minlabels = i;
-			} else if (db != NULL)
-				dns_db_detach(&db);
-		}
+		/* ask SDLZ driver if the zone is supported */
+		dlzdatabase = view->dlzdatabase;
+		findzone = dlzdatabase->implementation->methods->findzone;
+		result = (*findzone)(dlzdatabase->implementation->driverarg,
+				     dlzdatabase->dbdata, dlzdatabase->mctx,
+				     view->rdclass, zonename, dbp);
+		if (result != ISC_R_NOTFOUND)
+			return (result);
 	}
-
-	if (best != NULL) {
-		dns_db_attach(best, dbp);
-		dns_db_detach(&best);
-		return (ISC_R_SUCCESS);
-	}
-
 	return (ISC_R_NOTFOUND);
 }
 
@@ -571,19 +528,20 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp) {
  * specific functionality on the zone
  */
 isc_result_t
-dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
-		      const char *zone_name)
-{
+dns_dlz_writeablezone(dns_view_t *view, const char *zone_name) {
 	dns_zone_t *zone = NULL;
 	dns_zone_t *dupzone = NULL;
 	isc_result_t result;
 	isc_buffer_t buffer;
 	dns_fixedname_t fixorigin;
 	dns_name_t *origin;
+	dns_dlzdb_t *dlzdatabase;
 
-	REQUIRE(DNS_DLZ_VALID(dlzdb));
+	REQUIRE(DNS_DLZ_VALID(view->dlzdatabase));
 
-	REQUIRE(dlzdb->configure_callback != NULL);
+	dlzdatabase = view->dlzdatabase;
+
+	REQUIRE(dlzdatabase->configure_callback != NULL);
 
 	isc_buffer_init(&buffer, zone_name, strlen(zone_name));
 	isc_buffer_add(&buffer, strlen(zone_name));
@@ -614,15 +572,16 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 
 	dns_zone_setadded(zone, ISC_TRUE);
 
-	if (dlzdb->ssutable == NULL) {
-		result = dns_ssutable_createdlz(dlzdb->mctx,
-						&dlzdb->ssutable, dlzdb);
+	if (dlzdatabase->ssutable == NULL) {
+		result = dns_ssutable_createdlz(dlzdatabase->mctx,
+						&dlzdatabase->ssutable,
+						view->dlzdatabase);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	}
-	dns_zone_setssutable(zone, dlzdb->ssutable);
+	dns_zone_setssutable(zone, dlzdatabase->ssutable);
 
-	result = dlzdb->configure_callback(view, dlzdb, zone);
+	result = dlzdatabase->configure_callback(view, zone);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -644,31 +603,34 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
  * the backend an opportunity to configure parameters related to DLZ.
  */
 isc_result_t
-dns_dlzconfigure(dns_view_t *view, dns_dlzdb_t *dlzdb,
-		 dlzconfigure_callback_t callback)
+dns_dlzconfigure(dns_view_t *view, isc_result_t (*callback)(dns_view_t *,
+		 dns_zone_t *))
 {
 	dns_dlzimplementation_t *impl;
+	dns_dlzdb_t *dlzdatabase;
 	isc_result_t result;
 
-	REQUIRE(DNS_DLZ_VALID(dlzdb));
-	REQUIRE(dlzdb->implementation != NULL);
+	REQUIRE(view != NULL);
+	REQUIRE(DNS_DLZ_VALID(view->dlzdatabase));
+	REQUIRE(view->dlzdatabase->implementation != NULL);
 
-	impl = dlzdb->implementation;
+	dlzdatabase = view->dlzdatabase;
+	impl = dlzdatabase->implementation;
 
 	if (impl->methods->configure == NULL)
 		return (ISC_R_SUCCESS);
 
-	dlzdb->configure_callback = callback;
+	dlzdatabase->configure_callback = callback;
 
-	result = impl->methods->configure(impl->driverarg, dlzdb->dbdata,
-					  view, dlzdb);
+	result = impl->methods->configure(impl->driverarg,
+					  dlzdatabase->dbdata, view);
 	return (result);
 }
 
 isc_boolean_t
-dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, dns_name_t *signer,
-		 dns_name_t *name, isc_netaddr_t *tcpaddr,
-		 dns_rdatatype_t type, const dst_key_t *key)
+dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase,
+		  dns_name_t *signer, dns_name_t *name, isc_netaddr_t *tcpaddr,
+		  dns_rdatatype_t type, const dst_key_t *key)
 {
 	dns_dlzimplementation_t *impl;
 	isc_boolean_t r;

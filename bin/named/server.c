@@ -1347,7 +1347,7 @@ cache_sharable(dns_view_t *originview, dns_view_t *view,
  * Callback from DLZ configure when the driver sets up a writeable zone
  */
 static isc_result_t
-dlzconfigure_callback(dns_view_t *view, dns_dlzdb_t *dlzdb, dns_zone_t *zone) {
+dlzconfigure_callback(dns_view_t *view, dns_zone_t *zone) {
 	dns_name_t *origin = dns_zone_getorigin(zone);
 	dns_rdataclass_t zclass = view->rdclass;
 	isc_result_t result;
@@ -1357,7 +1357,8 @@ dlzconfigure_callback(dns_view_t *view, dns_dlzdb_t *dlzdb, dns_zone_t *zone) {
 		return (result);
 	dns_zone_setstats(zone, ns_g_server->zonestats);
 
-	return (ns_zone_configure_writeable_dlz(dlzdb, zone, zclass, origin));
+	return (ns_zone_configure_writeable_dlz(view->dlzdatabase,
+						zone, zclass, origin));
 }
 
 static isc_result_t
@@ -1568,7 +1569,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	const cfg_obj_t *forwarders;
 	const cfg_obj_t *alternates;
 	const cfg_obj_t *zonelist;
-	const cfg_obj_t *dlzlist;
 	const cfg_obj_t *dlz;
 	unsigned int dlzargc;
 	char **dlzargv;
@@ -1759,27 +1759,18 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	/*
 	 * Create Dynamically Loadable Zone driver.
 	 */
-	dlzlist = NULL;
+	dlz = NULL;
 	if (voptions != NULL)
-		(void)cfg_map_get(voptions, "dlz", &dlzlist);
+		(void)cfg_map_get(voptions, "dlz", &dlz);
 	else
-		(void)cfg_map_get(config, "dlz", &dlzlist);
+		(void)cfg_map_get(config, "dlz", &dlz);
 
-	for (element = cfg_list_first(dlzlist);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
-		obj = NULL;
-		const cfg_obj_t *dlzopts;
-
-		dlz = cfg_listelt_value(element);
-		dlzopts = cfg_tuple_get(dlz, "options");
-		(void)cfg_map_get(dlzopts, "database", &obj);
+	obj = NULL;
+	if (dlz != NULL) {
+		(void)cfg_map_get(cfg_tuple_get(dlz, "options"),
+				  "database", &obj);
 		if (obj != NULL) {
-			dns_dlzdb_t *dlzdb = NULL;
-			const cfg_obj_t *name, *search = NULL;
 			char *s = isc_mem_strdup(mctx, cfg_obj_asstring(obj));
-
 			if (s == NULL) {
 				result = ISC_R_NOMEMORY;
 				goto cleanup;
@@ -1791,10 +1782,10 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 				goto cleanup;
 			}
 
-			name = cfg_tuple_get(dlz, "name");
-			result = dns_dlzcreate(mctx, cfg_obj_asstring(name),
+			obj = cfg_tuple_get(dlz, "name");
+			result = dns_dlzcreate(mctx, cfg_obj_asstring(obj),
 					       dlzargv[0], dlzargc, dlzargv,
-					       &dlzdb);
+					       &view->dlzdatabase);
 			isc_mem_free(mctx, s);
 			isc_mem_put(mctx, dlzargv, dlzargc * sizeof(*dlzargv));
 			if (result != ISC_R_SUCCESS)
@@ -1804,19 +1795,9 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			 * If the dlz backend supports configuration,
 			 * then call its configure method now.
 			 */
-			result = dns_dlzconfigure(view, dlzdb,
-						  dlzconfigure_callback);
+			result = dns_dlzconfigure(view, dlzconfigure_callback);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
-
-			(void)cfg_map_get(dlzopts, "search", &search);
-			if (search == NULL || cfg_obj_asboolean(search))
-				ISC_LIST_APPEND(view->dlz_searched,
-						dlzdb, link);
-			else
-				ISC_LIST_APPEND(view->dlz_unsearched,
-						dlzdb, link);
-
 		}
 	}
 
@@ -3482,8 +3463,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	signing = NULL;
 	if ((strcasecmp(ztypestr, "master") == 0 ||
 	     strcasecmp(ztypestr, "slave") == 0) &&
-	    cfg_map_get(zoptions, "inline-signing", &signing)
-		    == ISC_R_SUCCESS &&
+	    cfg_map_get(zoptions, "inline-signing", &signing) == ISC_R_SUCCESS &&
 	    cfg_obj_asboolean(signing))
 	{
 		dns_zone_getraw(zone, &raw);
