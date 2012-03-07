@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.4 2009/01/29 01:03:56 jinmei Exp $ */
+/* $Id$ */
 
 #ifndef ISC_STATS_H
 #define ISC_STATS_H 1
