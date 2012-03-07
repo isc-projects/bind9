@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.17.558.2 2011/12/02 23:45:51 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

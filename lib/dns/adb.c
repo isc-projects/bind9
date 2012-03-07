@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.247.172.13 2011/12/05 17:24:16 each Exp $ */
+/* $Id$ */
 
 /*! \file
  *

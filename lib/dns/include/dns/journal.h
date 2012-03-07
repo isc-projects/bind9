@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.37 2009/11/04 23:48:18 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1

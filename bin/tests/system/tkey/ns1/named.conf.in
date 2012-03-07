@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named.conf.in,v 1.8.172.2 2011/11/03 23:45:34 tbox Exp $ */
+/* $Id$ */
 
 controls { /* empty */ };
 

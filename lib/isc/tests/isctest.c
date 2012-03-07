@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isctest.c,v 1.3.24.2 2011/09/02 20:22:26 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rriterator.h,v 1.2.132.2 2011/11/01 23:46:12 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_RRITERATOR_H
 #define DNS_RRITERATOR_H 1

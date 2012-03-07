@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator_test.c,v 1.1.6.7 2011/09/02 20:22:25 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

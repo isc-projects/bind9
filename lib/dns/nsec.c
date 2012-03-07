@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.c,v 1.13.188.2 2011/03/12 04:58:28 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

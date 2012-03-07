@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.168.6.3 2011/04/06 10:31:57 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

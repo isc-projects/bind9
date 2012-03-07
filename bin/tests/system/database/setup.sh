@@ -14,6 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.2.4.3 2011/02/28 01:19:27 tbox Exp $
+# $Id$
 
 cp ns1/named.conf1 ns1/named.conf

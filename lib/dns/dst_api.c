@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.47.22.11 2011/10/20 21:26:16 marka Exp $
+ * $Id$
  */
 
 /*! \file */

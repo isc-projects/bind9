@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: events.h,v 1.53.104.2 2010/05/10 23:49:42 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_EVENTS_H
 #define DNS_EVENTS_H 1

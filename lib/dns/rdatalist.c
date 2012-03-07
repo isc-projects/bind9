@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist.c,v 1.36.270.4 2011/02/21 23:46:38 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

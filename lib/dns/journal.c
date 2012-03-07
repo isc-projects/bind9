@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.110.24.4 2011/03/12 04:58:27 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

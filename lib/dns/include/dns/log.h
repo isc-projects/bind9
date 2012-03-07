@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.44.186.1 2009/12/18 22:13:54 each Exp $ */
+/* $Id$ */
 
 /*! \file dns/log.h
  * \author  Principal Authors: DCL */

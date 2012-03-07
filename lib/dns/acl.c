@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.53.186.2 2011/09/05 23:45:32 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

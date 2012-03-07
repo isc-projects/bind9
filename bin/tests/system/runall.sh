@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: runall.sh,v 1.8.558.5 2011/12/19 23:12:35 marka Exp $
+# $Id$
 
 #
 # Run all the system tests.

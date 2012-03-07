@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.92.104.6 2011/03/12 04:58:29 tbox Exp $
+ * $Id$
  */
 /*! \file */
 #include <config.h>

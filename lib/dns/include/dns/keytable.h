@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.h,v 1.20.4.2 2010/06/25 03:51:07 marka Exp $ */
+/* $Id$ */
 
 #ifndef DNS_KEYTABLE_H
 #define DNS_KEYTABLE_H 1

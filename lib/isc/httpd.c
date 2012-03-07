@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.16.284.5 2011/03/11 07:12:01 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

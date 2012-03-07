@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.18 2009/10/30 05:08:23 marka Exp $
+ * $Id$
  */
 
 #ifdef OPENSSL

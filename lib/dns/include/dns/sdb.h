@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.23 2009/01/17 23:47:43 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1

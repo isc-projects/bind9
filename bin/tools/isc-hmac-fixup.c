@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isc-hmac-fixup.c,v 1.2.2.3 2010/03/10 02:19:08 marka Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

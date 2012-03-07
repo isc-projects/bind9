@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.65.154.3 2010/12/21 04:30:15 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

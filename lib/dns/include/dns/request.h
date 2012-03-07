@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.h,v 1.29 2009/01/17 23:47:43 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1

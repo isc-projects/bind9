@@ -18,7 +18,7 @@
 #ifndef GENERIC_NAPTR_35_H
 #define GENERIC_NAPTR_35_H 1
 
-/* $Id: naptr_35.h,v 1.1.2.3 2011/08/16 23:45:29 tbox Exp $ */
+/* $Id$ */
 
 /*!
  *  \brief Per RFC2915 */

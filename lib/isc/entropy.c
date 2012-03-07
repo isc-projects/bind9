@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.20.186.2 2010/08/10 23:47:45 tbox Exp $ */
+/* $Id$ */
 
 /*! \file
  * \brief

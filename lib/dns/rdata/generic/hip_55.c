@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hip_55.c,v 1.6.4.2 2011/01/13 04:48:57 tbox Exp $ */
+/* $Id$ */
 
 /* reviewed: TBC */
 

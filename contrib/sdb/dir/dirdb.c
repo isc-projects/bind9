@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dirdb.c,v 1.12 2007/06/19 23:47:07 tbox Exp $ */
+/* $Id$ */
 
 /*
  * A simple database driver that returns basic information about

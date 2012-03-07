@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ecdb.c,v 1.4.24.4 2011/12/20 23:45:39 tbox Exp $ */
+/* $Id$ */
 
 #include "config.h"
 

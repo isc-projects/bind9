@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2.4.2 2011/03/18 21:37:09 fdupont Exp $
+# $Id$
 
 #
 # Clean up after resolver tests.

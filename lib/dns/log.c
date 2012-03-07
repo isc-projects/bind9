@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.45.558.2 2009/12/18 23:48:18 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

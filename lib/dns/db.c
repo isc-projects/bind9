@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.95 2009/10/08 23:13:06 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

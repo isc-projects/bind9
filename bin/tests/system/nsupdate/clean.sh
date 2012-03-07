@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.16.34.7 2011/05/23 22:23:05 each Exp $
+# $Id$
 
 #
 # Clean up after zone transfer tests.

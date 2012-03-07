@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resconf.c,v 1.3.104.2 2011/03/12 04:58:29 tbox Exp $ */
+/* $Id$ */
 
 /*! \file resconf.c */
 

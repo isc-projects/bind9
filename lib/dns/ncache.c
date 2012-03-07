@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.43.268.10 2011/06/08 23:15:42 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.83 2012/02/22 00:31:57 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

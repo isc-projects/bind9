@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dhcid_49.c,v 1.7 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id$ */
 
 /* RFC 4701 */
 
