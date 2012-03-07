@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.54 2011/03/05 23:52:30 tbox Exp $ */
+/* $Id$ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 

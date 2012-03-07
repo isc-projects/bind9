@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.133 2011/03/21 07:22:13 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private_test.c,v 1.2 2011/10/28 06:20:07 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

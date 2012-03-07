@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.184 2012/02/13 23:46:24 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

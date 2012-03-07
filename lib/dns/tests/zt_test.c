@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt_test.c,v 1.5 2011/09/03 16:15:08 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

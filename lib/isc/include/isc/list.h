@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: list.h,v 1.26 2011/09/02 23:46:33 tbox Exp $ */
+/* $Id$ */
 
 #ifndef ISC_LIST_H
 #define ISC_LIST_H 1

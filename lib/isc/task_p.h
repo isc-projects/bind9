@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_p.h,v 1.15 2011/09/02 23:46:32 tbox Exp $ */
+/* $Id$ */
 
 #ifndef ISC_TASK_P_H
 #define ISC_TASK_P_H

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.160 2010/12/08 02:46:16 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.20 2011/08/29 04:15:50 marka Exp $ */
+/* $Id$ */
 
 /*! \file
  * \brief

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.c,v 1.16 2011/06/10 01:51:09 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.31 2011/03/12 04:59:49 tbox Exp $ */
+/* $Id$ */
 
 /*! \file
  * \author  Principal Authors: DCL */

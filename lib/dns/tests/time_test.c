@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time_test.c,v 1.3 2011/07/06 01:36:32 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

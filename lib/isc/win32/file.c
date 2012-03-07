@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.40 2011/03/04 14:07:03 smann Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

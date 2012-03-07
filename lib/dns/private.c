@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.c,v 1.7 2011/10/28 06:20:06 each Exp $ */
+/* $Id$ */
 
 #include "config.h"
 

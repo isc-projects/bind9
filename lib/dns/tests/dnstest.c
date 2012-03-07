@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.11 2011/12/05 23:46:35 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

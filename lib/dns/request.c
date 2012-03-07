@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.91 2012/02/07 23:47:24 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

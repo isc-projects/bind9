@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: uri_256.c,v 1.2 2011/03/03 14:10:27 fdupont Exp $ */
+/* $Id$ */
 
 #ifndef GENERIC_URI_256_C
 #define GENERIC_URI_256_C 1
