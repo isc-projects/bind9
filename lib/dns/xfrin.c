@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.172 2011/12/22 07:32:41 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

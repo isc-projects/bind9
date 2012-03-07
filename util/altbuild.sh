@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.19 2008/09/25 04:02:39 tbox Exp $
+# $Id$
 
 #
 # "Alternative build" test.

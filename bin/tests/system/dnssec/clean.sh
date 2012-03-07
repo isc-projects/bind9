@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.46.36.2 2012/02/22 23:47:08 tbox Exp $
+# $Id$
 
 rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed
 rm -f */trusted.conf */managed.conf */tmp* */*.jnl */*.bk

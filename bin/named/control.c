@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.47 2011/11/03 23:05:30 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

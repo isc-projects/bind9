@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.116 2011/11/03 23:05:30 each Exp $ */
+/* $Id$ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1

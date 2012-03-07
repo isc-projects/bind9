@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.381.16.1 2012/02/07 01:09:42 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

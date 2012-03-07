@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.208.72.2 2012/02/15 23:46:20 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.284 2011/11/09 22:05:09 each Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

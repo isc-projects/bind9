@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.638.4.5 2012/02/23 07:02:18 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

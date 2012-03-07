@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tabify-changes,v 1.4 2007/06/19 23:47:24 tbox Exp $
+# $Id$
 
 expand ${1} |
 sed \
