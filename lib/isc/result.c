@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.73 2012/01/27 23:46:59 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

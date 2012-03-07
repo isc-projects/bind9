@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: file.c,v 1.58 2011/03/04 14:07:03 smann Exp $ */
+/* $Id$ */
 
 /*! \file */
 

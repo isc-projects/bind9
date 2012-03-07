@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_api.c,v 1.9 2011/09/02 23:46:32 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

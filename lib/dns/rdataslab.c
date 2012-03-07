@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.55 2011/12/20 00:55:01 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

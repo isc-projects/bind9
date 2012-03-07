@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.2 2011/08/16 23:46:36 tbox Exp $ */
+/* $Id$ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 

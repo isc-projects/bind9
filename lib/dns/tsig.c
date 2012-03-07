@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.151 2011/11/02 19:41:02 each Exp $
+ * $Id$
  */
 /*! \file */
 #include <config.h>

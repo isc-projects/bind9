@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_test.c,v 1.6 2011/12/01 22:30:37 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

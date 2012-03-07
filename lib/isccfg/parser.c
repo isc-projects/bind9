@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.142 2011/11/03 05:15:09 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

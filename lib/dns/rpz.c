@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rpz.c,v 1.8 2011/10/13 01:32:34 vjs Exp $ */
+/* $Id$ */
 
 /*! \file */
 

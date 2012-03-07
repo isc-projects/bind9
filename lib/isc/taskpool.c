@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.c,v 1.21 2011/09/02 21:15:38 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

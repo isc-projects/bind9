@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rriterator.c,v 1.4 2011/11/01 23:47:00 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

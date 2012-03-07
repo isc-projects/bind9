@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rrsig_46.c,v 1.15 2011/03/05 19:39:07 each Exp $ */
+/* $Id$ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
