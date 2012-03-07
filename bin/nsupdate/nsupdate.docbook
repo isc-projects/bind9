@@ -251,7 +251,7 @@
       lists of non-meta types for which the type-specific presentation
       formats are known.  <option>-T</option> prints out the list of
       IANA-assigned types.  <option>-P</option> prints out the list of
-      private types specific to <command>named<command>.  These options
+      private types specific to <command>named</command>.  These options
       may be combined.  <command>nsupdate</command> will exit after the
       lists are printed.
     </para>
