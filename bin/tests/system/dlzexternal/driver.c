@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.9 2011/11/30 00:48:51 marka Exp $ */
+/* $Id$ */
 
 /*
  * This provides a very simple example of an external loadable DLZ

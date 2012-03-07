@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_example.c,v 1.3 2011/10/20 22:01:48 each Exp $ */
+/* $Id$ */
 
 /*
  * This provides a very simple example of an external loadable DLZ

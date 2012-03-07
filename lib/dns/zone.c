@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.675 2012/02/23 07:09:29 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

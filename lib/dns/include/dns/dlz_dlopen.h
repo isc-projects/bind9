@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_dlopen.h,v 1.4 2011/10/11 23:46:45 tbox Exp $ */
+/* $Id$ */
 
 /*! \file dns/dlz_open.h */
 
