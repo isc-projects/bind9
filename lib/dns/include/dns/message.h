@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.132.528.1 2012/02/22 05:03:39 marka Exp $ */
+/* $Id$ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
