@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update-drafts.pl,v 1.7 2007/06/19 23:47:24 tbox Exp $
+# $Id$
 
 #
 # Replace internet drafts with updated versions, if any.
