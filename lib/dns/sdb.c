@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.76.8.1 2011/03/14 13:40:14 fdupont Exp $ */
+/* $Id$ */
 
 /*! \file */
 

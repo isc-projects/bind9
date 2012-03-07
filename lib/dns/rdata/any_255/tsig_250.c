@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.65 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id$ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 

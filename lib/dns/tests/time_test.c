@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time_test.c,v 1.2.2.3 2011/07/08 22:57:25 smann Exp $ */
+/* $Id$ */
 
 /*! \file */
 

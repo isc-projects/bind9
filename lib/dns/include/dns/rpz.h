@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rpz.h,v 1.3.8.2 2011/10/31 02:55:07 marka Exp $ */
+/* $Id$ */
 
 #ifndef DNS_RPZ_H
 #define DNS_RPZ_H 1

@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3.8.8 2012/01/07 23:46:29 tbox Exp $
+# $Id$
 
 # test response policy zones (RPZ)
 

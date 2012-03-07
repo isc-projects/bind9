@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.4.244.2 2011/05/16 23:47:16 tbox Exp $
+# $Id$
 
 top_srcdir =	@top_srcdir@
 srcdir =	@top_srcdir@/lib/irs

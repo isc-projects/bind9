@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ecdb.c,v 1.8.8.1 2011/12/20 00:12:09 marka Exp $ */
+/* $Id$ */
 
 #include "config.h"
 

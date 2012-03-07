@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcldb.c,v 1.10 2007/06/19 23:47:10 tbox Exp $ */
+/* $Id$ */
 
 /*
  * A simple database driver that calls a Tcl procedure to define

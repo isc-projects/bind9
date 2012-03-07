@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.3 2007/06/18 23:47:51 tbox Exp $ */
+/* $Id$ */
 
 #include <stdio.h>
 #include <lwres/platform.h>

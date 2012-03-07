@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print_p.h,v 1.6 2010/08/16 23:46:52 tbox Exp $ */
+/* $Id$ */
 
 #ifndef LWRES_PRINT_P_H
 #define LWRES_PRINT_P_H 1

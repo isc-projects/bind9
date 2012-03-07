@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.95.302.3 2011/03/11 06:47:08 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

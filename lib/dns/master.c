@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.178.346.4 2012/02/14 23:46:30 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

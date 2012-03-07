@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.c,v 1.20.814.2 2011/03/12 04:59:18 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

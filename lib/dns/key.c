@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key.c,v 1.8.814.2 2011/10/20 23:46:28 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

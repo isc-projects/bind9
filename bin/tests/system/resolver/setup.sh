@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3.38.4 2012/02/09 23:46:25 tbox Exp $
+# $Id$
 
 ../../../tools/genrandom 400 random.data
 

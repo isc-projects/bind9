@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.69.148.3 2011/06/08 23:02:43 each Exp $ */
+/* $Id$ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1

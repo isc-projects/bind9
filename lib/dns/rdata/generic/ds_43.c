@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.c,v 1.16 2010/12/23 23:47:08 tbox Exp $ */
+/* $Id$ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 

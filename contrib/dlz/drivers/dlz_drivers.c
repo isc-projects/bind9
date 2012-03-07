@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_drivers.c,v 1.3.16.1 2011/03/10 04:29:17 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

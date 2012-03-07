@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapi_krb.c,v 1.3.4.2 2011/04/19 22:12:14 smann Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

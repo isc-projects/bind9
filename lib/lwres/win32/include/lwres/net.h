@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.6 2007/06/19 23:47:23 tbox Exp $ */
+/* $Id$ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1

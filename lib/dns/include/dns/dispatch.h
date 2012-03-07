@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.62 2009/01/27 23:47:54 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1

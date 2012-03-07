@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bindevt.c,v 1.5 2007/06/19 23:47:24 tbox Exp $ */
+/* $Id$ */
 
 /*
  * bindevt.c : Defines the entry point for event log viewer DLL.

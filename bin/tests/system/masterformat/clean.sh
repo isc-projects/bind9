@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5.732.2 2012/02/14 23:46:29 tbox Exp $
+# $Id$
 
 rm -f named-compilezone
 rm -f ns1/example.db.raw

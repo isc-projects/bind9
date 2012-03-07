@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.174.8.1 2011/03/11 06:47:04 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

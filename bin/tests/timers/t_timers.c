@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.30.424.3 2011/03/14 14:13:58 fdupont Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

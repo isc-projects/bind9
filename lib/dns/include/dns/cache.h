@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.h,v 1.28.428.2 2011/03/03 23:47:09 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H 1

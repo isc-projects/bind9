@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz.c,v 1.10.14.2 2011/03/12 04:59:16 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

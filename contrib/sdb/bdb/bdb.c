@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bdb.c,v 1.1 2002/05/16 04:25:22 marka Exp $ */
+/* $Id$ */
 
 /*
  * BIND 9.1.x simple database driver

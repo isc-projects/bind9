@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash_test.c,v 1.3.24.3 2011/09/05 23:45:54 tbox Exp $ */
+/* $Id$ */
 
 /* ! \file */
 

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_dlopen.h,v 1.2.2.2 2011/03/17 09:41:07 fdupont Exp $ */
+/* $Id$ */
 
 /*! \file dns/dlz_open.h */
 

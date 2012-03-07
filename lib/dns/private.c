@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.c,v 1.3 2009/10/09 23:48:09 tbox Exp $ */
+/* $Id$ */
 
 #include "config.h"
 

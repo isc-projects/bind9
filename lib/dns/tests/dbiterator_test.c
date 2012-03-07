@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator_test.c,v 1.5.4.4 2011/09/04 19:57:32 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

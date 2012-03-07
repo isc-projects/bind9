@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.178.8.2 2011/08/30 21:46:46 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

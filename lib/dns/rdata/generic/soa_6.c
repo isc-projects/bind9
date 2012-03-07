@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.64 2009/12/04 21:09:34 marka Exp $ */
+/* $Id$ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 

@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3.250.2 2011/03/21 23:46:58 tbox Exp $
+# $Id$
 
 rm -f K* dsset-* *.signed *.new random.data
 rm -f zsk.key ksk.key parent.ksk.key parent.zsk.key 

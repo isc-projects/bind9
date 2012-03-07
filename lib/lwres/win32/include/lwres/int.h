@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: int.h,v 1.4 2007/06/19 23:47:23 tbox Exp $ */
+/* $Id$ */
 
 #ifndef LWRES_INT_H
 #define LWRES_INT_H 1

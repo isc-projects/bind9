@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-pullups.pl,v 1.12 2007/06/19 23:47:24 tbox Exp $
+# $Id$
 
 # Given two CHANGES files, list [bug] entries present in the
 # first one but not in the second one.

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: nt-kit,v 1.9 2007/06/19 23:47:24 tbox Exp $
+# $Id$
 
 # XXX no command line options at all.  especially useful would be a way
 # to specify the target directory on the NT machine, since it is needed

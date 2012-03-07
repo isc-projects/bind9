@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-instincludes.sh,v 1.11 2007/06/19 23:47:24 tbox Exp $
+# $Id$
 
 #
 # Check the installed bind9 header files to make sure that no header

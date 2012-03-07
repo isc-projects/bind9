@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.73.38.2 2011/02/28 01:20:03 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

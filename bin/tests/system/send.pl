@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: send.pl,v 1.5.814.2 2011/03/05 23:52:08 tbox Exp $
+# $Id$
 
 #
 # Send a file to a given address and port using TCP.  Used for

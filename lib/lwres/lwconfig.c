@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.48.436.2 2011/03/12 04:59:19 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

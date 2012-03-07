@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutexblock.c,v 1.20.814.2 2011/11/01 23:46:34 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

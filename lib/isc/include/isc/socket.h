@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.94 2009/10/01 01:30:01 sar Exp $ */
+/* $Id$ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1

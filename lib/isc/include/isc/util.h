@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.32.170.3 2011/09/05 18:01:01 each Exp $ */
+/* $Id$ */
 
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.26.8.1 2011/10/30 23:41:48 marka Exp $ */
+/* $Id$ */
 
 /*
  * win32 configuration file

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rpz.c,v 1.7.8.1 2011/10/14 03:51:06 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: mkreslib.pl,v 1.12 2007/06/19 23:47:24 tbox Exp $
+# $Id$
 
 # Build a res_* library distribution from the BIND 8 source
 

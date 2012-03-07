@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.85.594.3 2011/12/05 16:58:08 each Exp $ */
+/* $Id$ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
