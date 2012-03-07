@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.12.332.4 2011/01/13 22:29:39 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 #include <stdio.h>

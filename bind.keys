@@ -1,4 +1,4 @@
-/* $Id: bind.keys,v 1.2.2.4 2011/01/04 19:15:12 each Exp $ */
+/* $Id$ */
 # This file contains current trust anchors for the DNS root zone (".")
 # and for the ISC DNSSEC Lookaside Validation zone ("dlv.isc.org").  It is
 # provided within BIND 9 for convenience of configuration.  To use these

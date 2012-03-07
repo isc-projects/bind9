@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.33.266.4 2010/12/03 23:45:46 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

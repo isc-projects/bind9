@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_rbt.c,v 1.30.332.4 2011/03/12 04:57:24 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

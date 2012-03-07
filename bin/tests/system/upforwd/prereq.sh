@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.1.8.3 2012/01/23 23:45:25 tbox Exp $
+# $Id$
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then

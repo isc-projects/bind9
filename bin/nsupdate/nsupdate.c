@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.163.48.20 2011/11/03 04:31:30 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.225.26.12 2011/12/07 17:24:55 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

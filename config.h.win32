@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.19.48.4 2011/10/31 23:45:36 tbox Exp $ */
+/* $Id$ */
 
 /*
  * win32 configuration file

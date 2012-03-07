@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.30.334.2 2011/09/23 23:45:16 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

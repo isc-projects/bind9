@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.259.12.8 2011/07/28 04:43:19 marka Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

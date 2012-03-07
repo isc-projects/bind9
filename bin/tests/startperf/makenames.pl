@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: makenames.pl,v 1.3.2.2 2011/09/05 07:19:25 each Exp $
+# $Id$
 use strict;
 
 die "Usage: makenames.pl <num>" if (@ARGV == 0);

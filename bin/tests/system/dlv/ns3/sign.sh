@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.4.332.4 2011/05/28 00:01:47 tbox Exp $
+# $Id$
 
 (cd ../ns6 && sh -e sign.sh)
 

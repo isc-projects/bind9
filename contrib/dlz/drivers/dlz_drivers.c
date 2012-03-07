@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_drivers.c,v 1.2 2005/09/05 00:10:55 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

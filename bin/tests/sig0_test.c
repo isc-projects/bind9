@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig0_test.c,v 1.17 2008/07/22 23:47:04 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

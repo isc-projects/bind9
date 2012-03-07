@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstall.cpp,v 1.7.332.2 2009/09/29 23:47:29 tbox Exp $ */
+/* $Id$ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation

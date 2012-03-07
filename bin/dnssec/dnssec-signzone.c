@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.28 2011/08/31 03:07:25 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

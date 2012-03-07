@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named.conf.base,v 1.2.6.4 2011/12/01 01:05:02 marka Exp $ */
+/* $Id$ */
 
 options {
 	query-source address 10.53.0.4;

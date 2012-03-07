@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.6.250.2 2011/11/03 23:45:17 tbox Exp $
+# $Id$
 
 rm -f dig.out.* random.data ns1/named.conf
 rm -f K* ns1/K*

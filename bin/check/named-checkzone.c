@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.51.34.9 2011/12/22 17:27:55 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

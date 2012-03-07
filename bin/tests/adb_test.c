@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb_test.c,v 1.68.332.2 2011/08/30 23:45:13 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

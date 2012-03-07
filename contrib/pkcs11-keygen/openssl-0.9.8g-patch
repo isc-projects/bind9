@@ -8454,8 +8454,8 @@ diff -r -u -N openssl-0.9.8g/demos/easy_tls/cacerts.pem openssl/demos/easy_tls/c
 --- openssl-0.9.8g/demos/easy_tls/cacerts.pem	2001-09-17 21:06:57.000000000 +0200
 +++ openssl/demos/easy_tls/cacerts.pem	2007-10-25 01:27:09.000000000 +0200
 @@ -1,4 +1,4 @@
--$Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
-+$Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
+-$Id$
++$Id$
  
  issuer= /C=AU/ST=Queensland/O=CryptSoft Pty Ltd/CN=Test PCA (1024 bit)
  subject=/C=AU/ST=Queensland/O=CryptSoft Pty Ltd/CN=Test CA (1024 bit)
@@ -8463,8 +8463,8 @@ diff -r -u -N openssl-0.9.8g/demos/easy_tls/cert.pem openssl/demos/easy_tls/cert
 --- openssl-0.9.8g/demos/easy_tls/cert.pem	2001-09-17 21:06:57.000000000 +0200
 +++ openssl/demos/easy_tls/cert.pem	2007-10-25 01:27:09.000000000 +0200
 @@ -1,4 +1,4 @@
--$Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
-+$Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
+-$Id$
++$Id$
  
  Example certificate and key.
  
@@ -8475,8 +8475,8 @@ diff -r -u -N openssl-0.9.8g/demos/easy_tls/easy-tls.c openssl/demos/easy_tls/ea
  /* -*- Mode: C; c-file-style: "bsd" -*- */
  /*
   * easy-tls.c -- generic TLS proxy.
-- * $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
-+ * $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
+- * $Id$
++ * $Id$
   */
  /*
   (c) Copyright 1999 Bodo Moeller.  All rights reserved.
@@ -8484,8 +8484,8 @@ diff -r -u -N openssl-0.9.8g/demos/easy_tls/easy-tls.c openssl/demos/easy_tls/ea
   */
  
  static char const rcsid[] =
--"$Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $";
-+"$Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $";
+-"$Id$";
++"$Id$";
  
  #include <assert.h>
  #include <errno.h>
@@ -8496,8 +8496,8 @@ diff -r -u -N openssl-0.9.8g/demos/easy_tls/easy-tls.h openssl/demos/easy_tls/ea
  /* -*- Mode: C; c-file-style: "bsd" -*- */
  /*
   * easy-tls.h -- generic TLS proxy.
-- * $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
-+ * $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
+- * $Id$
++ * $Id$
   */
  /*
   * (c) Copyright 1999 Bodo Moeller.  All rights reserved.
@@ -8506,8 +8506,8 @@ diff -r -u -N openssl-0.9.8g/demos/easy_tls/Makefile openssl/demos/easy_tls/Make
 +++ openssl/demos/easy_tls/Makefile	2007-10-25 01:27:09.000000000 +0200
 @@ -1,5 +1,5 @@
  # Makefile for easy-tls example application (rudimentary client and server)
--# $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
-+# $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
+-# $Id$
++# $Id$
  
  SOLARIS_CFLAGS=-Wall -pedantic -g -O2
  SOLARIS_LIBS=-lxnet
@@ -8516,8 +8516,8 @@ diff -r -u -N openssl-0.9.8g/demos/easy_tls/test.c openssl/demos/easy_tls/test.c
 +++ openssl/demos/easy_tls/test.c	2007-10-25 01:27:09.000000000 +0200
 @@ -1,5 +1,5 @@
  /* test.c */
--/* $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $ */
-+/* $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $ */
+-/* $Id$ */
++/* $Id$ */
  
  #define L_PORT 9999
  #define C_PORT 443
@@ -8526,8 +8526,8 @@ diff -r -u -N openssl-0.9.8g/demos/easy_tls/test.h openssl/demos/easy_tls/test.h
 +++ openssl/demos/easy_tls/test.h	2007-10-25 01:27:09.000000000 +0200
 @@ -1,5 +1,5 @@
  /* test.h */
--/* $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $ */
-+/* $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $ */
+-/* $Id$ */
++/* $Id$ */
  
  
  void test_process_init(int fd, int client_p, void *apparg);
@@ -8538,8 +8538,8 @@ diff -r -u -N openssl-0.9.8g/engines/vendor_defns/hwcryptohook.h openssl/engines
   * please contact nCipher.
   *
   *
-- * $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
-+ * $Id: openssl-0.9.8g-patch,v 1.2 2008/03/31 14:42:50 fdupont Exp $
+- * $Id$
++ * $Id$
   */
  
  #ifndef HWCRYPTOHOOK_H

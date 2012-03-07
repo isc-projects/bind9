@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keydelete.c,v 1.11.332.3 2010/12/09 01:12:55 marka Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

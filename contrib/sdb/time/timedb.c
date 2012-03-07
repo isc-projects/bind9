@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timedb.c,v 1.10 2007/06/19 23:47:10 tbox Exp $ */
+/* $Id$ */
 
 /*
  * A simple database driver that enables the server to return the

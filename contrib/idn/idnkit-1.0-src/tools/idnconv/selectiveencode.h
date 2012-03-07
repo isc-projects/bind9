@@ -1,4 +1,4 @@
-/* $Id: selectiveencode.h,v 1.1.1.1.1514.1 2009/09/01 03:32:08 jinmei Exp $ */
+/* $Id$ */
 /*
  * Copyright (c) 2000,2002 Japan Network Information Center.
  * All rights reserved.

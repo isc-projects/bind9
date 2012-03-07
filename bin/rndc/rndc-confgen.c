@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.26.44.3 2011/08/31 03:31:07 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

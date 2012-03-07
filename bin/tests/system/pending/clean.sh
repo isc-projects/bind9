@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2.4.5 2010/12/18 23:46:09 tbox Exp $
+# $Id$
 
 rm -rf */*.signed
 rm -rf */*.jnl

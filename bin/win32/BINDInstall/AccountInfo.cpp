@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: AccountInfo.cpp,v 1.8.332.2 2009/09/29 23:47:29 tbox Exp $ */
+/* $Id$ */
 
 #ifndef UNICODE
 #define UNICODE

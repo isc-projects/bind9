@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.166.34.11 2011/11/05 00:46:27 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

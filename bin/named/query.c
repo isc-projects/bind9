@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.313.20.34 2012/01/04 23:45:30 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.48.332.3 2011/08/28 09:16:12 marka Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

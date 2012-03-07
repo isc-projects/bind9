@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.10.332.2 2011/02/03 12:16:45 tbox Exp $
+# $Id$
 
 #
 # jnl and database files MUST be removed before we start

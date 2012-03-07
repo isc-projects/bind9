@@ -14,6 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.2.6.2 2010/11/16 02:43:24 sar Exp $
+# $Id$
 
 cp -f ns2/named01.conf ns2/named.conf

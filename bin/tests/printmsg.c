@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: printmsg.c,v 1.29.332.2 2011/08/25 23:45:14 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

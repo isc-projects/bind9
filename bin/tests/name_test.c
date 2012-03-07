@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name_test.c,v 1.41 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

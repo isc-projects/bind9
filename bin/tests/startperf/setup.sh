@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.4.2.3 2011/09/08 23:45:15 tbox Exp $
+# $Id$
 
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <number of zones>"

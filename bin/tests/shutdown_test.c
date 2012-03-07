@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: shutdown_test.c,v 1.23.332.2 2011/08/28 23:45:12 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

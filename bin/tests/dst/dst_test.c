@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_test.c,v 1.43.332.2 2009/03/02 23:47:11 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

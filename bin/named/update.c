@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.151.12.18 2011/11/03 02:58:57 each Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

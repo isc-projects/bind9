@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.10 2007/06/19 23:47:02 tbox Exp $
+# $Id$
 
 ../../genrandom 400 random.data
 

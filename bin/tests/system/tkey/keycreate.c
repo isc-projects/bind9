@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.15 2007/06/19 23:47:06 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

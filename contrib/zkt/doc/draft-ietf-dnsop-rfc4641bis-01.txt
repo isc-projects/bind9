@@ -2085,7 +2085,7 @@ Internet-Draft   DNSSEC Operational Practices, Version 2      March 2009
 
    In Appendix A: ZSK does not nescessarily sign the DNSKEY RRset.
 
-   $Id: draft-ietf-dnsop-rfc4641bis-01.txt,v 1.2.2.2 2010/06/23 03:11:26 marka Exp $
+   $Id$
 
 Authors' Addresses
 
