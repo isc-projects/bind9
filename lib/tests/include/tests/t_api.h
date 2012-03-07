@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.h,v 1.22 2007/06/19 23:47:24 tbox Exp $ */
+/* $Id$ */
 
 #ifndef TESTS_T_API_H
 #define TESTS_T_API_H 1

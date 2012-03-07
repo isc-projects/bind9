@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.66.48.8 2011/08/05 23:45:12 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

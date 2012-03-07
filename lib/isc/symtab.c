@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.30.332.4 2011/12/01 01:32:21 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.31.332.8 2012/01/27 23:45:32 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

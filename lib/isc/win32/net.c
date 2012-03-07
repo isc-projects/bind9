@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.18.64.4 2011/10/31 23:45:36 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

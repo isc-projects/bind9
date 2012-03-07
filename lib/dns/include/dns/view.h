@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.111.88.6 2010/09/24 08:30:28 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1

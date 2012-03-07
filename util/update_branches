@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.22 2007/06/18 23:47:57 tbox Exp $
+# $Id$
 
 #
 #  Track which branches are still open or not in the bind9 cvs repository.

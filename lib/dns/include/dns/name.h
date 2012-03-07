@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.126.332.7 2012/01/27 23:45:33 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1

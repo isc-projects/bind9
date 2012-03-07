@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.95.12.10 2011/11/30 04:25:09 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

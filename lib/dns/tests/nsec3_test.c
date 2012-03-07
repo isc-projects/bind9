@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3_test.c,v 1.2.6.2 2012/01/27 01:11:04 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

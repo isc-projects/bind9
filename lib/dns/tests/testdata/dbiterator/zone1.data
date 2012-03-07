@@ -12,7 +12,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: zone1.data,v 1.1.4.3 2011/08/23 23:53:14 tbox Exp $
+; $Id$
 
 $TTL 600
 @		in	soa	localhost. postmaster.localhost. (

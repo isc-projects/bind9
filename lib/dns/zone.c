@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.49 2012/01/31 22:37:36 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

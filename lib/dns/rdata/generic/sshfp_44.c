@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sshfp_44.c,v 1.7 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id$ */
 
 /* RFC 4255 */
 

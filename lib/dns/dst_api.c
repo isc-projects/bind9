@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.16.12.17 2011/09/05 18:01:47 each Exp $
+ * $Id$
  */
 
 /*! \file */

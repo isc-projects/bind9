@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.11.44.2 2008/12/24 23:47:02 tbox Exp $ */
+/* $Id$ */
 
 /*
  * This source was adapted from MRT's RCS Ids:

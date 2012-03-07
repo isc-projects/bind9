@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.33.56.2 2009/01/05 23:47:23 tbox Exp $ */
+/* $Id$ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.82.50.9 2011/08/25 06:29:35 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

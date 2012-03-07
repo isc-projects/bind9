@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.h,v 1.18.332.2 2011/03/03 23:46:01 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_RBTDB_H
 #define DNS_RBTDB_H 1

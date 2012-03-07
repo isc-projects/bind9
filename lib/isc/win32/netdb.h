@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h,v 1.7.332.2 2009/01/18 23:47:41 tbox Exp $ */
+/* $Id$ */
 
 #ifndef NETDB_H
 #define NETDB_H 1

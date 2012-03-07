@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master_test.c,v 1.2.6.5 2011/09/07 19:11:53 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

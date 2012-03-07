@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.20.36.5 2011/03/12 04:57:28 tbox Exp $ */
+/* $Id$ */
 
 /*
  * This source was adapted from MRT's RCS Ids:

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.84.58.6 2011/03/12 04:57:28 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

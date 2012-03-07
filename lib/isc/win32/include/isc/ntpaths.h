@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.h,v 1.16 2007/06/19 23:47:20 tbox Exp $ */
+/* $Id$ */
 
 /*
  * Windows-specific path definitions

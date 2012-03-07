@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: error.h,v 1.20.332.2 2011/08/30 23:45:13 tbox Exp $ */
+/* $Id$ */
 
 #ifndef ISC_ERROR_H
 #define ISC_ERROR_H 1

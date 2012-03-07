@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.31.332.2 2011/03/12 04:57:32 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

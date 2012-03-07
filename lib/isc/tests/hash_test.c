@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash_test.c,v 1.3.22.2 2011/09/02 22:21:54 each Exp $ */
+/* $Id$ */
 
 /* ! \file */
 

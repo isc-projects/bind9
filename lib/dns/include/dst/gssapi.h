@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapi.h,v 1.9.332.2 2009/01/18 23:47:41 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DST_GSSAPI_H
 #define DST_GSSAPI_H 1

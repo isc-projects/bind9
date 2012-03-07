@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.94.50.12 2011/12/20 00:16:20 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

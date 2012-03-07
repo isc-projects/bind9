@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: assertions.c,v 1.23.44.2 2011/08/30 23:45:13 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

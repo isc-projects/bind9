@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.14.120.8 2011/08/18 23:45:12 tbox Exp $
+ * $Id$
  */
 
 #include <config.h>

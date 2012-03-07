@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.78.120.6 2010/08/11 23:04:21 jinmei Exp $ */
+/* $Id$ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1

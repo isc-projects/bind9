@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.12.50.3 2010/12/09 01:12:55 marka Exp $ */
+/* $Id$ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.384.14.40 2012/02/14 23:45:27 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

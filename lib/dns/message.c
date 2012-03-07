@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.245.50.10 2011/06/09 00:16:34 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

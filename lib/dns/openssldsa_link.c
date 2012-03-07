@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.13.120.4 2011/03/12 04:57:27 tbox Exp $ */
+/* $Id$ */
 
 #ifdef OPENSSL
 #ifndef USE_EVP

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.19.332.2 2011/02/03 12:16:45 tbox Exp $ */
+/* $Id$ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1

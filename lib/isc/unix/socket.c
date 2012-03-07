@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.308.12.28 2012/01/27 23:45:34 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stat.h,v 1.7.332.2 2009/10/01 23:47:17 tbox Exp $ */
+/* $Id$ */
 
 #ifndef ISC_STAT_H
 #define ISC_STAT_H 1

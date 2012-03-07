@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonemgr_test.c,v 1.3.2.3 2011/11/04 05:52:58 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 

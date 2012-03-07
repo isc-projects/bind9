@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.71.48.2 2012/01/27 23:45:34 tbox Exp $ */
+/* $Id$ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1

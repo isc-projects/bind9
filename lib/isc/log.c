@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.94.332.7 2011/03/12 04:57:28 tbox Exp $ */
+/* $Id$ */
 
 /*! \file
  * \author  Principal Authors: DCL */

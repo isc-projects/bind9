@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.23.332.2 2009/01/18 23:47:35 tbox Exp $ */
+/* $Id$ */
 
 /*! \file
  * \author Principal Authors: Computer Systems Research Group at UC Berkeley

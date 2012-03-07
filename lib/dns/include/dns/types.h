@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.130.50.7 2010/05/14 23:47:50 tbox Exp $ */
+/* $Id$ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1

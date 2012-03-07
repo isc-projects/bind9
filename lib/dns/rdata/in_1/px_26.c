@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.43 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id$ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 

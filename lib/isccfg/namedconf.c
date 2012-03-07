@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.92.44.4 2011/03/12 04:57:33 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

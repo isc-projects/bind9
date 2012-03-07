@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.38.332.3 2011/03/11 10:49:58 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 
