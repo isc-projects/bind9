@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.14 2012/01/27 23:46:58 tbox Exp $
+# $Id$
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@

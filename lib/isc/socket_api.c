@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_api.c,v 1.8 2011/08/24 23:17:52 marka Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

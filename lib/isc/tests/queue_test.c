@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: queue_test.c,v 1.3 2011/10/12 02:17:53 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

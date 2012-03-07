@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.h,v 1.17 2011/10/11 00:09:03 each Exp $ */
+/* $Id$ */
 
 /*! \file dns/sdlz.h */
 

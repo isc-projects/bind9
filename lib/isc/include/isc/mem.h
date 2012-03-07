@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.91 2011/08/09 23:46:39 tbox Exp $ */
+/* $Id$ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: queue.h,v 1.2 2011/10/10 22:57:13 each Exp $ */
+/* $Id$ */
 
 /*
  * This is a generic implementation of a two-lock concurrent queue.

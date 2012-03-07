@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.184 2011/09/06 22:29:33 smann Exp $ */
+/* $Id$ */
 
 /*! \file */
 

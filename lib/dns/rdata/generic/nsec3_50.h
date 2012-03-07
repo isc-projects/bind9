@@ -18,7 +18,7 @@
 #ifndef GENERIC_NSEC3_50_H
 #define GENERIC_NSEC3_50_H 1
 
-/* $Id: nsec3_50.h,v 1.6 2011/06/10 23:47:32 tbox Exp $ */
+/* $Id$ */
 
 /*!
  * \brief Per RFC 5155 */

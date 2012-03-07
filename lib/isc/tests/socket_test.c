@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_test.c,v 1.5 2011/11/29 01:03:47 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: mkraw.pl,v 1.2 2011/12/08 16:07:22 each Exp $
+# $Id$
 
 # Convert a hexdump to binary format.
 #

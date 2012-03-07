@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsprobe.c,v 1.10 2011/04/05 06:33:50 marka Exp $ */
+/* $Id$ */
 
 #include <config.h>
 

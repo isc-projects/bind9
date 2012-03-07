@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.47 2011/11/03 02:54:47 each Exp $ */
+/* $Id$ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1

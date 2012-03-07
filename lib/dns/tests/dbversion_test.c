@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbversion_test.c,v 1.5 2011/10/13 22:48:24 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

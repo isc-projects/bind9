@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbdiff_test.c,v 1.2 2011/12/04 23:48:12 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

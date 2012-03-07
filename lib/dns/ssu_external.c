@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu_external.c,v 1.8 2011/03/21 19:54:03 each Exp $ */
+/* $Id$ */
 
 /*
  * This implements external update-policy rules.  This allows permission

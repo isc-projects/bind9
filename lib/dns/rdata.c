@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.215 2011/12/22 07:41:29 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

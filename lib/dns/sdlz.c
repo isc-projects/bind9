@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.35 2011/12/22 07:15:05 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 

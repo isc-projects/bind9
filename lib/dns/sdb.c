@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.79 2011/10/11 00:09:03 each Exp $ */
+/* $Id$ */
 
 /*! \file */
 
