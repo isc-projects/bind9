@@ -1,3 +1,6 @@
+3295.	[bug]		Adjust isc_time_secondsastimet range check to be more
+			portable. [RT # 26542]
+
 3294.	[bug]		isccc/cc.c:table_fromwire failed to free alist on
 			error. [RT #28265]
 
