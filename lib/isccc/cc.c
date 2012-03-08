@@ -403,16 +403,17 @@ table_fromwire(isccc_region_t *source, isccc_region_t *secret,
 
 	if (secret != NULL) {
 		if (checksum_rstart != NULL)
-			return (verify(alist, checksum_rstart,
-				       (source->rend - checksum_rstart),
-				       secret));
-		return (ISCCC_R_BADAUTH);
-	}
-
-	return (ISC_R_SUCCESS);
+			result = verify(alist, checksum_rstart,
+				        (source->rend - checksum_rstart),
+				        secret);
+		else
+			result = ISCCC_R_BADAUTH;
+	} else
+		result = ISC_R_SUCCESS;
 
  bad:
-	isccc_sexpr_free(&alist);
+	if (result != ISC_R_SUCCESS)
+		isccc_sexpr_free(&alist);
 
 	return (result);
 }
