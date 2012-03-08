@@ -1,3 +1,6 @@
+3294.	[bug]		isccc/cc.c:table_fromwire failed to free alist on
+			error. [RT #28265]
+
 3291.	[port]		Fixed a build error on systems without ENOTSUP.
 			[RT #28200]
 
