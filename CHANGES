@@ -1,3 +1,6 @@
+3294.	[bug]		isccc/cc.c:table_fromwire failed to free alist on
+			error. [RT #28265]
+
 3293.	[func]		nsupdate: list supported type. [RT #28261]
 
 3292.	[func]		Log messages in the axfr stream at debug 10.
