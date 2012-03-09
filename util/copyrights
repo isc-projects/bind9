@@ -3148,6 +3148,7 @@
 ./util/check-pullups.pl				PERL	2001,2002,2003,2004,2007
 ./util/check-sources.pl				PERL	2000,2001,2004,2007
 ./util/copyrights				X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./util/file_year.sh				SH	2012
 ./util/kit.sh					SH	2000,2001,2002,2003,2004,2007,2008,2009,2010,2012
 ./util/mandoc2docbook.pl			PERL	2001,2004,2007
 ./util/mdnbuildtest.sh				SH	2000,2001,2004,2007
@@ -3158,6 +3159,7 @@
 ./util/nanny.pl					PERL	2000,2001,2004,2007
 ./util/new-func					PERL	2005,2007
 ./util/nt-kit					SH	1999,2000,2001,2004,2007
+./util/recent_changes.sh			SH	2012
 ./util/spacewhack.pl				PERL	2000,2001,2004,2007
 ./util/tabify-changes				SH	2004,2007
 ./util/update-drafts.pl				PERL	2000,2001,2004,2007
