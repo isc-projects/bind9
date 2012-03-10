@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,9 +25,9 @@ InitSockets(void) {
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
- 
+
 	wVersionRequested = MAKEWORD(2, 0);
- 
+
 	err = WSAStartup( wVersionRequested, &wsaData );
 	if (err != 0) {
 		fprintf(stderr, "WSAStartup() failed: %d\n", err);
