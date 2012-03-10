@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -157,7 +157,7 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
 
 isc_result_t
 dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
-		                             dns_keynode_t **nextnodep);
+					     dns_keynode_t **nextnodep);
 /*%<
  * Search for the next key with the same properties as 'keynode' in
  * 'keytable' as found by dns_keytable_findkeynode().

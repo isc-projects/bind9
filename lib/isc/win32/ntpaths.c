@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -57,7 +57,7 @@ isc_ntpaths_init() {
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, BIND_SUBKEY, 0, KEY_READ, &hKey)
 		!= ERROR_SUCCESS)
 		keyFound = FALSE;
-	
+
 	if (keyFound == TRUE) {
 		/* Get the named directory */
 		if (RegQueryValueEx(hKey, "InstallDir", NULL, NULL,
@@ -97,7 +97,7 @@ isc_ntpaths_init() {
 
 	strcpy(sys_conf_dir, namedBase);
 	strcat(sys_conf_dir, "\\etc");
-	
+
 	Initialized = TRUE;
 }
 

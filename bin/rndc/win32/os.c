@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -45,12 +45,12 @@ FILE *
 safe_create(const char *filename) {
 	int fd;
 	FILE *f;
-        struct stat sb;
+	struct stat sb;
 
-        if (stat(filename, &sb) == -1) {
-                if (errno != ENOENT)
+	if (stat(filename, &sb) == -1) {
+		if (errno != ENOENT)
 			return (NULL);
-        } else if ((sb.st_mode & S_IFREG) == 0) {
+	} else if ((sb.st_mode & S_IFREG) == 0) {
 		errno = ENOENT;
 		return (NULL);
 	}

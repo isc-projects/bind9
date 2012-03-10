@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -85,7 +85,7 @@ main(int argc, char *argv[]) {
 		dns_rdatacallbacks_init_stdio(&callbacks);
 		callbacks.add = print_dataset;
 
-		result = dns_master_loadfile(argv[1], &origin, &origin, 
+		result = dns_master_loadfile(argv[1], &origin, &origin,
 					     dns_rdataclass_in, 0,
 					     &callbacks, mctx);
 		fprintf(stdout, "dns_master_loadfile: %s\n",
