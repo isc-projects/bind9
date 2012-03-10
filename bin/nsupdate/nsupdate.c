@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -990,7 +990,7 @@ pre_parse_args(int argc, char **argv) {
 		}
 	}
 	if (doexit)
-                exit(0);
+		exit(0);
 	isc_commandline_reset = ISC_TRUE;
 	isc_commandline_index = 1;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -361,7 +361,7 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
 	INSIST(sizeof(unsigned int) == sizeof(isc_uint32_t));
 	INSIST(sizeof(time_t) >= sizeof(isc_uint32_t));
 
-	if (t->seconds > (~0U>>1) && seconds <= (time_t)(~0U>>1)) 
+	if (t->seconds > (~0U>>1) && seconds <= (time_t)(~0U>>1))
 		return (ISC_R_RANGE);
 
 	*secondsp = seconds;

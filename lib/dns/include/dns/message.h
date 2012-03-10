@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1350,9 +1350,9 @@ dns_message_gettimeadjust(dns_message_t *msg);
  *\li	msg be a valid message.
  */
 void
-dns_message_logpacket(dns_message_t *message, const char *description, 
-                      isc_logcategory_t *category, isc_logmodule_t *module, 
-                      int level, isc_mem_t *mctx);
+dns_message_logpacket(dns_message_t *message, const char *description,
+		      isc_logcategory_t *category, isc_logmodule_t *module,
+		      int level, isc_mem_t *mctx);
 /*%<
  * Log 'message' at the specified logging parameters.
  * 'description' will be emitted at the start of the message and will

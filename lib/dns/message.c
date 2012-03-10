@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -3459,15 +3459,15 @@ dns_message_logpacket(dns_message_t *message, const char *description,
 	char *buf = NULL;
 	int len = 1024;
 	isc_result_t result;
-	 
+
 	if (! isc_log_wouldlog(dns_lctx, level))
 		return;
-	
+
 	/*
 	 * Note that these are multiline debug messages.  We want a newline
 	 * to appear in the log after each message.
 	 */
-			
+
 	do {
 		buf = isc_mem_get(mctx, len);
 		if (buf == NULL)
