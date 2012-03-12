@@ -232,7 +232,6 @@
 ./bin/pkcs11/include/pkcs11.h			X	2009
 ./bin/pkcs11/include/pkcs11f.h			X	2009
 ./bin/pkcs11/include/pkcs11t.h			X	2009
-./bin/pkcs11/openssl-0.9.8l-patch		X	2009
 ./bin/pkcs11/openssl-0.9.8s-patch		X	2012
 ./bin/pkcs11/openssl-1.0.0f-patch		X	2012
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
@@ -3261,7 +3260,6 @@
 ./util/mdnbuildtest.sh				SH	2000,2001,2004,2007,2012
 ./util/memleak.pl				PERL	1999,2000,2001,2004,2007,2012
 ./util/merge_copyrights				PERL	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012
-./util/mkreslib.pl				PERL	2000,2001,2004,2007,2012
 ./util/mksymtbl.pl				PERL	2009,2012
 ./util/nanny.pl					PERL	2000,2001,2004,2007,2012
 ./util/new-func					PERL	2005,2007,2012
