@@ -14,7 +14,10 @@ autom4te.cache
 *.la
 *_test
 timestamp
+ans.run
+lwresd.run
 named.run
+named.memstats
 gen.dSYM/
 .libs/
 .deps/
