@@ -32,7 +32,7 @@ load_cache () {
         $RNDC $RNDCOPTS flush
 
 	# load the positive cache entries
-	$DIG $DIGOPTS -f - << EOF > /dev/null 2>1
+	$DIG $DIGOPTS -f - << EOF > /dev/null 2>&1
 txt top1.flushtest.example
 txt second1.top1.flushtest.example
 txt third1.second1.top1.flushtest.example
