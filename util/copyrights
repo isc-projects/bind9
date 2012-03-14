@@ -359,6 +359,7 @@
 ./bin/tests/dnssec-signzone/test6.zone		X	2009
 ./bin/tests/dnssec-signzone/test7.zone		X	2009
 ./bin/tests/dnssec-signzone/test8.zone		X	2009
+./bin/tests/dst/.gitignore			X	2012
 ./bin/tests/dst/Kdh.+002+18602.key		X	2001
 ./bin/tests/dst/Kdh.+002+18602.private		X	2001
 ./bin/tests/dst/Kdh.+002+48957.key		X	2001
@@ -515,6 +516,7 @@
 ./bin/tests/startperf/setup.sh			SH	2011
 ./bin/tests/startperf/smallzone.db		ZONE	2011
 ./bin/tests/sym_test.c				C	1998,1999,2000,2001,2004,2005,2007
+./bin/tests/system/.gitignore			X	2012
 ./bin/tests/system/Makefile.in			MAKE	2000,2001,2004,2007,2008,2010,2011
 ./bin/tests/system/README			TXT.BRIEF	2000,2001,2004,2010,2011
 ./bin/tests/system/acl/clean.sh			SH	2008
@@ -598,6 +600,7 @@
 ./bin/tests/system/autosign/ns2/keygen.sh	SH	2009,2010,2011
 ./bin/tests/system/autosign/ns2/named.conf	CONF-C	2009,2010,2011
 ./bin/tests/system/autosign/ns2/private.secure.example.db.in	ZONE	2009
+./bin/tests/system/autosign/ns3/.gitignore	X	2012
 ./bin/tests/system/autosign/ns3/autonsec3.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/delay.example.db	ZONE	2011
 ./bin/tests/system/autosign/ns3/inaczsk.example.db.in	ZONE	2011
@@ -639,7 +642,7 @@
 ./bin/tests/system/cacheclean/ns1/flushtest.db	ZONE	2011
 ./bin/tests/system/cacheclean/ns1/named.conf	CONF-C	2001,2004,2005,2007,2011
 ./bin/tests/system/cacheclean/ns2/named.conf	CONF-C	2001,2004,2005,2007,2011
-./bin/tests/system/cacheclean/tests.sh		SH	2001,2004,2007,2011
+./bin/tests/system/cacheclean/tests.sh		SH	2001,2004,2007,2011,2012
 ./bin/tests/system/checkconf/bad.conf		CONF-C	2005,2007
 ./bin/tests/system/checkconf/clean.sh		SH	2011
 ./bin/tests/system/checkconf/dnssec.1		CONF-C	2011
@@ -1042,6 +1045,7 @@
 ./bin/tests/system/pending/prereq.sh		SH	2009
 ./bin/tests/system/pending/setup.sh		SH	2009
 ./bin/tests/system/pending/tests.sh		SH	2009,2010
+./bin/tests/system/pkcs11/.gitignore		X	2012
 ./bin/tests/system/pkcs11/clean.sh		SH	2010
 ./bin/tests/system/pkcs11/ns1/example.db.in	ZONE	2010
 ./bin/tests/system/pkcs11/ns1/named.conf	CONF-C	2010
@@ -1135,7 +1139,7 @@
 ./bin/tests/system/rpz/test4			X	2011
 ./bin/tests/system/rpz/test5			X	2011
 ./bin/tests/system/rpz/tests.sh			SH	2011,2012
-./bin/tests/system/rrsetorder/clean.sh		SH	2006,2007,2008,2011
+./bin/tests/system/rrsetorder/clean.sh		SH	2006,2007,2008,2011,2012
 ./bin/tests/system/rrsetorder/dig.out.fixed.good	X	2006
 ./bin/tests/system/rrsetorder/dig.out.random.good1	X	2006
 ./bin/tests/system/rrsetorder/dig.out.random.good10	X	2006
