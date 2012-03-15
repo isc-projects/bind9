@@ -1,3 +1,5 @@
+3297.	[bug]		Named could die on a malformed master file. [RT #28467]
+
 3296.	[bug]		Named could die with a INSIST failure in
 			client.c:exit_check. [RT #28346]
 
