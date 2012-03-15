@@ -625,8 +625,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS) {
 		name = isc_lex_getsourcename(lexer);
 		line = isc_lex_getsourceline(lexer);
-		fromtext_error(callback, callbacks, name, line,
-			       &token, result);
+		fromtext_error(callback, callbacks, name, line, NULL, result);
 		return (result);
 	}
 
