@@ -1,3 +1,6 @@
+3296.	[bug]		Named could die with a INSIST failure in
+			client.c:exit_check. [RT #28346]
+
 3295.	[bug]		Adjust isc_time_secondsastimet range check to be more
 			portable. [RT # 26542]
 
