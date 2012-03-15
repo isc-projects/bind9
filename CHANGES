@@ -1,3 +1,5 @@
+3297.	[bug]		Named could die on a malformed master file. [RT #28467]
+
 3295.	[bug]		Adjust isc_time_secondsastimet range check to be more
 			portable. [RT # 26542]
 
