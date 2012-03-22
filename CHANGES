@@ -1,3 +1,7 @@
+3298.	[bug]		Named could dereference a NULL pointer in
+			zmgr_start_xfrin_ifquota if the zone was being removed.
+			[RT #28419]
+
 3297.	[bug]		Named could die on a malformed master file. [RT #28467]
 
 3296.	[bug]		Named could die with a INSIST failure in
