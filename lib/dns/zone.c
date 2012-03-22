@@ -13214,11 +13214,13 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	 * This transfer finishing freed up a transfer quota slot.
 	 * Let any other zones waiting for quota have it.
 	 */
+	UNLOCK_ZONE(zone);
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone, statelink);
 	zone->statelist = NULL;
 	zmgr_resume_xfrs(zone->zmgr, ISC_FALSE);
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+	LOCK_ZONE(zone);
 
 	/*
 	 * Retry with a different server if necessary.
@@ -14187,12 +14189,22 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	isc_event_t *e;
 
 	/*
+	 * If we are exiting just pretend we got quota so the zone will
+	 * be cleaned up in the zone's task context.
+	 */
+	LOCK_ZONE(zone);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
+		UNLOCK_ZONE(zone);
+		goto gotquota;
+	}
+
+	/*
 	 * Find any configured information about the server we'd
 	 * like to transfer this zone from.
 	 */
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
-	(void)dns_peerlist_peerbyaddr(zone->view->peers,
-				      &masterip, &peer);
+	(void)dns_peerlist_peerbyaddr(zone->view->peers, &masterip, &peer);
+	UNLOCK_ZONE(zone);
 
 	/*
 	 * Determine the total maximum number of simultaneous
@@ -14216,7 +14228,11 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	     x = ISC_LIST_NEXT(x, statelink))
 	{
 		isc_netaddr_t xip;
+
+		LOCK_ZONE(x);
 		isc_netaddr_fromsockaddr(&xip, &x->masteraddr);
+		UNLOCK_ZONE(x);
+
 		nxfrsin++;
 		if (isc_netaddr_equal(&xip, &masterip))
 			nxfrsperns++;
@@ -14229,15 +14245,14 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	if (nxfrsperns >= maxtransfersperns)
 		return (ISC_R_QUOTA);
 
+ gotquota:
 	/*
 	 * We have sufficient quota.  Move the zone to the "xfrin_in_progress"
 	 * list and send it an event to let it start the actual transfer in the
 	 * context of its own task.
 	 */
-	e = isc_event_allocate(zmgr->mctx, zmgr,
-			       DNS_EVENT_ZONESTARTXFRIN,
-			       got_transfer_quota, zone,
-			       sizeof(isc_event_t));
+	e = isc_event_allocate(zmgr->mctx, zmgr, DNS_EVENT_ZONESTARTXFRIN,
+			       got_transfer_quota, zone, sizeof(isc_event_t));
 	if (e == NULL)
 		return (ISC_R_NOMEMORY);
 
