@@ -1,3 +1,6 @@
+3299.	[bug]		Make SDB handle errors from database drivers better.
+			[RT #28534]
+
 3298.	[bug]		Named could dereference a NULL pointer in
 			zmgr_start_xfrin_ifquota if the zone was being removed.
 			[RT #28419]
