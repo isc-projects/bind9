@@ -1,3 +1,6 @@
+3299.	[bug]		Make SDB handle errors from database drivers better.
+			[RT #28534]
+
 	--- 9.7.5 released ---
 
 3298.	[bug]		Named could dereference a NULL pointer in
