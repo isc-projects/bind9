@@ -1,3 +1,6 @@
+3300.	[bug]		Named could die if gssapi was enabled in named.conf
+			but was not compiled in. [RT #28338]
+
 3299.	[bug]		Make SDB handle errors from database drivers better.
 			[RT #28534]
 
