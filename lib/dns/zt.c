@@ -266,7 +266,7 @@ load(dns_zone_t *zone, void *uap) {
 
 isc_result_t
 dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
-	isc_result_t result, tresult;
+	isc_result_t result;
 	static dns_zt_zoneloaded_t dl = doneloading;
 	int pending;
 
@@ -276,7 +276,7 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
 
 	INSIST(zt->loads_pending == 0);
 
-	result = dns_zt_apply2(zt, ISC_FALSE, &tresult, asyncload, &dl);
+	result = dns_zt_apply2(zt, ISC_FALSE, NULL, asyncload, &dl);
 
 	pending = zt->loads_pending;
 	if (pending != 0) {

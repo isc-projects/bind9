@@ -1,3 +1,5 @@
+3303.	[bug]		named could die when reloading. [RT #28606]
+
 3302.	[bug]		dns_dnssec_findmatchingkeys could fail to find
 			keys if the zone name contained character that
 			required special mappings. [RT #28600]
