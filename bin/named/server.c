@@ -5273,17 +5273,28 @@ load_zones(ns_server_t *server) {
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		if (view->managed_keys != NULL)
-			CHECK(dns_zone_load(view->managed_keys));
-		if (view->redirect != NULL)
-			CHECK(dns_zone_load(view->redirect));
+		if (view->managed_keys != NULL) {
+			result = dns_zone_load(view->managed_keys);
+			if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE)
+				goto cleanup;
+		}
+		if (view->redirect != NULL) {
+			result = dns_zone_load(view->redirect);
+			if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE)
+				goto cleanup;
+		}
+
+		/*
+		 * 'dns_view_asyncload' calls view_loaded if there are no
+		 * zones.
+		 */
 		isc_refcount_increment(&zl->refs, NULL);
 		CHECK(dns_view_asyncload(view, view_loaded, zl));
 	}
 
  cleanup:
 	isc_refcount_decrement(&zl->refs, &refs);
-	if (result != ISC_R_SUCCESS || refs == 0) {
+	if (refs == 0) {
 		isc_refcount_destroy(&zl->refs);
 		isc_mem_put(server->mctx, zl, sizeof (*zl));
 	} else {
