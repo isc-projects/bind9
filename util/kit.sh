@@ -28,30 +28,30 @@
 #   (e.g., sh kit.sh snapshot /tmp/bindkit
 #
 
+remote=--remote=cvs.isc.org:/proj/git/prod/bind9.git
+
 case $# in
-    4)
+    3)
 	case "$1" in
 	snapshot) ;;
-	*) echo "usage: sh kit.sh [snapshot] gitdir gittag tmpdir" >&2
+	*) echo "usage: sh kit.sh [snapshot] gittag tmpdir" >&2
 	   exit 1
 	   ;;
 	esac
 	snapshot=true;
-        repodir=$2
-	releasetag=$3
-	tag=$3
-	tmpdir=$4
-	;;
-    3)
-	repodir=$1
+	releasetag=$2
 	tag=$2
 	tmpdir=$3
+	;;
+    2)
+	tag=$1
+	tmpdir=$2
 	case $tag in
 	    snapshot) tag=master; snapshot=true ; releasetag="" ;;
 	    *) snapshot=false ;;
 	esac
 	;;
-    *) echo "usage: sh kit.sh [snapshot] gitdir gittag tmpdir" >&2
+    *) echo "usage: sh kit.sh [snapshot] gittag tmpdir" >&2
        exit 1
        ;;
 esac
@@ -63,14 +63,25 @@ mkdir $tmpdir || {
     exit 1
 }
 
-# make sure tmpdir is an absolute path
-cd $tmpdir || exit 1
-tmpdir=`pwd`
+cd $tmpdir || {
+	echo "$0: cd $tmpdir failed"
+	exit 1
+}
 
-cd $repodir || exit 1
-git pull
-git show $tag:version > $tmpdir/version.tmp
-. $tmpdir/version.tmp
+verdir=bind9-kit.$$
+mkdir $verdir || {
+    echo "$0: could not create directory $tmpdir/$verdir" >&2
+    exit 1
+}
+git archive --format=tar $remote $tag version | ( cd $verdir ;tar xf - )
+test -f $verdir/version || {
+    echo "$0: could not get 'version' file" >&2
+    exit 1
+}
+. $verdir/version
+
+rm $verdir/version
+rmdir $verdir
 
 if $snapshot
 then
@@ -95,16 +106,16 @@ echo "building release kit for BIND version $version, hold on..."
 
 topdir=bind-$version
 
-test ! -d $tmpdir/$topdir || {
+test ! -d $topdir || {
     echo "$0: directory $tmpdir/$topdir already exists" >&2
     exit 1
 }
 
-mkdir $tmpdir/$topdir || exit 1
+mkdir $topdir || exit 1
 
-git archive --format=tar $tag | ( cd $tmpdir/$topdir; tar xf -)
+git archive --format=tar $remote $tag | ( cd $topdir; tar xf -)
 
-cd $tmpdir/$topdir || exit 1
+cd $topdir || exit 1
 
 if $snapshot
 then
