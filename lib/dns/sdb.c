@@ -787,7 +787,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	if (imp->methods->lookup2 != NULL)
 		result = imp->methods->lookup2(&sdb->common.origin, name,
 					       sdb->dbdata, node);
-	else 
+	else
 		result = imp->methods->lookup(sdb->zone, namestr, sdb->dbdata,
 					      node);
 	MAYBE_UNLOCK(sdb);

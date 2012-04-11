@@ -62,7 +62,7 @@ typedef isc_result_t
 typedef isc_result_t
 (*dns_sdblookup2func_t)(const dns_name_t *zone, const dns_name_t *name,
 			void *dbdata, dns_sdblookup_t *lookup);
- 
+
 typedef isc_result_t
 (*dns_sdbauthorityfunc_t)(const char *zone, void *dbdata, dns_sdblookup_t *);
 

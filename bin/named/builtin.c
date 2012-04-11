@@ -116,7 +116,7 @@ dns64_rdata(unsigned char *v, size_t start, unsigned char *rdata) {
 			rdata[j++] = 1;
 			rdata[j++] = decimal[c];
 		}
-	} 
+	}
 	memcpy(&rdata[j], "\07in-addr\04arpa", 14);
 	return (j + 14);
 }
