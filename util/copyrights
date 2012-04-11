@@ -767,7 +767,7 @@
 ./bin/tests/system/dns64/ns1/sign.sh		SH	2010
 ./bin/tests/system/dns64/ns2/named.conf		CONF-C	2010,2011
 ./bin/tests/system/dns64/setup.sh		SH	2010
-./bin/tests/system/dns64/tests.sh		SH	2010,2011
+./bin/tests/system/dns64/tests.sh		SH	2010,2011,2012
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004,2011
 ./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004,2007,2010
@@ -2150,7 +2150,7 @@
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/rpz.h			C	2011
 ./lib/dns/include/dns/rriterator.h		C	2009,2011
-./lib/dns/include/dns/sdb.h			C	2000,2001,2004,2005,2006,2007,2009,2011
+./lib/dns/include/dns/sdb.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012
 ./lib/dns/include/dns/sdlz.h			C.PORTION	1999,2000,2001,2005,2006,2007,2009,2010,2011,2012
 ./lib/dns/include/dns/secalg.h			C	1999,2000,2001,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/secproto.h		C	1999,2000,2001,2004,2005,2006,2007
