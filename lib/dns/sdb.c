@@ -789,7 +789,7 @@ findnodeext(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 		result = imp->methods->lookup2(&sdb->common.origin, name,
 					       sdb->dbdata, node, methods,
 					       clientinfo);
-	else 
+	else
 		result = imp->methods->lookup(sdb->zone, namestr, sdb->dbdata,
 					      node, methods, clientinfo);
 	MAYBE_UNLOCK(sdb);
