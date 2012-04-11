@@ -3,6 +3,10 @@ import argparse
 import pprint
 import os
 
+######################################################################
+# DSRR class:
+# Delegation Signer (DS) resource record
+######################################################################
 class DSRR:
     hashalgs = {1: 'SHA-1', 2: 'SHA-256', 3: 'GOST'}
     rrname=''
@@ -49,6 +53,10 @@ class DSRR:
     def __eq__(self, other):
         return self.__repr__() == other.__repr__()
 
+######################################################################
+# DLVRR class:
+# DNSSEC Lookaside Validation (DLV) resource record
+######################################################################
 class DLVRR:
     hashalgs = {1: 'SHA-1', 2: 'SHA-256', 3: 'GOST'}
     parent=''
