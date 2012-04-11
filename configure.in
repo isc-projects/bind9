@@ -137,6 +137,19 @@ AC_PATH_PROGS(PERL, perl5 perl)
 AC_SUBST(PERL)
 
 #
+# Python is also optional; it is used by the tools in bin/python.
+# If python is unavailable, we simply don't build those.
+#
+AC_PATH_PROGS(PYTHON, python)
+AC_SUBST(PYTHON)
+
+PYTHON_TOOLS=''
+if test "X$PYTHON" != "X"; then
+        PYTHON_TOOLS=python
+fi
+AC_SUBST(PYTHON_TOOLS)
+
+#
 # Special processing of paths depending on whether --prefix,
 # --sysconfdir or --localstatedir arguments were given.  What's
 # desired is some compatibility with the way previous versions
@@ -3465,6 +3478,8 @@ AC_CONFIG_FILES([
 	bin/named/unix/Makefile
 	bin/nsupdate/Makefile
 	bin/pkcs11/Makefile
+	bin/python/Makefile
+	bin/python/dnssec-checkds.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
 	bin/tests/atomic/Makefile
