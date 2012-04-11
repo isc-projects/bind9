@@ -30,6 +30,14 @@
 
 remote=--remote=cvs.isc.org:/proj/git/prod/bind9.git
 
+case "${1:-}" in
+--remote=*)
+	remote="${1}"
+	shift
+	;;
+esac
+
+
 case $# in
     3)
 	case "$1" in
