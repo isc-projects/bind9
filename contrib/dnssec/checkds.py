@@ -1,12 +1,28 @@
 #!/usr/bin/python
+############################################################################
+# Copyright (C) 2012 Internet Systems Consortium, Inc. ("ISC")
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+############################################################################
+
 import argparse
 import pprint
 import os
 
-######################################################################
+############################################################################
 # DSRR class:
 # Delegation Signer (DS) resource record
-######################################################################
+############################################################################
 class DSRR:
     hashalgs = {1: 'SHA-1', 2: 'SHA-256', 3: 'GOST'}
     rrname=''
@@ -53,10 +69,10 @@ class DSRR:
     def __eq__(self, other):
         return self.__repr__() == other.__repr__()
 
-######################################################################
+############################################################################
 # DLVRR class:
 # DNSSEC Lookaside Validation (DLV) resource record
-######################################################################
+############################################################################
 class DLVRR:
     hashalgs = {1: 'SHA-1', 2: 'SHA-256', 3: 'GOST'}
     parent=''
@@ -118,13 +134,13 @@ class DLVRR:
     def __eq__(self, other):
         return self.__repr__() == other.__repr__()
 
-######################################################################
+############################################################################
 # checkds:
 # Fetch DS RRset for the given zone from the DNS; fetch DNSKEY
 # RRset from the masterfile if specified, or from DNS if not.
 # Generate a set of expected DS records from the DNSKEY RRset,
 # and report on congruency.
-######################################################################
+############################################################################
 def checkds(zone, masterfile = None):
     dslist=[]
     fp=os.popen("/usr/local/bin/dig +noall +answer -t ds " + zone)
@@ -160,13 +176,13 @@ def checkds(zone, masterfile = None):
 
     return found
 
-######################################################################
+############################################################################
 # checkdlv:
 # Fetch DLV RRset for the given zone from the DNS; fetch DNSKEY
 # RRset from the masterfile if specified, or from DNS if not.
 # Generate a set of expected DLV records from the DNSKEY RRset,
 # and report on congruency.
-######################################################################
+############################################################################
 def checkdlv(zone, lookaside, masterfile = None):
     dlvlist=[]
     fp=os.popen("/usr/local/bin/dig +noall +answer -t dlv " +
@@ -208,10 +224,10 @@ def checkdlv(zone, lookaside, masterfile = None):
     return found
 
 
-######################################################################
+############################################################################
 # parse_args:
 # Read command line arguments, set global 'args' structure
-######################################################################
+############################################################################
 def parse_args():
     global args
     parser = argparse.ArgumentParser(description='checkds: checks DS coverage')
@@ -228,9 +244,9 @@ def parse_args():
     if args.lookaside:
         lookaside = args.lookaside.strip('.')
 
-######################################################################
+############################################################################
 # Main
-######################################################################
+############################################################################
 def main():
     parse_args()
 
