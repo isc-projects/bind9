@@ -86,7 +86,7 @@ class DLVRR:
     digest=''
     ttl=0
 
-    def __init__(self, rrtext, dlvname = 'dlv.isc.org'):
+    def __init__(self, rrtext, dlvname):
         if not rrtext:
             return
 
@@ -106,7 +106,7 @@ class DLVRR:
             raise Exception
         parent.reverse()
         self.parent = '.'.join(parent)
-        self.rrname = self.parent + '.' + self.dlvname
+        self.rrname = self.parent + '.' + self.dlvname + '.'
         
         fields = fields[1:]
         if fields[0].upper() in ['IN','CH','HS']:
@@ -143,7 +143,7 @@ class DLVRR:
 ############################################################################
 def checkds(zone, masterfile = None):
     dslist=[]
-    fp=os.popen("/usr/local/bin/dig +noall +answer -t ds " + zone)
+    fp=os.popen("%s +noall +answer -t ds %s" % (args.dig, zone))
     for line in fp:
         dslist.append(DSRR(line))
     dslist = sorted(dslist, key=lambda ds: (ds.keyid, ds.keyalg, ds.hashalg))
@@ -152,11 +152,11 @@ def checkds(zone, masterfile = None):
     dsklist=[]
 
     if masterfile:
-        fp = os.popen("/usr/local/sbin/dnssec-dsfromkey -f %s %s " %
-                      (masterfile, zone))
+        fp = os.popen("%s -f %s %s " %
+                      (args.dsfromkey, masterfile, zone))
     else:
-        fp = os.popen("/usr/local/bin/dig +noall +answer -t dnskey " + zone +
-                      " | /usr/local/sbin/dnssec-dsfromkey -f - " + zone)
+        fp = os.popen("%s +noall +answer -t dnskey %s | %s -f - %s" %
+                      (args.dig, zone, args.dsfromkey, zone))
 
     for line in fp:
         dsklist.append(DSRR(line))
@@ -185,10 +185,10 @@ def checkds(zone, masterfile = None):
 ############################################################################
 def checkdlv(zone, lookaside, masterfile = None):
     dlvlist=[]
-    fp=os.popen("/usr/local/bin/dig +noall +answer -t dlv " +
-                zone + '.' + lookaside)
+    fp=os.popen("%s +noall +answer -t dlv %s.%s" %
+                (args.dig, zone, lookaside))
     for line in fp:
-        dlvlist.append(DLVRR(line))
+        dlvlist.append(DLVRR(line, lookaside))
     dlvlist = sorted(dlvlist,
                      key=lambda dlv: (dlv.keyid, dlv.keyalg, dlv.hashalg))
     fp.close()
@@ -198,15 +198,14 @@ def checkdlv(zone, lookaside, masterfile = None):
     #
     dlvklist=[]
     if masterfile:
-        fp = os.popen("/usr/local/sbin/dnssec-dsfromkey -f %s -l %s %s " %
-                      (masterfile, lookaside, zone))
+        fp = os.popen("%s -f %s -l %s %s " %
+                      (args.dsfromkey, masterfile, lookaside, zone))
     else:
-        fp = os.popen("/usr/local/bin/dig +noall +answer -t dnskey %s "
-                      " | /usr/local/sbin/dnssec-dsfromkey -f - -l %s %s"
-                      % (zone, lookaside, zone))
+        fp = os.popen("%s +noall +answer -t dnskey %s | %s -f - -l %s %s"
+                      % (args.dig, zone, args.dsfromkey, lookaside, zone))
 
     for line in fp:
-        dlvklist.append(DLVRR(line))
+        dlvklist.append(DLVRR(line, lookaside))
 
     fp.close()
 
@@ -237,6 +236,12 @@ def parse_args():
                         help='zone master file')
     parser.add_argument('-l', '--lookaside', dest='lookaside', type=str,
                         help='DLV lookaside zone')
+    parser.add_argument('-d', '--dig', dest='dig',
+                        default='/usr/local/bin/dig', type=str,
+                        help='path to \'dig\'')
+    parser.add_argument('-D', '--dsfromkey', dest='dsfromkey',
+                        default='/usr/local/sbin/dnssec-dsfromkey', type=str,
+                        help='path to \'dig\'')
     parser.add_argument('-v', '--version', action='version', version='9.9.1')
     args = parser.parse_args()
 
