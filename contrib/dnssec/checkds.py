@@ -170,9 +170,9 @@ def checkds(zone, masterfile = None):
                    (ds.rrname.strip('.'), ds.keyalg,
                     ds.keyid, DSRR.hashalgs[ds.hashalg]))
             found = True
-
-    if not found:
-        print ("No DS records found covering %s/DNSKEY" % zone)
+        else:
+            print ("No DS records found for KSK %s/%03d/%05d" %
+                   (ds.rrname, ds.keyalg, ds.keyid))
 
     return found
 
@@ -216,9 +216,9 @@ def checkdlv(zone, lookaside, masterfile = None):
                    (dlv.parent, dlv.keyalg, dlv.keyid,
                     DLVRR.hashalgs[dlv.hashalg], dlv.dlvname))
             found = True
-
-    if not found:
-        print ("No DLV records found covering %s/DNSKEY" % zone)
+        else:
+            print ("No DLV records found for KSK %s/%03d/%05d in %s" %
+                   (dlv.parent, dlv.keyalg, dlv.keyid, dlv.dlvname))
 
     return found
 
