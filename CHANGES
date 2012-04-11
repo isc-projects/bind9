@@ -1,3 +1,5 @@
+3304.	[bug]		Use hmctx, not mctx when freeing rbtdb->heaps. [RT #28571]
+
 3302.	[bug]		dns_dnssec_findmatchingkeys could fail to find
 			keys if the zone name contained character that
 			required special mappings. [RT #28600]
