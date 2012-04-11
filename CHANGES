@@ -1,3 +1,5 @@
+3304.	[bug]		Use hmctx, not mctx when freeing rbtdb->heaps. [RT #28571]
+
 3303.	[bug]		named could die when reloading. [RT #28606]
 
 3302.	[bug]		dns_dnssec_findmatchingkeys could fail to find
