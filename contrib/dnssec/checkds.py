@@ -111,18 +111,13 @@ class DLVRR:
         return self.__repr__() == other.__repr__()
 
 ######################################################################
-# Main
+# checkds:
+# Fetch DS RRset for the given zone from the DNS; fetch DNSKEY
+# RRset from the masterfile if specified, or from DNS if not.
+# Generate a set of expected DS records from the DNSKEY RRset,
+# and report on congruency.
 ######################################################################
-def main():
-    zone='isc.org'
-    zone = zone.strip('.')
-
-    lookaside='dlv.isc.org'
-    lookaside = lookaside .strip('.')
-
-    #
-    # Fetch DS records from DNS
-    #
+def checkds(zone, masterfile = None):
     dslist=[]
     fp=os.popen("/usr/local/bin/dig +noall +answer -t ds " + zone)
     for line in fp:
@@ -130,19 +125,20 @@ def main():
     dslist = sorted(dslist, key=lambda ds: (ds.keyid, ds.keyalg, ds.hashalg))
     fp.close()
 
-    #
-    # Fetch DNSKEY records from DNS and generate DS records from them
-    #
     dsklist=[]
-    fp=os.popen("/usr/local/bin/dig +noall +answer -t dnskey " + zone +
-                " | /usr/local/sbin/dnssec-dsfromkey -f - " + zone)
+
+    if masterfile:
+        fp = os.popen("/usr/local/sbin/dnssec-dsfromkey -f %s %s " %
+                      (masterfile, zone))
+    else:
+        fp = os.popen("/usr/local/bin/dig +noall +answer -t dnskey " + zone +
+                      " | /usr/local/sbin/dnssec-dsfromkey -f - " + zone)
+
     for line in fp:
         dsklist.append(DSRR(line))
+
     fp.close()
 
-    #
-    # Compare real DS values to generated values
-    #
     found = False
     for ds in dsklist:
         if ds in dslist:
@@ -154,12 +150,16 @@ def main():
     if not found:
         print ("No DS records found covering %s/DNSKEY" % zone)
 
-    if found or not lookaside:
-        exit(0 if found else 1)
+    return found
 
-    #
-    # Fetch DLV records from DNS
-    #
+######################################################################
+# checkdlv:
+# Fetch DLV RRset for the given zone from the DNS; fetch DNSKEY
+# RRset from the masterfile if specified, or from DNS if not.
+# Generate a set of expected DLV records from the DNSKEY RRset,
+# and report on congruency.
+######################################################################
+def checkdlv(zone, lookaside, masterfile = None):
     dlvlist=[]
     fp=os.popen("/usr/local/bin/dig +noall +answer -t dlv " +
                 zone + '.' + lookaside)
@@ -173,16 +173,20 @@ def main():
     # Fetch DNSKEY records from DNS and generate DLV records from them
     #
     dlvklist=[]
-    fp=os.popen("/usr/local/bin/dig +noall +answer -t dnskey " + zone +
-                " | /usr/local/sbin/dnssec-dsfromkey -f - -l " +
-                lookaside + ' ' + zone)
+    if masterfile:
+        fp = os.popen("/usr/local/sbin/dnssec-dsfromkey -f %s -l %s %s " %
+                      (masterfile, lookaside, zone))
+    else:
+        fp = os.popen("/usr/local/bin/dig +noall +answer -t dnskey %s "
+                      " | /usr/local/sbin/dnssec-dsfromkey -f - -l %s %s"
+                      % (zone, lookaside, zone))
+
     for line in fp:
         dlvklist.append(DLVRR(line))
+
     fp.close()
 
-    #
-    # Compare real DLV values to generated values
-    #
+    found = False
     for dlv in dlvklist:
         if dlv in dlvlist:
             print ("DLV for KSK %s/%03d/%05d (%s) found in %s" %
@@ -193,8 +197,41 @@ def main():
     if not found:
         print ("No DLV records found covering %s/DNSKEY" % zone)
 
-    exit(0 if found else 1)
+    return found
 
+
+######################################################################
+# parse_args:
+# Read command line arguments, set global 'args' structure
+######################################################################
+def parse_args():
+    global args
+    parser = argparse.ArgumentParser(description='checkds: checks DS coverage')
+
+    parser.add_argument('zone', type=str, help='zone to check')
+    parser.add_argument('-f', '--file', dest='masterfile', type=str,
+                        help='zone master file')
+    parser.add_argument('-l', '--lookaside', dest='lookaside', type=str,
+                        help='DLV lookaside zone')
+    parser.add_argument('-v', '--version', action='version', version='9.9.1')
+    args = parser.parse_args()
+
+    args.zone = args.zone.strip('.')
+    if args.lookaside:
+        lookaside = args.lookaside.strip('.')
+
+######################################################################
+# Main
+######################################################################
+def main():
+    parse_args()
+
+    if args.lookaside:
+        found = checkdlv(args.zone, args.lookaside, args.masterfile)
+    else:
+        found = checkds(args.zone, args.masterfile)
+
+    exit(0 if found else 1)
 
 if __name__ == "__main__":
     main()
