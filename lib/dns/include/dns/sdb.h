@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -65,9 +65,9 @@ typedef isc_result_t
 typedef isc_result_t
 (*dns_sdblookup2func_t)(const dns_name_t *zone, const dns_name_t *name,
 			void *dbdata, dns_sdblookup_t *lookup,
-		        dns_clientinfomethods_t *methods,
-		        dns_clientinfo_t *clientinfo);
- 
+			dns_clientinfomethods_t *methods,
+			dns_clientinfo_t *clientinfo);
+
 typedef isc_result_t
 (*dns_sdbauthorityfunc_t)(const char *zone, void *dbdata, dns_sdblookup_t *);
 
