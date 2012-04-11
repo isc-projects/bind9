@@ -1,3 +1,7 @@
+3306.   [bug]           Improve DNS64 reverse zone performance. [RT #28563]
+
+3305.   [func]          Add wire format lookup method to sdb. [RT #28563]
+
 3265.   [bug]           Address lock order reversal with inline-signing
                         support. [27557]
 
