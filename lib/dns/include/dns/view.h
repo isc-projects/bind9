@@ -1104,4 +1104,6 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 void
 dns_view_restorekeyring(dns_view_t *view);
 
+ISC_LANG_ENDDECLS
+
 #endif /* DNS_VIEW_H */
