@@ -79,6 +79,7 @@
             If a <option>file</option> is specified, then the zone is
             read from that file to find the DNSKEY records.  If not,
             then the DNSKEY records for the zone are looked up in the DNS.
+          </para>
         </listitem>
       </varlistentry>
 
