@@ -39,6 +39,8 @@
  *** Functions
  ***/
 
+ISC_LANG_BEGINDECLS
+
 /* TBD: describe those */
 
 isc_result_t
