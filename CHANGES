@@ -1,4 +1,5 @@
-3307.	[bug]		Add missing ISC_LANG_ENDDECLS to <dns/tsec.h>. [RT #28956]
+3307.	[bug]		Add missing ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS.
+			[RT #28956]
 
 3304.	[bug]		Use hmctx, not mctx when freeing rbtdb->heaps. [RT #28571]
 

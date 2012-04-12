@@ -1025,4 +1025,6 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
  * \li 'view' is valid.
  */
 
+ISC_LANG_ENDDECLS
+
 #endif /* DNS_VIEW_H */
