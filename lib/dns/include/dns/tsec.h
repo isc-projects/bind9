@@ -132,4 +132,6 @@ dns_tsec_getkey(dns_tsec_t *tsec, void *keyp);
  *\li	*tsecp points to a valid key structure depending on the TSEC type.
  */
 
+ISC_LANG_ENDDECLS
+
 #endif /* DNS_TSEC_H */
