@@ -146,7 +146,7 @@ fi
 
 rm -rf TODO EXCLUDED conftools doc/design doc/dev doc/draft doc/expired \
     doc/html doc/rfc doc/todo doc/private bin/lwresd doc/man \
-    lib/lwres/man/resolver.5 \
+    lib/lwres/man/resolver.5 contrib/zkt/rfc5011.txt \
     bin/tests/system/relay lib/cfg
 
 # Remove everything but mksymtbl.pl from util
