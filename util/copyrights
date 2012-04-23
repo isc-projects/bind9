@@ -447,6 +447,7 @@
 ./bin/tests/startperf/setup.sh			SH	2011,2012
 ./bin/tests/startperf/smallzone.db		ZONE	2011,2012
 ./bin/tests/sym_test.c				C	1998,1999,2000,2001,2004,2005,2007
+./bin/tests/system/.gitignore			X	2012
 ./bin/tests/system/Makefile.in			MAKE	2000,2001,2004,2007,2008,2011,2012
 ./bin/tests/system/README			TXT.BRIEF	2000,2001,2004
 ./bin/tests/system/acl/clean.sh			SH	2008
@@ -582,6 +583,7 @@
 ./bin/tests/system/dlv/ns6/sign.sh		SH	2010,2011,2012
 ./bin/tests/system/dlv/setup.sh			SH	2004,2007,2011,2012
 ./bin/tests/system/dlv/tests.sh			SH	2004,2007,2010,2011,2012
+./bin/tests/system/dlz/.gitignore		X	2012
 ./bin/tests/system/dlz/clean.sh			SH	2010,2012
 ./bin/tests/system/dlz/ns1/dns-root/com/example/dns.d/@/DNAME=10=example.net.=	TXT.BRIEF	2010,2012
 ./bin/tests/system/dlz/ns1/dns-root/com/example/dns.d/@/NS=10=example.com.=	TXT.BRIEF	2010,2012
@@ -937,11 +939,13 @@
 ./bin/tests/system/views/clean.sh		SH	2000,2001,2004,2005,2007
 ./bin/tests/system/views/ns1/named.conf		CONF-C	2000,2001,2004,2007
 ./bin/tests/system/views/ns1/root.db		ZONE	2000,2001,2004,2007
+./bin/tests/system/views/ns2/.gitignore		X	2012
 ./bin/tests/system/views/ns2/example1.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/views/ns2/example2.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/views/ns2/internal.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/views/ns2/named1.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/views/ns2/named2.conf	CONF-C	2000,2001,2004,2007
+./bin/tests/system/views/ns3/.gitignore		X	2012
 ./bin/tests/system/views/ns3/internal.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/views/ns3/named1.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/views/ns3/named2.conf	CONF-C	2000,2001,2004,2007
