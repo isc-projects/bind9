@@ -18,12 +18,8 @@ t_rbt
 t_resolver
 t_sockaddr
 conf.sh
-prereq.sh
 dlopen
-named.conf
-filter-aaaa
 lwtest
-rpz
 keycreate
 keydelete
 gssapi_krb
