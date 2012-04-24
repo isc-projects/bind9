@@ -1,3 +1,6 @@
+3309.	[bug]		resolver.c:fctx_finddone() was not threadsafe.
+			[RT #27995]
+
 3307.	[bug]		Add missing ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS.
 			[RT #28956]
 
@@ -5,7 +8,8 @@
 
 3305.	[func]		Add wire format lookup method to sdb. [RT #28563]
 
-3304.	[bug]		Use hmctx, not mctx when freeing rbtdb->heaps. [RT #28571]
+3304.	[bug]		Use hmctx, not mctx when freeing rbtdb->heaps.
+			[RT #28571]
 
 3302.	[bug]		dns_dnssec_findmatchingkeys could fail to find
 			keys if the zone name contained character that
