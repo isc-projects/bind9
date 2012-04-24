@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.170.14.5 2011/12/20 00:12:10 marka Exp $ */
+/* $Id: zoneconf.c,v 1.170.14.7 2012/01/31 23:46:39 tbox Exp $ */
 
 /*% */
 
@@ -1465,15 +1465,21 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 
 	zoptions = cfg_tuple_get(zconfig, "options");
 
-	if (zonetype_fromconfig(zoptions) != dns_zone_gettype(zone))
+	if (zonetype_fromconfig(zoptions) != dns_zone_gettype(zone)) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			     "not reusable: type mismatch");
 		return (ISC_FALSE);
+	}
 
 	/*
 	 * We always reconfigure a static-stub zone for simplicity, assuming
 	 * the amount of data to be loaded is small.
 	 */
-	if (zonetype_fromconfig(zoptions) == dns_zone_staticstub)
+	if (zonetype_fromconfig(zoptions) == dns_zone_staticstub) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			     "not reusable: staticstub");
 		return (ISC_FALSE);
+	}
 
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "file", &obj);
@@ -1484,8 +1490,11 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	zfilename = dns_zone_getfile(zone);
 	if (!((cfilename == NULL && zfilename == NULL) ||
 	      (cfilename != NULL && zfilename != NULL &&
-	       strcmp(cfilename, zfilename) == 0)))
-	    return (ISC_FALSE);
+	       strcmp(cfilename, zfilename) == 0))) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			"not reusable: filename mismatch");
+		return (ISC_FALSE);
+	}
 
 	return (ISC_TRUE);
 }

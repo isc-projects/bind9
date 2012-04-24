@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.41 2012/01/30 00:17:23 marka Exp $ */
+/* $Id$ */
 
 /*! \file */
 
@@ -3397,9 +3397,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			needdump = ISC_TRUE;
 	}
 
-	zone->loadtime = loadtime;
-
-	dns_zone_log(zone, ISC_LOG_DEBUG(1), "loaded");
+	dns_zone_log(zone, ISC_LOG_DEBUG(1), "loaded; checking validity");
 	/*
 	 * Obtain ns, soa and cname counts for top of zone.
 	 */
@@ -3644,6 +3642,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u%s", serial,
 			     dns_db_issecure(db) ? " (DNSSEC signed)" : "");
 
+	zone->loadtime = loadtime;
 	return (result);
 
  cleanup:
@@ -3995,6 +3994,26 @@ dns_zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 	LOCK_ZONE(source);
 	zone_iattach(source, target);
 	UNLOCK_ZONE(source);
+}
+
+isc_result_t
+dns_zone_synckeyzone(dns_zone_t *zone) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+
+	if (zone->type != dns_zone_key)
+		return (DNS_R_BADZONE);
+
+	CHECK(dns_zone_getdb(zone, &db));
+
+	LOCK_ZONE(zone);
+	result = sync_keyzone(zone, db);
+	UNLOCK_ZONE(zone);
+
+ failure:
+	if (db != NULL)
+		dns_db_detach(&db);
+	return (result);
 }
 
 static void
@@ -7903,7 +7922,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 	}
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
 		CHECK(increment_soa_serial(db, ver, &diff, zone->mctx));
-		CHECK(zone_journal(zone, &diff, "sync_keyzone"));
+		CHECK(zone_journal(zone, &diff, "zone_refreshkeys"));
 		commit = ISC_TRUE;
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
 		zone_needdump(zone, 30);
@@ -11994,11 +12013,13 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	 * This transfer finishing freed up a transfer quota slot.
 	 * Let any other zones waiting for quota have it.
 	 */
+	UNLOCK_ZONE(zone);
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone, statelink);
 	zone->statelist = NULL;
 	zmgr_resume_xfrs(zone->zmgr, ISC_FALSE);
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+	LOCK_ZONE(zone);
 
 	/*
 	 * Retry with a different server if necessary.
@@ -12937,12 +12958,22 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	isc_event_t *e;
 
 	/*
+	 * If we are exiting just pretend we got quota so the zone will
+	 * be cleaned up in the zone's task context.
+	 */
+	LOCK_ZONE(zone);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
+		UNLOCK_ZONE(zone);
+		goto gotquota;
+	}
+
+	/*
 	 * Find any configured information about the server we'd
 	 * like to transfer this zone from.
 	 */
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
-	(void)dns_peerlist_peerbyaddr(zone->view->peers,
-				      &masterip, &peer);
+	(void)dns_peerlist_peerbyaddr(zone->view->peers, &masterip, &peer);
+	UNLOCK_ZONE(zone);
 
 	/*
 	 * Determine the total maximum number of simultaneous
@@ -12966,7 +12997,11 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	     x = ISC_LIST_NEXT(x, statelink))
 	{
 		isc_netaddr_t xip;
+
+		LOCK_ZONE(x);
 		isc_netaddr_fromsockaddr(&xip, &x->masteraddr);
+		UNLOCK_ZONE(x);
+
 		nxfrsin++;
 		if (isc_netaddr_equal(&xip, &masterip))
 			nxfrsperns++;
@@ -12979,15 +13014,14 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	if (nxfrsperns >= maxtransfersperns)
 		return (ISC_R_QUOTA);
 
+ gotquota:
 	/*
 	 * We have sufficient quota.  Move the zone to the "xfrin_in_progress"
 	 * list and send it an event to let it start the actual transfer in the
 	 * context of its own task.
 	 */
-	e = isc_event_allocate(zmgr->mctx, zmgr,
-			       DNS_EVENT_ZONESTARTXFRIN,
-			       got_transfer_quota, zone,
-			       sizeof(isc_event_t));
+	e = isc_event_allocate(zmgr->mctx, zmgr, DNS_EVENT_ZONESTARTXFRIN,
+			       got_transfer_quota, zone, sizeof(isc_event_t));
 	if (e == NULL)
 		return (ISC_R_NOMEMORY);
 

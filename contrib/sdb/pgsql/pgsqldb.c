@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.15 2007/06/19 23:47:07 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 
@@ -43,7 +43,7 @@
  * connection to the database per zone, which is inefficient.  It also may
  * not handle quoting correctly.
  *
- * The table must contain the fields "name", "rdtype", and "rdata", and 
+ * The table must contain the fields "name", "rdtype", and "rdata", and
  * is expected to contain a properly constructed zone.  The program "zonetodb"
  * creates such a table.
  */

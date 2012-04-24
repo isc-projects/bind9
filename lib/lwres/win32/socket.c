@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.3 2007/06/18 23:47:51 tbox Exp $ */
+/* $Id$ */
 
 #include <stdio.h>
 #include <lwres/platform.h>
@@ -25,9 +25,9 @@ InitSockets(void) {
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
- 
+
 	wVersionRequested = MAKEWORD(2, 0);
- 
+
 	err = WSAStartup( wVersionRequested, &wsaData );
 	if (err != 0) {
 		fprintf(stderr, "WSAStartup() failed: %d\n", err);

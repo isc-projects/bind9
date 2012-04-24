@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dirdb.c,v 1.12 2007/06/19 23:47:07 tbox Exp $ */
+/* $Id$ */
 
 /*
  * A simple database driver that returns basic information about
@@ -80,7 +80,7 @@ dirdb_lookup(const char *zone, const char *name, void *dbdata,
 		snprintf(filename, sizeof(filename), "%s/%s",
 			 (char *)dbdata, name);
 	CHECKN(lstat(filename, &statbuf));
-	
+
 	if (S_ISDIR(statbuf.st_mode))
 		CHECK(dns_sdb_putrr(lookup, "txt", 3600, "dir"));
 	else if (S_ISCHR(statbuf.st_mode) || S_ISBLK(statbuf.st_mode)) {

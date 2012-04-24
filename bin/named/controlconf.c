@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -373,17 +373,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		if (result == ISC_R_SUCCESS)
 			break;
 		isc_mem_put(listener->mctx, secret.rstart, REGION_SIZE(secret));
-		if (result == ISCCC_R_BADAUTH) {
-			/*
-			 * For some reason, request is non-NULL when
-			 * isccc_cc_fromwire returns ISCCC_R_BADAUTH.
-			 */
-			if (request != NULL)
-				isccc_sexpr_free(&request);
-		} else {
-			log_invalid(&conn->ccmsg, result);
-			goto cleanup;
-		}
+		log_invalid(&conn->ccmsg, result);
+		goto cleanup;
 	}
 
 	if (key == NULL) {

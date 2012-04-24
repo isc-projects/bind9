@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.5.814.2 2011/03/05 23:52:08 tbox Exp $
+# $Id$
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -59,7 +59,12 @@ EOF
 
 $RNDCCMD reload
 
-sleep 2
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIGCMD nil. SOA > dig.out
+	grep "SOA" dig.out > /dev/null && break
+	sleep 1
+done
 
 $DIGCMD nil. TXT | grep 'initial AXFR' >/dev/null || {
     echo "I:failed"

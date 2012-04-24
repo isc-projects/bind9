@@ -4,6 +4,72 @@
 
 	--- 9.8.2 released ---
 
+3298.	[bug]		Named could dereference a NULL pointer in
+			zmgr_start_xfrin_ifquota if the zone was being removed.
+			[RT #28419]
+
+3297.	[bug]		Named could die on a malformed master file. [RT #28467]
+
+3295.	[bug]		Adjust isc_time_secondsastimet range check to be more
+			portable. [RT # 26542]
+
+3294.	[bug]		isccc/cc.c:table_fromwire failed to free alist on
+			error. [RT #28265]
+
+3291.	[port]		Fixed a build error on systems without ENOTSUP.
+			[RT #28200]
+
+3290.	[bug]		<isc/hmacsha.h> was not being installed. [RT #28169]
+
+3288.	[bug]		dlz_destroy() function wasn't correctly registered
+			by the DLZ dlopen driver. [RT #28056]
+
+3287.	[port]		Update ans.pl to work with Net::DNS 0.68. [RT #28028]
+
+3286.	[bug]		Managed key maintenance timer could fail to start
+			after 'rndc reconfig'. [RT #26786]
+
+	--- 9.8.2rc2 released ---
+
+3285.	[bug]		val-frdataset was incorrectly disassociated in
+			proveunsecure after calling startfinddlvsep.
+			[RT #27928]
+
+3284.	[bug]		Address race conditions with the handling of
+			rbtnode.deadlink. [RT #27738]
+
+3283.	[bug]		Raw zones with with more than 512 records in a RRset
+			failed to load. [RT #27863]
+
+3282.	[bug]		Restrict the TTL of NS RRset to no more than that
+			of the old NS RRset when replacing it.
+			[RT #27792] [RT #27884]
+
+3281.	[bug]		SOA refresh queries could be treated as cancelled
+			despite succeeding over the loopback interface.
+			[RT #27782]
+
+3280.	[bug]		Potential double free of a rdataset on out of memory
+			with DNS64. [RT #27762]
+
+3278.	[bug]		Make sure automatic key maintenance is started
+			when "auto-dnssec maintain" is turned on during
+			"rndc reconfig". [RT #26805]
+
+3276.	[bug]		win32: ns_os_openfile failed to return NULL on
+			safe_open failure. [RT #27696]
+
+3274.	[bug]		Log when a zone is not reusable.  Only set loadtime
+			on successful loads.  [RT #27650]
+
+3273.   [bug]           AAAA responses could be returned in the additional
+                        section even when filter-aaaa-on-v4 was in use.
+                        [RT #27292]
+
+3271.	[port]		darwin: mksymtbl is not always stable, loop several
+			times before giving up.  mksymtbl was using non
+			portable perl to covert 64 bit hex strings. [RT #27653]
+
 3268.	[bug]		Convert RRSIG expiry times to 64 timestamps to work
 			out the earliest expiry time. [RT #23311]
 

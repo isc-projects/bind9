@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.7 2007/12/14 01:40:42 marka Exp $ */
+/* $Id$ */
 
 /*
  * We do this so that we may incorporate everything in the main routines
@@ -60,7 +60,7 @@ get_win32_searchlist(lwres_context_t *ctx) {
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TCPIP_SUBKEY, 0, KEY_READ, &hKey)
 		!= ERROR_SUCCESS)
 		keyFound = FALSE;
-	
+
 	if (keyFound == TRUE) {
 		/* Get the named directory */
 		if (RegQueryValueEx(hKey, "SearchList", NULL, NULL,

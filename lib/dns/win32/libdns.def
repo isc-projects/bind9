@@ -208,8 +208,8 @@ dns_dnssec_keyfromrdata
 dns_dnssec_keylistfromrdataset
 dns_dnssec_selfsigns
 dns_dnssec_sign
-dns_dnssec_signs
 dns_dnssec_signmessage
+dns_dnssec_signs
 dns_dnssec_updatekeys
 dns_dnssec_verify
 dns_dnssec_verify2
@@ -894,6 +894,7 @@ dns_zone_setxfrsource4
 dns_zone_setxfrsource6
 dns_zone_setzeronosoattl
 dns_zone_signwithkey
+dns_zone_synckeyzone
 dns_zone_unload
 dns_zonekey_iszonekey
 dns_zonemgr_attach
