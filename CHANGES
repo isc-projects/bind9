@@ -1,3 +1,6 @@
+3309.	[bug]		resolver.c:fctx_finddone() was not threadsafe.
+			[RT #27995]
+
 3307.	[bug]		Add missing ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS.
 			[RT #28956]
 
