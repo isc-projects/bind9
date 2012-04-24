@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.292.8.29 2012/01/04 23:45:53 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 
@@ -1590,8 +1590,7 @@ cleanup_dead_nodes(dns_rbtdb_t *rbtdb, int bucketnum) {
 }
 
 /*
- * Caller must be holding the node lock if its reference must be protected
- * by the lock.
+ * Caller must be holding the node lock.
  */
 static inline void
 new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
@@ -1622,31 +1621,43 @@ static inline void
 reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		isc_rwlocktype_t treelocktype)
 {
-	isc_boolean_t need_relock = ISC_FALSE;
+	isc_rwlocktype_t locktype = isc_rwlocktype_read;
+	nodelock_t *nodelock = &rbtdb->node_locks[node->locknum].lock;
+	isc_boolean_t maybe_cleanup = ISC_FALSE;
 
-	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
-	NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
-		      isc_rwlocktype_read);
-	if (ISC_LINK_LINKED(node, deadlink))
-		need_relock = ISC_TRUE;
-	else if (!ISC_LIST_EMPTY(rbtdb->deadnodes[node->locknum]) &&
-		 treelocktype == isc_rwlocktype_write)
-		need_relock = ISC_TRUE;
-	NODE_WEAKUNLOCK(&rbtdb->node_locks[node->locknum].lock,
-			isc_rwlocktype_read);
-	if (need_relock) {
-		NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
-			      isc_rwlocktype_write);
+	POST(locktype);
+
+	NODE_STRONGLOCK(nodelock);
+	NODE_WEAKLOCK(nodelock, locktype);
+
+	/*
+	 * Check if we can possibly cleanup the dead node.  If so, upgrade
+	 * the node lock below to perform the cleanup.
+	 */
+	if (!ISC_LIST_EMPTY(rbtdb->deadnodes[node->locknum]) &&
+	    treelocktype == isc_rwlocktype_write) {
+		maybe_cleanup = ISC_TRUE;
+	}
+
+	if (ISC_LINK_LINKED(node, deadlink) || maybe_cleanup) {
+		/*
+		 * Upgrade the lock and test if we still need to unlink.
+		 */
+		NODE_WEAKUNLOCK(nodelock, locktype);
+		locktype = isc_rwlocktype_write;
+		POST(locktype);
+		NODE_WEAKLOCK(nodelock, locktype);
 		if (ISC_LINK_LINKED(node, deadlink))
 			ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum],
 					node, deadlink);
-		if (treelocktype == isc_rwlocktype_write)
+		if (maybe_cleanup)
 			cleanup_dead_nodes(rbtdb, node->locknum);
-		NODE_WEAKUNLOCK(&rbtdb->node_locks[node->locknum].lock,
-				isc_rwlocktype_write);
 	}
+
 	new_reference(rbtdb, node);
-	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
+
+	NODE_WEAKUNLOCK(nodelock, locktype);
+	NODE_STRONGUNLOCK(nodelock);
 }
 
 /*
@@ -1670,7 +1681,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	rbtdb_nodelock_t *nodelock;
 	unsigned int refs, nrefs;
 	int bucket = node->locknum;
-	isc_boolean_t no_reference;
+	isc_boolean_t no_reference = ISC_TRUE;
 
 	nodelock = &rbtdb->node_locks[bucket];
 
@@ -1690,6 +1701,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		NODE_WEAKUNLOCK(&nodelock->lock, isc_rwlocktype_read);
 		NODE_WEAKLOCK(&nodelock->lock, isc_rwlocktype_write);
 	}
+
 	dns_rbtnode_refdecrement(node, &nrefs);
 	INSIST((int)nrefs >= 0);
 	if (nrefs > 0) {
@@ -1699,7 +1711,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		return (ISC_FALSE);
 	}
 
-	if (node->dirty && dns_rbtnode_refcurrent(node) == 0) {
+	if (node->dirty) {
 		if (IS_CACHE(rbtdb))
 			clean_cache_node(rbtdb, node);
 		else {
@@ -1715,19 +1727,6 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 			}
 			clean_zone_node(rbtdb, node, least_serial);
 		}
-	}
-
-	isc_refcount_decrement(&nodelock->references, &refs);
-	INSIST((int)refs >= 0);
-
-	/*
-	 * XXXDCL should this only be done for cache zones?
-	 */
-	if (node->data != NULL || node->down != NULL) {
-		/* Restore the lock? */
-		if (nlock == isc_rwlocktype_read)
-			NODE_WEAKDOWNGRADE(&nodelock->lock);
-		return (ISC_TRUE);
 	}
 
 	/*
@@ -1753,13 +1752,18 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	} else
 		write_locked = ISC_TRUE;
 
-	no_reference = ISC_TRUE;
-	if (write_locked && dns_rbtnode_refcurrent(node) == 0) {
+	isc_refcount_decrement(&nodelock->references, &refs);
+	INSIST((int)refs >= 0);
+
+	/*
+	 * XXXDCL should this only be done for cache zones?
+	 */
+	if (node->data != NULL || node->down != NULL)
+		goto restore_locks;
+
+	if (write_locked) {
 		/*
-		 * We can now delete the node if the reference counter is
-		 * zero.  This should be typically the case, but a different
-		 * thread may still gain a (new) reference just before the
-		 * current thread locks the tree (e.g., in findnode()).
+		 * We can now delete the node.
 		 */
 
 		/*
@@ -1834,13 +1838,13 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 			delete_node(rbtdb, node);
 		}
-	} else if (dns_rbtnode_refcurrent(node) == 0) {
+	} else {
 		INSIST(node->data == NULL);
 		INSIST(!ISC_LINK_LINKED(node, deadlink));
 		ISC_LIST_APPEND(rbtdb->deadnodes[bucket], node, deadlink);
-	} else
-		no_reference = ISC_FALSE;
+	}
 
+ restore_locks:
 	/* Restore the lock? */
 	if (nlock == isc_rwlocktype_read)
 		NODE_WEAKDOWNGRADE(&nodelock->lock);
@@ -5881,6 +5885,19 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				bind_rdataset(rbtdb, rbtnode, header, now,
 					      addedrdataset);
 			return (ISC_R_SUCCESS);
+		}
+		/*
+		 * If we have will be replacing a NS RRset force its TTL
+		 * to be no more than the current NS RRset's TTL.  This
+		 * ensures the delegations that are withdrawn are honoured.
+		 */
+		if (IS_CACHE(rbtdb) && header->rdh_ttl > now &&
+		    header->type == dns_rdatatype_ns &&
+		    !header_nx && !newheader_nx &&
+		    header->trust <= newheader->trust) {
+			if (newheader->rdh_ttl > header->rdh_ttl) {
+				newheader->rdh_ttl = header->rdh_ttl;
+			}
 		}
 		if (IS_CACHE(rbtdb) && header->rdh_ttl > now &&
 		    (header->type == dns_rdatatype_a ||

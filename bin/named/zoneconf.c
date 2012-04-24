@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.161.4.9 2011/12/20 00:14:16 marka Exp $ */
+/* $Id: zoneconf.c,v 1.161.4.12 2012/01/31 23:46:14 tbox Exp $ */
 
 /*% */
 
@@ -1110,8 +1110,11 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 
 	zoptions = cfg_tuple_get(zconfig, "options");
 
-	if (zonetype_fromconfig(zoptions) != dns_zone_gettype(zone))
+	if (zonetype_fromconfig(zoptions) != dns_zone_gettype(zone)) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			"not reusable: type mismatch");
 		return (ISC_FALSE);
+	}
 
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "file", &obj);
@@ -1122,8 +1125,11 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	zfilename = dns_zone_getfile(zone);
 	if (!((cfilename == NULL && zfilename == NULL) ||
 	      (cfilename != NULL && zfilename != NULL &&
-	       strcmp(cfilename, zfilename) == 0)))
-	    return (ISC_FALSE);
+	       strcmp(cfilename, zfilename) == 0))) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			"not reusable: filename mismatch");
+		return (ISC_FALSE);
+	}
 
 	return (ISC_TRUE);
 }

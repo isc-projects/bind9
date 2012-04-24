@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone2sqlite.c,v 1.3.104.1 2010/08/16 05:36:08 marka Exp $ */
+/* $Id$ */
 
 #include <stdlib.h>
 #include <string.h>

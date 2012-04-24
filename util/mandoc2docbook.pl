@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: mandoc2docbook.pl,v 1.6 2007/06/19 23:47:24 tbox Exp $
+# $Id$
 
 #
 # Do a quick-and-dirty conversion of .mandoc man pages to
@@ -46,7 +46,7 @@ print <<\END;
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: mandoc2docbook.pl,v 1.6 2007/06/19 23:47:24 tbox Exp $ -->
+<!-- $Id$ -->
 
 <refentry>
 <refentryinfo>

@@ -1,4 +1,4 @@
-/* $Id: bind.keys,v 1.5.42.3 2011/03/25 17:46:40 each Exp $ */
+/* $Id$ */
 # The bind.keys file is used to override built-in DNSSEC trust anchors
 # which are included as part of BIND 9.  As of the current release (BIND
 # 9.7), the only trust anchor it sets is the one for the ISC DNSSEC

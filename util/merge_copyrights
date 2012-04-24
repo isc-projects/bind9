@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 2004-2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2007, 2009-2012  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2001, 2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,31 +15,44 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.35.6.6 2011/10/11 00:50:01 marka Exp $
+# $Id$
 
-%file_types = ();
-%file_years = ();
+use strict;
+
+my %file_types = ();
+my %file_years = ();
+my %exists = ();
 
 open(COPYRIGHTS, "<util/copyrights") || die "can't open ./util/copyrights: $!";
 while (<COPYRIGHTS>) {
     chomp;
-    ($file, $type, $years) = split;
+    my ($file, $type, $years) = split;
     $file_types{$file} = $type;
     $file_years{$file} = $years;
 }
 close(COPYRIGHTS);
 
-($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time());
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time());
+$sec = $min = $hour = $mday = $mon = $wday = $yday = $isdst = 0;
 $year += 1900;
 
-$find = "find . -type f -print";
-
-open(FILES, "$find | sort |") || die "can't start \"$find\": $!";
+open(FILES, "git ls-files | sed 's;^;./;' |") || die "git ls-files: $!";
 while (<FILES>) {
     chomp;
+    $exists{$_} = 1;
+}
+close(FILES);
+
+open(CHANGES, "sh util/recent_changes.sh |") || die "recent_changes.sh: $!";
+while (<CHANGES>) {
+    chomp;
+
+    # this file isn't in the repository now
+    next unless ($exists{$_});
 
     next if (m%/\.\# |		# CVS old conflict file
                /CVS/ |		# CVS directory
+               /.git/ |		# git directory
                util/newcopyrights | # our output
                \.bak$ |		# created by update_copyrights
                /(dnssafe|openssl)/.*\.[ch]$ |	# imported
@@ -49,6 +62,7 @@ while (<FILES>) {
     if (!$file_types{$_}) {
 	# Strip any .in extension to find out the file's real type.
 	# .in files are processed by configure to produce the target file.
+	my $base;
 	($base = $_) =~ s/\.in$//;
 
 	# Contributed code should maintain its own copyright.
@@ -82,7 +96,7 @@ while (<FILES>) {
 	    $file_types{$_} = "CONF-SH";
 	} elsif ($base =~ /\.(db|hint)$/) {
 	    $file_types{$_} = "ZONE";
-	} elsif ($base =~ /(\/\.cvsignore|\.gif|\.jpg|\.dsp|\.dsw|\.mak)$/i) {
+	} elsif ($base =~ /(\/\.gitignore|\.gif|\.jpg|\.dsp|\.dsw|\.mak)$/i) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.rnc$/i) {
 	    $file_types{$_} = "RNC";
@@ -95,24 +109,13 @@ while (<FILES>) {
 	} else {
 	    $file_types{$_} = "?";
 	}
-        ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
-	 $blksize,$blocks)
-	    = stat($_);
-	($sec,$min,$hour,$mday,$mon,$c_year,$wday,$yday,$isdst) =
-	    localtime($ctime);
-	($sec,$min,$hour,$mday,$mon,$m_year,$wday,$yday,$isdst) =
-	    localtime($mtime);
-	$c_year += 1900;
-	$m_year += 1900;
-	if ($m_year != $year || $c_year != $year) {
+	my $m_year = int(`sh util/file_year.sh $_`);
+	if ($m_year != $year) {
 	    print "$_: must set copyright year(s) manually\n";
 	    $file_years{$_} = "????";
 	} else {
 	    $file_years{$_} = "$year";
 	}
-	# keep perl from issuing warnings about "used only once"
-	$dev = $ino = $mode = $nlink = $uid = $gid = $rdev = $size = 0;
-	$atime = $blksize = $blocks = 0;
     } else {
         if (! defined($file_years{$_}) || $file_years{$_} eq "????") {
             print "$_: must set copyright year(s) manually\n";
@@ -126,45 +129,42 @@ while (<FILES>) {
 	next if ($file_years{$_} =~ /^PARENT:/);
 	next if ($file_years{$_} eq "DOCBOOK");
 
-	@years = split(/,/, $file_years{$_});
-	$has_current = 0;
-	foreach $fyear (@years) {
+	my @years = split(/,/, $file_years{$_});
+	my $has_current = 0;
+	foreach my $fyear (@years) {
 	    if ($fyear == $year) {
 		$has_current = 1;
 	    }
 	}
 	if (!$has_current) {
-	    ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
-	     $blksize,$blocks)
-		= stat($_);
-	    ($sec,$min,$hour,$mday,$mon,$m_year,$wday,$yday,$isdst) =
-		localtime($mtime);
-	    $m_year += 1900;
-	    if ($m_year == $year) {
-		$file_years{$_} .= ",$year";
-	    }
+	    $file_years{$_} .= ",$year";
 	}
     }
 }
-close(FILES);
+close(CHANGES);
 
 open(NEWCOPYRIGHTS, ">util/newcopyrights") ||
     die "can't open newcopyrights: $!";
-foreach $file (sort(keys(%file_types))) {
+foreach my $file (sort(keys(%file_types))) {
     print NEWCOPYRIGHTS "$file";
-    $len = length($file);
+    my $len = length($file);
+    my $tabs = 0;
     if ($len >= 48) {
 	$tabs = 1;
     } else {
-	$needed = int (48 - $len);
+	my $needed = int (48 - $len);
 	$tabs = int ($needed / 8);
 	if ($needed % 8 != 0) {
 	    $tabs++;
 	}
     }
-    for ($i = 0; $i < $tabs; $i++) {
+    for (my $i = 0; $i < $tabs; $i++) {
 	printf NEWCOPYRIGHTS "\t";
     }
     printf NEWCOPYRIGHTS "%s\t%s\n", $file_types{$file}, $file_years{$file};
+
+    if (($file_years{$file} eq "????") || ($file_types{$file} eq "?")) {
+        print "Unknown file type or year: $file\n";
+    }
 }
 close(NEWCOPYRIGHTS);

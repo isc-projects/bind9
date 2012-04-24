@@ -1,6 +1,6 @@
 #! /bin/sh -ex
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: mdnbuildtest.sh,v 1.5 2007/06/19 23:47:24 tbox Exp $
+# $Id$
 
 # XXXDCL This is currently much too specific to the environment in which
 # it was written (NetBSD 1.5_alpha2 with libiconv in /usr/local/lib).  It

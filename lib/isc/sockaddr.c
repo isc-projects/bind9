@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.70.558.2 2011/02/21 23:46:38 tbox Exp $ */
+/* $Id$ */
 
 /*! \file */
 

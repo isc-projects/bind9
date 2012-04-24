@@ -1,0 +1,4 @@
+.libs
+named
+named-symtbl.c
+lwresd

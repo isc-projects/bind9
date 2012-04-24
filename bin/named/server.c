@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.47 2011/12/22 08:28:18 marka Exp $ */
+/* $Id: server.c,v 1.556.8.50 2012/02/22 00:31:55 each Exp $ */
 
 /*! \file */
 
@@ -3064,6 +3064,12 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 */
 	CHECK(dns_view_addzone(view, zone));
 
+	/*
+	 * Ensure that zone keys are reloaded on reconfig
+	 */
+	if ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_MAINTAIN) != 0)
+		dns_zone_rekey(zone, ISC_FALSE);
+
  cleanup:
 	if (zone != NULL)
 		dns_zone_detach(&zone);
@@ -3104,6 +3110,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 		dns_zone_attach(pview->managed_keys, &view->managed_keys);
 		dns_zone_setview(pview->managed_keys, view);
 		dns_view_detach(&pview);
+		dns_zone_synckeyzone(view->managed_keys);
 		return (ISC_R_SUCCESS);
 	}
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2009-2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009-2012  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3.6.7 2011/07/08 01:46:41 each Exp $
+# $Id: clean.sh,v 1.3.6.9 2012/02/06 23:45:34 tbox Exp $
 
 rm -f */K* */dsset-* */*.signed */trusted.conf */tmp* */*.jnl */*.bk
 rm -f active.key inact.key del.key unpub.key standby.key rev.key
@@ -47,3 +47,4 @@ rm -f ns3/nozsk.example.db ns3/inaczsk.example.db
 rm -f ns3/prepub.example.db
 rm -f ns3/prepub.example.db.in
 rm -f ns3/secure-to-insecure2.example.db
+rm -f ns3/*.nzf

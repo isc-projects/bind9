@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timedb.c,v 1.10 2007/06/19 23:47:10 tbox Exp $ */
+/* $Id$ */
 
 /*
  * A simple database driver that enables the server to return the
@@ -43,10 +43,10 @@ static dns_sdbimplementation_t *timedb = NULL;
 /*
  * This database operates on relative names.
  *
- * "time" and "@" return the time in a TXT record.  
+ * "time" and "@" return the time in a TXT record.
  * "clock" is a CNAME to "time"
  * "current" is a DNAME to "@" (try time.current.time)
- */ 
+ */
 static isc_result_t
 timedb_lookup(const char *zone, const char *name, void *dbdata,
 	      dns_sdblookup_t *lookup)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2008, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2008, 2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3hash.c,v 1.6.56.2 2011/11/02 23:45:34 tbox Exp $ */
+/* $Id$ */
 
 #include <config.h>
 
