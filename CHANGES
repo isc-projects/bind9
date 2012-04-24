@@ -1,3 +1,5 @@
+3310.	[test]		Increase table size for mutex profiling. [RT #28809]
+
 3309.	[bug]		resolver.c:fctx_finddone() was not threadsafe.
 			[RT #27995]
 
