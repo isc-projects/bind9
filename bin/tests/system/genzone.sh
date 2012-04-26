@@ -270,6 +270,11 @@ hip2			HIP	( 2 200100107B1A74DF365639CC39F1D578
                                 AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH8cIvM4p9+LrV4e19WzK00+CI6zBCQTdtWsuxKbWIy87UOoJTwkUs7lBu+Upr1gsNrut79ryra+bSRGQb1slImA8YVJyuIDsj7kwzG7jnERNqnWxZ48AWkskmdHaVDP4BcelrTI3rMXdXF5D
 				rvs.example.com. )
 
+tlsa			TLSA	( 1 1 2 92003ba34942dc74152e2f2c408d29ec
+				a5a520e7f2e06bb944f4dca346baf63c
+				1b177615d466f6c4b71c216a50292bd5
+				8c9ebdd2f74e38fe51ffd48c43326cbc )
+
 ; type 255
 ; TSIG is a meta-type and should never occur in master files.
 EOF

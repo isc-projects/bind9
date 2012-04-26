@@ -1,5 +1,15 @@
 #!/bin/sh
 commit=
+if type fetch >/dev/null 2>&1
+then
+	fetch=fetch
+elif type curl >/dev/null 2>&1
+then
+	fetch="curl -O"
+else
+	exit 1
+fi
+
 for i
 do
 	z=`expr "$i" : 'http://www.ietf.org/internet-drafts/\(.*\)'`
@@ -28,13 +38,13 @@ do
 			continue;
 		fi
 	fi
-	if fetch "http://www.ietf.org/internet-drafts/$i" 
+	if $fetch "http://www.ietf.org/internet-drafts/$i" 
 	then
-		cvs add "$i" 
+		git add "$i" 
 		if test "X$old" != "X$pat"
 		then
 			rm $old
-			cvs delete $old
+			git rm $old
 			commit="$commit $old"
 		fi
 		commit="$commit $i"
@@ -42,5 +52,6 @@ do
 done
 if test -n "$commit"
 then
-	cvs commit -m "new draft" $commit
+	git commit -m "new draft"
+	git push
 fi
