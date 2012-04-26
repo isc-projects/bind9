@@ -1,3 +1,6 @@
+3312.	[bug]		named-checkconf didn't detect a bad dns64 clients acl.
+			[RT #27631]
+
 3311.	[bug]		Abort the zone dump if zone->db is NULL in
 			zone.c:zone_gotwritehandle. [RT #29028]
 
