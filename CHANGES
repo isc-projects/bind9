@@ -1,3 +1,5 @@
+3313.	[protocol]	Add TLSA record type. [RT #28989]
+
 3312.	[bug]		named-checkconf didn't detect a bad dns64 clients acl.
 			[RT #27631]
 
