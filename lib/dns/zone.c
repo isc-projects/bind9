@@ -1883,16 +1883,19 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 
 	LOCK_ZONE(zone);
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	dns_db_currentversion(zone->db, &version);
-	dns_master_initrawheader(&rawdata);
-	if (inline_secure(zone))
-		get_raw_serial(zone->raw, &rawdata);
-	result = dns_master_dumpinc3(zone->mctx, zone->db, version,
-				     &dns_master_style_default,
-				     zone->masterfile, zone->task, dump_done,
-				     zone, &zone->dctx, zone->masterformat,
-				     &rawdata);
-	dns_db_closeversion(zone->db, &version, ISC_FALSE);
+	if (zone->db != NULL) {
+		dns_db_currentversion(zone->db, &version);
+		dns_master_initrawheader(&rawdata);
+		if (inline_secure(zone))
+			get_raw_serial(zone->raw, &rawdata);
+		result = dns_master_dumpinc3(zone->mctx, zone->db, version,
+					     &dns_master_style_default,
+					     zone->masterfile, zone->task,
+					     dump_done, zone, &zone->dctx,
+					     zone->masterformat, &rawdata);
+		dns_db_closeversion(zone->db, &version, ISC_FALSE);
+	} else
+		result = ISC_R_CANCELED;
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	UNLOCK_ZONE(zone);
 	if (result != DNS_R_CONTINUE)
@@ -9088,6 +9091,14 @@ zone_unload(dns_zone_t *zone) {
 
 	REQUIRE(LOCKED_ZONE(zone));
 
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FLUSH) ||
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
+		if (zone->writeio != NULL)
+			zonemgr_cancelio(zone->writeio);
+
+		if (zone->dctx != NULL)
+			dns_dumpctx_cancel(zone->dctx);
+	}
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
 	zone_detachdb(zone);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
