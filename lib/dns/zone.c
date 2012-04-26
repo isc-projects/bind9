@@ -10379,7 +10379,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		dns_request_destroy(&zone->request);
 		if (zone->type == dns_zone_slave ||
 		    zone->type == dns_zone_redirect) {
-			do_queue_xfrin = TRUE;
+			do_queue_xfrin = ISC_TRUE;
 		} else {
 			INSIST(zone->type == dns_zone_stub);
 			ns_query(zone, rdataset, NULL);
