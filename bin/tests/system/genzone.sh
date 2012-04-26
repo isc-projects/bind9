@@ -262,6 +262,11 @@ dnskey01		DNSKEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
 ;						; other data
 ;				)
 
+tlsa			TLSA	( 1 1 2 92003ba34942dc74152e2f2c408d29ec
+				a5a520e7f2e06bb944f4dca346baf63c
+				1b177615d466f6c4b71c216a50292bd5
+				8c9ebdd2f74e38fe51ffd48c43326cbc )
+
 ; type 255
 ; TSIG is a meta-type and should never occur in master files.
 EOF
