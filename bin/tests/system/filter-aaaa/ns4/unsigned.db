@@ -21,3 +21,6 @@ a-only		NS	1.0.0.4
 aaaa-only	AAAA	2001:db8::5
 dual		A	1.0.0.6
 dual 		AAAA	2001:db8::6
+mx		A	1.0.0.3
+mx		AAAA	2001:db8::3
+

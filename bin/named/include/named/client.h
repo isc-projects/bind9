@@ -141,6 +141,9 @@ struct ns_client {
 	isc_netaddr_t		destaddr;
 	struct in6_pktinfo	pktinfo;
 	isc_event_t		ctlevent;
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+	dns_v4_aaaa_t		filter_aaaa;
+#endif
 	/*%
 	 * Information about recent FORMERR response(s), for
 	 * FORMERR loop avoidance.  This is separate for each
