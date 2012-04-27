@@ -42,6 +42,9 @@
 
 3183.	[bug]		Added RTLD_GLOBAL flag to dlopen call. [RT #26301]
 
+3197.	[bug]		Don't try to log the filename and line number when
+			the config parser can't open a file. [RT #22263]
+
 	--- 9.8.2 released ---
 
 3298.	[bug]		Named could dereference a NULL pointer in
