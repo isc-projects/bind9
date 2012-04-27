@@ -3483,6 +3483,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 	/*
 	 * Everything is ok so attach to the zone.
 	 */
+	zone->curmaster = 0;
 	zone->masters = new;
 	zone->mastersok = newok;
 	zone->masterkeynames = newname;

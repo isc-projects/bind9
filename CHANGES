@@ -26,6 +26,9 @@
 3299.	[bug]		Make SDB handle errors from database drivers better.
 			[RT #28534]
 
+3232.	[bug]		Zero zone->curmaster before return in
+			dns_zone_setmasterswithkeys(). [RT #26732]
+
 	--- 9.6-ESV-R6 released ---
 
 3298.	[bug]		Named could dereference a NULL pointer in
