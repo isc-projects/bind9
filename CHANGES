@@ -33,6 +33,9 @@
 3232.	[bug]		Zero zone->curmaster before return in
 			dns_zone_setmasterswithkeys(). [RT #26732]
 
+3197.	[bug]		Don't try to log the filename and line number when
+			the config parser can't open a file. [RT #22263]
+
 	--- 9.7.5 released ---
 
 3298.	[bug]		Named could dereference a NULL pointer in
