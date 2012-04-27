@@ -14,7 +14,8 @@
 3307.	[bug]		Add missing ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS.
 			[RT #28956]
 
-3304.	[bug]		Use hmctx, not mctx when freeing rbtdb->heaps. [RT #28571]
+3304.	[bug]		Use hmctx, not mctx when freeing rbtdb->heaps.
+			[RT #28571]
 
 3302.	[bug]		dns_dnssec_findmatchingkeys could fail to find
 			keys if the zone name contained character that
@@ -28,6 +29,9 @@
 
 3299.	[bug]		Make SDB handle errors from database drivers better.
 			[RT #28534]
+
+3232.	[bug]		Zero zone->curmaster before return in
+			dns_zone_setmasterswithkeys(). [RT #26732]
 
 	--- 9.7.5 released ---
 
@@ -83,9 +87,9 @@
 3374.	[bug]		Log when a zone is not reusable.  Only set loadtime
 			on successful loads.  [RT #27650]
 
-3273.   [bug]           AAAA responses could be returned in the additional
-                        section even when filter-aaaa-on-v4 was in use.
-                        [RT #27292]
+3273.	[bug]		AAAA responses could be returned in the additional
+			section even when filter-aaaa-on-v4 was in use.
+			[RT #27292]
 
 3271.	[port]		darwin: mksymtbl is not always stable, loop several
 			times before giving up.  mksymtbl was using non
@@ -244,7 +248,7 @@
 			references correctly when errors occurred, causing
 			a hang on shutdown. [RT #26372]
 
-3187.	[port]		win32: support for Visual Studio 2008.	[RT #26356]
+3187.	[port]		win32: support for Visual Studio 2008.  [RT #26356]
 
 3179.	[port]		kfreebsd: build issues. [RT #26273]
 
@@ -285,7 +289,7 @@
 			incorrect use of __builtin_expect. [RT #25183]
 
 3151.	[bug]		Queries for type RRSIG or SIG could be handled
-                        incorrectly.  [RT #21050]
+			incorrectly.  [RT #21050]
 
 3149.	[tuning]	Improve scalability by allocating one zone
 			task per 100 zones at startup time.  (The
@@ -297,7 +301,7 @@
 3148.	[bug]		Processing of normal queries could be stalled when
 			forwarding a UPDATE message. [RT #24711]
 
-3146.   [test]		Fixed gcc4.6.0 errors in ATF. [RT #25598]
+3146.	[test]		Fixed gcc4.6.0 errors in ATF. [RT #25598]
 
 3145.	[test]		Capture output of ATF unit tests in "./atf.out" if
 			there were any errors while running them. [RT #25527]
@@ -365,10 +369,10 @@
 
 3122.	[cleanup]	dnssec-settime: corrected usage message. [RT #24664]
 
-3121.   [security]      An authoritative name server sending a negative
-                        response containing a very large RRset could
-                        trigger an off-by-one error in the ncache code
-                        and crash named. [RT #24650]
+3121.	[security]	An authoritative name server sending a negative
+			response containing a very large RRset could
+			trigger an off-by-one error in the ncache code
+			and crash named. [RT #24650]
 
 3120.	[bug]		Named could fail to validate zones listed in a DLV
 			that validated insecure without using DLV and had
