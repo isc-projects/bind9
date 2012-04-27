@@ -12,7 +12,15 @@ fi
 
 for i
 do
-	z=`expr "$i" : 'http://www.ietf.org/id/\(.*\)'`
+	z=
+	case $i in
+	http://www.ietf.org/internet-drafts/*)
+		z=`expr "$i" : 'http://www.ietf.org/internet-drafts/\(.*\)'`
+		;;
+	http://www.ietf.org/id/*)
+		z=`expr "$i" : 'http://www.ietf.org/id/\(.*\)'`
+		;;
+	esac
 	if test -n "$z"
 	then
 		i="$z"
@@ -38,7 +46,7 @@ do
 			continue;
 		fi
 	fi
-	if $fetch "http://www.ietf.org/internet-drafts/$i" 
+	if $fetch "http://www.ietf.org/id/$i" 
 	then
 		git add "$i" 
 		if test "X$old" != "X$pat"
