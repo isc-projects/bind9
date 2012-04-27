@@ -101,6 +101,8 @@
 3184.	[bug]		named had excessive cpu usage when a redirect zone was
 			configured. [RT #26013]
 
+3183.	[bug]		Added RTLD_GLOBAL flag to dlopen call. [RT #26301]
+
 3182.	[bug]		Auth servers behind firewalls which block packets
 			greater than 512 bytes may cause other servers to
 			perform poorly. Now, adb retains edns information
@@ -142,7 +144,14 @@
 			socket instead of using all available sockets.
 			[RT #26038]
 
-3142.	[bug]		NAPTR is class agnostic. [RT #25429]`
+3155.	[bug]		Fixed a build failure when using contrib DLZ
+			drivers (e.g., mysql, postgresql, etc). [RT #25710]
+
+3142.	[bug]		NAPTR is class agnostic. [RT #25429]
+
+3131.	[tuning]	Improve scalability by allocating one zone task
+			per 100 zones at startup time, rather than using a
+			fixed-size task table. [RT #24406]
 
 3127.	[bug]		'rndc thaw' will now remove a zone's journal file
 			if the zone serial number has been changed and
@@ -154,6 +163,10 @@
 3125.	[security]	Using wildcard CNAME records as a replacement with
 			RPZ caused named to exit with a assertion failure.
 			[RT #24715]
+
+3115.	[bug]		Named could fail to return requested data when
+			following a CNAME that points into the same zone.
+			[RT #24455]
 
 3108.	[cleanup]	dnssec-signzone: Clarified some error and
 			warning messages; removed #ifdef ALLOW_KSKLESS_ZONES
