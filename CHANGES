@@ -37,6 +37,9 @@
 3299.	[bug]		Make SDB handle errors from database drivers better.
 			[RT #28534]
 
+3232.	[bug]		Zero zone->curmaster before return in
+			dns_zone_setmasterswithkeys(). [RT #26732]
+
 	--- 9.8.2 released ---
 
 3298.	[bug]		Named could dereference a NULL pointer in
@@ -97,9 +100,9 @@
 3274.	[bug]		Log when a zone is not reusable.  Only set loadtime
 			on successful loads.  [RT #27650]
 
-3273.   [bug]           AAAA responses could be returned in the additional
-                        section even when filter-aaaa-on-v4 was in use.
-                        [RT #27292]
+3273.	[bug]		AAAA responses could be returned in the additional
+			section even when filter-aaaa-on-v4 was in use.
+			[RT #27292]
 
 3271.	[port]		darwin: mksymtbl is not always stable, loop several
 			times before giving up.  mksymtbl was using non
