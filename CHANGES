@@ -40,6 +40,8 @@
 3232.	[bug]		Zero zone->curmaster before return in
 			dns_zone_setmasterswithkeys(). [RT #26732]
 
+3183.	[bug]		Added RTLD_GLOBAL flag to dlopen call. [RT #26301]
+
 	--- 9.8.2 released ---
 
 3298.	[bug]		Named could dereference a NULL pointer in
