@@ -1,3 +1,25 @@
+3303.	[bug]		named could die when reloading. [RT #28606]
+
+3296.	[bug]		Named could die with a INSIST failure in
+			client.c:exit_check. [RT #28346]
+
+3289.	[bug]		'rndc retransfer' failed for inline zones. [RT #28036]
+
+3279.	[bug]		Hold a internal reference to the zone while performing
+			a asynchronous load.  Address potential memory leak
+			if the asynchronous is cancelled. [RT #27750]
+
+3277.	[bug]		win32: isc_socket_dup is not implemented. [RT #27696]
+
+3275.	[bug]		Corrected rndc -h output; the 'rndc sync -clean'
+			option had been misspelled as '-clear'.  (To avoid
+			future confusion, both options now work.) [RT #27173]
+
+3270.	[bug]		"rndc reload" didn't reuse existing zones correctly
+			when inline-signing was in use. [RT #27650]
+
+3269.	[port]		darwin 11 and later now built threaded by default.
+
 3265.	[bug]		Address lock order reversal with inline-signing
 			support. [27557]
 
@@ -16,61 +38,106 @@
 3246.	[bug]		Named failed to start with a empty also-notify list.
 			[RT #27087]
 
-3245.   [bug]           Don't report a error unchanged serials unless there
-                        were other changes when thawing a zone with
-                        ixfr-fromdifferences. [RT #26845]
+3245.	[bug]		Don't report a error unchanged serials unless there
+			were other changes when thawing a zone with
+			ixfr-fromdifferences. [RT #26845]
 
 3243.	[port]		freebsd,netbsd,bsdi: the thread defaults were not
 			being properly set.
 
-3225.   [bug]           Silence spurious "setsockopt(517, IPV6_V6ONLY) failed"
-                        messages. [RT #26507]
+3225.	[bug]		Silence spurious "setsockopt(517, IPV6_V6ONLY) failed"
+			messages. [RT #26507]
 
 
-3236.   [bug]           Backed out changes #3182 and #3202, related to
+3236.	[bug]		Backed out changes #3182 and #3202, related to
 
-3233.   [bug]           'rndc freeze/thaw' didn't work for inline zones.
-                        [RT #26632]
+3233.	[bug]		'rndc freeze/thaw' didn't work for inline zones.
+			[RT #26632]
 
-3223.   [bug]           'task_test privilege_drop' generated false positives.
-                        [RT #26766]
+3224.	[bug]		'rndc signing' argument parsing was broken. [RT #26684]
 
-3222.   [cleanup]       Replace dns_journal_{get,set}_bitws with
-                        dns_journal_{get,set}_sourceserial. [RT #26634]
+3223.	[bug]		'task_test privilege_drop' generated false positives.
+			[RT #26766]
 
-3202.   [bug]           NOEDNS caching on timeout was too agressive.
-                        [RT #26416]
+3222.	[cleanup]	Replace dns_journal_{get,set}_bitws with
+			dns_journal_{get,set}_sourceserial. [RT #26634]
 
-3184.   [bug]           named had excessive cpu usage when a redirect zone was
-                        configured. [RT #26013]
+3219.	[bug]		Disable NOEDNS caching following a timeout.
 
-3182.   [bug]           Auth servers behind firewalls which block packets
-                        greater than 512 bytes may cause other servers to
-                        perform poorly. Now, adb retains edns information
-                        and caches noedns servers. [RT #23392/24964]
+3215.	[bug]		'rndc recursing' could cause a core dump.  [RT #26495]
 
-3172.   [port]          darwin 10.* and freebsd [89] are now built threaded by
-                        default.
+3210.	[bug]		Canceling the oldest query due to recursive-client
+			overload could trigger an assertion failure. [RT #26463]
 
-3166.   [bug]           Upgrading a zone to support inline-signing failed.
-                        [RT #26014]
+3202.	[bug]		NOEDNS caching on timeout was too agressive.
+			[RT #26416]
 
-3160.   [bug]           When printing out a NSEC3 record in multiline form
-                        the newline was not being printed causing type codes
-                        to be run together. [RT #25873]
+3184.	[bug]		named had excessive cpu usage when a redirect zone was
+			configured. [RT #26013]
 
-3136.   [func]          Add RFC 1918 reverse zones to the list of built-in
-                        empty zones switched on by the 'empty-zones-enable'
-                        option. [RT #24990]
+3182.	[bug]		Auth servers behind firewalls which block packets
+			greater than 512 bytes may cause other servers to
+			perform poorly. Now, adb retains edns information
+			and caches noedns servers. [RT #23392/24964]
 
-3066.   [func]          The DLZ "dlopen" driver is now built by default,
-                        no longer requiring a configure option.  To
-                        disable it, use "configure --without-dlopen".
-                        (Note: driver not supported on win32.) [RT #23467]
+3178.	[bug]		A race condition introduced by change #3163 could
+			cause an assertion failure on shutdown. [RT #26271]
+
+3176.	[doc]		Corrected example code and added a README to the
+			sample external DLZ module in contrib/dlz/example.
+			[RT #26215]
+
+3172.	[port]		darwin 10.* and freebsd [89] are now built threaded by
+			default.
+
+3168.	[bug]		Nxdomain redirection could trigger an assert with
+			a ANY query. [RT #26017]
+
+3166.	[bug]		Upgrading a zone to support inline-signing failed.
+			[RT #26014]
+
+3165.	[bug]		dnssec-signzone could generate new signatures when
+			resigning, even when valid signatures were already
+			present. [RT #26025]
+
+3163.	[bug]		Use finer-grained locking in client.c to address
+			concurrency problems with large numbers of threads.
+			[RT #26044]
+
+3160.	[bug]		When printing out a NSEC3 record in multiline form
+			the newline was not being printed causing type codes
+			to be run together. [RT #25873]
+
+3159.	[bug]		On some platforms, named could assert on startup
+			when running in a chrooted environment without
+			/proc. [RT #25863]
+
+3158.	[bug]		Recursive servers would prefer a particular UDP
+			socket instead of using all available sockets.
+			[RT #26038]
+
+3136.	[func]		Add RFC 1918 reverse zones to the list of built-in
+			empty zones switched on by the 'empty-zones-enable'
+			option. [RT #24990]
+
+3127.	[bug]		'rndc thaw' will now remove a zone's journal file
+			if the zone serial number has been changed and
+			ixfr-from-differences is not in use.  [RT #24687]
+
+3108.	[cleanup]	dnssec-signzone: Clarified some error and
+			warning messages; removed #ifdef ALLOW_KSKLESS_ZONES
+			code (use -P instead). [RT #20852]
+
+3066.	[func]		The DLZ "dlopen" driver is now built by default,
+			no longer requiring a configure option.  To
+			disable it, use "configure --without-dlopen".
+			(Note: driver not supported on win32.) [RT #23467]
 
 3045.	[removed]	Replaced by change #3050.
 
-3011.   [func]          Allow setting this in named.conf using the new
-                        'resolver-query-timeout' option, which specifies a max
-                        time in seconds.  0 means 'default' and anything longer
-                        than 30 will be silently set to 30. [RT #22852]
+3142.	[bug]		NAPTR is class agnostic. [RT #25429]`
+
+3011.	[func]		Allow setting this in named.conf using the new
+			'resolver-query-timeout' option, which specifies a max
+			time in seconds.  0 means 'default' and anything longer
+			than 30 will be silently set to 30. [RT #22852]
