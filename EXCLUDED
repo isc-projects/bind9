@@ -1,13 +1,54 @@
 3312.	[bug]		named-checkconf didn't detect a bad dns64 clients acl.
 			[RT #27631]
 
+3312.	[bug]		named-checkconf didn't detect a bad dns64 clients acl.
+			[RT #27631]
+
+3306.	[bug]		Improve DNS64 reverse zone performance. [RT #28563]
+
 3306.	[bug]		Improve DNS64 reverse zone performance. [RT #28563]
 
 3305.	[func]		Add wire format lookup method to sdb. [RT #28563]
 
+3305.	[func]		Add wire format lookup method to sdb. [RT #28563]
+
+3303.	[bug]		named could die when reloading. [RT #28606]
+
 3302.	[bug]		dns_dnssec_findmatchingkeys could fail to find
 			keys if the zone name contained character that
 			required special mappings. [RT #28600]
+
+3296.	[bug]		Named could die with a INSIST failure in
+			client.c:exit_check. [RT #28346]
+
+3289.	[bug]		'rndc retransfer' failed for inline zones. [RT #28036]
+
+3288.	[bug]		dlz_destroy() function wasn't correctly registered
+			by the DLZ dlopen driver. [RT #28056]
+
+3280.	[bug]		Potential double free of a rdataset on out of memory
+			with DNS64. [RT #27762]
+
+3279.	[bug]		Hold a internal reference to the zone while performing
+			a asynchronous load.  Address potential memory leak
+			if the asynchronous is cancelled. [RT #27750]
+
+3277.	[bug]		win32: isc_socket_dup is not implemented. [RT #27696]
+
+3275.	[bug]		Corrected rndc -h output; the 'rndc sync -clean'
+			option had been misspelled as '-clear'.  (To avoid
+			future confusion, both options now work.) [RT #27173]
+
+3270.	[bug]		"rndc reload" didn't reuse existing zones correctly
+			when inline-signing was in use. [RT #27650]
+
+3269.	[port]		darwin 11 and later now built threaded by default.
+
+3265.	[bug]		Address lock order reversal with inline-signing
+			support. [27557]
+
+3265.	[bug]		Address lock order reversal with inline-signing
+			support. [27557]
 
 3265.	[bug]		Address lock order reversal with inline-signing
 			support. [27557]
@@ -16,11 +57,26 @@
 			inline-signing zone could stall when the server
 			was restarted. [RT #27344]
 
+3264.	[bug]		Automatic regeneration of signatures in an
+			inline-signing zone could stall when the server
+			was restarted. [RT #27344]
+
+3263.	[bug]		"rndc sync" did not affect the unsigned side of an
+			inline-signing zone. [RT #27337]
+
 3263.	[bug]		"rndc sync" did not affect the unsigned side of an
 			inline-signing zone. [RT #27337]
 
 3262.	[bug]		Signed responses were handled incorrectly by RPZ.
 			[RT #27316]
+
+3262.	[bug]		Signed responses were handled incorrectly by RPZ.
+			[RT #27316]
+
+3252.	[bug]		When master zones using inline-signing were
+			updated while the server was offline, the source
+			zone could fall out of sync with the signed
+			copy. They can now resynchronize. [RT #26676]
 
 3252.	[bug]		When master zones using inline-signing were
 			updated while the server was offline, the source
@@ -34,6 +90,16 @@
 3246.	[bug]		Named failed to start with a empty also-notify list.
 			[RT #27087]
 
+3246.	[bug]		Named failed to start with a empty also-notify list.
+			[RT #27087]
+
+3245.	[bug]		Don't report a error unchanged serials unless there
+			were other changes when thawing a zone with
+			ixfr-fromdifferences. [RT #26845]
+
+3243.	[port]		freebsd,netbsd,bsdi: the thread defaults were not
+			being properly set.
+
 3243.	[port]		freebsd,netbsd,bsdi: the thread defaults were not
 			being properly set.
 
@@ -43,12 +109,44 @@
 3236.	[bug]		Backed out changes #3182 and #3202, related to
 			EDNS(0) fallback behavior. [RT #26416]
 
+3236.	[bug]		Backed out changes #3182 and #3202, related to
+			EDNS(0) fallback behavior. [RT #26416]
+
 3233.	[bug]		'rndc freeze/thaw' didn't work for inline zones.
 			[RT #26632]
+
+3233.	[bug]		'rndc freeze/thaw' didn't work for inline zones.
+			[RT #26632]
+
+3225.	[bug]		Silence spurious "setsockopt(517, IPV6_V6ONLY) failed"
+			messages. [RT #26507]
+
+3224.	[bug]		'rndc signing' argument parsing was broken. [RT #26684]
+
+3223.	[bug]		'task_test privilege_drop' generated false positives.
+			[RT #26766]
+
+3222.	[cleanup]	Replace dns_journal_{get,set}_bitws with
+			dns_journal_{get,set}_sourceserial. [RT #26634]
 
 3220.	[bug]		Change #3186 was incomplete; dns_db_rpz_findips()
 			could fail to set the database version correctly,
 			causing an assertion failure. [RT #26180]
+
+3220.	[bug]		Change #3186 was incomplete; dns_db_rpz_findips()
+			could fail to set the database version correctly,
+			causing an assertion failure. [RT #26180]
+3219.	[bug]		Disable NOEDNS caching following a timeout.
+
+3217.	[cleanup]	Fix build problem with --disable-static. [RT #26476]
+
+3215.	[bug]		'rndc recursing' could cause a core dump.  [RT #26495]
+
+3210.	[bug]		Canceling the oldest query due to recursive-client
+			overload could trigger an assertion failure. [RT #26463]
+
+3202.	[bug]		NOEDNS caching on timeout was too agressive.
+			[RT #26416]
 
 3198.	[doc]		Clarified that dnssec-settime can alter keyfile
 			permissions. [RT #24866]
@@ -58,13 +156,35 @@
 
 3186.	[bug]		Version/db mis-match in rpz code. [RT #26180]
 
+3186.	[bug]		Version/db mis-match in rpz code. [RT #26180]
+
 3184.	[bug]		named had excessive cpu usage when a redirect zone was
 			configured. [RT #26013]
+
+3184.	[bug]		named had excessive cpu usage when a redirect zone was
+			configured. [RT #26013]
+
+3183.	[bug]		Added RTLD_GLOBAL flag to dlopen call. [RT #26301]
 
 3182.	[bug]		Auth servers behind firewalls which block packets
 			greater than 512 bytes may cause other servers to
 			perform poorly. Now, adb retains edns information
 			and caches noedns servers. [RT #23392/24964]
+
+3182.	[bug]		Auth servers behind firewalls which block packets
+			greater than 512 bytes may cause other servers to
+			perform poorly. Now, adb retains edns information
+			and caches noedns servers. [RT #23392/24964]
+
+3178.	[bug]		A race condition introduced by change #3163 could
+			cause an assertion failure on shutdown. [RT #26271]
+
+3176.	[doc]		Corrected example code and added a README to the
+			sample external DLZ module in contrib/dlz/example.
+			[RT #26215]
+
+3172.	[port]		darwin 10.* and freebsd [89] are now built threaded by
+			default.
 
 3172.	[port]		darwin 10.* and freebsd [89] are now built threaded by
 			default.
@@ -75,12 +195,47 @@
 3168.	[bug]		Nxdomain redirection could trigger an assert with
 			a ANY query. [RT #26017]
 
+3168.	[bug]		Nxdomain redirection could trigger an assert with
+			a ANY query. [RT #26017]
+
+3166.	[bug]		Upgrading a zone to support inline-signing failed.
+			[RT #26014]
+
+3165.	[bug]		dnssec-signzone could generate new signatures when
+			resigning, even when valid signatures were already
+			present. [RT #26025]
+
+3163.	[bug]		Use finer-grained locking in client.c to address
+			concurrency problems with large numbers of threads.
+			[RT #26044]
+
 3160.	[bug]		When printing out a NSEC3 record in multiline form
 			the newline was not being printed causing type codes
 			to be run together. [RT #25873]
 
+3160.	[bug]		When printing out a NSEC3 record in multiline form
+			the newline was not being printed causing type codes
+			to be run together. [RT #25873]
+
+3159.	[bug]		On some platforms, named could assert on startup
+			when running in a chrooted environment without
+			/proc. [RT #25863]
+
+3158.	[bug]		Recursive servers would prefer a particular UDP
+			socket instead of using all available sockets.
+			[RT #26038]
+
+3155.	[bug]		Fixed a build failure when using contrib DLZ
+			drivers (e.g., mysql, postgresql, etc). [RT #25710]
+
+3142.	[bug]		NAPTR is class agnostic. [RT #25429]
+
 3141.	[bug]		Silence spurious "zone serial (0) unchanged" messages
 			associated with empty zones. [RT #25079]
+
+3131.	[tuning]	Improve scalability by allocating one zone task
+			per 100 zones at startup time, rather than using a
+			fixed-size task table. [RT #24406]
 
 3131.	[tuning]	Improve scalability by allocating one zone task
 			per 100 zones at startup time, rather than using a
@@ -90,6 +245,13 @@
 			allow-new-zones was set to yes and named ACLs
 			were used. [RT #22739]
 
+3127.	[bug]		'rndc thaw' will now remove a zone's journal file
+			if the zone serial number has been changed and
+			ixfr-from-differences is not in use.  [RT #24687]
+
+3126.	[security]	Using DNAME record to generate replacements caused
+			RPZ to exit with a assertion failure. [RT #24766]
+
 3126.	[security]	Using DNAME record to generate replacements caused
 			RPZ to exit with a assertion failure. [RT #24766]
 
@@ -97,15 +259,148 @@
 			RPZ caused named to exit with a assertion failure.
 			[RT #24715]
 
+3125.	[security]	Using wildcard CNAME records as a replacement with
+			RPZ caused named to exit with a assertion failure.
+			[RT #24715]
+
+3115.	[bug]		Named could fail to return requested data when
+			following a CNAME that points into the same zone.
+			[RT #24455]
+
+3108.	[cleanup]	dnssec-signzone: Clarified some error and
+			warning messages; removed #ifdef ALLOW_KSKLESS_ZONES
+			code (use -P instead). [RT #20852]
+
+3105.	[bug]		GOST support can be suppressed by "configure
+			--without-gost" [RT #24367]
+
+3103.	[bug]		Configuring 'dnssec-validation auto' in a view
+			instead of in the options statement could trigger
+			an assertion failure in named-checkconf. [RT #24382]
+
 3100.	[security]	Certain response policy zone configurations could
 			trigger an INSIST when receiving a query of type
 			RRSIG. [RT #24280]
+
+3100.	[security]	Certain response policy zone configurations could
+			trigger an INSIST when receiving a query of type
+			RRSIG. [RT #24280]
+
+3098.	[bug]		DLZ zones were answering without setting the AA bit.
+			[RT #24146]
+
+3096.	[bug]		Set KRB5_KTNAME before calling log_cred() in
+			dst_gssapi_acceptctx(). [RT #24004]
+
+3096.	[bug]		Set KRB5_KTNAME before calling log_cred() in
+			dst_gssapi_acceptctx(). [RT #24004]
+
+3094.	[doc]		Expand dns64 documentation.
+
+3094.	[doc]		Expand dns64 documentation.
+
+3093.	[bug]		Fix gssapi/kerberos dependencies [RT #23836]
+
+3091.	[bug]		Fixed a bug in which zone keys that were published
+			and then subsequently activated could fail to trigger
+			automatic signing. [RT #22911]
+
+3087.	[bug]		DDNS updates using SIG(0) with update-policy match
+			type "external" could cause a crash. [RT #23735]
+
+3087.	[bug]		DDNS updates using SIG(0) with update-policy match
+			type "external" could cause a crash. [RT #23735]
+
+3086.	[bug]		Running dnssec-settime -f on an old-style key will
+			now force an update to the new key format even if no
+			other change has been specified, using "-P now -A now"
+			as default values.  [RT #22474]
+
+3082.	[port]		strtok_r is threads only. [RT #23747]
+
+3082.	[port]		strtok_r is threads only. [RT #23747]
+
+3077.	[bug]		zone.c:zone_refreshkeys() incorrectly called
+			dns_zone_attach(), use zone->irefs instead. [RT #23303]
+
+3075.	[bug]		dns_dnssec_findzonekeys{2} used a inconsistant
+			timestamp when determining which keys are active.
+			[RT #23642]
+
+3073.	[bug]		managed-keys changes were not properly being recorded.
+			[RT #20256]
+
+3072.	[bug]		dns_dns64_aaaaok() potential NULL pointer dereference.
+			[RT #20256]
+
+3072.	[bug]		dns_dns64_aaaaok() potential NULL pointer dereference.
+			[RT #20256]
+
+3057.	[bug]		"rndc secroots" would abort after the first error
+			and so could miss some views. [RT #23488]
+
+3054.	[bug]		Added elliptic curve support check in
+			GOST OpenSSL engine detection. [RT #23485]
+
+3054.	[bug]		Added elliptic curve support check in
+			GOST OpenSSL engine detection. [RT #23485]
+
+3052.	[test]		Fixed last autosign test report. [RT #23256]
+
+3050.	[bug]		The autosign system test was timing dependent.
+			Wait for the initial autosigning to complete
+			before running the rest of the test. [RT #23035]
+
+3048.	[bug]		Fully separate view key mangement. [RT #23419]
+
+3045.	[removed]	Replaced by change #3050.
+
+3045.	[removed]	Replaced by change #3050.
+
+3038.	[bug]		Install <dns/rpz.h>.  [RT #23342]
+
+3038.	[bug]		Install <dns/rpz.h>.  [RT #23342]
+
+3022.	[bug]		Fixed rpz SERVFAILs after failed zone transfers
+			[RT #23246]
+
+3022.	[bug]		Fixed rpz SERVFAILs after failed zone transfers
+			[RT #23246]
+
+3021.	[bug]		Change #3010 was incomplete. [RT #22296]
+
+3020.	[bug]		auto-dnssec failed to correctly update the zone when
+			changing the DNSKEY RRset. [RT #23232]
+
+3017.	[doc]		dnssec-keyfromlabel -I was not properly documented.
+			[RT #22887]
+
+3013.	[bug]		The DNS64 ttl was not always being set as expected.
+			[RT #23034]
+
+3013.	[bug]		The DNS64 ttl was not always being set as expected.
+			[RT #23034]
+
+
+3010.	[bug]		Fixed a bug where "rndc reconfig" stopped the timer
+			for refreshing managed-keys. [RT #22296]
 
 3005.	[port]		Solaris: Work around the lack of
 			gsskrb5_register_acceptor_identity() by setting
 			the KRB5_KTNAME environment variable to the
 			contents of tkey-gssapi-keytab.  Also fixed
 			test errors on MacOSX.  [RT #22853]
+
+3005.	[port]		Solaris: Work around the lack of
+			gsskrb5_register_acceptor_identity() by setting
+			the KRB5_KTNAME environment variable to the
+			contents of tkey-gssapi-keytab.  Also fixed
+			test errors on MacOSX.  [RT #22853]
+
+3003.	[experimental]	Added update-policy match type "external",
+			enabling named to defer the decision of whether to
+			allow a dynamic update to an external daemon.
+			(Contributed by Andrew Tridgell.) [RT #22758]
 
 3003.	[experimental]	Added update-policy match type "external",
 			enabling named to defer the decision of whether to
@@ -120,8 +415,22 @@
 			 - fixed some NULL dereferences
 			[RT #22795]
 
+3000.	[bug]		More TKEY/GSS fixes:
+			 - nsupdate can now get the default realm from
+			   the user's Kerberos principal
+			 - corrected gsstest compilation flags
+			 - improved documentation
+			 - fixed some NULL dereferences
+			[RT #22795]
+
 2992.	[contrib]	contrib/check-secure-delegation.pl:  A simple tool
 			for looking at a secure delegation. [RT #22059]
+
+2992.	[contrib]	contrib/check-secure-delegation.pl:  A simple tool
+			for looking at a secure delegation. [RT #22059]
+
+2991.	[contrib]	contrib/zone-edit.sh: A simple zone editing tool for
+			dynamic zones. [RT #22365]
 
 2991.	[contrib]	contrib/zone-edit.sh: A simple zone editing tool for
 			dynamic zones. [RT #22365]
@@ -129,6 +438,16 @@
 2990.	[bug]		'dnssec-settime -S' no longer tests prepublication
 			interval validity when the interval is set to 0.
 			[RT #22761]
+
+2988.	[experimental]	Added a "dlopen" DLZ driver, allowing the creation
+			of external DLZ drivers that can be loaded as
+			shared objects at runtime rather than linked with
+			named.  Currently this is switched on via a
+			compile-time option, "configure --with-dlz-dlopen".
+			Note: the syntax for configuring DLZ zones
+			is likely to be refined in future releases.
+			(Contributed by Andrew Tridgell of the Samba
+			project.) [RT #22629]
 
 2988.	[experimental]	Added a "dlopen" DLZ driver, allowing the creation
 			of external DLZ drivers that can be loaded as
@@ -168,6 +487,9 @@
 			interfaces at reboot. See bin/tests/system/README
 			for details.
 
+2948.	[port]		MacOS: provide a mechanism to configure the test
+			interfaces at reboot. See bin/tests/system/README
+			for details.
 2940.	[port]		Remove connection aborted error message on
 			Windows. [RT #21549]
 
@@ -250,6 +572,9 @@
 
 2841.	[bug]		Change 2836 was not complete. [RT #20883]
 
+2840.	[bug]		Temporary fixed pkcs11-destroy usage check.
+			[RT #20760]
+
 2839.	[bug]		A KSK revoked by named could not be deleted.
 			[RT #20881]
 
@@ -262,6 +587,16 @@
 			fixed; however, any existing keys that had Inactive
 			dates set will now need to have them reset, using
 			'dnssec-settime -I'. [RT #20868]
+
+2834.	[bug]		HMAC-SHA* keys that were longer than the algorithm
+			digest length were used incorrectly, leading to
+			interoperability problems with other DNS
+			implementations.  This has been corrected.
+			(Note: If an oversize key is in use, and
+			compatibility is needed with an older release of
+			BIND, the new tool "isc-hmac-fixup" can convert
+			the key secret to a form that will work with all
+			versions.) [RT #20751]
 
 2833.	[cleanup]	Fix usage messages in dnssec-keygen and dnssec-settime.
 			[RT #20851]
@@ -281,6 +616,8 @@
 2811.	[cleanup]	Add "rndc sign" to list of commands in rndc usage
 			output. [RT #20733]
 
+2810.	[doc]		Clarified the process of transitioning an NSEC3 zone
+			to insecure. [RT #20746]
 2809.	[cleanup]	Restored accidentally-deleted text in usage output
 			in dnssec-settime and dnssec-revoke [RT #20739]
 
@@ -342,14 +679,13 @@
 2778.	[bug]		dnssec-signzone could fail when a key was revoked
 			without deleting the unrevoked version. [RT #20638]
 
-2763.	[bug]		"rndc sign" didn't create an NSEC chain. [RT #20591]
-
-2761.	[cleanup]	Enable internal symbol table for backtrace only for
-			systems that are known to work.  Currently, BSD
-			variants, Linux and Solaris are supported. [RT# 20202]
+2776.	[bug]		Change #2762 was not correct. [RT #20647]
 
 2775.	[bug]		Accept RSASHA256 and RSASHA512 as NSEC3 compatible
 			in dnssec-keyfromlabel. [RT #20643]
+
+2774.	[bug]		Existing cache DB wasn't being reused after
+			reconfiguration. [RT #20629]
 
 2773.	[bug]		In autosigned zones, the SOA could be signed
 			with the KSK. [RT #20628]
@@ -374,15 +710,19 @@
 
 2764.	[bug]		"rndc-confgen -a" could trigger a REQUIRE. [RT #20610]
 
+2763.	[bug]		"rndc sign" didn't create an NSEC chain. [RT #20591]
+
+2762.	[bug]		DLV validation failed with a local slave DLV zone.
+			[RT #20577]
+
+2761.	[cleanup]	Enable internal symbol table for backtrace only for
+			systems that are known to work.  Currently, BSD
+			variants, Linux and Solaris are supported. [RT# 20202]
+
 2756.	[bug]		Fixed corrupt logfile message in update.c. [RT# 20597]
 
 2753.	[bug]		Removed an unnecessary warning that could appear when
 			building an NSEC chain. [RT #20589]
-
-2776.	[bug]		Change #2762 was not correct. [RT #20647]
-
-2762.	[bug]		DLV validation failed with a local slave DLV zone.
-			[RT #20577]
 
 2752.	[bug]		Locking violation. [RT #20587]
 
@@ -393,9 +733,6 @@
 
 2745.	[bug]		configure script didn't probe the return type of
 			gai_strerror(3) correctly. [RT #20573]
-
-2774.	[bug]		Existing cache DB wasn't being reused after
-			reconfiguration. [RT #20629]
 
 2742.	[cleanup]	Clarify some DNSSEC-related log messages in
 			validator.c. [RT #19589]
@@ -478,6 +815,12 @@
 2657.	[cleanup]	Lower "journal file <path> does not exist, creating it"
 			log level to debug 1. [RT #20058]
 
+2655.	[doc]		Document that key-directory does not affect
+			rndc.key.  [RT #20155]
+
+2655.	[doc]		Document that key-directory does not affect
+			bind.keys, rndc.key or session.key.  [RT #20155]
+
 2654.	[bug]		Improve error reporting on duplicated names for
 			deny-answer-xxx. [RT #20164]
 
@@ -525,98 +868,10 @@
 			"insecurity proof failed" instead of "not
 			insecure". [RT #19400]
 
+2537.	[func]		Added more statistics counters including those on socket
+			I/O events and query RTT histograms. [RT #18802]
+
 2525.	[experimental]	New logging category "query-errors" to provide detailed
 			internal information about query failures, especially
 			about server failures. [RT #19027]
 
-2537.	[func]		Added more statistics counters including those on socket
-			I/O events and query RTT histograms. [RT #18802]
-
-2655.	[doc]		Document that key-directory does not affect
-			rndc.key.  [RT #20155]
-
-2834.	[bug]		HMAC-SHA* keys that were longer than the algorithm
-			digest length were used incorrectly, leading to
-			interoperability problems with other DNS
-			implementations.  This has been corrected.
-			(Note: If an oversize key is in use, and
-			compatibility is needed with an older release of
-			BIND, the new tool "isc-hmac-fixup" can convert
-			the key secret to a form that will work with all
-			versions.) [RT #20751]
-
-2840.	[bug]		Temporary fixed pkcs11-destroy usage check.
-			[RT #20760]
-
-3010.	[bug]		Fixed a bug where "rndc reconfig" stopped the timer
-			for refreshing managed-keys. [RT #22296]
-
-3013.	[bug]		The DNS64 ttl was not always being set as expected.
-			[RT #23034]
-
-3017.	[doc]		dnssec-keyfromlabel -I was not properly documented.
-			[RT #22887]
-
-3020.	[bug]		auto-dnssec failed to correctly update the zone when
-			changing the DNSKEY RRset. [RT #23232]
-
-3021.	[bug]		Change #3010 was incomplete. [RT #22296]
-
-3022.	[bug]		Fixed rpz SERVFAILs after failed zone transfers
-			[RT #23246]
-
-3038.	[bug]		Install <dns/rpz.h>.  [RT #23342]
-
-3045.	[removed]	Replaced by change #3050.
-
-3048.	[bug]		Fully separate view key mangement. [RT #23419]
-
-3050.	[bug]		The autosign system test was timing dependent.
-			Wait for the initial autosigning to complete
-			before running the rest of the test. [RT #23035]
-
-3052.	[test]		Fixed last autosign test report. [RT #23256]
-
-3054.	[bug]		Added elliptic curve support check in
-			GOST OpenSSL engine detection. [RT #23485]
-
-3057.	[bug]		"rndc secroots" would abort after the first error
-			and so could miss some views. [RT #23488]
-
-3072.	[bug]		dns_dns64_aaaaok() potential NULL pointer dereference.
-			[RT #20256]
-
-3073.	[bug]		managed-keys changes were not properly being recorded.
-			[RT #20256]
-
-3075.	[bug]		dns_dnssec_findzonekeys{2} used a inconsistant
-			timestamp when determining which keys are active.
-			[RT #23642]
-
-3077.	[bug]		zone.c:zone_refreshkeys() incorrectly called
-			dns_zone_attach(), use zone->irefs instead. [RT #23303]
-
-3082.	[port]		strtok_r is threads only. [RT #23747]
-
-3086.	[bug]		Running dnssec-settime -f on an old-style key will
-			now force an update to the new key format even if no
-			other change has been specified, using "-P now -A now"
-			as default values.  [RT #22474]
-
-3087.	[bug]		DDNS updates using SIG(0) with update-policy match
-			type "external" could cause a crash. [RT #23735]
-
-3091.	[bug]		Fixed a bug in which zone keys that were published
-			and then subsequently activated could fail to trigger
-			automatic signing. [RT #22911]
-
-3094.	[doc]		Expand dns64 documentation.
-
-3096.	[bug]		Set KRB5_KTNAME before calling log_cred() in
-			dst_gssapi_acceptctx(). [RT #24004]
-
-2655.	[doc]		Document that key-directory does not affect
-			bind.keys, rndc.key or session.key.  [RT #20155]
-
-2810.	[doc]		Clarified the process of transitioning an NSEC3 zone
-			to insecure. [RT #20746]
