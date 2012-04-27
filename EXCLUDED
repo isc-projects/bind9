@@ -19,6 +19,9 @@
 3288.	[bug]		dlz_destroy() function wasn't correctly registered
 			by the DLZ dlopen driver. [RT #28056]
 
+3286.	[bug]		Managed key maintenance timer could fail to start
+			after 'rndc reconfig'. [RT #26786]
+
 3280.	[bug]		Potential double free of a rdataset on out of memory
 			with DNS64. [RT #27762]
 
@@ -26,11 +29,26 @@
 			a asynchronous load.  Address potential memory leak
 			if the asynchronous is cancelled. [RT #27750]
 
+3278.	[bug]		Make sure automatic key maintenance is started
+			when "auto-dnssec maintain" is turned on during
+			"rndc reconfig". [RT #26805]
+
 3277.	[bug]		win32: isc_socket_dup is not implemented. [RT #27696]
+
+3276.	[bug]		win32: ns_os_openfile failed to return NULL on
+			safe_open failure. [RT #27696]
 
 3275.	[bug]		Corrected rndc -h output; the 'rndc sync -clean'
 			option had been misspelled as '-clear'.  (To avoid
 			future confusion, both options now work.) [RT #27173]
+
+3273.	[bug]		AAAA responses could be returned in the additional
+			section even when filter-aaaa-on-v4 was in use.
+			[RT #27292]
+
+3271.	[port]		darwin: mksymtbl is not always stable, loop several
+			times before giving up.  mksymtbl was using non
+			portable perl to covert 64 bit hex strings. [RT #27653]
 
 3270.	[bug]		"rndc reload" didn't reuse existing zones correctly
 			when inline-signing was in use. [RT #27650]
@@ -50,6 +68,9 @@
 3262.	[bug]		Signed responses were handled incorrectly by RPZ.
 			[RT #27316]
 
+3258.	[test]		Add "forcing full sign with unreadable keys" test.
+			[RT #27153]
+
 3252.	[bug]		When master zones using inline-signing were
 			updated while the server was offline, the source
 			zone could fall out of sync with the signed
@@ -68,6 +89,8 @@
 
 3243.	[port]		freebsd,netbsd,bsdi: the thread defaults were not
 			being properly set.
+
+3240.	[bug]		DNSKEY state change events could be missed. [RT #26874]
 
 3239.	[bug]		dns_dnssec_findmatchingkeys needs to use a consistent
 			timestamp. [RT #26883]
@@ -168,6 +191,9 @@
 3155.	[bug]		Fixed a build failure when using contrib DLZ
 			drivers (e.g., mysql, postgresql, etc). [RT #25710]
 
+3152.	[cleanup]	Some versions of gcc and clang failed due to
+			incorrect use of __builtin_expect. [RT #25183]
+
 3142.	[bug]		NAPTR is class agnostic. [RT #25429]
 
 3141.	[bug]		Silence spurious "zone serial (0) unchanged" messages
@@ -191,6 +217,12 @@
 3125.	[security]	Using wildcard CNAME records as a replacement with
 			RPZ caused named to exit with a assertion failure.
 			[RT #24715]
+
+3122.	[cleanup]	dnssec-settime: corrected usage message. [RT #24664]
+
+3117.	[cleanup]	Remove doc and parser references to the
+			never-implemented 'auto-dnssec create' option.
+			[RT #24533]
 
 3115.	[bug]		Named could fail to return requested data when
 			following a CNAME that points into the same zone.
@@ -467,11 +499,17 @@
 2824.	[bug]		"rndc sign" was not being run by the correct task.
 			[RT #20759]
 
+2822.	[bug]		rbtdb.c:loadnode() could return the wrong result.
+			[RT #20802]
+
 2821.	[doc]		Add note that named-checkconf doesn't automatically
 			read rndc.key and bind.keys [RT #20758]
 
 2816.	[bug]		previous_closest_nsec() could fail to return
 			data for NSEC3 nodes [RT #29730]
+
+2812.	[bug]		Make sure updates can't result in a zone with
+			NSEC-only keys and NSEC3 records. [RT #20748]
 
 2811.	[cleanup]	Add "rndc sign" to list of commands in rndc usage
 			output. [RT #20733]
