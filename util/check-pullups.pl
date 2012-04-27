@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004, 2007, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -87,7 +87,7 @@ foreach my $c (sort {$a <=> $b} keys %$c1) {
 		print $c1->{$c}->{text};
 	}
 	if (exists($c2->{$c}) && $category ne "placeholder" &&
-	    $c2->{$c}->{text} ne $text) {
+	    $c2->{$c}->{text} ne $text && !exists($c3->{$c})) {
 		if ($msg ne "TEXT\n") {
 			$msg = "TEXT\n";
 			print $msg;
