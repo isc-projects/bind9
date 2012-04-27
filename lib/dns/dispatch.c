@@ -3568,6 +3568,128 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event) {
 	isc_task_send(disp->task[0], ISC_EVENT_PTR(&newsevent));
 }
 
+dns_dispatch_t *
+dns_dispatchset_get(dns_dispatchset_t *dset) {
+	dns_dispatch_t *disp;
+
+	/* check that dispatch set is configured */
+	if (dset == NULL || dset->ndisp == 0)
+		return (NULL);
+
+	LOCK(&dset->lock);
+	disp = dset->dispatches[dset->cur];
+	dset->cur++;
+	if (dset->cur == dset->ndisp)
+		dset->cur = 0;
+	UNLOCK(&dset->lock);
+
+	return (disp);
+}
+
+isc_result_t
+dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
+		       isc_taskmgr_t *taskmgr, dns_dispatch_t *source,
+		       dns_dispatchset_t **dsetp, int n)
+{
+	isc_result_t result;
+	dns_dispatchset_t *dset;
+	dns_dispatchmgr_t *mgr;
+	int i, j;
+
+	REQUIRE(VALID_DISPATCH(source));
+	REQUIRE((source->attributes & DNS_DISPATCHATTR_UDP) != 0);
+	REQUIRE(dsetp != NULL && *dsetp == NULL);
+
+	mgr = source->mgr;
+
+	dset = isc_mem_get(mctx, sizeof(dns_dispatchset_t));
+	if (dset == NULL)
+		return (ISC_R_NOMEMORY);
+	memset(dset, 0, sizeof(*dset));
+
+	result = isc_mutex_init(&dset->lock);
+	if (result != ISC_R_SUCCESS)
+		goto fail_alloc;
+
+	dset->dispatches = isc_mem_get(mctx, sizeof(dns_dispatch_t *) * n);
+	if (dset == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto fail_lock;
+	}
+
+	isc_mem_attach(mctx, &dset->mctx);
+	dset->ndisp = n;
+	dset->cur = 0;
+
+	dset->dispatches[0] = NULL;
+	dns_dispatch_attach(source, &dset->dispatches[0]);
+
+	LOCK(&mgr->lock);
+	for (i = 1; i < n; i++) {
+		dset->dispatches[i] = NULL;
+		result = dispatch_createudp(mgr, sockmgr, taskmgr,
+					    &source->local,
+					    source->maxrequests,
+					    source->attributes,
+					    &dset->dispatches[i],
+					    source->socket);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+	}
+
+	UNLOCK(&mgr->lock);
+	*dsetp = dset;
+
+	return (ISC_R_SUCCESS);
+
+ fail:
+	UNLOCK(&mgr->lock);
+	
+	for (j = 0; j < i; j++)
+		dns_dispatch_detach(&(dset->dispatches[j]));
+	isc_mem_put(mctx, dset->dispatches, sizeof(dns_dispatch_t *) * n);
+	if (dset->mctx == mctx)
+		isc_mem_detach(&dset->mctx);
+
+ fail_lock:
+	DESTROYLOCK(&dset->lock);
+
+ fail_alloc:
+	isc_mem_put(mctx, dset, sizeof(dns_dispatchset_t));
+	return (result);
+}
+
+void
+dns_dispatchset_cancelall(dns_dispatchset_t *dset, isc_task_t *task) {
+	int i;
+
+	REQUIRE(dset != NULL);
+
+	for (i = 0; i < dset->ndisp; i++) {
+		isc_socket_t *sock;
+		sock = dns_dispatch_getsocket(dset->dispatches[i]);
+		isc_socket_cancel(sock, task, ISC_SOCKCANCEL_ALL);
+	}
+}
+
+void
+dns_dispatchset_destroy(dns_dispatchset_t **dsetp) {
+	dns_dispatchset_t *dset;
+	int i;
+
+	REQUIRE(dsetp != NULL && *dsetp != NULL);
+
+	dset = *dsetp;
+	for (i = 0; i < dset->ndisp; i++)
+		dns_dispatch_detach(&(dset->dispatches[i]));
+	isc_mem_put(dset->mctx, dset->dispatches,
+		    sizeof(dns_dispatch_t *) * dset->ndisp);
+	DESTROYLOCK(&dset->lock);
+	isc_mem_putanddetach(&dset->mctx, dset, sizeof(dns_dispatchset_t));
+
+	*dsetp = NULL;
+}
+
 #if 0
 void
 dns_dispatchmgr_dump(dns_dispatchmgr_t *mgr) {

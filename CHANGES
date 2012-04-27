@@ -1,3 +1,8 @@
+3315.	[tuning]	Use multiple dispatch objects for sending upstream
+			queries; this can improve performance on busy
+			multiprocessor systems by reducing lock contention.
+			[RT #28605]
+
 3314.	[bug]		The masters list could be updated while refesh_callback
 			and stub_callback were using it. [RT #26732]
 

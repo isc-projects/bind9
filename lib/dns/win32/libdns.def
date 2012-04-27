@@ -191,6 +191,10 @@ dns_dispatchmgr_setavailports
 dns_dispatchmgr_setblackhole
 dns_dispatchmgr_setblackportlist
 dns_dispatchmgr_setstats
+dns_dispatchset_cancelall
+dns_dispatchset_create
+dns_dispatchset_destroy
+dns_dispatchset_get
 dns_dlz_writeablezone
 dns_dlzallowzonexfr
 dns_dlzconfigure
