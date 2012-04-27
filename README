@@ -51,6 +51,10 @@ BIND 9
         For up-to-date release notes and errata, see
         http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.9.1
+
+	BIND 9.9.1 is a maintenance release.
+
 BIND 9.9.0
 
 	BIND 9.9.0 includes a number of changes from BIND 9.8 and earlier
