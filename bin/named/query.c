@@ -1447,7 +1447,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			 * There's an A; check whether we're filtering AAAA
 			 */
 #ifdef ALLOW_FILTER_AAAA_ON_V4
-			if (have_a && 
+			if (have_a &&
 			    (client->filter_aaaa == dns_v4_aaaa_break_dnssec ||
 			    (client->filter_aaaa == dns_v4_aaaa_filter &&
 			     (!WANTDNSSEC(client) || sigrdataset == NULL ||
