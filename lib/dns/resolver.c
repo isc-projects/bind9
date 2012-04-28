@@ -25,8 +25,9 @@
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/random.h>
-#include <isc/task.h>
+#include <isc/socket.h>
 #include <isc/stats.h>
+#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -143,6 +144,7 @@ typedef struct query {
 	isc_buffer_t			buffer;
 	isc_buffer_t			*tsig;
 	dns_tsigkey_t			*tsigkey;
+	isc_socketevent_t		sendevent;
 	unsigned int			options;
 	unsigned int			attributes;
 	unsigned int			sends;
@@ -1194,7 +1196,8 @@ process_sendevent(resquery_t *query, isc_event_t *event) {
 		}
 	}
 
-	isc_event_free(&event);
+	if (event->ev_type == ISC_SOCKEVENT_CONNECT)
+		isc_event_free(&event);
 
 	if (retry) {
 		/*
@@ -1990,8 +1993,11 @@ resquery_send(resquery_t *query) {
 	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
 	 *		prune out these addresses when we get them from the ADB.
 	 */
-	result = isc_socket_sendto(socket, &r, task, resquery_senddone,
-				   query, address, NULL);
+	ISC_EVENT_INIT(&query->sendevent, sizeof(query->sendevent), 0, NULL,
+		       ISC_SOCKEVENT_SENDDONE, resquery_senddone, query,
+		       NULL, NULL, NULL);
+	result = isc_socket_sendto2(socket, &r, task, address, NULL,
+				    &query->sendevent, 0);
 	if (result != ISC_R_SUCCESS) {
 		if (connecting) {
 			/*

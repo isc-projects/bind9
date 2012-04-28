@@ -1,3 +1,6 @@
+3316.	[tuning]	Improved locking performance when recursing.
+			[RT #28836]
+
 3315.	[tuning]	Use multiple dispatch objects for sending upstream
 			queries; this can improve performance on busy
 			multiprocessor systems by reducing lock contention.
