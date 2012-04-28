@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1148,7 +1148,7 @@ free_sevent(isc_event_t *ev) {
 
 static inline isc_socketevent_t *
 allocate_sevent(dns_dispatch_t *disp, isc_socket_t *socket,
-	        isc_eventtype_t type, isc_taskaction_t action, const void *arg)
+		isc_eventtype_t type, isc_taskaction_t action, const void *arg)
 {
 	isc_socketevent_t *ev;
 	void *deconst_arg;
@@ -1735,7 +1735,7 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 			isc_task_t *dt = dispsock->task;
 			isc_socketevent_t *sev =
 				allocate_sevent(disp, socket,
-					        ISC_SOCKEVENT_RECVDONE,
+						ISC_SOCKEVENT_RECVDONE,
 						udp_exrecv, dispsock);
 			if (sev == NULL) {
 				free_buffer(disp, region.base, region.length);
@@ -1751,7 +1751,7 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 			isc_task_t *dt = disp->task[0];
 			isc_socketevent_t *sev =
 				allocate_sevent(disp, socket,
-					        ISC_SOCKEVENT_RECVDONE,
+						ISC_SOCKEVENT_RECVDONE,
 						udp_shrecv, disp);
 			if (sev == NULL) {
 				free_buffer(disp, region.base, region.length);
@@ -3796,7 +3796,7 @@ dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
 
  fail:
 	UNLOCK(&mgr->lock);
-	
+
 	for (j = 0; j < i; j++)
 		dns_dispatch_detach(&(dset->dispatches[j]));
 	isc_mem_put(mctx, dset->dispatches, sizeof(dns_dispatch_t *) * n);
