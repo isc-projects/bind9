@@ -140,8 +140,34 @@ AC_SUBST(PERL)
 # Python is also optional; it is used by the tools in bin/python.
 # If python is unavailable, we simply don't build those.
 #
-AC_PATH_PROGS(PYTHON, python)
-AC_SUBST(PYTHON)
+AC_ARG_WITH(python,
+[  --with-python=PATH   Specify path to python interpreter],
+    use_python="$withval", use_python="unspec")
+
+case "$use_python" in
+	unspec)
+                AC_PATH_PROGS(PYTHON, python)
+                AC_SUBST(PYTHON)
+                testscript='try: import argparse
+except: exit(1)'
+                if $PYTHON -c "$testscript"; then
+                        AC_MSG_RESULT([using $PYTHON])
+                else
+                        AC_MSG_ERROR([python 'argparse' module not supported])
+                fi
+		;;
+	yes)
+		AC_MSG_ERROR([--with-python must specify a path])
+		;;
+	no)
+		AC_MSG_RESULT(disabled)
+		;;
+	*)
+		AC_DEFINE_UNQUOTED(PYTHON, "$use_python")
+		AC_MSG_RESULT(using "$use_python")
+                AC_SUBST(PYTHON)
+		;;
+esac
 
 PYTHON_TOOLS=''
 if test "X$PYTHON" != "X"; then
