@@ -145,27 +145,48 @@ AC_ARG_WITH(python,
     use_python="$withval", use_python="unspec")
 
 case "$use_python" in
-	unspec)
-                AC_PATH_PROGS(PYTHON, python)
-                AC_SUBST(PYTHON)
-                testscript='try: import argparse
-except: exit(1)'
-                if $PYTHON -c "$testscript"; then
-                        AC_MSG_RESULT([using $PYTHON])
-                else
-                        AC_MSG_ERROR([python 'argparse' module not supported])
-                fi
-		;;
-	yes)
-		AC_MSG_ERROR([--with-python must specify a path])
-		;;
 	no)
 		AC_MSG_RESULT(disabled)
 		;;
-	*)
-		AC_DEFINE_UNQUOTED(PYTHON, "$use_python")
-		AC_MSG_RESULT(using "$use_python")
-                AC_SUBST(PYTHON)
+	unspec|yes|*)
+		case "$use_python" in
+		unspec|yes|'')
+			AC_PATH_PROGS(PYTHON, python)
+			;;
+		*)
+			AC_PATH_PROGS(PYTHON, $use_python)
+			;;
+		esac
+		if test "X$PYTHON" == "X"
+		then
+			case "$use_python" in
+			unspec)
+				AC_MSG_RESULT(disabled)
+				;;
+			yes|*)
+				AC_MSG_ERROR([missing python])
+				;;
+			esac
+			break
+		fi
+                testscript='try: import argparse
+except: exit(1)'
+		AC_MSG_CHECKING([python module 'argparse'])
+                if $PYTHON -c "$testscript"; then
+                        AC_MSG_RESULT([found, using $PYTHON])
+                else
+			case "$use_python" in
+			unspec)
+				PYTHON=""
+				AC_SUBST(PYTHON)
+				AC_MSG_RESULT([not found, python disabled])
+				;;
+			yes)
+                        AC_MSG_RESULT([no found])
+                        AC_MSG_ERROR([python 'argparse' module not supported])
+				;;
+			esac
+                fi
 		;;
 esac
 
