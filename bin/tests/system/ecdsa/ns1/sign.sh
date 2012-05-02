@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.2 2010/12/23 04:08:00 marka Exp $
+# $Id$
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,9 +25,9 @@ zone=.
 infile=root.db.in
 zonefile=root.db
 
-key1=`$KEYGEN -q -r $RANDFILE -a ECCGOST -n zone $zone`
-key2=`$KEYGEN -q -r $RANDFILE -a ECCGOST -n zone -f KSK $zone`
-$DSFROMKEY -a gost $key2.key > dsset-gost
+key1=`$KEYGEN -q -r $RANDFILE -a ECDSAP256SHA256 -n zone $zone`
+key2=`$KEYGEN -q -r $RANDFILE -a ECDSAP384SHA384 -n zone -f KSK $zone`
+$DSFROMKEY -a sha-384 $key2.key > dsset-384
 
 cat $infile $key1.key $key2.key > $zonefile
 

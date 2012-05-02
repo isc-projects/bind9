@@ -1,3 +1,5 @@
+3317.	[func]		Add ECDSA support (RFC 6605). [RT #21918]
+
 3316.	[tuning]	Improved locking performance when recursing.
 			[RT #28836]
 
