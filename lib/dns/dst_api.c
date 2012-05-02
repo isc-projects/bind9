@@ -1711,7 +1711,7 @@ algorithm_status(unsigned int alg) {
 	    alg == DST_ALG_NSEC3RSASHA1 ||
 	    alg == DST_ALG_RSASHA256 || alg == DST_ALG_RSASHA512 ||
 	    alg == DST_ALG_ECCGOST ||
-	    alg = DST_ALG_ECDSA256 || alg= DST_ALG_ECDSA384)
+	    alg == DST_ALG_ECDSA256 || alg == DST_ALG_ECDSA384)
 		return (DST_R_NOCRYPTO);
 #endif
 	return (DST_R_UNSUPPORTEDALG);
