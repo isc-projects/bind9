@@ -237,10 +237,10 @@ def parse_args():
     parser.add_argument('-l', '--lookaside', dest='lookaside', type=str,
                         help='DLV lookaside zone')
     parser.add_argument('-d', '--dig', dest='dig',
-                        default='@bindir@/dig', type=str,
+                        default='@prefix@/bin/dig', type=str,
                         help='path to \'dig\'')
     parser.add_argument('-D', '--dsfromkey', dest='dsfromkey',
-                        default='@sbindir@/dnssec-dsfromkey', type=str,
+                        default='@prefix@/sbin/dnssec-dsfromkey', type=str,
                         help='path to \'dig\'')
     parser.add_argument('-v', '--version', action='version', version='9.9.1')
     args = parser.parse_args()
