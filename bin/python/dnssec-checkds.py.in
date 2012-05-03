@@ -146,7 +146,8 @@ class DLVRR:
 ############################################################################
 def checkds(zone, masterfile = None):
     dslist=[]
-    fp=os.popen("%s +noall +answer -t ds -q %s" % (args.dig, shellquote(zone)))
+    fp=os.popen("%s +noall +answer -t ds -q %s" %
+                (shellquote(args.dig), shellquote(zone)))
     for line in fp:
         dslist.append(DSRR(line))
     dslist = sorted(dslist, key=lambda ds: (ds.keyid, ds.keyalg, ds.hashalg))
@@ -156,11 +157,12 @@ def checkds(zone, masterfile = None):
 
     if masterfile:
         fp = os.popen("%s -f %s %s " %
-                      (args.dsfromkey, masterfile, zone))
+                      (shellquote(args.dsfromkey), shellquote(masterfile),
+                       shellquote(zone)))
     else:
         fp = os.popen("%s +noall +answer -t dnskey -q %s | %s -f - %s" %
-                      (args.dig, shellquote(zone), args.dsfromkey, 
-                       shellquote(zone)))
+                      (shellquote(args.dig), shellquote(zone),
+                       shellquote(args.dsfromkey), shellquote(zone)))
 
     for line in fp:
         dsklist.append(DSRR(line))
@@ -190,7 +192,7 @@ def checkds(zone, masterfile = None):
 def checkdlv(zone, lookaside, masterfile = None):
     dlvlist=[]
     fp=os.popen("%s +noall +answer -t dlv -q %s" %
-                (args.dig, shellquote(zone + '.' + lookaside)))
+                (shellquote(args.dig), shellquote(zone + '.' + lookaside)))
     for line in fp:
         dlvlist.append(DLVRR(line, lookaside))
     dlvlist = sorted(dlvlist,
@@ -206,8 +208,9 @@ def checkdlv(zone, lookaside, masterfile = None):
                       (args.dsfromkey, masterfile, lookaside, zone))
     else:
         fp = os.popen("%s +noall +answer -t dnskey %s | %s -f - -l %s %s"
-                      % (args.dig, shellquote(zone), args.dsfromkey,
-                         shellquote(lookaside), shellquote(zone)))
+                      % (shellquote(args.dig), shellquote(zone),
+                         shellquote(args.dsfromkey), shellquote(lookaside),
+                         shellquote(zone)))
 
     for line in fp:
         dlvklist.append(DLVRR(line, lookaside))
