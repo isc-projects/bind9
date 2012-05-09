@@ -1,5 +1,9 @@
 	--- 9.9.1 released ---
 
+3318.	[tuning]	Reduce the amount of work performed while holding a
+			bucket lock when finshed with a fetch context.
+			[RT #29239]
+
 3314.	[bug]		The masters list could be updated while refesh_callback
 			and stub_callback were using it. [RT #26732]
 
