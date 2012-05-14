@@ -5720,7 +5720,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				client->query.dboptions, client->now,
 				&node, fname, &cm, &ci, rdataset, sigrdataset);
 
-	if (db == client->view->cachedb) 
+	if (db == client->view->cachedb)
 		update_cachestats(client->view->cache, result);
 
  resume:

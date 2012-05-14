@@ -719,7 +719,7 @@ update_cachestats(dns_rbtdb_t *rbtdb, isc_result_t result) {
 				    dns_cachestatscounter_hits);
 		break;
 	default:
-		isc_stats_increment(rbtdb->cachestats, 
+		isc_stats_increment(rbtdb->cachestats,
 				    dns_cachestatscounter_misses);
 	}
 }
@@ -9408,11 +9408,11 @@ expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 
 		switch (reason) {
 		case expire_ttl:
-			isc_stats_increment(rbtdb->cachestats, 
+			isc_stats_increment(rbtdb->cachestats,
 					    dns_cachestatscounter_deletettl);
 			break;
 		case expire_lru:
-			isc_stats_increment(rbtdb->cachestats, 
+			isc_stats_increment(rbtdb->cachestats,
 					    dns_cachestatscounter_deletelru);
 			break;
 		default:

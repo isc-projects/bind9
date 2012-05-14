@@ -328,7 +328,7 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 void
 isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
 	      isc_statscounter_t counter)
-{ 
+{
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
