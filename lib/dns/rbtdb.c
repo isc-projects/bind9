@@ -706,6 +706,7 @@ free_rbtdb_callback(isc_task_t *task, isc_event_t *event) {
 static void
 update_cachestats(dns_rbtdb_t *rbtdb, isc_result_t result) {
 	INSIST(IS_CACHE(rbtdb));
+	INSIST(rbtdb->cachestats != NULL);
 
 	switch (result) {
 	case ISC_R_SUCCESS:
@@ -7633,7 +7634,6 @@ dns_rbtdb_create
 	}
 
 	rbtdb->cachestats = NULL;
-
 	rbtdb->rrsetstats = NULL;
 	if (IS_CACHE(rbtdb)) {
 		result = dns_rdatasetstats_create(mctx, &rbtdb->rrsetstats);

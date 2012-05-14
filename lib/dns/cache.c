@@ -1167,6 +1167,7 @@ dns_cache_flush(dns_cache_t *cache) {
 	}
 	dns_db_detach(&cache->db);
 	cache->db = db;
+	dns_db_setcachestats(cache->db, cache->stats);
 	UNLOCK(&cache->cleaner.lock);
 	UNLOCK(&cache->lock);
 
