@@ -22,7 +22,10 @@
 
 #include <atf-c.h>
 
+#include <stdio.h>
 #include <unistd.h>
+
+#include <isc/xml.h>
 
 #include <dns/cache.h>
 #include <dns/callbacks.h>

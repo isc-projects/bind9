@@ -310,6 +310,12 @@ dns_rbt_nodecount(dns_rbt_t *rbt) {
 	return (rbt->nodecount);
 }
 
+unsigned int
+dns_rbt_hashsize(dns_rbt_t *rbt) {
+	REQUIRE(VALID_RBT(rbt));
+	return (rbt->hashsize);
+}
+
 static inline isc_result_t
 chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 	   isc_boolean_t include_chain_end)

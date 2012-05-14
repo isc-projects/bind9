@@ -68,6 +68,8 @@
 #define isc_mem_getquota isc__mem_getquota
 #define isc_mem_gettag isc__mem_gettag
 #define isc_mem_inuse isc__mem_inuse
+#define isc_mem_maxinuse isc__mem_maxinuse
+#define isc_mem_total isc__mem_total
 #define isc_mem_isovermem isc__mem_isovermem
 #define isc_mem_setname isc__mem_setname
 #define isc_mem_setwater isc__mem_setwater

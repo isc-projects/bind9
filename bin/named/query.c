@@ -30,6 +30,7 @@
 
 #include <dns/adb.h>
 #include <dns/byaddr.h>
+#include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dlz.h>
 #include <dns/dns64.h>
@@ -1133,6 +1134,31 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 	return (ISC_FALSE);
 }
 
+static void
+update_cachestats(dns_cache_t *cache, isc_result_t result) {
+	isc_stats_t *cachestats = NULL;
+	if (cache == NULL)
+		return;
+
+	isc_stats_attach(dns_cache_getstats(cache), &cachestats);
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+	case DNS_R_GLUE:
+	case DNS_R_ZONECUT:
+		isc_stats_increment(cachestats,
+				    dns_cachestatscounter_queryhits);
+		break;
+	default:
+		isc_stats_increment(cachestats,
+				    dns_cachestatscounter_querymisses);
+	}
+	isc_stats_detach(&cachestats);
+}
+
 static isc_result_t
 query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	ns_client_t *client = arg;
@@ -1264,6 +1290,8 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 				 DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK,
 				client->now, &node, fname, &cm, &ci,
 				rdataset, sigrdataset);
+
+	update_cachestats(client->view->cache, result);
 	if (result == DNS_R_GLUE &&
 	    validate(client, db, fname, rdataset, sigrdataset))
 		result = ISC_R_SUCCESS;
@@ -1271,6 +1299,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		query_putrdataset(client, &sigrdataset);
 	if (result == ISC_R_SUCCESS)
 		goto found;
+
 
 	if (dns_rdataset_isassociated(rdataset))
 		dns_rdataset_disassociate(rdataset);
@@ -3727,6 +3756,10 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&ns_g_server->recursionquota,
 					  &client->recursionquota);
+
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_recursclients);
+
 		if  (result == ISC_R_SOFTQUOTA) {
 			static isc_stdtime_t last = 0;
 			isc_stdtime_t now;
@@ -3773,6 +3806,8 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 					      "ns_client_replace() failed: %s",
 					      isc_result_totext(result));
 				isc_quota_detach(&client->recursionquota);
+				isc_stats_decrement(ns_g_server->nsstats,
+				    dns_nsstatscounter_recursclients);
 			}
 		}
 		if (result != ISC_R_SUCCESS)
@@ -5676,6 +5711,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	result = dns_db_findext(db, client->query.qname, version, type,
 				client->query.dboptions, client->now,
 				&node, fname, &cm, &ci, rdataset, sigrdataset);
+
+	if (db == client->view->cachedb) 
+		update_cachestats(client->view->cache, result);
 
  resume:
 	CTRACE("query_find: resume");

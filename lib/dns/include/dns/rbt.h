@@ -632,6 +632,15 @@ dns_rbt_nodecount(dns_rbt_t *rbt);
  * \li  rbt is a valid rbt manager.
  */
 
+unsigned int
+dns_rbt_hashsize(dns_rbt_t *rbt);
+/*%<
+ * Obtain the current number of buckets in the 'rbt' hash table.
+ *
+ * Requires:
+ * \li  rbt is a valid rbt manager.
+ */
+
 void
 dns_rbt_destroy(dns_rbt_t **rbtp);
 isc_result_t

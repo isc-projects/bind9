@@ -150,7 +150,13 @@ enum {
 	isc_sockstatscounter_unixrecvfail = 50,
 	isc_sockstatscounter_fdwatchrecvfail = 51,
 
-	isc_sockstatscounter_max = 52
+	isc_sockstatscounter_udp4active = 52,
+	isc_sockstatscounter_udp6active = 53,
+	isc_sockstatscounter_tcp4active = 54,
+	isc_sockstatscounter_tcp6active = 55,
+	isc_sockstatscounter_unixactive = 56,
+
+	isc_sockstatscounter_max = 57
 };
 
 /***

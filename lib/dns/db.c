@@ -879,6 +879,16 @@ dns_db_nodecount(dns_db_t *db) {
 	return ((db->methods->nodecount)(db));
 }
 
+unsigned int
+dns_db_hashsize(dns_db_t *db) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	if (db->methods->hashsize == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+
+	return ((db->methods->hashsize)(db));
+}
+
 void
 dns_db_settask(dns_db_t *db, isc_task_t *task) {
 	REQUIRE(DNS_DB_VALID(db));
@@ -963,6 +973,16 @@ dns_db_getrrsetstats(dns_db_t *db) {
 		return ((db->methods->getrrsetstats)(db));
 
 	return (NULL);
+}
+
+isc_result_t
+dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	if (db->methods->setcachestats != NULL)
+		return ((db->methods->setcachestats)(db, stats));
+
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 isc_result_t

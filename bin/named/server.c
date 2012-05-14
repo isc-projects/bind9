@@ -2138,12 +2138,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		goto cleanup;
 	}
 
-	ndisp = 4 * ISC_MIN(ns_g_udpdisp, MAX_UDP_DISPATCH);
-	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31, ndisp,
-				      ns_g_socketmgr, ns_g_timermgr,
-				      resopts, ns_g_dispatchmgr,
-				      dispatch4, dispatch6));
-
 	if (resstats == NULL) {
 		CHECK(isc_stats_create(mctx, &resstats,
 				       dns_resstatscounter_max));
@@ -2152,6 +2146,12 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (resquerystats == NULL)
 		CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
 	dns_view_setresquerystats(view, resquerystats);
+
+	ndisp = 4 * ISC_MIN(ns_g_udpdisp, MAX_UDP_DISPATCH);
+	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31, ndisp,
+				      ns_g_socketmgr, ns_g_timermgr,
+				      resopts, ns_g_dispatchmgr,
+				      dispatch4, dispatch6));
 
 	/*
 	 * Set the ADB cache size to 1/8th of the max-cache-size or

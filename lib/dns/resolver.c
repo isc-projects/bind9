@@ -471,6 +471,12 @@ inc_stats(dns_resolver_t *res, isc_statscounter_t counter) {
 		isc_stats_increment(res->view->resstats, counter);
 }
 
+static inline void
+dec_stats(dns_resolver_t *res, isc_statscounter_t counter) {
+	if (res->view->resstats != NULL)
+		isc_stats_decrement(res->view->resstats, counter);
+}
+
 static isc_result_t
 valcreate(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, dns_name_t *name,
 	  dns_rdatatype_t type, dns_rdataset_t *rdataset,
@@ -3102,6 +3108,7 @@ fctx_unlink(fetchctx_t *fctx) {
 	LOCK(&res->nlock);
 	res->nfctx--;
 	UNLOCK(&res->nlock);
+	dec_stats(res, dns_resstatscounter_nfetch);
 
 	if (res->buckets[bucketnum].exiting &&
 	    ISC_LIST_EMPTY(res->buckets[bucketnum].fctxs))
@@ -3725,6 +3732,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	LOCK(&res->nlock);
 	res->nfctx++;
 	UNLOCK(&res->nlock);
+	inc_stats(res, dns_resstatscounter_nfetch);
 
 	*fctxp = fctx;
 
@@ -7475,6 +7483,9 @@ dns_resolver_create(dns_view_t *view,
 	res->zero_no_soa_ttl = ISC_FALSE;
 	res->query_timeout = DEFAULT_QUERY_TIMEOUT;
 	res->nbuckets = ntasks;
+	if (view->resstats != NULL)
+		isc_stats_set(view->resstats, ntasks,
+			      dns_resstatscounter_buckets);
 	res->activebuckets = ntasks;
 	res->buckets = isc_mem_get(view->mctx,
 				   ntasks * sizeof(fctxbucket_t));

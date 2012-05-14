@@ -206,6 +206,20 @@ isc_mem_isovermem(isc_mem_t *mctx) {
 	return (mctx->methods->isovermem(mctx));
 }
 
+size_t
+isc_mem_maxinuse(isc_mem_t *mctx) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->maxinuse(mctx));
+}
+
+size_t
+isc_mem_total(isc_mem_t *mctx) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->total(mctx));
+}
+
 void
 isc_mem_setname(isc_mem_t *mctx, const char *name, void *tag) {
 	REQUIRE(ISCAPI_MCTX_VALID(mctx));

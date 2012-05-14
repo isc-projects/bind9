@@ -149,6 +149,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->delonly = NULL;
 	view->rootdelonly = ISC_FALSE;
 	view->rootexclude = NULL;
+	view->adbstats = NULL;
 	view->resstats = NULL;
 	view->resquerystats = NULL;
 	view->cacheshared = ISC_FALSE;
@@ -416,6 +417,8 @@ destroy(dns_view_t *view) {
 			    sizeof(dns_namelist_t) * DNS_VIEW_DELONLYHASH);
 		view->rootexclude = NULL;
 	}
+	if (view->adbstats != NULL)
+		isc_stats_detach(&view->adbstats);
 	if (view->resstats != NULL)
 		isc_stats_detach(&view->resstats);
 	if (view->resquerystats != NULL)
@@ -1681,6 +1684,24 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t value) {
 	return (dns_zt_freezezones(view->zonetable, value));
 }
 #endif
+
+void
+dns_view_setadbstats(dns_view_t *view, isc_stats_t *stats) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!view->frozen);
+	REQUIRE(view->adbstats == NULL);
+
+	isc_stats_attach(stats, &view->adbstats);
+}
+
+void
+dns_view_getadbstats(dns_view_t *view, isc_stats_t **statsp) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
+	if (view->adbstats != NULL)
+		isc_stats_attach(view->adbstats, statsp);
+}
 
 void
 dns_view_setresstats(dns_view_t *view, isc_stats_t *stats) {

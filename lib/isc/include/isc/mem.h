@@ -224,6 +224,8 @@ typedef struct isc_memmethods {
 			 void *water_arg, size_t hiwater, size_t lowater);
 	void (*waterack)(isc_mem_t *ctx, int flag);
 	size_t (*inuse)(isc_mem_t *mctx);
+	size_t (*maxinuse)(isc_mem_t *mctx);
+	size_t (*total)(isc_mem_t *mctx);
 	isc_boolean_t (*isovermem)(isc_mem_t *mctx);
 	isc_result_t (*mpcreate)(isc_mem_t *mctx, size_t size,
 				 isc_mempool_t **mpctxp);
@@ -416,9 +418,23 @@ isc_mem_getquota(isc_mem_t *);
 size_t
 isc_mem_inuse(isc_mem_t *mctx);
 /*%<
- * Get an estimate of the number of memory in use in 'mctx', in bytes.
+ * Get an estimate of the amount of memory in use in 'mctx', in bytes.
  * This includes quantization overhead, but does not include memory
  * allocated from the system but not yet used.
+ */
+
+size_t
+isc_mem_maxinuse(isc_mem_t *mctx);
+/*%<
+ * Get an estimate of the largest amount of memory that has been in
+ * use in 'mctx' at any time.
+ */
+
+size_t
+isc_mem_total(isc_mem_t *mctx);
+/*%<
+ * Get the total amount of memory in 'mctx', in bytes, including memory
+ * not yet used.
  */
 
 isc_boolean_t

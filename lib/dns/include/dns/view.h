@@ -108,6 +108,7 @@ struct dns_view {
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
 	isc_event_t			reqevent;
+	isc_stats_t *			adbstats;
 	isc_stats_t *			resstats;
 	dns_stats_t *			resquerystats;
 	isc_boolean_t			cacheshared;
@@ -951,6 +952,31 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t freeze);
  *
  * Requires:
  * \li	'view' is valid.
+ */
+
+void
+dns_view_setadbstats(dns_view_t *view, isc_stats_t *stats);
+/*%<
+ * Set a adb statistics set 'stats' for 'view'.
+ *
+ * Requires:
+ * \li	'view' is valid and is not frozen.
+ *
+ *\li	stats is a valid statistics supporting adb statistics
+ *	(see dns/stats.h).
+ */
+
+void
+dns_view_getadbstats(dns_view_t *view, isc_stats_t **statsp);
+/*%<
+ * Get the adb statistics counter set for 'view'.  If a statistics set is
+ * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
+ * untouched.
+ *
+ * Requires:
+ * \li	'view' is valid and is not frozen.
+ *
+ *\li	'statsp' != NULL && '*statsp' != NULL
  */
 
 void

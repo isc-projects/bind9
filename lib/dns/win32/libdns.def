@@ -114,6 +114,7 @@ dns_db_getnsec3parameters
 dns_db_getoriginnode
 dns_db_getrrsetstats
 dns_db_getsoaserial
+dns_db_hashsize
 dns_db_iscache
 dns_db_isdnssec
 dns_db_ispersistent
@@ -132,6 +133,7 @@ dns_db_printnode
 dns_db_register
 dns_db_rpz_enabled
 dns_db_rpz_findips
+dns_db_setcachestats
 dns_db_subtractrdataset
 dns_db_unregister
 dns_dbiterator_current
@@ -493,6 +495,7 @@ dns_rbt_findname
 dns_rbt_findnode
 dns_rbt_formatnodename
 dns_rbt_fullnamefromnode
+dns_rbt_hashsize
 dns_rbt_namefromnode
 dns_rbt_nodecount
 dns_rbt_printall

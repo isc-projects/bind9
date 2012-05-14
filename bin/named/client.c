@@ -670,8 +670,11 @@ ns_client_endrequest(ns_client_t *client) {
 	client->ednsversion = -1;
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 
-	if (client->recursionquota != NULL)
+	if (client->recursionquota != NULL) {
 		isc_quota_detach(&client->recursionquota);
+		isc_stats_decrement(ns_g_server->nsstats,
+				    dns_nsstatscounter_recursclients);
+	}
 
 	/*
 	 * Clear all client attributes that are specific to

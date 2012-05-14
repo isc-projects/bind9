@@ -110,6 +110,7 @@ struct isc__task {
 	unsigned int			references;
 	isc_eventlist_t			events;
 	isc_eventlist_t			on_shutdown;
+	unsigned int			nevents;
 	unsigned int			quantum;
 	unsigned int			flags;
 	isc_stdtime_t			now;
@@ -153,6 +154,7 @@ struct isc__taskmgr {
 	isc_condition_t			paused;
 #endif /* ISC_PLATFORM_USETHREADS */
 	unsigned int			tasks_running;
+	unsigned int			tasks_ready;
 	isc_boolean_t			pause_requested;
 	isc_boolean_t			exclusive_requested;
 	isc_boolean_t			exiting;
@@ -298,6 +300,7 @@ task_finished(isc__task_t *task) {
 	isc__taskmgr_t *manager = task->manager;
 
 	REQUIRE(EMPTY(task->events));
+	REQUIRE(task->nevents == 0);
 	REQUIRE(EMPTY(task->on_shutdown));
 	REQUIRE(task->references == 0);
 	REQUIRE(task->state == task_state_done);
@@ -351,6 +354,7 @@ isc__task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 	task->references = 1;
 	INIT_LIST(task->events);
 	INIT_LIST(task->on_shutdown);
+	task->nevents = 0;
 	task->quantum = quantum;
 	task->flags = 0;
 	task->now = 0;
@@ -436,6 +440,7 @@ task_shutdown(isc__task_t *task) {
 			prev = PREV(event, ev_link);
 			DEQUEUE(task->on_shutdown, event, ev_link);
 			ENQUEUE(task->events, event, ev_link);
+			task->nevents++;
 		}
 	}
 
@@ -547,6 +552,7 @@ task_send(isc__task_t *task, isc_event_t **eventp) {
 	INSIST(task->state == task_state_ready ||
 	       task->state == task_state_running);
 	ENQUEUE(task->events, event, ev_link);
+	task->nevents++;
 	*eventp = NULL;
 
 	return (was_idle);
@@ -660,6 +666,7 @@ dequeue_events(isc__task_t *task, void *sender, isc_eventtype_t first,
 		    (tag == NULL || event->ev_tag == tag) &&
 		    (!purging || PURGE_OK(event))) {
 			DEQUEUE(task->events, event, ev_link);
+			task->nevents--;
 			ENQUEUE(*events, event, ev_link);
 			count++;
 		}
@@ -745,6 +752,7 @@ isc__task_purgeevent(isc_task_t *task0, isc_event_t *event) {
 		next_event = NEXT(curr_event, ev_link);
 		if (curr_event == event && PURGE_OK(event)) {
 			DEQUEUE(task->events, curr_event, ev_link);
+			task->nevents--;
 			break;
 		}
 	}
@@ -968,6 +976,7 @@ push_readyq(isc__taskmgr_t *manager, isc__task_t *task) {
 	if ((task->flags & TASK_F_PRIVILEGED) != 0)
 		ENQUEUE(manager->ready_priority_tasks, task,
 			ready_priority_link);
+	manager->tasks_ready++;
 }
 
 static void
@@ -977,6 +986,7 @@ dispatch(isc__taskmgr_t *manager) {
 	unsigned int total_dispatch_count = 0;
 	isc__tasklist_t new_ready_tasks;
 	isc__tasklist_t new_priority_tasks;
+	unsigned int tasks_ready = 0;
 #endif /* USE_WORKER_THREADS */
 
 	REQUIRE(VALID_MANAGER(manager));
@@ -1083,6 +1093,7 @@ dispatch(isc__taskmgr_t *manager) {
 			 * have a task to do.  We must reacquire the manager
 			 * lock before exiting the 'if (task != NULL)' block.
 			 */
+			manager->tasks_ready--;
 			manager->tasks_running++;
 			UNLOCK(&manager->lock);
 
@@ -1096,6 +1107,7 @@ dispatch(isc__taskmgr_t *manager) {
 				if (!EMPTY(task->events)) {
 					event = HEAD(task->events);
 					DEQUEUE(task->events, event, ev_link);
+					task->nevents--;
 
 					/*
 					 * Execute the event action.
@@ -1235,6 +1247,7 @@ dispatch(isc__taskmgr_t *manager) {
 				if ((task->flags & TASK_F_PRIVILEGED) != 0)
 					ENQUEUE(new_priority_tasks, task,
 						ready_priority_link);
+				tasks_ready++;
 #endif
 			}
 		}
@@ -1258,6 +1271,7 @@ dispatch(isc__taskmgr_t *manager) {
 	ISC_LIST_APPENDLIST(manager->ready_tasks, new_ready_tasks, ready_link);
 	ISC_LIST_APPENDLIST(manager->ready_priority_tasks, new_priority_tasks,
 			    ready_priority_link);
+	manager->tasks_ready += tasks_ready;
 	if (empty_readyq(manager))
 		manager->mode = isc_taskmgrmode_normal;
 #endif
@@ -1393,6 +1407,7 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	INIT_LIST(manager->ready_tasks);
 	INIT_LIST(manager->ready_priority_tasks);
 	manager->tasks_running = 0;
+	manager->tasks_ready = 0;
 	manager->exclusive_requested = ISC_FALSE;
 	manager->pause_requested = ISC_FALSE;
 	manager->exiting = ISC_FALSE;
@@ -1761,6 +1776,10 @@ isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, xmlTextWriterPtr writer) {
 	xmlTextWriterWriteFormatString(writer, "%d", mgr->tasks_running);
 	xmlTextWriterEndElement(writer); /* tasks-running */
 
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "tasks-ready");
+	xmlTextWriterWriteFormatString(writer, "%d", mgr->tasks_ready);
+	xmlTextWriterEndElement(writer); /* tasks-ready */
+
 	xmlTextWriterEndElement(writer); /* thread-model */
 
 	xmlTextWriterStartElement(writer, ISC_XMLCHAR "tasks");
@@ -1792,6 +1811,10 @@ isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, xmlTextWriterPtr writer) {
 		xmlTextWriterStartElement(writer, ISC_XMLCHAR "quantum");
 		xmlTextWriterWriteFormatString(writer, "%d", task->quantum);
 		xmlTextWriterEndElement(writer); /* quantum */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "events");
+		xmlTextWriterWriteFormatString(writer, "%d", task->nevents);
+		xmlTextWriterEndElement(writer); /* events */
 
 		xmlTextWriterEndElement(writer);
 

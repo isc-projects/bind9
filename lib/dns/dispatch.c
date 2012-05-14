@@ -371,6 +371,12 @@ inc_stats(dns_dispatchmgr_t *mgr, isc_statscounter_t counter) {
 		isc_stats_increment(mgr->stats, counter);
 }
 
+static inline void
+dec_stats(dns_dispatchmgr_t *mgr, isc_statscounter_t counter) {
+	if (mgr->stats != NULL)
+		isc_stats_decrement(mgr->stats, counter);
+}
+
 static void
 dispatch_log(dns_dispatch_t *disp, int level, const char *fmt, ...)
      ISC_FORMAT_PRINTF(3, 4);
@@ -3360,6 +3366,10 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	ISC_LIST_APPEND(qid->qid_table[bucket], res, link);
 	UNLOCK(&qid->lock);
 
+	inc_stats(disp->mgr, (qid == disp->mgr->qid) ?
+			     dns_resstatscounter_disprequdp :
+			     dns_resstatscounter_dispreqtcp);
+
 	request_log(disp, res, LVL(90),
 		    "attached to task %p", res->task);
 
@@ -3376,6 +3386,10 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 
 			disp->refcount--;
 			disp->requests--;
+
+			dec_stats(disp->mgr, (qid == disp->mgr->qid) ?
+					     dns_resstatscounter_disprequdp :
+					     dns_resstatscounter_dispreqtcp);
 
 			UNLOCK(&disp->lock);
 			isc_task_detach(&res->task);
@@ -3463,6 +3477,9 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 
 	INSIST(disp->requests > 0);
 	disp->requests--;
+	dec_stats(disp->mgr, (qid == disp->mgr->qid) ?
+			     dns_resstatscounter_disprequdp :
+			     dns_resstatscounter_dispreqtcp);
 	INSIST(disp->refcount > 0);
 	disp->refcount--;
 	if (disp->refcount == 0) {

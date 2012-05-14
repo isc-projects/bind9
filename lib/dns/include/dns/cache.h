@@ -50,6 +50,7 @@
  ***/
 
 #include <isc/lang.h>
+#include <isc/stats.h>
 #include <isc/stdtime.h>
 
 #include <dns/types.h>
@@ -311,6 +312,26 @@ dns_cache_flushname(dns_cache_t *cache, dns_name_t *name);
  *\li	#ISC_R_NOMEMORY
  *\li	other error returns.
  */
+
+isc_stats_t *
+dns_cache_getstats(dns_cache_t *cache);
+/*
+ * Return a pointer to the stats collection object for 'cache'
+ */
+
+void
+dns_cache_dumpstats(dns_cache_t *cache, FILE *fp);
+/*
+ * Dump cache statistics and status in text to 'fp'
+ */
+
+#ifdef HAVE_LIBXML2
+void
+dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer);
+/*
+ * Render cache statistics and status in XML for 'writer'.
+ */
+#endif /* HAVE_LIBXML2 */
 
 ISC_LANG_ENDDECLS
 

@@ -233,6 +233,47 @@ div.statcounter br {
 
 	<br />
 
+	<div class="statcounter">
+	  <h2>ADB Statistics (Common)</h2>
+	  <xsl:for-each select="server/adbstat">
+	    <dl>
+	      <dt><xsl:value-of select="name"/></dt>
+	      <dd><xsl:value-of select="counter"/></dd>
+	    </dl>
+	  </xsl:for-each>
+	  <br />
+	</div>
+
+	<xsl:for-each select="views/view">
+	  <div class="statcounter">
+	    <h2>ADB Statistics for View <xsl:value-of select="name"/></h2>
+	    <xsl:for-each select="adbstat">
+	      <dl>
+		<dt><xsl:value-of select="name"/></dt>
+		<dd><xsl:value-of select="counter"/></dd>
+	      </dl>
+	    </xsl:for-each>
+	    <br />
+	  </div>
+	</xsl:for-each>
+
+	<br />
+
+	<xsl:for-each select="views/view">
+	  <table>
+	    <tr class="rowh">
+	      <th colspan="2">Cache Statistics for View <xsl:value-of select="name"/></th>
+	    </tr>
+            <xsl:for-each select="cachestats/cachestat">
+	      <tr class="lrow">
+		<td><xsl:value-of select="name"/></td>
+		<td><xsl:value-of select="value"/></td>
+	      </tr>
+	    </xsl:for-each>
+	  </table>
+	  <br/>
+	</xsl:for-each>
+
 	<xsl:for-each select="views/view">
 	  <table>
 	    <tr class="rowh">
@@ -388,11 +429,17 @@ div.statcounter br {
               <xsl:value-of select="taskmgr/thread-model/tasks-running"/>
             </td>
           </tr>
+          <tr class="lrow">
+            <td>Tasks Ready</td>
+            <td>
+              <xsl:value-of select="taskmgr/thread-model/tasks-ready"/>
+            </td>
+          </tr>
         </table>
         <br/>
         <table>
           <tr class="rowh">
-            <th colspan="5">Tasks</th>
+            <th colspan="6">Tasks</th>
           </tr>
           <tr class="rowh">
             <th>ID</th>
@@ -400,6 +447,7 @@ div.statcounter br {
             <th>References</th>
             <th>State</th>
             <th>Quantum</th>
+            <th>Events</th>
           </tr>
           <xsl:for-each select="taskmgr/tasks/task">
             <tr class="lrow">
@@ -417,6 +465,9 @@ div.statcounter br {
               </td>
               <td>
                 <xsl:value-of select="quantum"/>
+              </td>
+              <td>
+                <xsl:value-of select="events"/>
               </td>
             </tr>
           </xsl:for-each>
