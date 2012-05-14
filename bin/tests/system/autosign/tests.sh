@@ -218,7 +218,7 @@ echo "I:checking that non-replaceable RRSIGs are logged only once ($n)"
 ret=0
 loglines=`grep "Key nozsk.example/NSEC3RSASHA1/$missing .* retaining signatures" ns3/named.run | wc -l`
 [ "$loglines" -eq 1 ] || ret=1
-loglines=`grep "Key inaczsk.example/NSEC3RSASHA1/$missing .* retaining signatures" ns3/named.run | wc -l`
+loglines=`grep "Key inaczsk.example/NSEC3RSASHA1/$inactive .* retaining signatures" ns3/named.run | wc -l`
 [ "$loglines" -eq 1 ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
