@@ -1,6 +1,6 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -150,8 +150,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
-/* Define to enable the "filter-aaaa-on-v4" option. */
-#undef ALLOW_FILTER_AAAA_ON_V4
+/* Define to enable the "filter-aaaa-on-v4" and "filter-aaaa-on-v6" options.
+   */
+#undef ALLOW_FILTER_AAAA
 
 /* define if ATF unit tests are to be built. */
 #undef ATF_TEST

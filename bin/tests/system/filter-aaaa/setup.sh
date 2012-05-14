@@ -20,5 +20,10 @@ sh clean.sh
 
 ../../../tools/genrandom 400 random.data
 
+cp ns1/named1.conf ns1/named.conf
+cp ns2/named1.conf ns2/named.conf
+cp ns3/named1.conf ns3/named.conf
+cp ns4/named1.conf ns4/named.conf
+
 (cd ns1 && sh -e sign.sh)
 (cd ns4 && sh -e sign.sh)

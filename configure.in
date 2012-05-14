@@ -2882,17 +2882,17 @@ case "$enable_nsdname" in
 esac
 
 #
-# Activate "filter-aaaa-on-v4" or not?
+# Activate "filter-aaaa-on-v4/v6" or not?
 #
 AC_ARG_ENABLE(filter-aaaa,
-	[  --enable-filter-aaaa    enable filtering of AAAA records over IPv4
+	[  --enable-filter-aaaa    enable filtering of AAAA records
 			  [[default=no]]],
 			enable_filter="$enableval",
 			enable_filter="no")
 case "$enable_filter" in
 	yes)
-		AC_DEFINE(ALLOW_FILTER_AAAA_ON_V4, 1,
-			  [Define to enable the "filter-aaaa-on-v4" option.])
+		AC_DEFINE(ALLOW_FILTER_AAAA, 1,
+			  [Define to enable the "filter-aaaa-on-v4" and "filter-aaaa-on-v6" options.])
 		;;
 	no)
 		;;

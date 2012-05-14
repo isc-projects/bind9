@@ -941,10 +941,11 @@ ns_client_send(ns_client_t *client) {
 			preferred_glue = DNS_MESSAGERENDER_PREFER_AAAA;
 	}
 
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 	/*
 	 * filter-aaaa-on-v4 yes or break-dnssec option to suppress
-	 * AAAA records
+	 * AAAA records.
+	 *
 	 * We already know that request came via IPv4,
 	 * that we have both AAAA and A records,
 	 * and that we either have no signatures that the client wants
@@ -2120,8 +2121,8 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->recursionquota = NULL;
 	client->interface = NULL;
 	client->peeraddr_valid = ISC_FALSE;
-#ifdef ALLOW_FILTER_AAAA_ON_V4
-	client->filter_aaaa = dns_v4_aaaa_ok;
+#ifdef ALLOW_FILTER_AAAA
+	client->filter_aaaa = dns_aaaa_ok;
 #endif
 	ISC_EVENT_INIT(&client->ctlevent, sizeof(client->ctlevent), 0, NULL,
 		       NS_EVENT_CLIENTCONTROL, client_start, client, client,

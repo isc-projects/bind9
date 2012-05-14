@@ -20,20 +20,20 @@ rm -f ns1/K*
 rm -f ns1/*.signed
 rm -f ns1/signer.err
 rm -f ns1/dsset-*
-rm -f ns1/named.run
+rm -f ns1/named.run ns1/named.conf
 rm -f ns1/named.memstats
 
-rm -f ns2/named.run
+rm -f ns2/named.run ns2/named.conf
 rm -f ns2/named.memstats
 
-rm -f ns3/named.run
+rm -f ns3/named.run ns3/named.conf
 rm -f ns3/named.memstats
 
 rm -f ns4/K*
 rm -f ns4/*.signed
 rm -f ns4/signer.err
 rm -f ns4/dsset-*
-rm -f ns4/named.run
+rm -f ns4/named.run ns4/named.conf
 rm -f ns4/named.memstats
 
 rm -f random.data

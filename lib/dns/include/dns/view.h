@@ -158,8 +158,9 @@ struct dns_view {
 	dns_name_t *			dlv;
 	dns_fixedname_t			dlv_fixed;
 	isc_uint16_t			maxudp;
-	dns_v4_aaaa_t			v4_aaaa;
-	dns_acl_t *			v4_aaaa_acl;
+	dns_aaaa_t			v4_aaaa;
+	dns_aaaa_t			v6_aaaa;
+	dns_acl_t *			aaaa_acl;
 	dns_dns64list_t 		dns64;
 	unsigned int 			dns64cnt;
 	ISC_LIST(dns_rpz_zone_t)	rpz_zones;

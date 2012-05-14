@@ -1,3 +1,8 @@
+3327.	[func]		Added 'filter-aaaa-on-v6' option; this is similar
+			to 'filter-aaaa-on-v4' but applies to IPv6
+			connections.  (Use "configure --enable-filter-aaaa"
+			to enable this option.)  [RT #27308]
+
 3326.	[func]		Added task list statistics: task model, worker
 			threads, quantum, tasks running, tasks ready.
 			[RT #27678]

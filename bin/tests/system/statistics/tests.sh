@@ -84,8 +84,7 @@ status=`expr $status + $ret`
 ret=0
 echo "I: verifying active sockets output"
 nsock1=`grep "UDP/IPv4 sockets active" ns3/named.stats | awk '{print $1}'`
-[ "$nsock0" -eq 2 ] || ret=1
-[ "$nsock1" -eq 3 ] || ret=1
+[ `expr $nsock1 - $nsock0` -eq 1 ] || ret=1
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 

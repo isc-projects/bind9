@@ -1381,7 +1381,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	}
 
 	if (qtype == dns_rdatatype_a) {
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 		isc_boolean_t have_a = ISC_FALSE;
 #endif
 
@@ -1423,7 +1423,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		}
 		if (result == ISC_R_SUCCESS) {
 			mname = NULL;
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 			have_a = ISC_TRUE;
 #endif
 			if (!query_isduplicate(client, fname,
@@ -1475,10 +1475,10 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			/*
 			 * There's an A; check whether we're filtering AAAA
 			 */
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 			if (have_a &&
-			    (client->filter_aaaa == dns_v4_aaaa_break_dnssec ||
-			    (client->filter_aaaa == dns_v4_aaaa_filter &&
+			    (client->filter_aaaa == dns_aaaa_break_dnssec ||
+			    (client->filter_aaaa == dns_aaaa_filter &&
 			     (!WANTDNSSEC(client) || sigrdataset == NULL ||
 			      !dns_rdataset_isassociated(sigrdataset)))))
 				goto addname;
@@ -5190,13 +5190,21 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 	return;
 }
 
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 static isc_boolean_t
 is_v4_client(ns_client_t *client) {
 	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET)
 		return (ISC_TRUE);
 	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET6 &&
 	    IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr))
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
+static isc_boolean_t
+is_v6_client(ns_client_t *client) {
+	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET6 &&
+	    !IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr))
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }
@@ -6699,25 +6707,36 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		need_wildcardproof = ISC_TRUE;
 	}
 
-#ifdef ALLOW_FILTER_AAAA_ON_V4
-	if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
-	    is_v4_client(client) &&
-	    ns_client_checkaclsilent(client, NULL,
-				     client->view->v4_aaaa_acl,
-				     ISC_TRUE) == ISC_R_SUCCESS)
-		client->filter_aaaa = client->view->v4_aaaa;
-	else
-		client->filter_aaaa = dns_v4_aaaa_ok;
+#ifdef ALLOW_FILTER_AAAA
+	/*
+	 * The filter-aaaa-on-v4 option should suppress AAAAs for IPv4
+	 * clients if there is an A; filter-aaaa-on-v6 option does the same
+	 * for IPv6 clients.
+	 */
+	client->filter_aaaa = dns_aaaa_ok;
+	if (client->view->v4_aaaa != dns_aaaa_ok ||
+	    client->view->v6_aaaa != dns_aaaa_ok)
+	{
+		result = ns_client_checkaclsilent(client, NULL,
+						  client->view->aaaa_acl,
+						  ISC_TRUE);
+		if (result == ISC_R_SUCCESS &&
+		    client->view->v4_aaaa != dns_aaaa_ok &&
+		    is_v4_client(client))
+			client->filter_aaaa = client->view->v4_aaaa;
+		else if (result == ISC_R_SUCCESS &&
+			 client->view->v6_aaaa != dns_aaaa_ok &&
+			 is_v6_client(client))
+			client->filter_aaaa = client->view->v6_aaaa;
+	}
 
 #endif
 
 	if (type == dns_rdatatype_any) {
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 		isc_boolean_t have_aaaa, have_a, have_sig;
 
 		/*
-		 * The filter-aaaa-on-v4 option should
-		 * suppress AAAAs for IPv4 clients if there is an A.
 		 * If we are not authoritative, assume there is a A
 		 * even in if it is not in our cache.  This assumption could
 		 * be wrong but it is a good bet.
@@ -6754,12 +6773,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		result = dns_rdatasetiter_first(rdsiter);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdatasetiter_current(rdsiter, rdataset);
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 			/*
 			 * Notice the presence of A and AAAAs so
 			 * that AAAAs can be hidden from IPv4 clients.
 			 */
-			if (client->filter_aaaa != dns_v4_aaaa_ok) {
+			if (client->filter_aaaa != dns_aaaa_ok) {
 				if (rdataset->type == dns_rdatatype_aaaa)
 					have_aaaa = ISC_TRUE;
 				else if (rdataset->type == dns_rdatatype_a)
@@ -6777,7 +6796,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				dns_rdataset_disassociate(rdataset);
 			} else if ((qtype == dns_rdatatype_any ||
 			     rdataset->type == qtype) && rdataset->type != 0) {
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 				if (dns_rdatatype_isdnssec(rdataset->type))
 					have_sig = ISC_TRUE;
 #endif
@@ -6811,14 +6830,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			result = dns_rdatasetiter_next(rdsiter);
 		}
 
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 		/*
 		 * Filter AAAAs if there is an A and there is no signature
 		 * or we are supposed to break DNSSEC.
 		 */
-		if (client->filter_aaaa == dns_v4_aaaa_break_dnssec)
+		if (client->filter_aaaa == dns_aaaa_break_dnssec)
 			client->attributes |= NS_CLIENTATTR_FILTER_AAAA;
-		else if (client->filter_aaaa != dns_v4_aaaa_ok &&
+		else if (client->filter_aaaa != dns_aaaa_ok &&
 			 have_aaaa && have_a &&
 			 (!have_sig || !WANTDNSSEC(client)))
 			  client->attributes |= NS_CLIENTATTR_FILTER_AAAA;
@@ -6873,7 +6892,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * we know the answer.
 		 */
 
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 		/*
 		 * Optionally hide AAAAs from IPv4 clients if there is an A.
 		 * We add the AAAAs now, but might refuse to render them later
@@ -6882,8 +6901,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * so fundamentally wrong, unavoidably inaccurate, and
 		 * unneeded that it is best to keep it as short as possible.
 		 */
-		if (client->filter_aaaa == dns_v4_aaaa_break_dnssec ||
-		    (client->filter_aaaa == dns_v4_aaaa_filter &&
+		if (client->filter_aaaa == dns_aaaa_break_dnssec ||
+		    (client->filter_aaaa == dns_aaaa_filter &&
 		     (!WANTDNSSEC(client) || sigrdataset == NULL ||
 		     !dns_rdataset_isassociated(sigrdataset))))
 		{

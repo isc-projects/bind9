@@ -191,8 +191,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->flush = ISC_FALSE;
 	view->dlv = NULL;
 	view->maxudp = 0;
-	view->v4_aaaa = dns_v4_aaaa_ok;
-	view->v4_aaaa_acl = NULL;
+	view->v4_aaaa = dns_aaaa_ok;
+	view->v6_aaaa = dns_aaaa_ok;
+	view->aaaa_acl = NULL;
 	ISC_LIST_INIT(view->rpz_zones);
 	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
@@ -374,8 +375,8 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->upfwdacl);
 	if (view->denyansweracl != NULL)
 		dns_acl_detach(&view->denyansweracl);
-	if (view->v4_aaaa_acl != NULL)
-		dns_acl_detach(&view->v4_aaaa_acl);
+	if (view->aaaa_acl != NULL)
+		dns_acl_detach(&view->aaaa_acl);
 	if (view->answeracl_exclude != NULL)
 		dns_rbt_destroy(&view->answeracl_exclude);
 	if (view->denyanswernames != NULL)
