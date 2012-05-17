@@ -1,3 +1,9 @@
+3329.	[bug]		Handle RRSIG signer-name case consistently: We
+			generate RRSIG records with the signer-name in
+			lower case.  We accept them with any case, but if
+			they fail to validate, we try again in lower case.
+			[RT #27451]
+
 3328.   [bug]           Fixed inconsistent data checking in dst_parse.c.
                         [RT #29401]
 
