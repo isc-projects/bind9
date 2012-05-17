@@ -138,6 +138,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if OpenSSL includes DSA support */
 #undef HAVE_OPENSSL_DSA
 
+/* Define if OpenSSL includes ECDSA support */
+#undef HAVE_OPENSSL_ECDSA
+
 /* Define to the length type used by the socket API (socklen_t, size_t, int). */
 #undef ISC_SOCKADDR_LEN_T
 

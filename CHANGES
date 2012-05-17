@@ -4,6 +4,8 @@
 			they fail to validate, we try again in lower case.
 			[RT #27451]
 
+3317.	[func]		Add ECDSA support (RFC 6605). [RT #21918]
+
 	--- 9.9.1 released ---
 
 3318.	[tuning]	Reduce the amount of work performed while holding a
