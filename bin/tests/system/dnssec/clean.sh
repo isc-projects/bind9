@@ -48,11 +48,5 @@ rm -f signer/example.db.after signer/example.db.before
 rm -f signer/example.db.changed
 rm -f ns3/ttlpatch.example.db ns3/ttlpatch.example.db.signed
 rm -f ns3/ttlpatch.example.db.patched
-rm -f ns4/managed-keys.bind*
-rm -f ns4/named.conf
-rm -f */managed.conf
-rm -f ns2/nsec3chain-test.db
-rm -f ns3/auto-nsec.example.db
-rm -f ns3/auto-nsec3.example.db
-rm -f ns3/expiring.example.db
-rm -f ns3/secure.below-cname.example.db
+rm -f ns3/lower.example.db ns3/upper.example.db ns3/upper.example.db.lower
+rm -f ns4/named.conf ns4/managed.conf

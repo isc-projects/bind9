@@ -1,3 +1,9 @@
+3329.	[bug]		Handle RRSIG signer-name case consistently: We
+			generate RRSIG records with the signer-name in
+			lower case.  We accept them with any case, but if
+			they fail to validate, we try again in lower case.
+			[RT #27451]
+
 	--- 9.7.6 released ---
 
 3318.	[tuning]	Reduce the amount of work performed while holding a
