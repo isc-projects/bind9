@@ -4,6 +4,9 @@
 			they fail to validate, we try again in lower case.
 			[RT #27451]
 
+3328.   [bug]           Fixed inconsistent data checking in dst_parse.c.
+                        [RT #29401]
+
 3317.	[func]		Add ECDSA support (RFC 6605). [RT #21918]
 
 	--- 9.9.1 released ---
