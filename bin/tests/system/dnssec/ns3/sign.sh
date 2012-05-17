@@ -384,6 +384,34 @@ $SIGNER -S -r $RANDFILE -e now+1mi -o $zone $zonefile > /dev/null 2>&1
 rm -f ${zskname}.private ${kskname}.private
 
 #
+# A zone where the signer's name has been forced to uppercase.
+#
+zone="upper.example."
+infile="upper.example.db.in"
+zonefile="upper.example.db"
+lower="upper.example.db.lower"
+signedfile="upper.example.db.signed"
+kskname=`$KEYGEN -q -r $RANDFILE $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+cp $infile $zonefile
+$SIGNER -P -S -r $RANDFILE -o $zone -f $lower $zonefile > /dev/null 2>&1
+$CHECKZONE -D upper.example $lower 2>&- | \
+        awk '$4 == "RRSIG" {$12 = toupper($12); print; next} { print }' > $signedfile
+
+#
+# Check that the signer's name is in lower case when zone name is in
+# upper case.
+#
+zone="LOWER.EXAMPLE."
+infile="lower.example.db.in"
+zonefile="lower.example.db"
+signedfile="lower.example.db.signed"
+kskname=`$KEYGEN -q -r $RANDFILE $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+cp $infile $zonefile
+$SIGNER -P -S -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+#
 # Zone with signatures about to expire, and dynamic, but configured
 # not to resign with 'auto-resign no;'
 #
