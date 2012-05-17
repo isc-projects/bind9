@@ -45,3 +45,4 @@ rm -f ns2/algroll.db
 rm -f signer/example.db.after signer/example.db.before
 rm -f signer/example.db.changed
 rm -f ns3/lower.example.db ns3/upper.example.db ns3/upper.example.db.lower
+rm -f ns3/secure.below-cname.example.db

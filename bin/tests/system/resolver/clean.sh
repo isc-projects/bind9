@@ -25,7 +25,7 @@ rm -f dig.*.foo.*
 rm -f dig.*.bar.*
 rm -f dig.*.prime.*
 rm -f ns4/tld.db
-rm -r ns6/to-be-removed.tld.db ns6/to-be-removed.tld.db.jnl
+rm -f ns6/to-be-removed.tld.db ns6/to-be-removed.tld.db.jnl
 rm -f ns6/K*
 rm -f ns6/example.net.db.signed ns6/example.net.db
 rm -f ns6/keyset-example.net. ns6/dsset-example.net.
