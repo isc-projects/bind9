@@ -17,6 +17,7 @@
 
 # $Id$
 rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed */trusted.conf */tmp* */*.jnl */*.bk
+rm -f ns1/managed.conf
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
 rm -f ns3/unsecure.example.db ns3/bogus.example.db ns3/keyless.example.db
 rm -f ns3/dynamic.example.db ns3/dynamic.example.db.signed.jnl
@@ -24,6 +25,7 @@ rm -f ns3/rsasha256.example.db ns3/rsasha512.example.db
 rm -f ns2/private.secure.example.db
 rm -f ns2/badparam.db ns2/badparam.db.bad
 rm -f ns2/single-nsec3.db
+rm -f ns2/nsec3chain-test.db
 rm -f */example.bk
 rm -f dig.out.*
 rm -f random.data
@@ -50,3 +52,7 @@ rm -f ns3/ttlpatch.example.db ns3/ttlpatch.example.db.signed
 rm -f ns3/ttlpatch.example.db.patched
 rm -f ns3/lower.example.db ns3/upper.example.db ns3/upper.example.db.lower
 rm -f ns4/named.conf ns4/managed.conf
+rm -f ns3/auto-nsec.example.db
+rm -f ns3/auto-nsec3.example.db
+rm -f ns3/expiring.example.db
+rm -f ns3/secure.below-cname.example.db
