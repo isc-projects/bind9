@@ -1,18 +1,17 @@
 /*
- * Copyright (C) 2010-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND ISC AND NETWORK ASSOCIATES DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE
- * FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 /* $Id$ */
@@ -305,7 +304,7 @@ opensslecdsa_isprivate(const dst_key_t *key) {
 	isc_boolean_t ret;
 	EVP_PKEY *pkey = key->keydata.pkey;
 	EC_KEY *eckey = EVP_PKEY_get1_EC_KEY(pkey);
-	
+
 	ret = ISC_TF(eckey != NULL && EC_KEY_get0_private_key(eckey) != NULL);
 	if (eckey != NULL)
 		EC_KEY_free(eckey);
@@ -387,7 +386,7 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	eckey = EC_KEY_new_by_curve_name(group_nid);
 	if (eckey == NULL)
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-	
+
 	buf[0] = POINT_CONVERSION_UNCOMPRESSED;
 	memcpy(buf + 1, r.base, len);
 	cp = buf;
