@@ -119,3 +119,9 @@ ns.insecure.below-cname	A	10.53.0.3
 
 secure.below-cname	NS	ns.secure.below-cname
 ns.secure.below-cname	A	10.53.0.3
+
+upper			NS	ns.upper
+ns.upper		A	10.53.0.3
+
+LOWER			NS	NS.LOWER
+NS.LOWER		A	10.53.0.3
