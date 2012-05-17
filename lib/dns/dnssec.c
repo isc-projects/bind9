@@ -181,9 +181,9 @@ digest_sig(dst_context_t *ctx, isc_boolean_t downcase, dns_rdata_t *sigrdata,
 						dns_fixedname_name(&fname),
 						NULL) == ISC_R_SUCCESS);
 		dns_name_toregion(dns_fixedname_name(&fname), &r);
-	} else 
+	} else
 		dns_name_toregion(&rrsig->signer, &r);
-	
+
 	return (dst_context_adddata(ctx, &r));
 }
 
