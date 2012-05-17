@@ -1,3 +1,6 @@
+3328.   [bug]           Fixed inconsistent data checking in dst_parse.c.
+                        [RT #29401]
+
 3327.	[func]		Added 'filter-aaaa-on-v6' option; this is similar
 			to 'filter-aaaa-on-v4' but applies to IPv6
 			connections.  (Use "configure --enable-filter-aaaa"
