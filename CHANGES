@@ -42,7 +42,7 @@
 			bucket lock when finshed with a fetch context.
 			[RT #29239]
 
-3317.	[func]		Add ECDSA support (RFC 6605). [RT #21918]
+3317.	[protocol]	Add ECDSA support (RFC 6605). [RT #21918]
 
 3316.	[tuning]	Improved locking performance when recursing.
 			[RT #28836]
