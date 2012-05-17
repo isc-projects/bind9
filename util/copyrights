@@ -199,7 +199,7 @@
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006,2007
-./bin/named/statschannel.c			C	2008,2009,2010,2011
+./bin/named/statschannel.c			C	2008,2009,2010,2011,2012
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006,2007,2009
 ./bin/named/tsigconf.c				C	1999,2000,2001,2004,2005,2006,2007,2009
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009
@@ -756,6 +756,7 @@
 ./bin/tests/system/dnssec/ns3/insecure.optout.example.db	ZONE	2008
 ./bin/tests/system/dnssec/ns3/keyless.example.db.in	ZONE	2001,2002,2004,2007
 ./bin/tests/system/dnssec/ns3/kskonly.example.db.in	ZONE	2010,2012
+./bin/tests/system/dnssec/ns3/lower.example.db.in	ZONE	2012
 ./bin/tests/system/dnssec/ns3/multiple.example.db.in	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012
 ./bin/tests/system/dnssec/ns3/nsec3-unknown.example.db.in	ZONE	2006,2008
@@ -775,6 +776,7 @@
 ./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012
 ./bin/tests/system/dnssec/ns3/ttlpatch.example.db.in	ZONE	2011,2012
 ./bin/tests/system/dnssec/ns3/update-nsec3.example.db.in	ZONE	2011,2012
+./bin/tests/system/dnssec/ns3/upper.example.db.in	ZONE	2012
 ./bin/tests/system/dnssec/ns4/named1.conf	CONF-C	2012
 ./bin/tests/system/dnssec/ns4/named2.conf	CONF-C	2012
 ./bin/tests/system/dnssec/ns5/named.conf	CONF-C	2000,2001,2004,2006,2007
