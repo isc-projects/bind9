@@ -706,7 +706,9 @@ free_rbtdb_callback(isc_task_t *task, isc_event_t *event) {
 static void
 update_cachestats(dns_rbtdb_t *rbtdb, isc_result_t result) {
 	INSIST(IS_CACHE(rbtdb));
-	INSIST(rbtdb->cachestats != NULL);
+
+	if (rbtdb->cachestats == NULL)
+		return;
 
 	switch (result) {
 	case ISC_R_SUCCESS:
