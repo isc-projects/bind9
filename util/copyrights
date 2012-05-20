@@ -872,7 +872,6 @@
 ./bin/tests/system/filter-aaaa/conf/good7.conf	CONF-C	2010
 ./bin/tests/system/filter-aaaa/conf/good8.conf	CONF-C	2010
 ./bin/tests/system/filter-aaaa/filter-aaaa.c	C	2010,2011,2012
-./bin/tests/system/filter-aaaa/ns1/named.conf	CONF-C	2010
 ./bin/tests/system/filter-aaaa/ns1/named1.conf	CONF-C	2012
 ./bin/tests/system/filter-aaaa/ns1/named2.conf	CONF-C	2012
 ./bin/tests/system/filter-aaaa/ns1/root.db	ZONE	2010,2012
@@ -880,11 +879,9 @@
 ./bin/tests/system/filter-aaaa/ns1/signed.db.in	ZONE	2010,2012
 ./bin/tests/system/filter-aaaa/ns1/unsigned.db	ZONE	2010,2012
 ./bin/tests/system/filter-aaaa/ns2/hints	ZONE	2010
-./bin/tests/system/filter-aaaa/ns2/named.conf	CONF-C	2010
 ./bin/tests/system/filter-aaaa/ns2/named1.conf	CONF-C	2012
 ./bin/tests/system/filter-aaaa/ns2/named2.conf	CONF-C	2012
 ./bin/tests/system/filter-aaaa/ns3/hints	ZONE	2010
-./bin/tests/system/filter-aaaa/ns3/named.conf	CONF-C	2010
 ./bin/tests/system/filter-aaaa/ns3/named1.conf	CONF-C	2012
 ./bin/tests/system/filter-aaaa/ns3/named2.conf	CONF-C	2012
 ./bin/tests/system/filter-aaaa/ns4/named.conf	CONF-C	2010
