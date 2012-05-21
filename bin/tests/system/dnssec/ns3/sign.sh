@@ -365,7 +365,7 @@ zskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
 cp $infile $zonefile
 $SIGNER -P -S -r $RANDFILE -o $zone -f $lower $zonefile > /dev/null 2>&1
 $CHECKZONE -D upper.example $lower 2>&- | \
-        awk '$4 == "RRSIG" {$12 = toupper($12); print; next} { print }' > $signedfile
+	sed '/RRSIG/s/ upper.example. / UPPER.EXAMPLE. /' > $signedfile
 
 #
 # Check that the signer's name is in lower case when zone name is in
