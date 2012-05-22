@@ -884,7 +884,6 @@
 ./bin/tests/system/filter-aaaa/ns3/hints	ZONE	2010
 ./bin/tests/system/filter-aaaa/ns3/named1.conf	CONF-C	2012
 ./bin/tests/system/filter-aaaa/ns3/named2.conf	CONF-C	2012
-./bin/tests/system/filter-aaaa/ns4/named.conf	CONF-C	2010
 ./bin/tests/system/filter-aaaa/ns4/named1.conf	CONF-C	2012
 ./bin/tests/system/filter-aaaa/ns4/named2.conf	CONF-C	2012
 ./bin/tests/system/filter-aaaa/ns4/root.db	ZONE	2010,2012
