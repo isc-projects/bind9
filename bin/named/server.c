@@ -8269,7 +8269,7 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 	if (! isc_time_isepoch(&expiretime)) {
 		isc_buffer_putstr(text, "\nexpires: ");
-		isc_buffer_putstr(text, lbuf);
+		isc_buffer_putstr(text, xbuf);
 	}
 
 	if (secure) {
