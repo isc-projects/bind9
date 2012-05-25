@@ -174,7 +174,8 @@ Building
 
 	    CFLAGS
 		C compiler flags.  Defaults to include -g and/or -O2
-		as supported by the compiler.  
+		as supported by the compiler.  Please include '-g'
+		if you need to set CFLAGS.
 
 	    STD_CINCLUDES
 		System header file directories.	 Can be used to specify
@@ -291,6 +292,10 @@ Building
 	libraries.  sh-utils-1.16 provides a "printf" which compiles
 	on SunOS 4.
 
+Known limitations
+
+	Linux requires kernel build 2.6.39 or later to get the
+	performance benefits from using multiple sockets.
 
 Documentation
 
