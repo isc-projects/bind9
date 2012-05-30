@@ -200,7 +200,7 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	ecdsasig->r = BN_bin2bn(cp, siglen / 2, NULL);
 	cp += siglen / 2;
 	ecdsasig->s = BN_bin2bn(cp, siglen / 2, NULL);
-	cp += siglen / 2;
+	/* cp += siglen / 2; */
 
 	status = ECDSA_do_verify(digest, dgstlen, ecdsasig, eckey);
 	if (status != 1)
@@ -509,7 +509,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_ECDSA256, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
-		DST_RET (ret);
+		goto err;
 
 	privkey = BN_bin2bn(priv.elements[0].data,
 			    priv.elements[0].length, NULL);
