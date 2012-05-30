@@ -10354,7 +10354,7 @@ view "external" {
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
-    <optional> inline-signing <replacable>yes_or_no</replacable>; </optional>
+    <optional> inline-signing <replaceable>yes_or_no</replaceable>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> serial-update-method <constant>increment</constant>|<constant>unixtime</constant>; </optional>
 };
@@ -11818,7 +11818,7 @@ example.com. NS ns2.example.net.
 			(machine$@REALM) for machine in REALM and
 			and converts it machine.realm allowing the machine 
                         to update machine.realm.  The REALM to be matched
-			is specified in the <replacable>identity</replacable>
+			is specified in the <replaceable>identity</replaceable>
 			field.
 		      </para>
 		    </entry>
@@ -11835,7 +11835,7 @@ example.com. NS ns2.example.net.
 			converts it to machine.realm allowing the machine
 			to update subdomains of machine.realm.  The REALM
 			to be matched is specified in the
-			<replacable>identity</replacable> field.
+			<replaceable>identity</replaceable> field.
 		      </para>
 		    </entry>
 		  </row>
@@ -11850,7 +11850,7 @@ example.com. NS ns2.example.net.
 			(host/machine@REALM) for machine in REALM and
 			and converts it machine.realm allowing the machine 
                         to update machine.realm.  The REALM to be matched
-			is specified in the <replacable>identity</replacable>
+			is specified in the <replaceable>identity</replaceable>
 			field.
 		      </para>
 		    </entry>
@@ -11867,7 +11867,7 @@ example.com. NS ns2.example.net.
 			converts it to machine.realm allowing the machine
 			to update subdomains of machine.realm.  The REALM
 			to be matched is specified in the
-			<replacable>identity</replacable> field.
+			<replaceable>identity</replaceable> field.
 		      </para>
 		    </entry>
 		  </row>
