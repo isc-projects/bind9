@@ -11006,7 +11006,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 			(machine$@REALM) for machine in REALM and
 			and converts it machine.realm allowing the machine 
                         to update machine.realm.  The REALM to be matched
-			is specified in the <replacable>identity</replacable>
+			is specified in the <replaceable>identity</replaceable>
 			field.
 		      </para>
 		    </entry>
@@ -11023,7 +11023,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 			converts it to machine.realm allowing the machine
 			to update subdomains of machine.realm.  The REALM
 			to be matched is specified in the
-			<replacable>identity</replacable> field.
+			<replaceable>identity</replaceable> field.
 		      </para>
 		    </entry>
 		  </row>
@@ -11038,7 +11038,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 			(host/machine@REALM) for machine in REALM and
 			and converts it machine.realm allowing the machine 
                         to update machine.realm.  The REALM to be matched
-			is specified in the <replacable>identity</replacable>
+			is specified in the <replaceable>identity</replaceable>
 			field.
 		      </para>
 		    </entry>
@@ -11055,7 +11055,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 			converts it to machine.realm allowing the machine
 			to update subdomains of machine.realm.  The REALM
 			to be matched is specified in the
-			<replacable>identity</replacable> field.
+			<replaceable>identity</replaceable> field.
 		      </para>
 		    </entry>
 		  </row>
