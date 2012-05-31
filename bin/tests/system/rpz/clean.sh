@@ -1,4 +1,4 @@
-# Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -17,8 +17,8 @@
 
 # Clean up after rpz tests.
 
-rm -f proto.* dig.out* nsupdate.tmp
-rm -f  */named.memstats */named.run */named.rpz */session.key
-rm -f ns3/bl*.db */*.jnl */*.core */*.pid
-rm -f ns2/signed-tld2.db
-rm -f ns2/K*.private ns2/K*.key dsset-*
+rm -f proto.*  dsset-* random.data trusted.conf dig.out* nsupdate.tmp ns*/*tmp
+rm -f ns*/*.key ns*/*.private ns2/tld2s.db
+rm -f ns3/bl*.db ns*/*switch ns5/requests ns5/example.db ns5/bl.db ns5/*.perf
+rm -f */named.memstats */named.run */named.rpz */session.key
+rm -f */*.jnl */*.core */*.pid

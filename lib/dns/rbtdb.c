@@ -4572,7 +4572,7 @@ get_rpz_enabled(dns_db_t *db, dns_rpz_st_t *st)
  * configured earlier than this policy zone and does not have a higher
  * precedence type.
  */
-static isc_result_t
+static void
 rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	    dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 	    dns_rdataset_t *ardataset, dns_rpz_st_t *st,
@@ -4597,7 +4597,7 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 
 	if (rbtdb->rpz_cidr == NULL) {
 		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-		return (ISC_R_UNEXPECTED);
+		return;
 	}
 
 	dns_fixedname_init(&selfnamef);
@@ -4659,7 +4659,7 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 			dns_name_format(qname, namebuf, sizeof(namebuf));
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
 				      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
-				      "rpz_findips findnode(%s): %s",
+				      "rpz_findips findnode(%s) failed: %s",
 				      namebuf, isc_result_totext(result));
 			continue;
 		}
@@ -4680,7 +4680,8 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 			if (zrdataset.type != dns_rdatatype_cname) {
 				rpz_policy = DNS_RPZ_POLICY_RECORD;
 			} else {
-				rpz_policy = dns_rpz_decode_cname(&zrdataset,
+				rpz_policy = dns_rpz_decode_cname(rpz,
+								  &zrdataset,
 								  selfname);
 				if (rpz_policy == DNS_RPZ_POLICY_RECORD ||
 				    rpz_policy == DNS_RPZ_POLICY_WILDCNAME)
@@ -4738,7 +4739,7 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		st->m.type = rpz_type;
 		st->m.prefix = prefix;
 		st->m.policy = rpz_policy;
-		st->m.ttl = ttl;
+		st->m.ttl = ISC_MIN(ttl, rpz->max_policy_ttl);
 		st->m.result = result;
 		dns_name_copy(qname, st->qname, NULL);
 		if ((rpz_policy == DNS_RPZ_POLICY_RECORD ||
@@ -4755,7 +4756,6 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	}
 
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-	return (ISC_R_SUCCESS);
 }
 #endif
 

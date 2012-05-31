@@ -1,3 +1,5 @@
+#! /bin/sh
+#
 # Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -12,44 +14,14 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.3 2011-01-13 04:59:24 tbox Exp $
+# $Id: qperf.sh,v 1.1.2.1 2011/10/15 23:03:37 vjs Exp $
 
-srcdir =	@srcdir@
-VPATH =		@srcdir@
-top_srcdir =	@top_srcdir@
+for QDIR in `echo "$PATH" | tr : ' '` ../../../../contrib/queryperf; do
+    QPERF=$QDIR/queryperf
+    if test -f $QPERF -a -x $QPERF; then
+	echo $QPERF
+	exit 0
+    fi
+done
 
-@BIND9_VERSION@
-
-@BIND9_MAKE_INCLUDES@
-
-CINCLUDES =
-
-CDEFINES =
-CWARNINGS =
-
-DNSLIBS =
-ISCLIBS =	.
-
-DNSDEPLIBS =
-ISCDEPLIBS =
-
-DEPLIBS =
-
-LIBS =		@LIBS@
-
-TARGETS =	rpz@EXEEXT@
-
-RPZOBJS =	rpz.@O@
-
-SRCS =		rpz.c
-
-@BIND9_MAKE_RULES@
-
-all: rpz@EXEEXT@
-
-rpz@EXEEXT@: ${RPZOBJS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${RPZOBJS} ${LIBS}
-
-clean distclean::
-	rm -f ${TARGETS}
-
+exit 0
