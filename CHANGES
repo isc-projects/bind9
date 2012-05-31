@@ -1,4 +1,19 @@
+3329.	[bug]		Handle RRSIG signer-name case consistently: We
+			generate RRSIG records with the signer-name in
+			lower case.  We accept them with any case, but if
+			they fail to validate, we try again in lower case.
+			[RT #27451]
+
+3328.   [bug]           Fixed inconsistent data checking in dst_parse.c.
+                        [RT #29401]
+
+3317.	[func]		Add ECDSA support (RFC 6605). [RT #21918]
+
 	--- 9.8.3 released ---
+
+3318.	[tuning]	Reduce the amount of work performed while holding a
+			bucket lock when finshed with a fetch context.
+			[RT #29239]
 
 3314.	[bug]		The masters list could be updated while refesh_callback
 			and stub_callback were using it. [RT #26732]

@@ -26,6 +26,7 @@ rm -f ns3/rsasha256.example.db ns3/rsasha512.example.db
 rm -f ns2/private.secure.example.db
 rm -f ns2/badparam.db ns2/badparam.db.bad
 rm -f ns2/single-nsec3.db
+rm -f ns2/nsec3chain-test.db
 rm -f */example.bk
 rm -f dig.out.*
 rm -f random.data
@@ -54,3 +55,6 @@ rm -f signer/example.db.after signer/example.db.before
 rm -f signer/example.db.changed
 rm -f ns3/ttlpatch.example.db ns3/ttlpatch.example.db.signed
 rm -f ns3/ttlpatch.example.db.patched
+rm -f ns3/lower.example.db ns3/upper.example.db ns3/upper.example.db.lower
+rm -f ns3/expiring.example.db
+

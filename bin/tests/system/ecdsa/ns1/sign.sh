@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
 #
@@ -16,16 +16,32 @@
 
 # $Id$
 
-# Find the list of files that have been touched in the Git repository
-# during the current calendar year.  This is done by walking backwards
-# through the output of "git whatchanged" until a year other than the
-# current one is seen.  Used by merge_copyrights.
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
 
-thisyear=`date +%Y`
-git whatchanged --pretty="date %ai" --date=iso8601 | awk -v re="${thisyear}-" '
-    BEGIN { change=0 }
-    $1 == "date" && $2 !~ re { exit(0); }
-    $1 == "date" { next; }
-    NF == 0 { next; }
-    $(NF-1) ~ /[AM]/ { print "./" $NF; change=1 }
-    END { if (change) print "./COPYRIGHT" } ' | sort | uniq
+RANDFILE=../random.data
+
+zone=.
+infile=root.db.in
+zonefile=root.db
+
+key1=`$KEYGEN -q -r $RANDFILE -a ECDSAP256SHA256 -n zone $zone`
+key2=`$KEYGEN -q -r $RANDFILE -a ECDSAP384SHA384 -n zone -f KSK $zone`
+$DSFROMKEY -a sha-384 $key2.key > dsset-384
+
+cat $infile $key1.key $key2.key > $zonefile
+
+$SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null 2> signer.err || cat signer.err
+
+# Configure the resolving server with a trusted key.
+
+cat $key1.key | grep -v '^; ' | $PERL -n -e '
+local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
+local $key = join("", @rest);
+print <<EOF
+trusted-keys {
+    "$dn" $flags $proto $alg "$key";
+};
+EOF
+' > trusted.conf
+cp trusted.conf ../ns2/trusted.conf

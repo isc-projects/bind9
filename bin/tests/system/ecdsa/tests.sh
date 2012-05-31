@@ -16,16 +16,27 @@
 
 # $Id$
 
-# Find the list of files that have been touched in the Git repository
-# during the current calendar year.  This is done by walking backwards
-# through the output of "git whatchanged" until a year other than the
-# current one is seen.  Used by merge_copyrights.
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
-thisyear=`date +%Y`
-git whatchanged --pretty="date %ai" --date=iso8601 | awk -v re="${thisyear}-" '
-    BEGIN { change=0 }
-    $1 == "date" && $2 !~ re { exit(0); }
-    $1 == "date" { next; }
-    NF == 0 { next; }
-    $(NF-1) ~ /[AM]/ { print "./" $NF; change=1 }
-    END { if (change) print "./COPYRIGHT" } ' | sort | uniq
+status=0
+n=0
+
+rm -f dig.out.*
+
+DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
+
+# Check the example. domain
+
+echo "I:checking that positive validation works works ($n)"
+ret=0
+$DIG $DIGOPTS . @10.53.0.1 soa > dig.out.ns1.test$n || ret=1
+$DIG $DIGOPTS . @10.53.0.2 soa > dig.out.ns2.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns1.test$n dig.out.ns2.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:exit status: $status"
+exit $status
