@@ -195,6 +195,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->v6_aaaa = dns_aaaa_ok;
 	view->aaaa_acl = NULL;
 	ISC_LIST_INIT(view->rpz_zones);
+	view->rpz_recursive_only = ISC_TRUE;
+	view->rpz_break_dnssec = ISC_FALSE;
 	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
 	view->redirect = NULL;
