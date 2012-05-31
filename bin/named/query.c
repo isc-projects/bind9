@@ -4659,7 +4659,7 @@ cleanup:
 	if (st->m.policy == DNS_RPZ_POLICY_MISS ||
 	    st->m.policy == DNS_RPZ_POLICY_PASSTHRU ||
 	    st->m.policy == DNS_RPZ_POLICY_ERROR) {
- 		if (st->m.policy == DNS_RPZ_POLICY_PASSTHRU &&
+		if (st->m.policy == DNS_RPZ_POLICY_PASSTHRU &&
 		    result != DNS_R_DELEGATION)
 			rpz_log_rewrite(client, "", st->m.policy, st->m.type,
 					st->qname);
