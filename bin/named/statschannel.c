@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008-2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.28 2011/03/12 04:59:46 tbox Exp $ */
+/* $Id: statschannel.c,v 1.28.224.1 2011/12/22 07:48:27 marka Exp $ */
 
 /*! \file */
 
@@ -62,16 +62,14 @@ struct ns_statschannel {
 	ISC_LINK(struct ns_statschannel)	link;
 };
 
-typedef enum { statsformat_file, statsformat_xml } statsformat_t;
-
 typedef struct
 stats_dumparg {
-	statsformat_t	type;
-	void		*arg;		/* type dependent argument */
-	int		ncounters;	/* used for general statistics */
-	int		*counterindices; /* used for general statistics */
-	isc_uint64_t	*countervalues;	 /* used for general statistics */
-	isc_result_t	result;
+	isc_statsformat_t	type;
+	void			*arg;		/* type dependent argument */
+	int			ncounters;	/* for general statistics */
+	int			*counterindices; /* for general statistics */
+	isc_uint64_t		*countervalues;	 /* for general statistics */
+	isc_result_t		result;
 } stats_dumparg_t;
 
 static isc_once_t once = ISC_ONCE_INIT;
@@ -83,18 +81,24 @@ static isc_once_t once = ISC_ONCE_INIT;
  */
 static const char *nsstats_desc[dns_nsstatscounter_max];
 static const char *resstats_desc[dns_resstatscounter_max];
+static const char *adbstats_desc[dns_adbstats_max];
 static const char *zonestats_desc[dns_zonestatscounter_max];
 static const char *sockstats_desc[isc_sockstatscounter_max];
+static const char *dnssecstats_desc[dns_dnssecstats_max];
 #ifdef HAVE_LIBXML2
 static const char *nsstats_xmldesc[dns_nsstatscounter_max];
 static const char *resstats_xmldesc[dns_resstatscounter_max];
+static const char *adbstats_xmldesc[dns_adbstats_max];
 static const char *zonestats_xmldesc[dns_zonestatscounter_max];
 static const char *sockstats_xmldesc[isc_sockstatscounter_max];
+static const char *dnssecstats_xmldesc[dns_dnssecstats_max];
 #else
 #define nsstats_xmldesc NULL
 #define resstats_xmldesc NULL
+#define adbstats_xmldesc NULL
 #define zonestats_xmldesc NULL
 #define sockstats_xmldesc NULL
+#define dnssecstats_xmldesc NULL
 #endif	/* HAVE_LIBXML2 */
 
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
@@ -106,8 +110,10 @@ static const char *sockstats_xmldesc[isc_sockstatscounter_max];
  */
 static int nsstats_index[dns_nsstatscounter_max];
 static int resstats_index[dns_resstatscounter_max];
+static int adbstats_index[dns_adbstats_max];
 static int zonestats_index[dns_zonestatscounter_max];
 static int sockstats_index[isc_sockstatscounter_max];
+static int dnssecstats_index[dns_dnssecstats_max];
 
 static inline void
 set_desc(int counter, int maxcounter, const char *fdesc, const char **fdescs,
@@ -198,6 +204,8 @@ init_desc(void) {
 	SET_NSSTATDESC(updatebadprereq,
 		       "updates rejected due to prerequisite failure",
 		       "UpdateBadPrereq");
+	SET_NSSTATDESC(recursclients, "recursing clients",
+			"RecursClients");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */
@@ -234,6 +242,8 @@ init_desc(void) {
 			"QueryAbort");
 	SET_RESSTATDESC(dispsockfail, "failures in opening query sockets",
 			"QuerySockFail");
+	SET_RESSTATDESC(disprequdp, "UDP queries in progress", "QueryCurUDP");
+	SET_RESSTATDESC(dispreqtcp, "TCP queries in progress", "QueryCurTCP");
 	SET_RESSTATDESC(querytimeout, "query timeouts", "QueryTimeout");
 	SET_RESSTATDESC(gluefetchv4, "IPv4 NS address fetches", "GlueFetchv4");
 	SET_RESSTATDESC(gluefetchv6, "IPv6 NS address fetches", "GlueFetchv6");
@@ -268,7 +278,31 @@ init_desc(void) {
 	SET_RESSTATDESC(queryrtt5, "queries with RTT > "
 			DNS_RESOLVER_QRYRTTCLASS4STR "ms",
 			"QryRTT" DNS_RESOLVER_QRYRTTCLASS4STR "+");
+	SET_RESSTATDESC(nfetch, "active fetches", "NumFetch");
+	SET_RESSTATDESC(buckets, "bucket size", "BucketSize");
 	INSIST(i == dns_resstatscounter_max);
+
+	/* Initialize adb statistics */
+	for (i = 0; i < dns_adbstats_max; i++)
+		adbstats_desc[i] = NULL;
+#ifdef  HAVE_LIBXML2
+	for (i = 0; i < dns_adbstats_max; i++)
+		adbstats_xmldesc[i] = NULL;
+#endif
+
+#define SET_ADBSTATDESC(id, desc, xmldesc) \
+	do { \
+		set_desc(dns_adbstats_ ## id, dns_adbstats_max, \
+			 desc, adbstats_desc, xmldesc, adbstats_xmldesc); \
+		adbstats_index[i++] = dns_adbstats_ ## id; \
+	} while (0)
+	i = 0;
+	SET_ADBSTATDESC(nentries, "Address hash table size", "nentries");
+	SET_ADBSTATDESC(entriescnt, "Addresses in hash table", "entriescnt");
+	SET_ADBSTATDESC(nnames, "Name hash table size", "nnames");
+	SET_ADBSTATDESC(namescnt, "Names in hash table", "namescnt");
+
+	INSIST(i == dns_adbstats_max);
 
 	/* Initialize zone statistics */
 	for (i = 0; i < dns_zonestatscounter_max; i++)
@@ -407,26 +441,67 @@ init_desc(void) {
 			 "UnixRecvErr");
 	SET_SOCKSTATDESC(fdwatchrecvfail, "FDwatch recv errors",
 			 "FDwatchRecvErr");
+	SET_SOCKSTATDESC(udp4active, "UDP/IPv4 sockets active", "UDP4Active");
+	SET_SOCKSTATDESC(udp6active, "UDP/IPv6 sockets active", "UDP6Active");
+	SET_SOCKSTATDESC(tcp4active, "TCP/IPv4 sockets active", "TCP4Active");
+	SET_SOCKSTATDESC(tcp6active, "TCP/IPv6 sockets active", "TCP6Active");
+	SET_SOCKSTATDESC(unixactive, "Unix domain sockets active",
+			 "UnixActive");
 	INSIST(i == isc_sockstatscounter_max);
+
+	/* Initialize DNSSEC statistics */
+	for (i = 0; i < dns_dnssecstats_max; i++)
+		dnssecstats_desc[i] = NULL;
+#ifdef  HAVE_LIBXML2
+	for (i = 0; i < dns_dnssecstats_max; i++)
+		dnssecstats_xmldesc[i] = NULL;
+#endif
+
+#define SET_DNSSECSTATDESC(counterid, desc, xmldesc) \
+	do { \
+		set_desc(dns_dnssecstats_ ## counterid, \
+			 dns_dnssecstats_max, \
+			 desc, dnssecstats_desc,\
+			 xmldesc, dnssecstats_xmldesc); \
+		dnssecstats_index[i++] = dns_dnssecstats_ ## counterid; \
+	} while (0)
+
+	i = 0;
+	SET_DNSSECSTATDESC(asis, "dnssec validation success with signer "
+			   "\"as is\"", "DNSSECasis");
+	SET_DNSSECSTATDESC(downcase, "dnssec validation success with signer "
+			   "lower cased", "DNSSECdowncase");
+	SET_DNSSECSTATDESC(wildcard, "dnssec validation of wildcard signature",
+			   "DNSSECwild");
+	SET_DNSSECSTATDESC(fail, "dnssec validation failures", "DNSSECfail");
+	INSIST(i == dns_dnssecstats_max);
 
 	/* Sanity check */
 	for (i = 0; i < dns_nsstatscounter_max; i++)
 		INSIST(nsstats_desc[i] != NULL);
 	for (i = 0; i < dns_resstatscounter_max; i++)
 		INSIST(resstats_desc[i] != NULL);
+	for (i = 0; i < dns_adbstats_max; i++)
+		INSIST(adbstats_desc[i] != NULL);
 	for (i = 0; i < dns_zonestatscounter_max; i++)
 		INSIST(zonestats_desc[i] != NULL);
 	for (i = 0; i < isc_sockstatscounter_max; i++)
 		INSIST(sockstats_desc[i] != NULL);
+	for (i = 0; i < dns_dnssecstats_max; i++)
+		INSIST(dnssecstats_desc[i] != NULL);
 #ifdef  HAVE_LIBXML2
 	for (i = 0; i < dns_nsstatscounter_max; i++)
 		INSIST(nsstats_xmldesc[i] != NULL);
 	for (i = 0; i < dns_resstatscounter_max; i++)
 		INSIST(resstats_xmldesc[i] != NULL);
+	for (i = 0; i < dns_adbstats_max; i++)
+		INSIST(adbstats_xmldesc[i] != NULL);
 	for (i = 0; i < dns_zonestatscounter_max; i++)
 		INSIST(zonestats_xmldesc[i] != NULL);
 	for (i = 0; i < isc_sockstatscounter_max; i++)
 		INSIST(sockstats_xmldesc[i] != NULL);
+	for (i = 0; i < dns_dnssecstats_max; i++)
+		INSIST(dnssecstats_xmldesc[i] != NULL);
 #endif
 }
 
@@ -442,7 +517,7 @@ generalstat_dump(isc_statscounter_t counter, isc_uint64_t val, void *arg) {
 }
 
 static isc_result_t
-dump_counters(isc_stats_t *stats, statsformat_t type, void *arg,
+dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 	      const char *category, const char **desc, int ncounters,
 	      int *indices, isc_uint64_t *values, int options)
 {
@@ -475,12 +550,12 @@ dump_counters(isc_stats_t *stats, statsformat_t type, void *arg,
 			continue;
 
 		switch (dumparg.type) {
-		case statsformat_file:
+		case isc_statsformat_file:
 			fp = arg;
 			fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
 				value, desc[index]);
 			break;
-		case statsformat_xml:
+		case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
 			writer = arg;
 
@@ -542,11 +617,11 @@ rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 		typestr = "Others";
 
 	switch (dumparg->type) {
-	case statsformat_file:
+	case isc_statsformat_file:
 		fp = dumparg->arg;
 		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n", val, typestr);
 		break;
-	case statsformat_xml:
+	case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
 		writer = dumparg->arg;
 
@@ -603,12 +678,12 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 		nxrrset = ISC_TRUE;
 
 	switch (dumparg->type) {
-	case statsformat_file:
+	case isc_statsformat_file:
 		fp = dumparg->arg;
 		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s%s\n", val,
 			nxrrset ? "!" : "", typestr);
 		break;
-	case statsformat_xml:
+	case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
 		writer = dumparg->arg;
 
@@ -652,11 +727,11 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 	codebuf[isc_buffer_usedlength(&b)] = '\0';
 
 	switch (dumparg->type) {
-	case statsformat_file:
+	case isc_statsformat_file:
 		fp = dumparg->arg;
 		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n", val, codebuf);
 		break;
-	case statsformat_xml:
+	case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
 		writer = dumparg->arg;
 
@@ -724,10 +799,10 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	zonestats = dns_zone_getrequeststats(zone);
 	if (zonestats != NULL) {
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
-		result = dump_counters(zonestats, statsformat_xml, writer, NULL,
-				      nsstats_xmldesc, dns_nsstatscounter_max,
-				      nsstats_index, nsstat_values,
-				      ISC_STATSDUMP_VERBOSE);
+		result = dump_counters(zonestats, isc_statsformat_xml, writer,
+				       NULL, nsstats_xmldesc,
+				       dns_nsstatscounter_max, nsstats_index,
+				       nsstat_values, ISC_STATSDUMP_VERBOSE);
 		if (result != ISC_R_SUCCESS)
 			goto error;
 		TRY0(xmlTextWriterEndElement(writer)); /* counters */
@@ -750,9 +825,10 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	int xmlrc;
 	dns_view_t *view;
 	stats_dumparg_t dumparg;
-	dns_stats_t *cachestats;
+	dns_stats_t *cacherrstats;
 	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
 	isc_uint64_t resstat_values[dns_resstatscounter_max];
+	isc_uint64_t adbstat_values[dns_adbstats_max];
 	isc_uint64_t zonestat_values[dns_zonestatscounter_max];
 	isc_uint64_t sockstat_values[isc_sockstatscounter_max];
 	isc_result_t result;
@@ -777,7 +853,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 					 ISC_XMLCHAR "2.2"));
 
 	/* Set common fields for statistics dump */
-	dumparg.type = statsformat_xml;
+	dumparg.type = isc_statsformat_xml;
 	dumparg.arg = writer;
 
 	/*
@@ -809,9 +885,9 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 		}
 
 		if (view->resstats != NULL) {
-			result = dump_counters(view->resstats, statsformat_xml,
-					       writer, "resstat",
-					       resstats_xmldesc,
+			result = dump_counters(view->resstats,
+					       isc_statsformat_xml, writer,
+					       "resstat", resstats_xmldesc,
 					       dns_resstatscounter_max,
 					       resstats_index, resstat_values,
 					       ISC_STATSDUMP_VERBOSE);
@@ -819,8 +895,8 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 				goto error;
 		}
 
-		cachestats = dns_db_getrrsetstats(view->cachedb);
-		if (cachestats != NULL) {
+		cacherrstats = dns_db_getrrsetstats(view->cachedb);
+		if (cacherrstats != NULL) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "cache"));
 			TRY0(xmlTextWriterWriteAttribute(writer,
@@ -828,11 +904,27 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 					 ISC_XMLCHAR
 					 dns_cache_getname(view->cache)));
 			dumparg.result = ISC_R_SUCCESS;
-			dns_rdatasetstats_dump(cachestats, rdatasetstats_dump,
+			dns_rdatasetstats_dump(cacherrstats, rdatasetstats_dump,
 					       &dumparg, 0);
 			if (dumparg.result != ISC_R_SUCCESS)
 				goto error;
 			TRY0(xmlTextWriterEndElement(writer)); /* cache */
+		}
+
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR
+					       "cachestats"));
+		dns_cache_renderxml(view->cache, writer);
+		TRY0(xmlTextWriterEndElement(writer)); /* cachestats */
+
+		if (view->adbstats != NULL) {
+			result = dump_counters(view->adbstats,
+					       isc_statsformat_xml, writer,
+					       "adbstat", adbstats_xmldesc,
+					       dns_adbstats_max,
+					       adbstats_index, adbstat_values,
+					       ISC_STATSDUMP_VERBOSE);
+			if (result != ISC_R_SUCCESS)
+				goto error;
 		}
 
 		TRY0(xmlTextWriterEndElement(writer)); /* view */
@@ -873,7 +965,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 		goto error;
 	TRY0(xmlTextWriterEndElement(writer)); /* queries-in */
 
-	result = dump_counters(server->nsstats, statsformat_xml, writer,
+	result = dump_counters(server->nsstats, isc_statsformat_xml, writer,
 			       "nsstat", nsstats_xmldesc,
 				dns_nsstatscounter_max,
 				nsstats_index, nsstat_values,
@@ -881,7 +973,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	if (result != ISC_R_SUCCESS)
 		goto error;
 
-	result = dump_counters(server->zonestats, statsformat_xml, writer,
+	result = dump_counters(server->zonestats, isc_statsformat_xml, writer,
 			       "zonestat", zonestats_xmldesc,
 			       dns_zonestatscounter_max, zonestats_index,
 			       zonestat_values, ISC_STATSDUMP_VERBOSE);
@@ -892,14 +984,14 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	 * Most of the common resolver statistics entries are 0, so we don't
 	 * use the verbose dump here.
 	 */
-	result = dump_counters(server->resolverstats, statsformat_xml, writer,
+	result = dump_counters(server->resolverstats, isc_statsformat_xml, writer,
 			       "resstat", resstats_xmldesc,
 			       dns_resstatscounter_max, resstats_index,
 			       resstat_values, 0);
 	if (result != ISC_R_SUCCESS)
 		goto error;
 
-	result = dump_counters(server->sockstats, statsformat_xml, writer,
+	result = dump_counters(server->sockstats, isc_statsformat_xml, writer,
 			       "sockstat", sockstats_xmldesc,
 			       isc_sockstatscounter_max, sockstats_index,
 			       sockstat_values, ISC_STATSDUMP_VERBOSE);
@@ -1332,13 +1424,14 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 	stats_dumparg_t dumparg;
 	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
 	isc_uint64_t resstat_values[dns_resstatscounter_max];
+	isc_uint64_t adbstat_values[dns_adbstats_max];
 	isc_uint64_t zonestat_values[dns_zonestatscounter_max];
 	isc_uint64_t sockstat_values[isc_sockstatscounter_max];
 
 	RUNTIME_CHECK(isc_once_do(&once, init_desc) == ISC_R_SUCCESS);
 
 	/* Set common fields */
-	dumparg.type = statsformat_file;
+	dumparg.type = isc_statsformat_file;
 	dumparg.arg = fp;
 
 	isc_stdtime_get(&now);
@@ -1366,19 +1459,19 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 	}
 
 	fprintf(fp, "++ Name Server Statistics ++\n");
-	(void) dump_counters(server->nsstats, statsformat_file, fp, NULL,
+	(void) dump_counters(server->nsstats, isc_statsformat_file, fp, NULL,
 			     nsstats_desc, dns_nsstatscounter_max,
 			     nsstats_index, nsstat_values, 0);
 
 	fprintf(fp, "++ Zone Maintenance Statistics ++\n");
-	(void) dump_counters(server->zonestats, statsformat_file, fp, NULL,
+	(void) dump_counters(server->zonestats, isc_statsformat_file, fp, NULL,
 			     zonestats_desc, dns_zonestatscounter_max,
 			     zonestats_index, zonestat_values, 0);
 
 	fprintf(fp, "++ Resolver Statistics ++\n");
 	fprintf(fp, "[Common]\n");
-	(void) dump_counters(server->resolverstats, statsformat_file, fp, NULL,
-			     resstats_desc, dns_resstatscounter_max,
+	(void) dump_counters(server->resolverstats, isc_statsformat_file, fp,
+			     NULL, resstats_desc, dns_resstatscounter_max,
 			     resstats_index, resstat_values, 0);
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
@@ -1389,19 +1482,37 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 			fprintf(fp, "[View: default]\n");
 		else
 			fprintf(fp, "[View: %s]\n", view->name);
-		(void) dump_counters(view->resstats, statsformat_file, fp, NULL,
-				     resstats_desc, dns_resstatscounter_max,
-				     resstats_index, resstat_values, 0);
+		(void) dump_counters(view->resstats, isc_statsformat_file, fp,
+				     NULL, resstats_desc,
+				     dns_resstatscounter_max, resstats_index,
+				     resstat_values, 0);
+	}
+
+	fprintf(fp, "++ Cache Statistics ++\n");
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
+		if (strcmp(view->name, "_default") == 0)
+			fprintf(fp, "[View: default]\n");
+		else
+			fprintf(fp, "[View: %s (Cache: %s)]\n", view->name,
+				dns_cache_getname(view->cache));
+		/*
+		 * Avoid dumping redundant statistics when the cache is shared.
+		 */
+		if (dns_view_iscacheshared(view))
+			continue;
+		dns_cache_dumpstats(view->cache, fp);
 	}
 
 	fprintf(fp, "++ Cache DB RRsets ++\n");
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
-		dns_stats_t *cachestats;
+		dns_stats_t *cacherrstats;
 
-		cachestats = dns_db_getrrsetstats(view->cachedb);
-		if (cachestats == NULL)
+		cacherrstats = dns_db_getrrsetstats(view->cachedb);
+		if (cacherrstats == NULL)
 			continue;
 		if (strcmp(view->name, "_default") == 0)
 			fprintf(fp, "[View: default]\n");
@@ -1415,12 +1526,27 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 			 */
 			continue;
 		}
-		dns_rdatasetstats_dump(cachestats, rdatasetstats_dump, &dumparg,
-				       0);
+		dns_rdatasetstats_dump(cacherrstats, rdatasetstats_dump,
+				       &dumparg, 0);
+	}
+
+	fprintf(fp, "++ ADB stats ++\n");
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
+		if (view->adbstats == NULL)
+			continue;
+		if (strcmp(view->name, "_default") == 0)
+			fprintf(fp, "[View: default]\n");
+		else
+			fprintf(fp, "[View: %s]\n", view->name);
+		(void) dump_counters(view->adbstats, isc_statsformat_file, fp,
+				     NULL, adbstats_desc, dns_adbstats_max,
+				     adbstats_index, adbstat_values, 0);
 	}
 
 	fprintf(fp, "++ Socket I/O Statistics ++\n");
-	(void) dump_counters(server->sockstats, statsformat_file, fp, NULL,
+	(void) dump_counters(server->sockstats, isc_statsformat_file, fp, NULL,
 			     sockstats_desc, isc_sockstatscounter_max,
 			     sockstats_index, sockstat_values, 0);
 
@@ -1443,8 +1569,8 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 				fprintf(fp, " (view: %s)", view->name);
 			fprintf(fp, "]\n");
 
-			(void) dump_counters(zonestats, statsformat_file, fp,
-					     NULL, nsstats_desc,
+			(void) dump_counters(zonestats, isc_statsformat_file,
+					     fp, NULL, nsstats_desc,
 					     dns_nsstatscounter_max,
 					     nsstats_index, nsstat_values, 0);
 		}

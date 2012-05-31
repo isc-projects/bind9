@@ -1,6 +1,6 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.153 2012/01/30 07:11:47 marka Exp $ */
+/* $Id: acconfig.h,v 1.53 2008/12/01 23:47:44 tbox Exp $ */
 
 /*! \file */
 
@@ -138,6 +138,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if OpenSSL includes DSA support */
 #undef HAVE_OPENSSL_DSA
 
+/* Define if OpenSSL includes ECDSA support */
+#undef HAVE_OPENSSL_ECDSA
+
 /* Define to the length type used by the socket API (socklen_t, size_t, int). */
 #undef ISC_SOCKADDR_LEN_T
 
@@ -147,8 +150,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
-/* Define to enable the "filter-aaaa-on-v4" option. */
-#undef ALLOW_FILTER_AAAA_ON_V4
+/* Define to enable the "filter-aaaa-on-v4" and "filter-aaaa-on-v6" options.
+   */
+#undef ALLOW_FILTER_AAAA
 
 /* define if ATF unit tests are to be built. */
 #undef ATF_TEST
@@ -201,6 +205,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the `EVP_sha256' function. */
 #undef HAVE_EVP_SHA256
+
+/* Define to 1 if you have the `EVP_sha384' function. */
+#undef HAVE_EVP_SHA384
 
 /* Define to 1 if you have the `EVP_sha512' function. */
 #undef HAVE_EVP_SHA512

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009-2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -578,7 +578,9 @@ static dns_dbmethods_t ecdb_methods = {
 	NULL,			/* rpz_enabled */
 	NULL,			/* rpz_findips */
 	NULL,			/* findnodeext */
-	NULL			/* findext */
+	NULL,			/* findext */
+	NULL,			/* setcachestats */
+	NULL			/* hashsize */
 };
 
 static isc_result_t

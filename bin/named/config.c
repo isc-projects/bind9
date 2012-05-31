@@ -162,8 +162,9 @@ options {\n\
 	nsec3-test-zone no;\n\
 	allow-new-zones no;\n\
 "
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 "	filter-aaaa-on-v4 no;\n\
+	filter-aaaa-on-v6 no;\n\
 	filter-aaaa { any; };\n\
 "
 #endif

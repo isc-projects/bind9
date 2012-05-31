@@ -5300,6 +5300,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> max-cache-size <replaceable>size_spec</replaceable> ; </optional>
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> filter-aaaa-on-v4 ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
+    <optional> filter-aaaa-on-v6 ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
     <optional> filter-aaaa { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> dns64 <replaceable>IPv6-prefix</replaceable> {
 	<optional> clients { <replaceable>address_match_list</replaceable> }; </optional>
@@ -6761,6 +6762,18 @@ options {
 		  Some AAAA records are given to IPv4 clients in glue records.
 		  IPv4 clients that are servers can then erroneously
 		  answer requests for AAAA records received via IPv4.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>filter-aaaa-on-v6</command></term>
+              <listitem>
+                <para>
+                  Identical to <command>filter-aaaa-on-v4</command>,
+                  excppt it filters AAAA responses to queries from IPv6
+                  clients instead of IPv4 clients.  To filter all
+                  responses, set both options to <userinput>yes</userinput>.
                 </para>
               </listitem>
             </varlistentry>
@@ -10341,7 +10354,7 @@ view "external" {
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
-    <optional> inline-signing <replacable>yes_or_no</replacable>; </optional>
+    <optional> inline-signing <replaceable>yes_or_no</replaceable>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> serial-update-method <constant>increment</constant>|<constant>unixtime</constant>; </optional>
 };
@@ -11805,7 +11818,7 @@ example.com. NS ns2.example.net.
 			(machine$@REALM) for machine in REALM and
 			and converts it machine.realm allowing the machine 
                         to update machine.realm.  The REALM to be matched
-			is specified in the <replacable>identity</replacable>
+			is specified in the <replaceable>identity</replaceable>
 			field.
 		      </para>
 		    </entry>
@@ -11822,7 +11835,7 @@ example.com. NS ns2.example.net.
 			converts it to machine.realm allowing the machine
 			to update subdomains of machine.realm.  The REALM
 			to be matched is specified in the
-			<replacable>identity</replacable> field.
+			<replaceable>identity</replaceable> field.
 		      </para>
 		    </entry>
 		  </row>
@@ -11837,7 +11850,7 @@ example.com. NS ns2.example.net.
 			(host/machine@REALM) for machine in REALM and
 			and converts it machine.realm allowing the machine 
                         to update machine.realm.  The REALM to be matched
-			is specified in the <replacable>identity</replacable>
+			is specified in the <replaceable>identity</replaceable>
 			field.
 		      </para>
 		    </entry>
@@ -11854,7 +11867,7 @@ example.com. NS ns2.example.net.
 			converts it to machine.realm allowing the machine
 			to update subdomains of machine.realm.  The REALM
 			to be matched is specified in the
-			<replacable>identity</replacable> field.
+			<replaceable>identity</replaceable> field.
 		      </para>
 		    </entry>
 		  </row>

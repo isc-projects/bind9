@@ -270,6 +270,10 @@ ISC_MEMFUNC_SCOPE size_t
 isc__mem_getquota(isc_mem_t *ctx);
 ISC_MEMFUNC_SCOPE size_t
 isc__mem_inuse(isc_mem_t *ctx);
+ISC_MEMFUNC_SCOPE size_t
+isc__mem_maxinuse(isc_mem_t *ctx);
+ISC_MEMFUNC_SCOPE size_t
+isc__mem_total(isc_mem_t *ctx);
 ISC_MEMFUNC_SCOPE isc_boolean_t
 isc__mem_isovermem(isc_mem_t *ctx);
 ISC_MEMFUNC_SCOPE void
@@ -348,6 +352,8 @@ static struct isc__memmethods {
 		isc__mem_setwater,
 		isc__mem_waterack,
 		isc__mem_inuse,
+		isc__mem_maxinuse,
+		isc__mem_total,
 		isc__mem_isovermem,
 		isc__mempool_create
 	}
@@ -1735,6 +1741,36 @@ isc__mem_inuse(isc_mem_t *ctx0) {
 	MCTXUNLOCK(ctx, &ctx->lock);
 
 	return (inuse);
+}
+
+ISC_MEMFUNC_SCOPE size_t
+isc__mem_maxinuse(isc_mem_t *ctx0) {
+	isc__mem_t *ctx = (isc__mem_t *)ctx0;
+	size_t maxinuse;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+	MCTXLOCK(ctx, &ctx->lock);
+
+	maxinuse = ctx->maxinuse;
+
+	MCTXUNLOCK(ctx, &ctx->lock);
+
+	return (maxinuse);
+}
+
+ISC_MEMFUNC_SCOPE size_t
+isc__mem_total(isc_mem_t *ctx0) {
+	isc__mem_t *ctx = (isc__mem_t *)ctx0;
+	size_t total;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+	MCTXLOCK(ctx, &ctx->lock);
+
+	total = ctx->total;
+
+	MCTXUNLOCK(ctx, &ctx->lock);
+
+	return (total);
 }
 
 ISC_MEMFUNC_SCOPE void

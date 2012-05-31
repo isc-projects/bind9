@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.264 2011/12/05 17:10:51 each Exp $ */
+/* $Id: adb.c,v 1.264.16.1 2011/12/22 07:48:27 marka Exp $ */
 
 /*! \file
  *
@@ -474,6 +474,27 @@ inc_stats(dns_adb_t *adb, isc_statscounter_t counter) {
 		isc_stats_increment(adb->view->resstats, counter);
 }
 
+/*%
+ * Set adb-related statistics counters.
+ */
+static inline void
+set_adbstat(dns_adb_t *adb, isc_uint64_t val, isc_statscounter_t counter) {
+	if (adb->view->adbstats != NULL)
+		isc_stats_set(adb->view->adbstats, val, counter);
+}
+
+static inline void
+dec_adbstats(dns_adb_t *adb, isc_statscounter_t counter) {
+	if (adb->view->adbstats != NULL)
+		isc_stats_increment(adb->view->adbstats, counter);
+}
+
+static inline void
+inc_adbstats(dns_adb_t *adb, isc_statscounter_t counter) {
+	if (adb->view->adbstats != NULL)
+		isc_stats_increment(adb->view->adbstats, counter);
+}
+
 static inline dns_ttl_t
 ttlclamp(dns_ttl_t ttl) {
 	if (ttl < ADB_CACHE_MINIMUM)
@@ -618,6 +639,8 @@ grow_entries(isc_task_t *task, isc_event_t *ev) {
 	adb->entry_sd = newentry_sd;
 	adb->entry_refcnt = newentry_refcnt;
 	adb->nentries = n;
+
+	set_adbstat(adb, adb->nentries, dns_adbstats_nentries);
 
 	/*
 	 * Only on success do we set adb->growentries_sent to ISC_FALSE.
@@ -770,6 +793,8 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
 	adb->name_sd = newname_sd;
 	adb->name_refcnt = newname_refcnt;
 	adb->nnames = n;
+
+	set_adbstat(adb, adb->nnames, dns_adbstats_nnames);
 
 	/*
 	 * Only on success do we set adb->grownames_sent to ISC_FALSE.
@@ -1627,6 +1652,7 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname) {
 
 	LOCK(&adb->namescntlock);
 	adb->namescnt++;
+	inc_adbstats(adb, dns_adbstats_namescnt);
 	if (!adb->grownames_sent && adb->namescnt > (adb->nnames * 8)) {
 		isc_event_t *event = &adb->grownames;
 		inc_adb_irefcnt(adb);
@@ -1660,6 +1686,7 @@ free_adbname(dns_adb_t *adb, dns_adbname_t **name) {
 	isc_mempool_put(adb->nmp, n);
 	LOCK(&adb->namescntlock);
 	adb->namescnt--;
+	dec_adbstats(adb, dns_adbstats_namescnt);
 	UNLOCK(&adb->namescntlock);
 }
 
@@ -1751,6 +1778,7 @@ new_adbentry(dns_adb_t *adb) {
 	ISC_LINK_INIT(e, plink);
 	LOCK(&adb->entriescntlock);
 	adb->entriescnt++;
+	inc_adbstats(adb, dns_adbstats_entriescnt);
 	if (!adb->growentries_sent &&
 	    adb->entriescnt > (adb->nentries * 8)) {
 		isc_event_t *event = &adb->growentries;
@@ -1788,6 +1816,7 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry) {
 	isc_mempool_put(adb->emp, e);
 	LOCK(&adb->entriescntlock);
 	adb->entriescnt--;
+	dec_adbstats(adb, dns_adbstats_entriescnt);
 	UNLOCK(&adb->entriescntlock);
 }
 
@@ -2558,6 +2587,12 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
 	isc_task_setname(adb->task, "ADB", adb);
+
+	result = isc_stats_create(adb->mctx, &view->adbstats, dns_adbstats_max);
+	if (result != ISC_R_SUCCESS)
+		goto fail3;
+	set_adbstat(adb, adb->nentries, dns_adbstats_nentries);
+	set_adbstat(adb, adb->nnames, dns_adbstats_nnames);
 
 	/*
 	 * Normal return.

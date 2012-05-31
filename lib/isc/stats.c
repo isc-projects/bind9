@@ -324,3 +324,31 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 		dump_fn((isc_statscounter_t)i, stats->copiedcounters[i], arg);
 	}
 }
+
+void
+isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
+	      isc_statscounter_t counter)
+{
+	REQUIRE(ISC_STATS_VALID(stats));
+	REQUIRE(counter < stats->ncounters);
+
+#ifdef ISC_RWLOCK_USEATOMIC
+	/*
+	 * We use a "write" lock before "reading" the statistics counters as
+	 * an exclusive lock.
+	 */
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
+#endif
+
+#if ISC_STATS_USEMULTIFIELDS
+	stats->counters[counter].hi = (val >> 32) & 0xffffffff;
+	stats->counters[counter].lo = val & 0xffffffff;
+#else
+	stats->counters[counter] = val;
+#endif
+
+#ifdef ISC_RWLOCK_USEATOMIC
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
+#endif
+}
+

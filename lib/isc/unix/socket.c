@@ -572,8 +572,10 @@ static struct {
 		isc__socket_detach,
 		isc__socket_bind,
 		isc__socket_sendto,
+		isc__socket_sendto2,
 		isc__socket_connect,
 		isc__socket_recv,
+		isc__socket_recv2,
 		isc__socket_cancel,
 		isc__socket_getsockname,
 		isc__socket_gettype,
@@ -622,7 +624,8 @@ enum {
 	STATID_ACCEPTFAIL = 6,
 	STATID_ACCEPT = 7,
 	STATID_SENDFAIL = 8,
-	STATID_RECVFAIL = 9
+	STATID_RECVFAIL = 9,
+	STATID_ACTIVE = 10
 };
 static const isc_statscounter_t upd4statsindex[] = {
 	isc_sockstatscounter_udp4open,
@@ -634,7 +637,8 @@ static const isc_statscounter_t upd4statsindex[] = {
 	-1,
 	-1,
 	isc_sockstatscounter_udp4sendfail,
-	isc_sockstatscounter_udp4recvfail
+	isc_sockstatscounter_udp4recvfail,
+	isc_sockstatscounter_udp4active
 };
 static const isc_statscounter_t upd6statsindex[] = {
 	isc_sockstatscounter_udp6open,
@@ -646,7 +650,8 @@ static const isc_statscounter_t upd6statsindex[] = {
 	-1,
 	-1,
 	isc_sockstatscounter_udp6sendfail,
-	isc_sockstatscounter_udp6recvfail
+	isc_sockstatscounter_udp6recvfail,
+	isc_sockstatscounter_udp6active
 };
 static const isc_statscounter_t tcp4statsindex[] = {
 	isc_sockstatscounter_tcp4open,
@@ -658,7 +663,8 @@ static const isc_statscounter_t tcp4statsindex[] = {
 	isc_sockstatscounter_tcp4acceptfail,
 	isc_sockstatscounter_tcp4accept,
 	isc_sockstatscounter_tcp4sendfail,
-	isc_sockstatscounter_tcp4recvfail
+	isc_sockstatscounter_tcp4recvfail,
+	isc_sockstatscounter_tcp4active
 };
 static const isc_statscounter_t tcp6statsindex[] = {
 	isc_sockstatscounter_tcp6open,
@@ -670,7 +676,8 @@ static const isc_statscounter_t tcp6statsindex[] = {
 	isc_sockstatscounter_tcp6acceptfail,
 	isc_sockstatscounter_tcp6accept,
 	isc_sockstatscounter_tcp6sendfail,
-	isc_sockstatscounter_tcp6recvfail
+	isc_sockstatscounter_tcp6recvfail,
+	isc_sockstatscounter_tcp6active
 };
 static const isc_statscounter_t unixstatsindex[] = {
 	isc_sockstatscounter_unixopen,
@@ -682,7 +689,8 @@ static const isc_statscounter_t unixstatsindex[] = {
 	isc_sockstatscounter_unixacceptfail,
 	isc_sockstatscounter_unixaccept,
 	isc_sockstatscounter_unixsendfail,
-	isc_sockstatscounter_unixrecvfail
+	isc_sockstatscounter_unixrecvfail,
+	isc_sockstatscounter_unixactive
 };
 static const isc_statscounter_t fdwatchstatsindex[] = {
 	-1,
@@ -694,7 +702,8 @@ static const isc_statscounter_t fdwatchstatsindex[] = {
 	-1,
 	-1,
 	isc_sockstatscounter_fdwatchsendfail,
-	isc_sockstatscounter_fdwatchrecvfail
+	isc_sockstatscounter_fdwatchrecvfail,
+	-1
 };
 
 #if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL) || \
@@ -799,6 +808,17 @@ inc_stats(isc_stats_t *stats, isc_statscounter_t counterid) {
 
 	if (stats != NULL)
 		isc_stats_increment(stats, counterid);
+}
+
+/*%
+ * Decrement socket-related statistics counters.
+ */
+static inline void
+dec_stats(isc_stats_t *stats, isc_statscounter_t counterid) {
+	REQUIRE(counterid != -1);
+
+	if (stats != NULL)
+		isc_stats_decrement(stats, counterid);
 }
 
 static inline isc_result_t
@@ -1968,6 +1988,7 @@ closesocket(isc__socketmgr_t *manager, isc__socket_t *sock, int fd) {
 		select_poke(manager, fd, SELECT_POKE_CLOSE);
 
 	inc_stats(manager->stats, sock->statsindex[STATID_CLOSE]);
+	dec_stats(manager->stats, sock->statsindex[STATID_ACTIVE]);
 
 	/*
 	 * update manager->maxfd here (XXX: this should be implemented more
@@ -1995,6 +2016,7 @@ closesocket(isc__socketmgr_t *manager, isc__socket_t *sock, int fd) {
 			manager->maxfd = manager->pipe_fds[0];
 #endif
 	}
+
 	UNLOCK(&manager->lock);
 #endif	/* USE_SELECT */
 }
@@ -2311,6 +2333,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 			       ISC_MSG_TOOMANYFDS,
 			       "socket: file descriptor exceeds limit (%d/%u)",
 			       sock->fd, manager->maxsocks);
+		inc_stats(manager->stats, sock->statsindex[STATID_OPENFAIL]);
 		return (ISC_R_NORESOURCES);
 	}
 
@@ -2326,6 +2349,8 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 				       "%s: %s", err, strbuf);
 			/* fallthrough */
 		case ENOBUFS:
+			inc_stats(manager->stats,
+				  sock->statsindex[STATID_OPENFAIL]);
 			return (ISC_R_NORESOURCES);
 
 		case EPROTONOSUPPORT:
@@ -2336,6 +2361,8 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		 * EAFNOSUPPORT.
 		 */
 		case EINVAL:
+			inc_stats(manager->stats,
+				  sock->statsindex[STATID_OPENFAIL]);
 			return (ISC_R_FAMILYNOSUPPORT);
 
 		default:
@@ -2347,6 +2374,8 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 							ISC_MSG_FAILED,
 							"failed"),
 					 strbuf);
+			inc_stats(manager->stats,
+				  sock->statsindex[STATID_OPENFAIL]);
 			return (ISC_R_UNEXPECTED);
 		}
 	}
@@ -2357,6 +2386,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	result = make_nonblock(sock->fd);
 	if (result != ISC_R_SUCCESS) {
 		(void)close(sock->fd);
+		inc_stats(manager->stats, sock->statsindex[STATID_OPENFAIL]);
 		return (result);
 	}
 
@@ -2541,7 +2571,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 
 setup_done:
 	inc_stats(manager->stats, sock->statsindex[STATID_OPEN]);
-
+	inc_stats(manager->stats, sock->statsindex[STATID_ACTIVE]);
 	return (ISC_R_SUCCESS);
 }
 
@@ -2588,7 +2618,6 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 
 	result = opensocket(manager, sock, (isc__socket_t *)dup_socket);
 	if (result != ISC_R_SUCCESS) {
-		inc_stats(manager->stats, sock->statsindex[STATID_OPENFAIL]);
 		free_socket(&sock);
 		return (result);
 	}
@@ -3296,6 +3325,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		UNLOCK(&manager->lock);
 
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPT]);
+		inc_stats(manager->stats, sock->statsindex[STATID_ACTIVE]);
 	} else {
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
 		NEWCONNSOCK(dev)->references--;

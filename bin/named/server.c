@@ -1610,7 +1610,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	ns_cache_t *nsc;
 	isc_boolean_t zero_no_soattl;
 	dns_acl_t *clients = NULL, *mapped = NULL, *excluded = NULL;
-	unsigned int query_timeout;
+	unsigned int query_timeout, ndisp;
 	struct cfg_context *nzctx;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -2137,10 +2137,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup;
 	}
-	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31,
-				      ns_g_socketmgr, ns_g_timermgr,
-				      resopts, ns_g_dispatchmgr,
-				      dispatch4, dispatch6));
 
 	if (resstats == NULL) {
 		CHECK(isc_stats_create(mctx, &resstats,
@@ -2150,6 +2146,12 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (resquerystats == NULL)
 		CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
 	dns_view_setresquerystats(view, resquerystats);
+
+	ndisp = 4 * ISC_MIN(ns_g_udpdisp, MAX_UDP_DISPATCH);
+	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31, ndisp,
+				      ns_g_socketmgr, ns_g_timermgr,
+				      resopts, ns_g_dispatchmgr,
+				      dispatch4, dispatch6));
 
 	/*
 	 * Set the ADB cache size to 1/8th of the max-cache-size or
@@ -2570,24 +2572,41 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 					cfg_obj_asuint32(obj),
 					max_clients_per_query);
 
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 	obj = NULL;
 	result = ns_config_get(maps, "filter-aaaa-on-v4", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	if (cfg_obj_isboolean(obj)) {
 		if (cfg_obj_asboolean(obj))
-			view->v4_aaaa = dns_v4_aaaa_filter;
+			view->v4_aaaa = dns_aaaa_filter;
 		else
-			view->v4_aaaa = dns_v4_aaaa_ok;
+			view->v4_aaaa = dns_aaaa_ok;
 	} else {
 		const char *v4_aaaastr = cfg_obj_asstring(obj);
 		if (strcasecmp(v4_aaaastr, "break-dnssec") == 0)
-			view->v4_aaaa = dns_v4_aaaa_break_dnssec;
+			view->v4_aaaa = dns_aaaa_break_dnssec;
 		else
 			INSIST(0);
 	}
+
+	obj = NULL;
+	result = ns_config_get(maps, "filter-aaaa-on-v6", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	if (cfg_obj_isboolean(obj)) {
+		if (cfg_obj_asboolean(obj))
+			view->v6_aaaa = dns_aaaa_filter;
+		else
+			view->v6_aaaa = dns_aaaa_ok;
+	} else {
+		const char *v6_aaaastr = cfg_obj_asstring(obj);
+		if (strcasecmp(v6_aaaastr, "break-dnssec") == 0)
+			view->v6_aaaa = dns_aaaa_break_dnssec;
+		else
+			INSIST(0);
+	}
+
 	CHECK(configure_view_acl(vconfig, config, "filter-aaaa", NULL,
-				 actx, ns_g_mctx, &view->v4_aaaa_acl));
+				 actx, ns_g_mctx, &view->aaaa_acl));
 #endif
 
 	obj = NULL;
@@ -8250,7 +8269,7 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 	if (! isc_time_isepoch(&expiretime)) {
 		isc_buffer_putstr(text, "\nexpires: ");
-		isc_buffer_putstr(text, lbuf);
+		isc_buffer_putstr(text, xbuf);
 	}
 
 	if (secure) {

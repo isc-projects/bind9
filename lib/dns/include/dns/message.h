@@ -175,7 +175,7 @@ typedef int dns_messagetextflag_t;
 						      additional section. */
 #define DNS_MESSAGERENDER_PREFER_AAAA	0x0010	/*%< prefer AAAA records in
 						  additional section. */
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 #define DNS_MESSAGERENDER_FILTER_AAAA	0x0020	/*%< filter AAAA records */
 #endif
 

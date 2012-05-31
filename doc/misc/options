@@ -133,7 +133,8 @@ options {
         fetch-glue <boolean>; // obsolete
         files <size>;
         filter-aaaa { <address_match_element>; ... }; // not configured
-        filter-aaaa-on-v4 <v4_aaaa>; // not configured
+        filter-aaaa-on-v4 <filter_aaaa>; // not configured
+        filter-aaaa-on-v6 <filter_aaaa>; // not configured
         flush-zones-on-shutdown <boolean>;
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
@@ -356,7 +357,8 @@ view <string> <optional_class> {
         empty-zones-enable <boolean>;
         fetch-glue <boolean>; // obsolete
         filter-aaaa { <address_match_element>; ... }; // not configured
-        filter-aaaa-on-v4 <v4_aaaa>; // not configured
+        filter-aaaa-on-v4 <filter_aaaa>; // not configured
+        filter-aaaa-on-v6 <filter_aaaa>; // not configured
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
             [ port <integer> ]; ... };

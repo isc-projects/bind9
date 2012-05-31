@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -627,6 +627,15 @@ unsigned int
 dns_rbt_nodecount(dns_rbt_t *rbt);
 /*%<
  * Obtain the number of nodes in the tree of trees.
+ *
+ * Requires:
+ * \li  rbt is a valid rbt manager.
+ */
+
+unsigned int
+dns_rbt_hashsize(dns_rbt_t *rbt);
+/*%<
+ * Obtain the current number of buckets in the 'rbt' hash table.
  *
  * Requires:
  * \li  rbt is a valid rbt manager.

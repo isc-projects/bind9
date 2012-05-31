@@ -116,6 +116,26 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
  *\li	'stats' is a valid isc_stats_t.
  */
 
+void
+isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
+	      isc_statscounter_t counter);
+/*%<
+ * Set the given counter to the specfied value.
+ *
+ * Requires:
+ *\li	'stats' is a valid isc_stats_t.
+ */
+
+void
+isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
+	      isc_statscounter_t counter);
+/*%<
+ * Set the given counter to the specfied value.
+ *
+ * Requires:
+ *\li	'stats' is a valid isc_stats_t.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_STATS_H */

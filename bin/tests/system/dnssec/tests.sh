@@ -1655,5 +1655,25 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:testing legacy upper case signer name validation ($n)"
+ret=0
+$DIG +tcp +dnssec -p 5300 +noadd +noauth soa upper.example @10.53.0.4 \
+        > dig.out.ns4.test$n 2>&1
+grep 'flags:.* ad;' dig.out.ns4.test$n >/dev/null || ret=1
+grep 'RRSIG.*SOA.* UPPER\.EXAMPLE\. ' dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:testing that we lower case signer name ($n)"
+ret=0
+$DIG +tcp +dnssec -p 5300 +noadd +noauth soa LOWER.EXAMPLE @10.53.0.4 \
+        > dig.out.ns4.test$n 2>&1
+grep 'flags:.* ad;' dig.out.ns4.test$n >/dev/null || ret=1
+grep 'RRSIG.*SOA.* lower\.example\. ' dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

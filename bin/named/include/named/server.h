@@ -165,7 +165,9 @@ enum {
 	dns_nsstatscounter_updatefail = 34,
 	dns_nsstatscounter_updatebadprereq = 35,
 
-	dns_nsstatscounter_max = 36
+	dns_nsstatscounter_recursclients =36,
+
+	dns_nsstatscounter_max = 37
 };
 
 void

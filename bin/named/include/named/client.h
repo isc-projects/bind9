@@ -141,8 +141,8 @@ struct ns_client {
 	isc_netaddr_t		destaddr;
 	struct in6_pktinfo	pktinfo;
 	isc_event_t		ctlevent;
-#ifdef ALLOW_FILTER_AAAA_ON_V4
-	dns_v4_aaaa_t		filter_aaaa;
+#ifdef ALLOW_FILTER_AAAA
+	dns_aaaa_t		filter_aaaa;
 #endif
 	/*%
 	 * Information about recent FORMERR response(s), for
@@ -173,7 +173,7 @@ typedef ISC_LIST(ns_client_t) client_list_t;
 #define NS_CLIENTATTR_MULTICAST		0x08 /*%< recv'd from multicast */
 #define NS_CLIENTATTR_WANTDNSSEC	0x10 /*%< include dnssec records */
 #define NS_CLIENTATTR_WANTNSID          0x20 /*%< include nameserver ID */
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 #define NS_CLIENTATTR_FILTER_AAAA	0x40 /*%< suppress AAAAs */
 #define NS_CLIENTATTR_FILTER_AAAA_RC	0x80 /*%< recursing for A against AAAA */
 #endif

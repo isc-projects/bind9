@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -85,7 +85,7 @@ make_resolver(dns_resolver_t **resolverp) {
 	isc_result_t result;
 
 	result = dns_resolver_create(view,
-			    task_manager, 1,
+			    task_manager, 1, 1,
 			    socket_manager,
 			    timer_manager,
 			    0, /* unsigned int options, */

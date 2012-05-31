@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2011/06/10 01:32:37 each Exp $
+# $Id: tests.sh,v 1.4.154.1 2012/01/04 20:05:03 smann Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -222,6 +222,14 @@ END
 $DIGCMD text6.nil. TXT | grep 'addition 6' >/dev/null || ret=1
 $DIGCMD text7.nil. TXT | grep 'addition 7' >/dev/null || ret=1
 $DIGCMD frozen.nil. TXT | grep 'frozen addition' >/dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+# temp test
+echo "I:dumping stats"
+$RNDCCMD stats
+echo "I: verifying adb records in named.stats"
+grep "ADB stats" ns2/named.stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

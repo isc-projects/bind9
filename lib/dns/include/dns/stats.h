@@ -61,8 +61,22 @@ enum {
 	dns_resstatscounter_queryrtt3 = 27,
 	dns_resstatscounter_queryrtt4 = 28,
 	dns_resstatscounter_queryrtt5 = 29,
+	dns_resstatscounter_nfetch = 30,
+	dns_resstatscounter_disprequdp = 31,
+	dns_resstatscounter_dispreqtcp = 32,
+	dns_resstatscounter_buckets = 33,
 
-	dns_resstatscounter_max = 30,
+	dns_resstatscounter_max = 34,
+
+	/*
+	 * DNSSEC stats.
+	 */
+	dns_dnssecstats_asis = 0,
+	dns_dnssecstats_downcase = 1,
+	dns_dnssecstats_wildcard = 2,
+	dns_dnssecstats_fail = 3,
+
+	dns_dnssecstats_max = 4,
 
 	/*%
 	 * Zone statistics counters.
@@ -83,9 +97,31 @@ enum {
 
 	dns_zonestatscounter_max = 13,
 
+	/*
+	 * Adb statistics values.
+	 */
+	dns_adbstats_nentries = 0,
+	dns_adbstats_entriescnt = 1,
+	dns_adbstats_nnames = 2,
+	dns_adbstats_namescnt = 3,
+
+	dns_adbstats_max = 4,
+
+	/*
+	 * Cache statistics values.
+	 */
+	dns_cachestatscounter_hits = 1,
+	dns_cachestatscounter_misses = 2,
+	dns_cachestatscounter_queryhits = 3,
+	dns_cachestatscounter_querymisses = 4,
+	dns_cachestatscounter_deletelru = 5,
+	dns_cachestatscounter_deletettl = 6,
+
+	dns_cachestatscounter_max = 7,
+
 	/*%
-	* Query statistics counters (obsolete).
-	*/
+	 * Query statistics counters (obsolete).
+	 */
 	dns_statscounter_success = 0,    /*%< Successful lookup */
 	dns_statscounter_referral = 1,   /*%< Referral result */
 	dns_statscounter_nxrrset = 2,    /*%< NXRRSET result */

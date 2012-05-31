@@ -35,6 +35,7 @@
 #include <dns/adb.h>
 #include <dns/cache.h>
 #include <dns/db.h>
+#include <dns/dispatch.h>
 #include <dns/dlz.h>
 #ifdef BIND9
 #include <dns/dns64.h>
@@ -148,6 +149,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->delonly = NULL;
 	view->rootdelonly = ISC_FALSE;
 	view->rootexclude = NULL;
+	view->adbstats = NULL;
 	view->resstats = NULL;
 	view->resquerystats = NULL;
 	view->cacheshared = ISC_FALSE;
@@ -189,8 +191,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->flush = ISC_FALSE;
 	view->dlv = NULL;
 	view->maxudp = 0;
-	view->v4_aaaa = dns_v4_aaaa_ok;
-	view->v4_aaaa_acl = NULL;
+	view->v4_aaaa = dns_aaaa_ok;
+	view->v6_aaaa = dns_aaaa_ok;
+	view->aaaa_acl = NULL;
 	ISC_LIST_INIT(view->rpz_zones);
 	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
@@ -372,8 +375,8 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->upfwdacl);
 	if (view->denyansweracl != NULL)
 		dns_acl_detach(&view->denyansweracl);
-	if (view->v4_aaaa_acl != NULL)
-		dns_acl_detach(&view->v4_aaaa_acl);
+	if (view->aaaa_acl != NULL)
+		dns_acl_detach(&view->aaaa_acl);
 	if (view->answeracl_exclude != NULL)
 		dns_rbt_destroy(&view->answeracl_exclude);
 	if (view->denyanswernames != NULL)
@@ -415,6 +418,8 @@ destroy(dns_view_t *view) {
 			    sizeof(dns_namelist_t) * DNS_VIEW_DELONLYHASH);
 		view->rootexclude = NULL;
 	}
+	if (view->adbstats != NULL)
+		isc_stats_detach(&view->adbstats);
 	if (view->resstats != NULL)
 		isc_stats_detach(&view->resstats);
 	if (view->resquerystats != NULL)
@@ -652,7 +657,8 @@ req_shutdown(isc_task_t *task, isc_event_t *event) {
 
 isc_result_t
 dns_view_createresolver(dns_view_t *view,
-			isc_taskmgr_t *taskmgr, unsigned int ntasks,
+			isc_taskmgr_t *taskmgr,
+			unsigned int ntasks, unsigned int ndisp,
 			isc_socketmgr_t *socketmgr,
 			isc_timermgr_t *timermgr,
 			unsigned int options,
@@ -673,7 +679,7 @@ dns_view_createresolver(dns_view_t *view,
 		return (result);
 	isc_task_setname(view->task, "view", view);
 
-	result = dns_resolver_create(view, taskmgr, ntasks, socketmgr,
+	result = dns_resolver_create(view, taskmgr, ntasks, ndisp, socketmgr,
 				     timermgr, options, dispatchmgr,
 				     dispatchv4, dispatchv6,
 				     &view->resolver);
@@ -705,8 +711,7 @@ dns_view_createresolver(dns_view_t *view,
 	result = dns_requestmgr_create(view->mctx, timermgr, socketmgr,
 				      dns_resolver_taskmgr(view->resolver),
 				      dns_resolver_dispatchmgr(view->resolver),
-				      dns_resolver_dispatchv4(view->resolver),
-				      dns_resolver_dispatchv6(view->resolver),
+				      dispatchv4, dispatchv6,
 				      &view->requestmgr);
 	if (result != ISC_R_SUCCESS) {
 		dns_adb_shutdown(view->adb);
@@ -1680,6 +1685,24 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t value) {
 	return (dns_zt_freezezones(view->zonetable, value));
 }
 #endif
+
+void
+dns_view_setadbstats(dns_view_t *view, isc_stats_t *stats) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!view->frozen);
+	REQUIRE(view->adbstats == NULL);
+
+	isc_stats_attach(stats, &view->adbstats);
+}
+
+void
+dns_view_getadbstats(dns_view_t *view, isc_stats_t **statsp) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
+	if (view->adbstats != NULL)
+		isc_stats_attach(view->adbstats, statsp);
+}
 
 void
 dns_view_setresstats(dns_view_t *view, isc_stats_t *stats) {

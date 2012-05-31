@@ -87,7 +87,7 @@ foreach my $c (sort {$a <=> $b} keys %$c1) {
 		print $c1->{$c}->{text};
 	}
 	if (exists($c2->{$c}) && $category ne "placeholder" &&
-	    $c2->{$c}->{text} ne $text) {
+	    $c2->{$c}->{text} ne $text && !exists($c3->{$c})) {
 		if ($msg ne "TEXT\n") {
 			$msg = "TEXT\n";
 			print $msg;

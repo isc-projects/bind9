@@ -122,7 +122,7 @@ static cfg_type_t cfg_type_zone;
 static cfg_type_t cfg_type_zoneopts;
 static cfg_type_t cfg_type_dynamically_loadable_zones;
 static cfg_type_t cfg_type_dynamically_loadable_zones_opts;
-static cfg_type_t cfg_type_v4_aaaa;
+static cfg_type_t cfg_type_filter_aaaa;
 
 /*
  * Clauses that can be found in a 'dynamically loadable zones' statement
@@ -1282,13 +1282,16 @@ view_clauses[] = {
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 	{ "filter-aaaa", &cfg_type_bracketed_aml, 0 },
-	{ "filter-aaaa-on-v4", &cfg_type_v4_aaaa, 0 },
+	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa, 0 },
+	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa, 0 },
 #else
 	{ "filter-aaaa", &cfg_type_bracketed_aml,
 	   CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "filter-aaaa-on-v4", &cfg_type_v4_aaaa,
+	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa,
+	   CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa,
 	   CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ "response-policy", &cfg_type_rpz, 0 },
@@ -1898,15 +1901,15 @@ static cfg_type_t cfg_type_ixfrdifftype = {
 	&cfg_rep_string, ixfrdiff_enums,
 };
 
-static const char *v4_aaaa_enums[] = { "break-dnssec", NULL };
+static const char *filter_aaaa_enums[] = { "break-dnssec", NULL };
 static isc_result_t
-parse_v4_aaaa(cfg_parser_t *pctx, const cfg_type_t *type,
+parse_filter_aaaa(cfg_parser_t *pctx, const cfg_type_t *type,
 		     cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
 }
-static cfg_type_t cfg_type_v4_aaaa = {
-	"v4_aaaa", parse_v4_aaaa, cfg_print_ustring,
-	doc_enum_or_other, &cfg_rep_string, v4_aaaa_enums,
+static cfg_type_t cfg_type_filter_aaaa = {
+	"filter_aaaa", parse_filter_aaaa, cfg_print_ustring,
+	doc_enum_or_other, &cfg_rep_string, filter_aaaa_enums,
 };
 
 static keyword_type_t key_kw = { "key", &cfg_type_astring };

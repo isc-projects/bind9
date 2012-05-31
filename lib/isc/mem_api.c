@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010, 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -204,6 +204,20 @@ isc_mem_isovermem(isc_mem_t *mctx) {
 	REQUIRE(ISCAPI_MCTX_VALID(mctx));
 
 	return (mctx->methods->isovermem(mctx));
+}
+
+size_t
+isc_mem_maxinuse(isc_mem_t *mctx) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->maxinuse(mctx));
+}
+
+size_t
+isc_mem_total(isc_mem_t *mctx) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->total(mctx));
 }
 
 void

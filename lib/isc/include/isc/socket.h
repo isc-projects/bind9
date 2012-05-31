@@ -150,7 +150,13 @@ enum {
 	isc_sockstatscounter_unixrecvfail = 50,
 	isc_sockstatscounter_fdwatchrecvfail = 51,
 
-	isc_sockstatscounter_max = 52
+	isc_sockstatscounter_udp4active = 52,
+	isc_sockstatscounter_udp6active = 53,
+	isc_sockstatscounter_tcp4active = 54,
+	isc_sockstatscounter_tcp6active = 55,
+	isc_sockstatscounter_unixactive = 56,
+
+	isc_sockstatscounter_max = 57
 };
 
 /***
@@ -283,12 +289,20 @@ typedef struct isc_socketmethods {
 				  isc_task_t *task, isc_taskaction_t action,
 				  const void *arg, isc_sockaddr_t *address,
 				  struct in6_pktinfo *pktinfo);
+	isc_result_t	(*sendto2)(isc_socket_t *sock, isc_region_t *region,
+				   isc_task_t *task, isc_sockaddr_t *address,
+				   struct in6_pktinfo *pktinfo,
+				   isc_socketevent_t *event,
+				   unsigned int flags);
 	isc_result_t	(*connect)(isc_socket_t *sock, isc_sockaddr_t *addr,
 				   isc_task_t *task, isc_taskaction_t action,
 				   const void *arg);
 	isc_result_t	(*recv)(isc_socket_t *sock, isc_region_t *region,
 				unsigned int minimum, isc_task_t *task,
 				isc_taskaction_t action, const void *arg);
+	isc_result_t	(*recv2)(isc_socket_t *sock, isc_region_t *region,
+				 unsigned int minimum, isc_task_t *task,
+				 isc_socketevent_t *event, unsigned int flags);
 	void		(*cancel)(isc_socket_t *sock, isc_task_t *task,
 				  unsigned int how);
 	isc_result_t	(*getsockname)(isc_socket_t *sock,

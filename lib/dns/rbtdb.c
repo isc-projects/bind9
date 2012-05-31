@@ -367,6 +367,13 @@ typedef enum {
 
 typedef struct dns_rbtdb dns_rbtdb_t;
 
+/* Reason for expiring a record from cache */
+typedef enum {
+	expire_lru,
+	expire_ttl,
+	expire_flush
+} expire_t;
+
 typedef struct rbtdb_version {
 	/* Not locked */
 	rbtdb_serial_t                  serial;
@@ -411,6 +418,7 @@ struct dns_rbtdb {
 	rbtdb_nodelock_t *              node_locks;
 	dns_rbtnode_t *                 origin_node;
 	dns_stats_t *			rrsetstats; /* cache DB only */
+	isc_stats_t *			cachestats; /* cache DB only */
 	/* Locked by lock. */
 	unsigned int                    active;
 	isc_refcount_t                  references;
@@ -530,7 +538,7 @@ static inline isc_boolean_t need_headerupdate(rdatasetheader_t *header,
 static void update_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 			  isc_stdtime_t now);
 static void expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
-			  isc_boolean_t tree_locked);
+			  isc_boolean_t tree_locked, expire_t reason);
 static void overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start,
 			  isc_stdtime_t now, isc_boolean_t tree_locked);
 static isc_result_t resign_insert(dns_rbtdb_t *rbtdb, int idx,
@@ -693,6 +701,29 @@ free_rbtdb_callback(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	free_rbtdb(rbtdb, ISC_TRUE, event);
+}
+
+static void
+update_cachestats(dns_rbtdb_t *rbtdb, isc_result_t result) {
+	INSIST(IS_CACHE(rbtdb));
+
+	if (rbtdb->cachestats == NULL)
+		return;
+
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+	case DNS_R_DELEGATION:
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+		isc_stats_increment(rbtdb->cachestats,
+				    dns_cachestatscounter_hits);
+		break;
+	default:
+		isc_stats_increment(rbtdb->cachestats,
+				    dns_cachestatscounter_misses);
+	}
 }
 
 static void
@@ -968,6 +999,8 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 
 	if (rbtdb->rrsetstats != NULL)
 		dns_stats_detach(&rbtdb->rrsetstats);
+	if (rbtdb->cachestats != NULL)
+		isc_stats_detach(&rbtdb->cachestats);
 
 #ifdef BIND9
 	if (rbtdb->rpz_cidr != NULL)
@@ -5102,6 +5135,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	dns_rbtnodechain_reset(&search.chain);
 
+	update_cachestats(search.rbtdb, result);
 	return (result);
 }
 
@@ -5710,6 +5744,8 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		else
 			result = DNS_R_NCACHENXRRSET;
 	}
+
+	update_cachestats(rbtdb, result);
 
 	return (result);
 }
@@ -6542,7 +6578,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 		header = isc_heap_element(rbtdb->heaps[rbtnode->locknum], 1);
 		if (header && header->rdh_ttl <= now - RBTDB_VIRTUAL)
-			expire_header(rbtdb, header, tree_locked);
+			expire_header(rbtdb, header, tree_locked,
+				      expire_ttl);
 
 		/*
 		 * If we've been holding a write lock on the tree just for
@@ -7172,6 +7209,22 @@ nodecount(dns_db_t *db) {
 	return (count);
 }
 
+static unsigned int
+hashsize(dns_db_t *db) {
+	dns_rbtdb_t *rbtdb;
+	unsigned int count;
+
+	rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	count = dns_rbt_hashsize(rbtdb->tree);
+	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+
+	return (count);
+}
+
 static void
 settask(dns_db_t *db, isc_task_t *task) {
 	dns_rbtdb_t *rbtdb;
@@ -7390,6 +7443,18 @@ resigned(dns_db_t *db, dns_rdataset_t *rdataset, dns_dbversion_t *version)
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 }
 
+static isc_result_t
+setcachestats(dns_db_t *db, isc_stats_t *stats) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(IS_CACHE(rbtdb)); /* current restriction */
+	REQUIRE(stats != NULL);
+
+	isc_stats_attach(stats, &rbtdb->cachestats);
+	return (ISC_R_SUCCESS);
+}
+
 static dns_stats_t *
 getrrsetstats(dns_db_t *db) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -7445,7 +7510,9 @@ static dns_dbmethods_t zone_methods = {
 	NULL,
 #endif
 	NULL,
-	NULL
+	NULL,
+	NULL,
+	hashsize
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -7488,7 +7555,9 @@ static dns_dbmethods_t cache_methods = {
 	NULL,
 	NULL,
 	NULL,
-	NULL
+	NULL,
+	setcachestats,
+	hashsize
 };
 
 isc_result_t
@@ -7566,6 +7635,7 @@ dns_rbtdb_create
 		goto cleanup_tree_lock;
 	}
 
+	rbtdb->cachestats = NULL;
 	rbtdb->rrsetstats = NULL;
 	if (IS_CACHE(rbtdb)) {
 		result = dns_rdatasetstats_create(mctx, &rbtdb->rrsetstats);
@@ -8106,7 +8176,7 @@ rdataset_expire(dns_rdataset_t *rdataset) {
 	header--;
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_write);
-	expire_header(rbtdb, header, ISC_FALSE);
+	expire_header(rbtdb, header, ISC_FALSE, expire_flush);
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_write);
 }
@@ -9283,7 +9353,8 @@ overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start,
 
 		header = isc_heap_element(rbtdb->heaps[locknum], 1);
 		if (header && header->rdh_ttl <= now - RBTDB_VIRTUAL) {
-			expire_header(rbtdb, header, tree_locked);
+			expire_header(rbtdb, header, tree_locked,
+				      expire_ttl);
 			purgecount--;
 		}
 
@@ -9300,7 +9371,8 @@ overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start,
 			 */
 			ISC_LIST_UNLINK(rbtdb->rdatasets[locknum], header,
 					link);
-			expire_header(rbtdb, header, tree_locked);
+			expire_header(rbtdb, header, tree_locked,
+				      expire_lru);
 			purgecount--;
 		}
 
@@ -9311,7 +9383,7 @@ overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start,
 
 static void
 expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
-	      isc_boolean_t tree_locked)
+	      isc_boolean_t tree_locked, expire_t reason)
 {
 	set_ttl(rbtdb, header, 0);
 	header->attributes |= RDATASET_ATTR_STALE;
@@ -9332,5 +9404,22 @@ expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 				    isc_rwlocktype_write,
 				    tree_locked ? isc_rwlocktype_write :
 				    isc_rwlocktype_none, ISC_FALSE);
+
+		if (rbtdb->cachestats == NULL)
+			return;
+
+		switch (reason) {
+		case expire_ttl:
+			isc_stats_increment(rbtdb->cachestats,
+					    dns_cachestatscounter_deletettl);
+			break;
+		case expire_lru:
+			isc_stats_increment(rbtdb->cachestats,
+					    dns_cachestatscounter_deletelru);
+			break;
+		default:
+			break;
+		}
+
 	}
 }

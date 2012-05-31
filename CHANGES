@@ -1,3 +1,57 @@
+3329.	[bug]		Handle RRSIG signer-name case consistently: We
+			generate RRSIG records with the signer-name in
+			lower case.  We accept them with any case, but if
+			they fail to validate, we try again in lower case.
+			[RT #27451]
+
+3328.   [bug]           Fixed inconsistent data checking in dst_parse.c.
+                        [RT #29401]
+
+3327.	[func]		Added 'filter-aaaa-on-v6' option; this is similar
+			to 'filter-aaaa-on-v4' but applies to IPv6
+			connections.  (Use "configure --enable-filter-aaaa"
+			to enable this option.)  [RT #27308]
+
+3326.	[func]		Added task list statistics: task model, worker
+			threads, quantum, tasks running, tasks ready.
+			[RT #27678]
+
+3325.	[func]		Report cache statistics: memory use, number of
+			nodes, number of hash buckets, hit and miss counts.
+			[RT #27056]
+
+3324.	[test]		Add better tests for ADB stats [RT #27057]
+
+3323.	[func]		Report the number of buckets the resolver is using.
+			[RT #27020]
+
+3322.	[func]		Monitor the number of active TCP and UDP dispatches.
+			[RT #27055]
+
+3321.	[func]		Monitor the number of recursive fetches and the
+			number of open sockets, and report these values in
+			the statistics channel. [RT #27054]
+
+3320.	[func]		Added support for monitoring of recursing client
+			count. [RT #27009]
+
+3319.	[func]		Added support for monitoring of ADB entry count and
+			hash size. [RT #27057]
+
+3318.	[tuning]	Reduce the amount of work performed while holding a
+			bucket lock when finshed with a fetch context.
+			[RT #29239]
+
+3317.	[protocol]	Add ECDSA support (RFC 6605). [RT #21918]
+
+3316.	[tuning]	Improved locking performance when recursing.
+			[RT #28836]
+
+3315.	[tuning]	Use multiple dispatch objects for sending upstream
+			queries; this can improve performance on busy
+			multiprocessor systems by reducing lock contention.
+			[RT #28605]
+
 3314.	[bug]		The masters list could be updated while refesh_callback
 			and stub_callback were using it. [RT #26732]
 

@@ -1803,7 +1803,7 @@ wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
 	return (ISC_TRUE);
 }
 
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 /*
  * Decide whether to not answer with an AAAA record and its RRSIG
  */
@@ -1960,7 +1960,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 						      preferred_glue))
 					goto next;
 
-#ifdef ALLOW_FILTER_AAAA_ON_V4
+#ifdef ALLOW_FILTER_AAAA
 				/*
 				 * Suppress AAAAs if asked and we are
 				 * not doing DNSSEC or are breaking DNSSEC.
