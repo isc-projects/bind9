@@ -1072,9 +1072,9 @@
 ./bin/tests/system/resolver/setup.sh		SH	2010,2011,2012
 ./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012
 ./bin/tests/system/rpz/.gitignore		X	2012
-./bin/tests/system/rpz/Makefile.in		MAKE	2011
+./bin/tests/system/rpz/Makefile.in		MAKE	2011,2012
 ./bin/tests/system/rpz/clean.sh			SH	2011,2012
-./bin/tests/system/rpz/ns1/named.conf		CONF-C	2011
+./bin/tests/system/rpz/ns1/named.conf		CONF-C	2011,2012
 ./bin/tests/system/rpz/ns1/root.db		ZONE	2011,2012
 ./bin/tests/system/rpz/ns2/base-tld2s.db	ZONE	2012
 ./bin/tests/system/rpz/ns2/hints		ZONE	2011,2012
@@ -1088,10 +1088,10 @@
 ./bin/tests/system/rpz/ns4/hints		ZONE	2011,2012
 ./bin/tests/system/rpz/ns4/named.conf		CONF-C	2011,2012
 ./bin/tests/system/rpz/ns4/tld4.db		ZONE	2011,2012
-./bin/tests/system/rpz/ns5/hints		ZONE	2011
+./bin/tests/system/rpz/ns5/hints		ZONE	2011,2012
 ./bin/tests/system/rpz/ns5/named.conf		CONF-C	2012
 ./bin/tests/system/rpz/qperf.sh			SH	2012
-./bin/tests/system/rpz/rpz.c			C	2011
+./bin/tests/system/rpz/rpz.c			C	2011,2012
 ./bin/tests/system/rpz/setup.sh			SH	2011,2012
 ./bin/tests/system/rpz/test1			X	2011,2012
 ./bin/tests/system/rpz/test2			X	2011,2012
