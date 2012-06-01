@@ -1,7 +1,4 @@
-#!/bin/sh
-#
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,10 +12,8 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.7 2007/09/26 03:22:44 marka Exp $
+# $Id: setup.sh,v 1.11 2012/02/23 06:53:15 marka Exp $
 
-rm -f dig.out
-rm -f */named.memstats
-rm -f */*.bk
-rm -f */*.bk.*
-rm -f ns3/Kexample.*
+sh clean.sh
+
+../../../tools/genrandom 400 random.data

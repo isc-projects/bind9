@@ -1,3 +1,6 @@
+3331.	[security]	dns_rdataslab_fromrdataset could produce bad
+			rdataslabs. [RT #29644]
+
 3329.	[bug]		Handle RRSIG signer-name case consistently: We
 			generate RRSIG records with the signer-name in
 			lower case.  We accept them with any case, but if
