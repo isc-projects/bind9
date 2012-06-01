@@ -136,6 +136,16 @@ diff -s large.out dig.out > /dev/null || { ret=1 ; echo "I: diff failed"; }
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
+echo "I:checking large unknown record loading on slave"
+ret=0
+$DIG $DIGOPTS @10.53.0.2 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo I: dig failed ; }
+diff -s large.out dig.out > /dev/null || { ret=1 ; echo "I: diff failed"; }
+[ $ret = 0 ] || echo "I: failed"
+status=`expr $status + $ret`
+
+echo "I:stop and restart slave"
+$PERL $SYSTEMTESTTOP/stop.pl . ns2
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
 
 echo "I:checking large unknown record loading on slave"
 ret=0
