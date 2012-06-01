@@ -154,23 +154,5 @@ diff -s large.out dig.out > /dev/null || { ret=1 ; echo "I: diff failed"; }
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
-echo "I:checking large unknown record loading on inline slave"
-ret=0
-$DIG $DIGOPTS @10.53.0.3 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo I: dig failed ; }
-diff large.out dig.out > /dev/null || { ret=1 ; echo "I: diff failed"; }
-[ $ret = 0 ] || echo "I: failed"
-status=`expr $status + $ret`
-
-echo "I:stop and restart inline slave"
-$PERL $SYSTEMTESTTOP/stop.pl . ns3
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns3
-
-echo "I:checking large unknown record loading on inline slave"
-ret=0
-$DIG $DIGOPTS @10.53.0.3 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo I: dig failed ; }
-diff large.out dig.out > /dev/null || { ret=1 ; echo "I: diff failed"; }
-[ $ret = 0 ] || echo "I: failed"
-status=`expr $status + $ret`
-
 echo "I:exit status: $status"
 exit $status
