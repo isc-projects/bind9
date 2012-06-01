@@ -1,7 +1,6 @@
-#!/bin/sh
+#!/bin/sh -e
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,10 +14,15 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.7 2007/09/26 03:22:44 marka Exp $
+# $Id: sign.sh,v 1.8 2012/02/23 06:53:15 marka Exp $
 
-rm -f dig.out
-rm -f */named.memstats
-rm -f */*.bk
-rm -f */*.bk.*
-rm -f ns3/Kexample.*
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
+
+RANDFILE=../random.data
+
+zone=example
+rm -f K${zone}.+*+*.key
+rm -f K${zone}.+*+*.private
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
