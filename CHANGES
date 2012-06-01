@@ -1,3 +1,18 @@
+3330.	[func]		Fix missing signatures on NOERROR results despite
+			RPZ rewriting.  Also 
+			 - add optional "recursive-only yes|no" to the
+			   response-policy statement
+			 - add optional "max-policy-ttl" to the response-policy
+			    statement to limit the false data that
+			    "recursive-only no" can introduce into
+			    resolvers' caches
+			 - add a RPZ performance test to bin/tests/system/rpz
+			     when queryperf is available.
+			 - the encoding of PASSTHRU action to "rpz-passthru".
+			     (The old encoding is still accepted.)
+		       [RT #26172]
+
+
 3329.	[bug]		Handle RRSIG signer-name case consistently: We
 			generate RRSIG records with the signer-name in
 			lower case.  We accept them with any case, but if
