@@ -48,12 +48,10 @@ RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s"
 
 digcmd () {
     digcmd_args="+noadd +nosearch +time=1 +tries=1 -p 5300 $*"
-    if ! expr "$digcmd_args" : '.*@' >/dev/null; then
+    expr "$digcmd_args" : '.*@' >/dev/null || \
 	digcmd_args="$digcmd_args @$ns3"
-    fi
-    if ! expr "$digcmd_args" : '.*+[no]*auth' >/dev/null; then
+    expr "$digcmd_args" : '.*+[no]*auth' >/dev/null || \
 	digcmd_args="+noauth $digcmd_args"
-    fi
     #echo I:dig $digcmd_args 1>&2
     $DIG $digcmd_args
 }
