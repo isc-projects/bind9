@@ -1,3 +1,6 @@
+3321.	[security]	dns_rdataslab_fromrdataset could produce bad
+			rdataslabs. [RT #29644]
+			
 3330.	[func]		Fix missing signatures on NOERROR results despite
 			RPZ rewriting.  Also 
 			 - add optional "recursive-only yes|no" to the
