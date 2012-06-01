@@ -1,4 +1,4 @@
-3321.	[security]	dns_rdataslab_fromrdataset could produce bad
+3331.	[security]	dns_rdataslab_fromrdataset could produce bad
 			rdataslabs. [RT #29644]
 			
 	--- 9.6-ESV-R7 released ---
