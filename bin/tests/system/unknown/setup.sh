@@ -15,7 +15,3 @@
 # $Id: setup.sh,v 1.11 2012/02/23 06:53:15 marka Exp $
 
 sh clean.sh
-
-../../../tools/genrandom 400 random.data
-
-(cd ns3; sh -e sign.sh)
