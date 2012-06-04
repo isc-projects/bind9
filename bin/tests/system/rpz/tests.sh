@@ -403,13 +403,21 @@ if test -n "$QPERF"; then
 
     # turn off rpz and measure queries/second again
     # Don't wait for a clean stop.  Clean stops of this server need seconds
-    # until the sockets are close.  5 or 10 seconds after that, the
+    # until the sockets are closed.  5 or 10 seconds after that, the
     # server really stops and deletes named.pid.
     echo "# rpz off" >ns5/rpz-switch
     PID=`cat ns5/named.pid`
     test -z "$PID" || kill -9 "$PID"
     $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns5
     perf 'without rpz' norpz
+
+    # Don't wait for a clean stop.  Clean stops of this server need seconds
+    # until the sockets are closed.  5 or 10 seconds after that, the
+    # server really stops and deletes named.pid.
+    echo "# rpz off" >ns5/rpz-switch
+    PID=`cat ns5/named.pid`
+    test -z "$PID" || kill -9 "$PID"
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns5
 
     NORPZ=`trim norpz`
     RPZ=`trim rpz`
