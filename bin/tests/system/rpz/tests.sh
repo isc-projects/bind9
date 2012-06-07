@@ -416,8 +416,7 @@ if test -n "$QPERF"; then
     # server really stops and deletes named.pid.
     echo "# rpz off" >ns5/rpz-switch
     PID=`cat ns5/named.pid`
-    test -z "$PID" || kill -9 "$PID"
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns5
+    test -z "$PID" || kill -9 "$PID" && rm -f ns5/named.pid
 
     NORPZ=`trim norpz`
     RPZ=`trim rpz`
