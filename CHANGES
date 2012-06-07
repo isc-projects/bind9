@@ -1,3 +1,5 @@
+3332.	[bug]		Re-use cached DS rrsets if possible. [RT 29446]
+
 3331.	[security]	dns_rdataslab_fromrdataset could produce bad
 			rdataslabs. [RT #29644]
 			
