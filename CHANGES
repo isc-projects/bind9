@@ -2,7 +2,7 @@
 			asyncronous load of a zone. [RT #28326]
 
 3333.	[bug]		Setting resolver-query-timeout too low can cause
-			named to not recover if it looses connectivity.
+			named to not recover if it loses connectivity.
 			[RT #29623]
 
 3332.	[bug]		Re-use cached DS rrsets if possible. [RT #29446]
