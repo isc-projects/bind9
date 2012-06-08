@@ -89,7 +89,7 @@ options {\n\
 #endif
 "\
 	recursive-clients 1000;\n\
-	resolver-query-timeout 30;\n\
+	resolver-query-timeout 10;\n\
 	rrset-order {type NS order random; order cyclic; };\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
