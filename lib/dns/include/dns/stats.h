@@ -162,10 +162,18 @@ LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
  * _NXDOMAIN
  *	RRset type counters only.  Indicates a non existent name.  When this
  *	attribute is set, the base type is of no use.
+ *
+ * _STALE
+ *	RRset type counters only.  This indicates a record that marked for
+ *	removal.
+ *
+ *	Note: incrementing _STALE will decrement the corresponding non-stale
+ *	counter.
  */
 #define DNS_RDATASTATSTYPE_ATTR_OTHERTYPE	0x0001
 #define DNS_RDATASTATSTYPE_ATTR_NXRRSET		0x0002
 #define DNS_RDATASTATSTYPE_ATTR_NXDOMAIN	0x0004
+#define DNS_RDATASTATSTYPE_ATTR_STALE		0x0008
 
 /*%<
  * Conversion macros among dns_rdatatype_t, attributes and isc_statscounter_t.
@@ -298,6 +306,9 @@ void
 dns_rdatasetstats_increment(dns_stats_t *stats, dns_rdatastatstype_t rrsettype);
 /*%<
  * Increment the statistics counter for 'rrsettype'.
+ *
+ * Note: if 'rrsettype' has the _STALE attribute set the corresponding
+ * non-stale counter will be decremented.
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_rdatasetstats_create().

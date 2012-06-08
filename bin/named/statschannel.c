@@ -656,6 +656,7 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 	char typebuf[64];
 	const char *typestr;
 	isc_boolean_t nxrrset = ISC_FALSE;
+	isc_boolean_t stale = ISC_FALSE;
 #ifdef HAVE_LIBXML2
 	xmlTextWriterPtr writer;
 	int xmlrc;
@@ -677,11 +678,15 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 	    != 0)
 		nxrrset = ISC_TRUE;
 
+	if ((DNS_RDATASTATSTYPE_ATTR(type) & DNS_RDATASTATSTYPE_ATTR_STALE)
+	    != 0)
+		stale = ISC_TRUE;
+
 	switch (dumparg->type) {
 	case isc_statsformat_file:
 		fp = dumparg->arg;
-		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s%s\n", val,
-			nxrrset ? "!" : "", typestr);
+		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s%s%s\n", val,
+			stale ? "#" : "", nxrrset ? "!" : "", typestr);
 		break;
 	case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
@@ -689,7 +694,8 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "rrset"));
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "name"));
-		TRY0(xmlTextWriterWriteFormatString(writer, "%s%s",
+		TRY0(xmlTextWriterWriteFormatString(writer, "%s%s%s",
+					       stale ? "#" : "",
 					       nxrrset ? "!" : "", typestr));
 		TRY0(xmlTextWriterEndElement(writer)); /* name */
 

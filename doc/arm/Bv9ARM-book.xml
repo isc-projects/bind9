@@ -13731,7 +13731,8 @@ HOST-127.EXAMPLE. MX 0 .
 		    If the exclamation mark (!) is printed for a RR
 		    type, it means that particular type of RRset is
 		    known to be nonexistent (this is also known as
-		    "NXRRSET").
+		    "NXRRSET").  If a hash mark (#) is present then
+		    the RRset is marked for garbage collection.
 		    Maintained per view.
                   </para>
                 </entry>

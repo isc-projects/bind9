@@ -50,6 +50,9 @@ typedef enum {
  * XXXJT: this introduces tight coupling with the rdata implementation.
  * Ideally, we should have rdata handle this type of details.
  */
+/*
+ * types, !types, nxdomain, stale types, stale !types, stale nxdomain
+ */
 enum {
 	/* For 0-255, we use the rdtype value as counter indices */
 	rdtypecounter_dlv = 256,	/* for dns_rdatatype_dlv */
@@ -58,7 +61,9 @@ enum {
 	/* The following are used for rdataset */
 	rdtypenxcounter_max = rdtypecounter_max * 2,
 	rdtypecounter_nxdomain = rdtypenxcounter_max,
-	rdatasettypecounter_max = rdtypecounter_nxdomain + 1
+	/* stale counters offset */
+	rdtypecounter_stale = rdtypecounter_nxdomain + 1,
+	rdatasettypecounter_max = rdtypecounter_stale * 2
 };
 
 struct dns_stats {
@@ -119,7 +124,7 @@ dns_stats_detach(dns_stats_t **statsp) {
  * Create methods
  */
 static isc_result_t
-create_stats(isc_mem_t *mctx, dns_statstype_t	type, int ncounters,
+create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 	     dns_stats_t **statsp)
 {
 	dns_stats_t *stats;
@@ -176,7 +181,7 @@ dns_rdatasetstats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	return (create_stats(mctx, dns_statstype_rdataset,
-			     (rdtypecounter_max * 2) + 1, statsp));
+			     rdatasettypecounter_max, statsp));
 }
 
 isc_result_t
@@ -236,10 +241,19 @@ update_rdatasetstats(dns_stats_t *stats, dns_rdatastatstype_t rrsettype,
 			counter += rdtypecounter_max;
 	}
 
-	if (increment)
+	if (increment) {
+		if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
+		     DNS_RDATASTATSTYPE_ATTR_STALE) != 0) {
+			isc_stats_decrement(stats->counters, counter);
+			counter += rdtypecounter_stale;
+		}
 		isc_stats_increment(stats->counters, counter);
-	else
+	} else {
+		if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
+		     DNS_RDATASTATSTYPE_ATTR_STALE) != 0)
+			counter += rdtypecounter_stale;
 		isc_stats_decrement(stats->counters, counter);
+	}
 }
 
 void
@@ -259,6 +273,7 @@ dns_rdatasetstats_decrement(dns_stats_t *stats, dns_rdatastatstype_t rrsettype)
 
 	update_rdatasetstats(stats, rrsettype, ISC_FALSE);
 }
+
 void
 dns_opcodestats_increment(dns_stats_t *stats, dns_opcode_t code) {
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_opcode);
@@ -321,17 +336,35 @@ dns_rdatatypestats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
 static void
 rdataset_dumpcb(isc_statscounter_t counter, isc_uint64_t value, void *arg) {
 	rdatadumparg_t *rdatadumparg = arg;
+	unsigned int attributes;
 
 	if (counter < rdtypecounter_max) {
 		dump_rdentry(counter, value, 0, rdatadumparg->fn,
 			     rdatadumparg->arg);
-	} else if (counter < rdtypenxcounter_max) {
-		dump_rdentry(counter - rdtypecounter_max, value,
-			     DNS_RDATASTATSTYPE_ATTR_NXRRSET,
-			     rdatadumparg->fn, rdatadumparg->arg);
-	} else {
+	} else if (counter < rdtypecounter_nxdomain) {
+		counter -= rdtypecounter_max;
+		attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET;
+		dump_rdentry(counter, value, attributes, rdatadumparg->fn,
+			     rdatadumparg->arg);
+	} else if (counter == rdtypecounter_nxdomain) {
 		dump_rdentry(0, value, DNS_RDATASTATSTYPE_ATTR_NXDOMAIN,
 			     rdatadumparg->fn, rdatadumparg->arg);
+	} else if (counter < rdtypecounter_stale + rdtypecounter_max) {
+		counter -= rdtypecounter_stale;
+		attributes = DNS_RDATASTATSTYPE_ATTR_STALE;
+		dump_rdentry(counter, value, attributes, rdatadumparg->fn,
+			     rdatadumparg->arg);
+	} else if (counter < rdtypecounter_stale + rdtypecounter_nxdomain) {
+		counter -= rdtypecounter_stale + rdtypecounter_max;
+		attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET |
+			     DNS_RDATASTATSTYPE_ATTR_STALE;
+		dump_rdentry(counter, value, attributes, rdatadumparg->fn,
+			     rdatadumparg->arg);
+	} else {
+		attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN |
+			     DNS_RDATASTATSTYPE_ATTR_STALE;
+		dump_rdentry(0, value, attributes, rdatadumparg->fn,
+			     rdatadumparg->arg);
 	}
 }
 

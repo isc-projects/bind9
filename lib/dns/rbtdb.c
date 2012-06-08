@@ -1369,6 +1369,28 @@ rollback_node(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 }
 
 static inline void
+mark_stale_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header) {
+
+	/*
+	 * If we are already stale there is nothing to do.
+	 */
+	if ((header->attributes & RDATASET_ATTR_STALE) != 0)
+		return;
+
+	header->attributes |= RDATASET_ATTR_STALE;
+	header->node->dirty = 1;
+
+	/*
+	 * If we have not been counted then there is nothing to do.
+	 */
+	if ((header->attributes & RDATASET_ATTR_STATCOUNT) == 0)
+		return;
+
+	if (EXISTS(header))
+		update_rrsetstats(rbtdb, header, ISC_TRUE);
+}
+
+static inline void
 clean_stale_headers(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *top)
 {
 	rdatasetheader_t *d, *down_next;
@@ -4245,9 +4267,8 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 					free_rdataset(search->rbtdb, mctx,
 						      header);
 				} else {
-					header->attributes |=
-						RDATASET_ATTR_STALE;
-					node->dirty = 1;
+					mark_stale_header(search->rbtdb,
+							  header);
 					header_prev = header;
 				}
 			} else
@@ -4359,9 +4380,8 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 						free_rdataset(rbtdb, m,
 							      header);
 					} else {
-						header->attributes |=
-							RDATASET_ATTR_STALE;
-						node->dirty = 1;
+						mark_stale_header(rbtdb,
+								  header);
 						header_prev = header;
 					}
 				} else
@@ -4534,9 +4554,8 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 						free_rdataset(search->rbtdb, m,
 							      header);
 					} else {
-						header->attributes |=
-							RDATASET_ATTR_STALE;
-						node->dirty = 1;
+						mark_stale_header(search->rbtdb,
+								  header);
 						header_prev = header;
 					}
 				} else
@@ -4928,9 +4947,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 					free_rdataset(search.rbtdb, mctx,
 						      header);
 				} else {
-					header->attributes |=
-						RDATASET_ATTR_STALE;
-					node->dirty = 1;
+					mark_stale_header(search.rbtdb, header);
 					header_prev = header;
 				}
 			} else
@@ -5236,9 +5253,7 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 					free_rdataset(search.rbtdb, mctx,
 						      header);
 				} else {
-					header->attributes |=
-						RDATASET_ATTR_STALE;
-					node->dirty = 1;
+					mark_stale_header(search.rbtdb, header);
 					header_prev = header;
 				}
 			} else
@@ -5446,8 +5461,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 			 * refcurrent(rbtnode) must be non-zero.  This is so
 			 * because 'node' is an argument to the function.
 			 */
-			header->attributes |= RDATASET_ATTR_STALE;
-			rbtnode->dirty = 1;
+			mark_stale_header(rbtdb, header);
 			if (log)
 				isc_log_write(dns_lctx, category, module,
 					      level, "overmem cache: stale %s",
@@ -5455,8 +5469,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 		} else if (force_expire) {
 			if (! RETAIN(header)) {
 				set_ttl(rbtdb, header, 0);
-				header->attributes |= RDATASET_ATTR_STALE;
-				rbtnode->dirty = 1;
+				mark_stale_header(rbtdb, header);
 			} else if (log) {
 				isc_log_write(dns_lctx, category, module,
 					      level, "overmem cache: "
@@ -5712,8 +5725,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				 * non-zero.  This is so because 'node' is an
 				 * argument to the function.
 				 */
-				header->attributes |= RDATASET_ATTR_STALE;
-				rbtnode->dirty = 1;
+				mark_stale_header(rbtdb, header);
 			}
 		} else if (EXISTS(header)) {
 			if (header->type == matchtype)
@@ -5977,9 +5989,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				 */
 				if (covers == dns_rdatatype_any) {
 					set_ttl(rbtdb, topheader, 0);
-					topheader->attributes |=
-						RDATASET_ATTR_STALE;
-					rbtnode->dirty = 1;
+					mark_stale_header(rbtdb, topheader);
 				} else if (topheader->type == sigtype)
 					sigheader = topheader;
 			}
@@ -6024,8 +6034,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				 * NXDOMAIN/NODATA(QTYPE=ANY).
 				 */
 				set_ttl(rbtdb, topheader, 0);
-				topheader->attributes |= RDATASET_ATTR_STALE;
-				rbtnode->dirty = 1;
+				mark_stale_header(rbtdb, topheader);
 				topheader = NULL;
 				goto find_header;
 			}
@@ -6237,11 +6246,10 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				changed->dirty = ISC_TRUE;
 			if (rbtversion == NULL) {
 				set_ttl(rbtdb, header, 0);
-				header->attributes |= RDATASET_ATTR_STALE;
+				mark_stale_header(rbtdb, header);
 				if (sigheader != NULL) {
 					set_ttl(rbtdb, sigheader, 0);
-					sigheader->attributes |=
-						 RDATASET_ATTR_STALE;
+					mark_stale_header(rbtdb, sigheader);
 				}
 			}
 			idx = newheader->node->locknum;
@@ -9390,8 +9398,7 @@ expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 	      isc_boolean_t tree_locked, expire_t reason)
 {
 	set_ttl(rbtdb, header, 0);
-	header->attributes |= RDATASET_ATTR_STALE;
-	header->node->dirty = 1;
+	mark_stale_header(rbtdb, header);
 
 	/*
 	 * Caller must hold the node (write) lock.

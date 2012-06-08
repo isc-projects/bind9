@@ -1,3 +1,6 @@
+3336.	[func]		Maintain statistics for RRsets tagged as "stale".
+			[RT #29514]
+
 3335.	[func]		nslookup: return a nonzero exit code when unable
 			to get an answer. [RT #29492]
 
