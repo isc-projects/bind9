@@ -46,6 +46,7 @@ struct dns_zt {
 	dns_zt_allloaded_t	loaddone;
 	void *			loaddone_arg;
 	/* Locked by lock. */
+	isc_boolean_t		flush;
 	isc_uint32_t		references;
 	unsigned int		loads_pending;
 	dns_rbt_t		*table;
@@ -93,8 +94,10 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp)
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_rbt;
 
-	zt->mctx = mctx;
+	zt->mctx = NULL;
+	isc_mem_attach(mctx, &zt->mctx);
 	zt->references = 1;
+	zt->flush = ISC_FALSE;
 	zt->rdclass = rdclass;
 	zt->magic = ZTMAGIC;
 	zt->loaddone = NULL;
@@ -201,6 +204,16 @@ flush(dns_zone_t *zone, void *uap) {
 }
 
 static void
+zt_destroy(dns_zt_t *zt) {
+	if (zt->flush)
+		(void)dns_zt_apply(zt, ISC_FALSE, flush, NULL);
+	dns_rbt_destroy(&zt->table);
+	isc_rwlock_destroy(&zt->rwlock);
+	zt->magic = 0;
+	isc_mem_putanddetach(&zt->mctx, zt, sizeof(*zt));
+}
+
+static void
 zt_flushanddetach(dns_zt_t **ztp, isc_boolean_t need_flush) {
 	isc_boolean_t destroy = ISC_FALSE;
 	dns_zt_t *zt;
@@ -215,17 +228,13 @@ zt_flushanddetach(dns_zt_t **ztp, isc_boolean_t need_flush) {
 	zt->references--;
 	if (zt->references == 0)
 		destroy = ISC_TRUE;
+	if (need_flush)
+		zt->flush = ISC_TRUE;
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
 
-	if (destroy) {
-		if (need_flush)
-			(void)dns_zt_apply(zt, ISC_FALSE, flush, NULL);
-		dns_rbt_destroy(&zt->table);
-		isc_rwlock_destroy(&zt->rwlock);
-		zt->magic = 0;
-		isc_mem_put(zt->mctx, zt, sizeof(*zt));
-	}
+	if (destroy)
+		zt_destroy(zt);
 
 	*ztp = NULL;
 }
@@ -272,10 +281,9 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
 
 	REQUIRE(VALID_ZT(zt));
 
-	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
+	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
 
 	INSIST(zt->loads_pending == 0);
-
 	result = dns_zt_apply2(zt, ISC_FALSE, NULL, asyncload, &dl);
 
 	pending = zt->loads_pending;
@@ -284,7 +292,7 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
 		zt->loaddone_arg = arg;
 	}
 
-	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
 
 	if (pending == 0)
 		alldone(arg);
@@ -305,10 +313,15 @@ asyncload(dns_zone_t *zone, void *callback) {
 
 	REQUIRE(zone != NULL);
 	zt = dns_zone_getview(zone)->zonetable;
+	INSIST(VALID_ZT(zt));
 
 	result = dns_zone_asyncload(zone, *loaded, zt);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
+		INSIST(zt->references > 0);
+		zt->references++;
+		INSIST(zt->references != 0);
 		zt->loads_pending++;
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -479,6 +492,7 @@ dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
  */
 static isc_result_t
 doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
+	isc_boolean_t destroy = ISC_FALSE;
 	dns_zt_allloaded_t alldone = NULL;
 	void *arg = NULL;
 
@@ -489,6 +503,10 @@ doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 
 	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
 	INSIST(zt->loads_pending != 0);
+	INSIST(zt->references != 0);
+	zt->references--;
+	if (zt->references == 0)
+		destroy = ISC_TRUE;
 	zt->loads_pending--;
 	if (zt->loads_pending == 0) {
 		alldone = zt->loaddone;
@@ -500,6 +518,9 @@ doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 
 	if (alldone != NULL)
 		alldone(arg);
+
+	if (destroy)
+		zt_destroy(zt);
 
 	return (ISC_R_SUCCESS);
 }

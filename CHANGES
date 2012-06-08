@@ -1,3 +1,6 @@
+3334.	[bug]		Hold a zone table reference while performing a
+			asyncronous load of a zone. [RT #28326]
+
 3333.	[bug]		Setting resolver-query-timeout too low can cause
 			named to not recover if it looses connectivity.
 			[RT #29623]
