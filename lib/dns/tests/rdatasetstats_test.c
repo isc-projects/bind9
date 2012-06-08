@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -53,7 +53,7 @@ static void
 set_nxdomainstats(dns_stats_t *stats, isc_boolean_t stale) {
 	dns_rdatastatstype_t which;
 	unsigned int attributes;
-	
+
 	attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN;
 	if (stale) attributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
 	which = DNS_RDATASTATSTYPE_VALUE(0, attributes);
@@ -69,16 +69,16 @@ checkit1(dns_rdatastatstype_t which, isc_uint64_t value, void *arg) {
 
 	UNUSED(which);
 	UNUSED(arg);
-	
+
 	attributes = DNS_RDATASTATSTYPE_ATTR(which);
 #if debug
 	type = DNS_RDATASTATSTYPE_BASE(which);
 
-	fprintf(stderr, "%s%s%s%s/%u, %u\n", 
-	        attributes & DNS_RDATASTATSTYPE_ATTR_OTHERTYPE ? "O" : " ",
-	        attributes & DNS_RDATASTATSTYPE_ATTR_NXRRSET ? "!" : " ",
-	        attributes & DNS_RDATASTATSTYPE_ATTR_STALE ? "#" : " ",
-	        attributes & DNS_RDATASTATSTYPE_ATTR_NXDOMAIN ? "X" : " ",
+	fprintf(stderr, "%s%s%s%s/%u, %u\n",
+		attributes & DNS_RDATASTATSTYPE_ATTR_OTHERTYPE ? "O" : " ",
+		attributes & DNS_RDATASTATSTYPE_ATTR_NXRRSET ? "!" : " ",
+		attributes & DNS_RDATASTATSTYPE_ATTR_STALE ? "#" : " ",
+		attributes & DNS_RDATASTATSTYPE_ATTR_NXDOMAIN ? "X" : " ",
 		type, (unsigned)value);
 #endif
 	if ((attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == 0)
@@ -96,16 +96,16 @@ checkit2(dns_rdatastatstype_t which, isc_uint64_t value, void *arg) {
 
 	UNUSED(which);
 	UNUSED(arg);
-	
+
 	attributes = DNS_RDATASTATSTYPE_ATTR(which);
 #if debug
 	type = DNS_RDATASTATSTYPE_BASE(which);
 
-	fprintf(stderr, "%s%s%s%s/%u, %u\n", 
-	        attributes & DNS_RDATASTATSTYPE_ATTR_OTHERTYPE ? "O" : " ",
-	        attributes & DNS_RDATASTATSTYPE_ATTR_NXRRSET ? "!" : " ",
-	        attributes & DNS_RDATASTATSTYPE_ATTR_STALE ? "#" : " ",
-	        attributes & DNS_RDATASTATSTYPE_ATTR_NXDOMAIN ? "X" : " ",
+	fprintf(stderr, "%s%s%s%s/%u, %u\n",
+		attributes & DNS_RDATASTATSTYPE_ATTR_OTHERTYPE ? "O" : " ",
+		attributes & DNS_RDATASTATSTYPE_ATTR_NXRRSET ? "!" : " ",
+		attributes & DNS_RDATASTATSTYPE_ATTR_STALE ? "#" : " ",
+		attributes & DNS_RDATASTATSTYPE_ATTR_NXDOMAIN ? "X" : " ",
 		type, (unsigned)value);
 #endif
 	if ((attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == 0)
