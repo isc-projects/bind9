@@ -1,3 +1,6 @@
+3335.	[func]		nslookup: return a nonzero exit code when unable
+			to get an answer. [RT #29492]
+
 3334.	[bug]		Hold a zone table reference while performing a
 			asyncronous load of a zone. [RT #28326]
 
