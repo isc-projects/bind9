@@ -56,7 +56,7 @@ SUBDIRS="acl allow_query addzone autosign builtin cacheclean checkconf
 	 checknames checkzone database dlv dlvauto dlz
 	 dname dnssec forward glue ixfr limits logfileconfig lwresd
 	 masterfile masterformat metadata notify nsupdate pending
-	 pkcs11 resolver rrsetorder sortlist smartsign stub tkey
+	 pkcs11 resolver rndc rrsetorder sortlist smartsign stub tkey
 	 unknown upforwd views xfer xferquota zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.
