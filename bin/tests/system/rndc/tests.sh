@@ -233,5 +233,11 @@ grep "ADB stats" ns2/named.stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:test using second key"
+ret=0
+$RNDC -s 10.53.0.2 -p 9953 -k ns2/secondkey.key status > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

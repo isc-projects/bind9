@@ -1,3 +1,6 @@
+3337.	[bug]		Change #3294 broke support for the multiple keys
+			in controls. [RT #29694]
+
 3336.	[func]		Maintain statistics for RRsets tagged as "stale".
 			[RT #29514]
 
