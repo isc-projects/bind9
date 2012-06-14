@@ -51,13 +51,13 @@ JOURNALPRINT=$TOP/bin/tools/named-journalprint
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-# v6synth
+# v6synth rsabigexponent
 SUBDIRS="acl allow_query addzone autosign builtin cacheclean checkconf
 	 checknames checkzone database dlv dlvauto dlz dlzexternal
          dname dns64 dnssec ecdsa forward glue gost ixfr inline limits
 	 logfileconfig lwresd masterfile masterformat metadata notify
 	 nsupdate pending pkcs11 redirect resolver rndc rpz rrsetorder
-	 rsabigexponent sortlist smartsign staticstub statistics stub
+	 sortlist smartsign staticstub statistics stub
 	 tkey tsig tsiggss unknown upforwd views xfer xferquota zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.
