@@ -57,6 +57,8 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
+#define DST_KEY_INTERNAL
+
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/name.h>
@@ -360,6 +362,25 @@ dst_context_verify(dst_context_t *dctx, isc_region_t *sig) {
 		return (DST_R_NOTPUBLICKEY);
 
 	return (dctx->key->func->verify(dctx, sig));
+}
+
+isc_result_t
+dst_context_verify2(dst_context_t *dctx, unsigned int maxbits,
+		    isc_region_t *sig)
+{
+	REQUIRE(VALID_CTX(dctx));
+	REQUIRE(sig != NULL);
+
+	CHECKALG(dctx->key->key_alg);
+	if (dctx->key->keydata.generic == NULL)
+		return (DST_R_NULLKEY);
+	if (dctx->key->func->verify == NULL &&
+	    dctx->key->func->verify2 == NULL)
+		return (DST_R_NOTPUBLICKEY);
+
+	return (dctx->key->func->verify2 != NULL ?
+		dctx->key->func->verify2(dctx, maxbits, sig) :
+		dctx->key->func->verify(dctx, sig));
 }
 
 isc_result_t
@@ -737,6 +758,40 @@ dst_key_fromgssapi(dns_name_t *name, gss_ctx_id_t gssctx, isc_mem_t *mctx,
 	result = ISC_R_SUCCESS;
 out:
 	return result;
+}
+
+isc_result_t
+dst_key_buildinternal(dns_name_t *name, unsigned int alg,
+		      unsigned int bits, unsigned int flags,
+		      unsigned int protocol, dns_rdataclass_t rdclass,
+		      void *data, isc_mem_t *mctx, dst_key_t **keyp)
+{
+	dst_key_t *key;
+	isc_result_t result;
+
+	REQUIRE(dst_initialized == ISC_TRUE);
+	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(mctx != NULL);
+	REQUIRE(keyp != NULL && *keyp == NULL);
+	REQUIRE(data != NULL);
+
+	CHECKALG(alg);
+
+	key = get_key_struct(name, alg, flags, protocol, bits, rdclass,
+			     0, mctx);
+	if (key == NULL)
+		return (ISC_R_NOMEMORY);
+
+	key->keydata.generic = data;
+
+	result = computeid(key);
+	if (result != ISC_R_SUCCESS) {
+		dst_key_free(&key);
+		return (result);
+	}
+
+	*keyp = key;
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

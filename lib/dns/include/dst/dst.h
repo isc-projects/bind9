@@ -233,8 +233,15 @@ dst_context_sign(dst_context_t *dctx, isc_buffer_t *sig);
 
 isc_result_t
 dst_context_verify(dst_context_t *dctx, isc_region_t *sig);
+
+isc_result_t
+dst_context_verify2(dst_context_t *dctx, unsigned int maxbits,
+		    isc_region_t *sig);
 /*%<
  * Verifies the signature using the data and key stored in the context.
+ *
+ * 'maxbits' specifies the maximum number of bits permitted in the RSA
+ * exponent.
  *
  * Requires:
  * \li	"dctx" is a valid context.
@@ -492,6 +499,14 @@ dst_key_fromgssapi(dns_name_t *name, gss_ctx_id_t gssctx, isc_mem_t *mctx,
  *	the context id.
  */
 
+#ifdef DST_KEY_INTERNAL
+isc_result_t
+dst_key_buildinternal(dns_name_t *name, unsigned int alg,
+		      unsigned int bits, unsigned int flags,
+		      unsigned int protocol, dns_rdataclass_t rdclass,
+		      void *data, isc_mem_t *mctx, dst_key_t **keyp);
+#endif
+
 isc_result_t
 dst_key_fromlabel(dns_name_t *name, int alg, unsigned int flags,
 		  unsigned int protocol, dns_rdataclass_t rdclass,
@@ -512,6 +527,7 @@ dst_key_generate2(dns_name_t *name, unsigned int alg,
 		  dns_rdataclass_t rdclass,
 		  isc_mem_t *mctx, dst_key_t **keyp,
 		  void (*callback)(int));
+
 /*%<
  * Generate a DST key (or keypair) with the supplied parameters.  The
  * interpretation of the "param" field depends on the algorithm:

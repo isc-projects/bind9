@@ -2927,7 +2927,7 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 
 static isc_boolean_t
 verify(dst_key_t *key, dns_name_t *name, dns_rdataset_t *rdataset,
-       dns_rdata_t *rdata, isc_mem_t *mctx, isc_boolean_t acceptexpired)
+       dns_rdata_t *rdata, ns_client_t *client)
 {
 	isc_result_t result;
 	dns_fixedname_t fixed;
@@ -2936,9 +2936,10 @@ verify(dst_key_t *key, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_fixedname_init(&fixed);
 
 again:
-	result = dns_dnssec_verify2(name, rdataset, key, ignore, mctx,
+	result = dns_dnssec_verify3(name, rdataset, key, ignore,
+				    client->view->maxbits, client->mctx,
 				    rdata, NULL);
-	if (result == DNS_R_SIGEXPIRED && acceptexpired) {
+	if (result == DNS_R_SIGEXPIRED && client->view->acceptexpired) {
 		ignore = ISC_TRUE;
 		goto again;
 	}
@@ -2981,8 +2982,7 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 		do {
 			if (!get_key(client, db, &rrsig, &keyrdataset, &key))
 				break;
-			if (verify(key, name, rdataset, &rdata, client->mctx,
-				   client->view->acceptexpired)) {
+			if (verify(key, name, rdataset, &rdata, client)) {
 				dst_key_free(&key);
 				dns_rdataset_disassociate(&keyrdataset);
 				mark_secure(client, db, name,

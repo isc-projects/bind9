@@ -1,5 +1,6 @@
-# Copyright (C) 2004, 2007, 2008, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+#!/bin/sh
+#
+# Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,34 +14,23 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.38 2011/11/01 18:35:53 each Exp $
+# $Id: sign.sh,v 1.3 2011/05/26 23:47:28 tbox Exp $
 
-srcdir =	@srcdir@
-VPATH =		@srcdir@
-top_srcdir =	@top_srcdir@
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
 
-@BIND9_MAKE_INCLUDES@
+RANDFILE=../random.data
 
-SUBDIRS =	dlzexternal filter-aaaa lwresd rpz rsabigexponent tkey tsiggss
-TARGETS =
+zone=example.
+infile=example.db.in
+outfile=example.db.bad
 
-@BIND9_MAKE_RULES@
+for i in Xexample.+005+51829.key Xexample.+005+51829.private \
+	Xexample.+005+05896.key Xexample.+005+05896.private
+do
+	cp $i `echo $i | sed s/X/K/`
+done
 
-# Running the scripts below is bypassed when a separate
-# build directory is used.
-
-check: test
-
-test: subdirs
-	if test -f ./runall.sh; then sh ./runall.sh; fi
-
-testclean clean distclean::
-	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
-	rm -f systests.output
-
-distclean::
-	rm -f conf.sh
-
-installdirs:
-
-install::
+$SIGNER -r $RANDFILE -g -s 20000101000000 -e 20361231235959 -o $zone \
+	$infile Kexample.+005+51829 Kexample.+005+51829 \
+	> /dev/null 2> signer.err

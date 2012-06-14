@@ -68,7 +68,6 @@
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg><option>-E <replaceable class="parameter">engine</replaceable></option></arg>
-      <arg><option>-e</option></arg>
       <arg><option>-f <replaceable class="parameter">flag</replaceable></option></arg>
       <arg><option>-G</option></arg>
       <arg><option>-g <replaceable class="parameter">generator</replaceable></option></arg>
@@ -229,15 +228,6 @@
             and, when supported, key generation. When compiled with PKCS#11
             support it defaults to pkcs11; the empty name resets it to
             no engine.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>-e</term>
-        <listitem>
-          <para>
-            If generating an RSAMD5/RSASHA1 key, use a large exponent.
           </para>
         </listitem>
       </varlistentry>

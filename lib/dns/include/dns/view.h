@@ -158,6 +158,7 @@ struct dns_view {
 	dns_name_t *			dlv;
 	dns_fixedname_t			dlv_fixed;
 	isc_uint16_t			maxudp;
+	unsigned int			maxbits;
 	dns_aaaa_t			v4_aaaa;
 	dns_aaaa_t			v6_aaaa;
 	dns_acl_t *			aaaa_acl;
