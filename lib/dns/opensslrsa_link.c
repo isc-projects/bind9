@@ -511,7 +511,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 }
 
 static isc_result_t
-opensslrsa_verify2(dst_context_t *dctx, unsigned int maxbits, const isc_region_t *sig) {
+opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 	dst_key_t *key = dctx->key;
 	int status = 0;
 #if USE_EVP
