@@ -219,11 +219,14 @@ isc_event_free
 isc_file_absolutepath
 isc_file_basename
 isc_file_exists
+isc_file_getsize
+isc_file_getsizefd
 isc_file_getmodtime
 isc_file_isabsolute
 isc_file_ischdiridempotent
 isc_file_iscurrentdir
 isc_file_isplainfile
+isc_file_isplainfilefd
 isc_file_mktemplate
 isc_file_openunique
 isc_file_openuniquemode

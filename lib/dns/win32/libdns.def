@@ -134,6 +134,7 @@ dns_db_register
 dns_db_rpz_enabled
 dns_db_rpz_findips
 dns_db_setcachestats
+dns_db_serialize
 dns_db_subtractrdataset
 dns_db_unregister
 dns_dbiterator_current
@@ -490,6 +491,7 @@ dns_rbt_addnode
 dns_rbt_create
 dns_rbt_deletename
 dns_rbt_deletenode
+dns_rbt_deserialize_tree
 dns_rbt_destroy
 dns_rbt_findname
 dns_rbt_findnode
@@ -499,6 +501,9 @@ dns_rbt_hashsize
 dns_rbt_namefromnode
 dns_rbt_nodecount
 dns_rbt_printall
+dns_rbt_printnodeinfo
+dns_rbt_serialize_align
+dns_rbt_serialize_tree
 dns_rbtnodechain_current
 dns_rbtnodechain_first
 dns_rbtnodechain_init

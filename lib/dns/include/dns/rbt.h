@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.77 2009/11/04 01:18:19 marka Exp $ */
+/* $Id: rbt.h,v 1.77.666.4 2012/02/08 19:53:30 each Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -48,6 +48,8 @@ ISC_LANG_BEGINDECLS
 #define DNS_RBT_USEISCREFCOUNT 1
 #endif
 #endif
+
+#define DNS_RBT_USEMAGIC 1
 
 /*
  * These should add up to 30.
@@ -114,6 +116,14 @@ struct dns_rbtnode {
 	unsigned int offsetlen : 8;     /*%< range is 1..128 */
 	unsigned int oldnamelen : 8;    /*%< range is 1..255 */
 	/*@}*/
+	
+	/* flags needed for serialization to file*/
+	unsigned int is_mmapped : 1;
+	unsigned int parent_is_relative : 1;
+	unsigned int left_is_relative : 1;
+	unsigned int right_is_relative : 1;
+	unsigned int down_is_relative : 1;
+	unsigned int data_is_relative : 1;
 
 #ifdef DNS_RBT_USEHASH
 	unsigned int hashval;
@@ -139,6 +149,10 @@ struct dns_rbtnode {
 typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 					      dns_name_t *name,
 					      void *callback_arg);
+
+typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file,
+					    unsigned char *data,
+					    isc_uint32_t version);
 
 /*****
  *****  Chain Info
@@ -667,8 +681,44 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
  * \li  ISC_R_QUOTA if 'quantum' nodes have been destroyed.
  */
 
+inline isc_uint64_t
+dns_rbt_serialize_align(isc_uint64_t target);
+/*%<
+ * Align the provided integer to a pointer-size boundary.
+ * This should be used if, during serialization of data to a will-be
+ * mmap()ed file, a pointer alignment is needed for some data.
+ */
+
+isc_result_t
+dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
+		       dns_rbtdatawriter_t datawriter,
+		       isc_uint32_t serial, isc_uint64_t *offset);
+/*%<
+ * Write out the RBT structure and its data to a file.
+ *
+ * Notes:
+ * \li  The file must be an actual file which allows seek() calls, so it cannot
+ *      be a stream.  Returns ISC_R_INVALIDFILE if not.
+ */
+ 
+isc_result_t
+dns_rbt_deserialize_tree(void *base_address, off_t header_offset,
+			 isc_mem_t *mctx,
+			 void (*deleter)(void *, void *), void *deleter_arg,
+			 void (*data_fixer)(dns_rbtnode_t *),
+			 dns_rbtnode_t **originp, dns_rbt_t **rbtp);
+/*%<
+ * Read a RBT structure and its data from a file.
+ *
+ * If 'originp' is not NULL, then it is pointed to the root node of the RBT.
+ *
+ * Notes:
+ * \li  The file must be an actual file which allows seek() calls, so it cannot
+ *      be a stream.  This condition is not checked in the code.
+ */
+ 
 void
-dns_rbt_printall(dns_rbt_t *rbt);
+dns_rbt_printall(dns_rbt_t *rbt, void (*data_printer)(FILE *, void *));
 /*%<
  * Print an ASCII representation of the internal structure of the red-black
  * tree of trees.
@@ -680,6 +730,12 @@ dns_rbt_printall(dns_rbt_t *rbt);
  *      NULL left and right pointers are printed.
  */
 
+void
+dns_rbt_printnodeinfo(dns_rbtnode_t *n);
+/*%<
+ * Print out various information about a node
+ */
+	
 /*****
  ***** Chain Functions
  *****/

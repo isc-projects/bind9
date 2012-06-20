@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.99.4.1 2011/10/23 20:12:07 vjs Exp $ */
+/* $Id$ */
 
 /*! \file */
 
@@ -303,29 +303,28 @@ dns_db_class(dns_db_t *db) {
 
 #ifdef BIND9
 isc_result_t
-dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
-		 dns_dbload_t **dbloadp) {
+dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	/*
 	 * Begin loading 'db'.
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(addp != NULL && *addp == NULL);
-	REQUIRE(dbloadp != NULL && *dbloadp == NULL);
+	REQUIRE(DNS_CALLBACK_VALID(callbacks));
 
-	return ((db->methods->beginload)(db, addp, dbloadp));
+	return ((db->methods->beginload)(db, callbacks));
 }
 
 isc_result_t
-dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp) {
+dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	/*
 	 * Finish loading 'db'.
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(dbloadp != NULL && *dbloadp != NULL);
+	REQUIRE(DNS_CALLBACK_VALID(callbacks));
+	REQUIRE(callbacks->add_private != NULL);
 
-	return ((db->methods->endload)(db, dbloadp));
+	return ((db->methods->endload)(db, callbacks));
 }
 
 isc_result_t
@@ -354,14 +353,13 @@ dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
 		options |= DNS_MASTER_AGETTL;
 
 	dns_rdatacallbacks_init(&callbacks);
-
-	result = dns_db_beginload(db, &callbacks.add, &callbacks.add_private);
+	result = dns_db_beginload(db, &callbacks);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = dns_master_loadfile2(filename, &db->origin, &db->origin,
 				      db->rdclass, options,
 				      &callbacks, db->mctx, format);
-	eresult = dns_db_endload(db, &callbacks.add_private);
+	eresult = dns_db_endload(db, &callbacks);
 	/*
 	 * We always call dns_db_endload(), but we only want to return its
 	 * result if dns_master_loadfile() succeeded.  If dns_master_loadfile()
@@ -372,6 +370,14 @@ dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
 		result = eresult;
 
 	return (result);
+}
+
+isc_result_t 
+dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *file) {
+	REQUIRE(DNS_DB_VALID(db));
+	if (db->methods->serialize == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+	return ((db->methods->serialize)(db, version, file));
 }
 
 isc_result_t

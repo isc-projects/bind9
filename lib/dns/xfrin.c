@@ -29,6 +29,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/diff.h>
 #include <dns/events.h>
@@ -161,10 +162,7 @@ struct dns_xfrin_ctx {
 	 * but keeping them separate makes it a bit simpler to clean
 	 * things up when destroying the context.
 	 */
-	struct {
-		dns_addrdatasetfunc_t add_func;
-		dns_dbload_t	      *add_private;
-	} axfr;
+	dns_rdatacallbacks_t	axfr;
 
 	struct {
 		isc_uint32_t 	request_serial;
@@ -261,8 +259,8 @@ axfr_init(dns_xfrin_ctx_t *xfr) {
 		dns_db_detach(&xfr->db);
 
 	CHECK(axfr_makedb(xfr, &xfr->db));
-	CHECK(dns_db_beginload(xfr->db, &xfr->axfr.add_func,
-			       &xfr->axfr.add_private));
+	dns_rdatacallbacks_init(&xfr->axfr);
+	CHECK(dns_db_beginload(xfr->db, &xfr->axfr));
 	result = ISC_R_SUCCESS;
  failure:
 	return (result);
@@ -305,8 +303,7 @@ static isc_result_t
 axfr_apply(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 
-	CHECK(dns_diff_load(&xfr->diff,
-			    xfr->axfr.add_func, xfr->axfr.add_private));
+	CHECK(dns_diff_load(&xfr->diff, xfr->axfr.add, xfr->axfr.add_private));
 	xfr->difflen = 0;
 	dns_diff_clear(&xfr->diff);
 	result = ISC_R_SUCCESS;
@@ -319,7 +316,7 @@ axfr_commit(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 
 	CHECK(axfr_apply(xfr));
-	CHECK(dns_db_endload(xfr->db, &xfr->axfr.add_private));
+	CHECK(dns_db_endload(xfr->db, &xfr->axfr));
 
 	result = ISC_R_SUCCESS;
  failure:
@@ -722,10 +719,8 @@ xfrin_reset(dns_xfrin_ctx_t *xfr) {
 	if (xfr->ixfr.journal != NULL)
 		dns_journal_destroy(&xfr->ixfr.journal);
 
-	if (xfr->axfr.add_private != NULL) {
-		(void)dns_db_endload(xfr->db, &xfr->axfr.add_private);
-		xfr->axfr.add_func = NULL;
-	}
+	if (xfr->axfr.add_private != NULL)
+		(void)dns_db_endload(xfr->db, &xfr->axfr);
 
 	if (xfr->tcpmsg_valid) {
 		dns_tcpmsg_invalidate(&xfr->tcpmsg);
@@ -841,7 +836,7 @@ xfrin_create(isc_mem_t *mctx,
 	/* ixfr.current_serial */
 	xfr->ixfr.journal = NULL;
 
-	xfr->axfr.add_func = NULL;
+	xfr->axfr.add = NULL;
 	xfr->axfr.add_private = NULL;
 
 	CHECK(dns_name_dup(zonename, mctx, &xfr->name));
@@ -1481,7 +1476,7 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 		dns_journal_destroy(&xfr->ixfr.journal);
 
 	if (xfr->axfr.add_private != NULL)
-		(void)dns_db_endload(xfr->db, &xfr->axfr.add_private);
+		(void)dns_db_endload(xfr->db, &xfr->axfr);
 
 	if (xfr->tcpmsg_valid)
 		dns_tcpmsg_invalidate(&xfr->tcpmsg);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.57 2012/01/31 23:47:33 tbox Exp $ */
+/* $Id: master.h,v 1.57.8.1 2012/02/07 00:44:16 each Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -78,7 +78,9 @@ ISC_LANG_BEGINDECLS
 /* Common header */
 struct dns_masterrawheader {
 	isc_uint32_t		format;		/* must be
-						 * dns_masterformat_raw */
+						 * dns_masterformat_raw 
+						 * or
+						 * dns_masterformat_fast */
 	isc_uint32_t		version;	/* compatibility for future
 						 * extensions */
 	isc_uint32_t		dumptime;	/* timestamp on creation

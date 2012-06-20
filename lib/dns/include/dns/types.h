@@ -29,6 +29,8 @@
  * include the appropriate .h file too.
  */
 
+#include <stdio.h>
+
 #include <isc/types.h>
 
 typedef struct dns_acache			dns_acache_t;
@@ -188,7 +190,8 @@ typedef enum {
 typedef enum {
 	dns_masterformat_none = 0,
 	dns_masterformat_text = 1,
-	dns_masterformat_raw = 2
+	dns_masterformat_raw  = 2,
+	dns_masterformat_fast = 3 
 } dns_masterformat_t;
 
 typedef enum {
@@ -391,5 +394,8 @@ typedef isc_boolean_t
 typedef isc_boolean_t
 (*dns_isselffunc_t)(dns_view_t *, dns_tsigkey_t *, isc_sockaddr_t *,
 		    isc_sockaddr_t *, dns_rdataclass_t, void *);
+
+typedef isc_result_t
+(*dns_deserializefunc_t)(void *, FILE *, off_t);
 
 #endif /* DNS_TYPES_H */

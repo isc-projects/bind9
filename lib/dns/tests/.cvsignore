@@ -1,0 +1,4 @@
+Makefile
+atf.out
+*_test
+zone.bin

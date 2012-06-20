@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.180 2011/10/11 00:09:03 each Exp $
+# $Id: Makefile.in,v 1.180.130.1 2012/02/11 22:37:56 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -24,6 +24,9 @@ top_srcdir =	@top_srcdir@
 .NO_PARALLEL:
 
 @BIND9_VERSION@
+@BIND9_MAJOR@
+
+@LIBDNS_FASTAPI@
 
 @LIBDNS_API@
 
@@ -114,6 +117,8 @@ DEPENDEXTRA =	./gen -F include/dns/rdatastruct.h \
 version.@O@: version.c
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
+		-DMAJOR=\"${MAJOR}\" \
+		-DFASTAPI=\"${FASTAPI}\" \
 		-DLIBINTERFACE=${LIBINTERFACE} \
 		-DLIBREVISION=${LIBREVISION} \
 		-DLIBAGE=${LIBAGE} \

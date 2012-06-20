@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.24 2011/10/25 01:54:18 marka Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.24.114.1 2012/02/07 00:44:12 each Exp $ */
 
 /*! \file */
 
@@ -84,7 +84,7 @@ db_load_from_stream(dns_db_t *db, FILE *fp) {
 	dns_rdatacallbacks_t callbacks;
 
 	dns_rdatacallbacks_init(&callbacks);
-	result = dns_db_beginload(db, &callbacks.add, &callbacks.add_private);
+	result = dns_db_beginload(db, &callbacks);
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_db_beginload failed: %s", isc_result_totext(result));
 
@@ -93,7 +93,7 @@ db_load_from_stream(dns_db_t *db, FILE *fp) {
 	if (result != ISC_R_SUCCESS)
 		fatal("can't load from input: %s", isc_result_totext(result));
 
-	result = dns_db_endload(db, &callbacks.add_private);
+	result = dns_db_endload(db, &callbacks);
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_db_endload failed: %s", isc_result_totext(result));
 }

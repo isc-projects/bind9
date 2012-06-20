@@ -23,10 +23,15 @@
 
 #include <config.h>
 
+#include <sys/stat.h>
+
+#include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
+#include <isc/socket.h>
+#include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -40,6 +45,16 @@
 #include <dns/log.h>
 #include <dns/rbt.h>
 #include <dns/result.h>
+#include <dns/version.h>
+
+#include <unistd.h>
+
+#define CHECK(x) \
+	do { \
+		result = (x); \
+		if (result != ISC_R_SUCCESS) \
+			goto cleanup; \
+	} while (0)
 
 #define RBT_MAGIC               ISC_MAGIC('R', 'B', 'T', '+')
 #define VALID_RBT(rbt)          ISC_MAGIC_VALID(rbt, RBT_MAGIC)
@@ -68,10 +83,118 @@ struct dns_rbt {
 	unsigned int            nodecount;
 	unsigned int            hashsize;
 	dns_rbtnode_t **        hashtable;
+	void *                  mmap_location;
 };
 
 #define RED 0
 #define BLACK 1
+
+/*
+ * This is the header for fast-format RBT images.  It is populated,
+ * and then written, as the LAST thing done to the file before returning.
+ * Writing this last (with zeros in the header area initially) will ensure
+ * that the header is only valid when the RBT image is also valid.
+ */
+typedef struct file_header file_header_t;
+
+/* Pad to 32 bytes */
+static char FILE_VERSION[32] = "\0";
+
+/* Header length, always the same size regardless of structure size */
+const unsigned int HEADER_LENGTH = 1024;
+
+struct file_header {
+	char version1[32];
+	isc_uint64_t first_node_offset;	/* usually 1024 */
+	/* 
+	 * information about the system on which the fast file was generated
+	 * will be used to tell if we can load the fast file or not
+	 */
+	isc_uint32_t ptrsize;
+	unsigned int bigendian:1;	/* big or little endian system */
+	unsigned int rdataset_fixed:1;	/* compiled with --enable-rrset-fixed */
+	unsigned int nodecount;		/* shadow from rbt structure */
+	char version2[32];  		/* repeated; must match version1 */
+};
+
+/*
+ * The following declarations are for the serialization of an RBT:
+ *
+ * step one: write out a zeroed header of 1024 bytes
+ * step two: walk the tree in a depth-first, left-right-down order, writing
+ * out the nodes, reserving space as we go, correcting addresses to point
+ * at the proper offset in the file, and setting a flag for each pointer to 
+ * indicate that it is a reference to a location in the file, rather than in 
+ * memory.
+ * step three: write out the header, adding the information that will be 
+ * needed to re-create the tree object itself.
+ *
+ * The RBTDB object will do this three times, once for each of the three
+ * RBT objects it contains.
+ *
+ * Note: 'file' must point an actual open file that can be mmapped
+ * and fseeked, not to a pipe or stream
+ */
+
+static isc_result_t
+dns_rbt_zero_header(FILE *file);
+
+static isc_result_t
+write_header(FILE *file, dns_rbt_t *rbt, isc_uint64_t first_node_offset);
+
+static isc_result_t
+serialize_node(FILE *file, dns_rbtnode_t *node, isc_uint64_t left,
+	       isc_uint64_t right, isc_uint64_t down,
+	       isc_uint64_t parent, isc_uint64_t data);
+
+static isc_result_t
+serialize_nodes(FILE *file, dns_rbtnode_t *node, isc_uint64_t parent,
+		dns_rbtdatawriter_t datawriter, isc_uint32_t serial,
+		isc_uint64_t *where);
+/*
+ * The following functions allow you to get the actual address of a pointer 
+ * without having to use an if statement to check to see if that address is 
+ * relative or not
+ */
+static inline dns_rbtnode_t *
+getparent(dns_rbtnode_t *node, file_header_t *header) {
+	char *adjusted_address = (char *)(node->parent);
+	adjusted_address += node->parent_is_relative * (isc_uint64_t)header;
+	
+	return ((dns_rbtnode_t *)adjusted_address);
+}
+
+static inline dns_rbtnode_t *
+getleft(dns_rbtnode_t *node, file_header_t *header) {
+	char *adjusted_address = (char *)(node->left);
+	adjusted_address += node->left_is_relative * (isc_uint64_t)header;
+	
+	return ((dns_rbtnode_t *)adjusted_address);
+}
+
+static inline dns_rbtnode_t *
+getright(dns_rbtnode_t *node, file_header_t *header) {
+	char *adjusted_address = (char *)(node->right);
+	adjusted_address += node->right_is_relative * (isc_uint64_t)header;
+	
+	return ((dns_rbtnode_t *)adjusted_address);
+}
+
+static inline dns_rbtnode_t *
+getdown(dns_rbtnode_t *node, file_header_t *header) {
+	char *adjusted_address = (char *)(node->down);
+	adjusted_address += node->down_is_relative * (isc_uint64_t)header;
+	
+	return ((dns_rbtnode_t *)adjusted_address);
+}
+
+static inline dns_rbtnode_t *
+getdata(dns_rbtnode_t *node, file_header_t *header) {
+	char *adjusted_address = (char *)(node->data);
+	adjusted_address += node->data_is_relative * (isc_uint64_t)header;
+	
+	return ((dns_rbtnode_t *)adjusted_address);
+}
 
 /*%
  * Elements of the rbtnode structure.
@@ -142,15 +265,16 @@ struct dns_rbt {
  * path of the tree traversal code.
  */
 
-#define NODENAME(node, name) \
-do { \
-	(name)->length = NAMELEN(node); \
-	(name)->labels = OFFSETLEN(node); \
-	(name)->ndata = NAME(node); \
-	(name)->offsets = OFFSETS(node); \
-	(name)->attributes = ATTRS(node); \
-	(name)->attributes |= DNS_NAMEATTR_READONLY; \
-} while (0)
+static inline void
+NODENAME(dns_rbtnode_t *node, dns_name_t *name)
+{
+	name->length = NAMELEN(node);
+	name->labels = OFFSETLEN(node);
+	name->ndata = NAME(node);
+	name->offsets = OFFSETS(node);
+	name->attributes = ATTRS(node);
+	name->attributes |= DNS_NAMEATTR_READONLY;
+}
 
 #ifdef DNS_RBT_USEHASH
 static isc_result_t
@@ -174,7 +298,7 @@ Name(dns_rbtnode_t *node) {
 	return (name);
 }
 
-static void dns_rbt_printnodename(dns_rbtnode_t *node);
+static void printnodename(dns_rbtnode_t *node);
 #endif
 
 static inline dns_rbtnode_t *
@@ -204,7 +328,7 @@ hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_name_t *name);
 static inline void
 unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
 #else
-#define hash_node(rbt, node, name) (ISC_R_SUCCESS)
+#define hash_node(rbt, node, name)
 #define unhash_node(rbt, node)
 #endif
 
@@ -214,18 +338,371 @@ static inline void
 rotate_right(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
 
 static void
-dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
-		   dns_rbtnode_t **rootp);
+addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
+	   dns_rbtnode_t **rootp);
 
 static void
-dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp);
+deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp);
+
+static void
+treefix(dns_rbt_t *rbt, dns_rbtnode_t *n, dns_name_t *name,
+	void (*data_fixer)(dns_rbtnode_t *));
 
 static isc_result_t
-dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
+deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
 
 static void
-dns_rbt_deletetreeflat(dns_rbt_t *rbt, unsigned int quantum,
-		       dns_rbtnode_t **nodep);
+deletetreeflat(dns_rbt_t *rbt, unsigned int quantum, dns_rbtnode_t **nodep);
+
+static void
+printnodename(dns_rbtnode_t *node);
+
+static void
+freenode(dns_rbt_t *rbt, dns_rbtnode_t **nodep);
+
+isc_result_t
+dns_rbt_zero_header(FILE *file) {
+	/*
+	 * Write out a zeroed header as a placeholder.  Doing this ensures
+	 * that the file will not read while it is partially written, should
+	 * writing fail or be interrupted.
+	 */
+	char buffer[HEADER_LENGTH];
+	isc_result_t result;
+	
+	memset(buffer, 0, HEADER_LENGTH);
+	result = isc_stdio_write(buffer, 1, HEADER_LENGTH, file, NULL);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = fflush(file);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+		
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Write out the real header, including NodeDump version information
+ * and the offset of the first node.
+ *
+ * Any information stored in the rbt object itself should be stored
+ * here.
+ */
+static isc_result_t 
+write_header(FILE *file, dns_rbt_t *rbt, isc_uint64_t first_node_offset) {
+	file_header_t header;
+	isc_result_t result;
+	
+	if (FILE_VERSION[0] == '\0') {
+		memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
+		snprintf(FILE_VERSION, sizeof(FILE_VERSION),
+			 "RBT Image %s %s", dns_major, dns_fastapi);
+	}
+
+	memset(&header, 0, sizeof(file_header_t));
+	memcpy(header.version1, FILE_VERSION, sizeof(header.version1));
+	memcpy(header.version2, FILE_VERSION, sizeof(header.version2));
+	header.first_node_offset = first_node_offset;
+	header.ptrsize = (isc_uint32_t) sizeof(void *);
+	header.bigendian = (1 == htonl(1)) ? 1 : 0;
+	
+#ifdef DNS_RDATASET_FIXED
+	header.rdataset_fixed = 1;
+#else
+	header.rdataset_fixed = 0;
+#endif	
+	
+	header.nodecount = rbt->nodecount;
+
+	CHECK(isc_stdio_seek(file, dns_rbt_serialize_align(ftell(file)),
+			     SEEK_SET));
+	CHECK(isc_stdio_write(&header, 1, sizeof(file_header_t), file, NULL));
+	CHECK(fflush(file));
+	
+	/* Ensure we are always at the end of the file. */
+	CHECK(isc_stdio_seek(file, 0, SEEK_END));
+
+ cleanup:
+	return (result);
+}
+
+static isc_result_t 
+serialize_node(FILE *file, dns_rbtnode_t *node, isc_uint64_t left, 
+	       isc_uint64_t right, isc_uint64_t down,
+	       isc_uint64_t parent, isc_uint64_t data)
+{
+	dns_rbtnode_t temp_node;
+	isc_uint64_t file_position;
+	unsigned char *node_data;
+	size_t datasize;
+	isc_result_t result;
+
+	INSIST(node != NULL);
+
+	file_position = ftell(file);
+	file_position = dns_rbt_serialize_align(file_position);
+	CHECK(isc_stdio_seek(file, file_position, SEEK_SET));
+
+	temp_node = *node;
+	temp_node.down_is_relative = 0;
+	temp_node.left_is_relative = 0;
+	temp_node.right_is_relative = 0;
+	temp_node.parent_is_relative = 0;
+	temp_node.data_is_relative = 0;
+	temp_node.is_mmapped = 1;
+	
+	/*
+	 * If the next node is not NULL, calculate the next node's location
+	 * in the file.  Note that this will have to change when the data
+	 * structure changes, and it also assumes that we always write the
+	 * nodes out in list order (which we currently do.)
+	*/
+	if (temp_node.parent != NULL) {
+		temp_node.parent = (dns_rbtnode_t *)(parent);
+		temp_node.parent_is_relative = 1;
+	}
+	if (temp_node.left != NULL) {
+		temp_node.left = (dns_rbtnode_t *)(left);
+		temp_node.left_is_relative = 1;
+	}
+	if (temp_node.right != NULL) {
+		temp_node.right = (dns_rbtnode_t *)(right);
+		temp_node.right_is_relative = 1;
+	}
+	if (temp_node.down != NULL) {
+		temp_node.down = (dns_rbtnode_t *)(down);
+		temp_node.down_is_relative = 1;
+	}
+	if (temp_node.data != NULL) {
+		temp_node.data = (dns_rbtnode_t *)(data);
+		temp_node.data_is_relative = 1;
+	}
+
+	node_data = (unsigned char *) node + sizeof(dns_rbtnode_t);
+	datasize = NODE_SIZE(node) - sizeof(dns_rbtnode_t);
+
+	CHECK(isc_stdio_write(&temp_node, 1, sizeof(dns_rbtnode_t),
+			      file, NULL));
+
+	CHECK(isc_stdio_write(node_data, 1, datasize, file, NULL));
+
+ cleanup:
+	return (result);
+}
+
+static isc_result_t
+serialize_nodes(FILE *file, dns_rbtnode_t *node, isc_uint64_t parent,
+		dns_rbtdatawriter_t datawriter, isc_uint32_t serial,
+		isc_uint64_t *where)
+{
+	isc_uint64_t left = 0, right = 0, down = 0, data = 0;
+	isc_uint64_t this_node_location = 0;
+	isc_uint64_t offset_adjust;
+	isc_result_t result;
+	
+	if (node == NULL) {
+		if (where != NULL)
+			*where = 0;
+		return (ISC_R_SUCCESS);
+	}
+
+	/* Reserve space for current node */
+	CHECK(isc_stdio_seek(file, dns_rbt_serialize_align(ftell(file)),
+			     SEEK_SET));
+	this_node_location = ftell(file);
+	offset_adjust = dns_rbt_serialize_align(this_node_location +
+						NODE_SIZE(node));
+	CHECK(isc_stdio_seek(file, offset_adjust, SEEK_SET));
+		
+	/* Serialize the rest of the tree */
+	CHECK(serialize_nodes(file, getleft(node, NULL), this_node_location,
+			      datawriter, serial, &left));
+	CHECK(serialize_nodes(file, getright(node, NULL), this_node_location,
+			      datawriter, serial, &right));
+	CHECK(serialize_nodes(file, getdown(node, NULL), this_node_location,
+			      datawriter, serial, &down));
+
+	if (node->data != NULL) {
+		CHECK(isc_stdio_seek(file, dns_rbt_serialize_align(ftell(file)),
+			             SEEK_SET));
+		data = ftell(file);
+		datawriter(file, node->data, serial);
+	}
+	
+	/* Seek back to reserved space */
+	CHECK(isc_stdio_seek(file, this_node_location, SEEK_SET));
+
+	/* Serialize the current node */
+	CHECK(serialize_node(file, node, left, right, down, parent, data));
+
+	/* Ensure we are always at the end of the file. */
+	CHECK(isc_stdio_seek(file, 0, SEEK_END));
+
+	if (where != NULL)
+		*where = this_node_location;
+
+ cleanup:
+	return (result);
+}
+
+inline isc_uint64_t
+dns_rbt_serialize_align(isc_uint64_t target) {
+	int offset = (isc_uint64_t)target % 8;
+
+	if (offset == 0)
+		return (target);
+	else
+		return (target + 8 - offset);
+}
+
+isc_result_t 
+dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt, 
+		       dns_rbtdatawriter_t datawriter,
+		       isc_uint32_t serial, isc_uint64_t *offset)
+{
+	isc_result_t result;
+	long header_position, node_position, end_position;
+
+	REQUIRE(file != NULL);
+	
+	CHECK(isc_file_isplainfilefd(fileno(file)));
+
+	header_position = ftell(file);
+
+	/* Write dummy header */
+	CHECK(dns_rbt_zero_header(file));
+
+	/* Serialize nodes */
+	node_position = ftell(file);
+	CHECK(serialize_nodes(file, rbt->root, 0, datawriter, serial, NULL));
+	end_position = ftell(file);
+	
+	if (node_position == end_position) {
+		CHECK(isc_stdio_seek(file, header_position, SEEK_SET));
+		*offset = 0;
+		return (ISC_R_SUCCESS);
+	}
+		
+	/* Serialize header */
+	CHECK(isc_stdio_seek(file, header_position, SEEK_SET));
+	CHECK(write_header(file, rbt, HEADER_LENGTH));
+
+	/* Ensure we are always at the end of the file. */
+	CHECK(isc_stdio_seek(file, 0, SEEK_END));
+	*offset = dns_rbt_serialize_align(header_position);
+
+ cleanup:
+	return (result);
+}
+
+static void
+treefix(dns_rbt_t *rbt, dns_rbtnode_t *n, dns_name_t *name,
+		void (*data_fixer)(dns_rbtnode_t *))
+{
+	isc_result_t result;
+	dns_fixedname_t fixed;
+	dns_name_t nodename, *fullname;
+
+	if (n == NULL)
+		return;
+
+	dns_name_init(&nodename, NULL);
+	NODENAME(n, &nodename);
+
+	fullname = &nodename;
+	if (!dns_name_isabsolute(&nodename)) {
+		dns_fixedname_init(&fixed);
+		fullname = dns_fixedname_name(&fixed);
+		result = dns_name_concatenate(&nodename, name, fullname, NULL);
+		INSIST(result == ISC_R_SUCCESS);
+		/* XXX: we need to catch errors better than this */
+	}
+	
+	INSIST(!n->parent_is_relative || n->parent != NULL);
+	INSIST(!n->right_is_relative || n->right != NULL);
+	INSIST(!n->left_is_relative || n->left != NULL);
+	INSIST(!n->down_is_relative || n->down != NULL);
+	INSIST(!n->data_is_relative || n->data != NULL);
+
+	n->right = getright(n, rbt->mmap_location);
+	n->right_is_relative = 0;
+
+	n->left = getleft(n, rbt->mmap_location);
+	n->left_is_relative = 0;
+
+	n->down = getdown(n, rbt->mmap_location);
+	n->down_is_relative = 0;
+
+	n->parent = getparent(n, rbt->mmap_location);
+	n->parent_is_relative = 0;
+
+	n->data = getdata(n, rbt->mmap_location);
+	n->data_is_relative = 0;
+	
+	hash_node(rbt, n, fullname);
+	
+	if (data_fixer != NULL && n->data != NULL)
+		data_fixer(n);
+	
+	if (n->right != NULL)
+		treefix(rbt, n->right, name, data_fixer);
+	if (n->left != NULL)
+		treefix(rbt, n->left, name, data_fixer);
+	if (n->down != NULL)
+		treefix(rbt, n->down, fullname, data_fixer);
+}
+
+isc_result_t 
+dns_rbt_deserialize_tree(void *base_address, off_t header_offset,
+			 isc_mem_t *mctx,
+			 void (*deleter)(void *, void *),
+			 void *deleter_arg,
+			 void (*data_fixer)(dns_rbtnode_t *),
+			 dns_rbtnode_t **originp, dns_rbt_t **rbtp)
+{
+	isc_result_t result;
+	file_header_t *header;
+
+	REQUIRE(originp == NULL || *originp == NULL);
+	
+	result = dns_rbt_create(mctx, deleter, deleter_arg, rbtp);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	(*rbtp)->mmap_location = base_address;
+
+	header = (file_header_t *)((char *)base_address + header_offset);
+	
+#ifdef DNS_RDATASET_FIXED
+	if (header->rdataset_fixed != 1) {
+		return (ISC_R_INVALIDFILE);
+	}
+	
+#else
+	if (header->rdataset_fixed != 0) {
+		return (ISC_R_INVALIDFILE);
+	}
+#endif
+
+	if (header->ptrsize != (isc_uint32_t) sizeof(void *)) {
+		return (ISC_R_INVALIDFILE);
+	}
+	if (header->bigendian != (1 == htonl(1)) ? 1 : 0) {
+		return (ISC_R_INVALIDFILE);
+	}
+	
+	/* Copy other data items from the header into our rbt. */
+	(*rbtp)->root = (dns_rbtnode_t *)((char *)base_address +
+				header_offset + header->first_node_offset);
+	(*rbtp)->nodecount = header->nodecount;
+	treefix(*rbtp, (*rbtp)->root, dns_rootname, data_fixer);
+
+	if (originp != NULL)
+		*originp = (*rbtp)->root;
+
+	return (ISC_R_SUCCESS);
+}
 
 /*
  * Initialize a red/black tree of trees.
@@ -255,6 +732,7 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	rbt->nodecount = 0;
 	rbt->hashtable = NULL;
 	rbt->hashsize = 0;
+	rbt->mmap_location = NULL;
 
 #ifdef DNS_RBT_USEHASH
 	result = inithash(rbt);
@@ -287,11 +765,13 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum) {
 
 	rbt = *rbtp;
 
-	dns_rbt_deletetreeflat(rbt, quantum, &rbt->root);
+	deletetreeflat(rbt, quantum, &rbt->root);
 	if (rbt->root != NULL)
 		return (ISC_R_QUOTA);
 
 	INSIST(rbt->nodecount == 0);
+	
+	rbt->mmap_location = NULL;
 
 	if (rbt->hashtable != NULL)
 		isc_mem_put(rbt->mctx, rbt->hashtable,
@@ -511,7 +991,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * XXXDCL need a better error result?
 				 *
 				 * XXXDCL Since chain ancestors were removed,
-				 * no longer used by dns_rbt_addonlevel(),
+				 * no longer used by addonlevel(),
 				 * this is the only real use of chains in the
 				 * function.  It could be done instead with
 				 * a simple integer variable, but I am pressed
@@ -639,7 +1119,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 		result = create_node(rbt->mctx, add_name, &new_current);
 
 	if (result == ISC_R_SUCCESS) {
-		dns_rbt_addonlevel(new_current, current, order, root);
+		addonlevel(new_current, current, order, root);
 		rbt->nodecount++;
 		*nodep = new_current;
 		hash_node(rbt, new_current, name);
@@ -871,7 +1351,9 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			 * down pointer and search in the new tree.
 			 */
 			if (compared == dns_namereln_subdomain) {
+#ifdef DNS_RBT_USEHASH
 		subdomain:
+#endif
 				/*
 				 * Whack off the current node's common parts
 				 * for the name to search in the next level.
@@ -1287,10 +1769,11 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(DNS_RBTNODE_VALID(node));
+	INSIST(rbt->nodecount != 0);
 
 	if (DOWN(node) != NULL) {
 		if (recurse)
-			RUNTIME_CHECK(dns_rbt_deletetree(rbt, DOWN(node))
+			RUNTIME_CHECK(deletetree(rbt, DOWN(node))
 				      == ISC_R_SUCCESS);
 		else {
 			if (DATA(node) != NULL && rbt->data_deleter != NULL)
@@ -1321,8 +1804,7 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 	 * have one to start, or because it was recursively removed).
 	 * So now the node needs to be removed from this level.
 	 */
-	dns_rbt_deletefromlevel(node, parent == NULL ? &rbt->root :
-						       &DOWN(parent));
+	deletefromlevel(node, parent == NULL ? &rbt->root : &DOWN(parent));
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
@@ -1332,8 +1814,8 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 	node->magic = 0;
 #endif
 	dns_rbtnode_refdestroy(node);
-	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
-	rbt->nodecount--;
+	
+	freenode(rbt, &node);
 
 	/*
 	 * There are now two special cases that can exist that would
@@ -1428,6 +1910,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_rbtnode_t *node;
 	isc_region_t region;
 	unsigned int labels;
+	size_t nodelen;
 
 	REQUIRE(name->offsets != NULL);
 
@@ -1438,11 +1921,11 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	/*
 	 * Allocate space for the node structure, the name, and the offsets.
 	 */
-	node = (dns_rbtnode_t *)isc_mem_get(mctx, sizeof(*node) +
-					    region.length + labels + 1);
-
+	nodelen = sizeof(dns_rbtnode_t) + region.length + labels + 1;
+	node = (dns_rbtnode_t *)isc_mem_get(mctx, nodelen);
 	if (node == NULL)
 		return (ISC_R_NOMEMORY);
+	memset(node, 0, nodelen);
 
 	node->is_root = 0;
 	PARENT(node) = NULL;
@@ -1450,6 +1933,13 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	LEFT(node) = NULL;
 	DOWN(node) = NULL;
 	DATA(node) = NULL;
+	node->is_mmapped = 0;
+	node->down_is_relative = 0;
+	node->left_is_relative = 0;
+	node->right_is_relative = 0;
+	node->parent_is_relative = 0;
+	node->data_is_relative = 0;
+	
 #ifdef DNS_RBT_USEHASH
 	HASHNEXT(node) = NULL;
 	HASHVAL(node) = 0;
@@ -1499,6 +1989,8 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 static inline void
 hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_name_t *name) {
 	unsigned int hash;
+
+	REQUIRE(name != NULL);
 
 	HASHVAL(node) = dns_name_fullhash(name, ISC_FALSE);
 
@@ -1666,8 +2158,8 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
  * true red/black tree on a single level.
  */
 static void
-dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
-		   dns_rbtnode_t **rootp)
+addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
+	   dns_rbtnode_t **rootp)
 {
 	dns_rbtnode_t *child, *root, *parent, *grandparent;
 	dns_name_t add_name, current_name;
@@ -1773,7 +2265,7 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
  * true red/black tree on a single level.
  */
 static void
-dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
+deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 	dns_rbtnode_t *child, *sibling, *parent;
 	dns_rbtnode_t *successor;
 
@@ -2020,7 +2512,7 @@ dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
  * this function would need to adjusted accordingly.
  */
 static isc_result_t
-dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
+deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	isc_result_t result = ISC_R_SUCCESS;
 	REQUIRE(VALID_RBT(rbt));
 
@@ -2028,19 +2520,19 @@ dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 		return (result);
 
 	if (LEFT(node) != NULL) {
-		result = dns_rbt_deletetree(rbt, LEFT(node));
+		result = deletetree(rbt, LEFT(node));
 		if (result != ISC_R_SUCCESS)
 			goto done;
 		LEFT(node) = NULL;
 	}
 	if (RIGHT(node) != NULL) {
-		result = dns_rbt_deletetree(rbt, RIGHT(node));
+		result = deletetree(rbt, RIGHT(node));
 		if (result != ISC_R_SUCCESS)
 			goto done;
 		RIGHT(node) = NULL;
 	}
 	if (DOWN(node) != NULL) {
-		result = dns_rbt_deletetree(rbt, DOWN(node));
+		result = deletetree(rbt, DOWN(node));
 		if (result != ISC_R_SUCCESS)
 			goto done;
 		DOWN(node) = NULL;
@@ -2057,15 +2549,24 @@ dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	node->magic = 0;
 #endif
 
-	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
-	rbt->nodecount--;
+	freenode(rbt, &node);
 	return (result);
 }
 
 static void
-dns_rbt_deletetreeflat(dns_rbt_t *rbt, unsigned int quantum,
-		       dns_rbtnode_t **nodep)
-{
+freenode(dns_rbt_t *rbt, dns_rbtnode_t **nodep) {
+	dns_rbtnode_t *node = *nodep;
+	
+	if (node->is_mmapped == 0) {
+		isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
+	}
+	*nodep = NULL;
+	
+	rbt->nodecount--;
+}
+
+static void
+deletetreeflat(dns_rbt_t *rbt, unsigned int quantum, dns_rbtnode_t **nodep) {
 	dns_rbtnode_t *parent;
 	dns_rbtnode_t *node = *nodep;
 	REQUIRE(VALID_RBT(rbt));
@@ -2106,9 +2607,9 @@ dns_rbt_deletetreeflat(dns_rbt_t *rbt, unsigned int quantum,
 			DOWN(parent) = RIGHT(node);
 	} else
 		parent = RIGHT(node);
-
-	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
-	rbt->nodecount--;
+		
+	freenode(rbt, &node);
+	
 	node = parent;
 	if (quantum != 0 && --quantum == 0) {
 		*nodep = node;
@@ -2121,12 +2622,38 @@ static void
 dns_rbt_indent(int depth) {
 	int i;
 
+	printf("%4d ", depth);
+
 	for (i = 0; i < depth; i++)
-		putchar('\t');
+		printf("- ");
+}
+
+void
+dns_rbt_printnodeinfo(dns_rbtnode_t *n) {
+	printf("Node info for nodename: ");
+	printnodename(n);
+	printf("\n");
+	
+	printf("n = %p\n", n);
+
+	printf("Relative pointers: %s%s%s%s%s\n", 
+			(n->parent_is_relative == 1 ? " P" : ""),
+			(n->right_is_relative == 1 ? " R" : ""),
+			(n->left_is_relative == 1 ? " L" : ""),
+			(n->down_is_relative == 1 ? " D" : ""),
+			(n->data_is_relative == 1 ? " T" : ""));
+
+	printf("node lock address = %d\n", n->locknum);
+
+	printf("Parent: %p\n", n->parent);
+	printf("Right: %p\n", n->right);
+	printf("Left: %p\n", n->left);
+	printf("Down: %p\n", n->down);
+	printf("daTa: %p\n", n->data);
 }
 
 static void
-dns_rbt_printnodename(dns_rbtnode_t *node) {
+printnodename(dns_rbtnode_t *node) {
 	isc_region_t r;
 	dns_name_t name;
 	char buffer[DNS_NAME_FORMATSIZE];
@@ -2140,20 +2667,19 @@ dns_rbt_printnodename(dns_rbtnode_t *node) {
 
 	dns_name_format(&name, buffer, sizeof(buffer));
 
-	printf("%s", buffer);
+	printf("\"%s\"", buffer);
 }
 
 static void
-dns_rbt_printtree(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth) {
+dns_rbt_printtree(dns_rbtnode_t *root, dns_rbtnode_t *parent,
+		  int depth, const char *direction,
+		  void (*data_printer)(FILE *, void *))
+{
 	dns_rbt_indent(depth);
 
 	if (root != NULL) {
-		dns_rbt_printnodename(root);
-		printf(" (%s", IS_RED(root) ? "RED" : "black");
-		if (parent) {
-			printf(" from ");
-			dns_rbt_printnodename(parent);
-		}
+		printnodename(root);
+		printf(" (%s, %s", direction, IS_RED(root) ? "RED" : "BLACK");
 
 		if ((! IS_ROOT(root) && PARENT(root) != parent) ||
 		    (  IS_ROOT(root) && depth > 0 &&
@@ -2161,46 +2687,44 @@ dns_rbt_printtree(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth) {
 
 			printf(" (BAD parent pointer! -> ");
 			if (PARENT(root) != NULL)
-				dns_rbt_printnodename(PARENT(root));
+				printnodename(PARENT(root));
 			else
 				printf("NULL");
 			printf(")");
 		}
 
-		printf(")\n");
-
+		printf(")");
+		
+		if (root->data != NULL && data_printer != NULL) {
+			printf(" data@%p: ", root->data);
+			data_printer(stdout, root->data);
+		}
+		printf("\n");
 
 		depth++;
 
-		if (DOWN(root)) {
-			dns_rbt_indent(depth);
-			printf("++ BEG down from ");
-			dns_rbt_printnodename(root);
-			printf("\n");
-			dns_rbt_printtree(DOWN(root), NULL, depth);
-			dns_rbt_indent(depth);
-			printf("-- END down from ");
-			dns_rbt_printnodename(root);
-			printf("\n");
-		}
-
 		if (IS_RED(root) && IS_RED(LEFT(root)))
-		    printf("** Red/Red color violation on left\n");
-		dns_rbt_printtree(LEFT(root), root, depth);
+			printf("** Red/Red color violation on left\n");
+		dns_rbt_printtree(LEFT(root), root, depth, "left",
+				  data_printer);
 
 		if (IS_RED(root) && IS_RED(RIGHT(root)))
-		    printf("** Red/Red color violation on right\n");
-		dns_rbt_printtree(RIGHT(root), root, depth);
+			printf("** Red/Red color violation on right\n");
+		dns_rbt_printtree(RIGHT(root), root, depth, "right",
+				  data_printer);
 
-	} else
-		printf("NULL\n");
+		dns_rbt_printtree(DOWN(root), NULL, depth, "down",
+				  data_printer);
+	} else {
+		printf("NULL (%s)\n", direction);
+	}
 }
 
 void
-dns_rbt_printall(dns_rbt_t *rbt) {
+dns_rbt_printall(dns_rbt_t *rbt, void (*data_printer)(FILE *, void *)) {
 	REQUIRE(VALID_RBT(rbt));
 
-	dns_rbt_printtree(rbt->root, NULL, 0);
+	dns_rbt_printtree(rbt->root, NULL, 0, "root", data_printer);
 }
 
 /*

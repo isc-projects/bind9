@@ -177,10 +177,16 @@ static isc_result_t
 openfile_raw(dns_loadctx_t *lctx, const char *master_file);
 
 static isc_result_t
+openfile_fast(dns_loadctx_t *lctx, const char *master_file);
+
+static isc_result_t
 load_text(dns_loadctx_t *lctx);
 
 static isc_result_t
 load_raw(dns_loadctx_t *lctx);
+
+static isc_result_t
+load_fast(dns_loadctx_t *lctx);
 
 static isc_result_t
 pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx);
@@ -561,6 +567,10 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		lctx->openfile = openfile_raw;
 		lctx->load = load_raw;
 		break;
+	case dns_masterformat_fast:
+		lctx->openfile = openfile_fast;
+		lctx->load = load_fast;
+		break;
 	}
 
 	if (lex != NULL) {
@@ -789,6 +799,20 @@ openfile_raw(dns_loadctx_t *lctx, const char *master_file) {
 }
 
 static isc_result_t
+openfile_fast(dns_loadctx_t *lctx, const char *master_file) {
+	isc_result_t result;
+
+	result = isc_stdio_open(master_file, "r", &lctx->f);
+	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_stdio_open() failed: %s",
+				 isc_result_totext(result));
+	}
+
+	return (result);
+}
+
+static isc_result_t
 generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	 const char *source, unsigned int line)
 {
@@ -938,8 +962,8 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 }
 
 static void
-limit_ttl(dns_rdatacallbacks_t *callbacks, const char *source, unsigned int line,
-	  isc_uint32_t *ttlp)
+limit_ttl(dns_rdatacallbacks_t *callbacks, const char *source,
+	  unsigned int line, isc_uint32_t *ttlp)
 {
 	if (*ttlp > 0x7fffffffUL) {
 		(callbacks->warn)(callbacks,
@@ -2081,6 +2105,110 @@ read_and_check(isc_boolean_t do_read, isc_buffer_t *buffer,
 }
 
 static isc_result_t
+load_header(dns_loadctx_t *lctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_masterrawheader_t header;
+	dns_rdatacallbacks_t *callbacks;
+	size_t commonlen = sizeof(header.format) + sizeof(header.version);
+	size_t remainder;
+	unsigned char data[sizeof(header)];
+	isc_buffer_t target;
+
+	REQUIRE(DNS_LCTX_VALID(lctx));
+
+	if (lctx->format != dns_masterformat_raw &&
+	    lctx->format != dns_masterformat_fast)
+		return (ISC_R_NOTIMPLEMENTED);
+
+	callbacks = lctx->callbacks;
+	dns_master_initrawheader(&header);
+
+	INSIST(commonlen <= sizeof(header));
+	isc_buffer_init(&target, data, sizeof(data));
+
+	result = isc_stdio_read(data, 1, commonlen, lctx->f, NULL);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_stdio_read failed: %s",
+				 isc_result_totext(result));
+		return (result);
+	}
+
+	isc_buffer_add(&target, commonlen);
+	header.format = isc_buffer_getuint32(&target);
+	if (header.format != lctx->format) {
+		(*callbacks->error)(callbacks, "dns_master_load: "
+				    "file format mismatch (not %s)",
+				    lctx->format == dns_masterformat_fast
+					    ? "fast"
+					    : "raw");
+		return (ISC_R_NOTIMPLEMENTED);
+	}
+
+	header.version = isc_buffer_getuint32(&target);
+		
+	switch (header.version) {
+	case 0:
+		remainder = sizeof(header.dumptime);
+		break;
+	case DNS_RAWFORMAT_VERSION:
+		remainder = sizeof(header) - commonlen;
+		break;
+	default:
+		(*callbacks->error)(callbacks,
+				    "dns_master_load: "
+				    "unsupported file format version");
+		return (ISC_R_NOTIMPLEMENTED);
+	}
+
+	result = isc_stdio_read(data + commonlen, 1, remainder, lctx->f, NULL);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_stdio_read failed: %s",
+				 isc_result_totext(result));
+		return (result);
+	}
+
+	isc_buffer_add(&target, remainder);
+	header.dumptime = isc_buffer_getuint32(&target);
+	if (header.version == DNS_RAWFORMAT_VERSION) {
+		header.flags = isc_buffer_getuint32(&target);
+		header.sourceserial = isc_buffer_getuint32(&target);
+		header.lastxfrin = isc_buffer_getuint32(&target);
+	}
+
+	lctx->first = ISC_FALSE;
+	lctx->header = header;
+	
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Load a fast format file, using mmap() to access RBT trees directly
+ */
+static isc_result_t
+load_fast(dns_loadctx_t *lctx) {
+	isc_result_t result;
+	dns_rdatacallbacks_t *callbacks;
+	
+	REQUIRE(DNS_LCTX_VALID(lctx));
+
+	callbacks = lctx->callbacks;
+
+	if (lctx->first) {
+		result = load_header(lctx);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+
+		(*callbacks->deserialize)(callbacks->deserialize_private,
+					  lctx->f,
+					  sizeof(dns_masterrawheader_t));
+	}
+	
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
 load_raw(dns_loadctx_t *lctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_boolean_t done = ISC_FALSE;
@@ -2097,72 +2225,14 @@ load_raw(dns_loadctx_t *lctx) {
 	int target_size = TSIZ;
 	isc_buffer_t target;
 	unsigned char *target_mem = NULL;
-	dns_masterrawheader_t header;
 
 	REQUIRE(DNS_LCTX_VALID(lctx));
 	callbacks = lctx->callbacks;
 
-	dns_master_initrawheader(&header);
-
 	if (lctx->first) {
-		unsigned char data[sizeof(header)];
-		size_t commonlen =
-			sizeof(header.format) + sizeof(header.version);
-		size_t remainder;
-
-		INSIST(commonlen <= sizeof(header));
-		isc_buffer_init(&target, data, sizeof(data));
-
-		result = isc_stdio_read(data, 1, commonlen, lctx->f, NULL);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_stdio_read failed: %s",
-					 isc_result_totext(result));
+		result = load_header(lctx);
+		if (result != ISC_R_SUCCESS)
 			return (result);
-		}
-		isc_buffer_add(&target, commonlen);
-		header.format = isc_buffer_getuint32(&target);
-		if (header.format != dns_masterformat_raw) {
-			(*callbacks->error)(callbacks,
-					    "dns_master_load: "
-					    "file format mismatch");
-			return (ISC_R_NOTIMPLEMENTED);
-		}
-
-		header.version = isc_buffer_getuint32(&target);
-		switch (header.version) {
-		case 0:
-			remainder = sizeof(header.dumptime);
-			break;
-		case DNS_RAWFORMAT_VERSION:
-			remainder = sizeof(header) - commonlen;
-			break;
-		default:
-			(*callbacks->error)(callbacks,
-					    "dns_master_load: "
-					    "unsupported file format version");
-			return (ISC_R_NOTIMPLEMENTED);
-		}
-
-		result = isc_stdio_read(data + commonlen, 1, remainder,
-					lctx->f, NULL);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_stdio_read failed: %s",
-					 isc_result_totext(result));
-			return (result);
-		}
-
-		isc_buffer_add(&target, remainder);
-		header.dumptime = isc_buffer_getuint32(&target);
-		if (header.version == DNS_RAWFORMAT_VERSION) {
-			header.flags = isc_buffer_getuint32(&target);
-			header.sourceserial = isc_buffer_getuint32(&target);
-			header.lastxfrin = isc_buffer_getuint32(&target);
-		}
-
-		lctx->first = ISC_FALSE;
-		lctx->header = header;
 	}
 
 	ISC_LIST_INIT(head);
@@ -2389,7 +2459,7 @@ load_raw(dns_loadctx_t *lctx) {
 		result = lctx->result;
 
 	if (result == ISC_R_SUCCESS && callbacks->rawdata != NULL)
-		(*callbacks->rawdata)(callbacks->zone, &header);
+		(*callbacks->rawdata)(callbacks->zone, &lctx->header);
 
  cleanup:
 	if (rdata != NULL)

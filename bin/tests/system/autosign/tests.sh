@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.46 2012/02/07 00:33:19 each Exp $
+# $Id$
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -168,11 +168,16 @@ echo "I:resetting nsec3param via rndc signing ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -clear all autonsec3.example. > /dev/null 2>&1
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 1 10 beef autonsec3.example. > /dev/null 2>&1
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -list autonsec3.example. > signing.out.test$n 2>&1
-grep "Pending NSEC3 chain 1 1 10 BEEF" signing.out.test$n > /dev/null || ret=1
-num=`grep "Pending " signing.out.test$n | wc -l`
-[ $num -eq 1 ] || ret=1
+for i in 0 1 2 3 4 5 6 7 8 9; do
+	ret=0
+	$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -list autonsec3.example. > signing.out.test$n 2>&1
+	grep "Pending NSEC3 chain 1 1 10 BEEF" signing.out.test$n > /dev/null || ret=1
+	num=`grep "Pending " signing.out.test$n | wc -l`
+	[ $num -eq 1 ] || ret=1
+	[ $ret -eq 0 ] && break
+	echo "I:waiting ... ($i)"
+	sleep 2
+done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -809,15 +814,21 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:checking secure-to-insecure transition, nsupdate ($n)"
+ret=0
 $NSUPDATE > /dev/null 2>&1 <<END	|| status=1
 server 10.53.0.3 5300
 zone secure-to-insecure.example
 update delete secure-to-insecure.example dnskey
 send
 END
-sleep 2
-$DIG $DIGOPTS axfr secure-to-insecure.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-egrep '(RRSIG|DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
+for i in 0 1 2 3 4 5 6 7 8 9; do
+	ret=0
+	$DIG $DIGOPTS axfr secure-to-insecure.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
+	egrep '(RRSIG|DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
+	[ $ret -eq 0 ] && break
+	echo "I:waiting ... ($i)"
+	sleep 2
+done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -829,9 +840,14 @@ $SETTIME -I now -D now $file > /dev/null
 file="ns3/`cat del2.key`.key"
 $SETTIME -I now -D now $file > /dev/null
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 sign secure-to-insecure2.example. 2>&1 | sed 's/^/I:ns3 /'
-sleep 2
-$DIG $DIGOPTS axfr secure-to-insecure2.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-egrep '(RRSIG|DNSKEY|NSEC3)' dig.out.ns3.test$n > /dev/null && ret=1
+for i in 0 1 2 3 4 5 6 7 8 9; do
+	ret=0
+	$DIG $DIGOPTS axfr secure-to-insecure2.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
+	egrep '(RRSIG|DNSKEY|NSEC3)' dig.out.ns3.test$n > /dev/null && ret=1
+	[ $ret -eq 0 ] && break
+	echo "I:waiting ... ($i)"
+	sleep 2
+done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -1131,7 +1147,8 @@ for i in 0 1 2 3 4 5 6 7 8 9; do
     lret=0
     rekey_calls=`grep "zone reconf.example.*next key event" ns3/named.run | wc -l`
     [ "$rekey_calls" -gt 0 ] || lret=1
-    if [ "$lret" = 0 ]; then break; fi
+    if [ "$lret" -eq 0 ]; then break; fi
+    echo "I:waiting ... ($i)"
     sleep 1
 done
 n=`expr $n + 1`

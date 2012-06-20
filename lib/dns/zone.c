@@ -2008,8 +2008,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		dns_rdatacallbacks_init(&load->callbacks);
 		load->callbacks.rawdata = zone_setrawdata;
 		zone_iattach(zone, &load->callbacks.zone);
-		result = dns_db_beginload(db, &load->callbacks.add,
-					  &load->callbacks.add_private);
+		result = dns_db_beginload(db, &load->callbacks);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		result = zonemgr_getio(zone->zmgr, ISC_TRUE, zone->loadtask,
@@ -2020,8 +2019,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			 * We can't report multiple errors so ignore
 			 * the result of dns_db_endload().
 			 */
-			(void)dns_db_endload(load->db,
-					     &load->callbacks.add_private);
+			(void)dns_db_endload(load->db, &load->callbacks);
 			goto cleanup;
 		} else
 			result = DNS_R_CONTINUE;
@@ -2031,8 +2029,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		dns_rdatacallbacks_init(&callbacks);
 		callbacks.rawdata = zone_setrawdata;
 		zone_iattach(zone, &callbacks.zone);
-		result = dns_db_beginload(db, &callbacks.add,
-					  &callbacks.add_private);
+		result = dns_db_beginload(db, &callbacks);
 		if (result != ISC_R_SUCCESS) {
 			zone_idetach(&callbacks.zone);
 			return (result);
@@ -2045,7 +2042,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 					      zone_registerinclude,
 					      zone, zone->mctx,
 					      zone->masterformat);
-		tresult = dns_db_endload(db, &callbacks.add_private);
+		tresult = dns_db_endload(db, &callbacks);
 		if (result == ISC_R_SUCCESS)
 			result = tresult;
 		zone_idetach(&callbacks.zone);
@@ -13239,7 +13236,7 @@ zone_loaddone(void *arg, isc_result_t result) {
 
 	ENTER;
 
-	tresult = dns_db_endload(load->db, &load->callbacks.add_private);
+	tresult = dns_db_endload(load->db, &load->callbacks);
 	if (tresult != ISC_R_SUCCESS &&
 	    (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE))
 		result = tresult;

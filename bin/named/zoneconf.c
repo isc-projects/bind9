@@ -793,10 +793,12 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	dns_rdataclass_t zclass;
 	dns_rdataclass_t vclass;
 	const cfg_obj_t *maps[5];
+	const cfg_obj_t *nodefault[4];
 	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *obj;
 	const char *filename = NULL;
+	const char *dupcheck;
 	dns_notifytype_t notifytype = dns_notifytype_yes;
 	isc_sockaddr_t *addrs;
 	dns_name_t **keynames;
@@ -825,15 +827,21 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	i = 0;
 	if (zconfig != NULL) {
 		zoptions = cfg_tuple_get(zconfig, "options");
-		maps[i++] = zoptions;
+		nodefault[i] = maps[i] = zoptions;
+		i++;
 	}
-	if (vconfig != NULL)
-		maps[i++] = cfg_tuple_get(vconfig, "options");
+	if (vconfig != NULL) {
+		nodefault[i] = maps[i] = cfg_tuple_get(vconfig, "options");
+		i++;
+	}
 	if (config != NULL) {
 		(void)cfg_map_get(config, "options", &options);
-		if (options != NULL)
-			maps[i++] = options;
+		if (options != NULL) {
+			nodefault[i] = maps[i] = options;
+			i++;
+		}
 	}
+	nodefault[i] = NULL;
 	maps[i++] = ns_g_defaults;
 	maps[i] = NULL;
 
@@ -922,6 +930,8 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			masterformat = dns_masterformat_text;
 		else if (strcasecmp(masterformatstr, "raw") == 0)
 			masterformat = dns_masterformat_raw;
+		else if (strcasecmp(masterformatstr, "fast") == 0)
+			masterformat = dns_masterformat_fast;
 		else
 			INSIST(0);
 	}
@@ -1346,15 +1356,31 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			check = ISC_FALSE;
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKWILDCARD, check);
 
+		/*
+		 * With fast files, the default is ignore duplicate
+		 * records.  With other master formats, the default is
+		 * taken from the global configuration.
+		 */
 		obj = NULL;
-		result = ns_config_get(maps, "check-dup-records", &obj);
-		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
+		if (masterformat != dns_masterformat_fast) {
+			result = ns_config_get(maps, "check-dup-records", &obj);
+			INSIST(result == ISC_R_SUCCESS && obj != NULL);
+			dupcheck = cfg_obj_asstring(obj);
+		} else {
+			result = ns_config_get(nodefault, "check-dup-records",
+					       &obj);
+			if (result == ISC_R_SUCCESS)
+				dupcheck = cfg_obj_asstring(obj);
+			else
+				dupcheck = "ignore";
+
+		}
+		if (strcasecmp(dupcheck, "warn") == 0) {
 			fail = ISC_FALSE;
 			check = ISC_TRUE;
-		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
+		} else if (strcasecmp(dupcheck, "fail") == 0) {
 			fail = check = ISC_TRUE;
-		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
+		} else if (strcasecmp(dupcheck, "ignore") == 0) {
 			fail = check = ISC_FALSE;
 		} else
 			INSIST(0);
@@ -1376,11 +1402,26 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKMX, check);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKMXFAIL, fail);
 
+		/*
+		 * With fast files, the default is *not* to check
+		 * integrity.  With other master formats, the default is
+		 * taken from the global configuration.
+		 */
 		obj = NULL;
-		result = ns_config_get(maps, "check-integrity", &obj);
-		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKINTEGRITY,
-				   cfg_obj_asboolean(obj));
+		if (masterformat != dns_masterformat_fast) {
+			result = ns_config_get(maps, "check-integrity", &obj);
+			INSIST(result == ISC_R_SUCCESS && obj != NULL);
+			dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKINTEGRITY,
+					   cfg_obj_asboolean(obj));
+		} else {
+			isc_boolean_t check = ISC_FALSE;
+			result = ns_config_get(nodefault, "check-integrity",
+					       &obj);
+			if (result == ISC_R_SUCCESS)
+				check = cfg_obj_asboolean(obj);
+			dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKINTEGRITY,
+					   check);
+		}
 
 		obj = NULL;
 		result = ns_config_get(maps, "check-mx-cname", &obj);

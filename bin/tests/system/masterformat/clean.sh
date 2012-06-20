@@ -14,13 +14,14 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.12 2012/02/14 23:47:15 tbox Exp $
+# $Id$
 
 rm -f named-compilezone
 rm -f ns1/example.db.raw*
 rm -f ns1/example.db.compat
 rm -f ns1/example.db.serial.raw
 rm -f ns1/large.db ns1/large.db.raw
+rm -f ns1/example.db.fast
 rm -f dig.out.*
 rm -f dig.out
 rm -f */named.memstats
@@ -29,3 +30,6 @@ rm -f ns2/transfer.db.*
 rm -f ns2/formerly-text.db
 rm -f ns2/db-*
 rm -f ns2/large.bk
+rm -f ns3/example.db.fast ns3/dynamic.db.fast
+rm -f baseline.txt text.1 text.2 raw.1 raw.2 fast.1 fast.2
+

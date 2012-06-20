@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.285 2011/12/22 07:32:39 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.285.32.1 2012/02/07 00:44:12 each Exp $ */
 
 /*! \file */
 
@@ -3819,6 +3819,8 @@ main(int argc, char *argv[]) {
 	if (inputformatstr != NULL) {
 		if (strcasecmp(inputformatstr, "text") == 0)
 			inputformat = dns_masterformat_text;
+		else if (strcasecmp(inputformatstr, "fast") == 0)
+			inputformat = dns_masterformat_fast;
 		else if (strcasecmp(inputformatstr, "raw") == 0)
 			inputformat = dns_masterformat_raw;
 		else if (strncasecmp(inputformatstr, "raw=", 4) == 0) {
@@ -3836,6 +3838,8 @@ main(int argc, char *argv[]) {
 		} else if (strcasecmp(outputformatstr, "full") == 0) {
 			outputformat = dns_masterformat_text;
 			masterstyle = &dns_master_style_full;
+		} else if (strcasecmp(outputformatstr, "fast") == 0) {
+			outputformat = dns_masterformat_fast;
 		} else if (strcasecmp(outputformatstr, "raw") == 0) {
 			outputformat = dns_masterformat_raw;
 		} else if (strncasecmp(outputformatstr, "raw=", 4) == 0) {

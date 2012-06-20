@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.533 $)
+AC_REVISION($Revision: 1.533.34.1 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -3217,6 +3217,8 @@ BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 . $srcdir/version
 BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}"
 AC_SUBST(BIND9_VERSION)
+BIND9_MAJOR="MAJOR=${MAJORVER}.${MINORVER}"
+AC_SUBST(BIND9_MAJOR)
 
 if test -z "$ac_configure_args"; then
 	BIND9_CONFIGARGS="defaults"
@@ -3241,6 +3243,9 @@ LIBISCCFG_API=$srcdir/lib/isccfg/api
 
 AC_SUBST_FILE(LIBDNS_API)
 LIBDNS_API=$srcdir/lib/dns/api
+
+AC_SUBST_FILE(LIBDNS_FASTAPI)
+LIBDNS_FASTAPI=$srcdir/lib/dns/fastapi
 
 AC_SUBST_FILE(LIBBIND9_API)
 LIBBIND9_API=$srcdir/lib/bind9/api

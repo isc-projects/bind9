@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.107.4.1 2011/10/23 20:12:08 vjs Exp $ */
+/* $Id$ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -77,9 +77,12 @@ ISC_LANG_BEGINDECLS
 typedef struct dns_dbmethods {
 	void		(*attach)(dns_db_t *source, dns_db_t **targetp);
 	void		(*detach)(dns_db_t **dbp);
-	isc_result_t	(*beginload)(dns_db_t *db, dns_addrdatasetfunc_t *addp,
-				     dns_dbload_t **dbloadp);
-	isc_result_t	(*endload)(dns_db_t *db, dns_dbload_t **dbloadp);
+	isc_result_t	(*beginload)(dns_db_t *db,
+				     dns_rdatacallbacks_t *callbacks);
+	isc_result_t	(*endload)(dns_db_t *db, 
+				     dns_rdatacallbacks_t *callbacks);
+	isc_result_t	(*serialize)(dns_db_t *db,
+				     dns_dbversion_t *version, FILE *file);
 	isc_result_t	(*dump)(dns_db_t *db, dns_dbversion_t *version,
 				const char *filename,
 				dns_masterformat_t masterformat);
@@ -462,8 +465,7 @@ dns_db_class(dns_db_t *db);
  */
 
 isc_result_t
-dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
-		 dns_dbload_t **dbloadp);
+dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
 /*%<
  * Begin loading 'db'.
  *
@@ -473,15 +475,17 @@ dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
  *
  * \li	This is the first attempt to load 'db'.
  *
- * \li	addp != NULL && *addp == NULL
- *
- * \li	dbloadp != NULL && *dbloadp == NULL
+ * \li  'callbacks' is a pointer to an initialized dns_rdatacallbacks_t
+ *       structure.
  *
  * Ensures:
  *
- * \li	On success, *addp will be a valid dns_addrdatasetfunc_t suitable
- *	for loading 'db'.  *dbloadp will be a valid DB load context which
- *	should be used as 'arg' when *addp is called.
+ * \li	On success, callbacks->add will be a valid dns_addrdatasetfunc_t
+ *      suitable for loading records into 'db' from a raw or text zone
+ *      file. callbacks->add_private will be a valid DB load context
+ *      which should be used as 'arg' when callbacks->add is called. 
+ *      callbacks->deserialize will be a valid dns_deserialize_func_t
+ *      suitable for loading 'db' from a fast format zone file.
  *
  * Returns:
  *
@@ -493,7 +497,7 @@ dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
  */
 
 isc_result_t
-dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp);
+dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
 /*%<
  * Finish loading 'db'.
  *
@@ -501,11 +505,13 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp);
  *
  * \li	'db' is a valid database that is being loaded.
  *
- * \li	dbloadp != NULL and *dbloadp is a valid database load context.
+ * \li	'callbacks' is a valid dns_rdatacallbacks_t structure.
+ *
+ * \li	callbacks->add_private is not NULL and is a valid database load context.
  *
  * Ensures:
  *
- * \li	*dbloadp == NULL
+ * \li	'callbacks' is returned to its state prior to calling dns_db_beginload()
  *
  * Returns:
  *
@@ -550,6 +556,26 @@ dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
+ */
+
+isc_result_t 
+dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *rbtfile);
+/*%<
+ * Dump version 'version' of 'db' to fast file 'filename'.
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database.
+ *
+ * \li	'version' is a valid version.
+ *
+ * Returns:
+ *
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOMEMORY
+ *
+ * \li	Other results are possible, depending upon the database
+ *	implementation used, OS file errors, etc.
  */
 
 isc_result_t
