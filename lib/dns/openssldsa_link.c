@@ -605,6 +605,7 @@ static dst_func_t openssldsa_functions = {
 	openssldsa_adddata,
 	openssldsa_sign,
 	openssldsa_verify,
+	NULL, /*%< verify2 */
 	NULL, /*%< computesecret */
 	openssldsa_compare,
 	NULL, /*%< paramcompare */

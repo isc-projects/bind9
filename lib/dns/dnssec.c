@@ -374,6 +374,15 @@ dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		   isc_boolean_t ignoretime, isc_mem_t *mctx,
 		   dns_rdata_t *sigrdata, dns_name_t *wild)
 {
+	return (dns_dnssec_verify3(name, set, key, ignoretime, 0, mctx,
+				   sigrdata, wild));
+}
+
+isc_result_t
+dns_dnssec_verify3(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
+		   isc_boolean_t ignoretime, unsigned int maxbits,
+		   isc_mem_t *mctx, dns_rdata_t *sigrdata, dns_name_t *wild)
+{
 	dns_rdata_rrsig_t sig;
 	dns_fixedname_t fnewname;
 	isc_region_t r;
@@ -547,7 +556,7 @@ dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 	r.base = sig.signature;
 	r.length = sig.siglen;
-	ret = dst_context_verify(ctx, &r);
+	ret = dst_context_verify2(ctx, maxbits, &r);
 	if (ret == ISC_R_SUCCESS && downcase) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(&sig.signer, namebuf, sizeof(namebuf));

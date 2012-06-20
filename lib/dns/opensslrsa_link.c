@@ -56,6 +56,13 @@
 #endif
 
 /*
+ * Limit the size of public exponents.
+ */
+#ifndef RSA_MAX_PUBEXP_BITS
+#define RSA_MAX_PUBEXP_BITS    35
+#endif
+
+/*
  * We don't use configure for windows so enforce the OpenSSL version
  * here.  Unlike with configure we don't support overriding this test.
  */
@@ -504,12 +511,14 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 }
 
 static isc_result_t
-opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
+opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 	dst_key_t *key = dctx->key;
 	int status = 0;
 #if USE_EVP
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 	EVP_PKEY *pkey = key->keydata.pkey;
+	RSA *rsa;
+	int bits;
 #else
 	/* note: ISC_SHA512_DIGESTLENGTH >= ISC_*_DIGESTLENGTH */
 	unsigned char digest[ISC_SHA512_DIGESTLENGTH];
@@ -529,8 +538,19 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		dctx->key->key_alg == DST_ALG_RSASHA512);
 
 #if USE_EVP
+	rsa = EVP_PKEY_get1_RSA(pkey);
+	if (rsa == NULL)
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	bits = BN_num_bits(rsa->e);
+	RSA_free(rsa);
+	if (bits > maxbits && maxbits != 0)
+		return (DST_R_VERIFYFAILURE);
+
 	status = EVP_VerifyFinal(evp_md_ctx, sig->base, sig->length, pkey);
 #else
+	if (BN_num_bits(rsa->e) > maxbits && maxbits != 0)
+		return (DST_R_VERIFYFAILURE);
+
 	switch (dctx->key->key_alg) {
 	case DST_ALG_RSAMD5:
 		{
@@ -639,6 +659,11 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
 
 	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
+	return (opensslrsa_verify2(dctx, 0, sig));
 }
 
 static isc_boolean_t
@@ -752,7 +777,7 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 		BN_set_bit(e, 0);
 		BN_set_bit(e, 16);
 	} else {
-		/* F5 0x100000001 */
+		/* (phased-out) F5 0x100000001 */
 		BN_set_bit(e, 0);
 		BN_set_bit(e, 32);
 	}
@@ -1203,6 +1228,8 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 		if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS)
 			DST_RET(DST_R_INVALIDPRIVATEKEY);
+		if (BN_num_bits(rsa->e) > RSA_MAX_PUBEXP_BITS)
+			DST_RET(ISC_R_RANGE);
 		if (pubrsa != NULL)
 			RSA_free(pubrsa);
 		key->key_size = EVP_PKEY_bits(pkey);
@@ -1285,6 +1312,8 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS)
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	if (BN_num_bits(rsa->e) > RSA_MAX_PUBEXP_BITS)
+		DST_RET(ISC_R_RANGE);
 	key->key_size = BN_num_bits(rsa->n);
 	if (pubrsa != NULL)
 		RSA_free(pubrsa);
@@ -1303,7 +1332,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		RSA_free(rsa);
 	if (pubrsa != NULL)
 		RSA_free(pubrsa);
-	opensslrsa_destroy(key);
+	key->keydata.generic = NULL;
 	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
 	return (ret);
@@ -1357,6 +1386,8 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS)
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	if (BN_num_bits(rsa->e) > RSA_MAX_PUBEXP_BITS)
+		DST_RET(ISC_R_RANGE);
 	if (pubrsa != NULL)
 		RSA_free(pubrsa);
 	key->key_size = EVP_PKEY_bits(pkey);
@@ -1392,6 +1423,7 @@ static dst_func_t opensslrsa_functions = {
 	opensslrsa_adddata,
 	opensslrsa_sign,
 	opensslrsa_verify,
+	opensslrsa_verify2,
 	NULL, /*%< computesecret */
 	opensslrsa_compare,
 	NULL, /*%< paramcompare */

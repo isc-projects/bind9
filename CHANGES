@@ -1,3 +1,6 @@
+3339.	[func]		Allow the maximum supported rsa exponent size to be
+			specified: "max-rsa-exponent-size <value>;" [RT #29228]
+
 3338.	[bug]		Address race condition in units tests: asyncload_zone
 			and asyncload_zt. [RT #26100]
 

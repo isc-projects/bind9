@@ -628,6 +628,7 @@ static dst_func_t openssldh_functions = {
 	NULL, /*%< adddata */
 	NULL, /*%< openssldh_sign */
 	NULL, /*%< openssldh_verify */
+	NULL, /*%< openssldh_verify2 */
 	openssldh_computesecret,
 	openssldh_compare,
 	openssldh_paramcompare,

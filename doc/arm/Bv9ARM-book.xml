@@ -5294,6 +5294,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
     <optional> max-udp-size <replaceable>number</replaceable>; </optional>
+    <optional> max-rsa-exponent-size <replaceable>number</replaceable>; </optional>
     <optional> root-delegation-only <optional> exclude { <replaceable>namelist</replaceable> } </optional> ; </optional>
     <optional> querylog <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> disable-algorithms <replaceable>domain</replaceable> { <replaceable>algorithm</replaceable>;
@@ -8980,6 +8981,18 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                 <para>
 		  The overall rate that NOTIFY messages are sent for all
 		  zones is controlled by <command>serial-query-rate</command>.
+		</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>max-rsa-exponent-size</command></term>
+              <listitem>
+                <para>
+		  The maximum RSA exponent size, in bits, that will
+		  be accepted when validating.  Valid values are 35
+		  to 4096 bits.  The default zero (0) is also accepted
+		  and is equivalent to 4096.
 		</para>
               </listitem>
             </varlistentry>

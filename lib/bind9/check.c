@@ -737,6 +737,20 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	}
 
 	obj = NULL;
+	cfg_map_get(options, "max-rsa-exponent-size", &obj);
+	if (obj != NULL) {
+		isc_uint32_t val;
+
+		val = cfg_obj_asuint32(obj);
+		if (val != 0 && (val < 35 || val > 4096)) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "max-rsa-exponent-size '%u' is out of "
+				    "range (35..4096)", val);
+			result = ISC_R_RANGE;
+		}
+	}
+
+	obj = NULL;
 	cfg_map_get(options, "sig-validity-interval", &obj);
 	if (obj != NULL) {
 		isc_uint32_t validity, resign = 0;
