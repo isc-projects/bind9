@@ -497,7 +497,7 @@ struct dns_rbtdb {
 	 */
 	isc_mem_t *			hmctx;
 	isc_heap_t                      **heaps;
-	
+
 	/*
 	 * Base values for the mmap() code.
 	 */
@@ -1069,10 +1069,10 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	rbtdb->common.impmagic = 0;
 	ondest = rbtdb->common.ondest;
 	isc_mem_detach(&rbtdb->hmctx);
-	
+
 	if (rbtdb->mmap_location != NULL)
 		munmap(rbtdb->mmap_location, rbtdb->mmap_size);
-	
+
 	isc_mem_putanddetach(&rbtdb->common.mctx, rbtdb, sizeof(*rbtdb));
 	isc_ondestroy_notify(&ondest, rbtdb);
 }
@@ -1376,7 +1376,7 @@ static inline void
 free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 	unsigned int size;
 	int idx;
-	
+
 	if (EXISTS(rdataset) &&
 	    (rdataset->attributes & RDATASET_ATTR_STATCOUNT) != 0) {
 		update_rrsetstats(rbtdb, rdataset, ISC_FALSE);
@@ -5682,7 +5682,7 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 	serial = rbtversion->serial;
 	now = 0;
-	
+
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_read);
 
@@ -7180,9 +7180,9 @@ deserialize(void *arg, FILE *f, off_t offset) {
 	char *base;
 	dns_rbt_t *temporary_rbt = NULL;
 	int protect, flags;
-	
+
 	REQUIRE(VALID_RBTDB(rbtdb));
-	
+
 	/*
 	 * TODO CKB: since this is read-write (had to be to add nodes later)
 	 * we will need to lock the file or the nodes in it before modifying
@@ -7197,7 +7197,7 @@ deserialize(void *arg, FILE *f, off_t offset) {
 #ifdef MAP_FILE
 	flags |= MAP_FILE;
 #endif
-	
+
 	base = mmap(NULL, filesize, protect, flags, fd, 0);
 	if (base == NULL || base == MAP_FAILED)
 		return (ISC_R_FAILURE);
@@ -7207,7 +7207,7 @@ deserialize(void *arg, FILE *f, off_t offset) {
 	rbtdb->mmap_location = base;
 	rbtdb->mmap_size = filesize;
 	rbtdb->origin_node = NULL;
-	
+
 	if (header->tree != 0) {
 		dns_rbt_deserialize_tree(base, header->tree,
 					 rbtdb->common.mctx, delete_callback,
@@ -7218,8 +7218,8 @@ deserialize(void *arg, FILE *f, off_t offset) {
 			dns_rbt_destroy(&rbtdb->tree);
 			rbtdb->tree = temporary_rbt;
 			temporary_rbt = NULL;
-			
-			rbtdb->origin_node = 
+
+			rbtdb->origin_node =
 				(dns_rbtnode_t *)(header->tree + base + 1024);
 		}
 	}
@@ -7318,13 +7318,13 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	callbacks->deserialize_private = NULL;
 
 	isc_mem_put(rbtdb->common.mctx, loadctx, sizeof(*loadctx));
-	
+
 	return (ISC_R_SUCCESS);
 }
 
 /*
  * helper function to handle writing out the rdataset data pointed to
- * by the void *data pointer in the dns_rbtnode 
+ * by the void *data pointer in the dns_rbtnode
  */
 static isc_result_t
 rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial) {
@@ -7396,7 +7396,7 @@ rbtdb_zero_header(FILE *rbtfile) {
 	memset(buffer, 0, RBTDB_HEADER_LENGTH);
 	result = isc_stdio_write(buffer, 1, RBTDB_HEADER_LENGTH, rbtfile, NULL);
 	fflush(rbtfile);
-	
+
 	return (result);
 }
 
@@ -7439,7 +7439,7 @@ serialize(dns_db_t *db, dns_dbversion_t *ver, FILE *rbtfile) {
 	rbtdb_version_t *version = (rbtdb_version_t *) ver;
 	dns_rbtdb_t *rbtdb;
 	isc_result_t result;
-	isc_uint64_t tree_location; 
+	isc_uint64_t tree_location;
 	isc_uint64_t nsec_location;
 	isc_uint64_t nsec3_location;
 	isc_uint64_t rbtdb_header_location;
@@ -7455,12 +7455,12 @@ serialize(dns_db_t *db, dns_dbversion_t *ver, FILE *rbtfile) {
 	/*
 	 * first, write out a zeroed header to store rbtdb information
 	 *
-	 * then for each of the three trees, store the current position 
+	 * then for each of the three trees, store the current position
 	 * in the file and call dns_rbt_serialize_tree
 	 *
-	 * finally, write out the rbtdb header, storing the locations of the 
+	 * finally, write out the rbtdb header, storing the locations of the
 	 * rbtheaders
-	 * 
+	 *
 	 * NOTE: need to do something better with the return codes, &= will
 	 * not work.
 	 */

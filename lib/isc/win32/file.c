@@ -138,12 +138,12 @@ file_stats(const char *file, struct stat *stats) {
 static isc_result_t
 fd_stats(int fd, struct stat *stats) {
 	isc_result_t result = ISC_R_SUCCESS;
-	
+
 	REQUIRE(stats != NULL);
-	
+
 	if (fstat(fd, stats) != 0)
 		result = isc__errno2result(errno);
-	
+
 	return (result);
 }
 

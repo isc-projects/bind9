@@ -79,7 +79,7 @@ typedef struct dns_dbmethods {
 	void		(*detach)(dns_db_t **dbp);
 	isc_result_t	(*beginload)(dns_db_t *db,
 				     dns_rdatacallbacks_t *callbacks);
-	isc_result_t	(*endload)(dns_db_t *db, 
+	isc_result_t	(*endload)(dns_db_t *db,
 				     dns_rdatacallbacks_t *callbacks);
 	isc_result_t	(*serialize)(dns_db_t *db,
 				     dns_dbversion_t *version, FILE *file);
@@ -483,7 +483,7 @@ dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
  * \li	On success, callbacks->add will be a valid dns_addrdatasetfunc_t
  *      suitable for loading records into 'db' from a raw or text zone
  *      file. callbacks->add_private will be a valid DB load context
- *      which should be used as 'arg' when callbacks->add is called. 
+ *      which should be used as 'arg' when callbacks->add is called.
  *      callbacks->deserialize will be a valid dns_deserialize_func_t
  *      suitable for loading 'db' from a fast format zone file.
  *
@@ -558,7 +558,7 @@ dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
  *	implementation used, syntax errors in the master file, etc.
  */
 
-isc_result_t 
+isc_result_t
 dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *rbtfile);
 /*%<
  * Dump version 'version' of 'db' to fast file 'filename'.

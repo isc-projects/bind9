@@ -116,7 +116,7 @@ struct dns_rbtnode {
 	unsigned int offsetlen : 8;     /*%< range is 1..128 */
 	unsigned int oldnamelen : 8;    /*%< range is 1..255 */
 	/*@}*/
-	
+
 	/* flags needed for serialization to file*/
 	unsigned int is_mmapped : 1;
 	unsigned int parent_is_relative : 1;
@@ -700,7 +700,7 @@ dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
  * \li  The file must be an actual file which allows seek() calls, so it cannot
  *      be a stream.  Returns ISC_R_INVALIDFILE if not.
  */
- 
+
 isc_result_t
 dns_rbt_deserialize_tree(void *base_address, off_t header_offset,
 			 isc_mem_t *mctx,
@@ -716,7 +716,7 @@ dns_rbt_deserialize_tree(void *base_address, off_t header_offset,
  * \li  The file must be an actual file which allows seek() calls, so it cannot
  *      be a stream.  This condition is not checked in the code.
  */
- 
+
 void
 dns_rbt_printall(dns_rbt_t *rbt, void (*data_printer)(FILE *, void *));
 /*%<
@@ -735,7 +735,7 @@ dns_rbt_printnodeinfo(dns_rbtnode_t *n);
 /*%<
  * Print out various information about a node
  */
-	
+
 /*****
  ***** Chain Functions
  *****/

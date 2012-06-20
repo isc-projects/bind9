@@ -191,7 +191,7 @@ typedef enum {
 	dns_masterformat_none = 0,
 	dns_masterformat_text = 1,
 	dns_masterformat_raw  = 2,
-	dns_masterformat_fast = 3 
+	dns_masterformat_fast = 3
 } dns_masterformat_t;
 
 typedef enum {

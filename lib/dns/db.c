@@ -372,7 +372,7 @@ dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
 	return (result);
 }
 
-isc_result_t 
+isc_result_t
 dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *file) {
 	REQUIRE(DNS_DB_VALID(db));
 	if (db->methods->serialize == NULL)

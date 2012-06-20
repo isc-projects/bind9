@@ -1378,13 +1378,13 @@ writeheader(dns_dumpctx_t *dctx) {
 	isc_region_t r;
 	dns_masterrawheader_t rawheader;
 	isc_uint32_t rawversion, now32;
-	
+
 	bufmem = isc_mem_get(dctx->mctx, initial_buffer_length);
 	if (bufmem == NULL)
 		return (ISC_R_NOMEMORY);
 
 	isc_buffer_init(&buffer, bufmem, initial_buffer_length);
-	
+
 	switch (dctx->format) {
 	case dns_masterformat_text:
 		/*

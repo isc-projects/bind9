@@ -78,7 +78,7 @@ ISC_LANG_BEGINDECLS
 /* Common header */
 struct dns_masterrawheader {
 	isc_uint32_t		format;		/* must be
-						 * dns_masterformat_raw 
+						 * dns_masterformat_raw
 						 * or
 						 * dns_masterformat_fast */
 	isc_uint32_t		version;	/* compatibility for future

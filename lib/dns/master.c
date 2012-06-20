@@ -2146,7 +2146,7 @@ load_header(dns_loadctx_t *lctx) {
 	}
 
 	header.version = isc_buffer_getuint32(&target);
-		
+
 	switch (header.version) {
 	case 0:
 		remainder = sizeof(header.dumptime);
@@ -2179,7 +2179,7 @@ load_header(dns_loadctx_t *lctx) {
 
 	lctx->first = ISC_FALSE;
 	lctx->header = header;
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -2190,7 +2190,7 @@ static isc_result_t
 load_fast(dns_loadctx_t *lctx) {
 	isc_result_t result;
 	dns_rdatacallbacks_t *callbacks;
-	
+
 	REQUIRE(DNS_LCTX_VALID(lctx));
 
 	callbacks = lctx->callbacks;
@@ -2204,7 +2204,7 @@ load_fast(dns_loadctx_t *lctx) {
 					  lctx->f,
 					  sizeof(dns_masterrawheader_t));
 	}
-	
+
 	return (ISC_R_SUCCESS);
 }
 
