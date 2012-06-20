@@ -54,7 +54,7 @@
 int
 main(int argc, char **argv) {
 	FILE *fp;
-	
+
 	UNUSED(argc);
 	UNUSED(argv);
 
@@ -176,7 +176,7 @@ main(int argc, char **argv) {
 	}
 
 	dns_result_register();
-	
+
 	CHECK(isc_mem_create(0, 0, &mctx), "isc_mem_create()");
 	CHECK(isc_entropy_create(mctx, &ectx), "isc_entropy_create()");
 	CHECK(isc_entropy_usebestsource(ectx, &source,
