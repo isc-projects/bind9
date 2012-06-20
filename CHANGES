@@ -1,3 +1,11 @@
+3340.	[func]		Added new 'fast' zone file format, which is an image 
+			of a zone database that can be loaded directly into 
+			memory via mmap(), allowing much faster zone loading. 
+			(Note: Because of pointer sizes and other 
+			considerations, this file format is platform-dependent; 
+			'fast' zone files cannot always be transfered from one 
+			server to another.) [RT #25419]
+
 3339.	[func]		Allow the maximum supported rsa exponent size to be
 			specified: "max-rsa-exponent-size <value>;" [RT #29228]
 
