@@ -1346,12 +1346,12 @@ update_newheader(rdatasetheader_t *new, rdatasetheader_t *old) {
 
 	if (old->next_is_relative) {
 		p = (char *) old;
-		p += (isc_uint64_t)old->next;
+		p += (uintptr_t)old->next;
 		new->next = (rdatasetheader_t *)p;
 	}
 	if (old->node_is_relative) {
 		p = (char *) old;
-		p += (isc_uint64_t)old->node;
+		p += (uintptr_t)old->node;
 		new->node = (dns_rbtnode_t *)p;
 	}
 }
@@ -7407,8 +7407,8 @@ rbtdb_zero_header(FILE *rbtfile) {
  * itself that should be stored here.
  */
 static isc_result_t
-rbtdb_write_header(FILE *rbtfile, isc_uint64_t tree_location,
-		   isc_uint64_t nsec_location, isc_uint64_t nsec3_location)
+rbtdb_write_header(FILE *rbtfile, long tree_location, long nsec_location,
+		   long nsec3_location)
 {
 	rbtdb_file_header_t header;
 	isc_result_t result;
@@ -7439,10 +7439,10 @@ serialize(dns_db_t *db, dns_dbversion_t *ver, FILE *rbtfile) {
 	rbtdb_version_t *version = (rbtdb_version_t *) ver;
 	dns_rbtdb_t *rbtdb;
 	isc_result_t result;
-	isc_uint64_t tree_location;
-	isc_uint64_t nsec_location;
-	isc_uint64_t nsec3_location;
-	isc_uint64_t rbtdb_header_location;
+	long tree_location;
+	long nsec_location;
+	long nsec3_location;
+	long rbtdb_header_location;
 
 	rbtdb = (dns_rbtdb_t *)db;
 

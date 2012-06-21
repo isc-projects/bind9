@@ -143,14 +143,14 @@ static isc_result_t
 write_header(FILE *file, dns_rbt_t *rbt, isc_uint64_t first_node_offset);
 
 static isc_result_t
-serialize_node(FILE *file, dns_rbtnode_t *node, isc_uint64_t left,
-	       isc_uint64_t right, isc_uint64_t down,
-	       isc_uint64_t parent, isc_uint64_t data);
+serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left,
+	       uintptr_t right, uintptr_t down, uintptr_t parent,
+	       uintptr_t data);
 
 static isc_result_t
-serialize_nodes(FILE *file, dns_rbtnode_t *node, isc_uint64_t parent,
+serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 		dns_rbtdatawriter_t datawriter, isc_uint32_t serial,
-		isc_uint64_t *where);
+		uintptr_t *where);
 /*
  * The following functions allow you to get the actual address of a pointer
  * without having to use an if statement to check to see if that address is
@@ -159,7 +159,7 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, isc_uint64_t parent,
 static inline dns_rbtnode_t *
 getparent(dns_rbtnode_t *node, file_header_t *header) {
 	char *adjusted_address = (char *)(node->parent);
-	adjusted_address += node->parent_is_relative * (isc_uint64_t)header;
+	adjusted_address += node->parent_is_relative * (uintptr_t)header;
 
 	return ((dns_rbtnode_t *)adjusted_address);
 }
@@ -167,7 +167,7 @@ getparent(dns_rbtnode_t *node, file_header_t *header) {
 static inline dns_rbtnode_t *
 getleft(dns_rbtnode_t *node, file_header_t *header) {
 	char *adjusted_address = (char *)(node->left);
-	adjusted_address += node->left_is_relative * (isc_uint64_t)header;
+	adjusted_address += node->left_is_relative * (uintptr_t)header;
 
 	return ((dns_rbtnode_t *)adjusted_address);
 }
@@ -175,7 +175,7 @@ getleft(dns_rbtnode_t *node, file_header_t *header) {
 static inline dns_rbtnode_t *
 getright(dns_rbtnode_t *node, file_header_t *header) {
 	char *adjusted_address = (char *)(node->right);
-	adjusted_address += node->right_is_relative * (isc_uint64_t)header;
+	adjusted_address += node->right_is_relative * (uintptr_t)header;
 
 	return ((dns_rbtnode_t *)adjusted_address);
 }
@@ -183,7 +183,7 @@ getright(dns_rbtnode_t *node, file_header_t *header) {
 static inline dns_rbtnode_t *
 getdown(dns_rbtnode_t *node, file_header_t *header) {
 	char *adjusted_address = (char *)(node->down);
-	adjusted_address += node->down_is_relative * (isc_uint64_t)header;
+	adjusted_address += node->down_is_relative * (uintptr_t)header;
 
 	return ((dns_rbtnode_t *)adjusted_address);
 }
@@ -191,7 +191,7 @@ getdown(dns_rbtnode_t *node, file_header_t *header) {
 static inline dns_rbtnode_t *
 getdata(dns_rbtnode_t *node, file_header_t *header) {
 	char *adjusted_address = (char *)(node->data);
-	adjusted_address += node->data_is_relative * (isc_uint64_t)header;
+	adjusted_address += node->data_is_relative * (uintptr_t)header;
 
 	return ((dns_rbtnode_t *)adjusted_address);
 }
@@ -428,12 +428,12 @@ write_header(FILE *file, dns_rbt_t *rbt, isc_uint64_t first_node_offset) {
 }
 
 static isc_result_t
-serialize_node(FILE *file, dns_rbtnode_t *node, isc_uint64_t left,
-	       isc_uint64_t right, isc_uint64_t down,
-	       isc_uint64_t parent, isc_uint64_t data)
+serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left,
+	       uintptr_t right, uintptr_t down, uintptr_t parent,
+	       uintptr_t data)
 {
 	dns_rbtnode_t temp_node;
-	isc_uint64_t file_position;
+	long file_position;
 	unsigned char *node_data;
 	size_t datasize;
 	isc_result_t result;
@@ -492,12 +492,12 @@ serialize_node(FILE *file, dns_rbtnode_t *node, isc_uint64_t left,
 }
 
 static isc_result_t
-serialize_nodes(FILE *file, dns_rbtnode_t *node, isc_uint64_t parent,
+serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 		dns_rbtdatawriter_t datawriter, isc_uint32_t serial,
-		isc_uint64_t *where)
+		uintptr_t *where)
 {
-	isc_uint64_t left = 0, right = 0, down = 0, data = 0;
-	isc_uint64_t this_node_location = 0;
+	uintptr_t left = 0, right = 0, down = 0, data = 0;
+	long this_node_location = 0;
 	isc_uint64_t offset_adjust;
 	isc_result_t result;
 
@@ -546,9 +546,9 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, isc_uint64_t parent,
 	return (result);
 }
 
-inline isc_uint64_t
-dns_rbt_serialize_align(isc_uint64_t target) {
-	int offset = (isc_uint64_t)target % 8;
+inline long
+dns_rbt_serialize_align(long target) {
+	long offset = target % 8;
 
 	if (offset == 0)
 		return (target);
@@ -559,7 +559,7 @@ dns_rbt_serialize_align(isc_uint64_t target) {
 isc_result_t
 dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 		       dns_rbtdatawriter_t datawriter,
-		       isc_uint32_t serial, isc_uint64_t *offset)
+		       isc_uint32_t serial, long *offset)
 {
 	isc_result_t result;
 	long header_position, node_position, end_position;
