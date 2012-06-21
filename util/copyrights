@@ -1130,7 +1130,7 @@
 ./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012
 ./bin/tests/system/rndc/clean.sh		SH	2011
 ./bin/tests/system/rndc/ns2/named.conf		CONF-C	2011,2012
-./bin/tests/system/rndc/ns2/secondkey.key	X	2012
+./bin/tests/system/rndc/ns2/secondkey.conf	CONF-C	2012
 ./bin/tests/system/rndc/setup.sh		SH	2011
 ./bin/tests/system/rndc/tests.sh		SH	2011,2012
 ./bin/tests/system/rpz/.gitignore		X	2012
