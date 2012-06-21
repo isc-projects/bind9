@@ -430,7 +430,7 @@ main(int argc, char **argv) {
 
 			} else if (CMDCHECK("print")) {
 				if (arg == NULL || *arg == '\0')
-					dns_rbt_printall(rbt);
+					dns_rbt_printall(rbt, NULL);
 				else
 					printf("usage: print\n");
 
