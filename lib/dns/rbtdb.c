@@ -1071,7 +1071,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	isc_mem_detach(&rbtdb->hmctx);
 
 	if (rbtdb->mmap_location != NULL)
-		munmap(rbtdb->mmap_location, rbtdb->mmap_size);
+		isc_file_munmap(rbtdb->mmap_location, rbtdb->mmap_size);
 
 	isc_mem_putanddetach(&rbtdb->common.mctx, rbtdb, sizeof(*rbtdb));
 	isc_ondestroy_notify(&ondest, rbtdb);
@@ -7198,7 +7198,7 @@ deserialize(void *arg, FILE *f, off_t offset) {
 	flags |= MAP_FILE;
 #endif
 
-	base = mmap(NULL, filesize, protect, flags, fd, 0);
+	base = isc_file_mmap(NULL, filesize, protect, flags, fd, 0);
 	if (base == NULL || base == MAP_FAILED)
 		return (ISC_R_FAILURE);
 

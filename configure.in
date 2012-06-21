@@ -298,7 +298,7 @@ esac
 
 AC_HEADER_STDC
 
-AC_CHECK_HEADERS(fcntl.h regex.h sys/time.h unistd.h sys/sockio.h sys/select.h sys/param.h sys/sysctl.h net/if6.h,,,
+AC_CHECK_HEADERS(fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sys/select.h sys/param.h sys/sysctl.h net/if6.h,,,
 [$ac_includes_default
 #ifdef HAVE_SYS_PARAM_H
 # include <sys/param.h>
@@ -310,6 +310,11 @@ AC_C_INLINE
 AC_C_VOLATILE
 AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
 AC_C_FLEXIBLE_ARRAY_MEMBER
+
+#
+# Check for the existence of mmap to enable the fast format zones
+#
+AC_CHECK_FUNCS(mmap)
 
 #
 # Older versions of HP/UX don't define seteuid() and setegid()

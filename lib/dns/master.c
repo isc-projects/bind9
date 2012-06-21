@@ -174,16 +174,16 @@ static isc_result_t
 openfile_text(dns_loadctx_t *lctx, const char *master_file);
 
 static isc_result_t
-openfile_raw(dns_loadctx_t *lctx, const char *master_file);
-
-static isc_result_t
-openfile_fast(dns_loadctx_t *lctx, const char *master_file);
-
-static isc_result_t
 load_text(dns_loadctx_t *lctx);
 
 static isc_result_t
+openfile_raw(dns_loadctx_t *lctx, const char *master_file);
+
+static isc_result_t
 load_raw(dns_loadctx_t *lctx);
+
+static isc_result_t
+openfile_fast(dns_loadctx_t *lctx, const char *master_file);
 
 static isc_result_t
 load_fast(dns_loadctx_t *lctx);
@@ -780,39 +780,6 @@ genname(char *name, int it, char *buffer, size_t length) {
 }
 
 static isc_result_t
-openfile_text(dns_loadctx_t *lctx, const char *master_file) {
-	return (isc_lex_openfile(lctx->lex, master_file));
-}
-
-static isc_result_t
-openfile_raw(dns_loadctx_t *lctx, const char *master_file) {
-	isc_result_t result;
-
-	result = isc_stdio_open(master_file, "r", &lctx->f);
-	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_stdio_open() failed: %s",
-				 isc_result_totext(result));
-	}
-
-	return (result);
-}
-
-static isc_result_t
-openfile_fast(dns_loadctx_t *lctx, const char *master_file) {
-	isc_result_t result;
-
-	result = isc_stdio_open(master_file, "r", &lctx->f);
-	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_stdio_open() failed: %s",
-				 isc_result_totext(result));
-	}
-
-	return (result);
-}
-
-static isc_result_t
 generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	 const char *source, unsigned int line)
 {
@@ -1030,6 +997,11 @@ check_wildcard(dns_incctx_t *ictx, const char *source, unsigned long line,
 				   "'%s' contains an non-terminal wildcard",
 				   source, line, namebuf);
 	}
+}
+
+static isc_result_t
+openfile_text(dns_loadctx_t *lctx, const char *master_file) {
+	return (isc_lex_openfile(lctx->lex, master_file));
 }
 
 static isc_result_t
@@ -2183,6 +2155,20 @@ load_header(dns_loadctx_t *lctx) {
 	return (ISC_R_SUCCESS);
 }
 
+static isc_result_t
+openfile_fast(dns_loadctx_t *lctx, const char *master_file) {
+	isc_result_t result;
+
+	result = isc_stdio_open(master_file, "r", &lctx->f);
+	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_stdio_open() failed: %s",
+				 isc_result_totext(result));
+	}
+
+	return (result);
+}
+
 /*
  * Load a fast format file, using mmap() to access RBT trees directly
  */
@@ -2206,6 +2192,20 @@ load_fast(dns_loadctx_t *lctx) {
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+openfile_raw(dns_loadctx_t *lctx, const char *master_file) {
+	isc_result_t result;
+
+	result = isc_stdio_open(master_file, "r", &lctx->f);
+	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_stdio_open() failed: %s",
+				 isc_result_totext(result));
+	}
+
+	return (result);
 }
 
 static isc_result_t

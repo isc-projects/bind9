@@ -661,3 +661,37 @@ isc_file_splitpath(isc_mem_t *mctx, char *path, char **dirname, char **basename)
 
 	return (ISC_R_SUCCESS);
 }
+
+void *
+isc_file_mmap(void *addr, size_t len, int prot,
+	      int flags, int fd, off_t offset)
+{
+	void *buf;
+	ssize_t ret;
+	off_t end;
+	
+	UNUSED(addr);
+	UNUSED(prot);
+	UNUSED(flags);
+
+	end = lseek(fd, 0, SEEK_END);
+	lseek(fd, offset, SEEK_SET);
+	if (end - offset < (off_t) len)
+		len = end - offset;
+
+	buf = malloc(len);
+	ret = read(fd, buf, len);
+	if (ret != (ssize_t) len) {
+		free(buf);
+		buf = NULL;
+	}
+
+	return (buf);
+}
+
+int
+isc_file_munmap(void *addr, size_t len) {
+	UNUSED(len);
+	free(addr);
+	return (0);
+}
