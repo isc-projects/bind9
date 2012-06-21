@@ -681,8 +681,8 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
  * \li  ISC_R_QUOTA if 'quantum' nodes have been destroyed.
  */
 
-inline isc_uint64_t
-dns_rbt_serialize_align(isc_uint64_t target);
+inline long
+dns_rbt_serialize_align(long target);
 /*%<
  * Align the provided integer to a pointer-size boundary.
  * This should be used if, during serialization of data to a will-be
@@ -692,7 +692,7 @@ dns_rbt_serialize_align(isc_uint64_t target);
 isc_result_t
 dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 		       dns_rbtdatawriter_t datawriter,
-		       isc_uint32_t serial, isc_uint64_t *offset);
+		       isc_uint32_t serial, long *offset);
 /*%<
  * Write out the RBT structure and its data to a file.
  *
