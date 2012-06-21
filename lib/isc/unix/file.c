@@ -618,7 +618,7 @@ isc_file_mmap(void *addr, size_t len, int prot,
 	UNUSED(addr);
 	UNUSED(prot);
 	UNUSED(flags);
-	
+
 	end = lseek(fd, 0, SEEK_END);
 	lseek(fd, offset, SEEK_SET);
 	if (end - offset < (off_t) len)

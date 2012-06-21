@@ -669,7 +669,7 @@ isc_file_mmap(void *addr, size_t len, int prot,
 	void *buf;
 	ssize_t ret;
 	off_t end;
-	
+
 	UNUSED(addr);
 	UNUSED(prot);
 	UNUSED(flags);

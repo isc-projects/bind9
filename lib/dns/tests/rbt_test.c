@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -52,7 +52,7 @@
 #include <dst/dst.h>
 
 typedef struct data_holder {
- 	int len;
+	int len;
 	const char *data;
 } data_holder_t;
 
@@ -64,7 +64,7 @@ typedef struct rbt_testdata {
 
 #define DATA_ITEM(name) { (name), sizeof(name) - 1, { sizeof(name), (name) } }
 
-rbt_testdata_t testdata[] = { 
+rbt_testdata_t testdata[] = {
 	DATA_ITEM("first.com."),
 	DATA_ITEM("one.net."),
 	DATA_ITEM("two.com."),
@@ -98,40 +98,40 @@ delete_data(void *data, void *arg) {
 
 static isc_result_t
 write_data(FILE *file, unsigned char *datap, isc_uint32_t serial) {
-        size_t ret = 0;
-        data_holder_t *data = (data_holder_t *)datap; 
+	size_t ret = 0;
+	data_holder_t *data = (data_holder_t *)datap;
 	data_holder_t temp;
 	isc_uint64_t where = ftell(file);
 
 	UNUSED(serial);
-	
+
 	REQUIRE(data != NULL);
 	REQUIRE((data->len == 0 && data->data == NULL) ||
 		(data->len != 0 && data->data != NULL));
-	
+
 	temp = *data;
-        temp.data = (data->len == 0
+	temp.data = (data->len == 0
 		     ? NULL
 		     : (char *)(where + sizeof(data_holder_t)));
 
-        ret = fwrite(&temp, sizeof(data_holder_t), 1, file);
-        if (data->len > 0)
+	ret = fwrite(&temp, sizeof(data_holder_t), 1, file);
+	if (data->len > 0)
 		ret = fwrite(data->data, data->len, 1, file);
 
-        return (ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static void
 fix_data(dns_rbtnode_t *p) {
-	data_holder_t *data = p->data; 
-	
+	data_holder_t *data = p->data;
+
 	REQUIRE(data != NULL);
 	REQUIRE((data->len == 0 && data->data == NULL) ||
 		(data->len != 0 && data->data != NULL));
-	
+
 	printf("fixing data: len %d, data %p\n", data->len, data->data);
-        
-        data->data = (data->len == 0)
+
+	data->data = (data->len == 0)
 		? NULL
 		: (char *)data + sizeof(data_holder_t);
 }
@@ -148,13 +148,13 @@ add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt)
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	dns_compress_t cctx;
-        rbt_testdata_t *testdatap = testdata;
+	rbt_testdata_t *testdatap = testdata;
 
 	dns_compress_init(&cctx, -1, mctx);
-	
-	while (testdatap->name != NULL && testdatap->data.data != NULL) {	
+
+	while (testdatap->name != NULL && testdatap->data.data != NULL) {
 		memcpy(buffer, testdatap->name, testdatap->name_len);
-		
+
 		isc_buffer_init(&b, buffer, testdatap->name_len);
 		isc_buffer_add(&b, testdatap->name_len);
 		dns_fixedname_init(&fname);
@@ -164,7 +164,7 @@ add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt)
 			testdatap++;
 			continue;
 		}
-		
+
 		if (name != NULL) {
 			result = dns_rbt_addname(rbt, name, &testdatap->data);
 			ATF_CHECK_STREQ(dns_result_totext(result), "success");
@@ -172,7 +172,7 @@ add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt)
 		testdatap++;
 	}
 
-        dns_compress_invalidate(&cctx);
+	dns_compress_invalidate(&cctx);
 }
 
 /*
@@ -185,17 +185,17 @@ check_test_data(dns_rbt_t *rbt)
 	char *arg;
 	dns_fixedname_t fname;
 	dns_fixedname_t fixed;
-        dns_name_t *name;
-        isc_buffer_t b;
-        data_holder_t *data;
-        isc_result_t result;
+	dns_name_t *name;
+	isc_buffer_t b;
+	data_holder_t *data;
+	isc_result_t result;
 	dns_name_t *foundname;
 	rbt_testdata_t *testdatap = testdata;
-	
+
 	dns_fixedname_init(&fixed);
 	foundname = dns_fixedname_name(&fixed);
-	
-	while (testdatap->name != NULL && testdatap->data.data != NULL) {	
+
+	while (testdatap->name != NULL && testdatap->data.data != NULL) {
 		memcpy(buffer, testdatap->name, testdatap->name_len + 1);
 		arg = buffer;
 
@@ -208,12 +208,12 @@ check_test_data(dns_rbt_t *rbt)
 			testdatap++;
 			continue;
 		}
-		
+
 		data = NULL;
 		result = dns_rbt_findname(rbt, name, 0, foundname,
 					  (void *) &data);
 		ATF_CHECK_STREQ(dns_result_totext(result), "success");
-		
+
 		testdatap++;
 	}
 }
@@ -222,7 +222,7 @@ static void
 data_printer(FILE *out, void *datap)
 {
 	data_holder_t *data = (data_holder_t *)datap;
-	
+
 	fprintf(out, "%d bytes, %s", data->len, data->data);
 }
 
@@ -233,24 +233,24 @@ ATF_TC_HEAD(isc_rbt, tc) {
 ATF_TC_BODY(isc_rbt, tc) {
 	dns_rbt_t *rbt = NULL;
 	isc_result_t result;
-	
+
 	UNUSED(tc);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
-	
+
 	result = dns_test_begin(NULL, ISC_TRUE);
 	ATF_CHECK_STREQ(dns_result_totext(result), "success");
 	result = dns_rbt_create(mctx, delete_data, NULL, &rbt);
 	ATF_CHECK_STREQ(dns_result_totext(result), "success");
 
 	add_test_data(mctx, rbt);
-	
+
 	check_test_data(rbt);
 
 	dns_rbt_printall(rbt, data_printer);
-	
+
 	dns_rbt_destroy(&rbt);
-	
+
 	dns_test_end();
 }
 
@@ -267,18 +267,18 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 	int fd;
 	off_t filesize = 0;
 	char *base;
-	
+
 	UNUSED(tc);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
-	
+
 	result = dns_test_begin(NULL, ISC_TRUE);
 	ATF_CHECK_STREQ(dns_result_totext(result), "success");
 	result = dns_rbt_create(mctx, delete_data, NULL, &rbt);
 	ATF_CHECK_STREQ(dns_result_totext(result), "success");
-	
+
 	add_test_data(mctx, rbt);
-	
+
 	dns_rbt_printall(rbt, data_printer);
 
 	/*
@@ -291,7 +291,7 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 					write_data, 0, &offset);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 	dns_rbt_destroy(&rbt);
-	
+
 	/*
 	 * Deserialize the tree
 	 */
@@ -306,19 +306,19 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 		    PROT_READ|PROT_WRITE,
 		    MAP_FILE|MAP_PRIVATE, fd, 0);
 	ATF_REQUIRE(base != NULL && base != MAP_FAILED);
-	
+
 	result = dns_rbt_deserialize_tree(base, 0, mctx, delete_data, NULL,
 					  fix_data, NULL, &rbt_deserialized);
-	
+
 	/* Test to make sure we have a valid tree */
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 	if (rbt_deserialized == NULL)
-	        atf_tc_fail("deserialized rbt is null!"); /* Abort execution. */
-		
+		atf_tc_fail("deserialized rbt is null!"); /* Abort execution. */
+
 	check_test_data(rbt_deserialized);
 
 	dns_rbt_printall(rbt_deserialized, data_printer);
-	
+
 	dns_rbt_destroy(&rbt_deserialized);
 	munmap(base, filesize);
 	unlink("zone.bin");
@@ -331,7 +331,7 @@ ATF_TC_HEAD(dns_rbt_serialize_align, tc) {
 }
 ATF_TC_BODY(dns_rbt_serialize_align, tc) {
 	UNUSED(tc);
-	
+
 	ATF_CHECK(dns_rbt_serialize_align(0) == 0);
 	ATF_CHECK(dns_rbt_serialize_align(1) == 8);
 	ATF_CHECK(dns_rbt_serialize_align(2) == 8);
