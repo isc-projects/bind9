@@ -287,10 +287,6 @@ disabled_algorithms(const cfg_obj_t *disabled, isc_log_t *logctx) {
 
 		tresult = dns_secalg_fromtext(&alg, &r);
 		if (tresult != ISC_R_SUCCESS) {
-			isc_uint8_t ui;
-			result = isc_parse_uint8(&ui, r.base, 10);
-		}
-		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(cfg_listelt_value(element), logctx,
 				    ISC_LOG_ERROR, "invalid algorithm '%s'",
 				    r.base);
