@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2007, 2009-2011 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2007, 2009-2012 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000-2002 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
@@ -133,8 +133,9 @@ disables the checks.
 .RS 4
 Specify the format of the zone file. Possible formats are
 \fB"text"\fR
-(default) and
-\fB"raw"\fR.
+(default),
+\fB"raw"\fR, and
+\fB"fast"\fR.
 .RE
 .PP
 \-F \fIformat\fR
@@ -144,14 +145,14 @@ Specify the format of the output file specified. For
 .sp
 Possible formats are
 \fB"text"\fR
-(default) and
-\fB"raw"\fR
-or
+(default), which is the standard textual representation of the zone, and
+\fB"fast"\fR,
+\fB"raw"\fR, and
 \fB"raw=N"\fR, which store the zone in a binary format for rapid loading by
 \fBnamed\fR.
 \fB"raw=N"\fR
 specifies the format version of the raw zone file: if N is 0, the raw file can be read by any version of
-\fBnamed\fR; if N is 1, the file can be read by release 9.9.0 or higher. The default is 1.
+\fBnamed\fR; if N is 1, the file can be read by release 9.9.0 or higher; the default is 1.
 .RE
 .PP
 \-k \fImode\fR
@@ -170,7 +171,7 @@ checks with the specified failure mode. Possible modes are
 .PP
 \-L \fIserial\fR
 .RS 4
-When compiling a zone to 'raw' format, set the "source serial" value in the header to the specified serial number. (This is expected to be used primarily for testing purposes.)
+When compiling a zone to "raw" or "fast" format, set the "source serial" value in the header to the specified serial number. (This is expected to be used primarily for testing purposes.)
 .RE
 .PP
 \-m \fImode\fR
@@ -294,7 +295,7 @@ BIND 9 Administrator Reference Manual.
 .PP
 Internet Systems Consortium
 .SH "COPYRIGHT"
-Copyright \(co 2004\-2007, 2009\-2011 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004\-2007, 2009\-2012 Internet Systems Consortium, Inc. ("ISC")
 .br
 Copyright \(co 2000\-2002 Internet Software Consortium.
 .br
