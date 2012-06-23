@@ -115,8 +115,13 @@ write_data(FILE *file, unsigned char *datap, isc_uint32_t serial) {
 		     : (char *)(where + sizeof(data_holder_t)));
 
 	ret = fwrite(&temp, sizeof(data_holder_t), 1, file);
-	if (data->len > 0)
+	if (ret != 1)
+		return (ISC_R_FAILURE);
+	if (data->len > 0) {
 		ret = fwrite(data->data, data->len, 1, file);
+		if (ret != 1)
+			return (ISC_R_FAILURE);
+	}
 
 	return (ISC_R_SUCCESS);
 }
