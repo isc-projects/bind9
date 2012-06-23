@@ -101,7 +101,7 @@ write_data(FILE *file, unsigned char *datap, isc_uint32_t serial) {
 	size_t ret = 0;
 	data_holder_t *data = (data_holder_t *)datap;
 	data_holder_t temp;
-	isc_uint64_t where = ftell(file);
+	uintptr_t where = ftell(file);
 
 	UNUSED(serial);
 
