@@ -263,7 +263,7 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 	isc_result_t result;
 	FILE *rbtfile = NULL;
 	dns_rbt_t *rbt_deserialized = NULL;
-	isc_uint64_t offset;
+	long offset;
 	int fd;
 	off_t filesize = 0;
 	char *base;
@@ -287,8 +287,7 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 	printf("serialization begins.\n");
 	rbtfile = fopen("./zone.bin", "w+b");
 	ATF_REQUIRE(rbtfile != NULL);
-	result = dns_rbt_serialize_tree(rbtfile, rbt,
-					write_data, 0, &offset);
+	result = dns_rbt_serialize_tree(rbtfile, rbt, write_data, 0, &offset);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 	dns_rbt_destroy(&rbt);
 
