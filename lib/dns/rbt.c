@@ -546,7 +546,7 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 	return (result);
 }
 
-inline long
+long
 dns_rbt_serialize_align(long target) {
 	long offset = target % 8;
 

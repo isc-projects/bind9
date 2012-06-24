@@ -681,7 +681,7 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
  * \li  ISC_R_QUOTA if 'quantum' nodes have been destroyed.
  */
 
-inline long
+long
 dns_rbt_serialize_align(long target);
 /*%<
  * Align the provided integer to a pointer-size boundary.
