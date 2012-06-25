@@ -76,6 +76,28 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
  * 	'answer' to be non NULL.
  */
 
+unsigned int
+dns_nsec_compressbitmap(unsigned char *map, const unsigned char *raw,
+                        unsigned int max_type);
+/*%<
+ * Convert a raw bitmap into a compressed windowed bit map.  'map' and 'raw'
+ * may overlap.
+ *
+ * Returns the length of the compressed windowed bit map.
+ */
+
+void
+dns_nsec_setbit(unsigned char *array, unsigned int type, unsigned int bit);
+/*%<
+ * Set type bit in raw 'array' to 'bit'.
+ */
+
+isc_boolean_t
+dns_nsec_isset(const unsigned char *array, unsigned int type);
+/*%<
+ * Test if the corresponding 'type' bit is set in 'array'.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_NSEC_H */

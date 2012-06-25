@@ -48,6 +48,7 @@ PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -s 0 -p 1234"
 PK11LIST="$TOP/bin/pkcs11/pkcs11-list -s 0 -p 1234"
 PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s 0 -p 1234"
 JOURNALPRINT=$TOP/bin/tools/named-journalprint
+VERIFY=$TOP/bin/dnssec/dnssec-verify
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.

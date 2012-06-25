@@ -16822,6 +16822,7 @@ zone "example.com" {
       <xi:include href="../../bin/dnssec/dnssec-revoke.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-settime.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-signzone.docbook"/>
+      <xi:include href="../../bin/dnssec/dnssec-verify.docbook"/>
       <xi:include href="../../bin/check/named-checkconf.docbook"/>
       <xi:include href="../../bin/check/named-checkzone.docbook"/>
       <xi:include href="../../bin/named/named.docbook"/>
