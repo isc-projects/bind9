@@ -54,7 +54,7 @@ dns_nsec_setbit(unsigned char *array, unsigned int type, unsigned int bit) {
 		array[type / 8] &= (~mask & 0xFF);
 }
 
-isc_boolean_t 
+isc_boolean_t
 dns_nsec_isset(const unsigned char *array, unsigned int type) {
 	unsigned int byte, shift, mask;
 
@@ -234,7 +234,7 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type) {
 			continue;
 		if (type < (window * 256) + len * 8)
 			present = ISC_TF(dns_nsec_isset(&nsecstruct.typebits[i],
-						        type % 256));
+							type % 256));
 		break;
 	}
 	dns_rdata_freestruct(&nsecstruct);

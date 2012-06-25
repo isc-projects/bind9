@@ -211,7 +211,7 @@ dns_nsec3_typepresent(dns_rdata_t *rdata, dns_rdatatype_t type) {
 			continue;
 		if (type < (window * 256) + len * 8)
 			present = ISC_TF(dns_nsec_isset(&nsec3.typebits[i],
-						        type % 256));
+							type % 256));
 		break;
 	}
 	dns_rdata_freestruct(&nsec3);
