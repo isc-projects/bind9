@@ -60,6 +60,8 @@ isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
  * storage method.  When the heap elements are deleted space is not freed
  * but will be reused when new elements are inserted.
  *
+ * Heap elements are indexed from 1.
+ *
  * Requires:
  *\li	"mctx" is valid.
  *\li	"compare" is a function which takes two void * arguments and

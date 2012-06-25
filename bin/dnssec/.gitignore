@@ -6,4 +6,5 @@ dnssec-revoke
 dnssec-settime
 dnssec-signkey
 dnssec-signzone
+dnssec-verify
 .libs

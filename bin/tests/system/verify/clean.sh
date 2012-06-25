@@ -1,0 +1,9 @@
+rm -f zones/*.good
+rm -f zones/*.good.tmp
+rm -f zones/*.bad
+rm -f zones/*.bad.tmp
+rm -f zones/*.out*
+rm -f zones/dsset-*
+rm -f zones/K*
+rm -f random.data
+rm -f verify.out*
