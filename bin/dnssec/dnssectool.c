@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -916,8 +916,8 @@ verifynsec3(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 
 	dns_fixedname_init(&fixed);
 	result = dns_nsec3_hashname(&fixed, rawhash, &rhsize, name, origin,
-			            nsec3param.hash, nsec3param.iterations,
-                                    nsec3param.salt, nsec3param.salt_length);
+				    nsec3param.hash, nsec3param.iterations,
+				    nsec3param.salt, nsec3param.salt_length);
 	check_result(result, "dns_nsec3_hashname()");
 
 	/*
@@ -929,7 +929,7 @@ verifynsec3(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	dns_rdataset_init(&rdataset);
 	hashname = dns_fixedname_name(&fixed);
 	result = dns_db_findnsec3node(db, hashname, ISC_FALSE, &node);
-	if (result == ISC_R_SUCCESS) 
+	if (result == ISC_R_SUCCESS)
 		result = dns_db_findrdataset(db, node, ver, dns_rdatatype_nsec3,
 					     0, 0, &rdataset, NULL);
 	if (result != ISC_R_SUCCESS &&
@@ -1105,7 +1105,7 @@ verifynode(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 
 	result = ISC_R_SUCCESS;
 
-	if (nsecset != NULL && dns_rdataset_isassociated(nsecset)) 
+	if (nsecset != NULL && dns_rdataset_isassociated(nsecset))
 		result = verifynsec(db, ver, name, node, nextname);
 
 	if (nsec3paramset != NULL && dns_rdataset_isassociated(nsec3paramset)) {
@@ -1186,7 +1186,7 @@ checknext(const struct nsec3_chain_fixed *first,
 	d1 += first->salt_length + first->next_length;
 	d2 += e->salt_length;
 
-	if (memcmp(d1, d2, first->next_length) == 0) 
+	if (memcmp(d1, d2, first->next_length) == 0)
 		return (ISC_TRUE);
 
 	DE_CONST(d1 - first->next_length, sr.base);
@@ -1291,7 +1291,7 @@ verify_nsec3_chains(isc_mem_t *mctx) {
 			free_element(mctx, f);
 		}
 		f = isc_heap_element(found_chains, 1);
-		if (f != NULL) 
+		if (f != NULL)
 			isc_heap_delete(found_chains, 1);
 	} while (f != NULL);
 
