@@ -85,7 +85,7 @@
 ./bin/dig/win32/nslookup.dsw			X	2001
 ./bin/dig/win32/nslookup.mak			X	2001,2002,2004,2005,2006,2009
 ./bin/dnssec/.gitignore				X	2012
-./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005,2007,2008,2009
+./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005,2007,2008,2009,2012
 ./bin/dnssec/dnssec-dsfromkey.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-dsfromkey.c			C	2008,2009,2010,2011,2012
 ./bin/dnssec/dnssec-dsfromkey.docbook		SGML	2008,2009,2010,2011,2012
@@ -110,8 +110,12 @@
 ./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./bin/dnssec/dnssec-signzone.html		HTML	DOCBOOK
-./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005,2007,2009,2010,2011
-./bin/dnssec/dnssectool.h			C	2000,2001,2003,2004,2007,2008,2009,2010,2011
+./bin/dnssec/dnssec-verify.8			MAN	2012
+./bin/dnssec/dnssec-verify.c			C	2012
+./bin/dnssec/dnssec-verify.docbook		SGML	2012
+./bin/dnssec/dnssec-verify.html			HTML	2012
+./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005,2007,2009,2010,2011,2012
+./bin/dnssec/dnssectool.h			C	2000,2001,2003,2004,2007,2008,2009,2010,2011,2012
 ./bin/dnssec/win32/dnssectool.dsp		X	2006,2009
 ./bin/dnssec/win32/dnssectool.dsw		X	2006,2009
 ./bin/dnssec/win32/dsfromkey.dsp		X	2008,2009
@@ -1375,6 +1379,12 @@
 ./bin/tests/system/v6synth/ns2/named.conf	CONF-C	2001,2004,2007
 ./bin/tests/system/v6synth/ns3/named.conf	CONF-C	2001,2004,2007
 ./bin/tests/system/v6synth/tests.sh		SH	2001,2004,2007
+./bin/tests/system/verify/.gitignore		X	2012
+./bin/tests/system/verify/clean.sh		SH	2012
+./bin/tests/system/verify/setup.sh		SH	2012
+./bin/tests/system/verify/tests.sh		SH	2012
+./bin/tests/system/verify/zones/genzones.sh	SH	2012
+./bin/tests/system/verify/zones/unsigned.db	ZONE	2012
 ./bin/tests/system/views/clean.sh		SH	2000,2001,2004,2005,2007
 ./bin/tests/system/views/ns1/named.conf		CONF-C	2000,2001,2004,2007
 ./bin/tests/system/views/ns1/root.db		ZONE	2000,2001,2004,2007
@@ -2040,6 +2050,7 @@
 ./doc/design/resolver				TXT.BRIEF	1999,2000,2001,2004
 ./doc/design/search				TXT.BRIEF	1999,2000,2001,2004
 ./doc/design/tasks				TXT.BRIEF	1999,2000,2001,2004
+./doc/design/verify				TXT.BRIEF	2012
 ./doc/design/windows-nt				TXT.BRIEF	1999,2000,2001,2004
 ./doc/design/zone				TXT.BRIEF	1999,2000,2001,2004
 ./doc/dev/DBC					TXT.BRIEF	1999,2000,2001,2004
@@ -2204,7 +2215,7 @@
 ./lib/dns/include/dns/message.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012
 ./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2011
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010
-./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2011
+./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2011,2012
 ./lib/dns/include/dns/nsec3.h			C	2008,2009,2010,2011
 ./lib/dns/include/dns/opcode.h			C	2002,2004,2005,2006,2007
 ./lib/dns/include/dns/order.h			C	2002,2004,2005,2006,2007
@@ -2601,7 +2612,7 @@
 ./lib/isc/include/isc/formatcheck.h		C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/fsaccess.h		C	2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/hash.h			C	2003,2004,2005,2006,2007,2009
-./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2009
+./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2012
 ./lib/isc/include/isc/hex.h			C	2000,2001,2004,2005,2006,2007,2008
 ./lib/isc/include/isc/hmacmd5.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/hmacsha.h			C	2005,2006,2007,2009
@@ -2915,7 +2926,7 @@
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008,2009
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007,2008
 ./lib/lwres/gai_strerror.c			C	2000,2001,2004,2005,2006,2007
-./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2005,2006,2007,2008
+./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2005,2006,2007,2008,2012
 ./lib/lwres/gethost.c				C	2000,2001,2004,2005,2007
 ./lib/lwres/getipnode.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009
 ./lib/lwres/getnameinfo.c			C.PORTION	1999,2000,2001,2003,2004,2005,2007,2011,2012
