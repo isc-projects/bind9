@@ -8034,7 +8034,7 @@ zone_maintenance(dns_zone_t *zone) {
 		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
 			dumping = was_dumping(zone);
-		} else 
+		} else
 			dumping = ISC_TRUE;
 		UNLOCK_ZONE(zone);
 		if (!dumping) {
