@@ -1,3 +1,7 @@
+3342.	[bug]		Change #3314 broke saving of stub zones to disk
+			resulting in excessive cpu usage in some cases.
+			[RT #29952]
+
 3341.	[func]		New "dnssec-verify" command checks a signed zone
 			to ensure correctness of signatures and of NSEC/NSEC3
 			chains. [RT #23673]
