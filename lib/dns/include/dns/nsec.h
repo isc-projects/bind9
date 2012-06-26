@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -78,7 +78,7 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
 
 unsigned int
 dns_nsec_compressbitmap(unsigned char *map, const unsigned char *raw,
-                        unsigned int max_type);
+			unsigned int max_type);
 /*%<
  * Convert a raw bitmap into a compressed windowed bit map.  'map' and 'raw'
  * may overlap.
