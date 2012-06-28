@@ -1,3 +1,12 @@
+3344.	[func]		New "dnssec-checkds" command checks a zone to
+			determine which DS records should be published
+			in the parent zone, or which DLV records should be
+			published in a DLV zone, and queries the DNS to
+			ensure that it exists. (Note: This tool depends
+			on python; it will not be built or installed on
+			systems that do not have a python interpreter.)
+			[RT #28099]
+
 3343.	[placeholder]
 
 3342.	[bug]		Change #3314 broke saving of stub zones to disk
