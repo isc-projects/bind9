@@ -1,5 +1,6 @@
-# Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 1998-2001  Internet Software Consortium.
+#!/bin/sh
+############################################################################
+# Copyright (C) 2012 Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,15 +13,17 @@
 # LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
+############################################################################
 
-# $Id: Makefile.in,v 1.29 2009/10/05 12:07:08 fdupont Exp $
+while [ "$#" != 0 ]; do
+    case $1 in
+    +*) shift ;;
+    -t) shift ;;
+    DS|ds) ext=ds ; shift ;;
+    DLV|dlv) ext=dlv ; shift ;;
+    DNSKEY|dnskey) ext=dnskey ; shift ;;
+    *) file=$1 ; shift ;;
+    esac
+done
 
-srcdir =	@srcdir@
-VPATH =		@srcdir@
-top_srcdir =	@top_srcdir@
-
-SUBDIRS =	named rndc dig dnssec tests tools nsupdate \
-		check confgen @PYTHON_TOOLS@ @PKCS11_TOOLS@
-TARGETS =
-
-@BIND9_MAKE_RULES@
+cat ${file}.${ext}.db
