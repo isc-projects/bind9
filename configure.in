@@ -178,7 +178,7 @@ except: exit(1)'
 			case "$use_python" in
 			unspec)
 				PYTHON=""
-				AC_SUBST(PYTHON)
+				AC_SUBST(CHECKDS)
 				AC_MSG_RESULT([not found, python disabled])
 				;;
 			yes)
@@ -191,9 +191,12 @@ except: exit(1)'
 esac
 
 PYTHON_TOOLS=''
+CHECKDS=''
 if test "X$PYTHON" != "X"; then
         PYTHON_TOOLS=python
+	CHECKDS=checkds
 fi
+AC_SUBST(CHECKDS)
 AC_SUBST(PYTHON_TOOLS)
 
 #
