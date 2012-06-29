@@ -30,8 +30,6 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 @BIND9_MAKE_RULES@
 
 dnssec-checkds: ${srcdir}/dnssec-checkds.py
-	cp -f $< $@
-	chmod +x $@
 
 doc man:: ${MANOBJS}
 
