@@ -78,6 +78,8 @@ while (<CHANGES>) {
 	    $file_types{$_} = "YACC";
         } elsif ($base =~ /\.pl$/i) {
 	    $file_types{$_} = "PERL";
+        } elsif ($base =~ /\.py$/i) {
+	    $file_types{$_} = "PYTHON";
         } elsif ($base =~ /\.sh$/) {
 	    $file_types{$_} = "SH";
         } elsif ($base =~ /\.docbook$/ ||
