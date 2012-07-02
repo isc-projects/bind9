@@ -1,3 +1,7 @@
+3345.	[bug]		Addressed race condition when removing the last item
+			or inserting the first item in an ISC_QUEUE.
+			[RT #29539]
+
 3344.	[func]		New "dnssec-checkds" command checks a zone to
 			determine which DS records should be published
 			in the parent zone, or which DLV records should be
