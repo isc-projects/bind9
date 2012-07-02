@@ -1,3 +1,6 @@
+3346.	[security]	Bad-cache data could be used before it was
+			initialized, causing an assert. [RT #30025]
+
 3345.	[bug]		Addressed race condition when removing the last item
 			or inserting the first item in an ISC_QUEUE.
 			[RT #29539]
