@@ -1,4 +1,4 @@
-3343.   [bug]		Relax isc_random_jitter() REQUIRE tests. [RT# 19821]
+3343.   [bug]		Relax isc_random_jitter() REQUIRE tests. [RT #29821]
 
 3342.	[bug]		Change #3314 broke saving of stub zones to disk
 			resulting in excessive cpu usage in some cases.
