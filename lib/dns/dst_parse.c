@@ -44,8 +44,10 @@
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/util.h>
+#include <isc/file.h>
 
 #include <dns/time.h>
+#include <dns/log.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"
@@ -557,7 +559,6 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			  const char *directory)
 {
 	FILE *fp;
-	int ret, i;
 	isc_result_t result;
 	char filename[ISC_DIR_NAMEMAX];
 	char buffer[MAXFIELDSIZE * 2];
@@ -567,6 +568,8 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	isc_buffer_t b;
 	isc_region_t r;
 	int major, minor;
+	mode_t mode;
+	int i;
 
 	REQUIRE(priv != NULL);
 
@@ -580,6 +583,17 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	result = dst_key_buildfilename(key, DST_TYPE_PRIVATE, directory, &b);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+
+	result = isc_file_mode(filename, &mode);
+	if (result == ISC_R_SUCCESS && mode != 0600) {
+		/* File exists; warn that we are changing its permissions */
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+			      "Permissions on the file %s "
+			      "have changed from 0%o to 0600 as "
+			      "a result of this operation.",
+			      filename, mode);
+	}
 
 	if ((fp = fopen(filename, "w")) == NULL)
 		return (DST_R_WRITEERROR);

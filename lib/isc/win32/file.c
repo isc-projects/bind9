@@ -158,7 +158,19 @@ isc_file_getsizefd(int fd, off_t *size) {
 
 	if (result == ISC_R_SUCCESS)
 		*size = stats.st_size;
+	return (result);
+}
 
+isc_result_t
+isc_file_mode(const char *file, mode_t *modep) {
+	isc_result_t result;
+	struct stat stats;
+
+	REQUIRE(modep != NULL);
+
+	result = file_stats(file, &stats);
+	if (result == ISC_R_SUCCESS)
+		*modep = (stats.st_mode & 07777);
 	return (result);
 }
 
