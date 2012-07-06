@@ -103,7 +103,7 @@
 ./bin/dnssec/dnssec-revoke.docbook		SGML	2009,2011
 ./bin/dnssec/dnssec-revoke.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-settime.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-settime.c			C	2009,2010,2011
+./bin/dnssec/dnssec-settime.c			C	2009,2010,2011,2012
 ./bin/dnssec/dnssec-settime.docbook		SGML	2009,2010,2011
 ./bin/dnssec/dnssec-settime.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
@@ -2830,7 +2830,7 @@
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001,2004,2007
 ./lib/isc/win32/keyboard.c			C	2000,2001,2004,2007
 ./lib/isc/win32/libgen.h			C	2009
-./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
+./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./lib/isc/win32/libisc.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/win32/libisc.dsw			X	2001
 ./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006,2007,2008,2009
