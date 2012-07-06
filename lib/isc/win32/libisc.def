@@ -219,6 +219,7 @@ isc_file_ischdiridempotent
 isc_file_iscurrentdir
 isc_file_isplainfile
 isc_file_mktemplate
+isc_file_mode
 isc_file_openunique
 isc_file_progname
 isc_file_remove

@@ -56,6 +56,7 @@
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
+#include <isc/file.h>
 
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>

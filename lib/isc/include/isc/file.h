@@ -33,6 +33,9 @@ isc_result_t
 isc_file_settime(const char *file, isc_time_t *time);
 
 isc_result_t
+isc_file_mode(const char *file, mode_t *modep);
+
+isc_result_t
 isc_file_getmodtime(const char *file, isc_time_t *time);
 /*!<
  * \brief Get the time of last modification of a file.
