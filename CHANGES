@@ -1,6 +1,6 @@
 3347.	[bug]		dnssec-settime: Issue a warning when writing a new 
 			private key file would cause a change in the 
-			permissions of the existing file.
+			permissions of the existing file. [RT #27724]
 
 3346.	[security]	Bad-cache data could be used before it was
 			initialized, causing an assert. [RT #30025]
