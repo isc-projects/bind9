@@ -98,6 +98,20 @@ file_stats(const char *file, struct stat *stats) {
 }
 
 isc_result_t
+isc_file_mode(const char *file, mode_t *modep) {
+	isc_result_t result;
+	struct stat stats;
+
+	REQUIRE(modep != NULL);
+
+	result = file_stats(file, &stats);
+	if (result == ISC_R_SUCCESS)
+		*modep = (stats.st_mode & 07777);
+
+	return (result);
+}
+
+isc_result_t
 isc_file_getmodtime(const char *file, isc_time_t *time) {
 	isc_result_t result;
 	struct stat stats;
