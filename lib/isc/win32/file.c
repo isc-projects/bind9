@@ -617,3 +617,16 @@ isc_file_splitpath(isc_mem_t *mctx, char *path, char **dirname, char **basename)
 
 	return (ISC_R_SUCCESS);
 }
+
+isc_result_t
+isc_file_mode(const char *file, mode_t *modep) {
+	isc_result_t result;
+	struct stat stats;
+
+	REQUIRE(modep != NULL);
+
+	result = file_stats(file, &stats);
+	if (result == ISC_R_SUCCESS)
+		*modep = (stats.st_mode & 07777);
+	return (result);
+}
