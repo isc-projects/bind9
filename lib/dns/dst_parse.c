@@ -569,7 +569,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	isc_region_t r;
 	int major, minor;
 	mode_t mode;
-	int i;
+	int i, ret;
 
 	REQUIRE(priv != NULL);
 
