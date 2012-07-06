@@ -27,7 +27,7 @@ n=1
 
 echo "I:checking for correct DS, looking up key via 'dig' ($n)"
 ret=0
-$CHECKDS ok.example > checkds.out.$n || ret=1
+$CHECKDS ok.example > checkds.out.$n 2>&1 || ret=1
 grep 'SHA-1' checkds.out.$n > /dev/null 2>&1 || ret=1
 grep 'SHA-256' checkds.out.$n > /dev/null 2>&1 || ret=1
 n=`expr $n + 1`
