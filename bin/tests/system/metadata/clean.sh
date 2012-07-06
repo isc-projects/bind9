@@ -21,3 +21,4 @@ rm -f zsk.key ksk.key parent.ksk.key parent.zsk.key
 rm -f pending.key rolling.key standby.key inact.key
 rm -f prerev.key postrev.key oldstyle.key
 rm -f keys sigs
+rm -f tmp.out
