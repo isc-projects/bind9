@@ -2,7 +2,7 @@
 			record matching the covering type exists at a higher 
 			trust level. Such data already can't be retrieved from 
 			the cache since change 3218 -- this prevents it 
-			being inserted into the cache as well.
+			being inserted into the cache as well [RT #27724].
 			
 3347.	[bug]		dnssec-settime: Issue a warning when writing a new 
 			private key file would cause a change in the 
