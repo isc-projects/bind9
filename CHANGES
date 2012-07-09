@@ -1,3 +1,9 @@
+3348.	[security]	prevent RRSIG data from being cached if a negative 
+			record matching the covering type exists at a higher 
+			trust level. Such data already can't be retrieved from 
+			the cache since change 3218 -- this prevents it 
+			being inserted into the cache as well. [RT #26809]
+
 3346.	[security]	Bad-cache data could be used before it was
 			initialized, causing an assert. [RT #30025]
 
