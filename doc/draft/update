@@ -14,15 +14,18 @@ for i
 do
 	z=
 	case $i in
-	http://www.ietf.org/internet-drafts/*)
-		z=`expr "$i" : 'http://www.ietf.org/internet-drafts/\(.*\)'`
+	http://tools.ietf.org/html/*|http://www.ietf.org/internet-drafts/*|http://www.ietf.org/id/*)
+		z=`expr "$i" : 'http://.*/.*/\(.*\)'`
 		;;
-	http://www.ietf.org/id/*)
-		z=`expr "$i" : 'http://www.ietf.org/id/\(.*\)'`
-		;;
+	*://*/*)
+		echo -n "unknown uri $i"
+		continue;
 	esac
 	if test -n "$z"
 	then
+		case $z in
+		*-[0-9][0-9]) z="$z.txt"''
+		esac
 		i="$z"
 	fi
 	if test -f "$i"
