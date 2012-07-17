@@ -1,3 +1,5 @@
+3349.	[bug]		Change #3345 was incomplete. [RT #30233]
+
 3348.	[security]	prevent RRSIG data from being cached if a negative 
 			record matching the covering type exists at a higher 
 			trust level. Such data already can't be retrieved from 
