@@ -106,10 +106,10 @@
 			LOCK(&(queue).taillock); \
 			headlocked = ISC_TRUE; \
 		} \
-		if ((queue).tail != NULL) \
-			(queue).tail->link.next = (elt); \
 		(elt)->link.prev = (queue).tail; \
 		(elt)->link.next = NULL; \
+		if ((queue).tail != NULL) \
+			(queue).tail->link.next = (elt); \
 		(queue).tail = (elt); \
 		UNLOCK(&(queue).taillock); \
 		if (headlocked) { \
