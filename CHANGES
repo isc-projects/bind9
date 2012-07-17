@@ -1,3 +1,7 @@
+3350.	[bug]		Memory read overrun in isc___mem_reallocate if
+			ISC_MEM_DEBUGCTX memory debugging flag is set.
+			[RT #30240]
+
 3349.	[bug]		Change #3345 was incomplete. [RT #30233]
 
 3348.	[security]	prevent RRSIG data from being cached if a negative 
