@@ -1,3 +1,6 @@
+3352.	[bug]		Ensure that learned server attributes timeout of the
+			adb cache. [RT #29856]
+
 3351.	[bug]		isc_mem_put and isc_mem_putanddetach didn't report
 			caller if either ISC_MEM_DEBUGSIZE or ISC_MEM_DEBUGCTX
 			memory debugging flags are set. [RT #30243]
