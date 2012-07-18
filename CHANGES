@@ -1,3 +1,6 @@
+3352.	[bug]		Ensure that learned server attributes timeout of the
+			adb cache. [RT #29856]
+
 3350.	[bug]		Memory read overrun in isc___mem_reallocate if
 			ISC_MEM_DEBUGCTX memory debugging flag is set.
 			[RT #30240]
