@@ -1,3 +1,7 @@
+3351.	[bug]		isc_mem_put and isc_mem_putanddetach didn't report
+			caller if either ISC_MEM_DEBUGSIZE or ISC_MEM_DEBUGCTX
+			memory debugging flags are set. [RT #30243]
+
 3350.	[bug]		Memory read overrun in isc___mem_reallocate if
 			ISC_MEM_DEBUGCTX memory debugging flag is set.
 			[RT #30240]

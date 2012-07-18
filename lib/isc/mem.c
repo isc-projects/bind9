@@ -1197,7 +1197,7 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 				oldsize -= ALIGNMENT_SIZE;
 			INSIST(oldsize == size);
 		}
-		isc_mem_free((isc_mem_t *)ctx, ptr);
+		isc__mem_free((isc_mem_t *)ctx, ptr FLARG_PASS);
 
 		MCTXLOCK(ctx, &ctx->lock);
 		ctx->references--;
@@ -1333,7 +1333,7 @@ isc___mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 				oldsize -= ALIGNMENT_SIZE;
 			INSIST(oldsize == size);
 		}
-		isc_mem_free((isc_mem_t *)ctx, ptr);
+		isc__mem_free((isc_mem_t *)ctx, ptr FLARG_PASS);
 		return;
 	}
 
