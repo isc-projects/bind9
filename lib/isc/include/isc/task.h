@@ -699,7 +699,7 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp);
  *	have been freed.
  */
 
-void 
+void
 isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task);
 /*%<
  * Set a task which will be used for all task-exclusive operations.
@@ -708,7 +708,7 @@ isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task);
  *\li	'manager' is a valid task manager.
  *
  *\li	'task' is a valid task.
- */ 
+ */
 
 isc_result_t
 isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp);
