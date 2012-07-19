@@ -111,6 +111,7 @@ struct dns_adb {
 
 	isc_taskmgr_t                  *taskmgr;
 	isc_task_t                     *task;
+	isc_task_t                     *excl;
 
 	isc_interval_t                  tick_interval;
 	int                             next_cleanbucket;
@@ -1653,10 +1654,12 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname) {
 	LOCK(&adb->namescntlock);
 	adb->namescnt++;
 	inc_adbstats(adb, dns_adbstats_namescnt);
-	if (!adb->grownames_sent && adb->namescnt > (adb->nnames * 8)) {
+	if (!adb->grownames_sent && adb->excl != NULL &&
+	    adb->namescnt > (adb->nnames * 8))
+	{
 		isc_event_t *event = &adb->grownames;
 		inc_adb_irefcnt(adb);
-		isc_task_send(adb->task, &event);
+		isc_task_send(adb->excl, &event);
 		adb->grownames_sent = ISC_TRUE;
 	}
 	UNLOCK(&adb->namescntlock);
@@ -1779,8 +1782,9 @@ new_adbentry(dns_adb_t *adb) {
 	LOCK(&adb->entriescntlock);
 	adb->entriescnt++;
 	inc_adbstats(adb, dns_adbstats_entriescnt);
-	if (!adb->growentries_sent &&
-	    adb->entriescnt > (adb->nentries * 8)) {
+	if (!adb->growentries_sent && adb->growentries_sent &&
+	    adb->entriescnt > (adb->nentries * 8))
+	{
 		isc_event_t *event = &adb->growentries;
 		inc_adb_irefcnt(adb);
 		isc_task_send(adb->task, &event);
@@ -2356,6 +2360,7 @@ destroy(dns_adb_t *adb) {
 	adb->magic = 0;
 
 	isc_task_detach(&adb->task);
+	isc_task_detach(&adb->excl);
 
 	isc_mempool_destroy(&adb->nmp);
 	isc_mempool_destroy(&adb->nhmp);
@@ -2439,6 +2444,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->aimp = NULL;
 	adb->afmp = NULL;
 	adb->task = NULL;
+	adb->excl = NULL;
 	adb->mctx = NULL;
 	adb->view = view;
 	adb->taskmgr = taskmgr;
@@ -2473,6 +2479,16 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 		       DNS_EVENT_ADBGROWNAMES, grow_names, adb,
 		       adb, NULL, NULL);
 	adb->grownames_sent = ISC_FALSE;
+
+	result = isc_taskmgr_excltask(adb->taskmgr, &adb->excl);
+	if (result != ISC_R_SUCCESS) {
+		DP(ISC_LOG_INFO, "adb: task-exclusive mode unavailable, "
+				 "intializing table sizes to %u\n",
+				 nbuckets[11]);
+		adb->nentries = nbuckets[11];
+		adb->nnames= nbuckets[11];
+
+	}
 
 	isc_mem_attach(mem, &adb->mctx);
 
@@ -2586,11 +2602,13 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	result = isc_task_create(adb->taskmgr, 0, &adb->task);
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
+
 	isc_task_setname(adb->task, "ADB", adb);
 
 	result = isc_stats_create(adb->mctx, &view->adbstats, dns_adbstats_max);
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
+
 	set_adbstat(adb, adb->nentries, dns_adbstats_nentries);
 	set_adbstat(adb, adb->nnames, dns_adbstats_nnames);
 
