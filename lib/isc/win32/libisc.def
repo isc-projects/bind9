@@ -136,6 +136,8 @@ isc__task_unsend
 isc__task_unsendrange
 isc__taskmgr_create
 isc__taskmgr_destroy
+isc__taskmgr_excltask
+isc__taskmgr_setexcltask
 isc__timer_attach
 isc__timer_create
 isc__timer_detach

@@ -5468,11 +5468,13 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	/*
 	 * Setup the server task, which is responsible for coordinating
-	 * startup and shutdown of the server.
+	 * startup and shutdown of the server, as well as all exclusive
+	 * tasks.
 	 */
 	CHECKFATAL(isc_task_create(ns_g_taskmgr, 0, &server->task),
 		   "creating server task");
 	isc_task_setname(server->task, "server", server);
+	isc_taskmgr_setexcltask(ns_g_taskmgr, server->task);
 	CHECKFATAL(isc_task_onshutdown(server->task, shutdown_server, server),
 		   "isc_task_onshutdown");
 	CHECKFATAL(isc_app_onrun(ns_g_mctx, server->task, run_server, server),
