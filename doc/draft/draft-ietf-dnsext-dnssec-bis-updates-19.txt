@@ -5,22 +5,22 @@ Network Working Group                                          S. Weiler
 Internet-Draft                                              SPARTA, Inc.
 Updates: 4033, 4034, 4035, 5155                                D. Blacka
 (if approved)                                             Verisign, Inc.
-Intended status: Standards Track                          April 30, 2012
-Expires: November 1, 2012
+Intended status: Standards Track                           July 13, 2012
+Expires: January 14, 2013
 
 
-         Clarifications and Implementation Notes for DNSSECbis
-                draft-ietf-dnsext-dnssec-bis-updates-18
+           Clarifications and Implementation Notes for DNSSEC
+                draft-ietf-dnsext-dnssec-bis-updates-19
 
 Abstract
 
    This document is a collection of technical clarifications to the
-   DNSSECbis document set.  It is meant to serve as a resource to
-   implementors as well as a repository of DNSSECbis errata.
+   DNSSEC document set.  It is meant to serve as a resource to
+   implementors as well as a repository of DNSSEC errata.
 
-   This document updates the core DNSSECbis documents (RFC4033, RFC4034,
+   This document updates the core DNSSEC documents (RFC4033, RFC4034,
    and RFC4035) as well as the NSEC3 specification (RFC5155).  It also
-   defines NSEC3 and SHA-2 as core parts of the DNSSECbis specification.
+   defines NSEC3 and SHA-2 as core parts of the DNSSEC specification.
 
 Status of this Memo
 
@@ -37,7 +37,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on November 1, 2012.
+   This Internet-Draft will expire on January 14, 2013.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Weiler & Blacka         Expires November 1, 2012                [Page 1]
+Weiler & Blacka         Expires January 14, 2013                [Page 1]
 
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
+Internet-Draft         DNSSEC Implementation Notes             July 2012
 
 
    to this document.  Code Components extracted from this document must
@@ -108,9 +108,9 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
 
 
-Weiler & Blacka         Expires November 1, 2012                [Page 2]
+Weiler & Blacka         Expires January 14, 2013                [Page 2]
 
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
+Internet-Draft         DNSSEC Implementation Notes             July 2012
 
 
 Table of Contents
@@ -118,7 +118,7 @@ Table of Contents
    1.  Introduction and Terminology . . . . . . . . . . . . . . . . .  4
      1.1.  Structure of this Document . . . . . . . . . . . . . . . .  4
      1.2.  Terminology  . . . . . . . . . . . . . . . . . . . . . . .  4
-   2.  Important Additions to DNSSSECbis  . . . . . . . . . . . . . .  4
+   2.  Important Additions to DNSSEC  . . . . . . . . . . . . . . . .  4
      2.1.  NSEC3 Support  . . . . . . . . . . . . . . . . . . . . . .  4
      2.2.  SHA-2 Support  . . . . . . . . . . . . . . . . . . . . . .  5
    3.  Scaling Concerns . . . . . . . . . . . . . . . . . . . . . . .  5
@@ -127,63 +127,63 @@ Table of Contents
      4.1.  Clarifications on Non-Existence Proofs . . . . . . . . . .  5
      4.2.  Validating Responses to an ANY Query . . . . . . . . . . .  6
      4.3.  Check for CNAME  . . . . . . . . . . . . . . . . . . . . .  6
-     4.4.  Insecure Delegation Proofs . . . . . . . . . . . . . . . .  6
+     4.4.  Insecure Delegation Proofs . . . . . . . . . . . . . . . .  7
    5.  Interoperability Concerns  . . . . . . . . . . . . . . . . . .  7
      5.1.  Errors in Canonical Form Type Code List  . . . . . . . . .  7
      5.2.  Unknown DS Message Digest Algorithms . . . . . . . . . . .  7
      5.3.  Private Algorithms . . . . . . . . . . . . . . . . . . . .  8
-     5.4.  Caution About Local Policy and Multiple RRSIGs . . . . . .  8
+     5.4.  Caution About Local Policy and Multiple RRSIGs . . . . . .  9
      5.5.  Key Tag Calculation  . . . . . . . . . . . . . . . . . . .  9
      5.6.  Setting the DO Bit on Replies  . . . . . . . . . . . . . .  9
      5.7.  Setting the AD Bit on Queries  . . . . . . . . . . . . . .  9
-     5.8.  Setting the AD Bit on Replies  . . . . . . . . . . . . . .  9
+     5.8.  Setting the AD Bit on Replies  . . . . . . . . . . . . . . 10
      5.9.  Always set the CD bit on Queries . . . . . . . . . . . . . 10
      5.10. Nested Trust Anchors . . . . . . . . . . . . . . . . . . . 10
      5.11. Mandatory Algorithm Rules  . . . . . . . . . . . . . . . . 11
-     5.12. Ignore Extra Signatures From Unknown Keys  . . . . . . . . 11
+     5.12. Ignore Extra Signatures From Unknown Keys  . . . . . . . . 12
    6.  Minor Corrections and Clarifications . . . . . . . . . . . . . 12
      6.1.  Finding Zone Cuts  . . . . . . . . . . . . . . . . . . . . 12
      6.2.  Clarifications on DNSKEY Usage . . . . . . . . . . . . . . 12
-     6.3.  Errors in Examples . . . . . . . . . . . . . . . . . . . . 12
+     6.3.  Errors in Examples . . . . . . . . . . . . . . . . . . . . 13
      6.4.  Errors in RFC 5155 . . . . . . . . . . . . . . . . . . . . 13
    7.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 13
    8.  Security Considerations  . . . . . . . . . . . . . . . . . . . 13
    9.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 14
      9.1.  Normative References . . . . . . . . . . . . . . . . . . . 14
-     9.2.  Informative References . . . . . . . . . . . . . . . . . . 14
+     9.2.  Informative References . . . . . . . . . . . . . . . . . . 15
    Appendix A.  Acknowledgments . . . . . . . . . . . . . . . . . . . 15
-   Appendix B.  Discussion of Setting the CD Bit  . . . . . . . . . . 15
-   Appendix C.  Discussion of Trust Anchor Preference Options . . . . 18
-     C.1.  Closest Encloser . . . . . . . . . . . . . . . . . . . . . 18
-     C.2.  Accept Any Success . . . . . . . . . . . . . . . . . . . . 19
-     C.3.  Preference Based on Source . . . . . . . . . . . . . . . . 19
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 20
+   Appendix B.  Discussion of Setting the CD Bit  . . . . . . . . . . 16
+   Appendix C.  Discussion of Trust Anchor Preference Options . . . . 19
+     C.1.  Closest Encloser . . . . . . . . . . . . . . . . . . . . . 19
+     C.2.  Accept Any Success . . . . . . . . . . . . . . . . . . . . 20
+     C.3.  Preference Based on Source . . . . . . . . . . . . . . . . 20
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 21
 
 
 
 
 
 
-Weiler & Blacka         Expires November 1, 2012                [Page 3]
+Weiler & Blacka         Expires January 14, 2013                [Page 3]
 
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
+Internet-Draft         DNSSEC Implementation Notes             July 2012
 
 
 1.  Introduction and Terminology
 
    This document lists some additions, clarifications and corrections to
-   the core DNSSECbis specification, as originally described in
-   [RFC4033], [RFC4034], and [RFC4035], and later amended by [RFC5155].
-   (See section Section 2 for more recent additions to that core
-   document set.)
+   the core DNSSEC specification, as originally described in [RFC4033],
+   [RFC4034], and [RFC4035], and later amended by [RFC5155].  (See
+   section Section 2 for more recent additions to that core document
+   set.)
 
    It is intended to serve as a resource for implementors and as a
    repository of items that need to be addressed when advancing the
-   DNSSECbis documents from Proposed Standard to Draft Standard.
+   DNSSEC documents along the Standards Track.
 
 1.1.  Structure of this Document
 
-   The clarifications and changes to DNSSECbis are sorted according to
+   The clarifications and changes to DNSSEC are sorted according to
    their importance, starting with ones which could, if ignored, lead to
    security problems and progressing down to clarifications that are
    expected to have little operational impact.
@@ -196,11 +196,11 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    [RFC2119].
 
 
-2.  Important Additions to DNSSSECbis
+2.  Important Additions to DNSSEC
 
-   This section lists some documents that should be considered core
-   DNSSEC protocol documents in addition to those originally specified
-   in Section 10 of [RFC4033].
+   This section lists some documents that are now considered core DNSSEC
+   protocol documents in addition to those originally specified in
+   Section 10 of [RFC4033].
 
 2.1.  NSEC3 Support
 
@@ -211,21 +211,21 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    validation of responses using NSEC3 will be hampered in validating
    large portions of the DNS space.
 
-   [RFC5155] should be considered part of the DNS Security Document
-   Family as described by [RFC4033], Section 10.
+   [RFC5155] is now considered part of the DNS Security Document Family
+   as described by [RFC4033], Section 10.
 
    Note that the algorithm identifiers defined in RFC5155 (DSA-NSEC3-
    SHA1 and RSASHA1-NSEC3-SHA1) and RFC5702 (RSASHA256 and RSASHA512)
-   signal that a zone MAY be using NSEC3, rather than NSEC.  The zone
+   signal that a zone might be using NSEC3, rather than NSEC.  The zone
 
 
 
-Weiler & Blacka         Expires November 1, 2012                [Page 4]
+Weiler & Blacka         Expires January 14, 2013                [Page 4]
 
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
+Internet-Draft         DNSSEC Implementation Notes             July 2012
 
 
-   MAY be using either and validators supporting these algorithms MUST
+   may be using either and validators supporting these algorithms MUST
    support both NSEC3 and NSEC responses.
 
 2.2.  SHA-2 Support
@@ -236,8 +236,8 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    Validator implementations are strongly encouraged to include support
    for these algorithms for DS, DNSKEY, and RRSIG records.
 
-   Both [RFC4509] and [RFC5702] should also be considered part of the
-   DNS Security Document Family as described by [RFC4033], Section 10.
+   Both [RFC4509] and [RFC5702] are now considered part of the DNS
+   Security Document Family as described by [RFC4033], Section 10.
 
 
 3.  Scaling Concerns
@@ -245,9 +245,14 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 3.1.  Implement a BAD cache
 
    Section 4.7 of RFC4035 permits security-aware resolvers to implement
-   a BAD cache.  Because of scaling concerns not discussed in this
-   document, that guidance has changed: security-aware resolvers SHOULD
-   implement a BAD cache as described in RFC4035.
+   a BAD cache.  That guidance has changed: security-aware resolvers
+   SHOULD implement a BAD cache as described in RFC4035.
+
+   This change in guidance is based on operational experience with
+   DNSSEC administrative errors leading to significant increases in DNS
+   traffic, with an accompanying realization that such events are more
+   likely and more damaging than originally supposed.  An example of one
+   such event is documented in "Roll Over and Die" [Huston].
 
 
 4.  Security Concerns
@@ -266,6 +271,16 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
    o  the NS bit set,
    o  the SOA bit clear, and
+
+
+
+
+
+Weiler & Blacka         Expires January 14, 2013                [Page 5]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
    o  a signer field that is shorter than the owner name of the NSEC RR,
       or the original owner name for the NSEC3 RR.
 
@@ -273,13 +288,6 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    existence of any RRs below that zone cut, which include all RRs at
    that (original) owner name other than DS RRs, and all RRs below that
    owner name regardless of type.
-
-
-
-Weiler & Blacka         Expires November 1, 2012                [Page 5]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
 
    Similarly, the algorithm would also allow an NSEC RR at the same
    owner name as a DNAME RR, or an NSEC3 RR at the same original owner
@@ -306,11 +314,11 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
 4.3.  Check for CNAME
 
-   Section 5 of [RFC4035] says little about validating responses based
-   on (or that should be based on) CNAMEs.  When validating a NOERROR/
-   NODATA response, validators MUST check the CNAME bit in the matching
-   NSEC or NSEC3 RR's type bitmap in addition to the bit for the query
-   type.
+   Section 5 of [RFC4035] says nothing explicit about validating
+   responses based on (or that should be based on) CNAMEs.  When
+   validating a NOERROR/NODATA response, validators MUST check the CNAME
+   bit in the matching NSEC or NSEC3 RR's type bitmap in addition to the
+   bit for the query type.
 
    Without this check, an attacker could successfully transform a
    positive CNAME response into a NOERROR/NODATA response by (e.g.)
@@ -319,6 +327,15 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    matching NSEC/NSEC3 RR, but fail to notice that the CNAME bit was
    set, and thus the response should have been a positive CNAME
    response.
+
+
+
+
+
+Weiler & Blacka         Expires January 14, 2013                [Page 6]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
 
 4.4.  Insecure Delegation Proofs
 
@@ -329,13 +346,6 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    NSEC3) RR (proving that there is, indeed, a delegation), or
    alternately make sure that the delegation is covered by an NSEC3 RR
    with the Opt-Out flag set.
-
-
-
-Weiler & Blacka         Expires November 1, 2012                [Page 6]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
 
    Without this check, an attacker could reuse an NSEC or NSEC3 RR
    matching a non-delegation name to spoof an unsigned delegation at
@@ -376,6 +386,13 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
    The existing text says:
 
+
+
+Weiler & Blacka         Expires January 14, 2013                [Page 7]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
       If the validator does not support any of the algorithms listed in
       an authenticated DS RRset, then the resolver has no supported
       authentication path leading from the parent to the child.  The
@@ -385,14 +402,6 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
    In other words, when determining the security status of a zone, a
    validator disregards any authenticated DS records that specify
-
-
-
-Weiler & Blacka         Expires November 1, 2012                [Page 7]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
-
    unknown or unsupported DNSKEY algorithms.  If none are left, the zone
    is treated as if it were unsigned.
 
@@ -418,20 +427,28 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
    In the remaining cases, the security status of the zone depends on
    whether or not the resolver supports any of the private algorithms in
-   use (provided that these DS records use supported hash functions, as
-   discussed in Section 5.2).  In these cases, the resolver MUST
-   retrieve the corresponding DNSKEY for each private algorithm DS
-   record and examine the public key field to determine the algorithm in
-   use.  The security-aware resolver MUST ensure that the hash of the
-   DNSKEY RR's owner name and RDATA matches the digest in the DS RR as
-   described in Section 5.2 of [RFC4035], authenticating the DNSKEY.  If
-   all of the retrieved and authenticated DNSKEY RRs use unknown or
-   unsupported private algorithms, then the zone is treated as if it
-   were unsigned.
+   use (provided that these DS records use supported message digest
+   algorithms, as discussed in Section 5.2 of this document).  In these
+   cases, the resolver MUST retrieve the corresponding DNSKEY for each
+   private algorithm DS record and examine the public key field to
+   determine the algorithm in use.  The security-aware resolver MUST
+   ensure that the hash of the DNSKEY RR's owner name and RDATA matches
+   the digest in the DS RR as described in Section 5.2 of [RFC4035],
+   authenticating the DNSKEY.  If all of the retrieved and authenticated
+   DNSKEY RRs use unknown or unsupported private algorithms, then the
+   zone is treated as if it were unsigned.
 
    Note that if none of the private algorithm DS RRs can be securely
    matched to DNSKEY RRs and no other DS establishes that the zone is
    secure, the referral should be considered Bogus data as discussed in
+
+
+
+Weiler & Blacka         Expires January 14, 2013                [Page 8]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
    [RFC4035].
 
    This clarification facilitates the broader use of private algorithms,
@@ -441,14 +458,6 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
    When multiple RRSIGs cover a given RRset, [RFC4035] Section 5.3.3
    suggests that "the local resolver security policy determines whether
-
-
-
-Weiler & Blacka         Expires November 1, 2012                [Page 8]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
-
    the resolver also has to test these RRSIG RRs and how to resolve
    conflicts if these RRSIG RRs lead to differing results."
 
@@ -475,18 +484,30 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
 5.6.  Setting the DO Bit on Replies
 
-   As stated in [RFC3225], the DO bit of the query MUST be copied in the
-   response.  However, in order to interoperate with implementations
-   that ignore this rule on sending, resolvers MUST ignore the DO bit in
-   responses.
+   As stated in Section 3 of [RFC3225], the DO bit of the query MUST be
+   copied in the response.  However, in order to interoperate with
+   implementations that ignore this rule on sending, resolvers MUST
+   ignore the DO bit in responses.
 
 5.7.  Setting the AD Bit on Queries
 
-   The use of the AD bit in the query was previously undefined.  This
-   document defines it as a signal indicating that the requester
-   understands and is interested in the value of the AD bit in the
-   response.  This allows a requestor to indicate that it understands
-   the AD bit without also requesting DNSSEC data via the DO bit.
+   The semantics of the AD bit in the query were previously undefined.
+   Section 4.6 of [RFC4035] instructed resolvers to always clear the AD
+   bit when composing queries.
+
+   This document defines setting the AD bit in a query as a signal
+   indicating that the requester understands and is interested in the
+
+
+
+Weiler & Blacka         Expires January 14, 2013                [Page 9]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
+   value of the AD bit in the response.  This allows a requestor to
+   indicate that it understands the AD bit without also requesting
+   DNSSEC data via the DO bit.
 
 5.8.  Setting the AD Bit on Replies
 
@@ -497,13 +518,6 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    only set the AD bit when a response both meets the conditions listed
    in RFC 4035, section 3.2.3, and the request contained either a set DO
    bit or a set AD bit.
-
-
-
-Weiler & Blacka         Expires November 1, 2012                [Page 9]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
 
 5.9.  Always set the CD bit on Queries
 
@@ -525,7 +539,7 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    does the cache need to track the state of the CD bit used to make a
    given query.  The problem arises when the cached response is a server
    failure (RCODE 2), which may indicate that the requested data failed
-   DNSSEC validation at an upstream validating resolver.  (RFC2308
+   DNSSEC validation at an upstream validating resolver.  ([RFC2308]
    permits caching of server failures for up to five minutes.)  In these
    cases, a new query with the CD bit set is required.
 
@@ -539,6 +553,14 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    trust to the response zone.  For example, imagine a validator
    configured with trust anchors for "example." and "zone.example."
    When the validator is asked to validate a response to
+
+
+
+Weiler & Blacka         Expires January 14, 2013               [Page 10]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
    "www.sub.zone.example.", either trust anchor could apply.
 
    When presented with this situation, DNSSEC validators have a choice
@@ -553,14 +575,6 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
    The "Accept Any Success" policy is to try all applicable trust
    anchors until one gives a validation result of Secure, in which case
-
-
-
-Weiler & Blacka         Expires November 1, 2012               [Page 10]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
-
    the final validation result is Secure.  If and only if all applicable
    trust anchors give a result of Insecure, the final validation result
    is Insecure.  If one or more trust anchors lead to a Bogus result and
@@ -590,12 +604,20 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
       Likewise, if there are DS records for multiple keys of the same
       algorithm, any subset of those may appear in the DNSKEY RRset.
 
-   Lastly, note that this a requirement at the server side, not the
-   client side.  Validators SHOULD accept any single valid path.  They
-   SHOULD NOT insist that all algorithms signaled in the DS RRset work,
-   and they MUST NOT insist that all algorithms signaled in the DNSKEY
-   RRset work.  A validator MAY have a configuration option to perform a
-   signature completeness test to support troubleshooting.
+   This requirement applies to servers, not validators.  Validators
+   SHOULD accept any single valid path.  They SHOULD NOT insist that all
+   algorithms signaled in the DS RRset work, and they MUST NOT insist
+   that all algorithms signaled in the DNSKEY RRset work.  A validator
+   MAY have a configuration option to perform a signature completeness
+
+
+
+Weiler & Blacka         Expires January 14, 2013               [Page 11]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
+   test to support troubleshooting.
 
 5.12.  Ignore Extra Signatures From Unknown Keys
 
@@ -610,27 +632,13 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    zone.
 
 
-
-
-Weiler & Blacka         Expires November 1, 2012               [Page 11]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
-
 6.  Minor Corrections and Clarifications
 
 6.1.  Finding Zone Cuts
 
    Appendix C.8 of [RFC4035] discusses sending DS queries to the servers
-   for a parent zone.  To do that, a resolver may first need to apply
-   special rules to discover what those servers are.
-
-   As explained in Section 3.1.4.1 of [RFC4035], security-aware name
-   servers need to apply special processing rules to handle the DS RR,
-   and in some situations the resolver may also need to apply special
-   rules to locate the name servers for the parent zone if the resolver
-   does not already have the parent's NS RRset.  Section 4.2 of
-   [RFC4035] specifies a mechanism for doing that.
+   for a parent zone but does not state how to find those servers.
+   Specific instructions can be found in Section 4.2 of [RFC4035].
 
 6.2.  Clarifications on DNSKEY Usage
 
@@ -655,6 +663,16 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    also possible to use a single DNSKEY, with or without the SEP bit
    set, to sign the entire zone, including the DNSKEY RRset itself.
 
+
+
+
+
+
+Weiler & Blacka         Expires January 14, 2013               [Page 12]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
 6.3.  Errors in Examples
 
    The text in [RFC4035] Section C.1 refers to the examples in B.1 as
@@ -665,13 +683,6 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    "x.w.example.com", which of course has a label count of 4
    (antithetically, a label count of 3 would imply the answer was the
    result of a wildcard expansion).
-
-
-
-Weiler & Blacka         Expires November 1, 2012               [Page 12]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
 
    The first paragraph of [RFC4035] Section C.6 also has a minor error:
    the reference to "a.z.w.w.example" should instead be "a.z.w.example",
@@ -710,6 +721,14 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    in the documents defining them.  Additionally, this document
    addresses some ambiguities and omissions in the core DNSSEC documents
    that, if not recognized and addressed in implementations, could lead
+
+
+
+Weiler & Blacka         Expires January 14, 2013               [Page 13]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
    to security failures.  In particular, the validation algorithm
    clarifications in Section 4 are critical for preserving the security
    properties DNSSEC offers.  Furthermore, failure to address some of
@@ -720,13 +739,6 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    security implications.  By setting the CD bit, a resolver will not
    benefit from more stringent validation rules or a more complete set
    of trust anchors at an upstream validator.
-
-
-
-
-Weiler & Blacka         Expires November 1, 2012               [Page 13]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
 
 9.  References
@@ -765,7 +777,21 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
               and RRSIG Resource Records for DNSSEC", RFC 5702,
               October 2009.
 
+
+
+
+Weiler & Blacka         Expires January 14, 2013               [Page 14]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
 9.2.  Informative References
+
+   [Huston]   Michaelson, G., Wallstrom, P., Arends, R., and G. Huston,
+              "Roll Over and Die?", February 2010.
+
+   [RFC2308]  Andrews, M., "Negative Caching of DNS Queries (DNS
+              NCACHE)", RFC 2308, March 1998.
 
    [RFC3755]  Weiler, S., "Legacy Resolver Compatibility for Delegation
               Signer (DS)", RFC 3755, May 2004.
@@ -777,14 +803,6 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
               July 2007.
 
    [RFC5011]  StJohns, M., "Automated Updates of DNS Security (DNSSEC)
-
-
-
-Weiler & Blacka         Expires November 1, 2012               [Page 14]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
-
               Trust Anchors", RFC 5011, September 2007.
 
    [RFC5074]  Weiler, S., "DNSSEC Lookaside Validation (DLV)", RFC 5074,
@@ -797,7 +815,7 @@ Appendix A.  Acknowledgments
    an editor of this document.
 
    The editors are extremely grateful to those who, in addition to
-   finding errors and omissions in the DNSSECbis document set, have
+   finding errors and omissions in the DNSSEC document set, have
    provided text suitable for inclusion in this document.
 
    The lack of specificity about handling private algorithms, as
@@ -815,6 +833,14 @@ Appendix A.  Acknowledgments
    The errors in the [RFC4035] examples were found by Roy Arends, who
    also contributed text for Section 6.3 of this document.
 
+
+
+
+Weiler & Blacka         Expires January 14, 2013               [Page 15]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
    Text on the mandatory algorithm rules was derived from suggestions by
    Matthijs Mekking and Ed Lewis.
 
@@ -824,23 +850,16 @@ Appendix A.  Acknowledgments
    The editors would like to thank Alfred Hoenes, Ed Lewis, Danny Mayer,
    Olafur Gudmundsson, Suzanne Woolf, Rickard Bellgrim, Mike St. Johns,
    Mark Andrews, Wouter Wijngaards, Matthijs Mekking, Andrew Sullivan,
-   and Scott Rose for their substantive comments on the text of this
+   Jeremy Reed, Paul Hoffman, Mohan Parthasarathy, Florian Weimer,
+   Warren Kumari and Scott Rose for their contributions to this
    document.
 
 
 Appendix B.  Discussion of Setting the CD Bit
 
-   RFC 4035 may be read as relying on the implicit assumption that there
-   is at most one validating system between the stub resolver and the
-   authoritative server for a given zone.  It is entirely possible,
-
-
-
-Weiler & Blacka         Expires November 1, 2012               [Page 15]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
-
+   [RFC4035] may be read as relying on the implicit assumption that
+   there is at most one validating system between the stub resolver and
+   the authoritative server for a given zone.  It is entirely possible,
    however, for more than one validator to exist between a stub resolver
    and an authoritative server.  If these different validators have
    disjoint trust anchors configured, then it is possible that each
@@ -870,6 +889,14 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    as local policy or from the API in the case of a stub).  The second
    column indicates whether the query needs to be forwarded for
    resolution (F) or can be satisfied from a local cache (C).  The third
+
+
+
+Weiler & Blacka         Expires January 14, 2013               [Page 16]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
+
    column is a line number, so that it can be referred to later in the
    table.  The fourth column indicates any relevant conditions at the
    resolver: whether the resolver has a covering trust anchor and so on.
@@ -877,25 +904,15 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
    final column indicates what action the resolver takes.
 
    The tables differentiate between "cached data" and "cached RCODE=2".
-   This is a shorthand; the point is that one has to treat RCODE=2 as
-   special, because it might indicate a validation failure somewhere
-   upstream.  The distinction is really between "cached RCODE=2" and
-   "cached everything else".
+   This is a shorthand; the point is that one has to treat RCODE=2
+   (server failure) as special, because it might indicate a validation
+   failure somewhere upstream.  The distinction is really between
+   "cached RCODE=2" and "cached everything else".
 
    The tables are probably easiest to think of in terms of describing
    what happens when a stub resolver sends a query to an intermediate
    resolver, but they are perfectly general and can be applied to any
    validating resolver.
-
-
-
-
-
-
-Weiler & Blacka         Expires November 1, 2012               [Page 16]
-
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
-
 
    Model 1: "always set"
 
@@ -917,6 +934,24 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
                                                (data or RCODE=2)
     0   C      A5       covering TA           Validate cached result and
                                                return it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Weiler & Blacka         Expires January 14, 2013               [Page 17]
+
+Internet-Draft         DNSSEC Implementation Notes             July 2012
+
 
    Model 2: "never set when receiving CD=0"
 
@@ -948,9 +983,30 @@ Internet-Draft       DNSSECbis Implementation Notes           April 2012
 
 
 
-Weiler & Blacka         Expires November 1, 2012               [Page 17]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Weiler & Blacka         Expires January 14, 2013               [Page 18]
 
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
+Internet-Draft         DNSSEC Implementation Notes             July 2012
 
 
    Model 3: "sometimes set"
@@ -1004,9 +1060,9 @@ C.1.  Closest Encloser
 
 
 
-Weiler & Blacka         Expires November 1, 2012               [Page 18]
+Weiler & Blacka         Expires January 14, 2013               [Page 19]
 
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
+Internet-Draft         DNSSEC Implementation Notes             July 2012
 
 
    Encloser" policy would choose the "zone.example." trust anchor.
@@ -1060,9 +1116,9 @@ C.3.  Preference Based on Source
 
 
 
-Weiler & Blacka         Expires November 1, 2012               [Page 19]
+Weiler & Blacka         Expires January 14, 2013               [Page 20]
 
-Internet-Draft       DNSSECbis Implementation Notes           April 2012
+Internet-Draft         DNSSEC Implementation Notes             July 2012
 
 
    Conversely, a validator might choose to prefer manually configured
@@ -1116,5 +1172,5 @@ Authors' Addresses
 
 
 
-Weiler & Blacka         Expires November 1, 2012               [Page 20]
+Weiler & Blacka         Expires January 14, 2013               [Page 21]
 
