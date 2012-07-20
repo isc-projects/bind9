@@ -22,6 +22,11 @@
 
 #include <sys/stat.h>
 
+/*
+ * Windows doesn't typedef this.
+ */
+typedef unsigned short mode_t
+
 /* open() under unix allows setting of read/write permissions
  * at the owner, group and other levels.  These don't exist in NT
  * We'll just map them all to the NT equivalent
