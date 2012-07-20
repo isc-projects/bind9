@@ -74,7 +74,7 @@ struct dns_rpz_zone {
 	dns_name_t		 cname;	  /* override value for ..._CNAME */
 	dns_ttl_t		 max_policy_ttl;
 	dns_rpz_policy_t	 policy;  /* DNS_RPZ_POLICY_GIVEN or override */
-	isc_boolean_t		 recursive_only; 
+	isc_boolean_t		 recursive_only;
 };
 
 /*

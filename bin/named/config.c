@@ -73,6 +73,7 @@ options {\n\
 	listen-on {any;};\n\
 	listen-on-v6 {none;};\n\
 	match-mapped-addresses no;\n\
+	max-rsa-exponent-size 0; /* no limit */\n\
 	memstatistics-file \"named.memstats\";\n\
 	multiple-cnames no;\n\
 #	named-xfer <obsolete>;\n\
@@ -89,7 +90,7 @@ options {\n\
 #endif
 "\
 	recursive-clients 1000;\n\
-	resolver-query-timeout 30;\n\
+	resolver-query-timeout 10;\n\
 	rrset-order { order random; };\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\

@@ -132,11 +132,18 @@ isc_result_t
 dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		   isc_boolean_t ignoretime, isc_mem_t *mctx,
 		   dns_rdata_t *sigrdata, dns_name_t *wild);
+
+isc_result_t
+dns_dnssec_verify3(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
+		   isc_boolean_t ignoretime, unsigned int maxbits,
+		   isc_mem_t *mctx, dns_rdata_t *sigrdata, dns_name_t *wild);
 /*%<
  *	Verifies the RRSIG record covering this rdataset signed by a specific
  *	key.  This does not determine if the key's owner is authorized to sign
  *	this record, as this requires a resolver or database.
  *	If 'ignoretime' is ISC_TRUE, temporal validity will not be checked.
+ *
+ *	'maxbits' specifies the maximum number of rsa exponent bits accepted.
  *
  *	Requires:
  *\li		'name' (the owner name of the record) is a valid name

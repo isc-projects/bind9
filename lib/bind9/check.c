@@ -287,10 +287,6 @@ disabled_algorithms(const cfg_obj_t *disabled, isc_log_t *logctx) {
 
 		tresult = dns_secalg_fromtext(&alg, &r);
 		if (tresult != ISC_R_SUCCESS) {
-			isc_uint8_t ui;
-			result = isc_parse_uint8(&ui, r.base, 10);
-		}
-		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(cfg_listelt_value(element), logctx,
 				    ISC_LOG_ERROR, "invalid algorithm '%s'",
 				    r.base);
@@ -732,6 +728,20 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "%s '%d' is out of range",
 				    intervals[i].name, val);
+			result = ISC_R_RANGE;
+		}
+	}
+
+	obj = NULL;
+	cfg_map_get(options, "max-rsa-exponent-size", &obj);
+	if (obj != NULL) {
+		isc_uint32_t val;
+
+		val = cfg_obj_asuint32(obj);
+		if (val != 0 && (val < 35 || val > 4096)) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "max-rsa-exponent-size '%u' is out of "
+				    "range (35..4096)", val);
 			result = ISC_R_RANGE;
 		}
 	}

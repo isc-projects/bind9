@@ -137,6 +137,69 @@ AC_PATH_PROGS(PERL, perl5 perl)
 AC_SUBST(PERL)
 
 #
+# Python is also optional; it is used by the tools in bin/python.
+# If python is unavailable, we simply don't build those.
+#
+AC_ARG_WITH(python,
+[  --with-python=PATH   Specify path to python interpreter],
+    use_python="$withval", use_python="unspec")
+
+case "$use_python" in
+	no)
+		AC_MSG_RESULT(disabled)
+		;;
+	unspec|yes|*)
+		case "$use_python" in
+		unspec|yes|'')
+			AC_PATH_PROGS(PYTHON, python)
+			;;
+		*)
+			AC_PATH_PROGS(PYTHON, $use_python)
+			;;
+		esac
+		if test "X$PYTHON" == "X"
+		then
+			case "$use_python" in
+			unspec)
+				AC_MSG_RESULT(disabled)
+				;;
+			yes|*)
+				AC_MSG_ERROR([missing python])
+				;;
+			esac
+			break
+		fi
+                testscript='try: import argparse
+except: exit(1)'
+		AC_MSG_CHECKING([python module 'argparse'])
+                if $PYTHON -c "$testscript"; then
+                        AC_MSG_RESULT([found, using $PYTHON])
+                else
+			case "$use_python" in
+			unspec)
+				PYTHON=""
+				AC_SUBST(CHECKDS)
+				AC_MSG_RESULT([not found, python disabled])
+				;;
+			yes)
+                        AC_MSG_RESULT([no found])
+                        AC_MSG_ERROR([python 'argparse' module not supported])
+				;;
+			esac
+                fi
+		;;
+esac
+
+PYTHON_TOOLS=''
+CHECKDS=''
+if test "X$PYTHON" != "X"; then
+        PYTHON_TOOLS=python
+	CHECKDS=checkds
+fi
+AC_SUBST(CHECKDS)
+AC_SUBST(PYTHON_TOOLS)
+
+#
 # Special processing of paths depending on whether --prefix,
 # --sysconfdir or --localstatedir arguments were given.  What's
 # desired is some compatibility with the way previous versions
@@ -3017,7 +3080,7 @@ AC_ARG_WITH(docbook-xsl,
 case "$docbook_path" in
 auto)
 	AC_MSG_RESULT(auto)
-	docbook_xsl_trees="/usr/pkg/share/xsl/docbook /usr/local/share/xsl/docbook /usr/share/xsl/docbook"
+	docbook_xsl_trees="/usr/pkg/share/xsl/docbook /usr/local/share/xsl/docbook /usr/share/xsl/docbook /opt/local/share/xsl/docbook-xsl/"
 	;;
 *)
 	docbook_xsl_trees="$withval"
@@ -3501,6 +3564,8 @@ AC_CONFIG_FILES([
 	bin/named/unix/Makefile
 	bin/nsupdate/Makefile
 	bin/pkcs11/Makefile
+	bin/python/Makefile
+	bin/python/dnssec-checkds.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
 	bin/tests/atomic/Makefile
@@ -3525,6 +3590,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/gost/prereq.sh
 	bin/tests/system/lwresd/Makefile
 	bin/tests/system/rpz/Makefile
+	bin/tests/system/rsabigexponent/Makefile
 	bin/tests/system/tkey/Makefile
 	bin/tests/system/tsiggss/Makefile
 	bin/tests/tasks/Makefile

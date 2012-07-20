@@ -56,9 +56,8 @@ my %file_years = ();
 my $years_list;
 my $parent;
 
-($dummy,$dummy,$dummy,$dummy,$dummy,$this_year,$dummy,$dummy,$dummy) = localtime(time());
+($dummy,$dummy,$dummy,$dummy,$this_month,$this_year,$dummy,$dummy,$dummy) = localtime(time());
 $this_year += 1900;
-
 
 while (<>) {
 	chomp;
@@ -151,6 +150,7 @@ foreach $file (keys %file_types) {
         $sgml_comment = 0;
         $zone_comment = 0;
         $man_comment = 0;
+        $python_comment = 0;
         $start_comment = "";
         $end_comment = "";
         $first = "";
@@ -161,7 +161,12 @@ foreach $file (keys %file_types) {
                 $end_comment = " */\n";
         } elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH|RNC)$/) {
                 $shell_comment = 1;
+		$prefix = "# ";
+        } elsif ($type =~ /^PYTHON$/) {
+                $python_comment = 1;
+                $start_comment = "############################################################################\n";
                 $prefix = "# ";
+		$end_comment = "############################################################################\n"
         } elsif ($type eq "ZONE" || $type eq "MC") {
                 $zone_comment = 1;
                 $prefix = "; ";
@@ -214,6 +219,28 @@ foreach $file (keys %file_types) {
                         $before_copyright = "$_#\n";
                         $_ = <SOURCE>;
                         $_ = <SOURCE> if $_ eq "#\n";
+                }
+                if (/^\#/) {
+                        if ($_ !~ /[Cc]opyright/) {
+                                print "$file: non-copyright comment\n";
+                                close(SOURCE);
+                                next;
+                        }
+                        while (<SOURCE>) {
+                                if ($_ !~ /^\#/) {
+                                        $first = $_;
+                                        last;
+                                }
+                        }
+                } else {
+                        $first = $_;
+                }
+        } elsif ($python_comment) {
+                if (/^\#\!/) {
+                        $before_copyright = "$_";
+                        $_ = <SOURCE>;
+                        $_ = <SOURCE> if $_ eq "#\n";
+                        $_ = <SOURCE> if $_ eq "############################################################################\n";
                 }
                 if (/^\#/) {
                         if ($_ !~ /[Cc]opyright/) {
@@ -382,9 +409,11 @@ foreach $file (keys %file_types) {
 	$years = "";
 	$anchor_end = length($years);
 	my $andor = 0;
+	my $noid = 0;
         foreach $year (@years) {
 		if ($year < 2004) { next; }
 		$andor = 1 if ($year >= 2007);
+		$noid = 1 if ($year > 2012 || ($year == 2012 && $this_month >= 5) );
                 if ($last_year != 0 && $year == $last_year + 1) {
                         if ($year > $anchor_year + 1) {
                                 substr($years, $anchor_end) = "-$year";
@@ -473,7 +502,10 @@ foreach $file (keys %file_types) {
 		}
 
                 my ($start, $end);
-                if ($start_comment ne "") {
+		if ($type =~ /^PYTHON$/) {
+                        ($start = $prefix) =~ s/\s*\n//;
+			$end = "\n";
+                } elsif ($start_comment ne "") {
                         ($start = $start_comment) =~ s/\s*\n/ /;
                         ($end = $end_comment) =~ s/^\s*(.*)\n/ $1\n/;
                 } elsif ($prefix ne "") {
@@ -484,7 +516,7 @@ foreach $file (keys %file_types) {
                         $end = "\n";
                 }
 
-                if ($first !~ /$keyword_pat/ && 
+                if (!$noid && $first !~ /$keyword_pat/ && 
 		    (!defined($_) || $_ !~ /$keyword_pat/)) {
 			$end = "\n$nonspaceprefix" if ($type eq "MAN");
                         print TARGET "$start\$";

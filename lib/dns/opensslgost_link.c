@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2010-2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -359,6 +359,7 @@ static dst_func_t opensslgost_functions = {
 	opensslgost_adddata,
 	opensslgost_sign,
 	opensslgost_verify,
+	NULL, /*%< verify2 */
 	NULL, /*%< computesecret */
 	opensslgost_compare,
 	NULL, /*%< paramcompare */

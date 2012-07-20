@@ -48,12 +48,10 @@ RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s"
 
 digcmd () {
     digcmd_args="+noadd +nosearch +time=1 +tries=1 -p 5300 $*"
-    if ! expr "$digcmd_args" : '.*@' >/dev/null; then
+    expr "$digcmd_args" : '.*@' >/dev/null || \
 	digcmd_args="$digcmd_args @$ns3"
-    fi
-    if ! expr "$digcmd_args" : '.*+[no]*auth' >/dev/null; then
+    expr "$digcmd_args" : '.*+[no]*auth' >/dev/null || \
 	digcmd_args="+noauth $digcmd_args"
-    fi
     #echo I:dig $digcmd_args 1>&2
     $DIG $digcmd_args
 }
@@ -405,13 +403,20 @@ if test -n "$QPERF"; then
 
     # turn off rpz and measure queries/second again
     # Don't wait for a clean stop.  Clean stops of this server need seconds
-    # until the sockets are close.  5 or 10 seconds after that, the
+    # until the sockets are closed.  5 or 10 seconds after that, the
     # server really stops and deletes named.pid.
     echo "# rpz off" >ns5/rpz-switch
     PID=`cat ns5/named.pid`
     test -z "$PID" || kill -9 "$PID"
     $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns5
     perf 'without rpz' norpz
+
+    # Don't wait for a clean stop.  Clean stops of this server need seconds
+    # until the sockets are closed.  5 or 10 seconds after that, the
+    # server really stops and deletes named.pid.
+    echo "# rpz off" >ns5/rpz-switch
+    PID=`cat ns5/named.pid`
+    test -z "$PID" || kill -9 "$PID" && rm -f ns5/named.pid
 
     NORPZ=`trim norpz`
     RPZ=`trim rpz`

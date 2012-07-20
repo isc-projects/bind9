@@ -1,0 +1,29 @@
+Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+$Id$
+
+	dnssec-verify a tool to verify a zone is correctly signed.
+
+* check that every record that should be signed has a valid RRSIG set.
+* check that every record that shouldn't be signed isn't.
+* check that each RRSIG set has a valid RRSIG and that all DNSKEY algorithms
+	in use are checked.
+* provide a mechanism to mark DNSKEY algorithms to be ignored to support
+	verification of zones that are in the processs of adding/removing
+	support for a algorithm.
+* provide a mechanism to check the zone as of a specified date and time.
+* check that RRSIG won't expire within the TTL interval.
+* check that original TTL matches.
+
+NSEC:
+* check that every node with data within the zone has a NSEC RRset.
+* check that empty nodes don't have a NSEC record.
+* check that nodes outside the zone do not have a NSEC record.
+* check that the NSEC chain is valid.
+
+NSEC3: for each NSEC3 chain
+* check that every node with data within the zone has a NSEC3 RRset.
+* check that empty nodes within the zone have a NSEC3 record.
+* check that nodes outside the zone do not have a NSEC3 record.
+* check that each NSEC3 in the NSEC3PARAM record is valid.

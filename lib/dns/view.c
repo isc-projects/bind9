@@ -189,6 +189,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->flush = ISC_FALSE;
 	view->dlv = NULL;
 	view->maxudp = 0;
+	view->maxbits = 0;
 	view->v4_aaaa = dns_v4_aaaa_ok;
 	view->v4_aaaa_acl = NULL;
 	ISC_LIST_INIT(view->rpz_zones);

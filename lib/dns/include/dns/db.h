@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -769,6 +769,10 @@ dns_db_findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	be found.  Note the returned NSEC needs to be checked to ensure
  *	that it is correct.  This only affects answers returned from the
  *	cache.
+ *
+ * \li	In the #DNS_DBFIND_FORCENSEC3 option is set, then we are looking
+ *	in the NSEC3 tree and not the main tree.  Without this option being
+ *	set NSEC3 records will not be found.
  *
  * \li	To respond to a query for SIG records, the caller should create a
  *	rdataset iterator and extract the signatures from each rdataset.

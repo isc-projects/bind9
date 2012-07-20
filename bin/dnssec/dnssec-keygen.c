@@ -124,7 +124,6 @@ usage(void) {
 #else
 	fprintf(stderr, "    -E <engine name>\n");
 #endif
-	fprintf(stderr, "    -e: use large exponent (RSAMD5/RSASHA1 only)\n");
 	fprintf(stderr, "    -f <keyflag>: KSK | REVOKE\n");
 	fprintf(stderr, "    -g <generator>: use specified generator "
 			"(DH only)\n");
@@ -212,7 +211,7 @@ main(int argc, char **argv) {
 	isc_boolean_t	conflict = ISC_FALSE, null_key = ISC_FALSE;
 	isc_boolean_t	oldstyle = ISC_FALSE;
 	isc_mem_t	*mctx = NULL;
-	int		ch, rsa_exp = 0, generator = 0, param = 0;
+	int		ch, generator = 0, param = 0;
 	int		protocol = -1, size = -1, signatory = 0;
 	isc_result_t	ret;
 	isc_textregion_t r;
@@ -311,7 +310,9 @@ main(int argc, char **argv) {
 			engine = isc_commandline_argument;
 			break;
 		case 'e':
-			rsa_exp = 1;
+			fprintf(stderr,
+				"phased-out option -e "
+				"(was 'use (RSA) large exponent)\n");
 			break;
 		case 'f':
 			c = (unsigned char)(isc_commandline_argument[0]);
@@ -789,13 +790,6 @@ main(int argc, char **argv) {
 		break;
 	}
 
-	if (!(alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_RSASHA1 ||
-	      alg == DNS_KEYALG_NSEC3RSASHA1 || alg == DNS_KEYALG_RSASHA256 ||
-	      alg == DNS_KEYALG_RSASHA512 || alg == DST_ALG_ECCGOST ||
-	      alg == DST_ALG_ECDSA256 || alg == DST_ALG_ECDSA384) &&
-	    rsa_exp != 0)
-		fatal("specified RSA exponent for a non-RSA key");
-
 	if (alg != DNS_KEYALG_DH && generator != 0)
 		fatal("specified DH generator for a non-DH key");
 
@@ -855,7 +849,6 @@ main(int argc, char **argv) {
 	case DNS_KEYALG_NSEC3RSASHA1:
 	case DNS_KEYALG_RSASHA256:
 	case DNS_KEYALG_RSASHA512:
-		param = rsa_exp;
 		show_progress = ISC_TRUE;
 		break;
 

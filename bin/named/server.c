@@ -1609,6 +1609,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	const char *cachename = NULL;
 	dns_order_t *order = NULL;
 	isc_uint32_t udpsize;
+	isc_uint32_t maxbits;
 	unsigned int resopts = 0;
 	dns_zone_t *zone = NULL;
 	isc_uint32_t max_clients_per_query;
@@ -2234,6 +2235,19 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (udpsize > 4096)
 		udpsize = 4096;
 	view->maxudp = udpsize;
+
+	/*
+	 * Set the maximum rsa exponent bits.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "max-rsa-exponent-size", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	maxbits = cfg_obj_asuint32(obj);
+	if (maxbits != 0 && maxbits < 35)
+		maxbits = 35;
+	if (maxbits > 4096)
+		maxbits = 4096;
+	view->maxbits = maxbits;
 
 	/*
 	 * Set supported DNSSEC algorithms.
@@ -5570,11 +5584,13 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	/*
 	 * Setup the server task, which is responsible for coordinating
-	 * startup and shutdown of the server.
+	 * startup and shutdown of the server, as well as all exclusive
+	 * tasks.
 	 */
 	CHECKFATAL(isc_task_create(ns_g_taskmgr, 0, &server->task),
 		   "creating server task");
 	isc_task_setname(server->task, "server", server);
+	isc_taskmgr_setexcltask(ns_g_taskmgr, server->task);
 	CHECKFATAL(isc_task_onshutdown(server->task, shutdown_server, server),
 		   "isc_task_onshutdown");
 	CHECKFATAL(isc_app_onrun(ns_g_mctx, server->task, run_server, server),
