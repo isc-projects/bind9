@@ -25,7 +25,7 @@
 /*
  * Windows doesn't typedef this.
  */
-typedef unsigned short mode_t
+typedef unsigned short mode_t;
 
 /* open() under unix allows setting of read/write permissions
  * at the owner, group and other levels.  These don't exist in NT
