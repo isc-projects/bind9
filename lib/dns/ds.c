@@ -92,13 +92,13 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 #define CHECK(x)					\
 	if ((x) != 1) {					\
 		EVP_MD_CTX_cleanup(&ctx);		\
-		return (DST_R_OPENSSLFAILURE);		\
+		return (DST_R_CRYPTOFAILURE);		\
 	}
 
 	case DNS_DSDIGEST_GOST:
 		md = EVP_gost();
 		if (md == NULL)
-			return (DST_R_OPENSSLFAILURE);
+			return (DST_R_CRYPTOFAILURE);
 		EVP_MD_CTX_init(&ctx);
 		CHECK(EVP_DigestInit(&ctx, md));
 		dns_name_toregion(name, &r);

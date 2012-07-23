@@ -73,7 +73,8 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 	if (!EVP_DigestInit_ex(evp_md_ctx, type, NULL)) {
 		EVP_MD_CTX_destroy(evp_md_ctx);
-		return (ISC_R_FAILURE);
+		return (dst__openssl_toresult2("EVP_DigestInit_ex",
+					       ISC_R_FAILURE));
 	}
 
 	dctx->ctxdata.evp_md_ctx = evp_md_ctx;
@@ -102,7 +103,8 @@ opensslecdsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 		dctx->key->key_alg == DST_ALG_ECDSA384);
 
 	if (!EVP_DigestUpdate(evp_md_ctx, data->base, data->length))
-		return (ISC_R_FAILURE);
+		return (dst__openssl_toresult2("EVP_DigestUpdate",
+					       ISC_R_FAILURE));
 
 	return (ISC_R_SUCCESS);
 }
@@ -145,11 +147,13 @@ opensslecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		DST_RET(ISC_R_NOSPACE);
 
 	if (!EVP_DigestFinal(evp_md_ctx, digest, &dgstlen))
-		DST_RET(ISC_R_FAILURE);
+		DST_RET(dst__openssl_toresult2("EVP_DigestFinal",
+					       ISC_R_FAILURE));
 
 	ecdsasig = ECDSA_do_sign(digest, dgstlen, eckey);
 	if (ecdsasig == NULL)
-		DST_RET(dst__openssl_toresult(DST_R_SIGNFAILURE));
+		DST_RET(dst__openssl_toresult2("ECDSA_do_sign",
+					       DST_R_SIGNFAILURE));
 	BN_bn2bin_fixed(ecdsasig->r, r.base, siglen / 2);
 	r.base += siglen / 2;
 	BN_bn2bin_fixed(ecdsasig->s, r.base, siglen / 2);
@@ -192,7 +196,8 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		return (DST_R_VERIFYFAILURE);
 
 	if (!EVP_DigestFinal_ex(evp_md_ctx, digest, &dgstlen))
-		DST_RET (ISC_R_FAILURE);
+		DST_RET (dst__openssl_toresult2("EVP_DigestFinal_ex",
+						ISC_R_FAILURE));
 
 	ecdsasig = ECDSA_SIG_new();
 	if (ecdsasig == NULL)
@@ -203,9 +208,18 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	/* cp += siglen / 2; */
 
 	status = ECDSA_do_verify(digest, dgstlen, ecdsasig, eckey);
-	if (status != 1)
-		DST_RET (dst__openssl_toresult(DST_R_VERIFYFAILURE));
-	ret = ISC_R_SUCCESS;
+	switch (status) {
+	case 1:
+		ret = ISC_R_SUCCESS;
+		break;
+	case 0:
+		ret = dst__openssl_toresult(DST_R_VERIFYFAILURE);
+		break;
+	default:
+		ret = dst__openssl_toresult2("ECDSA_do_verify",
+					     DST_R_VERIFYFAILURE);
+		break;
+	}
 
  err:
 	if (ecdsasig != NULL)
@@ -278,10 +292,12 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 
 	eckey = EC_KEY_new_by_curve_name(group_nid);
 	if (eckey == NULL)
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		return (dst__openssl_toresult2("EC_KEY_new_by_curve_name",
+					       DST_R_OPENSSLFAILURE));
 
 	if (EC_KEY_generate_key(eckey) != 1)
-		DST_RET (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		DST_RET (dst__openssl_toresult2("EC_KEY_generate_key",
+						DST_R_OPENSSLFAILURE));
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL)
@@ -334,7 +350,7 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	pkey = key->keydata.pkey;
 	eckey = EVP_PKEY_get1_EC_KEY(pkey);
 	if (eckey == NULL)
-		return (ISC_R_FAILURE);
+		return (dst__openssl_toresult(ISC_R_FAILURE));
 	len = i2o_ECPublicKey(eckey, NULL);
 	/* skip form */
 	len--;
@@ -344,7 +360,7 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 		DST_RET (ISC_R_NOSPACE);
 	cp = buf;
 	if (!i2o_ECPublicKey(eckey, &cp))
-		DST_RET (ISC_R_FAILURE);
+		DST_RET (dst__openssl_toresult(ISC_R_FAILURE));
 	memcpy(r.base, buf + 1, len);
 	isc_buffer_add(data, len);
 	ret = ISC_R_SUCCESS;
@@ -393,16 +409,16 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (o2i_ECPublicKey(&eckey,
 			    (const unsigned char **) &cp,
 			    (long) len + 1) == NULL)
-		DST_RET (DST_R_INVALIDPUBLICKEY);
+		DST_RET (dst__openssl_toresult(DST_R_INVALIDPUBLICKEY));
 	if (EC_KEY_check_key(eckey) != 1)
-		DST_RET (DST_R_INVALIDPUBLICKEY);
+		DST_RET (dst__openssl_toresult(DST_R_INVALIDPUBLICKEY));
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL)
 		DST_RET (ISC_R_NOMEMORY);
 	if (!EVP_PKEY_set1_EC_KEY(pkey, eckey)) {
 		EVP_PKEY_free(pkey);
-		DST_RET (ISC_R_FAILURE);
+		DST_RET (dst__openssl_toresult(ISC_R_FAILURE));
 	}
 
 	isc_buffer_forward(data, len);
@@ -430,7 +446,7 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 	pkey = key->keydata.pkey;
 	eckey = EVP_PKEY_get1_EC_KEY(pkey);
 	if (eckey == NULL)
-		return (ISC_R_FAILURE);
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	privkey = EC_KEY_get0_private_key(eckey);
 	if (privkey == NULL)
 		DST_RET (ISC_R_FAILURE);
@@ -527,7 +543,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		DST_RET (ISC_R_NOMEMORY);
 	if (!EVP_PKEY_set1_EC_KEY(pkey, eckey)) {
 		EVP_PKEY_free(pkey);
-		DST_RET (ISC_R_FAILURE);
+		DST_RET (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 	key->keydata.pkey = pkey;
 	ret = ISC_R_SUCCESS;
