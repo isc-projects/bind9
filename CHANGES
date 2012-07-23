@@ -1,3 +1,5 @@
+3354.	[func]		Improve OpenSSL error logging. [RT #29932]
+
 3352.	[bug]		Ensure that learned server attributes timeout of the
 			adb cache. [RT #29856]
 
