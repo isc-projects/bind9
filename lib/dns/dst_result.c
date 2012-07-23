@@ -30,7 +30,7 @@
 
 static const char *text[DST_R_NRESULTS] = {
 	"algorithm is unsupported",		/*%< 0 */
-	"openssl failure",			/*%< 1 */
+	"crypto failure",			/*%< 1 */
 	"built with no crypto support",		/*%< 2 */
 	"illegal operation for a null key",	/*%< 3 */
 	"public key is invalid",		/*%< 4 */
