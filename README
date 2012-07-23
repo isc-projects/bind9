@@ -51,6 +51,11 @@ BIND 9
         For up-to-date release notes and errata, see
         http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.7.7
+
+        BIND 9.7.7 includes several bug fixes and patches security
+        flaws described in CVE-2012-1667 and CVE-2012-3817.
+
 BIND 9.7.6
 
 	BIND 9.7.6 is a maintenance release, fixing bugs in 9.7.5.
