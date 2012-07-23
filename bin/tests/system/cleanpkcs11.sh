@@ -18,4 +18,4 @@
 
 if [ ! -x ../../pkcs11/pkcs11-destroy ]; then exit 1; fi
 
-../../pkcs11/pkcs11-destroy -s 0 -p 1234
+../../pkcs11/pkcs11-destroy -s ${SLOT:-0} -p 1234

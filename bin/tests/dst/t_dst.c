@@ -179,7 +179,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 	if (p == NULL) {
 		t_info("getcwd failed %d\n", errno);
 		++*nprobs;
-		return;
+		goto cleanup;
 	}
 
 	ret = dst_key_fromfile(name1, id1, alg, type, current, mctx, &key1);
@@ -187,7 +187,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		t_info("dst_key_fromfile(%d) returned: %s\n",
 		       alg, dst_result_totext(ret));
 		++*nfails;
-		return;
+		goto cleanup;
 	}
 
 	ret = dst_key_fromfile(name2, id2, alg, type, current, mctx, &key2);
@@ -195,7 +195,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		t_info("dst_key_fromfile(%d) returned: %s\n",
 		       alg, dst_result_totext(ret));
 		++*nfails;
-		return;
+		goto cleanup;
 	}
 
 	ret = isc_file_mktemplate("/tmp/", tmp, sizeof(tmp));
@@ -203,7 +203,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		t_info("isc_file_mktemplate failed %s\n",
 		       isc_result_totext(ret));
 		++*nprobs;
-		return;
+		goto cleanup;
 	}
 
 	ret = isc_dir_createunique(tmp);
@@ -211,7 +211,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		t_info("isc_dir_createunique failed %s\n",
 		       isc_result_totext(ret));
 		++*nprobs;
-		return;
+		goto cleanup;
 	}
 
 	ret = dst_key_tofile(key1, type, tmp);
@@ -219,7 +219,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		t_info("dst_key_tofile(%d) returned: %s\n",
 		       alg, dst_result_totext(ret));
 		++*nfails;
-		return;
+		goto cleanup;
 	}
 
 	ret = dst_key_tofile(key2, type, tmp);
@@ -227,7 +227,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		t_info("dst_key_tofile(%d) returned: %s\n",
 		       alg, dst_result_totext(ret));
 		++*nfails;
-		return;
+		goto cleanup;
 	}
 
 	cleandir(tmp);
@@ -238,7 +238,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		t_info("dst_computesecret() returned: %s\n",
 		       dst_result_totext(ret));
 		++*nfails;
-		return;
+		goto cleanup;
 	}
 
 	isc_buffer_init(&b2, array2, sizeof(array2));
@@ -247,7 +247,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		t_info("dst_computesecret() returned: %s\n",
 		       dst_result_totext(ret));
 		++*nfails;
-		return;
+		goto cleanup;
 	}
 
 	isc_buffer_usedregion(&b1, &r1);
@@ -256,11 +256,14 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 	{
 		t_info("computed secrets don't match\n");
 		++*nfails;
-		return;
+		goto cleanup;
 	}
 
-	dst_key_free(&key1);
-	dst_key_free(&key2);
+ cleanup:
+	if (key1 != NULL)
+		dst_key_free(&key1);
+	if (key2 != NULL)
+		dst_key_free(&key2);
 }
 
 static void
@@ -382,12 +385,14 @@ generate(int alg, isc_mem_t *mctx, int size, int *nfails) {
 		t_info("dst_key_generate(%d) returned: %s\n", alg,
 		       dst_result_totext(ret));
 		++*nfails;
-		return;
+		goto cleanup;
 	}
 
 	if (alg != DST_ALG_DH)
 		use(key, mctx, ISC_R_SUCCESS, nfails);
-	dst_key_free(&key);
+ cleanup:
+	if (key != NULL)
+		dst_key_free(&key);
 }
 
 #define	DBUFSIZ	25
@@ -839,14 +844,20 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_context_create returned %s\n",
 			isc_result_totext(isc_result));
+		(void) free(data);
+		dst_key_free(&key);
 		++*nfails;
+		return;
 	}
 	isc_result = dst_context_adddata(ctx, &datareg);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_context_adddata returned %s\n",
 			isc_result_totext(isc_result));
+		(void) free(data);
 		dst_context_destroy(&ctx);
+		dst_key_free(&key);
 		++*nfails;
+		return;
 	}
 	isc_result = dst_context_verify(ctx, &sigreg);
 	if (	((exp_res == 0) && (isc_result != ISC_R_SUCCESS))	||
@@ -855,7 +866,6 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		t_info("dst_context_verify returned %s, expected %s\n",
 			isc_result_totext(isc_result),
 			expected_result);
-		dst_context_destroy(&ctx);
 		++*nfails;
 	}
 

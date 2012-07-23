@@ -45,9 +45,9 @@ DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey
 CHECKDS=$TOP/bin/python/dnssec-checkds
 CHECKZONE=$TOP/bin/check/named-checkzone
 CHECKCONF=$TOP/bin/check/named-checkconf
-PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -s 0 -p 1234"
-PK11LIST="$TOP/bin/pkcs11/pkcs11-list -s 0 -p 1234"
-PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s 0 -p 1234"
+PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -s ${SLOT:-0} -p 1234"
+PK11LIST="$TOP/bin/pkcs11/pkcs11-list -s ${SLOT:-0} -p 1234"
+PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p 1234"
 JOURNALPRINT=$TOP/bin/tools/named-journalprint
 VERIFY=$TOP/bin/dnssec/dnssec-verify
 
