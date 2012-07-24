@@ -383,9 +383,6 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	int status;
 	int type = 0;
 	unsigned int digestlen = 0;
-	unsigned long err;
-	const char* file;
-	int line;
 #if OPENSSL_VERSION_NUMBER < 0x00908000L
 	unsigned int prefixlen = 0;
 	const unsigned char *prefix = NULL;
@@ -752,8 +749,8 @@ progress_cb(int p, int n, BN_GENCB *cb)
 
 static isc_result_t
 opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
-	isc_result_t ret = DST_R_OPENSSLFAILURE;
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
+	isc_result_t ret = DST_R_OPENSSLFAILURE;
 	BN_GENCB cb;
 	union {
 		void *dptr;
