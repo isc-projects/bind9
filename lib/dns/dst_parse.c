@@ -592,7 +592,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			      "Permissions on the file %s "
 			      "have changed from 0%o to 0600 as "
 			      "a result of this operation.",
-			      filename, mode);
+			      filename, (unsigned int)mode);
 	}
 
 	if ((fp = fopen(filename, "w")) == NULL)
