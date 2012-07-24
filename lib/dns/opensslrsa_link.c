@@ -375,9 +375,6 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	int status = 0;
 	int type = 0;
 	unsigned int digestlen = 0;
-	unsigned long err;
-	const char* file;
-	int line;
 #if OPENSSL_VERSION_NUMBER < 0x00908000L
 	unsigned int prefixlen = 0;
 	const unsigned char *prefix = NULL;
