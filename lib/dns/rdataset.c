@@ -788,15 +788,15 @@ dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 	/*
 	 * If we accept expired RRsets keep them for no more than 120 seconds.
 	 */
-        if (acceptexpired &&
-            (isc_serial_le(rrsig->timeexpire, ((now + 120) & 0xffffffff)) ||
-             isc_serial_le(rrsig->timeexpire, now)))
-                ttl = 120;
-        else if (isc_serial_ge(rrsig->timeexpire, now))
-                ttl = rrsig->timeexpire - now;
-	
-        ttl = ISC_MIN(ISC_MIN(rdataset->ttl, sigrdataset->ttl),
-                      ISC_MIN(rrsig->originalttl, ttl));
-        rdataset->ttl = ttl;
-        sigrdataset->ttl = ttl;
+	if (acceptexpired &&
+	    (isc_serial_le(rrsig->timeexpire, ((now + 120) & 0xffffffff)) ||
+	     isc_serial_le(rrsig->timeexpire, now)))
+		ttl = 120;
+	else if (isc_serial_ge(rrsig->timeexpire, now))
+		ttl = rrsig->timeexpire - now;
+
+	ttl = ISC_MIN(ISC_MIN(rdataset->ttl, sigrdataset->ttl),
+		      ISC_MIN(rrsig->originalttl, ttl));
+	rdataset->ttl = ttl;
+	sigrdataset->ttl = ttl;
 }
