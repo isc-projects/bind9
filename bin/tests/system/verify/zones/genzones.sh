@@ -184,8 +184,13 @@ zsk=`$KEYGEN -3 -r $RANDFILE ${zone} 2> kg1.out$n` || dumpit kg1.out$n
 ksk=`$KEYGEN -3 -r $RANDFILE -fK ${zone} 2> kg2.out$n` || dumpit kg2.out$n
 cat unsigned.db $ksk.key $zsk.key > $file
 $SIGNER -3 - -P -O full -o ${zone} -f ${file} ${file} $ksk > s.out$n 2>&1 || dumpit s.out$n
-awk -v ZONE=${zone}. '$4 == "NSEC3" && NF == 9 {
+awk '
+BEGIN {
+	ZONE="'${zone}'.";
+}
+$4 == "NSEC3" && NF == 9 {
 	$1 = "H9P7U7TR2U91D0V0LJS9L1GIDNP90U3H." ZONE;
 	$9 = "H9P7U7TR2U91D0V0LJS9L1GIDNP90U3I";
-	 print; }' ${file} >> ${file}
+	print;
+}' ${file} >> ${file}
 $SIGNER -3 - -Px -Z nonsecify -O full -o ${zone} -f ${file} ${file} $zsk > s.out$n 2>&1 || dumpit s.out$n

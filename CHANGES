@@ -1,3 +1,5 @@
+3355.	[port]		Use more portable awk in verify system test.
+
 3354.	[func]		Improve OpenSSL error logging. [RT #29932]
 
 	--- 9.9.2b1 released ---
