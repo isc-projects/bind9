@@ -1,3 +1,7 @@
+3356.	[bug]		Cap the TTL of signed RRsets when RRSIGs are 
+			approaching their expiry, so they don't remain
+			in caches after expiry. [RT #26429]
+
 3355.	[port]		Use more portable awk in verify system test.
 
 3354.	[func]		Improve OpenSSL error logging. [RT #29932]

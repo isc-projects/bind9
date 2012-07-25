@@ -25,6 +25,7 @@
 
 #include <isc/hex.h>
 #include <isc/mem.h>
+#include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/util.h>
 
@@ -2825,14 +2826,15 @@ query_add_cname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
  */
 static void
 mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
-	    isc_uint32_t ttl, dns_rdataset_t *rdataset,
+	    dns_rdata_rrsig_t *rrsig, dns_rdataset_t *rdataset,
 	    dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
-
+	isc_stdtime_t now;	
+	
 	rdataset->trust = dns_trust_secure;
 	sigrdataset->trust = dns_trust_secure;
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
@@ -2844,17 +2846,10 @@ mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 	result = dns_db_findnodeext(db, name, ISC_TRUE, &cm, &ci, &node);
 	if (result != ISC_R_SUCCESS)
 		return;
-	/*
-	 * Bound the validated ttls then minimise.
-	 */
-	if (sigrdataset->ttl > ttl)
-		sigrdataset->ttl = ttl;
-	if (rdataset->ttl > ttl)
-		rdataset->ttl = ttl;
-	if (rdataset->ttl > sigrdataset->ttl)
-		rdataset->ttl = sigrdataset->ttl;
-	else
-		sigrdataset->ttl = rdataset->ttl;
+		
+	isc_stdtime_get(&now);
+	dns_rdataset_trimttl(rdataset, sigrdataset, rrsig, now,
+			     client->view->acceptexpired);
 
 	(void)dns_db_addrdataset(db, node, NULL, client->now, rdataset,
 				 0, NULL);
@@ -2985,8 +2980,7 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 			if (verify(key, name, rdataset, &rdata, client)) {
 				dst_key_free(&key);
 				dns_rdataset_disassociate(&keyrdataset);
-				mark_secure(client, db, name,
-					    rrsig.originalttl,
+				mark_secure(client, db, name, &rrsig,
 					    rdataset, sigrdataset);
 				return (ISC_TRUE);
 			}

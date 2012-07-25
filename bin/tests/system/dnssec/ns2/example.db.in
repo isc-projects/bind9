@@ -144,3 +144,6 @@ ns.upper		A	10.53.0.3
 
 LOWER			NS	NS.LOWER
 NS.LOWER		A	10.53.0.3
+
+expiring                 NS      ns.expiring
+ns.expiring              A       10.53.0.3
