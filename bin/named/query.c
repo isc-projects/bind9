@@ -2804,8 +2804,8 @@ mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 	dns_dbnode_t *node = NULL;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
-	isc_stdtime_t now;	
-	
+	isc_stdtime_t now;
+
 	rdataset->trust = dns_trust_secure;
 	sigrdataset->trust = dns_trust_secure;
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
@@ -2817,7 +2817,7 @@ mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 	result = dns_db_findnodeext(db, name, ISC_TRUE, &cm, &ci, &node);
 	if (result != ISC_R_SUCCESS)
 		return;
-		
+
 	isc_stdtime_get(&now);
 	dns_rdataset_trimttl(rdataset, sigrdataset, rrsig, now,
 			     client->view->acceptexpired);
