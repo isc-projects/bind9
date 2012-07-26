@@ -654,8 +654,8 @@ dns_rdataset_expire(dns_rdataset_t *rdataset);
 
 void
 dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-                     dns_rdata_rrsig_t *rrsig, isc_stdtime_t now,
-                     isc_boolean_t acceptexpired);
+		     dns_rdata_rrsig_t *rrsig, isc_stdtime_t now,
+		     isc_boolean_t acceptexpired);
 /*%<
  * Trim the ttl of 'rdataset' and 'sigrdataset' so that they will expire
  * at or before 'rrsig->expiretime'.  If 'acceptexpired' is true and the
