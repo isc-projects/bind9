@@ -285,67 +285,6 @@ cat $infile $keyname.key >$zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
 #
-<<<<<<< HEAD
-=======
-# Patched TTL test zone.
-#
-zone=ttlpatch.example.
-infile=ttlpatch.example.db.in
-zonefile=ttlpatch.example.db
-signedfile=ttlpatch.example.db.signed
-patchedfile=ttlpatch.example.db.patched
-
-keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
-cat $infile $keyname.key >$zonefile
-
-$SIGNER -P -r $RANDFILE -f $signedfile -o $zone $zonefile > /dev/null 2>&1
-$CHECKZONE -D -s full $zone $signedfile 2> /dev/null | \
-    awk '{$2 = "3600"; print}' > $patchedfile
-
-#
-# Seperate DNSSEC records.
-#
-zone=split-dnssec.example.
-infile=split-dnssec.example.db.in
-zonefile=split-dnssec.example.db
-signedfile=split-dnssec.example.db.signed
-
-keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
-cat $infile $keyname.key >$zonefile
-echo '$INCLUDE "'"$signedfile"'"' >> $zonefile
-: > $signedfile
-$SIGNER -P -r $RANDFILE -D -o $zone $zonefile > /dev/null 2>&1
-
-#
-# Seperate DNSSEC records smart signing.
-#
-zone=split-smart.example.
-infile=split-smart.example.db.in
-zonefile=split-smart.example.db
-signedfile=split-smart.example.db.signed
-
-keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
-cp $infile $zonefile
-echo '$INCLUDE "'"$signedfile"'"' >> $zonefile
-: > $signedfile
-$SIGNER -P -S -r $RANDFILE -D -o $zone $zonefile > /dev/null 2>&1
-
-# 
-# Zone with signatures about to expire, but no private key to replace them
-#
-zone="expiring.example."
-infile="expiring.example.db.in"
-zonefile="expiring.example.db"
-signedfile="expiring.example.db.signed"
-kskname=`$KEYGEN -q -r $RANDFILE $zone`
-zskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
-cp $infile $zonefile
-$SIGNER -S -r $RANDFILE -e now+1mi -o $zone $zonefile > /dev/null 2>&1
-mv -f ${zskname}.private ${zskname}.private.moved
-mv -f ${kskname}.private ${kskname}.private.moved
-
-#
->>>>>>> e7857b5... 3356.	[bug]		Cap the TTL of signed RRsets when RRSIGs are
 # A zone where the signer's name has been forced to uppercase.
 #
 zone="upper.example."
@@ -372,3 +311,17 @@ kskname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 $zone`
 zskname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -f KSK $zone`
 cat $infile $kskname.key $zskname.key > $zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+# 
+# Zone with signatures about to expire, but no private key to replace them
+#
+zone="expiring.example."
+infile="expiring.example.db.in"
+zonefile="expiring.example.db"
+signedfile="expiring.example.db.signed"
+zskname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 $zone`
+kskname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -f KSK $zone`
+cat $infile $kskname.key $zskname.key > $zonefile
+$SIGNER -P -r $RANDFILE -e +30 -o $zone $zonefile > /dev/null 2>&1
+mv -f ${zskname}.private ${zskname}.private.moved
+mv -f ${kskname}.private ${kskname}.private.moved

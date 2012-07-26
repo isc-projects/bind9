@@ -29,6 +29,9 @@ DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
 
 # Check the example. domain
 
+#HERE
+if false; then
+
 echo "I:checking that zone transfer worked ($n)"
 for i in 1 2 3 4 5 6 7 8 9
 do
@@ -1149,6 +1152,9 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+#HERE
+fi
+
 echo "I:testing TTL is capped at RRSIG expiry time ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 freeze expiring.example 2>&1 | sed 's/^/I:ns3 /'
@@ -1158,7 +1164,7 @@ RANDFILE=../random.data
 for file in K*.moved; do
   mv $file `basename $file .moved`
 done
-$SIGNER -S -r $RANDFILE -N increment -e now+1mi -o expiring.example expiring.example.db > /dev/null 2>&1
+$SIGNER -P -r $RANDFILE -N increment -e +60 -o expiring.example expiring.example.db > /dev/null 2>&1
 ) || ret=1
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload expiring.example 2>&1 | sed 's/^/I:ns3 /'
 
@@ -1194,7 +1200,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-cp ns4/named3.conf ns4/named.conf
+cp ns4/named2.conf ns4/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 reconfig 2>&1 | sed 's/^/I:ns4 /'
 sleep 3
 

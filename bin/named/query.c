@@ -2339,8 +2339,6 @@ mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
-	dns_clientinfomethods_t cm;
-	dns_clientinfo_t ci;
 	isc_stdtime_t now;
 	rdataset->trust = dns_trust_secure;
 	sigrdataset->trust = dns_trust_secure;
