@@ -37,7 +37,6 @@ DNSDEPLIBS =	../libdns.@A@
 LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		dnstest.@O@
-<<<<<<< HEAD
 SRCS =		dnstest.c master_test.c time_test.c dbiterator_test.c \
 		dbversion_test.c zonemgr_test.c nsec3_test.c rdataset_test.c
 
