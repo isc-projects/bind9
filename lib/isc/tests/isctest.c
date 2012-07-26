@@ -26,6 +26,7 @@
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/os.h>
+#include <isc/socket.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -127,7 +128,7 @@ isc_test_begin(FILE *logfile) {
 	ncpus = 1;
 #endif
 
-	CHECK(isc_taskmgr_create(mctx, ncpus, 0, &taskmgr));
+	CHECK(create_managers());
 
 	return (ISC_R_SUCCESS);
 
@@ -150,6 +151,9 @@ isc_test_end() {
 	}
 	if (ectx != NULL)
 		isc_entropy_detach(&ectx);
+
+	cleanup_managers();
+
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
 }
