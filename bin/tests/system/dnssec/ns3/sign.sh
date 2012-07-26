@@ -311,17 +311,3 @@ kskname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 $zone`
 zskname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -f KSK $zone`
 cat $infile $kskname.key $zskname.key > $zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
-
-# 
-# Zone with signatures about to expire, but no private key to replace them
-#
-zone="expiring.example."
-infile="expiring.example.db.in"
-zonefile="expiring.example.db"
-signedfile="expiring.example.db.signed"
-zskname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 $zone`
-kskname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -f KSK $zone`
-cat $infile $kskname.key $zskname.key > $zonefile
-$SIGNER -P -r $RANDFILE -e +30 -o $zone $zonefile > /dev/null 2>&1
-mv -f ${zskname}.private ${zskname}.private.moved
-mv -f ${kskname}.private ${kskname}.private.moved

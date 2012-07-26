@@ -29,9 +29,6 @@ DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
 
 # Check the example. domain
 
-#HERE
-if false; then
-
 echo "I:checking that zone transfer worked ($n)"
 for i in 1 2 3 4 5 6 7 8 9
 do
@@ -1148,108 +1145,6 @@ $DIG +tcp +dnssec -p 5300 +noadd +noauth soa LOWER.EXAMPLE @10.53.0.4 \
         > dig.out.ns4.test$n 2>&1
 grep 'flags:.* ad;' dig.out.ns4.test$n >/dev/null || ret=1
 grep 'RRSIG.*SOA.* lower\.example\. ' dig.out.ns4.test$n > /dev/null || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
-
-#HERE
-fi
-
-echo "I:testing TTL is capped at RRSIG expiry time ($n)"
-ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 freeze expiring.example 2>&1 | sed 's/^/I:ns3 /'
-(
-cd ns3
-RANDFILE=../random.data
-for file in K*.moved; do
-  mv $file `basename $file .moved`
-done
-$SIGNER -P -r $RANDFILE -N increment -e +60 -o expiring.example expiring.example.db > /dev/null 2>&1
-) || ret=1
-$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload expiring.example 2>&1 | sed 's/^/I:ns3 /'
-
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 flush
-$DIG +noall +answer +dnssec +cd -p 5300 expiring.example soa @10.53.0.4 > dig.out.ns4.1.$n
-$DIG +noall +answer +dnssec -p 5300 expiring.example soa @10.53.0.4 > dig.out.ns4.2.$n
-ttls=`awk '{print $2}' dig.out.ns4.1.$n`
-ttls2=`awk '{print $2}' dig.out.ns4.2.$n`
-for ttl in $ttls; do
-    [ $ttl -eq 300 ] || ret=1
-done
-for ttl in $ttls2; do
-    [ $ttl -le 60 ] || ret=1
-done
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
-
-echo "I:testing TTL is capped at RRSIG expiry time for records in the additional section ($n)"
-ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 flush
-$DIG +noall +additional +dnssec +cd -p 5300 expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
-$DIG +noall +additional +dnssec -p 5300 expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
-ttls=`awk '{print $2}' dig.out.ns4.1.$n`
-ttls2=`awk '{print $2}' dig.out.ns4.2.$n`
-for ttl in $ttls; do
-    [ $ttl -eq 300 ] || ret=1
-done
-for ttl in $ttls2; do
-    [ $ttl -le 60 ] || ret=1
-done
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
-
-cp ns4/named2.conf ns4/named.conf
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 reconfig 2>&1 | sed 's/^/I:ns4 /'
-sleep 3
-
-echo "I:testing TTL of about to expire RRsets with dnssec-accept-expired yes; ($n)"
-ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 flush
-$DIG +noall +answer +dnssec +cd -p 5300 expiring.example soa @10.53.0.4 > dig.out.ns4.1.$n
-$DIG +noall +answer +dnssec -p 5300 expiring.example soa @10.53.0.4 > dig.out.ns4.2.$n
-ttls=`awk '{print $2}' dig.out.ns4.1.$n`
-ttls2=`awk '{print $2}' dig.out.ns4.2.$n`
-for ttl in $ttls; do
-    [ $ttl -eq 300 ] || ret=1
-done
-for ttl in $ttls2; do
-    [ $ttl -le 120 -a $ttl -gt 60 ] || ret=1
-done
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
-
-echo "I:testing TTL of expired RRsets with dnssec-accept-expired yes; ($n)"
-ret=0
-$DIG +noall +answer +dnssec +cd -p 5300 expired.example soa @10.53.0.4 > dig.out.ns4.1.$n
-$DIG +noall +answer +dnssec -p 5300 expired.example soa @10.53.0.4 > dig.out.ns4.2.$n
-ttls=`awk '{print $2}' dig.out.ns4.1.$n`
-ttls2=`awk '{print $2}' dig.out.ns4.2.$n`
-for ttl in $ttls; do
-    [ $ttl -eq 300 ] || ret=1
-done
-for ttl in $ttls2; do
-    [ $ttl -le 120 -a $ttl -gt 60 ] || ret=1
-done
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
-
-echo "I:testing TTL is capped at RRSIG expiry time for records in the additional section with dnssec-accept-expired yes; ($n)"
-ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 flush
-$DIG +noall +additional +dnssec +cd -p 5300 expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
-$DIG +noall +additional +dnssec -p 5300 expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
-ttls=`awk '{print $2}' dig.out.ns4.1.$n`
-ttls2=`awk '{print $2}' dig.out.ns4.2.$n`
-for ttl in $ttls; do
-    [ $ttl -eq 300 ] || ret=1
-done
-for ttl in $ttls2; do
-    [ $ttl -le 120  -a $ttl -gt 60 ] || ret=1
-done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

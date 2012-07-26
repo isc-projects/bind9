@@ -32,8 +32,7 @@ zonefile=example.db
 
 for subdomain in secure bogus dynamic keyless nsec3 optout nsec3-unknown \
     optout-unknown multiple rsasha256 rsasha512 update-nsec3 \
-    secure.below-cname expired expiring upper lower
-
+    secure.below-cname expired upper lower
 do
 	cp ../ns3/keyset-$subdomain.example. .
 done

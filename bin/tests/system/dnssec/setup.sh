@@ -19,8 +19,6 @@
 
 ../../genrandom 400 random.data
 
-cp -f ns4/named1.conf ns4/named.conf
-
 cd ns1 && sh sign.sh
 
 echo "a.bogus.example.	A	10.0.0.22" >>../ns3/bogus.example.db.signed
