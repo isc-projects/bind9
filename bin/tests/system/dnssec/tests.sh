@@ -29,9 +29,6 @@ DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
 
 # Check the example. domain
 
-#HERE
-if false; then
-
 echo "I:checking that zone transfer worked ($n)"
 for i in 1 2 3 4 5 6 7 8 9
 do
@@ -1151,9 +1148,6 @@ grep 'RRSIG.*SOA.* lower\.example\. ' dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
-
-#HERE
-fi
 
 echo "I:testing TTL is capped at RRSIG expiry time ($n)"
 ret=0
