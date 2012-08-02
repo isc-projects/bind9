@@ -1,3 +1,5 @@
+3357.	[port]		Add support for libxml2-2.8.x [RT #30440]
+
 	--- 9.6-ESV-R8b1 released ---
 
 3354.	[func]		Improve OpenSSL error logging. [RT #29932]
