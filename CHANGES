@@ -1,3 +1,5 @@
+3358	[bug]		Fix declaration of fatal in bin/named/server.c.
+
 3357.	[port]		Add support for libxml2-2.8.x [RT #30440]
 
 	--- 9.6-ESV-R8b1 released ---
