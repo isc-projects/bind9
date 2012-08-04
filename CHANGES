@@ -1,3 +1,5 @@
+3358	[bug]		Fix declaration of fatal in bin/named/server.c.
+
 	--- 9.6-ESV-R7-P2 released ---
 
 3346.	[security]	Bad-cache data could be used before it was
