@@ -1,4 +1,5 @@
-3358	[bug]		Fix declaration of fatal in bin/named/server.c.
+3358	[bug]		Fix declaration of fatal in bin/named/server.c
+			and bin/nsupdate/main.c. [RT #30522]
 
 	--- 9.6-ESV-R7-P2 released ---
 
