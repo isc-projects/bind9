@@ -2012,15 +2012,15 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	tresult = isc_symtab_create(mctx, 1000, freekey, mctx,
 				    ISC_FALSE, &symtab);
 	if (tresult != ISC_R_SUCCESS)
-		return (ISC_R_NOMEMORY);
+		goto cleanup;
 
 	(void)cfg_map_get(config, "key", &keys);
 	tresult = check_keylist(keys, symtab, mctx, logctx);
 	if (tresult == ISC_R_EXISTS)
 		result = ISC_R_FAILURE;
 	else if (tresult != ISC_R_SUCCESS) {
-		isc_symtab_destroy(&symtab);
-		return (tresult);
+		result = tresult;
+		goto cleanup;
 	}
 
 	if (voptions != NULL) {
@@ -2030,8 +2030,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		if (tresult == ISC_R_EXISTS)
 			result = ISC_R_FAILURE;
 		else if (tresult != ISC_R_SUCCESS) {
-			isc_symtab_destroy(&symtab);
-			return (tresult);
+			result = tresult;
+			goto cleanup;
 		}
 	}
 
@@ -2141,6 +2141,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
+ cleanup:
+	if (symtab != NULL)
+		isc_symtab_destroy(&symtab);
 	cfg_aclconfctx_detach(&actx);
 
 	return (result);
