@@ -1,4 +1,7 @@
-3358	[bug]		Fix declaration of fatal in bin/named/server.c
+3359.	[bug]		An improperly-formed TSIG secret could cause a
+                        memory leak. [RT #30607]
+
+3358.	[bug]		Fix declaration of fatal in bin/named/server.c
 			and bin/nsupdate/main.c. [RT #30522]
 
 3357.	[port]		Add support for libxml2-2.8.x [RT #30440]
