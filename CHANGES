@@ -1,3 +1,6 @@
+3359.	[bug]		An improperly-formed TSIG secret could cause a
+                        memory leak. [RT #30607]
+
 3358.	[placeholder]
 
 3357.	[port]		Add support for libxml2-2.8.x [RT #30440]
