@@ -37,7 +37,13 @@ status=`expr $status + $ret`
 echo "I: checking that named-checkconf handles a known bad config"
 ret=0
 $CHECKCONF bad.conf > /dev/null 2>&1 && ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $? != 1 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo "I: checking that named-checkconf handles a known bad tsig secret"
+ret=0
+$CHECKCONF badtsig.conf > /dev/null 2>&1
+if [ $? != 1 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
 echo "I: checking named-checkconf dnssec warnings"
