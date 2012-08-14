@@ -516,6 +516,7 @@
 ./bin/tests/system/cacheclean/tests.sh		SH	2001,2004,2007,2012
 ./bin/tests/system/checkconf/bad.conf		CONF-C	2005,2007
 ./bin/tests/system/checkconf/badtsig.conf	CONF-C	2012
+./bin/tests/system/checkconf/clean.sh		SH	2012
 ./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007,2012
 ./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2012
 ./bin/tests/system/checknames/clean.sh		SH	2004,2007,2012
@@ -2166,7 +2167,7 @@
 ./lib/isc/powerpc/include/isc/atomic.h		C	2005,2007,2009,2011,2012
 ./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2010,2012
 ./lib/isc/pthreads/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012
-./lib/isc/pthreads/condition.c			C	1998,1999,2000,2001,2004,2005,2007
+./lib/isc/pthreads/condition.c			C	1998,1999,2000,2001,2004,2005,2007,2012
 ./lib/isc/pthreads/include/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012
 ./lib/isc/pthreads/include/isc/Makefile.in	MAKE	1998,1999,2000,2001,2004,2007,2012
 ./lib/isc/pthreads/include/isc/condition.h	C	1998,1999,2000,2001,2004,2005,2007
