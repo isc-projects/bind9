@@ -429,3 +429,9 @@ $CHECKZONE -D nosign.example nosign.example.db.signed 2>&- | \
         awk '$4 == "RRSIG" && $5 == "NS" {$2 = ""; print}' | \
         sed 's/[ 	][ 	]*/ /g'> ../nosign.before
 
+#
+# An inline signing zone
+#
+zone=inline.example.
+kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
+zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
