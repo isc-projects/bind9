@@ -322,7 +322,7 @@ dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
 		      "%s failed", funcname);
 	for (;;) {
 		err = ERR_get_error_line_data(&file, &line, &data, &flags);
-		if (err == 0)
+		if (err == 0U)
 			goto done;
 		ERR_error_string_n(err, buf, sizeof(buf));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
