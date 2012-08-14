@@ -1,3 +1,7 @@
+3362.	[bug]		Setting some option values to 0 in named.conf
+			could trigger an assertion failure on startup.
+			[RT #27730]
+
 3360.	[bug]		'host -w' could die.  [RT #18723]
 
 3359.	[bug]		An improperly-formed TSIG secret could cause a
