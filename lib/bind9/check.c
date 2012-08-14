@@ -1157,6 +1157,29 @@ typedef struct {
 } optionstable;
 
 static isc_result_t
+check_nonzero(const cfg_obj_t *options, isc_log_t *logctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	const cfg_obj_t *obj = NULL;
+	unsigned int i;
+
+	static const char *nonzero[] = { "max-retry-time", "min-retry-time",
+				 "max-refresh-time", "min-refresh-time" };
+	/*
+	 * Check if value is zero.
+	 */
+	for (i = 0; i < sizeof(nonzero) / sizeof(nonzero[0]); i++) {
+		obj = NULL;
+		if (cfg_map_get(options, nonzero[i], &obj) == ISC_R_SUCCESS &&
+		    cfg_obj_asuint32(obj) == 0) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'%s' must not be zero", nonzero[i]);
+			result = ISC_R_FAILURE;
+		}
+	}
+	return (result);
+}
+
+static isc_result_t
 check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       const cfg_obj_t *config, isc_symtab_t *symtab,
 	       dns_rdataclass_t defclass, cfg_aclconfctx_t *actx,
@@ -1165,7 +1188,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	const char *zname;
 	const char *typestr;
 	unsigned int ztype;
-	const cfg_obj_t *zoptions;
+	const cfg_obj_t *zoptions, *goptions = NULL;
 	const cfg_obj_t *obj = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
@@ -1238,8 +1261,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	};
 
 	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
-
 	zoptions = cfg_tuple_get(zconfig, "options");
+
+	if (config != NULL)
+		cfg_map_get(config, "options", &goptions);
 
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "type", &obj);
@@ -1319,6 +1344,12 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				   dns_rootname))
 			root = ISC_TRUE;
 	}
+
+	/*
+	 * Check if value is zero.
+	 */
+	if (check_nonzero(zoptions, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
 
 	/*
 	 * Look for inappropriate options for the given zone type.
@@ -1976,12 +2007,17 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that forwarding is reasonable.
 	 */
 	if (voptions == NULL) {
-		if (options != NULL)
+		if (options != NULL) {
 			if (check_forward(options, NULL,
 					  logctx) != ISC_R_SUCCESS)
 				result = ISC_R_FAILURE;
+			if (check_nonzero(options, logctx) != ISC_R_SUCCESS)
+				result = ISC_R_FAILURE;
+		}
 	} else {
 		if (check_forward(voptions, NULL, logctx) != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
+		if (check_nonzero(voptions, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 

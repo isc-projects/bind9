@@ -56,5 +56,35 @@ $CHECKCONF dnssec.3 2>&1 | grep '.*' && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I: range checking fields that do not allow zero"
+ret=0
+for field in max-retry-time min-retry-time max-refresh-time min-refresh-time; do
+    cat > badzero.conf << EOF
+options {
+    $field 0;
+};
+EOF
+    $CHECKCONF badzero.conf > /dev/null 2>&1
+    [ $? -eq 1 ] || { echo "I: options $field failed" ; ret=1; }
+    cat > badzero.conf << EOF
+view dummy {
+    $field 0;
+};
+EOF
+    $CHECKCONF badzero.conf > /dev/null 2>&1
+    [ $? -eq 1 ] || { echo "I: view $field failed" ; ret=1; }
+    cat > badzero.conf << EOF
+zone dummy {
+    type slave;
+    masters { 0.0.0.0; };
+    $field 0;
+};
+EOF
+    $CHECKCONF badzero.conf > /dev/null 2>&1
+    [ $? -eq 1 ] || { echo "I: zone $field failed" ; ret=1; }
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
