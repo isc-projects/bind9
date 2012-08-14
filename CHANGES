@@ -1,3 +1,5 @@
+3360.	[bug]		'host -w' could die.  [RT #18723]
+
 3359.	[bug]		An improperly-formed TSIG secret could cause a
                         memory leak. [RT #30607]
 
