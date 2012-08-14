@@ -16,4 +16,4 @@
 
 # $Id: clean.sh,v 1.2 2011/05/07 05:55:17 each Exp $
 
-rm -f good.conf.in good.conf.out
+rm -f good.conf.in good.conf.out badzero.conf
