@@ -7991,7 +7991,6 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 		memcpy(keystr, ptr, sizeof(keystr));
 	} else if(strcasecmp(ptr, "-nsec3param") == 0) {
 		const char *hashstr, *flagstr, *iterstr;
-		isc_buffer_t buf;
 		char nbuf[512];
 
 		chain = ISC_TRUE;
@@ -8019,9 +8018,13 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 			ptr = next_token(&args, " \t");
 			if (ptr == NULL)
 				return (ISC_R_UNEXPECTEDEND);
-			isc_buffer_init(&buf, salt, sizeof(salt));
-			CHECK(isc_hex_decodestring(ptr, &buf));
-			saltlen = isc_buffer_usedlength(&buf);
+			if (strcmp(ptr, "-") != 0) {
+				isc_buffer_t buf;
+
+				isc_buffer_init(&buf, salt, sizeof(salt));
+				CHECK(isc_hex_decodestring(ptr, &buf));
+				saltlen = isc_buffer_usedlength(&buf);
+			}
 		}
 	} else
 		CHECK(DNS_R_SYNTAX);

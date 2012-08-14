@@ -1481,7 +1481,42 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check that 'rndc signing -nsec3param' works with salt ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 0 0 ffff inline.example > /dev/null 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 status > /dev/null || ret=1
+for i in 1 2 3 4 5 6 7 8 9 10 ; do
+        salt=`$DIG $DIGOPTS +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}'`
+	if [ "$salt" = "FFFF" ]; then
+		break;
+	fi
+	echo "I:sleeping ...."
+	sleep 1
+done;
+[ "$salt" = "FFFF" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that 'rndc signing -nsec3param' works without salt ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 0 0 - inline.example > /dev/null 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 status > /dev/null || ret=1
+for i in 1 2 3 4 5 6 7 8 9 10 ; do
+        salt=`$DIG $DIGOPTS +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}'`
+	if [ "$salt" = "-" ]; then
+		break;
+	fi
+	echo "I:sleeping ...."
+	sleep 1
+done;
+[ "$salt" = "-" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:check rndc signing -list output ($n)"
+ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -list dynamic.example 2>&1 > signing.out
 grep "No signing records found" signing.out > /dev/null 2>&1 || {
         ret=1

@@ -1625,11 +1625,31 @@ zone "eng.example.com" {
                         <command>inline-signing</command> zones.
                         Parameters are specified in the same format as
                         an NSEC3PARAM resource record: hash algorithm,
-                        flags, iterations, salt.  For example, to set an
-                        NSEC3 chain using the SHA-1 hash algorithm,
-                        no opt-out flag, 10 iterations, and a salt value
-                        of "FFFF", use:
-                        <command>rndc signing -nsec3param 1 0 10 FFFF</command>.
+                        flags, iterations, and salt, in that order.
+                      </para>
+                      <para>
+                        Currently, the only defined value for hash algorithm 
+                        is <literal>1</literal>, representing SHA-1.
+                        The <option>flags</option> may be set to
+                        <literal>0</literal> or <literal>1</literal>,
+                        depending on whether you wish to set the opt-out
+                        bit in the NSEC3 chain.  <option>iterations</option>
+                        defines the number of additional times to apply
+                        the algorithm when generating an NSEC3 hash.  The
+                        <option>salt</option> is a string of data expressed
+                        in hexidecimal, or a hyphen (`-') if no salt is
+                        to be used.
+                      </para>
+                      <para>
+                        So, for example, to create an NSEC3 chain using
+                        the SHA-1 hash algorithm, no opt-out flag,
+                        10 iterations, and a salt value of "FFFF", use:
+                        <command>rndc signing -nsec3param 1 0 10 FFFF &lt;zone&gt;</command>.
+                        To set the opt-out flag, 15 iterations, and no
+                        salt, use:
+                        <command>rndc signing -nsec3param 1 1 15 - &lt;zone&gt;</command>.
+                      </para>
+                      <para>
                         <command>rndc signing -nsec3param none</command>
                         removes an existing NSEC3 chain and replaces it
                         with NSEC.
