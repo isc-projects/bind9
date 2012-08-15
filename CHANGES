@@ -8,17 +8,17 @@
 
 3361.	[bug]		"rndc signing -nsec3param" didn't work correctly
 			when salt was set to '-' (no salt). [RT #30099]
-			
+
 3360.	[bug]		'host -w' could die.  [RT #18723]
 
 3359.	[bug]		An improperly-formed TSIG secret could cause a
-                        memory leak. [RT #30607]
+			memory leak. [RT #30607]
 
 3358.	[placeholder]
 
 3357.	[port]		Add support for libxml2-2.8.x [RT #30440]
 
-3356.	[bug]		Cap the TTL of signed RRsets when RRSIGs are 
+3356.	[bug]		Cap the TTL of signed RRsets when RRSIGs are
 			approaching their expiry, so they don't remain
 			in caches after expiry. [RT #26429]
 
@@ -42,14 +42,14 @@
 
 3349.	[bug]		Change #3345 was incomplete. [RT #30233]
 
-3348.	[bug]		Prevent RRSIG data from being cached if a negative 
-			record matching the covering type exists at a higher 
-			trust level. Such data already can't be retrieved from 
-			the cache since change 3218 -- this prevents it 
+3348.	[bug]		Prevent RRSIG data from being cached if a negative
+			record matching the covering type exists at a higher
+			trust level. Such data already can't be retrieved from
+			the cache since change 3218 -- this prevents it
 			being inserted into the cache as well [RT #26809].
-			
-3347.	[bug]		dnssec-settime: Issue a warning when writing a new 
-			private key file would cause a change in the 
+
+3347.	[bug]		dnssec-settime: Issue a warning when writing a new
+			private key file would cause a change in the
 			permissions of the existing file. [RT #27724]
 
 3346.	[security]	Bad-cache data could be used before it was
@@ -78,12 +78,12 @@
 			to ensure correctness of signatures and of NSEC/NSEC3
 			chains. [RT #23673]
 
-3340.	[func]		Added new 'fast' zone file format, which is an image 
-			of a zone database that can be loaded directly into 
-			memory via mmap(), allowing much faster zone loading. 
-			(Note: Because of pointer sizes and other 
-			considerations, this file format is platform-dependent; 
-			'fast' zone files cannot always be transfered from one 
+3340.	[func]		Added new 'fast' zone file format, which is an image
+			of a zone database that can be loaded directly into
+			memory via mmap(), allowing much faster zone loading.
+			(Note: Because of pointer sizes and other
+			considerations, this file format is platform-dependent;
+			'fast' zone files cannot always be transfered from one
 			server to another.) [RT #25419]
 
 3339.	[func]		Allow the maximum supported rsa exponent size to be
@@ -112,9 +112,9 @@
 
 3331.	[security]	dns_rdataslab_fromrdataset could produce bad
 			rdataslabs. [RT #29644]
-			
+
 3330.	[func]		Fix missing signatures on NOERROR results despite
-			RPZ rewriting.  Also 
+			RPZ rewriting.  Also
 			 - add optional "recursive-only yes|no" to the
 			   response-policy statement
 			 - add optional "max-policy-ttl" to the response-policy
@@ -134,8 +134,8 @@
 			they fail to validate, we try again in lower case.
 			[RT #27451]
 
-3328.   [bug]           Fixed inconsistent data checking in dst_parse.c.
-                        [RT #29401]
+3328.	[bug]		Fixed inconsistent data checking in dst_parse.c.
+			[RT #29401]
 
 3327.	[func]		Added 'filter-aaaa-on-v6' option; this is similar
 			to 'filter-aaaa-on-v4' but applies to IPv6
