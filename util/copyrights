@@ -660,7 +660,7 @@
 ./bin/tests/system/checkconf/dnssec.1		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.2		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.3		CONF-C	2011
-./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007,2010,2011
+./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007,2010,2011,2012
 ./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012
 ./bin/tests/system/checkds/clean.sh		SH	2012
 ./bin/tests/system/checkds/dig.sh		SH	2012
