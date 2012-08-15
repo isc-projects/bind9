@@ -1347,8 +1347,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "also-notify", MASTERZONE | SLAVEZONE },
 	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "delegation-only", HINTZONE | STUBZONE | DELEGATIONZONE },
-	{ "forward", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE },
-	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE },
+	{ "forward", MASTERZONE | SLAVEZONE | STUBZONE |
+	  STATICSTUBZONE | FORWARDZONE },
+	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE |
+	  STATICSTUBZONE | FORWARDZONE },
 	{ "maintain-ixfr-base", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
 	{ "max-ixfr-log-size", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
 	{ "notify-source", MASTERZONE | SLAVEZONE },

@@ -1,3 +1,7 @@
+3363.	[bug]		Need to allow "forward" and "fowarders" options
+			in static-stub zones; this had been overlooked.
+			[RT #30482]
+
 3362.	[bug]		Setting some option values to 0 in named.conf
 			could trigger an assertion failure on startup.
 			[RT #27730]
