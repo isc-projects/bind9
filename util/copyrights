@@ -443,7 +443,7 @@
 ./bin/tests/names/dns_name_totext_data		X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_1_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_2_data	X	1999,2000,2001
-./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011
+./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./bin/tests/names/wire_test1.data		X	1999,2000,2001
 ./bin/tests/names/wire_test2.data		X	1999,2000,2001
 ./bin/tests/names/wire_test3_1.data		X	1999,2000,2001
