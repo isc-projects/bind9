@@ -2191,19 +2191,22 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that forwarding is reasonable.
 	 */
 	if (voptions == NULL) {
-		if (options != NULL) {
+		if (options != NULL)
 			if (check_forward(options, NULL,
 					  logctx) != ISC_R_SUCCESS)
 				result = ISC_R_FAILURE;
-			if (check_nonzero(options, logctx) != ISC_R_SUCCESS)
-				result = ISC_R_FAILURE;
-		}
 	} else {
 		if (check_forward(voptions, NULL, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
-		if (check_nonzero(voptions, logctx) != ISC_R_SUCCESS)
-			result = ISC_R_FAILURE;
 	}
+
+	/*
+	 * Check non-zero options at the global and view levels.
+	 */
+	if (options != NULL && check_nonzero(options, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
+	if (voptions != NULL &&check_nonzero(voptions, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
 
 	/*
 	 * Check that dual-stack-servers is reasonable.
