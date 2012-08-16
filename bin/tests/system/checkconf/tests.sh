@@ -56,6 +56,15 @@ EOF
     $CHECKCONF badzero.conf > /dev/null 2>&1
     [ $? -eq 1 ] || { echo "I: view $field failed" ; ret=1; }
     cat > badzero.conf << EOF
+options {
+    $field 0;
+};
+view dummy {
+};
+EOF
+    $CHECKCONF badzero.conf > /dev/null 2>&1
+    [ $? -eq 1 ] || { echo "I: options + view $field failed" ; ret=1; }
+    cat > badzero.conf << EOF
 zone dummy {
     type slave;
     masters { 0.0.0.0; };
