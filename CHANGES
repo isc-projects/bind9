@@ -1,3 +1,6 @@
+3365.	[bug]		Removed spurious newlines from log messages in
+			zone.c [RT #30675]
+
 3363.	[bug]		Need to allow "forward" and "fowarders" options
 			in static-stub zones; this had been overlooked.
 			[RT #30482]
