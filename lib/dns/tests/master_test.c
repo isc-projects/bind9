@@ -41,7 +41,7 @@
  */
 
 #define	BUFLEN		255
-#define	BIGBUFLEN	(64 * 1024)
+#define	BIGBUFLEN	(70 * 1024)
 #define TEST_ORIGIN	"test"
 
 static dns_masterrawheader_t header;
@@ -224,6 +224,49 @@ ATF_TC_BODY(badclass, tc) {
 	result = test_master("testdata/master/master5.data",
 			     dns_masterformat_text);
 	ATF_REQUIRE_EQ(result, DNS_R_BADCLASS);
+
+	dns_test_end();
+}
+
+/* Too big rdata test */
+ATF_TC(toobig);
+ATF_TC_HEAD(toobig, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() returns "
+				       "ISC_R_NOSPACE when record is too big");
+}
+ATF_TC_BODY(toobig, tc) {
+	isc_result_t result;
+
+	UNUSED(tc);
+
+	result = dns_test_begin(NULL, ISC_FALSE);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = test_master("testdata/master/master15.data",
+			     dns_masterformat_text);
+	ATF_REQUIRE_EQ(result, ISC_R_NOSPACE);
+
+	dns_test_end();
+}
+
+/* Maximum rdata test */
+ATF_TC(maxrdata);
+ATF_TC_HEAD(maxrdata, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() returns "
+				       "ISC_R_SUCCESS when record is maximum "
+				       "size");
+}
+ATF_TC_BODY(maxrdata, tc) {
+	isc_result_t result;
+
+	UNUSED(tc);
+
+	result = dns_test_begin(NULL, ISC_FALSE);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = test_master("testdata/master/master16.data",
+			     dns_masterformat_text);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	dns_test_end();
 }
@@ -530,6 +573,8 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, totext);
 	ATF_TP_ADD_TC(tp, loadraw);
 	ATF_TP_ADD_TC(tp, dumpraw);
+	ATF_TP_ADD_TC(tp, toobig);
+	ATF_TP_ADD_TC(tp, maxrdata);
 
 	return (atf_no_error());
 }
