@@ -2444,7 +2444,7 @@
 ./lib/isc/ia64/Makefile.in			MAKE	2007,2012
 ./lib/isc/ia64/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/ia64/include/isc/Makefile.in		MAKE	2007,2012
-./lib/isc/ia64/include/isc/atomic.h		C	2006,2007,2009
+./lib/isc/ia64/include/isc/atomic.h		C	2006,2007,2009,2012
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012
 ./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009
