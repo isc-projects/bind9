@@ -1,3 +1,6 @@
+3366.	[bug]		Fixed Read-After-Write dependency violation for IA64 
+			atomic operations. [RT #25181]
+
 3365.	[bug]		Removed spurious newlines from log messages in
 			zone.c [RT #30675]
 
