@@ -460,7 +460,7 @@
 ./bin/tests/names/dns_name_totext_data		X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_1_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_2_data	X	1999,2000,2001
-./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011
+./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./bin/tests/names/wire_test1.data		X	1999,2000,2001
 ./bin/tests/names/wire_test2.data		X	1999,2000,2001
 ./bin/tests/names/wire_test3_1.data		X	1999,2000,2001
@@ -1604,7 +1604,7 @@
 ./contrib/dbus/dbus_service.h			X	2006,2007
 ./contrib/dbus/named-dbus-system.conf		X	2006
 ./contrib/dbus/named-dbus.service		X	2006
-./contrib/dlz/bin/dlzbdb/Makefile.in		X	2005,2007,2009,2011
+./contrib/dlz/bin/dlzbdb/Makefile.in		X	2005,2007,2009,2011,2012
 ./contrib/dlz/bin/dlzbdb/dlzbdb.c		X	2005
 ./contrib/dlz/config.dlz.in			X	2005,2006,2008,2010,2011
 ./contrib/dlz/drivers/.gitignore		X	2012
@@ -2250,7 +2250,7 @@
 ./lib/dns/include/dns/private.h			C	2009,2011
 ./lib/dns/include/dns/rbt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012
 ./lib/dns/include/dns/rcode.h			C	1999,2000,2001,2004,2005,2006,2007,2008
-./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011
+./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./lib/dns/include/dns/rdataclass.h		C	1998,1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/rdatalist.h		C	1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/rdataset.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
@@ -2479,6 +2479,7 @@
 ./lib/dns/tests/nsec3_test.c			C	2012
 ./lib/dns/tests/private_test.c			C	2011,2012
 ./lib/dns/tests/rbt_test.c			C	2012
+./lib/dns/tests/rdata_test.c			C	2012
 ./lib/dns/tests/rdataset_test.c			C	2012
 ./lib/dns/tests/rdatasetstats_test.c		C	2012
 ./lib/dns/tests/testdata/dbiterator/zone1.data	ZONE	2011,2012
@@ -2493,6 +2494,8 @@
 ./lib/dns/tests/testdata/master/master12.data.in	X	2011
 ./lib/dns/tests/testdata/master/master13.data.in	X	2011
 ./lib/dns/tests/testdata/master/master14.data.in	X	2011
+./lib/dns/tests/testdata/master/master15.data	X	2012
+./lib/dns/tests/testdata/master/master16.data	X	2012
 ./lib/dns/tests/testdata/master/master2.data	X	2011
 ./lib/dns/tests/testdata/master/master3.data	X	2011
 ./lib/dns/tests/testdata/master/master4.data	X	2011
