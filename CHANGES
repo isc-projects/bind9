@@ -1,4 +1,4 @@
-3368.	[bug]		<dns/iptable.h> and <dns/zone.h> where not C++ safe.
+3368.	[bug]		<dns/iptable.h> and <dns/zone.h> were not C++ safe.
 
 3366.	[bug]		Fixed Read-After-Write dependency violation for IA64 
 			atomic operations. [RT #25181]
