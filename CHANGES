@@ -1,4 +1,4 @@
-3368.	[bug]		<dns/iptable.h> and <dns/zone.h> where not C++ safe.
+3368.	[bug]		<dns/iptable.h> and <dns/zone.h> were not C++ safe.
 
 3367.	[bug]		dns_dnsseckey_create() result was not being checked.
 			[RT #30685]
