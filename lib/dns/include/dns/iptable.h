@@ -23,6 +23,8 @@
 #include <isc/magic.h>
 #include <isc/radix.h>
 
+#include <dns/types.h>
+
 struct dns_iptable {
 	unsigned int		magic;
 	isc_mem_t		*mctx;
