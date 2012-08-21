@@ -1,3 +1,6 @@
+3367.	[bug]		dns_dnsseckey_create() result was not being checked.
+			[RT #30685]
+
 3366.	[bug]		Fixed Read-After-Write dependency violation for IA64 
 			atomic operations. [RT #25181]
 
