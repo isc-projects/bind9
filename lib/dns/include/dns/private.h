@@ -51,15 +51,15 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
  */
 
 isc_result_t
-dns_private_totext(dns_rdata_t *private, isc_buffer_t *buffer);
+dns_private_totext(dns_rdata_t *privaterdata, isc_buffer_t *buffer);
 /*%<
- * Convert a private-type RR 'private' to human-readable form,
+ * Convert a private-type RR 'privaterdata' to human-readable form,
  * and place the result in 'buffer'.  The text should indicate
  * which action the private-type record specifies and whether the
  * action has been completed.
  *
  * Requires:
- * \li	'private' is a valid rdata containing at least five bytes
+ * \li	'privaterdata' is a valid rdata containing at least five bytes
  * \li	'buffer' is a valid buffer
  *
  * Returns:
