@@ -1,5 +1,5 @@
 3368.	[bug]		<dns/iptable.h>, <dns/private.h> and <dns/zone.h>
-			where not C++ safe.
+			were not C++ safe.
 
 3367.	[bug]		dns_dnsseckey_create() result was not being checked.
 			[RT #30685]
