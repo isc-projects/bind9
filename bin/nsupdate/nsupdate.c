@@ -1153,6 +1153,11 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 	dns_rdatacallbacks_t callbacks;
 	isc_result_t result;
 
+	if (cmdline == NULL) {
+		rdata->flags = DNS_RDATA_UPDATE;
+		return (STATUS_MORE);
+	}
+
 	while (*cmdline != 0 && isspace((unsigned char)*cmdline))
 		cmdline++;
 
