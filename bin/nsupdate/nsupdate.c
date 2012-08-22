@@ -1121,7 +1121,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	isc_buffer_t source;
 
 	word = nsu_strsep(cmdlinep, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read owner name\n");
 		return (STATUS_SYNTAX);
 	}
@@ -1219,7 +1219,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	 */
 	if (isrrset) {
 		word = nsu_strsep(&cmdline, " \t\r\n");
-		if (*word == 0) {
+		if (word == NULL || *word == 0) {
 			fprintf(stderr, "could not read class or type\n");
 			goto failure;
 		}
@@ -1235,7 +1235,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 			 * Now read the type.
 			 */
 			word = nsu_strsep(&cmdline, " \t\r\n");
-			if (*word == 0) {
+			if (word == NULL || *word == 0) {
 				fprintf(stderr, "could not read type\n");
 				goto failure;
 			}
@@ -1309,7 +1309,7 @@ evaluate_prereq(char *cmdline) {
 
 	ddebug("evaluate_prereq()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read operation code\n");
 		return (STATUS_SYNTAX);
 	}
@@ -1343,14 +1343,14 @@ evaluate_server(char *cmdline) {
 	}
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read server name\n");
 		return (STATUS_SYNTAX);
 	}
 	server = word;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0)
+	if (word == NULL || *word == 0)
 		port = dnsport;
 	else {
 		char *endp;
@@ -1384,14 +1384,14 @@ evaluate_local(char *cmdline) {
 	struct in6_addr in6;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read server name\n");
 		return (STATUS_SYNTAX);
 	}
 	local = word;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0)
+	if (word == NULL || *word == 0)
 		port = 0;
 	else {
 		char *endp;
@@ -1440,7 +1440,7 @@ evaluate_key(char *cmdline) {
 	char *n;
 
 	namestr = nsu_strsep(&cmdline, " \t\r\n");
-	if (*namestr == 0) {
+	if (namestr == NULL || *namestr == 0) {
 		fprintf(stderr, "could not read key name\n");
 		return (STATUS_SYNTAX);
 	}
@@ -1464,7 +1464,7 @@ evaluate_key(char *cmdline) {
 	}
 
 	secretstr = nsu_strsep(&cmdline, "\r\n");
-	if (*secretstr == 0) {
+	if (secretstr == NULL || *secretstr == 0) {
 		fprintf(stderr, "could not read key secret\n");
 		return (STATUS_SYNTAX);
 	}
@@ -1505,7 +1505,7 @@ evaluate_zone(char *cmdline) {
 	isc_result_t result;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read zone name\n");
 		return (STATUS_SYNTAX);
 	}
@@ -1531,7 +1531,7 @@ evaluate_realm(char *cmdline) {
 	char buf[1024];
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		if (realm != NULL)
 			isc_mem_free(mctx, realm);
 		realm = NULL;
@@ -1556,7 +1556,7 @@ evaluate_ttl(char *cmdline) {
 	isc_uint32_t ttl;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not ttl\n");
 		return (STATUS_SYNTAX);
 	}
@@ -1590,7 +1590,7 @@ evaluate_class(char *cmdline) {
 	dns_rdataclass_t rdclass;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read class name\n");
 		return (STATUS_SYNTAX);
 	}
@@ -1648,7 +1648,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	 * If it's a delete, ignore a TTL if present (for compatibility).
 	 */
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		if (!isdelete) {
 			fprintf(stderr, "could not read owner ttl\n");
 			goto failure;
@@ -1689,7 +1689,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	 */
 	word = nsu_strsep(&cmdline, " \t\r\n");
  parseclass:
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		if (isdelete) {
 			rdataclass = dns_rdataclass_any;
 			rdatatype = dns_rdatatype_any;
@@ -1713,7 +1713,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 		 * Now read the type.
 		 */
 		word = nsu_strsep(&cmdline, " \t\r\n");
-		if (*word == 0) {
+		if (word == NULL || *word == 0) {
 			if (isdelete) {
 				rdataclass = dns_rdataclass_any;
 				rdatatype = dns_rdatatype_any;
@@ -1793,7 +1793,7 @@ evaluate_update(char *cmdline) {
 
 	ddebug("evaluate_update()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read operation code\n");
 		return (STATUS_SYNTAX);
 	}
@@ -1883,6 +1883,7 @@ get_next_command(void) {
 	char cmdlinebuf[MAXCMD];
 	char *cmdline;
 	char *word;
+	char *tmp;
 
 	ddebug("get_next_command()");
 	if (interactive) {
@@ -1894,11 +1895,18 @@ get_next_command(void) {
 	isc_app_unblock();
 	if (cmdline == NULL)
 		return (STATUS_QUIT);
+
+	/*
+	 * Normalize input by removing any eol.
+	 */
+	tmp = cmdline;
+	(void)nsu_strsep(&tmp, "\r\n");
+
 	word = nsu_strsep(&cmdline, " \t\r\n");
 
 	if (feof(input))
 		return (STATUS_QUIT);
-	if (*word == 0)
+	if (word == NULL || *word == 0)
 		return (STATUS_SEND);
 	if (word[0] == ';')
 		return (STATUS_MORE);
