@@ -35,7 +35,7 @@
 #define ISC_QLINK_INSIST(x) (void)0
 #endif
 
-#define ISC_QLINK(type) struct { void *prev, *next; }
+#define ISC_QLINK(type) struct { type *prev, *next; }
 
 #define ISC_QLINK_INIT(elt, link) \
 	do { \
@@ -140,6 +140,24 @@
 		UNLOCK(&(queue).headlock); \
 		if (ret != NULL) \
 			(ret)->link.next = (ret)->link.prev = (void *)(-1); \
+	} while(0)
+
+#define ISC_QUEUE_UNLINK(queue, elt, link) \
+	do { \
+		ISC_QLINK_INSIST(ISC_QLINK_LINKED(elt, link)); \
+		LOCK(&(queue).headlock); \
+		LOCK(&(queue).taillock); \
+		if ((elt)->link.prev == NULL) \
+			(queue).head = (elt)->link.next; \
+		else \
+			(elt)->link.prev->link.next = (elt)->link.next; \
+		if ((elt)->link.next == NULL) \
+			(queue).tail = (elt)->link.prev; \
+		else \
+			(elt)->link.next->link.prev = (elt)->link.prev; \
+		UNLOCK(&(queue).taillock); \
+		UNLOCK(&(queue).headlock); \
+		(elt)->link.next = (elt)->link.prev = (void *)(-1); \
 	} while(0)
 
 #endif /* ISC_QUEUE_H */

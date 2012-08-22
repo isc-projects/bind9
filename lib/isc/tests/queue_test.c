@@ -29,10 +29,11 @@
 
 #include "isctest.h"
 
-typedef struct item {
+typedef struct item item_t;
+struct item {
 	int 			value;
 	ISC_QLINK(item_t)	qlink;
-} item_t;
+};
 
 typedef ISC_QUEUE(item_t) item_queue_t;
 
@@ -107,6 +108,9 @@ ATF_TC_BODY(queue_valid, tc) {
 	ISC_QUEUE_PUSH(queue, &five, qlink);
 	ATF_CHECK(ISC_QLINK_LINKED(&five, qlink));
 
+	/* Test unlink by removing one item from the middle */
+	ISC_QUEUE_UNLINK(queue, &three, qlink);
+
 	ISC_QUEUE_POP(queue, qlink, p);
 	ATF_REQUIRE(p != NULL);
 	ATF_CHECK_EQ(p->value, 1);
@@ -114,10 +118,6 @@ ATF_TC_BODY(queue_valid, tc) {
 	ISC_QUEUE_POP(queue, qlink, p);
 	ATF_REQUIRE(p != NULL);
 	ATF_CHECK_EQ(p->value, 2);
-
-	ISC_QUEUE_POP(queue, qlink, p);
-	ATF_REQUIRE(p != NULL);
-	ATF_CHECK_EQ(p->value, 3);
 
 	ISC_QUEUE_POP(queue, qlink, p);
 	ATF_REQUIRE(p != NULL);
