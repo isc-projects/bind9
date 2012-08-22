@@ -1,4 +1,6 @@
-3379.	[bug]		nsupdate terminated unexpectedly in interactive mode
+3370.	[bug]		Address use after free while shutting down. [RT #30241]
+
+3369.	[bug]		nsupdate terminated unexpectedly in interactive mode
 			if built with readline support. [RT #29550]
 
 3368.	[bug]		<dns/iptable.h>, <dns/private.h> and <dns/zone.h>
