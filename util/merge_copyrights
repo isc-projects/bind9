@@ -86,6 +86,8 @@ while (<CHANGES>) {
 		 $base =~ /.xsl$/ ||
 		 $base =~ /.xml$/) {
 	    $file_types{$_} = "SGML";
+        } elsif ($base =~ /doc\/arm\/.*\.html$/) {
+	    $file_types{$_} = "X";
         } elsif ($base =~ /\.html$/) {
 	    $file_types{$_} = "HTML";
         } elsif ($base =~ /\.(man|[0-9])$/) {
