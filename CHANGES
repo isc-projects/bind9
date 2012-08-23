@@ -1,4 +1,4 @@
-	--- 9.8.4b1 released ---
+	--- 9.8.4rc1 released ---
 
 3369.	[bug]		nsupdate terminated unexpectedly in interactive mode
 			if built with readline support. [RT #29550]
