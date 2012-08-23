@@ -533,6 +533,7 @@ dns_rdataset_settrust
 dns_rdataset_totext
 dns_rdataset_towire
 dns_rdataset_towiresorted
+dns_rdataset_trimttl
 dns_rdatasetiter_current
 dns_rdatasetiter_destroy
 dns_rdatasetiter_first
