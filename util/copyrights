@@ -113,7 +113,7 @@
 ./bin/dnssec/dnssec-verify.8			MAN	2012
 ./bin/dnssec/dnssec-verify.c			C	2012
 ./bin/dnssec/dnssec-verify.docbook		SGML	2012
-./bin/dnssec/dnssec-verify.html			HTML	2012
+./bin/dnssec/dnssec-verify.html			HTML	DOCBOOK
 ./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005,2007,2009,2010,2011,2012
 ./bin/dnssec/dnssectool.h			C	2000,2001,2003,2004,2007,2008,2009,2010,2011,2012
 ./bin/dnssec/win32/dnssectool.dsp		X	2006,2009
@@ -268,7 +268,7 @@
 ./bin/python/Makefile.in			MAKE	2012
 ./bin/python/dnssec-checkds.8			MAN	2012
 ./bin/python/dnssec-checkds.docbook		SGML	2012
-./bin/python/dnssec-checkds.html		HTML	2012
+./bin/python/dnssec-checkds.html		HTML	DOCBOOK
 ./bin/python/dnssec-checkds.py.in		PYTHON	2012
 ./bin/rndc/.gitignore				X	2012
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007,2009,2012
