@@ -2048,6 +2048,7 @@
 ./doc/arm/man.dnssec-revoke.html		X	2009,2010,2011,2012
 ./doc/arm/man.dnssec-settime.html		X	2009,2010,2011,2012
 ./doc/arm/man.dnssec-signzone.html		X	2005,2006,2007,2008,2009,2010,2011,2012
+./doc/arm/man.dnssec-verify.html		X	2012
 ./doc/arm/man.genrandom.html			X	2009,2010,2011,2012
 ./doc/arm/man.host.html				X	2005,2006,2007,2008,2009,2010,2011,2012
 ./doc/arm/man.isc-hmac-fixup.html		X	2010,2011,2012
