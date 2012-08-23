@@ -1,3 +1,55 @@
+3370.	[bug]		Address use after free while shutting down. [RT #30241]
+
+3368.	[bug]		<dns/iptable.h>, <dns/private.h> and <dns/zone.h>
+			were not C++ safe.
+
+3367.	[bug]		dns_dnsseckey_create() result was not being checked.
+			[RT #30685]
+
+3363.   [bug]           Need to allow "forward" and "fowarders" options
+                        in static-stub zones; this had been overlooked.
+                        [RT #30482]
+ 
+3361.   [bug]           "rndc signing -nsec3param" didn't work correctly
+                        when salt was set to '-' (no salt). [RT #30099]
+
+3355.   [port]          Use more portable awk in verify system test.
+
+3353.   [bug]           Use a single task for task exclusive operations.
+                        [RT #29872]
+
+3351.   [bug]           isc_mem_put and isc_mem_putanddetach didn't report
+                        caller if either ISC_MEM_DEBUGSIZE or ISC_MEM_DEBUGCTX
+                        memory debugging flags are set. [RT #30243]
+
+3349.   [bug]           Change #3345 was incomplete. [RT #30233]
+
+3347.   [bug]           dnssec-settime: Issue a warning when writing a new
+                        private key file would cause a change in the
+                        permissions of the existing file. [RT #27724]
+
+3345.   [bug]           Addressed race condition when removing the last item
+                        or inserting the first item in an ISC_QUEUE.
+                        [RT #29539]
+
+3338.   [bug]           Address race condition in units tests: asyncload_zone
+                        and asyncload_zt. [RT #26100]
+
+3334.   [bug]           Hold a zone table reference while performing a
+                        asyncronous load of a zone. [RT #28326]
+
+3324.   [test]          Add better tests for ADB stats [RT #27057]
+
+3317.   [protocol]      Add ECDSA support (RFC 6605). [RT #21918]
+
+3316.   [tuning]        Improved locking performance when recursing.
+                        [RT #28836]
+
+3315.   [tuning]        Use multiple dispatch objects for sending upstream
+                        queries; this can improve performance on busy
+                        multiprocessor systems by reducing lock contention.
+                        [RT #28605]
+
 3312.	[bug]		named-checkconf didn't detect a bad dns64 clients acl.
 			[RT #27631]
 
@@ -156,6 +208,9 @@
 			sample external DLZ module in contrib/dlz/example.
 			[RT #26215]
 
+3174.   [bug]           Always compute to revoked key tag from scratch.
+                        [RT #26186]
+
 3172.	[port]		darwin 10.* and freebsd [89] are now built threaded by
 			default.
 
@@ -238,6 +293,9 @@
 3103.	[bug]		Configuring 'dnssec-validation auto' in a view
 			instead of in the options statement could trigger
 			an assertion failure in named-checkconf. [RT #24382]
+
+3101.   [bug]           Zones using automatic key maintenance could fail
+                        to check the key repository for updates. [RT #23744]
 
 3100.	[security]	Certain response policy zone configurations could
 			trigger an INSIST when receiving a query of type
@@ -496,6 +554,12 @@
 2832.	[bug]		Modify "struct stat" in lib/export/samples/nsprobe.c
 			to avoid redefinition in some OSs [RT 20831]
 
+2829.   [bug]           Fixed potential node inconsistency in rbtdb.c.
+                        [RT #20808]
+
+2826.   [bug]           NSEC3->NSEC transitions could fail due to a lock not
+                        being released.  [RT #20740]
+
 2824.	[bug]		"rndc sign" was not being run by the correct task.
 			[RT #20759]
 
@@ -507,6 +571,9 @@
 
 2816.	[bug]		previous_closest_nsec() could fail to return
 			data for NSEC3 nodes [RT #29730]
+
+2813.   [bug]           Better handling of unreadable DNSSEC key files.
+                        [RT #20710]
 
 2812.	[bug]		Make sure updates can't result in a zone with
 			NSEC-only keys and NSEC3 records. [RT #20748]

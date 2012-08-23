@@ -1,9 +1,11 @@
+	--- 9.6-ESV-R8rc1 released ---
+
 3369.	[bug]		nsupdate terminated unexpectedly in interactive mode
 			if built with readline support. [RT #29550]
 
 3368.	[bug]		<dns/iptable.h> and <dns/zone.h> were not C++ safe.
 
-3366.	[bug]		Fixed Read-After-Write dependency violation for IA64 
+3366.	[bug]		Fixed Read-After-Write dependency violation for IA64
 			atomic operations. [RT #25181]
 
 3365.	[bug]		Removed spurious newlines from log messages in
@@ -16,7 +18,7 @@
 3360.	[bug]		'host -w' could die.  [RT #18723]
 
 3359.	[bug]		An improperly-formed TSIG secret could cause a
-                        memory leak. [RT #30607]
+			memory leak. [RT #30607]
 
 3358.	[bug]		Fix declaration of fatal in bin/named/server.c
 			and bin/nsupdate/main.c. [RT #30522]
@@ -34,16 +36,16 @@
 			ISC_MEM_DEBUGCTX memory debugging flag is set.
 			[RT #30240]
 
-3348.	[bug]		Prevent RRSIG data from being cached if a negative 
-			record matching the covering type exists at a higher 
-			trust level. Such data already can't be retrieved from 
-			the cache since change 3218 -- this prevents it 
+3348.	[bug]		Prevent RRSIG data from being cached if a negative
+			record matching the covering type exists at a higher
+			trust level. Such data already can't be retrieved from
+			the cache since change 3218 -- this prevents it
 			being inserted into the cache as well. [RT #26809]
 
 3346.	[security]	Bad-cache data could be used before it was
 			initialized, causing an assert. [RT #30025]
 
-3343.   [bug]		Relax isc_random_jitter() REQUIRE tests. [RT #29821]
+3343.	[bug]		Relax isc_random_jitter() REQUIRE tests. [RT #29821]
 
 3342.	[bug]		Change #3314 broke saving of stub zones to disk
 			resulting in excessive cpu usage in some cases.
@@ -66,8 +68,8 @@
 			they fail to validate, we try again in lower case.
 			[RT #27451]
 
-3328.   [bug]           Fixed inconsistent data checking in dst_parse.c.
-                        [RT #29401]
+3328.	[bug]		Fixed inconsistent data checking in dst_parse.c.
+			[RT #29401]
 
 	--- 9.6-ESV-R7 released ---
 
