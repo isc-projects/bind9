@@ -16062,7 +16062,7 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 		kd->all = ISC_FALSE;
 
 		n = sscanf(keystr, "%hd/", &keyid);
-		if (n == 0)
+		if (n == 0U)
 			CHECK(ISC_R_FAILURE);
 
 		algstr = strchr(keystr, '/');
@@ -16072,7 +16072,7 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 			CHECK(ISC_R_FAILURE);
 
 		n = sscanf(algstr, "%hhd", &alg);
-		if (n == 0) {
+		if (n == 0U) {
 			DE_CONST(algstr, r.base);
 			r.length = strlen(algstr);
 			CHECK(dns_secalg_fromtext(&alg, &r));
