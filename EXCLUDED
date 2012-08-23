@@ -1,3 +1,48 @@
+3370.   [bug]           Address use after free while shutting down. [RT #30241]
+
+3368.   [bug]           <dns/iptable.h>, <dns/private.h> and <dns/zone.h>
+                        were not C++ safe.
+
+3363.   [bug]           Need to allow "forward" and "fowarders" options
+                        in static-stub zones; this had been overlooked.
+                        [RT #30482]
+
+3361.   [bug]           "rndc signing -nsec3param" didn't work correctly
+                        when salt was set to '-' (no salt). [RT #30099]
+
+3355.   [port]          Use more portable awk in verify system test.
+
+3353.   [bug]           Use a single task for task exclusive operations.
+                        [RT #29872]
+
+3349.   [bug]           Change #3345 was incomplete. [RT #30233]
+
+3345.   [bug]           Addressed race condition when removing the last item
+                        or inserting the first item in an ISC_QUEUE.
+                        [RT #29539]
+
+3338.   [bug]           Address race condition in units tests: asyncload_zone
+                        and asyncload_zt. [RT #26100]
+
+3334.   [bug]           Hold a zone table reference while performing a
+                        asyncronous load of a zone. [RT #28326]
+
+3333.   [bug]           Setting resolver-query-timeout too low can cause
+                        named to not recover if it loses connectivity.
+                        [RT #29623]
+
+3324.   [test]          Add better tests for ADB stats [RT #27057]
+
+3317.   [protocol]      Add ECDSA support (RFC 6605). [RT #21918]
+
+3316.   [tuning]        Improved locking performance when recursing.
+                        [RT #28836]
+
+3315.   [tuning]        Use multiple dispatch objects for sending upstream
+                        queries; this can improve performance on busy
+                        multiprocessor systems by reducing lock contention.
+                        [RT #28605]
+
 3312.	[bug]		named-checkconf didn't detect a bad dns64 clients acl.
 			[RT #27631]
 
