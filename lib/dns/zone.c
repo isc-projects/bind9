@@ -3346,7 +3346,7 @@ zone_journal(dns_zone_t *zone, dns_diff_t *diff, isc_uint32_t *sourceserial,
 					  &journal);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "%s:dns_journal_open -> %s\n",
+				     "%s:dns_journal_open -> %s",
 				     caller, dns_result_totext(result));
 			return (result);
 		}
@@ -3357,7 +3357,7 @@ zone_journal(dns_zone_t *zone, dns_diff_t *diff, isc_uint32_t *sourceserial,
 		result = dns_journal_write_transaction(journal, diff);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "%s:dns_journal_write_transaction -> %s\n",
+				     "%s:dns_journal_write_transaction -> %s",
 				     caller, dns_result_totext(result));
 		}
 		dns_journal_destroy(&journal);
@@ -3383,7 +3383,7 @@ add_soa(dns_zone_t *zone, dns_db_t *db) {
 	result = dns_db_newversion(db, &ver);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "add_soa:dns_db_newversion -> %s\n",
+			     "add_soa:dns_db_newversion -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -3393,7 +3393,7 @@ add_soa(dns_zone_t *zone, dns_db_t *db) {
 				    0, 0, 0, 0, 0, buf, &rdata);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "add_soa:dns_soa_buildrdata -> %s\n",
+			     "add_soa:dns_soa_buildrdata -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -3445,7 +3445,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	result = dns_db_newversion(db, &ver);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sync_keyzone:dns_db_newversion -> %s\n",
+			     "sync_keyzone:dns_db_newversion -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -5411,7 +5411,7 @@ zone_resigninc(dns_zone_t *zone) {
 	result = dns_db_newversion(db, &version);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:dns_db_newversion -> %s\n",
+			     "zone_resigninc:dns_db_newversion -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -5420,7 +5420,7 @@ zone_resigninc(dns_zone_t *zone) {
 				zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:find_zone_keys -> %s\n",
+			     "zone_resigninc:find_zone_keys -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -5444,7 +5444,7 @@ zone_resigninc(dns_zone_t *zone) {
 	result = dns_db_getsigningtime(db, &rdataset, name);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:dns_db_getsigningtime -> %s\n",
+			     "zone_resigninc:dns_db_getsigningtime -> %s",
 			     dns_result_totext(result));
 	}
 
@@ -5468,7 +5468,7 @@ zone_resigninc(dns_zone_t *zone) {
 				  zone_keys, nkeys, now, ISC_TRUE);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "zone_resigninc:del_sigs -> %s\n",
+				     "zone_resigninc:del_sigs -> %s",
 				     dns_result_totext(result));
 			break;
 		}
@@ -5478,7 +5478,7 @@ zone_resigninc(dns_zone_t *zone) {
 				  expire, check_ksk, keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "zone_resigninc:add_sigs -> %s\n",
+				     "zone_resigninc:add_sigs -> %s",
 				     dns_result_totext(result));
 			break;
 		}
@@ -5490,7 +5490,7 @@ zone_resigninc(dns_zone_t *zone) {
 		}
 		if (result != ISC_R_SUCCESS)
 			dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:dns_db_getsigningtime -> %s\n",
+			     "zone_resigninc:dns_db_getsigningtime -> %s",
 				     dns_result_totext(result));
 	}
 
@@ -5501,7 +5501,7 @@ zone_resigninc(dns_zone_t *zone) {
 			  &sig_diff, zone_keys, nkeys, now, ISC_TRUE);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:del_sigs -> %s\n",
+			     "zone_resigninc:del_sigs -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -5517,7 +5517,7 @@ zone_resigninc(dns_zone_t *zone) {
 				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:update_soa_serial -> %s\n",
+			     "zone_resigninc:update_soa_serial -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -5531,7 +5531,7 @@ zone_resigninc(dns_zone_t *zone) {
 			  soaexpire, check_ksk, keyset_kskonly);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:add_sigs -> %s\n",
+			     "zone_resigninc:add_sigs -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -6233,7 +6233,7 @@ update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 				  zone_keys, nkeys, now, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "update_sigs:del_sigs -> %s\n",
+				     "update_sigs:del_sigs -> %s",
 				     dns_result_totext(result));
 			return (result);
 		}
@@ -6243,7 +6243,7 @@ update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 				  expire, check_ksk, keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "update_sigs:add_sigs -> %s\n",
+				     "update_sigs:add_sigs -> %s",
 				     dns_result_totext(result));
 			return (result);
 		}
@@ -6328,7 +6328,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	result = dns_db_newversion(db, &version);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_nsec3chain:dns_db_newversion -> %s\n",
+			     "zone_nsec3chain:dns_db_newversion -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -6337,7 +6337,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 				DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_nsec3chain:find_zone_keys -> %s\n",
+			     "zone_nsec3chain:find_zone_keys -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -6483,7 +6483,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 					    &nsec3_diff);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-				     "dns_nsec3_addnsec3 -> %s\n",
+				     "dns_nsec3_addnsec3 -> %s",
 				     dns_result_totext(result));
 			goto failure;
 		}
@@ -6541,7 +6541,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			} else if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone_nsec3chain:"
-					     "dns_dbiterator_next -> %s\n",
+					     "dns_dbiterator_next -> %s",
 					     dns_result_totext(result));
 				goto failure;
 			} else if (delegation) {
@@ -6600,7 +6600,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone_nsec3chain:"
-					     "need_nsec_chain -> %s\n",
+					     "need_nsec_chain -> %s",
 					     dns_result_totext(result));
 				goto failure;
 			}
@@ -6625,7 +6625,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 				if (result != ISC_R_SUCCESS) {
 					dns_zone_log(zone, ISC_LOG_ERROR,
 						     "zone_nsec3chain:"
-						     "fixup_nsec3param -> %s\n",
+						     "fixup_nsec3param -> %s",
 						     dns_result_totext(result));
 					goto failure;
 				}
@@ -6640,7 +6640,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone_nsec3chain:"
-					     "deletematchingnsec3 -> %s\n",
+					     "deletematchingnsec3 -> %s",
 					     dns_result_totext(result));
 				goto failure;
 			}
@@ -6741,7 +6741,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 				if (result != ISC_R_SUCCESS) {
 					dns_zone_log(zone, ISC_LOG_ERROR,
 						     "zone_nsec3chain:"
-						     "fixup_nsec3param -> %s\n",
+						     "fixup_nsec3param -> %s",
 						     dns_result_totext(result));
 					goto failure;
 				}
@@ -6749,7 +6749,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			} else if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone_nsec3chain:"
-					     "dns_dbiterator_next -> %s\n",
+					     "dns_dbiterator_next -> %s",
 					     dns_result_totext(result));
 				goto failure;
 			} else if (delegation) {
@@ -6786,7 +6786,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		result = dns_db_allrdatasets(db, node, version, 0, &iterator);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-				     "dns_db_allrdatasets -> %s\n",
+				     "dns_db_allrdatasets -> %s",
 				     dns_result_totext(result));
 			goto failure;
 		}
@@ -6812,7 +6812,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone_nsec3chain:"
-					     "updatesecure -> %s\n",
+					     "updatesecure -> %s",
 					     dns_result_totext(result));
 				goto failure;
 			}
@@ -6825,7 +6825,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone_nsec3chain:"
-					     "dns_nsec3_addnsec3s -> %s\n",
+					     "dns_nsec3_addnsec3s -> %s",
 					     dns_result_totext(result));
 				goto failure;
 			}
@@ -6840,7 +6840,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			     check_ksk, keyset_kskonly, &sig_diff);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "update_sigs -> %s\n", dns_result_totext(result));
+			     "update_sigs -> %s", dns_result_totext(result));
 		goto failure;
 	}
 
@@ -6853,7 +6853,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			     check_ksk, keyset_kskonly, &sig_diff);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "update_sigs -> %s\n", dns_result_totext(result));
+			     "update_sigs -> %s", dns_result_totext(result));
 		goto failure;
 	}
 
@@ -6864,7 +6864,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 				      zone->minimum, ISC_FALSE, &nsec_diff);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-				     "updatesecure -> %s\n",
+				     "updatesecure -> %s",
 				     dns_result_totext(result));
 			goto failure;
 		}
@@ -6875,7 +6875,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			     check_ksk, keyset_kskonly, &sig_diff);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "update_sigs -> %s\n", dns_result_totext(result));
+			     "update_sigs -> %s", dns_result_totext(result));
 		goto failure;
 	}
 
@@ -6890,7 +6890,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			  &sig_diff, zone_keys, nkeys, now, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "del_sigs -> %s\n", dns_result_totext(result));
+			     "del_sigs -> %s", dns_result_totext(result));
 		goto failure;
 	}
 
@@ -6898,7 +6898,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "update_soa_serial -> %s\n",
+			     "update_soa_serial -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -6908,7 +6908,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			  soaexpire, check_ksk, keyset_kskonly);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "add_sigs -> %s\n", dns_result_totext(result));
+			     "add_sigs -> %s", dns_result_totext(result));
 		goto failure;
 	}
 
@@ -6952,7 +6952,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 
  failure:
 	if (result != ISC_R_SUCCESS)
-		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain: %s\n",
+		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain: %s",
 			     dns_result_totext(result));
 	/*
 	 * On error roll back the current nsec3chain.
@@ -7155,7 +7155,7 @@ zone_sign(dns_zone_t *zone) {
 	result = dns_db_newversion(db, &version);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:dns_db_newversion -> %s\n",
+			     "zone_sign:dns_db_newversion -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -7164,7 +7164,7 @@ zone_sign(dns_zone_t *zone) {
 				DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:find_zone_keys -> %s\n",
+			     "zone_sign:find_zone_keys -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -7385,7 +7385,7 @@ zone_sign(dns_zone_t *zone) {
 					if (result != ISC_R_SUCCESS) {
 						dns_zone_log(zone,
 							     ISC_LOG_ERROR,
-						    "updatesecure -> %s\n",
+						    "updatesecure -> %s",
 						    dns_result_totext(result));
 						goto failure;
 					}
@@ -7397,8 +7397,7 @@ zone_sign(dns_zone_t *zone) {
 							   &post_diff);
 				if (result != ISC_R_SUCCESS) {
 					dns_zone_log(zone, ISC_LOG_ERROR,
-						     "updatesignwithkey "
-						     "-> %s\n",
+						     "updatesignwithkey -> %s",
 						     dns_result_totext(result));
 					goto failure;
 				}
@@ -7406,7 +7405,7 @@ zone_sign(dns_zone_t *zone) {
 				goto next_signing;
 			} else if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
-					"zone_sign:dns_dbiterator_next -> %s\n",
+					"zone_sign:dns_dbiterator_next -> %s",
 					     dns_result_totext(result));
 				goto failure;
 			} else if (delegation) {
@@ -7432,7 +7431,7 @@ zone_sign(dns_zone_t *zone) {
 				     check_ksk, keyset_kskonly, &sig_diff);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_sign:"
-				     "update_sigs -> %s\n",
+				     "update_sigs -> %s",
 				     dns_result_totext(result));
 			goto failure;
 		}
@@ -7452,7 +7451,7 @@ zone_sign(dns_zone_t *zone) {
 			  &sig_diff, zone_keys, nkeys, now, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:del_sigs -> %s\n",
+			     "zone_sign:del_sigs -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -7461,7 +7460,7 @@ zone_sign(dns_zone_t *zone) {
 				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:update_soa_serial -> %s\n",
+			     "zone_sign:update_soa_serial -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -7475,7 +7474,7 @@ zone_sign(dns_zone_t *zone) {
 			  soaexpire, check_ksk, keyset_kskonly);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:add_sigs -> %s\n",
+			     "zone_sign:add_sigs -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -15190,7 +15189,7 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sign_apex:find_zone_keys -> %s\n",
+			     "sign_apex:find_zone_keys -> %s",
 			     dns_result_totext(result));
 		return (result);
 	}
@@ -15221,7 +15220,7 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				  zone_keys, nkeys, now, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "sign_apex:del_sigs -> %s\n",
+				     "sign_apex:del_sigs -> %s",
 				     dns_result_totext(result));
 			goto failure;
 		}
@@ -15231,7 +15230,7 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				  keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "sign_apex:add_sigs -> %s\n",
+				     "sign_apex:add_sigs -> %s",
 				     dns_result_totext(result));
 			goto failure;
 		}
@@ -15243,7 +15242,7 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sign_apex:update_sigs -> %s\n",
+			     "sign_apex:update_sigs -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -15943,7 +15942,7 @@ keydone(isc_task_t *task, isc_event_t *event) {
 		result = dns_db_newversion(db, &newver);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "keydone:dns_db_newversion -> %s\n",
+				     "keydone:dns_db_newversion -> %s",
 				     dns_result_totext(result));
 			goto failure;
 		}
@@ -16141,7 +16140,7 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 		result = dns_db_newversion(db, &newver);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "setnsec3param:dns_db_newversion -> %s\n",
+				     "setnsec3param:dns_db_newversion -> %s",
 				     dns_result_totext(result));
 			goto failure;
 		}

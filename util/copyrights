@@ -458,7 +458,7 @@
 ./bin/tests/names/dns_name_totext_data		X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_1_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_2_data	X	1999,2000,2001
-./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011
+./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./bin/tests/names/wire_test1.data		X	1999,2000,2001
 ./bin/tests/names/wire_test2.data		X	1999,2000,2001
 ./bin/tests/names/wire_test3_1.data		X	1999,2000,2001
@@ -657,7 +657,7 @@
 ./bin/tests/system/checkconf/dnssec.1		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.2		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.3		CONF-C	2011
-./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007,2010,2011
+./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007,2010,2011,2012
 ./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012
 ./bin/tests/system/checkds/clean.sh		SH	2012
 ./bin/tests/system/checkds/dig.sh		SH	2012
@@ -1058,6 +1058,7 @@
 ./bin/tests/system/notify/setup.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/notify/tests.sh		SH	2000,2001,2004,2007,2011,2012
 ./bin/tests/system/nsupdate/clean.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012
+./bin/tests/system/nsupdate/commandlist		X	2012
 ./bin/tests/system/nsupdate/knowngood.ns1.after	X	2000,2001,2003,2004,2009
 ./bin/tests/system/nsupdate/knowngood.ns1.afterstop	X	2001,2004
 ./bin/tests/system/nsupdate/knowngood.ns1.before	X	2000,2001,2003,2004,2009
@@ -1580,7 +1581,7 @@
 ./contrib/dbus/dbus_service.h			X	2006,2007
 ./contrib/dbus/named-dbus-system.conf		X	2006
 ./contrib/dbus/named-dbus.service		X	2006
-./contrib/dlz/bin/dlzbdb/Makefile.in		X	2005,2007,2009,2011
+./contrib/dlz/bin/dlzbdb/Makefile.in		X	2005,2007,2009,2011,2012
 ./contrib/dlz/bin/dlzbdb/dlzbdb.c		X	2005
 ./contrib/dlz/config.dlz.in			X	2005,2006,2008,2010,2011
 ./contrib/dlz/drivers/.gitignore		X	2012
@@ -2202,7 +2203,7 @@
 ./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011
 ./lib/dns/include/dns/fixedname.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/forward.h			C	2000,2001,2004,2005,2006,2007,2009
-./lib/dns/include/dns/iptable.h			C	2007
+./lib/dns/include/dns/iptable.h			C	2007,2012
 ./lib/dns/include/dns/journal.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2009,2011
 ./lib/dns/include/dns/keydata.h			C	2009
 ./lib/dns/include/dns/keyflags.h		C	1999,2000,2001,2004,2005,2006,2007
@@ -2222,7 +2223,7 @@
 ./lib/dns/include/dns/order.h			C	2002,2004,2005,2006,2007
 ./lib/dns/include/dns/peer.h			C	2000,2001,2003,2004,2005,2006,2007,2008,2009
 ./lib/dns/include/dns/portlist.h		C	2003,2004,2005,2006,2007
-./lib/dns/include/dns/private.h			C	2009,2011
+./lib/dns/include/dns/private.h			C	2009,2011,2012
 ./lib/dns/include/dns/rbt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./lib/dns/include/dns/rcode.h			C	1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011
@@ -2589,7 +2590,7 @@
 ./lib/isc/ia64/Makefile.in			MAKE	2007,2012
 ./lib/isc/ia64/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/ia64/include/isc/Makefile.in		MAKE	2007,2012
-./lib/isc/ia64/include/isc/atomic.h		C	2006,2007,2009
+./lib/isc/ia64/include/isc/atomic.h		C	2006,2007,2009,2012
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012
 ./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009

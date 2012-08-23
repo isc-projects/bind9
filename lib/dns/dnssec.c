@@ -1401,11 +1401,12 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
  * the keys in the keyset, regardless of whether they have
  * metadata indicating they should be deactivated or removed.
  */
-static void
+static isc_result_t
 addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey,
        isc_boolean_t savekeys, isc_mem_t *mctx)
 {
 	dns_dnsseckey_t *key;
+	isc_result_t result;
 
 	/* Skip duplicates */
 	for (key = ISC_LIST_HEAD(*keylist);
@@ -1433,10 +1434,12 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey,
 		}
 
 		key->source = dns_keysource_zoneapex;
-		return;
+		return (ISC_R_SUCCESS);
 	}
 
-	dns_dnsseckey_create(mctx, newkey, &key);
+	result = dns_dnsseckey_create(mctx, newkey, &key);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	if (key->legacy || savekeys) {
 		key->force_publish = ISC_TRUE;
 		key->force_sign = dst_key_isprivate(key->key);
@@ -1444,6 +1447,7 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey,
 	key->source = dns_keysource_zoneapex;
 	ISC_LIST_APPEND(*keylist, key, link);
 	*newkey = NULL;
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -1534,7 +1538,7 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 			goto skip;
 
 		if (public) {
-			addkey(keylist, &pubkey, savekeys, mctx);
+			RETERR(addkey(keylist, &pubkey, savekeys, mctx));
 			goto skip;
 		}
 
@@ -1587,7 +1591,7 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 		}
 
 		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
-			addkey(keylist, &pubkey, savekeys, mctx);
+			RETERR(addkey(keylist, &pubkey, savekeys, mctx));
 			goto skip;
 		}
 		RETERR(result);
@@ -1602,7 +1606,7 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 		 */
 		dst_key_setttl(privkey, dst_key_getttl(pubkey));
 
-		addkey(keylist, &privkey, savekeys, mctx);
+		RETERR(addkey(keylist, &privkey, savekeys, mctx));
  skip:
 		if (pubkey != NULL)
 			dst_key_free(&pubkey);
