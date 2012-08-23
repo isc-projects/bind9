@@ -1,3 +1,35 @@
+3370.   [bug]           Address use after free while shutting down. [RT #30241]
+
+3368.   [bug]           <dns/iptable.h>, <dns/private.h> and <dns/zone.h>
+                        were not C++ safe.
+
+3361.   [bug]           "rndc signing -nsec3param" didn't work correctly
+                        when salt was set to '-' (no salt). [RT #30099]
+
+3355.   [port]          Use more portable awk in verify system test.
+
+3349.   [bug]           Change #3345 was incomplete. [RT #30233]
+
+3345.   [bug]           Addressed race condition when removing the last item
+                        or inserting the first item in an ISC_QUEUE.
+                        [RT #29539]
+
+3338.   [bug]           Address race condition in units tests: asyncload_zone
+                        and asyncload_zt. [RT #26100]
+
+3334.   [bug]           Hold a zone table reference while performing a
+                        asyncronous load of a zone. [RT #28326]
+
+3324.   [test]          Add better tests for ADB stats [RT #27057]
+
+3316.   [tuning]        Improved locking performance when recursing.
+                        [RT #28836]
+
+3315.   [tuning]        Use multiple dispatch objects for sending upstream
+                        queries; this can improve performance on busy
+                        multiprocessor systems by reducing lock contention.
+                        [RT #28605]
+
 3303.	[bug]		named could die when reloading. [RT #28606]
 
 3296.	[bug]		Named could die with a INSIST failure in
