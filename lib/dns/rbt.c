@@ -360,7 +360,7 @@ printnodename(dns_rbtnode_t *node);
 static void
 freenode(dns_rbt_t *rbt, dns_rbtnode_t **nodep);
 
-isc_result_t
+static isc_result_t
 dns_rbt_zero_header(FILE *file) {
 	/*
 	 * Write out a zeroed header as a placeholder.  Doing this ensures
