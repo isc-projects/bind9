@@ -8036,7 +8036,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 				return (ISC_R_NOSPACE);
 			n = sscanf(nbuf, "%hhd %hhd %hhd",
 				   &hash, &flags, &iter);
-			if (n != 3)
+			if (n != 3U)
 				return (ISC_R_BADNUMBER);
 
 			ptr = next_token(&args, " \t");
