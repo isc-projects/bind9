@@ -438,6 +438,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_buffer_t st;
 	isc_boolean_t use_default = ISC_FALSE;
 	isc_uint32_t activelength;
+	size_t length;
 
 	REQUIRE(dctx != NULL);
 	if (rdata != NULL) {
@@ -468,6 +469,14 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	}
 
 	/*
+	 * Reject any rdata that expands out to more than DNS_RDATA_MAXLENGTH
+	 * as we cannot transmit it.
+	 */
+	length = isc_buffer_usedlength(target) - isc_buffer_usedlength(&st);
+	if (result == ISC_R_SUCCESS && length > DNS_RDATA_MAXLENGTH)
+		result = DNS_R_FORMERR;
+
+	/*
 	 * We should have consumed all of our buffer.
 	 */
 	if (result == ISC_R_SUCCESS && !buffer_empty(source))
@@ -475,8 +484,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
 		region.base = isc_buffer_used(&st);
-		region.length = isc_buffer_usedlength(target) -
-				isc_buffer_usedlength(&st);
+		region.length = length;
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
 
@@ -611,6 +619,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	unsigned long line;
 	void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
 	isc_result_t tresult;
+	size_t length;
 
 	REQUIRE(origin == NULL || dns_name_isabsolute(origin) == ISC_TRUE);
 	if (rdata != NULL) {
@@ -682,10 +691,13 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		}
 	} while (1);
 
+	length = isc_buffer_usedlength(target) - isc_buffer_usedlength(&st);
+	if (result == ISC_R_SUCCESS && length > DNS_RDATA_MAXLENGTH)
+		result = ISC_R_NOSPACE;
+
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
 		region.base = isc_buffer_used(&st);
-		region.length = isc_buffer_usedlength(target) -
-				isc_buffer_usedlength(&st);
+		region.length = length;
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
 	if (result != ISC_R_SUCCESS) {
@@ -819,6 +831,7 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_buffer_t st;
 	isc_region_t region;
 	isc_boolean_t use_default = ISC_FALSE;
+	size_t length;
 
 	REQUIRE(source != NULL);
 	if (rdata != NULL) {
@@ -833,10 +846,13 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	if (use_default)
 		(void)NULL;
 
+	length = isc_buffer_usedlength(target) - isc_buffer_usedlength(&st);
+	if (result == ISC_R_SUCCESS && length > DNS_RDATA_MAXLENGTH)
+		result = ISC_R_NOSPACE;
+
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
 		region.base = isc_buffer_used(&st);
-		region.length = isc_buffer_usedlength(target) -
-				isc_buffer_usedlength(&st);
+		region.length = length;
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
 	if (result != ISC_R_SUCCESS)
