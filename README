@@ -48,13 +48,15 @@ BIND 9
 	For a detailed list of user-visible changes from
 	previous releases, see the CHANGES file.
 
-        For up-to-date release notes and errata, see
-        http://www.isc.org/software/bind9/releasenotes
+	For up-to-date release notes and errata, see
+	http://www.isc.org/software/bind9/releasenotes
 
 BIND 9.7.7
 
-        BIND 9.7.7 includes several bug fixes and patches security
-        flaws described in CVE-2012-1667 and CVE-2012-3817.
+	BIND 9.7.7 includes several bug fixes and patches security
+	flaws described in CVE-2012-1667, CVE-2012-3817 and CVE-2012-4244.
+
+	This is the last maintainence release for BIND 9.7.
 
 BIND 9.7.6
 
@@ -76,25 +78,25 @@ BIND 9.7.3
 BIND 9.7.2
 
 	BIND 9.7.2 will address bugs in 9.7.1, and also introduces
-        some new functionality:
+	some new functionality:
 
 	- "rndc loadkeys" to allow new keys to be added to a managed
 	  zone without having them sign the content immediately.
-        - "rndc addzone" and "rndc delzone" allow adding and deleting
-          zones at runtime.  This requires the view to have the
-          "new-zone-file" option set to a filename.  Zone configuration
-          information for new zones is specified in the 'rndc addzone'
-          command line, and is stored in that file.  To make new
+	- "rndc addzone" and "rndc delzone" allow adding and deleting
+	  zones at runtime.  This requires the view to have the
+	  "new-zone-file" option set to a filename.  Zone configuration
+	  information for new zones is specified in the 'rndc addzone'
+	  command line, and is stored in that file.  To make new
 	  zones persist after a restart, "include" the file
 	  into named.conf in the appropriate view.  (Note:
 	  This feature is not yet documented, and its syntax
-          is expected to change.)
-        - "rndc secroots" dumps a list of the current trusted and
-          managed DNSSEC keys for each view.
-        - "filter-aaaa-on-v4" can now be applied selectively to
-          some IPv4 clients but not others, using the "filter-aaaa"
-          ACL.  (This feature requires BIND 9 to be built with
-          the --enable-filter-aaaa configure option.)
+	  is expected to change.)
+	- "rndc secroots" dumps a list of the current trusted and
+	  managed DNSSEC keys for each view.
+	- "filter-aaaa-on-v4" can now be applied selectively to
+	  some IPv4 clients but not others, using the "filter-aaaa"
+	  ACL.  (This feature requires BIND 9 to be built with
+	  the --enable-filter-aaaa configure option.)
 
 BIND 9.7.1
 
@@ -142,7 +144,7 @@ BIND 9.7.0
 	  and update your configuration in a timely manner when keys
 	  roll over.
 
-	- In rare cases, DNSSEC validation can leak memory.  When this 
+	- In rare cases, DNSSEC validation can leak memory.  When this
 	  happens, it will cause an assertion failure when named exits,
 	  but is otherwise harmless.  A fix exists, but was too late for
 	  this release; it will be included in BIND 9.7.1.
@@ -226,15 +228,15 @@ Building
 	configure will affect compilation:
 
 	    CC
-		The C compiler to use.	configure tries to figure
+		The C compiler to use.  configure tries to figure
 		out the right one for supported systems.
 
 	    CFLAGS
 		C compiler flags.  Defaults to include -g and/or -O2
-		as supported by the compiler.  
+		as supported by the compiler.
 
 	    STD_CINCLUDES
-		System header file directories.	 Can be used to specify
+		System header file directories.  Can be used to specify
 		where add-on thread or IPv6 support is, for example.
 		Defaults to empty string.
 
@@ -244,13 +246,13 @@ Building
 
 		Possible settings:
 		Change the default syslog facility of named/lwresd.
-		  -DISC_FACILITY=LOG_LOCAL0	
+		  -DISC_FACILITY=LOG_LOCAL0
 		Enable DNSSEC signature chasing support in dig.
 		  -DDIG_SIGCHASE=1 (sets -DDIG_SIGCHASE_TD=1 and
 				    -DDIG_SIGCHASE_BU=1)
 		Disable dropping queries from particular well known ports.
 		  -DNS_CLIENT_DROPPORT=0
-	        Sibling glue checking in named-checkzone is enabled by default.
+		Sibling glue checking in named-checkzone is enabled by default.
 		To disable the default check set.  -DCHECK_SIBLING=0
 		named-checkzone checks out-of-zone addresses by default.
 		To disable this default set.  -DCHECK_LOCAL=0
@@ -272,7 +274,7 @@ Building
 	    BUILD_CFLAGS (optional)
 	    BUILD_CPPFLAGS (optional)
 		Possible Settings:
-		-DNEED_OPTARG=1		(optarg is not declared in <unistd.h>)
+		-DNEED_OPTARG=1         (optarg is not declared in <unistd.h>)
 	    BUILD_LDFLAGS (optional)
 	    BUILD_LIBS (optional)
 
@@ -292,7 +294,7 @@ Building
 
 	On some platforms, BIND 9 can be built with multithreading
 	support, allowing it to take advantage of multiple CPUs.
-	You can specify whether to build a multithreaded BIND 9 
+	You can specify whether to build a multithreaded BIND 9
 	by specifying "--enable-threads" or "--disable-threads"
 	on the configure command line.  The default is operating
 	system dependent.
@@ -310,7 +312,7 @@ Building
 	By default, installation is into /usr/local, but this can be changed
 	with the "--prefix" option when running "configure".
 
-	You may specify the option "--sysconfdir" to set the directory 
+	You may specify the option "--sysconfdir" to set the directory
 	where configuration files like "named.conf" go by default,
 	and "--localstatedir" to set the default parent directory
 	of "run/named.pid".   For backwards compatibility with BIND 8,
@@ -320,7 +322,7 @@ Building
 	defaults to "$prefix/var".
 
 	To see additional configure options, run "configure --help".
-	Note that the help message does not reflect the BIND 8 
+	Note that the help message does not reflect the BIND 8
 	compatibility defaults for sysconfdir and localstatedir.
 
 	If you're planning on making changes to the BIND 9 source, you
@@ -332,7 +334,7 @@ Building
 
 	Building with gcc is not supported, unless gcc is the vendor's usual
 	compiler (e.g. the various BSD systems, Linux).
-	
+
 	Known compiler issues:
 	* gcc-3.2.1 and gcc-3.1.1 is known to cause problems with solaris-x86.
 	* gcc prior to gcc-3.2.3 ultrasparc generates incorrect code at -02.
@@ -372,38 +374,38 @@ Documentation
 
 Change Log
 
-	A detailed list of all changes to BIND 9 is included in the 
+	A detailed list of all changes to BIND 9 is included in the
 	file CHANGES, with the most recent changes listed first.
 	Change notes include tags indicating the category of the
 	change that was made; these categories are:
 
-	   [func]	  New feature
+	   [func]         New feature
 
-	   [bug]	  General bug fix
+	   [bug]          General bug fix
 
-	   [security]	  Fix for a significant security flaw
+	   [security]     Fix for a significant security flaw
 
 	   [experimental] Used for new features when the syntax
-	   		  or other aspects of the design are still
+			  or other aspects of the design are still
 			  in flux and may change
 
-	   [port]	  Portability enhancement
+	   [port]         Portability enhancement
 
-	   [maint]	  Updates to built-in data such as root
+	   [maint]        Updates to built-in data such as root
 			  server addresses and keys
 
-	   [tuning]	  Changes to built-in configuration defaults
-	   		  and constants to improve performanceo
+	   [tuning]       Changes to built-in configuration defaults
+			  and constants to improve performanceo
 
-	   [protocol]	  Updates to the DNS protocol such as new
+	   [protocol]     Updates to the DNS protocol such as new
 			  RR types
 
-           [test]         Changes to the automatic tests, not
-                          affecting server functionality
+	   [test]         Changes to the automatic tests, not
+			  affecting server functionality
 
-           [cleanup]      Minor corrections and refactoring
+	   [cleanup]      Minor corrections and refactoring
 
-	   [doc]	  Documentation
+	   [doc]          Documentation
 
 	In general, [func] and [experimental] tags will only appear
 	in new-feature releases (i.e., those with version numbers
