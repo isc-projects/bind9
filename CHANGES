@@ -1,3 +1,5 @@
+	--- 9.9.1-P3 released ---
+
 3364.	[security]	Named could die on specially crafted record.
 			[RT #30416]
 
