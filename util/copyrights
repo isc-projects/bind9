@@ -1988,6 +1988,8 @@
 ./lib/dns/tests/testdata/master/master1.data	X	2011
 ./lib/dns/tests/testdata/master/master10.data	X	2011
 ./lib/dns/tests/testdata/master/master11.data	X	2011
+./lib/dns/tests/testdata/master/master15.data	X	2012
+./lib/dns/tests/testdata/master/master16.data	X	2012
 ./lib/dns/tests/testdata/master/master2.data	X	2011
 ./lib/dns/tests/testdata/master/master3.data	X	2011
 ./lib/dns/tests/testdata/master/master4.data	X	2011
