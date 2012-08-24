@@ -1,3 +1,6 @@
+3364.	[security]	Named could die on specially crafted record.
+			[RT #30416]
+
 	--- 9.7.7rc1 released ---
 
 3369.	[bug]		nsupdate terminated unexpectedly in interactive mode
