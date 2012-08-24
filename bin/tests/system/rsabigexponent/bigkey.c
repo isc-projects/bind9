@@ -108,7 +108,7 @@ main(int argc, char **argv) {
 		exit(1);
 	}
 
-	exit(0);
+	return(0);
 }
 #else
 #include <openssl/err.h>
