@@ -24,7 +24,7 @@ for db in zones/good*.db
 do
 	echo "I:checking $db ($n)"
 	ret=0
-	$CHECKZONE example $db > test.out.$n 2>&1 || ret=1
+	$CHECKZONE -i local example $db > test.out.$n 2>&1 || ret=1
 	n=`expr $n + 1`
 	if [ $ret != 0 ]; then echo "I:failed"; fi
 	status=`expr $status + $ret`
