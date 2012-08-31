@@ -83,6 +83,10 @@
 /*% Want DNSSEC? */
 #define WANTDNSSEC(c)		(((c)->attributes & \
 				  NS_CLIENTATTR_WANTDNSSEC) != 0)
+/*% Want WANTAD? */
+#define WANTAD(c)		(((c)->attributes & \
+				  NS_CLIENTATTR_WANTAD) != 0)
+
 /*% No authority? */
 #define NOAUTHORITY(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_NOAUTHORITY) != 0)
@@ -2639,6 +2643,14 @@ query_addbestns(ns_client_t *client) {
 		goto cleanup;
 
 	/*
+	 * If the answer is secure only add NS records if they are secure		 * when the client may be looking for AD in the response.
+	 */
+	if (SECURE(client) && (WANTDNSSEC(client) || WANTAD(client)) &&
+	    ((rdataset->trust != dns_trust_secure) ||
+	    (sigrdataset != NULL && sigrdataset->trust != dns_trust_secure)))
+		goto cleanup;
+
+	/*
 	 * If the client doesn't want DNSSEC we can discard the sigrdataset
 	 * now.
 	 */
@@ -5019,7 +5031,6 @@ ns_query_start(ns_client_t *client) {
 	dns_rdatatype_t qtype;
 	unsigned int saved_extflags = client->extflags;
 	unsigned int saved_flags = client->message->flags;
-	isc_boolean_t want_ad;
 
 	CTRACE("ns_query_start");
 
@@ -5181,13 +5192,11 @@ ns_query_start(ns_client_t *client) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 
 	/*
-	 * Set 'want_ad' if the client has set AD in the query.
+	 * Set NS_CLIENTATTR_WANTDNSSEC if the client has set AD in the query.
 	 * This allows AD to be returned on queries without DO set.
 	 */
 	if ((message->flags & DNS_MESSAGEFLAG_AD) != 0)
-		want_ad = ISC_TRUE;
-	else
-		want_ad = ISC_FALSE;
+		client->attributes |= NS_CLIENTATTR_WANTAD;
 
 	/*
 	 * This is an ordinary query.
@@ -5212,7 +5221,7 @@ ns_query_start(ns_client_t *client) {
 	 * Set AD.  We must clear it if we add non-validated data to a
 	 * response.
 	 */
-	if (WANTDNSSEC(client) || want_ad)
+	if (WANTDNSSEC(client) || WANTAD(client))
 		message->flags |= DNS_MESSAGEFLAG_AD;
 
 	qclient = NULL;
