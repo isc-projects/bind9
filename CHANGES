@@ -1,3 +1,6 @@
+3372.	[bug]		Silence spurious "deleted from unreachable cache"
+			messages.  [RT #30501]
+
 3371.	[bug]		AD=1 should behave like DO=1 when deciding whether to
 			add NS RRsets to the additional section or not.
 			[RT #30479]
