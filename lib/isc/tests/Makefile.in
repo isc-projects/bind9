@@ -35,10 +35,11 @@ ISCDEPLIBS =	../libisc.@A@
 LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		isctest.@O@
-SRCS =		isctest.c hash_test.c symtab_test.c
+
+SRCS =		isctest.c hash_test.c symtab_test.c parse_test.c
 
 SUBDIRS =
-TARGETS =	hash_test@EXEEXT@ symtab_test@EXEEXT@
+TARGETS =	hash_test@EXEEXT@ symtab_test@EXEEXT@ parse_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -50,8 +51,14 @@ symtab_test@EXEEXT@: symtab_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			symtab_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
 
+parse_test@EXEEXT@: parse_test.@O@ isctest.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			parse_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
+
+
 unit::
 	sh ${top_srcdir}/unit/unittest.sh
 
 clean distclean::
 	rm -f ${TARGETS}
+	rm -f atf.out
