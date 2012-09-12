@@ -1,4 +1,7 @@
-3373.	[bug]		win32: open raw files in binary mode. [RT #30944]
+3374.   [bug]           isc_parse_uint32 failed to return a range error on 
+                        systems with 64 bit longs [RT #30232]   
+
+3373.   [bug]           win32: open raw files in binary mode. [RT #30944]
 
 3372.	[bug]		Silence spurious "deleted from unreachable cache"
 			messages.  [RT #30501]
