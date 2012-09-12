@@ -7,6 +7,8 @@
 
 	--- 9.9.2 released ---
 
+3373.	[bug]		win32: open raw files in binary mode. [RT #30944]
+
 3364.	[security]	Named could die on specially crafted record.
 			[RT #30416]
 
