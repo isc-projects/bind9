@@ -212,6 +212,7 @@ isc_event_allocate
 isc_event_free
 isc_file_absolutepath
 isc_file_basename
+isc_file_bopenunique
 isc_file_exists
 isc_file_getmodtime
 isc_file_isabsolute
