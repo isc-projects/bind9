@@ -41,7 +41,7 @@ ATF_TC_BODY(parse_overflow, tc) {
 	isc_uint32_t output;
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_parse_uint32(&output, "1234567890", 10);
