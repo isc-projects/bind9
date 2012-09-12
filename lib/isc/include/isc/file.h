@@ -101,15 +101,22 @@ isc_file_mktemplate(const char *path, char *buf, size_t buflen);
  *				of the path with the internal template string.
  */
 
-
 isc_result_t
 isc_file_openunique(char *templet, FILE **fp);
 isc_result_t
 isc_file_openuniqueprivate(char *templet, FILE **fp);
 isc_result_t
 isc_file_openuniquemode(char *templet, int mode, FILE **fp);
+isc_result_t
+isc_file_bopenunique(char *templet, FILE **fp);
+isc_result_t
+isc_file_bopenuniqueprivate(char *templet, FILE **fp);
+isc_result_t
+isc_file_bopenuniquemode(char *templet, int mode, FILE **fp);
 /*!<
  * \brief Create and open a file with a unique name based on 'templet'.
+ *	isc_file_bopen*() open the file in binary mode in Windows. 
+ *	isc_file_open*() open the file in text mode in Windows. 
  *
  * Notes:
  *\li	'template' is a reserved work in C++.  If you want to complain

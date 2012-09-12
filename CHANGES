@@ -1,3 +1,5 @@
+3373.	[bug]		win32: open raw files in binary mode. [RT #30944]
+
 3372.	[bug]		Silence spurious "deleted from unreachable cache"
 			messages.  [RT #30501]
 
