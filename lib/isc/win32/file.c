@@ -50,7 +50,7 @@ gettemp(char *path, isc_boolean_t binary, int *doopen) {
 	int flags = O_CREAT|O_EXCL|O_RDWR;
 
 	if (binary)
-		flags |= O_BINARY;
+		flags |= _O_BINARY;
 
 	trv = strrchr(path, 'X');
 	trv++;
@@ -339,7 +339,7 @@ openuniquemode(char *templet, int mode, isc_boolean_t binary, FILE **fp) {
 #else
 		(void)fchmod(fd, mode);
 #endif
-		f = fdopen(fd, binary ? "wb+", "w+");
+		f = fdopen(fd, binary ? "wb+" : "w+");
 		if (f == NULL) {
 			result = isc__errno2result(errno);
 			(void)remove(templet);
