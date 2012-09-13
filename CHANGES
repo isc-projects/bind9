@@ -1,3 +1,6 @@
+3375.	[func]		Check that 'rndc dumpdb' works on a empty cache.
+			[RT #30808]
+
 3372.	[bug]		Silence spurious "deleted from unreachable cache"
 			messages.  [RT #30501]
 
