@@ -1,3 +1,5 @@
+3375.	[bug]		'rndc dumpdb' failed on empty caches. [RT #30808]
+
 3374.   [bug]           isc_parse_uint32 failed to return a range error on 
                         systems with 64 bit longs [RT #30232]   
 
