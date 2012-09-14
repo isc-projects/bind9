@@ -1,3 +1,6 @@
+3376.	[bug]		Lack of EDNS support was being recorded without a
+			successful response. [RT #30811]
+
 3375.	[bug]		'rndc dumpdb' failed on empty caches. [RT #30808]
 
 3374.   [bug]           isc_parse_uint32 failed to return a range error on 

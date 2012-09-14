@@ -6627,13 +6627,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 */
 			options |= DNS_FETCHOPT_NOEDNS0;
 			resend = ISC_TRUE;
-			/*
-			 * Remember that they don't like EDNS0.
-			 */
-			dns_adb_changeflags(fctx->adb,
-					    query->addrinfo,
-					    DNS_FETCHOPT_NOEDNS0,
-					    DNS_FETCHOPT_NOEDNS0);
+			add_bad_edns(fctx, &query->addrinfo->sockaddr);
 		} else {
 			/*
 			 * There's no hope for this query.
@@ -6700,14 +6694,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 					 */
 					options |= DNS_FETCHOPT_NOEDNS0;
 					resend = ISC_TRUE;
-					/*
-					 * Remember that they don't like EDNS0.
-					 */
-					dns_adb_changeflags(
-							fctx->adb,
-							query->addrinfo,
-							DNS_FETCHOPT_NOEDNS0,
-							DNS_FETCHOPT_NOEDNS0);
+					add_bad_edns(fctx,
+						    &query->addrinfo->sockaddr);
 					inc_stats(fctx->res,
 						 dns_resstatscounter_edns0fail);
 				} else {
@@ -6731,13 +6719,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 */
 				options |= DNS_FETCHOPT_NOEDNS0;
 				resend = ISC_TRUE;
-				/*
-				 * Remember that they don't like EDNS0.
-				 */
-				dns_adb_changeflags(fctx->adb,
-						    query->addrinfo,
-						    DNS_FETCHOPT_NOEDNS0,
-						    DNS_FETCHOPT_NOEDNS0);
+				add_bad_edns(fctx, &query->addrinfo->sockaddr);
 				inc_stats(fctx->res,
 						 dns_resstatscounter_edns0fail);
 			} else {
