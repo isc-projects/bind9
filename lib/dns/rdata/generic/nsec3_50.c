@@ -194,9 +194,7 @@ totext_nsec3(ARGS_TOTEXT) {
 	RETERR(isc_base32hex_totext(&sr, 1, "", target));
 	sr.length = i - j;
 
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
-		RETERR(str_totext(tctx->linebreak, target));
-	else
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) == 0)
 		RETERR(str_totext(" ", target));
 
 	/* Types covered */

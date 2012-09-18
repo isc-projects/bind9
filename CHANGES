@@ -1,3 +1,6 @@
+3377.	[bug]		Removed spurious newline from NSEC3 multiline
+			output. [RT #31044]
+
 3376.	[bug]		Lack of EDNS support was being recorded without a
 			successful response. [RT #30811]
 
