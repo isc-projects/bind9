@@ -29,7 +29,7 @@
 3367.	[bug]		dns_dnsseckey_create() result was not being checked.
 			[RT #30685]
 
-3366.	[bug]		Fixed Read-After-Write dependency violation for IA64 
+3366.	[bug]		Fixed Read-After-Write dependency violation for IA64
 			atomic operations. [RT #25181]
 
 3365.	[bug]		Removed spurious newlines from log messages in
@@ -86,7 +86,7 @@
 			record matching the covering type exists at a higher
 			trust level. Such data already can't be retrieved from
 			the cache since change 3218 -- this prevents it
-			being inserted into the cache as well [RT #26809].
+			being inserted into the cache as well. [RT #26809]
 
 3347.	[bug]		dnssec-settime: Issue a warning when writing a new
 			private key file would cause a change in the
@@ -212,7 +212,7 @@
 			bucket lock when finshed with a fetch context.
 			[RT #29239]
 
-3317.	[protocol]	Add ECDSA support (RFC 6605). [RT #21918]
+3317.	[func]		Add ECDSA support (RFC 6605). [RT #21918]
 
 3316.	[tuning]	Improved locking performance when recursing.
 			[RT #28836]
