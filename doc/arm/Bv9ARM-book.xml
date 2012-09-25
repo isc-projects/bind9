@@ -5374,11 +5374,18 @@ badresp:1,adberr:0,findfail:0,valfail:0]
             <term><command>managed-keys-directory</command></term>
             <listitem>
               <para>
-		The directory used to hold the files used to track managed keys.
-		By default it is the working directory.  It there are no
-		views then the file <filename>managed-keys.bind</filename>
-		otherwise a SHA256 hash of the view name is used with
-		<filename>.mkeys</filename> extension added.
+                Specifies the directory in which to store the files that
+                track managed DNSSEC keys.  By default, this is the working
+                directory.
+              </para>
+              <para>
+                If <command>named</command> is not configured to use views,
+                then managed keys for the server will be tracked in a single
+                file called <filename>managed-keys.bind</filename>.
+                Otherwise, managed keys will be tracked in separate files,
+                one file per view; each file name will be the SHA256 hash
+                of the view name, followed by the extension
+                <filename>.mkeys</filename>.
               </para>
             </listitem>
           </varlistentry>
