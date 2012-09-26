@@ -2683,7 +2683,7 @@
 ./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2011,2012
 ./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012
 ./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004,2005,2006,2007,2011,2012
-./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
+./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012
 ./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2012
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012
 ./lib/isc/include/isc/version.h			C	2001,2004,2005,2006,2007
@@ -2777,7 +2777,7 @@
 ./lib/isc/tests/task_test.c			C	2011,2012
 ./lib/isc/tests/taskpool_test.c			C	2011,2012
 ./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008,2009,2011,2012
-./lib/isc/timer_api.c				C	2009
+./lib/isc/timer_api.c				C	2009,2012
 ./lib/isc/timer_p.h				C	2000,2001,2004,2005,2007,2009
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2009,2012
 ./lib/isc/unix/app.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009
@@ -2802,7 +2802,7 @@
 ./lib/isc/unix/include/isc/stdtime.h		C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/isc/unix/include/isc/strerror.h		C	2001,2004,2005,2007,2008
 ./lib/isc/unix/include/isc/syslog.h		C	1999,2000,2001,2004,2005,2007
-./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009
+./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2012
 ./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/unix/ipv6.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/unix/keyboard.c			C	2000,2001,2004,2007
@@ -2849,7 +2849,7 @@
 ./lib/isc/win32/include/isc/strerror.h		C	2001,2004,2007
 ./lib/isc/win32/include/isc/syslog.h		C	1999,2000,2001,2004,2007
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007,2009
-./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001,2004,2006,2007,2008,2009
+./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001,2004,2006,2007,2008,2009,2012
 ./lib/isc/win32/include/isc/win32os.h		C	2002,2004,2007,2009
 ./lib/isc/win32/interfaceiter.c			C	1999,2000,2001,2004,2007,2008,2009
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001,2004,2007
@@ -2873,7 +2873,7 @@
 ./lib/isc/win32/syslog.c			C	2001,2002,2003,2004,2007
 ./lib/isc/win32/syslog.h			C	2001,2002,2004,2007
 ./lib/isc/win32/thread.c			C	1998,1999,2000,2001,2004,2005,2007
-./lib/isc/win32/time.c				C	1998,1999,2000,2001,2003,2004,2006,2007,2008,2009
+./lib/isc/win32/time.c				C	1998,1999,2000,2001,2003,2004,2006,2007,2008,2009,2012
 ./lib/isc/win32/unistd.h			C	2000,2001,2004,2007,2008,2009
 ./lib/isc/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/isc/win32/win32os.c			C	2002,2004,2007
