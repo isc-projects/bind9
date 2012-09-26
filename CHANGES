@@ -1,3 +1,7 @@
+3382.	[bug]		SOA query from slave used use-v6-udp-ports range,
+			if set, regardless of the address family in use.
+			[RT #24173]
+
 3381.	[contrib]	Update queryperf to support more RR types.
 			[RT #30762]
 
