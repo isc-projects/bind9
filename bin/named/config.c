@@ -648,14 +648,13 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 		if (isc_sockaddr_getport(&addrs[i]) == 0)
 			isc_sockaddr_setport(&addrs[i], port);
 		keys[i] = NULL;
-		if (!cfg_obj_isstring(key)) {
-			i++;
+		i++;	/* Increment here so that cleanup on error works. */
+		if (!cfg_obj_isstring(key))
 			continue;
-		}
-		keys[i] = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (keys[i] == NULL)
+		keys[i - 1] = isc_mem_get(mctx, sizeof(dns_name_t));
+		if (keys[i - 1] == NULL)
 			goto cleanup;
-		dns_name_init(keys[i], NULL);
+		dns_name_init(keys[i - 1], NULL);
 
 		keystr = cfg_obj_asstring(key);
 		isc_buffer_init(&b, keystr, strlen(keystr));
@@ -666,10 +665,9 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		result = dns_name_dup(dns_fixedname_name(&fname), mctx,
-				      keys[i]);
+				      keys[i - 1]);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		i++;
 	}
 	if (pushed != 0) {
 		pushed--;
@@ -725,7 +723,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	if (addrs != NULL)
 		isc_mem_put(mctx, addrs, addrcount * sizeof(isc_sockaddr_t));
 	if (keys != NULL) {
-		for (j = 0; j <= i; j++) {
+		for (j = 0; j < i; j++) {
 			if (keys[j] == NULL)
 				continue;
 			if (dns_name_dynamic(keys[j]))

@@ -1,3 +1,6 @@
+3380.	[bug]		named could die if a non-existant master list was
+			referenced in a also-notify. [RT #31004]
+
 3379.	[bug]		isc_interval_zero and isc_time_epoch should be
 			"const (type)* const". [RT #31069]
 
