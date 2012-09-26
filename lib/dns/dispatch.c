@@ -2792,7 +2792,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 		 * If no port is specified, we first try to pick up a random
 		 * port by ourselves.
 		 */
-		if (isc_sockaddr_pf(&disp->local) == AF_INET) {
+		if (isc_sockaddr_pf(localaddr) == AF_INET) {
 			nports = disp->mgr->nv4ports;
 			ports = disp->mgr->v4ports;
 		} else {
