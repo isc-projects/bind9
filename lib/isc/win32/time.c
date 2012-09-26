@@ -47,15 +47,15 @@
  *** Absolute Times
  ***/
 
-static isc_time_t epoch = { { 0, 0 } };
-LIBISC_EXTERNAL_DATA isc_time_t *isc_time_epoch = &epoch;
+static const isc_time_t epoch = { { 0, 0 } };
+LIBISC_EXTERNAL_DATA const isc_time_t * const isc_time_epoch = &epoch;
 
 /***
  *** Intervals
  ***/
 
-static isc_interval_t zero_interval = { 0 };
-LIBISC_EXTERNAL_DATA isc_interval_t *isc_interval_zero = &zero_interval;
+static const isc_interval_t zero_interval = { 0 };
+LIBISC_EXTERNAL_DATA const isc_interval_t * const isc_interval_zero = &zero_interval;
 
 void
 isc_interval_set(isc_interval_t *i, unsigned int seconds,

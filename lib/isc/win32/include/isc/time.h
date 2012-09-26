@@ -39,7 +39,7 @@ struct isc_interval {
 	isc_int64_t interval;
 };
 
-LIBISC_EXTERNAL_DATA extern isc_interval_t *isc_interval_zero;
+LIBISC_EXTERNAL_DATA extern const isc_interval_t * const isc_interval_zero;
 
 ISC_LANG_BEGINDECLS
 
@@ -82,7 +82,7 @@ struct isc_time {
 	FILETIME absolute;
 };
 
-LIBISC_EXTERNAL_DATA extern isc_time_t *isc_time_epoch;
+LIBISC_EXTERNAL_DATA extern const isc_time_t * const isc_time_epoch;
 
 void
 isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds);
