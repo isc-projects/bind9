@@ -808,7 +808,17 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	 */
 	obj = NULL;
 	(void)ns_config_get(maps, "managed-keys-directory", &obj);
-	directory = obj != NULL ? cfg_obj_asstring(obj) : NULL;
+	directory = (obj != NULL ? cfg_obj_asstring(obj) : NULL);
+	if (directory != NULL)
+		result = isc_file_isdirectory(directory);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "invalid managed-keys-directory %s: %s",
+			      directory, isc_result_totext(result));
+		goto cleanup;
+
+	}
 	CHECK(add_keydata_zone(view, directory, ns_g_mctx));
 
   cleanup:

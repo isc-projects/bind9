@@ -3599,6 +3599,13 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	}
 
  failure:
+	if (result != ISC_R_SUCCESS &&
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "unable to synchronize managed keys: %s",
+			     dns_result_totext(result));
+		isc_time_settoepoch(&zone->refreshkeytime);
+	}
 	if (keynode != NULL)
 		dns_keytable_detachkeynode(sr, &keynode);
 	if (sr != NULL)
@@ -8597,10 +8604,12 @@ zone_maintenance(dns_zone_t *zone) {
 	 */
 	switch (zone->type) {
 	case dns_zone_key:
-		if (isc_time_compare(&now, &zone->refreshkeytime) >= 0 &&
-		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
-		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESHING))
-			zone_refreshkeys(zone);
+		if (isc_time_compare(&now, &zone->refreshkeytime) >= 0) {
+			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
+			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESHING)) {
+				zone_refreshkeys(zone);
+			}
+		}
 		break;
 	case dns_zone_master:
 		if (!isc_time_isepoch(&zone->refreshkeytime) &&

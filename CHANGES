@@ -1,3 +1,6 @@
+3378.	[bug]		Handle missing 'managed-keys-directory' better.
+			[RT #30625]
+
 3377.	[bug]		Removed spurious newline from NSEC3 multiline
 			output. [RT #31044]
 
