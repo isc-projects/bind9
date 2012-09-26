@@ -85,15 +85,26 @@ enum directives_enum	{ V_SERVER, V_PORT, V_MAXQUERIES, V_MAXWAIT };
 #define DIR_VALUES	{ V_SERVER, V_PORT, V_MAXQUERIES, V_MAXWAIT }
 
 #define QTYPE_STRINGS { \
-	"A", "NS", "MD", "MF", "CNAME", "SOA", "MB", "MG", \
-	"MR", "NULL", "WKS", "PTR", "HINFO", "MINFO", "MX", "TXT", \
-	"AAAA", "SRV", "NAPTR", "A6", "AXFR", "MAILB", "MAILA", "*", "ANY" \
+	"A", "NS", "MD", "MF", "CNAME", "SOA", "MB", "MG", "MR", \
+	"NULL", "WKS", "PTR", "HINFO", "MINFO", "MX", "TXT", "RP", \
+	"AFSDB", "X25", "ISDN", "RT", "NSAP", "NSAP-PTR", "SIG", \
+	"KEY", "PX", "GPOS", "AAAA", "LOC", "NXT", "EID", "NIMLOC", \
+	"SRV", "ATMA", "NAPTR", "KX", "CERT", "A6", "DNAME", "SINK", \
+	"OPT", "APL", "DS", "SSHFP", "IPSECKEY", "RRSIG", "NSEC", \
+	"DNSKEY", "DHCID", "NSEC3", "NSEC3PARAM", "TLSA", "HIP", \
+	"NINFO", "RKEY", "TALINK", "CDS", "SPF", "UINFO", "UID", \
+	"GID", "UNSPEC", "NID", "L32", "L64", "LP", "TKEY", "TSIG", \
+	"IXFR", "AXFR", "MAILB", "MAILA", "URI", "CAA", "*", "ANY", \
+	"TA", "DLV" \
 }
 
 #define QTYPE_CODES { \
-	1, 2, 3, 4, 5, 6, 7, 8, \
-	9, 10, 11, 12, 13, 14, 15, 16, \
-	28, 33, 35, 38, 252, 253, 254, 255, 255 \
+	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, \
+	19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, \
+	34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, \
+	49, 50, 51, 52, 55, 56, 57, 58, 59, 99, 100, 101, 102, 103, \
+	104, 105, 106, 107, 249, 250, 251, 252, 253, 254, 255, 255, \
+	256, 257, 32768, 32769 \
 }
 
 #define RCODE_STRINGS { \
