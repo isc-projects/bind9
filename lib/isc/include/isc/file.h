@@ -217,6 +217,22 @@ isc_file_isplainfile(const char *name);
  *		These occur when stat returns -1 and an errno.
  */
 
+isc_result_t
+isc_file_isdirectory(const char *name);
+/*!<
+ * \brief Check that 'name' exists and is a directory.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *		Success, file is a directory.
+ *\li	#ISC_R_INVALIDFILE
+ *		File is not a directory.
+ *\li	#ISC_R_FILENOTFOUND
+ *		File does not exist.
+ *\li	#other ISC_R_* errors translated from errno
+ *		These occur when stat returns -1 and an errno.
+ */
+
 isc_boolean_t
 isc_file_iscurrentdir(const char *filename);
 /*!<
