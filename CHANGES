@@ -1,3 +1,6 @@
+3379.	[bug]		isc_interval_zero and isc_time_epoch should be
+			"const (type)* const". [RT #31069]
+
 3378.	[bug]		Handle missing 'managed-keys-directory' better.
 			[RT #30625]
 
