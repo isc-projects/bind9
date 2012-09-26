@@ -1,3 +1,6 @@
+3379.	[bug]		isc_interval_zero and isc_time_epoch should be
+			"const (type)* const". [RT #31069]
+
 3376.	[bug]		Lack of EDNS support was being recorded without a
 			successful response. [RT #30811]
 
