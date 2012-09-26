@@ -1,3 +1,6 @@
+3378.	[bug]		Handle missing 'managed-keys-directory' better.
+			[RT #30625]
+
 3376.	[bug]		Lack of EDNS support was being recorded without a
 			successful response. [RT #30811]
 
