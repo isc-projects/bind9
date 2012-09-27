@@ -29,6 +29,10 @@
 
 	--- 9.6-ESV-R8 released ---
 
+3383.	[security]	A certain combination of records in the RBT could
+                        cause named to hang while populating the additional
+                        section of a response. [RT #31090]
+
 3373.	[bug]		win32: open raw files in binary mode. [RT #30944]
 
 3364.	[security]	Named could die on specially crafted record.
