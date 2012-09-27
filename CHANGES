@@ -1,3 +1,7 @@
+3383.	[security]	A certain combinations of records in the RBT could
+                        cause named to hang while populating the additional
+                        section of a response. [RT #31090]
+
 3382.	[bug]		SOA query from slave used use-v6-udp-ports range,
 			if set, regardless of the address family in use.
 			[RT #24173]
