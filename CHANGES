@@ -1,4 +1,4 @@
-3383.	[security]	A certain combinations of records in the RBT could
+3383.	[security]	A certain combination of records in the RBT could
                         cause named to hang while populating the additional
                         section of a response. [RT #31090]
 
