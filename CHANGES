@@ -1,6 +1,3 @@
-3374.   [bug]           isc_parse_uint32 failed to return a range error on 
-                        systems with 64 bit longs [RT #30232]   
-
 	--- 9.7.7 released ---
 
 3373.	[bug]		win32: open raw files in binary mode. [RT #30944]

@@ -107,8 +107,8 @@ isc_result_t
 isc_file_bopenunique(char *templet, FILE **fp);
 /*!<
  * \brief Create and open a file with a unique name based on 'templet'.
- *	isc_file_bopen*() open the file in binary mode in Windows.
- *	isc_file_open*() open the file in text mode in Windows.
+ *	isc_file_bopen*() open the file in binary mode in Windows. 
+ *	isc_file_open*() open the file in text mode in Windows. 
  *
  * Notes:
  *\li	'template' is a reserved work in C++.  If you want to complain
