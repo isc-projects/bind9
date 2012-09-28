@@ -286,40 +286,63 @@ dst__openssl_destroy() {
 	}
 }
 
-isc_result_t
-dst__openssl_toresult(isc_result_t fallback) {
+static isc_result_t
+toresult(isc_result_t fallback) {
 	isc_result_t result = fallback;
 	unsigned long err = ERR_get_error();
+	int lib = ERR_GET_LIB(err);
+	int reason = ERR_GET_REASON(err);
 
-	switch (ERR_GET_REASON(err)) {
+	switch (reason) {
+	/*
+	 * ERR_* errors are globally unique; others
+	 * are unique per sublibrary
+	 */
 	case ERR_R_MALLOC_FAILURE:
 		result = ISC_R_NOMEMORY;
 		break;
 	default:
+#ifdef ERR_R_ECDSA_LIB
+		if (lib == ERR_R_ECDSA_LIB && 
+		    reason == ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED) {
+			result = ISC_R_NOENTROPY;
+			break;
+		}
+#endif
 		break;
 	}
+
+	return (result);
+}
+
+isc_result_t
+dst__openssl_toresult(isc_result_t fallback) {
+	isc_result_t result;
+
+	result = toresult(fallback);
+
 	ERR_clear_error();
 	return (result);
 }
 
 isc_result_t
 dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
-	isc_result_t result = fallback;
+	isc_result_t result;
 	unsigned long err = ERR_peek_error();
 	const char *file, *data;
 	int line, flags;
 	char buf[256];
 
-	switch (ERR_GET_REASON(err)) {
-	case ERR_R_MALLOC_FAILURE:
-		result = ISC_R_NOMEMORY;
-		goto done;
-	default:
-		break;
-	}
+	result = toresult(fallback);
+
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 		      DNS_LOGMODULE_CRYPTO, ISC_LOG_WARNING,
-		      "%s failed", funcname);
+		      "%s failed (%s)", funcname,
+		      isc_result_totext(result));
+
+	if (result == ISC_R_NOMEMORY)
+		goto done;
+
 	for (;;) {
 		err = ERR_get_error_line_data(&file, &line, &data, &flags);
 		if (err == 0U)
