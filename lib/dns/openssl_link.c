@@ -303,7 +303,7 @@ toresult(isc_result_t fallback) {
 		break;
 	default:
 #ifdef ERR_R_ECDSA_LIB
-		if (lib == ERR_R_ECDSA_LIB && 
+		if (lib == ERR_R_ECDSA_LIB &&
 		    reason == ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED) {
 			result = ISC_R_NOENTROPY;
 			break;
