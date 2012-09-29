@@ -1082,15 +1082,15 @@ client_send(ns_client_t *client) {
  */
 static void
 client_delay(isc_task_t *task, isc_event_t *event) {
-        ns_client_t *client;
+	ns_client_t *client;
 
-        REQUIRE(event != NULL);
-        REQUIRE(event->ev_type == ISC_TIMEREVENT_LIFE ||
-                event->ev_type == ISC_TIMEREVENT_IDLE);
-        client = event->ev_arg;
-        REQUIRE(NS_CLIENT_VALID(client));
-        REQUIRE(task == client->task);
-        REQUIRE(client->delaytimer != NULL);
+	REQUIRE(event != NULL);
+	REQUIRE(event->ev_type == ISC_TIMEREVENT_LIFE ||
+		event->ev_type == ISC_TIMEREVENT_IDLE);
+	client = event->ev_arg;
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(task == client->task);
+	REQUIRE(client->delaytimer != NULL);
 
 	UNUSED(task);
 
@@ -1122,7 +1122,7 @@ ns_client_send(ns_client_t *client) {
 			if (result != ISC_R_SUCCESS)
 				goto nodelay;
 		}
-		
+
 		ns_client_attach(client, &dummy);
 		if (ns_g_delay >= 1000)
 			isc_interval_set(&interval, ns_g_delay / 1000,
