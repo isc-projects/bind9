@@ -290,7 +290,9 @@ static isc_result_t
 toresult(isc_result_t fallback) {
 	isc_result_t result = fallback;
 	unsigned long err = ERR_get_error();
+#ifdef ERR_R_ECDSA_LIB
 	int lib = ERR_GET_LIB(err);
+#endif
 	int reason = ERR_GET_REASON(err);
 
 	switch (reason) {
