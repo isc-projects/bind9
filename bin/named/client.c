@@ -535,6 +535,8 @@ exit_check(ns_client_t *client) {
 		isc_event_free((isc_event_t **)&client->sendevent);
 		isc_event_free((isc_event_t **)&client->recvevent);
 		isc_timer_detach(&client->timer);
+		if (client->delaytimer != NULL)
+			isc_timer_detach(&client->delaytimer);
 
 		if (client->tcpbuf != NULL)
 			isc_mem_put(client->mctx, client->tcpbuf,
@@ -913,8 +915,8 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	ns_client_next(client, result);
 }
 
-void
-ns_client_send(ns_client_t *client) {
+static void
+client_send(ns_client_t *client) {
 	isc_result_t result;
 	unsigned char *data;
 	isc_buffer_t buffer;
@@ -1073,6 +1075,72 @@ ns_client_send(ns_client_t *client) {
 		dns_compress_invalidate(&cctx);
 
 	ns_client_next(client, result);
+}
+
+/*
+ * Completes the sending of a delayed client response.
+ */
+static void
+client_delay(isc_task_t *task, isc_event_t *event) {
+        ns_client_t *client;
+
+        REQUIRE(event != NULL);
+        REQUIRE(event->ev_type == ISC_TIMEREVENT_LIFE ||
+                event->ev_type == ISC_TIMEREVENT_IDLE);
+        client = event->ev_arg;
+        REQUIRE(NS_CLIENT_VALID(client));
+        REQUIRE(task == client->task);
+        REQUIRE(client->delaytimer != NULL);
+
+	UNUSED(task);
+
+	CTRACE("client_delay");
+
+	isc_event_free(&event);
+	isc_timer_detach(&client->delaytimer);
+
+	client_send(client);
+	ns_client_detach(&client);
+}
+
+void
+ns_client_send(ns_client_t *client) {
+
+	/*
+	 * Delay the response by ns_g_delay ms.
+	 */
+	if (ns_g_delay != 0) {
+		ns_client_t *dummy = NULL;
+		isc_result_t result;
+		isc_interval_t interval;
+
+		/*
+		 * Replace ourselves if we have not already been replaced.
+		 */
+		if (!client->mortal) {
+			result = ns_client_replace(client);
+			if (result != ISC_R_SUCCESS)
+				goto nodelay;
+		}
+		
+		ns_client_attach(client, &dummy);
+		if (ns_g_delay >= 1000)
+			isc_interval_set(&interval, ns_g_delay / 1000,
+					 (ns_g_delay % 1000) * 1000000);
+		else
+			isc_interval_set(&interval, 0, ns_g_delay * 1000000);
+		result = isc_timer_create(client->manager->timermgr,
+					  isc_timertype_once, NULL, &interval,
+					  client->task, client_delay,
+					  client, &client->delaytimer);
+		if (result == ISC_R_SUCCESS)
+			return;
+
+		ns_client_detach(&dummy);
+	}
+
+ nodelay:
+	client_send(client);
 }
 
 #if NS_CLIENT_DROPPORT
@@ -2059,6 +2127,8 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
 	client->timerset = ISC_FALSE;
+
+	client->delaytimer = NULL;
 
 	client->message = NULL;
 	result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTPARSE,

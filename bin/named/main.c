@@ -512,6 +512,8 @@ parse_command_line(int argc, char *argv[]) {
 			/*
 			 * clienttest: make clients single shot with their
 			 * 	       own memory context.
+			 * delay=xxxx: delay client responses by xxxx ms to
+			 *	       simulate remote servers.
 			 */
 			if (!strcmp(isc_commandline_argument, "clienttest"))
 				ns_g_clienttest = ISC_TRUE;
@@ -523,6 +525,9 @@ parse_command_line(int argc, char *argv[]) {
 				maxudp = 512;
 			else if (!strcmp(isc_commandline_argument, "maxudp1460"))
 				maxudp = 1460;
+			else if (!strncmp(isc_commandline_argument,
+					  "delay=", 6))
+				ns_g_delay = atoi(isc_commandline_argument + 6);
 			else
 				fprintf(stderr, "unknown -T flag '%s\n",
 					isc_commandline_argument);
