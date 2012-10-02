@@ -1549,6 +1549,21 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
+	 * Master & slave zones must have a "also-notify" field.
+	 */
+	if (ztype == MASTERZONE || ztype == SLAVEZONE ) {
+		obj = NULL;
+		tresult = cfg_map_get(zoptions, "also-notify", &obj);
+		if (tresult == ISC_R_SUCCESS) {
+			isc_uint32_t count;
+			tresult = validate_masters(obj, config, &count,
+						   logctx, mctx);
+			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
+				result = tresult;
+		}
+	}
+
+	/*
 	 * Slave & stub zones must have a "masters" field.
 	 */
 	if (ztype == SLAVEZONE || ztype == STUBZONE) {

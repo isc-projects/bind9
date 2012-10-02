@@ -1492,7 +1492,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 		}
 
 		result = dns_dbiterator_first(dctx->dbiter);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE)
+		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 
 		dctx->first = ISC_FALSE;
