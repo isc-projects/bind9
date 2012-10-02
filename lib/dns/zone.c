@@ -6561,6 +6561,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			result = dns_dbiterator_next(nsec3chain->dbiterator);
 
 			if (result == ISC_R_NOMORE && nsec3chain->delete_nsec) {
+				dns_dbiterator_pause(nsec3chain->dbiterator);
 				CHECK(fixup_nsec3param(db, version, nsec3chain,
 						       ISC_FALSE, privatetype,
 						       &param_diff));
@@ -6871,6 +6872,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 			}
 		}
 		if (rebuild_nsec3) {
+			if (nsec3chain != NULL)
+				dns_dbiterator_pause(nsec3chain->dbiterator);
 			result = dns_nsec3_addnsec3s(db, version,
 						     dns_db_origin(db),
 						     zone->minimum, ISC_FALSE,
@@ -6888,6 +6891,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 	/*
 	 * Add / update signatures for the NSEC3 records.
 	 */
+	if (nsec3chain != NULL)
+		dns_dbiterator_pause(nsec3chain->dbiterator);
 	result = update_sigs(&nsec3_diff, db, version, zone_keys,
 			     nkeys, zone, inception, expire, now,
 			     check_ksk, keyset_kskonly, &sig_diff);
@@ -6911,8 +6916,6 @@ zone_nsec3chain(dns_zone_t *zone) {
 	}
 
 	if (updatensec) {
-		if (nsec3chain != NULL)
-			dns_dbiterator_pause(nsec3chain->dbiterator);
 		result = updatesecure(db, version, &zone->origin,
 				      zone->minimum, ISC_FALSE, &nsec_diff);
 		if (result != ISC_R_SUCCESS) {

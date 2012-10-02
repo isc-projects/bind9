@@ -1,3 +1,6 @@
+3386.	[bug]		Address locking violation when generating new NSEC /
+			NSEC3 chains. [RT #31224]
+
 3385.	[bug]		named-checkconf didn't detect missing master lists
 			in also-notify clauses. [RT #30810]
 
