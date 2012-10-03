@@ -286,12 +286,12 @@ disabled_algorithms(const cfg_obj_t *disabled, isc_log_t *logctx) {
 		r.length = strlen(r.base);
 
 		tresult = dns_secalg_fromtext(&alg, &r);
- 		if (tresult != ISC_R_SUCCESS) {
+		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(cfg_listelt_value(element), logctx,
 				    ISC_LOG_ERROR, "invalid algorithm '%s'",
 				    r.base);
 			result = tresult;
- 		}
+		}
 	}
 	return (result);
 }
@@ -335,12 +335,12 @@ disabled_ds_digests(const cfg_obj_t *disabled, isc_log_t *logctx) {
 
 		/* works with a numeric argument too */
 		tresult = dns_dsdigest_fromtext(&digest, &r);
- 		if (tresult != ISC_R_SUCCESS) {
- 			cfg_obj_log(cfg_listelt_value(element), logctx,
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(cfg_listelt_value(element), logctx,
 				    ISC_LOG_ERROR, "invalid digest type '%s'",
- 				    r.base);
- 			result = tresult;
- 		}
+				    r.base);
+			result = tresult;
+		}
 	}
 	return (result);
 }
