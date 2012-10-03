@@ -26,6 +26,8 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
+#include <isc/print.h>
+
 #include <sys/types.h>
 
 #include <ctype.h>
