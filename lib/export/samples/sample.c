@@ -196,8 +196,8 @@ addserver(dns_client_t *client, const char *addrstr, const char *namespace) {
 	}
 	INSIST(res->ai_addrlen <= sizeof(sa.type));
 	memcpy(&sa.type, res->ai_addr, res->ai_addrlen);
-	freeaddrinfo(res);
 	sa.length = res->ai_addrlen;
+	freeaddrinfo(res);
 	ISC_LINK_INIT(&sa, link);
 	ISC_LIST_INIT(servers);
 	ISC_LIST_APPEND(servers, &sa, link);

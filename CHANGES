@@ -1,3 +1,5 @@
+3388.	[bug]		Fixed several Coverity warnings. [RT #30996]
+
 3387.	[func]		DS digest can be disabled at runtime with
 			disable-ds-digests. [RT #21581]
 

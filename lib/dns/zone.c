@@ -12418,7 +12418,6 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t start, end;
 	dns_zone_t *zone;
 	dns_db_t *db = NULL;
-	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *newver = NULL, *oldver = NULL;
 	dns_diff_t diff;
 	dns_difftuple_t *tuple = NULL, *soatuple = NULL;
@@ -12559,8 +12558,6 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 			dns_db_closeversion(db, &oldver, ISC_FALSE);
 		if (newver != NULL)
 			dns_db_closeversion(db, &newver, ISC_FALSE);
-		if (node != NULL)
-			dns_db_detachnode(db, &node);
 		dns_db_detach(&db);
 	}
 	if (rjournal != NULL)

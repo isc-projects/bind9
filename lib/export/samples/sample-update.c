@@ -372,7 +372,7 @@ parse_name(char **cmdlinep, dns_name_t *name) {
 	isc_buffer_t source;
 
 	word = nsu_strsep(cmdlinep, " \t\r\n");
-	if (*word == 0) {
+	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read owner name\n");
 		exit(1);
 	}

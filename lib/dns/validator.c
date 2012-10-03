@@ -2970,16 +2970,17 @@ findnsec3proofs(dns_validator_t *val) {
 		setclosest = setnearest = ISC_FALSE;
 		optout = ISC_FALSE;
 		unknown = ISC_FALSE;
-		(void)nsec3noexistnodata(val, val->event->name, name, rdataset,
-					 zonename, &exists, &data, &optout,
-					 &unknown, setclosestp, &setnearest,
-					 closestp, nearest);
-		if (setclosest)
-			proofs[DNS_VALIDATOR_CLOSESTENCLOSER] = name;
+		result = nsec3noexistnodata(val, val->event->name, name,
+					    rdataset, zonename, &exists,
+					    &data, &optout, &unknown,
+					    setclosestp, &setnearest,
+					    closestp, nearest);
 		if (unknown)
 			val->attributes |= VALATTR_FOUNDUNKNOWN;
 		if (result != ISC_R_SUCCESS)
 			continue;
+		if (setclosest)
+			proofs[DNS_VALIDATOR_CLOSESTENCLOSER] = name;
 		if (exists && !data && NEEDNODATA(val)) {
 			val->attributes |= VALATTR_FOUNDNODATA;
 			proofs[DNS_VALIDATOR_NODATAPROOF] = name;
