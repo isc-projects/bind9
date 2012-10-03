@@ -2754,9 +2754,10 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		    unsigned int attributes, unsigned int mask,
 		    dns_dispatch_t **dispp)
 {
-	return dns_dispatch_getudp_dup(mgr, sockmgr, taskmgr, localaddr,
-		    buffersize, maxbuffers, maxrequests, buckets, increment,
-		    attributes, mask, dispp, NULL);
+	return (dns_dispatch_getudp_dup(mgr, sockmgr, taskmgr, localaddr,
+					buffersize, maxbuffers, maxrequests,
+					buckets, increment, attributes,
+					mask, dispp, NULL));
 }
 
 /*

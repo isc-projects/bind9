@@ -340,10 +340,10 @@ insert_into_typenames(int type, const char *typename, const char *attr) {
 			typename);
 		exit(1);
 	}
-	strcpy(ttn->typename, typename);
+	strncpy(ttn->typename, typename, TYPECLASSLEN);
 	ttn->type = type;
 
-	strcpy(ttn->macroname, ttn->typename);
+	strncpy(ttn->macroname, ttn->typename, TYPECLASSLEN);
 	c = strlen(ttn->macroname);
 	while (c > 0) {
 		if (ttn->macroname[c - 1] == '-')
@@ -352,7 +352,8 @@ insert_into_typenames(int type, const char *typename, const char *attr) {
 	}
 
 	if (attr == NULL) {
-		sprintf(tmp, "RRTYPE_%s_ATTRIBUTES", upper(ttn->macroname));
+		snprintf(tmp, sizeof(tmp),
+			"RRTYPE_%s_ATTRIBUTES", upper(ttn->macroname));
 		attr = tmp;
 	}
 
@@ -367,7 +368,7 @@ insert_into_typenames(int type, const char *typename, const char *attr) {
 			attr, typename);
 		exit(1);
 	}
-	strcpy(ttn->attr, attr);
+	strncpy(ttn->attr, attr, sizeof(ttn->attr));
 	ttn->sorted = 0;
 	if (maxtype < type)
 		maxtype = type;
@@ -392,11 +393,11 @@ add(int rdclass, const char *classname, int type, const char *typename,
 	newtt->next = NULL;
 	newtt->rdclass = rdclass;
 	newtt->type = type;
-	strcpy(newtt->classname, classname);
-	strcpy(newtt->typename, typename);
+	strncpy(newtt->classname, classname, TYPECLASSLEN);
+	strncpy(newtt->typename, typename, TYPECLASSLEN);
 	if (strncmp(dirname, "./", 2) == 0)
 		dirname += 2;
-	strcpy(newtt->dirname, dirname);
+	strncpy(newtt->dirname, dirname, 256);
 
 	tt = types;
 	oldtt = NULL;
@@ -430,7 +431,7 @@ add(int rdclass, const char *classname, int type, const char *typename,
 
 	newcc = (struct cc *)malloc(sizeof(*newcc));
 	newcc->rdclass = rdclass;
-	strcpy(newcc->classname, classname);
+	strncpy(newcc->classname, classname, TYPECLASSLEN);
 	cc = classes;
 	oldcc = NULL;
 
@@ -462,14 +463,15 @@ sd(int rdclass, const char *classname, const char *dirname, char filetype) {
 	if (!start_directory(dirname, &dir))
 		return;
 
-	sprintf(fmt,"%s%c", "%20[-0-9a-z]_%d.", filetype);
+	snprintf(fmt, sizeof(fmt), "%s%c", "%20[-0-9a-z]_%d.", filetype);
 	while (next_file(&dir)) {
 		if (sscanf(dir.filename, fmt, typename, &type) != 2)
 			continue;
 		if ((type > 65535) || (type < 0))
 			continue;
 
-		sprintf(buf, "%s_%d.%c", typename, type, filetype);
+		snprintf(buf, sizeof(buf),
+			 "%s_%d.%c", typename, type, filetype);
 		if (strcmp(buf, dir.filename) != 0)
 			continue;
 		add(rdclass, classname, type, typename, dirname);
@@ -561,7 +563,8 @@ main(int argc, char **argv) {
 			filetype = 'h';
 			break;
 		case 's':
-			sprintf(srcdir, "%s/", isc_commandline_argument);
+			snprintf(srcdir, sizeof(srcdir),
+				 "%s/", isc_commandline_argument);
 			break;
 		case 'F':
 			file = isc_commandline_argument;
@@ -576,7 +579,7 @@ main(int argc, char **argv) {
 			exit(1);
 		}
 
-	sprintf(buf, "%srdata", srcdir);
+	snprintf(buf, sizeof(buf), "%srdata", srcdir);
 
 	if (!start_directory(buf, &dir))
 		exit(1);
@@ -588,18 +591,19 @@ main(int argc, char **argv) {
 		if ((rdclass > 65535) || (rdclass < 0))
 			continue;
 
-		sprintf(buf, "%srdata/%s_%d", srcdir, classname, rdclass);
+		snprintf(buf, sizeof(buf),
+			 "%srdata/%s_%d", srcdir, classname, rdclass);
 		if (strcmp(buf + 6 + strlen(srcdir), dir.filename) != 0)
 			continue;
 		sd(rdclass, classname, buf, filetype);
 	}
 	end_directory(&dir);
-	sprintf(buf, "%srdata/generic", srcdir);
+	snprintf(buf, sizeof(buf), "%srdata/generic", srcdir);
 	sd(0, "", buf, filetype);
 
 	if (time(&now) != -1) {
 		if ((tm = localtime(&now)) != NULL && tm->tm_year > 104)
-			sprintf(year, "-%d", tm->tm_year + 1900);
+			snprintf(year, sizeof(year), "-%d", tm->tm_year + 1900);
 		else
 			year[0] = 0;
 	} else
@@ -862,7 +866,7 @@ main(int argc, char **argv) {
 			}
 		}
 		for (tt = types; tt != NULL; tt = tt->next) {
-			sprintf(buf, "%s/%s_%d.h",
+			snprintf(buf, sizeof(buf), "%s/%s_%d.h",
 				tt->dirname, tt->typename, tt->type);
 			if ((fd = fopen(buf,"r")) != NULL) {
 				while (fgets(buf, sizeof(buf), fd) != NULL)

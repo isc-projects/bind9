@@ -61,7 +61,7 @@ do_gai(int family, char *hostname) {
 		}
 	}
 
-	freeaddrinfo(res);
+	freeaddrinfo(res0);
 }
 
 int

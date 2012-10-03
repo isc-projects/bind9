@@ -926,7 +926,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			INSIST(0);
 	}
 
-	if (raw != NULL) {
+	if (raw != NULL && filename != NULL) {
 #define SIGNED ".signed"
 		size_t signedlen = strlen(filename) + sizeof(SIGNED);
 		char *signedname;
