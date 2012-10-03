@@ -4963,6 +4963,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			result = dns_dbiterator_next(nsec3chain->dbiterator);
 
 			if (result == ISC_R_NOMORE && nsec3chain->delete_nsec) {
+				dns_dbiterator_pause(nsec3chain->dbiterator);
 				CHECK(fixup_nsec3param(db, version, nsec3chain,
 						       ISC_FALSE, &param_diff));
 				LOCK_ZONE(zone);
@@ -5053,6 +5054,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		delegation = ISC_FALSE;
 
 		if (!buildnsecchain) {
+			dns_dbiterator_pause(nsec3chain->dbiterator);
 			/*
 			 * Delete the NSECPARAM record that matches this chain.
 			 */
@@ -5126,6 +5128,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		if ((seen_ns && !seen_soa) || seen_dname)
 			delegation = ISC_TRUE;
 
+		dns_dbiterator_pause(nsec3chain->dbiterator);
 		CHECK(add_nsec(db, version, name, node, zone->minimum,
 			       delegation, &nsec_diff));
 
@@ -5184,6 +5187,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 	/*
 	 * Add / update signatures for the NSEC3 records.
 	 */
+	if (nsec3chain != NULL)
+		dns_dbiterator_pause(nsec3chain->dbiterator);
 	for (tuple = ISC_LIST_HEAD(nsec3_diff.tuples);
 	     tuple != NULL;
 	     tuple = ISC_LIST_HEAD(nsec3_diff.tuples)) {

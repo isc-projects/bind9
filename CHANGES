@@ -1,3 +1,6 @@
+3386.	[bug]		Address locking violation when generating new NSEC /
+			NSEC3 chains. [RT #31224]
+
 3382.	[bug]		SOA query from slave used use-v6-udp-ports range,
 			if set, regardless of the address family in use.
 			[RT #24173]
