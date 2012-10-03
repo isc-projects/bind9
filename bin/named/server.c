@@ -1216,6 +1216,48 @@ disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	return (result);
 }
 
+static isc_result_t
+disable_ds_digests(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
+	isc_result_t result;
+	const cfg_obj_t *digests;
+	const cfg_listelt_t *element;
+	const char *str;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_buffer_t b;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	str = cfg_obj_asstring(cfg_tuple_get(disabled, "name"));
+	isc_buffer_init(&b, str, strlen(str));
+	isc_buffer_add(&b, strlen(str));
+	CHECK(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
+
+	digests = cfg_tuple_get(disabled, "digests");
+	for (element = cfg_list_first(digests);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		isc_textregion_t r;
+		dns_dsdigest_t digest;
+
+		DE_CONST(cfg_obj_asstring(cfg_listelt_value(element)), r.base);
+		r.length = strlen(r.base);
+
+		/* disable_ds_digests handles numeric values. */
+		result = dns_dsdigest_fromtext(&digest, &r);
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(cfg_listelt_value(element),
+				    ns_g_lctx, ISC_LOG_ERROR,
+				    "invalid algorithm");
+			CHECK(result);
+		}
+		CHECK(dns_resolver_disable_ds_digest(resolver, name, digest));
+	}
+ cleanup:
+	return (result);
+}
+
 static isc_boolean_t
 on_disable_list(const cfg_obj_t *disablelist, dns_name_t *zonename) {
 	const cfg_listelt_t *element;
@@ -2272,6 +2314,20 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		     element != NULL;
 		     element = cfg_list_next(element))
 			CHECK(disable_algorithms(cfg_listelt_value(element),
+						 view->resolver));
+	}
+
+	/*
+	 * Set supported DS/DLV digest types.
+	 */
+	dns_resolver_reset_ds_digests(view->resolver);
+	disabled = NULL;
+	(void)ns_config_get(maps, "disable-ds-digests", &disabled);
+	if (disabled != NULL) {
+		for (element = cfg_list_first(disabled);
+		     element != NULL;
+		     element = cfg_list_next(element))
+			CHECK(disable_ds_digests(cfg_listelt_value(element),
 						 view->resolver));
 	}
 

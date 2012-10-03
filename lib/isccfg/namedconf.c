@@ -1007,6 +1007,21 @@ static cfg_type_t cfg_type_disablealgorithm = {
 	&cfg_rep_tuple, disablealgorithm_fields
 };
 
+static cfg_type_t cfg_type_dsdigestlist = {
+	"dsdigestlist", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_astring };
+
+static cfg_tuplefielddef_t disabledsdigest_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "digests", &cfg_type_dsdigestlist, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_disabledsdigest = {
+	"disabledsdigest", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, disabledsdigest_fields
+};
+
 static cfg_tuplefielddef_t mustbesecure_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "value", &cfg_type_boolean, 0 },
@@ -1336,6 +1351,8 @@ view_clauses[] = {
 	{ "deny-answer-addresses", &cfg_type_denyaddresses, 0 },
 	{ "deny-answer-aliases", &cfg_type_denyaliases, 0 },
 	{ "disable-algorithms", &cfg_type_disablealgorithm,
+	  CFG_CLAUSEFLAG_MULTI },
+	{ "disable-ds-digests", &cfg_type_disabledsdigest,
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "disable-empty-zone", &cfg_type_astring, CFG_CLAUSEFLAG_MULTI },
 	{ "dns64", &cfg_type_dns64, CFG_CLAUSEFLAG_MULTI },

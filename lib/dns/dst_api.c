@@ -277,6 +277,20 @@ dst_algorithm_supported(unsigned int alg) {
 	return (ISC_TRUE);
 }
 
+isc_boolean_t
+dst_ds_digest_supported(unsigned int digest_type) {
+#ifdef HAVE_OPENSSL_GOST
+	return  (ISC_TF(digest_type == DNS_DSDIGEST_SHA1 ||
+			digest_type == DNS_DSDIGEST_SHA256 ||
+			digest_type == DNS_DSDIGEST_GOST ||
+			digest_type == DNS_DSDIGEST_SHA384));
+#else
+	return  (ISC_TF(digest_type == DNS_DSDIGEST_SHA1 ||
+			digest_type == DNS_DSDIGEST_SHA256 ||
+			digest_type == DNS_DSDIGEST_SHA384));
+#endif
+}
+
 isc_result_t
 dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp) {
 	dst_context_t *dctx;

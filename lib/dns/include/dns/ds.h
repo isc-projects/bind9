@@ -58,12 +58,6 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
  *		to 'buffer'.
  */
 
-isc_boolean_t
-dns_ds_digest_supported(unsigned int digest_type);
-/*%<
- * Is this digest algorithm supported by dns_ds_buildrdata()?
- */
-
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DS_H */

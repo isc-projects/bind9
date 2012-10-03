@@ -101,6 +101,7 @@ options {
         dialup <dialuptype>;
         directory <quoted_string>;
         disable-algorithms <string> { <string>; ... };
+        disable-ds-digests <string> { <string>; ... };
         disable-empty-zone <string>;
         dns64 <netprefix> {
                 break-dnssec <boolean>;

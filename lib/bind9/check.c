@@ -286,12 +286,61 @@ disabled_algorithms(const cfg_obj_t *disabled, isc_log_t *logctx) {
 		r.length = strlen(r.base);
 
 		tresult = dns_secalg_fromtext(&alg, &r);
-		if (tresult != ISC_R_SUCCESS) {
+ 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(cfg_listelt_value(element), logctx,
 				    ISC_LOG_ERROR, "invalid algorithm '%s'",
 				    r.base);
 			result = tresult;
-		}
+ 		}
+	}
+	return (result);
+}
+
+static isc_result_t
+disabled_ds_digests(const cfg_obj_t *disabled, isc_log_t *logctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
+	const cfg_listelt_t *element;
+	const char *str;
+	isc_buffer_t b;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	const cfg_obj_t *obj;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	obj = cfg_tuple_get(disabled, "name");
+	str = cfg_obj_asstring(obj);
+	isc_buffer_init(&b, str, strlen(str));
+	isc_buffer_add(&b, strlen(str));
+	tresult = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
+	if (tresult != ISC_R_SUCCESS) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "bad domain name '%s'", str);
+		result = tresult;
+	}
+
+	obj = cfg_tuple_get(disabled, "digests");
+
+	for (element = cfg_list_first(obj);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		isc_textregion_t r;
+		dns_dsdigest_t digest;
+		isc_result_t tresult;
+
+		DE_CONST(cfg_obj_asstring(cfg_listelt_value(element)), r.base);
+		r.length = strlen(r.base);
+
+		/* works with a numeric argument too */
+		tresult = dns_dsdigest_fromtext(&digest, &r);
+ 		if (tresult != ISC_R_SUCCESS) {
+ 			cfg_obj_log(cfg_listelt_value(element), logctx,
+				    ISC_LOG_ERROR, "invalid digest type '%s'",
+ 				    r.base);
+ 			result = tresult;
+ 		}
 	}
 	return (result);
 }
@@ -864,6 +913,23 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		{
 			obj = cfg_listelt_value(element);
 			tresult = disabled_algorithms(obj, logctx);
+			if (tresult != ISC_R_SUCCESS)
+				result = tresult;
+		}
+	}
+
+	/*
+	 * Set supported DS/DLV digest types.
+	 */
+	obj = NULL;
+	(void)cfg_map_get(options, "disable-ds-digests", &obj);
+	if (obj != NULL) {
+		for (element = cfg_list_first(obj);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			obj = cfg_listelt_value(element);
+			tresult = disabled_ds_digests(obj, logctx);
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;
 		}

@@ -67,7 +67,7 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 	REQUIRE(key != NULL);
 	REQUIRE(key->type == dns_rdatatype_dnskey);
 
-	if (!dns_ds_digest_supported(digest_type))
+	if (!dst_ds_digest_supported(digest_type))
 		return (ISC_R_NOTIMPLEMENTED);
 
 	dns_fixedname_init(&fname);
@@ -166,18 +166,4 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 
 	return (dns_rdata_fromstruct(rdata, key->rdclass, dns_rdatatype_ds,
 				     &ds, &b));
-}
-
-isc_boolean_t
-dns_ds_digest_supported(unsigned int digest_type) {
-#ifdef HAVE_OPENSSL_GOST
-	return  (ISC_TF(digest_type == DNS_DSDIGEST_SHA1 ||
-			digest_type == DNS_DSDIGEST_SHA256 ||
-			digest_type == DNS_DSDIGEST_GOST ||
-			digest_type == DNS_DSDIGEST_SHA384));
-#else
-	return  (ISC_TF(digest_type == DNS_DSDIGEST_SHA1 ||
-			digest_type == DNS_DSDIGEST_SHA256 ||
-			digest_type == DNS_DSDIGEST_SHA384));
-#endif
 }

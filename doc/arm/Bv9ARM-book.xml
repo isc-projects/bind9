@@ -5340,6 +5340,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> querylog <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> disable-algorithms <replaceable>domain</replaceable> { <replaceable>algorithm</replaceable>;
                                 <optional> <replaceable>algorithm</replaceable>; </optional> }; </optional>
+    <optional> disable-ds-digests <replaceable>domain</replaceable> { <replaceable>digest_type</replaceable>;
+                                <optional> <replaceable>digest_type</replaceable>; </optional> }; </optional>
     <optional> acache-enable <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> acache-cleaning-interval <replaceable>number</replaceable>; </optional>
     <optional> max-acache-size <replaceable>size_spec</replaceable> ; </optional>
@@ -5871,8 +5873,33 @@ options {
                 specified name.
                 Multiple <command>disable-algorithms</command>
                 statements are allowed.
-                Only the most specific will be applied.
+                Only the best match <command>disable-algorithms</command>
+		clause will be used to determine which algorithms are used.
               </para>
+              <para>
+		If all supported algorithms are disabled, the zones covered
+		by the <command>disable-algorithms</command> will be treated
+		as insecure.
+              </para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><command>disable-ds-digests</command></term>
+            <listitem>
+              <para>
+                Disable the specified DS/DLV digest types at and below the
+                specified name.
+                Multiple <command>disable-ds-digests</command>
+                statements are allowed.
+                Only the best match <command>disable-ds-digests</command>
+		clause will be used to determine which digest types are used.
+              </para>
+	      <para>
+		If all supported digest types are disabled, the zones covered
+		by the <command>disable-ds-digests</command> will be treated
+		as insecure.
+	      </para>
             </listitem>
           </varlistentry>
 

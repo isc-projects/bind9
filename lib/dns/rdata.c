@@ -35,6 +35,7 @@
 #include <dns/callbacks.h>
 #include <dns/cert.h>
 #include <dns/compress.h>
+#include <dns/dsdigest.h>
 #include <dns/enumtype.h>
 #include <dns/keyflags.h>
 #include <dns/keyvalues.h>

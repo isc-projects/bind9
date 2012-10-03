@@ -56,8 +56,8 @@ VERIFY=$TOP/bin/dnssec/dnssec-verify
 # v6synth
 SUBDIRS="acl allow_query addzone autosign builtin cacheclean checkconf
 	 @CHECKDS@ checknames checkzone database dlv dlvauto dlz dlzexternal
-         dname dns64 dnssec ecdsa forward glue gost ixfr inline limits
-	 logfileconfig lwresd masterfile masterformat metadata notify
+	 dname dns64 dnssec dsdigest ecdsa forward glue gost ixfr inline
+	 limits logfileconfig lwresd masterfile masterformat metadata notify
 	 nsupdate pending pkcs11 redirect resolver rndc rpz rrsetorder
 	 rsabigexponent sortlist smartsign staticstub statistics stub
 	 tkey tsig tsiggss unknown upforwd verify views xfer xferquota

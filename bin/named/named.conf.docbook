@@ -284,6 +284,7 @@ options {
 	max-udp-size <replaceable>integer</replaceable>;
 	root-delegation-only <optional> exclude { <replaceable>quoted_string</replaceable>; ... } </optional>;
 	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
+	disable-ds-digests <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
 	dnssec-enable <replaceable>boolean</replaceable>;
 	dnssec-validation <replaceable>boolean</replaceable>;
 	dnssec-lookaside ( <replaceable>auto</replaceable> | <replaceable>no</replaceable> | <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> );
@@ -472,6 +473,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	max-udp-size <replaceable>integer</replaceable>;
 	root-delegation-only <optional> exclude { <replaceable>quoted_string</replaceable>; ... } </optional>;
 	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
+	disable-ds-digests <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
 	dnssec-enable <replaceable>boolean</replaceable>;
 	dnssec-validation <replaceable>boolean</replaceable>;
 	dnssec-lookaside ( <replaceable>auto</replaceable> | <replaceable>no</replaceable> | <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> );

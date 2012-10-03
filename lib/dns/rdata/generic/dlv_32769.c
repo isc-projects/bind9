@@ -16,7 +16,7 @@
 
 /* $Id$ */
 
-/* draft-ietf-dnsext-delegation-signer-05.txt */
+/* RFC3658 */
 
 #ifndef RDATA_GENERIC_DLV_32769_C
 #define RDATA_GENERIC_DLV_32769_C
@@ -27,7 +27,6 @@
 #include <isc/sha2.h>
 
 #include <dns/ds.h>
-
 
 static inline isc_result_t
 fromtext_dlv(ARGS_FROMTEXT) {

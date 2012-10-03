@@ -255,17 +255,10 @@ dlv_algorithm_supported(dns_validator_t *val) {
 						      dlv.algorithm))
 			continue;
 
-#ifdef HAVE_OPENSSL_GOST
-		if (dlv.digest_type != DNS_DSDIGEST_SHA256 &&
-		    dlv.digest_type != DNS_DSDIGEST_SHA1 &&
-		    dlv.digest_type != DNS_DSDIGEST_GOST)
+		if (!dns_resolver_ds_digest_supported(val->view->resolver,
+						      val->event->name,
+						      dlv.digest_type))
 			continue;
-#else
-		if (dlv.digest_type != DNS_DSDIGEST_SHA256 &&
-		    dlv.digest_type != DNS_DSDIGEST_SHA1)
-			continue;
-#endif
-
 
 		return (ISC_TRUE);
 	}
@@ -2275,11 +2268,12 @@ dlv_validatezonekey(dns_validator_t *val) {
 		result = dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		if (!dns_resolver_digest_supported(val->view->resolver,
-						   dlv.digest_type))
+		if (digest_types[dlv.digest_type] == 0)
 			continue;
 
-		if (digest_types[dlv.digest_type] == 0)
+		if (!dns_resolver_ds_digest_supported(val->view->resolver,
+						      val->event->name,
+						      dlv.digest_type))
 			continue;
 
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
@@ -2629,11 +2623,12 @@ validatezonekey(dns_validator_t *val) {
 		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		if (!dns_resolver_digest_supported(val->view->resolver,
-						   ds.digest_type))
+		if (digest_types[ds.digest_type] == 0)
 			continue;
 
-		if (digest_types[ds.digest_type] == 0)
+		if (!dns_resolver_ds_digest_supported(val->view->resolver,
+						      val->event->name,
+						      ds.digest_type))
 			continue;
 
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
@@ -3299,8 +3294,8 @@ check_ds(dns_validator_t *val, dns_name_t *name, dns_rdataset_t *rdataset) {
 		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		if (dns_resolver_digest_supported(val->view->resolver,
-						  ds.digest_type) &&
+		if (dns_resolver_ds_digest_supported(val->view->resolver,
+						     name, ds.digest_type) &&
 		    dns_resolver_algorithm_supported(val->view->resolver,
 						     name, ds.algorithm)) {
 			dns_rdata_reset(&dsrdata);

@@ -404,6 +404,7 @@ struct dns_resolver {
 	isc_rwlock_t			alglock;
 #endif
 	dns_rbt_t *			algorithms;
+	dns_rbt_t *			digests;
 #if USE_MBSLOCK
 	isc_rwlock_t			mbslock;
 #endif
@@ -7352,6 +7353,7 @@ destroy(dns_resolver_t *res) {
 		isc_mem_put(res->mctx, a, sizeof(*a));
 	}
 	dns_resolver_reset_algorithms(res);
+	dns_resolver_reset_ds_digests(res);
 	destroy_badcache(res);
 	dns_resolver_resetmustbesecure(res);
 #if USE_ALGLOCK
@@ -7478,6 +7480,7 @@ dns_resolver_create(dns_view_t *view,
 	ISC_LIST_INIT(res->alternates);
 	res->udpsize = RECV_BUFFER_SIZE;
 	res->algorithms = NULL;
+	res->digests = NULL;
 	res->badcache = NULL;
 	res->badcount = 0;
 	res->badhash = 0;
@@ -8667,11 +8670,118 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver, dns_name_t *name,
 	return (dst_algorithm_supported(alg));
 }
 
-isc_boolean_t
-dns_resolver_digest_supported(dns_resolver_t *resolver, unsigned int digest) {
+static void
+free_digest(void *node, void *arg) {
+	unsigned char *digests = node;
+	isc_mem_t *mctx = arg;
 
-	UNUSED(resolver);
-	return (dns_ds_digest_supported(digest));
+	isc_mem_put(mctx, digests, *digests);
+}
+
+void
+dns_resolver_reset_ds_digests(dns_resolver_t *resolver) {
+
+	REQUIRE(VALID_RESOLVER(resolver));
+
+#if USE_ALGLOCK
+	RWLOCK(&resolver->alglock, isc_rwlocktype_write);
+#endif
+	if (resolver->digests != NULL)
+		dns_rbt_destroy(&resolver->digests);
+#if USE_ALGLOCK
+	RWUNLOCK(&resolver->alglock, isc_rwlocktype_write);
+#endif
+}
+
+isc_result_t
+dns_resolver_disable_ds_digest(dns_resolver_t *resolver, dns_name_t *name,
+			       unsigned int digest_type)
+{
+	unsigned int len, mask;
+	unsigned char *new;
+	unsigned char *digests;
+	isc_result_t result;
+	dns_rbtnode_t *node = NULL;
+
+	REQUIRE(VALID_RESOLVER(resolver));
+	if (digest_type > 255)
+		return (ISC_R_RANGE);
+
+#if USE_ALGLOCK
+	RWLOCK(&resolver->alglock, isc_rwlocktype_write);
+#endif
+	if (resolver->digests == NULL) {
+		result = dns_rbt_create(resolver->mctx, free_digest,
+					resolver->mctx, &resolver->digests);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
+
+	len = digest_type/8 + 2;
+	mask = 1 << (digest_type%8);
+
+	result = dns_rbt_addnode(resolver->digests, name, &node);
+
+	if (result == ISC_R_SUCCESS || result == ISC_R_EXISTS) {
+		digests = node->data;
+		if (digests == NULL || len > *digests) {
+			new = isc_mem_get(resolver->mctx, len);
+			if (new == NULL) {
+				result = ISC_R_NOMEMORY;
+				goto cleanup;
+			}
+			memset(new, 0, len);
+			if (digests != NULL)
+				memcpy(new, digests, *digests);
+			new[len-1] |= mask;
+			*new = len;
+			node->data = new;
+			if (digests != NULL)
+				isc_mem_put(resolver->mctx, digests,
+					    *digests);
+		} else
+			digests[len-1] |= mask;
+	}
+	result = ISC_R_SUCCESS;
+ cleanup:
+#if USE_ALGLOCK
+	RWUNLOCK(&resolver->alglock, isc_rwlocktype_write);
+#endif
+	return (result);
+}
+
+isc_boolean_t
+dns_resolver_ds_digest_supported(dns_resolver_t *resolver, dns_name_t *name,
+				 unsigned int digest_type)
+{
+	unsigned int len, mask;
+	unsigned char *digests;
+	void *data = NULL;
+	isc_result_t result;
+	isc_boolean_t found = ISC_FALSE;
+
+	REQUIRE(VALID_RESOLVER(resolver));
+
+#if USE_ALGLOCK
+	RWLOCK(&resolver->alglock, isc_rwlocktype_read);
+#endif
+	if (resolver->digests == NULL)
+		goto unlock;
+	result = dns_rbt_findname(resolver->digests, name, 0, NULL, &data);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		len = digest_type/8 + 2;
+		mask = 1 << (digest_type%8);
+		digests = data;
+		if (len <= *digests && (digests[len-1] & mask) != 0)
+			found = ISC_TRUE;
+	}
+ unlock:
+#if USE_ALGLOCK
+	RWUNLOCK(&resolver->alglock, isc_rwlocktype_read);
+#endif
+	if (found)
+		return (ISC_FALSE);
+	return (dst_ds_digest_supported(digest_type));
 }
 
 void
