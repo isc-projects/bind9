@@ -815,11 +815,11 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 
 	looknew = make_empty_lookup();
 	INSIST(looknew != NULL);
-	strncpy(looknew->textname, lookold->textname, MXNAME);
+	strlcpy(looknew->textname, lookold->textname, MXNAME);
 #if DIG_SIGCHASE_TD
-	strncpy(looknew->textnamesigchase, lookold->textnamesigchase, MXNAME);
+	strlcpy(looknew->textnamesigchase, lookold->textnamesigchase, MXNAME);
 #endif
-	strncpy(looknew->cmdline, lookold->cmdline, MXNAME);
+	strlcpy(looknew->cmdline, lookold->cmdline, MXNAME);
 	looknew->textname[MXNAME-1] = 0;
 	looknew->rdtype = lookold->rdtype;
 	looknew->qrdtype = lookold->qrdtype;
@@ -998,7 +998,7 @@ parse_hmac(const char *hmac) {
 	len = strlen(hmac);
 	if (len >= (int) sizeof(buf))
 		fatal("unknown key type '%.*s'", len, hmac);
-	strncpy(buf, hmac, sizeof(buf));
+	strlcpy(buf, hmac, sizeof(buf));
 
 	digestbits = 0;
 
@@ -1080,8 +1080,8 @@ read_confkey(void) {
 	secretstr = cfg_obj_asstring(secretobj);
 	algorithm = cfg_obj_asstring(algorithmobj);
 
-	strncpy(keynametext, keyname, sizeof(keynametext));
-	strncpy(keysecret, secretstr, sizeof(keysecret));
+	strlcpy(keynametext, keyname, sizeof(keynametext));
+	strlcpy(keysecret, secretstr, sizeof(keysecret));
 	parse_hmac(algorithm);
 	setup_text_key();
 
@@ -1164,7 +1164,7 @@ make_searchlist_entry(char *domain) {
 	if (search == NULL)
 		fatal("memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
-	strncpy(search->origin, domain, MXNAME);
+	strlcpy(search->origin, domain, MXNAME);
 	search->origin[MXNAME-1] = 0;
 	ISC_LINK_INIT(search, link);
 	return (search);
@@ -1642,7 +1642,7 @@ start_lookup(void) {
 				= current_lookup->rdclassset;
 			current_lookup->rdclass = dns_rdataclass_in;
 
-			strncpy(current_lookup->textnamesigchase,
+			strlcpy(current_lookup->textnamesigchase,
 				current_lookup->textname, MXNAME);
 
 			current_lookup->trace_root_sigchase = ISC_TRUE;
@@ -1654,7 +1654,7 @@ start_lookup(void) {
 			check_result(result, "dns_name_totext");
 			isc_buffer_usedregion(b, &r);
 			r.base[r.length] = '\0';
-			strncpy(current_lookup->textname, (char*)r.base,
+			strlcpy(current_lookup->textname, (char*)r.base,
 				MXNAME);
 			isc_buffer_free(&b);
 
@@ -4083,7 +4083,7 @@ sigchase_scanname(dns_rdatatype_t type, dns_rdatatype_t covers,
 	check_result(result, "dns_name_totext");
 	isc_buffer_usedregion(b, &r);
 	r.base[r.length] = '\0';
-	strcpy(lookup->textname, (char*)r.base);
+	strlcpy(lookup->textname, (char*)r.base, sizeof(lookup->textname));
 	isc_buffer_free(&b);
 
 	if (type ==  dns_rdatatype_rrsig)
@@ -4208,7 +4208,7 @@ opentmpkey(isc_mem_t *mctx, const char *file, char **tempp, FILE **fp) {
 			return (ISC_R_NOMEMORY);
 
 		memset(tempnamekey, 0, tempnamekeylen);
-		strncpy(tempnamekey, tempname, tempnamelen);
+		strlcpy(tempnamekey, tempname, tempnamelen);
 		strcat(tempnamekey ,".key");
 
 
@@ -4342,7 +4342,7 @@ prepare_lookup(dns_name_t *name)
 	lookup->new_search = ISC_TRUE;
 	lookup->trace_root_sigchase = ISC_FALSE;
 
-	strncpy(lookup->textname, lookup->textnamesigchase, MXNAME);
+	strlcpy(lookup->textname, lookup->textnamesigchase, MXNAME);
 
 	lookup->rdtype = lookup->rdtype_sigchase;
 	lookup->rdtypeset = ISC_TRUE;
@@ -4401,7 +4401,7 @@ prepare_lookup(dns_name_t *name)
 				dns_rdata_totext(&aaaa, &ns.name, b);
 				isc_buffer_usedregion(b, &r);
 				r.base[r.length] = '\0';
-				strncpy(namestr, (char*)r.base,
+				strlcpy(namestr, (char*)r.base,
 					DNS_NAME_FORMATSIZE);
 				isc_buffer_free(&b);
 				dns_rdata_reset(&aaaa);
@@ -4430,7 +4430,7 @@ prepare_lookup(dns_name_t *name)
 				dns_rdata_totext(&a, &ns.name, b);
 				isc_buffer_usedregion(b, &r);
 				r.base[r.length] = '\0';
-				strncpy(namestr, (char*)r.base,
+				strlcpy(namestr, (char*)r.base,
 					DNS_NAME_FORMATSIZE);
 				isc_buffer_free(&b);
 				dns_rdata_reset(&a);
@@ -4609,7 +4609,6 @@ contains_trusted_key(dns_name_t *name, dns_rdataset_t *rdataset,
 {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dst_key_t *trustedKey = NULL;
 	dst_key_t *dnsseckey = NULL;
 	int i;
 
@@ -4652,10 +4651,6 @@ contains_trusted_key(dns_name_t *name, dns_rdataset_t *rdataset,
 		if (dnsseckey != NULL)
 			dst_key_free(&dnsseckey);
 	} while (dns_rdataset_next(rdataset) == ISC_R_SUCCESS);
-
-	if (trustedKey != NULL)
-		dst_key_free(&trustedKey);
-	trustedKey = NULL;
 
 	return (ISC_R_NOTFOUND);
 }

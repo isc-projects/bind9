@@ -136,6 +136,7 @@
 #include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/sockaddr.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/client.h>
@@ -479,8 +480,10 @@ getaddrinfo(const char *hostname, const char *servname,
 			err = (net_order[i])(hostname, flags, &ai_list,
 					     socktype, port);
 			if (err != 0) {
-				if (ai_list != NULL)
+				if (ai_list != NULL) {
 					freeaddrinfo(ai_list);
+					ai_list = NULL;
+				}
 				break;
 			}
 		}
@@ -1186,7 +1189,7 @@ get_local(const char *name, int socktype, struct addrinfo **res) {
 		return (EAI_MEMORY);
 
 	slocal = SLOCAL(ai->ai_addr);
-	strncpy(slocal->sun_path, name, sizeof(slocal->sun_path));
+	strlcpy(slocal->sun_path, name, sizeof(slocal->sun_path));
 
 	ai->ai_socktype = socktype;
 	/*

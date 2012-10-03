@@ -196,6 +196,10 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 		a->type == dns_rdatatype_a);
 	REQUIRE(aaaa == NULL || !dns_rdataset_isassociated(aaaa) ||
 		aaaa->type == dns_rdatatype_aaaa);
+
+	if (a == NULL || aaaa == NULL)
+		return (answer);
+
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_flags = AI_CANONNAME;
 	hints.ai_family = PF_UNSPEC;
@@ -258,8 +262,7 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 		}
 		return (ISC_TRUE);
 	}
-	if (a == NULL || aaaa == NULL)
-		return (answer);
+
 	/*
 	 * Check that all glue records really exist.
 	 */

@@ -3011,7 +3011,7 @@ set_nsec3params(isc_boolean_t update_chain, isc_boolean_t set_salt,
 	dns_rdata_nsec3_t nsec3;
 	dns_fixedname_t fname;
 	dns_name_t *hashname;
-	unsigned char orig_salt[256];
+	unsigned char orig_salt[255];
 	size_t orig_saltlen;
 	dns_hash_t orig_hash;
 	isc_uint16_t orig_iter;

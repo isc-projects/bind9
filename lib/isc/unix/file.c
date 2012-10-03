@@ -560,6 +560,9 @@ isc_file_splitpath(isc_mem_t *mctx, char *path, char **dirname, char **basename)
 {
 	char *dir, *file, *slash;
 
+	if (path == NULL)
+		return (ISC_R_INVALIDFILE);
+
 	slash = strrchr(path, '/');
 
 	if (slash == path) {

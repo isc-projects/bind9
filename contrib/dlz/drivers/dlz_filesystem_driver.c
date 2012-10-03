@@ -407,12 +407,20 @@ process_dir(isc_dir_t dir, void *passback, config_data_t *cd,
 					 */
 					while ((tmpPtr = strrchr(tmpString,
 								 cd->pathsep))
-					       != NULL) {
+					       != NULL)
+					{
+						if ((strlen(host) +
+						     strlen(tmpPtr + 1) + 2)
+						    > ISC_DIR_NAMEMAX)
+							continue;
 						strcat(host, tmpPtr + 1);
 						strcat(host, ".");
 						tmpPtr[0] = '\0';
 					}
-					strcat(host, tmpString);
+					if ((strlen(host) +
+					     strlen(tmpString) + 1)
+					    <= ISC_DIR_NAMEMAX)
+						strcat(host, tmpString);
 				}
 
 				foundHost = ISC_TRUE;
