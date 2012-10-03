@@ -6333,6 +6333,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		if (rebuild_nsec) {
 			if (nsec3chain != NULL)
 				dns_dbiterator_pause(nsec3chain->dbiterator);
+
 			result = updatesecure(db, version, &zone->origin,
 					      zone->minimum, ISC_TRUE,
 					      &nsec_diff);
@@ -6344,9 +6345,11 @@ zone_nsec3chain(dns_zone_t *zone) {
 				goto failure;
 			}
 		}
+
 		if (rebuild_nsec3) {
 			if (nsec3chain != NULL)
 				dns_dbiterator_pause(nsec3chain->dbiterator);
+
 			result = dns_nsec3_addnsec3s(db, version,
 						     dns_db_origin(db),
 						     zone->minimum, ISC_FALSE,
@@ -6360,6 +6363,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 			}
 		}
 	}
+
+	if (nsec3chain != NULL)
+		dns_dbiterator_pause(nsec3chain->dbiterator);
 
 	/*
 	 * Add / update signatures for the NSEC3 records.
