@@ -1,5 +1,5 @@
-3387.	[func]		Support for a DS digest can be disabled at
-			runtime with disable-ds-digests. [RT #21581]
+3387.	[func]		DS digest can be disabled at runtime with
+			disable-ds-digests. [RT #21581]
 
 3386.	[bug]		Address locking violation when generating new NSEC /
 			NSEC3 chains. [RT #31224]
