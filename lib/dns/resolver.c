@@ -2512,7 +2512,7 @@ findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 	isc_result_t result;
 
 	res = fctx->res;
-	unshared = ISC_TF((fctx->options | DNS_FETCHOPT_UNSHARED) != 0);
+	unshared = ISC_TF((fctx->options & DNS_FETCHOPT_UNSHARED) != 0);
 	/*
 	 * If this name is a subdomain of the query domain, tell
 	 * the ADB to start looking using zone/hint data. This keeps us

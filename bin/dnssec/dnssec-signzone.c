@@ -2740,8 +2740,8 @@ warnifallksk(dns_db_t *db) {
 				"Supply non-KSK dnskey or use '-z'.\n",
 				program);
 		else
-			fatal("No non-KSK dnskey found. "
-			      "Supply non-KSK dnskey or use '-z'.");
+			fatal("No non-KSK DNSKEY found; "
+			      "supply a ZSK or use '-z'.");
 	}
 }
 

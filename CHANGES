@@ -1,3 +1,5 @@
+3388.	[bug]		Fixed several Coverity warnings. [RT #30996]
+
 3386.	[bug]		Address locking violation when generating new NSEC /
 			NSEC3 chains. [RT #31224]
 
