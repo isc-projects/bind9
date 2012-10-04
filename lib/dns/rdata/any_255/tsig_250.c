@@ -226,12 +226,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	if (dns_tsigrcode_totext((dns_rcode_t)n, target) == ISC_R_SUCCESS)
-		RETERR(str_totext(" ", target));
-	else {
-		sprintf(buf, "%u ", n);
-		RETERR(str_totext(buf, target));
-	}
+	RETERR(dns_tsigrcode_totext((dns_rcode_t)n, target));
 
 	/*
 	 * Other Size.
