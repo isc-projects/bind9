@@ -252,6 +252,7 @@ options {
 	max\-udp\-size \fIinteger\fR;
 	root\-delegation\-only [ exclude { \fIquoted_string\fR; ... } ];
 	disable\-algorithms \fIstring\fR { \fIstring\fR; ... };
+	disable\-ds\-digests \fIstring\fR { \fIstring\fR; ... };
 	dnssec\-enable \fIboolean\fR;
 	dnssec\-validation \fIboolean\fR;
 	dnssec\-lookaside ( \fIauto\fR | \fIno\fR | \fIdomain\fR trust\-anchor \fIdomain\fR );
@@ -422,6 +423,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	max\-udp\-size \fIinteger\fR;
 	root\-delegation\-only [ exclude { \fIquoted_string\fR; ... } ];
 	disable\-algorithms \fIstring\fR { \fIstring\fR; ... };
+	disable\-ds\-digests \fIstring\fR { \fIstring\fR; ... };
 	dnssec\-enable \fIboolean\fR;
 	dnssec\-validation \fIboolean\fR;
 	dnssec\-lookaside ( \fIauto\fR | \fIno\fR | \fIdomain\fR trust\-anchor \fIdomain\fR );

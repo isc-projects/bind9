@@ -249,6 +249,7 @@ options {<br>
 	max-udp-size <em class="replaceable"><code>integer</code></em>;<br>
 	root-delegation-only [<span class="optional"> exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } </span>];<br>
 	disable-algorithms <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
+	disable-ds-digests <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
 	dnssec-enable <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-validation <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-lookaside ( <em class="replaceable"><code>auto</code></em> | <em class="replaceable"><code>no</code></em> | <em class="replaceable"><code>domain</code></em> trust-anchor <em class="replaceable"><code>domain</code></em> );<br>
@@ -361,7 +362,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544585"></a><h2>VIEW</h2>
+<a name="id2544592"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -436,6 +437,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	max-udp-size <em class="replaceable"><code>integer</code></em>;<br>
 	root-delegation-only [<span class="optional"> exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } </span>];<br>
 	disable-algorithms <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
+	disable-ds-digests <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
 	dnssec-enable <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-validation <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-lookaside ( <em class="replaceable"><code>auto</code></em> | <em class="replaceable"><code>no</code></em> | <em class="replaceable"><code>domain</code></em> trust-anchor <em class="replaceable"><code>domain</code></em> );<br>
@@ -525,7 +527,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545301"></a><h2>ZONE</h2>
+<a name="id2545314"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint | redirect |<br>
@@ -622,12 +624,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545690"></a><h2>FILES</h2>
+<a name="id2545703"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545702"></a><h2>SEE ALSO</h2>
+<a name="id2545715"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named-checkconf</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,

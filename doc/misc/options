@@ -328,6 +328,7 @@ view <string> <optional_class> {
             <quoted_string>; ... } ];
         dialup <dialuptype>;
         disable-algorithms <string> { <string>; ... };
+        disable-ds-digests <string> { <string>; ... };
         disable-empty-zone <string>;
         dlz <string> {
                 database <string>;
