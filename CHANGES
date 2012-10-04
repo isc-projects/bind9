@@ -1,3 +1,5 @@
+3389.	[bug]		Always return NOERROR (not 0) in TSIG. [RT #31275]
+
 3388.	[bug]		Fixed several Coverity warnings. [RT #30996]
 
 3386.	[bug]		Address locking violation when generating new NSEC /
