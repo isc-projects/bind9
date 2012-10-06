@@ -1299,15 +1299,17 @@ ISC_LANG_ENDDECLS
 
 #define DNS_NAME_INIT(n, o) \
 do { \
-	(n)->magic = DNS_NAME_MAGIC; \
-	(n)->ndata = NULL; \
-	(n)->length = 0; \
-	(n)->labels = 0; \
-	(n)->attributes = 0; \
-	(n)->offsets = (o); \
-	(n)->buffer = NULL; \
-	ISC_LINK_INIT((n), link); \
-	ISC_LIST_INIT((n)->list); \
+	dns_name_t *_n = (n); \
+	/* memset(_n, 0, sizeof(*_n)); */ \
+	_n->magic = DNS_NAME_MAGIC; \
+	_n->ndata = NULL; \
+	_n->length = 0; \
+	_n->labels = 0; \
+	_n->attributes = 0; \
+	_n->offsets = (o); \
+	_n->buffer = NULL; \
+	ISC_LINK_INIT(_n, link); \
+	ISC_LIST_INIT(_n->list); \
 } while (0)
 
 #define DNS_NAME_RESET(n) \

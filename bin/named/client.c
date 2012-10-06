@@ -2408,6 +2408,9 @@ ns_client_replace(ns_client_t *client) {
 
 	CTRACE("replace");
 
+	REQUIRE(client != NULL);
+	REQUIRE(client->manager != NULL);
+
 	result = ns_clientmgr_createclients(client->manager,
 					    1, client->interface,
 					    (TCP_CLIENT(client) ?
