@@ -1859,6 +1859,10 @@ isselfsigned(dns_validator_t *val) {
 	name = val->event->name;
 	mctx = val->view->mctx;
 
+	if (rdataset->type == dns_rdatatype_cname ||
+	    rdataset->type == dns_rdatatype_dname)
+		return (answer);
+
 	INSIST(rdataset->type == dns_rdatatype_dnskey);
 
 	for (result = dns_rdataset_first(rdataset);
