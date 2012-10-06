@@ -5899,12 +5899,12 @@ answer_response(fetchctx_t *fctx) {
 					 * but we found a CNAME.
 					 *
 					 * Getting a CNAME response for some
-					 * query types is an error.
+					 * query types is an error, see
+					 * RFC 4035, Section 2.5.
 					 */
 					if (type == dns_rdatatype_rrsig ||
-					    type == dns_rdatatype_dnskey ||
-					    type == dns_rdatatype_nsec ||
-					    type == dns_rdatatype_nsec3) {
+					    type == dns_rdatatype_key ||
+					    type == dns_rdatatype_nsec) {
 						char buf[DNS_RDATATYPE_FORMATSIZE];
 						dns_rdatatype_format(fctx->type,
 							      buf, sizeof(buf));
