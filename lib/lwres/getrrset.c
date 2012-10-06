@@ -271,18 +271,22 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 void
 lwres_freerrset(struct rrsetinfo *rrset) {
 	unsigned int i;
-	for (i = 0; i < rrset->rri_nrdatas; i++) {
-		if (rrset->rri_rdatas[i].rdi_data == NULL)
-			break;
-		free(rrset->rri_rdatas[i].rdi_data);
+	if (rrset->rri_rdatas != NULL) {
+		for (i = 0; i < rrset->rri_nrdatas; i++) {
+			if (rrset->rri_rdatas[i].rdi_data == NULL)
+				break;
+			free(rrset->rri_rdatas[i].rdi_data);
+		}
+		free(rrset->rri_rdatas);
 	}
-	free(rrset->rri_rdatas);
-	for (i = 0; i < rrset->rri_nsigs; i++) {
-		if (rrset->rri_sigs[i].rdi_data == NULL)
-			break;
-		free(rrset->rri_sigs[i].rdi_data);
+	if (rrset->rri_sigs != NULL) {
+		for (i = 0; i < rrset->rri_nsigs; i++) {
+			if (rrset->rri_sigs[i].rdi_data == NULL)
+				break;
+			free(rrset->rri_sigs[i].rdi_data);
+		}
+		free(rrset->rri_sigs);
 	}
-	free(rrset->rri_sigs);
 	free(rrset->rri_name);
 	free(rrset);
 }

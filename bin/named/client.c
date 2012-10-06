@@ -2490,6 +2490,9 @@ ns_client_replace(ns_client_t *client) {
 
 	CTRACE("replace");
 
+	REQUIRE(client != NULL);
+	REQUIRE(client->manager != NULL);
+
 	result = get_client(client->manager, client->interface,
 			    client->dispatch, TCP_CLIENT(client));
 	if (result != ISC_R_SUCCESS)

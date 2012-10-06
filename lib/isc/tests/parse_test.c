@@ -45,6 +45,7 @@ ATF_TC_BODY(parse_overflow, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_parse_uint32(&output, "1234567890", 10);
+	ATF_CHECK_EQ(ISC_R_SUCCESS, result);
 	ATF_CHECK_EQ(1234567890, output);
 
 	result = isc_parse_uint32(&output, "123456789012345", 10);
