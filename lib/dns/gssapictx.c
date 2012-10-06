@@ -602,7 +602,7 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 				*err_message);
 		else
 			gss_log(3, "Failure initiating security context");
-			
+
 		result = ISC_R_FAILURE;
 		goto out;
 	}
