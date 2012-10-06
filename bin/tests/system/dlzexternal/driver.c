@@ -377,7 +377,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	int i;
 
 	UNUSED(zone);
-	
+
 	if (state->putnamedrr == NULL)
 		return (ISC_R_NOTIMPLEMENTED);
 
