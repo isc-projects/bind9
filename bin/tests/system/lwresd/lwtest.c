@@ -400,7 +400,7 @@ test_gethostbyaddr(const char *address, int af, const char *name) {
 			return;
 		}
 	} else {
-		if (strcmp(hp->h_name, name) != 0) {
+		if (name != NULL && strcmp(hp->h_name, name) != 0) {
 			printf("I:gethostbyname(%s) returned %s, "
 			       "expected %s\n", address, hp->h_name, name);
 			fails++;
@@ -440,7 +440,7 @@ test_getipnodebyaddr(const char *address, int af, const char *name) {
 			return;
 		}
 	} else {
-		if (strcmp(hp->h_name, name) != 0) {
+		if (name != NULL && strcmp(hp->h_name, name) != 0) {
 			printf("I:getipnodebyaddr(%s) returned %s, "
 			       "expected %s\n", address, hp->h_name, name);
 			freehostent(hp);

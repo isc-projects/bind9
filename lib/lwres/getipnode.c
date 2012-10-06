@@ -466,6 +466,9 @@ lwres_freehostent(struct hostent *he) {
 	int names = 1;
 	int addresses = 1;
 
+	if (he == NULL)
+		return;
+
 	free(he->h_name);
 
 	cpp = he->h_addr_list;
