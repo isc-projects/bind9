@@ -376,7 +376,7 @@
 ./bin/tests/names/dns_name_fullcompare_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_getlabel_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_getlabelsequence_data	X	1999,2000,2001
-./bin/tests/names/dns_name_hash_data		X	1999,2000,2001,2003
+./bin/tests/names/dns_name_hash_data		X	1999,2000,2001,2003,2012
 ./bin/tests/names/dns_name_isabsolute_data	X	1999,2000,2001,2003
 ./bin/tests/names/dns_name_issubdomain_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_rdatacompare_data	X	1999,2000,2001
@@ -718,7 +718,7 @@
 ./bin/tests/system/lwresd/clean.sh		SH	2008,2012
 ./bin/tests/system/lwresd/lwresd1/lwresd.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/lwresd/lwresd1/resolv.conf	CONF-SH	2000,2001,2004,2007,2012
-./bin/tests/system/lwresd/lwtest.c		C	2000,2001,2002,2004,2007,2008
+./bin/tests/system/lwresd/lwtest.c		C	2000,2001,2002,2004,2007,2008,2012
 ./bin/tests/system/lwresd/ns1/10.10.10.in-addr.arpa.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/lwresd/ns1/e.example1.db	X	2008
 ./bin/tests/system/lwresd/ns1/example1.db	ZONE	2000,2001,2002,2003,2004,2007,2008
@@ -1075,7 +1075,7 @@
 ./contrib/dlz/drivers/include/dlz/dlz_stub_driver.h	X	2005
 ./contrib/dlz/drivers/include/dlz/sdlz_helper.h	X	2005
 ./contrib/dlz/drivers/rules.in			X	2005,2012
-./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010
+./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010,2012
 ./contrib/dnssec-tools/README			X	2008
 ./contrib/idn/idnkit-1.0-src/ChangeLog		X	2003
 ./contrib/idn/idnkit-1.0-src/DISTFILES		X	2003
@@ -2368,7 +2368,7 @@
 ./lib/lwres/gethost.c				C	2000,2001,2004,2005,2007
 ./lib/lwres/getipnode.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2012
 ./lib/lwres/getnameinfo.c			C.PORTION	1999,2000,2001,2003,2004,2005,2007,2011,2012
-./lib/lwres/getrrset.c				C	2000,2001,2002,2003,2004,2005,2007
+./lib/lwres/getrrset.c				C	2000,2001,2002,2003,2004,2005,2007,2012
 ./lib/lwres/herror.c				C.PORTION	2000,2001,2003,2004,2005,2007,2011,2012
 ./lib/lwres/include/Makefile.in			MAKE	2000,2001,2004,2007,2012
 ./lib/lwres/include/lwres/Makefile.in		MAKE	2000,2001,2004,2007,2012
