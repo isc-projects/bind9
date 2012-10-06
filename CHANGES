@@ -1,4 +1,5 @@
-3391.	[bug]		DNSKEY that encountered a CNAME failed. [RT #31262]
+3391.	[bug]		A DNSKEY lookup that encountered a CNAME failed.
+			[RT #31262]
 
 3390.	[bug]		Silence clang compiler warnings. [RT #30417]
 
