@@ -5655,10 +5655,11 @@ answer_response(fetchctx_t *fctx) {
 					 * but we found a CNAME.
 					 *
 					 * Getting a CNAME response for some
-					 * query types is an error.
+					 * query types is an error, see
+					 * RFC 4035, Section 2.5.
 					 */
 					if (type == dns_rdatatype_rrsig ||
-					    type == dns_rdatatype_dnskey ||
+					    type == dns_rdatatype_key ||
 					    type == dns_rdatatype_nsec)
 						return (DNS_R_FORMERR);
 					found = ISC_TRUE;
