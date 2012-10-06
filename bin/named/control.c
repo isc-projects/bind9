@@ -61,7 +61,7 @@ command_compare(const char *text, const char *command) {
 isc_result_t
 ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	isccc_sexpr_t *data;
-	char *command;
+	char *command = NULL;
 	isc_result_t result;
 	int log_level;
 #ifdef HAVE_LIBSCF

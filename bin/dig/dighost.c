@@ -2597,7 +2597,7 @@ send_udp(dig_query_t *query) {
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event) {
 	dig_lookup_t *l = NULL;
-	dig_query_t *query = NULL, *cq;
+	dig_query_t *query = NULL, *next, *cq;
 
 	UNUSED(task);
 	REQUIRE(event->ev_type == ISC_TIMEREVENT_IDLE);
@@ -2621,7 +2621,9 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			if (query->sock != NULL)
 				isc_socket_cancel(query->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
-			send_tcp_connect(ISC_LIST_NEXT(cq, link));
+			next = ISC_LIST_NEXT(cq, link);
+			if (next != NULL)
+				send_tcp_connect(next);
 		}
 		UNLOCK_LOOKUP;
 		return;
@@ -3599,15 +3601,19 @@ getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp) {
  */
 void
 do_lookup(dig_lookup_t *lookup) {
+	dig_query_t *query;
 
 	REQUIRE(lookup != NULL);
 
 	debug("do_lookup()");
 	lookup->pending = ISC_TRUE;
-	if (lookup->tcp_mode)
-		send_tcp_connect(ISC_LIST_HEAD(lookup->q));
-	else
-		send_udp(ISC_LIST_HEAD(lookup->q));
+	query = ISC_LIST_HEAD(lookup->q);
+	if (query != NULL) {
+		if (lookup->tcp_mode)
+			send_tcp_connect(query);
+		else
+			send_udp(query);
+	}
 }
 
 /*%

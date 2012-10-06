@@ -610,7 +610,7 @@ isc_result_t
 isccc_cc_createresponse(isccc_sexpr_t *message, isccc_time_t now,
 		      isccc_time_t expires, isccc_sexpr_t **alistp)
 {
-	char *_frm, *_to, *type;
+	char *_frm, *_to, *type = NULL;
 	isc_uint32_t serial;
 	isccc_sexpr_t *alist, *_ctrl, *_data;
 	isc_result_t result;
@@ -699,6 +699,8 @@ isc_result_t
 isccc_cc_lookupstring(isccc_sexpr_t *alist, const char *key, char **strp)
 {
 	isccc_sexpr_t *kv, *v;
+
+	REQUIRE(strp == NULL || *strp == NULL);
 
 	kv = isccc_alist_assq(alist, key);
 	if (kv != NULL) {
@@ -798,7 +800,7 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 {
 	const char *_frm;
 	const char *_to;
-	char *_ser, *_tim, *tmp;
+	char *_ser = NULL, *_tim = NULL, *tmp;
 	isc_result_t result;
 	char *key;
 	size_t len;
@@ -810,13 +812,19 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 	    isccc_cc_lookupstring(_ctrl, "_ser", &_ser) != ISC_R_SUCCESS ||
 	    isccc_cc_lookupstring(_ctrl, "_tim", &_tim) != ISC_R_SUCCESS)
 		return (ISC_R_FAILURE);
+
+	INSIST(_ser != NULL);
+	INSIST(_tim != NULL);
+
 	/*
 	 * _frm and _to are optional.
 	 */
+	tmp = NULL;
 	if (isccc_cc_lookupstring(_ctrl, "_frm", &tmp) != ISC_R_SUCCESS)
 		_frm = "";
 	else
 		_frm = tmp;
+	tmp = NULL;
 	if (isccc_cc_lookupstring(_ctrl, "_to", &tmp) != ISC_R_SUCCESS)
 		_to = "";
 	else

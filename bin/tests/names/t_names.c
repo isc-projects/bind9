@@ -27,6 +27,7 @@
 #include <isc/string.h>
 
 #include <dns/compress.h>
+#include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/result.h>
 
@@ -166,7 +167,7 @@ chkdata(unsigned char *buf, size_t buflen, char *exp_data,
 		else {
 			t_info("bad data at position %lu, "
 			       "got 0x%.2x, expected 0x%.2x\n",
-			       (unsigned long)cnt, *p, *q);
+			       (unsigned long)cnt, *p, *v);
 			result = cnt + 1;
 		}
 		(void)free(data);
@@ -329,40 +330,6 @@ hname_to_tname(char *src, char *target, size_t len) {
 }
 
 #endif	/* NEED_HNAME_TO_TNAME */
-
-/*%
- * initialize a dns_name_t from a text name, hiding all
- * buffer and other object initialization from the caller
- *
- */
-
-static isc_result_t
-dname_from_tname(char *name, dns_name_t *dns_name) {
-	int		len;
-	isc_buffer_t	txtbuf;
-	isc_buffer_t	*binbuf;
-	unsigned char	*junk;
-	isc_result_t	result;
-
-	len = strlen(name);
-	isc_buffer_init(&txtbuf, name, len);
-	isc_buffer_add(&txtbuf, len);
-	junk = (unsigned char *)malloc(sizeof(unsigned char) * BUFLEN);
-	binbuf = (isc_buffer_t *)malloc(sizeof(isc_buffer_t));
-	if ((junk != NULL) && (binbuf != NULL)) {
-		isc_buffer_init(binbuf, junk, BUFLEN);
-		dns_name_init(dns_name, NULL);
-		dns_name_setbuffer(dns_name, binbuf);
-		result = dns_name_fromtext(dns_name,  &txtbuf, NULL, 0, NULL);
-	} else {
-		result = ISC_R_NOSPACE;
-		if (junk != NULL)
-			(void)free(junk);
-		if (binbuf != NULL)
-			(void)free(binbuf);
-	}
-	return (result);
-}
 
 static const char *a3 =	"dns_name_init initializes 'name' to the empty name";
 
@@ -624,8 +591,10 @@ test_dns_name_hash(char *test_name1, char *test_name2,
 	isc_boolean_t	match;
 	unsigned int	hash1;
 	unsigned int	hash2;
-	dns_name_t	dns_name1;
-	dns_name_t	dns_name2;
+	dns_fixedname_t	fixed1;
+	dns_fixedname_t	fixed2;
+	dns_name_t	*dns_name1;
+	dns_name_t	*dns_name2;
 	isc_result_t	result;
 
 	rval = T_UNRESOLVED;
@@ -633,12 +602,17 @@ test_dns_name_hash(char *test_name1, char *test_name2,
 
 	t_info("testing names %s and %s\n", test_name1, test_name2);
 
-	result = dname_from_tname(test_name1, &dns_name1);
+	dns_fixedname_init(&fixed1);
+	dns_fixedname_init(&fixed2);
+	dns_name1 = dns_fixedname_name(&fixed1);
+	dns_name2 = dns_fixedname_name(&fixed2);
+	result = dns_name_fromstring2(dns_name1, test_name1, NULL, 0, NULL);
 	if (result == ISC_R_SUCCESS) {
-		result = dname_from_tname(test_name2, &dns_name2);
+		result = dns_name_fromstring2(dns_name2, test_name2, NULL,
+					      0, NULL);
 		if (result == ISC_R_SUCCESS) {
-			hash1 = dns_name_hash(&dns_name1, ISC_TRUE);
-			hash2 = dns_name_hash(&dns_name2, ISC_TRUE);
+			hash1 = dns_name_hash(dns_name1, ISC_TRUE);
+			hash2 = dns_name_hash(dns_name2, ISC_TRUE);
 			match = ISC_FALSE;
 			if (hash1 == hash2)
 				match = ISC_TRUE;
@@ -646,8 +620,8 @@ test_dns_name_hash(char *test_name1, char *test_name2,
 				++failures;
 				t_info("hash mismatch when ISC_TRUE\n");
 			}
-			hash1 = dns_name_hash(&dns_name1, ISC_FALSE);
-			hash2 = dns_name_hash(&dns_name2, ISC_FALSE);
+			hash1 = dns_name_hash(dns_name1, ISC_FALSE);
+			hash2 = dns_name_hash(dns_name2, ISC_FALSE);
 			match = ISC_FALSE;
 			if (hash1 == hash2)
 				match = ISC_TRUE;
@@ -660,11 +634,11 @@ test_dns_name_hash(char *test_name1, char *test_name2,
 			else
 				rval = T_FAIL;
 		} else {
-			t_info("dns_fromtext %s failed, result = %s\n",
+			t_info("dns_name_fromstring2 %s failed, result = %s\n",
 				test_name2, dns_result_totext(result));
 		}
 	} else {
-		t_info("dns_fromtext %s failed, result = %s\n",
+		t_info("dns_name_fromstring2 %s failed, result = %s\n",
 				test_name1, dns_result_totext(result));
 	}
 	return (rval);
@@ -766,8 +740,10 @@ test_dns_name_fullcompare(char *name1, char *name2,
 	int		nfails;
 	int		order;
 	unsigned int	nlabels;
-	dns_name_t	dns_name1;
-	dns_name_t	dns_name2;
+	dns_fixedname_t fixed1;
+	dns_fixedname_t fixed2;
+	dns_name_t	*dns_name1;
+	dns_name_t	*dns_name2;
 	isc_result_t	dns_result;
 	dns_namereln_t	dns_reln;
 
@@ -778,11 +754,16 @@ test_dns_name_fullcompare(char *name1, char *name2,
 	t_info("testing names %s and %s for relation %s\n", name1, name2,
 	       dns_namereln_to_text(exp_dns_reln));
 
-	dns_result = dname_from_tname(name1, &dns_name1);
+	dns_fixedname_init(&fixed1);
+	dns_fixedname_init(&fixed2);
+	dns_name1 = dns_fixedname_name(&fixed1);
+	dns_name2 = dns_fixedname_name(&fixed2);
+	dns_result = dns_name_fromstring2(dns_name1, name1, NULL, 0, NULL);
 	if (dns_result == ISC_R_SUCCESS) {
-		dns_result = dname_from_tname(name2, &dns_name2);
+		dns_result = dns_name_fromstring2(dns_name2, name2, NULL,
+						  0, NULL);
 		if (dns_result == ISC_R_SUCCESS) {
-			dns_reln = dns_name_fullcompare(&dns_name1, &dns_name2,
+			dns_reln = dns_name_fullcompare(dns_name1, dns_name2,
 					&order, &nlabels);
 
 			if (dns_reln != exp_dns_reln) {
@@ -814,11 +795,11 @@ test_dns_name_fullcompare(char *name1, char *name2,
 			else
 				result = T_FAIL;
 		} else {
-			t_info("dname_from_tname failed, result == %s\n",
+			t_info("dns_name_fromstring2 failed, result == %s\n",
 			       dns_result_totext(result));
 		}
 	} else {
-		t_info("dname_from_tname failed, result == %s\n",
+		t_info("dns_name_fromstring2 failed, result == %s\n",
 		       dns_result_totext(result));
 	}
 
@@ -907,8 +888,10 @@ test_dns_name_compare(char *name1, char *name2, int exp_order) {
 	int		result;
 	int		order;
 	isc_result_t	dns_result;
-	dns_name_t	dns_name1;
-	dns_name_t	dns_name2;
+	dns_fixedname_t fixed1;
+	dns_fixedname_t fixed2;
+	dns_name_t	*dns_name1;
+	dns_name_t	*dns_name2;
 
 	result = T_UNRESOLVED;
 
@@ -916,11 +899,16 @@ test_dns_name_compare(char *name1, char *name2, int exp_order) {
 	       exp_order == 0 ? "==": (exp_order == -1 ? "<" : ">"),
 	       name2);
 
-	dns_result = dname_from_tname(name1, &dns_name1);
+	dns_fixedname_init(&fixed1);
+	dns_fixedname_init(&fixed2);
+	dns_name1 = dns_fixedname_name(&fixed1);
+	dns_name2 = dns_fixedname_name(&fixed2);
+	dns_result = dns_name_fromstring2(dns_name1, name1, NULL, 0, NULL);
 	if (dns_result == ISC_R_SUCCESS) {
-		dns_result = dname_from_tname(name2, &dns_name2);
+		dns_result = dns_name_fromstring2(dns_name2, name2, NULL,
+						  0, NULL);
 		if (dns_result == ISC_R_SUCCESS) {
-			order = dns_name_compare(&dns_name1, &dns_name2);
+			order = dns_name_compare(dns_name1, dns_name2);
 			/*
 			 * Normalize order.
 			 */
@@ -935,11 +923,11 @@ test_dns_name_compare(char *name1, char *name2, int exp_order) {
 			} else
 				result = T_PASS;
 		} else {
-			t_info("dname_from_tname failed, result == %s\n",
+			t_info("dns_name_fromstring2 failed, result == %s\n",
 					dns_result_totext(result));
 		}
 	} else {
-		t_info("dname_from_tname failed, result == %s\n",
+		t_info("dns_name_fromstring2 failed, result == %s\n",
 				dns_result_totext(result));
 	}
 
@@ -1010,19 +998,26 @@ test_dns_name_rdatacompare(char *name1, char *name2, int exp_order) {
 	int		result;
 	int		order;
 	isc_result_t	dns_result;
-	dns_name_t	dns_name1;
-	dns_name_t	dns_name2;
+	dns_fixedname_t fixed1;
+	dns_fixedname_t fixed2;
+	dns_name_t	*dns_name1;
+	dns_name_t	*dns_name2;
 
 	result = T_UNRESOLVED;
 
 	t_info("testing %s %s %s\n", name1,
 	       exp_order == 0 ? "==": (exp_order == -1 ? "<" : ">"), name2);
 
-	dns_result = dname_from_tname(name1, &dns_name1);
+	dns_fixedname_init(&fixed1);
+	dns_fixedname_init(&fixed2);
+	dns_name1 = dns_fixedname_name(&fixed1);
+	dns_name2 = dns_fixedname_name(&fixed2);
+	dns_result = dns_name_fromstring2(dns_name1, name1, NULL, 0, NULL);
 	if (dns_result == ISC_R_SUCCESS) {
-		dns_result = dname_from_tname(name2, &dns_name2);
+		dns_result = dns_name_fromstring2(dns_name2, name2, NULL,
+						  0, NULL);
 		if (dns_result == ISC_R_SUCCESS) {
-			order = dns_name_rdatacompare(&dns_name1, &dns_name2);
+			order = dns_name_rdatacompare(dns_name1, dns_name2);
 			/*
 			 * Normalize order.
 			 */
@@ -1037,11 +1032,11 @@ test_dns_name_rdatacompare(char *name1, char *name2, int exp_order) {
 			} else
 				result = T_PASS;
 		} else {
-			t_info("dname_from_tname failed, result == %s\n",
+			t_info("dns_name_fromstring2 failed, result == %s\n",
 			       dns_result_totext(result));
 		}
 	} else {
-		t_info("dname_from_tname failed, result == %s\n",
+		t_info("dns_name_fromstring2 failed, result == %s\n",
 		       dns_result_totext(result));
 	}
 
@@ -1113,19 +1108,26 @@ test_dns_name_issubdomain(char *name1, char *name2, isc_boolean_t exp_rval) {
 	int		result;
 	isc_boolean_t	rval;
 	isc_result_t	dns_result;
-	dns_name_t	dns_name1;
-	dns_name_t	dns_name2;
+	dns_fixedname_t fixed1;
+	dns_fixedname_t fixed2;
+	dns_name_t	*dns_name1;
+	dns_name_t	*dns_name2;
 
 	result = T_UNRESOLVED;
 
 	t_info("testing %s %s a subdomain of %s\n", name1,
 	       exp_rval == 0 ? "is not" : "is", name2);
 
-	dns_result = dname_from_tname(name1, &dns_name1);
+	dns_fixedname_init(&fixed1);
+	dns_fixedname_init(&fixed2);
+	dns_name1 = dns_fixedname_name(&fixed1);
+	dns_name2 = dns_fixedname_name(&fixed2);
+	dns_result = dns_name_fromstring2(dns_name1, name1, NULL, 0, NULL);
 	if (dns_result == ISC_R_SUCCESS) {
-		dns_result = dname_from_tname(name2, &dns_name2);
+		dns_result = dns_name_fromstring2(dns_name2, name2, NULL,
+						  0, NULL);
 		if (dns_result == ISC_R_SUCCESS) {
-			rval = dns_name_issubdomain(&dns_name1, &dns_name2);
+			rval = dns_name_issubdomain(dns_name1, dns_name2);
 
 			if (rval != exp_rval) {
 				t_info("expected return value of %s, got %s\n",
@@ -1135,11 +1137,11 @@ test_dns_name_issubdomain(char *name1, char *name2, isc_boolean_t exp_rval) {
 			} else
 				result = T_PASS;
 		} else {
-			t_info("dname_from_tname failed, result == %s\n",
+			t_info("dns_name_fromstring2 failed, result == %s\n",
 			       dns_result_totext(result));
 		}
 	} else {
-		t_info("dname_from_tname failed, result == %s\n",
+		t_info("dns_name_fromstring2 failed, result == %s\n",
 		       dns_result_totext(result));
 	}
 
@@ -1206,15 +1208,18 @@ test_dns_name_countlabels(char *test_name, unsigned int exp_nlabels) {
 	int		result;
 	unsigned int	nlabels;
 	isc_result_t	dns_result;
-	dns_name_t	dns_name;
+	dns_fixedname_t	fixed;
+	dns_name_t	*dns_name;
 
 	result = T_UNRESOLVED;
 
 	t_info("testing %s\n", test_name);
 
-	dns_result = dname_from_tname(test_name, &dns_name);
+	dns_fixedname_init(&fixed);
+	dns_name = dns_fixedname_name(&fixed);
+	dns_result = dns_name_fromstring2(dns_name, test_name, NULL, 0, NULL);
 	if (dns_result == ISC_R_SUCCESS) {
-		nlabels = dns_name_countlabels(&dns_name);
+		nlabels = dns_name_countlabels(dns_name);
 
 		if (nlabels != exp_nlabels) {
 			t_info("expected %d, got %d\n", exp_nlabels, nlabels);
@@ -1222,7 +1227,7 @@ test_dns_name_countlabels(char *test_name, unsigned int exp_nlabels) {
 		} else
 			result = T_PASS;
 	} else {
-		t_info("dname_from_tname failed, result == %s\n",
+		t_info("dns_name_fromstring2 failed, result == %s\n",
 		       dns_result_totext(dns_result));
 	}
 
@@ -1296,8 +1301,10 @@ test_dns_name_getlabel(char *test_name1, int label1_pos, char *test_name2,
 	unsigned int	cnt;
 	unsigned char	*p;
 	unsigned char	*q;
-	dns_name_t	dns_name1;
-	dns_name_t	dns_name2;
+	dns_fixedname_t fixed1;
+	dns_fixedname_t fixed2;
+	dns_name_t	*dns_name1;
+	dns_name_t	*dns_name2;
 	dns_label_t	dns_label1;
 	dns_label_t	dns_label2;
 	isc_result_t	dns_result;
@@ -1307,12 +1314,18 @@ test_dns_name_getlabel(char *test_name1, int label1_pos, char *test_name2,
 
 	t_info("testing with %s and %s\n", test_name1, test_name2);
 
-	dns_result = dname_from_tname(test_name1, &dns_name1);
+	dns_fixedname_init(&fixed1);
+	dns_fixedname_init(&fixed2);
+	dns_name1 = dns_fixedname_name(&fixed1);
+	dns_name2 = dns_fixedname_name(&fixed2);
+	dns_result = dns_name_fromstring2(dns_name1, test_name1, NULL,
+					  0, NULL);
 	if (dns_result == ISC_R_SUCCESS) {
-		dns_result = dname_from_tname(test_name2, &dns_name2);
+		dns_result = dns_name_fromstring2(dns_name2, test_name2, NULL,
+						  0, NULL);
 		if (dns_result == ISC_R_SUCCESS) {
-			dns_name_getlabel(&dns_name1, label1_pos, &dns_label1);
-			dns_name_getlabel(&dns_name2, label2_pos, &dns_label2);
+			dns_name_getlabel(dns_name1, label1_pos, &dns_label1);
+			dns_name_getlabel(dns_name2, label2_pos, &dns_label2);
 			if (dns_label1.length != dns_label2.length) {
 				t_info("label lengths differ\n");
 				++nfails;
@@ -1331,11 +1344,11 @@ test_dns_name_getlabel(char *test_name1, int label1_pos, char *test_name2,
 			else
 				result = T_FAIL;
 		} else {
-			t_info("dname_from_tname failed, result == %s",
+			t_info("dns_name_fromstring2 failed, result == %s",
 			       dns_result_totext(result));
 		}
 	} else {
-		t_info("dname_from_tname failed, result == %s",
+		t_info("dns_name_fromstring2 failed, result == %s",
 		       dns_result_totext(result));
 	}
 	return (result);
@@ -1409,8 +1422,10 @@ test_dns_name_getlabelsequence(char *test_name1, int label1_start,
 	unsigned int	cnt;
 	unsigned char	*p;
 	unsigned char	*q;
-	dns_name_t	dns_name1;
-	dns_name_t	dns_name2;
+	dns_fixedname_t fixed1;
+	dns_fixedname_t fixed2;
+	dns_name_t	*dns_name1;
+	dns_name_t	*dns_name2;
 	dns_name_t	dns_targetname1;
 	dns_name_t	dns_targetname2;
 	isc_result_t	dns_result;
@@ -1421,16 +1436,22 @@ test_dns_name_getlabelsequence(char *test_name1, int label1_start,
 
 	nfails = 0;
 	result = T_UNRESOLVED;
-	dns_result = dname_from_tname(test_name1, &dns_name1);
+	dns_fixedname_init(&fixed1);
+	dns_fixedname_init(&fixed2);
+	dns_name1 = dns_fixedname_name(&fixed1);
+	dns_name2 = dns_fixedname_name(&fixed2);
+	dns_result = dns_name_fromstring2(dns_name1, test_name1, NULL,
+					  0, NULL);
 	if (dns_result == ISC_R_SUCCESS) {
-		dns_result = dname_from_tname(test_name2, &dns_name2);
+		dns_result = dns_name_fromstring2(dns_name2, test_name2, NULL,
+						  0, NULL);
 		if (dns_result == ISC_R_SUCCESS) {
 			t_info("testing %s %s\n", test_name1, test_name2);
 			dns_name_init(&dns_targetname1, NULL);
 			dns_name_init(&dns_targetname2, NULL);
-			dns_name_getlabelsequence(&dns_name1, label1_start,
+			dns_name_getlabelsequence(dns_name1, label1_start,
 						  range, &dns_targetname1);
-			dns_name_getlabelsequence(&dns_name2, label2_start,
+			dns_name_getlabelsequence(dns_name2, label2_start,
 						  range, &dns_targetname2);
 
 			/*
@@ -1461,11 +1482,11 @@ test_dns_name_getlabelsequence(char *test_name1, int label1_start,
 			else
 				result = T_FAIL;
 		} else {
-			t_info("dname_from_tname failed, result == %s",
+			t_info("dns_name_fromstring2 failed, result == %s",
 			       dns_result_totext(dns_result));
 		}
 	} else {
-		t_info("dname_from_tname failed, result == %s",
+		t_info("dns_name_fromstring2 failed, result == %s",
 		       dns_result_totext(dns_result));
 	}
 	return (result);
@@ -1532,7 +1553,8 @@ test_dns_name_fromregion(char *test_name) {
 	int		order;
 	unsigned int	nlabels;
 	isc_result_t	dns_result;
-	dns_name_t	dns_name1;
+	dns_fixedname_t fixed1;
+	dns_name_t	*dns_name1;
 	dns_name_t	dns_name2;
 	dns_namereln_t	dns_namereln;
 	isc_region_t	region;
@@ -1541,21 +1563,23 @@ test_dns_name_fromregion(char *test_name) {
 
 	t_info("testing %s\n", test_name);
 
-	dns_result = dname_from_tname(test_name, &dns_name1);
+	dns_fixedname_init(&fixed1);
+	dns_name1 = dns_fixedname_name(&fixed1);
+	dns_result = dns_name_fromstring2(dns_name1, test_name, NULL, 0, NULL);
 	if (dns_result == ISC_R_SUCCESS) {
 
-		dns_name_toregion(&dns_name1, &region);
+		dns_name_toregion(dns_name1, &region);
 
 		dns_name_init(&dns_name2, NULL);
 		dns_name_fromregion(&dns_name2, &region);
-		dns_namereln = dns_name_fullcompare(&dns_name1, &dns_name2,
+		dns_namereln = dns_name_fullcompare(dns_name1, &dns_name2,
 						    &order, &nlabels);
 		if (dns_namereln == dns_namereln_equal)
 			result = T_PASS;
 		else
 			result = T_FAIL;
 	} else {
-		t_info("dname_from_tname failed, result == %s\n",
+		t_info("dns_name_fromstring2 failed, result == %s\n",
 		       dns_result_totext(result));
 	}
 	return (result);
@@ -1982,8 +2006,9 @@ test_dns_name_fromwire(char *datafile_name, int testname_offset, int downcase,
 	char			buf2[BUFLEN];
 	isc_buffer_t		iscbuf1;
 	isc_buffer_t		iscbuf2;
+	dns_fixedname_t		fixed2;
 	dns_name_t		dns_name1;
-	dns_name_t		dns_name2;
+	dns_name_t		*dns_name2;
 	isc_result_t		dns_result;
 	dns_namereln_t		dns_namereln;
 	dns_decompress_t	dctx;
@@ -2004,10 +2029,13 @@ test_dns_name_fromwire(char *datafile_name, int testname_offset, int downcase,
 
 	if ((dns_result == exp_result) && (exp_result == ISC_R_SUCCESS)) {
 
-		dns_result = dname_from_tname(exp_name, &dns_name2);
+		dns_fixedname_init(&fixed2);
+		dns_name2 = dns_fixedname_name(&fixed2);
+		dns_result = dns_name_fromstring2(dns_name2, exp_name, NULL,
+						  0, NULL);
 		if (dns_result == ISC_R_SUCCESS) {
 			dns_namereln = dns_name_fullcompare(&dns_name1,
-							    &dns_name2,
+							    dns_name2,
 							    &order, &nlabels);
 			if (dns_namereln != dns_namereln_equal) {
 				t_info("dns_name_fullcompare  returned %s\n",

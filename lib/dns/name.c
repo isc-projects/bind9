@@ -584,11 +584,13 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 	nlabels = 0;
 	l1 = name1->labels;
 	l2 = name2->labels;
-	ldiff = (int)l1 - (int)l2;
-	if (ldiff < 0)
+	if (l2 > l1) {
 		l = l1;
-	else
+		ldiff = 0 - (l2 - l1);
+	} else {
 		l = l2;
+		ldiff = l1 - l2;
+	}
 
 	while (l > 0) {
 		l--;
@@ -2240,6 +2242,7 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	REQUIRE(digest != NULL);
 
 	DNS_NAME_INIT(&downname, NULL);
+
 	isc_buffer_init(&buffer, data, sizeof(data));
 
 	result = dns_name_downcase(name, &downname, &buffer);

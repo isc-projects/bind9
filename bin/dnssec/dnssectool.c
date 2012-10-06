@@ -520,14 +520,16 @@ goodsig(dns_name_t *origin, dns_rdata_t *sigrdata, dns_name_t *name,
 	dst_key_t *dstkey = NULL;
 	isc_result_t result;
 
-	dns_rdata_tostruct(sigrdata, &sig, NULL);
+	result = dns_rdata_tostruct(sigrdata, &sig, NULL);
+	check_result(result, "dns_rdata_tostruct()");
 
 	for (result = dns_rdataset_first(keyrdataset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(keyrdataset)) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(keyrdataset, &rdata);
-		dns_rdata_tostruct(&rdata, &key, NULL);
+		result = dns_rdata_tostruct(&rdata, &key, NULL);
+		check_result(result, "dns_rdata_tostruct()");
 		result = dns_dnssec_keyfromrdata(origin, &rdata, mctx,
 						 &dstkey);
 		if (result != ISC_R_SUCCESS)
@@ -821,6 +823,7 @@ innsec3params(dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
 
 		dns_rdataset_current(nsec3paramset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
+		check_result(result, "dns_rdata_tostruct()");
 		if (nsec3param.flags == 0 &&
 		    nsec3param.hash == nsec3->hash &&
 		    nsec3param.iterations == nsec3->iterations &&
@@ -1021,7 +1024,8 @@ verifyset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 		dns_rdata_rrsig_t sig;
 
 		dns_rdataset_current(&sigrdataset, &rdata);
-		dns_rdata_tostruct(&rdata, &sig, NULL);
+		result = dns_rdata_tostruct(&rdata, &sig, NULL);
+		check_result(result, "dns_rdata_tostruct()");
 		if (rdataset->ttl != sig.originalttl) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			type_format(rdataset->type, typebuf, sizeof(typebuf));
