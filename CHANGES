@@ -1,3 +1,5 @@
+3391.	[bug]		DNSKEY that encountered a CNAME failed. [RT #31262]
+
 3390.	[bug]		Silence clang compiler warnings. [RT #30417]
 
 3389.	[bug]		Always return NOERROR (not 0) in TSIG. [RT #31275]

@@ -1809,5 +1809,71 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:testing DNSKEY lookup via CNAME ($n)"
+ret=0
+$DIG $DIGOPTS +noauth cnameandkey.secure.example. \
+	@10.53.0.3 dnskey > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth cnameandkey.secure.example. \
+	@10.53.0.4 dnskey > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "CNAME" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:testing KEY lookup at CNAME (present) ($n)"
+ret=0
+$DIG $DIGOPTS +noauth cnameandkey.secure.example. \
+	@10.53.0.3 key > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth cnameandkey.secure.example. \
+	@10.53.0.4 key > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "CNAME" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:testing KEY lookup at CNAME (not present) ($n)"
+ret=0
+$DIG $DIGOPTS +noauth cnamenokey.secure.example. \
+	@10.53.0.3 key > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth cnamenokey.secure.example. \
+	@10.53.0.4 key > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "CNAME" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:testing DNSKEY lookup via DNAME ($n)"
+ret=0
+$DIG $DIGOPTS a.dnameandkey.secure.example. \
+	@10.53.0.3 dnskey > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS a.dnameandkey.secure.example. \
+	@10.53.0.4 dnskey > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "CNAME" dig.out.ns4.test$n > /dev/null || ret=1
+grep "DNAME" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:testing KEY lookup via DNAME ($n)"
+ret=0
+$DIG $DIGOPTS b.dnameandkey.secure.example. \
+	@10.53.0.3 key > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS b.dnameandkey.secure.example. \
+	@10.53.0.4 key > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "DNAME" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
