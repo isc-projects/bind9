@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -602,7 +602,7 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 				*err_message);
 		else
 			gss_log(3, "Failure initiating security context");
-			
+
 		result = ISC_R_FAILURE;
 		goto out;
 	}
