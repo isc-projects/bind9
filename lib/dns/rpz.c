@@ -191,6 +191,7 @@ dns_rpz_policy2str(dns_rpz_policy_t policy) {
 		break;
 	default:
 		str = "";
+		POST(str);
 		INSIST(0);
 	}
 	return (str);
