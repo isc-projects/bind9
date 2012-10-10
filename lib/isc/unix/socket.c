@@ -458,7 +458,7 @@ enum {
 	STATID_SENDFAIL = 8,
 	STATID_RECVFAIL = 9
 };
-static const isc_statscounter_t upd4statsindex[] = {
+static const isc_statscounter_t udp4statsindex[] = {
 	isc_sockstatscounter_udp4open,
 	isc_sockstatscounter_udp4openfail,
 	isc_sockstatscounter_udp4close,
@@ -470,7 +470,7 @@ static const isc_statscounter_t upd4statsindex[] = {
 	isc_sockstatscounter_udp4sendfail,
 	isc_sockstatscounter_udp4recvfail
 };
-static const isc_statscounter_t upd6statsindex[] = {
+static const isc_statscounter_t udp6statsindex[] = {
 	isc_sockstatscounter_udp6open,
 	isc_sockstatscounter_udp6openfail,
 	isc_sockstatscounter_udp6close,
@@ -2377,7 +2377,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	switch (sock->type) {
 	case isc_sockettype_udp:
 		sock->statsindex =
-			(pf == AF_INET) ? upd4statsindex : upd6statsindex;
+			(pf == AF_INET) ? udp4statsindex : udp6statsindex;
 		break;
 	case isc_sockettype_tcp:
 		sock->statsindex =
