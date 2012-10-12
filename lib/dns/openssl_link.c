@@ -330,7 +330,7 @@ dst__openssl_toresult(isc_result_t fallback) {
 isc_result_t
 dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
 	isc_result_t result;
-	unsigned long err = ERR_peek_error();
+	unsigned long err;
 	const char *file, *data;
 	int line, flags;
 	char buf[256];
