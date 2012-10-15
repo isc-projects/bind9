@@ -446,10 +446,18 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	if (msg->rcode != 0) {
 		char namestr[DNS_NAME_FORMATSIZE];
 		dns_name_format(query->lookup->name, namestr, sizeof(namestr));
-		printf("Host %s not found: %d(%s)\n",
-		       (msg->rcode != dns_rcode_nxdomain) ? namestr :
-		       query->lookup->textname, msg->rcode,
-		       rcode_totext(msg->rcode));
+
+		if (query->lookup->identify_previous_line)
+			printf("Nameserver %s:\n\t%s not found: %d(%s)\n",
+			       query->servname,
+			       (msg->rcode != dns_rcode_nxdomain) ? namestr :
+			       query->lookup->textname, msg->rcode,
+			       rcode_totext(msg->rcode));
+		else
+			printf("Host %s not found: %d(%s)\n",
+			       (msg->rcode != dns_rcode_nxdomain) ? namestr :
+			       query->lookup->textname, msg->rcode,
+			       rcode_totext(msg->rcode));
 		return (ISC_R_SUCCESS);
 	}
 
