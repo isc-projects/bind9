@@ -280,6 +280,7 @@ init_desc(void) {
 			"QryRTT" DNS_RESOLVER_QRYRTTCLASS4STR "+");
 	SET_RESSTATDESC(nfetch, "active fetches", "NumFetch");
 	SET_RESSTATDESC(buckets, "bucket size", "BucketSize");
+	SET_RESSTATDESC(refused, "REFUSED received", "REFUSED");
 	INSIST(i == dns_resstatscounter_max);
 
 	/* Initialize adb statistics */

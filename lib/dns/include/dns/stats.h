@@ -65,8 +65,9 @@ enum {
 	dns_resstatscounter_disprequdp = 31,
 	dns_resstatscounter_dispreqtcp = 32,
 	dns_resstatscounter_buckets = 33,
+	dns_resstatscounter_refused = 34,
 
-	dns_resstatscounter_max = 34,
+	dns_resstatscounter_max = 35,
 
 	/*
 	 * DNSSEC stats.

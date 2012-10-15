@@ -6833,6 +6833,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		case dns_rcode_formerr:
 			inc_stats(fctx->res, dns_resstatscounter_formerr);
 			break;
+		case dns_rcode_refused:
+			inc_stats(fctx->res, dns_resstatscounter_refused);
+			break;
 		default:
 			inc_stats(fctx->res, dns_resstatscounter_othererror);
 			break;

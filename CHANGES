@@ -1,3 +1,5 @@
+3392.	[func]		Keep statistics on REFUSED responses. [RT #31412]
+
 3391.	[bug]		A DNSKEY lookup that encountered a CNAME failed.
 			[RT #31262]
 
