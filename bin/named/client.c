@@ -1656,8 +1656,18 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Deal with EDNS.
 	 */
-	opt = dns_message_getopt(client->message);
+	if (ns_g_noedns)
+		opt = NULL;
+	else
+		opt = dns_message_getopt(client->message);
 	if (opt != NULL) {
+		/*
+		 * Are we dropping all EDNS queries?
+		 */
+		if (ns_g_dropedns) {
+			ns_client_next(client, ISC_R_SUCCESS);
+			goto cleanup;
+		}
 		/*
 		 * Set the client's UDP buffer size.
 		 */

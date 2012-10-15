@@ -525,6 +525,13 @@ parse_command_line(int argc, char *argv[]) {
 				maxudp = 512;
 			else if (!strcmp(isc_commandline_argument, "maxudp1460"))
 				maxudp = 1460;
+			else if (!strcmp(isc_commandline_argument, "dropedns"))
+				ns_g_dropedns = ISC_TRUE;
+			else if (!strcmp(isc_commandline_argument, "noedns"))
+				ns_g_noedns = ISC_TRUE;
+			else if (!strncmp(isc_commandline_argument,
+					  "maxudp=", 7))
+				maxudp = atoi(isc_commandline_argument + 7);
 			else if (!strncmp(isc_commandline_argument,
 					  "delay=", 6))
 				ns_g_delay = atoi(isc_commandline_argument + 6);
