@@ -1861,7 +1861,7 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
  resend:
 	if (sock->type == isc_sockettype_udp &&
 	    sock->manager->maxudp != 0 &&
-	    write_count > (size_t)sock->manager->maxudp) 
+	    write_count > (size_t)sock->manager->maxudp)
 		cc = write_count;
 	else
 		cc = sendmsg(sock->fd, &msghdr, 0);
