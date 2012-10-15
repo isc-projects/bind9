@@ -3429,6 +3429,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				if (n == 0)
 					docancel = ISC_TRUE;
 				l->trace_root = ISC_FALSE;
+				usesearch = ISC_FALSE;
 			} else
 #ifdef DIG_SIGCHASE
 				if (!do_sigchase)
