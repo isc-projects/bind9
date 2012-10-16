@@ -1,3 +1,6 @@
+3394.	[bug]		Adjust 'sucessfully validated after lower casing
+			signer' log level and category. [RT #31414]
+
 3393.	[bug]		'host -C' could core dump if REFUSED was received.
 			[RT #31381]
 
