@@ -8904,7 +8904,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    servers.  The official servers which cover these namespaces
 	    return NXDOMAIN responses to these queries.  In particular,
             these cover the reverse namespaces for addresses from
-            RFC 1918, RFC 4193, and RFC 5737.  They also include the
+            RFC 1918, RFC 4193, RFC 5737 and RFC 6598.  They also include the
             reverse namespace for IPv6 local address (locally assigned),
             IPv6 link local addresses, the IPv6 loopback address and the
             IPv6 unknown address.
@@ -8935,6 +8935,70 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>30.172.IN-ADDR.ARPA</listitem>
 	      <listitem>31.172.IN-ADDR.ARPA</listitem>
 	      <listitem>168.192.IN-ADDR.ARPA</listitem>
+	      <listitem>64.100.IN-ADDR.ARPA</listitem>
+	      <listitem>65.100.IN-ADDR.ARPA</listitem>
+	      <listitem>66.100.IN-ADDR.ARPA</listitem>
+	      <listitem>67.100.IN-ADDR.ARPA</listitem>
+	      <listitem>68.100.IN-ADDR.ARPA</listitem>
+	      <listitem>69.100.IN-ADDR.ARPA</listitem>
+	      <listitem>70.100.IN-ADDR.ARPA</listitem>
+	      <listitem>71.100.IN-ADDR.ARPA</listitem>
+	      <listitem>72.100.IN-ADDR.ARPA</listitem>
+	      <listitem>73.100.IN-ADDR.ARPA</listitem>
+	      <listitem>74.100.IN-ADDR.ARPA</listitem>
+	      <listitem>75.100.IN-ADDR.ARPA</listitem>
+	      <listitem>76.100.IN-ADDR.ARPA</listitem>
+	      <listitem>77.100.IN-ADDR.ARPA</listitem>
+	      <listitem>78.100.IN-ADDR.ARPA</listitem>
+	      <listitem>79.100.IN-ADDR.ARPA</listitem>
+	      <listitem>80.100.IN-ADDR.ARPA</listitem>
+	      <listitem>81.100.IN-ADDR.ARPA</listitem>
+	      <listitem>82.100.IN-ADDR.ARPA</listitem>
+	      <listitem>83.100.IN-ADDR.ARPA</listitem>
+	      <listitem>84.100.IN-ADDR.ARPA</listitem>
+	      <listitem>85.100.IN-ADDR.ARPA</listitem>
+	      <listitem>86.100.IN-ADDR.ARPA</listitem>
+	      <listitem>87.100.IN-ADDR.ARPA</listitem>
+	      <listitem>88.100.IN-ADDR.ARPA</listitem>
+	      <listitem>89.100.IN-ADDR.ARPA</listitem>
+	      <listitem>90.100.IN-ADDR.ARPA</listitem>
+	      <listitem>91.100.IN-ADDR.ARPA</listitem>
+	      <listitem>92.100.IN-ADDR.ARPA</listitem>
+	      <listitem>93.100.IN-ADDR.ARPA</listitem>
+	      <listitem>94.100.IN-ADDR.ARPA</listitem>
+	      <listitem>95.100.IN-ADDR.ARPA</listitem>
+	      <listitem>96.100.IN-ADDR.ARPA</listitem>
+	      <listitem>97.100.IN-ADDR.ARPA</listitem>
+	      <listitem>98.100.IN-ADDR.ARPA</listitem>
+	      <listitem>99.100.IN-ADDR.ARPA</listitem>
+	      <listitem>100.100.IN-ADDR.ARPA</listitem>
+	      <listitem>101.100.IN-ADDR.ARPA</listitem>
+	      <listitem>102.100.IN-ADDR.ARPA</listitem>
+	      <listitem>103.100.IN-ADDR.ARPA</listitem>
+	      <listitem>104.100.IN-ADDR.ARPA</listitem>
+	      <listitem>105.100.IN-ADDR.ARPA</listitem>
+	      <listitem>106.100.IN-ADDR.ARPA</listitem>
+	      <listitem>107.100.IN-ADDR.ARPA</listitem>
+	      <listitem>108.100.IN-ADDR.ARPA</listitem>
+	      <listitem>109.100.IN-ADDR.ARPA</listitem>
+	      <listitem>110.100.IN-ADDR.ARPA</listitem>
+	      <listitem>111.100.IN-ADDR.ARPA</listitem>
+	      <listitem>112.100.IN-ADDR.ARPA</listitem>
+	      <listitem>113.100.IN-ADDR.ARPA</listitem>
+	      <listitem>114.100.IN-ADDR.ARPA</listitem>
+	      <listitem>115.100.IN-ADDR.ARPA</listitem>
+	      <listitem>116.100.IN-ADDR.ARPA</listitem>
+	      <listitem>117.100.IN-ADDR.ARPA</listitem>
+	      <listitem>118.100.IN-ADDR.ARPA</listitem>
+	      <listitem>119.100.IN-ADDR.ARPA</listitem>
+	      <listitem>120.100.IN-ADDR.ARPA</listitem>
+	      <listitem>121.100.IN-ADDR.ARPA</listitem>
+	      <listitem>122.100.IN-ADDR.ARPA</listitem>
+	      <listitem>123.100.IN-ADDR.ARPA</listitem>
+	      <listitem>124.100.IN-ADDR.ARPA</listitem>
+	      <listitem>125.100.IN-ADDR.ARPA</listitem>
+	      <listitem>126.100.IN-ADDR.ARPA</listitem>
+	      <listitem>127.100.IN-ADDR.ARPA</listitem>
 	      <listitem>0.IN-ADDR.ARPA</listitem>
 	      <listitem>127.IN-ADDR.ARPA</listitem>
 	      <listitem>254.169.IN-ADDR.ARPA</listitem>
