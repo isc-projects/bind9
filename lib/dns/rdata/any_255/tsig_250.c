@@ -133,7 +133,7 @@ static inline isc_result_t
 totext_any_tsig(ARGS_TOTEXT) {
 	isc_region_t sr;
 	isc_region_t sigr;
-	char buf[sizeof("281474976710655 ")];
+	char buf[sizeof(" 281474976710655 ")];
 	char *bufp;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -233,7 +233,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%u ", n);
+	sprintf(buf, " %u ", n);
 	RETERR(str_totext(buf, target));
 
 	/*
