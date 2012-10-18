@@ -2506,7 +2506,7 @@ send_tcp_connect(dig_query_t *query) {
 		send_tcp_connect(next);
 		return;
 	}
-	
+
 	INSIST(query->sock == NULL);
 	result = isc_socket_create(socketmgr,
 				   isc_sockaddr_pf(&query->sockaddr),
@@ -3104,7 +3104,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_LOOKUP;
 		return;
 	}
-	
+
 	if (sevent->result != ISC_R_SUCCESS) {
 		if (sevent->result == ISC_R_CANCELED) {
 			debug("in recv cancel handler");
