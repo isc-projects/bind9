@@ -1,3 +1,5 @@
+3397.	[bug]		dig crashed when using +nssearch with +tcp. [RT #25298]
+			
 3396.	[bug]		OPT records were incorrectly removed from signed,
 			truncated responses. [RT #31439]
 
