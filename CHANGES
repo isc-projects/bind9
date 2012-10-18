@@ -1,3 +1,7 @@
+3398.	[bug]		SOA parameters were not being updated with inline
+			signed zones if the zone was modified while the
+			server was offline. [RT #29272]
+
 3397.	[bug]		dig crashed when using +nssearch with +tcp. [RT #25298]
 			
 3396.	[bug]		OPT records were incorrectly removed from signed,
