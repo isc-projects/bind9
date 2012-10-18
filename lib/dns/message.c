@@ -2115,7 +2115,7 @@ dns_message_renderend(dns_message_t *msg) {
 	 * If we're adding a OPT, TSIG or SIG(0) to a truncated message,
 	 * clear all rdatasets from the message except for the question
 	 * before adding the OPT, TSIG or SIG(0).  If the question doesn't
-         * fit, don't include it.
+	 * fit, don't include it.
 	 */
 	if ((msg->tsigkey != NULL || msg->sig0key != NULL || msg->opt) &&
 	    (msg->flags & DNS_MESSAGEFLAG_TC) != 0)
