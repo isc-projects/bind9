@@ -1,3 +1,6 @@
+3396.	[bug]		OPT records were incorrectly removed from signed,
+			truncated responses. [RT #31439]
+
 3395.	[protocol]	Add RFC 6598 reverse zones to built in empty zones
 			list, 64.100.IN-ADDR.ARPA ... 127.100.IN-ADDR.ARPA.
 			[RT #31336]

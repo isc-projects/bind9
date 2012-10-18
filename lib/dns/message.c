@@ -2112,6 +2112,30 @@ dns_message_renderend(dns_message_t *msg) {
 	}
 
 	/*
+	 * If we're adding a OPT, TSIG or SIG(0) to a truncated message,
+	 * clear all rdatasets from the message except for the question
+	 * before adding the OPT, TSIG or SIG(0).  If the question doesn't
+         * fit, don't include it.
+	 */
+	if ((msg->tsigkey != NULL || msg->sig0key != NULL || msg->opt) &&
+	    (msg->flags & DNS_MESSAGEFLAG_TC) != 0)
+	{
+		isc_buffer_t *buf;
+
+		msgresetnames(msg, DNS_SECTION_ANSWER);
+		buf = msg->buffer;
+		dns_message_renderreset(msg);
+		msg->buffer = buf;
+		isc_buffer_clear(msg->buffer);
+		isc_buffer_add(msg->buffer, DNS_MESSAGE_HEADERLEN);
+		dns_compress_rollback(msg->cctx, 0);
+		result = dns_message_rendersection(msg, DNS_SECTION_QUESTION,
+						   0);
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
+			return (result);
+	}
+
+	/*
 	 * If we've got an OPT record, render it.
 	 */
 	if (msg->opt != NULL) {
@@ -2132,30 +2156,6 @@ dns_message_renderend(dns_message_t *msg) {
 					     &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
-
-	/*
-	 * If we're adding a TSIG or SIG(0) to a truncated message,
-	 * clear all rdatasets from the message except for the question
-	 * before adding the TSIG or SIG(0).  If the question doesn't fit,
-	 * don't include it.
-	 */
-	if ((msg->tsigkey != NULL || msg->sig0key != NULL) &&
-	    (msg->flags & DNS_MESSAGEFLAG_TC) != 0)
-	{
-		isc_buffer_t *buf;
-
-		msgresetnames(msg, DNS_SECTION_ANSWER);
-		buf = msg->buffer;
-		dns_message_renderreset(msg);
-		msg->buffer = buf;
-		isc_buffer_clear(msg->buffer);
-		isc_buffer_add(msg->buffer, DNS_MESSAGE_HEADERLEN);
-		dns_compress_rollback(msg->cctx, 0);
-		result = dns_message_rendersection(msg, DNS_SECTION_QUESTION,
-						   0);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
 			return (result);
 	}
 
@@ -3488,4 +3488,3 @@ dns_message_logpacket(dns_message_t *message, const char *description,
 	if (buf != NULL)
 		isc_mem_put(mctx, buf, len);
 }
-
