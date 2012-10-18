@@ -12409,7 +12409,7 @@ sync_secure_db(dns_zone_t *seczone, dns_db_t *secdb,
 		ISC_LIST_UNLINK(diff->tuples, oldtuple, link);
 		dns_difftuple_free(&oldtuple);
 	}
-	
+
 	if (newtuple != NULL) {
 		ISC_LIST_UNLINK(diff->tuples, newtuple, link);
 		*soatuple = newtuple;
