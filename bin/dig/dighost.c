@@ -791,6 +791,7 @@ make_empty_lookup(void) {
 	looknew->need_search = ISC_FALSE;
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
+	ISC_LIST_INIT(looknew->connecting);
 	ISC_LIST_INIT(looknew->my_server_list);
 	return (looknew);
 }
@@ -1468,7 +1469,10 @@ clear_query(dig_query_t *query) {
 	if (lookup->current_query == query)
 		lookup->current_query = NULL;
 
-	ISC_LIST_UNLINK(lookup->q, query, link);
+	if (ISC_LINK_LINKED(query, link))
+		ISC_LIST_UNLINK(lookup->q, query, link);
+	if (ISC_LINK_LINKED(query, clink))
+		ISC_LIST_UNLINK(lookup->connecting, query, clink);
 	if (ISC_LINK_LINKED(&query->recvbuf, link))
 		ISC_LIST_DEQUEUE(query->recvlist, &query->recvbuf,
 				 link);
@@ -1476,6 +1480,7 @@ clear_query(dig_query_t *query) {
 		ISC_LIST_DEQUEUE(query->lengthlist, &query->lengthbuf,
 				 link);
 	INSIST(query->recvspace != NULL);
+
 	if (query->sock != NULL) {
 		isc_socket_detach(&query->sock);
 		sockcount--;
@@ -1503,12 +1508,21 @@ try_clear_lookup(dig_lookup_t *lookup) {
 
 	debug("try_clear_lookup(%p)", lookup);
 
-	if (ISC_LIST_HEAD(lookup->q) != NULL) {
+	if (ISC_LIST_HEAD(lookup->q) != NULL ||
+	    ISC_LIST_HEAD(lookup->connecting) != NULL)
+	{
 		if (debugging) {
 			q = ISC_LIST_HEAD(lookup->q);
 			while (q != NULL) {
 				debug("query to %s still pending", q->servname);
 				q = ISC_LIST_NEXT(q, link);
+			}
+
+			q = ISC_LIST_HEAD(lookup->connecting);
+			while (q != NULL) {
+				debug("query to %s still connecting",
+				      q->servname);
+				q = ISC_LIST_NEXT(q, clink);
 			}
 		}
 		return (ISC_FALSE);
@@ -2286,7 +2300,6 @@ setup_lookup(dig_lookup_t *lookup) {
 		query->rr_count = 0;
 		query->msg_count = 0;
 		query->byte_count = 0;
-		ISC_LINK_INIT(query, link);
 		ISC_LIST_INIT(query->recvlist);
 		ISC_LIST_INIT(query->lengthlist);
 		query->sock = NULL;
@@ -2299,6 +2312,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		isc_buffer_init(&query->slbuf, query->slspace, 2);
 		query->sendbuf = lookup->renderbuf;
 
+		ISC_LINK_INIT(query, clink);
 		ISC_LINK_INIT(query, link);
 		ISC_LIST_ENQUEUE(lookup->q, query, link);
 	}
@@ -2341,7 +2355,7 @@ send_done(isc_task_t *_task, isc_event_t *event) {
 	query->waiting_senddone = ISC_FALSE;
 	l = query->lookup;
 
-	if (l->ns_search_only && !l->trace_root) {
+	if (l->ns_search_only && !l->trace_root && !l->tcp_mode) {
 		debug("sending next, since searching");
 		next = ISC_LIST_NEXT(query, link);
 		if (next != NULL)
@@ -2420,6 +2434,7 @@ static void
 force_timeout(dig_lookup_t *l, dig_query_t *query) {
 	isc_event_t *event;
 
+	debug("force_timeout ()");
 	event = isc_event_allocate(mctx, query, ISC_TIMEREVENT_IDLE,
 				   connect_timeout, l,
 				   sizeof(isc_event_t));
@@ -2487,6 +2502,7 @@ send_tcp_connect(dig_query_t *query) {
 		send_tcp_connect(next);
 		return;
 	}
+	
 	INSIST(query->sock == NULL);
 	result = isc_socket_create(socketmgr,
 				   isc_sockaddr_pf(&query->sockaddr),
@@ -2517,6 +2533,9 @@ send_tcp_connect(dig_query_t *query) {
 	if (l->ns_search_only && !l->trace_root) {
 		debug("sending next, since searching");
 		next = ISC_LIST_NEXT(query, link);
+		if (ISC_LINK_LINKED(query, link))
+			ISC_LIST_DEQUEUE(l->q, query, link);
+		ISC_LIST_ENQUEUE(l->connecting, query, clink);
 		if (next != NULL)
 			send_tcp_connect(next);
 	}
@@ -2866,9 +2885,8 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		if (next != NULL) {
 			bringup_timer(next, TCP_TIMEOUT);
 			send_tcp_connect(next);
-		} else {
+		} else
 			check_next_lookup(l);
-		}
 		UNLOCK_LOOKUP;
 		return;
 	}
@@ -3082,7 +3100,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_LOOKUP;
 		return;
 	}
-
+	
 	if (sevent->result != ISC_R_SUCCESS) {
 		if (sevent->result == ISC_R_CANCELED) {
 			debug("in recv cancel handler");
