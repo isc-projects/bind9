@@ -57,7 +57,6 @@ fromtext_mx(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
-	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
