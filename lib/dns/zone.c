@@ -15878,9 +15878,9 @@ dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval) {
 }
 
 void
-dns_zone_setrequestixfr(dns_zone_t *zone, isc_boolean_t bool) {
+dns_zone_setrequestixfr(dns_zone_t *zone, isc_boolean_t flag) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	zone->requestixfr = bool;
+	zone->requestixfr = flag;
 }
 
 isc_boolean_t
