@@ -1,3 +1,7 @@
+3400.	[cleanup]	"named -V" can now report a source ID string, defined
+			in the "srcid" file in the build tree and normally set
+			to the most recent git hash.  [RT #31494]
+
 3397.	[bug]		dig crashed when using +nssearch with +tcp. [RT #25298]
 			
 3396.	[bug]		OPT records were incorrectly removed from signed,
