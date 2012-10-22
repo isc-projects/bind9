@@ -1,3 +1,6 @@
+3399.	[port]		netbsd: rename 'bool' parameter to avoid namespace
+			clash.  [RT #31515]
+
 3398.	[bug]		SOA parameters were not being updated with inline
 			signed zones if the zone was modified while the
 			server was offline. [RT #29272]
