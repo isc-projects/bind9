@@ -473,8 +473,8 @@ parse_command_line(int argc, char *argv[]) {
 			printf("BIND %s\n", ns_g_version);
 			exit(0);
 		case 'V':
-			printf("BIND %s built with %s\n", ns_g_version,
-				ns_g_configargs);
+			printf("BIND %s <id:%s> built with %s\n",
+			       ns_g_version, ns_g_srcid, ns_g_configargs);
 			exit(0);
 		case '?':
 			usage();
@@ -909,9 +909,9 @@ main(int argc, char *argv[]) {
 	 */
 	strlcat(version,
 #if defined(NO_VERSION_DATE) || !defined(__DATE__)
-		"named version: BIND " VERSION,
+		"named version: BIND " VERSION " <" SRCID ">",
 #else
-		"named version: BIND " VERSION " (" __DATE__ ")",
+		"named version: BIND " VERSION " <" SRCID "> (" __DATE__ ")",
 #endif
 		sizeof(version));
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
