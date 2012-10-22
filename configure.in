@@ -3288,6 +3288,13 @@ AC_SUBST(BIND9_VERSION)
 BIND9_MAJOR="MAJOR=${MAJORVER}.${MINORVER}"
 AC_SUBST(BIND9_MAJOR)
 
+BIND9_SRCID="SRCID=unset"
+if test -f $srcdir/srcid; then
+	. $srcdir/srcid
+	BIND9_SRCID="SRCID=$SRCID"
+fi
+AC_SUBST(BIND9_SRCID)
+
 if test -z "$ac_configure_args"; then
 	BIND9_CONFIGARGS="defaults"
 else
