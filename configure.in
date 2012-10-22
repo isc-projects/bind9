@@ -3196,6 +3196,13 @@ BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}"
 AC_SUBST(BIND9_VERSION)
 
+BIND9_SRCID="SRCID=unset"
+if test -f $srcdir/srcid; then
+	. $srcdir/srcid
+	BIND9_SRCID="SRCID=$SRCID"
+fi
+AC_SUBST(BIND9_SRCID)
+
 if test -z "$ac_configure_args"; then
 	BIND9_CONFIGARGS="defaults"
 else
