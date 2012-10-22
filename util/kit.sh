@@ -122,6 +122,7 @@ test ! -d $topdir || {
 mkdir $topdir || exit 1
 
 git archive --format=tar $remote $tag | ( cd $topdir; tar xf -)
+shorthash=`git ls-remote $remote $tag | cut -c1-8`
 
 cd $topdir || exit 1
 
@@ -155,6 +156,9 @@ find util -depth -type d -print | xargs rmdir 2>/dev/null
 
 # Remove all .gitignore files
 find . -name .gitignore -print | xargs rm
+
+# populate srcid file
+echo "SRCID=$shorthash" > srcid
 
 # The following files should be executable.
 chmod +x configure install-sh mkinstalldirs bin/tests/system/ifconfig.sh
