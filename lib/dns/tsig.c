@@ -748,7 +748,8 @@ dns_tsig_sign(dns_message_t *msg) {
 		isc_buffer_t headerbuf;
 		isc_uint16_t digestbits;
 
-		ret = dst_context_create(key->key, mctx, &ctx);
+		ret = dst_context_create2(key->key, mctx,
+					  DNS_LOGCATEGORY_DNSSEC, &ctx);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 
@@ -1132,7 +1133,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		sig_r.base = tsig.signature;
 		sig_r.length = tsig.siglen;
 
-		ret = dst_context_create(key, mctx, &ctx);
+		ret = dst_context_create2(key, mctx,
+					  DNS_LOGCATEGORY_DNSSEC, &ctx);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 
@@ -1363,7 +1365,9 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	key = tsigkey->key;
 
 	if (msg->tsigctx == NULL) {
-		ret = dst_context_create(key, mctx, &msg->tsigctx);
+		ret = dst_context_create2(key, mctx,
+					  DNS_LOGCATEGORY_DNSSEC,
+					  &msg->tsigctx);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_querystruct;
 
