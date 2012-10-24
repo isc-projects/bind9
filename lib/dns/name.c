@@ -1429,6 +1429,7 @@ dns_name_totext2(dns_name_t *name, unsigned int options, isc_buffer_t *target)
 				case 0x24: /* '$' */
 					if ((options & DNS_NAME_MASTERFILE) == 0)
 						goto no_escape;
+					/* FALLTHROUGH */
 				case 0x22: /* '"' */
 				case 0x28: /* '(' */
 				case 0x29: /* ')' */

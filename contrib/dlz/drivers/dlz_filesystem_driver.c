@@ -360,7 +360,7 @@ create_path(const char *zone, const char *host, const char *client,
 }
 
 static isc_result_t
-process_dir(isc_dir_t dir, void *passback, config_data_t *cd,
+process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 	    dlist_t *dir_list, unsigned int basedirlen)
 {
 
@@ -386,10 +386,10 @@ process_dir(isc_dir_t dir, void *passback, config_data_t *cd,
 	foundHost = ISC_FALSE;
 
 	/* copy base directory name to tmp. */
-	strcpy(tmp, dir.dirname);
+	strcpy(tmp, dir->dirname);
 
-	/* dir.dirname will always have '*' as the last char. */
-	astPos = strlen(dir.dirname) - 1;
+	/* dir->dirname will always have '*' as the last char. */
+	astPos = strlen(dir->dirname) - 1;
 
 	/* if dir_list != NULL, were are performing a zone xfr */
 	if (dir_list != NULL) {
@@ -425,46 +425,48 @@ process_dir(isc_dir_t dir, void *passback, config_data_t *cd,
 
 				foundHost = ISC_TRUE;
 				/* set tmp again for use later */
-				strcpy(tmp, dir.dirname);
+				strcpy(tmp, dir->dirname);
 			}
 		} else {
 			/*
 			 * if splitcnt != 0 determine host from
 			 * ".host" directory entry
 			 */
-			while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
+			while (isc_dir_read(dir) == ISC_R_SUCCESS) {
 				if (strncasecmp(".host",
-						dir.entry.name, 5) == 0) {
+						dir->entry.name, 5) == 0) {
 					/*
 					 * handle filesystem's special
 					 * wildcard "-"
 					 */
-					if (strcmp((char *) &dir.entry.name[6],
+					if (strcmp((char *) &dir->entry.name[6],
 						   "-") == 0)
 						strcpy(host, "*");
-					else
-						strcpy(host,
-						       (char *)
-						       &dir.entry.name[6]);
+					else {
+						strncpy(host,
+						   (char *) &dir->entry.name[6],
+						   sizeof(host) - 1);
+						host[255] = '\0';
+					}
 					foundHost = ISC_TRUE;
 					break;
 				}
 			}
 			/* reset dir list for use later */
-			isc_dir_reset(&dir);
+			isc_dir_reset(dir);
 		} /* end of else */
 	}
 
-	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
+	while (isc_dir_read(dir) == ISC_R_SUCCESS) {
 
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(1),
 			      "Filesystem driver Dir name:"
 			      " '%s' Dir entry: '%s'\n",
-			      dir.dirname, dir.entry.name);
+			      dir->dirname, dir->entry.name);
 
 		/* skip any entries starting with "." */
-		if (dir.entry.name[0] == '.')
+		if (dir->entry.name[0] == '.')
 			continue;
 
 		/*
@@ -477,7 +479,7 @@ process_dir(isc_dir_t dir, void *passback, config_data_t *cd,
 		tmp[astPos] = '\0';
 
 		/* add name to base directory name. */
-		strcat(tmp, dir.entry.name);
+		strcat(tmp, dir->entry.name);
 
 		/* make sure we can stat entry */
 		if (stat(tmp, &sb) == 0 ) {
@@ -515,7 +517,7 @@ process_dir(isc_dir_t dir, void *passback, config_data_t *cd,
 		} else /* if we cannot stat entry, skip it. */
 			continue;
 
-		type = dir.entry.name;
+		type = dir->entry.name;
 		ttlStr = strchr(type,  cd->separator);
 		if (ttlStr == NULL) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -687,7 +689,7 @@ fs_allnodes(const char *zone, void *driverarg, void *dbdata,
 	}
 
 	/* process the directory */
-	result = process_dir(dir, allnodes, cd, dir_list, basepathlen);
+	result = process_dir(&dir, allnodes, cd, dir_list, basepathlen);
 
 	/* close the directory */
 	isc_dir_close(&dir);
@@ -712,7 +714,7 @@ fs_allnodes(const char *zone, void *driverarg, void *dbdata,
 		}
 
 		/* process the directory */
-		result = process_dir(dir, allnodes, cd, dir_list, basepathlen);
+		result = process_dir(&dir, allnodes, cd, dir_list, basepathlen);
 
 		/* close the directory */
 		isc_dir_close(&dir);
@@ -841,7 +843,7 @@ fs_lookup(const char *zone, const char *name, void *driverarg,
 	}
 
 	/* process any records in the directory */
-	result = process_dir(dir, lookup, (config_data_t *) dbdata, NULL, 0);
+	result = process_dir(&dir, lookup, (config_data_t *) dbdata, NULL, 0);
 
 	/* close the directory */
 	isc_dir_close(&dir);

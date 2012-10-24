@@ -482,6 +482,8 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 		view->flush = ISC_TRUE;
 	isc_refcount_decrement(&view->references, &refs);
 	if (refs == 0) {
+		dns_zone_t *mkzone = NULL;
+
 		LOCK(&view->lock);
 		if (!RESSHUTDOWN(view))
 			dns_resolver_shutdown(view->resolver);
@@ -497,13 +499,20 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 		else
 			dns_zt_detach(&view->zonetable);
 		if (view->managed_keys != NULL) {
+			mkzone = view->managed_keys;
+			view->managed_keys = NULL;
 			if (view->flush)
-				dns_zone_flush(view->managed_keys);
-			dns_zone_detach(&view->managed_keys);
+				dns_zone_flush(mkzone);
 		}
 #endif
 		done = all_done(view);
 		UNLOCK(&view->lock);
+
+#ifdef BIND9
+		/* Need to detach zones outside view lock */
+		if (mkzone != NULL)
+			dns_zone_detach(&mkzone);
+#endif
 	}
 
 	*viewp = NULL;

@@ -328,6 +328,7 @@ getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
 		case DNS_R_NOVALIDDS:
 		case DNS_R_NOVALIDSIG:
 			ERR(EAI_INSECUREDATA);
+			break;
 		default:
 			ERR(EAI_FAIL);
 		}

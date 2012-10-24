@@ -1,3 +1,5 @@
+3401.	[bug]		Addressed Coverity warnings. [RT #31484]
+
 3400.	[cleanup]	"named -V" can now report a source ID string, defined
 			in the "srcid" file in the build tree and normally set
 			to the most recent git hash.  [RT #31494]

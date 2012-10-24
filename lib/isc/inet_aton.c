@@ -91,7 +91,7 @@ static char rcsid[] = "$Id: inet_aton.c,v 1.23 2008/12/01 23:47:45 tbox Exp $";
  */
 int
 isc_net_aton(const char *cp, struct in_addr *addr) {
-	unsigned long val;
+	isc_uint32_t val;
 	int base, n;
 	unsigned char c;
 	isc_uint8_t parts[4];
