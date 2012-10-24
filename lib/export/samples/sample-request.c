@@ -77,6 +77,9 @@ make_querymessage(dns_message_t *message, const char *namestr,
 	isc_buffer_t b;
 	size_t namelen;
 
+	REQUIRE(message != NULL);
+	REQUIRE(namestr != NULL);
+
 	/* Construct qname */
 	namelen = strlen(namestr);
 	isc_buffer_init(&b, namestr, namelen);
@@ -115,8 +118,7 @@ make_querymessage(dns_message_t *message, const char *namestr,
 		dns_message_puttempname(message, &qname);
 	if (qrdataset != NULL)
 		dns_message_puttemprdataset(message, &qrdataset);
-	if (message != NULL)
-		dns_message_destroy(&message);
+	dns_message_destroy(&message);
 	return (result);
 }
 

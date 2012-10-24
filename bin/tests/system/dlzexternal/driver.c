@@ -123,7 +123,7 @@ add_name(struct dlz_example_data *state, struct record *list,
 	}
 	strcpy(list[i].name, name);
 	strcpy(list[i].type, type);
-	strcpy(list[i].data, data);
+	strncpy(list[i].data, data, sizeof(list[i].data));
 	list[i].ttl = ttl;
 	return (ISC_R_SUCCESS);
 }
@@ -307,7 +307,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	isc_boolean_t found = ISC_FALSE;
 	isc_sockaddr_t *src;
-	char full_name[100];
+	char full_name[256];
 	int i;
 
 	UNUSED(zone);
@@ -315,10 +315,11 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	if (state->putrr == NULL)
 		return (ISC_R_NOTIMPLEMENTED);
 
-	if (strcmp(name, "@") == 0)
-		strcpy(full_name, state->zone_name);
-	else
-		sprintf(full_name, "%s.%s", name, state->zone_name);
+	if (strcmp(name, "@") == 0) {
+		strncpy(full_name, state->zone_name, 255);
+		full_name[255] = '\0';
+	} else
+		snprintf(full_name, 255, "%s.%s", name, state->zone_name);
 
 	if (strcmp(name, "source-addr") == 0) {
 		char buf[100];

@@ -185,13 +185,14 @@ chkdata(unsigned char *buf, size_t buflen, char *exp_data,
  * setup the buffer and return the data length.
  */
 static int
-getmsg(char *datafile_name, unsigned char *buf, int buflen, isc_buffer_t *pbuf)
+getmsg(char *datafile_name, isc_buffer_t *pbuf)
 {
 	int			c;
-	int			len;
-	int			cnt;
+	unsigned int		len;
+	unsigned int		cnt;
 	unsigned char		*p;
 	FILE			*fp;
+	unsigned int		buflen;
 
 	fp = fopen(datafile_name, "r");
 	if (fp == NULL) {
@@ -199,7 +200,8 @@ getmsg(char *datafile_name, unsigned char *buf, int buflen, isc_buffer_t *pbuf)
 		return (0);
 	}
 
-	p = buf;
+	p = isc_buffer_used(pbuf);
+	buflen = isc_buffer_availablelength(pbuf);
 	cnt = 0;
 	len = 0;
 	while ((c = getc(fp)) != EOF) {
@@ -248,7 +250,6 @@ getmsg(char *datafile_name, unsigned char *buf, int buflen, isc_buffer_t *pbuf)
 	}
 
 	*p = '\0';
-	isc_buffer_init(pbuf, buf, cnt);
 	isc_buffer_add(pbuf, cnt);
 	return (cnt);
 }
@@ -2014,7 +2015,10 @@ test_dns_name_fromwire(char *datafile_name, int testname_offset, int downcase,
 	dns_decompress_t	dctx;
 
 	t_info("testing using %s\n", datafile_name);
-	len = getmsg(datafile_name, buf1, BIGBUFLEN, &iscbuf1);
+	isc_buffer_init(&iscbuf1, buf1, sizeof(buf1));
+	len = getmsg(datafile_name, &iscbuf1);
+	if (len == 0)
+		return (T_FAIL);
 
 	isc_buffer_setactive(&iscbuf1, len);
 	iscbuf1.current = testname_offset;

@@ -1043,7 +1043,8 @@ zone_free(dns_zone_t *zone) {
 }
 
 /*
- * Returns ISC_TRUE iff this the signed side of an inline-signing zone
+ * Returns ISC_TRUE iff this the signed side of an inline-signing zone.
+ * Caller should hold zone lock.
  */
 static inline isc_boolean_t
 inline_secure(dns_zone_t *zone) {
@@ -1055,6 +1056,7 @@ inline_secure(dns_zone_t *zone) {
 
 /*
  * Returns ISC_TRUE iff this the unsigned side of an inline-signing zone
+ * Caller should hold zone lock.
  */
 static inline isc_boolean_t
 inline_raw(dns_zone_t *zone) {
@@ -1489,11 +1491,15 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	isc_time_t now;
 	isc_time_t loadtime, filetime;
 	dns_db_t *db = NULL;
-	isc_boolean_t rbt;
+	isc_boolean_t rbt, hasraw;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (inline_secure(zone)) {
+	LOCK_ZONE(zone);
+	hasraw = inline_secure(zone);
+	UNLOCK_ZONE(zone);
+
+	if (hasraw) {
 		result = zone_load(zone->raw, flags);
 		if (result != ISC_R_SUCCESS)
 			return(result);
@@ -1502,7 +1508,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	/*
 	 * Lock hierachy zmgr, raw, zone.
 	 */
-	if (inline_secure(zone))
+	if (hasraw)
 		LOCK_ZONE(zone->raw);
 	LOCK_ZONE(zone);
 	TIME_NOW(&now);
@@ -1659,7 +1665,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 
  cleanup:
 	UNLOCK_ZONE(zone);
-	if (inline_secure(zone))
+	if (hasraw)
 		UNLOCK_ZONE(zone->raw);
 	if (db != NULL)
 		dns_db_detach(&db);
@@ -8622,7 +8628,7 @@ zone_maintenance(dns_zone_t *zone) {
 void
 dns_zone_markdirty(dns_zone_t *zone) {
 	isc_uint32_t serial;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	LOCK_ZONE(zone);
 	if (zone->type == dns_zone_master) {
@@ -8639,7 +8645,10 @@ dns_zone_markdirty(dns_zone_t *zone) {
 			if (result == ISC_R_SUCCESS)
 				zone_send_secureserial(zone, ISC_FALSE, serial);
 		}
-		set_resigntime(zone);	/* XXXMPA make separate call back */
+
+		/* XXXMPA make separate call back */
+		if (result == ISC_R_SUCCESS)
+			set_resigntime(zone);
 	}
 	zone_needdump(zone, DNS_DUMP_DELAY);
 	UNLOCK_ZONE(zone);
@@ -13265,6 +13274,7 @@ zone_loaddone(void *arg, isc_result_t result) {
 	dns_load_t *load = arg;
 	dns_zone_t *zone;
 	isc_result_t tresult;
+	isc_boolean_t hasraw;
 
 	REQUIRE(DNS_LOAD_VALID(load));
 	zone = load->zone;
@@ -13279,22 +13289,26 @@ zone_loaddone(void *arg, isc_result_t result) {
 	/*
 	 * Lock hierachy zmgr, raw, zone.
 	 */
-	if (inline_secure(zone))
+	LOCK_ZONE(zone);
+	hasraw  = inline_secure(zone);
+	UNLOCK_ZONE(zone);
+
+	if (hasraw )
 		LOCK_ZONE(zone->raw);
-	LOCK_ZONE(load->zone);
-	(void)zone_postload(load->zone, load->db, load->loadtime, result);
-	zonemgr_putio(&load->zone->readio);
-	DNS_ZONE_CLRFLAG(load->zone, DNS_ZONEFLG_LOADING);
+	LOCK_ZONE(zone);
+	(void)zone_postload(zone, load->db, load->loadtime, result);
+	zonemgr_putio(&zone->readio);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADING);
 	zone_idetach(&load->callbacks.zone);
 	/*
 	 * Leave the zone frozen if the reload fails.
 	 */
 	if ((result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE) &&
-	     DNS_ZONE_FLAG(load->zone, DNS_ZONEFLG_THAW))
+	     DNS_ZONE_FLAG(zone, DNS_ZONEFLG_THAW))
 		zone->update_disabled = ISC_FALSE;
-	DNS_ZONE_CLRFLAG(load->zone, DNS_ZONEFLG_THAW);
-	UNLOCK_ZONE(load->zone);
-	if (inline_secure(zone))
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_THAW);
+	UNLOCK_ZONE(zone);
+	if (hasraw )
 		UNLOCK_ZONE(zone->raw);
 
 	load->magic = 0;
@@ -15849,17 +15863,23 @@ dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db)
 {
 	isc_time_t loadtime;
 	isc_result_t result;
+	isc_boolean_t hasraw;
+
 	TIME_NOW(&loadtime);
 
 	/*
 	 * Lock hierachy zmgr, raw, zone.
 	 */
-	if (inline_secure(zone))
+	LOCK_ZONE(zone);
+	hasraw = inline_secure(zone);
+	UNLOCK_ZONE(zone);
+
+	if (hasraw)
 		LOCK_ZONE(zone->raw);
 	LOCK_ZONE(zone);
 	result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
 	UNLOCK_ZONE(zone);
-	if (inline_secure(zone))
+	if (hasraw)
 		UNLOCK_ZONE(zone->raw);
 	return result;
 }

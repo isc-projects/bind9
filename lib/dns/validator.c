@@ -4238,6 +4238,8 @@ dns_validator_send(dns_validator_t *validator) {
 
 void
 dns_validator_cancel(dns_validator_t *validator) {
+	dns_fetch_t *fetch = NULL;
+
 	REQUIRE(VALID_VALIDATOR(validator));
 
 	LOCK(&validator->lock);
@@ -4247,8 +4249,8 @@ dns_validator_cancel(dns_validator_t *validator) {
 	if ((validator->attributes & VALATTR_CANCELED) == 0) {
 		validator->attributes |= VALATTR_CANCELED;
 		if (validator->event != NULL) {
-			if (validator->fetch != NULL)
-				dns_resolver_cancelfetch(validator->fetch);
+			fetch = validator->fetch;
+			validator->fetch = NULL;
 
 			if (validator->subvalidator != NULL)
 				dns_validator_cancel(validator->subvalidator);
@@ -4259,6 +4261,10 @@ dns_validator_cancel(dns_validator_t *validator) {
 		}
 	}
 	UNLOCK(&validator->lock);
+
+	/* Need to cancel fetch outside validator lock */
+	if (fetch != NULL)
+		dns_resolver_cancelfetch(fetch);
 }
 
 static void

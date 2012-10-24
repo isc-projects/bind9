@@ -1146,10 +1146,8 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 	UNUSED(flags);
 
 	ai = ai_clone(*aip, AF_INET6); /* don't use ai_clone() */
-	if (ai == NULL) {
-		freeaddrinfo(*aip);
+	if (ai == NULL)
 		return (EAI_MEMORY);
-	}
 
 	*aip = ai;
 	ai->ai_socktype = socktype;

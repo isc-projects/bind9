@@ -692,7 +692,7 @@ dispatch(isc__timermgr_t *manager, isc_time_t *now) {
 
 	while (manager->nscheduled > 0 && !done) {
 		timer = isc_heap_element(manager->heap, 1);
-		INSIST(timer->type != isc_timertype_inactive);
+		INSIST(timer != NULL && timer->type != isc_timertype_inactive);
 		if (isc_time_compare(now, &timer->due) >= 0) {
 			if (timer->type == isc_timertype_ticker) {
 				type = ISC_TIMEREVENT_TICK;
