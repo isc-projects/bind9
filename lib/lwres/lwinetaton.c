@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004, 2005, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1996-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -120,7 +120,7 @@ lwres_net_aton(const char *cp, struct in_addr *addr) {
 			c = *++cp;
 			if (c == 'x' || c == 'X') {
 				base = 16;
-			       	c = *++cp;
+				c = *++cp;
 			} else {
 				base = 8;
 				digit = 1;
