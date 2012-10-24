@@ -2748,8 +2748,6 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 		result = open_socket(sockmgr, localaddr, 0, &sock);
 		if (result != ISC_R_SUCCESS)
 			goto end;
-		else if (!anyport)
-			break;
 		else if (portavailable(mgr, sock, NULL))
 			break;
 		if (held[i] != NULL)

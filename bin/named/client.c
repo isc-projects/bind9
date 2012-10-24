@@ -1377,10 +1377,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(client->recursionquota == NULL);
 
-	INSIST(client->state ==
-	       TCP_CLIENT(client) ?
-	       NS_CLIENTSTATE_READING :
-	       NS_CLIENTSTATE_READY);
+	INSIST(client->state == (TCP_CLIENT(client) ?
+				       NS_CLIENTSTATE_READING :
+				       NS_CLIENTSTATE_READY));
 
 	ns_client_requests++;
 

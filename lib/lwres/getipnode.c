@@ -955,7 +955,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 	npp = he->h_aliases;
 	cpp = (he1 != NULL) ? he1->h_aliases
 		: ((he2 != NULL) ?  he2->h_aliases : NULL);
-	while (*cpp != NULL) {
+	while (cpp != NULL && *cpp != NULL) {
 		len = strlen (*cpp) + 1;
 		*npp = malloc(len);
 		if (*npp == NULL)

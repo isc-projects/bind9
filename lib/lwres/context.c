@@ -377,6 +377,7 @@ lwres_context_send(lwres_context_t *ctx,
 		lwresult = context_connect(ctx);
 		if (lwresult != LWRES_R_SUCCESS)
 			return (lwresult);
+		INSIST(ctx->sock >= 0);
 	}
 
 	ret = sendto(ctx->sock, sendbase, sendlen, 0, NULL, 0);

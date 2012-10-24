@@ -1728,6 +1728,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *qname,
 		while (namehook != NULL) {
 			entry = namehook->entry;
 			bucket = entry->lock_bucket;
+			INSIST(bucket != DNS_ADB_INVALIDBUCKET);
 			LOCK(&adb->entrylocks[bucket]);
 
 			if (!FIND_RETURNLAME(find)
@@ -1758,6 +1759,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *qname,
 		while (namehook != NULL) {
 			entry = namehook->entry;
 			bucket = entry->lock_bucket;
+			INSIST(bucket != DNS_ADB_INVALIDBUCKET);
 			LOCK(&adb->entrylocks[bucket]);
 
 			if (!FIND_RETURNLAME(find)
