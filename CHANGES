@@ -1,3 +1,6 @@
+3402.	[bug]		Correct interface numbers for IPv4 and IPv6 interfaces.
+			[RT #25085] 
+
 3401.	[bug]		Addressed Coverity warnings. [RT #31484]
 
 3400.	[cleanup]	"named -V" can now report a source ID string, defined
