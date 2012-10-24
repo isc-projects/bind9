@@ -26,8 +26,8 @@ zone=secure.example.
 infile=secure.example.db.in
 zonefile=secure.example.db
 
-cnameandkey=`$KEYGEN -T KEY -r $RANDFILE -a RSASHA1 -b 768 -n host cnameandkey.$zone`
-dnameandkey=`$KEYGEN -T KEY -r $RANDFILE -a RSASHA1 -b 768 -n host dnameandkey.$zone`
+cnameandkey=`$KEYGEN -k -r $RANDFILE -a RSASHA1 -b 768 -n host cnameandkey.$zone`
+dnameandkey=`$KEYGEN -k -r $RANDFILE -a RSASHA1 -b 768 -n host dnameandkey.$zone`
 keyname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
 
 cat $infile $cnameandkey.key $dnameandkey.key $keyname.key >$zonefile
