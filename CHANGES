@@ -1,3 +1,7 @@
+3404.	[bug]		dnssec-signzone: When re-signing a zone, remove
+			RRSIG and NSEC records from nodes that used to be 
+			in-zone but are now below a zone cut. [RT #31556]
+
 3403.	[bug]		Silence noisy OpenSSL logging. [RT #31497]
 
 3402.	[bug]		Correct interface numbers for IPv4 and IPv6 interfaces.
