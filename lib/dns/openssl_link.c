@@ -329,6 +329,13 @@ dst__openssl_toresult(isc_result_t fallback) {
 
 isc_result_t
 dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
+	return (dst__openssl_toresult3(DNS_LOGCATEGORY_GENERAL,
+				       funcname, fallback));
+}
+
+isc_result_t
+dst__openssl_toresult3(isc_logcategory_t *category,
+		       const char *funcname, isc_result_t fallback) {
 	isc_result_t result;
 	unsigned long err;
 	const char *file, *data;
@@ -337,7 +344,7 @@ dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
 
 	result = toresult(fallback);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+	isc_log_write(dns_lctx, category,
 		      DNS_LOGMODULE_CRYPTO, ISC_LOG_WARNING,
 		      "%s failed (%s)", funcname,
 		      isc_result_totext(result));
@@ -350,7 +357,7 @@ dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
 		if (err == 0U)
 			goto done;
 		ERR_error_string_n(err, buf, sizeof(buf));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+		isc_log_write(dns_lctx, category,
 			      DNS_LOGMODULE_CRYPTO, ISC_LOG_INFO,
 			      "%s:%s:%d:%s", buf, file, line,
 			      (flags & ERR_TXT_STRING) ? data : "");
