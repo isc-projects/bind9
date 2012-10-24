@@ -293,6 +293,13 @@ dst_ds_digest_supported(unsigned int digest_type) {
 
 isc_result_t
 dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp) {
+	return (dst_context_create2(key, mctx,
+				    DNS_LOGCATEGORY_GENERAL, dctxp));
+}
+
+isc_result_t
+dst_context_create2(dst_key_t *key, isc_mem_t *mctx,
+		    isc_logcategory_t *category, dst_context_t **dctxp) {
 	dst_context_t *dctx;
 	isc_result_t result;
 
@@ -311,6 +318,7 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp) {
 		return (ISC_R_NOMEMORY);
 	dctx->key = key;
 	dctx->mctx = mctx;
+	dctx->category = category;
 	result = key->func->createctx(key, dctx);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, dctx, sizeof(dst_context_t));
