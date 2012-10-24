@@ -485,7 +485,9 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 		view->flush = ISC_TRUE;
 	isc_refcount_decrement(&view->references, &refs);
 	if (refs == 0) {
+#ifdef BIND9
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
+#endif
 
 		LOCK(&view->lock);
 		if (!RESSHUTDOWN(view))
