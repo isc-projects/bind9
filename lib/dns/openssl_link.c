@@ -290,7 +290,7 @@ static isc_result_t
 toresult(isc_result_t fallback) {
 	isc_result_t result = fallback;
 	unsigned long err = ERR_get_error();
-#ifdef ERR_R_ECDSA_LIB
+#ifdef HAVE_OPENSSL_ECDSA
 	int lib = ERR_GET_LIB(err);
 #endif
 	int reason = ERR_GET_REASON(err);
@@ -304,7 +304,7 @@ toresult(isc_result_t fallback) {
 		result = ISC_R_NOMEMORY;
 		break;
 	default:
-#ifdef ERR_R_ECDSA_LIB
+#ifdef HAVE_OPENSSL_ECDSA
 		if (lib == ERR_R_ECDSA_LIB &&
 		    reason == ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED) {
 			result = ISC_R_NOENTROPY;
