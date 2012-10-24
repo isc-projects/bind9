@@ -47,7 +47,7 @@ rm -f ns3/secure.nsec3.example.db
 rm -f ns3/secure.optout.example.db
 rm -f */named.secroots
 rm -f ns1/managed.key.id
-rm -f signer/example.db
+rm -f signer/*.db
 rm -f signer/signer.out.*
 rm -f ns2/algroll.db
 rm -f ns3/kskonly.example.db

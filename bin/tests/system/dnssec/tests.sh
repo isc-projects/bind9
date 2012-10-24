@@ -1123,6 +1123,75 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking dnssec-signzone purges RRSIGs from formerly-owned glue (nsec) ($n)"
+ret=0
+(
+cd signer
+# remove NSEC-only keys
+rm -f Kexample.+005*
+cp -f example.db.in example2.db
+cat << EOF >> example2.db
+sub1.example. IN A 10.53.0.1
+ns.sub2.example. IN A 10.53.0.2
+EOF
+echo '$INCLUDE "example2.db.signed"' >> example2.db
+touch example2.db.signed
+$SIGNER -DS -O full -f example2.db.signed -o example example2.db > /dev/null 2>&1
+) || ret=1
+grep "^sub1\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 || ret=1
+grep "^ns\.sub2\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 || ret=1
+(
+cd signer
+cp -f example.db.in example2.db
+cat << EOF >> example2.db
+sub1.example. IN NS sub1.example.
+sub1.example. IN A 10.53.0.1
+sub2.example. IN NS ns.sub2.example.
+ns.sub2.example. IN A 10.53.0.2
+EOF
+echo '$INCLUDE "example2.db.signed"' >> example2.db
+$SIGNER -DS -O full -f example2.db.signed -o example example2.db > /dev/null 2>&1
+) || ret=1
+grep "^sub1\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 && ret=1
+grep "^ns\.sub2\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking dnssec-signzone purges RRSIGs from formerly-owned glue (nsec3) ($n)"
+ret=0
+(
+cd signer
+rm -f example2.db.signed
+cp -f example.db.in example2.db
+cat << EOF >> example2.db
+sub1.example. IN A 10.53.0.1
+ns.sub2.example. IN A 10.53.0.2
+EOF
+echo '$INCLUDE "example2.db.signed"' >> example2.db
+touch example2.db.signed
+$SIGNER -DS -3 feedabee -O full -f example2.db.signed -o example example2.db > /dev/null 2>&1
+) || ret=1
+grep "^sub1\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 || ret=1
+grep "^ns\.sub2\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 || ret=1
+(
+cd signer
+cp -f example.db.in example2.db
+cat << EOF >> example2.db
+sub1.example. IN NS sub1.example.
+sub1.example. IN A 10.53.0.1
+sub2.example. IN NS ns.sub2.example.
+ns.sub2.example. IN A 10.53.0.2
+EOF
+echo '$INCLUDE "example2.db.signed"' >> example2.db
+$SIGNER -DS -3 feedabee -O full -f example2.db.signed -o example example2.db > /dev/null 2>&1
+) || ret=1
+grep "^sub1\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 && ret=1
+grep "^ns\.sub2\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking dnssec-signzone output format ($n)"
 ret=0
 (
