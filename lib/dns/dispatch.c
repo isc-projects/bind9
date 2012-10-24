@@ -2980,8 +2980,6 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 		result = open_socket(sockmgr, localaddr, 0, &sock, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto end;
-		else if (!anyport)
-			break;
 		else if (portavailable(mgr, sock, NULL))
 			break;
 		if (held[i] != NULL)
@@ -3783,7 +3781,7 @@ dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
 		goto fail_alloc;
 
 	dset->dispatches = isc_mem_get(mctx, sizeof(dns_dispatch_t *) * n);
-	if (dset == NULL) {
+	if (dset->dispatches == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto fail_lock;
 	}

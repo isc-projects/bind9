@@ -612,24 +612,26 @@ sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 	char		*p;
 	char		*buf;
 
-	rval = stat(path, &sb);
+	fd = open(path, O_RDONLY);
+	if (fd < 0) {
+		t_info("open failed, errno == %d\n", errno);
+		return(1);
+	}
+
+	rval = fstat(fd, &sb);
 	if (rval != 0) {
 		t_info("stat %s failed, errno == %d\n", path, errno);
+		close(fd);
 		return(1);
 	}
 
 	buf = (char *) malloc((sb.st_size + 1) * sizeof(unsigned char));
 	if (buf == NULL) {
 		t_info("malloc failed, errno == %d\n", errno);
+		close(fd);
 		return(1);
 	}
 
-	fd = open(path, O_RDONLY);
-	if (fd < 0) {
-		t_info("open failed, errno == %d\n", errno);
-		(void) free(buf);
-		return(1);
-	}
 
 	len = sb.st_size;
 	p = buf;
@@ -703,10 +705,18 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	/*
 	 * Read data from file in a form usable by dst_verify.
 	 */
-	rval = stat(datapath, &sb);
+	fd = open(datapath, O_RDONLY);
+	if (fd < 0) {
+		t_info("t2_sigchk: open failed %d\n", errno);
+		++*nprobs;
+		return;
+	}
+
+	rval = fstat(fd, &sb);
 	if (rval != 0) {
 		t_info("t2_sigchk: stat (%s) failed %d\n", datapath, errno);
 		++*nprobs;
+		close(fd);
 		return;
 	}
 
@@ -714,14 +724,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	if (data == NULL) {
 		t_info("t2_sigchk: malloc failed %d\n", errno);
 		++*nprobs;
-		return;
-	}
-
-	fd = open(datapath, O_RDONLY);
-	if (fd < 0) {
-		t_info("t2_sigchk: open failed %d\n", errno);
-		(void) free(data);
-		++*nprobs;
+		close(fd);
 		return;
 	}
 

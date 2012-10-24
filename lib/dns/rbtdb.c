@@ -7448,7 +7448,7 @@ serialize(dns_db_t *db, dns_dbversion_t *ver, FILE *rbtfile) {
 	long tree_location;
 	long nsec_location;
 	long nsec3_location;
-	long rbtdb_header_location;
+	long header_location;
 
 	rbtdb = (dns_rbtdb_t *)db;
 
@@ -7470,7 +7470,10 @@ serialize(dns_db_t *db, dns_dbversion_t *ver, FILE *rbtfile) {
 	 * NOTE: need to do something better with the return codes, &= will
 	 * not work.
 	 */
-	rbtdb_header_location = ftell(rbtfile);
+	header_location = ftell(rbtfile);
+	if (header_location < 0)
+		return (ISC_R_FAILURE);
+
 	CHECK(rbtdb_zero_header(rbtfile));
 	CHECK(dns_rbt_serialize_tree(rbtfile, rbtdb->tree, rbt_datawriter,
 				     version->serial,
@@ -7482,9 +7485,7 @@ serialize(dns_db_t *db, dns_dbversion_t *ver, FILE *rbtfile) {
 				     version->serial,
 				     &nsec3_location));
 
-	result = isc_stdio_seek(rbtfile, rbtdb_header_location, SEEK_SET);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	CHECK(isc_stdio_seek(rbtfile, header_location, SEEK_SET));
 	CHECK(rbtdb_write_header(rbtfile, tree_location, nsec_location,
 				 nsec3_location));
  failure:

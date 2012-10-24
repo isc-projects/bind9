@@ -1467,9 +1467,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(client->recursionquota == NULL);
 
-	INSIST(client->state == TCP_CLIENT(client) ?
+	INSIST(client->state == (TCP_CLIENT(client) ?
 				       NS_CLIENTSTATE_READING :
-				       NS_CLIENTSTATE_READY);
+				       NS_CLIENTSTATE_READY));
 
 	ns_client_requests++;
 
@@ -2655,7 +2655,9 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	ns_client_t *client;
 	MTRACE("get client");
 
-	if (manager != NULL && manager->exiting)
+	REQUIRE(manager != NULL);
+
+	if (manager->exiting)
 		return (ISC_R_SHUTTINGDOWN);
 
 	/*

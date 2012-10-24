@@ -36,12 +36,13 @@ LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		isctest.@O@
 SRCS =		isctest.c taskpool_test.c socket_test.c hash_test.c \
-		symtab_test.c task_test.c queue_test.c parse_test.c
+		sockaddr_test.c symtab_test.c task_test.c queue_test.c \
+		parse_test.c
 
 SUBDIRS =
 TARGETS =	taskpool_test@EXEEXT@ socket_test@EXEEXT@ hash_test@EXEEXT@ \
-		symtab_test@EXEEXT@ task_test@EXEEXT@ queue_test@EXEEXT@ \
-		parse_test@EXEEXT@
+		sockaddr_test@EXEEXT@ symtab_test@EXEEXT@ task_test@EXEEXT@ \
+		queue_test@EXEEXT@ parse_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -72,6 +73,10 @@ symtab_test@EXEEXT@: symtab_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 parse_test@EXEEXT@: parse_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			parse_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
+
+sockaddr_test@EXEEXT@: sockaddr_test.@O@ isctest.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			sockaddr_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
 
 
 unit::

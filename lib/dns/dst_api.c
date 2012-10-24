@@ -531,8 +531,7 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 	result = dst_key_read_public(newfilename, type, mctx, &pubkey);
 	isc_mem_put(mctx, newfilename, newfilenamelen);
 	newfilename = NULL;
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	RETERR(result);
 
 	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == DST_TYPE_PUBLIC ||
 	    (pubkey->key_flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
@@ -596,7 +595,8 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 		isc_mem_put(mctx, newfilename, newfilenamelen);
 	if (lex != NULL)
 		isc_lex_destroy(&lex);
-	dst_key_free(&key);
+	if (key != NULL)
+		dst_key_free(&key);
 	return (result);
 }
 

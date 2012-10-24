@@ -393,6 +393,7 @@ static isc_result_t
 write_header(FILE *file, dns_rbt_t *rbt, isc_uint64_t first_node_offset) {
 	file_header_t header;
 	isc_result_t result;
+	long location;
 
 	if (FILE_VERSION[0] == '\0') {
 		memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
@@ -415,8 +416,11 @@ write_header(FILE *file, dns_rbt_t *rbt, isc_uint64_t first_node_offset) {
 
 	header.nodecount = rbt->nodecount;
 
-	CHECK(isc_stdio_seek(file, dns_rbt_serialize_align(ftell(file)),
-			     SEEK_SET));
+	location = ftell(file);
+	if (location < 0)
+		return (ISC_R_FAILURE);
+	location = dns_rbt_serialize_align(location);
+	CHECK(isc_stdio_seek(file, location, SEEK_SET));
 	CHECK(isc_stdio_write(&header, 1, sizeof(file_header_t), file, NULL));
 	CHECK(fflush(file));
 
@@ -441,6 +445,9 @@ serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left,
 	INSIST(node != NULL);
 
 	file_position = ftell(file);
+	if (file_position < 0)
+		return (ISC_R_FAILURE);
+
 	file_position = dns_rbt_serialize_align(file_position);
 	CHECK(isc_stdio_seek(file, file_position, SEEK_SET));
 
@@ -497,7 +504,7 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 		uintptr_t *where)
 {
 	uintptr_t left = 0, right = 0, down = 0, data = 0;
-	long this_node_location = 0;
+	long location = 0;
 	isc_uint64_t offset_adjust;
 	isc_result_t result;
 
@@ -508,30 +515,46 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 	}
 
 	/* Reserve space for current node */
-	CHECK(isc_stdio_seek(file, dns_rbt_serialize_align(ftell(file)),
-			     SEEK_SET));
-	this_node_location = ftell(file);
-	offset_adjust = dns_rbt_serialize_align(this_node_location +
-						NODE_SIZE(node));
+	location = ftell(file);
+	if (location < 0)
+		return (ISC_R_FAILURE);
+	location = dns_rbt_serialize_align(location);
+	CHECK(isc_stdio_seek(file, location, SEEK_SET));
+	location = ftell(file);
+	if (location < 0)
+		return (ISC_R_FAILURE);
+
+	offset_adjust = dns_rbt_serialize_align(location + NODE_SIZE(node));
 	CHECK(isc_stdio_seek(file, offset_adjust, SEEK_SET));
 
 	/* Serialize the rest of the tree */
-	CHECK(serialize_nodes(file, getleft(node, NULL), this_node_location,
+	CHECK(serialize_nodes(file, getleft(node, NULL), location,
 			      datawriter, serial, &left));
-	CHECK(serialize_nodes(file, getright(node, NULL), this_node_location,
+	CHECK(serialize_nodes(file, getright(node, NULL), location,
 			      datawriter, serial, &right));
-	CHECK(serialize_nodes(file, getdown(node, NULL), this_node_location,
+	CHECK(serialize_nodes(file, getdown(node, NULL), location,
 			      datawriter, serial, &down));
 
 	if (node->data != NULL) {
-		CHECK(isc_stdio_seek(file, dns_rbt_serialize_align(ftell(file)),
-				     SEEK_SET));
-		data = ftell(file);
+		long ret;
+	
+		ret = ftell(file);
+		if (ret < 0)
+			return (ISC_R_FAILURE);
+		ret = dns_rbt_serialize_align(ret);
+
+		CHECK(isc_stdio_seek(file, ret, SEEK_SET));
+
+		ret = ftell(file);
+		if (ret < 0)
+			return (ISC_R_FAILURE);
+		data = ret;
+
 		datawriter(file, node->data, serial);
 	}
 
 	/* Seek back to reserved space */
-	CHECK(isc_stdio_seek(file, this_node_location, SEEK_SET));
+	CHECK(isc_stdio_seek(file, location, SEEK_SET));
 
 	/* Serialize the current node */
 	CHECK(serialize_node(file, node, left, right, down, parent, data));
@@ -540,7 +563,7 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 	CHECK(isc_stdio_seek(file, 0, SEEK_END));
 
 	if (where != NULL)
-		*where = this_node_location;
+		*where = location;
 
  cleanup:
 	return (result);
@@ -569,14 +592,21 @@ dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 	CHECK(isc_file_isplainfilefd(fileno(file)));
 
 	header_position = ftell(file);
+	if (header_position < 0)
+		return (ISC_R_FAILURE);
 
 	/* Write dummy header */
 	CHECK(dns_rbt_zero_header(file));
 
 	/* Serialize nodes */
 	node_position = ftell(file);
+	if (node_position < 0)
+		return (ISC_R_FAILURE);
+
 	CHECK(serialize_nodes(file, rbt->root, 0, datawriter, serial, NULL));
 	end_position = ftell(file);
+	if (end_position < 0)
+		return (ISC_R_FAILURE);
 
 	if (node_position == end_position) {
 		CHECK(isc_stdio_seek(file, header_position, SEEK_SET));

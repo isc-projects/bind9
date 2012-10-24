@@ -8284,8 +8284,6 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_time_settoepoch(&resigntime);
 
 	CHECK(zone_from_args(server, args, NULL, &zone, &zonename, ISC_TRUE));
-	if (result != ISC_R_SUCCESS)
-		return (result);
 	if (zone == NULL) {
 		result = ISC_R_UNEXPECTEDEND;
 		goto cleanup;
