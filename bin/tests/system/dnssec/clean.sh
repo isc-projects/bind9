@@ -41,7 +41,7 @@ rm -f ns3/optout.nsec3.example.db
 rm -f ns3/optout.optout.example.db
 rm -f ns3/secure.nsec3.example.db
 rm -f ns3/secure.optout.example.db
-rm -f signer/example.db
+rm -f signer/*.db
 rm -f ns2/algroll.db
 rm -f signer/example.db.after signer/example.db.before
 rm -f signer/example.db.changed

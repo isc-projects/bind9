@@ -971,6 +971,73 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking dnssec-signzone purges RRSIGs from formerly-owned glue (nsec) ($n)"
+ret=0
+key1=`$KEYGEN -r random.data -a NSEC3RSASHA1 -b 1024 -n zone example`
+key2=`$KEYGEN -r random.data -f KSK -a NSEC3RSASHA1 -b 1024 -n zone example`
+mv $key1.key $key1.private $key2.key $key2.private signer
+(
+cd signer
+cat example.db.in $key1.key $key2.key > example2.db
+cat << EOF >> example2.db
+sub1.example. IN A 10.53.0.1
+ns.sub2.example. IN A 10.53.0.2
+EOF
+$SIGNER -f tmp -o example example2.db > /dev/null 2>&1
+$CHECKZONE -D -o example2.db.signed example tmp > /dev/null 2>&1
+rm -f tmp
+) || ret=1
+grep "^sub1\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 || ret=1
+grep "^ns\.sub2\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 || ret=1
+(
+cd signer
+cp -f example2.db.signed example2.db
+cat << EOF >> example2.db
+sub1.example. IN NS sub1.example.
+sub2.example. IN NS ns.sub2.example.
+EOF
+$SIGNER -f tmp -o example example2.db > /dev/null 2>&1
+$CHECKZONE -D -o example2.db.signed example tmp > /dev/null 2>&1
+rm -f tmp
+) || ret=1
+grep "^sub1\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 && ret=1
+grep "^ns\.sub2\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking dnssec-signzone purges RRSIGs from formerly-owned glue (nsec3) ($n)"
+ret=0
+(
+cd signer
+cat example.db.in $key1.key $key2.key > example2.db
+cat << EOF >> example2.db
+sub1.example. IN A 10.53.0.1
+ns.sub2.example. IN A 10.53.0.2
+EOF
+$SIGNER -3 feedabee -f tmp -o example example2.db > /dev/null 2>&1
+$CHECKZONE -D -o example2.db.signed example tmp > /dev/null 2>&1
+rm -f tmp
+) || ret=1
+grep "^sub1\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 || ret=1
+grep "^ns\.sub2\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 || ret=1
+(
+cd signer
+cp -f example2.db.signed example2.db
+cat << EOF >> example2.db
+sub1.example. IN NS sub1.example.
+sub2.example. IN NS ns.sub2.example.
+EOF
+$SIGNER -3 feedabee -f tmp -o example example2.db > /dev/null 2>&1
+$CHECKZONE -D -o example2.db.signed example tmp > /dev/null 2>&1
+rm -f tmp
+) || ret=1
+grep "^sub1\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 && ret=1
+grep "^ns\.sub2\.example\..*RRSIG[ 	]A[ 	]" signer/example2.db.signed > /dev/null 2>&1 && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 # Check direct query for RRSIG.  If we first ask for normal (non RRSIG)
 # record, the corresponding RRSIG should be cached and subsequent query
 # for RRSIG will be returned with the cached record.
