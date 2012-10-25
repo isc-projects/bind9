@@ -27,6 +27,7 @@
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
+#include <isc/serial.h>
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
@@ -776,9 +777,13 @@ entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
 	 * use and the cleaning interval.
 	 */
 	if (cleaner->overmem) {
-		unsigned int passed =
-			now32 - entry->lastused; /* <= interval */
+		unsigned int passed;
 		isc_uint32_t val;
+
+		if (isc_serial_ge(now32, entry->lastused))
+			passed = now32 - entry->lastused; /* <= interval */
+		else
+			passed = 0;
 
 		if (passed > interval / 2)
 			return (ISC_TRUE);
@@ -825,8 +830,10 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 	entry = cleaner->current_entry;
 	isc_stdtime_convert32(cleaner->last_cleanup_time, &last32);
-	INSIST(now32 > last32);
-	interval = now32 - last32;
+	if (isc_serial_ge(now32, last32))
+		interval = now32 - last32;
+	else
+		interval = 0;
 
 	while (n_entries-- > 0) {
 		isc_boolean_t is_stale = ISC_FALSE;
