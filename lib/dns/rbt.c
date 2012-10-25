@@ -537,7 +537,7 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 
 	if (node->data != NULL) {
 		long ret;
-	
+
 		ret = ftell(file);
 		if (ret < 0)
 			return (ISC_R_FAILURE);
