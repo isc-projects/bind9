@@ -5889,7 +5889,8 @@ options {
                 installed along with <acronym>BIND</acronym> 9, and is
                 current as of the release date.  If the DLV key expires, a
                 new copy of <filename>bind.keys</filename> can be downloaded
-                from <ulink>https://www.isc.org/solutions/dlv</ulink>.
+                from <ulink url="https://www.isc.org/solutions/dlv/"
+		>https://www.isc.org/solutions/dlv/</ulink>.
               </para>
               <para>
                 (To prevent problems if <filename>bind.keys</filename> is
@@ -9472,7 +9473,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    to get access to an internal node of your local network
 	    that couldn't be externally accessed otherwise.
 	    See the paper available at
-	    <ulink>
+	    <ulink url="http://portal.acm.org/citation.cfm?id=1315245.1315298">
 	    http://portal.acm.org/citation.cfm?id=1315245.1315298
 	    </ulink>
 	    for more details about the attacks.
