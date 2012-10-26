@@ -1459,9 +1459,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "check-srv-cname", MASTERZONE },
 	{ "masterfile-format", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE |
 	  REDIRECTZONE },
-	{ "update-check-ksk", MASTERZONE },
-	{ "dnssec-dnskey-kskonly", MASTERZONE },
-	{ "dnssec-loadkeys-interval", MASTERZONE },
+	{ "update-check-ksk", MASTERZONE | SLAVEZONE },
+	{ "dnssec-dnskey-kskonly", MASTERZONE | SLAVEZONE },
+	{ "dnssec-loadkeys-interval", MASTERZONE | SLAVEZONE },
 	{ "auto-dnssec", MASTERZONE | SLAVEZONE },
 	{ "try-tcp-refresh", SLAVEZONE | STREDIRECTZONE },
 	{ "server-addresses", STATICSTUBZONE },
@@ -1474,7 +1474,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "refresh", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "passive", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	};
-
 
 	znamestr = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 
@@ -1712,6 +1711,33 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 					    "sig-signing-type: %u out of "
 					    "range [%u..%u]", type,
 					    0xff00U, 0xffffU);
+			result = ISC_R_FAILURE;
+		}
+
+		obj = NULL;
+		res1 = cfg_map_get(zoptions, "dnssec-dnskey-kskonly", &obj);
+		if (res1 == ISC_R_SUCCESS && ztype == SLAVEZONE && !signing) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-dnskey-kskonly: requires "
+				    "inline-signing when used in slave zone");
+			result = ISC_R_FAILURE;
+		}
+
+		obj = NULL;
+		res1 = cfg_map_get(zoptions, "dnssec-loadkeys-interval", &obj);
+		if (res1 == ISC_R_SUCCESS && ztype == SLAVEZONE && !signing) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-loadkeys-interval: requires "
+				    "inline-signing when used in slave zone");
+			result = ISC_R_FAILURE;
+		}
+
+		obj = NULL;
+		res1 = cfg_map_get(zoptions, "update-check-ksk", &obj);
+		if (res1 == ISC_R_SUCCESS && ztype == SLAVEZONE && !signing) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "update-check-ksk: requires "
+				    "inline-signing when used in slave zone");
 			result = ISC_R_FAILURE;
 		}
 	}
