@@ -9595,6 +9595,20 @@ bzone.domain.com        CNAME   garden.example.com.
 ns.domain.com.rpz-nsdname   CNAME   .
 48.zz.2.2001.rpz-nsip       CNAME   .
 </programlisting>
+	  <para>
+            Note: RPZ may impact server performance.  Each configured
+            response policy zone requires the server to perform one to four
+            additional database lookups before a query can be answered.
+            For example, a DNS server with four policy zones, each with all
+            four kinds of response triggers &mdash; QNAME, IP, NSIP, and
+            NSDNAME &mdash; requires a total of 17 times as many database
+            lookups as a similar DNS server with no response policy zones.
+            A <acronym>BIND9</acronym> server with adequate memory and one
+            response policy zone with QNAME and IP triggers might achieve a
+            maximum queries-per-second rate about 20% lower.  A server with
+            four response policy zones with QNAME and IP triggers might
+            have a maximum QPS rate about 50% lower.
+	  </para>
         </sect3>
       </sect2>
 
