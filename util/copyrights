@@ -653,6 +653,7 @@
 ./bin/tests/system/cacheclean/ns2/named.conf	CONF-C	2001,2004,2005,2007,2011
 ./bin/tests/system/cacheclean/tests.sh		SH	2001,2004,2007,2011,2012
 ./bin/tests/system/checkconf/bad-also-notify.conf	CONF-C	2012
+./bin/tests/system/checkconf/bad-dnssec.conf	CONF-C	2012
 ./bin/tests/system/checkconf/bad-many.conf	CONF-C	2005,2012
 ./bin/tests/system/checkconf/bad-tsig.conf	CONF-C	2012
 ./bin/tests/system/checkconf/clean.sh		SH	2011,2012
