@@ -40,15 +40,6 @@ typedef void * (*isc_memalloc_t)(void *, size_t);
 typedef void (*isc_memfree_t)(void *, void *);
 
 /*%
- * Define ISC_MEM_DEBUG=1 to make all functions that free memory
- * set the pointer being freed to NULL after being freed.
- * This is the default; set ISC_MEM_DEBUG=0 to disable it.
- */
-#ifndef ISC_MEM_DEBUG
-#define ISC_MEM_DEBUG 1
-#endif
-
-/*%
  * Define ISC_MEM_TRACKLINES=1 to turn on detailed tracing of memory
  * allocation and freeing by file and line number.
  */
@@ -187,7 +178,6 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
  * \endcode
  */
 
-#if ISC_MEM_DEBUG
 #define isc_mem_put(c, p, s) \
 	do { \
 		isc__mem_put((c), (p), (s) _ISC_MEM_FILELINE); \
@@ -208,13 +198,6 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 		isc__mempool_put((c), (p) _ISC_MEM_FILELINE); \
 		(p) = NULL; \
 	} while (0)
-#else
-#define isc_mem_put(c, p, s)	isc__mem_put((c), (p), (s) _ISC_MEM_FILELINE)
-#define isc_mem_putanddetach(c, p, s) \
-	isc__mem_putanddetach((c), (p), (s) _ISC_MEM_FILELINE)
-#define isc_mem_free(c, p)	isc__mem_free((c), (p) _ISC_MEM_FILELINE)
-#define isc_mempool_put(c, p)	isc__mempool_put((c), (p) _ISC_MEM_FILELINE)
-#endif
 
 /*@{*/
 isc_result_t
