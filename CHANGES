@@ -97,6 +97,14 @@
 			add NS RRsets to the additional section or not.
 			[RT #30479]
 
+3316.   [tuning]        Improved locking performance when recursing.
+                        [RT #28836]
+
+3315.   [tuning]        Use multiple dispatch objects for sending upstream
+                        queries; this can improve performance on busy
+                        multiprocessor systems by reducing lock contention.
+                        [RT #28605]
+
 	--- 9.9.2 released ---
 
 3373.	[bug]		win32: open raw files in binary mode. [RT #30944]

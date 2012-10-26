@@ -318,7 +318,7 @@ dns_client_createview(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		return (result);
 	}
 
-	result = dns_view_createresolver(view, taskmgr, ntasks, socketmgr,
+	result = dns_view_createresolver(view, taskmgr, ntasks, 1, socketmgr,
 					 timermgr, 0, dispatchmgr,
 					 dispatchv4, dispatchv6);
 	if (result != ISC_R_SUCCESS) {
