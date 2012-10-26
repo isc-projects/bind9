@@ -1,3 +1,8 @@
+3408.	[bug]		Some DNSSEC-related options (update-check-ksk,
+			dnssec-loadkeys-interval, dnssec-dnskey-kskonly)
+			are now legal in slave zones as long as
+			inline-signing is in use. [RT #31078]
+
 3406.	[bug]		mem.c: Fix compilation errors when building with
 			ISC_MEM_TRACKLINES or ISC_MEMPOOL_NAMES disabled.
                         Also, ISC_MEM_DEBUG is no longer optional. [RT #31559]
