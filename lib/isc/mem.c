@@ -202,6 +202,7 @@ struct isc__mempool {
 #if ! ISC_MEM_TRACKLINES
 #define ADD_TRACE(a, b, c, d, e)
 #define DELETE_TRACE(a, b, c, d, e)
+#define ISC_MEMFUNC_SCOPE
 #else
 #define ADD_TRACE(a, b, c, d, e) \
 	do { \
@@ -325,6 +326,7 @@ isc__mem_checkdestroyed(FILE *file);
 ISC_MEMFUNC_SCOPE unsigned int
 isc__mem_references(isc_mem_t *ctx0);
 #endif
+#endif /* ISC_MEM_TRACKLINES */
 
 static struct isc__memmethods {
 	isc_memmethods_t methods;
@@ -395,6 +397,7 @@ static struct isc__mempoolmethods {
 #endif
 };
 
+#if ISC_MEM_TRACKLINES
 /*!
  * mctx must be locked.
  */
@@ -1484,7 +1487,12 @@ isc__mem_stats(isc_mem_t *ctx0, FILE *out) {
 	}
 	while (pool != NULL) {
 		fprintf(out, "%15s %10lu %10u %10u %10u %10u %10u %10u %s\n",
-			pool->name, (unsigned long) pool->size, pool->maxalloc,
+#if ISC_MEMPOOL_NAMES
+			pool->name,
+#else
+			"(not tracked)",
+#endif
+			(unsigned long) pool->size, pool->maxalloc,
 			pool->allocated, pool->freecount, pool->freemax,
 			pool->fillcount, pool->gets,
 			(pool->lock == NULL ? "N" : "Y"));
@@ -2296,16 +2304,16 @@ isc__mem_register() {
 #ifdef BIND9
 ISC_MEMFUNC_SCOPE void
 isc__mem_printactive(isc_mem_t *ctx0, FILE *file) {
+#if ISC_MEM_TRACKLINES
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(file != NULL);
 
-#if !ISC_MEM_TRACKLINES
-	UNUSED(ctx);
-	UNUSED(file);
-#else
 	print_active(ctx, file);
+#else
+	UNUSED(ctx0);
+	UNUSED(file);
 #endif
 }
 
@@ -2331,6 +2339,9 @@ isc__mem_printallactive(FILE *file) {
 
 ISC_MEMFUNC_SCOPE void
 isc__mem_checkdestroyed(FILE *file) {
+#if !ISC_MEM_TRACKLINES
+	UNUSED(file);
+#endif
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 

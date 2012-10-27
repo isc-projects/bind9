@@ -9874,6 +9874,20 @@ bzone.domain.com        CNAME   garden.example.com.
 ns.domain.com.rpz-nsdname   CNAME   .
 48.zz.2.2001.rpz-nsip       CNAME   .
 </programlisting>
+	  <para>
+            Note: RPZ may impact server performance.  Each configured
+            response policy zone requires the server to perform one to four
+            additional database lookups before a query can be answered.
+            For example, a DNS server with four policy zones, each with all
+            four kinds of response triggers &mdash; QNAME, IP, NSIP, and
+            NSDNAME &mdash; requires a total of 17 times as many database
+            lookups as a similar DNS server with no response policy zones.
+            A <acronym>BIND9</acronym> server with adequate memory and one
+            response policy zone with QNAME and IP triggers might achieve a
+            maximum queries-per-second rate about 20% lower.  A server with
+            four response policy zones with QNAME and IP triggers might
+            have a maximum QPS rate about 50% lower.
+	  </para>
         </sect3>
       </sect2>
 
@@ -10487,6 +10501,9 @@ view "external" {
     <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-loadkeys-interval <replaceable>number</replaceable>; </optional>
     <optional> update-policy <replaceable>local</replaceable> | { <replaceable>update_policy_rule</replaceable> <optional>...</optional> }; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
                   <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
@@ -10539,8 +10556,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
-    <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-update-mode ( <replaceable>maintain</replaceable> | <replaceable>no-resign</replaceable> ); </optional>
+    <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-loadkeys-interval <replaceable>number</replaceable>; </optional>
     <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
@@ -10581,11 +10598,18 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> sig-validity-interval <replaceable>number</replaceable> <optional><replaceable>number</replaceable></optional> ; </optional>
+    <optional> sig-signing-nodes <replaceable>number</replaceable> ; </optional>
+    <optional> sig-signing-signatures <replaceable>number</replaceable> ; </optional>
+    <optional> sig-signing-type <replaceable>number</replaceable> ; </optional>
     <optional> database <replaceable>string</replaceable> ; </optional>
     <optional> min-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
+    <optional> key-directory <replaceable>path_name</replaceable>; </optional>
+    <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
+    <optional> inline-signing <replaceable>yes_or_no</replaceable>; </optional>
     <optional> multi-master <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
 };

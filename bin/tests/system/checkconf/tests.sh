@@ -93,5 +93,16 @@ done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I: checking options allowed in inline-signing slaves"
+ret=0
+n=`$CHECKCONF bad-dnssec.conf 2>&1 | grep "dnssec-dnskey-kskonly.*requires inline" | wc -l`
+[ $n -eq 1 ] || ret=1
+n=`$CHECKCONF bad-dnssec.conf 2>&1 | grep "dnssec-loadkeys-interval.*requires inline" | wc -l`
+[ $n -eq 1 ] || ret=1
+n=`$CHECKCONF bad-dnssec.conf 2>&1 | grep "update-check-ksk.*requires inline" | wc -l`
+[ $n -eq 1 ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
