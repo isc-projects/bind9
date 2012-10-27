@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -164,7 +164,7 @@ main(int argc, char *argv[]) {
 							  512, 6, 1024,
 							  17, 19, attrs,
 							  attrs, &disp4)
-			 	      == ISC_R_SUCCESS);
+				      == ISC_R_SUCCESS);
 			INSIST(disp4 != NULL);
 		}
 
@@ -191,9 +191,9 @@ main(int argc, char *argv[]) {
 						      disp4, disp6) ==
 		      ISC_R_SUCCESS);
 
-	        if (disp4 != NULL)
+		if (disp4 != NULL)
 		    dns_dispatch_detach(&disp4);
-	        if (disp6 != NULL)
+		if (disp6 != NULL)
 		    dns_dispatch_detach(&disp6);
 	}
 
