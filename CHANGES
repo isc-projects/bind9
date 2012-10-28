@@ -1,3 +1,8 @@
+3409.	[contrib]	contrib/dane/mkdane.sh: Tool to generate TLSA RR's
+			from X.509 certificates, for use with DANE
+			(DNS-based Authentication of Named Entities).
+			[RT #30513]
+
 3406.	[bug]		mem.c: Fix compilation errors when building with
 			ISC_MEM_TRACKLINES or ISC_MEMPOOL_NAMES disabled.
                         Also, ISC_MEM_DEBUG is no longer optional. [RT #31559]
