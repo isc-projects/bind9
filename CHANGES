@@ -1,3 +1,8 @@
+3409.	[contrib]	contrib/dane/mkdane.sh: Tool to generate TLSA RR's
+			from X.509 certificates, for use with DANE
+			(DNS-based Authentication of Named Entities).
+			[RT #30513]
+
 3408.	[bug]		Some DNSSEC-related options (update-check-ksk,
 			dnssec-loadkeys-interval, dnssec-dnskey-kskonly)
 			are now legal in slave zones as long as
