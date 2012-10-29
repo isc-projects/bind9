@@ -23,8 +23,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
-#include <sys/errno.h>		/* Non-portable. */
 #include <sys/types.h>		/* Non-portable. */
 #include <sys/stat.h>		/* Non-portable. */
 
