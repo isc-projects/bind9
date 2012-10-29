@@ -3271,6 +3271,11 @@ AC_ARG_WITH(dlopen,
 	[  --with-dlopen=ARG       Support dynamically loadable DLZ drivers],
 	dlopen="$withval", dlopen="yes")
 
+case $host in
+	*-sunos*) dlopen="no"
+		;;
+esac
+
 if test "$dlopen" = "yes"; then
 	AC_CHECK_LIB(dl, dlopen, have_dl=yes, have_dl=no)
 	if test "$have_dl" = "yes"; then
