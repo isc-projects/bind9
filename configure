@@ -27116,6 +27116,11 @@ else
 fi
 
 
+case $host in
+	*-sunos*) dlopen="no"
+		;;
+esac
+
 if test "$dlopen" = "yes"; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
 $as_echo_n "checking for dlopen in -ldl... " >&6; }
