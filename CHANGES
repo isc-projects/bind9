@@ -1,3 +1,5 @@
+3410.	[bug]		Addressed Coverity warnings. [RT #31626]
+
 3409.	[contrib]	contrib/dane/mkdane.sh: Tool to generate TLSA RR's
 			from X.509 certificates, for use with DANE
 			(DNS-based Authentication of Named Entities).

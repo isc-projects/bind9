@@ -205,8 +205,9 @@ my_listen(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Queue another listen on this socket.
 		 */
-		isc_socket_accept(event->ev_sender, task, my_listen,
-				  event->ev_arg);
+		RUNTIME_CHECK(isc_socket_accept(event->ev_sender, task,
+						my_listen, event->ev_arg)
+			      == ISC_R_SUCCESS);
 
 		region.base = isc_mem_get(mctx, 20);
 		region.length = 20;

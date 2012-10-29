@@ -59,7 +59,7 @@ typedef struct {
  */
 static void
 make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
-	     unsigned char *buf)
+	     unsigned char *buf, size_t len)
 {
 	dns_rdata_init(private);
 
@@ -69,7 +69,7 @@ make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
 	buf[3] = testcase->remove;
 	buf[4] = testcase->complete;
 	private->data = buf;
-	private->length = sizeof(buf);
+	private->length = len;
 	private->type = privatetype;
 	private->rdclass = dns_rdataclass_in;
 }
@@ -161,7 +161,7 @@ ATF_TC_BODY(private_signing_totext, tc) {
 
 		isc_buffer_init(&buf, output, sizeof(output));
 
-		make_signing(&testcases[i], &private, data);
+		make_signing(&testcases[i], &private, data, sizeof(data));
 		dns_private_totext(&private, &buf);
 		ATF_CHECK_STREQ(output, results[i]);
 	}
