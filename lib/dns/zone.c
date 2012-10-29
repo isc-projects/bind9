@@ -3214,7 +3214,8 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 		dns_rdataset_current(rdataset, &rdata);
 
 		/* Convert rdata to keydata. */
-		dns_rdata_tostruct(&rdata, &keydata, NULL);
+		result = dns_rdata_tostruct(&rdata, &keydata, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		/* Set the key refresh timer. */
 		set_refreshkeytimer(zone, &keydata, now);
@@ -8104,7 +8105,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 		dns_rdata_reset(&dnskeyrr);
 		dns_rdataset_current(&kfetch->dnskeyset, &dnskeyrr);
-		dns_rdata_tostruct(&dnskeyrr, &dnskey, NULL);
+		result = dns_rdata_tostruct(&dnskeyrr, &dnskey, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		/* Skip ZSK's */
 		if (!ISC_TF(dnskey.flags & DNS_KEYFLAG_KSK))
@@ -12621,7 +12623,8 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	result = dns_rdataset_first(rdataset);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdataset_current(rdataset, &rdata);
-	dns_rdata_tostruct(&rdata, &soa, NULL);
+	result = dns_rdata_tostruct(&rdata, &soa, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (isc_serial_gt(soa.serial, oldserial))
 		return (dns_db_addrdataset(db, node, version, 0, rdataset, 0,
