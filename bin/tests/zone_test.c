@@ -261,8 +261,12 @@ main(int argc, char **argv) {
 		case 'm':
 			memset(&addr, 0, sizeof(addr));
 			addr.type.sin.sin_family = AF_INET;
-			inet_pton(AF_INET, isc_commandline_argument,
-				  &addr.type.sin.sin_addr);
+			if (inet_pton(AF_INET, isc_commandline_argument,
+				      &addr.type.sin.sin_addr) != 1) {
+				fprintf(stderr, "bad master address '%s'\n",
+					isc_commandline_argument);
+				exit(1);
+			}
 			addr.type.sin.sin_port = htons(53);
 			break;
 		case 'q':

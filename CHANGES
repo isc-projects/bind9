@@ -1,3 +1,5 @@
+3410.	[bug]		Addressed Coverity warnings. [RT #31626]
+
 3406.	[bug]		mem.c: Fix compilation errors when building with
 			ISC_MEM_TRACKLINES or ISC_MEMPOOL_NAMES disabled.
                         Also, ISC_MEM_DEBUG is no longer optional. [RT #31559]

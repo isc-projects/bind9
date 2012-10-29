@@ -374,6 +374,7 @@ main(int argc, char *argv[]) {
 	dns_trust_t trust = 0;
 	unsigned int addopts;
 	isc_log_t *lctx = NULL;
+	size_t n;
 
 	dns_result_register();
 
@@ -395,7 +396,13 @@ main(int argc, char *argv[]) {
 				       isc_result_totext(result));
 			break;
 		case 'd':
-			strcpy(dbtype, isc_commandline_argument);
+			n = strlcpy(dbtype, isc_commandline_argument,
+				    sizeof(dbtype));
+			if (n >= sizeof(dbtype)) {
+				fprintf(stderr, "bad db type '%s'\n",
+					isc_commandline_argument);
+				exit(1);
+			}
 			break;
 		case 'g':
 			options |= (DNS_DBFIND_GLUEOK|DNS_DBFIND_VALIDATEGLUE);
