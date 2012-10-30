@@ -17,8 +17,8 @@
 
 3403.	[bug]		Silence noisy OpenSSL logging. [RT #31497]
 
-3402.	[bug]		Correct interface numbers for IPv4 and IPv6 interfaces.
-			[RT #25085] 
+3402.	[test]		The IPv6 interface numbers used for system
+                        tests were incorrect on some platforms. [RT #25085] 
 
 3401.	[bug]		Addressed Coverity warnings. [RT #31484]
 
