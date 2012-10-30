@@ -12,18 +12,18 @@
 
 3406.	[bug]		mem.c: Fix compilation errors when building with
 			ISC_MEM_TRACKLINES or ISC_MEMPOOL_NAMES disabled.
-                        Also, ISC_MEM_DEBUG is no longer optional. [RT #31559]
+			Also, ISC_MEM_DEBUG is no longer optional. [RT #31559]
 
 3405.	[bug]		Handle time going backwards in acache. [RT #31253]
 
 3404.	[bug]		dnssec-signzone: When re-signing a zone, remove
-			RRSIG and NSEC records from nodes that used to be 
+			RRSIG and NSEC records from nodes that used to be
 			in-zone but are now below a zone cut. [RT #31556]
 
 3403.	[bug]		Silence noisy OpenSSL logging. [RT #31497]
 
 3402.	[test]		The IPv6 interface numbers used for system
-                        tests were incorrect on some platforms. [RT #25085] 
+			tests were incorrect on some platforms. [RT #25085]
 
 3401.	[bug]		Addressed Coverity warnings. [RT #31484]
 
@@ -39,7 +39,7 @@
 			server was offline. [RT #29272]
 
 3397.	[bug]		dig crashed when using +nssearch with +tcp. [RT #25298]
-			
+
 3396.	[bug]		OPT records were incorrectly removed from signed,
 			truncated responses. [RT #31439]
 
@@ -47,7 +47,7 @@
 			list, 64.100.IN-ADDR.ARPA ... 127.100.IN-ADDR.ARPA.
 			[RT #31336]
 
-3394.	[bug]		Adjust 'sucessfully validated after lower casing
+3394.	[bug]		Adjust 'successfully validated after lower casing
 			signer' log level and category. [RT #31414]
 
 3393.	[bug]		'host -C' could core dump if REFUSED was received.
@@ -71,8 +71,8 @@
 3384.	[bug]		Improved logging of crypto errors. [RT #30963]
 
 3383.	[security]	A certain combination of records in the RBT could
-                        cause named to hang while populating the additional
-                        section of a response. [RT #31090]
+			cause named to hang while populating the additional
+			section of a response. [RT #31090]
 
 3382.	[bug]		SOA query from slave used use-v6-udp-ports range,
 			if set, regardless of the address family in use.
@@ -99,8 +99,8 @@
 3375.	[func]		Check that 'rndc dumpdb' works on a empty cache.
 			[RT #30808]
 
-3374.   [bug]           isc_parse_uint32 failed to return a range error on 
-                        systems with 64 bit longs [RT #30232]   
+3374.	[bug]		isc_parse_uint32 failed to return a range error on
+			systems with 64 bit longs [RT #30232]
 
 3372.	[bug]		Silence spurious "deleted from unreachable cache"
 			messages.  [RT #30501]
