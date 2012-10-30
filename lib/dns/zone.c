@@ -3060,6 +3060,8 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD,
 				    dst_key_name(key), 0, &rdata));
 		*changed = ISC_TRUE;
+		/* Refresh new keys from the zone apex as soon as possible. */
+		set_refreshkeytimer(zone, &keydata, now);
 
  skip:
 		result = dns_keytable_nextkeynode(keytable, keynode, &nextnode);
@@ -3068,10 +3070,6 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 			keynode = nextnode;
 		}
 	}
-
-	/* Refresh new keys from the zone apex as soon as possible. */
-	if (*changed)
-		set_refreshkeytimer(zone, &keydata, now);
 
 	if (keynode != NULL)
 		dns_keytable_detachkeynode(keytable, &keynode);
