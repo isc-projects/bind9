@@ -25,12 +25,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdarg.h>
 
 #include <isc/log.h>
 #include <isc/print.h>
 #include <isc/result.h>
+#include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -46,6 +46,13 @@
 #else
 #define STRTOK_R(a, b, c)       strtok(a, b)
 #endif
+
+#define CHECK(x) \
+	do { \
+		result = (x); \
+		if (result != ISC_R_SUCCESS) \
+			goto failure; \
+	} while (0)
 
 /* For this simple example, use fixed sized strings */
 struct record {
@@ -121,10 +128,17 @@ add_name(struct dlz_example_data *state, struct record *list,
 				   "dlz_example: out of record space");
 		return (ISC_R_FAILURE);
 	}
-	strcpy(list[i].name, name);
-	strcpy(list[i].type, type);
+
+	if (strlen(name) >= sizeof(list[i].name) ||
+	    strlen(type) >= sizeof(list[i].type) ||
+	    strlen(data) >= sizeof(list[i].data))
+		return (ISC_R_NOSPACE);
+
+	strncpy(list[i].name, name, sizeof(list[i].name));
+	strncpy(list[i].type, type, sizeof(list[i].type));
 	strncpy(list[i].data, data, sizeof(list[i].data));
 	list[i].ttl = ttl;
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -220,6 +234,8 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	const char *helper_name;
 	va_list ap;
 	char soa_data[200];
+	isc_result_t result;
+	int n;
 
 	UNUSED(dlzname);
 
@@ -248,15 +264,20 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		return (ISC_R_NOMEMORY);
 	}
 
-	sprintf(soa_data, "%s hostmaster.%s 123 900 600 86400 3600",
-		state->zone_name, state->zone_name);
+	n = snprintf(soa_data, sizeof(soa_data),
+		     "%s hostmaster.%s 123 900 600 86400 3600",
+		     state->zone_name, state->zone_name);
+	if (n < 0)
+		CHECK(ISC_R_FAILURE);
+	if ((unsigned)n >= sizeof(soa_data))
+		CHECK(ISC_R_NOSPACE);
 
-	add_name(state, &state->current[0], state->zone_name,
-		 "soa", 3600, soa_data);
-	add_name(state, &state->current[0], state->zone_name,
-		 "ns", 3600, state->zone_name);
-	add_name(state, &state->current[0], state->zone_name,
-		 "a", 1800, "10.53.0.1");
+	CHECK(add_name(state, &state->current[0], state->zone_name,
+		       "soa", 3600, soa_data));
+	CHECK(add_name(state, &state->current[0], state->zone_name,
+		       "ns", 3600, state->zone_name));
+	CHECK(add_name(state, &state->current[0], state->zone_name,
+		       "a", 1800, "10.53.0.1"));
 
 	if (state->log != NULL)
 		state->log(ISC_LOG_INFO, "dlz_example: started for zone %s",
@@ -264,6 +285,11 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	*dbdata = state;
 	return (ISC_R_SUCCESS);
+
+ failure:
+	free(state);
+	return (result);
+
 }
 
 /*
@@ -447,21 +473,21 @@ dlz_closeversion(const char *zone, isc_boolean_t commit,
 			state->log(ISC_LOG_INFO, "dlz_example: committing "
 				   "transaction on zone %s", zone);
 		for (i = 0; i < MAX_RECORDS; i++) {
-			if (strlen(state->adds[i].name) > 0U) {
-				add_name(state, &state->current[0],
-					 state->adds[i].name,
-					 state->adds[i].type,
-					 state->adds[i].ttl,
-					 state->adds[i].data);
+			if (strlen(state->deletes[i].name) > 0U) {
+				(void)del_name(state, &state->current[0],
+					       state->deletes[i].name,
+					       state->deletes[i].type,
+					       state->deletes[i].ttl,
+					       state->deletes[i].data);
 			}
 		}
 		for (i = 0; i < MAX_RECORDS; i++) {
-			if (strlen(state->deletes[i].name) > 0U) {
-				del_name(state, &state->current[0],
-					 state->deletes[i].name,
-					 state->deletes[i].type,
-					 state->deletes[i].ttl,
-					 state->deletes[i].data);
+			if (strlen(state->adds[i].name) > 0U) {
+				(void)add_name(state, &state->current[0],
+					       state->adds[i].name,
+					       state->adds[i].type,
+					       state->adds[i].ttl,
+					       state->adds[i].data);
 			}
 		}
 	} else {
