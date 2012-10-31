@@ -2262,6 +2262,28 @@ clear_bsdcompat(void) {
 }
 #endif
 
+static void
+use_min_mtu(isc__socket_t *sock) {
+#ifdef IPV6_USE_MIN_MTU
+	/* use minimum MTU */
+	if (sock->pf == AF_INET6) {
+		int on = 1;
+		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_USE_MIN_MTU,
+			        (void *)&on, sizeof(on));
+	}
+#endif
+#if defined(IPV6_MTU)
+	/*
+	 * Use minimum MTU on IPv6 sockets.
+	 */
+	if (sock->pf == AF_INET6) {
+		int mtu = 1280;
+		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_MTU,
+				 &mtu, sizeof(mtu));
+	}
+#endif
+}
+
 static isc_result_t
 opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	   isc__socket_t *dup_socket)
@@ -2270,7 +2292,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	char strbuf[ISC_STRERRORSIZE];
 	const char *err = "socket";
 	int tries = 0;
-#if defined(USE_CMSG) || defined(SO_BSDCOMPAT)
+#if defined(USE_CMSG) || defined(SO_BSDCOMPAT) || defined(SO_NOSIGPIPE)
 	int on = 1;
 #endif
 #if defined(SO_RCVBUF)
@@ -2426,6 +2448,11 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	}
 #endif
 
+	/*
+	 * Use minimum mtu if possible.
+	 */
+	use_min_mtu(sock);
+
 #if defined(USE_CMSG) || defined(SO_RCVBUF)
 	if (sock->type == isc_sockettype_udp) {
 
@@ -2490,32 +2517,6 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		}
 #endif /* IPV6_RECVPKTINFO */
 #endif /* ISC_PLATFORM_HAVEIN6PKTINFO */
-#ifdef IPV6_USE_MIN_MTU        /* RFC 3542, not too common yet*/
-		/* use minimum MTU */
-		if (sock->pf == AF_INET6 &&
-		    setsockopt(sock->fd, IPPROTO_IPV6, IPV6_USE_MIN_MTU,
-			       (void *)&on, sizeof(on)) < 0) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "setsockopt(%d, IPV6_USE_MIN_MTU) "
-					 "%s: %s", sock->fd,
-					 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_GENERAL,
-							ISC_MSG_FAILED,
-							"failed"),
-					 strbuf);
-		}
-#endif
-#if defined(IPV6_MTU)
-		/*
-		 * Use minimum MTU on IPv6 sockets.
-		 */
-		if (sock->pf == AF_INET6) {
-			int mtu = 1280;
-			(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_MTU,
-					 &mtu, sizeof(mtu));
-		}
-#endif
 #if defined(IPV6_MTU_DISCOVER) && defined(IPV6_PMTUDISC_DONT)
 		/*
 		 * Turn off Path MTU discovery on IPv6/UDP sockets.
@@ -3311,6 +3312,11 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		NEWCONNSOCK(dev)->fd = fd;
 		NEWCONNSOCK(dev)->bound = 1;
 		NEWCONNSOCK(dev)->connected = 1;
+
+		/*
+		 * Use minimum mtu if possible.
+		 */
+		use_min_mtu(NEWCONNSOCK(dev));
 
 		/*
 		 * Save away the remote address
