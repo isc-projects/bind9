@@ -1,3 +1,6 @@
+3411.	[tuning]	Use IPV6_USE_MIN_MTU or equivalent with TCP in addition
+			to UDP. [RT #31690]
+
 3410.	[bug]		Addressed Coverity warnings. [RT #31626]
 
 3406.	[bug]		mem.c: Fix compilation errors when building with
