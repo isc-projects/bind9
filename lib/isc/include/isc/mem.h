@@ -444,7 +444,7 @@ isc_mem_gettag(isc_mem_t *ctx);
  */
 
 #ifdef HAVE_LIBXML2
-void
+int
 isc_mem_renderxml(xmlTextWriterPtr writer);
 /*%<
  * Render all contexts' statistics and status in XML for writer.

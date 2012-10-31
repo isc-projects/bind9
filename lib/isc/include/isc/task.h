@@ -627,7 +627,7 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp);
 
 #ifdef HAVE_LIBXML2
 
-void
+int
 isc_taskmgr_renderxml(isc_taskmgr_t *mgr, xmlTextWriterPtr writer);
 
 #endif

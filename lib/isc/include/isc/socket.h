@@ -994,7 +994,7 @@ isc__socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
 
 #ifdef HAVE_LIBXML2
 
-void
+int
 isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
 /*%<
  * Render internal statistics and other state into the XML document.
