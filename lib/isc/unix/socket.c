@@ -2056,7 +2056,7 @@ clear_bsdcompat(void) {
 #endif
 
 static void
-use_min_mtu(isc__socket_t *sock) {
+use_min_mtu(isc_socket_t *sock) {
 #ifdef IPV6_USE_MIN_MTU
 	/* use minimum MTU */
 	if (sock->pf == AF_INET6) {
@@ -3007,7 +3007,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		/*
 		 * Use minimum mtu if possible.
 		 */
-		use_min_mtu(NEWCONNSOCK(dev));
+		use_min_mtu(dev->newsocket);
 
 		/*
 		 * Save away the remote address
