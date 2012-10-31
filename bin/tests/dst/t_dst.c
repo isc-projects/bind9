@@ -61,6 +61,7 @@ cleandir(char *path) {
 	DIR		*dirp;
 	struct dirent	*pe;
 	char		fullname[PATH_MAX + 1];
+	size_t		l;
 
 	dirp = opendir(path);
 	if (dirp == NULL) {
@@ -73,11 +74,16 @@ cleandir(char *path) {
 			continue;
 		if (! strcmp(pe->d_name, ".."))
 			continue;
-		strcpy(fullname, path);
-		strcat(fullname, "/");
-		strcat(fullname, pe->d_name);
-		if (remove(fullname))
-			t_info("remove(%s) failed %d\n", fullname, errno);
+		(void)strlcpy(fullname, path, sizeof(fullname));
+		(void)strlcat(fullname, "/", sizeof(fullname));
+		l = strlcat(fullname, pe->d_name, sizeof(fullname));
+		if (l < sizeof(fullname)) {
+			if (remove(fullname))
+				t_info("remove(%s) failed %d\n", fullname,
+				       errno);
+		} else 
+		       t_info("unable to remove '%s/%s': path too long\n",
+			      path, pe->d_name);
 
 	}
 	(void)closedir(dirp);
