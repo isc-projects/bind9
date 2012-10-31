@@ -2269,7 +2269,7 @@ use_min_mtu(isc__socket_t *sock) {
 	if (sock->pf == AF_INET6) {
 		int on = 1;
 		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_USE_MIN_MTU,
-			        (void *)&on, sizeof(on));
+				(void *)&on, sizeof(on));
 	}
 #endif
 #if defined(IPV6_MTU)
@@ -5991,7 +5991,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "name"));
 			TRY0(xmlTextWriterWriteFormatString(writer, "%s",
-						            sock->name));
+							    sock->name));
 			TRY0(xmlTextWriterEndElement(writer)); /* name */
 		}
 
@@ -6023,7 +6023,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "states"));
 		if (sock->pending_recv)
 			TRY0(xmlTextWriterWriteElement(writer,
-					        ISC_XMLCHAR "state",
+						ISC_XMLCHAR "state",
 						ISC_XMLCHAR "pending-receive"));
 		if (sock->pending_send)
 			TRY0(xmlTextWriterWriteElement(writer,
