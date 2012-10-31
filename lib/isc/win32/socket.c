@@ -1431,6 +1431,18 @@ startio_send(isc_socket_t *sock, isc_socketevent_t *dev, int *nbytes,
 	return (status);
 }
 
+static void
+use_min_mtu(isc__socket_t *sock) {
+#ifdef IPV6_USE_MIN_MTU
+	/* use minimum MTU */
+	if (sock->pf == AF_INET6) {
+		int on = 1;
+		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_USE_MIN_MTU,
+			        (void *)&on, sizeof(on));
+	}
+#endif
+}
+
 static isc_result_t
 allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 		isc_socket_t **socketp) {
@@ -1737,6 +1749,10 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		return (result);
 	}
 
+	/*
+	 * Use minimum mtu if possible.
+	 */
+	use_min_mtu(sock);
 
 #if defined(USE_CMSG) || defined(SO_RCVBUF)
 	if (type == isc_sockettype_udp) {
@@ -1774,14 +1790,6 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 					 strbuf);
 		}
 #endif /* IPV6_RECVPKTINFO */
-#ifdef IPV6_USE_MIN_MTU	/*2292bis, not too common yet*/
-		/* use minimum MTU */
-		if (pf == AF_INET6) {
-			(void)setsockopt(sock->fd, IPPROTO_IPV6,
-					 IPV6_USE_MIN_MTU,
-					 (char *)&on, sizeof(on));
-		}
-#endif
 #endif /* ISC_PLATFORM_HAVEIPV6 */
 #endif /* defined(USE_CMSG) */
 
@@ -2067,6 +2075,11 @@ internal_accept(isc_socket_t *sock, IoCompletionInfo *lpo, int accept_errno) {
 
 	result = make_nonblock(adev->newsocket->fd);
 	INSIST(result == ISC_R_SUCCESS);
+
+	/*
+	 * Use minimum mtu if possible.
+	 */
+	use_min_mtu(adev->newsocket);
 
 	INSIST(setsockopt(nsock->fd, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
 			  (char *)&sock->fd, sizeof(sock->fd)) == 0);
