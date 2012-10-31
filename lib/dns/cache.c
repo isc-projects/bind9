@@ -1395,50 +1395,58 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 }
 
 #ifdef HAVE_LIBXML2
-static void
+#define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
+static int
 renderstat(const char *name, isc_uint64_t value, xmlTextWriterPtr writer) {
-	xmlTextWriterStartElement(writer, ISC_XMLCHAR "cachestat");
-	xmlTextWriterStartElement(writer, ISC_XMLCHAR "name");
-	xmlTextWriterWriteString(writer, ISC_XMLCHAR name);
-	xmlTextWriterEndElement(writer); /* name */
-	xmlTextWriterStartElement(writer, ISC_XMLCHAR "value");
-	xmlTextWriterWriteFormatString(writer,
-				       "%" ISC_PRINT_QUADFORMAT "u", value);
-	xmlTextWriterEndElement(writer); /* value */
-	xmlTextWriterEndElement(writer); /* cachestat */
+	int xmlrc;
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "cachestat"));
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "name"));
+	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR name));
+	TRY0(xmlTextWriterEndElement(writer)); /* name */
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "value"));
+	TRY0(xmlTextWriterWriteFormatString(writer,
+				       "%" ISC_PRINT_QUADFORMAT "u", value));
+	TRY0(xmlTextWriterEndElement(writer)); /* value */
+	TRY0(xmlTextWriterEndElement(writer)); /* cachestat */
+error:
+	return (xmlrc);
 }
 
-void
+int
 dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer) {
 	int indices[dns_cachestatscounter_max];
 	isc_uint64_t values[dns_cachestatscounter_max];
+	int xmlrc;
 
 	REQUIRE(VALID_CACHE(cache));
 
 	getcounters(cache->stats, isc_statsformat_file,
 		    dns_cachestatscounter_max, indices, values);
-	renderstat("CacheHits",
-		   values[dns_cachestatscounter_hits], writer);
-	renderstat("CacheMisses",
-		   values[dns_cachestatscounter_misses], writer);
-	renderstat("QueryHits",
-		   values[dns_cachestatscounter_queryhits], writer);
-	renderstat("QueryMisses",
-		   values[dns_cachestatscounter_querymisses], writer);
-	renderstat("DeleteLRU",
-		   values[dns_cachestatscounter_deletelru], writer);
-	renderstat("DeleteTTL",
-		   values[dns_cachestatscounter_deletettl], writer);
+	TRY0(renderstat("CacheHits",
+		   values[dns_cachestatscounter_hits], writer));
+	TRY0(renderstat("CacheMisses",
+		   values[dns_cachestatscounter_misses], writer));
+	TRY0(renderstat("QueryHits",
+		   values[dns_cachestatscounter_queryhits], writer));
+	TRY0(renderstat("QueryMisses",
+		   values[dns_cachestatscounter_querymisses], writer));
+	TRY0(renderstat("DeleteLRU",
+		   values[dns_cachestatscounter_deletelru], writer));
+	TRY0(renderstat("DeleteTTL",
+		   values[dns_cachestatscounter_deletettl], writer));
 
-	renderstat("CacheNodes", dns_db_nodecount(cache->db), writer);
-	renderstat("CacheBuckets", dns_db_hashsize(cache->db), writer);
+	TRY0(renderstat("CacheNodes", dns_db_nodecount(cache->db), writer));
+	TRY0(renderstat("CacheBuckets", dns_db_hashsize(cache->db), writer));
 
-	renderstat("TreeMemTotal", isc_mem_total(cache->mctx), writer);
-	renderstat("TreeMemInUse", isc_mem_inuse(cache->mctx), writer);
-	renderstat("TreeMemMax", isc_mem_maxinuse(cache->mctx), writer);
+	TRY0(renderstat("TreeMemTotal", isc_mem_total(cache->mctx), writer));
+	TRY0(renderstat("TreeMemInUse", isc_mem_inuse(cache->mctx), writer));
+	TRY0(renderstat("TreeMemMax", isc_mem_maxinuse(cache->mctx), writer));
 
-	renderstat("HeapMemTotal", isc_mem_total(cache->hmctx), writer);
-	renderstat("HeapMemInUse", isc_mem_inuse(cache->hmctx), writer);
-	renderstat("HeapMemMax", isc_mem_maxinuse(cache->hmctx), writer);
+	TRY0(renderstat("HeapMemTotal", isc_mem_total(cache->hmctx), writer));
+	TRY0(renderstat("HeapMemInUse", isc_mem_inuse(cache->hmctx), writer));
+	TRY0(renderstat("HeapMemMax", isc_mem_maxinuse(cache->hmctx), writer));
+error:
+	return (xmlrc);
 }
 #endif

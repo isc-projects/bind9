@@ -5959,94 +5959,112 @@ _socktype(isc_sockettype_t type)
 		return ("not-initialized");
 }
 
-ISC_SOCKETFUNC_SCOPE void
+#define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
+ISC_SOCKETFUNC_SCOPE int
 isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
 	isc__socketmgr_t *mgr = (isc__socketmgr_t *)mgr0;
 	isc__socket_t *sock;
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t addr;
 	ISC_SOCKADDR_LEN_T len;
+	int xmlrc;
 
 	LOCK(&mgr->lock);
 
 #ifdef USE_SHARED_MANAGER
-	xmlTextWriterStartElement(writer, ISC_XMLCHAR "references");
-	xmlTextWriterWriteFormatString(writer, "%d", mgr->refs);
-	xmlTextWriterEndElement(writer);
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "references"));
+	TRY0(xmlTextWriterWriteFormatString(writer, "%d", mgr->refs));
+	TRY0(xmlTextWriterEndElement(writer));
 #endif	/* USE_SHARED_MANAGER */
 
-	xmlTextWriterStartElement(writer, ISC_XMLCHAR "sockets");
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "sockets"));
 	sock = ISC_LIST_HEAD(mgr->socklist);
 	while (sock != NULL) {
 		LOCK(&sock->lock);
-		xmlTextWriterStartElement(writer, ISC_XMLCHAR "socket");
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "socket"));
 
-		xmlTextWriterStartElement(writer, ISC_XMLCHAR "id");
-		xmlTextWriterWriteFormatString(writer, "%p", sock);
-		xmlTextWriterEndElement(writer);
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "id"));
+		TRY0(xmlTextWriterWriteFormatString(writer, "%p", sock));
+		TRY0(xmlTextWriterEndElement(writer));
 
 		if (sock->name[0] != 0) {
-			xmlTextWriterStartElement(writer, ISC_XMLCHAR "name");
-			xmlTextWriterWriteFormatString(writer, "%s",
-						       sock->name);
-			xmlTextWriterEndElement(writer); /* name */
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR "name"));
+			TRY0(xmlTextWriterWriteFormatString(writer, "%s",
+						            sock->name));
+			TRY0(xmlTextWriterEndElement(writer)); /* name */
 		}
 
-		xmlTextWriterStartElement(writer, ISC_XMLCHAR "references");
-		xmlTextWriterWriteFormatString(writer, "%d", sock->references);
-		xmlTextWriterEndElement(writer);
+		TRY0(xmlTextWriterStartElement(writer,
+					       ISC_XMLCHAR "references"));
+		TRY0(xmlTextWriterWriteFormatString(writer, "%d",
+						    sock->references));
+		TRY0(xmlTextWriterEndElement(writer));
 
-		xmlTextWriterWriteElement(writer, ISC_XMLCHAR "type",
-					  ISC_XMLCHAR _socktype(sock->type));
+		TRY0(xmlTextWriterWriteElement(writer, ISC_XMLCHAR "type",
+					  ISC_XMLCHAR _socktype(sock->type)));
 
 		if (sock->connected) {
 			isc_sockaddr_format(&sock->peer_address, peerbuf,
 					    sizeof(peerbuf));
-			xmlTextWriterWriteElement(writer,
+			TRY0(xmlTextWriterWriteElement(writer,
 						  ISC_XMLCHAR "peer-address",
-						  ISC_XMLCHAR peerbuf);
+						  ISC_XMLCHAR peerbuf));
 		}
 
 		len = sizeof(addr);
 		if (getsockname(sock->fd, &addr.type.sa, (void *)&len) == 0) {
 			isc_sockaddr_format(&addr, peerbuf, sizeof(peerbuf));
-			xmlTextWriterWriteElement(writer,
+			TRY0(xmlTextWriterWriteElement(writer,
 						  ISC_XMLCHAR "local-address",
-						  ISC_XMLCHAR peerbuf);
+						  ISC_XMLCHAR peerbuf));
 		}
 
-		xmlTextWriterStartElement(writer, ISC_XMLCHAR "states");
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "states"));
 		if (sock->pending_recv)
-			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
-						ISC_XMLCHAR "pending-receive");
+			TRY0(xmlTextWriterWriteElement(writer,
+					        ISC_XMLCHAR "state",
+						ISC_XMLCHAR "pending-receive"));
 		if (sock->pending_send)
-			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
-						  ISC_XMLCHAR "pending-send");
+			TRY0(xmlTextWriterWriteElement(writer,
+						  ISC_XMLCHAR "state",
+						  ISC_XMLCHAR "pending-send"));
 		if (sock->pending_accept)
-			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
-						 ISC_XMLCHAR "pending_accept");
+			TRY0(xmlTextWriterWriteElement(writer,
+						 ISC_XMLCHAR "state",
+						 ISC_XMLCHAR "pending_accept"));
 		if (sock->listener)
-			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
-						  ISC_XMLCHAR "listener");
+			TRY0(xmlTextWriterWriteElement(writer,
+						       ISC_XMLCHAR "state",
+						       ISC_XMLCHAR "listener"));
 		if (sock->connected)
-			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
-						  ISC_XMLCHAR "connected");
+			TRY0(xmlTextWriterWriteElement(writer,
+						     ISC_XMLCHAR "state",
+						     ISC_XMLCHAR "connected"));
 		if (sock->connecting)
-			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
-						  ISC_XMLCHAR "connecting");
+			TRY0(xmlTextWriterWriteElement(writer,
+						    ISC_XMLCHAR "state",
+						    ISC_XMLCHAR "connecting"));
 		if (sock->bound)
-			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
-						  ISC_XMLCHAR "bound");
+			TRY0(xmlTextWriterWriteElement(writer,
+						       ISC_XMLCHAR "state",
+						       ISC_XMLCHAR "bound"));
 
-		xmlTextWriterEndElement(writer); /* states */
+		TRY0(xmlTextWriterEndElement(writer)); /* states */
 
-		xmlTextWriterEndElement(writer); /* socket */
+		TRY0(xmlTextWriterEndElement(writer)); /* socket */
 
 		UNLOCK(&sock->lock);
 		sock = ISC_LIST_NEXT(sock, link);
 	}
-	xmlTextWriterEndElement(writer); /* sockets */
+	TRY0(xmlTextWriterEndElement(writer)); /* sockets */
+
+ error:
+	if (sock != NULL)
+		UNLOCK(&sock->lock);
 
 	UNLOCK(&mgr->lock);
+
+	return (xmlrc);
 }
 #endif /* HAVE_LIBXML2 */

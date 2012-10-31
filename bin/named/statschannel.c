@@ -920,7 +920,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR
 					       "cachestats"));
-		dns_cache_renderxml(view->cache, writer);
+		TRY0(dns_cache_renderxml(view->cache, writer));
 		TRY0(xmlTextWriterEndElement(writer)); /* cachestats */
 
 		if (view->adbstats != NULL) {
@@ -941,11 +941,11 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterEndElement(writer)); /* views */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "socketmgr"));
-	isc_socketmgr_renderxml(ns_g_socketmgr, writer);
+	TRY0(isc_socketmgr_renderxml(ns_g_socketmgr, writer));
 	TRY0(xmlTextWriterEndElement(writer)); /* socketmgr */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "taskmgr"));
-	isc_taskmgr_renderxml(ns_g_taskmgr, writer);
+	TRY0(isc_taskmgr_renderxml(ns_g_taskmgr, writer));
 	TRY0(xmlTextWriterEndElement(writer)); /* taskmgr */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "server"));
@@ -1008,7 +1008,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterEndElement(writer)); /* server */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "memory"));
-	isc_mem_renderxml(writer);
+	TRY0(isc_mem_renderxml(writer));
 	TRY0(xmlTextWriterEndElement(writer)); /* memory */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* statistics */
