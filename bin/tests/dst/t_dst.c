@@ -81,7 +81,7 @@ cleandir(char *path) {
 			if (remove(fullname))
 				t_info("remove(%s) failed %d\n", fullname,
 				       errno);
-		} else 
+		} else
 		       t_info("unable to remove '%s/%s': path too long\n",
 			      path, pe->d_name);
 
