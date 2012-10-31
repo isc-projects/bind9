@@ -1433,7 +1433,7 @@ use_min_mtu(isc__socket_t *sock) {
 	if (sock->pf == AF_INET6) {
 		int on = 1;
 		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_USE_MIN_MTU,
-			        (void *)&on, sizeof(on));
+				(void *)&on, sizeof(on));
 	}
 #endif
 }

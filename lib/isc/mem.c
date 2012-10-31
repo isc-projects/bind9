@@ -2150,20 +2150,20 @@ renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "total"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
-				            (isc_uint64_t)ctx->total));
+					    (isc_uint64_t)ctx->total));
 	TRY0(xmlTextWriterEndElement(writer)); /* total */
 
 	summary->inuse += ctx->inuse;
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "inuse"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
-				            (isc_uint64_t)ctx->inuse));
+					    (isc_uint64_t)ctx->inuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* inuse */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxinuse"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
-				            (isc_uint64_t)ctx->maxinuse));
+					    (isc_uint64_t)ctx->maxinuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* maxinuse */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "blocksize"));
@@ -2188,13 +2188,13 @@ renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "hiwater"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
-				            (isc_uint64_t)ctx->hi_water));
+					    (isc_uint64_t)ctx->hi_water));
 	TRY0(xmlTextWriterEndElement(writer)); /* hiwater */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "lowater"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
-				            (isc_uint64_t)ctx->lo_water));
+					    (isc_uint64_t)ctx->lo_water));
 	TRY0(xmlTextWriterEndElement(writer)); /* lowater */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* context */
@@ -2238,31 +2238,31 @@ isc_mem_renderxml(xmlTextWriterPtr writer) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "TotalUse"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
-				            summary.total));
+					    summary.total));
 	TRY0(xmlTextWriterEndElement(writer)); /* TotalUse */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "InUse"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
-				            summary.inuse));
+					    summary.inuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "BlockSize"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
-				            summary.blocksize));
+					    summary.blocksize));
 	TRY0(xmlTextWriterEndElement(writer)); /* BlockSize */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "ContextSize"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
-				            summary.contextsize));
+					    summary.contextsize));
 	TRY0(xmlTextWriterEndElement(writer)); /* ContextSize */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "Lost"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
-				            lost));
+					    lost));
 	TRY0(xmlTextWriterEndElement(writer)); /* Lost */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* summary */
