@@ -1302,7 +1302,7 @@ isc_task_exiting(isc_task_t *t) {
 int
 isc_taskmgr_renderxml(isc_taskmgr_t *mgr, xmlTextWriterPtr writer)
 {
-	isc_task_t *task;
+	isc_task_t *task = NULL;
 	int xmlrc;
 
 	LOCK(&mgr->lock);
