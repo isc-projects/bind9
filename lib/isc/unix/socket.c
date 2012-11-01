@@ -1223,7 +1223,7 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 	struct in6_pktinfo *pktinfop;
 #endif
 #ifdef SO_TIMESTAMP
-	struct timeval *timevalp;
+	void *timevalp;
 #endif
 #endif
 
@@ -1290,9 +1290,11 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 #ifdef SO_TIMESTAMP
 		if (cmsgp->cmsg_level == SOL_SOCKET
 		    && cmsgp->cmsg_type == SCM_TIMESTAMP) {
-			timevalp = (struct timeval *)CMSG_DATA(cmsgp);
-			dev->timestamp.seconds = timevalp->tv_sec;
-			dev->timestamp.nanoseconds = timevalp->tv_usec * 1000;
+			struct timeval tv;
+			timevalp = CMSG_DATA(cmsgp);
+			memcpy(&tv, timevalp, sizeof(tv));
+			dev->timestamp.seconds = tv.tv_sec;
+			dev->timestamp.nanoseconds = tv.tv_usec * 1000;
 			dev->attributes |= ISC_SOCKEVENTATTR_TIMESTAMP;
 			goto next;
 		}

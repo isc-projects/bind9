@@ -1,3 +1,6 @@
+3412.	[bug]		Copy timeval structure from control message data.
+			[RT #31548]
+
 3411.	[tuning]	Use IPV6_USE_MIN_MTU or equivalent with TCP in addition
 			to UDP. [RT #31690]
 
