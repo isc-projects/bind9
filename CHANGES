@@ -1,3 +1,5 @@
+3414.	[bug]		Address locking issues found by Coverity. [RT #31626]
+
 3412.	[bug]		Copy timeval structure from control message data.
 			[RT #31548]
 
