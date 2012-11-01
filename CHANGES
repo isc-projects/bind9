@@ -1,3 +1,5 @@
+3414.	[bug]		Address locking issues found by Coverity. [RT #31626]
+
 3413.	[func]		Record the number of DNS64 AAAA RRsets that have been
 			synthesized. [RT #27636]
 
