@@ -1,3 +1,6 @@
+3413.	[func]		Record the number of DNS64 AAAA RRsets that have been
+			synthesized. [RT #27636]
+
 3412.	[bug]		Copy timeval structure from control message data.
 			[RT #31548]
 

@@ -206,6 +206,7 @@ init_desc(void) {
 		       "UpdateBadPrereq");
 	SET_NSSTATDESC(recursclients, "recursing clients",
 			"RecursClients");
+	SET_NSSTATDESC(dns64, "queries answered by DNS64", "DNS64");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */

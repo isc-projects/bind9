@@ -2286,6 +2286,7 @@ query_dns64(ns_client_t *client, dns_name_t **namep, dns_rdataset_t *rdataset,
 	dns64_rdataset = NULL;
 	dns64_rdatalist = NULL;
 	dns_message_takebuffer(client->message, &buffer);
+	inc_stats(client, dns_nsstatscounter_dns64);
 	result = ISC_R_SUCCESS;
 
  cleanup:
