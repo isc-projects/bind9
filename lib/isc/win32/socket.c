@@ -1432,7 +1432,7 @@ startio_send(isc_socket_t *sock, isc_socketevent_t *dev, int *nbytes,
 }
 
 static void
-use_min_mtu(isc__socket_t *sock) {
+use_min_mtu(isc_socket_t *sock) {
 #ifdef IPV6_USE_MIN_MTU
 	/* use minimum MTU */
 	if (sock->pf == AF_INET6) {
@@ -1440,6 +1440,8 @@ use_min_mtu(isc__socket_t *sock) {
 		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_USE_MIN_MTU,
 				(void *)&on, sizeof(on));
 	}
+#else
+	UNUSED(sock);
 #endif
 }
 

@@ -2241,6 +2241,9 @@ clear_bsdcompat(void) {
 
 static void
 use_min_mtu(isc__socket_t *sock) {
+#if !defined(IPV6_USE_MIN_MTU) && !defined(IPV6_MTU)
+	UNUSED(sock);
+#endif
 #ifdef IPV6_USE_MIN_MTU
 	/* use minimum MTU */
 	if (sock->pf == AF_INET6) {
