@@ -12752,7 +12752,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 
 	dns_db_closeversion(db, &version, ISC_TRUE);
 	/*
-	 * Lock hierachy zmgr, zone, raw.
+	 * Lock hierarchy: zmgr, zone, raw.
 	 */
 	LOCK_ZONE(zone);
 	if (inline_secure(zone))
@@ -13286,7 +13286,7 @@ zone_loaddone(void *arg, isc_result_t result) {
 		result = tresult;
 
 	/*
-	 * Lock hierachy zmgr, zone, raw.
+	 * Lock hierarchy: zmgr, zone, raw.
 	 */
 	LOCK_ZONE(zone);
 	if (inline_secure(zone))
@@ -15862,7 +15862,7 @@ dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db)
 	TIME_NOW(&loadtime);
 
 	/*
-	 * Lock hierachy zmgr, zone, raw.
+	 * Lock hierarchy: zmgr, zone, raw.
 	 */
 	LOCK_ZONE(zone);
 	if (inline_secure(zone))
@@ -15912,7 +15912,7 @@ dns_zone_getserialupdatemethod(dns_zone_t *zone) {
 }
 
 /*
- * Lock hierachy zmgr, raw, zone.
+ * Lock hierarchy: zmgr, zone, raw.
  */
 isc_result_t
 dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
@@ -15932,7 +15932,7 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	REQUIRE(raw->secure == NULL);
 
 	/*
-	 * Lock heirachy: zmgr, zone, raw.
+	 * Lock hierarchy: zmgr, zone, raw.
 	 */
 	zmgr = zone->zmgr;
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
