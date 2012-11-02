@@ -2100,6 +2100,7 @@ isc___mempool_get(isc_mempool_t *mpctx0 FLARG) {
 	return (item);
 }
 
+/* coverity[+free : arg-1] */
 ISC_MEMFUNC_SCOPE void
 isc___mempool_put(isc_mempool_t *mpctx0, void *mem FLARG) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
