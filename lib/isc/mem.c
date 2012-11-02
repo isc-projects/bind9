@@ -745,6 +745,7 @@ check_overrun(void *mem, size_t size, size_t new_size) {
 }
 #endif
 
+/* coverity[+free : arg-1] */
 static inline void
 mem_putunlocked(isc__mem_t *ctx, void *mem, size_t size) {
 	size_t new_size = quantize(size);
@@ -821,6 +822,7 @@ mem_get(isc__mem_t *ctx, size_t size) {
 /*!
  * Perform a free, doing memory filling and overrun detection as necessary.
  */
+/* coverity[+free : arg-1] */
 static inline void
 mem_put(isc__mem_t *ctx, void *mem, size_t size) {
 #if ISC_MEM_CHECKOVERRUN
