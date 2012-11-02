@@ -1215,16 +1215,17 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 		return;
 	}
 
-	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		MCTXLOCK(ctx, &ctx->lock);
-		mem_putunlocked(ctx, ptr, size);
-	} else {
-		mem_put(ctx, ptr, size);
-		MCTXLOCK(ctx, &ctx->lock);
-		mem_putstats(ctx, ptr, size);
-	}
+	MCTXLOCK(ctx, &ctx->lock);
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
+
+	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
+		mem_putunlocked(ctx, ptr, size);
+	} else {
+		mem_putstats(ctx, ptr, size);
+		mem_put(ctx, ptr, size);
+	}
+
 	INSIST(ctx->references > 0);
 	ctx->references--;
 	if (ctx->references == 0)
@@ -1342,16 +1343,16 @@ isc___mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 		return;
 	}
 
-	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		MCTXLOCK(ctx, &ctx->lock);
-		mem_putunlocked(ctx, ptr, size);
-	} else {
-		mem_put(ctx, ptr, size);
-		MCTXLOCK(ctx, &ctx->lock);
-		mem_putstats(ctx, ptr, size);
-	}
+	MCTXLOCK(ctx, &ctx->lock);
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
+
+	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
+		mem_putunlocked(ctx, ptr, size);
+	} else {
+		mem_putstats(ctx, ptr, size);
+		mem_put(ctx, ptr, size);
+	}
 
 	/*
 	 * The check against ctx->lo_water == 0 is for the condition
@@ -1641,16 +1642,16 @@ isc___mem_free(isc_mem_t *ctx0, void *ptr FLARG) {
 		size = si->u.size;
 	}
 
-	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		MCTXLOCK(ctx, &ctx->lock);
-		mem_putunlocked(ctx, si, size);
-	} else {
-		mem_put(ctx, si, size);
-		MCTXLOCK(ctx, &ctx->lock);
-		mem_putstats(ctx, si, size);
-	}
+	MCTXLOCK(ctx, &ctx->lock);
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
+
+	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
+		mem_putunlocked(ctx, si, size);
+	} else {
+		mem_putstats(ctx, si, size);
+		mem_put(ctx, si, size);
+	}
 
 	/*
 	 * The check against ctx->lo_water == 0 is for the condition
@@ -1980,8 +1981,8 @@ isc__mempool_destroy(isc_mempool_t **mpctxp) {
 		if ((mctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
 			mem_putunlocked(mctx, item, mpctx->size);
 		} else {
-			mem_put(mctx, item, mpctx->size);
 			mem_putstats(mctx, item, mpctx->size);
+			mem_put(mctx, item, mpctx->size);
 		}
 	}
 	MCTXUNLOCK(mctx, &mctx->lock);
@@ -2126,16 +2127,14 @@ isc___mempool_put(isc_mempool_t *mpctx0, void *mem FLARG) {
 	 * If our free list is full, return this to the mctx directly.
 	 */
 	if (mpctx->freecount >= mpctx->freemax) {
+		MCTXLOCK(mctx, &mctx->lock);
 		if ((mctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-			MCTXLOCK(mctx, &mctx->lock);
 			mem_putunlocked(mctx, mem, mpctx->size);
-			MCTXUNLOCK(mctx, &mctx->lock);
 		} else {
-			mem_put(mctx, mem, mpctx->size);
-			MCTXLOCK(mctx, &mctx->lock);
 			mem_putstats(mctx, mem, mpctx->size);
-			MCTXUNLOCK(mctx, &mctx->lock);
+			mem_put(mctx, mem, mpctx->size);
 		}
+		MCTXUNLOCK(mctx, &mctx->lock);
 		if (mpctx->lock != NULL)
 			UNLOCK(mpctx->lock);
 		return;
