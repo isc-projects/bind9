@@ -1480,7 +1480,7 @@ zone "eng.example.com" {
                      <optional><replaceable>view</replaceable></optional></term>
                     <listitem>
                       <para>
-                        Delete a given TKEY-negotated key from the server.
+                        Delete a given TKEY-negotiated key from the server.
                         (This does not apply to statically configured TSIG
                         keys.)
                       </para>
