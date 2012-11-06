@@ -48,6 +48,7 @@ PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -s ${SLOT:-0} -p 1234"
 PK11LIST="$TOP/bin/pkcs11/pkcs11-list -s ${SLOT:-0} -p 1234"
 PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p 1234"
 JOURNALPRINT=$TOP/bin/tools/named-journalprint
+ARPANAME=$TOP/bin/tools/arpaname
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -76,4 +77,4 @@ fi
 
 export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \
        PERL SUBDIRS RNDC CHECKZONE PK11GEN PK11LIST PK11DEL TESTSOCK6 \
-       JOURNALPRINT
+       JOURNALPRINT ARPANAME
