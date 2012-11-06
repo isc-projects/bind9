@@ -6800,7 +6800,7 @@ options {
                 </para>
                 <para>
                   If <userinput>break-dnssec</userinput>,
-                  then AAAA records are deleted even when dnssec is enabled.
+                  then AAAA records are deleted even when DNSSEC is enabled.
                   As suggested by the name, this makes the response not verify,
                   because the DNSSEC protocol is designed detect deletions.
                 </para>
