@@ -1542,7 +1542,7 @@ zone "eng.example.com" {
                      <optional><replaceable>view</replaceable></optional></term>
                     <listitem>
                       <para>
-                        Delete a given TKEY-negotated key from the server.
+                        Delete a given TKEY-negotiated key from the server.
                         (This does not apply to statically configured TSIG
                         keys.)
                       </para>
@@ -6832,7 +6832,7 @@ options {
               <listitem>
                 <para>
                   Identical to <command>filter-aaaa-on-v4</command>,
-                  excppt it filters AAAA responses to queries from IPv6
+                  except it filters AAAA responses to queries from IPv6
                   clients instead of IPv4 clients.  To filter all
                   responses, set both options to <userinput>yes</userinput>.
                 </para>
@@ -11720,7 +11720,7 @@ example.com. NS ns2.example.net.
 		  <para>
                     If <literal>yes</literal>, this enables
 		    "bump in the wire" signing of a zone, where a
-		    unsigned zone is transfered in or loaded from
+		    unsigned zone is transferred in or loaded from
 		    disk and a signed version of the zone is served,
 		    with possibly, a different serial number.  This
 		    behaviour is disabled by default.
