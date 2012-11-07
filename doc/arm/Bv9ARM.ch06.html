@@ -3468,7 +3468,7 @@ options {
                 </p>
 <p>
                   If <strong class="userinput"><code>break-dnssec</code></strong>,
-                  then AAAA records are deleted even when dnssec is enabled.
+                  then AAAA records are deleted even when DNSSEC is enabled.
                   As suggested by the name, this makes the response not verify,
                   because the DNSSEC protocol is designed detect deletions.
                 </p>
@@ -3496,7 +3496,7 @@ options {
 <dt><span class="term"><span><strong class="command">filter-aaaa-on-v6</strong></span></span></dt>
 <dd><p>
                   Identical to <span><strong class="command">filter-aaaa-on-v4</strong></span>,
-                  excppt it filters AAAA responses to queries from IPv6
+                  except it filters AAAA responses to queries from IPv6
                   clients instead of IPv4 clients.  To filter all
                   responses, set both options to <strong class="userinput"><code>yes</code></strong>.
                 </p></dd>
@@ -7556,7 +7556,7 @@ example.com. NS ns2.example.net.
 <dd><p>
                     If <code class="literal">yes</code>, this enables
                     "bump in the wire" signing of a zone, where a
-                    unsigned zone is transfered in or loaded from
+                    unsigned zone is transferred in or loaded from
                     disk and a signed version of the zone is served,
                     with possibly, a different serial number.  This
                     behaviour is disabled by default.
