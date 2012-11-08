@@ -412,12 +412,13 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	if (dns_rdataset_isassociated(&val->fsigrdataset))
 		dns_rdataset_disassociate(&val->fsigrdataset);
 	isc_event_free(&event);
-	dns_resolver_destroyfetch(&val->fetch);
 
 	INSIST(val->event != NULL);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_validator");
 	LOCK(&val->lock);
+	if (val->fetch != NULL)
+		dns_resolver_destroyfetch(&val->fetch);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
@@ -490,12 +491,13 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 	if (dns_rdataset_isassociated(&val->fsigrdataset))
 		dns_rdataset_disassociate(&val->fsigrdataset);
 	isc_event_free(&event);
-	dns_resolver_destroyfetch(&val->fetch);
 
 	INSIST(val->event != NULL);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in dsfetched");
 	LOCK(&val->lock);
+	if (val->fetch != NULL)
+		dns_resolver_destroyfetch(&val->fetch);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
@@ -566,13 +568,14 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 		dns_db_detach(&devent->db);
 	if (dns_rdataset_isassociated(&val->fsigrdataset))
 		dns_rdataset_disassociate(&val->fsigrdataset);
-	dns_resolver_destroyfetch(&val->fetch);
 
 	INSIST(val->event != NULL);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in dsfetched2: %s",
 		      dns_result_totext(eresult));
 	LOCK(&val->lock);
+	if (val->fetch != NULL)
+		dns_resolver_destroyfetch(&val->fetch);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == DNS_R_CNAME ||
@@ -3392,13 +3395,14 @@ dlvfetched(isc_task_t *task, isc_event_t *event) {
 	if (dns_rdataset_isassociated(&val->fsigrdataset))
 		dns_rdataset_disassociate(&val->fsigrdataset);
 	isc_event_free(&event);
-	dns_resolver_destroyfetch(&val->fetch);
 
 	INSIST(val->event != NULL);
 	validator_log(val, ISC_LOG_DEBUG(3), "in dlvfetched: %s",
 		      dns_result_totext(eresult));
 
 	LOCK(&val->lock);
+	if (val->fetch != NULL)
+		dns_resolver_destroyfetch(&val->fetch);
 	if (eresult == ISC_R_SUCCESS) {
 		dns_name_format(dns_fixedname_name(&val->dlvsep), namebuf,
 				sizeof(namebuf));
