@@ -1,4 +1,4 @@
-3415.	[bug]		named could die with a REQUIRE failure id a valdation
+3415.	[bug]		named could die with a REQUIRE failure if a valdation
 			was canceled. [RT #31804]
 
 3412.	[bug]		Copy timeval structure from control message data.
