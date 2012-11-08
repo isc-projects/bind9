@@ -1,3 +1,6 @@
+3415.	[bug]		named could die with a REQUIRE failure id a valdation
+			was canceled. [RT #31804]
+
 3412.	[bug]		Copy timeval structure from control message data.
 			[RT #31548]
 
