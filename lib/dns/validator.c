@@ -396,6 +396,7 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_result_t eresult;
 	isc_result_t saved_result;
+	dns_fetch_t *fetch;
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
@@ -417,8 +418,8 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_validator");
 	LOCK(&val->lock);
-	if (val->fetch != NULL)
-		dns_resolver_destroyfetch(&val->fetch);
+	fetch = val->fetch;
+	val->fetch = NULL;
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
@@ -458,6 +459,8 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	}
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
+	if (fetch != NULL)
+		dns_resolver_destroyfetch(&fetch);
 	if (want_destroy)
 		destroy(val);
 }
@@ -475,6 +478,7 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t want_destroy;
 	isc_result_t result;
 	isc_result_t eresult;
+	dns_fetch_t *fetch;
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
@@ -496,8 +500,8 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in dsfetched");
 	LOCK(&val->lock);
-	if (val->fetch != NULL)
-		dns_resolver_destroyfetch(&val->fetch);
+	fetch = val->fetch;
+	val->fetch = NULL;
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
@@ -531,6 +535,8 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 	}
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
+	if (fetch != NULL)
+		dns_resolver_destroyfetch(&fetch);
 	if (want_destroy)
 		destroy(val);
 }
@@ -554,6 +560,7 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t want_destroy;
 	isc_result_t result;
 	isc_result_t eresult;
+	dns_fetch_t *fetch;
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
@@ -574,8 +581,8 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 	validator_log(val, ISC_LOG_DEBUG(3), "in dsfetched2: %s",
 		      dns_result_totext(eresult));
 	LOCK(&val->lock);
-	if (val->fetch != NULL)
-		dns_resolver_destroyfetch(&val->fetch);
+	fetch = val->fetch;
+	val->fetch = NULL;
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == DNS_R_CNAME ||
@@ -628,6 +635,8 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
+	if (fetch != NULL)
+		dns_resolver_destroyfetch(&fetch);
 	if (want_destroy)
 		destroy(val);
 }
@@ -3380,6 +3389,7 @@ dlvfetched(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t want_destroy;
 	isc_result_t eresult;
 	isc_result_t result;
+	dns_fetch_t *fetch;
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
@@ -3401,8 +3411,8 @@ dlvfetched(isc_task_t *task, isc_event_t *event) {
 		      dns_result_totext(eresult));
 
 	LOCK(&val->lock);
-	if (val->fetch != NULL)
-		dns_resolver_destroyfetch(&val->fetch);
+	fetch = val->fetch;
+	val->fetch = NULL;
 	if (eresult == ISC_R_SUCCESS) {
 		dns_name_format(dns_fixedname_name(&val->dlvsep), namebuf,
 				sizeof(namebuf));
@@ -3455,6 +3465,8 @@ dlvfetched(isc_task_t *task, isc_event_t *event) {
 	}
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
+	if (fetch != NULL)
+		dns_resolver_destroyfetch(&fetch);
 	if (want_destroy)
 		destroy(val);
 }
