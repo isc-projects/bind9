@@ -1,3 +1,6 @@
+3416.	[bug]		Named could die on shutdown if running with 128 UDP
+			dispatches per interface. [RT #31743]
+
 3415.	[bug]		named could die with a REQUIRE failure if a valdation
 			was canceled. [RT #31804]
 
