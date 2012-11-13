@@ -178,7 +178,7 @@
 ./bin/named/include/named/update.h		C	1999,2000,2001,2004,2005,2007
 ./bin/named/include/named/xfrout.h		C	1999,2000,2001,2004,2005,2007
 ./bin/named/include/named/zoneconf.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2010,2011
-./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011
+./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012
 ./bin/named/listenlist.c			C	2000,2001,2004,2005,2007
 ./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2009
 ./bin/named/logconf.c				C	1999,2000,2001,2004,2005,2006,2007,2011
@@ -1155,7 +1155,7 @@
 ./bin/tests/system/resolver/ns6/named.conf	CONF-C	2010,2012
 ./bin/tests/system/resolver/ns6/root.db		ZONE	2010,2011
 ./bin/tests/system/resolver/ns6/to-be-removed.tld.db.in	ZONE	2012
-./bin/tests/system/resolver/ns7/named.args	X	2011
+./bin/tests/system/resolver/ns7/named.args	X	2011,2012
 ./bin/tests/system/resolver/ns7/named.conf	CONF-C	2010,2011
 ./bin/tests/system/resolver/ns7/root.hint	ZONE	2010
 ./bin/tests/system/resolver/ns7/server.db.in	ZONE	2011
