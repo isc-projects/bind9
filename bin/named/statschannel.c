@@ -631,11 +631,11 @@ rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 		typestr = "Others";
 
 	switch (dumparg->type) {
-	case isc_statsformat_file:
+	case statsformat_file:
 		fp = dumparg->arg;
 		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n", val, typestr);
 		break;
-	case isc_statsformat_xml:
+	case statsformat_xml:
 #ifdef HAVE_LIBXML2
 
 		writer = dumparg->arg;
@@ -797,11 +797,11 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 	codebuf[isc_buffer_usedlength(&b)] = '\0';
 
 	switch (dumparg->type) {
-	case isc_statsformat_file:
+	case statsformat_file:
 		fp = dumparg->arg;
 		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n", val, codebuf);
 		break;
-	case isc_statsformat_xml:
+	case statsformat_xml:
 #ifdef HAVE_LIBXML2
 		writer = dumparg->arg;
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counter"));
@@ -897,7 +897,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 
 	stats_dumparg_t dumparg;
 
-	dumparg.type = isc_statsformat_xml;
+	dumparg.type = statsformat_xml;
 	dumparg.arg = writer;
 
 
@@ -929,7 +929,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "rcode"));
 
-		result = dump_counters(zonestats, isc_statsformat_xml, writer,
+		result = dump_counters(zonestats, statsformat_xml, writer,
 				       NULL, nsstats_xmldesc,
 				       dns_nsstatscounter_max, nsstats_index,
 				       nsstat_values, ISC_STATSDUMP_VERBOSE);
@@ -1028,7 +1028,6 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	dns_stats_t *cacherrstats;
 	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
 	isc_uint64_t resstat_values[dns_resstatscounter_max];
-	isc_uint64_t adbstat_values[dns_adbstats_max];
 	isc_uint64_t zonestat_values[dns_zonestatscounter_max];
 	isc_uint64_t sockstat_values[isc_sockstatscounter_max];
 	isc_result_t result;
@@ -1048,7 +1047,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 					 ISC_XMLCHAR "3.0"));
 
 	/* Set common fields for statistics dump */
-	dumparg.type = isc_statsformat_xml;
+	dumparg.type = statsformat_xml;
 	dumparg.arg = writer;
 
 	/*
@@ -1089,7 +1088,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 						 ISC_XMLCHAR "resstats"));
 		if (view->resstats != NULL) {
 			result = dump_counters(view->resstats,
-					       isc_statsformat_xml, writer,
+					       statsformat_xml, writer,
 					       NULL, resstats_xmldesc,
 					       dns_resstatscounter_max,
 					       resstats_index, resstat_values,
@@ -1113,22 +1112,6 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 			if (dumparg.result != ISC_R_SUCCESS)
 				goto error;
 			TRY0(xmlTextWriterEndElement(writer)); /* cache */
-		}
-
-		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR
-					       "cachestats"));
-		dns_cache_renderxml(view->cache, writer);
-		TRY0(xmlTextWriterEndElement(writer)); /* cachestats */
-
-		if (view->adbstats != NULL) {
-			result = dump_counters(view->adbstats,
-					       isc_statsformat_xml, writer,
-					       "adbstat", adbstats_xmldesc,
-					       dns_adbstats_max,
-					       adbstats_index, adbstat_values,
-					       ISC_STATSDUMP_VERBOSE);
-			if (result != ISC_R_SUCCESS)
-				goto error;
 		}
 
 		TRY0(xmlTextWriterEndElement(writer)); /* view */
@@ -1181,7 +1164,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 					 ISC_XMLCHAR "nsstat"));
 
-	result = dump_counters(server->nsstats, isc_statsformat_xml,
+	result = dump_counters(server->nsstats, statsformat_xml,
 			       writer, NULL, nsstats_xmldesc,
 			       dns_nsstatscounter_max,
 			       nsstats_index, nsstat_values,
@@ -1195,7 +1178,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 					 ISC_XMLCHAR "zonestat"));
 
-	result = dump_counters(server->zonestats, isc_statsformat_xml, writer,
+	result = dump_counters(server->zonestats, statsformat_xml, writer,
 			       NULL, zonestats_xmldesc,
 			       dns_zonestatscounter_max, zonestats_index,
 			       zonestat_values, ISC_STATSDUMP_VERBOSE);
@@ -1212,7 +1195,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 					 ISC_XMLCHAR "resstat"));
-	result = dump_counters(server->resolverstats, isc_statsformat_xml,
+	result = dump_counters(server->resolverstats, statsformat_xml,
 			       writer, NULL, resstats_xmldesc,
 			       dns_resstatscounter_max, resstats_index,
 			       resstat_values, 0);
@@ -1225,7 +1208,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 					 ISC_XMLCHAR "sockstat"));
 
-	result = dump_counters(server->sockstats, isc_statsformat_xml,
+	result = dump_counters(server->sockstats, statsformat_xml,
 			       writer, NULL, sockstats_xmldesc,
 			       isc_sockstatscounter_max, sockstats_index,
 			       sockstat_values, ISC_STATSDUMP_VERBOSE);
