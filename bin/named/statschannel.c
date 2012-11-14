@@ -566,7 +566,7 @@ dump_counters(isc_stats_t *stats, statsformat_t type, void *arg,
 			TRY0(xmlTextWriterEndElement(writer));
 			/* counter */
 		}
-#else
+#else /* !NEWSTATS */
 			writer = arg;
 
 			if (category != NULL) {
@@ -596,10 +596,8 @@ dump_counters(isc_stats_t *stats, statsformat_t type, void *arg,
 			TRY0(xmlTextWriterEndElement(writer)); /* counter */
 			if (category != NULL)
 				TRY0(xmlTextWriterEndElement(writer)); /* category */
-#endif
-/*endif newstats*/
-#endif
-/*endif libxml2*/
+#endif /* NEWSTATS */
+#endif /* LIBXML2 */
 			break;
 		}
 	}
