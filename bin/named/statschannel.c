@@ -45,9 +45,9 @@
 
 #ifdef NEWSTATS
 	#include "bind9.ver3.xsl.h"
-#else
+#else /* OLDSTATS */
 	#include "bind9.xsl.h"
-#endif
+#endif /* NEWSTATS */
 
 struct ns_statschannel {
 	/* Unlocked */
@@ -522,6 +522,51 @@ dump_counters(isc_stats_t *stats, statsformat_t type, void *arg,
 			break;
 		case statsformat_xml:
 #ifdef HAVE_LIBXML2
+#ifdef NEWSTATS
+		writer = arg;
+
+		if (category != NULL) {
+			/* <NameOfCategory> */
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR
+						       category));
+			/* <name> inside category */
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR
+						       "name"));
+			TRY0(xmlTextWriterWriteString(writer,
+						      ISC_XMLCHAR
+						      desc[index]));
+			TRY0(xmlTextWriterEndElement(writer));
+			/* </name> */
+
+			/* <counter> */
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR
+						       "counter"));
+			TRY0(xmlTextWriterWriteFormatString(writer,
+				"%" ISC_PRINT_QUADFORMAT "u", value));
+
+			TRY0(xmlTextWriterEndElement(writer));
+			/* </counter> */
+			TRY0(xmlTextWriterEndElement(writer));
+			/* </NameOfCategory> */
+
+		} else {
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR
+						       "counter"));
+			TRY0(xmlTextWriterWriteAttribute(writer,
+							 ISC_XMLCHAR
+							 "name",
+							 ISC_XMLCHAR
+							 desc[index]));
+			TRY0(xmlTextWriterWriteFormatString(writer,
+				"%" ISC_PRINT_QUADFORMAT "u", value));
+			TRY0(xmlTextWriterEndElement(writer));
+			/* counter */
+		}
+#else
 			writer = arg;
 
 			if (category != NULL) {
@@ -594,51 +639,7 @@ rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 		break;
 	case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
-#ifdef NEWSTATS
-		writer = dumparg->arg;
 
-		if (category != NULL) {
-			/* <NameOfCategory> */
-			TRY0(xmlTextWriterStartElement(writer,
-						       ISC_XMLCHAR
-						       category));
-			/* <name> inside category */
-			TRY0(xmlTextWriterStartElement(writer,
-						       ISC_XMLCHAR
-						       "name"));
-			TRY0(xmlTextWriterWriteString(writer,
-						      ISC_XMLCHAR
-						      desc[index]));
-			TRY0(xmlTextWriterEndElement(writer));
-			/* </name> */
-
-			/* <counter> */
-			TRY0(xmlTextWriterStartElement(writer,
-						       ISC_XMLCHAR
-						       "counter"));
-			TRY0(xmlTextWriterWriteFormatString(writer,
-				"%" ISC_PRINT_QUADFORMAT "u", value));
-
-			TRY0(xmlTextWriterEndElement(writer));
-			/* </counter> */
-			TRY0(xmlTextWriterEndElement(writer));
-			/* </NameOfCategory> */
-
-		} else {
-			TRY0(xmlTextWriterStartElement(writer,
-						       ISC_XMLCHAR
-						       "counter"));
-			TRY0(xmlTextWriterWriteAttribute(writer,
-							 ISC_XMLCHAR
-							 "name",
-							 ISC_XMLCHAR
-							 desc[index]));
-			TRY0(xmlTextWriterWriteFormatString(writer,
-				"%" ISC_PRINT_QUADFORMAT "u", value));
-			TRY0(xmlTextWriterEndElement(writer));
-			/* counter */
-		}
-#else
 		writer = dumparg->arg;
 
 
@@ -663,7 +664,7 @@ rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 	return;
 #endif
 }
-#else
+#else  /* NEWSTATS */
 static void
 rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 	char typebuf[64];
@@ -715,7 +716,7 @@ rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 	return;
 #endif
 }
-#endif
+#endif  /* NEWSTATS */
 
 static void
 rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
@@ -825,7 +826,7 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 	return;
 #endif
 }
-#else
+#else  /* NEWSTATS */
 static void
 opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 	FILE *fp;
@@ -874,7 +875,7 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 	return;
 #endif
 }
-#endif
+#endif  /* NEWSTATS */
 
 #ifdef HAVE_LIBXML2
 
@@ -963,7 +964,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 		      ISC_LOG_ERROR, "Failed at zone_xmlrender()");
 	return (ISC_R_FAILURE);
 }
-#else
+#else  /* NEWSTATS */
 static isc_result_t
 zone_xmlrender(dns_zone_t *zone, void *arg) {
 	char buf[1024 + 32];	/* sufficiently large for zone name and class */
@@ -1013,7 +1014,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
  error:
 	return (ISC_R_FAILURE);
 }
-#endif
+#endif  /* NEWSTATS */
 
 #ifdef NEWSTATS
 static isc_result_t
@@ -1260,7 +1261,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 		xmlFreeDoc(doc);
 	return (ISC_R_FAILURE);
 }
-#else
+#else /* OLDSTATS */
 static isc_result_t
 generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	char boottime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
@@ -1452,7 +1453,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 		xmlFreeDoc(doc);
 	return (ISC_R_FAILURE);
 }
-#endif
+#endif /* NEWSTATS */
 
 static void
 wrap_xmlfree(isc_buffer_t *buffer, void *arg) {
@@ -1642,10 +1643,10 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 #ifdef NEWSTATS
 	isc_httpdmgr_addurl(listener->httpdmgr, "/bind9.ver3.xsl", render_xsl,
 			    server);
-#else
+#else /* OLDSTATS */
 	isc_httpdmgr_addurl(listener->httpdmgr, "/bind9.xsl", render_xsl,
 			    server);
-#endif
+#endif /* NEWSTATS */
 	*listenerp = listener;
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_NOTICE,
