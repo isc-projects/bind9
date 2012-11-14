@@ -310,6 +310,7 @@ struct dns_zone {
 	 */
 	isc_boolean_t		requeststats_on;
 	isc_stats_t		*requeststats;
+	dns_stats_t		*rcvquerystats;
 	isc_uint32_t		notifydelay;
 	dns_isselffunc_t	isself;
 	void			*isselfarg;
@@ -903,6 +904,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->stats = NULL;
 	zone->requeststats_on = ISC_FALSE;
 	zone->requeststats = NULL;
+	zone->rcvquerystats = NULL;
 	zone->notifydelay = 5;
 	zone->isself = NULL;
 	zone->isselfarg = NULL;
@@ -1018,6 +1020,8 @@ zone_free(dns_zone_t *zone) {
 		isc_stats_detach(&zone->stats);
 	if (zone->requeststats != NULL)
 		isc_stats_detach(&zone->requeststats);
+	if(zone->rcvquerystats != NULL )
+		dns_stats_detach(&zone->rcvquerystats);
 	if (zone->db != NULL)
 		zone_detachdb(zone);
 	if (zone->acache != NULL)
@@ -14750,7 +14754,10 @@ dns_zone_setstats(dns_zone_t *zone, isc_stats_t *stats) {
 
 void
 dns_zone_setrequeststats(dns_zone_t *zone, isc_stats_t *stats) {
+
 	REQUIRE(DNS_ZONE_VALID(zone));
+
+	dns_zone_log(zone, ISC_LOG_INFO, "Setting zone query stats");
 
 	LOCK_ZONE(zone);
 	if (zone->requeststats_on && stats == NULL)
@@ -14762,8 +14769,23 @@ dns_zone_setrequeststats(dns_zone_t *zone, isc_stats_t *stats) {
 		}
 	}
 	UNLOCK_ZONE(zone);
+}
 
-	return;
+void
+dns_zone_setrcvquerystats(dns_zone_t *zone, dns_stats_t *stats) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	dns_zone_log(zone, ISC_LOG_INFO, "Setting received query stats");
+
+	LOCK_ZONE(zone);
+	if (zone->requeststats_on && stats != NULL) {
+		if (zone->rcvquerystats == NULL) {
+			dns_stats_attach(stats, &zone->rcvquerystats);
+			zone->requeststats_on = ISC_TRUE;
+		}
+	}
+	UNLOCK_ZONE(zone);
 }
 
 isc_stats_t *
@@ -14778,6 +14800,18 @@ dns_zone_getrequeststats(dns_zone_t *zone) {
 	 */
 	if (zone->requeststats_on)
 		return (zone->requeststats);
+	else
+		return (NULL);
+}
+
+/*
+ * Return the received query stats bucket
+ * see note from dns_zone_getrequeststats()
+ */
+dns_stats_t *
+dns_zone_getrcvquerystats(dns_zone_t *zone) {
+	if (zone->requeststats_on)
+		return (zone->rcvquerystats);
 	else
 		return (NULL);
 }

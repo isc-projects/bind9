@@ -820,6 +820,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	isc_boolean_t ixfrdiff;
 	dns_masterformat_t masterformat;
 	isc_stats_t *zoneqrystats;
+	dns_stats_t *rcvquerystats;
 	isc_boolean_t zonestats_on;
 	int seconds;
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
@@ -1006,14 +1007,23 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	result = ns_config_get(maps, "zone-statistics", &obj);
 	INSIST(result == ISC_R_SUCCESS && obj != NULL);
 	zonestats_on = cfg_obj_asboolean(obj);
-	zoneqrystats = NULL;
+
+	zoneqrystats  = NULL;
+	rcvquerystats = NULL;
 	if (zonestats_on) {
 		RETERR(isc_stats_create(mctx, &zoneqrystats,
 					dns_nsstatscounter_max));
+		RETERR(dns_rdatatypestats_create(mctx,
+					&rcvquerystats));
 	}
-	dns_zone_setrequeststats(zone, zoneqrystats);
+	dns_zone_setrequeststats(zone,  zoneqrystats );
+	dns_zone_setrcvquerystats(zone, rcvquerystats);
+
 	if (zoneqrystats != NULL)
 		isc_stats_detach(&zoneqrystats);
+
+	if(rcvquerystats != NULL)
+		dns_stats_detach(&rcvquerystats);
 
 	/*
 	 * Configure master functionality.  This applies
