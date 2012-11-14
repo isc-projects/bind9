@@ -1,3 +1,11 @@
+3417.	[func]		Optional new XML schema (version 3.0) for the 
+			statistics channel adds query type statistics at the 
+			zone level, and flattens the XML tree and uses 
+			compressed format to optimize parsing. Includes new XSL 
+			that permits charting via the Google Charts API on 
+			browsers that support javascript in XSL.  To enable, 
+			build with "configure --enable-newstats". [RT #30023]
+			
 3416.	[bug]		Named could die on shutdown if running with 128 UDP
 			dispatches per interface. [RT #31743]
 

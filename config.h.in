@@ -383,6 +383,9 @@ int sigwait(const unsigned int *set, int *sig);
    */
 #undef NEED_SECURE_DIRECTORY
 
+/* Use the new XML schema for statistics */
+#undef NEWSTATS
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 

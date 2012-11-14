@@ -1701,8 +1701,19 @@ dns_zone_setrequeststats(dns_zone_t *zone, isc_stats_t *stats);
  *\li	stats is a valid statistics.
  */
 
+#ifdef NEWSTATS
+void
+dns_zone_setrcvquerystats(dns_zone_t *zone, dns_stats_t *stats);
+#endif
+
 isc_stats_t *
 dns_zone_getrequeststats(dns_zone_t *zone);
+
+#ifdef NEWSTATS
+dns_stats_t *
+dns_zone_getrcvquerystats(dns_zone_t *zone);
+#endif
+
 /*%<
  * Get the additional statistics for zone, if one is installed.
  *

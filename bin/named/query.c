@@ -172,39 +172,66 @@ rpz_st_clear(ns_client_t *client);
 static inline void
 inc_stats(ns_client_t *client, isc_statscounter_t counter) {
 	dns_zone_t *zone = client->query.authzone;
+	isc_stats_t *zonestats;
+#ifdef NEWSTATS
+	dns_rdatatype_t qtype;
+	dns_rdataset_t *rdataset;
+	dns_stats_t *querystats = NULL;
+#endif
 
 	isc_stats_increment(ns_g_server->nsstats, counter);
 
-	if (zone != NULL) {
-		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
-		if (zonestats != NULL)
-			isc_stats_increment(zonestats, counter);
+	if (zone == NULL)
+		return;
+
+	/* Do regular response type stats */
+	zonestats = dns_zone_getrequeststats(zone);
+
+	if (zonestats != NULL)
+		isc_stats_increment(zonestats, counter);
+
+#ifdef NEWSTATS
+	/* Do query type statistics
+	 *
+	 * We only increment per-type if we're using the authoriative
+	 * answer counter, preventing double-counting.
+	 */
+	if (counter == dns_nsstatscounter_authans) {
+		querystats = dns_zone_getrcvquerystats(zone);
+		if (querystats != NULL) {
+			rdataset = ISC_LIST_HEAD(client->query.qname->list);
+			if (rdataset != NULL) {
+				qtype = rdataset->type;
+				dns_rdatatypestats_increment(querystats, qtype);
+			}
+		}
 	}
+#endif
 }
 
 static void
 query_send(ns_client_t *client) {
 	isc_statscounter_t counter;
+
 	if ((client->message->flags & DNS_MESSAGEFLAG_AA) == 0)
 		inc_stats(client, dns_nsstatscounter_nonauthans);
 	else
 		inc_stats(client, dns_nsstatscounter_authans);
+
 	if (client->message->rcode == dns_rcode_noerror) {
-		if (ISC_LIST_EMPTY(client->message->sections[DNS_SECTION_ANSWER])) {
-			if (client->query.isreferral) {
+		dns_section_t answer = DNS_SECTION_ANSWER;
+		if (ISC_LIST_EMPTY(client->message->sections[answer])) {
+			if (client->query.isreferral)
 				counter = dns_nsstatscounter_referral;
-			} else {
+			else
 				counter = dns_nsstatscounter_nxrrset;
-			}
-		} else {
+		} else
 			counter = dns_nsstatscounter_success;
-		}
-	} else if (client->message->rcode == dns_rcode_nxdomain) {
+	} else if (client->message->rcode == dns_rcode_nxdomain)
 		counter = dns_nsstatscounter_nxdomain;
-	} else {
-		/* We end up here in case of YXDOMAIN, and maybe others */
+	else /* We end up here in case of YXDOMAIN, and maybe others */
 		counter = dns_nsstatscounter_failure;
-	}
+
 	inc_stats(client, counter);
 	ns_client_send(client);
 }
@@ -7418,6 +7445,7 @@ ns_query_start(ns_client_t *client) {
 	INSIST(rdataset != NULL);
 	qtype = rdataset->type;
 	dns_rdatatypestats_increment(ns_g_server->rcvquerystats, qtype);
+
 	if (dns_rdatatype_ismeta(qtype)) {
 		switch (qtype) {
 		case dns_rdatatype_any:
