@@ -1,3 +1,5 @@
+3419.	[bug]		Memory leak on validation cancel. [RT #31869]
+
 3417.	[func]		Optional new XML schema (version 3.0) for the 
 			statistics channel adds query type statistics at the 
 			zone level, and flattens the XML tree and uses 

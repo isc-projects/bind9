@@ -4278,9 +4278,11 @@ dns_validator_cancel(dns_validator_t *validator) {
 	}
 	UNLOCK(&validator->lock);
 
-	/* Need to cancel fetch outside validator lock */
-	if (fetch != NULL)
+	/* Need to cancel and destroy the fetch outside validator lock */
+	if (fetch != NULL) {
 		dns_resolver_cancelfetch(fetch);
+		dns_resolver_destroyfetch(&fetch);
+	}
 }
 
 static void
