@@ -171,3 +171,6 @@ install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs
 	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
 
 @DLZ_DRIVER_RULES@
+
+named-symtbl.@O@: named-symtbl.c
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} -c named-symtbl.c

@@ -29254,7 +29254,15 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
 
 
   case $ac_file$ac_mode in
-    "atf-config":C) cd unit/atf-src; ${SHELL} ./configure MISSING=: --prefix $atfdir; cd ../.. ;;
+    "atf-config":C) (
+		 mkdir -p unit/atf-src;
+		 cd unit/atf-src;
+		 case "$srcdir" in
+		 /*) ;;
+		 *) srcdir="../../$srcdir";;
+		 esac
+		 ${SHELL} ${srcdir}${srcdir:+/unit/atf-src/}./configure MISSING=: --prefix $atfdir;
+		)  ;;
     "chmod":C) chmod a+x isc-config.sh doc/doxygen/doxygen-input-filter ;;
 
   esac

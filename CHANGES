@@ -1,3 +1,5 @@
+3420.	[bug]		Address VPATH compilation issues. [RT #31879]
+
 3419.	[bug]		Memory leak on validation cancel. [RT #31869]
 
 3415.	[bug]		named could die with a REQUIRE failure if a valdation
