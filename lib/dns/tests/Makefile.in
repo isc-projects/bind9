@@ -52,11 +52,13 @@ TARGETS =	master_test@EXEEXT@ dbiterator_test@EXEEXT@ time_test@EXEEXT@ \
 @BIND9_MAKE_RULES@
 
 master_test@EXEEXT@: master_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${PERL} mkraw.pl < testdata/master/master12.data.in \
+	test -d testdata || mkdir testdata
+	test -d testdata/master || mkdir testdata/master
+	${PERL} ${srcdir}/mkraw.pl < ${srcdir}/testdata/master/master12.data.in \
 		> testdata/master/master12.data
-	${PERL} mkraw.pl < testdata/master/master13.data.in \
+	${PERL} ${srcdir}/mkraw.pl < ${srcdir}/testdata/master/master13.data.in \
 		> testdata/master/master13.data
-	${PERL} mkraw.pl < testdata/master/master14.data.in \
+	${PERL} ${srcdir}/mkraw.pl < ${srcdir}/testdata/master/master14.data.in \
 		> testdata/master/master14.data
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			master_test.@O@ dnstest.@O@ ${DNSLIBS} \
