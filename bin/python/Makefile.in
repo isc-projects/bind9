@@ -29,7 +29,7 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
-dnssec-checkds: ${srcdir}/dnssec-checkds.py
+dnssec-checkds: dnssec-checkds.py
 
 doc man:: ${MANOBJS}
 
@@ -46,3 +46,6 @@ install:: ${TARGETS} installdirs
 
 clean distclean::
 	rm -f ${TARGETS}
+
+distclean::
+	rm -f dnssec-checkds.py

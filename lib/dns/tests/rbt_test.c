@@ -30,7 +30,7 @@
 #include <dns/fixedname.h>
 #include <dns/result.h>
 #include <dns/compress.h>
-#include <dnstest.h>
+#include "dnstest.h"
 
 #include <isc/app.h>
 #include <isc/buffer.h>
