@@ -1,3 +1,2 @@
 # this server runs named with the "-T clienttest" option omitted
-# this server runs named with "-n 128 -U 128" as a regression test for RT31743
--m record,size,mctx -c named.conf -d 99 -g -n 128 -U 128
+-m record,size,mctx -c named.conf -d 99 -g
