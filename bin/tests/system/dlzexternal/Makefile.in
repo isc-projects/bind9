@@ -48,11 +48,8 @@ dlopen@EXEEXT@: ${DLOPENOBJS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} \
 		-o $@ ${DLOPENOBJS} ${LIBS}
 
-driver.@O@: driver.c
-	${PURIFY} ${CC} ${ALL_CFLAGS} -o driver.@O@ -c driver.c
-
 driver.@SO@: ${SO_OBJS}
-	@SO_LD@ -o $@ driver.@O@ 
+	${LIBTOOL_MODE_LINK} @SO_LD@ -o $@ driver.@O@ 
 
 clean distclean::
 	rm -f ${TARGETS}
