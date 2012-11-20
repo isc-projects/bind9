@@ -19623,7 +19623,11 @@ if test "$dlopen" = "yes"; then
 			SO_CFLAGS="-fPIC"
 			if test "$have_dl" = "yes"
 			then
-				SO_LD="${CC} -shared"
+				if test "$use_libtool" = "yes"; then
+					SO_LD="${CC} -Xcompiler -shared"
+				else
+					SO_LD="${CC} -shared"
+				fi
 			else
 				SO_LD="ld -shared"
 			fi
