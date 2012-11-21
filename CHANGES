@@ -1,3 +1,7 @@
+3423.	[bug]		"rndc signing -nsec3param" didn't accept the full
+			range of possible values.  Address portability issues.
+			[RT #31938]
+
 3422.	[bug]		Added a clear error message for when the SOA does not 
 			match the referral. [RT #31281]
 
