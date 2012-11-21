@@ -94,6 +94,10 @@ for (;;) {
 		# expected to be accepted regardless of the filter setting.
 		$packet->push("authority", new Net::DNS::RR("sub.example.org 300 NS ns.sub.example.org"));
 		$packet->push("additional", new Net::DNS::RR("ns.sub.example.org 300 A 10.53.0.3"));
+	} elsif ($qname =~ /\.broken/) {
+		# Delegation to broken TLD.
+		$packet->push("authority", new Net::DNS::RR("broken 300 NS ns.broken"));
+		$packet->push("additional", new Net::DNS::RR("ns.broken 300 A 10.53.0.4"));
 	} else {
 		# Data for the "bogus referrals" test
 		$packet->push("authority", new Net::DNS::RR("below.www.example.com 300 NS ns.below.www.example.com"));
