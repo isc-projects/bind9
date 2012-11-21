@@ -8040,7 +8040,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_boolean_t list = ISC_FALSE, clear = ISC_FALSE;
 	isc_boolean_t chain = ISC_FALSE;
 	char keystr[DNS_SECALG_FORMATSIZE + 7];
-	isc_uint8_t hash = 0, flags = 0, iter = 0, saltlen = 0;
+	unsigned short hash = 0, flags = 0, iter = 0, saltlen = 0;
 	unsigned char salt[255];
 	const char *ptr;
 	size_t n;
@@ -8087,10 +8087,12 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 				     hashstr, flagstr, iterstr);
 			if (n == sizeof(nbuf))
 				return (ISC_R_NOSPACE);
-			n = sscanf(nbuf, "%hhd %hhd %hhd",
-				   &hash, &flags, &iter);
-			if (n != 3)
+			n = sscanf(nbuf, "%hu %hu %hu", &hash, &flags, &iter);
+			if (n != 3U)
 				return (ISC_R_BADNUMBER);
+
+			if (hash > 0xffU || flags > 0xffU)
+				return (ISC_R_RANGE);
 
 			ptr = next_token(&args, " \t");
 			if (ptr == NULL)
@@ -8116,7 +8118,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 		isc_buffer_putuint8(text, 0);
 	} else if (chain) {
 		CHECK(dns_zone_setnsec3param(zone, hash, flags, iter,
-						saltlen, salt, ISC_TRUE));
+					     saltlen, salt, ISC_TRUE));
 		isc_buffer_putstr(text, "request queued");
 		isc_buffer_putuint8(text, 0);
 	} else if (list) {
