@@ -5387,10 +5387,10 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 {
 	isc_result_t result;
 	dns_message_t *message;
-	dns_name_t *name, *qname, *ns_name, *soa_name, *ds_name;
+	dns_name_t *name, *qname, *ns_name, *soa_name, *ds_name, *save_name;
 	dns_rdataset_t *rdataset, *ns_rdataset;
 	isc_boolean_t aa, negative_response;
-	dns_rdatatype_t type;
+	dns_rdatatype_t type, save_type;
 	dns_section_t section;
 
 	FCTXTRACE("noanswer_response");
@@ -5457,6 +5457,8 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 	ns_rdataset = NULL;
 	soa_name = NULL;
 	ds_name = NULL;
+	save_name = NULL;
+	save_type = dns_rdatatype_none;
 	result = dns_message_firstname(message, section);
 	while (result == ISC_R_SUCCESS) {
 		name = NULL;
@@ -5655,6 +5657,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 							dns_trust_additional;
 				}
 			}
+		} else {
+			save_name = name;
+			save_type = ISC_LIST_HEAD(name->list)->type;
 		}
 		result = dns_message_nextname(message, section);
 		if (result == ISC_R_NOMORE)
@@ -5690,7 +5695,27 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 			/*
 			 * The responder is insane.
 			 */
-			log_formerr(fctx, "invalid response");
+			if (save_name == NULL) {
+				log_formerr(fctx, "invalid response");
+				return (DNS_R_FORMERR);
+			}
+			if (!dns_name_issubdomain(save_name, &fctx->domain)) {
+				char nbuf[DNS_NAME_FORMATSIZE];
+				char dbuf[DNS_NAME_FORMATSIZE];
+				char tbuf[DNS_RDATATYPE_FORMATSIZE];
+			
+				dns_rdatatype_format(save_type, tbuf, 
+					sizeof(tbuf));
+				dns_name_format(save_name, nbuf, sizeof(nbuf));
+				dns_name_format(&fctx->domain, dbuf, 
+					sizeof(dbuf));
+			
+				log_formerr(fctx, "Name %s (%s) not subdomain"
+					" of zone %s -- invalid response",
+					nbuf, tbuf, dbuf);
+			} else {
+				log_formerr(fctx, "invalid response");
+			}
 			return (DNS_R_FORMERR);
 		}
 	}
