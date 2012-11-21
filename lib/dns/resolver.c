@@ -5703,13 +5703,13 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 				char nbuf[DNS_NAME_FORMATSIZE];
 				char dbuf[DNS_NAME_FORMATSIZE];
 				char tbuf[DNS_RDATATYPE_FORMATSIZE];
-			
-				dns_rdatatype_format(save_type, tbuf, 
+
+				dns_rdatatype_format(save_type, tbuf,
 					sizeof(tbuf));
 				dns_name_format(save_name, nbuf, sizeof(nbuf));
-				dns_name_format(&fctx->domain, dbuf, 
+				dns_name_format(&fctx->domain, dbuf,
 					sizeof(dbuf));
-			
+
 				log_formerr(fctx, "Name %s (%s) not subdomain"
 					" of zone %s -- invalid response",
 					nbuf, tbuf, dbuf);
