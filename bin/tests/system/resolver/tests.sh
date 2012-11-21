@@ -293,6 +293,13 @@ done
 [ $ret = 0 ] && ret=$foo; 
 if [ $ret != 0 ]; then echo "I:failed"; status=1; fi
 
+echo "I:check for improved error message with SOA mismatch"
+ret=0
+$DIG @10.53.0.1 -p 5300 www.sub.broken aaaa > dig.out.${n} || ret=1
+grep "not subdomain of zone" ns1/named.run > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 
 exit $status
