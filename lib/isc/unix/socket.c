@@ -2629,7 +2629,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	UNLOCK(&manager->lock);
 
 	socket_log(sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
-		   ISC_MSG_CREATED, dup_socket == NULL ? "dupped" : "created");
+		   ISC_MSG_CREATED, dup_socket != NULL ? "dupped" : "created");
 
 	return (ISC_R_SUCCESS);
 }
