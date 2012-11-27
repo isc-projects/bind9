@@ -1,3 +1,6 @@
+3425.	[bug]		"acacheentry" reference counting was broken resulting
+			in use after free. [RT #31908]
+
 3421.	[bug]		Named loops when re-signing if all keys are offline.
 			[RT #31916]
 
