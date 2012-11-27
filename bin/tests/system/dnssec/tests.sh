@@ -1703,7 +1703,20 @@ echo "I:check dnssec-dsfromkey from stdin ($n)"
 ret=0
 $DIG $DIGOPTS dnskey algroll. @10.53.0.2 | \
         $DSFROMKEY -f - algroll. > dig.out.ns2.test$n || ret=1
-diff -b dig.out.ns2.test$n ns1/dsset-algroll. > /dev/null 2>&1 || ret=1
+NF=`awk '{print NF}' dig.out.ns2.test$n | sort -u`
+[ "${NF}" = 7 ] || ret=1
+# make canonical
+awk '{
+	for (i=1;i<7;i++) printf("%s ", $i);
+	for (i=7;i<=NF;i++) printf("%s", $i);
+	printf("\n");
+}' < dig.out.ns2.test$n > canonical1.$n || ret=1
+awk '{
+	for (i=1;i<7;i++) printf("%s ", $i);
+	for (i=7;i<=NF;i++) printf("%s", $i);
+	printf("\n");
+}' < ns1/dsset-algroll. > canonical2.$n || ret=1
+diff -b canonical1.$n canonical2.$n > /dev/null 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

@@ -1,3 +1,6 @@
+3424.	[func]		dnssec-dsfromkey now emits the hash without spaces.
+			[RT #31951]
+
 3423.	[bug]		"rndc signing -nsec3param" didn't accept the full
 			range of possible values.  Address portability issues.
 			[RT #31938]
