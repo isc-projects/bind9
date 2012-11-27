@@ -1,3 +1,6 @@
+3426.	[bug]		dnssec-checkds: Clearer output when records are not
+			found. [RT #31968]
+
 3425.	[bug]		"acacheentry" reference counting was broken resulting
 			in use after free. [RT #31908]
 
