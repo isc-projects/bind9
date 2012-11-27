@@ -1,3 +1,6 @@
+3425.	[bug]		"acacheentry" reference counting was broken resulting
+			in use after free. [RT #31908]
+
 3422.	[bug]		Added a clear error message for when the SOA does not 
 			match the referral. [RT #31281]
 
