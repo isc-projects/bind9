@@ -9371,10 +9371,9 @@ acache_callback(dns_acacheentry_t *entry, void **arg) {
 		INSIST(acarray[count].cbarg == cbarg);
 		isc_mem_put(rbtdb->common.mctx, cbarg, sizeof(acache_cbarg_t));
 		acarray[count].cbarg = NULL;
+		dns_acache_detachentry(&entry);
 	} else
 		isc_mem_put(rbtdb->common.mctx, cbarg, sizeof(acache_cbarg_t));
-
-	dns_acache_detachentry(&entry);
 
 	NODE_UNLOCK(nodelock, isc_rwlocktype_write);
 
@@ -9467,6 +9466,7 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 					acache_callback, newcbarg, &newentry);
 	if (result != ISC_R_SUCCESS)
 		goto fail;
+
 	/* Set cache data in the new entry. */
 	result = dns_acache_setentry(acache, newentry, zone, db,
 				     version, node, fname);

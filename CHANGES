@@ -1,3 +1,6 @@
+3425.	[bug]		"acacheentry" reference counting was broken resulting
+			in use after free. [RT #31908]
+
 3424.	[func]		dnssec-dsfromkey now emits the hash without spaces.
 			[RT #31951]
 
