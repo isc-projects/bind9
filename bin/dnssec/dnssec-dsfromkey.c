@@ -284,7 +284,9 @@ emit(unsigned int dtype, isc_boolean_t showall, char *lookaside,
 		}
 	}
 
-	result = dns_rdata_totext(&ds, (dns_name_t *) NULL, &textb);
+	result = dns_rdata_tofmttext(&ds, (dns_name_t *) NULL, 0, 0, 0, "",
+				     &textb);
+
 	if (result != ISC_R_SUCCESS)
 		fatal("can't print rdata");
 
