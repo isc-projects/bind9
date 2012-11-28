@@ -12,7 +12,7 @@
 ./README.idnkit					X	2005,2009,2012
 ./README.pkcs11					X	2008
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2012
-./aclocal.m4					X	1999,2000,2001
+./aclocal.m4					X	1999,2000,2001,2012
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2012
 ./bin/check/.gitignore				X	2012
 ./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006,2007,2012
@@ -2485,7 +2485,11 @@
 ./lib/win32/bindevt/bindevt.mak			X	2001,2006
 ./lib/win32/bindevt/bindevt.mc			MC	2001,2004,2007
 ./libtool.m4					X	2000,2001,2003,2004,2006,2009
-./ltmain.sh					X	1999,2000,2001,2003,2004,2006,2009
+./libtool.m4/ltoptions.m4			X	2012
+./libtool.m4/ltsugar.m4				X	2012
+./libtool.m4/ltversion.m4			X	2012
+./libtool.m4/lt~obsolete.m4			X	2012
+./ltmain.sh					X	1999,2000,2001,2003,2004,2006,2009,2012
 ./make/.gitignore				X	2012
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2012
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007,2012
