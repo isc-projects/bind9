@@ -2484,7 +2484,7 @@
 ./lib/win32/bindevt/bindevt.dsw			X	2001
 ./lib/win32/bindevt/bindevt.mak			X	2001,2006
 ./lib/win32/bindevt/bindevt.mc			MC	2001,2004,2007
-./libtool.m4					X	2000,2001,2003,2004,2006,2009
+./libtool.m4/libtool.m4				X	2012
 ./libtool.m4/ltoptions.m4			X	2012
 ./libtool.m4/ltsugar.m4				X	2012
 ./libtool.m4/ltversion.m4			X	2012
