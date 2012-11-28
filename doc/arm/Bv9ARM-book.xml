@@ -4142,7 +4142,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
    [ <command>channel</command> <replaceable>channel_name</replaceable> {
      ( <command>file</command> <replaceable>path_name</replaceable>
          [ <command>versions</command> ( <replaceable>number</replaceable> | <command>unlimited</command> ) ]
-         [ <command>size</command> <replaceable>size spec</replaceable> ]
+         [ <command>size</command> <replaceable>size_spec</replaceable> ]
        | <command>syslog</command> <replaceable>syslog_facility</replaceable>
        | <command>stderr</command>
        | <command>null</command> );
