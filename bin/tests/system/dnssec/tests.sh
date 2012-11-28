@@ -1960,7 +1960,7 @@ status=`expr $status + $ret`
 echo "I:check that named doesn't loop when all private keys are not available ($n)"
 ret=0
 lines=`grep "reading private key file expiring.example" ns3/named.run | wc -l`
-test ${lines:-1000} -lt 10 || ret=1
+test ${lines:-1000} -lt 15 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
