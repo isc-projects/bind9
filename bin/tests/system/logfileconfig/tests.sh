@@ -30,7 +30,7 @@ PIPEFILE="named_pipe"
 SYMFILE="named_sym"
 PIDFILE="${THISDIR}/${CONFDIR}/named.pid"
 myRNDC="$RNDC -c ${THISDIR}/${CONFDIR}/rndc.conf"
-myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -T clienttest -d 99"
+myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -T clienttest -d 99 -U 4"
 
 # Stop the server and run through a series of tests with various config
 # files while controlling the stop/start of the server.
