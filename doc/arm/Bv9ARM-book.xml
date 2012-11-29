@@ -15386,14 +15386,6 @@ zone "example.com" {
           This allows recursive queries of the server from the outside
           unless recursion has been previously disabled.
         </para>
-        <para>
-          For more information on how to use ACLs to protect your server,
-          see the <emphasis>AUSCERT</emphasis> advisory at:
-        </para>
-        <para>
-          <ulink url="ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos"
-	             >ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos</ulink>
-        </para>
       </sect1>
       <sect1>
         <title><command>Chroot</command> and <command>Setuid</command></title>
