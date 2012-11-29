@@ -1000,6 +1000,9 @@ decode_octet_string(const unsigned char *p, size_t len,
 	int e;
 	size_t slen;
 
+	k->data = NULL;
+	k->length = 0;
+
 	e = der_match_tag(p, len, ASN1_C_UNIV, PRIM, UT_OctetString, &l);
 	if (e)
 		return (e);
