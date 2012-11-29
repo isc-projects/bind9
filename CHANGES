@@ -1,3 +1,6 @@
+3427.	[bug]		dig +trace incorrectly displayed name server 
+			addresses instead of names. [RT #31641]
+
 3425.	[bug]		"acacheentry" reference counting was broken resulting
 			in use after free. [RT #31908]
 

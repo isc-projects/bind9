@@ -276,7 +276,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		       "from %s(%s) in %d ms\n\n",
 		       query->lookup->doing_xfr ?
 				query->byte_count : (isc_uint64_t)bytes,
-		       fromtext, query->servname,
+		       fromtext, query->userarg,
 		       (int)diff/1000);
 	}
 }
