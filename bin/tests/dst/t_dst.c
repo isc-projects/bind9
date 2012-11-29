@@ -631,7 +631,7 @@ sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 		return(1);
 	}
 
-	buf = (char *) malloc((sb.st_size + 1) * sizeof(unsigned char));
+	buf = (char *) malloc((sb.st_size + 1) * sizeof(char));
 	if (buf == NULL) {
 		t_info("malloc failed, errno == %d\n", errno);
 		close(fd);
@@ -726,7 +726,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		return;
 	}
 
-	data = (unsigned char *) malloc(sb.st_size * sizeof(char));
+	data = (unsigned char *) malloc(sb.st_size * sizeof(unsigned char));
 	if (data == NULL) {
 		t_info("t2_sigchk: malloc failed %d\n", errno);
 		++*nprobs;
