@@ -244,6 +244,8 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_uint64_t diff;
 	isc_time_t now;
 	time_t tnow;
+	struct tm tmnow;
+	char time_str[100];
 	char fromtext[ISC_SOCKADDR_FORMATSIZE];
 
 	isc_sockaddr_format(from, fromtext, sizeof(fromtext));
@@ -255,7 +257,10 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		printf(";; Query time: %ld msec\n", (long int)diff/1000);
 		printf(";; SERVER: %s(%s)\n", fromtext, query->servname);
 		time(&tnow);
-		printf(";; WHEN: %s", ctime(&tnow));
+		tmnow  = *localtime(&tnow);
+		if (strftime(time_str, sizeof(time_str),
+		             "%a %b %d %T %Z %Y", &tmnow) > 0)
+			printf(";; WHEN: %s\n", time_str);
 		if (query->lookup->doing_xfr) {
 			printf(";; XFR size: %u records (messages %u, "
 			       "bytes %" ISC_PRINT_QUADFORMAT "u)\n",
@@ -263,7 +268,6 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 			       query->byte_count);
 		} else {
 			printf(";; MSG SIZE  rcvd: %u\n", bytes);
-
 		}
 		if (key != NULL) {
 			if (!validated)
