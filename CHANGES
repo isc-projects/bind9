@@ -1,3 +1,6 @@
+3427.	[bug]		dig +trace incorrectly displayed name server 
+			addresses instead of names. [RT #31641]
+
 3426.	[bug]		dnssec-checkds: Clearer output when records are not
 			found. [RT #31968]
 
