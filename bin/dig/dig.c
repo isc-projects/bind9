@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -255,7 +255,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		time(&tnow);
 		tmnow  = *localtime(&tnow);
 		if (strftime(time_str, sizeof(time_str),
-		             "%a %b %d %T %Z %Y", &tmnow) > 0)
+			     "%a %b %d %T %Z %Y", &tmnow) > 0)
 			printf(";; WHEN: %s\n", time_str);
 		if (query->lookup->doing_xfr) {
 			printf(";; XFR size: %u records (messages %u, "
