@@ -46,10 +46,10 @@
 <p><b>Table of Contents</b></p>
 <dl>
 <dt><span class="sect1"><a href="Bv9ARM.ch07.html#Access_Control_Lists">Access Control Lists</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch07.html#id2599682"><span><strong class="command">Chroot</strong></span> and <span><strong class="command">Setuid</strong></span></a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch07.html#id2599667"><span><strong class="command">Chroot</strong></span> and <span><strong class="command">Setuid</strong></span></a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2599763">The <span><strong class="command">chroot</strong></span> Environment</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2599891">Using the <span><strong class="command">setuid</strong></span> Function</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2599748">The <span><strong class="command">chroot</strong></span> Environment</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2599876">Using the <span><strong class="command">setuid</strong></span> Function</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch07.html#dynamic_update_security">Dynamic Update Security</a></span></dt>
 </dl>
@@ -109,17 +109,10 @@ zone "example.com" {
           This allows recursive queries of the server from the outside
           unless recursion has been previously disabled.
         </p>
-<p>
-          For more information on how to use ACLs to protect your server,
-          see the <span class="emphasis"><em>AUSCERT</em></span> advisory at:
-        </p>
-<p>
-          <a href="ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos" target="_top">ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos</a>
-        </p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2599682"></a><span><strong class="command">Chroot</strong></span> and <span><strong class="command">Setuid</strong></span>
+<a name="id2599667"></a><span><strong class="command">Chroot</strong></span> and <span><strong class="command">Setuid</strong></span>
 </h2></div></div></div>
 <p>
           On UNIX servers, it is possible to run <acronym class="acronym">BIND</acronym>
@@ -145,7 +138,7 @@ zone "example.com" {
         </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2599763"></a>The <span><strong class="command">chroot</strong></span> Environment</h3></div></div></div>
+<a name="id2599748"></a>The <span><strong class="command">chroot</strong></span> Environment</h3></div></div></div>
 <p>
             In order for a <span><strong class="command">chroot</strong></span> environment
             to
@@ -173,7 +166,7 @@ zone "example.com" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2599891"></a>Using the <span><strong class="command">setuid</strong></span> Function</h3></div></div></div>
+<a name="id2599876"></a>Using the <span><strong class="command">setuid</strong></span> Function</h3></div></div></div>
 <p>
             Prior to running the <span><strong class="command">named</strong></span> daemon,
             use
