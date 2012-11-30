@@ -4133,6 +4133,8 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 	dns_name_t *found;
 	isc_result_t result;
 
+	REQUIRE(nodep != NULL);
+
 	result = rpz_ready(client, zonep, dbp, nodep, rdatasetp);
 	if (result != ISC_R_SUCCESS) {
 		*policyp = DNS_RPZ_POLICY_ERROR;
