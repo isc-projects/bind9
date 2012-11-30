@@ -1,3 +1,6 @@
+3429.	[bug]		dns_zone_getserial2 could a return success without
+			returning a valid serial. [RT #32007]
+
 3428.	[cleanup]	dig: Add timezone to date output. [RT #2269]
 
 3427.	[bug]		dig +trace incorrectly displayed name server 
