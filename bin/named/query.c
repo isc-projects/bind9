@@ -4211,6 +4211,8 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
 
+	REQUIRE(nodep != NULL);
+
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client);
 
