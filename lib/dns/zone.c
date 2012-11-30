@@ -1054,6 +1054,7 @@ dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype) {
 isc_result_t
 dns_zone_getserial2(dns_zone_t *zone, isc_uint32_t *serialp) {
 	isc_result_t result;
+	unsigned int soacount;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(serialp != NULL);
@@ -1061,8 +1062,11 @@ dns_zone_getserial2(dns_zone_t *zone, isc_uint32_t *serialp) {
 	LOCK_ZONE(zone);
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL) {
-		result = zone_get_from_db(zone, zone->db, NULL, NULL, serialp,
-					  NULL, NULL, NULL, NULL, NULL);
+		result = zone_get_from_db(zone, zone->db, NULL, &soacount,
+					  serialp, NULL, NULL, NULL, NULL,
+					  NULL);
+		if (result == ISC_R_SUCCESS && soacount == 0)
+			result = ISC_R_FAILURE;
 	} else
 		result = DNS_R_NOTLOADED;
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
@@ -3480,14 +3484,18 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 
 		if (zone->db != NULL) {
+			unsigned int oldsoacount;
+
 			/*
 			 * This is checked in zone_replacedb() for slave zones
 			 * as they don't reload from disk.
 			 */
-			result = zone_get_from_db(zone, zone->db, NULL, NULL,
-						  &oldserial, NULL, NULL, NULL,
-						  NULL, NULL);
+			result = zone_get_from_db(zone, zone->db, NULL,
+						  &oldsoacount, &oldserial,
+						  NULL, NULL, NULL, NULL,
+						  NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			RUNTIME_CHECK(soacount > 0U);
 			if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
 			    !isc_serial_gt(serial, oldserial)) {
 				isc_uint32_t serialmin, serialmax;
@@ -3895,6 +3903,19 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			*expire = soa.expire;
 		if (minimum != NULL)
 			*minimum = soa.minimum;
+	} else {
+		if (soacount != NULL)
+			*soacount = 0;
+		if (serial != NULL)
+			*serial = 0;
+		if (refresh != NULL)
+			*refresh = 0;
+		if (retry != NULL)
+			*retry = 0;
+		if (expire != NULL)
+			*expire = 0;
+		if (minimum != NULL)
+			*minimum = 0;
 	}
 
 	result = ISC_R_SUCCESS;
@@ -9316,7 +9337,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	isc_time_t now;
 	isc_boolean_t exiting = ISC_FALSE;
 	isc_interval_t i;
-	unsigned int j;
+	unsigned int j, soacount;
 
 	stub = revent->ev_arg;
 	INSIST(DNS_STUB_VALID(stub));
@@ -9459,9 +9480,9 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
 	if (zone->db == NULL)
 		zone_attachdb(zone, stub->db);
-	result = zone_get_from_db(zone, zone->db, NULL, NULL, NULL, &refresh,
-				  &retry, &expire, NULL, NULL);
-	if (result == ISC_R_SUCCESS) {
+	result = zone_get_from_db(zone, zone->db, NULL, &soacount, NULL,
+				  &refresh, &retry, &expire, NULL, NULL);
+	if (result == ISC_R_SUCCESS && soacount > 0U) {
 		zone->refresh = RANGE(refresh, zone->minrefresh,
 				      zone->maxrefresh);
 		zone->retry = RANGE(retry, zone->minretry, zone->maxretry);
@@ -9797,10 +9818,12 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 
 	serial = soa.serial;
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
-		result = zone_get_from_db(zone, zone->db, NULL, NULL,
+		unsigned int soacount;
+		result = zone_get_from_db(zone, zone->db, NULL, &soacount,
 					  &oldserial, NULL, NULL, NULL, NULL,
 					  NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		RUNTIME_CHECK(soacount > 0U);
 		zone_debuglog(zone, me, 1, "serial: new %u, old %u",
 			      serial, oldserial);
 	} else
@@ -11022,6 +11045,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			result = dns_rdataset_first(rdataset);
 		if (result == ISC_R_SUCCESS) {
 			isc_uint32_t serial = 0, oldserial;
+			unsigned int soacount;
 
 			dns_rdataset_current(rdataset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &soa, NULL);
@@ -11031,10 +11055,11 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			 * The following should safely be performed without DB
 			 * lock and succeed in this context.
 			 */
-			result = zone_get_from_db(zone, zone->db, NULL, NULL,
-						  &oldserial, NULL, NULL, NULL,
-						  NULL, NULL);
+			result = zone_get_from_db(zone, zone->db, NULL,
+						  &soacount, &oldserial, NULL,
+						  NULL, NULL, NULL, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			RUNTIME_CHECK(soacount > 0U);
 			if (isc_serial_le(serial, oldserial)) {
 				dns_zone_log(zone,
 					     ISC_LOG_INFO,
@@ -11721,6 +11746,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
 	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER)) {
 		isc_uint32_t serial, oldserial;
+		unsigned int soacount;
 
 		dns_zone_log(zone, ISC_LOG_DEBUG(3), "generating diffs");
 
@@ -11735,10 +11761,11 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 		/*
 		 * This is checked in zone_postload() for master zones.
 		 */
-		result = zone_get_from_db(zone, zone->db, NULL, NULL,
+		result = zone_get_from_db(zone, zone->db, NULL, &soacount,
 					  &oldserial, NULL, NULL, NULL, NULL,
 					  NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		RUNTIME_CHECK(soacount > 0U);
 		if (zone->type == dns_zone_slave &&
 		    !isc_serial_gt(serial, oldserial)) {
 			isc_uint32_t serialmin, serialmax;
