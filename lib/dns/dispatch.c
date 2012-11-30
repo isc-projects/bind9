@@ -739,7 +739,7 @@ destroy_disp(isc_task_t *task, isc_event_t *event) {
 
 	if (disp->sepool != NULL) {
 		isc_mempool_destroy(&disp->sepool);
-		isc_mutex_destroy(&disp->sepool_lock);
+		(void)isc_mutex_destroy(&disp->sepool_lock);
 	}
 
 	if (disp->socket != NULL)
