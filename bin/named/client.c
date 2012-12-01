@@ -2594,10 +2594,10 @@ ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	return (ISC_R_SUCCESS);
 
  cleanup_listlock:
-	isc_mutex_destroy(&manager->listlock);
+	(void) isc_mutex_destroy(&manager->listlock);
 
  cleanup_lock:
-	isc_mutex_destroy(&manager->lock);
+	(void) isc_mutex_destroy(&manager->lock);
 
  cleanup_manager:
 	isc_mem_put(manager->mctx, manager, sizeof(*manager));
