@@ -203,13 +203,18 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 freeze 2>&1 | sed 's/^/I:ns3 /
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 thaw 2>&1 | sed 's/^/I:ns3 /'
 
 echo "I:checking expired signatures were updated ($n)"
-ret=0
-$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
-$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+for i in 1 2 3 4 5 6 7 8 9
+do
+	ret=0
+	$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+	$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+	$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n > digcomp.out.test$n || ret=1
+	grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+	[ $ret = 0 ] && break
+	sleep 1
+done
+if [ $ret != 0 ]; then cat digcomp.out.test$n; echo "I:failed"; fi
 n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:checking NSEC->NSEC3 conversion succeeded ($n)"

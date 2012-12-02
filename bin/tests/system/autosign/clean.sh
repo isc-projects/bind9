@@ -48,3 +48,4 @@ rm -f ns3/prepub.example.db
 rm -f ns3/prepub.example.db.in
 rm -f ns3/secure-to-insecure2.example.db
 rm -f ns3/*.nzf
+rm -f digcomp.out.test*
