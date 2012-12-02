@@ -844,7 +844,7 @@ dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname) {
 	REQUIRE(dns_name_iswildcard(wname));
 
 #if defined(__clang__)  && \
-       ( __clang_major__ < 4 || (__clang_major__ == 4 && __clang_minor__ < 2))
+       ( __clang_major__ < 3 || (__clang_major__ == 3 && __clang_minor__ < 2))
 	memset(&tname, 0, sizeof(tname));
 #endif
 	DNS_NAME_INIT(&tname, NULL);
@@ -1942,7 +1942,7 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 	 */
 	if (name->offsets == NULL) {
 #if defined(__clang__)  && \
-       ( __clang_major__ < 4 || (__clang_major__ == 4 && __clang_minor__ < 2))
+       ( __clang_major__ < 3 || (__clang_major__ == 3 && __clang_minor__ < 2))
 		memset(&clname, 0, sizeof(clname));
 #endif
 		DNS_NAME_INIT(&clname, clo);
@@ -2251,7 +2251,7 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	REQUIRE(digest != NULL);
 
 #if defined(__clang__)  && \
-       ( __clang_major__ < 4 || (__clang_major__ == 4 && __clang_minor__ < 2))
+       ( __clang_major__ < 3 || (__clang_major__ == 3 && __clang_minor__ < 2))
 	memset(&downname, 0, sizeof(downname));
 #endif
 	DNS_NAME_INIT(&downname, NULL);
