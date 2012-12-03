@@ -53,3 +53,4 @@ rm -f ns3/reconf.example.db
 rm -f ns3/ttl*.db
 rm -f signing.out.*
 rm -f ns3/*.nzf
+rm -f digcomp.out.test*
