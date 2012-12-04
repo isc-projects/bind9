@@ -1,3 +1,6 @@
+3430.	[bug]		win32: isc_time_formatISO8601 was missing the
+			'T' between the date and time. [RT #32044]
+
 3429.	[bug]		dns_zone_getserial2 could a return success without
 			returning a valid serial. [RT #32007]
 
