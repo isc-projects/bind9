@@ -313,7 +313,7 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 		GetTimeFormat(LOCALE_NEUTRAL,
 			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
 			      &st, "hh':'mm':'ss", TimeBuf, 50);
-		snprintf(buf, len, "%s%sZ", DateBuf, TimeBuf);
+		snprintf(buf, len, "%sT%sZ", DateBuf, TimeBuf);
 	} else {
 		buf[0] = 0;
 	}
