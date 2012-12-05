@@ -2230,7 +2230,8 @@ static const char *a52 =
 
 static int
 test_dns_name_towire(char *testname, unsigned int dc_method, char *exp_data,
-		     int exp_data_len, isc_result_t exp_result, size_t buflen)
+		     size_t exp_data_len, isc_result_t exp_result,
+		     size_t buflen)
 {
 	int			result;
 	int			val;
@@ -2300,6 +2301,7 @@ t_dns_name_towire_x(const char *testfile, size_t buflen) {
 	int		result;
 	unsigned int	dc_method;
 	isc_result_t	exp_result;
+	size_t		exp_data_len;
 	char		*p;
 	FILE		*fp;
 
@@ -2329,11 +2331,12 @@ t_dns_name_towire_x(const char *testfile, size_t buflen) {
 
 				dc_method = t_dc_method_fromtext(Tokens[3]);
 				exp_result = t_dns_result_fromtext(Tokens[4]);
+				exp_data_len = strtoul(Tokens[3], NULL, 10);
 
 				result = test_dns_name_towire(Tokens[0],
 							      dc_method,
 							      Tokens[2],
-							      atoi(Tokens[3]),
+							      exp_data_len,
 							      exp_result,
 							      buflen);
 			} else {
