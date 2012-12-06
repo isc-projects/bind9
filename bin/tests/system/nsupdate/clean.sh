@@ -21,8 +21,11 @@
 # Clean up after zone transfer tests.
 #
 
-rm -f dig.out.ns1 dig.out.ns2 dig.out.ns1.after ns1/*.jnl ns2/*.jnl \
-    ns1/example.db ns1/update.db ns1/other.db ns1/ddns.key
+rm -f dig.out.*
+rm -f ns1/*.jnl ns2/*.jnl
+rm -f ns1/example.db ns1/unixtime.db ns1/update.db ns1/other.db ns1/keytests.db
+rm -f ns1/md5.key ns1/sha1.key ns1/sha224.key ns1/sha256.key ns1/sha384.key
+rm -f ns1/sha512.key ns1/ddns.key
 rm -f nsupdate.out
 rm -f random.data
 rm -f ns2/example.bk
@@ -31,8 +34,7 @@ rm -f */named.memstats
 rm -f nsupdate.out
 rm -f ns3/example.db.jnl ns3/example.db
 rm -f ns3/nsec3param.test.db.signed.jnl ns3/nsec3param.test.db ns3/nsec3param.test.db.signed ns3/dsset-nsec3param.test.
-rm -f ns3/dnskey.test.db.signed.jnl ns3/dnskey.test.db ns3/dnskey.test.db.signed ns3/dsset-dnskey.test.
+rm -f ns3/dnskey.test.db.signed.jnl ns3/dnskey.test.db ns3/dnskey.test.db.signed ns3/dsset-dnskey.test. ns3/keyset-dnskey.test.
 rm -f ns3/K*
-rm -f dig.out.ns3.*
 rm -f jp.out.ns3.*
 rm -f Kxxx.*
