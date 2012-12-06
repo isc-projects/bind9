@@ -1,3 +1,6 @@
+3433.	[bug]		dlz_findzone() did not correctly handle
+			ISC_R_NOMORE. [RT #31172]
+
 3432.	[func]		Multiple DLZ databases can now be configured.
 			DLZ databases are searched in the order configured,
 			unless set to "search no", in which case a

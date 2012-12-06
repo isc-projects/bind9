@@ -335,9 +335,16 @@ dns_dlzfindzone(dns_view_t *view, dns_name_t *name,
 			if (result != ISC_R_NOTFOUND) {
 				if (best != NULL)
 					dns_db_detach(&best);
-				dns_db_attach(db, &best);
-				dns_db_detach(&db);
-				minlabels = i;
+				if (result == ISC_R_SUCCESS) {
+					INSIST(db != NULL);
+					dns_db_attach(db, &best);
+					dns_db_detach(&db);
+					minlabels = i;
+				} else {
+					if (db != NULL)
+						dns_db_detach(&db);
+					break;
+				}
 			} else if (db != NULL)
 				dns_db_detach(&db);
 		}

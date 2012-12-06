@@ -101,4 +101,22 @@ grep "3600.IN.NS.zone.nil." dig.out.ns1.4 > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
+ret=0
+echo "I:testing unsearched/registered DLZ zone is found"
+$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.5
+grep "3600.IN.NS.zone.nil." dig.out.ns1.5 > /dev/null || ret=1
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+ret=0
+echo "I:testing correct behavior with findzone returning ISC_R_NOMORE"
+$DIG $DIGOPTS +noall a test.example.com > /dev/null 2>&1 || ret=1
+# we should only find one logged lookup per searched DLZ database
+lines=`grep "dlz_findzonedb.*example\.com.*example.nil" ns1/named.run | wc -l`
+[ $lines -eq 1 ] || ret=1
+lines=`grep "dlz_findzonedb.*example\.com.*alternate.nil" ns1/named.run | wc -l`
+[ $lines -eq 1 ] || ret=1
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
 exit $status

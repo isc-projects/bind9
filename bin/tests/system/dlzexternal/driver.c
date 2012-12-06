@@ -321,6 +321,20 @@ isc_result_t
 dlz_findzonedb(void *dbdata, const char *name) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
+	state->log(ISC_LOG_INFO,
+		   "dlz_example: dlz_findzonedb called with name '%s'"
+		   "in zone DB '%s'", name, state->zone_name);
+
+	/*
+	 * Returning ISC_R_NOTFOUND will cause the query logic to
+	 * check the database for parent names, looking for zone cuts.
+	 *
+	 * Returning ISC_R_NOMORE prevents the query logic from doing
+	 * this; it will move onto the next database after a single query.
+	 */
+	if (strcasecmp(name, "test.example.com") == 0)
+		return (ISC_R_NOMORE);
+
 	if (strcasecmp(state->zone_name, name) == 0)
 		return (ISC_R_SUCCESS);
 
