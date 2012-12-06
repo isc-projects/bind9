@@ -277,6 +277,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		dl_load_symbol(cd, "dlz_findzonedb", ISC_TRUE);
 
 	if (cd->dlz_create == NULL ||
+	    cd->dlz_version == NULL ||
 	    cd->dlz_lookup == NULL ||
 	    cd->dlz_findzonedb == NULL)
 	{

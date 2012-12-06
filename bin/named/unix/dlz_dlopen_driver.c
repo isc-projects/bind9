@@ -161,7 +161,9 @@ dlopen_dlz_authority(const char *zone, void *driverarg, void *dbdata,
 }
 
 static isc_result_t
-dlopen_dlz_findzonedb(void *driverarg, void *dbdata, const char *name)
+dlopen_dlz_findzonedb(void *driverarg, void *dbdata, const char *name,
+		      dns_clientinfomethods_t *methods,
+		      dns_clientinfo_t *clientinfo)
 {
 	dlopen_data_t *cd = (dlopen_data_t *) dbdata;
 	isc_result_t result;
@@ -169,7 +171,7 @@ dlopen_dlz_findzonedb(void *driverarg, void *dbdata, const char *name)
 	UNUSED(driverarg);
 
 	MAYBE_LOCK(cd);
-	result = cd->dlz_findzonedb(cd->dbdata, name);
+	result = cd->dlz_findzonedb(cd->dbdata, name, methods, clientinfo);
 	MAYBE_UNLOCK(cd);
 	return (result);
 }
@@ -289,6 +291,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		dl_load_symbol(cd, "dlz_findzonedb", ISC_TRUE);
 
 	if (cd->dlz_create == NULL ||
+	    cd->dlz_version == NULL ||
 	    cd->dlz_lookup == NULL ||
 	    cd->dlz_findzonedb == NULL)
 	{

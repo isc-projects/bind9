@@ -112,7 +112,8 @@ typedef struct bdbhpt_parsed_data {
 /* forward reference */
 
 static isc_result_t
-bdbhpt_findzone(void *driverarg, void *dbdata, const char *name);
+bdbhpt_findzone(void *driverarg, void *dbdata, const char *name,
+		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo);
 
 /*%
  * Reverses a string in place.
@@ -252,7 +253,7 @@ bdbhpt_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 	DBT key, data;
 
 	/* check to see if we are authoritative for the zone first. */
-	result = bdbhpt_findzone(driverarg, dbdata, name);
+	result = bdbhpt_findzone(driverarg, dbdata, name, NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOTFOUND);
 
@@ -483,7 +484,8 @@ bdbhpt_cleanup(bdbhpt_instance_t *db) {
 }
 
 static isc_result_t
-bdbhpt_findzone(void *driverarg, void *dbdata, const char *name)
+bdbhpt_findzone(void *driverarg, void *dbdata, const char *name,
+		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 
 	isc_result_t result;
@@ -491,6 +493,8 @@ bdbhpt_findzone(void *driverarg, void *dbdata, const char *name)
 	DBT key, data;
 
 	UNUSED(driverarg);
+	UNUSED(methods);
+	UNUSED(clientinfo);
 
 	memset(&key, 0, sizeof(DBT));
 	memset(&data, 0, sizeof(DBT));

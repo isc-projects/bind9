@@ -84,6 +84,7 @@
  ***** Imports
  *****/
 
+#include <dns/clientinfo.h>
 #include <dns/name.h>
 #include <dns/types.h>
 #include <dns/view.h>
@@ -140,10 +141,11 @@ typedef void
 typedef isc_result_t
 (*dns_dlzfindzone_t)(void *driverarg, void *dbdata, isc_mem_t *mctx,
 		     dns_rdataclass_t rdclass, dns_name_t *name,
+		     dns_clientinfomethods_t *methods,
+		     dns_clientinfo_t *clientinfo,
 		     dns_db_t **dbp);
 
 /*%<
-
  * Method prototype.  Drivers implementing the DLZ interface MUST
  * supply a find zone method.  This method is called when the DNS
  * server is performing a query.  The find zone method will be called
@@ -263,15 +265,6 @@ dns_dlzdestroy(dns_dlzdb_t **dbp);
  * This method is called when the DNS server is shutting down and no
  * longer needs the driver.  If the DLZ driver supplies a destroy
  * methods, this function will call it.
- */
-
-isc_result_t
-dns_dlzfindzone(dns_view_t *view, dns_name_t *name,
-		unsigned int minlabels, dns_db_t **dbp);
-
-/*%<
- * This method is called when the DNS server is performing a query.
- * It will call the DLZ driver's find zone method.
  */
 
 isc_result_t

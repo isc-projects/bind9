@@ -1066,8 +1066,14 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	if (zonelabels < namelabels &&
 	    !ISC_LIST_EMPTY(client->view->dlz_searched))
 	{
-		tresult = dns_dlzfindzone(client->view, name,
-					  zonelabels, &tdbp);
+		dns_clientinfomethods_t cm;
+		dns_clientinfo_t ci;
+
+		dns_clientinfomethods_init(&cm, ns_client_sourceip);
+		dns_clientinfo_init(&ci, client);
+
+		tresult = dns_view_searchdlz(client->view, name,
+					     zonelabels, &cm, &ci, &tdbp);
 		 /* If we successful, we found a better match. */
 		if (tresult == ISC_R_SUCCESS) {
 			/*

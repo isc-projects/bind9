@@ -1628,7 +1628,10 @@ dns_sdlzdestroy(void *driverdata, void **dbdata) {
 
 static isc_result_t
 dns_sdlzfindzone(void *driverarg, void *dbdata, isc_mem_t *mctx,
-		 dns_rdataclass_t rdclass, dns_name_t *name, dns_db_t **dbp)
+		 dns_rdataclass_t rdclass, dns_name_t *name,
+		 dns_clientinfomethods_t *methods,
+		 dns_clientinfo_t *clientinfo,
+		 dns_db_t **dbp)
 {
 	isc_buffer_t b;
 	char namestr[DNS_NAME_MAXTEXT + 1];
@@ -1656,7 +1659,8 @@ dns_sdlzfindzone(void *driverarg, void *dbdata, isc_mem_t *mctx,
 
 	/* Call SDLZ driver's find zone method */
 	MAYBE_LOCK(imp);
-	result = imp->methods->findzone(imp->driverarg, dbdata, namestr);
+	result = imp->methods->findzone(imp->driverarg, dbdata, namestr,
+					methods, clientinfo);
 	MAYBE_UNLOCK(imp);
 
 	/*

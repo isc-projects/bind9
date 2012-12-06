@@ -112,10 +112,27 @@ ret=0
 echo "I:testing correct behavior with findzone returning ISC_R_NOMORE"
 $DIG $DIGOPTS +noall a test.example.com > /dev/null 2>&1 || ret=1
 # we should only find one logged lookup per searched DLZ database
-lines=`grep "dlz_findzonedb.*example\.com.*example.nil" ns1/named.run | wc -l`
+lines=`grep "dlz_findzonedb.*test\.example\.com.*example.nil" ns1/named.run | wc -l`
 [ $lines -eq 1 ] || ret=1
-lines=`grep "dlz_findzonedb.*example\.com.*alternate.nil" ns1/named.run | wc -l`
+lines=`grep "dlz_findzonedb.*test\.example\.com.*alternate.nil" ns1/named.run | wc -l`
 [ $lines -eq 1 ] || ret=1
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+ret=0
+echo "I:testing findzone can return different results per client"
+$DIG $DIGOPTS -b 10.53.0.1 +noall a test.example.net > /dev/null 2>&1 || ret=1
+# we should only find one logged lookup per searched DLZ database
+lines=`grep "dlz_findzonedb.*example\.net.*example.nil" ns1/named.run | wc -l`
+[ $lines -eq 1 ] || ret=1
+lines=`grep "dlz_findzonedb.*example\.net.*alternate.nil" ns1/named.run | wc -l`
+[ $lines -eq 1 ] || ret=1
+$DIG $DIGOPTS -b 10.53.0.2 +noall a test.example.net > /dev/null 2>&1 || ret=1
+# we should find several logged lookups this time
+lines=`grep "dlz_findzonedb.*example\.net.*example.nil" ns1/named.run | wc -l`
+[ $lines -gt 2 ] || ret=1
+lines=`grep "dlz_findzonedb.*example\.net.*alternate.nil" ns1/named.run | wc -l`
+[ $lines -gt 2 ] || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 

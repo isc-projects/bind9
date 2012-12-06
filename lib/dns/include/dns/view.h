@@ -72,6 +72,7 @@
 #include <isc/stdtime.h>
 
 #include <dns/acl.h>
+#include <dns/clientinfo.h>
 #include <dns/fixedname.h>
 #include <dns/rdatastruct.h>
 #include <dns/rpz.h>
@@ -1135,6 +1136,29 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 
 void
 dns_view_restorekeyring(dns_view_t *view);
+
+isc_result_t
+dns_view_searchdlz(dns_view_t *view, dns_name_t *name,
+		   unsigned int minlabels,
+		   dns_clientinfomethods_t *methods,
+		   dns_clientinfo_t *clientinfo,
+		   dns_db_t **dbp);
+
+/*%<
+ * Search through the DLZ database(s) in view->dlz_searched to find
+ * one that can answer a query for 'name', using the DLZ driver's
+ * findzone method.  If successful, '*dbp' is set to point to the
+ * DLZ database.
+ *
+ * Returns:
+ * \li ISC_R_SUCCESS
+ * \li ISC_R_NOTFOUND
+ *
+ * Requires:
+ * \li 'view' is valid.
+ * \li 'name' is not NULL.
+ * \li 'dbp' is not NULL and *dbp is NULL.
+ */
 
 ISC_LANG_ENDDECLS
 

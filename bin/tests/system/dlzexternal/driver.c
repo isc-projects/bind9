@@ -318,11 +318,26 @@ dlz_destroy(void *dbdata) {
  * See if we handle a given zone
  */
 isc_result_t
-dlz_findzonedb(void *dbdata, const char *name) {
+dlz_findzonedb(void *dbdata, const char *name,
+	   dns_clientinfomethods_t *methods,
+	   dns_clientinfo_t *clientinfo)
+{
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
+	isc_sockaddr_t *src;
+	char addrbuf[100];
+
+	strcpy(addrbuf, "unknown");
+	if (methods != NULL &&
+	    methods->sourceip != NULL &&
+	    methods->version - methods->age >= DNS_CLIENTINFOMETHODS_VERSION)
+	{
+		methods->sourceip(clientinfo, &src);
+		fmt_address(src, addrbuf, sizeof(addrbuf));
+	}
+	fprintf(stderr, "findzonedb: connection from: %s\n", addrbuf);
 
 	state->log(ISC_LOG_INFO,
-		   "dlz_example: dlz_findzonedb called with name '%s'"
+		   "dlz_example: dlz_findzonedb called with name '%s' "
 		   "in zone DB '%s'", name, state->zone_name);
 
 	/*
@@ -335,6 +350,14 @@ dlz_findzonedb(void *dbdata, const char *name) {
 	if (strcasecmp(name, "test.example.com") == 0)
 		return (ISC_R_NOMORE);
 
+	/*
+	 * For example.net, only return ISC_R_NOMORE when queried
+	 * from 10.53.0.1.
+	 */
+	if (strcasecmp(name, "test.example.net") == 0 &&
+	    strncmp(addrbuf, "10.53.0.1", 9) == 0)
+		return (ISC_R_NOMORE);
+
 	if (strcasecmp(state->zone_name, name) == 0)
 		return (ISC_R_SUCCESS);
 
@@ -342,7 +365,10 @@ dlz_findzonedb(void *dbdata, const char *name) {
 }
 
 /*
- * Look up one record
+ * Look up one record in the sample database.
+ *
+ * If the queryname is "source-addr", we add a TXT record containing
+ * the address of the client, to test the use of 'methods' and 'clientinfo'
  */
 isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
@@ -371,6 +397,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		char buf[100];
 		strcpy(buf, "unknown");
 		if (methods != NULL &&
+		    methods->sourceip != NULL &&
 		    methods->version - methods->age >=
 			    DNS_CLIENTINFOMETHODS_VERSION)
 		{
@@ -378,7 +405,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 			fmt_address(src, buf, sizeof(buf));
 		}
 
-		fprintf(stderr, "connection from: %s\n", buf);
+		fprintf(stderr, "lookup: connection from: %s\n", buf);
 
 		found = ISC_TRUE;
 		result = state->putrr(lookup, "TXT", 0, buf);
@@ -412,7 +439,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	UNUSED(client);
 
 	/* Just say yes for all our zones */
-	return (dlz_findzonedb(dbdata, name));
+	return (dlz_findzonedb(dbdata, name, NULL, NULL));
 }
 
 /*

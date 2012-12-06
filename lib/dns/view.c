@@ -1868,3 +1868,91 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	UNUSED(cfg_destroy);
 #endif
 }
+
+isc_result_t
+dns_view_searchdlz(dns_view_t *view, dns_name_t *name, unsigned int minlabels,
+		   dns_clientinfomethods_t *methods,
+		   dns_clientinfo_t *clientinfo,
+		   dns_db_t **dbp)
+{
+	dns_fixedname_t fname;
+	dns_name_t *zonename;
+	unsigned int namelabels;
+	unsigned int i;
+	isc_result_t result;
+	dns_dlzfindzone_t findzone;
+	dns_dlzdb_t *dlzdb;
+	dns_db_t *db, *best = NULL;
+
+	/*
+	 * Performs checks to make sure data is as we expect it to be.
+	 */
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(name != NULL);
+	REQUIRE(dbp != NULL && *dbp == NULL);
+
+	/* setup a "fixed" dns name */
+	dns_fixedname_init(&fname);
+	zonename = dns_fixedname_name(&fname);
+
+	/* count the number of labels in the name */
+	namelabels = dns_name_countlabels(name);
+
+	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched);
+	     dlzdb != NULL;
+	     dlzdb = ISC_LIST_NEXT(dlzdb, link))
+	{
+		REQUIRE(DNS_DLZ_VALID(dlzdb));
+
+		/*
+		 * loop through starting with the longest domain name and
+		 * trying shorter names portions of the name until we find a
+		 * match, have an error, or are below the 'minlabels'
+		 * threshold.  minlabels is 0, if neither the standard
+		 * database nor any previous DLZ database had a zone name
+		 * match. Otherwise minlabels is the number of labels
+		 * in that name.  We need to beat that for a "better"
+		 * match for this DLZ database to be authoritative.
+		 */
+		for (i = namelabels; i > minlabels && i > 1; i--) {
+			if (i == namelabels) {
+				result = dns_name_copy(name, zonename, NULL);
+				if (result != ISC_R_SUCCESS)
+					return (result);
+			} else
+				dns_name_split(name, i, NULL, zonename);
+
+			/* ask SDLZ driver if the zone is supported */
+			db = NULL;
+			findzone = dlzdb->implementation->methods->findzone;
+			result = (*findzone)(dlzdb->implementation->driverarg,
+					     dlzdb->dbdata, dlzdb->mctx,
+					     view->rdclass, zonename,
+					     methods, clientinfo, &db);
+
+			if (result != ISC_R_NOTFOUND) {
+				if (best != NULL)
+					dns_db_detach(&best);
+				if (result == ISC_R_SUCCESS) {
+					INSIST(db != NULL);
+					dns_db_attach(db, &best);
+					dns_db_detach(&db);
+					minlabels = i;
+				} else {
+					if (db != NULL)
+						dns_db_detach(&db);
+					break;
+				}
+			} else if (db != NULL)
+				dns_db_detach(&db);
+		}
+	}
+
+	if (best != NULL) {
+		dns_db_attach(best, dbp);
+		dns_db_detach(&best);
+		return (ISC_R_SUCCESS);
+	}
+
+	return (ISC_R_NOTFOUND);
+}

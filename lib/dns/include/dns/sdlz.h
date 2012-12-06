@@ -152,8 +152,9 @@ typedef void (*dns_sdlzdestroy_t)(void *driverarg, void *dbdata);
  */
 
 typedef isc_result_t
-(*dns_sdlzfindzone_t)(void *driverarg, void *dbdata, const char *name);
-
+(*dns_sdlzfindzone_t)(void *driverarg, void *dbdata, const char *name,
+		      dns_clientinfomethods_t *methods,
+		      dns_clientinfo_t *clientinfo);
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface MUST
  * supply a find zone method.  This method is called when the DNS

@@ -1670,7 +1670,8 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		findzone = dlzdb->implementation->methods->findzone;
 		result = (*findzone)(dlzdb->implementation->driverarg,
 				     dlzdb->dbdata, dlzdb->mctx,
-				     zone->view->rdclass, &zone->origin, &db);
+				     zone->view->rdclass, &zone->origin,
+				     NULL, NULL, &db);
 		if (result != ISC_R_NOTFOUND) {
 			if (zone->db != NULL)
 				zone_detachdb(zone);
