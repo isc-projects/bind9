@@ -87,7 +87,6 @@ struct dns_view {
 	dns_rdataclass_t		rdclass;
 	char *				name;
 	dns_zt_t *			zonetable;
-	dns_dlzdb_t *			dlzdatabase;
 	dns_resolver_t *		resolver;
 	dns_adb_t *			adb;
 	dns_requestmgr_t *		requestmgr;
@@ -167,6 +166,8 @@ struct dns_view {
 	ISC_LIST(dns_rpz_zone_t)	rpz_zones;
 	isc_boolean_t			rpz_recursive_only;
 	isc_boolean_t			rpz_break_dnssec;
+	dns_dlzdblist_t 		dlz_searched;
+	dns_dlzdblist_t 		dlz_unsearched;
 
 	/*
 	 * Configurable data for server use only,

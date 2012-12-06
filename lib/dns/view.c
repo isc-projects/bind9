@@ -121,7 +121,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->acache = NULL;
 	view->cache = NULL;
 	view->cachedb = NULL;
-	view->dlzdatabase = NULL;
+	ISC_LIST_INIT(view->dlz_searched);
+	ISC_LIST_INIT(view->dlz_unsearched);
 	view->hints = NULL;
 	view->resolver = NULL;
 	view->adb = NULL;
@@ -273,6 +274,7 @@ static inline void
 destroy(dns_view_t *view) {
 #ifdef BIND9
 	dns_dns64_t *dns64;
+	dns_dlzdb_t *dlzdb;
 #endif
 
 	REQUIRE(!ISC_LINK_LINKED(view, link));
@@ -334,9 +336,23 @@ destroy(dns_view_t *view) {
 		dns_acache_detach(&view->acache);
 	}
 	dns_rpz_view_destroy(view);
+	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched);
+	     dlzdb != NULL;
+	     dlzdb = ISC_LIST_HEAD(view->dlz_searched)) {
+		ISC_LIST_UNLINK(view->dlz_searched, dlzdb, link);
+		dns_dlzdestroy(&dlzdb);
+	}
+	for (dlzdb = ISC_LIST_HEAD(view->dlz_unsearched);
+	     dlzdb != NULL;
+	     dlzdb = ISC_LIST_HEAD(view->dlz_unsearched)) {
+		ISC_LIST_UNLINK(view->dlz_unsearched, dlzdb, link);
+		dns_dlzdestroy(&dlzdb);
+	}
 #else
 	INSIST(view->acache == NULL);
 	INSIST(ISC_LIST_EMPTY(view->rpz_zones));
+	INSIST(ISC_LIST_EMPTY(view->dlz_searched));
+	INSIST(ISC_LIST_EMPTY(view->dlz_unsearched));
 #endif
 	if (view->requestmgr != NULL)
 		dns_requestmgr_detach(&view->requestmgr);
@@ -344,8 +360,6 @@ destroy(dns_view_t *view) {
 		isc_task_detach(&view->task);
 	if (view->hints != NULL)
 		dns_db_detach(&view->hints);
-	if (view->dlzdatabase != NULL)
-		dns_dlzdestroy(&view->dlzdatabase);
 	if (view->cachedb != NULL)
 		dns_db_detach(&view->cachedb);
 	if (view->cache != NULL)

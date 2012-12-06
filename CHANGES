@@ -1,3 +1,12 @@
+3432.	[func]		Multiple DLZ databases can now be configured.
+			DLZ databases are searched in the order configured,
+			unless set to "search no", in which case a
+			zone can be configured to be retrieved from a
+			particular DLZ database by using a "dlz <name>"
+			option in the zone statement.  DLZ databases can
+			support type "master" and "redirect" zones.
+			[RT #27597]
+
 3431.	[bug]		ddns-confgen: Some valid key algorithms were
 			not accepted. [RT #31927]
 

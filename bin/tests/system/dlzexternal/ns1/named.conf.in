@@ -42,6 +42,25 @@ controls {
 	inet 10.53.0.1 port 9953 allow { any; } keys { rndc_key; };
 };
 
-dlz "example zone" {
+dlz "example one" {
 	database "dlopen ../driver.@SO@ example.nil";
+};
+
+dlz "example two" {
+	database "dlopen ../driver.@SO@ alternate.nil";
+};
+
+dlz "unsearched1" {
+        database "dlopen ../driver.@SO@ other.nil";
+        search no;
+};
+
+dlz "unsearched2" {
+        database "dlopen ../driver.@SO@ zone.nil";
+        search no;
+};
+
+zone zone.nil {
+        type master;
+        dlz unsearched2;
 };

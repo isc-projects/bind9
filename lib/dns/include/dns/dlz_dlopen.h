@@ -115,6 +115,7 @@ typedef void dlz_dlopen_closeversion_t (const char *zone,
  * want to support dynamic updates
  */
 typedef isc_result_t dlz_dlopen_configure_t (dns_view_t *view,
+					     dns_dlzdb_t *dlzdb,
 					     void *dbdata);
 
 /*

@@ -207,6 +207,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	const char *helper_name;
 	va_list ap;
 	char soa_data[200];
+	const char *extra;
 
 	UNUSED(dlzname);
 
@@ -228,9 +229,13 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	state->zone_name = strdup(argv[1]);
+	if (strcmp(state->zone_name, ".") == 0)
+		extra = ".root";
+	else
+		extra = ".";
 
-	sprintf(soa_data, "%s hostmaster.%s 123 900 600 86400 3600",
-		state->zone_name, state->zone_name);
+	sprintf(soa_data, "%s hostmaster%s%s 123 900 600 86400 3600",
+		state->zone_name, extra, state->zone_name);
 
 	add_name(state, &state->current[0], state->zone_name,
 		 "soa", 3600, soa_data);
@@ -466,7 +471,8 @@ dlz_configure(dns_view_t *view, void *dbdata) {
 		return (ISC_R_FAILURE);
 	}
 
-	result = state->writeable_zone(view, state->zone_name);
+	result = state->writeable_zone(view, view->dlzdatabase,
+				       state->zone_name);
 	if (result != ISC_R_SUCCESS) {
 		state->log(ISC_LOG_ERROR,
 			   "dlz_example: failed to configure zone %s",

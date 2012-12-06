@@ -234,6 +234,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	const char *helper_name;
 	va_list ap;
 	char soa_data[200];
+	const char *extra;
 	isc_result_t result;
 	int n;
 
@@ -264,20 +265,25 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		return (ISC_R_NOMEMORY);
 	}
 
-	n = snprintf(soa_data, sizeof(soa_data),
-		     "%s hostmaster.%s 123 900 600 86400 3600",
-		     state->zone_name, state->zone_name);
+	if (strcmp(state->zone_name, ".") == 0)
+		extra = ".root";
+	else
+		extra = ".";
+
+	n = sprintf(soa_data, "%s hostmaster%s%s 123 900 600 86400 3600",
+		    state->zone_name, extra, state->zone_name);
+
 	if (n < 0)
 		CHECK(ISC_R_FAILURE);
 	if ((unsigned)n >= sizeof(soa_data))
 		CHECK(ISC_R_NOSPACE);
 
-	CHECK(add_name(state, &state->current[0], state->zone_name,
-		       "soa", 3600, soa_data));
-	CHECK(add_name(state, &state->current[0], state->zone_name,
-		       "ns", 3600, state->zone_name));
-	CHECK(add_name(state, &state->current[0], state->zone_name,
-		       "a", 1800, "10.53.0.1"));
+	add_name(state, &state->current[0], state->zone_name,
+		 "soa", 3600, soa_data);
+	add_name(state, &state->current[0], state->zone_name,
+		 "ns", 3600, state->zone_name);
+	add_name(state, &state->current[0], state->zone_name,
+		 "a", 1800, "10.53.0.1");
 
 	if (state->log != NULL)
 		state->log(ISC_LOG_INFO, "dlz_example: started for zone %s",
@@ -504,10 +510,9 @@ dlz_closeversion(const char *zone, isc_boolean_t commit,
  * Configure a writeable zone
  */
 isc_result_t
-dlz_configure(dns_view_t *view, void *dbdata) {
+dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	isc_result_t result;
-
 
 	if (state->log != NULL)
 		state->log(ISC_LOG_INFO, "dlz_example: starting configure");
@@ -519,7 +524,7 @@ dlz_configure(dns_view_t *view, void *dbdata) {
 		return (ISC_R_FAILURE);
 	}
 
-	result = state->writeable_zone(view, state->zone_name);
+	result = state->writeable_zone(view, dlzdb, state->zone_name);
 	if (result != ISC_R_SUCCESS) {
 		if (state->log != NULL)
 			state->log(ISC_LOG_ERROR, "dlz_example: failed to "
