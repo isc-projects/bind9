@@ -1943,7 +1943,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			if (search == NULL || cfg_obj_asboolean(search)) {
 				dlzdb->search = ISC_TRUE;
 				result = dns_dlzconfigure(view, dlzdb,
-						        dlzconfigure_callback);
+							dlzconfigure_callback);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
 				ISC_LIST_APPEND(view->dlz_searched,
