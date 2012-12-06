@@ -75,24 +75,24 @@
       set to <literal>yes</literal> will be queried to find out if
       they contain an answer for the query name; the best available
       answer will be returned to the client.
-   </para>
-   <para>
-     The <option>search</option> option in the above example can be
-     omitted, because <literal>yes</literal> is the default value.
-   </para>
-   <para>
-     If <option>search</option> is set to <literal>no</literal>, then
-     this DLZ module is <emphasis>not</emphasis> searched for the best
-     match when a query is received.  Instead, zones in this DLZ must be
-     separately specified in a zone statement.  This allows you to
-     configure a zone normally using standard zone option semantics,
-     but specify a different database back-end for storage of the
-     zone's data.  For example, to implement NXDOMAIN redirection using
-     a DLZ module for back-end storage of redirection rules:
-   </para>
-   <screen>
+    </para>
+    <para>
+      The <option>search</option> option in the above example can be
+      omitted, because <literal>yes</literal> is the default value.
+    </para>
+    <para>
+      If <option>search</option> is set to <literal>no</literal>, then
+      this DLZ module is <emphasis>not</emphasis> searched for the best
+      match when a query is received.  Instead, zones in this DLZ must be
+      separately specified in a zone statement.  This allows you to
+      configure a zone normally using standard zone option semantics,
+      but specify a different database back-end for storage of the
+      zone's data.  For example, to implement NXDOMAIN redirection using
+      a DLZ module for back-end storage of redirection rules:
+    </para>
+    <screen>
     dlz other {
-        database "dlopen driver.so <args>";
+        database "dlopen driver.so <option>args</option>";
         search no;
     };
 
