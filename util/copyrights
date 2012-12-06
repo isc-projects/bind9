@@ -39,7 +39,7 @@
 ./bin/confgen/ddns-confgen.docbook		SGML	2009
 ./bin/confgen/ddns-confgen.html			HTML	DOCBOOK
 ./bin/confgen/include/confgen/os.h		C	2009
-./bin/confgen/keygen.c				C	2009
+./bin/confgen/keygen.c				C	2009,2012
 ./bin/confgen/keygen.h				C	2009
 ./bin/confgen/rndc-confgen.8			MAN	DOCBOOK
 ./bin/confgen/rndc-confgen.c			C	2001,2003,2004,2005,2007,2008,2009,2011
@@ -1063,7 +1063,7 @@
 ./bin/tests/system/nsupdate/knowngood.ns1.afterstop	X	2001,2004
 ./bin/tests/system/nsupdate/knowngood.ns1.before	X	2000,2001,2003,2004,2009
 ./bin/tests/system/nsupdate/ns1/example1.db	ZONE	2000,2001,2002,2004,2007,2009
-./bin/tests/system/nsupdate/ns1/named.conf	CONF-C	2000,2001,2004,2005,2007,2009,2011
+./bin/tests/system/nsupdate/ns1/named.conf	CONF-C	2000,2001,2004,2005,2007,2009,2011,2012
 ./bin/tests/system/nsupdate/ns2/named.conf	CONF-C	2000,2001,2004,2007,2011
 ./bin/tests/system/nsupdate/ns3/dnskey.test.db.in	ZONE	2011
 ./bin/tests/system/nsupdate/ns3/example.db.in	ZONE	2010
