@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -53,10 +53,10 @@ typedef struct oid {
       (R) = ENOMEM;                                            \
     } else {                                                   \
       (R) = encode_##T(((unsigned char*)(B)) + (BL) - 1, (BL), \
-                       (S), (L));                              \
+		       (S), (L));                              \
       if((R) != 0) {                                           \
-        free((B));                                             \
-        (B) = NULL;                                            \
+	free((B));                                             \
+	(B) = NULL;                                            \
       }                                                        \
     }                                                          \
   } while (0)
