@@ -430,6 +430,10 @@ add(int rdclass, const char *classname, int type, const char *typename,
 		return;
 
 	newcc = (struct cc *)malloc(sizeof(*newcc));
+	if (newcc == NULL) {
+		fprintf(stderr, "malloc() failed\n");
+		exit(1);
+	}
 	newcc->rdclass = rdclass;
 	strncpy(newcc->classname, classname, TYPECLASSLEN);
 	cc = classes;

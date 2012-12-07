@@ -1,3 +1,5 @@
+3436.	[bug]		Check malloc/calloc return values. [RT #32088]
+
 3435.	[bug]		Cross compilation support in configure was broken.
 			[RT #32078]
 

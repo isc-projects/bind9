@@ -269,8 +269,14 @@ decode_MechTypeList(const unsigned char *p, size_t len, MechTypeList * data, siz
 		(data)->len = 0;
 		(data)->val = NULL;
 		while (ret < origlen) {
+			void *old = (data)->val;
 			(data)->len++;
 			(data)->val = realloc((data)->val, sizeof(*((data)->val)) * (data)->len);
+			if ((data)->val == NULL) {
+				(data)->val = old;
+				(data)->len--;
+				return ENOMEM;
+			}
 			e = decode_MechType(p, len, &(data)->val[(data)->len - 1], &l);
 			FORW;
 			len = origlen - ret;
