@@ -60,6 +60,7 @@ addr=`eval echo $out | cut -f1 -d'#'`
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
+ret=0
 echo "I:testing DLZ driver is cleaned up on reload"
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload 2>&1 | sed 's/^/I:ns1 /'
 for i in 0 1 2 3 4 5 6 7 8 9; do
@@ -67,6 +68,71 @@ for i in 0 1 2 3 4 5 6 7 8 9; do
     grep 'dlz_example: shutting down zone example.nil' ns1/named.run > /dev/null 2>&1 || ret=1
     [ "$ret" -eq 0 ] && break
 done
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+ret=0
+echo "I:testing multiple DLZ drivers"
+test_update testdc1.alternate.nil. A "86400 A 10.53.0.10" "10.53.0.10" || ret=1
+status=`expr $status + $ret`
+
+ret=0
+echo "I:testing AXFR from DLZ drivers"
+$DIG $DIGOPTS +noall +answer axfr example.nil > dig.out.ns1.1
+n=`cat dig.out.ns1.1 | wc -l`
+[ "$n" -eq 4 ] || ret=1
+$DIG $DIGOPTS +noall +answer axfr alternate.nil > dig.out.ns1.2
+n=`cat dig.out.ns1.2 | wc -l`
+[ "$n" -eq 5 ] || ret=1
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+ret=0
+echo "I:testing unsearched/unregistered DLZ zone is not found"
+$DIG $DIGOPTS +noall +answer ns other.nil > dig.out.ns1.3
+grep "3600.IN.NS.other.nil." dig.out.ns1.3 > /dev/null && ret=1
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+ret=0
+echo "I:testing unsearched/registered DLZ zone is found"
+$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.4
+grep "3600.IN.NS.zone.nil." dig.out.ns1.4 > /dev/null || ret=1
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+ret=0
+echo "I:testing unsearched/registered DLZ zone is found"
+$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.5
+grep "3600.IN.NS.zone.nil." dig.out.ns1.5 > /dev/null || ret=1
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+ret=0
+echo "I:testing correct behavior with findzone returning ISC_R_NOMORE"
+$DIG $DIGOPTS +noall a test.example.com > /dev/null 2>&1 || ret=1
+# we should only find one logged lookup per searched DLZ database
+lines=`grep "dlz_findzonedb.*test\.example\.com.*example.nil" ns1/named.run | wc -l`
+[ $lines -eq 1 ] || ret=1
+lines=`grep "dlz_findzonedb.*test\.example\.com.*alternate.nil" ns1/named.run | wc -l`
+[ $lines -eq 1 ] || ret=1
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+ret=0
+echo "I:testing findzone can return different results per client"
+$DIG $DIGOPTS -b 10.53.0.1 +noall a test.example.net > /dev/null 2>&1 || ret=1
+# we should only find one logged lookup per searched DLZ database
+lines=`grep "dlz_findzonedb.*example\.net.*example.nil" ns1/named.run | wc -l`
+[ $lines -eq 1 ] || ret=1
+lines=`grep "dlz_findzonedb.*example\.net.*alternate.nil" ns1/named.run | wc -l`
+[ $lines -eq 1 ] || ret=1
+$DIG $DIGOPTS -b 10.53.0.2 +noall a test.example.net > /dev/null 2>&1 || ret=1
+# we should find several logged lookups this time
+lines=`grep "dlz_findzonedb.*example\.net.*example.nil" ns1/named.run | wc -l`
+[ $lines -gt 2 ] || ret=1
+lines=`grep "dlz_findzonedb.*example\.net.*alternate.nil" ns1/named.run | wc -l`
+[ $lines -gt 2 ] || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 

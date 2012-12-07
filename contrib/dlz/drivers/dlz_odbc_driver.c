@@ -963,13 +963,16 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 /*% determine if the zone is supported by (in) the database */
 
 static isc_result_t
-odbc_findzone(void *driverarg, void *dbdata, const char *name)
+odbc_findzone(void *driverarg, void *dbdata, const char *name,
+	      dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 
 	isc_result_t result;
 	dbinstance_t *dbi = NULL;
 
 	UNUSED(driverarg);
+	UNUSED(methods);
+	UNUSED(clientinfo);
 
 	/* run the query and get the result set from the database. */
 	/* if result != ISC_R_SUCCESS cursor and mutex already cleaned up. */
@@ -1007,7 +1010,7 @@ odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 	UNUSED(driverarg);
 
 	/* first check if the zone is supported by the database. */
-	result = odbc_findzone(driverarg, dbdata, name);
+	result = odbc_findzone(driverarg, dbdata, name, NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOTFOUND);
 

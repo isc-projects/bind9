@@ -234,6 +234,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	const char *helper_name;
 	va_list ap;
 	char soa_data[200];
+	const char *extra;
 	isc_result_t result;
 	int n;
 
@@ -264,20 +265,25 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		return (ISC_R_NOMEMORY);
 	}
 
-	n = snprintf(soa_data, sizeof(soa_data),
-		     "%s hostmaster.%s 123 900 600 86400 3600",
-		     state->zone_name, state->zone_name);
+	if (strcmp(state->zone_name, ".") == 0)
+		extra = ".root";
+	else
+		extra = ".";
+
+	n = sprintf(soa_data, "%s hostmaster%s%s 123 900 600 86400 3600",
+		    state->zone_name, extra, state->zone_name);
+
 	if (n < 0)
 		CHECK(ISC_R_FAILURE);
 	if ((unsigned)n >= sizeof(soa_data))
 		CHECK(ISC_R_NOSPACE);
 
-	CHECK(add_name(state, &state->current[0], state->zone_name,
-		       "soa", 3600, soa_data));
-	CHECK(add_name(state, &state->current[0], state->zone_name,
-		       "ns", 3600, state->zone_name));
-	CHECK(add_name(state, &state->current[0], state->zone_name,
-		       "a", 1800, "10.53.0.1"));
+	add_name(state, &state->current[0], state->zone_name,
+		 "soa", 3600, soa_data);
+	add_name(state, &state->current[0], state->zone_name,
+		 "ns", 3600, state->zone_name);
+	add_name(state, &state->current[0], state->zone_name,
+		 "a", 1800, "10.53.0.1");
 
 	if (state->log != NULL)
 		state->log(ISC_LOG_INFO, "dlz_example: started for zone %s",
@@ -312,8 +318,45 @@ dlz_destroy(void *dbdata) {
  * See if we handle a given zone
  */
 isc_result_t
-dlz_findzonedb(void *dbdata, const char *name) {
+dlz_findzonedb(void *dbdata, const char *name,
+	   dns_clientinfomethods_t *methods,
+	   dns_clientinfo_t *clientinfo)
+{
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
+	isc_sockaddr_t *src;
+	char addrbuf[100];
+
+	strcpy(addrbuf, "unknown");
+	if (methods != NULL &&
+	    methods->sourceip != NULL &&
+	    methods->version - methods->age >= DNS_CLIENTINFOMETHODS_VERSION)
+	{
+		methods->sourceip(clientinfo, &src);
+		fmt_address(src, addrbuf, sizeof(addrbuf));
+	}
+	fprintf(stderr, "findzonedb: connection from: %s\n", addrbuf);
+
+	state->log(ISC_LOG_INFO,
+		   "dlz_example: dlz_findzonedb called with name '%s' "
+		   "in zone DB '%s'", name, state->zone_name);
+
+	/*
+	 * Returning ISC_R_NOTFOUND will cause the query logic to
+	 * check the database for parent names, looking for zone cuts.
+	 *
+	 * Returning ISC_R_NOMORE prevents the query logic from doing
+	 * this; it will move onto the next database after a single query.
+	 */
+	if (strcasecmp(name, "test.example.com") == 0)
+		return (ISC_R_NOMORE);
+
+	/*
+	 * For example.net, only return ISC_R_NOMORE when queried
+	 * from 10.53.0.1.
+	 */
+	if (strcasecmp(name, "test.example.net") == 0 &&
+	    strncmp(addrbuf, "10.53.0.1", 9) == 0)
+		return (ISC_R_NOMORE);
 
 	if (strcasecmp(state->zone_name, name) == 0)
 		return (ISC_R_SUCCESS);
@@ -322,7 +365,10 @@ dlz_findzonedb(void *dbdata, const char *name) {
 }
 
 /*
- * Look up one record
+ * Look up one record in the sample database.
+ *
+ * If the queryname is "source-addr", we add a TXT record containing
+ * the address of the client, to test the use of 'methods' and 'clientinfo'
  */
 isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
@@ -351,6 +397,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		char buf[100];
 		strcpy(buf, "unknown");
 		if (methods != NULL &&
+		    methods->sourceip != NULL &&
 		    methods->version - methods->age >=
 			    DNS_CLIENTINFOMETHODS_VERSION)
 		{
@@ -358,7 +405,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 			fmt_address(src, buf, sizeof(buf));
 		}
 
-		fprintf(stderr, "connection from: %s\n", buf);
+		fprintf(stderr, "lookup: connection from: %s\n", buf);
 
 		found = ISC_TRUE;
 		result = state->putrr(lookup, "TXT", 0, buf);
@@ -392,7 +439,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	UNUSED(client);
 
 	/* Just say yes for all our zones */
-	return (dlz_findzonedb(dbdata, name));
+	return (dlz_findzonedb(dbdata, name, NULL, NULL));
 }
 
 /*
@@ -504,10 +551,9 @@ dlz_closeversion(const char *zone, isc_boolean_t commit,
  * Configure a writeable zone
  */
 isc_result_t
-dlz_configure(dns_view_t *view, void *dbdata) {
+dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata) {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	isc_result_t result;
-
 
 	if (state->log != NULL)
 		state->log(ISC_LOG_INFO, "dlz_example: starting configure");
@@ -519,7 +565,7 @@ dlz_configure(dns_view_t *view, void *dbdata) {
 		return (ISC_R_FAILURE);
 	}
 
-	result = state->writeable_zone(view, state->zone_name);
+	result = state->writeable_zone(view, dlzdb, state->zone_name);
 	if (result != ISC_R_SUCCESS) {
 		if (state->log != NULL)
 			state->log(ISC_LOG_ERROR, "dlz_example: failed to "

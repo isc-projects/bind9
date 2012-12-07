@@ -1,3 +1,21 @@
+3434.	[bug]		Pass client info to the DLZ findzone() entry
+			point in addition to lookup().  This makes it
+			possible for a database to answer differently
+			whether it's authoritative for a name depending
+			on the address of the client.  [RT #31775]
+
+3433.	[bug]		dlz_findzone() did not correctly handle
+			ISC_R_NOMORE. [RT #31172]
+
+3432.	[func]		Multiple DLZ databases can now be configured.
+			DLZ databases are searched in the order configured,
+			unless set to "search no", in which case a
+			zone can be configured to be retrieved from a
+			particular DLZ database by using a "dlz <name>"
+			option in the zone statement.  DLZ databases can
+			support type "master" and "redirect" zones.
+			[RT #27597]
+
 3431.	[bug]		ddns-confgen: Some valid key algorithms were
 			not accepted. [RT #31927]
 

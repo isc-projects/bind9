@@ -203,7 +203,6 @@ dns_dlzallowzonexfr
 dns_dlzconfigure
 dns_dlzcreate
 dns_dlzdestroy
-dns_dlzfindzone
 dns_dlzregister
 dns_dlzstrtoargv
 dns_dlzunregister
@@ -774,6 +773,7 @@ dns_view_issecuredomain
 dns_view_load
 dns_view_loadnew
 dns_view_restorekeyring
+dns_view_searchdlz
 dns_view_setcache
 dns_view_setcache2
 dns_view_setdstport

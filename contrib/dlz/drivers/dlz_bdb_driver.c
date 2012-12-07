@@ -114,7 +114,8 @@ typedef struct parsed_data {
 /* forward reference */
 
 static isc_result_t
-bdb_findzone(void *driverarg, void *dbdata, const char *name);
+bdb_findzone(void *driverarg, void *dbdata, const char *name,
+	     dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo);
 
 /*%
  * Parses the DBT from the Berkeley DB into a parsed_data record
@@ -226,7 +227,7 @@ bdb_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 	DBT key, data;
 
 	/* check to see if we are authoritative for the zone first. */
-	result = bdb_findzone(driverarg, dbdata, name);
+	result = bdb_findzone(driverarg, dbdata, name, NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOTFOUND);
 
@@ -393,7 +394,8 @@ bdb_cleanup(bdb_instance_t *db) {
 }
 
 static isc_result_t
-bdb_findzone(void *driverarg, void *dbdata, const char *name)
+bdb_findzone(void *driverarg, void *dbdata, const char *name,
+	     dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 
 	isc_result_t result;
@@ -402,6 +404,8 @@ bdb_findzone(void *driverarg, void *dbdata, const char *name)
 	DBT key, data;
 
 	UNUSED(driverarg);
+	UNUSED(methods);
+	UNUSED(clientinfo);
 
 	memset(&key, 0, sizeof(DBT));
 	memset(&data, 0, sizeof(DBT));

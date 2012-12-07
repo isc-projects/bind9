@@ -36,7 +36,7 @@ typedef unsigned int isc_result_t;
 typedef int isc_boolean_t;
 typedef uint32_t dns_ttl_t;
 
-#define DLZ_DLOPEN_VERSION 2
+#define DLZ_DLOPEN_VERSION 3
 
 /* return this in flags to dlz_version() if thread safe */
 #define DNS_SDLZFLAG_THREADSAFE		0x00000001U
@@ -45,8 +45,10 @@ typedef uint32_t dns_ttl_t;
 #define ISC_R_SUCCESS			0
 #define ISC_R_NOMEMORY			1
 #define ISC_R_NOPERM			6
+#define ISC_R_NOSPACE			19
 #define ISC_R_NOTFOUND			23
 #define ISC_R_FAILURE			25
+#define ISC_R_NOTIMPLEMENTED		27
 #define ISC_R_NOMORE			29
 
 /* boolean values */
@@ -67,6 +69,7 @@ typedef uint32_t dns_ttl_t;
 typedef void *dns_sdlzlookup_t;
 typedef void *dns_sdlzallnodes_t;
 typedef void *dns_view_t;
+typedef void *dns_dlzdb_t;
 
 /*
  * Method and type definitions needed for retrieval of client info
@@ -120,8 +123,8 @@ typedef isc_result_t dns_sdlz_putnamedrr_t(dns_sdlzallnodes_t *allnodes,
 					   const char *data);
 
 typedef isc_result_t dns_dlz_writeablezone_t(dns_view_t *view,
+					     dns_dlzdb_t *dlzdb,
 					     const char *zone_name);
-
 
 /*
  * prototypes for the functions you can include in your module
@@ -156,7 +159,9 @@ dlz_destroy(void *dbdata);
  * dlz_findzonedb is required for all DLZ external drivers
  */
 isc_result_t
-dlz_findzonedb(void *dbdata, const char *name);
+dlz_findzonedb(void *dbdata, const char *name,
+	    dns_clientinfomethods_t *methods,
+	    dns_clientinfo_t *clientinfo);
 
 /*
  * dlz_lookup is required for all DLZ external drivers
@@ -202,7 +207,7 @@ dlz_closeversion(const char *zone, isc_boolean_t commit, void *dbdata,
  * dynamic updates
  */
 isc_result_t
-dlz_configure(dns_view_t *view, void *dbdata);
+dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata);
 
 /*
  * dlz_ssumatch() is optional, but must be supplied if you want to support

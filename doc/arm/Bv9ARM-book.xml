@@ -2933,6 +2933,8 @@ options {
 
     <xi:include href="pkcs11.xml"/>
 
+    <xi:include href="dlz.xml"/>
+
     <sect1>
       <title>IPv6 Support in <acronym>BIND</acronym> 9</title>
 

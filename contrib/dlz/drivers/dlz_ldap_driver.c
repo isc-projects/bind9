@@ -117,7 +117,9 @@ typedef struct {
 /* forward references */
 
 static isc_result_t
-dlz_ldap_findzone(void *driverarg, void *dbdata, const char *name);
+dlz_ldap_findzone(void *driverarg, void *dbdata, const char *name,
+		  dns_clientinfomethods_t *methods,
+		  dns_clientinfo_t *clientinfo);
 
 static void
 dlz_ldap_destroy(void *driverarg, void *dbdata);
@@ -878,7 +880,7 @@ dlz_ldap_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 	UNUSED(driverarg);
 
 	/* check to see if we are authoritative for the zone first */
-	result = dlz_ldap_findzone(driverarg, dbdata, name);
+	result = dlz_ldap_findzone(driverarg, dbdata, name, NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -905,8 +907,13 @@ dlz_ldap_authority(const char *zone, void *driverarg, void *dbdata,
 }
 
 static isc_result_t
-dlz_ldap_findzone(void *driverarg, void *dbdata, const char *name) {
+dlz_ldap_findzone(void *driverarg, void *dbdata, const char *name,
+		  dns_clientinfomethods_t *methods,
+		  dns_clientinfo_t *clientinfo)
+{
 	UNUSED(driverarg);
+	UNUSED(methods);
+	UNUSED(clientinfo);
 	return (ldap_get_results(name, NULL, NULL, FINDZONE, dbdata, NULL));
 }
 

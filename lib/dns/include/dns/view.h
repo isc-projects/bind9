@@ -72,6 +72,7 @@
 #include <isc/stdtime.h>
 
 #include <dns/acl.h>
+#include <dns/clientinfo.h>
 #include <dns/fixedname.h>
 #include <dns/rdatastruct.h>
 #include <dns/rpz.h>
@@ -87,7 +88,6 @@ struct dns_view {
 	dns_rdataclass_t		rdclass;
 	char *				name;
 	dns_zt_t *			zonetable;
-	dns_dlzdb_t *			dlzdatabase;
 	dns_resolver_t *		resolver;
 	dns_adb_t *			adb;
 	dns_requestmgr_t *		requestmgr;
@@ -167,6 +167,8 @@ struct dns_view {
 	ISC_LIST(dns_rpz_zone_t)	rpz_zones;
 	isc_boolean_t			rpz_recursive_only;
 	isc_boolean_t			rpz_break_dnssec;
+	dns_dlzdblist_t 		dlz_searched;
+	dns_dlzdblist_t 		dlz_unsearched;
 
 	/*
 	 * Configurable data for server use only,
@@ -1134,6 +1136,29 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 
 void
 dns_view_restorekeyring(dns_view_t *view);
+
+isc_result_t
+dns_view_searchdlz(dns_view_t *view, dns_name_t *name,
+		   unsigned int minlabels,
+		   dns_clientinfomethods_t *methods,
+		   dns_clientinfo_t *clientinfo,
+		   dns_db_t **dbp);
+
+/*%<
+ * Search through the DLZ database(s) in view->dlz_searched to find
+ * one that can answer a query for 'name', using the DLZ driver's
+ * findzone method.  If successful, '*dbp' is set to point to the
+ * DLZ database.
+ *
+ * Returns:
+ * \li ISC_R_SUCCESS
+ * \li ISC_R_NOTFOUND
+ *
+ * Requires:
+ * \li 'view' is valid.
+ * \li 'name' is not NULL.
+ * \li 'dbp' is not NULL and *dbp is NULL.
+ */
 
 ISC_LANG_ENDDECLS
 
