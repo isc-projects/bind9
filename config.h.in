@@ -287,6 +287,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <net/if6.h> header file. */
 #undef HAVE_NET_IF6_H
 
+/* Define if your OpenSSL version supports ECDSA. */
+#undef HAVE_OPENSSL_ECDSA
+
 /* Define if your OpenSSL version supports GOST. */
 #undef HAVE_OPENSSL_GOST
 

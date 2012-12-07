@@ -63,7 +63,7 @@ It is available from http://www.isc.org as a separate download.])
 		;;
 esac
 
-AC_ARG_ENABLE(developer, [  --enable-developer     enable developer build settings])
+AC_ARG_ENABLE(developer, [  --enable-developer      enable developer build settings])
 case "$enable_developer" in
 yes)
 	test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
@@ -142,7 +142,7 @@ AC_SUBST(PERL)
 # If python is unavailable, we simply don't build those.
 #
 AC_ARG_WITH(python,
-[  --with-python=PATH   Specify path to python interpreter],
+[  --with-python=PATH      Specify path to python interpreter],
     use_python="$withval", use_python="unspec")
 
 case "$use_python" in
@@ -514,6 +514,8 @@ int main() {
 	[AC_MSG_RESULT(yes)
 	ISC_PLATFORM_HAVEEPOLL="#define ISC_PLATFORM_HAVEEPOLL 1"],
 	[AC_MSG_RESULT(no)
+	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"],
+	[AC_MSG_RESULT(no)
 	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"])
 	;;
 yes)
@@ -760,20 +762,20 @@ no)
 ;;
 esac
 
-		AC_MSG_CHECKING(for OpenSSL DSA support)
-		if test -f $use_openssl/include/openssl/dsa.h
-		then
-			AC_DEFINE(HAVE_OPENSSL_DSA)
-			AC_MSG_RESULT(yes)
-		else
-			AC_MSG_RESULT(no)
-		fi
+        AC_MSG_CHECKING(for OpenSSL DSA support)
+        if test -f $use_openssl/include/openssl/dsa.h
+        then
+                AC_DEFINE(HAVE_OPENSSL_DSA)
+                AC_MSG_RESULT(yes)
+        else
+                AC_MSG_RESULT(no)
+        fi
 
-		AC_CHECK_FUNCS(EVP_sha256 EVP_sha384 EVP_sha512)
+        AC_CHECK_FUNCS(EVP_sha256 EVP_sha384 EVP_sha512)
 
-		AC_MSG_CHECKING(for OpenSSL ECDSA support)
-		have_ecdsa=""
-		AC_TRY_RUN([
+        AC_MSG_CHECKING(for OpenSSL ECDSA support)
+        have_ecdsa=""
+        AC_TRY_RUN([
 #include <stdio.h>
 #include <openssl/ecdsa.h>
 #include <openssl/objects.h>
@@ -790,22 +792,42 @@ int main() {
 	return (0);
 }
 ],
-		[AC_MSG_RESULT(yes)
-		have_ecdsa="yes"],
-		[AC_MSG_RESULT(no)
-		have_ecdsa="no"])
-		case $have_ecdsa in
-		yes)
-			OPENSSL_ECDSA="yes"
-			AC_DEFINE(HAVE_OPENSSL_ECDSA)
-			;;
-		*)
-			;;
-		esac
+        [AC_MSG_RESULT(yes)
+        have_ecdsa="yes"],
+        [AC_MSG_RESULT(no)
+        have_ecdsa="no"],
+        [AC_MSG_RESULT(using --with-ecdsa)])
+        AC_ARG_WITH(ecdsa, [  --with-ecdsa            OpenSSL ECDSA],
+	            with_ecdsa="$withval", with_ecdsa="auto")
+        case "$with_ecdsa" in
+        yes)
+            case "$have_ecdsa" in
+            no)  AC_MSG_ERROR([ecdsa not supported]) ;;
+            *)  have_ecdsa=yes ;;
+            esac
+            ;;
+        no)
+            have_ecdsa=no ;;
+        *)
+            case "$have_ecdsa" in
+            yes|no) ;;
+            *) AC_MSG_ERROR([need --with-ecdsa=[[yes or no]]]) ;;
+            esac
+            ;;
+        esac
+        case $have_ecdsa in
+        yes)
+                OPENSSL_ECDSA="yes"
+                AC_DEFINE(HAVE_OPENSSL_ECDSA, 1,
+                          [Define if your OpenSSL version supports ECDSA.])
+                ;;
+        *)
+                ;;
+        esac
 
-		AC_MSG_CHECKING(for OpenSSL GOST support)
-		have_gost=""
-		AC_TRY_RUN([
+        AC_MSG_CHECKING(for OpenSSL GOST support)
+        have_gost=""
+        AC_TRY_RUN([
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 int main() {
@@ -827,43 +849,44 @@ int main() {
 #endif
 }
 ],
-		[AC_MSG_RESULT(yes)
-		have_gost="yes"],
-		[AC_MSG_RESULT(no)
-		have_gost="no"],
-		[AC_MSG_RESULT(using --with-gost)])
-		AC_ARG_WITH(gost, , with_gost="$withval", with_gost="auto")
-		case "$with_gost" in
-		yes)
-		    case "$have_gost" in
-		    no)  AC_MSG_ERROR([gost not supported]) ;;
-		    *)  have_gost=yes ;;
-		    esac
-		    ;;
-		no)
-		    have_gost=no ;;
-		*)
-		    case "$have_gost" in
-		    yes|no) ;;
-		    *) AC_MSG_ERROR([need --with-gost=[[yes or no]]]) ;;
-		    esac
-		    ;;
-		esac
-		case $have_gost in
-		yes)
-			OPENSSL_GOST="yes"
-			AC_DEFINE(HAVE_OPENSSL_GOST, 1,
-				  [Define if your OpenSSL version supports GOST.])
-			;;
-		*)
-			;;
-		esac
-		CFLAGS="$saved_cflags"
-		LIBS="$saved_libs"
-		OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
-		OPENSSLLINKSRCS='${OPENSSLLINKSRCS}'
+        [AC_MSG_RESULT(yes)
+        have_gost="yes"],
+        [AC_MSG_RESULT(no)
+        have_gost="no"],
+        [AC_MSG_RESULT(using --with-gost)])
+        AC_ARG_WITH(gost, [  --with-gost             OpenSSL GOST],
+                    with_gost="$withval", with_gost="auto")
+        case "$with_gost" in
+        yes)
+            case "$have_gost" in
+            no)  AC_MSG_ERROR([gost not supported]) ;;
+            *)  have_gost=yes ;;
+            esac
+            ;;
+        no)
+            have_gost=no ;;
+        *)
+            case "$have_gost" in
+            yes|no) ;;
+            *) AC_MSG_ERROR([need --with-gost=[[yes or no]]]) ;;
+            esac
+            ;;
+        esac
+        case $have_gost in
+        yes)
+                OPENSSL_GOST="yes"
+                AC_DEFINE(HAVE_OPENSSL_GOST, 1,
+                          [Define if your OpenSSL version supports GOST.])
+                ;;
+        *)
+                ;;
+        esac
+        CFLAGS="$saved_cflags"
+        LIBS="$saved_libs"
+        OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
+        OPENSSLLINKSRCS='${OPENSSLLINKSRCS}'
 
-		;;
+        ;;
 esac
 
 #
@@ -1144,6 +1167,11 @@ AC_ARG_WITH(randomdev,
 
 case "$use_randomdev" in
 	unspec)
+		case "$cross_compiling" in
+		yes)
+			AC_MSG_RESULT(unspecified)
+			AC_MSG_ERROR([ need --with-randomdev=PATH or --with-randomdev=no])
+		esac
 		case "$host" in
 			*-openbsd*)
 				devrandom=/dev/arandom
@@ -1156,6 +1184,7 @@ case "$use_randomdev" in
 		AC_CHECK_FILE($devrandom,
 			      AC_DEFINE_UNQUOTED(PATH_RANDOMDEV,
 						 "$devrandom"),)
+			      
 		;;
 	yes)
 		AC_MSG_ERROR([--with-randomdev must specify a path])
@@ -1664,8 +1693,8 @@ AC_SUBST(LIBTOOL_IN_MAIN)
 # build exportable DNS library?
 #
 AC_ARG_ENABLE(exportlib,
-	[  --enable-exportlib	build exportable library (GNU make required)
-                        [[default=no]]])
+	[  --enable-exportlib	  build exportable library (GNU make required)
+                          [[default=no]]])
 case "$enable_exportlib" in
 	yes)
 		gmake=
@@ -1690,8 +1719,8 @@ AC_SUBST(BIND9_CO_RULE)
 
 AC_ARG_WITH(export-libdir,
 	[  --with-export-libdir[=PATH]
-                        installation directory for the export library
-                        [[EPREFIX/lib/bind9]]],
+                          installation directory for the export library
+                          [[EPREFIX/lib/bind9]]],
 	export_libdir="$withval",)
 if test -z "$export_libdir"; then
 	export_libdir="\${exec_prefix}/lib/bind9/"
@@ -1700,8 +1729,8 @@ AC_SUBST(export_libdir)
 
 AC_ARG_WITH(export-includedir,
 	[  --with-export-includedir[=PATH]
-                        installation directory for the header files of the
-                        export library [[PREFIX/include/bind9]]],
+                          installation directory for the header files of the
+                          export library [[PREFIX/include/bind9]]],
 	export_includedir="$withval",)
 if test -z "$export_includedir"; then
 	export_includedir="\${prefix}/include/bind9/"
@@ -3222,7 +3251,7 @@ AC_SUBST(IDNLIBS)
 # Check whether to build Automated Test Framework unit tests
 #
 AC_ARG_WITH(atf,
-	[  --with-atf=ARG       Automated Test Framework support],
+	[  --with-atf=ARG          Automated Test Framework support],
 	atf="$withval", atf="no")
 if test "$atf" = yes; then
 	atf=`pwd`/unit/atf

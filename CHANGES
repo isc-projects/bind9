@@ -1,3 +1,6 @@
+3435.	[bug]		Cross compilation support in configure was broken.
+			[RT #32078]
+
 3434.	[bug]		Pass client info to the DLZ findzone() entry
 			point in addition to lookup().  This makes it
 			possible for a database to answer differently
