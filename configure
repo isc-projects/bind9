@@ -2082,13 +2082,13 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-libbind	  deprecated
-  --enable-developer     enable developer build settings
+  --enable-developer      enable developer build settings
   --enable-kqueue         use BSD kqueue when available [default=yes]
   --enable-epoll          use Linux epoll when available [default=auto]
   --enable-devpoll        use /dev/poll when available [default=yes]
   --enable-openssl-version-check
                           Check OpenSSL Version [default=yes]
-  --enable-threads	enable multithreading
+  --enable-threads        enable multithreading
   --enable-largefile	  64-bit file support
   --enable-ipv6           use IPv6 default=autodetect
   --enable-getifaddrs     Enable the use of getifaddrs() [yes|no].
@@ -2123,7 +2123,7 @@ Optional Packages:
   --with-libiconv=IPREFIX GNU libiconv are in IPREFIX default PREFIX
   --with-iconv=LIBSPEC    specify iconv library default -liconv
   --with-idnlib=ARG       specify libidnkit
-  --with-atf=ARG       Automated Test Framework support
+  --with-atf=ARG          Automated Test Framework support
   --with-dlz-postgres=PATH   Build with Postgres DLZ driver yes|no|path.
                                (Required to use Postgres with DLZ)
   --with-dlz-mysql=PATH   Build with MySQL DLZ driver yes|no|path.
@@ -11784,7 +11784,6 @@ It is available from http://www.isc.org as a separate download." "$LINENO" 5
 		;;
 esac
 
-
 # Check whether --enable-developer was given.
 if test "${enable_developer+set}" = set; then :
   enableval=$enable_developer;
@@ -13328,10 +13327,9 @@ auto)
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking epoll support" >&5
 $as_echo_n "checking epoll support... " >&6; }
 	if test "$cross_compiling" = yes; then :
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -14226,6 +14224,12 @@ fi
 
 case "$use_randomdev" in
 	unspec)
+		case "$cross_compiling" in
+		yes)
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: unspecified" >&5
+$as_echo "unspecified" >&6; }
+			as_fn_error $? " need --with-randomdev=PATH or --with-randomdev=no" "$LINENO" 5
+		esac
 		case "$host" in
 			*-openbsd*)
 				devrandom=/dev/arandom
@@ -14259,6 +14263,7 @@ if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
 _ACEOF
 
 fi
+
 
 		;;
 	yes)

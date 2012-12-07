@@ -1,3 +1,6 @@
+3435.	[bug]		Cross compilation support in configure was broken.
+			[RT #32078]
+
 3429.	[bug]		dns_zone_getserial2 could a return success without
 			returning a valid serial. [RT #32007]
 
