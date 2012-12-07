@@ -144,7 +144,9 @@ are mandatory, others optional).
     Optional.  If supplied, this will be called when the driver is
     unloaded.
 
-  - isc_result_t dlz_findzonedb(void *dbdata, const char *name);
+  - isc_result_t dlz_findzonedb(void *dbdata, const char *name,
+                                dns_clientinfomethods_t *methods,
+                                dns_clientinfo_t *clientinfo);
 
     Required for all external DLZ modules.  This indicates whether
     the DLZ module can answer for the given name.  Returns ISC_R_SUCCESS
