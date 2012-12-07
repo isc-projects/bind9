@@ -1,3 +1,6 @@
+3435.	[bug]		Cross compilation support in configure was broken.
+			[RT #32078]
+
 3431.	[bug]		ddns-confgen: Some valid key algorithms were
 			not accepted. [RT #31927]
 
