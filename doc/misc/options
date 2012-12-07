@@ -14,6 +14,7 @@ controls {
 
 dlz <string> {
         database <string>;
+        search <boolean>;
 };
 
 key <string> {
@@ -332,6 +333,7 @@ view <string> <optional_class> {
         disable-empty-zone <string>;
         dlz <string> {
                 database <string>;
+                search <boolean>;
         };
         dns64 <netprefix> {
                 break-dnssec <boolean>;
@@ -426,6 +428,7 @@ view <string> <optional_class> {
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
+        search <boolean>;
         serial-update-method ( increment | unixtime );
         server <netprefix> {
                 bogus <boolean>;
@@ -493,6 +496,7 @@ view <string> <optional_class> {
                 database <string>;
                 delegation-only <boolean>;
                 dialup <dialuptype>;
+                dlz <string>;
                 dnssec-dnskey-kskonly <boolean>;
                 dnssec-loadkeys-interval <integer>;
                 dnssec-secure-to-insecure <boolean>;
@@ -587,6 +591,7 @@ zone <string> <optional_class> {
         database <string>;
         delegation-only <boolean>;
         dialup <dialuptype>;
+        dlz <string>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-loadkeys-interval <integer>;
         dnssec-secure-to-insecure <boolean>;
