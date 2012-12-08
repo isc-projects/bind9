@@ -100,7 +100,7 @@ setup(const char *zonename, const char *filename, const char *classname) {
 
 	dns_zone_settype(zone, zonetype);
 
-	isc_buffer_init(&buffer, zonename, strlen(zonename));
+	isc_buffer_constinit(&buffer, zonename, strlen(zonename));
 	isc_buffer_add(&buffer, strlen(zonename));
 	dns_fixedname_init(&fixorigin);
 	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),

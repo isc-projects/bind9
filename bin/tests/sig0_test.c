@@ -262,7 +262,7 @@ main(int argc, char *argv[]) {
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
-	isc_buffer_init(&b, "child.example.", strlen("child.example."));
+	isc_buffer_constinit(&b, "child.example.", strlen("child.example."));
 	isc_buffer_add(&b, strlen("child.example."));
 	result = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
 	CHECK("dns_name_fromtext", result);

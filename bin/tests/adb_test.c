@@ -245,7 +245,7 @@ lookup(const char *target) {
 	INSIST(target != NULL);
 
 	client = new_client();
-	isc_buffer_init(&t, target, strlen(target));
+	isc_buffer_constinit(&t, target, strlen(target));
 	isc_buffer_add(&t, strlen(target));
 	isc_buffer_init(&namebuf, namedata, sizeof(namedata));
 	dns_name_init(&name, NULL);
