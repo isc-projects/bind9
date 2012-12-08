@@ -214,7 +214,7 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 
 	CHECK(dns_zone_create(&zone, mctx));
 
-	isc_buffer_init(&buffer, name, strlen(name));
+	isc_buffer_constinit(&buffer, name, strlen(name));
 	isc_buffer_add(&buffer, strlen(name));
 	dns_fixedname_init(&fixorigin);
 	origin = dns_fixedname_name(&fixorigin);

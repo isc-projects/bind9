@@ -552,7 +552,7 @@ make_resstate(isc_mem_t *mctx, gai_statehead_t *head, const char *hostname,
 
 	/* Construct base domain name */
 	namelen = strlen(domain);
-	isc_buffer_init(&b, domain, namelen);
+	isc_buffer_constinit(&b, domain, namelen);
 	isc_buffer_add(&b, namelen);
 	dns_fixedname_init(&fixeddomain);
 	qdomain = dns_fixedname_name(&fixeddomain);
@@ -564,7 +564,7 @@ make_resstate(isc_mem_t *mctx, gai_statehead_t *head, const char *hostname,
 
 	/* Construct query name */
 	namelen = strlen(hostname);
-	isc_buffer_init(&b, hostname, namelen);
+	isc_buffer_constinit(&b, hostname, namelen);
 	isc_buffer_add(&b, namelen);
 	dns_fixedname_init(&state->fixedname);
 	state->qname = dns_fixedname_name(&state->fixedname);

@@ -368,7 +368,7 @@ ns_lwdmanager_create(isc_mem_t *mctx, const cfg_obj_t *lwres,
 
 			dns_fixedname_init(&fname);
 			name = dns_fixedname_name(&fname);
-			isc_buffer_init(&namebuf, searchstr,
+			isc_buffer_constinit(&namebuf, searchstr,
 					strlen(searchstr));
 			isc_buffer_add(&namebuf, strlen(searchstr));
 			result = dns_name_fromtext(name, &namebuf,

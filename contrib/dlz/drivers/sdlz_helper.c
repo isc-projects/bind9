@@ -481,7 +481,7 @@ sdlzh_destroy_sqldbinstance(dbinstance_t *dbi)
 	destroy_querylist(mctx, &dbi->lookup_q);
 
 	/* get rid of the mutex */
-	isc_mutex_destroy(&dbi->instance_lock);
+	(void) isc_mutex_destroy(&dbi->instance_lock);
 
 	/* return, and detach the memory */
 	isc_mem_put(mctx, dbi, sizeof(dbinstance_t));
