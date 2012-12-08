@@ -242,7 +242,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone) {
 
 		dns_fixedname_init(&fident);
 		str = cfg_obj_asstring(identity);
-		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		result = dns_name_fromtext(dns_fixedname_name(&fident), &b,
 					   dns_rootname, ISC_FALSE, NULL);
@@ -254,7 +254,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone) {
 
 		dns_fixedname_init(&fname);
 		str = cfg_obj_asstring(dname);
-		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		result = dns_name_fromtext(dns_fixedname_name(&fname), &b,
 					   dns_rootname, ISC_FALSE, NULL);

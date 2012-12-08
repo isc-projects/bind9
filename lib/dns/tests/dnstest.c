@@ -129,7 +129,7 @@ dns_name_fromstring2(dns_name_t *target, const char *src,
 
 	REQUIRE(src != NULL);
 
-	isc_buffer_init(&buf, src, strlen(src));
+	isc_buffer_constinit(&buf, src, strlen(src));
 	isc_buffer_add(&buf, strlen(src));
 	if (BINDABLE(target) && target->buffer != NULL)
 		name = target;
@@ -263,7 +263,7 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 
 	CHECK(dns_zone_create(&zone, mctx));
 
-	isc_buffer_init(&buffer, name, strlen(name));
+	isc_buffer_constinit(&buffer, name, strlen(name));
 	isc_buffer_add(&buffer, strlen(name));
 	dns_fixedname_init(&fixorigin);
 	origin = dns_fixedname_name(&fixorigin);

@@ -480,7 +480,7 @@ configure_view_dnsseckey(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 				   keystruct.common.rdtype,
 				   &keystruct, &rrdatabuf));
 	dns_fixedname_init(&fkeyname);
-	isc_buffer_init(&namebuf, keynamestr, strlen(keynamestr));
+	isc_buffer_constinit(&namebuf, keynamestr, strlen(keynamestr));
 	isc_buffer_add(&namebuf, strlen(keynamestr));
 	CHECK(dns_name_fromtext(keyname, &namebuf,
 				dns_rootname, ISC_FALSE,
@@ -585,7 +585,7 @@ mustbesecure(const cfg_obj_t *mbs, dns_resolver_t *resolver)
 	{
 		obj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
-		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		CHECK(dns_name_fromtext(name, &b, dns_rootname,
 					ISC_FALSE, NULL));
@@ -739,7 +739,7 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 	else
 		str = "*";
 	addroot = ISC_TF(strcmp(str, "*") == 0);
-	isc_buffer_init(&b, str, strlen(str));
+	isc_buffer_constinit(&b, str, strlen(str));
 	isc_buffer_add(&b, strlen(str));
 	dns_fixedname_init(&fixed);
 	result = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
@@ -925,7 +925,7 @@ disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	dns_fixedname_init(&fixed);
 	name = dns_fixedname_name(&fixed);
 	str = cfg_obj_asstring(cfg_tuple_get(disabled, "name"));
-	isc_buffer_init(&b, str, strlen(str));
+	isc_buffer_constinit(&b, str, strlen(str));
 	isc_buffer_add(&b, strlen(str));
 	CHECK(dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL));
 
@@ -977,7 +977,7 @@ on_disable_list(const cfg_obj_t *disablelist, dns_name_t *zonename) {
 	{
 		value = cfg_listelt_value(element);
 		str = cfg_obj_asstring(value);
-		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		result = dns_name_fromtext(name, &b, dns_rootname,
 					   ISC_TRUE, NULL);
@@ -1839,7 +1839,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 #endif
 			str = cfg_obj_asstring(cfg_tuple_get(obj,
 							     "trust-anchor"));
-			isc_buffer_init(&b, str, strlen(str));
+			isc_buffer_constinit(&b, str, strlen(str));
 			isc_buffer_add(&b, strlen(str));
 			dlv = dns_fixedname_name(&view->dlv_fixed);
 			CHECK(dns_name_fromtext(dlv, &b, dns_rootname,
@@ -1892,7 +1892,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			     element = cfg_list_next(element)) {
 				exclude = cfg_listelt_value(element);
 				str = cfg_obj_asstring(exclude);
-				isc_buffer_init(&b, str, strlen(str));
+				isc_buffer_constinit(&b, str, strlen(str));
 				isc_buffer_add(&b, strlen(str));
 				CHECK(dns_name_fromtext(name, &b, dns_rootname,
 							ISC_FALSE, NULL));
@@ -1946,7 +1946,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		result = ns_config_get(maps, "empty-server", &obj);
 		if (result == ISC_R_SUCCESS) {
 			str = cfg_obj_asstring(obj);
-			isc_buffer_init(&buffer, str, strlen(str));
+			isc_buffer_constinit(&buffer, str, strlen(str));
 			isc_buffer_add(&buffer, strlen(str));
 			CHECK(dns_name_fromtext(name, &buffer, dns_rootname,
 						ISC_FALSE, NULL));
@@ -1961,7 +1961,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		result = ns_config_get(maps, "empty-contact", &obj);
 		if (result == ISC_R_SUCCESS) {
 			str = cfg_obj_asstring(obj);
-			isc_buffer_init(&buffer, str, strlen(str));
+			isc_buffer_constinit(&buffer, str, strlen(str));
 			isc_buffer_add(&buffer, strlen(str));
 			CHECK(dns_name_fromtext(name, &buffer, dns_rootname,
 						ISC_FALSE, NULL));
@@ -1985,7 +1985,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			dns_forwarders_t *forwarders = NULL;
 			dns_view_t *pview = NULL;
 
-			isc_buffer_init(&buffer, empty, strlen(empty));
+			isc_buffer_constinit(&buffer, empty, strlen(empty));
 			isc_buffer_add(&buffer, strlen(empty));
 			/*
 			 * Look for zone on drop list.
@@ -2179,7 +2179,7 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 			isc_buffer_t buffer;
 			in_port_t myport = port;
 
-			isc_buffer_init(&buffer, str, strlen(str));
+			isc_buffer_constinit(&buffer, str, strlen(str));
 			isc_buffer_add(&buffer, strlen(str));
 			dns_fixedname_init(&fixed);
 			name = dns_fixedname_name(&fixed);
@@ -2441,7 +2441,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 * Get the zone origin as a dns_name_t.
 	 */
 	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
-	isc_buffer_init(&buffer, zname, strlen(zname));
+	isc_buffer_constinit(&buffer, zname, strlen(zname));
 	isc_buffer_add(&buffer, strlen(zname));
 	dns_fixedname_init(&fixorigin);
 	CHECK(dns_name_fromtext(dns_fixedname_name(&fixorigin),
@@ -4508,7 +4508,7 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 		viewtxt = next_token(&input, " \t");
 	}
 
-	isc_buffer_init(&buf, zonetxt, strlen(zonetxt));
+	isc_buffer_constinit(&buf, zonetxt, strlen(zonetxt));
 	isc_buffer_add(&buf, strlen(zonetxt));
 	dns_fixedname_init(&name);
 	result = dns_name_fromtext(dns_fixedname_name(&name),
@@ -5270,7 +5270,7 @@ ns_server_flushname(ns_server_t *server, char *args) {
 	if (target == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
-	isc_buffer_init(&b, target, strlen(target));
+	isc_buffer_constinit(&b, target, strlen(target));
 	isc_buffer_add(&b, strlen(target));
 	dns_fixedname_init(&fixed);
 	name = dns_fixedname_name(&fixed);

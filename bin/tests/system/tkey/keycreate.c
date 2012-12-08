@@ -150,14 +150,14 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_fromin(&address, &inaddr, PORT);
 
 	dns_fixedname_init(&keyname);
-	isc_buffer_init(&namestr, "tkeytest.", 9);
+	isc_buffer_constinit(&namestr, "tkeytest.", 9);
 	isc_buffer_add(&namestr, 9);
 	result = dns_name_fromtext(dns_fixedname_name(&keyname), &namestr,
 				   NULL, ISC_FALSE, NULL);
 	CHECK("dns_name_fromtext", result);
 
 	dns_fixedname_init(&ownername);
-	isc_buffer_init(&namestr, ownername_str, strlen(ownername_str));
+	isc_buffer_constinit(&namestr, ownername_str, strlen(ownername_str));
 	isc_buffer_add(&namestr, strlen(ownername_str));
 	result = dns_name_fromtext(dns_fixedname_name(&ownername), &namestr,
 				   NULL, ISC_FALSE, NULL);
