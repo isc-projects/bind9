@@ -507,7 +507,7 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 
 	REQUIRE(dlzdb->configure_callback != NULL);
 
-	isc_buffer_init(&buffer, zone_name, strlen(zone_name));
+	isc_buffer_constinit(&buffer, zone_name, strlen(zone_name));
 	isc_buffer_add(&buffer, strlen(zone_name));
 	dns_fixedname_init(&fixorigin);
 	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),

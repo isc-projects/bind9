@@ -104,7 +104,7 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 	dst_context_t *ctx = NULL;
 
 	isc_buffer_init(&sigbuf, sig, sizeof(sig));
-	isc_buffer_init(&databuf, data, strlen(data));
+	isc_buffer_constinit(&databuf, data, strlen(data));
 	isc_buffer_add(&databuf, strlen(data));
 	isc_buffer_usedregion(&databuf, &datareg);
 
@@ -466,7 +466,7 @@ t1(void) {
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
-	isc_buffer_init(&b, "test.", 5);
+	isc_buffer_constinit(&b, "test.", 5);
 	isc_buffer_add(&b, 5);
 	isc_result = dns_name_fromtext(name, &b, NULL, 0, NULL);
 	if (isc_result != ISC_R_SUCCESS) {
@@ -488,7 +488,7 @@ t1(void) {
 	io(name, 2, DST_ALG_RSAMD5, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, DST_R_NULLKEY, &nfails, &nprobs);
 
-	isc_buffer_init(&b, "dh.", 3);
+	isc_buffer_constinit(&b, "dh.", 3);
 	isc_buffer_add(&b, 3);
 	isc_result = dns_name_fromtext(name, &b, NULL, 0, NULL);
 	if (isc_result != ISC_R_SUCCESS) {
@@ -750,7 +750,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	 */
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
-	isc_buffer_init(&b, keyname, strlen(keyname));
+	isc_buffer_constinit(&b, keyname, strlen(keyname));
 	isc_buffer_add(&b, strlen(keyname));
 	isc_result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	if (isc_result != ISC_R_SUCCESS) {

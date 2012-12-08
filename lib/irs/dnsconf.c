@@ -144,8 +144,8 @@ configure_dnsseckeys(irs_dnsconf_t *conf, cfg_obj_t *cfgobj,
 			/* Configure key name */
 			dns_fixedname_init(&fkeyname);
 			keyname_base = dns_fixedname_name(&fkeyname);
-			isc_buffer_init(&namebuf, keynamestr,
-					strlen(keynamestr));
+			isc_buffer_constinit(&namebuf, keynamestr,
+					     strlen(keynamestr));
 			isc_buffer_add(&namebuf, strlen(keynamestr));
 			result = dns_name_fromtext(keyname_base, &namebuf,
 						   dns_rootname, 0, NULL);

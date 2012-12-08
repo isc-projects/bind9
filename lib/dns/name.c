@@ -2420,7 +2420,7 @@ dns_name_fromstring2(dns_name_t *target, const char *src,
 
 	REQUIRE(src != NULL);
 
-	isc_buffer_init(&buf, src, strlen(src));
+	isc_buffer_constinit(&buf, src, strlen(src));
 	isc_buffer_add(&buf, strlen(src));
 	if (BINDABLE(target) && target->buffer != NULL)
 		name = target;

@@ -28,7 +28,7 @@
 #include <isc/util.h>
 
 void
-isc__buffer_init(isc_buffer_t *b, const void *base, unsigned int length) {
+isc__buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
 	/*
 	 * Make 'b' refer to the 'length'-byte region starting at 'base'.
 	 * XXXDCL see the comment in buffer.h about base being const.
