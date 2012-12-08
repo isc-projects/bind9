@@ -648,7 +648,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 		dns_name_init(keys[i - 1], NULL);
 
 		keystr = cfg_obj_asstring(key);
-		isc_buffer_init(&b, keystr, strlen(keystr));
+		isc_buffer_constinit(&b, keystr, strlen(keystr));
 		isc_buffer_add(&b, strlen(keystr));
 		dns_fixedname_init(&fname);
 		result = dns_name_fromtext(dns_fixedname_name(&fname), &b,
