@@ -38,6 +38,13 @@ fromtext_txt(ARGS_FROMTEXT) {
 	UNUSED(callbacks);
 
 	strings = 0;
+	if ((options & DNS_RDATA_UNKNOWNESCAPE) != 0) {
+		isc_textregion_t r;
+		DE_CONST("#", r.base);
+		r.length = 1;
+		RETTOK(txt_fromtext(&r, target));
+		strings++;
+	}
 	for (;;) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_qstring,
