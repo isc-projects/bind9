@@ -646,7 +646,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 						  mctx, target);
 		} else
 			options |= DNS_RDATA_UNKNOWNESCAPE;
-	} else 
+	} else
 		isc_lex_ungettoken(lexer, &token);
 
 	if (!unknown)
