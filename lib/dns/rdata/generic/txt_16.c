@@ -42,7 +42,7 @@ fromtext_txt(ARGS_FROMTEXT) {
 		isc_textregion_t r;
 		DE_CONST("#", r.base);
 		r.length = 1;
-		RETTOK(txt_fromtext(&r, target));
+		RETERR(txt_fromtext(&r, target));
 		strings++;
 	}
 	for (;;) {
