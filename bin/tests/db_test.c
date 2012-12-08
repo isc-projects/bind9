@@ -261,7 +261,7 @@ load(const char *filename, const char *origintext, isc_boolean_t cache) {
 	ISC_LINK_INIT(dbi, link);
 
 	len = strlen(origintext);
-	isc_buffer_init(&source, origintext, len);
+	isc_buffer_constinit(&source, origintext, len);
 	isc_buffer_add(&source, len);
 	dns_fixedname_init(&forigin);
 	origin = dns_fixedname_name(&forigin);
