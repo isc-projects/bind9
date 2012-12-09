@@ -641,6 +641,8 @@ hashlist_add(hashlist_t *l, const unsigned char *hash, size_t len)
 	if (l->entries == l->size) {
 		l->size = l->size * 2 + 100;
 		l->hashbuf = realloc(l->hashbuf, l->size * l->length);
+		if (l->hashbuf == NULL)
+			fatal("unable to grow hashlist: out of memory");
 	}
 	memset(l->hashbuf + l->entries * l->length, 0, l->length);
 	memcpy(l->hashbuf + l->entries * l->length, hash, len);
