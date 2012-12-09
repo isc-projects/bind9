@@ -1098,7 +1098,12 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 		INSIST(rdata.length <= sizeof(buf));
 		memcpy(buf, rdata.data, rdata.length);
 
-		if (buf[0] != 0 || (buf[2] & DNS_NSEC3FLAG_REMOVE) != 0 ||
+		/*
+		 * Private NSEC3 record length >= 6.
+		 * <0(1), hash(1), flags(1), iterations(2), saltlen(1)>
+		 */
+		if (rdata.length < 6 || buf[0] != 0 ||
+		    (buf[2] & DNS_NSEC3FLAG_REMOVE) != 0 ||
 		    (nonsec && (buf[2] & DNS_NSEC3FLAG_NONSEC) != 0))
 			continue;
 
