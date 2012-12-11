@@ -1,3 +1,5 @@
+3439.	[bug]		contrib/dlz error checking fixes. [RT #32102]
+
 3438.	[bug]		Don't accept unknown data escape in quotes. [RT #32031]
 
 3437.	[bug]		isc_buffer_init -> isc_buffer_constinit to initialise
