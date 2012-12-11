@@ -1478,8 +1478,8 @@
 ./contrib/dlz/drivers/rules.in			X	2005,2010
 ./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010,2011,2012
 ./contrib/dlz/example/Makefile			X	2010
-./contrib/dlz/example/dlz_example.c		X	2010
-./contrib/dlz/example/dlz_minimal.h		X	2010,2011
+./contrib/dlz/example/dlz_example.c		X	2010,2012
+./contrib/dlz/example/dlz_minimal.h		X	2010,2011,2012
 ./contrib/idn/README.idnkit			X	2005,2009
 ./contrib/idn/idnkit-1.0-src/ChangeLog		X	2003
 ./contrib/idn/idnkit-1.0-src/DISTFILES		X	2003
