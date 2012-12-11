@@ -45,8 +45,10 @@ typedef uint32_t dns_ttl_t;
 #define ISC_R_SUCCESS			0
 #define ISC_R_NOMEMORY			1
 #define ISC_R_NOPERM			6
+#define ISC_R_NOSPACE			19
 #define ISC_R_NOTFOUND			23
 #define ISC_R_FAILURE			25
+#define ISC_R_NOTIMPLEMENTED		27
 #define ISC_R_NOMORE			29
 
 /* boolean values */
