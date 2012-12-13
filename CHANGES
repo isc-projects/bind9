@@ -1,3 +1,6 @@
+3440.	[bug]		Reorder get_key_struct to not trigger a assertion when
+			cleaning up due to out of memory error. [RT #32131]
+
 3439.	[bug]		contrib/dlz error checking fixes. [RT #32102]
 
 3438.	[bug]		Don't accept unknown data escape in quotes. [RT #32031]
