@@ -1,3 +1,5 @@
+3441.	[maint]		D.ROOT-SERVERS.NET is now 199.7.91.13.
+
 3440.	[bug]		Reorder get_key_struct to not trigger a assertion when
 			cleaning up due to out of memory error. [RT #32131]
 
