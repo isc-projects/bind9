@@ -162,7 +162,7 @@ rm named.pid
 cd ..
 sleep 10
 if 
-	$PERL $SYSTEMTESTTOP/start.pl --noclean . ns1
+	$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
 then
 	echo "I:restarted server ns1"	
 else
@@ -230,7 +230,7 @@ $PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns1
 # that the data served by the new server process are exactly
 # those dumped to the master file by "rndc stop".
 rm -f ns1/*jnl
-$PERL $SYSTEMTESTTOP/start.pl --noclean . ns1
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd updated4.example.nil.\
 	@10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.afterstop dig.out.ns1 || status=1
