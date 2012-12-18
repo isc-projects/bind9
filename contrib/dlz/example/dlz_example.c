@@ -322,7 +322,8 @@ dlz_findzonedb(void *dbdata, const char *name,
 		methods->sourceip(clientinfo, &src);
 		fmt_address(src, addrbuf, sizeof(addrbuf));
 	}
-	fprintf(stderr, "findzonedb: connection from: %s\n", addrbuf);
+	state->log(ISC_LOG_INFO,
+		   "dlz_example: findzonedb connection from: %s\n", addrbuf);
 
 	state->log(ISC_LOG_INFO,
 		   "dlz_example: dlz_findzonedb called with name '%s' "
@@ -394,7 +395,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 			fmt_address(src, buf, sizeof(buf));
 		}
 
-		fprintf(stderr, "lookup: connection from: %s\n", buf);
+		state->log(ISC_LOG_INFO,
+			   "dlz_example: lookup connection from: %s\n", buf);
 
 		found = ISC_TRUE;
 		result = state->putrr(lookup, "TXT", 0, buf);
