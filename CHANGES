@@ -1,3 +1,6 @@
+3443.	[bug]		The NOQNAME proof was not being returned from cached
+			insecure responses. [RT #21409]
+
 3442.	[port]		Net::DNS 0.69 introduced a non backwards compatible
 			change. [RT #32216]
 
