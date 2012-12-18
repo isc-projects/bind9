@@ -107,9 +107,16 @@ $SIG{TERM} = \&rmpid;
 my @rules;
 sub handleUDP {
 	my ($buf) = @_;
+	my $request;
 
-	my ($request, $err) = new Net::DNS::Packet(\$buf, 0);
-	$err and die $err;
+	if ($Net::DNS::VERSION > 0.68) {
+		$request = new Net::DNS::Packet(\$buf, 0);
+		$@ and die $@;
+	} else {
+		my $err;
+		($request, $err) = new Net::DNS::Packet(\$buf, 0);
+		$err and die $err;
+	}
 
 	my @questions = $request->question;
 	my $qname = $questions[0]->qname;
@@ -288,9 +295,16 @@ sub sign_tcp_continuation {
 
 sub handleTCP {
 	my ($buf) = @_;
+	my $request;
 
-	my ($request, $err) = new Net::DNS::Packet(\$buf, 0);
-	$err and die $err;
+	if ($Net::DNS::VERSION > 0.68) {
+		$request = new Net::DNS::Packet(\$buf, 0);
+		$@ and die $@;
+	} else {
+		my $err;
+		($request, $err) = new Net::DNS::Packet(\$buf, 0);
+		$err and die $err;
+	}
 	
 	my @questions = $request->question;
 	my $qname = $questions[0]->qname;

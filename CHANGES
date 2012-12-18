@@ -1,3 +1,6 @@
+3442.	[port]		Net::DNS 0.69 introduced a non backwards compatible
+			change. [RT #32216]
+
 3441.	[maint]		D.ROOT-SERVERS.NET is now 199.7.91.13.
 
 3440.	[bug]		Reorder get_key_struct to not trigger a assertion when
