@@ -99,10 +99,10 @@ dns_nsec_isset(const unsigned char *array, unsigned int type);
  */
 
 isc_result_t
-dns_nsec_noexistnodata(dns_rdatatype_t type, dns_name_t *name, 
-                       dns_name_t *nsecname, dns_rdataset_t *nsecset, 
-                       isc_boolean_t *exists, isc_boolean_t *data, 
-                       dns_name_t *wild, dns_nseclog_t log, void *arg);
+dns_nsec_noexistnodata(dns_rdatatype_t type, dns_name_t *name,
+		       dns_name_t *nsecname, dns_rdataset_t *nsecset,
+		       isc_boolean_t *exists, isc_boolean_t *data,
+		       dns_name_t *wild, dns_nseclog_t log, void *arg);
 /*%
  * Return ISC_R_SUCCESS if we can determine that the name doesn't exist
  * or we can determine whether there is data or not at the name.
