@@ -4504,23 +4504,23 @@ findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 			dns_name_format(nsec, namebuf, sizeof(namebuf));
 			if (nrdataset->type == dns_rdatatype_nsec &&
 			    NXND(dns_nsec_noexistnodata(type, name, nsec,
-						        nrdataset, &exists,
+							nrdataset, &exists,
 							&data, NULL, log,
-						        fctx)))
+							fctx)))
 			{
 				if (!exists)
 					*noqname = nsec;
 			}
 
 			if (nrdataset->type == dns_rdatatype_nsec3 &&
-		            NXND(dns_nsec3_noexistnodata(type, name, nsec,
-						         nrdataset, zonename,
-						         &exists, &data,
+			    NXND(dns_nsec3_noexistnodata(type, name, nsec,
+							 nrdataset, zonename,
+							 &exists, &data,
 							 &optout, &unknown,
 							 &setclosest,
 							 &setnearest,
 							 closest, nearest,
-						         log, fctx)))
+							 log, fctx)))
 			{
 				if (!exists && setnearest)
 					*noqname = nsec;
@@ -4862,7 +4862,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 				isc_result_t tresult;
 				dns_name_t *noqname = NULL;
 				tresult = findnoqname(fctx, name,
-					 	      rdataset->type, &noqname);
+						      rdataset->type, &noqname);
 				if (tresult == ISC_R_SUCCESS &&
 				    noqname != NULL) {
 					tresult = dns_rdataset_addnoqname(
