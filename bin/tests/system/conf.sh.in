@@ -47,7 +47,7 @@ SUBDIRS="acl allow_query builtin cacheclean checkconf checknames checkzone
 	 database dlv dlz dname dnssec forward glue ixfr
 	 limits logfileconfig lwresd masterfile masterformat notify
 	 nsupdate pending resolver rndc rrsetorder sortlist stub tkey
-	 unknown upforwd views xfer xferquota zonechecks"
+	 unknown upforwd views wildcard xfer xferquota zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
