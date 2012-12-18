@@ -400,4 +400,7 @@ typedef isc_boolean_t
 typedef isc_result_t
 (*dns_deserializefunc_t)(void *, FILE *, off_t);
 
+typedef void
+(*dns_nseclog_t)(void *val, int , const char *, ...);
+
 #endif /* DNS_TYPES_H */
