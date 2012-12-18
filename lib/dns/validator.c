@@ -2511,7 +2511,7 @@ findnsec3proofs(dns_validator_t *val) {
 		unknown = ISC_FALSE;
 		result = dns_nsec3_noexistnodata(val->event->type,
 						 val->event->name,
-					         name, rdataset, zonename,
+						 name, rdataset, zonename,
 						 &exists, &data, &optout,
 						 &unknown, setclosestp,
 						 &setnearest, closestp,
