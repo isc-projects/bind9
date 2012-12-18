@@ -373,4 +373,7 @@ typedef isc_boolean_t
 (*dns_isselffunc_t)(dns_view_t *, dns_tsigkey_t *, isc_sockaddr_t *,
 		    isc_sockaddr_t *, dns_rdataclass_t, void *);
 
+typedef void
+(*dns_nseclog_t)(void *val, int , const char *, ...);
+
 #endif /* DNS_TYPES_H */
