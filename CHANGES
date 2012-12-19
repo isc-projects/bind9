@@ -1,3 +1,6 @@
+3444.	[bug]		The NOQNAME proof was not being returned from cached
+			insecure responses. [RT #21409]
+
 3443.	[bug]		ddns-confgen: Some TSIG algorithms were incorrectly
 			rejected when generating keys. [RT #31927]
 
