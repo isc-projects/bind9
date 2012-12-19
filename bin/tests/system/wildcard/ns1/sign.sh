@@ -70,7 +70,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone 2> /
 
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
-$SIGNER -r $RANDFILE -3 - -i 10 -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -r $RANDFILE -3 - -H 10 -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo "I: signed $zone"
 
 zone=private.nsec3.
@@ -83,7 +83,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone 2> /
 
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
-$SIGNER -r $RANDFILE -3 - -i 10 -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -r $RANDFILE -3 - -H 10 -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo "I: signed $zone"
 
 grep -v '^;' $keyname2.key | $PERL -n -e '
