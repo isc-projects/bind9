@@ -16,6 +16,6 @@
 
 # $Id: setup.sh,v 1.1.2.1 2010/06/01 03:55:01 marka Exp $
 
-../../../tools/genrandom 400 random.data
+../../genrandom 400 random.data
 
 (cd ns1 && sh -e sign.sh)
