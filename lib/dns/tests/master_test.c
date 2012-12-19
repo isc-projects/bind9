@@ -421,6 +421,27 @@ ATF_TC_BODY(totext, tc) {
 	dns_test_end();
 }
 
+/* Origin change test */
+ATF_TC(neworigin);
+ATF_TC_HEAD(neworigin, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() rejects "
+				       "zones with inherited name following "
+				       "$ORIGIN");
+}
+ATF_TC_BODY(neworigin, tc) {
+	isc_result_t result;
+
+	UNUSED(tc);
+
+	result = dns_test_begin(NULL, ISC_FALSE);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = test_master("testdata/master/master17.data");
+	ATF_REQUIRE_EQ(result, DNS_R_UNSAFENAME);
+
+	dns_test_end();
+}
+
 /*
  * Main
  */
@@ -439,6 +460,7 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, totext);
 	ATF_TP_ADD_TC(tp, toobig);
 	ATF_TP_ADD_TC(tp, maxrdata);
+	ATF_TP_ADD_TC(tp, neworigin);
 
 	return (atf_no_error());
 }
