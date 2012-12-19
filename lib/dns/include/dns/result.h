@@ -150,8 +150,11 @@
 #define DNS_R_INVALIDNSEC3		(ISC_RESULTCLASS_DNS + 104)
 #define DNS_R_NOTMASTER			(ISC_RESULTCLASS_DNS + 105)
 #define DNS_R_BROKENCHAIN		(ISC_RESULTCLASS_DNS + 106)
+#define DNS_R_EXPIRED			(ISC_RESULTCLASS_DNS + 107)
+#define DNS_R_NOTDYNAMIC 		(ISC_RESULTCLASS_DNS + 108)
+#define DNS_R_UNSAFENAME 		(ISC_RESULTCLASS_DNS + 109)
 
-#define DNS_R_NRESULTS			107	/*%< Number of results */
+#define DNS_R_NRESULTS			110	/*%< Number of results */
 
 /*
  * DNS wire format rcodes.

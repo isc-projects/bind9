@@ -160,6 +160,9 @@ static const char *text[DNS_R_NRESULTS] = {
 
 	"not master",			       /*%< 105 DNS_R_NOTMASTER */
 	"broken trust chain",		       /*%< 106 DNS_R_BROKENCHAIN */
+	"expired",			       /*%< 107 DNS_R_EXPIRED */
+	"not dynamic",			       /*%< 108 DNS_R_NOTDYNAMIC */
+	"unsafe name",			       /*%< 109 DNS_R_UNSAFENAME */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

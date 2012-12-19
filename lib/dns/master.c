@@ -153,6 +153,7 @@ struct dns_incctx {
 	int			glue_in_use;
 	int			current_in_use;
 	int			origin_in_use;
+	isc_boolean_t		origin_changed;
 	isc_boolean_t		drop;
 	unsigned int		glue_line;
 	unsigned int		current_line;
@@ -1359,6 +1360,7 @@ load_text(dns_loadctx_t *lctx) {
 				ictx->origin_in_use = new_in_use;
 				ictx->in_use[ictx->origin_in_use] = ISC_TRUE;
 				ictx->origin = new_name;
+				ictx->origin_changed = ISC_TRUE;
 				finish_origin = ISC_FALSE;
 				EXPECTEOL;
 				continue;
@@ -1530,7 +1532,30 @@ load_text(dns_loadctx_t *lctx) {
 				} else if (result != ISC_R_SUCCESS)
 					goto insist_and_cleanup;
 			}
+
+			if (ictx->origin_changed) {
+				char cbuf[DNS_NAME_FORMATSIZE];
+				char obuf[DNS_NAME_FORMATSIZE];
+				dns_name_format(ictx->current, cbuf,
+						sizeof(cbuf));
+				dns_name_format(ictx->origin, obuf,
+						sizeof(obuf));
+				(*callbacks->error)(callbacks,
+					"%s:%lu: record with inherited "
+					"owner (%s) immediately after "
+					"$ORIGIN (%s)", source, line,
+					cbuf, obuf);
+				result = DNS_R_UNSAFENAME;
+				if (MANYERRS(lctx, result)) {
+					SETRESULT(lctx, result);
+					read_till_eol = ISC_TRUE;
+					continue;
+				} else if (result != ISC_R_SUCCESS)
+					goto insist_and_cleanup;
+			}
 		}
+
+		ictx->origin_changed = ISC_FALSE;
 
 		if (dns_rdataclass_fromtext(&rdclass,
 					    &token.value.as_textregion)
