@@ -4406,7 +4406,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-log(void *arg, int level, const char *fmt, ...) {
+fctx_log(void *arg, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list args;
 	fetchctx_t *fctx = arg;
@@ -4464,7 +4464,7 @@ findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		/* Wildcard has rrsig.labels < labels - 1. */
-		if (rrsig.labels + 1 >= labels)
+		if (rrsig.labels + 1U >= labels)
 			continue;
 		break;
 	}
@@ -4505,7 +4505,7 @@ findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 			if (nrdataset->type == dns_rdatatype_nsec &&
 			    NXND(dns_nsec_noexistnodata(type, name, nsec,
 							nrdataset, &exists,
-							&data, NULL, log,
+							&data, NULL, fctx_log,
 							fctx)))
 			{
 				if (!exists)
@@ -4520,7 +4520,7 @@ findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 							 &setclosest,
 							 &setnearest,
 							 closest, nearest,
-							 log, fctx)))
+							 fctx_log, fctx)))
 			{
 				if (!exists && setnearest)
 					*noqname = nsec;
