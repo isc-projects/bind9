@@ -1,3 +1,6 @@
+3446.	[port]		win32: Add source ID (see change #3400) to build.
+			[RT #31683]
+
 3445.	[bug]		Reject zone files with blank owner names immediately
 			after $ORIGIN directives. [RT #31848]
 
