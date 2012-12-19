@@ -570,7 +570,6 @@ ATF_TC_BODY(neworigin, tc) {
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	setup_master();
 	result = test_master("testdata/master/master17.data",
 			     dns_masterformat_text);
 	ATF_REQUIRE_EQ(result, DNS_R_UNSAFENAME);
