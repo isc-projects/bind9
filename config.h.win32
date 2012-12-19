@@ -247,3 +247,5 @@ typedef long off_t;
 /** define if gai_strerror() exists */
 #define HAVE_GAISTRERROR
 
+/* Get SRCID */
+#include "srcid.h"
