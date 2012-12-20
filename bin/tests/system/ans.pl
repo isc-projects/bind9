@@ -162,11 +162,13 @@ sub handleUDP {
 				# function will attempt to decrement it,
 				# which is incorrect in a response. Finally
 				# we set request_mac to the previous digest.
-				$packet->{"compnames"} = {};
-				$packet->{"header"}{"arcount"} += 1;
+				$packet->{"compnames"} = {}
+					if ($Net::DNS::VERSION < 0.70);
+				$packet->{"header"}{"arcount"} += 1
+					if ($Net::DNS::VERSION < 0.70);
 				if (defined($prev_tsig)) {
 					my $rmac = pack('n H*',
-						$prev_tsig->mac_size,
+						length($prev_tsig->mac)/2,
 						$prev_tsig->mac);
 					$tsig->{"request_mac"} =
 						unpack("H*", $rmac);
@@ -356,11 +358,13 @@ sub handleTCP {
 				# function will attempt to decrement it,
 				# which is incorrect in a response. Finally
 				# we set request_mac to the previous digest.
-				$packet->{"compnames"} = {};
-				$packet->{"header"}{"arcount"} += 1;
+				$packet->{"compnames"} = {}
+					if ($Net::DNS::VERSION < 0.70);
+				$packet->{"header"}{"arcount"} += 1
+					if ($Net::DNS::VERSION < 0.70);
 				if (defined($prev_tsig)) {
 					my $rmac = pack('n H*',
-						$prev_tsig->mac_size,
+						length($prev_tsig->mac)/2,
 						$prev_tsig->mac);
 					$tsig->{"request_mac"} =
 						unpack("H*", $rmac);
