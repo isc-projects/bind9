@@ -293,7 +293,7 @@ test("NOERROR", ["pre", yxrrset("d.$zone A 73.80.65.49")]);
 test("NOERROR", ["update",
 		 rr_add("d.$zone 300 A 73.80.65.49"),
 		 rr_del("d.$zone A")]);
-test("NOERROR", ["pre", nxrrset("d.$zone A 73.80.65.49")]);
+test("NOERROR", ["pre", nxrrset("d.$zone A")]);
 
 test("NOERROR", ["update", rr_del("d.$zone A 73.80.65.49")]);
 test("NOERROR", ["pre", nxrrset("d.$zone A")]);
