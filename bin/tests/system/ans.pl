@@ -322,6 +322,7 @@ sub handleTCP {
 	# get the existing signature if any, and clear the additional section
 	my $prev_tsig;
 	my $signer;
+	my $continuation = 0;
 	while (my $rr = $request->pop("additional")) {
 		if ($rr->type eq "TSIG") {
 			$prev_tsig = $rr;
@@ -371,8 +372,12 @@ sub handleTCP {
 				}
 				
 				$tsig->sign_func($signer) if defined($signer);
+				$tsig->continuation($continuation)
+					if ($Net::DNS::VERSION >= 0.71);
 				$packet->sign_tsig($tsig);
-				$signer = \&sign_tcp_continuation;
+				$signer = \&sign_tcp_continuation
+					if ($Net::DNS::VERSION < 0.70);
+				$continuation = 1;
 
 				my $copy =
 					Net::DNS::Packet->new(\($packet->data));
