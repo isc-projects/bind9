@@ -14,6 +14,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id$ */
+
 /*! \file */
 
 #include <config.h>
