@@ -12,6 +12,8 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
+; $Id$
+
 $TTL 120
 @	SOA a.root-servers.nil. hostmaster.root-servers.nil. 1 1800 900 604800 86400
 @	NS  a.root-servers.nil.
