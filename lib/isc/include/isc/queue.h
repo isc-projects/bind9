@@ -14,6 +14,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id$ */
+
 /*
  * This is a generic implementation of a two-lock concurrent queue.
  * There are built-in mutex locks for the head and tail of the queue,
