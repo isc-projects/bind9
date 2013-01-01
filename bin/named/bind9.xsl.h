@@ -20,6 +20,8 @@ static char xslmsg[] =
 	" - PERFORMANCE OF THIS SOFTWARE.\n"
 	"-->\n"
 	"\n"
+	"<!-- $Id$ -->\n"
+	"\n"
 	"<!-- \045Id: bind9.xsl,v 1.21 2009/01/27 23:47:54 tbox Exp \045 -->\n"
 	"<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns=\"http://www.w3.org/1999/xhtml\" version=\"1.0\">\n"
 	" <xsl:output method=\"html\" indent=\"yes\" version=\"4.0\"/>\n"
