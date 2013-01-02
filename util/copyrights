@@ -635,7 +635,7 @@
 ./bin/tests/system/cacheclean/ns2/named.conf	CONF-C	2001,2004,2005,2007
 ./bin/tests/system/cacheclean/tests.sh		SH	2001,2004,2007,2012
 ./bin/tests/system/checkconf/bad.conf		CONF-C	2005,2007
-./bin/tests/system/checkconf/badtsig.conf	CONF-C	2012
+./bin/tests/system/checkconf/badtsig.conf	CONF-C	2012,2013
 ./bin/tests/system/checkconf/clean.sh		SH	2011,2012
 ./bin/tests/system/checkconf/dnssec.1		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.2		CONF-C	2011
@@ -1074,7 +1074,7 @@
 ./bin/tests/system/rndc/clean.sh		SH	2011,2012
 ./bin/tests/system/rndc/ns2/named.conf		CONF-C	2011,2012
 ./bin/tests/system/rndc/ns2/secondkey.conf	CONF-C	2012
-./bin/tests/system/rndc/ns3/named.conf		CONF-C	2012
+./bin/tests/system/rndc/ns3/named.conf		CONF-C	2012,2013
 ./bin/tests/system/rndc/setup.sh		SH	2011,2012
 ./bin/tests/system/rndc/tests.sh		SH	2011,2012
 ./bin/tests/system/rpz/.gitignore		X	2012
@@ -1289,11 +1289,11 @@
 ./bin/tests/system/views/tests.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/wildcard/clean.sh		SH	2012
 ./bin/tests/system/wildcard/ns1/named.conf	CONF-C	2012
-./bin/tests/system/wildcard/ns1/nsec.db.in	ZONE	2012
-./bin/tests/system/wildcard/ns1/nsec3.db.in	ZONE	2012
-./bin/tests/system/wildcard/ns1/private.nsec.db.in	ZONE	2012
-./bin/tests/system/wildcard/ns1/private.nsec3.db.in	ZONE	2012
-./bin/tests/system/wildcard/ns1/root.db.in	ZONE	2012
+./bin/tests/system/wildcard/ns1/nsec.db.in	ZONE	2012,2013
+./bin/tests/system/wildcard/ns1/nsec3.db.in	ZONE	2012,2013
+./bin/tests/system/wildcard/ns1/private.nsec.db.in	ZONE	2012,2013
+./bin/tests/system/wildcard/ns1/private.nsec3.db.in	ZONE	2012,2013
+./bin/tests/system/wildcard/ns1/root.db.in	ZONE	2012,2013
 ./bin/tests/system/wildcard/ns1/sign.sh		SH	2012
 ./bin/tests/system/wildcard/ns2/hints		ZONE	2012
 ./bin/tests/system/wildcard/ns2/named.conf	CONF-C	2012
@@ -2610,7 +2610,7 @@
 ./lib/isc/tests/hash_test.c			C	2011,2012
 ./lib/isc/tests/isctest.c			C	2011,2012
 ./lib/isc/tests/isctest.h			C	2011,2012
-./lib/isc/tests/parse_test.c			C	2012
+./lib/isc/tests/parse_test.c			C	2012,2013
 ./lib/isc/tests/sockaddr_test.c			C	2012
 ./lib/isc/tests/symtab_test.c			C	2011,2012
 ./lib/isc/tests/taskpool_test.c			C	2011,2012
@@ -3216,7 +3216,7 @@
 ./util/check-pullups.pl				PERL	2001,2002,2003,2004,2007,2012
 ./util/check-sources.pl				PERL	2000,2001,2004,2007,2012
 ./util/commit-arm.sh				SH	2012
-./util/copyrights				X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./util/copyrights				X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./util/file_year.sh				SH	2012
 ./util/kit.sh					SH	2000,2001,2002,2003,2004,2007,2008,2009,2010,2012
 ./util/mandoc2docbook.pl			PERL	2001,2004,2007,2012
@@ -3233,7 +3233,7 @@
 ./util/update-drafts.pl				PERL	2000,2001,2004,2007,2012
 ./util/update_branches				PERL	2005,2007,2012
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2012
-./util/xc					SH	2012
+./util/xc					SH	2012,2013
 ./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011,2012
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006,2008,2009,2010
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010
