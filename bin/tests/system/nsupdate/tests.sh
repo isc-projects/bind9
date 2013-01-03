@@ -23,50 +23,61 @@ SYSTEMTESTTOP=..
 status=0
 n=0
 
+ret=0
 echo "I:fetching first copy of zone before update"
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
-	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil. \
+	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
+ret=0
 echo "I:fetching second copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
-	@10.53.0.1 axfr -p 5300 > dig.out.ns2 || status=1
+	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
+ret=0
 echo "I:comparing pre-update copies to known good data"
-$PERL ../digcomp.pl knowngood.ns1.before dig.out.ns1 || status=1
-$PERL ../digcomp.pl knowngood.ns1.before dig.out.ns2 || status=1
+$PERL ../digcomp.pl knowngood.ns1.before dig.out.ns1 || ret=1
+$PERL ../digcomp.pl knowngood.ns1.before dig.out.ns2 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
+ret=0
 echo "I:updating zone"
 # nsupdate will print a ">" prompt to stdout as it gets each input line.
-$NSUPDATE <<END > /dev/null || status=1
+$NSUPDATE <<END > /dev/null || ret=1
 server 10.53.0.1 5300
 update add updated.example.nil. 600 A 10.10.10.1
 update add updated.example.nil. 600 TXT Foo
 update delete t.example.nil.
 
 END
-echo "I:sleeping 15 seconds for server to incorporate changes"
-sleep 15
+[ $ret = 0 ] || { echo I:failed; status=1; }
+echo "I:sleeping 5 seconds for server to incorporate changes"
+sleep 5
 
+ret=0
 echo "I:fetching first copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
-	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
+	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
+ret=0
 echo "I:fetching second copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
-	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
+	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
+ret=0
 echo "I:comparing post-update copies to known good data"
-$PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || status=1
-$PERL ../digcomp.pl knowngood.ns1.after dig.out.ns2 || status=1
+$PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || ret=1
+$PERL ../digcomp.pl knowngood.ns1.after dig.out.ns2 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 ret=0
 echo "I:check SIG(0) key is accepted"
 key=`$KEYGEN -r random.data -a NSEC3RSASHA1 -b 512 -k -n ENTITY xxx 2> /dev/null`
 echo "" | $NSUPDATE -k ${key}.private > /dev/null 2>&1 || ret=1
-if [ $ret -ne 0 ]; then
-    echo "I:failed"
-    status=1
-fi
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 n=`expr $n + 1`
 ret=0
@@ -77,12 +88,8 @@ $NSUPDATE <<END > nsupdate.out 2>&1 && ret=1
     update add example.nil. in type0 ""
     send
 END
-grep "unknown class/type" nsupdate.out > /dev/null 2>&1 ||
-ret=1
-if [ $ret -ne 0 ]; then
-    echo "I:failed"
-    status=1
-fi
+grep "unknown class/type" nsupdate.out > /dev/null 2>&1 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 n=`expr $n + 1`
 ret=0
@@ -94,10 +101,7 @@ $NSUPDATE <<END > nsupdate.out 2>&1 || ret=1
 END
 $DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
 grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
-if [ $ret -ne 0 ]; then
-    echo "I:failed"
-    status=1
-fi
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 n=`expr $n + 1`
 ret=0
@@ -106,11 +110,7 @@ echo "a0e4280000010000000100000000060001c00c000000fe000000000000" |
 $PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
 $DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
 grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
-if test $ret -ne 0
-then
-	echo "I:failed"
-        status=1
-fi
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 n=`expr $n + 1`
 echo "I:check that TYPE=0 additional data is handled ($n)"
@@ -118,11 +118,7 @@ echo "a0e4280000010000000000010000060001c00c000000fe000000000000" |
 $PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
 $DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
 grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
-if test $ret -ne 0
-then
-	echo "I:failed"
-        status=1
-fi
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 n=`expr $n + 1`
 echo "I:check that update to undefined class is handled ($n)"
@@ -130,11 +126,7 @@ echo "a0e4280000010001000000000000060101c00c000000fe000000000000" |
 $PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
 $DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
 grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
-if test $ret -ne 0
-then
-	echo "I:failed"
-        status=1
-fi
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
@@ -144,16 +136,21 @@ else
     echo "I:The second part of this test requires the Net::DNS library." >&2
 fi
 
+ret=0
 echo "I:fetching first copy of test zone"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
-	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
+	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 echo "I:fetching second copy of test zone"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
-	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
+	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
+ret=0
 echo "I:comparing zones"
-$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
+$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 echo "I:SIGKILL and restart server ns1"
 cd ns1
@@ -171,23 +168,29 @@ else
 fi
 sleep 10
 
+ret=0
 echo "I:fetching ns1 after hard restart"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
-	@10.53.0.1 axfr -p 5300 > dig.out.ns1.after || status=1
+	@10.53.0.1 axfr -p 5300 > dig.out.ns1.after || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
+ret=0
 echo "I:comparing zones"
-$PERL ../digcomp.pl dig.out.ns1 dig.out.ns1.after || status=1
+$PERL ../digcomp.pl dig.out.ns1 dig.out.ns1.after || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 echo "I:begin RT #482 regression test"
 
+ret=0
 echo "I:update master"
-$NSUPDATE <<END > /dev/null || status=1
+$NSUPDATE <<END > /dev/null || ret=1
 server 10.53.0.1 5300
 update add updated2.example.nil. 600 A 10.10.10.2
 update add updated2.example.nil. 600 TXT Bar
 update delete c.example.nil.
 send
 END
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 sleep 5
 
@@ -196,14 +199,16 @@ kill -HUP `cat ns2/named.pid`
 
 sleep 5
 
+ret=0
 echo "I:update master again"
-$NSUPDATE <<END > /dev/null || status=1
+$NSUPDATE <<END > /dev/null || ret=1
 server 10.53.0.1 5300
 update add updated3.example.nil. 600 A 10.10.10.3
 update add updated3.example.nil. 600 TXT Zap
 update delete d.example.nil.
 send
 END
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 sleep 5
 
@@ -212,15 +217,17 @@ kill -HUP `cat ns2/named.pid`
 
 sleep 5
 
+echo "I:check to 'out of sync' message"
 if grep "out of sync" ns2/named.run
 then
+	echo "I: failed (found 'out of sync')"
 	status=1
 fi
 
 echo "I:end RT #482 regression test"
 
 echo "I:testing that rndc stop updates the master file"
-$NSUPDATE <<END > /dev/null || status=1
+$NSUPDATE <<END > /dev/null || ret=1
 server 10.53.0.1 5300
 update add updated4.example.nil. 600 A 10.10.10.3
 send
@@ -232,8 +239,9 @@ $PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns1
 rm -f ns1/*jnl
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd updated4.example.nil.\
-	@10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
-$PERL ../digcomp.pl knowngood.ns1.afterstop dig.out.ns1 || status=1
+	@10.53.0.1 a -p 5300 > dig.out.ns1 || ret=1
+$PERL ../digcomp.pl knowngood.ns1.afterstop dig.out.ns1 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 n=`expr $n + 1`
 ret=0

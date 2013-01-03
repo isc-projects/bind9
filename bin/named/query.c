@@ -612,7 +612,7 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 {
 	isc_result_t result;
 	isc_boolean_t check_acl, new_zone;
-	dns_acl_t *queryacl;
+	dns_acl_t *queryacl, *queryonacl;
 	ns_dbversion_t *dbversion;
 
 	REQUIRE(zone != NULL);
@@ -649,6 +649,7 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 		result = DNS_R_SERVFAIL;
 		goto fail;
 	}
+
 	if (new_zone) {
 		check_acl = ISC_TRUE;
 	} else if (!dbversion->queryok) {
@@ -725,6 +726,24 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 			 * the NS_QUERYATTR_QUERYOK attribute is now valid.
 			 */
 			client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
+		}
+
+		/*
+		 * If and only if we've gotten this far, check
+		 * allow-query-on too
+		 */
+		if (result == ISC_R_SUCCESS) {
+			queryonacl = dns_zone_getqueryonacl(zone);
+			if (queryonacl == NULL)
+				queryonacl = client->view->queryonacl;
+
+			result = ns_client_checkaclsilent(client, NULL,
+							  queryonacl, ISC_TRUE);
+			if ((options & DNS_GETDB_NOLOG) == 0 &&
+			    result != ISC_R_SUCCESS)
+				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+					      "query-on denied");
 		}
 
 		if (result != ISC_R_SUCCESS)
