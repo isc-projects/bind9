@@ -7114,6 +7114,12 @@ options {
 		  necessarily knowing the internal network's addresses.
 		</para>
 		<para>
+                  Note that <command>allow-query-on</command> is only
+                  checked for queries that are permitted by
+                  <command>allow-query</command>.  A query must be
+                  allowed by both ACLs, or it will be refused.
+		</para>
+		<para>
 		  <command>allow-query-on</command> may
 		  also be specified in the <command>zone</command>
 		  statement, in which case it overrides the

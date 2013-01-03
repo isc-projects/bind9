@@ -56,6 +56,7 @@
 typedef enum {
 	allow_notify,
 	allow_query,
+	allow_query_on,
 	allow_transfer,
 	allow_update,
 	allow_update_forwarding
@@ -103,6 +104,11 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 		if (view != NULL)
 			aclp = &view->queryacl;
 		aclname = "allow-query";
+		break;
+	    case allow_query_on:
+		if (view != NULL)
+			aclp = &view->queryonacl;
+		aclname = "allow-query-on";
 		break;
 	    case allow_transfer:
 		if (view != NULL)
@@ -933,6 +939,11 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				  allow_query, ac, zone,
 				  dns_zone_setqueryacl,
 				  dns_zone_clearqueryacl));
+
+	RETERR(configure_zone_acl(zconfig, vconfig, config,
+				  allow_query_on, ac, zone,
+				  dns_zone_setqueryonacl,
+				  dns_zone_clearqueryonacl));
 
 	obj = NULL;
 	result = ns_config_get(maps, "dialup", &obj);

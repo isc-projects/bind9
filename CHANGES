@@ -1,3 +1,6 @@
+3448.	[bug]		The allow-query-on ACL was not processed correctly.
+			[RT #29486]
+
 3447.	[port]		Add support for libxml2-2.9.x [RT #32231]
 
 3446.	[port]		win32: Add source ID (see change #3400) to build.
