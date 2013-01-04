@@ -24,6 +24,8 @@
 
 #include <unistd.h>
 
+#include <isc/print.h>
+
 #include <dns/cache.h>
 #include <dns/callbacks.h>
 #include <dns/db.h>
