@@ -1540,18 +1540,11 @@ load_text(dns_loadctx_t *lctx) {
 						sizeof(cbuf));
 				dns_name_format(ictx->origin, obuf,
 						sizeof(obuf));
-				(*callbacks->error)(callbacks,
+				(*callbacks->warn)(callbacks,
 					"%s:%lu: record with inherited "
 					"owner (%s) immediately after "
 					"$ORIGIN (%s)", source, line,
 					cbuf, obuf);
-				result = DNS_R_UNSAFENAME;
-				if (MANYERRS(lctx, result)) {
-					SETRESULT(lctx, result);
-					read_till_eol = ISC_TRUE;
-					continue;
-				} else if (result != ISC_R_SUCCESS)
-					goto insist_and_cleanup;
 			}
 		}
 
