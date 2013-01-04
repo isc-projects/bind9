@@ -106,7 +106,7 @@
 #define CHECKNAMESTYPE "rdata->type"
 #define CHECKNAMESDEF "result = ISC_TRUE"
 
-const char copyright[] =
+static const char copyright[] =
 "/*\n"
 " * Copyright (C) 2004%s Internet Systems Consortium, Inc. (\"ISC\")\n"
 " * Copyright (C) 1998-2003 Internet Software Consortium.\n"
@@ -144,13 +144,13 @@ const char copyright[] =
 #define ATTRIBUTESIZE 256
 #define DIRNAMESIZE 256
 
-struct cc {
+static struct cc {
 	struct cc *next;
 	int rdclass;
 	char classname[TYPECLASSBUF];
 } *classes;
 
-struct tt {
+static struct tt {
 	struct tt *next;
 	int rdclass;
 	int type;
@@ -159,7 +159,7 @@ struct tt {
 	char dirname[DIRNAMESIZE];	/* XXX Should be max path length */
 } *types;
 
-struct ttnam {
+static struct ttnam {
 	char typename[TYPECLASSBUF];
 	char macroname[TYPECLASSBUF];
 	char attr[ATTRIBUTESIZE];
@@ -167,28 +167,28 @@ struct ttnam {
 	int type;
 } typenames[TYPENAMES];
 
-int maxtype = -1;
+static int maxtype = -1;
 
-char *
+static char *
 upper(char *);
-char *
+static char *
 funname(const char *, char *);
-void
+static void
 doswitch(const char *, const char *, const char *, const char *,
 	 const char *, const char *);
-void
+static void
 dodecl(char *, char *, char *);
-void
+static void
 add(int, const char *, int, const char *, const char *);
-void
+static void
 sd(int, const char *, const char *, char);
-void
+static void
 insert_into_typenames(int, const char *, const char *);
 
 /*%
  * If you use more than 10 of these in, say, a printf(), you'll have problems.
  */
-char *
+static char *
 upper(char *s) {
 	static int buf_to_use = 0;
 	static char buf[10][256];
@@ -208,7 +208,7 @@ upper(char *s) {
 	return (buf[buf_to_use]);
 }
 
-char *
+static char *
 funname(const char *s, char *buf) {
 	char *b = buf;
 	char c;
@@ -221,7 +221,7 @@ funname(const char *s, char *buf) {
 	return (buf);
 }
 
-void
+static void
 doswitch(const char *name, const char *function, const char *args,
 	 const char *tsw, const char *csw, const char *res)
 {
@@ -292,7 +292,7 @@ doswitch(const char *name, const char *function, const char *args,
 	}
 }
 
-void
+static void
 dodecl(char *type, char *function, char *args) {
 	struct tt *tt;
 	char buf1[TYPECLASSBUF], buf2[TYPECLASSBUF];
@@ -324,7 +324,7 @@ find_typename(int type) {
 	return (NULL);
 }
 
-void
+static void
 insert_into_typenames(int type, const char *typename, const char *attr) {
 	struct ttnam *ttn = NULL;
 	int c, i, n;
@@ -388,7 +388,7 @@ insert_into_typenames(int type, const char *typename, const char *attr) {
 		maxtype = type;
 }
 
-void
+static void
 add(int rdclass, const char *classname, int type, const char *typename,
     const char *dirname)
 {
@@ -474,7 +474,7 @@ add(int rdclass, const char *classname, int type, const char *typename,
 		classes = newcc;
 }
 
-void
+static void
 sd(int rdclass, const char *classname, const char *dirname, char filetype) {
 	char buf[TYPECLASSLEN + sizeof("_65535.h")];
 	char typename[TYPECLASSBUF];
