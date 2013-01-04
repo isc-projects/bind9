@@ -204,7 +204,7 @@ addserver(dns_client_t *client, const char *addrstr, const char *namespace) {
 
 	if (namespace != NULL) {
 		namelen = strlen(namespace);
-		isc_buffer_init(&b, namespace, namelen);
+		isc_buffer_constinit(&b, namespace, namelen);
 		isc_buffer_add(&b, namelen);
 		dns_fixedname_init(&fname);
 		name = dns_fixedname_name(&fname);

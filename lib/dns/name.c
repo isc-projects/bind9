@@ -843,6 +843,10 @@ dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname) {
 	REQUIRE(labels > 0);
 	REQUIRE(dns_name_iswildcard(wname));
 
+#if defined(__clang__)  && \
+       ( __clang_major__ < 3 || (__clang_major__ == 3 && __clang_minor__ < 2))
+	memset(&tname, 0, sizeof(tname));
+#endif
 	DNS_NAME_INIT(&tname, NULL);
 	dns_name_getlabelsequence(wname, 1, labels - 1, &tname);
 	if (dns_name_fullcompare(name, &tname, &order, &nlabels) ==
@@ -1937,6 +1941,10 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 	 * has one.
 	 */
 	if (name->offsets == NULL) {
+#if defined(__clang__)  && \
+       ( __clang_major__ < 3 || (__clang_major__ == 3 && __clang_minor__ < 2))
+		memset(&clname, 0, sizeof(clname));
+#endif
 		DNS_NAME_INIT(&clname, clo);
 		dns_name_clone(name, &clname);
 		name = &clname;
@@ -2242,6 +2250,10 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(digest != NULL);
 
+#if defined(__clang__)  && \
+       ( __clang_major__ < 3 || (__clang_major__ == 3 && __clang_minor__ < 2))
+	memset(&downname, 0, sizeof(downname));
+#endif
 	DNS_NAME_INIT(&downname, NULL);
 
 	isc_buffer_init(&buffer, data, sizeof(data));
@@ -2408,7 +2420,7 @@ dns_name_fromstring2(dns_name_t *target, const char *src,
 
 	REQUIRE(src != NULL);
 
-	isc_buffer_init(&buf, src, strlen(src));
+	isc_buffer_constinit(&buf, src, strlen(src));
 	isc_buffer_add(&buf, strlen(src));
 	if (BINDABLE(target) && target->buffer != NULL)
 		name = target;

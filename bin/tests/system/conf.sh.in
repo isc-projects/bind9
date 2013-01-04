@@ -61,7 +61,8 @@ SUBDIRS="acl allow_query addzone autosign builtin cacheclean checkconf
 	 logfileconfig lwresd masterfile masterformat metadata notify
 	 nsupdate pending pkcs11 redirect resolver rndc rpz rrsetorder
 	 rsabigexponent sortlist smartsign staticstub stub tkey tsig
-	 tsiggss unknown upforwd verify views xfer xferquota zonechecks"
+	 tsiggss unknown upforwd verify views wildcard xfer xferquota
+	 zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@

@@ -620,6 +620,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
 	isc_result_t tresult;
 	size_t length;
+	isc_boolean_t unknown;
 
 	REQUIRE(origin == NULL || dns_name_isabsolute(origin) == ISC_TRUE);
 	if (rdata != NULL) {
@@ -647,13 +648,33 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		return (result);
 	}
 
-	if (strcmp(DNS_AS_STR(token), "\\#") == 0)
-		result = unknown_fromtext(rdclass, type, lexer, mctx, target);
-	else {
+	unknown = ISC_FALSE;
+	if (token.type == isc_tokentype_string &&
+	    strcmp(DNS_AS_STR(token), "\\#") == 0) {
+		/*
+		 * If this is a TXT record '\#' could be a escaped '#'.
+		 * Look to see if the next token is a number and if so
+		 * treat it as a unknown record format.
+		 */
+		if (type == dns_rdatatype_txt) {
+			result = isc_lex_getmastertoken(lexer, &token,
+							isc_tokentype_number,
+							ISC_FALSE);
+			if (result == ISC_R_SUCCESS)
+				isc_lex_ungettoken(lexer, &token);
+		}
+
+		if (result == ISC_R_SUCCESS) {
+			unknown = ISC_TRUE;
+			result = unknown_fromtext(rdclass, type, lexer,
+						  mctx, target);
+		} else
+			options |= DNS_RDATA_UNKNOWNESCAPE;
+	} else
 		isc_lex_ungettoken(lexer, &token);
 
+	if (!unknown)
 		FROMTEXTSWITCH
-	}
 
 	/*
 	 * Consume to end of line / file.

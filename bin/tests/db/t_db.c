@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -58,7 +58,7 @@ t_create(const char *db_type, const char *origin, const char *class,
 
 	dns_fixedname_init(&dns_origin);
 	len = strlen(origin);
-	isc_buffer_init(&origin_buffer, origin, len);
+	isc_buffer_constinit(&origin_buffer, origin, len);
 	isc_buffer_add(&origin_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_origin),
 				       &origin_buffer, NULL, 0, NULL);

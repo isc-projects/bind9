@@ -543,7 +543,7 @@ dns_dlz_writeablezone(dns_view_t *view, const char *zone_name) {
 
 	REQUIRE(dlzdatabase->configure_callback != NULL);
 
-	isc_buffer_init(&buffer, zone_name, strlen(zone_name));
+	isc_buffer_constinit(&buffer, zone_name, strlen(zone_name));
 	isc_buffer_add(&buffer, strlen(zone_name));
 	dns_fixedname_init(&fixorigin);
 	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),

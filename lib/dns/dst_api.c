@@ -1312,24 +1312,24 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 		return (NULL);
 
 	memset(key, 0, sizeof(dst_key_t));
-	key->magic = KEY_MAGIC;
-
-	result = isc_refcount_init(&key->refs, 1);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, key, sizeof(dst_key_t));
-		return (NULL);
-	}
 
 	key->key_name = isc_mem_get(mctx, sizeof(dns_name_t));
 	if (key->key_name == NULL) {
-		isc_refcount_destroy(&key->refs);
 		isc_mem_put(mctx, key, sizeof(dst_key_t));
 		return (NULL);
 	}
+
 	dns_name_init(key->key_name, NULL);
 	result = dns_name_dup(name, mctx, key->key_name);
 	if (result != ISC_R_SUCCESS) {
-		isc_refcount_destroy(&key->refs);
+		isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
+		isc_mem_put(mctx, key, sizeof(dst_key_t));
+		return (NULL);
+	}
+
+	result = isc_refcount_init(&key->refs, 1);
+	if (result != ISC_R_SUCCESS) {
+		dns_name_free(key->key_name, mctx);
 		isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
 		isc_mem_put(mctx, key, sizeof(dst_key_t));
 		return (NULL);
@@ -1349,6 +1349,7 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 		key->times[i] = 0;
 		key->timeset[i] = ISC_FALSE;
 	}
+	key->magic = KEY_MAGIC;
 	return (key);
 }
 

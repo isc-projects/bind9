@@ -1119,6 +1119,8 @@ hostfromname(lwres_gabnresponse_t *name, int af) {
 	 * Copy aliases.
 	 */
 	he->h_aliases = malloc(sizeof(char *) * (name->naliases + 1));
+	if (he->h_aliases == NULL)
+		goto cleanup;
 	for (i = 0; i < name->naliases; i++) {
 		he->h_aliases[i] = strdup(name->aliases[i]);
 		if (he->h_aliases[i] == NULL)
@@ -1130,6 +1132,8 @@ hostfromname(lwres_gabnresponse_t *name, int af) {
 	 * Copy addresses.
 	 */
 	he->h_addr_list = malloc(sizeof(char *) * (name->naddrs + 1));
+	if (he->h_addr_list == NULL)
+		goto cleanup;
 	addr = LWRES_LIST_HEAD(name->addrs);
 	i = 0;
 	while (addr != NULL) {

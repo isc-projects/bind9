@@ -1,3 +1,50 @@
+3449.	[bug]		gen.c: use the pre-processor to construct format
+			strings so that compiler can perform sanity checks;
+			check the snprintf results. [RT #17576]
+
+3448.	[bug]		The allow-query-on ACL was not processed correctly.
+			[RT #29486]
+
+3447.	[port]		Add support for libxml2-2.9.x [RT #32231]
+
+3446.	[port]		win32: Add source ID (see change #3400) to build.
+			[RT #31683]
+
+3445.	[bug]		Reject zone files with blank owner names immediately
+			after $ORIGIN directives. [RT #31848]
+
+3444.	[bug]		The NOQNAME proof was not being returned from cached
+			insecure responses. [RT #21409]
+
+3443.	[bug]		ddns-confgen: Some TSIG algorithms were incorrectly
+			rejected when generating keys. [RT #31927]
+
+3442.	[port]		Net::DNS 0.69 introduced a non backwards compatible
+			change. [RT #32216]
+
+3441.	[maint]		D.ROOT-SERVERS.NET is now 199.7.91.13.
+
+3440.	[bug]		Reorder get_key_struct to not trigger a assertion when
+			cleaning up due to out of memory error. [RT #32131]
+
+3439.	[bug]		contrib/dlz error checking fixes. [RT #32102]
+
+3438.	[bug]		Don't accept unknown data escape in quotes. [RT #32031]
+
+3437.	[bug]		isc_buffer_init -> isc_buffer_constinit to initialise
+			buffers with constant data. [RT #32064]
+
+3436.	[bug]		Check malloc/calloc return values. [RT #32088]
+
+3435.	[bug]		Cross compilation support in configure was broken.
+			[RT #32078]
+
+3431.	[bug]		ddns-confgen: Some valid key algorithms were
+			not accepted. [RT #31927]
+
+3430.	[bug]		win32: isc_time_formatISO8601 was missing the
+			'T' between the date and time. [RT #32044]
+
 3429.	[bug]		dns_zone_getserial2 could a return success without
 			returning a valid serial. [RT #32007]
 

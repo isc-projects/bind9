@@ -1553,6 +1553,11 @@ spnego_initial(OM_uint32 *minor_status,
 
 	buf_size = 1024;
 	buf = malloc(buf_size);
+	if (buf == NULL) {
+		*minor_status = ENOMEM;
+		ret = GSS_S_FAILURE;
+		goto end;
+	}
 
 	do {
 		ret = encode_NegTokenInit(buf + buf_size - 1,

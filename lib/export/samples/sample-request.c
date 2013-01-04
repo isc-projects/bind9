@@ -82,7 +82,7 @@ make_querymessage(dns_message_t *message, const char *namestr,
 
 	/* Construct qname */
 	namelen = strlen(namestr);
-	isc_buffer_init(&b, namestr, namelen);
+	isc_buffer_constinit(&b, namestr, namelen);
 	isc_buffer_add(&b, namelen);
 	dns_fixedname_init(&fixedqname);
 	qname0 = dns_fixedname_name(&fixedqname);
