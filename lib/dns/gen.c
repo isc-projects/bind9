@@ -367,7 +367,7 @@ insert_into_typenames(int type, const char *typename, const char *attr) {
 	if (attr == NULL) {
 		n = snprintf(tmp, sizeof(tmp),
 			     "RRTYPE_%s_ATTRIBUTES", upper(ttn->macroname));
-		INSIST(n > 0 && n < sizeof(tmp));
+		INSIST(n > 0 && (unsigned)n < sizeof(tmp));
 		attr = tmp;
 	}
 
@@ -492,7 +492,7 @@ sd(int rdclass, const char *classname, const char *dirname, char filetype) {
 
 		n = snprintf(buf, sizeof(buf), "%s_%d.%c", typename,
 			     type, filetype);
-		INSIST(n > 0 && n < sizeof(buf));
+		INSIST(n > 0 && (unsigned)n < sizeof(buf));
 		if (strcmp(buf, dir.filename) != 0)
 			continue;
 		add(rdclass, classname, type, typename, dirname);
@@ -593,7 +593,7 @@ main(int argc, char **argv) {
 			}
 			n = snprintf(srcdir, sizeof(srcdir), "%s/",
 				     isc_commandline_argument);
-			INSIST(n > 0 && n < sizeof(srcdir));
+			INSIST(n > 0 && (unsigned)n < sizeof(srcdir));
 			break;
 		case 'F':
 			file = isc_commandline_argument;
@@ -609,7 +609,7 @@ main(int argc, char **argv) {
 		}
 
 	n = snprintf(buf, sizeof(buf), "%srdata", srcdir);
-	INSIST(n > 0 && n < sizeof(srcdir));
+	INSIST(n > 0 && (unsigned)n < sizeof(srcdir));
 
 	if (!start_directory(buf, &dir))
 		exit(1);
@@ -623,21 +623,21 @@ main(int argc, char **argv) {
 
 		n = snprintf(buf, sizeof(buf), "%srdata/%s_%d",
 			     srcdir, classname, rdclass);
-		INSIST(n > 0 && n < sizeof(buf));
+		INSIST(n > 0 && (unsigned)n < sizeof(buf));
 		if (strcmp(buf + 6 + strlen(srcdir), dir.filename) != 0)
 			continue;
 		sd(rdclass, classname, buf, filetype);
 	}
 	end_directory(&dir);
 	n = snprintf(buf, sizeof(buf), "%srdata/generic", srcdir);
-	INSIST(n > 0 && n < sizeof(srcdir));
+	INSIST(n > 0 && (unsigned)n < sizeof(srcdir));
 	sd(0, "", buf, filetype);
 
 	if (time(&now) != -1) {
 		if ((tm = localtime(&now)) != NULL && tm->tm_year > 104) {
 			n = snprintf(year, sizeof(year), "-%d",
 				     tm->tm_year + 1900);
-			INSIST(n > 0 && n < sizeof(year));
+			INSIST(n > 0 && (unsigned)n < sizeof(year));
 		} else
 			year[0] = 0;
 	} else
