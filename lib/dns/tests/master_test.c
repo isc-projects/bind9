@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -86,7 +86,7 @@ rawdata_callback(dns_zone_t *zone, dns_masterrawheader_t *h) {
 
 static isc_result_t
 setup_master(void (*warn)(struct dns_rdatacallbacks *, const char *, ...),
-	     void (*error)(struct dns_rdatacallbacks *, const char *, ...)) 
+	     void (*error)(struct dns_rdatacallbacks *, const char *, ...))
 {
 	isc_result_t		result;
 	int			len;
