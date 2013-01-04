@@ -34,7 +34,8 @@ zsk2=`$KEYFRLAB -a RSASHA1 -l robie-zsk2 example`
 ksk=`$KEYFRLAB -a RSASHA1 -f ksk -l robie-ksk example`
 
 cat $infile $zsk1.key $ksk.key > $zonefile
-$SIGNER -a -P -g -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+$SIGNER -a -P -g -r $RANDFILE -o $zone $zonefile > /dev/null 2> signer.err || cat signer.err
+rm -f signer.err
 
 cp $zsk2.key ns1/key
 mv Kexample* ns1
