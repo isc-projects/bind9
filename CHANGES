@@ -1,3 +1,7 @@
+3449.	[bug]		gen.c: use the pre-processor to construct format
+			strings so that compiler can perform sanity checks;
+			check the snprintf results. [RT #17576]
+
 3448.	[bug]		The allow-query-on ACL was not processed correctly.
 			[RT #29486]
 
