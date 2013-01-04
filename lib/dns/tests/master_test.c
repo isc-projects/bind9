@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <isc/print.h>
 #include <isc/xml.h>
 
 #include <dns/cache.h>
