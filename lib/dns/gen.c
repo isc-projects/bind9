@@ -177,8 +177,6 @@ static void
 doswitch(const char *, const char *, const char *, const char *,
 	 const char *, const char *);
 static void
-dodecl(char *, char *, char *);
-static void
 add(int, const char *, int, const char *, const char *);
 static void
 sd(int, const char *, const char *, char);
@@ -290,26 +288,6 @@ doswitch(const char *name, const char *function, const char *args,
 			fprintf(stdout, "\tdefault: %s; break; \\\n", res);
 		fputs(/*{*/ "\t}\n", stdout);
 	}
-}
-
-static void
-dodecl(char *type, char *function, char *args) {
-	struct tt *tt;
-	char buf1[TYPECLASSBUF], buf2[TYPECLASSBUF];
-
-	fputs("\n", stdout);
-	for (tt = types; tt; tt = tt->next)
-		if (tt->rdclass)
-			fprintf(stdout,
-				"static inline %s %s_%s_%s(%s);\n",
-				type, function,
-				funname(tt->classname, buf1),
-				funname(tt->typename, buf2), args);
-		else
-			fprintf(stdout,
-				"static inline %s %s_%s(%s);\n",
-				type, function,
-				funname(tt->typename, buf1), args);
 }
 
 static struct ttnam *
