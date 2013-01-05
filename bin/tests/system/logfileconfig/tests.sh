@@ -30,7 +30,7 @@ PIPEFILE="named_pipe"
 SYMFILE="named_sym"
 PIDFILE="${THISDIR}/${CONFDIR}/named.pid"
 myRNDC="$RNDC -c ${THISDIR}/${CONFDIR}/rndc.conf"
-myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -d 99"
+myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -T nosyslog -d 99"
 
 # Stop the server and run through a series of tests with various config
 # files while controlling the stop/start of the server.
@@ -93,7 +93,7 @@ then
 		echo "I:exit status: 2"
 		exit 2
 	fi
-	grep "invalid file" named.run > /dev/null 2>&1
+	grep "configuring logging: invalid file" named.run > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "I: testing directory as file succeeded (UNEXPECTED)"
@@ -122,7 +122,7 @@ then
 		echo "I:exit status: 2"
 		exit 2
 	fi
-	grep "invalid file" named.run > /dev/null 2>&1
+	grep "configuring logging: invalid file" named.run > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "I: testing pipe file as log file succeeded (UNEXPECTED)"

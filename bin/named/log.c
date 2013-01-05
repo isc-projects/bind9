@@ -201,7 +201,7 @@ isc_result_t
 ns_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 
-	if (! ns_g_logstderr) {
+	if (! ns_g_logstderr && ! ns_g_nosyslog) {
 		result = isc_log_usechannel(lcfg, "default_syslog",
 					    ISC_LOGCATEGORY_DEFAULT, NULL);
 		if (result != ISC_R_SUCCESS)

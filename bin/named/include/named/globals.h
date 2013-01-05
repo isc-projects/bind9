@@ -112,6 +112,7 @@ EXTERN isc_boolean_t		ns_g_coreok		INIT(ISC_TRUE);
 EXTERN const char *		ns_g_chrootdir		INIT(NULL);
 EXTERN isc_boolean_t		ns_g_foreground		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_logstderr		INIT(ISC_FALSE);
+EXTERN isc_boolean_t		ns_g_nosyslog		INIT(ISC_FALSE);
 
 #if NS_RUN_PID_DIR
 EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
