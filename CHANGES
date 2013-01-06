@@ -1,3 +1,6 @@
+3451.	[port]		Increase per thread stack size from 64K to 1M.
+			[RT #32230]
+
 3450.	[bug]		Stop logfileconfig system test spam system logs.
 			[RT #32315]
 
