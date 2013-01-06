@@ -25,7 +25,7 @@
 #include <isc/util.h>
 
 #ifndef THREAD_MINSTACKSIZE
-#define THREAD_MINSTACKSIZE		(64U * 1024)
+#define THREAD_MINSTACKSIZE		(1024U * 1024)
 #endif
 
 isc_result_t
