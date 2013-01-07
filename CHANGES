@@ -1,3 +1,5 @@
+3452.	[bug]		Accept duplicate singlton records. [RT #32329]
+
 3451.	[port]		Increase per thread stack size from 64K to 1M.
 			[RT #32230]
 
