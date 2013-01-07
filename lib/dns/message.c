@@ -1441,8 +1441,15 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * the opcode is an update, or the type search is skipped.
 		 */
 		if (result == ISC_R_SUCCESS) {
-			if (dns_rdatatype_issingleton(rdtype))
-				DO_FORMERR;
+			if (dns_rdatatype_issingleton(rdtype)) {
+				dns_rdata_t *first;
+				dns_rdatalist_fromrdataset(rdataset,
+							   &rdatalist);
+				first = ISC_LIST_HEAD(rdatalist->rdata);
+				INSIST(first != NULL);
+				if (dns_rdata_compare(rdata, first) != 0)
+					DO_FORMERR;
+			}
 		}
 
 		if (result == ISC_R_NOTFOUND) {
