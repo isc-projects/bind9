@@ -528,7 +528,7 @@ parse_args(int argc, char **argv) {
 	unsigned int uint_arg_val;
 
 	while ((c = getopt(argc, argv,
-			   "f:q:t:i:nd:s:p:1l:b:eDcvr:RT::u:H:h")) != -1) {
+			   "f:q:t:i:nd:s:p:1l:b:eDcvr:RT:u:H:h")) != -1) {
 		switch (c) {
 		case 'f':
 			if (strcmp(optarg, "inet") == 0)
