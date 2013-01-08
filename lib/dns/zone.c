@@ -4220,6 +4220,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (!(inline_secure(zone) && result == ISC_R_FILENOTFOUND))
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "not loaded due to errors.");
+		else if (zone->type == dns_zone_master)
+			result = ISC_R_SUCCESS;
 	}
 
 	return (result);
