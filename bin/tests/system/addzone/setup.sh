@@ -16,5 +16,7 @@
 
 # $Id: setup.sh,v 1.3 2010/08/12 01:31:36 marka Exp $
 
+sh clean.sh
+
 cp -f ns2/named1.conf ns2/named.conf
 cp -f ns2/default.nzf.in ns2/3bf305731dd26307.nzf
