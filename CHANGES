@@ -1,3 +1,5 @@
+3454.	[port]		sparc64: improve atomic support. [RT #25182]
+
 3452.	[bug]		Accept duplicate singleton records. [RT #32329]
 
 3451.	[port]		Increase per thread stack size from 64K to 1M.
