@@ -1,0 +1,1123 @@
+
+
+
+
+
+
+Internet Research Task Force (IRTF)                          RJ Atkinson
+Request for Comments: 6742                                    Consultant
+Category: Experimental                                         SN Bhatti
+ISSN: 2070-1721                                            U. St Andrews
+                                                                 S. Rose
+                                                                 US NIST
+                                                           November 2012
+
+
+                      DNS Resource Records for the
+               Identifier-Locator Network Protocol (ILNP)
+
+Abstract
+
+   This note describes additional optional resource records for use with
+   the Domain Name System (DNS).  These optional resource records are
+   for use with the Identifier-Locator Network Protocol (ILNP).  This
+   document is a product of the IRTF Routing Research Group.
+
+Status of This Memo
+
+   This document is not an Internet Standards Track specification; it is
+   published for examination, experimental implementation, and
+   evaluation.
+
+   This document defines an Experimental Protocol for the Internet
+   community.  This document is a product of the Internet Research Task
+   Force (IRTF).  The IRTF publishes the results of Internet-related
+   research and development activities.  These results might not be
+   suitable for deployment.  This RFC represents the individual
+   opinion(s) of one or more members of the Routing Research Group of
+   the Internet Research Task Force (IRTF).  Documents approved for
+   publication by the IRSG are not a candidate for any level of Internet
+   Standard; see Section 2 of RFC 5741.
+
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   http://www.rfc-editor.org/info/rfc6742.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Atkinson, et al.              Experimental                      [Page 1]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+Copyright Notice
+
+   Copyright (c) 2012 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.
+
+   This document may not be modified, and derivative works of it may not
+   be created, except to format it for publication as an RFC or to
+   translate it into languages other than English.
+
+Table of Contents
+
+   1. Introduction ....................................................2
+      1.1. Document Roadmap ...........................................4
+      1.2. Terminology ................................................5
+   2. New Resource Records ............................................5
+      2.1. The NID Resource Record ....................................5
+      2.2. The L32 Resource Record ....................................7
+      2.3. The L64 Resource Record ...................................10
+      2.4. The LP Resource Record ....................................12
+   3. Deployment Example .............................................15
+      3.1. Use of ILNP Records .......................................15
+      3.2. Additional Section Processing .............................16
+   4. Security Considerations ........................................17
+   5. IANA Considerations ............................................17
+   6. References .....................................................17
+      6.1. Normative References ......................................17
+      6.2. Informative References ....................................18
+   7. Acknowledgements ...............................................20
+
+1.  Introduction
+
+   This document is part of the ILNP document set, which has had
+   extensive review within the IRTF Routing RG.  ILNP is one of the
+   recommendations made by the RG Chairs.  Separately, various refereed
+   research papers on ILNP have also been published during this decade.
+   So, the ideas contained herein have had much broader review than the
+   IRTF Routing RG.  The views in this document were considered
+   controversial by the Routing RG, but the RG reached a consensus that
+   the document still should be published.  The Routing RG has had
+   remarkably little consensus on anything, so virtually all Routing RG
+   outputs are considered controversial.
+
+
+
+Atkinson, et al.              Experimental                      [Page 2]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   At present, the Internet research and development community is
+   exploring various approaches to evolving the Internet Architecture to
+   solve a variety of issues including, but not limited to, scalability
+   of inter-domain routing [RFC4984].  A wide range of other issues
+   (e.g., site multihoming, node multihoming, site/subnet mobility, node
+   mobility) are also active concerns at present.  Several different
+   classes of evolution are being considered by the Internet research
+   and development community.  One class is often called "Map and
+   Encapsulate", where traffic would be mapped and then tunnelled
+   through the inter-domain core of the Internet.  Another class being
+   considered is sometimes known as "Identifier/Locator Split".  This
+   document relates to a proposal that is in the latter class of
+   evolutionary approaches.
+
+   The Identifier-Locator Network Protocol (ILNP) was developed to
+   explore a possible evolutionary direction for the Internet
+   Architecture.  A description of the ILNP architecture is available in
+   a separate document [RFC6740].  Implementation and engineering
+   details are largely isolated into a second document [RFC6741].
+
+   The Domain Name System (DNS) is the standard way that Internet nodes
+   locate information about addresses, mail exchangers, and other data
+   relating to remote Internet nodes [RFC1034] [RFC1035].
+
+   More recently, the IETF has defined standards-track security
+   extensions to the DNS [RFC4033].  These security extensions can be
+   used to authenticate signed DNS data records and can be used to store
+   signed public keys in the DNS.  Further, the IETF has defined a
+   standards-track approach to enable secure dynamic update of DNS
+   records over the network [RFC3007].
+
+   This document defines several new optional data resource records.
+   This note specifies the syntax and other items required for
+   independent implementations of these DNS resource records.  The
+   reader is assumed to be familiar with the basics of DNS, including
+   familiarity with [RFC1034] [RFC1035].
+
+   The concept of using DNS for rendezvous with mobile nodes or mobile
+   networks has been proposed earlier, more than once, independently, by
+   several other researchers; for example, please see [SB00], [SBK01],
+   and [PHG02].
+
+
+
+
+
+
+
+
+
+
+Atkinson, et al.              Experimental                      [Page 3]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+1.1.  Document Roadmap
+
+   This document describes defines additional DNS resource records that
+   support ILNP.
+
+   The ILNP architecture can have more than one engineering
+   instantiation.  For example, one can imagine a "clean-slate"
+   engineering design based on the ILNP architecture.  In separate
+   documents, we describe two specific engineering instances of ILNP.
+   The term "ILNPv6" refers precisely to an instance of ILNP that is
+   based upon, and backwards compatible with, IPv6.  The term "ILNPv4"
+   refers precisely to an instance of ILNP that is based upon, and
+   backwards compatible with, IPv4.
+
+   Many engineering aspects common to both ILNPv4 and ILNPv6 are
+   described in [RFC6741].  A full engineering specification for either
+   ILNPv6 or ILNPv4 is beyond the scope of this document.
+
+   Readers are referred to other related ILNP documents for details not
+   described here:
+
+   a) [RFC6740] is the main architectural description of ILNP, including
+      the concept of operations.
+
+   b) [RFC6741] describes engineering and implementation considerations
+      that are common to both ILNPv4 and ILNPv6.
+
+   c) [RFC6743] defines a new ICMPv6 Locator Update message used by an
+      ILNP node to inform its correspondent nodes of any changes to its
+      set of valid Locators.
+
+   d) [RFC6744] defines a new IPv6 Nonce Destination Option used by
+      ILNPv6 nodes (1) to indicate to ILNP correspondent nodes (by
+      inclusion within the initial packets of an ILNP session) that the
+      node is operating in the ILNP mode and (2) to prevent off-path
+      attacks against ILNP ICMP messages.  This Nonce is used, for
+      example, with all ILNP ICMPv6 Locator Update messages that are
+      exchanged among ILNP correspondent nodes.
+
+   e) [RFC6745] defines a new ICMPv4 Locator Update message used by an
+      ILNP node to inform its correspondent nodes of any changes to its
+      set of valid Locators.
+
+   f) [RFC6746] defines a new IPv4 Nonce Option used by ILNPv4 nodes to
+      carry a security nonce to prevent off-path attacks against ILNP
+      ICMP messages and also defines a new IPv4 Identifier Option used
+      by ILNPv4 nodes.
+
+
+
+
+Atkinson, et al.              Experimental                      [Page 4]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   g) [RFC6747] describes extensions to Address Resolution Protocol
+      (ARP) for use with ILNPv4.
+
+   h) [RFC6748] describes optional engineering and deployment functions
+      for ILNP.  These are not required for the operation or use of ILNP
+      and are provided as additional options.
+
+1.2.  Terminology
+
+   In this document, the term "ILNP-aware" applied to a DNS component
+   (either authoritative server or cache) is used to indicate that the
+   component attempts to include other ILNP RRTypes to the Additional
+   section of a DNS response to increase performance and reduce the
+   number of follow-up queries for other ILNP RRTypes.  These other
+   RRsets MAY be added to the Additional section if space permits and
+   only when the QTYPE equals NID, L64, L32, or LP.  There is no method
+   for a server to signal that it is ILNP-aware.
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+2.  New Resource Records
+
+   This document specifies several new and closely related DNS data
+   resource records (RRs).  These new RR types have the mnemonics "NID",
+   "L32", "L64", and "LP".  These RR types are associated with a Fully
+   Qualified Domain Name (FQDN) that is hereafter called the "owner
+   name".  These are part of work on the Identifier-Locator Network
+   Protocol (ILNP) [RFC6740].
+
+   For clarity, throughout this section of this document, the "RDATA"
+   subsections specify the on-the-wire format for these records, while
+   the "Presentation Format" subsections specify the human-readable
+   format used in a DNS configuration file (i.e., "master file" as
+   defined by RFC 1035, Section 5.1).
+
+2.1.  The NID Resource Record
+
+   The Node Identifier (NID) DNS resource record (RR) is used hold
+   values for Node Identifiers that will be used for ILNP-capable nodes.
+
+   NID records are present only for ILNP-capable nodes.  This
+   restriction is important; ILNP-capable nodes use the presence of NID
+   records in the DNS to learn that a correspondent node is also ILNP-
+   capable.  While erroneous NID records in the DNS for a node that is
+   not ILNP-capable would not prevent communication, such erroneous DNS
+   records could increase the delay at the start of an IP session.
+
+
+
+Atkinson, et al.              Experimental                      [Page 5]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   A given owner name may have zero or more NID records at a given time.
+   In normal operation, nodes that support the Identifier-Locator
+   Network Protocol (ILNP) will have at least one valid NID record.
+
+   The type value for the NID RR type is 104.
+
+   The NID RR is class independent.
+
+   The NID RR has no special Time to Live (TTL) requirements.
+
+2.1.1.  NID RDATA Wire Format
+
+   The RDATA for an NID RR consists of:
+
+   - a 16-bit Preference field
+   - a 64-bit NodeID field
+
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |          Preference           |                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+    |                             NodeID                            |
+    +                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+2.1.1.1.  The Preference Field
+
+   The <Preference> field contains a 16-bit unsigned integer in network
+   byte order that indicates the owner name's relative preference for
+   this NID record among other NID records associated with this owner
+   name.  Lower Preference values are preferred over higher Preference
+   values.
+
+2.1.1.2.  The NodeID Field
+
+   The NodeID field is an unsigned 64-bit value in network byte order.
+   It complies with the syntactic rules of IPv6 interface identifiers
+   [RFC4291], Section 2.5.1, but has slightly different semantics.
+   Unlike IPv6 interface identifiers, which are bound to a specific
+   *interface* of a specific node, NodeID values are bound to a specific
+   *node*, and they MAY be used with *any interface* of that node.
+
+
+
+
+
+
+
+
+Atkinson, et al.              Experimental                      [Page 6]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+2.1.2.  NID RR Presentation Format
+
+   The presentation of the format of the RDATA portion is as follows:
+
+   - The Preference field MUST be represented as a 16-bit unsigned
+     decimal integer.
+
+   - The NodeID field MUST be represented using the same syntax (i.e.,
+     groups of 4 hexadecimal digits, with each group separated by a
+     colon) that is already used for DNS AAAA records (and also used for
+     IPv6 interface IDs).
+
+   - The NodeID value MUST NOT be in the 'compressed' format (e.g.,
+     using "::") that is defined in RFC 4291, Section 2.2 (2).  This
+     restriction exists to avoid confusion with 128-bit IPv6 addresses,
+     because the NID is a 64-bit field.
+
+2.1.3.  NID RR Examples
+
+   An NID record has the following logical components:
+
+     <owner-name>  IN  NID  <Preference>   <NodeID>
+
+   In the above, <owner-name> is the owner name string, <Preference> is
+   an unsigned 16-bit value, and <NodeID> is an unsigned 64-bit value.
+
+     host1.example.com. IN NID 10 0014:4fff:ff20:ee64
+     host1.example.com. IN NID 20 0015:5fff:ff21:ee65
+     host2.example.com. IN NID 10 0016:6fff:ff22:ee66
+
+   As NodeID values use the same syntax as IPv6 interface identifiers,
+   when displayed for human readership, the NodeID values are presented
+   in the same hexadecimal format as IPv6 interface identifiers.  This
+   is shown in the example above.
+
+2.1.4.  Additional Section Processing
+
+   To improve performance, ILNP-aware DNS servers and DNS resolvers MAY
+   attempt to return all L32, L64, and LP records for the same owner
+   name of the NID RRset in the Additional section of the response, if
+   space permits.
+
+2.2.  The L32 Resource Record
+
+   An L32 DNS RR is used to hold 32-bit Locator values for
+   ILNPv4-capable nodes.
+
+
+
+
+
+Atkinson, et al.              Experimental                      [Page 7]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   L32 records are present only for ILNPv4-capable nodes.  This
+   restriction is important; ILNP-capable nodes use the presence of L32
+   records in the DNS to learn that a correspondent node is also
+   ILNPv4-capable.  While erroneous L32 records in the DNS for a node
+   that is not ILNP-capable would not prevent communication, such
+   erroneous DNS records could increase the delay at the start of an IP
+   session.
+
+   A given owner name might have zero or more L32 values at a given
+   time.  An ILNPv4-capable host SHOULD have at least 1 Locator (i.e.,
+   L32 or LP) DNS resource record while it is connected to the Internet.
+   An ILNPv4-capable multihomed host normally will have multiple Locator
+   values while multihomed.  An IP host that is NOT ILNPv4-capable MUST
+   NOT have an L32 or LP record in its DNS entries.  A node that is not
+   currently connected to the Internet might not have any L32 values in
+   the DNS associated with its owner name.
+
+   A DNS owner name that is naming a subnetwork, rather than naming a
+   host, MAY have an L32 record as a wild-card entry, thereby applying
+   to entries under that DNS owner name.  This deployment scenario
+   probably is most common if the named subnetwork is, was, or might
+   become, mobile.
+
+   The type value for the L32 RR type is 105.
+
+   The L32 RR is class independent.
+
+   The L32 RR has no special TTL requirements.
+
+2.2.1.  L32 RDATA Wire Format
+
+   The RDATA for an L32 RR consists of:
+
+   - a 16-bit Preference field
+   - a 32-bit Locator32 field
+
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |          Preference           |      Locator32 (16 MSBs)      |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |     Locator32 (16 LSBs)       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   MSB = most significant bit
+   LSB = least significant bit
+
+
+
+
+
+Atkinson, et al.              Experimental                      [Page 8]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+2.2.1.1.  The Preference Field
+
+   The <Preference> field is an unsigned 16-bit field in network byte
+   order that indicates the owner name's relative preference for this
+   L32 record among other L32 records associated with this owner name.
+   Lower Preference values are preferred over higher Preference values.
+
+2.2.1.2.  The Locator32 Field
+
+   The <Locator32> field is an unsigned 32-bit integer in network byte
+   order that is identical on-the-wire to the ADDRESS field of the
+   existing DNS A record.
+
+2.2.2.  L32 RR Presentation Format
+
+   The presentation of the format of the RDATA portion is as follows:
+
+   - The Preference field MUST be represented as a 16-bit unsigned
+     decimal integer.
+
+   - The Locator32 field MUST be represented using the same syntax used
+     for existing DNS A records (i.e., 4 decimal numbers separated by
+     periods without any embedded spaces).
+
+2.2.3.  L32 RR Examples
+
+   An L32 record has the following logical components:
+
+     <owner-name>  IN  L32  <Preference>   <Locator32>
+
+   In the above <owner-name> is the owner name string, <Preference> is
+   an unsigned 16-bit value, and <Locator32> is an unsigned 32-bit
+   value.
+
+     host1.example.com. IN L32 10 10.1.02.0
+     host1.example.com. IN L32 20 10.1.04.0
+     host2.example.com. IN L32 10 10.1.08.0
+
+   As L32 values have the same syntax and semantics as IPv4 routing
+   prefixes, when displayed for human readership, the values are
+   presented in the same dotted-decimal format as IPv4 addresses.  An
+   example of this syntax is shown above.
+
+   In the example above, the owner name is from an FQDN for an
+   individual host. host1.example.com has two L32 values, so
+   host1.example.com is multihomed.
+
+
+
+
+
+Atkinson, et al.              Experimental                      [Page 9]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   Another example is when the owner name is that learned from an LP
+   record (see below for details of LP records).
+
+     l32-subnet1.example.com. IN L32 10 10.1.02.0
+     l32-subnet2.example.com. IN L32 20 10.1.04.0
+     l32-subnet3.example.com. IN L32 30 10.1.08.0
+
+   In this example above, the owner name is for a subnetwork rather than
+   an individual node.
+
+2.2.4.  Additional Section Processing
+
+   To improve performance, ILNP-aware DNS servers and DNS resolvers MAY
+   attempt to return all NID, L64, and LP records for the same owner
+   name of the L32 RRset in the Additional section of the response, if
+   space permits.
+
+2.3.  The L64 Resource Record
+
+   The L64 resource record (RR) is used to hold unsigned 64-bit Locator
+   values for ILNPv6-capable nodes.
+
+   L64 records are present only for ILNPv6-capable nodes.  This
+   restriction is important; ILNP-capable nodes use the presence of L64
+   records in the DNS to learn that a correspondent node is also
+   ILNPv6-capable.  While erroneous L64 records in the DNS for a node
+   that is not ILNP-capable would not prevent communication, such
+   erroneous DNS records could increase the delay at the start of an IP
+   session.
+
+   A given owner name might have zero or more L64 values at a given
+   time.  An ILNPv6-capable host SHOULD have at least 1 Locator (i.e.,
+   L64 or LP) DNS resource record while it is connected to the Internet.
+   An ILNPv6-capable multihomed host normally will have multiple Locator
+   values while multihomed.  An IP host that is NOT ILNPv6-capable MUST
+   NOT have an L64 or LP record in its DNS entries.  A node that is not
+   currently connected to the Internet might not have any L64 values in
+   the DNS associated with its owner name.
+
+   A DNS owner name that is naming a subnetwork, rather than naming a
+   host, MAY have an L64 record as a wild-card entry, thereby applying
+   to entries under that DNS owner name.  This deployment scenario
+   probably is most common if the named subnetwork is, was, or might
+   become, mobile.
+
+   The type value for the L64 RR type is 106.
+
+
+
+
+
+Atkinson, et al.              Experimental                     [Page 10]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   The L64 RR is class independent.
+
+   The L64 RR has no special TTL requirements.
+
+2.3.1.  The L64 RDATA Wire Format
+
+   The RDATA for an L64 RR consists of:
+
+   - a 16-bit Preference field
+   - a 64-bit Locator64 field
+
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |          Preference           |                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+    |                          Locator64                            |
+    +                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+2.3.1.1.  The Preference Field
+
+   The <Preference> field is an unsigned 16-bit integer in network byte
+   order that indicates the owner name's relative preference for this
+   L64 record among other L64 records associated with this owner name.
+   Lower Preference values are preferred over higher Preference values.
+
+2.3.1.2.  The Locator64 Field
+
+   The <Locator64> field is an unsigned 64-bit integer in network byte
+   order that has the same syntax and semantics as a 64-bit IPv6 routing
+   prefix.
+
+2.3.2.  L64 RR Presentation Format
+
+   The presentation of the format of the RDATA portion is as follows:
+
+   - The Preference field MUST be represented as a 16-bit unsigned
+     decimal integer.
+
+   - The Locator64 field MUST be represented using the same syntax used
+     for AAAA records (i.e., groups of 4 hexadecimal digits separated by
+     colons).  However, the 'compressed' display format (e.g., using
+     "::") that is specified in RFC 4291, Section 2.2 (2), MUST NOT be
+     used.  This is done to avoid confusion with a 128-bit IPv6 address,
+     since the Locator64 is a 64-bit value, while the IPv6 address is a
+     128-bit value.
+
+
+
+Atkinson, et al.              Experimental                     [Page 11]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+2.3.3.  L64 RR Examples
+
+   An L64 record has the following logical components:
+
+        <owner-name>  IN  L64  <Preference>   <Locator64>
+
+   In the above, <owner-name> is the owner name string, <Preference> is
+   an unsigned 16-bit value, while <Locator64> is an unsigned 64-bit
+   value.
+
+     host1.example.com. IN L64 10 2001:0DB8:1140:1000
+     host1.example.com. IN L64 20 2001:0DB8:2140:2000
+     host2.example.com. IN L64 10 2001:0DB8:4140:4000
+
+   As L64 values have the same syntax and semantics as IPv6 routing
+   prefixes, when displayed for human readership, the values might
+   conveniently be presented in hexadecimal format, as above.
+
+   In the example above, the owner name is from an FQDN for an
+   individual host. host1.example.com has two L64 values, so it will be
+   multihomed.
+
+   Another example is when the owner name is that learned from an LP
+   record (see below for details of LP records).
+
+     l64-subnet1.example.com. IN L64 10 2001:0DB8:1140:1000
+     l64-subnet2.example.com. IN L64 20 2001:0DB8:2140:2000
+     l64-subnet3.example.com. IN L64 30 2001:0DB8:4140:4000
+
+   Here, the owner name is for a subnetwork rather than an individual
+   node.
+
+2.3.4.  Additional Section Processing
+
+   To improve performance, ILNP-aware DNS servers and DNS resolvers MAY
+   attempt to return all NID, L32, and LP records for the same owner
+   name of the L64 RRset in the Additional section of the response, if
+   space permits.
+
+2.4.  The LP Resource Record
+
+   The LP DNS resource record (RR) is used to hold the name of a
+   subnetwork for ILNP.  The name is an FQDN which can then be used to
+   look up L32 or L64 records.  LP is, effectively, a Locator Pointer to
+   L32 and/or L64 records.
+
+
+
+
+
+
+Atkinson, et al.              Experimental                     [Page 12]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   As described in [RFC6740], the LP RR provides one level of
+   indirection within the DNS in naming a Locator value.  This is useful
+   in several deployment scenarios, such as for a multihomed site where
+   the multihoming is handled entirely by the site's border routers
+   (e.g., via Locator rewriting) or in some mobile network deployment
+   scenarios [RFC6748].
+
+   LP records MUST NOT be present for owner name values that are not
+   ILNP-capable nodes.  This restriction is important; ILNP-capable
+   nodes use the presence of LP records in the DNS to infer that a
+   correspondent node is also ILNP-capable.  While erroneous LP records
+   in the DNS for an owner name would not prevent communication,
+   presence of such erroneous DNS records could increase the delay at
+   the start of an IP session.
+
+   The type value for the LP RR type is 107.
+
+   The LP RR is class independent.
+
+   The LP RR has no special TTL requirements.
+
+2.4.1.  LP RDATA Wire Format
+
+   The RDATA for an LP RR consists of:
+
+   - an unsigned 16-bit Preference field
+   - a variable-length FQDN field
+
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |          Preference           |                               /
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               /
+    /                                                               /
+    /                              FQDN                             /
+    /                                                               /
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+2.4.1.1.  The Preference Field
+
+   The <Preference> field contains an unsigned 16-bit integer in network
+   byte order that indicates the owner name's relative preference for
+   this LP record among other LP records associated with this owner
+   name.  Lower Preference values are preferred over higher Preference
+   values.
+
+
+
+
+
+
+Atkinson, et al.              Experimental                     [Page 13]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+2.4.1.2.  The FQDN Field
+
+   The variable-length FQDN field contains the DNS target name that is
+   used to reference L32 and/or L64 records.  This field MUST NOT have
+   the same value as the owner name of the LP RR instance.
+
+   A sender MUST NOT use DNS name compression on the FQDN field when
+   transmitting an LP RR.
+
+2.4.2.  LP RR Presentation Format
+
+   The presentation of the format of the RDATA portion is as follows:
+
+   - The Preference field MUST be represented as a 16-bit unsigned
+     decimal integer.
+
+   - The FQDN field MUST be represented as a domain name.
+
+2.4.3.  LP RR Examples
+
+   An LP record has the following logical components:
+
+        <owner-name>  IN  LP  <Preference>   <FQDN>
+
+   In the above, <owner-name> is the owner name string, <Preference> is
+   an unsigned 16-bit value, while <FQDN> is the domain name which
+   should be resolved further.
+
+     host1.example.com. IN LP 10 l64-subnet1.example.com.
+     host1.example.com. IN LP 10 l64-subnet2.example.com.
+     host1.example.com. IN LP 20 l32-subnet1.example.com.
+
+   In the example above, host1.example.com is multihomed on three
+   subnets.  Resolving the FQDNs return in the LP records would allow
+   the actual subnet prefixes to be resolved, e.g., as in the examples
+   for the L32 and L64 RR descriptions, above.  This level of
+   indirection allows the same L32 and/or L64 records to be used by many
+   hosts in the same subnetwork, easing management of the ILNP network
+   and potentially reducing the number of DNS Update transactions,
+   especially when that network is mobile [RAB09] or multihomed
+   [ABH09a].
+
+2.4.4.  Additional Section Processing
+
+   To improve performance, ILNP-aware DNS servers and DNS resolvers MAY
+   attempt to return all L32 and L64 records for the same owner name of
+   the LP RRset in the Additional section of the response, if space
+   permits.
+
+
+
+Atkinson, et al.              Experimental                     [Page 14]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+3.  Deployment Example
+
+   Given a domain name, one can use the Domain Name System (DNS) to
+   discover the set of NID records, the set of L32 records, the set of
+   L64 records, and the set of LP records that are associated with that
+   DNS owner name.
+
+   For example:
+
+     host1.example.com. IN NID 10 0014:4fff:ff20:ee64
+     host1.example.com. IN L64 10 2001:0DB8:1140:1000
+
+   would be the minimum requirement for an ILNPv6 node that has owner
+   name host1.example.com and is connected to the Internet at the
+   subnetwork having routing prefix 2001:0DB8:1140:1000.
+
+   If that host were multihomed on two different IPv6 subnets:
+
+     host1.example.com. IN NID 10 0014:4fff:ff20:ee64
+     host1.example.com. IN L64 10 2001:0DB8:1140:1000
+     host1.example.com. IN L64 20 2001:0DB8:2140:2000
+
+   would indicate the Identifier and two subnets that host1.example.com
+   is attached to, along with the relative preference that a client
+   would use in selecting the Locator value for use in initiating
+   communication.
+
+   If host1.example.com were part of a mobile network, a DNS query might
+   return:
+
+     host1.example.com. IN NID 10 0014:4fff:ff20:ee64
+     host1.example.com. IN LP  10 mobile-net1.example.com.
+
+   and then a DNS query to find the current Locator value(s) for the
+   node named by the LP record:
+
+     mobile-net1.example.com. IN L64 2001:0DB8:8140:8000
+
+3.1.  Use of ILNP Records
+
+   As these DNS records are only used with the Identifier-Locator
+   Network Protocol (ILNP), these records MUST NOT be present for a node
+   that does not support ILNP.  This lookup process is considered to be
+   in the "forward" direction.
+
+   The Preference fields associated with the NID, L32, L64, and LP
+   records are used to indicate the owner name's preference for others
+   to use one particular NID, L32, L64, or LP record, rather than use
+
+
+
+Atkinson, et al.              Experimental                     [Page 15]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   another NID, L32, L64, or LP record also associated with that owner
+   name.  Lower Preference field values are preferred over higher
+   Preference field values.
+
+   It is possible that a DNS stub resolver querying for one of these
+   record types will not receive all NID, L32, L64, and LP RR's in a
+   single response.  Credible anecdotal reports indicate at least one
+   DNS recursive cache implementation actively drops all Additional Data
+   records that were not expected by that DNS recursive cache.  So even
+   if the authoritative DNS server includes all the relevant records in
+   the Additional Data section of the DNS response, the querying DNS
+   stub resolver might not receive all of those Additional Data records.
+   DNS resolvers also might purge some ILNP RRsets before others, for
+   example, if NID RRsets have a longer DNS TTL value than Locator-
+   related (e.g., LP, L32, L64) RRsets.  So a DNS stub resolver sending
+   queries to a DNS resolver cannot be certain if they have obtained all
+   available RRtypes for a given owner name.  Therefore, the DNS stub
+   resolver SHOULD send follow-up DNS queries for RRTYPE values that
+   were missing and are desired, to ensure that the DNS stub resolver
+   receives all the necessary information.
+
+   Note nodes likely either to be mobile or to be multihomed normally
+   will have very low DNS TTL values for L32 and L64 records, as those
+   values might change frequently.  However, the DNS TTL values for NID
+   and LP records normally will be higher, as those values are not
+   normally impacted by node location changes.  Previous trace-driven
+   DNS simulations from MIT [JSBM02] and more recent experimental
+   validation of operational DNS from U. of St Andrews [BA11] both
+   indicate deployment and use of very short DNS TTL values within
+   'stub' or 'leaf' DNS domains is not problematic.
+
+   An ILNP node MAY use any NID value associated with its DNS owner name
+   with any or all Locator (L32 or L64) values also associated with its
+   DNS owner name.
+
+   Existing DNS servers that do not explicitly support the new DNS RRs
+   defined in this specification are expected to follow existing
+   standards for handling unknown DNS RRs [RFC3597].
+
+3.2.  Additional Section Processing
+
+   For all the records above, Additional Section Processing MAY be used.
+   This is intended to improve performance for both the DNS client and
+   the DNS server.  For example, a node sending DNS query for an NID
+   owner name, such as host1.example.com, would benefit from receiving
+   all ILNP DNS records related to that owner name being returned, as it
+   is quite likely that the client will need that information to
+   initiate an ILNP session.
+
+
+
+Atkinson, et al.              Experimental                     [Page 16]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   However, this is not always the case: a DNS query for L64 for a
+   particular owner name might be made because the DNS TTL for a
+   previously resolved L64 RR has expired, while the NID RR for that
+   same owner name has a DNS TTL that has not expired.
+
+4.  Security Considerations
+
+   These new DNS resource record types do not create any new
+   vulnerabilities in the Domain Name System.
+
+   Existing mechanisms for DNS Security can be used unchanged with these
+   record types [RFC4033] [RFC3007].  As of this writing, the DNS
+   Security mechanisms are believed to be widely implemented in
+   currently available DNS servers and DNS clients.  Deployment of DNS
+   Security appears to be growing rapidly.
+
+   In situations where authentication of DNS data is a concern, the DNS
+   Security extensions SHOULD be used [RFC4033].
+
+   If these DNS records are updated dynamically over the network, then
+   the Secure Dynamic DNS Update [RFC3007] mechanism SHOULD be used to
+   secure such transactions.
+
+5.  IANA Considerations
+
+   IANA has allocated each of the following DNS resource records
+   (described above in Section 2) a Data RRTYPE value according to the
+   procedures of Sections 3.1 and 3.1.1 of [RFC6195].
+
+     Type  Value
+     ----  -----
+     NID   104
+     L32   105
+     L64   106
+     LP    107
+
+6.  References
+
+6.1.  Normative References
+
+   [RFC1034]   Mockapetris, P., "Domain names - concepts and
+               facilities", STD 13, RFC 1034, November 1987.
+
+   [RFC1035]   Mockapetris, P., "Domain names - implementation and
+               specification", STD 13, RFC 1035, November 1987.
+
+   [RFC2119]   Bradner, S., "Key words for use in RFCs to Indicate
+               Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+
+
+Atkinson, et al.              Experimental                     [Page 17]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   [RFC3007]   Wellington, B., "Secure Domain Name System (DNS) Dynamic
+               Update", RFC 3007, November 2000.
+
+   [RFC3597]   Gustafsson, A., "Handling of Unknown DNS Resource Record
+               (RR) Types", RFC 3597, September 2003.
+
+   [RFC4033]   Arends, R., Austein, R., Larson, M., Massey, D., and S.
+               Rose, "DNS Security Introduction and Requirements", RFC
+               4033, March 2005.
+
+   [RFC4291]   Hinden, R. and S. Deering, "IP Version 6 Addressing
+               Architecture", RFC 4291, February 2006.
+
+   [RFC6195]   Eastlake 3rd, D., "Domain Name System (DNS) IANA
+               Considerations", BCP 42, RFC 6195, March 2011.
+
+   [RFC6740]   Atkinson, R. and S. Bhatti, "Identifier-Locator Network
+               Protocol (ILNP) Architectural Description", RFC 6740,
+               November 2012.
+
+   [RFC6741]   Atkinson, R. and S. Bhatti, "Identifier-Locator Network
+               Protocol (ILNP) Engineering and Implementation
+               Considerations", RFC 6741, November 2012.
+
+6.2.  Informative References
+
+   [ABH09a]    Atkinson, R., Bhatti, S. and S. Hailes, "Site-Controlled
+               Secure Multi-Homing and Traffic Engineering For IP",
+               Proceedings of IEEE Military Communications Conference,
+               IEEE, Boston, MA, USA, October 2009.
+
+   [BA11]      Bhatti, S. and R. Atkinson, "Reducing DNS Caching",
+               Proceedings of IEEE Global Internet Symposium (GI2011),
+               Shanghai, P.R. China. 15 April 2011.
+               <http://dx.doi.org/10.1109/INFCOMW.2011.5928919>
+
+   [JSBM02]    Jung, J., Sit, E., Balakrishnan, H., and R. Morris, "DNS
+               performance and the effectiveness of caching", IEEE/ACM
+               Trans. Netw. 10(5) (October 2002), pp 589-603.
+               <http://dx.doi.org/10.1109/TNET.2002.803905>
+
+   [PHG02]     Pappas, A., Hailes, S. and R. Giaffreda, "Mobile Host
+               Location Tracking through DNS", IEEE London
+               Communications Symposium, London, England, UK, September
+               2002.
+               <http://www.ee.ucl.ac.uk/lcs/previous/LCS2002/LCS072.pdf>
+
+
+
+
+
+Atkinson, et al.              Experimental                     [Page 18]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+   [RAB09]     Rehunathan, D., Atkinson, R. and S. Bhatti, "Enabling
+               Mobile Networks Through Secure Naming", Proceedings of
+               IEEE Military Communications Conference (MILCOM), IEEE,
+               Boston, MA, USA, October 2009.
+
+   [SB00]      Snoeren, A. and H. Balakrishnan, "An End-To-End Approach
+               To Host Mobility", Proceedings of 6th Conference on
+               Mobile Computing and Networking (MobiCom), ACM, Boston,
+               MA, USA, August 2000.
+
+   [SBK01]     Snoeren, A., Balakrishnan, H., and  M. Frans Kaashoek,
+               "Reconsidering Internet Mobility", Proceedings of 8th
+               Workshop on Hot Topics in Operating Systems (HotOS), IEEE
+               Computer Society, Elmau, Germany, May 2001.
+
+   [RFC4984]   Meyer, D., Ed., Zhang, L., Ed., and K. Fall, Ed., "Report
+               from the IAB Workshop on Routing and Addressing", RFC
+               4984, September 2007.
+
+   [RFC6743]   Atkinson, R. and S. Bhatti, "ICMPv6 Locator Update
+               Message", RFC 6743, November 2012.
+
+   [RFC6744]   Atkinson, R. and S. Bhatti, "IPv6 Nonce Destination
+               Option for the Identifier-Locator Network Protocol for
+               IPv6 (ILNPv6)", RFC 6744, November 2012.
+
+   [RFC6745]   Atkinson, R. and S. Bhatti,  "ICMP Locator Update Message
+               for the Identifier-Locator Network Protocol for IPv4
+               (ILNPv4)", RFC 6745, November 2012.
+
+   [RFC6746]   Atkinson, R. and S.Bhatti, "IPv4 Options for the
+               Identifier-Locator Network Protocol (ILNP)", RFC 6746,
+               November 2012.
+
+   [RFC6747]   Atkinson, R. and S. Bhatti, "Address Resolution Protocol
+               (ARP) Extension for the Identifier-Locator Network
+               Protocol for IPv4 (ILNPv4)", RFC 6747, November 2012.
+
+   [RFC6748]   Atkinson, R. and S. Bhatti, "Optional Advanced Deployment
+               Scenarios for the Identifier-Locator Network Protocol
+               (ILNP)", RFC 6748, November 2012.
+
+
+
+
+
+
+
+
+
+
+Atkinson, et al.              Experimental                     [Page 19]
+
+RFC 6742                        ILNP DNS                   November 2012
+
+
+7.  Acknowledgements
+
+   Steve Blake, Stephane Bortzmeyer, Mohamed Boucadair, Noel Chiappa,
+   Wes George, Steve Hailes, Joel Halpern, Mark Handley, Volker Hilt,
+   Paul Jakma, Dae-Young Kim, Tony Li, Yakov Rehkter, Bruce Simpson,
+   Robin Whittle, and John Wroclawski (in alphabetical order) provided
+   review and feedback on earlier versions of this document.  Steve
+   Blake provided an especially thorough review of an early version of
+   the entire ILNP document set, which was extremely helpful.  We also
+   wish to thank the anonymous reviewers of the various ILNP papers for
+   their feedback.
+
+   Roy Arends provided expert guidance on technical and procedural
+   aspects of DNS issues, for which the authors are greatly obliged.
+
+Authors' Addresses
+
+   RJ Atkinson
+   Consultant
+   San Jose, CA 95125
+   USA
+
+   EMail: rja.lists@gmail.com
+
+
+   SN Bhatti
+   School of Computer Science
+   University of St Andrews
+   North Haugh, St Andrews
+   Fife, Scotland
+   KY16 9SX, UK
+
+   EMail: saleem@cs.st-andrews.ac.uk
+
+
+   Scott Rose
+   US National Institute for Standards & Technology
+   100 Bureau Drive
+   Gaithersburg, MD 20899
+   USA
+
+   EMail: scottr.nist@gmail.com
+
+
+
+
+
+
+
+
+
+Atkinson, et al.              Experimental                     [Page 20]
+
