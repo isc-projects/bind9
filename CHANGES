@@ -1,3 +1,5 @@
+3454.	[port]		sparc64: improve atomic support. [RT #25182]
+
 3453.	[bug]		'rndc addzone' of a zone with 'inline-signing yes;'
 			failed. [RT #31960]
 
