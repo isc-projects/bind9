@@ -141,3 +141,6 @@
 5933:	Use of GOST Signature Algorithms in DNSKEY
          and RRSIG Resource Records for DNSSEC
 6303:	Locally Served DNS Zones
+6742:	DNS Resource Records for the
+	 Identifier-Locator Network Protocol (ILNP)
+
