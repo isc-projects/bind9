@@ -80,7 +80,7 @@ fromtext_dlv(ARGS_FROMTEXT) {
 		length = ISC_SHA256_DIGESTLENGTH;
 	else
 		length = -1;
-	return (isc_hex_tobuffer(lexer, target, -1));
+	return (isc_hex_tobuffer(lexer, target, length));
 }
 
 static inline isc_result_t
