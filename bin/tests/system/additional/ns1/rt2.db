@@ -1,0 +1,9 @@
+$TTL 86400
+@ IN SOA ns1 hostmaster ( 2 8H 2H 4W 1D );
+    NS ns1
+ns1 A 127.0.0.0
+
+rt RT 2 www.hang3b.zone.
+server SRV 0 0 5061 server
+server A 192.168.2.9
+server AAAA 192::9
