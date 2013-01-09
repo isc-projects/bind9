@@ -1,3 +1,5 @@
+3456.	[port]		g++47: aft fails to compile. [RT #32012]
+
 3455.	[contrib]	queryperf: fix getopt option list. [RT #32338]
 
 3454.	[port]		sparc64: improve atomic support. [RT #25182]
