@@ -33,7 +33,7 @@ my @ids;
 if ($id != 0) {
 	@ids = ($id);
 } else {
-	@ids = (1..7);
+	@ids = (1..8);
 }
 
 foreach $id (@ids) {
