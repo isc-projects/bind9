@@ -2177,7 +2177,7 @@ static isc_result_t
 openfile_fast(dns_loadctx_t *lctx, const char *master_file) {
 	isc_result_t result;
 
-	result = isc_stdio_open(master_file, "r", &lctx->f);
+	result = isc_stdio_open(master_file, "rb", &lctx->f);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_stdio_open() failed: %s",
@@ -2216,7 +2216,7 @@ static isc_result_t
 openfile_raw(dns_loadctx_t *lctx, const char *master_file) {
 	isc_result_t result;
 
-	result = isc_stdio_open(master_file, "r", &lctx->f);
+	result = isc_stdio_open(master_file, "rb", &lctx->f);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_stdio_open() failed: %s",
