@@ -44,11 +44,11 @@ CHECKCONF=$TOP/bin/check/named-checkconf
 # load on the machine to make it unusable to other users.
 # v6synth
 SUBDIRS="acl additional allow_query builtin cacheclean checkconf
-	 checknames checkzone database dlv dlz dname dnssec forward
-	 glue ixfr limits logfileconfig lwresd masterfile masterformat
-	 notify nsupdate pending resolver rndc rrsetorder sortlist
-	 stub tkey unknown upforwd views wildcard xfer xferquota
-	 zonechecks"
+	 checknames checkzone database dlv dlz dname dnssec formerr
+	 forward glue ixfr limits logfileconfig lwresd masterfile
+	 masterformat notify nsupdate pending resolver rndc rrsetorder
+	 sortlist stub tkey unknown upforwd views wildcard xfer
+	 xferquota zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@

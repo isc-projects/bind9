@@ -265,6 +265,7 @@ dns_result_torcode(isc_result_t result) {
 	case DNS_R_TOOMANYHOPS:
 	case DNS_R_TSIGERRORSET:
 	case DNS_R_UNKNOWN:
+	case DNS_R_NAMETOOLONG:
 		rcode = dns_rcode_formerr;
 		break;
 	case DNS_R_DISALLOWED:
