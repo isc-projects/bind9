@@ -275,6 +275,14 @@ tlsa			TLSA	( 1 1 2 92003ba34942dc74152e2f2c408d29ec
 				1b177615d466f6c4b71c216a50292bd5
 				8c9ebdd2f74e38fe51ffd48c43326cbc )
 
+nid			NID	10 0014:4fff:ff20:ee64
+
+l32			L32	10 1.2.3.4
+
+l64			L64	10 0014:4fff:ff20:ee64
+
+lp			LP	10 example.net.
+
 ; type 255
 ; TSIG is a meta-type and should never occur in master files.
 EOF
