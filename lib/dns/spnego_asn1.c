@@ -178,9 +178,8 @@ encode_MechType(unsigned char *p, size_t len, const MechType * data, size_t * si
 {
 	size_t ret = 0;
 	size_t l;
-	int i, e;
+	int e;
 
-	i = 0;
 	e = encode_oid(p, len, data, &l);
 	BACK;
 	*size = ret;
@@ -192,12 +191,11 @@ encode_MechType(unsigned char *p, size_t len, const MechType * data, size_t * si
 static int
 decode_MechType(const unsigned char *p, size_t len, MechType * data, size_t * size)
 {
-	size_t ret = 0, reallen;
+	size_t ret = 0;
 	size_t l;
 	int e;
 
 	memset(data, 0, sizeof(*data));
-	reallen = 0;
 	e = decode_oid(p, len, data, &l);
 	FORW;
 	if (size)
@@ -318,9 +316,8 @@ encode_ContextFlags(unsigned char *p, size_t len, const ContextFlags * data, siz
 {
 	size_t ret = 0;
 	size_t l;
-	int i, e;
+	int e;
 
-	i = 0;
 	{
 		unsigned char c = 0;
 		*p-- = c;
@@ -431,9 +428,8 @@ encode_NegTokenInit(unsigned char *p, size_t len, const NegTokenInit * data, siz
 {
 	size_t ret = 0;
 	size_t l;
-	int i, e;
+	int e;
 
-	i = 0;
 	if ((data)->mechListMIC) {
 		int oldret = ret;
 		ret = 0;
@@ -659,9 +655,8 @@ encode_NegTokenResp(unsigned char *p, size_t len, const NegTokenResp * data, siz
 {
 	size_t ret = 0;
 	size_t l;
-	int i, e;
+	int e;
 
-	i = 0;
 	if ((data)->mechListMIC) {
 		int oldret = ret;
 		ret = 0;
