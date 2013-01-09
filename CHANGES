@@ -1,6 +1,6 @@
 3457.	[protocol]	Add ILNP records (NID, LP, L32, L64). [RT #31836]
 
-3456.	[port]		g++47: aft fails to compile. [RT #32012]
+3456.	[port]		g++47: ATF failed to compile. [RT #32012]
 
 3455.	[contrib]	queryperf: fix getopt option list. [RT #32338]
 
