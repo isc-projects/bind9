@@ -672,6 +672,14 @@
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2010,2012
 ./bin/tests/system/dnssec/signer/example.db.in	ZONE	2010,2012
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./bin/tests/system/formerr/clean.sh		SH	2013
+./bin/tests/system/formerr/formerr.pl		PERL	2013
+./bin/tests/system/formerr/nametoolong		X	2013
+./bin/tests/system/formerr/noquestions		X	2013
+./bin/tests/system/formerr/ns1/named.conf	CONF-C	2013
+./bin/tests/system/formerr/ns1/root.db		ZONE	2013
+./bin/tests/system/formerr/tests.sh		SH	2013
+./bin/tests/system/formerr/twoquestions		X	2013
 ./bin/tests/system/forward/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/forward/ns1/example.db	X	2000,2001
 ./bin/tests/system/forward/ns1/named.conf	CONF-C	2000,2001,2004,2007
