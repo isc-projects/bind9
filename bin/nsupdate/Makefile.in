@@ -23,6 +23,8 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
+READLINE_LIB = @READLINE_LIB@
+
 CINCLUDES =	${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
 		${ISC_INCLUDES} ${ISCCFG_INCLUDES} @DST_GSSAPI_INC@
 
@@ -72,7 +74,7 @@ nsupdate.@O@: nsupdate.c
 		-c ${srcdir}/nsupdate.c
 
 nsupdate@EXEEXT@: nsupdate.@O@ ${UOBJS} ${DEPLIBS}
-	export BASEOBJS="nsupdate.@O@ ${UOBJS}"; \
+	export BASEOBJS="${READLINE_LIB} nsupdate.@O@ ${UOBJS}"; \
 	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}
