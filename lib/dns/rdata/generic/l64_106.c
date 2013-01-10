@@ -219,10 +219,4 @@ checknames_l64(ARGS_CHECKNAMES) {
 
 	return (ISC_TRUE);
 }
-
-static inline int
-casecompare_l64(ARGS_COMPARE) {
-	return (compare_l64(rdata1, rdata2));
-}
-
 #endif	/* RDATA_GENERIC_L64_106_C */

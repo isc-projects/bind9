@@ -219,10 +219,4 @@ checknames_nid(ARGS_CHECKNAMES) {
 
 	return (ISC_TRUE);
 }
-
-static inline int
-casecompare_nid(ARGS_COMPARE) {
-	return (compare_nid(rdata1, rdata2));
-}
-
 #endif	/* RDATA_GENERIC_NID_104_C */

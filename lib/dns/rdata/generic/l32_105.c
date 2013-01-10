@@ -224,10 +224,4 @@ checknames_l32(ARGS_CHECKNAMES) {
 
 	return (ISC_TRUE);
 }
-
-static inline int
-casecompare_l32(ARGS_COMPARE) {
-	return (compare_l32(rdata1, rdata2));
-}
-
 #endif	/* RDATA_GENERIC_L32_105_C */
