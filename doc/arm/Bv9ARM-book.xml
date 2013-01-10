@@ -10239,8 +10239,8 @@ ns.domain.com.rpz-nsdname   CNAME   .
           <title><command>managed-keys</command> Statement Grammar</title>
 
 <programlisting><command>managed-keys</command> {
-    <replaceable>string</replaceable> initial-key <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ;
-    <optional> <replaceable>string</replaceable> initial-key <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; <optional>...</optional></optional>
+    <replaceable>name</replaceable> <literal>initial-key</literal> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key-data</replaceable> ;
+    <optional> <replaceable>name</replaceable> <literal>initial-key</literal> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key-data</replaceable> ; <optional>...</optional></optional>
 };
 </programlisting>
 
@@ -10348,13 +10348,16 @@ ns.domain.com.rpz-nsdname   CNAME   .
             <command>named</command>.)
 	  </para>
 	  <para>
-	    If the <command>dnssec-lookaside</command> option is
+	    If the <command>dnssec-validation</command> option is
 	    set to <userinput>auto</userinput>, <command>named</command>
 	    will automatically initialize a managed key for the
-	    zone <literal>dlv.isc.org</literal>.  The key that is
-	    used to initialize the key maintenance process is built
-	    into <command>named</command>, and can be overridden
-	    from <command>bindkeys-file</command>.
+            root zone.  Similarly, if the <command>dnssec-lookaside</command>
+            option is set to <userinput>auto</userinput>,
+            <command>named</command> will automatically initialize
+            a managed key for the zone <literal>dlv.isc.org</literal>.
+            In both cases, the key that is used to initialize the key
+            maintenance process is built into <command>named</command>,
+            and can be overridden from <command>bindkeys-file</command>.
 	  </para>
 	</sect2>
 
