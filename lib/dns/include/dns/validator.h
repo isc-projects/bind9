@@ -104,6 +104,10 @@ typedef struct dns_validatorevent {
 	 * Optout proof seen.
 	 */
 	isc_boolean_t			optout;
+	/*
+	 * Answer is secure.
+	 */
+	isc_boolean_t			secure;
 } dns_validatorevent_t;
 
 #define DNS_VALIDATOR_NOQNAMEPROOF 0

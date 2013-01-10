@@ -448,6 +448,7 @@ static isc_result_t ncache_adderesult(dns_message_t *message,
 				      dns_rdatatype_t covers,
 				      isc_stdtime_t now, dns_ttl_t maxttl,
 				      isc_boolean_t optout,
+				      isc_boolean_t secure,
 				      dns_rdataset_t *ardataset,
 				      isc_result_t *eresultp);
 static void validated(isc_task_t *task, isc_event_t *event);
@@ -4224,7 +4225,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 		result = ncache_adderesult(fctx->rmessage, fctx->cache, node,
 					   covers, now, ttl, vevent->optout,
-					   ardataset, &eresult);
+					   vevent->secure, ardataset, &eresult);
 		if (result != ISC_R_SUCCESS)
 			goto noanswer_response;
 		goto answer_response;
@@ -4966,8 +4967,8 @@ cache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_stdtime_t now)
 static isc_result_t
 ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
-		  isc_boolean_t optout, dns_rdataset_t *ardataset,
-		  isc_result_t *eresultp)
+		  isc_boolean_t optout, isc_boolean_t secure,
+		  dns_rdataset_t *ardataset, isc_result_t *eresultp)
 {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
@@ -4976,8 +4977,12 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		dns_rdataset_init(&rdataset);
 		ardataset = &rdataset;
 	}
-	result = dns_ncache_addoptout(message, cache, node, covers, now,
-				     maxttl, optout, ardataset);
+	if (secure) 
+		result = dns_ncache_addoptout(message, cache, node, covers,
+					      now, maxttl, optout, ardataset);
+	else
+		result = dns_ncache_add(message, cache, node, covers, now,
+				        maxttl, ardataset);
 	if (result == DNS_R_UNCHANGED || result == ISC_R_SUCCESS) {
 		/*
 		 * If the cache now contains a negative entry and we
@@ -5144,7 +5149,7 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
 	result = ncache_adderesult(fctx->rmessage, fctx->cache, node,
 				   covers, now, ttl, ISC_FALSE,
-				   ardataset, &eresult);
+				   ISC_FALSE, ardataset, &eresult);
 	if (result != ISC_R_SUCCESS)
 		goto unlock;
 

@@ -4313,7 +4313,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 */
 				if (found &&
 				    dns_rdataset_isassociated(rdataset) &&
-				    !dns_name_equal(qname, found))
+				    !dns_name_equal(qname, found) &&
+				    !(ns_g_nonearest &&
+				      qtype != dns_rdatatype_ds))
 				{
 					unsigned int count;
 					unsigned int skip;

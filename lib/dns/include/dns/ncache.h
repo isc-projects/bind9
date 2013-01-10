@@ -73,6 +73,11 @@ dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
  * rdataset, and store it in 'cache' at 'node' with a TTL limited to
  * 'maxttl'.
  *
+ * \li dns_ncache_add produces a negative cache entry with a trust of no
+ *     more than answer
+ * \li dns_ncache_addoptout produces a negative cache entry which will have
+ *     a trust of secure if all the records that make up the entry are secure.
+ *
  * The 'covers' argument is the RR type whose nonexistence we are caching,
  * or dns_rdatatype_any when caching a NXDOMAIN response.
  *
