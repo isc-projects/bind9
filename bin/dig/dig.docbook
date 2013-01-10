@@ -116,9 +116,10 @@
 
     <para>
       Unless it is told to query a specific name server,
-      <command>dig</command> will try each of the servers listed
-      in
-      <filename>/etc/resolv.conf</filename>.
+      <command>dig</command> will try each of the servers listed in
+      <filename>/etc/resolv.conf</filename>. If no usable server addreses
+      are found, <command>dig</command> will send the query to the local
+      host.
     </para>
 
     <para>
@@ -157,20 +158,25 @@
           <term><constant>server</constant></term>
           <listitem>
             <para>
-              is the name or IP address of the name server to query.  This can
-              be an IPv4
-              address in dotted-decimal notation or an IPv6
+              is the name or IP address of the name server to query.  This
+              can be an IPv4 address in dotted-decimal notation or an IPv6
               address in colon-delimited notation.  When the supplied
-              <parameter>server</parameter> argument is a
-              hostname,
-              <command>dig</command> resolves that name before
-              querying that name
-              server.  If no <parameter>server</parameter>
-              argument is provided,
-              <command>dig</command> consults <filename>/etc/resolv.conf</filename>
-              and queries the name servers listed there.  The reply from the
-              name
-              server that responds is displayed.
+              <parameter>server</parameter> argument is a hostname,
+              <command>dig</command> resolves that name before querying
+              that name server.
+            </para>
+            <para>
+              If no <parameter>server</parameter> argument is
+              provided, <command>dig</command> consults
+              <filename>/etc/resolv.conf</filename>; if an
+              address is found there, it queries the name server at
+              that address. If either of the <option>-4</option> or
+              <option>-6</option> options are in use, then
+              only addresses for the corresponding transport
+              will be tried.  If no usable addresses are found,
+              <command>dig</command> will send the query to the
+              local host.  The reply from the name server that
+              responds is displayed.
             </para>
           </listitem>
         </varlistentry>
