@@ -2369,8 +2369,11 @@ no)	;;
 	saved_LIBS="$LIBS"
 	LIBS="$readline"
 	AC_CHECK_FUNCS(readline)
+	if test "$ac_cv_func_readline" = "yes"
+	then
+		READLINE_LIB="$readline"
+	fi
 	LIBS="$saved_LIBS"
-	READLINE_LIB="$readline"
         ;;
 esac
 
