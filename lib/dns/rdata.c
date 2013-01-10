@@ -240,13 +240,12 @@ locator_pton(const char *src, unsigned char *dst) {
 			  xdigits_u[] = "0123456789ABCDEF";
 	unsigned char tmp[NS_LOCATORSZ];
 	unsigned char *tp = tmp, *endp;
-	const char *xdigits, *curtok;
+	const char *xdigits;
 	int ch, seen_xdigits;
 	unsigned int val;
 
 	memset(tp, '\0', NS_LOCATORSZ);
 	endp = tp + NS_LOCATORSZ;
-	curtok = src;
 	seen_xdigits = 0;
 	val = 0;
 	while ((ch = *src++) != '\0') {
@@ -263,7 +262,6 @@ locator_pton(const char *src, unsigned char *dst) {
 			continue;
 		}
 		if (ch == ':') {
-			curtok = src;
 			if (!seen_xdigits)
 				return (0);
 			if (tp + NS_INT16SZ > endp)
