@@ -195,6 +195,7 @@ marksecure(dns_validatorevent_t *event) {
 	dns_rdataset_settrust(event->rdataset, dns_trust_secure);
 	if (event->sigrdataset != NULL)
 		dns_rdataset_settrust(event->sigrdataset, dns_trust_secure);
+	event->secure = ISC_TRUE;
 }
 
 static void
@@ -2852,6 +2853,8 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			      "nonexistence proof(s) found");
 		if (val->event->message == NULL)
 			marksecure(val->event);
+		else
+			val->event->secure = ISC_TRUE;
 		return (ISC_R_SUCCESS);
 	}
 
@@ -3739,6 +3742,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	event->message = message;
 	memset(event->proofs, 0, sizeof(event->proofs));
 	event->optout = ISC_FALSE;
+	event->secure = ISC_FALSE;
 	result = isc_mutex_init(&val->lock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_event;

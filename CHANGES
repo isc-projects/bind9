@@ -1,3 +1,6 @@
+3461.	[bug]		Negative responses could incorrectly have AD=1
+			set. [RT #32237]
+
 3460.	[bug]		Only link against readline where needed. [RT #29810]
 
 3458.	[bug]		Return FORMERR when presented with a overly long
