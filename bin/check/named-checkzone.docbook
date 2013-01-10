@@ -67,6 +67,7 @@
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-f <replaceable class="parameter">format</replaceable></option></arg>
       <arg><option>-F <replaceable class="parameter">format</replaceable></option></arg>
+      <arg><option>-J <replaceable class="parameter">filename</replaceable></option></arg>
       <arg><option>-i <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-k <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-m <replaceable class="parameter">mode</replaceable></option></arg>
@@ -94,6 +95,7 @@
       <arg><option>-C <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-f <replaceable class="parameter">format</replaceable></option></arg>
       <arg><option>-F <replaceable class="parameter">format</replaceable></option></arg>
+      <arg><option>-J <replaceable class="parameter">filename</replaceable></option></arg>
       <arg><option>-i <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-k <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-m <replaceable class="parameter">mode</replaceable></option></arg>
@@ -177,7 +179,19 @@
         <term>-j</term>
         <listitem>
           <para>
-            When loading the zone file read the journal if it exists.
+            When loading a zone file, read the journal if it exists.
+            The journal file name is assumed to be the zone file name
+	    appended with the string <filename>.jnl</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-J <replaceable class="parameter">filename</replaceable></term>
+        <listitem>
+          <para>
+            When loading the zone file read the journal from the given
+            file, if it exists. (Implies -j.)
           </para>
         </listitem>
       </varlistentry>

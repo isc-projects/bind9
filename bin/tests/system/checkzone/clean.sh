@@ -14,4 +14,4 @@
 
 # $Id: clean.sh,v 1.2 2011/03/02 04:20:33 marka Exp $
 
-rm -f test.out.*
+rm -f test.*

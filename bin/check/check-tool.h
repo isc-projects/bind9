@@ -50,6 +50,7 @@ void DestroySockets(void);
 #endif
 
 extern int debug;
+extern const char *journal;
 extern isc_boolean_t nomerge;
 extern isc_boolean_t docheckmx;
 extern isc_boolean_t docheckns;

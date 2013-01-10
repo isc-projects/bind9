@@ -12,8 +12,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2011/03/02 04:20:33 marka Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -29,5 +27,20 @@ do
 	if [ $ret != 0 ]; then echo "I:failed"; fi
 	status=`expr $status + $ret`
 done
+
+echo "I:checking with journal file ($n)"
+ret=0
+$CHECKZONE -D -o test.orig.db test zones/test1.db > /dev/null 2>&1 || ret=1
+$CHECKZONE -D -o test.changed.db test zones/test2.db > /dev/null 2>&1 || ret=1
+../../makejournal test test.orig.db test.changed.db test.orig.db.jnl 2>&1 || ret=1
+jlines=`$JOURNALPRINT test.orig.db.jnl | wc -l`
+[ $jlines = 3 ] || ret=1
+$CHECKZONE -D -j -o test.out1.db test test.orig.db > /dev/null 2>&1 || ret=1
+cmp -s test.changed.db test.out1.db || ret=1
+mv -f test.orig.db.jnl test.journal
+$CHECKZONE -D -J test.journal -o test.out2.db test test.orig.db > /dev/null 2>&1 || ret=1
+cmp -s test.changed.db test.out2.db || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 exit $status
