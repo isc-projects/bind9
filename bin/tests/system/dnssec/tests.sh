@@ -1623,5 +1623,25 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check against against missing nearest provable proof ($n)"
+$DIG $DIGOPTS +norec b.c.d.optout-tld. \
+	@10.53.0.6 ds > dig.out.ds.ns6.test$n || ret=1
+nsec3=`grep "IN.NSEC3" dig.out.ds.ns6.test$n | wc -l`
+[ $nsec3 -eq 2 ] || ret=1
+$DIG $DIGOPTS +norec b.c.d.optout-tld. \
+	@10.53.0.6 A > dig.out.ns6.test$n || ret=1
+nsec3=`grep "IN.NSEC3" dig.out.ns6.test$n | wc -l`
+[ $nsec3 -eq 1 ] || ret=1
+$DIG $DIGOPTS optout-tld. \
+	@10.53.0.4 SOA > dig.out.soa.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.soa.ns4.test$n > /dev/null || ret=1
+$DIG $DIGOPTS b.c.d.optout-tld. \
+	@10.53.0.4 A > dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

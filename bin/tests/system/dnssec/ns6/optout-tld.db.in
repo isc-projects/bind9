@@ -1,5 +1,4 @@
-; Copyright (C) 2004, 2007, 2010  Internet Systems Consortium, Inc. ("ISC")
-; Copyright (C) 2000, 2001  Internet Software Consortium.
+; Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -13,24 +12,15 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: root.db.in,v 1.12 2010/11/17 23:47:08 tbox Exp $
-
-$TTL 300
-. 			IN SOA	gson.nominum.com. a.root.servers.nil. (
-				2000042100   	; serial
-				600         	; refresh
-				600         	; retry
-				1200    	; expire
-				600       	; minimum
-				)
-.			NS	a.root-servers.nil.
-a.root-servers.nil.	A	10.53.0.1
-
-example.		NS	ns2.example.
-ns2.example.		A	10.53.0.2
-dlv.			NS	ns2.dlv.
-ns2.dlv.		A	10.53.0.2
-algroll			NS	ns2.algroll
-ns2.algroll.		A	10.53.0.2
-optout-tld		NS	ns6.optout-tld.
-ns6.optout-tld.		A	10.53.0.6
+; $Id: example.db.in,v 1.2 2010/06/03 06:29:03 marka Exp $
+$TTL 60
+optout-tld. 60 IN SOA example. . 0 0 0 0 0
+optout-tld. 60 IN NS ns6.optout-tld.
+ns6.optout-tld. 60 IN A 10.53.0.6
+a 60 PTR example.
+b 60 PTR example.
+a.b.c.d 60 NS example.
+e 60 PTR example.
+f 60 PTR example.
+g 60 PTR example.
+h 60 PTR example.
