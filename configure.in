@@ -2355,6 +2355,7 @@ AC_CHECK_FUNC(strlcat,
 AC_SUBST(ISC_PLATFORM_NEEDSTRLCAT)
 
 
+AC_SUBST(READLINE_LIB)
 AC_ARG_WITH(readline,
         [  --with-readline[=LIBSPEC]    specify readline library [default -lreadline]],
         readline="$withval", readline="-lreadline")
@@ -2366,12 +2367,10 @@ no)	;;
 		readline=-lreadline
 	fi
 	saved_LIBS="$LIBS"
-	LIBS="$LIBS $readline"
+	LIBS="$readline"
 	AC_CHECK_FUNCS(readline)
-	if test "$ac_cv_func_readline" = "no" 
-	then
-		LIBS="$saved_LIBS"
-	fi
+	LIBS="$saved_LIBS"
+	READLINE_LIB="$readline"
         ;;
 esac
 
