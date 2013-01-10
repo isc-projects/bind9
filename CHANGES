@@ -161,6 +161,9 @@
 			add NS RRsets to the additional section or not.
 			[RT #30479]
 
+2512.	[func]		Print a summary of the cached records which make up
+			the negative response.  [RT #18885]
+
 	--- 9.6-ESV-R8 released ---
 
 3383.	[security]	A certain combination of records in the RBT could
