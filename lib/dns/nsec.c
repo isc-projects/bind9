@@ -327,7 +327,7 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, dns_name_t *name,
 	}
 	dns_rdataset_current(nsecset, &rdata);
 
-	(*logit)(arg, ISC_LOG_DEBUG(3), "looking for relevant nsec");
+	(*logit)(arg, ISC_LOG_DEBUG(3), "looking for relevant NSEC");
 	relation = dns_name_fullcompare(name, nsecname, &order, &olabels);
 
 	if (order < 0) {

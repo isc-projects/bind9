@@ -27,10 +27,12 @@ infile=root.db.in
 zonefile=root.db
 
 (cd ../ns2 && sh sign.sh )
+(cd ../ns6 && sh sign.sh )
 
 cp ../ns2/dsset-example. .
 cp ../ns2/dsset-dlv. .
 grep "8 [12] " ../ns2/dsset-algroll. > dsset-algroll.
+cp ../ns6/dsset-optout-tld. .
 
 keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
 
