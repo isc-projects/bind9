@@ -203,7 +203,7 @@
 ./bin/named/named.html				HTML	DOCBOOK
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006,2007
 ./bin/named/statschannel.c			C	2008,2009,2010,2011,2012
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006,2007,2009,2010,2012
@@ -238,7 +238,10 @@
 ./bin/pkcs11/include/pkcs11f.h			X	2009
 ./bin/pkcs11/include/pkcs11t.h			X	2009
 ./bin/pkcs11/openssl-0.9.8s-patch		X	2012
+./bin/pkcs11/openssl-0.9.8x-patch		X	2013
 ./bin/pkcs11/openssl-1.0.0f-patch		X	2012
+./bin/pkcs11/openssl-1.0.0j-patch		X	2013
+./bin/pkcs11/openssl-1.0.1c-patch		X	2013
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-destroy.c			X	2009,2010
 ./bin/pkcs11/pkcs11-destroy.docbook		SGML	2009
@@ -786,7 +789,7 @@
 ./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011,2012
 ./bin/tests/system/dlzexternal/clean.sh		X	2010,2012
 ./bin/tests/system/dlzexternal/dlopen.c		C	2011
-./bin/tests/system/dlzexternal/driver.c		C	2011,2012
+./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013
 ./bin/tests/system/dlzexternal/driver.h		C	2011
 ./bin/tests/system/dlzexternal/ns1/.gitignore	X	2012
 ./bin/tests/system/dlzexternal/ns1/named.conf.in	CONF-C	2011,2012
@@ -1688,9 +1691,9 @@
 ./contrib/dlz/drivers/include/dlz/sdlz_helper.h	X	2005
 ./contrib/dlz/drivers/rules.in			X	2005,2010
 ./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010,2011,2012
-./contrib/dlz/example/Makefile			X	2010
+./contrib/dlz/example/Makefile			X	2010,2013
 ./contrib/dlz/example/README			X	2011,2012
-./contrib/dlz/example/dlz_example.c		X	2010,2011,2012
+./contrib/dlz/example/dlz_example.c		X	2010,2011,2012,2013
 ./contrib/dlz/example/dlz_minimal.h		X	2010,2011,2012
 ./contrib/dlz/example/named.conf		X	2011
 ./contrib/dlz/example/win32/DLLMain.c		X	2011
@@ -2227,7 +2230,7 @@
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008,2012
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
-./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012
+./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007,2009
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007,2011,2012
@@ -2238,7 +2241,7 @@
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005,2007,2008,2009,2011
-./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
+./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005,2007,2009,2010,2011,2012
 ./lib/dns/dns64.c				C	2010,2011
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
@@ -2343,7 +2346,7 @@
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006,2007,2012
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009
-./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/include/dns/zonekey.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2011
 ./lib/dns/include/dst/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012
@@ -2597,7 +2600,7 @@
 ./lib/dns/win32/gen.dsp				X	2001
 ./lib/dns/win32/gen.dsw				X	2001
 ./lib/dns/win32/gen.mak				X	2001,2006
-./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/win32/libdns.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
