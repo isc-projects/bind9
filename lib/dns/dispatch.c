@@ -2718,12 +2718,16 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 			isc_sockaddr_setport(&localaddr_bound, prt);
 			result = open_socket(sockmgr, &localaddr_bound,
 					     0, &sock);
-			if (result == ISC_R_SUCCESS ||
-			    result != ISC_R_ADDRINUSE) {
-				disp->localport = prt;
-				*sockp = sock;
-				return (result);
-			}
+			/*
+			 * Continue if the port choosen is already in use
+			 * or the OS has reserved it.
+			 */
+			if (result == ISC_R_NOPERM ||
+			    result == ISC_R_ADDRINUSE)
+				continue;
+			disp->localport = prt;
+			*sockp = sock;
+			return (result);
 		}
 
 		/*

@@ -1,5 +1,7 @@
 	--- 9.6-ESV-R9b1 released ---
 
+3465.	[bug]		Handle isolated reserved ports. [RT #31778]
+
 3462.	[doc]		Clarify server selection behavior of dig when using
 			-4 or -6 options. [RT #32181]
 
