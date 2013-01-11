@@ -8117,7 +8117,8 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 		isc_buffer_putstr(text, "request queued");
 		isc_buffer_putuint8(text, 0);
 	} else if (chain) {
-		CHECK(dns_zone_setnsec3param(zone, hash, flags, iter,
+		CHECK(dns_zone_setnsec3param(zone, (isc_uint8_t)hash,
+					     (isc_uint8_t)flags, iter,
 					     (isc_uint8_t)saltlen, salt,
 					     ISC_TRUE));
 		isc_buffer_putstr(text, "request queued");
