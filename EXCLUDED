@@ -1,34 +1,80 @@
-3370.   [bug]           Address use after free while shutting down. [RT #30241]
+3460.	[bug]		Only link against readline where needed. [RT #29810]
 
-3368.   [bug]           <dns/iptable.h>, <dns/private.h> and <dns/zone.h>
-                        were not C++ safe.
+3453.	[bug]		'rndc addzone' of a zone with 'inline-signing yes;'
+			failed. [RT #31960]
 
-3361.   [bug]           "rndc signing -nsec3param" didn't work correctly
-                        when salt was set to '-' (no salt). [RT #30099]
+3434.	[bug]		Pass client info to the DLZ findzone() entry
+			point in addition to lookup().  This makes it
+			possible for a database to answer differently
+			whether it's authoritative for a name depending
+			on the address of the client.  [RT #31775]
 
-3355.   [port]          Use more portable awk in verify system test.
+3433.	[bug]		dlz_findzone() did not correctly handle
+			ISC_R_NOMORE. [RT #31172]
 
-3349.   [bug]           Change #3345 was incomplete. [RT #30233]
+3426.	[bug]		dnssec-checkds: Clearer output when records are not
+			found. [RT #31968]
 
-3345.   [bug]           Addressed race condition when removing the last item
-                        or inserting the first item in an ISC_QUEUE.
-                        [RT #29539]
+3423.	[bug]		"rndc signing -nsec3param" didn't accept the full
+			range of possible values.  Address portability issues.
+			[RT #31938]
 
-3338.   [bug]           Address race condition in units tests: asyncload_zone
-                        and asyncload_zt. [RT #26100]
+3416.	[bug]		Named could die on shutdown if running with 128 UDP
+			dispatches per interface. [RT #31743]
 
-3334.   [bug]           Hold a zone table reference while performing a
-                        asyncronous load of a zone. [RT #28326]
+3414.	[bug]		Address locking issues found by Coverity. [RT #31626]
 
-3324.   [test]          Add better tests for ADB stats [RT #27057]
+3408.	[bug]		Some DNSSEC-related options (update-check-ksk,
+			dnssec-loadkeys-interval, dnssec-dnskey-kskonly)
+			are now legal in slave zones as long as
+			inline-signing is in use. [RT #31078]
 
-3316.   [tuning]        Improved locking performance when recursing.
-                        [RT #28836]
+3399.	[port]		netbsd: rename 'bool' parameter to avoid namespace
+			clash.  [RT #31515]
 
-3315.   [tuning]        Use multiple dispatch objects for sending upstream
-                        queries; this can improve performance on busy
-                        multiprocessor systems by reducing lock contention.
-                        [RT #28605]
+3398.	[bug]		SOA parameters were not being updated with inline
+			signed zones if the zone was modified while the
+			server was offline. [RT #29272]
+
+3385.	[bug]		named-checkconf didn't detect missing master lists
+			in also-notify clauses. [RT #30810]
+
+3377.	[bug]		Removed spurious newline from NSEC3 multiline
+			output. [RT #31044]
+
+3375.	[bug]		'rndc dumpdb' failed on empty caches. [RT #30808]
+
+3370.	[bug]		Address use after free while shutting down. [RT #30241]
+
+3368.	[bug]		<dns/iptable.h>, <dns/private.h> and <dns/zone.h>
+			were not C++ safe.
+
+3361.	[bug]		"rndc signing -nsec3param" didn't work correctly
+			when salt was set to '-' (no salt). [RT #30099]
+
+3355.	[port]		Use more portable awk in verify system test.
+
+3349.	[bug]		Change #3345 was incomplete. [RT #30233]
+
+3345.	[bug]		Addressed race condition when removing the last item
+			or inserting the first item in an ISC_QUEUE.
+			[RT #29539]
+
+3338.	[bug]		Address race condition in units tests: asyncload_zone
+			and asyncload_zt. [RT #26100]
+
+3334.	[bug]		Hold a zone table reference while performing a
+			asyncronous load of a zone. [RT #28326]
+
+3324.	[test]		Add better tests for ADB stats [RT #27057]
+
+3316.	[tuning]	Improved locking performance when recursing.
+			[RT #28836]
+
+3315.	[tuning]	Use multiple dispatch objects for sending upstream
+			queries; this can improve performance on busy
+			multiprocessor systems by reducing lock contention.
+			[RT #28605]
 
 3303.	[bug]		named could die when reloading. [RT #28606]
 

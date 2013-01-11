@@ -1,9 +1,9 @@
+	--- 9.8.5b1 released ---
+
 3465.	[bug]		Handle isolated reserved ports. [RT #31778]
 
 3464.	[maint]		Updates to PKCS#11 openssl patches, supporting
 			versions 0.9.8x, 1.0.0j, 1.0.1c [RT #29749]
-
-	--- 9.8.5b1 released ---
 
 3463.	[doc]		Clarify managed-keys syntax in ARM. [RT 32232]
 
@@ -90,7 +90,7 @@
 3425.	[bug]		"acacheentry" reference counting was broken resulting
 			in use after free. [RT #31908]
 
-3422.	[bug]		Added a clear error message for when the SOA does not 
+3422.	[bug]		Added a clear error message for when the SOA does not
 			match the referral. [RT #31281]
 
 3421.	[bug]		Named loops when re-signing if all keys are offline.
