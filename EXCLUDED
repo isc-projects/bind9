@@ -1,3 +1,68 @@
+3464.	[maint]		Updates to PKCS#11 openssl patches, supporting
+			versions 0.9.8x, 1.0.0j, 1.0.1c [RT #29749]
+
+3463.	[doc]		Clarify managed-keys syntax in ARM. [RT 32232]
+
+3460.	[bug]		Only link against readline where needed. [RT #29810]
+
+3453.	[bug]		'rndc addzone' of a zone with 'inline-signing yes;'
+			failed. [RT #31960]
+
+3443.	[bug]		ddns-confgen: Some TSIG algorithms were incorrectly
+			rejected when generating keys. [RT #31927]
+
+3434.	[bug]		Pass client info to the DLZ findzone() entry
+			point in addition to lookup().  This makes it
+			possible for a database to answer differently
+			whether it's authoritative for a name depending
+			on the address of the client.  [RT #31775]
+
+3433.	[bug]		dlz_findzone() did not correctly handle
+			ISC_R_NOMORE. [RT #31172]
+
+3431.	[bug]		ddns-confgen: Some valid key algorithms were
+			not accepted. [RT #31927]
+
+3426.	[bug]		dnssec-checkds: Clearer output when records are not
+			found. [RT #31968]
+
+3423.	[bug]		"rndc signing -nsec3param" didn't accept the full
+			range of possible values.  Address portability issues.
+			[RT #31938]
+
+3422.	[bug]		Added a clear error message for when the SOA does not
+			match the referral. [RT #31281]
+
+3416.	[bug]		Named could die on shutdown if running with 128 UDP
+			dispatches per interface. [RT #31743]
+
+3414.	[bug]		Address locking issues found by Coverity. [RT #31626]
+
+3408.	[bug]		Some DNSSEC-related options (update-check-ksk,
+			dnssec-loadkeys-interval, dnssec-dnskey-kskonly)
+			are now legal in slave zones as long as
+			inline-signing is in use. [RT #31078]
+
+3399.	[port]		netbsd: rename 'bool' parameter to avoid namespace
+			clash.  [RT #31515]
+
+3398.	[bug]		SOA parameters were not being updated with inline
+			signed zones if the zone was modified while the
+			server was offline. [RT #29272]
+
+3385.	[bug]		named-checkconf didn't detect missing master lists
+			in also-notify clauses. [RT #30810]
+
+3384.	[bug]		Improved logging of crypto errors. [RT #30963]
+
+3378.	[bug]		Handle missing 'managed-keys-directory' better.
+			[RT #30625]
+
+3377.	[bug]		Removed spurious newline from NSEC3 multiline
+			output. [RT #31044]
+
+3375.	[bug]		'rndc dumpdb' failed on empty caches. [RT #30808]
+
 3370.	[bug]		Address use after free while shutting down. [RT #30241]
 
 3368.	[bug]		<dns/iptable.h>, <dns/private.h> and <dns/zone.h>
@@ -6,49 +71,57 @@
 3367.	[bug]		dns_dnsseckey_create() result was not being checked.
 			[RT #30685]
 
-3363.   [bug]           Need to allow "forward" and "fowarders" options
-                        in static-stub zones; this had been overlooked.
-                        [RT #30482]
- 
-3361.   [bug]           "rndc signing -nsec3param" didn't work correctly
-                        when salt was set to '-' (no salt). [RT #30099]
+3363.	[bug]		Need to allow "forward" and "fowarders" options
+			in static-stub zones; this had been overlooked.
+			[RT #30482]
 
-3355.   [port]          Use more portable awk in verify system test.
+3361.	[bug]		"rndc signing -nsec3param" didn't work correctly
+			when salt was set to '-' (no salt). [RT #30099]
 
-3353.   [bug]           Use a single task for task exclusive operations.
-                        [RT #29872]
+3356.	[bug]		Cap the TTL of signed RRsets when RRSIGs are
+			approaching their expiry, so they don't remain
+			in caches after expiry. [RT #26429]
 
-3351.   [bug]           isc_mem_put and isc_mem_putanddetach didn't report
-                        caller if either ISC_MEM_DEBUGSIZE or ISC_MEM_DEBUGCTX
-                        memory debugging flags are set. [RT #30243]
+3355.	[port]		Use more portable awk in verify system test.
 
-3349.   [bug]           Change #3345 was incomplete. [RT #30233]
+3353.	[bug]		Use a single task for task exclusive operations.
+			[RT #29872]
 
-3347.   [bug]           dnssec-settime: Issue a warning when writing a new
-                        private key file would cause a change in the
-                        permissions of the existing file. [RT #27724]
+3351.	[bug]		isc_mem_put and isc_mem_putanddetach didn't report
+			caller if either ISC_MEM_DEBUGSIZE or ISC_MEM_DEBUGCTX
+			memory debugging flags are set. [RT #30243]
 
-3345.   [bug]           Addressed race condition when removing the last item
-                        or inserting the first item in an ISC_QUEUE.
-                        [RT #29539]
+3349.	[bug]		Change #3345 was incomplete. [RT #30233]
 
-3338.   [bug]           Address race condition in units tests: asyncload_zone
-                        and asyncload_zt. [RT #26100]
+3347.	[bug]		dnssec-settime: Issue a warning when writing a new
+			private key file would cause a change in the
+			permissions of the existing file. [RT #27724]
 
-3334.   [bug]           Hold a zone table reference while performing a
-                        asyncronous load of a zone. [RT #28326]
+3345.	[bug]		Addressed race condition when removing the last item
+			or inserting the first item in an ISC_QUEUE.
+			[RT #29539]
 
-3324.   [test]          Add better tests for ADB stats [RT #27057]
+3338.	[bug]		Address race condition in units tests: asyncload_zone
+			and asyncload_zt. [RT #26100]
 
-3317.   [protocol]      Add ECDSA support (RFC 6605). [RT #21918]
+3334.	[bug]		Hold a zone table reference while performing a
+			asyncronous load of a zone. [RT #28326]
 
-3316.   [tuning]        Improved locking performance when recursing.
-                        [RT #28836]
+3333.	[bug]		Setting resolver-query-timeout too low can cause
+			named to not recover if it loses connectivity.
+			[RT #29623]
 
-3315.   [tuning]        Use multiple dispatch objects for sending upstream
-                        queries; this can improve performance on busy
-                        multiprocessor systems by reducing lock contention.
-                        [RT #28605]
+3324.	[test]		Add better tests for ADB stats [RT #27057]
+
+3317.	[protocol]	Add ECDSA support (RFC 6605). [RT #21918]
+
+3316.	[tuning]	Improved locking performance when recursing.
+			[RT #28836]
+
+3315.	[tuning]	Use multiple dispatch objects for sending upstream
+			queries; this can improve performance on busy
+			multiprocessor systems by reducing lock contention.
+			[RT #28605]
 
 3312.	[bug]		named-checkconf didn't detect a bad dns64 clients acl.
 			[RT #27631]
@@ -153,6 +226,9 @@
 3233.	[bug]		'rndc freeze/thaw' didn't work for inline zones.
 			[RT #26632]
 
+3229.	[bug]		Fix local variable to struct var assignment
+			found by CLANG warning.
+
 3225.	[bug]		Silence spurious "setsockopt(517, IPV6_V6ONLY) failed"
 			messages. [RT #26507]
 
@@ -189,6 +265,10 @@
 3195.	[cleanup]	Silence "file not found" warnings when loading
 			managed-keys zone. [RT #26340]
 
+3188.	[bug]		zone.c:zone_refreshkeys() could fail to detach
+			references correctly when errors occurred, causing
+			a hang on shutdown. [RT #26372]
+
 3186.	[bug]		Version/db mis-match in rpz code. [RT #26180]
 
 3184.	[bug]		named had excessive cpu usage when a redirect zone was
@@ -208,8 +288,8 @@
 			sample external DLZ module in contrib/dlz/example.
 			[RT #26215]
 
-3174.   [bug]           Always compute to revoked key tag from scratch.
-                        [RT #26186]
+3174.	[bug]		Always compute to revoked key tag from scratch.
+			[RT #26186]
 
 3172.	[port]		darwin 10.* and freebsd [89] are now built threaded by
 			default.
@@ -230,6 +310,9 @@
 3163.	[bug]		Use finer-grained locking in client.c to address
 			concurrency problems with large numbers of threads.
 			[RT #26044]
+
+3161.	[bug]		zone.c:del_sigs failed to always reset rdata leading
+			assertion failures. [RT #25880]
 
 3160.	[bug]		When printing out a NSEC3 record in multiline form
 			the newline was not being printed causing type codes
@@ -253,6 +336,8 @@
 
 3141.	[bug]		Silence spurious "zone serial (0) unchanged" messages
 			associated with empty zones. [RT #25079]
+
+3133.	[bug]		Change #3114 was incomplete. [RT #24577]
 
 3131.	[tuning]	Improve scalability by allocating one zone task
 			per 100 zones at startup time, rather than using a
@@ -287,6 +372,9 @@
 			warning messages; removed #ifdef ALLOW_KSKLESS_ZONES
 			code (use -P instead). [RT #20852]
 
+3107.	[bug]		dnssec-signzone: Report the correct number of ZSKs
+			when using -x. [RT #20852]
+
 3105.	[bug]		GOST support can be suppressed by "configure
 			--without-gost" [RT #24367]
 
@@ -294,8 +382,8 @@
 			instead of in the options statement could trigger
 			an assertion failure in named-checkconf. [RT #24382]
 
-3101.   [bug]           Zones using automatic key maintenance could fail
-                        to check the key repository for updates. [RT #23744]
+3101.	[bug]		Zones using automatic key maintenance could fail
+			to check the key repository for updates. [RT #23744]
 
 3100.	[security]	Certain response policy zone configurations could
 			trigger an INSIST when receiving a query of type
@@ -554,11 +642,11 @@
 2832.	[bug]		Modify "struct stat" in lib/export/samples/nsprobe.c
 			to avoid redefinition in some OSs [RT 20831]
 
-2829.   [bug]           Fixed potential node inconsistency in rbtdb.c.
-                        [RT #20808]
+2829.	[bug]		Fixed potential node inconsistency in rbtdb.c.
+			[RT #20808]
 
-2826.   [bug]           NSEC3->NSEC transitions could fail due to a lock not
-                        being released.  [RT #20740]
+2826.	[bug]		NSEC3->NSEC transitions could fail due to a lock not
+			being released.  [RT #20740]
 
 2824.	[bug]		"rndc sign" was not being run by the correct task.
 			[RT #20759]
@@ -572,8 +660,8 @@
 2816.	[bug]		previous_closest_nsec() could fail to return
 			data for NSEC3 nodes [RT #29730]
 
-2813.   [bug]           Better handling of unreadable DNSSEC key files.
-                        [RT #20710]
+2813.	[bug]		Better handling of unreadable DNSSEC key files.
+			[RT #20710]
 
 2812.	[bug]		Make sure updates can't result in a zone with
 			NSEC-only keys and NSEC3 records. [RT #20748]
