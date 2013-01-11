@@ -351,8 +351,9 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		char buf[100];
 		strcpy(buf, "unknown");
 		if (methods != NULL &&
-		    methods->version - methods->age >=
-			    DNS_CLIENTINFOMETHODS_VERSION)
+		    methods->version - methods->age <=
+		   	 DNS_CLIENTINFOMETHODS_VERSION &&
+		    DNS_CLIENTINFOMETHODS_VERSION <= methods->version)
 		{
 			methods->sourceip(clientinfo, &src);
 			fmt_address(src, buf, sizeof(buf));
