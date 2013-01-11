@@ -22,6 +22,10 @@
  * Silence compiler warnings about using strcpy and friends.
  */
 #define _CRT_SECURE_NO_DEPRECATE 1
+/*
+ * We use snprintf.
+ */
+#define snprintf _snprintf
 #endif
 
 #include <sys/types.h>
