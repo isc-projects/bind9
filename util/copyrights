@@ -2,12 +2,12 @@
 ./Atffile					X	2011
 ./CHANGES					X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./EXCLUDED					X	2011,2012
+./EXCLUDED					X	2011,2012,2013
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./HISTORY					X	2010
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012
 ./aclocal.m4					X	1999,2000,2001,2012
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2009,2012
@@ -234,7 +234,10 @@
 ./bin/pkcs11/include/pkcs11f.h			X	2009
 ./bin/pkcs11/include/pkcs11t.h			X	2009
 ./bin/pkcs11/openssl-0.9.8s-patch		X	2012
+./bin/pkcs11/openssl-0.9.8x-patch		X	2013
 ./bin/pkcs11/openssl-1.0.0f-patch		X	2012
+./bin/pkcs11/openssl-1.0.0j-patch		X	2013
+./bin/pkcs11/openssl-1.0.1c-patch		X	2013
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-destroy.c			X	2009,2010
 ./bin/pkcs11/pkcs11-destroy.docbook		SGML	2009
@@ -1907,7 +1910,7 @@
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./doc/arm/Bv9ARM.ch10.html			X	2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./doc/arm/Bv9ARM.pdf				X	2007,2008,2009,2010,2011,2012
+./doc/arm/Bv9ARM.pdf				X	2007,2008,2009,2010,2011,2012,2013
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007,2009,2012
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/dnssec.xml				SGML	2010,2012
@@ -2022,7 +2025,7 @@
 ./lib/Atffile					X	2011
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007,2012
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2009,2012
-./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012
+./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004,2007,2012
@@ -2043,7 +2046,7 @@
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008,2012
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
-./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012
+./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007,2009
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007,2012
@@ -2053,7 +2056,7 @@
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005,2007,2008,2009,2011,2012
-./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
+./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005,2007,2009,2010,2011,2012
 ./lib/dns/dns64.c				C	2010,2011,2012
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
@@ -2389,7 +2392,7 @@
 ./lib/dns/win32/gen.dsp				X	2001
 ./lib/dns/win32/gen.dsw				X	2001
 ./lib/dns/win32/gen.mak				X	2001,2006
-./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/win32/libdns.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
@@ -2434,7 +2437,7 @@
 ./lib/export/samples/sample-update.c		C	2009,2010,2012
 ./lib/export/samples/sample.c			C	2009,2012
 ./lib/irs/Makefile.in				MAKE	2009,2012
-./lib/irs/api					X	2009,2010,2011,2012
+./lib/irs/api					X	2009,2010,2011,2012,2013
 ./lib/irs/context.c				C	2009
 ./lib/irs/dnsconf.c				C	2009,2012
 ./lib/irs/gai_strerror.c			C	2009
@@ -2457,7 +2460,7 @@
 ./lib/isc/alpha/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007,2009
-./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012
+./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/isc/app_api.c				C	2009
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007,2008,2009
 ./lib/isc/backtrace-emptytbl.c			C	2009
@@ -2756,7 +2759,7 @@
 ./lib/isc/x86_64/include/isc/atomic.h		C	2005,2007,2008
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2009,2011,2012
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/api					X	2001,2006,2008,2009,2010,2012
+./lib/isccc/api					X	2001,2006,2008,2009,2010,2012,2013
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007,2012
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005,2007
@@ -2788,7 +2791,7 @@
 ./lib/isccc/win32/version.c			C	2001,2004,2007
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009,2011,2012
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012
-./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012
+./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/isccfg/dnsconf.c				C	2009
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004,2007,2012
 ./lib/isccfg/include/isccfg/Makefile.in		MAKE	2001,2002,2004,2005,2007,2012
@@ -2810,7 +2813,7 @@
 ./lib/isccfg/win32/libisccfg.mak		X	2001,2002,2004,2005,2006,2009,2011
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007,2012
-./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011,2012
+./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007,2011,2012
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008,2009,2012
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007,2008
@@ -3265,7 +3268,7 @@
 ./util/update_branches				PERL	2005,2007,2012
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2012
 ./util/xc					SH	2012,2013
-./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011,2012
+./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006,2008,2009,2010
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010
 ./win32utils/BuildPost.bat			BAT	2005,2006
