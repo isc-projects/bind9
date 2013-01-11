@@ -1,3 +1,6 @@
+3464.	[maint]		Updates to PKCS#11 openssl patches, supporting
+			versions 0.9.8x, 1.0.0j, 1.0.1c [RT #29749]
+
 3463.	[doc]		Clarify managed-keys syntax in ARM. [RT 32232]
 
 3462.	[doc]		Clarify server selection behavior of dig when using
