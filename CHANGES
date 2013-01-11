@@ -1,3 +1,6 @@
+3466.	[contrib]	Corrected the DNS_CLIENTINFOMETHODS_VERSION check
+			in DLZ example driver. [RT #32275]
+
 3465.	[bug]		Handle isolated reserved ports. [RT #31778]
 
 3464.	[maint]		Updates to PKCS#11 openssl patches, supporting
