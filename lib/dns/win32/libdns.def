@@ -800,6 +800,7 @@ dns_zone_checknames
 dns_zone_clearforwardacl
 dns_zone_clearnotifyacl
 dns_zone_clearqueryacl
+dns_zone_clearqueryonacl
 dns_zone_clearupdateacl
 dns_zone_clearxfracl
 dns_zone_create
@@ -841,6 +842,7 @@ dns_zone_getorigin
 dns_zone_getprivatetype
 dns_zone_getqueryacl
 dns_zone_getraw
+dns_zone_getqueryaoncl
 dns_zone_getrequeststats
 dns_zone_getserial
 dns_zone_getserial2
