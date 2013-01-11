@@ -2025,7 +2025,7 @@ dns_zone_keydone(dns_zone_t *zone, const char *data);
 
 isc_result_t
 dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
-		       isc_uint8_t iter, isc_uint8_t saltlen,
+		       isc_uint16_t iter, isc_uint8_t saltlen,
 		       unsigned char *salt, isc_boolean_t replace);
 /*%
  * Set the NSEC3 parameters for the zone.

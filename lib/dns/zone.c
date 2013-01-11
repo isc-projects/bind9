@@ -16571,7 +16571,7 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 
 isc_result_t
 dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
-		       isc_uint8_t iter, isc_uint8_t saltlen,
+		       isc_uint16_t iter, isc_uint8_t saltlen,
 		       unsigned char *salt, isc_boolean_t replace)
 {
 	isc_result_t result = ISC_R_SUCCESS;
