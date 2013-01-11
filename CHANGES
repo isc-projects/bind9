@@ -1,3 +1,5 @@
+	--- 9.9.3b1 released ---
+
 3466.	[contrib]	Corrected the DNS_CLIENTINFOMETHODS_VERSION check
 			in DLZ example driver. [RT #32275]
 
@@ -5,8 +7,6 @@
 
 3464.	[maint]		Updates to PKCS#11 openssl patches, supporting
 			versions 0.9.8x, 1.0.0j, 1.0.1c [RT #29749]
-
-	--- 9.9.3b1 released ---
 
 3463.	[doc]		Clarify managed-keys syntax in ARM. [RT 32232]
 
@@ -118,14 +118,14 @@
 
 3419.	[bug]		Memory leak on validation cancel. [RT #31869]
 
-3417.	[func]		Optional new XML schema (version 3.0) for the 
-			statistics channel adds query type statistics at the 
-			zone level, and flattens the XML tree and uses 
-			compressed format to optimize parsing. Includes new XSL 
-			that permits charting via the Google Charts API on 
-			browsers that support javascript in XSL.  To enable, 
+3417.	[func]		Optional new XML schema (version 3.0) for the
+			statistics channel adds query type statistics at the
+			zone level, and flattens the XML tree and uses
+			compressed format to optimize parsing. Includes new XSL
+			that permits charting via the Google Charts API on
+			browsers that support javascript in XSL.  To enable,
 			build with "configure --enable-newstats". [RT #30023]
-			
+
 3416.	[bug]		Named could die on shutdown if running with 128 UDP
 			dispatches per interface. [RT #31743]
 
@@ -242,7 +242,7 @@
 			[RT #30808]
 
 3374.	[bug]		isc_parse_uint32 failed to return a range error on
-			systems with 64 bit longs [RT #30232]
+			systems with 64 bit longs. [RT #30232]
 
 3372.	[bug]		Silence spurious "deleted from unreachable cache"
 			messages.  [RT #30501]
@@ -251,13 +251,13 @@
 			add NS RRsets to the additional section or not.
 			[RT #30479]
 
-3316.   [tuning]        Improved locking performance when recursing.
-                        [RT #28836]
+3316.	[tuning]	Improved locking performance when recursing.
+			[RT #28836]
 
-3315.   [tuning]        Use multiple dispatch objects for sending upstream
-                        queries; this can improve performance on busy
-                        multiprocessor systems by reducing lock contention.
-                        [RT #28605]
+3315.	[tuning]	Use multiple dispatch objects for sending upstream
+			queries; this can improve performance on busy
+			multiprocessor systems by reducing lock contention.
+			[RT #28605]
 
 	--- 9.9.2 released ---
 
