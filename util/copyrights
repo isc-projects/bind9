@@ -237,9 +237,7 @@
 ./bin/pkcs11/include/pkcs11.h			X	2009
 ./bin/pkcs11/include/pkcs11f.h			X	2009
 ./bin/pkcs11/include/pkcs11t.h			X	2009
-./bin/pkcs11/openssl-0.9.8s-patch		X	2012
 ./bin/pkcs11/openssl-0.9.8x-patch		X	2013
-./bin/pkcs11/openssl-1.0.0f-patch		X	2012
 ./bin/pkcs11/openssl-1.0.0j-patch		X	2013
 ./bin/pkcs11/openssl-1.0.1c-patch		X	2013
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
