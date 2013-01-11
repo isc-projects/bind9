@@ -1,5 +1,8 @@
 	--- 9.6-ESV-R9b1 released ---
 
+3462.	[doc]		Clarify server selection behavior of dig when using
+			-4 or -6 options. [RT #32181]
+
 3461.	[bug]		Negative responses could incorrectly have AD=1
 			set. [RT #32237]
 
@@ -59,6 +62,9 @@
 
 3435.	[bug]		Cross compilation support in configure was broken.
 			[RT #32078]
+
+3430.	[bug]		win32: isc_time_formatISO8601 was missing the
+			'T' between the date and time. [RT #32044]
 
 3429.	[bug]		dns_zone_getserial2 could a return success without
 			returning a valid serial. [RT #32007]
@@ -339,7 +345,7 @@
 			despite succeeding over the loopback interface.
 			[RT #27782]
 
-3374.	[bug]		Log when a zone is not reusable.  Only set loadtime
+3274.	[bug]		Log when a zone is not reusable.  Only set loadtime
 			on successful loads.  [RT #27650]
 
 3268.	[bug]		Convert RRSIG expiry times to 64 timestamps to work
@@ -1030,7 +1036,7 @@
 			[RT #22062]
 
 2952.	[port]		win32: named-checkzone and named-checkconf failed
-			to initialise winsock. [RT #21932]
+			to initialize winsock. [RT #21932]
 
 2951.	[bug]		named failed to generate a correct signed response
 			in a optout, delegation only zone with no secure
