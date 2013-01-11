@@ -52,7 +52,7 @@
 
 3438.	[bug]		Don't accept unknown data escape in quotes. [RT #32031]
 
-3437.	[bug]		isc_buffer_init -> isc_buffer_constinit to initialise
+3437.	[bug]		isc_buffer_init -> isc_buffer_constinit to initialize
 			buffers with constant data. [RT #32064]
 
 3436.	[bug]		Check malloc/calloc return values. [RT #32088]
@@ -65,7 +65,7 @@
 
 3428.	[cleanup]	dig: Add timezone to date output. [RT #2269]
 
-3427.	[bug]		dig +trace incorrectly displayed name server 
+3427.	[bug]		dig +trace incorrectly displayed name server
 			addresses instead of names. [RT #31641]
 
 3425.	[bug]		"acacheentry" reference counting was broken resulting
@@ -256,7 +256,7 @@
 	--- 9.6-ESV-R7 released ---
 
 3318.	[tuning]	Reduce the amount of work performed while holding a
-			bucket lock when finshed with a fetch context.
+			bucket lock when finished with a fetch context.
 			[RT #29239]
 
 3314.	[bug]		The masters list could be updated while refesh_callback
@@ -269,7 +269,7 @@
 
 3310.	[test]		Increase table size for mutex profiling. [RT #28809]
 
-3309.	[bug]		resolver.c:fctx_finddone() was not threadsafe.
+3309.	[bug]		resolver.c:fctx_finddone() was not thread safe.
 			[RT #27995]
 
 3307.	[bug]		Add missing ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS.
@@ -395,7 +395,7 @@
 
 3234.	[bug]		'make depend' produced invalid makefiles. [RT #26830]
 
-3231.	[bug]		named could fail to send a uncompressable zone.
+3231.	[bug]		named could fail to send a incompressible zone.
 			[RT #26796]
 
 3230.	[bug]		'dig axfr' failed to properly handle a multi-message
@@ -411,7 +411,7 @@
 
 	--- 9.6-ESV-R6b1 released ---
 
-3221.	[bug]		Fixed a potential coredump on shutdown due to
+3221.	[bug]		Fixed a potential core dump on shutdown due to
 			referencing fetch context after it's been freed.
 			[RT #26720]
 
@@ -427,7 +427,7 @@
 			list prior to adding a reference to it leading a
 			possible assertion failure. [RT #23219]
 
-3208.	[bug]		'dig -y' handle unknown tsig alorithm better.
+3208.	[bug]		'dig -y' handle unknown tsig algorithm better.
 			[RT #25522]
 
 3207.	[contrib]	Fixed build error in Berkeley DB DLZ module. [RT #26444]
@@ -624,7 +624,7 @@
 			glue learn for zone named is authoritative for.
 			[RT #22842]
 
-3071.	[bug]		has_nsec could be used unintialised in
+3071.	[bug]		has_nsec could be used uninitialized in
 			update.c:next_active. [RT #20256]
 
 3069.	[cleanup]	Silence warnings messages from clang static analysis.
@@ -654,7 +654,7 @@
 			max-cache-size, it was possible for cache memory
 			to be exhausted and not recovered. [RT #23371]
 
-3051.	[bug]		NS records obsure DNAME records at the bottom of the
+3051.	[bug]		NS records obscure DNAME records at the bottom of the
 			zone if both are present. [RT #23035]
 
 3046.	[bug]		Use RRSIG original TTL to compute validated RRset
@@ -963,7 +963,7 @@
 2862.	[bug]		nsupdate didn't default to the parent zone when
 			updating DS records. [RT #20896]
 
-2859.	[bug]		When cancelling validation it was possible to leak
+2859.	[bug]		When canceling validation it was possible to leak
 			memory. [RT #20800]
 
 2858.	[bug]		RTT estimates were not being adjusted on ICMP errors.
@@ -1510,7 +1510,7 @@
 
 2553.	[bug]		Reference leak on DNSSEC validation errors. [RT #19291]
 
-2552.	[bug]		zero-no-soa-ttl-cache was not being honoured.
+2552.	[bug]		zero-no-soa-ttl-cache was not being honored.
 			[RT #19340]
 
 2551.	[bug]		Potential Reference leak on return. [RT #19341]
