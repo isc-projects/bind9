@@ -230,7 +230,6 @@ encode_MechTypeList(unsigned char *p, size_t len, const MechTypeList * data, siz
 	size_t l;
 	int i, e;
 
-	i = 0;
 	for (i = (data)->len - 1; i >= 0; --i) {
 		int oldret = ret;
 		ret = 0;
@@ -384,8 +383,6 @@ decode_ContextFlags(const unsigned char *p, size_t len, ContextFlags * data, siz
 	data->anonFlag = (*p >> 3) & 1;
 	data->confFlag = (*p >> 2) & 1;
 	data->integFlag = (*p >> 1) & 1;
-	p += reallen;
-	len -= reallen;
 	ret += reallen;
 	if (size)
 		*size = ret;
