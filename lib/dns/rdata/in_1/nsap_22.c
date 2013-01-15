@@ -53,7 +53,6 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 		RETTOK(DNS_R_SYNTAX);
 	isc_textregion_consume(sr, 2);
 	digits = 0;
-	n = 0;
 	while (sr->length > 0) {
 		if (sr->base[0] == '.') {
 			isc_textregion_consume(sr, 1);
