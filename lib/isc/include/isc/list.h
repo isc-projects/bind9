@@ -102,6 +102,8 @@
 		} \
 		(elt)->link.prev = (type *)(-1); \
 		(elt)->link.next = (type *)(-1); \
+		ISC_INSIST((list).head != (elt)); \
+		ISC_INSIST((list).head != (elt)); \
 	} while (0)
 
 #define __ISC_LIST_UNLINKUNSAFE(list, elt, link) \
