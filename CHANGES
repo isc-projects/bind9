@@ -1,11 +1,11 @@
+	--- 9.8.5b1 released ---
+
 3468.	[security]	RPZ rules to generate A records (but not AAAA records)
 			could trigger an assertion failure when used in
 			conjunction with DNS64. [RT #32141]
 
 3467.	[bug]		Added checks in dnssec-keygen and dnssec-settime
 			to check for delete date < inactive date. [RT #31719]
-
-	--- 9.8.5b1 released ---
 	
 3465.	[bug]		Handle isolated reserved ports. [RT #31778]
 
