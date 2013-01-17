@@ -171,7 +171,7 @@ static void free_NegTokenResp(NegTokenResp *);
 /* Do not edit */
 
 
-#define BACK if (e) return e; p -= l; len -= l; ret += l
+#define BACK if (e) return e; p -= l; len -= l; ret += l; POST(p); POST(len); POST(ret)
 
 static int
 encode_MechType(unsigned char *p, size_t len, const MechType * data, size_t * size)
@@ -186,7 +186,7 @@ encode_MechType(unsigned char *p, size_t len, const MechType * data, size_t * si
 	return 0;
 }
 
-#define FORW if(e) goto fail; p += l; len -= l; ret += l
+#define FORW if(e) goto fail; p += l; len -= l; ret += l; POST(p); POST(len); POST(ret)
 
 static int
 decode_MechType(const unsigned char *p, size_t len, MechType * data, size_t * size)
@@ -221,8 +221,6 @@ free_MechType(MechType * data)
 /* Do not edit */
 
 
-#define BACK if (e) return e; p -= l; len -= l; ret += l
-
 static int
 encode_MechTypeList(unsigned char *p, size_t len, const MechTypeList * data, size_t * size)
 {
@@ -242,8 +240,6 @@ encode_MechTypeList(unsigned char *p, size_t len, const MechTypeList * data, siz
 	*size = ret;
 	return 0;
 }
-
-#define FORW if(e) goto fail; p += l; len -= l; ret += l
 
 static int
 decode_MechTypeList(const unsigned char *p, size_t len, MechTypeList * data, size_t * size)
@@ -308,8 +304,6 @@ free_MechTypeList(MechTypeList * data)
 /* Do not edit */
 
 
-#define BACK if (e) return e; p -= l; len -= l; ret += l
-
 static int
 encode_ContextFlags(unsigned char *p, size_t len, const ContextFlags * data, size_t * size)
 {
@@ -356,8 +350,6 @@ encode_ContextFlags(unsigned char *p, size_t len, const ContextFlags * data, siz
 	*size = ret;
 	return 0;
 }
-
-#define FORW if(e) goto fail; p += l; len -= l; ret += l
 
 static int
 decode_ContextFlags(const unsigned char *p, size_t len, ContextFlags * data, size_t * size)
@@ -418,8 +410,6 @@ free_ContextFlags(ContextFlags * data)
 /* Do not edit */
 
 
-#define BACK if (e) return e; p -= l; len -= l; ret += l
-
 static int
 encode_NegTokenInit(unsigned char *p, size_t len, const NegTokenInit * data, size_t * size)
 {
@@ -467,8 +457,6 @@ encode_NegTokenInit(unsigned char *p, size_t len, const NegTokenInit * data, siz
 	*size = ret;
 	return 0;
 }
-
-#define FORW if(e) goto fail; p += l; len -= l; ret += l
 
 static int
 decode_NegTokenInit(const unsigned char *p, size_t len, NegTokenInit * data, size_t * size)
@@ -645,8 +633,6 @@ free_NegTokenInit(NegTokenInit * data)
 /* Do not edit */
 
 
-#define BACK if (e) return e; p -= l; len -= l; ret += l
-
 static int
 encode_NegTokenResp(unsigned char *p, size_t len, const NegTokenResp * data, size_t * size)
 {
@@ -695,8 +681,6 @@ encode_NegTokenResp(unsigned char *p, size_t len, const NegTokenResp * data, siz
 	*size = ret;
 	return 0;
 }
-
-#define FORW if(e) goto fail; p += l; len -= l; ret += l
 
 static int
 decode_NegTokenResp(const unsigned char *p, size_t len, NegTokenResp * data, size_t * size)
