@@ -1,5 +1,9 @@
-3467.	[bug]	Added checks in dnssec-keygen and dnssec-settime to check for
-			delete date < inactive date. [RT #31719]
+3468.	[security]	RPZ rules to generate A records (but not AAAA records)
+			could trigger an assertion failure when used in
+			conjunction with DNS64. [RT #32141]
+
+3467.	[bug]		Added checks in dnssec-keygen and dnssec-settime
+			to check for delete date < inactive date. [RT #31719]
 
 	--- 9.9.3b1 released ---
 	
