@@ -2426,9 +2426,14 @@ cfg_obj_istype(const cfg_obj_t *obj, const cfg_type_t *type) {
  */
 void
 cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **objp) {
-	cfg_obj_t *obj = *objp;
+	cfg_obj_t *obj;
 	unsigned int refs;
 
+	REQUIRE(objp != NULL && *objp != NULL);
+	REQUIRE(pctx != NULL);
+
+	obj = *objp;
+	
 	isc_refcount_decrement(&obj->references, &refs);
 	if (refs == 0) {
 		obj->type->rep->free(pctx, obj);
