@@ -1352,5 +1352,12 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I: checking synthesis of AAAA from RPZ-remapped A ($n)"
+$DIG $DIGOPTS aaaa rpz.example +rec -b 10.53.0.7 @10.53.0.2 > dig.out.ns2.test$n || ret=1
+grep -i 'rpz.example.*IN.AAAA.2001:96::a0a:a0a' dig.out.ns2.test$n >/dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

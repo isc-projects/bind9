@@ -1,0 +1,12 @@
+$TTL 86400      ; 1 day
+@               IN SOA  rpz. noc.rpz. (
+                                1         ; serial
+                                86400      ; refresh (1 day)
+                                3600       ; retry (1 hour)
+                                2592000    ; expire (4 weeks 2 days)
+                                25200      ; minimum (7 hours)
+                                )
+                        NS      @
+                        IN A    10.53.0.2
+
+rpz.example IN A    10.10.10.10
