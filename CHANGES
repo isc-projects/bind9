@@ -1,5 +1,8 @@
-	--- 9.8.5b1 released ---
+3467.	[bug]	Added checks in dnssec-keygen and dnssec-settime to check for
+			delete date < inactive date. [RT #31719]
 
+	--- 9.8.5b1 released ---
+	
 3465.	[bug]		Handle isolated reserved ports. [RT #31778]
 
 3464.	[maint]		Updates to PKCS#11 openssl patches, supporting

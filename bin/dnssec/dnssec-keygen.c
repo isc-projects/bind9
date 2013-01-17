@@ -960,8 +960,15 @@ main(int argc, char **argv) {
 				dst_key_settime(key, DST_TIME_INACTIVE,
 						inactive);
 
-			if (setdel)
+			if (setdel) {
+				if (setinact && delete < inactive)
+					fprintf(stderr, "%s: warning: Key is "
+						"scheduled to be deleted "
+						"before it is scheduled to be "
+						"made inactive.\n",
+						program);
 				dst_key_settime(key, DST_TIME_DELETE, delete);
+			}
 		} else {
 			if (setpub || setact || setrev || setinact ||
 			    setdel || unsetpub || unsetact ||
