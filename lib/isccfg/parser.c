@@ -2390,7 +2390,12 @@ cfg_obj_istype(const cfg_obj_t *obj, const cfg_type_t *type) {
  */
 void
 cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **objp) {
-	cfg_obj_t *obj = *objp;
+	cfg_obj_t *obj;
+
+	REQUIRE(objp != NULL && *objp != NULL);
+	REQUIRE(pctx != NULL);
+
+	obj = *objp;
 	obj->type->rep->free(pctx, obj);
 	isc_mem_put(pctx->mctx, obj, sizeof(cfg_obj_t));
 	*objp = NULL;

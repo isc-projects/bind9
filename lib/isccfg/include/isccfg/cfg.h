@@ -395,6 +395,10 @@ cfg_obj_istype(const cfg_obj_t *obj, const cfg_type_t *type);
 void cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **obj);
 /*%<
  * Destroy a configuration object.
+ *
+ * Require:
+ * \li     '*obj' is a valid cfg_obj_t.
+ * \li     'pctx' is a valid cfg_parser_t.
  */
 
 void
