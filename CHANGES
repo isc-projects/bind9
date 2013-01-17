@@ -1,3 +1,6 @@
+3467.	[bug]	Added checks in dnssec-keygen and dnssec-settime to check for
+			delete date < inactive date. [RT #31719]
+
 3466.	[contrib]	Corrected the DNS_CLIENTINFOMETHODS_VERSION check
 			in DLZ example driver. [RT #32275]
 
