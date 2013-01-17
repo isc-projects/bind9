@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009-2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -396,7 +396,7 @@ main(int argc, char **argv) {
 			fatal("Predecessor has no inactivation date. "
 			      "You must set one before\n\t"
 			      "generating a successor.");
-		
+
 		pub = prevact - prepub;
 		if (pub < now && prepub != 0)
 			fatal("Predecessor will become inactive before the\n\t"
