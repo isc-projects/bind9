@@ -411,6 +411,10 @@ cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **obj);
 /*%<
  * Delete a reference to a configuration object; destroy the object if
  * there are no more references.
+ *
+ * Require:
+ * \li     '*obj' is a valid cfg_obj_t.
+ * \li     'pctx' is a valid cfg_parser_t.
  */
 
 void
