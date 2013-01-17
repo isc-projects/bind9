@@ -157,5 +157,23 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking warning about delete date < inactive date with dnssec-settime ($n)"
+ret=0
+# settime should print a warning about delete < inactive
+$SETTIME -I now+15s -D now `cat oldstyle.key` > tmp.out 2>&1 || ret=1
+grep "warning" tmp.out > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking warning about delete date < inactive date with dnssec-keygen ($n)"
+ret=0
+# keygen should print a warning about delete < inactive
+$KEYGEN -q -r $RANDFILE -I now+15s -D now $czone > tmp.out 2>&1 || ret=1
+grep "warning" tmp.out > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
