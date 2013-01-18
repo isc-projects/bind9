@@ -2,7 +2,7 @@
 
 3468.	[security]	RPZ rules to generate A records (but not AAAA records)
 			could trigger an assertion failure when used in
-			conjunction with DNS64. [RT #32141]
+			conjunction with DNS64 (CVE-2012-5689). [RT #32141]
 
 3467.	[bug]		Added checks in dnssec-keygen and dnssec-settime
 			to check for delete date < inactive date. [RT #31719]
@@ -166,7 +166,12 @@
 
 3389.	[bug]		Always return NOERROR (not 0) in TSIG. [RT #31275]
 
-3388.	[bug]		Fixed several Coverity warnings. [RT #30996]
+3388.	[bug]		Fixed several Coverity warnings.
+			Note: This change includes a fix for a bug that
+			was subsequently determined to be an exploitable
+			security vulnerability, CVE-2012-5688: named could
+			die on specific queries with dns64 enabled.
+			[RT #30996]
 
 3386.	[bug]		Address locking violation when generating new NSEC /
 			NSEC3 chains. [RT #31224]
