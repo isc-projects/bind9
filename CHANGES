@@ -219,10 +219,6 @@
 
 3384.	[bug]		Improved logging of crypto errors. [RT #30963]
 
-3383.	[security]	A certain combination of records in the RBT could
-			cause named to hang while populating the additional
-			section of a response. [RT #31090]
-
 3382.	[bug]		SOA query from slave used use-v6-udp-ports range,
 			if set, regardless of the address family in use.
 			[RT #24173]
@@ -267,6 +263,10 @@
 			[RT #28605]
 
 	--- 9.9.2 released ---
+
+3383.	[security]	A certain combination of records in the RBT could
+			cause named to hang while populating the additional
+			section of a response. [RT #31090]
 
 3373.	[bug]		win32: open raw files in binary mode. [RT #30944]
 
