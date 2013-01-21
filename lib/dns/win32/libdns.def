@@ -833,7 +833,6 @@ dns_zone_getprivatetype
 dns_zone_getqueryacl
 dns_zone_getqueryonacl
 dns_zone_getraw
-dns_zone_getqueryaoncl
 dns_zone_getrequeststats
 dns_zone_getserial
 dns_zone_getserial2
