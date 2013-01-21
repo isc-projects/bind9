@@ -715,6 +715,7 @@
 ./bin/tests/system/ixfr/ans2/startme		X	2011
 ./bin/tests/system/ixfr/clean.sh		SH	2001,2004,2007,2012
 ./bin/tests/system/ixfr/ns1/.gitignore		X	2012
+./bin/tests/system/ixfr/ns1/startme		X	2012
 ./bin/tests/system/ixfr/prereq.sh		SH	2001,2004,2007,2012
 ./bin/tests/system/ixfr/setup.sh		SH	2001,2004,2007,2012
 ./bin/tests/system/ixfr/tests.sh		SH	2001,2004,2007,2011,2012
