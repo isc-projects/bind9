@@ -1,3 +1,6 @@
+3470.	[bug]		Slave zones could fail to dump when successfully
+			refreshing after an initial failure. [RT #31276]
+
 	--- 9.9.3b1 released ---
 	
 3468.	[security]	RPZ rules to generate A records (but not AAAA records)

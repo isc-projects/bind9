@@ -8856,6 +8856,7 @@ dns_zone_dump(dns_zone_t *zone) {
 
 static void
 zone_needdump(dns_zone_t *zone, unsigned int delay) {
+	const char me[] = "zone_needdump";
 	isc_time_t dumptime;
 	isc_time_t now;
 
@@ -8865,6 +8866,7 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
+	ENTER;
 
 	/*
 	 * Do we have a place to dump to and are we loaded?
@@ -13223,6 +13225,8 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		 * won't hurt with an AXFR.
 		 */
 		if (zone->masterfile != NULL || zone->journal != NULL) {
+			unsigned int delay = DNS_DUMP_DELAY;
+
 			result = ISC_R_FAILURE;
 			if (zone->journal != NULL)
 				result = isc_file_settime(zone->journal, &now);
@@ -13230,14 +13234,16 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			    zone->masterfile != NULL)
 				result = isc_file_settime(zone->masterfile,
 							  &now);
-			/* Someone removed the file from underneath us! */
-			if (result == ISC_R_FILENOTFOUND &&
-			    zone->masterfile != NULL) {
-				unsigned int delay = DNS_DUMP_DELAY;
-				if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NODELAY))
-					delay = 0;
+
+			if ((DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NODELAY) != 0) ||
+			    result == ISC_R_FILENOTFOUND)
+				delay = 0;
+
+			if ((result == ISC_R_SUCCESS ||
+			    result == ISC_R_FILENOTFOUND) &&
+			    zone->masterfile != NULL)
 				zone_needdump(zone, delay);
-			} else if (result != ISC_R_SUCCESS)
+			else if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "transfer: could not set file "
 					     "modification time of '%s': %s",
