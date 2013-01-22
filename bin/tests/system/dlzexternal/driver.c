@@ -368,8 +368,11 @@ dlz_findzonedb(void *dbdata, const char *name,
 /*
  * Look up one record in the sample database.
  *
- * If the queryname is "source-addr", we add a TXT record containing
+ * If the queryname is "source-addr", send back a TXT record containing
  * the address of the client, to test the use of 'methods' and 'clientinfo'
+ *
+ * If the queryname is "too-long", send back a TXT record that's too long
+ * to process; this should result in a SERVFAIL when queried.
  */
 isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
@@ -381,6 +384,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	isc_boolean_t found = ISC_FALSE;
 	isc_sockaddr_t *src;
 	char full_name[256];
+	char buf[512];
 	int i;
 
 	UNUSED(zone);
@@ -395,7 +399,6 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		snprintf(full_name, 255, "%s.%s", name, state->zone_name);
 
 	if (strcmp(name, "source-addr") == 0) {
-		char buf[100];
 		strcpy(buf, "unknown");
 		if (methods != NULL &&
 		    methods->sourceip != NULL &&
@@ -409,6 +412,16 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 
 		fprintf(stderr, "lookup: connection from: %s\n", buf);
 
+		found = ISC_TRUE;
+		result = state->putrr(lookup, "TXT", 0, buf);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+
+	if (strcmp(name, "too-long") == 0) {
+		for (i = 0; i < 511; i++)
+			buf[i] = 'x';
+		buf[i] = '\0';
 		found = ISC_TRUE;
 		result = state->putrr(lookup, "TXT", 0, buf);
 		if (result != ISC_R_SUCCESS)

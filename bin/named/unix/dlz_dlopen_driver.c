@@ -326,11 +326,13 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* Check the version of the API is the same */
 	cd->version = cd->dlz_version(&cd->flags);
-	if (cd->version != DLZ_DLOPEN_VERSION) {
+	if (cd->version < (DLZ_DLOPEN_VERSION - DLZ_DLOPEN_AGE) ||
+	    cd->version > DLZ_DLOPEN_VERSION)
+	{
 		dlopen_log(ISC_LOG_ERROR,
-			   "dlz_dlopen: incorrect version %d "
-			   "should be %d in '%s'",
-			   cd->version, DLZ_DLOPEN_VERSION, cd->dl_path);
+			   "dlz_dlopen: %s: incorrect driver API version %d, "
+			   "requires %d",
+			   cd->dl_path, cd->version, DLZ_DLOPEN_VERSION);
 		goto failed;
 	}
 

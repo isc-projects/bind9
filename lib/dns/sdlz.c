@@ -605,7 +605,7 @@ findnodeext(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	 * if the host (namestr) was not found, try to lookup a
 	 * "wildcard" host.
 	 */
-	if (result != ISC_R_SUCCESS && !create)
+	if (result == ISC_R_NOTFOUND && !create)
 		result = sdlz->dlzimp->methods->lookup(zonestr, "*",
 						       sdlz->dlzimp->driverarg,
 						       sdlz->dbdata, node,
@@ -878,10 +878,11 @@ findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		dns_name_getlabelsequence(name, nlabels - i, i, xname);
 		result = findnodeext(db, xname, ISC_FALSE,
 				     methods, clientinfo, &node);
-		if (result != ISC_R_SUCCESS) {
+		if (result == ISC_R_NOTFOUND) {
 			result = DNS_R_NXDOMAIN;
 			continue;
-		}
+		} else if (result != ISC_R_SUCCESS)
+			break;
 
 		/*
 		 * Look for a DNAME at the current label, unless this is
