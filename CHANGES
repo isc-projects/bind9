@@ -1,3 +1,7 @@
+3469.	[bug]		Handle DLZ lookup failures more gracefully. Improve
+			backward compatibility between versions of DLZ dlopen
+			API. [RT #32275]
+
 3468.	[security]	RPZ rules to generate A records (but not AAAA records)
 			could trigger an assertion failure when used in
 			conjunction with DNS64 (CVE-2012-5689). [RT #32141]
