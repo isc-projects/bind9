@@ -1,3 +1,6 @@
+3474.	[bug]		nsupdate could assert when the local and remote
+			address families didn't match. [RT #22897]
+
 3473.	[bug]		dnssec-signzone/verify could incorrectly report
 			an error condition due to an empty node above an
 			opt-out delegation lacking an NSEC3. [RT #32072]

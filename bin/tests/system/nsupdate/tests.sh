@@ -223,6 +223,17 @@ grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
 n=`expr $n + 1`
+echo "I:check that address family mismatch is handled ($n)"
+$NSUPDATE <<END > /dev/null 2>&1 && ret=1
+server ::1
+local 127.0.0.1
+update add 600 txt.example.nil in txt "test"
+send
+END
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
+
+n=`expr $n + 1`
 echo "I:check that unixtime serial number is correctly generated ($n)"
 oldserial=`$DIG +short unixtime.nil. soa @10.53.0.1 -p 5300 | awk '{print $3}'` || ret=1
 $NSUPDATE <<END > /dev/null 2>&1 || ret=1
