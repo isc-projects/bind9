@@ -1,3 +1,7 @@
+3471.	[bug]		The number of UDP dispatches now defaults to
+			the number of CPUs even if -n has been set to
+			a higher value. [RT #30964]
+
 3470.	[bug]		Slave zones could fail to dump when successfully
 			refreshing after an initial failure. [RT #31276]
 

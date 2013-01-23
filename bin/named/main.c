@@ -597,7 +597,9 @@ create_managers(void) {
 #ifdef WIN32
 	ns_g_udpdisp = 1;
 #else
-	if (ns_g_udpdisp == 0 || ns_g_udpdisp > ns_g_cpus)
+	if (ns_g_udpdisp == 0)
+		ns_g_udpdisp = ns_g_cpus_detected;
+	if (ns_g_udpdisp > ns_g_cpus)
 		ns_g_udpdisp = ns_g_cpus;
 #endif
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
