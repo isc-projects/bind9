@@ -1,3 +1,6 @@
+3474.	[bug]		nsupdate could assert when the local and remote
+			address families didn't match. [RT #22897]
+
 3470.	[bug]		Slave zones could fail to dump when successfully
 			refreshing after an initial failure. [RT #31276]
 
