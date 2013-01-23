@@ -1,3 +1,7 @@
+3473.	[bug]		dnssec-signzone/verify could incorrectly report
+			an error condition due to an empty node above an
+			opt-out delegation lacking an NSEC3. [RT #32072]
+
 3471.	[bug]		The number of UDP dispatches now defaults to
 			the number of CPUs even if -n has been set to
 			a higher value. [RT #30964]
