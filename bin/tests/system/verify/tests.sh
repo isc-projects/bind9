@@ -69,7 +69,7 @@ do
 		expect1="unexpected NSEC RRset at"
 		;;
 	*.nsec.broken-chain)
-		expect1="Bad record NSEC record for.*, next name mismatch"
+		expect1="Bad NSEC record for.*, next name mismatch"
 		;;
 	*.bad-bitmap)
 		expect1="bit map mismatch"
