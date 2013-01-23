@@ -32,3 +32,6 @@ rm -f ns4/*.db ns4/*.jnl
 cp -f ns4/root.db.in ns4/root.db
 $PERL -e 'for ($i=0;$i<10000;$i++){ printf("x%u 0 in a 10.53.0.1\n", $i);}' >> ns4/root.db
 cp -f ns4/named.conf.base ns4/named.conf
+
+cp ns2/slave.db.in ns2/slave.db
+touch -t 200101010000 ns2/slave.db
