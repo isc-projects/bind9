@@ -326,16 +326,17 @@ struct isc__socket {
 	intev_t			readable_ev;
 	intev_t			writable_ev;
 
-	isc_sockaddr_t		peer_address;  /* remote address */
+	isc_sockaddr_t		peer_address;       /* remote address */
 
 	unsigned int		pending_recv : 1,
 				pending_send : 1,
 				pending_accept : 1,
-				listener : 1, /* listener socket */
+				listener : 1,       /* listener socket */
 				connected : 1,
-				connecting : 1, /* connect pending */
-				bound : 1, /* bound to local addr */
-				dupped : 1;
+				connecting : 1,     /* connect pending */
+				bound : 1,          /* bound to local addr */
+				dupped : 1,
+				active : 1;         /* currently active */
 
 #ifdef ISC_NET_RECVOVERFLOW
 	unsigned char		overflow; /* used for MSG_TRUNC fake */
@@ -1995,7 +1996,10 @@ closesocket(isc__socketmgr_t *manager, isc__socket_t *sock, int fd) {
 		select_poke(manager, fd, SELECT_POKE_CLOSE);
 
 	inc_stats(manager->stats, sock->statsindex[STATID_CLOSE]);
-	dec_stats(manager->stats, sock->statsindex[STATID_ACTIVE]);
+	if (sock->active == 1) {
+		dec_stats(manager->stats, sock->statsindex[STATID_ACTIVE]);
+		sock->active = 0;
+	}
 
 	/*
 	 * update manager->maxfd here (XXX: this should be implemented more
@@ -2582,7 +2586,11 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 
 setup_done:
 	inc_stats(manager->stats, sock->statsindex[STATID_OPEN]);
-	inc_stats(manager->stats, sock->statsindex[STATID_ACTIVE]);
+	if (sock->active == 0) {
+		inc_stats(manager->stats, sock->statsindex[STATID_ACTIVE]);
+		sock->active = 1;
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -2625,6 +2633,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		INSIST(0);
 	}
 
+	sock->active = 0;
 	sock->pf = pf;
 
 	result = opensocket(manager, sock, (isc__socket_t *)dup_socket);
