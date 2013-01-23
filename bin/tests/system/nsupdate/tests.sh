@@ -128,6 +128,16 @@ $DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
 grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
+n=`expr $n + 1`
+echo "I:check that address family mismatch is handled ($n)"
+$NSUPDATE <<END > /dev/null 2>&1 && ret=1
+server ::1
+local 127.0.0.1
+update add 600 txt.example.nil in txt "test"
+send
+END
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
     echo "I:running update.pl test"

@@ -1,3 +1,6 @@
+3474.	[bug]		nsupdate could assert when the local and remote
+			address families didn't match. [RT #22897]
+
 	--- 9.6-ESV-R9b1 released ---
 
 3465.	[bug]		Handle isolated reserved ports. [RT #31778]
