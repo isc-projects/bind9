@@ -3286,6 +3286,9 @@ if test "$atf" != no; then
 	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
 	ATFBIN="$atf/bin"
 	ATFLIBS="-L$atf/lib -latf-c"
+	if test "$want_openssl_hash" = yes; then
+		ATFLIBS="-L$atf/lib -latf-c $DNS_CRYPTO_LIBS"
+	fi
 	UNITTESTS=tests
 fi
 AC_SUBST(ATFBIN)
