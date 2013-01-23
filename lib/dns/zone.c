@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -12014,7 +12014,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		 * won't hurt with an AXFR.
 		 */
 		if (zone->masterfile != NULL || zone->journal != NULL) {
-                        unsigned int delay = DNS_DUMP_DELAY;
+			unsigned int delay = DNS_DUMP_DELAY;
 
 			result = ISC_R_FAILURE;
 			if (zone->journal != NULL)
