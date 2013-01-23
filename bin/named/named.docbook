@@ -290,9 +290,10 @@
             Use <replaceable class="parameter">#listeners</replaceable>
             worker threads to listen for incoming UDP packets on each
             address.  If not specified, <command>named</command> will
-            use all of the worker threads for this purpose; the
-            <option>-U</option> option allows the number to be
-            decreased but not increased.
+            use the number of detected CPUs.  If <option>-n</option>
+            has been set to a higher value than the number of CPUs,
+            then <option>-U</option> may be increased as high as that
+            value, but no higher.
           </para>
         </listitem>
       </varlistentry>
