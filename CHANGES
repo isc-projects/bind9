@@ -1,4 +1,7 @@
-3477.	[func]		expand logging when adding records via DDNS update
+3478.	[port]		Fix a build failure in strict C99 environments
+			[RT #32475]
+
+3477.	[func]		Expand logging when adding records via DDNS update
 	 		[RT #32365]
 			
 3476.	[bug]		"rndc zonestatus" could report a spurious "not
