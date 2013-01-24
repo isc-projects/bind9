@@ -23,7 +23,7 @@
 
 const char dns_version[] = VERSION;
 const char dns_major[] = MAJOR;
-const char dns_fastapi[] = FASTAPI;
+const char dns_mapapi[] = MAPAPI;
 
 const unsigned int dns_libinterface = LIBINTERFACE;
 const unsigned int dns_librevision = LIBREVISION;

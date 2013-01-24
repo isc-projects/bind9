@@ -25,7 +25,7 @@ export_srcdir =	@top_srcdir@/lib/export
 @BIND9_VERSION@
 @BIND9_MAJOR@
 
-@LIBDNS_FASTAPI@
+@LIBDNS_MAPAPI@
 
 @LIBDNS_API@
 
@@ -113,7 +113,7 @@ version.@O@: ${srcdir}/version.c
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
 		-DMAJOR=\"${MAJOR}\" \
-		-DFASTAPI=\"${FASTAPI}\" \
+		-DMAPAPI=\"${MAPAPI}\" \
 		-DLIBINTERFACE=${LIBINTERFACE} \
 		-DLIBREVISION=${LIBREVISION} \
 		-DLIBAGE=${LIBAGE} \

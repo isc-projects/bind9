@@ -256,7 +256,7 @@
 	  <para>
 	    Specify the format of the zone file.
 	    Possible formats are <command>"text"</command> (default),
-	    <command>"raw"</command>, and <command>"fast"</command>.
+	    <command>"raw"</command>, and <command>"map"</command>.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -273,7 +273,7 @@
 	  <para>
 	    Possible formats are <command>"text"</command> (default),
 	    which is the standard textual representation of the zone,
-	    and <command>"fast"</command>, <command>"raw"</command>,
+	    and <command>"map"</command>, <command>"raw"</command>,
             and <command>"raw=N"</command>, which store the zone in a
             binary format for rapid loading by <command>named</command>.
             <command>"raw=N"</command> specifies the format version of
@@ -303,7 +303,7 @@
         <term>-L <replaceable class="parameter">serial</replaceable></term>
         <listitem>
           <para>
-            When compiling a zone to "raw" or "fast" format, set the
+            When compiling a zone to "raw" or "map" format, set the
             "source serial" value in the header to the specified serial
             number.  (This is expected to be used primarily for testing
             purposes.)

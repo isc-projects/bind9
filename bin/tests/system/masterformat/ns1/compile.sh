@@ -16,9 +16,9 @@
 
 ../named-compilezone -D -F raw -o example.db.raw example \
         example.db > /dev/null 2>&1
-../named-compilezone -D -F fast -o ../ns3/example.db.fast example \
+../named-compilezone -D -F map -o ../ns3/example.db.map example \
         example.db > /dev/null 2>&1
-../named-compilezone -D -F fast -o ../ns3/dynamic.db.fast dynamic \
+../named-compilezone -D -F map -o ../ns3/dynamic.db.map dynamic \
         example.db > /dev/null 2>&1
 ../named-compilezone -D -F raw=1 -o example.db.raw1 example-explicit \
         example.db > /dev/null 2>&1
@@ -27,6 +27,6 @@
 ../named-compilezone -D -F raw -L 3333 -o example.db.serial.raw example \
         example.db > /dev/null 2>&1
 ../named-compilezone -D -F raw -o large.db.raw large large.db > /dev/null 2>&1
-../named-compilezone -D -F fast -o example.db.fast example-fast \
+../named-compilezone -D -F map -o example.db.map example-map \
         example.db > /dev/null 2>&1
 

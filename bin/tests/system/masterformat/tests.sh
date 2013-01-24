@@ -19,7 +19,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-isfast () {
+ismap () {
     perl -e 'binmode STDIN;
 	     read(STDIN, $input, 8);
              ($style, $version) = unpack("NN", $input);
@@ -41,7 +41,7 @@ rawversion () {
              if (length($input) < 8) { print "not raw\n"; exit 0; };
              ($style, $version) = unpack("NN", $input);
              print ($style == 2 || $style == 3 ? "$version\n" : 
-		"not raw or fast\n");' < $1
+		"not raw or map\n");' < $1
 }
 
 sourceserial () {
@@ -91,11 +91,11 @@ ret=0
 israw ns1/example.db.raw || ret=1
 israw ns1/example.db.raw1 || ret=1
 israw ns1/example.db.compat || ret=1
-isfast ns1/example.db.fast || ret=1
+ismap ns1/example.db.map || ret=1
 [ "`rawversion ns1/example.db.raw`" = 1 ] || ret=1
 [ "`rawversion ns1/example.db.raw1`" = 1 ] || ret=1
 [ "`rawversion ns1/example.db.compat`" = 0 ] || ret=1
-[ "`rawversion ns1/example.db.fast`" = 1 ] || ret=1
+[ "`rawversion ns1/example.db.map`" = 1 ] || ret=1
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
@@ -150,26 +150,26 @@ done
 sleep 1
 done
 
-echo "I:checking format transitions: text->raw->fast->text"
+echo "I:checking format transitions: text->raw->map->text"
 ret=0
 ./named-compilezone -D -f text -F text -o baseline.txt example.nil ns1/example.db > /dev/null
 ./named-compilezone -D -f text -F raw -o raw.1 example.nil baseline.txt > /dev/null
-./named-compilezone -D -f raw -F fast -o fast.1 example.nil raw.1 > /dev/null
-./named-compilezone -D -f fast -F text -o text.1 example.nil fast.1 > /dev/null
+./named-compilezone -D -f raw -F map -o map.1 example.nil raw.1 > /dev/null
+./named-compilezone -D -f map -F text -o text.1 example.nil map.1 > /dev/null
 cmp -s baseline.txt text.1 || ret=0
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-echo "I:checking format transitions: text->fast->raw->text"
+echo "I:checking format transitions: text->map->raw->text"
 ret=0
-./named-compilezone -D -f text -F fast -o fast.2 example.nil baseline.txt > /dev/null
-./named-compilezone -D -f fast -F raw -o raw.2 example.nil fast.2 > /dev/null
+./named-compilezone -D -f text -F map -o map.2 example.nil baseline.txt > /dev/null
+./named-compilezone -D -f map -F raw -o raw.2 example.nil map.2 > /dev/null
 ./named-compilezone -D -f raw -F text -o text.2 example.nil raw.2 > /dev/null
 cmp -s baseline.txt text.2 || ret=0
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-echo "I:checking fast format loading with journal file rollforward"
+echo "I:checking map format loading with journal file rollforward"
 ret=0
 $NSUPDATE <<END > /dev/null || status=1
 server 10.53.0.3 5300
@@ -197,7 +197,7 @@ grep "NXDOMAIN"  dig.out.dynamic.3.4 > /dev/null 2>&1 || ret=1
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-echo "I:checking fast format file dumps correctly"
+echo "I:checking map format file dumps correctly"
 ret=0
 $NSUPDATE <<END > /dev/null || status=1
 server 10.53.0.3 5300

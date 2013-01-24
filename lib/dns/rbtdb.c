@@ -90,7 +90,7 @@
 	} while (0)
 
 /*
- * This is the fast file header for RBTDB images.  It is populated, and then
+ * This is the map file header for RBTDB images.  It is populated, and then
  * written, as the LAST thing done to the file.  Writing this last (with
  * zeros in the header area initially) will ensure that the header is only
  * valid when the RBTDB image is also valid.
@@ -7424,7 +7424,7 @@ rbtdb_write_header(FILE *rbtfile, long tree_location, long nsec_location,
 	if (FILE_VERSION[0] == '\0') {
 		memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
 		snprintf(FILE_VERSION, sizeof(FILE_VERSION),
-			 "RBTDB Image %s %s", dns_major, dns_fastapi);
+			 "RBTDB Image %s %s", dns_major, dns_mapapi);
 	}
 
 	memset(&header, 0, sizeof(rbtdb_file_header_t));

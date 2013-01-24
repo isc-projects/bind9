@@ -23,7 +23,7 @@
 
 LIBDNS_EXTERNAL_DATA extern const char dns_version[];
 LIBDNS_EXTERNAL_DATA extern const char dns_major[];
-LIBDNS_EXTERNAL_DATA extern const char dns_fastapi[];
+LIBDNS_EXTERNAL_DATA extern const char dns_mapapi[];
 
 LIBDNS_EXTERNAL_DATA extern const unsigned int dns_libinterface;
 LIBDNS_EXTERNAL_DATA extern const unsigned int dns_librevision;

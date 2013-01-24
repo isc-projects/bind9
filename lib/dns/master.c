@@ -184,10 +184,10 @@ static isc_result_t
 load_raw(dns_loadctx_t *lctx);
 
 static isc_result_t
-openfile_fast(dns_loadctx_t *lctx, const char *master_file);
+openfile_map(dns_loadctx_t *lctx, const char *master_file);
 
 static isc_result_t
-load_fast(dns_loadctx_t *lctx);
+load_map(dns_loadctx_t *lctx);
 
 static isc_result_t
 pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx);
@@ -568,9 +568,9 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		lctx->openfile = openfile_raw;
 		lctx->load = load_raw;
 		break;
-	case dns_masterformat_fast:
-		lctx->openfile = openfile_fast;
-		lctx->load = load_fast;
+	case dns_masterformat_map:
+		lctx->openfile = openfile_map;
+		lctx->load = load_map;
 		break;
 	}
 
@@ -2107,7 +2107,7 @@ load_header(dns_loadctx_t *lctx) {
 	REQUIRE(DNS_LCTX_VALID(lctx));
 
 	if (lctx->format != dns_masterformat_raw &&
-	    lctx->format != dns_masterformat_fast)
+	    lctx->format != dns_masterformat_map)
 		return (ISC_R_NOTIMPLEMENTED);
 
 	callbacks = lctx->callbacks;
@@ -2129,8 +2129,8 @@ load_header(dns_loadctx_t *lctx) {
 	if (header.format != lctx->format) {
 		(*callbacks->error)(callbacks, "dns_master_load: "
 				    "file format mismatch (not %s)",
-				    lctx->format == dns_masterformat_fast
-					    ? "fast"
+				    lctx->format == dns_masterformat_map
+					    ? "map"
 					    : "raw");
 		return (ISC_R_NOTIMPLEMENTED);
 	}
@@ -2174,7 +2174,7 @@ load_header(dns_loadctx_t *lctx) {
 }
 
 static isc_result_t
-openfile_fast(dns_loadctx_t *lctx, const char *master_file) {
+openfile_map(dns_loadctx_t *lctx, const char *master_file) {
 	isc_result_t result;
 
 	result = isc_stdio_open(master_file, "rb", &lctx->f);
@@ -2188,10 +2188,10 @@ openfile_fast(dns_loadctx_t *lctx, const char *master_file) {
 }
 
 /*
- * Load a fast format file, using mmap() to access RBT trees directly
+ * Load a map format file, using mmap() to access RBT trees directly
  */
 static isc_result_t
-load_fast(dns_loadctx_t *lctx) {
+load_map(dns_loadctx_t *lctx) {
 	isc_result_t result;
 	dns_rdatacallbacks_t *callbacks;
 

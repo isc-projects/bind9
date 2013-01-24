@@ -90,7 +90,7 @@ struct dns_rbt {
 #define BLACK 1
 
 /*
- * This is the header for fast-format RBT images.  It is populated,
+ * This is the header for map-format RBT images.  It is populated,
  * and then written, as the LAST thing done to the file before returning.
  * Writing this last (with zeros in the header area initially) will ensure
  * that the header is only valid when the RBT image is also valid.
@@ -107,8 +107,8 @@ struct file_header {
 	char version1[32];
 	isc_uint64_t first_node_offset;	/* usually 1024 */
 	/*
-	 * information about the system on which the fast file was generated
-	 * will be used to tell if we can load the fast file or not
+	 * information about the system on which the map file was generated
+	 * will be used to tell if we can load the map file or not
 	 */
 	isc_uint32_t ptrsize;
 	unsigned int bigendian:1;	/* big or little endian system */
@@ -398,7 +398,7 @@ write_header(FILE *file, dns_rbt_t *rbt, isc_uint64_t first_node_offset) {
 	if (FILE_VERSION[0] == '\0') {
 		memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
 		snprintf(FILE_VERSION, sizeof(FILE_VERSION),
-			 "RBT Image %s %s", dns_major, dns_fastapi);
+			 "RBT Image %s %s", dns_major, dns_mapapi);
 	}
 
 	memset(&header, 0, sizeof(file_header_t));
