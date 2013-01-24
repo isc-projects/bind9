@@ -1,3 +1,6 @@
+3478.	[port]		Fix a build failure in strict C99 environments
+			[RT #32475]
+
 3474.	[bug]		nsupdate could assert when the local and remote
 			address families didn't match. [RT #22897]
 
