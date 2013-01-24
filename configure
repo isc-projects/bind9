@@ -1431,7 +1431,7 @@ LIBISC_API
 LIBISCCC_API
 LIBISCCFG_API
 LIBDNS_API
-LIBDNS_FASTAPI
+LIBDNS_MAPAPI
 LIBBIND9_API
 LIBLWRES_API
 LIBIRS_API
@@ -13308,20 +13308,18 @@ $as_echo_n "checking for static inline breakage... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-int
-main ()
-{
-
-		foo1();
-	}
-
 	static inline int foo1() {
 		return 0;
 	}
 
 	static inline int foo2() {
 		return foo1();
+	}
 
+int
+main ()
+{
+foo1();
   ;
   return 0;
 }
@@ -19537,7 +19535,7 @@ LIBISCCFG_API=$srcdir/lib/isccfg/api
 LIBDNS_API=$srcdir/lib/dns/api
 
 
-LIBDNS_FASTAPI=$srcdir/lib/dns/fastapi
+LIBDNS_MAPAPI=$srcdir/lib/dns/mapapi
 
 
 LIBBIND9_API=$srcdir/lib/bind9/api
