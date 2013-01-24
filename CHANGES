@@ -1,3 +1,6 @@
+3475.	[func]		expand logging when adding records via DDNS update
+	 		[RT #32365]
+
 3474.	[bug]		nsupdate could assert when the local and remote
 			address families didn't match. [RT #22897]
 
