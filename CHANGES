@@ -1,3 +1,6 @@
+3475.	[cleanup]	Changed name of 'map' zone file format (previously
+			'fast'). [RT #32458]
+
 3474.	[bug]		nsupdate could assert when the local and remote
 			address families didn't match. [RT #22897]
 
@@ -416,12 +419,12 @@
 			to ensure correctness of signatures and of NSEC/NSEC3
 			chains. [RT #23673]
 
-3340.	[func]		Added new 'fast' zone file format, which is an image
+3340.	[func]		Added new 'map' zone file format, which is an image
 			of a zone database that can be loaded directly into
 			memory via mmap(), allowing much faster zone loading.
 			(Note: Because of pointer sizes and other
 			considerations, this file format is platform-dependent;
-			'fast' zone files cannot always be transferred from one
+			'map' zone files cannot always be transferred from one
 			server to another.) [RT #25419]
 
 3339.	[func]		Allow the maximum supported rsa exponent size to be

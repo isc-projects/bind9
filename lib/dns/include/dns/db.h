@@ -485,7 +485,7 @@ dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
  *      file. callbacks->add_private will be a valid DB load context
  *      which should be used as 'arg' when callbacks->add is called.
  *      callbacks->deserialize will be a valid dns_deserialize_func_t
- *      suitable for loading 'db' from a fast format zone file.
+ *      suitable for loading 'db' from a map format zone file.
  *
  * Returns:
  *
@@ -561,7 +561,7 @@ dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
 isc_result_t
 dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *rbtfile);
 /*%<
- * Dump version 'version' of 'db' to fast file 'filename'.
+ * Dump version 'version' of 'db' to map-format file 'filename'.
  *
  * Requires:
  *

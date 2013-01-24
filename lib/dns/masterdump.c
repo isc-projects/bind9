@@ -1062,9 +1062,9 @@ dump_rdatasets_raw(isc_mem_t *mctx, dns_name_t *name,
 }
 
 static isc_result_t
-dump_rdatasets_fast(isc_mem_t *mctx, dns_name_t *name,
-		    dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
-		    isc_buffer_t *buffer, FILE *f)
+dump_rdatasets_map(isc_mem_t *mctx, dns_name_t *name,
+		   dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
+		   isc_buffer_t *buffer, FILE *f)
 {
 	UNUSED(mctx);
 	UNUSED(name);
@@ -1318,8 +1318,8 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	case dns_masterformat_raw:
 		dctx->dumpsets = dump_rdatasets_raw;
 		break;
-	case dns_masterformat_fast:
-		dctx->dumpsets = dump_rdatasets_fast;
+	case dns_masterformat_map:
+		dctx->dumpsets = dump_rdatasets_map;
 		break;
 	default:
 		INSIST(0);
@@ -1404,7 +1404,7 @@ writeheader(dns_dumpctx_t *dctx) {
 		}
 		break;
 	case dns_masterformat_raw:
-	case dns_masterformat_fast:
+	case dns_masterformat_map:
 		r.base = (unsigned char *)&rawheader;
 		r.length = sizeof(rawheader);
 		isc_buffer_region(&buffer, &r);
@@ -1485,7 +1485,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 		 * If the database is anything other than an rbtdb,
 		 * this should result in not implemented
 		 */
-		if (dctx->format == dns_masterformat_fast) {
+		if (dctx->format == dns_masterformat_map) {
 			result = dns_db_serialize(dctx->db, dctx->version,
 						  dctx->f);
 			goto cleanup;

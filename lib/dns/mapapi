@@ -1,5 +1,5 @@
 # This value should be increased whenever changing the structure of
-# any object that will appear in a type 'fast' master file (which
+# any object that will appear in a type 'map' master file (which
 # contains a working memory image of an RBT database), as loading 
 # an incorrect memory image produces an inconsistent and probably
 # nonfunctional database.  These structures include but are not
@@ -7,10 +7,10 @@
 # rbt_file_header, dns_rbtdb, dns_rbt, dns_rbtnode, rdatasetheader.
 #
 # Err on the side of caution: if anything in the RBTDB is changed,
-# bump the value.  Making fast files unreadable protects the system
+# bump the value.  Making map files unreadable protects the system
 # from instability; it's a feature not a bug.
 #
 # Whenever releasing a new major release of BIND9, set this value
 # back to 1.0 when releasing the first alpha.  Fast files are *never*
 # compatible across major releases.
-FASTAPI=1.0
+MAPAPI=1.0

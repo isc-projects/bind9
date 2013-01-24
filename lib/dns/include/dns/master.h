@@ -80,7 +80,7 @@ struct dns_masterrawheader {
 	isc_uint32_t		format;		/* must be
 						 * dns_masterformat_raw
 						 * or
-						 * dns_masterformat_fast */
+						 * dns_masterformat_map */
 	isc_uint32_t		version;	/* compatibility for future
 						 * extensions */
 	isc_uint32_t		dumptime;	/* timestamp on creation

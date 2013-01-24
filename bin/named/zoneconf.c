@@ -954,8 +954,8 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			masterformat = dns_masterformat_text;
 		else if (strcasecmp(masterformatstr, "raw") == 0)
 			masterformat = dns_masterformat_raw;
-		else if (strcasecmp(masterformatstr, "fast") == 0)
-			masterformat = dns_masterformat_fast;
+		else if (strcasecmp(masterformatstr, "map") == 0)
+			masterformat = dns_masterformat_map;
 		else
 			INSIST(0);
 	}
@@ -1395,12 +1395,12 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKWILDCARD, check);
 
 		/*
-		 * With fast files, the default is ignore duplicate
+		 * With map files, the default is ignore duplicate
 		 * records.  With other master formats, the default is
 		 * taken from the global configuration.
 		 */
 		obj = NULL;
-		if (masterformat != dns_masterformat_fast) {
+		if (masterformat != dns_masterformat_map) {
 			result = ns_config_get(maps, "check-dup-records", &obj);
 			INSIST(result == ISC_R_SUCCESS && obj != NULL);
 			dupcheck = cfg_obj_asstring(obj);
@@ -1441,12 +1441,12 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKMXFAIL, fail);
 
 		/*
-		 * With fast files, the default is *not* to check
+		 * With map files, the default is *not* to check
 		 * integrity.  With other master formats, the default is
 		 * taken from the global configuration.
 		 */
 		obj = NULL;
-		if (masterformat != dns_masterformat_fast) {
+		if (masterformat != dns_masterformat_map) {
 			result = ns_config_get(maps, "check-integrity", &obj);
 			INSIST(result == ISC_R_SUCCESS && obj != NULL);
 			dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKINTEGRITY,

@@ -3362,8 +3362,8 @@ LIBISCCFG_API=$srcdir/lib/isccfg/api
 AC_SUBST_FILE(LIBDNS_API)
 LIBDNS_API=$srcdir/lib/dns/api
 
-AC_SUBST_FILE(LIBDNS_FASTAPI)
-LIBDNS_FASTAPI=$srcdir/lib/dns/fastapi
+AC_SUBST_FILE(LIBDNS_MAPAPI)
+LIBDNS_MAPAPI=$srcdir/lib/dns/mapapi
 
 AC_SUBST_FILE(LIBBIND9_API)
 LIBBIND9_API=$srcdir/lib/bind9/api

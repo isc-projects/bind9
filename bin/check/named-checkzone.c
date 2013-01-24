@@ -429,8 +429,8 @@ main(int argc, char **argv) {
 			inputformat = dns_masterformat_raw;
 			fprintf(stderr,
 				"WARNING: input format raw, version ignored\n");
-		} else if (strcasecmp(inputformatstr, "fast") == 0) {
-			inputformat = dns_masterformat_fast;
+		} else if (strcasecmp(inputformatstr, "map") == 0) {
+			inputformat = dns_masterformat_map;
 		} else {
 			fprintf(stderr, "unknown file format: %s\n",
 			    inputformatstr);
@@ -454,8 +454,8 @@ main(int argc, char **argv) {
 					"unknown raw format version\n");
 				exit(1);
 			}
-		} else if (strcasecmp(outputformatstr, "fast") == 0) {
-			outputformat = dns_masterformat_fast;
+		} else if (strcasecmp(outputformatstr, "map") == 0) {
+			outputformat = dns_masterformat_map;
 		} else {
 			fprintf(stderr, "unknown file format: %s\n",
 				outputformatstr);

@@ -168,7 +168,7 @@
 	    included. The resulting file can be included in the original
 	    zone file with <command>$INCLUDE</command>. This option
 	    cannot be combined with <option>-O raw</option>, 
-            <option>-O fast</option>, or serial number updating.
+            <option>-O map</option>, or serial number updating.
           </para>
         </listitem>
       </varlistentry>
@@ -339,7 +339,7 @@
           <para>
             The format of the input zone file.
 	    Possible formats are <command>"text"</command> (default),
-	    <command>"raw"</command>, and <command>"fast"</command>.
+	    <command>"raw"</command>, and <command>"map"</command>.
 	    This option is primarily intended to be used for dynamic
             signed zones so that the dumped zone file in a non-text
             format containing updates can be signed directly.
@@ -377,7 +377,7 @@
         <term>-L <replaceable class="parameter">serial</replaceable></term>
         <listitem>
           <para>
-            When writing a signed zone to "raw" or "fast" format, set the
+            When writing a signed zone to "raw" or "map" format, set the
             "source serial" value in the header to the specified serial
             number.  (This is expected to be used primarily for testing
             purposes.)
@@ -452,7 +452,7 @@
             which is the standard textual representation of the zone;
 	    <command>"full"</command>, which is text output in a
             format suitable for processing by external scripts;
-            and <command>"fast"</command>, <command>"raw"</command>,
+            and <command>"map"</command>, <command>"raw"</command>,
             and <command>"raw=N"</command>, which store the zone in
             binary formats for rapid loading by <command>named</command>.
             <command>"raw=N"</command> specifies the format version of

@@ -49,7 +49,7 @@ struct dns_rdatacallbacks {
 	dns_addrdatasetfunc_t add;
 
 	/*%
-	 * This is called when reading in a database image from a 'fast'
+	 * This is called when reading in a database image from a 'map'
 	 * format zone file.
 	 */
 	dns_deserializefunc_t deserialize;
