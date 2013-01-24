@@ -1,3 +1,6 @@
+3476.	[bug]		"rndc zonestatus" could report a spurious "not
+			found" error on inline-signing zones. [RT #29226]
+
 3475.	[cleanup]	Changed name of 'map' zone file format (previously
 			'fast'). [RT #32458]
 

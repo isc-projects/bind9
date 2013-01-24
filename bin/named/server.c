@@ -8411,15 +8411,12 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 		dns_name_t *name;
 		dns_fixedname_t fixed;
 		dns_rdataset_t next;
-		dns_db_t *signingdb;
 
 		dns_rdataset_init(&next);
 		dns_fixedname_init(&fixed);
 		name = dns_fixedname_name(&fixed);
 
-		signingdb = hasraw ? rawdb : db;
-
-		result = dns_db_getsigningtime(signingdb, &next, name);
+		result = dns_db_getsigningtime(db, &next, name);
 		if (result == ISC_R_SUCCESS) {
 			isc_stdtime_t timenow;
 			char namebuf[DNS_NAME_FORMATSIZE];
@@ -8435,7 +8432,8 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 			isc_time_formathttptimestamp(&resigntime, rtbuf,
 						     sizeof(rtbuf));
 			dns_rdataset_disassociate(&next);
-		}
+		} else if (result == ISC_R_NOTFOUND)
+			result = ISC_R_SUCCESS;
 	}
 
 	/* Create text */
