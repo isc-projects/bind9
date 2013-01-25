@@ -1,3 +1,6 @@
+3479.	[bug]		Address potential memory leaks in gssapi support
+			code. [RT #32405]
+
 3478.	[port]		Fix a build failure in strict C99 environments
 			[RT #32475]
 
