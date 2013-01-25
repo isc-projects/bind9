@@ -76,7 +76,7 @@
 	    included. The resulting file can be included in the original
 	    zone file with <span><strong class="command">$INCLUDE</strong></span>. This option
 	    cannot be combined with <code class="option">-O raw</code>, 
-            <code class="option">-O fast</code>, or serial number updating.
+            <code class="option">-O map</code>, or serial number updating.
           </p></dd>
 <dt><span class="term">-E <em class="replaceable"><code>engine</code></em></span></dt>
 <dd><p>
@@ -191,7 +191,7 @@
 <dd><p>
             The format of the input zone file.
 	    Possible formats are <span><strong class="command">"text"</strong></span> (default),
-	    <span><strong class="command">"raw"</strong></span>, and <span><strong class="command">"fast"</strong></span>.
+	    <span><strong class="command">"raw"</strong></span>, and <span><strong class="command">"map"</strong></span>.
 	    This option is primarily intended to be used for dynamic
             signed zones so that the dumped zone file in a non-text
             format containing updates can be signed directly.
@@ -221,7 +221,7 @@
 </dd>
 <dt><span class="term">-L <em class="replaceable"><code>serial</code></em></span></dt>
 <dd><p>
-            When writing a signed zone to "raw" or "fast" format, set the
+            When writing a signed zone to "raw" or "map" format, set the
             "source serial" value in the header to the specified serial
             number.  (This is expected to be used primarily for testing
             purposes.)
@@ -262,7 +262,7 @@
             which is the standard textual representation of the zone;
 	    <span><strong class="command">"full"</strong></span>, which is text output in a
             format suitable for processing by external scripts;
-            and <span><strong class="command">"fast"</strong></span>, <span><strong class="command">"raw"</strong></span>,
+            and <span><strong class="command">"map"</strong></span>, <span><strong class="command">"raw"</strong></span>,
             and <span><strong class="command">"raw=N"</strong></span>, which store the zone in
             binary formats for rapid loading by <span><strong class="command">named</strong></span>.
             <span><strong class="command">"raw=N"</strong></span> specifies the format version of

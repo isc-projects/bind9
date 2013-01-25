@@ -283,7 +283,7 @@ options {
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
 	update\-check\-ksk \fIboolean\fR;
 	dnssec\-dnskey\-kskonly \fIboolean\fR;
-	masterfile\-format ( text | raw | fast );
+	masterfile\-format ( text | raw | map );
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
@@ -454,7 +454,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
 	update\-check\-ksk \fIboolean\fR;
 	dnssec\-dnskey\-kskonly \fIboolean\fR;
-	masterfile\-format ( text | raw | fast );
+	masterfile\-format ( text | raw | map );
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
@@ -541,7 +541,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 	}\fR;
 	update\-check\-ksk \fIboolean\fR;
 	dnssec\-dnskey\-kskonly \fIboolean\fR;
-	masterfile\-format ( text | raw | fast );
+	masterfile\-format ( text | raw | map );
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];

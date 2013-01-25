@@ -141,7 +141,7 @@ Specify the format of the zone file. Possible formats are
 \fB"text"\fR
 (default),
 \fB"raw"\fR, and
-\fB"fast"\fR.
+\fB"map"\fR.
 .RE
 .PP
 \-F \fIformat\fR
@@ -152,7 +152,7 @@ Specify the format of the output file specified. For
 Possible formats are
 \fB"text"\fR
 (default), which is the standard textual representation of the zone, and
-\fB"fast"\fR,
+\fB"map"\fR,
 \fB"raw"\fR, and
 \fB"raw=N"\fR, which store the zone in a binary format for rapid loading by
 \fBnamed\fR.
@@ -177,7 +177,7 @@ checks with the specified failure mode. Possible modes are
 .PP
 \-L \fIserial\fR
 .RS 4
-When compiling a zone to "raw" or "fast" format, set the "source serial" value in the header to the specified serial number. (This is expected to be used primarily for testing purposes.)
+When compiling a zone to "raw" or "map" format, set the "source serial" value in the header to the specified serial number. (This is expected to be used primarily for testing purposes.)
 .RE
 .PP
 \-m \fImode\fR

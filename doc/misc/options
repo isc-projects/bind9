@@ -155,7 +155,7 @@ options {
         listen-on-v6 [ port <integer> ] { <address_match_element>; ... };
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys-directory <quoted_string>;
-        masterfile-format ( text | raw | fast );
+        masterfile-format ( text | raw | map );
         match-mapped-addresses <boolean>;
         max-acache-size <size_no_default>;
         max-cache-size <size_no_default>;
@@ -379,7 +379,7 @@ view <string> <optional_class> {
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys { <string> <string> <integer> <integer> <integer>
             <quoted_string>; ... };
-        masterfile-format ( text | raw | fast );
+        masterfile-format ( text | raw | map );
         match-clients { <address_match_element>; ... };
         match-destinations { <address_match_element>; ... };
         match-recursive-only <boolean>;
@@ -512,7 +512,7 @@ view <string> <optional_class> {
                 journal <quoted_string>;
                 key-directory <quoted_string>;
                 maintain-ixfr-base <boolean>; // obsolete
-                masterfile-format ( text | raw | fast );
+                masterfile-format ( text | raw | map );
                 masters [ port <integer> ] { ( <masters> | <ipv4_address> [
                     port <integer> ] | <ipv6_address> [ port <integer> ] )
                     [ key <string> ]; ... };
@@ -607,7 +607,7 @@ zone <string> <optional_class> {
         journal <quoted_string>;
         key-directory <quoted_string>;
         maintain-ixfr-base <boolean>; // obsolete
-        masterfile-format ( text | raw | fast );
+        masterfile-format ( text | raw | map );
         masters [ port <integer> ] { ( <masters> | <ipv4_address> [ port
             <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
             <string> ]; ... };

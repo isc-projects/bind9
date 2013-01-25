@@ -78,7 +78,7 @@ Output only those record types automatically managed by
 \fBdnssec\-signzone\fR, i.e. RRSIG, NSEC, NSEC3 and NSEC3PARAM records. If smart signing (\fB\-S\fR) is used, DNSKEY records are also included. The resulting file can be included in the original zone file with
 \fB$INCLUDE\fR. This option cannot be combined with
 \fB\-O raw\fR,
-\fB\-O fast\fR, or serial number updating.
+\fB\-O map\fR, or serial number updating.
 .RE
 .PP
 \-E \fIengine\fR
@@ -180,7 +180,7 @@ The format of the input zone file. Possible formats are
 \fB"text"\fR
 (default),
 \fB"raw"\fR, and
-\fB"fast"\fR. This option is primarily intended to be used for dynamic signed zones so that the dumped zone file in a non\-text format containing updates can be signed directly. The use of this option does not make much sense for non\-dynamic zones.
+\fB"map"\fR. This option is primarily intended to be used for dynamic signed zones so that the dumped zone file in a non\-text format containing updates can be signed directly. The use of this option does not make much sense for non\-dynamic zones.
 .RE
 .PP
 \-j \fIjitter\fR
@@ -194,7 +194,7 @@ Signature lifetime jitter also to some extent benefits validators and servers by
 .PP
 \-L \fIserial\fR
 .RS 4
-When writing a signed zone to "raw" or "fast" format, set the "source serial" value in the header to the specified serial number. (This is expected to be used primarily for testing purposes.)
+When writing a signed zone to "raw" or "map" format, set the "source serial" value in the header to the specified serial number. (This is expected to be used primarily for testing purposes.)
 .RE
 .PP
 \-n \fIncpus\fR
@@ -240,7 +240,7 @@ The format of the output file containing the signed zone. Possible formats are
 \fB"text"\fR
 (default), which is the standard textual representation of the zone;
 \fB"full"\fR, which is text output in a format suitable for processing by external scripts; and
-\fB"fast"\fR,
+\fB"map"\fR,
 \fB"raw"\fR, and
 \fB"raw=N"\fR, which store the zone in binary formats for rapid loading by
 \fBnamed\fR.

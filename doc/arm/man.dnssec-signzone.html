@@ -50,7 +50,7 @@
 <div class="cmdsynopsis"><p><code class="command">dnssec-signzone</code>  [<code class="option">-a</code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-d <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-D</code>] [<code class="option">-E <em class="replaceable"><code>engine</code></em></code>] [<code class="option">-e <em class="replaceable"><code>end-time</code></em></code>] [<code class="option">-f <em class="replaceable"><code>output-file</code></em></code>] [<code class="option">-g</code>] [<code class="option">-h</code>] [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-k <em class="replaceable"><code>key</code></em></code>] [<code class="option">-L <em class="replaceable"><code>serial</code></em></code>] [<code class="option">-l <em class="replaceable"><code>domain</code></em></code>] [<code class="option">-i <em class="replaceable"><code>interval</code></em></code>] [<code class="option">-I <em class="replaceable"><code>input-format</code></em></code>] [<code class="option">-j <em class="replaceable"><code>jitter</code></em></code>] [<code class="option">-N <em class="replaceable"><code>soa-serial-format</code></em></code>] [<code class="option">-o <em class="replaceable"><code>origin</code></em></code>] [<code class="option">-O <em class="replaceable"><code>output-format</code></em></code>] [<code class="option">-P</code>] [<code class="option">-p</code>] [<code class="option">-R</code>] [<code class="option">-r <em class="replaceable"><code>randomdev</code></em></code>] [<code class="option">-S</code>] [<code class="option">-s <em class="replaceable"><code>start-time</code></em></code>] [<code class="option">-T <em class="replaceable"><code>ttl</code></em></code>] [<code class="option">-t</code>] [<code class="option">-u</code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] [<code class="option">-X <em class="replaceable"><code>extended end-time</code></em></code>] [<code class="option">-x</code>] [<code class="option">-z</code>] [<code class="option">-3 <em class="replaceable"><code>salt</code></em></code>] [<code class="option">-H <em class="replaceable"><code>iterations</code></em></code>] [<code class="option">-A</code>] {zonefile} [key...]</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2619595"></a><h2>DESCRIPTION</h2>
+<a name="id2621029"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dnssec-signzone</strong></span>
       signs a zone.  It generates
       NSEC and RRSIG records and produces a signed version of the
@@ -61,7 +61,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2619683"></a><h2>OPTIONS</h2>
+<a name="id2621048"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-a</span></dt>
 <dd><p>
@@ -94,7 +94,7 @@
 	    included. The resulting file can be included in the original
 	    zone file with <span><strong class="command">$INCLUDE</strong></span>. This option
 	    cannot be combined with <code class="option">-O raw</code>, 
-            <code class="option">-O fast</code>, or serial number updating.
+            <code class="option">-O map</code>, or serial number updating.
           </p></dd>
 <dt><span class="term">-E <em class="replaceable"><code>engine</code></em></span></dt>
 <dd><p>
@@ -209,7 +209,7 @@
 <dd><p>
             The format of the input zone file.
 	    Possible formats are <span><strong class="command">"text"</strong></span> (default),
-	    <span><strong class="command">"raw"</strong></span>, and <span><strong class="command">"fast"</strong></span>.
+	    <span><strong class="command">"raw"</strong></span>, and <span><strong class="command">"map"</strong></span>.
 	    This option is primarily intended to be used for dynamic
             signed zones so that the dumped zone file in a non-text
             format containing updates can be signed directly.
@@ -239,7 +239,7 @@
 </dd>
 <dt><span class="term">-L <em class="replaceable"><code>serial</code></em></span></dt>
 <dd><p>
-            When writing a signed zone to "raw" or "fast" format, set the
+            When writing a signed zone to "raw" or "map" format, set the
             "source serial" value in the header to the specified serial
             number.  (This is expected to be used primarily for testing
             purposes.)
@@ -280,7 +280,7 @@
             which is the standard textual representation of the zone;
 	    <span><strong class="command">"full"</strong></span>, which is text output in a
             format suitable for processing by external scripts;
-            and <span><strong class="command">"fast"</strong></span>, <span><strong class="command">"raw"</strong></span>,
+            and <span><strong class="command">"map"</strong></span>, <span><strong class="command">"raw"</strong></span>,
             and <span><strong class="command">"raw=N"</strong></span>, which store the zone in
             binary formats for rapid loading by <span><strong class="command">named</strong></span>.
             <span><strong class="command">"raw=N"</strong></span> specifies the format version of
@@ -466,7 +466,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2674580"></a><h2>EXAMPLE</h2>
+<a name="id2674921"></a><h2>EXAMPLE</h2>
 <p>
       The following command signs the <strong class="userinput"><code>example.com</code></strong>
       zone with the DSA key generated by <span><strong class="command">dnssec-keygen</strong></span>
@@ -496,14 +496,14 @@ db.example.com.signed
 %</pre>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2674659"></a><h2>SEE ALSO</h2>
+<a name="id2675000"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>,
       <em class="citetitle">RFC 4033</em>.
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2674683"></a><h2>AUTHOR</h2>
+<a name="id2675025"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>

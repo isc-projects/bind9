@@ -132,7 +132,7 @@
 <dd><p>
 	    Specify the format of the zone file.
 	    Possible formats are <span><strong class="command">"text"</strong></span> (default),
-	    <span><strong class="command">"raw"</strong></span>, and <span><strong class="command">"fast"</strong></span>.
+	    <span><strong class="command">"raw"</strong></span>, and <span><strong class="command">"map"</strong></span>.
 	  </p></dd>
 <dt><span class="term">-F <em class="replaceable"><code>format</code></em></span></dt>
 <dd>
@@ -145,7 +145,7 @@
 <p>
 	    Possible formats are <span><strong class="command">"text"</strong></span> (default),
 	    which is the standard textual representation of the zone,
-	    and <span><strong class="command">"fast"</strong></span>, <span><strong class="command">"raw"</strong></span>,
+	    and <span><strong class="command">"map"</strong></span>, <span><strong class="command">"raw"</strong></span>,
             and <span><strong class="command">"raw=N"</strong></span>, which store the zone in a
             binary format for rapid loading by <span><strong class="command">named</strong></span>.
             <span><strong class="command">"raw=N"</strong></span> specifies the format version of
@@ -166,7 +166,7 @@
           </p></dd>
 <dt><span class="term">-L <em class="replaceable"><code>serial</code></em></span></dt>
 <dd><p>
-            When compiling a zone to "raw" or "fast" format, set the
+            When compiling a zone to "raw" or "map" format, set the
             "source serial" value in the header to the specified serial
             number.  (This is expected to be used primarily for testing
             purposes.)
