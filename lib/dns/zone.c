@@ -14896,8 +14896,6 @@ dns_zone_setrequeststats(dns_zone_t *zone, isc_stats_t *stats) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	dns_zone_log(zone, ISC_LOG_INFO, "Setting zone query stats");
-
 	LOCK_ZONE(zone);
 	if (zone->requeststats_on && stats == NULL)
 		zone->requeststats_on = ISC_FALSE;
@@ -14914,8 +14912,6 @@ void
 dns_zone_setrcvquerystats(dns_zone_t *zone, dns_stats_t *stats) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-
-	dns_zone_log(zone, ISC_LOG_INFO, "Setting received query stats");
 
 	LOCK_ZONE(zone);
 	if (zone->requeststats_on && stats != NULL) {

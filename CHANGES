@@ -1,3 +1,6 @@
+3480.	[bug]		Silence logging noise when setting up zone
+			statistics. [RT #32525]
+
 3479.	[bug]		Address potential memory leaks in gssapi support
 			code. [RT #32405]
 
