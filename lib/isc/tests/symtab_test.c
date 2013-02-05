@@ -107,7 +107,7 @@ ATF_TC_BODY(symtab_grow, tc) {
 		snprintf(str, sizeof(str), "%04x", i);
 		result = isc_symtab_lookup(st, str, 0, &value);
 		ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-		ATF_CHECK_STREQ(str, value.as_pointer);
+		ATF_CHECK_STREQ(str, (char *)value.as_pointer);
 	}
 
 	/*
