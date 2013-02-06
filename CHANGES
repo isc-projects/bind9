@@ -1,3 +1,5 @@
+3481.	[cleanup]	removed use of const const in atf
+
 3480.	[bug]		Silence logging noise when setting up zone
 			statistics. [RT #32525]
 
