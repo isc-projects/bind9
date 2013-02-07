@@ -3250,7 +3250,7 @@
 ./unit/atf-src/atf-c/h_build.h			X	2011
 ./unit/atf-src/atf-c/macros.h			X	2011
 ./unit/atf-src/atf-c/macros_h_test.c		X	2011
-./unit/atf-src/atf-c/macros_test.c		X	2011
+./unit/atf-src/atf-c/macros_test.c		X	2011,2013
 ./unit/atf-src/atf-c/pkg_config_test.sh		X	2011
 ./unit/atf-src/atf-c/tc.c			X	2011
 ./unit/atf-src/atf-c/tc.h			X	2011
