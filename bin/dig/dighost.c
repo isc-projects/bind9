@@ -1816,8 +1816,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 			debug("adding server %s", namestr);
 			num = getaddresses(lookup, namestr, &lresult);
 			if (lresult != ISC_R_SUCCESS) {
-				debug("couldn't get address for '%s': %s",
-				      namestr, isc_result_totext(lresult));
+				printf("couldn't get address for '%s': %s\n",
+				       namestr, isc_result_totext(lresult));
 				if (addresses_result == ISC_R_SUCCESS) {
 					addresses_result = lresult;
 					strcpy(bad_namestr, namestr);
