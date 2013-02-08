@@ -366,7 +366,7 @@
         </table>
         <h2>Resolver Statistics (Common)</h2>
         <table class="counters">
-          <xsl:for-each select="server/counters[@type=&quot;restat&quot;]/counter">
+          <xsl:for-each select="server/counters[@type=&quot;resstat&quot;]/counter">
             <xsl:sort select="." data-type="number" order="descending"/>
             <xsl:variable name="css-class4">
               <xsl:choose>
@@ -406,6 +406,55 @@
             </xsl:for-each>
           </table>
         </xsl:for-each>
+
+
+        <xsl:for-each select="views/view">
+          <h3>ADB Statistics for View <xsl:value-of select="@name"/></h3>
+          <table class="counters">
+            <xsl:for-each select="counters[@type=&quot;adbstat&quot;]/counter[.&gt;0]">
+              <xsl:sort select="." data-type="number" order="descending"/>
+              <xsl:variable name="css-class5">
+                <xsl:choose>
+                  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+                  <xsl:otherwise>odd</xsl:otherwise>
+                </xsl:choose>
+              </xsl:variable>
+              <tr class="{$css-class5}">
+                <th>
+                  <xsl:value-of select="@name"/>
+                </th>
+                <td>
+                  <xsl:value-of select="."/>
+                </td>
+              </tr>
+            </xsl:for-each>
+          </table>
+        </xsl:for-each>
+
+        <xsl:for-each select="views/view">
+          <h3>Cache Statistics for View <xsl:value-of select="@name"/></h3>
+          <table class="counters">
+            <xsl:for-each select="counters[@type=&quot;cachestats&quot;]/counter[.&gt;0]">
+              <xsl:sort select="." data-type="number" order="descending"/>
+              <xsl:variable name="css-class5">
+                <xsl:choose>
+                  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+                  <xsl:otherwise>odd</xsl:otherwise>
+                </xsl:choose>
+              </xsl:variable>
+              <tr class="{$css-class5}">
+                <th>
+                  <xsl:value-of select="@name"/>
+                </th>
+                <td>
+                  <xsl:value-of select="."/>
+                </td>
+              </tr>
+            </xsl:for-each>
+          </table>
+        </xsl:for-each>
+
+
         <h3>Cache DB RRsets for View <xsl:value-of select="@name"/></h3>
         <xsl:for-each select="views/view">
           <table class="counters">
@@ -614,6 +663,12 @@
               <xsl:value-of select="taskmgr/thread-model/tasks-running"/>
             </td>
           </tr>
+          <tr class="odd">
+            <th>Tasks Ready</th>
+            <td>
+              <xsl:value-of select="taskmgr/thread-model/tasks-ready"/>
+            </td>
+          </tr>
         </table>
         <br/>
         <h2>Tasks</h2>
@@ -624,6 +679,7 @@
             <th>References</th>
             <th>State</th>
             <th>Quantum</th>
+            <th>Events</th>
           </tr>
           <xsl:for-each select="taskmgr/tasks/task">
             <xsl:sort select="name"/>
@@ -648,6 +704,9 @@
               </td>
               <td>
                 <xsl:value-of select="quantum"/>
+              </td>
+              <td>
+                <xsl:value-of select="events"/>
               </td>
             </tr>
           </xsl:for-each>

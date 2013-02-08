@@ -1400,15 +1400,14 @@ static int
 renderstat(const char *name, isc_uint64_t value, xmlTextWriterPtr writer) {
 	int xmlrc;
 
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "cachestat"));
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "name"));
-	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR name));
-	TRY0(xmlTextWriterEndElement(writer)); /* name */
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "value"));
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counter"));
+	TRY0(xmlTextWriterWriteAttribute(writer,
+					 ISC_XMLCHAR "name", ISC_XMLCHAR name));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-				       "%" ISC_PRINT_QUADFORMAT "u", value));
-	TRY0(xmlTextWriterEndElement(writer)); /* value */
-	TRY0(xmlTextWriterEndElement(writer)); /* cachestat */
+					    "%" ISC_PRINT_QUADFORMAT "u",
+					    value));
+	TRY0(xmlTextWriterEndElement(writer)); /* counter */
+
 error:
 	return (xmlrc);
 }

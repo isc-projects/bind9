@@ -1,3 +1,6 @@
+3484.	[bug]		Some statistics were incorrectly rendered in XML.
+			[RT #32587]
+
 3483.	[placeholder]
 
 3482.	[func]		dig +nssearch now prints name servers that don't

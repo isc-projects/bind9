@@ -971,21 +971,28 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 			TRY0(xmlTextWriterEndElement(writer)); /* cache */
 		}
 
-		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR
-					       "cachestats"));
-		TRY0(dns_cache_renderxml(view->cache, writer));
-		TRY0(xmlTextWriterEndElement(writer)); /* cachestats */
-
-		if (view->adbstats != NULL) {
+		/* <adbstats> */
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "adbstat"));
+		if (view->resstats != NULL) {
 			result = dump_counters(view->adbstats,
 					       isc_statsformat_xml, writer,
-					       "adbstat", adbstats_xmldesc,
+					       NULL, adbstats_xmldesc,
 					       dns_adbstats_max,
 					       adbstats_index, adbstat_values,
 					       ISC_STATSDUMP_VERBOSE);
 			if (result != ISC_R_SUCCESS)
 				goto error;
 		}
+		TRY0(xmlTextWriterEndElement(writer)); /* </adbstats> */
+
+		/* <cachestats> */
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "cachestats"));
+		TRY0(dns_cache_renderxml(view->cache, writer));
+		TRY0(xmlTextWriterEndElement(writer)); /* </cachestats> */
 
 		TRY0(xmlTextWriterEndElement(writer)); /* view */
 
@@ -1074,7 +1081,6 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 			       resstat_values, 0);
 	if (result != ISC_R_SUCCESS)
 		goto error;
-
 	TRY0(xmlTextWriterEndElement(writer)); /* counters type=resstat */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
