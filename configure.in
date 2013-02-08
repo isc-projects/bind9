@@ -469,7 +469,7 @@ AC_ARG_ENABLE(newstats,
 	[  --enable-newstats         use the new statistics])
 case "$enable_newstats" in
 yes)
-        AC_DEFINE(NEWSTATS, [], [Use the new XML schema for statistics])
+        AC_DEFINE(NEWSTATS, 1, [Use the new XML schema for statistics])
 	;;
 *)
 	;;

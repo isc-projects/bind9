@@ -1,3 +1,6 @@
+3483.	[bug]		Corrected XSL code in use with --enable-newstats.
+			[RT #32587]
+
 3481.	[cleanup]	removed use of const const in atf
 
 3480.	[bug]		Silence logging noise when setting up zone
