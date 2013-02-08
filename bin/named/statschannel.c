@@ -1013,7 +1013,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
-																	 ISC_XMLCHAR "opcode"));
+					 ISC_XMLCHAR "opcode"));
 
 	dns_opcodestats_dump(server->opcodestats, opcodestat_dump, &dumparg,
 			     0);
