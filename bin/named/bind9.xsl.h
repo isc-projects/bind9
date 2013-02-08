@@ -309,7 +309,7 @@ static char xslmsg[] =
 	" <!-- Non Mozilla specific markup -->\n"
 	" <script type=\"text/javascript\">\n"
 	" graphs.push({\n"
-	" 'title' : \"Server Response Types\",\n"
+	" 'title' : \"Server Counters\",\n"
 	" 'target': 'chart_server_nsstat_restype',\n"
 	" 'data': [['Type','Counter'],<xsl:for-each select=\"server/counters[@type=&quot;nsstat&quot;]/counter[.&gt;0]\">['<xsl:value-of select=\"@name\"/>',<xsl:value-of select=\".\"/>],</xsl:for-each>]\n"
 	" });\n"

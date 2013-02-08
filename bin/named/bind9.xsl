@@ -304,7 +304,7 @@
           <!-- Non Mozilla specific markup -->
         <script type="text/javascript">
                 graphs.push({
-                              'title' : "Server Response Types",
+                              'title' : "Server Counters",
                               'target': 'chart_server_nsstat_restype',
                               'data': [['Type','Counter'],<xsl:for-each select="server/counters[@type=&quot;nsstat&quot;]/counter[.&gt;0]">['<xsl:value-of select="@name"/>',<xsl:value-of select="."/>],</xsl:for-each>]
                               });
