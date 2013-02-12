@@ -975,7 +975,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "adbstat"));
-		if (view->resstats != NULL) {
+		if (view->adbstats != NULL) {
 			result = dump_counters(view->adbstats,
 					       isc_statsformat_xml, writer,
 					       NULL, adbstats_xmldesc,
