@@ -1320,6 +1320,8 @@ OPENSSL_GOST
 OPENSSL_ECDSA
 OPENSSLLINKSRCS
 OPENSSLLINKOBJS
+OPENSSLGOSTLINKSRCS
+OPENSSLGOSTLINKOBJS
 DST_OPENSSL_INC
 USE_OPENSSL
 LWRES_PLATFORM_NEEDSYSSELECTH
@@ -13979,12 +13981,16 @@ case "$use_openssl" in
 $as_echo "no" >&6; }
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
+		OPENSSLGOSTLINKOBJS=""
+		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		;;
 	auto)
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
+		OPENSSLGOSTLINKOBJS=""
+		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
@@ -14357,11 +14363,13 @@ fi
         esac
         case $have_gost in
         yes)
-                OPENSSL_GOST="yes"
+		OPENSSL_GOST="yes"
+		OPENSSLGOSTLINKOBJS='${OPENSSLGOSTLINKOBJS}'
+		OPENSSLGOSTLINKSRCS='${OPENSSLGOSTLINKSRCS}'
 
 $as_echo "#define HAVE_OPENSSL_GOST 1" >>confdefs.h
 
-                ;;
+		;;
         *)
                 ;;
         esac
@@ -14377,6 +14385,8 @@ esac
 # This would include the system openssl path (and linker options to use
 # it as needed) if it is found.
 #
+
+
 
 
 

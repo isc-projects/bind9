@@ -1,3 +1,5 @@
+3485.	[cleanup]	Only compile openssl_gostlink.c if we support GOST.
+
 3483.	[bug]		Corrected XSL code in use with --enable-newstats.
 			[RT #32587]
 

@@ -627,12 +627,16 @@ case "$use_openssl" in
 		AC_MSG_RESULT(no)
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
+		OPENSSLGOSTLINKOBJS=""
+		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		;;
 	auto)
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
+		OPENSSLGOSTLINKOBJS=""
+		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		AC_MSG_ERROR(
@@ -880,10 +884,12 @@ int main() {
         esac
         case $have_gost in
         yes)
-                OPENSSL_GOST="yes"
-                AC_DEFINE(HAVE_OPENSSL_GOST, 1,
-                          [Define if your OpenSSL version supports GOST.])
-                ;;
+		OPENSSL_GOST="yes"
+		OPENSSLGOSTLINKOBJS='${OPENSSLGOSTLINKOBJS}'
+		OPENSSLGOSTLINKSRCS='${OPENSSLGOSTLINKSRCS}'
+		AC_DEFINE(HAVE_OPENSSL_GOST, 1,
+			  [Define if your OpenSSL version supports GOST.])
+		;;
         *)
                 ;;
         esac
@@ -902,6 +908,8 @@ esac
 
 AC_SUBST(USE_OPENSSL)
 AC_SUBST(DST_OPENSSL_INC)
+AC_SUBST(OPENSSLGOSTLINKOBJS)
+AC_SUBST(OPENSSLGOSTLINKSRCS)
 AC_SUBST(OPENSSLLINKOBJS)
 AC_SUBST(OPENSSLLINKSRCS)
 AC_SUBST(OPENSSL_ECDSA)
