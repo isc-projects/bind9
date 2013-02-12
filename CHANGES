@@ -1,3 +1,5 @@
+3485.	[cleanup]	Only compile openssl_gostlink.c if we support GOST.
+
 3484.	[bug]		Some statistics were incorrectly rendered in XML.
 			[RT #32587]
 
