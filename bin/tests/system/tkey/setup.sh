@@ -19,6 +19,8 @@
 
 RANDFILE=random.data
 
+sh clean.sh
+
 ../../../tools/genrandom 100 $RANDFILE
 
 cd ns1 && sh setup.sh
