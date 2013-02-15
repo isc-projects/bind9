@@ -47,3 +47,9 @@ key "tkeytest." {
 	algorithm hmac-md5;
 	secret "0123456789ab";
 };
+
+zone example {
+        type master;
+        file "example.db";
+        allow-query { key tkeytest.; none; };
+};

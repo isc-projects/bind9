@@ -239,7 +239,9 @@ adjust_lru(dns_tsigkey_t *tkey) {
 		 * We may have been removed from the LRU list between
 		 * removing the read lock and aquiring the write lock.
 		 */
-		if (ISC_LINK_LINKED(tkey, link)) {
+		if (ISC_LINK_LINKED(tkey, link) &&
+		    (tkey->ring->lru).head != tkey)
+		{
 			ISC_LIST_UNLINK(tkey->ring->lru, tkey, link);
 			ISC_LIST_APPEND(tkey->ring->lru, tkey, link);
 		}
@@ -625,14 +627,16 @@ restore_key(dns_tsig_keyring_t *ring, isc_stdtime_t now, FILE *fp) {
 }
 
 static void
-dump_key(dns_tsigkey_t *tkey, FILE *fp)
-{
+dump_key(dns_tsigkey_t *tkey, FILE *fp) {
 	char *buffer = NULL;
 	int length = 0;
 	char namestr[DNS_NAME_FORMATSIZE];
 	char creatorstr[DNS_NAME_FORMATSIZE];
 	char algorithmstr[DNS_NAME_FORMATSIZE];
 	isc_result_t result;
+
+	REQUIRE(tkey != NULL);
+	REQUIRE(fp != NULL);
 
 	dns_name_format(&tkey->name, namestr, sizeof(namestr));
 	dns_name_format(tkey->creator, creatorstr, sizeof(creatorstr));
