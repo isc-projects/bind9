@@ -161,7 +161,7 @@ int
 lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		  size_t hostlen, char *serv, size_t servlen, int flags)
 {
-	struct afd *afd;
+	struct afd *afd = NULL;
 	struct servent *sp;
 	unsigned short port;
 #ifdef LWRES_PLATFORM_HAVESALEN
