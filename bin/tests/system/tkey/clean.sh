@@ -17,7 +17,6 @@
 
 # $Id$
 
-rm -f dig.out.* random.data ns1/named.conf
+rm -f dig.out.* rndc.out.* random.data ns1/named.conf
 rm -f K* ns1/K*
 rm -f */named.memstats
-rm -f rndc.out
