@@ -22,6 +22,7 @@ rm -f ns1/K*
 rm -f ns1/*.db
 rm -f ns1/*.signed
 rm -f ns1/dsset-*
+rm -f ns1/keyset-*
 rm -f ns1/trusted.conf
 rm -f ns1/private.nsec.conf
 rm -f ns1/private.nsec3.conf
