@@ -1,3 +1,7 @@
+3487.	[bug]		Change 3444 was not complete.  There was a additional
+			place where the NOQNAME proof needed to be saved.
+                        [RT #32629]
+
 3481.	[cleanup]	removed use of const const in atf
 
 3479.	[bug]		Address potential memory leaks in gssapi support

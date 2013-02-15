@@ -4487,13 +4487,12 @@ findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 			isc_boolean_t optout = ISC_FALSE, unknown = ISC_FALSE;
 			isc_boolean_t setclosest = ISC_FALSE;
 			isc_boolean_t setnearest = ISC_FALSE;
-			char namebuf[DNS_NAME_FORMATSIZE];
 
 			next = ISC_LIST_NEXT(nrdataset, link);
 			if (nrdataset->type != dns_rdatatype_nsec &&
 			    nrdataset->type != dns_rdatatype_nsec3)
 				continue;
-			dns_name_format(nsec, namebuf, sizeof(namebuf));
+
 			if (nrdataset->type == dns_rdatatype_nsec &&
 			    NXND(dns_nsec_noexistnodata(type, name, nsec,
 							nrdataset, &exists,
@@ -4721,6 +4720,22 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 			if (sigrdataset != NULL)
 				sigrdataset->trust = trust;
 			if (!need_validation || !ANSWER(rdataset)) {
+				if (ANSWER(rdataset) &&
+				   rdataset->type != dns_rdatatype_rrsig) {
+					isc_result_t tresult;
+					dns_name_t *noqname = NULL;
+					tresult = findnoqname(fctx, name,
+							      rdataset->type,
+							      &noqname);
+					if (tresult == ISC_R_SUCCESS &&
+					    noqname != NULL) {
+						tresult =
+						     dns_rdataset_addnoqname(
+							    rdataset, noqname);
+						RUNTIME_CHECK(tresult ==
+							      ISC_R_SUCCESS);
+					}
+				}
 				addedrdataset = ardataset;
 				result = dns_db_addrdataset(fctx->cache, node,
 							    NULL, now, rdataset,
