@@ -1,3 +1,8 @@
+3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
+			dns_dlzcreate() failed to properly initialize
+			dlzdb.link.  When cloning a rdataset do not copy
+			the link contents.  [RT #32651]
+
 3488.	[bug]		Use after free error with DH generated keys. [RT #32649]
 
 3487.	[bug]		Change 3444 was not complete.  There was a additional

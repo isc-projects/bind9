@@ -7984,7 +7984,9 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	dns_dbnode_t *cloned_node = NULL;
 
 	attachnode(db, node, &cloned_node);
+	INSIST(!ISC_LINK_LINKED(target, link));
 	*target = *source;
+	ISC_LINK_INIT(target, link);
 
 	/*
 	 * Reset iterator state.
