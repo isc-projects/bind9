@@ -31,6 +31,7 @@ ret=0
 dhkeyname=`$KEYGEN -T KEY -a DH -b 768 -n host -r $RANDFILE client` || ret=1
 if [ $ret != 0 ]; then
 	echo "I:failed"
+	status=`expr $status + $ret`
 	echo "I:exit status: $status"
 	exit $status
 fi
@@ -43,6 +44,7 @@ do
 	keyname=`./keycreate $dhkeyname $owner` || ret=1
 	if [ $ret != 0 ]; then
 		echo "I:failed"
+		status=`expr $status + $ret`
 		echo "I:exit status: $status"
 		exit $status
 	fi
@@ -84,6 +86,7 @@ ret=0
 keyname=`./keycreate $dhkeyname bar.example.` || ret=1
 if [ $ret != 0 ]; then
         echo "I:failed"
+	status=`expr $status + $ret`
         echo "I:exit status: $status"
         exit $status
 fi
@@ -124,6 +127,7 @@ ret=0
 keyname=`./keycreate $dhkeyname bar.example.` || ret=1
 if [ $ret != 0 ]; then
         echo "I:failed"
+	status=`expr $status + $ret`
         echo "I:exit status: $status"
         exit $status
 fi
