@@ -240,7 +240,7 @@ adjust_lru(dns_tsigkey_t *tkey) {
 		 * removing the read lock and aquiring the write lock.
 		 */
 		if (ISC_LINK_LINKED(tkey, link) &&
-		    (tkey->ring->lru).head != tkey)
+		    tkey->ring->lru.tail != tkey)
 		{
 			ISC_LIST_UNLINK(tkey->ring->lru, tkey, link);
 			ISC_LIST_APPEND(tkey->ring->lru, tkey, link);
@@ -1768,11 +1768,15 @@ static void
 free_tsignode(void *node, void *_unused) {
 	dns_tsigkey_t *key;
 
-	UNUSED(_unused);
-
 	REQUIRE(node != NULL);
 
+	UNUSED(_unused);
+
 	key = node;
+	if (key->generated) {
+		if (ISC_LINK_LINKED(key, link))
+			ISC_LIST_UNLINK(key->ring->lru, key, link);
+	}
 	dns_tsigkey_detach(&key);
 }
 

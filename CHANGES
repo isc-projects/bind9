@@ -1,3 +1,5 @@
+3488.	[bug]		Use after free error with DH generated keys. [RT #32649]
+
 3487.	[bug]		Change 3444 was not complete.  There was a additional
 			place where the NOQNAME proof needed to be saved.
                         [RT #32629]
