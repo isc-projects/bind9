@@ -189,7 +189,6 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 	memset(db, 0, sizeof(dns_dlzdb_t));
 
 	db->implementation = impinfo;
-	ISC_LINK_INIT(db, link);
 
 	/* Create a new database using implementation 'drivername'. */
 	result = ((impinfo->methods->create)(mctx, dlzname, argc, argv,
