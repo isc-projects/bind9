@@ -1,3 +1,5 @@
+3488.	[bug]		Use after free error with DH generated keys. [RT #32649]
+
 3486.	[bug]		named could crash when using TKEY-negotiated keys
 		       that had been deleted and then recreated. [RT #32506]
 
