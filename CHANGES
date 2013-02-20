@@ -1,3 +1,6 @@
+3490.	[bug]		When logging RDATA during update, truncate if it's
+                        too long. [RT #32365]
+
 3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
 			dns_dlzcreate() failed to properly initialize
 			dlzdb.link.  When cloning a rdataset do not copy
@@ -79,7 +82,7 @@
 3464.	[maint]		Updates to PKCS#11 openssl patches, supporting
 			versions 0.9.8x, 1.0.0j, 1.0.1c [RT #29749]
 
-3463.	[doc]		Clarify managed-keys syntax in ARM. [RT 32232]
+3463.	[doc]		Clarify managed-keys syntax in ARM. [RT #32232]
 
 3462.	[doc]		Clarify server selection behavior of dig when using
 			-4 or -6 options. [RT #32181]

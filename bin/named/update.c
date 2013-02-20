@@ -2859,22 +2859,30 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			if (isc_log_wouldlog(ns_g_lctx, LOGLEVEL_PROTOCOL)) {
 				char namestr[DNS_NAME_FORMATSIZE];
 				char typestr[DNS_RDATATYPE_FORMATSIZE];
-				char rdstr[4096];
+				char rdstr[2048];
 				isc_buffer_t buf;
-				isc_region_t r;
 				int len = 0;
+				const char *truncated = "";
+
 				dns_name_format(name, namestr, sizeof(namestr));
 				dns_rdatatype_format(rdata.type, typestr,
 						     sizeof(typestr));
 				isc_buffer_init(&buf, rdstr, sizeof(rdstr));
 				result = dns_rdata_totext(&rdata, NULL, &buf);
-				isc_buffer_usedregion(&buf, &r);
-				if (result == ISC_R_SUCCESS)
-					len = r.length;
+				if (result == ISC_R_NOSPACE) {
+					len = (int)isc_buffer_usedlength(&buf);
+					truncated = " [TRUNCATED]";
+				} else if (result != ISC_R_SUCCESS) {
+					snprintf(rdstr, sizeof(rdstr), "[dns_"
+						 "rdata_totext failed: %s]",
+						 dns_result_totext(result));
+					len = strlen(rdstr);
+				} else
+					len = (int)isc_buffer_usedlength(&buf);
 				update_log(client, zone, LOGLEVEL_PROTOCOL,
-					   "adding an RR at '%s' %s %.*s",
-					   namestr, typestr, len,
-					   (char *) r.base);
+					   "adding an RR at '%s' %s %.*s%s",
+					   namestr, typestr, len, rdstr,
+					   truncated);
 			}
 
 			/* Prepare the affected RRset for the addition. */
