@@ -1876,6 +1876,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * If the zone type is rbt/rbt64 then master/hint zones
 	 * require file clauses.
+	 * If inline signing is used, then slave zones require a
+	 * file clause as well
 	 */
 	obj = NULL;
 	dlz = ISC_FALSE;
@@ -1896,13 +1898,17 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	     (strcmp("rbt", cfg_obj_asstring(obj)) == 0 ||
 	      strcmp("rbt64", cfg_obj_asstring(obj)) == 0))))
 	{
+		isc_result_t res1;
 		obj = NULL;
 		tresult = cfg_map_get(zoptions, "file", &obj);
-		if (tresult != ISC_R_SUCCESS &&
-		    (ztype == MASTERZONE || ztype == HINTZONE)) {
+		obj = NULL;
+		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
+		if ((tresult != ISC_R_SUCCESS &&
+		    (ztype == MASTERZONE || ztype == HINTZONE)) || 
+		    (ztype == SLAVEZONE && res1 == ISC_R_SUCCESS)) {
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-				    "zone '%s': missing 'file' entry",
-				    znamestr);
+			    "zone '%s': missing 'file' entry",
+			    znamestr);
 			result = tresult;
 		}
 	}

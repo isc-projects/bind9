@@ -1,3 +1,6 @@
+3491.	[bug]		Slave zones using inline-signing must specify a
+			file name. [RT #31946]
+
 3490.	[bug]		When logging RDATA during update, truncate if it's
                         too long. [RT #32365]
 
