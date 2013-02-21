@@ -69,7 +69,7 @@ alloc_pool(isc_mem_t *mctx, unsigned int count, isc_pool_t **poolp) {
 }
 
 isc_result_t
-isc_pool_create(isc_mem_t *mctx, unsigned int count, 
+isc_pool_create(isc_mem_t *mctx, unsigned int count,
 		   isc_pooldeallocator_t free,
 		   isc_poolinitializer_t init, void *initarg,
 		   isc_pool_t **poolp)
