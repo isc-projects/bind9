@@ -162,6 +162,7 @@ CLEAN :
 	-@erase "$(INTDIR)\ondestroy.obj"
 	-@erase "$(INTDIR)\os.obj"
 	-@erase "$(INTDIR)\parseint.obj"
+	-@erase "$(INTDIR)\pool.obj"
 	-@erase "$(INTDIR)\portset.obj"
 	-@erase "$(INTDIR)\quota.obj"
 	-@erase "$(INTDIR)\radix.obj"
@@ -286,6 +287,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\taskpool.obj" \
 	"$(INTDIR)\timer.obj" \
 	"$(INTDIR)\parseint.obj" \
+	"$(INTDIR)\pool.obj" \
 	"$(INTDIR)\portset.obj" \
 	"$(INTDIR)\region.obj"
 
@@ -403,6 +405,8 @@ CLEAN :
 	-@erase "$(INTDIR)\os.sbr"
 	-@erase "$(INTDIR)\parseint.obj"
 	-@erase "$(INTDIR)\parseint.sbr"
+	-@erase "$(INTDIR)\pool.obj"
+	-@erase "$(INTDIR)\pool.sbr"
 	-@erase "$(INTDIR)\portset.obj"
 	-@erase "$(INTDIR)\portset.sbr"
 	-@erase "$(INTDIR)\quota.obj"
@@ -555,6 +559,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\taskpool.sbr" \
 	"$(INTDIR)\timer.sbr" \
 	"$(INTDIR)\parseint.sbr" \
+	"$(INTDIR)\pool.sbr" \
 	"$(INTDIR)\portset.sbr" \
 	"$(INTDIR)\region.sbr"
 
@@ -643,6 +648,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\taskpool.obj" \
 	"$(INTDIR)\timer.obj" \
 	"$(INTDIR)\parseint.obj" \
+	"$(INTDIR)\pool.obj" \
 	"$(INTDIR)\portset.obj" \
 	"$(INTDIR)\region.obj"
 
@@ -1685,6 +1691,24 @@ SOURCE=..\parseint.c
 
 
 "$(INTDIR)\parseint.obj"	"$(INTDIR)\parseint.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\pool.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\pool.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\pool.obj"	"$(INTDIR)\pool.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

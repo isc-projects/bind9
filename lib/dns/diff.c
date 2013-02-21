@@ -73,7 +73,8 @@ dns_difftuple_create(isc_mem_t *mctx,
 	t = isc_mem_allocate(mctx, size);
 	if (t == NULL)
 		return (ISC_R_NOMEMORY);
-	t->mctx = mctx;
+	t->mctx = NULL;
+	isc_mem_attach(mctx, &t->mctx);
 	t->op = op;
 
 	datap = (unsigned char *)(t + 1);
@@ -105,10 +106,15 @@ dns_difftuple_create(isc_mem_t *mctx,
 void
 dns_difftuple_free(dns_difftuple_t **tp) {
 	dns_difftuple_t *t = *tp;
+	isc_mem_t *mctx;
+
 	REQUIRE(DNS_DIFFTUPLE_VALID(t));
+
 	dns_name_invalidate(&t->name);
 	t->magic = 0;
-	isc_mem_free(t->mctx, t);
+	mctx = t->mctx;
+	isc_mem_free(mctx, t);
+	isc_mem_detach(&mctx);
 	*tp = NULL;
 }
 

@@ -1441,6 +1441,18 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones);
  */
 
 isc_result_t
+dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep);
+/*%<
+ *	Allocate a new zone using a memory context from the
+ *	zone manager's memory context pool.
+ *
+ * Require:
+ *\li	'zmgr' to be a valid zone manager.
+ *\li	'zonep' != NULL and '*zonep' == NULL.
+ */
+
+
+isc_result_t
 dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 /*%<
  *	Bring the zone under control of a zone manager.

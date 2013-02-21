@@ -711,6 +711,10 @@ SOURCE=..\parseint.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\pool.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\portset.c
 # End Source File
 # Begin Source File
