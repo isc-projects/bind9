@@ -275,7 +275,8 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 
 	lctx = isc_mem_get(mctx, sizeof(*lctx));
 	if (lctx != NULL) {
-		lctx->mctx = mctx;
+		lctx->mctx = NULL;
+		isc_mem_attach(mctx, &lctx->mctx);
 		lctx->categories = NULL;
 		lctx->category_count = 0;
 		lctx->modules = NULL;
@@ -286,7 +287,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 
 		result = isc_mutex_init(&lctx->lock);
 		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, lctx, sizeof(*lctx));
+			isc_mem_putanddetach(&mctx, lctx, sizeof(*lctx));
 			return (result);
 		}
 
@@ -493,7 +494,7 @@ isc_log_destroy(isc_log_t **lctxp) {
 	lctx->mctx = NULL;
 	lctx->magic = 0;
 
-	isc_mem_put(mctx, lctx, sizeof(*lctx));
+	isc_mem_putanddetach(&mctx, lctx, sizeof(*lctx));
 
 	*lctxp = NULL;
 }

@@ -25,6 +25,7 @@
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/mutex.h>
+#include <isc/pool.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/ratelimiter.h>
@@ -465,6 +466,7 @@ struct dns_zonemgr {
 	isc_taskpool_t *	zonetasks;
 	isc_taskpool_t *	loadtasks;
 	isc_task_t *		task;
+	isc_pool_t *		mctxpool;
 	isc_ratelimiter_t *	rl;
 	isc_rwlock_t		rwlock;
 	isc_mutex_t		iolock;
@@ -13901,6 +13903,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->socketmgr = socketmgr;
 	zmgr->zonetasks = NULL;
 	zmgr->loadtasks = NULL;
+	zmgr->mctxpool = NULL;
 	zmgr->task = NULL;
 	zmgr->rl = NULL;
 	ISC_LIST_INIT(zmgr->zones);
@@ -13965,6 +13968,33 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  free_mem:
 	isc_mem_put(zmgr->mctx, zmgr, sizeof(*zmgr));
 	isc_mem_detach(&mctx);
+	return (result);
+}
+
+isc_result_t
+dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
+	isc_result_t result;
+	isc_mem_t *mctx = NULL;
+	dns_zone_t *zone = NULL;
+	void *item;
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+	REQUIRE(zonep != NULL && *zonep == NULL);
+
+	if (zmgr->mctxpool == NULL)
+		return (ISC_R_FAILURE);
+
+	item = isc_pool_get(zmgr->mctxpool);
+	if (item == NULL)
+		return (ISC_R_FAILURE);
+
+	isc_mem_attach((isc_mem_t *) item, &mctx);
+	result = dns_zone_create(&zone, mctx);
+	isc_mem_detach(&mctx);
+
+	if (result == ISC_R_SUCCESS)
+		*zonep = zone;
+
 	return (result);
 }
 
@@ -14134,6 +14164,8 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 		isc_taskpool_destroy(&zmgr->zonetasks);
 	if (zmgr->loadtasks != NULL)
 		isc_taskpool_destroy(&zmgr->loadtasks);
+	if (zmgr->mctxpool != NULL)
+		isc_pool_destroy(&zmgr->mctxpool);
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 	for (zone = ISC_LIST_HEAD(zmgr->zones);
@@ -14147,21 +14179,54 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 }
 
+static isc_result_t
+mctxinit(void **target, void *arg) {
+	isc_result_t result;
+	isc_mem_t *mctx = NULL;
+
+	UNUSED(arg);
+
+	REQUIRE(target != NULL && *target == NULL);
+
+	result = isc_mem_create(0, 0, &mctx);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	isc_mem_setname(mctx, "zonemgr-pool", NULL);
+
+	*target = mctx;
+	return (ISC_R_SUCCESS);
+}
+
+static void
+mctxfree(void **target) {
+	isc_mem_t *mctx = *(isc_mem_t **) target;
+	isc_mem_detach(&mctx);
+	*target = NULL;
+}
+
+#define ZONES_PER_TASK 100
+#define ZONES_PER_MCTX 1000
+
 isc_result_t
 dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 	isc_result_t result;
-	int ntasks = num_zones / 100;
+	int ntasks = num_zones / ZONES_PER_TASK;
+	int nmctx = num_zones / ZONES_PER_MCTX;
 	isc_taskpool_t *pool = NULL;
+	isc_pool_t *mctxpool = NULL;
 
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	/*
 	 * For anything fewer than 1000 zones we use 10 tasks in
 	 * the task pools.  More than that, and we'll scale at one
-	 * task per 100 zones.
+	 * task per 100 zones.  Similarly, for anything smaller than
+	 * 2000 zones we use 2 memory contexts, then scale at 1:1000.
 	 */
 	if (ntasks < 10)
 		ntasks = 10;
+	if (nmctx < 2)
+		nmctx = 2;
 
 	/* Create or resize the zone task pools. */
 	if (zmgr->zonetasks == NULL)
@@ -14199,6 +14264,16 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 	 */
 	isc_taskpool_setprivilege(zmgr->loadtasks, ISC_TRUE);
 #endif
+
+	/* Create or resize the zone memory context pool. */
+	if (zmgr->mctxpool == NULL)
+		result = isc_pool_create(zmgr->mctx, nmctx, mctxfree,
+					 mctxinit, NULL, &mctxpool);
+	else
+		result = isc_pool_expand(&zmgr->mctxpool, nmctx, &mctxpool);
+
+	if (result == ISC_R_SUCCESS)
+		zmgr->mctxpool = mctxpool;
 
 	return (result);
 }

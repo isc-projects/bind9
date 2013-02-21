@@ -941,6 +941,7 @@ dns_zone_unload
 dns_zonekey_iszonekey
 dns_zonemgr_attach
 dns_zonemgr_create
+dns_zonemgr_createzone
 dns_zonemgr_detach
 dns_zonemgr_forcemaint
 dns_zonemgr_getcount

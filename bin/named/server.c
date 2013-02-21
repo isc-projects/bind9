@@ -2932,7 +2932,8 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 				}
 			}
 
-			CHECK(dns_zone_create(&zone, mctx));
+			CHECK(dns_zonemgr_createzone(ns_g_server->zonemgr,
+						     &zone));
 			CHECK(dns_zone_setorigin(zone, name));
 			dns_zone_setview(zone, view);
 			CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr,
@@ -3486,7 +3487,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			dns_zone_attach(pview->redirect, &zone);
 			dns_zone_setview(zone, view);
 		} else {
-			CHECK(dns_zone_create(&zone, mctx));
+			CHECK(dns_zonemgr_createzone(ns_g_server->zonemgr,
+						     &zone));
 			CHECK(dns_zone_setorigin(zone, origin));
 			dns_zone_setview(zone, view);
 			CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr,
@@ -3549,7 +3551,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		 * We cannot reuse an existing zone, we have
 		 * to create a new one.
 		 */
-		CHECK(dns_zone_create(&zone, mctx));
+		CHECK(dns_zonemgr_createzone(ns_g_server->zonemgr, &zone));
 		CHECK(dns_zone_setorigin(zone, origin));
 		dns_zone_setview(zone, view);
 		if (view->acache != NULL)
@@ -3667,7 +3669,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	}
 
 	/* No existing keydata zone was found; create one */
-	CHECK(dns_zone_create(&zone, mctx));
+	CHECK(dns_zonemgr_createzone(ns_g_server->zonemgr, &zone));
 	CHECK(dns_zone_setorigin(zone, dns_rootname));
 
 	isc_sha256_data((void *)view->name, strlen(view->name), buffer);

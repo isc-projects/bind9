@@ -1,3 +1,6 @@
+3492.	[bug]		Fixed a regression in zone loading performance
+			due to lock contention. [RT #30399]
+
 3491.	[bug]		Slave zones using inline-signing must specify a
 			file name. [RT #31946]
 

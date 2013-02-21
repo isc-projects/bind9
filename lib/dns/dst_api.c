@@ -1135,7 +1135,7 @@ dst_key_free(dst_key_t **keyp) {
 		isc_buffer_free(&key->key_tkeytoken);
 	}
 	memset(key, 0, sizeof(dst_key_t));
-	isc_mem_put(mctx, key, sizeof(dst_key_t));
+	isc_mem_putanddetach(&mctx, key, sizeof(dst_key_t));
 	*keyp = NULL;
 }
 
@@ -1334,10 +1334,10 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 		isc_mem_put(mctx, key, sizeof(dst_key_t));
 		return (NULL);
 	}
+	isc_mem_attach(mctx, &key->mctx);
 	key->key_alg = alg;
 	key->key_flags = flags;
 	key->key_proto = protocol;
-	key->mctx = mctx;
 	key->keydata.generic = NULL;
 	key->key_size = bits;
 	key->key_class = rdclass;
