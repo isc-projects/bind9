@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -356,7 +356,7 @@ static void
 levent_destroy(isc_event_t *event) {
 	dns_lookupevent_t *levent;
 	isc_mem_t *mctx;
- 
+
 	REQUIRE(event->ev_type == DNS_EVENT_LOOKUPDONE);
 	mctx = event->ev_destroy_arg;
 	levent = (dns_lookupevent_t *)event;
