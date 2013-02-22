@@ -1699,7 +1699,7 @@
 ./contrib/dlz/drivers/rules.in			X	2005,2010
 ./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010,2011,2012
 ./contrib/dlz/example/Makefile			X	2010,2013
-./contrib/dlz/example/README			X	2011,2012
+./contrib/dlz/example/README			X	2011,2012,2013
 ./contrib/dlz/example/dlz_example.c		X	2010,2011,2012,2013
 ./contrib/dlz/example/dlz_minimal.h		X	2010,2011,2012,2013
 ./contrib/dlz/example/named.conf		X	2011
@@ -1708,6 +1708,12 @@
 ./contrib/dlz/example/win32/dxdriver.dsp	X	2011
 ./contrib/dlz/example/win32/dxdriver.dsw	X	2011
 ./contrib/dlz/example/win32/dxdriver.mak	X	2011
+./contrib/dlz/modules/bdbhpt/Makefile		X	2013
+./contrib/dlz/modules/bdbhpt/README.md		X	2013
+./contrib/dlz/modules/bdbhpt/dlz_bdbhpt_dynamic.c	X	2013
+./contrib/dlz/modules/bdbhpt/testing/bdbhpt-populate.pl	X	2013
+./contrib/dlz/modules/bdbhpt/testing/dns-data.txt	X	2013
+./contrib/dlz/modules/dlz_minimal.h		X	2013
 ./contrib/idn/README.idnkit			X	2005,2009
 ./contrib/idn/idnkit-1.0-src/ChangeLog		X	2003
 ./contrib/idn/idnkit-1.0-src/DISTFILES		X	2003
