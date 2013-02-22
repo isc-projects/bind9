@@ -36,8 +36,14 @@ typedef unsigned int isc_result_t;
 typedef int isc_boolean_t;
 typedef uint32_t dns_ttl_t;
 
+/*
+ * Define DLZ_DLOPEN_VERSION to different values to use older versions
+ * of the interface
+ */
+#ifndef DLZ_DLOPEN_VERSION
 #define DLZ_DLOPEN_VERSION 3
 #define DLZ_DLOPEN_AGE 0
+#endif
 
 /* return this in flags to dlz_version() if thread safe */
 #define DNS_SDLZFLAG_THREADSAFE		0x00000001U
@@ -72,12 +78,13 @@ typedef void *dns_sdlzallnodes_t;
 typedef void *dns_view_t;
 typedef void *dns_dlzdb_t;
 
+#if DLZ_DLOPEN_VERSION > 1
 /*
  * Method and type definitions needed for retrieval of client info
  * from the caller.
  */
 typedef struct isc_sockaddr {
-        union {
+	union {
 		struct sockaddr         sa;
 		struct sockaddr_in      sin;
 		struct sockaddr_in6     sin6;
@@ -86,7 +93,7 @@ typedef struct isc_sockaddr {
 #endif
 	}                               type;
 	unsigned int                    length;
-	void *				link;
+	void *                          link;
 } isc_sockaddr_t;
 
 #define DNS_CLIENTINFO_VERSION 1
@@ -106,6 +113,7 @@ typedef struct dns_clientinfomethods {
 	uint16_t age;
 	dns_clientinfo_sourceip_t sourceip;
 } dns_clientinfomethods_t;
+#endif /* DLZ_DLOPEN_VERSION > 1 */
 
 /*
  * Method definitions for callbacks provided by the dlopen driver
@@ -123,14 +131,18 @@ typedef isc_result_t dns_sdlz_putnamedrr_t(dns_sdlzallnodes_t *allnodes,
 					   dns_ttl_t ttl,
 					   const char *data);
 
+#if DLZ_DLOPEN_VERSION < 3
+typedef isc_result_t dns_dlz_writeablezone_t(dns_view_t *view,
+					     const char *zone_name);
+#else /* DLZ_DLOPEN_VERSION >= 3 */
 typedef isc_result_t dns_dlz_writeablezone_t(dns_view_t *view,
 					     dns_dlzdb_t *dlzdb,
 					     const char *zone_name);
+#endif /* DLZ_DLOPEN_VERSION */
 
 /*
  * prototypes for the functions you can include in your module
  */
-
 
 /*
  * dlz_version() is required for all DLZ external drivers. It should
@@ -147,7 +159,7 @@ dlz_version(unsigned int *flags);
  */
 isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[],
-           void **dbdata, ...);
+	   void **dbdata, ...);
 
 /*
  * dlz_destroy() is optional, and will be called when the driver is
@@ -159,19 +171,30 @@ dlz_destroy(void *dbdata);
 /*
  * dlz_findzonedb is required for all DLZ external drivers
  */
+#if DLZ_DLOPEN_VERSION < 3
+isc_result_t
+dlz_findzonedb(void *dbdata, const char *name);
+#else /* DLZ_DLOPEN_VERSION >= 3 */
 isc_result_t
 dlz_findzonedb(void *dbdata, const char *name,
-	    dns_clientinfomethods_t *methods,
-	    dns_clientinfo_t *clientinfo);
+	       dns_clientinfomethods_t *methods,
+	       dns_clientinfo_t *clientinfo);
+#endif /* DLZ_DLOPEN_VERSION */
 
 /*
  * dlz_lookup is required for all DLZ external drivers
  */
+#if DLZ_DLOPEN_VERSION == 1
+isc_result_t
+dlz_lookup(const char *zone, const char *name, void *dbdata,
+	   dns_sdlzlookup_t *lookup);
+#else /* DLZ_DLOPEN_VERSION > 1 */
 isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_sdlzlookup_t *lookup,
 	   dns_clientinfomethods_t *methods,
 	   dns_clientinfo_t *clientinfo);
+#endif /* DLZ_DLOPEN_VERSION */
 
 /*
  * dlz_allowzonexfr() is optional, and should be supplied if you want to
@@ -179,7 +202,6 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
  */
 isc_result_t
 dlz_allowzonexfr(void *dbdata, const char *name, const char *client);
-
 
 /*
  * dlz_allnodes() is optional, but must be supplied if supply a
@@ -201,24 +223,28 @@ dlz_newversion(const char *zone, void *dbdata, void **versionp);
  */
 void
 dlz_closeversion(const char *zone, isc_boolean_t commit, void *dbdata,
-                 void **versionp);
+		 void **versionp);
 
 /*
  * dlz_configure() is optional, but must be supplied if you want to support
  * dynamic updates
  */
+#if DLZ_DLOPEN_VERSION < 3
+isc_result_t
+dlz_configure(dns_view_t *view, void *dbdata);
+#else /* DLZ_DLOPEN_VERSION >= 3 */
 isc_result_t
 dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata);
+#endif /* DLZ_DLOPEN_VERSION */
 
 /*
  * dlz_ssumatch() is optional, but must be supplied if you want to support
  * dynamic updates
  */
-
 isc_boolean_t
 dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
-             const char *type, const char *key, uint32_t keydatalen,
-             uint8_t *keydata, void *dbdata);
+	     const char *type, const char *key, uint32_t keydatalen,
+	     uint8_t *keydata, void *dbdata);
 
 /*
  * dlz_addrdataset() is optional, but must be supplied if you want to
@@ -226,14 +252,15 @@ dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
  */
 isc_result_t
 dlz_addrdataset(const char *name, const char *rdatastr, void *dbdata,
-                void *version);
+		void *version);
 
-/* dlz_subrdataset() is optional, but must be supplied if you want to
+/*
+ * dlz_subrdataset() is optional, but must be supplied if you want to
  * support dynamic updates
  */
 isc_result_t
 dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata,
-                void *version);
+		void *version);
 
 /*
  * dlz_delrdataset() is optional, but must be supplied if you want to
@@ -241,4 +268,4 @@ dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata,
  */
 isc_result_t
 dlz_delrdataset(const char *name, const char *type, void *dbdata,
-                void *version);
+		void *version);

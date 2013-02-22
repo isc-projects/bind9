@@ -1,3 +1,6 @@
+3493.	[contrib]	Added BDBHPT dynamically-lodable DLZ module,
+			contributed by Mark Goldfinch. [RT #32549]
+			
 3492.	[bug]		Fixed a regression in zone loading performance
 			due to lock contention. [RT #30399]
 
