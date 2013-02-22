@@ -27,7 +27,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-#include "dlz_minimal.h"
+#include "../modules/dlz_minimal.h"
 
 #ifdef WIN32
 #define STRTOK_R(a, b, c)	strtok_s(a, b, c)
