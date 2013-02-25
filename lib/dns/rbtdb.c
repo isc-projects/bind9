@@ -2690,6 +2690,10 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
 				dns_rbt_fullnamefromnode(node, fname);
 				result = dns_rpz_add(rbtdb->rpzs,
 						     rbtdb->rpz_num, fname);
+				if (result != ISC_R_SUCCESS) {
+					RWUNLOCK(&rbtdb->tree_lock, locktype);
+					return (result);
+				}
 			}
 #endif
 			dns_rbt_namefromnode(node, &nodename);
