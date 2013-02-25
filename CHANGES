@@ -1,3 +1,9 @@
+3496.	[func]		Improvements to RPZ performance. The "response-policy"
+			syntax now includes a "min-ns-dots" clause, with
+			default 1, to exclude top-level domains from
+			NSIP and NSDNAME checking. --enable-rpz-nsip and
+                        --enable-rpz-nsdname are now the default. [RT #32251]
+
 3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
 			When cloning a rdataset do not copy the link contents.
 			[RT #32651]

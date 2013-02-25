@@ -2141,10 +2141,9 @@ Optional Features:
 			  [default=autodetect]
   --enable-fixed-rrset    enable fixed rrset ordering
 			  [default=no]
-  --enable-rpz-nsip	  enable rpz-nsip rules [default=no]
-  --enable-rpz-nsdname	  enable rpz-nsdname rules [default=no]
-  --enable-filter-aaaa    enable filtering of AAAA records over IPv4
-			  [default=no]
+  --disable-rpz-nsip	  disable rpz-nsip rules [default=enabled]
+  --disable-rpz-nsdname	  disable rpz-nsdname rules [default=enabled]
+  --enable-filter-aaaa    enable filtering of AAAA records [default=no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -11852,8 +11851,6 @@ yes)
 	test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
 	test "${with_atf+set}" = set || with_atf=yes
 	test "${enable_filter_aaaa+set}" = set || enable_filter_aaaa=yes
-	test "${enable_rpz_nsip+set}" = set || enable_rpz_nsip=yes
-	test "${enable_rpz_nsdname+set}" = set || enable_rpz_nsdname=yes
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
 	case "$host" in
 	*-darwin*)
@@ -18375,7 +18372,7 @@ esac
 if test "${enable_rpz_nsip+set}" = set; then :
   enableval=$enable_rpz_nsip; enable_nsip="$enableval"
 else
-  enable_nsip="no"
+  enable_nsip="yes"
 fi
 
 case "$enable_nsip" in
@@ -18397,7 +18394,7 @@ esac
 if test "${enable_rpz_nsdname+set}" = set; then :
   enableval=$enable_rpz_nsdname; enable_nsdname="$enableval"
 else
-  enable_nsdname="no"
+  enable_nsdname="yes"
 fi
 
 case "$enable_nsdname" in

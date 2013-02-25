@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #ifndef DNS_RPZ_H
 #define DNS_RPZ_H 1
 
@@ -27,10 +25,11 @@
 
 ISC_LANG_BEGINDECLS
 
-#define DNS_RPZ_IP_ZONE		"rpz-ip"
-#define DNS_RPZ_NSIP_ZONE	"rpz-nsip"
-#define DNS_RPZ_NSDNAME_ZONE	"rpz-nsdname"
-#define DNS_RPZ_PASSTHRU_ZONE	"rpz-passthru"
+#define DNS_RPZ_PREFIX		"rpz-"
+#define DNS_RPZ_IP_ZONE		DNS_RPZ_PREFIX"ip"
+#define DNS_RPZ_NSIP_ZONE	DNS_RPZ_PREFIX"nsip"
+#define DNS_RPZ_NSDNAME_ZONE	DNS_RPZ_PREFIX"nsdname"
+#define DNS_RPZ_PASSTHRU_ZONE	DNS_RPZ_PREFIX"passthru"
 
 typedef isc_uint8_t		dns_rpz_cidr_bits_t;
 
@@ -75,6 +74,7 @@ struct dns_rpz_zone {
 	dns_ttl_t		 max_policy_ttl;
 	dns_rpz_policy_t	 policy;  /* DNS_RPZ_POLICY_GIVEN or override */
 	isc_boolean_t		 recursive_only;
+	isc_boolean_t		 defined;
 };
 
 /*
@@ -169,12 +169,6 @@ const char *
 dns_rpz_policy2str(dns_rpz_policy_t policy);
 
 void
-dns_rpz_set_need(isc_boolean_t need);
-
-isc_boolean_t
-dns_rpz_needed(void);
-
-void
 dns_rpz_cidr_free(dns_rpz_cidr_t **cidr);
 
 void
@@ -184,7 +178,7 @@ isc_result_t
 dns_rpz_new_cidr(isc_mem_t *mctx, dns_name_t *origin,
 		 dns_rpz_cidr_t **rbtdb_cidr);
 void
-dns_rpz_enabled(dns_rpz_cidr_t *cidr, dns_rpz_st_t *st);
+dns_rpz_enabled_get(dns_rpz_cidr_t *cidr, dns_rpz_st_t *st);
 
 void
 dns_rpz_cidr_deleteip(dns_rpz_cidr_t *cidr, dns_name_t *name);

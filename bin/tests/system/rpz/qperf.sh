@@ -14,7 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: qperf.sh,v 1.1.2.1 2011/10/15 23:03:37 vjs Exp $
 
 for QDIR in `echo "$PATH" | tr : ' '` ../../../../contrib/queryperf; do
     QPERF=$QDIR/queryperf

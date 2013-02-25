@@ -5217,7 +5217,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> policy given | disabled | passthru | nxdomain | nodata | cname <replaceable>domain</replaceable> </optional>
 	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional> ;
     } <optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional>
-	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional> ; </optional>
+	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional> <optional> min-ns-dots <replaceable>number</replaceable> </optional> ; </optional>
 };
 </programlisting>
 
@@ -9407,14 +9407,15 @@ deny-answer-aliases { "example.net"; };
 	    They are encoded as subdomains of
 	    <userinput>rpz-nsdomain</userinput> relativized
 	    to the RPZ origin name.
-	  </para>
-
-	  <para>
 	    NSIP triggers match IP addresses in A and
 	    AAAA RRsets for domains that can be checked against NSDNAME
 	    policy records.
 	    NSIP triggers are encoded like IP triggers except as subdomains of
 	    <userinput>rpz-nsip</userinput>.
+	    NSDNAME and NSIP triggers are checked only for names with at
+	    least <command>min-ns-dots</command> dots.
+	    The default value of <command>min-ns-dots</command> is 1 to
+	    exclude top level domains.
 	  </para>
 
 	  <para>
@@ -9451,17 +9452,6 @@ deny-answer-aliases { "example.net"; };
 	    not been triggered,
 	    all RPZs are again consulted for the DNAME or CNAME names
 	    and addresses.
-	  </para>
-
-	  <para>
-	    Authority verification issues and variations in authority data
-	    can cause inconsistent results for NSIP and NSDNAME policy records.
-	    Glue NS records often differ from authoritative NS records.
-	    So they are available
-	    only when <acronym>BIND</acronym> is built with the
-	    <userinput>--enable-rpz-nsip</userinput> or
-	    <userinput>--enable-rpz-nsdname</userinput> options
-	    on the "configure" command line.
 	  </para>
 
 	  <para>
@@ -9602,20 +9592,26 @@ bzone.domain.com        CNAME   garden.example.com.
 ns.domain.com.rpz-nsdname   CNAME   .
 48.zz.2.2001.rpz-nsip       CNAME   .
 </programlisting>
-	  <para>
-            Note: RPZ may impact server performance.  Each configured
-            response policy zone requires the server to perform one to four
-            additional database lookups before a query can be answered.
+          <para>
+            RPZ can affect server performance.
+            Each configured response policy zone requires the server to
+            perform one to four additional database lookups before a
+            query can be answered.
             For example, a DNS server with four policy zones, each with all
-            four kinds of response triggers &mdash; QNAME, IP, NSIP, and
-            NSDNAME &mdash; requires a total of 17 times as many database
+            four kinds of response triggers, QNAME, IP, NSIP, and
+            NSDNAME, requires a total of 17 times as many database
             lookups as a similar DNS server with no response policy zones.
             A <acronym>BIND9</acronym> server with adequate memory and one
             response policy zone with QNAME and IP triggers might achieve a
-            maximum queries-per-second rate about 20% lower.  A server with
-            four response policy zones with QNAME and IP triggers might
-            have a maximum QPS rate about 50% lower.
-	  </para>
+            maximum queries-per-second rate about 20% lower.
+            A server with four response policy zones with QNAME and IP
+            triggers might have a maximum QPS rate about 50% lower.
+          </para>
+
+          <para>
+            Responses rewritten by RPZ are counted in the
+            <command>RPZRewrites</command> statistics.
+          </para>
         </sect3>
       </sect2>
 
@@ -14187,6 +14183,19 @@ HOST-127.EXAMPLE. MX 0 .
 		    <entry colname="3">
 		      <para>
 			Dynamic updates rejected due to prerequisite failure.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>RPZRewrites</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Response policy zone rewrites.
 		      </para>
 		    </entry>
 		  </row>

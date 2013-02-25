@@ -14,7 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
 
 /*! \file */
 
@@ -122,8 +121,6 @@ struct dns_rpz_cidr {
 	dns_name_t		nsip_name;      /* RPZ_NSIP_ZONE.origin. */
 	dns_name_t		nsdname_name;	/* RPZ_NSDNAME_ZONE.origin */
 };
-
-static isc_boolean_t		have_rpz_zones = ISC_FALSE;
 
 const char *
 dns_rpz_type2str(dns_rpz_type_t type) {
@@ -267,21 +264,6 @@ dns_rpz_view_destroy(dns_view_t *view) {
 }
 
 /*
- * Note that we have at least one response policy zone.
- * It would be better for something to tell the rbtdb code that the
- * zone is in at least one view's list of policy zones.
- */
-void
-dns_rpz_set_need(isc_boolean_t need) {
-	have_rpz_zones = need;
-}
-
-isc_boolean_t
-dns_rpz_needed(void) {
-	return (have_rpz_zones);
-}
-
-/*
  * Start a new radix tree for a response policy zone.
  */
 isc_result_t
@@ -292,12 +274,6 @@ dns_rpz_new_cidr(isc_mem_t *mctx, dns_name_t *origin,
 	dns_rpz_cidr_t *cidr;
 
 	REQUIRE(rbtdb_cidr != NULL && *rbtdb_cidr == NULL);
-
-	/*
-	 * Only if there is at least one response policy zone.
-	 */
-	if (!have_rpz_zones)
-		return (ISC_R_SUCCESS);
 
 	cidr = isc_mem_get(mctx, sizeof(*cidr));
 	if (cidr == NULL)
@@ -340,7 +316,7 @@ dns_rpz_new_cidr(isc_mem_t *mctx, dns_name_t *origin,
  * See if a policy zone has IP, NSIP, or NSDNAME rules or records.
  */
 void
-dns_rpz_enabled(dns_rpz_cidr_t *cidr, dns_rpz_st_t *st) {
+dns_rpz_enabled_get(dns_rpz_cidr_t *cidr, dns_rpz_st_t *st) {
 	if (cidr == NULL)
 		return;
 	if (cidr->root != NULL &&
@@ -433,6 +409,9 @@ static void
 badname(int level, dns_name_t *name, const char *str1, const char *str2) {
 	char printname[DNS_NAME_FORMATSIZE];
 
+	/*
+	 * bin/tests/system/rpz/tests.sh looks for "invalid rpz".
+	 */
 	if (level < DNS_RPZ_DEBUG_QUIET
 	    && isc_log_wouldlog(dns_lctx, level)) {
 		dns_name_format(name, printname, sizeof(printname));
@@ -957,8 +936,7 @@ dns_rpz_cidr_addip(dns_rpz_cidr_t *cidr, dns_name_t *name) {
 	dns_rpz_cidr_bits_t tgt_prefix;
 	dns_rpz_type_t type;
 
-	if (cidr == NULL)
-		return;
+	REQUIRE(cidr != NULL);
 
 	/*
 	 * No worries if the new name is not an IP address.
@@ -986,6 +964,9 @@ dns_rpz_cidr_addip(dns_rpz_cidr_t *cidr, dns_name_t *name) {
 	{
 		char printname[DNS_NAME_FORMATSIZE];
 
+		/*
+		 * bin/tests/system/rpz/tests.sh looks for "rpz.*failed".
+		 */
 		dns_name_format(name, printname, sizeof(printname));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
 			      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,

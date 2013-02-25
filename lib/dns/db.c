@@ -945,11 +945,12 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
 		(db->methods->resigned)(db, rdataset, version);
 }
 
-void
+isc_result_t
 dns_db_rpz_enabled(dns_db_t *db, dns_rpz_st_t *st)
 {
 	if (db->methods->rpz_enabled != NULL)
-		(db->methods->rpz_enabled)(db, st);
+		return ((db->methods->rpz_enabled)(db, st));
+	return (ISC_R_SUCCESS);
 }
 
 void
