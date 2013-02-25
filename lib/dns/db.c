@@ -1033,20 +1033,23 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
 		(db->methods->resigned)(db, rdataset, version);
 }
 
+/*
+ * Attach a database to policy zone databases.
+ * This should only happen when the caller has already ensured that
+ * it is dealing with a database that understands response policy zones.
+ */
 void
-dns_db_rpz_enabled(dns_db_t *db, dns_rpz_st_t *st)
-{
-	if (db->methods->rpz_enabled != NULL)
-		(db->methods->rpz_enabled)(db, st);
+dns_db_rpz_attach(dns_db_t *db, dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
+	REQUIRE(db->methods->rpz_attach != NULL);
+	(db->methods->rpz_attach)(db, rpzs, rpz_num);
 }
 
-void
-dns_db_rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
-		   dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
-		   dns_rdataset_t *ardataset, dns_rpz_st_t *st,
-		   dns_name_t *query_qname)
-{
-	if (db->methods->rpz_findips != NULL)
-		(db->methods->rpz_findips)(rpz, rpz_type, zone, db, version,
-					   ardataset, st, query_qname);
+/*
+ * Finish loading a response policy zone.
+ */
+isc_result_t
+dns_db_rpz_ready(dns_db_t *db) {
+	if (db->methods->rpz_ready == NULL)
+		return (ISC_R_SUCCESS);
+	return ((db->methods->rpz_ready)(db));
 }

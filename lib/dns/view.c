@@ -198,9 +198,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->v4_aaaa = dns_aaaa_ok;
 	view->v6_aaaa = dns_aaaa_ok;
 	view->aaaa_acl = NULL;
-	ISC_LIST_INIT(view->rpz_zones);
-	view->rpz_recursive_only = ISC_TRUE;
-	view->rpz_break_dnssec = ISC_FALSE;
+	view->rpzs = NULL;
 	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
 	view->redirect = NULL;
@@ -337,9 +335,9 @@ destroy(dns_view_t *view) {
 			dns_acache_putdb(view->acache, view->cachedb);
 		dns_acache_detach(&view->acache);
 	}
-	dns_rpz_view_destroy(view);
 	dns_rrl_view_destroy(view);
-
+	if (view->rpzs != NULL)
+		dns_rpz_detach_rpzs(&view->rpzs);
 	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched);
 	     dlzdb != NULL;
 	     dlzdb = ISC_LIST_HEAD(view->dlz_searched)) {
@@ -354,7 +352,7 @@ destroy(dns_view_t *view) {
 	}
 #else
 	INSIST(view->acache == NULL);
-	INSIST(ISC_LIST_EMPTY(view->rpz_zones));
+	INSIST(view->rpzs == NULL);
 	INSIST(ISC_LIST_EMPTY(view->dlz_searched));
 	INSIST(ISC_LIST_EMPTY(view->dlz_unsearched));
 	INSIST(view->rrl == NULL);

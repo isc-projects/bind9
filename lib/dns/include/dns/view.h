@@ -166,9 +166,7 @@ struct dns_view {
 	dns_acl_t *			aaaa_acl;
 	dns_dns64list_t 		dns64;
 	unsigned int 			dns64cnt;
-	ISC_LIST(dns_rpz_zone_t)	rpz_zones;
-	isc_boolean_t			rpz_recursive_only;
-	isc_boolean_t			rpz_break_dnssec;
+	dns_rpz_zones_t			*rpzs;
 	dns_dlzdblist_t 		dlz_searched;
 	dns_dlzdblist_t 		dlz_unsearched;
 

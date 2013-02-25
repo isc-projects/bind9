@@ -5408,7 +5408,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> policy given | disabled | passthru | nxdomain | nodata | cname <replaceable>domain</replaceable> </optional>
 	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional> ;
     } <optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional>
-	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional> ; </optional>
+	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional> <optional> min-ns-dots <replaceable>number</replaceable> </optional>
+	<optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> </optional> ; </optional>
 };
 </programlisting>
 
@@ -9685,7 +9686,7 @@ deny-answer-aliases { "example.net"; };
 	    Response policy zones are named in the
 	    <command>response-policy</command> option for the view or among the
 	    global options if there is no response-policy option for the view.
-	    RPZs are ordinary DNS zones containing RRsets
+	    Response policy zones are ordinary DNS zones containing RRsets
 	    that can be queried normally if allowed.
 	    It is usually best to restrict those queries with something like
 	    <command>allow-query { localhost; };</command>.
@@ -9731,18 +9732,19 @@ deny-answer-aliases { "example.net"; };
 	    They are encoded as subdomains of
 	    <userinput>rpz-nsdomain</userinput> relativized
 	    to the RPZ origin name.
-	  </para>
-
-	  <para>
 	    NSIP triggers match IP addresses in A and
 	    AAAA RRsets for domains that can be checked against NSDNAME
 	    policy records.
 	    NSIP triggers are encoded like IP triggers except as subdomains of
 	    <userinput>rpz-nsip</userinput>.
+	    NSDNAME and NSIP triggers are checked only for names with at
+	    least <command>min-ns-dots</command> dots.
+	    The default value of <command>min-ns-dots</command> is 1 to
+	    exclude top level domains.
 	  </para>
 
 	  <para>
-	    The query response is checked against all RPZs, so
+	    The query response is checked against all response policy zones, so
 	    two or more policy records can be triggered by a response.
 	    Because DNS responses can be rewritten according to at most one
 	    policy record, a single record encoding an action (other than
@@ -9773,19 +9775,8 @@ deny-answer-aliases { "example.net"; };
 	    When the processing of a response is restarted to resolve
 	    DNAME or CNAME records and a policy record set has
 	    not been triggered,
-	    all RPZs are again consulted for the DNAME or CNAME names
-	    and addresses.
-	  </para>
-
-	  <para>
-	    Authority verification issues and variations in authority data
-	    can cause inconsistent results for NSIP and NSDNAME policy records.
-	    Glue NS records often differ from authoritative NS records.
-	    So they are available
-	    only when <acronym>BIND</acronym> is built with the
-	    <userinput>--enable-rpz-nsip</userinput> or
-	    <userinput>--enable-rpz-nsdname</userinput> options
-	    on the "configure" command line.
+	    all response policy zones are again consulted for the
+	    DNAME or CNAME names and addresses.
 	  </para>
 
 	  <para>
@@ -9823,11 +9814,12 @@ deny-answer-aliases { "example.net"; };
 	  </para>
 
 	  <para>
-	    The actions specified in an RPZ can be overridden with a
+	    The actions specified in a policy zone can be overridden with a
 	    <command>policy</command> clause in the
 	    <command>response-policy</command> option.
-	    An organization using an RPZ provided by another organization might
-	    use this mechanism to redirect domains to its own walled garden.
+	    An organization using a policy zone provided by another
+	    organization might use this mechanism to redirect domains
+	    to its own walled garden.
 	    <itemizedlist>
 	      <listitem><command>GIVEN</command> says "do not override but
 		perform the action specified in the zone."
@@ -9858,9 +9850,10 @@ deny-answer-aliases { "example.net"; };
 	  </para>
 
 	  <para>
-	    By default, the actions encoded in an RPZ are applied
-	    only to queries that ask for recursion (RD=1).
-	    That default can be changed for a single RPZ or all RPZs in a view
+	    By default, the actions encoded in a response policy zone
+	    are applied only to queries that ask for recursion (RD=1).
+	    That default can be changed for a single policy zone or
+	    all response policy zones in a view
 	    with a <command>recursive-only no</command> clause.
 	    This feature is useful for serving the same zone files
 	    both inside and outside an RFC 1918 cloud and using RPZ to
@@ -9869,15 +9862,37 @@ deny-answer-aliases { "example.net"; };
 	  </para>
 
 	  <para>
-	    Also by default, RPZ actions are applied only to DNS requests that
-	    either do not request DNSSEC metadata (DO=0) or when no DNSSEC
-	    records are available for request name in the original zone (not
-	    the response policy zone).
-	    This default can be changed for all RPZs in a view with a
-	    <command>break-dnssec yes</command> clause.
-	    In that case, RPZ actions are applied regardless of DNSSEC.
-	    The name of the clause option reflects the fact that results
-	    rewritten by RPZ actions cannot verify.
+            Also by default, RPZ actions are applied only to DNS requests
+            that either do not request DNSSEC metadata (DO=0) or when no
+            DNSSEC records are available for request name in the original
+            zone (not the response policy zone).  This default can be
+            changed for all response policy zones in a view with a
+            <command>break-dnssec yes</command> clause.  In that case, RPZ
+            actions are applied regardless of DNSSEC.  The name of the
+            clause option reflects the fact that results rewritten by RPZ
+            actions cannot verify.
+	  </para>
+
+	  <para>
+            No DNS records are needed to trigger a QNAME action.  The name
+            itself is sufficient, so in principle the query name need not
+            be recursively resolved.  However, not resolving the requested
+            name leaks the fact that response policy rewriting is in use
+            and that the name is listed in a policy zone to operators of
+            servers for listed names.  To prevent that information leak, by
+            default any recursion needed for a request is done before any
+            policy triggers are considered.  Because listed domains often
+            have slow authoritative servers, this default behavior can cost
+            significant time.  The <command>qname-wait-recurse no</command>
+            option overrides the default behavior when recursion cannot
+            change the response.  <command>qname-wait-recurse no</command>
+            does not affect QNAME triggers in policy zones listed after
+            other zones containing IP, NSIP and NSDNAME triggers, because
+            those may depend on the A, AAAA, and NS records that would be
+            found during recursive resolution.  It also does not affect
+            DNSSEC requests (DO=1) unless <command>break-dnssec yes</command>
+            is in use, because the response would depend on whether or not
+            RRSIG records were found during resolution.
 	  </para>
 
 	  <para>
@@ -9926,20 +9941,26 @@ bzone.domain.com        CNAME   garden.example.com.
 ns.domain.com.rpz-nsdname   CNAME   .
 48.zz.2.2001.rpz-nsip       CNAME   .
 </programlisting>
-	  <para>
-            Note: RPZ may impact server performance.  Each configured
-            response policy zone requires the server to perform one to four
-            additional database lookups before a query can be answered.
+          <para>
+            RPZ can affect server performance.
+            Each configured response policy zone requires the server to
+            perform one to four additional database lookups before a
+            query can be answered.
             For example, a DNS server with four policy zones, each with all
-            four kinds of response triggers &mdash; QNAME, IP, NSIP, and
-            NSDNAME &mdash; requires a total of 17 times as many database
+            four kinds of response triggers, QNAME, IP, NSIP, and
+            NSDNAME, requires a total of 17 times as many database
             lookups as a similar DNS server with no response policy zones.
             A <acronym>BIND9</acronym> server with adequate memory and one
             response policy zone with QNAME and IP triggers might achieve a
-            maximum queries-per-second rate about 20% lower.  A server with
-            four response policy zones with QNAME and IP triggers might
-            have a maximum QPS rate about 50% lower.
-	  </para>
+            maximum queries-per-second rate about 20% lower.
+            A server with four response policy zones with QNAME and IP
+            triggers might have a maximum QPS rate about 50% lower.
+          </para>
+
+          <para>
+            Responses rewritten by RPZ are counted in the
+            <command>RPZRewrites</command> statistics.
+          </para>
         </sect3>
 
 	<sect3>
@@ -14852,6 +14873,19 @@ HOST-127.EXAMPLE. MX 0 .
 		    <entry colname="3">
 		      <para>
 			Responses truncated by rate limits.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>RPZRewrites</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Response policy zone rewrites.
 		      </para>
 		    </entry>
 		  </row>

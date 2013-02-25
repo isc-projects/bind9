@@ -176,14 +176,9 @@ typedef struct dns_dbmethods {
 					   dns_dbversion_t *version);
 	isc_boolean_t	(*isdnssec)(dns_db_t *db);
 	dns_stats_t	*(*getrrsetstats)(dns_db_t *db);
-	void		(*rpz_enabled)(dns_db_t *db, dns_rpz_st_t *st);
-	void		(*rpz_findips)(dns_rpz_zone_t *rpz,
-				       dns_rpz_type_t rpz_type,
-				       dns_zone_t *zone, dns_db_t *db,
-				       dns_dbversion_t *version,
-				       dns_rdataset_t *ardataset,
-				       dns_rpz_st_t *st,
-				       dns_name_t *query_qname);
+	void		(*rpz_attach)(dns_db_t *db, dns_rpz_zones_t *rpzs,
+				      dns_rpz_num_t rpz_num);
+	isc_result_t	(*rpz_ready)(dns_db_t *db);
 	isc_result_t	(*findnodeext)(dns_db_t *db, dns_name_t *name,
 				     isc_boolean_t create,
 				     dns_clientinfomethods_t *methods,
@@ -1602,29 +1597,16 @@ dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats);
  */
 
 void
-dns_db_rpz_enabled(dns_db_t *db, dns_rpz_st_t *st);
+dns_db_rpz_attach(dns_db_t *db, dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num);
 /*%<
- * See if a policy database has DNS_RPZ_TYPE_IP, DNS_RPZ_TYPE_NSIP, or
- * DNS_RPZ_TYPE_NSDNAME records.
+ * Attach the response policy information for a view to a database for a
+ * zone for the view.
  */
 
-void
-dns_db_rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
-		   dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
-		   dns_rdataset_t *ardataset, dns_rpz_st_t *st,
-		   dns_name_t *query_qname);
+isc_result_t
+dns_db_rpz_ready(dns_db_t *db);
 /*%<
- * Search the CDIR block tree of a response policy tree of trees for the best
- * match to any of the IP addresses in an A or AAAA rdataset.
- *
- * Requires:
- * \li	search in policy zone 'rpz' for a match of 'rpz_type' either
- *	    DNS_RPZ_TYPE_IP or DNS_RPZ_TYPE_NSIP
- * \li	'zone' and 'db' are the database corresponding to 'rpz'
- * \li	'version' is the required version of the database
- * \li	'ardataset' is an A or AAAA rdataset of addresses to check
- * \li	'found' specifies the previous best match if any or
- *	    or NULL, an empty name, 0, DNS_RPZ_POLICY_MISS, and 0
+ * Finish loading a response policy zone.
  */
 
 ISC_LANG_ENDDECLS

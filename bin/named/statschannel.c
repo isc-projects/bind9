@@ -211,6 +211,8 @@ init_desc(void) {
 		       "RateDropped");
 	SET_NSSTATDESC(rateslipped, "responses truncated for rate limits",
 		       "RateSlipped");
+	SET_NSSTATDESC(rpz_rewrites, "response policy zone rewrites",
+		       "RPZRewrites");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */

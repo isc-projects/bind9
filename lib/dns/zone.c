@@ -349,9 +349,10 @@ struct dns_zone {
 	isc_boolean_t           added;
 
 	/*%
-	 * whether a rpz radix was needed when last loaded
+	 * response policy data to be relayed to the database
 	 */
-	isc_boolean_t           rpz_zone;
+	dns_rpz_zones_t		*rpzs;
+	dns_rpz_num_t		rpz_num;
 
 	/*%
 	 * Serial number update method.
@@ -929,7 +930,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->nodes = 100;
 	zone->privatetype = (dns_rdatatype_t)0xffffU;
 	zone->added = ISC_FALSE;
-	zone->rpz_zone = ISC_FALSE;
+	zone->rpzs = NULL;
+	zone->rpz_num = DNS_RPZ_INVALID_NUM;
 	ISC_LIST_INIT(zone->forwards);
 	zone->raw = NULL;
 	zone->secure = NULL;
@@ -1041,6 +1043,13 @@ zone_free(dns_zone_t *zone) {
 		zone_detachdb(zone);
 	if (zone->acache != NULL)
 		dns_acache_detach(&zone->acache);
+#ifdef BIND9
+	if (zone->rpzs != NULL) {
+		REQUIRE(zone->rpz_num < zone->rpzs->p.num_zones);
+		dns_rpz_detach_rpzs(&zone->rpzs);
+		zone->rpz_num = DNS_RPZ_INVALID_NUM;
+	}
+#endif
 	zone_freedbargs(zone);
 	RUNTIME_CHECK(dns_zone_setmasterswithkeys(zone, NULL, NULL, 0)
 		      == ISC_R_SUCCESS);
@@ -1529,6 +1538,45 @@ dns_zone_isdynamic(dns_zone_t *zone, isc_boolean_t ignore_freeze) {
 
 }
 
+/*
+ * Set the response policy index and information for a zone.
+ */
+isc_result_t
+dns_zone_rpz_enable(dns_zone_t *zone, dns_rpz_zones_t *rpzs,
+		    dns_rpz_num_t rpz_num)
+{
+	/*
+	 * Only RBTDB zones can be used for response policy zones,
+	 * because only they have the code to load the create the summary data.
+	 * Only zones that are loaded instead of mmap()ed create the
+	 * summary data and so can be policy zones.
+	 */
+	if (strcmp(zone->db_argv[0], "rbt") != 0 &&
+	    strcmp(zone->db_argv[0], "rbt64") != 0)
+		return (ISC_R_NOTIMPLEMENTED);
+
+	/*
+	 * This must happen only once or be redundant.
+	 */
+	LOCK_ZONE(zone);
+	if (zone->rpzs != NULL) {
+		REQUIRE(zone->rpzs == rpzs && zone->rpz_num == rpz_num);
+	} else {
+		REQUIRE(zone->rpz_num == DNS_RPZ_INVALID_NUM);
+		dns_rpz_attach_rpzs(rpzs, &zone->rpzs);
+		zone->rpz_num = rpz_num;
+	}
+	rpzs->defined |= DNS_RPZ_ZBIT(rpz_num);
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+dns_rpz_num_t
+dns_zone_get_rpz_num(dns_zone_t *zone) {
+	return (zone->rpz_num);
+}
+
 static isc_result_t
 zone_load(dns_zone_t *zone, unsigned int flags) {
 	isc_result_t result;
@@ -1606,8 +1654,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		 * "rndc reconfig", we are done.
 		 */
 		if (!isc_time_isepoch(&zone->loadtime) &&
-		    (flags & DNS_ZONELOADFLAG_NOSTAT) != 0 &&
-		    zone->rpz_zone == dns_rpz_needed()) {
+		    (flags & DNS_ZONELOADFLAG_NOSTAT) != 0) {
 			result = ISC_R_SUCCESS;
 			goto cleanup;
 		}
@@ -1616,8 +1663,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		if (result == ISC_R_SUCCESS) {
 			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE) &&
-			    isc_time_compare(&filetime, &zone->loadtime) <= 0 &&
-			    zone->rpz_zone == dns_rpz_needed()) {
+			    isc_time_compare(&filetime, &zone->loadtime) <= 0) {
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
 					     "skipping load: master file "
 					     "older than last load");
@@ -1625,7 +1671,6 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 				goto cleanup;
 			}
 			loadtime = filetime;
-			zone->rpz_zone = dns_rpz_needed();
 		}
 	}
 
@@ -2067,8 +2112,14 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	isc_result_t tresult;
 	unsigned int options;
 
-	options = get_master_options(zone);
+#ifdef BIND9
+	if (zone->rpz_num != DNS_RPZ_INVALID_NUM) {
+		REQUIRE(zone->rpzs != NULL);
+		dns_db_rpz_attach(db, zone->rpzs, zone->rpz_num);
+	}
+#endif
 
+	options = get_master_options(zone);
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
 		options |= DNS_MASTER_MANYERRORS;
 
@@ -4120,6 +4171,11 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	} else {
+#ifdef BIND9
+		result = dns_db_rpz_ready(db);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+#endif
 		zone_attachdb(zone, db);
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 		DNS_ZONE_SETFLAG(zone,
@@ -13018,6 +13074,12 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	 */
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
+
+#ifdef BIND9
+	result = dns_db_rpz_ready(db);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+#endif
 
 	result = zone_get_from_db(zone, db, &nscount, &soacount,
 				  NULL, NULL, NULL, NULL, NULL, NULL);
