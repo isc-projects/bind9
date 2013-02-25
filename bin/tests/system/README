@@ -17,6 +17,7 @@ involving a different DNS setup.  They are:
   nsupdate/	Dynamic update and IXFR tests
   resolver/     Regression tests for resolver bugs that have been fixed
 		(not a complete resolver test suite)
+  rrl/		query rate limiting
   rpz/		Tests of response policy zone (RPZ) rewriting
   stub/		Tests of stub zone functionality
   unknown/	Unknown type and class tests

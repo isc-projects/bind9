@@ -169,7 +169,10 @@ enum {
 
 	dns_nsstatscounter_dns64 = 37,
 
-	dns_nsstatscounter_max = 38
+	dns_nsstatscounter_ratedropped = 38,
+	dns_nsstatscounter_rateslipped = 39,
+
+	dns_nsstatscounter_max = 40
 };
 
 void

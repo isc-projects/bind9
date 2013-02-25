@@ -45,6 +45,7 @@ LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
 	{ "delegation-only", 0 },
 	{ "edns-disabled", 0 },
 	{ "rpz",	0 },
+	{ "rate-limit",	0 },
 	{ NULL, 	0 }
 };
 

@@ -207,6 +207,10 @@ init_desc(void) {
 	SET_NSSTATDESC(recursclients, "recursing clients",
 			"RecursClients");
 	SET_NSSTATDESC(dns64, "queries answered by DNS64", "DNS64");
+	SET_NSSTATDESC(ratedropped, "responses dropped for rate limits",
+		       "RateDropped");
+	SET_NSSTATDESC(rateslipped, "responses truncated for rate limits",
+		       "RateSlipped");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */
