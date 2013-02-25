@@ -1590,11 +1590,11 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
  * Add an IP address to the radix tree or a name to the summary database.
  */
 isc_result_t
-dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
-	    dns_name_t *src_name) {
+dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num, dns_name_t *src_name)
+{
 	dns_rpz_zone_t *rpz;
 	dns_rpz_type_t rpz_type;
-	isc_result_t result;
+	isc_result_t result = ISC_R_FAILURE;
 
 	REQUIRE(rpzs != NULL && rpz_num < rpzs->p.num_zones);
 	rpz = rpzs->zones[rpz_num];

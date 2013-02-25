@@ -26,6 +26,7 @@
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
+#include <isc/print.h>
 
 #include <dns/result.h>
 #include <dns/rcode.h>
@@ -860,7 +861,7 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e,
 			ADD_LOG_CSTR(&lb, "error response");
 		} else {
 			rstr = isc_result_totext(resp_result);
-			add_log_str(&lb, rstr, strlen(rstr);
+			add_log_str(&lb, rstr, strlen(rstr));
 			ADD_LOG_CSTR(&lb, " response");
 		}
 		break;
