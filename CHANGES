@@ -1,7 +1,11 @@
 3496.	[placeholder]
 
-3495.	[func]		Support multiple response-policy zones, while
-			improving RPZ performance. [RT #32476]
+3495.	[func]		Support multiple response-policy zones (up to 32),
+                        while improving RPZ performance.  "response-policy"
+			syntax now includes a "min-ns-dots" clause, with
+			default 1, to exclude top-level domains from
+			NSIP and NSDNAME checking. --enable-rpz-nsip and
+                        --enable-rpz-nsdname are now the default. [RT #32251]
 
 3494.	[func]		DNS RRL: Blunt the impact of DNS reflection and
 			amplification attacks by rate-limiting substantially-
