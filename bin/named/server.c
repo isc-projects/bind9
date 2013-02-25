@@ -1825,7 +1825,7 @@ configure_rrl(dns_view_t *view, const cfg_obj_t *config, const cfg_obj_t *map) {
 	const cfg_obj_t *obj;
 	dns_rrl_t *rrl;
 	isc_result_t result;
- 	int min_entries, i, j;
+	int min_entries, i, j;
 
 	/*
 	 * Most DNS servers have few clients, but intentinally open
