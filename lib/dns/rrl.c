@@ -664,6 +664,9 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 				case DNS_RRL_RTYPE_ALL:
 					rate_str = "all-per-second";
 					break;
+				case DNS_RRL_RTYPE_FREE:
+				case DNS_RRL_RTYPE_TCP:
+					INSIST(0);
 				}
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
 					      DNS_LOGMODULE_REQUEST,
