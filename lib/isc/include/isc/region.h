@@ -23,6 +23,7 @@
 /*! \file isc/region.h */
 
 #include <isc/types.h>
+#include <isc/lang.h>
 
 struct isc_region {
 	unsigned char *	base;
@@ -81,6 +82,8 @@ struct isc_consttextregion {
 	} while (0)
 /*@}*/
 
+ISC_LANG_BEGINDECLS
+
 int
 isc_region_compare(isc_region_t *r1, isc_region_t *r2);
 /*%<
@@ -95,5 +98,7 @@ isc_region_compare(isc_region_t *r1, isc_region_t *r2);
  *\li	 = 0 if r1 is lexicographically identical to r2
  *\li	 > 0 if r1 is lexicographically greater than r2
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_REGION_H */
