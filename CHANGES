@@ -1,3 +1,6 @@
+3500.	[port]		Support NAPTR regular expression validation on
+			all platforms.  [RT #32688]
+
 3499.	[doc]		Corrected ARM documentation of built-in zones.
 			[RT #32694]
 

@@ -169,6 +169,7 @@ CLEAN :
 	-@erase "$(INTDIR)\random.obj"
 	-@erase "$(INTDIR)\ratelimiter.obj"
 	-@erase "$(INTDIR)\refcount.obj"
+	-@erase "$(INTDIR)\regex.obj"
 	-@erase "$(INTDIR)\region.obj"
 	-@erase "$(INTDIR)\resource.obj"
 	-@erase "$(INTDIR)\result.obj"
@@ -289,6 +290,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\parseint.obj" \
 	"$(INTDIR)\pool.obj" \
 	"$(INTDIR)\portset.obj" \
+	"$(INTDIR)\regex.obj" \
 	"$(INTDIR)\region.obj"
 
 "..\..\..\Build\Release\libisc.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -419,6 +421,8 @@ CLEAN :
 	-@erase "$(INTDIR)\ratelimiter.sbr"
 	-@erase "$(INTDIR)\refcount.obj"
 	-@erase "$(INTDIR)\refcount.sbr"
+	-@erase "$(INTDIR)\regex.obj"
+	-@erase "$(INTDIR)\regex.sbr"
 	-@erase "$(INTDIR)\region.obj"
 	-@erase "$(INTDIR)\region.sbr"
 	-@erase "$(INTDIR)\resource.obj"
@@ -561,6 +565,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\parseint.sbr" \
 	"$(INTDIR)\pool.sbr" \
 	"$(INTDIR)\portset.sbr" \
+	"$(INTDIR)\regex.sbr" \
 	"$(INTDIR)\region.sbr"
 
 "$(OUTDIR)\libisc.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
@@ -650,6 +655,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\parseint.obj" \
 	"$(INTDIR)\pool.obj" \
 	"$(INTDIR)\portset.obj" \
+	"$(INTDIR)\regex.obj" \
 	"$(INTDIR)\region.obj"
 
 "..\..\..\Build\Debug\libisc.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -1821,6 +1827,25 @@ SOURCE=..\refcount.c
 
 
 !ENDIF 
+
+SOURCE=..\regex.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\regex.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\regex.obj"	"$(INTDIR)\regex.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 
 SOURCE=..\region.c
 
