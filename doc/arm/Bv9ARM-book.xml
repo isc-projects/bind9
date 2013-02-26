@@ -9159,12 +9159,18 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
             built-in view (see <xref linkend="view_statement_grammar"/>) of
             class
             <command>CHAOS</command> which is separate from the
-            default view of
-            class <command>IN</command>; therefore, any global
-            server options
-            such as <command>allow-query</command> do not apply
-            the these zones.
-            If you feel the need to disable these zones, use the options
+            default view of class <command>IN</command>. Most global
+            configuration options (<command>allow-query</command>,
+            etc) will apply to this view, but some are locally
+            overridden: <command>notify</command>,
+            <command>recursion</command> and
+            <command>allow-new-zones</command> are
+            always set to <userinput>no</userinput>, and
+            <command>rate-limit</command> is set to allow
+            three responses per second.
+          </para>
+          <para>
+            If you need to disable these zones, use the options
             below, or hide the built-in <command>CHAOS</command>
             view by
             defining an explicit view of class <command>CHAOS</command>
