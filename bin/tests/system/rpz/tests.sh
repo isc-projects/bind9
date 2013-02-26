@@ -88,10 +88,10 @@ setret () {
 # (re)load the reponse policy zones with the rules in the file $TEST_FILE
 load_db () {
     if test -n "$TEST_FILE"; then
-	if ! $NSUPDATE -v $TEST_FILE; then
+	$NSUPDATE -v $TEST_FILE || {
 	    echo "I:failed to update policy zone with $TEST_FILE"
 	    exit 1
-	fi
+	}
     fi
 }
 
