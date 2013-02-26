@@ -1,3 +1,6 @@
+3499.	[doc]		Corrected ARM documentation of built-in zones.
+			[RT #32694]
+
 3498.	[bug]		zone statistics for zones which matched a potential
 			empty zone could have their zone-statistics setting
 			overridden.
