@@ -8305,7 +8305,7 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 static isc_boolean_t
 inuse(const char* file, isc_boolean_t first, isc_buffer_t *text) {
 #define INUSEMSG "The following files were in use and may now be removed:\n"
-	
+
 	if (file != NULL && isc_file_exists(file) &&
 	    isc_buffer_availablelength(text) >
 	    strlen(file) + (first ? sizeof(INUSEMSG) : 0))
