@@ -1,3 +1,7 @@
+3498.	[bug]		zone statistics for zones which matched a potential
+			empty zone could have their zone-statistics setting
+			overridden.
+
 3496.	[func]		Improvements to RPZ performance. The "response-policy"
 			syntax now includes a "min-ns-dots" clause, with
 			default 1, to exclude top-level domains from
