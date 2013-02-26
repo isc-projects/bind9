@@ -8303,13 +8303,33 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	return (result);
 }
 
+static isc_boolean_t
+inuse(const char* file, isc_boolean_t first, isc_buffer_t *text) {
+#define INUSEMSG "The following files were in use and may now be removed:\n"
+	
+	if (file != NULL && isc_file_exists(file) &&
+	    isc_buffer_availablelength(text) >
+	    strlen(file) + (first ? sizeof(INUSEMSG) : 0))
+	{
+		if (first)
+			isc__buffer_putstr(text, INUSEMSG);
+		else
+			isc_buffer_putstr(text, "\n");
+		isc__buffer_putstr(text, file);
+		return (ISC_FALSE);
+	}
+	return (first);
+}
+
 /*
  * Act on a "delzone" command from the command channel.
  */
 isc_result_t
-ns_server_del_zone(ns_server_t *server, char *args) {
+ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_result_t	       result;
 	dns_zone_t	      *zone = NULL;
+	dns_zone_t	      *raw = NULL;
+	dns_zone_t	      *mayberaw;
 	dns_view_t	      *view = NULL;
 	dns_db_t	      *dbp = NULL;
 	const char	      *filename = NULL;
@@ -8318,6 +8338,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 	const char	      *zonename = NULL;
 	size_t		       znamelen = 0;
 	FILE		      *ifp = NULL, *ofp = NULL;
+	isc_boolean_t	       exclusive = ISC_FALSE;
 
 	/* Parse parameters */
 	CHECK(zone_from_args(server, args, NULL, &zone, &zonename, ISC_TRUE));
@@ -8326,6 +8347,10 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		result = ISC_R_UNEXPECTEDEND;
 		goto cleanup;
 	}
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	exclusive = ISC_TRUE;
 
 	/*
 	 * Was this zone originally added at runtime?
@@ -8439,6 +8464,29 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		dns_zone_unload(zone);
 	}
 
+	/* Clean up stub / slave zone files */
+	dns_zone_getraw(zone, &raw);
+	mayberaw = (raw != NULL) ? raw : zone;
+	if (dns_zone_gettype(mayberaw) == dns_zone_slave ||
+	    dns_zone_gettype(mayberaw) == dns_zone_stub) {
+		const char *file;
+		isc_boolean_t first;
+
+		file = dns_zone_getfile(mayberaw);
+		first = inuse(file, ISC_TRUE, text);
+
+		file = dns_zone_getjournal(mayberaw);
+		first = inuse(file, first, text);
+
+		if (zone != mayberaw) {
+			file = dns_zone_getfile(zone);
+			first = inuse(file, first, text);
+
+			file = dns_zone_getjournal(zone);
+			first = inuse(file, first, text);
+		}
+	}
+
 	CHECK(dns_zt_unmount(view->zonetable, zone));
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
@@ -8448,6 +8496,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 	result = ISC_R_SUCCESS;
 
  cleanup:
+	if (exclusive)
+		isc_task_endexclusive(server->task);
 	if (ifp != NULL)
 		isc_stdio_close(ifp);
 	if (ofp != NULL) {
@@ -8456,6 +8506,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 	}
 	if (tmpname != NULL)
 		isc_mem_free(server->mctx, tmpname);
+	if (raw != NULL)
+		dns_zone_detach(&raw);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 

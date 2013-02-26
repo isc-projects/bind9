@@ -133,6 +133,18 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:attempting to delete slave zone with inline signing ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone inlineslave.example 2>&1 > rndc.out2.test$n
+grep '^inlineslave.bk$' rndc.out2.test$n > /dev/null || {
+	echo "I:failed to report inlineslave.bk"; ret=1;
+}
+grep '^inlineslave.bk.signed$' rndc.out2.test$n > /dev/null || {
+	echo "I:failed to report inlineslave.bk.signed"; ret=1;
+}
+n=`expr $n + 1`
+status=`expr $status + $ret`
+
 echo "I:reconfiguring server with multiple views"
 rm -f ns2/named.conf 
 cp -f ns2/named2.conf ns2/named.conf

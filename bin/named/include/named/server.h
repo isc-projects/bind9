@@ -350,7 +350,7 @@ ns_server_add_zone(ns_server_t *server, char *args);
  * Deletes a zone from a running process
  */
 isc_result_t
-ns_server_del_zone(ns_server_t *server, char *args);
+ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text);
 
 /*%
  * Lists the status of the signing records for a given zone.
