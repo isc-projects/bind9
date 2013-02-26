@@ -1,3 +1,7 @@
+3498.	[bug]		zone statistics for zones which matched a potential
+			empty zone could have their zone-statistics setting
+			overridden.
+
 3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
 			When cloning a rdataset do not copy the link contents.
 			[RT #32651]

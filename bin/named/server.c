@@ -2001,7 +2001,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			 */
 			(void)dns_view_findzone(view, name, &zone);
 			if (zone != NULL) {
-				CHECK(setquerystats(zone, mctx, zonestats_on));
 				dns_zone_detach(&zone);
 				continue;
 			}
