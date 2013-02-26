@@ -1,3 +1,7 @@
+3498.	[bug]		zone statistics for zones which matched a potential
+			empty zone could have their zone-statistics setting
+			overridden.
+
 3497.	[func]		When deleting a slave/stub zone using 'rndc delzone'
 			report the files that were being used so they can
 			be cleaned up if desired. [RT #27899]
