@@ -330,7 +330,8 @@ isc_regex_validate(const char *c) {
 					{
 						unsigned int len;
 						len = strlen(cc[i]);
-						if (len != (c - ccname))
+						if (len !=
+						    (unsigned int)(c - ccname))
 							continue;
 						if (strncmp(cc[i], ccname, len))
 							continue;
