@@ -8499,7 +8499,7 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 			first = inuse(file, first, text);
 
 			file = dns_zone_getjournal(zone);
-			first = inuse(file, first, text);
+			(void)inuse(file, first, text);
 		}
 	}
 
