@@ -168,7 +168,7 @@ isc_file_getsize(const char *file, off_t *size) {
 	struct stat stats;
 
 	REQUIRE(file != NULL);
-	REQUIRE(time != NULL);
+	REQUIRE(size != NULL);
 
 	result = file_stats(file, &stats);
 
