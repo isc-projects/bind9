@@ -418,8 +418,8 @@ isc_os_ncpus
 isc_parse_uint16
 isc_parse_uint32
 isc_parse_uint8
-isc_pool_create
 isc_pool_count
+isc_pool_create
 isc_pool_destroy
 isc_pool_expand
 isc_pool_get
@@ -456,6 +456,7 @@ isc_ratelimiter_setinterval
 isc_ratelimiter_setpertic
 isc_ratelimiter_shutdown
 isc_refcount_init
+isc_regex_validate
 isc_region_compare
 isc_resource_getcurlimit
 isc_resource_getlimit
