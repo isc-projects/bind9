@@ -828,7 +828,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	dns_masterformat_t masterformat;
 	isc_stats_t *zoneqrystats;
 	dns_stats_t *rcvquerystats;
-	isc_boolean_t zonestats_on;
+	dns_zonestat_level_t statlevel;
 	int seconds;
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
 
@@ -1034,17 +1034,33 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	obj = NULL;
 	result = ns_config_get(maps, "zone-statistics", &obj);
 	INSIST(result == ISC_R_SUCCESS && obj != NULL);
-	zonestats_on = cfg_obj_asboolean(obj);
+	if (cfg_obj_isboolean(obj)) {
+		if (cfg_obj_asboolean(obj))
+			statlevel = dns_zonestat_full;
+		else
+			statlevel = dns_zonestat_terse; /* XXX */
+	} else {
+		const char *levelstr = cfg_obj_asstring(obj);
+		if (strcasecmp(levelstr, "full") == 0)
+			statlevel = dns_zonestat_full;
+		else if (strcasecmp(levelstr, "terse") == 0)
+			statlevel = dns_zonestat_terse;
+		else if (strcasecmp(levelstr, "none") == 0)
+			statlevel = dns_zonestat_none;
+		else
+			INSIST(0);
+	}
+	dns_zone_setstatlevel(zone, statlevel);
 
 	zoneqrystats  = NULL;
 	rcvquerystats = NULL;
-	if (zonestats_on) {
+	if (statlevel == dns_zonestat_full) {
 		RETERR(isc_stats_create(mctx, &zoneqrystats,
 					dns_nsstatscounter_max));
 		RETERR(dns_rdatatypestats_create(mctx,
 					&rcvquerystats));
 	}
-	dns_zone_setrequeststats(zone,  zoneqrystats );
+	dns_zone_setrequeststats(zone,  zoneqrystats);
 	dns_zone_setrcvquerystats(zone, rcvquerystats);
 
 	if (zoneqrystats != NULL)

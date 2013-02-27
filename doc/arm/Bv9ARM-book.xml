@@ -5212,7 +5212,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> pid-file <replaceable>path_name</replaceable>; </optional>
     <optional> recursing-file <replaceable>path_name</replaceable>; </optional>
     <optional> statistics-file <replaceable>path_name</replaceable>; </optional>
-    <optional> zone-statistics <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> zone-statistics <replaceable>full</replaceable> | <replaceable>terse</replaceable> | <replaceable>none</replaceable>; </optional>
     <optional> auth-nxdomain <replaceable>yes_or_no</replaceable>; </optional>
     <optional> deallocate-on-exit <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable>; </optional>
@@ -6140,7 +6140,39 @@ options {
 	    </listitem>
 	  </varlistentry>
 
-
+          <varlistentry>
+            <term><command>zone-statistics</command></term>
+            <listitem>
+              <para>
+                If <userinput>full</userinput>, the server will collect
+                statistical data on all zones (unless specifically
+                turned off on a per-zone basis by specifying
+                <command>zone-statistics terse</command> or
+                <command>zone-statistics none</command>
+                in the <command>zone</command> statement).
+                The default is <userinput>terse</userinput>, providing
+                minimal statistics on zones (including name and
+                current serial number, but not query type
+                counters).
+              </para>
+              <para>
+                These statistics may be accessed via the
+                <command>statistics-channel</command> or
+                using <command>rndc stats</command>, which
+                will dump them to the file listed
+                in the <command>statistics-file</command>.  See
+                also <xref linkend="statsfile"/>.
+              </para>
+              <para>
+                For backward compatibility with earlier versions
+                of BIND 9, the <command>zone-statistics</command>
+                option can also accept <userinput>yes</userinput>
+                or <userinput>no</userinput>, which have the same
+                effect as <userinput>full</userinput> and
+                <userinput>terse</userinput>, respectively.
+              </para>
+            </listitem>
+          </varlistentry>
         </variablelist>
 
         <sect3 id="boolean_options">
@@ -6634,25 +6666,6 @@ options {
                   <emphasis>This option is obsolete</emphasis>.
                   <acronym>BIND</acronym> 9 always allocates query
                   IDs from a pool.
-                </para>
-              </listitem>
-            </varlistentry>
-
-            <varlistentry>
-              <term><command>zone-statistics</command></term>
-              <listitem>
-                <para>
-                  If <userinput>yes</userinput>, the server will collect
-                  statistical data on all zones (unless specifically turned
-                  off
-                  on a per-zone basis by specifying <command>zone-statistics no</command>
-                  in the <command>zone</command> statement).
-                  The default is <userinput>no</userinput>.
-                  These statistics may be accessed
-                  using <command>rndc stats</command>, which will
-                  dump them to the file listed
-                  in the <command>statistics-file</command>.  See
-                  also <xref linkend="statsfile"/>.
                 </para>
               </listitem>
             </varlistentry>
@@ -10824,7 +10837,7 @@ view "external" {
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> zone-statistics <replaceable>full</replaceable> | <replaceable>terse</replaceable> | <replaceable>none</replaceable>; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> <optional><replaceable>number</replaceable></optional> ; </optional>
     <optional> sig-signing-nodes <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-signatures <replaceable>number</replaceable> ; </optional>
@@ -10889,7 +10902,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> use-alt-transfer-source <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> zone-statistics <replaceable>full</replaceable> | <replaceable>terse</replaceable> | <replaceable>none</replaceable>; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> <optional><replaceable>number</replaceable></optional> ; </optional>
     <optional> sig-signing-nodes <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-signatures <replaceable>number</replaceable> ; </optional>
