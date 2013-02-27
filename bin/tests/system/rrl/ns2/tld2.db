@@ -22,21 +22,21 @@ $TTL	120
 		NS	.
 ns		A	10.53.0.2
 
-a1		A	192.168.2.1
+a1		A	192.0.2.1
 
-*.a2		A	192.168.2.2
+*.a2		A	192.0.2.2
 
 ; a3 is in tld3
 
 ; a4 does not exist to give NXDOMAIN
 
 ; a5 for TCP requests
-a5		A	192.168.2.5
+a5		A	192.0.2.5
 
 ; a6 for whitelisted clients
-a6		A	192.168.2.6
+a6		A	192.0.2.6
 
 ; a7 for SERVFAIL
 
 ; a8 for all-per-second limit
-$GENERATE 101-180 all$.a8 A 192.168.2.8
+$GENERATE 101-180 all$.a8 A 192.0.2.8

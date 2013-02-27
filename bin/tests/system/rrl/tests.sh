@@ -156,11 +156,11 @@ burst 30 'x$CNT.a2.tld2'
 #					IP      TC      drop  NXDOMAIN SERVFAIL
 # check for 24 results
 # including the 1 second delay
-ck_result   a1.tld2	192.168.2.1	3	7	14	0	0
+ck_result   a1.tld2	192.0.2.1	3	7	14	0	0
 
 # Check the wild card answers.
 # The parent name of the 30 requests is counted.
-ck_result 'x*.a2.tld2'	192.168.2.2	2	10	18	0	0
+ck_result 'x*.a2.tld2'	192.0.2.2	2	10	18	0	0
 
 
 #########
@@ -173,7 +173,7 @@ burst 20 'z$CNT.a4.tld2'
 #   The first answer is counted separately because it is counted against
 #   the rate limit on recursing to the server for a3.tld3.  The remaining 20
 #   are counted as local responses from the cache.
-ck_result 'y*.a3.tld3'	192.168.3.3	3	6	12	0	0
+ck_result 'y*.a3.tld3'	192.0.3.3	3	6	12	0	0
 
 # NXDOMAIN responses are also limited based on the parent name.
 ck_result 'z*.a4.tld2'	x		0	6	12	2	0
@@ -187,14 +187,14 @@ burst 20 a6.tld2 -b $ns7
 burst 20 a7.tld4
 
 # TCP responses are not rate limited
-ck_result a5.tld2	192.168.2.5	20	0	0	0	0
+ck_result a5.tld2	192.0.2.5	20	0	0	0	0
 
 # whitelisted client is not rate limited
-ck_result a6.tld2	192.168.2.6	20	0	0	0	0
+ck_result a6.tld2	192.0.2.6	20	0	0	0	0
 
 # Errors such as SERVFAIL are rate limited.  The numbers are confusing, because
 #   other rate limiting can be triggered before the SERVFAIL limit is reached.
-ck_result a7.tld4	192.168.2.1	0	6	12	0	2
+ck_result a7.tld4	192.0.2.1	0	6	12	0	2
 
 
 #########
@@ -204,7 +204,7 @@ sec_start
 #   The qnames are all unique but the client IP address is constant.
 CNT=101
 burst 80 'all$CNT.a8.tld2'
-ck_result 'a*.a8.tld2'	192.168.2.8	70	0	10	0	0
+ck_result 'a*.a8.tld2'	192.0.2.8	70	0	10	0	0
 
 
 $RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
