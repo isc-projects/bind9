@@ -1344,12 +1344,14 @@ check_dbtype(dns_zone_t **zonep, unsigned int dbtypec, const char **dbargv,
 }
 
 static isc_result_t
-setquerystats(dns_zone_t *zone, isc_mem_t *mctx, isc_boolean_t on) {
+setquerystats(dns_zone_t *zone, isc_mem_t *mctx, dns_zonestat_level_t level) {
 	isc_result_t result;
 	isc_stats_t *zoneqrystats;
 
+	dns_zone_setstatlevel(zone, level);
+
 	zoneqrystats = NULL;
-	if (on) {
+	if (level == dns_zonestat_full) {
 		result = isc_stats_create(mctx, &zoneqrystats,
 					  dns_nsstatscounter_max);
 		if (result != ISC_R_SUCCESS)
@@ -1503,7 +1505,7 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	dns_zone_setdialup(zone, dns_dialuptype_no);
 	dns_zone_setnotifytype(zone, dns_notifytype_no);
 	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, ISC_TRUE);
-	CHECK(setquerystats(zone, mctx, ISC_FALSE));	/* XXXMPA */
+	CHECK(setquerystats(zone, mctx, dns_zonestat_none));	/* XXXMPA */
 	CHECK(dns_view_addzone(view, zone));
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "dns64 reverse zone%s%s: %s", sep,
@@ -2888,7 +2890,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		const char *empty_dbtype[4] =
 				    { "_builtin", "empty", NULL, NULL };
 		int empty_dbtypec = 4;
-		isc_boolean_t zonestats_on;
+		dns_zonestat_level_t statlevel;
 
 		dns_fixedname_init(&fixed);
 		name = dns_fixedname_name(&fixed);
@@ -2926,7 +2928,22 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		obj = NULL;
 		result = ns_config_get(maps, "zone-statistics", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		zonestats_on = cfg_obj_asboolean(obj);
+		if (cfg_obj_isboolean(obj)) {
+			if (cfg_obj_asboolean(obj))
+				statlevel = dns_zonestat_full;
+			else
+				statlevel = dns_zonestat_terse; /* XXX */
+		} else {
+			const char *levelstr = cfg_obj_asstring(obj);
+			if (strcasecmp(levelstr, "full") == 0)
+				statlevel = dns_zonestat_full;
+			else if (strcasecmp(levelstr, "terse") == 0)
+				statlevel = dns_zonestat_terse;
+			else if (strcasecmp(levelstr, "none") == 0)
+				statlevel = dns_zonestat_none;
+			else
+				INSIST(0);
+		}
 
 		for (empty = empty_zones[empty_zone];
 		     empty != NULL;
@@ -2985,7 +3002,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 					dns_zone_setview(zone, view);
 					CHECK(dns_view_addzone(view, zone));
 					CHECK(setquerystats(zone, mctx,
-							    zonestats_on));
+							    statlevel));
 					dns_zone_detach(&zone);
 					continue;
 				}
@@ -3010,7 +3027,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			dns_zone_setnotifytype(zone, dns_notifytype_no);
 			dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS,
 					   ISC_TRUE);
-			CHECK(setquerystats(zone, mctx, zonestats_on));
+			CHECK(setquerystats(zone, mctx, statlevel));
 			CHECK(dns_view_addzone(view, zone));
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -3753,7 +3770,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	dns_zone_setjournalsize(zone, 0);
 
 	dns_zone_setstats(zone, ns_g_server->zonestats);
-	CHECK(setquerystats(zone, mctx, ISC_FALSE));
+	CHECK(setquerystats(zone, mctx, dns_zonestat_none));
 
 	if (view->managed_keys != NULL)
 		dns_zone_detach(&view->managed_keys);

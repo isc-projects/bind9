@@ -884,7 +884,7 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 #ifdef NEWSTATS
 static isc_result_t
 zone_xmlrender(dns_zone_t *zone, void *arg) {
-
+	isc_result_t result;
 	char buf[1024 + 32];	/* sufficiently large for zone name and class */
 	char *zone_name_only = NULL;
 	dns_rdataclass_t rdclass;
@@ -892,26 +892,27 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	xmlTextWriterPtr writer = arg;
 	isc_stats_t *zonestats;
 	dns_stats_t *rcvquerystats;
-
+	dns_zonestat_level_t statlevel;
 	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
 	int xmlrc;
-	isc_result_t result;
+
+	statlevel = dns_zone_getstatlevel(zone);
+	if (statlevel == dns_zonestat_none)
+		return (ISC_R_SUCCESS);
 
 	stats_dumparg_t dumparg;
 
 	dumparg.type = statsformat_xml;
 	dumparg.arg = writer;
 
-
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "zone"));
 	dns_zone_name(zone, buf, sizeof(buf));
 	zone_name_only = strtok(buf, "/");
-	if(zone_name_only == NULL){
+	if(zone_name_only == NULL)
 		zone_name_only = buf;
-	}
+
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "name",
 					 ISC_XMLCHAR zone_name_only));
-
 	rdclass = dns_zone_getclass(zone);
 	dns_rdataclass_format(rdclass, buf, sizeof(buf));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "rdataclass",
@@ -926,7 +927,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 
 	zonestats = dns_zone_getrequeststats(zone);
 	rcvquerystats = dns_zone_getrcvquerystats(zone);
-	if (zonestats != NULL ) {
+	if (statlevel == dns_zonestat_full && zonestats != NULL) {
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "rcode"));
@@ -941,7 +942,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 		TRY0(xmlTextWriterEndElement(writer));
 	}
 
-	if(rcvquerystats != NULL){
+	if (statlevel == dns_zonestat_full && rcvquerystats != NULL) {
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "qtype"));

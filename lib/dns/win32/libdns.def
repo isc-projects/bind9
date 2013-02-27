@@ -839,6 +839,7 @@ dns_zone_getserialupdatemethod
 dns_zone_getsigresigninginterval
 dns_zone_getsigvalidityinterval
 dns_zone_getssutable
+dns_zone_getstatlevel
 dns_zone_getstatscounters
 dns_zone_gettask
 dns_zone_gettype
@@ -925,6 +926,7 @@ dns_zone_setsigresigninginterval
 dns_zone_setsigvalidityinterval
 dns_zone_setssutable
 dns_zone_setstatistics
+dns_zone_setstatlevel
 dns_zone_setstats
 dns_zone_settask
 dns_zone_settype

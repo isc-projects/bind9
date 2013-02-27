@@ -50,6 +50,12 @@ typedef enum {
 	dns_zone_redirect
 } dns_zonetype_t;
 
+typedef enum {
+	dns_zonestat_none = 0,
+	dns_zonestat_terse,
+	dns_zonestat_full
+} dns_zonestat_level_t;
+
 #define DNS_ZONEOPT_SERVERS	  0x00000001U	/*%< perform server checks */
 #define DNS_ZONEOPT_PARENTS	  0x00000002U	/*%< perform parent checks */
 #define DNS_ZONEOPT_CHILDREN	  0x00000004U	/*%< perform child checks */
@@ -1704,9 +1710,13 @@ dns_zone_setstats(dns_zone_t *zone, isc_stats_t *stats);
 
 void
 dns_zone_setrequeststats(dns_zone_t *zone, isc_stats_t *stats);
+
+void
+dns_zone_setrcvquerystats(dns_zone_t *zone, dns_stats_t *stats);
 /*%<
- * Set an additional statistics set to zone.  It is attached in the zone
- * but is not counted in the zone module; only the caller updates the counters.
+ * Set additional statistics sets to zone.  These are attached to the zone
+ * but are not counted in the zone module; only the caller updates the
+ * counters.
  *
  * Requires:
  * \li	'zone' to be a valid zone.
@@ -2077,6 +2087,16 @@ dns_zone_rpz_enable(dns_zone_t *zone);
 
 isc_boolean_t
 dns_zone_get_rpz(dns_zone_t *zone);
+
+void
+dns_zone_setstatlevel(dns_zone_t *zone, dns_zonestat_level_t level);
+
+dns_zonestat_level_t
+dns_zone_getstatlevel(dns_zone_t *zone);
+/*%
+ * Set and get the statistics reporting level for the zone;
+ * full, terse, or none.
+ */
 
 ISC_LANG_ENDDECLS
 

@@ -201,7 +201,7 @@ options {\n\
 	sig-signing-signatures 10;\n\
 	sig-signing-type 65534;\n\
 	inline-signing no;\n\
-	zone-statistics false;\n\
+	zone-statistics terse;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
 	check-wildcard yes;\n\

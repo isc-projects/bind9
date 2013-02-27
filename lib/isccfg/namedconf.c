@@ -54,6 +54,9 @@ static isc_result_t
 parse_enum_or_other(cfg_parser_t *pctx, const cfg_type_t *enumtype,
 		    const cfg_type_t *othertype, cfg_obj_t **ret);
 
+static void
+doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *type);
+
 static isc_result_t
 parse_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 
@@ -557,6 +560,23 @@ static const char *updatemethods_enums[] = { "increment", "unixtime", NULL };
 static cfg_type_t cfg_type_updatemethod = {
 	"updatemethod", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
 	&cfg_rep_string, &updatemethods_enums
+};
+
+/*
+ * zone-statistics: full, terse, or none.
+ *
+ * for backward compatibility, we also support boolean values.
+ * yes represents "full", no represents "terse". in the future we
+ * may change no to mean "none".
+ */
+static const char *zonestat_enums[] = { "full", "terse", "none", NULL };
+static isc_result_t
+parse_zonestat(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
+}
+static cfg_type_t cfg_type_zonestat = {
+	"zonestat", parse_zonestat, cfg_print_ustring, doc_enum_or_other,
+	&cfg_rep_string, zonestat_enums
 };
 
 static cfg_type_t cfg_type_rrsetorder = {
@@ -1515,7 +1535,7 @@ zone_clauses[] = {
 	{ "update-check-ksk", &cfg_type_boolean, 0 },
 	{ "use-alt-transfer-source", &cfg_type_boolean, 0 },
 	{ "zero-no-soa-ttl", &cfg_type_boolean, 0 },
-	{ "zone-statistics", &cfg_type_boolean, 0 },
+	{ "zone-statistics", &cfg_type_zonestat, 0 },
 	{ NULL, NULL, 0 }
 };
 

@@ -306,6 +306,7 @@ struct dns_zone {
 	 * Optional per-zone statistics counters.  Counted outside of this
 	 * module.
 	 */
+	dns_zonestat_level_t	statlevel;
 	isc_boolean_t		requeststats_on;
 	isc_stats_t		*requeststats;
 	dns_stats_t		*rcvquerystats;
@@ -904,6 +905,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->statelist = NULL;
 	zone->stats = NULL;
 	zone->requeststats_on = ISC_FALSE;
+	zone->statlevel = dns_zonestat_none;
 	zone->requeststats = NULL;
 	zone->rcvquerystats = NULL;
 	zone->notifydelay = 5;
@@ -16634,4 +16636,18 @@ dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
 		isc_event_free(&e);
 	UNLOCK_ZONE(zone);
 	return (result);
+}
+
+void
+dns_zone_setstatlevel(dns_zone_t *zone, dns_zonestat_level_t level) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone->statlevel = level;
+}
+
+dns_zonestat_level_t
+dns_zone_getstatlevel(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->statlevel);
 }
