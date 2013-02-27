@@ -6167,9 +6167,12 @@ options {
                 For backward compatibility with earlier versions
                 of BIND 9, the <command>zone-statistics</command>
                 option can also accept <userinput>yes</userinput>
-                or <userinput>no</userinput>, which have the same
-                effect as <userinput>full</userinput> and
-                <userinput>terse</userinput>, respectively.
+                or <userinput>no</userinput>; <userinput>yes</userinput>
+                has the same meaning as <userinput>full</userinput>.
+                As of <acronym>BIND</acronym> 9.10, 
+                <userinput>no</userinput> has the same meaning
+                as <userinput>none</userinput>; previously, it
+                was the same as <userinput>terse</userinput>.
               </para>
             </listitem>
           </varlistentry>

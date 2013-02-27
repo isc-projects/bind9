@@ -1,3 +1,6 @@
+3502.	[func]		zone-statistics: "no" is now a synonym for "none",
+			instead of "terse". [RT #29165]
+
 3501.	[func]		zone-statistics now takes three options: full,
 			terse, and none. "yes" and "no" are retained as
 			synonyms for full and terse, respectively. [RT #29165]

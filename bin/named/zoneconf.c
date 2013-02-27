@@ -1038,7 +1038,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		if (cfg_obj_asboolean(obj))
 			statlevel = dns_zonestat_full;
 		else
-			statlevel = dns_zonestat_terse; /* XXX */
+			statlevel = dns_zonestat_none;
 	} else {
 		const char *levelstr = cfg_obj_asstring(obj);
 		if (strcasecmp(levelstr, "full") == 0)
