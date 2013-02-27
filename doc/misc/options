@@ -197,6 +197,22 @@ options {
         queryport-pool-ports <integer>; // obsolete
         queryport-pool-updateinterval <integer>; // obsolete
         random-device <quoted_string>;
+        rate-limit {
+                IPv4-prefix-length <integer>;
+                IPv6-prefix-length <integer>;
+                all-per-second <integer>;
+                errors-per-second <integer>;
+                exempt-clients { <address_match_element>; ... };
+                log-only <boolean>;
+                max-table-size <integer>;
+                min-table-size <integer>;
+                nxdomains-per-second <integer>;
+                qps-scale <integer>;
+                responses-per-second <integer>;
+                responses-per-second <integer>;
+                slip <integer>;
+                window <integer>;
+        };
         recursing-file <quoted_string>;
         recursion <boolean>;
         recursive-clients <integer>;
@@ -209,7 +225,8 @@ options {
             | passthru | no-op | nxdomain | nodata | cname <quoted_string>
             ) ] [ recursive-only <boolean> ] [ max-policy-ttl <integer> ];
             ... } [ recursive-only <boolean> ] [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ];
+            max-policy-ttl <integer> ] [ min-ns-dots <integer> ] [
+            qname-wait-recurse <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
@@ -414,6 +431,22 @@ view <string> <optional_class> {
         query-source-v6 <querysource6>;
         queryport-pool-ports <integer>; // obsolete
         queryport-pool-updateinterval <integer>; // obsolete
+        rate-limit {
+                IPv4-prefix-length <integer>;
+                IPv6-prefix-length <integer>;
+                all-per-second <integer>;
+                errors-per-second <integer>;
+                exempt-clients { <address_match_element>; ... };
+                log-only <boolean>;
+                max-table-size <integer>;
+                min-table-size <integer>;
+                nxdomains-per-second <integer>;
+                qps-scale <integer>;
+                responses-per-second <integer>;
+                responses-per-second <integer>;
+                slip <integer>;
+                window <integer>;
+        };
         recursion <boolean>;
         request-ixfr <boolean>;
         request-ixfr <boolean>;
@@ -423,7 +456,8 @@ view <string> <optional_class> {
             | passthru | no-op | nxdomain | nodata | cname <quoted_string>
             ) ] [ recursive-only <boolean> ] [ max-policy-ttl <integer> ];
             ... } [ recursive-only <boolean> ] [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ];
+            max-policy-ttl <integer> ] [ min-ns-dots <integer> ] [
+            qname-wait-recurse <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
