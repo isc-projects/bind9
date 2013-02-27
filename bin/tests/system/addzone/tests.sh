@@ -135,6 +135,11 @@ status=`expr $status + $ret`
 
 echo "I:attempting to delete slave zone with inline signing ($n)"
 ret=0
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	test -f ns2/inlineslave.bk.signed -a -f ns2/inlineslave.bk && break
+	sleep 1
+done
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone inlineslave.example 2>&1 > rndc.out2.test$n
 grep '^inlineslave.bk$' rndc.out2.test$n > /dev/null || {
 	echo "I:failed to report inlineslave.bk"; ret=1;

@@ -27,6 +27,7 @@
 #endif
 
 #include <isc/regex.h>
+#include <isc/util.h>
 
 ATF_TC(regex_validate);
 ATF_TC_HEAD(regex_validate, tc) {
@@ -1073,6 +1074,7 @@ ATF_TC_BODY(regex_validate, tc) {
 	unsigned int i;
 	int r;
 
+	UNUSED(tc);
 
 #ifdef HAVE_REGEX_H
 	/*
@@ -1091,9 +1093,9 @@ ATF_TC_BODY(regex_validate, tc) {
 		else if (r == 0 &&
 			 preg.re_nsub != (unsigned int)tests[i].expect &&
 			 !tests[i].exception) {
-			fprintf(stderr, "%s preg.re_nsub %ld expected %d\n",
-				tests[i].expression, preg.re_nsub,
-				tests[i].expect);
+			fprintf(stderr, "%s preg.re_nsub %lu expected %d\n",
+				tests[i].expression,
+				(unsigned long)preg.re_nsub, tests[i].expect);
 				tests[i].expect = preg.re_nsub;
 		}
 		if (r == 0)
