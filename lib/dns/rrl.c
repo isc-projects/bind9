@@ -774,7 +774,7 @@ get_qname(dns_rrl_t *rrl, const dns_rrl_entry_t *e) {
 	dns_rrl_qname_buf_t *qbuf;
 
 	qbuf = rrl->qnames[e->log_qname];
-	if (qbuf == NULL  || qbuf->e != e)
+	if (qbuf == NULL || qbuf->e != e)
 		return (NULL);
 	return (qbuf);
 }
@@ -786,8 +786,7 @@ free_qname(dns_rrl_t *rrl, dns_rrl_entry_t *e) {
 	qbuf = get_qname(rrl, e);
 	if (qbuf != NULL) {
 		qbuf->e = NULL;
-		if (!ISC_LINK_LINKED(qbuf, link))
-			ISC_LIST_APPEND(rrl->qname_free, qbuf, link);
+		ISC_LIST_INITANDAPPEND(rrl->qname_free, qbuf, link);
 	}
 }
 
@@ -974,6 +973,7 @@ log_end(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_boolean_t early,
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
 			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DROP,
 			      "%s", log_buf);
+fprintf(stderr, "calling free_qname from log_end\n");
 		free_qname(rrl, e);
 		e->logged = ISC_FALSE;
 		--rrl->num_logged;
@@ -1239,7 +1239,10 @@ dns_rrl(dns_view_t *view,
 		 * the ending log message.
 		 */
 		if (!e->logged)
+{
+fprintf(stderr, "calling free_qname from dns_rrl\n");
 			free_qname(rrl, e);
+}
 		UNLOCK(&rrl->lock);
 	}
 
