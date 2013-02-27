@@ -4595,7 +4595,6 @@ rpz_rewrite_ip_rrset(ns_client_t *client,
 		rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL1, name, rpz_type,
 			     "NS address rewrite rrset ", result);
 		return (ISC_R_SUCCESS);
-		break;
 	default:
 		if (client->query.rpz_st->m.policy != DNS_RPZ_POLICY_ERROR) {
 			client->query.rpz_st->m.policy = DNS_RPZ_POLICY_ERROR;
