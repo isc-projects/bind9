@@ -1779,6 +1779,7 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	for (i = 0;
 	     zone_element != NULL;
 	     ++i, zone_element = cfg_list_next(zone_element)) {
+		INSIST(old != NULL || !*old_rpz_okp);
 		if (*old_rpz_okp && i < old->p.num_zones) {
 			old_zone = old->zones[i];
 		} else {
