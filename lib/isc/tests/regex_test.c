@@ -27,6 +27,7 @@
 #endif
 
 #include <isc/regex.h>
+#include <isc/util.h>
 
 ATF_TC(regex_validate);
 ATF_TC_HEAD(regex_validate, tc) {
