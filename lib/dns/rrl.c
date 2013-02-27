@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -180,11 +180,11 @@ set_age(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_stdtime_t now) {
 				      " at %d for %d %d %d %d",
 				      i, now, rrl->ts_bases[ts_gen],
 				      rrl->ts_bases[(ts_gen + 1) %
-				        DNS_RRL_TS_BASES],
+					DNS_RRL_TS_BASES],
 				      rrl->ts_bases[(ts_gen + 2) %
-				        DNS_RRL_TS_BASES],
+					DNS_RRL_TS_BASES],
 				      rrl->ts_bases[(ts_gen + 3) %
-				        DNS_RRL_TS_BASES]);
+					DNS_RRL_TS_BASES]);
 		rrl->ts_gen = ts_gen;
 		rrl->ts_bases[ts_gen] = now;
 		ts = 0;

@@ -33,7 +33,7 @@ int
 isc_regex_validate(const char *c) {
 	enum {
 		none, parse_bracket, parse_bound,
-		parse_ce, parse_ec, parse_cc 
+		parse_ce, parse_ec, parse_cc
 	} state = none;
 	/* Well known character classes. */
 	const char *cc[] = {
@@ -63,7 +63,7 @@ isc_regex_validate(const char *c) {
 
 	if (c == NULL || *c == 0)
 		FAIL("empty string");
-	
+
 	while (c != NULL && *c != 0) {
 		switch (state) {
 		case none:

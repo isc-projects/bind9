@@ -30,7 +30,7 @@
 
 ATF_TC(regex_validate);
 ATF_TC_HEAD(regex_validate, tc) {
-        atf_tc_set_md_var(tc, "descr", "check isc_regex_validate()");
+	atf_tc_set_md_var(tc, "descr", "check isc_regex_validate()");
 }
 ATF_TC_BODY(regex_validate, tc) {
 	/*
@@ -1098,7 +1098,7 @@ ATF_TC_BODY(regex_validate, tc) {
 		}
 		if (r == 0)
 			regfree(&preg);
-        }
+	}
 #endif
 
 	/*
@@ -1117,7 +1117,7 @@ ATF_TC_BODY(regex_validate, tc) {
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-        ATF_TP_ADD_TC(tp, regex_validate);
-        return (atf_no_error());
+	ATF_TP_ADD_TC(tp, regex_validate);
+	return (atf_no_error());
 }
 
