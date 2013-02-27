@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -87,9 +87,9 @@ ISC_LANG_BEGINDECLS
 int
 isc_region_compare(isc_region_t *r1, isc_region_t *r2);
 /*%<
- * Compares the contents of two regions 
+ * Compares the contents of two regions
  *
- * Requires: 
+ * Requires:
  *\li	'r1' is a valid region
  *\li	'r2' is a valid region
  *
