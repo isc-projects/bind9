@@ -1,3 +1,5 @@
+3503.	[doc]		Clarify size_spec syntax. [RT #32449]
+
 3501.	[func]		zone-statistics now takes three options: full,
 			terse, and none. "yes" and "no" are retained as
 			synonyms for full and terse, respectively. [RT #29165]
