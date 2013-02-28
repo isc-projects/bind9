@@ -1,3 +1,8 @@
+3507.	[bug]		Statistics channel XSL (when built with
+			--enable-newstats) had a glitch when attempting
+			to chart query data before any queries had been
+			received. [RT #32620]
+
 3505.	[bug]		When setting "max-cache-size" and "max-acache-size",
 			larger values than 4 gigabytes could not be set
 			explicitly, though larger sizes were available

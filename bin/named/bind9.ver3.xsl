@@ -50,10 +50,11 @@
             
           // Server Incoming query Types
           while(g = graphs.shift()){
-           // alert("going for: " + g.target);
-            drawChart(g.title,g.target,g.data);
+            // alert("going for: " + g.target);
+            if(g.data.length > 1){
+              drawChart(g.title,g.target,g.data);
+            }
           }
-            
         }
         
             // Server Incoming Queries Types         
@@ -207,7 +208,7 @@
         <h2>Incoming Requests</h2>
         <xsl:if test="system-property('xsl:vendor')!='Transformiix'">
           <!-- Non Mozilla specific markup -->
-          <div class="pie" id="chart_incoming_requests">[graph incoming requests]</div>
+          <div class="pie" id="chart_incoming_requests">[graph of incoming requests]</div>
         </xsl:if>
         <table class="counters">
           <xsl:for-each select="server/counters[@type=&quot;opcode&quot;]/counter">
@@ -232,7 +233,7 @@
         <h3>Incoming Queries by Type</h3>
         <xsl:if test="system-property('xsl:vendor')!='Transformiix'">
           <!-- Non Mozilla specific markup -->
-          <div class="pie" id="chart_incoming_qtypes">[graph incoming qtypes]</div>
+          <div class="pie" id="chart_incoming_qtypes">[graph of incoming qtypes]</div>
         </xsl:if>
         <table class="counters">
           <xsl:for-each select="server/counters[@type=&quot;qtype&quot;]/counter">
