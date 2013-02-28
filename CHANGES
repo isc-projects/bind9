@@ -1,3 +1,6 @@
+3508.	[contrib]	queryperf was incorrectly rejecting the -T option.
+			[RT #32338]
+
 3507.	[bug]		Statistics channel XSL (when built with
 			--enable-newstats) had a glitch when attempting
 			to chart query data before any queries had been
