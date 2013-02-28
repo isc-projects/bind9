@@ -273,7 +273,7 @@ options {
         version ( <quoted_string> | none );
         zero-no-soa-ttl <boolean>;
         zero-no-soa-ttl-cache <boolean>;
-        zone-statistics <boolean>;
+        zone-statistics <zonestat>;
 };
 
 server <netprefix> {
@@ -595,9 +595,9 @@ view <string> <optional_class> {
                     ] <rrtypelist>; ... };
                 use-alt-transfer-source <boolean>;
                 zero-no-soa-ttl <boolean>;
-                zone-statistics <boolean>;
+                zone-statistics <zonestat>;
         };
-        zone-statistics <boolean>;
+        zone-statistics <zonestat>;
 };
 
 zone <string> <optional_class> {
@@ -684,6 +684,6 @@ zone <string> <optional_class> {
             | zonesub | external ) [ <string> ] <rrtypelist>; ... };
         use-alt-transfer-source <boolean>;
         zero-no-soa-ttl <boolean>;
-        zone-statistics <boolean>;
+        zone-statistics <zonestat>;
 };
 
