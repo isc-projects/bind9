@@ -1391,14 +1391,6 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_triggers_t *totals) {
 #	undef SET_TRIG
 }
 
-static void
-load_unlock(dns_rpz_zones_t *rpzs, dns_rpz_zones_t **load_rpzsp) {
-	UNLOCK(&rpzs->maint_lock);
-	UNLOCK(&(*load_rpzsp)->search_lock);
-	UNLOCK(&(*load_rpzsp)->maint_lock);
-	dns_rpz_detach_rpzs(load_rpzsp);
-}
-
 /*
  * Finish loading one zone.
  * The RBTDB write tree lock must be held.
@@ -1471,10 +1463,8 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 						&cnode->ip, cnode->prefix,
 						&new_pair, ISC_TRUE,
 						&found);
-				if (result == ISC_R_NOMEMORY) {
-					load_unlock(rpzs, load_rpzsp);
-					return (result);
-				}
+				if (result == ISC_R_NOMEMORY)
+					goto unlock_and_detach;
 				INSIST(result == ISC_R_SUCCESS);
 			}
 			/*
@@ -1534,10 +1524,8 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 					INSIST(result == ISC_R_SUCCESS);
 					result = add_nm(load_rpzs, name,
 							&new_data);
-					if (result != ISC_R_SUCCESS) {
-					    load_unlock(rpzs, load_rpzsp);
-					    return (result);
-					}
+					if (result != ISC_R_SUCCESS)
+						goto unlock_and_detach;
 				}
 			}
 			result = dns_rbtnodechain_next(&chain, NULL, NULL);
@@ -1547,8 +1535,7 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 				      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
 				      "dns_rpz_ready(): unexpected %s",
 				      isc_result_totext(result));
-			load_unlock(rpzs, load_rpzsp);
-			return (result);
+			goto unlock_and_detach;
 		}
 	}
 
@@ -1584,8 +1571,14 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 	load_rpzs->rbt = rbt;
 
 	UNLOCK(&rpzs->search_lock);
-	load_unlock(rpzs, load_rpzsp);
-	return (ISC_R_SUCCESS);
+	result = ISC_R_SUCCESS;
+	
+ unlock_and_detach:
+	UNLOCK(&rpzs->maint_lock);
+	UNLOCK(&load_rpzs->search_lock);
+	UNLOCK(&load_rpzs->maint_lock);
+	dns_rpz_detach_rpzs(load_rpzsp);
+	return (result);
 }
 
 /*
