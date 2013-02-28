@@ -7819,7 +7819,8 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	CHECK(isc_stdio_open(view->new_zone_file, "a", &fp));
 
 	/* Mark view unfrozen so that zone can be added */
-	isc_task_beginexclusive(server->task);
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, parms, vconfig,
 				server->mctx, view, cfg->actx, ISC_FALSE);
