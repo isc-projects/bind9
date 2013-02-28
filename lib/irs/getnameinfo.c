@@ -147,7 +147,7 @@ getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
 	    IRS_GETNAMEINFO_BUFLEN_T hostlen, char *serv,
 	    IRS_GETNAMEINFO_BUFLEN_T servlen, IRS_GETNAMEINFO_FLAGS_T flags)
 {
-	struct afd *afd;
+	struct afd *afd = NULL;
 	struct servent *sp;
 	unsigned short port = 0;
 #ifdef IRS_PLATFORM_HAVESALEN
