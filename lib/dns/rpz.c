@@ -1572,7 +1572,7 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 
 	UNLOCK(&rpzs->search_lock);
 	result = ISC_R_SUCCESS;
-	
+
  unlock_and_detach:
 	UNLOCK(&rpzs->maint_lock);
 	UNLOCK(&load_rpzs->search_lock);
