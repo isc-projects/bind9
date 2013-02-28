@@ -1,3 +1,6 @@
+3508.	[contrib]	queryperf was incorrectly rejecting the -T option.
+			[RT #32338]
+
 3503.	[doc]		Clarify size_spec syntax. [RT #32449]
 
 3499.	[doc]		Corrected ARM documentation of built-in zones.
