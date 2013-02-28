@@ -895,12 +895,11 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	dns_zonestat_level_t statlevel;
 	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
 	int xmlrc;
+	stats_dumparg_t dumparg;
 
 	statlevel = dns_zone_getstatlevel(zone);
 	if (statlevel == dns_zonestat_none)
 		return (ISC_R_SUCCESS);
-
-	stats_dumparg_t dumparg;
 
 	dumparg.type = statsformat_xml;
 	dumparg.arg = writer;
