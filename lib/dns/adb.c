@@ -518,7 +518,9 @@ grow_entries(isc_task_t *task, isc_event_t *ev) {
 
 	isc_event_free(&ev);
 
-	isc_task_beginexclusive(task);
+	result = isc_task_beginexclusive(task);
+	if (result != ISC_R_SUCCESS)
+		goto check_exit;
 
 	i = 0;
 	while (nbuckets[i] != 0 && adb->nentries >= nbuckets[i])
@@ -646,6 +648,7 @@ grow_entries(isc_task_t *task, isc_event_t *ev) {
  done:
 	isc_task_endexclusive(task);
 
+ check_exit:
 	LOCK(&adb->lock);
 	if (dec_adb_irefcnt(adb))
 		check_exit(adb);
@@ -670,7 +673,9 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
 
 	isc_event_free(&ev);
 
-	isc_task_beginexclusive(task);
+	result = isc_task_beginexclusive(task);
+	if (result != ISC_R_SUCCESS)
+		goto check_exit;
 
 	i = 0;
 	while (nbuckets[i] != 0 && adb->nnames >= nbuckets[i])
@@ -794,6 +799,7 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
  done:
 	isc_task_endexclusive(task);
 
+ check_exit:
 	LOCK(&adb->lock);
 	if (dec_adb_irefcnt(adb))
 		check_exit(adb);
