@@ -1,3 +1,7 @@
+3507.	[bug]		Statistics channel XSL had a glitch when attempting
+			to chart query data before any queries had been
+			received. [RT #32620]
+
 3506.	[func]		When setting "max-cache-size" and "max-acache-size",
 			the keyword "unlimited" is no longer defined as equal
 			to 4 gigabytes (except on 32-bit platforms); it
