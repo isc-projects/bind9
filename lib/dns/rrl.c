@@ -938,15 +938,15 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e,
 			qname = dns_fixedname_name(&qbuf->qname);
 		if (qname != NULL) {
 			ADD_LOG_CSTR(&lb, " for ");
-			dns_name_totext(qname, ISC_TRUE, &lb);
+			(void)dns_name_totext(qname, ISC_TRUE, &lb);
 		} else {
 			ADD_LOG_CSTR(&lb, " for (?)");
 		}
 		if (e->key.s.rtype != DNS_RRL_RTYPE_NXDOMAIN) {
 			ADD_LOG_CSTR(&lb, " ");
-			dns_rdataclass_totext(e->key.s.qclass, &lb);
+			(void)dns_rdataclass_totext(e->key.s.qclass, &lb);
 			ADD_LOG_CSTR(&lb, " ");
-			dns_rdatatype_totext(e->key.s.qtype, &lb);
+			(void)dns_rdatatype_totext(e->key.s.qtype, &lb);
 		}
 		snprintf(strbuf, sizeof(strbuf), "  (%08x)",
 			 e->key.s.qname_hash);
