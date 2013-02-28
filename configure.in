@@ -972,6 +972,94 @@ case "$use_pkcs11" in
 esac
 AC_SUBST(PKCS11_PROVIDER)
 
+AC_ARG_WITH(geoip,
+[  --with-geoip=PATH       Build with GeoIP support (yes|no|path)],
+    use_geoip="$withval", use_geoip="no")
+
+if test "$use_geoip" = "yes"
+then
+	for d in /usr /usr/local
+	do
+		if test -f $d/include/GeoIP.h
+		then
+			use_geoip=$d
+			break
+		fi
+	done
+fi
+
+case "$use_geoip" in
+	no|'')
+		AC_MSG_CHECKING([for GeoIP support])
+		AC_MSG_RESULT([disabled])
+		;;
+	*)
+		if test -d "$use_geoip" -o -L "$use_geoip"
+		then
+			CFLAGS="$CFLAGS -I$use_geoip/include"
+			CPPFLAGS="$CPPFLAGS -I$use_geoip/include"
+			case "$host_os" in
+				netbsd*|openbsd*|solaris*)
+					LIBS="$LIBS -Wl,-rpath=$use_geoip/lib"
+					;;
+				*)
+					LIBS="$LIBS -L$use_geoip/lib"
+			esac
+		elif test "$use_geoip" = "yes"
+                then
+			AC_MSG_ERROR([GeoIP path not found])
+		else
+			AC_MSG_ERROR([GeoIP path $use_geoip does not exist])
+		fi
+		AC_CHECK_HEADER(GeoIP.h, [],
+			[AC_MSG_ERROR([GeoIP header file not found])]
+		)
+		AC_SEARCH_LIBS(GeoIP_open, GeoIP, [],
+			[AC_MSG_ERROR([GeoIP library not found])]
+		)
+		AC_SEARCH_LIBS(fabsf, m, [],
+			[AC_MSG_ERROR([Math library not found])]
+		)
+                AC_DEFINE(HAVE_GEOIP, 1, Build with GeoIP support)
+		AC_MSG_CHECKING([for GeoIP support])
+		AC_MSG_RESULT([yes])
+
+		AC_MSG_CHECKING([for GeoIP Country IPv6 support])
+		AC_COMPILE_IFELSE(
+			AC_LANG_PROGRAM([[
+				#include <GeoIP.h>
+				#include <netinet/in.h>
+			]], [[
+				struct in6_addr in6;
+				GeoIP_country_name_by_ipnum_v6(NULL, in6);
+			]]),
+			[
+				AC_MSG_RESULT([yes])
+                                AC_DEFINE(HAVE_GEOIP_V6, 1, Build with GeoIP Country IPv6 support)
+			],
+			[AC_MSG_RESULT([no])]
+		)
+
+		AC_MSG_CHECKING([for GeoIP City IPv6 support])
+		AC_COMPILE_IFELSE(
+			AC_LANG_PROGRAM([[
+				#include <GeoIP.h>
+				#include <GeoIPCity.h>
+				#include <netinet/in.h>
+			]], [[
+				struct in6_addr in6;
+                                int i = GEOIP_CITY_EDITION_REV0_V6;
+				GeoIP_record_by_ipnum_v6(NULL, in6);
+			]]),
+			[
+				AC_MSG_RESULT([yes])
+                                AC_DEFINE(HAVE_GEOIP_CITY_V6, 1, Build with GeoIP City IPv6 support)
+			],
+			[AC_MSG_RESULT([no])]
+		)
+		;;
+esac
+
 AC_MSG_CHECKING(for GSSAPI library)
 AC_ARG_WITH(gssapi,
 [  --with-gssapi=PATH      Specify path for system-supplied GSSAPI [[default=yes]]],
@@ -3663,6 +3751,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/ecdsa/prereq.sh
 	bin/tests/system/dlzredir/prereq.sh
 	bin/tests/system/filter-aaaa/Makefile
+	bin/tests/system/geoip/Makefile
 	bin/tests/system/gost/prereq.sh
 	bin/tests/system/lwresd/Makefile
 	bin/tests/system/rpz/Makefile

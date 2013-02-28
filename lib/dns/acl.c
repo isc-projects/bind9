@@ -29,6 +29,7 @@
 #include <dns/acl.h>
 #include <dns/iptable.h>
 
+
 /*
  * Create a new ACL, including an IP table and an array with room
  * for 'n' ACL elements.  The elements are uninitialized and the
@@ -386,9 +387,8 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 			if (matchelt != NULL)
 				*matchelt = e;
 			return (ISC_TRUE);
-		} else {
+		} else
 			return (ISC_FALSE);
-		}
 
 	case dns_aclelementtype_nestedacl:
 		inner = e->nestedacl;
@@ -406,6 +406,10 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		inner = env->localnets;
 		break;
 
+#ifdef HAVE_GEOIP
+	case dns_aclelementtype_geoip:
+		return (dns_geoip_match(reqaddr, env->geoip, &e->geoip_elem));
+#endif
 	default:
 		/* Should be impossible. */
 		INSIST(0);
@@ -560,7 +564,7 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 	insecure = insecure_prefix_found;
 	UNLOCK(&insecure_prefix_lock);
 	if (insecure)
-		return(ISC_TRUE);
+		return (ISC_TRUE);
 
 	/* Now check non-radix elements */
 	for (i = 0; i < a->length; i++) {
@@ -609,6 +613,9 @@ dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_localhost;
 	env->match_mapped = ISC_FALSE;
+#ifdef HAVE_GEOIP
+	env->geoip = NULL;
+#endif
 	return (ISC_R_SUCCESS);
 
  cleanup_localhost:

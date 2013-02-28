@@ -82,6 +82,15 @@ doc_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 static void
 doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 
+static isc_result_t
+parse_geoip(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
+
+static void
+print_geoip(cfg_printer_t *pctx, const cfg_obj_t *obj);
+
+static void
+doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type);
+
 static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_bracketed_aml;
@@ -927,6 +936,7 @@ options_clauses[] = {
 	{ "fake-iquery", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "files", &cfg_type_size, 0 },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
+	{ "geoip-directory", &cfg_type_qstringornone, 0 },
 	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "heartbeat-interval", &cfg_type_uint32, 0 },
 	{ "host-statistics", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTIMP },
@@ -2103,6 +2113,99 @@ static cfg_type_t cfg_type_optional_keyref = {
 	doc_optional_keyvalue, &cfg_rep_string, &key_kw
 };
 
+/*
+ * "geoip" ACL element:
+ * geoip [ db <database> ] search-type <string>
+ */
+static const char *geoiptype_enums[] = {
+	"country", "country3", "countryname", "region", "regionname",
+	"city", "postal", "metrocode", "areacode", "timezone", "continent",
+	"isp", "domain", "asnum", "org", "netspeed", NULL
+};
+static cfg_type_t cfg_type_geoiptype = {
+	"geoiptype", cfg_parse_enum, cfg_print_ustring,
+	cfg_doc_enum, &cfg_rep_string, &geoiptype_enums
+};
+
+static const char *geoipdb_enums[] = {
+	"country", "region", "city",
+	"isp", "domain", "asnum", "org", "netspeed", NULL
+};
+static cfg_type_t cfg_type_geoipdb = {
+	"geoipdb", cfg_parse_enum, cfg_print_ustring,
+	cfg_doc_enum, &cfg_rep_string, &geoipdb_enums
+};
+
+static cfg_tuplefielddef_t geoip_fields[] = {
+	{ "negated", &cfg_type_void, 0},
+	{ "db", &cfg_type_geoipdb, 0},
+	{ "subtype", &cfg_type_geoiptype, 0 },
+	{ "search", &cfg_type_astring, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_geoip = {
+	"geoip", parse_geoip, print_geoip, doc_geoip,
+	&cfg_rep_tuple, geoip_fields
+};
+
+static isc_result_t
+parse_geoip(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	const cfg_tuplefielddef_t *fields = type->of;
+
+	CHECK(cfg_create_tuple(pctx, type, &obj));
+	CHECK(cfg_parse_void(pctx, NULL, &obj->value.tuple[0]));
+
+	/* Parse the optional "db" field. */
+	CHECK(cfg_peektoken(pctx, 0));
+	if (pctx->token.type == isc_tokentype_string) {
+		CHECK(cfg_gettoken(pctx, 0));
+		if (strcasecmp(TOKEN_STRING(pctx), "db") == 0 &&
+		    obj->value.tuple[1] == NULL) {
+			CHECK(cfg_parse_obj(pctx, fields[1].type,
+				    &obj->value.tuple[1]));
+		} else {
+			CHECK(cfg_parse_void(pctx, NULL, &obj->value.tuple[1]));
+			cfg_ungettoken(pctx);
+		}
+	}
+
+	CHECK(cfg_parse_obj(pctx, fields[2].type, &obj->value.tuple[2]));
+	CHECK(cfg_parse_obj(pctx, fields[3].type, &obj->value.tuple[3]));
+
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	CLEANUP_OBJ(obj);
+	return (result);
+}
+
+static void
+print_geoip(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	if (obj->value.tuple[1]->type->print != cfg_print_void) {
+		cfg_print_cstr(pctx, " db ");
+		cfg_print_obj(pctx, obj->value.tuple[1]);
+	}
+	cfg_print_obj(pctx, obj->value.tuple[2]);
+	cfg_print_obj(pctx, obj->value.tuple[3]);
+}
+
+
+static void
+doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "[ db ");
+	cfg_doc_enum(pctx, &cfg_type_geoipdb);
+	cfg_print_cstr(pctx, " ]");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_doc_enum(pctx, &cfg_type_geoiptype);
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "<quoted_string>");
+}
+
 /*%
  * A "controls" statement is represented as a map with the multivalued
  * "inet" and "unix" clauses.
@@ -2246,7 +2349,9 @@ static cfg_type_t cfg_type_statschannels = {
  * An optional class, as used in view and zone statements.
  */
 static isc_result_t
-parse_optional_class(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+parse_optional_class(cfg_parser_t *pctx, const cfg_type_t *type,
+		     cfg_obj_t **ret)
+{
 	isc_result_t result;
 	UNUSED(type);
 	CHECK(cfg_peektoken(pctx, 0));
@@ -2369,6 +2474,16 @@ parse_addrmatchelt(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) 
 		if (pctx->token.type == isc_tokentype_string &&
 		    (strcasecmp(TOKEN_STRING(pctx), "key") == 0)) {
 			CHECK(cfg_parse_obj(pctx, &cfg_type_keyref, ret));
+		} else if (pctx->token.type == isc_tokentype_string &&
+			   (strcasecmp(TOKEN_STRING(pctx), "geoip") == 0)) {
+#ifdef HAVE_GEOIP
+			CHECK(cfg_gettoken(pctx, 0));
+			CHECK(cfg_parse_obj(pctx, &cfg_type_geoip, ret));
+#else
+			cfg_parser_error(pctx, CFG_LOG_NEAR,
+					 "'geoip' not supported in this build");
+			return (ISC_R_UNEXPECTEDTOKEN);
+#endif
 		} else {
 			if (cfg_lookingat_netaddr(pctx, CFG_ADDR_V4OK |
 						  CFG_ADDR_V4PREFIXOK |
@@ -2406,7 +2521,7 @@ parse_addrmatchelt(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) 
  */
 
 static cfg_tuplefielddef_t negated_fields[] = {
-	{ "value", &cfg_type_addrmatchelt, 0 },
+	{ "negated", &cfg_type_addrmatchelt, 0 },
 	{ NULL, NULL, 0 }
 };
 

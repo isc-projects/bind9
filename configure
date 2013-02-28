@@ -1459,6 +1459,7 @@ with_ecdsa
 with_gost
 enable_openssl_hash
 with_pkcs11
+with_geoip
 with_gssapi
 with_randomdev
 enable_threads
@@ -2169,6 +2170,7 @@ Optional Packages:
   --with-gost             OpenSSL GOST
   --with-pkcs11=PATH      Build with PKCS11 support yes|no|path
                           (PATH is for the PKCS11 provider)
+  --with-geoip=PATH       Build with GeoIP support (yes|no|path)
   --with-gssapi=PATH      Specify path for system-supplied GSSAPI [default=yes]
   --with-randomdev=PATH   Specify path for random device
   --with-libxml2=PATH     Build with libxml2 library yes|no|path
@@ -14471,6 +14473,259 @@ $as_echo "PKCS11 provider is \"$use_pkcs11\"" >&6; }
 esac
 
 
+
+# Check whether --with-geoip was given.
+if test "${with_geoip+set}" = set; then :
+  withval=$with_geoip; use_geoip="$withval"
+else
+  use_geoip="no"
+fi
+
+
+if test "$use_geoip" = "yes"
+then
+	for d in /usr /usr/local
+	do
+		if test -f $d/include/GeoIP.h
+		then
+			use_geoip=$d
+			break
+		fi
+	done
+fi
+
+case "$use_geoip" in
+	no|'')
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GeoIP support" >&5
+$as_echo_n "checking for GeoIP support... " >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
+		;;
+	*)
+		if test -d "$use_geoip" -o -L "$use_geoip"
+		then
+			CFLAGS="$CFLAGS -I$use_geoip/include"
+			CPPFLAGS="$CPPFLAGS -I$use_geoip/include"
+			case "$host_os" in
+				netbsd*|openbsd*|solaris*)
+					LIBS="$LIBS -Wl,-rpath=$use_geoip/lib"
+					;;
+				*)
+					LIBS="$LIBS -L$use_geoip/lib"
+			esac
+		elif test "$use_geoip" = "yes"
+                then
+			as_fn_error $? "GeoIP path not found" "$LINENO" 5
+		else
+			as_fn_error $? "GeoIP path $use_geoip does not exist" "$LINENO" 5
+		fi
+		ac_fn_c_check_header_mongrel "$LINENO" "GeoIP.h" "ac_cv_header_GeoIP_h" "$ac_includes_default"
+if test "x$ac_cv_header_GeoIP_h" = xyes; then :
+
+else
+  as_fn_error $? "GeoIP header file not found" "$LINENO" 5
+
+fi
+
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing GeoIP_open" >&5
+$as_echo_n "checking for library containing GeoIP_open... " >&6; }
+if ${ac_cv_search_GeoIP_open+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char GeoIP_open ();
+int
+main ()
+{
+return GeoIP_open ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' GeoIP; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_GeoIP_open=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_GeoIP_open+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_GeoIP_open+:} false; then :
+
+else
+  ac_cv_search_GeoIP_open=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_GeoIP_open" >&5
+$as_echo "$ac_cv_search_GeoIP_open" >&6; }
+ac_res=$ac_cv_search_GeoIP_open
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  as_fn_error $? "GeoIP library not found" "$LINENO" 5
+
+fi
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing fabsf" >&5
+$as_echo_n "checking for library containing fabsf... " >&6; }
+if ${ac_cv_search_fabsf+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fabsf ();
+int
+main ()
+{
+return fabsf ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' m; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_fabsf=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_fabsf+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_fabsf+:} false; then :
+
+else
+  ac_cv_search_fabsf=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_fabsf" >&5
+$as_echo "$ac_cv_search_fabsf" >&6; }
+ac_res=$ac_cv_search_fabsf
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  as_fn_error $? "Math library not found" "$LINENO" 5
+
+fi
+
+
+$as_echo "#define HAVE_GEOIP 1" >>confdefs.h
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GeoIP support" >&5
+$as_echo_n "checking for GeoIP support... " >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GeoIP Country IPv6 support" >&5
+$as_echo_n "checking for GeoIP Country IPv6 support... " >&6; }
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+				#include <GeoIP.h>
+				#include <netinet/in.h>
+
+int
+main ()
+{
+
+				struct in6_addr in6;
+				GeoIP_country_name_by_ipnum_v6(NULL, in6);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_GEOIP_V6 1" >>confdefs.h
+
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GeoIP City IPv6 support" >&5
+$as_echo_n "checking for GeoIP City IPv6 support... " >&6; }
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+				#include <GeoIP.h>
+				#include <GeoIPCity.h>
+				#include <netinet/in.h>
+
+int
+main ()
+{
+
+				struct in6_addr in6;
+                                int i = GEOIP_CITY_EDITION_REV0_V6;
+				GeoIP_record_by_ipnum_v6(NULL, in6);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_GEOIP_CITY_V6 1" >>confdefs.h
+
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+		;;
+esac
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSSAPI library" >&5
 $as_echo_n "checking for GSSAPI library... " >&6; }
 
@@ -20518,7 +20773,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/dsdigest/prereq.sh bin/tests/system/ecdsa/prereq.sh bin/tests/system/dlzredir/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/gost/prereq.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/check-secure-delegation.pl contrib/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/export/Makefile lib/export/dns/Makefile lib/export/dns/include/Makefile lib/export/dns/include/dns/Makefile lib/export/dns/include/dst/Makefile lib/export/irs/Makefile lib/export/irs/include/Makefile lib/export/irs/include/irs/Makefile lib/export/isc/$thread_dir/Makefile lib/export/isc/$thread_dir/include/Makefile lib/export/isc/$thread_dir/include/isc/Makefile lib/export/isc/Makefile lib/export/isc/include/Makefile lib/export/isc/include/isc/Makefile lib/export/isc/nls/Makefile lib/export/isc/unix/Makefile lib/export/isc/unix/include/Makefile lib/export/isc/unix/include/isc/Makefile lib/export/isccfg/Makefile lib/export/isccfg/include/Makefile lib/export/isccfg/include/isccfg/Makefile lib/export/samples/Makefile lib/export/samples/Makefile-postinstall lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile unit/Makefile unit/unittest.sh"
+ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/dsdigest/prereq.sh bin/tests/system/ecdsa/prereq.sh bin/tests/system/dlzredir/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/gost/prereq.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/check-secure-delegation.pl contrib/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/export/Makefile lib/export/dns/Makefile lib/export/dns/include/Makefile lib/export/dns/include/dns/Makefile lib/export/dns/include/dst/Makefile lib/export/irs/Makefile lib/export/irs/include/Makefile lib/export/irs/include/irs/Makefile lib/export/isc/$thread_dir/Makefile lib/export/isc/$thread_dir/include/Makefile lib/export/isc/$thread_dir/include/isc/Makefile lib/export/isc/Makefile lib/export/isc/include/Makefile lib/export/isc/include/isc/Makefile lib/export/isc/nls/Makefile lib/export/isc/unix/Makefile lib/export/isc/unix/include/Makefile lib/export/isc/unix/include/isc/Makefile lib/export/isccfg/Makefile lib/export/isccfg/include/Makefile lib/export/isccfg/include/isccfg/Makefile lib/export/samples/Makefile lib/export/samples/Makefile-postinstall lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile unit/Makefile unit/unittest.sh"
 
 
 #
@@ -21549,6 +21804,7 @@ do
     "bin/tests/system/ecdsa/prereq.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/ecdsa/prereq.sh" ;;
     "bin/tests/system/dlzredir/prereq.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/dlzredir/prereq.sh" ;;
     "bin/tests/system/filter-aaaa/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/filter-aaaa/Makefile" ;;
+    "bin/tests/system/geoip/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/geoip/Makefile" ;;
     "bin/tests/system/gost/prereq.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/gost/prereq.sh" ;;
     "bin/tests/system/lwresd/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/lwresd/Makefile" ;;
     "bin/tests/system/rpz/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/rpz/Makefile" ;;

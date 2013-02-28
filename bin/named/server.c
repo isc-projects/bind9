@@ -95,6 +95,7 @@
 #include <named/client.h>
 #include <named/config.h>
 #include <named/control.h>
+#include <named/geoip.h>
 #include <named/interfacemgr.h>
 #include <named/log.h>
 #include <named/logconf.h>
@@ -110,6 +111,9 @@
 #include <named/ns_smf_globals.h>
 #include <stdlib.h>
 #endif
+#ifdef HAVE_GEOIP
+#include <named/geoip.h>
+#endif /* HAVE_GEOIP */
 
 #ifndef PATH_MAX
 #define PATH_MAX 1024
@@ -3762,6 +3766,10 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+#ifdef HAVE_GEOIP
+	view->aclenv.geoip = ns_g_geoip;
+#endif
+
 	ISC_LIST_APPEND(*viewlist, view, link);
 	dns_view_attach(view, viewp);
 	return (ISC_R_SUCCESS);
@@ -5083,6 +5091,24 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 	isc__socketmgr_setreserved(ns_g_socketmgr, reserved);
 
+#ifdef HAVE_GEOIP
+	/*
+	 * Initialize GeoIP databases from the configured location.
+	 * This should happen before configuring any ACLs, so that we
+	 * know what databases are available and can reject any GeoIP
+	 * ACLs that can't work.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "geoip-directory", &obj);
+	if (result == ISC_R_SUCCESS && cfg_obj_isstring(obj)) {
+		char *dir;
+		DE_CONST(cfg_obj_asstring(obj), dir);
+		ns_geoip_load(dir);
+	} else
+		ns_geoip_load(NULL);
+	ns_g_aclconfctx->geoip = ns_g_geoip;
+#endif /* HAVE_GEOIP */
+
 	/*
 	 * Configure various server options.
 	 */
@@ -6069,6 +6095,10 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	if (server->blackholeacl != NULL)
 		dns_acl_detach(&server->blackholeacl);
 
+#ifdef HAVE_GEOIP
+	dns_geoip_shutdown();
+#endif
+
 	dns_db_detach(&server->in_roothints);
 
 	isc_task_endexclusive(server->task);
@@ -6090,7 +6120,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->task = NULL;
 
 	/* Initialize configuration data with default values. */
-
 	result = isc_quota_init(&server->xfroutquota, 10);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	result = isc_quota_init(&server->tcpquota, 10);
@@ -6098,8 +6127,15 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	result = isc_quota_init(&server->recursionquota, 100);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
+
 	result = dns_aclenv_init(mctx, &server->aclenv);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+#ifdef HAVE_GEOIP
+	/* Initialize GeoIP before using ACL environment */
+	ns_geoip_init();
+	server->aclenv.geoip = ns_g_geoip;
+#endif
 
 	/* Initialize server data structures. */
 	server->zonemgr = NULL;

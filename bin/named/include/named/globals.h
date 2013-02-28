@@ -29,6 +29,7 @@
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
 
+#include <dns/acl.h>
 #include <dns/zone.h>
 
 #include <dst/dst.h>
@@ -160,6 +161,10 @@ EXTERN isc_boolean_t		ns_g_nosoa		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_noaa		INIT(ISC_FALSE);
 EXTERN unsigned int		ns_g_delay		INIT(0);
 EXTERN isc_boolean_t		ns_g_nonearest		INIT(ISC_FALSE);
+
+#ifdef HAVE_GEOIP
+EXTERN dns_geoip_databases_t	*ns_g_geoip		INIT(NULL);
+#endif
 
 #undef EXTERN
 #undef INIT

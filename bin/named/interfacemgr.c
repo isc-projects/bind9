@@ -106,6 +106,9 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	result = dns_aclenv_init(mctx, &mgr->aclenv);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_listenon;
+#ifdef HAVE_GEOIP
+	mgr->aclenv.geoip = ns_g_geoip;
+#endif
 
 	mgr->references = 1;
 	mgr->magic = IFMGR_MAGIC;

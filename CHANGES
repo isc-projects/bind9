@@ -1,3 +1,8 @@
+3504.	[func]		Add support for ACLs based on geographic location,
+			using MaxMind GeoIP databases. Based on code
+			contributed by Ken Brownfield <kb@slide.com>.
+			[RT #30681]
+			
 3503.	[doc]		Clarify size_spec syntax. [RT #32449]
 
 3502.	[func]		zone-statistics: "no" is now a synonym for "none",

@@ -24,11 +24,13 @@
 
 #include <isccfg/cfg.h>
 
+#include <dns/geoip.h>
 #include <dns/types.h>
 
 typedef struct cfg_aclconfctx {
 	ISC_LIST(dns_acl_t) named_acl_cache;
 	isc_mem_t *mctx;
+	dns_geoip_databases_t *geoip;
 	isc_refcount_t references;
 } cfg_aclconfctx_t;
 
