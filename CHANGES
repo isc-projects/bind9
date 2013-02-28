@@ -1,3 +1,15 @@
+3506.	[func]		When setting "max-cache-size" and "max-acache-size",
+			the keyword "unlimited" is no longer defined as equal
+			to 4 gigabytes (except on 32-bit platforms); it
+			means literally unlimited. [RT #32358]
+
+3505.	[bug]		When setting "max-cache-size" and "max-acache-size",
+			larger values than 4 gigabytes could not be set
+			explicitly, though larger sizes were available
+			when setting cache size to 0. This has been
+			corrected; the full range is now available.
+			[RT #32358]
+
 3504.	[func]		Add support for ACLs based on geographic location,
 			using MaxMind GeoIP databases. Based on code
 			contributed by Ken Brownfield <kb@slide.com>.

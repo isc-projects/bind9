@@ -139,7 +139,7 @@ struct dns_cache {
 	char			*db_type;
 	int			db_argc;
 	char			**db_argv;
-	isc_uint32_t		size;
+	size_t			size;
 	isc_stats_t		*stats;
 
 	/* Locked by 'filelock'. */
@@ -1048,9 +1048,8 @@ water(void *arg, int mark) {
 }
 
 void
-dns_cache_setcachesize(dns_cache_t *cache, isc_uint32_t size) {
-	isc_uint32_t lowater;
-	isc_uint32_t hiwater;
+dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
+	size_t hiwater, lowater;
 
 	REQUIRE(VALID_CACHE(cache));
 
@@ -1088,9 +1087,9 @@ dns_cache_setcachesize(dns_cache_t *cache, isc_uint32_t size) {
 		isc_mem_setwater(cache->mctx, water, cache, hiwater, lowater);
 }
 
-isc_uint32_t
+size_t
 dns_cache_getcachesize(dns_cache_t *cache) {
-	isc_uint32_t size;
+	size_t size;
 
 	REQUIRE(VALID_CACHE(cache));
 
