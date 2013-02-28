@@ -82,6 +82,7 @@ doc_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 static void
 doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 
+#ifdef HAVE_GEOIP
 static isc_result_t
 parse_geoip(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 
@@ -90,6 +91,7 @@ print_geoip(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
 static void
 doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type);
+#endif /* HAVE_GEOIP */
 
 static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_addrmatchelt;
@@ -936,7 +938,9 @@ options_clauses[] = {
 	{ "fake-iquery", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "files", &cfg_type_size, 0 },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
+#ifdef HAVE_GEOIP
 	{ "geoip-directory", &cfg_type_qstringornone, 0 },
+#endif /* HAVE_GEOIP */
 	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "heartbeat-interval", &cfg_type_uint32, 0 },
 	{ "host-statistics", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTIMP },
@@ -2113,6 +2117,7 @@ static cfg_type_t cfg_type_optional_keyref = {
 	doc_optional_keyvalue, &cfg_rep_string, &key_kw
 };
 
+#ifdef HAVE_GEOIP
 /*
  * "geoip" ACL element:
  * geoip [ db <database> ] search-type <string>
@@ -2205,6 +2210,7 @@ doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_chars(pctx, " ", 1);
 	cfg_print_cstr(pctx, "<quoted_string>");
 }
+#endif /* HAVE_GEOIP */
 
 /*%
  * A "controls" statement is represented as a map with the multivalued
@@ -2497,7 +2503,8 @@ parse_addrmatchelt(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) 
 	} else if (pctx->token.type == isc_tokentype_special) {
 		if (pctx->token.value.as_char == '{') {
 			/* Nested match list. */
-			CHECK(cfg_parse_obj(pctx, &cfg_type_bracketed_aml, ret));
+			CHECK(cfg_parse_obj(pctx,
+					    &cfg_type_bracketed_aml, ret));
 		} else if (pctx->token.value.as_char == '!') {
 			CHECK(cfg_gettoken(pctx, 0)); /* read "!" */
 			CHECK(cfg_parse_obj(pctx, &cfg_type_negated, ret));
