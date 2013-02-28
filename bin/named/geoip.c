@@ -18,6 +18,8 @@
 
 #include <config.h>
 
+#include <isc/util.h>
+
 #ifdef HAVE_GEOIP
 #include <named/log.h>
 #include <named/geoip.h>
@@ -102,6 +104,9 @@ ns_geoip_init(void) {
 void
 ns_geoip_load(char *dir) {
 #ifndef HAVE_GEOIP
+
+	UNUSED(dir);
+
 	return;
 #else
 	GeoIPOptions method;

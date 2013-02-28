@@ -1312,6 +1312,8 @@ ISC_PLATFORM_KRB5HEADER
 ISC_PLATFORM_GSSAPI_KRB5_HEADER
 ISC_PLATFORM_GSSAPIHEADER
 ISC_PLATFORM_HAVEGSSAPI
+GEOIPLINKOBJS
+GEOIPLINKSRCS
 PKCS11_PROVIDER
 PKCS11_TOOLS
 USE_PKCS11
@@ -14473,6 +14475,8 @@ $as_echo "PKCS11 provider is \"$use_pkcs11\"" >&6; }
 esac
 
 
+GEOIPLINKSRCS=
+GEOIPLINKOBJS=
 
 # Check whether --with-geoip was given.
 if test "${with_geoip+set}" = set; then :
@@ -14649,6 +14653,8 @@ fi
 
 $as_echo "#define HAVE_GEOIP 1" >>confdefs.h
 
+		GEOIPLINKSRCS='${GEOIPLINKSRCS}'
+		GEOIPLINKOBJS='${GEOIPLINKOBJS}'
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GeoIP support" >&5
 $as_echo_n "checking for GeoIP support... " >&6; }
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
@@ -14725,6 +14731,8 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		;;
 esac
+
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSSAPI library" >&5
 $as_echo_n "checking for GSSAPI library... " >&6; }

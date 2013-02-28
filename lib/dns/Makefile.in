@@ -58,11 +58,13 @@ DSTOBJS =	@DST_EXTRA_OBJS@ @OPENSSLLINKOBJS@ \
 		dst_api.@O@ dst_lib.@O@ dst_parse.@O@ dst_result.@O@ \
 		gssapi_link.@O@ gssapictx.@O@ hmac_link.@O@ key.@O@ 
 
+GEOIPLINKOBJS = geoip.@O@
+
 # Alphabetically
 DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ clientinfo.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
-		dlz.@O@ dns64.@O@ dnssec.@O@ ds.@O@ forward.@O@ geoip.@O@\
+		dlz.@O@ dns64.@O@ dnssec.@O@ ds.@O@ forward.@O@ \
 		iptable.@O@ journal.@O@ keydata.@O@ keytable.@O@ \
 		lib.@O@ log.@O@ lookup.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
@@ -77,7 +79,8 @@ DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		tsec.@O@ tsig.@O@ ttl.@O@ update.@O@ validator.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zonekey.@O@ zt.@O@
 
-OBJS=		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS}
+OBJS=		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} @GEOIPLINKOBJS@
+
 
 # Alphabetically
 OPENSSLGOSTLINKSRCS = opensslgost_link.c
@@ -88,6 +91,8 @@ DSTSRCS =	@DST_EXTRA_SRCS@ @OPENSSLLINKSRCS@ \
 		dst_api.c dst_lib.c dst_parse.c \
 		dst_result.c gssapi_link.c gssapictx.c \
 		hmac_link.c key.c
+
+GEOIOLINKSRCS = geoip.c 
 
 DNSSRCS =	acache.c acl.c adb.c byaddr.c \
 		cache.c callbacks.c clientinfo.c compress.c \
@@ -104,7 +109,7 @@ DNSSRCS =	acache.c acl.c adb.c byaddr.c \
 		tsec.c tsig.c ttl.c update.c validator.c \
 		version.c view.c xfrin.c zone.c zonekey.c zt.c ${OTHERSRCS}
 
-SRCS = ${DSTSRCS} ${DNSSRCS}
+SRCS = ${DSTSRCS} ${DNSSRCS} @GEOIPLINKSRCS@
 
 SUBDIRS =	include
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \

@@ -68,8 +68,9 @@ DNSOBJS =	acl.@O@ adb.@O@ byaddr.@O@ \
 		tcpmsg.@O@ time.@O@ tsec.@O@ tsig.@O@ ttl.@O@ \
 		validator.@O@ version.@O@ view.@O@
 PORTDNSOBJS =	ecdb.@O@
+GEOIPLINKOBJS = geoip.@O@
 
-OBJS=		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} ${PORTDNSOBJS}
+OBJS=		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} ${PORTDNSOBJS} @GEOIPLINKOBJS@
 
 # Alphabetically
 
@@ -95,8 +96,9 @@ DNSSRCS =	acl.c adb.c byaddr.c \
 		tcpmsg.c time.c tsec.c tsig.c ttl.c \
 		validator.c version.c view.c
 PORTDNSSRCS =	ecdb.c
+GEOIPLINKSRCS = geoip.c
 
-SRCS = ${DSTSRCS} ${DNSSRCS} ${PORTDNSSRCS}
+SRCS = ${DSTSRCS} ${DNSSRCS} ${PORTDNSSRCS} @GEOIPLINKSRCS@
 
 SUBDIRS =	include
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \

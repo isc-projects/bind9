@@ -537,6 +537,7 @@ netspeed_lookup(GeoIP *db, dns_geoip_subtype_t subtype, isc_uint32_t ipnum) {
 #define DB46(addr, geoip, name) \
 	((addr->family == AF_INET) ? (geoip->name##_v4) : (geoip->name##_v6))
 
+#ifdef HAVE_GEOIP
 /*
  * Find the best database to answer a generic subtype
  */
@@ -585,6 +586,7 @@ fix_subtype(const isc_netaddr_t *reqaddr, const dns_geoip_databases_t *geoip,
 
 	return (ret);
 }
+#endif /* HAVE_GEOIP */
 
 isc_boolean_t
 dns_geoip_match(const isc_netaddr_t *reqaddr,
