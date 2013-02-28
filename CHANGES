@@ -1,3 +1,10 @@
+3505.	[bug]		When setting "max-cache-size" and "max-acache-size",
+			larger values than 4 gigabytes could not be set
+			explicitly, though larger sizes were available
+			when setting cache size to 0. This has been
+			corrected; the full range is now available.
+			[RT #32358]
+
 3503.	[doc]		Clarify size_spec syntax. [RT #32449]
 
 3501.	[func]		zone-statistics now takes three options: full,

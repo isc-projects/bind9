@@ -607,7 +607,7 @@ dns_adb_flush(dns_adb_t *adb);
  */
 
 void
-dns_adb_setadbsize(dns_adb_t *adb, isc_uint32_t size);
+dns_adb_setadbsize(dns_adb_t *adb, size_t size);
 /*%<
  * Set a target memory size.  If memory usage exceeds the target
  * size entries will be removed before they would have expired on

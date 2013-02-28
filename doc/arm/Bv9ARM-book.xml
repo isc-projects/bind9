@@ -8259,8 +8259,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   approaches
                   the specified size, some of the oldest transactions in the
                   journal
-                  will be automatically removed.  The default is
-                  <literal>unlimited</literal>.
+                  will be automatically removed.  The largest permitted
+                  value is 2 gigabytes. The default is
+                  <literal>unlimited</literal>, which also
+                  means 2 gigabytes.
                   This may also be set on a per-zone basis.
                 </para>
               </listitem>
