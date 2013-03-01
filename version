@@ -3,6 +3,7 @@
 # This file must follow /bin/sh rules.  It is imported directly via
 # configure.
 #
+PRODUCT=BIND
 MAJORVER=9
 MINORVER=10
 PATCHVER=0

@@ -21,6 +21,8 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
+@BIND9_PRODUCT@
+
 @BIND9_SRCID@
 
 @BIND9_CONFIGARGS@
@@ -120,6 +122,7 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 main.@O@: main.c
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
+		-DPRODUCT=\"${PRODUCT}\" \
 		-DSRCID=\"${SRCID}\" \
 		-DCONFIGARGS="\"${CONFIGARGS}\"" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \

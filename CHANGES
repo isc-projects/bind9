@@ -1,3 +1,7 @@
+3509.	[cleanup]	Added a product line to version file to allow for
+			easy naming of different products (BIND
+			vs BIND ESV, for example). [RT #32755]
+
 3508.	[contrib]	queryperf was incorrectly rejecting the -T option.
 			[RT #32338]
 
