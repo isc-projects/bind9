@@ -38,7 +38,9 @@
 #include <isc/netaddr.h>
 #include <isc/refcount.h>
 
+#ifdef HAVE_GEOIP
 #include <dns/geoip.h>
+#endif
 #include <dns/name.h>
 #include <dns/types.h>
 #include <dns/iptable.h>
