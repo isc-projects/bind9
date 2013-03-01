@@ -119,6 +119,10 @@
 #define PATH_MAX 1024
 #endif
 
+#ifndef SIZE_MAX
+#define SIZE_MAX ((size_t)-1)
+#endif
+
 /*%
  * Check an operation for failure.  Assumes that the function
  * using it has a 'result' variable and a 'cleanup' label.
@@ -2159,10 +2163,10 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 					    "%" ISC_PRINT_QUADFORMAT "u' "
 					    "is too large for this "
 					    "system; reducing to %lu",
-					    value, SIZE_MAX);
+					    value, (unsigned long)SIZE_MAX);
 				value = SIZE_MAX;
 			}
-			max_cache_size = (size_t) value;
+			max_acache_size = (size_t) value;
 		}
 		dns_acache_setcachesize(view->acache, max_acache_size);
 	}
@@ -2349,7 +2353,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 				    "%" ISC_PRINT_QUADFORMAT "u' "
 				    "is too large for this "
 				    "system; reducing to %lu",
-				    value, SIZE_MAX);
+				    value, (unsigned long)SIZE_MAX);
 			value = SIZE_MAX;
 		}
 		max_cache_size = (size_t) value;
