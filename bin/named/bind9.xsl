@@ -198,7 +198,13 @@
             </td>
           </tr>
           <tr>
-            <th>Sample time:</th>
+            <th>Last reconfigured:</th>
+            <td>
+              <xsl:value-of select="server/config-time"/>
+            </td>
+          </tr>
+          <tr>
+            <th>Current time:</th>
             <td>
               <xsl:value-of select="server/current-time"/>
             </td>

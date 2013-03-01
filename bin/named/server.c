@@ -4932,7 +4932,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_portset_t *v4portset = NULL;
 	isc_portset_t *v6portset = NULL;
 	isc_resourcevalue_t nfiles;
-	isc_result_t result;
+	isc_result_t result, tresult;
 	isc_uint32_t heartbeat_interval;
 	isc_uint32_t interface_interval;
 	isc_uint32_t reserved;
@@ -5834,6 +5834,14 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (isc_net_probeipv6() == ISC_R_SUCCESS)
 		adjust_interfaces(server, ns_g_mctx);
 
+	/*
+	 * Record the time of most recent configuration
+	 */
+	tresult = isc_time_now(&ns_g_configtime);
+	if (tresult != ISC_R_SUCCESS)
+		ns_main_earlyfatal("isc_time_now() failed: %s",
+				   isc_result_totext(result));
+
 	/* Relinquish exclusive access to configuration data. */
 	if (exclusive)
 		isc_task_endexclusive(server->task);
@@ -6464,6 +6472,7 @@ loadconfig(ns_server_t *server) {
 			      "reloading configuration failed: %s",
 			      isc_result_totext(result));
 	}
+
 	return (result);
 }
 
@@ -7607,6 +7616,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 	int zonecount, xferrunning, xferdeferred, soaqueries;
 	unsigned int n;
 	const char *ob = "", *cb = "", *alt = "";
+	char boottime[80], configtime[80];
 
 	if (ns_g_server->version_set) {
 		ob = " (";
@@ -7624,9 +7634,16 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 	soaqueries = dns_zonemgr_getcount(server->zonemgr,
 					  DNS_ZONESTATE_SOAQUERY);
 
+	isc_time_formathttptimestamp(&ns_g_boottime, boottime,
+				     sizeof(boottime));
+	isc_time_formathttptimestamp(&ns_g_configtime, configtime,
+				     sizeof(configtime));
+
 	n = snprintf((char *)isc_buffer_used(text),
 		     isc_buffer_availablelength(text),
 		     "version: %s%s%s%s\n"
+		     "boot time: %s\n"
+		     "last configured: %s\n"
 #ifdef ISC_PLATFORM_USETHREADS
 		     "CPUs found: %u\n"
 		     "worker threads: %u\n"
@@ -7642,6 +7659,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "tcp clients: %d/%d\n"
 		     "server is up and running",
 		     ns_g_version, ob, alt, cb,
+		     boottime, configtime,
 #ifdef ISC_PLATFORM_USETHREADS
 		     ns_g_cpus_detected, ns_g_cpus, ns_g_udpdisp,
 #endif

@@ -880,6 +880,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 static isc_result_t
 generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	char boottime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
+	char configtime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
 	char nowstr[sizeof "yyyy-mm-ddThh:mm:ssZ"];
 	isc_time_t now;
 	xmlTextWriterPtr writer = NULL;
@@ -897,6 +898,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 
 	isc_time_now(&now);
 	isc_time_formatISO8601(&ns_g_boottime, boottime, sizeof boottime);
+	isc_time_formatISO8601(&ns_g_configtime, configtime, sizeof configtime);
 	isc_time_formatISO8601(&now, nowstr, sizeof nowstr);
 
 	writer = xmlNewTextWriterDoc(&doc, 0);
@@ -1018,6 +1020,9 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "boot-time"));
 	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR boottime));
 	TRY0(xmlTextWriterEndElement(writer)); /* boot-time */
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "config-time"));
+	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR configtime));
+	TRY0(xmlTextWriterEndElement(writer)); /* config-time */
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "current-time"));
 	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR nowstr));
 	TRY0(xmlTextWriterEndElement(writer));  /* current-time */

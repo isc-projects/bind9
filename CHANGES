@@ -1,3 +1,6 @@
+3510.	[func]		"rndc status" and XML statistics channel now report
+			server start and reconfiguration times. [RT #21048]
+
 3509.	[cleanup]	Added a product line to version file to allow for
 			easy naming of different products (BIND
 			vs BIND ESV, for example). [RT #32755]

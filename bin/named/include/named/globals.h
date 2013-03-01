@@ -154,6 +154,7 @@ EXTERN const char *		ns_g_engine		INIT(NULL);
 
 EXTERN int			ns_g_listen		INIT(3);
 EXTERN isc_time_t		ns_g_boottime;
+EXTERN isc_time_t		ns_g_configtime;
 EXTERN isc_boolean_t		ns_g_memstatistics	INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_clienttest		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_dropedns		INIT(ISC_FALSE);
