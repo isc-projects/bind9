@@ -2144,7 +2144,8 @@ Optional Features:
 			  [default=no]
   --disable-rpz-nsip	  disable rpz-nsip rules [default=enabled]
   --disable-rpz-nsdname	  disable rpz-nsdname rules [default=enabled]
-  --enable-filter-aaaa    enable filtering of AAAA records [default=no]
+  --enable-filter-aaaa    enable filtering of AAAA records over IPv4
+			  [default=no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
