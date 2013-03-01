@@ -58,7 +58,9 @@ cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret) {
 	isc_mem_attach(mctx, &actx->mctx);
 	ISC_LIST_INIT(actx->named_acl_cache);
 
+#ifdef HAVE_GEOIP
 	actx->geoip = NULL;
+#endif
 
 	*ret = actx;
 	return (ISC_R_SUCCESS);
