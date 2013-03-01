@@ -689,7 +689,7 @@ setup(void) {
 				   isc_result_totext(result));
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "starting %s %s%s", ns_g_product, 
+		      ISC_LOG_NOTICE, "starting %s %s%s", ns_g_product,
 		      ns_g_version, saved_command_line);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
