@@ -1,3 +1,5 @@
+3511.	[doc]		Improve documentation of redirect zones. [RT #32756]
+
 3510.	[func]		"rndc status" and XML statistics channel now report
 			server start and reconfiguration times. [RT #21048]
 
