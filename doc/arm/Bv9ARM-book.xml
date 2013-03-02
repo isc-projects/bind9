@@ -9496,7 +9496,7 @@ deny-answer-aliases { "example.net"; };
 		walled garden's authority DNS server.
 	      </listitem>
 	      <listitem>The <command>PASSTHRU</command> policy is specified
-		by a CNAME whose target is <command>rpz_passthru.</command>
+		by a CNAME whose target is <command>rpz-passthru.</command>
 		It causes the response to not be rewritten
 		and is most often used to "poke holes" in policies for
 		CIDR blocks.
