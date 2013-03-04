@@ -7333,12 +7333,12 @@ ns_server_setdebuglevel(ns_server_t *server, char *args) {
 }
 
 isc_result_t
-ns_server_validation(ns_server_t *server, char *args) {
+ns_server_validation(ns_server_t *server, char *args, isc_buffer_t *text) {
 	char *ptr, *viewname;
 	dns_view_t *view;
 	isc_boolean_t changed = ISC_FALSE;
 	isc_result_t result;
-	isc_boolean_t enable;
+	isc_boolean_t enable, set = ISC_TRUE, first = ISC_TRUE;
 
 	/* Skip the command name. */
 	ptr = next_token(&args, " \t");
@@ -7356,7 +7356,9 @@ ns_server_validation(ns_server_t *server, char *args) {
 	else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
 		 !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false"))
 		enable = ISC_FALSE;
-	else
+	else if (!strcasecmp(ptr, "check")) {
+		set = ISC_FALSE;
+	} else
 		return (DNS_R_SYNTAX);
 
 	/* Look for the view name. */
@@ -7373,10 +7375,40 @@ ns_server_validation(ns_server_t *server, char *args) {
 		result = dns_view_flushcache(view);
 		if (result != ISC_R_SUCCESS)
 			goto out;
-		view->enablevalidation = enable;
-		changed = ISC_TRUE;
+
+		if (set) {
+			view->enablevalidation = enable;
+			changed = ISC_TRUE;
+		} else {
+			unsigned int n;
+			if (!first) {
+				n = snprintf((char *)isc_buffer_used(text),
+					     isc_buffer_availablelength(text),
+					     "\n");
+				if (n >= isc_buffer_availablelength(text)) {
+					result = ISC_R_NOSPACE;
+					goto out;
+				}
+				isc_buffer_add(text, n);
+			}
+			first = ISC_FALSE;
+			n = snprintf((char *)isc_buffer_used(text),
+				     isc_buffer_availablelength(text),
+				     "DNSSEC validation is %s (view %s)",
+				     view->enablevalidation ?
+				       "enabled" : "disabled",
+				     view->name);
+			if (n >= isc_buffer_availablelength(text)) {
+				result = ISC_R_NOSPACE;
+				goto out;
+			}
+			isc_buffer_add(text, n);
+		}
 	}
-	if (changed)
+
+	if (!set)
+		result = ISC_R_SUCCESS;
+	else if (changed)
 		result = ISC_R_SUCCESS;
 	else
 		result = ISC_R_FAILURE;

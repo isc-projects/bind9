@@ -1,3 +1,6 @@
+3512.	[func]		"rndc validation check" reports the current status
+			of DNSSEC validation. [RT #21397]
+
 3511.	[doc]		Improve documentation of redirect zones. [RT #32756]
 
 3510.	[func]		"rndc status" and XML statistics channel now report

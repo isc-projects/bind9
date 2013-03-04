@@ -197,7 +197,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	} else if (command_compare(command, NS_COMMAND_NOTIFY)) {
 		result = ns_server_notifycommand(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_VALIDATION)) {
-		result = ns_server_validation(ns_g_server, command);
+		result = ns_server_validation(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_SIGN) ||
 		   command_compare(command, NS_COMMAND_LOADKEYS)) {
 		result = ns_server_rekey(ns_g_server, command);
