@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -288,15 +288,15 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 			printf(";; Received %" ISC_PRINT_QUADFORMAT "u bytes "
 			       "from %s(%s) in %ld us\n\n",
 			       query->lookup->doing_xfr
-			         ? query->byte_count
-			         : (isc_uint64_t)bytes,
+				 ? query->byte_count
+				 : (isc_uint64_t)bytes,
 			       fromtext, query->userarg, (long) diff);
 		else
 			printf(";; Received %" ISC_PRINT_QUADFORMAT "u bytes "
 			       "from %s(%s) in %ld ms\n\n",
 			       query->lookup->doing_xfr
-			         ?  query->byte_count
-			         : (isc_uint64_t)bytes,
+				 ?  query->byte_count
+				 : (isc_uint64_t)bytes,
 			       fromtext, query->userarg, (long) diff / 1000);
 	}
 }
