@@ -140,8 +140,6 @@ main(int argc, char **argv) {
 			keysize = strtol(isc_commandline_argument, &p, 10);
 			if (*p != '\0' || keysize < 0)
 				fatal("-b requires a non-negative number");
-			if (keysize < 1 || keysize > 512)
-				fatal("-b must be in the range 1 through 512");
 			break;
 		case 'c':
 			keyfile = isc_commandline_argument;

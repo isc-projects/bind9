@@ -1,3 +1,9 @@
+3514.	[bug]		The ranges for valid key sizes in ddns-confgen and
+			rndc-confgen were too constrained. Keys up to 512
+			bits are now allowed for most algorithms, and up
+			to 1024 bits for hmac-sha384 and hmac-sha512.
+			[RT #32753]
+
 3509.	[cleanup]	Added a product line to version file to allow for
 			easy naming of different products (BIND
 			vs BIND ESV, for example). [RT #32755]
