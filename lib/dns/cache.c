@@ -50,7 +50,7 @@
  * DNS_CACHE_MINSIZE is how many bytes is the floor for dns_cache_setcachesize().
  * See also DNS_CACHE_CLEANERINCREMENT
  */
-#define DNS_CACHE_MINSIZE	2097152 /*%< Bytes.  2097152 = 2 MB */
+#define DNS_CACHE_MINSIZE	2097152U /*%< Bytes.  2097152 = 2 MB */
 /*!
  * Control incremental cleaning.
  * CLEANERINCREMENT is how many nodes are examined in one pass.
@@ -1037,7 +1037,7 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 	 * Impose a minimum cache size; pathological things happen if there
 	 * is too little room.
 	 */
-	if (size != 0 && size < DNS_CACHE_MINSIZE)
+	if (size != 0U && size < DNS_CACHE_MINSIZE)
 		size = DNS_CACHE_MINSIZE;
 
 	LOCK(&cache->lock);
@@ -1054,7 +1054,7 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 	 * water().
 	 */
 
-	if (size == 0 || hiwater == 0 || lowater == 0)
+	if (size == 0U || hiwater == 0U || lowater == 0U)
 		/*
 		 * Disable cache memory limiting.
 		 */

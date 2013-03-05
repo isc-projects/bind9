@@ -73,10 +73,10 @@
  * (XXX simply derived from definitions in cache.c  There may be better
  *  constants here.)
  */
-#define DNS_ACACHE_MINSIZE 		2097152	/* Bytes.  2097152 = 2 MB */
-#define DNS_ACACHE_CLEANERINCREMENT	1000	/* Number of entries. */
+#define DNS_ACACHE_MINSIZE 		2097152U /* Bytes.  2097152 = 2 MB */
+#define DNS_ACACHE_CLEANERINCREMENT	1000	 /* Number of entries. */
 
-#define DEFAULT_ACACHE_ENTRY_LOCK_COUNT	1009	/*%< Should be prime. */
+#define DEFAULT_ACACHE_ENTRY_LOCK_COUNT	1009	 /*%< Should be prime. */
 
 #if defined(ISC_RWLOCK_USEATOMIC) && defined(ISC_PLATFORM_HAVEATOMICSTORE)
 #define ACACHE_USE_RWLOCK 1
@@ -1774,13 +1774,13 @@ dns_acache_setcachesize(dns_acache_t *acache, size_t size) {
 
 	REQUIRE(DNS_ACACHE_VALID(acache));
 
-	if (size != 0 && size < DNS_ACACHE_MINSIZE)
+	if (size != 0U && size < DNS_ACACHE_MINSIZE)
 		size = DNS_ACACHE_MINSIZE;
 
 	hiwater = size - (size >> 3);
 	lowater = size - (size >> 2);
 
-	if (size == 0 || hiwater == 0 || lowater == 0)
+	if (size == 0U || hiwater == 0U || lowater == 0U)
 		isc_mem_setwater(acache->mctx, water, acache, 0, 0);
 	else
 		isc_mem_setwater(acache->mctx, water, acache,

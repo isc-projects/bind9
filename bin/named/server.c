@@ -166,7 +166,7 @@
  * a cache.  Only effective when a finite max-cache-size is specified.
  * This is currently defined to be 8MB.
  */
-#define MAX_ADB_SIZE_FOR_CACHESHARE	8388608
+#define MAX_ADB_SIZE_FOR_CACHESHARE	8388608U
 
 struct ns_dispatch {
 	isc_sockaddr_t			addr;
@@ -2317,9 +2317,9 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 * MAX_ADB_SIZE_FOR_CACHESHARE when the cache is shared.
 	 */
 	max_adb_size = 0;
-	if (max_cache_size != 0) {
+	if (max_cache_size != 0U) {
 		max_adb_size = max_cache_size / 8;
-		if (max_adb_size == 0)
+		if (max_adb_size == 0U)
 			max_adb_size = 1;	/* Force minimum. */
 		if (view != nsc->primaryview &&
 		    max_adb_size > MAX_ADB_SIZE_FOR_CACHESHARE) {
