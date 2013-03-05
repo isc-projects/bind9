@@ -21,3 +21,4 @@
 #
 rm -f */named.memstats
 rm -f dig.out
+rm -f lwresd1/lwresd.run.resolv
