@@ -7338,7 +7338,7 @@ ns_server_validation(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_view_t *view;
 	isc_boolean_t changed = ISC_FALSE;
 	isc_result_t result;
-	isc_boolean_t enable, set = ISC_TRUE, first = ISC_TRUE;
+	isc_boolean_t enable = ISC_TRUE, set = ISC_TRUE, first = ISC_TRUE;
 
 	/* Skip the command name. */
 	ptr = next_token(&args, " \t");
@@ -7356,9 +7356,9 @@ ns_server_validation(ns_server_t *server, char *args, isc_buffer_t *text) {
 	else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
 		 !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false"))
 		enable = ISC_FALSE;
-	else if (!strcasecmp(ptr, "check")) {
+	else if (!strcasecmp(ptr, "check"))
 		set = ISC_FALSE;
-	} else
+	else
 		return (DNS_R_SYNTAX);
 
 	/* Look for the view name. */
