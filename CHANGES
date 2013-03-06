@@ -1,3 +1,5 @@
+3517.	[bug]		Reorder destruction to avoid shutdown race. [RT #32777]
+
 3515.	[port]		'%T' is not portable in strftime(). [RT #32763]
 
 3509.	[cleanup]	Added a product line to version file to allow for
