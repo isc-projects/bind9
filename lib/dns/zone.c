@@ -9602,9 +9602,9 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_message_destroy(&message);
  cleanup:
 	UNLOCK_ZONE(notify->zone);
+	isc_event_free(&event);
 	if (result != ISC_R_SUCCESS)
 		notify_destroy(notify, ISC_FALSE);
-	isc_event_free(&event);
 }
 
 static void
