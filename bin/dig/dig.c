@@ -253,7 +253,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		time(&tnow);
 		tmnow  = *localtime(&tnow);
 		if (strftime(time_str, sizeof(time_str),
-			     "%a %b %d %T %Z %Y", &tmnow) > 0U)
+			     "%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U)
 			printf(";; WHEN: %s\n", time_str);
 		if (query->lookup->doing_xfr) {
 			printf(";; XFR size: %u records (messages %u, "
