@@ -439,14 +439,17 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		goto cleanup_request;
 	}
 
+	isc_buffer_init(&text, textarray, sizeof(textarray));
+
 	/*
 	 * Establish nonce.
 	 */
-	while (conn->nonce == 0)
-		isc_random_get(&conn->nonce);
-
-	isc_buffer_init(&text, textarray, sizeof(textarray));
-	eresult = ns_control_docommand(request, &text);
+	if (conn->nonce == 0) {
+		while (conn->nonce == 0)
+			isc_random_get(&conn->nonce);
+		eresult = ISC_R_SUCCESS;
+	} else
+		eresult = ns_control_docommand(request, &text);
 
 	result = isccc_cc_createresponse(request, now, now + 60, &response);
 	if (result != ISC_R_SUCCESS)

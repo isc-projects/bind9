@@ -1,3 +1,7 @@
+3519.	[func]		Full replay protection via four-way handshake is
+			now mandatory for rndc clients. Very old versions
+			of rndc will no longer work. [RT #32798]
+
 3518.	[bug]		Increase the size of dns_rrl_key.s.rtype by one bit
 			so that all dns_rrl_rtype_t enum values fit regardless
 			of whether it is teated as signed or unsigned by
