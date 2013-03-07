@@ -974,7 +974,6 @@ log_end(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_boolean_t early,
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
 			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DROP,
 			      "%s", log_buf);
-fprintf(stderr, "calling free_qname from log_end\n");
 		free_qname(rrl, e);
 		e->logged = ISC_FALSE;
 		--rrl->num_logged;
@@ -1240,10 +1239,7 @@ dns_rrl(dns_view_t *view,
 		 * the ending log message.
 		 */
 		if (!e->logged)
-{
-fprintf(stderr, "calling free_qname from dns_rrl\n");
 			free_qname(rrl, e);
-}
 		UNLOCK(&rrl->lock);
 	}
 
