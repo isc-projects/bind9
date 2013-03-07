@@ -48,7 +48,7 @@
 			using MaxMind GeoIP databases. Based on code
 			contributed by Ken Brownfield <kb@slide.com>.
 			[RT #30681]
-			
+
 3503.	[doc]		Clarify size_spec syntax. [RT #32449]
 
 3502.	[func]		zone-statistics: "no" is now a synonym for "none",
@@ -75,11 +75,11 @@
 3496.	[placeholder]
 
 3495.	[func]		Support multiple response-policy zones (up to 32),
-                        while improving RPZ performance.  "response-policy"
+			while improving RPZ performance.  "response-policy"
 			syntax now includes a "min-ns-dots" clause, with
 			default 1, to exclude top-level domains from
 			NSIP and NSDNAME checking. --enable-rpz-nsip and
-                        --enable-rpz-nsdname are now the default. [RT #32251]
+			--enable-rpz-nsdname are now the default. [RT #32251]
 
 3494.	[func]		DNS RRL: Blunt the impact of DNS reflection and
 			amplification attacks by rate-limiting substantially-
@@ -87,7 +87,7 @@
 
 3493.	[contrib]	Added BDBHPT dynamically-lodable DLZ module,
 			contributed by Mark Goldfinch. [RT #32549]
-			
+
 3492.	[bug]		Fixed a regression in zone loading performance
 			due to lock contention. [RT #30399]
 
@@ -95,7 +95,7 @@
 			file name. [RT #31946]
 
 3490.	[bug]		When logging RDATA during update, truncate if it's
-                        too long. [RT #32365]
+			too long. [RT #32365]
 
 3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
 			dns_dlzcreate() failed to properly initialize
@@ -106,7 +106,7 @@
 
 3487.	[bug]		Change 3444 was not complete.  There was a additional
 			place where the NOQNAME proof needed to be saved.
-                        [RT #32629]
+			[RT #32629]
 
 3486.	[bug]		named could crash when using TKEY-negotiated keys
 			that had been deleted and then recreated. [RT #32506]
@@ -134,8 +134,8 @@
 			[RT #32475]
 
 3477.	[func]		Expand logging when adding records via DDNS update
-	 		[RT #32365]
-			
+			[RT #32365]
+
 3476.	[bug]		"rndc zonestatus" could report a spurious "not
 			found" error on inline-signing zones. [RT #29226]
 
