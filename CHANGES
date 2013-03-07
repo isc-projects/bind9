@@ -1,3 +1,8 @@
+3518.	[bug]		Increase the size of dns_rrl_key.s.rtype by one bit
+			so that all dns_rrl_rtype_t enum values fit regardless
+			of whether it is teated as signed or unsigned by
+			the compiler. [RT #32792]
+
 3517.	[bug]		Reorder destruction to avoid shutdown race. [RT #32777]
 
 3516.	[placeholder]
