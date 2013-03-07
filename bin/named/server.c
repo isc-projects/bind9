@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -2001,7 +2001,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			 */
 			(void)dns_view_findzone(view, name, &zone);
 			if (zone != NULL) {
-				CHECK(setquerystats(zone, mctx, zonestats_on));
 				dns_zone_detach(&zone);
 				continue;
 			}

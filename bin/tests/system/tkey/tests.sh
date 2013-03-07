@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -31,6 +31,7 @@ ret=0
 dhkeyname=`$KEYGEN -k -a DH -b 768 -n host -r $RANDFILE client` || ret=1
 if [ $ret != 0 ]; then
 	echo "I:failed"
+	status=`expr $status + $ret`
 	echo "I:exit status: $status"
 	exit $status
 fi
@@ -84,6 +85,7 @@ ret=0
 keyname=`./keycreate $dhkeyname bar.example.` || ret=1
 if [ $ret != 0 ]; then
         echo "I:failed"
+	status=`expr $status + $ret`
         echo "I:exit status: $status"
         exit $status
 fi

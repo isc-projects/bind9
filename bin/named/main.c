@@ -474,10 +474,10 @@ parse_command_line(int argc, char *argv[]) {
 			ns_g_username = isc_commandline_argument;
 			break;
 		case 'v':
-			printf("BIND %s\n", ns_g_version);
+			printf("%s %s\n", ns_g_product, ns_g_version);
 			exit(0);
 		case 'V':
-			printf("BIND %s <id:%s> built with %s\n",
+			printf("%s %s <id:%s> built with %s\n", ns_g_product,
 			       ns_g_version, ns_g_srcid, ns_g_configargs);
 			exit(0);
 		case '?':
@@ -689,8 +689,8 @@ setup(void) {
 				   isc_result_totext(result));
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
-		      saved_command_line);
+		      ISC_LOG_NOTICE, "starting %s %s%s", ns_g_product,
+		      ns_g_version, saved_command_line);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "built with %s", ns_g_configargs);

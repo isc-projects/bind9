@@ -3061,31 +3061,45 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
               </entry>
               <entry colname="2">
                 <para>
-                  A number, the word <userinput>unlimited</userinput>,
-                  or the word <userinput>default</userinput>.
-                </para>
-		<para>
-                  An <varname>unlimited</varname> <varname>size_spec</varname> requests unlimited
-                  use, or the maximum available amount. A <varname>default size_spec</varname> uses
-                  the limit that was in force when the server was started.
+                  A 64-bit unsigned integer, or the keywords
+                  <userinput>unlimited</userinput> or
+                  <userinput>default</userinput>.
                 </para>
                 <para>
-                  A <varname>number</varname> can optionally be
-		  followed by a scaling factor:
+                  Integers may take values
+                  0 &lt;= value &lt;= 18446744073709551615, though
+                  certain parameters may use a more limited range
+                  within these extremes.  In most cases, setting a
+                  value to 0 does not literally mean zero; it means
+                  "undefined" or "as big as psosible", depending on
+                  the context. See the expalantions of particular
+                  parameters that use <varname>size_spec</varname>
+                  for details on how they interpret its use. 
+                </para>
+                <para>
+                  Numeric values can optionally be followed by a
+                  scaling factor:
 		  <userinput>K</userinput> or <userinput>k</userinput>
 		  for kilobytes,
 		  <userinput>M</userinput> or <userinput>m</userinput>
 		  for megabytes, and
-		  <userinput>G</userinput> or <userinput>g</userinput> for gigabytes,
-                  which scale by 1024, 1024*1024, and 1024*1024*1024
-                  respectively.
+                  <userinput>G</userinput> or <userinput>g</userinput>
+                  for gigabytes, which scale by 1024, 1024*1024, and
+                  1024*1024*1024 respectively.
                 </para>
-                <para>
-                  The value must be representable as a 64-bit unsigned integer
-                  (0 to 18446744073709551615, inclusive).
-                  Using <varname>unlimited</varname> is the best
-                  way
-                  to safely set a really large number.
+		<para>
+                  <varname>unlimited</varname> generally means
+                  "as big as possible", though in certain contexts,
+                  (including <option>max-cache-size</option>), it may
+                  mean the largest possible 32-bit unsigned integer
+                  (0xffffffff); this distinction can be important when
+                  dealing with larger quantities. 
+                  <varname>unlimited</varname> is usually the best way
+                  to safely set a very large number.
+                </para>
+		<para>
+                  <varname>default</varname> 
+                  uses the limit that was in force when the server was started.
                 </para>
               </entry>
             </row>
@@ -8041,12 +8055,15 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
             built-in view (see <xref linkend="view_statement_grammar"/>) of
             class
             <command>CHAOS</command> which is separate from the
-            default view of
-            class <command>IN</command>; therefore, any global
-            server options
-            such as <command>allow-query</command> do not apply
-            the these zones.
-            If you feel the need to disable these zones, use the options
+            default view of class <command>IN</command>. Most global
+            configuration options (<command>allow-query</command>,
+            etc) will apply to this view, but some are locally
+            overridden: <command>notify</command> and
+            <command>recursion</command> are
+            always set to <userinput>no</userinput>.
+          </para>
+          <para>
+            If you need to disable these zones, use the options
             below, or hide the built-in <command>CHAOS</command>
             view by
             defining an explicit view of class <command>CHAOS</command>

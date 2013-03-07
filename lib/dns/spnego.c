@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2009, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -630,8 +630,10 @@ gss_accept_sec_context_spnego(OM_uint32 *minor_status,
 				  sizeof(mechbuf),
 				  &init_token.mechTypes.val[i],
 				  &mech_len);
-		if (ret)
+		if (ret) {
+			free_NegTokenInit(&init_token);
 			return (GSS_S_DEFECTIVE_TOKEN);
+		}
 		if (mech_len == GSS_KRB5_MECH->length &&
 		    memcmp(GSS_KRB5_MECH->elements,
 			   mechbuf + sizeof(mechbuf) - mech_len,
@@ -650,8 +652,10 @@ gss_accept_sec_context_spnego(OM_uint32 *minor_status,
 		}
 	}
 
-	if (!found)
+	if (!found) {
+		free_NegTokenInit(&init_token);
 		return (send_reject(minor_status, output_token));
+	}
 
 	if (i == 0 && init_token.mechToken != NULL) {
 		ibuf.length = init_token.mechToken->length;
@@ -669,12 +673,14 @@ gss_accept_sec_context_spnego(OM_uint32 *minor_status,
 						      time_rec,
 						      delegated_cred_handle);
 		if (GSS_ERROR(major_status)) {
+			free_NegTokenInit(&init_token);
 			send_reject(&minor_status2, output_token);
 			return (major_status);
 		}
 		ot = &obuf;
 	}
 	ret = send_accept(&minor_status2, output_token, ot, pref);
+	free_NegTokenInit(&init_token);
 	if (ot != NULL && ot->length != 0U)
 		gss_release_buffer(&minor_status2, ot);
 
@@ -865,6 +871,8 @@ der_get_oid(const unsigned char *p, size_t len,
 	int n;
 	size_t oldlen = len;
 
+	data->components = NULL;
+	data->length = 0;
 	if (len < 1U)
 		return (ASN1_OVERRUN);
 
@@ -1696,6 +1704,7 @@ spnego_reply(OM_uint32 *minor_status,
 
 	ret = decode_NegTokenResp(buf + taglen, len, &resp, NULL);
 	if (ret) {
+		free_NegTokenResp(&resp);
 		*minor_status = ENOMEM;
 		return (GSS_S_FAILURE);
 	}

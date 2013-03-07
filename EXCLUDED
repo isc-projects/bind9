@@ -1,3 +1,85 @@
+3514.   [bug]           The ranges for valid key sizes in ddns-confgen and
+                        rndc-confgen were too constrained. Keys up to 512
+                        bits are now allowed for most algorithms, and up
+                        to 1024 bits for hmac-sha384 and hmac-sha512.
+                        [RT #32753]
+
+3511.   [doc]           Improve documentation of redirect zones. [RT #32756]
+
+3507.   [bug]           Statistics channel XSL had a glitch when attempting
+                        to chart query data before any queries had been
+                        received. [RT #32620]
+
+3505.   [bug]           When setting "max-cache-size" and "max-acache-size",
+                        larger values than 4 gigabytes could not be set
+                        explicitly, though larger sizes were available
+                        when setting cache size to 0. This has been
+                        corrected; the full range is now available.
+                        [RT #32358]
+
+3500.   [port]          Support NAPTR regular expression validation on
+                        all platforms.  [RT #32688]
+
+3493.   [contrib]       Added BDBHPT dynamically-lodable DLZ module,
+                        contributed by Mark Goldfinch. [RT #32549]
+
+3492.   [bug]           Fixed a regression in zone loading performance
+                        due to lock contention. [RT #30399]
+
+3491.   [bug]           Slave zones using inline-signing must specify a
+                        file name. [RT #31946]
+
+3490.   [bug]           When logging RDATA during update, truncate if it's
+                        too long. [RT #32365]
+
+3489.   [bug]           --enable-developer now turns on ISC_LIST_CHECKINIT.
+                        When cloning a rdataset do not copy the link contents.
+                        [RT #32651]
+
+3488.	[bug]		Use after free error with DH generated keys. [RT #32649]
+
+3486.	[bug]		named could crash when using TKEY-negotiated keys
+			that had been deleted and then recreated. [RT #32506]
+
+3485.	[cleanup]	Only compile openssl_gostlink.c if we support GOST.
+
+3484.	[bug]		Some statistics were incorrectly rendered in XML.
+			[RT #32587]
+
+3480.   [bug]           Silence logging noise when setting up zone
+                        statistics. [RT #32525]
+
+3476.   [bug]           "rndc zonestatus" could report a spurious "not
+                        found" error on inline-signing zones. [RT #29226]
+
+3475.   [cleanup]       Changed name of 'map' zone file format (previously
+                        'fast'). [RT #32458]
+
+3473.   [bug]           dnssec-signzone/verify could incorrectly report
+                        an error condition due to an empty node above an
+                        opt-out delegation lacking an NSEC3. [RT #32072]
+
+3472.   [bug]           The active-connections counter in the socket
+                        statistics could underflow. [RT #31747]
+
+3471.   [bug]           The number of UDP dispatches now defaults to
+                        the number of CPUs even if -n has been set to
+                        a higher value. [RT #30964]
+
+3469.   [bug]           Handle DLZ lookup failures more gracefully. Improve
+                        backward compatibility between versions of DLZ dlopen
+                        API. [RT #32275]
+
+3468.   [security]      RPZ rules to generate A records (but not AAAA records)
+                        could trigger an assertion failure when used in
+                        conjunction with DNS64 (CVE-2012-5689). [RT #32141]
+
+3467.   [bug]           Added checks in dnssec-keygen and dnssec-settime
+                        to check for delete date < inactive date. [RT #31719]
+
+3466.   [contrib]       Corrected the DNS_CLIENTINFOMETHODS_VERSION check
+                        in DLZ example driver. [RT #32275]
+
 3464.	[maint]		Updates to PKCS#11 openssl patches, supporting
 			versions 0.9.8x, 1.0.0j, 1.0.1c [RT #29749]
 
@@ -360,6 +442,10 @@
 
 3122.	[cleanup]	dnssec-settime: corrected usage message. [RT #24664]
 
+3119.   [bug]           When rolling to a new DNSSEC key, a private-type
+                        record could be created and never marked complete.
+                        [RT #23253]
+
 3117.	[cleanup]	Remove doc and parser references to the
 			never-implemented 'auto-dnssec create' option.
 			[RT #24533]
@@ -367,6 +453,13 @@
 3115.	[bug]		Named could fail to return requested data when
 			following a CNAME that points into the same zone.
 			[RT #24455]
+
+3114.   [bug]           Retain expired RRSIGs in dynamic zones if key is
+                        inactive and there is no replacement key. [RT #23136]
+
+3111.   [bug]           Improved consistency checks for dnssec-enable and
+                        dnssec-validation, added test cases to the
+                        checkconf system test. [RT #24398]
 
 3108.	[cleanup]	dnssec-signzone: Clarified some error and
 			warning messages; removed #ifdef ALLOW_KSKLESS_ZONES
@@ -399,6 +492,9 @@
 
 3093.	[bug]		Fix gssapi/kerberos dependencies [RT #23836]
 
+3092.   [bug]           Signatures for records at the zone apex could go
+                        stale due to an incorrect timer setting. [RT #23769]
+
 3091.	[bug]		Fixed a bug in which zone keys that were published
 			and then subsequently activated could fail to trigger
 			automatic signing. [RT #22911]
@@ -426,6 +522,9 @@
 3072.	[bug]		dns_dns64_aaaaok() potential NULL pointer dereference.
 			[RT #20256]
 
+3070.   [bug]           dnssec-signzone potential NULL pointer dereference.
+                        [RT #20256]
+
 3057.	[bug]		"rndc secroots" would abort after the first error
 			and so could miss some views. [RT #23488]
 
@@ -438,7 +537,14 @@
 			Wait for the initial autosigning to complete
 			before running the rest of the test. [RT #23035]
 
+3049.   [bug]           Save and restore the gid when creating creating
+                        named.pid at startup. [RT #23290]
+
 3048.	[bug]		Fully separate view key mangement. [RT #23419]
+
+3047.   [bug]           DNSKEY NODATA responses not cached fixed in
+                        validator.c. Tests added to dnssec system test.
+                        [RT #22908]
 
 3045.	[removed]	Replaced by change #3050.
 
@@ -510,6 +616,11 @@
 2977.	[bug]		'nsupdate -l' report if the session key is missing.
 			[RT #21670]
 
+2974.   [bug]           Some valid UPDATE requests could fail due to a
+                        consistency check examining the existing version
+                        of the zone rather than the new version resulting
+                        from the UPDATE. [RT #22413]
+
 2973.	[bug]		bind.keys.h was being removed by the "make clean"
 			at the end of configure resulting in build failures
 			where there is very old version of perl installed.
@@ -520,6 +631,9 @@
 
 2961.	[bug]		Be still more selective about the non-authoritative
 			answers we apply change 2748 to. [RT #22074]
+
+2958.   [bug]           named failed to start with a missing master file.
+                        [RT #22076]
 
 2949.	[bug]		dns_view_setnewzones() contained a memory leak if
 			it was called multiple times. [RT #21942]
@@ -641,6 +755,9 @@
 
 2832.	[bug]		Modify "struct stat" in lib/export/samples/nsprobe.c
 			to avoid redefinition in some OSs [RT 20831]
+
+2830.   [bug]           Changing the OPTOUT setting could take multiple
+                        passes. [RT #20813]
 
 2829.	[bug]		Fixed potential node inconsistency in rbtdb.c.
 			[RT #20808]

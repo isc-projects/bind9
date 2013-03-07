@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -6956,9 +6956,9 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_message_destroy(&message);
  cleanup:
 	UNLOCK_ZONE(notify->zone);
+	isc_event_free(&event);
 	if (result != ISC_R_SUCCESS)
 		notify_destroy(notify, ISC_FALSE);
-	isc_event_free(&event);
 }
 
 static void

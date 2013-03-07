@@ -1,4 +1,4 @@
-; Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
+; Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -15,9 +15,5 @@
 ; $Id$
 
 $TTL 120
-@	SOA a.root-servers.nil hostmaster.root-servers.nil 1 1800 900 604800 86400
-@	NS  a.root-servers.nil
-a.root-servers.nil A 10.53.0.1
-dlv	NS  a.root-servers.nil
-nsec	NS  a.root-servers.nil
-nsec3	NS  a.root-servers.nil
+@	SOA a.root-servers.nil. hostmaster.root-servers.nil. 1 1800 900 604800 86400
+@	NS  a.root-servers.nil.
