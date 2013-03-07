@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -53,6 +53,9 @@
 static isc_result_t
 parse_enum_or_other(cfg_parser_t *pctx, const cfg_type_t *enumtype,
 		    const cfg_type_t *othertype, cfg_obj_t **ret);
+
+static void
+doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *type);
 
 static isc_result_t
 parse_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
@@ -559,6 +562,23 @@ static cfg_type_t cfg_type_updatemethod = {
 	&cfg_rep_string, &updatemethods_enums
 };
 
+/*
+ * zone-statistics: full, terse, or none.
+ *
+ * for backward compatibility, we also support boolean values.
+ * yes represents "full", no represents "terse". in the future we
+ * may change no to mean "none".
+ */
+static const char *zonestat_enums[] = { "full", "terse", "none", NULL };
+static isc_result_t
+parse_zonestat(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
+}
+static cfg_type_t cfg_type_zonestat = {
+	"zonestat", parse_zonestat, cfg_print_ustring, doc_enum_or_other,
+	&cfg_rep_string, zonestat_enums
+};
+
 static cfg_type_t cfg_type_rrsetorder = {
 	"rrsetorder", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list,
 	&cfg_rep_list, &cfg_type_rrsetorderingelement
@@ -1030,10 +1050,9 @@ static cfg_type_t cfg_type_masterformat = {
  *  response-policy {
  *	zone <string> [ policy (given|disabled|passthru|
  *					nxdomain|nodata|cname <domain> ) ]
- *		      [ recursive-only yes|no ]
- *		      [ max-policy-ttl number ] ;
- *  } [ recursive-only yes|no ] [ break-dnssec yes|no ]
- *	[ max-policy-ttl number ] ;
+ *		      [ recursive-only yes|no ] [ max-policy-ttl number ] ;
+ *  } [ recursive-only yes|no ] [ max-policy-ttl number ] ;
+ *	 [ break-dnssec yes|no ] [ min-ns-dots number ] ;
  */
 
 static void
@@ -1235,6 +1254,7 @@ static cfg_tuplefielddef_t rpz_fields[] = {
 	{ "recursive-only", &cfg_type_boolean, 0 },
 	{ "break-dnssec", &cfg_type_boolean, 0 },
 	{ "max-policy-ttl", &cfg_type_uint32, 0 },
+	{ "min-ns-dots", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_rpz = {
@@ -1515,7 +1535,7 @@ zone_clauses[] = {
 	{ "update-check-ksk", &cfg_type_boolean, 0 },
 	{ "use-alt-transfer-source", &cfg_type_boolean, 0 },
 	{ "zero-no-soa-ttl", &cfg_type_boolean, 0 },
-	{ "zone-statistics", &cfg_type_boolean, 0 },
+	{ "zone-statistics", &cfg_type_zonestat, 0 },
 	{ NULL, NULL, 0 }
 };
 

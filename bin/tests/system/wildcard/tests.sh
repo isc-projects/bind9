@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -53,6 +53,15 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo "I: checking that NSEC wildcard non-existance proof is returned validating + CD ($n)"
+ret=0
+$DIG $DIGOPTS +cd a b.wild.nsec @10.53.0.5 > dig.out.ns5.test$n || ret=1
+grep -i 'a\.wild\.nsec\..*NSEC.*nsec\..*NSEC'  dig.out.ns5.test$n > /dev/null || ret=1
+grep -i 'flags:.* ad[ ;]'  dig.out.ns5.test$n > /dev/null && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
 echo "I: checking that returned NSEC wildcard non-existance proof validates ($n)"
 ret=0
 $DIG $DIGOPTS a b.wild.nsec @10.53.0.4 > dig.out.ns4.test$n || ret=1
@@ -102,6 +111,15 @@ ret=0
 $DIG $DIGOPTS a b.wild.nsec3 @10.53.0.3 > dig.out.ns3.test$n || ret=1
 grep -i 'O3TJ8D9AJ54CBTFCQCJ3QK49CH7SF6H9\.nsec3\..*V5DLFB6UJNHR94LQ61FO607KGK12H88A'  dig.out.ns3.test$n > /dev/null || ret=1
 grep -i 'flags:.* ad[ ;]'  dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: checking that NSEC3 wildcard non-existance proof is returned validating + CD ($n)"
+ret=0
+$DIG $DIGOPTS +cd a b.wild.nsec3 @10.53.0.5 > dig.out.ns5.test$n || ret=1
+grep -i 'O3TJ8D9AJ54CBTFCQCJ3QK49CH7SF6H9\.nsec3\..*V5DLFB6UJNHR94LQ61FO607KGK12H88A'  dig.out.ns5.test$n > /dev/null || ret=1
+grep -i 'flags:.* ad[ ;]'  dig.out.ns5.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

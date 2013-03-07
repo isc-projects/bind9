@@ -25,6 +25,7 @@
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/mutex.h>
+#include <isc/pool.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/ratelimiter.h>
@@ -305,6 +306,7 @@ struct dns_zone {
 	 * Optional per-zone statistics counters.  Counted outside of this
 	 * module.
 	 */
+	dns_zonestat_level_t	statlevel;
 	isc_boolean_t		requeststats_on;
 	isc_stats_t		*requeststats;
 	dns_stats_t		*rcvquerystats;
@@ -344,9 +346,9 @@ struct dns_zone {
 	isc_boolean_t           added;
 
 	/*%
-	 * whether a rpz radix was needed when last loaded
+	 * whether this is a response policy zone
 	 */
-	isc_boolean_t           rpz_zone;
+	isc_boolean_t           is_rpz;
 
 	/*%
 	 * Serial number update method.
@@ -465,6 +467,7 @@ struct dns_zonemgr {
 	isc_taskpool_t *	zonetasks;
 	isc_taskpool_t *	loadtasks;
 	isc_task_t *		task;
+	isc_pool_t *		mctxpool;
 	isc_ratelimiter_t *	rl;
 	isc_rwlock_t		rwlock;
 	isc_mutex_t		iolock;
@@ -902,6 +905,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->statelist = NULL;
 	zone->stats = NULL;
 	zone->requeststats_on = ISC_FALSE;
+	zone->statlevel = dns_zonestat_none;
 	zone->requeststats = NULL;
 	zone->rcvquerystats = NULL;
 	zone->notifydelay = 5;
@@ -913,7 +917,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->nodes = 100;
 	zone->privatetype = (dns_rdatatype_t)0xffffU;
 	zone->added = ISC_FALSE;
-	zone->rpz_zone = ISC_FALSE;
+	zone->is_rpz = ISC_FALSE;
 	ISC_LIST_INIT(zone->forwards);
 	zone->raw = NULL;
 	zone->secure = NULL;
@@ -1505,6 +1509,31 @@ dns_zone_isdynamic(dns_zone_t *zone, isc_boolean_t ignore_freeze) {
 
 }
 
+/*
+ * Set the response policy index and information for a zone.
+ */
+isc_result_t
+dns_zone_rpz_enable(dns_zone_t *zone) {
+	/*
+	 * Only RBTDB zones can be used for response policy zones,
+	 * because only they have the code to load the create the summary data.
+	 * Only zones that are loaded instead of mmap()ed create the
+	 * summary data and so can be policy zones.
+	 */
+	if (strcmp(zone->db_argv[0], "rbt") != 0 &&
+	    strcmp(zone->db_argv[0], "rbt64") != 0)
+		return (ISC_R_NOTIMPLEMENTED);
+
+	zone->is_rpz = ISC_TRUE;
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_boolean_t
+dns_zone_get_rpz(dns_zone_t *zone) {
+	return (zone->is_rpz);
+}
+
 static isc_result_t
 zone_load(dns_zone_t *zone, unsigned int flags) {
 	isc_result_t result;
@@ -1582,8 +1611,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		 * "rndc reconfig", we are done.
 		 */
 		if (!isc_time_isepoch(&zone->loadtime) &&
-		    (flags & DNS_ZONELOADFLAG_NOSTAT) != 0 &&
-		    zone->rpz_zone == dns_rpz_needed()) {
+		    (flags & DNS_ZONELOADFLAG_NOSTAT) != 0) {
 			result = ISC_R_SUCCESS;
 			goto cleanup;
 		}
@@ -1592,8 +1620,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		if (result == ISC_R_SUCCESS) {
 			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE) &&
-			    isc_time_compare(&filetime, &zone->loadtime) <= 0 &&
-			    zone->rpz_zone == dns_rpz_needed()) {
+			    isc_time_compare(&filetime, &zone->loadtime) <= 0) {
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
 					     "skipping load: master file "
 					     "older than last load");
@@ -1601,7 +1628,6 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 				goto cleanup;
 			}
 			loadtime = filetime;
-			zone->rpz_zone = dns_rpz_needed();
 		}
 	}
 
@@ -1961,8 +1987,15 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	isc_result_t tresult;
 	unsigned int options;
 
-	options = get_master_options(zone);
+#ifdef BIND9
+	if (zone->is_rpz) {
+		result = dns_db_rpz_enabled(db, NULL);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+#endif
 
+	options = get_master_options(zone);
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
 		options |= DNS_MASTER_MANYERRORS;
 
@@ -8856,6 +8889,7 @@ dns_zone_dump(dns_zone_t *zone) {
 
 static void
 zone_needdump(dns_zone_t *zone, unsigned int delay) {
+	const char me[] = "zone_needdump";
 	isc_time_t dumptime;
 	isc_time_t now;
 
@@ -8865,6 +8899,7 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
+	ENTER;
 
 	/*
 	 * Do we have a place to dump to and are we loaded?
@@ -9567,9 +9602,9 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_message_destroy(&message);
  cleanup:
 	UNLOCK_ZONE(notify->zone);
+	isc_event_free(&event);
 	if (result != ISC_R_SUCCESS)
 		notify_destroy(notify, ISC_FALSE);
-	isc_event_free(&event);
 }
 
 static void
@@ -13223,6 +13258,8 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		 * won't hurt with an AXFR.
 		 */
 		if (zone->masterfile != NULL || zone->journal != NULL) {
+			unsigned int delay = DNS_DUMP_DELAY;
+
 			result = ISC_R_FAILURE;
 			if (zone->journal != NULL)
 				result = isc_file_settime(zone->journal, &now);
@@ -13230,14 +13267,16 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			    zone->masterfile != NULL)
 				result = isc_file_settime(zone->masterfile,
 							  &now);
-			/* Someone removed the file from underneath us! */
-			if (result == ISC_R_FILENOTFOUND &&
-			    zone->masterfile != NULL) {
-				unsigned int delay = DNS_DUMP_DELAY;
-				if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NODELAY))
-					delay = 0;
+
+			if ((DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NODELAY) != 0) ||
+			    result == ISC_R_FILENOTFOUND)
+				delay = 0;
+
+			if ((result == ISC_R_SUCCESS ||
+			    result == ISC_R_FILENOTFOUND) &&
+			    zone->masterfile != NULL)
 				zone_needdump(zone, delay);
-			} else if (result != ISC_R_SUCCESS)
+			else if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "transfer: could not set file "
 					     "modification time of '%s': %s",
@@ -13895,6 +13934,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->socketmgr = socketmgr;
 	zmgr->zonetasks = NULL;
 	zmgr->loadtasks = NULL;
+	zmgr->mctxpool = NULL;
 	zmgr->task = NULL;
 	zmgr->rl = NULL;
 	ISC_LIST_INIT(zmgr->zones);
@@ -13959,6 +13999,33 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  free_mem:
 	isc_mem_put(zmgr->mctx, zmgr, sizeof(*zmgr));
 	isc_mem_detach(&mctx);
+	return (result);
+}
+
+isc_result_t
+dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
+	isc_result_t result;
+	isc_mem_t *mctx = NULL;
+	dns_zone_t *zone = NULL;
+	void *item;
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+	REQUIRE(zonep != NULL && *zonep == NULL);
+
+	if (zmgr->mctxpool == NULL)
+		return (ISC_R_FAILURE);
+
+	item = isc_pool_get(zmgr->mctxpool);
+	if (item == NULL)
+		return (ISC_R_FAILURE);
+
+	isc_mem_attach((isc_mem_t *) item, &mctx);
+	result = dns_zone_create(&zone, mctx);
+	isc_mem_detach(&mctx);
+
+	if (result == ISC_R_SUCCESS)
+		*zonep = zone;
+
 	return (result);
 }
 
@@ -14128,6 +14195,8 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 		isc_taskpool_destroy(&zmgr->zonetasks);
 	if (zmgr->loadtasks != NULL)
 		isc_taskpool_destroy(&zmgr->loadtasks);
+	if (zmgr->mctxpool != NULL)
+		isc_pool_destroy(&zmgr->mctxpool);
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 	for (zone = ISC_LIST_HEAD(zmgr->zones);
@@ -14141,21 +14210,54 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 }
 
+static isc_result_t
+mctxinit(void **target, void *arg) {
+	isc_result_t result;
+	isc_mem_t *mctx = NULL;
+
+	UNUSED(arg);
+
+	REQUIRE(target != NULL && *target == NULL);
+
+	result = isc_mem_create(0, 0, &mctx);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	isc_mem_setname(mctx, "zonemgr-pool", NULL);
+
+	*target = mctx;
+	return (ISC_R_SUCCESS);
+}
+
+static void
+mctxfree(void **target) {
+	isc_mem_t *mctx = *(isc_mem_t **) target;
+	isc_mem_detach(&mctx);
+	*target = NULL;
+}
+
+#define ZONES_PER_TASK 100
+#define ZONES_PER_MCTX 1000
+
 isc_result_t
 dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 	isc_result_t result;
-	int ntasks = num_zones / 100;
+	int ntasks = num_zones / ZONES_PER_TASK;
+	int nmctx = num_zones / ZONES_PER_MCTX;
 	isc_taskpool_t *pool = NULL;
+	isc_pool_t *mctxpool = NULL;
 
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	/*
 	 * For anything fewer than 1000 zones we use 10 tasks in
 	 * the task pools.  More than that, and we'll scale at one
-	 * task per 100 zones.
+	 * task per 100 zones.  Similarly, for anything smaller than
+	 * 2000 zones we use 2 memory contexts, then scale at 1:1000.
 	 */
 	if (ntasks < 10)
 		ntasks = 10;
+	if (nmctx < 2)
+		nmctx = 2;
 
 	/* Create or resize the zone task pools. */
 	if (zmgr->zonetasks == NULL)
@@ -14193,6 +14295,16 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 	 */
 	isc_taskpool_setprivilege(zmgr->loadtasks, ISC_TRUE);
 #endif
+
+	/* Create or resize the zone memory context pool. */
+	if (zmgr->mctxpool == NULL)
+		result = isc_pool_create(zmgr->mctx, nmctx, mctxfree,
+					 mctxinit, NULL, &mctxpool);
+	else
+		result = isc_pool_expand(&zmgr->mctxpool, nmctx, &mctxpool);
+
+	if (result == ISC_R_SUCCESS)
+		zmgr->mctxpool = mctxpool;
 
 	return (result);
 }
@@ -14787,8 +14899,6 @@ dns_zone_setrequeststats(dns_zone_t *zone, isc_stats_t *stats) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	dns_zone_log(zone, ISC_LOG_INFO, "Setting zone query stats");
-
 	LOCK_ZONE(zone);
 	if (zone->requeststats_on && stats == NULL)
 		zone->requeststats_on = ISC_FALSE;
@@ -14806,8 +14916,6 @@ void
 dns_zone_setrcvquerystats(dns_zone_t *zone, dns_stats_t *stats) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-
-	dns_zone_log(zone, ISC_LOG_INFO, "Setting received query stats");
 
 	LOCK_ZONE(zone);
 	if (zone->requeststats_on && stats != NULL) {
@@ -16528,4 +16636,18 @@ dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
 		isc_event_free(&e);
 	UNLOCK_ZONE(zone);
 	return (result);
+}
+
+void
+dns_zone_setstatlevel(dns_zone_t *zone, dns_zonestat_level_t level) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone->statlevel = level;
+}
+
+dns_zonestat_level_t
+dns_zone_getstatlevel(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->statlevel);
 }

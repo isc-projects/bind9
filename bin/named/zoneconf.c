@@ -827,7 +827,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 #ifdef NEWSTATS
 	dns_stats_t *rcvquerystats;
 #endif
-	isc_boolean_t zonestats_on;
+	dns_zonestat_level_t statlevel;
 	int seconds;
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
 
@@ -1009,13 +1009,29 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	obj = NULL;
 	result = ns_config_get(maps, "zone-statistics", &obj);
 	INSIST(result == ISC_R_SUCCESS && obj != NULL);
-	zonestats_on = cfg_obj_asboolean(obj);
+	if (cfg_obj_isboolean(obj)) {
+		if (cfg_obj_asboolean(obj))
+			statlevel = dns_zonestat_full;
+		else
+			statlevel = dns_zonestat_terse; /* XXX */
+	} else {
+		const char *levelstr = cfg_obj_asstring(obj);
+		if (strcasecmp(levelstr, "full") == 0)
+			statlevel = dns_zonestat_full;
+		else if (strcasecmp(levelstr, "terse") == 0)
+			statlevel = dns_zonestat_terse;
+		else if (strcasecmp(levelstr, "none") == 0)
+			statlevel = dns_zonestat_none;
+		else
+			INSIST(0);
+	}
+	dns_zone_setstatlevel(zone, statlevel);
 
 	zoneqrystats  = NULL;
 #ifdef NEWSTATS
 	rcvquerystats = NULL;
 #endif
-	if (zonestats_on) {
+	if (statlevel == dns_zonestat_full) {
 		RETERR(isc_stats_create(mctx, &zoneqrystats,
 					dns_nsstatscounter_max));
 #ifdef NEWSTATS

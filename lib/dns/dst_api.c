@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1135,7 +1135,7 @@ dst_key_free(dst_key_t **keyp) {
 		isc_buffer_free(&key->key_tkeytoken);
 	}
 	memset(key, 0, sizeof(dst_key_t));
-	isc_mem_put(mctx, key, sizeof(dst_key_t));
+	isc_mem_putanddetach(&mctx, key, sizeof(dst_key_t));
 	*keyp = NULL;
 }
 
@@ -1255,7 +1255,7 @@ dst_key_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
 	REQUIRE(length != NULL && *length == 0);
 	REQUIRE(VALID_KEY(key));
 
-	if (key->func->isprivate == NULL)
+	if (key->func->dump == NULL)
 		return (ISC_R_NOTIMPLEMENTED);
 	return (key->func->dump(key, mctx, buffer, length));
 }
@@ -1334,10 +1334,10 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 		isc_mem_put(mctx, key, sizeof(dst_key_t));
 		return (NULL);
 	}
+	isc_mem_attach(mctx, &key->mctx);
 	key->key_alg = alg;
 	key->key_flags = flags;
 	key->key_proto = protocol;
-	key->mctx = mctx;
 	key->keydata.generic = NULL;
 	key->key_size = bits;
 	key->key_class = rdclass;

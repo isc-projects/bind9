@@ -74,7 +74,7 @@ nsupdate.@O@: nsupdate.c
 		-c ${srcdir}/nsupdate.c
 
 nsupdate@EXEEXT@: nsupdate.@O@ ${UOBJS} ${DEPLIBS}
-	export BASEOBJS="${READLINE_LIB} nsupdate.@O@ ${UOBJS}"; \
+	export BASEOBJS="nsupdate.@O@ ${READLINE_LIB} ${UOBJS}"; \
 	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}

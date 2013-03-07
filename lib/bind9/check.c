@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1785,20 +1785,27 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * If the zone type is rbt/rbt64 then master/hint zones
 	 * require file clauses.
+	 * If inline signing is used, then slave zones require a
+	 * file clause as well
 	 */
 	obj = NULL;
 	tresult = cfg_map_get(zoptions, "database", &obj);
 	if (tresult == ISC_R_NOTFOUND ||
 	    (tresult == ISC_R_SUCCESS &&
 	     (strcmp("rbt", cfg_obj_asstring(obj)) == 0 ||
-	      strcmp("rbt64", cfg_obj_asstring(obj)) == 0))) {
+	      strcmp("rbt64", cfg_obj_asstring(obj)) == 0)))
+	{
+		isc_result_t res1;
 		obj = NULL;
 		tresult = cfg_map_get(zoptions, "file", &obj);
-		if (tresult != ISC_R_SUCCESS &&
-		    (ztype == MASTERZONE || ztype == HINTZONE)) {
+		obj = NULL;
+		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
+		if ((tresult != ISC_R_SUCCESS &&
+		    (ztype == MASTERZONE || ztype == HINTZONE)) ||
+		    (ztype == SLAVEZONE && res1 == ISC_R_SUCCESS)) {
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-				    "zone '%s': missing 'file' entry",
-				    znamestr);
+			    "zone '%s': missing 'file' entry",
+			    znamestr);
 			result = tresult;
 		}
 	}

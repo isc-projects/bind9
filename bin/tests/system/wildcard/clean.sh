@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -22,6 +22,7 @@ rm -f ns1/K*
 rm -f ns1/*.db
 rm -f ns1/*.signed
 rm -f ns1/dsset-*
+rm -f ns1/keyset-*
 rm -f ns1/trusted.conf
 rm -f ns1/private.nsec.conf
 rm -f ns1/private.nsec3.conf

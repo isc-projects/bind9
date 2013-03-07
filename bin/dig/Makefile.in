@@ -80,7 +80,7 @@ host@EXEEXT@: host.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 	${FINALBUILDCMD}
 
 nslookup@EXEEXT@: nslookup.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-	export BASEOBJS="${READLINE_LIB} nslookup.@O@ dighost.@O@ ${UOBJS}"; \
+	export BASEOBJS="nslookup.@O@ dighost.@O@ ${READLINE_LIB} ${UOBJS}"; \
 	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}

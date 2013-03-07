@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -2329,7 +2329,7 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 				continue;
 			}
 			if (is_delegation(gdb, gversion, gorigin,
-							  nextname, nextnode, NULL))
+					  nextname, nextnode, NULL))
 			{
 				zonecut = dns_fixedname_name(&fzonecut);
 				dns_name_copy(nextname, zonecut, NULL);
@@ -3481,23 +3481,6 @@ main(int argc, char *argv[]) {
 	else
 		set_nsec3params(update_chain, set_salt, set_optout, set_iter);
 
-	if (IS_NSEC3) {
-		isc_boolean_t answer;
-		hash_length = dns_nsec3_hashlength(dns_hash_sha1);
-		hashlist_init(&hashlist, dns_db_nodecount(gdb) * 2,
-			      hash_length);
-		result = dns_nsec_nseconly(gdb, gversion, &answer);
-		if (result == ISC_R_NOTFOUND)
-			fprintf(stderr, "%s: warning: NSEC3 generation "
-				"requested with no DNSKEY; ignoring\n",
-				program);
-		else if (result != ISC_R_SUCCESS)
-			check_result(result, "dns_nsec_nseconly");
-		else if (answer)
-			fatal("NSEC3 generation requested with "
-			      "NSEC-only DNSKEY");
-	}
-
 	/*
 	 * We need to do this early on, as we start messing with the list
 	 * of keys rather early.
@@ -3550,6 +3533,22 @@ main(int argc, char *argv[]) {
 
 	if (IS_NSEC3) {
 		unsigned int max;
+		isc_boolean_t answer;
+
+		hash_length = dns_nsec3_hashlength(dns_hash_sha1);
+		hashlist_init(&hashlist, dns_db_nodecount(gdb) * 2,
+			      hash_length);
+		result = dns_nsec_nseconly(gdb, gversion, &answer);
+		if (result == ISC_R_NOTFOUND)
+			fprintf(stderr, "%s: warning: NSEC3 generation "
+				"requested with no DNSKEY; ignoring\n",
+				program);
+		else if (result != ISC_R_SUCCESS)
+			check_result(result, "dns_nsec_nseconly");
+		else if (answer)
+			fatal("NSEC3 generation requested with "
+			      "NSEC-only DNSKEY");
+
 		result = dns_nsec3_maxiterations(gdb, NULL, mctx, &max);
 		check_result(result, "dns_nsec3_maxiterations()");
 		if (nsec3iter > max)

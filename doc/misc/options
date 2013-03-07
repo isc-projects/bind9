@@ -206,7 +206,7 @@ options {
             | passthru | no-op | nxdomain | nodata | cname <quoted_string>
             ) ] [ recursive-only <boolean> ] [ max-policy-ttl <integer> ];
             ... } [ recursive-only <boolean> ] [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ];
+            max-policy-ttl <integer> ] [ min-ns-dots <integer> ];
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
@@ -253,7 +253,7 @@ options {
         version ( <quoted_string> | none );
         zero-no-soa-ttl <boolean>;
         zero-no-soa-ttl-cache <boolean>;
-        zone-statistics <boolean>;
+        zone-statistics <zonestat>;
 };
 
 server <netprefix> {
@@ -417,7 +417,7 @@ view <string> <optional_class> {
             | passthru | no-op | nxdomain | nodata | cname <quoted_string>
             ) ] [ recursive-only <boolean> ] [ max-policy-ttl <integer> ];
             ... } [ recursive-only <boolean> ] [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ];
+            max-policy-ttl <integer> ] [ min-ns-dots <integer> ];
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
@@ -553,9 +553,9 @@ view <string> <optional_class> {
                     ] <rrtypelist>; ... };
                 use-alt-transfer-source <boolean>;
                 zero-no-soa-ttl <boolean>;
-                zone-statistics <boolean>;
+                zone-statistics <zonestat>;
         };
-        zone-statistics <boolean>;
+        zone-statistics <zonestat>;
 };
 
 zone <string> <optional_class> {
@@ -641,6 +641,6 @@ zone <string> <optional_class> {
             | zonesub | external ) [ <string> ] <rrtypelist>; ... };
         use-alt-transfer-source <boolean>;
         zero-no-soa-ttl <boolean>;
-        zone-statistics <boolean>;
+        zone-statistics <zonestat>;
 };
 

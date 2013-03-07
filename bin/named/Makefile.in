@@ -1,4 +1,4 @@
-# Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -20,6 +20,8 @@ VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
+
+@BIND9_PRODUCT@
 
 @BIND9_SRCID@
 
@@ -116,6 +118,7 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 main.@O@: main.c
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
+		-DPRODUCT=\"${PRODUCT}\" \
 		-DSRCID=\"${SRCID}\" \
 		-DCONFIGARGS="\"${CONFIGARGS}\"" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
@@ -155,8 +158,11 @@ maintainer-clean::
 bind9.xsl.h: bind9.xsl ${srcdir}/convertxsl.pl
 	${PERL} ${srcdir}/convertxsl.pl < ${srcdir}/bind9.xsl > bind9.xsl.h
 
-depend: bind9.xsl.h
-statschannel.@O@: bind9.xsl.h
+bind9.ver3.xsl.h: bind9.ver3.xsl ${srcdir}/convertxsl.pl
+	${PERL} ${srcdir}/convertxsl.pl < ${srcdir}/bind9.ver3.xsl > bind9.ver3.xsl.h
+
+depend: bind9.xsl.h bind9.ver3.xsl.h
+statschannel.@O@: bind9.xsl.h bind9.ver3.xsl.h
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}

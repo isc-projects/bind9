@@ -1050,6 +1050,32 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking NSEC3 signing with empty nonterminals above a delegation ($n)"
+ret=0
+zone=example
+key1=`$KEYGEN -K signer -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+(
+cd signer
+cat example.db.in $key1.key $key2.key > example3.db
+echo "some.empty.nonterminal.nodes.example 60 IN NS ns.example.tld" >> example3.db
+$SIGNER -3 - -A -H 10 -o example -f example3.db example3.db > /dev/null 2>&1
+awk '/^IQF9LQTLK/ {
+		printf("%s", $0);
+		while (!index($0, ")")) {
+			if (getline <= 0)
+				break;
+			printf (" %s", $0); 
+		}
+		printf("\n");
+	}' example.db | sed 's/[ 	][ 	]*/ /g' > nsec3param.out
+
+grep "IQF9LQTLKKNFK0KVIFELRAK4IC4QLTMG.example. 0 IN NSEC3 1 0 10 - ( IQF9LQTLKKNFK0KVIFELRAK4IC4QLTMG A NS SOA RRSIG DNSKEY NSEC3PARAM )" nsec3param.out > /dev/null
+) || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking that dnsssec-signzone updates originalttl on ttl changes ($n)"
 ret=0
 zone=example

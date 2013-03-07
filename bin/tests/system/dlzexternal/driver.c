@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -352,7 +352,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		strcpy(buf, "unknown");
 		if (methods != NULL &&
 		    methods->version - methods->age <=
-		   	 DNS_CLIENTINFOMETHODS_VERSION &&
+			 DNS_CLIENTINFOMETHODS_VERSION &&
 		    DNS_CLIENTINFOMETHODS_VERSION <= methods->version)
 		{
 			methods->sourceip(clientinfo, &src);

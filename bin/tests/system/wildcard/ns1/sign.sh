@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -21,6 +21,20 @@ SYSTEMTESTTOP=../..
 
 RANDFILE=../random.data
 dssets=
+
+zone=dlv.
+infile=dlv.db.in
+zonefile=dlv.db
+outfile=dlv.db.signed
+dssets="$dssets dsset-$zone"
+
+keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null` 
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null`
+
+cat $infile $keyname1.key $keyname2.key > $zonefile
+
+$SIGNER -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+echo "I: signed $zone"
 
 zone=nsec.
 infile=nsec.db.in

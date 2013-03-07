@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -201,7 +201,7 @@ options {\n\
 	sig-signing-signatures 10;\n\
 	sig-signing-type 65534;\n\
 	inline-signing no;\n\
-	zone-statistics false;\n\
+	zone-statistics terse;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
 	check-wildcard yes;\n\
