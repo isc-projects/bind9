@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -34,6 +34,7 @@
 
 #include <dns/masterdump.h>
 #include <dns/rdatastruct.h>
+#include <dns/rpz.h>
 #include <dns/types.h>
 
 typedef enum {
@@ -1897,6 +1898,15 @@ dns_zone_synckeyzone(dns_zone_t *zone);
  * Force the managed key zone to synchronize, and start the key
  * maintenance timer.
  */
+
+isc_result_t
+dns_zone_rpz_enable(dns_zone_t *zone);
+/*%
+ * Set the response policy associated with a zone.
+ */
+
+isc_boolean_t
+dns_zone_get_rpz(dns_zone_t *zone);
 
 ISC_LANG_ENDDECLS
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1018,10 +1018,9 @@ static cfg_type_t cfg_type_masterformat = {
  *  response-policy {
  *	zone <string> [ policy (given|disabled|passthru|
  *					nxdomain|nodata|cname <domain> ) ]
- *		      [ recursive-only yes|no ]
- *		      [ max-policy-ttl number ] ;
- *  } [ recursive-only yes|no ] [ break-dnssec yes|no ]
- *	[ max-policy-ttl number ] ;
+ *		      [ recursive-only yes|no ] [ max-policy-ttl number ] ;
+ *  } [ recursive-only yes|no ] [ max-policy-ttl number ] ;
+ *	 [ break-dnssec yes|no ] [ min-ns-dots number ] ;
  */
 
 static void
@@ -1223,6 +1222,7 @@ static cfg_tuplefielddef_t rpz_fields[] = {
 	{ "recursive-only", &cfg_type_boolean, 0 },
 	{ "break-dnssec", &cfg_type_boolean, 0 },
 	{ "max-policy-ttl", &cfg_type_uint32, 0 },
+	{ "min-ns-dots", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_rpz = {

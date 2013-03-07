@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2005, 2007, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2005, 2007, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -115,6 +115,14 @@ $PERL -i -p -e '
 $RNDC -c ../common/rndc.conf -s 10.53.0.7 -p 9953 reload 2>&1 | sed 's/^/I:ns7 /'
 
 sleep 3
+
+echo "I:testing zone is dumped after successful transfer"
+$DIG $DIGOPTS +noall +answer +multi @10.53.0.2 -p 5300 \
+	slave. soa > dig.out.ns2 || tmp=1
+grep "1397051952 ; serial" dig.out.ns2 > /dev/null 2>&1 || tmp=1
+grep "1397051952 ; serial" ns2/slave.db > /dev/null 2>&1 || tmp=1
+if test $tmp != 0 ; then echo "I:failed"; fi
+status=`expr $status + $tmp`
 
 echo "I:testing ixfr-from-differences yes;"
 tmp=0

@@ -3275,31 +3275,45 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
               </entry>
               <entry colname="2">
                 <para>
-                  A number, the word <userinput>unlimited</userinput>,
-                  or the word <userinput>default</userinput>.
-                </para>
-		<para>
-                  An <varname>unlimited</varname> <varname>size_spec</varname> requests unlimited
-                  use, or the maximum available amount. A <varname>default size_spec</varname> uses
-                  the limit that was in force when the server was started.
+                  A 64-bit unsigned integer, or the keywords
+                  <userinput>unlimited</userinput> or
+                  <userinput>default</userinput>.
                 </para>
                 <para>
-                  A <varname>number</varname> can optionally be
-		  followed by a scaling factor:
+                  Integers may take values
+                  0 &lt;= value &lt;= 18446744073709551615, though
+                  certain parameters may use a more limited range
+                  within these extremes.  In most cases, setting a
+                  value to 0 does not literally mean zero; it means
+                  "undefined" or "as big as psosible", depending on
+                  the context. See the expalantions of particular
+                  parameters that use <varname>size_spec</varname>
+                  for details on how they interpret its use. 
+                </para>
+                <para>
+                  Numeric values can optionally be followed by a
+                  scaling factor:
 		  <userinput>K</userinput> or <userinput>k</userinput>
 		  for kilobytes,
 		  <userinput>M</userinput> or <userinput>m</userinput>
 		  for megabytes, and
-		  <userinput>G</userinput> or <userinput>g</userinput> for gigabytes,
-                  which scale by 1024, 1024*1024, and 1024*1024*1024
-                  respectively.
+                  <userinput>G</userinput> or <userinput>g</userinput>
+                  for gigabytes, which scale by 1024, 1024*1024, and
+                  1024*1024*1024 respectively.
                 </para>
-                <para>
-                  The value must be representable as a 64-bit unsigned integer
-                  (0 to 18446744073709551615, inclusive).
-                  Using <varname>unlimited</varname> is the best
-                  way
-                  to safely set a really large number.
+		<para>
+                  <varname>unlimited</varname> generally means
+                  "as big as possible", though in certain contexts,
+                  (including <option>max-cache-size</option>), it may
+                  mean the largest possible 32-bit unsigned integer
+                  (0xffffffff); this distinction can be important when
+                  dealing with larger quantities. 
+                  <varname>unlimited</varname> is usually the best way
+                  to safely set a very large number.
+                </para>
+		<para>
+                  <varname>default</varname> 
+                  uses the limit that was in force when the server was started.
                 </para>
               </entry>
             </row>
@@ -5217,7 +5231,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> policy given | disabled | passthru | nxdomain | nodata | cname <replaceable>domain</replaceable> </optional>
 	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional> ;
     } <optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional>
-	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional> ; </optional>
+	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional> <optional> min-ns-dots <replaceable>number</replaceable> </optional> ; </optional>
 };
 </programlisting>
 
@@ -8834,12 +8848,16 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
             built-in view (see <xref linkend="view_statement_grammar"/>) of
             class
             <command>CHAOS</command> which is separate from the
-            default view of
-            class <command>IN</command>; therefore, any global
-            server options
-            such as <command>allow-query</command> do not apply
-            the these zones.
-            If you feel the need to disable these zones, use the options
+            default view of class <command>IN</command>. Most global
+            configuration options (<command>allow-query</command>,
+            etc) will apply to this view, but some are locally
+            overridden: <command>notify</command>,
+            <command>recursion</command> and
+            <command>allow-new-zones</command> are
+            always set to <userinput>no</userinput>.
+          </para>
+          <para>
+            If you need to disable these zones, use the options
             below, or hide the built-in <command>CHAOS</command>
             view by
             defining an explicit view of class <command>CHAOS</command>
@@ -9407,14 +9425,15 @@ deny-answer-aliases { "example.net"; };
 	    They are encoded as subdomains of
 	    <userinput>rpz-nsdomain</userinput> relativized
 	    to the RPZ origin name.
-	  </para>
-
-	  <para>
 	    NSIP triggers match IP addresses in A and
 	    AAAA RRsets for domains that can be checked against NSDNAME
 	    policy records.
 	    NSIP triggers are encoded like IP triggers except as subdomains of
 	    <userinput>rpz-nsip</userinput>.
+	    NSDNAME and NSIP triggers are checked only for names with at
+	    least <command>min-ns-dots</command> dots.
+	    The default value of <command>min-ns-dots</command> is 1 to
+	    exclude top level domains.
 	  </para>
 
 	  <para>
@@ -9454,17 +9473,6 @@ deny-answer-aliases { "example.net"; };
 	  </para>
 
 	  <para>
-	    Authority verification issues and variations in authority data
-	    can cause inconsistent results for NSIP and NSDNAME policy records.
-	    Glue NS records often differ from authoritative NS records.
-	    So they are available
-	    only when <acronym>BIND</acronym> is built with the
-	    <userinput>--enable-rpz-nsip</userinput> or
-	    <userinput>--enable-rpz-nsdname</userinput> options
-	    on the "configure" command line.
-	  </para>
-
-	  <para>
 	    RPZ record sets are sets of any types of DNS record except
 	    DNAME or DNSSEC that encode actions or responses to queries.
 	    <itemizedlist>
@@ -9488,7 +9496,7 @@ deny-answer-aliases { "example.net"; };
 		walled garden's authority DNS server.
 	      </listitem>
 	      <listitem>The <command>PASSTHRU</command> policy is specified
-		by a CNAME whose target is <command>rpz_passthru.</command>
+		by a CNAME whose target is <command>rpz-passthru.</command>
 		It causes the response to not be rewritten
 		and is most often used to "poke holes" in policies for
 		CIDR blocks.
@@ -9602,20 +9610,26 @@ bzone.domain.com        CNAME   garden.example.com.
 ns.domain.com.rpz-nsdname   CNAME   .
 48.zz.2.2001.rpz-nsip       CNAME   .
 </programlisting>
-	  <para>
-            Note: RPZ may impact server performance.  Each configured
-            response policy zone requires the server to perform one to four
-            additional database lookups before a query can be answered.
+          <para>
+            RPZ can affect server performance.
+            Each configured response policy zone requires the server to
+            perform one to four additional database lookups before a
+            query can be answered.
             For example, a DNS server with four policy zones, each with all
-            four kinds of response triggers &mdash; QNAME, IP, NSIP, and
-            NSDNAME &mdash; requires a total of 17 times as many database
+            four kinds of response triggers, QNAME, IP, NSIP, and
+            NSDNAME, requires a total of 17 times as many database
             lookups as a similar DNS server with no response policy zones.
             A <acronym>BIND9</acronym> server with adequate memory and one
             response policy zone with QNAME and IP triggers might achieve a
-            maximum queries-per-second rate about 20% lower.  A server with
-            four response policy zones with QNAME and IP triggers might
-            have a maximum QPS rate about 50% lower.
-	  </para>
+            maximum queries-per-second rate about 20% lower.
+            A server with four response policy zones with QNAME and IP
+            triggers might have a maximum QPS rate about 50% lower.
+          </para>
+
+          <para>
+            Responses rewritten by RPZ are counted in the
+            <command>RPZRewrites</command> statistics.
+          </para>
         </sect3>
       </sect2>
 
@@ -14187,6 +14201,19 @@ HOST-127.EXAMPLE. MX 0 .
 		    <entry colname="3">
 		      <para>
 			Dynamic updates rejected due to prerequisite failure.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>RPZRewrites</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Response policy zone rewrites.
 		      </para>
 		    </entry>
 		  </row>

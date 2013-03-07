@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -2433,7 +2433,7 @@ cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **objp) {
 	REQUIRE(pctx != NULL);
 
 	obj = *objp;
-	
+
 	isc_refcount_decrement(&obj->references, &refs);
 	if (refs == 0) {
 		obj->type->rep->free(pctx, obj);

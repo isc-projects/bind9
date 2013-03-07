@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1198,7 +1198,7 @@ dst_key_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
 	REQUIRE(length != NULL && *length == 0);
 	REQUIRE(VALID_KEY(key));
 
-	if (key->func->isprivate == NULL)
+	if (key->func->dump == NULL)
 		return (ISC_R_NOTIMPLEMENTED);
 	return (key->func->dump(key, mctx, buffer, length));
 }

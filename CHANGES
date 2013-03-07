@@ -1,11 +1,84 @@
+	--- 9.8.5b2 released ---
+
+3517.	[bug]		Reorder destruction to avoid shutdown race. [RT #32777]
+
+3515.	[port]		'%T' is not portable in strftime(). [RT #32763]
+
+3514.	[bug]		The ranges for valid key sizes in ddns-confgen and
+			rndc-confgen were too constrained. Keys up to 512
+			bits are now allowed for most algorithms, and up
+			to 1024 bits for hmac-sha384 and hmac-sha512.
+			[RT #32753]
+
+3509.	[cleanup]	Added a product line to version file to allow for
+			easy naming of different products (BIND
+			vs BIND ESV, for example). [RT #32755]
+
+3508.	[contrib]	queryperf was incorrectly rejecting the -T option.
+			[RT #32338]
+
+3503.	[doc]		Clarify size_spec syntax. [RT #32449]
+
+3500.	[port]		Support NAPTR regular expression validation on
+			all platforms.  [RT #32688]
+
+3499.	[doc]		Corrected ARM documentation of built-in zones.
+			[RT #32694]
+
+3498.	[bug]		zone statistics for zones which matched a potential
+			empty zone could have their zone-statistics setting
+			overridden.
+
+3496.	[func]		Improvements to RPZ performance. The "response-policy"
+			syntax now includes a "min-ns-dots" clause, with
+			default 1, to exclude top-level domains from
+			NSIP and NSDNAME checking. --enable-rpz-nsip and
+			--enable-rpz-nsdname are now the default. [RT #32251]
+
+3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
+			When cloning a rdataset do not copy the link contents.
+			[RT #32651]
+
+3488.	[bug]		Use after free error with DH generated keys. [RT #32649]
+
+3487.	[bug]		Change 3444 was not complete.  There was a additional
+			place where the NOQNAME proof needed to be saved.
+			[RT #32629]
+
+3486.	[bug]		named could crash when using TKEY-negotiated keys
+			that had been deleted and then recreated. [RT #32506]
+
+3485.	[cleanup]	Only compile openssl_gostlink.c if we support GOST.
+
+3481.	[cleanup]	removed use of const const in atf
+
+3479.	[bug]		Address potential memory leaks in gssapi support
+			code. [RT #32405]
+
+3478.	[port]		Fix a build failure in strict C99 environments
+			[RT #32475]
+
+3474.	[bug]		nsupdate could assert when the local and remote
+			address families didn't match. [RT #22897]
+
+3470.	[bug]		Slave zones could fail to dump when successfully
+			refreshing after an initial failure. [RT #31276]
+
 	--- 9.8.5b1 released ---
+
+3468.	[security]	RPZ rules to generate A records (but not AAAA records)
+			could trigger an assertion failure when used in
+			conjunction with DNS64 (CVE-2012-5689). [RT #32141]
+
+3467.	[bug]		Added checks in dnssec-keygen and dnssec-settime
+			to check for delete date < inactive date. [RT #31719]
 
 3465.	[bug]		Handle isolated reserved ports. [RT #31778]
 
 3464.	[maint]		Updates to PKCS#11 openssl patches, supporting
 			versions 0.9.8x, 1.0.0j, 1.0.1c [RT #29749]
 
-3463.	[doc]		Clarify managed-keys syntax in ARM. [RT 32232]
+3463.	[doc]		Clarify managed-keys syntax in ARM. [RT #32232]
 
 3462.	[doc]		Clarify server selection behavior of dig when using
 			-4 or -6 options. [RT #32181]
@@ -159,7 +232,12 @@
 
 3389.	[bug]		Always return NOERROR (not 0) in TSIG. [RT #31275]
 
-3388.	[bug]		Fixed several Coverity warnings. [RT #30996]
+3388.	[bug]		Fixed several Coverity warnings.
+			Note: This change includes a fix for a bug that
+			was subsequently determined to be an exploitable
+			security vulnerability, CVE-2012-5688: named could
+			die on specific queries with dns64 enabled.
+			[RT #30996]
 
 3386.	[bug]		Address locking violation when generating new NSEC /
 			NSEC3 chains. [RT #31224]

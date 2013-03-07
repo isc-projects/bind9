@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -335,9 +335,9 @@ struct dns_zone {
 	isc_boolean_t           added;
 
 	/*%
-	 * whether a rpz radix was needed when last loaded
+	 * whether this is a response policy zone
 	 */
-	isc_boolean_t           rpz_zone;
+	isc_boolean_t           is_rpz;
 
 	/*%
 	 * Outstanding forwarded UPDATE requests.
@@ -867,7 +867,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->nodes = 100;
 	zone->privatetype = (dns_rdatatype_t)0xffffU;
 	zone->added = ISC_FALSE;
-	zone->rpz_zone = ISC_FALSE;
+	zone->is_rpz = ISC_FALSE;
 	ISC_LIST_INIT(zone->forwards);
 
 	zone->magic = ZONE_MAGIC;
@@ -1406,6 +1406,30 @@ zone_isdynamic(dns_zone_t *zone) {
 			!dns_acl_isnone(zone->update_acl))));
 }
 
+/*
+ * Set the response policy index and information for a zone.
+ */
+isc_result_t
+dns_zone_rpz_enable(dns_zone_t *zone) {
+	/*
+	 * Only RBTDB zones can be used for response policy zones,
+	 * because only they have the code to load the create the summary data.
+	 * Only zones that are loaded instead of mmap()ed create the
+	 * summary data and so can be policy zones.
+	 */
+	if (strcmp(zone->db_argv[0], "rbt") != 0 &&
+	    strcmp(zone->db_argv[0], "rbt64") != 0)
+		return (ISC_R_NOTIMPLEMENTED);
+
+	zone->is_rpz = ISC_TRUE;
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_boolean_t
+dns_zone_get_rpz(dns_zone_t *zone) {
+	return (zone->is_rpz);
+}
 
 static isc_result_t
 zone_load(dns_zone_t *zone, unsigned int flags) {
@@ -1475,8 +1499,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		 * "rndc reconfig", we are done.
 		 */
 		if (!isc_time_isepoch(&zone->loadtime) &&
-		    (flags & DNS_ZONELOADFLAG_NOSTAT) != 0 &&
-		    zone->rpz_zone == dns_rpz_needed()) {
+		    (flags & DNS_ZONELOADFLAG_NOSTAT) != 0) {
 			result = ISC_R_SUCCESS;
 			goto cleanup;
 		}
@@ -1485,8 +1508,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		if (result == ISC_R_SUCCESS) {
 			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE) &&
-			    isc_time_compare(&filetime, &zone->loadtime) <= 0 &&
-			    zone->rpz_zone == dns_rpz_needed()) {
+			    isc_time_compare(&filetime, &zone->loadtime) <= 0) {
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
 					     "skipping load: master file "
 					     "older than last load");
@@ -1494,7 +1516,6 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 				goto cleanup;
 			}
 			loadtime = filetime;
-			zone->rpz_zone = dns_rpz_needed();
 		}
 	}
 
@@ -1720,8 +1741,15 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	isc_result_t tresult;
 	unsigned int options;
 
-	options = get_master_options(zone);
+#ifdef BIND9
+	if (zone->is_rpz) {
+		result = dns_db_rpz_enabled(db, NULL);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+#endif
 
+	options = get_master_options(zone);
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
 		options |= DNS_MASTER_MANYERRORS;
 
@@ -8327,6 +8355,7 @@ dns_zone_dump(dns_zone_t *zone) {
 
 static void
 zone_needdump(dns_zone_t *zone, unsigned int delay) {
+	const char me[] = "zone_needdump";
 	isc_time_t dumptime;
 	isc_time_t now;
 
@@ -8336,6 +8365,7 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
+	ENTER;
 
 	/*
 	 * Do we have a place to dump to and are we loaded?
@@ -8988,9 +9018,9 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_message_destroy(&message);
  cleanup:
 	UNLOCK_ZONE(notify->zone);
+	isc_event_free(&event);
 	if (result != ISC_R_SUCCESS)
 		notify_destroy(notify, ISC_FALSE);
-	isc_event_free(&event);
 }
 
 static void
@@ -12012,6 +12042,8 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		 * won't hurt with an AXFR.
 		 */
 		if (zone->masterfile != NULL || zone->journal != NULL) {
+			unsigned int delay = DNS_DUMP_DELAY;
+
 			result = ISC_R_FAILURE;
 			if (zone->journal != NULL)
 				result = isc_file_settime(zone->journal, &now);
@@ -12019,14 +12051,16 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			    zone->masterfile != NULL)
 				result = isc_file_settime(zone->masterfile,
 							  &now);
-			/* Someone removed the file from underneath us! */
-			if (result == ISC_R_FILENOTFOUND &&
-			    zone->masterfile != NULL) {
-				unsigned int delay = DNS_DUMP_DELAY;
-				if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NODELAY))
-					delay = 0;
+
+			if ((DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NODELAY) != 0) ||
+			    result == ISC_R_FILENOTFOUND)
+				delay = 0;
+
+			if ((result == ISC_R_SUCCESS ||
+			    result == ISC_R_FILENOTFOUND) &&
+			    zone->masterfile != NULL)
 				zone_needdump(zone, delay);
-			} else if (result != ISC_R_SUCCESS)
+			else if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "transfer: could not set file "
 					     "modification time of '%s': %s",

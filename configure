@@ -1,5 +1,5 @@
 #! /bin/sh
-# Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1996-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -1169,6 +1169,7 @@ SO
 BIND9_CONFIGARGS
 BIND9_SRCID
 BIND9_VERSION
+BIND9_PRODUCT
 BIND9_BIND9_BUILDINCLUDE
 BIND9_LWRES_BUILDINCLUDE
 BIND9_DNS_BUILDINCLUDE
@@ -1319,6 +1320,8 @@ OPENSSL_GOST
 OPENSSL_ECDSA
 OPENSSLLINKSRCS
 OPENSSLLINKOBJS
+OPENSSLGOSTLINKSRCS
+OPENSSLGOSTLINKOBJS
 DST_OPENSSL_INC
 USE_OPENSSL
 LWRES_PLATFORM_NEEDSYSSELECTH
@@ -2139,8 +2142,8 @@ Optional Features:
 			  [default=autodetect]
   --enable-fixed-rrset    enable fixed rrset ordering
 			  [default=no]
-  --enable-rpz-nsip	  enable rpz-nsip rules [default=no]
-  --enable-rpz-nsdname	  enable rpz-nsdname rules [default=no]
+  --disable-rpz-nsip	  disable rpz-nsip rules [default=enabled]
+  --disable-rpz-nsdname	  disable rpz-nsdname rules [default=enabled]
   --enable-filter-aaaa    enable filtering of AAAA records over IPv4
 			  [default=no]
 
@@ -11846,11 +11849,10 @@ fi
 
 case "$enable_developer" in
 yes)
+	STD_CDEFINES="$STD_CDEFINES -DISC_LIST_CHECKINIT=1"
 	test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
 	test "${with_atf+set}" = set || with_atf=yes
 	test "${enable_filter_aaaa+set}" = set || enable_filter_aaaa=yes
-	test "${enable_rpz_nsip+set}" = set || enable_rpz_nsip=yes
-	test "${enable_rpz_nsdname+set}" = set || enable_rpz_nsdname=yes
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
 	case "$host" in
 	*-darwin*)
@@ -13121,20 +13123,18 @@ $as_echo_n "checking for static inline breakage... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-int
-main ()
-{
-
-		foo1();
-	}
-
 	static inline int foo1() {
 		return 0;
 	}
 
 	static inline int foo2() {
 		return foo1();
+	}
 
+int
+main ()
+{
+foo1();
   ;
   return 0;
 }
@@ -13791,12 +13791,16 @@ case "$use_openssl" in
 $as_echo "no" >&6; }
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
+		OPENSSLGOSTLINKOBJS=""
+		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		;;
 	auto)
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
+		OPENSSLGOSTLINKOBJS=""
+		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
@@ -14169,11 +14173,13 @@ fi
         esac
         case $have_gost in
         yes)
-                OPENSSL_GOST="yes"
+		OPENSSL_GOST="yes"
+		OPENSSLGOSTLINKOBJS='${OPENSSLGOSTLINKOBJS}'
+		OPENSSLGOSTLINKSRCS='${OPENSSLGOSTLINKSRCS}'
 
 $as_echo "#define HAVE_OPENSSL_GOST 1" >>confdefs.h
 
-                ;;
+		;;
         *)
                 ;;
         esac
@@ -14189,6 +14195,8 @@ esac
 # This would include the system openssl path (and linker options to use
 # it as needed) if it is found.
 #
+
+
 
 
 
@@ -18366,7 +18374,7 @@ esac
 if test "${enable_rpz_nsip+set}" = set; then :
   enableval=$enable_rpz_nsip; enable_nsip="$enableval"
 else
-  enable_nsip="no"
+  enable_nsip="yes"
 fi
 
 case "$enable_nsip" in
@@ -18388,7 +18396,7 @@ esac
 if test "${enable_rpz_nsdname+set}" = set; then :
   enableval=$enable_rpz_nsdname; enable_nsdname="$enableval"
 else
-  enable_nsdname="no"
+  enable_nsdname="yes"
 fi
 
 case "$enable_nsdname" in
@@ -19196,6 +19204,9 @@ $as_echo "#define ATF_TEST 1" >>confdefs.h
 	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
 	ATFBIN="$atf/bin"
 	ATFLIBS="-L$atf/lib -latf-c"
+	if test "$want_openssl_hash" = yes; then
+		ATFLIBS="-L$atf/lib -latf-c $DNS_CRYPTO_LIBS"
+	fi
 	UNITTESTS=tests
 fi
 
@@ -19261,6 +19272,8 @@ BIND9_MAKE_INCLUDES=$BIND9_TOP_BUILDDIR/make/includes
 BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 
 . $srcdir/version
+BIND9_PRODUCT="PRODUCT=\"${PRODUCT}\""
+
 BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}"
 
 

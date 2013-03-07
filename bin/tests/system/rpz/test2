@@ -1,4 +1,4 @@
-; Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+; Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -11,9 +11,6 @@
 ; LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
-
-; $Id$
-
 
 ; Use comment lines instead of blank lines to combine update requests into
 ;	single requests
@@ -45,7 +42,7 @@ update add  32.3.4.168.192.rpz-ip.bl	300 CNAME *.
 ;	9
 update add  128.1.zz.3.2.2001.rpz-ip.bl	300 CNAME .
 ;
-; apply the policy with the lexically smallest address of 192.168.5.1
+; apply the policy with the lexically smaller trigger address of 192.168.5.1
 ; to an RRset of more than one A RR
 ;	11
 update add  32.1.5.168.192.rpz-ip.bl	300 A	127.0.0.1

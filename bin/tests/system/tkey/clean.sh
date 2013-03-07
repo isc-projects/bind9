@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -17,7 +17,6 @@
 
 # $Id$
 
-rm -f dig.out.* random.data ns1/named.conf
+rm -f dig.out.* rndc.out.* random.data ns1/named.conf
 rm -f K* ns1/K*
 rm -f */named.memstats
-rm -f rndc.out

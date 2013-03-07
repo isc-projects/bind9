@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -903,6 +903,7 @@ dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 #ifndef BIND9
 	UNUSED(use_hints);
 	UNUSED(use_static_stub);
+	UNUSED(zone);
 #endif
 
 	/*
@@ -927,11 +928,11 @@ dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	/*
 	 * Find a database to answer the query.
 	 */
-	zone = NULL;
 	db = NULL;
 	node = NULL;
 	is_staticstub_zone = ISC_FALSE;
 #ifdef BIND9
+	zone = NULL;
 	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
 	if (zone != NULL && dns_zone_gettype(zone) == dns_zone_staticstub &&
 	    !use_static_stub) {
@@ -1179,11 +1180,14 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_fixedname_t zfixedname;
 
+#ifndef BIND9
+	UNUSED(zone);
+#endif
+
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->frozen);
 
 	db = NULL;
-	zone = NULL;
 	use_zone = ISC_FALSE;
 	try_hints = ISC_FALSE;
 	zfname = NULL;
@@ -1199,6 +1203,7 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	 * Find the right database.
 	 */
 #ifdef BIND9
+	zone = NULL;
 	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);

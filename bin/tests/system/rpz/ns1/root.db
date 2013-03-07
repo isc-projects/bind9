@@ -1,4 +1,4 @@
-; Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+; Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -15,10 +15,9 @@
 ; $Id$
 
 $TTL	120
-@		SOA	ns. hostmaster.ns. ( 1 3600 1200 604800 60 )
-@		NS	ns.
+.		SOA	ns. hostmaster.ns. ( 1 3600 1200 604800 60 )
+		NS	ns.
 ns.		A	10.53.0.1
-.		A	10.53.0.1
 
 ; rewrite responses from this zone
 tld2.		NS	ns.tld2.
@@ -34,3 +33,7 @@ ns.tld3.	A	10.53.0.3
 ; rewrite responses from this zone
 tld4.		NS	ns.tld4.
 ns.tld4.	A	10.53.0.4
+
+; performance test
+tld5.		NS	ns.tld5.
+ns.tld5.	A	10.53.0.5
