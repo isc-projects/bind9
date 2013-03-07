@@ -92,11 +92,16 @@ print OUTVERSIONFILE '
 
 ';
 
+if ($Versions{'PATCHVER'} != "") {
 $Version = "$Versions{'MAJORVER'}.$Versions{'MINORVER'}.$Versions{'PATCHVER'}";
+} else {
+	$Version = "$Versions{'MAJORVER'}.$Versions{'MINORVER'}";
+}
 $Version = "$Version$Versions{'RELEASETYPE'}$Versions{'RELEASEVER'}";
 print "BIND Version: $Version\n";
 
-print OUTVERSIONFILE "#define VERSION \"$Version\"\n\n";
+print OUTVERSIONFILE "#define VERSION \"$Version\"\n";
+print OUTVERSIONFILE "#define PRODUCT \"$Versions{'PRODUCT'}\"\n\n";
 
 foreach $dir (@dirlist) {
 	$apifile = "../lib/$dir/api";
