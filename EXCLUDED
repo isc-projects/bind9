@@ -1,3 +1,30 @@
+3507.	[bug]		Statistics channel XSL had a glitch when attempting
+			to chart query data before any queries had been
+			received. [RT #32620]
+
+3490.	[bug]		When logging RDATA during update, truncate if it's
+                        too long. [RT #32365]
+
+3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
+			When cloning a rdataset do not copy the link contents.
+			[RT #32651]
+
+3484.	[bug]		Some statistics were incorrectly rendered in XML.
+			[RT #32587]
+
+3476.	[bug]		"rndc zonestatus" could report a spurious "not
+			found" error on inline-signing zones. [RT #29226]
+
+3475.	[cleanup]	Changed name of 'map' zone file format (previously
+			'fast'). [RT #32458]
+
+3472.	[bug]		The active-connections counter in the socket
+			statistics could underflow. [RT #31747]
+
+3469.	[bug]		Handle DLZ lookup failures more gracefully. Improve
+			backward compatibility between versions of DLZ dlopen
+			API. [RT #32275]
+
 3434.	[bug]		Pass client info to the DLZ findzone() entry
 			point in addition to lookup().  This makes it
 			possible for a database to answer differently
