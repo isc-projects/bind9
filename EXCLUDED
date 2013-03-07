@@ -1,3 +1,62 @@
+3511.	[doc]		Improve documentation of redirect zones. [RT #32756]
+
+3507.	[bug]		Statistics channel XSL had a glitch when attempting
+			to chart query data before any queries had been
+			received. [RT #32620]
+
+3505.	[bug]		When setting "max-cache-size" and "max-acache-size",
+			larger values than 4 gigabytes could not be set
+			explicitly, though larger sizes were available
+			when setting cache size to 0. This has been
+			corrected; the full range is now available.
+			[RT #32358]
+
+3493.	[contrib]	Added BDBHPT dynamically-lodable DLZ module,
+			contributed by Mark Goldfinch. [RT #32549]
+
+3492.	[bug]		Fixed a regression in zone loading performance
+			due to lock contention. [RT #30399]
+
+3491.	[bug]		Slave zones using inline-signing must specify a
+			file name. [RT #31946]
+
+3490.	[bug]		When logging RDATA during update, truncate if it's
+                        too long. [RT #32365]
+
+3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
+			When cloning a rdataset do not copy the link contents.
+			[RT #32651]
+
+3484.	[bug]		Some statistics were incorrectly rendered in XML.
+			[RT #32587]
+
+3480.	[bug]		Silence logging noise when setting up zone
+			statistics. [RT #32525]
+
+3476.	[bug]		"rndc zonestatus" could report a spurious "not
+			found" error on inline-signing zones. [RT #29226]
+
+3475.	[cleanup]	Changed name of 'map' zone file format (previously
+			'fast'). [RT #32458]
+
+3473.	[bug]		dnssec-signzone/verify could incorrectly report
+			an error condition due to an empty node above an
+			opt-out delegation lacking an NSEC3. [RT #32072]
+
+3472.	[bug]		The active-connections counter in the socket
+			statistics could underflow. [RT #31747]
+
+3471.	[bug]		The number of UDP dispatches now defaults to
+			the number of CPUs even if -n has been set to
+			a higher value. [RT #30964]
+
+3469.	[bug]		Handle DLZ lookup failures more gracefully. Improve
+			backward compatibility between versions of DLZ dlopen
+			API. [RT #32275]
+
+3466.	[contrib]	Corrected the DNS_CLIENTINFOMETHODS_VERSION check
+			in DLZ example driver. [RT #32275]
+
 3460.	[bug]		Only link against readline where needed. [RT #29810]
 
 3453.	[bug]		'rndc addzone' of a zone with 'inline-signing yes;'
