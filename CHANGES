@@ -1,3 +1,5 @@
+	--- 9.6-ESV-R9b2 released ---
+
 3517.	[bug]		Reorder destruction to avoid shutdown race. [RT #32777]
 
 3515.	[port]		'%T' is not portable in strftime(). [RT #32763]
@@ -24,7 +26,7 @@
 
 3487.	[bug]		Change 3444 was not complete.  There was a additional
 			place where the NOQNAME proof needed to be saved.
-                        [RT #32629]
+			[RT #32629]
 
 3481.	[cleanup]	removed use of const const in atf
 
