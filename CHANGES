@@ -1,3 +1,6 @@
+3520.	[bug]		'mctx' was not being referenced counted in some places
+			where it should have been.  [RT #32794]
+
 3519.	[func]		Full replay protection via four-way handshake is
 			now mandatory for rndc clients. Very old versions
 			of rndc will no longer work. [RT #32798]
