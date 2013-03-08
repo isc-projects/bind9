@@ -207,8 +207,12 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	ecdsasig = ECDSA_SIG_new();
 	if (ecdsasig == NULL)
 		DST_RET (ISC_R_NOMEMORY);
+	if (ecdsasig->r != NULL)
+		BN_free(ecdsasig->r);
 	ecdsasig->r = BN_bin2bn(cp, siglen / 2, NULL);
 	cp += siglen / 2;
+	if (ecdsasig->s != NULL)
+		BN_free(ecdsasig->s);
 	ecdsasig->s = BN_bin2bn(cp, siglen / 2, NULL);
 	/* cp += siglen / 2; */
 
