@@ -105,7 +105,7 @@
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2012
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007,2009,2010,2012
-./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007,2008,2011,2012
+./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013
 ./bin/named/convertxsl.pl			PERL	2006,2007,2008,2012
 ./bin/named/include/.gitignore			X	2012
 ./bin/named/include/named/builtin.h		C	2001,2004,2005,2007
@@ -134,7 +134,7 @@
 ./bin/named/include/named/update.h		C	1999,2000,2001,2004,2005,2007
 ./bin/named/include/named/xfrout.h		C	1999,2000,2001,2004,2005,2007
 ./bin/named/include/named/zoneconf.h		C	1999,2000,2001,2002,2004,2005,2006,2007
-./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012
+./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./bin/named/listenlist.c			C	2000,2001,2004,2005,2007
 ./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2012,2013
 ./bin/named/logconf.c				C	1999,2000,2001,2004,2005,2006,2007,2011,2012,2013
@@ -1015,7 +1015,7 @@
 ./bin/tests/system/xfer/ans5/unknownkey		X	2011
 ./bin/tests/system/xfer/ans5/unsigned		X	2011
 ./bin/tests/system/xfer/ans5/wrongkey		X	2011
-./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004,2007,2011,2012
+./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004,2007,2011,2012,2013
 ./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2012,2013
 ./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2012,2013
 ./bin/tests/system/xfer/ns1/named.conf		CONF-C	2000,2001,2004,2007,2011,2012
@@ -1028,7 +1028,7 @@
 ./bin/tests/system/xfer/ns7/named.conf		CONF-C	2011,2012
 ./bin/tests/system/xfer/prereq.sh		SH	2011,2012
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004,2007,2011,2012
-./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012
+./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012,2013
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/xferquota/ns1/changing1.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/xferquota/ns1/changing2.db	ZONE	2000,2001,2004,2007
@@ -2010,7 +2010,7 @@
 ./lib/dns/spnego.h				C	2006,2007
 ./lib/dns/spnego_asn1.c				C	2006,2007,2012,2013
 ./lib/dns/spnego_asn1.pl			PERL	2006,2007,2012
-./lib/dns/ssu.c					C	2000,2001,2003,2004,2005,2006,2007,2008,2012
+./lib/dns/ssu.c					C	2000,2001,2003,2004,2005,2006,2007,2008,2012,2013
 ./lib/dns/stats.c				C	2000,2001,2004,2005,2007,2008,2009,2012
 ./lib/dns/tcpmsg.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/tests/Atffile				X	2011
@@ -2051,7 +2051,7 @@
 ./lib/dns/ttl.c					C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/dns/validator.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/version.c				C	1998,1999,2000,2001,2004,2005,2007
-./lib/dns/view.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./lib/dns/view.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/win32/DLLMain.c			C	2001,2004,2007
 ./lib/dns/win32/gen.dsp				X	2001
 ./lib/dns/win32/gen.dsw				X	2001
@@ -2061,7 +2061,7 @@
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004,2007
-./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012
+./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013
 ./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2012
@@ -2237,10 +2237,10 @@
 ./lib/isc/stats.c				C	2009,2012
 ./lib/isc/string.c				C	1999,2000,2001,2003,2004,2005,2006,2007,2011,2012
 ./lib/isc/strtoul.c				C	2003,2004,2005,2007
-./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2011,2012
+./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2011,2012,2013
 ./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2010,2011,2012
 ./lib/isc/task_p.h				C	2000,2001,2004,2005,2007,2012
-./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007,2011,2012
+./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007,2011,2012,2013
 ./lib/isc/tests/Atffile				X	2011
 ./lib/isc/tests/Makefile.in			MAKE	2011,2012
 ./lib/isc/tests/hash_test.c			C	2011,2012
