@@ -143,4 +143,11 @@ grep "status: SERVFAIL" dig.out.ns1.6 > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
+ret=0
+echo "I:testing zone returning oversized data at zone origin"
+$DIG $DIGOPTS txt bigcname.domain > dig.out.ns1.7 2>&1 || ret=1
+grep "status: SERVFAIL" dig.out.ns1.7 > /dev/null || ret=1
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
 exit $status

@@ -613,7 +613,10 @@ findnodeext(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 
 	MAYBE_UNLOCK(sdlz->dlzimp);
 
-	if (result != ISC_R_SUCCESS && !isorigin && !create) {
+	if (result == ISC_R_NOTFOUND && (isorigin || create))
+		result = ISC_R_SUCCESS;
+
+	if (result != ISC_R_SUCCESS) {
 		destroynode(node);
 		return (result);
 	}
@@ -625,7 +628,8 @@ findnodeext(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 				      sdlz->dbdata, node);
 		MAYBE_UNLOCK(sdlz->dlzimp);
 		if (result != ISC_R_SUCCESS &&
-		    result != ISC_R_NOTIMPLEMENTED) {
+		    result != ISC_R_NOTIMPLEMENTED)
+		{
 			destroynode(node);
 			return (result);
 		}

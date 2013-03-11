@@ -1,3 +1,6 @@
+3522.	[bug]		DLZ lookups could fail to return SERVFAIL when
+			they ought to. [RT #32685]
+
 3521.	[bug]		Address memory leak in opensslecdsa_link.c. [RT #32249]
 
 3520.	[bug]		'mctx' was not being referenced counted in some places
