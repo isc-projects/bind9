@@ -1,3 +1,8 @@
+3523.	[contrib]	Ported filesystem and ldap DLZ drivers to
+			dynamically-loadable modules, and added the
+			"wildcard" module based on a contribution from
+			Vadim Goncharov <vgoncharov@nic.ru>. [RT #23569]
+
 3522.	[bug]		DLZ lookups could fail to return SERVFAIL when
 			they ought to. [RT #32685]
 

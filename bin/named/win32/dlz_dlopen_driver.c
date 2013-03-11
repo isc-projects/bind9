@@ -580,6 +580,7 @@ dlz_dlopen_init(isc_mem_t *mctx) {
 
 	result = dns_sdlzregister("dlopen", &dlz_dlopen_methods, NULL,
 				  DNS_SDLZFLAG_RELATIVEOWNER |
+				  DNS_SDLZFLAG_RELATIVERDATA |
 				  DNS_SDLZFLAG_THREADSAFE,
 				  mctx, &dlz_dlopen);
 
