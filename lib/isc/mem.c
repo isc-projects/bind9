@@ -27,6 +27,7 @@
 
 #include <limits.h>
 
+#include <isc/json.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
@@ -2379,18 +2380,21 @@ isc_mem_references(isc_mem_t *ctx0) {
 	return (references);
 }
 
-#ifdef HAVE_LIBXML2
-
+#if defined(HAVE_LIBXML2) || defined(HAVE_JSON)
 typedef struct summarystat {
 	isc_uint64_t	total;
 	isc_uint64_t	inuse;
 	isc_uint64_t	blocksize;
 	isc_uint64_t	contextsize;
 } summarystat_t;
+#endif
 
+#ifdef HAVE_LIBXML2
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
 static int
-renderctx(isc__mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
+xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
+	      xmlTextWriterPtr writer)
+{
 	int xmlrc;
 
 	REQUIRE(VALID_CONTEXT(ctx));
@@ -2501,7 +2505,7 @@ isc_mem_renderxml(xmlTextWriterPtr writer) {
 	for (ctx = ISC_LIST_HEAD(contexts);
 	     ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link)) {
-		xmlrc = renderctx(ctx, &summary, writer);
+		xmlrc = xml_renderctx(ctx, &summary, writer);
 		if (xmlrc < 0) {
 			UNLOCK(&lock);
 			goto error;
@@ -2549,4 +2553,160 @@ isc_mem_renderxml(xmlTextWriterPtr writer) {
 }
 
 #endif /* HAVE_LIBXML2 */
+
+#ifdef HAVE_JSON
+#define CHECKMEM(m) do { \
+	if (m == NULL) { \
+		result = ISC_R_NOMEMORY;\
+		goto error;\
+	} \
+} while(0)
+
+static isc_result_t
+json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
+	isc_result_t result = ISC_R_FAILURE;
+	json_object *ctxobj, *obj;
+	char buf[1024];
+
+	REQUIRE(VALID_CONTEXT(ctx));
+	REQUIRE(summary != NULL);
+	REQUIRE(array != NULL);
+
+	MCTXLOCK(ctx, &ctx->lock);
+
+	summary->contextsize += sizeof(*ctx) +
+		(ctx->max_size + 1) * sizeof(struct stats) +
+		ctx->max_size * sizeof(element *) +
+		ctx->basic_table_count * sizeof(char *);
+	summary->total += ctx->total;
+	summary->inuse += ctx->inuse;
+	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0)
+		summary->blocksize += ctx->basic_table_count *
+			NUM_BASIC_BLOCKS * ctx->mem_target;
+#if ISC_MEM_TRACKLINES
+	if (ctx->debuglist != NULL) {
+		summary->contextsize +=
+			(ctx->max_size + 1) * sizeof(debuglist_t) +
+			ctx->debuglistcnt * sizeof(debuglink_t);
+	}
+#endif
+
+	ctxobj = json_object_new_object();
+	CHECKMEM(ctxobj);
+
+	sprintf(buf, "%p", ctx);
+	obj = json_object_new_string(buf);
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "id", obj);
+
+	if (ctx->name[0] != 0) {
+		obj = json_object_new_string(ctx->name);
+		CHECKMEM(obj);
+		json_object_object_add(ctxobj, "name", obj);
+	}
+
+	obj = json_object_new_int64(ctx->references);
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "references", obj);
+
+	obj = json_object_new_int64(ctx->total);
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "total", obj);
+
+	obj = json_object_new_int64(ctx->inuse);
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "inuse", obj);
+
+	obj = json_object_new_int64(ctx->maxinuse);
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "maxinuse", obj);
+
+	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
+		isc_uint64_t blocksize;
+		blocksize = ctx->basic_table_count * NUM_BASIC_BLOCKS *
+			ctx->mem_target;
+		obj = json_object_new_int64(blocksize);
+		CHECKMEM(obj);
+		json_object_object_add(ctxobj, "blocksize", obj);
+	}
+
+	obj = json_object_new_int64(ctx->poolcnt);
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "pools", obj);
+
+	obj = json_object_new_int64(ctx->hi_water);
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "hiwater", obj);
+
+	obj = json_object_new_int64(ctx->lo_water);
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "lowater", obj);
+
+	MCTXUNLOCK(ctx, &ctx->lock);
+	json_object_array_add(array, ctxobj);
+	return (ISC_R_SUCCESS);
+
+ error:
+	MCTXUNLOCK(ctx, &ctx->lock);
+	if (ctxobj != NULL)
+		json_object_put(ctxobj);
+	return (result);
+}
+
+isc_result_t
+isc_mem_renderjson(json_object *memobj) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc__mem_t *ctx;
+	summarystat_t summary;
+	isc_uint64_t lost;
+	json_object *ctxarray, *obj;
+
+	memset(&summary, 0, sizeof(summary));
+	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
+
+	ctxarray = json_object_new_array();
+	CHECKMEM(ctxarray);
+
+	LOCK(&lock);
+	lost = totallost;
+	for (ctx = ISC_LIST_HEAD(contexts);
+	     ctx != NULL;
+	     ctx = ISC_LIST_NEXT(ctx, link)) {
+		result = json_renderctx(ctx, &summary, ctxarray);
+		if (result != ISC_R_SUCCESS) {
+			UNLOCK(&lock);
+			goto error;
+		}
+	}
+	UNLOCK(&lock);
+
+	obj = json_object_new_int64(summary.total);
+	CHECKMEM(obj);
+	json_object_object_add(memobj, "TotalUse", obj);
+
+	obj = json_object_new_int64(summary.inuse);
+	CHECKMEM(obj);
+	json_object_object_add(memobj, "InUse", obj);
+
+	obj = json_object_new_int64(summary.blocksize);
+	CHECKMEM(obj);
+	json_object_object_add(memobj, "BlockSize", obj);
+
+	obj = json_object_new_int64(summary.contextsize);
+	CHECKMEM(obj);
+	json_object_object_add(memobj, "ContextSize", obj);
+
+	obj = json_object_new_int64(lost);
+	CHECKMEM(obj);
+	json_object_object_add(memobj, "Lost", obj);
+
+	json_object_object_add(memobj, "contexts", ctxarray);
+	return (ISC_R_SUCCESS);
+
+ error:
+ 	if (ctxarray != NULL)
+		json_object_put(ctxarray);
+	return (result);
+}
+#endif /* HAVE_JSON */
 #endif /* BIND9 */

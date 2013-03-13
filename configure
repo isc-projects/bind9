@@ -1467,6 +1467,7 @@ with_gssapi
 with_randomdev
 enable_threads
 with_libxml2
+with_libjson
 enable_largefile
 with_purify
 with_libtool
@@ -2177,6 +2178,7 @@ Optional Packages:
   --with-gssapi=PATH      Specify path for system-supplied GSSAPI [default=yes]
   --with-randomdev=PATH   Specify path for random device
   --with-libxml2=PATH     Build with libxml2 library yes|no|path
+  --with-libjson=PATH     Build with libjson0 library yes|no|path
   --with-purify=PATH      use Rational purify
   --with-libtool          use GNU libtool
   --with-export-libdir=PATH
@@ -16005,6 +16007,59 @@ $as_echo "yes" >&6; }
 	LIBS="$LIBS $libxml2_libs"
 
 $as_echo "#define HAVE_LIBXML2 1" >>confdefs.h
+
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+#
+# was --with-libjson specified?
+#
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for json library" >&5
+$as_echo_n "checking for json library... " >&6; }
+
+# Check whether --with-libjson was given.
+if test "${with_libjson+set}" = set; then :
+  withval=$with_libjson; use_libjson="$withval"
+else
+  use_libjson="auto"
+fi
+
+
+case "$use_libjson" in
+	no)
+		libjson_libs=""
+		;;
+	auto|yes)
+		if test -f "/usr/include/json/json.h"
+                then
+			libjson_libs="-ljson"
+			libjson_cflags="-I /usr/include/json"
+                else
+			libjson_libs=""
+                fi
+		;;
+	*)
+		if test -f "${use_libjson}/include/json/json.h"
+                then
+			libjson_libs="-L${use_libjson}/lib -ljson"
+			libjson_cflags="-I${use_libjson}/include/json"
+                else
+			as_fn_error $? "$use_libjson/include/json.h not found." "$LINENO" 5
+		fi
+		;;
+esac
+HERE
+
+if test "X${libjson_libs}" != "X"
+then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	CFLAGS="$CFLAGS $libjson_cflags"
+	LIBS="$LIBS $libjson_libs"
+
+$as_echo "#define HAVE_JSON 1" >>confdefs.h
 
 else
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5

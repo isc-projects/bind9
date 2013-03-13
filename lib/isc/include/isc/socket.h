@@ -57,13 +57,14 @@
  *** Imports
  ***/
 
-#include <isc/lang.h>
-#include <isc/types.h>
 #include <isc/event.h>
 #include <isc/eventclass.h>
-#include <isc/time.h>
+#include <isc/lang.h>
+#include <isc/json.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
+#include <isc/time.h>
+#include <isc/types.h>
 #include <isc/xml.h>
 
 ISC_LANG_BEGINDECLS
@@ -1143,14 +1144,20 @@ isc__socketmgr_maxudp(isc_socketmgr_t *mgr, int maxudp);
  */
 
 #ifdef HAVE_LIBXML2
-
 int
 isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
 /*%<
  * Render internal statistics and other state into the XML document.
  */
-
 #endif /* HAVE_LIBXML2 */
+
+#ifdef HAVE_JSON
+isc_result_t
+isc_socketmgr_renderjson(isc_socketmgr_t *mgr, json_object *stats);
+/*%<
+ * Render internal statistics and other state into JSON format.
+ */
+#endif /* HAVE_JSON */
 
 #ifdef USE_SOCKETIMPREGISTER
 /*%<

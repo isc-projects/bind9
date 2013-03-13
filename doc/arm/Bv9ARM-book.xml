@@ -10504,8 +10504,9 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	  This statement intends to be flexible to support multiple
 	  communication protocols in the future, but currently only
 	  HTTP access is supported.
-	  It requires that BIND 9 be compiled with libxml2;
-	  the <command>statistics-channels</command> statement is
+          It requires that BIND 9 be compiled with libxml2 and/or
+          json-c (also known as libjson0); the
+          <command>statistics-channels</command> statement is
 	  still accepted even if it is built without the library,
 	  but any HTTP access will fail with an error.
         </para>
@@ -10514,7 +10515,8 @@ ns.domain.com.rpz-nsdname   CNAME   .
           An <command>inet</command> control channel is a TCP socket
 	  listening at the specified <command>ip_port</command> on the
 	  specified <command>ip_addr</command>, which can be an IPv4 or IPv6
-	  address.  An <command>ip_addr</command> of <literal>*</literal> (asterisk) is
+          address.  An <command>ip_addr</command> of <literal>*</literal>
+          (asterisk) is
 	  interpreted as the IPv4 wildcard address; connections will be
 	  accepted on any of the system's IPv4 addresses.
 	  To listen on the IPv6 wildcard address,
@@ -10545,6 +10547,41 @@ ns.domain.com.rpz-nsdname   CNAME   .
           <command>named</command> will not open any communication channels.
         </para>
 
+        <para>
+          The statistics are available in various formats and views
+          depending on the URI used to access them.  For example, if
+          the statistics channel is configured to listen on 127.0.0.1
+          port 8888, then the statistics are accessible in XML format at
+          <ulink url="http://127.0.0.1:8888/"
+                  >http://127.0.0.1:8888/</ulink> or
+          <ulink url="http://127.0.0.1:8888/xml"
+                  >http://127.0.0.1:8888/xml</ulink>. A CSS file is
+          included which can format the XML statistics into tables 
+          when viewed with a stylesheet-capable browser, and into 
+          charts and graphs when using a javascript-capable browser.
+        </para>
+
+        <para>
+          The full set of statistics can also be read in JSON format at
+          <ulink url="http://127.0.0.1:8888/json"
+                  >http://127.0.0.1:8888/json</ulink>.
+          Broken-out subsets of the statistics can be viewed at
+          <ulink url="http://127.0.0.1:8888/json/server"
+                  >http://127.0.0.1:8888/json/server</ulink>
+          (server and resolver statistics),
+          <ulink url="http://127.0.0.1:8888/json/zones"
+                  >http://127.0.0.1:8888/json/zones</ulink>
+          (zone statistics),
+          <ulink url="http://127.0.0.1:8888/json/net"
+                  >http://127.0.0.1:8888/json/net</ulink>
+          (network status and socket statistics),
+          <ulink url="http://127.0.0.1:8888/json/mem"
+                  >http://127.0.0.1:8888/json/mem</ulink>
+          (memory manager statistics),
+          <ulink url="http://127.0.0.1:8888/json/tasks"
+                  >http://127.0.0.1:8888/json/tasks</ulink>
+          (task manager statistics).
+        </para>
       </sect2>
 
 	<sect2 id="trusted-keys">

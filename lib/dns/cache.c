@@ -21,6 +21,7 @@
 
 #include <config.h>
 
+#include <isc/json.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -29,6 +30,7 @@
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
+#include <isc/xml.h>
 
 #include <dns/cache.h>
 #include <dns/db.h>
@@ -1446,5 +1448,87 @@ dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer) {
 	TRY0(renderstat("HeapMemMax", isc_mem_maxinuse(cache->hmctx), writer));
 error:
 	return (xmlrc);
+}
+#endif
+
+#ifdef HAVE_JSON
+#define CHECKMEM(m) do { \
+	if (m == NULL) { \
+		result = ISC_R_NOMEMORY;\
+		goto error;\
+	} \
+} while(0)
+
+isc_result_t
+dns_cache_renderjson(dns_cache_t *cache, json_object *cstats) {
+	isc_result_t result = ISC_R_SUCCESS;
+	int indices[dns_cachestatscounter_max];
+	isc_uint64_t values[dns_cachestatscounter_max];
+	json_object *obj;
+
+	REQUIRE(VALID_CACHE(cache));
+
+	getcounters(cache->stats, isc_statsformat_file,
+		    dns_cachestatscounter_max, indices, values);
+
+	obj = json_object_new_int64(values[dns_cachestatscounter_hits]);
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "CacheHits", obj);
+
+	obj = json_object_new_int64(values[dns_cachestatscounter_misses]);
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "CacheMisses", obj);
+
+	obj = json_object_new_int64(values[dns_cachestatscounter_queryhits]);
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "QueryHits", obj);
+
+	obj = json_object_new_int64(values[dns_cachestatscounter_querymisses]);
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "QueryMisses", obj);
+
+	obj = json_object_new_int64(values[dns_cachestatscounter_deletelru]);
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "DeleteLRU", obj);
+
+	obj = json_object_new_int64(values[dns_cachestatscounter_deletettl]);
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "DeleteTTL", obj);
+
+	obj = json_object_new_int64(dns_db_nodecount(cache->db));
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "CacheNodes", obj);
+
+	obj = json_object_new_int64(dns_db_hashsize(cache->db));
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "CacheBuckets", obj);
+
+	obj = json_object_new_int64(isc_mem_total(cache->mctx));
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "TreeMemTotal", obj);
+
+	obj = json_object_new_int64(isc_mem_inuse(cache->mctx));
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "TreeMemInUse", obj);
+
+	obj = json_object_new_int64(isc_mem_maxinuse(cache->mctx));
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "HeapMemMax", obj);
+
+	obj = json_object_new_int64(isc_mem_total(cache->hmctx));
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "HeapMemTotal", obj);
+
+	obj = json_object_new_int64(isc_mem_inuse(cache->hmctx));
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "HeapMemInUse", obj);
+
+	obj = json_object_new_int64(isc_mem_maxinuse(cache->hmctx));
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "HeapMemMax", obj);
+
+	result = ISC_R_SUCCESS;
+error:
+	return (result);
 }
 #endif

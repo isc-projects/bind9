@@ -43,6 +43,10 @@
 #include <named/server.h>
 #include <named/statschannel.h>
 
+#ifdef HAVE_JSON_H
+#include <json/json.h>
+#endif
+
 #include "bind9.xsl.h"
 
 struct ns_statschannel {
@@ -538,8 +542,11 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 	xmlTextWriterPtr writer;
 	int xmlrc;
 #endif
+#ifdef HAVE_JSON
+	json_object *job, *cat, *counter;
+#endif
 
-#ifndef HAVE_LIBXML2
+#if !defined(HAVE_LIBXML2) && !defined(HAVE_JSON)
 	UNUSED(category);
 #endif
 
@@ -550,6 +557,18 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 
 	memset(values, 0, sizeof(values[0]) * ncounters);
 	isc_stats_dump(stats, generalstat_dump, &dumparg, options);
+
+#ifdef HAVE_JSON
+	cat = job = (json_object *) arg;
+	if (ncounters > 0 && type == isc_statsformat_json) {
+		if (category != NULL) {
+			cat = json_object_new_object();
+			if (cat == NULL)
+				return (ISC_R_NOMEMORY);
+			json_object_object_add(job, category, cat);
+		}
+	}
+#endif
 
 	for (i = 0; i < ncounters; i++) {
 		index = indices[i];
@@ -566,7 +585,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 			break;
 		case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
-			writer = arg;
+			writer = (xmlTextWriterPtr) arg;
 
 			if (category != NULL) {
 				/* <NameOfCategory> */
@@ -613,6 +632,14 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 
 #endif
 			break;
+		case isc_statsformat_json:
+#ifdef HAVE_JSON
+			counter = json_object_new_int64(value);
+			if (counter == NULL)
+				return (ISC_R_NOMEMORY);
+			json_object_object_add(cat, desc[index], counter);
+			break;
+#endif
 		}
 	}
 	return (ISC_R_SUCCESS);
@@ -633,6 +660,9 @@ rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 #ifdef HAVE_LIBXML2
 	xmlTextWriterPtr writer;
 	int xmlrc;
+#endif
+#ifdef HAVE_JSON
+	json_object *zoneobj, *obj;
 #endif
 
 	if ((DNS_RDATASTATSTYPE_ATTR(type) & DNS_RDATASTATSTYPE_ATTR_OTHERTYPE)
@@ -664,6 +694,15 @@ rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 		TRY0(xmlTextWriterEndElement(writer)); /* type */
 #endif
 		break;
+	case isc_statsformat_json:
+#ifdef HAVE_JSON
+		zoneobj = (json_object *) dumparg->arg;
+		obj = json_object_new_int64(val);
+		if (obj == NULL)
+			return;
+		json_object_object_add(zoneobj, typestr, obj);
+#endif
+		break;
 	}
 	return;
 #ifdef HAVE_LIBXML2
@@ -686,6 +725,10 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 #ifdef HAVE_LIBXML2
 	xmlTextWriterPtr writer;
 	int xmlrc;
+#endif
+#ifdef HAVE_JSON
+	json_object *zoneobj, *obj;
+	char buf[1024];
 #endif
 
 	if ((DNS_RDATASTATSTYPE_ATTR(type) & DNS_RDATASTATSTYPE_ATTR_NXDOMAIN)
@@ -734,6 +777,17 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 		TRY0(xmlTextWriterEndElement(writer)); /* rrset */
 #endif
 		break;
+	case isc_statsformat_json:
+#ifdef HAVE_JSON
+		zoneobj = (json_object *) dumparg->arg;
+		sprintf(buf, "%s%s%s", stale ? "#" : "",
+				       nxrrset ? "!" : "", typestr);
+		obj = json_object_new_int64(val);
+		if (obj == NULL)
+			return;
+		json_object_object_add(zoneobj, buf, obj);
+#endif
+		break;
 	}
 	return;
 #ifdef HAVE_LIBXML2
@@ -754,6 +808,9 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 #ifdef HAVE_LIBXML2
 	xmlTextWriterPtr writer;
 	int xmlrc;
+#endif
+#ifdef HAVE_JSON
+	json_object *zoneobj, *obj;
 #endif
 
 	isc_buffer_init(&b, codebuf, sizeof(codebuf) - 1);
@@ -777,6 +834,15 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 		TRY0(xmlTextWriterEndElement(writer)); /* counter */
 #endif
 		break;
+	case isc_statsformat_json:
+#ifdef HAVE_JSON
+		zoneobj = (json_object *) dumparg->arg;
+		obj = json_object_new_int64(val);
+		if (obj == NULL)
+			return;
+		json_object_object_add(zoneobj, codebuf, obj);
+#endif
+		break;
 	}
 	return;
 
@@ -792,7 +858,6 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 #ifdef HAVE_LIBXML2
 
 /* XXXMLG below here sucks. (not so much) */
-
 
 static isc_result_t
 zone_xmlrender(dns_zone_t *zone, void *arg) {
@@ -1174,6 +1239,609 @@ render_index(const char *url, const char *querystring, void *arg,
 
 #endif	/* HAVE_LIBXML2 */
 
+#ifdef HAVE_JSON
+/*
+ * Which statistics to include when rendering to JSON
+ */
+#define STATS_JSON_SERVER	0x01
+#define STATS_JSON_ZONES	0x02
+#define STATS_JSON_TASKS	0x04
+#define STATS_JSON_NET		0x08
+#define STATS_JSON_MEM		0x10
+#define STATS_JSON_ALL		0xff
+
+#define CHECKMEM(m) do { \
+	if (m == NULL) { \
+		result = ISC_R_NOMEMORY;\
+		goto error;\
+	} \
+} while(0)
+
+static void
+wrap_jsonfree(isc_buffer_t *buffer, void *arg) {
+	json_object_put(isc_buffer_base(buffer));
+	if (arg != NULL)
+		json_object_put((json_object *) arg);
+}
+
+static json_object *
+addzone(char *name, char *class, isc_uint32_t serial) {
+	json_object *node = json_object_new_object();
+
+	if (node == NULL)
+		return (NULL);
+
+	json_object_object_add(node, "name", json_object_new_string(name));
+	json_object_object_add(node, "class", json_object_new_string(class));
+	json_object_object_add(node, "serial", json_object_new_int64(serial));
+	return (node);
+}
+
+static isc_result_t
+zone_jsonrender(dns_zone_t *zone, void *arg) {
+	isc_result_t result = ISC_R_SUCCESS;
+	char buf[1024 + 32];	/* sufficiently large for zone name and class */
+	char class[1024 + 32];	/* sufficiently large for zone name and class */
+	char *zone_name_only = NULL;
+	char *class_only = NULL;
+	dns_rdataclass_t rdclass;
+	isc_uint32_t serial;
+	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
+	isc_stats_t *zonestats;
+	dns_stats_t *rcvquerystats;
+	json_object *zonearray = (json_object *) arg;
+	json_object *zoneobj = NULL;
+	dns_zonestat_level_t statlevel;
+
+	statlevel = dns_zone_getstatlevel(zone);
+	if (statlevel == dns_zonestat_none)
+		return (ISC_R_SUCCESS);
+
+	dns_zone_name(zone, buf, sizeof(buf));
+	zone_name_only = strtok(buf, "/");
+	if(zone_name_only == NULL)
+		zone_name_only = buf;
+
+	rdclass = dns_zone_getclass(zone);
+	dns_rdataclass_format(rdclass, class, sizeof(class));
+	class_only = class;
+
+	if (dns_zone_getserial2(zone, &serial) != ISC_R_SUCCESS)
+		serial = -1;
+
+	zoneobj = addzone(zone_name_only, class_only, serial);
+	if (zoneobj == NULL)
+		return (ISC_R_NOMEMORY);
+
+	zonestats = dns_zone_getrequeststats(zone);
+	rcvquerystats = dns_zone_getrcvquerystats(zone);
+	if (statlevel == dns_zonestat_full && zonestats != NULL) {
+		json_object *counters = json_object_new_object();
+		if (counters == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto error;
+		}
+
+		result = dump_counters(zonestats, isc_statsformat_json,
+				       counters, NULL, nsstats_xmldesc,
+				       dns_nsstatscounter_max, nsstats_index,
+				       nsstat_values, 0);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(counters);
+			goto error;
+		}
+
+		if (json_object_get_object(counters)->count != 0)
+			json_object_object_add(zoneobj, "rcodes", counters);
+		else
+			json_object_put(counters);
+	}
+
+	if (statlevel == dns_zonestat_full && rcvquerystats != NULL) {
+		stats_dumparg_t dumparg;
+		json_object *counters = json_object_new_object();
+		CHECKMEM(counters);
+
+		dumparg.type = isc_statsformat_json;
+		dumparg.arg = counters;
+		dumparg.result = ISC_R_SUCCESS;
+		dns_rdatatypestats_dump(rcvquerystats, rdtypestat_dump,
+					&dumparg, 0);
+		if (dumparg.result != ISC_R_SUCCESS) {
+			json_object_put(counters);
+			goto error;
+		}
+
+		if (json_object_get_object(counters)->count != 0)
+			json_object_object_add(zoneobj, "qtypes", counters);
+		else
+			json_object_put(counters);
+	}
+
+	json_object_array_add(zonearray, zoneobj);
+	zoneobj = NULL;
+	result = ISC_R_SUCCESS;
+
+ error:
+	if (zoneobj != NULL)
+		json_object_put(zoneobj);
+	return (result);
+}
+
+static isc_result_t
+generatejson(ns_server_t *server, size_t *msglen,
+	     const char **msg, json_object **rootp, isc_uint8_t flags)
+{
+	dns_view_t *view;
+	isc_result_t result = ISC_R_SUCCESS;
+	json_object *bindstats, *viewlist, *counters, *obj;
+	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
+	isc_uint64_t resstat_values[dns_resstatscounter_max];
+	isc_uint64_t adbstat_values[dns_adbstats_max];
+	isc_uint64_t zonestat_values[dns_zonestatscounter_max];
+	isc_uint64_t sockstat_values[isc_sockstatscounter_max];
+	stats_dumparg_t dumparg;
+	char boottime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
+	char configtime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
+	char nowstr[sizeof "yyyy-mm-ddThh:mm:ssZ"];
+	isc_time_t now;
+
+	REQUIRE(msglen != NULL);
+	REQUIRE(msg != NULL && *msg == NULL);
+	REQUIRE(rootp == NULL || *rootp == NULL);
+
+	bindstats = json_object_new_object();
+	if (bindstats == NULL)
+		return (ISC_R_NOMEMORY);
+
+	/*
+	 * These statistics are included no matter which URL we use.
+	 */
+	obj = json_object_new_string("1.0");
+	CHECKMEM(obj);
+	json_object_object_add(bindstats, "json-stats-version", obj);
+
+	isc_time_now(&now);
+	isc_time_formatISO8601(&ns_g_boottime,
+			       boottime, sizeof(boottime));
+	isc_time_formatISO8601(&ns_g_configtime,
+			       configtime, sizeof configtime);
+	isc_time_formatISO8601(&now, nowstr, sizeof(nowstr));
+
+	obj = json_object_new_string(boottime);
+	CHECKMEM(obj);
+	json_object_object_add(bindstats, "boot-time", obj);
+
+	obj = json_object_new_string(configtime);
+	CHECKMEM(obj);
+	json_object_object_add(bindstats, "config-time", obj);
+
+	obj = json_object_new_string(nowstr);
+	CHECKMEM(obj);
+	json_object_object_add(bindstats, "current-time", obj);
+
+	if ((flags & STATS_JSON_SERVER) != 0) {
+		/* OPCODE counters */
+		counters = json_object_new_object();
+
+		dumparg.result = ISC_R_SUCCESS;
+		dumparg.type = isc_statsformat_json;
+		dumparg.arg = counters;
+
+		dns_opcodestats_dump(server->opcodestats,
+				     opcodestat_dump, &dumparg, 0);
+		if (dumparg.result != ISC_R_SUCCESS) {
+			json_object_put(counters);
+			goto error;
+		}
+
+		if (json_object_get_object(counters)->count != 0)
+			json_object_object_add(bindstats, "opcodes", counters);
+		else
+			json_object_put(counters);
+
+		/* QTYPE counters */
+		counters = json_object_new_object();
+
+		dumparg.result = ISC_R_SUCCESS;
+		dumparg.arg = counters;
+
+		dns_rdatatypestats_dump(server->rcvquerystats,
+					rdtypestat_dump, &dumparg, 0);
+		if (dumparg.result != ISC_R_SUCCESS) {
+			json_object_put(counters);
+			goto error;
+		}
+
+		if (json_object_get_object(counters)->count != 0)
+			json_object_object_add(bindstats, "qtypes", counters);
+		else
+			json_object_put(counters);
+
+		/* server stat counters */
+		counters = json_object_new_object();
+
+		dumparg.result = ISC_R_SUCCESS;
+		dumparg.arg = counters;
+
+		result = dump_counters(server->nsstats, isc_statsformat_json,
+			       counters, NULL, nsstats_xmldesc,
+			       dns_nsstatscounter_max,
+			       nsstats_index, nsstat_values, 0);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(counters);
+			goto error;
+		}
+
+		if (json_object_get_object(counters)->count != 0)
+			json_object_object_add(bindstats, "nsstats", counters);
+		else
+			json_object_put(counters);
+
+		/* zone stat counters */
+		counters = json_object_new_object();
+
+		dumparg.result = ISC_R_SUCCESS;
+		dumparg.arg = counters;
+
+		result = dump_counters(server->zonestats, isc_statsformat_json,
+			       counters, NULL, zonestats_xmldesc,
+			       dns_zonestatscounter_max,
+			       zonestats_index, zonestat_values, 0);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(counters);
+			goto error;
+		}
+
+		if (json_object_get_object(counters)->count != 0)
+			json_object_object_add(bindstats, "zonestats",
+					       counters);
+		else
+			json_object_put(counters);
+
+		/* resolver stat counters */
+		counters = json_object_new_object();
+
+		dumparg.result = ISC_R_SUCCESS;
+		dumparg.arg = counters;
+
+		result = dump_counters(server->resolverstats,
+				       isc_statsformat_json, counters, NULL,
+				       resstats_xmldesc,
+				       dns_resstatscounter_max,
+				       resstats_index, resstat_values, 0);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(counters);
+			goto error;
+		}
+
+		if (json_object_get_object(counters)->count != 0)
+			json_object_object_add(bindstats, "resstats", counters);
+		else
+			json_object_put(counters);
+	}
+
+	if ((flags & (STATS_JSON_ZONES | STATS_JSON_SERVER)) != 0) {
+		viewlist = json_object_new_object();
+		CHECKMEM(viewlist);
+
+		json_object_object_add(bindstats, "views", viewlist);
+
+		view = ISC_LIST_HEAD(server->viewlist);
+		while (view != NULL) {
+			json_object *za, *v = json_object_new_object();
+
+			CHECKMEM(v);
+			json_object_object_add(viewlist, view->name, v);
+
+			za = json_object_new_array();
+			CHECKMEM(za);
+
+			if ((flags & STATS_JSON_ZONES) != 0) {
+				result = dns_zt_apply(view->zonetable, ISC_TRUE,
+						      zone_jsonrender, za);
+				if (result != ISC_R_SUCCESS) {
+					goto error;
+				}
+			}
+
+			if (json_object_array_length(za) != 0)
+				json_object_object_add(v, "zones", za);
+			else
+				json_object_put(za);
+
+			if ((flags & STATS_JSON_SERVER) != 0) {
+				json_object *res;
+				dns_stats_t *dstats;
+				isc_stats_t *istats;
+
+				res = json_object_new_object();
+				CHECKMEM(res);
+				json_object_object_add(v, "resolver", res);
+
+				istats = view->resstats;
+				if (istats != NULL) {
+					counters = json_object_new_object();
+					CHECKMEM(counters);
+
+					result = dump_counters(istats,
+						       isc_statsformat_json,
+						       counters, NULL,
+						       resstats_xmldesc,
+						       dns_resstatscounter_max,
+						       resstats_index,
+						       resstat_values, 0);
+					if (result != ISC_R_SUCCESS) {
+						json_object_put(counters);
+						result = dumparg.result;
+						goto error;
+					}
+
+					json_object_object_add(res, "stats",
+							       counters);
+				}
+
+				dstats = view->resquerystats;
+				if (dstats != NULL) {
+					counters = json_object_new_object();
+					CHECKMEM(counters);
+
+					dumparg.arg = counters;
+					dumparg.result = ISC_R_SUCCESS;
+					dns_rdatatypestats_dump(dstats,
+								rdtypestat_dump,
+								&dumparg, 0);
+					if (dumparg.result != ISC_R_SUCCESS) {
+						json_object_put(counters);
+						result = dumparg.result;
+						goto error;
+					}
+
+					json_object_object_add(res, "qtypes",
+							       counters);
+				}
+
+				dstats = dns_db_getrrsetstats(view->cachedb);
+				if (dstats != NULL) {
+					counters = json_object_new_object();
+					CHECKMEM(counters);
+
+					dumparg.arg = counters;
+					dumparg.result = ISC_R_SUCCESS;
+					dns_rdatasetstats_dump(dstats,
+						       rdatasetstats_dump,
+						       &dumparg, 0);
+					if (dumparg.result != ISC_R_SUCCESS) {
+						json_object_put(counters);
+						result = dumparg.result;
+						goto error;
+					}
+
+					json_object_object_add(res,
+							       "cache",
+							       counters);
+				}
+
+				counters = json_object_new_object();
+				CHECKMEM(counters);
+
+				result = dns_cache_renderjson(view->cache,
+							      counters);
+				if (result != ISC_R_SUCCESS) {
+					json_object_put(counters);
+					goto error;
+				}
+
+				json_object_object_add(res, "cachestats",
+						       counters);
+
+				istats = view->adbstats;
+				if (istats != NULL) {
+					counters = json_object_new_object();
+					CHECKMEM(counters);
+
+					result = dump_counters(istats,
+						       isc_statsformat_json,
+						       counters, NULL,
+						       adbstats_xmldesc,
+						       dns_adbstats_max,
+						       adbstats_index,
+						       adbstat_values, 0);
+					if (result != ISC_R_SUCCESS) {
+						json_object_put(counters);
+						result = dumparg.result;
+						goto error;
+					}
+
+					json_object_object_add(res, "adb",
+							       counters);
+				}
+			}
+
+			view = ISC_LIST_NEXT(view, link);
+		}
+	}
+
+	if ((flags & STATS_JSON_NET) != 0) {
+		/* socket stat counters */
+		json_object *sockets;
+		counters = json_object_new_object();
+
+		dumparg.result = ISC_R_SUCCESS;
+		dumparg.arg = counters;
+
+		result = dump_counters(server->sockstats,
+				       isc_statsformat_json, counters,
+				       NULL, sockstats_xmldesc,
+				       isc_sockstatscounter_max,
+				       sockstats_index, sockstat_values, 0);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(counters);
+			goto error;
+		}
+
+		if (json_object_get_object(counters)->count != 0)
+			json_object_object_add(bindstats, "sockstats",
+					       counters);
+		else
+			json_object_put(counters);
+
+		sockets = json_object_new_object();
+		CHECKMEM(sockets);
+
+		result = isc_socketmgr_renderjson(ns_g_socketmgr, sockets);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(sockets);
+			goto error;
+		}
+
+		json_object_object_add(bindstats, "socketmgr", sockets);
+	}
+
+	if ((flags & STATS_JSON_TASKS) != 0) {
+		json_object *tasks = json_object_new_object();
+		CHECKMEM(tasks);
+
+		result = isc_taskmgr_renderjson(ns_g_taskmgr, tasks);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(tasks);
+			goto error;
+		}
+
+		json_object_object_add(bindstats, "taskmgr", tasks);
+	}
+
+	if ((flags & STATS_JSON_MEM) != 0) {
+		json_object *memory = json_object_new_object();
+		CHECKMEM(memory);
+
+		result = isc_mem_renderjson(memory);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(memory);
+			goto error;
+		}
+
+		json_object_object_add(bindstats, "memory", memory);
+	}
+
+	*msg = json_object_to_json_string_ext(bindstats,
+					      JSON_C_TO_STRING_PRETTY);
+	*msglen = strlen(*msg);
+
+	if (rootp != NULL) {
+		*rootp = bindstats;
+		bindstats = NULL;
+	}
+
+	result = ISC_R_SUCCESS;
+
+  error:
+	if (bindstats != NULL)
+		json_object_put(bindstats);
+
+	return (result);
+}
+
+static isc_result_t
+render_json(isc_uint8_t flags, const char *url, const char *querystring,
+	    void *arg, unsigned int *retcode, const char **retmsg,
+	    const char **mimetype, isc_buffer_t *b,
+	    isc_httpdfree_t **freecb, void **freecb_args)
+{
+	isc_result_t result;
+	json_object *bindstats = NULL;
+	ns_server_t *server = arg;
+	const char *msg = NULL;
+	size_t msglen;
+	char *p;
+
+	UNUSED(url);
+	UNUSED(querystring);
+
+	result = generatejson(server, &msglen, &msg, &bindstats, flags);
+	if (result == ISC_R_SUCCESS) {
+		*retcode = 200;
+		*retmsg = "OK";
+		*mimetype = "application/json";
+		DE_CONST(msg, p);
+		isc_buffer_reinit(b, p, msglen);
+		isc_buffer_add(b, msglen);
+		*freecb = wrap_jsonfree;
+		*freecb_args = bindstats;
+	} else
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "failed at rendering JSON()");
+
+	return (result);
+}
+
+static isc_result_t
+render_json_all(const char *url, const char *querystring, void *arg,
+		unsigned int *retcode, const char **retmsg,
+		const char **mimetype, isc_buffer_t *b,
+		isc_httpdfree_t **freecb, void **freecb_args)
+{
+	return (render_json(STATS_JSON_ALL, url, querystring, arg,
+			    retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
+}
+
+static isc_result_t
+render_json_server(const char *url, const char *querystring, void *arg,
+		   unsigned int *retcode, const char **retmsg,
+		   const char **mimetype, isc_buffer_t *b,
+		   isc_httpdfree_t **freecb, void **freecb_args)
+{
+	return (render_json(STATS_JSON_SERVER, url, querystring, arg,
+			    retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
+}
+
+static isc_result_t
+render_json_zones(const char *url, const char *querystring, void *arg,
+		  unsigned int *retcode, const char **retmsg,
+		  const char **mimetype, isc_buffer_t *b,
+		  isc_httpdfree_t **freecb, void **freecb_args)
+{
+	return (render_json(STATS_JSON_ZONES, url, querystring, arg,
+			    retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
+}
+static isc_result_t
+render_json_mem(const char *url, const char *querystring, void *arg,
+		unsigned int *retcode, const char **retmsg,
+		const char **mimetype, isc_buffer_t *b,
+		isc_httpdfree_t **freecb, void **freecb_args)
+{
+	return (render_json(STATS_JSON_MEM, url, querystring, arg,
+			    retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
+}
+
+static isc_result_t
+render_json_tasks(const char *url, const char *querystring, void *arg,
+		  unsigned int *retcode, const char **retmsg,
+		  const char **mimetype, isc_buffer_t *b,
+		  isc_httpdfree_t **freecb, void **freecb_args)
+{
+	return (render_json(STATS_JSON_TASKS, url, querystring, arg,
+			    retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
+}
+
+static isc_result_t
+render_json_net(const char *url, const char *querystring, void *arg,
+		unsigned int *retcode, const char **retmsg,
+		const char **mimetype, isc_buffer_t *b,
+		isc_httpdfree_t **freecb, void **freecb_args)
+{
+	return (render_json(STATS_JSON_NET, url, querystring, arg,
+			    retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
+}
+#endif /* HAVE_JSON */
+
 static isc_result_t
 render_xsl(const char *url, const char *querystring, void *args,
 	   unsigned int *retcode, const char **retmsg, const char **mimetype,
@@ -1316,7 +1984,22 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 		goto cleanup;
 
 #ifdef HAVE_LIBXML2
+	isc_httpdmgr_addurl(listener->httpdmgr, "/xml", render_index, server);
 	isc_httpdmgr_addurl(listener->httpdmgr, "/", render_index, server);
+#endif
+#ifdef HAVE_JSON
+	isc_httpdmgr_addurl(listener->httpdmgr, "/json",
+			    render_json_all, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/json/server",
+			    render_json_server, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/json/zones",
+			    render_json_zones, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/json/tasks",
+			    render_json_tasks, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/json/net",
+			    render_json_net, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/json/mem",
+			    render_json_mem, server);
 #endif
 	isc_httpdmgr_addurl(listener->httpdmgr, "/bind9.xsl", render_xsl,
 			    server);

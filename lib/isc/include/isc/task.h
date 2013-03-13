@@ -81,6 +81,7 @@
  ***/
 
 #include <isc/eventclass.h>
+#include <isc/json.h>
 #include <isc/lang.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
@@ -787,10 +788,13 @@ isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp);
 
 
 #ifdef HAVE_LIBXML2
-
 int
 isc_taskmgr_renderxml(isc_taskmgr_t *mgr, xmlTextWriterPtr writer);
+#endif
 
+#ifdef HAVE_JSON
+isc_result_t
+isc_taskmgr_renderjson(isc_taskmgr_t *mgr, json_object *tasksobj);
 #endif
 
 /*%<

@@ -39,6 +39,7 @@
 #include <isc/bufferlist.h>
 #include <isc/condition.h>
 #include <isc/formatcheck.h>
+#include <isc/json.h>
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -541,10 +542,16 @@ ISC_SOCKETFUNC_SCOPE isc_boolean_t
 isc__socket_isbound(isc_socket_t *sock);
 ISC_SOCKETFUNC_SCOPE void
 isc__socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes);
-#if defined(HAVE_LIBXML2) && defined(BIND9)
+#ifdef BIND9
+#ifdef HAVE_LIBXML2
 ISC_SOCKETFUNC_SCOPE void
 isc__socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer);
 #endif
+#ifdef HAVE_JSON
+ISC_SOCKETFUNC_SCOPE isc_result_t
+isc__socketmgr_renderjson(isc_socketmgr_t *mgr0, json_object *stats);
+#endif
+#endif /* BIND9 */
 
 ISC_SOCKETFUNC_SCOPE isc_result_t
 isc__socket_fdwatchcreate(isc_socketmgr_t *manager, int fd, int flags,
@@ -5956,8 +5963,9 @@ isc__socket_getfd(isc_socket_t *socket0) {
 	return ((short) socket->fd);
 }
 
-#if defined(HAVE_LIBXML2) && defined(BIND9)
+#ifdef BIND9
 
+#if defined(HAVE_LIBXML2) && defined(HAVE_JSON)
 static const char *
 _socktype(isc_sockettype_t type)
 {
@@ -5972,7 +5980,9 @@ _socktype(isc_sockettype_t type)
 	else
 		return ("not-initialized");
 }
+#endif
 
+#ifdef HAVE_LIBXML2
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
 ISC_SOCKETFUNC_SCOPE int
 isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
@@ -6082,3 +6092,144 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
 	return (xmlrc);
 }
 #endif /* HAVE_LIBXML2 */
+
+#ifdef HAVE_JSON
+#define CHECKMEM(m) do { \
+	if (m == NULL) { \
+		result = ISC_R_NOMEMORY;\
+		goto error;\
+	} \
+} while(0)
+
+ISC_SOCKETFUNC_SCOPE isc_result_t
+isc_socketmgr_renderjson(isc_socketmgr_t *mgr0, json_object *stats) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc__socketmgr_t *mgr = (isc__socketmgr_t *)mgr0;
+	isc__socket_t *sock = NULL;
+	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
+	isc_sockaddr_t addr;
+	ISC_SOCKADDR_LEN_T len;
+	json_object *obj, *array = json_object_new_array();
+
+	CHECKMEM(array);
+
+	LOCK(&mgr->lock);
+
+#ifdef USE_SHARED_MANAGER
+	obj = json_object_new_int(mgr->refs);
+	CHECKMEM(obj);
+	json_object_object_add(stats, "references", obj);
+#endif	/* USE_SHARED_MANAGER */
+
+	sock = ISC_LIST_HEAD(mgr->socklist);
+	while (sock != NULL) {
+		json_object *states, *entry = json_object_new_object();
+		char buf[255];
+
+		CHECKMEM(entry);
+		json_object_array_add(array, entry);
+
+		LOCK(&sock->lock);
+
+		sprintf(buf, "%p", sock);
+		obj = json_object_new_string(buf);
+		CHECKMEM(obj);
+		json_object_object_add(entry, "id", obj);
+
+		if (sock->name[0] != 0) {
+			obj = json_object_new_string(sock->name);
+			CHECKMEM(obj);
+			json_object_object_add(entry, "name", obj);
+		}
+
+		obj = json_object_new_int(sock->references);
+		CHECKMEM(obj);
+		json_object_object_add(entry, "references", obj);
+
+		obj = json_object_new_string(_socktype(sock->type));
+		CHECKMEM(obj);
+		json_object_object_add(entry, "type", obj);
+
+		if (sock->connected) {
+			isc_sockaddr_format(&sock->peer_address, peerbuf,
+					    sizeof(peerbuf));
+			obj = json_object_new_string(peerbuf);
+			CHECKMEM(obj);
+			json_object_object_add(entry, "peer-address", obj);
+		}
+
+		len = sizeof(addr);
+		if (getsockname(sock->fd, &addr.type.sa, (void *)&len) == 0) {
+			isc_sockaddr_format(&addr, peerbuf, sizeof(peerbuf));
+			obj = json_object_new_string(peerbuf);
+			CHECKMEM(obj);
+			json_object_object_add(entry, "local-address", obj);
+		}
+
+		states = json_object_new_array();
+		CHECKMEM(states);
+		json_object_object_add(entry, "states", states);
+
+		if (sock->pending_recv) {
+			obj = json_object_new_string("pending-receive");
+			CHECKMEM(obj);
+			json_object_array_add(states, obj);
+		}
+
+		if (sock->pending_send) {
+			obj = json_object_new_string("pending-send");
+			CHECKMEM(obj);
+			json_object_array_add(states, obj);
+		}
+
+		if (sock->pending_accept) {
+			obj = json_object_new_string("pending-accept");
+			CHECKMEM(obj);
+			json_object_array_add(states, obj);
+		}
+
+		if (sock->listener) {
+			obj = json_object_new_string("listener");
+			CHECKMEM(obj);
+			json_object_array_add(states, obj);
+		}
+
+		if (sock->connected) {
+			obj = json_object_new_string("connected");
+			CHECKMEM(obj);
+			json_object_array_add(states, obj);
+		}
+
+		if (sock->connecting) {
+			obj = json_object_new_string("connecting");
+			CHECKMEM(obj);
+			json_object_array_add(states, obj);
+		}
+
+		if (sock->bound) {
+			obj = json_object_new_string("bound");
+			CHECKMEM(obj);
+			json_object_array_add(states, obj);
+		}
+
+		UNLOCK(&sock->lock);
+		sock = ISC_LIST_NEXT(sock, link);
+	}
+
+	json_object_object_add(stats, "sockets", array);
+	array = NULL;
+	result = ISC_R_SUCCESS;
+
+ error:
+	if (array != NULL)
+		json_object_put(array);
+
+	if (sock != NULL)
+		UNLOCK(&sock->lock);
+
+	UNLOCK(&mgr->lock);
+
+	return (result);
+}
+#endif /* HAVE_JSON */
+#endif /* BIND9 */

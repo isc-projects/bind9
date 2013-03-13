@@ -230,6 +230,12 @@ Building
 	a nonstandard prefix, you can tell configure where to
 	look for it using "--with-openssl=/prefix".
 
+        To support the HTTP statistics channel, the server must
+        be linked with at least one of the following: libxml2
+        (http://xmlsoft.org) or json-c (https://github.com/json-c).
+        If these are installed at a nonstandard prefix, use
+        "--with-libxml2=/prefix" or "--with-libjson=/prefix".
+
 	On some platforms it is necessary to explictly request large
 	file support to handle files bigger than 2GB.  This can be
 	done by "--enable-largefile" on the configure command line.
