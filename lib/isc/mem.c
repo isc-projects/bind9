@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -2704,7 +2704,7 @@ isc_mem_renderjson(json_object *memobj) {
 	return (ISC_R_SUCCESS);
 
  error:
- 	if (ctxarray != NULL)
+	if (ctxarray != NULL)
 		json_object_put(ctxarray);
 	return (result);
 }
