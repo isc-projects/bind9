@@ -80,7 +80,7 @@ statement into named.conf.
 
 The additions look like the following:
 
-key "rndc-key" { algorithm hmac-md5; secret "xxxxxxxxx=="; };
+key "rndc-key" { algorithm hmac-sha256; secret "xxxxxxxxx=="; };
 
 controls {
 	inet 127.0.0.1 port 953 allow { localhost; } keys { "rndc-key"; };

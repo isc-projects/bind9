@@ -46,7 +46,7 @@ controls {
 };
 
 key "rndc-key" {
-        algorithm hmac-md5;
+        algorithm hmac-sha256;
         secret "Am9vCg==";
 };
 

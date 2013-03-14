@@ -22,3 +22,5 @@ rm -f ns2/named.stats
 rm -f ns3/named_dump.db
 rm -f ns*/named.memstats
 rm -f ns*/named.run
+rm -f random.data
+rm -f ns4/*.conf

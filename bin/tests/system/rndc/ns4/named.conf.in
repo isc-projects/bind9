@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,13 +14,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.conf,v 1.5 2007/06/19 23:47:01 tbox Exp $ */
+/* $Id$ */
+
+controls { /* empty */ };
 
 options {
-        default-key     "secondkey";
+	port 5300;
+	pid-file "named.pid";
+	listen-on { 10.53.0.4; };
+	listen-on-v6 { none; };
+        recursion no;
 };
 
-key secondkey {
-        secret "abcd1234abcd8765";
-        algorithm hmac-sha256;
-};

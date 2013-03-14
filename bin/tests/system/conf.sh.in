@@ -36,6 +36,7 @@ DIG=$TOP/bin/dig/dig
 RNDC=$TOP/bin/rndc/rndc
 NSUPDATE=$TOP/bin/nsupdate/nsupdate
 DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
+RNDCCONFGEN=$TOP/bin/confgen/rndc-confgen
 KEYGEN=$TOP/bin/dnssec/dnssec-keygen
 KEYFRLAB=$TOP/bin/dnssec/dnssec-keyfromlabel
 SIGNER=$TOP/bin/dnssec/dnssec-signzone

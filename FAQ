@@ -869,7 +869,7 @@ A: If you run Tiger(Mac OS 10.4) or later then this is all you need to do:
    Copy the key statement from /etc/rndc.conf into /etc/rndc.key, e.g.:
 
    key "rndc-key" {
-           algorithm hmac-md5;
+           algorithm hmac-sha256;
            secret "uvceheVuqf17ZwIcTydddw==";
    };
 

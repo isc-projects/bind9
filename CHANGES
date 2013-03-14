@@ -1,3 +1,10 @@
+3525.	[func]		Support for additional signing algorithms in rndc:
+			hmac-sha1, -sha224, -sha256, -sha384, and -sha512.
+			The -A option to rndc-confgen can be used to
+			select the algorithm for the generated key.
+			(The default is still hmac-md5; this may
+			change in a future release.) [RT #20363]
+
 3524.	[func]		Added an alternate statistics channel in JSON format,
 			when the server is built with the json-c library:
 			http://[address]:[port]/json.  [RT #32630]
