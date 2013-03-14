@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568372">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568377">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570694">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570710">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -927,8 +927,14 @@ zone "eng.example.com" {
                   <span><strong class="command">algorithm</strong></span> and <span><strong class="command">secret</strong></span>.
                   While the configuration parser will accept any string as the
                   argument
-                  to algorithm, currently only the string "<strong class="userinput"><code>hmac-md5</code></strong>"
-                  has any meaning.  The secret is a base-64 encoded string
+                  to algorithm, currently only the strings
+                  "<strong class="userinput"><code>hmac-md5</code></strong>",
+                  "<strong class="userinput"><code>hmac-sha1</code></strong>",
+                  "<strong class="userinput"><code>hmac-sha224</code></strong>",
+                  "<strong class="userinput"><code>hmac-sha256</code></strong>",
+                  "<strong class="userinput"><code>hmac-sha384</code></strong>"
+                  and "<strong class="userinput"><code>hmac-sha512</code></strong>"
+                  have any meaning.  The secret is a base-64 encoded string
                   as specified in RFC 3548.
                 </p>
 <p>
@@ -952,7 +958,7 @@ zone "eng.example.com" {
                 </p>
 <pre class="programlisting">
 key rndc_key {
-     algorithm "hmac-md5";
+     algorithm "hmac-sha256";
      secret
        "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
 };
@@ -1005,7 +1011,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570694"></a>Signals</h3></div></div></div>
+<a name="id2570710"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can

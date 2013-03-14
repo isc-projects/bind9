@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004, 2005, 2007 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004, 2005, 2007, 2013 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000, 2001 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
@@ -47,7 +47,7 @@ is invoked with no command line options or arguments, it prints a short summary 
 communicates with the name server over a TCP connection, sending commands authenticated with digital signatures. In the current versions of
 \fBrndc\fR
 and
-\fBnamed\fR, the only supported authentication algorithm is HMAC\-MD5, which uses a shared secret on each end of the connection. This provides TSIG\-style authentication for the command request and the name server's response. All commands sent over the channel must be signed by a key_id known to the server.
+\fBnamed\fR, the only supported authentication algorithms are HMAC\-MD5 (for compatibility), HMAC\-SHA1, HMAC\-SHA224, HMAC\-SHA256 (default), HMAC\-SHA384 and HMAC\-SHA512. They use a shared secret on each end of the connection. This provides TSIG\-style authentication for the command request and the name server's response. All commands sent over the channel must be signed by a key_id known to the server.
 .PP
 \fBrndc\fR
 reads a configuration file to determine how to contact the name server and decide what algorithm and key it should use.
@@ -142,7 +142,7 @@ BIND 9 Administrator Reference Manual.
 .PP
 Internet Systems Consortium
 .SH "COPYRIGHT"
-Copyright \(co 2004, 2005, 2007 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004, 2005, 2007, 2013 Internet Systems Consortium, Inc. ("ISC")
 .br
 Copyright \(co 2000, 2001 Internet Software Consortium.
 .br
