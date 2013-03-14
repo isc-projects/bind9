@@ -1771,7 +1771,6 @@
 ./contrib/dlz/modules/bdbhpt/testing/bdbhpt-populate.pl	X	2013
 ./contrib/dlz/modules/bdbhpt/testing/dns-data.txt	X	2013
 ./contrib/dlz/modules/common/dlz_dbi.c		X	2013
-./contrib/dlz/modules/dlz_minimal.h		X	2013
 ./contrib/dlz/modules/filesystem/Makefile	X	2013
 ./contrib/dlz/modules/filesystem/dir.c		X	2013
 ./contrib/dlz/modules/filesystem/dir.h		X	2013
