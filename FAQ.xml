@@ -1565,7 +1565,7 @@ rand_irqs="3 14 15"</programlisting>
 	<informalexample>
 	  <programlisting>
 key "rndc-key" {
-	algorithm hmac-md5;
+	algorithm hmac-sha256;
 	secret "uvceheVuqf17ZwIcTydddw==";
 };</programlisting>
 	</informalexample>
