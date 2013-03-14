@@ -1514,7 +1514,6 @@ case "$use_libjson" in
 		fi
 		;;
 esac
-HERE
 
 if test "X${libjson_libs}" != "X"
 then
