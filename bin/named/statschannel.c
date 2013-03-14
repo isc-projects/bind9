@@ -638,8 +638,8 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 			if (counter == NULL)
 				return (ISC_R_NOMEMORY);
 			json_object_object_add(cat, desc[index], counter);
-			break;
 #endif
+			break;
 		}
 	}
 	return (ISC_R_SUCCESS);
