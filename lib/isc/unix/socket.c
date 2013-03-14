@@ -5965,7 +5965,7 @@ isc__socket_getfd(isc_socket_t *socket0) {
 
 #ifdef BIND9
 
-#if defined(HAVE_LIBXML2) && defined(HAVE_JSON)
+#if defined(HAVE_LIBXML2) || defined(HAVE_JSON)
 static const char *
 _socktype(isc_sockettype_t type)
 {
