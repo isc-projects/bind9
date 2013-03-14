@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2007, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2007, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -471,7 +471,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	default:
 		return (ISC_R_FAILURE);
 	}
- 	target.rstart = digestb64;
+	target.rstart = digestb64;
 	target.rend = digestb64 + sizeof(digestb64);
 	memset(digestb64, 0, sizeof(digestb64));
 	result = isccc_base64_encode(&source, 64, "", &target);
