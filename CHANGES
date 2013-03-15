@@ -1,3 +1,6 @@
+3526.	[cleanup]	Set up dependencies for unit tests correctly during
+			build. [RT #32803]
+
 3521.	[bug]		Address memory leak in opensslecdsa_link.c. [RT #32249]
 
 3520.	[bug]		'mctx' was not being referenced counted in some places
