@@ -1,3 +1,6 @@
+3526.	[cleanup]	Set up dependencies for unit tests correctly during
+			build. [RT #32803]
+
 3520.	[bug]		'mctx' was not being referenced counted in some places
 			where it should have been.  [RT #32794]
 

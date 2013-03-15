@@ -131,6 +131,10 @@ XSRCS =		adb_test.c \
 		wire_test.c \
 		zone_test.c
 
+# override all rule to make sure top directory targets are built before
+# processing subdirectories.
+all: ${TARGETS} subdirs testdirs
+
 @BIND9_MAKE_RULES@
 
 all_tests: ${XTARGETS}
