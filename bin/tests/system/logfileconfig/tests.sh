@@ -54,6 +54,11 @@ status=0
 echo "I:testing log file validity (only plain files allowed)"
 
 # First run with a known good config.
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	test -f named.pid && break
+	sleep 1
+done
 kill `cat named.pid`
 echo > $PLAINFILE
 cp $PLAINCONF named.conf
@@ -70,6 +75,11 @@ grep "reloading configuration failed" named.run > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
 	echo "I: testing plain file succeeded"
+	for i in 0 1 2 3 4 5 6 7 8 9
+	do
+		test -f named.pid && break
+		sleep 1
+	done
 	kill `cat named.pid`
 else
 	echo "I: testing plain file failed (unexpected)"
@@ -158,6 +168,11 @@ then
 	if [ $? -ne 0 ]
 	then
 		echo "I: testing symlink to plain file succeeded"
+		for i in 0 1 2 3 4 5 6 7 8 9
+		do
+			test -f named.pid && break
+			sleep 1
+		done
 		kill `cat named.pid`
 	else
 		echo "I: testing symlink to plain file failed (unexpected)"
