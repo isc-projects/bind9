@@ -25,7 +25,8 @@ export_srcdir =	@top_srcdir@/lib/export
 CINCLUDES =	-I${srcdir}/include -I../dns/include \
 		-I${export_srcdir}/isc/include \
 		${DNS_INCLUDES} ${ISC_INCLUDES} \
-		-I${top_srcdir}/lib/irs/include
+		-I${top_srcdir}/lib/irs/include \
+		-I../../irs/include
 
 CDEFINES =
 CWARNINGS =

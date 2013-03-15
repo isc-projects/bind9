@@ -1,3 +1,6 @@
+3526.	[cleanup]	Set up dependencies for unit tests correctly during
+			build. [RT #32803]
+
 3525.	[func]		Support for additional signing algorithms in rndc:
 			hmac-sha1, -sha224, -sha256, -sha384, and -sha512.
 			The -A option to rndc-confgen can be used to

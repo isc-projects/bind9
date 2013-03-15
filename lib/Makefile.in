@@ -27,3 +27,8 @@ SUBDIRS =	isc isccc dns isccfg bind9 lwres tests
 TARGETS =
 
 @BIND9_MAKE_RULES@
+
+distclean::
+	@echo "making $@ in `pwd`/irs"; \
+	(cd irs; ${MAKE} ${MAKEDEFS} DESTDIR="${DESTDIR}" $@) || exit 1;
+
