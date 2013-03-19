@@ -158,6 +158,9 @@ find util -depth -type d -print | xargs rmdir 2>/dev/null
 # Remove all .gitignore files
 find . -name .gitignore -print | xargs rm
 
+# Remove branchsync.dat, if present
+rm -f branchsync.dat
+
 # populate srcid file
 echo "SRCID=$shorthash" > srcid
 
