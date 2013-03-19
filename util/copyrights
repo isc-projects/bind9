@@ -3422,6 +3422,7 @@
 ./util/COPYRIGHT.NOM				X	2001,2004,2007
 ./util/COPYRIGHT.PORTION			X	1996,1997,1998,1999,2000,2001,2004,2007
 ./util/altbuild.sh				SH	2000,2001,2002,2004,2007,2008,2012
+./util/branchsync.sh				SH	2013
 ./util/check-changes				PERL	2002,2004,2007,2012
 ./util/check-includes.pl			PERL	2000,2001,2004,2007,2012
 ./util/check-instincludes.sh			SH	2000,2001,2004,2007,2012
