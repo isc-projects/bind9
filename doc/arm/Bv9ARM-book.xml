@@ -10143,6 +10143,35 @@ ns.domain.com.rpz-nsdname   CNAME   .
           <command>named</command> will not open any communication channels.
         </para>
 
+        <para>
+          If the statistics channel is configured to listen on 127.0.0.1
+          port 8888, then the statistics are accessible in XML format at
+          <ulink url="http://127.0.0.1:8888/"
+                  >http://127.0.0.1:8888/</ulink> or
+          <ulink url="http://127.0.0.1:8888/xml"
+                  >http://127.0.0.1:8888/xml</ulink>. A CSS file is
+          included which can format the XML statistics into tables 
+          when viewed with a stylesheet-capable browser.  When
+          <acronym>BIND</acronym> 9 is configured with --enable-newstats, 
+          a new XML schema is used (version 3) which adds additional
+          zone statistics and uses a flatter tree for more efficient
+          parsing.  The stylesheet included uses the Google Charts API
+          to render data into into charts and graphs when using a
+          javascript-capable browser.
+        </para>
+
+        <para>
+          Applications that depend on a particular XML schema
+          can request 
+          <ulink url="http://127.0.0.1:8888/xml/v2"
+                  >http://127.0.0.1:8888/xml/v2</ulink> for version 2
+          of the statistics XML schema or 
+          <ulink url="http://127.0.0.1:8888/xml/v3"
+                  >http://127.0.0.1:8888/xml/v3</ulink> for version 3.
+          If the requested schema is supported by the server, then
+          it will respond; if not, it will return a "page not found"
+          error.
+        </para>
       </sect2>
 
 	<sect2 id="trusted-keys">
