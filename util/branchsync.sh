@@ -33,6 +33,7 @@ thisbranch () {
 
 docommit () {
     git log -1 --pretty=format:%s%n%b $2 > orig_commit_msg.tmp
+    author=`git log -1 --pretty=format:"%aN <%aE>" $2`
     firstline=`head -1 orig_commit_msg.tmp | sed 's/^\[[a-z0-9_]*\] //'`
     tail -n +2 orig_commit_msg.tmp > remainder.tmp
     firstline="[$BRANCH] $firstline"
@@ -42,7 +43,7 @@ docommit () {
     echo "hash: $2" >> commit_msg.tmp
     msg=`cat commit_msg.tmp`
     rm -f orig_commit_msg.tmp commit_msg.tmp remainder.tmp
-    git commit --no-verify --no-edit -m "$msg" || exit 1
+    git commit --no-verify --no-edit --author="$author" -m "$msg" || exit 1
 }
 
 BRANCH=`thisbranch`
@@ -81,9 +82,9 @@ if [ -z "$continuing" ]; then
 fi
 
 # loop through commits looking for ones that should be cherry-picked
-git log $SOURCEBRANCH --reverse --format='%H %aN' $LASTHASH..$SOURCEBRANCH | \
+git log $SOURCEBRANCH --reverse --format='%H' $LASTHASH..$SOURCEBRANCH | \
   grep -v Tinderbox | cut -d' ' -f1 | {
-    while read hash; do
+    while read hash author; do
         if git cherry-pick -xn ${hash}; then
             # cherry-pick was clean
             # restore the copyrights file
