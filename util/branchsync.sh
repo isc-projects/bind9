@@ -10,6 +10,9 @@
 # commit that went cleanly, and send mail -- or, if running in interactive
 # mode, we stop and allow the user to resolve conflicts.
 #
+# NOTE: This does not push changes to the repository; currently that's up
+# to the caller.
+#
 # Usage:
 # branchsync.sh [ -i ] [ -c ]
 #   -i: interactive mode (don't reset and send mail)
@@ -71,10 +74,10 @@ if [ -z "$continuing" ]; then
     fi
 
     # make sure both branches are synced to the source repository
-    git pull origin $BRANCH
-    git checkout -f $SOURCEBRANCH
-    git pull origin $SOURCEBRANCH
-    git checkout -f $BRANCH
+    git pull origin $BRANCH > /dev/null 2>&1
+    git checkout -f $SOURCEBRANCH > /dev/null 2>&1
+    git pull origin $SOURCEBRANCH > /dev/null 2>&1
+    git checkout -f $BRANCH > /dev/null 2>&1
 fi
 
 # loop through commits looking for ones that should be cherry-picked
