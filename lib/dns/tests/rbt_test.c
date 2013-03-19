@@ -26,6 +26,10 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h> /* uintptr_t */
+#endif
+
 #include <dns/rbt.h>
 #include <dns/fixedname.h>
 #include <dns/result.h>
