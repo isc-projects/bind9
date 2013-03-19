@@ -108,13 +108,18 @@ git log $SOURCEBRANCH --reverse --format='%H' $LASTHASH..$SOURCEBRANCH | \
             git reset --hard
 
             # build mail message
-            MESSAGE="Attempt to cherry pick ${hash}\nto $BRANCH failed."
-            MESSAGE=$MESSAGE"\nCommit message of change was:\n"
-            MESSAGE=$MESSAGE"`git log -1 --pretty=format:%s%n%b ${hash}`"
             subject="Branch sync to $BRANCH failed"
+            cat << EOF > /tmp/branchmsg.$$
+Attempt to cherry pick ${hash}
+to $BRANCH failed.
+
+Commit message of change was:
+`git log -1 --pretty=format:%s%n%b ${hash}`
+EOF
 
             # send mail
-            echo "$MESSAGE" | mail -s "$subject" bind-changes
+            cat /tmp/branchmsg.$$ | mail -s "$subject" bind-changes
+            rm /tmp/branchmsg.$$
         fi
 
         break
