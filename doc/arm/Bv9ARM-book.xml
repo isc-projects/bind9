@@ -10564,7 +10564,21 @@ ns.domain.com.rpz-nsdname   CNAME   .
                   >http://127.0.0.1:8888/xml</ulink>. A CSS file is
           included which can format the XML statistics into tables 
           when viewed with a stylesheet-capable browser, and into 
-          charts and graphs when using a javascript-capable browser.
+          charts and graphs using the Google Charts API when using a
+          javascript-capable browser.
+        </para>
+
+        <para>
+          Applications that depend on a particular XML schema
+          can request 
+          <ulink url="http://127.0.0.1:8888/xml/v2"
+                  >http://127.0.0.1:8888/xml/v2</ulink> for version 2
+          of the statistics XML schema or 
+          <ulink url="http://127.0.0.1:8888/xml/v3"
+                  >http://127.0.0.1:8888/xml/v3</ulink> for version 3.
+          If the requested schema is supported by the server, then
+          it will respond; if not, it will return a "page not found"
+          error.
         </para>
 
         <para>

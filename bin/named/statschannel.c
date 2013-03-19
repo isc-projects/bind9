@@ -1984,8 +1984,10 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 		goto cleanup;
 
 #ifdef HAVE_LIBXML2
-	isc_httpdmgr_addurl(listener->httpdmgr, "/xml", render_index, server);
 	isc_httpdmgr_addurl(listener->httpdmgr, "/", render_index, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/xml", render_index, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3", render_index,
+			    server);
 #endif
 #ifdef HAVE_JSON
 	isc_httpdmgr_addurl(listener->httpdmgr, "/json",

@@ -1,3 +1,7 @@
+3527.	[compat]	Add a URI to allow applications to explicitly
+			request a particular XML schema from the statistics
+			channel, returning 404 if not supported. [RT #32481]
+
 3526.	[cleanup]	Set up dependencies for unit tests correctly during
 			build. [RT #32803]
 
