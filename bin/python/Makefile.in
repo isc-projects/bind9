@@ -22,16 +22,18 @@ top_srcdir =	@top_srcdir@
 
 PYTHON	=	@PYTHON@
 
-TARGETS =	dnssec-checkds
-SRCS =		dnssec-checkds.py
+TARGETS =	dnssec-checkds dnssec-coverage
+SRCS =		dnssec-checkds.py dnssec-coverage.py
 
-MANPAGES =	dnssec-checkds.8
-HTMLPAGES =	dnssec-checkds.html
+MANPAGES =	dnssec-checkds.8 dnssec-coverage.8
+HTMLPAGES =	dnssec-checkds.html dnssec-coverage.html
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
 dnssec-checkds: dnssec-checkds.py
+
+dnssec-coverage: dnssec-coverage.py
 
 doc man:: ${MANOBJS}
 
@@ -44,10 +46,12 @@ installdirs:
 
 install:: ${TARGETS} installdirs
 	${INSTALL_PROGRAM} dnssec-checkds@EXEEXT@ ${DESTDIR}${sbindir}
+	${INSTALL_PROGRAM} dnssec-coverage@EXEEXT@ ${DESTDIR}${sbindir}
 	${INSTALL_DATA} ${srcdir}/dnssec-checkds.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_DATA} ${srcdir}/dnssec-coverage.8 ${DESTDIR}${mandir}/man8
 
 clean distclean::
 	rm -f ${TARGETS}
 
 distclean::
-	rm -f dnssec-checkds.py
+	rm -f dnssec-checkds.py dnssec-coverage.py
