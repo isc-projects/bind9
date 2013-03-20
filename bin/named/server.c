@@ -5300,13 +5300,11 @@ load_configuration(const char *filename, ns_server_t *server,
 						       ns_g_aclconfctx,
 						       ns_g_mctx, &listenon);
 		} else if (!ns_g_lwresdonly) {
-			isc_boolean_t enable;
 			/*
 			 * Not specified, use default.
 			 */
-			enable = ISC_TF(isc_net_probeipv4() != ISC_R_SUCCESS);
 			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
-						    enable, &listenon));
+						    ISC_TRUE, &listenon));
 		}
 		if (listenon != NULL) {
 			ns_interfacemgr_setlistenon6(server->interfacemgr,

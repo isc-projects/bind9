@@ -51,6 +51,10 @@ BIND 9
         For up-to-date release notes and errata, see
         http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.10.0
+
+	Named now listens on both IPv4 and IPv6 interfaces by default.
+
 BIND 9.9.0
 
 	BIND 9.9.0 includes a number of changes from BIND 9.8 and earlier

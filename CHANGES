@@ -1,3 +1,8 @@
+3529.	[func]		Named now listens on both IPv4 and IPv6 interfaces
+			by default.  Named previously only listened on IPv4
+			interfaces by default unless named was running in
+			IPv6 only mode.  [RT #32945]
+
 3528.	[func]		New "dnssec-coverage" command scans the timing
 			metadata for a set of DNSSEC keys and reports if a
 			lapse in signing coverage has been scheduled

@@ -7719,8 +7719,8 @@ listen-on port 1234 { !1.2.3.4; 1.2/16; };
           <para>
             The <command>listen-on-v6</command> option is used to
             specify the interfaces and the ports on which the server will
-            listen
-            for incoming queries sent using IPv6.
+            listen for incoming queries sent using IPv6.  If not specified,
+            the server will listen on port 53 on all IPv6 interfaces.
           </para>
 
           <para>
@@ -7769,13 +7769,6 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
 <programlisting>listen-on-v6 { none; };
 </programlisting>
 
-          <para>
-            If no <command>listen-on-v6</command> option is
-            specified, the server will not listen on any IPv6 address
-	    unless <command>-6</command> is specified when <command>named</command> is
-	    invoked.  If <command>-6</command> is specified then
-	    <command>named</command> will listen on port 53 on all IPv6 interfaces by default.
-          </para>
         </sect3>
 
         <sect3 id="query_address">
