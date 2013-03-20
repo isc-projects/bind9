@@ -361,6 +361,7 @@
 ./bin/tests/dnssec-signzone/test6.zone		X	2009
 ./bin/tests/dnssec-signzone/test7.zone		X	2009
 ./bin/tests/dnssec-signzone/test8.zone		X	2009
+./bin/tests/dst/.gitignore			X	2013
 ./bin/tests/dst/Kdh.+002+18602.key.in		X	2001,2013
 ./bin/tests/dst/Kdh.+002+18602.private.in	X	2001,2013
 ./bin/tests/dst/Kdh.+002+48957.key.in		X	2001,2013
