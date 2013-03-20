@@ -1,3 +1,10 @@
+3528.	[func]		New "dnssec-coverage" command scans the timing
+			metadata for a set of DNSSEC keys and reports if a
+			lapse in signing coverage has been scheduled
+			inadvertently. (Note: This tool depends on python;
+			it will not be built or installed on systems that
+			do not have a python interpreter.) [RT #28098]
+
 3527.	[compat]	Add a URI to allow applications to explicitly
 			request a particular XML schema from the statistics
 			channel, returning 404 if not supported. [RT #32481]

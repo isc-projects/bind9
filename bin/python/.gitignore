@@ -1,2 +1,4 @@
 dnssec-checkds
 dnssec-checkds.py
+dnssec-coverage
+dnssec-coverage.py

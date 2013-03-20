@@ -1236,6 +1236,18 @@ israw1 signer/signer.out.7 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking dnssec-signzone output format ($n)"
+ret=0
+(
+cd signer
+$SIGNER -O full -f - -Sxt -o example example.db > signer.out.3 2>&1
+$SIGNER -O text -f - -Sxt -o example example.db > signer.out.4 2>&1
+) || ret=1
+awk '/IN *SOA/ {if (NF != 11) exit(1)}' signer/signer.out.3 || ret=1
+awk '/IN *SOA/ {if (NF != 7) exit(1)}' signer/signer.out.4 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking validated data are not cached longer than originalttl ($n)"
 ret=0
 $DIG $DIGOPTS +ttl +noauth a.ttlpatch.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
@@ -2007,6 +2019,15 @@ $DIG $DIGOPTS b.c.d.optout-tld. \
 	@10.53.0.4 A > dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check dnssec-dsfromkey from stdin($n)"
+ret=0
+$DIG $DIGOPTS dnskey algroll. @10.53.0.2 | \
+        $DSFROMKEY -f - algroll. > dig.out.ns2.test$n || ret=1
+diff -b dig.out.ns2.test$n ns1/dsset-algroll. > /dev/null 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

@@ -179,6 +179,7 @@ except: exit(1)'
 			unspec)
 				PYTHON=""
 				AC_SUBST(CHECKDS)
+				AC_SUBST(COVERAGE)
 				AC_MSG_RESULT([not found, python disabled])
 				;;
 			yes)
@@ -192,11 +193,14 @@ esac
 
 PYTHON_TOOLS=''
 CHECKDS=''
+COVERAGE=''
 if test "X$PYTHON" != "X"; then
         PYTHON_TOOLS=python
 	CHECKDS=checkds
+	COVERAGE=coverage
 fi
 AC_SUBST(CHECKDS)
+AC_SUBST(COVERAGE)
 AC_SUBST(PYTHON_TOOLS)
 
 #
@@ -3644,6 +3648,7 @@ AC_CONFIG_FILES([
 	bin/pkcs11/Makefile
 	bin/python/Makefile
 	bin/python/dnssec-checkds.py
+	bin/python/dnssec-coverage.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
 	bin/tests/atomic/Makefile
