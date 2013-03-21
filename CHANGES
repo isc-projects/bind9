@@ -1,3 +1,6 @@
+3531.	[bug]		win32: A uninitialized value could be returned on out
+			of memory. [RT #32960]
+
 3530.	[contrib]	Better RTT tracking in queryperf. [RT #30128]
 
 3528.	[func]		New "dnssec-coverage" command scans the timing

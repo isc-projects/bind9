@@ -1466,7 +1466,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	ISC_LINK_INIT(sock, link);
 
 	/*
-	 * set up list of readers and writers to be initially empty
+	 * Set up list of readers and writers to be initially empty.
 	 */
 	ISC_LIST_INIT(sock->recv_list);
 	ISC_LIST_INIT(sock->send_list);
@@ -1489,20 +1489,16 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	sock->recvbuf.remaining = 0;
 	sock->recvbuf.base = isc_mem_get(manager->mctx, sock->recvbuf.len); // max buffer size
 	if (sock->recvbuf.base == NULL) {
-		sock->magic = 0;
+		result = ISC_R_NOMEMORY;
 		goto error;
 	}
 
 	/*
-	 * initialize the lock
+	 * Initialize the lock.
 	 */
 	result = isc_mutex_init(&sock->lock);
-	if (result != ISC_R_SUCCESS) {
-		sock->magic = 0;
-		isc_mem_put(manager->mctx, sock->recvbuf.base, sock->recvbuf.len);
-		sock->recvbuf.base = NULL;
+	if (result != ISC_R_SUCCESS)
 		goto error;
-	}
 
 	socket_log(__LINE__, sock, NULL, EVENT, NULL, 0, 0,
 		   "allocated");
@@ -1513,6 +1509,8 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	return (ISC_R_SUCCESS);
 
  error:
+	if (sock->recvbuf.base != NULL)
+		isc_mem_put(manager->mctx, sock->recvbuf.base, sock->recvbuf.len);
 	isc_mem_put(manager->mctx, sock, sizeof(*sock));
 
 	return (result);
