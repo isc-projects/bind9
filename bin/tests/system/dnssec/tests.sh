@@ -2023,14 +2023,5 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check dnssec-dsfromkey from stdin($n)"
-ret=0
-$DIG $DIGOPTS dnskey algroll. @10.53.0.2 | \
-        $DSFROMKEY -f - algroll. > dig.out.ns2.test$n || ret=1
-diff -b dig.out.ns2.test$n ns1/dsset-algroll. > /dev/null 2>&1 || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
-
 echo "I:exit status: $status"
 exit $status
