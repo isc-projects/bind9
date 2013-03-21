@@ -1,3 +1,5 @@
+3530.	[contrib]	Better RTT tracking in queryperf. [RT #30128]
+
 3529.	[func]		Named now listens on both IPv4 and IPv6 interfaces
 			by default.  Named previously only listened on IPv4
 			interfaces by default unless named was running in
