@@ -2104,7 +2104,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->sendcmsgbuf = NULL;
 
 	/*
-	 * set up cmsg buffers
+	 * Set up cmsg buffers.
 	 */
 	cmsgbuflen = 0;
 #if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIN6PKTINFO)
@@ -2146,7 +2146,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->tag = NULL;
 
 	/*
-	 * set up list of readers and writers to be initially empty
+	 * Set up list of readers and writers to be initially empty.
 	 */
 	ISC_LIST_INIT(sock->recv_list);
 	ISC_LIST_INIT(sock->send_list);
@@ -2161,7 +2161,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->bound = 0;
 
 	/*
-	 * initialize the lock
+	 * Initialize the lock.
 	 */
 	result = isc_mutex_init(&sock->lock);
 	if (result != ISC_R_SUCCESS) {
@@ -2171,7 +2171,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	}
 
 	/*
-	 * Initialize readable and writable events
+	 * Initialize readable and writable events.
 	 */
 	ISC_EVENT_INIT(&sock->readable_ev, sizeof(intev_t),
 		       ISC_EVENTATTR_NOPURGE, NULL, ISC_SOCKEVENT_INTR,
