@@ -1,3 +1,5 @@
+3530.	[contrib]	Better RTT tracking in queryperf. [RT #30128]
+
 3526.	[cleanup]	Set up dependencies for unit tests correctly during
 			build. [RT #32803]
 
