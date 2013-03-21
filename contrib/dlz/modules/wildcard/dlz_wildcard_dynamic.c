@@ -297,7 +297,6 @@ dlz_lookup(const char *zone, const char *name,
 			if (result != ISC_R_SUCCESS)
 				goto done;
 
-fprintf(stderr, "setting result to success on %s/%s\n", nrec->name, nrec->type);
 			result = ISC_R_SUCCESS;
 
 			free(querystring);
