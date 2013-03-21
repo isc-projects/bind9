@@ -4,7 +4,7 @@
 ./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013
-./HISTORY					X	2010
+./HISTORY					X	2010,2013
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012
 ./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012
@@ -2041,7 +2041,7 @@
 ./contrib/query-loc-0.4.0/configure		X	2008
 ./contrib/query-loc-0.4.0/configure.in		X	2008
 ./contrib/query-loc-0.4.0/install-sh		X	2008
-./contrib/query-loc-0.4.0/loc.c			X	2008
+./contrib/query-loc-0.4.0/loc.c			X	2008,2013
 ./contrib/query-loc-0.4.0/loc.h			X	2008
 ./contrib/query-loc-0.4.0/loc_ntoa.c		X	2008
 ./contrib/query-loc-0.4.0/query-loc.1		X	2008
@@ -2095,7 +2095,7 @@
 ./contrib/zkt/configure				X	2008,2009,2010
 ./contrib/zkt/configure.ac			X	2009,2010
 ./contrib/zkt/debug.h				X	2008
-./contrib/zkt/dki.c				X	2008,2009,2010
+./contrib/zkt/dki.c				X	2008,2009,2010,2013
 ./contrib/zkt/dki.h				X	2008,2009,2010
 ./contrib/zkt/dnssec-zkt.c			X	2008,2009,2010
 ./contrib/zkt/doc/KeyRollover.ms		X	2009
@@ -2182,7 +2182,7 @@
 ./contrib/zkt/zkt-keyman.c			X	2010
 ./contrib/zkt/zkt-ls.c				X	2010
 ./contrib/zkt/zkt-signer.c			X	2010
-./contrib/zkt/zkt-soaserial.c			X	2008
+./contrib/zkt/zkt-soaserial.c			X	2008,2013
 ./contrib/zkt/zkt.c				X	2008,2009,2010
 ./contrib/zkt/zkt.h				X	2008
 ./contrib/zkt/zone.c				X	2008,2009,2010
@@ -3073,7 +3073,7 @@
 ./lib/isc/win32/once.c				C	1999,2000,2001,2004,2007
 ./lib/isc/win32/os.c				C	2000,2001,2002,2004,2007
 ./lib/isc/win32/resource.c			C	2000,2001,2004,2007,2008
-./lib/isc/win32/socket.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./lib/isc/win32/socket.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/isc/win32/stdio.c				C	2000,2001,2004,2007
 ./lib/isc/win32/stdtime.c			C	1999,2000,2001,2004,2007
 ./lib/isc/win32/strerror.c			C	2001,2002,2004,2007
