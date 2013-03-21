@@ -1,3 +1,7 @@
+3533.	[contrib]	query-loc-0.4.0: memory leaks. [RT #32960]
+
+3532.	[contrib]	zkt: fixed buffer overrun, resource leaks. [RT #32960]
+
 3531.	[bug]		win32: A uninitialized value could be returned on out
 			of memory. [RT #32960]
 

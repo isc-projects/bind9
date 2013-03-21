@@ -120,14 +120,17 @@ static	int	read_serial_fromfile (const char *fname, unsigned long *serial)
 	soafound = 0;
 	while ( !soafound && fgets (buf, sizeof buf, fp) )
 	{
-		if ( sscanf (buf, "%*s %*d IN SOA %255s %*s (\n", master) == 1 )
+		if ( sscanf (buf, "%*s %*d IN SOA %254s %*s (\n", master) == 1 )
 			soafound = 1;
-		else if ( sscanf (buf, "%*s IN SOA %255s %*s (\n", master) == 1 )
+		else if ( sscanf (buf, "%*s IN SOA %254s %*s (\n", master) == 1 )
 			soafound = 1;
 	}
 
 	if ( !soafound )
+	{
+		fclose (fp);
 		return -2;	/* no zone file (soa not found) */
+	}
 
 	/* move forward until any non ws is reached */
 	while ( (c = getc (fp)) != EOF && isspace (c) )
@@ -136,7 +139,10 @@ static	int	read_serial_fromfile (const char *fname, unsigned long *serial)
 
 	*serial = 0L;	/* read in the current serial number */
 	if ( fscanf (fp, "%lu", serial) != 1 )	/* try to get serial no */
+	{
+		fclose (fp);
 		return -3;	/* no serial number found */
+	}
 
 	fclose (fp);
 
