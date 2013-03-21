@@ -1,3 +1,5 @@
+3530.	[contrib]	Better RTT tracking in queryperf. [RT #30128]
+
 3528.	[func]		New "dnssec-coverage" command scans the timing
 			metadata for a set of DNSSEC keys and reports if a
 			lapse in signing coverage has been scheduled
