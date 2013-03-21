@@ -70,7 +70,7 @@ static	dki_t	*dki_alloc ()
 	dki_estr[0] = '\0';
 	dki_t	*dkp = malloc (sizeof (dki_t));
 
-	if ( (dkp = malloc (sizeof (dki_t))) )
+	if ( dkp != NULL )
 	{
 		memset (dkp, 0, sizeof (dki_t));
 		return dkp;
