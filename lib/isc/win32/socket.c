@@ -713,7 +713,6 @@ static void
 queue_receive_request(isc_socket_t *sock) {
 	DWORD Flags = 0;
 	DWORD NumBytes = 0;
-	int total_bytes = 0;
 	int Result;
 	int Error;
 	int need_retry;
@@ -1091,9 +1090,8 @@ dump_msg(struct msghdr *msg, isc_socket_t *sock) {
 	printf("\tname %p, namelen %d\n", msg->msg_name, msg->msg_namelen);
 	printf("\tiov %p, iovlen %d\n", msg->msg_iov, msg->msg_iovlen);
 	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++)
-		printf("\t\t%d\tbase %p, len %d\n", i,
-		       msg->msg_iov[i].buf,
-		       msg->msg_iov[i].len);
+		printf("\t\t%u\tbase %p, len %u\n", i,
+		       msg->msg_iov[i].buf, msg->msg_iov[i].len);
 }
 #endif
 
@@ -1603,21 +1601,21 @@ free_socket(isc_socket_t **sockp, int lineno) {
 	isc_socket_t *sock = *sockp;
 	*sockp = NULL;
 
-	manager = sock->manager;
-
 	/*
 	 * Seems we can free the socket after all.
 	 */
 	manager = sock->manager;
-	socket_log(__LINE__, sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
-		   ISC_MSG_DESTROYING, "freeing socket line %d fd %d lock %p semaphore %p",
+	socket_log(__LINE__, sock, NULL, CREATION, isc_msgcat,
+		   ISC_MSGSET_SOCKET, ISC_MSG_DESTROYING,
+		   "freeing socket line %d fd %d lock %p semaphore %p",
 		   lineno, sock->fd, &sock->lock, sock->lock.LockSemaphore);
 
 	sock->magic = 0;
 	DESTROYLOCK(&sock->lock);
 
 	if (sock->recvbuf.base != NULL)
-		isc_mem_put(manager->mctx, sock->recvbuf.base, sock->recvbuf.len);
+		isc_mem_put(manager->mctx, sock->recvbuf.base,
+			    sock->recvbuf.len);
 
 	LOCK(&manager->lock);
 	if (ISC_LINK_LINKED(sock, link))
@@ -1831,7 +1829,6 @@ isc__socket_attach(isc_socket_t *sock, isc_socket_t **socketp) {
 void
 isc__socket_detach(isc_socket_t **socketp) {
 	isc_socket_t *sock;
-	isc_boolean_t kill_socket = ISC_FALSE;
 
 	REQUIRE(socketp != NULL);
 	sock = *socketp;
@@ -2730,10 +2727,7 @@ static isc_result_t
 socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 	    unsigned int flags)
 {
-	int cc = 0;
-	isc_task_t *ntask = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
-	int recv_errno = 0;
 
 	dev->ev_sender = task;
 
