@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -76,7 +76,7 @@ is_ntfs(const char * file) {
 	 * Look for c:\path\... style, c:/path/... or \\computer\shar\path...
 	 * the UNC style file specs
 	 */
-	if (isalpha(filename[0]) && filename[1] == ':' && 
+	if (isalpha(filename[0]) && filename[1] == ':' &&
 		(filename[2] == '\\' || filename[2] == '/')) {
 		strncpy(drive, filename, 3);
 		drive[3] = '\0';
@@ -96,7 +96,7 @@ is_ntfs(const char * file) {
 	}
 	else /* Not determinable */
 		return (FALSE);
-		
+
 	GetVolumeInformation(drive, NULL, 0, NULL, 0, NULL, FSType,
 			     sizeof(FSType));
 	if(strcmp(FSType,"NTFS") == 0)
