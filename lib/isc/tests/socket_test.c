@@ -28,6 +28,7 @@
 #include <isc/socket.h>
 
 #include "../task_p.h"
+#include "../unix/socket_p.h"
 #include "isctest.h"
 
 static isc_boolean_t recv_dscp;
