@@ -28,6 +28,16 @@ do
 	status=`expr $status + $ret`
 done
 
+for db in zones/bad*.db
+do
+	echo "I:checking $db ($n)"
+	ret=0
+	$CHECKZONE -i local example $db > test.out.$n 2>&1 && ret=1
+	n=`expr $n + 1`
+	if [ $ret != 0 ]; then echo "I:failed"; fi
+	status=`expr $status + $ret`
+done
+
 echo "I:checking with journal file ($n)"
 ret=0
 $CHECKZONE -D -o test.orig.db test zones/test1.db > /dev/null 2>&1 || ret=1
