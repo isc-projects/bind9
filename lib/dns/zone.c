@@ -8177,7 +8177,6 @@ zone_maintenance(dns_zone_t *zone) {
 	 */
 	switch (zone->type) {
 	case dns_zone_master:
-	case dns_zone_redirect:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) &&
 		    isc_time_compare(&now, &zone->notifytime) >= 0)
 			zone_notify(zone, &now);
