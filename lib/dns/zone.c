@@ -8939,6 +8939,14 @@ zone_maintenance(dns_zone_t *zone) {
 	}
 
 	/*
+	 * Slaves send notifies before backing up to disk, masters after.
+	 */
+	if (zone->type == dns_zone_slave &&
+	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) &&
+	    isc_time_compare(&now, &zone->notifytime) >= 0)
+		zone_notify(zone, &now);
+
+	/*
 	 * Do we need to consolidate the backing store?
 	 */
 	switch (zone->type) {
@@ -8969,6 +8977,19 @@ zone_maintenance(dns_zone_t *zone) {
 	}
 
 	/*
+	 * Master/redirect zones send notifies now, if needed
+	 */
+	switch (zone->type) {
+	case dns_zone_master:
+	case dns_zone_redirect:
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) &&
+		    isc_time_compare(&now, &zone->notifytime) >= 0)
+			zone_notify(zone, &now);
+	default:
+		break;
+	}
+
+	/*
 	 * Do we need to refresh keys?
 	 */
 	switch (zone->type) {
@@ -8993,12 +9014,6 @@ zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_redirect:
 	case dns_zone_slave:
 		/*
-		 * Do we need to send out notify messages?
-		 */
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) &&
-		    isc_time_compare(&now, &zone->notifytime) >= 0)
-			zone_notify(zone, &now);
-		/*
 		 * Do we need to sign/resign some RRsets?
 		 */
 		if (!isc_time_isepoch(&zone->signingtime) &&
@@ -9011,7 +9026,7 @@ zone_maintenance(dns_zone_t *zone) {
 			isc_time_compare(&now, &zone->nsec3chaintime) >= 0)
 			zone_nsec3chain(zone);
 		/*
-		 * Do we need to issue a key expiry warning.
+		 * Do we need to issue a key expiry warning?
 		 */
 		if (!isc_time_isepoch(&zone->keywarntime) &&
 		    isc_time_compare(&now, &zone->keywarntime) >= 0)
