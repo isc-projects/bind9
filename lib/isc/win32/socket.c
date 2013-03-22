@@ -3901,7 +3901,7 @@ isc__socket_socketevent(isc_mem_t *mctx, void *sender,
 			isc_eventtype_t eventtype, isc_taskaction_t action,
 			const void *arg)
 {
-        return (allocate_socketevent(mctx, sender, eventtype, action, arg));
+	return (allocate_socketevent(mctx, sender, eventtype, action, arg));
 }
 
 #ifdef HAVE_LIBXML2

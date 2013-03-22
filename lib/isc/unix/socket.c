@@ -1495,7 +1495,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 		int dscp = (dev->dscp << 2) & 0xff;
 
 #ifdef IP_TOS
-		if (sock->pf == AF_INET && 
+		if (sock->pf == AF_INET &&
 		    ((isc_net_probedscp() & ISC_NET_DSCPPKTV4) != 0))
 		{
 			cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +
@@ -1527,7 +1527,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 		}
 #endif
 #ifdef IPPROTO_IPV6
-		if (sock->pf == AF_INET6 && 
+		if (sock->pf == AF_INET6 &&
 		    ((isc_net_probedscp() & ISC_NET_DSCPPKTV6) != 0))
 		{
 			cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +

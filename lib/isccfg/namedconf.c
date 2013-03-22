@@ -2058,7 +2058,7 @@ parse_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 
 static isc_result_t
 parse_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
-		        cfg_obj_t **ret)
+			cfg_obj_t **ret)
 {
 	return (parse_maybe_optional_keyvalue(pctx, type, ISC_TRUE, ret));
 }

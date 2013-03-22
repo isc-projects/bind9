@@ -923,7 +923,7 @@ dns_request_createvia4(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 		       isc_dscp_t dscp, unsigned int options,
 		       dns_tsigkey_t *key, unsigned int timeout,
-		       unsigned int udptimeout, unsigned int udpretries, 
+		       unsigned int udptimeout, unsigned int udpretries,
 		       isc_task_t *task, isc_taskaction_t action, void *arg,
 		       dns_request_t **requestp)
 {

@@ -252,7 +252,7 @@ struct dns_zone {
 	dns_notifytype_t	notifytype;
 	isc_sockaddr_t		*notify;
 	dns_name_t		**notifykeynames;
- 	isc_dscp_t		*notifydscp;
+	isc_dscp_t		*notifydscp;
 	unsigned int		notifycnt;
 	isc_sockaddr_t		notifyfrom;
 	isc_task_t		*task;
@@ -520,7 +520,7 @@ struct dns_notify {
 	dns_name_t		ns;
 	isc_sockaddr_t		dst;
 	dns_tsigkey_t		*key;
- 	isc_dscp_t		dscp;
+	isc_dscp_t		dscp;
 	ISC_LINK(dns_notify_t)	link;
 };
 
@@ -885,7 +885,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->curmaster = 0;
 	zone->notify = NULL;
 	zone->notifykeynames = NULL;
- 	zone->notifydscp = NULL;
+	zone->notifydscp = NULL;
 	zone->notifytype = dns_notifytype_yes;
 	zone->notifycnt = 0;
 	zone->task = NULL;
@@ -5025,8 +5025,8 @@ clear_addresskeylist(isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
 	if (addrs != NULL)
 		isc_mem_put(mctx, addrs, count * sizeof(isc_sockaddr_t));
 
- 	if (dscps != NULL)
- 		isc_mem_put(mctx, dscps, count * sizeof(isc_dscp_t));
+	if (dscps != NULL)
+		isc_mem_put(mctx, dscps, count * sizeof(isc_dscp_t));
 
 	if (keynames != NULL) {
 		unsigned int i;
@@ -11280,7 +11280,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	int timeout;
 	isc_boolean_t have_xfrsource = ISC_FALSE, have_xfrdscp = ISC_FALSE;
 	isc_boolean_t reqnsid;
- 	isc_uint16_t udpsize = SEND_BUFFER_SIZE;
+	isc_uint16_t udpsize = SEND_BUFFER_SIZE;
 	isc_dscp_t dscp = -1;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -14094,12 +14094,12 @@ sendtomaster(dns_forward_t *forward) {
 		goto unlock;
 	}
 	result = dns_request_createraw4(forward->zone->view->requestmgr,
- 				       forward->msgbuf,
+				       forward->msgbuf,
 				       &src, &forward->addr, dscp,
- 				       DNS_REQUESTOPT_TCP, 15 /* XXX */,
+				       DNS_REQUESTOPT_TCP, 15 /* XXX */,
 				       0, 0, forward->zone->task,
- 				       forward_callback, forward,
- 				       &forward->request);
+				       forward_callback, forward,
+				       &forward->request);
 	if (result == ISC_R_SUCCESS) {
 		if (!ISC_LINK_LINKED(forward, link))
 			ISC_LIST_APPEND(forward->zone->forwards, forward, link);

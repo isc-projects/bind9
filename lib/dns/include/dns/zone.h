@@ -600,7 +600,7 @@ dns_zone_setalsonotifywithkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
 			       dns_name_t **keynames, isc_uint32_t count);
 isc_result_t
 dns_zone_setalsonotifydscpkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
-		               const isc_dscp_t *dscps, dns_name_t **keynames,
+			       const isc_dscp_t *dscps, dns_name_t **keynames,
 			       isc_uint32_t count);
 /*%<
  *	Set the list of additional servers to be notified when

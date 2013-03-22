@@ -310,7 +310,7 @@ cfg_obj_getdscp(const cfg_obj_t *obj);
  * socket address.
  *
  * Requires:
- * \li     'obj' points to a valid configuration object of a 
+ * \li     'obj' points to a valid configuration object of a
  *         socket address type.
  *
  * Returns:
