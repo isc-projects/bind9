@@ -267,7 +267,8 @@ isc_dir_createunique(char *templet) {
 
 	do {
 		i = mkdir(templet);
-		i = chmod(templet, 0700);
+		if (i == 0)
+			i = chmod(templet, 0700);
 
 		if (i == 0 || errno != EEXIST)
 			break;
