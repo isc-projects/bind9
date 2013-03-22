@@ -72,6 +72,7 @@ EXTERN const char *		ns_g_product		INIT(PRODUCT);
 EXTERN const char *		ns_g_srcid		INIT(SRCID);
 EXTERN const char *		ns_g_configargs		INIT(CONFIGARGS);
 EXTERN in_port_t		ns_g_port		INIT(0);
+EXTERN isc_dscp_t		ns_g_dscp		INIT(-1);
 EXTERN in_port_t		lwresd_g_listenport	INIT(0);
 
 EXTERN ns_server_t *		ns_g_server		INIT(NULL);

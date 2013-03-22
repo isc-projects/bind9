@@ -748,6 +748,28 @@ typedef enum {
 } optlevel_t;
 
 static isc_result_t
+check_dscp(const cfg_obj_t *options, isc_log_t *logctx) {
+       isc_result_t result = ISC_R_SUCCESS;
+       const cfg_obj_t *obj = NULL;
+
+       /*
+	* Check that DSCP setting is within range
+	*/
+       obj = NULL;
+       (void)cfg_map_get(options, "dscp", &obj);
+       if (obj != NULL) {
+	       isc_uint32_t dscp = cfg_obj_asuint32(obj);
+	       if (dscp >= 64) {
+		       cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				   "'dscp' out of range (0-63)");
+		       result = ISC_R_FAILURE;
+	       }
+       }
+
+       return (result);
+}
+
+static isc_result_t
 check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	      optlevel_t optlevel)
 {
@@ -1127,6 +1149,10 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			    "'server-id' too big (>1024 bytes)");
 		result = ISC_R_FAILURE;
 	}
+
+	tresult = check_dscp(options, logctx);
+	if (tresult != ISC_R_SUCCESS)
+		result = tresult;
 
 	return (result);
 }

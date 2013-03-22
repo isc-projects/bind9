@@ -110,6 +110,7 @@ isc__socket_sendto2
 isc__socket_sendtov
 isc__socket_sendv
 isc__socket_setname
+isc__socket_socketevent
 isc__socketmgr_create
 isc__socketmgr_create2
 isc__socketmgr_destroy
@@ -387,6 +388,7 @@ isc_net_getudpportrange
 isc_net_ntop
 isc_net_probe_ipv6only
 isc_net_probe_ipv6pktinfo
+isc_net_probedscp
 isc_net_probeipv4
 isc_net_probeipv6
 isc_net_probeunix
@@ -517,6 +519,7 @@ isc_sockaddr_pf
 isc_sockaddr_setport
 isc_sockaddr_totext
 isc_sockaddr_v6fromin
+isc_socket_dscp
 isc_socketmgr_renderxml
 isc_stats_attach
 isc_stats_create

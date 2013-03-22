@@ -1,0 +1,8 @@
+$TTL 3600
+.	SOA	ns4.nil-servers. marka.isc.org. 1 3600 1200 3600000 1200
+.	NS	ns4.nil-servers.
+.	NS	ns5.nil-servers.
+ns4.nil-servers. A 10.53.0.4
+ns5.nil-servers. A 10.53.0.5
+xxx.example.	A	10.53.0.1
+xxx.tld.	A	10.53.0.1

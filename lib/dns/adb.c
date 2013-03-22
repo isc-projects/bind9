@@ -1946,6 +1946,7 @@ new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 	ai->srtt = entry->srtt;
 	ai->flags = entry->flags;
 	ai->entry = entry;
+	ai->dscp = -1;
 	ISC_LINK_INIT(ai, publink);
 
 	return (ai);

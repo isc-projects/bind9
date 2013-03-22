@@ -121,6 +121,7 @@ struct dns_xfrin_ctx {
 	 * may differ due to IXFR->AXFR fallback.
 	 */
 	dns_rdatatype_t 	reqtype;
+	isc_dscp_t 		dscp;
 
 	isc_sockaddr_t 		masteraddr;
 	isc_sockaddr_t		sourceaddr;
@@ -192,6 +193,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_rdatatype_t reqtype,
 	     isc_sockaddr_t *masteraddr,
 	     isc_sockaddr_t *sourceaddr,
+	     isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey,
 	     dns_xfrin_ctx_t **xfrp);
 
@@ -606,20 +608,23 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp)
 {
 	isc_sockaddr_t sourceaddr;
+	isc_dscp_t dscp;
 
 	switch (isc_sockaddr_pf(masteraddr)) {
 	case PF_INET:
 		sourceaddr = *dns_zone_getxfrsource4(zone);
+		dscp = dns_zone_getxfrsource4dscp(zone);
 		break;
 	case PF_INET6:
 		sourceaddr = *dns_zone_getxfrsource6(zone);
+		dscp = dns_zone_getxfrsource6dscp(zone);
 		break;
 	default:
 		INSIST(0);
 	}
 
-	return(dns_xfrin_create2(zone, xfrtype, masteraddr, &sourceaddr,
-				 tsigkey, mctx, timermgr, socketmgr,
+	return(dns_xfrin_create3(zone, xfrtype, masteraddr, &sourceaddr,
+				 dscp, tsigkey, mctx, timermgr, socketmgr,
 				 task, done, xfrp));
 }
 
@@ -627,6 +632,19 @@ isc_result_t
 dns_xfrin_create2(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		  isc_sockaddr_t *masteraddr, isc_sockaddr_t *sourceaddr,
 		  dns_tsigkey_t *tsigkey, isc_mem_t *mctx,
+		  isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
+		  isc_task_t *task, dns_xfrindone_t done,
+		  dns_xfrin_ctx_t **xfrp)
+{
+	return (dns_xfrin_create3(zone, xfrtype, masteraddr, sourceaddr, -1,
+				  tsigkey, mctx, timermgr, socketmgr, task,
+				  done, xfrp));
+}
+
+isc_result_t
+dns_xfrin_create3(dns_zone_t *zone, dns_rdatatype_t xfrtype,
+		  isc_sockaddr_t *masteraddr, isc_sockaddr_t *sourceaddr,
+		  isc_dscp_t dscp, dns_tsigkey_t *tsigkey, isc_mem_t *mctx,
 		  isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
 		  isc_task_t *task, dns_xfrindone_t done,
 		  dns_xfrin_ctx_t **xfrp)
@@ -645,7 +663,7 @@ dns_xfrin_create2(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	CHECK(xfrin_create(mctx, zone, db, task, timermgr, socketmgr, zonename,
 			   dns_zone_getclass(zone), xfrtype, masteraddr,
-			   sourceaddr, tsigkey, &xfr));
+			   sourceaddr, dscp, tsigkey, &xfr));
 
 	CHECK(xfrin_start(xfr));
 
@@ -768,6 +786,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_rdatatype_t reqtype,
 	     isc_sockaddr_t *masteraddr,
 	     isc_sockaddr_t *sourceaddr,
+	     isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey,
 	     dns_xfrin_ctx_t **xfrp)
 {
@@ -800,6 +819,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->checkid = ISC_TRUE;
 	xfr->id	= (isc_uint16_t)(tmp & 0xffff);
 	xfr->reqtype = reqtype;
+	xfr->dscp = dscp;
 
 	/* sockaddr */
 	xfr->socket = NULL;
@@ -891,6 +911,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	CHECK(isc_socket_bind(xfr->socket, &xfr->sourceaddr,
 			      ISC_SOCKET_REUSEADDRESS));
 #endif
+	isc_socket_dscp(xfr->socket, xfr->dscp);
 	CHECK(isc_socket_connect(xfr->socket, &xfr->masteraddr, xfr->task,
 				 xfrin_connect_done, xfr));
 	xfr->connects++;

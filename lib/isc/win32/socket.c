@@ -1061,13 +1061,13 @@ destroy_socketevent(isc_event_t *event) {
 }
 
 static isc_socketevent_t *
-allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
-		     isc_taskaction_t action, const void *arg)
+allocate_socketevent(isc_mem_t *mctx, isc_socket_t *sock,
+		     isc_eventtype_t eventtype, isc_taskaction_t action,
+		     const void *arg)
 {
 	isc_socketevent_t *ev;
 
-	ev = (isc_socketevent_t *)isc_event_allocate(sock->manager->mctx,
-						     sock, eventtype,
+	ev = (isc_socketevent_t *)isc_event_allocate(mctx, sock, eventtype,
 						     action, arg,
 						     sizeof(*ev));
 	if (ev == NULL)
@@ -2840,7 +2840,8 @@ isc__socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 
 	INSIST(sock->bound);
 
-	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
+	dev = allocate_socketevent(manager->mctx, sock,
+				   ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -2901,7 +2902,8 @@ isc__socket_recv(isc_socket_t *sock, isc_region_t *region,
 
 	INSIST(sock->bound);
 
-	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
+	dev = allocate_socketevent(manager->mctx, sock,
+				   ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -3064,7 +3066,8 @@ isc__socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	INSIST(sock->bound);
 
-	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
+	dev = allocate_socketevent(manager->mctx, sock,
+				   ISC_SOCKEVENT_SENDDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -3118,7 +3121,8 @@ isc__socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	iocount = isc_bufferlist_usedcount(buflist);
 	REQUIRE(iocount > 0);
 
-	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
+	dev = allocate_socketevent(manager->mctx, sock,
+				   ISC_SOCKEVENT_SENDDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -3804,6 +3808,34 @@ isc__socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
 }
 
 void
+isc__socket_dscp(isc_socket_t *sock, unsigned int dscp) {
+#if !defined(IP_TOS) && !defined(IPV6_TCLASS)
+	UNUSED(dscp);
+#else
+	if (dscp < 0)
+		return;
+
+	dscp <<= 2;
+	dscp &= 0xff;
+#endif
+
+	REQUIRE(VALID_SOCKET(sock));
+
+#ifdef IP_TOS
+	if (sock->pf == AF_INET) {
+		(void)setsockopt(sock->fd, IPPROTO_IP, IP_TOS,
+				 (char *)&dscp, sizeof(dscp));
+	}
+#endif
+#ifdef IPV6_TCLASS
+	if (sock->pf == AF_INET6) {
+		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_TCLASS,
+				 (char *)&dscp, sizeof(dscp));
+	}
+#endif
+}
+
+void
 isc__socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active) {
 	UNUSED(addr);
 	UNUSED(active);
@@ -3862,6 +3894,14 @@ isc___socketmgr_maxudp(isc_socketmgr_t *manager, int maxudp) {
 
 	UNUSED(manager);
 	UNUSED(maxudp);
+}
+
+isc_socketevent_t *
+isc__socket_socketevent(isc_mem_t *mctx, void *sender,
+			isc_eventtype_t eventtype, isc_taskaction_t action,
+			const void *arg)
+{
+        return (allocate_socketevent(mctx, sender, eventtype, action, arg));
 }
 
 #ifdef HAVE_LIBXML2

@@ -202,6 +202,13 @@ isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
 	sock->methods->ipv6only(sock, yes);
 }
 
+void
+isc_socket_dscp(isc_socket_t *sock, isc_dscp_t dscp) {
+	REQUIRE(ISCAPI_SOCKET_VALID(sock));
+
+	sock->methods->dscp(sock, dscp);
+}
+
 isc_sockettype_t
 isc_socket_gettype(isc_socket_t *sock) {
 	REQUIRE(ISCAPI_SOCKET_VALID(sock));

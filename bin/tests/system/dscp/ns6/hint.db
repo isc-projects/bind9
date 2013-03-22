@@ -1,0 +1,5 @@
+$TTL 3600
+. NS ns4.nil-servers.
+. NS ns5.nil-servers.
+ns4.nil-servers. A 10.53.0.4
+ns5.nil-servers. A 10.53.0.5

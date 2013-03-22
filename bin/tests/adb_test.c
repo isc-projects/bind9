@@ -204,15 +204,17 @@ create_view(void) {
 
 		attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
 		RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr, socketmgr,
-						  taskmgr, &any4, 512, 6, 1024,
-						  17, 19, attrs, attrs, &disp4)
+						  taskmgr, &any4,
+						  512, 6, 1024, 17, 19,
+						  attrs, attrs, &disp4)
 			      == ISC_R_SUCCESS);
 		INSIST(disp4 != NULL);
 
 		attrs = DNS_DISPATCHATTR_IPV6 | DNS_DISPATCHATTR_UDP;
 		RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr, socketmgr,
-						  taskmgr, &any6, 512, 6, 1024,
-						  17, 19, attrs, attrs, &disp6)
+						  taskmgr, &any6,
+						  512, 6, 1024, 17, 19,
+						  attrs, attrs, &disp6)
 			      == ISC_R_SUCCESS);
 		INSIST(disp6 != NULL);
 

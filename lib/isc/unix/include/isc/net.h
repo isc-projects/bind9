@@ -324,6 +324,21 @@ isc_net_probeunix(void);
  * Returns whether UNIX domain sockets are supported.
  */
 
+#define ISC_NET_DSCPRECVV4	0x01	/* Can receive sent DSCP value IPv4 */
+#define ISC_NET_DSCPRECVV6	0x02	/* Can receive sent DSCP value IPv6 */
+#define ISC_NET_DSCPSETV4	0x04	/* Can set DSCP on socket IPv4 */
+#define ISC_NET_DSCPSETV6	0x08	/* Can set DSCP on socket IPv6 */
+#define ISC_NET_DSCPPKTV4	0x10	/* Can set DSCP on per packet IPv4 */
+#define ISC_NET_DSCPPKTV6	0x20	/* Can set DSCP on per packet IPv6 */
+#define ISC_NET_DSCPALL		0x3f	/* All valid flags */
+
+unsigned int
+isc_net_probedscp(void);
+/*%<
+ * Probe the level of DSCP support.
+ */
+ 
+
 isc_result_t
 isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high);
 /*%<

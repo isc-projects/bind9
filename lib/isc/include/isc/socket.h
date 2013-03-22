@@ -177,6 +177,7 @@ struct isc_socketevent {
 	struct in6_pktinfo	pktinfo;	/*%< ipv6 pktinfo */
 	isc_uint32_t		attributes;	/*%< see below */
 	isc_eventdestructor_t   destroy;	/*%< original destructor */
+	unsigned int		dscp;		/*%< UDP dscp value */
 };
 
 typedef struct isc_socket_newconnev isc_socket_newconnev_t;
@@ -203,6 +204,7 @@ struct isc_socket_connev {
  * _TIMESTAMP:	The timestamp member is valid.
  * _PKTINFO:	The pktinfo member is valid.
  * _MULTICAST:	The UDP packet was received via a multicast transmission.
+ * _DSCP:	The UDP DSCP value is valid.
  */
 #define ISC_SOCKEVENTATTR_ATTACHED		0x80000000U /* internal */
 #define ISC_SOCKEVENTATTR_TRUNC			0x00800000U /* public */
@@ -210,6 +212,7 @@ struct isc_socket_connev {
 #define ISC_SOCKEVENTATTR_TIMESTAMP		0x00200000U /* public */
 #define ISC_SOCKEVENTATTR_PKTINFO		0x00100000U /* public */
 #define ISC_SOCKEVENTATTR_MULTICAST		0x00080000U /* public */
+#define ISC_SOCKEVENTATTR_DSCP			0x00040000U /* public */
 /*@}*/
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
@@ -314,6 +317,7 @@ typedef struct isc_socketmethods {
 	isc_result_t		(*dup)(isc_socket_t *socket,
 				  isc_socket_t **socketp);
 	int 		(*getfd)(isc_socket_t *socket);
+	void 		(*dscp)(isc_socket_t *socket, isc_dscp_t dscp);
 } isc_socketmethods_t;
 
 /*%
@@ -1072,6 +1076,24 @@ isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes);
  *\li	'sock' is a valid socket.
  */
 /*@}*/
+
+void
+isc_socket_dscp(isc_socket_t *sock, isc_dscp_t dscp);
+/*%<
+ * Sets the Differentiated Services Code Point (DSCP) field for packets
+ * transmitted on this socket.  If 'dscp' is -1, return immediately.
+ *
+ * Requires:
+ *\li	'sock' is a valid socket.
+ */
+
+isc_socketevent_t *
+isc_socket_socketevent(isc_mem_t *mctx, void *sender,
+		       isc_eventtype_t eventtype, isc_taskaction_t action,
+		       const void *arg);
+/*%<
+ * Get a isc_socketevent_t to be used with isc_socket_sendto2(), etc.
+ */
 
 void
 isc_socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active);

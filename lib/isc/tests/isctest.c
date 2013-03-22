@@ -91,7 +91,7 @@ create_managers() {
 	CHECK(isc_socketmgr_create(mctx, &socketmgr));
 	return (ISC_R_SUCCESS);
 
-  cleanup:
+ cleanup:
 	cleanup_managers();
 	return (result);
 }

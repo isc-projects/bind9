@@ -1,3 +1,12 @@
+3536.	[func]		Add support for setting Differentiated Services Code
+			Point (DSCP) values in named.  Most configuration
+			options which take a "port" option (e.g.,
+			listen-on, forwarders, also-notify, masters,
+			notify-source, etc) can now also take a "dscp"
+			option specifying a code point for use with
+			outgoing traffic, if supported by the underlying
+			OS. [RT #27596]
+
 3535.	[bug]		Minor win32 cleanups. [RT #32962]
 
 3534.	[bug]		Extra text after an embedded NULL was ignored when

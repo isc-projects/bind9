@@ -124,6 +124,7 @@
 #define isc_socket_gettype isc__socket_gettype
 #define isc_socket_isbound isc__socket_isbound
 #define isc_socket_ipv6only isc__socket_ipv6only
+#define isc_socket_dscp isc__socket_dscp
 #define isc_socket_setname isc__socket_setname
 #define isc_socketmgr_getmaxsockets isc__socketmgr_getmaxsockets
 #define isc_socketmgr_setstats isc__socketmgr_setstats

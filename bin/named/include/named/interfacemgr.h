@@ -80,6 +80,7 @@ struct ns_interface {
 	dns_dispatch_t *	udpdispatch[MAX_UDP_DISPATCH];
 						/*%< UDP dispatchers. */
 	isc_socket_t *		tcpsocket;	/*%< TCP socket. */
+	isc_dscp_t		dscp;		/*%< "listen-on" DSCP value */
 	int			ntcptarget;	/*%< Desired number of concurrent
 						     TCP accepts */
 	int			ntcpcurrent;	/*%< Current ditto, locked */

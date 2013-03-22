@@ -141,6 +141,7 @@ struct ns_client {
 	isc_boolean_t		peeraddr_valid;
 	isc_netaddr_t		destaddr;
 	struct in6_pktinfo	pktinfo;
+	isc_dscp_t		dscp;
 	isc_event_t		ctlevent;
 #ifdef ALLOW_FILTER_AAAA
 	dns_aaaa_t		filter_aaaa;

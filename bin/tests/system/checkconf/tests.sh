@@ -43,6 +43,12 @@ do
 	status=`expr $status + $ret`
 done
 
+echo "I: checking that named-checkconf catches range errors"
+ret=0
+$CHECKCONF range.conf > /dev/null 2>&1 && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I: checking named-checkconf dnssec warnings"
 ret=0
 $CHECKCONF dnssec.1 2>&1 | grep 'validation yes.*enable no' > /dev/null || ret=1

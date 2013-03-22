@@ -22,6 +22,7 @@ cfg_obj_asuint64
 cfg_obj_attach
 cfg_obj_destroy
 cfg_obj_file
+cfg_obj_getdscp
 cfg_obj_isboolean
 cfg_obj_islist
 cfg_obj_ismap

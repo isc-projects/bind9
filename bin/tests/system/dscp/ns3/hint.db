@@ -1,0 +1,5 @@
+$TTL 3600
+. NS ns1.nil-servers.
+. NS ns2.nil-servers.
+ns1.nil-servers. A 10.53.0.1
+ns2.nil-servers. A 10.53.0.2

@@ -331,3 +331,8 @@ isc_net_enableipv6(void) {
 	if (ipv6_result == ISC_R_DISABLED)
 		ipv6_result = ISC_R_SUCCESS;
 }
+
+unsigned int
+isc_net_probedscp() {
+	return (0);
+}
