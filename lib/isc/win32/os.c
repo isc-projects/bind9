@@ -35,7 +35,7 @@ initialize_action(void) {
 
 unsigned int
 isc_os_ncpus(void) {
-	long ncpus = 1;
+	long ncpus;
 	initialize_action();
 	ncpus = SystemInfo.dwNumberOfProcessors;
 	if (ncpus <= 0)

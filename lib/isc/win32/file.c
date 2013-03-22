@@ -210,7 +210,7 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 		tmpfd = mkstemp(buf, ISC_TRUE);
 		if (tmpfd > 0)
 			_close(tmpfd);
-		DeleteFile(buf);
+		(void)DeleteFile(buf);
 		_chmod(newname, _S_IREAD | _S_IWRITE);
 
 		filestatus = MoveFile(newname, buf);
@@ -237,7 +237,7 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 	 * Delete the backup file if it got created
 	 */
 	if (exists == TRUE)
-		filestatus = DeleteFile(buf);
+		(void)DeleteFile(buf);
 	return (0);
 }
 
@@ -335,7 +335,7 @@ isc_file_template(const char *path, const char *templet, char *buf,
 
 isc_result_t
 isc_file_renameunique(const char *file, char *templet) {
-	int fd = -1;
+	int fd; 
 	int res = 0;
 	isc_result_t result = ISC_R_SUCCESS;
 
