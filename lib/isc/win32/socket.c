@@ -3891,7 +3891,7 @@ _socktype(isc_sockettype_t type)
 int
 isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer)
 {
-	isc_socket_t *sock;
+	isc_socket_t *sock = NULL;
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t addr;
 	ISC_SOCKADDR_LEN_T len;
