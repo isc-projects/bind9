@@ -44,7 +44,7 @@ initialize_action(void) {
 	 */
 	if(!bSuccess) {
 		osVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-		bSuccess = GetVersionEx((OSVERSIONINFO *) &osVer);
+		(void)GetVersionEx((OSVERSIONINFO *) &osVer);
 	}
 	bInit = TRUE;
 }

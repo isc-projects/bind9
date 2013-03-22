@@ -168,7 +168,6 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 	char domainBuffer[100];
 	DWORD domainBufferSize = sizeof(domainBuffer);
 	SID_NAME_USE snu;
-	int errval;
 	DWORD NTFSbits;
 	int caccess;
 
@@ -184,13 +183,13 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 	domainBufferSize = sizeof(domainBuffer);
 	if (!LookupAccountName(0, "Administrators", padminsid,
 		&adminSidBufferSize, domainBuffer, &domainBufferSize, &snu)) {
-		errval = GetLastError();
+		(void)GetLastError();
 		return (ISC_R_NOPERM);
 	}
 	domainBufferSize = sizeof(domainBuffer);
 	if (!LookupAccountName(0, "Everyone", pothersid,
 		&otherSidBufferSize, domainBuffer, &domainBufferSize, &snu)) {
-		errval = GetLastError();
+		(void)GetLastError();
 		return (ISC_R_NOPERM);
 	}
 
@@ -287,7 +286,7 @@ NTFS_fsaccess_set(const char *path, isc_fsaccess_t access,
 	 * For NTFS we first need to get the name of the account under
 	 * which BIND is running
 	 */
-	if (namelen <= 0) {
+	if (namelen == 0) {
 		namelen = sizeof(username);
 		if (GetUserName(username, &namelen) == 0)
 			return (ISC_R_FAILURE);
