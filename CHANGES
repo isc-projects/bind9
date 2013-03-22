@@ -1,3 +1,6 @@
+3534.	[bug]		Extra text after an embedded NULL was ignored when
+			parsing zone files. [RT #32699]
+
 3533.	[contrib]	query-loc-0.4.0: memory leaks. [RT #32960]
 
 3532.	[contrib]	zkt: fixed buffer overrun, resource leaks. [RT #32960]
