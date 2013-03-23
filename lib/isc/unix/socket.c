@@ -1526,7 +1526,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 			}
 		}
 #endif
-#ifdef IPPROTO_IPV6
+#if defined(IPPROTO_IPV6) && defined(IPV6_TCLASS)
 		if (sock->pf == AF_INET6 &&
 		    ((isc_net_probedscp() & ISC_NET_DSCPPKTV6) != 0))
 		{
