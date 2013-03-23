@@ -414,7 +414,7 @@ ns_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 	const cfg_listelt_t *element;
 	isc_sockaddr_t *addrs;
 	in_port_t port;
-	isc_dscp_t dscp = -1, *dscps;
+	isc_dscp_t dscp = -1, *dscps = NULL;
 	isc_result_t result;
 
 	INSIST(addrsp != NULL && *addrsp == NULL);
@@ -916,7 +916,7 @@ ns_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp) {
 	maps[i] = NULL;
 
 	result = ns_config_get(maps, "dscp", &dscpobj);
-	if (dscpobj == NULL) {
+	if (result != ISC_R_SUCCESS || dscpobj == NULL) {
 		*dscpp = -1;
 		return (ISC_R_SUCCESS);
 	}

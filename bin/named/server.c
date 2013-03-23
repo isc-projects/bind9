@@ -4372,7 +4372,7 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 	dns_view_t *view;
 	dns_zone_t *zone, *next;
 	isc_sockaddr_t addr, *addrp;
-	isc_dscp_t dscp;
+	isc_dscp_t dscp = -1;
 
 	result = ns_listenlist_create(mctx, &list);
 	if (result != ISC_R_SUCCESS)
@@ -4398,6 +4398,7 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 		 * query ports, and some of them may override an existing
 		 * wildcard IPv6 port.
 		 */
+		/* XXXMPA fix dscp */
 		result = add_listenelt(mctx, list, &addr, dscp, ISC_TRUE);
 		if (result != ISC_R_SUCCESS)
 			goto fail;

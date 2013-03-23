@@ -11413,7 +11413,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			if (result == ISC_R_SUCCESS)
 				have_xfrsource = ISC_TRUE;
 			result = dns_peer_gettransferdscp(peer, &dscp);
-			if (dscp != -1)
+			if (result == ISC_R_SUCCESS && dscp != -1)
 				have_xfrdscp = ISC_TRUE;
 			if (zone->view->resolver != NULL)
 				udpsize =
