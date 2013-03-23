@@ -138,9 +138,9 @@ options {
         fake-iquery <boolean>; // obsolete
         fetch-glue <boolean>; // obsolete
         files <size>;
-        filter-aaaa { <address_match_element>; ... };
-        filter-aaaa-on-v4 <filter_aaaa>;
-        filter-aaaa-on-v6 <filter_aaaa>;
+        filter-aaaa { <address_match_element>; ... }; // not configured
+        filter-aaaa-on-v4 <filter_aaaa>; // not configured
+        filter-aaaa-on-v6 <filter_aaaa>; // not configured
         flush-zones-on-shutdown <boolean>;
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
@@ -395,9 +395,9 @@ view <string> <optional_class> {
         empty-server <string>;
         empty-zones-enable <boolean>;
         fetch-glue <boolean>; // obsolete
-        filter-aaaa { <address_match_element>; ... };
-        filter-aaaa-on-v4 <filter_aaaa>;
-        filter-aaaa-on-v6 <filter_aaaa>;
+        filter-aaaa { <address_match_element>; ... }; // not configured
+        filter-aaaa-on-v4 <filter_aaaa>; // not configured
+        filter-aaaa-on-v6 <filter_aaaa>; // not configured
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
