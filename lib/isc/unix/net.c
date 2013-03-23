@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -407,44 +407,44 @@ isc_net_probe_ipv6pktinfo(void) {
 static inline ISC_SOCKADDR_LEN_T
 cmsg_len(ISC_SOCKADDR_LEN_T len) {
 #ifdef CMSG_LEN
-        return (CMSG_LEN(len));
+	return (CMSG_LEN(len));
 #else
-        ISC_SOCKADDR_LEN_T hdrlen;
+	ISC_SOCKADDR_LEN_T hdrlen;
 
-        /*
-         * Cast NULL so that any pointer arithmetic performed by CMSG_DATA
-         * is correct.
-         */
-        hdrlen = (ISC_SOCKADDR_LEN_T)CMSG_DATA(((struct cmsghdr *)NULL));
-        return (hdrlen + len);
+	/*
+	 * Cast NULL so that any pointer arithmetic performed by CMSG_DATA
+	 * is correct.
+	 */
+	hdrlen = (ISC_SOCKADDR_LEN_T)CMSG_DATA(((struct cmsghdr *)NULL));
+	return (hdrlen + len);
 #endif
 }
 
 static inline ISC_SOCKADDR_LEN_T
 cmsg_space(ISC_SOCKADDR_LEN_T len) {
 #ifdef CMSG_SPACE
-        return (CMSG_SPACE(len));
+	return (CMSG_SPACE(len));
 #else
-        struct msghdr msg;
-        struct cmsghdr *cmsgp;
-        /*
-         * XXX: The buffer length is an ad-hoc value, but should be enough
-         * in a practical sense.
-         */
-        char dummybuf[sizeof(struct cmsghdr) + 1024];
+	struct msghdr msg;
+	struct cmsghdr *cmsgp;
+	/*
+	 * XXX: The buffer length is an ad-hoc value, but should be enough
+	 * in a practical sense.
+	 */
+	char dummybuf[sizeof(struct cmsghdr) + 1024];
 
-        memset(&msg, 0, sizeof(msg));
-        msg.msg_control = dummybuf;
-        msg.msg_controllen = sizeof(dummybuf);
+	memset(&msg, 0, sizeof(msg));
+	msg.msg_control = dummybuf;
+	msg.msg_controllen = sizeof(dummybuf);
 
-        cmsgp = (struct cmsghdr *)dummybuf;
-        cmsgp->cmsg_len = cmsg_len(len);
+	cmsgp = (struct cmsghdr *)dummybuf;
+	cmsgp->cmsg_len = cmsg_len(len);
 
-        cmsgp = CMSG_NXTHDR(&msg, cmsgp);
-        if (cmsgp != NULL)
-                return ((char *)cmsgp - (char *)msg.msg_control);
-        else
-                return (0);
+	cmsgp = CMSG_NXTHDR(&msg, cmsgp);
+	if (cmsgp != NULL)
+		return ((char *)cmsgp - (char *)msg.msg_control);
+	else
+		return (0);
 #endif
 }
 
@@ -484,9 +484,9 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	msg.msg_namelen = len;
 	msg.msg_iov = &iovec;
 	msg.msg_iovlen = 1;
-        msg.msg_control = (void*)&control;
-        msg.msg_controllen = cmsg_space(sizeof(int));
-        msg.msg_flags = 0;
+	msg.msg_control = (void*)&control;
+	msg.msg_controllen = cmsg_space(sizeof(int));
+	msg.msg_flags = 0;
 
 	cmsgp = msg.msg_control;
 	cmsgp->cmsg_level = level;
@@ -521,7 +521,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 		}
 		return (ISC_FALSE);
 	}
-	
+
 	return (ISC_TRUE);
 }
 #endif
@@ -562,7 +562,7 @@ try_dscp_v4(void) {
 	}
 	if (setsockopt(s, IPPROTO_IP, IP_TOS, &dscp, sizeof(dscp)) == 0)
 		dscp_result |= ISC_NET_DSCPSETV4;
-	
+
 #ifdef IP_RECVTOS
 	on = 1;
 	if (setsockopt(s, IPPROTO_IP, IP_RECVTOS, &on, sizeof(on)) == 0)
@@ -597,7 +597,7 @@ try_dscp_v6(void) {
 #if defined(IPV6_RECVTCLASS)
 	int on = 1;
 #endif
-	
+
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_DGRAM;
@@ -623,7 +623,7 @@ try_dscp_v6(void) {
 	}
 	if (setsockopt(s, IPPROTO_IPV6, IPV6_TCLASS, &dscp, sizeof(dscp)) == 0)
 		dscp_result |= ISC_NET_DSCPSETV6;
-	
+
 #ifdef IPV6_RECVTCLASS
 	on = 1;
 	if (setsockopt(s, IPPROTO_IPV6, IPV6_RECVTCLASS, &on, sizeof(on)) == 0)

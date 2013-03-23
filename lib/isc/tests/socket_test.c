@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -61,7 +61,7 @@ accept_done(isc_task_t *task, isc_event_t *event) {
 	completion->done = ISC_TRUE;
 	if (completion->result == ISC_R_SUCCESS)
 		completion->socket = nevent->newsocket;
-	
+
 	isc_event_free(&event);
 }
 
@@ -365,9 +365,9 @@ ATF_TC_BODY(udp_dscp_v4, tc) {
 	r.length = strlen(sendbuf) + 1;
 
 	completion_init(&completion);
-	
+
 	socketevent = isc_socket_socketevent(mctx, s1, ISC_SOCKEVENT_SENDDONE,
-				             event_done, &completion);
+					     event_done, &completion);
 	ATF_REQUIRE(socketevent != NULL);
 
 	if ((isc_net_probedscp() & ISC_NET_DSCPPKTV4) != 0) {
@@ -402,7 +402,7 @@ ATF_TC_BODY(udp_dscp_v4, tc) {
 	if ((isc_net_probedscp() & ISC_NET_DSCPRECVV4) != 0) {
 		ATF_CHECK(recv_dscp);
 		ATF_CHECK_EQ(recv_dscp_value, 056);
-	} else 
+	} else
 		ATF_CHECK(!recv_dscp);
 	isc_task_detach(&task);
 
@@ -466,9 +466,9 @@ ATF_TC_BODY(udp_dscp_v6, tc) {
 	r.length = strlen(sendbuf) + 1;
 
 	completion_init(&completion);
-	
+
 	socketevent = isc_socket_socketevent(mctx, s1, ISC_SOCKEVENT_SENDDONE,
-				             event_done, &completion);
+					     event_done, &completion);
 	ATF_REQUIRE(socketevent != NULL);
 
 	if ((isc_net_probedscp() & ISC_NET_DSCPPKTV6) != 0) {
@@ -726,7 +726,7 @@ ATF_TC_BODY(net_probedscp, tc) {
 		ATF_CHECK_MSG((n & ISC_NET_DSCPSETV4) != 0,
 			      "IPv4:%s%s%s\n",
 			      (n & ISC_NET_DSCPSETV4) ? " set" : " none",
-		              (n & ISC_NET_DSCPPKTV4) ? " packet" : "",
+			      (n & ISC_NET_DSCPPKTV4) ? " packet" : "",
 			      (n & ISC_NET_DSCPRECVV4) ? " receive" : "");
 
 	/* ISC_NET_DSCPSETV6 MUST be set if any is set. */
@@ -734,7 +734,7 @@ ATF_TC_BODY(net_probedscp, tc) {
 		ATF_CHECK_MSG((n & ISC_NET_DSCPSETV6) != 0,
 			      "IPv6:%s%s%s\n",
 			      (n & ISC_NET_DSCPSETV6) ? " set" : " none",
-		              (n & ISC_NET_DSCPPKTV6) ? " packet" : "",
+			      (n & ISC_NET_DSCPPKTV6) ? " packet" : "",
 			      (n & ISC_NET_DSCPRECVV6) ? " receive" : "");
 
 #if 0

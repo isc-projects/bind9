@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -276,7 +276,7 @@ isc_net_probeunix(void);
 #define ISC_NET_DSCPPKTV4       0x10    /* Can set DSCP on per packet IPv4 */
 #define ISC_NET_DSCPPKTV6       0x20    /* Can set DSCP on per packet IPv6 */
 #define ISC_NET_DSCPALL         0x3f    /* All valid flags */
- 
+
 unsigned int
 isc_net_probedscp(void);
 /*%<

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -337,7 +337,7 @@ isc_net_probedscp(void);
 /*%<
  * Probe the level of DSCP support.
  */
- 
+
 
 isc_result_t
 isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high);
