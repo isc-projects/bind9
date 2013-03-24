@@ -27,6 +27,7 @@
 #endif
 #include <sys/sysctl.h>
 #endif
+#include <sys/uio.h>
 
 #include <errno.h>
 #include <unistd.h>
