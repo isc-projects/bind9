@@ -1871,7 +1871,7 @@ cfg_parse_dscp(cfg_parser_t *pctx, isc_dscp_t *dscp) {
 			     "expected number");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
-	if (pctx->token.value.as_ulong > 63) {
+	if (pctx->token.value.as_ulong > 63U) {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
 			     "dscp out of range");
 		return (ISC_R_RANGE);
