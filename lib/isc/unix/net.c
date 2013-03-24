@@ -462,7 +462,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	} control;
 	struct cmsghdr *cmsgp;
 	int dscp = 46;
-	struct iovec iovec = { &iovec, sizeof(iovec) };
+	struct iovec iovec = { (void *)&iovec, sizeof(iovec) };
 
 	if (bind(s, res->ai_addr, res->ai_addrlen) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
