@@ -558,7 +558,6 @@ try_dscp_v4(void) {
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_DEBUG(10),
 			      "socket: %s", strbuf);
 		freeaddrinfo(res0);
-		close(s);
 		return;
 	}
 	if (setsockopt(s, IPPROTO_IP, IP_TOS, &dscp, sizeof(dscp)) == 0)
