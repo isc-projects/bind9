@@ -1,3 +1,6 @@
+3538.	[test]	Running "make test" now requires loopback interfaces to be 
+	 		set up. [RT #32452]
+
 3535.	[bug]		Minor win32 cleanups. [RT #32962]
 
 3534.	[bug]		Extra text after an embedded NULL was ignored when
