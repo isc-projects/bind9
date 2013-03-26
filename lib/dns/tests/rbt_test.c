@@ -305,6 +305,9 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 	 */
 	printf("deserialization begins.\n");
 
+#ifndef MAP_FILE
+#define MAP_FILE 0
+#endif
 	/*
 	 * Map in the whole file in one go
 	 */
