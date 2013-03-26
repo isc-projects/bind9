@@ -456,33 +456,33 @@ cmsg_space(ISC_SOCKADDR_LEN_T len) {
  */
 static isc_result_t
 make_nonblock(int fd) {
-        int ret;
-        int flags;
-        char strbuf[ISC_STRERRORSIZE];
+	int ret;
+	int flags;
+	char strbuf[ISC_STRERRORSIZE];
 #ifdef USE_FIONBIO_IOCTL
-        int on = 1;
+	int on = 1;
 
-        ret = ioctl(fd, FIONBIO, (char *)&on);
+	ret = ioctl(fd, FIONBIO, (char *)&on);
 #else
-        flags = fcntl(fd, F_GETFL, 0);
-        flags |= PORT_NONBLOCK;
-        ret = fcntl(fd, F_SETFL, flags);
+	flags = fcntl(fd, F_GETFL, 0);
+	flags |= PORT_NONBLOCK;
+	ret = fcntl(fd, F_SETFL, flags);
 #endif
 
-        if (ret == -1) {
-                isc__strerror(errno, strbuf, sizeof(strbuf));
-                UNEXPECTED_ERROR(__FILE__, __LINE__,
+	if (ret == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 #ifdef USE_FIONBIO_IOCTL
-                                 "ioctl(%d, FIONBIO, &on): %s", fd,
+				 "ioctl(%d, FIONBIO, &on): %s", fd,
 #else
-                                 "fcntl(%d, F_SETFL, %d): %s", fd, flags,
+				 "fcntl(%d, F_SETFL, %d): %s", fd, flags,
 #endif
-                                 strbuf);
+				 strbuf);
 
-                return (ISC_R_UNEXPECTED);
-        }
+		return (ISC_R_UNEXPECTED);
+	}
 
-        return (ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_boolean_t
