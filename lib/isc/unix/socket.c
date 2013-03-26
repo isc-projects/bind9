@@ -5969,22 +5969,21 @@ isc__socket_ipv6only(isc_socket_t *sock0, isc_boolean_t yes) {
 
 static void
 setdscp(isc__socket_t *sock, isc_dscp_t dscp) {
+#if defined(IP_TOS) || defined(IPV6_TCLASS)
+	int value = dscp << 2;
+#endif
 
 	sock->dscp = dscp;
-
-#if defined(IP_TOS) || defined(IPV6_TCLASS)
-	dscp <<= 2;
-#endif
 
 #ifdef IP_TOS
 	if (sock->pf == AF_INET) {
 		if (setsockopt(sock->fd, IPPROTO_IP, IP_TOS,
-			       (void *)&dscp, sizeof(int)) < 0) {
+			       (void *)&value, sizeof(value)) < 0) {
 			char strbuf[ISC_STRERRORSIZE];
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IP_TOS, %.02x) "
-					 "%s: %s", sock->fd, dscp >> 2,
+					 "%s: %s", sock->fd, value >> 2,
 					 isc_msgcat_get(isc_msgcat,
 							ISC_MSGSET_GENERAL,
 							ISC_MSG_FAILED,
@@ -5996,7 +5995,7 @@ setdscp(isc__socket_t *sock, isc_dscp_t dscp) {
 #ifdef IPV6_TCLASS
 	if (sock->pf == AF_INET6) {
 		if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_TCLASS,
-			       (void *)&dscp, sizeof(int)) < 0) {
+			       (void *)&value, sizeof(value)) < 0) {
 			char strbuf[ISC_STRERRORSIZE];
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
