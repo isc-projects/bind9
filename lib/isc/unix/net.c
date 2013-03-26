@@ -31,6 +31,7 @@
 
 #include <errno.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <isc/log.h>
 #include <isc/msgs.h>
@@ -450,6 +451,40 @@ cmsg_space(ISC_SOCKADDR_LEN_T len) {
 }
 
 #ifdef ISC_NET_BSD44MSGHDR
+/*
+ * Make a fd non-blocking.
+ */
+static isc_result_t
+make_nonblock(int fd) {
+        int ret;
+        int flags;
+        char strbuf[ISC_STRERRORSIZE];
+#ifdef USE_FIONBIO_IOCTL
+        int on = 1;
+
+        ret = ioctl(fd, FIONBIO, (char *)&on);
+#else
+        flags = fcntl(fd, F_GETFL, 0);
+        flags |= PORT_NONBLOCK;
+        ret = fcntl(fd, F_SETFL, flags);
+#endif
+
+        if (ret == -1) {
+                isc__strerror(errno, strbuf, sizeof(strbuf));
+                UNEXPECTED_ERROR(__FILE__, __LINE__,
+#ifdef USE_FIONBIO_IOCTL
+                                 "ioctl(%d, FIONBIO, &on): %s", fd,
+#else
+                                 "fcntl(%d, F_SETFL, %d): %s", fd, flags,
+#endif
+                                 strbuf);
+
+                return (ISC_R_UNEXPECTED);
+        }
+
+        return (ISC_R_SUCCESS);
+}
+
 static isc_boolean_t
 cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	char strbuf[ISC_STRERRORSIZE];
@@ -463,6 +498,8 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	struct cmsghdr *cmsgp;
 	int dscp = 46;
 	struct iovec iovec = { (void *)&iovec, sizeof(iovec) };
+	char buf[sizeof(iovec)];
+	isc_result_t result;
 
 	if (bind(s, res->ai_addr, res->ai_addrlen) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
@@ -522,6 +559,27 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 		}
 		return (ISC_FALSE);
 	}
+
+	/*
+	 * Make sure the message actually got sent.
+	 */
+	result = make_nonblock(s);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	iovec.iov_base = buf;
+	iovec.iov_len = sizeof(len);
+
+	memset(&msg, 0, sizeof(msg));
+	msg.msg_name = (struct sockaddr *)&ss;
+	msg.msg_namelen = sizeof(ss);
+	msg.msg_iov = &iovec;
+	msg.msg_iovlen = 1;
+	msg.msg_control = NULL;
+	msg.msg_controllen = 0;
+	msg.msg_flags = 0;
+
+	if (recvmsg(s, &msg, 0) < 0)
+		return (ISC_FALSE);
 
 	return (ISC_TRUE);
 }
