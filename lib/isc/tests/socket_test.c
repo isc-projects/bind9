@@ -743,7 +743,7 @@ ATF_TC_BODY(net_probedscp, tc) {
 		(n & ISC_NET_DSCPPKTV4) ? " packet" : "",
 		(n & ISC_NET_DSCPRECVV4) ? " receive" : "");
 
-	printf(stdout, "IPv6:%s%s%s\n",
+	fprintf(stdout, "IPv6:%s%s%s\n",
 		(n & ISC_NET_DSCPSETV6) ? " set" : "none",
 		(n & ISC_NET_DSCPPKTV6) ? " packet" : "",
 		(n & ISC_NET_DSCPRECVV6) ? " receive" : "");
