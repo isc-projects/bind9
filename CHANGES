@@ -1,3 +1,6 @@
+3538.	[test]	Running "make test" now requires loopback interfaces to be 
+	 		set up. [RT #32452]
+
 3537.	[tuning]	Slave zones, when updated, now send NOTIFY messages
 			to peers before being dumped to disk rather than
 			after. [RT #27242]
