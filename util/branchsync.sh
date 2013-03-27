@@ -102,8 +102,8 @@ git log $SOURCEBRANCH --reverse --format='%H' $LASTHASH..$SOURCEBRANCH | \
     while read hash author; do
         if git cherry-pick -xn ${hash}; then
             # cherry-pick was clean
-            # restore the copyrights file
-            git checkout HEAD -- util/copyrights
+            # restore the copyrights and api files
+            git checkout HEAD -- util/copyrights lib/*/api
             # note which hash we've merged
             savehash branchsync.dat $SOURCEBRANCH $hash
 
@@ -114,7 +114,7 @@ git log $SOURCEBRANCH --reverse --format='%H' $LASTHASH..$SOURCEBRANCH | \
             continue
         elif [ -n "$interactive" ]; then
             # interactive mode -- wait for user to fix things
-            git checkout HEAD -- util/copyrights
+            git checkout HEAD -- util/copyrights lib/*/api
             # note which hash we've merged
             savehash branchsync.dat $SOURCEBRANCH $hash
         else
