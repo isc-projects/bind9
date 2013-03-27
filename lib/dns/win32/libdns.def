@@ -61,11 +61,14 @@ dns_cache_create2
 dns_cache_create3
 dns_cache_detach
 dns_cache_dump
+dns_cache_dumpstats
 dns_cache_flush
 dns_cache_getcachesize
 dns_cache_getcleaninginterval
 dns_cache_getname
+dns_cache_getstats
 dns_cache_load
+dns_cache_renderxml
 dns_cache_setcachesize
 dns_cache_setcleaninginterval
 dns_cache_setfilename
@@ -234,6 +237,7 @@ dns_dnsseckey_destroy
 dns_ds_buildrdata
 dns_dumpctx_detach
 dns_fwdtable_add
+dns_fwdtable_addfwd
 dns_fwdtable_create
 dns_fwdtable_destroy
 dns_fwdtable_find
@@ -647,6 +651,8 @@ dns_resolver_resetmustbesecure
 dns_resolver_setclientsperquery
 dns_resolver_setlamettl
 dns_resolver_setmustbesecure
+dns_resolver_setquerydscp4
+dns_resolver_setquerydscp6
 dns_resolver_settimeout
 dns_resolver_setudpsize
 dns_resolver_setzeronosoattl
@@ -661,11 +667,8 @@ dns_rootns_create
 dns_rpz_add
 dns_rpz_attach_rpzs
 dns_rpz_beginload
-dns_rpz_cidr_addip
-dns_rpz_cidr_find
 dns_rpz_decode_cname
 dns_rpz_delete
-dns_rpz_delete_node
 dns_rpz_detach_rpzs
 dns_rpz_find_ip
 dns_rpz_find_name
@@ -866,7 +869,6 @@ dns_zone_getqueryacl
 dns_zone_getraw
 dns_zone_getqueryaoncl
 dns_zone_getrequeststats
-dns_zone_getrpz_num
 dns_zone_getserial
 dns_zone_getserial2
 dns_zone_getserialupdatemethod
@@ -906,11 +908,11 @@ dns_zone_nscheck
 dns_zone_refresh
 dns_zone_rekey
 dns_zone_replacedb
-dns_zone_rpz_attach
 dns_zone_rpz_enable
 dns_zone_setacache
 dns_zone_setadded
 dns_zone_setalsonotify
+dns_zone_setalsonotifydscpkeys
 dns_zone_setalsonotifywithkeys
 dns_zone_setaltxfrsource4
 dns_zone_setaltxfrsource4dscp

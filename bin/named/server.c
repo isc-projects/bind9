@@ -2290,6 +2290,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		const cfg_obj_t *dlzopts;
 		obj = NULL;
 
+		obj = NULL;
 		dlz = cfg_listelt_value(element);
 		dlzopts = cfg_tuple_get(dlz, "options");
 		(void)cfg_map_get(dlzopts, "database", &obj);

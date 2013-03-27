@@ -78,6 +78,13 @@
 #include "errno2result.h"
 
 /*
+ * Set by the -T dscp option on the command line. If set to a value
+ * other than -1, we check to make sure DSCP values match it, and
+ * assert if not.
+ */
+int isc_dscp_check_value = -1;
+
+/*
  * How in the world can Microsoft exist with APIs like this?
  * We can't actually call this directly, because it turns out
  * no library exports this function.  Instead, we need to
@@ -3808,7 +3815,7 @@ isc__socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
 }
 
 void
-isc__socket_dscp(isc_socket_t *sock, unsigned int dscp) {
+isc__socket_dscp(isc_socket_t *sock, isc_dscp_t dscp) {
 #if !defined(IP_TOS) && !defined(IPV6_TCLASS)
 	UNUSED(dscp);
 #else
@@ -3897,9 +3904,9 @@ isc___socketmgr_maxudp(isc_socketmgr_t *manager, int maxudp) {
 }
 
 isc_socketevent_t *
-isc__socket_socketevent(isc_mem_t *mctx, void *sender,
-			isc_eventtype_t eventtype, isc_taskaction_t action,
-			const void *arg)
+isc_socket_socketevent(isc_mem_t *mctx, void *sender,
+		       isc_eventtype_t eventtype, isc_taskaction_t action,
+		       const void *arg)
 {
 	return (allocate_socketevent(mctx, sender, eventtype, action, arg));
 }
@@ -3907,8 +3914,7 @@ isc__socket_socketevent(isc_mem_t *mctx, void *sender,
 #ifdef HAVE_LIBXML2
 
 static const char *
-_socktype(isc_sockettype_t type)
-{
+_socktype(isc_sockettype_t type) {
 	if (type == isc_sockettype_udp)
 		return ("udp");
 	else if (type == isc_sockettype_tcp)
