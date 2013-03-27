@@ -47,7 +47,12 @@ while (<VERSIONFILE>) {
 	if($data) {
 		($name, $value) = split(/=/,$data);
 		($name) = split(/\s+/, $name);
-		($value) = split(/\s+/, $value);
+                if ($name eq 'PRODUCT') {
+                        ($value) =~ s/^["\s]+//;
+                        ($value) =~ s/["\s]+$//;
+                } else {
+                        ($value) = split(/\s+/, $value);
+                }
 		$Versions{$name} = $value;
 	}
 }
