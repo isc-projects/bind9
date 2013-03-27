@@ -1717,7 +1717,7 @@
 ./lib/Atffile					X	2011
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007,2012,2013
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2012
-./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012
+./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004,2007,2012
@@ -2073,7 +2073,7 @@
 ./lib/isc/alpha/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007,2009,2012
-./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012
+./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007,2008,2011,2012
 ./lib/isc/base32.c				C	2008,2009,2012
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2012
@@ -2361,7 +2361,7 @@
 ./lib/isc/x86_64/include/isc/atomic.h		C	2005,2007,2008
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2011,2012
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/api					X	2001,2006,2008,2009,2012
+./lib/isccc/api					X	2001,2006,2008,2009,2012,2013
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007,2012
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005,2007
@@ -2393,7 +2393,7 @@
 ./lib/isccc/win32/version.c			C	2001,2004,2007
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2011,2012
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012
-./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012
+./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004,2007,2012
 ./lib/isccfg/include/isccfg/Makefile.in		MAKE	2001,2002,2004,2005,2007,2012
 ./lib/isccfg/include/isccfg/aclconf.h		C	1999,2000,2001,2004,2005,2006,2007,2012
