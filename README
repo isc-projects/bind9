@@ -54,7 +54,7 @@ BIND 9
 BIND 9.9.3
 
 	BIND 9.9.3 is a maintenance release and patches the security
-	flaws described in CVE-2012-5688 and CVE-2012-5689.
+	flaws described in CVE-2012-5688, CVE-2012-5689 and CVE-2013-2266.
 
 BIND 9.9.2
 
