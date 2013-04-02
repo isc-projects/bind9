@@ -287,7 +287,7 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
 		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st,
-			      "ddd',', dd-MMM-yyyy", DateBuf, 50);
+			      "ddd',' dd MMM yyyy", DateBuf, 50);
 		GetTimeFormat(LOCALE_USER_DEFAULT,
 			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
 			      &st, "hh':'mm':'ss", TimeBuf, 50);
