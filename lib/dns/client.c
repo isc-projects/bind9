@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009-2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -380,16 +380,16 @@ dns_client_create(dns_client_t **clientp, unsigned int options) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 #if 0
-        result = isc_log_create(mctx, &lctx, &logconfig);
+	result = isc_log_create(mctx, &lctx, &logconfig);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-        isc_log_setcontext(lctx);
-        dns_log_init(lctx);
-        dns_log_setcontext(lctx);
-        result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
+	isc_log_setcontext(lctx);
+	dns_log_init(lctx);
+	dns_log_setcontext(lctx);
+	result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-        isc_log_setdebuglevel(lctx, logdebuglevel);
+	isc_log_setdebuglevel(lctx, logdebuglevel);
 #endif
 	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr,
 				    options, clientp);
