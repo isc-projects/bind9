@@ -1,3 +1,5 @@
+3542.	[placeholder]
+
 3541.	[bug]		The parts if libdns was not being properly initialized
 			in when built in libexport mode. [RT #33028]
 
