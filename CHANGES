@@ -1,3 +1,5 @@
+3540.	[bug]		libt_api: t_info and t_assert were not thread safe.
+
 	--- 9.6-ESV-R9rc1 released ---
 
 3539.	[port]		win32: timestamp format didn't match other platforms.

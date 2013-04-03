@@ -343,6 +343,7 @@ main(int argc, char **argv) {
 void
 t_assert(const char *component, int anum, int class, const char *what, ...) {
 	va_list	args;
+	char buf[T_BIGBUF];
 
 	(void)printf("T:%s:%d:%s\n", component, anum, class == T_REQUIRED ?
 		     "A" : "C");
@@ -351,21 +352,22 @@ t_assert(const char *component, int anum, int class, const char *what, ...) {
 	 * Format text to a buffer.
 	 */
 	va_start(args, what);
-	(void)vsnprintf(T_buf, sizeof(T_buf), what, args);
+	(void)vsnprintf(buf, sizeof(buf), what, args);
 	va_end(args);
 
-	(void)t_putinfo("A", T_buf);
+	(void)t_putinfo("A", buf);
 	(void)printf("\n");
 }
 
 void
 t_info(const char *format, ...) {
 	va_list	args;
+	char buf[T_BIGBUF];
 
 	va_start(args, format);
-	(void) vsnprintf(T_buf, sizeof(T_buf), format, args);
+	(void) vsnprintf(buf, sizeof(buf), format, args);
 	va_end(args);
-	(void) t_putinfo("I", T_buf);
+	(void) t_putinfo("I", buf);
 }
 
 void
