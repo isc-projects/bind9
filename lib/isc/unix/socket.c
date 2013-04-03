@@ -3215,14 +3215,6 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	if (fd != -1) {
 		int lockid = FDLOCK_ID(fd);
 
-		LOCK(&manager->fdlock[lockid]);
-		manager->fds[fd] = NEWCONNSOCK(dev);
-		manager->fdstate[fd] = MANAGED;
-		UNLOCK(&manager->fdlock[lockid]);
-
-		LOCK(&manager->lock);
-		ISC_LIST_APPEND(manager->socklist, NEWCONNSOCK(dev), link);
-
 		NEWCONNSOCK(dev)->fd = fd;
 		NEWCONNSOCK(dev)->bound = 1;
 		NEWCONNSOCK(dev)->connected = 1;
@@ -3237,6 +3229,13 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		 */
 		dev->address = NEWCONNSOCK(dev)->peer_address;
 
+		LOCK(&manager->fdlock[lockid]);
+		manager->fds[fd] = NEWCONNSOCK(dev);
+		manager->fdstate[fd] = MANAGED;
+		UNLOCK(&manager->fdlock[lockid]);
+
+		LOCK(&manager->lock);
+
 #ifdef USE_SELECT
 		if (manager->maxfd < fd)
 			manager->maxfd = fd;
@@ -3246,6 +3245,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTEDCXN,
 			   "accepted connection, new socket %p",
 			   dev->newsocket);
+
+		ISC_LIST_APPEND(manager->socklist, NEWCONNSOCK(dev), link);
 
 		UNLOCK(&manager->lock);
 
