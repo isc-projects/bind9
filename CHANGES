@@ -5,6 +5,8 @@
 3543.	[bug]		Update socket stucture before attaching to socket
 			manager after accept. [RT #33084]
 
+3542.	[bug]		masterformat system test was broken. [RT #33086]
+
 3541.	[bug]		Parts of libdns were not properly initialized when
 			built in libexport mode. [RT #33028]
 
