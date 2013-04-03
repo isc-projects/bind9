@@ -1,10 +1,10 @@
 3543.	[bug]		Update socket stucture before attaching to socket
 			manager after accept. [RT #33084]
 
-3541.	[bug]		The parts if libdns was not being properly initialized
-			in when built in libexport mode. [RT #33028]
+3541.	[bug]		Parts of libdns were not properly initialized when
+			built in libexport mode. [RT #33028]
 
-3540.	[bug]		libt_api: t_info and t_assert were not thread safe.
+3540.	[test]		libt_api: t_info and t_assert were not thread safe.
 
 3539.	[port]		win32: timestamp format didn't match other platforms.
 
