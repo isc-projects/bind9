@@ -1,5 +1,5 @@
 3543.	[bug]		Update socket stucture before attaching to socket
-			manager after accert. [RT #33084]
+			manager after accept. [RT #33084]
 
 3542.	[placeholder]
 
