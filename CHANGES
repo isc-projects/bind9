@@ -1,4 +1,10 @@
+3543.	[bug]		Update socket stucture before attaching to socket
+			manager after accert. [RT #33084]
+
 3542.	[bug]		masterformat system test was broken. [RT #33086]
+
+3541.	[bug]		The parts if libdns was not being properly initialized
+			in when built in libexport mode. [RT #33028]
 
 3540.	[bug]		libt_api: t_info and t_assert were not thread safe.
 
