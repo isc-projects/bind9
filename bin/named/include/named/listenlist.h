@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -46,6 +46,7 @@ typedef struct ns_listenlist ns_listenlist_t;
 struct ns_listenelt {
 	isc_mem_t *	       		mctx;
 	in_port_t			port;
+	isc_dscp_t			dscp;  /* -1 = not set, 0..63 */
 	dns_acl_t *	       		acl;
 	ISC_LINK(ns_listenelt_t)	link;
 };
@@ -61,7 +62,7 @@ struct ns_listenlist {
  ***/
 
 isc_result_t
-ns_listenelt_create(isc_mem_t *mctx, in_port_t port,
+ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 		    dns_acl_t *acl, ns_listenelt_t **target);
 /*%
  * Create a listen-on list element.
@@ -92,7 +93,7 @@ ns_listenlist_detach(ns_listenlist_t **listp);
  */
 
 isc_result_t
-ns_listenlist_default(isc_mem_t *mctx, in_port_t port,
+ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 		      isc_boolean_t enabled, ns_listenlist_t **target);
 /*%
  * Create a listen-on list with default contents, matching

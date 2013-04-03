@@ -1,8 +1,8 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
                "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
-	       [<!ENTITY mdash "&#8212;">]>
+               [<!ENTITY mdash "&#8212;">]>
 <!--
- - Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004, 2005, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000, 2001  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and/or distribute this software for any
@@ -40,6 +40,7 @@
       <year>2004</year>
       <year>2005</year>
       <year>2007</year>
+      <year>2013</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <copyright>
@@ -75,12 +76,14 @@
       arguments.
     </para>
     <para><command>rndc</command>
-      communicates with the name server
-      over a TCP connection, sending commands authenticated with
-      digital signatures.  In the current versions of
+      communicates with the name server over a TCP connection, sending
+      commands authenticated with digital signatures.  In the current
+      versions of
       <command>rndc</command> and <command>named</command>,
-      the only supported authentication algorithm is HMAC-MD5,
-      which uses a shared secret on each end of the connection.
+      the only supported authentication algorithms are HMAC-MD5
+      (for compatibility), HMAC-SHA1, HMAC-SHA224, HMAC-SHA256
+      (default), HMAC-SHA384 and HMAC-SHA512.
+      They use a shared secret on each end of the connection.
       This provides TSIG-style authentication for the command
       request and the name server's response.  All commands sent
       over the channel must be signed by a key_id known to the
@@ -144,7 +147,7 @@
             <command>rndc</command>.  If no server is supplied on the
             command line, the host named by the default-server clause
             in the options statement of the <command>rndc</command>
-	    configuration file will be used.
+            configuration file will be used.
           </para>
         </listitem>
       </varlistentry>

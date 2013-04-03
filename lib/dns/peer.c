@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -709,4 +709,58 @@ dns_peer_getmaxudp(dns_peer_t *peer, isc_uint16_t *maxudp) {
 	} else {
 		return (ISC_R_NOTFOUND);
 	}
+}
+
+isc_result_t
+dns_peer_setnotifydscp(dns_peer_t *peer, isc_dscp_t dscp) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(dscp < 64);
+
+	peer->notify_dscp = dscp;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_getnotifydscp(dns_peer_t *peer, isc_dscp_t *dscpp) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(dscpp != NULL);
+
+	*dscpp = peer->notify_dscp;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_settransferdscp(dns_peer_t *peer, isc_dscp_t dscp) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(dscp < 64);
+
+	peer->transfer_dscp = dscp;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_gettransferdscp(dns_peer_t *peer, isc_dscp_t *dscpp) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(dscpp != NULL);
+
+	*dscpp = peer->transfer_dscp;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_setquerydscp(dns_peer_t *peer, isc_dscp_t dscp) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(dscp < 64);
+
+	peer->query_dscp = dscp;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_getquerydscp(dns_peer_t *peer, isc_dscp_t *dscpp) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(dscpp != NULL);
+
+	*dscpp = peer->query_dscp;
+	return (ISC_R_SUCCESS);
 }

@@ -97,6 +97,8 @@
 #define BACKTRACE_MAXFRAME 128
 #endif
 
+extern int isc_dscp_check_value;
+
 static isc_boolean_t	want_stats = ISC_FALSE;
 static char		program_name[ISC_DIR_NAMEMAX] = "named";
 static char		absolute_conffile[ISC_DIR_PATHMAX];
@@ -510,10 +512,15 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'T':	/* NOT DOCUMENTED */
 			/*
+			 * force the server to behave (or misbehave) in
+			 * specified ways for testing purposes.
+			 *
 			 * clienttest: make clients single shot with their
 			 * 	       own memory context.
 			 * delay=xxxx: delay client responses by xxxx ms to
 			 *	       simulate remote servers.
+			 * dscp=x:     check that dscp values are as
+			 * 	       expected and assert otherwise.
 			 */
 			if (!strcmp(isc_commandline_argument, "clienttest"))
 				ns_g_clienttest = ISC_TRUE;
@@ -539,6 +546,9 @@ parse_command_line(int argc, char *argv[]) {
 				ns_g_nosyslog = ISC_TRUE;
 			else if (!strcmp(isc_commandline_argument, "nonearest"))
 				ns_g_nonearest = ISC_TRUE;
+			else if (!strncmp(isc_commandline_argument, "dscp=", 5))
+				isc_dscp_check_value =
+					   atoi(isc_commandline_argument + 5);
 			else
 				fprintf(stderr, "unknown -T flag '%s\n",
 					isc_commandline_argument);
@@ -552,10 +562,10 @@ parse_command_line(int argc, char *argv[]) {
 			ns_g_username = isc_commandline_argument;
 			break;
 		case 'v':
-			printf("BIND %s\n", ns_g_version);
+			printf("%s %s\n", ns_g_product, ns_g_version);
 			exit(0);
 		case 'V':
-			printf("BIND %s <id:%s> built with %s\n",
+			printf("%s %s <id:%s> built with %s\n", ns_g_product,
 			       ns_g_version, ns_g_srcid, ns_g_configargs);
 #ifdef OPENSSL
 			printf("using OpenSSL version: %s\n",
@@ -820,8 +830,8 @@ setup(void) {
 				   isc_result_totext(result));
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
-		      saved_command_line);
+		      ISC_LOG_NOTICE, "starting %s %s%s", ns_g_product,
+		      ns_g_version, saved_command_line);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "built with %s", ns_g_configargs);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -141,6 +141,7 @@ struct ns_client {
 	isc_boolean_t		peeraddr_valid;
 	isc_netaddr_t		destaddr;
 	struct in6_pktinfo	pktinfo;
+	isc_dscp_t		dscp;
 	isc_event_t		ctlevent;
 #ifdef ALLOW_FILTER_AAAA
 	dns_aaaa_t		filter_aaaa;

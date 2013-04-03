@@ -834,7 +834,7 @@ trim_zbits(dns_rpz_zbits_t zbits, dns_rpz_zbits_t found) {
 	 * Make a mask of that bit and all smaller numbered bits.
 	 */
 	x = zbits & found;
-	x &= -x;
+	x &= (~x + 1);
 	x = (x << 1) - 1;
 	return (zbits &= x);
 }

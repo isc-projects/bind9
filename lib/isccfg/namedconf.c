@@ -97,6 +97,7 @@ static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_bracketed_aml;
 static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
+static cfg_type_t cfg_type_bracketed_dscpsockaddrlist;
 static cfg_type_t cfg_type_bracketed_sockaddrlist;
 static cfg_type_t cfg_type_bracketed_sockaddrnameportlist;
 static cfg_type_t cfg_type_controls;
@@ -118,6 +119,7 @@ static cfg_type_t cfg_type_optional_class;
 static cfg_type_t cfg_type_optional_facility;
 static cfg_type_t cfg_type_optional_keyref;
 static cfg_type_t cfg_type_optional_port;
+static cfg_type_t cfg_type_optional_dscp;
 static cfg_type_t cfg_type_options;
 static cfg_type_t cfg_type_portiplist;
 static cfg_type_t cfg_type_querysource4;
@@ -181,11 +183,15 @@ static cfg_type_t cfg_type_tkey_dhkey = {
 
 static cfg_tuplefielddef_t listenon_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
+	{ "dscp", &cfg_type_optional_dscp, 0 },
 	{ "acl", &cfg_type_bracketed_aml, 0 },
 	{ NULL, NULL, 0 }
 };
+
 static cfg_type_t cfg_type_listenon = {
-	"listenon", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, listenon_fields };
+	"listenon", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, listenon_fields
+};
 
 /*% acl */
 
@@ -202,6 +208,7 @@ static cfg_type_t cfg_type_acl = {
 static cfg_tuplefielddef_t masters_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "port", &cfg_type_optional_port, 0 },
+	{ "dscp", &cfg_type_optional_dscp, 0 },
 	{ "addresses", &cfg_type_bracketed_namesockaddrkeylist, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -234,6 +241,7 @@ static cfg_type_t cfg_type_bracketed_namesockaddrkeylist = {
 
 static cfg_tuplefielddef_t namesockaddrkeylist_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
+	{ "dscp", &cfg_type_optional_dscp, 0 },
 	{ "addresses", &cfg_type_bracketed_namesockaddrkeylist, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -248,7 +256,8 @@ static cfg_type_t cfg_type_namesockaddrkeylist = {
  */
 static cfg_tuplefielddef_t portiplist_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "addresses", &cfg_type_bracketed_sockaddrlist, 0 },
+	{ "dscp", &cfg_type_optional_dscp, 0 },
+	{ "addresses", &cfg_type_bracketed_dscpsockaddrlist, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_portiplist = {
@@ -547,13 +556,20 @@ static cfg_tuplefielddef_t checknames_fields[] = {
 };
 
 static cfg_type_t cfg_type_checknames = {
-	"checknames", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
-	checknames_fields
+	"checknames", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, checknames_fields
+};
+
+static cfg_type_t cfg_type_bracketed_dscpsockaddrlist = {
+	"bracketed_sockaddrlist", cfg_parse_bracketed_list,
+	cfg_print_bracketed_list, cfg_doc_bracketed_list, &cfg_rep_list,
+	&cfg_type_sockaddrdscp
 };
 
 static cfg_type_t cfg_type_bracketed_sockaddrlist = {
-	"bracketed_sockaddrlist", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list,
-	&cfg_rep_list, &cfg_type_sockaddr
+	"bracketed_sockaddrlist", cfg_parse_bracketed_list,
+	cfg_print_bracketed_list, cfg_doc_bracketed_list, &cfg_rep_list,
+	&cfg_type_sockaddr
 };
 
 static const char *autodnssec_enums[] = { "allow", "maintain", "off", NULL };
@@ -592,8 +608,15 @@ static cfg_type_t cfg_type_zonestat = {
 };
 
 static cfg_type_t cfg_type_rrsetorder = {
-	"rrsetorder", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list,
-	&cfg_rep_list, &cfg_type_rrsetorderingelement
+	"rrsetorder", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_rrsetorderingelement
+};
+
+static keyword_type_t dscp_kw = { "dscp", &cfg_type_uint32 };
+
+static cfg_type_t cfg_type_optional_dscp = {
+	"optional_dscp", parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue, &cfg_rep_uint32, &dscp_kw
 };
 
 static keyword_type_t port_kw = { "port", &cfg_type_uint32 };
@@ -934,6 +957,7 @@ options_clauses[] = {
 	{ "session-keyalg", &cfg_type_astring, 0 },
 	{ "deallocate-on-exit", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "directory", &cfg_type_qstring, CFG_CLAUSEFLAG_CALLBACK },
+	{ "dscp", &cfg_type_uint32, 0 },
 	{ "dump-file", &cfg_type_qstring, 0 },
 	{ "fake-iquery", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "files", &cfg_type_size, 0 },
@@ -2033,7 +2057,9 @@ parse_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 }
 
 static isc_result_t
-parse_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+parse_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
+			cfg_obj_t **ret)
+{
 	return (parse_maybe_optional_keyvalue(pctx, type, ISC_TRUE, ret));
 }
 
@@ -2379,9 +2405,11 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
 	isc_netaddr_t netaddr;
-	in_port_t port;
+	in_port_t port = 0;
+	isc_dscp_t dscp = -1;
 	unsigned int have_address = 0;
 	unsigned int have_port = 0;
+	unsigned int have_dscp = 0;
 	const unsigned int *flagp = type->of;
 
 	if ((*flagp & CFG_ADDR_V4OK) != 0)
@@ -2390,8 +2418,6 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		isc_netaddr_any6(&netaddr);
 	else
 		INSIST(0);
-
-	port = 0;
 
 	for (;;) {
 		CHECK(cfg_peektoken(pctx, 0));
@@ -2412,11 +2438,20 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 							CFG_ADDR_WILDOK,
 							&port));
 				have_port++;
-			} else if (have_port == 0 && have_address == 0) {
+			} else if (strcasecmp(TOKEN_STRING(pctx), "dscp") == 0)
+			{
+				/* read "dscp" */
+				CHECK(cfg_gettoken(pctx, 0));
+				CHECK(cfg_parse_dscp(pctx, &dscp));
+				have_dscp++;
+			} else if (have_port == 0 && have_dscp == 0 &&
+				   have_address == 0)
+			{
 				return (cfg_parse_sockaddr(pctx, type, ret));
 			} else {
 				cfg_parser_error(pctx, CFG_LOG_NEAR,
-					     "expected 'address' or 'port'");
+					     "expected 'address', 'port', "
+					     "or 'dscp'");
 				return (ISC_R_UNEXPECTEDTOKEN);
 			}
 		} else
@@ -2428,8 +2463,14 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 
+	if (have_dscp > 1) {
+		cfg_parser_error(pctx, 0, "expected at most one dscp");
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+
 	CHECK(cfg_create_obj(pctx, &cfg_type_querysource, &obj));
 	isc_sockaddr_fromnetaddr(&obj->value.sockaddr, &netaddr, port);
+	obj->value.sockaddrdscp.dscp = dscp;
 	*ret = obj;
 	return (ISC_R_SUCCESS);
 
@@ -2447,10 +2488,16 @@ print_querysource(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	cfg_print_rawaddr(pctx, &na);
 	cfg_print_cstr(pctx, " port ");
 	cfg_print_rawuint(pctx, isc_sockaddr_getport(&obj->value.sockaddr));
+	if (obj->value.sockaddrdscp.dscp != -1) {
+		cfg_print_cstr(pctx, " dscp ");
+		cfg_print_rawuint(pctx, obj->value.sockaddrdscp.dscp);
+	}
 }
 
-static unsigned int sockaddr4wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V4OK;
-static unsigned int sockaddr6wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V6OK;
+static unsigned int sockaddr4wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V4OK |
+					  CFG_ADDR_DSCPOK;
+static unsigned int sockaddr6wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V6OK |
+					  CFG_ADDR_DSCPOK;
 
 static cfg_type_t cfg_type_querysource4 = {
 	"querysource4", parse_querysource, NULL, cfg_doc_terminal,
@@ -2780,7 +2827,7 @@ static cfg_type_t cfg_type_logfile = {
 	&cfg_rep_tuple, logfile_fields
 };
 
-/*% An IPv4 address with optional port, "*" accepted as wildcard. */
+/*% An IPv4 address with optional dscp and port, "*" accepted as wildcard. */
 static cfg_type_t cfg_type_sockaddr4wild = {
 	"sockaddr4wild", cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr, &cfg_rep_sockaddr, &sockaddr4wild_flags
@@ -2923,8 +2970,10 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_sessionkey = {
 static cfg_tuplefielddef_t nameport_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "port", &cfg_type_optional_port, 0 },
+	{ "dscp", &cfg_type_optional_dscp, 0 },
 	{ NULL, NULL, 0 }
 };
+
 static cfg_type_t cfg_type_nameport = {
 	"nameport", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
 	&cfg_rep_tuple, nameport_fields
@@ -2937,14 +2986,20 @@ doc_sockaddrnameport(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, "<quoted_string>");
 	cfg_print_chars(pctx, " ", 1);
 	cfg_print_cstr(pctx, "[ port <integer> ]");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "[ dscp <integer> ]");
 	cfg_print_chars(pctx, " | ", 3);
 	cfg_print_cstr(pctx, "<ipv4_address>");
 	cfg_print_chars(pctx, " ", 1);
 	cfg_print_cstr(pctx, "[ port <integer> ]");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "[ dscp <integer> ]");
 	cfg_print_chars(pctx, " | ", 3);
 	cfg_print_cstr(pctx, "<ipv6_address>");
 	cfg_print_chars(pctx, " ", 1);
 	cfg_print_cstr(pctx, "[ port <integer> ]");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "[ dscp <integer> ]");
 	cfg_print_chars(pctx, " )", 2);
 }
 
@@ -2970,6 +3025,8 @@ parse_sockaddrnameport(cfg_parser_t *pctx, const cfg_type_t *type,
 					    &obj->value.tuple[0]));
 			CHECK(cfg_parse_obj(pctx, fields[1].type,
 					    &obj->value.tuple[1]));
+			CHECK(cfg_parse_obj(pctx, fields[2].type,
+					    &obj->value.tuple[2]));
 			*ret = obj;
 			obj = NULL;
 		}

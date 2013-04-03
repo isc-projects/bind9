@@ -24,6 +24,9 @@
 #include <config.h>
 
 #include <sys/stat.h>
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h> /* uintptr_t */
+#endif
 
 #include <isc/file.h>
 #include <isc/mem.h>

@@ -613,7 +613,10 @@ findnodeext(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 
 	MAYBE_UNLOCK(sdlz->dlzimp);
 
-	if (result != ISC_R_SUCCESS && !isorigin && !create) {
+	if (result == ISC_R_NOTFOUND && (isorigin || create))
+		result = ISC_R_SUCCESS;
+
+	if (result != ISC_R_SUCCESS) {
 		destroynode(node);
 		return (result);
 	}
@@ -625,7 +628,8 @@ findnodeext(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 				      sdlz->dbdata, node);
 		MAYBE_UNLOCK(sdlz->dlzimp);
 		if (result != ISC_R_SUCCESS &&
-		    result != ISC_R_NOTIMPLEMENTED) {
+		    result != ISC_R_NOTIMPLEMENTED)
+		{
 			destroynode(node);
 			return (result);
 		}
@@ -1201,7 +1205,6 @@ settask(dns_db_t *db, isc_task_t *task) {
 	UNUSED(task);
 }
 
-
 /*
  * getoriginnode() is used by the update code to find the
  * dns_rdatatype_dnskey record for a zone
@@ -1218,7 +1221,7 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	result = findnodeext(db, &sdlz->common.origin, ISC_FALSE,
 			     NULL, NULL, nodep);
 	if (result != ISC_R_SUCCESS)
-		sdlz_log(ISC_LOG_ERROR, "sdlz getoriginnode failed : %s",
+		sdlz_log(ISC_LOG_ERROR, "sdlz getoriginnode failed: %s",
 			 isc_result_totext(result));
 	return (result);
 }

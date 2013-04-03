@@ -1,3 +1,124 @@
+3543.	[bug]		Update socket stucture before attaching to socket
+			manager after accept. [RT #33084]
+
+3542.	[placeholder]
+
+3541.	[bug]		The parts if libdns was not being properly initialized
+			in when built in libexport mode. [RT #33028]
+
+3540.	[bug]		libt_api: t_info and t_assert were not thread safe.
+
+3539.	[port]		win32: timestamp format didn't match other platforms.
+
+3538.	[test]		Running "make test" now requires loopback interfaces
+			to be set up. [RT #32452]
+
+3537.	[tuning]	Slave zones, when updated, now send NOTIFY messages
+			to peers before being dumped to disk rather than
+			after. [RT #27242]
+
+3536.	[func]		Add support for setting Differentiated Services Code
+			Point (DSCP) values in named.  Most configuration
+			options which take a "port" option (e.g.,
+			listen-on, forwarders, also-notify, masters,
+			notify-source, etc) can now also take a "dscp"
+			option specifying a code point for use with
+			outgoing traffic, if supported by the underlying
+			OS. [RT #27596]
+
+3535.	[bug]		Minor win32 cleanups. [RT #32962]
+
+3534.	[bug]		Extra text after an embedded NULL was ignored when
+			parsing zone files. [RT #32699]
+
+3533.	[contrib]	query-loc-0.4.0: memory leaks. [RT #32960]
+
+3532.	[contrib]	zkt: fixed buffer overrun, resource leaks. [RT #32960]
+
+3531.	[bug]		win32: A uninitialized value could be returned on out
+			of memory. [RT #32960]
+
+3530.	[contrib]	Better RTT tracking in queryperf. [RT #30128]
+
+3529.	[func]		Named now listens on both IPv4 and IPv6 interfaces
+			by default.  Named previously only listened on IPv4
+			interfaces by default unless named was running in
+			IPv6 only mode.  [RT #32945]
+
+3528.	[func]		New "dnssec-coverage" command scans the timing
+			metadata for a set of DNSSEC keys and reports if a
+			lapse in signing coverage has been scheduled
+			inadvertently. (Note: This tool depends on python;
+			it will not be built or installed on systems that
+			do not have a python interpreter.) [RT #28098]
+
+3527.	[compat]	Add a URI to allow applications to explicitly
+			request a particular XML schema from the statistics
+			channel, returning 404 if not supported. [RT #32481]
+
+3526.	[cleanup]	Set up dependencies for unit tests correctly during
+			build. [RT #32803]
+
+3525.	[func]		Support for additional signing algorithms in rndc:
+			hmac-sha1, -sha224, -sha256, -sha384, and -sha512.
+			The -A option to rndc-confgen can be used to
+			select the algorithm for the generated key.
+			(The default is still hmac-md5; this may
+			change in a future release.) [RT #20363]
+
+3524.	[func]		Added an alternate statistics channel in JSON format,
+			when the server is built with the json-c library:
+			http://[address]:[port]/json.  [RT #32630]
+
+3523.	[contrib]	Ported filesystem and ldap DLZ drivers to
+			dynamically-loadable modules, and added the
+			"wildcard" module based on a contribution from
+			Vadim Goncharov <vgoncharov@nic.ru>. [RT #23569]
+
+3522.	[bug]		DLZ lookups could fail to return SERVFAIL when
+			they ought to. [RT #32685]
+
+3521.	[bug]		Address memory leak in opensslecdsa_link.c. [RT #32249]
+
+3520.	[bug]		'mctx' was not being referenced counted in some places
+			where it should have been.  [RT #32794]
+
+3519.	[func]		Full replay protection via four-way handshake is
+			now mandatory for rndc clients. Very old versions
+			of rndc will no longer work. [RT #32798]
+
+3518.	[bug]		Increase the size of dns_rrl_key.s.rtype by one bit
+			so that all dns_rrl_rtype_t enum values fit regardless
+			of whether it is teated as signed or unsigned by
+			the compiler. [RT #32792]
+
+3517.	[bug]		Reorder destruction to avoid shutdown race. [RT #32777]
+
+3516.	[placeholder]
+
+3515.	[port]		'%T' is not portable in strftime(). [RT #32763]
+
+3514.	[bug]		The ranges for valid key sizes in ddns-confgen and
+			rndc-confgen were too constrained. Keys up to 512
+			bits are now allowed for most algorithms, and up
+			to 1024 bits for hmac-sha384 and hmac-sha512.
+			[RT #32753]
+
+3513.	[func]		"dig -u" prints times in microseconds rather than
+			milliseconds. [RT #32704]
+
+3512.	[func]		"rndc validation check" reports the current status
+			of DNSSEC validation. [RT #21397]
+
+3511.	[doc]		Improve documentation of redirect zones. [RT #32756]
+
+3510.	[func]		"rndc status" and XML statistics channel now report
+			server start and reconfiguration times. [RT #21048]
+
+3509.	[cleanup]	Added a product line to version file to allow for
+			easy naming of different products (BIND
+			vs BIND ESV, for example). [RT #32755]
+
 3508.	[contrib]	queryperf was incorrectly rejecting the -T option.
 			[RT #32338]
 
@@ -21,7 +142,7 @@
 			using MaxMind GeoIP databases. Based on code
 			contributed by Ken Brownfield <kb@slide.com>.
 			[RT #30681]
-			
+
 3503.	[doc]		Clarify size_spec syntax. [RT #32449]
 
 3502.	[func]		zone-statistics: "no" is now a synonym for "none",
@@ -31,8 +152,10 @@
 			terse, and none. "yes" and "no" are retained as
 			synonyms for full and terse, respectively. [RT #29165]
 
-3500.	[port]		Support NAPTR regular expression validation on
-			all platforms.  [RT #32688]
+3500.	[security]	Support NAPTR regular expression validation on
+			all platforms without using libregex, which
+			can be vulnerable to memory exhaustion attack
+			(CVE-2013-2266). [RT #32688]
 
 3499.	[doc]		Corrected ARM documentation of built-in zones.
 			[RT #32694]
@@ -48,11 +171,11 @@
 3496.	[placeholder]
 
 3495.	[func]		Support multiple response-policy zones (up to 32),
-                        while improving RPZ performance.  "response-policy"
+			while improving RPZ performance.  "response-policy"
 			syntax now includes a "min-ns-dots" clause, with
 			default 1, to exclude top-level domains from
 			NSIP and NSDNAME checking. --enable-rpz-nsip and
-                        --enable-rpz-nsdname are now the default. [RT #32251]
+			--enable-rpz-nsdname are now the default. [RT #32251]
 
 3494.	[func]		DNS RRL: Blunt the impact of DNS reflection and
 			amplification attacks by rate-limiting substantially-
@@ -60,7 +183,7 @@
 
 3493.	[contrib]	Added BDBHPT dynamically-lodable DLZ module,
 			contributed by Mark Goldfinch. [RT #32549]
-			
+
 3492.	[bug]		Fixed a regression in zone loading performance
 			due to lock contention. [RT #30399]
 
@@ -68,7 +191,7 @@
 			file name. [RT #31946]
 
 3490.	[bug]		When logging RDATA during update, truncate if it's
-                        too long. [RT #32365]
+			too long. [RT #32365]
 
 3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
 			dns_dlzcreate() failed to properly initialize
@@ -79,7 +202,7 @@
 
 3487.	[bug]		Change 3444 was not complete.  There was a additional
 			place where the NOQNAME proof needed to be saved.
-                        [RT #32629]
+			[RT #32629]
 
 3486.	[bug]		named could crash when using TKEY-negotiated keys
 			that had been deleted and then recreated. [RT #32506]
@@ -107,8 +230,8 @@
 			[RT #32475]
 
 3477.	[func]		Expand logging when adding records via DDNS update
-	 		[RT #32365]
-			
+			[RT #32365]
+
 3476.	[bug]		"rndc zonestatus" could report a spurious "not
 			found" error on inline-signing zones. [RT #29226]
 

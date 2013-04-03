@@ -1,4 +1,4 @@
-Copyright (C) 2004, 2005, 2007-2009, 2012  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2004, 2005, 2007-2009, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2001, 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
@@ -80,7 +80,7 @@ statement into named.conf.
 
 The additions look like the following:
 
-key "rndc-key" { algorithm hmac-md5; secret "xxxxxxxxx=="; };
+key "rndc-key" { algorithm hmac-sha256; secret "xxxxxxxxx=="; };
 
 controls {
 	inet 127.0.0.1 port 953 allow { localhost; } keys { "rndc-key"; };

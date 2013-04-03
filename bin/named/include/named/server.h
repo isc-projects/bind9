@@ -338,7 +338,7 @@ ns_add_reserved_dispatch(ns_server_t *server, const isc_sockaddr_t *addr);
  * Enable or disable dnssec validation.
  */
 isc_result_t
-ns_server_validation(ns_server_t *server, char *args);
+ns_server_validation(ns_server_t *server, char *args, isc_buffer_t *text);
 
 /*%
  * Add a zone to a running process

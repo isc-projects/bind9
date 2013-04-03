@@ -233,7 +233,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	struct dlz_example_data *state;
 	const char *helper_name;
 	va_list ap;
-	char soa_data[200];
+	char soa_data[1024];
 	const char *extra;
 	isc_result_t result;
 	int n;
@@ -359,6 +359,18 @@ dlz_findzonedb(void *dbdata, const char *name,
 	    strncmp(addrbuf, "10.53.0.1", 9) == 0)
 		return (ISC_R_NOMORE);
 
+	/*
+	 * For bigcname.domain, return success so it appears to be
+	 * the zone origin; this regression tests a bug in which
+	 * zone origin nodes could fail to return SERVFAIL to the client.
+	 */
+	if (strcasecmp(name, "bigcname.domain") == 0)
+		return (ISC_R_SUCCESS);
+
+	/*
+	 * Return success if we have an exact match between the
+	 * zone name and the qname
+	 */
 	if (strcasecmp(state->zone_name, name) == 0)
 		return (ISC_R_SUCCESS);
 
@@ -418,7 +430,9 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 			return (result);
 	}
 
-	if (strcmp(name, "too-long") == 0) {
+	if (strcmp(name, "too-long") == 0 ||
+	    strcmp(zone, "bigcname.domain") == 0)
+	{
 		for (i = 0; i < 511; i++)
 			buf[i] = 'x';
 		buf[i] = '\0';

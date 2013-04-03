@@ -239,6 +239,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define if libjson was found */
+#undef HAVE_JSON
+
 /* Define to 1 if you have the <kerberosv5/krb5.h> header file. */
 #undef HAVE_KERBEROSV5_KRB5_H
 

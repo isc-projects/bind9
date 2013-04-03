@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -76,6 +76,13 @@
 #include <mswsock.h>
 
 #include "errno2result.h"
+
+/*
+ * Set by the -T dscp option on the command line. If set to a value
+ * other than -1, we check to make sure DSCP values match it, and
+ * assert if not.
+ */
+int isc_dscp_check_value = -1;
 
 /*
  * How in the world can Microsoft exist with APIs like this?
@@ -718,7 +725,6 @@ static void
 queue_receive_request(isc_socket_t *sock) {
 	DWORD Flags = 0;
 	DWORD NumBytes = 0;
-	int total_bytes = 0;
 	int Result;
 	int Error;
 	int need_retry;
@@ -1062,13 +1068,13 @@ destroy_socketevent(isc_event_t *event) {
 }
 
 static isc_socketevent_t *
-allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
-		     isc_taskaction_t action, const void *arg)
+allocate_socketevent(isc_mem_t *mctx, isc_socket_t *sock,
+		     isc_eventtype_t eventtype, isc_taskaction_t action,
+		     const void *arg)
 {
 	isc_socketevent_t *ev;
 
-	ev = (isc_socketevent_t *)isc_event_allocate(sock->manager->mctx,
-						     sock, eventtype,
+	ev = (isc_socketevent_t *)isc_event_allocate(mctx, sock, eventtype,
 						     action, arg,
 						     sizeof(*ev));
 	if (ev == NULL)
@@ -1096,9 +1102,8 @@ dump_msg(struct msghdr *msg, isc_socket_t *sock) {
 	printf("\tname %p, namelen %d\n", msg->msg_name, msg->msg_namelen);
 	printf("\tiov %p, iovlen %d\n", msg->msg_iov, msg->msg_iovlen);
 	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++)
-		printf("\t\t%d\tbase %p, len %d\n", i,
-		       msg->msg_iov[i].buf,
-		       msg->msg_iov[i].len);
+		printf("\t\t%u\tbase %p, len %u\n", i,
+		       msg->msg_iov[i].buf, msg->msg_iov[i].len);
 }
 #endif
 
@@ -1466,7 +1471,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	ISC_LINK_INIT(sock, link);
 
 	/*
-	 * set up list of readers and writers to be initially empty
+	 * Set up list of readers and writers to be initially empty.
 	 */
 	ISC_LIST_INIT(sock->recv_list);
 	ISC_LIST_INIT(sock->send_list);
@@ -1489,20 +1494,16 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	sock->recvbuf.remaining = 0;
 	sock->recvbuf.base = isc_mem_get(manager->mctx, sock->recvbuf.len); // max buffer size
 	if (sock->recvbuf.base == NULL) {
-		sock->magic = 0;
+		result = ISC_R_NOMEMORY;
 		goto error;
 	}
 
 	/*
-	 * initialize the lock
+	 * Initialize the lock.
 	 */
 	result = isc_mutex_init(&sock->lock);
-	if (result != ISC_R_SUCCESS) {
-		sock->magic = 0;
-		isc_mem_put(manager->mctx, sock->recvbuf.base, sock->recvbuf.len);
-		sock->recvbuf.base = NULL;
+	if (result != ISC_R_SUCCESS)
 		goto error;
-	}
 
 	socket_log(__LINE__, sock, NULL, EVENT, NULL, 0, 0,
 		   "allocated");
@@ -1513,6 +1514,8 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	return (ISC_R_SUCCESS);
 
  error:
+	if (sock->recvbuf.base != NULL)
+		isc_mem_put(manager->mctx, sock->recvbuf.base, sock->recvbuf.len);
 	isc_mem_put(manager->mctx, sock, sizeof(*sock));
 
 	return (result);
@@ -1611,21 +1614,21 @@ free_socket(isc_socket_t **sockp, int lineno) {
 	isc_socket_t *sock = *sockp;
 	*sockp = NULL;
 
-	manager = sock->manager;
-
 	/*
 	 * Seems we can free the socket after all.
 	 */
 	manager = sock->manager;
-	socket_log(__LINE__, sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
-		   ISC_MSG_DESTROYING, "freeing socket line %d fd %d lock %p semaphore %p",
+	socket_log(__LINE__, sock, NULL, CREATION, isc_msgcat,
+		   ISC_MSGSET_SOCKET, ISC_MSG_DESTROYING,
+		   "freeing socket line %d fd %d lock %p semaphore %p",
 		   lineno, sock->fd, &sock->lock, sock->lock.LockSemaphore);
 
 	sock->magic = 0;
 	DESTROYLOCK(&sock->lock);
 
 	if (sock->recvbuf.base != NULL)
-		isc_mem_put(manager->mctx, sock->recvbuf.base, sock->recvbuf.len);
+		isc_mem_put(manager->mctx, sock->recvbuf.base,
+			    sock->recvbuf.len);
 
 	LOCK(&manager->lock);
 	if (ISC_LINK_LINKED(sock, link))
@@ -1882,7 +1885,6 @@ isc__socket_attach(isc_socket_t *sock, isc_socket_t **socketp) {
 void
 isc__socket_detach(isc_socket_t **socketp) {
 	isc_socket_t *sock;
-	isc_boolean_t kill_socket = ISC_FALSE;
 
 	REQUIRE(socketp != NULL);
 	sock = *socketp;
@@ -2781,10 +2783,7 @@ static isc_result_t
 socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 	    unsigned int flags)
 {
-	int cc = 0;
-	isc_task_t *ntask = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
-	int recv_errno = 0;
 
 	dev->ev_sender = task;
 
@@ -2848,7 +2847,8 @@ isc__socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 
 	INSIST(sock->bound);
 
-	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
+	dev = allocate_socketevent(manager->mctx, sock,
+				   ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -2909,7 +2909,8 @@ isc__socket_recv(isc_socket_t *sock, isc_region_t *region,
 
 	INSIST(sock->bound);
 
-	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
+	dev = allocate_socketevent(manager->mctx, sock,
+				   ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -3072,7 +3073,8 @@ isc__socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	INSIST(sock->bound);
 
-	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
+	dev = allocate_socketevent(manager->mctx, sock,
+				   ISC_SOCKEVENT_SENDDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -3126,7 +3128,8 @@ isc__socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	iocount = isc_bufferlist_usedcount(buflist);
 	REQUIRE(iocount > 0);
 
-	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
+	dev = allocate_socketevent(manager->mctx, sock,
+				   ISC_SOCKEVENT_SENDDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -3812,6 +3815,34 @@ isc__socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
 }
 
 void
+isc__socket_dscp(isc_socket_t *sock, isc_dscp_t dscp) {
+#if !defined(IP_TOS) && !defined(IPV6_TCLASS)
+	UNUSED(dscp);
+#else
+	if (dscp < 0)
+		return;
+
+	dscp <<= 2;
+	dscp &= 0xff;
+#endif
+
+	REQUIRE(VALID_SOCKET(sock));
+
+#ifdef IP_TOS
+	if (sock->pf == AF_INET) {
+		(void)setsockopt(sock->fd, IPPROTO_IP, IP_TOS,
+				 (char *)&dscp, sizeof(dscp));
+	}
+#endif
+#ifdef IPV6_TCLASS
+	if (sock->pf == AF_INET6) {
+		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_TCLASS,
+				 (char *)&dscp, sizeof(dscp));
+	}
+#endif
+}
+
+void
 isc__socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active) {
 	UNUSED(addr);
 	UNUSED(active);
@@ -3872,11 +3903,18 @@ isc___socketmgr_maxudp(isc_socketmgr_t *manager, int maxudp) {
 	UNUSED(maxudp);
 }
 
+isc_socketevent_t *
+isc_socket_socketevent(isc_mem_t *mctx, void *sender,
+		       isc_eventtype_t eventtype, isc_taskaction_t action,
+		       const void *arg)
+{
+	return (allocate_socketevent(mctx, sender, eventtype, action, arg));
+}
+
 #ifdef HAVE_LIBXML2
 
 static const char *
-_socktype(isc_sockettype_t type)
-{
+_socktype(isc_sockettype_t type) {
 	if (type == isc_sockettype_udp)
 		return ("udp");
 	else if (type == isc_sockettype_tcp)
@@ -3893,7 +3931,7 @@ _socktype(isc_sockettype_t type)
 int
 isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer)
 {
-	isc_socket_t *sock;
+	isc_socket_t *sock = NULL;
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t addr;
 	ISC_SOCKADDR_LEN_T len;

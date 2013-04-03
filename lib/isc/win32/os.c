@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -28,14 +28,14 @@ static void
 initialize_action(void) {
 	if (bInit)
 		return;
-	
+
 	GetSystemInfo(&SystemInfo);
 	bInit = TRUE;
 }
 
 unsigned int
 isc_os_ncpus(void) {
-	long ncpus = 1;
+	long ncpus;
 	initialize_action();
 	ncpus = SystemInfo.dwNumberOfProcessors;
 	if (ncpus <= 0)

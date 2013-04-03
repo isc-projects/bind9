@@ -89,7 +89,7 @@
 
 #define DNS_ADB_INVALIDBUCKET (-1)      /*%< invalid bucket address */
 
-#define DNS_ADB_MINADBSIZE      (1024*1024)     /*%< 1 Megabyte */
+#define DNS_ADB_MINADBSIZE      (1024U*1024U)     /*%< 1 Megabyte */
 
 typedef ISC_LIST(dns_adbname_t) dns_adbnamelist_t;
 typedef struct dns_adbnamehook dns_adbnamehook_t;
@@ -1311,6 +1311,7 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
 				if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 					UNLOCK(&adb->entrylocks[addr_bucket]);
 				addr_bucket = entry->lock_bucket;
+				INSIST(addr_bucket != DNS_ADB_INVALIDBUCKET);
 				LOCK(&adb->entrylocks[addr_bucket]);
 			}
 
@@ -1946,6 +1947,7 @@ new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 	ai->srtt = entry->srtt;
 	ai->flags = entry->flags;
 	ai->entry = entry;
+	ai->dscp = -1;
 	ISC_LINK_INIT(ai, publink);
 
 	return (ai);
@@ -2368,7 +2370,8 @@ destroy(dns_adb_t *adb) {
 	adb->magic = 0;
 
 	isc_task_detach(&adb->task);
-	isc_task_detach(&adb->excl);
+	if (adb->excl != NULL)
+		isc_task_detach(&adb->excl);
 
 	isc_mempool_destroy(&adb->nmp);
 	isc_mempool_destroy(&adb->nhmp);
@@ -4169,13 +4172,13 @@ dns_adb_setadbsize(dns_adb_t *adb, size_t size) {
 
 	INSIST(DNS_ADB_VALID(adb));
 
-	if (size != 0 && size < DNS_ADB_MINADBSIZE)
+	if (size != 0U && size < DNS_ADB_MINADBSIZE)
 		size = DNS_ADB_MINADBSIZE;
 
 	hiwater = size - (size >> 3);   /* Approximately 7/8ths. */
 	lowater = size - (size >> 2);   /* Approximately 3/4ths. */
 
-	if (size == 0 || hiwater == 0 || lowater == 0)
+	if (size == 0U || hiwater == 0U || lowater == 0U)
 		isc_mem_setwater(adb->mctx, water, adb, 0, 0);
 	else
 		isc_mem_setwater(adb->mctx, water, adb, hiwater, lowater);

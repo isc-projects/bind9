@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -76,8 +76,11 @@ struct dns_peer {
 	isc_boolean_t		request_nsid;
 	dns_name_t	       *key;
 	isc_sockaddr_t	       *transfer_source;
+	isc_dscp_t		transfer_dscp;
 	isc_sockaddr_t	       *notify_source;
+	isc_dscp_t		notify_dscp;
 	isc_sockaddr_t	       *query_source;
+	isc_dscp_t		query_dscp;
 	isc_uint16_t		udpsize;		/* receive size */
 	isc_uint16_t		maxudp;			/* transmit size */
 
@@ -214,6 +217,23 @@ dns_peer_setquerysource(dns_peer_t *peer, const isc_sockaddr_t *query_source);
 isc_result_t
 dns_peer_getquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source);
 
+isc_result_t
+dns_peer_setnotifydscp(dns_peer_t *peer, isc_dscp_t dscp);
+
+isc_result_t
+dns_peer_getnotifydscp(dns_peer_t *peer, isc_dscp_t *dscpp);
+
+isc_result_t
+dns_peer_settransferdscp(dns_peer_t *peer, isc_dscp_t dscp);
+
+isc_result_t
+dns_peer_gettransferdscp(dns_peer_t *peer, isc_dscp_t *dscpp);
+
+isc_result_t
+dns_peer_setquerydscp(dns_peer_t *peer, isc_dscp_t dscp);
+
+isc_result_t
+dns_peer_getquerydscp(dns_peer_t *peer, isc_dscp_t *dscpp);
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_PEER_H */

@@ -354,6 +354,12 @@ dns_client_create(dns_client_t **clientp, unsigned int options) {
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_timermgr_t *timermgr = NULL;
+#if 0
+	/* XXXMPA add debug logging support */
+	isc_log_t *lctx = NULL;
+	isc_logconfig_t *logconfig = NULL;
+	unsigned int logdebuglevel = 0;
+#endif
 
 	result = isc_mem_create(0, 0, &mctx);
 	if (result != ISC_R_SUCCESS)
@@ -373,7 +379,18 @@ dns_client_create(dns_client_t **clientp, unsigned int options) {
 	result = isc_timermgr_createinctx(mctx, actx, &timermgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-
+#if 0
+        result = isc_log_create(mctx, &lctx, &logconfig);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+        isc_log_setcontext(lctx);
+        dns_log_init(lctx);
+        dns_log_setcontext(lctx);
+        result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+        isc_log_setdebuglevel(lctx, logdebuglevel);
+#endif
 	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr,
 				    options, clientp);
 	if (result != ISC_R_SUCCESS)
@@ -485,6 +502,7 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 	client->update_udpretries = DEF_UPDATE_UDPRETRIES;
 	client->find_timeout = DEF_FIND_TIMEOUT;
 	client->find_udpretries = DEF_FIND_UDPRETRIES;
+	client->attributes = 0;
 
 	client->references = 1;
 	client->magic = DNS_CLIENT_MAGIC;

@@ -4729,7 +4729,7 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 	 * the bit mask of policy zones with policies for this trigger name.
 	 *	x&-x is the least significant bit set in x
 	 */
-	if (zbits != (zbits & -zbits)) {
+	if (zbits != (zbits & (~zbits + 1))) {
 		zbits = dns_rpz_find_name(client->view->rpzs,
 					  rpz_type, zbits, trig_name);
 		if (zbits == 0)

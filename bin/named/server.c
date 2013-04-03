@@ -170,7 +170,7 @@
  * a cache.  Only effective when a finite max-cache-size is specified.
  * This is currently defined to be 8MB.
  */
-#define MAX_ADB_SIZE_FOR_CACHESHARE	8388608
+#define MAX_ADB_SIZE_FOR_CACHESHARE	8388608U
 
 struct ns_dispatch {
 	isc_sockaddr_t			addr;
@@ -936,8 +936,8 @@ mustbesecure(const cfg_obj_t *mbs, dns_resolver_t *resolver) {
  * Get a dispatch appropriate for the resolver of a given view.
  */
 static isc_result_t
-get_view_querysource_dispatch(const cfg_obj_t **maps,
-			      int af, dns_dispatch_t **dispatchp,
+get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
+			      dns_dispatch_t **dispatchp, isc_dscp_t *dscpp,
 			      isc_boolean_t is_firstview)
 {
 	isc_result_t result = ISC_R_FAILURE;
@@ -946,6 +946,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps,
 	unsigned int attrs, attrmask;
 	const cfg_obj_t *obj = NULL;
 	unsigned int maxdispatchbuffers;
+	isc_dscp_t dscp = -1;
 
 	switch (af) {
 	case AF_INET:
@@ -962,6 +963,10 @@ get_view_querysource_dispatch(const cfg_obj_t **maps,
 
 	sa = *(cfg_obj_assockaddr(obj));
 	INSIST(isc_sockaddr_pf(&sa) == af);
+
+	dscp = cfg_obj_getdscp(obj);
+	if (dscp != -1 && dscpp != NULL)
+		*dscpp = dscp;
 
 	/*
 	 * If we don't support this address family, we're done!
@@ -1208,6 +1213,9 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 						    cfg_obj_assockaddr(obj));
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
+		result = dns_peer_settransferdscp(peer, cfg_obj_getdscp(obj));
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 	}
 
@@ -1221,6 +1229,9 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 						  cfg_obj_assockaddr(obj));
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
+		result = dns_peer_setnotifydscp(peer, cfg_obj_getdscp(obj));
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 	}
 
@@ -1232,6 +1243,9 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	if (obj != NULL) {
 		result = dns_peer_setquerysource(peer,
 						 cfg_obj_assockaddr(obj));
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		result = dns_peer_setquerydscp(peer, cfg_obj_getdscp(obj));
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
@@ -2082,6 +2096,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	unsigned int query_timeout, ndisp;
 	struct cfg_context *nzctx;
 	isc_boolean_t old_rpz_ok = ISC_FALSE;
+	isc_dscp_t dscp4 = -1, dscp6 = -1;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2275,6 +2290,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		const cfg_obj_t *dlzopts;
 		obj = NULL;
 
+		obj = NULL;
 		dlz = cfg_listelt_value(element);
 		dlzopts = cfg_tuple_get(dlz, "options");
 		(void)cfg_map_get(dlzopts, "database", &obj);
@@ -2652,10 +2668,10 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 *
 	 * XXXRTH  Hardwired number of tasks.
 	 */
-	CHECK(get_view_querysource_dispatch(maps, AF_INET, &dispatch4,
+	CHECK(get_view_querysource_dispatch(maps, AF_INET, &dispatch4, &dscp4,
 					    ISC_TF(ISC_LIST_PREV(view, link)
 						   == NULL)));
-	CHECK(get_view_querysource_dispatch(maps, AF_INET6, &dispatch6,
+	CHECK(get_view_querysource_dispatch(maps, AF_INET6, &dispatch6, &dscp6,
 					    ISC_TF(ISC_LIST_PREV(view, link)
 						   == NULL)));
 	if (dispatch4 == NULL && dispatch6 == NULL) {
@@ -2681,14 +2697,23 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 				      resopts, ns_g_dispatchmgr,
 				      dispatch4, dispatch6));
 
+	if (dscp4 == -1)
+		dscp4 = ns_g_dscp;
+	if (dscp6 == -1)
+		dscp6 = ns_g_dscp;
+	if (dscp4 != -1)
+		dns_resolver_setquerydscp4(view->resolver, dscp4);
+	if (dscp6 != -1)
+		dns_resolver_setquerydscp6(view->resolver, dscp6);
+
 	/*
 	 * Set the ADB cache size to 1/8th of the max-cache-size or
 	 * MAX_ADB_SIZE_FOR_CACHESHARE when the cache is shared.
 	 */
 	max_adb_size = 0;
-	if (max_cache_size != 0) {
+	if (max_cache_size != 0U) {
 		max_adb_size = max_cache_size / 8;
-		if (max_adb_size == 0)
+		if (max_adb_size == 0U)
 			max_adb_size = 1;	/* Force minimum. */
 		if (view != nsc->primaryview &&
 		    max_adb_size > MAX_ADB_SIZE_FOR_CACHESHARE) {
@@ -3589,16 +3614,17 @@ static isc_result_t
 configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 		  const cfg_obj_t *forwarders, const cfg_obj_t *forwardtype)
 {
-	const cfg_obj_t *portobj;
+	const cfg_obj_t *portobj, *dscpobj;
 	const cfg_obj_t *faddresses;
 	const cfg_listelt_t *element;
 	dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
-	isc_sockaddrlist_t addresses;
-	isc_sockaddr_t *sa;
+	dns_forwarderlist_t fwdlist;
+	dns_forwarder_t *fwd;
 	isc_result_t result;
 	in_port_t port;
+	isc_dscp_t dscp = -1;
 
-	ISC_LIST_INIT(addresses);
+	ISC_LIST_INIT(fwdlist);
 
 	/*
 	 * Determine which port to send forwarded requests to.
@@ -3621,6 +3647,22 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 		}
 	}
 
+	/*
+	 * DSCP value for forwarded requests.
+	 */
+	dscpobj = cfg_tuple_get(forwarders, "dscp");
+	if (!cfg_obj_isuint32(dscpobj))
+		dscp = ns_g_dscp;
+	else {
+		if (cfg_obj_asuint32(dscpobj) > 63) {
+			cfg_obj_log(dscpobj, ns_g_lctx, ISC_LOG_ERROR,
+				    "dscp value '%u' is out of range",
+				    cfg_obj_asuint32(dscpobj));
+			return (ISC_R_RANGE);
+		}
+		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
+	}
+
 	faddresses = NULL;
 	if (forwarders != NULL)
 		faddresses = cfg_tuple_get(forwarders, "addresses");
@@ -3630,19 +3672,22 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	     element = cfg_list_next(element))
 	{
 		const cfg_obj_t *forwarder = cfg_listelt_value(element);
-		sa = isc_mem_get(view->mctx, sizeof(isc_sockaddr_t));
-		if (sa == NULL) {
+		fwd = isc_mem_get(view->mctx, sizeof(dns_forwarder_t));
+		if (fwd == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-		*sa = *cfg_obj_assockaddr(forwarder);
-		if (isc_sockaddr_getport(sa) == 0)
-			isc_sockaddr_setport(sa, port);
-		ISC_LINK_INIT(sa, link);
-		ISC_LIST_APPEND(addresses, sa, link);
+		fwd->addr = *cfg_obj_assockaddr(forwarder);
+		if (isc_sockaddr_getport(&fwd->addr) == 0)
+			isc_sockaddr_setport(&fwd->addr, port);
+		fwd->dscp = cfg_obj_getdscp(forwarder);
+		if (fwd->dscp == -1)
+			fwd->dscp = dscp;
+		ISC_LINK_INIT(fwd, link);
+		ISC_LIST_APPEND(fwdlist, fwd, link);
 	}
 
-	if (ISC_LIST_EMPTY(addresses)) {
+	if (ISC_LIST_EMPTY(fwdlist)) {
 		if (forwardtype != NULL)
 			cfg_obj_log(forwarders, ns_g_lctx, ISC_LOG_WARNING,
 				    "no forwarders seen; disabling "
@@ -3662,8 +3707,8 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 		}
 	}
 
-	result = dns_fwdtable_add(view->fwdtable, origin, &addresses,
-				  fwdpolicy);
+	result = dns_fwdtable_addfwd(view->fwdtable, origin, &fwdlist,
+				     fwdpolicy);
 	if (result != ISC_R_SUCCESS) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(origin, namebuf, sizeof(namebuf));
@@ -3677,10 +3722,10 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 
  cleanup:
 
-	while (!ISC_LIST_EMPTY(addresses)) {
-		sa = ISC_LIST_HEAD(addresses);
-		ISC_LIST_UNLINK(addresses, sa, link);
-		isc_mem_put(view->mctx, sa, sizeof(isc_sockaddr_t));
+	while (!ISC_LIST_EMPTY(fwdlist)) {
+		fwd = ISC_LIST_HEAD(fwdlist);
+		ISC_LIST_UNLINK(fwdlist, fwd, link);
+		isc_mem_put(view->mctx, fwd, sizeof(dns_forwarder_t));
 	}
 
 	return (result);
@@ -4275,7 +4320,7 @@ scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
 
 static isc_result_t
 add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
-	      isc_boolean_t wcardport_ok)
+	      isc_dscp_t dscp, isc_boolean_t wcardport_ok)
 {
 	ns_listenelt_t *lelt = NULL;
 	dns_acl_t *src_acl = NULL;
@@ -4300,7 +4345,7 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
 			goto clean;
 
 		result = ns_listenelt_create(mctx, isc_sockaddr_getport(addr),
-					     src_acl, &lelt);
+					     dscp, src_acl, &lelt);
 		if (result != ISC_R_SUCCESS)
 			goto clean;
 		ISC_LIST_APPEND(list->elts, lelt, link);
@@ -4328,6 +4373,7 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 	dns_view_t *view;
 	dns_zone_t *zone, *next;
 	isc_sockaddr_t addr, *addrp;
+	isc_dscp_t dscp = -1;
 
 	result = ns_listenlist_create(mctx, &list);
 	if (result != ISC_R_SUCCESS)
@@ -4353,7 +4399,8 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 		 * query ports, and some of them may override an existing
 		 * wildcard IPv6 port.
 		 */
-		result = add_listenelt(mctx, list, &addr, ISC_TRUE);
+		/* XXXMPA fix dscp */
+		result = add_listenelt(mctx, list, &addr, dscp, ISC_TRUE);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 	}
@@ -4383,12 +4430,14 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 			continue;
 
 		addrp = dns_zone_getnotifysrc6(zone);
-		result = add_listenelt(mctx, list, addrp, ISC_FALSE);
+		dscp = dns_zone_getnotifysrc6dscp(zone);
+		result = add_listenelt(mctx, list, addrp, dscp, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 
 		addrp = dns_zone_getxfrsource6(zone);
-		result = add_listenelt(mctx, list, addrp, ISC_FALSE);
+		dscp = dns_zone_getxfrsource6dscp(zone);
+		result = add_listenelt(mctx, list, addrp, dscp, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 	}
@@ -4932,7 +4981,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_portset_t *v4portset = NULL;
 	isc_portset_t *v6portset = NULL;
 	isc_resourcevalue_t nfiles;
-	isc_result_t result;
+	isc_result_t result, tresult;
 	isc_uint32_t heartbeat_interval;
 	isc_uint32_t interface_interval;
 	isc_uint32_t reserved;
@@ -5242,6 +5291,11 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECKM(ns_config_getport(config, &listen_port), "port");
 
 	/*
+	 * Determing the default DSCP code point.
+	 */
+	CHECKM(ns_config_getdscp(config, &ns_g_dscp), "dscp");
+
+	/*
 	 * Find the listen queue depth.
 	 */
 	obj = NULL;
@@ -5277,7 +5331,7 @@ load_configuration(const char *filename, ns_server_t *server,
 			 * Not specified, use default.
 			 */
 			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
-						    ISC_TRUE, &listenon));
+						    -1, ISC_TRUE, &listenon));
 		}
 		if (listenon != NULL) {
 			ns_interfacemgr_setlistenon4(server->interfacemgr,
@@ -5300,13 +5354,11 @@ load_configuration(const char *filename, ns_server_t *server,
 						       ns_g_aclconfctx,
 						       ns_g_mctx, &listenon);
 		} else if (!ns_g_lwresdonly) {
-			isc_boolean_t enable;
 			/*
 			 * Not specified, use default.
 			 */
-			enable = ISC_TF(isc_net_probeipv4() != ISC_R_SUCCESS);
 			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
-						    enable, &listenon));
+						    -1, ISC_TRUE, &listenon));
 		}
 		if (listenon != NULL) {
 			ns_interfacemgr_setlistenon6(server->interfacemgr,
@@ -5833,6 +5885,14 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	if (isc_net_probeipv6() == ISC_R_SUCCESS)
 		adjust_interfaces(server, ns_g_mctx);
+
+	/*
+	 * Record the time of most recent configuration
+	 */
+	tresult = isc_time_now(&ns_g_configtime);
+	if (tresult != ISC_R_SUCCESS)
+		ns_main_earlyfatal("isc_time_now() failed: %s",
+				   isc_result_totext(result));
 
 	/* Relinquish exclusive access to configuration data. */
 	if (exclusive)
@@ -6464,6 +6524,7 @@ loadconfig(ns_server_t *server) {
 			      "reloading configuration failed: %s",
 			      isc_result_totext(result));
 	}
+
 	return (result);
 }
 
@@ -6862,8 +6923,9 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			isc_mem_t *mctx, ns_listenelt_t **target)
 {
 	isc_result_t result;
-	const cfg_obj_t *portobj;
+	const cfg_obj_t *portobj, *dscpobj;
 	in_port_t port;
+	isc_dscp_t dscp = -1;
 	ns_listenelt_t *delt = NULL;
 	REQUIRE(target != NULL && *target == NULL);
 
@@ -6886,7 +6948,20 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		port = (in_port_t)cfg_obj_asuint32(portobj);
 	}
 
-	result = ns_listenelt_create(mctx, port, NULL, &delt);
+	dscpobj = cfg_tuple_get(listener, "dscp");
+	if (!cfg_obj_isuint32(dscpobj))
+		dscp = ns_g_dscp;
+	else {
+		if (cfg_obj_asuint32(dscpobj) > 63) {
+			cfg_obj_log(dscpobj, ns_g_lctx, ISC_LOG_ERROR,
+				    "dscp value '%u' is out of range",
+				    cfg_obj_asuint32(dscpobj));
+			return (ISC_R_RANGE);
+		}
+		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
+	}
+
+	result = ns_listenelt_create(mctx, port, dscp, NULL, &delt);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -7324,12 +7399,12 @@ ns_server_setdebuglevel(ns_server_t *server, char *args) {
 }
 
 isc_result_t
-ns_server_validation(ns_server_t *server, char *args) {
+ns_server_validation(ns_server_t *server, char *args, isc_buffer_t *text) {
 	char *ptr, *viewname;
 	dns_view_t *view;
 	isc_boolean_t changed = ISC_FALSE;
 	isc_result_t result;
-	isc_boolean_t enable;
+	isc_boolean_t enable = ISC_TRUE, set = ISC_TRUE, first = ISC_TRUE;
 
 	/* Skip the command name. */
 	ptr = next_token(&args, " \t");
@@ -7347,6 +7422,8 @@ ns_server_validation(ns_server_t *server, char *args) {
 	else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
 		 !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false"))
 		enable = ISC_FALSE;
+	else if (!strcasecmp(ptr, "check"))
+		set = ISC_FALSE;
 	else
 		return (DNS_R_SYNTAX);
 
@@ -7364,10 +7441,40 @@ ns_server_validation(ns_server_t *server, char *args) {
 		result = dns_view_flushcache(view);
 		if (result != ISC_R_SUCCESS)
 			goto out;
-		view->enablevalidation = enable;
-		changed = ISC_TRUE;
+
+		if (set) {
+			view->enablevalidation = enable;
+			changed = ISC_TRUE;
+		} else {
+			unsigned int n;
+			if (!first) {
+				n = snprintf((char *)isc_buffer_used(text),
+					     isc_buffer_availablelength(text),
+					     "\n");
+				if (n >= isc_buffer_availablelength(text)) {
+					result = ISC_R_NOSPACE;
+					goto out;
+				}
+				isc_buffer_add(text, n);
+			}
+			first = ISC_FALSE;
+			n = snprintf((char *)isc_buffer_used(text),
+				     isc_buffer_availablelength(text),
+				     "DNSSEC validation is %s (view %s)",
+				     view->enablevalidation ?
+				       "enabled" : "disabled",
+				     view->name);
+			if (n >= isc_buffer_availablelength(text)) {
+				result = ISC_R_NOSPACE;
+				goto out;
+			}
+			isc_buffer_add(text, n);
+		}
 	}
-	if (changed)
+
+	if (!set)
+		result = ISC_R_SUCCESS;
+	else if (changed)
 		result = ISC_R_SUCCESS;
 	else
 		result = ISC_R_FAILURE;
@@ -7607,6 +7714,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 	int zonecount, xferrunning, xferdeferred, soaqueries;
 	unsigned int n;
 	const char *ob = "", *cb = "", *alt = "";
+	char boottime[80], configtime[80];
 
 	if (ns_g_server->version_set) {
 		ob = " (";
@@ -7624,9 +7732,16 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 	soaqueries = dns_zonemgr_getcount(server->zonemgr,
 					  DNS_ZONESTATE_SOAQUERY);
 
+	isc_time_formathttptimestamp(&ns_g_boottime, boottime,
+				     sizeof(boottime));
+	isc_time_formathttptimestamp(&ns_g_configtime, configtime,
+				     sizeof(configtime));
+
 	n = snprintf((char *)isc_buffer_used(text),
 		     isc_buffer_availablelength(text),
 		     "version: %s%s%s%s\n"
+		     "boot time: %s\n"
+		     "last configured: %s\n"
 #ifdef ISC_PLATFORM_USETHREADS
 		     "CPUs found: %u\n"
 		     "worker threads: %u\n"
@@ -7642,6 +7757,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "tcp clients: %d/%d\n"
 		     "server is up and running",
 		     ns_g_version, ob, alt, cb,
+		     boottime, configtime,
 #ifdef ISC_PLATFORM_USETHREADS
 		     ns_g_cpus_detected, ns_g_cpus, ns_g_udpdisp,
 #endif

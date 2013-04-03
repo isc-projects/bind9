@@ -49,6 +49,7 @@
  ***	Imports
  ***/
 
+#include <isc/json.h>
 #include <isc/lang.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
@@ -326,6 +327,14 @@ dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer);
  * Render cache statistics and status in XML for 'writer'.
  */
 #endif /* HAVE_LIBXML2 */
+
+#ifdef HAVE_JSON
+isc_result_t
+dns_cache_renderjson(dns_cache_t *cache, json_object *cstats);
+/*
+ * Render cache statistics and status in JSON
+ */
+#endif /* HAVE_JSON */
 
 ISC_LANG_ENDDECLS
 

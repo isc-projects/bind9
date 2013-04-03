@@ -827,6 +827,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	isc_netaddr_t netaddr;
 	int match;
 	unsigned int sockflags = ISC_SOCKFLAG_IMMEDIATE;
+	isc_dscp_t dispdscp = -1;
 
 	if (TCP_CLIENT(client)) {
 		socket = client->tcpsocket;
@@ -851,6 +852,20 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 		pktinfo = &client->pktinfo;
 	else
 		pktinfo = NULL;
+
+	if (client->dispatch != NULL) {
+		dispdscp = dns_dispatch_getdscp(client->dispatch);
+		if (dispdscp != -1)
+			client->dscp = dispdscp;
+	}
+
+	if (client->dscp == -1) {
+		client->sendevent->attributes &= ~ISC_SOCKEVENTATTR_DSCP;
+		client->sendevent->dscp = 0;
+	} else {
+		client->sendevent->attributes |= ISC_SOCKEVENTATTR_DSCP;
+		client->sendevent->dscp = client->dscp;
+	}
 
 	isc_buffer_usedregion(buffer, &r);
 
@@ -1533,6 +1548,13 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			client->peeraddr = sevent->address;
 			client->peeraddr_valid = ISC_TRUE;
 		}
+		if ((sevent->attributes & ISC_SOCKEVENTATTR_DSCP) != 0) {
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(90),
+			      "received DSCP %d", sevent->dscp);
+			if (client->dscp == -1)
+				client->dscp = sevent->dscp;
+		}
 		if ((sevent->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
 			client->attributes |= NS_CLIENTATTR_PKTINFO;
 			client->pktinfo = sevent->pktinfo;
@@ -2196,11 +2218,9 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 
 	/* XXXRTH  Hardwired constants */
 
-	client->sendevent = (isc_socketevent_t *)
-			    isc_event_allocate(client->mctx, client,
-					       ISC_SOCKEVENT_SENDDONE,
-					       client_senddone, client,
-					       sizeof(isc_socketevent_t));
+	client->sendevent = isc_socket_socketevent(client->mctx, client,
+						   ISC_SOCKEVENT_SENDDONE,
+						   client_senddone, client);
 	if (client->sendevent == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_message;
@@ -2212,11 +2232,9 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 		goto cleanup_sendevent;
 	}
 
-	client->recvevent = (isc_socketevent_t *)
-			    isc_event_allocate(client->mctx, client,
-					       ISC_SOCKEVENT_RECVDONE,
-					       client_request, client,
-					       sizeof(isc_socketevent_t));
+	client->recvevent = isc_socket_socketevent(client->mctx, client,
+						   ISC_SOCKEVENT_RECVDONE,
+						   client_request, client);
 	if (client->recvevent == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_recvbuf;
@@ -2243,6 +2261,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->tcpbuf = NULL;
 	client->opt = NULL;
 	client->udpsize = 512;
+	client->dscp = -1;
 	client->extflags = 0;
 	client->ednsversion = -1;
 	client->next = NULL;
@@ -2736,6 +2755,8 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	ns_interface_attach(ifp, &client->interface);
 	client->state = NS_CLIENTSTATE_READY;
 	INSIST(client->recursionquota == NULL);
+
+	client->dscp = ifp->dscp;
 
 	if (tcp) {
 		client->attributes |= NS_CLIENTATTR_TCP;

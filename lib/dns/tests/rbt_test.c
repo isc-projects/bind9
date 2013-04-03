@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,6 +25,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
+
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h> /* uintptr_t */
+#endif
 
 #include <dns/rbt.h>
 #include <dns/fixedname.h>
@@ -301,6 +305,9 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 	 */
 	printf("deserialization begins.\n");
 
+#ifndef MAP_FILE
+#define MAP_FILE 0
+#endif
 	/*
 	 * Map in the whole file in one go
 	 */

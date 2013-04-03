@@ -807,6 +807,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const char *dupcheck;
 	dns_notifytype_t notifytype = dns_notifytype_yes;
 	isc_sockaddr_t *addrs;
+	isc_dscp_t *dscps;
 	dns_name_t **keynames;
 	isc_uint32_t count;
 	unsigned int dbargc;
@@ -831,6 +832,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	dns_zonestat_level_t statlevel;
 	int seconds;
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
+	isc_dscp_t dscp;
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -1103,17 +1105,20 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			isc_uint32_t addrcount;
 			addrs = NULL;
 			keynames = NULL;
+			dscps = NULL;
 			RETERR(ns_config_getipandkeylist(config, obj, mctx,
-							 &addrs, &keynames,
+							 &addrs, &dscps,
+							 &keynames,
 							 &addrcount));
-			result = dns_zone_setalsonotifywithkeys(zone, addrs,
-								keynames,
+			result = dns_zone_setalsonotifydscpkeys(zone, addrs,
+								dscps, keynames,
 								addrcount);
 			if (addrcount != 0)
-				ns_config_putipandkeylist(mctx, &addrs,
+				ns_config_putipandkeylist(mctx, &addrs, &dscps,
 							  &keynames, addrcount);
 			else
-				INSIST(addrs == NULL && keynames == NULL);
+				INSIST(addrs == NULL && dscps == NULL &&
+				       keynames == NULL);
 			RETERR(result);
 		} else
 			RETERR(dns_zone_setalsonotify(zone, NULL, 0));
@@ -1122,12 +1127,20 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = ns_config_get(maps, "notify-source", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setnotifysrc4(zone, cfg_obj_assockaddr(obj)));
+		dscp = cfg_obj_getdscp(obj);
+		if (dscp == -1)
+			dscp = ns_g_dscp;
+		RETERR(dns_zone_setnotifysrc4dscp(zone, dscp));
 		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		result = ns_config_get(maps, "notify-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setnotifysrc6(zone, cfg_obj_assockaddr(obj)));
+		dscp = cfg_obj_getdscp(obj);
+		if (dscp == -1)
+			dscp = ns_g_dscp;
+		RETERR(dns_zone_setnotifysrc6dscp(zone, dscp));
 		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 
 		obj = NULL;
@@ -1550,14 +1563,15 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		(void)cfg_map_get(zoptions, "masters", &obj);
 		if (obj != NULL) {
 			addrs = NULL;
+			dscps = NULL;
 			keynames = NULL;
 			RETERR(ns_config_getipandkeylist(config, obj, mctx,
-							 &addrs, &keynames,
-							 &count));
+							 &addrs, &dscps,
+							 &keynames, &count));
 			result = dns_zone_setmasterswithkeys(mayberaw, addrs,
 							     keynames, count);
 			if (count != 0)
-				ns_config_putipandkeylist(mctx, &addrs,
+				ns_config_putipandkeylist(mctx, &addrs, &dscps,
 							  &keynames, count);
 			else
 				INSIST(addrs == NULL && keynames == NULL);
@@ -1609,6 +1623,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setxfrsource4(mayberaw,
 					      cfg_obj_assockaddr(obj)));
+		dscp = cfg_obj_getdscp(obj);
+		if (dscp == -1)
+			dscp = ns_g_dscp;
+		RETERR(dns_zone_setxfrsource4dscp(mayberaw, dscp));
 		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 
 		obj = NULL;
@@ -1616,6 +1634,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setxfrsource6(mayberaw,
 					      cfg_obj_assockaddr(obj)));
+		dscp = cfg_obj_getdscp(obj);
+		if (dscp == -1)
+			dscp = ns_g_dscp;
+		RETERR(dns_zone_setxfrsource6dscp(mayberaw, dscp));
 		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 
 		obj = NULL;
@@ -1623,12 +1645,20 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setaltxfrsource4(mayberaw,
 						 cfg_obj_assockaddr(obj)));
+		dscp = cfg_obj_getdscp(obj);
+		if (dscp == -1)
+			dscp = ns_g_dscp;
+		RETERR(dns_zone_setaltxfrsource4dscp(mayberaw, dscp));
 
 		obj = NULL;
 		result = ns_config_get(maps, "alt-transfer-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setaltxfrsource6(mayberaw,
 						 cfg_obj_assockaddr(obj)));
+		dscp = cfg_obj_getdscp(obj);
+		if (dscp == -1)
+			dscp = ns_g_dscp;
+		RETERR(dns_zone_setaltxfrsource6dscp(mayberaw, dscp));
 
 		obj = NULL;
 		(void)ns_config_get(maps, "use-alt-transfer-source", &obj);

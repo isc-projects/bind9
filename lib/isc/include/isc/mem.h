@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 
+#include <isc/json.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/platform.h>
@@ -553,6 +554,15 @@ isc_mem_renderxml(xmlTextWriterPtr writer);
  * Render all contexts' statistics and status in XML for writer.
  */
 #endif /* HAVE_LIBXML2 */
+
+#ifdef HAVE_JSON
+isc_result_t
+isc_mem_renderjson(json_object *memobj);
+/*%<
+ * Render all contexts' statistics and status in JSON.
+ */
+#endif /* HAVE_JSON */
+
 
 /*
  * Memory pools

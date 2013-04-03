@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2008, 2010-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2008, 2010-2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -938,9 +938,10 @@ isc_httpd_senddone(isc_task_t *task, isc_event_t *ev)
 	 */
 	if (httpd->freecb != NULL) {
 		isc_buffer_t *b = NULL;
-		if (isc_buffer_length(&httpd->bodybuffer) > 0)
+		if (isc_buffer_length(&httpd->bodybuffer) > 0) {
 			b = &httpd->bodybuffer;
-		httpd->freecb(b, httpd->freecb_arg);
+			httpd->freecb(b, httpd->freecb_arg);
+		}
 		NOTICE("senddone free callback performed");
 	}
 	if (ISC_LINK_LINKED(&httpd->bodybuffer, link)) {

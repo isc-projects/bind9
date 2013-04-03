@@ -68,9 +68,11 @@ EXTERN isc_timermgr_t *		ns_g_timermgr		INIT(NULL);
 EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
 EXTERN cfg_parser_t *		ns_g_parser		INIT(NULL);
 EXTERN const char *		ns_g_version		INIT(VERSION);
+EXTERN const char *		ns_g_product		INIT(PRODUCT);
 EXTERN const char *		ns_g_srcid		INIT(SRCID);
 EXTERN const char *		ns_g_configargs		INIT(CONFIGARGS);
 EXTERN in_port_t		ns_g_port		INIT(0);
+EXTERN isc_dscp_t		ns_g_dscp		INIT(-1);
 EXTERN in_port_t		lwresd_g_listenport	INIT(0);
 
 EXTERN ns_server_t *		ns_g_server		INIT(NULL);
@@ -153,6 +155,7 @@ EXTERN const char *		ns_g_engine		INIT(NULL);
 
 EXTERN int			ns_g_listen		INIT(3);
 EXTERN isc_time_t		ns_g_boottime;
+EXTERN isc_time_t		ns_g_configtime;
 EXTERN isc_boolean_t		ns_g_memstatistics	INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_clienttest		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_dropedns		INIT(ISC_FALSE);

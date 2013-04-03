@@ -404,7 +404,7 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 
 	key->s.rtype = rtype;
 	if (rtype == DNS_RRL_RTYPE_QUERY || rtype == DNS_RRL_RTYPE_DELEGATION) {
-		key->s.qclass = qclass;
+		key->s.qclass = qclass & 0xff;
 		key->s.qtype = qtype;
 	}
 
@@ -645,7 +645,7 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 		}
 	}
 	if (scale < 1.0) {
-		new_rate = rate * scale;
+		new_rate = (int) (rate * scale);
 		if (new_rate < 1)
 			new_rate = 1;
 		if (*ratep != new_rate) {
@@ -738,7 +738,7 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 	 */
 	slip = rrl->slip;
 	if (slip > 2 && scale < 1.0) {
-		new_slip = slip * scale;
+		new_slip = (int) (slip * scale);
 		if (new_slip < 2)
 			new_slip = 2;
 		if (rrl->scaled_slip != new_slip) {
@@ -759,7 +759,7 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 			if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3))
 				debit_log(e, age, "slip");
 			return (DNS_RRL_RESULT_SLIP);
-		} else if (e->slip_cnt >= slip) {
+		} else if ((int) e->slip_cnt >= slip) {
 			e->slip_cnt = 0;
 		}
 	}
@@ -974,7 +974,6 @@ log_end(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_boolean_t early,
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
 			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DROP,
 			      "%s", log_buf);
-fprintf(stderr, "calling free_qname from log_end\n");
 		free_qname(rrl, e);
 		e->logged = ISC_FALSE;
 		--rrl->num_logged;
@@ -1240,10 +1239,7 @@ dns_rrl(dns_view_t *view,
 		 * the ending log message.
 		 */
 		if (!e->logged)
-{
-fprintf(stderr, "calling free_qname from dns_rrl\n");
 			free_qname(rrl, e);
-}
 		UNLOCK(&rrl->lock);
 	}
 

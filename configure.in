@@ -179,6 +179,7 @@ except: exit(1)'
 			unspec)
 				PYTHON=""
 				AC_SUBST(CHECKDS)
+				AC_SUBST(COVERAGE)
 				AC_MSG_RESULT([not found, python disabled])
 				;;
 			yes)
@@ -192,11 +193,14 @@ esac
 
 PYTHON_TOOLS=''
 CHECKDS=''
+COVERAGE=''
 if test "X$PYTHON" != "X"; then
         PYTHON_TOOLS=python
 	CHECKDS=checkds
+	COVERAGE=coverage
 fi
 AC_SUBST(CHECKDS)
+AC_SUBST(COVERAGE)
 AC_SUBST(PYTHON_TOOLS)
 
 #
@@ -1479,6 +1483,48 @@ then
 	CFLAGS="$CFLAGS $libxml2_cflags"
 	LIBS="$LIBS $libxml2_libs"
 	AC_DEFINE(HAVE_LIBXML2, 1, [Define if libxml2 was found])
+else
+	AC_MSG_RESULT(no)
+fi
+
+#
+# was --with-libjson specified?
+#
+AC_MSG_CHECKING(for json library)
+AC_ARG_WITH(libjson,
+[  --with-libjson[=PATH]     Build with libjson0 library [yes|no|path]],
+    use_libjson="$withval", use_libjson="auto")
+
+case "$use_libjson" in
+	no)
+		libjson_libs=""
+		;;
+	auto|yes)
+		if test -f "/usr/include/json/json.h"
+                then
+			libjson_libs="-ljson"
+			libjson_cflags="-I /usr/include/json"
+                else
+			libjson_libs=""
+                fi
+		;;
+	*)
+		if test -f "${use_libjson}/include/json/json.h"
+                then
+			libjson_libs="-L${use_libjson}/lib -ljson"
+			libjson_cflags="-I${use_libjson}/include/json"
+                else
+			AC_MSG_ERROR([$use_libjson/include/json.h not found.])
+		fi
+		;;
+esac
+
+if test "X${libjson_libs}" != "X"
+then
+	AC_MSG_RESULT(yes)
+	CFLAGS="$CFLAGS $libjson_cflags"
+	LIBS="$LIBS $libjson_libs"
+	AC_DEFINE(HAVE_JSON, 1, [Define if libjson was found])
 else
 	AC_MSG_RESULT(no)
 fi
@@ -3425,6 +3471,8 @@ AC_SUBST_FILE(BIND9_MAKE_RULES)
 BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 
 . $srcdir/version
+BIND9_PRODUCT="PRODUCT=\"${PRODUCT}\""
+AC_SUBST(BIND9_PRODUCT)
 BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}"
 AC_SUBST(BIND9_VERSION)
 BIND9_MAJOR="MAJOR=${MAJORVER}.${MINORVER}"
@@ -3734,11 +3782,27 @@ AC_CONFIG_FILES([
 	bin/pkcs11/Makefile
 	bin/python/Makefile
 	bin/python/dnssec-checkds.py
+	bin/python/dnssec-coverage.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
 	bin/tests/atomic/Makefile
 	bin/tests/db/Makefile
 	bin/tests/dst/Makefile
+	bin/tests/dst/Kdh.+002+18602.key
+	bin/tests/dst/Kdh.+002+18602.private
+	bin/tests/dst/Kdh.+002+48957.key
+	bin/tests/dst/Kdh.+002+48957.private
+	bin/tests/dst/Ktest.+001+00002.key
+	bin/tests/dst/Ktest.+001+54622.key
+	bin/tests/dst/Ktest.+001+54622.private
+	bin/tests/dst/Ktest.+003+23616.key
+	bin/tests/dst/Ktest.+003+23616.private
+	bin/tests/dst/Ktest.+003+49667.key
+	bin/tests/dst/dst_2_data
+	bin/tests/dst/t2_data_1
+	bin/tests/dst/t2_data_2
+	bin/tests/dst/t2_dsasig
+	bin/tests/dst/t2_rsasig
 	bin/tests/hashes/Makefile
 	bin/tests/headerdep_test.sh
 	bin/tests/master/Makefile

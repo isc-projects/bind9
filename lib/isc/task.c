@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -30,6 +30,7 @@
 
 #include <isc/condition.h>
 #include <isc/event.h>
+#include <isc/json.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
@@ -1780,7 +1781,8 @@ isc_task_exiting(isc_task_t *t) {
 }
 
 
-#if defined(HAVE_LIBXML2) && defined(BIND9)
+#ifdef BIND9
+#ifdef HAVE_LIBXML2
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
 int
 isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, xmlTextWriterPtr writer) {
@@ -1881,4 +1883,117 @@ isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, xmlTextWriterPtr writer) {
 
 	return (xmlrc);
 }
-#endif /* HAVE_LIBXML2 && BIND9 */
+#endif /* HAVE_LIBXML2 */
+
+#ifdef HAVE_JSON
+#define CHECKMEM(m) do { \
+	if (m == NULL) { \
+		result = ISC_R_NOMEMORY;\
+		goto error;\
+	} \
+} while(0)
+
+isc_result_t
+isc_taskmgr_renderjson(isc_taskmgr_t *mgr0, json_object *tasks) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc__taskmgr_t *mgr = (isc__taskmgr_t *)mgr0;
+	isc__task_t *task = NULL;
+	json_object *obj = NULL, *array = NULL, *taskobj = NULL;
+
+	LOCK(&mgr->lock);
+
+	/*
+	 * Write out the thread-model, and some details about each depending
+	 * on which type is enabled.
+	 */
+#ifdef ISC_PLATFORM_USETHREADS
+	obj = json_object_new_string("threaded");
+	CHECKMEM(obj);
+	json_object_object_add(tasks, "thread-model", obj);
+
+	obj = json_object_new_int(mgr->workers);
+	CHECKMEM(obj);
+	json_object_object_add(tasks, "worker-threads", obj);
+#else /* ISC_PLATFORM_USETHREADS */
+	obj = json_object_new_string("non-threaded");
+	CHECKMEM(obj);
+	json_object_object_add(tasks, "thread-model", obj);
+
+	obj = json_object_new_int(mgr->refs);
+	CHECKMEM(obj);
+	json_object_object_add(tasks, "references", obj);
+#endif /* ISC_PLATFORM_USETHREADS */
+
+	obj = json_object_new_int(mgr->default_quantum);
+	CHECKMEM(obj);
+	json_object_object_add(tasks, "default-quantum", obj);
+
+	obj = json_object_new_int(mgr->tasks_running);
+	CHECKMEM(obj);
+	json_object_object_add(tasks, "tasks-running", obj);
+
+	obj = json_object_new_int(mgr->tasks_ready);
+	CHECKMEM(obj);
+	json_object_object_add(tasks, "tasks-ready", obj);
+
+	array = json_object_new_array();
+	CHECKMEM(array);
+
+	for (task = ISC_LIST_HEAD(mgr->tasks);
+	     task != NULL;
+	     task = ISC_LIST_NEXT(task, link))
+	{
+		char buf[255];
+
+		LOCK(&task->lock);
+
+		taskobj = json_object_new_object();
+		CHECKMEM(taskobj);
+		json_object_array_add(array, taskobj);
+
+		sprintf(buf, "%p", task);
+		obj = json_object_new_string(buf);
+		CHECKMEM(obj);
+		json_object_object_add(taskobj, "id", obj);
+
+		if (task->name[0] != 0) {
+			obj = json_object_new_string(task->name);
+			CHECKMEM(obj);
+			json_object_object_add(taskobj, "name", obj);
+		}
+
+		obj = json_object_new_int(task->references);
+		CHECKMEM(obj);
+		json_object_object_add(taskobj, "references", obj);
+
+		obj = json_object_new_string(statenames[task->state]);
+		CHECKMEM(obj);
+		json_object_object_add(taskobj, "state", obj);
+
+		obj = json_object_new_int(task->quantum);
+		CHECKMEM(obj);
+		json_object_object_add(taskobj, "quantum", obj);
+
+		obj = json_object_new_int(task->nevents);
+		CHECKMEM(obj);
+		json_object_object_add(taskobj, "events", obj);
+
+		UNLOCK(&task->lock);
+	}
+
+	json_object_object_add(tasks, "tasks", array);
+	array = NULL;
+	result = ISC_R_SUCCESS;
+
+ error:
+	if (array != NULL)
+		json_object_put(array);
+
+	if (task != NULL)
+		UNLOCK(&task->lock);
+	UNLOCK(&mgr->lock);
+
+	return (result);
+}
+#endif
+#endif /* BIND9 */

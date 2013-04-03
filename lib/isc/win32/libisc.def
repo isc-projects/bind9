@@ -59,6 +59,7 @@ isc__mem_getquota
 isc__mem_gettag
 isc__mem_inuse
 isc__mem_isovermem
+isc__mem_maxinuse
 isc__mem_ondestroy
 isc__mem_references
 isc__mem_setdestroycheck
@@ -66,6 +67,7 @@ isc__mem_setname
 isc__mem_setquota
 isc__mem_setwater
 isc__mem_stats
+isc__mem_total
 isc__mem_waterack
 isc__mempool_associatelock
 isc__mempool_create
@@ -88,6 +90,7 @@ isc__socket_close
 isc__socket_connect
 isc__socket_create
 isc__socket_detach
+isc__socket_dscp
 isc__socket_dup
 isc__socket_filter
 isc__socket_getfd
@@ -196,6 +199,7 @@ isc_dir_init
 isc_dir_open
 isc_dir_read
 isc_dir_reset
+isc_dscp_check_value
 isc_entropy_addcallbacksample
 isc_entropy_addsample
 isc_entropy_attach
@@ -387,6 +391,7 @@ isc_net_getudpportrange
 isc_net_ntop
 isc_net_probe_ipv6only
 isc_net_probe_ipv6pktinfo
+isc_net_probedscp
 isc_net_probeipv4
 isc_net_probeipv6
 isc_net_probeunix
@@ -517,6 +522,7 @@ isc_sockaddr_pf
 isc_sockaddr_setport
 isc_sockaddr_totext
 isc_sockaddr_v6fromin
+isc_socket_socketevent
 isc_socketmgr_renderxml
 isc_stats_attach
 isc_stats_create
@@ -525,6 +531,7 @@ isc_stats_detach
 isc_stats_dump
 isc_stats_increment
 isc_stats_ncounters
+isc_stats_set
 isc_stdio_close
 isc_stdio_flush
 isc_stdio_open
@@ -567,6 +574,7 @@ isc_thread_setconcurrency
 isc_time_add
 isc_time_compare
 isc_time_formatISO8601
+isc_time_formathttptimestamp
 isc_time_formattimestamp
 isc_time_isepoch
 isc_time_microdiff

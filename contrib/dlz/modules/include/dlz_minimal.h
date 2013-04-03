@@ -23,6 +23,9 @@
  * tree.
  */
 
+#ifndef DLZ_MINIMAL_H
+#define DLZ_MINIMAL_H 1
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef ISC_PLATFORM_HAVESYSUNH
@@ -45,8 +48,10 @@ typedef uint32_t dns_ttl_t;
 #define DLZ_DLOPEN_AGE 0
 #endif
 
-/* return this in flags to dlz_version() if thread safe */
+/* return these in flags from dlz_version() */
 #define DNS_SDLZFLAG_THREADSAFE		0x00000001U
+#define DNS_SDLZFLAG_RELATIVEOWNER	0x00000002U
+#define DNS_SDLZFLAG_RELATIVERDATA	0x00000004U
 
 /* result codes */
 #define ISC_R_SUCCESS			0
@@ -57,6 +62,9 @@ typedef uint32_t dns_ttl_t;
 #define ISC_R_FAILURE			25
 #define ISC_R_NOTIMPLEMENTED		27
 #define ISC_R_NOMORE			29
+#define ISC_R_INVALIDFILE		30
+#define ISC_R_UNEXPECTED		34
+#define ISC_R_FILENOTFOUND		38
 
 /* boolean values */
 #define ISC_TRUE 1
@@ -68,6 +76,7 @@ typedef uint32_t dns_ttl_t;
 #define ISC_LOG_WARNING 	(-3)
 #define ISC_LOG_ERROR		(-4)
 #define ISC_LOG_CRITICAL	(-5)
+#define ISC_LOG_DEBUG(level)	(level)
 
 /* other useful definitions */
 #define UNUSED(x) (void)(x)
@@ -197,6 +206,13 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 #endif /* DLZ_DLOPEN_VERSION */
 
 /*
+ * dlz_authority() is optional if dlz_lookup() supplies
+ * authority information (i.e., SOA, NS) for the dns record
+ */
+isc_result_t
+dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup);
+
+/*
  * dlz_allowzonexfr() is optional, and should be supplied if you want to
  * support zone transfers
  */
@@ -269,3 +285,5 @@ dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata,
 isc_result_t
 dlz_delrdataset(const char *name, const char *type, void *dbdata,
 		void *version);
+
+#endif /* DLZ_MINIMAL_H */

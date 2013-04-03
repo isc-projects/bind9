@@ -228,6 +228,7 @@ struct dns_dispatch {
 	isc_socket_t	       *socket;		/*%< isc socket attached to */
 	isc_sockaddr_t		local;		/*%< local address */
 	in_port_t		localport;	/*%< local UDP port */
+	isc_dscp_t		dscp;		/*%< "listen-on" DSCP value */
 	unsigned int		maxrequests;	/*%< max requests */
 	isc_event_t	       *ctlevent;
 
@@ -2624,6 +2625,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 	dispatch_initrandom(&disp->arc4ctx, mgr->entropy, NULL);
 	disp->port_table = NULL;
 	disp->portpool = NULL;
+	disp->dscp = -1;
 
 	result = isc_mutex_init(&disp->lock);
 	if (result != ISC_R_SUCCESS)
@@ -3861,6 +3863,18 @@ dns_dispatchset_destroy(dns_dispatchset_t **dsetp) {
 	isc_mem_putanddetach(&dset->mctx, dset, sizeof(dns_dispatchset_t));
 
 	*dsetp = NULL;
+}
+
+void
+dns_dispatch_setdscp(dns_dispatch_t *disp, isc_dscp_t dscp) {
+	REQUIRE(VALID_DISPATCH(disp));
+	disp->dscp = dscp;
+}
+
+isc_dscp_t
+dns_dispatch_getdscp(dns_dispatch_t *disp) {
+	REQUIRE(VALID_DISPATCH(disp));
+	return (disp->dscp);
 }
 
 #if 0

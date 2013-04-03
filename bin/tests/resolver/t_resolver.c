@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -53,9 +53,9 @@ setup_create_dispatch_v4(void)
 	isc_sockaddr_t local_address;
 	isc_sockaddr_any(&local_address);
 
-	CHECK(dns_dispatch_getudp(dispatch_manager, socket_manager, task_manager,
-				  &local_address, 4096, 100, 100, 100, 500,
-				  0, 0, /* unsigned int attributes, unsigned int mask, */
+	CHECK(dns_dispatch_getudp(dispatch_manager, socket_manager,
+				  task_manager, &local_address,
+				  4096, 100, 100, 100, 500, 0, 0,
 				  &dispatch_v4));
 }
 static void

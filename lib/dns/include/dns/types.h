@@ -80,6 +80,7 @@ typedef struct dns_dumpctx			dns_dumpctx_t;
 typedef struct dns_fetch			dns_fetch_t;
 typedef struct dns_fixedname			dns_fixedname_t;
 typedef struct dns_forwarders			dns_forwarders_t;
+typedef struct dns_forwarder			dns_forwarder_t;
 typedef struct dns_fwdtable			dns_fwdtable_t;
 typedef struct dns_iptable			dns_iptable_t;
 typedef isc_uint32_t				dns_iterations_t;

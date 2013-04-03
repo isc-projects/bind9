@@ -161,6 +161,7 @@ typedef struct query {
 	isc_buffer_t			*tsig;
 	dns_tsigkey_t			*tsigkey;
 	isc_socketevent_t		sendevent;
+	isc_dscp_t			dscp;
 	unsigned int			options;
 	unsigned int			attributes;
 	unsigned int			sends;
@@ -226,7 +227,7 @@ struct fetchctx {
 	dns_adbfind_t *			altfind;
 	dns_adbaddrinfolist_t		forwaddrs;
 	dns_adbaddrinfolist_t		altaddrs;
-	isc_sockaddrlist_t		forwarders;
+	dns_forwarderlist_t		forwarders;
 	dns_fwdpolicy_t			fwdpolicy;
 	isc_sockaddrlist_t		bad;
 	isc_sockaddrlist_t		edns;
@@ -397,6 +398,8 @@ struct dns_resolver {
 	dns_dispatchset_t *		dispatches4;
 	isc_boolean_t			exclusivev4;
 	dns_dispatchset_t *		dispatches6;
+	isc_dscp_t			querydscp4;
+	isc_dscp_t			querydscp6;
 	isc_boolean_t			exclusivev6;
 	unsigned int			nbuckets;
 	fctxbucket_t *			buckets;
@@ -1402,6 +1405,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	isc_sockaddr_t addr;
 	isc_boolean_t have_addr = ISC_FALSE;
 	unsigned int srtt;
+	isc_dscp_t dscp = -1;
 
 	FCTXTRACE("query");
 
@@ -1436,6 +1440,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->attributes = 0;
 	query->sends = 0;
 	query->connects = 0;
+	query->dscp = addrinfo->dscp;
 	/*
 	 * Note that the caller MUST guarantee that 'addrinfo' will remain
 	 * valid until this query is canceled.
@@ -1462,9 +1467,13 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			result = dns_peer_getquerysource(peer, &addr);
 			if (result == ISC_R_SUCCESS)
 				have_addr = ISC_TRUE;
+			result = dns_peer_getquerydscp(peer, &dscp);
+			if (result == ISC_R_SUCCESS)
+				query->dscp = dscp;
 		}
 	}
 
+	dscp = -1;
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
 		int pf;
 
@@ -1475,11 +1484,13 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 				result = dns_dispatch_getlocaladdress(
 					      res->dispatches4->dispatches[0],
 					      &addr);
+				dscp = dns_resolver_getquerydscp4(fctx->res);
 				break;
 			case PF_INET6:
 				result = dns_dispatch_getlocaladdress(
 					      res->dispatches6->dispatches[0],
 					      &addr);
+				dscp = dns_resolver_getquerydscp6(fctx->res);
 				break;
 			default:
 				result = ISC_R_NOTIMPLEMENTED;
@@ -1489,6 +1500,8 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 				goto cleanup_query;
 		}
 		isc_sockaddr_setport(&addr, 0);
+		if (query->dscp == -1)
+			query->dscp = dscp;
 
 		result = isc_socket_create(res->socketmgr, pf,
 					   isc_sockettype_tcp,
@@ -1501,7 +1514,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_socket;
 #endif
-
 		/*
 		 * A dispatch will be created once the connect succeeds.
 		 */
@@ -1512,9 +1524,11 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			switch (isc_sockaddr_pf(&addr)) {
 			case AF_INET:
 				attrs |= DNS_DISPATCHATTR_IPV4;
+				dscp = dns_resolver_getquerydscp4(fctx->res);
 				break;
 			case AF_INET6:
 				attrs |= DNS_DISPATCHATTR_IPV6;
+				dscp = dns_resolver_getquerydscp6(fctx->res);
 				break;
 			default:
 				result = ISC_R_NOTIMPLEMENTED;
@@ -1539,18 +1553,23 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 				    dns_resolver_dispatchv4(res),
 				    &query->dispatch);
 				query->exclusivesocket = res->exclusivev4;
+				dscp = dns_resolver_getquerydscp4(fctx->res);
 				break;
 			case PF_INET6:
 				dns_dispatch_attach(
 				    dns_resolver_dispatchv6(res),
 				    &query->dispatch);
 				query->exclusivesocket = res->exclusivev6;
+				dscp = dns_resolver_getquerydscp6(fctx->res);
 				break;
 			default:
 				result = ISC_R_NOTIMPLEMENTED;
 				goto cleanup_query;
 			}
 		}
+
+		if (query->dscp == -1)
+			query->dscp = dscp;
 		/*
 		 * We should always have a valid dispatcher here.  If we
 		 * don't support a protocol family, then its dispatcher
@@ -1574,6 +1593,8 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		 *
 		 * XXXRTH  Should we attach to the socket?
 		 */
+		if (query->dscp != -1)
+			isc_socket_dscp(query->tcpsocket, query->dscp);
 		result = isc_socket_connect(query->tcpsocket,
 					    &addrinfo->sockaddr, task,
 					    resquery_connected, query);
@@ -2027,9 +2048,21 @@ resquery_send(resquery_t *query) {
 	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
 	 *		prune out these addresses when we get them from the ADB.
 	 */
+	memset(&query->sendevent, 0, sizeof(query->sendevent));
 	ISC_EVENT_INIT(&query->sendevent, sizeof(query->sendevent), 0, NULL,
 		       ISC_SOCKEVENT_SENDDONE, resquery_senddone, query,
 		       NULL, NULL, NULL);
+
+	if (query->dscp == -1) {
+		query->sendevent.attributes &= ~ISC_SOCKEVENTATTR_DSCP;
+		query->sendevent.dscp = 0;
+	} else {
+		query->sendevent.attributes |= ISC_SOCKEVENTATTR_DSCP;
+		query->sendevent.dscp = query->dscp;
+		if ((query->options & DNS_FETCHOPT_TCP) != 0)
+			isc_socket_dscp(socket, query->dscp);
+	}
+
 	result = isc_socket_sendto2(socket, &r, task, address, NULL,
 				    &query->sendevent, 0);
 	if (result != ISC_R_SUCCESS) {
@@ -2609,7 +2642,7 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 	dns_resolver_t *res;
 	isc_stdtime_t now;
 	unsigned int stdoptions = 0;
-	isc_sockaddr_t *sa;
+	dns_forwarder_t *fwd;
 	dns_adbaddrinfo_t *ai;
 	isc_boolean_t all_bad;
 	dns_rdata_ns_t ns;
@@ -2640,8 +2673,8 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 	 * selective forwarders specified in the view; otherwise use the
 	 * resolver's forwarders (if any).
 	 */
-	sa = ISC_LIST_HEAD(fctx->forwarders);
-	if (sa == NULL) {
+	fwd = ISC_LIST_HEAD(fctx->forwarders);
+	if (fwd == NULL) {
 		dns_forwarders_t *forwarders = NULL;
 		dns_name_t *name = &fctx->name;
 		dns_name_t suffix;
@@ -2666,7 +2699,7 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 		result = dns_fwdtable_find2(fctx->res->view->fwdtable, name,
 					    domain, &forwarders);
 		if (result == ISC_R_SUCCESS) {
-			sa = ISC_LIST_HEAD(forwarders->addrs);
+			fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 			fctx->fwdpolicy = forwarders->fwdpolicy;
 			if (fctx->fwdpolicy == dns_fwdpolicy_only &&
 			    isstrictsubdomain(domain, &fctx->domain)) {
@@ -2680,20 +2713,20 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 		}
 	}
 
-	while (sa != NULL) {
-		if ((isc_sockaddr_pf(sa) == AF_INET &&
+	while (fwd != NULL) {
+		if ((isc_sockaddr_pf(&fwd->addr) == AF_INET &&
 			 fctx->res->dispatches4 == NULL) ||
-		    (isc_sockaddr_pf(sa) == AF_INET6 &&
+		    (isc_sockaddr_pf(&fwd->addr) == AF_INET6 &&
 			fctx->res->dispatches6 == NULL)) {
-				sa = ISC_LIST_NEXT(sa, link);
+				fwd = ISC_LIST_NEXT(fwd, link);
 				continue;
 		}
 		ai = NULL;
-		result = dns_adb_findaddrinfo(fctx->adb,
-					      sa, &ai, 0);  /* XXXMLG */
+		result = dns_adb_findaddrinfo(fctx->adb, &fwd->addr, &ai, 0);
 		if (result == ISC_R_SUCCESS) {
 			dns_adbaddrinfo_t *cur;
 			ai->flags |= FCTX_ADDRINFO_FORWARDER;
+			ai->dscp = fwd->dscp;
 			cur = ISC_LIST_HEAD(fctx->forwaddrs);
 			while (cur != NULL && cur->srtt < ai->srtt)
 				cur = ISC_LIST_NEXT(cur, publink);
@@ -2703,7 +2736,7 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 			else
 				ISC_LIST_APPEND(fctx->forwaddrs, ai, publink);
 		}
-		sa = ISC_LIST_NEXT(sa, link);
+		fwd = ISC_LIST_NEXT(fwd, link);
 	}
 
 	/*
@@ -2852,8 +2885,7 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 }
 
 static inline void
-possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
-{
+possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr) {
 	isc_netaddr_t na;
 	char buf[ISC_NETADDR_FORMATSIZE];
 	isc_sockaddr_t *sa;
@@ -4400,6 +4432,14 @@ validated(isc_task_t *task, isc_event_t *event) {
 	fctx->attributes |= FCTX_ATTR_HAVEANSWER;
 
 	if (hevent != NULL) {
+		/*
+		 * Negative results must be indicated in event->result.
+		 */
+		if (dns_rdataset_isassociated(hevent->rdataset) &&
+		    NEGATIVE(hevent->rdataset)) {
+			INSIST(eresult == DNS_R_NCACHENXDOMAIN ||
+			       eresult == DNS_R_NCACHENXRRSET);
+		}
 		hevent->result = eresult;
 		RUNTIME_CHECK(dns_name_copy(vevent->name,
 			      dns_fixedname_name(&hevent->foundname), NULL)
@@ -9129,3 +9169,30 @@ dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int seconds) {
 
 	resolver->query_timeout = seconds;
 }
+
+void
+dns_resolver_setquerydscp4(dns_resolver_t *resolver, isc_dscp_t dscp) {
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	resolver->querydscp4 = dscp;
+}
+
+isc_dscp_t
+dns_resolver_getquerydscp4(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	return (resolver->querydscp4);
+}
+
+void
+dns_resolver_setquerydscp6(dns_resolver_t *resolver, isc_dscp_t dscp) {
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	resolver->querydscp6 = dscp;
+}
+
+isc_dscp_t
+dns_resolver_getquerydscp6(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	return (resolver->querydscp6);
+}
+

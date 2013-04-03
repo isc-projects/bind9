@@ -1,0 +1,135 @@
+Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+	Differentiate Services Code Point Support
+
+$Id: dscp,v 1.1.2.1 2012/02/24 05:20:36 marka Exp $
+
+Differentiate Services Code Point (DSCP) is implemented in IPv4 using the
+TOS octet and in IPv6 using the TCLASS octet.
+
+RFC 3542 defines the api to manipulate the TCLASS octet as part of
+the advanced socket API.  TCLASS is settable on both a socket and
+packet basis (setsockopt/sendmsg) and the sent value can be retrieved
+using recvmsg over UDP.  Retrieval is undefined for TCP.
+
+The Advanced socket API was not incorporated into the POSIX socket
+API for IPv6 and may not be completely implemented in any OS.
+
+For TOS setsockopt() supports setting of the field on a persocket
+basis.  TOS may also be set on a per packet basis on some OS using
+sendmsg.  If it is not supported the sendmsg call reports a error.
+Support can only be determined by attempted to send a packet with
+the option set.  Retrieval of the sent TOS value is retrievable on
+Linux.  This can be determined at compile time.
+
+DSCP values need to be compatible with TOS values as it is a re-use
+of the field.
+
+LIBISC:
+
+We will need to be able to probe for the level of DSCP support.  We
+need to know if we can set it at the socket level, packet level and
+if we can retrieve the DSCP value sent.  This needs to be done
+independently for IPv4 and IPv6.
+
+#define ISC_NET_DSCPRECVV4      0x01    /* Can receive sent DSCP value IPv4 */
+#define ISC_NET_DSCPRECVV6      0x02    /* Can receive sent DSCP value IPv6 */
+#define ISC_NET_DSCPSETV4       0x04    /* Can set DSCP on socket IPv4 */
+#define ISC_NET_DSCPSETV6       0x08    /* Can set DSCP on socket IPv6 */
+#define ISC_NET_DSCPPKTV4       0x10    /* Can set DSCP on per packet IPv4 */
+#define ISC_NET_DSCPPKTV6       0x20    /* Can set DSCP on per packet IPv6 */
+#define ISC_NET_DSCPALL         0x3f    /* All valid flags */
+
+unsigned int
+isc_net_probedscp(void);
+/*%<
+ * Probe the level of DSCP support.
+ */
+
+We also need to be able to set DSCP values on a per socket basis, per packet
+basis and to retrieve dscp values from received packet.
+
+Setting dscp on a per socket basis shall be done using isc_socket_dscp.
+
+void
+isc_socket_dscp(isc_socket_t *sock, unsigned int dscp);
+/*%<
+ * Requires:
+ *\li   'sock' is a valid socket.
+ */
+/*@}*/
+
+isc_socketevent shall be extended to support the sending of and retrieval
+of DSCP values.  If ISC_SOCKEVENTATTR_DSCP is set then isc_socket_sendto2
+shall set the DSCP value.  isc_socket_recv shall set ISC_SOCKEVENTATTR_DSCP
+and the dscp element if the OS returns the value via recvmsg.
+
+#define ISC_SOCKEVENTATTR_DSCP                  0x00040000U /* public */
+
+struct isc_socketevent {
+        ISC_EVENT_COMMON(isc_socketevent_t);
+        isc_result_t            result;         /*%< OK, EOF, whatever else */
+        unsigned int            minimum;        /*%< minimum i/o for event */
+        unsigned int            n;              /*%< bytes read or written */
+        unsigned int            offset;         /*%< offset into buffer list */
+        isc_region_t            region;         /*%< for single-buffer i/o */
+        isc_bufferlist_t        bufferlist;     /*%< list of buffers */
+        isc_sockaddr_t          address;        /*%< source address */
+        isc_time_t              timestamp;      /*%< timestamp of packet recv */
+        struct in6_pktinfo      pktinfo;        /*%< ipv6 pktinfo */
+        isc_uint32_t            attributes;     /*%< see below */
+        isc_eventdestructor_t   destroy;        /*%< original destructor */
+        unsigned int            dscp;           /*%< UDP dscp value */
+};
+
+A convience function will be provided to allocate and intialize the structure.
+
+isc_socketevent_t *
+isc_socket_socketevent(isc_socket_t *sock0, isc_eventtype_t eventtype,
+                       isc_taskaction_t action, const void *arg)
+
+NAMED/LIBDNS:
+
+Named needs to be able to set the DSCP value of sent traffic.  We should
+be able to set DSCP for all TCP connections.
+
+For UDP we should have a default DSCP value for when we can't set this on
+a per packet basis with the ability to override for specific destinations.
+
+options/view/server;
+tcp-dscp <value>;
+udp-dscp <value>;
+
+http://bogpeople.com/networking/dscp.shtml list a set of TOS compatible
+values (below).
+
+DSCP Name	DS Field Value	IP Precedence
+                Binary	Decimal
+CS0		000 000	0	0
+CS1		001 000	8	1
+AF11		001 010	10	1
+AF12		001 100	12	1
+AF13		001 110	14	1
+CS2		010 000	16	2
+AF21		010 010	18	2
+AF22		010 100	20	2
+AF23		010 110	22	2
+CS3		011 000	24	3
+AF31		011 010	26	3
+AF32		011 100	28	3
+AF33		011 110	30	3
+CS4		100 000	32	4
+AF41		100 010	34	4
+AF42		100 100	36	4
+AF43		100 110	38	4
+CS5		101 000	40	5
+EF		101 110	46	5
+CS6		110 000	48	6
+CS7		111 000	56	7
+
+CS	Class Selector (RFC 2474)
+AFxy	Assured Forwarding (x=class, y=drop precedence) (RFC2597)
+EF	Expedited Forwarding (RFC 3246)
+
+value should be one of these or a numeric 0..63.  The default value is 0.

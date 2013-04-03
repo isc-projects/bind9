@@ -584,6 +584,7 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 			goto cleanup_inc;
 		lctx->keep_lex = ISC_FALSE;
 		memset(specials, 0, sizeof(specials));
+		specials[0] = 1;
 		specials['('] = 1;
 		specials[')'] = 1;
 		specials['"'] = 1;
