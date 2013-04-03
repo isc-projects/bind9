@@ -1,3 +1,5 @@
+3540.	[bug]		libt_api: t_info and t_assert were not thread safe.
+
 3539.	[port]		win32: timestamp format didn't match other platforms.
 
 	--- 9.8.5rc1 released ---
