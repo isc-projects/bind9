@@ -52,6 +52,7 @@ PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p 1234"
 JOURNALPRINT=$TOP/bin/tools/named-journalprint
 VERIFY=$TOP/bin/dnssec/dnssec-verify
 ARPANAME=$TOP/bin/tools/arpaname
+SAMPLE=$TOP/lib/export/samples/sample
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
