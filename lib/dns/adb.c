@@ -2369,7 +2369,8 @@ destroy(dns_adb_t *adb) {
 	adb->magic = 0;
 
 	isc_task_detach(&adb->task);
-	isc_task_detach(&adb->excl);
+	if (adb->excl != NULL)
+		isc_task_detach(&adb->excl);
 
 	isc_mempool_destroy(&adb->nmp);
 	isc_mempool_destroy(&adb->nhmp);

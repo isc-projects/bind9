@@ -974,9 +974,6 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 	if (dns_rdataset_isassociated(&val->fsigrdataset))
 		dns_rdataset_disassociate(&val->fsigrdataset);
 
-	if (val->view->zonetable == NULL)
-		return (ISC_R_CANCELED);
-
 	if (isc_time_now(&now) == ISC_R_SUCCESS &&
 	    dns_resolver_getbadcache(val->view->resolver, name, type, &now)) {
 

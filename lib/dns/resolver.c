@@ -4432,6 +4432,14 @@ validated(isc_task_t *task, isc_event_t *event) {
 	fctx->attributes |= FCTX_ATTR_HAVEANSWER;
 
 	if (hevent != NULL) {
+		/*
+		 * Negative results must be indicated in event->result.
+		 */
+		if (dns_rdataset_isassociated(hevent->rdataset) &&
+		    NEGATIVE(hevent->rdataset)) {
+			INSIST(eresult == DNS_R_NCACHENXDOMAIN ||
+			       eresult == DNS_R_NCACHENXRRSET);
+		}
 		hevent->result = eresult;
 		RUNTIME_CHECK(dns_name_copy(vevent->name,
 			      dns_fixedname_name(&hevent->foundname), NULL)
