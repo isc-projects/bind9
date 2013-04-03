@@ -1,5 +1,5 @@
 3543.	[bug]		Update socket stucture before attaching to socket
-			manager after accert. [RT #33084]
+			manager after accept. [RT #33084]
 
 3541.	[bug]		The parts if libdns was not being properly initialized
 			in when built in libexport mode. [RT #33028]
