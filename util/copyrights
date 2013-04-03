@@ -770,9 +770,9 @@
 ./bin/tests/system/masterformat/ns1/example.db	ZONE	2005,2007
 ./bin/tests/system/masterformat/ns1/large.db.in	ZONE	2012
 ./bin/tests/system/masterformat/ns1/named.conf	CONF-C	2005,2007,2012
-./bin/tests/system/masterformat/ns2/named.conf	CONF-C	2005,2007,2012
-./bin/tests/system/masterformat/setup.sh	SH	2005,2006,2007,2012
-./bin/tests/system/masterformat/tests.sh	SH	2005,2007,2012
+./bin/tests/system/masterformat/ns2/named.conf	CONF-C	2005,2007,2012,2013
+./bin/tests/system/masterformat/setup.sh	SH	2005,2006,2007,2012,2013
+./bin/tests/system/masterformat/tests.sh	SH	2005,2007,2012,2013
 ./bin/tests/system/notify/clean.sh		SH	2000,2001,2004,2007,2011,2012
 ./bin/tests/system/notify/ns1/named.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/notify/ns1/root.db		ZONE	2000,2001,2004,2007
@@ -1737,7 +1737,7 @@
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2010,2011,2012
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008,2012
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012
-./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007,2012
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
@@ -2531,7 +2531,7 @@
 ./lib/tests/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012
 ./lib/tests/include/tests/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012
 ./lib/tests/include/tests/t_api.h		C	1999,2000,2001,2004,2005,2006,2007,2012
-./lib/tests/t_api.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2012
+./lib/tests/t_api.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2012,2013
 ./lib/win32/bindevt/bindevt.c			C	2000,2001,2004,2007
 ./lib/win32/bindevt/bindevt.dsp			X	2001
 ./lib/win32/bindevt/bindevt.dsw			X	2001
