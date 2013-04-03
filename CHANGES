@@ -1,3 +1,7 @@
+3544.	[contrib]	check5011.pl: Script to report the status of
+			managed keys as recorded in managed-keys.bind.
+			Contributed by Tony Finch <dot@dotat.at>
+
 3543.	[bug]		Update socket stucture before attaching to socket
 			manager after accept. [RT #33084]
 
