@@ -1,3 +1,5 @@
+3542.	[bug]		masterformat system test was broken. [RT #33086]
+
 3540.	[bug]		libt_api: t_info and t_assert were not thread safe.
 
 	--- 9.6-ESV-R9rc1 released ---
