@@ -1183,7 +1183,7 @@
 ./bin/tests/system/relay/tests.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/resolver/ans2/ans.pl		PERL	2000,2001,2004,2007,2009,2010,2012
 ./bin/tests/system/resolver/ans3/ans.pl		PERL	2000,2001,2004,2007,2009,2012
-./bin/tests/system/resolver/clean.sh		SH	2008,2009,2010,2011,2012
+./bin/tests/system/resolver/clean.sh		SH	2008,2009,2010,2011,2012,2013
 ./bin/tests/system/resolver/ns1/named.conf	CONF-C	2000,2001,2004,2007,2009
 ./bin/tests/system/resolver/ns1/root.hint	ZONE	2000,2001,2004,2007
 ./bin/tests/system/resolver/ns4/broken.db	ZONE	2012
@@ -1211,7 +1211,7 @@
 ./bin/tests/system/resolver/ns7/server.db.in	ZONE	2011
 ./bin/tests/system/resolver/prereq.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/resolver/setup.sh		SH	2010,2011,2012
-./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012
+./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013
 ./bin/tests/system/rndc/clean.sh		SH	2011,2012
 ./bin/tests/system/rndc/ns2/named.conf		CONF-C	2011,2012
 ./bin/tests/system/rndc/ns2/secondkey.conf	CONF-C	2012
@@ -1645,6 +1645,7 @@
 ./conftools/perllib/dnsconf/test.pl		PERL	2000,2001,2004,2007,2012
 ./contrib/.gitignore				X	2012
 ./contrib/check-secure-delegation.pl.in		PERL	2010,2012
+./contrib/check5011.pl				X	2013
 ./contrib/dane/mkdane.sh			X	2012
 ./contrib/dane/tlsa6698.pem			X	2012
 ./contrib/dlz/bin/dlzbdb/Makefile.in		X	2005,2007,2009,2011,2012
@@ -2221,7 +2222,7 @@
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007,2009,2013
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2013
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007,2011
-./lib/dns/client.c				C	2009,2010,2011,2012
+./lib/dns/client.c				C	2009,2010,2011,2012,2013
 ./lib/dns/clientinfo.c				C	2011
 ./lib/dns/compress.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/db.c					C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011,2012,2013
@@ -2240,7 +2241,7 @@
 ./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2012
 ./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008,2012
-./lib/dns/ecdb.c				C	2009,2010,2011
+./lib/dns/ecdb.c				C	2009,2010,2011,2013
 ./lib/dns/forward.c				C	2000,2001,2004,2005,2007,2009
 ./lib/dns/gen-unix.h				C	1999,2000,2001,2004,2005,2007,2009
 ./lib/dns/gen-win32.h				C	1999,2000,2001,2004,2005,2006,2007,2009
@@ -2615,7 +2616,7 @@
 ./lib/export/isc/unix/Makefile.in		MAKE	2009,2012
 ./lib/export/isc/unix/include/Makefile.in	MAKE	2009,2011,2012
 ./lib/export/isc/unix/include/isc/Makefile.in	MAKE	2009,2012
-./lib/export/isccfg/Makefile.in			MAKE	2009,2011,2012
+./lib/export/isccfg/Makefile.in			MAKE	2009,2011,2012,2013
 ./lib/export/isccfg/include/Makefile.in		MAKE	2009,2011,2012
 ./lib/export/isccfg/include/isccfg/Makefile.in	MAKE	2009,2012
 ./lib/export/samples/.gitignore			X	2012
@@ -2626,7 +2627,7 @@
 ./lib/export/samples/sample-gai.c		C	2009,2012
 ./lib/export/samples/sample-request.c		C	2009,2012
 ./lib/export/samples/sample-update.c		C	2009,2010,2012
-./lib/export/samples/sample.c			C	2009,2012
+./lib/export/samples/sample.c			C	2009,2012,2013
 ./lib/irs/Makefile.in				MAKE	2009,2012
 ./lib/irs/api					X	2009,2010,2011,2012,2013
 ./lib/irs/context.c				C	2009
@@ -3132,7 +3133,7 @@
 ./lib/tests/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012
 ./lib/tests/include/tests/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012
 ./lib/tests/include/tests/t_api.h		C	1999,2000,2001,2004,2005,2006,2007,2010
-./lib/tests/t_api.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2010
+./lib/tests/t_api.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2013
 ./lib/win32/bindevt/bindevt.c			C	2000,2001,2004,2007
 ./lib/win32/bindevt/bindevt.dsp			X	2001
 ./lib/win32/bindevt/bindevt.dsw			X	2001
