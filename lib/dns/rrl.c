@@ -756,6 +756,8 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 	}
 	if (slip != 0 && e->key.s.rtype != DNS_RRL_RTYPE_ALL) {
 		if (e->slip_cnt++ == 0) {
+			if ((int) e->slip_cnt >= slip)
+				e->slip_cnt = 0;
 			if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3))
 				debit_log(e, age, "slip");
 			return (DNS_RRL_RESULT_SLIP);
