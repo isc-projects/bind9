@@ -1,3 +1,5 @@
+3546.	[func]		Add EUI48 and EUI64 types. [RT #33082]
+
 3544.	[contrib]	check5011.pl: Script to report the status of
 			managed keys as recorded in managed-keys.bind.
 			Contributed by Tony Finch <dot@dotat.at>
