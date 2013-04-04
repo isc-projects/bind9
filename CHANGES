@@ -1,3 +1,5 @@
+	--- 9.9.3rc1 released ---
+
 3546.	[func]		Add EUI48 and EUI64 types. [RT #33082]
 
 3544.	[contrib]	check5011.pl: Script to report the status of
@@ -13,8 +15,6 @@
 3540.	[test]		libt_api: t_info and t_assert were not thread safe.
 
 3539.	[port]		win32: timestamp format didn't match other platforms.
-
-	--- 9.9.3rc1 released ---
 
 3538.	[test]		Running "make test" now requires loopback interfaces
 			to be set up. [RT #32452]
