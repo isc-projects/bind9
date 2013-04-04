@@ -1,3 +1,5 @@
+	--- 9.6-ESV-R9rc1 released ---
+
 3546.	[func]		Add EUI48 and EUI64 types. [RT #33082]
 
 3543.	[bug]		Update socket stucture before attaching to socket
@@ -9,8 +11,6 @@
 			built in libexport mode. [RT #33028]
 
 3540.	[test]		libt_api: t_info and t_assert were not thread safe.
-
-	--- 9.6-ESV-R9rc1 released ---
 
 3539.	[port]		win32: timestamp format didn't match other platforms.
 
