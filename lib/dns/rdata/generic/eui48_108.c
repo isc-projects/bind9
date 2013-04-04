@@ -43,7 +43,7 @@ fromtext_eui48(ARGS_FROMTEXT) {
 	if (n != 6 || l0 > 255U || l1 > 255U || l2 > 255U || l3 > 255U ||
 	    l4 > 255U || l5 > 255U)
 		return (DNS_R_BADEUI);
-		
+
 	eui48[0] = l0;
 	eui48[1] = l1;
 	eui48[2] = l2;
