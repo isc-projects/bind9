@@ -1,3 +1,5 @@
+3546.	[func]		Add EUI48 and EUI64 types. [RT #33082]
+
 3545.	[bug]		RRL slip behavior was incorrect when set to 1.
 			[RT #33111]
 
