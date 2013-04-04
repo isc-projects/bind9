@@ -103,7 +103,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking postive validation NSEC using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.example > sample.out$n || ret=1
@@ -126,7 +126,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking positive validation NSEC3 using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.nsec3.example > sample.out$n || ret=1
@@ -149,7 +149,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking positive validation OPTOUT using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.optout.example > sample.out$n || ret=1
@@ -171,7 +171,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking positive wildcard validation NSEC using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.wild.example > sample.out$n || ret=1
@@ -211,7 +211,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking positive wildcard validation NSEC3 using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.wild.nsec3.example > sample.out$n || ret=1
@@ -235,7 +235,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking positive wildcard validation OPTOUT using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.wild.optout.example > sample.out$n || ret=1
@@ -257,7 +257,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking negative validation NXDOMAIN NSEC using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 q.example > /dev/null 2> sample.out$n || ret=1
@@ -280,7 +280,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking negative validation NXDOMAIN NSEC3 using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 q.nsec3.example > /dev/null 2> sample.out$n || ret=1
@@ -304,7 +304,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking negative validation NXDOMAIN OPTOUT using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 q.optout.example > /dev/null 2> sample.out$n || ret=1
@@ -326,7 +326,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking negative validation NODATA OPTOUT using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t txt 10.53.0.4 a.example > /dev/null 2> sample.out$n || ret=1
@@ -350,7 +350,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking negative validation NODATA NSEC3 using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t txt 10.53.0.4 a.nsec3.example > /dev/null 2> sample.out$n || ret=1
@@ -374,7 +374,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking negative validation NODATA OPTOUT using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t txt 10.53.0.4 a.optout.example > /dev/null 2> sample.out$n || ret=1
@@ -395,7 +395,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking negative wildcard validation NSEC using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t txt 10.53.0.4 b.wild.example > /dev/null 2> sample.out$n || ret=1
@@ -415,7 +415,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking negative wildcard validation NSEC3 using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t txt 10.53.0.4 b.wild.nsec3.example > /dev/null 2> sample.out$n || ret=1
@@ -439,7 +439,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking negative wildcard validation OPTOUT using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t txt 10.53.0.4 b.optout.nsec3.example > /dev/null 2> sample.out$n || ret=1
@@ -463,7 +463,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking 1-server insecurity proof NSEC using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.insecure.example > sample.out$n || ret=1
@@ -485,7 +485,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking 1-server insecurity proof NSEC3 using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.insecure.nsec3.example > sample.out$n || ret=1
@@ -507,7 +507,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking 1-server insecurity proof OPTOUT using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.insecure.optout.example > sample.out$n || ret=1
@@ -531,7 +531,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking 1-server negative insecurity proof NSEC using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 q.insecure.example > /dev/null 2> sample.out$n || ret=1
@@ -555,7 +555,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking 1-server negative insecurity proof NSEC3 using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 q.insecure.nsec3.example > /dev/null 2> sample.out$n || ret=1
@@ -579,7 +579,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking 1-server negative insecurity proof OPTOUT using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 q.insecure.optout.example > /dev/null 2> sample.out$n || ret=1
@@ -776,7 +776,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking failed validation using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.bogus.example > /dev/null 2> sample.out$n || ret=1
@@ -821,7 +821,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -e ${SAMPLE} ] ; then
+if [ -x ${SAMPLE} ] ; then
    ret=0
    echo "I:checking that validation fails when key record is missing using dns_client ($n)"
    $SAMPLE $SAMPLEKEY -p 5300 -t a 10.53.0.4 a.b.keyless.example > /dev/null 2> sample.out$n || ret=1
