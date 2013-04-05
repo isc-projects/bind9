@@ -1,4 +1,4 @@
-# Copyright (C) 2004-2008, 2010, 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2008, 2010, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -130,6 +130,10 @@ XSRCS =		adb_test.c \
 		timer_test.c \
 		wire_test.c \
 		zone_test.c
+
+# override all rule to make sure top directory targets are built before
+# processing subdirectories.
+all: ${TARGETS} subdirs testdirs
 
 @BIND9_MAKE_RULES@
 

@@ -1,3 +1,42 @@
+	--- 9.6-ESV-R9rc1 released ---
+
+3546.	[func]		Add EUI48 and EUI64 types. [RT #33082]
+
+3543.	[bug]		Update socket stucture before attaching to socket
+			manager after accept. [RT #33084]
+
+3542.	[test]		masterformat system test was broken. [RT #33086]
+
+3541.	[bug]		Parts of libdns were not properly initialized when
+			built in libexport mode. [RT #33028]
+
+3540.	[test]		libt_api: t_info and t_assert were not thread safe.
+
+3539.	[port]		win32: timestamp format didn't match other platforms.
+
+3538.	[test]		Running "make test" now requires loopback interfaces
+			to be set up. [RT #32452]
+
+3535.	[bug]		Minor win32 cleanups. [RT #32962]
+
+3534.	[bug]		Extra text after an embedded NULL was ignored when
+			parsing zone files. [RT #32699]
+
+3533.	[contrib]	query-loc-0.4.0: memory leaks. [RT #32960]
+
+3532.	[contrib]	zkt: fixed buffer overrun, resource leaks. [RT #32960]
+
+3531.	[bug]		win32: A uninitialized value could be returned on out
+			of memory. [RT #32960]
+
+3530.	[contrib]	Better RTT tracking in queryperf. [RT #30128]
+
+3526.	[cleanup]	Set up dependencies for unit tests correctly during
+			build. [RT #32803]
+
+3520.	[bug]		'mctx' was not being referenced counted in some places
+			where it should have been.  [RT #32794]
+
 	--- 9.6-ESV-R9b2 released ---
 
 3517.	[bug]		Reorder destruction to avoid shutdown race. [RT #32777]

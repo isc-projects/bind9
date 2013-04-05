@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -76,6 +76,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view = isc_mem_get(mctx, sizeof(*view));
 	if (view == NULL)
 		return (ISC_R_NOMEMORY);
+
+	view->mctx = NULL;
+	isc_mem_attach(mctx, &view->mctx);
 	view->name = isc_mem_strdup(mctx, name);
 	if (view->name == NULL) {
 		result = ISC_R_NOMEMORY;
@@ -130,7 +133,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->resolver = NULL;
 	view->adb = NULL;
 	view->requestmgr = NULL;
-	view->mctx = mctx;
 	view->rdclass = rdclass;
 	view->frozen = ISC_FALSE;
 	view->task = NULL;
@@ -249,7 +251,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	isc_mem_free(mctx, view->name);
 
  cleanup_view:
-	isc_mem_put(mctx, view, sizeof(*view));
+	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 
 	return (result);
 }
@@ -364,7 +366,7 @@ destroy(dns_view_t *view) {
 	DESTROYLOCK(&view->lock);
 	isc_refcount_destroy(&view->references);
 	isc_mem_free(view->mctx, view->name);
-	isc_mem_put(view->mctx, view, sizeof(*view));
+	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 }
 
 /*

@@ -275,6 +275,10 @@ l64			L64	10 0014:4fff:ff20:ee64
 
 lp			LP	10 example.net.
 
+eui48			EUI48	01-23-45-67-89-ab
+
+eui64			EUI64	01-23-45-67-89-ab-cd-ef
+
 ; type 255
 ; TSIG is a meta-type and should never occur in master files.
 EOF

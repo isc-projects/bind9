@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@ initialize_action(void) {
 	BOOL bSuccess;
 
 	if (bInit)
-		return;	
+		return;
 	/*
 	 * NOTE: VC++ 6.0 gets this function declaration wrong
 	 * so we compensate by casting the argument
@@ -44,7 +44,7 @@ initialize_action(void) {
 	 */
 	if(!bSuccess) {
 		osVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-		bSuccess = GetVersionEx((OSVERSIONINFO *) &osVer);
+		(void)GetVersionEx((OSVERSIONINFO *) &osVer);
 	}
 	bInit = TRUE;
 }

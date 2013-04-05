@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2000-2002  Internet Software Consortium.
+ * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,31 +14,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.8 2007/06/19 23:47:19 tbox Exp $ */
+/* */
+#ifndef GENERIC_EUI48_108_H
+#define GENERIC_EUI48_108_H 1
 
-#include <windows.h>
+typedef struct dns_rdata_eui48 {
+	dns_rdatacommon_t	common;
+	unsigned char		eui48[6];
+} dns_rdata_eui48_t;
 
-#include <isc/os.h>
-
-static BOOL bInit = FALSE;
-static SYSTEM_INFO SystemInfo;
-
-static void
-initialize_action(void) {
-	if (bInit)
-		return;
-
-	GetSystemInfo(&SystemInfo);
-	bInit = TRUE;
-}
-
-unsigned int
-isc_os_ncpus(void) {
-	long ncpus;
-	initialize_action();
-	ncpus = SystemInfo.dwNumberOfProcessors;
-	if (ncpus <= 0)
-		ncpus = 1;
-
-	return ((unsigned int)ncpus);
-}
+#endif /* GENERIC_EUI48_10k_H */
