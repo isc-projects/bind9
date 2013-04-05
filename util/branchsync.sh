@@ -133,7 +133,7 @@ Commit message of change was:
 EOF
 
             # send mail
-            cat /tmp/branchmsg.$$ | mail -s "$subject" bind-changes
+            cat /tmp/branchmsg.$$ | mail -s "$subject" bind-changes@isc.org
             rm /tmp/branchmsg.$$
         fi
 
