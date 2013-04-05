@@ -126,6 +126,12 @@ status=`expr $status + $tmp`
 
 echo "I:testing ixfr-from-differences yes;"
 tmp=0
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 +noall +answer soa example > dig.out.soa.ns3
+	grep "1397051953" dig.out.soa.ns3 > /dev/null && break;
+	sleep 1
+done
 
 $DIG $DIGOPTS example. \
 	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || tmp=1

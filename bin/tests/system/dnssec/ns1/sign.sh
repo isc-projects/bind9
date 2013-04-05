@@ -73,3 +73,8 @@ cp managed.conf ../ns4/managed.conf
 keyid=`expr $keyname : 'K.+001+\(.*\)'`
 keyid=`expr $keyid + 0`
 echo "$keyid" > managed.key.id
+cat $keyname.key | grep -v '^; ' | $PERL -n -e '
+local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
+local $key = join("", @rest);
+print "-a $alg -e -k $dn -K $key\n"
+' > sample.key
