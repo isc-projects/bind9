@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -207,8 +207,12 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	ecdsasig = ECDSA_SIG_new();
 	if (ecdsasig == NULL)
 		DST_RET (ISC_R_NOMEMORY);
+	if (ecdsasig->r != NULL)
+		BN_free(ecdsasig->r);
 	ecdsasig->r = BN_bin2bn(cp, siglen / 2, NULL);
 	cp += siglen / 2;
+	if (ecdsasig->s != NULL)
+		BN_free(ecdsasig->s);
 	ecdsasig->s = BN_bin2bn(cp, siglen / 2, NULL);
 	/* cp += siglen / 2; */
 

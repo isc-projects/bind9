@@ -87,6 +87,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view = isc_mem_get(mctx, sizeof(*view));
 	if (view == NULL)
 		return (ISC_R_NOMEMORY);
+
+	view->mctx = NULL;
+	isc_mem_attach(mctx, &view->mctx);
 	view->name = isc_mem_strdup(mctx, name);
 	if (view->name == NULL) {
 		result = ISC_R_NOMEMORY;
@@ -96,8 +99,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_name;
 
-#ifdef BIND9
 	view->zonetable = NULL;
+#ifdef BIND9
 	result = dns_zt_create(mctx, rdclass, &view->zonetable);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -126,7 +129,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->resolver = NULL;
 	view->adb = NULL;
 	view->requestmgr = NULL;
-	view->mctx = mctx;
 	view->rdclass = rdclass;
 	view->frozen = ISC_FALSE;
 	view->task = NULL;
@@ -227,6 +229,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	ISC_EVENT_INIT(&view->reqevent, sizeof(view->reqevent), 0, NULL,
 		       DNS_EVENT_VIEWREQSHUTDOWN, req_shutdown,
 		       view, NULL, NULL, NULL);
+	view->viewlist = NULL;
 	view->magic = DNS_VIEW_MAGIC;
 
 	*viewp = view;
@@ -262,7 +265,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	isc_mem_free(mctx, view->name);
 
  cleanup_view:
-	isc_mem_put(mctx, view, sizeof(*view));
+	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 
 	return (result);
 }
@@ -443,7 +446,7 @@ destroy(dns_view_t *view) {
 	DESTROYLOCK(&view->lock);
 	isc_refcount_destroy(&view->references);
 	isc_mem_free(view->mctx, view->name);
-	isc_mem_put(view->mctx, view, sizeof(*view));
+	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 }
 
 /*
@@ -879,11 +882,14 @@ dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	result = dns_zt_find(view->zonetable, name, 0, NULL, zonep);
-	if (result == DNS_R_PARTIALMATCH) {
-		dns_zone_detach(zonep);
+	if (view->zonetable != NULL) {
+		result = dns_zt_find(view->zonetable, name, 0, NULL, zonep);
+		if (result == DNS_R_PARTIALMATCH) {
+			dns_zone_detach(zonep);
+			result = ISC_R_NOTFOUND;
+		}
+	} else
 		result = ISC_R_NOTFOUND;
-	}
 
 	return (result);
 }

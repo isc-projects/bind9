@@ -1622,6 +1622,14 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 
 #ifdef HAVE_LIBXML2
 	isc_httpdmgr_addurl(listener->httpdmgr, "/", render_index, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/xml", render_index, server);
+#ifdef NEWSTATS
+	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3", render_index,
+			    server);
+#else /* OLDSTATS */
+	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v2", render_index,
+			    server);
+#endif /* NEWSTATS */
 #endif
 #ifdef NEWSTATS
 	isc_httpdmgr_addurl(listener->httpdmgr, "/bind9.ver3.xsl", render_xsl,

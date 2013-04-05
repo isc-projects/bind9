@@ -1336,6 +1336,7 @@ ISC_PLATFORM_NORETURN_PRE
 ISC_PLATFORM_HAVELONGLONG
 ISC_SOCKADDR_LEN_T
 PYTHON_TOOLS
+COVERAGE
 CHECKDS
 PYTHON
 PERL
@@ -2152,7 +2153,8 @@ Optional Features:
 			  [default=no]
   --disable-rpz-nsip	  disable rpz-nsip rules [default=enabled]
   --disable-rpz-nsdname	  disable rpz-nsdname rules [default=enabled]
-  --enable-filter-aaaa    enable filtering of AAAA records [default=no]
+  --enable-filter-aaaa    enable filtering of AAAA records over IPv4
+			  [default=no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -12199,6 +12201,7 @@ $as_echo "found, using $PYTHON" >&6; }
 			unspec)
 				PYTHON=""
 
+
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found, python disabled" >&5
 $as_echo "not found, python disabled" >&6; }
 				;;
@@ -12214,10 +12217,13 @@ esac
 
 PYTHON_TOOLS=''
 CHECKDS=''
+COVERAGE=''
 if test "X$PYTHON" != "X"; then
         PYTHON_TOOLS=python
 	CHECKDS=checkds
+	COVERAGE=coverage
 fi
+
 
 
 
@@ -13530,7 +13536,7 @@ fi
 case "$enable_newstats" in
 yes)
 
-$as_echo "#define NEWSTATS /**/" >>confdefs.h
+$as_echo "#define NEWSTATS 1" >>confdefs.h
 
 	;;
 *)
@@ -20517,7 +20523,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/ecdsa/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/gost/prereq.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/check-secure-delegation.pl contrib/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/export/Makefile lib/export/dns/Makefile lib/export/dns/include/Makefile lib/export/dns/include/dns/Makefile lib/export/dns/include/dst/Makefile lib/export/irs/Makefile lib/export/irs/include/Makefile lib/export/irs/include/irs/Makefile lib/export/isc/$thread_dir/Makefile lib/export/isc/$thread_dir/include/Makefile lib/export/isc/$thread_dir/include/isc/Makefile lib/export/isc/Makefile lib/export/isc/include/Makefile lib/export/isc/include/isc/Makefile lib/export/isc/nls/Makefile lib/export/isc/unix/Makefile lib/export/isc/unix/include/Makefile lib/export/isc/unix/include/isc/Makefile lib/export/isccfg/Makefile lib/export/isccfg/include/Makefile lib/export/isccfg/include/isccfg/Makefile lib/export/samples/Makefile lib/export/samples/Makefile-postinstall lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile unit/Makefile unit/unittest.sh"
+ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/ecdsa/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/gost/prereq.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/check-secure-delegation.pl contrib/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/export/Makefile lib/export/dns/Makefile lib/export/dns/include/Makefile lib/export/dns/include/dns/Makefile lib/export/dns/include/dst/Makefile lib/export/irs/Makefile lib/export/irs/include/Makefile lib/export/irs/include/irs/Makefile lib/export/isc/$thread_dir/Makefile lib/export/isc/$thread_dir/include/Makefile lib/export/isc/$thread_dir/include/isc/Makefile lib/export/isc/Makefile lib/export/isc/include/Makefile lib/export/isc/include/isc/Makefile lib/export/isc/nls/Makefile lib/export/isc/unix/Makefile lib/export/isc/unix/include/Makefile lib/export/isc/unix/include/isc/Makefile lib/export/isccfg/Makefile lib/export/isccfg/include/Makefile lib/export/isccfg/include/isccfg/Makefile lib/export/samples/Makefile lib/export/samples/Makefile-postinstall lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile unit/Makefile unit/unittest.sh"
 
 
 #
@@ -21525,11 +21531,27 @@ do
     "bin/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES bin/pkcs11/Makefile" ;;
     "bin/python/Makefile") CONFIG_FILES="$CONFIG_FILES bin/python/Makefile" ;;
     "bin/python/dnssec-checkds.py") CONFIG_FILES="$CONFIG_FILES bin/python/dnssec-checkds.py" ;;
+    "bin/python/dnssec-coverage.py") CONFIG_FILES="$CONFIG_FILES bin/python/dnssec-coverage.py" ;;
     "bin/rndc/Makefile") CONFIG_FILES="$CONFIG_FILES bin/rndc/Makefile" ;;
     "bin/tests/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/Makefile" ;;
     "bin/tests/atomic/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/atomic/Makefile" ;;
     "bin/tests/db/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/db/Makefile" ;;
     "bin/tests/dst/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Makefile" ;;
+    "bin/tests/dst/Kdh.+002+18602.key") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Kdh.+002+18602.key" ;;
+    "bin/tests/dst/Kdh.+002+18602.private") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Kdh.+002+18602.private" ;;
+    "bin/tests/dst/Kdh.+002+48957.key") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Kdh.+002+48957.key" ;;
+    "bin/tests/dst/Kdh.+002+48957.private") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Kdh.+002+48957.private" ;;
+    "bin/tests/dst/Ktest.+001+00002.key") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Ktest.+001+00002.key" ;;
+    "bin/tests/dst/Ktest.+001+54622.key") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Ktest.+001+54622.key" ;;
+    "bin/tests/dst/Ktest.+001+54622.private") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Ktest.+001+54622.private" ;;
+    "bin/tests/dst/Ktest.+003+23616.key") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Ktest.+003+23616.key" ;;
+    "bin/tests/dst/Ktest.+003+23616.private") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Ktest.+003+23616.private" ;;
+    "bin/tests/dst/Ktest.+003+49667.key") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/Ktest.+003+49667.key" ;;
+    "bin/tests/dst/dst_2_data") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/dst_2_data" ;;
+    "bin/tests/dst/t2_data_1") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/t2_data_1" ;;
+    "bin/tests/dst/t2_data_2") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/t2_data_2" ;;
+    "bin/tests/dst/t2_dsasig") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/t2_dsasig" ;;
+    "bin/tests/dst/t2_rsasig") CONFIG_FILES="$CONFIG_FILES bin/tests/dst/t2_rsasig" ;;
     "bin/tests/hashes/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/hashes/Makefile" ;;
     "bin/tests/headerdep_test.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/headerdep_test.sh" ;;
     "bin/tests/master/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/master/Makefile" ;;

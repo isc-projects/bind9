@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -2068,7 +2068,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->sendcmsgbuf = NULL;
 
 	/*
-	 * set up cmsg buffers
+	 * Set up cmsg buffers.
 	 */
 	cmsgbuflen = 0;
 #if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIN6PKTINFO)
@@ -2110,7 +2110,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->tag = NULL;
 
 	/*
-	 * set up list of readers and writers to be initially empty
+	 * Set up list of readers and writers to be initially empty.
 	 */
 	ISC_LIST_INIT(sock->recv_list);
 	ISC_LIST_INIT(sock->send_list);
@@ -2125,7 +2125,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->bound = 0;
 
 	/*
-	 * initialize the lock
+	 * Initialize the lock.
 	 */
 	result = isc_mutex_init(&sock->lock);
 	if (result != ISC_R_SUCCESS) {
@@ -2135,7 +2135,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	}
 
 	/*
-	 * Initialize readable and writable events
+	 * Initialize readable and writable events.
 	 */
 	ISC_EVENT_INIT(&sock->readable_ev, sizeof(intev_t),
 		       ISC_EVENTATTR_NOPURGE, NULL, ISC_SOCKEVENT_INTR,
@@ -3274,14 +3274,6 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	if (fd != -1) {
 		int lockid = FDLOCK_ID(fd);
 
-		LOCK(&manager->fdlock[lockid]);
-		manager->fds[fd] = NEWCONNSOCK(dev);
-		manager->fdstate[fd] = MANAGED;
-		UNLOCK(&manager->fdlock[lockid]);
-
-		LOCK(&manager->lock);
-		ISC_LIST_APPEND(manager->socklist, NEWCONNSOCK(dev), link);
-
 		NEWCONNSOCK(dev)->fd = fd;
 		NEWCONNSOCK(dev)->bound = 1;
 		NEWCONNSOCK(dev)->connected = 1;
@@ -3296,6 +3288,13 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		 */
 		dev->address = NEWCONNSOCK(dev)->peer_address;
 
+		LOCK(&manager->fdlock[lockid]);
+		manager->fds[fd] = NEWCONNSOCK(dev);
+		manager->fdstate[fd] = MANAGED;
+		UNLOCK(&manager->fdlock[lockid]);
+
+		LOCK(&manager->lock);
+
 #ifdef USE_SELECT
 		if (manager->maxfd < fd)
 			manager->maxfd = fd;
@@ -3305,6 +3304,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTEDCXN,
 			   "accepted connection, new socket %p",
 			   dev->newsocket);
+
+		ISC_LIST_APPEND(manager->socklist, NEWCONNSOCK(dev), link);
 
 		UNLOCK(&manager->lock);
 

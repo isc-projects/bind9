@@ -1,4 +1,4 @@
-# Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -25,6 +25,16 @@ do
 	echo "I:checking $db ($n)"
 	ret=0
 	$CHECKZONE -i local example $db > test.out.$n 2>&1 || ret=1
+	n=`expr $n + 1`
+	if [ $ret != 0 ]; then echo "I:failed"; fi
+	status=`expr $status + $ret`
+done
+
+for db in zones/bad*.db
+do
+	echo "I:checking $db ($n)"
+	ret=0
+	$CHECKZONE -i local example $db > test.out.$n 2>&1 && ret=1
 	n=`expr $n + 1`
 	if [ $ret != 0 ]; then echo "I:failed"; fi
 	status=`expr $status + $ret`
