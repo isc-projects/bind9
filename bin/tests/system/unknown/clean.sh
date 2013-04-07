@@ -17,7 +17,7 @@
 
 # $Id: clean.sh,v 1.7 2007/09/26 03:22:44 marka Exp $
 
-rm -f dig.out
+rm -f dig.out check.out
 rm -f */named.memstats
 rm -f */*.bk
 rm -f */*.bk.*
