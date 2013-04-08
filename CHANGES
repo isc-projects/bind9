@@ -1,3 +1,7 @@
+3548.	[bug]		The NSID request code in resolver.c was broken
+			resulting in invalid EDNS options being sent.
+			[RT #33153]
+
 3547.	[bug]		Some malformed unknown rdata records were not properly
 			detected and rejected. [RT #33129]
 
