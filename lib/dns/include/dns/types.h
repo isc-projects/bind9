@@ -64,6 +64,7 @@ typedef struct dns_dispatchlist			dns_dispatchlist_t;
 typedef struct dns_dispatchmgr			dns_dispatchmgr_t;
 typedef struct dns_dispentry			dns_dispentry_t;
 typedef struct dns_dumpctx			dns_dumpctx_t;
+typedef struct dns_ednsopt			dns_ednsopt_t;
 typedef struct dns_fetch			dns_fetch_t;
 typedef struct dns_fixedname			dns_fixedname_t;
 typedef struct dns_forwarders			dns_forwarders_t;
