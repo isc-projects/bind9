@@ -5190,6 +5190,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> multiple-cnames <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable>; </optional>
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> request-nsid <replaceable>yes_or_no</replaceable>; </optional>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
@@ -6556,6 +6557,22 @@ options {
                   Caching may still occur as an effect the server's internal
                   operation, such as NOTIFY address lookups.
                   See also <command>fetch-glue</command> above.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>request-nsid</command></term>
+              <listitem>
+                <para>
+                  If <userinput>yes</userinput>, then an empty EDNS(0)
+                  NSID (Name Server Identifier) option is sent with all 
+                  queries to authoritative name servers during iterative
+                  resolution. If the authoritative server returns an NSID
+                  option in its response, then its contents are logged in
+                  the <command>resolver</command> category at level
+                  <command>info</command>.
+                  The default is <userinput>no</userinput>.
                 </para>
               </listitem>
             </varlistentry>
