@@ -3501,7 +3501,7 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	/*
 	 * Set EDNS options if applicable
 	 */
-	if (count != 0) {
+	if (count != 0U) {
 		isc_buffer_t *buf = NULL;
 		for (i = 0; i < count; i++)
 			len += ednsopts[i].length + 4;
