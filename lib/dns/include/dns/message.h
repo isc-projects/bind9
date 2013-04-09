@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1372,7 +1372,7 @@ dns_message_buildopt(dns_message_t *msg, dns_rdataset_t **opt,
 /*%<
  * Built a opt record.
  *
- * Requires: 
+ * Requires:
  * \li   msg be a valid message.
  * \li   opt to be a non NULL and *opt to be NULL.
  *
