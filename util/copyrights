@@ -1266,7 +1266,7 @@
 ./bin/tests/system/tsiggss/prereq.sh		SH	2010,2011,2012
 ./bin/tests/system/tsiggss/setup.sh		SH	2010,2011,2012
 ./bin/tests/system/tsiggss/tests.sh		X	2010,2011
-./bin/tests/system/unknown/clean.sh		SH	2000,2001,2004,2007,2012
+./bin/tests/system/unknown/clean.sh		SH	2000,2001,2004,2007,2012,2013
 ./bin/tests/system/unknown/large.out		X	2012
 ./bin/tests/system/unknown/ns1/broken1.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/unknown/ns1/broken2.db	ZONE	2000,2001,2004,2007
@@ -1280,7 +1280,8 @@
 ./bin/tests/system/unknown/ns1/named.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/unknown/ns2/named.conf	CONF-C	2012
 ./bin/tests/system/unknown/setup.sh		SH	2012
-./bin/tests/system/unknown/tests.sh		SH	2000,2001,2004,2007,2011,2012
+./bin/tests/system/unknown/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013
+./bin/tests/system/unknown/zones/nan.bad	ZONE	2013
 ./bin/tests/system/upforwd/ans4/ans.pl		PERL	2011,2012
 ./bin/tests/system/upforwd/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/upforwd/knowngood.after1	X	2000,2001
@@ -2124,7 +2125,7 @@
 ./lib/dns/include/dns/lookup.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/master.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012
 ./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2011,2012
-./lib/dns/include/dns/message.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012
+./lib/dns/include/dns/message.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012,2013
 ./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2013
 ./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2012
@@ -2163,7 +2164,7 @@
 ./lib/dns/include/dns/tsec.h			C	2009,2010,2012
 ./lib/dns/include/dns/tsig.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011
 ./lib/dns/include/dns/ttl.h			C	1999,2000,2001,2004,2005,2006,2007
-./lib/dns/include/dns/types.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012
+./lib/dns/include/dns/types.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012,2013
 ./lib/dns/include/dns/validator.h		C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
