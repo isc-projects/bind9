@@ -191,7 +191,7 @@ struct dns_view {
 	dns_zone_t *			managed_keys;
 	dns_zone_t *			redirect;
 
-	/* 
+	/*
 	 * File and configuration data for zones added at runtime
 	 * (only used in BIND9).
 	 *

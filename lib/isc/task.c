@@ -2130,7 +2130,7 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 	if (isc_bind9)
 		isc__task_send(task, eventp);
 	else {
-		task->methods->send(task, eventp); 
+		task->methods->send(task, eventp);
 		ENSURE(*eventp == NULL);
 	}
 }
@@ -2238,7 +2238,7 @@ isc_task_setprivilege(isc_task_t *task, isc_boolean_t priv) {
 
 	if (isc_bind9)
 		isc__task_setprivilege(task, priv);
-	else 
+	else
 		task->methods->setprivilege(task, priv);
 }
 

@@ -1835,7 +1835,7 @@ isc_mem_getname(isc_mem_t *ctx0) {
 void *
 isc_mem_gettag(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-	
+
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	return (ctx->tag);

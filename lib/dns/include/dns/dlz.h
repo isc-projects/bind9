@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2005-2007, 2009-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2005-2007, 2009-2013  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any

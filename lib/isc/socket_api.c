@@ -230,7 +230,7 @@ isc_socket_gettype(isc_socket_t *sock) {
 
 	if (isc_bind9)
 		return (isc__socket_gettype(sock));
- 
+
 	return (sock->methods->gettype(sock));
 }
 
