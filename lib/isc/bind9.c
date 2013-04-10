@@ -16,6 +16,8 @@
 
 /*! \file */
 
+#include <config.h>
+
 #include <isc/bind9.h>
 
 /*
