@@ -345,7 +345,6 @@ isc_appctx_settimermgr(isc_appctx_t *ctx, isc_timermgr_t *timermgr);
  *\li	'timermgr' is a valid timer manager.
  */
 
-#ifdef USE_APPIMPREGISTER
 /*%<
  * See isc_appctx_create() above.
  */
@@ -368,7 +367,6 @@ isc__app_register(void);
  * usually do not have to care about this function: it would call
  * isc_lib_register(), which internally calls this function.
  */
-#endif /* USE_APPIMPREGISTER */
 
 ISC_LANG_ENDDECLS
 

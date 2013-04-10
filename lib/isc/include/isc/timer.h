@@ -86,6 +86,7 @@ ISC_LANG_BEGINDECLS
 
 /*% Timer Type */
 typedef enum {
+	isc_timertype_undefined = -1,	/*%< Undefined */
 	isc_timertype_ticker = 0, 	/*%< Ticker */
 	isc_timertype_once = 1, 	/*%< Once */
 	isc_timertype_limited = 2, 	/*%< Limited */
@@ -402,7 +403,6 @@ isc_timermgr_destroy(isc_timermgr_t **managerp);
 
 void isc_timermgr_poke(isc_timermgr_t *m);
 
-#ifdef USE_TIMERIMPREGISTER
 /*%<
  * See isc_timermgr_create() above.
  */
@@ -425,7 +425,6 @@ isc_timer_register(isc_timermgrcreatefunc_t createfunc);
  * usually do not have to care about this function: it would call
  * isc_lib_register(), which internally calls this function.
  */
-#endif /* USE_TIMERIMPREGISTER */
 
 ISC_LANG_ENDDECLS
 

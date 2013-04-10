@@ -1,3 +1,7 @@
+3550.	[func]		Unified the internal and export versions of the
+			BIND libraries, allowing external clients to use
+			the same libraries as BIND. [RT #33131]
+
 3549.	[doc]		Documentation for "request-nsid" was missing.
 			[RT #33153]
 

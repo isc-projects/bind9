@@ -109,7 +109,6 @@ dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
 	return (dns_name_fromtext(name, &buffer, dns_rootname, 0, NULL));
 }
 
-#ifdef BIND9
 struct dns_byaddr {
 	/* Unlocked. */
 	unsigned int		magic;
@@ -315,4 +314,3 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp) {
 
 	*byaddrp = NULL;
 }
-#endif /* BIND9 */

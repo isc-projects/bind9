@@ -253,12 +253,9 @@ dns_dlzdestroy(dns_dlzdb_t **dbp) {
 	 */
 	REQUIRE(dbp != NULL && DNS_DLZ_VALID(*dbp));
 
-#ifdef BIND9
 	if ((*dbp)->ssutable != NULL) {
 		dns_ssutable_detach(&(*dbp)->ssutable);
 	}
-#endif
-
 
 	/* call the drivers destroy method */
 	if ((*dbp) != NULL) {
@@ -484,7 +481,6 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp) {
 	RWUNLOCK(&dlz_implock, isc_rwlocktype_write);
 }
 
-#ifdef BIND9
 /*
  * Create a writeable DLZ zone. This can be called by DLZ drivers
  * during configure() to create a zone that can be updated. The zone
@@ -569,7 +565,6 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 
 	return (result);
 }
-#endif
 
 /*%
  * Configure a DLZ driver. This is optional, and if supplied gives

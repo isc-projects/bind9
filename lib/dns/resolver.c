@@ -7867,7 +7867,6 @@ dns_resolver_create(dns_view_t *view,
 	return (result);
 }
 
-#ifdef BIND9
 static void
 prime_done(isc_task_t *task, isc_event_t *event) {
 	dns_resolver_t *res;
@@ -7973,7 +7972,6 @@ dns_resolver_prime(dns_resolver_t *res) {
 		}
 	}
 }
-#endif /* BIND9 */
 
 void
 dns_resolver_freeze(dns_resolver_t *res) {

@@ -691,9 +691,7 @@ typedef struct rbtdb_dbiterator {
 static void free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log,
 		       isc_event_t *event);
 static void overmem(dns_db_t *db, isc_boolean_t overmem);
-#ifdef BIND9
 static void setnsec3parameters(dns_db_t *db, rbtdb_version_t *version);
-#endif
 
 /*%
  * 'init_count' is used to initialize 'newheader->count' which inturn
@@ -1054,7 +1052,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	if (rbtdb->cachestats != NULL)
 		isc_stats_detach(&rbtdb->cachestats);
 
-#ifdef BIND9
 	if (rbtdb->load_rpzs != NULL) {
 		/*
 		 * We must be cleaning up after a failed zone loading.
@@ -1067,7 +1064,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 		REQUIRE(rbtdb->rpz_num < rbtdb->rpzs->p.num_zones);
 		dns_rpz_detach_rpzs(&rbtdb->rpzs);
 	}
-#endif
 
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
@@ -1657,14 +1653,12 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node)
 
 	switch (node->nsec) {
 	case DNS_RBT_NSEC_NORMAL:
-#ifdef BIND9
 		if (rbtdb->rpzs != NULL) {
 			dns_fixedname_init(&fname);
 			name = dns_fixedname_name(&fname);
 			dns_rbt_fullnamefromnode(node, name);
 			dns_rpz_delete(rbtdb->rpzs, rbtdb->rpz_num, name);
 		}
-#endif
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
 		break;
 	case DNS_RBT_NSEC_HAS_NSEC:
@@ -1699,10 +1693,8 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node)
 			}
 		}
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
-#ifdef BIND9
 		if (rbtdb->rpzs != NULL)
 			dns_rpz_delete(rbtdb->rpzs, rbtdb->rpz_num, name);
-#endif
 		break;
 	case DNS_RBT_NSEC_NSEC:
 		result = dns_rbt_deletenode(rbtdb->nsec, node, ISC_FALSE);
@@ -2136,13 +2128,6 @@ cleanup_nondirty(rbtdb_version_t *version, rbtdb_changedlist_t *cleanup_list) {
 
 static void
 iszonesecure(dns_db_t *db, rbtdb_version_t *version, dns_dbnode_t *origin) {
-#ifndef BIND9
-	UNUSED(db);
-	UNUSED(version);
-	UNUSED(origin);
-
-	return;
-#else
 	dns_rdataset_t keyset;
 	dns_rdataset_t nsecset, signsecset;
 	isc_boolean_t haszonekey = ISC_FALSE;
@@ -2192,14 +2177,12 @@ iszonesecure(dns_db_t *db, rbtdb_version_t *version, dns_dbnode_t *origin) {
 		version->secure = dns_db_secure;
 	else
 		version->secure = dns_db_insecure;
-#endif
 }
 
 /*%<
  * Walk the origin node looking for NSEC3PARAM records.
  * Cache the nsec3 parameters.
  */
-#ifdef BIND9
 static void
 setnsec3parameters(dns_db_t *db, rbtdb_version_t *version) {
 	dns_rbtnode_t *node;
@@ -2291,7 +2274,6 @@ setnsec3parameters(dns_db_t *db, rbtdb_version_t *version) {
 		    isc_rwlocktype_read);
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 }
-#endif
 
 static void
 cleanup_dead_nodes_callback(isc_task_t *task, isc_event_t *event) {
@@ -2680,7 +2662,6 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
 		node = NULL;
 		result = dns_rbt_addnode(tree, name, &node);
 		if (result == ISC_R_SUCCESS) {
-#ifdef BIND9
 			if (rbtdb->rpzs != NULL && tree == rbtdb->tree) {
 				dns_fixedname_t fnamef;
 				dns_name_t *fname;
@@ -2695,7 +2676,6 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
 					return (result);
 				}
 			}
-#endif
 			dns_rbt_namefromnode(node, &nodename);
 #ifdef DNS_RBT_USEHASH
 			node->locknum = node->hashval % rbtdb->node_lock_count;
@@ -4692,7 +4672,6 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	return (result);
 }
 
-#ifdef BIND9
 /*
  * Connect this RBTDB to the response policy zone summary data for the view.
  */
@@ -4732,7 +4711,6 @@ rpz_ready(dns_db_t *db) {
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 	return (result);
 }
-#endif
 
 static isc_result_t
 cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
@@ -6832,11 +6810,9 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 
 	noderesult = dns_rbt_addnode(rbtdb->tree, name, nodep);
 
-#ifdef BIND9
 	if (rbtdb->rpzs != NULL && noderesult == ISC_R_SUCCESS)
 		noderesult = dns_rpz_add(rbtdb->load_rpzs, rbtdb->rpz_num,
 					 name);
-#endif
 
 	if (!hasnsec)
 		return (noderesult);
@@ -7124,7 +7100,6 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 
 	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
 
-#ifdef BIND9
 	if (rbtdb->rpzs != NULL) {
 		isc_result_t result;
 
@@ -7136,7 +7111,6 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 			return (result);
 		}
 	}
-#endif
 
 	REQUIRE((rbtdb->attributes & (RBTDB_ATTR_LOADED|RBTDB_ATTR_LOADING))
 		== 0);
@@ -7366,17 +7340,9 @@ dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
 	REQUIRE(VALID_RBTDB(rbtdb));
 	INSIST(rbtversion == NULL || rbtversion->rbtdb == rbtdb);
 
-#ifdef BIND9
 	return (dns_master_dump2(rbtdb->common.mctx, db, version,
 				 &dns_master_style_default,
 				 filename, masterformat));
-#else
-	UNUSED(version);
-	UNUSED(filename);
-	UNUSED(masterformat);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* BIND9 */
 }
 
 static void
@@ -7738,13 +7704,8 @@ static dns_dbmethods_t zone_methods = {
 	resigned,
 	isdnssec,
 	NULL,
-#ifdef BIND9
 	rpz_attach,
 	rpz_ready,
-#else
-	NULL,
-	NULL,
-#endif
 	NULL,
 	NULL,
 	NULL,
@@ -9100,21 +9061,6 @@ rdataset_getadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 		       dns_name_t *fname, dns_message_t *msg,
 		       isc_stdtime_t now)
 {
-#ifndef BIND9
-	UNUSED(rdataset);
-	UNUSED(type);
-	UNUSED(qtype);
-	UNUSED(acache);
-	UNUSED(zonep);
-	UNUSED(dbp);
-	UNUSED(versionp);
-	UNUSED(nodep);
-	UNUSED(fname);
-	UNUSED(msg);
-	UNUSED(now);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#else
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *rbtnode = rdataset->private2;
 	unsigned char *raw = rdataset->private3;        /* RDATASLAB */
@@ -9230,10 +9176,8 @@ acache_callback(dns_acacheentry_t *entry, void **arg) {
 	dns_db_detach((dns_db_t **)(void*)&rbtdb);
 
 	*arg = NULL;
-#endif /* BIND9 */
 }
 
-#ifdef BIND9
 static void
 acache_cancelentry(isc_mem_t *mctx, dns_acacheentry_t *entry,
 		      acache_cbarg_t **cbargp)
@@ -9254,7 +9198,6 @@ acache_cancelentry(isc_mem_t *mctx, dns_acacheentry_t *entry,
 
 	*cbargp = NULL;
 }
-#endif /* BIND9 */
 
 static isc_result_t
 rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
@@ -9263,19 +9206,6 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 		       dns_dbversion_t *version, dns_dbnode_t *node,
 		       dns_name_t *fname)
 {
-#ifndef BIND9
-	UNUSED(rdataset);
-	UNUSED(type);
-	UNUSED(qtype);
-	UNUSED(acache);
-	UNUSED(zone);
-	UNUSED(db);
-	UNUSED(version);
-	UNUSED(node);
-	UNUSED(fname);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#else
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *rbtnode = rdataset->private2;
 	unsigned char *raw = rdataset->private3;        /* RDATASLAB */
@@ -9400,21 +9330,12 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 	}
 
 	return (result);
-#endif
 }
 
 static isc_result_t
 rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 		       dns_rdatasetadditional_t type, dns_rdatatype_t qtype)
 {
-#ifndef BIND9
-	UNUSED(acache);
-	UNUSED(rdataset);
-	UNUSED(type);
-	UNUSED(qtype);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#else
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *rbtnode = rdataset->private2;
 	unsigned char *raw = rdataset->private3;        /* RDATASLAB */
@@ -9479,7 +9400,6 @@ rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 	}
 
 	return (ISC_R_SUCCESS);
-#endif
 }
 
 /*%

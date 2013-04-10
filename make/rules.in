@@ -35,8 +35,6 @@ sysconfdir =	@sysconfdir@
 localstatedir =	@localstatedir@
 mandir =	@mandir@
 datarootdir =   @datarootdir@
-export_libdir =	@export_libdir@
-export_includedir = @export_includedir@
 
 DESTDIR =
 

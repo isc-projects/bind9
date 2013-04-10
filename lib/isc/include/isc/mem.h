@@ -727,8 +727,6 @@ ISCMEMPOOLFUNC(get)(isc_mempool_t * _ISC_MEM_FLARG);
 void
 ISCMEMPOOLFUNC(put)(isc_mempool_t *, void * _ISC_MEM_FLARG);
 
-#ifdef USE_MEMIMPREGISTER
-
 /*%<
  * See isc_mem_create2() above.
  */
@@ -752,7 +750,6 @@ isc__mem_register(void);
  * usually do not have to care about this function: it would call
  * isc_lib_register(), which internally calls this function.
  */
-#endif /* USE_MEMIMPREGISTER */
 
 ISC_LANG_ENDDECLS
 

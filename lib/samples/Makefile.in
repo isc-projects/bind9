@@ -16,14 +16,12 @@
 
 srcdir =	@srcdir@
 top_srcdir =	@top_srcdir@
-export_srcdir =	@top_srcdir@/lib/export
 
 @BIND9_VERSION@
 
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I${srcdir}/include -I../dns/include \
-		-I${export_srcdir}/isc/include \
 		${DNS_INCLUDES} ${ISC_INCLUDES} \
 		-I${top_srcdir}/lib/irs/include \
 		-I../../irs/include
@@ -41,21 +39,21 @@ ISCDEPLIBS =	../isc/libisc.@A@
 ISCCFGDEPLIBS =	../isccfg/libisccfg.@A@
 IRSDEPLIBS =	../irs/libirs.@A@
 
-DEPLIBS =	${DNSDEPLIBS} ${ISCCFGDEPLIBS} ${ISCDEPLIBS}
+DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS} ${ISCCFGDEPLIBS}
 
 LIBS =		${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
 
 SUBDIRS =
 
-TARGETS =	sample@EXEEXT@ sample-async@EXEEXT@ sample-gai@EXEEXT@ \
+TARGETS =	resolve@EXEEXT@ sample-async@EXEEXT@ sample-gai@EXEEXT@ \
 		sample-update@EXEEXT@ sample-request@EXEEXT@ nsprobe@EXEEXT@
 
-OBJS =		sample.@O@ sample-async.@O@ sample-gai.@O@ sample-update.@O@ \
+OBJS =		resolve.@O@ sample-async.@O@ sample-gai.@O@ sample-update.@O@ \
 		sample-request.@O@ nsprobe.@O@
 
 UOBJS =
 
-SRCS =		sample.c sample-async.c sample-gai.c sample-update.c \
+SRCS =		resolve.c sample-async.c sample-gai.c sample-update.c \
 		sample-request.c nsprobe.c
 
 MANPAGES =
@@ -66,9 +64,9 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
-sample@EXEEXT@: sample.@O@ ${DEPLIBS}
+resolve@EXEEXT@: resolve.@O@ ${IRSDEPLIBS} ${DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-	sample.@O@ ${LIBS}
+	resolve.@O@ ${IRSLIBS} ${LIBS}
 
 sample-async@EXEEXT@: sample-async.@O@ ${DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
@@ -97,3 +95,4 @@ docclean manclean maintainer-clean::
 
 clean distclean maintainer-clean::
 	rm -f ${TARGETS}
+	rm -f sample.key

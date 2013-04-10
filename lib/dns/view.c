@@ -37,9 +37,7 @@
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/dlz.h>
-#ifdef BIND9
 #include <dns/dns64.h>
-#endif
 #include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/forward.h>
@@ -101,16 +99,16 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_name;
 
 	view->zonetable = NULL;
-#ifdef BIND9
-	result = dns_zt_create(mctx, rdclass, &view->zonetable);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "dns_zt_create() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_mutex;
+	if (isc_bind9) {
+		result = dns_zt_create(mctx, rdclass, &view->zonetable);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "dns_zt_create() failed: %s",
+					 isc_result_totext(result));
+			result = ISC_R_UNEXPECTED;
+			goto cleanup_mutex;
+		}
 	}
-#endif
 	view->secroots_priv = NULL;
 	view->fwdtable = NULL;
 	result = dns_fwdtable_create(mctx, &view->fwdtable);
@@ -204,15 +202,15 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
 	view->redirect = NULL;
-#ifdef BIND9
 	view->new_zone_file = NULL;
 	view->new_zone_config = NULL;
 	view->cfg_destroy = NULL;
 
-	result = dns_order_create(view->mctx, &view->order);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_dynkeys;
-#endif
+	if (isc_bind9) {
+		result = dns_order_create(view->mctx, &view->order);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_dynkeys;
+	}
 
 	result = dns_peerlist_new(view->mctx, &view->peers);
 	if (result != ISC_R_SUCCESS)
@@ -240,28 +238,29 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	return (ISC_R_SUCCESS);
 
  cleanup_peerlist:
-	dns_peerlist_detach(&view->peers);
+	if (view->peers != NULL)
+		dns_peerlist_detach(&view->peers);
 
  cleanup_order:
-#ifdef BIND9
-	dns_order_detach(&view->order);
+	if (view->order != NULL)
+		dns_order_detach(&view->order);
 
  cleanup_dynkeys:
-#endif
-	dns_tsigkeyring_detach(&view->dynamickeys);
+	if (view->dynamickeys != NULL)
+		dns_tsigkeyring_detach(&view->dynamickeys);
 
  cleanup_references:
 	isc_refcount_destroy(&view->references);
 
  cleanup_fwdtable:
-	dns_fwdtable_destroy(&view->fwdtable);
+	if (view->fwdtable != NULL)
+		dns_fwdtable_destroy(&view->fwdtable);
 
  cleanup_zt:
-#ifdef BIND9
-	dns_zt_detach(&view->zonetable);
+	if (view->zonetable != NULL)
+		dns_zt_detach(&view->zonetable);
 
  cleanup_mutex:
-#endif
 	DESTROYLOCK(&view->lock);
 
  cleanup_name:
@@ -275,10 +274,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 static inline void
 destroy(dns_view_t *view) {
-#ifdef BIND9
 	dns_dns64_t *dns64;
 	dns_dlzdb_t *dlzdb;
-#endif
 
 	REQUIRE(!ISC_LINK_LINKED(view, link));
 	REQUIRE(isc_refcount_current(&view->references) == 0);
@@ -287,10 +284,8 @@ destroy(dns_view_t *view) {
 	REQUIRE(ADBSHUTDOWN(view));
 	REQUIRE(REQSHUTDOWN(view));
 
-#ifdef BIND9
 	if (view->order != NULL)
 		dns_order_detach(&view->order);
-#endif
 	if (view->peers != NULL)
 		dns_peerlist_detach(&view->peers);
 
@@ -332,7 +327,6 @@ destroy(dns_view_t *view) {
 		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
 		dns_resolver_detach(&view->resolver);
-#ifdef BIND9
 	if (view->acache != NULL) {
 		if (view->cachedb != NULL)
 			dns_acache_putdb(view->acache, view->cachedb);
@@ -353,13 +347,6 @@ destroy(dns_view_t *view) {
 		ISC_LIST_UNLINK(view->dlz_unsearched, dlzdb, link);
 		dns_dlzdestroy(&dlzdb);
 	}
-#else
-	INSIST(view->acache == NULL);
-	INSIST(view->rpzs == NULL);
-	INSIST(ISC_LIST_EMPTY(view->dlz_searched));
-	INSIST(ISC_LIST_EMPTY(view->dlz_unsearched));
-	INSIST(view->rrl == NULL);
-#endif
 	if (view->requestmgr != NULL)
 		dns_requestmgr_detach(&view->requestmgr);
 	if (view->task != NULL)
@@ -449,7 +436,6 @@ destroy(dns_view_t *view) {
 		dns_stats_detach(&view->resquerystats);
 	if (view->secroots_priv != NULL)
 		dns_keytable_detach(&view->secroots_priv);
-#ifdef BIND9
 	for (dns64 = ISC_LIST_HEAD(view->dns64);
 	     dns64 != NULL;
 	     dns64 = ISC_LIST_HEAD(view->dns64)) {
@@ -461,7 +447,6 @@ destroy(dns_view_t *view) {
 	if (view->redirect != NULL)
 		dns_zone_detach(&view->redirect);
 	dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
-#endif
 	dns_fwdtable_destroy(&view->fwdtable);
 	dns_aclenv_destroy(&view->aclenv);
 	DESTROYLOCK(&view->lock);
@@ -510,9 +495,7 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 		view->flush = ISC_TRUE;
 	isc_refcount_decrement(&view->references, &refs);
 	if (refs == 0) {
-#ifdef BIND9
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
-#endif
 
 		LOCK(&view->lock);
 		if (!RESSHUTDOWN(view))
@@ -521,13 +504,14 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 			dns_adb_shutdown(view->adb);
 		if (!REQSHUTDOWN(view))
 			dns_requestmgr_shutdown(view->requestmgr);
-#ifdef BIND9
 		if (view->acache != NULL)
 			dns_acache_shutdown(view->acache);
-		if (view->flush)
-			dns_zt_flushanddetach(&view->zonetable);
-		else
-			dns_zt_detach(&view->zonetable);
+		if (view->zonetable != NULL) {
+			if (view->flush)
+				dns_zt_flushanddetach(&view->zonetable);
+			else
+				dns_zt_detach(&view->zonetable);
+		}
 		if (view->managed_keys != NULL) {
 			mkzone = view->managed_keys;
 			view->managed_keys = NULL;
@@ -540,18 +524,15 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 			if (view->flush)
 				dns_zone_flush(rdzone);
 		}
-#endif
 		done = all_done(view);
 		UNLOCK(&view->lock);
 
-#ifdef BIND9
 		/* Need to detach zones outside view lock */
 		if (mkzone != NULL)
 			dns_zone_detach(&mkzone);
 
 		if (rdzone != NULL)
 			dns_zone_detach(&rdzone);
-#endif
 	}
 
 	*viewp = NULL;
@@ -570,7 +551,6 @@ dns_view_detach(dns_view_t **viewp) {
 	view_flushanddetach(viewp, ISC_FALSE);
 }
 
-#ifdef BIND9
 static isc_result_t
 dialup(dns_zone_t *zone, void *dummy) {
 	UNUSED(dummy);
@@ -581,9 +561,9 @@ dialup(dns_zone_t *zone, void *dummy) {
 void
 dns_view_dialup(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
-	(void)dns_zt_apply(view->zonetable, ISC_FALSE, dialup, NULL);
+	if (view->zonetable != NULL)
+		(void)dns_zt_apply(view->zonetable, ISC_FALSE, dialup, NULL);
 }
-#endif
 
 void
 dns_view_weakattach(dns_view_t *source, dns_view_t **targetp) {
@@ -694,6 +674,16 @@ req_shutdown(isc_task_t *task, isc_event_t *event) {
 }
 
 isc_result_t
+dns_view_createzonetable(dns_view_t *view) {
+
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!view->frozen);
+	REQUIRE(view->zonetable == NULL);
+
+	return (dns_zt_create(view->mctx, view->rdclass, &view->zonetable));
+}
+
+isc_result_t
 dns_view_createresolver(dns_view_t *view,
 			isc_taskmgr_t *taskmgr,
 			unsigned int ntasks, unsigned int ndisp,
@@ -775,10 +765,8 @@ dns_view_setcache2(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared) {
 
 	view->cacheshared = shared;
 	if (view->cache != NULL) {
-#ifdef BIND9
 		if (view->acache != NULL)
 			dns_acache_putdb(view->acache, view->cachedb);
-#endif
 		dns_db_detach(&view->cachedb);
 		dns_cache_detach(&view->cache);
 	}
@@ -786,10 +774,8 @@ dns_view_setcache2(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared) {
 	dns_cache_attachdb(cache, &view->cachedb);
 	INSIST(DNS_DB_VALID(view->cachedb));
 
-#ifdef BIND9
 	if (view->acache != NULL)
 		dns_acache_setdb(view->acache, view->cachedb);
-#endif
 }
 
 isc_boolean_t
@@ -874,7 +860,6 @@ dns_view_freeze(dns_view_t *view) {
 	view->frozen = ISC_TRUE;
 }
 
-#ifdef BIND9
 void
 dns_view_thaw(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -889,14 +874,13 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
+	REQUIRE(view->zonetable != NULL);
 
 	result = dns_zt_mount(view->zonetable, zone);
 
 	return (result);
 }
-#endif
 
-#ifdef BIND9
 isc_result_t
 dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep) {
 	isc_result_t result;
@@ -914,7 +898,6 @@ dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep) {
 
 	return (result);
 }
-#endif
 
 isc_result_t
 dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
@@ -939,12 +922,6 @@ dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	isc_boolean_t is_cache, is_staticstub_zone;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_zone_t *zone;
-
-#ifndef BIND9
-	UNUSED(use_hints);
-	UNUSED(use_static_stub);
-	UNUSED(zone);
-#endif
 
 	/*
 	 * Find an rdataset whose owner name is 'name', and whose type is
@@ -971,13 +948,14 @@ dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	db = NULL;
 	node = NULL;
 	is_staticstub_zone = ISC_FALSE;
-#ifdef BIND9
 	zone = NULL;
-	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
-	if (zone != NULL && dns_zone_gettype(zone) == dns_zone_staticstub &&
-	    !use_static_stub) {
+	if (view->zonetable != NULL) {
+		result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
+		if (zone != NULL && !use_static_stub &&
+		    dns_zone_gettype(zone) == dns_zone_staticstub)
+			result = ISC_R_NOTFOUND;
+	} else
 		result = ISC_R_NOTFOUND;
-	}
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		result = dns_zone_getdb(zone, &db);
 		if (result != ISC_R_SUCCESS && view->cachedb != NULL)
@@ -990,11 +968,6 @@ dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		}
 	} else if (result == ISC_R_NOTFOUND && view->cachedb != NULL)
 		dns_db_attach(view->cachedb, &db);
-#else
-	result = ISC_R_NOTFOUND;
-	if (view->cachedb != NULL)
-		dns_db_attach(view->cachedb, &db);
-#endif /* BIND9 */
 	else
 		goto cleanup;
 
@@ -1079,7 +1052,6 @@ dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		result = ISC_R_SUCCESS;
 	}
 
-#ifdef BIND9
 	if (result == ISC_R_NOTFOUND && use_hints && view->hints != NULL) {
 		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
@@ -1114,7 +1086,6 @@ dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		if (db == NULL && node != NULL)
 			dns_db_detachnode(view->hints, &node);
 	}
-#endif /* BIND9 */
 
  cleanup:
 	if (dns_rdataset_isassociated(&zrdataset)) {
@@ -1143,10 +1114,8 @@ dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	} else
 		INSIST(node == NULL);
 
-#ifdef BIND9
 	if (zone != NULL)
 		dns_zone_detach(&zone);
-#endif
 
 	return (result);
 }
@@ -1220,10 +1189,6 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_fixedname_t zfixedname;
 
-#ifndef BIND9
-	UNUSED(zone);
-#endif
-
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->frozen);
 
@@ -1242,14 +1207,13 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	/*
 	 * Find the right database.
 	 */
-#ifdef BIND9
 	zone = NULL;
-	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
+	if (view->zonetable != NULL)
+		result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
+	else
+		result = ISC_R_NOTFOUND;
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
-#else
-	result = ISC_R_NOTFOUND;
-#endif
 	if (result == ISC_R_NOTFOUND) {
 		/*
 		 * We're not directly authoritative for this query name, nor
@@ -1383,10 +1347,8 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	}
 	if (db != NULL)
 		dns_db_detach(&db);
-#ifdef BIND9
 	if (zone != NULL)
 		dns_zone_detach(&zone);
-#endif
 
 	return (result);
 }
@@ -1413,7 +1375,6 @@ dns_viewlist_find(dns_viewlist_t *list, const char *name,
 	return (ISC_R_SUCCESS);
 }
 
-#ifdef BIND9
 isc_result_t
 dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 		      isc_boolean_t allclasses, dns_rdataclass_t rdclass,
@@ -1436,7 +1397,11 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 		 * treat it as not found.
 		 */
 		zp = (zone1 == NULL) ? &zone1 : &zone2;
-		result = dns_zt_find(view->zonetable, name, 0, NULL, zp);
+		if (view->zonetable != NULL)
+			result = dns_zt_find(view->zonetable, name, 0, NULL,
+					     zp);
+		else
+			result = ISC_R_NOTFOUND;
 		INSIST(result == ISC_R_SUCCESS ||
 		       result == ISC_R_NOTFOUND ||
 		       result == DNS_R_PARTIALMATCH);
@@ -1490,9 +1455,6 @@ dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg) {
 	return (dns_zt_asyncload(view->zonetable, callback, arg));
 }
 
-
-#endif /* BIND9 */
-
 isc_result_t
 dns_view_gettsig(dns_view_t *view, dns_name_t *keyname, dns_tsigkey_t **keyp)
 {
@@ -1536,7 +1498,6 @@ dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg) {
 				view->dynamickeys));
 }
 
-#ifdef BIND9
 isc_result_t
 dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 	isc_result_t result;
@@ -1552,7 +1513,6 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 	dns_resolver_printbadcache(view->resolver, fp);
 	return (ISC_R_SUCCESS);
 }
-#endif
 
 isc_result_t
 dns_view_flushcache(dns_view_t *view) {
@@ -1572,18 +1532,14 @@ dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-#ifdef BIND9
 	if (view->acache != NULL)
 		dns_acache_putdb(view->acache, view->cachedb);
-#endif
 	dns_db_detach(&view->cachedb);
 	dns_cache_attachdb(view->cache, &view->cachedb);
-#ifdef BIND9
 	if (view->acache != NULL)
 		dns_acache_setdb(view->acache, view->cachedb);
 	if (view->resolver != NULL)
 		dns_resolver_flushbadcache(view->resolver, NULL);
-#endif
 
 	dns_adb_flush(view->adb);
 	return (ISC_R_SUCCESS);
@@ -1724,13 +1680,13 @@ dns_view_getrootdelonly(dns_view_t *view) {
 	return (view->rootdelonly);
 }
 
-#ifdef BIND9
 isc_result_t
 dns_view_freezezones(dns_view_t *view, isc_boolean_t value) {
 	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->zonetable != NULL);
+
 	return (dns_zt_freezezones(view->zonetable, value));
 }
-#endif
 
 void
 dns_view_setadbstats(dns_view_t *view, isc_stats_t *stats) {
@@ -1856,7 +1812,6 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE((cfgctx != NULL && cfg_destroy != NULL) || !allow);
 
-#ifdef BIND9
 	if (view->new_zone_file != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_file);
 		view->new_zone_file = NULL;
@@ -1876,11 +1831,6 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 		view->new_zone_config = cfgctx;
 		view->cfg_destroy = cfg_destroy;
 	}
-#else
-	UNUSED(allow);
-	UNUSED(cfgctx);
-	UNUSED(cfg_destroy);
-#endif
 }
 
 isc_result_t

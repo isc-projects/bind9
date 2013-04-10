@@ -258,3 +258,5 @@ isc__app_unblock(void) {
 	blocked = ISC_FALSE;
 	REQUIRE(blockedthread == GetCurrentThread());
 }
+
+#include "../app_api.c"

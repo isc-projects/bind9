@@ -1278,10 +1278,7 @@ LWRES_PLATFORM_NEEDNETINETIN6H
 ISC_PLATFORM_NEEDNETINETIN6H
 LWRES_PLATFORM_HAVEIPV6
 ISC_PLATFORM_HAVEIPV6
-export_includedir
-export_libdir
 BIND9_CO_RULE
-LIBEXPORT
 LIBTOOL_IN_MAIN
 LIBTOOL_ALLOW_UNDEFINED
 LIBTOOL_MODE_LINK
@@ -1474,9 +1471,6 @@ with_purify
 with_libtool
 enable_backtrace
 enable_symtable
-enable_exportlib
-with_export_libdir
-with_export_includedir
 enable_ipv6
 with_kame
 enable_getifaddrs
@@ -2144,8 +2138,6 @@ Optional Features:
   --enable-backtrace      log stack backtrace on abort [default=yes]
   --enable-symtable       use internal symbol table for backtrace
                           [all|minimal(default)|none]
-  --enable-exportlib	  build exportable library (GNU make required)
-                          [default=no]
   --enable-ipv6           use IPv6 default=autodetect
   --enable-getifaddrs     Enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
@@ -2182,12 +2174,6 @@ Optional Packages:
   --with-libjson=PATH     Build with libjson0 library yes|no|path
   --with-purify=PATH      use Rational purify
   --with-libtool          use GNU libtool
-  --with-export-libdir=PATH
-                          installation directory for the export library
-                          [EPREFIX/lib/bind9]
-  --with-export-includedir=PATH
-                          installation directory for the header files of the
-                          export library [PREFIX/include/bind9]
   --with-kame=PATH	  use Kame IPv6 default path /usr/local/v6
   --with-readline=LIBSPEC    specify readline library default -lreadline
 
@@ -11871,14 +11857,6 @@ yes)
 	test "${with_atf+set}" = set || with_atf=yes
 	test "${enable_filter_aaaa+set}" = set || enable_filter_aaaa=yes
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
-	case "$host" in
-	*-darwin*)
-		test "${enable_exportlib+set}" = set || enable_exportlib=yes
-		;;
-	*-linux*)
-		test "${enable_exportlib+set}" = set || enable_exportlib=yes
-		;;
-	esac
 	;;
 esac
 #
@@ -16627,56 +16605,7 @@ SA=a
 
 
 
-#
-# build exportable DNS library?
-#
-# Check whether --enable-exportlib was given.
-if test "${enable_exportlib+set}" = set; then :
-  enableval=$enable_exportlib;
-fi
-
-case "$enable_exportlib" in
-	yes)
-		gmake=
-		for x in gmake gnumake make; do
-			if $x --version 2>/dev/null | grep GNU > /dev/null; then
-				gmake=$x
-				break;
-			fi
-		done
-		if test -z "$gmake"; then
-			as_fn_error $? "exportlib requires GNU make.  Install it or disable the feature." "$LINENO" 5
-		fi
-		LIBEXPORT=lib/export
-
-		BIND9_CO_RULE="%.$O:  \${srcdir}/%.c"
-		;;
-	no|*)
-		BIND9_CO_RULE=".c.$O:"
-		;;
-esac
-
-
-
-# Check whether --with-export-libdir was given.
-if test "${with_export_libdir+set}" = set; then :
-  withval=$with_export_libdir; export_libdir="$withval"
-fi
-
-if test -z "$export_libdir"; then
-	export_libdir="\${exec_prefix}/lib/bind9/"
-fi
-
-
-
-# Check whether --with-export-includedir was given.
-if test "${with_export_includedir+set}" = set; then :
-  withval=$with_export_includedir; export_includedir="$withval"
-fi
-
-if test -z "$export_includedir"; then
-	export_includedir="\${prefix}/include/bind9/"
-fi
+BIND9_CO_RULE=".c.$O:"
 
 
 #
@@ -20843,7 +20772,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/dsdigest/prereq.sh bin/tests/system/ecdsa/prereq.sh bin/tests/system/dlzredir/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/gost/prereq.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/check-secure-delegation.pl contrib/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/export/Makefile lib/export/dns/Makefile lib/export/dns/include/Makefile lib/export/dns/include/dns/Makefile lib/export/dns/include/dst/Makefile lib/export/irs/Makefile lib/export/irs/include/Makefile lib/export/irs/include/irs/Makefile lib/export/isc/$thread_dir/Makefile lib/export/isc/$thread_dir/include/Makefile lib/export/isc/$thread_dir/include/isc/Makefile lib/export/isc/Makefile lib/export/isc/include/Makefile lib/export/isc/include/isc/Makefile lib/export/isc/nls/Makefile lib/export/isc/unix/Makefile lib/export/isc/unix/include/Makefile lib/export/isc/unix/include/isc/Makefile lib/export/isccfg/Makefile lib/export/isccfg/include/Makefile lib/export/isccfg/include/isccfg/Makefile lib/export/samples/Makefile lib/export/samples/Makefile-postinstall lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile unit/Makefile unit/unittest.sh"
+ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/dsdigest/prereq.sh bin/tests/system/ecdsa/prereq.sh bin/tests/system/dlzredir/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/gost/prereq.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/check-secure-delegation.pl contrib/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh"
 
 
 #
@@ -21925,29 +21854,6 @@ do
     "lib/dns/include/dns/Makefile") CONFIG_FILES="$CONFIG_FILES lib/dns/include/dns/Makefile" ;;
     "lib/dns/include/dst/Makefile") CONFIG_FILES="$CONFIG_FILES lib/dns/include/dst/Makefile" ;;
     "lib/dns/tests/Makefile") CONFIG_FILES="$CONFIG_FILES lib/dns/tests/Makefile" ;;
-    "lib/export/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/Makefile" ;;
-    "lib/export/dns/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/dns/Makefile" ;;
-    "lib/export/dns/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/dns/include/Makefile" ;;
-    "lib/export/dns/include/dns/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/dns/include/dns/Makefile" ;;
-    "lib/export/dns/include/dst/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/dns/include/dst/Makefile" ;;
-    "lib/export/irs/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/irs/Makefile" ;;
-    "lib/export/irs/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/irs/include/Makefile" ;;
-    "lib/export/irs/include/irs/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/irs/include/irs/Makefile" ;;
-    "lib/export/isc/$thread_dir/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isc/$thread_dir/Makefile" ;;
-    "lib/export/isc/$thread_dir/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isc/$thread_dir/include/Makefile" ;;
-    "lib/export/isc/$thread_dir/include/isc/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isc/$thread_dir/include/isc/Makefile" ;;
-    "lib/export/isc/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isc/Makefile" ;;
-    "lib/export/isc/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isc/include/Makefile" ;;
-    "lib/export/isc/include/isc/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isc/include/isc/Makefile" ;;
-    "lib/export/isc/nls/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isc/nls/Makefile" ;;
-    "lib/export/isc/unix/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isc/unix/Makefile" ;;
-    "lib/export/isc/unix/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isc/unix/include/Makefile" ;;
-    "lib/export/isc/unix/include/isc/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isc/unix/include/isc/Makefile" ;;
-    "lib/export/isccfg/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isccfg/Makefile" ;;
-    "lib/export/isccfg/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isccfg/include/Makefile" ;;
-    "lib/export/isccfg/include/isccfg/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/isccfg/include/isccfg/Makefile" ;;
-    "lib/export/samples/Makefile") CONFIG_FILES="$CONFIG_FILES lib/export/samples/Makefile" ;;
-    "lib/export/samples/Makefile-postinstall") CONFIG_FILES="$CONFIG_FILES lib/export/samples/Makefile-postinstall" ;;
     "lib/irs/Makefile") CONFIG_FILES="$CONFIG_FILES lib/irs/Makefile" ;;
     "lib/irs/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/irs/include/Makefile" ;;
     "lib/irs/include/irs/Makefile") CONFIG_FILES="$CONFIG_FILES lib/irs/include/irs/Makefile" ;;
@@ -21986,6 +21892,8 @@ do
     "lib/tests/Makefile") CONFIG_FILES="$CONFIG_FILES lib/tests/Makefile" ;;
     "lib/tests/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/tests/include/Makefile" ;;
     "lib/tests/include/tests/Makefile") CONFIG_FILES="$CONFIG_FILES lib/tests/include/tests/Makefile" ;;
+    "lib/samples/Makefile") CONFIG_FILES="$CONFIG_FILES lib/samples/Makefile" ;;
+    "lib/samples/Makefile-postinstall") CONFIG_FILES="$CONFIG_FILES lib/samples/Makefile-postinstall" ;;
     "unit/Makefile") CONFIG_FILES="$CONFIG_FILES unit/Makefile" ;;
     "unit/unittest.sh") CONFIG_FILES="$CONFIG_FILES unit/unittest.sh" ;;
 

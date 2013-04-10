@@ -75,9 +75,7 @@
 #define DST_AS_STR(t) ((t).value.as_textregion.base)
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS];
-#ifdef BIND9
 static isc_entropy_t *dst_entropy_pool = NULL;
-#endif
 static unsigned int dst_entropy_flags = 0;
 static isc_boolean_t dst_initialized = ISC_FALSE;
 
@@ -135,7 +133,7 @@ static isc_result_t	addsuffix(char *filename, int len,
 			return (_r);		\
 	} while (0);				\
 
-#if defined(OPENSSL) && defined(BIND9)
+#if defined(OPENSSL)
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
@@ -162,11 +160,6 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	isc_result_t result;
 
 	REQUIRE(mctx != NULL);
-#ifdef BIND9
-	REQUIRE(ectx != NULL);
-#else
-	UNUSED(ectx);
-#endif
 	REQUIRE(dst_initialized == ISC_FALSE);
 
 #ifndef OPENSSL
@@ -175,7 +168,7 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 
 	dst__memory_pool = NULL;
 
-#if defined(OPENSSL) && defined(BIND9)
+#if defined(OPENSSL)
 	UNUSED(mctx);
 	/*
 	 * When using --with-openssl, there seems to be no good way of not
@@ -193,13 +186,13 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 #ifndef OPENSSL_LEAKS
 	isc_mem_setdestroycheck(dst__memory_pool, ISC_FALSE);
 #endif
-#else
+#else /* OPENSSL */
 	isc_mem_attach(mctx, &dst__memory_pool);
-#endif
-#ifdef BIND9
-	isc_entropy_attach(ectx, &dst_entropy_pool);
-#endif
-	dst_entropy_flags = eflags;
+#endif /* OPENSSL */
+	if (ectx != NULL) {
+		isc_entropy_attach(ectx, &dst_entropy_pool);
+		dst_entropy_flags = eflags;
+	}
 
 	dst_result_register();
 
@@ -262,10 +255,8 @@ dst_lib_destroy(void) {
 #endif
 	if (dst__memory_pool != NULL)
 		isc_mem_detach(&dst__memory_pool);
-#ifdef BIND9
 	if (dst_entropy_pool != NULL)
 		isc_entropy_detach(&dst_entropy_pool);
-#endif
 }
 
 isc_boolean_t
@@ -1824,8 +1815,10 @@ addsuffix(char *filename, int len, const char *odirname,
 
 isc_result_t
 dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
-#ifdef BIND9
 	unsigned int flags = dst_entropy_flags;
+
+	if (dst_entropy_pool == NULL)
+		return (ISC_R_FAILURE);
 
 	if (len == 0)
 		return (ISC_R_SUCCESS);
@@ -1834,23 +1827,18 @@ dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
 	else
 		flags |= ISC_ENTROPY_BLOCKING;
 	return (isc_entropy_getdata(dst_entropy_pool, buf, len, NULL, flags));
-#else
-	UNUSED(buf);
-	UNUSED(len);
-	UNUSED(pseudo);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif
 }
 
 unsigned int
 dst__entropy_status(void) {
-#ifdef BIND9
 #ifdef GSSAPI
 	unsigned int flags = dst_entropy_flags;
 	isc_result_t ret;
 	unsigned char buf[32];
 	static isc_boolean_t first = ISC_TRUE;
+
+	if (dst_entropy_pool == NULL)
+		return (0);
 
 	if (first) {
 		/* Someone believes RAND_status() initializes the PRNG */
@@ -1864,9 +1852,6 @@ dst__entropy_status(void) {
 	}
 #endif
 	return (isc_entropy_status(dst_entropy_pool));
-#else
-	return (0);
-#endif
 }
 
 isc_buffer_t *

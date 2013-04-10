@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sample.c,v 1.5 2009/09/29 15:06:07 fdupont Exp $ */
-
 #include <config.h>
 
 #include <sys/types.h>
@@ -37,6 +35,8 @@
 #include <isc/mem.h>
 #include <isc/sockaddr.h>
 #include <isc/util.h>
+
+#include <irs/resconf.h>
 
 #include <dns/client.h>
 #include <dns/fixedname.h>
@@ -83,10 +83,10 @@ usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {
-	fprintf(stderr, "sample [-t RRtype] "
+	fprintf(stderr, "resolve [-t RRtype] "
 		"[[-a algorithm] [-e] -k keyname -K keystring] "
-		"[-s domain:serveraddr_for_domain ] "
-		"server_address hostname\n");
+		"[-S domain:serveraddr_for_domain ] [-s server_address]"
+		"hostname\n");
 
 	exit(1);
 }
@@ -230,6 +230,7 @@ int
 main(int argc, char *argv[]) {
 	int ch;
 	isc_textregion_t tr;
+	char *server = NULL;
 	char *altserver = NULL;
 	char *altserveraddr = NULL;
 	char *altservername = NULL;
@@ -248,8 +249,9 @@ main(int argc, char *argv[]) {
 	unsigned int clientopt, resopt;
 	isc_boolean_t is_sep = ISC_FALSE;
 	const char *port = "53";
+	isc_mem_t *mctx = NULL;
 
-	while ((ch = getopt(argc, argv, "a:es:t:k:K:p:")) != -1) {
+	while ((ch = getopt(argc, argv, "a:es:t:k:K:p:S:")) != -1) {
 		switch (ch) {
 		case 't':
 			tr.base = optarg;
@@ -267,7 +269,7 @@ main(int argc, char *argv[]) {
 		case 'e':
 			is_sep = ISC_TRUE;
 			break;
-		case 's':
+		case 'S':
 			if (altserver != NULL) {
 				fprintf(stderr, "alternate server "
 					"already defined: %s\n",
@@ -275,6 +277,15 @@ main(int argc, char *argv[]) {
 				exit(1);
 			}
 			altserver = optarg;
+			break;
+		case 's':
+			if (server != NULL) {
+				fprintf(stderr, "server "
+					"already defined: %s\n",
+					server);
+				exit(1);
+			}
+			server = optarg;
 			break;
 		case 'k':
 			keynamestr = optarg;
@@ -292,7 +303,7 @@ main(int argc, char *argv[]) {
 
 	argc -= optind;
 	argv += optind;
-	if (argc < 2)
+	if (argc < 1)
 		usage();
 
 	if (altserver != NULL) {
@@ -316,6 +327,12 @@ main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+	result = isc_mem_create(0, 0, &mctx);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "failed to crate mctx\n");
+		exit(1);
+	}
+
 	clientopt = 0;
 	result = dns_client_create(&client, clientopt);
 	if (result != ISC_R_SUCCESS) {
@@ -324,7 +341,22 @@ main(int argc, char *argv[]) {
 	}
 
 	/* Set the nameserver */
-	addserver(client, argv[0], port, NULL);
+	if (server == NULL) {
+		irs_resconf_t *resconf = NULL;
+		isc_sockaddrlist_t *nameservers;
+
+		result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
+		nameservers = irs_resconf_getnameservers(resconf);
+		result = dns_client_setservers(client, dns_rdataclass_in,
+					       NULL, nameservers);
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "dns_client_setservers failed: %d\n",
+				result);
+			exit(1);
+		}
+	} else {
+		addserver(client, server, port, NULL);
+	}
 
 	/* Set the alternate nameserver (when specified) */
 	if (altserver != NULL)
@@ -342,8 +374,8 @@ main(int argc, char *argv[]) {
 	}
 
 	/* Construct qname */
-	namelen = strlen(argv[1]);
-	isc_buffer_init(&b, argv[1], namelen);
+	namelen = strlen(argv[0]);
+	isc_buffer_init(&b, argv[0], namelen);
 	isc_buffer_add(&b, namelen);
 	dns_fixedname_init(&qname0);
 	qname = dns_fixedname_name(&qname0);

@@ -77,4 +77,4 @@ cat $keyname.key | grep -v '^; ' | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
 local $key = join("", @rest);
 print "-a $alg -e -k $dn -K $key\n"
-' > sample.key
+' > resolve.key

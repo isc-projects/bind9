@@ -165,7 +165,6 @@ static char spaces[N_SPACES+1] = "          ";
 #define N_TABS 10
 static char tabs[N_TABS+1] = "\t\t\t\t\t\t\t\t\t\t";
 
-#ifdef BIND9
 struct dns_dumpctx {
 	unsigned int		magic;
 	isc_mem_t		*mctx;
@@ -194,7 +193,6 @@ struct dns_dumpctx {
 					    dns_totext_ctx_t *ctx,
 					    isc_buffer_t *buffer, FILE *f);
 };
-#endif /* BIND9 */
 
 #define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 
@@ -702,7 +700,6 @@ dns_master_questiontotext(dns_name_t *owner_name,
 				ISC_FALSE, target));
 }
 
-#ifdef BIND9
 /*
  * Print an rdataset.  'buffer' is a scratch buffer, which must have been
  * dynamically allocated by the caller.  It must be large enough to
@@ -1910,7 +1907,6 @@ dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	return (result);
 }
-#endif /* BIND9 */
 
 isc_result_t
 dns_master_stylecreate(dns_master_style_t **stylep, unsigned int flags,

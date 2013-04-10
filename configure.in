@@ -71,14 +71,6 @@ yes)
 	test "${with_atf+set}" = set || with_atf=yes
 	test "${enable_filter_aaaa+set}" = set || enable_filter_aaaa=yes
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
-	case "$host" in
-	*-darwin*)
-		test "${enable_exportlib+set}" = set || enable_exportlib=yes
-		;;
-	*-linux*)
-		test "${enable_exportlib+set}" = set || enable_exportlib=yes
-		;;
-	esac
 	;;
 esac
 #
@@ -1834,53 +1826,8 @@ AC_SUBST(LIBTOOL_MODE_LINK)
 AC_SUBST(LIBTOOL_ALLOW_UNDEFINED)
 AC_SUBST(LIBTOOL_IN_MAIN)
 
-#
-# build exportable DNS library?
-#
-AC_ARG_ENABLE(exportlib,
-	[  --enable-exportlib	  build exportable library (GNU make required)
-                          [[default=no]]])
-case "$enable_exportlib" in
-	yes)
-		gmake=
-		for x in gmake gnumake make; do
-			if $x --version 2>/dev/null | grep GNU > /dev/null; then
-				gmake=$x
-				break;
-			fi
-		done
-		if test -z "$gmake"; then
-			AC_MSG_ERROR([exportlib requires GNU make.  Install it or disable the feature.])
-		fi
-		LIBEXPORT=lib/export
-		AC_SUBST(LIBEXPORT)
-		BIND9_CO_RULE="%.$O:  \${srcdir}/%.c"
-		;;
-	no|*)
-		BIND9_CO_RULE=".c.$O:"
-		;;
-esac
+BIND9_CO_RULE=".c.$O:"
 AC_SUBST(BIND9_CO_RULE)
-
-AC_ARG_WITH(export-libdir,
-	[  --with-export-libdir[=PATH]
-                          installation directory for the export library
-                          [[EPREFIX/lib/bind9]]],
-	export_libdir="$withval",)
-if test -z "$export_libdir"; then
-	export_libdir="\${exec_prefix}/lib/bind9/"
-fi
-AC_SUBST(export_libdir)
-
-AC_ARG_WITH(export-includedir,
-	[  --with-export-includedir[=PATH]
-                          installation directory for the header files of the
-                          export library [[PREFIX/include/bind9]]],
-	export_includedir="$withval",)
-if test -z "$export_includedir"; then
-	export_includedir="\${prefix}/include/bind9/"
-fi
-AC_SUBST(export_includedir)
 
 #
 # Here begins a very long section to determine the system's networking
@@ -3856,29 +3803,6 @@ AC_CONFIG_FILES([
 	lib/dns/include/dns/Makefile
 	lib/dns/include/dst/Makefile
 	lib/dns/tests/Makefile
-	lib/export/Makefile
-	lib/export/dns/Makefile
-	lib/export/dns/include/Makefile
-	lib/export/dns/include/dns/Makefile
-	lib/export/dns/include/dst/Makefile
-	lib/export/irs/Makefile
-	lib/export/irs/include/Makefile
-	lib/export/irs/include/irs/Makefile
-	lib/export/isc/$thread_dir/Makefile
-	lib/export/isc/$thread_dir/include/Makefile
-	lib/export/isc/$thread_dir/include/isc/Makefile
-	lib/export/isc/Makefile
-	lib/export/isc/include/Makefile
-	lib/export/isc/include/isc/Makefile
-	lib/export/isc/nls/Makefile
-	lib/export/isc/unix/Makefile
-	lib/export/isc/unix/include/Makefile
-	lib/export/isc/unix/include/isc/Makefile
-	lib/export/isccfg/Makefile
-	lib/export/isccfg/include/Makefile
-	lib/export/isccfg/include/isccfg/Makefile
-	lib/export/samples/Makefile
-	lib/export/samples/Makefile-postinstall
 	lib/irs/Makefile
 	lib/irs/include/Makefile
 	lib/irs/include/irs/Makefile
@@ -3917,6 +3841,8 @@ AC_CONFIG_FILES([
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
+	lib/samples/Makefile
+	lib/samples/Makefile-postinstall
 	unit/Makefile
 	unit/unittest.sh
 ])

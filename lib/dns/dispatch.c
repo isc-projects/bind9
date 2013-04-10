@@ -455,7 +455,6 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifdef BIND9
 static void
 dispatch_initrandom(arc4ctx_t *actx, isc_entropy_t *entropy,
 		    isc_mutex_t *lock)
@@ -564,35 +563,6 @@ dispatch_random(arc4ctx_t *actx) {
 
 	return (result);
 }
-#else
-/*
- * For general purpose library, we don't have to be too strict about the
- * quality of random values.  Performance doesn't matter much, either.
- * So we simply use the isc_random module to keep the library as small as
- * possible.
- */
-
-static void
-dispatch_initrandom(arc4ctx_t *actx, isc_entropy_t *entropy,
-		    isc_mutex_t *lock)
-{
-	UNUSED(actx);
-	UNUSED(entropy);
-	UNUSED(lock);
-
-	return;
-}
-
-static isc_uint16_t
-dispatch_random(arc4ctx_t *actx) {
-	isc_uint32_t r;
-
-	UNUSED(actx);
-
-	isc_random_get(&r);
-	return (r & 0xffff);
-}
-#endif	/* BIND9 */
 
 static isc_uint16_t
 dispatch_uniformrandom(arc4ctx_t *actx, isc_uint16_t upper_bound) {
@@ -1039,7 +1009,6 @@ deactivate_dispsocket(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	INSIST(dispsock->portentry != NULL);
 	deref_portentry(disp, &dispsock->portentry);
 
-#ifdef BIND9
 	if (disp->nsockets > DNS_DISPATCH_POOLSOCKS)
 		destroy_dispsocket(disp, &dispsock);
 	else {
@@ -1063,13 +1032,6 @@ deactivate_dispsocket(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 			destroy_dispsocket(disp, &dispsock);
 		}
 	}
-#else
-	/* This kind of optimization isn't necessary for normal use */
-	UNUSED(qid);
-	UNUSED(result);
-
-	destroy_dispsocket(disp, &dispsock);
-#endif
 }
 
 /*
@@ -1858,10 +1820,8 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 	DESTROYLOCK(&mgr->rpool_lock);
 	DESTROYLOCK(&mgr->depool_lock);
 
-#ifdef BIND9
 	if (mgr->entropy != NULL)
 		isc_entropy_detach(&mgr->entropy);
-#endif /* BIND9 */
 	if (mgr->qid != NULL)
 		qid_destroy(mctx, &mgr->qid);
 
@@ -1895,13 +1855,9 @@ open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
 
 	sock = *sockp;
 	if (sock != NULL) {
-#ifdef BIND9
 		result = isc_socket_open(sock);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-#else
-		INSIST(0);
-#endif
 	} else if (dup_socket != NULL) {
 		result = isc_socket_dup(dup_socket, &sock);
 		if (result != ISC_R_SUCCESS)
@@ -1927,11 +1883,7 @@ open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
 		if (*sockp == NULL)
 			isc_socket_detach(&sock);
 		else {
-#ifdef BIND9
 			isc_socket_close(sock);
-#else
-			INSIST(0);
-#endif
 		}
 		return (result);
 	}
@@ -2086,12 +2038,8 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 	if (result != ISC_R_SUCCESS)
 		goto kill_dpool;
 
-#ifdef BIND9
 	if (entropy != NULL)
 		isc_entropy_attach(entropy, &mgr->entropy);
-#else
-	UNUSED(entropy);
-#endif
 
 	dispatch_initrandom(&mgr->arc4ctx, mgr->entropy, &mgr->arc4_lock);
 

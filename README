@@ -61,8 +61,9 @@ BIND 9.10.0
          - New zone file format "map" is an image of a zone database
            that can be loaded directly into memory, allowing much faster
            zone loading.
-         - Up to 32 response-policy zones (RPZ) can now be configured.
-           RPZ performance has been substantially improved.
+         - Substantial improvement in response-policy zone (RPZ)
+           performance.  Up to 32 response-policy zones can be
+           configured with minimal performance loss.
          - ACLs can now be specified based on geographic location
            using the MacMind GeoIP databases.
          - New XML schema (version 3) for the statistics channel
@@ -73,6 +74,9 @@ BIND 9.10.0
            browsers.
          - The statistics channel can now provide data in JSON
            format as well as XML.
+         - The internal and export versions of the BIND libraries
+           (libisc, libdns, etc) have been unified so that external
+           library clients can use the same libraries as BIND itself.
          - New 'dnssec-coverage' tool to check DNSSEC key coverage
            for a zone and report if a lapse in signing coverage has
            been inadvertently scheduled.

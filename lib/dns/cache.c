@@ -509,7 +509,6 @@ dns_cache_setfilename(dns_cache_t *cache, const char *filename) {
 	return (ISC_R_SUCCESS);
 }
 
-#ifdef BIND9
 isc_result_t
 dns_cache_load(dns_cache_t *cache) {
 	isc_result_t result;
@@ -525,28 +524,21 @@ dns_cache_load(dns_cache_t *cache) {
 
 	return (result);
 }
-#endif /* BIND9 */
 
 isc_result_t
 dns_cache_dump(dns_cache_t *cache) {
-#ifdef BIND9
 	isc_result_t result;
-#endif
 
 	REQUIRE(VALID_CACHE(cache));
 
 	if (cache->filename == NULL)
 		return (ISC_R_SUCCESS);
 
-#ifdef BIND9
 	LOCK(&cache->filelock);
 	result = dns_master_dump(cache->mctx, cache->db, NULL,
 				 &dns_master_style_cache, cache->filename);
 	UNLOCK(&cache->filelock);
 	return (result);
-#else
-	return (ISC_R_NOTIMPLEMENTED);
-#endif
 
 }
 

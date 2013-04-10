@@ -1062,13 +1062,11 @@ zone_free(dns_zone_t *zone) {
 		zone_detachdb(zone);
 	if (zone->acache != NULL)
 		dns_acache_detach(&zone->acache);
-#ifdef BIND9
 	if (zone->rpzs != NULL) {
 		REQUIRE(zone->rpz_num < zone->rpzs->p.num_zones);
 		dns_rpz_detach_rpzs(&zone->rpzs);
 		zone->rpz_num = DNS_RPZ_INVALID_NUM;
 	}
-#endif
 	zone_freedbargs(zone);
 	RUNTIME_CHECK(dns_zone_setmasterswithkeys(zone, NULL, NULL, 0)
 		      == ISC_R_SUCCESS);
@@ -2131,12 +2129,10 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	isc_result_t tresult;
 	unsigned int options;
 
-#ifdef BIND9
 	if (zone->rpz_num != DNS_RPZ_INVALID_NUM) {
 		REQUIRE(zone->rpzs != NULL);
 		dns_db_rpz_attach(db, zone->rpzs, zone->rpz_num);
 	}
-#endif
 
 	options = get_master_options(zone);
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
@@ -4190,11 +4186,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	} else {
-#ifdef BIND9
 		result = dns_db_rpz_ready(db);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-#endif
 		zone_attachdb(zone, db);
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 		DNS_ZONE_SETFLAG(zone,
@@ -13293,11 +13287,9 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
 
-#ifdef BIND9
 	result = dns_db_rpz_ready(db);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-#endif
 
 	result = zone_get_from_db(zone, db, &nscount, &soacount,
 				  NULL, NULL, NULL, NULL, NULL, NULL);
@@ -14651,7 +14643,6 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 	if (result == ISC_R_SUCCESS)
 		zmgr->loadtasks = pool;
 
-#ifdef BIND9
 	/*
 	 * We always set all tasks in the zone-load task pool to
 	 * privileged.  This prevents other tasks in the system from
@@ -14666,7 +14657,6 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 	 * set it and forget it.
 	 */
 	isc_taskpool_setprivilege(zmgr->loadtasks, ISC_TRUE);
-#endif
 
 	/* Create or resize the zone memory context pool. */
 	if (zmgr->mctxpool == NULL)

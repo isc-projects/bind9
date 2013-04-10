@@ -599,7 +599,7 @@ try_dscp_v4(void) {
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
-	hints.ai_flags = AI_PASSIVE;
+	hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
 	n = getaddrinfo("127.0.0.1", NULL, &hints, &res0);
 	if (n != 0 || res0 == NULL) {
@@ -610,6 +610,7 @@ try_dscp_v4(void) {
 	}
 
 	s = socket(res0->ai_family, res0->ai_socktype, res0->ai_protocol);
+
 	if (s == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
@@ -660,7 +661,7 @@ try_dscp_v6(void) {
 	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
-	hints.ai_flags = AI_PASSIVE;
+	hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
 	n = getaddrinfo("::1", NULL, &hints, &res0);
 	if (n != 0 || res0 == NULL) {

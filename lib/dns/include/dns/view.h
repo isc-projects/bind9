@@ -191,13 +191,16 @@ struct dns_view {
 	dns_zone_t *			managed_keys;
 	dns_zone_t *			redirect;
 
-#ifdef BIND9
-	/* File in which to store configuration for newly added zones */
+	/* 
+	 * File and configuration data for zones added at runtime
+	 * (only used in BIND9).
+	 *
+	 * XXX: This should be a pointer to an opaque type that
+	 * named implements.
+	 */
 	char *				new_zone_file;
-
 	void *				new_zone_config;
 	void				(*cfg_destroy)(void **);
-#endif
 };
 
 #define DNS_VIEW_MAGIC			ISC_MAGIC('V','i','e','w')
@@ -313,6 +316,24 @@ dns_view_weakdetach(dns_view_t **targetp);
  * Ensures:
  *
  *\li	*viewp is NULL.
+ */
+
+isc_result_t
+dns_view_createzonetable(dns_view_t *view);
+/*%<
+ * Create a zonetable for the view.
+ *
+ * Requires:
+ *
+ *\li	'view' is a valid, unfrozen view.
+ *
+ *\li	'view' does not have a zonetable already.
+ *
+ * Returns:
+ *
+ *\li   	#ISC_R_SUCCESS
+ *
+ *\li	Any error that dns_zt_create() can return.
  */
 
 isc_result_t

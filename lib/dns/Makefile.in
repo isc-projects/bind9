@@ -78,8 +78,10 @@ DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		stats.@O@ tcpmsg.@O@ time.@O@ timer.@O@ tkey.@O@ \
 		tsec.@O@ tsig.@O@ ttl.@O@ update.@O@ validator.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zonekey.@O@ zt.@O@
+PORTDNSOBJS =	client.@O@ ecdb.@O@
 
-OBJS=		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} @GEOIPLINKOBJS@
+OBJS=		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} ${PORTDNSOBJS} \
+		@GEOIPLINKOBJS@
 
 
 # Alphabetically
@@ -108,8 +110,9 @@ DNSSRCS =	acache.c acl.c adb.c byaddr.c \
 		stats.c tcpmsg.c time.c timer.c tkey.c \
 		tsec.c tsig.c ttl.c update.c validator.c \
 		version.c view.c xfrin.c zone.c zonekey.c zt.c ${OTHERSRCS}
+PORTDNSSRCS =	client.c ecdb.c
 
-SRCS = ${DSTSRCS} ${DNSSRCS} @GEOIPLINKSRCS@
+SRCS = ${DSTSRCS} ${DNSSRCS} ${PORTDNSSRCS} @GEOIPLINKSRCS@
 
 SUBDIRS =	include
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
@@ -184,7 +187,7 @@ gen: gen.c
 	${BUILD_CC} ${BUILD_CFLAGS} -I${top_srcdir}/lib/isc/include \
 	${BUILD_CPPFLAGS} ${BUILD_LDFLAGS} -o $@ ${srcdir}/gen.c ${BUILD_LIBS}
 
-rbtdb64.@O@: rbtdb.c
+rbtdb64.@O@: rbtdb64.c rbtdb.c
 
 depend: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h code.h

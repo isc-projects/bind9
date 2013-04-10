@@ -27,6 +27,7 @@
 
 #include <limits.h>
 
+#include <isc/bind9.h>
 #include <isc/json.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -115,8 +116,10 @@ typedef ISC_LIST(debuglink_t)	debuglist_t;
 /* List of all active memory contexts. */
 
 static ISC_LIST(isc__mem_t)	contexts;
+
 static isc_once_t		once = ISC_ONCE_INIT;
 static isc_mutex_t		lock;
+static isc_mutex_t 		createlock;
 
 /*%
  * Total size of lost memory due to a bug of external library.
@@ -218,115 +221,97 @@ static void
 print_active(isc__mem_t *ctx, FILE *out);
 
 /*%
- * The following can be either static or public, depending on build environment.
+ * The following are intended for internal use (indicated by "isc__"
+ * prefix) but are not declared as static, allowing direct access
+ * from unit tests, etc.
  */
 
-#ifdef BIND9
-#define ISC_MEMFUNC_SCOPE
-#else
-#define ISC_MEMFUNC_SCOPE static
-#endif
-
-ISC_MEMFUNC_SCOPE isc_result_t
-isc__mem_createx(size_t init_max_size, size_t target_size,
-		 isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
-		 isc_mem_t **ctxp);
-ISC_MEMFUNC_SCOPE isc_result_t
-isc__mem_createx2(size_t init_max_size, size_t target_size,
-		  isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
-		  isc_mem_t **ctxp, unsigned int flags);
-ISC_MEMFUNC_SCOPE isc_result_t
-isc__mem_create(size_t init_max_size, size_t target_size, isc_mem_t **ctxp);
-ISC_MEMFUNC_SCOPE isc_result_t
+isc_result_t
 isc__mem_create2(size_t init_max_size, size_t target_size,
 		 isc_mem_t **ctxp, unsigned int flags);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_attach(isc_mem_t *source, isc_mem_t **targetp);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_detach(isc_mem_t **ctxp);
-ISC_MEMFUNC_SCOPE void
+void
 isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_destroy(isc_mem_t **ctxp);
-ISC_MEMFUNC_SCOPE isc_result_t
+isc_result_t
 isc__mem_ondestroy(isc_mem_t *ctx, isc_task_t *task, isc_event_t **event);
-ISC_MEMFUNC_SCOPE void *
+void *
 isc___mem_get(isc_mem_t *ctx, size_t size FLARG);
-ISC_MEMFUNC_SCOPE void
+void
 isc___mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_stats(isc_mem_t *ctx, FILE *out);
-ISC_MEMFUNC_SCOPE void *
+void *
 isc___mem_allocate(isc_mem_t *ctx, size_t size FLARG);
-ISC_MEMFUNC_SCOPE void *
+void *
 isc___mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG);
-ISC_MEMFUNC_SCOPE void
+void
 isc___mem_free(isc_mem_t *ctx, void *ptr FLARG);
-ISC_MEMFUNC_SCOPE char *
+char *
 isc___mem_strdup(isc_mem_t *mctx, const char *s FLARG);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_setdestroycheck(isc_mem_t *ctx, isc_boolean_t flag);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_setquota(isc_mem_t *ctx, size_t quota);
-ISC_MEMFUNC_SCOPE size_t
+size_t
 isc__mem_getquota(isc_mem_t *ctx);
-ISC_MEMFUNC_SCOPE size_t
+size_t
 isc__mem_inuse(isc_mem_t *ctx);
-ISC_MEMFUNC_SCOPE size_t
+size_t
 isc__mem_maxinuse(isc_mem_t *ctx);
-ISC_MEMFUNC_SCOPE size_t
+size_t
 isc__mem_total(isc_mem_t *ctx);
-ISC_MEMFUNC_SCOPE isc_boolean_t
+isc_boolean_t
 isc__mem_isovermem(isc_mem_t *ctx);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 		  size_t hiwater, size_t lowater);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_waterack(isc_mem_t *ctx0, int flag);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_setname(isc_mem_t *ctx, const char *name, void *tag);
-ISC_MEMFUNC_SCOPE const char *
+const char *
 isc__mem_getname(isc_mem_t *ctx);
-ISC_MEMFUNC_SCOPE void *
+void *
 isc__mem_gettag(isc_mem_t *ctx);
-ISC_MEMFUNC_SCOPE isc_result_t
+isc_result_t
 isc__mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_setname(isc_mempool_t *mpctx, const char *name);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_destroy(isc_mempool_t **mpctxp);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock);
-ISC_MEMFUNC_SCOPE void *
+void *
 isc___mempool_get(isc_mempool_t *mpctx FLARG);
-ISC_MEMFUNC_SCOPE void
+void
 isc___mempool_put(isc_mempool_t *mpctx, void *mem FLARG);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit);
-ISC_MEMFUNC_SCOPE unsigned int
+unsigned int
 isc__mempool_getfreemax(isc_mempool_t *mpctx);
-ISC_MEMFUNC_SCOPE unsigned int
+unsigned int
 isc__mempool_getfreecount(isc_mempool_t *mpctx);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_setmaxalloc(isc_mempool_t *mpctx, unsigned int limit);
-ISC_MEMFUNC_SCOPE unsigned int
+unsigned int
 isc__mempool_getmaxalloc(isc_mempool_t *mpctx);
-ISC_MEMFUNC_SCOPE unsigned int
+unsigned int
 isc__mempool_getallocated(isc_mempool_t *mpctx);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit);
-ISC_MEMFUNC_SCOPE unsigned int
+unsigned int
 isc__mempool_getfillcount(isc_mempool_t *mpctx);
-#ifdef BIND9
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_printactive(isc_mem_t *ctx0, FILE *file);
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_printallactive(FILE *file);
-ISC_MEMFUNC_SCOPE void
-isc__mem_checkdestroyed(FILE *file);
-ISC_MEMFUNC_SCOPE unsigned int
+unsigned int
 isc__mem_references(isc_mem_t *ctx0);
-#endif
 #endif /* ISC_MEM_TRACKLINES */
 
 static struct isc__memmethods {
@@ -335,10 +320,8 @@ static struct isc__memmethods {
 	/*%
 	 * The following are defined just for avoiding unused static functions.
 	 */
-#ifndef BIND9
 	void *createx, *create, *create2, *ondestroy, *stats,
-		*setquota, *getquota, *setname, *getname, *gettag;
-#endif
+	     *setquota, *getquota, *setname, *getname, *gettag;
 } memmethods = {
 	{
 		isc__mem_attach,
@@ -359,15 +342,17 @@ static struct isc__memmethods {
 		isc__mem_total,
 		isc__mem_isovermem,
 		isc__mempool_create
-	}
-#ifndef BIND9
-	,
-	(void *)isc__mem_createx, (void *)isc__mem_create,
-	(void *)isc__mem_create2, (void *)isc__mem_ondestroy,
-	(void *)isc__mem_stats, (void *)isc__mem_setquota,
-	(void *)isc__mem_getquota, (void *)isc__mem_setname,
-	(void *)isc__mem_getname, (void *)isc__mem_gettag
-#endif
+	},
+	(void *)isc_mem_createx,
+	(void *)isc_mem_create,
+	(void *)isc_mem_create2,
+	(void *)isc_mem_ondestroy,
+	(void *)isc_mem_stats,
+	(void *)isc_mem_setquota,
+	(void *)isc_mem_getquota,
+	(void *)isc_mem_setname,
+	(void *)isc_mem_getname,
+	(void *)isc_mem_gettag
 };
 
 static struct isc__mempoolmethods {
@@ -376,9 +361,7 @@ static struct isc__mempoolmethods {
 	/*%
 	 * The following are defined just for avoiding unused static functions.
 	 */
-#ifndef BIND9
 	void *getfreemax, *getfreecount, *getmaxalloc, *getfillcount;
-#endif
 } mempoolmethods = {
 	{
 		isc__mempool_destroy,
@@ -390,12 +373,11 @@ static struct isc__mempoolmethods {
 		isc__mempool_setname,
 		isc__mempool_associatelock,
 		isc__mempool_setfillcount
-	}
-#ifndef BIND9
-	,
-	(void *)isc__mempool_getfreemax, (void *)isc__mempool_getfreecount,
-	(void *)isc__mempool_getmaxalloc, (void *)isc__mempool_getfillcount
-#endif
+	},
+	(void *)isc_mempool_getfreemax,
+	(void *)isc_mempool_getfreecount,
+	(void *)isc_mempool_getmaxalloc,
+	(void *)isc_mempool_getfillcount
 };
 
 #if ISC_MEM_TRACKLINES
@@ -403,9 +385,7 @@ static struct isc__mempoolmethods {
  * mctx must be locked.
  */
 static inline void
-add_trace_entry(isc__mem_t *mctx, const void *ptr, unsigned int size
-		FLARG)
-{
+add_trace_entry(isc__mem_t *mctx, const void *ptr, unsigned int size FLARG) {
 	debuglink_t *dl;
 	unsigned int i;
 	unsigned int mysize = size;
@@ -893,6 +873,7 @@ default_memfree(void *arg, void *ptr) {
 
 static void
 initialize_action(void) {
+	RUNTIME_CHECK(isc_mutex_init(&createlock) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
 	ISC_LIST_INIT(contexts);
 	totallost = 0;
@@ -902,18 +883,18 @@ initialize_action(void) {
  * Public.
  */
 
-ISC_MEMFUNC_SCOPE isc_result_t
-isc__mem_createx(size_t init_max_size, size_t target_size,
+isc_result_t
+isc_mem_createx(size_t init_max_size, size_t target_size,
 		 isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
 		 isc_mem_t **ctxp)
 {
-	return (isc__mem_createx2(init_max_size, target_size, memalloc, memfree,
-				  arg, ctxp, ISC_MEMFLAG_DEFAULT));
+	return (isc_mem_createx2(init_max_size, target_size, memalloc, memfree,
+				 arg, ctxp, ISC_MEMFLAG_DEFAULT));
 
 }
 
-ISC_MEMFUNC_SCOPE isc_result_t
-isc__mem_createx2(size_t init_max_size, size_t target_size,
+isc_result_t
+isc_mem_createx2(size_t init_max_size, size_t target_size,
 		  isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
 		  isc_mem_t **ctxp, unsigned int flags)
 {
@@ -1046,22 +1027,6 @@ isc__mem_createx2(size_t init_max_size, size_t target_size,
 	return (result);
 }
 
-ISC_MEMFUNC_SCOPE isc_result_t
-isc__mem_create(size_t init_max_size, size_t target_size, isc_mem_t **ctxp) {
-	return (isc__mem_createx2(init_max_size, target_size,
-				  default_memalloc, default_memfree, NULL,
-				  ctxp, ISC_MEMFLAG_DEFAULT));
-}
-
-ISC_MEMFUNC_SCOPE isc_result_t
-isc__mem_create2(size_t init_max_size, size_t target_size,
-		 isc_mem_t **ctxp, unsigned int flags)
-{
-	return (isc__mem_createx2(init_max_size, target_size,
-				  default_memalloc, default_memfree, NULL,
-				  ctxp, flags));
-}
-
 static void
 destroy(isc__mem_t *ctx) {
 	unsigned int i;
@@ -1131,7 +1096,7 @@ destroy(isc__mem_t *ctx) {
 	isc_ondestroy_notify(&ondest, ctx);
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 	isc__mem_t *source = (isc__mem_t *)source0;
 
@@ -1145,7 +1110,7 @@ isc__mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 	*targetp = (isc_mem_t *)source;
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_detach(isc_mem_t **ctxp) {
 	isc__mem_t *ctx;
 	isc_boolean_t want_destroy = ISC_FALSE;
@@ -1177,7 +1142,7 @@ isc__mem_detach(isc_mem_t **ctxp) {
  * isc_mem_detach(&mctx);
  */
 
-ISC_MEMFUNC_SCOPE void
+void
 isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 	isc__mem_t *ctx;
 	isc_boolean_t want_destroy = ISC_FALSE;
@@ -1238,7 +1203,7 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 		destroy(ctx);
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_destroy(isc_mem_t **ctxp) {
 	isc__mem_t *ctx;
 
@@ -1265,8 +1230,8 @@ isc__mem_destroy(isc_mem_t **ctxp) {
 	*ctxp = NULL;
 }
 
-ISC_MEMFUNC_SCOPE isc_result_t
-isc__mem_ondestroy(isc_mem_t *ctx0, isc_task_t *task, isc_event_t **event) {
+isc_result_t
+isc_mem_ondestroy(isc_mem_t *ctx0, isc_task_t *task, isc_event_t **event) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	isc_result_t res;
 
@@ -1277,7 +1242,7 @@ isc__mem_ondestroy(isc_mem_t *ctx0, isc_task_t *task, isc_event_t **event) {
 	return (res);
 }
 
-ISC_MEMFUNC_SCOPE void *
+void *
 isc___mem_get(isc_mem_t *ctx0, size_t size FLARG) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	void *ptr;
@@ -1322,7 +1287,7 @@ isc___mem_get(isc_mem_t *ctx0, size_t size FLARG) {
 	return (ptr);
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc___mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	isc_boolean_t call_water = ISC_FALSE;
@@ -1375,7 +1340,7 @@ isc___mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER);
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_waterack(isc_mem_t *ctx0, int flag) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 
@@ -1433,8 +1398,8 @@ print_active(isc__mem_t *mctx, FILE *out) {
 /*
  * Print the stats[] on the stream "out" with suitable formatting.
  */
-ISC_MEMFUNC_SCOPE void
-isc__mem_stats(isc_mem_t *ctx0, FILE *out) {
+void
+isc_mem_stats(isc_mem_t *ctx0, FILE *out) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	size_t i;
 	const struct stats *s;
@@ -1516,7 +1481,7 @@ isc__mem_stats(isc_mem_t *ctx0, FILE *out) {
  */
 
 static void *
-isc__mem_allocateunlocked(isc_mem_t *ctx0, size_t size) {
+mem_allocateunlocked(isc_mem_t *ctx0, size_t size) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	size_info *si;
 
@@ -1539,7 +1504,7 @@ isc__mem_allocateunlocked(isc_mem_t *ctx0, size_t size) {
 	return (&si[1]);
 }
 
-ISC_MEMFUNC_SCOPE void *
+void *
 isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	size_info *si;
@@ -1549,9 +1514,9 @@ isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 
 	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
 		MCTXLOCK(ctx, &ctx->lock);
-		si = isc__mem_allocateunlocked((isc_mem_t *)ctx, size);
+		si = mem_allocateunlocked((isc_mem_t *)ctx, size);
 	} else {
-		si = isc__mem_allocateunlocked((isc_mem_t *)ctx, size);
+		si = mem_allocateunlocked((isc_mem_t *)ctx, size);
 		MCTXLOCK(ctx, &ctx->lock);
 		if (si != NULL)
 			mem_getstats(ctx, si[-1].u.size);
@@ -1585,7 +1550,7 @@ isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 	return (si);
 }
 
-ISC_MEMFUNC_SCOPE void *
+void *
 isc___mem_reallocate(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	void *new_ptr = NULL;
@@ -1624,7 +1589,7 @@ isc___mem_reallocate(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 	return (new_ptr);
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc___mem_free(isc_mem_t *ctx0, void *ptr FLARG) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	size_info *si;
@@ -1682,7 +1647,7 @@ isc___mem_free(isc_mem_t *ctx0, void *ptr FLARG) {
  * Other useful things.
  */
 
-ISC_MEMFUNC_SCOPE char *
+char *
 isc___mem_strdup(isc_mem_t *mctx0, const char *s FLARG) {
 	isc__mem_t *mctx = (isc__mem_t *)mctx0;
 	size_t len;
@@ -1693,7 +1658,7 @@ isc___mem_strdup(isc_mem_t *mctx0, const char *s FLARG) {
 
 	len = strlen(s);
 
-	ns = isc___mem_allocate((isc_mem_t *)mctx, len + 1 FLARG_PASS);
+	ns = isc__mem_allocate((isc_mem_t *)mctx, len + 1 FLARG_PASS);
 
 	if (ns != NULL)
 		strncpy(ns, s, len + 1);
@@ -1701,7 +1666,7 @@ isc___mem_strdup(isc_mem_t *mctx0, const char *s FLARG) {
 	return (ns);
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_setdestroycheck(isc_mem_t *ctx0, isc_boolean_t flag) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 
@@ -1717,8 +1682,8 @@ isc__mem_setdestroycheck(isc_mem_t *ctx0, isc_boolean_t flag) {
  * Quotas
  */
 
-ISC_MEMFUNC_SCOPE void
-isc__mem_setquota(isc_mem_t *ctx0, size_t quota) {
+void
+isc_mem_setquota(isc_mem_t *ctx0, size_t quota) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 
 	REQUIRE(VALID_CONTEXT(ctx));
@@ -1729,8 +1694,8 @@ isc__mem_setquota(isc_mem_t *ctx0, size_t quota) {
 	MCTXUNLOCK(ctx, &ctx->lock);
 }
 
-ISC_MEMFUNC_SCOPE size_t
-isc__mem_getquota(isc_mem_t *ctx0) {
+size_t
+isc_mem_getquota(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	size_t quota;
 
@@ -1744,7 +1709,7 @@ isc__mem_getquota(isc_mem_t *ctx0) {
 	return (quota);
 }
 
-ISC_MEMFUNC_SCOPE size_t
+size_t
 isc__mem_inuse(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	size_t inuse;
@@ -1759,7 +1724,7 @@ isc__mem_inuse(isc_mem_t *ctx0) {
 	return (inuse);
 }
 
-ISC_MEMFUNC_SCOPE size_t
+size_t
 isc__mem_maxinuse(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	size_t maxinuse;
@@ -1774,7 +1739,7 @@ isc__mem_maxinuse(isc_mem_t *ctx0) {
 	return (maxinuse);
 }
 
-ISC_MEMFUNC_SCOPE size_t
+size_t
 isc__mem_total(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	size_t total;
@@ -1789,9 +1754,9 @@ isc__mem_total(isc_mem_t *ctx0) {
 	return (total);
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_setwater(isc_mem_t *ctx0, isc_mem_water_t water, void *water_arg,
-		 size_t hiwater, size_t lowater)
+		  size_t hiwater, size_t lowater)
 {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	isc_boolean_t callwater = ISC_FALSE;
@@ -1828,7 +1793,7 @@ isc__mem_setwater(isc_mem_t *ctx0, isc_mem_water_t water, void *water_arg,
 		(oldwater)(oldwater_arg, ISC_MEM_LOWATER);
 }
 
-ISC_MEMFUNC_SCOPE isc_boolean_t
+isc_boolean_t
 isc__mem_isovermem(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 
@@ -1842,8 +1807,8 @@ isc__mem_isovermem(isc_mem_t *ctx0) {
 	return (ctx->is_overmem);
 }
 
-ISC_MEMFUNC_SCOPE void
-isc__mem_setname(isc_mem_t *ctx0, const char *name, void *tag) {
+void
+isc_mem_setname(isc_mem_t *ctx0, const char *name, void *tag) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 
 	REQUIRE(VALID_CONTEXT(ctx));
@@ -1855,19 +1820,22 @@ isc__mem_setname(isc_mem_t *ctx0, const char *name, void *tag) {
 	UNLOCK(&ctx->lock);
 }
 
-ISC_MEMFUNC_SCOPE const char *
-isc__mem_getname(isc_mem_t *ctx0) {
+const char *
+isc_mem_getname(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
+	if (ctx->name == NULL)
+		return ("");
+
 	return (ctx->name);
 }
 
-ISC_MEMFUNC_SCOPE void *
-isc__mem_gettag(isc_mem_t *ctx0) {
+void *
+isc_mem_gettag(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-
+	
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	return (ctx->tag);
@@ -1877,7 +1845,7 @@ isc__mem_gettag(isc_mem_t *ctx0) {
  * Memory pool stuff
  */
 
-ISC_MEMFUNC_SCOPE isc_result_t
+isc_result_t
 isc__mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 	isc__mem_t *mctx = (isc__mem_t *)mctx0;
 	isc__mempool_t *mpctx;
@@ -1921,7 +1889,7 @@ isc__mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 	return (ISC_R_SUCCESS);
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_setname(isc_mempool_t *mpctx0, const char *name) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 
@@ -1943,7 +1911,7 @@ isc__mempool_setname(isc_mempool_t *mpctx0, const char *name) {
 #endif
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_destroy(isc_mempool_t **mpctxp) {
 	isc__mempool_t *mpctx;
 	isc__mem_t *mctx;
@@ -2007,7 +1975,7 @@ isc__mempool_destroy(isc_mempool_t **mpctxp) {
 	*mpctxp = NULL;
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_associatelock(isc_mempool_t *mpctx0, isc_mutex_t *lock) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 
@@ -2018,7 +1986,7 @@ isc__mempool_associatelock(isc_mempool_t *mpctx0, isc_mutex_t *lock) {
 	mpctx->lock = lock;
 }
 
-ISC_MEMFUNC_SCOPE void *
+void *
 isc___mempool_get(isc_mempool_t *mpctx0 FLARG) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 	element *item;
@@ -2102,7 +2070,7 @@ isc___mempool_get(isc_mempool_t *mpctx0 FLARG) {
 }
 
 /* coverity[+free : arg-1] */
-ISC_MEMFUNC_SCOPE void
+void
 isc___mempool_put(isc_mempool_t *mpctx0, void *mem FLARG) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 	isc__mem_t *mctx;
@@ -2158,7 +2126,7 @@ isc___mempool_put(isc_mempool_t *mpctx0, void *mem FLARG) {
  * Quotas
  */
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_setfreemax(isc_mempool_t *mpctx0, unsigned int limit) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 
@@ -2173,8 +2141,8 @@ isc__mempool_setfreemax(isc_mempool_t *mpctx0, unsigned int limit) {
 		UNLOCK(mpctx->lock);
 }
 
-ISC_MEMFUNC_SCOPE unsigned int
-isc__mempool_getfreemax(isc_mempool_t *mpctx0) {
+unsigned int
+isc_mempool_getfreemax(isc_mempool_t *mpctx0) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 	unsigned int freemax;
 
@@ -2191,8 +2159,8 @@ isc__mempool_getfreemax(isc_mempool_t *mpctx0) {
 	return (freemax);
 }
 
-ISC_MEMFUNC_SCOPE unsigned int
-isc__mempool_getfreecount(isc_mempool_t *mpctx0) {
+unsigned int
+isc_mempool_getfreecount(isc_mempool_t *mpctx0) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 	unsigned int freecount;
 
@@ -2209,7 +2177,7 @@ isc__mempool_getfreecount(isc_mempool_t *mpctx0) {
 	return (freecount);
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_setmaxalloc(isc_mempool_t *mpctx0, unsigned int limit) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 
@@ -2226,8 +2194,8 @@ isc__mempool_setmaxalloc(isc_mempool_t *mpctx0, unsigned int limit) {
 		UNLOCK(mpctx->lock);
 }
 
-ISC_MEMFUNC_SCOPE unsigned int
-isc__mempool_getmaxalloc(isc_mempool_t *mpctx0) {
+unsigned int
+isc_mempool_getmaxalloc(isc_mempool_t *mpctx0) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 	unsigned int maxalloc;
 
@@ -2244,7 +2212,7 @@ isc__mempool_getmaxalloc(isc_mempool_t *mpctx0) {
 	return (maxalloc);
 }
 
-ISC_MEMFUNC_SCOPE unsigned int
+unsigned int
 isc__mempool_getallocated(isc_mempool_t *mpctx0) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 	unsigned int allocated;
@@ -2262,7 +2230,7 @@ isc__mempool_getallocated(isc_mempool_t *mpctx0) {
 	return (allocated);
 }
 
-ISC_MEMFUNC_SCOPE void
+void
 isc__mempool_setfillcount(isc_mempool_t *mpctx0, unsigned int limit) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 
@@ -2278,8 +2246,8 @@ isc__mempool_setfillcount(isc_mempool_t *mpctx0, unsigned int limit) {
 		UNLOCK(mpctx->lock);
 }
 
-ISC_MEMFUNC_SCOPE unsigned int
-isc__mempool_getfillcount(isc_mempool_t *mpctx0) {
+unsigned int
+isc_mempool_getfillcount(isc_mempool_t *mpctx0) {
 	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
 
 	unsigned int fillcount;
@@ -2297,15 +2265,12 @@ isc__mempool_getfillcount(isc_mempool_t *mpctx0) {
 	return (fillcount);
 }
 
-#ifdef USE_MEMIMPREGISTER
 isc_result_t
 isc__mem_register() {
-	return (isc_mem_register(isc__mem_create2));
+	return (isc_mem_register(isc_mem_create2));
 }
-#endif
 
-#ifdef BIND9
-ISC_MEMFUNC_SCOPE void
+void
 isc__mem_printactive(isc_mem_t *ctx0, FILE *file) {
 #if ISC_MEM_TRACKLINES
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
@@ -2320,8 +2285,8 @@ isc__mem_printactive(isc_mem_t *ctx0, FILE *file) {
 #endif
 }
 
-ISC_MEMFUNC_SCOPE void
-isc__mem_printallactive(FILE *file) {
+void
+isc_mem_printallactive(FILE *file) {
 #if !ISC_MEM_TRACKLINES
 	UNUSED(file);
 #else
@@ -2340,8 +2305,8 @@ isc__mem_printallactive(FILE *file) {
 #endif
 }
 
-ISC_MEMFUNC_SCOPE void
-isc__mem_checkdestroyed(FILE *file) {
+void
+isc_mem_checkdestroyed(FILE *file) {
 #if !ISC_MEM_TRACKLINES
 	UNUSED(file);
 #endif
@@ -2366,7 +2331,7 @@ isc__mem_checkdestroyed(FILE *file) {
 	UNLOCK(&lock);
 }
 
-ISC_MEMFUNC_SCOPE unsigned int
+unsigned int
 isc_mem_references(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	unsigned int references;
@@ -2709,4 +2674,353 @@ isc_mem_renderjson(json_object *memobj) {
 	return (result);
 }
 #endif /* HAVE_JSON */
-#endif /* BIND9 */
+
+static isc_memcreatefunc_t mem_createfunc = NULL;
+
+isc_result_t
+isc_mem_register(isc_memcreatefunc_t createfunc) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
+
+	LOCK(&createlock);
+	if (mem_createfunc == NULL)
+		mem_createfunc = createfunc;
+	else
+		result = ISC_R_EXISTS;
+	UNLOCK(&createlock);
+
+	return (result);
+}
+
+
+isc_result_t
+isc__mem_create2(size_t init_max_size, size_t target_size, isc_mem_t **mctxp,
+		 unsigned int flags)
+{
+	isc_result_t result;
+
+	LOCK(&createlock);
+
+	REQUIRE(mem_createfunc != NULL);
+	result = (*mem_createfunc)(init_max_size, target_size, mctxp, flags);
+
+	UNLOCK(&createlock);
+
+	return (result);
+}
+
+isc_result_t
+isc_mem_create(size_t init_max_size, size_t target_size, isc_mem_t **mctxp) {
+	isc_result_t result;
+
+	if (isc_bind9)
+		return (isc_mem_createx2(init_max_size, target_size,
+					 default_memalloc, default_memfree,
+					 NULL, mctxp, ISC_MEMFLAG_DEFAULT));
+	LOCK(&createlock);
+
+	REQUIRE(mem_createfunc != NULL);
+	result = (*mem_createfunc)(init_max_size, target_size, mctxp,
+				   ISC_MEMFLAG_DEFAULT);
+
+	UNLOCK(&createlock);
+
+	return (result);
+}
+
+isc_result_t
+isc_mem_create2(size_t init_max_size, size_t target_size, isc_mem_t **mctxp,
+		 unsigned int flags)
+{
+	if (isc_bind9)
+		return (isc_mem_createx2(init_max_size, target_size,
+					 default_memalloc, default_memfree,
+					 NULL, mctxp, flags));
+
+	return (isc_mem_createx2(init_max_size, target_size,
+				 default_memalloc, default_memfree,
+				 NULL, mctxp, flags));
+}
+
+void
+isc_mem_attach(isc_mem_t *source, isc_mem_t **targetp) {
+	REQUIRE(ISCAPI_MCTX_VALID(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+
+	if (isc_bind9)
+		isc__mem_attach(source, targetp);
+	else
+		source->methods->attach(source, targetp);
+
+	ENSURE(*targetp == source);
+}
+
+void
+isc_mem_detach(isc_mem_t **mctxp) {
+	REQUIRE(mctxp != NULL && ISCAPI_MCTX_VALID(*mctxp));
+
+	if (isc_bind9)
+		isc__mem_detach(mctxp);
+	else
+		(*mctxp)->methods->detach(mctxp);
+
+	ENSURE(*mctxp == NULL);
+}
+
+void
+isc_mem_destroy(isc_mem_t **mctxp) {
+	REQUIRE(mctxp != NULL && ISCAPI_MCTX_VALID(*mctxp));
+
+	if (isc_bind9)
+		isc__mem_destroy(mctxp);
+	else
+		(*mctxp)->methods->destroy(mctxp);
+
+	ENSURE(*mctxp == NULL);
+}
+
+void
+isc_mem_setdestroycheck(isc_mem_t *mctx, isc_boolean_t flag) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	mctx->methods->setdestroycheck(mctx, flag);
+}
+
+void
+isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
+		 size_t hiwater, size_t lowater)
+{
+	REQUIRE(ISCAPI_MCTX_VALID(ctx));
+
+	if (isc_bind9)
+		isc__mem_setwater(ctx, water, water_arg, hiwater, lowater);
+	else
+		ctx->methods->setwater(ctx, water, water_arg, hiwater, lowater);
+}
+
+void
+isc_mem_waterack(isc_mem_t *ctx, int flag) {
+	REQUIRE(ISCAPI_MCTX_VALID(ctx));
+
+	if (isc_bind9)
+		isc__mem_waterack(ctx, flag);
+	else
+		ctx->methods->waterack(ctx, flag);
+}
+
+size_t
+isc_mem_inuse(isc_mem_t *mctx) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	if (isc_bind9)
+		return (isc__mem_inuse(mctx));
+
+	return (mctx->methods->inuse(mctx));
+}
+
+size_t
+isc_mem_maxinuse(isc_mem_t *mctx) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	if (isc_bind9)
+		return (isc__mem_maxinuse(mctx));
+
+	return (mctx->methods->maxinuse(mctx));
+}
+
+size_t
+isc_mem_total(isc_mem_t *mctx) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	if (isc_bind9)
+		return (isc__mem_total(mctx));
+
+	return (mctx->methods->total(mctx));
+}
+
+isc_boolean_t
+isc_mem_isovermem(isc_mem_t *mctx) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	if (isc_bind9)
+		return (isc__mem_isovermem(mctx));
+
+	return (mctx->methods->isovermem(mctx));
+}
+
+
+isc_result_t
+isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->mpcreate(mctx, size, mpctxp));
+}
+
+void
+isc_mempool_destroy(isc_mempool_t **mpctxp) {
+	REQUIRE(mpctxp != NULL && ISCAPI_MPOOL_VALID(*mpctxp));
+
+	if (isc_bind9)
+		isc__mempool_destroy(mpctxp);
+	else
+		(*mpctxp)->methods->destroy(mpctxp);
+
+	ENSURE(*mpctxp == NULL);
+}
+
+unsigned int
+isc_mempool_getallocated(isc_mempool_t *mpctx) {
+	REQUIRE(ISCAPI_MPOOL_VALID(mpctx));
+
+	if (isc_bind9)
+		return (isc__mempool_getallocated(mpctx));
+
+	return (mpctx->methods->getallocated(mpctx));
+}
+
+void
+isc_mempool_setmaxalloc(isc_mempool_t *mpctx, unsigned int limit) {
+	REQUIRE(ISCAPI_MPOOL_VALID(mpctx));
+
+	if (isc_bind9)
+		isc__mempool_setmaxalloc(mpctx, limit);
+	else
+		mpctx->methods->setmaxalloc(mpctx, limit);
+}
+
+void
+isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit) {
+	REQUIRE(ISCAPI_MPOOL_VALID(mpctx));
+
+	if (isc_bind9)
+		isc__mempool_setfreemax(mpctx, limit);
+	else
+		mpctx->methods->setfreemax(mpctx, limit);
+}
+
+void
+isc_mempool_setname(isc_mempool_t *mpctx, const char *name) {
+	REQUIRE(ISCAPI_MPOOL_VALID(mpctx));
+
+	if (isc_bind9)
+		isc__mempool_setname(mpctx, name);
+	else
+		mpctx->methods->setname(mpctx, name);
+}
+
+void
+isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock) {
+	REQUIRE(ISCAPI_MPOOL_VALID(mpctx));
+
+	if (isc_bind9)
+		isc__mempool_associatelock(mpctx, lock);
+	else
+		mpctx->methods->associatelock(mpctx, lock);
+}
+
+void
+isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit) {
+	REQUIRE(ISCAPI_MPOOL_VALID(mpctx));
+
+	if (isc_bind9)
+		isc__mempool_setfillcount(mpctx, limit);
+	else
+		mpctx->methods->setfillcount(mpctx, limit);
+}
+
+void *
+isc__mem_get(isc_mem_t *mctx, size_t size FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	if (isc_bind9)
+		return (isc___mem_get(mctx, size FLARG_PASS));
+
+	return (mctx->methods->memget(mctx, size FLARG_PASS));
+
+}
+
+void
+isc__mem_put(isc_mem_t *mctx, void *ptr, size_t size FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	if (isc_bind9)
+		isc___mem_put(mctx, ptr, size FLARG_PASS);
+	else
+		mctx->methods->memput(mctx, ptr, size FLARG_PASS);
+}
+
+void
+isc__mem_putanddetach(isc_mem_t **mctxp, void *ptr, size_t size FLARG) {
+	REQUIRE(mctxp != NULL && ISCAPI_MCTX_VALID(*mctxp));
+
+	if (isc_bind9)
+		isc___mem_putanddetach(mctxp, ptr, size FLARG_PASS);
+	else
+		(*mctxp)->methods->memputanddetach(mctxp, ptr, size FLARG_PASS);
+
+	/*
+	 * XXX: We cannot always ensure *mctxp == NULL here
+	 * (see lib/isc/mem.c).
+	 */
+}
+
+void *
+isc__mem_allocate(isc_mem_t *mctx, size_t size FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	if (isc_bind9)
+		return (isc___mem_allocate(mctx, size FLARG_PASS));
+
+	return (mctx->methods->memallocate(mctx, size FLARG_PASS));
+}
+
+void *
+isc__mem_reallocate(isc_mem_t *mctx, void *ptr, size_t size FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	if (isc_bind9)
+		return (isc___mem_reallocate(mctx, ptr, size FLARG_PASS));
+
+	return (mctx->methods->memreallocate(mctx, ptr, size FLARG_PASS));
+}
+
+char *
+isc__mem_strdup(isc_mem_t *mctx, const char *s FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	if (isc_bind9)
+		return (isc___mem_strdup(mctx, s FLARG_PASS));
+
+	return (mctx->methods->memstrdup(mctx, s FLARG_PASS));
+}
+
+void
+isc__mem_free(isc_mem_t *mctx, void *ptr FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	if (isc_bind9)
+		isc___mem_free(mctx, ptr FLARG_PASS);
+	else
+		mctx->methods->memfree(mctx, ptr FLARG_PASS);
+}
+
+void *
+isc__mempool_get(isc_mempool_t *mpctx FLARG) {
+	REQUIRE(ISCAPI_MPOOL_VALID(mpctx));
+
+	if (isc_bind9)
+		return (isc___mempool_get(mpctx FLARG_PASS));
+
+	return (mpctx->methods->get(mpctx FLARG_PASS));
+}
+
+void
+isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
+	REQUIRE(ISCAPI_MPOOL_VALID(mpctx));
+
+	if (isc_bind9)
+		isc___mempool_put(mpctx, mem FLARG_PASS);
+	else
+		mpctx->methods->put(mpctx, mem FLARG_PASS);
+}

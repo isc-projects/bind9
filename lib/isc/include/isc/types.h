@@ -21,7 +21,6 @@
 #define ISC_TYPES_H 1
 
 #include <isc/bind9.h>
-#include <isc/namespace.h>
 
 /*! \file isc/types.h
  * \brief

@@ -2669,7 +2669,7 @@ isc__socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 }
 
 isc_result_t
-isc__socketmgr_getmaxsockets(isc_socketmgr_t *manager, unsigned int *nsockp) {
+isc_socketmgr_getmaxsockets(isc_socketmgr_t *manager, unsigned int *nsockp) {
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(nsockp != NULL);
 
@@ -2677,7 +2677,7 @@ isc__socketmgr_getmaxsockets(isc_socketmgr_t *manager, unsigned int *nsockp) {
 }
 
 void
-isc__socketmgr_setstats(isc_socketmgr_t *manager, isc_stats_t *stats) {
+isc_socketmgr_setstats(isc_socketmgr_t *manager, isc_stats_t *stats) {
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(ISC_LIST_EMPTY(manager->socklist));
 	REQUIRE(manager->stats == NULL);
@@ -4036,3 +4036,5 @@ error:
 	return (xmlrc);
 }
 #endif /* HAVE_LIBXML2 */
+
+#include "../socket_api.c"

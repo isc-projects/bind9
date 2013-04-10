@@ -225,9 +225,7 @@ struct dns_dlzdb {
 	isc_boolean_t		search;
 	char			*dlzname;
 	ISC_LINK(dns_dlzdb_t)	link;
-#ifdef BIND9
 	dns_ssutable_t 		*ssutable;
-#endif
 };
 
 

@@ -75,9 +75,7 @@ dns_lib_initmsgcat(void) {
 
 static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_mem_t *dns_g_mctx = NULL;
-#ifndef BIND9
 static dns_dbimplementation_t *dbimp = NULL;
-#endif
 static isc_boolean_t initialize_done = ISC_FALSE;
 static isc_mutex_t reflock;
 static unsigned int references = 0;
@@ -92,11 +90,9 @@ initialize(void) {
 	if (result != ISC_R_SUCCESS)
 		return;
 	dns_result_register();
-#ifndef BIND9
 	result = dns_ecdb_register(dns_g_mctx, &dbimp);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_mctx;
-#endif
 	result = isc_hash_create(dns_g_mctx, NULL, DNS_NAME_MAXWIRE);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_db;
@@ -117,11 +113,11 @@ initialize(void) {
   cleanup_hash:
 	isc_hash_destroy();
   cleanup_db:
-#ifndef BIND9
-	dns_ecdb_unregister(&dbimp);
+	if (dbimp != NULL)
+		dns_ecdb_unregister(&dbimp);
   cleanup_mctx:
-#endif
-	isc_mem_detach(&dns_g_mctx);
+	if (dns_g_mctx != NULL)
+		isc_mem_detach(&dns_g_mctx);
 }
 
 isc_result_t
@@ -161,8 +157,8 @@ dns_lib_shutdown(void) {
 
 	dst_lib_destroy();
 	isc_hash_destroy();
-#ifndef BIND9
-	dns_ecdb_unregister(&dbimp);
-#endif
-	isc_mem_detach(&dns_g_mctx);
+	if (dbimp != NULL)
+		dns_ecdb_unregister(&dbimp);
+	if (dns_g_mctx != NULL)
+		isc_mem_detach(&dns_g_mctx);
 }

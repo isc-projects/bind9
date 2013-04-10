@@ -1064,7 +1064,10 @@ isc_socket_gettype(isc_socket_t *sock);
 
 /*@{*/
 isc_boolean_t
-isc_socket_isbound(isc_socket_t *sock);
+isc__socket_isbound(isc_socket_t *sock);
+/*%
+ * Intended for internal use in BIND9 only
+ */
 
 void
 isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes);
@@ -1181,7 +1184,6 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr, json_object *stats);
  */
 #endif /* HAVE_JSON */
 
-#ifdef USE_SOCKETIMPREGISTER
 /*%<
  * See isc_socketmgr_create() above.
  */
@@ -1204,7 +1206,6 @@ isc__socket_register(void);
  * usually do not have to care about this function: it would call
  * isc_lib_register(), which internally calls this function.
  */
-#endif /* USE_SOCKETIMPREGISTER */
 
 ISC_LANG_ENDDECLS
 
