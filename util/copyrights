@@ -812,7 +812,7 @@
 ./bin/tests/system/dlzexternal/ns1/named.conf.in	CONF-C	2011
 ./bin/tests/system/dlzexternal/prereq.sh	SH	2010,2011,2012
 ./bin/tests/system/dlzexternal/setup.sh		SH	2010,2012
-./bin/tests/system/dlzexternal/tests.sh		X	2010,2011,2012
+./bin/tests/system/dlzexternal/tests.sh		X	2010,2011,2012,2013
 ./bin/tests/system/dname/clean.sh		SH	2011,2012
 ./bin/tests/system/dname/ns1/named.conf		CONF-C	2011
 ./bin/tests/system/dname/ns1/root.db		ZONE	2011
