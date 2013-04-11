@@ -282,8 +282,6 @@ make_querymessage(dns_message_t *message, dns_name_t *qname0,
 		dns_message_puttempname(message, &qname);
 	if (qrdataset != NULL)
 		dns_message_puttemprdataset(message, &qrdataset);
-	if (message != NULL)
-		dns_message_destroy(&message);
 	return (result);
 }
 
