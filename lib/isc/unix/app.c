@@ -181,13 +181,11 @@ exit_action(int arg) {
 	isc_g_appctx.want_shutdown = ISC_TRUE;
 }
 
-#ifdef ISC_PLATFORM_USETHREADS
 static void
 reload_action(int arg) {
 	UNUSED(arg);
 	isc_g_appctx.want_reload = ISC_TRUE;
 }
-#endif
 #endif
 
 static isc_result_t
@@ -256,11 +254,11 @@ isc__app_ctxstart(isc_appctx_t *ctx0) {
 	result = isc_mutex_init(&ctx->lock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_rcond;
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 	result = isc_mutex_init(&ctx->lock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	ISC_LIST_INIT(ctx->on_run);
 
@@ -616,6 +614,12 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 	UNLOCK(&ctx->lock);
 
 #ifndef ISC_PLATFORM_USETHREADS
+	if (isc_bind9 && ctx == &isc_g_appctx) {
+		result = handle_signal(SIGHUP, reload_action);
+		if (result != ISC_R_SUCCESS)
+			return (ISC_R_SUCCESS);
+	}
+
 	(void) isc__taskmgr_dispatch(ctx->taskmgr);
 	result = evloop(ctx);
 	return (result);
