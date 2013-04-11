@@ -255,7 +255,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* Initialize the lock */
 	result = isc_mutex_init(&cd->lock);
-	if (result != ISC_R_SUCCESS) 
+	if (result != ISC_R_SUCCESS)
 		goto failed;
 
 	/* Open the library */
