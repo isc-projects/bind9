@@ -1339,7 +1339,11 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 
 #ifdef IP_TOS
 		if (cmsgp->cmsg_level == IPPROTO_IP
-		    && cmsgp->cmsg_type == IP_TOS) {
+		    && (cmsgp->cmsg_type == IP_TOS
+#ifdef IP_RECVTOS
+		        || cmsgp->cmsg_type == IP_RECVTOS
+#endif
+			)) {
 			dev->dscp = (int) *(uint8_t *)CMSG_DATA(cmsgp);
 			dev->dscp >>= 2;
 			dev->attributes |= ISC_SOCKEVENTATTR_DSCP;
