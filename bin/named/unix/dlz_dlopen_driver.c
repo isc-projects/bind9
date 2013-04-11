@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -253,7 +253,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* Initialize the lock */
 	result = isc_mutex_init(&cd->lock);
-	if (result != ISC_R_SUCCESS) 
+	if (result != ISC_R_SUCCESS)
 		goto failed;
 
 	/* Open the library */
