@@ -2019,7 +2019,7 @@ resolveaddr_done(isc_task_t *task, isc_event_t *event) {
 				case AF_INET:
 					dns_rdataset_current(rdataset, &rdata);
 					result = dns_rdata_tostruct(&rdata, &rdata_a,
-							            NULL);
+								    NULL);
 					RUNTIME_CHECK(result == ISC_R_SUCCESS);
 					isc_sockaddr_fromin(sa,
 							    &rdata_a.in_addr,
@@ -2029,7 +2029,7 @@ resolveaddr_done(isc_task_t *task, isc_event_t *event) {
 				case AF_INET6:
 					dns_rdataset_current(rdataset, &rdata);
 					result = dns_rdata_tostruct(&rdata, &rdata_aaaa,
-							            NULL);
+								    NULL);
 					RUNTIME_CHECK(result == ISC_R_SUCCESS);
 					isc_sockaddr_fromin6(sa,
 							     &rdata_aaaa.in6_addr,
