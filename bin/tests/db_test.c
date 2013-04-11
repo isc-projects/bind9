@@ -613,10 +613,11 @@ main(int argc, char *argv[]) {
 		} else if (strstr(s, "!V") == s) {
 			DBI_CHECK(dbi);
 			v = atoi(&s[2]);
-			if (v >= dbi->rcount) {
+			if (v >= dbi->rcount || v < 0) {
 				printf("unknown open version %d\n", v);
 				continue;
-			} else if (dbi->rversions[v] == NULL) {
+			}
+			if (dbi->rversions[v] == NULL) {
 				printf("version %d is not open\n", v);
 				continue;
 			}
