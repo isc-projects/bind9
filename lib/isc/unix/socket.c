@@ -1491,8 +1491,9 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 			INSIST(sock->dscp == isc_dscp_check_value);
 	}
 
-	if ((sock->type == isc_sockettype_udp)
-	    && ((dev->attributes & ISC_SOCKEVENTATTR_DSCP) != 0)) {
+	if ((sock->type == isc_sockettype_udp) &&
+	    ((dev->attributes & ISC_SOCKEVENTATTR_DSCP) != 0))
+	{
 		int dscp = (dev->dscp << 2) & 0xff;
 
 #ifdef IP_TOS
@@ -1557,8 +1558,8 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 						 strbuf);
 			}
 		}
-	}
 #endif
+	}
 #endif /* USE_CMSG && ISC_PLATFORM_HAVEIPV6 */
 #else /* ISC_NET_BSD44MSGHDR */
 	msg->msg_accrights = NULL;
