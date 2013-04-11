@@ -427,6 +427,7 @@ ATF_TC_BODY(udp_dscp_v6, tc) {
 	completion_t completion;
 	isc_region_t r;
 	isc_socketevent_t *socketevent;
+	int n;
 
 	UNUSED(tc);
 
@@ -437,7 +438,8 @@ ATF_TC_BODY(udp_dscp_v6, tc) {
 	 * Create two sockets: ::1/5444 and ::1/5445, talking to
 	 * each other.
 	 */
-	inet_pton(AF_INET6, "::1", &in6.s6_addr);
+	n = inet_pton(AF_INET6, "::1", &in6.s6_addr);
+	ATF_REQUIRE(n == 1);
 	isc_sockaddr_fromin6(&addr1, &in6, 5444);
 	isc_sockaddr_fromin6(&addr2, &in6, 5445);
 
@@ -620,6 +622,7 @@ ATF_TC_BODY(tcp_dscp_v6, tc) {
 	char sendbuf[BUFSIZ], recvbuf[BUFSIZ];
 	completion_t completion, completion2;
 	isc_region_t r;
+	int n;
 
 	UNUSED(tc);
 
@@ -629,7 +632,8 @@ ATF_TC_BODY(tcp_dscp_v6, tc) {
 	/*
 	 * Create two sockets: ::1/5444, talking to each other.
 	 */
-	inet_pton(AF_INET6, "::1", &in6.s6_addr);
+	n = inet_pton(AF_INET6, "::1", &in6.s6_addr);
+	ATF_REQUIRE(n == 1);
 	isc_sockaddr_fromin6(&addr1, &in6, 5444);
 
 	result = isc_socket_create(socketmgr, PF_INET6, isc_sockettype_tcp,

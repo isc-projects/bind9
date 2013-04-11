@@ -1826,7 +1826,7 @@ isc_mem_getname(isc_mem_t *ctx0) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	if (ctx->name == NULL)
+	if (ctx->name[0] == 0)
 		return ("");
 
 	return (ctx->name);
