@@ -2447,10 +2447,10 @@
 ./lib/export/samples/Makefile-postinstall.in	MAKE	2009,2012
 ./lib/export/samples/Makefile.in		MAKE	2009,2012,2013
 ./lib/export/samples/nsprobe.c			C	2009,2010,2011,2012,2013
-./lib/export/samples/sample-async.c		C	2009
-./lib/export/samples/sample-gai.c		C	2009,2012
-./lib/export/samples/sample-request.c		C	2009,2012
-./lib/export/samples/sample-update.c		C	2009,2010,2012
+./lib/export/samples/sample-async.c		C	2009,2013
+./lib/export/samples/sample-gai.c		C	2009,2012,2013
+./lib/export/samples/sample-request.c		C	2009,2012,2013
+./lib/export/samples/sample-update.c		C	2009,2010,2012,2013
 ./lib/export/samples/sample.c			C	2009,2012,2013
 ./lib/irs/Makefile.in				MAKE	2009,2012
 ./lib/irs/api					X	2009,2010,2011,2012,2013
