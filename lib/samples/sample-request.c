@@ -261,5 +261,5 @@ main(int argc, char *argv[]) {
 	dns_client_destroy(&client);
 	dns_lib_shutdown();
 
-	exit(0);
+	return (0);
 }

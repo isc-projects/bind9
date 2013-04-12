@@ -398,5 +398,5 @@ main(int argc, char *argv[]) {
 	isc_app_ctxfinish(query_actx);
 	ctxs_destroy(&mctx, &query_actx, &taskmgr, &socketmgr, &timermgr);
 
-	exit(0);
+	return (0);
 }
