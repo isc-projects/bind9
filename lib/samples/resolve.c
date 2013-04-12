@@ -346,6 +346,11 @@ main(int argc, char *argv[]) {
 		isc_sockaddrlist_t *nameservers;
 
 		result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "irs_resconf_load failed: %d\n",
+				result);
+			exit(1);
+		}
 		nameservers = irs_resconf_getnameservers(resconf);
 		result = dns_client_setservers(client, dns_rdataclass_in,
 					       NULL, nameservers);
