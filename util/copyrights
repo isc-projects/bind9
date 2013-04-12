@@ -272,7 +272,9 @@
 ./bin/python/dnssec-checkds.docbook		SGML	2012,2013
 ./bin/python/dnssec-checkds.html		HTML	DOCBOOK
 ./bin/python/dnssec-checkds.py.in		PYTHON	2012,2013
+./bin/python/dnssec-coverage.8			MAN	2013
 ./bin/python/dnssec-coverage.docbook		SGML	2013
+./bin/python/dnssec-coverage.html		HTML	2013
 ./bin/python/dnssec-coverage.py.in		PYTHON	2013
 ./bin/rndc/.gitignore				X	2012
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007,2009,2012
@@ -2628,10 +2630,10 @@
 ./lib/export/samples/Makefile-postinstall.in	MAKE	2009,2012
 ./lib/export/samples/Makefile.in		MAKE	2009,2012,2013
 ./lib/export/samples/nsprobe.c			C	2009,2010,2011,2012,2013
-./lib/export/samples/sample-async.c		C	2009
-./lib/export/samples/sample-gai.c		C	2009,2012
-./lib/export/samples/sample-request.c		C	2009,2012
-./lib/export/samples/sample-update.c		C	2009,2010,2012
+./lib/export/samples/sample-async.c		C	2009,2013
+./lib/export/samples/sample-gai.c		C	2009,2012,2013
+./lib/export/samples/sample-request.c		C	2009,2012,2013
+./lib/export/samples/sample-update.c		C	2009,2010,2012,2013
 ./lib/export/samples/sample.c			C	2009,2012,2013
 ./lib/irs/Makefile.in				MAKE	2009,2012
 ./lib/irs/api					X	2009,2010,2011,2012,2013
