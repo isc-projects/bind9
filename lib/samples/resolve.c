@@ -37,6 +37,7 @@
 #include <isc/util.h>
 
 #include <irs/resconf.h>
+#include <irs/netdb.h>
 
 #include <dns/client.h>
 #include <dns/fixedname.h>
