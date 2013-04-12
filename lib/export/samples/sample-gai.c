@@ -73,5 +73,5 @@ main(int argc, char *argv[]) {
 	do_gai(AF_INET6, argv[1]);
 	do_gai(AF_UNSPEC, argv[1]);
 
-	exit(0);
+	return (0);
 }

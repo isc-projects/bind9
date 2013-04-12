@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -784,9 +784,9 @@ process_answer(isc_task_t *task, isc_event_t *event) {
 				switch (family) {
 				case AF_INET:
 					dns_rdataset_current(rdataset, &rdata);
-					dns_rdata_tostruct(&rdata, &rdata_a,
-							   NULL);
-
+					result = dns_rdata_tostruct(&rdata, &rdata_a,
+								    NULL);
+					RUNTIME_CHECK(result == ISC_R_SUCCESS);
 					SIN(ai->ai_addr)->sin_port =
 						resstate->head->ai_port;
 					memcpy(&SIN(ai->ai_addr)->sin_addr,
@@ -795,8 +795,9 @@ process_answer(isc_task_t *task, isc_event_t *event) {
 					break;
 				case AF_INET6:
 					dns_rdataset_current(rdataset, &rdata);
-					dns_rdata_tostruct(&rdata, &rdata_aaaa,
-							   NULL);
+					result = dns_rdata_tostruct(&rdata, &rdata_aaaa,
+								    NULL);
+					RUNTIME_CHECK(result == ISC_R_SUCCESS);
 					SIN6(ai->ai_addr)->sin6_port =
 						resstate->head->ai_port;
 					memcpy(&SIN6(ai->ai_addr)->sin6_addr,
