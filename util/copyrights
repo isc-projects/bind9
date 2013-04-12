@@ -2848,7 +2848,6 @@
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004,2005,2007
 ./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004,2005,2006,2007
-./lib/isc/include/isc/namespace.h		C	2009,2010,2011,2012,2013
 ./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/netscope.h		C	2002,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/ondestroy.h		C	2000,2001,2004,2005,2006,2007
@@ -2897,7 +2896,6 @@
 ./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2011,2012,2013
 ./lib/isc/md5.c					C	2000,2001,2004,2005,2007,2009
 ./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012,2013
-./lib/isc/mem_api.c				C	2009,2010,2012
 ./lib/isc/mips/Makefile.in			MAKE	2007,2012
 ./lib/isc/mips/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/mips/include/isc/Makefile.in		MAKE	2007,2012
@@ -2963,7 +2961,6 @@
 ./lib/isc/strtoul.c				C	2003,2004,2005,2007
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2011,2012,2013
 ./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./lib/isc/task_api.c				C	2009,2010,2011,2012
 ./lib/isc/task_p.h				C	2000,2001,2004,2005,2007,2009,2011,2012,2013
 ./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007,2011,2012,2013
 ./lib/isc/tests/Atffile				X	2011
@@ -2981,7 +2978,6 @@
 ./lib/isc/tests/task_test.c			C	2011,2012
 ./lib/isc/tests/taskpool_test.c			C	2011,2012
 ./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008,2009,2011,2012,2013
-./lib/isc/timer_api.c				C	2009,2012
 ./lib/isc/timer_p.h				C	2000,2001,2004,2005,2007,2009
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2009,2012
 ./lib/isc/unix/app.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2013
@@ -3262,8 +3258,7 @@
 ./lib/samples/Makefile-postinstall.in		MAKE	2009,2012,2013
 ./lib/samples/Makefile.in			MAKE	2009,2012,2013
 ./lib/samples/nsprobe.c				C	2009,2010,2011,2012,2013
-./lib/samples/request.c				C	2009,2012,2013
-./lib/samples/resolve.c				C	2013
+./lib/samples/resolve.c				C	2009,2012,2013
 ./lib/samples/rootkey.sh			SH	2013
 ./lib/samples/sample-async.c			C	2009,2013
 ./lib/samples/sample-gai.c			C	2009,2012,2013
