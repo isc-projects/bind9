@@ -32,7 +32,7 @@ cat ns4/named.conf.in > ns4/named.conf
 make_key () {
     $RNDCCONFGEN -r random.data -k key$1 -A $2 -s 10.53.0.4 -p 995${1} \
             > ns4/key${1}.conf
-    egrep -v '(Start|End|Use|^[^#])' ns4/key$1.conf | cut -c3- | \
+    egrep -v '(^# Start|^# End|^# Use|^[^#])' ns4/key$1.conf | cut -c3- | \
             sed 's/allow { 10.53.0.4/allow { any/' >> ns4/named.conf
 }
 
