@@ -63,6 +63,7 @@ sub digkeys ($) {
 }
 
 my $anchor;
+my $owner = ".";
 while (<>) {
 	next unless m{^([a-z0-9.-]*)\s+KEYDATA\s+(\d+)\s+(\d+)\s+(\d+)\s+};
 	my $k = getkey *ARGV, {
@@ -71,6 +72,11 @@ while (<>) {
 		addhd    => $3,
 		removehd => $4,
 	};
+	if ($k->{name} eq "") {
+		$k->{name} = $owner;
+	} else {
+		$owner = $k->{name};
+	}
 	$k->{name} =~ s{[.]*$}{.};
 	push @{$anchor->{$k->{name}}}, $k;
 }
