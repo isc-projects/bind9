@@ -1,3 +1,6 @@
+3552.	[bug]		Wrong getopt option string for 'nsupdate -r'.
+			[RT# 33280]
+
 3551.	[bug]		resolver.querydscp[46] were uninitialized.  [RT #32686]
 
 3550.	[func]		Unified the internal and export versions of the
