@@ -934,7 +934,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	INSIST(count == 1);
 }
 
-#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:rR::t:u:"
+#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:r:R::t:u:"
 
 static void
 pre_parse_args(int argc, char **argv) {
