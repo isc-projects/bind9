@@ -7776,6 +7776,8 @@ dns_resolver_create(dns_view_t *view,
 			ISC_TF((dispattr & DNS_DISPATCHATTR_EXCLUSIVE) != 0);
 	}
 
+	res->querydscp4 = -1;
+	res->querydscp6 = -1;
 	res->references = 1;
 	res->exiting = ISC_FALSE;
 	res->frozen = ISC_FALSE;

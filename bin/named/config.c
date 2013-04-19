@@ -64,7 +64,6 @@ options {\n\
 	session-keyalg hmac-sha256;\n\
 	deallocate-on-exit true;\n\
 #	directory <none>\n\
-	dscp 0;\n\
 	dump-file \"named_dump.db\";\n\
 	fake-iquery no;\n\
 	has-old-clients false;\n\
@@ -903,19 +902,15 @@ ns_config_getport(const cfg_obj_t *config, in_port_t *portp) {
 
 isc_result_t
 ns_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp) {
-	const cfg_obj_t *maps[2];
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *dscpobj = NULL;
 	isc_result_t result;
-	int i;
 
 	(void)cfg_map_get(config, "options", &options);
-	i = 0;
-	if (options != NULL)
-		maps[i++] = options;
-	maps[i] = NULL;
+	if (options == NULL)
+		return (ISC_R_SUCCESS);
 
-	result = ns_config_get(maps, "dscp", &dscpobj);
+	result = cfg_map_get(options, "dscp", &dscpobj);
 	if (result != ISC_R_SUCCESS || dscpobj == NULL) {
 		*dscpp = -1;
 		return (ISC_R_SUCCESS);
