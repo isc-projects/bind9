@@ -1,5 +1,7 @@
+3553.	[bug]		Address suspected double free in acache. [RT #33252]
+
 3552.	[bug]		Wrong getopt option string for 'nsupdate -r'.
-			[RT# 33280]
+			[RT #33280]
 
 3551.	[bug]		resolver.querydscp[46] were uninitialized.  [RT #32686]
 
