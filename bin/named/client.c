@@ -1257,11 +1257,13 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 			}
 			/*
 			 * Some error responses cannot be 'slipped',
-			 * so don't try.
-			 * This will counted with dropped queries in the
-			 * QryDropped counter.
+			 * so don't try to slip any error responses.
 			 */
 			if (!client->view->rrl->log_only) {
+				isc_stats_increment(ns_g_server->nsstats,
+						dns_nsstatscounter_ratedropped);
+				isc_stats_increment(ns_g_server->nsstats,
+						dns_nsstatscounter_dropped);
 				ns_client_next(client, DNS_R_DROP);
 				return;
 			}

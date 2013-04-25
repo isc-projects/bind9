@@ -1,3 +1,7 @@
+3554.	[bug]		RRL failed to correctly rate-limit upward
+			referrals and failed to count dropped error
+			responses in the statistics. [RT #33225]
+
 3553.	[bug]		Address suspected double free in acache. [RT #33252]
 
 3552.	[bug]		Wrong getopt option string for 'nsupdate -r'.

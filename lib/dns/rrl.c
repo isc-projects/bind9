@@ -167,11 +167,11 @@ set_age(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_stdtime_t now) {
 	if (ts >= DNS_RRL_MAX_TS) {
 		ts_gen = (ts_gen + 1) % DNS_RRL_TS_BASES;
 		for (e_old = ISC_LIST_TAIL(rrl->lru), i = 0;
-		     e_old != NULL && e_old->ts_gen == ts_gen;
+		     e_old != NULL && (e_old->ts_gen == ts_gen ||
+				       !ISC_LINK_LINKED(e_old, hlink));
 		     e_old = ISC_LIST_PREV(e_old, lru), ++i)
 		{
-			if (e_old->ts_valid)
-				e_old->ts_valid = ISC_FALSE;
+			e_old->ts_valid = ISC_FALSE;
 		}
 		if (i != 0)
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
@@ -403,9 +403,16 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 	memset(key, 0, sizeof(*key));
 
 	key->s.rtype = rtype;
-	if (rtype == DNS_RRL_RTYPE_QUERY || rtype == DNS_RRL_RTYPE_DELEGATION) {
-		key->s.qclass = qclass & 0xff;
+	if (rtype == DNS_RRL_RTYPE_QUERY) {
 		key->s.qtype = qtype;
+		key->s.qclass = qclass & 0xff;
+	} else if (rtype == DNS_RRL_RTYPE_REFERRAL ||
+		   rtype == DNS_RRL_RTYPE_NODATA) {
+		/*
+		 * Because there is no qtype in the empty answer sections of
+		 * referral and NODATA responses, count them as the same.
+		 */
+		key->s.qclass = qclass & 0xff;
 	}
 
 	if (qname != NULL && qname->labels != 0) {
@@ -440,33 +447,40 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 	}
 }
 
-static inline int
-response_balance(const dns_rrl_t *rrl, const dns_rrl_entry_t *e, int age) {
-	int balance, rate = 0;
-
-	balance = e->responses;
-	if (balance < 0)
-		switch (e->key.s.rtype) {
-		case DNS_RRL_RTYPE_QUERY:
-		case DNS_RRL_RTYPE_DELEGATION:
-			rate = rrl->scaled_responses_per_second;
-			break;
-		case DNS_RRL_RTYPE_NXDOMAIN:
-			rate = rrl->scaled_nxdomains_per_second;
-			break;
-		case DNS_RRL_RTYPE_ERROR:
-			rate = rrl->scaled_errors_per_second;
-			break;
-		case DNS_RRL_RTYPE_ALL:
-			rate = rrl->scaled_all_per_second;
-			break;
-		case DNS_RRL_RTYPE_TCP:
-			rate = 1;
-			break;
-		default:
-			INSIST(0);
+static inline dns_rrl_rate_t *
+get_rate(dns_rrl_t *rrl, dns_rrl_rtype_t rtype) {
+	switch (rtype) {
+	case DNS_RRL_RTYPE_QUERY:
+		return (&rrl->responses_per_second);
+	case DNS_RRL_RTYPE_REFERRAL:
+		return (&rrl->referrals_per_second);
+	case DNS_RRL_RTYPE_NODATA:
+		return (&rrl->nodata_per_second);
+	case DNS_RRL_RTYPE_NXDOMAIN:
+		return (&rrl->nxdomains_per_second);
+	case DNS_RRL_RTYPE_ERROR:
+		return (&rrl->errors_per_second);
+	case DNS_RRL_RTYPE_ALL:
+		return (&rrl->all_per_second);
+	default:
+		INSIST(0);
 	}
-	balance += age * rate;
+	return (NULL);
+}
+
+static int
+response_balance(dns_rrl_t *rrl, const dns_rrl_entry_t *e, int age) {
+	dns_rrl_rate_t *ratep;
+	int balance, rate;
+
+	if (e->key.s.rtype == DNS_RRL_RTYPE_TCP) {
+		rate = 1;
+	} else {
+		ratep = get_rate(rrl, e->key.s.rtype);
+		rate = ratep->scaled;
+	}
+
+	balance = e->responses + age * rate;
 	if (balance > rate)
 		balance = rate;
 	return (balance);
@@ -551,7 +565,7 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr,
 			e = NULL;
 			break;
 		}
-		if (!e->logged && response_balance(rrl, e, age) >= 0)
+		if (!e->logged && response_balance(rrl, e, age) > 0)
 			break;
 	}
 	if (e == NULL) {
@@ -598,35 +612,16 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 		const isc_sockaddr_t *client_addr, isc_stdtime_t now,
 		char *log_buf, unsigned int log_buf_len)
 {
-	int rate, new_rate, *ratep, slip, new_slip, age, log_secs, min;
-	const char *rate_str = NULL;
+	int rate, new_rate, slip, new_slip, age, log_secs, min;
+	dns_rrl_rate_t *ratep;
 	dns_rrl_entry_t const *credit_e;
 
 	/*
 	 * Pick the rate counter.
 	 * Optionally adjust the rate by the estimated query/second rate.
 	 */
-	switch (e->key.s.rtype) {
-	case DNS_RRL_RTYPE_QUERY:
-	case DNS_RRL_RTYPE_DELEGATION:
-		rate = rrl->responses_per_second;
-		ratep = &rrl->scaled_responses_per_second;
-		break;
-	case DNS_RRL_RTYPE_NXDOMAIN:
-		rate = rrl->nxdomains_per_second;
-		ratep = &rrl->scaled_nxdomains_per_second;
-		break;
-	case DNS_RRL_RTYPE_ERROR:
-		rate = rrl->errors_per_second;
-		ratep = &rrl->scaled_errors_per_second;
-		break;
-	case DNS_RRL_RTYPE_ALL:
-		rate = rrl->all_per_second;
-		ratep = &rrl->scaled_all_per_second;
-		break;
-	default:
-		INSIST(0);
-	}
+	ratep = get_rate(rrl, e->key.s.rtype);
+	rate = ratep->r;
 	if (rate == 0)
 		return (DNS_RRL_RESULT_OK);
 
@@ -648,36 +643,16 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 		new_rate = (int) (rate * scale);
 		if (new_rate < 1)
 			new_rate = 1;
-		if (*ratep != new_rate) {
-			if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG1)) {
-				switch (e->key.s.rtype) {
-				case DNS_RRL_RTYPE_QUERY:
-				case DNS_RRL_RTYPE_DELEGATION:
-					rate_str = "responses-per-second";
-					break;
-				case DNS_RRL_RTYPE_NXDOMAIN:
-					rate_str = "nxdomains-per-second";
-					break;
-				case DNS_RRL_RTYPE_ERROR:
-					rate_str = "errors-per-second";
-					break;
-				case DNS_RRL_RTYPE_ALL:
-					rate_str = "all-per-second";
-					break;
-				case DNS_RRL_RTYPE_FREE:
-				case DNS_RRL_RTYPE_TCP:
-					INSIST(0);
-				}
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-					      DNS_LOGMODULE_REQUEST,
-					      DNS_RRL_LOG_DEBUG1,
-					      "%d qps scaled %s by %.2f"
-					      " from %d to %d",
-					      (int)qps, rate_str, scale,
-					      rate, new_rate);
-			}
+		if (ratep->scaled != new_rate) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
+				      DNS_LOGMODULE_REQUEST,
+				      DNS_RRL_LOG_DEBUG1,
+				      "%d qps scaled %s by %.2f"
+				      " from %d to %d",
+				      (int)qps, ratep->str, scale,
+				      rate, new_rate);
 			rate = new_rate;
-			*ratep = rate;
+			ratep->scaled = rate;
 		}
 	}
 
@@ -736,22 +711,21 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 	/*
 	 * Drop this response unless it should slip or leak.
 	 */
-	slip = rrl->slip;
+	slip = rrl->slip.r;
 	if (slip > 2 && scale < 1.0) {
 		new_slip = (int) (slip * scale);
 		if (new_slip < 2)
 			new_slip = 2;
-		if (rrl->scaled_slip != new_slip) {
-			if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG1))
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-					      DNS_LOGMODULE_REQUEST,
-					      DNS_RRL_LOG_DEBUG1,
-					      "%d qps scaled slip"
-					      " by %.2f from %d to %d",
-					      (int)qps, scale,
-					      slip, new_slip);
+		if (rrl->slip.scaled != new_slip) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
+				      DNS_LOGMODULE_REQUEST,
+				      DNS_RRL_LOG_DEBUG1,
+				      "%d qps scaled slip"
+				      " by %.2f from %d to %d",
+				      (int)qps, scale,
+				      slip, new_slip);
 			slip = new_slip;
-			rrl->scaled_slip = slip;
+			rrl->slip.scaled = slip;
 		}
 	}
 	if (slip != 0 && e->key.s.rtype != DNS_RRL_RTYPE_ALL) {
@@ -853,34 +827,36 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e,
 
 	switch (e->key.s.rtype) {
 	case DNS_RRL_RTYPE_QUERY:
-		ADD_LOG_CSTR(&lb, "response");
 		break;
-	case DNS_RRL_RTYPE_DELEGATION:
-		ADD_LOG_CSTR(&lb, "referral");
+	case DNS_RRL_RTYPE_REFERRAL:
+		ADD_LOG_CSTR(&lb, "referral ");
+		break;
+	case DNS_RRL_RTYPE_NODATA:
+		ADD_LOG_CSTR(&lb, "NODATA ");
 		break;
 	case DNS_RRL_RTYPE_NXDOMAIN:
-		ADD_LOG_CSTR(&lb, "NXDOMAIN response");
+		ADD_LOG_CSTR(&lb, "NXDOMAIN ");
 		break;
 	case DNS_RRL_RTYPE_ERROR:
 		if (resp_result == ISC_R_SUCCESS) {
-			ADD_LOG_CSTR(&lb, "error response");
+			ADD_LOG_CSTR(&lb, "error ");
 		} else {
 			rstr = isc_result_totext(resp_result);
 			add_log_str(&lb, rstr, strlen(rstr));
-			ADD_LOG_CSTR(&lb, " response");
+			ADD_LOG_CSTR(&lb, " error ");
 		}
 		break;
 	case DNS_RRL_RTYPE_ALL:
-		ADD_LOG_CSTR(&lb, "all response");
+		ADD_LOG_CSTR(&lb, "all ");
 		break;
 	default:
 		INSIST(0);
 	}
 
 	if (plural)
-		ADD_LOG_CSTR(&lb, "s to ");
+		ADD_LOG_CSTR(&lb, "responses to ");
 	else
-		ADD_LOG_CSTR(&lb, " to ");
+		ADD_LOG_CSTR(&lb, "response to ");
 
 	memset(&cidr, 0, sizeof(cidr));
 	if (e->key.s.ipv6) {
@@ -899,7 +875,8 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e,
 	add_log_str(&lb, strbuf, strlen(strbuf));
 
 	if (e->key.s.rtype == DNS_RRL_RTYPE_QUERY ||
-	    e->key.s.rtype == DNS_RRL_RTYPE_DELEGATION ||
+	    e->key.s.rtype == DNS_RRL_RTYPE_REFERRAL ||
+	    e->key.s.rtype == DNS_RRL_RTYPE_NODATA ||
 	    e->key.s.rtype == DNS_RRL_RTYPE_NXDOMAIN) {
 		qbuf = get_qname(rrl, e);
 		if (save_qname && qbuf == NULL &&
@@ -947,8 +924,10 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e,
 		if (e->key.s.rtype != DNS_RRL_RTYPE_NXDOMAIN) {
 			ADD_LOG_CSTR(&lb, " ");
 			(void)dns_rdataclass_totext(e->key.s.qclass, &lb);
-			ADD_LOG_CSTR(&lb, " ");
-			(void)dns_rdatatype_totext(e->key.s.qtype, &lb);
+			if (e->key.s.rtype == DNS_RRL_RTYPE_QUERY) {
+				ADD_LOG_CSTR(&lb, " ");
+				(void)dns_rdatatype_totext(e->key.s.qtype, &lb);
+			}
 		}
 		snprintf(strbuf, sizeof(strbuf), "  (%08x)",
 			 e->key.s.qname_hash);
@@ -1117,14 +1096,23 @@ dns_rrl(dns_view_t *view,
 	 * Find the right kind of entry, creating it if necessary.
 	 * If that is impossible, then nothing more can be done
 	 */
-	if (resp_result == ISC_R_SUCCESS)
+	switch (resp_result) {
+	case ISC_R_SUCCESS:
 		rtype = DNS_RRL_RTYPE_QUERY;
-	else if (resp_result == DNS_R_DELEGATION)
-		rtype = DNS_RRL_RTYPE_DELEGATION;
-	else if (resp_result == DNS_R_NXDOMAIN)
+		break;
+	case DNS_R_DELEGATION:
+		rtype = DNS_RRL_RTYPE_REFERRAL;
+		break;
+	case DNS_R_NXRRSET:
+		rtype = DNS_RRL_RTYPE_NODATA;
+		break;
+	case DNS_R_NXDOMAIN:
 		rtype = DNS_RRL_RTYPE_NXDOMAIN;
-	else
+		break;
+	default:
 		rtype = DNS_RRL_RTYPE_ERROR;
+		break;
+	}
 	e = get_entry(rrl, client_addr, qclass, qtype, qname, rtype,
 		      now, ISC_TRUE, log_buf, log_buf_len);
 	if (e == NULL) {
@@ -1148,7 +1136,7 @@ dns_rrl(dns_view_t *view,
 	rrl_result = debit_rrl_entry(rrl, e, qps, scale, client_addr, now,
 				     log_buf, log_buf_len);
 
-	if (rrl->all_per_second != 0) {
+	if (rrl->all_per_second.r != 0) {
 		/*
 		 * We must debit the all-per-second token bucket if we have
 		 * an all-per-second limit for the IP address.

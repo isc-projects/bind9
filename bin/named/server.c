@@ -1835,7 +1835,7 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	return (ISC_R_SUCCESS);
 }
 
-#define CHECK_RRL(obj, cond, pat, val1, val2)				\
+#define CHECK_RRL(cond, pat, val1, val2)				\
 	do {								\
 		if (!(cond)) {						\
 			cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,	\
@@ -1843,6 +1843,22 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 			result = ISC_R_RANGE;				\
 			goto cleanup;					\
 		    }							\
+	} while (0)
+
+#define CHECK_RRL_RATE(rate, def, max_rate, name)			\
+	do {								\
+		obj = NULL;						\
+		rrl->rate.str = name;					\
+		result = cfg_map_get(map, name, &obj);			\
+		if (result == ISC_R_SUCCESS) {				\
+			rrl->rate.r = cfg_obj_asuint32(obj);		\
+			CHECK_RRL(rrl->rate.r <= max_rate,		\
+				  name" %d > %d",			\
+				  rrl->rate.r, max_rate);		\
+		} else {						\
+			rrl->rate.r = def;				\
+		}							\
+		rrl->rate.scaled = rrl->rate.r;				\
 	} while (0)
 
 static isc_result_t
@@ -1875,86 +1891,39 @@ configure_rrl(dns_view_t *view, const cfg_obj_t *config, const cfg_obj_t *map) {
 	result = cfg_map_get(map, "max-table-size", &obj);
 	if (result == ISC_R_SUCCESS) {
 		i = cfg_obj_asuint32(obj);
-		CHECK_RRL(obj, i >= min_entries,
+		CHECK_RRL(i >= min_entries,
 			  "max-table-size %d < min-table-size %d",
 			  i, min_entries);
 	}
 	rrl->max_entries = i;
 
-	i = 0;
-	obj = NULL;
-	result = cfg_map_get(map, "responses-per-second", &obj);
-	if (result == ISC_R_SUCCESS) {
-		i = cfg_obj_asuint32(obj);
-		CHECK_RRL(obj, i <= DNS_RRL_MAX_RATE,
-			  "responses-per-second %d > %d",
-			  i, DNS_RRL_MAX_RATE);
-	}
-	rrl->responses_per_second = i;
-	rrl->scaled_responses_per_second = rrl->responses_per_second;
+	CHECK_RRL_RATE(responses_per_second, 0, DNS_RRL_MAX_RATE,
+		       "responses-per-second");
+	CHECK_RRL_RATE(referrals_per_second,
+		       rrl->responses_per_second.r, DNS_RRL_MAX_RATE,
+		       "referrals-per-second");
+	CHECK_RRL_RATE(nodata_per_second,
+		       rrl->responses_per_second.r, DNS_RRL_MAX_RATE,
+		       "nodata-per-second");
+	CHECK_RRL_RATE(nxdomains_per_second,
+		       rrl->responses_per_second.r, DNS_RRL_MAX_RATE,
+		       "nxdomains-per-second");
+	CHECK_RRL_RATE(errors_per_second,
+		       rrl->responses_per_second.r, DNS_RRL_MAX_RATE,
+		       "errors-per-second");
 
-	/*
-	 * The default error rate is the response rate,
-	 * and so off by default.
-	 */
-	i = rrl->responses_per_second;
-	obj = NULL;
-	result = cfg_map_get(map, "errors-per-second", &obj);
-	if (result == ISC_R_SUCCESS) {
-		i = cfg_obj_asuint32(obj);
-		CHECK_RRL(obj, i <= DNS_RRL_MAX_RATE,
-			  "errors-per-second %d > %d",
-			  i, DNS_RRL_MAX_RATE);
-	}
-	rrl->errors_per_second = i;
-	rrl->scaled_errors_per_second = rrl->errors_per_second;
-	/*
-	 * The default NXDOMAIN rate is the response rate,
-	 * and so off by default.
-	 */
-	i = rrl->responses_per_second;
-	obj = NULL;
-	result = cfg_map_get(map, "nxdomains-per-second", &obj);
-	if (result == ISC_R_SUCCESS) {
-		i = cfg_obj_asuint32(obj);
-		CHECK_RRL(obj, i <= DNS_RRL_MAX_RATE,
-			  "nxdomains-per-second %d > %d",
-			  i, DNS_RRL_MAX_RATE);
-	}
-	rrl->nxdomains_per_second = i;
-	rrl->scaled_nxdomains_per_second = rrl->nxdomains_per_second;
+	CHECK_RRL_RATE(all_per_second, 0, DNS_RRL_MAX_RATE,
+		       "all-per-second");
 
-	/*
-	 * The all-per-second rate is off by default.
-	 */
-	i = 0;
-	obj = NULL;
-	result = cfg_map_get(map, "all-per-second", &obj);
-	if (result == ISC_R_SUCCESS) {
-		i = cfg_obj_asuint32(obj);
-		CHECK_RRL(obj, i <= DNS_RRL_MAX_RATE, "all-per-second %d > %d",
-			  i, DNS_RRL_MAX_RATE);
-	}
-	rrl->all_per_second = i;
-	rrl->scaled_all_per_second = rrl->all_per_second;
-
-	i = 2;
-	obj = NULL;
-	result = cfg_map_get(map, "slip", &obj);
-	if (result == ISC_R_SUCCESS) {
-		i = cfg_obj_asuint32(obj);
-		CHECK_RRL(obj, i <= DNS_RRL_MAX_SLIP,
-			  "slip %d > %d", i, DNS_RRL_MAX_SLIP);
-	}
-	rrl->slip = i;
-	rrl->scaled_slip = rrl->slip;
+	CHECK_RRL_RATE(slip, 2, DNS_RRL_MAX_SLIP,
+		       "slip");
 
 	i = 15;
 	obj = NULL;
 	result = cfg_map_get(map, "window", &obj);
 	if (result == ISC_R_SUCCESS) {
 		i = cfg_obj_asuint32(obj);
-		CHECK_RRL(obj, i >= 1 && i <= DNS_RRL_MAX_WINDOW,
+		CHECK_RRL(i >= 1 && i <= DNS_RRL_MAX_WINDOW,
 			  "window %d < 1 or > %d", i, DNS_RRL_MAX_WINDOW);
 	}
 	rrl->window = i;
@@ -1964,18 +1933,18 @@ configure_rrl(dns_view_t *view, const cfg_obj_t *config, const cfg_obj_t *map) {
 	result = cfg_map_get(map, "qps-scale", &obj);
 	if (result == ISC_R_SUCCESS) {
 		i = cfg_obj_asuint32(obj);
-		CHECK_RRL(obj, i >= 1, "invalid 'qps-scale %d'%s", i, "");
+		CHECK_RRL(i >= 1, "invalid 'qps-scale %d'%s", i, "");
 	}
 	rrl->qps_scale = i;
 	rrl->qps = 1.0;
 
 	i = 24;
 	obj = NULL;
-	result = cfg_map_get(map, "IPv4-prefix-length", &obj);
+	result = cfg_map_get(map, "ipv4-prefix-length", &obj);
 	if (result == ISC_R_SUCCESS) {
 		i = cfg_obj_asuint32(obj);
-		CHECK_RRL(obj, i >= 8 && i <= 32,
-			  "invalid 'IPv4-prefix-length %d'%s", i, "");
+		CHECK_RRL(i >= 8 && i <= 32,
+			  "invalid 'ipv4-prefix-length %d'%s", i, "");
 	}
 	rrl->ipv4_prefixlen = i;
 	if (i == 32)
@@ -1985,11 +1954,11 @@ configure_rrl(dns_view_t *view, const cfg_obj_t *config, const cfg_obj_t *map) {
 
 	i = 56;
 	obj = NULL;
-	result = cfg_map_get(map, "IPv6-prefix-length", &obj);
+	result = cfg_map_get(map, "ipv6-prefix-length", &obj);
 	if (result == ISC_R_SUCCESS) {
 		i = cfg_obj_asuint32(obj);
-		CHECK_RRL(obj, i >= 16 && i <= DNS_RRL_MAX_PREFIX,
-			  "IPv6-prefix-length %d < 16 or > %d",
+		CHECK_RRL(i >= 16 && i <= DNS_RRL_MAX_PREFIX,
+			  "ipv6-prefix-length %d < 16 or > %d",
 			  i, DNS_RRL_MAX_PREFIX);
 	}
 	rrl->ipv6_prefixlen = i;
@@ -2010,7 +1979,7 @@ configure_rrl(dns_view_t *view, const cfg_obj_t *config, const cfg_obj_t *map) {
 		result = cfg_acl_fromconfig(obj, config, ns_g_lctx,
 					    ns_g_aclconfctx, ns_g_mctx,
 					    0, &rrl->exempt);
-		CHECK_RRL(obj, result == ISC_R_SUCCESS,
+		CHECK_RRL(result == ISC_R_SUCCESS,
 			  "invalid %s%s", "address match list", "");
 	}
 

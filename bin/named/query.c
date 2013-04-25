@@ -191,7 +191,7 @@ inc_stats(ns_client_t *client, isc_statscounter_t counter) {
 
 	/* Do query type statistics
 	 *
-	 * We only increment per-type if we're using the authoriative
+	 * We only increment per-type if we're using the authoritative
 	 * answer counter, preventing double-counting.
 	 */
 	if (counter == dns_nsstatscounter_authans) {
@@ -6246,7 +6246,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	 * Rate limit these responses to this client.
 	 */
 	if (client->view->rrl != NULL &&
-	    fname != NULL && dns_name_isabsolute(fname) &&
+	    ((fname != NULL && dns_name_isabsolute(fname)) ||
+	     (result == ISC_R_NOTFOUND && !RECURSIONOK(client))) &&
 	    (client->query.attributes & NS_QUERYATTR_RRL_CHECKED) == 0) {
 		dns_rdataset_t nc_rdataset;
 		isc_boolean_t wouldlog;
@@ -6289,8 +6290,19 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				dns_rdataset_disassociate(&nc_rdataset);
 			}
 			rrl_result = DNS_R_NXDOMAIN;
+		} else if (result == DNS_R_NXRRSET ||
+			   result == DNS_R_EMPTYNAME) {
+			rrl_result = DNS_R_NXRRSET;
 		} else if (result == DNS_R_DELEGATION) {
 			rrl_result = result;
+		} else if (result == ISC_R_NOTFOUND) {
+			/*
+			 * Handle referral to ".", including when recursion
+			 * is off or not requested and the hints have not
+			 * been loaded or we have "additional-from-cache no".
+			 */
+			tname = dns_rootname;
+			rrl_result = DNS_R_DELEGATION;
 		} else {
 			rrl_result = ISC_R_SUCCESS;
 		}

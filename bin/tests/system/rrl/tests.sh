@@ -64,15 +64,20 @@ sec_start () {
 }
 
 
+# turn off ${HOME}/.digrc
+HOME=/dev/null; export HOME
+
 #   $1=result name  $2=domain name  $3=dig options
 digcmd () {
     OFILE=$1; shift
     DIG_DOM=$1; shift
-    ARGS="+noadd +noauth +nosearch +time=1 +tries=1 +ignore $* -p 5300 $DIG_DOM @$ns2"
+    ARGS="+nosearch +time=1 +tries=1 +ignore -p 5300 $* $DIG_DOM @$ns2"
     #echo I:dig $ARGS 1>&2
     START=`date +%y%m%d%H%M.%S`
     RESULT=`$DIG $ARGS 2>&1 | tee $OFILE=TEMP				\
-	    | sed -n -e  's/^[^;].*	\([^	 ]\{1,\}\)$/\1/p'	\
+	    | sed -n -e '/^;; AUTHORITY/,/^$/d'				\
+		-e '/^;; ADDITIONAL/,/^$/d'				\
+		-e  's/^[^;].*	\([^	 ]\{1,\}\)$/\1/p'		\
 		-e 's/;; flags.* tc .*/TC/p'				\
 		-e 's/;; .* status: NXDOMAIN.*/NXDOMAIN/p'		\
 		-e 's/;; .* status: SERVFAIL.*/SERVFAIL/p'		\
@@ -117,7 +122,7 @@ ck_result() {
     NXDOMAIN=`ls dig.out-$1-*=NXDOMAIN	2>/dev/null	| wc -l | tr -d ' '`
     SERVFAIL=`ls dig.out-$1-*=SERVFAIL	2>/dev/null	| wc -l | tr -d ' '`
     if test $ADDRS -ne "$3"; then
-	setret "I:$ADDRS instead of $3 $2 responses for $1"
+	setret "I:$ADDRS instead of $3 '$2' responses for $1"
 	BAD=yes
     fi
     if test $TC -ne "$4"; then
@@ -142,26 +147,47 @@ ck_result() {
 }
 
 
+ckstats () {
+    LABEL="$1"; shift
+    TYPE="$1"; shift
+    EXPECTED="$1"; shift
+    CNT=`sed -n -e "s/[	 ]*\([0-9]*\).responses $TYPE for rate limits.*/\1/p"  \
+	    ns2/named.stats | tail -1`
+    CNT=`expr 0$CNT + 0`
+    if test "$CNT" -ne $EXPECTED; then
+	setret "I:wrong $LABEL $TYPE statistics of $CNT instead of $EXPECTED"
+    fi
+}
+
+
 #########
 sec_start
 
+# Tests of referrals to "." must be done before the hints are loaded
+#   or with "additional-from-cache no"
+burst 5 a1.tld3 +norec
 # basic rate limiting
 burst 3 a1.tld2
 # 1 second delay allows an additional response.
 sleep 1
 burst 21 a1.tld2
-# request 30 different qnames to try a wild card
+# Request 30 different qnames to try a wildcard.
 burst 30 'x$CNT.a2.tld2'
+# These should be counted and limited but are not.  See RT33138.
+burst 10 'y.x$CNT.a2.tld2'
 
 #					IP      TC      drop  NXDOMAIN SERVFAIL
-# check for 24 results
-# including the 1 second delay
+# referrals to "."
+ck_result   a1.tld3	''		2	1	2	0	0
+# check 24 results including 1 second delay that allows an additional response
 ck_result   a1.tld2	192.0.2.1	3	7	14	0	0
 
 # Check the wild card answers.
 # The parent name of the 30 requests is counted.
 ck_result 'x*.a2.tld2'	192.0.2.2	2	10	18	0	0
 
+# These should be limited but are not.  See RT33138.
+ck_result 'y.x*.a2.tld2' 192.0.2.2	10	0	0	0	0
 
 #########
 sec_start
@@ -178,6 +204,10 @@ ck_result 'y*.a3.tld3'	192.0.3.3	3	6	12	0	0
 # NXDOMAIN responses are also limited based on the parent name.
 ck_result 'z*.a4.tld2'	x		0	6	12	2	0
 
+$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
+ckstats first dropped 58
+ckstats first truncated 30
+
 
 #########
 sec_start
@@ -185,6 +215,9 @@ sec_start
 burst 20 a5.tld2 +tcp
 burst 20 a6.tld2 -b $ns7
 burst 20 a7.tld4
+burst 2 a8.tld2 AAAA
+burst 2 a8.tld2 TXT
+burst 2 a8.tld2 SPF
 
 # TCP responses are not rate limited
 ck_result a5.tld2	192.0.2.5	20	0	0	0	0
@@ -196,6 +229,13 @@ ck_result a6.tld2	192.0.2.6	20	0	0	0	0
 #   other rate limiting can be triggered before the SERVFAIL limit is reached.
 ck_result a7.tld4	192.0.2.1	0	6	12	0	2
 
+# NODATA responses are counted as the same regardless of qtype.
+ck_result a8.tld2	''		2	2	2	0	0
+
+$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
+ckstats second dropped 72
+ckstats second truncated 38
+
 
 #########
 sec_start
@@ -203,23 +243,14 @@ sec_start
 # all-per-second
 #   The qnames are all unique but the client IP address is constant.
 CNT=101
-burst 80 'all$CNT.a8.tld2'
-ck_result 'a*.a8.tld2'	192.0.2.8	70	0	10	0	0
+burst 80 'all$CNT.a9.tld2'
 
+ck_result 'a*.a9.tld2'	192.0.2.8	70	0	10	0	0
 
 $RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
-ckstats () {
-    CNT=`sed -n -e "s/[	 ]*\([0-9]*\).responses $1 for rate limits.*/\1/p"  \
-		ns2/named.stats`
-    CNT=`expr 0$CNT + 0`
-    if test "$CNT" -ne $2; then
-	setret "I:wrong $1 statistics of $CNT instead of $2"
-    fi
-}
-ckstats dropped 77
-ckstats truncated 35
+ckstats final dropped 82
+ckstats final truncated 38
+
 
 echo "I:exit status: $ret"
-# exit $ret
-[ $ret -ne 0 ] && echo "I:test failure overridden"
-exit 0
+exit $ret

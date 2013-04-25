@@ -5449,7 +5449,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> filter-aaaa-on-v4 ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
     <optional> filter-aaaa-on-v6 ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
     <optional> filter-aaaa { <replaceable>address_match_list</replaceable> }; </optional>
-    <optional> dns64 <replaceable>IPv6-prefix</replaceable> {
+    <optional> dns64 <replaceable>ipv6-prefix</replaceable> {
 	<optional> clients { <replaceable>address_match_list</replaceable> }; </optional>
 	<optional> mapped { <replaceable>address_match_list</replaceable> }; </optional>
         <optional> exclude { <replaceable>address_match_list</replaceable> }; </optional>
@@ -5487,14 +5487,16 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> deny-answer-aliases { <replaceable>namelist</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
     <optional> rate-limit {
 	<optional> responses-per-second <replaceable>number</replaceable> ; </optional>
-	<optional> errors-per-second <replaceable>number</replaceable> ; </optional>
+	<optional> referrals-per-second <replaceable>number</replaceable> ; </optional>
+	<optional> nodata-per-second <replaceable>number</replaceable> ; </optional>
 	<optional> nxdomains-per-second <replaceable>number</replaceable> ; </optional>
+	<optional> errors-per-second <replaceable>number</replaceable> ; </optional>
 	<optional> all-per-second <replaceable>number</replaceable> ; </optional>
 	<optional> window <replaceable>number</replaceable> ; </optional>
 	<optional> log-only <replaceable>yes_or_no</replaceable> ; </optional>
 	<optional> qps-scale <replaceable>number</replaceable> ; </optional>
-	<optional> IPv4-prefix-length <replaceable>number</replaceable> ; </optional>
-	<optional> IPv6-prefix-length <replaceable>number</replaceable> ; </optional>
+	<optional> ipv4-prefix-length <replaceable>number</replaceable> ; </optional>
+	<optional> ipv6-prefix-length <replaceable>number</replaceable> ; </optional>
 	<optional> slip <replaceable>number</replaceable> ; </optional>
 	<optional> exempt-clients  { <replaceable>address_match_list</replaceable> } ; </optional>
 	<optional> max-table-size <replaceable>number</replaceable> ; </optional>
@@ -10089,94 +10091,101 @@ ns.domain.com.rpz-nsdname   CNAME   .
         </sect3>
 
 	<sect3>
-	  <title>Rate Limiting</title>
+	  <title>Response Rate Limiting</title>
 	  <para>
-	    Excessive essentially identical UDP <emphasis>responses</emphasis>
-	    can be discarded by configuring a
+	    Excessive almost identical UDP <emphasis>responses</emphasis>
+	    can be controlled by configuring a
 	    <command>rate-limit</command> clause in an
-	    <command>options</command> statement.
-	    This mechanism keeps BIND 9 from being used
-	    in amplifying reflection denial of service attacks
-	    as well as partially protecting BIND 9 itself from
-	    some denial of service attacks.
-	    Very short truncated responses can be sent to provide
-	    rate-limited responses to legitimate
-	    clients within a range of attacked and forged IP addresses,
-	    Legitimate clients react to truncated response by retrying
-	    with TCP.
+	    <command>options</command> or <command>view</command> statement.
+	    This mechanism keeps authoritative BIND 9 from being used
+	    in amplifying reflection denial of service (DoS) attacks.
+	    Short truncated (TC=1) responses can be sent to provide
+	    rate-limited responses to legitimate clients within
+	    a range of forged, attacked IP addresses.
+	    Legitimate clients react to dropped or truncated response
+	    by retrying with UDP or with TCP respectively.
 	  </para>
 
 	  <para>
-	    Rate limiting works by setting
-	    <command>responses-per-second</command>
-	    to a number of repetitions per second for responses for a given name
-	    and record type to a DNS client.
+	    This mechanism is intended for authoritative DNS servers.
+	    It can be used on recursive servers but can slow
+	    applications such as SMTP servers (mail receivers) and
+	    HTTP clients (web browsers) that repeatedly request the
+	    same domains.
+	    When possible, closing "open" recursive servers is better.
 	  </para>
 
 	  <para>
-	    <command>Responses-per-second</command> is a limit on
-	    identical responses instead of a limit on all responses or
-	    even all responses to a single client.
-	    10 identical responses per second is a generous limit except perhaps
-	    when many clients are using a single IP address via network
-	    address translation (NAT).
-	    The default limit of zero specifies an unbounded limit to turn off
-	    rate-limiting in a view or to only rate-limit NXDOMAIN or other
-	    errors.
+	    Response rate limiting uses a "credit" or "token bucket" scheme.
+	    Each combination of identical response and client
+	    has a conceptual account that earns a specified number
+	    of credits every second.
+	    A prospective response debits its account by one.
+	    Responses are dropped or truncated
+	    while the account is negative.
+            Responses are tracked within a rolling window of time
+            which defaults to 15 seconds, but can be configured with
+            the <command>window</command> option to any value from
+            1 to 3600 seconds (1 hour).
+	    The account cannot become more positive than
+	    the per-second limit
+	    or more negative than <command>window</command>
+	    times the per-second limit.
+            When the specified number of credits for a class of
+            responses is set to 0, those responses are not rate limited.
 	  </para>
 
 	  <para>
-	    The notion of "identical responses"
-	    and "single DNS client" cannot be simplistic.
-	    All responses to a CIDR block with prefix
-	    length specified with <command>IPv4-prefix-length</command>
-	    (default 24) or <command>IPv6-prefix-length</command>
-	    (default 56) are assumed to come from a single DNS client.
-	    Requests for a name that result in DNS NXDOMAIN
-	    errors are considered identical.
+	    The notions of "identical response" and "DNS client"
+	    for rate limiting are not simplistic.
+	    All responses to an address block are counted as if to a
+	    single client.
+	    The prefix lengths of addresses blocks are
+	    specified with <command>ipv4-prefix-length</command> (default 24)
+	    and <command>ipv6-prefix-length</command> (default 56).
+	  </para>
+
+	  <para>
+	    All non-empty responses for a valid domain name (qname)
+	    and record type (qtype) are identical and have a limit specified
+	    with <command>responses-per-second</command>
+	    (default 0 or no limit).
+	    All empty (NODATA) responses for a valid domain,
+	    regardless of query type, are identical.
+	    Responses in the NODATA class are limited by
+	    <command>nodata-per-second</command>
+	    (default <command>responses-per-second</command>).
+	    Requests for any and all undefined subdomains of a given
+            valid domain result in NXDOMAIN errors, and are identical
+            regardless of query type.
+	    They are limited by <command>nxdomain-per-second</command>
+	    (default <command>responses-per-second</command>).
 	    This controls some attacks using random names, but
-	    accommodates servers that expect many legitimate NXDOMAIN responses
-	    such as anti-spam blacklists.
-	    By default the limit on NXDOMAIN errors is the same as the
-	    <command>responses-per-second</command> value,
-	    but it can be set separately with
-	    <command>nxdomains-per-second</command>.
-	    All requests for all names or types that result in DNS errors
-	    such as SERVFAIL and FORMERR (but not NXDOMAIN) are considered
-	    identical.
+	    can be relaxed or turned off (set to 0)
+	    on servers that expect many legitimate
+	    NXDOMAIN responses, such as from anti-spam blacklists.
+	    Referrals or delegations to the server of a given
+	    domain are identical and are limited by
+	    <command>referrals-per-second</command>
+	    (default <command>responses-per-second</command>).
+	  </para>
+
+	  <para>
+	    Responses generated from local wildcards are counted and limited
+	    as if they were for the parent domain name.
+	    This controls flooding using random.wild.example.com.
+	  </para>
+
+	  <para>
+            All requests that result in DNS errors other
+	    than NXDOMAIN, such as SERVFAIL and FORMERR, are identical
+            regardless of requested name (qname) or record type (qtype).
 	    This controls attacks using invalid requests or distant,
 	    broken authoritative servers.
 	    By default the limit on errors is the same as the
 	    <command>responses-per-second</command> value,
 	    but it can be set separately with
 	    <command>errors-per-second</command>.
-	  </para>
-
-	  <para>
-	    Rate limiting uses a "credit" or "token bucket" scheme.
-	    Each identical response has a conceptual account
-	    that is given <command>responses-per-second</command>,
-	    <command>errors-per-second</command>, and
-	    <command>nxdomains-per-second</command> credits every second.
-	    A DNS request triggering some desired response debits
-	    the account by one.
-	    Responses are not sent while the account is negative.
-	    The account cannot become more positive than
-	    the per-second limit
-	    or more negative than <command>window</command>
-	    times the per-second limit.
-	    A DNS client that sends requests that are not
-	    answered can be penalized for up to <command>window</command>
-	    seconds (default 15).
-	  </para>
-
-	  <para>
-	    Responses generated from local wildcards are counted and limited
-	    as if they were for the parent domain name.
-	    This prevents flooding by requesting random.wild.example.com.
-	    For similar reasons, NXDOMAIN responses are counted and rate
-	    limited by the valid domain name nearest to the
-	    query name with an SOA record.
 	  </para>
 
 	  <para>
@@ -10188,14 +10197,15 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	    There is a mechanism that can answer some legitimate
 	    requests from a client whose address is being forged in a flood.
 	    Setting <command>slip</command> to 2 (its default) causes every
-	    other UDP request to be answered with a small response
-	    claiming that the response would have been truncated.
-	    The small size and relative infrequency of the response make
-	    it unattractive for abuse.
-	    <command>Slip</command> must be between 0 and 10.
-	    A value of 0 does not "slip"
-	    or sends no rate limiting truncated responses.
-	    Some error responses includinge REFUSED and SERVFAIL
+	    other UDP request to be answered with a small truncated (TC=1)
+	    response.
+	    The small size and reduced frequency, and so lack of
+	    amplification, of "slipped" responses make them unattractive
+	    for reflection DoS attacks.
+	    <command>slip</command> must be between 0 and 10.
+	    A value of 0 does not "slip";
+	    no truncated responses are sent due to rate limiting.
+	    Some error responses including REFUSED and SERVFAIL
 	    cannot be replaced with truncated responses and are instead
 	    leaked at the <command>slip</command> rate.
 	  </para>
@@ -10225,8 +10235,8 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	    <command>rate-limit</command> statements in <command>view</command>
 	    statements instead of the global <command>option</command>
 	    statement.
-	    A <command>rate-limit</command> statement in a view replaces
-	    instead of being merged with a <command>rate-limit</command>
+	    A <command>rate-limit</command> statement in a view replaces,
+	    rather than supplementing, a <command>rate-limit</command>
 	    statement among the main options.
 	    DNS clients within a view can be exempted from rate limits
 	    with the <command>exempt-clients</command> clause.

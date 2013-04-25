@@ -71,7 +71,8 @@ typedef struct dns_rrl_hash dns_rrl_hash_t;
 typedef enum {
 	DNS_RRL_RTYPE_FREE = 0,
 	DNS_RRL_RTYPE_QUERY,
-	DNS_RRL_RTYPE_DELEGATION,
+	DNS_RRL_RTYPE_REFERRAL,
+	DNS_RRL_RTYPE_NODATA,
 	DNS_RRL_RTYPE_NXDOMAIN,
 	DNS_RRL_RTYPE_ERROR,
 	DNS_RRL_RTYPE_ALL,
@@ -190,6 +191,13 @@ struct dns_rrl_qname_buf {
 	dns_fixedname_t	    qname;
 };
 
+typedef struct dns_rrl_rate dns_rrl_rate_t;
+struct dns_rrl_rate {
+	int	    r;
+	int	    scaled;
+	const char  *str;
+};
+
 /*
  * Per-view query rate limit parameters and a pointer to database.
  */
@@ -199,12 +207,14 @@ struct dns_rrl {
 	isc_mem_t	*mctx;
 
 	isc_boolean_t	log_only;
-	int		responses_per_second;
-	int		errors_per_second;
-	int		nxdomains_per_second;
-	int		all_per_second;
+	dns_rrl_rate_t	responses_per_second;
+	dns_rrl_rate_t	referrals_per_second;
+	dns_rrl_rate_t	nodata_per_second;
+	dns_rrl_rate_t	nxdomains_per_second;
+	dns_rrl_rate_t	errors_per_second;
+	dns_rrl_rate_t	all_per_second;
+	dns_rrl_rate_t	slip;
 	int		window;
-	int		slip;
 	double		qps_scale;
 	int		max_entries;
 
@@ -215,11 +225,6 @@ struct dns_rrl {
 	int		qps_responses;
 	isc_stdtime_t	qps_time;
 	double		qps;
-	int		scaled_responses_per_second;
-	int		scaled_errors_per_second;
-	int		scaled_nxdomains_per_second;
-	int		scaled_all_per_second;
-	int		scaled_slip;
 
 	unsigned int	probes;
 	unsigned int	searches;
