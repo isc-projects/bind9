@@ -1,5 +1,7 @@
+3553.	[bug]		Address suspected double free in acache. [RT #33252]
+
 3552.	[bug]		Wrong getopt option string for 'nsupdate -r'.
-			[RT# 33280]
+			[RT #33280]
 
 3549.	[doc]		Documentation for "request-nsid" was missing.
 			[RT #33153]
