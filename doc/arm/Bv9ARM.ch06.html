@@ -78,28 +78,28 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and
             Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#statschannels"><span><strong class="command">statistics-channels</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591785"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591802"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#trusted-keys"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592136"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592153"><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592183"><span><strong class="command">managed-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592200"><span><strong class="command">managed-keys</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#managed-keys"><span><strong class="command">managed-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592625"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592642"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2594669"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2594618"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2598185">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2598134">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2600347">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2600433">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2600963">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2601158">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2601363"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2600980">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2601107">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2601380"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch06.html#statistics">BIND9 Statistics</a></span></dt>
@@ -2372,7 +2372,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     [<span class="optional"> filter-aaaa-on-v4 ( <em class="replaceable"><code>yes_or_no</code></em> | <em class="replaceable"><code>break-dnssec</code></em> ); </span>]
     [<span class="optional"> filter-aaaa-on-v6 ( <em class="replaceable"><code>yes_or_no</code></em> | <em class="replaceable"><code>break-dnssec</code></em> ); </span>]
     [<span class="optional"> filter-aaaa { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> dns64 <em class="replaceable"><code>IPv6-prefix</code></em> {
+    [<span class="optional"> dns64 <em class="replaceable"><code>ipv6-prefix</code></em> {
         [<span class="optional"> clients { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
         [<span class="optional"> mapped { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
         [<span class="optional"> exclude { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
@@ -2410,14 +2410,16 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     [<span class="optional"> deny-answer-aliases { <em class="replaceable"><code>namelist</code></em> } [<span class="optional"> except-from { <em class="replaceable"><code>namelist</code></em> } </span>];</span>]
     [<span class="optional"> rate-limit {
         [<span class="optional"> responses-per-second <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> errors-per-second <em class="replaceable"><code>number</code></em> ; </span>]
+        [<span class="optional"> referrals-per-second <em class="replaceable"><code>number</code></em> ; </span>]
+        [<span class="optional"> nodata-per-second <em class="replaceable"><code>number</code></em> ; </span>]
         [<span class="optional"> nxdomains-per-second <em class="replaceable"><code>number</code></em> ; </span>]
+        [<span class="optional"> errors-per-second <em class="replaceable"><code>number</code></em> ; </span>]
         [<span class="optional"> all-per-second <em class="replaceable"><code>number</code></em> ; </span>]
         [<span class="optional"> window <em class="replaceable"><code>number</code></em> ; </span>]
         [<span class="optional"> log-only <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
         [<span class="optional"> qps-scale <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> IPv4-prefix-length <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> IPv6-prefix-length <em class="replaceable"><code>number</code></em> ; </span>]
+        [<span class="optional"> ipv4-prefix-length <em class="replaceable"><code>number</code></em> ; </span>]
+        [<span class="optional"> ipv6-prefix-length <em class="replaceable"><code>number</code></em> ; </span>]
         [<span class="optional"> slip <em class="replaceable"><code>number</code></em> ; </span>]
         [<span class="optional"> exempt-clients  { <em class="replaceable"><code>address_match_list</code></em> } ; </span>]
         [<span class="optional"> max-table-size <em class="replaceable"><code>number</code></em> ; </span>]
@@ -3934,7 +3936,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2584969"></a>Forwarding</h4></div></div></div>
+<a name="id2584982"></a>Forwarding</h4></div></div></div>
 <p>
             The forwarding facility can be used to create a large site-wide
             cache on a few servers, reducing traffic over links to external
@@ -3978,7 +3980,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2585164"></a>Dual-stack Servers</h4></div></div></div>
+<a name="id2585177"></a>Dual-stack Servers</h4></div></div></div>
 <p>
             Dual-stack servers are used as servers of last resort to work
             around
@@ -4195,7 +4197,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2585657"></a>Interfaces</h4></div></div></div>
+<a name="id2585738"></a>Interfaces</h4></div></div></div>
 <p>
             The interfaces and ports that the server will answer queries
             from may be specified using the <span><strong class="command">listen-on</strong></span> option. <span><strong class="command">listen-on</strong></span> takes
@@ -4656,7 +4658,7 @@ avoid-v6-udp-ports {};
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2586787"></a>UDP Port Lists</h4></div></div></div>
+<a name="id2586800"></a>UDP Port Lists</h4></div></div></div>
 <p>
             <span><strong class="command">use-v4-udp-ports</strong></span>,
             <span><strong class="command">avoid-v4-udp-ports</strong></span>,
@@ -4698,7 +4700,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2586915"></a>Operating System Resource Limits</h4></div></div></div>
+<a name="id2586928"></a>Operating System Resource Limits</h4></div></div></div>
 <p>
             The server's usage of many system resources can be limited.
             Scaled values are allowed when specifying resource limits.  For
@@ -4858,7 +4860,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2587340"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2587353"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -5798,7 +5800,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2589795"></a>Content Filtering</h4></div></div></div>
+<a name="id2589808"></a>Content Filtering</h4></div></div></div>
 <p>
             <acronym class="acronym">BIND</acronym> 9 provides the ability to filter
             out DNS responses from external DNS servers containing
@@ -5921,7 +5923,7 @@ deny-answer-aliases { "example.net"; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2589989"></a>Response Policy Zone (RPZ) Rewriting</h4></div></div></div>
+<a name="id2590002"></a>Response Policy Zone (RPZ) Rewriting</h4></div></div></div>
 <p>
             <acronym class="acronym">BIND</acronym> 9 includes a limited
             mechanism to modify DNS responses for requests
@@ -6211,89 +6213,95 @@ ns.domain.com.rpz-nsdname   CNAME   .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2590500"></a>Rate Limiting</h4></div></div></div>
+<a name="id2590581"></a>Response Rate Limiting</h4></div></div></div>
 <p>
-            Excessive essentially identical UDP <span class="emphasis"><em>responses</em></span>
-            can be discarded by configuring a
+            Excessive almost identical UDP <span class="emphasis"><em>responses</em></span>
+            can be controlled by configuring a
             <span><strong class="command">rate-limit</strong></span> clause in an
-            <span><strong class="command">options</strong></span> statement.
-            This mechanism keeps BIND 9 from being used
-            in amplifying reflection denial of service attacks
-            as well as partially protecting BIND 9 itself from
-            some denial of service attacks.
-            Very short truncated responses can be sent to provide
-            rate-limited responses to legitimate
-            clients within a range of attacked and forged IP addresses,
-            Legitimate clients react to truncated response by retrying
-            with TCP.
+            <span><strong class="command">options</strong></span> or <span><strong class="command">view</strong></span> statement.
+            This mechanism keeps authoritative BIND 9 from being used
+            in amplifying reflection denial of service (DoS) attacks.
+            Short truncated (TC=1) responses can be sent to provide
+            rate-limited responses to legitimate clients within
+            a range of forged, attacked IP addresses.
+            Legitimate clients react to dropped or truncated response
+            by retrying with UDP or with TCP respectively.
           </p>
 <p>
-            Rate limiting works by setting
-            <span><strong class="command">responses-per-second</strong></span>
-            to a number of repetitions per second for responses for a given name
-            and record type to a DNS client.
+            This mechanism is intended for authoritative DNS servers.
+            It can be used on recursive servers but can slow
+            applications such as SMTP servers (mail receivers) and
+            HTTP clients (web browsers) that repeatedly request the
+            same domains.
+            When possible, closing "open" recursive servers is better.
           </p>
 <p>
-            <span><strong class="command">Responses-per-second</strong></span> is a limit on
-            identical responses instead of a limit on all responses or
-            even all responses to a single client.
-            10 identical responses per second is a generous limit except perhaps
-            when many clients are using a single IP address via network
-            address translation (NAT).
-            The default limit of zero specifies an unbounded limit to turn off
-            rate-limiting in a view or to only rate-limit NXDOMAIN or other
-            errors.
+            Response rate limiting uses a "credit" or "token bucket" scheme.
+            Each combination of identical response and client
+            has a conceptual account that earns a specified number
+            of credits every second.
+            A prospective response debits its account by one.
+            Responses are dropped or truncated
+            while the account is negative.
+            Responses are tracked within a rolling window of time
+            which defaults to 15 seconds, but can be configured with
+            the <span><strong class="command">window</strong></span> option to any value from
+            1 to 3600 seconds (1 hour).
+            The account cannot become more positive than
+            the per-second limit
+            or more negative than <span><strong class="command">window</strong></span>
+            times the per-second limit.
+            When the specified number of credits for a class of
+            responses is set to 0, those responses are not rate limited.
           </p>
 <p>
-            The notion of "identical responses"
-            and "single DNS client" cannot be simplistic.
-            All responses to a CIDR block with prefix
-            length specified with <span><strong class="command">IPv4-prefix-length</strong></span>
-            (default 24) or <span><strong class="command">IPv6-prefix-length</strong></span>
-            (default 56) are assumed to come from a single DNS client.
-            Requests for a name that result in DNS NXDOMAIN
-            errors are considered identical.
+            The notions of "identical response" and "DNS client"
+            for rate limiting are not simplistic.
+            All responses to an address block are counted as if to a
+            single client.
+            The prefix lengths of addresses blocks are
+            specified with <span><strong class="command">ipv4-prefix-length</strong></span> (default 24)
+            and <span><strong class="command">ipv6-prefix-length</strong></span> (default 56).
+          </p>
+<p>
+            All non-empty responses for a valid domain name (qname)
+            and record type (qtype) are identical and have a limit specified
+            with <span><strong class="command">responses-per-second</strong></span>
+            (default 0 or no limit).
+            All empty (NODATA) responses for a valid domain,
+            regardless of query type, are identical.
+            Responses in the NODATA class are limited by
+            <span><strong class="command">nodata-per-second</strong></span>
+            (default <span><strong class="command">responses-per-second</strong></span>).
+            Requests for any and all undefined subdomains of a given
+            valid domain result in NXDOMAIN errors, and are identical
+            regardless of query type.
+            They are limited by <span><strong class="command">nxdomain-per-second</strong></span>
+            (default <span><strong class="command">responses-per-second</strong></span>).
             This controls some attacks using random names, but
-            accommodates servers that expect many legitimate NXDOMAIN responses
-            such as anti-spam blacklists.
-            By default the limit on NXDOMAIN errors is the same as the
-            <span><strong class="command">responses-per-second</strong></span> value,
-            but it can be set separately with
-            <span><strong class="command">nxdomains-per-second</strong></span>.
-            All requests for all names or types that result in DNS errors
-            such as SERVFAIL and FORMERR (but not NXDOMAIN) are considered
-            identical.
+            can be relaxed or turned off (set to 0)
+            on servers that expect many legitimate
+            NXDOMAIN responses, such as from anti-spam blacklists.
+            Referrals or delegations to the server of a given
+            domain are identical and are limited by
+            <span><strong class="command">referrals-per-second</strong></span>
+            (default <span><strong class="command">responses-per-second</strong></span>).
+          </p>
+<p>
+            Responses generated from local wildcards are counted and limited
+            as if they were for the parent domain name.
+            This controls flooding using random.wild.example.com.
+          </p>
+<p>
+            All requests that result in DNS errors other
+            than NXDOMAIN, such as SERVFAIL and FORMERR, are identical
+            regardless of requested name (qname) or record type (qtype).
             This controls attacks using invalid requests or distant,
             broken authoritative servers.
             By default the limit on errors is the same as the
             <span><strong class="command">responses-per-second</strong></span> value,
             but it can be set separately with
             <span><strong class="command">errors-per-second</strong></span>.
-          </p>
-<p>
-            Rate limiting uses a "credit" or "token bucket" scheme.
-            Each identical response has a conceptual account
-            that is given <span><strong class="command">responses-per-second</strong></span>,
-            <span><strong class="command">errors-per-second</strong></span>, and
-            <span><strong class="command">nxdomains-per-second</strong></span> credits every second.
-            A DNS request triggering some desired response debits
-            the account by one.
-            Responses are not sent while the account is negative.
-            The account cannot become more positive than
-            the per-second limit
-            or more negative than <span><strong class="command">window</strong></span>
-            times the per-second limit.
-            A DNS client that sends requests that are not
-            answered can be penalized for up to <span><strong class="command">window</strong></span>
-            seconds (default 15).
-          </p>
-<p>
-            Responses generated from local wildcards are counted and limited
-            as if they were for the parent domain name.
-            This prevents flooding by requesting random.wild.example.com.
-            For similar reasons, NXDOMAIN responses are counted and rate
-            limited by the valid domain name nearest to the
-            query name with an SOA record.
           </p>
 <p>
             Many attacks using DNS involve UDP requests with forged source
@@ -6304,14 +6312,15 @@ ns.domain.com.rpz-nsdname   CNAME   .
             There is a mechanism that can answer some legitimate
             requests from a client whose address is being forged in a flood.
             Setting <span><strong class="command">slip</strong></span> to 2 (its default) causes every
-            other UDP request to be answered with a small response
-            claiming that the response would have been truncated.
-            The small size and relative infrequency of the response make
-            it unattractive for abuse.
-            <span><strong class="command">Slip</strong></span> must be between 0 and 10.
-            A value of 0 does not "slip"
-            or sends no rate limiting truncated responses.
-            Some error responses includinge REFUSED and SERVFAIL
+            other UDP request to be answered with a small truncated (TC=1)
+            response.
+            The small size and reduced frequency, and so lack of
+            amplification, of "slipped" responses make them unattractive
+            for reflection DoS attacks.
+            <span><strong class="command">slip</strong></span> must be between 0 and 10.
+            A value of 0 does not "slip";
+            no truncated responses are sent due to rate limiting.
+            Some error responses including REFUSED and SERVFAIL
             cannot be replaced with truncated responses and are instead
             leaked at the <span><strong class="command">slip</strong></span> rate.
           </p>
@@ -6339,8 +6348,8 @@ ns.domain.com.rpz-nsdname   CNAME   .
             <span><strong class="command">rate-limit</strong></span> statements in <span><strong class="command">view</strong></span>
             statements instead of the global <span><strong class="command">option</strong></span>
             statement.
-            A <span><strong class="command">rate-limit</strong></span> statement in a view replaces
-            instead of being merged with a <span><strong class="command">rate-limit</strong></span>
+            A <span><strong class="command">rate-limit</strong></span> statement in a view replaces,
+            rather than supplementing, a <span><strong class="command">rate-limit</strong></span>
             statement among the main options.
             DNS clients within a view can be exempted from rate limits
             with the <span><strong class="command">exempt-clients</strong></span> clause.
@@ -6617,7 +6626,7 @@ ns.domain.com.rpz-nsdname   CNAME   .
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2591785"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+<a name="id2591802"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</h3></div></div></div>
 <p>
           The <span><strong class="command">statistics-channels</strong></span> statement
@@ -6716,7 +6725,7 @@ ns.domain.com.rpz-nsdname   CNAME   .
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592136"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2592153"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -6756,7 +6765,7 @@ ns.domain.com.rpz-nsdname   CNAME   .
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592183"></a><span><strong class="command">managed-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2592200"></a><span><strong class="command">managed-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">managed-keys</strong></span> {
     <em class="replaceable"><code>name</code></em> <code class="literal">initial-key</code> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key-data</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>name</code></em> <code class="literal">initial-key</code> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key-data</code></em> ; [<span class="optional">...</span>]</span>]
@@ -6894,7 +6903,7 @@ ns.domain.com.rpz-nsdname   CNAME   .
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592625"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2592642"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">view</strong></span> statement is a powerful
             feature
@@ -7209,10 +7218,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2594669"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2594618"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2594677"></a>Zone Types</h4></div></div></div>
+<a name="id2594626"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -7517,7 +7526,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2595272"></a>Class</h4></div></div></div>
+<a name="id2595289"></a>Class</h4></div></div></div>
 <p>
               The zone's name may optionally be followed by a class. If
               a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
@@ -7539,7 +7548,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2595305"></a>Zone Options</h4></div></div></div>
+<a name="id2595322"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>
@@ -8450,7 +8459,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2598185"></a>Zone File</h2></div></div></div>
+<a name="id2598134"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -8463,7 +8472,7 @@ example.com. NS ns2.example.net.
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2598203"></a>Resource Records</h4></div></div></div>
+<a name="id2598152"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -9200,7 +9209,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2599690"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2599912"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -9403,7 +9412,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2600347"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2600433"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -9659,7 +9668,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2600963"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2600980"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -9720,7 +9729,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2601158"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2601107"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -9735,7 +9744,7 @@ example.com. NS ns2.example.net.
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2601180"></a>The <span><strong class="command">@</strong></span> (at-sign)</h4></div></div></div>
+<a name="id2601129"></a>The <span><strong class="command">@</strong></span> (at-sign)</h4></div></div></div>
 <p>
               When used in the label (or name) field, the asperand or
               at-sign (@) symbol represents the current origin.
@@ -9746,7 +9755,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2601196"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2601145"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -9775,7 +9784,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2601257"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2601274"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -9811,7 +9820,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2601326"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2601344"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -9830,7 +9839,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2601363"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2601380"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>
@@ -10272,7 +10281,7 @@ HOST-127.EXAMPLE. MX 0 .
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602425"></a>Name Server Statistics Counters</h4></div></div></div>
+<a name="id2602374"></a>Name Server Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -10868,7 +10877,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2604131"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2604216"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -11022,7 +11031,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2604582"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2604667"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -11405,7 +11414,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2605604"></a>Socket I/O Statistics Counters</h4></div></div></div>
+<a name="id2605621"></a>Socket I/O Statistics Counters</h4></div></div></div>
 <p>
               Socket I/O statistics counters are defined per socket
               types, which are
@@ -11560,7 +11569,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2605977"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2606062"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
