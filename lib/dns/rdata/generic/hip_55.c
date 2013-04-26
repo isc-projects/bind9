@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -133,7 +133,7 @@ totext_hip(ARGS_TOTEXT) {
 
 	hit_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
-	
+
 	algorithm = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 
@@ -142,7 +142,7 @@ totext_hip(ARGS_TOTEXT) {
 
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext("( ", target));
-		
+
 	/*
 	 * Algorithm
 	 */
@@ -277,7 +277,7 @@ fromstruct_hip(ARGS_FROMSTRUCT) {
 	RETERR(uint16_tobuffer(hip->key_len, target));
 	RETERR(mem_tobuffer(target, hip->hit, hip->hit_len));
 	RETERR(mem_tobuffer(target, hip->key, hip->key_len));
-	
+
 	myhip = *hip;
 	for (result = dns_rdata_hip_first(&myhip);
 	     result == ISC_R_SUCCESS;
@@ -336,11 +336,11 @@ tostruct_hip(ARGS_TOSTRUCT) {
 
  cleanup:
 	if (hip->hit != NULL)
-		isc_mem_free(mctx, hip->hit);	
+		isc_mem_free(mctx, hip->hit);
 	if (hip->key != NULL)
-		isc_mem_free(mctx, hip->key);	
+		isc_mem_free(mctx, hip->key);
 	if (hip->servers != NULL)
-		isc_mem_free(mctx, hip->servers);	
+		isc_mem_free(mctx, hip->servers);
 	return (ISC_R_NOMEMORY);
 
 }
@@ -354,10 +354,10 @@ freestruct_hip(ARGS_FREESTRUCT) {
 	if (hip->mctx == NULL)
 		return;
 
-	isc_mem_free(hip->mctx, hip->hit);	
-	isc_mem_free(hip->mctx, hip->key);	
+	isc_mem_free(hip->mctx, hip->hit);
+	isc_mem_free(hip->mctx, hip->key);
 	if (hip->servers != NULL)
-		isc_mem_free(hip->mctx, hip->servers);	
+		isc_mem_free(hip->mctx, hip->servers);
 	hip->mctx = NULL;
 }
 
