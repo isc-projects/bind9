@@ -206,17 +206,18 @@ options {
         queryport-pool-updateinterval <integer>; // obsolete
         random-device <quoted_string>;
         rate-limit {
-                IPv4-prefix-length <integer>;
-                IPv6-prefix-length <integer>;
                 all-per-second <integer>;
                 errors-per-second <integer>;
                 exempt-clients { <address_match_element>; ... };
+                ipv4-prefix-length <integer>;
+                ipv6-prefix-length <integer>;
                 log-only <boolean>;
                 max-table-size <integer>;
                 min-table-size <integer>;
+                nodata-per-second <integer>;
                 nxdomains-per-second <integer>;
                 qps-scale <integer>;
-                responses-per-second <integer>;
+                referrals-per-second <integer>;
                 responses-per-second <integer>;
                 slip <integer>;
                 window <integer>;
@@ -450,17 +451,18 @@ view <string> <optional_class> {
         queryport-pool-ports <integer>; // obsolete
         queryport-pool-updateinterval <integer>; // obsolete
         rate-limit {
-                IPv4-prefix-length <integer>;
-                IPv6-prefix-length <integer>;
                 all-per-second <integer>;
                 errors-per-second <integer>;
                 exempt-clients { <address_match_element>; ... };
+                ipv4-prefix-length <integer>;
+                ipv6-prefix-length <integer>;
                 log-only <boolean>;
                 max-table-size <integer>;
                 min-table-size <integer>;
+                nodata-per-second <integer>;
                 nxdomains-per-second <integer>;
                 qps-scale <integer>;
-                responses-per-second <integer>;
+                referrals-per-second <integer>;
                 responses-per-second <integer>;
                 slip <integer>;
                 window <integer>;
