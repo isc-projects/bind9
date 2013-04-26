@@ -287,4 +287,9 @@ eui64			EUI64	01-23-45-67-89-ab-cd-ef
 
 ; type 255
 ; TSIG is a meta-type and should never occur in master files.
+
+; type 256
+uri01			URI	10 20 "https://www.isc.org/"
+uri02			URI	30 40 "https://www.isc.org/HolyCowThisSureIsAVeryLongURIRecordIDontEvenKnowWhatSomeoneWouldEverWantWithSuchAThingButTheSpecificationRequiresThatWesupportItSoHereWeGoTestingItLaLaLaLaLaLaLaSeriouslyThoughWhyWouldYouEvenConsiderUsingAURIThisLongItSeemsLikeASillyIdeaButEnhWhatAreYouGonnaDo/"
+
 EOF

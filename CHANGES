@@ -16,6 +16,8 @@
 3547.	[bug]		Some malformed unknown rdata records were not properly
 			detected and rejected. [RT #33129]
 
+3056.	[func]		Added support for URI resource record. [RT #23386]
+
 2565.	[func]		Add support for HIP record.  Includes new functions
 			dns_rdata_hip_first(), dns_rdata_hip_next()
 			and dns_rdata_hip_current().  [RT #19384]
