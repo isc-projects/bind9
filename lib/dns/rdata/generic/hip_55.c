@@ -122,8 +122,6 @@ static inline isc_result_t
 totext_hip(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
-	dns_name_t prefix;
-	isc_boolean_t sub;
 	size_t length, key_len, hit_len;
 	unsigned char algorithm;
 	char buf[sizeof("225 ")];
@@ -175,12 +173,10 @@ totext_hip(ARGS_TOTEXT) {
 	 * Rendezvous Servers.
 	 */
 	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
 	while (region.length > 0) {
 		dns_name_fromregion(&name, &region);
 
-		sub = name_prefix(&name, tctx->origin, &prefix);
-		RETERR(dns_name_totext(&prefix, sub, target));
+		RETERR(dns_name_totext(&name, ISC_FALSE, target));
 		isc_region_consume(&region, name.length);
 		if (region.length > 0)
 			RETERR(str_totext(tctx->linebreak, target));
