@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,7 +25,7 @@
 
 /*
  * Acache
- * 
+ *
  * The Additional Cache Object
  *
  *	This module manages internal caching entries that correspond to
@@ -131,7 +131,7 @@
  *	- 76 bytes for each additional cache entry
  *	- if the entry has a DNS name and associated RRset,
  *	  * 44 bytes + size of the name (1-255 bytes)
- *	  * 52 bytes x number_of_RRs 
+ *	  * 52 bytes x number_of_RRs
  *	- 28 bytes for each DB related to this module
  *
  *	Using the additional cache also requires extra memory consumption in
@@ -418,7 +418,7 @@ dns_acache_attachentry(dns_acacheentry_t *source, dns_acacheentry_t **targetp);
  *
  *	*targetp is attached to 'source'.
  */
-		       
+
 void
 dns_acache_detachentry(dns_acacheentry_t **entryp);
 /*
@@ -432,7 +432,7 @@ dns_acache_detachentry(dns_acacheentry_t **entryp);
  *
  *	*entryp is NULL.
  *
- *	If '*entryp' is the last reference to the entry, 
+ *	If '*entryp' is the last reference to the entry,
  *	cache does not have an outstanding task, all resources used by the
  *	entry (including the entry object itself) will be freed.
  */
