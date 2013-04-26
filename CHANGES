@@ -1,3 +1,6 @@
+3555.	[bug]		Address theoretical race conditions in acache.c
+			(change #3553 was incomplete). [RT #33252]
+
 3553.	[bug]		Address suspected double free in acache. [RT #33252]
 
 3552.	[bug]		Wrong getopt option string for 'nsupdate -r'.
