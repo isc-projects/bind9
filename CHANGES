@@ -16,6 +16,8 @@
 3547.	[bug]		Some malformed unknown rdata records were not properly
 			detected and rejected. [RT #33129]
 
+3056.	[func]		Added support for URI resource record. [RT #23386]
+
 	--- 9.6-ESV-R9rc1 released ---
 
 3546.	[func]		Add EUI48 and EUI64 types. [RT #33082]
