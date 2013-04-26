@@ -18,6 +18,10 @@
 
 3056.	[func]		Added support for URI resource record. [RT #23386]
 
+2565.	[func]		Add support for HIP record.  Includes new functions
+			dns_rdata_hip_first(), dns_rdata_hip_next()
+			and dns_rdata_hip_current().  [RT #19384]
+
 	--- 9.6-ESV-R9rc1 released ---
 
 3546.	[func]		Add EUI48 and EUI64 types. [RT #33082]

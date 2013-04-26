@@ -277,6 +277,14 @@ eui48			EUI48	01-23-45-67-89-ab
 
 eui64			EUI64	01-23-45-67-89-ab-cd-ef
 
+hip1			HIP	( 2 200100107B1A74DF365639CC39F1D578
+				AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH8cIvM4p9+LrV4e19WzK00+CI6zBCQTdtWsuxKbWIy87UOoJTwkUs7lBu+Upr1gsNrut79ryra+bSRGQb1slImA8YVJyuIDsj7kwzG7jnERNqnWxZ48AWkskmdHaVDP4BcelrTI3rMXdXF5D )
+
+
+hip2			HIP	( 2 200100107B1A74DF365639CC39F1D578
+                                AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH8cIvM4p9+LrV4e19WzK00+CI6zBCQTdtWsuxKbWIy87UOoJTwkUs7lBu+Upr1gsNrut79ryra+bSRGQb1slImA8YVJyuIDsj7kwzG7jnERNqnWxZ48AWkskmdHaVDP4BcelrTI3rMXdXF5D
+				rvs.example.com. )
+
 ; type 255
 ; TSIG is a meta-type and should never occur in master files.
 
