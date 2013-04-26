@@ -203,12 +203,12 @@ expand_entries(dns_rrl_t *rrl, int new) {
 	double rate;
 	int i;
 
-	if (rrl->num_entries+new >= rrl->max_entries && rrl->max_entries != 0) {
-		if (rrl->num_entries >= rrl->max_entries)
-			return (ISC_R_SUCCESS);
+	if (rrl->num_entries + new >= rrl->max_entries &&
+	    rrl->max_entries != 0)
+	{
 		new = rrl->max_entries - rrl->num_entries;
 		if (new <= 0)
-			return (ISC_R_NOMEMORY);
+			return (ISC_R_SUCCESS);
 	}
 
 	/*
