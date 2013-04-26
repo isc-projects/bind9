@@ -16,6 +16,10 @@
 3547.	[bug]		Some malformed unknown rdata records were not properly
 			detected and rejected. [RT #33129]
 
+2565.	[func]		Add support for HIP record.  Includes new functions
+			dns_rdata_hip_first(), dns_rdata_hip_next()
+			and dns_rdata_hip_current().  [RT #19384]
+
 	--- 9.8.5rc1 released ---
 
 3546.	[func]		Add EUI48 and EUI64 types. [RT #33082]
@@ -2752,10 +2756,6 @@
 			response arrives from a zone thought to be secure:
 			"insecurity proof failed" instead of "not
 			insecure". [RT #19400]
-
-2565.	[func]		Add support for HIP record.  Includes new functions
-			dns_rdata_hip_first(), dns_rdata_hip_next()
-			and dns_rdata_hip_current().  [RT #19384]
 
 2564.	[bug]		Only take EDNS fallback steps when processing timeouts.
 			[RT #19405]
