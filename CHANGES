@@ -1,3 +1,5 @@
+3558.	[bug]		IXFR of a DLZ stored zone was broken. [RT #33331]
+
 3557.	[bug]		Reloading redirect zones was broken. [RT #33292]
 
 3556.	[maint]		Added AAAA for D.ROOT-SERVERS.NET.
