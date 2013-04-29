@@ -1,3 +1,5 @@
+3557.	[bug]		Reloading redirect zones was broken. [RT #33292]
+
 3556.	[maint]		Added AAAA for D.ROOT-SERVERS.NET.
 
 3555.	[bug]		Address theoretical race conditions in acache.c

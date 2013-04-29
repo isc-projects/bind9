@@ -11435,6 +11435,19 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                         possible types; it is not limited to A and
                         AAAA records.
                       </para>
+                      <para>
+                        Because redirect zones are not referenced
+                        directly by name, they are not kept in the
+                        zone lookup table with normal master and slave
+                        zones. Consequently, it is not currently possible
+                        to use
+                        <command>rndc reload
+                                <replaceable>zonename</replaceable></command>
+                        to reload a redirect zone.  However, when using
+                        <command>rndc reload</command> without specifying
+                        a zone name, redirect zones will be reloaded along
+                        with other zones.
+                      </para>
                     </entry>
                   </row>
                   <row rowsep="0">
