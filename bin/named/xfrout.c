@@ -990,11 +990,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			is_poll = ISC_TRUE;
 			goto have_stream;
 		}
-#ifdef DLZ
 		journalfile = is_dlz ? NULL : dns_zone_getjournal(zone);
-#else
-		journalfile = dns_zone_getjournal(zone);
-#endif
 		if (journalfile != NULL)
 			result = ixfr_rrstream_create(mctx,
 						      journalfile,
