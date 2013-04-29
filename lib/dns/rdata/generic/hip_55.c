@@ -211,7 +211,7 @@ fromwire_hip(ARGS_FROMWIRE) {
 	if (key_len == 0)
 		RETERR(DNS_R_FORMERR);
 	isc_region_consume(&region, 2);
-	if (region.length < hit_len + key_len)
+	if (region.length < (unsigned)(hit_len + key_len))
 		RETERR(DNS_R_FORMERR);
 
 	RETERR(mem_tobuffer(target, rr.base, 4 + hit_len + key_len));
