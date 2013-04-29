@@ -5476,12 +5476,16 @@ load_zones(ns_server_t *server) {
 	{
 		if (view->managed_keys != NULL) {
 			result = dns_zone_load(view->managed_keys);
-			if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE)
+			if (result != ISC_R_SUCCESS &&
+			    result != DNS_R_UPTODATE &&
+			    result != DNS_R_CONTINUE)
 				goto cleanup;
 		}
 		if (view->redirect != NULL) {
 			result = dns_zone_load(view->redirect);
-			if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE)
+			if (result != ISC_R_SUCCESS &&
+			    result != DNS_R_UPTODATE &&
+			    result != DNS_R_CONTINUE)
 				goto cleanup;
 		}
 

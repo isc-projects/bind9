@@ -25,3 +25,5 @@ rm -f ns1/dsset-nsec3.
 rm -f */named.memstats
 rm -f */named.run
 rm -f dig.out.* random.data
+rm -f ns2/*.db
+rm -f rndc.out
