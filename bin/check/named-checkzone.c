@@ -144,17 +144,19 @@ main(int argc, char **argv) {
 	if (progmode == progmode_compile) {
 		zone_options |= (DNS_ZONEOPT_CHECKNS |
 				 DNS_ZONEOPT_FATALNS |
+				 DNS_ZONEOPT_CHECKSPF |
 				 DNS_ZONEOPT_CHECKNAMES |
 				 DNS_ZONEOPT_CHECKNAMESFAIL |
 				 DNS_ZONEOPT_CHECKWILDCARD);
-	}
+	} else
+		zone_options |= DNS_ZONEOPT_CHECKSPF;
 
 #define ARGCMP(X) (strcmp(isc_commandline_argument, X) == 0)
 
 	isc_commandline_errprint = ISC_FALSE;
 
 	while ((c = isc_commandline_parse(argc, argv,
-					 "c:df:hi:jk:m:n:qs:t:o:vw:DF:M:S:W:"))
+				       "c:df:hi:jk:m:n:qs:t:o:vw:DF:M:S:T:W:"))
 	       != EOF) {
 		switch (c) {
 		case 'c':
@@ -338,6 +340,18 @@ main(int argc, char **argv) {
 				zone_options |= DNS_ZONEOPT_IGNORESRVCNAME;
 			} else {
 				fprintf(stderr, "invalid argument to -S: %s\n",
+					isc_commandline_argument);
+				exit(1);
+			}
+			break;
+
+		case 'T':
+			if (ARGCMP("warn")) {
+				zone_options |= DNS_ZONEOPT_CHECKSPF;
+			} else if (ARGCMP("ignore")) {
+				zone_options &= ~DNS_ZONEOPT_CHECKSPF;
+			} else {
+				fprintf(stderr, "invalid argument to -T: %s\n",
 					isc_commandline_argument);
 				exit(1);
 			}

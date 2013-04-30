@@ -4839,6 +4839,7 @@ category notify { null; };
     <optional> check-mx-cname ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-srv-cname ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-sibling <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> check-spf ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
@@ -6160,6 +6161,12 @@ options {
 		  checks use <command>named-checkzone</command>).
 	          The default is <command>yes</command>.
 		</para>
+		<para>
+		  Check that the two forms of Sender Policy Framework
+		  records (TXT and SPF) either both exist or both
+		  don't exist.  Warnings are emitted it they don't
+		  and be suppressed with <command>check-spf</command>.
+		</para>
 	      </listitem>
 	    </varlistentry>
 
@@ -6191,6 +6198,19 @@ options {
 		<para>
 		  When performing integrity checks, also check that
 		  sibling glue exists.  The default is <command>yes</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>check-spf</command></term>
+	      <listitem>
+		<para>
+		  When performing integrity checks, check that the
+		  two forms of Sender Policy Framwork records (TXT
+		  and SPF) both exist or both don't exist and issue
+		  a warning if not met.  The default is
+		  <command>warn</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8931,6 +8951,7 @@ view "external" {
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-mx (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> check-spf ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-integrity <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
@@ -9422,6 +9443,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     See the description of
                     <command>check-mx</command> in <xref linkend="boolean_options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>check-spf</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>check-spf</command> in <xref linkend="boolean_options"/>.
                   </para>
                 </listitem>
               </varlistentry>

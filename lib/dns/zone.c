@@ -2013,6 +2013,30 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 }
 
 static isc_boolean_t
+isspf(const dns_rdata_t *rdata) {
+	char buf[1024];
+	const unsigned char *data = rdata->data;
+	unsigned int rdl = rdata->length, i = 0, tl, len;
+
+	while (rdl > 0U) {
+		len = tl = *data;
+		++data;
+		--rdl;
+		INSIST(tl <= rdl);
+		if (len > sizeof(buf) - i - 1)
+			len = sizeof(buf) - i - 1;
+		memcpy(buf + i, data, len);
+		i += len;
+		data += tl;
+		rdl -= tl;
+	}
+	buf[i] = 0;
+	if (strncmp(buf, "v=spf1", 6) == 0 && (buf[6] == 0 || buf[6] == ' '))
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
+static isc_boolean_t
 integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	dns_dbiterator_t *dbiterator = NULL;
 	dns_dbnode_t *node = NULL;
@@ -2026,7 +2050,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	dns_name_t *name;
 	dns_name_t *bottom;
 	isc_result_t result;
-	isc_boolean_t ok = ISC_TRUE;
+	isc_boolean_t ok = ISC_TRUE, have_spf, have_txt;
 
 	dns_fixedname_init(&fixed);
 	name = dns_fixedname_name(&fixed);
@@ -2103,7 +2127,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_srv,
 					     0, 0, &rdataset, NULL);
 		if (result != ISC_R_SUCCESS)
-			goto next;
+			goto checkspf;
 		result = dns_rdataset_first(&rdataset);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdataset_current(&rdataset, &rdata);
@@ -2115,6 +2139,50 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 			result = dns_rdataset_next(&rdataset);
 		}
 		dns_rdataset_disassociate(&rdataset);
+
+ checkspf:
+		/*
+		 * Check if there is a type TXT spf record without a type SPF
+		 * RRset being present.
+		 */
+	        if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKSPF))
+			goto next;
+		if (zone->rdclass != dns_rdataclass_in)
+			goto next;
+		have_spf = have_txt = ISC_FALSE;
+		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_spf,
+                                             0, 0, &rdataset, NULL);
+		if (result == ISC_R_SUCCESS) {
+			dns_rdataset_disassociate(&rdataset);
+			have_spf = ISC_TRUE;
+		}
+		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_txt,
+                                             0, 0, &rdataset, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto notxt;
+		result = dns_rdataset_first(&rdataset);
+		while (result == ISC_R_SUCCESS) {
+			dns_rdataset_current(&rdataset, &rdata);
+			have_txt = isspf(&rdata);
+			dns_rdata_reset(&rdata);
+			if (have_txt)
+				break;
+			result = dns_rdataset_next(&rdataset);
+		}
+		dns_rdataset_disassociate(&rdataset);
+
+ notxt:
+		if (have_spf != have_txt) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			const char *found = have_txt ? "TXT" : "SPF";
+			const char *need = have_txt ? "SPF" : "TXT";
+
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			dns_zone_log(zone, ISC_LOG_WARNING, "'%s' found SPF/%s "
+				     "record but no SPF/%s record found, add "
+				     "matching type %s record", namebuf, found,
+				     need, need);
+		}
 
  next:
 		dns_db_detachnode(db, &node);

@@ -70,6 +70,7 @@ typedef enum {
 #define DNS_ZONEOPT_TRYTCPREFRESH 0x01000000U	/*%< try tcp refresh on udp failure */
 #define DNS_ZONEOPT_NOTIFYTOSOA	  0x02000000U	/*%< Notify the SOA MNAME */
 #define DNS_ZONEOPT_NSEC3TESTZONE 0x04000000U	/*%< nsec3-test-zone */
+#define DNS_ZONEOPT_CHECKSPF	  0x80000000U	/*%< check SPF records */
 
 #ifndef NOMINUM_PUBLIC
 /*
