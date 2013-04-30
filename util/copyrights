@@ -19,12 +19,12 @@
 ./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2012
 ./bin/check/check-tool.h			C	2000,2001,2002,2004,2005,2007,2010,2012
 ./bin/check/named-checkconf.8			MAN	DOCBOOK
-./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012
+./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013
 ./bin/check/named-checkconf.docbook		SGML	2000,2001,2002,2004,2005,2007,2012
 ./bin/check/named-checkconf.html		HTML	DOCBOOK
 ./bin/check/named-checkzone.8			MAN	DOCBOOK
-./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
-./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007,2009,2012
+./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007,2009,2012,2013
 ./bin/check/named-checkzone.html		HTML	DOCBOOK
 ./bin/check/win32/checktool.dsp			X	2006
 ./bin/check/win32/checktool.dsw			X	2006
@@ -103,7 +103,7 @@
 ./bin/named/bind9.xsl.h				X	2007,2008,2009,2011,2012
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005,2007,2010,2012
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
-./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2012
+./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2012,2013
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007,2009,2010,2012
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013
 ./bin/named/convertxsl.pl			PERL	2006,2007,2008,2012
@@ -552,6 +552,7 @@
 ./bin/tests/system/checkzone/tests.sh		SH	2011,2012,2013
 ./bin/tests/system/checkzone/zones/bad1.db	ZONE	2013
 ./bin/tests/system/checkzone/zones/good1.db	ZONE	2011,2012
+./bin/tests/system/checkzone/zones/spf.db	ZONE	2013
 ./bin/tests/system/cleanall.sh			SH	2000,2001,2004,2007,2012
 ./bin/tests/system/common/controls.conf		CONF-C	2000,2001,2004,2007
 ./bin/tests/system/common/rndc.conf		CONF-C	2000,2001,2004,2007
@@ -902,6 +903,10 @@
 ./bin/tests/system/sortlist/ns1/named.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/sortlist/ns1/root.db		ZONE	2000,2001,2004,2007
 ./bin/tests/system/sortlist/tests.sh		SH	2000,2001,2004,2007,2012
+./bin/tests/system/spf/clean.sh			SH	2013
+./bin/tests/system/spf/ns1/named.conf		CONF-C	2013
+./bin/tests/system/spf/ns1/spf.db		ZONE	2013
+./bin/tests/system/spf/tests.sh			SH	2013
 ./bin/tests/system/start.pl			SH	2001,2004,2005,2006,2007,2008,2010,2011,2012
 ./bin/tests/system/start.sh			SH	2000,2001,2004,2007,2012
 ./bin/tests/system/stop.pl			SH	2001,2004,2005,2006,2007,2012
@@ -1674,7 +1679,7 @@
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
 ./doc/misc/migration				TXT.BRIEF	2000,2001,2003,2004,2007,2008
 ./doc/misc/migration-4to9			TXT.BRIEF	2001,2004
-./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2010
+./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2010,2013
 ./doc/misc/rfc-compliance			TXT.BRIEF	2001,2004
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
@@ -1838,7 +1843,7 @@
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2012
-./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/include/dns/zonekey.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2012
 ./lib/dns/include/dst/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012
@@ -2412,7 +2417,7 @@
 ./lib/isccfg/include/isccfg/namedconf.h		C	2002,2004,2005,2006,2007,2009,2012
 ./lib/isccfg/include/isccfg/version.h		C	2001,2004,2005,2006,2007
 ./lib/isccfg/log.c				C	2001,2004,2005,2006,2007
-./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006,2007,2008,2010,2011,2012
+./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006,2007,2008,2010,2011,2012,2013
 ./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013
 ./lib/isccfg/version.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isccfg/win32/DLLMain.c			C	2001,2004,2007
