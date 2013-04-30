@@ -117,7 +117,7 @@
 
 3524.	[func]		Added an alternate statistics channel in JSON format,
 			when the server is built with the json-c library:
-			http://[address]:[port]/json.  [RT #32630]
+			http://[address]:[port]/json. [RT #32630]
 
 3523.	[contrib]	Ported filesystem and ldap DLZ drivers to
 			dynamically-loadable modules, and added the
