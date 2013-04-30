@@ -75,6 +75,7 @@
       <arg><option>-s <replaceable class="parameter">style</replaceable></option></arg>
       <arg><option>-S <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg><option>-T <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-w <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-D</option></arg>
       <arg><option>-W <replaceable class="parameter">mode</replaceable></option></arg>
@@ -98,6 +99,7 @@
       <arg><option>-r <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-s <replaceable class="parameter">style</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg><option>-T <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-w <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-D</option></arg>
       <arg><option>-W <replaceable class="parameter">mode</replaceable></option></arg>
@@ -377,6 +379,18 @@
             run by a similarly chrooted named.
           </para>
         </listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-T <replaceable class="parameter">mode</replaceable></term>
+	<listitem>
+	  <para>
+	    Check if Sender Policy Framework records (TXT and SPF)
+	    both exist or both don't exist.  A warning is issued
+	    if they don't match.  Possible modes are
+	    <command>"warn"</command> (default), <command>"ignore"</command>.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>

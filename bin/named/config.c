@@ -150,6 +150,7 @@ options {\n\
 	check-names response ignore;\n\
 	check-dup-records warn;\n\
 	check-mx warn;\n\
+	check-spf warn;\n\
 	acache-enable no;\n\
 	acache-cleaning-interval 60;\n\
 	max-acache-size 16M;\n\

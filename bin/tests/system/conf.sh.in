@@ -59,7 +59,7 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 dlvauto dlz dlzexternal dname dns64 dnssec ecdsa formerr
 	 forward glue gost ixfr limits logfileconfig lwresd masterfile
 	 masterformat metadata notify nsupdate pending pkcs11
-	 resolver rndc rpz rrsetorder sortlist smartsign staticstub
+	 resolver rndc rpz rrsetorder sortlist smartsign spf staticstub
 	 stub tkey tsig tsiggss unknown upforwd views wildcard xfer
 	 xferquota zonechecks"
 
