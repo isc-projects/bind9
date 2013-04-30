@@ -1,6 +1,6 @@
 	--- 9.9.3rc2 released ---
 
-3360.	[bug]		isc-config.sh did not honour includedir and libdir
+3560.	[bug]		isc-config.sh did not honour includedir and libdir
 			when set via configure. [RT #33345]
 
 3559.	[func]		Check that both forms of Sender Policy Framework
