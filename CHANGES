@@ -1,3 +1,5 @@
+	--- 9.9.3rc2 released ---
+
 3559.	[func]		Check that both forms of Sender Policy Framework
 			records exist or do not exist. [RT #33355]
 
