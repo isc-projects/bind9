@@ -318,6 +318,7 @@ dns_master_stylecreate
 dns_master_stylecreate2
 dns_master_styledestroy
 dns_message_addname
+dns_message_buildopt
 dns_message_checksig
 dns_message_create
 dns_message_currentname
