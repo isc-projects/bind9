@@ -297,6 +297,7 @@ dns_master_rdatasettotext
 dns_master_stylecreate
 dns_master_styledestroy
 dns_message_addname
+dns_message_buildopt
 dns_message_checksig
 dns_message_create
 dns_message_currentname
@@ -603,7 +604,6 @@ dns_resolver_resetmustbesecure
 dns_resolver_setclientsperquery
 dns_resolver_setlamettl
 dns_resolver_setmustbesecure
-dns_resolver_settimeout
 dns_resolver_settimeout
 dns_resolver_setudpsize
 dns_resolver_setzeronosoattl
