@@ -86,7 +86,7 @@
 			where it should have been.  [RT #32794]
 
 	--- 9.9.3b2 released ---
-	
+
 3517.	[bug]		Reorder destruction to avoid shutdown race. [RT #32777]
 
 3515.	[port]		'%T' is not portable in strftime(). [RT #32763]
@@ -140,11 +140,11 @@
 			syntax now includes a "min-ns-dots" clause, with
 			default 1, to exclude top-level domains from
 			NSIP and NSDNAME checking. --enable-rpz-nsip and
-                        --enable-rpz-nsdname are now the default. [RT #32251]
+			--enable-rpz-nsdname are now the default. [RT #32251]
 
 3493.	[contrib]	Added BDBHPT dynamically-lodable DLZ module,
 			contributed by Mark Goldfinch. [RT #32549]
-			
+
 3492.	[bug]		Fixed a regression in zone loading performance
 			due to lock contention. [RT #30399]
 
@@ -159,7 +159,7 @@
 
 3487.	[bug]		Change 3444 was not complete.  There was a additional
 			place where the NOQNAME proof needed to be saved.
-                        [RT #32629]
+			[RT #32629]
 
 3486.	[bug]		named could crash when using TKEY-negotiated keys
 			that had been deleted and then recreated. [RT #32506]
@@ -195,7 +195,7 @@
 			refreshing after an initial failure. [RT #31276]
 
 	--- 9.9.3b1 released ---
-	
+
 3468.	[security]	RPZ rules to generate A records (but not AAAA records)
 			could trigger an assertion failure when used in
 			conjunction with DNS64 (CVE-2012-5689). [RT #32141]
