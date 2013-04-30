@@ -295,6 +295,18 @@ configure_zone(const char *vclass, const char *view,
 	}
 
 	obj = NULL;
+	if (get_maps(maps, "check-spf", &obj)) {
+		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
+			zone_options |= DNS_ZONEOPT_CHECKSPF;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
+			zone_options &= ~DNS_ZONEOPT_CHECKSPF;
+		} else
+			INSIST(0);
+	} else {
+		zone_options |= DNS_ZONEOPT_CHECKSPF;
+	}
+
+	obj = NULL;
 	if (get_checknames(maps, &obj)) {
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
 			zone_options |= DNS_ZONEOPT_CHECKNAMES;

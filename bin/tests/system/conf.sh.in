@@ -64,7 +64,7 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 dsdigest dscp ecdsa formerr forward glue gost ixfr inline limits
 	 logfileconfig lwresd masterfile masterformat metadata
 	 notify nsupdate pending pkcs11 redirect resolver rndc rpz
-	 rrl rrsetorder rsabigexponent sortlist smartsign staticstub
+	 rrl rrsetorder rsabigexponent smartsign sortlist spf staticstub
 	 statistics stub tkey tsig tsiggss unknown upforwd verify
 	 views wildcard xfer xferquota zonechecks"
 

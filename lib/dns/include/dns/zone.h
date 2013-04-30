@@ -87,6 +87,7 @@ typedef enum {
 #define DNS_ZONEOPT_DNSKEYKSKONLY 0x10000000U	/*%< dnssec-dnskey-kskonly */
 #define DNS_ZONEOPT_CHECKDUPRR	  0x20000000U   /*%< check-dup-records */
 #define DNS_ZONEOPT_CHECKDUPRRFAIL 0x40000000U	/*%< fatal check-dup-records failures */
+#define DNS_ZONEOPT_CHECKSPF	  0x80000000U	/*%< check SPF records */
 
 #ifndef NOMINUM_PUBLIC
 /*
