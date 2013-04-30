@@ -2145,19 +2145,19 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		 * Check if there is a type TXT spf record without a type SPF
 		 * RRset being present.
 		 */
-	        if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKSPF))
+		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKSPF))
 			goto next;
 		if (zone->rdclass != dns_rdataclass_in)
 			goto next;
 		have_spf = have_txt = ISC_FALSE;
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_spf,
-                                             0, 0, &rdataset, NULL);
+					     0, 0, &rdataset, NULL);
 		if (result == ISC_R_SUCCESS) {
 			dns_rdataset_disassociate(&rdataset);
 			have_spf = ISC_TRUE;
 		}
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_txt,
-                                             0, 0, &rdataset, NULL);
+					     0, 0, &rdataset, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto notxt;
 		result = dns_rdataset_first(&rdataset);
