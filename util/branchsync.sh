@@ -104,6 +104,10 @@ git log $SOURCEBRANCH --reverse --format='%H' $LASTHASH..$SOURCEBRANCH | \
             # cherry-pick was clean
             # restore the copyrights and api files
             git checkout HEAD -- util/copyrights lib/*/api
+            # don't update the EXCLUDED file
+            if [ -n `git ls-files EXCLUDED` ]; then
+                git checkout HEAD -- EXCLUDED
+            fi
             # note which hash we've merged
             savehash branchsync.dat $SOURCEBRANCH $hash
 
