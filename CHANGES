@@ -1,3 +1,6 @@
+3561.	[bug]		dig: issue a warning if an EDNS query returns FORMERR
+			or NOTIMP.  Adjust usage message. [RT #33363]
+			
 	--- 9.8.5rc1 released ---
 
 3560.	[bug]		isc-config.sh did not honour includedir and libdir
