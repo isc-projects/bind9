@@ -188,7 +188,7 @@ help(void) {
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
 "                 +ndots=###          (Set NDOTS value)\n"
-"                 +edns=###           (Set EDNS version) [0]\n"
+"                 +[no]edns[=###]     (Set EDNS version) [0]\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]showsearch     (Search with intermediate results)\n"
 "                 +[no]defname        (Ditto)\n"
@@ -562,6 +562,13 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				printf(";; WARNING: recursion requested "
 				       "but not available\n");
 		}
+		if (msg != query->lookup->sendmsg &&
+		    query->lookup->edns != -1 && msg->opt == NULL &&
+		    (msg->rcode == dns_rcode_formerr ||
+		     msg->rcode == dns_rcode_notimp))
+			printf("\n;; WARNING: EDNS query returned status "
+			       "%s - retry with '+noedns'\n",
+			       rcode_totext(msg->rcode));
 		if (msg != query->lookup->sendmsg && extrabytes != 0U)
 			printf(";; WARNING: Messages has %u extra byte%s at "
 			       "end\n", extrabytes, extrabytes != 0 ? "s" : "");
@@ -893,8 +900,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			lookup->edns = -1;
 			break;
 		}
-		if (value == NULL)
-			goto need_value;
+		if (value == NULL) {
+			lookup->edns = 0;
+			break;
+		}
 		result = parse_uint(&num, value, 255, "edns");
 		if (result != ISC_R_SUCCESS)
 			fatal("Couldn't parse edns");
