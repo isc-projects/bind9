@@ -7215,9 +7215,10 @@ options {
 		</para>
 		<para>
 		  Check that the two forms of Sender Policy Framework
-		  records (TXT and SPF) either both exist or both
-		  don't exist.  Warnings are emitted it they don't
-		  and be suppressed with <command>check-spf</command>.
+		  records (TXT records starting with "v=spf1" and SPF) either
+		  both exist or both don't exist.  Warnings are
+		  emitted it they don't and be suppressed with
+		  <command>check-spf</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -7260,9 +7261,9 @@ options {
 		<para>
 		  When performing integrity checks, check that the
 		  two forms of Sender Policy Framwork records (TXT
-		  and SPF) both exist or both don't exist and issue
-		  a warning if not met.  The default is
-		  <command>warn</command>.
+		  records starting with "v=spf1" and SPF) both exist
+		  or both don't exist and issue a warning if not
+		  met.  The default is <command>warn</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
