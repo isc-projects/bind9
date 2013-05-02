@@ -7207,7 +7207,7 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
  * by the void *data pointer in the dns_rbtnode
  */
 static isc_result_t
-rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial, 
+rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial,
 		isc_sha1_t *sha1) {
 	rdatasetheader_t newheader;
 	rdatasetheader_t *header = (rdatasetheader_t *) data, *next;
