@@ -25,6 +25,7 @@
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>
+#include <isc/sha1.h>
 
 #include <dns/types.h>
 
@@ -152,7 +153,10 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 
 typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file,
 					    unsigned char *data,
-					    isc_uint32_t version);
+					    isc_uint32_t version,
+					    isc_sha1_t *sha1);
+
+typedef void (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode, isc_sha1_t *sha1);
 
 /*****
  *****  Chain Info
@@ -705,7 +709,7 @@ isc_result_t
 dns_rbt_deserialize_tree(void *base_address, off_t header_offset,
 			 isc_mem_t *mctx,
 			 void (*deleter)(void *, void *), void *deleter_arg,
-			 void (*data_fixer)(dns_rbtnode_t *),
+			 dns_rbtdatafixer_t datafixer,
 			 dns_rbtnode_t **originp, dns_rbt_t **rbtp);
 /*%<
  * Read a RBT structure and its data from a file.

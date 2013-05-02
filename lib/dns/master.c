@@ -2193,7 +2193,7 @@ openfile_map(dns_loadctx_t *lctx, const char *master_file) {
  */
 static isc_result_t
 load_map(dns_loadctx_t *lctx) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdatacallbacks_t *callbacks;
 
 	REQUIRE(DNS_LCTX_VALID(lctx));
@@ -2205,12 +2205,12 @@ load_map(dns_loadctx_t *lctx) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		(*callbacks->deserialize)(callbacks->deserialize_private,
-					  lctx->f,
-					  sizeof(dns_masterrawheader_t));
+		result = (*callbacks->deserialize)
+			  (callbacks->deserialize_private,
+			   lctx->f, sizeof(dns_masterrawheader_t));
 	}
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 static isc_result_t

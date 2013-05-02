@@ -58,6 +58,16 @@ sourceserial () {
              }' < $1
 }
 
+stomp () {
+        perl -e 'open(my $file, "+<", $ARGV[0]);
+                 binmode $file;
+                 seek($file, $ARGV[1], 0);
+                 for (my $i = 0; $i < $ARGV[2]; $i++) {
+                         print $file pack('C', $ARGV[3]);
+                 }
+                 close($file);' $1 $2 $3 $4
+}
+
 restart () {
     sleep 1
     (cd ..; $PERL start.pl --noclean --restart masterformat ns3)
@@ -218,7 +228,28 @@ for i in 0 1 2 3 4 5 6 7 8 9; do
     [ $lret -eq 0 ] && break;
 done
 [ $lret -eq 1 ] && ret=1
+[ $ret -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
 
+# stomp on the file data so it hashes differently.
+# these are small and subtle changes, so that the resulting file
+# would appear to be a legitimate map file and would not trigger an
+# assertion failure if loaded into memory, but should still fail to
+# load because of a SHA1 hash mismatch.
+echo "I:checking corrupt map files fail to load (bad node header)"
+ret=0
+./named-compilezone -D -f text -F map -o map.5 example.nil baseline.txt > /dev/null
+cp map.5 badmap
+stomp badmap 2754 2 99
+./named-compilezone -D -f map -F text -o text.5 example.nil badmap > /dev/null && ret=1
+[ $ret -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+echo "I:checking corrupt map files fail to load (bad node data)"
+ret=0
+cp map.5 badmap
+stomp badmap 2897 5 127
+./named-compilezone -D -f map -F text -o text.5 example.nil badmap > /dev/null && ret=1
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 

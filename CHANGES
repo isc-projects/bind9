@@ -1,3 +1,7 @@
+3562.	[func]		Update map file header format to include a SHA-1 hash
+			of the database content, so that corrupted map files
+			can be rejected at load time. [RT #32459]
+
 3561.	[bug]		dig: issue a warning if an EDNS query returns FORMERR
 			or NOTIMP.  Adjust usage message. [RT #33363]
 			

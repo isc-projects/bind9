@@ -30,6 +30,7 @@
 #include <isc/event.h>
 #include <isc/heap.h>
 #include <isc/file.h>
+#include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/platform.h>
@@ -727,6 +728,25 @@ static unsigned int init_count;
  *
  * For zone databases the node for the origin of the zone MUST NOT be deleted.
  */
+
+/*
+ * Debugging routines
+ */
+#ifdef DEBUG
+static void
+hexdump(const char *desc, unsigned char *data, size_t size) {
+	char hexdump[BUFSIZ];
+	isc_buffer_t b;
+	isc_region_t r;
+
+	isc_buffer_init(&b, hexdump, sizeof(hexdump));
+	r.base = data;
+	r.length = size;
+	isc_hex_totext(&r, 0, "", &b);
+	isc_buffer_putuint8(&b, 0);
+	fprintf(stderr, "%s: %s\n", desc, hexdump);
+}
+#endif
 
 
 /*
@@ -6976,7 +6996,7 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 }
 
 static void
-fix_data(dns_rbtnode_t *rbtnode) {
+rbt_datafixer(dns_rbtnode_t *rbtnode, isc_sha1_t *sha1) {
 	rdatasetheader_t *header;
 	unsigned char *p;
 	size_t size;
@@ -6984,12 +7004,18 @@ fix_data(dns_rbtnode_t *rbtnode) {
 	REQUIRE(rbtnode != NULL);
 
 	for (header = rbtnode->data; header != NULL; header = header->next) {
+		p = (unsigned char *) header;
+		size = dns_rdataslab_size(p, sizeof(*header));
+		isc_sha1_update(sha1, p, size);
+#ifdef DEBUG
+		hexdump("hashing header", p, sizeof(rdatasetheader_t));
+		hexdump("hashing slab", p + sizeof(rdatasetheader_t),
+			size - sizeof(rdatasetheader_t));
+#endif
 		header->serial = 1;
 		header->is_mmapped = 1;
 		header->node = rbtnode;
 		header->node_is_relative = 0;
-		p = (unsigned char *) header;
-		size = dns_rdataslab_size(p, sizeof(*header));
 		if (header->next != NULL) {
 			header->next = (rdatasetheader_t *)(p + size);
 			header->next_is_relative = 0;
@@ -7002,6 +7028,7 @@ fix_data(dns_rbtnode_t *rbtnode) {
  */
 static isc_result_t
 deserialize(void *arg, FILE *f, off_t offset) {
+	isc_result_t result;
 	rbtdb_load_t *loadctx = arg;
 	dns_rbtdb_t *rbtdb = loadctx->rbtdb;
 	rbtdb_file_header_t *header;
@@ -7039,11 +7066,12 @@ deserialize(void *arg, FILE *f, off_t offset) {
 	rbtdb->origin_node = NULL;
 
 	if (header->tree != 0) {
-		dns_rbt_deserialize_tree(base, header->tree,
-					 rbtdb->common.mctx, delete_callback,
-					 rbtdb, fix_data,
-					 &rbtdb->origin_node,
-					 &temporary_rbt);
+		result = dns_rbt_deserialize_tree(base, header->tree,
+						  rbtdb->common.mctx,
+						  delete_callback,
+						  rbtdb, rbt_datafixer,
+						  &rbtdb->origin_node,
+						  &temporary_rbt);
 		if (temporary_rbt != NULL) {
 			dns_rbt_destroy(&rbtdb->tree);
 			rbtdb->tree = temporary_rbt;
@@ -7052,28 +7080,38 @@ deserialize(void *arg, FILE *f, off_t offset) {
 			rbtdb->origin_node =
 				(dns_rbtnode_t *)(header->tree + base + 1024);
 		}
+		if (result != ISC_R_SUCCESS)
+			return (result);
 	}
 
 	if (header->nsec != 0) {
-		dns_rbt_deserialize_tree(base, header->nsec,
-					 rbtdb->common.mctx, delete_callback,
-					 rbtdb, fix_data, NULL, &temporary_rbt);
+		result = dns_rbt_deserialize_tree(base, header->nsec,
+						  rbtdb->common.mctx,
+						  delete_callback,
+						  rbtdb, rbt_datafixer,
+						  NULL, &temporary_rbt);
 		if (temporary_rbt != NULL) {
 			dns_rbt_destroy(&rbtdb->nsec);
 			rbtdb->nsec = temporary_rbt;
 			temporary_rbt = NULL;
 		}
+		if (result != ISC_R_SUCCESS)
+			return (result);
 	}
 
 	if (header->nsec3 != 0) {
-		dns_rbt_deserialize_tree(base, header->nsec3,
-					 rbtdb->common.mctx, delete_callback,
-					 rbtdb, fix_data, NULL, &temporary_rbt);
+		result = dns_rbt_deserialize_tree(base, header->nsec3,
+						  rbtdb->common.mctx,
+						  delete_callback,
+						  rbtdb, rbt_datafixer,
+						  NULL, &temporary_rbt);
 		if (temporary_rbt != NULL) {
 			dns_rbt_destroy(&rbtdb->nsec3);
 			rbtdb->nsec3 = temporary_rbt;
 			temporary_rbt = NULL;
 		}
+		if (result != ISC_R_SUCCESS)
+			return (result);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -7151,7 +7189,7 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	 * If there's a KEY rdataset at the zone origin containing a
 	 * zone key, we consider the zone secure.
 	 */
-	if (! IS_CACHE(rbtdb))
+	if (! IS_CACHE(rbtdb) && rbtdb->origin_node != NULL)
 		iszonesecure(db, rbtdb->current_version, rbtdb->origin_node);
 
 	callbacks->add = NULL;
@@ -7169,7 +7207,8 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
  * by the void *data pointer in the dns_rbtnode
  */
 static isc_result_t
-rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial) {
+rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial, 
+		isc_sha1_t *sha1) {
 	rdatasetheader_t newheader;
 	rdatasetheader_t *header = (rdatasetheader_t *) data, *next;
 	size_t where, size;
@@ -7210,12 +7249,22 @@ rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial) {
 			newheader.next_is_relative = 1;
 		}
 
+#ifdef DEBUG
+		hexdump("writing header", (unsigned char *) &newheader,
+			sizeof(rdatasetheader_t));
+		hexdump("writing slab", p + sizeof(rdatasetheader_t),
+			size - sizeof(rdatasetheader_t));
+#endif
+		isc_sha1_update(sha1, (unsigned char *) &newheader,
+				sizeof(rdatasetheader_t));
 		result = isc_stdio_write(&newheader,
 					 sizeof(rdatasetheader_t), 1,
 					 rbtfile, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
+		isc_sha1_update(sha1, p + sizeof(rdatasetheader_t),
+				size - sizeof(rdatasetheader_t));
 		result = isc_stdio_write(p + sizeof(rdatasetheader_t),
 			     size - sizeof(rdatasetheader_t), 1, rbtfile, NULL);
 		if (result != ISC_R_SUCCESS)
