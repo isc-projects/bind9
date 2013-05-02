@@ -33,6 +33,18 @@
 #   -i: interactive mode (don't reset and send mail)
 #   -c: continue (conflicts are resolved; edit message and commit)
 
+restore_files () {
+    # restore the copyrights and api files
+    git checkout HEAD -- util/copyrights lib/*/api
+    # restore the generated documentation
+    git checkout HEAD -- doc/arm/*.html doc/arm/Bv9ARM.pdf
+    git checkout HEAD -- bin/*/*.html bin/*/*.[0-9]
+    # don't update the EXCLUDED file
+    if [ -n `git ls-files EXCLUDED` ]; then
+        git checkout HEAD -- EXCLUDED
+    fi
+}
+
 savehash () {
     cat <<EOF > $1.new
 SOURCEBRANCH=$2
@@ -47,6 +59,13 @@ thisbranch () {
 }
 
 docommit () {
+    # skip the commit if we're only updating branchsync.dat
+    status=`git status -suno | grep branchsync.dat`
+    if [ -z "$status" ]; then
+        return
+    fi
+
+    # pull in the log message from the cherry-picked commit
     git log -1 --pretty=format:%s%n%b $2 > orig_commit_msg.tmp
     author=`git log -1 --pretty=format:"%aN <%aE>" $2`
     firstline=`head -1 orig_commit_msg.tmp | sed 's/^\[[a-z0-9_]*\] //'`
@@ -58,10 +77,18 @@ docommit () {
     echo "hash: $2" >> commit_msg.tmp
     msg=`cat commit_msg.tmp`
     rm -f orig_commit_msg.tmp commit_msg.tmp remainder.tmp
+
+    # commit
     git commit --no-verify --no-edit --author="$author" -m "$msg" || exit 1
 }
 
 BRANCH=`thisbranch`
+
+if [ ! -f branchsync.dat ]; then
+    echo "$0: branchsync data file not found"
+    exit 0
+fi
+
 . branchsync.dat
 
 # check arguments
@@ -97,18 +124,15 @@ if [ -z "$continuing" ]; then
 fi
 
 # loop through commits looking for ones that should be cherry-picked
-git log $SOURCEBRANCH --reverse --format='%H' $LASTHASH..$SOURCEBRANCH | \
-  grep -v Tinderbox | cut -d' ' -f1 | {
-    while read hash author; do
+git log $SOURCEBRANCH --reverse --format='%H %aN' $LASTHASH..$SOURCEBRANCH | \
+  awk '$0 !~ /Tinderbox/ {print $1}' | {
+    while read hash; do
         if git cherry-pick -xn ${hash}; then
             # cherry-pick was clean
-            # restore the copyrights and api files
-            git checkout HEAD -- util/copyrights lib/*/api
-            # don't update the EXCLUDED file
-            if [ -n `git ls-files EXCLUDED` ]; then
-                git checkout HEAD -- EXCLUDED
-            fi
-            # note which hash we've merged
+            # restore the files that we don't want updated automatically
+            restore_files
+
+            # note which hash we're merging
             savehash branchsync.dat $SOURCEBRANCH $hash
 
             # fix the commit message, and commit
@@ -118,8 +142,10 @@ git log $SOURCEBRANCH --reverse --format='%H' $LASTHASH..$SOURCEBRANCH | \
             continue
         elif [ -n "$interactive" ]; then
             # interactive mode -- wait for user to fix things
-            git checkout HEAD -- util/copyrights lib/*/api
-            # note which hash we've merged
+            # first restore the files that we don't want updated automatically
+            restore_files
+
+            # note which hash we're merging
             savehash branchsync.dat $SOURCEBRANCH $hash
         else
             # noninteractive mode
