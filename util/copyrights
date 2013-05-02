@@ -2110,7 +2110,7 @@
 ./contrib/sdb/sqlite/README.sdb_sqlite		X	2007
 ./contrib/sdb/sqlite/sqlitedb.c			X	2007,2011
 ./contrib/sdb/sqlite/sqlitedb.h			X	2007
-./contrib/sdb/sqlite/zone2sqlite.c		X	2007,2008,2009,2010
+./contrib/sdb/sqlite/zone2sqlite.c		X	2007,2008,2009,2010,2013
 ./contrib/sdb/tcl/lookup.tcl			TCL	2000,2001,2004,2007,2012
 ./contrib/sdb/tcl/tcldb.c			C	2000,2001,2004,2007,2011
 ./contrib/sdb/tcl/tcldb.h			C	2000,2001,2004,2007
@@ -2456,7 +2456,7 @@
 ./lib/dns/include/dns/peer.h			C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2013
 ./lib/dns/include/dns/portlist.h		C	2003,2004,2005,2006,2007
 ./lib/dns/include/dns/private.h			C	2009,2011,2012
-./lib/dns/include/dns/rbt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012
+./lib/dns/include/dns/rbt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012,2013
 ./lib/dns/include/dns/rcode.h			C	1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./lib/dns/include/dns/rdataclass.h		C	1998,1999,2000,2001,2004,2005,2006,2007
