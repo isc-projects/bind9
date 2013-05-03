@@ -375,10 +375,10 @@ isc__app_ctxstart(isc_appctx_t *ctx0) {
  cleanup:
 #ifdef ISC_PLATFORM_USETHREADS
  cleanup_rcond:
-	isc_condition_destroy(&ctx->ready);
+	(void)isc_condition_destroy(&ctx->ready);
 
  cleanup_rlock:
-	isc_mutex_destroy(&ctx->readylock);
+	(void)isc_mutex_destroy(&ctx->readylock);
 #endif /* ISC_PLATFORM_USETHREADS */
 	return (result);
 }
