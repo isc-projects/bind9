@@ -1,3 +1,6 @@
+3568.	[cleanup]	Add a product description line to the version file,
+			to be reported by named -v/-V. [RT #33366]
+
 3567.	[bug]		Silence clang static analyzer warnings. [RT #33365]
 
 3566.	[func]		Log when forwarding updates to master. [RT #33240]
