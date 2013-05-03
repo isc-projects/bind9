@@ -535,11 +535,17 @@ parse_command_line(int argc, char *argv[]) {
 			ns_g_username = isc_commandline_argument;
 			break;
 		case 'v':
-			printf("%s %s\n", ns_g_product, ns_g_version);
+			printf("%s %s", ns_g_product, ns_g_version);
+			if (*ns_g_description != 0)
+				printf(" %s", ns_g_description);
+			printf("\n");
 			exit(0);
 		case 'V':
-			printf("%s %s <id:%s> built with %s\n", ns_g_product,
-			       ns_g_version, ns_g_srcid, ns_g_configargs);
+			printf("%s %s", ns_g_product, ns_g_version);
+			if (*ns_g_description != 0)
+				printf(" %s", ns_g_description);
+			printf(" <id:%s> built with %s\n", ns_g_srcid,
+				ns_g_configargs);
 #ifdef OPENSSL
 			printf("using OpenSSL version: %s\n",
 			       OPENSSL_VERSION_TEXT);
