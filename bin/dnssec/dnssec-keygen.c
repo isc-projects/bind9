@@ -526,6 +526,7 @@ main(int argc, char **argv) {
 					"recommended.\nIf you still wish to "
 					"use RSA (RSAMD5) please specify "
 					"\"-a RSAMD5\"\n");
+			INSIST(freeit == NULL);
 			return (1);
 		} else if (strcasecmp(algname, "HMAC-MD5") == 0)
 			alg = DST_ALG_HMACMD5;

@@ -2235,6 +2235,10 @@ isspf(const dns_rdata_t *rdata) {
 		data += tl;
 		rdl -= tl;
 	}
+
+	if (i < 6U)
+		return(ISC_FALSE);
+
 	buf[i] = 0;
 	if (strncmp(buf, "v=spf1", 6) == 0 && (buf[6] == 0 || buf[6] == ' '))
 		return (ISC_TRUE);
