@@ -14230,8 +14230,18 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 	case dns_rcode_yxrrset:
 	case dns_rcode_nxrrset:
 	case dns_rcode_refused:
-	case dns_rcode_nxdomain:
+	case dns_rcode_nxdomain: {
+		char rcode[128];
+		isc_buffer_t rb;
+
+		isc_buffer_init(&rb, rcode, sizeof(rcode));
+		(void)dns_rcode_totext(msg->rcode, &rb);
+		dns_zone_log(zone, ISC_LOG_INFO,
+			     "forwarded dynamic update: "
+			     "master %s returned: %.*s",
+			     master, (int)rb.used, rcode);
 		break;
+	}
 
 	/* These should not occur if the masters/zone are valid. */
 	case dns_rcode_notzone:

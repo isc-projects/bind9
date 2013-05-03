@@ -1,3 +1,5 @@
+3566.	[func]		Log when forwarding updates to master. [RT #33240]
+
 3564.	[bug]		Improved handling of corrupted map files. [RT #33380]
 
 3563.	[contrib]	zone2sqlite failed with some table names. [RT #33375]
