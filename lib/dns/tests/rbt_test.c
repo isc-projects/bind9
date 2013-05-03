@@ -101,13 +101,15 @@ delete_data(void *data, void *arg) {
 }
 
 static isc_result_t
-write_data(FILE *file, unsigned char *datap, isc_uint32_t serial) {
+write_data(FILE *file, unsigned char *datap, isc_uint32_t serial,
+	   isc_sha1_t *sha1) {
 	size_t ret = 0;
 	data_holder_t *data = (data_holder_t *)datap;
 	data_holder_t temp;
 	uintptr_t where = ftell(file);
 
 	UNUSED(serial);
+	UNUSED(sha1);
 
 	REQUIRE(data != NULL);
 	REQUIRE((data->len == 0 && data->data == NULL) ||
@@ -131,12 +133,14 @@ write_data(FILE *file, unsigned char *datap, isc_uint32_t serial) {
 }
 
 static void
-fix_data(dns_rbtnode_t *p) {
+fix_data(dns_rbtnode_t *p, isc_sha1_t *sha1) {
 	data_holder_t *data = p->data;
 
 	REQUIRE(data != NULL);
 	REQUIRE((data->len == 0 && data->data == NULL) ||
 		(data->len != 0 && data->data != NULL));
+
+	UNUSED(sha1);
 
 	printf("fixing data: len %d, data %p\n", data->len, data->data);
 
