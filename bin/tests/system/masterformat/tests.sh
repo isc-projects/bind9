@@ -241,7 +241,8 @@ ret=0
 ./named-compilezone -D -f text -F map -o map.5 example.nil baseline.txt > /dev/null
 cp map.5 badmap
 stomp badmap 2754 2 99
-./named-compilezone -D -f map -F text -o text.5 example.nil badmap > /dev/null && ret=1
+./named-compilezone -D -f map -F text -o text.5 example.nil badmap > /dev/null
+[ $? = 1 ] || ret=1
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
@@ -249,7 +250,8 @@ echo "I:checking corrupt map files fail to load (bad node data)"
 ret=0
 cp map.5 badmap
 stomp badmap 2897 5 127
-./named-compilezone -D -f map -F text -o text.5 example.nil badmap > /dev/null && ret=1
+./named-compilezone -D -f map -F text -o text.5 example.nil badmap > /dev/null
+[ $? = 1 ] || ret=1
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 

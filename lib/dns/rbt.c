@@ -776,16 +776,17 @@ dns_rbt_deserialize_tree(void *base_address, off_t header_offset,
 	file_header_t *header;
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
 	isc_sha1_t sha1;
+	dns_rbt_t *rbt = NULL;
 
 	REQUIRE(originp == NULL || *originp == NULL);
 
 	isc_sha1_init(&sha1);
 
-	result = dns_rbt_create(mctx, deleter, deleter_arg, rbtp);
+	result = dns_rbt_create(mctx, deleter, deleter_arg, &rbt);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	(*rbtp)->mmap_location = base_address;
+	rbt->mmap_location = base_address;
 
 	header = (file_header_t *)((char *)base_address + header_offset);
 
@@ -808,21 +809,26 @@ dns_rbt_deserialize_tree(void *base_address, off_t header_offset,
 	}
 
 	/* Copy other data items from the header into our rbt. */
-	(*rbtp)->root = (dns_rbtnode_t *)((char *)base_address +
+	rbt->root = (dns_rbtnode_t *)((char *)base_address +
 				header_offset + header->first_node_offset);
-	(*rbtp)->nodecount = header->nodecount;
-	treefix(*rbtp, (*rbtp)->root, dns_rootname, datafixer, &sha1);
+	rbt->nodecount = header->nodecount;
+	treefix(rbt, rbt->root, dns_rootname, datafixer, &sha1);
 
 	isc_sha1_final(&sha1, digest);
 #ifdef DEBUG
 	hexdump("deserializing digest", digest, sizeof(digest));
 #endif
 
-	if (memcmp(header->digest, digest, sizeof(digest)) != 0)
+	if (memcmp(header->digest, digest, sizeof(digest)) != 0) {
+		rbt->root = NULL;
+		rbt->nodecount = 0;
+		dns_rbt_destroy(&rbt);
 		return (ISC_R_INVALIDFILE);
+	}
 
+	*rbtp = rbt;
 	if (originp != NULL)
-		*originp = (*rbtp)->root;
+		*originp = rbt->root;
 
 	return (ISC_R_SUCCESS);
 }
