@@ -1,3 +1,6 @@
+3569.	[contrib]	Ported mysql DLZ driver to dynamically-loadable
+			module, and added multithread support. [RT #33394]
+
 3568.	[cleanup]	Add a product description line to the version file,
 			to be reported by named -v/-V. [RT #33366]
 

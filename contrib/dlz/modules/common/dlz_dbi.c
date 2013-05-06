@@ -55,6 +55,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include <sys/errno.h>
 
@@ -458,4 +459,35 @@ destroy_dbinstance(dbinstance_t *dbi) {
 
 	/* return, and detach the memory */
 	free(dbi);
+}
+
+char *
+get_parameter_value(const char *input, const char* key) {
+	int keylen;
+	char *keystart;
+	char value[255];
+	int i;
+
+	if (key == NULL || input == NULL || *input == '\0')
+		return (NULL);
+
+	keylen = strlen(key);
+
+	if (keylen < 1)
+		return (NULL);
+
+	keystart = strstr(input, key);
+
+	if (keystart == NULL)
+		return (NULL);
+
+	for (i = 0; i < 255; i++) {
+		value[i] = keystart[keylen + i];
+		if (isspace(value[i]) || value[i] == '\0') {
+			value[i] = '\0';
+			break;
+		}
+	}
+
+	return (strdup(value));
 }
