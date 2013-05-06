@@ -6995,9 +6995,12 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	return (result);
 }
 
-static void
-rbt_datafixer(dns_rbtnode_t *rbtnode, isc_sha1_t *sha1) {
+static isc_result_t
+rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
+	      isc_sha1_t *sha1)
+{
 	rdatasetheader_t *header;
+	unsigned char *limit = ((unsigned char *) base) + filesize;
 	unsigned char *p;
 	size_t size;
 
@@ -7005,6 +7008,9 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, isc_sha1_t *sha1) {
 
 	for (header = rbtnode->data; header != NULL; header = header->next) {
 		p = (unsigned char *) header;
+		if (p == NULL)
+			return (ISC_R_INVALIDFILE);
+
 		size = dns_rdataslab_size(p, sizeof(*header));
 		isc_sha1_update(sha1, p, size);
 #ifdef DEBUG
@@ -7019,8 +7025,13 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, isc_sha1_t *sha1) {
 		if (header->next != NULL) {
 			header->next = (rdatasetheader_t *)(p + size);
 			header->next_is_relative = 0;
+			if ((header->next < (rdatasetheader_t *) base) ||
+			    (header->next > (rdatasetheader_t *) limit))
+				return (ISC_R_INVALIDFILE);
 		}
 	}
+
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -7066,7 +7077,8 @@ deserialize(void *arg, FILE *f, off_t offset) {
 	rbtdb->origin_node = NULL;
 
 	if (header->tree != 0) {
-		result = dns_rbt_deserialize_tree(base, header->tree,
+		result = dns_rbt_deserialize_tree(base, filesize,
+						  header->tree,
 						  rbtdb->common.mctx,
 						  delete_callback,
 						  rbtdb, rbt_datafixer,
@@ -7085,7 +7097,8 @@ deserialize(void *arg, FILE *f, off_t offset) {
 	}
 
 	if (header->nsec != 0) {
-		result = dns_rbt_deserialize_tree(base, header->nsec,
+		result = dns_rbt_deserialize_tree(base, filesize,
+						  header->nsec,
 						  rbtdb->common.mctx,
 						  delete_callback,
 						  rbtdb, rbt_datafixer,
@@ -7100,7 +7113,8 @@ deserialize(void *arg, FILE *f, off_t offset) {
 	}
 
 	if (header->nsec3 != 0) {
-		result = dns_rbt_deserialize_tree(base, header->nsec3,
+		result = dns_rbt_deserialize_tree(base, filesize,
+						  header->nsec3,
 						  rbtdb->common.mctx,
 						  delete_callback,
 						  rbtdb, rbt_datafixer,

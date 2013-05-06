@@ -132,9 +132,12 @@ write_data(FILE *file, unsigned char *datap, isc_uint32_t serial,
 	return (ISC_R_SUCCESS);
 }
 
-static void
-fix_data(dns_rbtnode_t *p, isc_sha1_t *sha1) {
+static isc_result_t
+fix_data(dns_rbtnode_t *p, void *base, size_t max, isc_sha1_t *sha1) {
 	data_holder_t *data = p->data;
+
+	UNUSED(base);
+	UNUSED(max);
 
 	REQUIRE(data != NULL);
 	REQUIRE((data->len == 0 && data->data == NULL) ||
@@ -147,6 +150,8 @@ fix_data(dns_rbtnode_t *p, isc_sha1_t *sha1) {
 	data->data = (data->len == 0)
 		? NULL
 		: (char *)data + sizeof(data_holder_t);
+
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -322,7 +327,8 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 		    MAP_FILE|MAP_PRIVATE, fd, 0);
 	ATF_REQUIRE(base != NULL && base != MAP_FAILED);
 
-	result = dns_rbt_deserialize_tree(base, 0, mctx, delete_data, NULL,
+	result = dns_rbt_deserialize_tree(base, filesize, 0, mctx,
+					  delete_data, NULL,
 					  fix_data, NULL, &rbt_deserialized);
 
 	/* Test to make sure we have a valid tree */

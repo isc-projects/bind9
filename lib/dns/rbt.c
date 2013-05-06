@@ -365,8 +365,9 @@ addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
 static void
 deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp);
 
-static void
-treefix(dns_rbt_t *rbt, dns_rbtnode_t *n, dns_name_t *name,
+static isc_result_t
+treefix(dns_rbt_t *rbt, void *base, size_t size,
+	dns_rbtnode_t *n, dns_name_t *name,
 	dns_rbtdatafixer_t datafixer, isc_sha1_t *sha1);
 
 static isc_result_t
@@ -684,19 +685,26 @@ dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 	return (result);
 }
 
-static void
-treefix(dns_rbt_t *rbt, dns_rbtnode_t *n, dns_name_t *name,
-	dns_rbtdatafixer_t datafixer, isc_sha1_t *sha1)
+#define CONFIRM(a) do { \
+	if (! (a)) { \
+		result = ISC_R_INVALIDFILE; \
+		goto cleanup; \
+	} \
+} while(0);
+
+static isc_result_t
+treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
+	dns_name_t *name, dns_rbtdatafixer_t datafixer, isc_sha1_t *sha1)
 {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_fixedname_t fixed;
 	dns_name_t nodename, *fullname;
 	unsigned char *node_data;
 	dns_rbtnode_t header;
-	size_t datasize;
+	size_t datasize, nodemax = filesize - sizeof(dns_rbtnode_t);
 
 	if (n == NULL)
-		return;
+		return (ISC_R_SUCCESS);
 
 	dns_name_init(&nodename, NULL);
 	NODENAME(n, &nodename);
@@ -705,47 +713,66 @@ treefix(dns_rbt_t *rbt, dns_rbtnode_t *n, dns_name_t *name,
 	if (!dns_name_isabsolute(&nodename)) {
 		dns_fixedname_init(&fixed);
 		fullname = dns_fixedname_name(&fixed);
-		result = dns_name_concatenate(&nodename, name, fullname, NULL);
-		INSIST(result == ISC_R_SUCCESS);
-		/* XXX: we need to catch errors better than this */
+		CHECK(dns_name_concatenate(&nodename, name, fullname, NULL));
 	}
 
 	/* memorize header contents prior to fixup */
 	memcpy(&header, n, sizeof(header));
 
-	INSIST(!n->parent_is_relative || n->parent != NULL);
-	INSIST(!n->right_is_relative || n->right != NULL);
-	INSIST(!n->left_is_relative || n->left != NULL);
-	INSIST(!n->down_is_relative || n->down != NULL);
-	INSIST(!n->data_is_relative || n->data != NULL);
+	if (n->left_is_relative) {
+		CONFIRM(n->left <= (dns_rbtnode_t *) nodemax);
+		n->left = getleft(n, rbt->mmap_location);
+		n->left_is_relative = 0;
+		CONFIRM(DNS_RBTNODE_VALID(n->left));
+	} else
+		CONFIRM(n->left == NULL);
 
-	n->right = getright(n, rbt->mmap_location);
-	n->right_is_relative = 0;
+	if (n->right_is_relative) {
+		CONFIRM(n->right <= (dns_rbtnode_t *) nodemax);
+		n->right = getright(n, rbt->mmap_location);
+		n->right_is_relative = 0;
+		CONFIRM(DNS_RBTNODE_VALID(n->right));
+	} else
+		CONFIRM(n->right == NULL);
 
-	n->left = getleft(n, rbt->mmap_location);
-	n->left_is_relative = 0;
+	if (n->down_is_relative) {
+		CONFIRM(n->down <= (dns_rbtnode_t *) nodemax);
+		n->down = getdown(n, rbt->mmap_location);
+		n->down_is_relative = 0;
+		CONFIRM(DNS_RBTNODE_VALID(n->down));
+	} else
+		CONFIRM(n->down == NULL);
 
-	n->down = getdown(n, rbt->mmap_location);
-	n->down_is_relative = 0;
+	if (n->parent_is_relative) {
+		CONFIRM(n->parent <= (dns_rbtnode_t *) nodemax);
+		n->parent = getparent(n, rbt->mmap_location);
+		n->parent_is_relative = 0;
+		CONFIRM(DNS_RBTNODE_VALID(n->parent));
+	} else
+		CONFIRM(n->parent == NULL);
 
-	n->parent = getparent(n, rbt->mmap_location);
-	n->parent_is_relative = 0;
-
-	n->data = getdata(n, rbt->mmap_location);
-	n->data_is_relative = 0;
+	if (n->data_is_relative) {
+		CONFIRM(n->data <= (void *) filesize);
+		n->data = getdata(n, rbt->mmap_location);
+		n->data_is_relative = 0;
+	} else
+		CONFIRM(n->data == NULL);
 
 	hash_node(rbt, n, fullname);
 
 	/* a change in the order (from left, right, down) will break hashing*/
 	if (n->left != NULL)
-		treefix(rbt, n->left, name, datafixer, sha1);
+		CHECK(treefix(rbt, base, filesize, n->left, name,
+			      datafixer, sha1));
 	if (n->right != NULL)
-		treefix(rbt, n->right, name, datafixer, sha1);
+		CHECK(treefix(rbt, base, filesize, n->right, name,
+			      datafixer, sha1));
 	if (n->down != NULL)
-		treefix(rbt, n->down, fullname, datafixer, sha1);
+		CHECK(treefix(rbt, base, filesize, n->down, fullname,
+			      datafixer, sha1));
 
 	if (datafixer != NULL && n->data != NULL)
-		datafixer(n, sha1);
+		CHECK(datafixer(n, base, filesize, sha1));
 
 	node_data = (unsigned char *) n + sizeof(dns_rbtnode_t);
 	datasize = NODE_SIZE(n) - sizeof(dns_rbtnode_t);
@@ -762,29 +789,30 @@ treefix(dns_rbt_t *rbt, dns_rbtnode_t *n, dns_name_t *name,
 			sizeof(dns_rbtnode_t));
 	isc_sha1_update(sha1, (const isc_uint8_t *) node_data,
 			datasize);
+
+ cleanup:
+	return (result);
 }
 
 isc_result_t
-dns_rbt_deserialize_tree(void *base_address, off_t header_offset,
-			 isc_mem_t *mctx,
+dns_rbt_deserialize_tree(void *base_address, size_t filesize,
+			 off_t header_offset, isc_mem_t *mctx,
 			 void (*deleter)(void *, void *),
 			 void *deleter_arg,
 			 dns_rbtdatafixer_t datafixer,
 			 dns_rbtnode_t **originp, dns_rbt_t **rbtp)
 {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	file_header_t *header;
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
-	isc_sha1_t sha1;
 	dns_rbt_t *rbt = NULL;
+	isc_sha1_t sha1;
 
 	REQUIRE(originp == NULL || *originp == NULL);
 
 	isc_sha1_init(&sha1);
 
-	result = dns_rbt_create(mctx, deleter, deleter_arg, &rbt);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	CHECK(dns_rbt_create(mctx, deleter, deleter_arg, &rbt));
 
 	rbt->mmap_location = base_address;
 
@@ -812,25 +840,33 @@ dns_rbt_deserialize_tree(void *base_address, off_t header_offset,
 	rbt->root = (dns_rbtnode_t *)((char *)base_address +
 				header_offset + header->first_node_offset);
 	rbt->nodecount = header->nodecount;
-	treefix(rbt, rbt->root, dns_rootname, datafixer, &sha1);
+
+	CHECK(treefix(rbt, base_address, filesize, rbt->root,
+		      dns_rootname, datafixer, &sha1));
 
 	isc_sha1_final(&sha1, digest);
 #ifdef DEBUG
 	hexdump("deserializing digest", digest, sizeof(digest));
 #endif
 
+	/* Check file hash */
 	if (memcmp(header->digest, digest, sizeof(digest)) != 0) {
-		rbt->root = NULL;
-		rbt->nodecount = 0;
-		dns_rbt_destroy(&rbt);
-		return (ISC_R_INVALIDFILE);
+		result = ISC_R_INVALIDFILE;
+		goto cleanup;
 	}
 
 	*rbtp = rbt;
 	if (originp != NULL)
 		*originp = rbt->root;
 
-	return (ISC_R_SUCCESS);
+ cleanup:
+	if (result != ISC_R_SUCCESS) {
+		rbt->root = NULL;
+		rbt->nodecount = 0;
+		dns_rbt_destroy(&rbt);
+	}
+
+	return (result);
 }
 
 /*

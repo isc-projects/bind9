@@ -156,7 +156,9 @@ typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file,
 					    isc_uint32_t version,
 					    isc_sha1_t *sha1);
 
-typedef void (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode, isc_sha1_t *sha1);
+typedef isc_result_t (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode,
+					   void *base, size_t offset,
+					   isc_sha1_t *sha1);
 
 /*****
  *****  Chain Info
@@ -706,8 +708,8 @@ dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
  */
 
 isc_result_t
-dns_rbt_deserialize_tree(void *base_address, off_t header_offset,
-			 isc_mem_t *mctx,
+dns_rbt_deserialize_tree(void *base_address, size_t filesize,
+			 off_t header_offset, isc_mem_t *mctx,
 			 void (*deleter)(void *, void *), void *deleter_arg,
 			 dns_rbtdatafixer_t datafixer,
 			 dns_rbtnode_t **originp, dns_rbt_t **rbtp);
