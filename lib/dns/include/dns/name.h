@@ -231,6 +231,11 @@ dns_name_invalidate(dns_name_t *name);
  * \li	If the name had a dedicated buffer, that association is ended.
  */
 
+isc_boolean_t
+dns_name_isvalid(const dns_name_t *name);
+/*%<
+ * Check whether 'name' points to a valid dns_name
+ */
 
 /***
  *** Dedicated Buffers

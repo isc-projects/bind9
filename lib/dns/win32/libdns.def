@@ -407,6 +407,7 @@ dns_name_internalwildcard
 dns_name_invalidate
 dns_name_isabsolute
 dns_name_issubdomain
+dns_name_isvalid
 dns_name_iswildcard
 dns_name_matcheswildcard
 dns_name_print

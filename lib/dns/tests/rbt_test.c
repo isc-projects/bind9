@@ -21,6 +21,7 @@
 #include <config.h>
 #include <atf-c.h>
 #include <isc/mem.h>
+#include <isc/random.h>
 #include <isc/string.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -54,6 +55,10 @@
 #include <dns/result.h>
 
 #include <dst/dst.h>
+
+#ifndef MAP_FILE
+#define MAP_FILE 0
+#endif
 
 typedef struct data_holder {
 	int len;
@@ -109,8 +114,8 @@ write_data(FILE *file, unsigned char *datap, isc_uint32_t serial,
 	uintptr_t where = ftell(file);
 
 	UNUSED(serial);
-	UNUSED(sha1);
 
+	REQUIRE(sha1 != NULL);
 	REQUIRE(data != NULL);
 	REQUIRE((data->len == 0 && data->data == NULL) ||
 		(data->len != 0 && data->data != NULL));
@@ -120,10 +125,12 @@ write_data(FILE *file, unsigned char *datap, isc_uint32_t serial,
 		     ? NULL
 		     : (char *)(where + sizeof(data_holder_t)));
 
+	isc_sha1_update(sha1, (void *)&temp, sizeof(temp));
 	ret = fwrite(&temp, sizeof(data_holder_t), 1, file);
 	if (ret != 1)
 		return (ISC_R_FAILURE);
 	if (data->len > 0) {
+		isc_sha1_update(sha1, (const void *)data->data, data->len);
 		ret = fwrite(data->data, data->len, 1, file);
 		if (ret != 1)
 			return (ISC_R_FAILURE);
@@ -135,21 +142,36 @@ write_data(FILE *file, unsigned char *datap, isc_uint32_t serial,
 static isc_result_t
 fix_data(dns_rbtnode_t *p, void *base, size_t max, isc_sha1_t *sha1) {
 	data_holder_t *data = p->data;
+	size_t size;
 
 	UNUSED(base);
 	UNUSED(max);
 
-	REQUIRE(data != NULL);
-	REQUIRE((data->len == 0 && data->data == NULL) ||
-		(data->len != 0 && data->data != NULL));
-
-	UNUSED(sha1);
+	REQUIRE(sha1 != NULL);
+	REQUIRE(p != NULL);
 
 	printf("fixing data: len %d, data %p\n", data->len, data->data);
+
+	if (data == NULL ||
+	    (data->len == 0 && data->data != NULL) ||
+	    (data->len != 0 && data->data == NULL))
+		return (ISC_R_INVALIDFILE);
+
+	size = max - ((char *)p - (char *)base);
+
+	if (data->len > (int) size || data->data > (const char *) max) {
+		printf("data invalid\n");
+		return (ISC_R_INVALIDFILE);
+	}
+
+	isc_sha1_update(sha1, (void *)data, sizeof(*data));
 
 	data->data = (data->len == 0)
 		? NULL
 		: (char *)data + sizeof(data_holder_t);
+
+	if (data->len > 0)
+		isc_sha1_update(sha1, (const void *)data->data, data->len);
 
 	return (ISC_R_SUCCESS);
 }
@@ -158,8 +180,7 @@ fix_data(dns_rbtnode_t *p, void *base, size_t max, isc_sha1_t *sha1) {
  * Load test data into the RBT.
  */
 static void
-add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt)
-{
+add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt) {
 	char buffer[1024];
 	isc_buffer_t b;
 	isc_result_t result;
@@ -197,8 +218,7 @@ add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt)
  * Walk the tree and ensure that all the test nodes are present.
  */
 static void
-check_test_data(dns_rbt_t *rbt)
-{
+check_test_data(dns_rbt_t *rbt) {
 	char buffer[1024];
 	char *arg;
 	dns_fixedname_t fname;
@@ -244,11 +264,11 @@ data_printer(FILE *out, void *datap)
 	fprintf(out, "%d bytes, %s", data->len, data->data);
 }
 
-ATF_TC(isc_rbt);
-ATF_TC_HEAD(isc_rbt, tc) {
+ATF_TC(rbt);
+ATF_TC_HEAD(rbt, tc) {
 	atf_tc_set_md_var(tc, "descr", "Test the creation of an rbt");
 }
-ATF_TC_BODY(isc_rbt, tc) {
+ATF_TC_BODY(rbt, tc) {
 	dns_rbt_t *rbt = NULL;
 	isc_result_t result;
 
@@ -272,11 +292,11 @@ ATF_TC_BODY(isc_rbt, tc) {
 	dns_test_end();
 }
 
-ATF_TC(isc_serialize_rbt);
-ATF_TC_HEAD(isc_serialize_rbt, tc) {
+ATF_TC(serialize);
+ATF_TC_HEAD(serialize, tc) {
 	atf_tc_set_md_var(tc, "descr", "Test writing an rbt to file");
 }
-ATF_TC_BODY(isc_serialize_rbt, tc) {
+ATF_TC_BODY(serialize, tc) {
 	dns_rbt_t *rbt = NULL;
 	isc_result_t result;
 	FILE *rbtfile = NULL;
@@ -314,9 +334,6 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 	 */
 	printf("deserialization begins.\n");
 
-#ifndef MAP_FILE
-#define MAP_FILE 0
-#endif
 	/*
 	 * Map in the whole file in one go
 	 */
@@ -326,6 +343,7 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 		    PROT_READ|PROT_WRITE,
 		    MAP_FILE|MAP_PRIVATE, fd, 0);
 	ATF_REQUIRE(base != NULL && base != MAP_FAILED);
+	close(fd);
 
 	result = dns_rbt_deserialize_tree(base, filesize, 0, mctx,
 					  delete_data, NULL,
@@ -346,11 +364,91 @@ ATF_TC_BODY(isc_serialize_rbt, tc) {
 	dns_test_end();
 }
 
-ATF_TC(dns_rbt_serialize_align);
-ATF_TC_HEAD(dns_rbt_serialize_align, tc) {
-	atf_tc_set_md_var(tc, "descr", "Test the dns_rbt_serialize_align() function.");
+ATF_TC(deserialize_corrupt);
+ATF_TC_HEAD(deserialize_corrupt, tc) {
+	atf_tc_set_md_var(tc, "descr", "Test reading a corrupt map file");
 }
-ATF_TC_BODY(dns_rbt_serialize_align, tc) {
+ATF_TC_BODY(deserialize_corrupt, tc) {
+	dns_rbt_t *rbt = NULL;
+	isc_result_t result;
+	FILE *rbtfile = NULL;
+	long offset;
+	int fd;
+	off_t filesize = 0;
+	char *base, *p, *q;
+	isc_uint32_t r;
+	int i;
+
+	UNUSED(tc);
+
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
+
+	result = dns_test_begin(NULL, ISC_TRUE);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	/* Set up map file */
+	result = dns_rbt_create(mctx, delete_data, NULL, &rbt);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+
+	add_test_data(mctx, rbt);
+	rbtfile = fopen("./zone.bin", "w+b");
+	ATF_REQUIRE(rbtfile != NULL);
+	result = dns_rbt_serialize_tree(rbtfile, rbt, write_data, 0, &offset);
+	ATF_REQUIRE(result == ISC_R_SUCCESS);
+	dns_rbt_destroy(&rbt);
+
+	/* Read back with random fuzzing */
+	for (i = 0; i < 256; i++) {
+		dns_rbt_t *rbt_deserialized = NULL;
+
+		fd = open("zone.bin", O_RDWR);
+		isc_file_getsizefd(fd, &filesize);
+		base = mmap(NULL, filesize,
+			    PROT_READ|PROT_WRITE,
+			    MAP_FILE|MAP_PRIVATE, fd, 0);
+		ATF_REQUIRE(base != NULL && base != MAP_FAILED);
+		close(fd);
+
+		/* Randomly fuzz a portion of the memory */
+		isc_random_get(&r);
+		p = base + (r % filesize);
+		q = base + filesize;
+		isc_random_get(&r);
+		q -= (r % (q - p));
+		while (p++ < q) {
+			isc_random_get(&r);
+			*p = r & 0xff;
+		}
+
+		result = dns_rbt_deserialize_tree(base, filesize, 0, mctx,
+						  delete_data, NULL,
+						  fix_data, NULL,
+						  &rbt_deserialized);
+		printf("%d: %s\n", i, isc_result_totext(result));
+
+		/* Test to make sure we have a valid tree */
+		ATF_REQUIRE(result == ISC_R_SUCCESS ||
+			    result == ISC_R_INVALIDFILE);
+		if (result != ISC_R_SUCCESS)
+			ATF_REQUIRE(rbt_deserialized == NULL);
+
+		if (rbt_deserialized != NULL)
+			dns_rbt_destroy(&rbt_deserialized);
+
+		munmap(base, filesize);
+	}
+
+	unlink("zone.bin");
+	dns_test_end();
+}
+
+
+ATF_TC(serialize_align);
+ATF_TC_HEAD(serialize_align, tc) {
+	atf_tc_set_md_var(tc, "descr",
+			  "Test the dns_rbt_serialize_align() function.");
+}
+ATF_TC_BODY(serialize_align, tc) {
 	UNUSED(tc);
 
 	ATF_CHECK(dns_rbt_serialize_align(0) == 0);
@@ -371,9 +469,10 @@ ATF_TC_BODY(dns_rbt_serialize_align, tc) {
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, isc_rbt);
-	ATF_TP_ADD_TC(tp, isc_serialize_rbt);
-	ATF_TP_ADD_TC(tp, dns_rbt_serialize_align);
+	ATF_TP_ADD_TC(tp, rbt);
+	ATF_TP_ADD_TC(tp, serialize);
+	ATF_TP_ADD_TC(tp, deserialize_corrupt);
+	ATF_TP_ADD_TC(tp, serialize_align);
 
 	return (atf_no_error());
 }

@@ -7021,7 +7021,11 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 		header->node = rbtnode;
 		header->node_is_relative = 0;
 		if (header->next != NULL) {
-			header->next = (rdatasetheader_t *)(p + size);
+			size_t cooked = dns_rbt_serialize_align(size);
+			if ((uintptr_t)header->next !=
+				    (p - (unsigned char *)base) + cooked)
+				return (ISC_R_INVALIDFILE);
+			header->next = (rdatasetheader_t *)(p + cooked);
 			header->next_is_relative = 0;
 			if ((header->next < (rdatasetheader_t *) base) ||
 			    (header->next > (rdatasetheader_t *) limit))
@@ -7223,9 +7227,10 @@ rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial,
 		isc_sha1_t *sha1) {
 	rdatasetheader_t newheader;
 	rdatasetheader_t *header = (rdatasetheader_t *) data, *next;
-	size_t where, size;
+	size_t where, size, cooked;
 	unsigned char *p;
 	isc_result_t result;
+	static const char pad[sizeof(char *)];
 
 	REQUIRE(rbtfile != NULL);
 	REQUIRE(data != NULL);
@@ -7256,8 +7261,13 @@ rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial,
 		newheader.node_is_relative = 1;
 		newheader.serial = 1;
 
+		/*
+		 * Round size up to the next pointer sized offset so it
+		 * will be properly aligned when read back in.
+		 */
+		cooked = dns_rbt_serialize_align(size);
 		if (next != NULL) {
-			newheader.next = (rdatasetheader_t *) (where + size);
+			newheader.next = (rdatasetheader_t *) (where + cooked);
 			newheader.next_is_relative = 1;
 		}
 
@@ -7281,6 +7291,15 @@ rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial,
 			     size - sizeof(rdatasetheader_t), 1, rbtfile, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+		/*
+		 * Pad to force alignment.
+		 */
+		if (cooked != size) {
+			result = isc_stdio_write(pad, cooked - size, 1,
+						 rbtfile, NULL);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+		}
 	}
 
 	return (ISC_R_SUCCESS);

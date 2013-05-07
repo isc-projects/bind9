@@ -273,8 +273,7 @@ getdata(dns_rbtnode_t *node, file_header_t *header) {
  */
 
 static inline void
-NODENAME(dns_rbtnode_t *node, dns_name_t *name)
-{
+NODENAME(dns_rbtnode_t *node, dns_name_t *name) {
 	name->length = NAMELEN(node);
 	name->labels = OFFSETLEN(node);
 	name->ndata = NAME(node);
@@ -348,9 +347,12 @@ static inline void
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_name_t *name);
 static inline void
 unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
+static void
+rehash(dns_rbt_t *rbt, unsigned int newcount);
 #else
 #define hash_node(rbt, node, name)
 #define unhash_node(rbt, node)
+#define rehash(rbt, newcount)
 #endif
 
 static inline void
@@ -706,10 +708,16 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 	if (n == NULL)
 		return (ISC_R_SUCCESS);
 
+	CONFIRM((void *) n >= base);
+	CONFIRM((char *) n - (char *) base <= (int) nodemax);
+	CONFIRM(DNS_RBTNODE_VALID(n));
+
 	dns_name_init(&nodename, NULL);
 	NODENAME(n, &nodename);
 
 	fullname = &nodename;
+	CONFIRM(dns_name_isvalid(fullname));
+
 	if (!dns_name_isabsolute(&nodename)) {
 		dns_fixedname_init(&fixed);
 		fullname = dns_fixedname_name(&fixed);
@@ -739,6 +747,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 		CONFIRM(n->down <= (dns_rbtnode_t *) nodemax);
 		n->down = getdown(n, rbt->mmap_location);
 		n->down_is_relative = 0;
+		CONFIRM(n->down > (dns_rbtnode_t *) n);
 		CONFIRM(DNS_RBTNODE_VALID(n->down));
 	} else
 		CONFIRM(n->down == NULL);
@@ -747,6 +756,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 		CONFIRM(n->parent <= (dns_rbtnode_t *) nodemax);
 		n->parent = getparent(n, rbt->mmap_location);
 		n->parent_is_relative = 0;
+		CONFIRM(n->parent < (dns_rbtnode_t *) n);
 		CONFIRM(DNS_RBTNODE_VALID(n->parent));
 	} else
 		CONFIRM(n->parent == NULL);
@@ -755,6 +765,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 		CONFIRM(n->data <= (void *) filesize);
 		n->data = getdata(n, rbt->mmap_location);
 		n->data_is_relative = 0;
+		CONFIRM(n->data > (void *) n);
 	} else
 		CONFIRM(n->data == NULL);
 
@@ -774,6 +785,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 	if (datafixer != NULL && n->data != NULL)
 		CHECK(datafixer(n, base, filesize, sha1));
 
+	rbt->nodecount++;
 	node_data = (unsigned char *) n + sizeof(dns_rbtnode_t);
 	datasize = NODE_SIZE(n) - sizeof(dns_rbtnode_t);
 
@@ -809,6 +821,7 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 	isc_sha1_t sha1;
 
 	REQUIRE(originp == NULL || *originp == NULL);
+	REQUIRE(rbtp != NULL && *rbtp == NULL);
 
 	isc_sha1_init(&sha1);
 
@@ -820,26 +833,35 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 
 #ifdef DNS_RDATASET_FIXED
 	if (header->rdataset_fixed != 1) {
-		return (ISC_R_INVALIDFILE);
+		result = ISC_R_INVALIDFILE;
+		goto cleanup;
 	}
 
 #else
 	if (header->rdataset_fixed != 0) {
-		return (ISC_R_INVALIDFILE);
+		result = ISC_R_INVALIDFILE;
+		goto cleanup;
 	}
 #endif
 
 	if (header->ptrsize != (isc_uint32_t) sizeof(void *)) {
-		return (ISC_R_INVALIDFILE);
+		result = ISC_R_INVALIDFILE;
+		goto cleanup;
 	}
 	if (header->bigendian != (1 == htonl(1)) ? 1 : 0) {
-		return (ISC_R_INVALIDFILE);
+		result = ISC_R_INVALIDFILE;
+		goto cleanup;
 	}
 
 	/* Copy other data items from the header into our rbt. */
 	rbt->root = (dns_rbtnode_t *)((char *)base_address +
 				header_offset + header->first_node_offset);
-	rbt->nodecount = header->nodecount;
+
+	if ((header->nodecount * sizeof(dns_rbtnode_t)) > filesize) {
+		result = ISC_R_INVALIDFILE;
+		goto cleanup;
+	}
+	rehash(rbt, header->nodecount);
 
 	CHECK(treefix(rbt, base_address, filesize, rbt->root,
 		      dns_rootname, datafixer, &sha1));
@@ -858,6 +880,9 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 	*rbtp = rbt;
 	if (originp != NULL)
 		*originp = rbt->root;
+
+	if (header->nodecount != rbt->nodecount)
+		result = ISC_R_INVALIDFILE;
 
  cleanup:
 	if (result != ISC_R_SUCCESS) {
@@ -2186,7 +2211,7 @@ inithash(dns_rbt_t *rbt) {
 }
 
 static void
-rehash(dns_rbt_t *rbt) {
+rehash(dns_rbt_t *rbt, unsigned int newcount) {
 	unsigned int oldsize;
 	dns_rbtnode_t **oldtable;
 	dns_rbtnode_t *node;
@@ -2195,7 +2220,9 @@ rehash(dns_rbt_t *rbt) {
 
 	oldsize = rbt->hashsize;
 	oldtable = rbt->hashtable;
-	rbt->hashsize = rbt->hashsize * 2 + 1;
+	do {
+		rbt->hashsize = rbt->hashsize * 2 + 1;
+	} while (newcount >= (rbt->hashsize * 3));
 	rbt->hashtable = isc_mem_get(rbt->mctx,
 				     rbt->hashsize * sizeof(dns_rbtnode_t *));
 	if (rbt->hashtable == NULL) {
@@ -2225,11 +2252,10 @@ rehash(dns_rbt_t *rbt) {
 
 static inline void
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_name_t *name) {
-
 	REQUIRE(DNS_RBTNODE_VALID(node));
 
-	if (rbt->nodecount >= (rbt->hashsize *3))
-		rehash(rbt);
+	if (rbt->nodecount >= (rbt->hashsize * 3))
+		rehash(rbt, rbt->nodecount);
 
 	hash_add_node(rbt, node, name);
 }
