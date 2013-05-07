@@ -7008,8 +7008,6 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 
 	for (header = rbtnode->data; header != NULL; header = header->next) {
 		p = (unsigned char *) header;
-		if (p == NULL)
-			return (ISC_R_INVALIDFILE);
 
 		size = dns_rdataslab_size(p, sizeof(*header));
 		isc_sha1_update(sha1, p, size);
