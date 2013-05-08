@@ -1146,6 +1146,7 @@ dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass) {
 	 * Test and set.
 	 */
 	LOCK_ZONE(zone);
+	INSIST(zone != zone->raw);
 	REQUIRE(zone->rdclass == dns_rdataclass_none ||
 		zone->rdclass == rdclass);
 	zone->rdclass = rdclass;
@@ -1343,6 +1344,7 @@ dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
+	INSIST(zone != zone->raw);
 	if (zone->view != NULL)
 		dns_view_weakdetach(&zone->view);
 	dns_view_weakattach(view, &zone->view);
@@ -1380,6 +1382,7 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 	REQUIRE(origin != NULL);
 
 	LOCK_ZONE(zone);
+	INSIST(zone != zone->raw);
 	if (dns_name_dynamic(&zone->origin)) {
 		dns_name_free(&zone->origin, zone->mctx);
 		dns_name_init(&zone->origin, NULL);
@@ -1605,6 +1608,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
+	INSIST(zone != zone->raw);
 	hasraw = inline_secure(zone);
 	if (hasraw) {
 		result = zone_load(zone->raw, flags);
@@ -2073,6 +2077,7 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 		goto fail;
 
 	LOCK_ZONE(zone);
+	INSIST(zone != zone->raw);
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL) {
 		dns_db_currentversion(zone->db, &version);
@@ -4674,6 +4679,7 @@ dns_zone_detach(dns_zone_t **zonep) {
 
 	if (refs == 0) {
 		LOCK_ZONE(zone);
+		INSIST(zone != zone->raw);
 		/*
 		 * We just detached the last external reference.
 		 */
@@ -11614,6 +11620,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 		dns_xfrin_shutdown(zone->xfr);
 
 	LOCK_ZONE(zone);
+	INSIST(zone != zone->raw);
 	if (linked) {
 		INSIST(zone->irefs > 0);
 		zone->irefs--;
@@ -12033,6 +12040,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	 * Notify messages are processed by the raw zone.
 	 */
 	LOCK_ZONE(zone);
+	INSIST(zone != zone->raw);
 	if (inline_secure(zone)) {
 		result = dns_zone_notifyreceive(zone->raw, from, msg);
 		UNLOCK_ZONE(zone);
@@ -13293,6 +13301,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	 * Lock hierarchy: zmgr, zone, raw.
 	 */
 	LOCK_ZONE(zone);
+	INSIST(zone != zone->raw);
 	if (inline_secure(zone))
 		LOCK_ZONE(zone->raw);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
@@ -13837,6 +13846,7 @@ zone_loaddone(void *arg, isc_result_t result) {
 	 * Lock hierarchy: zmgr, zone, raw.
 	 */
 	LOCK_ZONE(zone);
+	INSIST(zone != zone->raw);
 	if (inline_secure(zone))
 		LOCK_ZONE(zone->raw);
 	(void)zone_postload(zone, load->db, load->loadtime, result);
@@ -16543,6 +16553,7 @@ dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db)
 	 * Lock hierarchy: zmgr, zone, raw.
 	 */
 	LOCK_ZONE(zone);
+	INSIST(zone != zone->raw);
 	if (inline_secure(zone))
 		LOCK_ZONE(zone->raw);
 	result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
@@ -16609,6 +16620,8 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	REQUIRE(raw->loadtask == NULL);
 	REQUIRE(raw->secure == NULL);
 
+	REQUIRE(zone != raw);
+
 	/*
 	 * Lock hierarchy: zmgr, zone, raw.
 	 */
@@ -16657,6 +16670,7 @@ dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw) {
 	REQUIRE(raw != NULL && *raw == NULL);
 
 	LOCK(&zone->lock);
+	INSIST(zone != zone->raw);
 	if (zone->raw != NULL)
 		dns_zone_attach(zone->raw, raw);
 	UNLOCK(&zone->lock);
