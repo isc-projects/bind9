@@ -237,6 +237,18 @@ Building
             BUILD_LDFLAGS (optional)
             BUILD_LIBS (optional)
 
+        On most platforms, BIND 9 is built with multithreading
+        support, allowing it to take advantage of multiple CPUs.
+        You can configure this by specifying "--enable-threads" or
+        "--disable-threads" on the configure command line.  The default
+        is to enable threads, except on some older operating systems
+        on which threads are known to have had problems in the past.
+        (Note: Prior to BIND 9.10, the default was to disable threads on
+        Linux systems; this has been reversed.  On Linux systems, the
+        threaded build is known to change BIND's behavior with respect
+        to file permissions; it may be necessary to specify a user with
+        the -u option when running named.)
+
         To build shared libraries, specify "--with-libtool" on the
         configure command line.
 
@@ -256,13 +268,6 @@ Building
         On some platforms it is necessary to explictly request large
         file support to handle files bigger than 2GB.  This can be
         done by "--enable-largefile" on the configure command line.
-
-        On some platforms, BIND 9 can be built with multithreading
-        support, allowing it to take advantage of multiple CPUs.
-        You can specify whether to build a multithreaded BIND 9
-        by specifying "--enable-threads" or "--disable-threads"
-        on the configure command line.  The default is operating
-        system dependent.
 
         Support for the "fixed" rrset-order option can be enabled
         or disabled by specifying "--enable-fixed-rrset" or

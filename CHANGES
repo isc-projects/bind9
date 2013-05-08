@@ -1,3 +1,6 @@
+3572.	[func]		Threads are now enabled by default on most
+			operating systems. [RT #25483]
+
 3571.	[bug]		Address race condition in dns_client_startresolve().
 			[RT #33234]
 
