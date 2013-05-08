@@ -103,6 +103,19 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 }
 
 isc_result_t
+isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx,
+		 isc_task_t *task, isc_taskaction_t action,
+	         void *arg)
+{
+	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
+
+	if (isc_bind9)
+		return (isc__app_ctxonrun(ctx, mctx, task, action, arg));
+
+	return (ctx->methods->ctxonrun(ctx, mctx, task, action, arg));
+}
+
+isc_result_t
 isc_app_ctxsuspend(isc_appctx_t *ctx) {
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 

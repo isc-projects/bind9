@@ -92,6 +92,9 @@ void isc__appctx_destroy(isc_appctx_t **ctxp);
 void isc__appctx_settaskmgr(isc_appctx_t *ctx, isc_taskmgr_t *taskmgr);
 void isc__appctx_setsocketmgr(isc_appctx_t *ctx, isc_socketmgr_t *socketmgr);
 void isc__appctx_settimermgr(isc_appctx_t *ctx, isc_timermgr_t *timermgr);
+isc_result_t isc__app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx,
+			       isc_task_t *task, isc_taskaction_t action,
+			       void *arg);
 
 /*
  * The application context of this module.  This implementation actually
@@ -136,8 +139,7 @@ static struct {
 	/*%
 	 * The following are defined just for avoiding unused static functions.
 	 */
-	void *run, *shutdown, *start, *onrun, *reload, *finish,
-	     *block, *unblock;
+	void *run, *shutdown, *start, *reload, *finish, *block, *unblock;
 } appmethods = {
 	{
 		isc__appctx_destroy,
@@ -148,12 +150,12 @@ static struct {
 		isc__app_ctxfinish,
 		isc__appctx_settaskmgr,
 		isc__appctx_setsocketmgr,
-		isc__appctx_settimermgr
+		isc__appctx_settimermgr,
+		isc__app_ctxonrun
 	},
 	(void *)isc__app_run,
 	(void *)isc__app_shutdown,
 	(void *)isc__app_start,
-	(void *)isc__app_onrun,
 	(void *)isc__app_reload,
 	(void *)isc__app_finish,
 	(void *)isc__app_block,
@@ -398,13 +400,22 @@ isc_result_t
 isc__app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 	      void *arg)
 {
+	return (isc__app_ctxonrun((isc_appctx_t *)&isc_g_appctx, mctx,
+				  task, action, arg));
+}
+
+isc_result_t
+isc__app_ctxonrun(isc_appctx_t *ctx0, isc_mem_t *mctx, isc_task_t *task,
+		  isc_taskaction_t action, void *arg)
+{
+	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
 	isc_event_t *event;
 	isc_task_t *cloned_task = NULL;
 	isc_result_t result;
 
-	LOCK(&isc_g_appctx.lock);
+	LOCK(&ctx->lock);
 
-	if (isc_g_appctx.running) {
+	if (ctx->running) {
 		result = ISC_R_ALREADYRUNNING;
 		goto unlock;
 	}
@@ -421,12 +432,12 @@ isc__app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 		goto unlock;
 	}
 
-	ISC_LIST_APPEND(isc_g_appctx.on_run, event, ev_link);
+	ISC_LIST_APPEND(ctx->on_run, event, ev_link);
 
 	result = ISC_R_SUCCESS;
 
  unlock:
-	UNLOCK(&isc_g_appctx.lock);
+	UNLOCK(&ctx->lock);
 
 	return (result);
 }
@@ -679,7 +690,8 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 			 * wait until woken up.
 			 */
 			LOCK(&ctx->readylock);
-			WAIT(&ctx->ready, &ctx->readylock);
+			if (!ctx->want_reload)
+				WAIT(&ctx->ready, &ctx->readylock);
 			UNLOCK(&ctx->readylock);
 		}
 #else  /* Don't have sigwait(). */
