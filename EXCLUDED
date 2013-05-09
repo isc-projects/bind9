@@ -1,3 +1,6 @@
+3571.   [bug]           Address race condition in dns_client_startresolve().
+                        [RT #33234]
+
 3557.	[bug]		Reloading redirect zones was broken. [RT #33292]
 
 3554.	[bug]		RRL failed to correctly rate-limit upward
