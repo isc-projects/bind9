@@ -150,7 +150,11 @@ fix_data(dns_rbtnode_t *p, void *base, size_t max, isc_sha1_t *sha1) {
 	REQUIRE(sha1 != NULL);
 	REQUIRE(p != NULL);
 
-	printf("fixing data: len %d, data %p\n", data->len, data->data);
+
+	if (data == NULL)
+		printf("fixing data: data NULL\n");
+	else
+		printf("fixing data: len %d, data %p\n", data->len, data->data);
 
 	if (data == NULL ||
 	    (data->len == 0 && data->data != NULL) ||
