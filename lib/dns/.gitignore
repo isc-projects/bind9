@@ -4,3 +4,4 @@ gen
 enumclass.h
 enumtype.h
 rdatastruct.h
+gen.dSYM
