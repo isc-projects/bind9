@@ -1,3 +1,7 @@
+3573.	[bug]		"rndc addzone" and "rndc delzone" incorrectly handled zone 
+			names containing punctuation marks and other nonstandard 
+			characters. [RT #33419]
+
 3572.	[func]		Threads are now enabled by default on most
 			operating systems. [RT #25483]
 

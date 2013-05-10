@@ -8280,11 +8280,13 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	const char	    *viewname = NULL;
 	dns_rdataclass_t     rdclass;
 	dns_view_t	    *view = 0;
-	isc_buffer_t	     buf, *nbuf = NULL;
-	dns_name_t	     dnsname;
+	isc_buffer_t	     buf;
+	dns_fixedname_t	     fname;
+	dns_name_t	    *dnsname;
 	dns_zone_t	    *zone = NULL;
 	FILE		    *fp = NULL;
 	struct cfg_context  *cfg = NULL;
+	char 		    namebuf[DNS_NAME_FORMATSIZE];
 
 	/* Try to parse the argument string */
 	arglen = strlen(args);
@@ -8298,10 +8300,10 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	zonename = cfg_obj_asstring(cfg_tuple_get(parms, "name"));
 	isc_buffer_constinit(&buf, zonename, strlen(zonename));
 	isc_buffer_add(&buf, strlen(zonename));
-	dns_name_init(&dnsname, NULL);
-	isc_buffer_allocate(server->mctx, &nbuf, 256);
-	dns_name_setbuffer(&dnsname, nbuf);
-	CHECK(dns_name_fromtext(&dnsname, &buf, dns_rootname, ISC_FALSE, NULL));
+
+	dns_fixedname_init(&fname);
+	dnsname = dns_fixedname_name(&fname);
+	CHECK(dns_name_fromtext(dnsname, &buf, dns_rootname, ISC_FALSE, NULL));
 
 	/* Make sense of optional class argument */
 	obj = cfg_tuple_get(parms, "class");
@@ -8330,7 +8332,7 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	}
 
 	/* Zone shouldn't already exist */
-	result = dns_zt_find(view->zonetable, &dnsname, 0, NULL, &zone);
+	result = dns_zt_find(view->zonetable, dnsname, 0, NULL, &zone);
 	if (result == ISC_R_SUCCESS) {
 		result = ISC_R_EXISTS;
 		goto cleanup;
@@ -8372,7 +8374,7 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 		goto cleanup;
 
 	/* Is it there yet? */
-	CHECK(dns_zt_find(view->zonetable, &dnsname, 0, NULL, &zone));
+	CHECK(dns_zt_find(view->zonetable, dnsname, 0, NULL, &zone));
 
 	/*
 	 * Load the zone from the master file.  If this fails, we'll
@@ -8400,10 +8402,13 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	/* Flag the zone as having been added at runtime */
 	dns_zone_setadded(zone, ISC_TRUE);
 
-	/* Emit just the zone name from args */
-	CHECK(isc_stdio_write("zone ", 5, 1, fp, NULL));
-	CHECK(isc_stdio_write(zonename, strlen(zonename), 1, fp, NULL));
-	CHECK(isc_stdio_write(" ", 1, 1, fp, NULL));
+	/* Emit the zone name, quoted and escaped */
+	isc_buffer_init(&buf, namebuf, sizeof(namebuf));
+	CHECK(dns_name_totext(dnsname, ISC_TRUE, &buf));
+	isc_buffer_putuint8(&buf, 0);
+	CHECK(isc_stdio_write("zone \"", 6, 1, fp, NULL));
+	CHECK(isc_stdio_write(namebuf, strlen(namebuf), 1, fp, NULL));
+	CHECK(isc_stdio_write("\" ", 2, 1, fp, NULL));
 
 	/* Classname, if not default */
 	if (classname != NULL && *classname != '\0') {
@@ -8447,8 +8452,6 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 		dns_zone_detach(&zone);
 	if (view != NULL)
 		dns_view_detach(&view);
-	if (nbuf != NULL)
-		isc_buffer_free(&nbuf);
 
 	return (result);
 }
