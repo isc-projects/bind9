@@ -558,7 +558,7 @@
 ./bin/tests/system/addzone/clean.sh		SH	2010,2012,2013
 ./bin/tests/system/addzone/ns1/inlineslave.db	ZONE	2013
 ./bin/tests/system/addzone/ns1/named.conf	CONF-C	2013
-./bin/tests/system/addzone/ns2/added.db		ZONE	2010
+./bin/tests/system/addzone/ns2/added.db		ZONE	2010,2013
 ./bin/tests/system/addzone/ns2/default.nzf.in	X	2010
 ./bin/tests/system/addzone/ns2/inline.db	ZONE	2013
 ./bin/tests/system/addzone/ns2/named1.conf	CONF-C	2010
