@@ -526,6 +526,12 @@ static cfg_type_t cfg_type_checkmode = {
 	&cfg_rep_string, &checkmode_enums
 };
 
+static const char *warn_enums[] = { "warn", "ignore", NULL };
+static cfg_type_t cfg_type_warn = {
+	"warn", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &warn_enums
+};
+
 static cfg_tuplefielddef_t checknames_fields[] = {
 	{ "type", &cfg_type_checktype, 0 },
 	{ "mode", &cfg_type_checkmode, 0 },
@@ -1461,6 +1467,7 @@ zone_clauses[] = {
 	{ "check-mx", &cfg_type_checkmode, 0 },
 	{ "check-mx-cname", &cfg_type_checkmode, 0 },
 	{ "check-sibling", &cfg_type_boolean, 0 },
+	{ "check-spf", &cfg_type_warn, 0 },
 	{ "check-srv-cname", &cfg_type_checkmode, 0 },
 	{ "check-wildcard", &cfg_type_boolean, 0 },
 	{ "dialup", &cfg_type_dialuptype, 0 },

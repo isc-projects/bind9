@@ -1123,6 +1123,17 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				   cfg_obj_asboolean(obj));
 
 		obj = NULL;
+		result = ns_config_get(maps, "check-spf", &obj);
+		INSIST(result == ISC_R_SUCCESS && obj != NULL);
+		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
+			check = ISC_TRUE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
+			check = ISC_FALSE;
+		} else
+			INSIST(0);
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKSPF, check);
+
+		obj = NULL;
 		result = ns_config_get(maps, "zero-no-soa-ttl", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		dns_zone_setzeronosoattl(zone, cfg_obj_asboolean(obj));

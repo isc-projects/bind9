@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -150,6 +150,7 @@ options {\n\
 	check-names response ignore;\n\
 	check-dup-records warn;\n\
 	check-mx warn;\n\
+	check-spf warn;\n\
 	acache-enable no;\n\
 	acache-cleaning-interval 60;\n\
 	max-acache-size 16M;\n\

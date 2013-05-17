@@ -380,5 +380,5 @@ main(int argc, char *argv[]) {
 		isc_mem_destroy(&keymctx);
 	dns_lib_shutdown();
 
-	exit(0);
+	return (0);
 }

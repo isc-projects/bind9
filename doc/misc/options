@@ -86,6 +86,7 @@ options {
         check-mx-cname ( fail | warn | ignore );
         check-names ( master | slave | response ) ( fail | warn | ignore );
         check-sibling <boolean>;
+        check-spf ( warn | ignore );
         check-srv-cname ( fail | warn | ignore );
         check-wildcard <boolean>;
         cleaning-interval <integer>;
@@ -307,6 +308,7 @@ view <string> <optional_class> {
         check-mx-cname ( fail | warn | ignore );
         check-names ( master | slave | response ) ( fail | warn | ignore );
         check-sibling <boolean>;
+        check-spf ( warn | ignore );
         check-srv-cname ( fail | warn | ignore );
         check-wildcard <boolean>;
         cleaning-interval <integer>;
@@ -470,6 +472,7 @@ view <string> <optional_class> {
                 check-mx-cname ( fail | warn | ignore );
                 check-names ( fail | warn | ignore );
                 check-sibling <boolean>;
+                check-spf ( warn | ignore );
                 check-srv-cname ( fail | warn | ignore );
                 check-wildcard <boolean>;
                 database <string>;
@@ -558,6 +561,7 @@ zone <string> <optional_class> {
         check-mx-cname ( fail | warn | ignore );
         check-names ( fail | warn | ignore );
         check-sibling <boolean>;
+        check-spf ( warn | ignore );
         check-srv-cname ( fail | warn | ignore );
         check-wildcard <boolean>;
         database <string>;

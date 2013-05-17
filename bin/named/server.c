@@ -5984,6 +5984,7 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep,
 	dns_rdataclass_t rdclass;
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
+	REQUIRE(zonename == NULL || *zonename == NULL);
 
 	input = args;
 
@@ -5996,7 +5997,7 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep,
 	zonetxt = next_token(&input, " \t");
 	if (zonetxt == NULL)
 		return (ISC_R_SUCCESS);
-	if (zonename)
+	if (zonename != NULL)
 		*zonename = zonetxt;
 
 	/* Look for the optional class name. */
@@ -7657,8 +7658,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		goto cleanup;
 	}
 
-	if (zonename != NULL)
-		znamelen = strlen(zonename);
+	INSIST(zonename != NULL);
+	znamelen = strlen(zonename);
 
 	/* Dig out configuration for this zone */
 	view = dns_zone_getview(zone);

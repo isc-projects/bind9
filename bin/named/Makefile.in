@@ -23,6 +23,8 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_PRODUCT@
 
+@BIND9_DESCRIPTION@
+
 @BIND9_SRCID@
 
 @BIND9_CONFIGARGS@
@@ -119,6 +121,7 @@ main.@O@: main.c
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
 		-DPRODUCT=\"${PRODUCT}\" \
+		-DDESCRIPTION=\"${DESCRIPTION}\" \
 		-DSRCID=\"${SRCID}\" \
 		-DCONFIGARGS="\"${CONFIGARGS}\"" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \

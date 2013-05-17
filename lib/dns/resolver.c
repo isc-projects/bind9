@@ -133,6 +133,7 @@
  * Maximum EDNS0 input packet size.
  */
 #define RECV_BUFFER_SIZE                4096            /* XXXRTH  Constant. */
+#define EDNSOPTS			2
 
 /*%
  * This defines the maximum number of timeouts we will permit before we
@@ -1277,67 +1278,15 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 
 static inline isc_result_t
 fctx_addopt(dns_message_t *message, unsigned int version,
-	    isc_uint16_t udpsize, isc_boolean_t request_nsid)
+	    isc_uint16_t udpsize, dns_ednsopt_t *ednsopts, size_t count)
 {
-	dns_rdataset_t *rdataset;
-	dns_rdatalist_t *rdatalist;
-	dns_rdata_t *rdata;
+	dns_rdataset_t *rdataset = NULL;
 	isc_result_t result;
 
-	rdatalist = NULL;
-	result = dns_message_gettemprdatalist(message, &rdatalist);
+	result = dns_message_buildopt(message, &rdataset, version, udpsize,
+				      DNS_MESSAGEEXTFLAG_DO, ednsopts, count);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	rdata = NULL;
-	result = dns_message_gettemprdata(message, &rdata);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	rdataset = NULL;
-	result = dns_message_gettemprdataset(message, &rdataset);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	dns_rdataset_init(rdataset);
-
-	rdatalist->type = dns_rdatatype_opt;
-	rdatalist->covers = 0;
-
-	/*
-	 * Set Maximum UDP buffer size.
-	 */
-	rdatalist->rdclass = udpsize;
-
-	/*
-	 * Set EXTENDED-RCODE and Z to 0, DO to 1.
-	 */
-	rdatalist->ttl = (version << 16);
-	rdatalist->ttl |= DNS_MESSAGEEXTFLAG_DO;
-
-	/*
-	 * Set EDNS options if applicable
-	 */
-	if (request_nsid) {
-		/* Send empty NSID option (RFC5001) */
-		unsigned char data[4];
-		isc_buffer_t buf;
-
-		isc_buffer_init(&buf, data, sizeof(data));
-		isc_buffer_putuint16(&buf, DNS_OPT_NSID);
-		isc_buffer_putuint16(&buf, 0);
-		rdata->data = data;
-		rdata->length = sizeof(data);
-	} else {
-		rdata->data = NULL;
-		rdata->length = 0;
-	}
-
-	rdata->rdclass = rdatalist->rdclass;
-	rdata->type = rdatalist->type;
-	rdata->flags = 0;
-
-	ISC_LIST_INIT(rdatalist->rdata);
-	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset) == ISC_R_SUCCESS);
-
 	return (dns_message_setopt(message, rdataset));
 }
 
@@ -1717,6 +1666,8 @@ resquery_send(resquery_t *query) {
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	isc_boolean_t secure_domain;
 	isc_boolean_t connecting = ISC_FALSE;
+	dns_ednsopt_t ednsopts[EDNSOPTS];
+	unsigned ednsopt = 0;
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -1899,8 +1850,15 @@ resquery_send(resquery_t *query) {
 			/* request NSID for current view or peer? */
 			if (peer != NULL)
 				(void) dns_peer_getrequestnsid(peer, &reqnsid);
+			if (reqnsid) {
+				INSIST(ednsopt < EDNSOPTS);
+				ednsopts[ednsopt].code = DNS_OPT_NSID;
+				ednsopts[ednsopt].length = 0;
+				ednsopts[ednsopt].value = NULL;
+				ednsopt++;
+			}
 			result = fctx_addopt(fctx->qmessage, version,
-					     udpsize, reqnsid);
+					     udpsize, ednsopts, ednsopt);
 			if (reqnsid && result == ISC_R_SUCCESS) {
 				query->options |= DNS_FETCHOPT_WANTNSID;
 			} else if (result != ISC_R_SUCCESS) {
@@ -6664,44 +6622,24 @@ checknames(dns_message_t *message) {
 /*
  * Log server NSID at log level 'level'
  */
-static isc_result_t
-log_nsid(dns_rdataset_t *opt, resquery_t *query, int level, isc_mem_t *mctx)
+static void
+log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
+	 int level, isc_mem_t *mctx)
 {
 	static const char hex[17] = "0123456789abcdef";
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-	isc_uint16_t optcode, nsid_len, buflen, i;
-	isc_result_t result;
-	isc_buffer_t nsidbuf;
-	dns_rdata_t rdata;
+	isc_uint16_t buflen, i;
 	unsigned char *p, *buf, *nsid;
-
-	/* Extract rdata from OPT rdataset */
-	result = dns_rdataset_first(opt);
-	if (result != ISC_R_SUCCESS)
-		return (ISC_R_FAILURE);
-
-	dns_rdata_init(&rdata);
-	dns_rdataset_current(opt, &rdata);
-	if (rdata.length < 4)
-		return (ISC_R_FAILURE);
-
-	/* Check for NSID */
-	isc_buffer_init(&nsidbuf, rdata.data, rdata.length);
-	isc_buffer_add(&nsidbuf, rdata.length);
-	optcode = isc_buffer_getuint16(&nsidbuf);
-	nsid_len = isc_buffer_getuint16(&nsidbuf);
-	if (optcode != DNS_OPT_NSID || nsid_len == 0)
-		return (ISC_R_FAILURE);
 
 	/* Allocate buffer for storing hex version of the NSID */
 	buflen = nsid_len * 2 + 1;
 	buf = isc_mem_get(mctx, buflen);
 	if (buf == NULL)
-		return (ISC_R_NOSPACE);
+		return;
 
 	/* Convert to hex */
 	p = buf;
-	nsid = rdata.data + 4;
+	nsid = isc_buffer_current(opt);
 	for (i = 0; i < nsid_len; i++) {
 		*p++ = hex[(nsid[0] >> 4) & 0xf];
 		*p++ = hex[nsid[0] & 0xf];
@@ -6717,7 +6655,7 @@ log_nsid(dns_rdataset_t *opt, resquery_t *query, int level, isc_mem_t *mctx)
 
 	/* Clean up */
 	isc_mem_put(mctx, buf, buflen);
-	return (ISC_R_SUCCESS);
+	return;
 }
 
 static void
@@ -6788,6 +6726,41 @@ betterreferral(fetchctx_t *fctx) {
 				return (ISC_TRUE);
 	}
 	return (ISC_FALSE);
+}
+
+static void
+process_opt(resquery_t *query, dns_rdataset_t *opt) {
+	dns_rdata_t rdata;
+	isc_buffer_t optbuf;
+	isc_result_t result;
+	isc_uint16_t optcode;
+	isc_uint16_t optlen;
+
+	result = dns_rdataset_first(opt);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdata_init(&rdata);
+		dns_rdataset_current(opt, &rdata);
+		isc_buffer_init(&optbuf, rdata.data, rdata.length);
+		isc_buffer_add(&optbuf, rdata.length);
+		while (isc_buffer_remaininglength(&optbuf) >= 4) {
+			optcode = isc_buffer_getuint16(&optbuf);
+			optlen = isc_buffer_getuint16(&optbuf);
+			INSIST(optlen <= isc_buffer_remaininglength(&optbuf));
+			switch (optcode) {
+			case DNS_OPT_NSID:
+				if (query->options & DNS_FETCHOPT_WANTNSID)
+					log_nsid(&optbuf, optlen, query,
+						 ISC_LOG_INFO,
+						 query->fctx->res->mctx);
+				isc_buffer_forward(&optbuf, optlen);
+				break;
+			default:
+				isc_buffer_forward(&optbuf, optlen);
+				break;
+			}
+		}
+		INSIST(isc_buffer_remaininglength(&optbuf) == 0U);
+	}
 }
 
 static void
@@ -6980,12 +6953,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	log_packet(message, ISC_LOG_DEBUG(10), fctx->res->mctx);
 
 	/*
-	 * Did we request NSID?  If so, and if the response contains
-	 * NSID data, log it at INFO level.
+	 * Process receive opt record.
 	 */
 	opt = dns_message_getopt(message);
-	if (opt != NULL && (query->options & DNS_FETCHOPT_WANTNSID) != 0)
-		log_nsid(opt, query, ISC_LOG_INFO, fctx->res->mctx);
+	if (opt != NULL)
+		process_opt(query, opt);
 
 	/*
 	 * If the message is signed, check the signature.  If not, this

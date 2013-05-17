@@ -2018,8 +2018,9 @@ resolveaddr_done(isc_task_t *task, isc_event_t *event) {
 				switch (family) {
 				case AF_INET:
 					dns_rdataset_current(rdataset, &rdata);
-					dns_rdata_tostruct(&rdata, &rdata_a,
-							   NULL);
+					result = dns_rdata_tostruct(&rdata, &rdata_a,
+								    NULL);
+					RUNTIME_CHECK(result == ISC_R_SUCCESS);
 					isc_sockaddr_fromin(sa,
 							    &rdata_a.in_addr,
 							    53);
@@ -2027,8 +2028,9 @@ resolveaddr_done(isc_task_t *task, isc_event_t *event) {
 					break;
 				case AF_INET6:
 					dns_rdataset_current(rdataset, &rdata);
-					dns_rdata_tostruct(&rdata, &rdata_aaaa,
-							   NULL);
+					result = dns_rdata_tostruct(&rdata, &rdata_aaaa,
+								    NULL);
+					RUNTIME_CHECK(result == ISC_R_SUCCESS);
 					isc_sockaddr_fromin6(sa,
 							     &rdata_aaaa.in6_addr,
 							     53);

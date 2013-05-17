@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -14,8 +14,6 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-
-/* $Id: rdata_test.c,v 1.48.814.2 2011/08/28 23:45:47 tbox Exp $ */
 
 #include <config.h>
 
@@ -279,6 +277,11 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		result = dns_rdata_tostruct(rdata, sp = &unspec, NULL);
 		break;
 	}
+	case dns_rdatatype_uri: {
+		dns_rdata_uri_t uri;
+		result = dns_rdata_tostruct(rdata, sp = &uri, NULL);
+		break;
+	}
 	case dns_rdatatype_wks: {
 		static dns_rdata_in_wks_t in_wks;
 		result = dns_rdata_tostruct(rdata, sp = &in_wks, NULL);
@@ -539,6 +542,11 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	case dns_rdatatype_unspec: {
 		static dns_rdata_unspec_t unspec;
 		result = dns_rdata_tostruct(rdata, sp = &unspec, mctx);
+		break;
+	}
+	case dns_rdatatype_uri: {
+		dns_rdata_uri_t uri;
+		result = dns_rdata_tostruct(rdata, sp = &uri, mctx);
 		break;
 	}
 	case dns_rdatatype_wks: {
@@ -831,6 +839,11 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	case dns_rdatatype_unspec: {
 		dns_rdata_unspec_t unspec;
 		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &unspec, b);
+		break;
+	}
+	case dns_rdatatype_uri: {
+		dns_rdata_uri_t uri;
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &uri, b);
 		break;
 	}
 	case dns_rdatatype_wks: {
