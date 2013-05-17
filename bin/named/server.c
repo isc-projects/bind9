@@ -5476,12 +5476,16 @@ load_zones(ns_server_t *server) {
 	{
 		if (view->managed_keys != NULL) {
 			result = dns_zone_load(view->managed_keys);
-			if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE)
+			if (result != ISC_R_SUCCESS &&
+			    result != DNS_R_UPTODATE &&
+			    result != DNS_R_CONTINUE)
 				goto cleanup;
 		}
 		if (view->redirect != NULL) {
 			result = dns_zone_load(view->redirect);
-			if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE)
+			if (result != ISC_R_SUCCESS &&
+			    result != DNS_R_UPTODATE &&
+			    result != DNS_R_CONTINUE)
 				goto cleanup;
 		}
 
@@ -6126,6 +6130,7 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 	dns_rdataclass_t rdclass;
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
+	REQUIRE(zonename == NULL || *zonename == NULL);
 
 	input = args;
 
@@ -6141,7 +6146,7 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 		zonetxt = next_token(&input, " \t");
 	if (zonetxt == NULL)
 		return (ISC_R_SUCCESS);
-	if (zonename)
+	if (zonename != NULL)
 		*zonename = zonetxt;
 
 	/* Look for the optional class name. */
@@ -7950,8 +7955,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		goto cleanup;
 	}
 
-	if (zonename != NULL)
-		znamelen = strlen(zonename);
+	INSIST(zonename != NULL);
+	znamelen = strlen(zonename);
 
 	/* Dig out configuration for this zone */
 	view = dns_zone_getview(zone);

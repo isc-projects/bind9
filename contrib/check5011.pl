@@ -9,7 +9,7 @@ my $now = strftime "%Y%m%d%H%M%S", gmtime;
 sub ext8601 ($) {
 	my $d = shift;
 	$d =~ s{(....)(..)(..)(..)(..)(..)}
-	       {$1-$2-$3.$4:$5:$6};
+	       {$1-$2-$3.$4:$5:$6+0000};
 	return $d;
 }
 
@@ -63,6 +63,7 @@ sub digkeys ($) {
 }
 
 my $anchor;
+my $owner = ".";
 while (<>) {
 	next unless m{^([a-z0-9.-]*)\s+KEYDATA\s+(\d+)\s+(\d+)\s+(\d+)\s+};
 	my $k = getkey *ARGV, {
@@ -71,6 +72,11 @@ while (<>) {
 		addhd    => $3,
 		removehd => $4,
 	};
+	if ($k->{name} eq "") {
+		$k->{name} = $owner;
+	} else {
+		$owner = $k->{name};
+	}
 	$k->{name} =~ s{[.]*$}{.};
 	push @{$anchor->{$k->{name}}}, $k;
 }

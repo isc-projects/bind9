@@ -8931,11 +8931,10 @@ acache_callback(dns_acacheentry_t *entry, void **arg) {
 	if (acarray != NULL && acarray[count].entry == entry) {
 		acarray[count].entry = NULL;
 		INSIST(acarray[count].cbarg == cbarg);
-		isc_mem_put(rbtdb->common.mctx, cbarg, sizeof(acache_cbarg_t));
 		acarray[count].cbarg = NULL;
-		dns_acache_detachentry(&entry);
-	} else
 		isc_mem_put(rbtdb->common.mctx, cbarg, sizeof(acache_cbarg_t));
+		dns_acache_detachentry(&entry);
+	}
 
 	NODE_UNLOCK(nodelock, isc_rwlocktype_write);
 
@@ -8959,9 +8958,10 @@ acache_cancelentry(isc_mem_t *mctx, dns_acacheentry_t *entry,
 
 	cbarg = *cbargp;
 
-	dns_acache_cancelentry(entry);
-	dns_db_detachnode(cbarg->db, &cbarg->node);
-	dns_db_detach(&cbarg->db);
+	if (dns_acache_cancelentry(entry)) {
+		dns_db_detachnode(cbarg->db, &cbarg->node);
+		dns_db_detach(&cbarg->db);
+	}
 
 	isc_mem_put(mctx, cbarg, sizeof(acache_cbarg_t));
 

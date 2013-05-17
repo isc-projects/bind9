@@ -632,9 +632,9 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (type == 0 || dns_rdatatype_ismeta(type))
 		return (DNS_R_METATYPE);
 
-	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-					ISC_FALSE);
-	if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535U)
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+					ISC_FALSE));
+	if (token.value.as_ulong > 65535U)
 		return (ISC_R_RANGE);
 	result = isc_buffer_allocate(mctx, &buf, token.value.as_ulong);
 	if (result != ISC_R_SUCCESS)
