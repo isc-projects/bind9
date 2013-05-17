@@ -47,7 +47,7 @@ while (<VERSIONFILE>) {
 	if($data) {
 		($name, $value) = split(/=/,$data);
 		($name) = split(/\s+/, $name);
-                if ($name eq 'PRODUCT') {
+                if ($name eq 'PRODUCT' || $name eq 'DESCRIPTION') {
                         ($value) =~ s/^["\s]+//;
                         ($value) =~ s/["\s]+$//;
                 } else {
@@ -107,6 +107,7 @@ print "BIND Version: $Version\n";
 
 print OUTVERSIONFILE "#define VERSION \"$Version\"\n";
 print OUTVERSIONFILE "#define PRODUCT \"$Versions{'PRODUCT'}\"\n\n";
+print OUTVERSIONFILE "#define DESCRIPTION \"$Versions{'DESCRIPTION'}\"\n\n";
 
 foreach $dir (@dirlist) {
 	$apifile = "../lib/$dir/api";
