@@ -4815,6 +4815,7 @@ category notify { null; };
     <optional> multiple-cnames <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable>; </optional>
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> request-nsid <replaceable>yes_or_no</replaceable>; </optional>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
@@ -4838,6 +4839,7 @@ category notify { null; };
     <optional> check-mx-cname ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-srv-cname ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-sibling <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> check-spf ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
@@ -5762,6 +5764,22 @@ options {
             </varlistentry>
 
             <varlistentry>
+              <term><command>request-nsid</command></term>
+              <listitem>
+                <para>
+                  If <userinput>yes</userinput>, then an empty EDNS(0)
+                  NSID (Name Server Identifier) option is sent with all 
+                  queries to authoritative name servers during iterative
+                  resolution. If the authoritative server returns an NSID
+                  option in its response, then its contents are logged in
+                  the <command>resolver</command> category at level
+                  <command>info</command>.
+                  The default is <userinput>no</userinput>.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
               <term><command>rfc2308-type1</command></term>
               <listitem>
                 <para>
@@ -6143,6 +6161,13 @@ options {
 		  checks use <command>named-checkzone</command>).
 	          The default is <command>yes</command>.
 		</para>
+		<para>
+		  Check that the two forms of Sender Policy Framework
+		  records (TXT records starting with "v=spf1" and SPF) either
+		  both exist or both don't exist.  Warnings are
+		  emitted it they don't and be suppressed with
+		  <command>check-spf</command>.
+		</para>
 	      </listitem>
 	    </varlistentry>
 
@@ -6174,6 +6199,19 @@ options {
 		<para>
 		  When performing integrity checks, also check that
 		  sibling glue exists.  The default is <command>yes</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>check-spf</command></term>
+	      <listitem>
+		<para>
+		  When performing integrity checks, check that the
+		  two forms of Sender Policy Framwork records (TXT
+		  records starting with "v=spf1" and SPF) both exist
+		  or both don't exist and issue a warning if not
+		  met.  The default is <command>warn</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8914,6 +8952,7 @@ view "external" {
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-mx (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> check-spf ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-integrity <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
@@ -9405,6 +9444,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     See the description of
                     <command>check-mx</command> in <xref linkend="boolean_options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>check-spf</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>check-spf</command> in <xref linkend="boolean_options"/>.
                   </para>
                 </listitem>
               </varlistentry>

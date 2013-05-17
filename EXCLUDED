@@ -1,3 +1,56 @@
+3573.	[bug]		"rndc addzone" and "rndc delzone" incorrectly handled
+			zone names containing punctuation marks and other
+			nonstandard characters. [RT #33419]
+
+3571.   [bug]           Address race condition in dns_client_startresolve().
+                        [RT #33234]
+
+3570.	[bug]		Check internal pointers are valid when loading map
+			files. [RT #33403]
+
+3569.	[contrib]	Ported mysql DLZ driver to dynamically-loadable
+			module, and added multithread support. [RT #33394]
+
+3564.	[bug]		Improved handling of corrupted map files. [RT #33380]
+
+3557.	[bug]		Reloading redirect zones was broken. [RT #33292]
+
+3554.	[bug]		RRL failed to correctly rate-limit upward
+			referrals and failed to count dropped error
+			responses in the statistics. [RT #33225]
+
+3544.	[contrib]	check5011.pl: Script to report the status of
+			managed keys as recorded in managed-keys.bind.
+			Contributed by Tony Finch <dot@dotat.at>
+
+3551.	[bug]		resolver.querydscp[46] were uninitialized.  [RT #32686]
+
+3545.	[bug]		RRL slip behavior was incorrect when set to 1.
+			[RT #33111]
+
+3537.	[tuning]	Slave zones, when updated, now send NOTIFY messages
+			to peers before being dumped to disk rather than
+			after. [RT #27242]
+
+3527.	[compat]	Add a URI to allow applications to explicitly
+			request a particular XML schema from the statistics
+			channel, returning 404 if not supported. [RT #32481]
+
+3523.	[contrib]	Ported filesystem and ldap DLZ drivers to
+			dynamically-loadable modules, and added the
+			"wildcard" module based on a contribution from
+			Vadim Goncharov <vgoncharov@nic.ru>. [RT #23569]
+
+3522.	[bug]		DLZ lookups could fail to return SERVFAIL when
+			they ought to. [RT #32685]
+
+3521.	[bug]		Address memory leak in opensslecdsa_link.c. [RT #32249]
+
+3518.	[bug]		Increase the size of dns_rrl_key.s.rtype by one bit
+			so that all dns_rrl_rtype_t enum values fit regardless
+			of whether it is teated as signed or unsigned by
+			the compiler. [RT #32792]
+
 3514.   [bug]           The ranges for valid key sizes in ddns-confgen and
                         rndc-confgen were too constrained. Keys up to 512
                         bits are now allowed for most algorithms, and up
@@ -65,6 +118,9 @@
 3471.   [bug]           The number of UDP dispatches now defaults to
                         the number of CPUs even if -n has been set to
                         a higher value. [RT #30964]
+
+3470.	[bug]		Slave zones could fail to dump when successfully
+			refreshing after an initial failure. [RT #31276]
 
 3469.   [bug]           Handle DLZ lookup failures more gracefully. Improve
                         backward compatibility between versions of DLZ dlopen

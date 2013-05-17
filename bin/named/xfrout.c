@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1016,14 +1016,6 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 				  question_name, question_class);
 #ifdef DLZ
 			is_dlz = ISC_TRUE;
-			/*
-			 * DLZ only support full zone transfer, not incremental
-			 */
-			if (reqtype != dns_rdatatype_axfr) {
-				mnemonic = "AXFR-style IXFR";
-				reqtype = dns_rdatatype_axfr;
-			}
-
 		} else {
 			/*
 			 * not DLZ and not in normal zone table, we are
@@ -1036,11 +1028,13 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		/* zone table has a match */
 #endif
 		switch(dns_zone_gettype(zone)) {
+			/* Master and slave zones are OK for transfer. */
 			case dns_zone_master:
 			case dns_zone_slave:
-				break;	/* Master and slave zones are OK for transfer. */
+				break;
 			default:
-				FAILQ(DNS_R_NOTAUTH, "non-authoritative zone", question_name, question_class);
+				FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
+				      question_name, question_class);
 			}
 		CHECK(dns_zone_getdb(zone, &db));
 		dns_db_currentversion(db, &ver);
@@ -1185,7 +1179,11 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			is_poll = ISC_TRUE;
 			goto have_stream;
 		}
+#ifdef DLZ
+		journalfile = is_dlz ? NULL : dns_zone_getjournal(zone);
+#else
 		journalfile = dns_zone_getjournal(zone);
+#endif
 		if (journalfile != NULL)
 			result = ixfr_rrstream_create(mctx,
 						      journalfile,

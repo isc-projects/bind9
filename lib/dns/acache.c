@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -868,7 +868,11 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 				if (entry != NULL) {
 					/*
 					 * If we are still in the overmem
-					 * state, keep cleaning.
+					 * state, keep cleaning.  In case we
+					 * exit from the loop immediately after
+					 * this, reset next to the head entry
+					 * as we'll expect it will be never
+					 * NULL.
 					 */
 					isc_log_write(dns_lctx,
 						      DNS_LOGCATEGORY_DATABASE,
@@ -877,6 +881,7 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 						      "acache cleaner: "
 						      "still overmem, "
 						      "reset and try again");
+					next = entry;
 					continue;
 				}
 			}
@@ -895,7 +900,7 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	 * be the starting point in the next clean-up, and reschedule another
 	 * batch.  If it fails, just try to continue anyway.
 	 */
-	INSIST(next != NULL && next != cleaner->current_entry);
+	INSIST(next != NULL);
 	dns_acache_detachentry(&cleaner->current_entry);
 	dns_acache_attachentry(next, &cleaner->current_entry);
 
@@ -1656,12 +1661,17 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 	return (result);
 }
 
-void
+isc_boolean_t
 dns_acache_cancelentry(dns_acacheentry_t *entry) {
-	dns_acache_t *acache = entry->acache;
+	dns_acache_t *acache;
+	isc_boolean_t callback_active;
 
 	REQUIRE(DNS_ACACHEENTRY_VALID(entry));
-	INSIST(DNS_ACACHE_VALID(acache));
+
+	acache = entry->acache;
+	callback_active = ISC_TF(entry->cbarg != NULL);
+
+	INSIST(DNS_ACACHE_VALID(entry->acache));
 
 	LOCK(&acache->lock);
 	ACACHE_LOCK(&acache->entrylocks[entry->locknum], isc_rwlocktype_write);
@@ -1681,6 +1691,8 @@ dns_acache_cancelentry(dns_acacheentry_t *entry) {
 	ACACHE_UNLOCK(&acache->entrylocks[entry->locknum],
 		      isc_rwlocktype_write);
 	UNLOCK(&acache->lock);
+
+	return (callback_active);
 }
 
 void
