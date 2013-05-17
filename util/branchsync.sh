@@ -40,7 +40,7 @@ restore_files () {
     git checkout HEAD -- doc/arm/*.html doc/arm/Bv9ARM.pdf
     git checkout HEAD -- bin/*/*.html bin/*/*.[0-9]
     # don't update the EXCLUDED file
-    if [ -n `git ls-files EXCLUDED` ]; then
+    if [ -f EXCLUDED ]; then
         git checkout HEAD -- EXCLUDED
     fi
 }
