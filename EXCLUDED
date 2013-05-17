@@ -1,3 +1,11 @@
+3570.	[bug]		Check internal pointers are valid when loading map
+			files. [RT #33403]
+
+3569.	[contrib]	Ported mysql DLZ driver to dynamically-loadable
+			module, and added multithread support. [RT #33394]
+
+3564.	[bug]		Improved handling of corrupted map files. [RT #33380]
+
 3557.	[bug]		Reloading redirect zones was broken. [RT #33292]
 
 3554.	[bug]		RRL failed to correctly rate-limit upward

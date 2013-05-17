@@ -1,3 +1,5 @@
+	--- 9.8.5 released ---
+
 3568.	[cleanup]	Add a product description line to the version file,
 			to be reported by named -v/-V. [RT #33366]
 
@@ -7,10 +9,10 @@
 
 3561.	[bug]		dig: issue a warning if an EDNS query returns FORMERR
 			or NOTIMP.  Adjust usage message. [RT #33363]
-			
+
 	--- 9.8.5rc1 released ---
 
-3560.	[bug]		isc-config.sh did not honour includedir and libdir
+3560.	[bug]		isc-config.sh did not honor includedir and libdir
 			when set via configure. [RT #33345]
 
 3559.	[func]		Check that both forms of Sender Policy Framework
@@ -48,7 +50,7 @@
 			managed keys as recorded in managed-keys.bind.
 			Contributed by Tony Finch <dot@dotat.at>
 
-3543.	[bug]		Update socket stucture before attaching to socket
+3543.	[bug]		Update socket structure before attaching to socket
 			manager after accept. [RT #33084]
 
 3542.	[bug]		masterformat system test was broken. [RT #33086]
@@ -143,7 +145,7 @@
 
 3485.	[cleanup]	Only compile openssl_gostlink.c if we support GOST.
 
-3481.	[cleanup]	removed use of const const in atf
+3481.	[cleanup]	Removed use of const const in atf.
 
 3479.	[bug]		Address potential memory leaks in gssapi support
 			code. [RT #32405]
@@ -266,7 +268,7 @@
 
 3419.	[bug]		Memory leak on validation cancel. [RT #31869]
 
-3415.	[bug]		named could die with a REQUIRE failure if a valdation
+3415.	[bug]		named could die with a REQUIRE failure if a validation
 			was canceled. [RT #31804]
 
 3412.	[bug]		Copy timeval structure from control message data.
@@ -348,7 +350,7 @@
 3381.	[contrib]	Update queryperf to support more RR types.
 			[RT #30762]
 
-3380.	[bug]		named could die if a non-existant master list was
+3380.	[bug]		named could die if a nonexistent master list was
 			referenced in a also-notify. [RT #31004]
 
 3379.	[bug]		isc_interval_zero and isc_time_epoch should be
@@ -497,8 +499,8 @@
 			bucket lock when finished with a fetch context.
 			[RT #29239]
 
-3314.	[bug]		The masters list could be updated while refesh_callback
-			and stub_callback were using it. [RT #26732]
+3314.	[bug]		The masters list could be updated while stub_callback
+			or refresh_callback were using it. [RT #26732]
 
 3313.	[protocol]	Add TLSA record type. [RT #28989]
 
