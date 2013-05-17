@@ -1864,7 +1864,7 @@ isc_result_t
 cfg_parse_dscp(cfg_parser_t *pctx, isc_dscp_t *dscp) {
 	isc_result_t result;
 
-	CHECK(cfg_gettoken(pctx, ISC_LEXOPT_NUMBER));
+	CHECK(cfg_gettoken(pctx, ISC_LEXOPT_NUMBER | ISC_LEXOPT_CNUMBER));
 
 	if (pctx->token.type != isc_tokentype_number) {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
