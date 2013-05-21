@@ -1235,8 +1235,7 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 
 		INSIST(rcode != dns_rcode_noerror &&
 		       rcode != dns_rcode_nxdomain);
-		wouldlog = (ns_g_server->log_queries &&
-			    isc_log_wouldlog(ns_g_lctx, DNS_RRL_LOG_DROP));
+		wouldlog = isc_log_wouldlog(ns_g_lctx, DNS_RRL_LOG_DROP);
 		rrl_result = dns_rrl(client->view, &client->peeraddr,
 				     TCP_CLIENT(client),
 				     dns_rdataclass_in, dns_rdatatype_none,
@@ -1250,7 +1249,8 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 			 * NS_LOGCATEGORY_RRL.
 			 */
 			if (wouldlog) {
-				ns_client_log(client, NS_LOGCATEGORY_QUERIES,
+				ns_client_log(client,
+					      NS_LOGCATEGORY_QUERY_EERRORS,
 					      NS_LOGMODULE_CLIENT,
 					      DNS_RRL_LOG_DROP,
 					      "%s", log_buf);

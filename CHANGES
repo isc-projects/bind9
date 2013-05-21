@@ -1,3 +1,6 @@
+3575.	[func]		Changed the logging category for RRL events from
+			'queries' to 'query-errors'. [RT #33540]
+
 3574.	[doc]		The 'hostname' keyword was missing from server-id
 			description in the named.conf man page. [RT #33476]
 

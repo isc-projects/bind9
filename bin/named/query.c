@@ -6323,9 +6323,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * in QryDropped while slipped responses are counted
 			 * with other truncated responses in RespTruncated.
 			 */
-			if (wouldlog && ns_g_server->log_queries) {
-				ns_client_log(client, NS_LOGCATEGORY_QUERIES,
-					      NS_LOGMODULE_CLIENT,
+			if (wouldlog) {
+				ns_client_log(client,
+					      NS_LOGCATEGORY_QUERY_EERRORS,
+					      NS_LOGMODULE_QUERY,
 					      DNS_RRL_LOG_DROP,
 					      "%s", log_buf);
 			}

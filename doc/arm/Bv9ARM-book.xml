@@ -4938,9 +4938,7 @@ category notify { null; };
 		    </para>
 		    <para>
 		      Rate limiting of individual requests
-		      is logged in the <command>queries</command> category
-		      and can be controlled with the
-		      <command>querylog</command> option.
+		      is logged in the <command>query-errors</command> category.
 		    </para>
 		  </entry>
 		</row>

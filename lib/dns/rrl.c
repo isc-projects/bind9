@@ -1219,7 +1219,8 @@ dns_rrl(dns_view_t *view,
 	 * Make a log message for the caller.
 	 */
 	if (wouldlog)
-		make_log_buf(rrl, e, rrl->log_only ? "would " : NULL,
+		make_log_buf(rrl, e,
+			     rrl->log_only ? "would rate limit " : "rate limit ",
 			     NULL, ISC_FALSE, qname, ISC_FALSE,
 			     rrl_result, resp_result, log_buf, log_buf_len);
 
