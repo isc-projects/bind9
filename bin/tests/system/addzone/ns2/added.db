@@ -14,7 +14,7 @@
 
 ; $Id: added.db,v 1.2 2010/08/11 18:14:18 each Exp $
 
-$ORIGIN added.example.
+;$ORIGIN added.example.
 $TTL 300	; 5 minutes
 @                       IN SOA	mname1. . (
 				1          ; serial

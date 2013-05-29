@@ -1,6 +1,10 @@
 3574.	[doc]		The 'hostname' keyword was missing from server-id
 			description in the named.conf man page. [RT #33476]
 
+3573.	[bug]		"rndc addzone" and "rndc delzone" incorrectly handled
+			zone names containing punctuation marks and other
+			nonstandard characters. [RT #33419]
+
 3571.	[bug]		Address race condition in dns_client_startresolve().
 			[RT #33234]
 
