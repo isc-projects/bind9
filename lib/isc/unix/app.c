@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -109,9 +109,9 @@ ISC_APPFUNC_SCOPE void isc__appctx_settimermgr(isc_appctx_t *ctx,
 					       isc_timermgr_t *timermgr);
 ISC_APPFUNC_SCOPE isc_result_t isc__app_ctxonrun(isc_appctx_t *ctx,
 						 isc_mem_t *mctx,
-					         isc_task_t *task,
+						 isc_task_t *task,
 						 isc_taskaction_t action,
-					         void *arg);
+						 void *arg);
 
 /*
  * The application context of this module.  This implementation actually
