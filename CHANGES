@@ -1,3 +1,6 @@
+3574.	[doc]		The 'hostname' keyword was missing from server-id
+			description in the named.conf man page. [RT #33476]
+
 	--- 9.9.3 released ---
 
 3568.	[cleanup]	Add a product description line to the version file,
