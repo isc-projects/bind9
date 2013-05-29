@@ -1,3 +1,5 @@
+3577.	[bug]		Handle zero TTL values better. [RT #33411]
+
 3576.	[bug]		Address a shutdown race when validating. [RT #33573]
 
 3575.	[func]		Changed the logging category for RRL events from
