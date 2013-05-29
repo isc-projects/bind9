@@ -1094,11 +1094,23 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 	UNLOCK(&rctx->lock);
 }
 
+
+static void
+suspend(isc_task_t *task, isc_event_t *event) {
+	isc_appctx_t *actx = event->ev_arg;
+
+	UNUSED(task);
+
+	isc_app_ctxsuspend(actx);
+	isc_event_free(&event);
+}
+
 static void
 resolve_done(isc_task_t *task, isc_event_t *event) {
 	resarg_t *resarg = event->ev_arg;
 	dns_clientresevent_t *rev = (dns_clientresevent_t *)event;
 	dns_name_t *name;
+	isc_result_t result;
 
 	UNUSED(task);
 
@@ -1117,8 +1129,16 @@ resolve_done(isc_task_t *task, isc_event_t *event) {
 	if (!resarg->canceled) {
 		UNLOCK(&resarg->lock);
 
-		/* Exit from the internal event loop */
-		isc_app_ctxsuspend(resarg->actx);
+		/*
+		 * We may or may not be running.  isc__appctx_onrun will
+		 * fail if we are currently running otherwise we post a
+		 * action to call isc_app_ctxsuspend when we do start
+		 * running.
+		 */
+		result = isc_app_ctxonrun(resarg->actx, resarg->client->mctx,
+					   task, suspend, resarg->actx);
+		if (result == ISC_R_ALREADYRUNNING)
+			isc_app_ctxsuspend(resarg->actx);
 	} else {
 		/*
 		 * We have already exited from the loop (due to some
@@ -1310,9 +1330,8 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
 	ISC_LIST_APPEND(client->resctxs, rctx, link);
 	UNLOCK(&client->lock);
 
-	client_resfind(rctx, NULL);
-
 	*transp = (dns_clientrestrans_t *)rctx;
+	client_resfind(rctx, NULL);
 
 	return (ISC_R_SUCCESS);
 
