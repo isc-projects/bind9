@@ -48,7 +48,7 @@ SUBDIRS="acl additional allow_query builtin cacheclean checkconf
 	 forward glue ixfr limits logfileconfig lwresd masterfile
 	 masterformat notify nsupdate pending resolver rndc rrsetorder
 	 spf sortlist stub tkey unknown upforwd views wildcard xfer
-	 xferquota zonechecks"
+	 xferquota zero zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
