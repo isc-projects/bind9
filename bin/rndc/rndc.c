@@ -79,6 +79,7 @@ static unsigned char databuf[2048];
 static isccc_ccmsg_t ccmsg;
 static isccc_region_t secret;
 static isc_boolean_t failed = ISC_FALSE;
+static isc_boolean_t c_flag = ISC_FALSE;
 static isc_mem_t *mctx;
 static int sends, recvs, connects;
 static char *command;
@@ -719,6 +720,7 @@ main(int argc, char **argv) {
 
 		case 'c':
 			admin_conffile = isc_commandline_argument;
+			c_flag = ISC_TRUE;
 			break;
 
 		case 'k':
