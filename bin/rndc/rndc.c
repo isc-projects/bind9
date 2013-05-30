@@ -499,6 +499,9 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		conffile = admin_keyfile;
 		conftype = &cfg_type_rndckey;
 
+		if (c_flag)
+			fatal("%s does not exist", admin_conffile);
+
 		if (! isc_file_exists(conffile))
 			fatal("neither %s nor %s was found",
 			      admin_conffile, admin_keyfile);

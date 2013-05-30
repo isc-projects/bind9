@@ -1,3 +1,6 @@
+3578.	[bug]		'rndc -c file' now fails if 'file' does not exist.
+			[RT #33571]
+
 3577.	[bug]		Handle zero TTL values better. [RT #33411]
 
 3576.	[bug]		Address a shutdown race when validating. [RT #33573]
