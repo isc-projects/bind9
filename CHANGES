@@ -1,3 +1,6 @@
+3579.	[maint]		Updates to PKCS#11 openssl patches, supporting
+			versions 0.9.8y, 1.0.0k, 1.0.1e [RT #33463]
+
 3578.	[bug]		'rndc -c file' now fails if 'file' does not exist.
 			[RT #33571]
 
