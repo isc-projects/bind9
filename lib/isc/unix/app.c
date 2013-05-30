@@ -153,7 +153,8 @@ static struct {
 	 * The following are defined just for avoiding unused static functions.
 	 */
 #ifndef BIND9
-	void *run, *shutdown, *start, *reload, *finish, *block, *unblock;
+	void *run, *shutdown, *start, *onrun,
+	     *reload, *finish, *block, *unblock;
 #endif
 } appmethods = {
 	{
