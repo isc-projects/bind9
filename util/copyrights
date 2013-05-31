@@ -234,8 +234,11 @@
 ./bin/pkcs11/include/pkcs11f.h			X	2009
 ./bin/pkcs11/include/pkcs11t.h			X	2009
 ./bin/pkcs11/openssl-0.9.8x-patch		X	2013
+./bin/pkcs11/openssl-0.9.8y-patch		X	2013
 ./bin/pkcs11/openssl-1.0.0j-patch		X	2013
+./bin/pkcs11/openssl-1.0.0k-patch		X	2013
 ./bin/pkcs11/openssl-1.0.1c-patch		X	2013
+./bin/pkcs11/openssl-1.0.1e-patch		X	2013
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-destroy.c			X	2009,2010
 ./bin/pkcs11/pkcs11-destroy.docbook		SGML	2009
@@ -265,7 +268,7 @@
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007,2009,2012
 ./bin/rndc/include/rndc/os.h			C	2001,2004,2005,2007,2009
 ./bin/rndc/rndc.8				MAN	DOCBOOK
-./bin/rndc/rndc.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./bin/rndc/rndc.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./bin/rndc/rndc.conf				CONF-C	2000,2001,2004,2007
 ./bin/rndc/rndc.conf.5				MAN	DOCBOOK
 ./bin/rndc/rndc.conf.docbook			SGML	2000,2001,2004,2005,2007
@@ -1966,7 +1969,7 @@
 ./doc/arm/man.rndc.conf.html			X	2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./doc/arm/man.rndc.html				X	2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./doc/arm/managed-keys.xml			SGML	2010
-./doc/arm/pkcs11.xml				SGML	2010,2012
+./doc/arm/pkcs11.xml				SGML	2010,2012,2013
 ./doc/design/addressdb				TXT.BRIEF	2000,2001,2004
 ./doc/design/compression			TXT.BRIEF	1999,2000,2001,2004
 ./doc/design/database				TXT.BRIEF	1999,2000,2001,2004

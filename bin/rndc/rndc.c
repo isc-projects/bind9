@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -468,6 +468,9 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	if (! isc_file_exists(conffile)) {
 		conffile = admin_keyfile;
 		conftype = &cfg_type_rndckey;
+
+		if (c_flag)
+			fatal("%s does not exist", admin_conffile);
 
 		if (! isc_file_exists(conffile))
 			fatal("neither %s nor %s was found",
