@@ -3748,8 +3748,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->keytable = NULL;
 	result = dns_view_getsecroots(val->view, &val->keytable);
 	if (result != ISC_R_SUCCESS)
-		return (result);
-
+		goto cleanup_mutex;
 	val->keynode = NULL;
 	val->key = NULL;
 	val->siginfo = NULL;
@@ -3781,6 +3780,9 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	*validatorp = val;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_mutex:
+	DESTROYLOCK(&val->lock);
 
  cleanup_event:
 	isc_task_detach(&tclone);
