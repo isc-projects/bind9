@@ -1,3 +1,5 @@
+3580.	[bug]		Addressed a possible race in acache.c [RT #33602]
+
 3579.	[maint]		Updates to PKCS#11 openssl patches, supporting
 			versions 0.9.8y, 1.0.0k, 1.0.1e [RT #33463]
 
