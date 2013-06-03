@@ -98,7 +98,7 @@ options {\n\
 	statistics-file \"named.stats\";\n\
 	statistics-interval 60;\n\
 	tcp-clients 100;\n\
-	tcp-listen-queue 3;\n\
+	tcp-listen-queue 10;\n\
 #	tkey-dhkey <none>\n\
 #	tkey-gssapi-credential <none>\n\
 #	tkey-domain <none>\n\

@@ -4818,8 +4818,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	result = ns_config_get(maps, "tcp-listen-queue", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	ns_g_listen = cfg_obj_asuint32(obj);
-	if (ns_g_listen < 3)
-		ns_g_listen = 3;
+	if ((ns_g_listen > 0) && (ns_g_listen < 10))
+		ns_g_listen = 10;
 
 	/*
 	 * Configure the interface manager according to the "listen-on"
