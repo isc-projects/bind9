@@ -20,6 +20,8 @@
 3571.	[bug]		Address race condition in dns_client_startresolve().
 			[RT #33234]
 
+3566.	[func]		Log when forwarding updates to master. [RT #33240]
+
 	--- 9.9.3 released ---
 
 3568.	[cleanup]	Add a product description line to the version file,
