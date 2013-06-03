@@ -7421,14 +7421,15 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
               <term><command>tcp-listen-queue</command></term>
               <listitem>
                 <para>
-                  The listen queue depth.  The default and minimum is 3.
+                  The listen queue depth.  The default and minimum is 10.
                   If the kernel supports the accept filter "dataready" this
                   also controls how
                   many TCP connections that will be queued in kernel space
                   waiting for
-                  some data before being passed to accept.  Values less than 3
-                  will be
-                  silently raised.
+                  some data before being passed to accept.  Nonzero values
+                  less than 10 will be silently raised. A value of 0 may also
+                  be used; on most platforms this sets the listen queue 
+                  length to a system-defined default value.
                 </para>
               </listitem>
             </varlistentry>
