@@ -4467,6 +4467,8 @@ forward_action(isc_task_t *task, isc_event_t *event) {
 
 static isc_result_t
 send_forward_event(ns_client_t *client, dns_zone_t *zone) {
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 	isc_result_t result = ISC_R_SUCCESS;
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
@@ -4491,6 +4493,15 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	INSIST(client->nupdates == 0);
 	client->nupdates++;
 	event->ev_arg = evclient;
+
+	dns_name_format(dns_zone_getorigin(zone), namebuf,
+			sizeof(namebuf));
+	dns_rdataclass_format(dns_zone_getclass(zone), classbuf,
+			      sizeof(classbuf));
+
+	ns_client_log(client, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE,
+		      LOGLEVEL_PROTOCOL, "forwarding update for zone '%s/%s'",
+		      namebuf, classbuf);
 
 	dns_zone_gettask(zone, &zonetask);
 	isc_task_send(zonetask, ISC_EVENT_PTR(&event));
