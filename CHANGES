@@ -1,3 +1,6 @@
+3582.	[bug]		Silence false positive warning regarding missing file
+			directive for inline slave zones.  [RT #33662]
+
 3581.	[bug]		Changed the tcp-listen-queue default to 10. [RT #33029]
 
 3580.	[bug]		Addressed a possible race in acache.c [RT #33602]

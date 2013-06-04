@@ -107,6 +107,18 @@ n=`$CHECKCONF bad-dnssec.conf 2>&1 | grep "dnssec-loadkeys-interval.*requires in
 [ $n -eq 1 ] || ret=1
 n=`$CHECKCONF bad-dnssec.conf 2>&1 | grep "update-check-ksk.*requires inline" | wc -l`
 [ $n -eq 1 ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I: check file + inline-signing for slave zones"
+n=`$CHECKCONF inline-no.conf 2>&1 | grep "missing 'file' entry" | wc -l`
+[ $n -eq 0 ] || ret=1
+n=`$CHECKCONF inline-good.conf 2>&1 | grep "missing 'file' entry" | wc -l`
+[ $n -eq 0 ] || ret=1
+n=`$CHECKCONF inline-bad.conf 2>&1 | grep "missing 'file' entry" | wc -l`
+[ $n -eq 1 ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I: checking named-checkconf DLZ warnings"
 ret=0
