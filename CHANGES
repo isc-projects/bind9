@@ -1,3 +1,5 @@
+3583.	[bug]		Address memory leak in GSS-API processing [RT #33574]
+
 3581.	[bug]		Changed the tcp-listen-queue default to 10. [RT #33029]
 
 3580.	[bug]		Addressed a possible race in acache.c [RT #33602]

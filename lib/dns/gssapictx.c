@@ -247,12 +247,12 @@ dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 		       gss_cred_id_t *cred)
 {
 #ifdef GSSAPI
+	isc_result_t result;
 	isc_buffer_t namebuf;
 	gss_name_t gname;
 	gss_buffer_desc gnamebuf;
 	unsigned char array[DNS_NAME_MAXTEXT + 1];
 	OM_uint32 gret, minor;
-	gss_OID_set mechs;
 	OM_uint32 lifetime;
 	gss_cred_usage_t usage;
 	char buf[1024];
@@ -299,16 +299,17 @@ dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 		usage = GSS_C_ACCEPT;
 
 	gret = gss_acquire_cred(&minor, gname, GSS_C_INDEFINITE,
-				&mech_oid_set,
-				usage, cred, &mechs, &lifetime);
+				&mech_oid_set, usage, cred, NULL, &lifetime);
 
 	if (gret != GSS_S_COMPLETE) {
 		gss_log(3, "failed to acquire %s credentials for %s: %s",
 			initiate ? "initiate" : "accept",
 			(gname != NULL) ? (char *)gnamebuf.value : "?",
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
-		dst_gssapi_check_config((char *)array);
-		return (ISC_R_FAILURE);
+		if (gname != NULL)
+			dst_gssapi_check_config((char *)array);
+		result = ISC_R_FAILURE;
+		goto cleanup;
 	}
 
 	gss_log(4, "acquired %s credentials for %s",
@@ -316,8 +317,18 @@ dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 		(gname != NULL) ? (char *)gnamebuf.value : "?");
 
 	log_cred(*cred);
+	result = ISC_R_SUCCESS;
 
-	return (ISC_R_SUCCESS);
+cleanup:
+	if (gname != NULL) {
+		gret = gss_release_name(&minor, &gname);
+		if (gret != GSS_S_COMPLETE)
+			gss_log(3, "failed gss_release_name: %s",
+				gss_error_tostring(gret, minor, buf,
+						   sizeof(buf)));
+	}
+
+	return (result);
 #else
 	REQUIRE(cred != NULL && *cred == NULL);
 
@@ -586,7 +597,6 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 		RETERR(isc_buffer_copyregion(outtoken, &r));
 		(void)gss_release_buffer(&minor, &gouttoken);
 	}
-	(void)gss_release_name(&minor, &gname);
 
 	if (gret == GSS_S_COMPLETE)
 		result = ISC_R_SUCCESS;
@@ -594,6 +604,7 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 		result = DNS_R_CONTINUE;
 
  out:
+	(void)gss_release_name(&minor, &gname);
 	return (result);
 #else
 	UNUSED(name);
