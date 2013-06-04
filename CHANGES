@@ -1,3 +1,8 @@
+	--- 9.6-ESV-R9-P1 released ---
+
+3584.	[security]	Caching data from an incompletely signed zone could
+			trigger an assertion failure in resolver.c [RT #33690]
+
 	--- 9.6-ESV-R9 released ---
 
 3568.	[cleanup]	Add a product description line to the version file,
