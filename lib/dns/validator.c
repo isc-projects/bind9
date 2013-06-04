@@ -3713,7 +3713,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	if (val == NULL)
 		return (ISC_R_NOMEMORY);
 	val->view = NULL;
-	dns_view_attach(view, &val->view);
+	dns_view_weakattach(view, &val->view);
 
 	event = (dns_validatorevent_t *)
 		isc_event_allocate(view->mctx, task,
@@ -3789,7 +3789,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	isc_event_free(ISC_EVENT_PTR(&event));
 
  cleanup_val:
-	dns_view_detach(&val->view);
+	dns_view_weakdetach(&val->view);
 	isc_mem_put(view->mctx, val, sizeof(*val));
 
 	return (result);
@@ -3869,7 +3869,7 @@ destroy(dns_validator_t *val) {
 	if (val->siginfo != NULL)
 		isc_mem_put(mctx, val->siginfo, sizeof(*val->siginfo));
 	DESTROYLOCK(&val->lock);
-	dns_view_detach(&val->view);
+	dns_view_weakdetach(&val->view);
 	val->magic = 0;
 	isc_mem_put(mctx, val, sizeof(*val));
 }
