@@ -1,3 +1,5 @@
+3583.	[bug]		Address memory leak in GSS-API processing [RT #33574]
+
 3582.	[bug]		Silence false positive warning regarding missing file
 			directive for inline slave zones.  [RT #33662]
 
