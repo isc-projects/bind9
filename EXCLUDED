@@ -1,3 +1,6 @@
+3582.   [bug]           Silence false positive warning regarding missing file
+                        directive for inline slave zones.  [RT #33662]
+
 3570.	[bug]		Check internal pointers are valid when loading map
 			files. [RT #33403]
 
