@@ -4372,7 +4372,7 @@ fctx_log(void *arg, int level, const char *fmt, ...) {
 
 static inline isc_result_t
 findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
-	    dns_name_t **noqname)
+	    dns_name_t **noqnamep)
 {
 	dns_rdataset_t *nrdataset, *next, *sigrdataset;
 	dns_rdata_rrsig_t rrsig;
@@ -4385,10 +4385,12 @@ findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 	dns_fixedname_t fclosest;
 	dns_name_t *nearest;
 	dns_fixedname_t fnearest;
+	dns_rdatatype_t found = dns_rdatatype_none;
+	dns_name_t *noqname = NULL;
 
 	FCTXTRACE("findnoqname");
 
-	REQUIRE(noqname != NULL && *noqname == NULL);
+	REQUIRE(noqnamep != NULL && *noqnamep == NULL);
 
 	/*
 	 * Find the SIG for this rdataset, if we have it.
@@ -4457,8 +4459,10 @@ findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 							&data, NULL, fctx_log,
 							fctx)))
 			{
-				if (!exists)
-					*noqname = nsec;
+				if (!exists) {
+					noqname = nsec;
+					found = dns_rdatatype_nsec;
+				}
 			}
 
 			if (nrdataset->type == dns_rdatatype_nsec3 &&
@@ -4471,13 +4475,26 @@ findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 							 closest, nearest,
 							 fctx_log, fctx)))
 			{
-				if (!exists && setnearest)
-					*noqname = nsec;
+				if (!exists && setnearest) {
+					noqname = nsec;
+					found = dns_rdatatype_nsec3;
+				}
 			}
 		}
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
+	if (noqname != NULL) {
+		for (sigrdataset = ISC_LIST_HEAD(noqname->list);
+		     sigrdataset != NULL;
+		     sigrdataset = ISC_LIST_NEXT(sigrdataset, link)) {
+			if (sigrdataset->type == dns_rdatatype_rrsig &&
+			    sigrdataset->covers == found)
+				break;
+		}
+		if (sigrdataset != NULL)
+			*noqnamep = noqname;
+	}
 	return (result);
 }
 
