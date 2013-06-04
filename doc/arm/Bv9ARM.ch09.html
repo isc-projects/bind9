@@ -57,13 +57,13 @@
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch09.html#bind9.library">BIND 9 DNS Library Support</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2609824">Prerequisite</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2609833">Compilation</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2609175">Installation</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2609206">Known Defects/Restrictions</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2610028">Prerequisite</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2610038">Compilation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608970">Installation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2609001">Known Defects/Restrictions</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2609283">The dns.conf File</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2609309">Sample Applications</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2610282">Library References</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2610350">Library References</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -260,11 +260,11 @@
           </p>
 <div class="bibliography">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2604619"></a>Bibliography</h4></div></div></div>
+<a name="id2604551"></a>Bibliography</h4></div></div></div>
 <div class="bibliodiv">
 <h3 class="title">Standards</h3>
 <div class="biblioentry">
-<a name="id2604630"></a><p>[<abbr class="abbrev">RFC974</abbr>] <span class="author"><span class="firstname">C.</span> <span class="surname">Partridge</span>. </span><span class="title"><i>Mail Routing and the Domain System</i>. </span><span class="pubdate">January 1986. </span></p>
+<a name="id2604562"></a><p>[<abbr class="abbrev">RFC974</abbr>] <span class="author"><span class="firstname">C.</span> <span class="surname">Partridge</span>. </span><span class="title"><i>Mail Routing and the Domain System</i>. </span><span class="pubdate">January 1986. </span></p>
 </div>
 <div class="biblioentry">
 <a name="id2604653"></a><p>[<abbr class="abbrev">RFC1034</abbr>] <span class="author"><span class="firstname">P.V.</span> <span class="surname">Mockapetris</span>. </span><span class="title"><i>Domain Names &#8212; Concepts and Facilities</i>. </span><span class="pubdate">November 1987. </span></p>
@@ -648,7 +648,7 @@
 </ul></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2609824"></a>Prerequisite</h3></div></div></div>
+<a name="id2610028"></a>Prerequisite</h3></div></div></div>
 <p>GNU make is required to build the export libraries (other
   part of BIND 9 can still be built with other types of make). In
   the reminder of this document, "make" means GNU make. Note that
@@ -657,7 +657,7 @@
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2609833"></a>Compilation</h3></div></div></div>
+<a name="id2610038"></a>Compilation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>./configure --enable-exportlib <em class="replaceable"><code>[other flags]</code></em></code></strong>
 $ <strong class="userinput"><code>make</code></strong>
@@ -672,7 +672,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2609175"></a>Installation</h3></div></div></div>
+<a name="id2608970"></a>Installation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>cd lib/export</code></strong>
 $ <strong class="userinput"><code>make install</code></strong>
@@ -694,7 +694,7 @@ $ <strong class="userinput"><code>make install</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2609206"></a>Known Defects/Restrictions</h3></div></div></div>
+<a name="id2609001"></a>Known Defects/Restrictions</h3></div></div></div>
 <div class="itemizedlist"><ul type="disc">
 <li><p>Currently, win32 is not supported for the export
       library. (Normal BIND 9 application can be built as
@@ -1017,7 +1017,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2610218"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
+<a name="id2610286"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
 <p>
   It checks a set
   of domains to see the name servers of the domains behave
@@ -1074,7 +1074,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2610282"></a>Library References</h3></div></div></div>
+<a name="id2610350"></a>Library References</h3></div></div></div>
 <p>As of this writing, there is no formal "manual" of the
   libraries, except this document, header files (some of them
   provide pretty detailed explanations), and sample application
