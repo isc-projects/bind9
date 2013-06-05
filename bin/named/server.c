@@ -8479,22 +8479,32 @@ inuse(const char* file, isc_boolean_t first, isc_buffer_t *text) {
  */
 isc_result_t
 ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
-	isc_result_t	       result;
-	dns_zone_t	      *zone = NULL;
-	dns_zone_t	      *raw = NULL;
-	dns_zone_t	      *mayberaw;
-	dns_view_t	      *view = NULL;
-	dns_db_t	      *dbp = NULL;
-	const char	      *filename = NULL;
-	char		      *tmpname = NULL;
-	char		       buf[1024];
-	const char	      *zonename = NULL;
-	size_t		       znamelen = 0;
-	FILE		      *ifp = NULL, *ofp = NULL;
-	isc_boolean_t	       exclusive = ISC_FALSE;
+	isc_result_t result;
+	dns_zone_t *zone = NULL;
+	dns_zone_t *raw = NULL;
+	dns_zone_t *mayberaw;
+	dns_view_t *view = NULL;
+	dns_db_t *dbp = NULL;
+	const char *filename = NULL;
+	char *tmpname = NULL;
+	char buf[1024];
+	const char *zonename = NULL;
+	size_t znamelen = 0;
+	FILE *ifp = NULL, *ofp = NULL;
+	isc_boolean_t exclusive = ISC_FALSE;
+	isc_boolean_t cleanup = ISC_FALSE;
+	const char *file, *arg;
 
 	/* Parse parameters */
-	CHECK(zone_from_args(server, args, NULL, &zone, &zonename, ISC_TRUE));
+	(void) next_token(&args, " \t");
+	arg = next_token(&args, " \t");
+	if (arg != NULL &&
+	    (strcmp(arg, "-clean") == 0 || strcmp(arg, "-clear") == 0)) {
+		cleanup = ISC_TRUE;
+		arg = next_token(&args, " \t");
+	}
+
+	CHECK(zone_from_args(server, args, arg, &zone, &zonename, ISC_FALSE));
 
 	if (zone == NULL) {
 		result = ISC_R_UNEXPECTEDEND;
@@ -8620,9 +8630,30 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	/* Clean up stub / slave zone files */
 	dns_zone_getraw(zone, &raw);
 	mayberaw = (raw != NULL) ? raw : zone;
-	if (dns_zone_gettype(mayberaw) == dns_zone_slave ||
-	    dns_zone_gettype(mayberaw) == dns_zone_stub) {
-		const char *file;
+	if (cleanup) {
+		file = dns_zone_getfile(mayberaw);
+		if (isc_file_exists(file))
+			isc_file_remove(file);
+
+		file = dns_zone_getjournal(mayberaw);
+		if (isc_file_exists(file))
+			isc_file_remove(file);
+
+		if (zone != mayberaw) {
+			file = dns_zone_getfile(zone);
+			if (isc_file_exists(file))
+				isc_file_remove(file);
+
+			file = dns_zone_getjournal(zone);
+			if (isc_file_exists(file))
+				isc_file_remove(file);
+		}
+		isc_buffer_putstr(text, "zone ");
+		isc_buffer_putstr(text, zonename);
+		isc_buffer_putstr(text, " and associated files deleted");
+	} else if (dns_zone_gettype(mayberaw) == dns_zone_slave ||
+		   dns_zone_gettype(mayberaw) == dns_zone_stub)
+	{
 		isc_boolean_t first;
 
 		file = dns_zone_getfile(mayberaw);

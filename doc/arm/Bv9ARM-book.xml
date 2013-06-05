@@ -1597,6 +1597,7 @@ zone "eng.example.com" {
 
                   <varlistentry>
                     <term><userinput>delzone
+                        <optional>-clean</optional>
                         <replaceable>zone</replaceable>
                         <optional><replaceable>class</replaceable>
                         <optional><replaceable>view</replaceable></optional></optional>
@@ -1606,7 +1607,17 @@ zone "eng.example.com" {
                         Delete a zone while the server is running.
                         Only zones that were originally added via
                         <command>rndc addzone</command> can be deleted
-                        in this matter.
+                        in this matter. 
+                      </para>
+                      <para>
+                        If the <option>-clean</option> is specified,
+                        the zone's master file (and journal file, if any)
+                        will be deleted along with the zone.  Without the
+                        <option>-clean</option> option, zone files must
+                        be cleaned up by hand.  (If the zone is of
+                        type "slave" or "stub", the files needing to
+                        be cleaned up will be reported in the output
+                        of the <command>rndc delzone</command> command.)
                       </para>
                     </listitem>
                   </varlistentry>
