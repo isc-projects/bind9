@@ -1,3 +1,5 @@
+3586.	[buf]		Handle errors in xmlDocDumpFormatMemoryEnc. [RT #33706]
+
 3584.	[security]	Caching data from an incompletely signed zone could
 			trigger an assertion failure in resolver.c [RT #33690]
 
