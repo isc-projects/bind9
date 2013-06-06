@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568372">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568377">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570710">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570796">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -777,16 +777,29 @@ zone "eng.example.com" {
                       </p>
 </dd>
 <dt><span class="term"><strong class="userinput"><code>delzone
+                        [<span class="optional">-clean</span>]
                         <em class="replaceable"><code>zone</code></em>
                         [<span class="optional"><em class="replaceable"><code>class</code></em>
                         [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]
                     </code></strong></span></dt>
-<dd><p>
+<dd>
+<p>
                         Delete a zone while the server is running.
                         Only zones that were originally added via
                         <span><strong class="command">rndc addzone</strong></span> can be deleted
-                        in this matter.
-                      </p></dd>
+                        in this matter. 
+                      </p>
+<p>
+                        If the <code class="option">-clean</code> is specified,
+                        the zone's master file (and journal file, if any)
+                        will be deleted along with the zone.  Without the
+                        <code class="option">-clean</code> option, zone files must
+                        be cleaned up by hand.  (If the zone is of
+                        type "slave" or "stub", the files needing to
+                        be cleaned up will be reported in the output
+                        of the <span><strong class="command">rndc delzone</strong></span> command.)
+                      </p>
+</dd>
 <dt><span class="term"><strong class="userinput"><code>signing
                         [<span class="optional">( -list | -clear <em class="replaceable"><code>keyid/algorithm</code></em> | -clear <code class="literal">all</code> | -nsec3param ( <em class="replaceable"><code>parameters</code></em> | <code class="literal">none</code> ) ) </span>]
                         <em class="replaceable"><code>zone</code></em>
@@ -1011,7 +1024,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570710"></a>Signals</h3></div></div></div>
+<a name="id2570796"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
