@@ -3089,8 +3089,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_uint32_t reserved;
 	isc_uint32_t udpsize;
 	unsigned int maxsocks;
-	int num_zones = 0;
-	isc_boolean_t exclusive = ISC_FALSE;
 
 	cfg_aclconfctx_init(&aclconfctx);
 	ISC_LIST_INIT(viewlist);
