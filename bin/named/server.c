@@ -5120,7 +5120,7 @@ load_configuration(const char *filename, ns_server_t *server,
 			      "not using config file logging "
 			      "statement for logging due to "
 			      "-g option");
-		
+
 		(void)cfg_map_get(config, "logging", &logobj);
 		if (logobj != NULL) {
 			result = ns_log_configure(NULL, logobj);
@@ -5291,7 +5291,7 @@ load_configuration(const char *filename, ns_server_t *server,
  cleanup:
 	if (logc != NULL)
 		isc_logconfig_destroy(&logc);
-		
+
 	if (v4portset != NULL)
 		isc_portset_destroy(ns_g_mctx, &v4portset);
 
