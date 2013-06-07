@@ -46,8 +46,10 @@
 
 #include <dns/byaddr.h>
 #ifdef DIG_SIGCHASE
+#include <dns/callbacks.h>
 #include <dns/dnssec.h>
 #include <dns/ds.h>
+#include <dns/master.h>
 #include <dns/nsec.h>
 #include <isc/random.h>
 #include <ctype.h>
@@ -250,11 +252,10 @@ isc_result_t	  prove_nx(dns_message_t * msg, dns_name_t * name,
 			   dns_rdataset_t ** sigrdataset);
 static void	  nameFromString(const char *str, dns_name_t *p_ret);
 int		  inf_name(dns_name_t * name1, dns_name_t * name2);
-isc_result_t	  opentmpkey(isc_mem_t *mctx, const char *file,
-			     char **tempp, FILE **fp);
 isc_result_t	  removetmpkey(isc_mem_t *mctx, const char *file);
 void		  clean_trustedkey(void);
-void		  insert_trustedkey(dst_key_t **key);
+isc_result_t 	  insert_trustedkey(void *arg, dns_name_t *name,
+				    dns_rdataset_t *rdataset);
 #if DIG_SIGCHASE_BU
 isc_result_t	  getneededrr(dns_message_t *msg);
 void		  sigchase_bottom_up(dns_message_t *msg);
@@ -4129,17 +4130,35 @@ sigchase_scanname(dns_rdatatype_t type, dns_rdatatype_t covers,
 	return (NULL);
 }
 
-void
-insert_trustedkey(dst_key_t **keyp)
+isc_result_t
+insert_trustedkey(void *arg, dns_name_t *name, dns_rdataset_t *rdataset)
 {
-	if (*keyp == NULL)
-		return;
-	if (tk_list.nb_tk >= MAX_TRUSTED_KEY)
-		return;
+	isc_result_t result;
+	dst_key_t *key;
 
-	tk_list.key[tk_list.nb_tk++] = *keyp;
-	*keyp = NULL;
-	return;
+	UNUSED(arg);
+
+	if (rdataset == NULL || rdataset->type != dns_rdatatype_dnskey)
+		return (ISC_R_SUCCESS);
+
+	for (result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset)) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		isc_buffer_t b;
+
+		dns_rdataset_current(rdataset, &rdata);
+		isc_buffer_init(&b, rdata.data, rdata.length);
+		isc_buffer_add(&b, rdata.length);
+		if (tk_list.nb_tk >= MAX_TRUSTED_KEY)
+			return (ISC_R_SUCCESS);
+		key = NULL;
+		result = dst_key_fromdns(name, rdata.rdclass, &b, mctx, &key);
+		if (result != ISC_R_SUCCESS)
+			continue;
+		tk_list.key[tk_list.nb_tk++] = key;
+	}
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -4186,86 +4205,11 @@ removetmpkey(isc_mem_t *mctx, const char *file)
 }
 
 isc_result_t
-opentmpkey(isc_mem_t *mctx, const char *file, char **tempp, FILE **fp) {
-	FILE *f = NULL;
-	isc_result_t result;
-	char *tempname = NULL;
-	char *tempnamekey = NULL;
-	int tempnamelen;
-	int tempnamekeylen;
-	char *x;
-	char *cp;
-	isc_uint32_t which;
-
-	while (1) {
-		tempnamelen = strlen(file) + 20;
-		tempname = isc_mem_allocate(mctx, tempnamelen);
-		if (tempname == NULL)
-			return (ISC_R_NOMEMORY);
-		memset(tempname, 0, tempnamelen);
-
-		result = isc_file_mktemplate(file, tempname, tempnamelen);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-
-		cp = tempname;
-		while (*cp != '\0')
-			cp++;
-		if (cp == tempname) {
-			isc_mem_free(mctx, tempname);
-			return (ISC_R_FAILURE);
-		}
-
-		x = cp--;
-		while (cp >= tempname && *cp == 'X') {
-			isc_random_get(&which);
-			*cp = alphnum[which % (sizeof(alphnum) - 1)];
-			x = cp--;
-		}
-
-		tempnamekeylen = tempnamelen+5;
-		tempnamekey = isc_mem_allocate(mctx, tempnamekeylen);
-		if (tempnamekey == NULL)
-			return (ISC_R_NOMEMORY);
-
-		memset(tempnamekey, 0, tempnamekeylen);
-		strlcpy(tempnamekey, tempname, tempnamelen);
-		strcat(tempnamekey ,".key");
-
-
-		if (isc_file_exists(tempnamekey)) {
-			isc_mem_free(mctx, tempnamekey);
-			isc_mem_free(mctx, tempname);
-			continue;
-		}
-
-		if ((f = fopen(tempnamekey, "w")) == NULL) {
-			printf("get_trusted_key(): trusted key not found %s\n",
-			       tempnamekey);
-			return (ISC_R_FAILURE);
-		}
-		break;
-	}
-	isc_mem_free(mctx, tempnamekey);
-	*tempp = tempname;
-	*fp = f;
-	return (ISC_R_SUCCESS);
-
- cleanup:
-	isc_mem_free(mctx, tempname);
-
-	return (result);
-}
-
-isc_result_t
 get_trusted_key(isc_mem_t *mctx)
 {
 	isc_result_t result;
 	const char *filename = NULL;
-	char *filetemp = NULL;
-	char buf[1500];
-	FILE *fp, *fptemp;
-	dst_key_t *key = NULL;
+	dns_rdatacallbacks_t callbacks;
 
 	result = isc_file_exists(trustedkey);
 	if (result !=  ISC_TRUE) {
@@ -4286,40 +4230,11 @@ get_trusted_key(isc_mem_t *mctx)
 		return (ISC_R_FAILURE);
 	}
 
-	if ((fp = fopen(filename, "r")) == NULL) {
-		printf("get_trusted_key(): trusted key not found %s\n",
-		       filename);
-		return (ISC_R_FAILURE);
-	}
-	while (fgets(buf, sizeof(buf), fp) != NULL) {
-		result = opentmpkey(mctx,"tmp_file", &filetemp, &fptemp);
-		if (result != ISC_R_SUCCESS) {
-			fclose(fp);
-			return (ISC_R_FAILURE);
-		}
-		if (fputs(buf, fptemp) < 0) {
-			fclose(fp);
-			fclose(fptemp);
-			return (ISC_R_FAILURE);
-		}
-		fclose(fptemp);
-		result = dst_key_fromnamedfile(filetemp, NULL, DST_TYPE_PUBLIC,
-					       mctx, &key);
-		removetmpkey(mctx, filetemp);
-		isc_mem_free(mctx, filetemp);
-		if (result !=  ISC_R_SUCCESS) {
-			fclose(fp);
-			return (ISC_R_FAILURE);
-		}
-#if 0
-		dst_key_tofile(key, DST_TYPE_PUBLIC,"/tmp");
-#endif
-		insert_trustedkey(&key);
-		if (key != NULL)
-			dst_key_free(&key);
-	}
-	fclose(fp);
-	return (ISC_R_SUCCESS);
+	dns_rdatacallbacks_init_stdio(&callbacks);
+	callbacks.add = insert_trustedkey;
+	return (dns_master_loadfile(filename, dns_rootname, dns_rootname,
+				    current_lookup->rdclass, 0, &callbacks,
+				    mctx));
 }
 
 
@@ -4333,7 +4248,7 @@ nameFromString(const char *str, dns_name_t *p_ret) {
 	REQUIRE(p_ret != NULL);
 	REQUIRE(str != NULL);
 
-	isc_buffer_init(&buffer, str, len);
+	isc_buffer_constinit(&buffer, str, len);
 	isc_buffer_add(&buffer, len);
 
 	dns_fixedname_init(&fixedname);
