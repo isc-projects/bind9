@@ -12011,6 +12011,8 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	int match = 0;
 	isc_netaddr_t netaddr;
 	isc_sockaddr_t local, remote;
+	isc_uint32_t serial = 0;
+	isc_boolean_t have_serial = ISC_FALSE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -12128,13 +12130,14 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		if (result == ISC_R_SUCCESS)
 			result = dns_rdataset_first(rdataset);
 		if (result == ISC_R_SUCCESS) {
-			isc_uint32_t serial = 0, oldserial;
+			isc_uint32_t oldserial;
 			unsigned int soacount;
 
 			dns_rdataset_current(rdataset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &soa, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			serial = soa.serial;
+			have_serial = ISC_TRUE;
 			/*
 			 * The following should safely be performed without DB
 			 * lock and succeed in this context.
@@ -12165,12 +12168,23 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 		zone->notifyfrom = *from;
 		UNLOCK_ZONE(zone);
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "notify from %s: refresh in progress, "
-			     "refresh check queued",
-			     fromtext);
+		if (have_serial)
+			dns_zone_log(zone, ISC_LOG_INFO,
+				     "notify from %s: serial %u: refresh in "
+				     "progress, refresh check queued",
+				      fromtext, serial);
+		else
+			dns_zone_log(zone, ISC_LOG_INFO,
+				     "notify from %s: refresh in progress, "
+				     "refresh check queued", fromtext);
 		return (ISC_R_SUCCESS);
 	}
+	if (have_serial)
+		dns_zone_log(zone, ISC_LOG_INFO, "notify from %s: serial %u",
+			     fromtext, serial);
+	else
+		dns_zone_log(zone, ISC_LOG_INFO, "notify from %s: no serial",
+			     fromtext);
 	zone->notifyfrom = *from;
 	local = zone->masteraddr;
 	remote = zone->sourceaddr;

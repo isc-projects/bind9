@@ -755,6 +755,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	char keyname[DNS_NAME_FORMATSIZE];
 	isc_boolean_t is_poll = ISC_FALSE;
 	isc_boolean_t is_dlz = ISC_FALSE;
+	isc_boolean_t is_ixfr = ISC_FALSE;
+	isc_uint32_t begin_serial = 0, current_serial;
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -952,8 +954,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_EXISTS,
 				    &current_soa_tuple));
 
+	current_serial = dns_soa_getserial(&current_soa_tuple->rdata);
 	if (reqtype == dns_rdatatype_ixfr) {
-		isc_uint32_t begin_serial, current_serial;
 		isc_boolean_t provide_ixfr;
 
 		/*
@@ -971,7 +973,6 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			      "IXFR request missing SOA");
 
 		begin_serial = dns_soa_getserial(&soa_rdata);
-		current_serial = dns_soa_getserial(&current_soa_tuple->rdata);
 
 		/*
 		 * RFC1995 says "If an IXFR query with the same or
@@ -1010,10 +1011,10 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			goto axfr_fallback;
 		}
 		CHECK(result);
+		is_ixfr = ISC_TRUE;
 	} else {
 	axfr_fallback:
-		CHECK(axfr_rrstream_create(mctx, db, ver,
-					   &data_stream));
+		CHECK(axfr_rrstream_create(mctx, db, ver, &data_stream));
 	}
 
 	/*
@@ -1071,10 +1072,16 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		xfrout_log1(client, question_name, question_class,
 			    ISC_LOG_DEBUG(1), "IXFR poll up to date%s%s",
 			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname);
+	else if (is_ixfr)
+		xfrout_log1(client, question_name, question_class,
+			    ISC_LOG_INFO, "%s started%s%s (serial %u -> %u)",
+			    mnemonic, (xfr->tsigkey != NULL) ? ": TSIG " : "",
+			    keyname, begin_serial, current_serial);
 	else
 		xfrout_log1(client, question_name, question_class,
-			    ISC_LOG_INFO, "%s started%s%s", mnemonic,
-			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname);
+			    ISC_LOG_INFO, "%s started%s%s (serial %u)",
+			    mnemonic, (xfr->tsigkey != NULL) ? ": TSIG " : "",
+			    keyname, current_serial);
 
 	/*
 	 * Hand the context over to sendstream().  Set xfr to NULL;

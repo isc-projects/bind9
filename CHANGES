@@ -1,3 +1,7 @@
+3589.	[func]		Report serial numbers in when starting zone transfers.
+			Report accepted NOTIFY requests including serial.
+			[RT# 33037]
+
 3588.	[bug]		dig: addressed a memory leak in the sigchase code
 			that could cause a shutdown crash.  [RT #33733]
 
