@@ -86,6 +86,10 @@ struct ns_query {
 #define NS_QUERYATTR_DNS64		0x4000
 #define NS_QUERYATTR_DNS64EXCLUDE	0x8000
 
+#ifdef USE_RRL
+#define NS_QUERYATTR_RRL_CHECKED	0x10000
+#endif /* USE_RRL */
+
 
 isc_result_t
 ns_query_init(ns_client_t *client);

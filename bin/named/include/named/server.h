@@ -167,7 +167,14 @@ enum {
 
 	dns_nsstatscounter_rpz_rewrites = 36,
 
+#ifdef USE_RRL
+	dns_nsstatscounter_ratedropped = 37,
+	dns_nsstatscounter_rateslipped = 38,
+
+	dns_nsstatscounter_max = 39
+#else /* USE_RRL */
 	dns_nsstatscounter_max = 37
+#endif /* USE_RRL */
 };
 
 void

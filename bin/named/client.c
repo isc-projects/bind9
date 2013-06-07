@@ -994,6 +994,13 @@ ns_client_send(ns_client_t *client) {
 	}
 	if (result != ISC_R_SUCCESS)
 		goto done;
+#ifdef USE_RRL
+	/*
+	 * Stop after the question if TC was set for rate limiting.
+	 */
+	if ((client->message->flags & DNS_MESSAGEFLAG_TC) != 0)
+		goto renderend;
+#endif /* USE_RRL */
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_ANSWER,
 					   DNS_MESSAGERENDER_PARTIAL |
@@ -1132,6 +1139,53 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		return;
 	}
 #endif
+
+#ifdef USE_RRL
+	/*
+	 * Try to rate limit error responses.
+	 */
+	if (client->view != NULL && client->view->rrl != NULL) {
+		isc_boolean_t wouldlog;
+		char log_buf[DNS_RRL_LOG_BUF_LEN];
+		dns_rrl_result_t rrl_result;
+
+		INSIST(rcode != dns_rcode_noerror &&
+		       rcode != dns_rcode_nxdomain);
+		wouldlog = isc_log_wouldlog(ns_g_lctx, DNS_RRL_LOG_DROP);
+		rrl_result = dns_rrl(client->view, &client->peeraddr,
+				     TCP_CLIENT(client),
+				     dns_rdataclass_in, dns_rdatatype_none,
+				     NULL, result, client->now,
+				     wouldlog, log_buf, sizeof(log_buf));
+		if (rrl_result != DNS_RRL_RESULT_OK) {
+			/*
+			 * Log dropped errors in the query category
+			 * so that they are not lost in silence.
+			 * Starts of rate-limited bursts are logged in
+			 * NS_LOGCATEGORY_RRL.
+			 */
+			if (wouldlog) {
+				ns_client_log(client,
+					      NS_LOGCATEGORY_QUERY_EERRORS,
+					      NS_LOGMODULE_CLIENT,
+					      DNS_RRL_LOG_DROP,
+					      "%s", log_buf);
+			}
+			/*
+			 * Some error responses cannot be 'slipped',
+			 * so don't try to slip any error responses.
+			 */
+			if (!client->view->rrl->log_only) {
+				isc_stats_increment(ns_g_server->nsstats,
+						dns_nsstatscounter_ratedropped);
+				isc_stats_increment(ns_g_server->nsstats,
+						dns_nsstatscounter_dropped);
+				ns_client_next(client, DNS_R_DROP);
+				return;
+			}
+		}
+	}
+#endif /* USE_RRL */
 
 	/*
 	 * Message may be an in-progress reply that we had trouble

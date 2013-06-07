@@ -657,6 +657,9 @@ dns_rriterator_init
 dns_rriterator_next
 dns_rriterator_nextrrset
 dns_rriterator_pause
+dns_rrl
+dns_rrl_init
+dns_rrl_view_destroy
 dns_sdb_putnamedrr
 dns_sdb_putrdata
 dns_sdb_putrr

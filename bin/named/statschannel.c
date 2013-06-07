@@ -208,6 +208,12 @@ init_desc(void) {
 		       "UpdateBadPrereq");
 	SET_NSSTATDESC(rpz_rewrites, "response policy zone rewrites",
 		       "RPZRewrites");
+#ifdef USE_RRL
+	SET_NSSTATDESC(ratedropped, "responses dropped for rate limits",
+		       "RateDropped");
+	SET_NSSTATDESC(rateslipped, "responses truncated for rate limits",
+		       "RateSlipped");
+#endif /* USE_RRL */
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */

@@ -49,6 +49,7 @@
 #include <dns/masterdump.h>
 #include <dns/order.h>
 #include <dns/peer.h>
+#include <dns/rrl.h>
 #include <dns/rbt.h>
 #include <dns/rdataset.h>
 #include <dns/request.h>
@@ -184,6 +185,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->answeracl_exclude = NULL;
 	view->denyanswernames = NULL;
 	view->answernames_exclude = NULL;
+	view->rrl = NULL;
 	view->provideixfr = ISC_TRUE;
 	view->maxcachettl = 7 * 24 * 3600;
 	view->maxncachettl = 3 * 3600;
@@ -335,10 +337,16 @@ destroy(dns_view_t *view) {
 		dns_acache_detach(&view->acache);
 	}
 	dns_rpz_view_destroy(view);
-#else
+#ifdef USE_RRL
+	dns_rrl_view_destroy(view);
+#else /* USE_RRL */
+	INSIST(view->rrl == NULL);
+#endif /* USE_RRL */
+#else /* BIND9 */
 	INSIST(view->acache == NULL);
 	INSIST(ISC_LIST_EMPTY(view->rpz_zones));
-#endif
+	INSIST(view->rrl == NULL);
+#endif /* BIND9 */
 	if (view->requestmgr != NULL)
 		dns_requestmgr_detach(&view->requestmgr);
 	if (view->task != NULL)

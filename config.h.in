@@ -428,6 +428,9 @@ int sigwait(const unsigned int *set, int *sig);
    non-blocking. */
 #undef USE_FIONBIO_IOCTL
 
+/* Enable DNS Response Rate Limiting */
+#undef USE_RRL
+
 /* define if idnkit support is to be included. */
 #undef WITH_IDN
 
