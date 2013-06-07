@@ -1185,6 +1185,8 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	xmlFreeTextWriter(writer);
 
 	xmlDocDumpFormatMemoryEnc(doc, buf, buflen, "UTF-8", 0);
+	if (*buf == NULL)
+		goto error;
 	xmlFreeDoc(doc);
 	return (ISC_R_SUCCESS);
 
@@ -1211,7 +1213,7 @@ render_index(const char *url, const char *querystring, void *arg,
 	     isc_buffer_t *b, isc_httpdfree_t **freecb,
 	     void **freecb_args)
 {
-	unsigned char *msg;
+	unsigned char *msg = NULL;
 	int msglen;
 	ns_server_t *server = arg;
 	isc_result_t result;

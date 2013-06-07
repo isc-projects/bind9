@@ -4946,7 +4946,10 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_viewlist_t viewlist, builtin_viewlist;
 	in_port_t listen_port, udpport_low, udpport_high;
 	int i;
+	int num_zones = 0;
+	isc_boolean_t exclusive = ISC_FALSE;
 	isc_interval_t interval;
+	isc_logconfig_t *logc = NULL;
 	isc_portset_t *v4portset = NULL;
 	isc_portset_t *v6portset = NULL;
 	isc_resourcevalue_t nfiles;
@@ -4955,12 +4958,10 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_uint32_t interface_interval;
 	isc_uint32_t reserved;
 	isc_uint32_t udpsize;
-	ns_cachelist_t cachelist, tmpcachelist;
-	unsigned int maxsocks;
 	ns_cache_t *nsc;
+	ns_cachelist_t cachelist, tmpcachelist;
 	struct cfg_context *nzctx;
-	int num_zones = 0;
-	isc_boolean_t exclusive = ISC_FALSE;
+	unsigned int maxsocks;
 
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
@@ -5642,13 +5643,30 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * unprivileged user, not root.
 	 */
 	if (ns_g_logstderr) {
+		const cfg_obj_t *logobj = NULL;
+
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "ignoring config file logging "
-			      "statement due to -g option");
+			      "not using config file logging "
+			      "statement for logging due to "
+			      "-g option");
+
+		(void)cfg_map_get(config, "logging", &logobj);
+		if (logobj != NULL) {
+			result = ns_log_configure(NULL, logobj);
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(ns_g_lctx,
+					      NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_SERVER,
+					      ISC_LOG_ERROR,
+					      "checking logging configuration "
+					      "failed: %s",
+					      isc_result_totext(result));
+				goto cleanup;
+			}
+		}
 	} else {
 		const cfg_obj_t *logobj = NULL;
-		isc_logconfig_t *logc = NULL;
 
 		CHECKM(isc_logconfig_create(ns_g_lctx, &logc),
 		       "creating new logging configuration");
@@ -5667,11 +5685,9 @@ load_configuration(const char *filename, ns_server_t *server,
 			       "setting up default 'category default'");
 		}
 
-		result = isc_logconfig_use(ns_g_lctx, logc);
-		if (result != ISC_R_SUCCESS) {
-			isc_logconfig_destroy(&logc);
-			CHECKM(result, "installing logging configuration");
-		}
+		CHECKM(isc_logconfig_use(ns_g_lctx, logc),
+		       "installing logging configuration");
+		logc = NULL;
 
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
@@ -5803,6 +5819,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	result = ISC_R_SUCCESS;
 
  cleanup:
+	if (logc != NULL)
+		isc_logconfig_destroy(&logc);
+
 	if (v4portset != NULL)
 		isc_portset_destroy(ns_g_mctx, &v4portset);
 

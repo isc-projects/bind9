@@ -1,3 +1,8 @@
+3587.	[func]		'named -g' now checks the logging configuration but
+			does not use it. [RT #33473]
+
+3586.	[buf]		Handle errors in xmlDocDumpFormatMemoryEnc. [RT #33706]
+
 3585.	[func]		"rndc delzone -clean" option removes zone files
 			when deleting a zone. [RT #33570]
 
@@ -40,7 +45,7 @@
 			[RT #33234]
 
 3570.	[bug]		Check internal pointers are valid when loading map
-                        files. [RT #33403]
+			files. [RT #33403]
 
 3569.	[contrib]	Ported mysql DLZ driver to dynamically-loadable
 			module, and added multithread support. [RT #33394]
@@ -52,7 +57,7 @@
 
 3566.	[func]		Log when forwarding updates to master. [RT #33240]
 
-3565.   [placeholder]
+3565.	[placeholder]
 
 3564.	[bug]		Improved handling of corrupted map files. [RT #33380]
 
@@ -64,7 +69,7 @@
 
 3561.	[bug]		dig: issue a warning if an EDNS query returns FORMERR
 			or NOTIMP.  Adjust usage message. [RT #33363]
-			
+
 3560.	[bug]		isc-config.sh did not honor includedir and libdir
 			when set via configure. [RT #33345]
 
