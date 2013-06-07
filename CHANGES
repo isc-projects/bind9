@@ -1,3 +1,6 @@
+3588.	[bug]		dig: addressed a memory leak in the sigchase code
+			that could cause a shutdown crash.  [RT #33733]
+
 3587.	[func]		'named -g' now checks the logging configuration but
 			does not use it. [RT #33473]
 
