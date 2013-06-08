@@ -1,3 +1,8 @@
+3590.	[bug]		When using RRL on recursive servers, defer
+			rate-limiting until after recursion is complete;
+			also, use correct rcode for slipped NXDOMAIN
+			responses.  [RT #33604]
+
 3588.	[bug]		dig: addressed a memory leak in the sigchase code
 			that could cause a shutdown crash.  [RT #33733]
 

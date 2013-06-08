@@ -19,7 +19,6 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 #set -x
-#set -o noclobber
 
 ns1=10.53.0.1			    # root, defining the others
 ns2=10.53.0.2			    # test server
@@ -90,22 +89,16 @@ digcmd () {
 
 
 #   $1=number of tests  $2=target domain  $3=dig options
-CNT=1
+QNUM=1
 burst () {
     BURST_LIMIT=$1; shift
     BURST_DOM_BASE="$1"; shift
     while test "$BURST_LIMIT" -ge 1; do
-	if test $CNT -lt 10; then
-	    CNT="00$CNT"
-	else
-	    if test $CNT -lt 100; then
-		CNT="0$CNT"
-	    fi
-	fi
+	CNT=`expr "00$QNUM" : '.*\(...\)'`
 	eval BURST_DOM="$BURST_DOM_BASE"
 	FILE="dig.out-$BURST_DOM-$CNT"
 	digcmd $FILE $BURST_DOM $* &
-	CNT=`expr $CNT + 1`
+	QNUM=`expr $QNUM + 1`
 	BURST_LIMIT=`expr "$BURST_LIMIT" - 1`
     done
 }
@@ -116,29 +109,32 @@ burst () {
 ck_result() {
     BAD=
     wait
-    ADDRS=`ls dig.out-$1-*=$2		2>/dev/null	| wc -l | tr -d ' '`
-    TC=`ls dig.out-$1-*=TC		2>/dev/null	| wc -l | tr -d ' '`
-    DROP=`ls dig.out-$1-*=drop		2>/dev/null	| wc -l | tr -d ' '`
-    NXDOMAIN=`ls dig.out-$1-*=NXDOMAIN	2>/dev/null	| wc -l | tr -d ' '`
-    SERVFAIL=`ls dig.out-$1-*=SERVFAIL	2>/dev/null	| wc -l | tr -d ' '`
+    ADDRS=`ls dig.out-$1-*=$2				2>/dev/null | wc -l`
+    # count simple truncated and truncated NXDOMAIN as TC
+    TC=`ls dig.out-$1-*=TC dig.out-$1-*=NXDOMAINTC	2>/dev/null | wc -l`
+    DROP=`ls dig.out-$1-*=drop				2>/dev/null | wc -l`
+    # count NXDOMAIN and truncated NXDOMAIN as NXDOMAIN
+    NXDOMAIN=`ls dig.out-$1-*=NXDOMAIN  dig.out-$1-*=NXDOMAINTC	2>/dev/null \
+							| wc -l`
+    SERVFAIL=`ls dig.out-$1-*=SERVFAIL			2>/dev/null | wc -l`
     if test $ADDRS -ne "$3"; then
-	setret "I:$ADDRS instead of $3 '$2' responses for $1"
+	setret "I:"$ADDRS" instead of $3 '$2' responses for $1"
 	BAD=yes
     fi
     if test $TC -ne "$4"; then
-	setret "I:$TC instead of $4 truncation responses for $1"
+	setret "I:"$TC" instead of $4 truncation responses for $1"
 	BAD=yes
     fi
     if test $DROP -ne "$5"; then
-	setret "I:$DROP instead of $5 dropped responses for $1"
+	setret "I:"$DROP" instead of $5 dropped responses for $1"
 	BAD=yes
     fi
     if test $NXDOMAIN -ne "$6"; then
-	setret "I:$NXDOMAIN instead of $6 NXDOMAIN responses for $1"
+	setret "I:"$NXDOMAIN" instead of $6 NXDOMAIN responses for $1"
 	BAD=yes
     fi
     if test $SERVFAIL -ne "$7"; then
-	setret "I:$SERVFAIL instead of $7 error responses for $1"
+	setret "I:"$SERVFAIL" instead of $7 error responses for $1"
 	BAD=yes
     fi
     if test -z "$BAD"; then
@@ -151,11 +147,11 @@ ckstats () {
     LABEL="$1"; shift
     TYPE="$1"; shift
     EXPECTED="$1"; shift
-    CNT=`sed -n -e "s/[	 ]*\([0-9]*\).responses $TYPE for rate limits.*/\1/p"  \
+    C=`sed -n -e "s/[	 ]*\([0-9]*\).responses $TYPE for rate limits.*/\1/p"  \
 	    ns2/named.stats | tail -1`
-    CNT=`expr 0$CNT + 0`
-    if test "$CNT" -ne $EXPECTED; then
-	setret "I:wrong $LABEL $TYPE statistics of $CNT instead of $EXPECTED"
+    C=`expr 0$C + 0`
+    if test "$C" -ne $EXPECTED; then
+	setret "I:wrong $LABEL $TYPE statistics of $C instead of $EXPECTED"
     fi
 }
 
@@ -170,7 +166,7 @@ burst 5 a1.tld3 +norec
 burst 3 a1.tld2
 # 1 second delay allows an additional response.
 sleep 1
-burst 21 a1.tld2
+burst 10 a1.tld2
 # Request 30 different qnames to try a wildcard.
 burst 30 'x$CNT.a2.tld2'
 # These should be counted and limited but are not.  See RT33138.
@@ -179,8 +175,8 @@ burst 10 'y.x$CNT.a2.tld2'
 #					IP      TC      drop  NXDOMAIN SERVFAIL
 # referrals to "."
 ck_result   a1.tld3	''		2	1	2	0	0
-# check 24 results including 1 second delay that allows an additional response
-ck_result   a1.tld2	192.0.2.1	3	7	14	0	0
+# check 13 results including 1 second delay that allows an additional response
+ck_result   a1.tld2	192.0.2.1	3	4	6	0	0
 
 # Check the wild card answers.
 # The parent name of the 30 requests is counted.
@@ -192,64 +188,68 @@ ck_result 'y.x*.a2.tld2' 192.0.2.2	10	0	0	0	0
 #########
 sec_start
 
-burst 1 'y$CNT.a3.tld3'; wait; burst 20 'y$CNT.a3.tld3'
-burst 20 'z$CNT.a4.tld2'
+burst 10 'x.a3.tld3'
+burst 10 'y$CNT.a3.tld3'
+burst 10 'z$CNT.a4.tld2'
 
-# Recursion.
-#   The first answer is counted separately because it is counted against
-#   the rate limit on recursing to the server for a3.tld3.  The remaining 20
-#   are counted as local responses from the cache.
-ck_result 'y*.a3.tld3'	192.0.3.3	3	6	12	0	0
+# 10 identical recursive responses are limited
+ck_result 'x.a3.tld3'	192.0.3.3	2	3	5	0	0
 
-# NXDOMAIN responses are also limited based on the parent name.
-ck_result 'z*.a4.tld2'	x		0	6	12	2	0
+# 10 different recursive responses are not limited
+ck_result 'y*.a3.tld3'	192.0.3.3	10	0	0	0	0
+
+# 10 different NXDOMAIN responses are limited based on the parent name.
+#   We count 13 responses because we count truncated NXDOMAIN responses
+#   as both truncated and NXDOMAIN.
+ck_result 'z*.a4.tld2'	x		0	3	5	5	0
 
 $RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
-ckstats first dropped 58
-ckstats first truncated 30
+ckstats first dropped 36
+ckstats first truncated 21
 
 
 #########
 sec_start
 
-burst 20 a5.tld2 +tcp
-burst 20 a6.tld2 -b $ns7
-burst 20 a7.tld4
+burst 10 a5.tld2 +tcp
+burst 10 a6.tld2 -b $ns7
+burst 10 a7.tld4
 burst 2 a8.tld2 AAAA
 burst 2 a8.tld2 TXT
 burst 2 a8.tld2 SPF
 
+#					IP      TC      drop  NXDOMAIN SERVFAIL
 # TCP responses are not rate limited
-ck_result a5.tld2	192.0.2.5	20	0	0	0	0
+ck_result a5.tld2	192.0.2.5	10	0	0	0	0
 
 # whitelisted client is not rate limited
-ck_result a6.tld2	192.0.2.6	20	0	0	0	0
+ck_result a6.tld2	192.0.2.6	10	0	0	0	0
 
-# Errors such as SERVFAIL are rate limited.  The numbers are confusing, because
-#   other rate limiting can be triggered before the SERVFAIL limit is reached.
-ck_result a7.tld4	192.0.2.1	0	6	12	0	2
+# Errors such as SERVFAIL are rate limited.
+ck_result a7.tld4	x		0	0	8	0	2
 
 # NODATA responses are counted as the same regardless of qtype.
 ck_result a8.tld2	''		2	2	2	0	0
 
 $RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
-ckstats second dropped 72
-ckstats second truncated 38
+ckstats second dropped 46
+ckstats second truncated 23
 
 
 #########
 sec_start
 
+#					IP      TC      drop  NXDOMAIN SERVFAIL
 # all-per-second
 #   The qnames are all unique but the client IP address is constant.
-CNT=101
-burst 80 'all$CNT.a9.tld2'
+QNUM=101
+burst 60 'all$CNT.a9.tld2'
 
-ck_result 'a*.a9.tld2'	192.0.2.8	70	0	10	0	0
+ck_result 'a*.a9.tld2'	192.0.2.8	50	0	10	0	0
 
 $RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
-ckstats final dropped 82
-ckstats final truncated 38
+ckstats final dropped 56
+ckstats final truncated 23
 
 
 echo "I:exit status: $ret"

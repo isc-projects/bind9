@@ -5868,15 +5868,25 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 #ifdef USE_RRL
 	/*
 	 * Rate limit these responses to this client.
+	 * Do not delay counting and handling obvious referrals,
+	 *	since those won't come here again.
+	 * Delay handling delegations for which we are certain to recurse and
+	 *	return here (DNS_R_DELEGATION, not a child of one of our
+	 *	own zones, and recursion enabled)
+	 * Don't mess with responses rewritten by RPZ
+	 * Count each response at most once.
 	 */
 	if (client->view->rrl != NULL &&
 	    ((fname != NULL && dns_name_isabsolute(fname)) ||
 	     (result == ISC_R_NOTFOUND && !RECURSIONOK(client))) &&
+	    !(result == DNS_R_DELEGATION && !is_zone && RECURSIONOK(client)) &&
+	    (client->query.rpz_st == NULL ||
+	     (client->query.rpz_st->state & DNS_RPZ_REWRITTEN) == 0)&&
 	    (client->query.attributes & NS_QUERYATTR_RRL_CHECKED) == 0) {
 		dns_rdataset_t nc_rdataset;
 		isc_boolean_t wouldlog;
 		char log_buf[DNS_RRL_LOG_BUF_LEN];
-		isc_result_t nc_result;
+		isc_result_t nc_result, resp_result;
 		dns_rrl_result_t rrl_result;
 
 		client->query.attributes |= NS_QUERYATTR_RRL_CHECKED;
@@ -5889,7 +5899,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 */
 			if (db != NULL)
 				tname = dns_db_origin(db);
-			rrl_result = result;
+			resp_result = result;
 		} else if (result == DNS_R_NCACHENXDOMAIN &&
 			   rdataset != NULL &&
 			   dns_rdataset_isassociated(rdataset) &&
@@ -5913,12 +5923,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				}
 				dns_rdataset_disassociate(&nc_rdataset);
 			}
-			rrl_result = DNS_R_NXDOMAIN;
+			resp_result = DNS_R_NXDOMAIN;
 		} else if (result == DNS_R_NXRRSET ||
 			   result == DNS_R_EMPTYNAME) {
-			rrl_result = DNS_R_NXRRSET;
+			resp_result = DNS_R_NXRRSET;
 		} else if (result == DNS_R_DELEGATION) {
-			rrl_result = result;
+			resp_result = result;
 		} else if (result == ISC_R_NOTFOUND) {
 			/*
 			 * Handle referral to ".", including when recursion
@@ -5926,15 +5936,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * been loaded or we have "additional-from-cache no".
 			 */
 			tname = dns_rootname;
-			rrl_result = DNS_R_DELEGATION;
+			resp_result = DNS_R_DELEGATION;
 		} else {
-			rrl_result = ISC_R_SUCCESS;
+			resp_result = ISC_R_SUCCESS;
 		}
 		rrl_result = dns_rrl(client->view, &client->peeraddr,
 				     ISC_TF((client->attributes
 					     & NS_CLIENTATTR_TCP) != 0),
 				     client->message->rdclass, qtype, tname,
-				     rrl_result, client->now,
+				     resp_result, client->now,
 				     wouldlog, log_buf, sizeof(log_buf));
 		if (rrl_result != DNS_RRL_RESULT_OK) {
 			/*
@@ -5972,6 +5982,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 						dns_nsstatscounter_rateslipped);
 					client->message->flags |=
 						DNS_MESSAGEFLAG_TC;
+					if (resp_result == DNS_R_NXDOMAIN)
+						client->message->rcode =
+							dns_rcode_nxdomain;
 				}
 				goto cleanup;
 			}
