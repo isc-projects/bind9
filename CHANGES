@@ -1,3 +1,8 @@
+3590.	[bug]		When using RRL on recursive servers, defer
+			rate-limiting until after recursion is complete;
+			also, use correct rcode for slipped NXDOMAIN
+			responses.  [RT #33604]
+
 3589.	[func]		Report serial numbers in when starting zone transfers.
 			Report accepted NOTIFY requests including serial.
 			[RT# 33037]
