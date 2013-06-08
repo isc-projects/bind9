@@ -10167,6 +10167,7 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	    statistics.
 	    Responses that truncated by rate limits are included in
 	    <command>RateSlipped</command> and <command>RespTruncated</command>.
+	  </para>
 	</sect3>
       </sect2>
 
