@@ -1,3 +1,6 @@
+3592.	[doc]		Moved documentation of rndc command options to the
+			rndc man page. [RT #33506]
+
 3588.	[bug]		dig: addressed a memory leak in the sigchase code
 			that could cause a shutdown crash.  [RT #33733]
 
