@@ -270,7 +270,7 @@
 ./bin/rndc/rndc.conf.5				MAN	DOCBOOK
 ./bin/rndc/rndc.conf.docbook			SGML	2000,2001,2004,2005,2007
 ./bin/rndc/rndc.conf.html			HTML	DOCBOOK
-./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007
+./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007,2013
 ./bin/rndc/rndc.html				HTML	DOCBOOK
 ./bin/rndc/util.c				C	2000,2001,2004,2005,2007
 ./bin/rndc/util.h				C	2000,2001,2004,2005,2007,2009
