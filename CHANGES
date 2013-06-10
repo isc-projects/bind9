@@ -1,3 +1,6 @@
+3592.	[doc]		Moved documentation of rndc command options to the
+			rndc man page. [RT #33506]
+
 3590.	[bug]		When using RRL on recursive servers, defer
 			rate-limiting until after recursion is complete;
 			also, use correct rcode for slipped NXDOMAIN
