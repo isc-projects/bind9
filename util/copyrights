@@ -199,7 +199,7 @@
 ./bin/rndc/rndc.conf.5				MAN	DOCBOOK
 ./bin/rndc/rndc.conf.docbook			SGML	2000,2001,2004,2005,2007
 ./bin/rndc/rndc.conf.html			HTML	DOCBOOK
-./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007
+./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007,2013
 ./bin/rndc/rndc.html				HTML	DOCBOOK
 ./bin/rndc/unix/Makefile.in			MAKE	2001,2004,2007,2012
 ./bin/rndc/unix/os.c				C	2001,2004,2005,2007,2012
