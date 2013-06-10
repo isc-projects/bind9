@@ -1,3 +1,6 @@
+3592.	[doc]		Moved documentation of rndc command options to the
+			rndc man page. [RT #33506]
+
 3591.	[func]		Use CRC-64 to detect map file corruption at load
 			time. [RT #33746]
 
