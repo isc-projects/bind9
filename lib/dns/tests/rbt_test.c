@@ -107,7 +107,7 @@ delete_data(void *data, void *arg) {
 
 static isc_result_t
 write_data(FILE *file, unsigned char *datap, isc_uint32_t serial,
-	   isc_sha1_t *sha1) {
+	   isc_uint64_t *crc) {
 	size_t ret = 0;
 	data_holder_t *data = (data_holder_t *)datap;
 	data_holder_t temp;
@@ -115,7 +115,7 @@ write_data(FILE *file, unsigned char *datap, isc_uint32_t serial,
 
 	UNUSED(serial);
 
-	REQUIRE(sha1 != NULL);
+	REQUIRE(crc != NULL);
 	REQUIRE(data != NULL);
 	REQUIRE((data->len == 0 && data->data == NULL) ||
 		(data->len != 0 && data->data != NULL));
@@ -125,12 +125,12 @@ write_data(FILE *file, unsigned char *datap, isc_uint32_t serial,
 		     ? NULL
 		     : (char *)(where + sizeof(data_holder_t)));
 
-	isc_sha1_update(sha1, (void *)&temp, sizeof(temp));
+	isc_crc64_update(crc, (void *)&temp, sizeof(temp));
 	ret = fwrite(&temp, sizeof(data_holder_t), 1, file);
 	if (ret != 1)
 		return (ISC_R_FAILURE);
 	if (data->len > 0) {
-		isc_sha1_update(sha1, (const void *)data->data, data->len);
+		isc_crc64_update(crc, (const void *)data->data, data->len);
 		ret = fwrite(data->data, data->len, 1, file);
 		if (ret != 1)
 			return (ISC_R_FAILURE);
@@ -140,14 +140,14 @@ write_data(FILE *file, unsigned char *datap, isc_uint32_t serial,
 }
 
 static isc_result_t
-fix_data(dns_rbtnode_t *p, void *base, size_t max, isc_sha1_t *sha1) {
+fix_data(dns_rbtnode_t *p, void *base, size_t max, isc_uint64_t *crc) {
 	data_holder_t *data = p->data;
 	size_t size;
 
 	UNUSED(base);
 	UNUSED(max);
 
-	REQUIRE(sha1 != NULL);
+	REQUIRE(crc != NULL);
 	REQUIRE(p != NULL);
 
 
@@ -168,14 +168,14 @@ fix_data(dns_rbtnode_t *p, void *base, size_t max, isc_sha1_t *sha1) {
 		return (ISC_R_INVALIDFILE);
 	}
 
-	isc_sha1_update(sha1, (void *)data, sizeof(*data));
+	isc_crc64_update(crc, (void *)data, sizeof(*data));
 
 	data->data = (data->len == 0)
 		? NULL
 		: (char *)data + sizeof(data_holder_t);
 
 	if (data->len > 0)
-		isc_sha1_update(sha1, (const void *)data->data, data->len);
+		isc_crc64_update(crc, (const void *)data->data, data->len);
 
 	return (ISC_R_SUCCESS);
 }

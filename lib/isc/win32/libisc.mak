@@ -125,6 +125,7 @@ CLEAN :
 	-@erase "$(INTDIR)\bufferlist.obj"
 	-@erase "$(INTDIR)\commandline.obj"
 	-@erase "$(INTDIR)\condition.obj"
+	-@erase "$(INTDIR)\crc64.obj"
 	-@erase "$(INTDIR)\dir.obj"
 	-@erase "$(INTDIR)\DLLMain.obj"
 	-@erase "$(INTDIR)\entropy.obj"
@@ -215,6 +216,7 @@ DEF_FILE= \
 LINK32_OBJS= \
 	"$(INTDIR)\app.obj" \
 	"$(INTDIR)\condition.obj" \
+	"$(INTDIR)\crc64.obj" \
 	"$(INTDIR)\dir.obj" \
 	"$(INTDIR)\DLLMain.obj" \
 	"$(INTDIR)\entropy.obj" \
@@ -333,6 +335,8 @@ CLEAN :
 	-@erase "$(INTDIR)\commandline.sbr"
 	-@erase "$(INTDIR)\condition.obj"
 	-@erase "$(INTDIR)\condition.sbr"
+	-@erase "$(INTDIR)\crc64.obj"
+	-@erase "$(INTDIR)\crc64.sbr"
 	-@erase "$(INTDIR)\dir.obj"
 	-@erase "$(INTDIR)\dir.sbr"
 	-@erase "$(INTDIR)\DLLMain.obj"
@@ -490,6 +494,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\libisc.bsc"
 BSC32_SBRS= \
 	"$(INTDIR)\app.sbr" \
 	"$(INTDIR)\condition.sbr" \
+	"$(INTDIR)\crc64.sbr" \
 	"$(INTDIR)\dir.sbr" \
 	"$(INTDIR)\DLLMain.sbr" \
 	"$(INTDIR)\entropy.sbr" \
@@ -580,6 +585,7 @@ DEF_FILE= \
 LINK32_OBJS= \
 	"$(INTDIR)\app.obj" \
 	"$(INTDIR)\condition.obj" \
+	"$(INTDIR)\crc64.obj" \
 	"$(INTDIR)\dir.obj" \
 	"$(INTDIR)\DLLMain.obj" \
 	"$(INTDIR)\entropy.obj" \
@@ -735,6 +741,22 @@ SOURCE=.\condition.c
 
 
 "$(INTDIR)\condition.obj"	"$(INTDIR)\condition.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+
+SOURCE=.\crc64.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\crc64.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\crc64.obj"	"$(INTDIR)\crc64.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 

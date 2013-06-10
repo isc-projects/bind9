@@ -103,6 +103,10 @@ SOURCE=.\condition.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\crc64.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\dir.c
 # End Source File
 # Begin Source File
@@ -256,6 +260,10 @@ SOURCE=.\include\isc\condition.h
 # Begin Source File
 
 SOURCE=..\..\..\config.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\isc\crc64.h
 # End Source File
 # Begin Source File
 

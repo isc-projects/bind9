@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <isc/crc64.h>
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
 #include <isc/md5.h>
@@ -1784,6 +1785,67 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 	}
 }
 
+/* CRC64 Test */
+ATF_TC(isc_crc64);
+ATF_TC_HEAD(isc_crc64, tc) {
+	atf_tc_set_md_var(tc, "descr", "64-bit cyclic redundancy check");
+}
+ATF_TC_BODY(isc_crc64, tc) {
+	isc_uint64_t crc;
+
+	UNUSED(tc);
+
+	hash_testcase_t testcases[] = {
+		{
+			TEST_INPUT(""),
+			"0x0000000000000000", 1
+		},
+		{
+			TEST_INPUT("a"),
+			"0x9AA9C0AC27F473CE", 1
+		},
+		{
+			TEST_INPUT("abc"),
+			"0x0297F4F93A818B04", 1
+		},
+		{
+			TEST_INPUT("message digest"),
+			"0xF47B357AEAF97352", 1
+		},
+		{
+			TEST_INPUT("abcdefghijklmnopqrstuvwxyz"),
+			"0xA1AA8B21F979F059", 1
+		},
+		{
+			TEST_INPUT("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklm"
+				   "nopqrstuvwxyz0123456789"),
+			"0xFBB6781EF7A86DA3", 1
+		},
+		{
+			TEST_INPUT("123456789012345678901234567890123456789"
+				   "01234567890123456789012345678901234567890"),
+			"0x4A87E7C873EBE581", 1
+		},
+		{ NULL, 0, NULL, 1 }
+	};
+
+	hash_testcase_t *testcase = testcases;
+
+	while (testcase->input != NULL && testcase->result != NULL) {
+		isc_crc64_init(&crc);
+		for(i = 0; i < testcase->repeats; i++) {
+			isc_crc64_update(&crc,
+				       (const isc_uint8_t *) testcase->input,
+				       testcase->input_len);
+		}
+		isc_crc64_final(&crc);
+		tohexstr((unsigned char *) &crc, sizeof(crc), str);
+		ATF_CHECK_STREQ(str, testcase->result);
+
+		testcase++;
+	}
+}
+
 /*
  * Main
  */
@@ -1800,6 +1862,7 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_sha256);
 	ATF_TP_ADD_TC(tp, isc_sha384);
 	ATF_TP_ADD_TC(tp, isc_sha512);
+	ATF_TP_ADD_TC(tp, isc_crc64);
 	return (atf_no_error());
 }
 

@@ -22,10 +22,10 @@
 
 /*! \file dns/rbt.h */
 
+#include <isc/crc64.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>
-#include <isc/sha1.h>
 
 #include <dns/types.h>
 
@@ -154,11 +154,11 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file,
 					    unsigned char *data,
 					    isc_uint32_t version,
-					    isc_sha1_t *sha1);
+					    isc_uint64_t *crc);
 
 typedef isc_result_t (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode,
 					   void *base, size_t offset,
-					   isc_sha1_t *sha1);
+					   isc_uint64_t *crc);
 
 /*****
  *****  Chain Info

@@ -27,6 +27,7 @@
 
 /* #define inline */
 
+#include <isc/crc64.h>
 #include <isc/event.h>
 #include <isc/heap.h>
 #include <isc/file.h>
@@ -6997,7 +6998,7 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 static isc_result_t
 rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
-	      isc_sha1_t *sha1)
+	      isc_uint64_t *crc)
 {
 	rdatasetheader_t *header;
 	unsigned char *limit = ((unsigned char *) base) + filesize;
@@ -7010,7 +7011,7 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 		p = (unsigned char *) header;
 
 		size = dns_rdataslab_size(p, sizeof(*header));
-		isc_sha1_update(sha1, p, size);
+		isc_crc64_update(crc, p, size);
 #ifdef DEBUG
 		hexdump("hashing header", p, sizeof(rdatasetheader_t));
 		hexdump("hashing slab", p + sizeof(rdatasetheader_t),
@@ -7224,7 +7225,8 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
  */
 static isc_result_t
 rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial,
-		isc_sha1_t *sha1) {
+	       isc_uint64_t *crc)
+{
 	rdatasetheader_t newheader;
 	rdatasetheader_t *header = (rdatasetheader_t *) data, *next;
 	size_t where, size, cooked;
@@ -7277,16 +7279,16 @@ rbt_datawriter(FILE *rbtfile, unsigned char *data, isc_uint32_t serial,
 		hexdump("writing slab", p + sizeof(rdatasetheader_t),
 			size - sizeof(rdatasetheader_t));
 #endif
-		isc_sha1_update(sha1, (unsigned char *) &newheader,
-				sizeof(rdatasetheader_t));
+		isc_crc64_update(crc, (unsigned char *) &newheader,
+				 sizeof(rdatasetheader_t));
 		result = isc_stdio_write(&newheader,
 					 sizeof(rdatasetheader_t), 1,
 					 rbtfile, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		isc_sha1_update(sha1, p + sizeof(rdatasetheader_t),
-				size - sizeof(rdatasetheader_t));
+		isc_crc64_update(crc, p + sizeof(rdatasetheader_t),
+				 size - sizeof(rdatasetheader_t));
 		result = isc_stdio_write(p + sizeof(rdatasetheader_t),
 			     size - sizeof(rdatasetheader_t), 1, rbtfile, NULL);
 		if (result != ISC_R_SUCCESS)
