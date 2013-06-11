@@ -514,12 +514,12 @@ t_fgetbs(FILE *fp) {
 	int	c;
 	size_t	n;
 	size_t	size;
-	char	*buf;
+	char	*buf, *old;
 	char	*p;
 
-	n	= 0;
-	size	= T_BUFSIZ;
-	buf	= (char *) malloc(T_BUFSIZ * sizeof(char));
+	n = 0;
+	size = T_BUFSIZ;
+	old = buf = (char *) malloc(T_BUFSIZ * sizeof(char));
 
 	if (buf != NULL) {
 		p = buf;
@@ -535,7 +535,8 @@ t_fgetbs(FILE *fp) {
 				buf = (char *)realloc(buf,
 						      size * sizeof(char));
 				if (buf == NULL)
-					break;
+					goto err;
+				old = buf;
 				p = buf + n;
 			}
 		}
@@ -546,7 +547,10 @@ t_fgetbs(FILE *fp) {
 		}
 		return (buf);
 	} else {
-		fprintf(stderr, "malloc failed %d", errno);
+ err:
+		if (old != NULL)
+			free(old);
+		fprintf(stderr, "malloc/realloc failed %d", errno);
 		return(NULL);
 	}
 }
