@@ -123,11 +123,13 @@ isc_crc64_init(isc_uint64_t *crc) {
 
 void
 isc_crc64_update(isc_uint64_t *crc, const isc_uint8_t *data, size_t len) {
-	unsigned char *p = data;
+	unsigned char *p;
 	int i;
 
 	REQUIRE(crc != NULL);
 	REQUIRE(data != NULL);
+
+	DE_CONST(data, p);
 
 	while (len-- > 0) {
 		i = ((int) (*crc >> 56) ^ *p++) & 0xff;
