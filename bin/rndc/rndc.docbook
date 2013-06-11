@@ -504,7 +504,7 @@
           <para>
             Flushes the given name, and all of its subdomains,
             from the server's DNS cache.  Note that this does
-            <emphasis>not<emphasis> affect he server's address
+            <emphasis>not</emphasis> affect he server's address
             database or bad-server cache.
           </para>
         </listitem>
