@@ -36,7 +36,7 @@ isc_crc64_init(isc_uint64_t *crc);
  */
 
 void
-isc_crc64_update(isc_uint64_t *crc, const isc_uint8_t *data, size_t len);
+isc_crc64_update(isc_uint64_t *crc, const void *data, size_t len);
 /*%
  * Add data to the CRC.
  *
