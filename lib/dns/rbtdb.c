@@ -103,7 +103,7 @@ typedef struct rbtdb_file_header rbtdb_file_header_t;
 static char FILE_VERSION[32] = "\0";
 
 /* Header length, always the same size regardless of structure size */
-static const unsigned int RBTDB_HEADER_LENGTH = 1024;
+#define RBTDB_HEADER_LENGTH	1024
 
 struct rbtdb_file_header {
 	char version1[32];

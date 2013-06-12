@@ -106,7 +106,7 @@ typedef struct file_header file_header_t;
 static char FILE_VERSION[32] = "\0";
 
 /* Header length, always the same size regardless of structure size */
-const unsigned int HEADER_LENGTH = 1024;
+#define HEADER_LENGTH		1024
 
 struct file_header {
 	char version1[32];
