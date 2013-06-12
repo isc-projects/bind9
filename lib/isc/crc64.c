@@ -129,7 +129,7 @@ isc_crc64_update(isc_uint64_t *crc, const void *data, size_t len) {
 	REQUIRE(crc != NULL);
 	REQUIRE(data != NULL);
 
-	while (len-- > 0) {
+	while (len-- > 0U) {
 		i = ((int) (*crc >> 56) ^ *p++) & 0xff;
 		*crc = crc64_table[i] ^ (*crc << 8);
 	}
