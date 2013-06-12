@@ -857,7 +857,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 				inc_stats(fctx->res,
 					  dns_resstatscounter_queryrtt5);
 			}
-		} else { 
+		} else {
 			isc_uint32_t value;
 			isc_uint32_t mask;
 			/*
@@ -1827,7 +1827,7 @@ resquery_send(resquery_t *query) {
 	 */
 	if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0) {
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
-	} else if (res->view->enablevalidation && 
+	} else if (res->view->enablevalidation &&
 		   (fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0) {
 		result = dns_view_issecuredomain(res->view, &fctx->name,
 						 &secure_domain);
@@ -1904,7 +1904,7 @@ resquery_send(resquery_t *query) {
 		    (query->addrinfo->flags & FCTX_ADDRINFO_EDNSOK) == 0) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
 			fctx->reason = "disabling EDNS";
-                } else if ((tried = triededns(fctx, sockaddr)) != NULL) {
+		} else if ((tried = triededns(fctx, sockaddr)) != NULL) {
 			if (tried->count == 1U) {
 				hint = dns_adb_getudpsize(fctx->adb,
 							  query->addrinfo);
@@ -1927,7 +1927,7 @@ resquery_send(resquery_t *query) {
 			unsigned int flags = query->addrinfo->flags;
 			isc_boolean_t reqnsid = res->view->requestnsid;
 
-			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 && 
+			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
 			    (query->options & DNS_FETCHOPT_EDNS512) == 0) {
 				udpsize = dns_adb_probesize(fctx->adb,
 							    query->addrinfo);
