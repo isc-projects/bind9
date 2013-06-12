@@ -265,6 +265,22 @@ isc_file_getmodtime(const char *file, isc_time_t *time) {
 }
 
 isc_result_t
+isc_file_getsize(const char *file, off_t *size) {
+	isc_result_t result;
+	struct stat stats;
+
+	REQUIRE(file != NULL);
+	REQUIRE(size != NULL);
+
+	result = file_stats(file, &stats);
+
+	if (result == ISC_R_SUCCESS)
+		*size = stats.st_size;
+
+	return (result);
+}
+
+isc_result_t
 isc_file_settime(const char *file, isc_time_t *time) {
 	int fh;
 

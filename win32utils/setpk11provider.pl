@@ -75,7 +75,7 @@ sub updateconfig {
 
    foreach $line (@Lines) {
       if ($havexml) {
-         $line =~ s/^.*#undef USE_PKCS11.*$/define USE_PKCS11 1/;
+         $line =~ s/^.*#undef USE_PKCS11.*$/#define USE_PKCS11 1/;
       } else {
          $line =~ s/^#define USE_PKCS11 .*$/\/\* #undef USE_PKCS11 \*\//;
       }

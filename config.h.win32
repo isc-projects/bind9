@@ -185,6 +185,7 @@
 #define getcwd _getcwd
 #define utime _utime
 #define utimbuf _utimbuf
+#define lseek _lseek
 
 /* #define EAFNOSUPPORT EINVAL */
 #define chmod _chmod
