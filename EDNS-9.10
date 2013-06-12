@@ -1,0 +1,31 @@
+
+			EDNS in BIND 9.10
+
+The EDNS code in BIND 9.10 records successful plain and EDNS query
+counts as well at timeouts for plain DNS and EDNS queries at various
+EDNS buffer sizes: 4096, 1432, 1232 and 512 for each server named
+talks to.  A EDNS timeout for a lower buffer size is also counted
+against higher buffer sizes.  These are held in 8 bit counters and
+are shifted on overflow of any counter.  This will result in false
+positives due to transitory network problems to be removed from the
+history.
+
+The buffer sizes of 1432 and 1232 are choosen to allow for a IPv4/IPv6
+encapsulated UDP message to be sent without fragmentation at Ethernet
+and IPv6 network mimimum MTU sizes.
+
+Named also records the largest successful EDNS response size seen.
+
+When talking to a new server named will send a EDNS query advertising
+a 512 byte UDP buffer.  This is the most conservative EDNS message
+that can be sent.  If this results in a response with TC=1 being
+sent a larger EDNS buffer size will be used rather than a immediate
+fallback to TCP.
+
+If there are too many timeouts to EDNS queries without a successful EDNS
+query and with successful plain DNS queries named will fallback to using
+plain DNS when taking to a server.  Named will periodically send a EDNS
+query to see if the server now supports EDNS.
+
+When talking to a server using EDNS named will choose a EDNS buffer size
+based on the history of EDNS timeouts at various advertised sizes.

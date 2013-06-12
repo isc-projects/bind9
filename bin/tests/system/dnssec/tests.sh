@@ -76,6 +76,11 @@ israw1 () {
     return $?
 }
 
+# strip NS and RRSIG NS from input
+stripns () {
+    awk '($4 == "NS") || ($4 == "RRSIG" && $5 == "NS") { next} { print }' $1
+}
+
 # Check the example. domain
 
 echo "I:checking that zone transfer worked ($n)"
@@ -193,9 +198,13 @@ fi
 
 echo "I:checking positive wildcard validation NSEC ($n)"
 ret=0
-$DIG $DIGOPTS a.wild.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+$DIG $DIGOPTS a.wild.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS a.wild.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+stripns dig.out.ns3.test$n > dig.out.ns3.stripped.test$n
+stripns dig.out.ns4.test$n > dig.out.ns4.stripped.test$n
+$PERL ../digcomp.pl dig.out.ns3.stripped.test$n dig.out.ns4.stripped.test$n || ret=1
+grep "\*\.wild\.example\..*RRSIG	NSEC" dig.out.ns4.test$n > /dev/null || ret=1
+grep "\*\.wild\.example\..*NSEC	z\.example" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -235,7 +244,9 @@ echo "I:checking positive wildcard validation NSEC3 ($n)"
 ret=0
 $DIG $DIGOPTS a.wild.nsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS a.wild.nsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+stripns dig.out.ns3.test$n > dig.out.ns3.stripped.test$n
+stripns dig.out.ns4.test$n > dig.out.ns4.stripped.test$n
+$PERL ../digcomp.pl dig.out.ns3.stripped.test$n dig.out.ns4.stripped.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -259,7 +270,9 @@ $DIG $DIGOPTS a.wild.optout.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS a.wild.optout.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+stripns dig.out.ns3.test$n > dig.out.ns3.stripped.test$n
+stripns dig.out.ns4.test$n > dig.out.ns4.stripped.test$n
+$PERL ../digcomp.pl dig.out.ns3.stripped.test$n dig.out.ns4.stripped.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`

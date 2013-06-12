@@ -1,0 +1,15 @@
+
+	bash buildzones.sh < zones	# creates setup, run, servers/* master/*
+					# named.conf
+	sudo sh setup			# configure interfaces
+	sh run				# setup
+
+	../named/named [-g] -c named.conf
+
+	sh tests.sh < zones
+
+	sudo sh teardown		# teardown interfaces
+
+The test server can controlled with
+
+	rndc -k rndc.key -s 127.127.0.0 -p 5300 

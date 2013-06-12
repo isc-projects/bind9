@@ -1,3 +1,6 @@
+3593.	[func]		Update EDNS processing to better track remote server
+			capabilities. [RT #30655]
+
 3592.	[doc]		Moved documentation of rndc command options to the
 			rndc man page. [RT #33506]
 

@@ -155,12 +155,21 @@ sub start_server {
 			close FH;
 			$command .= "$options";
 		} else {
+			$command .= "-D $server ";
 			$command .= "-m record,size,mctx ";
 			$command .= "-T clienttest ";
 			$command .= "-T nosoa " 
 				if (-e "$testdir/$server/named.nosoa");
 			$command .= "-T noaa " 
 				if (-e "$testdir/$server/named.noaa");
+			$command .= "-T noedns " 
+				if (-e "$testdir/$server/named.noedns");
+			$command .= "-T dropedns " 
+				if (-e "$testdir/$server/named.dropedns");
+			$command .= "-T maxudp512 " 
+				if (-e "$testdir/$server/named.maxudp512");
+			$command .= "-T maxudp1460 " 
+				if (-e "$testdir/$server/named.maxudp1460");
 			$command .= "-c named.conf -d 99 -g -U 4 ";
 		}
 		if ($restart) {

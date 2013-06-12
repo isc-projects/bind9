@@ -764,6 +764,7 @@ main(void) {
 	test_getrrsetbyname("a.example1.", 1, 1, 1, 0, 1);
 	test_getrrsetbyname("e.example1.", 1, 1, 1, 1, 1);
 	test_getrrsetbyname("e.example1.", 1, 255, 1, 1, 0);
+	test_getrrsetbyname("e.example1.", 1, 2, 1, 1, 1);
 	test_getrrsetbyname("e.example1.", 1, 46, 2, 0, 1);
 	test_getrrsetbyname("", 1, 1, 0, 0, 0);
 

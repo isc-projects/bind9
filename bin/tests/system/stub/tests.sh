@@ -53,7 +53,7 @@ $PERL ../digcomp.pl knowngood.dig.out.norec dig.out.ns3 || ret=1
 
 echo "I:look for stub zone data with recursion (should be found) (pass=$pass)"
 ret=0
-$DIG +tcp data.child.example. @10.53.0.3 txt -p 5300 > dig.out.ns3 || ret=1
+$DIG +tcp +noauth +noadd data.child.example. @10.53.0.3 txt -p 5300 > dig.out.ns3 || ret=1
 $PERL ../digcomp.pl knowngood.dig.out.rec dig.out.ns3 || ret=1
 [ $ret = 0 ] || { status=1;  echo "I:failed"; }
 

@@ -419,7 +419,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "46c:C:d:E:fFgi:lm:n:N:p:P:"
+					   "46c:C:d:D:E:fFgi:lm:n:N:p:P:"
 					   "sS:t:T:U:u:vVx:")) != -1) {
 		switch (ch) {
 		case '4':
@@ -454,6 +454,9 @@ parse_command_line(int argc, char *argv[]) {
 		case 'd':
 			ns_g_debuglevel = parse_int(isc_commandline_argument,
 						    "debug level");
+			break;
+		case 'D':
+			/* Descriptive comment for 'ps'. */
 			break;
 		case 'E':
 			ns_g_engine = isc_commandline_argument;
