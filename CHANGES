@@ -1,3 +1,5 @@
+3594.	[maint]		Update config.guess and config.sub. [RT #33816]
+
 3592.	[doc]		Moved documentation of rndc command options to the
 			rndc man page. [RT #33506]
 
