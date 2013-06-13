@@ -120,6 +120,7 @@ CLEAN :
 	-@erase "$(INTDIR)\backtrace-emptytbl.obj"
 	-@erase "$(INTDIR)\base32.obj"
 	-@erase "$(INTDIR)\base64.obj"
+	-@erase "$(INTDIR)\bind9.obj"
 	-@erase "$(INTDIR)\bitstring.obj"
 	-@erase "$(INTDIR)\buffer.obj"
 	-@erase "$(INTDIR)\bufferlist.obj"
@@ -216,7 +217,6 @@ DEF_FILE= \
 LINK32_OBJS= \
 	"$(INTDIR)\app.obj" \
 	"$(INTDIR)\condition.obj" \
-	"$(INTDIR)\crc64.obj" \
 	"$(INTDIR)\dir.obj" \
 	"$(INTDIR)\DLLMain.obj" \
 	"$(INTDIR)\entropy.obj" \
@@ -246,10 +246,12 @@ LINK32_OBJS= \
 	"$(INTDIR)\backtrace-emptytbl.obj" \
 	"$(INTDIR)\base32.obj" \
 	"$(INTDIR)\base64.obj" \
+	"$(INTDIR)\bind9.obj" \
 	"$(INTDIR)\bitstring.obj" \
 	"$(INTDIR)\buffer.obj" \
 	"$(INTDIR)\bufferlist.obj" \
 	"$(INTDIR)\commandline.obj" \
+	"$(INTDIR)\crc64.obj" \
 	"$(INTDIR)\error.obj" \
 	"$(INTDIR)\event.obj" \
 	"$(INTDIR)\hash.obj" \
@@ -325,6 +327,8 @@ CLEAN :
 	-@erase "$(INTDIR)\base32.sbr"
 	-@erase "$(INTDIR)\base64.obj"
 	-@erase "$(INTDIR)\base64.sbr"
+	-@erase "$(INTDIR)\bind9.obj"
+	-@erase "$(INTDIR)\bind9.sbr"
 	-@erase "$(INTDIR)\bitstring.obj"
 	-@erase "$(INTDIR)\bitstring.sbr"
 	-@erase "$(INTDIR)\buffer.obj"
@@ -494,7 +498,6 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\libisc.bsc"
 BSC32_SBRS= \
 	"$(INTDIR)\app.sbr" \
 	"$(INTDIR)\condition.sbr" \
-	"$(INTDIR)\crc64.sbr" \
 	"$(INTDIR)\dir.sbr" \
 	"$(INTDIR)\DLLMain.sbr" \
 	"$(INTDIR)\entropy.sbr" \
@@ -524,10 +527,12 @@ BSC32_SBRS= \
 	"$(INTDIR)\backtrace-emptytbl.sbr" \
 	"$(INTDIR)\base32.sbr" \
 	"$(INTDIR)\base64.sbr" \
+	"$(INTDIR)\bind9.sbr" \
 	"$(INTDIR)\bitstring.sbr" \
 	"$(INTDIR)\buffer.sbr" \
 	"$(INTDIR)\bufferlist.sbr" \
 	"$(INTDIR)\commandline.sbr" \
+	"$(INTDIR)\crc64.sbr" \
 	"$(INTDIR)\error.sbr" \
 	"$(INTDIR)\event.sbr" \
 	"$(INTDIR)\hash.sbr" \
@@ -585,7 +590,6 @@ DEF_FILE= \
 LINK32_OBJS= \
 	"$(INTDIR)\app.obj" \
 	"$(INTDIR)\condition.obj" \
-	"$(INTDIR)\crc64.obj" \
 	"$(INTDIR)\dir.obj" \
 	"$(INTDIR)\DLLMain.obj" \
 	"$(INTDIR)\entropy.obj" \
@@ -615,10 +619,12 @@ LINK32_OBJS= \
 	"$(INTDIR)\backtrace-emptytbl.obj" \
 	"$(INTDIR)\base32.obj" \
 	"$(INTDIR)\base64.obj" \
+	"$(INTDIR)\bind9.obj" \
 	"$(INTDIR)\bitstring.obj" \
 	"$(INTDIR)\buffer.obj" \
 	"$(INTDIR)\bufferlist.obj" \
 	"$(INTDIR)\commandline.obj" \
+	"$(INTDIR)\crc64.obj" \
 	"$(INTDIR)\error.obj" \
 	"$(INTDIR)\event.obj" \
 	"$(INTDIR)\hash.obj" \
@@ -741,22 +747,6 @@ SOURCE=.\condition.c
 
 
 "$(INTDIR)\condition.obj"	"$(INTDIR)\condition.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\crc64.c
-
-!IF  "$(CFG)" == "libisc - Win32 Release"
-
-
-"$(INTDIR)\crc64.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
-
-
-"$(INTDIR)\crc64.obj"	"$(INTDIR)\crc64.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 
@@ -1220,6 +1210,24 @@ SOURCE=..\base64.c
 
 !ENDIF 
 
+SOURCE=..\bind9.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\bind9.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\bind9.obj"	"$(INTDIR)\bind9.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 SOURCE=..\bitstring.c
 
 !IF  "$(CFG)" == "libisc - Win32 Release"
@@ -1288,6 +1296,22 @@ SOURCE=..\commandline.c
 
 "$(INTDIR)\commandline.obj"	"$(INTDIR)\commandline.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\crc64.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\crc64.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\crc64.obj"	"$(INTDIR)\crc64.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 

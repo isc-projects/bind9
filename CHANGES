@@ -1,3 +1,6 @@
+3595.	[port]		win32: Fix build problems introduced by change #3550.
+			[RT #33807]
+
 3594.	[maint]		Update config.guess and config.sub. [RT #33816]
 
 3593.	[func]		Update EDNS processing to better track remote server

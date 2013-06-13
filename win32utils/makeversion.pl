@@ -58,6 +58,26 @@ while (<VERSIONFILE>) {
 }
 close(VERSIONFILE);
 
+# And the mapapi one
+
+open (MAPAPIFILE, "../lib/dns/mapapi");
+while (<MAPAPIFILE>) {
+	chomp;
+	($data) = split(/\#/);
+	if($data) {
+		($name, $value) = split(/=/,$data);
+		($name) = split(/\s+/, $name);
+                if ($name eq 'MAPAPI') {
+                        ($value) =~ s/^["\s]+//;
+                        ($value) =~ s/["\s]+$//;
+                } else {
+                        ($value) = split(/\s+/, $value);
+                }
+		$Mapapi = $value;
+	}
+}
+close(MAPAPIFILE);
+
 # Now set up the output version file
 
 $ThisDate = scalar localtime();
@@ -108,6 +128,9 @@ print "BIND Version: $Version\n";
 print OUTVERSIONFILE "#define VERSION \"$Version\"\n";
 print OUTVERSIONFILE "#define PRODUCT \"$Versions{'PRODUCT'}\"\n\n";
 print OUTVERSIONFILE "#define DESCRIPTION \"$Versions{'DESCRIPTION'}\"\n\n";
+
+print OUTVERSIONFILE "#define MAJOR \"$Versions{'MAJORVER'}.$Versions{'MINORVER'}\"\n\n";
+print OUTVERSIONFILE "#define MAPAPI \"$Mapapi\"\n\n";
 
 foreach $dir (@dirlist) {
 	$apifile = "../lib/$dir/api";

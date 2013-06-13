@@ -83,6 +83,8 @@ isc_lib_initmsgcat(void) {
 	}
 }
 
+#ifndef WIN32
+
 static isc_once_t		register_once = ISC_ONCE_INIT;
 
 static void
@@ -101,3 +103,5 @@ isc_lib_register() {
 	RUNTIME_CHECK(isc_once_do(&register_once, do_register)
 		      == ISC_R_SUCCESS);
 }
+
+#endif

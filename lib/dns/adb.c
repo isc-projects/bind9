@@ -4000,8 +4000,8 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		new_srtt = (addr->entry->srtt / 10 * factor)
 			+ (rtt / 10 * (10 - factor));
 
-	addr->entry->srtt = new_srtt;
-	addr->srtt = new_srtt;
+	addr->entry->srtt = (unsigned int) new_srtt;
+	addr->srtt = (unsigned int) new_srtt;
 
 	if (addr->entry->expires == 0) {
 		isc_stdtime_get(&now);

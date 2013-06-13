@@ -89,6 +89,18 @@
 #include <isc/magic.h>
 #include <isc/result.h>
 
+#ifdef WIN32
+#define isc_app_start isc__app_start
+#define isc_app_onrun isc__app_onrun
+#define isc_app_run isc__app_run
+#define isc_app_shutdown isc__app_shutdown
+#define isc_app_reload isc__app_reload
+#define isc_app_finish isc__app_finish
+#define isc_app_block isc__app_block
+#define isc_app_unblock isc__app_unblock
+
+#endif
+
 /***
  *** Types
  ***/

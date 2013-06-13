@@ -147,20 +147,10 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 /*%<
  * We use either isc___mem (three underscores) or isc__mem (two) depending on
  * whether it's for BIND9's internal purpose (with -DBIND9) or generic export
- * library.  This condition is generally handled in isc/namespace.h, but for
- * Windows it doesn't work if it involves multiple times of macro expansion
- * (such as isc_mem to isc__mem then to isc___mem).  The following definitions
- * are used to work around this portability issue.  Right now, we don't support
- * the export library for Windows, so we always use the three-underscore
- * version.
+ * library.
  */
-#ifdef WIN32
-#define ISCMEMFUNC(sfx) isc___mem_ ## sfx
-#define ISCMEMPOOLFUNC(sfx) isc___mempool_ ## sfx
-#else
 #define ISCMEMFUNC(sfx) isc__mem_ ## sfx
 #define ISCMEMPOOLFUNC(sfx) isc__mempool_ ## sfx
-#endif
 
 #define isc_mem_get(c, s)	ISCMEMFUNC(get)((c), (s) _ISC_MEM_FILELINE)
 #define isc_mem_allocate(c, s)	ISCMEMFUNC(allocate)((c), (s) _ISC_MEM_FILELINE)
