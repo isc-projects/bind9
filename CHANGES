@@ -1,3 +1,5 @@
+3594.	[maint]		Update config.guess and config.sub. [RT #33816]
+
 3593.	[func]		Update EDNS processing to better track remote server
 			capabilities. [RT #30655]
 
