@@ -59,6 +59,8 @@ $path = "..\\..\\";
              "../bin/dnssec/win32/settime.mak",
              "../bin/dnssec/win32/signzone.dsp",
              "../bin/dnssec/win32/signzone.mak",
+             "../bin/dnssec/win32/verify.dsp",
+             "../bin/dnssec/win32/verify.mak",
              "../bin/named/win32/named.dsp",
              "../bin/named/win32/named.mak",
              "../bin/nsupdate/win32/nsupdate.dsp",

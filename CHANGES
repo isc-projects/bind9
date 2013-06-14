@@ -1,3 +1,6 @@
+3596.	[port]		Updated win32 build documentation, added
+                        dnssec-verify. [RT #22067]
+
 3595.	[port]		win32: Fix build problems introduced by change #3550.
 			[RT #33807]
 

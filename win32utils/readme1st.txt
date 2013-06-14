@@ -4,9 +4,9 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 $Id$
 
-	   Release of BIND 9.7 for Windows and later.
+	   Release of BIND 9.10 for Windows and later.
 
-This is a release of BIND 9.7 for Windows XP and later.
+This is a release of BIND 9.10 for Windows XP and later.
   
 	Important Kit Installation Information
 
@@ -123,9 +123,10 @@ are HTML pages for each of the BIND 9 applications.
 
 	DNS Tools
 
-The following tools have been built for Windows: dig, nslookup,
-host, nsupdate, rndc, rndc-confgen, named-checkconf, named-checkzone,
-dnssec-keygen, dnssec-signzone, dnssec-dsfromkey and dnssec-keyfromlabel.
+The following tools have been built for Windows: dig, nslookup, host,
+nsupdate, rndc, rndc-confgen, named-checkconf, named-checkzone,
+ddns-confgen, dnssec-keygen, dnssec-signzone, dnssec-dsfromkey,
+dnssec-keyfromlabel, dnssec-revoke, dnssec-settime and dnssec-verify.
 The latter tools are for use with DNSSEC.  All tools are installed
 in the dns/bin directory.
 

@@ -550,7 +550,7 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 {
 	uintptr_t left = 0, right = 0, down = 0, data = 0;
 	long location = 0;
-	isc_uint64_t offset_adjust;
+	long offset_adjust;
 	isc_result_t result;
 
 	if (node == NULL) {

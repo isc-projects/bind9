@@ -1107,7 +1107,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	isc_mem_detach(&rbtdb->hmctx);
 
 	if (rbtdb->mmap_location != NULL)
-		isc_file_munmap(rbtdb->mmap_location, rbtdb->mmap_size);
+	  isc_file_munmap(rbtdb->mmap_location, (size_t) rbtdb->mmap_size);
 
 	isc_mem_putanddetach(&rbtdb->common.mctx, rbtdb, sizeof(*rbtdb));
 	isc_ondestroy_notify(&ondest, rbtdb);
@@ -7088,7 +7088,7 @@ deserialize(void *arg, FILE *f, off_t offset) {
 
 	if (header->tree != 0) {
 		result = dns_rbt_deserialize_tree(base, filesize,
-						  header->tree,
+						  (size_t) header->tree,
 						  rbtdb->common.mctx,
 						  delete_callback,
 						  rbtdb, rbt_datafixer,
@@ -7108,7 +7108,7 @@ deserialize(void *arg, FILE *f, off_t offset) {
 
 	if (header->nsec != 0) {
 		result = dns_rbt_deserialize_tree(base, filesize,
-						  header->nsec,
+						  (size_t) header->nsec,
 						  rbtdb->common.mctx,
 						  delete_callback,
 						  rbtdb, rbt_datafixer,
@@ -7124,7 +7124,7 @@ deserialize(void *arg, FILE *f, off_t offset) {
 
 	if (header->nsec3 != 0) {
 		result = dns_rbt_deserialize_tree(base, filesize,
-						  header->nsec3,
+						  (size_t) header->nsec3,
 						  rbtdb->common.mctx,
 						  delete_callback,
 						  rbtdb, rbt_datafixer,
@@ -7401,13 +7401,13 @@ serialize(dns_db_t *db, dns_dbversion_t *ver, FILE *rbtfile) {
 
 	CHECK(rbtdb_zero_header(rbtfile));
 	CHECK(dns_rbt_serialize_tree(rbtfile, rbtdb->tree, rbt_datawriter,
-				     version->serial,
+				     (isc_uint32_t) version->serial,
 				     &tree_location));
 	CHECK(dns_rbt_serialize_tree(rbtfile, rbtdb->nsec, rbt_datawriter,
-				     version->serial,
+				     (isc_uint32_t) version->serial,
 				     &nsec_location));
 	CHECK(dns_rbt_serialize_tree(rbtfile, rbtdb->nsec3, rbt_datawriter,
-				     version->serial,
+				     (isc_uint32_t) version->serial,
 				     &nsec3_location));
 
 	CHECK(isc_stdio_seek(rbtfile, header_location, SEEK_SET));
