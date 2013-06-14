@@ -4,9 +4,10 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 $Id$
 
-       BIND 9.7 for Win32 Source Build Instructions.  02-Jul-2009
+       BIND 9.9 for Win32 Source Build Instructions.  12-June-2013
 
-Building BIND 9.7 on Windows XP/2003/2008 has the following prerequisites:
+Building BIND 9.9 on Windows XP/Vista/7/8 or server 2003/2008/2008R2
+has the following prerequisites:
 
 1) You need to install Perl for Windows.  ActivePerl
 (http://www.activestate.com/) and Strawberry Perl
@@ -47,42 +48,45 @@ versions but it has not been tested. The binaries may be built and run on
 any of the following platforms: NT 4.0 Workstation (SP3 or later), NT 4.0
 Server (SP3 or later), Windows 2000 Professional (SP1 or later),
 Windows 2000 Server or any kind (SP1 or later), Windows XP, Windows 2003
-Server. It will NOT build or run on Windows 95, Windows 98, etc. platforms.
+Server, Windows Vista, Windows 2008 Server, Windows 7, Windows 2008 R2
+Server, Windows 8, and Windows 2012 Server (untested). It will NOT build
+or run on Windows 95, Windows 98, etc., or Windows RT platforms.
 
 Step 1: Download and build OpenSSL
 
 Download and untar the OpenSSL sources from http://www.openssl.org/.
 Extract them at in the same directory in which you extracted the BIND9
-source:  If BIND9 is in \build\bind-9.7.0, for instance, OpenSSL should be
-in \build\openssl-0.9.8l (subject to version number changes).
+source:  If BIND9 is in \build\bind-9.9.0, for instance, OpenSSL should be
+in \build\openssl-1.0.1e (subject to version number changes).
 
 Note: Building OpenSSL requires that you install Perl as it uses
 it during its build process. The following commands work as of
-openssl-0.9.8l, but you should check the OpenSSL distribution 
-to see if the build instructions have changed:
+openssl-1.0.1e, but you should check the OpenSSL distribution 
+to see if the build instructions in the INSTALL.W32 file have changed:
 
-  cd openssl-0.9.8l
+  cd openssl-1.0.1e
   perl Configure VC-WIN32 --prefix=c:/openssl
-  ms\do_masm
+  ms\do_ms
   nmake /f ms\ntdll.mak
 
-If you wish to use PKCS #11 to control a cryptographic hardware service
-module, please see bind9\README.pkcs11.  You will need to apply the patch
-in bind9\bin\pkcs11\openssl-0.9.8l-patch (this can be done using the Cygwin
-'patch' utility) and add --pk11-libname and --pk11-flavor to the Configure
-command above.
+If you wish to use PKCS #11 to control a cryptographic hardware
+service module, please see "PKCS #11 (Cryptoki) support" in chapter 4
+of the BIND 9 Administrator Reference Guide.  You will need to apply
+the patch in bind9\bin\pkcs11\openssl-1.0.1e-patch (this can be done
+using the Cygwin 'patch' utility) and add --pk11-libname and
+--pk11-flavor to the Configure command above.
 
 Step 2: Download and build libxml2
 
 Download and untar the libxml2 sources from ftp://xmlsoft.org/libxml2.
 Extract them at in the same directory in which you extracted the BIND9
-source:  If BIND9 is in \build\bind-9.7.0, for instance, libxml2 should
-be in \build\libxml2-2.7.3 (subject to version number changes).
+source:  If BIND9 is in \build\bind-9.9.0, for instance, libxml2 should
+be in \build\libxml2-2.7.7 (subject to version number changes).
 
 Now build libxml2, and copy the resulting files into the include and lib
 directories:
 
- cd libxml2-2.7.3\win32
+ cd libxml2-2.7.7\win32
  cscript configure.js compiler=msvc vcmanifest=yes static=yes debug=no iconv=no
  nmake /f Makefile.msvc libxml
 
@@ -93,7 +97,7 @@ You must build openssl and libxml2 first.
 From the command prompt cd to the win32utils directory under
 the BIND9 root:
 
-  cd bind-9.7.0\win32utils
+  cd bind-9.9.0\win32utils
 
 If you wish to use PKCS #11 to control a cryptographic hardware service
 module, set the path to the PKCS #11 provider library:
