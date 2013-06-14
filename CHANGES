@@ -1,3 +1,6 @@
+3597.	[bug]		Ensure automatic-resigning heaps are reconstructed
+			when loading zones in map format. [RT #33381]
+
 3596.	[port]		Updated win32 build documentation, added
                         dnssec-verify. [RT #22067]
 

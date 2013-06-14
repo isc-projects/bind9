@@ -158,7 +158,9 @@ typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file,
 
 typedef isc_result_t (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode,
 					   void *base, size_t offset,
-					   isc_uint64_t *crc);
+					   void *arg, isc_uint64_t *crc);
+
+typedef void (*dns_rbtdeleter_t)(void *, void *);
 
 /*****
  *****  Chain Info
@@ -256,7 +258,7 @@ typedef struct dns_rbtnodechain {
  ***** Public interfaces.
  *****/
 isc_result_t
-dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
+dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
 	       void *deleter_arg, dns_rbt_t **rbtp);
 /*%<
  * Initialize a red-black tree of trees.
@@ -710,8 +712,8 @@ dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 isc_result_t
 dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 			 off_t header_offset, isc_mem_t *mctx,
-			 void (*deleter)(void *, void *), void *deleter_arg,
-			 dns_rbtdatafixer_t datafixer,
+			 dns_rbtdeleter_t deleter, void *deleter_arg,
+			 dns_rbtdatafixer_t datafixer, void *fixer_arg,
 			 dns_rbtnode_t **originp, dns_rbt_t **rbtp);
 /*%<
  * Read a RBT structure and its data from a file.

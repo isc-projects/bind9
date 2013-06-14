@@ -255,5 +255,24 @@ stomp badmap 2897 5 127
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
+echo "I:checking map format zone is scheduled for resigning (compilezone)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus signed > rndc.out 2>&1 || ret=1
+grep 'next resign' rndc.out > /dev/null 2>&1 || ret=1
+[ $ret -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+echo "I:checking map format zone is scheduled for resigning (signzone)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 freeze signed > rndc.out 2>&1 || ret=1
+cd ns1
+$SIGNER -S -O map -f signed.db.map -o signed signed.db > /dev/null 2>&1
+cd ..
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload signed > rndc.out 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus signed > rndc.out 2>&1 || ret=1
+grep 'next resign' rndc.out > /dev/null 2>&1 || ret=1
+[ $ret -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

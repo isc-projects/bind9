@@ -1954,7 +1954,7 @@ static unsigned int
 get_master_options(dns_zone_t *zone) {
 	unsigned int options;
 
-	options = DNS_MASTER_ZONE;
+	options = DNS_MASTER_ZONE | DNS_MASTER_RESIGN;
 	if (zone->type == dns_zone_slave ||
 	    (zone->type == dns_zone_redirect && zone->masters == NULL))
 		options |= DNS_MASTER_SLAVE;
@@ -1974,10 +1974,6 @@ get_master_options(dns_zone_t *zone) {
 		options |= DNS_MASTER_CHECKMXFAIL;
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKWILDCARD))
 		options |= DNS_MASTER_CHECKWILDCARD;
-	if (inline_secure(zone) || (zone->type == dns_zone_master &&
-	    ((zone->update_acl != NULL && !dns_acl_isnone(zone->update_acl)) ||
-	      zone->ssutable != NULL)))
-		options |= DNS_MASTER_RESIGN;
 	return (options);
 }
 
@@ -3122,6 +3118,15 @@ set_resigntime(dns_zone_t *zone) {
 	isc_result_t result;
 	isc_uint32_t nanosecs;
 
+	/* We only re-sign zones that can be dynamically updated */
+	if (zone->update_disabled)
+		return;
+
+	if (!inline_secure(zone) && (zone->type != dns_zone_master ||
+	    (zone->ssutable == NULL &&
+	     (zone->update_acl == NULL || dns_acl_isnone(zone->update_acl)))))
+		return;
+
 	dns_rdataset_init(&rdataset);
 	dns_fixedname_init(&fixed);
 	result = dns_db_getsigningtime(zone->db, &rdataset,
@@ -3130,6 +3135,7 @@ set_resigntime(dns_zone_t *zone) {
 		isc_time_settoepoch(&zone->resigntime);
 		return;
 	}
+
 	resign = rdataset.resign;
 	dns_rdataset_disassociate(&rdataset);
 	isc_random_get(&nanosecs);

@@ -16,6 +16,9 @@
 
 rm -f named-compilezone
 ln -s $CHECKZONE named-compilezone
+
+../../../tools/genrandom 400 random.data
+
 rm -f ns1/example.db.raw
 cp ns1/example.db ns2/
 cp ns2/formerly-text.db.in ns2/formerly-text.db

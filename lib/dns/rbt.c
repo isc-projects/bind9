@@ -370,7 +370,8 @@ deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp);
 static isc_result_t
 treefix(dns_rbt_t *rbt, void *base, size_t size,
 	dns_rbtnode_t *n, dns_name_t *name,
-	dns_rbtdatafixer_t datafixer, isc_uint64_t *crc);
+	dns_rbtdatafixer_t datafixer, void *fixer_arg,
+	isc_uint64_t *crc);
 
 static isc_result_t
 deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
@@ -694,7 +695,8 @@ dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 
 static isc_result_t
 treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
-	dns_name_t *name, dns_rbtdatafixer_t datafixer, isc_uint64_t *crc)
+	dns_name_t *name, dns_rbtdatafixer_t datafixer,
+	void *fixer_arg, isc_uint64_t *crc)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_fixedname_t fixed;
@@ -772,16 +774,16 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 	/* a change in the order (from left, right, down) will break hashing*/
 	if (n->left != NULL)
 		CHECK(treefix(rbt, base, filesize, n->left, name,
-			      datafixer, crc));
+			      datafixer, fixer_arg, crc));
 	if (n->right != NULL)
 		CHECK(treefix(rbt, base, filesize, n->right, name,
-			      datafixer, crc));
+			      datafixer, fixer_arg, crc));
 	if (n->down != NULL)
 		CHECK(treefix(rbt, base, filesize, n->down, fullname,
-			      datafixer, crc));
+			      datafixer, fixer_arg, crc));
 
 	if (datafixer != NULL && n->data != NULL)
-		CHECK(datafixer(n, base, filesize, crc));
+		CHECK(datafixer(n, base, filesize, fixer_arg, crc));
 
 	rbt->nodecount++;
 	node_data = (unsigned char *) n + sizeof(dns_rbtnode_t);
@@ -807,9 +809,8 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 isc_result_t
 dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 			 off_t header_offset, isc_mem_t *mctx,
-			 void (*deleter)(void *, void *),
-			 void *deleter_arg,
-			 dns_rbtdatafixer_t datafixer,
+			 dns_rbtdeleter_t deleter, void *deleter_arg,
+			 dns_rbtdatafixer_t datafixer, void *fixer_arg,
 			 dns_rbtnode_t **originp, dns_rbt_t **rbtp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -861,7 +862,7 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 	rehash(rbt, header->nodecount);
 
 	CHECK(treefix(rbt, base_address, filesize, rbt->root,
-		      dns_rootname, datafixer, &crc));
+		      dns_rootname, datafixer, fixer_arg, &crc));
 
 	isc_crc64_final(&crc);
 #ifdef DEBUG
@@ -895,7 +896,7 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
  * Initialize a red/black tree of trees.
  */
 isc_result_t
-dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
+dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
 	       void *deleter_arg, dns_rbt_t **rbtp)
 {
 #ifdef DNS_RBT_USEHASH

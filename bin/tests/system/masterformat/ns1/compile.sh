@@ -14,6 +14,10 @@
 
 # $Id$
 
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
+RANDFILE=../random.data
+
 ../named-compilezone -D -F raw -o example.db.raw example \
         example.db > /dev/null 2>&1
 ../named-compilezone -D -F map -o ../ns3/example.db.map example \
@@ -30,3 +34,7 @@
 ../named-compilezone -D -F map -o example.db.map example-map \
         example.db > /dev/null 2>&1
 
+$KEYGEN -q -r $RANDFILE signed > /dev/null 2>&1
+$KEYGEN -q -r $RANDFILE -fk signed > /dev/null 2>&1
+$SIGNER -S -f signed.db.signed -o signed signed.db > /dev/null 2>&1
+../named-compilezone -D -F map -o signed.db.map signed signed.db.signed > /dev/null 2>&1

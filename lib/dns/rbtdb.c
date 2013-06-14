@@ -7005,8 +7005,10 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 static isc_result_t
 rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
-	      isc_uint64_t *crc)
+	      void *arg, isc_uint64_t *crc)
 {
+	isc_result_t result;
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *) arg;
 	rdatasetheader_t *header;
 	unsigned char *limit = ((unsigned char *) base) + filesize;
 	unsigned char *p;
@@ -7028,6 +7030,14 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 		header->is_mmapped = 1;
 		header->node = rbtnode;
 		header->node_is_relative = 0;
+
+		if (rbtdb != NULL && RESIGN(header) && header->resign != 0) {
+			int idx = header->node->locknum;
+			result = isc_heap_insert(rbtdb->heaps[idx], header);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+		}
+
 		if (header->next != NULL) {
 			size_t cooked = dns_rbt_serialize_align(size);
 			if ((uintptr_t)header->next !=
@@ -7090,8 +7100,8 @@ deserialize(void *arg, FILE *f, off_t offset) {
 		result = dns_rbt_deserialize_tree(base, filesize,
 						  (size_t) header->tree,
 						  rbtdb->common.mctx,
-						  delete_callback,
-						  rbtdb, rbt_datafixer,
+						  delete_callback, rbtdb,
+						  rbt_datafixer, rbtdb,
 						  &rbtdb->origin_node,
 						  &temporary_rbt);
 		if (temporary_rbt != NULL) {
@@ -7110,8 +7120,8 @@ deserialize(void *arg, FILE *f, off_t offset) {
 		result = dns_rbt_deserialize_tree(base, filesize,
 						  (size_t) header->nsec,
 						  rbtdb->common.mctx,
-						  delete_callback,
-						  rbtdb, rbt_datafixer,
+						  delete_callback, rbtdb,
+						  rbt_datafixer, rbtdb,
 						  NULL, &temporary_rbt);
 		if (temporary_rbt != NULL) {
 			dns_rbt_destroy(&rbtdb->nsec);
@@ -7126,8 +7136,8 @@ deserialize(void *arg, FILE *f, off_t offset) {
 		result = dns_rbt_deserialize_tree(base, filesize,
 						  (size_t) header->nsec3,
 						  rbtdb->common.mctx,
-						  delete_callback,
-						  rbtdb, rbt_datafixer,
+						  delete_callback, rbtdb,
+						  rbt_datafixer, rbtdb,
 						  NULL, &temporary_rbt);
 		if (temporary_rbt != NULL) {
 			dns_rbt_destroy(&rbtdb->nsec3);
