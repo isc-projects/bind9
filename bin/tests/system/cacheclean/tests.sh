@@ -94,7 +94,7 @@ echo "I:reset and check that records are correctly cached initially"
 ret=0
 load_cache
 dump_cache
-nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | grep -w '\(TXT\|ANY\)'|  wc -l`
+nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | grep -Ew '(TXT|ANY)'|  wc -l`
 [ $nrecords -eq 17 ] || { ret=1; echo "I: found $nrecords records expected 17"; }
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -180,7 +180,7 @@ status=`expr $status + $ret`
 echo "I:check the number of cached records remaining"
 ret=0
 dump_cache
-nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | grep -w '\(TXT\|ANY\)' |  wc -l`
+nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | grep -Ew '(TXT|ANY)' |  wc -l`
 [ $nrecords -eq 17 ] || { ret=1; echo "I: found $nrecords records expected 17"; }
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
