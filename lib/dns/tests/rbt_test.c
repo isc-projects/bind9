@@ -46,6 +46,7 @@
 #include <isc/os.h>
 #include <isc/string.h>
 #include <isc/socket.h>
+#include <isc/stdio.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -106,19 +107,24 @@ delete_data(void *data, void *arg) {
 }
 
 static isc_result_t
-write_data(FILE *file, unsigned char *datap, isc_uint32_t serial,
-	   isc_uint64_t *crc) {
+write_data(FILE *file, unsigned char *datap, void *arg, isc_uint64_t *crc) {
+	isc_result_t result;
 	size_t ret = 0;
 	data_holder_t *data = (data_holder_t *)datap;
 	data_holder_t temp;
-	uintptr_t where = ftell(file);
+	off_t where;
 
-	UNUSED(serial);
+	UNUSED(arg);
 
+	REQUIRE(file != NULL);
 	REQUIRE(crc != NULL);
 	REQUIRE(data != NULL);
 	REQUIRE((data->len == 0 && data->data == NULL) ||
 		(data->len != 0 && data->data != NULL));
+
+	result = isc_stdio_tell(file, &where);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	temp = *data;
 	temp.data = (data->len == 0
@@ -332,7 +338,8 @@ ATF_TC_BODY(serialize, tc) {
 	printf("serialization begins.\n");
 	rbtfile = fopen("./zone.bin", "w+b");
 	ATF_REQUIRE(rbtfile != NULL);
-	result = dns_rbt_serialize_tree(rbtfile, rbt, write_data, 0, &offset);
+	result = dns_rbt_serialize_tree(rbtfile, rbt, write_data, NULL,
+					&offset);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 	dns_rbt_destroy(&rbt);
 
@@ -400,7 +407,8 @@ ATF_TC_BODY(deserialize_corrupt, tc) {
 	add_test_data(mctx, rbt);
 	rbtfile = fopen("./zone.bin", "w+b");
 	ATF_REQUIRE(rbtfile != NULL);
-	result = dns_rbt_serialize_tree(rbtfile, rbt, write_data, 0, &offset);
+	result = dns_rbt_serialize_tree(rbtfile, rbt, write_data, NULL,
+					&offset);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 	dns_rbt_destroy(&rbt);
 

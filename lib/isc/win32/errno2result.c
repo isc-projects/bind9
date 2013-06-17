@@ -57,6 +57,10 @@ isc__errno2resultx(int posixerrno, const char *file, int line) {
 		return (ISC_R_IOERROR);
 	case ENOMEM:
 		return (ISC_R_NOMEMORY);
+#ifdef EOVERFLOW
+	case EOVERFLOW:
+		return (ISC_R_RANGE);
+#endif
 	case ENFILE:
 	case EMFILE:
 	case WSAEMFILE:

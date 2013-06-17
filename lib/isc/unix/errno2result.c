@@ -58,6 +58,10 @@ isc___errno2result(int posixerrno, const char *file, unsigned int line) {
 	case ENFILE:
 	case EMFILE:
 		return (ISC_R_TOOMANYOPENFILES);
+#ifdef EOVERFLOW
+	case EOVERFLOW:
+		return (ISC_R_RANGE);
+#endif
 	case EPIPE:
 #ifdef ECONNRESET
 	case ECONNRESET:

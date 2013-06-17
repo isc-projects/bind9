@@ -153,7 +153,7 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 
 typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file,
 					    unsigned char *data,
-					    isc_uint32_t version,
+					    void *arg,
 					    isc_uint64_t *crc);
 
 typedef isc_result_t (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode,
@@ -689,8 +689,8 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
  * \li  ISC_R_QUOTA if 'quantum' nodes have been destroyed.
  */
 
-long
-dns_rbt_serialize_align(long target);
+off_t
+dns_rbt_serialize_align(off_t target);
 /*%<
  * Align the provided integer to a pointer-size boundary.
  * This should be used if, during serialization of data to a will-be
@@ -700,7 +700,7 @@ dns_rbt_serialize_align(long target);
 isc_result_t
 dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 		       dns_rbtdatawriter_t datawriter,
-		       isc_uint32_t serial, long *offset);
+		       void *writer_arg, off_t *offset);
 /*%<
  * Write out the RBT structure and its data to a file.
  *

@@ -48,7 +48,11 @@ isc_stdio_close(FILE *f);
 
 /*% Seek */
 isc_result_t
-isc_stdio_seek(FILE *f, long offset, int whence);
+isc_stdio_seek(FILE *f, off_t offset, int whence);
+
+/*% Tell */
+isc_result_t
+isc_stdio_tell(FILE *f, off_t *offsetp);
 
 /*% Read */
 isc_result_t

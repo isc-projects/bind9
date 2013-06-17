@@ -156,7 +156,7 @@ serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left,
 
 static isc_result_t
 serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
-		dns_rbtdatawriter_t datawriter, isc_uint32_t serial,
+		dns_rbtdatawriter_t datawriter, void *writer_arg,
 		uintptr_t *where, isc_uint64_t *crc);
 /*
  * The following functions allow you to get the actual address of a pointer
@@ -420,7 +420,7 @@ write_header(FILE *file, dns_rbt_t *rbt, isc_uint64_t first_node_offset,
 {
 	file_header_t header;
 	isc_result_t result;
-	long location;
+	off_t location;
 
 	if (FILE_VERSION[0] == '\0') {
 		memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
@@ -445,9 +445,7 @@ write_header(FILE *file, dns_rbt_t *rbt, isc_uint64_t first_node_offset,
 
 	header.crc = crc;
 
-	location = ftell(file);
-	if (location < 0)
-		return (ISC_R_FAILURE);
+	CHECK(isc_stdio_tell(file, &location));
 	location = dns_rbt_serialize_align(location);
 	CHECK(isc_stdio_seek(file, location, SEEK_SET));
 	CHECK(isc_stdio_write(&header, 1, sizeof(file_header_t), file, NULL));
@@ -466,7 +464,7 @@ serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left,
 	       uintptr_t data, isc_uint64_t *crc)
 {
 	dns_rbtnode_t temp_node;
-	long file_position;
+	off_t file_position;
 	unsigned char *node_data;
 	size_t datasize;
 	isc_result_t result;
@@ -476,10 +474,7 @@ serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left,
 
 	INSIST(node != NULL);
 
-	file_position = ftell(file);
-	if (file_position < 0)
-		return (ISC_R_FAILURE);
-
+	CHECK(isc_stdio_tell(file, &file_position));
 	file_position = dns_rbt_serialize_align(file_position);
 	CHECK(isc_stdio_seek(file, file_position, SEEK_SET));
 
@@ -546,12 +541,11 @@ serialize_node(FILE *file, dns_rbtnode_t *node, uintptr_t left,
 
 static isc_result_t
 serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
-		dns_rbtdatawriter_t datawriter, isc_uint32_t serial,
+		dns_rbtdatawriter_t datawriter, void *writer_arg,
 		uintptr_t *where, isc_uint64_t *crc)
 {
 	uintptr_t left = 0, right = 0, down = 0, data = 0;
-	long location = 0;
-	long offset_adjust;
+	off_t location = 0, offset_adjust;
 	isc_result_t result;
 
 	if (node == NULL) {
@@ -561,14 +555,9 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 	}
 
 	/* Reserve space for current node. */
-	location = ftell(file);
-	if (location < 0)
-		return (ISC_R_FAILURE);
+	CHECK(isc_stdio_tell(file, &location));
 	location = dns_rbt_serialize_align(location);
 	CHECK(isc_stdio_seek(file, location, SEEK_SET));
-	location = ftell(file);
-	if (location < 0)
-		return (ISC_R_FAILURE);
 
 	offset_adjust = dns_rbt_serialize_align(location + NODE_SIZE(node));
 	CHECK(isc_stdio_seek(file, offset_adjust, SEEK_SET));
@@ -580,28 +569,21 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 	 * will break the way the crc hash is computed.
 	 */
 	CHECK(serialize_nodes(file, getleft(node, NULL), location,
-			      datawriter, serial, &left, crc));
+			      datawriter, writer_arg, &left, crc));
 	CHECK(serialize_nodes(file, getright(node, NULL), location,
-			      datawriter, serial, &right, crc));
+			      datawriter, writer_arg, &right, crc));
 	CHECK(serialize_nodes(file, getdown(node, NULL), location,
-			      datawriter, serial, &down, crc));
+			      datawriter, writer_arg, &down, crc));
 
 	if (node->data != NULL) {
-		long ret;
+		off_t ret;
 
-		ret = ftell(file);
-		if (ret < 0)
-			return (ISC_R_FAILURE);
+		CHECK(isc_stdio_tell(file, &ret));
 		ret = dns_rbt_serialize_align(ret);
-
 		CHECK(isc_stdio_seek(file, ret, SEEK_SET));
-
-		ret = ftell(file);
-		if (ret < 0)
-			return (ISC_R_FAILURE);
 		data = ret;
 
-		datawriter(file, node->data, serial, crc);
+		datawriter(file, node->data, writer_arg, crc);
 	}
 
 	/* Seek back to reserved space. */
@@ -614,15 +596,15 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 	CHECK(isc_stdio_seek(file, 0, SEEK_END));
 
 	if (where != NULL)
-		*where = location;
+		*where = (uintptr_t) location;
 
  cleanup:
 	return (result);
 }
 
-long
-dns_rbt_serialize_align(long target) {
-	long offset = target % 8;
+off_t
+dns_rbt_serialize_align(off_t target) {
+	off_t offset = target % 8;
 
 	if (offset == 0)
 		return (target);
@@ -633,10 +615,10 @@ dns_rbt_serialize_align(long target) {
 isc_result_t
 dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 		       dns_rbtdatawriter_t datawriter,
-		       isc_uint32_t serial, long *offset)
+		       void *writer_arg, off_t *offset)
 {
 	isc_result_t result;
-	long header_position, node_position, end_position;
+	off_t header_position, node_position, end_position;
 	isc_uint64_t crc;
 
 	REQUIRE(file != NULL);
@@ -645,24 +627,17 @@ dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 
 	isc_crc64_init(&crc);
 
-	header_position = ftell(file);
-	if (header_position < 0)
-		return (ISC_R_FAILURE);
+	CHECK(isc_stdio_tell(file, &header_position));
 
 	/* Write dummy header */
 	CHECK(dns_rbt_zero_header(file));
 
 	/* Serialize nodes */
-	node_position = ftell(file);
-	if (node_position < 0)
-		return (ISC_R_FAILURE);
-
+	CHECK(isc_stdio_tell(file, &node_position));
 	CHECK(serialize_nodes(file, rbt->root, 0, datawriter,
-			      serial, NULL, &crc));
-	end_position = ftell(file);
-	if (end_position < 0)
-		return (ISC_R_FAILURE);
+			      writer_arg, NULL, &crc));
 
+	CHECK(isc_stdio_tell(file, &end_position));
 	if (node_position == end_position) {
 		CHECK(isc_stdio_seek(file, header_position, SEEK_SET));
 		*offset = 0;
