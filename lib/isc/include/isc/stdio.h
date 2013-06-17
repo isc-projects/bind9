@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -22,7 +22,7 @@
 
 /*! \file isc/stdio.h */
 
-/*% 
+/*%
  * These functions are wrappers around the corresponding stdio functions.
  *
  * They return a detailed error code in the form of an an isc_result_t.  ANSI C
