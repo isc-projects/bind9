@@ -7249,11 +7249,12 @@ rbt_datawriter(FILE *rbtfile, unsigned char *data, void *arg,
 	rbtdb_serial_t serial;
 	rdatasetheader_t newheader;
 	rdatasetheader_t *header = (rdatasetheader_t *) data, *next;
-	off_t where, cooked;
-	size_t size;
+	off_t where;
+	size_t cooked, size;
 	unsigned char *p;
 	isc_result_t result = ISC_R_SUCCESS;
 	char pad[sizeof(char *)];
+	uintptr_t off;
 
 	REQUIRE(rbtfile != NULL);
 	REQUIRE(data != NULL);
@@ -7283,7 +7284,10 @@ rbt_datawriter(FILE *rbtfile, unsigned char *data, void *arg,
 		memcpy(&newheader, p, sizeof(rdatasetheader_t));
 		newheader.down = NULL;
 		newheader.next = NULL;
-		newheader.node = (dns_rbtnode_t *) where;
+		off = where;
+		if ((off_t)off != where)
+			return (ISC_R_RANGE);
+		newheader.node = (dns_rbtnode_t *) off;
 		newheader.node_is_relative = 1;
 		newheader.serial = 1;
 
@@ -7293,7 +7297,7 @@ rbt_datawriter(FILE *rbtfile, unsigned char *data, void *arg,
 		 */
 		cooked = dns_rbt_serialize_align(size);
 		if (next != NULL) {
-			newheader.next = (rdatasetheader_t *) (where + cooked);
+			newheader.next = (rdatasetheader_t *) (off + cooked);
 			newheader.next_is_relative = 1;
 		}
 
