@@ -129,7 +129,7 @@ write_data(FILE *file, unsigned char *datap, void *arg, isc_uint64_t *crc) {
 	temp = *data;
 	temp.data = (data->len == 0
 		     ? NULL
-		     : (char *)(where + sizeof(data_holder_t)));
+		     : (char *)((uintptr_t)where + sizeof(data_holder_t)));
 
 	isc_crc64_update(crc, (void *)&temp, sizeof(temp));
 	ret = fwrite(&temp, sizeof(data_holder_t), 1, file);
@@ -314,7 +314,7 @@ ATF_TC_BODY(serialize, tc) {
 	isc_result_t result;
 	FILE *rbtfile = NULL;
 	dns_rbt_t *rbt_deserialized = NULL;
-	long offset;
+	off_t offset;
 	int fd;
 	off_t filesize = 0;
 	char *base;
@@ -386,7 +386,7 @@ ATF_TC_BODY(deserialize_corrupt, tc) {
 	dns_rbt_t *rbt = NULL;
 	isc_result_t result;
 	FILE *rbtfile = NULL;
-	long offset;
+	off_t offset;
 	int fd;
 	off_t filesize = 0;
 	char *base, *p, *q;
