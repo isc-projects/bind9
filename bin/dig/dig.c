@@ -570,7 +570,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			       "%s - retry with '+noedns'\n",
 			       rcode_totext(msg->rcode));
 		if (msg != query->lookup->sendmsg && extrabytes != 0U)
-			printf(";; WARNING: Messages has %u extra byte%s at "
+			printf(";; WARNING: Message has %u extra byte%s at "
 			       "end\n", extrabytes, extrabytes != 0 ? "s" : "");
 	}
 
