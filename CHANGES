@@ -1,3 +1,6 @@
+3599.	[tuning]	Check for pointer equivalence in name comparisons.
+			[RT #18125]
+
 3596.	[port]		Updated win32 build documentation, added
 			dnssec-verify. [RT #22067]
 
