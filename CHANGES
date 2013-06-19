@@ -1,3 +1,6 @@
+3599.	[tuning]	Check for pointer equivalence in name comparisons.
+			[RT #18125]
+
 3598.	[cleanup]	Improved portability of map file code. [RT #33820]
 
 3597.	[bug]		Ensure automatic-resigning heaps are reconstructed
