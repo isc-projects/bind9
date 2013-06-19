@@ -1,3 +1,6 @@
+3599.	[tuning]	Check for pointer equivalence in name comparisons.
+			[RT #18125]
+
 3594.	[maint]		Update config.guess and config.sub. [RT #33816]
 
 3592.	[doc]		Moved documentation of rndc command options to the

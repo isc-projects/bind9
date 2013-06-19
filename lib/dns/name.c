@@ -577,6 +577,11 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 	REQUIRE((name1->attributes & DNS_NAMEATTR_ABSOLUTE) ==
 		(name2->attributes & DNS_NAMEATTR_ABSOLUTE));
 
+	if (name1 == name2) {
+		*orderp = 0;
+		return (dns_namereln_equal);
+	}
+
 	SETUP_OFFSETS(name1, offsets1, odata1);
 	SETUP_OFFSETS(name2, offsets2, odata2);
 
@@ -689,6 +694,9 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 	 */
 	REQUIRE((name1->attributes & DNS_NAMEATTR_ABSOLUTE) ==
 		(name2->attributes & DNS_NAMEATTR_ABSOLUTE));
+
+	if (name1 == name2)
+		return (ISC_TRUE);
 
 	if (name1->length != name2->length)
 		return (ISC_FALSE);
