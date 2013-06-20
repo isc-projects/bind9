@@ -1,3 +1,6 @@
+3600.	[cleanup]	dig: Fixed a typo in the warning output when receiving
+			an oversized response. [RT #33910]
+
 3599.	[tuning]	Check for pointer equivalence in name comparisons.
 			[RT #18125]
 
