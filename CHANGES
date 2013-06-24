@@ -1,3 +1,6 @@
+3601.	[bug]		Added to PKCS#11 openssl patches a value len
+			attribute in DH derive key. [RT #33928]
+
 3600.	[cleanup]	dig: Fixed a typo in the warning output when receiving
 			an oversized response. [RT #33910]
 

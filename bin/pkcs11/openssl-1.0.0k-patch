@@ -5551,7 +5551,7 @@ Index: openssl/crypto/engine/hw_pk11_pub.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.38
 --- /dev/null	Thu May 16 07:42:54 2013
 +++ openssl/crypto/engine/hw_pk11_pub.c	Sun Jun 17 21:12:24 2012
-@@ -0,0 +1,3530 @@
+@@ -0,0 +1,3533 @@
 +/*
 + * Copyright 2009 Sun Microsystems, Inc.  All rights reserved.
 + * Use is subject to license terms.
@@ -8416,11 +8416,13 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.38
 +	CK_OBJECT_HANDLE h_derived_key = CK_INVALID_HANDLE;
 +	CK_OBJECT_HANDLE h_key = CK_INVALID_HANDLE;
 +
-+	CK_ULONG ul_priv_key_attr_count = 2;
++	CK_ULONG seclen;
++	CK_ULONG ul_priv_key_attr_count = 3;
 +	CK_ATTRIBUTE priv_key_template[] =
 +		{
 +		{CKA_CLASS, (void*) NULL, sizeof (key_class)},
 +		{CKA_KEY_TYPE, (void*) NULL, sizeof (key_type)},
++		{CKA_VALUE_LEN, &seclen, sizeof (seclen)},
 +		};
 +
 +	CK_ULONG priv_key_attr_result_count = 1;
@@ -8438,6 +8440,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.38
 +
 +	priv_key_template[0].pValue = &key_class;
 +	priv_key_template[1].pValue = &key_type;
++	seclen = BN_num_bytes(dh->p);
 +
 +	if ((sp = pk11_get_session(OP_DH)) == NULL)
 +		goto err;
