@@ -1,3 +1,5 @@
+3603.	[bug]		Install <isc/stat.h>. [RT #33956]
+
 3602.	[contrib]	Added DLZ Perl module, allowing Perl scripts to
 			integrate with named and serve DNS data.
 			(Contributed by John Eaglesham of Yahoo.)
