@@ -22,7 +22,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_VERSION@
 
 HEADERS =	dir.h int.h mutex.h net.h netdb.h once.h \
-		stdtime.h thread.h time.h
+		stat.h stdtime.h thread.h time.h
 
 SUBDIRS =
 TARGETS =

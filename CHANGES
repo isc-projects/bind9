@@ -1,3 +1,5 @@
+3603.	[bug]		Install <isc/stat.h>. [RT #33956]
+
 3600.	[cleanup]	dig: Fixed a typo in the warning output when receiving
 			an oversized response. [RT #33910]
 
