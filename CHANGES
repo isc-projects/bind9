@@ -1,3 +1,7 @@
+3602.	[contrib]	Added DLZ Perl module, allowing Perl scripts to
+			integrate with named and serve DNS data.
+			(Contributed by John Eaglesham of Yahoo.)
+
 3601.	[bug]		Added to PKCS#11 openssl patches a value len
 			attribute in DH derive key. [RT #33928]
 
