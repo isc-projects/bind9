@@ -51,9 +51,10 @@ isc_stdio_close(FILE *f) {
 
 isc_result_t
 isc_stdio_seek(FILE *f, off_t offset, int whence) {
+	/* based on the fact off_t is typedef to long */
 	int r;
 
-	r = fseeko(f, offset, whence);
+	r = fseek(f, offset, whence);
 	if (r == 0)
 		return (ISC_R_SUCCESS);
 	else
@@ -62,11 +63,12 @@ isc_stdio_seek(FILE *f, off_t offset, int whence) {
 
 isc_result_t
 isc_stdio_tell(FILE *f, off_t *offsetp) {
-	off_t r;
+	/* based on the fact off_t is typedef to long */
+	long r;
 
 	REQUIRE(offsetp != NULL);
 
-	r = ftello(f);
+	r = ftell(f);
 	if (r >= 0) {
 		*offsetp = r;
 		return (ISC_R_SUCCESS);

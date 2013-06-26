@@ -82,6 +82,36 @@ copy ..\doc\misc\migration-4to9 ..\Build\Release
 call SetupLibs.bat
 
 rem
+rem try to find vcredist_x86.exe upper
+rem
+if Not Defined VCRedistPath (
+if Exist ..\..\vcredist_x86.exe set VCRedistPath=..\..\vcredist_x86.exe
+)
+
+rem
+rem get vcredist where someone said it should be
+rem
+if Defined VCRedistPath (
+
+if Exist "%VCRedistPath%" (
+
+echo Copying Visual C x86 Redistributable Installer
+
+rem
+rem Use /Y so we allways have the current version of the installer.
+rem
+
+copy /Y "%VCRedistPath%" ..\Build\Release\
+copy /Y	"%VCRedistPath%" ..\Build\Debug\
+
+) else (
+
+	echo "**** %VCRedistPath% not found ****"
+
+)
+) else (
+
+rem
 rem set vcredist here so that it is correctly expanded in the if body 
 rem
 set vcredist=BootStrapper\Packages\vcredist_x86\vcredist_x86.exe
@@ -106,8 +136,14 @@ copy /Y "%FrameworkSDKDir%\%vcredist%" ..\Build\Debug\
 	echo "**** %FrameworkSDKDir%\%vcredist% not found ****"
 )
 ) else (
+if NOT Defined FrameworkDir (
 	echo "**** Warning FrameworkSDKDir not defined ****"
 	echo "****         Run vsvars32.bat            ****"
+) else (
+	echo "**** vcredist_x86.exe not found ****"
+	echo "**** please set VCRedistPath ****"
+)
+)
 )
 
 echo Running Message Compiler

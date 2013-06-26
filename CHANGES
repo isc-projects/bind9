@@ -1,3 +1,6 @@
+3605.	[port]		win32: Addressed several compatibility issues
+			with newer versions of Visual Studio. [RT #33916]
+
 3604.	[bug]		Fixed a compile-time error when building with
 			JSON but not XML. [RT #33959]
 
