@@ -215,7 +215,7 @@
 ./bin/named/win32/named.dsp			X	2001,2004,2005,2008,2009,2010,2011
 ./bin/named/win32/named.dsw			X	2001
 ./bin/named/win32/named.mak			X	2001,2002,2004,2005,2006,2008,2009,2010,2011
-./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007,2009,2011
+./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007,2009,2011,2013
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2012
 ./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013
 ./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
@@ -2744,7 +2744,7 @@
 ./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2004,2005,2007,2011,2012
 ./lib/isc/win32/include/isc/keyboard.h		C	2000,2001,2004,2007
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004,2007,2008,2009
-./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012
+./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013
 ./lib/isc/win32/include/isc/netdb.h		C	1999,2000,2001,2004,2007
 ./lib/isc/win32/include/isc/ntgroups.h		C	2001,2004,2007
 ./lib/isc/win32/include/isc/ntpaths.h		C	2000,2001,2004,2007,2009
@@ -2767,14 +2767,14 @@
 ./lib/isc/win32/libisc.dsw			X	2001
 ./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2013
 ./lib/isc/win32/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2011,2012,2013
-./lib/isc/win32/netdb.h				C	2000,2001,2004,2006,2007,2009
+./lib/isc/win32/netdb.h				C	2000,2001,2004,2006,2007,2009,2013
 ./lib/isc/win32/ntgroups.c			C	2001,2004,2006,2007,2009,2013
 ./lib/isc/win32/ntpaths.c			C	2001,2004,2007,2009
 ./lib/isc/win32/once.c				C	1999,2000,2001,2004,2007
 ./lib/isc/win32/os.c				C	2000,2001,2002,2004,2007,2013
 ./lib/isc/win32/resource.c			C	2000,2001,2004,2007,2008
 ./lib/isc/win32/socket.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./lib/isc/win32/stdio.c				C	2000,2001,2004,2007
+./lib/isc/win32/stdio.c				C	2000,2001,2004,2007,2013
 ./lib/isc/win32/stdtime.c			C	1999,2000,2001,2004,2007
 ./lib/isc/win32/strerror.c			C	2001,2002,2004,2007
 ./lib/isc/win32/syslog.c			C	2001,2002,2003,2004,2007
@@ -2951,8 +2951,8 @@
 ./lib/lwres/win32/include/Makefile.in		MAKE	2001,2004,2007,2012
 ./lib/lwres/win32/include/lwres/Makefile.in	MAKE	2001,2004,2007,2012
 ./lib/lwres/win32/include/lwres/int.h		C	2000,2001,2004,2007,2012
-./lib/lwres/win32/include/lwres/net.h		C	2000,2001,2004,2007,2012
-./lib/lwres/win32/include/lwres/netdb.h		C	2000,2001,2004,2006,2007,2012
+./lib/lwres/win32/include/lwres/net.h		C	2000,2001,2004,2007,2012,2013
+./lib/lwres/win32/include/lwres/netdb.h		C	2000,2001,2004,2006,2007,2012,2013
 ./lib/lwres/win32/include/lwres/platform.h	C	2000,2001,2004,2007,2012
 ./lib/lwres/win32/liblwres.def			X	2001
 ./lib/lwres/win32/liblwres.dsp			X	2001,2002,2004,2005,2007,2011
@@ -3307,7 +3307,7 @@
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006,2008,2009,2010
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010
 ./win32utils/BuildPost.bat			BAT	2005,2006
-./win32utils/BuildSetup.bat			BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2012
+./win32utils/BuildSetup.bat			BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2012,2013
 ./win32utils/SetupLibs.bat			BAT	2007,2009,2011
 ./win32utils/dnsheadergen.bat			BAT	2001,2004
 ./win32utils/index.html				HTML	2006,2007,2008,2012
@@ -3318,4 +3318,4 @@
 ./win32utils/setpk11provider.pl			PERL	2009,2012
 ./win32utils/updatelibxml2.pl			PERL	2009,2010,2012
 ./win32utils/updateopenssl.pl			PERL	2006,2007,2009,2010,2012
-./win32utils/win32-build.txt			TXT.BRIEF	2001,2002,2004,2005,2008,2009,2012
+./win32utils/win32-build.txt			TXT.BRIEF	2001,2002,2004,2005,2008,2009,2012,2013
