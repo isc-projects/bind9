@@ -89,7 +89,7 @@ typedef enum {
 	task_state_done
 } task_state_t;
 
-#if defined(HAVE_LIBXML2)
+#if defined(HAVE_LIBXML2) || defined(HAVE_JSON)
 static const char *statenames[] = {
 	"idle", "ready", "running", "done",
 };

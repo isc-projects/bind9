@@ -1,3 +1,6 @@
+3604.	[bug]		Fixed a compile-time error when building with
+			JSON but not XML. [RT #33959]
+
 3603.	[bug]		Install <isc/stat.h>. [RT #33956]
 
 3602.	[contrib]	Added DLZ Perl module, allowing Perl scripts to
