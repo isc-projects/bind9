@@ -31,7 +31,9 @@
 /*
  * Define if <netdb.h> does not declare struct addrinfo.
  */
+#if _MSC_VER < 1600
 #define ISC_LWRES_NEEDADDRINFO 1
+#endif
 
 #ifdef ISC_LWRES_NEEDADDRINFO
 struct addrinfo {
