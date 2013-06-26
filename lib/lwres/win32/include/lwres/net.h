@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -78,15 +78,15 @@
 #define FD_CLR(fd, set) do { \
     u_int __i; \
     for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) { \
-        if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET) fd) { \
-            while (__i < ((fd_set FAR *)(set))->fd_count-1) { \
-                ((fd_set FAR *)(set))->fd_array[__i] = \
-                    ((fd_set FAR *)(set))->fd_array[__i+1]; \
-                __i++; \
-            } \
-            ((fd_set FAR *)(set))->fd_count--; \
-            break; \
-        } \
+	if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET) fd) { \
+	    while (__i < ((fd_set FAR *)(set))->fd_count-1) { \
+		((fd_set FAR *)(set))->fd_array[__i] = \
+		    ((fd_set FAR *)(set))->fd_array[__i+1]; \
+		__i++; \
+	    } \
+	    ((fd_set FAR *)(set))->fd_count--; \
+	    break; \
+	} \
     } \
 } while (0)
 
@@ -94,15 +94,15 @@
 #define FD_SET(fd, set) do { \
     u_int __i; \
     for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) { \
-        if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET)(fd)) { \
-            break; \
-        } \
+	if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET)(fd)) { \
+	    break; \
+	} \
     } \
     if (__i == ((fd_set FAR *)(set))->fd_count) { \
-        if (((fd_set FAR *)(set))->fd_count < FD_SETSIZE) { \
-            ((fd_set FAR *)(set))->fd_array[__i] = (SOCKET)(fd); \
-            ((fd_set FAR *)(set))->fd_count++; \
-        } \
+	if (((fd_set FAR *)(set))->fd_count < FD_SETSIZE) { \
+	    ((fd_set FAR *)(set))->fd_array[__i] = (SOCKET)(fd); \
+	    ((fd_set FAR *)(set))->fd_count++; \
+	} \
     } \
 } while (0)
 
