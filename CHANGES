@@ -1,3 +1,6 @@
+3605.	[port]		win32: Addressed several compatibility issues
+			with newer versions of Visual Studio. [RT #33916]
+
 3603.	[bug]		Install <isc/stat.h>. [RT #33956]
 
 3601.	[bug]		Added to PKCS#11 openssl patches a value len

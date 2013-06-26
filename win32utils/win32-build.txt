@@ -4,9 +4,9 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 $Id$
 
-       BIND 9.7 for Win32 Source Build Instructions.  02-Jul-2009
+       BIND 9.8 for Win32 Source Build Instructions.  24-June-2013
 
-Building BIND 9.7 on Windows XP/2003/2008 has the following prerequisites:
+Building BIND 9.8 on Windows XP/2003/2008 has the following prerequisites:
 
 1) You need to install Perl for Windows.  ActivePerl
 (http://www.activestate.com/) and Strawberry Perl
@@ -21,7 +21,12 @@ on the system on which you are building BIND.
 the system on which you are building BIND.  (If you do not wish
 to use the statistics channel, remove HAVE_LIBXML2 from config.h.win32.)
 
-4) If you want to build using Visual C++ 6.0, you'll need some extra
+4) The BIND Installer (BINDInstall) includes a copy of the
+redistributable runtime object vcredist_x86.exe, which is included
+with Visual Studio and can be downloaded from Microsoft.  This file
+must be in place prior to running the build setup script.
+
+5) If you want to build using Visual C++ 6.0, you'll need some extra
 files that are to be found in the Platform SDK (which you will need
 to install), namely:
 

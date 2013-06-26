@@ -28,6 +28,11 @@
 #include <named/main.h>
 #include <named/server.h>
 
+/* In fact more bound to the platform toolset... */
+#if defined(_M_IX86) && (_MSC_VER < 1600)
+#define ISC_ADJUST_FDIV
+#endif
+
 /* Handle to SCM for updating service status */
 static SERVICE_STATUS_HANDLE hServiceStatus = 0;
 static BOOL foreground = FALSE;
@@ -199,7 +204,7 @@ _CRTIMP void __cdecl __getmainargs(int *, char ***, char ***, int,
 				   _startupinfo *);
 void __cdecl _setargv(void);
 
-#ifdef _M_IX86
+#ifdef ISC_ADJUST_FDIV
 /* Pentium FDIV adjustment */
 extern int _adjust_fdiv;
 extern int * _imp___adjust_fdiv;
@@ -236,7 +241,7 @@ void GetArgs(int *argc, char ***argv, char ***envp)
 	__getmainargs(argc, argv, envp, _dowildcard, &startinfo);
 	__initenv = *envp;
 
-#ifdef _M_IX86
+#ifdef ISC_ADJUST_FDIV
 	_adjust_fdiv = * _imp___adjust_fdiv;
 	_setdefaultprecision();
 #endif
