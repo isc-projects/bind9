@@ -1,3 +1,9 @@
+3606.	[func]		"rndc flushtree -all" flushes matching
+			records in the ADB and bad cache as well as
+			the DNS cache.  (Without the "-all" option,
+			flushtree will still only flush records from
+			the DNS cache.) [RT #33970]
+
 3605.	[port]		win32: Addressed several compatibility issues
 			with newer versions of Visual Studio. [RT #33916]
 

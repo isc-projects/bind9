@@ -518,13 +518,15 @@
       </varlistentry>
 
       <varlistentry>
-        <term><userinput>flushtree</userinput> <replaceable>name</replaceable> <optional><replaceable>view</replaceable></optional> </term>
+        <term><userinput>flushtree</userinput> <optional>-all</optional> <replaceable>name</replaceable> <optional><replaceable>view</replaceable></optional> </term>
         <listitem>
           <para>
             Flushes the given name, and all of its subdomains,
-            from the server's DNS cache.  Note that this does
-            <emphasis>not</emphasis> affect he server's address
-            database or bad-server cache.
+            from the server's DNS cache.  By default, this does
+            <emphasis>not</emphasis> affect the server's address
+            database or bad-server cache.  To eliminate matching
+            names from those databases as well, use
+            the <option>-all</option> option.  
           </para>
         </listitem>
       </varlistentry>

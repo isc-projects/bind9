@@ -4362,7 +4362,8 @@ dns_adb_flushname(dns_adb_t *adb, dns_name_t *name) {
 	dns_adbname_t *nextname;
 	int bucket;
 
-	INSIST(DNS_ADB_VALID(adb));
+	REQUIRE(DNS_ADB_VALID(adb));
+	REQUIRE(name != NULL);
 
 	LOCK(&adb->lock);
 	bucket = dns_name_hash(name, ISC_FALSE) % adb->nnames;
@@ -4379,6 +4380,35 @@ dns_adb_flushname(dns_adb_t *adb, dns_name_t *name) {
 		adbname = nextname;
 	}
 	UNLOCK(&adb->namelocks[bucket]);
+	UNLOCK(&adb->lock);
+}
+
+void
+dns_adb_flushnames(dns_adb_t *adb, dns_name_t *name) {
+	dns_adbname_t *adbname, *nextname;
+	unsigned int i;
+
+	REQUIRE(DNS_ADB_VALID(adb));
+	REQUIRE(name != NULL);
+
+	LOCK(&adb->lock);
+	for (i = 0; i < adb->nnames; i++) {
+		LOCK(&adb->namelocks[i]);
+		adbname = ISC_LIST_HEAD(adb->names[i]);
+		while (adbname != NULL) {
+			isc_boolean_t ret;
+			nextname = ISC_LIST_NEXT(adbname, plink);
+			if (!NAME_DEAD(adbname) &&
+			    dns_name_issubdomain(&adbname->name, name))
+			{
+				ret = kill_name(&adbname,
+						DNS_EVENT_ADBCANCELED);
+				RUNTIME_CHECK(ret == ISC_FALSE);
+			}
+			adbname = nextname;
+		}
+		UNLOCK(&adb->namelocks[i]);
+	}
 	UNLOCK(&adb->lock);
 }
 

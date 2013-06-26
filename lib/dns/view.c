@@ -1556,15 +1556,22 @@ dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly) {
 
 isc_result_t
 dns_view_flushname(dns_view_t *view, dns_name_t *name) {
-	return (dns_view_flushnode(view, name, ISC_FALSE));
+	return (dns_view_flushnode(view, name, ISC_FALSE, ISC_FALSE));
 }
 
 isc_result_t
-dns_view_flushnode(dns_view_t *view, dns_name_t *name, isc_boolean_t tree) {
+dns_view_flushnode(dns_view_t *view, dns_name_t *name,
+		   isc_boolean_t cachetree, isc_boolean_t all)
+{
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	if (!tree) {
+	if (all) {
+		if (view->adb != NULL)
+			dns_adb_flushnames(view->adb, name);
+		if (view->resolver != NULL)
+			dns_resolver_flushbadnames(view->resolver, name);
+	} else if (!cachetree) {
 		if (view->adb != NULL)
 			dns_adb_flushname(view->adb, name);
 		if (view->cache == NULL)
@@ -1572,7 +1579,8 @@ dns_view_flushnode(dns_view_t *view, dns_name_t *name, isc_boolean_t tree) {
 		if (view->resolver != NULL)
 			dns_resolver_flushbadcache(view->resolver, name);
 	}
-	return (dns_cache_flushnode(view->cache, name, tree));
+
+	return (dns_cache_flushnode(view->cache, name, cachetree || all));
 }
 
 isc_result_t

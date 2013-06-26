@@ -718,6 +718,17 @@ dns_adb_flushname(dns_adb_t *adb, dns_name_t *name);
  *\li	'name' is valid.
  */
 
+void
+dns_adb_flushnames(dns_adb_t *adb, dns_name_t *name);
+/*%<
+ * Flush 'name' and all subdomains from the adb cache.
+ *
+ * Requires:
+ *\li	'adb' is valid.
+ *\li	'name' is valid.
+ */
+
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_ADB_H */

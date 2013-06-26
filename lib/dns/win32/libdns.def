@@ -43,6 +43,8 @@ dns_adb_dump
 dns_adb_dumpfind
 dns_adb_findaddrinfo
 dns_adb_flush
+dns_adb_flushmatch
+dns_adb_flushname
 dns_adb_freeaddrinfo
 dns_adb_marklame
 dns_adb_setadbsize

@@ -590,6 +590,16 @@ dns_resolver_flushbadcache(dns_resolver_t *resolver, dns_name_t *name);
  */
 
 void
+dns_resolver_flushbadnames(dns_resolver_t *resolver, dns_name_t *name);
+/*%<
+ * Flush the bad cache of all entries at or below 'name'.
+ *
+ * Requires:
+ * \li	resolver to be valid.
+ * \li  name != NULL
+ */
+
+void
 dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp);
 /*%
  * Print out the contents of the bad cache to 'fp'.

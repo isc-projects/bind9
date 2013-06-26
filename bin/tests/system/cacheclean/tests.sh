@@ -65,7 +65,7 @@ EOF
 
 dump_cache () {
         rm -f ns2/named_dump.db
-        $RNDC $RNDCOPTS dumpdb -cache
+        $RNDC $RNDCOPTS dumpdb -cache _default
         sleep 1
 }
 
@@ -182,6 +182,17 @@ ret=0
 dump_cache
 nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | grep -Ew '(TXT|ANY)' |  wc -l`
 [ $nrecords -eq 17 ] || { ret=1; echo "I: found $nrecords records expected 17"; }
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check flushtree -all clears adb correctly"
+ret=0
+load_cache
+dump_cache
+awk '/Address database/ {getline; getline; if ($2 == "ns.flushtest.example") exit(0); exit(1); }' ns2/named_dump.db || ret=1
+$RNDC $RNDCOPTS flushtree -all flushtest.example || ret=1
+dump_cache
+awk '/Address database/ {getline; getline; if ($2 == "ns.flushtest.example") exit(1); exit(0); }' ns2/named_dump.db || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

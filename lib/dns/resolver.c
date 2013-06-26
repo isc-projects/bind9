@@ -8747,6 +8747,40 @@ dns_resolver_flushbadcache(dns_resolver_t *resolver, dns_name_t *name) {
 
 }
 
+void
+dns_resolver_flushbadnames(dns_resolver_t *resolver, dns_name_t *name) {
+	dns_badcache_t *bad, *prev, *next;
+	unsigned int i;
+
+	REQUIRE(VALID_RESOLVER(resolver));
+	REQUIRE(name != NULL);
+
+	LOCK(&resolver->lock);
+	if (resolver->badcache == NULL)
+		goto unlock;
+
+	for (i = 0; i < resolver->badhash; i++) {
+		prev = NULL;
+		for (bad = resolver->badcache[i]; bad != NULL; bad = next) {
+			next = bad->next;
+			if (dns_name_issubdomain(&bad->name, name)) {
+				if (prev == NULL)
+					resolver->badcache[i] = bad->next;
+				else
+					prev->next = bad->next;
+				isc_mem_put(resolver->mctx, bad, sizeof(*bad) +
+					    bad->name.length);
+				resolver->badcount--;
+			} else
+				prev = bad;
+		}
+	}
+
+ unlock:
+	UNLOCK(&resolver->lock);
+
+}
+
 static void
 resizehash(dns_resolver_t *resolver, isc_time_t *now, isc_boolean_t grow) {
 	unsigned int newsize;

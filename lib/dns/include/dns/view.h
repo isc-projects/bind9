@@ -875,15 +875,18 @@ dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly);
  */
 
 isc_result_t
-dns_view_flushnode(dns_view_t *view, dns_name_t *name, isc_boolean_t tree);
+dns_view_flushnode(dns_view_t *view, dns_name_t *name,
+		   isc_boolean_t cachetree, isc_boolean_t all);
 /*%<
  * Flush the given name from the view's cache (and optionally ADB/badcache).
  *
- * If 'tree' is true, flush 'name' and all names below it
- * from the cache, but do not flush ADB.
+ * If 'cachetree' or 'all' is true, flush 'name' and all names below it
+ * from the cache.
+ * If 'all' is true, flush 'name' and all names below it from the ADB
+ * and badcache.
  *
- * If 'tree' is false, flush 'name' frmo both the cache and ADB,
- * but do not touch any other nodes.
+ * If 'cachetree' and 'all' are false, flush 'name' from both the
+ * cache and ADB, but do not touch any other nodes.
  *
  * Requires:
  *\li	'view' is valid.
