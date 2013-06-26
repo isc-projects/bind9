@@ -50,6 +50,7 @@ isc_stdio_close(FILE *f) {
 
 isc_result_t
 isc_stdio_seek(FILE *f, long offset, int whence) {
+	/* based on the fact off_t is typedef to long */
 	int r;
 
 	r = fseek(f, offset, whence);

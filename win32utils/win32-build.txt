@@ -4,15 +4,29 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 $Id$
 
-       BIND 9.4 for Win32 Source Build Instructions.  28-May-2005
+       BIND 9.6 for Win32 Source Build Instructions.  24-June-2013
 
-Building BIND 9.4 on Windows NT/2000 has the following prerequisites:
+Building BIND 9.6 on Windows NT/2000 has the following prerequisites:
 
-1) You need to install Perl for Windows NT/2000. ActiveState
-(http://www.activestate.com/) is the one most people install and use;
+1) You need to install Perl for Windows.  ActivePerl
+(http://www.activestate.com/) and Strawberry Perl
+(http://www.strawberryperl.com) have both been tested and found
+to work.
+
 2) OpenSSL (http://www.openssl.org) needs to be downloaded and built
 on the system on which you are building BIND.
-3) If you want to build using Visual C++ 6.0, you'll need some extra
+
+3) If you wish to use the statistics channel, LibXML2
+(ftp://xmlsoft.org/libxml2) needs to be downloaded and built on
+the system on which you are building BIND.  (If you do not wish
+to use the statistics channel, remove HAVE_LIBXML2 from config.h.win32.)
+
+4) The BIND Installer (BINDInstall) includes a copy of the
+redistributable runtime object vcredist_x86.exe, which is included
+with Visual Studio and can be downloaded from Microsoft.  This file
+must be in place prior to running the build setup script.
+
+5) If you want to build using Visual C++ 6.0, you'll need some extra
 files that are to be found in the Platform SDK (which you will need
 to install), namely:
 

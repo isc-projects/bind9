@@ -27,6 +27,7 @@
  * Define if <netdb.h> does not declare struct addrinfo.
  */
 
+#if _MSC_VER < 1600
 struct addrinfo {
 	int		ai_flags;      /* AI_PASSIVE, AI_CANONNAME */
 	int		ai_family;     /* PF_xxx */
@@ -37,6 +38,7 @@ struct addrinfo {
 	struct sockaddr	*ai_addr;      /* Binary address */
 	struct addrinfo	*ai_next;      /* Next structure in linked list */
 };
+#endif
 
 
 /*
