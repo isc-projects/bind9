@@ -283,11 +283,13 @@ Flushes the server's cache.
 Flushes the given name from the server's DNS cache and, if applicable, from the server's nameserver address database or bad\-server cache.
 .RE
 .PP
-\fBflushtree\fR \fIname\fR [\fIview\fR]
+\fBflushtree\fR [\-all] \fIname\fR [\fIview\fR]
 .RS 4
-Flushes the given name, and all of its subdomains, from the server's DNS cache. Note that this does
+Flushes the given name, and all of its subdomains, from the server's DNS cache. By default, this does
 \fInot\fR
-affect he server's address database or bad\-server cache.
+affect the server's address database or bad\-server cache. To eliminate matching names from those databases as well, use the
+\fB\-all\fR
+option.
 .RE
 .PP
 \fBstatus\fR

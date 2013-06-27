@@ -336,12 +336,14 @@
             and, if applicable, from the server's nameserver address
             database or bad-server cache.
           </p></dd>
-<dt><span class="term"><strong class="userinput"><code>flushtree</code></strong> <em class="replaceable"><code>name</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>] </span></dt>
+<dt><span class="term"><strong class="userinput"><code>flushtree</code></strong> [<span class="optional">-all</span>] <em class="replaceable"><code>name</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>] </span></dt>
 <dd><p>
             Flushes the given name, and all of its subdomains,
-            from the server's DNS cache.  Note that this does
-            <span class="emphasis"><em>not</em></span> affect he server's address
-            database or bad-server cache.
+            from the server's DNS cache.  By default, this does
+            <span class="emphasis"><em>not</em></span> affect the server's address
+            database or bad-server cache.  To eliminate matching
+            names from those databases as well, use
+            the <code class="option">-all</code> option.  
           </p></dd>
 <dt><span class="term"><strong class="userinput"><code>status</code></strong></span></dt>
 <dd><p>
@@ -496,7 +498,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542147"></a><h2>LIMITATIONS</h2>
+<a name="id2544952"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -506,7 +508,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542165"></a><h2>SEE ALSO</h2>
+<a name="id2544970"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -516,7 +518,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545224"></a><h2>AUTHOR</h2>
+<a name="id2542158"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
