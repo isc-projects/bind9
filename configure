@@ -19508,10 +19508,8 @@ fi
 #
 # Same dance for db2latex
 #
-# No idea where this lives except on FreeBSD.
-#
 
-db2latex_xsl_trees="/usr/local/share"
+db2latex_xsl_trees="/usr/local/share/db2latex/xsl /usr/pkg/share/xsl/db2latex"
 
 #
 # Look for stylesheets we need.
@@ -19519,11 +19517,11 @@ db2latex_xsl_trees="/usr/local/share"
 
 
 XSLT_DB2LATEX_STYLE=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for db2latex/xsl/docbook.xsl" >&5
-$as_echo_n "checking for db2latex/xsl/docbook.xsl... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for docbook.xsl" >&5
+$as_echo_n "checking for docbook.xsl... " >&6; }
 for d in $db2latex_xsl_trees
 do
-	f=$d/db2latex/xsl/docbook.xsl
+	f=$d/docbook.xsl
 	if test -f $f
 	then
 		XSLT_DB2LATEX_STYLE=$f
@@ -19536,7 +19534,7 @@ if test "X$XSLT_DB2LATEX_STYLE" = "X"
 then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
 $as_echo "\"not found\"" >&6; };
-	XSLT_DB2LATEX_STYLE=db2latex/xsl/docbook.xsl
+	XSLT_DB2LATEX_STYLE=docbook.xsl
 fi
 
 
@@ -19546,16 +19544,15 @@ fi
 # because it's a directory, so just do the same things, inline.
 #
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for db2latex/xsl/figures" >&5
-$as_echo_n "checking for db2latex/xsl/figures... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for db2latex xsl figures" >&5
+$as_echo_n "checking for db2latex xsl figures... " >&6; }
 for d in $db2latex_xsl_trees
 do
-	dd=$d/db2latex/xsl/figures
-	if test -d $dd
+	if test -d $d/figures
 	then
-		XSLT_DB2LATEX_ADMONITIONS=$dd
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $dd" >&5
-$as_echo "$dd" >&6; }
+		XSLT_DB2LATEX_ADMONITIONS=$d/figures
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $d/figures" >&5
+$as_echo "$d/figures" >&6; }
 		break
 	fi
 done
