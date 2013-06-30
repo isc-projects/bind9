@@ -7629,6 +7629,9 @@ ns_server_flushnode(ns_server_t *server, char *args, isc_boolean_t tree) {
 		return (ISC_R_UNEXPECTEDEND);
 
 	target = next_token(&args, " \t");
+	if (target == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
 	if (strcmp(target, "-all") == 0) {
 		all = ISC_TRUE;
 		target = next_token(&args, " \t");
