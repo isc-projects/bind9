@@ -522,11 +522,8 @@
         <listitem>
           <para>
             Flushes the given name, and all of its subdomains,
-            from the server's DNS cache.  By default, this does
-            <emphasis>not</emphasis> affect the server's address
-            database or bad-server cache.  To eliminate matching
-            names from those databases as well, use
-            the <option>-all</option> option.  
+            from the server's DNS cache, the address database,
+            and the bad server cache.
           </para>
         </listitem>
       </varlistentry>

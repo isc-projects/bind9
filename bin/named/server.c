@@ -7617,7 +7617,7 @@ ns_server_flushnode(ns_server_t *server, char *args, isc_boolean_t tree) {
 	char *target, *viewname;
 	dns_view_t *view;
 	isc_boolean_t flushed;
-	isc_boolean_t found, all = ISC_FALSE;
+	isc_boolean_t found;
 	isc_result_t result;
 	isc_buffer_t b;
 	dns_fixedname_t fixed;
@@ -7628,16 +7628,8 @@ ns_server_flushnode(ns_server_t *server, char *args, isc_boolean_t tree) {
 	if (target == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
-	target = next_token(&args, " \t");
-	if (target == NULL)
-		return (ISC_R_UNEXPECTEDEND);
-
-	if (strcmp(target, "-all") == 0) {
-		all = ISC_TRUE;
-		target = next_token(&args, " \t");
-	}
-
 	/* Find the domain name to flush. */
+	target = next_token(&args, " \t");
 	if (target == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
@@ -7668,7 +7660,7 @@ ns_server_flushnode(ns_server_t *server, char *args, isc_boolean_t tree) {
 		 * if some of the views share a single cache.  But since the
 		 * operation is lightweight we prefer simplicity here.
 		 */
-		result = dns_view_flushnode(view, name, tree, all);
+		result = dns_view_flushnode(view, name, tree);
 		if (result != ISC_R_SUCCESS) {
 			flushed = ISC_FALSE;
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,

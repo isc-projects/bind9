@@ -185,12 +185,12 @@ nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | grep -Ew '(T
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check flushtree -all clears adb correctly"
+echo "I:check flushtree clears adb correctly"
 ret=0
 load_cache
 dump_cache
 awk '/Address database/ {getline; getline; if ($2 == "ns.flushtest.example") exit(0); exit(1); }' ns2/named_dump.db || ret=1
-$RNDC $RNDCOPTS flushtree -all flushtest.example || ret=1
+$RNDC $RNDCOPTS flushtree flushtest.example || ret=1
 dump_cache
 awk '/Address database/ {getline; getline; if ($2 == "ns.flushtest.example") exit(1); exit(0); }' ns2/named_dump.db || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi

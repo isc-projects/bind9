@@ -8744,13 +8744,15 @@ dns_resolver_flushbadcache(dns_resolver_t *resolver, dns_name_t *name) {
 
  unlock:
 	UNLOCK(&resolver->lock);
-
 }
 
 void
 dns_resolver_flushbadnames(dns_resolver_t *resolver, dns_name_t *name) {
 	dns_badcache_t *bad, *prev, *next;
 	unsigned int i;
+	int n;
+	isc_time_t now;
+	isc_result_t result;
 
 	REQUIRE(VALID_RESOLVER(resolver));
 	REQUIRE(name != NULL);
@@ -8759,11 +8761,16 @@ dns_resolver_flushbadnames(dns_resolver_t *resolver, dns_name_t *name) {
 	if (resolver->badcache == NULL)
 		goto unlock;
 
+	result = isc_time_now(&now);
+	if (result != ISC_R_SUCCESS)
+		isc_time_settoepoch(&now);
+
 	for (i = 0; i < resolver->badhash; i++) {
 		prev = NULL;
 		for (bad = resolver->badcache[i]; bad != NULL; bad = next) {
 			next = bad->next;
-			if (dns_name_issubdomain(&bad->name, name)) {
+			n = isc_time_compare(&bad->expire, &now);
+			if (n < 0 || dns_name_issubdomain(&bad->name, name)) {
 				if (prev == NULL)
 					resolver->badcache[i] = bad->next;
 				else
@@ -8778,7 +8785,6 @@ dns_resolver_flushbadnames(dns_resolver_t *resolver, dns_name_t *name) {
 
  unlock:
 	UNLOCK(&resolver->lock);
-
 }
 
 static void
