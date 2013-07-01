@@ -285,11 +285,7 @@ Flushes the given name from the server's DNS cache and, if applicable, from the 
 .PP
 \fBflushtree\fR [\-all] \fIname\fR [\fIview\fR]
 .RS 4
-Flushes the given name, and all of its subdomains, from the server's DNS cache. By default, this does
-\fInot\fR
-affect the server's address database or bad\-server cache. To eliminate matching names from those databases as well, use the
-\fB\-all\fR
-option.
+Flushes the given name, and all of its subdomains, from the server's DNS cache, the address database, and the bad server cache.
 .RE
 .PP
 \fBstatus\fR
