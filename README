@@ -51,6 +51,11 @@ BIND 9
         For up-to-date release notes and errata, see
         http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.8.6
+
+	BIND 9.8.6 includes several bug fixes and patches the security
+	flaw described in CVE-2013-3919.
+
 BIND 9.8.5
 
         BIND 9.8.5 includes several bug fixes and patches security
