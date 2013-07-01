@@ -45,6 +45,7 @@ dns_adb_findaddrinfo
 dns_adb_flush
 dns_adb_flushmatch
 dns_adb_flushname
+dns_adb_flushnames
 dns_adb_freeaddrinfo
 dns_adb_marklame
 dns_adb_setadbsize
@@ -640,6 +641,7 @@ dns_resolver_dispatchv4
 dns_resolver_dispatchv6
 dns_resolver_ds_digest_supported
 dns_resolver_flushbadcache
+dns_resolver_flushbadnames
 dns_resolver_freeze
 dns_resolver_getbadcache
 dns_resolver_getlamettl
