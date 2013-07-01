@@ -1,3 +1,5 @@
+	--- 9.9.4b1 released ---
+
 3605.	[port]		win32: Addressed several compatibility issues
 			with newer versions of Visual Studio. [RT #33916]
 

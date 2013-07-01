@@ -51,6 +51,13 @@ BIND 9
         For up-to-date release notes and errata, see
         http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.9.4
+
+	BIND 9.9.4 is a maintenance release, and patches the security
+	flaw described in CVE-2013-3919. It also introduces DNS
+	Response Rate Limiting (DNS RRL) as a compile-time option.
+	to use this feature, configure with the "--enable-rrl" option.
+
 BIND 9.9.3
 
 	BIND 9.9.3 is a maintenance release and patches the security
