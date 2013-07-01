@@ -279,5 +279,8 @@ typedef long off_t;
 /* Define to enable rpz-nsip rules. */
 #define ENABLE_RPZ_NSIP
 
+/* Define to enable response rate limiting. */
+#define USE_RRL
+
 /* Get SRCID */
 #include "srcid.h"
