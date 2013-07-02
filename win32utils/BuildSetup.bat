@@ -98,7 +98,7 @@ if Exist "%VCRedistPath%" (
 echo Copying Visual C x86 Redistributable Installer
 
 rem
-rem Use /Y so we allways have the current version of the installer.
+rem Use /Y so we always have the current version of the installer.
 rem
 
 copy /Y "%VCRedistPath%" ..\Build\Release\
@@ -111,17 +111,12 @@ copy /Y	"%VCRedistPath%" ..\Build\Debug\
 )
 ) else (
 
-rem
-rem set vcredist here so that it is correctly expanded in the if body 
-rem
-set vcredist=BootStrapper\Packages\vcredist_x86\vcredist_x86.exe
-
 if Defined FrameworkSDKDir (
 
 rem
 rem vcredist_x86.exe path relative to FrameworkSDKDir
 rem 
-if Exist "%FrameworkSDKDir%\%vcredist%" (
+if Exist "%FrameworkSDKDir%\BootStrapper\Packages\vcredist_x86\vcredist_x86.exe" (
 
 echo Copying Visual C x86 Redistributable Installer
 
@@ -129,8 +124,8 @@ rem
 rem Use /Y so we allways have the current version of the installer.
 rem
 
-copy /Y "%FrameworkSDKDir%\%vcredist%" ..\Build\Release\
-copy /Y "%FrameworkSDKDir%\%vcredist%" ..\Build\Debug\
+copy /Y "%FrameworkSDKDir%\BootStrapper\Packages\vcredist_x86\vcredist_x86.exe"  ..\Build\Release\
+copy /Y "%FrameworkSDKDir%\BootStrapper\Packages\vcredist_x86\vcredist_x86.exe"  ..\Build\Debug\
 
 ) else (
 	echo "**** %FrameworkSDKDir%\%vcredist% not found ****"
