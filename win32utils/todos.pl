@@ -24,16 +24,27 @@ use strict;
 use File::Find;
 
 sub todos {
-        local ($^I, @ARGV) = (defined, @_);
-        while (<>) {
-                s/[\r\n]+$/\r\n/;
-                print;
-        }
+	local @ARGV = @_;
+	unshift (@ARGV, '-') unless @ARGV;
+	while ($ARGV = shift) {
+		open(FH, $ARGV);
+		binmode(FH);
+		my @lines = <FH>;
+		close(FH);
+
+		open(FH, ">$ARGV");
+		binmode(FH);
+		for my $line (@lines) {
+			$line =~ s/[\r\n]+$/\r\n/;
+			print FH $line;
+		}
+		close(FH);
+	}
 }
 
 sub wanted {
-        return unless -f && $_ =~ qr/\.(mak|dsp|dsw|txt|bat)$/;
-        todos $File::Find::dir . "/" . $_;
+	return unless -f && $_ =~ qr/\.(mak|dsp|dsw|txt|bat)$/;
+	todos $_;
 }
 
 finddepth(\&wanted, "..");
