@@ -24,6 +24,9 @@ cd ..
 copy config.h.win32 config.h
 cd win32utils
 
+rem Make sure all the files that need to be in DOS format really are
+perl todos.pl
+
 rem Get and update for the latest build of the openssl and libxml libraries
 perl updateopenssl.pl
 perl updatelibxml2.pl
