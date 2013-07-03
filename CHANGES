@@ -1,3 +1,6 @@
+3607.	[bug]		dnssec-keygen had broken 'Invalid keyfile' error
+			message. [RT #34045]
+
 3606.	[func]		"rndc flushtree" now flushes matching
 			records in the address database and bad cache
                         as well as the DNS cache. (Previously only the
