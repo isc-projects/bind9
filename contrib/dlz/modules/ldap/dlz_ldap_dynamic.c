@@ -112,10 +112,15 @@ typedef struct {
 
 /* forward references */
 
+#if DLZ_DLOPEN_VERSION < 3
+isc_result_t
+dlz_findzonedb(void *dbdata, const char *name);
+#else
 isc_result_t
 dlz_findzonedb(void *dbdata, const char *name,
-	       dns_clientinfomethods_t *methods,
-	       dns_clientinfo_t *clientinfo);
+		 dns_clientinfomethods_t *methods,
+		 dns_clientinfo_t *clientinfo);
+#endif
 
 void
 dlz_destroy(void *dbdata);
@@ -668,7 +673,7 @@ ldap_get_results(const char *zone, const char *record,
 	 */
 	db->log(ISC_LOG_DEBUG(1), "Query String: %s", querystring);
 
-        /* break URL down into it's component parts, if error cleanup */
+	/* break URL down into it's component parts, if error cleanup */
 	ldap_result = ldap_url_parse(querystring, &ldap_url);
 	if (ldap_result != LDAP_SUCCESS || ldap_url == NULL) {
 		result = ISC_R_FAILURE;
@@ -779,7 +784,7 @@ ldap_get_results(const char *zone, const char *record,
  cleanup:
 	/* it's always good to cleanup after yourself */
 
-        /* if we retrieved results, free them */
+	/* if we retrieved results, free them */
 	if (ldap_msg != NULL)
 		ldap_msgfree(ldap_msg);
 
@@ -798,7 +803,7 @@ ldap_get_results(const char *zone, const char *record,
 	/* release the lock so another thread can use this dbi */
 	(void) dlz_mutex_unlock(&dbi->lock);
 
-        /* release query string */
+	/* release query string */
 	if (querystring != NULL)
 		free(querystring);
 
@@ -814,12 +819,16 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	isc_result_t result;
 
 	/* check to see if we are authoritative for the zone first */
+#if DLZ_DLOPEN_VERSION < 3
+	result = dlz_findzonedb(dbdata, name);
+#else
 	result = dlz_findzonedb(dbdata, name, NULL, NULL);
+#endif
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 
-        /* get all the zone data */
+	/* get all the zone data */
 	result = ldap_get_results(name, NULL, client, ALLOWXFR, dbdata, NULL);
 	return (result);
 }
@@ -835,26 +844,39 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 	return (ldap_get_results(zone, NULL, NULL, AUTHORITY, dbdata, lookup));
 }
 
+#if DLZ_DLOPEN_VERSION < 3
+isc_result_t
+dlz_findzonedb(void *dbdata, const char *name)
+#else
 isc_result_t
 dlz_findzonedb(void *dbdata, const char *name,
 	       dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo)
+#endif
 {
+#if DLZ_DLOPEN_VERSION >= 3
 	UNUSED(methods);
 	UNUSED(clientinfo);
+#endif
 	return (ldap_get_results(name, NULL, NULL, FINDZONE, dbdata, NULL));
 }
 
-isc_result_t
-dlz_lookup(const char *zone, const char *name,
-	   void *dbdata, dns_sdlzlookup_t *lookup,
-	   dns_clientinfomethods_t *methods,
-	   dns_clientinfo_t *clientinfo)
+#if DLZ_DLOPEN_VERSION == 1
+isc_result_t dlz_lookup(const char *zone, const char *name, 
+			void *dbdata, dns_sdlzlookup_t *lookup)
+#else
+isc_result_t dlz_lookup(const char *zone, const char *name,
+			void *dbdata, dns_sdlzlookup_t *lookup,
+			dns_clientinfomethods_t *methods,
+			dns_clientinfo_t *clientinfo)
+#endif
 {
 	isc_result_t result;
 
+#if DLZ_DLOPEN_VERSION >= 2
 	UNUSED(methods);
 	UNUSED(clientinfo);
+#endif
 
 	if (strcmp(name, "*") == 0)
 		result = ldap_get_results(zone, "~", NULL, LOOKUP,
@@ -891,7 +913,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		return (ISC_R_NOMEMORY);
 	memset(ldap, 0, sizeof(ldap_instance_t));
 
-        /* Fill in the helper functions */
+	/* Fill in the helper functions */
 	va_start(ap, dbdata);
 	while ((helper_name = va_arg(ap, const char*)) != NULL)
 		b9_add_helper(ldap, helper_name, va_arg(ap, void*));
