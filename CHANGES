@@ -1,3 +1,8 @@
+3608.	[port]		win32: added todos.pl script to ensure all text files
+			the win32 build depends on are converted to DOS
+			newline format. [RT #22067]
+
+
 	--- 9.6-ESV-R10b1 released ---
 
 3605.	[port]		win32: Addressed several compatibility issues

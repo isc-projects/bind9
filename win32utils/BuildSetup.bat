@@ -27,6 +27,9 @@ cd ..
 copy config.h.win32 config.h
 cd win32utils
 
+rem Make sure all the files that need to be in DOS format really are
+perl todos.pl
+
 rem Generate the version information
 perl makeversion.pl
 

@@ -71,7 +71,16 @@ Step 2 Building BIND
 
 You must build openssl first. 
 
-From the command prompt cd to the win32utils under the BIND root.
+From the command prompt cd to the win32utils directory under
+the BIND9 root:
+
+  cd bind-9.6.0\win32utils
+
+Text files used by the Windows build should be in DOS format.
+If for some reason they aren't, this can be corrected by running:
+
+  perl todos.pl
+
 Execute the BuildAll.bat file. This will do the following:
 1) copy config.h.win32 to config.h in the root.
 2) create the versions.h file in the root.
