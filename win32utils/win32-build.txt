@@ -104,11 +104,16 @@ the BIND9 root:
 
   cd bind-9.10.0\win32utils
 
+Text files used by the Windows build should be in DOS format.
+If for some reason they aren't, this can be corrected by running:
+
+  perl todos.pl
+
 If you wish to use PKCS #11 to control a cryptographic hardware service
 module, set the path to the PKCS #11 provider library:
 
   perl setpk11provider.pl <DLL path>
-  
+
 If using VC++ 6.0, run the BuildAll.bat file:
 
   BuildAll
