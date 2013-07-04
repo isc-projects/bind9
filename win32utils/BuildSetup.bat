@@ -54,6 +54,7 @@ copy index.html ..\Build\Release
 copy ..\doc\arm\*.html ..\Build\Release
 copy ..\doc\arm\Bv9ARM.pdf ..\Build\Release
 copy ..\CHANGES ..\Build\Release
+if Exist ..\CHANGES.SE copy ..\CHANGES.SE ..\Build\Release
 copy ..\FAQ ..\Build\Release
 
 echo Copying the standalone manual pages.
