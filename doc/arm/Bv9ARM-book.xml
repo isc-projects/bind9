@@ -9606,7 +9606,7 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	    contents of DNS responses are likely to be attacks on the
 	    DNS server itself.
 	    They usually should be discarded before the DNS server
-	    spends resources make TCP connections or parsing DNS requesets,
+	    spends resources making TCP connections or parsing DNS requests,
 	    but that rate limiting must be done before the
 	    DNS server sees the requests.
 	  </para>
