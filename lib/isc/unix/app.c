@@ -690,6 +690,11 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 			 * wait until woken up.
 			 */
 			LOCK(&ctx->readylock);
+			if (ctx->want_shutdown) {
+				/* shutdown() won the race. */
+				UNLOCK(&ctx->readylock);
+				break;
+			}
 			if (!ctx->want_reload)
 				WAIT(&ctx->ready, &ctx->readylock);
 			UNLOCK(&ctx->readylock);
@@ -719,7 +724,13 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 			 * wait until woken up.
 			 */
 			LOCK(&ctx->readylock);
-			WAIT(&ctx->ready, &ctx->readylock);
+			if (ctx->want_shutdown) {
+				/* shutdown() won the race. */
+				UNLOCK(&ctx->readylock);
+				break;
+			}
+			if (!ctx->want_reload)
+				WAIT(&ctx->ready, &ctx->readylock);
 			UNLOCK(&ctx->readylock);
 		}
 #endif /* HAVE_SIGWAIT */
@@ -802,7 +813,9 @@ isc__app_ctxshutdown(isc_appctx_t *ctx0) {
 #endif /* HAVE_LINUXTHREADS */
 			else {
 				/* External, multiple contexts */
+				LOCK(&ctx->readylock);
 				ctx->want_shutdown = ISC_TRUE;
+				UNLOCK(&ctx->readylock);
 				SIGNAL(&ctx->ready);
 			}
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -878,7 +891,9 @@ isc__app_ctxsuspend(isc_appctx_t *ctx0) {
 #endif /* HAVE_LINUXTHREADS */
 			else {
 				/* External, multiple contexts */
+				LOCK(&ctx->readylock);
 				ctx->want_reload = ISC_TRUE;
+				UNLOCK(&ctx->readylock);
 				SIGNAL(&ctx->ready);
 			}
 #endif /* ISC_PLATFORM_USETHREADS */

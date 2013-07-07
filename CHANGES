@@ -1,3 +1,6 @@
+3609.	[bug]		Corrected a possible deadlock in applications using
+			the export version of the isc_app API. [RT #33967]
+
 3608.	[port]		win32: added todos.pl script to ensure all text files
 			the win32 build depends on are converted to DOS
 			newline format. [RT #22067]
