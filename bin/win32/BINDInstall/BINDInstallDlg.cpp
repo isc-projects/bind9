@@ -154,6 +154,8 @@ const FileData installFiles[] =
 	{"dnssec-dsfromkey.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"dnssec-keyfromlabel.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"dnssec-revoke.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
+	{"dnssec-settime.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
+	{"dnssec-verify.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"named-checkconf.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"named-checkzone.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"named-compilezone.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},

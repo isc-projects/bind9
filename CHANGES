@@ -1,3 +1,6 @@
+3610.	[cleanup]	win32: Some executables had been omitted from the
+			installer. [RT #34116]
+
 3608.	[port]		win32: added todos.pl script to ensure all text files
 			the win32 build depends on are converted to DOS
 			newline format. [RT #22067]
