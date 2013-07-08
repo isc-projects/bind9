@@ -1,3 +1,6 @@
+3610.	[cleanup]	win32: Some executables had been omitted from the
+			installer. [RT #34116]
+
 3609.	[bug]		Corrected a possible deadlock in applications using
 			the export version of the isc_app API. [RT #33967]
 
