@@ -467,6 +467,7 @@ isc_rwlock_lock
 isc_rwlock_trylock
 isc_rwlock_tryupgrade
 isc_rwlock_unlock
+isc_safe_memcmp
 isc_serial_eq
 isc_serial_ge
 isc_serial_gt

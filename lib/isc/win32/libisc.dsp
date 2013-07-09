@@ -487,6 +487,10 @@ SOURCE=..\include\isc\rwlock.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isc\safe.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\isc\serial.h
 # End Source File
 # Begin Source File
@@ -756,6 +760,10 @@ SOURCE=..\result.c
 # Begin Source File
 
 SOURCE=..\rwlock.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\safe.c
 # End Source File
 # Begin Source File
 
