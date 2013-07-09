@@ -42,6 +42,7 @@
 #include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/mem.h>
+#include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -138,7 +139,7 @@ hmacmd5_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	else if (hkey1 == NULL || hkey2 == NULL)
 		return (ISC_FALSE);
 
-	if (memcmp(hkey1->key, hkey2->key, ISC_SHA1_BLOCK_LENGTH) == 0)
+	if (isc_safe_memcmp(hkey1->key, hkey2->key, ISC_SHA1_BLOCK_LENGTH))
 		return (ISC_TRUE);
 	else
 		return (ISC_FALSE);
@@ -414,7 +415,7 @@ hmacsha1_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	else if (hkey1 == NULL || hkey2 == NULL)
 		return (ISC_FALSE);
 
-	if (memcmp(hkey1->key, hkey2->key, ISC_SHA1_BLOCK_LENGTH) == 0)
+	if (isc_safe_memcmp(hkey1->key, hkey2->key, ISC_SHA1_BLOCK_LENGTH))
 		return (ISC_TRUE);
 	else
 		return (ISC_FALSE);
@@ -690,7 +691,7 @@ hmacsha224_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	else if (hkey1 == NULL || hkey2 == NULL)
 		return (ISC_FALSE);
 
-	if (memcmp(hkey1->key, hkey2->key, ISC_SHA224_BLOCK_LENGTH) == 0)
+	if (isc_safe_memcmp(hkey1->key, hkey2->key, ISC_SHA224_BLOCK_LENGTH))
 		return (ISC_TRUE);
 	else
 		return (ISC_FALSE);
@@ -968,7 +969,7 @@ hmacsha256_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	else if (hkey1 == NULL || hkey2 == NULL)
 		return (ISC_FALSE);
 
-	if (memcmp(hkey1->key, hkey2->key, ISC_SHA256_BLOCK_LENGTH) == 0)
+	if (isc_safe_memcmp(hkey1->key, hkey2->key, ISC_SHA256_BLOCK_LENGTH))
 		return (ISC_TRUE);
 	else
 		return (ISC_FALSE);
@@ -1246,7 +1247,7 @@ hmacsha384_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	else if (hkey1 == NULL || hkey2 == NULL)
 		return (ISC_FALSE);
 
-	if (memcmp(hkey1->key, hkey2->key, ISC_SHA384_BLOCK_LENGTH) == 0)
+	if (isc_safe_memcmp(hkey1->key, hkey2->key, ISC_SHA384_BLOCK_LENGTH))
 		return (ISC_TRUE);
 	else
 		return (ISC_FALSE);
@@ -1524,7 +1525,7 @@ hmacsha512_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	else if (hkey1 == NULL || hkey2 == NULL)
 		return (ISC_FALSE);
 
-	if (memcmp(hkey1->key, hkey2->key, ISC_SHA512_BLOCK_LENGTH) == 0)
+	if (isc_safe_memcmp(hkey1->key, hkey2->key, ISC_SHA512_BLOCK_LENGTH))
 		return (ISC_TRUE);
 	else
 		return (ISC_FALSE);

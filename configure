@@ -1339,6 +1339,7 @@ PERL
 ETAGS
 LN
 ARFLAGS
+CCNOOPT
 CCOPT
 STD_CWARNINGS
 STD_CDEFINES
@@ -11827,6 +11828,7 @@ fi
 
 
 
+
 # Warn if the user specified libbind, which is now deprecated
 # Check whether --enable-libbind was given.
 if test "${enable_libbind+set}" = set; then :
@@ -12748,6 +12750,13 @@ case "$host" in
 	  CPPFLAGS="$CPPFLAGS -D__APPLE_USE_RFC_3542"
 	  ;;
 esac
+
+#
+# CCNOOPT defaults to -O0 on gcc and disables optimization when is last
+#
+if test "X$CCNOOPT" = "X" -a "X$GCC" = "Xyes"; then
+	CCNOOPT="-O0"
+fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ANSI C header files" >&5
 $as_echo_n "checking for ANSI C header files... " >&6; }
@@ -15184,11 +15193,13 @@ then
 		*-freebsd*)
 			CC="$CC -pthread"
 			CCOPT="$CCOPT -pthread"
+			CCNOOPT="$CCNOOPT -pthread"
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
 			;;
 		*-openbsd*)
 			CC="$CC -pthread"
 			CCOPT="$CCOPT -pthread"
+			CCNOOPT="$CCNOOPT -pthread"
 			;;
 		*-solaris*)
 			LIBS="$LIBS -lthread"
@@ -15202,10 +15213,12 @@ then
 		*-dec-osf*)
 			CC="$CC -pthread"
 			CCOPT="$CCOPT -pthread"
+			CCNOOPT="$CCNOOPT -pthread"
 			;;
 		*-solaris*)
 			CC="$CC -mt"
 			CCOPT="$CCOPT -mt"
+			CCNOOPT="$CCNOOPT -mt"
 			;;
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
@@ -15213,10 +15226,12 @@ then
 		*-sco-sysv*uw*|*-*-sysv*UnixWare*)
 			CC="$CC -Kthread"
 			CCOPT="$CCOPT -Kthread"
+			CCNOOPT="$CCNOOPT -Kthread"
 			;;
 		*-*-sysv*OpenUNIX*)
 			CC="$CC -Kpthread"
 			CCOPT="$CCOPT -Kpthread"
+			CCNOOPT="$CCNOOPT -Kpthread"
 			;;
 		esac
 	fi
@@ -15704,6 +15719,7 @@ else
 	*-dec-osf*)
 		CC="$CC -std"
 		CCOPT="$CCOPT -std"
+		CCNOOPT="$CCNOOPT -std"
 		MKDEPCC="$CC"
 		;;
 	*-hp-hpux*)
@@ -15722,6 +15738,7 @@ else
 			;;
 		esac
 		CCOPT="$CCOPT -Ae -z"
+		CCNOOPT="$CCNOOPT -Ae -z"
 		LDFLAGS="-Wl,+vnocompatwarnings $LDFLAGS"
 		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;

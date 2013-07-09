@@ -42,6 +42,7 @@
 #include <isc/assertions.h>
 #include <isc/hmacmd5.h>
 #include <isc/print.h>
+#include <isc/safe.h>
 #include <isc/stdlib.h>
 
 #include <isccc/alist.h>
@@ -311,7 +312,8 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	/*
 	 * Verify.
 	 */
-	if (strcmp((char *)digestb64, isccc_sexpr_tostring(hmd5)) != 0)
+	if (!isc_safe_memcmp((unsigned char *) isccc_sexpr_tostring(hmd5),
+			     digestb64, HMD5_LENGTH))
 		return (ISCCC_R_BADAUTH);
 
 	return (ISC_R_SUCCESS);
