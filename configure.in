@@ -1501,6 +1501,7 @@ AC_ARG_WITH(libjson,
 [  --with-libjson[=PATH]     Build with libjson0 library [yes|no|path]],
     use_libjson="$withval", use_libjson="auto")
 
+have_libjson=
 case "$use_libjson" in
 	no)
 		libjson_libs=""
@@ -1508,31 +1509,45 @@ case "$use_libjson" in
 	auto|yes)
 		if test -f "/usr/include/json/json.h"
                 then
-			libjson_libs="-ljson"
 			libjson_cflags="-I /usr/include/json"
-                else
-			libjson_libs=""
+			have_libjson="yes"
+                elif test -f "/usr/include/json-c/json.h"
+                then
+			libjson_cflags="-I /usr/include/json-c"
+			have_libjson="yes"
                 fi
 		;;
 	*)
 		if test -f "${use_libjson}/include/json/json.h"
                 then
-			libjson_libs="-L${use_libjson}/lib -ljson"
 			libjson_cflags="-I${use_libjson}/include/json"
-                else
-			AC_MSG_ERROR([$use_libjson/include/json.h not found.])
+			LIBS="$LIBS -L${use_libjson}/lib"
+			have_libjson="yes"
+		elif test -f "${use_libjson}/include/json-c/json.h"
+		then
+			libjson_cflags="-I${use_libjson}/include/json-c"
+			LIBS="$LIBS -L${use_libjson}/lib"
+			have_libjson="yes"
+		else
+			AC_MSG_ERROR([$use_libjson/include/json{,-c}/json.h not found.])
 		fi
 		;;
 esac
 
-if test "X${libjson_libs}" != "X"
+if test "%${have_libjson}" != "X"
 then
 	AC_MSG_RESULT(yes)
-	CFLAGS="$CFLAGS $libjson_cflags"
-	LIBS="$LIBS $libjson_libs"
-	AC_DEFINE(HAVE_JSON, 1, [Define if libjson was found])
+	AC_SEARCH_LIBS([json_object_new_int], [json json-c], [],
+		       [AC_MSG_WARN([found libjson include but not library.])
+		        have_libjson=""])
 else
 	AC_MSG_RESULT(no)
+fi
+
+if test "X${have_libjson}" != "X"
+then
+	CFLAGS="$CFLAGS $libjson_cflags"
+	AC_DEFINE(HAVE_JSON, 1, [Define if libjson was found])
 fi
 
 #

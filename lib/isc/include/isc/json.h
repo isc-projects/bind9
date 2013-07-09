@@ -26,7 +26,7 @@
  */
 
 #ifdef HAVE_JSON
-#include <json/json.h>
+#include <json.h>
 #endif
 
 #define ISC_JSON_RENDERCONFIG		0x00000001 /* render config data */

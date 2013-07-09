@@ -1,3 +1,5 @@
+3512.	[port]		Check whether to use -ljson or -ljson-c. [RT #34115]
+
 3611.	[bug]		Improved resistance to a theoretical authentication
 			attack based on differential timing.  [RT #33939]
 
