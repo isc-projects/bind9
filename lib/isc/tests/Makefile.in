@@ -36,11 +36,11 @@ LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		isctest.@O@
 
-SRCS =		isctest.c hash_test.c sockaddr_test.c \
+SRCS =		isctest.c hash_test.c safe_test.c sockaddr_test.c \
 		symtab_test.c parse_test.c
 
 SUBDIRS =
-TARGETS =	hash_test@EXEEXT@ sockaddr_test@EXEEXT@ \
+TARGETS =	hash_test@EXEEXT@ safe_test@EXEEXT@ sockaddr_test@EXEEXT@ \
 		symtab_test@EXEEXT@ parse_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
@@ -60,6 +60,10 @@ parse_test@EXEEXT@: parse_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 sockaddr_test@EXEEXT@: sockaddr_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			sockaddr_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
+
+safe_test@EXEEXT@: safe_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			safe_test.@O@ ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh

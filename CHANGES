@@ -1,3 +1,6 @@
+3611.	[bug]		Improved resistance to a theoretical authentication
+			attack based on differential timing.  [RT #33939]
+
 3608.	[port]		win32: added todos.pl script to ensure all text files
 			the win32 build depends on are converted to DOS
 			newline format. [RT #22067]

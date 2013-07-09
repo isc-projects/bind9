@@ -169,6 +169,7 @@ CLEAN :
 	-@erase "$(INTDIR)\resource.obj"
 	-@erase "$(INTDIR)\result.obj"
 	-@erase "$(INTDIR)\rwlock.obj"
+	-@erase "$(INTDIR)\safe.obj"
 	-@erase "$(INTDIR)\serial.obj"
 	-@erase "$(INTDIR)\sha1.obj"
 	-@erase "$(INTDIR)\sha2.obj"
@@ -270,6 +271,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\refcount.obj" \
 	"$(INTDIR)\result.obj" \
 	"$(INTDIR)\rwlock.obj" \
+	"$(INTDIR)\safe.obj" \
 	"$(INTDIR)\serial.obj" \
 	"$(INTDIR)\sha1.obj" \
 	"$(INTDIR)\sha2.obj" \
@@ -414,6 +416,8 @@ CLEAN :
 	-@erase "$(INTDIR)\result.sbr"
 	-@erase "$(INTDIR)\rwlock.obj"
 	-@erase "$(INTDIR)\rwlock.sbr"
+	-@erase "$(INTDIR)\safe.obj"
+	-@erase "$(INTDIR)\safe.sbr"
 	-@erase "$(INTDIR)\serial.obj"
 	-@erase "$(INTDIR)\serial.sbr"
 	-@erase "$(INTDIR)\sha1.obj"
@@ -533,6 +537,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\refcount.sbr" \
 	"$(INTDIR)\result.sbr" \
 	"$(INTDIR)\rwlock.sbr" \
+	"$(INTDIR)\safe.sbr" \
 	"$(INTDIR)\serial.sbr" \
 	"$(INTDIR)\sha1.sbr" \
 	"$(INTDIR)\sha2.sbr" \
@@ -619,6 +624,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\refcount.obj" \
 	"$(INTDIR)\result.obj" \
 	"$(INTDIR)\rwlock.obj" \
+	"$(INTDIR)\safe.obj" \
 	"$(INTDIR)\serial.obj" \
 	"$(INTDIR)\sha1.obj" \
 	"$(INTDIR)\sha2.obj" \
@@ -1798,6 +1804,24 @@ SOURCE=..\rwlock.c
 
 
 "$(INTDIR)\rwlock.obj"	"$(INTDIR)\rwlock.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\safe.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\safe.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\safe.obj"	"$(INTDIR)\safe.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

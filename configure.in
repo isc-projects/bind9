@@ -49,6 +49,7 @@ AC_SUBST(STD_CINCLUDES)
 AC_SUBST(STD_CDEFINES)
 AC_SUBST(STD_CWARNINGS)
 AC_SUBST(CCOPT)
+AC_SUBST(CCNOOPT)
 
 # Warn if the user specified libbind, which is now deprecated
 AC_ARG_ENABLE(libbind, [  --enable-libbind	  deprecated])
@@ -294,6 +295,13 @@ case "$host" in
 	  CPPFLAGS="$CPPFLAGS -D__APPLE_USE_RFC_3542"
 	  ;;
 esac
+
+#
+# CCNOOPT defaults to -O0 on gcc and disables optimization when is last
+#
+if test "X$CCNOOPT" = "X" -a "X$GCC" = "Xyes"; then
+	CCNOOPT="-O0"
+fi
 
 AC_HEADER_STDC
 
@@ -953,11 +961,13 @@ then
 		*-freebsd*)
 			CC="$CC -pthread"
 			CCOPT="$CCOPT -pthread"
+			CCNOOPT="$CCNOOPT -pthread"
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
 			;;
 		*-openbsd*)
 			CC="$CC -pthread"
 			CCOPT="$CCOPT -pthread"
+			CCNOOPT="$CCNOOPT -pthread"
 			;;
 		*-solaris*)
 			LIBS="$LIBS -lthread"
@@ -971,10 +981,12 @@ then
 		*-dec-osf*)
 			CC="$CC -pthread"
 			CCOPT="$CCOPT -pthread"
+			CCNOOPT="$CCNOOPT -pthread"
 			;;
 		*-solaris*)
 			CC="$CC -mt"
 			CCOPT="$CCOPT -mt"
+			CCNOOPT="$CCNOOPT -mt"
 			;;
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
@@ -982,10 +994,12 @@ then
 		*-sco-sysv*uw*|*-*-sysv*UnixWare*)
 			CC="$CC -Kthread"
 			CCOPT="$CCOPT -Kthread"
+			CCNOOPT="$CCNOOPT -Kthread"
 			;;
 		*-*-sysv*OpenUNIX*)
 			CC="$CC -Kpthread"
 			CCOPT="$CCOPT -Kpthread"
+			CCNOOPT="$CCNOOPT -Kpthread"
 			;;
 		esac
 	fi
@@ -1195,6 +1209,7 @@ else
 	*-dec-osf*)
 		CC="$CC -std"
 		CCOPT="$CCOPT -std"
+		CCNOOPT="$CCNOOPT -std"
 		MKDEPCC="$CC"
 		;;
 	*-hp-hpux*)
@@ -1213,6 +1228,7 @@ else
 			;;
 		esac
 		CCOPT="$CCOPT -Ae -z"
+		CCNOOPT="$CCNOOPT -Ae -z"
 		LDFLAGS="-Wl,+vnocompatwarnings $LDFLAGS"
 		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;

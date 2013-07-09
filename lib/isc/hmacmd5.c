@@ -27,6 +27,7 @@
 #include <isc/assertions.h>
 #include <isc/hmacmd5.h>
 #include <isc/md5.h>
+#include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
@@ -114,5 +115,5 @@ isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len) {
 
 	REQUIRE(len <= ISC_MD5_DIGESTLENGTH);
 	isc_hmacmd5_sign(ctx, newdigest);
-	return (ISC_TF(memcmp(digest, newdigest, len) == 0));
+	return (isc_safe_memcmp(digest, newdigest, len));
 }

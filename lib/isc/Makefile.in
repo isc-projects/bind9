@@ -61,7 +61,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		netaddr.@O@ netscope.@O@ ondestroy.@O@ \
 		parseint.@O@ portset.@O@ quota.@O@ radix.@O@ random.@O@ \
 		ratelimiter.@O@ refcount.@O@ region.@O@ result.@O@ rwlock.@O@ \
-		serial.@O@ sha1.@O@ sha2.@O@ sockaddr.@O@ stats.@O@ \
+		safe.@O@ serial.@O@ sha1.@O@ sha2.@O@ sockaddr.@O@ stats.@O@ \
 		string.@O@ strtoul.@O@ symtab.@O@ task.@O@ taskpool.@O@ \
 		timer.@O@ version.@O@ ${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
 
@@ -76,8 +76,9 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 		netaddr.c netscope.c ondestroy.c \
 		parseint.c portset.c quota.c radix.c random.c \
 		ratelimiter.c refcount.c region.c result.c rwlock.c \
-		serial.c sha1.c sha2.c sockaddr.c stats.c string.c strtoul.c \
-		symtab.c task.c taskpool.c timer.c version.c
+		safe.c serial.c sha1.c sha2.c sockaddr.c stats.c \
+		string.c strtoul.c symtab.c \
+		task.c taskpool.c timer.c version.c
 
 LIBS =		@LIBS@
 
@@ -90,6 +91,10 @@ TARGETS =	timestamp
 TESTDIRS =	@UNITTESTS@
 
 @BIND9_MAKE_RULES@
+
+safe.@O@: safe.c
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} @CCNOOPT@ \
+		-c ${srcdir}/safe.c
 
 version.@O@: version.c
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
