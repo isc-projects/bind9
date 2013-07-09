@@ -3250,30 +3250,27 @@ NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_XHTML, xhtml/maketoc.xsl, $docbook_xsl_trees)
 #
 # Same dance for db2latex
 #
-# No idea where this lives except on FreeBSD.
-#
 
-db2latex_xsl_trees="/usr/local/share"
+db2latex_xsl_trees="/usr/local/share/db2latex/xsl /usr/pkg/share/xsl/db2latex"
 
 #
 # Look for stylesheets we need.
 #
 
-NOM_PATH_FILE(XSLT_DB2LATEX_STYLE, db2latex/xsl/docbook.xsl, $db2latex_xsl_trees)
+NOM_PATH_FILE(XSLT_DB2LATEX_STYLE, docbook.xsl, $db2latex_xsl_trees)
 
 #
 # Look for "admonition" image directory.  Can't use NOM_PATH_FILE()
 # because it's a directory, so just do the same things, inline.
 #
 
-AC_MSG_CHECKING(for db2latex/xsl/figures)
+AC_MSG_CHECKING(for db2latex xsl figures)
 for d in $db2latex_xsl_trees
 do
-	dd=$d/db2latex/xsl/figures
-	if test -d $dd
+	if test -d $d/figures
 	then
-		XSLT_DB2LATEX_ADMONITIONS=$dd
-		AC_MSG_RESULT($dd)
+		XSLT_DB2LATEX_ADMONITIONS=$d/figures
+		AC_MSG_RESULT($d/figures)
 		break
 	fi
 done
