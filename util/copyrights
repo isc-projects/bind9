@@ -2101,7 +2101,7 @@
 ./lib/dns/gen.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2012,2013
 ./lib/dns/gssapi_link.c				C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012
 ./lib/dns/gssapictx.c				C	2000,2001,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./lib/dns/hmac_link.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011
+./lib/dns/hmac_link.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2013
 ./lib/dns/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012
 ./lib/dns/include/dns/Makefile.in		MAKE	1998,1999,2000,2001,2002,2003,2004,2007,2008,2009,2011,2012
 ./lib/dns/include/dns/acache.h			C	2004,2006,2007,2013
@@ -2510,8 +2510,8 @@
 ./lib/isc/hash.c				C	2003,2004,2005,2006,2007,2009
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005,2007,2008
-./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006,2007,2009
-./lib/isc/hmacsha.c				C	2005,2006,2007,2009,2011,2012
+./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006,2007,2009,2013
+./lib/isc/hmacsha.c				C	2005,2006,2007,2009,2011,2012,2013
 ./lib/isc/httpd.c				C	2006,2007,2008,2010,2011,2012
 ./lib/isc/ia64/Makefile.in			MAKE	2007,2012
 ./lib/isc/ia64/include/Makefile.in		MAKE	2007,2012
@@ -2578,6 +2578,7 @@
 ./lib/isc/include/isc/result.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012
 ./lib/isc/include/isc/resultclass.h		C	1999,2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007
+./lib/isc/include/isc/safe.h			C	2013
 ./lib/isc/include/isc/serial.h			C	1999,2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/sha1.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/sha2.h			C	2005,2006,2007,2009
@@ -2656,6 +2657,7 @@
 ./lib/isc/region.c				C	2002,2004,2005,2007
 ./lib/isc/result.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2008,2012
 ./lib/isc/rwlock.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2011,2012
+./lib/isc/safe.c				C	2013
 ./lib/isc/serial.c				C	1999,2000,2001,2004,2005,2007
 ./lib/isc/sha1.c				C	2000,2001,2003,2004,2005,2007,2009,2011,2012
 ./lib/isc/sha2.c				C	2005,2006,2007,2009,2011,2012
@@ -2680,6 +2682,7 @@
 ./lib/isc/tests/isctest.h			C	2011,2012
 ./lib/isc/tests/parse_test.c			C	2012,2013
 ./lib/isc/tests/regex_test.c			C	2013
+./lib/isc/tests/safe_test.c			C	2013
 ./lib/isc/tests/sockaddr_test.c			C	2012
 ./lib/isc/tests/symtab_test.c			C	2011,2012,2013
 ./lib/isc/tests/taskpool_test.c			C	2011,2012
@@ -2796,7 +2799,7 @@
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/api					X	2001,2006,2008,2009,2010,2012,2013
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007,2012
+./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007,2012,2013
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/include/Makefile.in			MAKE	2001,2004,2007,2012
 ./lib/isccc/include/isccc/Makefile.in		MAKE	2001,2004,2007,2012
