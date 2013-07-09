@@ -43,6 +43,7 @@
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
 #include <isc/print.h>
+#include <isc/safe.h>
 #include <isc/stdlib.h>
 
 #include <isccc/alist.h>
@@ -485,7 +486,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		unsigned char *value;
 
 		value = (unsigned char *) isccc_sexpr_tostring(hmac);
-		if (memcmp(value, digestb64, HMD5_LENGTH) != 0)
+		if (!isc_safe_memcmp(value, digestb64, HMD5_LENGTH))
 			return (ISCCC_R_BADAUTH);
 	} else {
 		unsigned char *value;
@@ -494,7 +495,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		value = (unsigned char *) isccc_sexpr_tostring(hmac);
 		GET8(valalg, value);
 		if ((valalg != algorithm) ||
-		    (memcmp(value, digestb64, HSHA_LENGTH) != 0))
+		    (!isc_safe_memcmp(value, digestb64, HSHA_LENGTH)))
 			return (ISCCC_R_BADAUTH);
 	}
 
