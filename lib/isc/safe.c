@@ -31,12 +31,12 @@ isc_boolean_t
 isc_safe_memcmp(const void *s1, const void *s2, size_t n) {
 	isc_uint8_t acc = 0;
 
-	if (n != 0) {
+	if (n != 0U) {
 		const isc_uint8_t *p1 = s1, *p2 = s2;
 
 		do {
 			acc |= *p1++ ^ *p2++;
-		} while (--n != 0);
+		} while (--n != 0U);
 	}
 	return (ISC_TF(acc == 0));
 }
