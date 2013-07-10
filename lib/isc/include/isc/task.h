@@ -632,7 +632,7 @@ isc_task_setprivilege(isc_task_t *task, isc_boolean_t priv);
  * 'priv'.
  *
  * Under normal circumstances this flag has no effect on the task behavior,
- * but when the task manager has been set to privileged exeuction mode via
+ * but when the task manager has been set to privileged execution mode via
  * isc_taskmgr_setmode(), only tasks with the flag set will be executed,
  * and all other tasks will wait until they're done.  Once all privileged
  * tasks have finished executing, the task manager will automatically
