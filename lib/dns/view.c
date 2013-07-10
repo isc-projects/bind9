@@ -1393,6 +1393,8 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 	dns_zone_t **zp = NULL;;
 
 	REQUIRE(list != NULL);
+	REQUIRE(zonep != NULL && *zonep == NULL);
+
 	for (view = ISC_LIST_HEAD(*list);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {

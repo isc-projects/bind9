@@ -269,9 +269,10 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 			progname, isc_result_totext(result));
 
 	result = isccc_cc_lookupstring(data, "text", &textmsg);
-	if (result == ISC_R_SUCCESS)
-		printf("%s\n", textmsg);
-	else if (result != ISC_R_NOTFOUND)
+	if (result == ISC_R_SUCCESS) {
+		if (strlen(textmsg) != 0U)
+			printf("%s\n", textmsg);
+	} else if (result != ISC_R_NOTFOUND)
 		fprintf(stderr, "%s: parsing response failed: %s\n",
 			progname, isc_result_totext(result));
 

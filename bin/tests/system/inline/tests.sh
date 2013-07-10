@@ -776,4 +776,20 @@ done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+ret=0
+echo "I:test add/del zone combinations"
+for zone in a b c d e f g h i j k l m n o p q r s t u v w x y z
+do
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone test-$zone \
+	'{ type master; file "bits.db.in"; allow-transfer { any; }; };'
+$DIG $DIGOPTS @10.53.0.2 -p 5300 test-$zone SOA > dig.out.ns2.$zone.test$n
+grep "status: NOERROR," dig.out.ns2.$zone.test$n  > /dev/null || { ret=1; cat dig.out.ns2.$zone.test$n; }
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 addzone test-$zone \
+	'{ type slave; masters { 10.53.0.2; }; file "'test-$zone.bk'"; inline-signing yes; auto-dnssec maintain; allow-transfer { any; }; };'
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 delzone test-$zone
+done
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 exit $status

@@ -7639,8 +7639,13 @@ zone_sign(dns_zone_t *zone) {
 	}
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	dns_db_attach(zone->db, &db);
+	if (zone->db != NULL)
+		dns_db_attach(zone->db, &db);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (db == NULL) {
+		result = ISC_R_FAILURE;
+		goto failure;
+	}
 
 	result = dns_db_newversion(db, &version);
 	if (result != ISC_R_SUCCESS) {
@@ -13244,11 +13249,15 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	rawdb = ((struct secure_event *)event)->db;
 	isc_event_free(&event);
 
-	REQUIRE(inline_secure(zone));
-
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
 	dns_rdataset_init(&rdataset);
+
+	LOCK_ZONE(zone);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) || !inline_secure(zone)) {
+		result = ISC_R_SHUTTINGDOWN;
+		goto unlock;
+	}
 
 	TIME_NOW(&loadtime);
 	if (zone->db != NULL) {
@@ -13320,15 +13329,13 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Lock hierarchy: zmgr, zone, raw.
 	 */
-	LOCK_ZONE(zone);
 	INSIST(zone != zone->raw);
-	if (inline_secure(zone))
-		LOCK_ZONE(zone->raw);
+	LOCK_ZONE(zone->raw);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 	result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
 	zone_needdump(zone, 0); /* XXXMPA */
-	if (inline_secure(zone))
-		UNLOCK_ZONE(zone->raw);
+	UNLOCK_ZONE(zone->raw);
+ unlock:
 	UNLOCK_ZONE(zone);
 
  failure:

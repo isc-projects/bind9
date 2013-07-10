@@ -1,3 +1,6 @@
+3513.	[bug]		named could crash when deleting inline-signing
+			zones with "rndc delzone". [RT #34066]
+
 3512.	[port]		Check whether to use -ljson or -ljson-c. [RT #34115]
 
 3611.	[bug]		Improved resistance to a theoretical authentication

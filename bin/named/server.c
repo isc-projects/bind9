@@ -8481,13 +8481,13 @@ inuse(const char* file, isc_boolean_t first, isc_buffer_t *text) {
 
 	if (file != NULL && isc_file_exists(file) &&
 	    isc_buffer_availablelength(text) >
-	    strlen(file) + (first ? sizeof(INUSEMSG) : 0))
+	    strlen(file) + (first ? sizeof(INUSEMSG) : sizeof("\n")))
 	{
 		if (first)
-			isc__buffer_putstr(text, INUSEMSG);
+			isc_buffer_putstr(text, INUSEMSG);
 		else
 			isc_buffer_putstr(text, "\n");
-		isc__buffer_putstr(text, file);
+		isc_buffer_putstr(text, file);
 		return (ISC_FALSE);
 	}
 	return (first);
@@ -8670,6 +8670,7 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 		isc_buffer_putstr(text, "zone ");
 		isc_buffer_putstr(text, zonename);
 		isc_buffer_putstr(text, " and associated files deleted");
+		isc_buffer_putuint8(text, 0);
 	} else if (dns_zone_gettype(mayberaw) == dns_zone_slave ||
 		   dns_zone_gettype(mayberaw) == dns_zone_stub)
 	{
@@ -8688,6 +8689,8 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 			file = dns_zone_getjournal(zone);
 			(void)inuse(file, first, text);
 		}
+		if (isc_buffer_availablelength(text) > 0)
+			isc_buffer_putuint8(text, 0);
 	}
 
 	CHECK(dns_zt_unmount(view->zonetable, zone));
@@ -8882,6 +8885,8 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 			isc_buffer_add(text, n);
 		}
+		if (!first && isc_buffer_availablelength(text) > 0)
+			isc_buffer_putuint8(text, 0);
 
 		if (result == ISC_R_NOMORE)
 			result = ISC_R_SUCCESS;
