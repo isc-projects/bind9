@@ -1,4 +1,4 @@
-3513.	[bug]		named could crash when deleting inline-signing
+3613.	[bug]		named could crash when deleting inline-signing
 			zones with "rndc delzone". [RT #34066]
 
 3611.	[bug]		Improved resistance to a theoretical authentication
