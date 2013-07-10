@@ -8442,6 +8442,8 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 			isc_buffer_add(text, n);
 		}
+		if (!first && isc_buffer_availablelength(text) > 0)
+			isc_buffer_putuint8(text, 0);
 
 		if (result == ISC_R_NOMORE)
 			result = ISC_R_SUCCESS;

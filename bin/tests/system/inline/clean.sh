@@ -71,3 +71,7 @@ rm -f dig.out.ns*.test*
 rm -f signing.out*
 rm -f freeze.test*
 rm -f thaw.test*
+rm -f */*.nzf
+rm -f ns3/test-?.bk
+rm -f ns3/test-?.bk.signed
+rm -f ns3/test-?.bk.signed.jnl
