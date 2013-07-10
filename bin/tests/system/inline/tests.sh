@@ -761,6 +761,7 @@ $PERL ../start.pl --noclean --restart . ns3 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
 echo "I:updates to SOA parameters other than serial while stopped are reflected in signed zone ($n)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9
@@ -776,8 +777,9 @@ done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:test add/del zone combinations ($n)"
 ret=0
-echo "I:test add/del zone combinations"
 for zone in a b c d e f g h i j k l m n o p q r s t u v w x y z
 do
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone test-$zone \
