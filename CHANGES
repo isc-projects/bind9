@@ -1,3 +1,6 @@
+3617.	[bug]		Named was failing to answer queries during
+			"rndc reload" [RT #34098]
+
 3616.	[bug]		Change #3613 was incomplete. [RT #34177]
 
 3615.	[cleanup]	"configure" now finishes by printing a summary
