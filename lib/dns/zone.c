@@ -3211,7 +3211,7 @@ set_resigntime(dns_zone_t *zone) {
 	}
 
 	result = dns_db_getsigningtime(db, &rdataset,
- 				       dns_fixedname_name(&fixed));
+				       dns_fixedname_name(&fixed));
 	if (result != ISC_R_SUCCESS) {
 		isc_time_settoepoch(&zone->resigntime);
 		goto cleanup;
