@@ -1505,6 +1505,7 @@ with_dlz_ldap
 with_dlz_odbc
 with_dlz_stub
 with_make_clean
+enable_full_report
 '
       ac_precious_vars='build_alias
 host_alias
@@ -2161,6 +2162,7 @@ Optional Features:
   --disable-rpz-nsdname	  disable rpz-nsdname rules [default=enabled]
   --enable-filter-aaaa    enable filtering of AAAA records over IPv4
 			  [default=no]
+  --enable-full-report	  report values of all configure options
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -11881,6 +11883,7 @@ yes)
 		test "${enable_exportlib+set}" = set || enable_exportlib=yes
 		;;
 	esac
+	test "${enable_symtable+set}" = set || enable_symtable=all
 	;;
 esac
 #
@@ -23020,6 +23023,86 @@ yes)
 	make clean
 	;;
 esac
+
+# Check whether --enable-full-report was given.
+if test "${enable_full_report+set}" = set; then :
+  enableval=$enable_full_report;
+fi
+
+echo enable full report set to: $enable_full_report
+
+echo "========================================================================"
+echo "Configuration summary:"
+echo "------------------------------------------------------------------------"
+echo "Optional features enabled:"
+$use_threads && echo "    Multiprocessing support (--enable-threads)"
+
+test "$enable_fixed" = "yes" && \
+    echo "    Fixed RRset order (--enable-fixed-rrset)"
+test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
+test "$enable_filter" = "yes" && \
+    echo "    AAAA filtering (--enable-filter-aaaa)"
+test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
+test "$want_backtrace" = "yes" && \
+    echo "    Print backtrace on crash (--enable-backtrace)"
+test "$want_symtable" = "minimal" && \
+    echo "    Use symbol table for backtrace, named only (--enable-symtable)"
+test "$want_symtable" = "yes" -o "$want_symtable" = "all" && \
+    echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
+test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pks11)"
+
+
+# these lines are only printed if run with --enable-full-report
+if test "$enable_full_report" = "yes"; then
+    test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" || \
+        echo "    IPv6 support"
+    test "X$USE_OPENSSL" = "X" || echo "    OpenSSL cryptography/DNSSEC"
+    test "$OPENSSL_GOST" != "yes" || echo "    GOST algorithm support"
+    test "$OPENSSL_ECDSA" != "yes" || echo "    ECDSA algorithm support"
+    test "X$PYTHON" = "X" || echo "    Python tools"
+    test "X$libxml2_libs" = "X" || echo "    XML statistics"
+fi
+
+echo "    Dynamically loadable zone (DLZ) drivers:"
+test "$use_dlz_bdb" = "no" || \
+    echo "        Berkeley DB (--with-dlz-bdb)"
+test "$use_dlz_ldap" = "no" || \
+    echo "        LDAP (--with-dlz-ldap)"
+test "$use_dlz_mysql" = "no" || \
+    echo "        MySQL (--with-dlz-mysql)"
+test "$use_dlz_odbc" = "no" || \
+    echo "        ODBC (--with-dlz-bdb)"
+test "$use_dlz_postgres" = "no" || \
+    echo "        Postgres (--with-dlz-postgres)"
+test "$use_dlz_filesystem" = "no" || \
+    echo "        Filesystem (--with-dlz-filesystem)"
+test "$use_dlz_stub" = "no" || \
+    echo "        Stub (--with-dlz-stub)"
+test "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" = "no no no no no no no" && echo "        None"
+echo
+
+echo "Features disabled or unavailable on this platform:"
+$use_threads || echo "    Multiprocessing support (--enable-threads)"
+test "$enable_fixed" = "yes" || \
+    echo "    Fixed RRset order (--enable-fixed-rrset)"
+test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
+test "$enable_filter" = "yes" || \
+    echo "    AAAA filtering (--enable-filter-aaaa)"
+test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
+test "$want_backtrace" = "yes" || \
+    echo "    Print backtrace on crash (--enable-backtrace)"
+test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pks11)"
+
+test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && echo "    IPv6 support"
+test "X$USE_OPENSSL" = "X" && echo "    OpenSSL cryptography/DNSSEC"
+test "X$USE_OPENSSL" != "X" -a "$OPENSSL_GOST" != "yes" && \
+    echo "    GOST algorithm support"
+test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ECDSA" != "yes" && \
+    echo "    ECDSA algorithm support"
+test "X$PYTHON" = "X" && echo "    Python tools"
+test "X$libxml2_libs" = "X" && echo "    XML statistics"
+
+echo "========================================================================"
 
 if test "X$USE_OPENSSL" = "X"; then
 cat << \EOF
