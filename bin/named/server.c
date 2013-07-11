@@ -5644,7 +5644,7 @@ view_loaded(void *arg) {
 }
 
 static isc_result_t
-load_zones(ns_server_t *server) {
+load_zones(ns_server_t *server, isc_boolean_t init) {
 	isc_result_t result;
 	dns_view_t *view;
 	ns_zoneload_t *zl;
@@ -5695,12 +5695,14 @@ load_zones(ns_server_t *server) {
 	if (refs == 0) {
 		isc_refcount_destroy(&zl->refs);
 		isc_mem_put(server->mctx, zl, sizeof (*zl));
-	} else {
+	} else if (init) {
 		/*
 		 * Place the task manager into privileged mode.  This
 		 * ensures that after we leave task-exclusive mode, no
 		 * other tasks will be able to run except for the ones
-		 * that are loading zones.
+		 * that are loading zones. (This should only be done during
+		 * the initial server setup; it isn't necessary during
+		 * a reload.)
 		 */
 		isc_taskmgr_setmode(ns_g_taskmgr, isc_taskmgrmode_privileged);
 	}
@@ -5792,7 +5794,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_hash_init();
 
-	CHECKFATAL(load_zones(server), "loading zones");
+	CHECKFATAL(load_zones(server, ISC_TRUE), "loading zones");
 }
 
 void
@@ -6229,7 +6231,7 @@ reload(ns_server_t *server) {
 	isc_result_t result;
 	CHECK(loadconfig(server));
 
-	result = load_zones(server);
+	result = load_zones(server, ISC_FALSE);
 	if (result == ISC_R_SUCCESS)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
