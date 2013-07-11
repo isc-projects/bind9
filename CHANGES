@@ -1,3 +1,5 @@
+3616.	[bug]		Change #3613 was incomplete. [RT #34177]
+
 3615.	[cleanup]	"configure" now finishes by printing a summary
 			of optional BIND features and whether they are
 			active or inactive. ("configure --enable-full-report"
