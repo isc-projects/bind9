@@ -1,3 +1,5 @@
+3614.	[port]		Check for <linux/types.h>. [RT #34162]
+
 3611.	[bug]		Improved resistance to a theoretical authentication
 			attack based on differential timing.  [RT #33939]
 
