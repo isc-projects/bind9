@@ -653,6 +653,7 @@ struct dns_asyncload {
  */
 struct dns_include {
 	char *name;
+	isc_time_t filetime;
 	ISC_LINK(dns_include_t)	link;
 };
 
@@ -1597,11 +1598,41 @@ dns_zone_get_rpz_num(dns_zone_t *zone) {
 	return (zone->rpz_num);
 }
 
+static isc_boolean_t
+zone_touched(dns_zone_t *zone) {
+	isc_result_t result;
+	isc_time_t modtime;
+	dns_include_t *include;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	result = isc_file_getmodtime(zone->masterfile, &modtime);
+	if (result != ISC_R_SUCCESS ||
+	    isc_time_compare(&modtime, &zone->loadtime) > 0)
+	{
+		zone->loadtime = modtime;
+		return (ISC_TRUE);
+	}
+
+	for (include = ISC_LIST_HEAD(zone->includes);
+	     include != NULL;
+	     include = ISC_LIST_NEXT(include, link))
+	{
+		result = isc_file_getmodtime(include->name, &modtime);
+		if (result != ISC_R_SUCCESS ||
+		    isc_time_compare(&modtime, &include->filetime) > 0)
+			return (ISC_TRUE);
+	}
+
+
+	return (ISC_FALSE);
+}
+
 static isc_result_t
 zone_load(dns_zone_t *zone, unsigned int flags) {
 	isc_result_t result;
 	isc_time_t now;
-	isc_time_t loadtime, filetime;
+	isc_time_t loadtime;
 	dns_db_t *db = NULL;
 	isc_boolean_t rbt, hasraw;
 
@@ -1680,18 +1711,14 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 			goto cleanup;
 		}
 
-		result = isc_file_getmodtime(zone->masterfile, &filetime);
-		if (result == ISC_R_SUCCESS) {
-			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
-			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE) &&
-			    isc_time_compare(&filetime, &zone->loadtime) <= 0) {
-				dns_zone_log(zone, ISC_LOG_DEBUG(1),
-					     "skipping load: master file "
-					     "older than last load");
-				result = DNS_R_UPTODATE;
-				goto cleanup;
-			}
-			loadtime = filetime;
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
+		    !zone_touched(zone))
+		{
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "skipping load: master file "
+				     "older than last load");
+			result = DNS_R_UPTODATE;
+			goto cleanup;
 		}
 	}
 
@@ -1979,6 +2006,7 @@ get_master_options(dns_zone_t *zone) {
 
 static void
 zone_registerinclude(const char *filename, void *arg) {
+	isc_result_t result;
 	dns_zone_t *zone = (dns_zone_t *) arg;
 	dns_include_t *inc = NULL;
 
@@ -1996,6 +2024,10 @@ zone_registerinclude(const char *filename, void *arg) {
 		return;
 	}
 	ISC_LINK_INIT(inc, link);
+
+	result = isc_file_getmodtime(filename, &inc->filetime);
+	if (result != ISC_R_SUCCESS)
+		isc_time_settoepoch(&inc->filetime);
 
 	ISC_LIST_APPEND(zone->includes, inc, link);
 	zone->nincludes++;
