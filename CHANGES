@@ -1,3 +1,8 @@
+3615.	[cleanup]	"configure" now finishes by printing a summary
+			of optional BIND features and whether they are
+			active or inactive. ("configure --enable-full-report"
+			increases the verbosity of the summary.) [RT #31777]
+
 3614.	[port]		Check for <linux/types.h>. [RT #34162]
 
 3613.	[bug]		named could crash when deleting inline-signing
