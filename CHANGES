@@ -1,3 +1,5 @@
+3614.	[port]		Check for <linux/types.h>. [RT #34162]
+
 3613.	[bug]		named could crash when deleting inline-signing
 			zones with "rndc delzone". [RT #34066]
 
