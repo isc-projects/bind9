@@ -6515,7 +6515,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			case DNS_RPZ_POLICY_DROP:
 				result = ISC_R_SUCCESS;
 				QUERY_ERROR(DNS_R_DROP);
-   				break;
+				break;
 			case DNS_RPZ_POLICY_NXDOMAIN:
 				result = DNS_R_NXDOMAIN;
 				break;
