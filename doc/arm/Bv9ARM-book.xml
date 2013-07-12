@@ -4950,7 +4950,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> min-table-size <replaceable>number</replaceable> ; </optional>
       } ; </optional>
     <optional> response-policy { <replaceable>zone_name</replaceable>
-	<optional> policy given | disabled | passthru | nxdomain | nodata | cname <replaceable>domain</replaceable> </optional>
+	<optional> policy given | disabled | passthru | drop | nxdomain | nodata | cname <replaceable>domain</replaceable> </optional>
 	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional> ;
     } <optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional>
 	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional> <optional> min-ns-dots <replaceable>number</replaceable> </optional>
@@ -9288,70 +9288,115 @@ deny-answer-aliases { "example.net"; };
 	  </para>
 
 	  <para>
-	    Four policy triggers are encoded in RPZ records, QNAME, IP, NSIP,
-	    and NSDNAME.
-	    QNAME RPZ records triggered by query names of requests and targets
-	    of CNAME records resolved to generate the response.
-	    The owner name of a QNAME RPZ record is the query name relativized
-	    to the RPZ.
-	  </para>
+	    Five policy triggers can be encoded in RPZ records.
+	    <variablelist>
+	      <varlistentry>
+		<term><command>RPZ-CLIENT-IP</command></term>
+		<listitem>
+		  <para>
+		    IP records are triggered by the IP address of the
+		    DNS client.
+		    Client IP address triggers are encoded in records that have
+		    owner names that are subdomains of
+		    <command>rpz-client-ip</command> relativized to the
+		    policy zone origin name
+		    and encode an address or address block.
+		    IPv4 addresses are represented as
+		    <userinput>prefixlength.B4.B3.B2.B1.rpz-ip</userinput>.
+		    The IPv4 prefix length must be between 1 and 32.
+		    All four bytes, B4, B3, B2, and B1, must be present.
+		    B4 is the decimal value of the least significant byte of the
+		    IPv4 address as in IN-ADDR.ARPA.
+		  </para>
+
+		  <para>
+		    IPv6 addresses are encoded in a format similar
+		    to the standard IPv6 text representation,
+		    <userinput>prefixlength.W8.W7.W6.W5.W4.W3.W2.W1.rpz-ip</userinput>.
+		    Each of W8,...,W1 is a one to four digit hexadecimal number
+		    representing 16 bits of the IPv6 address as in the standard 
+		    text representation of IPv6 addresses,
+		    but reversed as in IN-ADDR.ARPA.
+		    All 8 words must be present except when one set of consecutive
+		    zero words is replaced with <userinput>.zz.</userinput>
+		    analogous to double colons (::) in standard IPv6 text
+		    encodings.
+		    The IPv6 prefix length must be between 64 and 128.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>QNAME</command></term>
+		<listitem>
+		  <para>
+		    QNAME policy records are triggered by query names of
+		    requests and targets of CNAME records resolved to generate
+		    the response.
+		    The owner name of a QNAME policy record is
+		    the query name relativized to the policy zone.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>RPZ-IP</command></term>
+		<listitem>
+		  <para>
+		    IP triggers are IP addresses in an
+		    A or AAAA record in the ANSWER section of a response.
+		    They are encoded like client-IP triggers except as
+		    subdomains of <command>rpz-ip</command>.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>RPZ-NSDNAME</command></term>
+		<listitem>
+		  <para>
+		    NSDNAME triggers match names of authoritative servers
+		    for the query name, a parent of the query name, a CNAME for
+		    query name, or a parent of a CNAME.
+		    They are encoded as subdomains of
+		    <command>rpz-nsdname</command> relativized
+		    to the RPZ origin name.
+		    NSIP triggers match IP addresses in A and
+		    AAAA RRsets for domains that can be checked against NSDNAME
+		    policy records.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>RPZ-NSIP</command></term>
+		<listitem>
+		  <para>
+		    NSIP triggers are encoded like IP triggers except as
+		    subdomains of <command>rpz-nsip</command>.
+		    NSDNAME and NSIP triggers are checked only for names with at
+		    least <command>min-ns-dots</command> dots.
+		    The default value of <command>min-ns-dots</command> is 1 to
+		    exclude top level domains.
+		</para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
 
 	  <para>
-	    The second kind of RPZ trigger is an IP address in an A and AAAA
-	    record in the ANSWER section of a response.
-	    IP address triggers are encoded in records that have owner names
-	    that are subdomains of <userinput>rpz-ip</userinput> relativized
-	    to the RPZ origin name and encode an IP address or address block.
-	    IPv4 trigger addresses are represented as
-	    <userinput>prefixlength.B4.B3.B2.B1.rpz-ip</userinput>.
-	    The prefix length must be between 1 and 32.
-	    All four bytes, B4, B3, B2, and B1, must be present.
-	    B4 is the decimal value of the least significant byte of the
-	    IPv4 address as in IN-ADDR.ARPA.
-	    IPv6 addresses are encoded in a format similar to the standard
-	    IPv6 text representation,
-	    <userinput>prefixlength.W8.W7.W6.W5.W4.W3.W2.W1.rpz-ip</userinput>.
-	    Each of W8,...,W1 is a one to four digit hexadecimal number
-	    representing 16 bits of the IPv6 address as in the standard text
-	    representation of IPv6 addresses, but reversed as in IN-ADDR.ARPA.
-	    All 8 words must be present except when consecutive
-	    zero words are replaced with <userinput>.zz.</userinput>
-	    analogous to double colons (::) in standard IPv6 text encodings.
-	    The prefix length must be between 1 and 128.
-	  </para>
-
-	  <para>
-	    NSDNAME triggers match names of authoritative servers
-	    for the query name, a parent of the query name, a CNAME for
-	    query name, or a parent of a CNAME.
-	    They are encoded as subdomains of
-	    <userinput>rpz-nsdomain</userinput> relativized
-	    to the RPZ origin name.
-	    NSIP triggers match IP addresses in A and
-	    AAAA RRsets for domains that can be checked against NSDNAME
-	    policy records.
-	    NSIP triggers are encoded like IP triggers except as subdomains of
-	    <userinput>rpz-nsip</userinput>.
-	    NSDNAME and NSIP triggers are checked only for names with at
-	    least <command>min-ns-dots</command> dots.
-	    The default value of <command>min-ns-dots</command> is 1 to
-	    exclude top level domains.
-	  </para>
-
-	  <para>
-	    The query response is checked against all response policy zones, so
-	    two or more policy records can be triggered by a response.
-	    Because DNS responses can be rewritten according to at most one
+	    The query response is checked against all response policy zones,
+	    so two or more policy records can be triggered by a response.
+	    Because DNS responses are rewritten according to at most one
 	    policy record, a single record encoding an action (other than
 	    <command>DISABLED</command> actions) must be chosen.
-	    Triggers or the records that encode them are chosen in
-	    the following order:
+	    Triggers or the records that encode them are chosen for the
+	    rewriting in the following order:
 	    <itemizedlist>
 	      <listitem>Choose the triggered record in the zone that appears
-		first in the response-policy option.
+		first in the <command>response-policy</command> option.
 	      </listitem>
-	      <listitem>Prefer QNAME to IP to NSDNAME to NSIP triggers
-		in a single zone.
+	      <listitem>Prefer CLIENT-IP to QNAME to IP to NSDNAME to NSIP
+		triggers in a single zone.
 	      </listitem>
 	      <listitem>Among NSDNAME triggers, prefer the
 		trigger that matches the smallest name under the DNSSEC ordering.
@@ -9375,73 +9420,156 @@ deny-answer-aliases { "example.net"; };
 	  </para>
 
 	  <para>
-	    RPZ record sets are sets of any types of DNS record except
-	    DNAME or DNSSEC that encode actions or responses to queries.
-	    <itemizedlist>
-	      <listitem>The <command>NXDOMAIN</command> response is encoded
-		by a CNAME whose target is the root domain (.)
-	      </listitem>
-	      <listitem>A CNAME whose target is the wildcard top-level
-		domain (*.) specifies the <command>NODATA</command> action,
-		which rewrites the response to NODATA or ANCOUNT=1.
-	      </listitem>
-	      <listitem>The <command>Local Data</command> action is
-		represented by a set ordinary DNS records that are used
-		to answer queries.  Queries for record types not the
-		set are answered with NODATA.
+	    RPZ record sets are any types of DNS record except
+	    DNAME or DNSSEC that encode actions or responses to
+	    individual queries.
+	    Any of the policies can be used with any of the triggers.
+	    For example, while the <command>TCP-only</command> policy is
+	    commonly used with <command>client-IP</command> triggers,
+	    it cn be used with any type of trigger to force the use of
+	    TCP for responses with owner names in a zone.
+	    <variablelist>
+	      <varlistentry>
+		<term><command>PASSTHRU</command></term>
+		<listitem>
+		  <para>
+		    The whitelist policy is specified
+		    by a CNAME whose target is <command>rpz-passthru</command>.
+		    It causes the response to not be rewritten
+		    and is most often used to "poke holes" in policies for
+		    CIDR blocks.
+		  </para>
+		</listitem>
+	      </varlistentry>
 
-		A special form of local data is a CNAME whose target is a
-		wildcard such as *.example.com.
-		It is used as if were an ordinary CNAME after the astrisk (*)
-		has been replaced with the query name.
-		The purpose for this special form is query logging in the
-		walled garden's authority DNS server.
-	      </listitem>
-	      <listitem>The <command>PASSTHRU</command> policy is specified
-		by a CNAME whose target is <command>rpz-passthru.</command>
-		It causes the response to not be rewritten
-		and is most often used to "poke holes" in policies for
-		CIDR blocks.
-		(A CNAME whose target is the variable part of its owner name
-		is an obsolete specification of the PASSTHRU policy.)
-	      </listitem>
-	    </itemizedlist>
+	      <varlistentry>
+		<term><command>DROP</command></term>
+		<listitem>
+		  <para>
+		    The blacklist policy is specified
+		    by a CNAME whose target is <command>rpz-drop</command>.
+		    It causes the response to be discarded.
+		    Nothing is sent to the DNS client.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>TCP-Only</command></term>
+		<listitem>
+		  <para>
+		    The "slip" policy is specified
+		    by a CNAME whose target is <command>rpz-tcp-only</command>.
+		    It changes UDP responses to short, truncated DNS responses
+		    that require the DNS client to try again with TCP.
+		    It is used to mitigate distributed DNS reflection attacks.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>NXDOMAIN</command></term>
+		<listitem>
+		  <para>
+		    The domain undefined response is encoded
+		    by a CNAME whose target is the root domain (.)
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>NODATA</command></term>
+		<listitem>
+		  <para>
+		    The empty set of resource records is specified by
+		    CNAME whose target is the wildcard top-level
+		    domain (*.).
+		    It rewrites the response to NODATA or ANCOUNT=1.
+		  </listitem>
+		</para>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>Local Data</command></term>
+		<listitem>
+		  <para>
+		    A set of ordinary DNS records can be used to answer queries.
+		    Queries for record types not the set are answered with
+		    NODATA.
+		  </para>
+
+		  <para>
+		    A special form of local data is a CNAME whose target is a
+		    wildcard such as *.example.com.
+		    It is used as if were an ordinary CNAME after the astrisk (*)
+		    has been replaced with the query name.
+		    The purpose for this special form is query logging in the
+		    walled garden's authority DNS server.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
 	  </para>
 
 	  <para>
-	    The actions specified in a policy zone can be overridden with a
-	    <command>policy</command> clause in the
+	    All of the actions specified in all of the individual records
+	    in a policy zone
+	    can be overridden with a <command>policy</command> clause in the
 	    <command>response-policy</command> option.
 	    An organization using a policy zone provided by another
 	    organization might use this mechanism to redirect domains
 	    to its own walled garden.
-	    <itemizedlist>
-	      <listitem><command>GIVEN</command> says "do not override but
-		perform the action specified in the zone."
-	      </listitem>
-	      <listitem><command>DISABLED</command> causes policy records to do
-		nothing but log what they might have done.
-		The response to the DNS query will be written according to
-		any triggered policy records that are not disabled.
-		Disabled policy zones should appear first,
-		because they will often not be logged
-		if a higher precedence trigger is found first.
-	      </listitem>
-	      <listitem><command>PASSTHRU</command> causes all policy records
-		to act as if they were CNAME records with targets the variable
-		part of their owner name.  They protect the response from
-		being changed.
-	      </listitem>
-	      <listitem><command>NXDOMAIN</command> causes all RPZ records
-		to specify NXDOMAIN policies.
-	      </listitem>
-	      <listitem><command>NODATA</command> overrides with the
-		NODATA policy
-	      </listitem>
-	      <listitem><command>CNAME domain</command> causes all RPZ
-		policy records to act as if they were "cname domain" records.
-	      </listitem>
-	    </itemizedlist>
+	    <variablelist>
+	      <varlistentry>
+		<term><command>GIVEN</command></term>
+		<listitem>
+		  <para>The placeholder policy says "do not override but
+		    perform the action specified in the zone."
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>DISABLED</command></term>
+		<listitem>
+		  <para>
+		    The testing override policy causes policy zone records to do
+		    nothing but log what they would have done if the
+		    policy zone were not disabled.
+		    The response to the DNS query will be written (or not)
+		    according to any triggered policy records that are not
+		    disabled.
+		    Disabled policy zones should appear first,
+		    because they will often not be logged
+		    if a higher precedence trigger is found first.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>PASSTHRU</command></term>,
+		<term><command>DROP</command></term>,
+		<term><command>TCP-Only</command></term>,
+		<term><command>NXDOMAIN</command></term>,
+		and
+		<term><command>NODATA</command></term>
+		<listitem>
+		  <para>
+		    override with the corresponding per-record policy.
+		  </listitem>
+		</para>
+	      </varlistentry>
+
+	      <varlistentry>
+		  <term><command>CNAME domain</command></term>
+		  <listitem>
+		    <para>
+		      causes all RPZ policy records to act as if they were
+		      "cname domain" records.
+		    </para>
+		  </listitem>
+		</varlistentry>
+	    </variablelist>
 	  </para>
 
 	  <para>
@@ -9469,25 +9597,31 @@ deny-answer-aliases { "example.net"; };
 	  </para>
 
 	  <para>
-            No DNS records are needed to trigger a QNAME action.  The name
-            itself is sufficient, so in principle the query name need not
-            be recursively resolved.  However, not resolving the requested
-            name leaks the fact that response policy rewriting is in use
+            No DNS records are needed for a QNAME or Client-IP trigger.
+	    The name or IP address itself is sufficient,
+	    so in principle the query name need not be recursively resolved.
+	    However, not resolving the requested
+            name can leak the fact that response policy rewriting is in use
             and that the name is listed in a policy zone to operators of
             servers for listed names.  To prevent that information leak, by
             default any recursion needed for a request is done before any
             policy triggers are considered.  Because listed domains often
             have slow authoritative servers, this default behavior can cost
-            significant time.  The <command>qname-wait-recurse no</command>
-            option overrides the default behavior when recursion cannot
-            change the response.  <command>qname-wait-recurse no</command>
-            does not affect QNAME triggers in policy zones listed after
-            other zones containing IP, NSIP and NSDNAME triggers, because
+            significant time.
+	    The <command>qname-wait-recurse no</command> option
+            overrides that default behavior when recursion cannot
+            change a non-error response.
+	    The option does not affect QNAME or client-IP triggers
+	    in policy zones listed
+	    after other zones containing IP, NSIP and NSDNAME triggers, because
             those may depend on the A, AAAA, and NS records that would be
             found during recursive resolution.  It also does not affect
             DNSSEC requests (DO=1) unless <command>break-dnssec yes</command>
             is in use, because the response would depend on whether or not
             RRSIG records were found during resolution.
+	    The option can cause appear to rewrite error responses
+	    such as SERVFAIL when no recursion is done to discover problems
+	    at the authoritative server.
 	  </para>
 
 	  <para>
@@ -9515,26 +9649,38 @@ deny-answer-aliases { "example.net"; };
 
 ; QNAME policy records.  There are no periods (.) after the owner names.
 nxdomain.domain.com     CNAME   .               ; NXDOMAIN policy
+*.nxdomain.domain.com   CNAME   .               ; NXDOMAIN policy
 nodata.domain.com       CNAME   *.              ; NODATA policy
+*.nodata.domain.com     CNAME   *.              ; NODATA policy
 bad.domain.com          A       10.0.0.1        ; redirect to a walled garden
                         AAAA    2001:2::1
+bzone.domain.com        CNAME   garden.example.com.
 
 ; do not rewrite (PASSTHRU) OK.DOMAIN.COM
 ok.domain.com           CNAME   rpz-passthru.
-
-bzone.domain.com        CNAME   garden.example.com.
 
 ; redirect x.bzone.domain.com to x.bzone.domain.com.garden.example.com
 *.bzone.domain.com      CNAME   *.garden.example.com.
 
 
-; IP policy records that rewrite all answers for 127/8 except 127.0.0.1
+; IP policy records that rewrite all responses containing A records in 127/8
+;       except 127.0.0.1
 8.0.0.0.127.rpz-ip      CNAME   .
 32.1.0.0.127.rpz-ip     CNAME   rpz-passthru.
 
 ; NSDNAME and NSIP policy records
 ns.domain.com.rpz-nsdname   CNAME   .
 48.zz.2.2001.rpz-nsip       CNAME   .
+
+; blacklist and whitelist some DNS clients
+112.zz.2001.rpz-client-ip    CNAME   rpz-drop.
+8.0.0.0.127.rpz-client-ip    CNAME   rpz-drop.
+
+; force some DNS clients and responses in the example.com zone to TCP
+16.0.0.1.10.rpz-client-ip   CNAME   rpz-tcp-only.
+example.com                 CNAME   rpz-tcp-only.
+*.example.com               CNAME   rpz-tcp-only.
+
 </programlisting>
           <para>
             RPZ can affect server performance.

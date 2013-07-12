@@ -1,3 +1,12 @@
+3620.	[func]		Added "rpz-client-ip" policy triggers, enabling
+			RPZ responses to be configured on the basis of
+			the client IP address; this can be used, for
+			example, to blacklist misbehaving recursive
+			or stub resolvers. [RT #33605]
+
+3619.	[bug]		Fixed a bug in RPZ with "recursive-only no;"
+			[RT #33776]
+
 3618.	[func]		"rndc reload" now checks modification times of
 			include files as well as master files to determine
 			whether to skip reloading a zone. [RT #33936]

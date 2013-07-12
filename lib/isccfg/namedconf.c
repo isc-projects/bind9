@@ -1107,7 +1107,7 @@ static cfg_type_t cfg_type_masterformat = {
 
 /*%
  *  response-policy {
- *	zone <string> [ policy (given|disabled|passthru|
+ *	zone <string> [ policy (given|disabled|passthru|drop|tcp-only|
  *					nxdomain|nodata|cname <domain> ) ]
  *		      [ recursive-only yes|no ] [ max-policy-ttl number ] ;
  *  } [ recursive-only yes|no ] [ max-policy-ttl number ] ;
@@ -1137,7 +1137,7 @@ doc_rpz_cname(cfg_printer_t *pctx, const cfg_type_t *type) {
 
 /*
  * Parse
- *	given|disabled|passthru|nxdomain|nodata|cname <domain>
+ *	given|disabled|passthru|drop|tcp-only|nxdomain|nodata|cname <domain>
  */
 static isc_result_t
 cfg_parse_rpz_policy(cfg_parser_t *pctx, const cfg_type_t *type,
@@ -1268,9 +1268,12 @@ static cfg_type_t cfg_type_rpz_zone = {
 	doc_keyvalue, &cfg_rep_string,
 	&zone_kw
 };
+/*
+ * "no-op" is an obsolete equivalent of "passthru".
+ */
 static const char *rpz_policies[] = {
-	"given", "disabled", "passthru", "no-op", "nxdomain", "nodata",
-	"cname", NULL
+	"given", "disabled", "passthru", "no-op", "drop", "tcp-only",
+	"nxdomain", "nodata", "cname", NULL
 };
 static cfg_type_t cfg_type_rpz_policy_name = {
 	"policy name", cfg_parse_enum, cfg_print_ustring,

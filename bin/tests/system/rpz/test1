@@ -92,4 +92,10 @@ update	add c1.crash2.tld3.bl.	300 CNAME .
 ; DO=1 without signatures, DO=0 with signatures are rewritten
 ;	26 - 27
 update add  a0-1.tld2s.bl.	300 CNAME .
+;	32
+update add  a3-8.tld2.bl.	300 CNAME rpz-drop.
+;	33
+update add  a3-9.tld2.bl.	300 CNAME rpz-tcp-only.
+;	34 qname-wait-recurse yes
+update add  x.servfail.bl.	300 A	127.0.0.34
 send

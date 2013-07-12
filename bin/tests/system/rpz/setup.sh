@@ -26,11 +26,13 @@ QPERF=`sh qperf.sh`
 
 sh clean.sh
 
-# set up test policy zones.  bl-2 is used to check competing zones.
-#	bl-{given,disabled,passthru,no-data,nxdomain,cname,wildcard,garden}
-#	are used to check policy overrides in named.conf.
-#	NO-OP is an obsolete synonym for PASSHTRU
-for NM in '' -2 -given -disabled -passthru -no-op -nodata -nxdomain -cname -wildcname -garden; do
+# set up test policy zones.
+#   bl is the main test zone
+#   bl-2 is used to check competing zones.
+#   bl-{given,disabled,passthru,no-data,nxdomain,cname,wildcard,garden,
+#	    drop,tcp-only} are used to check policy overrides in named.conf.
+#   NO-OP is an obsolete synonym for PASSHTRU
+for NM in '' -2 -given -disabled -passthru -no-op -nodata -nxdomain -cname -wildcname -garden -drop -tcp-only; do
     sed -e "/SOA/s/blx/bl$NM/g" ns3/base.db >ns3/bl$NM.db
 done
 
@@ -48,7 +50,7 @@ signzone () {
 signzone ns2 tld2s. base-tld2s.db tld2s.db
 
 
-# Performance checks.
+# Performance and a few other checks.
 cat <<EOF >ns5/rpz-switch
 response-policy {
 	zone "bl0"; zone "bl1"; zone "bl2"; zone "bl3"; zone "bl4";
@@ -56,13 +58,14 @@ response-policy {
 	zone "bl10"; zone "bl11"; zone "bl12"; zone "bl13"; zone "bl14";
 	zone "bl15"; zone "bl16"; zone "bl17"; zone "bl18"; zone "bl19";
     } recursive-only no
-	max-policy-ttl 90
-	# min-ns-dots 0
-	break-dnssec yes;
+    max-policy-ttl 90
+    break-dnssec yes
+    qname-wait-recurse no
+    ;
 EOF
 
 cat <<EOF >ns5/example.db
-\$TTL	120
+\$TTL	300
 @	SOA	.  hostmaster.ns.example.tld5. ( 1 3600 1200 604800 60 )
 	NS	ns
 	NS	ns1
@@ -71,15 +74,16 @@ ns1	A	10.53.0.5
 EOF
 
 cat <<EOF >ns5/bl.db
-\$TTL	120
+\$TTL	300
 @		SOA	.  hostmaster.ns.blperf. ( 1 3600 1200 604800 60 )
-		NS	ns
-ns		A	10.53.0.5
+		NS	ns.tld5.
 
-; used only in failure for "recursive-only no" in #8 test5
-a3-5.tld2	CNAME	*.
+; for "qname-wait-recurse no" in #35 test1
+x.servfail	A	35.35.35.35
+; for "recursive-only no" in #8 test5
+a3-5.tld2	CNAME	.
 ; for "break-dnssec" in #9 & #10 test5
-a3-5.tld2s	CNAME	*.
+a3-5.tld2s	CNAME	.
 ; for "max-policy-ttl 90" in #17 test5
 a3-17.tld2	500 A	17.17.17.17
 
@@ -88,8 +92,7 @@ ns1.x.rpz-nsdname	CNAME	.
 EOF
 
 if test -n "$QPERF"; then
-    # do not build the full zones if we will not use them to avoid the long
-    # time otherwise required to shut down the server
+    # Do not build the full zones if we will not use them.
     $PERL -e 'for ($val = 1; $val <= 65535; ++$val) {
 	printf("host-%05d\tA    192.168.%d.%d\n", $val, $val/256, $val%256);
 	}' >>ns5/example.db

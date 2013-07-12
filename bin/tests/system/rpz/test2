@@ -72,3 +72,8 @@ update add 32.16.1.16.172.rpz-ip.bl	300 CNAME .
 send
 update add c2.crash2.tld3.bl-2		300 A	127.0.0.16
 send
+
+; client-IP address trigger
+;	17
+update add 32.1.0.53.10.rpz-client-ip.bl 300 A	127.0.0.17
+send

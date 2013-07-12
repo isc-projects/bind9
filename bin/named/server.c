@@ -1640,10 +1640,13 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 		return (result);
 	}
 	dns_name_init(&new->origin, NULL);
+	dns_name_init(&new->client_ip, NULL);
 	dns_name_init(&new->ip, NULL);
 	dns_name_init(&new->nsdname, NULL);
 	dns_name_init(&new->nsip, NULL);
 	dns_name_init(&new->passthru, NULL);
+	dns_name_init(&new->drop, NULL);
+	dns_name_init(&new->tcp_only, NULL);
 	dns_name_init(&new->cname, NULL);
 	new->num = view->rpzs->p.num_zones++;
 	view->rpzs->zones[new->num] = new;
@@ -1685,6 +1688,11 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 	if (*old_rpz_okp && !dns_name_equal(&old->origin, &new->origin))
 		*old_rpz_okp = ISC_FALSE;
 
+	result = configure_rpz_name2(view, rpz_obj, &new->client_ip,
+				     DNS_RPZ_CLIENT_IP_ZONE, &new->origin);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
 	result = configure_rpz_name2(view, rpz_obj, &new->ip,
 				     DNS_RPZ_IP_ZONE, &new->origin);
 	if (result != ISC_R_SUCCESS)
@@ -1701,7 +1709,17 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 		return (result);
 
 	result = configure_rpz_name(view, rpz_obj, &new->passthru,
-				    DNS_RPZ_PASSTHRU_ZONE, "zone");
+				    DNS_RPZ_PASSTHRU_NAME, "name");
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = configure_rpz_name(view, rpz_obj, &new->drop,
+				    DNS_RPZ_DROP_NAME, "name");
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = configure_rpz_name(view, rpz_obj, &new->tcp_only,
+				    DNS_RPZ_TCP_ONLY_NAME, "name");
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

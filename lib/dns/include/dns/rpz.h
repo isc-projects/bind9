@@ -30,15 +30,26 @@
 ISC_LANG_BEGINDECLS
 
 #define DNS_RPZ_PREFIX		"rpz-"
+/*
+ * Sub-zones of various trigger types.
+ */
+#define DNS_RPZ_CLIENT_IP_ZONE	DNS_RPZ_PREFIX"client-ip"
 #define DNS_RPZ_IP_ZONE		DNS_RPZ_PREFIX"ip"
 #define DNS_RPZ_NSIP_ZONE	DNS_RPZ_PREFIX"nsip"
 #define DNS_RPZ_NSDNAME_ZONE	DNS_RPZ_PREFIX"nsdname"
-#define DNS_RPZ_PASSTHRU_ZONE	DNS_RPZ_PREFIX"passthru"
+/*
+ * Special policies.
+ */
+#define DNS_RPZ_PASSTHRU_NAME	DNS_RPZ_PREFIX"passthru"
+#define DNS_RPZ_DROP_NAME	DNS_RPZ_PREFIX"drop"
+#define DNS_RPZ_TCP_ONLY_NAME	DNS_RPZ_PREFIX"tcp-only"
+
 
 typedef isc_uint8_t		dns_rpz_prefix_t;
 
 typedef enum {
 	DNS_RPZ_TYPE_BAD,
+	DNS_RPZ_TYPE_CLIENT_IP,
 	DNS_RPZ_TYPE_QNAME,
 	DNS_RPZ_TYPE_IP,
 	DNS_RPZ_TYPE_NSDNAME,
@@ -46,17 +57,19 @@ typedef enum {
 } dns_rpz_type_t;
 
 /*
- * Require DNS_RPZ_POLICY_PASSTHRU < DNS_RPZ_POLICY_NXDOMAIN <
- * DNS_RPZ_POLICY_NODATA < DNS_RPZ_POLICY_CNAME to choose among competing
- * policies.
+ * Require DNS_RPZ_POLICY_PASSTHRU < DNS_RPZ_POLICY_DROP
+ * < DNS_RPZ_POLICY_TCP_ONLY DNS_RPZ_POLICY_NXDOMAIN < DNS_RPZ_POLICY_NODATA
+ * < DNS_RPZ_POLICY_CNAME to choose among competing policies.
  */
 typedef enum {
 	DNS_RPZ_POLICY_GIVEN = 0,	/* 'given': what policy record says */
 	DNS_RPZ_POLICY_DISABLED = 1,	/* log what would have happened */
 	DNS_RPZ_POLICY_PASSTHRU = 2,	/* 'passthru': do not rewrite */
-	DNS_RPZ_POLICY_NXDOMAIN = 3,	/* 'nxdomain': answer with NXDOMAIN */
-	DNS_RPZ_POLICY_NODATA = 4,	/* 'nodata': answer with ANCOUNT=0 */
-	DNS_RPZ_POLICY_CNAME = 5,	/* 'cname x': answer with x's rrsets */
+	DNS_RPZ_POLICY_DROP = 3,	/* 'drop': do not respond */
+	DNS_RPZ_POLICY_TCP_ONLY = 4,	/* 'tcp-only': answer UDP with TC=1 */
+	DNS_RPZ_POLICY_NXDOMAIN = 5,	/* 'nxdomain': answer with NXDOMAIN */
+	DNS_RPZ_POLICY_NODATA = 6,	/* 'nodata': answer with ANCOUNT=0 */
+	DNS_RPZ_POLICY_CNAME = 7,	/* 'cname x': answer with x's rrsets */
 	DNS_RPZ_POLICY_RECORD,
 	DNS_RPZ_POLICY_WILDCNAME,
 	DNS_RPZ_POLICY_MISS,
@@ -89,10 +102,12 @@ typedef isc_uint32_t	    dns_rpz_zbits_t;
 						0 : (1<<((n)+1))) -1))
 
 /*
- * A single response policy zone.
+ * The number of triggers of each type in a response policy zone.
  */
 typedef struct dns_rpz_triggers dns_rpz_triggers_t;
 struct dns_rpz_triggers {
+	int		client_ipv4;
+	int		client_ipv6;
 	int		qname;
 	int		ipv4;
 	int		ipv6;
@@ -100,19 +115,24 @@ struct dns_rpz_triggers {
 	int		nsipv4;
 	int		nsipv6;
 };
+/*
+ * A single response policy zone.
+ */
 typedef struct dns_rpz_zone dns_rpz_zone_t;
 struct dns_rpz_zone {
 	isc_refcount_t	refs;
 	dns_rpz_num_t	num;		/* ordinal in list of policy zones */
 	dns_name_t	origin;		/* Policy zone name */
+	dns_name_t	client_ip;	/* DNS_RPZ_CLIENT_IP_ZONE.origin. */
 	dns_name_t	ip;		/* DNS_RPZ_IP_ZONE.origin. */
 	dns_name_t	nsdname;	/* DNS_RPZ_NSDNAME_ZONE.origin */
 	dns_name_t	nsip;		/* DNS_RPZ_NSIP_ZONE.origin. */
-	dns_name_t	passthru;	/* DNS_RPZ_PASSTHRU_ZONE. */
+	dns_name_t	passthru;	/* DNS_RPZ_PASSTHRU_NAME. */
+	dns_name_t	drop;		/* DNS_RPZ_DROP_NAME. */
+	dns_name_t	tcp_only;	/* DNS_RPZ_TCP_ONLY_NAME. */
 	dns_name_t	cname;		/* override value for ..._CNAME */
 	dns_ttl_t	max_policy_ttl;
 	dns_rpz_policy_t policy;	/* DNS_RPZ_POLICY_GIVEN or override */
-	dns_rpz_triggers_t  triggers;
 };
 
 /*
@@ -133,6 +153,7 @@ struct dns_rpz_zones {
 		dns_rpz_num_t	    num_zones;
 	} p;
 	dns_rpz_zone_t		*zones[DNS_RPZ_MAX_ZONES];
+	dns_rpz_triggers_t	triggers[DNS_RPZ_MAX_ZONES];
 
 	dns_rpz_zbits_t		defined;
 
@@ -151,6 +172,9 @@ struct dns_rpz_zones {
 	 */
 	dns_rpz_zbits_t		load_begun;
 	struct {
+		dns_rpz_zbits_t	    client_ipv4;
+		dns_rpz_zbits_t	    client_ipv6;
+		dns_rpz_zbits_t	    client_ip;
 		dns_rpz_zbits_t	    qname;
 		dns_rpz_zbits_t	    ipv4;
 		dns_rpz_zbits_t	    ipv6;
@@ -161,6 +185,7 @@ struct dns_rpz_zones {
 		dns_rpz_zbits_t	    nsip;
 		dns_rpz_zbits_t	    qname_skip_recurse;
 	} have;
+	dns_rpz_triggers_t	total_triggers;
 
 	isc_mem_t		*mctx;
 	isc_refcount_t		refs;
@@ -184,11 +209,12 @@ struct dns_rpz_zones {
 typedef struct {
 	unsigned int		state;
 # define DNS_RPZ_REWRITTEN	0x0001
-# define DNS_RPZ_DONE_QNAME	0x0002	/* qname checked */
-# define DNS_RPZ_DONE_QNAME_IP	0x0004	/* IP addresses of qname checked */
-# define DNS_RPZ_DONE_NSDNAME	0x0008	/* NS name missed; checking addresses */
-# define DNS_RPZ_DONE_IPv4	0x0010
-# define DNS_RPZ_RECURSING	0x0020
+# define DNS_RPZ_DONE_CLIENT_IP	0x0002	/* client IP address checked */
+# define DNS_RPZ_DONE_QNAME	0x0004	/* qname checked */
+# define DNS_RPZ_DONE_QNAME_IP	0x0008	/* IP addresses of qname checked */
+# define DNS_RPZ_DONE_NSDNAME	0x0010	/* NS name missed; checking addresses */
+# define DNS_RPZ_DONE_IPv4	0x0020
+# define DNS_RPZ_RECURSING	0x0040
 	/*
 	 * Best match so far.
 	 */
