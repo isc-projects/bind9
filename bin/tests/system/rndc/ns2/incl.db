@@ -1,0 +1,3 @@
+
+; Used for testing $INCLUDE
+$INCLUDE "static.db"
