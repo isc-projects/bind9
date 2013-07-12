@@ -26,7 +26,7 @@
 #include <isc/result.h>
 
 /*
- * Inlines to help with wait retrun checking
+ * Inlines to help with wait return checking
  */
 
 /* check handle for NULL and INVALID_HANDLE */
