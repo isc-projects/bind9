@@ -4918,7 +4918,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	dns_name_t *nsname;
 	int qresult_type;
 	dns_rpz_zbits_t zbits;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	st = client->query.rpz_st;
 	if (st == NULL) {
@@ -5119,7 +5119,8 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		if (st->r.ns_rdataset == NULL ||
 		    !dns_rdataset_isassociated(st->r.ns_rdataset)) {
 			dns_db_t *db = NULL;
-			result = rpz_rrset_find(client, nsname, dns_rdatatype_ns,
+			result = rpz_rrset_find(client, nsname,
+						dns_rdatatype_ns,
 						DNS_RPZ_TYPE_NSDNAME,
 						&db, NULL, &st->r.ns_rdataset,
 						resuming);
