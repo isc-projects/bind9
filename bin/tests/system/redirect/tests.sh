@@ -334,6 +334,7 @@ status=`expr $status + $ret`
 
 echo "I:checking that redirect zones reload correctly"
 ret=0
+sleep 1 # ensure file mtime will have changed
 sed -e 's/0 0 0 0 0/1 0 0 0 0/' < ns2/example.db.in > ns2/example.db
 sed -e 's/0 0 0 0 0/1 0 0 0 0/' -e 's/\.1$/.2/' < ns2/redirect.db.in > ns2/redirect.db
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload > rndc.out || ret=1
