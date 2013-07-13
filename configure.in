@@ -3202,9 +3202,10 @@ test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pks11)"
 # these lines are only printed if run with --enable-full-report 
 if test "$enable_full_report" = "yes"; then
     test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" || \
-        echo "    IPv6 support"
-    test "X$USE_OPENSSL" = "X" || echo "    OpenSSL cryptography/DNSSEC"
-    test "X$libxml2_libs" = "X" || echo "    XML statistics"
+        echo "    IPv6 support (--enable-ipv6)"
+    test "X$USE_OPENSSL" = "X" || \
+            echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+    test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
 fi
 
 test "X$USE_DLZ" = "X" || echo "    Dynamically loadable zone (DLZ) drivers:"
@@ -3232,10 +3233,11 @@ test "$enable_fixed" = "yes" || \
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
 test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pks11)"
-
-test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && echo "    IPv6 support"
-test "X$USE_OPENSSL" = "X" && echo "    OpenSSL cryptography/DNSSEC"
-test "X$libxml2_libs" = "X" && echo "    XML statistics"
+test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
+        echo "    IPv6 support (--enable-ipv6)"
+test "X$USE_OPENSSL" = "X" && \
+        echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
 
 echo "========================================================================"
 
