@@ -1502,7 +1502,7 @@ AC_ARG_WITH(libjson,
 [  --with-libjson[=PATH]     Build with libjson0 library [yes|no|path]],
     use_libjson="$withval", use_libjson="auto")
 
-have_libjson=
+have_libjson=""
 case "$use_libjson" in
 	no)
 		libjson_libs=""
@@ -3930,13 +3930,16 @@ test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pks11)"
 # these lines are only printed if run with --enable-full-report 
 if test "$enable_full_report" = "yes"; then
     test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" || \
-        echo "    IPv6 support"
-    test "X$USE_OPENSSL" = "X" || echo "    OpenSSL cryptography/DNSSEC"
-    test "$OPENSSL_GOST" != "yes" || echo "    GOST algorithm support"
-    test "$OPENSSL_ECDSA" != "yes" || echo "    ECDSA algorithm support"
-    test "X$PYTHON" = "X" || echo "    Python tools"
-    test "X$libxml2_libs" = "X" || echo "    XML statistics"
-    test "X$libjson_libs" = "X" || echo "    JSON statistics"
+        echo "    IPv6 support (--enable-ipv6)"
+    test "X$USE_OPENSSL" = "X" || \
+            echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+    test "$OPENSSL_GOST" != "yes" || \
+            echo "    GOST algorithm support (--with-gost)"
+    test "$OPENSSL_ECDSA" != "yes" || \
+            echo "    ECDSA algorithm support (--with-ecdsa)"
+    test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
+    test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
+    test "X$have_libjson" = "X" || echo "    JSON statistics (--with-libjson)"
 fi
 
 echo "    Dynamically loadable zone (DLZ) drivers:"
@@ -3970,15 +3973,17 @@ test "$want_backtrace" = "yes" || \
     echo "    Print backtrace on crash (--enable-backtrace)"
 test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pks11)"
 
-test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && echo "    IPv6 support"
-test "X$USE_OPENSSL" = "X" && echo "    OpenSSL cryptography/DNSSEC"
+test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
+        echo "    IPv6 support (--enable-ipv6)"
+test "X$USE_OPENSSL" = "X" && \
+        echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
 test "X$USE_OPENSSL" != "X" -a "$OPENSSL_GOST" != "yes" && \
-    echo "    GOST algorithm support"
+    echo "    GOST algorithm support (--with-gost)"
 test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ECDSA" != "yes" && \
-    echo "    ECDSA algorithm support"
-test "X$PYTHON" = "X" && echo "    Python tools"
-test "X$libxml2_libs" = "X" && echo "    XML statistics"
-test "X$libjson_libs" = "X" && echo "    JSON statistics"
+    echo "    ECDSA algorithm support (--with-ecdsa)"
+test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
+test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
+test "X$have_libjson" = "X" && echo "    JSON statistics (--with-libjson)"
 
 echo "========================================================================"
 
