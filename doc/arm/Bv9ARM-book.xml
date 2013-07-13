@@ -9485,8 +9485,8 @@ deny-answer-aliases { "example.net"; };
 		    CNAME whose target is the wildcard top-level
 		    domain (*.).
 		    It rewrites the response to NODATA or ANCOUNT=1.
-		  </listitem>
-		</para>
+		  </para>
+		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
