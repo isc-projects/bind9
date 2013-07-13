@@ -2983,6 +2983,11 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 		dns_db_attach(zone->db, &db);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
+	if (db == NULL) {
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+
 	dns_db_currentversion(db, &version);
 	result = dns_nsec_nseconly(db, version, &nseconly);
 	nsec3ok = (result == ISC_R_SUCCESS && !nseconly);
@@ -3121,10 +3126,8 @@ resume_addnsec3chain(dns_zone_t *zone) {
 	if (zone->db != NULL)
 		dns_db_attach(zone->db, &db);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
-	if (db == NULL) {
-		result = ISC_R_FAILURE;
+	if (db == NULL)
 		goto cleanup;
-	}
 
 	result = dns_db_findnode(db, &zone->origin, ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)
