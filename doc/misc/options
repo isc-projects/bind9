@@ -232,11 +232,11 @@ options {
         reserved-sockets <integer>;
         resolver-query-timeout <integer>;
         response-policy { zone <quoted_string> [ policy ( given | disabled
-            | passthru | no-op | nxdomain | nodata | cname <quoted_string>
-            ) ] [ recursive-only <boolean> ] [ max-policy-ttl <integer> ];
-            ... } [ recursive-only <boolean> ] [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ] [ min-ns-dots <integer> ] [
-            qname-wait-recurse <boolean> ];
+            | passthru | no-op | drop | tcp-only | nxdomain | nodata |
+            cname <quoted_string> ) ] [ recursive-only <boolean> ] [
+            max-policy-ttl <integer> ]; ... } [ recursive-only <boolean> ]
+            [ break-dnssec <boolean> ] [ max-policy-ttl <integer> ] [
+            min-ns-dots <integer> ] [ qname-wait-recurse <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
@@ -475,11 +475,11 @@ view <string> <optional_class> {
         request-nsid <boolean>;
         resolver-query-timeout <integer>;
         response-policy { zone <quoted_string> [ policy ( given | disabled
-            | passthru | no-op | nxdomain | nodata | cname <quoted_string>
-            ) ] [ recursive-only <boolean> ] [ max-policy-ttl <integer> ];
-            ... } [ recursive-only <boolean> ] [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ] [ min-ns-dots <integer> ] [
-            qname-wait-recurse <boolean> ];
+            | passthru | no-op | drop | tcp-only | nxdomain | nodata |
+            cname <quoted_string> ) ] [ recursive-only <boolean> ] [
+            max-policy-ttl <integer> ]; ... } [ recursive-only <boolean> ]
+            [ break-dnssec <boolean> ] [ max-policy-ttl <integer> ] [
+            min-ns-dots <integer> ] [ qname-wait-recurse <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
