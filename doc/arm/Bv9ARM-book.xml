@@ -9378,10 +9378,11 @@ deny-answer-aliases { "example.net"; };
 		    least <command>min-ns-dots</command> dots.
 		    The default value of <command>min-ns-dots</command> is 1 to
 		    exclude top level domains.
-		</para>
+		  </para>
 		</listitem>
 	      </varlistentry>
 	    </variablelist>
+          </para>
 
 	  <para>
 	    The query response is checked against all response policy zones,
@@ -9556,8 +9557,8 @@ deny-answer-aliases { "example.net"; };
 		<listitem>
 		  <para>
 		    override with the corresponding per-record policy.
-		  </listitem>
-		</para>
+		  </para>
+		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
