@@ -3072,28 +3072,25 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 			current->done = ISC_TRUE;
 	}
 
-	if (db != NULL) {
-		dns_db_attach(db, &nsec3chain->db);
-		if ((nsec3chain->nsec3param.flags & DNS_NSEC3FLAG_CREATE) != 0)
-			options = DNS_DB_NONSEC3;
-		result = dns_db_createiterator(nsec3chain->db, options,
-					       &nsec3chain->dbiterator);
-		if (result == ISC_R_SUCCESS)
-			dns_dbiterator_first(nsec3chain->dbiterator);
-		if (result == ISC_R_SUCCESS) {
-			dns_dbiterator_pause(nsec3chain->dbiterator);
-			ISC_LIST_INITANDAPPEND(zone->nsec3chain,
-					       nsec3chain, link);
-			nsec3chain = NULL;
-			if (isc_time_isepoch(&zone->nsec3chaintime)) {
-				TIME_NOW(&now);
-				zone->nsec3chaintime = now;
-				if (zone->task != NULL)
-					zone_settimer(zone, &now);
-			}
+	dns_db_attach(db, &nsec3chain->db);
+	if ((nsec3chain->nsec3param.flags & DNS_NSEC3FLAG_CREATE) != 0)
+		options = DNS_DB_NONSEC3;
+	result = dns_db_createiterator(nsec3chain->db, options,
+				       &nsec3chain->dbiterator);
+	if (result == ISC_R_SUCCESS)
+		dns_dbiterator_first(nsec3chain->dbiterator);
+	if (result == ISC_R_SUCCESS) {
+		dns_dbiterator_pause(nsec3chain->dbiterator);
+		ISC_LIST_INITANDAPPEND(zone->nsec3chain,
+				       nsec3chain, link);
+		nsec3chain = NULL;
+		if (isc_time_isepoch(&zone->nsec3chaintime)) {
+			TIME_NOW(&now);
+			zone->nsec3chaintime = now;
+			if (zone->task != NULL)
+				zone_settimer(zone, &now);
 		}
-	} else
-		result = ISC_R_NOTFOUND;
+	}
 
 	if (nsec3chain != NULL) {
 		if (nsec3chain->db != NULL)
