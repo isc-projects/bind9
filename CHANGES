@@ -46,8 +46,8 @@
 
 3606.	[func]		"rndc flushtree" now flushes matching
 			records in the address database and bad cache
-                        as well as the DNS cache. (Previously only the
-                        DNS cache was flushed.) [RT #33970]
+			as well as the DNS cache. (Previously only the
+			DNS cache was flushed.) [RT #33970]
 
 3605.	[port]		win32: Addressed several compatibility issues
 			with newer versions of Visual Studio. [RT #33916]
@@ -76,7 +76,7 @@
 			when loading zones in map format. [RT #33381]
 
 3596.	[port]		Updated win32 build documentation, added
-                        dnssec-verify. [RT #22067]
+			dnssec-verify. [RT #22067]
 
 3595.	[port]		win32: Fix build problems introduced by change #3550.
 			[RT #33807]
