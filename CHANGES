@@ -115,7 +115,7 @@
 3494.	[func]		DNS RRL: Blunt the impact of DNS reflection and
 			amplification attacks by rate-limiting substantially-
 			identical responses. To enable, use "configure
-                        --enable-rrl". [RT #28130]
+			--enable-rrl". [RT #28130]
 
 	--- 9.9.3 released ---
 
