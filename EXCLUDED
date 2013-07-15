@@ -1,5 +1,28 @@
+3619.	[bug]		Fixed a bug in RPZ with "recursive-only no;"
+			[RT #33776]
+
+3612.	[port]		Check whether to use -ljson or -ljson-c. [RT #34115]
+
+3609.	[bug]		Corrected a possible deadlock in applications using
+			the export version of the isc_app API. [RT #33967]
+
+3604.	[bug]		Fixed a compile-time error when building with
+			JSON but not XML. [RT #33959]
+
+3602.	[contrib]	Added DLZ Perl module, allowing Perl scripts to
+			integrate with named and serve DNS data.
+			(Contributed by John Eaglesham of Yahoo.)
+
+3598.	[cleanup]	Improved portability of map file code. [RT #33820]
+
+3597.	[bug]		Ensure automatic-resigning heaps are reconstructed
+			when loading zones in map format. [RT #33381]
+
+3595.	[port]		win32: Fix build problems introduced by change #3550.
+			[RT #33807]
+
 3570.	[bug]		Check internal pointers are valid when loading map
-                        files. [RT #33403]
+			files. [RT #33403]
 
 3569.	[contrib]	Ported mysql DLZ driver to dynamically-loadable
 			module, and added multithread support. [RT #33394]
@@ -32,8 +55,13 @@
 			to chart query data before any queries had been
 			received. [RT #32620]
 
+3494.	[func]		DNS RRL: Blunt the impact of DNS reflection and
+			amplification attacks by rate-limiting substantially-
+			identical responses. To enable, use "configure
+			--enable-rrl". [RT #28130]
+
 3490.	[bug]		When logging RDATA during update, truncate if it's
-                        too long. [RT #32365]
+			too long. [RT #32365]
 
 3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
 			When cloning a rdataset do not copy the link contents.

@@ -1,3 +1,5 @@
+	--- 9.9.4rc1 released ---
+
 3617.	[bug]		Named was failing to answer queries during
 			"rndc reload" [RT #34098]
 
