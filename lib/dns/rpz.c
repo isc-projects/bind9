@@ -1461,7 +1461,6 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 	memcpy(&old_totals, &rpzs->total_triggers, sizeof(old_totals));
 	memset(&rpzs->total_triggers, 0, sizeof(rpzs->total_triggers));
 	for (n = 0; n < rpzs->p.num_zones; ++n) {
-		rpz = rpzs->zones[n];
 		zbit = DNS_RPZ_ZBIT(n);
 		SET_TRIG(n, zbit, client_ipv4);
 		SET_TRIG(n, zbit, client_ipv6);
