@@ -1,5 +1,44 @@
-3582.   [bug]           Silence false positive warning regarding missing file
-                        directive for inline slave zones.  [RT #33662]
+3619.	[bug]		Fixed a bug in RPZ with "recursive-only no;"
+			[RT #33776]
+
+3617.	[bug]		Named was failing to answer queries during
+			"rndc reload" [RT #34098]
+
+3616.	[bug]		Change #3613 was incomplete. [RT #34177]
+
+3613.	[bug]		named could crash when deleting inline-signing
+			zones with "rndc delzone". [RT #34066]
+
+3612.	[port]		Check whether to use -ljson or -ljson-c. [RT #34115]
+
+3609.	[bug]		Corrected a possible deadlock in applications using
+			the export version of the isc_app API. [RT #33967]
+
+3604.	[bug]		Fixed a compile-time error when building with
+			JSON but not XML. [RT #33959]
+
+3602.	[contrib]	Added DLZ Perl module, allowing Perl scripts to
+			integrate with named and serve DNS data.
+			(Contributed by John Eaglesham of Yahoo.)
+
+3598.	[cleanup]	Improved portability of map file code. [RT #33820]
+
+3597.	[bug]		Ensure automatic-resigning heaps are reconstructed
+			when loading zones in map format. [RT #33381]
+
+3596.	[port]		Updated win32 build documentation, added
+			dnssec-verify. [RT #22067]
+
+3595.	[port]		win32: Fix build problems introduced by change #3550.
+			[RT #33807]
+
+3590.	[bug]		When using RRL on recursive servers, defer
+			rate-limiting until after recursion is complete;
+			also, use correct rcode for slipped NXDOMAIN
+			responses.  [RT #33604]
+
+3582.	[bug]		Silence false positive warning regarding missing file
+			directive for inline slave zones.  [RT #33662]
 
 3570.	[bug]		Check internal pointers are valid when loading map
 			files. [RT #33403]
@@ -60,7 +99,7 @@
 			file name. [RT #31946]
 
 3490.	[bug]		When logging RDATA during update, truncate if it's
-                        too long. [RT #32365]
+			too long. [RT #32365]
 
 3489.	[bug]		--enable-developer now turns on ISC_LIST_CHECKINIT.
 			When cloning a rdataset do not copy the link contents.
