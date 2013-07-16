@@ -1,5 +1,9 @@
 	--- 9.9.4rc1 released ---
 
+3621.	[security]	Incorrect bounds checking on private type 'keydata'
+			can lead to a remotely triggerable REQUIRE failure
+			(CVE-2013-4854). [RT #34238]
+
 3617.	[bug]		Named was failing to answer queries during
 			"rndc reload" [RT #34098]
 
