@@ -1,5 +1,9 @@
 	--- 9.8.6rc1 released ---
 
+3621.	[security]	Incorrect bounds checking on private type 'keydata'
+			can lead to a remotely triggerable REQUIRE failure
+			(CVE-2013-4854). [RT #34238]
+
 3615.	[cleanup]	"configure" now finishes by printing a summary
 			of optional BIND features and whether they are
 			active or inactive. ("configure --enable-full-report"
