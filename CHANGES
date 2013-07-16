@@ -47,7 +47,7 @@
 3587.	[func]		'named -g' now checks the logging configuration but
 			does not use it. [RT #33473]
 
-3586.	[buf]		Handle errors in xmlDocDumpFormatMemoryEnc. [RT #33706]
+3586.	[bug]		Handle errors in xmlDocDumpFormatMemoryEnc. [RT #33706]
 
 3584.	[security]	Caching data from an incompletely signed zone could
 			trigger an assertion failure in resolver.c [RT #33690]
