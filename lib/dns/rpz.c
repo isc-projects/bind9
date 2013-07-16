@@ -1445,7 +1445,6 @@ dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp,
 static void
 fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 	dns_rpz_num_t n;
-	const dns_rpz_zone_t *rpz;
 	dns_rpz_triggers_t old_totals;
 	dns_rpz_zbits_t zbit;
 	char namebuf[DNS_NAME_FORMATSIZE];
