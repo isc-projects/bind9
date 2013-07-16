@@ -1,3 +1,7 @@
+3621.	[security]	Incorrect bounds checking on private type 'keydata'
+			can lead to a remotely triggerable REQUIRE failure
+			(CVE-2013-4854). [RT #34238]
+
 3620.	[func]		Added "rpz-client-ip" policy triggers, enabling
 			RPZ responses to be configured on the basis of
 			the client IP address; this can be used, for
