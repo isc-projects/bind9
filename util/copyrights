@@ -2257,7 +2257,7 @@
 ./lib/dns/rdata/generic/isdn_20.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/key_25.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2012
 ./lib/dns/rdata/generic/key_25.h		C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/generic/keydata_65533.c		C	2009,2012
+./lib/dns/rdata/generic/keydata_65533.c		C	2009,2012,2013
 ./lib/dns/rdata/generic/keydata_65533.h		C	2009
 ./lib/dns/rdata/generic/l32_105.c		C	2013
 ./lib/dns/rdata/generic/l32_105.h		C	2013
