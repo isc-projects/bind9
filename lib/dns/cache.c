@@ -1300,6 +1300,29 @@ dns_cache_getstats(dns_cache_t *cache) {
 	return (cache->stats);
 }
 
+void
+dns_cache_updatestats(dns_cache_t *cache, isc_result_t result) {
+	REQUIRE(VALID_CACHE(cache));
+	if (cache->stats == NULL)
+		return;
+
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+	case DNS_R_GLUE:
+	case DNS_R_ZONECUT:
+		isc_stats_increment(cache->stats,
+				    dns_cachestatscounter_queryhits);
+		break;
+	default:
+		isc_stats_increment(cache->stats,
+				    dns_cachestatscounter_querymisses);
+	}
+}
+
 /*
  * XXX: Much of the following code has been copied in from statschannel.c.
  * We should refactor this into a generic function in stats.c that can be

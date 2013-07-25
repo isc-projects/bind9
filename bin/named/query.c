@@ -1205,31 +1205,6 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 	return (ISC_FALSE);
 }
 
-static void
-update_cachestats(dns_cache_t *cache, isc_result_t result) {
-	isc_stats_t *cachestats = NULL;
-	if (cache == NULL)
-		return;
-
-	isc_stats_attach(dns_cache_getstats(cache), &cachestats);
-	switch (result) {
-	case ISC_R_SUCCESS:
-	case DNS_R_NCACHENXDOMAIN:
-	case DNS_R_NCACHENXRRSET:
-	case DNS_R_CNAME:
-	case DNS_R_DNAME:
-	case DNS_R_GLUE:
-	case DNS_R_ZONECUT:
-		isc_stats_increment(cachestats,
-				    dns_cachestatscounter_queryhits);
-		break;
-	default:
-		isc_stats_increment(cachestats,
-				    dns_cachestatscounter_querymisses);
-	}
-	isc_stats_detach(&cachestats);
-}
-
 static isc_result_t
 query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	ns_client_t *client = arg;
@@ -1362,7 +1337,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 				client->now, &node, fname, &cm, &ci,
 				rdataset, sigrdataset);
 
-	update_cachestats(client->view->cache, result);
+	dns_cache_updatestats(client->view->cache, result);
 	if (result == DNS_R_GLUE &&
 	    validate(client, db, fname, rdataset, sigrdataset))
 		result = ISC_R_SUCCESS;
@@ -6294,7 +6269,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				&node, fname, &cm, &ci, rdataset, sigrdataset);
 
 	if (db == client->view->cachedb)
-		update_cachestats(client->view->cache, result);
+		dns_cache_updatestats(client->view->cache, result);
 
  resume:
 	CTRACE("query_find: resume");

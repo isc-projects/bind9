@@ -320,6 +320,12 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp);
  * Dump cache statistics and status in text to 'fp'
  */
 
+void
+dns_cache_updatestats(dns_cache_t *cache, isc_result_t result);
+/*
+ * Update cache statistics based on result code in 'result'
+ */
+
 #ifdef HAVE_LIBXML2
 int
 dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer);

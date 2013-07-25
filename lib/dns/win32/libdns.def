@@ -74,6 +74,7 @@ dns_cache_renderxml
 dns_cache_setcachesize
 dns_cache_setcleaninginterval
 dns_cache_setfilename
+dns_cache_updatestats
 dns_cert_fromtext
 dns_cert_totext
 dns_clientinfo_init
