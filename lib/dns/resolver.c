@@ -1186,6 +1186,10 @@ log_edns(fetchctx_t *fctx) {
 	if (fctx->reason == NULL)
 		return;
 
+	/*
+	 * We do not know if fctx->domain is the actual domain the record
+	 * lives in or a parent domain so we have a '?' after it.
+	 */
 	dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_EDNS_DISABLED,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
