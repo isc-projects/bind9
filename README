@@ -54,7 +54,7 @@ BIND 9
 BIND 9.8.6
 
 	BIND 9.8.6 includes several bug fixes and patches the security
-	flaw described in CVE-2013-3919.
+	flaws described in CVE-2013-3919 and CVE-2013-4854.
 
 BIND 9.8.5
 
