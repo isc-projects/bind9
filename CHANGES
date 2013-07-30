@@ -41,7 +41,8 @@
 3586.	[bug]		Handle errors in xmlDocDumpFormatMemoryEnc. [RT #33706]
 
 3584.	[security]	Caching data from an incompletely signed zone could
-			trigger an assertion failure in resolver.c [RT #33690]
+			trigger an assertion failure in resolver.c
+			(CVE-2013-3919). [RT #33690]
 
 3583.	[bug]		Address memory leak in GSS-API processing [RT #33574]
 
