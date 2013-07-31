@@ -22772,7 +22772,7 @@ test "$want_symtable" = "minimal" && \
     echo "    Use symbol table for backtrace, named only (--enable-symtable)"
 test "$want_symtable" = "yes" -o "$want_symtable" = "all" && \
     echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
-test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pks11)"
+test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 
 
 # these lines are only printed if run with --enable-full-report
@@ -22816,7 +22816,7 @@ test "$enable_filter" = "yes" || \
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
 test "$want_backtrace" = "yes" || \
     echo "    Print backtrace on crash (--enable-backtrace)"
-test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pks11)"
+test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 
 test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
         echo "    IPv6 support (--enable-ipv6)"
