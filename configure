@@ -21941,7 +21941,7 @@ test "$enable_fixed" = "yes" && \
     echo "    Fixed RRset order (--enable-fixed-rrset)"
 test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
-test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pks11)"
+test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 
 
 # these lines are only printed if run with --enable-full-report
@@ -21977,7 +21977,7 @@ test "$enable_fixed" = "yes" || \
     echo "    Fixed RRset order (--enable-fixed-rrset)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
-test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pks11)"
+test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
         echo "    IPv6 support (--enable-ipv6)"
 test "X$USE_OPENSSL" = "X" && \
