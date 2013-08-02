@@ -978,9 +978,14 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	isc_uint32_t serial;
 	xmlTextWriterPtr writer = arg;
 	isc_stats_t *zonestats;
+	dns_zonestat_level_t statlevel;
 	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
 	int xmlrc;
 	isc_result_t result;
+
+	statlevel = dns_zone_getstatlevel(zone);
+	if (statlevel == dns_zonestat_none)
+		return (ISC_R_SUCCESS);
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "zone"));
 

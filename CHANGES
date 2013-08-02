@@ -1,3 +1,6 @@
+3623.	[bug]		zone-statistics was only effective in new statistics.
+			[RT #34466]
+
 	--- 9.9.4rc1 released ---
 
 3621.	[security]	Incorrect bounds checking on private type 'keydata'
