@@ -227,7 +227,6 @@ options {
         recursion <boolean>;
         recursive-clients <integer>;
         request-ixfr <boolean>;
-        request-ixfr <boolean>;
         request-nsid <boolean>;
         reserved-sockets <integer>;
         resolver-query-timeout <integer>;
@@ -470,7 +469,6 @@ view <string> <optional_class> {
                 window <integer>;
         };
         recursion <boolean>;
-        request-ixfr <boolean>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
         resolver-query-timeout <integer>;
