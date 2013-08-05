@@ -16059,13 +16059,13 @@ case "$use_libjson" in
 		;;
 esac
 
-if test "%${have_libjson}" != "X"
+if test "X${have_libjson}" != "X"
 then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing json_object_new_int" >&5
-$as_echo_n "checking for library containing json_object_new_int... " >&6; }
-if ${ac_cv_search_json_object_new_int+:} false; then :
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing json_object_new_int64" >&5
+$as_echo_n "checking for library containing json_object_new_int64... " >&6; }
+if ${ac_cv_search_json_object_new_int64+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_func_search_save_LIBS=$LIBS
@@ -16078,11 +16078,11 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char json_object_new_int ();
+char json_object_new_int64 ();
 int
 main ()
 {
-return json_object_new_int ();
+return json_object_new_int64 ();
   ;
   return 0;
 }
@@ -16095,25 +16095,25 @@ for ac_lib in '' json json-c; do
     LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_json_object_new_int=$ac_res
+  ac_cv_search_json_object_new_int64=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext
-  if ${ac_cv_search_json_object_new_int+:} false; then :
+  if ${ac_cv_search_json_object_new_int64+:} false; then :
   break
 fi
 done
-if ${ac_cv_search_json_object_new_int+:} false; then :
+if ${ac_cv_search_json_object_new_int64+:} false; then :
 
 else
-  ac_cv_search_json_object_new_int=no
+  ac_cv_search_json_object_new_int64=no
 fi
 rm conftest.$ac_ext
 LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_json_object_new_int" >&5
-$as_echo "$ac_cv_search_json_object_new_int" >&6; }
-ac_res=$ac_cv_search_json_object_new_int
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_json_object_new_int64" >&5
+$as_echo "$ac_cv_search_json_object_new_int64" >&6; }
+ac_res=$ac_cv_search_json_object_new_int64
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 

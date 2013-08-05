@@ -1535,10 +1535,10 @@ case "$use_libjson" in
 		;;
 esac
 
-if test "%${have_libjson}" != "X"
+if test "X${have_libjson}" != "X"
 then
 	AC_MSG_RESULT(yes)
-	AC_SEARCH_LIBS([json_object_new_int], [json json-c], [],
+	AC_SEARCH_LIBS([json_object_new_int64], [json json-c], [],
 		       [AC_MSG_WARN([found libjson include but not library.])
 		        have_libjson=""])
 else
