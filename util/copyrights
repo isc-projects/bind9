@@ -1405,7 +1405,7 @@
 ./bin/tests/system/rrsetorder/dig.out.random.good7	X	2006
 ./bin/tests/system/rrsetorder/dig.out.random.good8	X	2006
 ./bin/tests/system/rrsetorder/dig.out.random.good9	X	2006
-./bin/tests/system/rrsetorder/ns1/named.conf	CONF-C	2006,2007
+./bin/tests/system/rrsetorder/ns1/named.conf	CONF-C	2006,2007,2013
 ./bin/tests/system/rrsetorder/ns1/root.db	ZONE	2006,2007,2012
 ./bin/tests/system/rrsetorder/ns2/named.conf	CONF-C	2006,2007
 ./bin/tests/system/rrsetorder/ns3/named.conf	CONF-C	2006,2007
