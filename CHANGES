@@ -1,3 +1,6 @@
+3625.	[bug]		Don't send notify messages to machines outside of the
+			test setup.
+
 3624.	[bug]		Look for 'json_object_new_int64' when looking for a
 			the json library. [RT #34449]
 
