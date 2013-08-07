@@ -1,3 +1,6 @@
+3625.	[bug]		Don't send notify messages to machines outside of the
+			test setup.
+
 	--- 9.6-ESV-R10rc1 released ---
 
 3615.	[cleanup]	"configure" now finishes by printing a summary
