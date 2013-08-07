@@ -1,3 +1,6 @@
+3625.	[bug]		Don't send notify messages to machines outside of the
+			test setup.
+
 	--- 9.8.6rc1 released ---
 
 3621.	[security]	Incorrect bounds checking on private type 'keydata'
