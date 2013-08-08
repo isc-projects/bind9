@@ -3270,16 +3270,17 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					sprintf(buf, "%02x ", optdata[i]);
 					ADD_STRING(target, buf);
 				}
+
+				ADD_STRING(target, "(\"");
 				for (i = 0; i < optlen; i++) {
-					ADD_STRING(target, " (");
 					if (isprint(optdata[i]))
 						isc_buffer_putmem(target,
 								  &optdata[i],
 								  1);
 					else
 						isc_buffer_putstr(target, ".");
-					ADD_STRING(target, ")");
 				}
+				ADD_STRING(target, "\")");
 				isc_buffer_forward(&optbuf, optlen);
 			}
 			ADD_STRING(target, "\n");
