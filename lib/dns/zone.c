@@ -1534,6 +1534,18 @@ dns_zone_get_rpz(dns_zone_t *zone) {
 	return (zone->is_rpz);
 }
 
+/*
+ * If a zone is a response policy zone, mark its new database.
+ */
+isc_result_t
+dns_zone_rpz_enable_db(dns_zone_t *zone, dns_db_t *db) {
+#ifdef BIND9
+	if (zone->is_rpz)
+		return (dns_db_rpz_enabled(db, NULL));
+#endif
+	return (ISC_R_SUCCESS);
+}
+
 static isc_result_t
 zone_load(dns_zone_t *zone, unsigned int flags) {
 	isc_result_t result;
@@ -1987,14 +1999,9 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	isc_result_t tresult;
 	unsigned int options;
 
-#ifdef BIND9
-	if (zone->is_rpz) {
-		result = dns_db_rpz_enabled(db, NULL);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
-#endif
-
+	result = dns_zone_rpz_enable_db(zone, db);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	options = get_master_options(zone);
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
 		options |= DNS_MASTER_MANYERRORS;
