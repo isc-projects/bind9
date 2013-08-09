@@ -529,6 +529,8 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	cmsgp = msg.msg_control;
 	cmsgp->cmsg_level = level;
 	cmsgp->cmsg_type = type;
+
+#ifdef IP_TOS
 	if (cmsgp->cmsg_type == IP_TOS) {
 		cmsgp->cmsg_len = cmsg_len(sizeof(char));
 		*(unsigned char*)CMSG_DATA(cmsgp) = dscp;
@@ -536,6 +538,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 		cmsgp->cmsg_len = cmsg_len(sizeof(dscp));
 		memcpy(CMSG_DATA(cmsgp), &dscp, sizeof(dscp));
 	}
+#endif /* IP_TOS */
 
 	if (sendmsg(s, &msg, 0) < 0) {
 		int debug = ISC_LOG_DEBUG(10);
@@ -619,8 +622,11 @@ try_dscp_v4(void) {
 		freeaddrinfo(res0);
 		return;
 	}
+
+#ifdef IP_TOS
 	if (setsockopt(s, IPPROTO_IP, IP_TOS, &dscp, sizeof(dscp)) == 0)
 		dscp_result |= ISC_NET_DSCPSETV4;
+#endif /* IP_TOS */
 
 #ifdef IP_RECVTOS
 	on = 1;
