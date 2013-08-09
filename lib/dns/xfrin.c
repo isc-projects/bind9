@@ -270,13 +270,18 @@ axfr_init(dns_xfrin_ctx_t *xfr) {
 
 static isc_result_t
 axfr_makedb(dns_xfrin_ctx_t *xfr, dns_db_t **dbp) {
-	return (dns_db_create(xfr->mctx, /* XXX */
-			      "rbt", /* XXX guess */
-			      &xfr->name,
-			      dns_dbtype_zone,
-			      xfr->rdclass,
-			      0, NULL, /* XXX guess */
-			      dbp));
+	isc_result_t result;
+
+	result = dns_db_create(xfr->mctx, /* XXX */
+			       "rbt",	/* XXX guess */
+			       &xfr->name,
+			       dns_dbtype_zone,
+			       xfr->rdclass,
+			       0, NULL, /* XXX guess */
+			       dbp);
+	if (result == ISC_R_SUCCESS)
+		result = dns_zone_rpz_enable_db(xfr->zone, *dbp);
+	return (result);
 }
 
 static isc_result_t
