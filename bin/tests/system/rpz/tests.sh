@@ -353,8 +353,30 @@ addr 14.14.14.14 a5-4.tld2		# 14 prefer QNAME to IP
 nochange a4-4.tld2			# 15 PASSTHRU
 nxdomain c2.crash2.tld3			# 16 assert in rbtdb.c
 addr 127.0.0.17 "a4-4.tld2 -b $ns1"	# 17 client-IP address trigger
+nxdomain a7-1.tld2			# 18 slave policy zone (RT34450)
+cp ns2/blv2.tld2.db.in ns2/bl.tld2.db
+$RNDCCMD 10.53.0.2 reload bl.tld2
+goodsoa="rpz.tld2. hostmaster.ns.tld2. 2 3600 1200 604800 60"
+for i in 0 1 2 3 4 5 6 7 8 9 10
+do
+	soa=`$DIG -p 5300 +short soa bl.tld2 @10.53.0.3 -b10.53.0.3`
+	test "$soa" = "$goodsoa" && break
+	sleep 1
+done
+nochange a7-1.tld2			# 19 PASSTHRU
+sleep 1	# ensure that a clock tick has occured so that the reload takes effect
+cp ns2/blv3.tld2.db.in ns2/bl.tld2.db
+goodsoa="rpz.tld2. hostmaster.ns.tld2. 3 3600 1200 604800 60"
+$RNDCCMD 10.53.0.2 reload bl.tld2
+for i in 0 1 2 3 4 5 6 7 8 9 10
+do
+	soa=`$DIG -p 5300 +short soa bl.tld2 @10.53.0.3 -b10.53.0.3`
+	test "$soa" = "$goodsoa" && break
+	sleep 1
+done
+nxdomain a7-1.tld2			# 20 slave policy zone (RT34450)
 end_group
-ckstats $ns3 test2 ns3 10
+ckstats $ns3 test2 ns3 12
 
 # check that IP addresses for previous group were deleted from the radix tree
 start_group "radix tree deletions"
