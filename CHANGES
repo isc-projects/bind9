@@ -1,3 +1,6 @@
+3628.	[func]		Report DNSKEY key id's when dumping the cache.
+			[RT #34533]
+
 3627.	[bug]		RPZ changes were not effective on slaves. [RT #34450]
 
 3626.	[func]		dig: NSID output now easier to read. [RT #21160]
