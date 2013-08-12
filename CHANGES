@@ -1,3 +1,7 @@
+3629.	[func]		Allow the printing of cryptographic fields in DNSSEC
+			records by dig to be suppressed (dig +nocrypto).
+			[RT #34534]
+
 3628.	[func]		Report DNSKEY key id's when dumping the cache.
 			[RT #34533]
 

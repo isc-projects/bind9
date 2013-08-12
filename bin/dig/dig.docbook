@@ -613,6 +613,21 @@
         </varlistentry>
 
         <varlistentry>
+          <term><option>+[no]crypto</option></term>
+          <listitem>
+            <para>
+	      Toggle the display of cryptographic fields in DNSSEC records.
+	      The contents of these field are unnecessary to debug most DNSSEC
+	      validation failures and removing them makes it easier to see
+	      the common failures.  The default is to display the fields.
+	      When omitted they are replaced by the string "[omitted]" or
+	      in the DNSKEY case the key id is displayed as the replacement,
+	      e.g. "[ key id = value ]".
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
           <term><option>+split=W</option></term>
           <listitem>
             <para>

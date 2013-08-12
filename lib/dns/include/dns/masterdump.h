@@ -100,6 +100,9 @@ typedef struct dns_master_style dns_master_style_t;
 /*% Report re-signing time. */
 #define	DNS_STYLEFLAG_RESIGN		0x04000000U
 
+/*% Don't printout the cryptographic parts of DNSSEC records. */
+#define	DNS_STYLEFLAG_NOCRYPTO		0x08000000U
+
 ISC_LANG_BEGINDECLS
 
 /***

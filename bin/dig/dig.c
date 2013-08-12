@@ -67,7 +67,8 @@ static char domainopt[DNS_NAME_MAXTEXT];
 static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
 	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE,
-	onesoa = ISC_FALSE, rrcomments = ISC_FALSE, use_usec = ISC_FALSE;
+	onesoa = ISC_FALSE, rrcomments = ISC_FALSE, use_usec = ISC_FALSE,
+	nocrypto = ISC_FALSE;
 static isc_uint32_t splitwidth = 0xffffffff;
 
 /*% opcode text */
@@ -205,6 +206,8 @@ help(void) {
 "                 +[no]comments       (Control display of comment lines)\n"
 "                 +[no]rrcomments     (Control display of per-record "
 				       "comments)\n"
+"                 +[no]crypto         (Control display of cryptographic "
+				       "fields in records)\n"
 "                 +[no]question       (Control display of question)\n"
 "                 +[no]answer         (Control display of answer)\n"
 "                 +[no]authority      (Control display of authority)\n"
@@ -321,6 +324,7 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	isc_uint64_t diff;
 	isc_time_t now;
 	char store[sizeof("12345678901234567890")];
+	unsigned int styleflags = 0;
 
 	if (query->lookup->trace || query->lookup->ns_search_only) {
 		result = dns_rdatatype_totext(rdata->type, buf);
@@ -328,7 +332,10 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 			return (result);
 		ADD_STRING(buf, " ");
 	}
-	result = dns_rdata_totext(rdata, NULL, buf);
+
+	if (nocrypto)
+		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
+	result = dns_rdata_tofmttext(rdata, NULL, styleflags, 0, 60, " ", buf);
 	if (result == ISC_R_NOSPACE)
 		return (result);
 	check_result(result, "dns_rdata_totext");
@@ -416,6 +423,8 @@ printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
 		styleflags |= DNS_STYLEFLAG_NO_CLASS;
 	if (rrcomments)
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
+	if (nocrypto)
+		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
 	if (multiline) {
 		styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
 		styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
@@ -471,6 +480,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		styleflags |= DNS_STYLEFLAG_NO_TTL;
 	if (noclass)
 		styleflags |= DNS_STYLEFLAG_NO_CLASS;
+	if (nocrypto)
+		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
 	if (multiline) {
 		styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
 		styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
@@ -862,6 +873,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			lookup->comments = state;
 			if (lookup == default_lookup)
 				pluscomm = state;
+			break;
+		case 'r':
+			FULLCHECK("crypto");
+			nocrypto = ISC_TF(!state);
 			break;
 		default:
 			goto invalid_option;

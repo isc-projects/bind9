@@ -2282,5 +2282,18 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check dig's +nocrypto flag ($n)"
+ret=0
+$DIG $DIGOPTS +norec +nocrypto DNSKEY . \
+	@10.53.0.1 > dig.out.dnskey.ns1.test$n || ret=1
+grep '256 3 1 \[key id = [1-9][0-9]*]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
+grep 'RRSIG.* \[omitted]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +norec +nocrypto DS example \
+	@10.53.0.1 > dig.out.ds.ns1.test$n || ret=1
+grep 'DS.* 3 [12] \[omitted]' dig.out.ds.ns1.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
