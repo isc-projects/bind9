@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -141,7 +141,7 @@ totext_ds(ARGS_TOTEXT) {
 		else
 			RETERR(isc_hex_totext(&sr, tctx->width - 2,
 					      tctx->linebreak, target));
-	} else 
+	} else
 		RETERR(str_totext("[omitted]", target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" )", target));
