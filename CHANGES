@@ -1,3 +1,5 @@
+3630.	[bug]		Ensure correct ID computation for MD5 keys. [RT #33033]
+
 3627.	[bug]		RPZ changes were not effective on slaves. [RT #34450]
 
 3625.	[bug]		Don't send notify messages to machines outside of the
