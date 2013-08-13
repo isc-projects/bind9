@@ -193,6 +193,15 @@ fromwire_dnskey(ARGS_FROMWIRE) {
 		dns_name_init(&name, NULL);
 		RETERR(dns_name_fromwire(&name, source, dctx, options, target));
 	}
+
+	/*
+	 * RSAMD5 computes key ID differently from other
+	 * algorithms: we need to ensure there's enough data
+	 * present for the computation
+	 */
+	if (algorithm == DST_ALG_RSAMD5 && sr.length < 3)
+		return (ISC_R_UNEXPECTEDEND);
+
 	isc_buffer_activeregion(source, &sr);
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));

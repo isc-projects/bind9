@@ -185,6 +185,7 @@ totext_keydata(ARGS_TOTEXT) {
 static inline isc_result_t
 fromwire_keydata(ARGS_FROMWIRE) {
 	isc_region_t sr;
+	unsigned char algorithm;
 
 	REQUIRE(type == 65533);
 
@@ -195,6 +196,15 @@ fromwire_keydata(ARGS_FROMWIRE) {
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 16)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/*
+	 * RSAMD5 computes key ID differently from other
+	 * algorithms: we need to ensure there's enough data
+	 * present for the computation
+	 */
+	algorithm = sr.base[15];
+	if (algorithm == DST_ALG_RSAMD5 && sr.length < 19)
 		return (ISC_R_UNEXPECTEDEND);
 
 	isc_buffer_forward(source, sr.length);
