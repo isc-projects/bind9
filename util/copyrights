@@ -2431,7 +2431,7 @@
 ./lib/dns/rdata/generic/dlv_32769.h		C	2004,2006,2007
 ./lib/dns/rdata/generic/dname_39.c		C	1999,2000,2001,2004,2007,2009
 ./lib/dns/rdata/generic/dname_39.h		C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/generic/dnskey_48.c		C	2003,2004,2005,2007,2009,2011,2012
+./lib/dns/rdata/generic/dnskey_48.c		C	2003,2004,2005,2007,2009,2011,2012,2013
 ./lib/dns/rdata/generic/dnskey_48.h		C	2003,2004,2005,2007
 ./lib/dns/rdata/generic/ds_43.c			C	2002,2004,2005,2007,2009,2010,2011,2012
 ./lib/dns/rdata/generic/ds_43.h			C	2002,2004,2005,2007
@@ -2449,7 +2449,7 @@
 ./lib/dns/rdata/generic/ipseckey_45.h		C	2005,2007
 ./lib/dns/rdata/generic/isdn_20.c		C	1999,2000,2001,2002,2004,2005,2007,2009
 ./lib/dns/rdata/generic/isdn_20.h		C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/generic/key_25.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012
+./lib/dns/rdata/generic/key_25.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012,2013
 ./lib/dns/rdata/generic/key_25.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/keydata_65533.c		C	2009,2011,2012,2013
 ./lib/dns/rdata/generic/keydata_65533.h		C	2009
