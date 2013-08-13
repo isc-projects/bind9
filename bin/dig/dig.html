@@ -411,6 +411,16 @@
               The default is not to print record comments unless multiline
               mode is active.
             </p></dd>
+<dt><span class="term"><code class="option">+[no]crypto</code></span></dt>
+<dd><p>
+	      Toggle the display of cryptographic fields in DNSSEC records.
+	      The contents of these field are unnecessary to debug most DNSSEC
+	      validation failures and removing them makes it easier to see
+	      the common failures.  The default is to display the fields.
+	      When omitted they are replaced by the string "[omitted]" or
+	      in the DNSKEY case the key id is displayed as the replacement,
+	      e.g. "[ key id = value ]".
+            </p></dd>
 <dt><span class="term"><code class="option">+split=W</code></span></dt>
 <dd><p>
               Split long hex- or base64-formatted fields in resource
@@ -589,7 +599,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545324"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2545338"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -635,7 +645,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545386"></a><h2>IDN SUPPORT</h2>
+<a name="id2545400"></a><h2>IDN SUPPORT</h2>
 <p>
       If <span><strong class="command">dig</strong></span> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -649,14 +659,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545409"></a><h2>FILES</h2>
+<a name="id2545422"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545426"></a><h2>SEE ALSO</h2>
+<a name="id2545440"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -664,7 +674,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545531"></a><h2>BUGS</h2>
+<a name="id2545545"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>
