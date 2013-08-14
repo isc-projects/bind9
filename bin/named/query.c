@@ -7155,7 +7155,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					goto addauth;
 				}
 
-				if (dns_db_issecure(db)) {
+				if (qtype == dns_rdatatype_rrsig &&
+				    dns_db_issecure(db)) {
 					char namebuf[DNS_NAME_FORMATSIZE];
 					dns_name_format(client->query.qname,
 							namebuf,
