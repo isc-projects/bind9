@@ -32,6 +32,7 @@
 
 static inline isc_result_t
 fromtext_key(ARGS_FROMTEXT) {
+	isc_result_t result;
 	isc_token_t token;
 	dns_secalg_t alg;
 	dns_secproto_t proto;
@@ -67,7 +68,15 @@ fromtext_key(ARGS_FROMTEXT) {
 	if ((flags & 0xc000) == 0xc000)
 		return (ISC_R_SUCCESS);
 
-	return (isc_base64_tobuffer(lexer, target, -1));
+	result = isc_base64_tobuffer(lexer, target, -1);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/* Ensure there's at least enough data to compute a key ID for MD5 */
+	if (alg == DST_ALG_RSAMD5 && isc_buffer_usedlength(target) < 7)
+		return (ISC_R_UNEXPECTEDEND);
+
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
