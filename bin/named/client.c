@@ -1326,62 +1326,30 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 
 static inline isc_result_t
 client_addopt(ns_client_t *client) {
-	dns_rdataset_t *rdataset;
-	dns_rdatalist_t *rdatalist;
-	dns_rdata_t *rdata;
+	char nsid[BUFSIZ], *nsidp;
 	isc_result_t result;
 	dns_view_t *view;
 	dns_resolver_t *resolver;
 	isc_uint16_t udpsize;
+	dns_ednsopt_t ednsopts[2];
+	int count = 0;
+	unsigned int flags;
 
 	REQUIRE(client->opt == NULL);	/* XXXRTH free old. */
 
-	rdatalist = NULL;
-	result = dns_message_gettemprdatalist(client->message, &rdatalist);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	rdata = NULL;
-	result = dns_message_gettemprdata(client->message, &rdata);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	rdataset = NULL;
-	result = dns_message_gettemprdataset(client->message, &rdataset);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	dns_rdataset_init(rdataset);
-
-	rdatalist->type = dns_rdatatype_opt;
-	rdatalist->covers = 0;
-
-	/*
-	 * Set the maximum UDP buffer size.
-	 */
 	view = client->view;
 	resolver = (view != NULL) ? view->resolver : NULL;
 	if (resolver != NULL)
 		udpsize = dns_resolver_getudpsize(resolver);
 	else
 		udpsize = ns_g_udpsize;
-	rdatalist->rdclass = udpsize;
 
-	/*
-	 * Set EXTENDED-RCODE, VERSION and Z to 0.
-	 */
-	rdatalist->ttl = (client->extflags & DNS_MESSAGEEXTFLAG_REPLYPRESERVE);
+	flags = client->extflags & DNS_MESSAGEEXTFLAG_REPLYPRESERVE;
 
 	/* Set EDNS options if applicable */
-	if (client->attributes & NS_CLIENTATTR_WANTNSID &&
+	if ((client->attributes & NS_CLIENTATTR_WANTNSID) != 0 &&
 	    (ns_g_server->server_id != NULL ||
 	     ns_g_server->server_usehostname)) {
-		/*
-		 * Space required for NSID data:
-		 *   2 bytes for opt code
-		 * + 2 bytes for NSID length
-		 * + NSID itself
-		 */
-		char nsid[BUFSIZ], *nsidp;
-		isc_buffer_t *buffer = NULL;
-
 		if (ns_g_server->server_usehostname) {
 			isc_result_t result;
 			result = ns_os_gethostname(nsid, sizeof(nsid));
@@ -1392,35 +1360,15 @@ client_addopt(ns_client_t *client) {
 		} else
 			nsidp = ns_g_server->server_id;
 
-		rdata->length = strlen(nsidp) + 4;
-		result = isc_buffer_allocate(client->mctx, &buffer,
-					     rdata->length);
-		if (result != ISC_R_SUCCESS)
-			goto no_nsid;
-
-		isc_buffer_putuint16(buffer, DNS_OPT_NSID);
-		isc_buffer_putuint16(buffer, strlen(nsidp));
-		isc_buffer_putstr(buffer, nsidp);
-		rdata->data = buffer->base;
-		dns_message_takebuffer(client->message, &buffer);
-	} else {
-no_nsid:
-		rdata->data = NULL;
-		rdata->length = 0;
+		ednsopts[count].code = DNS_OPT_NSID;
+		ednsopts[count].length = strlen(nsidp);
+		ednsopts[count].value = (unsigned char *)nsidp;
+		count++;
 	}
-
-	rdata->rdclass = rdatalist->rdclass;
-	rdata->type = rdatalist->type;
-	rdata->flags = 0;
-
-	ISC_LIST_INIT(rdatalist->rdata);
-	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset)
-		      == ISC_R_SUCCESS);
-
-	client->opt = rdataset;
-
-	return (ISC_R_SUCCESS);
+ no_nsid:
+	result = dns_message_buildopt(client->message, &client->opt, 0,
+				      udpsize, flags, ednsopts, count);
+	return (result);
 }
 
 static inline isc_boolean_t
@@ -1501,6 +1449,83 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 	return (ISC_TF(view == myview));
 }
 
+static isc_result_t
+process_opt(ns_client_t *client, dns_rdataset_t *opt) {
+	dns_rdata_t rdata;
+	isc_buffer_t optbuf;
+	isc_result_t result;
+	isc_uint16_t optcode;
+	isc_uint16_t optlen;
+
+	/*
+	 * Set the client's UDP buffer size.
+	 */
+	client->udpsize = opt->rdclass;
+
+	/*
+	 * If the requested UDP buffer size is less than 512,
+	 * ignore it and use 512.
+	 */
+	if (client->udpsize < 512)
+		client->udpsize = 512;
+
+	/*
+	 * Get the flags out of the OPT record.
+	 */
+	client->extflags = (isc_uint16_t)(opt->ttl & 0xFFFF);
+
+	/*
+	 * Do we understand this version of EDNS?
+	 *
+	 * XXXRTH need library support for this!
+	 */
+	client->ednsversion = (opt->ttl & 0x00FF0000) >> 16;
+	if (client->ednsversion > 0) {
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_badednsver);
+		result = client_addopt(client);
+		if (result == ISC_R_SUCCESS)
+			result = DNS_R_BADVERS;
+		ns_client_error(client, result);
+		goto cleanup;
+	}
+
+	/* Check for NSID request */
+	result = dns_rdataset_first(opt);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdata_init(&rdata);
+		dns_rdataset_current(opt, &rdata);
+		isc_buffer_init(&optbuf, rdata.data, rdata.length);
+		isc_buffer_add(&optbuf, rdata.length);
+		while (isc_buffer_remaininglength(&optbuf) >= 4) {
+			optcode = isc_buffer_getuint16(&optbuf);
+			optlen = isc_buffer_getuint16(&optbuf);
+			switch (optcode) {
+			case DNS_OPT_NSID:
+				client->attributes |= NS_CLIENTATTR_WANTNSID;
+				isc_buffer_forward(&optbuf, optlen);
+				break;
+			default:
+				isc_buffer_forward(&optbuf, optlen);
+				break;
+			}
+		}
+	}
+
+	isc_stats_increment(ns_g_server->nsstats, dns_nsstatscounter_edns0in);
+
+	/*
+	 * Create an OPT for our reply.
+	 */
+	result = client_addopt(client);
+	if (result != ISC_R_SUCCESS) {
+		ns_client_error(client, result);
+		goto cleanup;
+	}
+ cleanup:
+	return (result);
+}
+
 /*
  * Handle an incoming request event from the socket (UDP case)
  * or tcpmsg (TCP case).
@@ -1522,8 +1547,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_messageid_t id;
 	unsigned int flags;
 	isc_boolean_t notimp;
-	dns_rdata_t rdata;
-	isc_uint16_t optcode;
 
 	REQUIRE(event != NULL);
 	client = event->ev_arg;
@@ -1740,67 +1763,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			ns_client_next(client, ISC_R_SUCCESS);
 			goto cleanup;
 		}
-		/*
-		 * Set the client's UDP buffer size.
-		 */
-		client->udpsize = opt->rdclass;
-
-		/*
-		 * If the requested UDP buffer size is less than 512,
-		 * ignore it and use 512.
-		 */
-		if (client->udpsize < 512)
-			client->udpsize = 512;
-
-		/*
-		 * Get the flags out of the OPT record.
-		 */
-		client->extflags = (isc_uint16_t)(opt->ttl & 0xFFFF);
-
-		/*
-		 * Do we understand this version of EDNS?
-		 *
-		 * XXXRTH need library support for this!
-		 */
-		client->ednsversion = (opt->ttl & 0x00FF0000) >> 16;
-		if (client->ednsversion > 0) {
-			isc_stats_increment(ns_g_server->nsstats,
-					    dns_nsstatscounter_badednsver);
-			result = client_addopt(client);
-			if (result == ISC_R_SUCCESS)
-				result = DNS_R_BADVERS;
-			ns_client_error(client, result);
+		result = process_opt(client, opt);
+		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		}
-
-		/* Check for NSID request */
-		result = dns_rdataset_first(opt);
-		if (result == ISC_R_SUCCESS) {
-			dns_rdata_init(&rdata);
-			dns_rdataset_current(opt, &rdata);
-			if (rdata.length >= 2) {
-				isc_buffer_t nsidbuf;
-				isc_buffer_init(&nsidbuf,
-						rdata.data, rdata.length);
-				isc_buffer_add(&nsidbuf, rdata.length);
-				optcode = isc_buffer_getuint16(&nsidbuf);
-				if (optcode == DNS_OPT_NSID)
-					client->attributes |=
-						NS_CLIENTATTR_WANTNSID;
-			}
-		}
-
-		isc_stats_increment(ns_g_server->nsstats,
-				    dns_nsstatscounter_edns0in);
-
-		/*
-		 * Create an OPT for our reply.
-		 */
-		result = client_addopt(client);
-		if (result != ISC_R_SUCCESS) {
-			ns_client_error(client, result);
-			goto cleanup;
-		}
 	}
 
 	if (client->message->rdclass == 0) {
