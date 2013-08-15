@@ -1,3 +1,6 @@
+3633.	[cleanup]	Refactor OPT processing in named to make it easier
+			to support new EDNS options. [RT #34414]
+
 3632.	[bug]		Signature from newly inactive keys were not being
 			removed. [RT #32178]
 
