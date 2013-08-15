@@ -52,6 +52,10 @@ rm -f ns3/expired.db
 rm -f ns3/expired.db.jnl
 rm -f ns3/expired.db.signed
 rm -f ns3/expired.db.signed.jnl
+rm -f ns3/nsec3.db
+rm -f ns3/nsec3.db.jnl
+rm -f ns3/nsec3.db.signed
+rm -f ns3/nsec3.db.signed.jnl
 rm -f ns3/retransfer.bk
 rm -f ns3/retransfer.bk.jnl
 rm -f ns3/retransfer.bk.signed

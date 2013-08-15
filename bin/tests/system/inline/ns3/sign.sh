@@ -74,6 +74,12 @@ keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
 $DSFROMKEY -T 1200 $keyname >> ../ns1/root.db
 
+zone=nsec3
+rm -f K${zone}.+*+*.key
+rm -f K${zone}.+*+*.private
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone -f KSK $zone`
+$DSFROMKEY -T 1200 $keyname >> ../ns1/root.db
+
 for s in a c d h k l m q z
 do
 	zone=test-$s

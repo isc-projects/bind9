@@ -25,6 +25,24 @@ RANDFILE=random.data
 status=0
 n=0
 
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 0 0 - nsec3
+
+for i in 1 2 3 4 5 6 7 8 9 0
+do
+	nsec3param=`$DIG +short @10.53.0.3 -p 5300 nsec3param nsec3.`
+	test -n "$nsec3param" && break
+	sleep 1
+done
+
+n=`expr $n + 1`
+echo "I:checking that rrsigs are replaced with ksk only"
+ret=0
+$DIG @10.53.0.3 -p 5300 axfr nsec3. |
+	awk '/RRSIG NSEC3/ {a[$1]++} END { for (i in a) {if (a[i] != 1) exit (1)}}' || ret=1
+#$DIG @10.53.0.3 -p 5300 axfr nsec3. | grep -w NSEC | grep -v "IN.RRSIG.NSEC" 
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 n=`expr $n + 1`
 echo "I:checking that the zone is signed on initial transfer ($n)"
 ret=0

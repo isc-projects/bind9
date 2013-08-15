@@ -47,3 +47,6 @@ ns3.expired.		A	10.53.0.3
 
 retransfer.			NS	ns3.retransfer.
 ns3.retransfer.		A	10.53.0.3
+
+nsec3.			NS	ns3.nsec3.
+ns3.nsec3.		A	10.53.0.3
