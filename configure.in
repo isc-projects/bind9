@@ -3393,7 +3393,7 @@ if test "$atf" = yes; then
 		 /*) ;;
 		 *) srcdir="../../$srcdir";;
 		 esac
-		 ${SHELL} ${srcdir}${srcdir:+/unit/atf-src/}./configure MISSING=: --prefix $atfdir;
+		 ${SHELL} "${srcdir}${srcdir:+/unit/atf-src/}./configure" MISSING=: --prefix $atfdir;
 		) ],
 		[atfdir=`pwd`/unit/atf])
 	AC_MSG_RESULT(building ATF from bind9/unit/atf-src)
@@ -3451,7 +3451,7 @@ BIND9_MAKE_INCLUDES=$BIND9_TOP_BUILDDIR/make/includes
 AC_SUBST_FILE(BIND9_MAKE_RULES)
 BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 
-. $srcdir/version
+. "$srcdir/version"
 BIND9_PRODUCT="PRODUCT=\"${PRODUCT}\""
 AC_SUBST(BIND9_PRODUCT)
 BIND9_DESCRIPTION="DESCRIPTION=\"${DESCRIPTION}\""
@@ -3462,10 +3462,13 @@ BIND9_MAJOR="MAJOR=${MAJORVER}.${MINORVER}"
 AC_SUBST(BIND9_MAJOR)
 
 BIND9_SRCID="SRCID=unset"
-if test -f $srcdir/srcid; then
-	. $srcdir/srcid
+if test -f "${srcdir}/srcid"; then
+	. "${srcdir}/srcid"
 	BIND9_SRCID="SRCID=$SRCID"
+elif test -d "${srcdir}/.git"; then
+	BIND9_SRCID="SRCID="`(cd "${srcdir}";git log -n 1 --format=%h)`
 fi
+
 AC_SUBST(BIND9_SRCID)
 
 if test -z "$ac_configure_args"; then
@@ -3481,28 +3484,28 @@ BIND9_CONFIGARGS="CONFIGARGS=${BIND9_CONFIGARGS}"
 AC_SUBST(BIND9_CONFIGARGS)
 
 AC_SUBST_FILE(LIBISC_API)
-LIBISC_API=$srcdir/lib/isc/api
+LIBISC_API="$srcdir/lib/isc/api"
 
 AC_SUBST_FILE(LIBISCCC_API)
-LIBISCCC_API=$srcdir/lib/isccc/api
+LIBISCCC_API="$srcdir/lib/isccc/api"
 
 AC_SUBST_FILE(LIBISCCFG_API)
-LIBISCCFG_API=$srcdir/lib/isccfg/api
+LIBISCCFG_API="$srcdir/lib/isccfg/api"
 
 AC_SUBST_FILE(LIBDNS_API)
-LIBDNS_API=$srcdir/lib/dns/api
+LIBDNS_API="$srcdir/lib/dns/api"
 
 AC_SUBST_FILE(LIBDNS_MAPAPI)
-LIBDNS_MAPAPI=$srcdir/lib/dns/mapapi
+LIBDNS_MAPAPI="$srcdir/lib/dns/mapapi"
 
 AC_SUBST_FILE(LIBBIND9_API)
-LIBBIND9_API=$srcdir/lib/bind9/api
+LIBBIND9_API="$srcdir/lib/bind9/api"
 
 AC_SUBST_FILE(LIBLWRES_API)
-LIBLWRES_API=$srcdir/lib/lwres/api
+LIBLWRES_API="$srcdir/lib/lwres/api"
 
 AC_SUBST_FILE(LIBIRS_API)
-LIBIRS_API=$srcdir/lib/irs/api
+LIBIRS_API="$srcdir/lib/irs/api"
 
 #
 # Configure any DLZ drivers.
