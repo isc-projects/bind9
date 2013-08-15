@@ -56,6 +56,7 @@ rm -f ns4/named.conf
 rm -f ns4/managed-keys.bind*
 rm -f ns3/auto-nsec.example.db ns3/auto-nsec3.example.db
 rm -f ns3/secure.below-cname.example.db
+rm -f ns3/publish-inactive.example.db
 rm -f signer/example.db.after signer/example.db.before
 rm -f signer/example.db.changed
 rm -f signer/nsec3param.out
