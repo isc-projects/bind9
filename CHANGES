@@ -1,3 +1,6 @@
+3633.	[cleanup]	Refactor OPT processing in named to make it easier
+			to support new EDNS options. [RT #34414]
+
 3631.	[bug]		Remove spurious warning about missing signatures when
 			qtype is SIG. [RT #34600]
 
