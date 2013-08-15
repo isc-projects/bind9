@@ -1354,8 +1354,25 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 		key->times[i] = 0;
 		key->timeset[i] = ISC_FALSE;
 	}
+	key->inactive = ISC_FALSE;
 	key->magic = KEY_MAGIC;
 	return (key);
+}
+
+isc_boolean_t
+dst_key_inactive(const dst_key_t *key) {
+
+	REQUIRE(VALID_KEY(key));
+
+	return (key->inactive);
+}
+
+void
+dst_key_setinactive(dst_key_t *key, isc_boolean_t inactive) {
+
+	REQUIRE(VALID_KEY(key));
+
+	key->inactive = inactive;
 }
 
 /*%
