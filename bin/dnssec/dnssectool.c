@@ -362,10 +362,8 @@ strtotime(const char *str, isc_int64_t now, isc_int64_t base) {
 		offset = strtol(str + 1, &endp, 0);
 		offset = time_units((isc_stdtime_t) offset, endp, orig);
 		val = base - offset;
-	} else {
-			fatal("time value %s is invalid: %s", orig,
-			      isc_result_totext(result));
-	}
+	} else
+		fatal("time value %s is invalid", orig);
 
 	return ((isc_stdtime_t) val);
 }
