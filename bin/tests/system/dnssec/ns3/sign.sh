@@ -382,3 +382,17 @@ kskname=`$KEYGEN -q -r $RANDFILE $zone`
 zskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
 cp $infile $zonefile
 $SIGNER -P -S -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+#
+# publish a new key while deactivating another key at the same time.
+#
+zone=publish-inactive.example
+infile=publish-inactive.example.db.in
+zonefile=publish-inactive.example.db
+now=`date -u +%Y%m%d%H%M%S`
+kskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+kskname=`$KEYGEN -P $now+90s -A $now+3600s -q -r $RANDFILE -f KSK $zone`
+kskname=`$KEYGEN -I $now+90s -q -r $RANDFILE -f KSK $zone`
+zskname=`$KEYGEN -q -r $RANDFILE $zone`
+cp $infile $zonefile
+$SIGNER -S -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1

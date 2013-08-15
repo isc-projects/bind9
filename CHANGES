@@ -1,3 +1,6 @@
+3632.	[bug]		Signature from newly inactive keys were not being
+			removed. [RT #32178]
+
 3631.	[bug]		Remove spurious warning about missing signatures when
 			qtype is SIG. [RT #34600]
 

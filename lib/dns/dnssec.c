@@ -753,6 +753,7 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 		 * If a key is marked inactive, skip it
 		 */
 		if (!key_active(keys[count], now)) {
+			dst_key_setinactive(pubkey, ISC_TRUE);
 			dst_key_free(&keys[count]);
 			keys[count] = pubkey;
 			pubkey = NULL;

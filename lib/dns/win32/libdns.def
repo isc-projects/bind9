@@ -957,6 +957,7 @@ dst_key_generate2
 dst_key_getprivateformat
 dst_key_gettime
 dst_key_id
+dst_key_inactive
 dst_key_isnullkey
 dst_key_isprivate
 dst_key_iszonekey
@@ -969,6 +970,7 @@ dst_key_rid
 dst_key_secretsize
 dst_key_setbits
 dst_key_setflags
+dst_key_setinactive
 dst_key_setprivateformat
 dst_key_settime
 dst_key_sigsize

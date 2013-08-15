@@ -4889,7 +4889,9 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				 * We want the earliest offline expire time
 				 * iff there is a new offline signature.
 				 */
-				if (!dst_key_isprivate(keys[i])) {
+				if (!dst_key_inactive(keys[i]) &&
+				    !dst_key_isprivate(keys[i]))
+				{
 					isc_int64_t timeexpire =
 					   dns_time64_from32(rrsig.timeexpire);
 					if (warn != 0 && warn > timeexpire)

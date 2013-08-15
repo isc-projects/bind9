@@ -1880,5 +1880,25 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check simultaneous inactivation and publishing of dnskeys removes inactive signature ($n)"
+ret=0
+cnt=0
+while :
+do
+$DIG $DIGOPTS publish-inactive.example @10.53.0.3 dnskey > dig.out.ns3.test$n
+keys=`awk '$5 == 257 { print; }' dig.out.ns3.test$n | wc -l`
+test $keys -gt 2 && break
+cnt=`expr $cnt + 1`
+test $cnt -gt 120 && break
+sleep 1
+done
+test $keys -gt 2 || ret=1
+sigs=`grep RRSIG dig.out.ns3.test$n | wc -l`
+sigs=`expr $sigs + 0`
+n=`expr $n + 1`
+test $sigs -eq 2 || ret=1
+if test $ret != 0 ; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
