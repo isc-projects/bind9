@@ -101,5 +101,14 @@ $PERL ../start.pl --restart --noclean . ns4 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking that forward only zone overrides empty zone"
+ret=0
+$DIG 1.0.10.in-addr.arpa TXT @10.53.0.4 -p 5300 > dig.out.f2
+grep "status: NOERROR" dig.out.f2 > /dev/null || ret=1
+$DIG 2.0.10.in-addr.arpa TXT @10.53.0.4 -p 5300 > dig.out.f2
+grep "status: NXDOMAIN" dig.out.f2 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

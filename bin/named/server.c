@@ -77,11 +77,13 @@
 #include <dns/private.h>
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>
+#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
 #include <dns/rootns.h>
 #include <dns/secalg.h>
+#include <dns/soa.h>
 #include <dns/stats.h>
 #include <dns/tkey.h>
 #include <dns/tsig.h>
@@ -2015,6 +2017,234 @@ configure_rrl(dns_view_t *view, const cfg_obj_t *config, const cfg_obj_t *map) {
 	return (result);
 }
 
+static isc_result_t
+add_soa(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
+	dns_name_t *origin, dns_name_t *contact)
+{
+	dns_dbnode_t *node = NULL;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdatalist_t rdatalist;
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+	unsigned char buf[DNS_SOA_BUFFERSIZE];
+
+	dns_rdataset_init(&rdataset);
+	dns_rdatalist_init(&rdatalist);
+	CHECK(dns_soa_buildrdata(origin, contact, dns_db_class(db),
+				 0, 28800, 7200, 604800, 86400, buf, &rdata));
+	rdatalist.type = rdata.type;
+	rdatalist.covers = 0;
+	rdatalist.rdclass = rdata.rdclass;
+	rdatalist.ttl = 86400;
+	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
+	CHECK(dns_rdatalist_tordataset(&rdatalist, &rdataset));
+	CHECK(dns_db_findnode(db, name, ISC_TRUE, &node));
+	CHECK(dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL));
+ cleanup:
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	return (result);
+}
+
+static isc_result_t
+add_ns(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
+       dns_name_t *nsname)
+{
+	dns_dbnode_t *node = NULL;
+	dns_rdata_ns_t ns;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdatalist_t rdatalist;
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+	isc_buffer_t b;
+	unsigned char buf[DNS_NAME_MAXWIRE];
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+
+	dns_rdataset_init(&rdataset);
+	dns_rdatalist_init(&rdatalist);
+	ns.common.rdtype = dns_rdatatype_ns;
+	ns.common.rdclass = dns_db_class(db);
+	ns.mctx = NULL;
+	dns_name_init(&ns.name, NULL);
+	dns_name_clone(nsname, &ns.name);
+	CHECK(dns_rdata_fromstruct(&rdata, dns_db_class(db), dns_rdatatype_ns,
+				   &ns, &b));
+	rdatalist.type = rdata.type;
+	rdatalist.covers = 0;
+	rdatalist.rdclass = rdata.rdclass;
+	rdatalist.ttl = 86400;
+	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
+	CHECK(dns_rdatalist_tordataset(&rdatalist, &rdataset));
+	CHECK(dns_db_findnode(db, name, ISC_TRUE, &node));
+	CHECK(dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL));
+ cleanup:
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	return (result);
+}
+
+static isc_result_t
+create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
+		  const cfg_obj_t *zonelist, const char **empty_dbtype,
+		  int empty_dbtypec, dns_zonestat_level_t statlevel)
+{
+	char namebuf[DNS_NAME_FORMATSIZE];
+	const cfg_listelt_t *element;
+	const cfg_obj_t *obj;
+	const cfg_obj_t *zconfig;
+	const cfg_obj_t *zoptions;
+	const char *rbt_dbtype[4] = { "rbt" };
+	const char *sep = ": view ";
+	const char *str;
+	const char *viewname = view->name;
+	dns_db_t *db = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_fixedname_t cfixed;
+	dns_fixedname_t fixed;
+	dns_fixedname_t nsfixed;
+	dns_name_t *contact;
+	dns_name_t *ns;
+	dns_name_t *zname;
+	dns_zone_t *myzone = NULL;
+	int rbt_dbtypec = 1;
+	isc_result_t result;
+	dns_namereln_t namereln;
+	int order;
+	unsigned int nlabels;
+
+	dns_fixedname_init(&fixed);
+	zname = dns_fixedname_name(&fixed);
+	dns_fixedname_init(&nsfixed);
+	ns = dns_fixedname_name(&nsfixed);
+	dns_fixedname_init(&cfixed);
+	contact = dns_fixedname_name(&cfixed);
+
+	/*
+	 * Look for forward "zones" beneath this empty zone and if so
+	 * create a custom db for the empty zone.
+	 */
+	for (element = cfg_list_first(zonelist);
+	     element != NULL;
+	     element = cfg_list_next(element)) {
+
+		zconfig = cfg_listelt_value(element);
+		str = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
+		CHECK(dns_name_fromstring(zname, str, 0, NULL));
+		namereln = dns_name_fullcompare(zname, name, &order, &nlabels);
+		if (namereln != dns_namereln_subdomain)
+			continue;
+
+		zoptions = cfg_tuple_get(zconfig, "options");
+
+		obj = NULL;
+		(void)cfg_map_get(zoptions, "type", &obj);
+		INSIST(obj != NULL);
+		if (strcasecmp(cfg_obj_asstring(obj), "forward") != 0)
+			continue;
+
+		obj = NULL;
+		(void)cfg_map_get(zoptions, "forward", &obj);
+		if (obj == NULL)
+			continue;
+		if (strcasecmp(cfg_obj_asstring(obj), "only") != 0)
+			continue;
+		if (db == NULL) {
+			CHECK(dns_db_create(view->mctx, "rbt", name,
+					    dns_dbtype_zone, view->rdclass,
+					    0, NULL, &db));
+			CHECK(dns_db_newversion(db, &version));
+			if (strcmp(empty_dbtype[2], "@") == 0)
+				dns_name_clone(name, ns);
+			else
+				CHECK(dns_name_fromstring(ns, empty_dbtype[2],
+							  0, NULL));
+			CHECK(dns_name_fromstring(contact, empty_dbtype[3],
+						  0, NULL));
+			CHECK(add_soa(db, version, name, ns, contact));
+			CHECK(add_ns(db, version, name, ns));
+		}
+		CHECK(add_ns(db, version, zname, dns_rootname));
+	}
+
+	/*
+	 * Is the existing zone the ok to use?
+	 */
+	if (zone != NULL) {
+		if (db != NULL)
+			check_dbtype(&zone, rbt_dbtypec, rbt_dbtype,
+				     view->mctx);
+		else
+			check_dbtype(&zone, empty_dbtypec, empty_dbtype,
+				     view->mctx);
+		if (zone != NULL && dns_zone_gettype(zone) != dns_zone_master)
+			zone = NULL;
+		if (zone != NULL && dns_zone_getfile(zone) != NULL)
+			zone = NULL;
+		if (zone != NULL) {
+			dns_zone_getraw(zone, &myzone);
+			if (myzone != NULL) {
+				dns_zone_detach(&myzone);
+				zone = NULL;
+			}
+		}
+	}
+
+	if (zone == NULL) {
+		CHECK(dns_zonemgr_createzone(ns_g_server->zonemgr, &myzone));
+		zone = myzone;
+		CHECK(dns_zone_setorigin(zone, name));
+		CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
+		if (db == NULL)
+			CHECK(dns_zone_setdbtype(zone, empty_dbtypec,
+						 empty_dbtype));
+		dns_zone_setclass(zone, view->rdclass);
+		dns_zone_settype(zone, dns_zone_master);
+		dns_zone_setstats(zone, ns_g_server->zonestats);
+	}
+
+	dns_zone_setoption(zone, ~DNS_ZONEOPT_NOCHECKNS, ISC_FALSE);
+	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, ISC_TRUE);
+	dns_zone_setnotifytype(zone, dns_notifytype_no);
+	dns_zone_setdialup(zone, dns_dialuptype_no);
+	if (view->queryacl)
+		dns_zone_setqueryacl(zone, view->queryacl);
+	else
+		dns_zone_clearqueryacl(zone);
+	if (view->queryonacl)
+		dns_zone_setqueryonacl(zone, view->queryonacl);
+	else
+		dns_zone_clearqueryonacl(zone);
+	dns_zone_clearupdateacl(zone);
+	dns_zone_clearxfracl(zone);
+
+	CHECK(setquerystats(zone, view->mctx, statlevel));
+	if (db != NULL) {
+		dns_db_closeversion(db, &version, ISC_TRUE);
+		CHECK(dns_zone_replacedb(zone, db, ISC_FALSE));
+	}
+	dns_zone_setview(zone, view);
+	CHECK(dns_view_addzone(view, zone));
+
+	if (!strcmp(viewname, "_default")) {
+		sep = "";
+		viewname = "";
+	}
+	dns_name_format(name, namebuf, sizeof(namebuf));
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "automatic empty zone%s%s: %s",
+		      sep, viewname, namebuf);
+
+ cleanup:
+	if (myzone != NULL)
+		dns_zone_detach(&myzone);
+	if (version != NULL)
+		dns_db_closeversion(db, &version, ISC_FALSE);
+	if (db != NULL)
+		dns_db_detach(&db);
+	return (result);
+}
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -3413,45 +3643,13 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			if (pview != NULL) {
 				(void)dns_view_findzone(pview, name, &zone);
 				dns_view_detach(&pview);
-				if (zone != NULL)
-					check_dbtype(&zone, empty_dbtypec,
-						     empty_dbtype, mctx);
-				if (zone != NULL) {
-					dns_zone_setview(zone, view);
-					CHECK(dns_view_addzone(view, zone));
-					CHECK(setquerystats(zone, mctx,
-							    statlevel));
-					dns_zone_detach(&zone);
-					continue;
-				}
 			}
 
-			CHECK(dns_zonemgr_createzone(ns_g_server->zonemgr,
-						     &zone));
-			CHECK(dns_zone_setorigin(zone, name));
-			dns_zone_setview(zone, view);
-			CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr,
-						     zone));
-			dns_zone_setclass(zone, view->rdclass);
-			dns_zone_settype(zone, dns_zone_master);
-			dns_zone_setstats(zone, ns_g_server->zonestats);
-			CHECK(dns_zone_setdbtype(zone, empty_dbtypec,
-						 empty_dbtype));
-			if (view->queryacl != NULL)
-				dns_zone_setqueryacl(zone, view->queryacl);
-			if (view->queryonacl != NULL)
-				dns_zone_setqueryonacl(zone, view->queryonacl);
-			dns_zone_setdialup(zone, dns_dialuptype_no);
-			dns_zone_setnotifytype(zone, dns_notifytype_no);
-			dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS,
-					   ISC_TRUE);
-			CHECK(setquerystats(zone, mctx, statlevel));
-			CHECK(dns_view_addzone(view, zone));
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-				      "automatic empty zone%s%s: %s",
-				      sep, viewname,  empty);
-			dns_zone_detach(&zone);
+			CHECK(create_empty_zone(zone, name, view, zonelist,
+						empty_dbtype, empty_dbtypec,
+						statlevel));
+			if (zone != NULL)
+				dns_zone_detach(&zone);
 		}
 	}
 
