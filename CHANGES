@@ -1,3 +1,6 @@
+3636.	[bug]		Automatic empty zones now behave better with
+			forward only "zones" beneath them. [RT #34583]
+
 3634.	[func]		Report build-id in rndc status. Report build-id
 			when building from a git repository. [RT #20422]
 
