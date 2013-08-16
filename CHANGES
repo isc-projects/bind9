@@ -1,3 +1,6 @@
+3636.	[bug]		Automatic empty zones now behave better with
+			forward only "zones" beneath them. [RT #34583]
+
 3635.	[bug]		Signatures were not being removed from a zone with
 			only KSK keys for a algorithm. [RT #24439]
 
