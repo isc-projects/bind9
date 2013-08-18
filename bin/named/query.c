@@ -800,7 +800,7 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 		if (queryonacl == NULL)
 			queryonacl = client->view->queryonacl;
 
-		result = ns_client_checkaclsilent(client, NULL,
+		result = ns_client_checkaclsilent(client, &client->destaddr,
 						  queryonacl, ISC_TRUE);
 		if ((options & DNS_GETDB_NOLOG) == 0 &&
 		    result != ISC_R_SUCCESS)
