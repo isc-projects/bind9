@@ -140,5 +140,14 @@ $DIG $DIGOPTS tsigzone. \
     	@10.53.0.2 -b 10.53.0.3 axfr -y one:1234abcd8765 -p 5300 > dig.out
 grep "^;" dig.out > /dev/null 2>&1 || { echo "I:test $t failed" ; status=1; }
 
+echo "I:testing allow-query-on ACL processing"
+cp -f ns2/named5.conf ns2/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'
+sleep 5
+t=`expr $t + 1`
+$DIG +tcp soa example. \
+    	@10.53.0.2 -b 10.53.0.3 -p 5300 > dig.out
+grep "status: NOERROR" dig.out > /dev/null 2>&1 || { echo "I:test $t failed" ; status=1; }
+
 echo "I:exit status: $status"
 exit $status
