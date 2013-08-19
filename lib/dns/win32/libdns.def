@@ -677,6 +677,7 @@ dns_secalg_fromtext
 dns_secalg_totext
 dns_secproto_fromtext
 dns_secproto_totext
+dns_soa_buildrdata
 dns_soa_getminimum
 dns_soa_getserial
 dns_soa_setserial
