@@ -524,8 +524,9 @@
 ./bin/tests/system/acl/ns2/named2.conf		CONF-C	2008
 ./bin/tests/system/acl/ns2/named3.conf		CONF-C	2008
 ./bin/tests/system/acl/ns2/named4.conf		CONF-C	2008
+./bin/tests/system/acl/ns2/named5.conf		CONF-C	2013
 ./bin/tests/system/acl/setup.sh			SH	2008,2012
-./bin/tests/system/acl/tests.sh			SH	2008,2012
+./bin/tests/system/acl/tests.sh			SH	2008,2012,2013
 ./bin/tests/system/additional/clean.sh		SH	2013
 ./bin/tests/system/additional/ns1/named.args	X	2013
 ./bin/tests/system/additional/ns1/named1.conf	CONF-C	2013
