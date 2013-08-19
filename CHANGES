@@ -1,3 +1,5 @@
+	--- 9.6-ESV-R10rc2 released ---
+
 3637.	[bug]		'allow-query-on' was checking the source address
 			rather than the destination address. [RT #34590]
 
