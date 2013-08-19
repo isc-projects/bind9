@@ -1899,7 +1899,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	isc_uint32_t max_clients_per_query;
 	const char *sep = ": view ";
 	const char *viewname = view->name;
-	const char *forview = " for view ";
 	isc_boolean_t rfc1918;
 	isc_boolean_t empty_zones_enable;
 	const cfg_obj_t *disablelist = NULL;
@@ -1945,8 +1944,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (!strcmp(viewname, "_default")) {
 		sep = "";
 		viewname = "";
-		forview = "";
-		POST(forview);
 	}
 
 	/*
