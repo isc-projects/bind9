@@ -2298,9 +2298,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	unsigned int resopts = 0;
 	dns_zone_t *zone = NULL;
 	isc_uint32_t max_clients_per_query;
-	const char *sep = ": view ";
-	const char *viewname = view->name;
-	const char *forview = " for view ";
 	isc_boolean_t empty_zones_enable;
 	const cfg_obj_t *disablelist = NULL;
 	isc_stats_t *resstats = NULL;
@@ -2342,13 +2339,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (config != NULL)
 		cfgmaps[k++] = config;
 	cfgmaps[k] = NULL;
-
-	if (!strcmp(viewname, "_default")) {
-		sep = "";
-		viewname = "";
-		forview = "";
-		POST(forview);
-	}
 
 	/*
 	 * Set the view's port number for outgoing queries.
