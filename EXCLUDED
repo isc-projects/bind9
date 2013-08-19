@@ -1,3 +1,9 @@
+3624.	[bug]		Look for 'json_object_new_int64' when looking for a
+			the json library. [RT #34449]
+
+3622.	[tuning]	Eliminate an unnecessary lock when incrementing
+			cache statistics. [RT #34339]
+
 3619.	[bug]		Fixed a bug in RPZ with "recursive-only no;"
 			[RT #33776]
 
