@@ -1529,6 +1529,10 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		/* HPUX 11.11 can return EADDRNOTAVAIL. */
 		SOFT_OR_HARD(EADDRNOTAVAIL, ISC_R_ADDRNOTAVAIL);
 		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
+		/* Should never get this one but it was seen. */
+#ifdef ENOPROTOOPT
+		SOFT_OR_HARD(ENOPROTOOPT, ISC_R_HOSTUNREACH);
+#endif
 		/*
 		 * HPUX returns EPROTO and EINVAL on receiving some ICMP/ICMPv6
 		 * errors.
