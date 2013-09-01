@@ -8533,7 +8533,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 		if (ptr == NULL)
 			return (ISC_R_UNEXPECTEDEND);
 		memcpy(keystr, ptr, sizeof(keystr));
-	} else if(strcasecmp(ptr, "-nsec3param") == 0) {
+	} else if (strcasecmp(ptr, "-nsec3param") == 0) {
 		const char *hashstr, *flagstr, *iterstr;
 		char nbuf[512];
 
