@@ -779,6 +779,14 @@ main(int argc, char **argv) {
 			ttn = find_typename(i);
 			if (ttn == NULL)
 				continue;
+			/*
+			 * Remove KEYDATA (65533) from the type to memonic
+			 * translation as it is internal use only.  This
+			 * stops the tools from displaying KEYDATA instead
+			 * of TYPE65533.
+			 */
+			if (i == 65533U)
+				continue;
 			fprintf(stdout, "\tcase %u: return "
 				"(str_totext(\"%s\", target)); \\\n",
 				i, upper(ttn->typename));

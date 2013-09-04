@@ -2282,6 +2282,17 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check KEYDATA records are printed in human readable form in key zone ($n)"
+# force the zone to be written out
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns4
+ret=0
+grep KEYDATA ns4/managed-keys.bind > /dev/null || ret=1
+# restart the server
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns4
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:check dig's +nocrypto flag ($n)"
 ret=0
 $DIG $DIGOPTS +norec +nocrypto DNSKEY . \

@@ -1,3 +1,6 @@
+3639.	[bug]		Treat type 65533 (KEYDATA) as opaque except when used
+			in a key zone. [RT #34238]
+
 3638.	[cleanup]	Add the ability to handle ENOPROTOOPT in case it is 
 			encountered. [RT #34668]
 
