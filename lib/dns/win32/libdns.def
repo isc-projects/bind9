@@ -330,6 +330,7 @@ dns_master_stylecreate
 dns_master_stylecreate2
 dns_master_styledestroy
 dns_message_addname
+dns_message_buildopt
 dns_message_checksig
 dns_message_create
 dns_message_currentname
@@ -711,6 +712,7 @@ dns_secalg_fromtext
 dns_secalg_totext
 dns_secproto_fromtext
 dns_secproto_totext
+dns_soa_buildrdata
 dns_soa_getminimum
 dns_soa_getserial
 dns_soa_setserial
@@ -1063,6 +1065,7 @@ dst_key_gettime
 dst_key_getttl
 dst_key_id
 dst_key_inactive
+dst_key_isexternal
 dst_key_isnullkey
 dst_key_isprivate
 dst_key_iszonekey
