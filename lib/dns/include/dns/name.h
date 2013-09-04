@@ -1139,6 +1139,35 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size);
  */
 
 isc_result_t
+dns_name_fromstring(dns_name_t *target, const char *src, unsigned int options,
+		    isc_mem_t *mctx);
+isc_result_t
+dns_name_fromstring2(dns_name_t *target, const char *src,
+		     const dns_name_t *origin, unsigned int options,
+		     isc_mem_t *mctx);
+/*%<
+ * Convert a string to a name and place it in target, allocating memory
+ * as necessary.  'options' has the same semantics as that of
+ * dns_name_fromtext().
+ *
+ * If 'target' has a buffer then the name will be copied into it rather than
+ * memory being allocated.
+ *
+ * Requires:
+ *
+ * \li	'target' is a valid name that is not read-only.
+ * \li	'src' is not NULL.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS
+ *
+ *\li	Any error that dns_name_fromtext() can return.
+ *
+ *\li	Any error that dns_name_dup() can return.
+ */
+
+isc_result_t
 dns_name_settotextfilter(dns_name_totextfilter_t proc);
 /*%<
  * Set / clear a thread specific function 'proc' to be called at the

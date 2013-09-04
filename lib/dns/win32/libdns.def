@@ -329,6 +329,8 @@ dns_name_equal
 dns_name_format
 dns_name_free
 dns_name_fromregion
+dns_name_fromstring
+dns_name_fromstring2
 dns_name_fromtext
 dns_name_fromwire
 dns_name_fullcompare

@@ -1057,39 +1057,6 @@ cache_reusable(dns_view_t *originview, dns_view_t *view,
 	return (ISC_TRUE);
 }
 
-#define BINDABLE(name) \
-	((name->attributes & (DNS_NAMEATTR_READONLY|DNS_NAMEATTR_DYNAMIC)) \
-	 == 0)
-
-static isc_result_t
-dns_name_fromstring(dns_name_t *target, const char *src,
-		    unsigned int options, isc_mem_t *mctx)
-{
-	isc_result_t result;
-	isc_buffer_t buf;
-	dns_fixedname_t fn;
-	dns_name_t *name;
-
-	REQUIRE(src != NULL);
-
-	isc_buffer_constinit(&buf, src, strlen(src));
-	isc_buffer_add(&buf, strlen(src));
-	if (BINDABLE(target) && target->buffer != NULL)
-		name = target;
-	else {
-		dns_fixedname_init(&fn);
-		name = dns_fixedname_name(&fn);
-	}
-
-	result = dns_name_fromtext(name, &buf, dns_rootname, options, NULL);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	if (name != target)
-		result = dns_name_dupwithoffsets(name, mctx, target);
-	return (result);
-}
-
 static isc_result_t
 add_soa(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	dns_name_t *origin, dns_name_t *contact)

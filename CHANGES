@@ -2,7 +2,11 @@
 			[RT #25627]
 
 3646.	[bug]		Journal filename string could be set incorrectly,
-                        causing garbage in log messages.  [RT #34738]
+			causing garbage in log messages. [RT #34738]
+
+3640.	[bug]		ndots was not being checked when searching.  Only
+			continue searching on NXDOMAIN responses.  Add the
+			ability to specify ndots to nslookup. [RT #34711]
 
 	--- 9.6-ESV-R10 released ---
 
