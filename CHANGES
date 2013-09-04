@@ -1,3 +1,5 @@
+3643.	[doc]		Clarify RRL "slip" documentation.
+
 3642.	[func]		Allow externally generated DNSKEY to be imported
 			into the DNSKEY management framework.  A new tool
 			dnssec-importkey is used to do this. [RT #34698]

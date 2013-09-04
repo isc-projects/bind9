@@ -9818,11 +9818,28 @@ example.com                 CNAME   rpz-tcp-only.
 	    amplification, of "slipped" responses make them unattractive
 	    for reflection DoS attacks.
 	    <command>slip</command> must be between 0 and 10.
-	    A value of 0 does not "slip";
-	    no truncated responses are sent due to rate limiting.
+	    A value of 0 does not "slip":
+	    no truncated responses are sent due to rate limiting,
+	    all responses are dropped.
+	    A value of 1 causes every response to slip;
+	    values between 2 and 10 cause every n'th response to slip.
 	    Some error responses including REFUSED and SERVFAIL
 	    cannot be replaced with truncated responses and are instead
 	    leaked at the <command>slip</command> rate.
+	  </para>
+
+	  <para>
+	    (NOTE: Dropped responses from an authoritative server may
+	    reduce the difficulty of a third party successfully forging
+	    a response to a recursive resolver. The best security
+	    against forged responses is for authoritative operators
+	    to sign their zones using DNSSEC and for resolver operators
+	    to validate the responses. When this is not an option,
+	    operators who are more concerned with response integrity
+	    than with flood mitigation may consider setting
+	    <command>slip</command> to 1, causing all rate-limited
+	    responses to be truncated rather than dropped.  This reduces
+	    the effectiveness of rate-limiting against reflection attacks.)
 	  </para>
 
 	  <para>
