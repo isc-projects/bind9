@@ -249,6 +249,12 @@ nslookup -query=hinfo  -timeout=10
                     (Default = recurse; abbreviation = [no]rec)
                   </p>
 </dd>
+<dt><span class="term"><code class="constant">ndots=</code><em class="replaceable"><code>number</code></em></span></dt>
+<dd><p>
+		    Set the number of dots (label separators) in a domain
+		    that will disable searching.  Absolute names always
+		    stop searching.
+                  </p></dd>
 <dt><span class="term"><code class="constant">retry=</code><em class="replaceable"><code>number</code></em></span></dt>
 <dd><p>
                     Set the number of retries to number.
@@ -288,19 +294,19 @@ nslookup -query=hinfo  -timeout=10
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2546286"></a><h2>FILES</h2>
+<a name="id2546302"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2546298"></a><h2>SEE ALSO</h2>
+<a name="id2546314"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">dig</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>.
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2546332"></a><h2>Author</h2>
+<a name="id2546348"></a><h2>Author</h2>
 <p>
       Andrew Cherenson
     </p>
