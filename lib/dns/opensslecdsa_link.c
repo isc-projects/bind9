@@ -572,7 +572,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		dst__privstruct_free(&priv, mctx);
 		memset(&priv, 0, sizeof(priv));
 	}
- 
+
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL)
 		DST_RET (ISC_R_NOMEMORY);

@@ -1896,7 +1896,7 @@ next_origin(dig_query_t *query) {
 		 * about finding the next entry.
 		 */
 		return (ISC_FALSE);
-	
+
 	/*
 	 * Check for a absolute name or ndots being met.
 	 */
@@ -1908,7 +1908,7 @@ next_origin(dig_query_t *query) {
 	    (dns_name_isabsolute(name) ||
 	     (int)dns_name_countlabels(name) > ndots))
 		return (ISC_FALSE);
-		
+
 	if (query->lookup->origin == NULL && !query->lookup->need_search)
 		/*
 		 * Then we just did rootorg; there's nothing left.
