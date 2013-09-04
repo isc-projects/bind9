@@ -148,6 +148,11 @@ LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_simple;
  */
 LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_debug;
 
+/*%
+ * The style used for dumping "key" zones.
+ */
+LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_keyzone;
+
 /***
  ***	Functions
  ***/

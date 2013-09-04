@@ -21,7 +21,7 @@
 
 #include <dst/dst.h>
 
-#define RRTYPE_KEYDATA_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
+#define RRTYPE_KEYDATA_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_keydata(ARGS_FROMTEXT) {
@@ -102,7 +102,9 @@ totext_keydata(ARGS_TOTEXT) {
 	const char *keyinfo;
 
 	REQUIRE(rdata->type == 65533);
-	REQUIRE(rdata->length != 0);
+
+	if ((tctx->flags & DNS_STYLEFLAG_KEYDATA) == 0 || rdata->length < 16)
+		return (unknown_totext(rdata, tctx, target));
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -194,7 +196,6 @@ totext_keydata(ARGS_TOTEXT) {
 static inline isc_result_t
 fromwire_keydata(ARGS_FROMWIRE) {
 	isc_region_t sr;
-	unsigned char algorithm;
 
 	REQUIRE(type == 65533);
 
@@ -204,18 +205,6 @@ fromwire_keydata(ARGS_FROMWIRE) {
 	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
-	if (sr.length < 16)
-		return (ISC_R_UNEXPECTEDEND);
-
-	/*
-	 * RSAMD5 computes key ID differently from other
-	 * algorithms: we need to ensure there's enough data
-	 * present for the computation
-	 */
-	algorithm = sr.base[15];
-	if (algorithm == DST_ALG_RSAMD5 && sr.length < 19)
-		return (ISC_R_UNEXPECTEDEND);
-
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
@@ -225,7 +214,6 @@ towire_keydata(ARGS_TOWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == 65533);
-	REQUIRE(rdata->length != 0);
 
 	UNUSED(cctx);
 
@@ -241,8 +229,6 @@ compare_keydata(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 65533);
-	REQUIRE(rdata1->length != 0);
-	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -290,7 +276,6 @@ tostruct_keydata(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 65533);
 	REQUIRE(target != NULL);
-	REQUIRE(rdata->length != 0);
 
 	keydata->common.rdclass = rdata->rdclass;
 	keydata->common.rdtype = rdata->type;
