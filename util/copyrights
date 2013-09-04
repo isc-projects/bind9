@@ -70,8 +70,8 @@
 ./bin/dig/host.html				HTML	DOCBOOK
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./bin/dig/nslookup.1				MAN	DOCBOOK
-./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
-./bin/dig/nslookup.docbook			SGML	2004,2005,2006,2007,2010
+./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./bin/dig/nslookup.docbook			SGML	2004,2005,2006,2007,2010,2013
 ./bin/dig/nslookup.html				HTML	DOCBOOK
 ./bin/dig/win32/dig.dsp				X	2001,2002,2004,2005,2006,2009
 ./bin/dig/win32/dig.dsw				X	2001
@@ -84,12 +84,16 @@
 ./bin/dig/win32/nslookup.dsp			X	2001,2002,2004,2005,2009
 ./bin/dig/win32/nslookup.dsw			X	2001
 ./bin/dig/win32/nslookup.mak			X	2001,2002,2004,2005,2006,2009
-./bin/dnssec/.gitignore				X	2012
-./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005,2007,2008,2009,2012
+./bin/dnssec/.gitignore				X	2012,2013
+./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005,2007,2008,2009,2012,2013
 ./bin/dnssec/dnssec-dsfromkey.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-dsfromkey.c			C	2008,2009,2010,2011,2012
 ./bin/dnssec/dnssec-dsfromkey.docbook		SGML	2008,2009,2010,2011,2012
 ./bin/dnssec/dnssec-dsfromkey.html		HTML	DOCBOOK
+./bin/dnssec/dnssec-importkey.8			MAN	2013
+./bin/dnssec/dnssec-importkey.c			C	2013
+./bin/dnssec/dnssec-importkey.docbook		SGML	2013
+./bin/dnssec/dnssec-importkey.html		HTML	2013
 ./bin/dnssec/dnssec-keyfromlabel.8		MAN	DOCBOOK
 ./bin/dnssec/dnssec-keyfromlabel.c		C	2007,2008,2009,2010,2011,2012
 ./bin/dnssec/dnssec-keyfromlabel.docbook	SGML	2008,2009,2010,2011,2012
@@ -925,6 +929,9 @@
 ./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001,2004,2007,2008,2010,2012
 ./bin/tests/system/dnssec/ns3/secure.nsec3.example.db.in	ZONE	2008
 ./bin/tests/system/dnssec/ns3/secure.optout.example.db.in	ZONE	2008
+./bin/tests/system/dnssec/ns3/siginterval.example.db.in	ZONE	2013
+./bin/tests/system/dnssec/ns3/siginterval1.conf	CONF-C	2013
+./bin/tests/system/dnssec/ns3/siginterval2.conf	CONF-C	2013
 ./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012,2013
 ./bin/tests/system/dnssec/ns3/split-dnssec.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/split-smart.example.db.in	ZONE	2011
@@ -944,7 +951,7 @@
 ./bin/tests/system/dnssec/ns7/named.nosoa	TXT.BRIEF	2010
 ./bin/tests/system/dnssec/ns7/nosoa.secure.example.db	ZONE	2010
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006,2007,2009,2012
-./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2009,2011,2012
+./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2009,2011,2012,2013
 ./bin/tests/system/dnssec/signer/example.db.in	ZONE	2010
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./bin/tests/system/dscp/clean.sh		SH	2013
@@ -2276,7 +2283,7 @@
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./doc/arm/Bv9ARM.ch10.html			X	2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./doc/arm/Bv9ARM.pdf				X	2007,2008,2009,2010,2011,2012
+./doc/arm/Bv9ARM.pdf				X	2007,2008,2009,2010,2011,2012,2013
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007,2009,2012
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/dlz.xml				SGML	2012,2013
@@ -2398,7 +2405,7 @@
 ./lib/Atffile					X	2011
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007,2012,2013
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2009,2012
-./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012
+./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004,2007,2012
@@ -2439,9 +2446,9 @@
 ./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/dst_lib.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dst_openssl.h				C	2002,2004,2005,2007,2008,2009,2011,2012
-./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2012
-./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008,2012
+./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008,2012,2013
 ./lib/dns/ecdb.c				C	2009,2010,2011,2012,2013
 ./lib/dns/forward.c				C	2000,2001,2004,2005,2007,2009,2013
 ./lib/dns/gen-unix.h				C	1999,2000,2001,2004,2005,2007,2009
@@ -2467,7 +2474,7 @@
 ./lib/dns/include/dns/db.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./lib/dns/include/dns/dbiterator.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/dbtable.h			C	1999,2000,2001,2004,2005,2006,2007
-./lib/dns/include/dns/diff.h			C	2000,2001,2004,2005,2006,2007,2008,2009,2010
+./lib/dns/include/dns/diff.h			C	2000,2001,2004,2005,2006,2007,2008,2009,2010,2013
 ./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./lib/dns/include/dns/dlz.h			C.PORTION	1999,2000,2001,2005,2006,2007,2009,2010,2011,2012,2013
 ./lib/dns/include/dns/dlz_dlopen.h		C	2011,2012,2013
@@ -2481,7 +2488,7 @@
 ./lib/dns/include/dns/forward.h			C	2000,2001,2004,2005,2006,2007,2009,2013
 ./lib/dns/include/dns/geoip.h			C	2013
 ./lib/dns/include/dns/iptable.h			C	2007,2012
-./lib/dns/include/dns/journal.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2009,2011
+./lib/dns/include/dns/journal.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2009,2011,2013
 ./lib/dns/include/dns/keydata.h			C	2009
 ./lib/dns/include/dns/keyflags.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/keytable.h		C	2000,2001,2004,2005,2007,2009,2010
@@ -2503,7 +2510,7 @@
 ./lib/dns/include/dns/private.h			C	2009,2011,2012
 ./lib/dns/include/dns/rbt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012,2013
 ./lib/dns/include/dns/rcode.h			C	1999,2000,2001,2004,2005,2006,2007,2008
-./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
+./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./lib/dns/include/dns/rdataclass.h		C	1998,1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/rdatalist.h		C	1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/rdataset.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
@@ -2563,10 +2570,10 @@
 ./lib/dns/nsec3.c				C	2006,2008,2009,2010,2011,2012,2013
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012
-./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012
+./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./lib/dns/opensslecdsa_link.c			C	2012,2013
-./lib/dns/opensslgost_link.c			C	2010,2011,2012
-./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
+./lib/dns/opensslgost_link.c			C	2010,2011,2012,2013
+./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./lib/dns/order.c				C	2002,2004,2005,2007
 ./lib/dns/peer.c				C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2012,2013
 ./lib/dns/portlist.c				C	2003,2004,2005,2006,2007
@@ -2652,7 +2659,7 @@
 ./lib/dns/rdata/generic/null_10.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/nxt_30.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009
 ./lib/dns/rdata/generic/nxt_30.h		C	1999,2000,2001,2002,2004,2005,2007
-./lib/dns/rdata/generic/opt_41.c		C	1998,1999,2000,2001,2002,2004,2005,2007,2009,2011,2012
+./lib/dns/rdata/generic/opt_41.c		C	1998,1999,2000,2001,2002,2004,2005,2007,2009,2011,2012,2013
 ./lib/dns/rdata/generic/opt_41.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/proforma.c		C	1998,1999,2000,2001,2002,2004,2007,2009
 ./lib/dns/rdata/generic/proforma.h		C	1998,1999,2000,2001,2004,2005,2007
@@ -2748,7 +2755,7 @@
 ./lib/dns/tests/nsec3_test.c			C	2012
 ./lib/dns/tests/private_test.c			C	2011,2012
 ./lib/dns/tests/rbt_test.c			C	2012,2013
-./lib/dns/tests/rdata_test.c			C	2012
+./lib/dns/tests/rdata_test.c			C	2012,2013
 ./lib/dns/tests/rdataset_test.c			C	2012
 ./lib/dns/tests/rdatasetstats_test.c		C	2012
 ./lib/dns/tests/testdata/dbiterator/zone1.data	ZONE	2011,2012
@@ -2808,7 +2815,7 @@
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012
 ./lib/irs/Makefile.in				MAKE	2009,2012
-./lib/irs/api					X	2009,2010,2011,2012
+./lib/irs/api					X	2009,2010,2011,2012,2013
 ./lib/irs/context.c				C	2009
 ./lib/irs/dnsconf.c				C	2009,2012
 ./lib/irs/gai_strerror.c			C	2009
@@ -2831,7 +2838,7 @@
 ./lib/isc/alpha/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007,2009
-./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012
+./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/isc/app_api.c				C	2009,2013
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007,2008,2009
 ./lib/isc/backtrace-emptytbl.c			C	2009
@@ -3143,7 +3150,7 @@
 ./lib/isc/x86_64/include/isc/atomic.h		C	2005,2007,2008
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2009,2011,2012
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/api					X	2001,2006,2008,2009,2010,2011,2012
+./lib/isccc/api					X	2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007,2012,2013
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005,2007
@@ -3175,7 +3182,7 @@
 ./lib/isccc/win32/version.c			C	2001,2004,2007
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009,2011,2012,2013
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012
+./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/isccfg/dnsconf.c				C	2009
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004,2007,2012
 ./lib/isccfg/include/isccfg/Makefile.in		MAKE	2001,2002,2004,2005,2007,2012
@@ -3197,7 +3204,7 @@
 ./lib/isccfg/win32/libisccfg.mak		X	2001,2002,2004,2005,2006,2009,2011
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007,2012
-./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011,2012
+./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011,2012,2013
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007,2011,2012
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008,2009,2012
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007,2008
