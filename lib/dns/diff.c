@@ -127,7 +127,6 @@ dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp) {
 void
 dns_diff_init(isc_mem_t *mctx, dns_diff_t *diff) {
 	diff->mctx = mctx;
-	diff->resign = 0;
 	ISC_LIST_INIT(diff->tuples);
 	diff->magic = DNS_DIFF_MAGIC;
 }
@@ -201,7 +200,7 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep)
 }
 
 static isc_stdtime_t
-setresign(dns_rdataset_t *modified, isc_uint32_t delta) {
+setresign(dns_rdataset_t *modified) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t sig;
 	isc_stdtime_t when;
@@ -214,7 +213,7 @@ setresign(dns_rdataset_t *modified, isc_uint32_t delta) {
 	if ((rdata.flags & DNS_RDATA_OFFLINE) != 0)
 		when = 0;
 	else
-		when = sig.timeexpire - delta;
+		when = sig.timeexpire;
 	dns_rdata_reset(&rdata);
 
 	result = dns_rdataset_next(modified);
@@ -224,8 +223,8 @@ setresign(dns_rdataset_t *modified, isc_uint32_t delta) {
 		if ((rdata.flags & DNS_RDATA_OFFLINE) != 0) {
 			goto next_rr;
 		}
-		if (when == 0 || sig.timeexpire - delta < when)
-			when = sig.timeexpire - delta;
+		if (when == 0 || sig.timeexpire < when)
+			when = sig.timeexpire;
  next_rr:
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(modified);
@@ -375,8 +374,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			if (result == ISC_R_SUCCESS) {
 				if (modified != NULL) {
 					isc_stdtime_t resign;
-					resign = setresign(modified,
-							   diff->resign);
+					resign = setresign(modified);
 					dns_db_setsigningtime(db, modified,
 							      resign);
 				}

@@ -102,11 +102,6 @@ typedef struct dns_diff dns_diff_t;
 struct dns_diff {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
-	/*
-	 * Set the 'resign' attribute to this many second before the
-	 * earliest RRSIG timeexpire.
-	 */
-	isc_uint32_t			resign;
 	ISC_LIST(dns_difftuple_t)	tuples;
 };
 
