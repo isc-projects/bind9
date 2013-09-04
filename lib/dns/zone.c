@@ -1725,12 +1725,17 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL) {
+		const dns_master_style_t *output_style;
+
 		dns_db_currentversion(zone->db, &version);
+		if (zone->type == dns_zone_key)
+			output_style = &dns_master_style_keyzone;
+		else
+			output_style = &dns_master_style_default;
 		result = dns_master_dumpinc2(zone->mctx, zone->db, version,
-					     &dns_master_style_default,
-					     zone->masterfile, zone->task,
-					     dump_done, zone, &zone->dctx,
-					     zone->masterformat);
+					     output_style, zone->masterfile,
+					     zone->task, dump_done, zone,
+					     &zone->dctx, zone->masterformat);
 		dns_db_closeversion(zone->db, &version, ISC_FALSE);
 	} else
 		result = ISC_R_CANCELED;
@@ -3062,6 +3067,8 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 		/* Convert rdata to keydata. */
 		result = dns_rdata_tostruct(&rdata, &keydata, NULL);
+		if (result == ISC_R_UNEXPECTEDEND)
+			continue;
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		/* Set the key refresh timer. */
@@ -7294,7 +7301,7 @@ zone_sign(dns_zone_t *zone) {
 		isc_time_settoepoch(&zone->signingtime);
 }
 
-static void
+static isc_result_t
 normalize_key(dns_rdata_t *rr, dns_rdata_t *target,
 	      unsigned char *data, int size) {
 	dns_rdata_dnskey_t dnskey;
@@ -7315,6 +7322,8 @@ normalize_key(dns_rdata_t *rr, dns_rdata_t *target,
 		break;
 	    case dns_rdatatype_keydata:
 		result = dns_rdata_tostruct(rr, &keydata, NULL);
+		if (result == ISC_R_UNEXPECTEDEND)
+			return (result);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_keydata_todnskey(&keydata, &dnskey, NULL);
 		dns_rdata_fromstruct(target, rr->rdclass, dns_rdatatype_dnskey,
@@ -7323,6 +7332,7 @@ normalize_key(dns_rdata_t *rr, dns_rdata_t *target,
 	    default:
 		INSIST(0);
 	}
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -7346,14 +7356,18 @@ matchkey(dns_rdataset_t *rdset, dns_rdata_t *rr) {
 	dns_rdata_init(&rdata1);
 	dns_rdata_init(&rdata2);
 
-	normalize_key(rr, &rdata1, data1, sizeof(data1));
+	result = normalize_key(rr, &rdata1, data1, sizeof(data1));
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
 
 	for (result = dns_rdataset_first(rdset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdset)) {
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(rdset, &rdata);
-		normalize_key(&rdata, &rdata2, data2, sizeof(data2));
+		result = normalize_key(&rdata, &rdata2, data2, sizeof(data2));
+		if (result != ISC_R_SUCCESS)
+			continue;
 		if (dns_rdata_compare(&rdata1, &rdata2) == 0)
 			return (ISC_TRUE);
 	}
@@ -7460,7 +7474,11 @@ minimal_update(dns_keyfetch_t *kfetch, dns_dbversion_t *ver, dns_diff_t *diff)
 				    name, 0, &rdata));
 
 		/* Update refresh timer */
-		CHECK(dns_rdata_tostruct(&rdata, &keydata, NULL));
+		result = dns_rdata_tostruct(&rdata, &keydata, NULL);
+		if (result == ISC_R_UNEXPECTEDEND)
+			continue;
+		if (result != ISC_R_SUCCESS)
+			goto failure;
 		keydata.refresh = refresh_time(kfetch, ISC_TRUE);
 		set_refreshkeytimer(zone, &keydata, now);
 
@@ -8635,10 +8653,16 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 			result = DNS_R_CONTINUE;
 		UNLOCK_ZONE(zone);
 	} else {
+		const dns_master_style_t *output_style;
+
+		if (zone->type == dns_zone_key)
+			output_style = &dns_master_style_keyzone;
+		else
+			output_style = &dns_master_style_default;
 		dns_db_currentversion(db, &version);
 		result = dns_master_dump2(zone->mctx, db, version,
-					  &dns_master_style_default,
-					  masterfile, masterformat);
+					  output_style, masterfile,
+					  masterformat);
 		dns_db_closeversion(db, &version, ISC_FALSE);
 	}
  fail:
