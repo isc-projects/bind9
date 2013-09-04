@@ -50,3 +50,6 @@ ns3.retransfer.		A	10.53.0.3
 
 nsec3.			NS	ns3.nsec3.
 ns3.nsec3.		A	10.53.0.3
+
+externalkey.		NS	ns3.externalkey.
+ns3.externalkey.	A	10.53.0.3

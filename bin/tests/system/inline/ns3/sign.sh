@@ -92,3 +92,32 @@ do
 	keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
 	keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
 done
+
+zone=externalkey
+rm -f K${zone}.+*+*.key
+rm -f K${zone}.+*+*.private
+
+for alg in ECDSAP256SHA256 NSEC3RSASHA1 DSA ECCGOST
+do
+
+if test $alg = ECCGOST
+then
+	sh ../../gost/prereq.sh 2> /dev/null || continue
+fi
+
+k1=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone -f KSK $zone`
+k2=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone $zone`
+k3=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone $zone`
+k4=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone -f KSK $zone`
+$DSFROMKEY -T 1200 $keyname >> ../ns1/root.db
+rm -f ${k3}.* ${k4}.*
+
+#
+# Convert k1 and k2 in to External Keys.
+rm -f $k1.private 
+$IMPORTKEY -P now -D now+3600 -f $k1.key $zone
+rm -f $k2.private 
+$IMPORTKEY -f $k2.key $zone
+done

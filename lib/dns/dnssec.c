@@ -684,6 +684,7 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 	isc_stdtime_get(&now);
 
 	*nkeys = 0;
+	memset(keys, 0, sizeof(*keys) * maxkeys);
 	dns_rdataset_init(&rdataset);
 	RETERR(dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey, 0, 0,
 				   &rdataset, NULL));
@@ -1312,9 +1313,9 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 	isc_dir_t dir;
 	dns_dnsseckey_t *key = NULL;
 	dst_key_t *dstkey = NULL;
-	char namebuf[DNS_NAME_FORMATSIZE], *p;
+	char namebuf[DNS_NAME_FORMATSIZE];
 	isc_buffer_t b;
-	unsigned int len;
+	unsigned int len, i;
 	isc_stdtime_t now;
 
 	REQUIRE(keylist != NULL);
@@ -1334,49 +1335,62 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 	isc_stdtime_get(&now);
 
 	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
-		if (dir.entry.name[0] == 'K' &&
-		    dir.entry.length > len + 1 &&
-		    dir.entry.name[len + 1] == '+' &&
-		    strncasecmp(dir.entry.name + 1, namebuf, len) == 0) {
-			p = strrchr(dir.entry.name, '.');
-			if (p != NULL && strcmp(p, ".private") != 0)
+		if (dir.entry.name[0] != 'K' ||
+		    dir.entry.length < len + 1 ||
+		    dir.entry.name[len + 1] != '+' ||
+		    strncasecmp(dir.entry.name + 1, namebuf, len) != 0)
+			continue;
+
+		for (i = len + 1 + 1; i < dir.entry.length ; i++)
+			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
+				break;
+
+		if (i == len + 1 + 1 || i >= dir.entry.length ||
+		    dir.entry.name[i] != '+')
+			continue;
+
+		for (i++ ; i < dir.entry.length ; i++)
+			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
+				break;
+
+		if (strcmp(dir.entry.name + i, ".private") != 0)
 				continue;
 
-			dstkey = NULL;
-			result = dst_key_fromnamedfile(dir.entry.name,
-						       directory,
-						       DST_TYPE_PUBLIC |
-						       DST_TYPE_PRIVATE,
-						       mctx, &dstkey);
+		dstkey = NULL;
+		result = dst_key_fromnamedfile(dir.entry.name,
+					       directory,
+					       DST_TYPE_PUBLIC |
+					       DST_TYPE_PRIVATE,
+					       mctx, &dstkey);
 
-			if (result != ISC_R_SUCCESS) {
-				isc_log_write(dns_lctx,
-					      DNS_LOGCATEGORY_GENERAL,
-					      DNS_LOGMODULE_DNSSEC,
-					      ISC_LOG_WARNING,
-					      "dns_dnssec_findmatchingkeys: "
-					      "error reading key file %s: %s",
-					      dir.entry.name,
-					      isc_result_totext(result));
-				continue;
-			}
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx,
+				      DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_DNSSEC,
+				      ISC_LOG_WARNING,
+				      "dns_dnssec_findmatchingkeys: "
+				      "error reading key file %s: %s",
+				      dir.entry.name,
+				      isc_result_totext(result));
+			continue;
+		}
 
-			RETERR(dns_dnsseckey_create(mctx, &dstkey, &key));
-			key->source = dns_keysource_repository;
-			get_hints(key, now);
+		RETERR(dns_dnsseckey_create(mctx, &dstkey, &key));
+		key->source = dns_keysource_repository;
+		get_hints(key, now);
 
-			if (key->legacy) {
-				dns_dnsseckey_destroy(mctx, &key);
-			} else {
-				ISC_LIST_APPEND(list, key, link);
-				key = NULL;
-			}
+		if (key->legacy) {
+			dns_dnsseckey_destroy(mctx, &key);
+		} else {
+			ISC_LIST_APPEND(list, key, link);
+			key = NULL;
 		}
 	}
 
-	if (!ISC_LIST_EMPTY(list))
+	if (!ISC_LIST_EMPTY(list)) {
+		result = ISC_R_SUCCESS;
 		ISC_LIST_APPENDLIST(*keylist, list, link);
-	else
+	} else
 		result = ISC_R_NOTFOUND;
 
  failure:
@@ -1794,7 +1808,13 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		for (key2 = ISC_LIST_HEAD(*keys);
 		     key2 != NULL;
 		     key2 = ISC_LIST_NEXT(key2, link)) {
-			if (dst_key_pubcompare(key1->key, key2->key,
+			int f1 = dst_key_flags(key1->key);
+			int f2 = dst_key_flags(key2->key);
+			int nr1 = f1 & ~DNS_KEYFLAG_REVOKE;
+			int nr2 = f2 & ~DNS_KEYFLAG_REVOKE;
+			if (nr1 == nr2 &&
+			    dst_key_alg(key1->key) == dst_key_alg(key2->key) &&
+			    dst_key_pubcompare(key1->key, key2->key,
 					       ISC_TRUE)) {
 				int r1, r2;
 				r1 = dst_key_flags(key1->key) &

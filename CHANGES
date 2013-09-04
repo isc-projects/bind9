@@ -1,3 +1,7 @@
+3642.	[func]		Allow externally generated DNSKEY to be imported
+			into the DNSKEY management framework.  A new tool
+			dnssec-importkey is used to this. [RT #34698]
+			
 3641.	[bug]		Handle changes to sig-validity-interval settings
 			better. [RT #34625]
 			

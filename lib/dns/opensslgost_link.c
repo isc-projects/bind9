@@ -296,6 +296,11 @@ opensslgost_tofile(const dst_key_t *key, const char *directory) {
 	if (key->keydata.pkey == NULL)
 		return (DST_R_NULLKEY);
 
+	if (key->external) {
+		priv.nelements = 0;
+		return (dst__privstruct_writefile(key, &priv, directory));
+	}
+
 	pkey = key->keydata.pkey;
 
 	len = i2d_PrivateKey(pkey, NULL);
@@ -337,13 +342,21 @@ opensslgost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	INSIST(priv.elements[0].tag == TAG_GOST_PRIVASN1);
-	p = priv.elements[0].data;
-	if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
-			   (long) priv.elements[0].length) == NULL)
-		DST_RET(dst__openssl_toresult2("d2i_PrivateKey",
-					       DST_R_INVALIDPRIVATEKEY));
-	key->keydata.pkey = pkey;
+	if (key->external) {
+		INSIST(priv.nelements == 0);
+		if (pub == NULL)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+		key->keydata.pkey = pub->keydata.pkey;
+		pub->keydata.pkey = NULL;
+	} else {
+		INSIST(priv.elements[0].tag == TAG_GOST_PRIVASN1);
+		p = priv.elements[0].data;
+		if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
+				   (long) priv.elements[0].length) == NULL)
+			DST_RET(dst__openssl_toresult2("d2i_PrivateKey",
+						     DST_R_INVALIDPRIVATEKEY));
+		key->keydata.pkey = pkey;
+	}
 	key->key_size = EVP_PKEY_bits(pkey);
 	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));

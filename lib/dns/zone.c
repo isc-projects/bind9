@@ -5545,6 +5545,7 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	const char *directory = dns_zone_getkeydirectory(zone);
 
 	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
+	memset(keys, 0, sizeof(*keys) * maxkeys);
 	result = dns_dnssec_findzonekeys2(db, ver, node, dns_db_origin(db),
 					  directory, mctx, maxkeys, keys,
 					  nkeys);
@@ -13132,6 +13133,7 @@ sync_secure_db(dns_zone_t *seczone, dns_db_t *secdb,
 
 static void
 receive_secure_serial(isc_task_t *task, isc_event_t *event) {
+	static char me[] = "receive_secure_serial";
 	isc_result_t result;
 	dns_journal_t *rjournal = NULL;
 	isc_uint32_t start, end;
@@ -13146,6 +13148,8 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	zone = event->ev_arg;
 	end = ((struct secure_event *)event)->serial;
 	isc_event_free(&event);
+
+	ENTER;
 
 	LOCK_ZONE(zone);
 

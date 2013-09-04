@@ -7,4 +7,5 @@ dnssec-settime
 dnssec-signkey
 dnssec-signzone
 dnssec-verify
+dnssec-importkey
 .libs

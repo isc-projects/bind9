@@ -35,7 +35,7 @@ static const char *text[DST_R_NRESULTS] = {
 	"illegal operation for a null key",	/*%< 3 */
 	"public key is invalid",		/*%< 4 */
 	"private key is invalid",		/*%< 5 */
-	"UNUSED6",				/*%< 6 */
+	"external key",				/*%< 6 */
 	"error occurred writing key to disk",	/*%< 7 */
 	"invalid algorithm specific parameter",	/*%< 8 */
 	"UNUSED9",				/*%< 9 */

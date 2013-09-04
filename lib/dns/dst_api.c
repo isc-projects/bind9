@@ -448,6 +448,16 @@ dst_key_tofile(const dst_key_t *key, int type, const char *directory) {
 		return (ISC_R_SUCCESS);
 }
 
+void
+dst_key_setexternal(dst_key_t *key, isc_boolean_t value) {
+	key->external = value;
+}
+
+isc_boolean_t
+dst_key_isexternal(dst_key_t *key) {
+	return (key->external);
+}
+
 isc_result_t
 dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
 		 unsigned int alg, int type, const char *directory,
