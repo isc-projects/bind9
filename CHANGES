@@ -1,6 +1,8 @@
 3638.	[cleanup]	Add the ability to handle ENOPROTOOPT in case it is 
 			encountered. [RT #34668]
 
+	--- 9.9.4rc2 released ---
+
 3637.	[bug]		'allow-query-on' was checking the source address
 			rather than the destination address. [RT #34590]
 
