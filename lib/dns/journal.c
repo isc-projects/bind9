@@ -1241,7 +1241,6 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options,
 	REQUIRE(DNS_DB_VALID(db));
 
 	dns_diff_init(j->mctx, &diff);
-	diff.resign = resign;
 
 	/*
 	 * Set up empty initial buffers for unchecked and checked

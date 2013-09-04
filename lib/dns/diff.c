@@ -373,15 +373,6 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 							   diff->resign);
 					dns_db_setsigningtime(db, modified,
 							      resign);
-					if (diff->resign == 0 &&
-					    (op == DNS_DIFFOP_ADDRESIGN ||
-					     op == DNS_DIFFOP_DELRESIGN))
-						isc_log_write(
-							DIFF_COMMON_LOGARGS,
-							ISC_LOG_WARNING,
-							"resign requested "
-							"with 0 resign "
-							"interval");
 				}
 			} else if (result == DNS_R_UNCHANGED) {
 				/*

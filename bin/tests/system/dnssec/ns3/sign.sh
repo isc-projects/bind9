@@ -396,3 +396,13 @@ kskname=`$KEYGEN -I $now+90s -q -r $RANDFILE -f KSK $zone`
 zskname=`$KEYGEN -q -r $RANDFILE $zone`
 cp $infile $zonefile
 $SIGNER -S -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+#
+# A zone which will change its sig-validity-interval
+#
+zone=siginterval.example
+infile=siginterval.example.db.in
+zonefile=siginterval.example.db
+kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
+zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
+cp $infile $zonefile

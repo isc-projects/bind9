@@ -1911,5 +1911,19 @@ test $sigs -eq 2 || ret=1
 if test $ret != 0 ; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check that increasing the sig-validity-interval resigning triggers re-signing"
+before=`$DIG axfr siginterval.example -p 5300 @10.53.0.3 | grep RRSIG.SOA`
+cp ns3/siginterval2.conf ns3/siginterval.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reconfig 2>&1 | sed 's/^/I:ns3 /'
+for i in 1 2 3 4 5 6 7 8 9 0
+do
+after=`$DIG axfr siginterval.example -p 5300 @10.53.0.3 | grep RRSIG.SOA`
+test "$before" != "$after" && break
+sleep 1
+done
+n=`expr $n + 1`
+if test "$before" = "$after" ; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
