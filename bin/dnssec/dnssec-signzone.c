@@ -950,7 +950,6 @@ loadds(dns_name_t *name, isc_uint32_t ttl, dns_rdataset_t *dsset) {
 	result = dns_db_newversion(db, &ver);
 	check_result(result, "dns_db_newversion");
 	dns_diff_init(mctx, &diff);
-	diff.resign = cycle;
 
 	for (result = dns_rdataset_first(&keyset);
 	     result == ISC_R_SUCCESS;
@@ -1038,7 +1037,6 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	 */
 	dns_diff_init(mctx, &del);
 	dns_diff_init(mctx, &add);
-	del.resign = add.resign = cycle;
 	rdsiter = NULL;
 	result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
 	check_result(result, "dns_db_allrdatasets()");
@@ -2084,7 +2082,6 @@ remove_duplicates(void) {
 	dns_name_t *name;
 
 	dns_diff_init(mctx, &diff);
-	diff.resign = cycle;
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
 	dns_rdataset_init(&rdataset);
@@ -2555,7 +2552,6 @@ build_final_keylist() {
 	check_result(result, "dns_db_newversion");
 
 	dns_diff_init(mctx, &diff);
-	diff.resign = cycle;
 
 	/*
 	 * Update keylist with information from from the key repository.
@@ -2763,7 +2759,6 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	strcat(filename, namestr);
 
 	dns_diff_init(mctx, &diff);
-	diff.resign = cycle;
 
 	if (type == dns_rdatatype_dlv) {
 		dns_name_t tname;
