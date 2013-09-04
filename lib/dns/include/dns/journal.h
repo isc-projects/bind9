@@ -235,19 +235,12 @@ dns_journal_current_rr(dns_journal_t *j, dns_name_t **name, isc_uint32_t *ttl,
 isc_result_t
 dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
 			const char *filename);
-
-isc_result_t
-dns_journal_rollforward2(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
-			 isc_uint32_t resign, const char *filename);
 /*%<
  * Roll forward (play back) the journal file "filename" into the
  * database "db".  This should be called when the server starts
- * after a shutdown or crash.  'resign' is how many seconds before
- * a RRSIG is due to expire it should be scheduled to be regenerated.
+ * after a shutdown or crash. 
  *
  * Requires:
- *\li	dns_journal_rollforward() requires that DNS_JOURNALOPT_RESIGN
- *	is not set.
  *\li   'mctx' is a valid memory context.
  *\li	'db' is a valid database which does not have a version
  *           open for writing.

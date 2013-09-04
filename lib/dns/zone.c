@@ -4096,8 +4096,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			options = DNS_JOURNALOPT_RESIGN;
 		else
 			options = 0;
-		result = dns_journal_rollforward2(zone->mctx, db, options,
-						  0, zone->journal);
+		result = dns_journal_rollforward(zone->mctx, db, options,
+						 zone->journal);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
 		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL &&
 		    result != ISC_R_RANGE) {
