@@ -410,6 +410,17 @@ nslookup -query=hinfo  -timeout=10
               </varlistentry>
 
               <varlistentry>
+                <term><constant>ndots=</constant><replaceable>number</replaceable></term>
+                <listitem>
+                  <para>
+		    Set the number of dots (label separators) in a domain
+		    that will disable searching.  Absolute names always
+		    stop searching.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
                 <term><constant>retry=</constant><replaceable>number</replaceable></term>
                 <listitem>
                   <para>

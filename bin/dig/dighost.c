@@ -1885,6 +1885,9 @@ static isc_boolean_t
 next_origin(dig_query_t *query) {
 	dig_lookup_t *lookup;
 	dig_searchlist_t *search;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_result_t result;
 
 	INSIST(!free_now);
 
@@ -1897,6 +1900,19 @@ next_origin(dig_query_t *query) {
 		 * about finding the next entry.
 		 */
 		return (ISC_FALSE);
+	
+	/*
+	 * Check for a absolute name or ndots being met.
+	 */
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	result = dns_name_fromstring2(name, query->lookup->textname, NULL,
+				      0, NULL);
+	if (result == ISC_R_SUCCESS &&
+	    (dns_name_isabsolute(name) ||
+	     (int)dns_name_countlabels(name) > ndots))
+		return (ISC_FALSE);
+		
 	if (query->lookup->origin == NULL && !query->lookup->need_search)
 		/*
 		 * Then we just did rootorg; there's nothing left.
@@ -3402,7 +3418,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (!l->doing_xfr || l->xfr_q == query) {
-		if (msg->rcode != dns_rcode_noerror &&
+		if (msg->rcode == dns_rcode_nxdomain &&
 		    (l->origin != NULL || l->need_search)) {
 			if (!next_origin(query) || showsearch) {
 				printmessage(query, msg, ISC_TRUE);

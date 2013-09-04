@@ -4,6 +4,10 @@
 3646.	[bug]		Journal filename string could be set incorrectly,
 			causing garbage in log messages. [RT #34738]
 
+3640.	[bug]		ndots was not being checked when searching.  Only
+			continue searching on NXDOMAIN responses.  Add the
+			ability to specify ndots to nslookup. [RT #34711]
+
 3639.	[bug]		Treat type 65533 (KEYDATA) as opaque except when used
 			in a key zone. [RT #34238]
 
