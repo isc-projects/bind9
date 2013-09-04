@@ -63,9 +63,13 @@ rm -f signer/nsec3param.out
 rm -f ns3/ttlpatch.example.db ns3/ttlpatch.example.db.signed
 rm -f ns3/ttlpatch.example.db.patched
 rm -f ns3/split-smart.example.db
+rm -f ns3/siginterval.example.db
 rm -f ns3/inline.example.db.signed
 rm -f ns3/lower.example.db ns3/upper.example.db ns3/upper.example.db.lower
 rm -f ns6/optout-tld.db
 rm -f nosign.before
 rm -f signing.out*
 rm -f canonical?.*
+rm -f ns1/resolve.key
+rm -f ns3/siginterval.conf
+rm -f ns4/named_dump.db

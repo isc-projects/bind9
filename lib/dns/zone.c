@@ -1889,8 +1889,7 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	result = dns_master_loadfileinc3(load->zone->masterfile,
 					 dns_db_origin(load->db),
 					 dns_db_origin(load->db),
-					 load->zone->rdclass, options,
-					 load->zone->sigresigninginterval,
+					 load->zone->rdclass, options, 0,
 					 &load->callbacks, task,
 					 zone_loaddone, load,
 					 &load->zone->lctx, load->zone->mctx,
@@ -2056,8 +2055,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		}
 		result = dns_master_loadfile3(zone->masterfile,
 					      &zone->origin, &zone->origin,
-					      zone->rdclass, options,
-					      zone->sigresigninginterval,
+					      zone->rdclass, options, 0,
 					      &callbacks, zone->mctx,
 					      zone->masterformat);
 		tresult = dns_db_endload(db, &callbacks.add_private);
@@ -3045,7 +3043,8 @@ set_resigntime(dns_zone_t *zone) {
 		isc_time_settoepoch(&zone->resigntime);
 		goto cleanup;
 	}
-	resign = rdataset.resign;
+
+	resign = rdataset.resign - zone->sigresigninginterval;
 	dns_rdataset_disassociate(&rdataset);
 	isc_random_get(&nanosecs);
 	nanosecs %= 1000000000;
@@ -3450,7 +3449,6 @@ do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
 	 * Create a singleton diff.
 	 */
 	dns_diff_init(diff->mctx, &temp_diff);
-	temp_diff.resign = diff->resign;
 	ISC_LIST_APPEND(temp_diff.tuples, *tuple, link);
 
 	/*
@@ -3918,8 +3916,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		else
 			options = 0;
 		result = dns_journal_rollforward2(zone->mctx, db, options,
-						  zone->sigresigninginterval,
-						  zone->journal);
+						  0, zone->journal);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
 		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL &&
 		    result != ISC_R_RANGE) {
@@ -4246,7 +4243,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				dns_zone_log(zone, ISC_LOG_DEBUG(3),
 					     "next resign: %s/%s in %d seconds",
 					     namebuf, typebuf,
-					     next.resign - timenow);
+					     next.resign - timenow -
+					     zone->sigresigninginterval);
 				dns_rdataset_disassociate(&next);
 			} else
 				dns_zone_log(zone, ISC_LOG_WARNING,
@@ -5468,6 +5466,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 					result = offline(db, ver, zonediff,
 							 name, rdataset.ttl,
 							 &rdata);
+					changed = ISC_TRUE;
 					break;
 				}
 				result = update_one_rr(db, ver, zonediff->diff,
@@ -5636,7 +5635,6 @@ zone_resigninc(dns_zone_t *zone) {
 	dns_rdataset_init(&rdataset);
 	dns_fixedname_init(&fixed);
 	dns_diff_init(zone->mctx, &_sig_diff);
-	_sig_diff.resign = zone->sigresigninginterval;
 	zonediff_init(&zonediff, &_sig_diff);
 
 	/*
@@ -5696,7 +5694,7 @@ zone_resigninc(dns_zone_t *zone) {
 
 	i = 0;
 	while (result == ISC_R_SUCCESS) {
-		resign = rdataset.resign;
+		resign = rdataset.resign - zone->sigresigninginterval;
 		covers = rdataset.covers;
 		dns_rdataset_disassociate(&rdataset);
 
@@ -6565,7 +6563,6 @@ zone_nsec3chain(dns_zone_t *zone) {
 	dns_diff_init(zone->mctx, &nsec3_diff);
 	dns_diff_init(zone->mctx, &nsec_diff);
 	dns_diff_init(zone->mctx, &_sig_diff);
-	_sig_diff.resign = zone->sigresigninginterval;
 	zonediff_init(&zonediff, &_sig_diff);
 	ISC_LIST_INIT(cleanup);
 
@@ -7411,7 +7408,6 @@ zone_sign(dns_zone_t *zone) {
 	dns_fixedname_init(&nextfixed);
 	nextname = dns_fixedname_name(&nextfixed);
 	dns_diff_init(zone->mctx, &_sig_diff);
-	_sig_diff.resign = zone->sigresigninginterval;
 	dns_diff_init(zone->mctx, &post_diff);
 	zonediff_init(&zonediff, &_sig_diff);
 	ISC_LIST_INIT(cleanup);
@@ -8178,7 +8174,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	INSIST(result == ISC_R_SUCCESS);
 
 	dns_diff_init(mctx, &diff);
-	diff.resign = zone->sigresigninginterval;
 
 	CHECK(dns_db_newversion(kfetch->db, &ver));
 
@@ -13693,7 +13688,10 @@ void
 dns_zone_setsigresigninginterval(dns_zone_t *zone, isc_uint32_t interval) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
+	LOCK_ZONE(zone);
 	zone->sigresigninginterval = interval;
+	set_resigntime(zone);
+	UNLOCK_ZONE(zone);
 }
 
 isc_uint32_t
@@ -15966,7 +15964,6 @@ zone_rekey(dns_zone_t *zone) {
 	mctx = zone->mctx;
 	dns_diff_init(mctx, &diff);
 	dns_diff_init(mctx, &_sig_diff);
-	_sig_diff.resign = zone->sigresigninginterval;
 	zonediff_init(&zonediff, &_sig_diff);
 
 	CHECK(dns_zone_getdb(zone, &db));

@@ -300,7 +300,6 @@ do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
 	 * Create a singleton diff.
 	 */
 	dns_diff_init(diff->mctx, &temp_diff);
-	temp_diff.resign = diff->resign;
 	ISC_LIST_APPEND(temp_diff.tuples, *tuple, link);
 
 	/*
