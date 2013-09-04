@@ -196,7 +196,6 @@ totext_keydata(ARGS_TOTEXT) {
 static inline isc_result_t
 fromwire_keydata(ARGS_FROMWIRE) {
 	isc_region_t sr;
-	unsigned char algorithm;
 
 	REQUIRE(type == 65533);
 
