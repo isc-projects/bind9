@@ -104,6 +104,10 @@ if test $alg = ECCGOST
 then
 	sh ../../gost/prereq.sh 2> /dev/null || continue
 fi
+if test $alg = ECDSAP256SHA256
+then
+	sh ../../ecsda/prereq.sh 2> /dev/null || continue
+fi
 
 k1=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone -f KSK $zone`
 k2=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone $zone`
