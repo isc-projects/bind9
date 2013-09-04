@@ -1,5 +1,8 @@
 	--- 9.10.0a1 released --
 
+3644.	[protocol]	Check that EDNS subnet client options are well formed.
+			[RT #34718]
+
 3643.	[doc]		Clarify RRL "slip" documentation.
 
 3642.	[func]		Allow externally generated DNSKEY to be imported
