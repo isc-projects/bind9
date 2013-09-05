@@ -91,6 +91,7 @@ BIND 9.10.0
          - "rndc zonestatus" reports information about a specified zone.
          - "named" now listens on IPv6 as well as IPv4 interfaces
            by default.
+	 - use case sensitive compression when responding.
 
 BIND 9.9.0
 
