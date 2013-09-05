@@ -1,3 +1,5 @@
+	--- 9.6-ESV-R10 released ---
+
 3638.	[cleanup]	Add the ability to handle ENOPROTOOPT in case it is 
 			encountered. [RT #34668]
 
