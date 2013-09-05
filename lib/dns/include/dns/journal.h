@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -238,7 +238,7 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
 /*%<
  * Roll forward (play back) the journal file "filename" into the
  * database "db".  This should be called when the server starts
- * after a shutdown or crash. 
+ * after a shutdown or crash.
  *
  * Requires:
  *\li   'mctx' is a valid memory context.

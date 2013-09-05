@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -280,9 +280,9 @@ main(int argc, char **argv) {
 
 	while ((ch = isc_commandline_parse(argc, argv, "D:f:hK:P:v:")) != -1) {
 		switch (ch) {
-                case 'D':
-                        if (setdel)
-                                fatal("-D specified more than once");
+		case 'D':
+			if (setdel)
+				fatal("-D specified more than once");
 
 			setdel = ISC_TRUE;
 			del = strtotime(isc_commandline_argument, now, now);
@@ -292,13 +292,13 @@ main(int argc, char **argv) {
 			if (strlen(dir) == 0U)
 				fatal("directory must be non-empty string");
 			break;
-                case 'P':
-                        if (setpub)
-                                fatal("-P specified more than once");
+		case 'P':
+			if (setpub)
+				fatal("-P specified more than once");
 
 			setpub = ISC_TRUE;
 			pub = strtotime(isc_commandline_argument, now, now);
-                        break;
+			break;
 		case 'f':
 			filename = isc_commandline_argument;
 			break;
