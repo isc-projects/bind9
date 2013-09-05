@@ -485,7 +485,6 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 
 		if (token.type != isc_tokentype_string) {
 			ret = DST_R_INVALIDPRIVATEKEY;
-			NEXTTOKEN(lex, opt, &token);
 			goto fail;
 		}
 
