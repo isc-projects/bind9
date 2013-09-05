@@ -32,7 +32,7 @@
 			forward only "zones" beneath them. [RT #34583]
 
 3635.	[bug]		Signatures were not being removed from a zone with
-			only KSK keys for a algorithm. [RT #24439]
+			only KSK keys for a algorithm. [RT #34439]
 
 3634.	[func]		Report build-id in rndc status. Report build-id
 			when building from a git repository. [RT #20422]
