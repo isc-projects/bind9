@@ -125,8 +125,9 @@ are HTML pages for each of the BIND 9 applications.
 
 The following tools have been built for Windows: dig, nslookup, host,
 nsupdate, rndc, rndc-confgen, named-checkconf, named-checkzone,
-ddns-confgen, dnssec-keygen, dnssec-signzone, dnssec-dsfromkey,
-dnssec-keyfromlabel, dnssec-revoke, dnssec-settime and dnssec-verify.
+ddns-confgen, dnssec-importkey, dnssec-keygen, dnssec-signzone,
+dnssec-dsfromkey, dnssec-keyfromlabel, dnssec-revoke, dnssec-settime
+and dnssec-verify.
 The latter tools are for use with DNSSEC.  All tools are installed
 in the dns/bin directory.
 

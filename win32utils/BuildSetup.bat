@@ -71,6 +71,7 @@ copy ..\bin\dnssec\dnssec-keygen.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-signzone.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-dsfromkey.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-keyfromlabel.html ..\Build\Release
+copy ..\bin\dnssec\dnssec-importkey.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-settime.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-revoke.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-verify.html ..\Build\Release

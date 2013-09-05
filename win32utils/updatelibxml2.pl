@@ -49,6 +49,8 @@ $path = "..\\..\\";
              "../bin/dnssec/win32/dnssectool.dsp",
              "../bin/dnssec/win32/dsfromkey.dsp",
              "../bin/dnssec/win32/dsfromkey.mak",
+             "../bin/dnssec/win32/importkey.dsp",
+             "../bin/dnssec/win32/importkey.mak",
              "../bin/dnssec/win32/keyfromlabel.dsp",
              "../bin/dnssec/win32/keyfromlabel.mak",
              "../bin/dnssec/win32/keygen.dsp",

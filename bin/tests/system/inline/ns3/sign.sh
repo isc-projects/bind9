@@ -106,7 +106,7 @@ then
 fi
 if test $alg = ECDSAP256SHA256
 then
-	sh ../../ecsda/prereq.sh 2> /dev/null || continue
+	sh ../../ecdsa/prereq.sh 2> /dev/null || continue
 fi
 
 k1=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone -f KSK $zone`
@@ -121,7 +121,7 @@ rm -f ${k3}.* ${k4}.*
 #
 # Convert k1 and k2 in to External Keys.
 rm -f $k1.private 
-$IMPORTKEY -P now -D now+3600 -f $k1.key $zone
+$IMPORTKEY -P now -D now+3600 -f $k1.key $zone > /dev/null 2>&1
 rm -f $k2.private 
-$IMPORTKEY -f $k2.key $zone
+$IMPORTKEY -f $k2.key $zone > /dev/null 2>&1
 done
