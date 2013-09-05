@@ -1,5 +1,8 @@
 	--- 9.10.0a1 released --
 
+3645.	[protocol]	Use case sensitive compression when responding to
+			queries. [RT #34737]
+
 3644.	[protocol]	Check that EDNS subnet client options are well formed.
 			[RT #34718]
 

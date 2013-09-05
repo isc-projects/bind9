@@ -60,7 +60,7 @@ RESOLVE=$TOP/lib/samples/resolve
 # load on the machine to make it unusable to other users.
 # v6synth
 SUBDIRS="acl additional allow_query addzone autosign builtin
-	 cacheclean checkconf @CHECKDS@ checknames checkzone @COVERAGE@
+	 cacheclean case checkconf @CHECKDS@ checknames checkzone @COVERAGE@
          database dlv dlvauto dlz dlzexternal dlzredir dname dns64 dnssec
 	 dsdigest dscp ecdsa formerr forward glue gost ixfr inline limits
 	 logfileconfig lwresd masterfile masterformat metadata
