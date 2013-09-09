@@ -109,7 +109,7 @@ then
 	sh ../../ecdsa/prereq.sh 2> /dev/null || continue
 fi
 
-test $alg = DSA -a ! -f /dev/random -a ! -f /dev/urandom && continue
+test $alg = DSA -a ! -r /dev/random -a ! -r /dev/urandom && continue
 
 k1=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone -f KSK $zone`
 k2=`$KEYGEN -q -r $RANDFILE -a $alg -b 1024 -n zone $zone`
