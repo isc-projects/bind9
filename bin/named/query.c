@@ -6481,8 +6481,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				    result == DNS_R_NCACHENXDOMAIN)
 					client->message->rcode =
 						    dns_rcode_nxdomain;
-				else
-					result = ISC_R_SUCCESS;
 				rpz_log_rewrite(client, ISC_FALSE,
 						rpz_st->m.policy,
 						rpz_st->m.type, zone,
