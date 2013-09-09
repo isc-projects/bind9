@@ -823,6 +823,7 @@ do
    then
 	sh ../ecdsa/prereq.sh 2>/dev/null || continue;
    fi
+   test $alg = 3 -a ! -f /dev/random -a ! -f /dev/random && continue
 
    dnskeys=`grep "IN.DNSKEY.25[67] [0-9]* $alg " dig.out.ns3.test$n | wc -l`
    rrsigs=`grep "RRSIG.DNSKEY $alg " dig.out.ns3.test$n | wc -l`
