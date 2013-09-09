@@ -123,7 +123,7 @@ test ! -d $topdir || {
 mkdir $topdir || exit 1
 
 git archive --format=tar $remote $tag | ( cd $topdir; tar xf -)
-shorthash=`git ls-remote $repo $tag | cut -c1-8`
+shorthash=`git ls-remote $repo refs/heads/$tag | cut -c1-8`
 
 cd $topdir || exit 1
 
