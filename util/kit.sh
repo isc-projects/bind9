@@ -124,6 +124,13 @@ mkdir $topdir || exit 1
 
 git archive --format=tar $remote $tag | ( cd $topdir; tar xf -)
 shorthash=`git ls-remote $repo refs/heads/$tag | cut -c1-8`
+if [ -z "$shorthash" ]; then
+        shorthash=`git ls-remote $repo refs/tags/$tag | cut -c1-8`
+fi
+if [ -z "$shorthash" ]; then
+        echo "Unable to determine hash for $tag, aborting."
+        exit 1
+fi
 
 cd $topdir || exit 1
 
