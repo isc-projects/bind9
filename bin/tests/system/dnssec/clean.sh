@@ -18,7 +18,7 @@
 # $Id: clean.sh,v 1.48 2012/02/22 23:47:34 tbox Exp $
 
 rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed
-rm -f */trusted.conf */managed.conf */tmp* */*.jnl */*.bk
+rm -f */trusted.conf */managed.conf */tmp* */*.jnl */*.bk */*.jbk
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
 rm -f ns3/unsecure.example.db ns3/bogus.example.db ns3/keyless.example.db
 rm -f ns3/dynamic.example.db ns3/dynamic.example.db.signed.jnl
