@@ -1,3 +1,6 @@
+3646.	[bug]		Journal filename string could be set incorrectly,
+                        causing garbage in log messages.  [RT #34738]
+
 	--- 9.10.0a1 released --
 
 3645.	[protocol]	Use case sensitive compression when responding to

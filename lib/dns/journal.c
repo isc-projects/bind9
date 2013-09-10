@@ -307,7 +307,7 @@ struct dns_journal {
 	unsigned int		magic;		/*%< JOUR */
 	isc_mem_t		*mctx;		/*%< Memory context */
 	journal_state_t		state;
-	const char 		*filename;	/*%< Journal file name */
+	char 			*filename;	/*%< Journal file name */
 	FILE *			fp;		/*%< File handle */
 	isc_offset_t		offset;		/*%< Current file offset */
 	journal_header_t 	header;		/*%< In-core journal header */
@@ -573,9 +573,12 @@ journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	isc_mem_attach(mctx, &j->mctx);
 	j->state = JOURNAL_STATE_INVALID;
 	j->fp = NULL;
-	j->filename = filename;
+	j->filename = isc_mem_strdup(mctx, filename);
 	j->index = NULL;
 	j->rawindex = NULL;
+
+	if (j->filename == NULL)
+		FAIL(ISC_R_NOMEMORY);
 
 	result = isc_stdio_open(j->filename, write ? "rb+" : "rb", &fp);
 
@@ -679,6 +682,8 @@ journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 			    sizeof(journal_rawpos_t));
 		j->index = NULL;
 	}
+	if (j->filename != NULL)
+		isc_mem_free(j->mctx, j->filename);
 	if (j->fp != NULL)
 		(void)isc_stdio_close(j->fp);
 	isc_mem_putanddetach(&j->mctx, j, sizeof(*j));
@@ -1242,7 +1247,8 @@ dns_journal_destroy(dns_journal_t **journalp) {
 		isc_mem_put(j->mctx, j->it.target.base, j->it.target.length);
 	if (j->it.source.base != NULL)
 		isc_mem_put(j->mctx, j->it.source.base, j->it.source.length);
-
+	if (j->filename != NULL)
+		isc_mem_free(j->mctx, j->filename);
 	if (j->fp != NULL)
 		(void)isc_stdio_close(j->fp);
 	j->magic = 0;
