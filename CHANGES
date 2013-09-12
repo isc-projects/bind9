@@ -1,3 +1,6 @@
+3648.	[test]		Updated the ATF test framework to version 0.17.
+			[RT #25627]
+
 3646.	[bug]		Journal filename string could be set incorrectly,
                         causing garbage in log messages.  [RT #34738]
 

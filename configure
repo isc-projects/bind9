@@ -21868,7 +21868,7 @@ fi
 		 /*) ;;
 		 *) srcdir="../../$srcdir";;
 		 esac
-		 ${SHELL} "${srcdir}${srcdir:+/unit/atf-src/}./configure" MISSING=: --prefix $atfdir;
+		 ${SHELL} "${srcdir}${srcdir:+/unit/atf-src/}./configure" --enable-tools --disable-shared MISSING=: --prefix $atfdir;
 		)  ;;
     "chmod":C) chmod a+x isc-config.sh doc/doxygen/doxygen-input-filter ;;
 
