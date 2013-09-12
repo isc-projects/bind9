@@ -965,6 +965,7 @@ zone_free(dns_zone_t *zone) {
 	REQUIRE(zone->irefs == 0);
 	REQUIRE(!LOCKED_ZONE(zone));
 	REQUIRE(zone->timer == NULL);
+	REQUIRE(zone->zmgr == NULL);
 
 	/*
 	 * Managed objects.  Order is important.
@@ -979,8 +980,6 @@ zone_free(dns_zone_t *zone) {
 		isc_task_detach(&zone->task);
 	if (zone->loadtask != NULL)
 		isc_task_detach(&zone->loadtask);
-	if (zone->zmgr != NULL)
-		dns_zonemgr_releasezone(zone->zmgr, zone);
 
 	/* Unmanaged objects */
 	for (signing = ISC_LIST_HEAD(zone->signing);
@@ -11366,6 +11365,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 			zone->statelist = NULL;
 		}
 		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+		dns_zonemgr_releasezone(zone->zmgr, zone);
 	}
 
 	/*
