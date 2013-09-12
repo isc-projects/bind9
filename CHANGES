@@ -1,3 +1,6 @@
+3648.	[test]		Updated the ATF test framework to version 0.17.
+			[RT #25627]
+
 3647.	[bug]		Address a race condition when shutting down a zone.
 			[RT #34750]
 
