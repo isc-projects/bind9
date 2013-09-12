@@ -3325,7 +3325,7 @@ if test "$atf" = yes; then
 		 /*) ;;
 		 *) srcdir="../../$srcdir";;
 		 esac
-		 ${SHELL} "${srcdir}${srcdir:+/unit/atf-src/}./configure" MISSING=: --prefix $atfdir;
+		 ${SHELL} "${srcdir}${srcdir:+/unit/atf-src/}./configure" --enable-tools --disable-shared MISSING=: --prefix $atfdir;
 		) ],
 		[atfdir=`pwd`/unit/atf])
 	AC_MSG_RESULT(building ATF from bind9/unit/atf-src)
