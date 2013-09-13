@@ -4287,12 +4287,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 static isc_boolean_t
 exit_check(dns_zone_t *zone) {
-
 	REQUIRE(LOCKED_ZONE(zone));
 
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SHUTDOWN) &&
-	    zone->irefs == 0)
-	{
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SHUTDOWN) && zone->irefs == 0) {
 		/*
 		 * DNS_ZONEFLG_SHUTDOWN can only be set if erefs == 0.
 		 */
@@ -11365,7 +11362,6 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 			zone->statelist = NULL;
 		}
 		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
-		dns_zonemgr_releasezone(zone->zmgr, zone);
 	}
 
 	/*
@@ -11373,6 +11369,10 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (zone->xfr != NULL)
 		dns_xfrin_shutdown(zone->xfr);
+
+	/* Safe to release the zone now */
+	if (zone->zmgr != NULL)
+		dns_zonemgr_releasezone(zone->zmgr, zone);
 
 	LOCK_ZONE(zone);
 	if (linked) {
