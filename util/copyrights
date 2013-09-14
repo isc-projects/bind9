@@ -3495,7 +3495,7 @@
 ./unit/atf-src/atf-c/detail/process_helpers.c	X	2011,2013
 ./unit/atf-src/atf-c/detail/process_test.c	X	2011,2013
 ./unit/atf-src/atf-c/detail/sanity.c		X	2011
-./unit/atf-src/atf-c/detail/sanity.h		X	2011
+./unit/atf-src/atf-c/detail/sanity.h		X	2011,2013
 ./unit/atf-src/atf-c/detail/sanity_test.c	X	2011,2013
 ./unit/atf-src/atf-c/detail/test_helpers.c	X	2011,2013
 ./unit/atf-src/atf-c/detail/test_helpers.h	X	2011,2013
