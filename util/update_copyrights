@@ -464,7 +464,8 @@ foreach $file (keys %file_types) {
 	                print TARGET "\n";
                 }
 
-		if ($type eq "C" && $sysyears =~ /$this_year/) {
+		if (($type eq "C" || $type eq "CONF-C") &&
+		    $sysyears =~ /$this_year/) {
 			my $body = "";
 			while (<SOURCE>) {
 			# Process leading white space.
