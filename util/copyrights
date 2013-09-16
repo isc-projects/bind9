@@ -3374,7 +3374,6 @@
 ./unit/atf-src/TODO				X	2013
 ./unit/atf-src/aclocal.m4			X	2011,2013
 ./unit/atf-src/admin/Makefile.am.inc		X	2011,2013
-./unit/atf-src/admin/check-install.sh		X	2011
 ./unit/atf-src/admin/check-style-c.awk		X	2011,2013
 ./unit/atf-src/admin/check-style-common.awk	X	2011,2013
 ./unit/atf-src/admin/check-style-cpp.awk	X	2011,2013
@@ -3499,7 +3498,6 @@
 ./unit/atf-src/atf-c/detail/sanity_test.c	X	2011,2013
 ./unit/atf-src/atf-c/detail/test_helpers.c	X	2011,2013
 ./unit/atf-src/atf-c/detail/test_helpers.h	X	2011,2013
-./unit/atf-src/atf-c/detail/test_helpers_test.c	X	2011
 ./unit/atf-src/atf-c/detail/text.c		X	2011,2013
 ./unit/atf-src/atf-c/detail/text.h		X	2011,2013
 ./unit/atf-src/atf-c/detail/text_test.c		X	2011,2013
@@ -3663,7 +3661,6 @@
 ./unit/atf-src/test-programs/config_test.sh	X	2011,2013
 ./unit/atf-src/test-programs/cpp_helpers.cpp	X	2011,2013
 ./unit/atf-src/test-programs/expect_test.sh	X	2011,2013
-./unit/atf-src/test-programs/fork_test.sh	X	2011
 ./unit/atf-src/test-programs/meta_data_test.sh	X	2011,2013
 ./unit/atf-src/test-programs/result_test.sh	X	2011,2013
 ./unit/atf-src/test-programs/sh_helpers.sh	X	2011,2013
