@@ -51,16 +51,16 @@ dlz "example two" {
 };
 
 dlz "unsearched1" {
-        database "dlopen ../driver.@SO@ other.nil";
-        search no;
+	database "dlopen ../driver.@SO@ other.nil";
+	search no;
 };
 
 dlz "unsearched2" {
-        database "dlopen ../driver.@SO@ zone.nil";
-        search no;
+	database "dlopen ../driver.@SO@ zone.nil";
+	search no;
 };
 
 zone zone.nil {
-        type master;
-        dlz unsearched2;
+	type master;
+	dlz unsearched2;
 };
