@@ -5,9 +5,9 @@
 			[RT #34750]
 
 3646.	[bug]		Journal filename string could be set incorrectly,
-                        causing garbage in log messages.  [RT #34738]
+			causing garbage in log messages. [RT #34738]
 
-	--- 9.10.0a1 released --
+	--- 9.10.0a1 released ---
 
 3645.	[protocol]	Use case sensitive compression when responding to
 			queries. [RT #34737]
@@ -20,10 +20,10 @@
 3642.	[func]		Allow externally generated DNSKEY to be imported
 			into the DNSKEY management framework.  A new tool
 			dnssec-importkey is used to do this. [RT #34698]
-			
+
 3641.	[bug]		Handle changes to sig-validity-interval settings
 			better. [RT #34625]
-			
+
 3640.	[bug]		ndots was not being checked when searching.  Only
 			continue searching on NXDOMAIN responses.  Add the
 			ability to specify ndots to nslookup. [RT #34711]
@@ -31,7 +31,7 @@
 3639.	[bug]		Treat type 65533 (KEYDATA) as opaque except when used
 			in a key zone. [RT #34238]
 
-3638.	[cleanup]	Add the ability to handle ENOPROTOOPT in case it is 
+3638.	[cleanup]	Add the ability to handle ENOPROTOOPT in case it is
 			encountered. [RT #34668]
 
 3637.	[bug]		'allow-query-on' was checking the source address
