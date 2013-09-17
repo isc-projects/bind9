@@ -2713,14 +2713,14 @@ set_resigntime(dns_zone_t *zone) {
 	dns_rdataset_init(&rdataset);
 	dns_fixedname_init(&fixed);
 
-        ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-        if (zone->db != NULL)
-                dns_db_attach(zone->db, &db);
-        ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
-        if (db == NULL) {
-                isc_time_settoepoch(&zone->resigntime);
-                return;
-        }
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zone->db != NULL)
+		dns_db_attach(zone->db, &db);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (db == NULL) {
+		isc_time_settoepoch(&zone->resigntime);
+		return;
+	}
 
 	result = dns_db_getsigningtime(db, &rdataset,
 				       dns_fixedname_name(&fixed));
@@ -2735,8 +2735,8 @@ set_resigntime(dns_zone_t *zone) {
 	nanosecs %= 1000000000;
 	isc_time_set(&zone->resigntime, resign, nanosecs);
  cleanup:
-        dns_db_detach(&db);
-        return;
+	dns_db_detach(&db);
+	return;
 }
 
 static isc_result_t
