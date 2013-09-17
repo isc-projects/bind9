@@ -2,14 +2,14 @@
 			[RT #25627]
 
 3646.	[bug]		Journal filename string could be set incorrectly,
-                        causing garbage in log messages.  [RT #34738]
+			causing garbage in log messages. [RT #34738]
 
 3639.	[bug]		Treat type 65533 (KEYDATA) as opaque except when used
 			in a key zone. [RT #34238]
 
 	--- 9.8.6 released ---
 
-3638.	[cleanup]	Add the ability to handle ENOPROTOOPT in case it is 
+3638.	[cleanup]	Add the ability to handle ENOPROTOOPT in case it is
 			encountered. [RT #34668]
 
 	--- 9.8.6rc2 released ---
@@ -21,7 +21,7 @@
 			forward only "zones" beneath them. [RT #34583]
 
 3635.	[bug]		Signatures were not being removed from a zone with
-			only KSK keys for a algorithm. [RT #24439]
+			only KSK keys for a algorithm. [RT #34439]
 
 3634.	[func]		Report build-id in rndc status. Report build-id
 			when building from a git repository. [RT #20422]
