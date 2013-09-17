@@ -109,55 +109,6 @@ create_managers() {
 	return (result);
 }
 
-/*%
- * A name is "bindable" if it can be set to point to a new value, i.e.
- * name->ndata and name->length may be changed.
- */
-#define BINDABLE(name) \
-	((name->attributes & (DNS_NAMEATTR_READONLY|DNS_NAMEATTR_DYNAMIC)) \
-	 == 0)
-
-static isc_result_t
-dns_name_fromstring2(dns_name_t *target, const char *src,
-		     const dns_name_t *origin, unsigned int options,
-		     isc_mem_t *mctx)
-{
-	isc_result_t result;
-	isc_buffer_t buf;
-	dns_fixedname_t fn;
-	dns_name_t *name;
-
-	REQUIRE(src != NULL);
-
-	isc_buffer_constinit(&buf, src, strlen(src));
-	isc_buffer_add(&buf, strlen(src));
-	if (BINDABLE(target) && target->buffer != NULL)
-		name = target;
-	else {
-		dns_fixedname_init(&fn);
-		name = dns_fixedname_name(&fn);
-	}
-
-	result = dns_name_fromtext(name, &buf, origin, options, NULL);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	if (name != target)
-		result = dns_name_dupwithoffsets(name, mctx, target);
-	return (result);
-}
-
-/*
- * dns_name_fromstring() -- convert directly from a string to a name,
- * allocating memory as needed
- */
-static isc_result_t
-dns_name_fromstring(dns_name_t *target, const char *src, unsigned int options,
-		    isc_mem_t *mctx)
-{
-	return (dns_name_fromstring2(target, src, dns_rootname, options, mctx));
-}
-
 isc_result_t
 dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	isc_result_t result;
