@@ -1216,9 +1216,7 @@ dns_journal_destroy(dns_journal_t **journalp) {
 /* XXX Share code with incoming IXFR? */
 
 static isc_result_t
-roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options,
-	     isc_uint32_t resign)
-{
+roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
 	isc_buffer_t source;		/* Transaction data from disk */
 	isc_buffer_t target;		/* Ditto after _fromwire check */
 	isc_uint32_t db_serial;		/* Database SOA serial */
@@ -1368,6 +1366,8 @@ dns_journal_rollforward2(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(filename != NULL);
 
+	UNUSED(resign);
+
 	j = NULL;
 	result = dns_journal_open(mctx, filename, ISC_FALSE, &j);
 	if (result == ISC_R_NOTFOUND) {
@@ -1380,7 +1380,7 @@ dns_journal_rollforward2(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
 	if (JOURNAL_EMPTY(&j->header))
 		result = DNS_R_UPTODATE;
 	else
-		result = roll_forward(j, db, options, resign);
+		result = roll_forward(j, db, options);
 
 	dns_journal_destroy(&j);
 
