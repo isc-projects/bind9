@@ -47,8 +47,8 @@
 ./bin/dig/host.html				HTML	DOCBOOK
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./bin/dig/nslookup.1				MAN	DOCBOOK
-./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2011,2012
-./bin/dig/nslookup.docbook			SGML	2004,2005,2006,2007,2010,2012
+./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2011,2012,2013
+./bin/dig/nslookup.docbook			SGML	2004,2005,2006,2007,2010,2012,2013
 ./bin/dig/nslookup.html				HTML	DOCBOOK
 ./bin/dig/win32/dig.dsp				X	2001,2002,2004,2005,2006
 ./bin/dig/win32/dig.dsw				X	2001
@@ -167,7 +167,7 @@
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004,2007,2012
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005,2007,2008,2012
 ./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013
-./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./bin/named/win32/include/named/ntservice.h	C	1999,2000,2001,2002,2003,2004,2007
 ./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004,2007,2008,2012
 ./bin/named/win32/named.dsp			X	2001,2004,2005,2008
@@ -385,7 +385,7 @@
 ./bin/tests/names/dns_name_totext_data		X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_1_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_2_data	X	1999,2000,2001
-./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
+./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./bin/tests/names/wire_test1.data		X	1999,2000,2001
 ./bin/tests/names/wire_test2.data		X	1999,2000,2001
 ./bin/tests/names/wire_test3_1.data		X	1999,2000,2001
@@ -647,7 +647,7 @@
 ./bin/tests/system/dnssec/ns3/keyless.example.db.in	ZONE	2001,2002,2004,2007
 ./bin/tests/system/dnssec/ns3/lower.example.db.in	ZONE	2012
 ./bin/tests/system/dnssec/ns3/multiple.example.db.in	ZONE	2006,2008
-./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2010,2011,2012
+./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2010,2011,2012,2013
 ./bin/tests/system/dnssec/ns3/nsec3-unknown.example.db.in	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns3/nsec3.example.db.in	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns3/nsec3.nsec3.example.db.in	ZONE	2008
@@ -662,7 +662,10 @@
 ./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001,2004,2007,2008,2010,2012
 ./bin/tests/system/dnssec/ns3/secure.nsec3.example.db.in	ZONE	2008
 ./bin/tests/system/dnssec/ns3/secure.optout.example.db.in	ZONE	2008
-./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012
+./bin/tests/system/dnssec/ns3/siginterval.example.db.in	ZONE	2013
+./bin/tests/system/dnssec/ns3/siginterval1.conf	CONF-C	2013
+./bin/tests/system/dnssec/ns3/siginterval2.conf	CONF-C	2013
+./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012,2013
 ./bin/tests/system/dnssec/ns3/update-nsec3.example.db.in	ZONE	2011,2012
 ./bin/tests/system/dnssec/ns3/upper.example.db.in	ZONE	2012
 ./bin/tests/system/dnssec/ns4/named.conf	CONF-C	2000,2001,2004,2006,2007,2012
@@ -676,7 +679,7 @@
 ./bin/tests/system/dnssec/ns7/named.nosoa	TXT.BRIEF	2010,2012
 ./bin/tests/system/dnssec/ns7/nosoa.secure.example.db	ZONE	2010,2012
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006,2007,2012
-./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2010,2012
+./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2010,2012,2013
 ./bin/tests/system/dnssec/signer/example.db.in	ZONE	2010,2012
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./bin/tests/system/formerr/clean.sh		SH	2013
@@ -1762,7 +1765,7 @@
 ./lib/dns/db.c					C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2012
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005,2007
-./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005,2007,2008,2009,2011,2012
+./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005,2007,2008,2009,2011,2012,2013
 ./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005,2007,2009,2012,2013
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2012
@@ -1814,7 +1817,7 @@
 ./lib/dns/include/dns/master.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2012
 ./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2011,2012
 ./lib/dns/include/dns/message.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2012,2013
-./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2012
+./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2012,2013
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2012,2013
 ./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2012
 ./lib/dns/include/dns/nsec3.h			C	2008,2009,2012
@@ -1874,7 +1877,7 @@
 ./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2010,2011,2012,2013
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2010,2011,2012,2013
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011,2012,2013
-./lib/dns/nsec3.c				C	2006,2008,2009,2012
+./lib/dns/nsec3.c				C	2006,2008,2009,2012,2013
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
 ./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2012
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012
@@ -2043,7 +2046,7 @@
 ./lib/dns/tests/Makefile.in			MAKE	2011,2012
 ./lib/dns/tests/dbiterator_test.c		C	2011,2012
 ./lib/dns/tests/dbversion_test.c		C	2011,2012
-./lib/dns/tests/dnstest.c			C	2011,2012
+./lib/dns/tests/dnstest.c			C	2011,2012,2013
 ./lib/dns/tests/dnstest.h			C	2011,2012
 ./lib/dns/tests/master_test.c			C	2011,2012,2013
 ./lib/dns/tests/nsec3_test.c			C	2012
