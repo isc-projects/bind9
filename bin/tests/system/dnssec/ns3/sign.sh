@@ -313,3 +313,14 @@ kskname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 $zone`
 zskname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -f KSK $zone`
 cat $infile $kskname.key $zskname.key > $zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+#
+# A zone which will change its sig-validity-interval
+#
+zone=siginterval.example
+infile=siginterval.example.db.in
+zonefile=siginterval.example.db
+kskname=`$KEYGEN -r $RANDFILE -a NSEC3RSASHA1 -b 768 -f KSK $zone`
+zskname=`$KEYGEN -r $RANDFILE -a NSEC3RSASHA1 -b 768 $zone`
+cat $infile $kskname.key $zskname.key >$zonefile
+$SIGNER -P -3 - -r $RANDFILE -o $zone -e now+0 -f $zonefile $zonefile > /dev/null

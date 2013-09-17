@@ -355,7 +355,6 @@ do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
 	 * Create a singleton diff.
 	 */
 	dns_diff_init(diff->mctx, &temp_diff);
-	temp_diff.resign = diff->resign;
 	ISC_LIST_APPEND(temp_diff.tuples, *tuple, link);
 
 	/*
@@ -2146,7 +2145,6 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	dns_diff_init(client->mctx, &affected);
 
 	dns_diff_init(client->mctx, &sig_diff);
-	sig_diff.resign = dns_zone_getsigresigninginterval(zone);
 	dns_diff_init(client->mctx, &nsec_diff);
 	dns_diff_init(client->mctx, &nsec_mindiff);
 
