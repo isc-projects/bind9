@@ -55,7 +55,7 @@ SAMPLE=$TOP/lib/export/samples/sample
 # load on the machine to make it unusable to other users.
 # v6synth
 SUBDIRS="acl additional allow_query addzone autosign builtin
-	 cacheclean checkconf checknames checkzone database dlv
+	 cacheclean case checkconf checknames checkzone database dlv
 	 dlvauto dlz dlzexternal dname dns64 dnssec ecdsa formerr
 	 forward glue gost ixfr limits logfileconfig lwresd masterfile
 	 masterformat metadata notify nsupdate pending pkcs11

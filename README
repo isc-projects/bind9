@@ -51,6 +51,11 @@ BIND 9
         For up-to-date release notes and errata, see
         http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.8.7
+ 
+       - "named" now preserves the capitalization of names when
+          responding to queries.
+
 BIND 9.8.6
 
 	BIND 9.8.6 includes several bug fixes and patches the security
