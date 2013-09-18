@@ -10431,6 +10431,12 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 
 	LOCK_ZONE(zone);
 
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
+		isc_event_free(&event);
+		dns_request_destroy(&zone->request);
+		goto detach;
+	}
+
 	/*
 	 * if timeout log and next master;
 	 */
