@@ -4,6 +4,9 @@
 3646.	[bug]		Journal filename string could be set incorrectly,
 			causing garbage in log messages. [RT #34738]
 
+3644.	[protocol]	Check that EDNS subnet client options are well formed.
+			[RT #34718]
+
 3641.	[bug]		Handle changes to sig-validity-interval settings
 			better. [RT #34625]
 			
