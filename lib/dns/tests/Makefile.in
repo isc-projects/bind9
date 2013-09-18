@@ -38,11 +38,12 @@ LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		dnstest.@O@
 SRCS =		dnstest.c master_test.c time_test.c dbiterator_test.c \
-		dbversion_test.c zonemgr_test.c nsec3_test.c
+		dbversion_test.c zonemgr_test.c nsec3_test.c rdata_test.c
 
 SUBDIRS =
 TARGETS =	master_test@EXEEXT@ time_test@EXEEXT@ dbiterator_test@EXEEXT@ \
-		dbversion_test@EXEEXT@ zonemgr_test@EXEEXT@ nsec3_test@EXEEXT@
+		dbversion_test@EXEEXT@ zonemgr_test@EXEEXT@ nsec3_test@EXEEXT@ \
+		rdata_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
