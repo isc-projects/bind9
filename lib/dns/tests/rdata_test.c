@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -127,7 +127,7 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 		{
 			/* source too long for IPv4 */
 			{
-			  0x00, 0x08, 0x00,    8, 
+			  0x00, 0x08, 0x00,    8,
 			  0x00, 0x01,   33, 0x00,
 			  0x00, 0x00, 0x00, 0x00
 			},
@@ -148,7 +148,7 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 		{
 			/* scope too long for IPv4 */
 			{
-			  0x00, 0x08, 0x00,    8, 
+			  0x00, 0x08, 0x00,    8,
 			  0x00, 0x01, 0x00,   33,
 			  0x00, 0x00, 0x00, 0x00
 			},
@@ -169,16 +169,16 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 		{
 			/* length too short for source generic */
 			{
-			  0x00, 0x08, 0x00,    5, 
+			  0x00, 0x08, 0x00,    5,
 			  0x00, 0x00,   17, 0x00,
-			  0x00, 0x00, 
+			  0x00, 0x00,
 			},
 			19, ISC_FALSE
 		},
 		{
 			/* length too short for source ipv4 */
 			{
-			  0x00, 0x08, 0x00,    7, 
+			  0x00, 0x08, 0x00,    7,
 			  0x00, 0x01,   32, 0x00,
 			  0x00, 0x00, 0x00, 0x00
 			},
@@ -221,7 +221,7 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 					    dns_rdatatype_opt, &source,
 					    &dctx, 0, &target);
 		dns_decompress_invalidate(&dctx);
-		if (test_data[i].ok) 
+		if (test_data[i].ok)
 			ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 		else
 			ATF_REQUIRE(result != ISC_R_SUCCESS);
