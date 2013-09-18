@@ -53,7 +53,8 @@ BIND 9
 
 BIND 9.9.5
 
-	 - use case sensitive compression when responding.
+	 - "named" now preserves the capitalization of names when
+           responding to queries.
 
 BIND 9.9.4
 
