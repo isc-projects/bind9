@@ -88,7 +88,7 @@ echo "I:check correctness of routine cache cleaning"
 $DIG $DIGOPTS -f dig.batch > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
-$PERL ../digcomp.pl dig.out.ns2 knowngood.dig.out || status=1
+$PERL ../digcomp.pl --lc dig.out.ns2 knowngood.dig.out || status=1
 
 echo "I:reset and check that records are correctly cached initially"
 ret=0
