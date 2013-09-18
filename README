@@ -48,6 +48,11 @@ BIND 9
         For up-to-date release notes and errata, see
         http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.6-ESV-R11 (Extended Support Version)
+ 
+       - "named" now preserves the capitalization of names when
+          responding to queries.
+
 BIND 9.6-ESV-R10 (Extended Support Version)
 
 	BIND 9.6-ESV-R10 is a maintenance release, fixing bugs in BIND

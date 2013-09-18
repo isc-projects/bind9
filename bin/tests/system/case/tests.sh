@@ -1,7 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2001  Internet Software Consortium.
+# Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,18 +14,22 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.5 2007/06/19 23:47:00 tbox Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+DIGOPTS="+tcp +nosea +nostat +noquest +nocomm +nocmd"
+
 status=0
+n=0
 
-$DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat \
-	-f dig.batch -p 5300 @10.53.0.2 > dig.out.ns2 || status=1
-grep ";" dig.out.ns2
-
-$PERL ../digcomp.pl --lc dig.out.ns2 knowngood.dig.out || status=1
+n=`expr $n + 1`
+echo "I:testing case sensitive responses ($n)"
+ret=0
+$DIG $DIGOPTS mx example. @10.53.0.1 -p 5300 > dig.n1.test$n
+grep "0.mail.eXaMpLe" dig.n1.test$n > /dev/null || ret=1
+grep "mAiL.example" dig.n1.test$n > /dev/null || ret=1
+test $ret -eq 0 || echo "I:failed"
+status=`expr $status + $ret`
 
 echo "I:exit status: $status"
 exit $status

@@ -43,7 +43,7 @@ CHECKCONF=$TOP/bin/check/named-checkconf
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="acl additional allow_query builtin cacheclean checkconf
+SUBDIRS="acl additional allow_query builtin cacheclean case checkconf
 	 checknames checkzone database dlv dlz dname dnssec formerr
 	 forward glue ixfr limits logfileconfig lwresd masterfile
 	 masterformat notify nsupdate pending resolver rndc rrsetorder

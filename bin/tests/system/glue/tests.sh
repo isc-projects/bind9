@@ -28,7 +28,7 @@ status=0
 
 echo "I:testing that a ccTLD referral gets a full glue set from the root zone"
 $DIG +norec @10.53.0.1 -p 5300 foo.bar.fi. A >dig.out || status=1
-$PERL ../digcomp.pl fi.good dig.out || status=1
+$PERL ../digcomp.pl --lc fi.good dig.out || status=1
 
 echo "I:testing that we find glue A RRs we are authoritative for"
 $DIG +norec @10.53.0.1 -p 5300 foo.bar.xx. a >dig.out || status=1
