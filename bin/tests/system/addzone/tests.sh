@@ -84,12 +84,28 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:verifying no comments in nzf file ($n)"
+ret=0
+hcount=`grep "^# New zone file for view: _default" ns2/3bf305731dd26307.nzf | wc -l`
+[ $hcount -eq 0 ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:deleting previously added zone ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone previous.example 2>&1 | sed 's/^/I:ns2 /'
 $DIG $DIGOPTS @10.53.0.2 a.previous.example a > dig.out.ns2.$n
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.previous.example' dig.out.ns2.$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking nzf file now has comment ($n)"
+ret=0
+hcount=`grep "^# New zone file for view: _default" ns2/3bf305731dd26307.nzf | wc -l`
+[ $hcount -eq 1 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -242,6 +258,15 @@ grep '^a.added.example' dig.out.ns2.ext.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+echo "I:checking new nzf file has comment ($n)"
+ret=0
+hcount=`grep "^# New zone file for view: external" ns2/3c4623849a49a539.nzf | wc -l`
+[ $hcount -eq 1 ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 
 echo "I:deleting newly added zone ($n)"
 ret=0
