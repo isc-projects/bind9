@@ -8495,7 +8495,7 @@ ns_smf_add_message(isc_buffer_t *text) {
  */
 #define HEADER1 "# New zone file for view: "
 #define HEADER2 "\n# This file contains configuration for zones added by\n" \
-	        "# the 'rndc addzone' command. DO NOT EDIT BY HAND.\n"
+		"# the 'rndc addzone' command. DO NOT EDIT BY HAND.\n"
 isc_result_t
 add_comment(FILE *fp, const char *viewname) {
 	isc_result_t result;
@@ -8836,7 +8836,7 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 				continue;
 			}
 
-			/* 
+			/*
 			 * But if it is the zone we want, skip over it
 			 * so it will be omitted from the new file
 			 */
