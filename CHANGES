@@ -1,3 +1,6 @@
+3649.	[cleanup]	Include a comment in .nzf files, giving the name of
+			the associated view. [RT #34765]
+
 3648.	[test]		Updated the ATF test framework to version 0.17.
 			[RT #25627]
 

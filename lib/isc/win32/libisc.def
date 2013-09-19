@@ -529,6 +529,7 @@ isc_stdio_open
 isc_stdio_read
 isc_stdio_seek
 isc_stdio_sync
+isc_stdio_tell
 isc_stdio_write
 isc_stdtime_get
 isc_string_append

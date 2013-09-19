@@ -386,6 +386,9 @@ end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
 static void
 newzone_cfgctx_destroy(void **cfgp);
 
+isc_result_t
+add_comment(FILE *fp, const char *viewname);
+
 /*%
  * Configure a single view ACL at '*aclp'.  Get its configuration from
  * 'vconfig' (for per-view configuration) and maybe from 'config'
@@ -8113,6 +8116,23 @@ ns_smf_add_message(isc_buffer_t *text) {
 #endif /* HAVE_LIBSCF */
 
 /*
+ * Emit a comment at the top of the nzf file containing the viewname
+ * Expects the fp to already be open for writing
+ */
+#define HEADER1 "# New zone file for view: "
+#define HEADER2 "\n# This file contains configuration for zones added by\n" \
+	        "# the 'rndc addzone' command. DO NOT EDIT BY HAND.\n"
+isc_result_t
+add_comment(FILE *fp, const char *viewname) {
+	isc_result_t result;
+	CHECK(isc_stdio_write(HEADER1, sizeof(HEADER1) - 1, 1, fp, NULL));
+	CHECK(isc_stdio_write(viewname, strlen(viewname), 1, fp, NULL));
+	CHECK(isc_stdio_write(HEADER2, sizeof(HEADER2) - 1, 1, fp, NULL));
+ cleanup:
+	return (result);
+}
+
+/*
  * Act on an "addzone" command from the command channel.
  */
 isc_result_t
@@ -8140,6 +8160,7 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	FILE		    *fp = NULL;
 	struct cfg_context  *cfg = NULL;
 	char 		    namebuf[DNS_NAME_FORMATSIZE];
+	off_t		    offset;
 
 	/* Try to parse the argument string */
 	arglen = strlen(args);
@@ -8213,6 +8234,9 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 
 	/* Open save file for write configuration */
 	CHECK(isc_stdio_open(view->new_zone_file, "a", &fp));
+	CHECK(isc_stdio_tell(fp, &offset));
+	if (offset == 0)
+		CHECK(add_comment(fp, view->name));
 
 	/* Mark view unfrozen so that zone can be added */
 	result = isc_task_beginexclusive(server->task);
@@ -8313,16 +8337,17 @@ ns_server_add_zone(ns_server_t *server, char *args) {
  */
 isc_result_t
 ns_server_del_zone(ns_server_t *server, char *args) {
-	isc_result_t	       result;
-	dns_zone_t	      *zone = NULL;
-	dns_view_t	      *view = NULL;
-	dns_db_t	      *dbp = NULL;
-	const char	      *filename = NULL;
-	char		      *tmpname = NULL;
-	char		       buf[1024];
-	const char	      *zonename = NULL;
-	size_t		       znamelen = 0;
-	FILE		      *ifp = NULL, *ofp = NULL;
+	isc_result_t result;
+	dns_zone_t *zone = NULL;
+	dns_view_t *view = NULL;
+	dns_db_t *dbp = NULL;
+	const char *filename = NULL;
+	char *tmpname = NULL;
+	char buf[1024];
+	const char *zonename = NULL;
+	size_t znamelen = 0;
+	FILE *ifp = NULL, *ofp = NULL;
+	isc_boolean_t inheader = ISC_TRUE;
 
 	/* Parse parameters */
 	CHECK(zone_from_args(server, args, NULL, &zone, &zonename, ISC_TRUE));
@@ -8367,28 +8392,44 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 			goto cleanup;
 		}
 		CHECK(isc_stdio_open(tmpname, "w", &ofp));
+		CHECK(add_comment(ofp, view->name));
 
 		/* Look for the entry for that zone */
 		while (fgets(buf, 1024, ifp)) {
-			/* A 'zone' line */
-			if (strncasecmp(buf, "zone", 4)) {
+			/* Skip initial comment, if any */
+			if (inheader && *buf == '#')
+				continue;
+			if (*buf != '#')
+				inheader = ISC_FALSE;
+
+			/*
+			 * Any other lines not starting with zone, copy
+			 * them out and continue.
+			 */
+			if (strncasecmp(buf, "zone", 4) != 0) {
 				fputs(buf, ofp);
 				continue;
 			}
 			p = buf+4;
 
-			/* Locate a name */
+			/* This is a zone; find its name. */
 			while (*p &&
 			       ((*p == '"') || isspace((unsigned char)*p)))
 				p++;
 
-			/* Is that the zone we're looking for */
-			if (strncasecmp(p, zonename, znamelen)) {
+			/*
+			 * If it's not the zone we're looking for, copy
+			 * it out and continue
+			 */
+			if (strncasecmp(p, zonename, znamelen) != 0) {
 				fputs(buf, ofp);
 				continue;
 			}
 
-			/* And nothing else? */
+			/* 
+			 * But if it is the zone we want, skip over it
+			 * so it will be omitted from the new file
+			 */
 			p += znamelen;
 			if (isspace((unsigned char)*p) ||
 			    *p == '"' || *p == '{') {
@@ -8397,7 +8438,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 				break;
 			}
 
-			/* Spit it out, keep looking */
+			/* Copy the rest of the buffer out and continue */
 			fputs(buf, ofp);
 		}
 
