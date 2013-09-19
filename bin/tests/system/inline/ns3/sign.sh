@@ -100,6 +100,10 @@ rm -f K${zone}.+*+*.private
 for alg in ECDSAP256SHA256 NSEC3RSASHA1 DSA ECCGOST
 do
 
+if test $alg = DSA
+then
+	sh ../checkdsa.sh 2> /dev/null || continue
+fi
 if test $alg = ECCGOST
 then
 	sh ../../gost/prereq.sh 2> /dev/null || continue
@@ -107,6 +111,7 @@ fi
 if test $alg = ECDSAP256SHA256
 then
 	sh ../../ecdsa/prereq.sh 2> /dev/null || continue
+	sh ../checkdsa.sh 2> /dev/null || continue
 fi
 
 test $alg = DSA -a ! -r /dev/random -a ! -r /dev/urandom && continue
