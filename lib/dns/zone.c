@@ -481,7 +481,8 @@ struct dns_zonemgr {
 	isc_taskpool_t *	loadtasks;
 	isc_task_t *		task;
 	isc_pool_t *		mctxpool;
-	isc_ratelimiter_t *	rl;
+	isc_ratelimiter_t *	notifyrl;
+	isc_ratelimiter_t *	refreshrl;
 	isc_rwlock_t		rwlock;
 	isc_mutex_t		iolock;
 	isc_rwlock_t		urlock;
@@ -9996,7 +9997,7 @@ notify_send_queue(dns_notify_t *notify) {
 		return (ISC_R_NOMEMORY);
 	e->ev_arg = notify;
 	e->ev_sender = NULL;
-	result = isc_ratelimiter_enqueue(notify->zone->zmgr->rl,
+	result = isc_ratelimiter_enqueue(notify->zone->zmgr->notifyrl,
 					 notify->zone->task, &e);
 	if (result != ISC_R_SUCCESS)
 		isc_event_free(&e);
@@ -11164,7 +11165,7 @@ queue_soa_query(dns_zone_t *zone) {
 
 	e->ev_arg = zone;
 	e->ev_sender = NULL;
-	result = isc_ratelimiter_enqueue(zone->zmgr->rl, zone->task, &e);
+	result = isc_ratelimiter_enqueue(zone->zmgr->refreshrl, zone->task, &e);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
 		isc_event_free(&e);
@@ -14592,7 +14593,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->loadtasks = NULL;
 	zmgr->mctxpool = NULL;
 	zmgr->task = NULL;
-	zmgr->rl = NULL;
+	zmgr->notifyrl = NULL;
+	zmgr->refreshrl = NULL;
 	ISC_LIST_INIT(zmgr->zones);
 	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
 	ISC_LIST_INIT(zmgr->xfrin_in_progress);
@@ -14616,15 +14618,24 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	isc_task_setname(zmgr->task, "zmgr", zmgr);
 	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
-					&zmgr->rl);
+					&zmgr->notifyrl);
 	if (result != ISC_R_SUCCESS)
 		goto free_task;
 
+	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
+					&zmgr->refreshrl);
+	if (result != ISC_R_SUCCESS)
+		goto free_notifyrl;
+
 	/* default to 20 refresh queries / notifies per second. */
 	isc_interval_set(&interval, 0, 1000000000/2);
-	result = isc_ratelimiter_setinterval(zmgr->rl, &interval);
+	result = isc_ratelimiter_setinterval(zmgr->notifyrl, &interval);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_ratelimiter_setpertic(zmgr->rl, 10);
+	isc_ratelimiter_setpertic(zmgr->notifyrl, 10);
+
+	result = isc_ratelimiter_setinterval(zmgr->refreshrl, &interval);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_ratelimiter_setpertic(zmgr->refreshrl, 10);
 
 	zmgr->iolimit = 1;
 	zmgr->ioactive = 0;
@@ -14633,7 +14644,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	result = isc_mutex_init(&zmgr->iolock);
 	if (result != ISC_R_SUCCESS)
-		goto free_rl;
+		goto free_refreshrl;
 
 	zmgr->magic = ZONEMGR_MAGIC;
 
@@ -14644,8 +14655,10 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  free_iolock:
 	DESTROYLOCK(&zmgr->iolock);
 #endif
- free_rl:
-	isc_ratelimiter_detach(&zmgr->rl);
+ free_refreshrl:
+	isc_ratelimiter_detach(&zmgr->refreshrl);
+ free_notifyrl:
+	isc_ratelimiter_detach(&zmgr->notifyrl);
  free_task:
 	isc_task_detach(&zmgr->task);
  free_urlock:
@@ -14843,7 +14856,8 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
-	isc_ratelimiter_shutdown(zmgr->rl);
+	isc_ratelimiter_shutdown(zmgr->notifyrl);
+	isc_ratelimiter_shutdown(zmgr->refreshrl);
 
 	if (zmgr->task != NULL)
 		isc_task_destroy(&zmgr->task);
@@ -14973,7 +14987,8 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 	zmgr->magic = 0;
 
 	DESTROYLOCK(&zmgr->iolock);
-	isc_ratelimiter_detach(&zmgr->rl);
+	isc_ratelimiter_detach(&zmgr->notifyrl);
+	isc_ratelimiter_detach(&zmgr->refreshrl);
 
 	isc_rwlock_destroy(&zmgr->urlock);
 	isc_rwlock_destroy(&zmgr->rwlock);
@@ -15363,9 +15378,14 @@ dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
 	}
 
 	isc_interval_set(&interval, s, ns);
-	result = isc_ratelimiter_setinterval(zmgr->rl, &interval);
+
+	result = isc_ratelimiter_setinterval(zmgr->notifyrl, &interval);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_ratelimiter_setpertic(zmgr->rl, pertic);
+	isc_ratelimiter_setpertic(zmgr->notifyrl, pertic);
+
+	result = isc_ratelimiter_setinterval(zmgr->refreshrl, &interval);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_ratelimiter_setpertic(zmgr->refreshrl, pertic);
 
 	zmgr->serialqueryrate = value;
 }
