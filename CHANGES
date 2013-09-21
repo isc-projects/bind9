@@ -1,3 +1,6 @@
+3650.	[tuning]	Use separate rate limiting queues for refresh and
+			notify requests. [RT #30589]
+
 3649.	[cleanup]	Include a comment in .nzf files, giving the name of
 			the associated view. [RT #34765]
 
