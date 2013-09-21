@@ -183,12 +183,23 @@ ATF_TC_BODY(zonemgr_unreachable, tc) {
 	in.s_addr = inet_addr("10.53.0.2");
 	isc_sockaddr_fromin(&addr2, &in, 5150);
 	ATF_CHECK(! dns_zonemgr_unreachable(zonemgr, &addr1, &addr2, &now));
+	/*
+	 * We require multiple unreachableadd calls to mark a server as
+	 * unreachable.
+	 */
+	dns_zonemgr_unreachableadd(zonemgr, &addr1, &addr2, &now);
+	ATF_CHECK(! dns_zonemgr_unreachable(zonemgr, &addr1, &addr2, &now));
 	dns_zonemgr_unreachableadd(zonemgr, &addr1, &addr2, &now);
 	ATF_CHECK(dns_zonemgr_unreachable(zonemgr, &addr1, &addr2, &now));
 
 	in.s_addr = inet_addr("10.53.0.3");
 	isc_sockaddr_fromin(&addr2, &in, 5150);
 	ATF_CHECK(! dns_zonemgr_unreachable(zonemgr, &addr1, &addr2, &now));
+	/*
+	 * We require multiple unreachableadd calls to mark a server as
+	 * unreachable.
+	 */
+	dns_zonemgr_unreachableadd(zonemgr, &addr1, &addr2, &now);
 	dns_zonemgr_unreachableadd(zonemgr, &addr1, &addr2, &now);
 	ATF_CHECK(dns_zonemgr_unreachable(zonemgr, &addr1, &addr2, &now));
 

@@ -937,6 +937,8 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = cev->result;
 	char sourcetext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t sockaddr;
+	dns_zonemgr_t * zmgr;
+	isc_time_t now;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
@@ -951,16 +953,16 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
-	if (result != ISC_R_SUCCESS) {
-		dns_zonemgr_t * zmgr = dns_zone_getmgr(xfr->zone);
-		isc_time_t now;
-
-		if (zmgr != NULL) {
+	zmgr = dns_zone_getmgr(xfr->zone);
+	if (zmgr != NULL) {
+		if (result != ISC_R_SUCCESS) {
 			TIME_NOW(&now);
 			dns_zonemgr_unreachableadd(zmgr, &xfr->masteraddr,
 						   &xfr->sourceaddr, &now);
-		}
-		goto failure;
+			goto failure;
+		} else
+			dns_zonemgr_unreachabledel(zmgr, &xfr->masteraddr,
+						   &xfr->sourceaddr);
 	}
 
 	result = isc_socket_getsockname(xfr->socket, &sockaddr);

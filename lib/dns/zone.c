@@ -393,6 +393,7 @@ struct dns_unreachable {
 	isc_sockaddr_t	local;
 	isc_uint32_t	expire;
 	isc_uint32_t	last;
+	isc_uint32_t	count;
 };
 
 struct dns_zonemgr {
@@ -11413,6 +11414,7 @@ dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 	isc_rwlocktype_t locktype;
 	isc_result_t result;
 	isc_uint32_t seconds = isc_time_seconds(now);
+	isc_uint32_t count = 0;
 
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
@@ -11426,12 +11428,13 @@ dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 			if (result == ISC_R_SUCCESS) {
 				locktype = isc_rwlocktype_write;
 				zmgr->unreachable[i].last = seconds;
+				count = zmgr->unreachable[i].count;
 			}
 			break;
 		}
 	}
 	RWUNLOCK(&zmgr->urlock, locktype);
-	return (ISC_TF(i < UNREACH_CHACHE_SIZE));
+	return (ISC_TF(i < UNREACH_CHACHE_SIZE && count > 1U));
 }
 
 void
@@ -11505,6 +11508,10 @@ dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 		 */
 		zmgr->unreachable[i].expire = seconds + UNREACH_HOLD_TIME;
 		zmgr->unreachable[i].last = seconds;
+		if (zmgr->unreachable[i].expire < seconds)
+			zmgr->unreachable[i].count = 1;
+		else
+			zmgr->unreachable[i].count++;
 	} else if (slot != UNREACH_CHACHE_SIZE) {
 		/*
 		 * Found a empty slot. Add a new entry to the cache.
@@ -11513,6 +11520,7 @@ dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 		zmgr->unreachable[slot].last = seconds;
 		zmgr->unreachable[slot].remote = *remote;
 		zmgr->unreachable[slot].local = *local;
+		zmgr->unreachable[slot].count = 1;
 	} else {
 		/*
 		 * Replace the least recently used entry in the cache.
@@ -11521,6 +11529,7 @@ dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 		zmgr->unreachable[oldest].last = seconds;
 		zmgr->unreachable[oldest].remote = *remote;
 		zmgr->unreachable[oldest].local = *local;
+		zmgr->unreachable[oldest].count = 1;
 	}
 	RWUNLOCK(&zmgr->urlock, isc_rwlocktype_write);
 }
