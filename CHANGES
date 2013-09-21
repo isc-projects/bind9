@@ -1,3 +1,6 @@
+3650.	[tuning]	Use separate rate limiting queues for refresh and
+			notify requests. [RT #30589]
+
 3648.	[test]		Updated the ATF test framework to version 0.17.
 			[RT #25627]
 
