@@ -325,7 +325,7 @@ nxdomain a0-1s-cname.tld2s  +dnssec	# 28 DNSSEC too early in CNAME chain
 nochange a0-1-scname.tld2   +dnssec	# 29 DNSSEC on target in CNAME chain
 nochange a0-1.tld2s srv +auth +dnssec	# 30 no write for DNSSEC and no record
 nxdomain a0-1.tld2s srv	    +nodnssec	# 31
-drop a3-8.tld2				# 32 drop
+drop a3-8.tld2 any			# 32 drop
 nochange tcp a3-9.tld2			# 33 tcp-only
 here x.servfail <<'EOF'			# 34 qname-wait-recurse yes
     ;; status: SERVFAIL, x
@@ -461,7 +461,7 @@ addr 59.59.59.59 a3-9.sub9.tld2		# 14 bl_wildcname
 addr 12.12.12.12 a3-15.tld2		# 15 bl-garden	via CNAME to a12.tld2
 addr 127.0.0.16 a3-16.tld2	    100	# 16 bl		    max-policy-ttl 100
 addr 17.17.17.17 "a3-17.tld2 @$ns5" 90	# 17 ns5 bl	    max-policy-ttl 90
-drop a3-18.tld2				# 18 bl-drop
+drop a3-18.tld2 any			# 18 bl-drop
 nxdomain TCP a3-19.tld2			# 19 bl-tcp-only
 end_group
 ckstats $ns3 test5 ns3 12

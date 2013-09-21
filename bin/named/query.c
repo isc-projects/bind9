@@ -6489,7 +6489,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			case DNS_RPZ_POLICY_DROP:
 				result = ISC_R_SUCCESS;
 				QUERY_ERROR(DNS_R_DROP);
-				break;
+				rpz_log_rewrite(client, ISC_FALSE,
+						rpz_st->m.policy,
+						rpz_st->m.type, zone,
+						rpz_st->p_name);
+				goto cleanup;
 			case DNS_RPZ_POLICY_NXDOMAIN:
 				result = DNS_R_NXDOMAIN;
 				break;

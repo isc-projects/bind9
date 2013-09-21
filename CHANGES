@@ -1,3 +1,5 @@
+3652.	[bug]		Address bug with rpz-drop policy. [RT #34816]
+
 3651.	[tuning]	Adjust when a master server is deemed unreachable.
 			[RT #27075]
 
