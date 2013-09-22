@@ -170,7 +170,7 @@ sub start_server {
 				if (-e "$testdir/$server/named.maxudp512");
 			$command .= "-T maxudp1460 " 
 				if (-e "$testdir/$server/named.maxudp1460");
-			$command .= "-c named.conf -d 99 -g -U 4 ";
+			$command .= "-c named.conf -d 99 -g -U 4";
 		}
 		if ($restart) {
 			$command .= " >>named.run 2>&1 &";
