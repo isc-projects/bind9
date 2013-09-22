@@ -6487,7 +6487,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 						rpz_st->p_name);
 				goto cleanup;
 			case DNS_RPZ_POLICY_DROP:
-				result = ISC_R_SUCCESS;
 				QUERY_ERROR(DNS_R_DROP);
 				rpz_log_rewrite(client, ISC_FALSE,
 						rpz_st->m.policy,
