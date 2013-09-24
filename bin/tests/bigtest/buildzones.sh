@@ -14,13 +14,14 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-TOP=$( (cd ../../.. && pwd) )
+SYSTEMTESTTOP=..
+. ../conf.sh
 
 addr=127.127.0.0
 ttl=300
-named=${TOP}/bin/named/named
-keygen=${TOP}/bin/dnssec/dnssec-keygen
-dsfromkey=${TOP}/bin/dnssec/dnssec-dsfromkey
+named=${NAMED}
+keygen=${KEYGEN}
+dsfromkey=${DSFROMKEY}
 
 nextaddr() {
 	OLDIF="$IFS"
