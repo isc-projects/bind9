@@ -1198,15 +1198,14 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "type", &obj);
 		INSIST(obj != NULL);
-		if (strcasecmp(cfg_obj_asstring(obj), "forward") != 0)
-			continue;
-
-		obj = NULL;
-		(void)cfg_map_get(zoptions, "forward", &obj);
-		if (obj == NULL)
-			continue;
-		if (strcasecmp(cfg_obj_asstring(obj), "only") != 0)
-			continue;
+		if (strcasecmp(cfg_obj_asstring(obj), "forward") == 0) {
+			obj = NULL;
+			(void)cfg_map_get(zoptions, "forward", &obj);
+			if (obj == NULL)
+				continue;
+			if (strcasecmp(cfg_obj_asstring(obj), "only") != 0)
+				continue;
+		}
 		if (db == NULL) {
 			CHECK(dns_db_create(view->mctx, "rbt", name,
 					    dns_dbtype_zone, view->rdclass,
