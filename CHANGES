@@ -1,3 +1,6 @@
+3654.	[bug]		Address race condition with manual notify requests.
+			[RT #34806]
+
 3653.	[func]		Create delegations for all "children" of empty zones
 			except "forward first". [RT #34826]
 
