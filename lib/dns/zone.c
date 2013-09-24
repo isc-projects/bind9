@@ -10876,10 +10876,10 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 			    isc_time_compare(&zone->refreshtime, &next) < 0)
 				next = zone->refreshtime;
 		}
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
-			INSIST(!isc_time_isepoch(&zone->expiretime));
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
+		    !isc_time_isepoch(&zone->expiretime)) {
 			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->expiretime, &next) < 0)
+			     isc_time_compare(&zone->expiretime, &next) < 0)
 				next = zone->expiretime;
 		}
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
