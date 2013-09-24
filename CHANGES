@@ -1,3 +1,6 @@
+3655.	[cleanup]	Simplify TCP message processing when requesting a
+			zone transfer.  [RT #34825]
+
 3654.	[bug]		Address race condition with manual notify requests.
 			[RT #34806]
 
