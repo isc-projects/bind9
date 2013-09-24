@@ -1,3 +1,6 @@
+3653.	[func]		Create delegations for all "children" of empty zones
+			except "forward first". [RT #34826]
+
 3651.	[tuning]	Adjust when a master server is deemed unreachable.
 			[RT #27075]
 
