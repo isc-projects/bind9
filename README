@@ -64,6 +64,7 @@ BIND 9.10.0
          - Substantial improvement in response-policy zone (RPZ)
            performance.  Up to 32 response-policy zones can be
            configured with minimal performance loss.
+         - New RPZ client-IP triggers and drop policies.
          - ACLs can now be specified based on geographic location
            using the MacMind GeoIP databases.
          - New XML schema (version 3) for the statistics channel
