@@ -776,7 +776,8 @@ get_next_command(void) {
 	if (interactive) {
 #ifdef HAVE_READLINE
 		ptr = readline("> ");
-		add_history(ptr);
+		if (ptr != NULL)
+			add_history(ptr);
 #else
 		fputs("> ", stderr);
 		fflush(stderr);
