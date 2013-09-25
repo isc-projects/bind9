@@ -1,3 +1,6 @@
+3656.	[bug]		Treat a all zero netmask as invalid when generating
+			the localnets acl. [RT #34687]
+
 	--- 9.6-ESV-R10 released ---
 
 3638.	[cleanup]	Add the ability to handle ENOPROTOOPT in case it is 
