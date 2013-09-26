@@ -16925,17 +16925,28 @@ fi
 
 done
 
-		for ac_header in linux/capability.h sys/capability.h
+		for ac_header in sys/capability.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "#ifdef HAVE_LINUX_TYPES_H
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/capability.h" "ac_cv_header_sys_capability_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_capability_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_CAPABILITY_H 1
+_ACEOF
+
+fi
+
+done
+
+		for ac_header in linux/capability.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "linux/capability.h" "ac_cv_header_linux_capability_h" "#ifdef HAVE_LINUX_TYPES_H
 				  #include <linux/types.h>
 				  #endif
 
 "
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+if test "x$ac_cv_header_linux_capability_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_LINUX_CAPABILITY_H 1
 _ACEOF
 
 fi

@@ -1,3 +1,6 @@
+3658.	[port]		linux: Address platform specific compilation issue
+			when libcap-devel is installed. [RT #34838]
+
 3656.	[bug]		Treat a all zero netmask as invalid when generating
 			the localnets acl. [RT #34687]
 
