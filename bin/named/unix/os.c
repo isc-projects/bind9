@@ -117,12 +117,12 @@ static int dfd[2] = { -1, -1 };
 static isc_boolean_t non_root = ISC_FALSE;
 static isc_boolean_t non_root_caps = ISC_FALSE;
 
-#ifdef HAVE_LINUX_TYPES_H
-#include <linux/types.h>
-#endif
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
 #else
+#ifdef HAVE_LINUX_TYPES_H
+#include <linux/types.h>
+#endif
 /*%
  * We define _LINUX_FS_H to prevent it from being included.  We don't need
  * anything from it, and the files it includes cause warnings with 2.2
