@@ -2426,7 +2426,8 @@ AC_ARG_ENABLE(linux-caps,
 case "$enable_linux_caps" in
 	yes|'')
 		AC_CHECK_HEADERS(linux/types.h)
-		AC_CHECK_HEADERS([linux/capability.h sys/capability.h], [], [],
+		AC_CHECK_HEADERS([sys/capability.h])
+		AC_CHECK_HEADERS([linux/capability.h], [], [],
 				 [#ifdef HAVE_LINUX_TYPES_H
 				  #include <linux/types.h>
 				  #endif
