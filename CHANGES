@@ -5,6 +5,9 @@
 			on some platforms.  This could cause INSIST failures
 			when serving NSEC3 signed zones.  [RT #35120]
 
+3658.	[port]		linux: Address platform specific compilation issue
+			when libcap-devel is installed. [RT #34838]
+
 	--- 9.9.4-P1 released ---
 
 3656.	[bug]		Treat an all zero netmask as invalid when generating
