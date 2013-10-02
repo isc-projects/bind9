@@ -1,3 +1,7 @@
+3659.	[port]		solaris: don't add explict dependancies/rules for
+			python programs as make won't use the implicit rules.
+			[RT #34835]
+
 3658.	[port]		linux: Address platform specific compilation issue
 			when libcap-devel is installed. [RT #34838]
 
