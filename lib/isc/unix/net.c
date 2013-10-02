@@ -530,22 +530,34 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	cmsgp->cmsg_level = level;
 	cmsgp->cmsg_type = type;
 
+	switch (cmsgp->cmsg_type) {
 #ifdef IP_TOS
-	if (cmsgp->cmsg_type == IP_TOS) {
+	case IP_TOS:
 		cmsgp->cmsg_len = cmsg_len(sizeof(char));
 		*(unsigned char*)CMSG_DATA(cmsgp) = dscp;
-	} else {
+		break;
+#endif
+#ifdef IPV6_TCLASS
+	case IPV6_TCLASS:
 		cmsgp->cmsg_len = cmsg_len(sizeof(dscp));
 		memcpy(CMSG_DATA(cmsgp), &dscp, sizeof(dscp));
+		break;
+#endif
+	default:
+		INSIST(0);
 	}
-#endif /* IP_TOS */
 
 	if (sendmsg(s, &msg, 0) < 0) {
 		int debug = ISC_LOG_DEBUG(10);
+		switch (errno) {
 #ifdef ENOPROTOOPT
-		if (errno != ENOPROTOOPT && errno != EINVAL)
-			debug = ISC_LOG_NOTICE;
+		case ENOPROTOOPT:
 #endif
+		case EINVAL:
+			break;
+		default:
+			debug = ISC_LOG_NOTICE;
+		}
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		if (debug != ISC_LOG_NOTICE) {
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
@@ -623,10 +635,8 @@ try_dscp_v4(void) {
 		return;
 	}
 
-#ifdef IP_TOS
 	if (setsockopt(s, IPPROTO_IP, IP_TOS, &dscp, sizeof(dscp)) == 0)
 		dscp_result |= ISC_NET_DSCPSETV4;
-#endif /* IP_TOS */
 
 #ifdef IP_RECVTOS
 	on = 1;
