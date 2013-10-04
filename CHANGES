@@ -1,3 +1,6 @@
+3660.	[cleanup]	Changed the name of "isc-config.sh" to "bind9-config".
+			[RT #23825]
+
 3658.	[port]		linux: Address platform specific compilation issue
 			when libcap-devel is installed. [RT #34838]
 
