@@ -1,3 +1,6 @@
+3660.	[cleanup]	Changed the name of "isc-config.sh" to "bind9-config".
+			[RT #23825]
+
 3659.	[port]		solaris: don't add explict dependancies/rules for
 			python programs as make won't use the implicit rules.
 			[RT #34835]
