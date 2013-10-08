@@ -167,7 +167,7 @@ typedef struct dns_include dns_include_t;
 #define LOCKED_ZONE(z) ((z)->locked)
 #define TRYLOCK_ZONE(result, z) \
 	do { \
-	      result = pthread_mutex_trylock(&(z)->lock); \
+	      result = isc_mutex_trylock(&(z)->lock); \
 	      if (result == ISC_R_SUCCESS) {  \
 		     INSIST((z)->locked == ISC_FALSE); \
 		     (z)->locked = ISC_TRUE; \
@@ -178,7 +178,7 @@ typedef struct dns_include dns_include_t;
 #define UNLOCK_ZONE(z) UNLOCK(&(z)->lock)
 #define LOCKED_ZONE(z) ISC_TRUE
 #define TRYLOCK_ZONE(result, z) \
-	do { result = pthread_mutex_trylock(&(z)->lock); } while (0)
+	do { result = isc_mutex_trylock(&(z)->lock); } while (0)
 #endif
 
 #ifdef ISC_RWLOCK_USEATOMIC
