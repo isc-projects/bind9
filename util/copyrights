@@ -2979,7 +2979,7 @@
 ./lib/isc/win32/include/isc/ntpaths.h		C	2000,2001,2004,2007,2009
 ./lib/isc/win32/include/isc/offset.h		C	2000,2001,2004,2007
 ./lib/isc/win32/include/isc/once.h		C	1999,2000,2001,2004,2007
-./lib/isc/win32/include/isc/platform.h		C	2001,2004,2005,2007,2008,2009
+./lib/isc/win32/include/isc/platform.h		C	2001,2004,2005,2007,2008,2009,2013
 ./lib/isc/win32/include/isc/stat.h		C	2000,2001,2003,2004,2007,2009,2012
 ./lib/isc/win32/include/isc/stdtime.h		C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/isc/win32/include/isc/strerror.h		C	2001,2004,2007
