@@ -1323,6 +1323,16 @@ then
 	AC_CHECK_FUNC(pthread_attr_setstacksize,
 		      AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE),)
 
+	AC_CHECK_HEADERS(sched.h)
+
+	case "$host" in
+	*solaris-*)
+		AC_CHECK_LIB(rt, sched_yield)
+		;;
+	esac
+
+	AC_CHECK_FUNCS(sched_yield pthread_yield pthread_yield_np)
+
 	#
 	# Additional OS-specific issues related to pthreads and sigwait.
 	#

@@ -95,6 +95,8 @@ isc_thread_key_getspecific(isc_thread_key_t);
 int
 isc_thread_key_setspecific(isc_thread_key_t key, void *value);
 
+#define isc_thread_yield() Sleep(0)
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_THREAD_H */
