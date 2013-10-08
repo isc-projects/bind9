@@ -8952,7 +8952,7 @@ dns_zone_markdirty(dns_zone_t *zone) {
 			if (result != ISC_R_SUCCESS) {
 				UNLOCK_ZONE(zone);
 				secure = NULL;
-#if ISC_PLATFORM_USETHREADS
+#ifdef ISC_PLATFORM_USETHREADS
 				isc_thread_yield();
 #endif
 				goto again;

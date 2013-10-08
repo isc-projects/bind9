@@ -24,7 +24,7 @@
  ***** Platform-dependent defines.
  *****/
 
-#define ISC_PLATFORM_USETHREADS
+#define ISC_PLATFORM_USETHREADS 1
 
 /***
  *** Network.
