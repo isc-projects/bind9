@@ -269,6 +269,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
 
+/* Define to 1 if you have the `rt' library (-lrt). */
+#undef HAVE_LIBRT
+
 /* Define to 1 if you have the `scf' library (-lscf). */
 #undef HAVE_LIBSCF
 
@@ -308,11 +311,23 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if your OpenSSL version supports GOST. */
 #undef HAVE_OPENSSL_GOST
 
+/* Define to 1 if you have the `pthread_yield' function. */
+#undef HAVE_PTHREAD_YIELD
+
+/* Define to 1 if you have the `pthread_yield_np' function. */
+#undef HAVE_PTHREAD_YIELD_NP
+
 /* Define to 1 if you have the `readline' function. */
 #undef HAVE_READLINE
 
 /* Define to 1 if you have the <regex.h> header file. */
 #undef HAVE_REGEX_H
+
+/* Define to 1 if you have the <sched.h> header file. */
+#undef HAVE_SCHED_H
+
+/* Define to 1 if you have the `sched_yield' function. */
+#undef HAVE_SCHED_YIELD
 
 /* Define to 1 if you have the `setegid' function. */
 #undef HAVE_SETEGID

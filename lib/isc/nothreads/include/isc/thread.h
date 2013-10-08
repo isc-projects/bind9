@@ -29,6 +29,7 @@ void
 isc_thread_setconcurrency(unsigned int level);
 
 #define isc_thread_self() ((unsigned long)0)
+#define isc_thread_yield() ((void)0)
 
 ISC_LANG_ENDDECLS
 
