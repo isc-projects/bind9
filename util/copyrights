@@ -2848,7 +2848,7 @@
 ./lib/isc/nothreads/include/isc/condition.h	C	2000,2001,2004,2007
 ./lib/isc/nothreads/include/isc/mutex.h		C	2000,2001,2004,2007
 ./lib/isc/nothreads/include/isc/once.h		C	2000,2001,2004,2007
-./lib/isc/nothreads/include/isc/thread.h	C	2000,2001,2004,2007
+./lib/isc/nothreads/include/isc/thread.h	C	2000,2001,2004,2007,2013
 ./lib/isc/nothreads/mutex.c			C	2000,2001,2004,2006,2007
 ./lib/isc/nothreads/thread.c			C	2000,2001,2004,2007
 ./lib/isc/ondestroy.c				C	2000,2001,2004,2005,2007
@@ -2867,7 +2867,7 @@
 ./lib/isc/pthreads/include/isc/condition.h	C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/pthreads/include/isc/mutex.h		C	1998,1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/pthreads/include/isc/once.h		C	1999,2000,2001,2004,2005,2007
-./lib/isc/pthreads/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007
+./lib/isc/pthreads/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007,2013
 ./lib/isc/pthreads/mutex.c			C	2000,2001,2002,2004,2005,2007,2008,2011,2012
 ./lib/isc/pthreads/thread.c			C	2000,2001,2003,2004,2005,2007,2013
 ./lib/isc/quota.c				C	2000,2001,2004,2005,2007
@@ -2984,7 +2984,7 @@
 ./lib/isc/win32/include/isc/stdtime.h		C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/isc/win32/include/isc/strerror.h		C	2001,2004,2007
 ./lib/isc/win32/include/isc/syslog.h		C	1999,2000,2001,2004,2007
-./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007,2009
+./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007,2009,2013
 ./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001,2004,2006,2007,2008,2009,2012
 ./lib/isc/win32/include/isc/win32os.h		C	2002,2004,2007,2009
 ./lib/isc/win32/interfaceiter.c			C	1999,2000,2001,2004,2007,2008,2009
