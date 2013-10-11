@@ -5680,7 +5680,7 @@ options {
                   <command>named</command>.  (A planned third option,
                   <literal>external</literal>, will disable all automatic
                   signing and allow DNSSEC data to be submitted into a zone
-                  via dyanmic update; this is not yet implemented.)
+                  via dynamic update; this is not yet implemented.)
 		</para>
 	    </listitem>
 	  </varlistentry>
