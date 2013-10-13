@@ -6799,7 +6799,7 @@ options {
                   (see <xref linkend="man.dnssec-keygen"/> and
                   <xref linkend="man.dnssec-settime"/>).  The
                   <command>dnssec-loadkeys-interval</command> option
-                  sets the frequency of autoatic repository checks, in
+                  sets the frequency of automatic repository checks, in
                   minutes.  The default is <literal>60</literal> (1 hour),
                   the minimum is <literal>1</literal> (1 minute), and the
                   maximum is <literal>1440</literal> (24 hours); any higher
