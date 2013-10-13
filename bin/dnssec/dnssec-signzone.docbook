@@ -438,7 +438,7 @@
         <term>-H <replaceable class="parameter">iterations</replaceable></term>
         <listitem>
           <para>
-	    When generating a NSEC3 chain use this many interations.  The
+	    When generating an NSEC3 chain, use this many iterations.  The
 	    default is 100.
           </para>
         </listitem>
