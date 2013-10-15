@@ -1,3 +1,5 @@
+	--- 9.8.6-P1 released ---
+
 3656.	[bug]		Treat a all zero netmask as invalid when generating
 			the localnets acl. [RT #34687]
 
