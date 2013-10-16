@@ -227,7 +227,7 @@ main() {
   }
 
   unless (system("cd bin/tests && make -k all_tests") == 0) {
-    warn "make all_tests failed, but pressging on anyway\n";
+    warn "make all_tests failed, but pressing on anyway\n";
   }
 
   print <<EOF;
