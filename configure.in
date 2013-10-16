@@ -3871,6 +3871,8 @@ echo "------------------------------------------------------------------------"
 echo "Optional features enabled:"
 $use_threads && echo "    Multiprocessing support (--enable-threads)"
 
+test "$enable_rrl" = "yes" && \
+    echo "    Response Rate Limiting (--enable-rrl)"
 test "$enable_fixed" = "yes" && \
     echo "    Fixed RRset order (--enable-fixed-rrset)"
 test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
@@ -3920,6 +3922,8 @@ echo
 
 echo "Features disabled or unavailable on this platform:"
 $use_threads || echo "    Multiprocessing support (--enable-threads)"
+test "$enable_rrl" = "yes" || \
+    echo "    Response Rate Limiting (--enable-rrl)"
 test "$enable_fixed" = "yes" || \
     echo "    Fixed RRset order (--enable-fixed-rrset)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
