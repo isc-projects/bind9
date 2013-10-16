@@ -1,6 +1,6 @@
 	--- 9.6-ESV-R10-P1 released ---
 
-3656.	[bug]		Treat a all zero netmask as invalid when generating
+3656.	[bug]		Treat an all zero netmask as invalid when generating
 			the localnets acl. [RT #34687]
 
 	--- 9.6-ESV-R10 released ---
