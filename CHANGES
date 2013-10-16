@@ -14,7 +14,7 @@
 3657.	[port]		Some readline clones don't accept NULL pointers when
 			calling add_history. [RT #34842]
 
-3656.	[bug]		Treat a all zero netmask as invalid when generating
+3656.	[bug]		Treat an all zero netmask as invalid when generating
 			the localnets acl. [RT #34687]
 
 3655.	[cleanup]	Simplify TCP message processing when requesting a
