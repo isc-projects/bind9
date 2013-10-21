@@ -104,6 +104,7 @@
 #define RTRACE(m)
 #define RRTRACE(r, m)
 #define FCTXTRACE(m)
+#define FCTXTRACE2(m1, m2)
 #define FTRACE(m)
 #define QTRACE(m)
 #endif
