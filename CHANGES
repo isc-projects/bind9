@@ -1,3 +1,5 @@
+3662.	[bug]		'host' could die if a UPD query timed out. [RT #34870]
+
 	--- 9.10.0a1 released ---
 
 3661.	[bug]		Address lock order reversal deadlock with inline zones.

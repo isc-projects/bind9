@@ -87,6 +87,7 @@
 #define isc_socket_sendto isc__socket_sendto
 #define isc_socket_sendv isc__socket_sendv
 #define isc_socket_sendtov isc__socket_sendtov
+#define isc_socket_sendtov2 isc__socket_sendtov2
 #define isc_socket_sendto2 isc__socket_sendto2
 #define isc_socket_cleanunix isc__socket_cleanunix
 #define isc_socket_permunix isc__socket_permunix
@@ -924,6 +925,11 @@ isc_result_t
 isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		   isc_task_t *task, isc_taskaction_t action, const void *arg,
 		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
+isc_result_t
+isc_socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
+		    isc_task_t *task, isc_taskaction_t action, const void *arg,
+		    isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
+		    unsigned int flags);
 isc_result_t
 isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 		   isc_task_t *task,
