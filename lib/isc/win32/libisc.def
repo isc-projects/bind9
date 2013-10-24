@@ -108,6 +108,7 @@ isc__socket_send
 isc__socket_sendto
 isc__socket_sendto2
 isc__socket_sendtov
+isc__socket_sendtov2
 isc__socket_sendv
 isc__socket_setname
 isc__socketmgr_create
