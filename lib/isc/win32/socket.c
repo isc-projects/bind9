@@ -3029,14 +3029,24 @@ isc_result_t
 isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		 isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
-	return (isc_socket_sendtov(sock, buflist, task, action, arg, NULL,
-				   NULL));
+	return (isc_socket_sendtov2(sock, buflist, task, action, arg, NULL,
+				    NULL, 0));
 }
 
 isc_result_t
 isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		   isc_task_t *task, isc_taskaction_t action, const void *arg,
 		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
+{
+	return (isc_socket_sendtov2(sock, buflist, task, action, arg, address,
+				    pktinfo, 0));
+}
+
+isc_result_t
+isc__socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
+		     isc_task_t *task, isc_taskaction_t action, const void *arg,
+		     isc_sockaddr_t *address, struct in6_pktinfo *pktinfo
+		     unsigned int flags)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
@@ -3083,7 +3093,7 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		buffer = ISC_LIST_HEAD(*buflist);
 	}
 
-	ret = socket_send(sock, dev, task, address, pktinfo, 0);
+	ret = socket_send(sock, dev, task, address, pktinfo, flags);
 	UNLOCK(&sock->lock);
 	return (ret);
 }
