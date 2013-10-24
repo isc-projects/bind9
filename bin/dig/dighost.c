@@ -180,6 +180,7 @@ isc_boolean_t validated = ISC_TRUE;
 isc_entropy_t *entp = NULL;
 isc_mempool_t *commctx = NULL;
 isc_boolean_t debugging = ISC_FALSE;
+isc_boolean_t debugtiming = ISC_FALSE;
 isc_boolean_t memdebugging = ISC_FALSE;
 char *progname = NULL;
 isc_mutex_t lookup_lock;
@@ -541,6 +542,12 @@ debug(const char *format, ...) {
 
 	if (debugging) {
 		fflush(stdout);
+		if (debugtiming) {
+			struct timeval tv;
+			(void)gettimeofday(&tv, NULL);
+			fprintf(stderr, "%ld.%06u: ", (long)tv.tv_sec,
+				tv.tv_usec);
+		}
 		va_start(args, format);
 		vfprintf(stderr, format, args);
 		va_end(args);
@@ -2369,8 +2376,10 @@ send_done(isc_task_t *_task, isc_event_t *event) {
 
 	for  (b = ISC_LIST_HEAD(sevent->bufferlist);
 	      b != NULL;
-	      b = ISC_LIST_HEAD(sevent->bufferlist))
+	      b = ISC_LIST_HEAD(sevent->bufferlist)) {
 		ISC_LIST_DEQUEUE(sevent->bufferlist, b, link);
+		isc_mem_free(mctx, b);
+	}
 
 	query = event->ev_arg;
 	query->waiting_senddone = ISC_FALSE;
@@ -2562,6 +2571,17 @@ send_tcp_connect(dig_query_t *query) {
 	}
 }
 
+static isc_buffer_t *
+clone_buffer(isc_buffer_t *source) {
+	isc_buffer_t *buffer;
+	buffer = isc_mem_allocate(mctx, sizeof(*buffer));
+	if (buffer == NULL)
+		fatal("memory allocation failure in %s:%d",
+		      __FILE__, __LINE__);
+	*buffer = *source;
+	return (buffer);
+}
+
 /*%
  * Send a UDP packet to the remote nameserver, possible starting the
  * recv action as well.  Also make sure that the timer is running and
@@ -2571,6 +2591,7 @@ static void
 send_udp(dig_query_t *query) {
 	dig_lookup_t *l = NULL;
 	isc_result_t result;
+	isc_buffer_t *sendbuf;
 
 	debug("send_udp(%p)", query);
 
@@ -2617,14 +2638,16 @@ send_udp(dig_query_t *query) {
 		debug("recvcount=%d", recvcount);
 	}
 	ISC_LIST_INIT(query->sendlist);
-	ISC_LIST_ENQUEUE(query->sendlist, &query->sendbuf, link);
+	sendbuf = clone_buffer(&query->sendbuf);
+	ISC_LIST_ENQUEUE(query->sendlist, sendbuf, link);
 	debug("sending a request");
 	TIME_NOW(&query->time_sent);
 	INSIST(query->sock != NULL);
 	query->waiting_senddone = ISC_TRUE;
-	result = isc_socket_sendtov(query->sock, &query->sendlist,
-				    global_task, send_done, query,
-				    &query->sockaddr, NULL);
+	result = isc_socket_sendtov2(query->sock, &query->sendlist,
+				     global_task, send_done, query,
+				     &query->sockaddr, NULL,
+				     ISC_SOCKFLAG_NORETRY);
 	check_result(result, "isc_socket_sendtov");
 	sendcount++;
 }
@@ -2786,6 +2809,7 @@ static void
 launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	isc_result_t result;
 	dig_lookup_t *l;
+	isc_buffer_t *buffer;
 
 	INSIST(!free_now);
 
@@ -2809,9 +2833,13 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	isc_buffer_putuint16(&query->slbuf, (isc_uint16_t) query->sendbuf.used);
 	ISC_LIST_INIT(query->sendlist);
 	ISC_LINK_INIT(&query->slbuf, link);
-	ISC_LIST_ENQUEUE(query->sendlist, &query->slbuf, link);
-	if (include_question)
-		ISC_LIST_ENQUEUE(query->sendlist, &query->sendbuf, link);
+	buffer = clone_buffer(&query->slbuf);
+	ISC_LIST_ENQUEUE(query->sendlist, buffer, link);
+	if (include_question) { 
+		buffer = clone_buffer(&query->sendbuf);
+		ISC_LIST_ENQUEUE(query->sendlist, buffer, link); 
+	}
+
 	ISC_LINK_INIT(&query->lengthbuf, link);
 	ISC_LIST_ENQUEUE(query->lengthlist, &query->lengthbuf, link);
 

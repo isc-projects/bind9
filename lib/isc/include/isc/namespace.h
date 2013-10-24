@@ -104,6 +104,7 @@
 #define isc_socket_sendv isc__socket_sendv
 #define isc_socket_sendtov isc__socket_sendtov
 #define isc_socket_sendto2 isc__socket_sendto2
+#define isc_socket_sendtov2 isc__socket_sendtov2
 #define isc_socket_cleanunix isc__socket_cleanunix
 #define isc_socket_permunix isc__socket_permunix
 #define isc_socket_bind isc__socket_bind
