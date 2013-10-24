@@ -2831,9 +2831,9 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	ISC_LINK_INIT(&query->slbuf, link);
 	buffer = clone_buffer(&query->slbuf);
 	ISC_LIST_ENQUEUE(query->sendlist, buffer, link);
-	if (include_question) { 
+	if (include_question) {
 		buffer = clone_buffer(&query->sendbuf);
-		ISC_LIST_ENQUEUE(query->sendlist, buffer, link); 
+		ISC_LIST_ENQUEUE(query->sendlist, buffer, link);
 	}
 
 	ISC_LINK_INIT(&query->lengthbuf, link);
