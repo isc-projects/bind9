@@ -1306,7 +1306,6 @@ esac
 # Only check dsa signature generation on these platforms when performing
 # system tests.
 #
-set -x
 CHECK_DSA=0
 if grep "#define PATH_RANDOMDEV " confdefs.h > /dev/null
 then
@@ -1317,7 +1316,6 @@ then
 	esac
 fi
 AC_SUBST(CHECK_DSA)
-set -
 
 #
 # Do we have arc4random() ?
