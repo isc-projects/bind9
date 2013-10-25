@@ -1,3 +1,6 @@
+3664.	[bug]		Updated OpenSSL PKCS#11 patches to fix active list
+			locking and other bugs. [RT #34855]
+
 3663.	[bug]		Address bugs in dns_rdata_fromstruct and
 			dns_rdata_tostruct for WKS and ISDN types. [RT #34910]
 
