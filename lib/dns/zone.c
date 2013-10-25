@@ -9279,6 +9279,7 @@ dns_zone_markdirty(dns_zone_t *zone) {
 		if (inline_raw(zone)) {
 			unsigned int soacount;
 			secure = zone->secure;
+			INSIST(secure != zone);
 			TRYLOCK_ZONE(result, secure);
 			if (result != ISC_R_SUCCESS) {
 				UNLOCK_ZONE(zone);
@@ -13566,6 +13567,7 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	LOCK_ZONE(zone);
 	if (inline_raw(zone)) {
 		secure = zone->secure;
+		INSIST(secure != zone);
 		TRYLOCK_ZONE(result, secure);
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK_ZONE(zone);
@@ -13826,6 +13828,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	LOCK_ZONE(zone);
 	if (inline_raw(zone)) {
 		secure = zone->secure;
+		INSIST(secure != zone);
 		TRYLOCK_ZONE(result, secure);
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK_ZONE(zone);

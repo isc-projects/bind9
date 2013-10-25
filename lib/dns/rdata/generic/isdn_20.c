@@ -127,7 +127,7 @@ fromstruct_isdn(ARGS_FROMSTRUCT) {
 
 	RETERR(uint8_tobuffer(isdn->isdn_len, target));
 	RETERR(mem_tobuffer(target, isdn->isdn, isdn->isdn_len));
-	if (isdn->subaddress == NULL && isdn->subaddress_len == 0)
+	if (isdn->subaddress == NULL)
 		return (ISC_R_SUCCESS);
 	RETERR(uint8_tobuffer(isdn->subaddress_len, target));
 	return (mem_tobuffer(target, isdn->subaddress, isdn->subaddress_len));
