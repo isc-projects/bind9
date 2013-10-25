@@ -149,10 +149,10 @@ diff -u openssl/Makefile.org:1.4.6.1 openssl/Makefile.org:1.4
  OPENSSLDIR=/usr/local/ssl
  
 Index: openssl/README.pkcs11
-diff -u /dev/null openssl/README.pkcs11:1.6.4.1
---- /dev/null	Thu May 16 07:41:50 2013
-+++ openssl/README.pkcs11	Mon Jun 13 18:27:39 2011
-@@ -0,0 +1,261 @@
+diff -u /dev/null openssl/README.pkcs11:1.6.4.2
+--- /dev/null	Fri Oct  4 14:48:08 2013
++++ openssl/README.pkcs11	Fri Oct  4 14:45:25 2013
+@@ -0,0 +1,266 @@
 +ISC modified
 +============
 +
@@ -171,6 +171,11 @@ diff -u /dev/null openssl/README.pkcs11:1.6.4.1
 +
 +Note it is mandatory to set a pk11-flavor (and only one) in
 +config/Configure.
++
++It is highly recommended to compile in (vs. as a DSO) the engine.
++The way to configure this is system dependent, on Unixes it is no-shared
++(and is in general the default), on WIN32 it is enable-static-engine
++(and still enable to build the OpenSSL libraries as DLLs).
 +
 +PKCS#11 engine support for OpenSSL 0.9.8l
 +=========================================
@@ -624,7 +629,7 @@ diff -u openssl/crypto/engine/Makefile:1.6.6.1 openssl/crypto/engine/Makefile:1.
  tb_cipher.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
 Index: openssl/crypto/engine/cryptoki.h
 diff -u /dev/null openssl/crypto/engine/cryptoki.h:1.4
---- /dev/null	Thu May 16 07:41:50 2013
+--- /dev/null	Fri Oct  4 14:48:08 2013
 +++ openssl/crypto/engine/cryptoki.h	Thu Dec 18 00:14:12 2008
 @@ -0,0 +1,103 @@
 +/*
@@ -767,10 +772,10 @@ diff -u openssl/crypto/engine/engine.h:1.4.6.1 openssl/crypto/engine/engine.h:1.
  /* Get and set global flags (ENGINE_TABLE_FLAG_***) for the implementation
   * "registry" handling. */
 Index: openssl/crypto/engine/hw_pk11.c
-diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
---- /dev/null	Thu May 16 07:41:51 2013
-+++ openssl/crypto/engine/hw_pk11.c	Thu May 16 07:20:00 2013
-@@ -0,0 +1,4057 @@
+diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.4
+--- /dev/null	Fri Oct  4 14:48:08 2013
++++ openssl/crypto/engine/hw_pk11.c	Fri Oct  4 14:45:25 2013
+@@ -0,0 +1,4116 @@
 +/*
 + * Copyright 2009 Sun Microsystems, Inc.  All rights reserved.
 + * Use is subject to license terms.
@@ -866,6 +871,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +#include <openssl/objects.h>
 +#include <openssl/x509.h>
 +#include <openssl/aes.h>
++#include <openssl/des.h>
 +
 +#ifdef OPENSSL_SYS_WIN32
 +typedef int pid_t;
@@ -886,7 +892,15 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +#include <dlfcn.h>
 +#endif
 +
++/* Debug mutexes */
++/*#undef DEBUG_MUTEX */
++#define DEBUG_MUTEX
++
 +#ifndef NOPTHREADS
++/* for pthread error check on Linuxes */
++#ifdef DEBUG_MUTEX
++#define __USE_UNIX98
++#endif
 +#include <pthread.h>
 +#endif
 +
@@ -1648,30 +1662,45 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	{
 +#ifndef NOPTHREADS
 +	int type;
++	pthread_mutexattr_t attr;
++
++	if (pthread_mutexattr_init(&attr) != 0)
++	{
++		PK11err(PK11_F_INIT_ALL_LOCKS, 100);
++		return (0);
++	}
++
++#ifdef DEBUG_MUTEX
++	if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK) != 0)
++	{
++		PK11err(PK11_F_INIT_ALL_LOCKS, 101);
++		return (0);
++	}
++#endif
 +
 +	if ((token_lock = OPENSSL_malloc(sizeof (pthread_mutex_t))) == NULL)
 +		goto malloc_err;
-+	(void) pthread_mutex_init(token_lock, NULL);
++	(void) pthread_mutex_init(token_lock, &attr);
 +
 +#ifndef OPENSSL_NO_RSA
 +	find_lock[OP_RSA] = OPENSSL_malloc(sizeof (pthread_mutex_t));
 +	if (find_lock[OP_RSA] == NULL)
 +		goto malloc_err;
-+	(void) pthread_mutex_init(find_lock[OP_RSA], NULL);
++	(void) pthread_mutex_init(find_lock[OP_RSA], &attr);
 +#endif /* OPENSSL_NO_RSA */
 +
 +#ifndef OPENSSL_NO_DSA
 +	find_lock[OP_DSA] = OPENSSL_malloc(sizeof (pthread_mutex_t));
 +	if (find_lock[OP_DSA] == NULL)
 +		goto malloc_err;
-+	(void) pthread_mutex_init(find_lock[OP_DSA], NULL);
++	(void) pthread_mutex_init(find_lock[OP_DSA], &attr);
 +#endif /* OPENSSL_NO_DSA */
 +
 +#ifndef OPENSSL_NO_DH
 +	find_lock[OP_DH] = OPENSSL_malloc(sizeof (pthread_mutex_t));
 +	if (find_lock[OP_DH] == NULL)
 +		goto malloc_err;
-+	(void) pthread_mutex_init(find_lock[OP_DH], NULL);
++	(void) pthread_mutex_init(find_lock[OP_DH], &attr);
 +#endif /* OPENSSL_NO_DH */
 +
 +	for (type = 0; type < OP_MAX; type++)
@@ -1680,7 +1709,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +		    OPENSSL_malloc(sizeof (pthread_mutex_t));
 +		if (session_cache[type].lock == NULL)
 +			goto malloc_err;
-+		(void) pthread_mutex_init(session_cache[type].lock, NULL);
++		(void) pthread_mutex_init(session_cache[type].lock, &attr);
 +		}
 +
 +	return (1);
@@ -1698,6 +1727,13 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	{
 +#ifndef NOPTHREADS
 +	int type;
++
++	if (token_lock != NULL)
++		{
++		(void) pthread_mutex_destroy(token_lock);
++		OPENSSL_free(token_lock);
++		token_lock = NULL;
++		}
 +
 +#ifndef OPENSSL_NO_RSA
 +	if (find_lock[OP_RSA] != NULL)
@@ -1944,10 +1980,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	LOCK_OBJSTORE(OP_RSA);
 +	LOCK_OBJSTORE(OP_DSA);
 +	LOCK_OBJSTORE(OP_DH);
-+	(void) pthread_mutex_lock(token_lock);
++	OPENSSL_assert(pthread_mutex_lock(token_lock) == 0);
 +	for (i = 0; i < OP_MAX; i++)
 +		{
-+		(void) pthread_mutex_lock(session_cache[i].lock);
++		OPENSSL_assert(pthread_mutex_lock(session_cache[i].lock) == 0);
 +		}
 +#endif
 +	}
@@ -1963,12 +1999,12 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +
 +	for (i = OP_MAX - 1; i >= 0; i--)
 +		{
-+		(void) pthread_mutex_unlock(session_cache[i].lock);
++		OPENSSL_assert(pthread_mutex_unlock(session_cache[i].lock) == 0);
 +		}
 +	UNLOCK_OBJSTORE(OP_DH);
 +	UNLOCK_OBJSTORE(OP_DSA);
 +	UNLOCK_OBJSTORE(OP_RSA);
-+	(void) pthread_mutex_unlock(token_lock);
++	OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#endif
 +	}
 +
@@ -1986,12 +2022,12 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +
 +	for (i = OP_MAX - 1; i >= 0; i--)
 +		{
-+		(void) pthread_mutex_unlock(session_cache[i].lock);
++		OPENSSL_assert(pthread_mutex_unlock(session_cache[i].lock) == 0);
 +		}
 +	UNLOCK_OBJSTORE(OP_DH);
 +	UNLOCK_OBJSTORE(OP_DSA);
 +	UNLOCK_OBJSTORE(OP_RSA);
-+	(void) pthread_mutex_unlock(token_lock);
++	OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#endif
 +	}
 +
@@ -2493,7 +2529,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +			return (NULL);
 +		}
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_lock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -2643,7 +2679,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +		sp->next = NULL;
 +
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_unlock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -2687,7 +2723,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +		}
 +
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_lock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -2695,7 +2731,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	sp->next = freelist;
 +	session_cache[optype].head = sp;
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_unlock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -2767,7 +2803,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +		}
 +
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_lock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -2790,7 +2826,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +		}
 +
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_unlock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -2982,7 +3018,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	else
 +		{
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_lock(session_cache[OP_RSA].lock);
++		OPENSSL_assert(pthread_mutex_lock(session_cache[OP_RSA].lock) == 0);
 +#else
 +		CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -3015,7 +3051,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +
 +#ifndef NOPTHREADS
 +	if (session == NULL)
-+		(void) pthread_mutex_unlock(session_cache[OP_RSA].lock);
++		OPENSSL_assert(pthread_mutex_unlock(session_cache[OP_RSA].lock) == 0);
 +#else
 +	if (session == NULL)
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
@@ -3087,7 +3123,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	else
 +		{
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_lock(session_cache[OP_DSA].lock);
++		OPENSSL_assert(pthread_mutex_lock(session_cache[OP_DSA].lock) == 0);
 +#else
 +		CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -3120,7 +3156,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +
 +#ifndef NOPTHREADS
 +	if (session == NULL)
-+		(void) pthread_mutex_unlock(session_cache[OP_DSA].lock);
++		OPENSSL_assert(pthread_mutex_unlock(session_cache[OP_DSA].lock) == 0);
 +#else
 +	if (session == NULL)
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
@@ -3172,7 +3208,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	else
 +		{
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_lock(session_cache[OP_DH].lock);
++		OPENSSL_assert(pthread_mutex_lock(session_cache[OP_DH].lock) == 0);
 +#else
 +		CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -3197,7 +3233,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +
 +#ifndef NOPTHREADS
 +	if (session == NULL)
-+		(void) pthread_mutex_unlock(session_cache[OP_DH].lock);
++		OPENSSL_assert(pthread_mutex_unlock(session_cache[OP_DH].lock) == 0);
 +#else
 +	if (session == NULL)
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
@@ -3702,6 +3738,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	CK_OBJECT_HANDLE h_key = CK_INVALID_HANDLE;
 +	CK_OBJECT_CLASS obj_key = CKO_SECRET_KEY;
 +	CK_ULONG ul_key_attr_count = 6;
++	unsigned char key_buf[PK11_KEY_LEN_MAX];
 +
 +	CK_ATTRIBUTE  a_key_template[] =
 +		{
@@ -3729,13 +3766,32 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	CK_SESSION_HANDLE session = global_session;
 +	a_key_template[0].pValue = &obj_key;
 +	a_key_template[1].pValue = &key_type;
-+	a_key_template[5].pValue = (void *) key;
++	if (ctx->key_len > PK11_KEY_LEN_MAX)
++		{
++		a_key_template[5].pValue = (void *) key;
++		}
++	else
++		{
++		memset(key_buf, 0, PK11_KEY_LEN_MAX);
++		memcpy(key_buf, key, ctx->key_len);
++		if ((key_type == CKK_DES) ||
++		    (key_type == CKK_DES2) ||
++		    (key_type == CKK_DES3))
++			DES_fixup_key_parity((DES_cblock *) &key_buf[0]);
++		if ((key_type == CKK_DES2) ||
++		    (key_type == CKK_DES3))
++			DES_fixup_key_parity((DES_cblock *) &key_buf[8]);
++		if (key_type == CKK_DES3)
++			DES_fixup_key_parity((DES_cblock *) &key_buf[16]);
++		a_key_template[5].pValue = (void *) key_buf;
++		}
 +	a_key_template[5].ulValueLen = (unsigned long) ctx->key_len;
 +
 +	rv = pFuncList->C_CreateObject(session,
 +		a_key_template, ul_key_attr_count, &h_key);
 +	if (rv != CKR_OK)
 +		{
++		memset(key_buf, 0, PK11_KEY_LEN_MAX);
 +		PK11err_add_data(PK11_F_GET_CIPHER_KEY, PK11_R_CREATEOBJECT,
 +		    rv);
 +		goto err;
@@ -3745,9 +3801,17 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	 * Save the key information used in this session.
 +	 * The max can be saved is PK11_KEY_LEN_MAX.
 +	 */
-+	sp->opdata_key_len = ctx->key_len > PK11_KEY_LEN_MAX ?
-+		PK11_KEY_LEN_MAX : ctx->key_len;
-+	(void) memcpy(sp->opdata_key, key, sp->opdata_key_len);
++	if (ctx->key_len > PK11_KEY_LEN_MAX)
++		{
++		sp->opdata_key_len = PK11_KEY_LEN_MAX;
++		(void) memcpy(sp->opdata_key, key, sp->opdata_key_len);
++		}
++	else
++		{
++		sp->opdata_key_len = ctx->key_len;
++		(void) memcpy(sp->opdata_key, key_buf, sp->opdata_key_len);
++		}
++	memset(key_buf, 0, PK11_KEY_LEN_MAX);
 +err:
 +
 +	return (h_key);
@@ -3990,7 +4054,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +	else
 +		{
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_lock(session_cache[OP_CIPHER].lock);
++		OPENSSL_assert(pthread_mutex_lock(session_cache[OP_CIPHER].lock) == 0);
 +#else
 +		CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -4018,7 +4082,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +
 +#ifndef NOPTHREADS
 +	if (session == NULL)
-+		(void) pthread_mutex_unlock(session_cache[OP_CIPHER].lock);
++		OPENSSL_assert(pthread_mutex_unlock(session_cache[OP_CIPHER].lock) == 0);
 +#else
 +	if (session == NULL)
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
@@ -4830,7 +4894,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.3
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11_err.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11_err.c:1.4.10.1
---- /dev/null	Thu May 16 07:41:51 2013
+--- /dev/null	Fri Oct  4 14:48:08 2013
 +++ openssl/crypto/engine/hw_pk11_err.c	Tue Jun 14 21:52:40 2011
 @@ -0,0 +1,288 @@
 +/*
@@ -5122,9 +5186,9 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_err.c:1.4.10.1
 +	ERR_add_error_data(2, "PK11 CK_RV=0X", tmp_buf);
 +}
 Index: openssl/crypto/engine/hw_pk11_err.h
-diff -u /dev/null openssl/crypto/engine/hw_pk11_err.h:1.9.10.1
---- /dev/null	Thu May 16 07:41:51 2013
-+++ openssl/crypto/engine/hw_pk11_err.h	Tue Jun 14 21:52:40 2011
+diff -u /dev/null openssl/crypto/engine/hw_pk11_err.h:1.9.10.2
+--- /dev/null	Fri Oct  4 14:48:08 2013
++++ openssl/crypto/engine/hw_pk11_err.h	Fri Oct  4 14:45:25 2013
 @@ -0,0 +1,440 @@
 +/*
 + * Copyright 2009 Sun Microsystems, Inc.  All rights reserved.
@@ -5527,9 +5591,9 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_err.h:1.9.10.1
 +
 +#ifndef NOPTHREADS
 +#define	LOCK_OBJSTORE(alg_type)	\
-+	(void) pthread_mutex_lock(find_lock[alg_type])
++	OPENSSL_assert(pthread_mutex_lock(find_lock[alg_type]) == 0)
 +#define	UNLOCK_OBJSTORE(alg_type)	\
-+	(void) pthread_mutex_unlock(find_lock[alg_type])
++	OPENSSL_assert(pthread_mutex_unlock(find_lock[alg_type]) == 0)
 +#else
 +#define	LOCK_OBJSTORE(alg_type)	\
 +	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE)
@@ -5567,10 +5631,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_err.h:1.9.10.1
 +
 +#endif /* HW_PK11_ERR_H */
 Index: openssl/crypto/engine/hw_pk11_pub.c
-diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
---- /dev/null	Thu May 16 07:41:51 2013
-+++ openssl/crypto/engine/hw_pk11_pub.c	Sun Jun 17 21:12:10 2012
-@@ -0,0 +1,3533 @@
+diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.7
+--- /dev/null	Fri Oct  4 14:48:08 2013
++++ openssl/crypto/engine/hw_pk11_pub.c	Fri Oct  4 14:45:25 2013
+@@ -0,0 +1,3556 @@
 +/*
 + * Copyright 2009 Sun Microsystems, Inc.  All rights reserved.
 + * Use is subject to license terms.
@@ -6067,8 +6131,8 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +#define	DSA_DATA_LEN		20
 +#define	DSA_SIGNATURE_LEN	40
 +
-+static CK_BBOOL true = TRUE;
-+static CK_BBOOL false = FALSE;
++static CK_BBOOL mytrue = TRUE;
++static CK_BBOOL myfalse = FALSE;
 +
 +#ifndef OPENSSL_NO_RSA
 +/*
@@ -6910,13 +6974,20 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		    CK_TRUE) == 0)
 +			goto err;
 +
++		/* see find_lock array definition
++		   for more info on object locking */
++		LOCK_OBJSTORE(OP_RSA);
++
 +		/*
 +		 * Now let's try to find the key in the token. It is a failure
 +		 * if we can't find it.
 +		 */
 +		if (find_one_object(OP_RSA, sp->session, search_templ, 3,
 +		    &ks_key) == 0)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			goto err;
++			}
 +
 +		if (hndidx_rsa == -1)
 +			hndidx_rsa = RSA_get_ex_new_index(0,
@@ -6935,7 +7006,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		 * pk11_destroy_object() reports the failure to the
 +		 * OpenSSL error message buffer.
 +		 */
-+		(void) pk11_destroy_rsa_object_priv(sp, TRUE);
++		(void) pk11_destroy_rsa_object_priv(sp, FALSE);
 +
 +		sp->opdata_rsa_priv_key = ks_key;
 +		/* This object shall not be deleted on a cache miss. */
@@ -6947,7 +7018,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		 * consistency reasons.
 +		 */
 +		if ((rsa = sp->opdata_rsa_priv = RSA_new_method(e)) == NULL)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			goto err;
++			}
 +
 +		/*
 +		 * Now we have to initialize an OpenSSL RSA structure,
@@ -6959,6 +7033,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		if ((rv = pFuncList->C_GetAttributeValue(sp->session, ks_key,
 +		    get_templ, 2)) != CKR_OK)
 +			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			PK11err_add_data(PK11_F_LOAD_PRIVKEY,
 +					 PK11_R_GETATTRIBUTVALUE, rv);
 +			goto err;
@@ -6968,7 +7043,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		 * We do not use pk11_get_private_rsa_key() here so we
 +		 * must take care of handle management ourselves.
 +		 */
-+		KEY_HANDLE_REFHOLD(ks_key, OP_RSA, FALSE, rollback, err);
++		KEY_HANDLE_REFHOLD(ks_key, OP_RSA, TRUE, rollback, err);
 +
 +		/*
 +		 * Those are the sensitive components we do not want to export
@@ -6985,6 +7060,8 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +			&sp->opdata_rsa_pn_num);
 +		attr_to_BN(&get_templ[1], attr_data[1],
 +			&sp->opdata_rsa_pe_num);
++
++		UNLOCK_OBJSTORE(OP_RSA);
 +
 +		if ((pkey = EVP_PKEY_new()) == NULL)
 +			goto err;
@@ -7091,19 +7168,26 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		    CK_FALSE) == 0)
 +			goto err;
 +
++		/* see find_lock array definition
++		   for more info on object locking */
++		LOCK_OBJSTORE(OP_RSA);
++
 +		/*
 +		 * Now let's try to find the key in the token. It is a failure
 +		 * if we can't find it.
 +		 */
 +		if (find_one_object(OP_RSA, sp->session, search_templ, 3,
 +		    &ks_key) == 0)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			goto err;
++			}
 +
 +		/*
 +		 * We load a new public key so we will create a new RSA
 +		 * structure. No cache hit is possible.
 +		 */
-+		(void) pk11_destroy_rsa_object_pub(sp, TRUE);
++		(void) pk11_destroy_rsa_object_pub(sp, FALSE);
 +
 +		sp->opdata_rsa_pub_key = ks_key;
 +		/* This object shall not be deleted on a cache miss. */
@@ -7113,7 +7197,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		 * Cache the RSA public structure pointer.
 +		 */
 +		if ((rsa = sp->opdata_rsa_pub = RSA_new_method(e)) == NULL)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			goto err;
++			}
 +
 +		/*
 +		 * Now we have to initialize an OpenSSL RSA structure,
@@ -7124,6 +7211,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		if ((rv = pFuncList->C_GetAttributeValue(sp->session, ks_key,
 +		    get_templ, 2)) != CKR_OK)
 +			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			PK11err_add_data(PK11_F_LOAD_PUBKEY,
 +					 PK11_R_GETATTRIBUTVALUE, rv);
 +			goto err;
@@ -7131,6 +7219,8 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +
 +		attr_to_BN(&get_templ[0], attr_data[0], &rsa->n);
 +		attr_to_BN(&get_templ[1], attr_data[1], &rsa->e);
++
++		UNLOCK_OBJSTORE(OP_RSA);
 +
 +		if ((pkey = EVP_PKEY_new()) == NULL)
 +			goto err;
@@ -7220,10 +7310,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		{
 +		{CKA_CLASS, (void *) NULL, sizeof (CK_OBJECT_CLASS)},
 +		{CKA_KEY_TYPE, (void *) NULL, sizeof (CK_KEY_TYPE)},
-+		{CKA_TOKEN, &false, sizeof (true)},
-+		{CKA_ENCRYPT, &true, sizeof (true)},
-+		{CKA_VERIFY, &true, sizeof (true)},
-+		{CKA_VERIFY_RECOVER, &true, sizeof (true)},
++		{CKA_TOKEN, &myfalse, sizeof (myfalse)},
++		{CKA_ENCRYPT, &mytrue, sizeof (mytrue)},
++		{CKA_VERIFY, &mytrue, sizeof (mytrue)},
++		{CKA_VERIFY_RECOVER, &mytrue, sizeof (mytrue)},
 +		{CKA_MODULUS, (void *)NULL, 0},
 +		{CKA_PUBLIC_EXPONENT, (void *)NULL, 0}
 +		};
@@ -7272,6 +7362,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +
 +	if (rv != CKR_OK)
 +		{
++		(void) pFuncList->C_FindObjectsFinal(session);
 +		PK11err_add_data(PK11_F_GET_PUB_RSA_KEY,
 +		    PK11_R_FINDOBJECTS, rv);
 +		goto err;
@@ -7369,10 +7460,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		{
 +		{CKA_CLASS, (void *) NULL, sizeof (CK_OBJECT_CLASS)},
 +		{CKA_KEY_TYPE, (void *) NULL, sizeof (CK_KEY_TYPE)},
-+		{CKA_TOKEN, &false, sizeof (true)},
-+		{CKA_SENSITIVE, &false, sizeof (true)},
-+		{CKA_DECRYPT, &true, sizeof (true)},
-+		{CKA_SIGN, &true, sizeof (true)},
++		{CKA_TOKEN, &myfalse, sizeof (myfalse)},
++		{CKA_SENSITIVE, &myfalse, sizeof (myfalse)},
++		{CKA_DECRYPT, &mytrue, sizeof (mytrue)},
++		{CKA_SIGN, &mytrue, sizeof (mytrue)},
 +		{CKA_MODULUS, (void *)NULL, 0},
 +		{CKA_PUBLIC_EXPONENT, (void *)NULL, 0},
 +		{CKA_PRIVATE_EXPONENT, (void *)NULL, 0},
@@ -7430,7 +7521,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		 * We will perform the search in the token, not in the existing
 +		 * session keys.
 +		 */
-+		a_key_template[2].pValue = &true;
++		a_key_template[2].pValue = &mytrue;
 +		}
 +
 +	rv = pFuncList->C_FindObjectsInit(session, a_key_template,
@@ -7447,6 +7538,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +
 +	if (rv != CKR_OK)
 +		{
++		(void) pFuncList->C_FindObjectsFinal(session);
 +		PK11err_add_data(PK11_F_GET_PRIV_RSA_KEY,
 +		    PK11_R_FINDOBJECTS, rv);
 +		goto err;
@@ -7868,8 +7960,8 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		{
 +		{CKA_CLASS, (void *) NULL, sizeof (CK_OBJECT_CLASS)},
 +		{CKA_KEY_TYPE, (void *) NULL, sizeof (CK_KEY_TYPE)},
-+		{CKA_TOKEN, &false, sizeof (true)},
-+		{CKA_VERIFY, &true, sizeof (true)},
++		{CKA_TOKEN, &myfalse, sizeof (myfalse)},
++		{CKA_VERIFY, &mytrue, sizeof (mytrue)},
 +		{CKA_PRIME, (void *)NULL, 0},		/* p */
 +		{CKA_SUBPRIME, (void *)NULL, 0},	/* q */
 +		{CKA_BASE, (void *)NULL, 0},		/* g */
@@ -7908,6 +8000,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +
 +	if (rv != CKR_OK)
 +		{
++		(void) pFuncList->C_FindObjectsFinal(session);
 +		PK11err_add_data(PK11_F_GET_PUB_DSA_KEY,
 +		    PK11_R_FINDOBJECTS, rv);
 +		goto err;
@@ -7995,9 +8088,9 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		{
 +		{CKA_CLASS, (void *) NULL, sizeof (CK_OBJECT_CLASS)},
 +		{CKA_KEY_TYPE, (void *) NULL, sizeof (CK_KEY_TYPE)},
-+		{CKA_TOKEN, &false, sizeof (true)},
-+		{CKA_SENSITIVE, &false, sizeof (true)},
-+		{CKA_SIGN, &true, sizeof (true)},
++		{CKA_TOKEN, &myfalse, sizeof (myfalse)},
++		{CKA_SENSITIVE, &myfalse, sizeof (myfalse)},
++		{CKA_SIGN, &mytrue, sizeof (mytrue)},
 +		{CKA_PRIME, (void *)NULL, 0},		/* p */
 +		{CKA_SUBPRIME, (void *)NULL, 0},	/* q */
 +		{CKA_BASE, (void *)NULL, 0},		/* g */
@@ -8037,6 +8130,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +
 +	if (rv != CKR_OK)
 +		{
++		(void) pFuncList->C_FindObjectsFinal(session);
 +		PK11err_add_data(PK11_F_GET_PRIV_DSA_KEY,
 +		    PK11_R_FINDOBJECTS, rv);
 +		goto err;
@@ -8203,7 +8297,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +	CK_ULONG ul_pub_key_attr_count = 3;
 +	CK_ATTRIBUTE pub_key_template[] =
 +		{
-+		{CKA_PRIVATE, &false, sizeof (false)},
++		{CKA_PRIVATE, &myfalse, sizeof (myfalse)},
 +		{CKA_PRIME, (void *)NULL, 0},
 +		{CKA_BASE, (void *)NULL, 0}
 +		};
@@ -8211,9 +8305,9 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +	CK_ULONG ul_priv_key_attr_count = 3;
 +	CK_ATTRIBUTE priv_key_template[] =
 +		{
-+		{CKA_PRIVATE, &false, sizeof (false)},
-+		{CKA_SENSITIVE, &false, sizeof (false)},
-+		{CKA_DERIVE, &true, sizeof (true)}
++		{CKA_PRIVATE, &myfalse, sizeof (myfalse)},
++		{CKA_SENSITIVE, &myfalse, sizeof (myfalse)},
++		{CKA_DERIVE, &mytrue, sizeof (mytrue)}
 +		};
 +
 +	CK_ULONG pub_key_attr_result_count = 1;
@@ -8602,8 +8696,8 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		{
 +		{CKA_CLASS, (void*) NULL, sizeof (class)},
 +		{CKA_KEY_TYPE, (void*) NULL, sizeof (key_type)},
-+		{CKA_DERIVE, &true, sizeof (true)},
-+		{CKA_PRIVATE, &false, sizeof (false)},
++		{CKA_DERIVE, &mytrue, sizeof (mytrue)},
++		{CKA_PRIVATE, &myfalse, sizeof (myfalse)},
 +		{CKA_PRIME, (void *) NULL, 0},
 +		{CKA_BASE, (void *) NULL, 0},
 +		{CKA_VALUE, (void *) NULL, 0},
@@ -8660,6 +8754,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +
 +	if (rv != CKR_OK)
 +		{
++		(void) pFuncList->C_FindObjectsFinal(session);
 +		PK11err_add_data(PK11_F_GET_DH_KEY, PK11_R_FINDOBJECTS, rv);
 +		goto err;
 +		}
@@ -8796,6 +8891,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +/*
 + * Find one object in the token. It is an error if we can not find the
 + * object or if we find more objects based on the template we got.
++ * Assume object store locked.
 + *
 + * Returns:
 + *	1 OK
@@ -8808,24 +8904,23 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +	CK_RV rv;
 +	CK_ULONG objcnt;
 +
-+	LOCK_OBJSTORE(op);
 +	if ((rv = pFuncList->C_FindObjectsInit(s, ptempl, nattr)) != CKR_OK)
 +		{
 +		PK11err_add_data(PK11_F_FIND_ONE_OBJECT,
 +		    PK11_R_FINDOBJECTSINIT, rv);
-+		goto err;
++		return (0);
 +		}
 +
 +	rv = pFuncList->C_FindObjects(s, pkey, 1, &objcnt);
 +	if (rv != CKR_OK)
 +		{
++		(void) pFuncList->C_FindObjectsFinal(s);
 +		PK11err_add_data(PK11_F_FIND_ONE_OBJECT, PK11_R_FINDOBJECTS,
 +		    rv);
-+		goto err;
++		return (0);
 +		}
 +
 +	(void) pFuncList->C_FindObjectsFinal(s);
-+	UNLOCK_OBJSTORE(op);
 +
 +	if (objcnt > 1)
 +		{
@@ -8839,9 +8934,6 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		return (0);
 +		}
 +	return (1);
-+err:
-+	UNLOCK_OBJSTORE(op);
-+	return (0);
 +	}
 +
 +/* from uri stuff */
@@ -8857,7 +8949,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +
 +	/* The getpassphrase() function is not MT safe. */
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(token_lock);
++	OPENSSL_assert(pthread_mutex_lock(token_lock) == 0);
 +#else
 +	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -8866,32 +8958,30 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		{
 +		PK11err(PK11_F_GET_PIN, PK11_R_COULD_NOT_READ_PIN);
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_unlock(token_lock);
++		OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
-+		goto err;
++		return (0);
 +		}
 +	pk11_pin = BUF_strdup(pin);
 +	if (pk11_pin == NULL)
 +		{
 +		PK11err(PK11_F_LOAD_PRIVKEY, PK11_R_MALLOC_FAILURE);
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_unlock(token_lock);
++		OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
-+		goto err;
++		return (0);
 +		}
 +	memset(pin, 0, strlen(pin));
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(token_lock);
++	OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
 +	return (1);
-+err:
-+	return (0);
 +	}
 +
 +/*
@@ -8915,7 +9005,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		{
 +		PK11err(PK11_F_TOKEN_LOGIN,
 +		    PK11_R_TOKEN_NOT_INITIALIZED);
-+		goto err;
++		return (0);
 +		}
 +#endif
 +
@@ -8932,7 +9022,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +	    (~pubkey_token_flags & CKF_USER_PIN_INITIALIZED))
 +		{
 +		PK11err(PK11_F_TOKEN_LOGIN, PK11_R_TOKEN_PIN_NOT_SET);
-+		goto err;
++		return (0);
 +		}
 +
 +	/*
@@ -8955,7 +9045,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +				{
 +				PK11err(PK11_F_TOKEN_LOGIN,
 +				    PK11_R_TOKEN_PIN_NOT_PROVIDED);
-+				goto err;
++				return (0);
 +				}
 +			}
 +
@@ -8970,9 +9060,9 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		 */
 +
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_lock(token_lock);
++		OPENSSL_assert(pthread_mutex_lock(token_lock) == 0);
 +#else
-+		(void) pthread_mutex_lock(freelist_lock);
++		CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
 +		if (*login_done == CK_FALSE)
 +			{
@@ -8989,7 +9079,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +
 +			}
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_unlock(token_lock);
++		OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -9012,11 +9102,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +	}
 +	pk11_pin = NULL;
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(token_lock);
++	OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
-+err:
 +	return (0);
 +	}
 +
@@ -9039,12 +9128,12 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +	CK_RV rv;
 +
 +	if ((pk11_pin == NULL) && (pk11_get_pin() == 0))
-+		goto err;
++		return (0);
 +
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(token_lock);
++	OPENSSL_assert(pthread_mutex_lock(token_lock) == 0);
 +#else
-+	(void) pthread_mutex_lock(freelist_lock);
++	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
 +	if ((rv = pFuncList->C_Login(session, CKU_USER,
 +	    (CK_UTF8CHAR_PTR)pk11_pin, strlen(pk11_pin))) != CKR_OK)
@@ -9052,21 +9141,19 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +		PK11err_add_data(PK11_F_TOKEN_RELOGIN,
 +		    PK11_R_TOKEN_LOGIN_FAILED, rv);
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_unlock(token_lock);
++		OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
-+		goto err;
++		return (0);
 +		}
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(token_lock);
++	OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
 +
 +	return (1);
-+err:
-+	return (0);
 +	}
 +
 +#ifdef	OPENSSL_SYS_WIN32
@@ -9106,7 +9193,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.4
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11ca.h
 diff -u /dev/null openssl/crypto/engine/hw_pk11ca.h:1.2.4.2
---- /dev/null	Thu May 16 07:41:51 2013
+--- /dev/null	Fri Oct  4 14:48:08 2013
 +++ openssl/crypto/engine/hw_pk11ca.h	Wed Jun 15 21:12:32 2011
 @@ -0,0 +1,32 @@
 +/* Redefine all pk11/PK11 external symbols to pk11ca/PK11CA */
@@ -9142,10 +9229,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11ca.h:1.2.4.2
 +#define pk11_pin			pk11ca_pin
 +#define ENGINE_load_pk11		ENGINE_load_pk11ca
 Index: openssl/crypto/engine/hw_pk11so.c
-diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
---- /dev/null	Thu May 16 07:41:51 2013
-+++ openssl/crypto/engine/hw_pk11so.c	Thu Jun 16 12:31:35 2011
-@@ -0,0 +1,1745 @@
+diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.3
+--- /dev/null	Fri Oct  4 14:48:08 2013
++++ openssl/crypto/engine/hw_pk11so.c	Fri Oct  4 14:45:25 2013
+@@ -0,0 +1,1775 @@
 +/*
 + * Copyright 2009 Sun Microsystems, Inc.  All rights reserved.
 + * Use is subject to license terms.
@@ -9258,7 +9345,15 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +#include <dlfcn.h>
 +#endif
 +
++/* Debug mutexes */
++/*#undef DEBUG_MUTEX */
++#define DEBUG_MUTEX
++
 +#ifndef NOPTHREADS
++/* for pthread error check on Linuxes */
++#ifdef DEBUG_MUTEX
++#define __USE_UNIX98
++#endif
 +#include <pthread.h>
 +#endif
 +
@@ -9475,15 +9570,30 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +	{
 +#ifndef NOPTHREADS
 +	int type;
++	pthread_mutexattr_t attr;
++
++	if (pthread_mutexattr_init(&attr) != 0)
++	{
++		PK11err(PK11_F_INIT_ALL_LOCKS, 100);
++		return (0);
++	}
++
++#ifdef DEBUG_MUTEX
++	if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK) != 0)
++	{
++		PK11err(PK11_F_INIT_ALL_LOCKS, 101);
++		return (0);
++	}
++#endif
 +
 +	if ((token_lock = OPENSSL_malloc(sizeof (pthread_mutex_t))) == NULL)
 +		goto malloc_err;
-+	(void) pthread_mutex_init(token_lock, NULL);
++	(void) pthread_mutex_init(token_lock, &attr);
 +
 +	find_lock[OP_RSA] = OPENSSL_malloc(sizeof (pthread_mutex_t));
 +	if (find_lock[OP_RSA] == NULL)
 +		goto malloc_err;
-+	(void) pthread_mutex_init(find_lock[OP_RSA], NULL);
++	(void) pthread_mutex_init(find_lock[OP_RSA], &attr);
 +
 +	for (type = 0; type < OP_MAX; type++)
 +		{
@@ -9491,7 +9601,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +		    OPENSSL_malloc(sizeof (pthread_mutex_t));
 +		if (session_cache[type].lock == NULL)
 +			goto malloc_err;
-+		(void) pthread_mutex_init(session_cache[type].lock, NULL);
++		(void) pthread_mutex_init(session_cache[type].lock, &attr);
 +		}
 +
 +	return (1);
@@ -9509,6 +9619,13 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +	{
 +#ifndef NOPTHREADS
 +	int type;
++
++	if (token_lock != NULL)
++		{
++		(void) pthread_mutex_destroy(token_lock);
++		OPENSSL_free(token_lock);
++		token_lock = NULL;
++		}
 +
 +	if (find_lock[OP_RSA] != NULL)
 +		{
@@ -9695,10 +9812,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +		return;
 +
 +	LOCK_OBJSTORE(OP_RSA);
-+	(void) pthread_mutex_lock(token_lock);
++	OPENSSL_assert(pthread_mutex_lock(token_lock) == 0);
 +	for (i = 0; i < OP_MAX; i++)
 +		{
-+		(void) pthread_mutex_lock(session_cache[i].lock);
++		OPENSSL_assert(pthread_mutex_lock(session_cache[i].lock) == 0);
 +		}
 +#endif
 +	}
@@ -9714,10 +9831,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +
 +	for (i = OP_MAX - 1; i >= 0; i--)
 +		{
-+		(void) pthread_mutex_unlock(session_cache[i].lock);
++		OPENSSL_assert(pthread_mutex_unlock(session_cache[i].lock) == 0);
 +		}
 +	UNLOCK_OBJSTORE(OP_RSA);
-+	(void) pthread_mutex_unlock(token_lock);
++	OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#endif
 +	}
 +
@@ -9735,10 +9852,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +
 +	for (i = OP_MAX - 1; i >= 0; i--)
 +		{
-+		(void) pthread_mutex_unlock(session_cache[i].lock);
++		OPENSSL_assert(pthread_mutex_unlock(session_cache[i].lock) == 0);
 +		}
 +	UNLOCK_OBJSTORE(OP_RSA);
-+	(void) pthread_mutex_unlock(token_lock);
++	OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#endif
 +	}
 +
@@ -10186,7 +10303,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +			return (NULL);
 +		}
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_lock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -10332,7 +10449,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +		sp->next = NULL;
 +
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_unlock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -10376,7 +10493,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +		}
 +
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_lock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -10384,7 +10501,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +	sp->next = freelist;
 +	session_cache[optype].head = sp;
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_unlock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -10447,7 +10564,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +		}
 +
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_lock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -10470,7 +10587,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +		}
 +
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(freelist_lock);
++	OPENSSL_assert(pthread_mutex_unlock(freelist_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -10628,7 +10745,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +	else
 +		{
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_lock(session_cache[OP_RSA].lock);
++		OPENSSL_assert(pthread_mutex_lock(session_cache[OP_RSA].lock) == 0);
 +#else
 +		CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -10661,7 +10778,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +
 +#ifndef NOPTHREADS
 +	if (session == NULL)
-+		(void) pthread_mutex_unlock(session_cache[OP_RSA].lock);
++		OPENSSL_assert(pthread_mutex_unlock(session_cache[OP_RSA].lock) == 0);
 +#else
 +	if (session == NULL)
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
@@ -10893,7 +11010,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.2
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11so.h
 diff -u /dev/null openssl/crypto/engine/hw_pk11so.h:1.2.4.2
---- /dev/null	Thu May 16 07:41:51 2013
+--- /dev/null	Fri Oct  4 14:48:09 2013
 +++ openssl/crypto/engine/hw_pk11so.h	Wed Jun 15 21:12:32 2011
 @@ -0,0 +1,32 @@
 +/* Redefine all pk11/PK11 external symbols to pk11so/PK11SO */
@@ -10929,10 +11046,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.h:1.2.4.2
 +#define pk11_pin			pk11so_pin
 +#define ENGINE_load_pk11		ENGINE_load_pk11so
 Index: openssl/crypto/engine/hw_pk11so_pub.c
-diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
---- /dev/null	Thu May 16 07:41:51 2013
-+++ openssl/crypto/engine/hw_pk11so_pub.c	Sun Jun 17 21:12:11 2012
-@@ -0,0 +1,1622 @@
+diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.6
+--- /dev/null	Fri Oct  4 14:48:09 2013
++++ openssl/crypto/engine/hw_pk11so_pub.c	Fri Oct  4 14:45:25 2013
+@@ -0,0 +1,1642 @@
 +/*
 + * Copyright 2009 Sun Microsystems, Inc.  All rights reserved.
 + * Use is subject to license terms.
@@ -11297,8 +11414,8 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +/* Size of an SSL signature: MD5+SHA1 */
 +#define	SSL_SIG_LENGTH		36
 +
-+static CK_BBOOL true = TRUE;
-+static CK_BBOOL false = FALSE;
++static CK_BBOOL mytrue = TRUE;
++static CK_BBOOL myfalse = FALSE;
 +
 +/*
 + * Standard engine interface function. Majority codes here are from
@@ -11487,13 +11604,20 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		    CK_TRUE) == 0)
 +			goto err;
 +
++		/* see find_lock array definition
++		   for more info on object locking */
++		LOCK_OBJSTORE(OP_RSA);
++
 +		/*
 +		 * Now let's try to find the key in the token. It is a failure
 +		 * if we can't find it.
 +		 */
 +		if (find_one_object(OP_RSA, sp->session, search_templ, 3,
 +		    &ks_key) == 0)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			goto err;
++			}
 +
 +		if (hndidx_rsa == -1)
 +			hndidx_rsa = RSA_get_ex_new_index(0,
@@ -11512,7 +11636,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		 * pk11_destroy_object() reports the failure to the
 +		 * OpenSSL error message buffer.
 +		 */
-+		(void) pk11_destroy_rsa_object_priv(sp, TRUE);
++		(void) pk11_destroy_rsa_object_priv(sp, FALSE);
 +
 +		sp->opdata_rsa_priv_key = ks_key;
 +		/* This object shall not be deleted on a cache miss. */
@@ -11524,7 +11648,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		 * consistency reasons.
 +		 */
 +		if ((rsa = sp->opdata_rsa_priv = RSA_new_method(e)) == NULL)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			goto err;
++			}
 +
 +		/*
 +		 * Now we have to initialize an OpenSSL RSA structure,
@@ -11536,6 +11663,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		if ((rv = pFuncList->C_GetAttributeValue(sp->session, ks_key,
 +		    get_templ, 2)) != CKR_OK)
 +			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			PK11err_add_data(PK11_F_LOAD_PRIVKEY,
 +					 PK11_R_GETATTRIBUTVALUE, rv);
 +			goto err;
@@ -11545,7 +11673,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		 * We do not use pk11_get_private_rsa_key() here so we
 +		 * must take care of handle management ourselves.
 +		 */
-+		KEY_HANDLE_REFHOLD(ks_key, OP_RSA, FALSE, rollback, err);
++		KEY_HANDLE_REFHOLD(ks_key, OP_RSA, TRUE, rollback, err);
 +
 +		/*
 +		 * Those are the sensitive components we do not want to export
@@ -11562,6 +11690,8 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +			&sp->opdata_rsa_pn_num);
 +		attr_to_BN(&get_templ[1], attr_data[1],
 +			&sp->opdata_rsa_pe_num);
++
++		UNLOCK_OBJSTORE(OP_RSA);
 +
 +		if ((pkey = EVP_PKEY_new()) == NULL)
 +			goto err;
@@ -11668,19 +11798,26 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		    CK_FALSE) == 0)
 +			goto err;
 +
++		/* see find_lock array definition
++		   for more info on object locking */
++		LOCK_OBJSTORE(OP_RSA);
++
 +		/*
 +		 * Now let's try to find the key in the token. It is a failure
 +		 * if we can't find it.
 +		 */
 +		if (find_one_object(OP_RSA, sp->session, search_templ, 3,
 +		    &ks_key) == 0)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			goto err;
++			}
 +
 +		/*
 +		 * We load a new public key so we will create a new RSA
 +		 * structure. No cache hit is possible.
 +		 */
-+		(void) pk11_destroy_rsa_object_pub(sp, TRUE);
++		(void) pk11_destroy_rsa_object_pub(sp, FALSE);
 +
 +		sp->opdata_rsa_pub_key = ks_key;
 +		/* This object shall not be deleted on a cache miss. */
@@ -11690,7 +11827,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		 * Cache the RSA public structure pointer.
 +		 */
 +		if ((rsa = sp->opdata_rsa_pub = RSA_new_method(e)) == NULL)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			goto err;
++			}
 +
 +		/*
 +		 * Now we have to initialize an OpenSSL RSA structure,
@@ -11701,6 +11841,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		if ((rv = pFuncList->C_GetAttributeValue(sp->session, ks_key,
 +		    get_templ, 2)) != CKR_OK)
 +			{
++			UNLOCK_OBJSTORE(OP_RSA);
 +			PK11err_add_data(PK11_F_LOAD_PUBKEY,
 +					 PK11_R_GETATTRIBUTVALUE, rv);
 +			goto err;
@@ -11708,6 +11849,8 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +
 +		attr_to_BN(&get_templ[0], attr_data[0], &rsa->n);
 +		attr_to_BN(&get_templ[1], attr_data[1], &rsa->e);
++
++		UNLOCK_OBJSTORE(OP_RSA);
 +
 +		if ((pkey = EVP_PKEY_new()) == NULL)
 +			goto err;
@@ -11797,10 +11940,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		{
 +		{CKA_CLASS, (void *) NULL, sizeof (CK_OBJECT_CLASS)},
 +		{CKA_KEY_TYPE, (void *) NULL, sizeof (CK_KEY_TYPE)},
-+		{CKA_TOKEN, &false, sizeof (true)},
-+		{CKA_ENCRYPT, &true, sizeof (true)},
-+		{CKA_VERIFY, &true, sizeof (true)},
-+		{CKA_VERIFY_RECOVER, &true, sizeof (true)},
++		{CKA_TOKEN, &myfalse, sizeof (myfalse)},
++		{CKA_ENCRYPT, &mytrue, sizeof (mytrue)},
++		{CKA_VERIFY, &mytrue, sizeof (mytrue)},
++		{CKA_VERIFY_RECOVER, &mytrue, sizeof (mytrue)},
 +		{CKA_MODULUS, (void *)NULL, 0},
 +		{CKA_PUBLIC_EXPONENT, (void *)NULL, 0}
 +		};
@@ -11849,6 +11992,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +
 +	if (rv != CKR_OK)
 +		{
++		(void) pFuncList->C_FindObjectsFinal(session);
 +		PK11err_add_data(PK11_F_GET_PUB_RSA_KEY,
 +		    PK11_R_FINDOBJECTS, rv);
 +		goto err;
@@ -11946,10 +12090,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		{
 +		{CKA_CLASS, (void *) NULL, sizeof (CK_OBJECT_CLASS)},
 +		{CKA_KEY_TYPE, (void *) NULL, sizeof (CK_KEY_TYPE)},
-+		{CKA_TOKEN, &false, sizeof (true)},
-+		{CKA_SENSITIVE, &false, sizeof (true)},
-+		{CKA_DECRYPT, &true, sizeof (true)},
-+		{CKA_SIGN, &true, sizeof (true)},
++		{CKA_TOKEN, &myfalse, sizeof (myfalse)},
++		{CKA_SENSITIVE, &myfalse, sizeof (myfalse)},
++		{CKA_DECRYPT, &mytrue, sizeof (mytrue)},
++		{CKA_SIGN, &mytrue, sizeof (mytrue)},
 +		{CKA_MODULUS, (void *)NULL, 0},
 +		{CKA_PUBLIC_EXPONENT, (void *)NULL, 0},
 +		{CKA_PRIVATE_EXPONENT, (void *)NULL, 0},
@@ -12007,7 +12151,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		 * We will perform the search in the token, not in the existing
 +		 * session keys.
 +		 */
-+		a_key_template[2].pValue = &true;
++		a_key_template[2].pValue = &mytrue;
 +		}
 +
 +	rv = pFuncList->C_FindObjectsInit(session, a_key_template,
@@ -12024,6 +12168,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +
 +	if (rv != CKR_OK)
 +		{
++		(void) pFuncList->C_FindObjectsFinal(session);
 +		PK11err_add_data(PK11_F_GET_PRIV_RSA_KEY,
 +		    PK11_R_FINDOBJECTS, rv);
 +		goto err;
@@ -12247,6 +12392,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +/*
 + * Find one object in the token. It is an error if we can not find the
 + * object or if we find more objects based on the template we got.
++ * Assume object store locked.
 + *
 + * Returns:
 + *	1 OK
@@ -12259,24 +12405,23 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +	CK_RV rv;
 +	CK_ULONG objcnt;
 +
-+	LOCK_OBJSTORE(op);
 +	if ((rv = pFuncList->C_FindObjectsInit(s, ptempl, nattr)) != CKR_OK)
 +		{
 +		PK11err_add_data(PK11_F_FIND_ONE_OBJECT,
 +		    PK11_R_FINDOBJECTSINIT, rv);
-+		goto err;
++		return (0);
 +		}
 +
 +	rv = pFuncList->C_FindObjects(s, pkey, 1, &objcnt);
 +	if (rv != CKR_OK)
 +		{
++		(void) pFuncList->C_FindObjectsFinal(s);
 +		PK11err_add_data(PK11_F_FIND_ONE_OBJECT, PK11_R_FINDOBJECTS,
 +		    rv);
-+		goto err;
++		return (0);
 +		}
 +
 +	(void) pFuncList->C_FindObjectsFinal(s);
-+	UNLOCK_OBJSTORE(op);
 +
 +	if (objcnt > 1)
 +		{
@@ -12290,9 +12435,6 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		return (0);
 +		}
 +	return (1);
-+err:
-+	UNLOCK_OBJSTORE(op);
-+	return (0);
 +	}
 +
 +/* from uri stuff */
@@ -12308,7 +12450,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +
 +	/* The getpassphrase() function is not MT safe. */
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(token_lock);
++	OPENSSL_assert(pthread_mutex_lock(token_lock) == 0);
 +#else
 +	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -12317,32 +12459,30 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		{
 +		PK11err(PK11_F_GET_PIN, PK11_R_COULD_NOT_READ_PIN);
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_unlock(token_lock);
++		OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
-+		goto err;
++		return (0);
 +		}
 +	pk11_pin = BUF_strdup(pin);
 +	if (pk11_pin == NULL)
 +		{
 +		PK11err(PK11_F_LOAD_PRIVKEY, PK11_R_MALLOC_FAILURE);
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_unlock(token_lock);
++		OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
-+		goto err;
++		return (0);
 +		}
 +	memset(pin, 0, strlen(pin));
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(token_lock);
++	OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
 +	return (1);
-+err:
-+	return (0);
 +	}
 +
 +/*
@@ -12366,7 +12506,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		{
 +		PK11err(PK11_F_TOKEN_LOGIN,
 +		    PK11_R_TOKEN_NOT_INITIALIZED);
-+		goto err;
++		return (0);
 +		}
 +#endif
 +
@@ -12383,7 +12523,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +	    (~pubkey_token_flags & CKF_USER_PIN_INITIALIZED))
 +		{
 +		PK11err(PK11_F_TOKEN_LOGIN, PK11_R_TOKEN_PIN_NOT_SET);
-+		goto err;
++		return (0);
 +		}
 +
 +	/*
@@ -12406,7 +12546,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +				{
 +				PK11err(PK11_F_TOKEN_LOGIN,
 +				    PK11_R_TOKEN_PIN_NOT_PROVIDED);
-+				goto err;
++				return (0);
 +				}
 +			}
 +
@@ -12421,9 +12561,9 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		 */
 +
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_lock(token_lock);
++		OPENSSL_assert(pthread_mutex_lock(token_lock) == 0);
 +#else
-+		(void) pthread_mutex_lock(freelist_lock);
++		CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
 +		if (*login_done == CK_FALSE)
 +			{
@@ -12440,7 +12580,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +
 +			}
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_unlock(token_lock);
++		OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
@@ -12463,11 +12603,10 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +	}
 +	pk11_pin = NULL;
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(token_lock);
++	OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
-+err:
 +	return (0);
 +	}
 +
@@ -12490,12 +12629,12 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +	CK_RV rv;
 +
 +	if ((pk11_pin == NULL) && (pk11_get_pin() == 0))
-+		goto err;
++		return (0);
 +
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(token_lock);
++	OPENSSL_assert(pthread_mutex_lock(token_lock) == 0);
 +#else
-+	(void) pthread_mutex_lock(freelist_lock);
++	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
 +	if ((rv = pFuncList->C_Login(session, CKU_USER,
 +	    (CK_UTF8CHAR_PTR)pk11_pin, strlen(pk11_pin))) != CKR_OK)
@@ -12503,21 +12642,19 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +		PK11err_add_data(PK11_F_TOKEN_RELOGIN,
 +		    PK11_R_TOKEN_LOGIN_FAILED, rv);
 +#ifndef NOPTHREADS
-+		(void) pthread_mutex_unlock(token_lock);
++		OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
-+		goto err;
++		return (0);
 +		}
 +#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(token_lock);
++	OPENSSL_assert(pthread_mutex_unlock(token_lock) == 0);
 +#else
 +	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
 +#endif
 +
 +	return (1);
-+err:
-+	return (0);
 +	}
 +
 +#ifdef	OPENSSL_SYS_WIN32
@@ -12557,7 +12694,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.4
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/pkcs11.h
 diff -u /dev/null openssl/crypto/engine/pkcs11.h:1.1.1.1
---- /dev/null	Thu May 16 07:41:51 2013
+--- /dev/null	Fri Oct  4 14:48:09 2013
 +++ openssl/crypto/engine/pkcs11.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,299 @@
 +/* pkcs11.h include file for PKCS #11. */
@@ -12861,7 +12998,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11.h:1.1.1.1
 +#endif
 Index: openssl/crypto/engine/pkcs11f.h
 diff -u /dev/null openssl/crypto/engine/pkcs11f.h:1.1.1.1
---- /dev/null	Thu May 16 07:41:51 2013
+--- /dev/null	Fri Oct  4 14:48:09 2013
 +++ openssl/crypto/engine/pkcs11f.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,912 @@
 +/* pkcs11f.h include file for PKCS #11. */
@@ -13778,7 +13915,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11f.h:1.1.1.1
 +#endif
 Index: openssl/crypto/engine/pkcs11t.h
 diff -u /dev/null openssl/crypto/engine/pkcs11t.h:1.2
---- /dev/null	Thu May 16 07:41:51 2013
+--- /dev/null	Fri Oct  4 14:48:09 2013
 +++ openssl/crypto/engine/pkcs11t.h	Sat Aug 30 11:58:07 2008
 @@ -0,0 +1,1885 @@
 +/* pkcs11t.h include file for PKCS #11. */
