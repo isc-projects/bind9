@@ -127,6 +127,8 @@ fromstruct_isdn(ARGS_FROMSTRUCT) {
 
 	RETERR(uint8_tobuffer(isdn->isdn_len, target));
 	RETERR(mem_tobuffer(target, isdn->isdn, isdn->isdn_len));
+	if (isdn->subaddress == NULL && isdn->subaddress_len == 0)
+		return (ISC_R_SUCCESS);
 	RETERR(uint8_tobuffer(isdn->subaddress_len, target));
 	return (mem_tobuffer(target, isdn->subaddress, isdn->subaddress_len));
 }
@@ -153,11 +155,17 @@ tostruct_isdn(ARGS_TOSTRUCT) {
 		return (ISC_R_NOMEMORY);
 	isc_region_consume(&r, isdn->isdn_len);
 
-	isdn->subaddress_len = uint8_fromregion(&r);
-	isc_region_consume(&r, 1);
-	isdn->subaddress = mem_maybedup(mctx, r.base, isdn->subaddress_len);
-	if (isdn->subaddress == NULL)
-		goto cleanup;
+	if (r.length == 0) {
+		isdn->subaddress_len = 0;
+		isdn->subaddress = NULL;
+	} else {
+		isdn->subaddress_len = uint8_fromregion(&r);
+		isc_region_consume(&r, 1);
+		isdn->subaddress = mem_maybedup(mctx, r.base,
+						isdn->subaddress_len);
+		if (isdn->subaddress == NULL)
+			goto cleanup;
+	}
 
 	isdn->mctx = mctx;
 	return (ISC_R_SUCCESS);
