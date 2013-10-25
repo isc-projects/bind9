@@ -545,7 +545,7 @@ debug(const char *format, ...) {
 		if (debugtiming) {
 			struct timeval tv;
 			(void)gettimeofday(&tv, NULL);
-			fprintf(stderr, "%ld.%06u: ", (long)tv.tv_sec,
+			fprintf(stderr, "%ld.%06d: ", (long)tv.tv_sec,
 				tv.tv_usec);
 		}
 		va_start(args, format);
