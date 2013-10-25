@@ -1,4 +1,4 @@
-3662.	[bug]		'host' could die if a UPD query timed out. [RT #34870]
+3662.	[bug]		'host' could die if a UDP query timed out. [RT #34870]
 
 	--- 9.10.0a1 released ---
 
