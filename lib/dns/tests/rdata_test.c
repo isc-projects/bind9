@@ -227,12 +227,162 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 	}
 }
 
+ATF_TC(wks);
+ATF_TC_HEAD(wks, tc) {
+	atf_tc_set_md_var(tc, "descr", "wks to/from struct");
+}
+ATF_TC_BODY(wks, tc) {
+	struct {
+		unsigned char data[64];
+		size_t len;
+		isc_boolean_t ok;
+	} test_data[] = {
+		{
+			/* too short */
+			{ 0x00, 0x08, 0x0, 0x00 }, 4, ISC_FALSE
+		},
+		{
+			/* minimal TCP */
+			{ 0x00, 0x08, 0x0, 0x00, 6 }, 5, ISC_TRUE
+		},
+		{
+			/* minimal UDP */
+			{ 0x00, 0x08, 0x0, 0x00, 17 }, 5, ISC_TRUE
+		},
+		{
+			/* minimal other */
+			{ 0x00, 0x08, 0x0, 0x00, 1 }, 5, ISC_TRUE
+		},
+		{
+			/* sentinal */
+			{ 0x00 }, 0, ISC_FALSE
+		}
+	};
+	unsigned char buf1[1024*1024];
+	unsigned char buf2[1024*1024];
+	isc_buffer_t source, target1, target2;
+	dns_rdata_t rdata;
+	dns_decompress_t dctx;
+	isc_result_t result;
+	size_t i;
+	dns_rdata_in_wks_t wks;
+
+	UNUSED(tc);
+
+	for (i = 0; test_data[i].len != 0; i++) {
+		isc_buffer_init(&source, test_data[i].data, test_data[i].len);
+		isc_buffer_add(&source, test_data[i].len);
+		isc_buffer_setactive(&source, test_data[i].len);
+		isc_buffer_init(&target1, buf1, sizeof(buf1));
+		dns_rdata_init(&rdata);
+		dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+		result = dns_rdata_fromwire(&rdata, dns_rdataclass_in,
+					    dns_rdatatype_wks, &source,
+					    &dctx, 0, &target1);
+		dns_decompress_invalidate(&dctx);
+		if (test_data[i].ok)
+			ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		else
+			ATF_REQUIRE(result != ISC_R_SUCCESS);
+		if (result != ISC_R_SUCCESS)
+			continue;
+		result = dns_rdata_tostruct(&rdata, &wks, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		isc_buffer_init(&target2, buf2, sizeof(buf2));
+		dns_rdata_reset(&rdata);
+		result = dns_rdata_fromstruct(&rdata, dns_rdataclass_in,
+					      dns_rdatatype_wks, &wks,
+					      &target2);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		ATF_REQUIRE_EQ(isc_buffer_usedlength(&target2),
+						     test_data[i].len);
+		ATF_REQUIRE_EQ(memcmp(buf2, test_data[i].data,
+				      test_data[i].len), 0);
+	}
+}
+
+ATF_TC(isdn);
+ATF_TC_HEAD(isdn, tc) {
+	atf_tc_set_md_var(tc, "descr", "isdn to/from struct");
+}
+ATF_TC_BODY(isdn, tc) {
+	struct {
+		unsigned char data[64];
+		size_t len;
+		isc_boolean_t ok;
+	} test_data[] = {
+		{
+			/* "" */
+			{ 0x00 }, 1, ISC_TRUE
+		},
+		{
+			/* "\001" */
+			{ 0x1, 0x01 }, 2, ISC_TRUE
+		},
+		{
+			/* "\001" "" */
+			{ 0x1, 0x01, 0x00 }, 3, ISC_TRUE
+		},
+		{
+			/* "\000" "\001" */
+			{ 0x1, 0x01, 0x01, 0x01 }, 4, ISC_TRUE
+		},
+		{
+			/* sentinal */
+			{ 0x00 }, 0, ISC_FALSE
+		}
+	};
+	unsigned char buf1[1024*1024];
+	unsigned char buf2[1024*1024];
+	isc_buffer_t source, target1, target2;
+	dns_rdata_t rdata;
+	dns_decompress_t dctx;
+	isc_result_t result;
+	size_t i;
+	dns_rdata_isdn_t isdn;
+
+	UNUSED(tc);
+
+	for (i = 0; test_data[i].len != 0; i++) {
+		isc_buffer_init(&source, test_data[i].data, test_data[i].len);
+		isc_buffer_add(&source, test_data[i].len);
+		isc_buffer_setactive(&source, test_data[i].len);
+		isc_buffer_init(&target1, buf1, sizeof(buf1));
+		dns_rdata_init(&rdata);
+		dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+		result = dns_rdata_fromwire(&rdata, dns_rdataclass_in,
+					    dns_rdatatype_isdn, &source,
+					    &dctx, 0, &target1);
+		dns_decompress_invalidate(&dctx);
+		if (test_data[i].ok)
+			ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		else
+			ATF_REQUIRE(result != ISC_R_SUCCESS);
+		if (result != ISC_R_SUCCESS)
+			continue;
+		result = dns_rdata_tostruct(&rdata, &isdn, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		isc_buffer_init(&target2, buf2, sizeof(buf2));
+		dns_rdata_reset(&rdata);
+		result = dns_rdata_fromstruct(&rdata, dns_rdataclass_in,
+					      dns_rdatatype_isdn, &isdn,
+					      &target2);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		ATF_REQUIRE_EQ(isc_buffer_usedlength(&target2),
+						     test_data[i].len);
+		ATF_REQUIRE_EQ(memcmp(buf2, test_data[i].data,
+				      test_data[i].len), 0);
+	}
+}
+
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, hip);
 	ATF_TP_ADD_TC(tp, edns_client_subnet);
+	ATF_TP_ADD_TC(tp, wks);
+	ATF_TP_ADD_TC(tp, isdn);
 
 	return (atf_no_error());
 }
