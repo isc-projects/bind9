@@ -545,8 +545,8 @@ debug(const char *format, ...) {
 		if (debugtiming) {
 			struct timeval tv;
 			(void)gettimeofday(&tv, NULL);
-			fprintf(stderr, "%ld.%06d: ", (long)tv.tv_sec,
-				tv.tv_usec);
+			fprintf(stderr, "%ld.%06ld: ", (long)tv.tv_sec,
+				(long)tv.tv_usec);
 		}
 		va_start(args, format);
 		vfprintf(stderr, format, args);
@@ -2833,11 +2833,13 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	isc_buffer_putuint16(&query->slbuf, (isc_uint16_t) query->sendbuf.used);
 	ISC_LIST_INIT(query->sendlist);
 	ISC_LINK_INIT(&query->slbuf, link);
-	buffer = clone_buffer(&query->slbuf);
-	ISC_LIST_ENQUEUE(query->sendlist, buffer, link);
-	if (include_question) { 
-		buffer = clone_buffer(&query->sendbuf);
-		ISC_LIST_ENQUEUE(query->sendlist, buffer, link); 
+	if (!query->first_soa_rcvd) {
+		buffer = clone_buffer(&query->slbuf);
+		ISC_LIST_ENQUEUE(query->sendlist, buffer, link);
+		if (include_question) {
+			buffer = clone_buffer(&query->sendbuf);
+			ISC_LIST_ENQUEUE(query->sendlist, buffer, link);
+		}
 	}
 
 	ISC_LINK_INIT(&query->lengthbuf, link);
