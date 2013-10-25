@@ -42,10 +42,10 @@
 ./bin/dig/dig.html				HTML	DOCBOOK
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./bin/dig/host.1				MAN	DOCBOOK
-./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012
+./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013
 ./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007,2008,2009,2012
 ./bin/dig/host.html				HTML	DOCBOOK
-./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
+./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./bin/dig/nslookup.1				MAN	DOCBOOK
 ./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2011,2012,2013
 ./bin/dig/nslookup.docbook			SGML	2004,2005,2006,2007,2010,2012,2013
@@ -1926,7 +1926,7 @@
 ./lib/dns/rdata/generic/hip_55.h		C	2009,2013
 ./lib/dns/rdata/generic/ipseckey_45.c		C	2005,2007,2009,2011,2012
 ./lib/dns/rdata/generic/ipseckey_45.h		C	2005,2007
-./lib/dns/rdata/generic/isdn_20.c		C	1999,2000,2001,2002,2004,2005,2007,2012
+./lib/dns/rdata/generic/isdn_20.c		C	1999,2000,2001,2002,2004,2005,2007,2012,2013
 ./lib/dns/rdata/generic/isdn_20.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/key_25.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2012,2013
 ./lib/dns/rdata/generic/key_25.h		C	1999,2000,2001,2004,2005,2007
@@ -2022,7 +2022,7 @@
 ./lib/dns/rdata/in_1/px_26.h			C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/in_1/srv_33.c			C	1999,2000,2001,2003,2004,2005,2007,2012
 ./lib/dns/rdata/in_1/srv_33.h			C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/in_1/wks_11.c			C	1999,2000,2001,2002,2004,2007,2009,2011,2012
+./lib/dns/rdata/in_1/wks_11.c			C	1999,2000,2001,2002,2004,2007,2009,2011,2012,2013
 ./lib/dns/rdata/in_1/wks_11.h			C	1999,2000,2001,2004,2007
 ./lib/dns/rdata/rdatastructpre.h		C	1999,2000,2001,2004,2007
 ./lib/dns/rdata/rdatastructsuf.h		C	1999,2000,2001,2004,2007
@@ -2189,7 +2189,7 @@
 ./lib/isc/include/isc/sha1.h			C	2000,2001,2004,2005,2006,2007,2012
 ./lib/isc/include/isc/sha2.h			C	2005,2006,2007,2010,2012
 ./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2012
-./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012
+./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012,2013
 ./lib/isc/include/isc/stats.h			C	2009,2012
 ./lib/isc/include/isc/stdio.h			C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/stdlib.h			C	2003,2004,2005,2006,2007
