@@ -1,4 +1,4 @@
-3662.	[bug]		'host' could die if a UPD query timed out. [RT #34870]
+3662.	[bug]		'host' could die if a UDP query timed out. [RT #34870]
 
 3661.	[bug]		Address lock order reversal deadlock with inline zones.
 			[RT #34856]
