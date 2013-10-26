@@ -258,8 +258,8 @@ ATF_TC_BODY(wks, tc) {
 			{ 0x00 }, 0, ISC_FALSE
 		}
 	};
-	unsigned char buf1[1024*1024];
-	unsigned char buf2[1024*1024];
+	unsigned char buf1[1024];
+	unsigned char buf2[1024];
 	isc_buffer_t source, target1, target2;
 	dns_rdata_t rdata;
 	dns_decompress_t dctx;
@@ -332,8 +332,8 @@ ATF_TC_BODY(isdn, tc) {
 			{ 0x00 }, 0, ISC_FALSE
 		}
 	};
-	unsigned char buf1[1024*1024];
-	unsigned char buf2[1024*1024];
+	unsigned char buf1[1024];
+	unsigned char buf2[1024];
 	isc_buffer_t source, target1, target2;
 	dns_rdata_t rdata;
 	dns_decompress_t dctx;
