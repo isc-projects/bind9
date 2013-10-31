@@ -3794,6 +3794,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             then this clause is silently ignored.
           </para>
           <para>
+	    On Windows machines syslog messages are directed to the EventViewer.
+          </para>
+          <para>
             The <command>severity</command> clause works like <command>syslog</command>'s
             "priorities", except that they can also be used if you are writing
             straight to a file rather than using <command>syslog</command>.
