@@ -1,3 +1,6 @@
+3665.	[bug]		Failure to release lock on error in receive_secure_db.
+			[RT #34944]
+
 3664.	[bug]		Updated OpenSSL PKCS#11 patches to fix active list
 			locking and other bugs. [RT #34855]
 
