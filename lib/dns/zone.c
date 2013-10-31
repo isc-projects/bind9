@@ -13044,7 +13044,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) || !inline_secure(zone)) {
 		result = ISC_R_SHUTTINGDOWN;
-		goto unlock;
+		goto failure;
 	}
 
 	TIME_NOW(&loadtime);
@@ -13125,10 +13125,9 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
 	zone_needdump(zone, 0); /* XXXMPA */
 	UNLOCK_ZONE(zone->raw);
- unlock:
-	UNLOCK_ZONE(zone);
 
  failure:
+	UNLOCK_ZONE(zone);
 	if (result != ISC_R_SUCCESS)
 		dns_zone_log(zone, ISC_LOG_ERROR, "receive_secure_db: %s",
 			     dns_result_totext(result));
