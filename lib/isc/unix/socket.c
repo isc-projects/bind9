@@ -559,8 +559,8 @@ static struct {
 	 * The following are defined just for avoiding unused static functions.
 	 */
 #ifndef BIND9
-	void *recvv, *send, *sendv, *sendto2, *cleanunix, *permunix, *filter,
-		*listen, *accept, *getpeername, *isbound;
+	void *recvv, *send, *sendv, *sendto2, *sendtov, *cleanunix, *permunix,
+	     *filter, *listen, *accept, *getpeername, *isbound;
 #endif
 } socketmethods = {
 	{
@@ -580,6 +580,7 @@ static struct {
 	,
 	(void *)isc__socket_recvv, (void *)isc__socket_send,
 	(void *)isc__socket_sendv, (void *)isc__socket_sendto2,
+	(void *)isc__socket_sendtov,
 	(void *)isc__socket_cleanunix, (void *)isc__socket_permunix,
 	(void *)isc__socket_filter, (void *)isc__socket_listen,
 	(void *)isc__socket_accept, (void *)isc__socket_getpeername,
