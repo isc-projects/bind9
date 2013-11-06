@@ -225,6 +225,7 @@ help(void) {
 #endif
 "                 +[no]multiline      (Print records in an expanded format)\n"
 "                 +[no]onesoa         (AXFR prints only one soa record)\n"
+"                 +[no]keepopen       (Keep the TCP socket open between queries)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
 "        local d-opts and servers (after host name) affect only that lookup.\n"
 "        -h                           (print help and exit)\n"
@@ -890,6 +891,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			FULLCHECK("ignore");
 			lookup->ignore = ISC_TRUE;
 		}
+		break;
+	case 'k':
+		FULLCHECK("keepopen");
+		keep_open = state;
 		break;
 	case 'm': /* multiline */
 		FULLCHECK("multiline");

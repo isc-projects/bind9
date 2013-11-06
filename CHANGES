@@ -5,6 +5,8 @@
 
 3668.	[bug]		Fix cast in lex.c which could see 0xff treated as eof.
 			[RT #34993]
+3667.	[test]		dig: add support to keep the TCP socket open between
+			successive queries (+[no]keepopen).  [RT #34918]
 
 3664.	[bug]		Updated OpenSSL PKCS#11 patches to fix active list
 			locking and other bugs. [RT #34855]

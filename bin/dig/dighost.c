@@ -125,7 +125,8 @@ isc_boolean_t
 	usesearch = ISC_FALSE,
 	showsearch = ISC_FALSE,
 	qr = ISC_FALSE,
-	is_dst_up = ISC_FALSE;
+	is_dst_up = ISC_FALSE,
+	keep_open = ISC_FALSE;
 in_port_t port = 53;
 unsigned int timeout = 0;
 unsigned int extrabytes;
@@ -156,6 +157,9 @@ static void		idn_check_result(idn_result_t r, const char *msg);
 #define MAXDLEN		256
 int  idnoptions	= 0;
 #endif
+
+isc_socket_t *keep = NULL;
+isc_sockaddr_t keepaddr;
 
 /*%
  * Exit Codes:
@@ -2534,6 +2538,15 @@ send_tcp_connect(dig_query_t *query) {
 	}
 
 	INSIST(query->sock == NULL);
+
+	if (keep != NULL && isc_sockaddr_equal(&keepaddr, &query->sockaddr)) {
+		sockcount++;
+		isc_socket_attach(keep, &query->sock);
+		query->waiting_connect = ISC_FALSE;
+		launch_next_query(query, ISC_TRUE);
+		goto search;
+	}
+	
 	result = isc_socket_create(socketmgr,
 				   isc_sockaddr_pf(&query->sockaddr),
 				   isc_sockettype_tcp, &query->sock);
@@ -2556,6 +2569,7 @@ send_tcp_connect(dig_query_t *query) {
 	result = isc_socket_connect(query->sock, &query->sockaddr,
 				    global_task, connect_done, query);
 	check_result(result, "isc_socket_connect");
+ search:
 	/*
 	 * If we're at the endgame of a nameserver search, we need to
 	 * immediately bring up all the queries.  Do it here.
@@ -2940,6 +2954,12 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 			check_next_lookup(l);
 		UNLOCK_LOOKUP;
 		return;
+	}
+	if (keep_open) {
+		if (keep != NULL)
+			isc_socket_detach(&keep);
+		isc_socket_attach(query->sock, &keep);
+		keepaddr = query->sockaddr;
 	}
 	launch_next_query(query, ISC_TRUE);
 	isc_event_free(&event);
@@ -3757,6 +3777,8 @@ destroy_libs(void) {
 	isc_result_t result;
 #endif
 
+	if (keep != NULL)
+		isc_socket_detach(&keep);
 	debug("destroy_libs()");
 	if (global_task != NULL) {
 		debug("freeing task");

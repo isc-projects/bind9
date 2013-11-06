@@ -23,10 +23,16 @@ SYSTEMTESTTOP=..
 status=0
 
 $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat \
+	+keepopen -b 10.53.0.7 +tcp \
 	-f dig.batch -p 5300 @10.53.0.2 > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
 $PERL ../digcomp.pl --lc dig.out.ns2 knowngood.dig.out || status=1
+
+echo "I:only one tcp socket was used"
+tcpclients=`grep "client 10.53.0.7#[0-9]*:" ns2/named.run | awk '{print $4}' | sort | uniq -c | wc -l`
+
+test $tcpclients -eq 1 || { status=1; echo "I:failed"; }
 
 echo "I:exit status: $status"
 exit $status

@@ -868,6 +868,16 @@
           </listitem>
         </varlistentry>
 
+        <varlistentry>
+          <term><option>+[no]keepopen</option></term>
+          <listitem>
+            <para>
+              Keep the TCP socket open between queries and reuse it rather
+	      than creating a new TCP socket for each lookup.  The default
+	      is <option>+nokeepopen</option>.
+            </para>
+          </listitem>
+        </varlistentry>
 
       </variablelist>
 
