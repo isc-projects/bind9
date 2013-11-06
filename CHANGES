@@ -1,3 +1,6 @@
+3667.	[func]		dig: add support to keep the TCP socket open between
+			successive queries (+[no]keepopen).  [RT #34918]
+
 3666.	[func]		Add a tool, named-rrchecker, for checking the syntax
 			of individual resource records.  This tool is intended
 			to be called by provisioning systems so that the front
