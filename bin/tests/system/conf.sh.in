@@ -55,6 +55,7 @@ JOURNALPRINT=$TOP/bin/tools/named-journalprint
 VERIFY=$TOP/bin/dnssec/dnssec-verify
 ARPANAME=$TOP/bin/tools/arpaname
 RESOLVE=$TOP/lib/samples/resolve
+RRCHECKER=$TOP/bin/tools/named-rrchecker
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -65,8 +66,8 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 dsdigest dscp ecdsa formerr forward glue gost ixfr inline limits
 	 logfileconfig lwresd masterfile masterformat metadata
 	 notify nsupdate pending pkcs11 redirect resolver rndc rpz
-	 rrl rrsetorder rsabigexponent smartsign sortlist spf staticstub
-	 statistics stub tkey tsig tsiggss unknown upforwd verify
+	 rrl rrchecker rrsetorder rsabigexponent smartsign sortlist spf
+	 staticstub statistics stub tkey tsig tsiggss unknown upforwd verify
 	 views wildcard xfer xferquota zero zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.
@@ -85,4 +86,4 @@ fi
 
 export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \
        PERL SUBDIRS RNDC CHECKZONE PK11GEN PK11LIST PK11DEL TESTSOCK6 \
-       JOURNALPRINT ARPANAME RESOLVE
+       JOURNALPRINT ARPANAME RESOLVE RRCHECKER

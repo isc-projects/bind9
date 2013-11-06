@@ -1,3 +1,9 @@
+3666.	[func]		Add a tool, named-rrchecker, for checking the syntax
+			of individual resource records.  This tool is intended
+			to be called by provisioning systems so that the front
+			end does not need to be upgraded to support new DNS
+			record types. [RT #34778]
+
 3665.	[bug]		Failure to release lock on error in receive_secure_db.
 			[RT #34944]
 
