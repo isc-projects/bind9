@@ -16,73 +16,55 @@
 .\"
 .hy 0
 .ad l
-'\" t
-.\"     Title: named-rrchecker
-.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"     Title: named\-rrchecker
+.\"    Author: 
+.\" Generator: DocBook XSL Stylesheets v1.71.1 <http://docbook.sf.net/>
 .\"      Date: Aug 25, 2009
 .\"    Manual: BIND9
 .\"    Source: BIND9
-.\"  Language: English
 .\"
 .TH "NAMED\-RRCHECKER" "1" "Aug 25, 2009" "BIND9" "BIND9"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.ie \n(.g .ds Aq \(aq
-.el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
-named-rrchecker \- A syntax checker for individual DNS resource records
+named\-rrchecker \- A syntax checker for individual DNS resource records
 .SH "SYNOPSIS"
 .HP 16
 \fBnamed\-rrchecker\fR [\fB\-h\fR] [\fB\-o\ \fR\fB\fIorigin\fR\fR] [\fB\-p\fR] [\fB\-u\fR] [\fB\-C\fR] [\fB\-T\fR] [\fB\-P\fR]
 .SH "DESCRIPTION"
 .PP
 \fBnamed\-rrchecker\fR
-read a individual DNS resource record from standard input and checks if it is syntactically correct\&.
+read a individual DNS resource record from standard input and checks if it is syntactically correct.
 .PP
 The
 \fB\-h\fR
-prints out the help menu\&.
+prints out the help menu.
 .PP
 The
 \fB\-o \fR\fB\fIorigin\fR\fR
-option specifies a origin to be used when interpreting the record\&.
+option specifies a origin to be used when interpreting the record.
 .PP
 The
 \fB\-p\fR
-prints out the resulting record in cannonical form\&. If there is no cannonical form defined then the record will be printed in unknown record format\&.
+prints out the resulting record in cannonical form. If there is no cannonical form defined then the record will be printed in unknown record format.
 .PP
 The
 \fB\-u\fR
-prints out the resulting record in unknown record form\&.
+prints out the resulting record in unknown record form.
 .PP
 The
 \fB\-C\fR,
 \fB\-T\fR
 and
 \fB\-P\fR
-print out the known class, standard type and private type nmeomics respectively\&.
+print out the known class, standard type and private type nmeomics respectively.
 .SH "SEE ALSO"
 .PP
 RFC 1034,
 RFC 1035,
 \fBnamed\fR(8)
 .SH "COPYRIGHT"
-.br
 Copyright \(co 2013 Internet Systems Consortium, Inc. ("ISC")
 .br
