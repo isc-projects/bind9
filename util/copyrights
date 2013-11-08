@@ -1388,6 +1388,11 @@
 ./bin/tests/system/rpz/test5			ZONE	2011,2012,2013
 ./bin/tests/system/rpz/test6			ZONE	2013
 ./bin/tests/system/rpz/tests.sh			SH	2011,2012,2013
+./bin/tests/system/rrchecker/classlist.good	C	2013
+./bin/tests/system/rrchecker/clean.sh		SH	2013
+./bin/tests/system/rrchecker/privatelist.good	C	2013
+./bin/tests/system/rrchecker/tests.sh		SH	2013
+./bin/tests/system/rrchecker/typelist.good	C	2013
 ./bin/tests/system/rrl/.gitignore		X	2013
 ./bin/tests/system/rrl/clean.sh			SH	2012,2013
 ./bin/tests/system/rrl/ns1/named.conf		CONF-C	2012,2013
@@ -1756,7 +1761,7 @@
 ./bin/tests/wire_test.data4			X	1999,2000,2001
 ./bin/tests/zone_test.c				C	1999,2000,2001,2002,2004,2005,2007,2009,2012
 ./bin/tools/.gitignore				X	2012
-./bin/tools/Makefile.in				MAKE	2009,2010,2012
+./bin/tools/Makefile.in				MAKE	2009,2010,2012,2013
 ./bin/tools/arpaname.1				MAN	DOCBOOK
 ./bin/tools/arpaname.c				C	2009
 ./bin/tools/arpaname.docbook			SGML	2009
@@ -1773,6 +1778,10 @@
 ./bin/tools/named-journalprint.c		C	2000,2001,2004,2005,2006,2007,2008,2009
 ./bin/tools/named-journalprint.docbook		SGML	2009
 ./bin/tools/named-journalprint.html		HTML	DOCBOOK
+./bin/tools/named-rrchecker.1			MAN	2013
+./bin/tools/named-rrchecker.c			C	2013
+./bin/tools/named-rrchecker.docbook		SGML	2013
+./bin/tools/named-rrchecker.html		HTML	2013
 ./bin/tools/nsec3hash.8				MAN	DOCBOOK
 ./bin/tools/nsec3hash.c				C	2006,2008,2009,2011
 ./bin/tools/nsec3hash.docbook			SGML	2009
