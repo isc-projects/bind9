@@ -167,8 +167,6 @@ main(int argc, char *argv[]) {
 			fprintf(stderr, "extra data\n");
 			exit(1);
 		}
-		once = ISC_TRUE;
-
 		/*
 		 * Get class.
 		 */
@@ -264,6 +262,7 @@ main(int argc, char *argv[]) {
 			fflush(stderr);
 			exit(1);
 		}
+		once = ISC_TRUE;
 	}
 	if (result != ISC_R_EOF) {
 		fprintf(stderr, "eof not found\n");
