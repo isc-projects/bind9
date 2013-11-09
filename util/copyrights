@@ -1388,11 +1388,11 @@
 ./bin/tests/system/rpz/test5			ZONE	2011,2012,2013
 ./bin/tests/system/rpz/test6			ZONE	2013
 ./bin/tests/system/rpz/tests.sh			SH	2011,2012,2013
-./bin/tests/system/rrchecker/classlist.good	C	2013
+./bin/tests/system/rrchecker/classlist.good	X	2013
 ./bin/tests/system/rrchecker/clean.sh		SH	2013
-./bin/tests/system/rrchecker/privatelist.good	C	2013
+./bin/tests/system/rrchecker/privatelist.good	X	2013
 ./bin/tests/system/rrchecker/tests.sh		SH	2013
-./bin/tests/system/rrchecker/typelist.good	C	2013
+./bin/tests/system/rrchecker/typelist.good	X	2013
 ./bin/tests/system/rrl/.gitignore		X	2013
 ./bin/tests/system/rrl/clean.sh			SH	2012,2013
 ./bin/tests/system/rrl/ns1/named.conf		CONF-C	2012,2013
