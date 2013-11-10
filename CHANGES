@@ -1,3 +1,6 @@
+3668.	[bug]		Fix cast in lex.c which could see 0xff treated as eof.
+			[RT #34993]
+
 3667.	[func]		dig: add support to keep the TCP socket open between
 			successive queries (+[no]keepopen).  [RT #34918]
 
