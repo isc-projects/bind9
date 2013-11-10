@@ -445,7 +445,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					c = EOF;
 					source->at_eof = ISC_TRUE;
 				} else {
-					c = *((char *)buffer->base +
+					c = *((unsigned char *)buffer->base +
 					      buffer->current);
 					buffer->current++;
 				}
