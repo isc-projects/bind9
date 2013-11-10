@@ -36,13 +36,14 @@ LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		isctest.@O@
 
-SRCS =		isctest.c taskpool_test.c hash_test.c sockaddr_test.c \
-		safe_test.c symtab_test.c parse_test.c regex_test.c
+SRCS =		isctest.c taskpool_test.c hash_test.c lex_test.c \
+		sockaddr_test.c safe_test.c symtab_test.c parse_test.c \
+		regex_test.c
 
 SUBDIRS =
-TARGETS =	taskpool_test@EXEEXT@ hash_test@EXEEXT@ sockaddr_test@EXEEXT@ \
-		safe_test@EXEEXT@ symtab_test@EXEEXT@ parse_test@EXEEXT@ \
-		regex_test@EXEEXT@
+TARGETS =	taskpool_test@EXEEXT@ hash_test@EXEEXT@ lex_test@EXEEXT@ \
+		sockaddr_test@EXEEXT@ safe_test@EXEEXT@ symtab_test@EXEEXT@ \
+		parse_test@EXEEXT@ regex_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -57,6 +58,10 @@ symtab_test@EXEEXT@: symtab_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 hash_test@EXEEXT@: hash_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			hash_test.@O@ ${ISCLIBS} ${LIBS}
+
+lex_test@EXEEXT@: lex_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			lex_test.@O@ ${ISCLIBS} ${LIBS}
 
 parse_test@EXEEXT@: parse_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
