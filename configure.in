@@ -3886,6 +3886,8 @@ test "$want_symtable" = "minimal" && \
 test "$want_symtable" = "yes" -o "$want_symtable" = "all" && \
     echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
 test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
+test "$enable_newstats" = "yes" && \
+    echo "    New statistics (--enable-newstats)"
 
 
 # these lines are only printed if run with --enable-full-report 
@@ -3944,6 +3946,7 @@ test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ECDSA" != "yes" && \
     echo "    ECDSA algorithm support (--with-ecdsa)"
 test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
 test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
+test "X$enable_newstats" = "X" && echo "    New statistics (--enable-newstats)"
 
 echo "========================================================================"
 
