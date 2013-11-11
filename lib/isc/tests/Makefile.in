@@ -36,11 +36,11 @@ LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		isctest.@O@
 
-SRCS =		isctest.c hash_test.c test_lex.c safe_test.c sockaddr_test.c \
+SRCS =		isctest.c hash_test.c lex_test.c safe_test.c sockaddr_test.c \
 		symtab_test.c parse_test.c
 
 SUBDIRS =
-TARGETS =	hash_test@EXEEXT@ test_lex.@EXEEXT@ safe_test@EXEEXT@ \
+TARGETS =	hash_test@EXEEXT@ lex_test@EXEEXT@ safe_test@EXEEXT@ \
 		sockaddr_test@EXEEXT@ symtab_test@EXEEXT@ parse_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
