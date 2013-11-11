@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -522,7 +522,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				    != 0) {
 					lex->last_was_eol = ISC_FALSE;
 					tokenp->type = isc_tokentype_initialws;
- 					tokenp->value.as_char = c;
+					tokenp->value.as_char = c;
 					done = ISC_TRUE;
 				}
 			} else if (c == '\n') {
