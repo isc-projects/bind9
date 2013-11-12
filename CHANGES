@@ -1,3 +1,6 @@
+3670.	[bug]		Address read after free in server side of
+			lwres_getrrsetbyname. [RT #29075]
+
 3669.	[port]		freebsd: --with-gssapi needs -lhx509. [RT #35001]
 
 3668.	[bug]		Fix cast in lex.c which could see 0xff treated as eof.
