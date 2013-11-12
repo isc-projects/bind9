@@ -324,9 +324,6 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 				 (grbn->nsigs == 1) ? "" : "s");
 	}
 
-	dns_lookup_destroy(&client->lookup);
-	isc_event_free(&event);
-
 	/*
 	 * Render the packet.
 	 */
@@ -361,6 +358,9 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 		goto out2;
 
 	NS_LWDCLIENT_SETSEND(client);
+
+	dns_lookup_destroy(&client->lookup);
+	isc_event_free(&event);
 
 	return;
 
