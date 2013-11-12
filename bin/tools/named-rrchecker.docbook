@@ -19,7 +19,7 @@
 
 <refentry id="man.named-rrchecker">
   <refentryinfo>
-    <date>Aug 25, 2009</date>
+    <date>August 25, 2009</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle><application>named-rrchecker</application></refentrytitle>
@@ -65,8 +65,8 @@
       option specifies a origin to be used when interpreting the record.
     </para>
     <para>
-      The <option>-p</option> prints out the resulting record in cannonical
-      form.  If there is no cannonical form defined then the record will be
+      The <option>-p</option> prints out the resulting record in canonical
+      form.  If there is no canonical form defined then the record will be
       printed in unknown record format.
     </para>
     <para>
@@ -75,7 +75,7 @@
     </para>
     <para>
       The <option>-C</option>, <option>-T</option> and <option>-P</option>
-      print out the known class, standard type and private type nmeomics
+      print out the known class, standard type and private type mnemonics
       respectively.
     </para>
   </refsect1>
