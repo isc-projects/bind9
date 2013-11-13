@@ -39,22 +39,6 @@ echo "I:checking non-cachable NXDOMAIN response handling using dns_client"
    status=`expr $status + $ret`
 fi
 
-if [ -x ${RESOLVE} ] ; then
-echo "I:checking that local bound address can be set (Can't query from a denied address)"
-   ret=0
-   ${RESOLVE} -b 10.53.0.8 -p 5300 -t a -s 10.53.0.1 www.example.org 2> resolve.out || ret=1
-   grep "resolution failed: failure" resolve.out > /dev/null || ret=1
-   if [ $ret != 0 ]; then echo "I:failed"; fi
-   status=`expr $status + $ret`
-
-echo "I:checking that local bound address can be set (Can query from an allowed address)"
-   ret=0
-   ${RESOLVE} -b 10.53.0.1 -p 5300 -t a -s 10.53.0.1 www.example.org > resolve.out || ret=1
-   grep "www.example.org..*.192.0.2.1" resolve.out > /dev/null || ret=1
-   if [ $ret != 0 ]; then echo "I:failed"; fi
-   status=`expr $status + $ret`
-fi
-
 echo "I:checking non-cachable NODATA response handling"
 ret=0
 $DIG +tcp nodata.example.net @10.53.0.1 a -p 5300 > dig.out || ret=1
