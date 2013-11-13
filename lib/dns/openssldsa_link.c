@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2009, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -522,7 +522,7 @@ openssldsa_tofile(const dst_key_t *key, const char *directory) {
 
 	if (key->keydata.dsa == NULL)
 		return (DST_R_NULLKEY);
-	
+
 	if (key->external) {
 		priv.nelements = 0;
 		return (dst__privstruct_writefile(key, &priv, directory));
