@@ -827,4 +827,19 @@ test ${rrsigs:-0} -eq 2 || { echo "I: failed $alg (rrsigs ${rrsigs:-0})"; ret=1;
 done
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:testing imported key won't overwrite a private key ($n)"
+ret=0
+key=`$KEYGEN -r $RANDFILE -q import.example`
+cp ${key}.key import.key
+# import should fail
+$IMPORTKEY -f import.key import.example > /dev/null 2>&1 && ret=1
+rm -f ${key}.private
+# private key removed; import should now succeed
+$IMPORTKEY -f import.key import.example > /dev/null 2>&1 || ret=1
+# now that it's an external key, re-import should succeed
+$IMPORTKEY -f import.key import.example > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 exit $status

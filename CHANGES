@@ -1,3 +1,6 @@
+3671.	[bug]		Don't allow dnssec-importkey overwrite a existing
+			non-imported private key.
+
 3670.	[bug]		Address read after free in server side of
 			lwres_getrrsetbyname. [RT #29075]
 
@@ -74,7 +77,7 @@
 
 3642.	[func]		Allow externally generated DNSKEY to be imported
 			into the DNSKEY management framework.  A new tool
-			dnssec-importkey is used to this. [RT #34698]
+			dnssec-importkey is used to do this. [RT #34698]
 			
 3641.	[bug]		Handle changes to sig-validity-interval settings
 			better. [RT #34625]
