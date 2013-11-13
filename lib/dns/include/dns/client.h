@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2013  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -151,8 +151,8 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 		   unsigned int options, dns_client_t **clientp);
 
 isc_result_t
-dns_client_createx2(isc_mem_t *mctx, isc_appctx_t *actx, 
-	   isc_taskmgr_t *taskmgr, isc_socketmgr_t *socketmgr, 
+dns_client_createx2(isc_mem_t *mctx, isc_appctx_t *actx,
+	   isc_taskmgr_t *taskmgr, isc_socketmgr_t *socketmgr,
 	   isc_timermgr_t *timermgr, unsigned int options,
 	   dns_client_t **clientp,
 	   isc_sockaddr_t *localaddr4, isc_sockaddr_t *localaddr6);
