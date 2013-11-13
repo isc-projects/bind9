@@ -35,6 +35,10 @@
 #include <isc/mem.h>
 #include <isc/sockaddr.h>
 #include <isc/util.h>
+#include <isc/app.h>
+#include <isc/task.h>
+#include <isc/socket.h>
+#include <isc/timer.h>
 
 #include <irs/resconf.h>
 #include <irs/netdb.h>
@@ -87,7 +91,7 @@ usage(void) {
 	fprintf(stderr, "resolve [-t RRtype] "
 		"[[-a algorithm] [-e] -k keyname -K keystring] "
 		"[-S domain:serveraddr_for_domain ] [-s server_address]"
-		"hostname\n");
+		"[-b address[#port]] hostname\n");
 
 	exit(1);
 }
@@ -251,8 +255,16 @@ main(int argc, char *argv[]) {
 	isc_boolean_t is_sep = ISC_FALSE;
 	const char *port = "53";
 	isc_mem_t *mctx = NULL;
+	isc_appctx_t *actx = NULL;
+	isc_taskmgr_t *taskmgr = NULL;
+	isc_socketmgr_t *socketmgr = NULL;
+	isc_timermgr_t *timermgr = NULL;
+	struct in_addr in4;
+	struct in6_addr in6;
+	isc_sockaddr_t a4, a6;
+	isc_sockaddr_t *addr4 = NULL, *addr6 = NULL;
 
-	while ((ch = getopt(argc, argv, "a:es:t:k:K:p:S:")) != -1) {
+	while ((ch = getopt(argc, argv, "a:b:es:t:k:K:p:S:")) != -1) {
 		switch (ch) {
 		case 't':
 			tr.base = optarg;
@@ -267,6 +279,29 @@ main(int argc, char *argv[]) {
 		case 'a':
 			algname = optarg;
 			break;
+		case 'b':
+			if (inet_pton(AF_INET, optarg, &in4) == 1) {
+				if (addr4 != NULL) {
+					fprintf(stderr, "only one local "
+							"address per family "
+							"can be specified\n");
+					exit(1);
+				}
+				isc_sockaddr_fromin(&a4, &in4, 0);
+				addr4 = &a4;
+			} else if (inet_pton(AF_INET6, optarg, &in6) == 1) {
+				if (addr6 != NULL) {
+					fprintf(stderr, "only one local "
+							"address per family "
+							"can be specified\n");
+					exit(1);
+				}
+				isc_sockaddr_fromin6(&a6, &in6, 0);
+				addr6 = &a6;
+			} else {
+				fprintf(stderr, "invalid address %s\n", optarg);
+				exit(1);
+			}
 		case 'e':
 			is_sep = ISC_TRUE;
 			break;
@@ -334,10 +369,28 @@ main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+	result = isc_appctx_create(mctx, &actx);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = isc_app_ctxstart(actx);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = isc_taskmgr_createinctx(mctx, actx, 1, 0, &taskmgr);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = isc_socketmgr_createinctx(mctx, actx, &socketmgr);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = isc_timermgr_createinctx(mctx, actx, &timermgr);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
 	clientopt = 0;
-	result = dns_client_create(&client, clientopt);
+	result = dns_client_createx2(mctx, actx, taskmgr, socketmgr, timermgr, 
+				    clientopt, &client, addr4, addr6);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_client_create failed: %d\n", result);
+		fprintf(stderr, "dns_client_create failed: %d, %s\n", result, 
+			isc_result_totext(result));
 		exit(1);
 	}
 
@@ -356,10 +409,12 @@ main(int argc, char *argv[]) {
 		result = dns_client_setservers(client, dns_rdataclass_in,
 					       NULL, nameservers);
 		if (result != ISC_R_SUCCESS) {
+			irs_resconf_destroy(&resconf);
 			fprintf(stderr, "dns_client_setservers failed: %d\n",
 				result);
 			exit(1);
 		}
+		irs_resconf_destroy(&resconf);
 	} else {
 		addserver(client, server, port, NULL);
 	}
@@ -390,7 +445,7 @@ main(int argc, char *argv[]) {
 		fprintf(stderr, "failed to convert qname: %d\n", result);
 
 	/* Perform resolution */
-	resopt = 0;
+	resopt = DNS_CLIENTRESOPT_ALLOWRUN;
 	if (keynamestr == NULL)
 		resopt |= DNS_CLIENTRESOPT_NODNSSEC;
 	ISC_LIST_INIT(namelist);
@@ -413,7 +468,19 @@ main(int argc, char *argv[]) {
 	dns_client_freeresanswer(client, &namelist);
 
 	/* Cleanup */
+cleanup:
 	dns_client_destroy(&client);
+
+	if (taskmgr != NULL)
+		isc_taskmgr_destroy(&taskmgr);
+	if (timermgr != NULL)
+		isc_timermgr_destroy(&timermgr);
+	if (socketmgr != NULL)
+		isc_socketmgr_destroy(&socketmgr);
+	if (actx != NULL)
+		isc_appctx_destroy(&actx);
+	isc_mem_detach(&mctx);
+
 	if (keynamestr != NULL)
 		isc_mem_destroy(&keymctx);
 	dns_lib_shutdown();
