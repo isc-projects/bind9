@@ -2360,7 +2360,7 @@ send_tcp_connect(dig_query_t *query) {
 		launch_next_query(query, ISC_TRUE);
 		goto search;
 	}
-	
+
 	result = isc_socket_create(socketmgr,
 				   isc_sockaddr_pf(&query->sockaddr),
 				   isc_sockettype_tcp, &query->sock);
