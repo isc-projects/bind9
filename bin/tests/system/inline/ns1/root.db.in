@@ -12,7 +12,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id$
+; $Id: root.db.in,v 1.8 2012/02/23 06:53:15 marka Exp $
 
 $TTL 300
 . 			IN SOA	gson.nominum.com. a.root.servers.nil. (

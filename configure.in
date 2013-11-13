@@ -3745,6 +3745,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/ecdsa/prereq.sh
 	bin/tests/system/filter-aaaa/Makefile
 	bin/tests/system/gost/prereq.sh
+	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/lwresd/Makefile
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/rrl/Makefile

@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
+# $Id: tests.sh,v 1.18 2012/02/23 06:53:15 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -815,15 +815,35 @@ ret=0
 $DIG $DIGOPTS @10.53.0.3 -p 5300 dnskey externalkey > dig.out.ns3.test$n
 for alg in 3 7 12 13
 do
-if test $alg = 12 
-then
+   if test $alg = 3
+   then
+	sh checkdsa.sh 2>/dev/null || continue;
+   fi
+   if test $alg = 12 
+   then
 	sh ../gost/prereq.sh 2>/dev/null || continue;
-fi
+   fi
+   if test $alg = 13 
+   then
+	sh ../ecdsa/prereq.sh 2>/dev/null || continue;
+	# dsa and ecdsa both require a source of randomness when
+	# generating signatures
+	sh checkdsa.sh 2>/dev/null || continue;
+   fi
+   test $alg = 3 -a ! -r /dev/random -a ! -r /dev/urandom && continue
 
-dnskeys=`grep "IN.DNSKEY.25[67] [0-9]* $alg " dig.out.ns3.test$n | wc -l`
-rrsigs=`grep "RRSIG.DNSKEY $alg " dig.out.ns3.test$n | wc -l`
-test ${dnskeys:-0} -eq 3 || { echo "I: failed $alg (dnskeys ${dnskeys:-0})"; ret=1; }
-test ${rrsigs:-0} -eq 2 || { echo "I: failed $alg (rrsigs ${rrsigs:-0})"; ret=1; }
+   case $alg in
+   3) echo "I: checking DSA";;
+   7) echo "I: checking NSEC3RSASHA1";;
+   12) echo "I: checking GOST";;
+   13) echo "I: checking ECDSAP256SHA256";;
+   *) echo "I: checking $alg";;
+   esac
+
+   dnskeys=`grep "IN.DNSKEY.25[67] [0-9]* $alg " dig.out.ns3.test$n | wc -l`
+   rrsigs=`grep "RRSIG.DNSKEY $alg " dig.out.ns3.test$n | wc -l`
+   test ${dnskeys:-0} -eq 3 || { echo "I: failed $alg (dnskeys ${dnskeys:-0})"; ret=1; }
+   test ${rrsigs:-0} -eq 2 || { echo "I: failed $alg (rrsigs ${rrsigs:-0})"; ret=1; }
 done
 status=`expr $status + $ret`
 

@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
+# $Id: clean.sh,v 1.13 2012/02/23 06:53:15 marka Exp $
 
 rm -f */named.memstats
 rm -f */named.run
