@@ -1,3 +1,6 @@
+3671.	[bug]		Don't allow dnssec-importkey overwrite a existing
+			non-imported private key.
+
 3670.	[bug]		Address read after free in server side of
 			lwres_getrrsetbyname. [RT #29075]
 
