@@ -60,6 +60,9 @@ rm -f ns3/retransfer.bk
 rm -f ns3/retransfer.bk.jnl
 rm -f ns3/retransfer.bk.signed
 rm -f ns3/retransfer.bk.signed.jnl
+rm -f ns3/externalkey.db
+rm -f ns3/externalkey.db.signed
+rm -f ns3/externalkey.db.signed.jnl
 rm -f ns4/K*
 rm -f ns4/noixfr.db
 rm -f ns4/noixfr.db.jnl

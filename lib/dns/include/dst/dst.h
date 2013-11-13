@@ -941,6 +941,12 @@ dst_key_setinactive(dst_key_t *key, isc_boolean_t inactive);
  *	'key' to be valid.
  */
 
+void
+dst_key_setexternal(dst_key_t *key, isc_boolean_t value);
+
+isc_boolean_t
+dst_key_isexternal(dst_key_t *key);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DST_DST_H */

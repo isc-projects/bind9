@@ -578,9 +578,9 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		isc_lex_setcomments(lctx->lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 	}
 
-	lctx->ttl_known = ISC_FALSE;
+	lctx->ttl_known = ISC_TF((options & DNS_MASTER_NOTTL) != 0);
 	lctx->ttl = 0;
-	lctx->default_ttl_known = ISC_FALSE;
+	lctx->default_ttl_known = lctx->ttl_known;
 	lctx->default_ttl = 0;
 	lctx->warn_1035 = ISC_TRUE;	/* XXX Argument? */
 	lctx->warn_tcr = ISC_TRUE;	/* XXX Argument? */

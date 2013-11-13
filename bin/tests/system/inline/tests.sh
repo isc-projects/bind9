@@ -809,7 +809,22 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 addzone test-$zone \
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 delzone test-$zone
 done
 
-if [ $ret != 0 ]; then echo "I:failed"; fi
+n=`expr $n + 1`
+echo "I:testing adding external keys to a inline zone ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 -p 5300 dnskey externalkey > dig.out.ns3.test$n
+for alg in 3 7 12 13
+do
+if test $alg = 12 
+then
+	sh ../gost/prereq.sh 2>/dev/null || continue;
+fi
+
+dnskeys=`grep "IN.DNSKEY.25[67] [0-9]* $alg " dig.out.ns3.test$n | wc -l`
+rrsigs=`grep "RRSIG.DNSKEY $alg " dig.out.ns3.test$n | wc -l`
+test ${dnskeys:-0} -eq 3 || { echo "I: failed $alg (dnskeys ${dnskeys:-0})"; ret=1; }
+test ${rrsigs:-0} -eq 2 || { echo "I: failed $alg (rrsigs ${rrsigs:-0})"; ret=1; }
+done
 status=`expr $status + $ret`
 
 exit $status

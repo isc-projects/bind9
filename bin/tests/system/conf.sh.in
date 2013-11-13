@@ -42,6 +42,7 @@ SIGNER=$TOP/bin/dnssec/dnssec-signzone
 REVOKE=$TOP/bin/dnssec/dnssec-revoke
 SETTIME=$TOP/bin/dnssec/dnssec-settime
 DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey
+IMPORTKEY=$TOP/bin/dnssec/dnssec-importkey
 CHECKDS=$TOP/bin/python/dnssec-checkds
 COVERAGE=$TOP/bin/python/dnssec-coverage
 CHECKZONE=$TOP/bin/check/named-checkzone

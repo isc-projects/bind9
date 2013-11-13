@@ -57,6 +57,7 @@
 
 #define DNS_MASTER_RESIGN	0x00002000
 #define DNS_MASTER_KEY	 	0x00004000	/*%< Loading a key zone master file. */
+#define DNS_MASTER_NOTTL	0x00008000	/*%< Don't require ttl. */
 
 ISC_LANG_BEGINDECLS
 

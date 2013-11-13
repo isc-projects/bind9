@@ -128,6 +128,7 @@ struct dst_key {
 	isc_boolean_t	numset[DST_MAX_NUMERIC + 1]; /*%< data set? */
 	isc_boolean_t 	inactive;      /*%< private key not present as it is
 					    inactive */
+	isc_boolean_t 	external;      /*%< external key */
 
 	int		fmt_major;     /*%< private key format, major version */
 	int		fmt_minor;     /*%< private key format, minor version */
