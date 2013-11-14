@@ -535,8 +535,9 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		    (msg->rcode == dns_rcode_formerr ||
 		     msg->rcode == dns_rcode_notimp))
 			printf("\n;; WARNING: EDNS query returned status "
-			       "%s - retry with '+noedns'\n",
-			       rcode_totext(msg->rcode));
+			       "%s - retry with '%s+noedns'\n",
+			       rcode_totext(msg->rcode),
+			       query->lookup->dnssec ? "+nodnssec ": "");
 		if (msg != query->lookup->sendmsg && extrabytes != 0U)
 			printf(";; WARNING: Message has %u extra byte%s at "
 			       "end\n", extrabytes, extrabytes != 0 ? "s" : "");
