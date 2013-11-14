@@ -204,6 +204,8 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	lwres_grbnresponse_t *grbn;
 	int i;
 
+	REQUIRE(event != NULL);
+
 	UNUSED(task);
 
 	lwb.base = NULL;
@@ -384,8 +386,7 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	if (lwb.base != NULL)
 		lwres_context_freemem(cm->lwctx, lwb.base, lwb.length);
 
-	if (event != NULL)
-		isc_event_free(&event);
+	isc_event_free(&event);
 
 	ns_lwdclient_log(50, "error constructing getrrsetbyname response");
 	ns_lwdclient_errorpktsend(client, LWRES_R_FAILURE);
