@@ -249,13 +249,14 @@ static isc_result_t send_update(updatectx_t *uctx);
 static isc_result_t
 getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 	       isc_socketmgr_t *socketmgr, isc_taskmgr_t *taskmgr,
-	       isc_boolean_t is_shared, dns_dispatch_t **dispp)
+	       isc_boolean_t is_shared, dns_dispatch_t **dispp,
+	       isc_sockaddr_t *localaddr)
 {
 	unsigned int attrs, attrmask;
-	isc_sockaddr_t sa;
 	dns_dispatch_t *disp;
 	unsigned buffersize, maxbuffers, maxrequests, buckets, increment;
 	isc_result_t result;
+	isc_sockaddr_t anyaddr;
 
 	attrs = 0;
 	attrs |= DNS_DISPATCHATTR_UDP;
@@ -275,7 +276,10 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 	attrmask |= DNS_DISPATCHATTR_IPV4;
 	attrmask |= DNS_DISPATCHATTR_IPV6;
 
-	isc_sockaddr_anyofpf(&sa, family);
+	if (localaddr == NULL) {
+		localaddr = &anyaddr;
+		isc_sockaddr_anyofpf(localaddr, family);
+	}
 
 	buffersize = 4096;
 	maxbuffers = is_shared ? 1000 : 8;
@@ -285,7 +289,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 
 	disp = NULL;
 	result = dns_dispatch_getudp(dispatchmgr, socketmgr,
-				     taskmgr, &sa,
+				     taskmgr, localaddr,
 				     buffersize, maxbuffers, maxrequests,
 				     buckets, increment,
 				     attrs, attrmask, &disp);
@@ -422,6 +426,19 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 		   isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
 		   unsigned int options, dns_client_t **clientp)
 {
+	isc_result_t result;
+	result = dns_client_createx2(mctx, actx, taskmgr, socketmgr, timermgr,
+				     options, clientp, NULL, NULL);
+	return (result);
+}
+
+isc_result_t
+dns_client_createx2(isc_mem_t *mctx, isc_appctx_t *actx,
+		    isc_taskmgr_t *taskmgr, isc_socketmgr_t *socketmgr,
+		    isc_timermgr_t *timermgr, unsigned int options,
+		    dns_client_t **clientp, isc_sockaddr_t *localaddr4,
+		    isc_sockaddr_t *localaddr6)
+{
 	dns_client_t *client;
 	isc_result_t result;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
@@ -460,17 +477,27 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 		goto cleanup;
 	client->dispatchmgr = dispatchmgr;
 
-	/* TODO: whether to use dispatch v4 or v6 should be configurable */
+	/*
+	 * If only one address family is specified, use it.
+	 * If neither family is specified, or if both are, use both.
+	 */
 	client->dispatchv4 = NULL;
+	if (localaddr4 != NULL || localaddr6 == NULL) {
+		result = getudpdispatch(AF_INET, dispatchmgr, socketmgr,
+					taskmgr, ISC_TRUE,
+					&dispatchv4, localaddr4);
+		if (result == ISC_R_SUCCESS)
+			client->dispatchv4 = dispatchv4;
+	}
+
 	client->dispatchv6 = NULL;
-	result = getudpdispatch(AF_INET, dispatchmgr, socketmgr,
-				taskmgr, ISC_TRUE, &dispatchv4);
-	if (result == ISC_R_SUCCESS)
-		client->dispatchv4 = dispatchv4;
-	result = getudpdispatch(AF_INET6, dispatchmgr, socketmgr,
-				taskmgr, ISC_TRUE, &dispatchv6);
-	if (result == ISC_R_SUCCESS)
-		client->dispatchv6 = dispatchv6;
+	if (localaddr6 != NULL || localaddr4 == NULL) {
+		result = getudpdispatch(AF_INET6, dispatchmgr, socketmgr,
+					taskmgr, ISC_TRUE,
+					&dispatchv6, localaddr6);
+		if (result == ISC_R_SUCCESS)
+			client->dispatchv6 = dispatchv6;
+	}
 
 	/* We need at least one of the dispatchers */
 	if (dispatchv4 == NULL && dispatchv6 == NULL) {

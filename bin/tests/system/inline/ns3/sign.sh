@@ -128,7 +128,9 @@ rm -f ${k3}.* ${k4}.*
 #
 # Convert k1 and k2 in to External Keys.
 rm -f $k1.private 
-$IMPORTKEY -P now -D now+3600 -f $k1.key $zone > /dev/null 2>&1
+mv $k1.key a-file
+$IMPORTKEY -P now -D now+3600 -f a-file $zone > /dev/null 2>&1
 rm -f $k2.private 
-$IMPORTKEY -f $k2.key $zone > /dev/null 2>&1
+mv $k2.key a-file
+$IMPORTKEY -f a-file $zone > /dev/null 2>&1
 done

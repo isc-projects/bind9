@@ -3326,6 +3326,9 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug, isc_stdtime_t now) {
 	dns_adbentry_t *entry;
 
 	fprintf(f, ";\n; Address database dump\n;\n");
+	fprintf(f, "; [edns success/4096 timeout/1432 timeout/1232 timeout/"
+		"512 timeout]\n");
+	fprintf(f, "; [plain success/timeout]\n;\n");
 	if (debug)
 		fprintf(f, "; addr %p, erefcnt %u, irefcnt %u, finds out %u\n",
 			adb, adb->erefcnt, adb->irefcnt,

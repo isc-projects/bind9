@@ -61,7 +61,9 @@ static dns_fixedname_t	fixed;
 static dns_name_t	*name = NULL;
 static isc_mem_t	*mctx = NULL;
 static isc_boolean_t	setpub = ISC_FALSE, setdel = ISC_FALSE;
+static isc_boolean_t	setttl = ISC_FALSE;
 static isc_stdtime_t	pub = 0, del = 0;
+static dns_ttl_t	ttl = 0;
 
 static isc_result_t
 initname(char *setname) {
@@ -190,9 +192,10 @@ static void
 emit(const char *dir, dns_rdata_t *rdata) {
 	isc_result_t result;
 	char keystr[DST_KEY_FORMATSIZE];
-	char newname[1024];
+	char pubname[1024];
+	char priname[1024];
 	isc_buffer_t buf;
-	dst_key_t *key = NULL;
+	dst_key_t *key = NULL, *tmp = NULL;
 
 	isc_buffer_init(&buf, rdata->data, rdata->length);
 	isc_buffer_add(&buf, rdata->length);
@@ -201,18 +204,36 @@ emit(const char *dir, dns_rdata_t *rdata) {
 		fatal("dst_key_fromdns: %s", isc_result_totext(result));
 	}
 
-	dst_key_setexternal(key, ISC_TRUE);
-	if (setpub)
-		dst_key_settime(key, DST_TIME_PUBLISH, pub);
-	if (setdel)
-		dst_key_settime(key, DST_TIME_DELETE, del);
-
-	isc_buffer_init(&buf, newname, sizeof(newname));
+	isc_buffer_init(&buf, pubname, sizeof(pubname));
 	result = dst_key_buildfilename(key, DST_TYPE_PUBLIC, dir, &buf);
 	if (result != ISC_R_SUCCESS) {
 		fatal("Failed to build public key filename: %s",
 		      isc_result_totext(result));
 	}
+	isc_buffer_init(&buf, priname, sizeof(priname));
+	result = dst_key_buildfilename(key, DST_TYPE_PRIVATE, dir, &buf);
+	if (result != ISC_R_SUCCESS) {
+		fatal("Failed to build private key filename: %s",
+		      isc_result_totext(result));
+	}
+
+	result = dst_key_fromfile(dst_key_name(key), dst_key_id(key),
+				  dst_key_alg(key),
+				  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
+				  dir, mctx, &tmp);
+	if (result == ISC_R_SUCCESS) {
+		if (dst_key_isprivate(tmp) && !dst_key_isexternal(tmp))
+			fatal("Private key already exists in %s", priname);
+		dst_key_free(&tmp);
+	}
+
+	dst_key_setexternal(key, ISC_TRUE);
+	if (setpub)
+		dst_key_settime(key, DST_TIME_PUBLISH, pub);
+	if (setdel)
+		dst_key_settime(key, DST_TIME_DELETE, del);
+	if (setttl)
+		dst_key_setttl(key, ttl);
 
 	result = dst_key_tofile(key, DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 				dir);
@@ -221,8 +242,7 @@ emit(const char *dir, dns_rdata_t *rdata) {
 		fatal("Failed to write key %s: %s", keystr,
 		      isc_result_totext(result));
 	}
-
-	printf("%s\n", newname);
+	printf("%s\n", pubname);
 
 	isc_buffer_clear(&buf);
 	result = dst_key_buildfilename(key, DST_TYPE_PRIVATE, dir, &buf);
@@ -230,7 +250,7 @@ emit(const char *dir, dns_rdata_t *rdata) {
 		fatal("Failed to build private key filename: %s",
 		      isc_result_totext(result));
 	}
-	printf("%s\n", newname);
+	printf("%s\n", priname);
 	dst_key_free(&key);
 }
 
@@ -240,13 +260,21 @@ usage(void) ISC_PLATFORM_NORETURN_POST;
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr,	"    %s options [-K dir] file\n\n", program);
+	fprintf(stderr,	"    %s options [-K dir] keyfile\n\n", program);
+	fprintf(stderr, "    %s options -f file [keyname]\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "    -v <verbose level>\n");
+	fprintf(stderr, "    -f file: read key from zone file\n");
 	fprintf(stderr, "    -K <directory>: directory in which to store "
-			"the keyset files\n");
-	fprintf(stderr, "    -f file: read keyset from zone file\n");
+				"the key files\n");
+	fprintf(stderr, "    -L ttl:             set default key TTL\n");
+	fprintf(stderr, "    -v <verbose level>\n");
+	fprintf(stderr, "    -h: print usage and exit\n");
+	fprintf(stderr, "Timing options:\n");
+	fprintf(stderr, "    -P date/[+-]offset/none: set/unset key "
+						     "publication date\n");
+	fprintf(stderr, "    -D date/[+-]offset/none: set/unset key "
+						     "deletion date\n");
 
 	exit (-1);
 }
@@ -278,7 +306,8 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((ch = isc_commandline_parse(argc, argv, "D:f:hK:P:v:")) != -1) {
+#define CMDLINE_FLAGS "D:f:hK:L:P:v:"
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case 'D':
 			if (setdel)
@@ -291,6 +320,13 @@ main(int argc, char **argv) {
 			dir = isc_commandline_argument;
 			if (strlen(dir) == 0U)
 				fatal("directory must be non-empty string");
+			break;
+		case 'L':
+			if (strcmp(isc_commandline_argument, "none") == 0)
+				ttl = 0;
+			else
+				ttl = strtottl(isc_commandline_argument);
+			setttl = ISC_TRUE;
 			break;
 		case 'P':
 			if (setpub)
@@ -346,8 +382,8 @@ main(int argc, char **argv) {
 	dns_rdataset_init(&rdataset);
 
 	if (filename != NULL) {
-		if (argc < isc_commandline_index + 1 && filename != NULL) {
-			/* using zone name as the zone file name */
+		if (argc < isc_commandline_index + 1) {
+			/* using filename as zone name */
 			namestr = filename;
 		} else
 			namestr = argv[isc_commandline_index];
