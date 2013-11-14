@@ -301,3 +301,9 @@ isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type) {
 
 	return (ISC_R_SUCCESS);
 }
+
+unsigned int
+isc_symtab_count(isc_symtab_t *symtab) {
+	REQUIRE(VALID_SYMTAB(symtab));
+	return (symtab->count);
+}

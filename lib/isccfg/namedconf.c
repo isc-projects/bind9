@@ -1666,6 +1666,7 @@ zone_only_clauses[] = {
 	 * the zone options and the global/view options.  Ugh.
 	 */
 	{ "check-names", &cfg_type_checkmode, 0 },
+	{ "in-view", &cfg_type_astring, 0 },
 	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
 	{ "server-addresses", &cfg_type_bracketed_sockaddrlist, 0 },
 	{ "server-names", &cfg_type_namelist, 0 },

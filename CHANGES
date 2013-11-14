@@ -1,3 +1,6 @@
+3673.	[func]		New "in-view" zone option allows direct sharing
+			of zones between views. [RT #32968]
+
 3672.	[func]		Local address can now be specified when using
 			dns_client API. [RT #34811]
 

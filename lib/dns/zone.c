@@ -1932,6 +1932,10 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
 	if (zone->zmgr == NULL)
 		return (ISC_R_FAILURE);
 
+	/* If we already have a load pending, stop now */
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
+		done(arg, zone, NULL);
+
 	asl = isc_mem_get(zone->mctx, sizeof (*asl));
 	if (asl == NULL)
 		CHECK(ISC_R_NOMEMORY);
