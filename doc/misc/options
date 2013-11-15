@@ -564,6 +564,7 @@ view <string> <optional_class> {
                 forwarders [ port <integer> ] [ dscp <integer> ] { (
                     <ipv4_address> | <ipv6_address> ) [ port <integer> ] [
                     dscp <integer> ]; ... };
+                in-view <string>;
                 inline-signing <boolean>;
                 ixfr-base <quoted_string>; // obsolete
                 ixfr-from-differences <boolean>;
@@ -661,6 +662,7 @@ zone <string> <optional_class> {
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
+        in-view <string>;
         inline-signing <boolean>;
         ixfr-base <quoted_string>; // obsolete
         ixfr-from-differences <boolean>;
