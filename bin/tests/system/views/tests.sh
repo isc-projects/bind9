@@ -105,7 +105,7 @@ ret=0
 one=`$DIG +tcp +short -p 5300 -b 10.53.0.2 @10.53.0.2 child.clone txt`
 two=`$DIG +tcp +short -p 5300 -b 10.53.0.4 @10.53.0.2 child.clone txt`
 three=`$DIG +tcp +short -p 5300 @10.53.0.3 child.clone txt`
-four=`$DIG +tcp +short -p 5300 @10.53.0.4 child.clone txt`
+four=`$DIG +tcp +short -p 5300 @10.53.0.5 child.clone txt`
 if [ "$one" = "$two" ]; then
         echo "'$one' matches '$two'"
         ret=1

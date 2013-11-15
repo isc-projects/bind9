@@ -22,5 +22,5 @@ $TTL 300	; 5 minutes
 			3600       ; minimum (1 hour)
 			)
 @		NS	ns3
-@		TXT	This is NS4.
+@		TXT	This is NS5.
 ns3		A	10.53.0.3
