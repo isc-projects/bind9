@@ -106,6 +106,8 @@ one=`$DIG +tcp +short -p 5300 -b 10.53.0.2 @10.53.0.2 child.clone txt`
 two=`$DIG +tcp +short -p 5300 -b 10.53.0.4 @10.53.0.2 child.clone txt`
 three=`$DIG +tcp +short -p 5300 @10.53.0.3 child.clone txt`
 four=`$DIG +tcp +short -p 5300 @10.53.0.5 child.clone txt`
+echo "$three" | grep NS3 > /dev/null || { ret=1; echo "expected response from NS3 got '$three'"; }
+echo "$four" | grep NS5 > /dev/null || { ret=1; echo "expected response from NS5 got '$four'"; }
 if [ "$one" = "$two" ]; then
         echo "'$one' matches '$two'"
         ret=1
