@@ -10792,6 +10792,10 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     type delegation-only;
 };
 
+zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+    <optional> in-view <replaceable>string</replaceable> ; </optional>
+};
+
 </programlisting>
 
         </sect2>
@@ -11138,8 +11142,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
               in the mid-1970s. Zone data for it can be specified with the <literal>CHAOS</literal> class.
             </para>
           </sect3>
-          <sect3>
 
+          <sect3>
             <title>Zone Options</title>
 
             <variablelist>
@@ -12327,6 +12331,52 @@ example.com. NS ns2.example.net.
 	      checked for each existing record type.
 	    </para>
           </sect3>
+
+          <sect3>
+            <title>Multiple views</title>
+            <para>
+              When multiple views are in use, a zone may be
+              referenced by more than one of them. Often, the views
+              will contain different zones with the same name, allowing
+              different clients to receive different answers for the same
+              queries. At times, however, it is desirable for multiple
+              views to contain identical zones.  The
+              <command>in-view</command> zone option provides an efficient
+              way to do this: it allows a view to reference a zone that
+              was defined in a previously configured view. Example:
+            </para>
+            <programlisting>
+view internal {
+    match-clients { 10/8; };
+
+    zone example.com {
+        type master;
+        file "example-external.db";
+    };
+};
+
+view external {
+    match-clients { any; };
+
+    zone example.com {
+        in-view internal;
+    };
+};
+            </programlisting>
+            <para>
+              An <command>in-view</command> option cannot refer to a view
+              that is configured later in the configuration file.
+            </para>
+            <para>
+              A <command>zone</command> statement which uses the
+              <command>in-view</command> option may not use any other
+              options with the exception of <command>forward</command>
+              and <command>forwarders</command>. (These options control
+              the behavior of the containing view, rather than changing
+              the zone object itself.)
+            </para>
+          </sect3>
+
         </sect2>
       </sect1>
       <sect1>

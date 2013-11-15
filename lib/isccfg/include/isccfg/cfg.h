@@ -193,6 +193,18 @@ cfg_map_getname(const cfg_obj_t *mapobj);
  *	or NULL if the map object does not have a name.
  */
 
+unsigned int
+cfg_map_count(const cfg_obj_t *mapobj);
+/*%<
+ * Get the number of elements defined in the symbol table of a map object.
+ *
+ * Requires:
+ *    \li  'mapobj' points to a valid configuration object of a map type.
+ *
+ * Returns:
+ * \li     The number of elements in the map object.
+ */
+
 isc_boolean_t
 cfg_obj_istuple(const cfg_obj_t *obj);
 /*%<

@@ -1605,6 +1605,13 @@ cfg_map_getname(const cfg_obj_t *mapobj) {
 	return (mapobj->value.map.id);
 }
 
+unsigned int
+cfg_map_count(const cfg_obj_t *mapobj) {
+	const cfg_map_t *map;
+	REQUIRE(mapobj != NULL && mapobj->type->rep == &cfg_rep_map);
+	map = &mapobj->value.map;
+	return (isc_symtab_count(map->symtab));
+}
 
 /* Parse an arbitrary token, storing its raw text representation. */
 static isc_result_t

@@ -1510,6 +1510,28 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		cfg_map_get(config, "options", &goptions);
 
 	obj = NULL;
+	(void)cfg_map_get(zoptions, "in-view", &obj);
+	if (obj != NULL) {
+		const cfg_obj_t *fwd = NULL;
+		unsigned int maxopts = 1;
+		(void)cfg_map_get(zoptions, "forward", &fwd);
+		if (fwd != NULL)
+			maxopts++;
+		fwd = NULL;
+		(void)cfg_map_get(zoptions, "forwarders", &fwd);
+		if (fwd != NULL)
+			maxopts++;
+		if (cfg_map_count(zoptions) > maxopts) {
+			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+				    "zone '%s': 'in-view' used "
+				    "with incompatible zone options",
+				    znamestr);
+			return (ISC_R_FAILURE);
+		}
+		return (ISC_R_SUCCESS);
+	}
+
+	obj = NULL;
 	(void)cfg_map_get(zoptions, "type", &obj);
 	if (obj == NULL) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,

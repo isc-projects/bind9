@@ -302,6 +302,7 @@ main(int argc, char *argv[]) {
 				fprintf(stderr, "invalid address %s\n", optarg);
 				exit(1);
 			}
+			break;
 		case 'e':
 			is_sep = ISC_TRUE;
 			break;

@@ -379,8 +379,8 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 static isc_result_t
 configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       const cfg_obj_t *vconfig, isc_mem_t *mctx, dns_view_t *view,
-	       cfg_aclconfctx_t *aclconf, isc_boolean_t added,
-	       isc_boolean_t old_rpz_ok);
+	       dns_viewlist_t *viewlist, cfg_aclconfctx_t *aclconf,
+	       isc_boolean_t added, isc_boolean_t old_rpz_ok);
 
 static isc_result_t
 add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx);
@@ -2255,7 +2255,8 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
  * global defaults in 'config' used exclusively.
  */
 static isc_result_t
-configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
+configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
+	       cfg_obj_t *config, cfg_obj_t *vconfig,
 	       ns_cachelist_t *cachelist, const cfg_obj_t *bindkeys,
 	       isc_mem_t *mctx, cfg_aclconfctx_t *actx,
 	       isc_boolean_t need_hints)
@@ -2431,7 +2432,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	{
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		CHECK(configure_zone(config, zconfig, vconfig, mctx, view,
-				     actx, ISC_FALSE, old_rpz_ok));
+				     viewlist, actx, ISC_FALSE, old_rpz_ok));
 	}
 
 	/*
@@ -2478,7 +2479,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		{
 			const cfg_obj_t *zconfig = cfg_listelt_value(element);
 			CHECK(configure_zone(config, zconfig, vconfig,
-					     mctx, view, actx,
+					     mctx, view, NULL, actx,
 					     ISC_TRUE, ISC_FALSE));
 		}
 	}
@@ -4009,8 +4010,8 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 static isc_result_t
 configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       const cfg_obj_t *vconfig, isc_mem_t *mctx, dns_view_t *view,
-	       cfg_aclconfctx_t *aclconf, isc_boolean_t added,
-	       isc_boolean_t old_rpz_ok)
+	       dns_viewlist_t *viewlist, cfg_aclconfctx_t *aclconf,
+	       isc_boolean_t added, isc_boolean_t old_rpz_ok)
 {
 	dns_view_t *pview = NULL;	/* Production view */
 	dns_zone_t *zone = NULL;	/* New or reused zone */
@@ -4023,6 +4024,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	const cfg_obj_t *forwardtype = NULL;
 	const cfg_obj_t *only = NULL;
 	const cfg_obj_t *signing = NULL;
+	const cfg_obj_t *viewobj = NULL;
 	isc_result_t result;
 	isc_result_t tresult;
 	isc_buffer_t buffer;
@@ -4067,11 +4069,64 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		goto cleanup;
 	}
 
+	(void)cfg_map_get(zoptions, "in-view", &viewobj);
+	if (viewobj != NULL) {
+		const char *inview = cfg_obj_asstring(viewobj);
+		dns_view_t *otherview = NULL;
+
+		if (viewlist == NULL) {
+			cfg_obj_log(zconfig, ns_g_lctx, ISC_LOG_ERROR,
+				    "'in-view' option is not permitted in "
+				    "dynamically added zones");
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
+
+		result = dns_viewlist_find(viewlist, inview, view->rdclass,
+					   &otherview);
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(zconfig, ns_g_lctx, ISC_LOG_ERROR,
+				    "view '%s' is not yet defined.", inview);
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
+
+		result = dns_view_findzone(otherview, origin, &zone);
+		dns_view_detach(&otherview);
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(zconfig, ns_g_lctx, ISC_LOG_ERROR,
+				    "zone '%s' not defined in view '%s'",
+				    zname, inview);
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
+
+		CHECK(dns_view_addzone(view, zone));
+		dns_zone_detach(&zone);
+
+		/*
+		 * If the zone contains a 'forwarders' statement, configure
+		 * selective forwarding.  Note: this is not inherited from the
+		 * other view.
+		 */
+		forwarders = NULL;
+		result = cfg_map_get(zoptions, "forwarders", &forwarders);
+		if (result == ISC_R_SUCCESS) {
+			forwardtype = NULL;
+			(void)cfg_map_get(zoptions, "forward", &forwardtype);
+			CHECK(configure_forward(config, view, origin,
+						forwarders, forwardtype));
+		}
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+
 	(void)cfg_map_get(zoptions, "type", &typeobj);
 	if (typeobj == NULL) {
 		cfg_obj_log(zconfig, ns_g_lctx, ISC_LOG_ERROR,
 			    "zone '%s' 'type' not specified", zname);
-		return (ISC_R_FAILURE);
+		result = ISC_R_FAILURE;
+		goto cleanup;
 	}
 	ztypestr = cfg_obj_asstring(typeobj);
 
@@ -4154,7 +4209,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			result = ISC_R_EXISTS;
 			goto cleanup;
 		}
-		result = dns_viewlist_find(&ns_g_server->viewlist, view->name,
+		result = dns_viewlist_find(viewlist, view->name,
 					   view->rdclass, &pview);
 		if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 			goto cleanup;
@@ -5699,7 +5754,7 @@ load_configuration(const char *filename, ns_server_t *server,
 
 		view = NULL;
 		CHECK(find_view(vconfig, &viewlist, &view));
-		CHECK(configure_view(view, config, vconfig,
+		CHECK(configure_view(view, &viewlist, config, vconfig,
 				     &cachelist, bindkeys, ns_g_mctx,
 				     ns_g_aclconfctx, ISC_TRUE));
 		dns_view_freeze(view);
@@ -5713,7 +5768,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (views == NULL) {
 		view = NULL;
 		CHECK(find_view(NULL, &viewlist, &view));
-		CHECK(configure_view(view, config, NULL,
+		CHECK(configure_view(view, &viewlist, config, NULL,
 				     &cachelist, bindkeys,
 				     ns_g_mctx, ns_g_aclconfctx, ISC_TRUE));
 		dns_view_freeze(view);
@@ -5733,7 +5788,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		cfg_obj_t *vconfig = cfg_listelt_value(element);
 
 		CHECK(create_view(vconfig, &builtin_viewlist, &view));
-		CHECK(configure_view(view, config, vconfig,
+		CHECK(configure_view(view, &viewlist, config, vconfig,
 				     &cachelist, bindkeys,
 				     ns_g_mctx, ns_g_aclconfctx, ISC_FALSE));
 		dns_view_freeze(view);
@@ -8616,8 +8671,8 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, parms, vconfig,
-				server->mctx, view, cfg->actx, ISC_FALSE,
-				ISC_FALSE);
+				server->mctx, view, NULL, cfg->actx,
+				ISC_FALSE, ISC_FALSE);
 	dns_view_freeze(view);
 	isc_task_endexclusive(server->task);
 	if (result != ISC_R_SUCCESS)
