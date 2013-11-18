@@ -543,14 +543,14 @@ fatal(const char *format, ...) {
 void
 debug(const char *format, ...) {
 	va_list args;
+	isc_time_t t;
 
 	if (debugging) {
 		fflush(stdout);
 		if (debugtiming) {
-			struct timeval tv;
-			(void)gettimeofday(&tv, NULL);
-			fprintf(stderr, "%ld.%06ld: ", (long)tv.tv_sec,
-				(long)tv.tv_usec);
+			TIME_NOW(&t);
+			fprintf(stderr, "%d.%06d: ",
+				t.seconds, t.nanoseconds / 1000);
 		}
 		va_start(args, format);
 		vfprintf(stderr, format, args);
