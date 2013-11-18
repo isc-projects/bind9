@@ -507,5 +507,10 @@ if test -n "$EMSGS"; then
     egrep 'invalid rpz|rpz.*failed' ns*/named.run | sed -e '10,$d' -e 's/^/I:  /'
 fi
 
+echo "I:checking that ttl values are not zeroed when qtype is '*'"
+$DIG +noall +answer -p 5300 @$ns3 any a3-2.tld2 > dig.out.any
+ttl=`awk '/a3-2 tld2 text/ {print $2}' dig.out.any`
+if test ${ttl:=0} -eq 0; then setret I:failed; fi
+
 echo "I:exit status: $status"
 exit $status
