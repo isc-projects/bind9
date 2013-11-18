@@ -45,7 +45,7 @@
 3660.	[cleanup]	Changed the name of "isc-config.sh" to "bind9-config".
 			[RT #23825]
 
-3659.	[port]		solaris: don't add explict dependancies/rules for
+3659.	[port]		solaris: don't add explict dependencies/rules for
 			python programs as make won't use the implicit rules.
 			[RT #34835]
 
@@ -572,7 +572,7 @@
 			amplification attacks by rate-limiting substantially-
 			identical responses. [RT #28130]
 
-3493.	[contrib]	Added BDBHPT dynamically-lodable DLZ module,
+3493.	[contrib]	Added BDBHPT dynamically-loadable DLZ module,
 			contributed by Mark Goldfinch. [RT #32549]
 
 3492.	[bug]		Fixed a regression in zone loading performance
@@ -4862,7 +4862,7 @@
 
 2205.	[bug]		libbind: change #2119 broke thread support. [RT #16982]
 
-2204.	[bug]		"rndc flushanme name unknown-view" caused named
+2204.	[bug]		"rndc flushname name unknown-view" caused named
 			to crash. [RT #16984]
 
 2203.	[security]	Query id generation was cryptographically weak.
