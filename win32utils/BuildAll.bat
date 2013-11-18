@@ -127,6 +127,7 @@ nmake /nologo -f genrandom.mak CFG="genrandom - Win32 Release"  NO_EXTERNAL_DEPS
 nmake /nologo -f nsec3hash.mak CFG="nsec3hash - Win32 Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f journalprint.mak CFG="journalprint - Win32 Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f ischmacfixup.mak CFG="ischmacfixup - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f rrchecker.mak CFG="rrchecker - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 rem This is the BIND 9 Installer
 

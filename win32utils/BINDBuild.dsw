@@ -768,6 +768,24 @@ Package=<4>
 
 ###############################################################################
 
+Project: "rrchecker"="..\bin\tools\win32\rrchecker.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libdns
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Global:
 
 Package=<5>

@@ -71,6 +71,8 @@ $path = "..\\..\\";
              "../bin/rndc/win32/rndc.mak",
              "../bin/tools/win32/journalprint.dsp",
              "../bin/tools/win32/journalprint.mak",
+             "../bin/tools/win32/rrchecker.dsp",
+             "../bin/tools/win32/rrchecker.mak",
              "../lib/bind9/win32/libbind9.dsp",
              "../lib/bind9/win32/libbind9.mak",
              "../lib/dns/win32/libdns.dsp",
