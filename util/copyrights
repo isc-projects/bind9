@@ -1807,6 +1807,9 @@
 ./bin/tools/win32/nsec3hash.dsp			X	2009
 ./bin/tools/win32/nsec3hash.dsw			X	2009
 ./bin/tools/win32/nsec3hash.mak			X	2009
+./bin/tools/win32/rrchecker.dsp			X	2013
+./bin/tools/win32/rrchecker.dsw			X	2013
+./bin/tools/win32/rrchecker.mak			X	2013
 ./bin/win32/BINDInstall/AccountInfo.cpp		C.PORTION	2001,2002,2004,2007,2009
 ./bin/win32/BINDInstall/AccountInfo.h		C	2001,2004,2007
 ./bin/win32/BINDInstall/BINDInstall.cpp		C.PORTION	2001,2004,2007,2009
