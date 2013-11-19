@@ -94,6 +94,8 @@ BIND 9.10.0
            by default.
 	 - "named" now preserves the capitalization of names when
            responding to queries.
+         - New 'named-rrchecker' tool to verify the syntactic
+           correctness of individual resource records.
 
 BIND 9.9.0
 
