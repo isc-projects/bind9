@@ -171,7 +171,7 @@ main(int argc, char *argv[]) {
 		 * Get class.
 		 */
 		if (token.type == isc_tokentype_number) {
-			rdclass = token.value.as_ulong;
+			rdclass = (dns_rdataclass_t) token.value.as_ulong;
 			if (token.value.as_ulong > 0xffffu) {
 				fprintf(stderr, "class value too big %lu\n",
 					token.value.as_ulong);
@@ -219,7 +219,7 @@ main(int argc, char *argv[]) {
 		 * Get type.
 		 */
 		if (token.type == isc_tokentype_number) {
-			rdtype = token.value.as_ulong;
+			rdtype = (dns_rdatatype_t) token.value.as_ulong;
 			if (token.value.as_ulong > 0xffffu) {
 				fprintf(stderr, "type value too big %lu\n",
 					token.value.as_ulong);
