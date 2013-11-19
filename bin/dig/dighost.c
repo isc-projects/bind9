@@ -523,8 +523,8 @@ debug(const char *format, ...) {
 		fflush(stdout);
 		if (debugtiming) {
 			TIME_NOW(&t);
-			fprintf(stderr, "%d.%06d: ",
-				t.seconds, t.nanoseconds / 1000);
+			fprintf(stderr, "%d.%06d: ", isc_time_seconds(&t),
+				isc_time_nanoseconds(&t) / 1000);
 		}
 		va_start(args, format);
 		vfprintf(stderr, format, args);
