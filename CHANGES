@@ -1,3 +1,7 @@
+3675.	[misc]		Provide a place for third parties to add version
+			information for their extensions in the version
+			file by setting the EXTENSIONS variable.
+
 3674.	[bug]		RPZ zeroed ttls if the query type was '*'. [RT #35026]
 
 3672.	[func]		Local address can now be specified when using
