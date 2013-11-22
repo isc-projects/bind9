@@ -66,7 +66,7 @@ BIND 9.10.0
            configured with minimal performance loss.
          - New RPZ client-IP triggers and drop policies.
          - ACLs can now be specified based on geographic location
-           using the MacMind GeoIP databases.
+           using the MaxMind GeoIP databases.
          - New XML schema (version 3) for the statistics channel
            includes many new statistics and uses a flattened XML tree
            for faster parsing.
