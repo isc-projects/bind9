@@ -1,3 +1,7 @@
+3675.	[misc]		Provide a place for third parties to add version
+			information for their extensions in the version
+			file by setting the EXTENSIONS variable.
+
 3670.	[bug]		Address read after free in server side of
 			lwres_getrrsetbyname. [RT #29075]
 
