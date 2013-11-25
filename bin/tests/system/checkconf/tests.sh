@@ -38,6 +38,12 @@ $CHECKCONF badtsig.conf > /dev/null 2>&1
 if [ $? != 1 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
+echo "I: checking that named-checkconf -z catches missing hint file"
+ret=0
+$CHECKCONF -z hint-nofile.conf > /dev/null 2>&1 && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I: range checking fields that do not allow zero"
 ret=0
 for field in max-retry-time min-retry-time max-refresh-time min-refresh-time; do
