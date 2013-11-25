@@ -537,7 +537,8 @@
 ./bin/tests/system/checkconf/badtsig.conf	CONF-C	2012,2013
 ./bin/tests/system/checkconf/clean.sh		SH	2012,2013
 ./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007,2012
-./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2012
+./bin/tests/system/checkconf/hint-nofile.conf	CONF-C	2013
+./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2012,2013
 ./bin/tests/system/checknames/clean.sh		SH	2004,2007,2012
 ./bin/tests/system/checknames/ns1/fail.example.db.in	ZONE	2004,2007
 ./bin/tests/system/checknames/ns1/fail.update.db.in	ZONE	2004,2007
