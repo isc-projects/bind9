@@ -696,6 +696,7 @@
 ./bin/tests/system/checkconf/dnssec.2		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.3		CONF-C	2011
 ./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007,2010,2011,2012,2013
+./bin/tests/system/checkconf/hint-nofile.conf	CONF-C	2013
 ./bin/tests/system/checkconf/inline-bad.conf	CONF-C	2013
 ./bin/tests/system/checkconf/inline-good.conf	CONF-C	2013
 ./bin/tests/system/checkconf/inline-no.conf	CONF-C	2013
