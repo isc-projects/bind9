@@ -1,3 +1,6 @@
+3676.	[bug]		"named-checkconf -z" now checks zones of type
+			hint and redirect as well as master. [RT #35046]
+
 3675.	[misc]		Provide a place for third parties to add version
 			information for their extensions in the version
 			file by setting the EXTENSIONS variable.
