@@ -1,3 +1,6 @@
+3677.	[bug]		'nsupdate' leaked memory if 'realm' was used multiple
+			times.  [RT #35073]
+
 3676.	[bug]		"named-checkconf -z" now checks zones of type
 			hint and redirect as well as master. [RT #35046]
 
