@@ -1,3 +1,5 @@
+3678.	[port]		Update config.guess and config.sub. [RT #35060]
+
 3677.	[bug]		'nsupdate' leaked memory if 'realm' was used multiple
 			times.  [RT #35073]
 
