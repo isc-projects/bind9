@@ -1151,12 +1151,14 @@ setup_libs(void) {
 
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create");
+	isc_mem_setname(mctx, "dig", NULL);
 
 	result = isc_taskmgr_create(mctx, 1, 0, &taskmgr);
 	check_result(result, "isc_taskmgr_create");
 
 	result = isc_task_create(taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
+	isc_task_setname(global_task, "dig", NULL);
 
 	result = isc_timermgr_create(mctx, &timermgr);
 	check_result(result, "isc_timermgr_create");
@@ -3553,18 +3555,31 @@ cancel_all(void) {
 	if (current_lookup != NULL) {
 		if (current_lookup->timer != NULL)
 			isc_timer_detach(&current_lookup->timer);
-		q = ISC_LIST_HEAD(current_lookup->q);
-		while (q != NULL) {
-			debug("canceling query %p, belonging to %p",
-			      q, current_lookup);
+		for (q = ISC_LIST_HEAD(current_lookup->q);
+		     q != NULL;
+		     q = nq)
+		{
 			nq = ISC_LIST_NEXT(q, link);
-			if (q->sock != NULL) {
+			debug("canceling pending query %p, belonging to %p",
+			      q, current_lookup);
+			if (q->sock != NULL)
 				isc_socket_cancel(q->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
-			} else {
+			else
 				clear_query(q);
-			}
-			q = nq;
+		}
+		for (q = ISC_LIST_HEAD(current_lookup->connecting);
+		     q != NULL;
+		     q = nq)
+		{
+			nq = ISC_LIST_NEXT(q, clink);
+			debug("canceling connecting query %p, belonging to %p",
+			      q, current_lookup);
+			if (q->sock != NULL)
+				isc_socket_cancel(q->sock, NULL,
+						  ISC_SOCKCANCEL_ALL);
+			else
+				clear_query(q);
 		}
 	}
 	l = ISC_LIST_HEAD(lookup_list);
