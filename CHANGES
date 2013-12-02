@@ -1,3 +1,6 @@
+3679.	[bug]		dig could fail to clean up TCP sockets still
+			waiting on connect(). [RT #35074]
+
 3678.	[port]		Update config.guess and config.sub. [RT #35060]
 
 3677.	[bug]		'nsupdate' leaked memory if 'realm' was used multiple
