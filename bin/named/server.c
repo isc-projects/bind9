@@ -9210,6 +9210,20 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 	return (result);
 }
 
+static isc_result_t
+putstr(isc_buffer_t *b, const char *str) {
+	size_t l = strlen(str);
+
+	/*
+	 * Use >= to leave space for NUL termination.
+	 */
+	if (l >= isc_buffer_availablelength(b))
+		return (ISC_R_NOSPACE);
+
+	isc_buffer_putmem(b, (const unsigned char *)str, l);
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -9361,87 +9375,92 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 	}
 
 	/* Create text */
-	isc_buffer_putstr(text, "name: ");
-	isc_buffer_putstr(text, zonename);
+	CHECK(putstr(text, "name: "));
+	CHECK(putstr(text, zonename));
 
-	isc_buffer_putstr(text, "\ntype: ");
-	isc_buffer_putstr(text, type);
+	CHECK(putstr(text, "\ntype: "));
+	CHECK(putstr(text, type));
 
 	if (file != NULL) {
 		int i;
-		isc_buffer_putstr(text, "\nfiles: ");
-		isc_buffer_putstr(text, dns_zone_getfile(zone));
+		CHECK(putstr(text, "\nfiles: "));
+		CHECK(putstr(text, file));
 		for (i = 0; i < nfiles; i++) {
-			isc_buffer_putstr(text, ", ");
+			CHECK(putstr(text, ", "));
 			if (incfiles[i] != NULL)
-				isc_buffer_putstr(text, incfiles[i]);
+				CHECK(putstr(text, incfiles[i]));
 		}
 	}
 
-	isc_buffer_putstr(text, "\nserial: ");
-	isc_buffer_putstr(text, serbuf);
+	CHECK(putstr(text, "\nserial: "));
+	CHECK(putstr(text, serbuf));
 	if (hasraw) {
-		isc_buffer_putstr(text, "\nsigned serial: ");
-		isc_buffer_putstr(text, sserbuf);
+		CHECK(putstr(text, "\nsigned serial: "));
+		CHECK(putstr(text, sserbuf));
 	}
 
-	isc_buffer_putstr(text, "\nnodes: ");
-	isc_buffer_putstr(text, nodebuf);
+	CHECK(putstr(text, "\nnodes: "));
+	CHECK(putstr(text, nodebuf));
 
 	if (! isc_time_isepoch(&loadtime)) {
-		isc_buffer_putstr(text, "\nlast loaded: ");
-		isc_buffer_putstr(text, lbuf);
+		CHECK(putstr(text, "\nlast loaded: "));
+		CHECK(putstr(text, lbuf));
 	}
 
 	if (! isc_time_isepoch(&refreshtime)) {
-		isc_buffer_putstr(text, "\nnext refresh: ");
-		isc_buffer_putstr(text, rbuf);
+		CHECK(putstr(text, "\nnext refresh: "));
+		CHECK(putstr(text, rbuf));
 	}
 
 	if (! isc_time_isepoch(&expiretime)) {
-		isc_buffer_putstr(text, "\nexpires: ");
-		isc_buffer_putstr(text, xbuf);
+		CHECK(putstr(text, "\nexpires: "));
+		CHECK(putstr(text, xbuf));
 	}
 
 	if (secure) {
-		isc_buffer_putstr(text, "\nsecure: yes");
+		CHECK(putstr(text, "\nsecure: yes"));
 		if (hasraw)
-			isc_buffer_putstr(text, "\ninline signing: yes");
+			CHECK(putstr(text, "\ninline signing: yes"));
 		else
-			isc_buffer_putstr(text, "\ninline signing: no");
+			CHECK(putstr(text, "\ninline signing: no"));
 	} else
-		isc_buffer_putstr(text, "\nsecure: no");
+		CHECK(putstr(text, "\nsecure: no"));
 
 	if (maintain) {
-		isc_buffer_putstr(text, "\nkey maintenance: automatic");
+		CHECK(putstr(text, "\nkey maintenance: automatic"));
 		if (! isc_time_isepoch(&refreshkeytime)) {
-			isc_buffer_putstr(text, "\nnext key event: ");
-			isc_buffer_putstr(text, kbuf);
+			CHECK(putstr(text, "\nnext key event: "));
+			CHECK(putstr(text, kbuf));
 		}
 	} else if (allow)
-		isc_buffer_putstr(text, "\nkey maintenance: on command");
+		CHECK(putstr(text, "\nkey maintenance: on command"));
 	else if (secure || hasraw)
-		isc_buffer_putstr(text, "\nkey maintenance: none");
+		CHECK(putstr(text, "\nkey maintenance: none"));
 
 	if (!isc_time_isepoch(&resigntime)) {
-		isc_buffer_putstr(text, "\nnext resign node: ");
-		isc_buffer_putstr(text, resignbuf);
-		isc_buffer_putstr(text, "\nnext resign time: ");
-		isc_buffer_putstr(text, rtbuf);
+		CHECK(putstr(text, "\nnext resign node: "));
+		CHECK(putstr(text, resignbuf));
+		CHECK(putstr(text, "\nnext resign time: "));
+		CHECK(putstr(text, rtbuf));
 	}
 
 	if (dynamic) {
-		isc_buffer_putstr(text, "\ndynamic: yes");
+		CHECK(putstr(text, "\ndynamic: yes"));
 		if (frozen)
-			isc_buffer_putstr(text, "\nfrozen: yes");
+			CHECK(putstr(text, "\nfrozen: yes"));
 		else
-			isc_buffer_putstr(text, "\nfrozen: no");
+			CHECK(putstr(text, "\nfrozen: no"));
 	} else
-		isc_buffer_putstr(text, "\ndynamic: no");
-
-	isc_buffer_putuint8(text, 0);
+		CHECK(putstr(text, "\ndynamic: no"));
 
  cleanup:
+	/* Indicate truncated output if possible. */
+	if (result == ISC_R_NOSPACE && isc_buffer_availablelength(text) > 4U)
+		isc_buffer_putstr(text, "\n...");
+	if ((result == ISC_R_SUCCESS || result == ISC_R_NOSPACE) &&
+	    isc_buffer_availablelength(text) > 0)
+		isc_buffer_putuint8(text, 0);
+
 	if (db != NULL)
 		dns_db_detach(&db);
 	if (rawdb != NULL)

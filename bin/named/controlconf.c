@@ -333,7 +333,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	isc_region_t r;
 	isc_uint32_t len;
 	isc_buffer_t text;
-	char textarray[1024];
+	char textarray[2*1024];
 	isc_result_t result;
 	isc_result_t eresult;
 	isccc_sexpr_t *_ctrl;
