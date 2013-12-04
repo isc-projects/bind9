@@ -1,6 +1,9 @@
+3683.	[cleanup]	Add a more detailed "not found" message to rndc
+			commands which specify a zone name. [RT #35059]
+
 3682.	[bug]		Correct the behavior of rndc retransfer to allow
-	 		inline-signing slave zones to retain NSEC3 parameters instead of
-			reverting to NSEC [RT #34745]
+	 		inline-signing slave zones to retain NSEC3 parameters
+			instead of reverting to NSEC. [RT #34745]
 
 3681.	[port]		Update the Windows build system to support feature
 			selection and WIN64 builds.  This is a work in
