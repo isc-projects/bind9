@@ -2,7 +2,7 @@
 			commands which specify a zone name. [RT #35059]
 
 3682.	[bug]		Correct the behavior of rndc retransfer to allow
-	 		inline-signing slave zones to retain NSEC3 parameters
+			inline-signing slave zones to retain NSEC3 parameters
 			instead of reverting to NSEC. [RT #34745]
 
 3681.	[port]		Update the Windows build system to support feature
