@@ -23121,7 +23121,6 @@ if test "${enable_full_report+set}" = set; then :
   enableval=$enable_full_report;
 fi
 
-echo enable full report set to: $enable_full_report
 
 echo "========================================================================"
 echo "Configuration summary:"
