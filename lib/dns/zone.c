@@ -776,6 +776,20 @@ static const char *dbargv_default[] = { "rbt" };
 		} \
 	} while (0)
 
+typedef struct nsec3param nsec3param_t;
+struct nsec3param {
+	unsigned char data[DNS_NSEC3PARAM_BUFFERSIZE + 1];
+	unsigned int length;
+	isc_boolean_t nsec;
+	isc_boolean_t replace;
+	ISC_LINK(nsec3param_t)	link;
+};
+typedef ISC_LIST(nsec3param_t) nsec3paramlist_t;
+struct np3event {
+	isc_event_t event;
+	nsec3param_t params;
+};
+
 /*%
  * Increment resolver-related statistics counters.  Zone must be locked.
  */
@@ -13019,6 +13033,203 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				   0, NULL));
 }
 
+/*
+ * This function should populate an nsec3paramlist_t with the
+ * nsecparam_t data from a zone.
+ */
+static isc_result_t
+save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset, prdataset;
+	dns_rdata_t rdata_in, prdata_in, prdata_out;
+	dns_dbversion_t *version = NULL;
+	nsec3param_t *nsec3param = NULL;
+	nsec3param_t *nsec3p = NULL;
+	nsec3param_t *next;
+	dns_db_t *db = NULL;
+	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(nsec3list != NULL);
+	REQUIRE(ISC_LIST_EMPTY(*nsec3list));
+
+	dns_db_attach(zone->db, &db);
+	CHECK(dns_db_getoriginnode(db, &node));
+
+	dns_rdataset_init(&rdataset);
+	dns_db_currentversion(db, &version);
+	result = dns_db_findrdataset(db, node, version,
+				     dns_rdatatype_nsec3param,
+				     dns_rdatatype_none, 0, &rdataset, NULL);
+
+	if (result != ISC_R_SUCCESS)
+		goto getprivate;
+
+	/*
+	 * walk nsec3param rdataset making a list of parameters (note that
+	 * multiple simultaneous nsec3 chains are annoyingly legal -- this
+	 * is why we use an nsec3list, even tho we will usually only have
+	 * one)
+	 */
+	for (result = dns_rdataset_first(&rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset)) 
+	{
+		dns_rdata_init(&rdata_in);
+		dns_rdataset_current(&rdataset, &rdata_in);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
+			      "looping through nsec3param data");
+		nsec3param = isc_mem_get(zone->mctx, sizeof(nsec3param_t));
+		if (nsec3param == NULL)
+			CHECK(ISC_R_NOMEMORY);
+		ISC_LINK_INIT(nsec3param, link);
+
+		/*
+		 * now transfer the data from the rdata to
+		 * the nsec3param
+		 */
+		dns_rdata_init(&prdata_out);
+		dns_nsec3param_toprivate(&rdata_in, &prdata_out,
+					 zone->privatetype, nsec3param->data,
+					 sizeof(nsec3param->data));
+		nsec3param->length = prdata_out.length;
+		ISC_LIST_APPEND(*nsec3list, nsec3param, link);
+	}
+
+ getprivate:
+	dns_rdataset_init(&prdataset);
+	result = dns_db_findrdataset(db, node, version, zone->privatetype,
+				     dns_rdatatype_none, 0, &prdataset, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto done;
+
+	/*
+	 * walk private type records, converting them to nsec3 parameters
+	 * using dns_nsec3param_fromprivate(), do the right thing based on
+	 * CREATE and REMOVE flags
+	 */
+	for (result = dns_rdataset_first(&prdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&prdataset)) 
+	{
+		dns_rdata_init(&prdata_in);
+		dns_rdataset_current(&prdataset, &prdata_in);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
+			      "looping through nsec3param private data");
+	      	
+		if (!dns_nsec3param_fromprivate(&prdata_in, &prdata_out,
+						buf, sizeof(buf)))
+			continue;
+		
+		if ((prdata_out.data[1] & DNS_NSEC3FLAG_REMOVE) !=0) {
+			prdata_out.data[1] = 0;
+
+			for (nsec3p = ISC_LIST_HEAD(*nsec3list); 
+			     nsec3p != NULL; 
+			     nsec3p = next) 
+			{
+				next = ISC_LIST_NEXT(nsec3p, link);
+				if (memcmp(prdata_out.data, nsec3p->data, 
+				    sizeof(nsec3p->data)) == 0) {
+				    	ISC_LIST_UNLINK(*nsec3list,
+							nsec3p, link);
+					isc_mem_put(zone->mctx, nsec3p, 
+					            sizeof(nsec3param_t));
+				}
+			}
+			continue;
+		}
+
+		nsec3param = isc_mem_get(zone->mctx, sizeof(nsec3param_t));
+		if (nsec3param == NULL)
+			CHECK(ISC_R_NOMEMORY);
+		ISC_LINK_INIT(nsec3param, link);
+
+		dns_rdata_init(&prdata_out);
+		dns_nsec3param_toprivate(&prdata_in, &prdata_out, 
+			zone->privatetype, nsec3param->data, 
+			sizeof(nsec3param->data));
+		nsec3param->length = prdata_out.length;
+		ISC_LIST_APPEND(*nsec3list, nsec3param, link);
+	}
+
+ done:
+	if (result == ISC_R_NOMORE || result == ISC_R_NOTFOUND)
+		result = ISC_R_SUCCESS;
+
+ failure:
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	if (version != NULL)
+		dns_db_closeversion(db, &version, ISC_FALSE);
+	if (db != NULL)
+		dns_db_detach(&db);
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
+	if (dns_rdataset_isassociated(&prdataset))
+		dns_rdataset_disassociate(&prdataset);
+	return (result);
+}
+
+/* 
+ * Walk the list of the nsec3 chains desired for the zone, converting 
+ * parameters to private type records using dns_nsec3param_toprivate(),
+ * and insert them into the new zone db. 
+ */
+static isc_result_t
+restore_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version, 
+		   nsec3paramlist_t *nsec3list)
+{
+	isc_result_t result; 
+	dns_diff_t diff;
+	dns_rdata_t rdata;
+	nsec3param_t *nsec3p = NULL;
+	nsec3param_t *next;
+	
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(!ISC_LIST_EMPTY(*nsec3list));
+	
+	dns_diff_init(zone->mctx, &diff);
+
+	/* 
+	 * Loop through the list of private-type records, set the INITIAL
+	 * and CREATE flags, and the add the record to the apex of the tree
+	 * in db.
+	 */
+	for (nsec3p = ISC_LIST_HEAD(*nsec3list);
+	     nsec3p != NULL; 
+	     nsec3p = next) 
+	{
+		next = ISC_LIST_NEXT(nsec3p, link);
+		dns_rdata_init(&rdata);
+	     	nsec3p->data[2] = DNS_NSEC3FLAG_CREATE | DNS_NSEC3FLAG_INITIAL;
+		rdata.length = nsec3p->length;
+		rdata.data = nsec3p->data;
+		rdata.type = zone->privatetype;
+		rdata.rdclass = zone->rdclass;
+		CHECK(update_one_rr(db, version, &diff, DNS_DIFFOP_ADD,
+				    &zone->origin, 0, &rdata));
+	}
+	
+	result = ISC_R_SUCCESS;
+	
+failure:
+	for (nsec3p = ISC_LIST_HEAD(*nsec3list);
+	     nsec3p != NULL; 
+	     nsec3p = next) 
+	{
+		next = ISC_LIST_NEXT(nsec3p, link);
+	    	ISC_LIST_UNLINK(*nsec3list, nsec3p, link);
+		isc_mem_put(zone->mctx, nsec3p, sizeof(nsec3param_t));
+	}
+
+	dns_diff_clear(&diff);
+	return (result);
+}
+
 static void
 receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
@@ -13034,9 +13245,12 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	isc_time_t loadtime;
 	unsigned int oldserial = 0;
 	isc_boolean_t have_oldserial = ISC_FALSE;
+	nsec3paramlist_t nsec3list;
 
 	UNUSED(task);
 
+	ISC_LIST_INIT(nsec3list);
+		
 	zone = event->ev_arg;
 	rawdb = ((struct secure_event *)event)->db;
 	isc_event_free(&event);
@@ -13057,6 +13271,16 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 		result = dns_db_getsoaserial(zone->db, NULL, &oldserial);
 		if (result == ISC_R_SUCCESS)
 			have_oldserial = ISC_TRUE;
+
+		/*
+		 * assemble nsec3parameters from the old zone, and set a flag 
+		 * if any are found
+		 */
+		result = save_nsec3param(zone, &nsec3list);
+		if (result != ISC_R_SUCCESS) {
+			ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+			goto failure;
+		}
 	}
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
@@ -13118,8 +13342,16 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 		dns_db_detachnode(rawdb, &rawnode);
 		dns_db_detachnode(db, &node);
 	}
-
+	
+	/*
+	 * Call restore_nsec3param() to create private-type records from
+	 * the old nsec3 parameters and insert them into db
+	 */
+	if (!ISC_LIST_EMPTY(nsec3list))
+		restore_nsec3param(zone, db, version, &nsec3list);
+	
 	dns_db_closeversion(db, &version, ISC_TRUE);
+
 	/*
 	 * Lock hierarchy: zmgr, zone, raw.
 	 */
@@ -16790,14 +17022,6 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 	return (result);
 }
 
-struct nsec3param {
-	isc_event_t event;
-	unsigned char data[DNS_NSEC3PARAM_BUFFERSIZE + 1];
-	unsigned int length;
-	isc_boolean_t nsec;
-	isc_boolean_t replace;
-};
-
 static void
 setnsec3param(isc_task_t *task, isc_event_t *event) {
 	const char *me = "setnsec3param";
@@ -16809,7 +17033,8 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t prdataset, nrdataset;
 	dns_diff_t diff;
-	struct nsec3param *np = (struct nsec3param *)event;
+	struct np3event *npe = (struct np3event *)event;
+	nsec3param_t *np;
 	dns_update_log_t log = { update_log_cb, NULL };
 	dns_rdata_t rdata;
 	isc_boolean_t nseconly;
@@ -16821,6 +17046,8 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 	INSIST(DNS_ZONE_VALID(zone));
 
 	ENTER;
+	
+	np = &npe->params;
 
 	dns_rdataset_init(&prdataset);
 	dns_rdataset_init(&nrdataset);
@@ -16973,7 +17200,8 @@ dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
 	dns_rdata_t nrdata = DNS_RDATA_INIT;
 	dns_rdata_t prdata = DNS_RDATA_INIT;
 	unsigned char nbuf[DNS_NSEC3PARAM_BUFFERSIZE];
-	struct nsec3param *np;
+	struct np3event *npe;
+	nsec3param_t *np;
 	dns_zone_t *dummy = NULL;
 	isc_buffer_t b;
 	isc_event_t *e;
@@ -16984,13 +17212,15 @@ dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
 	LOCK_ZONE(zone);
 
 	e = isc_event_allocate(zone->mctx, zone, DNS_EVENT_SETNSEC3PARAM,
-			       setnsec3param, zone, sizeof(struct nsec3param));
+			       setnsec3param, zone, sizeof(struct np3event));
 	if (e == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto failure;
 	}
 
-	np = (struct nsec3param *) e;
+	npe = (struct np3event *) e;
+	np = &npe->params;
+	
 	np->replace = replace;
 	if (hash == 0) {
 		np->length = 0;
