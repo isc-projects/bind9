@@ -9370,8 +9370,7 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 			isc_time_formathttptimestamp(&resigntime, rtbuf,
 						     sizeof(rtbuf));
 			dns_rdataset_disassociate(&next);
-		} else if (result == ISC_R_NOTFOUND)
-			result = ISC_R_SUCCESS;
+		}
 	}
 
 	/* Create text */
