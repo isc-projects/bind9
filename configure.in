@@ -3875,22 +3875,21 @@ $use_threads && echo "    Multiprocessing support (--enable-threads)"
 
 test "$enable_rrl" = "yes" && \
     echo "    Response Rate Limiting (--enable-rrl)"
+test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
+test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
+test "$enable_newstats" = "yes" && \
+    echo "    New statistics (--enable-newstats)"
 test "$enable_fixed" = "yes" && \
-    echo "    Fixed RRset order (--enable-fixed-rrset)"
-test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
+    echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 test "$enable_filter" = "yes" && \
     echo "    AAAA filtering (--enable-filter-aaaa)"
-test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
 test "$want_backtrace" = "yes" && \
     echo "    Print backtrace on crash (--enable-backtrace)"
 test "$want_symtable" = "minimal" && \
     echo "    Use symbol table for backtrace, named only (--enable-symtable)"
 test "$want_symtable" = "yes" -o "$want_symtable" = "all" && \
     echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
-test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
-test "$enable_newstats" = "yes" && \
-    echo "    New statistics (--enable-newstats)"
-
+test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
 
 # these lines are only printed if run with --enable-full-report 
 if test "$enable_full_report" = "yes"; then
@@ -3926,20 +3925,18 @@ echo
 
 echo "Features disabled or unavailable on this platform:"
 $use_threads || echo "    Multiprocessing support (--enable-threads)"
-test "$enable_rrl" = "yes" || \
-    echo "    Response Rate Limiting (--enable-rrl)"
-test "$enable_fixed" = "yes" || \
-    echo "    Fixed RRset order (--enable-fixed-rrset)"
-test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
-test "$enable_filter" = "yes" || \
-    echo "    AAAA filtering (--enable-filter-aaaa)"
-test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
-test "$want_backtrace" = "yes" || \
-    echo "    Print backtrace on crash (--enable-backtrace)"
-test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
-
 test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
         echo "    IPv6 support (--enable-ipv6)"
+test "$enable_rrl" = "yes" || \
+    echo "    Response Rate Limiting (--enable-rrl)"
+test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
+test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
+test "X$enable_newstats" = "X" && echo "    New statistics (--enable-newstats)"
+test "$enable_fixed" = "yes" || \
+    echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+test "$want_backtrace" = "yes" || \
+    echo "    Print backtrace on crash (--enable-backtrace)"
+test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 test "X$USE_OPENSSL" = "X" && \
         echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
 test "X$USE_OPENSSL" != "X" -a "$OPENSSL_GOST" != "yes" && \
@@ -3948,7 +3945,6 @@ test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ECDSA" != "yes" && \
     echo "    ECDSA algorithm support (--with-ecdsa)"
 test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
 test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
-test "X$enable_newstats" = "X" && echo "    New statistics (--enable-newstats)"
 
 echo "========================================================================"
 
