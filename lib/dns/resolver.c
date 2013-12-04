@@ -6654,7 +6654,7 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
 	unsigned char *p, *buf, *nsid;
 
 	/* Allocate buffer for storing hex version of the NSID */
-	buflen = nsid_len * 2 + 1;
+	buflen = (isc_uint16_t)nsid_len * 2 + 1;
 	buf = isc_mem_get(mctx, buflen);
 	if (buf == NULL)
 		return;

@@ -7691,7 +7691,7 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 
 	/* Try to parse the argument string */
 	arglen = strlen(args);
-	isc_buffer_init(&argbuf, args, arglen);
+	isc_buffer_init(&argbuf, args, (unsigned int)arglen);
 	isc_buffer_add(&argbuf, strlen(args));
 	CHECK(cfg_parser_create(server->mctx, ns_g_lctx, &parser));
 	CHECK(cfg_parse_buffer(parser, &argbuf, &cfg_type_addzoneconf,

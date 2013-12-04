@@ -158,12 +158,20 @@ main(int argc, char *argv[]) {
 	isc_task_detach(&t2);
 	isc_task_detach(&t3);
 
+#ifndef WIN32
 	sleep(15);
+#else
+	Sleep(15000);
+#endif
 	printf("destroy\n");
 	isc_timer_detach(&ti1);
 	isc_timer_detach(&ti2);
 	isc_timer_detach(&ti3);
+#ifndef WIN32
 	sleep(2);
+#else
+	Sleep(2000);
+#endif
 	isc_timermgr_destroy(&timgr);
 	isc_taskmgr_destroy(&manager);
 	printf("destroyed\n");

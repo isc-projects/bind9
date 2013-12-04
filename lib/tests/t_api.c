@@ -31,7 +31,11 @@
 #include <time.h>
 #include <unistd.h>
 
+#ifndef WIN32
 #include <sys/wait.h>
+#else
+#include <direct.h>
+#endif
 
 #include <isc/boolean.h>
 #include <isc/commandline.h>
@@ -84,6 +88,9 @@ static char		T_tvec[T_MAXTESTS / 8];
 static char *		T_env[T_MAXENV + 1];
 static char		T_buf[T_BIGBUF];
 static char *		T_dir;
+#ifdef WIN32
+static testspec_t	T_testlist[T_MAXTESTS];
+#endif
 
 static int
 t_initconf(const char *path);
@@ -111,20 +118,31 @@ t_sighandler(int sig) {
 }
 
 int
-main(int argc, char **argv) {
+#ifndef WIN32
+main(int argc, char **argv)
+#else
+t_main(int argc, char **argv)
+#endif
+{
 	int			c;
 	int			tnum;
+#ifndef WIN32
 	int			subprocs;
 	pid_t			deadpid;
 	int			status;
+#endif
 	int			len;
 	isc_boolean_t		first;
 	testspec_t		*pts;
+#ifndef WIN32
 	struct sigaction	sa;
+#endif
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	first = ISC_TRUE;
+#ifndef WIN32
 	subprocs = 1;
+#endif
 	T_timeout = T_TCTOUT;
 
 	/*
@@ -203,7 +221,9 @@ main(int argc, char **argv) {
 			exit(0);
 		}
 		else if (c == 'x') {
+#ifndef WIN32
 			subprocs = 0;
+#endif
 		}
 		else if (c == 'q') {
 			T_timeout = atoi(isc_commandline_argument);
@@ -240,12 +260,14 @@ main(int argc, char **argv) {
 	 * Setup signals.
 	 */
 
+#ifndef WIN32
 	sa.sa_flags = 0;
 	sigfillset(&sa.sa_mask);
 
 	sa.sa_handler = t_sighandler;
 	(void)sigaction(SIGINT,  &sa, NULL);
 	(void)sigaction(SIGALRM, &sa, NULL);
+#endif
 
 	/*
 	 * Output start stanza to journal.
@@ -275,6 +297,7 @@ main(int argc, char **argv) {
 	pts = &T_testlist[0];
 	while (*pts->pfv != NULL) {
 		if (T_tvec[tnum / 8] & (0x01 << (tnum % 8))) {
+#ifndef WIN32
 			if (subprocs) {
 				T_pid = fork();
 				if (T_pid == 0) {
@@ -327,6 +350,9 @@ main(int argc, char **argv) {
 			else {
 				(*pts->pfv)();
 			}
+#else
+			(*pts->pfv)();
+#endif
 		}
 		++pts;
 		++tnum;
@@ -525,7 +551,7 @@ t_fgetbs(FILE *fp) {
 		p = buf;
 		while ((c = fgetc(fp)) != EOF) {
 
-			if (c == '\n')
+			if ((c == '\r') || (c == '\n'))
 				break;
 
 			*p++ = c;
@@ -801,3 +827,20 @@ t_eval(const char *filename, int (*func)(char **), int nargs) {
 
 	return (result);
 }
+
+#ifdef WIN32
+void
+t_settests(const testspec_t list[]) {
+	int			tnum;
+	const testspec_t	*pts;
+
+	memset(T_testlist, 0, sizeof(T_testlist));
+
+	pts = &list[0];
+	for (tnum = 0; tnum < T_MAXTESTS - 1; pts++, tnum++) {
+		if (*pts->pfv == NULL)
+			break;
+		T_testlist[tnum] = *pts;
+	}
+}
+#endif

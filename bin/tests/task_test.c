@@ -115,7 +115,11 @@ main(int argc, char *argv[]) {
 
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);
+#ifndef WIN32
 	sleep(2);
+#else
+	Sleep(2000);
+#endif
 
 	/*
 	 * Note:  (void *)1 is used as a sender here, since some compilers
@@ -180,7 +184,11 @@ main(int argc, char *argv[]) {
 	isc_task_detach(&t3);
 	isc_task_detach(&t4);
 
+#ifndef WIN32
 	sleep(10);
+#else
+	Sleep(10000);
+#endif
 	printf("destroy\n");
 	isc_timer_detach(&ti1);
 	isc_timer_detach(&ti2);

@@ -63,7 +63,7 @@ bit_isset(unsigned char *array, unsigned int index) {
 	shift = 7 - (index % 8);
 	mask = 1 << shift;
 
-	return ((byte & mask) != 0);
+	return (ISC_TF(byte & mask));
 }
 
 isc_result_t
@@ -146,7 +146,7 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 		memmove(&nsec_bits[2], &bm[window * 32], octet + 1);
 		nsec_bits += 3 + octet;
 	}
-	r.length = nsec_bits - r.base;
+	r.length = (unsigned int)(nsec_bits - r.base);
 	INSIST(r.length <= DNS_NSEC_BUFFERSIZE);
 	dns_rdata_fromregion(rdata,
 			     dns_db_class(db),

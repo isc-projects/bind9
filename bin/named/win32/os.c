@@ -293,7 +293,7 @@ isc_result_t
 ns_os_gethostname(char *buf, size_t len) {
 	int n;
 
-	n = gethostname(buf, len);
+	n = gethostname(buf, (int)len);
 	return ((n == 0) ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 

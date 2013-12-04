@@ -395,7 +395,7 @@ journal_read(dns_journal_t *j, void *mem, size_t nbytes) {
 			      j->filename, isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
-	j->offset += nbytes;
+	j->offset += (isc_offset_t)nbytes;
 	return (ISC_R_SUCCESS);
 }
 
@@ -410,7 +410,7 @@ journal_write(dns_journal_t *j, void *mem, size_t nbytes) {
 			      j->filename, isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
-	j->offset += nbytes;
+	j->offset += (isc_offset_t)nbytes;
 	return (ISC_R_SUCCESS);
 }
 
@@ -675,7 +675,7 @@ isc_result_t
 dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		 dns_journal_t **journalp) {
 	isc_result_t result;
-	int namelen;
+	size_t namelen;
 	char backup[1024];
 
 	result = journal_open(mctx, filename, write, write, journalp);
@@ -685,7 +685,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 			namelen -= 4;
 
 		result = isc_string_printf(backup, sizeof(backup), "%.*s.jbk",
-					   namelen, filename);
+					   (int)namelen, filename);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		result = journal_open(mctx, backup, write, write, journalp);
@@ -2014,7 +2014,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	dns_journal_t *new = NULL;
 	journal_rawheader_t rawheader;
 	unsigned int copy_length;
-	int namelen;
+	size_t namelen;
 	char *buf = NULL;
 	unsigned int size = 0;
 	isc_result_t result;
@@ -2028,12 +2028,12 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 		namelen -= 4;
 
 	result = isc_string_printf(newname, sizeof(newname), "%.*s.jnw",
-				   namelen, filename);
+				   (int)namelen, filename);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	result = isc_string_printf(backup, sizeof(backup), "%.*s.jbk",
-				   namelen, filename);
+				   (int)namelen, filename);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

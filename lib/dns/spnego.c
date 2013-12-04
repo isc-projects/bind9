@@ -1107,7 +1107,7 @@ length_len(size_t len)
 	if (len < 128U)
 		return (1);
 	else
-		return (len_unsigned(len) + 1);
+		return (len_unsigned((unsigned int)len) + 1);
 }
 
 
@@ -1191,18 +1191,18 @@ der_put_length(unsigned char *p, size_t len, size_t val, size_t *size)
 	if (len < 1U)
 		return (ASN1_OVERFLOW);
 	if (val < 128U) {
-		*p = val;
+		*p = (unsigned char)val;
 		*size = 1;
 		return (0);
 	} else {
 		size_t l;
 		int e;
 
-		e = der_put_unsigned(p, len - 1, val, &l);
+		e = der_put_unsigned(p, len - 1, (unsigned int)val, &l);
 		if (e)
 			return (e);
 		p -= l;
-		*p = 0x80 | l;
+		*p = 0x80 | (unsigned char)l;
 		*size = l + 1;
 		return (0);
 	}
@@ -1227,7 +1227,7 @@ der_put_oid(unsigned char *p, size_t len,
 	    const oid *data, size_t *size)
 {
 	unsigned char *base = p;
-	int n;
+	size_t n;
 
 	for (n = data->length - 1; n >= 2; --n) {
 		unsigned	u = data->components[n];

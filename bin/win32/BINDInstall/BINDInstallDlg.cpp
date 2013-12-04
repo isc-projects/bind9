@@ -133,9 +133,27 @@ const FileData installFiles[] =
 	{"libisccc.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libdns.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"liblwres.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+#ifdef OPENSSL
 	{"libeay32.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+#endif
 #ifdef HAVE_LIBXML2
 	{"libxml2.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+#endif
+#ifdef USE_GSSAPI
+#ifndef _WIN64
+	{"gssapi32.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+	{"krb5_32.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+#else
+	{"gssapi64.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+	{"krb5_64.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+#endif
+#endif
+#ifdef HAVE_GEOIP
+	{"libgeoip.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+#endif
+#ifdef WITH_IDN
+	{"idnkit.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+	{"iconv.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 #endif
 	{"named.exe", FileData::BinDir, FileData::Critical, FALSE, FALSE},
 	{"nsupdate.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
@@ -163,6 +181,10 @@ const FileData installFiles[] =
 	{"pkcs11-destroy.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-keygen.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-list.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
+#ifdef USE_PYTHON
+	{"dnssec-checkds.py", FileData::BinDir, FileData::Normal, FALSE, FALSE},
+	{"dnssec-coverage.py", FileData::BinDir, FileData::Normal, FALSE, FALSE},
+#endif
 	{"readme1st.txt", FileData::BinDir, FileData::Trivial, FALSE, TRUE},
 	{NULL, -1, -1}
 };

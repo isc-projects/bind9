@@ -326,6 +326,16 @@ isc_file_splitpath(isc_mem_t *mctx, char *path,
  * - ISC_R_NOMEMORY if unable to allocate memory
  */
 
+isc_result_t
+isc_file_getsizefd(int fd, off_t *size);
+/*%<
+ * Return the size of the file (stored in the parameter pointed
+ * to by 'size') in bytes.
+ *
+ * Returns:
+ * - ISC_R_SUCCESS on success
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_FILE_H */

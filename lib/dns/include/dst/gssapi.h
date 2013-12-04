@@ -29,7 +29,7 @@
 #include <dns/types.h>
 
 #ifdef GSSAPI
-#ifdef _WINDOWS
+#ifdef WIN32
 /*
  * MSVC does not like macros in #include lines.
  */

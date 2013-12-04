@@ -68,8 +68,12 @@
  * always use one.  If we're not using our own SPNEGO implementation,
  * we include SPNEGO's OID.
  */
-#if defined(GSSAPI)
+#ifdef GSSAPI
+#ifdef WIN32
+#include <krb5/krb5.h>
+#else
 #include ISC_PLATFORM_KRB5HEADER
+#endif
 
 static unsigned char krb5_mech_oid_bytes[] = {
 	0x2a, 0x86, 0x48, 0x86, 0xf7, 0x12, 0x01, 0x02, 0x02
@@ -103,7 +107,7 @@ static gss_OID_set_desc mech_oid_set = {
 
 #define GBUFFER_TO_REGION(gb, r) \
 	do { \
-		(r).length = (gb).length; \
+	  (r).length = (unsigned int)(gb).length; \
 		(r).base = (gb).value; \
 	} while (0)
 
@@ -680,7 +684,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 		context = *ctxout;
 
 	if (gssapi_keytab != NULL) {
-#ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER
+#if defined(ISC_PLATFORM_GSSAPI_KRB5_HEADER) || defined(WIN32)
 		gret = gsskrb5_register_acceptor_identity(gssapi_keytab);
 		if (gret != GSS_S_COMPLETE) {
 			gss_log(3, "failed "
@@ -741,7 +745,8 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	}
 
 	if (gouttoken.length > 0U) {
-		RETERR(isc_buffer_allocate(mctx, outtoken, gouttoken.length));
+		RETERR(isc_buffer_allocate(mctx, outtoken,
+					   (unsigned int)gouttoken.length));
 		GBUFFER_TO_REGION(gouttoken, r);
 		RETERR(isc_buffer_copyregion(*outtoken, &r));
 		(void)gss_release_buffer(&minor, &gouttoken);

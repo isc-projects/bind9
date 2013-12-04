@@ -120,15 +120,15 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	*p++ = iterations >> 8;
 	*p++ = iterations;
 
-	*p++ = salt_length;
+	*p++ = (unsigned char)salt_length;
 	memcpy(p, salt, salt_length);
 	p += salt_length;
 
-	*p++ = hash_length;
+	*p++ = (unsigned char)hash_length;
 	memcpy(p, nexthash, hash_length);
 	p += hash_length;
 
-	r.length = p - buffer;
+	r.length = (unsigned int)(p - buffer);
 	r.base = buffer;
 
 	/*
@@ -215,7 +215,7 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 		memmove(&nsec_bits[2], &bm[window * 32], octet + 1);
 		nsec_bits += 3 + octet;
 	}
-	r.length = nsec_bits - r.base;
+	r.length = (unsigned int)(nsec_bits - r.base);
 	INSIST(r.length <= DNS_NSEC3_BUFFERSIZE);
 	dns_rdata_fromregion(rdata, dns_db_class(db), dns_rdatatype_nsec3, &r);
 
@@ -282,7 +282,8 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 	dns_name_downcase(name, downcased, NULL);
 
 	/* hash the node name */
-	len = isc_iterated_hash(rethash, hashalg, iterations, salt, saltlength,
+	len = isc_iterated_hash(rethash, hashalg, iterations,
+				salt, (int)saltlength,
 				downcased->ndata, downcased->length);
 	if (len == 0U)
 		return (DNS_R_BADALG);
@@ -292,7 +293,7 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 
 	/* convert the hash to base32hex */
 	region.base = rethash;
-	region.length = len;
+	region.length = (unsigned int)len;
 	isc_buffer_init(&namebuffer, nametext, sizeof nametext);
 	isc_base32hex_totext(&region, 1, "", &namebuffer);
 
@@ -716,7 +717,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 		 * Fixup the previous NSEC3.
 		 */
 		nsec3.next = nexthash;
-		nsec3.next_length = next_length;
+		nsec3.next_length = (unsigned char)next_length;
 		isc_buffer_init(&buffer, nsec3buf, sizeof(nsec3buf));
 		CHECK(dns_rdata_fromstruct(&rdata, rdataset.rdclass,
 					   dns_rdatatype_nsec3, &nsec3,
@@ -835,7 +836,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 			 * Fixup the previous NSEC3.
 			 */
 			nsec3.next = nexthash;
-			nsec3.next_length = next_length;
+			nsec3.next_length = (unsigned char)next_length;
 			isc_buffer_init(&buffer, nsec3buf,
 					sizeof(nsec3buf));
 			CHECK(dns_rdata_fromstruct(&rdata, rdataset.rdclass,
@@ -976,7 +977,7 @@ dns_nsec3param_fromprivate(dns_rdata_t *src, dns_rdata_t *target,
 	isc_buffer_init(&buf1, src->data + 1, src->length - 1);
 	isc_buffer_add(&buf1, src->length - 1);
 	isc_buffer_setactive(&buf1, src->length - 1);
-	isc_buffer_init(&buf2, buf, buflen);
+	isc_buffer_init(&buf2, buf, (unsigned int)buflen);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
 	result = dns_rdata_fromwire(target, src->rdclass,
 				    dns_rdatatype_nsec3param,
@@ -1438,7 +1439,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		 * Fixup the previous NSEC3.
 		 */
 		nsec3.next = nexthash;
-		nsec3.next_length = next_length;
+		nsec3.next_length = (unsigned char)next_length;
 		if (CREATE(nsec3param->flags))
 			nsec3.flags = nsec3param->flags & DNS_NSEC3FLAG_OPTOUT;
 		isc_buffer_init(&buffer, nsec3buf, sizeof(nsec3buf));
@@ -1538,7 +1539,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 			 * Fixup the previous NSEC3.
 			 */
 			nsec3.next = nexthash;
-			nsec3.next_length = next_length;
+			nsec3.next_length = (unsigned char)next_length;
 			isc_buffer_init(&buffer, nsec3buf,
 					sizeof(nsec3buf));
 			CHECK(dns_rdata_fromstruct(&rdata, rdataset.rdclass,

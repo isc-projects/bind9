@@ -81,7 +81,11 @@
 
 #ifdef GSSAPI
 #include <dst/gssapi.h>
+#ifdef WIN32
+#include <krb5/krb5.h>
+#else
 #include ISC_PLATFORM_KRB5HEADER
+#endif
 #endif
 #include <bind9/getaddresses.h>
 
@@ -539,8 +543,8 @@ setup_keystr(void) {
 		n = s;
 	}
 
-	isc_buffer_init(&keynamesrc, name, n - name);
-	isc_buffer_add(&keynamesrc, n - name);
+	isc_buffer_init(&keynamesrc, name, (unsigned int)(n - name));
+	isc_buffer_add(&keynamesrc, (unsigned int)(n - name));
 
 	debug("namefromtext");
 	result = dns_name_fromtext(keyname, &keynamesrc, dns_rootname, 0, NULL);
