@@ -6275,7 +6275,7 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep,
 		isc_buffer_putuint8(text, 0);
 	}
 
- 	if (view != NULL)
+	if (view != NULL)
 		dns_view_detach(&view);
 
 	return (result);
