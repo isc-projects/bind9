@@ -214,7 +214,7 @@ struct msghdr {
 	u_int   msg_iovlen;             /* # elements in msg_iov */
 	void	*msg_control;           /* ancillary data, see below */
 	u_int   msg_controllen;         /* ancillary data buffer len */
-	int	msg_totallen;		/* total length of this message */
+	u_int	msg_totallen;		/* total length of this message */
 } msghdr;
 
 /*
@@ -985,10 +985,10 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		   cpbuffer->buf, write_count);
 
 		memcpy(cpbuffer->buf,(dev->region.base + dev->n), write_count);
-		cpbuffer->buflen = write_count;
+		cpbuffer->buflen = (unsigned int)write_count;
 		ISC_LIST_ENQUEUE(lpo->bufferlist, cpbuffer, link);
 		iov[0].buf = cpbuffer->buf;
-		iov[0].len = write_count;
+		iov[0].len = (u_long)write_count;
 		iovcount = 1;
 
 		goto config;
@@ -1013,7 +1013,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		isc_buffer_usedregion(buffer, &used);
 
 		if (used.length > 0) {
-			int uselen = used.length - skip_count;
+			int uselen = (int)(used.length - skip_count);
 			cpbuffer = HeapAlloc(hHeapHandle, HEAP_ZERO_MEMORY, sizeof(buflist_t));
 			RUNTIME_CHECK(cpbuffer != NULL);
 			cpbuffer->buf = HeapAlloc(hHeapHandle, HEAP_ZERO_MEMORY, uselen);
@@ -1027,7 +1027,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 			memcpy(cpbuffer->buf,(used.base + skip_count), uselen);
 			cpbuffer->buflen = uselen;
 			iov[iovcount].buf = cpbuffer->buf;
-			iov[iovcount].len = used.length - skip_count;
+			iov[iovcount].len = (u_long)(used.length - skip_count);
 			write_count += uselen;
 			skip_count = 0;
 			iovcount++;
@@ -1040,7 +1040,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
  config:
 	msg->msg_iov = iov;
 	msg->msg_iovlen = iovcount;
-	msg->msg_totallen = write_count;
+	msg->msg_totallen = (u_int)write_count;
 }
 
 static void
@@ -2469,7 +2469,8 @@ SocketIoThread(LPVOID ThreadContext) {
 	while (TRUE) {
 		wait_again:
 		bSuccess = GetQueuedCompletionStatus(manager->hIoCompletionPort,
-						     &nbytes, (LPDWORD)&sock,
+						     &nbytes,
+						     (PULONG_PTR)&sock,
 						     (LPWSAOVERLAPPED *)&lpo,
 						     INFINITE);
 		if (lpo == NULL) /* Received request to exit */

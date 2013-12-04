@@ -20,14 +20,12 @@
 
 #include <isc/util.h>
 
-#ifdef HAVE_GEOIP
 #include <named/log.h>
 #include <named/geoip.h>
 
 #include <dns/geoip.h>
 
-#include <GeoIP.h>
-
+#ifdef HAVE_GEOIP
 static dns_geoip_databases_t geoip_table = {
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };

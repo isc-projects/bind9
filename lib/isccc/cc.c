@@ -116,7 +116,7 @@ list_towire(isccc_sexpr_t *alist, isccc_region_t *target);
 static isc_result_t
 value_towire(isccc_sexpr_t *elt, isccc_region_t *target)
 {
-	size_t len;
+	unsigned int len;
 	unsigned char *lenp;
 	isccc_region_t *vr;
 	isc_result_t result;
@@ -146,7 +146,7 @@ value_towire(isccc_sexpr_t *elt, isccc_region_t *target)
 		result = table_towire(elt, target);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		len = (size_t)(target->rstart - lenp);
+		len = (unsigned int)(target->rstart - lenp);
 		/*
 		 * 'len' is 4 bytes too big, since it counts
 		 * the placeholder length too.  Adjust and
@@ -170,7 +170,7 @@ value_towire(isccc_sexpr_t *elt, isccc_region_t *target)
 		result = list_towire(elt, target);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		len = (size_t)(target->rstart - lenp);
+		len = (unsigned int)(target->rstart - lenp);
 		/*
 		 * 'len' is 4 bytes too big, since it counts
 		 * the placeholder length.  Adjust and emit.
@@ -374,7 +374,8 @@ isccc_cc_towire(isccc_sexpr_t *alist, isccc_region_t *target,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (secret != NULL)
-		return (sign(signed_rstart, (target->rstart - signed_rstart),
+		return (sign(signed_rstart,
+			     (unsigned int)(target->rstart - signed_rstart),
 			     hmac_rstart, algorithm, secret));
 	return (ISC_R_SUCCESS);
 }
@@ -587,6 +588,7 @@ table_fromwire(isccc_region_t *source, isccc_region_t *secret,
 	if (secret != NULL) {
 		if (checksum_rstart != NULL)
 			result = verify(alist, checksum_rstart,
+					(unsigned int)
 					(source->rend - checksum_rstart),
 					algorithm, secret);
 		else

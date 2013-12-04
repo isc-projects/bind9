@@ -202,7 +202,14 @@ t1(void) {
 }
 
 testspec_t	T_testlist[] = {
-	{	t1,	"basic memory subsystem"	},
-	{	NULL,	NULL				}
+	{	(PFV) t1,	"basic memory subsystem"	},
+	{	(PFV) 0,	NULL				}
 };
 
+#ifdef WIN32
+int
+main(int argc, char **argv) {
+	t_settests(T_testlist);
+	return (t_main(argc, argv));
+}
+#endif

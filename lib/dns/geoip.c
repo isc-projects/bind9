@@ -29,7 +29,14 @@
 
 #include <isc/thread.h>
 #include <math.h>
+#ifndef WIN32
 #include <netinet/in.h>
+#else
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#endif
+#include <winsock2.h>
+#endif WIN32
 #include <dns/log.h>
 
 #ifdef HAVE_GEOIP
@@ -107,6 +114,8 @@ state_key_init(void) {
 	if (!state_key_initialized) {
 		LOCK(&key_mutex);
 		if (!state_key_initialized) {
+			int ret;
+
 			if (state_mctx == NULL)
 				result = isc_mem_create2(0, 0, &state_mctx, 0);
 			if (result != ISC_R_SUCCESS)
@@ -114,7 +123,7 @@ state_key_init(void) {
 			isc_mem_setname(state_mctx, "geoip_state", NULL);
 			isc_mem_setdestroycheck(state_mctx, ISC_FALSE);
 
-			int ret = isc_thread_key_create(&state_key, free_state);
+			ret = isc_thread_key_create(&state_key, free_state);
 			if (ret == 0)
 				state_key_initialized = ISC_TRUE;
 			else
@@ -512,7 +521,7 @@ static int
 netspeed_lookup(GeoIP *db, dns_geoip_subtype_t subtype, isc_uint32_t ipnum) {
 	geoip_state_t *prev_state = NULL;
 	isc_boolean_t found = ISC_FALSE;
-	int id;
+	int id = -1;
 
 	REQUIRE(db != NULL);
 

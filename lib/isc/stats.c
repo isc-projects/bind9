@@ -341,8 +341,8 @@ isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
 #endif
 
 #if ISC_STATS_USEMULTIFIELDS
-	stats->counters[counter].hi = (val >> 32) & 0xffffffff;
-	stats->counters[counter].lo = val & 0xffffffff;
+	stats->counters[counter].hi = (isc_uint32_t)((val >> 32) & 0xffffffff);
+	stats->counters[counter].lo = (isc_uint32_t)(val & 0xffffffff);
 #else
 	stats->counters[counter] = val;
 #endif

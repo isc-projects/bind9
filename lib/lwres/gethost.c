@@ -161,7 +161,7 @@
 
 #define LWRES_ALIGNBYTES (sizeof(char *) - 1)
 #define LWRES_ALIGN(p) \
-	(((unsigned long)(p) + LWRES_ALIGNBYTES) &~ LWRES_ALIGNBYTES)
+	(((uintptr_t)(p) + LWRES_ALIGNBYTES) &~ LWRES_ALIGNBYTES)
 
 static struct hostent *he = NULL;
 static int copytobuf(struct hostent *, struct hostent *, char *, int);
@@ -303,7 +303,7 @@ copytobuf(struct hostent *he, struct hostent *hptr, char *buf, int buflen) {
 	 * Find out the amount of space required to store the answer.
 	 */
         nptr = 2; /* NULL ptrs */
-        len = (char *)LWRES_ALIGN(buf) - buf;
+        len = (int)((char *)LWRES_ALIGN(buf) - buf);
         for (i = 0; he->h_addr_list[i]; i++, nptr++) {
                 len += he->h_length;
         }

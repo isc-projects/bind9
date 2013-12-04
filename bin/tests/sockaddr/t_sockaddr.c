@@ -130,8 +130,15 @@ t2(void) {
 }
 
 testspec_t	T_testlist[] = {
-	{	t1,	"isc_sockaddr_eqaddrprefix"	},
-	{	t2,	"isc_netaddr_masktoprefixlen"	},
-	{	NULL,	NULL				}
+	{	(PFV) t1,	"isc_sockaddr_eqaddrprefix"	},
+	{	(PFV) t2,	"isc_netaddr_masktoprefixlen"	},
+	{	(PFV) 0,	NULL				}
 };
 
+#ifdef WIN32
+int
+main(int argc, char **argv) {
+	t_settests(T_testlist);
+	return (t_main(argc, argv));
+}
+#endif

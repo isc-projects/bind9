@@ -166,7 +166,7 @@ base32_decode_char(base32_decode_ctx_t *ctx, int c) {
 		return (ISC_R_BADBASE32);
 	if ((s = strchr(ctx->base, c)) == NULL)
 		return (ISC_R_BADBASE32);
-	last = s - ctx->base;
+	last = (unsigned int)(s - ctx->base);
 	/*
 	 * Handle lower case.
 	 */

@@ -96,7 +96,7 @@ dns_nsec_compressbitmap(unsigned char *map, const unsigned char *raw,
 		map += octet + 1;
 		raw += 32;
 	}
-	return (map - start);
+	return (unsigned int)(map - start);
 }
 
 isc_result_t
@@ -164,7 +164,7 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 
 	nsec_bits += dns_nsec_compressbitmap(nsec_bits, bm, max_type);
 
-	r.length = nsec_bits - r.base;
+	r.length = (unsigned int)(nsec_bits - r.base);
 	INSIST(r.length <= DNS_NSEC_BUFFERSIZE);
 	dns_rdata_fromregion(rdata,
 			     dns_db_class(db),

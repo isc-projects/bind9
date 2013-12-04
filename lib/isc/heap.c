@@ -123,7 +123,7 @@ isc_heap_destroy(isc_heap_t **heapp) {
 static isc_boolean_t
 resize(isc_heap_t *heap) {
 	void **new_array;
-	size_t new_size;
+	unsigned int new_size;
 
 	REQUIRE(VALID_HEAP(heap));
 

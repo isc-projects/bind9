@@ -103,8 +103,8 @@ t_tasks1(void) {
 	isc_timer_t		*ti1;
 	isc_timer_t		*ti2;
 	isc_result_t		isc_result;
-	struct isc_time		absolute;
-	struct isc_interval	interval;
+	isc_time_t		absolute;
+	isc_interval_t		interval;
 
 	manager = NULL;
 	task1 = NULL;
@@ -212,7 +212,11 @@ t_tasks1(void) {
 	}
 
 
+#ifndef WIN32
 	sleep(2);
+#else
+	Sleep(2000);
+#endif
 
 	/*
 	 * Note:  (void *)1 is used as a sender here, since some compilers
@@ -364,7 +368,11 @@ t_tasks1(void) {
 	isc_task_detach(&task3);
 	isc_task_detach(&task4);
 
+#ifndef WIN32
 	sleep(10);
+#else
+	Sleep(10000);
+#endif
 	isc_timer_detach(&ti1);
 	isc_timer_detach(&ti2);
 	isc_timermgr_destroy(&timgr);
@@ -1212,8 +1220,7 @@ t_tasks7(void) {
 
 	isc_task_shutdown(task);
 
-	interval.seconds = 5;
-	interval.nanoseconds = 0;
+	isc_interval_set(&interval, 5, 0);
 
 	while (T7_sdflag == 0) {
 		isc_result = isc_time_nowplusinterval(&now, &interval);
@@ -1646,8 +1653,7 @@ t_taskpurge_x(int sender, int type, int tag, void *purge_sender,
 
 	isc_task_shutdown(task);
 
-	interval.seconds = 5;
-	interval.nanoseconds = 0;
+	isc_interval_set(&interval, 5, 0);
 
 	/*
 	 * Wait for shutdown processing to complete.
@@ -1999,8 +2005,7 @@ t_tasks11(int purgable) {
 
 	isc_task_shutdown(task);
 
-	interval.seconds = 5;
-	interval.nanoseconds = 0;
+	isc_interval_set(&interval, 5, 0);
 
 	/*
 	 * Wait for shutdown processing to complete.
@@ -2347,15 +2352,23 @@ t14(void) {
 }
 
 testspec_t	T_testlist[] = {
-	{	t1,	"basic task subsystem"	},
-	{	t2,	"maxtasks"		},
-	{	t3,	"isc_task_shutdown"	},
-	{	t4,	"isc_task_shutdown"	},
-	{	t7,	"isc_task_create"	},
-	{	t10,	"isc_task_purge"	},
-	{	t11,	"isc_task_purgeevent"	},
-	{	t12,	"isc_task_purgeevent"	},
-	{	t13,	"isc_task_purgerange"	},
-	{	t14,	"isc_task_beginexclusive" },
-	{	NULL,	NULL			}
+	{	(PFV) t1,	"basic task subsystem"	},
+	{	(PFV) t2,	"maxtasks"		},
+	{	(PFV) t3,	"isc_task_shutdown"	},
+	{	(PFV) t4,	"isc_task_shutdown"	},
+	{	(PFV) t7,	"isc_task_create"	},
+	{	(PFV) t10,	"isc_task_purge"	},
+	{	(PFV) t11,	"isc_task_purgeevent"	},
+	{	(PFV) t12,	"isc_task_purgeevent"	},
+	{	(PFV) t13,	"isc_task_purgerange"	},
+	{	(PFV) t14,	"isc_task_beginexclusive" },
+	{	(PFV) 0,	NULL			}
 };
+
+#ifdef WIN32
+int
+main(int argc, char **argv) {
+	t_settests(T_testlist);
+	return (t_main(argc, argv));
+}
+#endif

@@ -50,7 +50,7 @@ initialize_rand(void)
 	 */
 	pid = ((pid << 16) & 0xffff0000) | ((pid >> 16) & 0xffff);
 
-	srand(time(NULL) ^ pid);
+	srand((unsigned)time(NULL) ^ pid);
 #endif
 }
 

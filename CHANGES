@@ -1,3 +1,7 @@
+3681.	[port]		Update the Windows build system to support feature
+			selection and WIN64 builds.  This is a work in
+			progress. [RT #34160]
+
 3680.	[bug]		Ensure buffer space is available in "rndc zonestatus".
 			[RT #35084]
 

@@ -369,7 +369,11 @@ main(int argc, char *argv[]) {
 	/*
 	 * Wait a short while.
 	 */
+#ifndef WIN32
 	sleep(10);
+#else
+	Sleep(10000);
+#endif
 
 	fprintf(stderr, "Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);

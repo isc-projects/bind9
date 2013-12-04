@@ -465,7 +465,7 @@ reverse_octets(const char *in, char **p, char *end) {
 		result = append(".", 1, p, end);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		len = dot - in;
+		len = (int)(dot - in);
 	} else {
 		len = strlen(in);
 	}
@@ -495,7 +495,7 @@ get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
 		result = dns_byaddr_createptrname2(&addr, options, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		dns_name_format(name, reverse, len);
+		dns_name_format(name, reverse, (unsigned int)len);
 		return (ISC_R_SUCCESS);
 	} else {
 		/*
@@ -3971,7 +3971,7 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 
 	isc_buffer_subtract(buffer, isc_buffer_usedlength(buffer) - used_org);
 	memcpy(isc_buffer_used(buffer), tmp1, tolen);
-	isc_buffer_add(buffer, tolen);
+	isc_buffer_add(buffer, (unsigned int)tolen);
 
 	return (ISC_R_SUCCESS);
 }

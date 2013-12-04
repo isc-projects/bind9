@@ -76,7 +76,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 	len = (unsigned char *)isc_buffer_used(target) - start;
 	if (len > 0xffU)
 		RETTOK(ISC_R_RANGE);
-	RETERR(uint8_tobuffer(len, &hit_len));
+	RETERR(uint8_tobuffer((isc_uint32_t)len, &hit_len));
 
 	/*
 	 * Public key (base64).
@@ -92,7 +92,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 	len = (unsigned char *)isc_buffer_used(target) - start;
 	if (len > 0xffffU)
 		RETTOK(ISC_R_RANGE);
-	RETERR(uint16_tobuffer(len, &key_len));
+	RETERR(uint16_tobuffer((isc_uint32_t)len, &key_len));
 
 	/*
 	 * Rendezvous Servers.
@@ -122,7 +122,7 @@ static inline isc_result_t
 totext_hip(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
-	size_t length, key_len, hit_len;
+	unsigned int length, key_len, hit_len;
 	unsigned char algorithm;
 	char buf[sizeof("225 ")];
 

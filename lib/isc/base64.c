@@ -124,7 +124,7 @@ base64_decode_char(base64_decode_ctx_t *ctx, int c) {
 		return (ISC_R_BADBASE64);
 	if ((s = strchr(base64, c)) == NULL)
 		return (ISC_R_BADBASE64);
-	ctx->val[ctx->digits++] = s - base64;
+	ctx->val[ctx->digits++] = (int)(s - base64);
 	if (ctx->digits == 4) {
 		int n;
 		unsigned char buf[3];
