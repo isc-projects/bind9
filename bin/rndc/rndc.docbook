@@ -241,7 +241,15 @@
         <term><userinput>retransfer <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></term>
         <listitem>
           <para>
-            Retransfer the given zone from the master.
+            Retransfer the given slave zone from the master server.
+          </para>
+          <para>
+            If the zone is configured to use
+            <command>inline-signing</command>, the signed
+            version of the zone is discarded; after the
+            retransfer of the unsigned version is complete, the
+            signed version will be regenerated with all new
+            signatures.
           </para>
         </listitem>
       </varlistentry>

@@ -25,11 +25,26 @@ RANDFILE=random.data
 status=0
 n=0
 
-$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 0 0 - nsec3
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 0 0 - nsec3 > /dev/null 2>&1
 
 for i in 1 2 3 4 5 6 7 8 9 0
 do
 	nsec3param=`$DIG +short @10.53.0.3 -p 5300 nsec3param nsec3.`
+	test -n "$nsec3param" && break
+	sleep 1
+done
+
+# Loop until retransfer3 has been transferred.
+for i in 1 2 3 4 5 6 7 8 9 0
+do
+        ans=0
+        $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 0 0 - retransfer3 > /dev/null 2>&1 || ans=1
+	[ $ans = 0 ] && break
+done
+
+for i in 1 2 3 4 5 6 7 8 9 0
+do
+	nsec3param=`$DIG +short @10.53.0.3 -p 5300 nsec3param retransfer3.`
 	test -n "$nsec3param" && break
 	sleep 1
 done
@@ -753,6 +768,32 @@ do
 	$DIG $DIGOPTS @10.53.0.3 -p 5300 added.retransfer A > dig.out.ns3.test$n
 	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ans=1
 	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
+	[ $ans = 0 ] && break
+	sleep 1
+done
+[ $ans = 1 ] && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check rndc retransfer of a inline nsec3 slave retains nsec3 ($n)"
+ret=0
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	ans=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 nonexist.retransfer3 A > dig.out.ns3.pre.test$n
+	grep "status: NXDOMAIN" dig.out.ns3.pre.test$n > /dev/null || ans=1
+	grep "NSEC3" dig.out.ns3.pre.test$n > /dev/null || ans=1
+	[ $ans = 0 ] && break
+	sleep 1
+done
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 retransfer retransfer3 2>&1 || ret=1
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	ans=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 nonexist.retransfer3 A > dig.out.ns3.post.test$n
+	grep "status: NXDOMAIN" dig.out.ns3.post.test$n > /dev/null || ans=1
+	grep "NSEC3" dig.out.ns3.post.test$n > /dev/null || ans=1
 	[ $ans = 0 ] && break
 	sleep 1
 done
