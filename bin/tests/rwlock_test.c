@@ -29,11 +29,18 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#ifdef WIN32
+#define sleep(x)	Sleep(1000 * x)
+#endif
+
 #ifdef ISC_PLATFORM_USETHREADS
 
 isc_rwlock_t lock;
 
-static void *
+static isc_threadresult_t
+#ifdef WIN32
+WINAPI
+#endif
 run1(void *arg) {
 	char *message = arg;
 
@@ -58,10 +65,13 @@ run1(void *arg) {
 	printf("%s giving up WRITE lock\n", message);
 	RUNTIME_CHECK(isc_rwlock_unlock(&lock, isc_rwlocktype_write) ==
 	       ISC_R_SUCCESS);
-	return (NULL);
+	return ((isc_threadresult_t)0);
 }
 
-static void *
+static isc_threadresult_t
+#ifdef WIN32
+WINAPI
+#endif
 run2(void *arg) {
 	char *message = arg;
 
@@ -86,7 +96,7 @@ run2(void *arg) {
 	printf("%s giving up READ lock\n", message);
 	RUNTIME_CHECK(isc_rwlock_unlock(&lock, isc_rwlocktype_read) ==
 	       ISC_R_SUCCESS);
-	return (NULL);
+	return ((isc_threadresult_t)0);
 }
 
 int

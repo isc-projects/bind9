@@ -608,11 +608,11 @@ BN_fromhex(BIGNUM *b, const char *str) {
 
 		s = strchr(hexdigits, tolower((unsigned char)str[i]));
 		RUNTIME_CHECK(s != NULL);
-		high = s - hexdigits;
+		high = (unsigned int)(s - hexdigits);
 
 		s = strchr(hexdigits, tolower((unsigned char)str[i + 1]));
 		RUNTIME_CHECK(s != NULL);
-		low = s - hexdigits;
+		low = (unsigned int)(s - hexdigits);
 
 		data[i/2] = (unsigned char)((high << 4) + low);
 	}

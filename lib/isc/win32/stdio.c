@@ -49,11 +49,14 @@ isc_stdio_close(FILE *f) {
 }
 
 isc_result_t
-isc_stdio_seek(FILE *f, long offset, int whence) {
-	/* based on the fact off_t is typedef to long */
+isc_stdio_seek(FILE *f, off_t offset, int whence) {
 	int r;
 
+#ifndef _WIN64
 	r = fseek(f, offset, whence);
+#else
+	r = _fseeki64(f, offset, whence);
+#endif
 	if (r == 0)
 		return (ISC_R_SUCCESS);
 	else

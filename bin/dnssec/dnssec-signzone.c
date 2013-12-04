@@ -739,7 +739,8 @@ hashlist_add_dns_name(hashlist_t *l, /*const*/ dns_name_t *name,
 	unsigned int len;
 	size_t i;
 
-	len = isc_iterated_hash(hash, hashalg, iterations, salt, salt_length,
+	len = isc_iterated_hash(hash, hashalg, iterations,
+				salt, (int)salt_length,
 				name->ndata, name->length);
 	if (verbose) {
 		dns_name_format(name, nametext, sizeof nametext);
@@ -791,7 +792,7 @@ static const unsigned char *
 hashlist_findnext(const hashlist_t *l,
 		  const unsigned char hash[NSEC3_MAX_HASH_LENGTH])
 {
-	unsigned int entries = l->entries;
+	size_t entries = l->entries;
 	const unsigned char *next = bsearch(hash, l->hashbuf, l->entries,
 					    l->length, hashlist_comp);
 	INSIST(next != NULL);
@@ -1809,7 +1810,7 @@ nsecify(void) {
 
 static void
 addnsec3param(const unsigned char *salt, size_t salt_length,
-	      unsigned int iterations)
+	      dns_iterations_t iterations)
 {
 	dns_dbnode_t *node = NULL;
 	dns_rdata_nsec3param_t nsec3param;
@@ -1829,7 +1830,7 @@ addnsec3param(const unsigned char *salt, size_t salt_length,
 	nsec3param.flags = 0;
 	nsec3param.hash = unknownalg ? DNS_NSEC3_UNKNOWNALG : dns_hash_sha1;
 	nsec3param.iterations = iterations;
-	nsec3param.salt_length = salt_length;
+	nsec3param.salt_length = (unsigned char)salt_length;
 	DE_CONST(salt, nsec3param.salt);
 
 	isc_buffer_init(&b, nsec3parambuf, sizeof(nsec3parambuf));
@@ -2126,7 +2127,7 @@ remove_duplicates(void) {
  * Generate NSEC3 records for the zone.
  */
 static void
-nsec3ify(unsigned int hashalg, unsigned int iterations,
+nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 	 const unsigned char *salt, size_t salt_length, hashlist_t *hashlist)
 {
 	dns_dbiterator_t *dbiter = NULL;

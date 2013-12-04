@@ -33,5 +33,5 @@ isc_stdtime_get(isc_stdtime_t *t) {
 
 	REQUIRE(t != NULL);
 
-	(void)time(t);
+	(void)_time32(t);
 }

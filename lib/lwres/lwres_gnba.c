@@ -135,9 +135,9 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 	buf = CTXMALLOC(buflen);
 	if (buf == NULL)
 		return (LWRES_R_NOMEMORY);
-	lwres_buffer_init(b, buf, buflen);
+	lwres_buffer_init(b, buf, (unsigned int)buflen);
 
-	pkt->length = buflen;
+	pkt->length = (lwres_uint32_t)buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
 	pkt->pktflags &= ~LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_GETNAMEBYADDR;
@@ -199,9 +199,9 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	buf = CTXMALLOC(buflen);
 	if (buf == NULL)
 		return (LWRES_R_NOMEMORY);
-	lwres_buffer_init(b, buf, buflen);
+	lwres_buffer_init(b, buf, (unsigned int)buflen);
 
-	pkt->length = buflen;
+	pkt->length = (lwres_uint32_t)buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
 	pkt->pktflags |= LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_GETNAMEBYADDR;

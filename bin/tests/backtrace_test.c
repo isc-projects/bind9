@@ -72,8 +72,8 @@ func3() {
 			if (result == ISC_R_SUCCESS)
 				printf("  [%d] %s\n", i, fname);
 			else {
-				printf("  [%d] getsymbol failed: %s\n", i,
-				       isc_result_totext(result));
+				printf("  [%d] %p getsymbol failed: %s\n", i,
+				       tracebuf[i], isc_result_totext(result));
 			}
 		}
 	}

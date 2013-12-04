@@ -191,11 +191,18 @@ test_atomic_xaddq() {
 
 testspec_t T_testlist[] = {
 #if defined(ISC_PLATFORM_HAVEXADD)
-	{ test_atomic_xadd,	"test_atomic_xadd"		},
+	{ (PFV) test_atomic_xadd,	"test_atomic_xadd"		},
 #endif
 #if defined(ISC_PLATFORM_HAVEXADDQ)
-	{ test_atomic_xaddq,	"test_atomic_xaddq"		},
+	{ (PFV) test_atomic_xaddq,	"test_atomic_xaddq"		},
 #endif
-	{ NULL,	NULL }
+	{ (PFV) 0,			NULL }
 };
 
+#ifdef WIN32
+int
+main(int argc, char **argv) {
+	t_settests(T_testlist);
+	return (t_main(argc, argv));
+}
+#endif

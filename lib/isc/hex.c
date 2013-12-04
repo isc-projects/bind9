@@ -99,7 +99,7 @@ hex_decode_char(hex_decode_ctx_t *ctx, int c) {
 
 	if ((s = strchr(hex, toupper(c))) == NULL)
 		return (ISC_R_BADHEX);
-	ctx->val[ctx->digits++] = s - hex;
+	ctx->val[ctx->digits++] = (int)(s - hex);
 	if (ctx->digits == 2) {
 		unsigned char num;
 

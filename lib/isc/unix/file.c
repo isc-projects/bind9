@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -93,6 +93,33 @@ file_stats(const char *file, struct stat *stats) {
 
 	if (stat(file, stats) != 0)
 		result = isc__errno2result(errno);
+
+	return (result);
+}
+
+static isc_result_t
+fd_stats(int fd, struct stat *stats) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(stats != NULL);
+
+	if (fstat(fd, stats) != 0)
+		result = isc__errno2result(errno);
+
+	return (result);
+}
+
+isc_result_t
+isc_file_getsizefd(int fd, off_t *size) {
+	isc_result_t result;
+	struct stat stats;
+
+	REQUIRE(size != NULL);
+
+	result = fd_stats(fd, &stats);
+
+	if (result == ISC_R_SUCCESS)
+		*size = stats.st_size;
 
 	return (result);
 }

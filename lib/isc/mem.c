@@ -68,7 +68,7 @@ typedef struct debuglink debuglink_t;
 struct debuglink {
 	ISC_LINK(debuglink_t)	link;
 	const void	       *ptr[DEBUGLIST_COUNT];
-	unsigned int		size[DEBUGLIST_COUNT];
+	size_t			size[DEBUGLIST_COUNT];
 	const char	       *file[DEBUGLIST_COUNT];
 	unsigned int		line[DEBUGLIST_COUNT];
 	unsigned int		count;
@@ -396,12 +396,10 @@ static struct isc__mempoolmethods {
  * mctx must be locked.
  */
 static inline void
-add_trace_entry(isc__mem_t *mctx, const void *ptr, unsigned int size
-		FLARG)
-{
+add_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size FLARG) {
 	debuglink_t *dl;
 	unsigned int i;
-	unsigned int mysize = size;
+	size_t mysize = size;
 
 	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
 		fprintf(stderr, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
@@ -456,7 +454,7 @@ add_trace_entry(isc__mem_t *mctx, const void *ptr, unsigned int size
 }
 
 static inline void
-delete_trace_entry(isc__mem_t *mctx, const void *ptr, unsigned int size,
+delete_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size,
 		   const char *file, unsigned int line)
 {
 	debuglink_t *dl;
@@ -623,7 +621,7 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 	total_size = ctx->mem_target;
 	new = ctx->basic_blocks;
 	ctx->basic_blocks = ctx->basic_blocks->next;
-	frags = total_size / new_size;
+	frags = (int)(total_size / new_size);
 	ctx->stats[new_size].blocks++;
 	ctx->stats[new_size].freefrags += frags;
 	/*

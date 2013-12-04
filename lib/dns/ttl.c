@@ -53,7 +53,7 @@ ttlfmt(unsigned int t, const char *s, isc_boolean_t verbose,
        isc_boolean_t space, isc_buffer_t *target)
 {
 	char tmp[60];
-	size_t len;
+	unsigned int len;
 	isc_region_t region;
 
 	if (verbose)

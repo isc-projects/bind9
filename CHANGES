@@ -1,3 +1,7 @@
+3681.	[port]		Update the Windows build system to support feature
+			selection and WIN64 builds.  This is a work in
+			progress. [RT #34160]
+
 3679.	[bug]		dig could fail to clean up TCP sockets still
 			waiting on connect(). [RT #35074]
 

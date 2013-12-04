@@ -210,7 +210,7 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 	}
 	source->pushback = NULL;
 	result = isc_buffer_allocate(lex->mctx, &source->pushback,
-				     lex->max_token);
+				     (unsigned int)lex->max_token);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_free(lex->mctx, source->name);
 		isc_mem_put(lex->mctx, source, sizeof(*source));
@@ -615,8 +615,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 						v->as_textregion.base =
 							lex->data;
 						v->as_textregion.length =
-							lex->max_token -
-							remaining;
+							(unsigned int)
+							(lex->max_token -
+							 remaining);
 					} else
 						goto done;
 					done = ISC_TRUE;
@@ -659,7 +660,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				tokenp->type = isc_tokentype_string;
 				tokenp->value.as_textregion.base = lex->data;
 				tokenp->value.as_textregion.length =
-					lex->max_token - remaining;
+					(unsigned int)
+					(lex->max_token - remaining);
 				done = ISC_TRUE;
 				continue;
 			}
@@ -744,7 +746,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					tokenp->value.as_textregion.base =
 						lex->data;
 					tokenp->value.as_textregion.length =
-						lex->max_token - remaining;
+						(unsigned int)
+						(lex->max_token - remaining);
 					no_comments = ISC_FALSE;
 					done = ISC_TRUE;
 				}

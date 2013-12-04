@@ -276,7 +276,8 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 */
 		return (ISC_R_NOTFOUND);
 	}
-	return (dns_sdb_putrdata(lookup, dns_rdatatype_cname, 600, rdata, len));
+	return (dns_sdb_putrdata(lookup, dns_rdatatype_cname, 600,
+				 rdata, (unsigned int)len));
 }
 
 static isc_result_t

@@ -17,9 +17,7 @@
 
 /* $Id: AccountInfo.cpp,v 1.10 2009/09/29 23:48:04 tbox Exp $ */
 
-#ifndef UNICODE
-#define UNICODE
-#endif /* UNICODE */
+/* Compiled with UNICODE */
 
 #include "stdafx.h"
 
