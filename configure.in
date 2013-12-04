@@ -81,7 +81,6 @@ yes)
 		test "${enable_exportlib+set}" = set || enable_exportlib=yes
 		;;
 	esac
-	test "${enable_symtable+set}" = set || enable_symtable=all
 	;;
 esac
 #
@@ -3197,12 +3196,11 @@ echo "------------------------------------------------------------------------"
 echo "Optional features enabled:"
 $use_threads && echo "    Multiprocessing support (--enable-threads)"
 
-test "$enable_fixed" = "yes" && \
-    echo "    Fixed RRset order (--enable-fixed-rrset)"
-test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
 test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
-
+test "$enable_fixed" = "yes" && \
+    echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
 
 # these lines are only printed if run with --enable-full-report 
 if test "$enable_full_report" = "yes"; then
@@ -3228,18 +3226,19 @@ test "$use_dlz_filesystem" = "no" || \
     echo "        Filesystem (--with-dlz-filesystem)"
 test "$use_dlz_stub" = "no" || \
     echo "        Stub (--with-dlz-stub)"
+test "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" = "no no no no no no no" && echo "        None"
 echo
 
 echo "Features disabled or unavailable on this platform:"
 $use_threads || echo "    Multiprocessing support (--enable-threads)"
-test "X$USE_DLZ" = "X" && echo "    Dynamically loadable zones (DLZ) (--with-dlz-DRIVER)"
-test "$enable_fixed" = "yes" || \
-    echo "    Fixed RRset order (--enable-fixed-rrset)"
-test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
-test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
-test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
         echo "    IPv6 support (--enable-ipv6)"
+test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
+test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
+test "$enable_fixed" = "yes" || \
+    echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
+
 test "X$USE_OPENSSL" = "X" && \
         echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
 test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
