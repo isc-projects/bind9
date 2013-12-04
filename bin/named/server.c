@@ -386,6 +386,9 @@ end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
 static void
 newzone_cfgctx_destroy(void **cfgp);
 
+static isc_result_t
+putstr(isc_buffer_t *b, const char *str);
+
 isc_result_t
 add_comment(FILE *fp, const char *viewname);
 
@@ -6503,7 +6506,8 @@ next_token(char **stringp, const char *delim) {
  */
 static isc_result_t
 zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
-	       dns_zone_t **zonep, const char **zonename, isc_boolean_t skip)
+	       dns_zone_t **zonep, const char **zonename,
+	       isc_buffer_t *text, isc_boolean_t skip)
 {
 	char *input, *ptr;
 	char *classtxt;
@@ -6513,6 +6517,7 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 	isc_buffer_t buf;
 	dns_view_t *view = NULL;
 	dns_rdataclass_t rdclass;
+	char problem[1024] = "";
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(zonename == NULL || *zonename == NULL);
@@ -6564,15 +6569,24 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 					       dns_fixedname_name(&name),
 					       ISC_TF(classtxt == NULL),
 					       rdclass, zonep);
+		if (result == ISC_R_NOTFOUND)
+			sprintf(problem, "no matching zone '%s' in any view",
+				zonetxt);
 	} else {
 		result = dns_viewlist_find(&server->viewlist, viewtxt,
 					   rdclass, &view);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			sprintf(problem, "no matching view '%s'", viewtxt);
 			goto fail1;
+		}
 
 		result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
 				     0, NULL, zonep);
-		dns_view_detach(&view);
+		if (result != ISC_R_SUCCESS) {
+			sprintf(problem, "no matching zone '%s' in view '%s'",
+				zonetxt, viewtxt);
+			goto fail1;
+		}
 	}
 
 	/* Partial match? */
@@ -6581,6 +6595,14 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 	if (result == DNS_R_PARTIALMATCH)
 		result = ISC_R_NOTFOUND;
  fail1:
+	if (result != ISC_R_SUCCESS) {
+		putstr(text, problem);
+		isc_buffer_putuint8(text, 0);
+	}
+
+ 	if (view != NULL)
+		dns_view_detach(&view);
+
 	return (result);
 }
 
@@ -6588,13 +6610,16 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
  * Act on a "retransfer" command from the command channel.
  */
 isc_result_t
-ns_server_retransfercommand(ns_server_t *server, char *args) {
+ns_server_retransfercommand(ns_server_t *server, char *args,
+			    isc_buffer_t *text)
+{
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_zone_t *raw = NULL;
 	dns_zonetype_t type;
 
-	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL,
+				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -6624,7 +6649,8 @@ ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_zonetype_t type;
 	const char *msg = NULL;
 
-	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL,
+				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL) {
@@ -6684,7 +6710,8 @@ ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_zone_t *zone = NULL;
 	const unsigned char msg[] = "zone notify queued";
 
-	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL,
+				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -6709,7 +6736,8 @@ ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	const unsigned char msg2[] = "not a slave or stub zone";
 	dns_zonetype_t type;
 
-	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL,
+				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -7830,7 +7858,7 @@ ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text) {
  * Act on a "sign" or "loadkeys" command from the command channel.
  */
 isc_result_t
-ns_server_rekey(ns_server_t *server, char *args) {
+ns_server_rekey(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
@@ -7840,7 +7868,8 @@ ns_server_rekey(ns_server_t *server, char *args) {
 	if (strncasecmp(args, NS_COMMAND_SIGN, strlen(NS_COMMAND_SIGN)) == 0)
 	    fullsign = ISC_TRUE;
 
-	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL,
+				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -7913,7 +7942,8 @@ ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text) {
 		arg = next_token(&args, " \t");
 	}
 
-	result = zone_from_args(server, args, arg, &zone, NULL, ISC_FALSE);
+	result = zone_from_args(server, args, arg, &zone, NULL,
+				text, ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -7989,7 +8019,8 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 	isc_boolean_t frozen;
 	const char *msg = NULL;
 
-	result = zone_from_args(server, args, NULL, &zone, NULL, ISC_TRUE);
+	result = zone_from_args(server, args, NULL, &zone, NULL,
+				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL) {
@@ -8335,7 +8366,7 @@ ns_server_add_zone(ns_server_t *server, char *args) {
  * Act on a "delzone" command from the command channel.
  */
 isc_result_t
-ns_server_del_zone(ns_server_t *server, char *args) {
+ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_view_t *view = NULL;
@@ -8349,7 +8380,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 	isc_boolean_t inheader = ISC_TRUE;
 
 	/* Parse parameters */
-	CHECK(zone_from_args(server, args, NULL, &zone, &zonename, ISC_TRUE));
+	CHECK(zone_from_args(server, args, NULL, &zone, &zonename,
+			     text, ISC_TRUE));
 
 	if (zone == NULL) {
 		result = ISC_R_UNEXPECTEDEND;
@@ -8615,7 +8647,8 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 	} else
 		CHECK(DNS_R_SYNTAX);
 
-	CHECK(zone_from_args(server, args, NULL, &zone, NULL, ISC_FALSE));
+	CHECK(zone_from_args(server, args, NULL, &zone, NULL,
+			     text, ISC_FALSE));
 	if (zone == NULL)
 		CHECK(ISC_R_UNEXPECTEDEND);
 
@@ -8692,4 +8725,18 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 		dns_zone_detach(&zone);
 
 	return (result);
+}
+
+static isc_result_t
+putstr(isc_buffer_t *b, const char *str) {
+	size_t l = strlen(str);
+
+	/*
+	 * Use >= to leave space for NUL termination.
+	 */
+	if (l >= isc_buffer_availablelength(b))
+		return (ISC_R_NOSPACE);
+
+	isc_buffer_putmem(b, (const unsigned char *)str, l);
+	return (ISC_R_SUCCESS);
 }
