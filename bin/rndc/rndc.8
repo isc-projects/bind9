@@ -140,7 +140,10 @@ Schedule zone maintenance for the given zone.
 .PP
 \fBretransfer \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR
 .RS 4
-Retransfer the given zone from the master.
+Retransfer the given slave zone from the master server.
+.sp
+If the zone is configured to use
+\fBinline\-signing\fR, the signed version of the zone is discarded; after the retransfer of the unsigned version is complete, the signed version will be regenerated with all new signatures.
 .RE
 .PP
 \fBsign \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR
