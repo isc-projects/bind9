@@ -100,7 +100,11 @@ while (<CHANGES>) {
 	    $file_types{$_} = "CONF-SH";
 	} elsif ($base =~ /\.(db|hint)$/) {
 	    $file_types{$_} = "ZONE";
-	} elsif ($base =~ /(\/\.gitignore|\.gif|\.jpg|\.dsp|\.dsw|\.mak)$/i) {
+	} elsif ($base =~ /(\/\.gitignore|\.(gif|jpg))$/i) {
+	    $file_types{$_} = "X";
+	} elsif ($base =~ /\.(def|dep|dsp|dsw|mak|sln)$/i) {
+	    $file_types{$_} = "X";
+	} elsif ($base =~ /\.(vcxproj(|\.(user|filters)))$/i) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.rnc$/i) {
 	    $file_types{$_} = "RNC";
