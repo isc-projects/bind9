@@ -28,9 +28,9 @@
 ./bin/check/win32/checkconf.dsp.in		X	2001,2004,2005,2006,2009
 ./bin/check/win32/checkconf.dsw		X	2001
 ./bin/check/win32/checkconf.mak.in		X	2001,2002,2004,2005,2006,2009
-./bin/check/win32/namedcheckzone.dsp.in		X	2001,2002,2004,2005,2006,2009
-./bin/check/win32/namedcheckzone.dsw		X	2001
-./bin/check/win32/namedcheckzone.mak.in		X	2001,2002,2004,2005,2006,2009
+./bin/check/win32/checkzone.dsp.in		X	2001,2002,2004,2005,2006,2009
+./bin/check/win32/checkzone.dsw		X	2001
+./bin/check/win32/checkzone.mak.in		X	2001,2002,2004,2005,2006,2009
 ./bin/confgen/.gitignore			X	2012
 ./bin/confgen/Makefile.in			MAKE	2009,2012
 ./bin/confgen/ddns-confgen.8			MAN	DOCBOOK
