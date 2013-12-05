@@ -149,9 +149,19 @@
             Schedule zone maintenance for the given zone.
           </p></dd>
 <dt><span class="term"><strong class="userinput"><code>retransfer <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
-<dd><p>
-            Retransfer the given zone from the master.
-          </p></dd>
+<dd>
+<p>
+            Retransfer the given slave zone from the master server.
+          </p>
+<p>
+            If the zone is configured to use
+            <span><strong class="command">inline-signing</strong></span>, the signed
+            version of the zone is discarded; after the
+            retransfer of the unsigned version is complete, the
+            signed version will be regenerated with all new
+            signatures.
+          </p>
+</dd>
 <dt><span class="term"><strong class="userinput"><code>sign <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
 <dd>
 <p>
@@ -470,7 +480,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544836"></a><h2>LIMITATIONS</h2>
+<a name="id2544843"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -480,7 +490,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542123"></a><h2>SEE ALSO</h2>
+<a name="id2542131"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -490,7 +500,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542179"></a><h2>AUTHOR</h2>
+<a name="id2545190"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>

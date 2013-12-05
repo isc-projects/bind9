@@ -50,7 +50,7 @@
 <div class="cmdsynopsis"><p><code class="command">rndc</code>  [<code class="option">-b <em class="replaceable"><code>source-address</code></em></code>] [<code class="option">-c <em class="replaceable"><code>config-file</code></em></code>] [<code class="option">-k <em class="replaceable"><code>key-file</code></em></code>] [<code class="option">-s <em class="replaceable"><code>server</code></em></code>] [<code class="option">-p <em class="replaceable"><code>port</code></em></code>] [<code class="option">-V</code>] [<code class="option">-y <em class="replaceable"><code>key_id</code></em></code>] {command}</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2642779"></a><h2>DESCRIPTION</h2>
+<a name="id2642721"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">rndc</strong></span>
       controls the operation of a name
       server.  It supersedes the <span><strong class="command">ndc</strong></span> utility
@@ -79,7 +79,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2642829"></a><h2>OPTIONS</h2>
+<a name="id2642771"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-b <em class="replaceable"><code>source-address</code></em></span></dt>
 <dd><p>
@@ -145,7 +145,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2643994"></a><h2>COMMANDS</h2>
+<a name="id2643936"></a><h2>COMMANDS</h2>
 <p>
       A list of commands supported by <span><strong class="command">rndc</strong></span> can
       be seen by running <span><strong class="command">rndc</strong></span> without arguments.
@@ -167,9 +167,19 @@
             Schedule zone maintenance for the given zone.
           </p></dd>
 <dt><span class="term"><strong class="userinput"><code>retransfer <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
-<dd><p>
-            Retransfer the given zone from the master.
-          </p></dd>
+<dd>
+<p>
+            Retransfer the given slave zone from the master server.
+          </p>
+<p>
+            If the zone is configured to use
+            <span><strong class="command">inline-signing</strong></span>, the signed
+            version of the zone is discarded; after the
+            retransfer of the unsigned version is complete, the
+            signed version will be regenerated with all new
+            signatures.
+          </p>
+</dd>
 <dt><span class="term"><strong class="userinput"><code>sign <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
 <dd>
 <p>
@@ -488,7 +498,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2677858"></a><h2>LIMITATIONS</h2>
+<a name="id2677740"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -498,7 +508,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2677876"></a><h2>SEE ALSO</h2>
+<a name="id2677758"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -508,7 +518,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2677931"></a><h2>AUTHOR</h2>
+<a name="id2677814"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
