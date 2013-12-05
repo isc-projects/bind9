@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -40,23 +40,23 @@ typedef struct lwres_addr lwres_addr_t;
 typedef LWRES_LIST(lwres_addr_t) lwres_addrlist_t;
 
 typedef struct {
-        lwres_uint32_t  flags;
-        lwres_uint32_t  addrtypes;
-        lwres_uint16_t  namelen;
-        char           *name;
+	lwres_uint32_t  flags;
+	lwres_uint32_t  addrtypes;
+	lwres_uint16_t  namelen;
+	char           *name;
 } lwres_gabnrequest_t;
 
 typedef struct {
-        lwres_uint32_t          flags;
-        lwres_uint16_t          naliases;
-        lwres_uint16_t          naddrs;
-        char                   *realname;
-        char                  **aliases;
-        lwres_uint16_t          realnamelen;
-        lwres_uint16_t         *aliaslen;
-        lwres_addrlist_t        addrs;
-        void                   *base;
-        size_t                  baselen;
+	lwres_uint32_t          flags;
+	lwres_uint16_t          naliases;
+	lwres_uint16_t          naddrs;
+	char                   *realname;
+	char                  **aliases;
+	lwres_uint16_t          realnamelen;
+	lwres_uint16_t         *aliaslen;
+	lwres_addrlist_t        addrs;
+	void                   *base;
+	size_t                  baselen;
 } lwres_gabnresponse_t;
 \endcode
 
