@@ -204,6 +204,35 @@ checkfor "nodes: " rndc.out.slave
 checkfor "next refresh: " rndc.out.slave
 checkfor "expires: " rndc.out.slave
 checkfor "secure: yes" rndc.out.slave
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus reload.example > rndc.out.prereload 2>&1
+	grep "zone not loaded" rndc.out.prereload > /dev/null || break
+	sleep 1
+done
+checkfor "files: reload.db, soa.db$" rndc.out.prereload
+echo "@ 0 SOA . . 2 0 0 0 0" > ns1/soa.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload reload.example
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG reload.example SOA @10.53.0.1 -p 5300 > dig.out
+	grep " 2 0 0 0 0" dig.out >/dev/null && break
+	sleep 1
+done
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus reload.example > rndc.out.postreload 2>&1
+checkfor "files: reload.db, soa.db$" rndc.out.postreload
+sleep 1
+echo "@ 0 SOA . . 3 0 0 0 0" > ns1/reload.db
+echo "@ 0 NS ." >> ns1/reload.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload reload.example
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG reload.example SOA @10.53.0.1 -p 5300 > dig.out
+	grep " 3 0 0 0 0" dig.out >/dev/null && break
+	sleep 1
+done
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus reload.example > rndc.out.removeinclude 2>&1
+checkfor "files: reload.db$" rndc.out.removeinclude
 
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

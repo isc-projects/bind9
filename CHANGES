@@ -1,3 +1,6 @@
+3684.	[bug]		The list of included files would grow on reload.
+			[RT 35090]
+
 3683.	[cleanup]	Add a more detailed "not found" message to rndc
 			commands which specify a zone name. [RT #35059]
 

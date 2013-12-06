@@ -218,6 +218,7 @@ struct dns_zone {
 	dns_name_t		origin;
 	char			*masterfile;
 	ISC_LIST(dns_include_t)	includes;	/* Include files */
+	ISC_LIST(dns_include_t)	newincludes;	/* Loading */
 	unsigned int		nincludes;
 	dns_masterformat_t	masterformat;
 	char			*journal;
@@ -869,6 +870,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->strviewname = NULL;
 	zone->masterfile = NULL;
 	ISC_LIST_INIT(zone->includes);
+	ISC_LIST_INIT(zone->newincludes);
 	zone->nincludes = 0;
 	zone->masterformat = dns_masterformat_none;
 	zone->keydirectory = NULL;
@@ -1062,6 +1064,13 @@ zone_free(dns_zone_t *zone) {
 	     include != NULL;
 	     include = ISC_LIST_HEAD(zone->includes)) {
 		ISC_LIST_UNLINK(zone->includes, include, link);
+		isc_mem_free(zone->mctx, include->name);
+		isc_mem_put(zone->mctx, include, sizeof *include);
+	}
+	for (include = ISC_LIST_HEAD(zone->newincludes);
+	     include != NULL;
+	     include = ISC_LIST_HEAD(zone->newincludes)) {
+		ISC_LIST_UNLINK(zone->newincludes, include, link);
 		isc_mem_free(zone->mctx, include->name);
 		isc_mem_put(zone->mctx, include, sizeof *include);
 	}
@@ -2052,6 +2061,15 @@ zone_registerinclude(const char *filename, void *arg) {
 	if (filename == NULL)
 		return;
 
+	/*
+	 * Suppress duplicates.
+	 */
+	for (inc = ISC_LIST_HEAD(zone->newincludes);
+	     inc != NULL;
+	     inc = ISC_LIST_NEXT(inc, link))
+		if (strcmp(filename, inc->name) == 0)
+			return;
+
 	inc = isc_mem_get(zone->mctx, sizeof(dns_include_t));
 	if (inc == NULL)
 		return;
@@ -2066,8 +2084,7 @@ zone_registerinclude(const char *filename, void *arg) {
 	if (result != ISC_R_SUCCESS)
 		isc_time_settoepoch(&inc->filetime);
 
-	ISC_LIST_APPEND(zone->includes, inc, link);
-	zone->nincludes++;
+	ISC_LIST_APPEND(zone->newincludes, inc, link);
 }
 
 static void
@@ -4048,6 +4065,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	isc_boolean_t hasinclude = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE);
 	isc_boolean_t nomaster = ISC_FALSE;
 	unsigned int options;
+	dns_include_t *inc;
 
 	INSIST(LOCKED_ZONE(zone));
 	if (inline_raw(zone))
@@ -4472,6 +4490,29 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		zone_settimer(zone, &now);
 	}
 
+	/*
+	 * Clear old include list.
+	 */
+	for (inc = ISC_LIST_HEAD(zone->includes);
+	     inc != NULL;
+	     inc = ISC_LIST_HEAD(zone->includes)) {
+		ISC_LIST_UNLINK(zone->includes, inc, link);
+		isc_mem_free(zone->mctx, inc->name);
+		isc_mem_put(zone->mctx, inc, sizeof(*inc));
+	}
+	zone->nincludes = 0;
+
+	/*
+	 * Transfer new include list.
+	 */
+	for (inc = ISC_LIST_HEAD(zone->newincludes);
+	     inc != NULL;
+	     inc = ISC_LIST_HEAD(zone->newincludes)) {
+		ISC_LIST_UNLINK(zone->newincludes, inc, link);
+		ISC_LIST_APPEND(zone->includes, inc, link);
+		zone->nincludes++;
+	}
+
 	if (! dns_db_ispersistent(db))
 		dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u%s", serial,
 			     dns_db_issecure(db) ? " (DNSSEC signed)" : "");
@@ -4481,6 +4522,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	return (result);
 
  cleanup:
+	for (inc = ISC_LIST_HEAD(zone->newincludes);
+	     inc != NULL;
+	     inc = ISC_LIST_HEAD(zone->newincludes)) {
+		ISC_LIST_UNLINK(zone->newincludes, inc, link);
+		isc_mem_free(zone->mctx, inc->name);
+		isc_mem_put(zone->mctx, inc, sizeof(*inc));
+	}
 	if (zone->type == dns_zone_slave ||
 	    zone->type == dns_zone_stub ||
 	    zone->type == dns_zone_key ||

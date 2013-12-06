@@ -26,4 +26,6 @@ echo '$INCLUDE "master.db.signed"' >> master.db
 $KEYGEN -r ../random.data -3q master.example > /dev/null 2>&1
 $KEYGEN -r ../random.data -3qfk master.example > /dev/null 2>&1
 $SIGNER -SD -o master.example master.db > /dev/null 2>&1
-
+echo '$INCLUDE "soa.db"' > reload.db
+echo '@ 0 NS .' >> reload.db
+echo '@ 0 SOA . . 1 0 0 0 0' > soa.db
