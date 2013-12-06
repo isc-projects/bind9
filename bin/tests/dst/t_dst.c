@@ -795,7 +795,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	 * Read precomputed signature from file in a form usable by dst_verify.
 	 */
 	rval = sig_fromfile(sigpath, &sigbuf);
-	if (rval != 0) {
+	if (rval != 0U) {
 		t_info("sig_fromfile failed\n");
 		(void) free(data);
 		dst_key_free(&key);

@@ -730,8 +730,8 @@ hashlist_findnext(const hashlist_t *l,
 			next = l->hashbuf;
 		if (next[l->length - 1] == 0)
 			break;
-	} while (entries-- > 1);
-	INSIST(entries != 0);
+	} while (entries-- > 1U);
+	INSIST(entries != 0U);
 	return (next);
 }
 

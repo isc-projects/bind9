@@ -681,7 +681,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	result = journal_open(mctx, filename, write, write, journalp);
 	if (result == ISC_R_NOTFOUND) {
 		namelen = strlen(filename);
-		if (namelen > 4 && strcmp(filename + namelen - 4, ".jnl") == 0)
+		if (namelen > 4U && strcmp(filename + namelen - 4, ".jnl") == 0)
 			namelen -= 4;
 
 		result = isc_string_printf(backup, sizeof(backup), "%.*s.jbk",
@@ -2024,7 +2024,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	isc_boolean_t is_backup = ISC_FALSE;
 
 	namelen = strlen(filename);
-	if (namelen > 4 && strcmp(filename + namelen - 4, ".jnl") == 0)
+	if (namelen > 4U && strcmp(filename + namelen - 4, ".jnl") == 0)
 		namelen -= 4;
 
 	result = isc_string_printf(newname, sizeof(newname), "%.*s.jnw",
