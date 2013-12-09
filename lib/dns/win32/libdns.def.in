@@ -1013,6 +1013,7 @@ dst_key_gettime
 dst_key_getttl
 dst_key_id
 dst_key_inactive
+dst_key_isexternal
 dst_key_isnullkey
 dst_key_isprivate
 dst_key_iszonekey
