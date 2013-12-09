@@ -6512,9 +6512,9 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 	char *input, *ptr;
 	char *classtxt;
 	const char *viewtxt = NULL;
-	dns_fixedname_t name;
+	dns_fixedname_t fname;
+	dns_name_t *name;
 	isc_result_t result;
-	isc_buffer_t buf;
 	dns_view_t *view = NULL;
 	dns_rdataclass_t rdclass;
 	char problem[DNS_NAME_FORMATSIZE + 500] = "";
@@ -6546,27 +6546,20 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 		viewtxt = next_token(&input, " \t");
 	}
 
-	isc_buffer_constinit(&buf, zonetxt, strlen(zonetxt));
-	isc_buffer_add(&buf, strlen(zonetxt));
-	dns_fixedname_init(&name);
-	result = dns_name_fromtext(dns_fixedname_name(&name),
-				   &buf, dns_rootname, 0, NULL);
-	if (result != ISC_R_SUCCESS)
-		goto fail1;
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	CHECK(dns_name_fromstring(name, zonetxt, 0, NULL));
 
 	if (classtxt != NULL) {
 		isc_textregion_t r;
 		r.base = classtxt;
 		r.length = strlen(classtxt);
-		result = dns_rdataclass_fromtext(&rdclass, &r);
-		if (result != ISC_R_SUCCESS)
-			goto fail1;
+		CHECK(dns_rdataclass_fromtext(&rdclass, &r));
 	} else
 		rdclass = dns_rdataclass_in;
 
 	if (viewtxt == NULL) {
-		result = dns_viewlist_findzone(&server->viewlist,
-					       dns_fixedname_name(&name),
+		result = dns_viewlist_findzone(&server->viewlist, name,
 					       ISC_TF(classtxt == NULL),
 					       rdclass, zonep);
 		if (result == ISC_R_NOTFOUND)
@@ -6579,17 +6572,14 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 		if (result != ISC_R_SUCCESS) {
 			snprintf(problem, sizeof(problem),
 				 "no matching view '%s'", viewtxt);
-			goto fail1;
+			goto report;
 		}
 
-		result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
-				     0, NULL, zonep);
-		if (result != ISC_R_SUCCESS) {
+		result = dns_zt_find(view->zonetable, name, 0, NULL, zonep);
+		if (result != ISC_R_SUCCESS)
 			snprintf(problem, sizeof(problem),
 				 "no matching zone '%s' in view '%s'",
 				 zonetxt, viewtxt);
-			goto fail1;
-		}
 	}
 
 	/* Partial match? */
@@ -6597,7 +6587,7 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 		dns_zone_detach(zonep);
 	if (result == DNS_R_PARTIALMATCH)
 		result = ISC_R_NOTFOUND;
- fail1:
+ report:
 	if (result != ISC_R_SUCCESS) {
 		isc_result_t tresult;
 
@@ -6607,6 +6597,7 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 			isc_buffer_putuint8(text, 0);
 	}
 
+ cleanup:
 	if (view != NULL)
 		dns_view_detach(&view);
 
