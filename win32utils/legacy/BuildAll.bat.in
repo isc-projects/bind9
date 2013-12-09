@@ -117,7 +117,6 @@ nmake /nologo -f dsfromkey.mak CFG="dsfromkey - @PLATFORM@ Release"  NO_EXTERNAL
 nmake /nologo -f keyfromlabel.mak CFG="keyfromlabel - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f revoke.mak CFG="revoke - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f settime.mak CFG="settime - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
-nmake /nologo -f importkey.mak CFG="importkey - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 @IF PKCS11
