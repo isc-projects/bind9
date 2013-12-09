@@ -153,11 +153,6 @@
 ./bin/dnssec/win32/dsfromkey.vcxproj.filters.in	X	2013
 ./bin/dnssec/win32/dsfromkey.vcxproj.in		X	2013
 ./bin/dnssec/win32/dsfromkey.vcxproj.user	X	2013
-./bin/dnssec/win32/importkey.dsp.in		X	2013
-./bin/dnssec/win32/importkey.mak.in		X	2013
-./bin/dnssec/win32/importkey.vcxproj.filters.in	X	2013
-./bin/dnssec/win32/importkey.vcxproj.in		X	2013
-./bin/dnssec/win32/importkey.vcxproj.user	X	2013
 ./bin/dnssec/win32/keyfromlabel.dsp.in		X	2008,2009,2013
 ./bin/dnssec/win32/keyfromlabel.dsw		X	2008
 ./bin/dnssec/win32/keyfromlabel.mak.in		X	2008,2009,2013
