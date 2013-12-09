@@ -6195,7 +6195,7 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep,
 	isc_buffer_t buf;
 	dns_view_t *view = NULL;
 	dns_rdataclass_t rdclass;
-	char problem[1024] = "";
+	char problem[DNS_NAME_FORMATSIZE + 500] = "";
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(zonename == NULL || *zonename == NULL);
@@ -6245,21 +6245,24 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep,
 					       ISC_TF(classtxt == NULL),
 					       rdclass, zonep);
 		if (result == ISC_R_NOTFOUND)
-			sprintf(problem, "no matching zone '%s' in any view",
-				zonetxt);
+			snprintf(problem, sizeof(problem),
+				 "no matching zone '%s' in any view",
+				 zonetxt);
 	} else {
 		result = dns_viewlist_find(&server->viewlist, viewtxt,
 					   rdclass, &view);
 		if (result != ISC_R_SUCCESS) {
-			sprintf(problem, "no matching view '%s'", viewtxt);
+			snprintf(problem, sizeof(problem),
+				 "no matching view '%s'", viewtxt);
 			goto fail1;
 		}
 
 		result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
 				     0, NULL, zonep);
 		if (result != ISC_R_SUCCESS) {
-			sprintf(problem, "no matching zone '%s' in view '%s'",
-				zonetxt, viewtxt);
+			snprintf(problem, sizeof(problem),
+				 "no matching zone '%s' in view '%s'",
+				 zonetxt, viewtxt);
 			goto fail1;
 		}
 	}
@@ -6271,8 +6274,12 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep,
 		result = ISC_R_NOTFOUND;
  fail1:
 	if (result != ISC_R_SUCCESS) {
-		putstr(text, problem);
-		isc_buffer_putuint8(text, 0);
+		isc_result_t tresult;
+
+		tresult = putstr(text, problem);
+		if (tresult == ISC_R_SUCCESS &&
+		    isc_buffer_availablelength(text) > 0U)
+			isc_buffer_putuint8(text, 0);
 	}
 
 	if (view != NULL)
