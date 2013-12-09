@@ -1229,8 +1229,8 @@ der_put_oid(unsigned char *p, size_t len,
 	unsigned char *base = p;
 	size_t n;
 
-	for (n = data->length - 1; n >= 2u; --n) {
-		unsigned	u = data->components[n];
+	for (n = data->length; n >= 3u; --n) {
+		unsigned	u = data->components[n - 1];
 
 		if (len < 1U)
 			return (ASN1_OVERFLOW);
