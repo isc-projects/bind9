@@ -1025,6 +1025,7 @@ dst_key_restore
 dst_key_rid
 dst_key_secretsize
 dst_key_setbits
+dst_key_setexternal
 dst_key_setflags
 dst_key_setinactive
 dst_key_setprivateformat
