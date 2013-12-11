@@ -3045,7 +3045,7 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 isc_result_t
 isc__socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		     isc_task_t *task, isc_taskaction_t action, const void *arg,
-		     isc_sockaddr_t *address, struct in6_pktinfo *pktinfo
+		     isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		     unsigned int flags)
 {
 	isc_socketevent_t *dev;
