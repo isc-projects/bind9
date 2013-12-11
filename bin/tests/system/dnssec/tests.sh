@@ -1397,7 +1397,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking dnssec-signzone -R purges signatures from inactive keys ($n)"
+echo "I:checking dnssec-signzone -Q purges signatures from inactive keys ($n)"
 ret=0
 (
 cd signer
