@@ -1,3 +1,6 @@
+3687.	[bug]		Address null pointer dereference in zone_xfrdone.
+			[RT #35042]
+
 3686.	[func]		"dnssec-signzone -Q" drops signatures from keys
 			that are still published but no longer active.
 			[RT #34990]
