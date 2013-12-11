@@ -1,3 +1,5 @@
+	--- 9.8.7b1 released ---
+
 3683.	[cleanup]	Add a more detailed "not found" message to rndc
 			commands which specify a zone name. [RT #35059]
 
