@@ -1379,6 +1379,36 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking dnssec-signzone keeps valid signatures from inactive keys ($n)"
+ret=0
+zone=example
+(
+cd signer
+cp -f example.db.in example.db
+$SIGNER -SD -o example example.db > /dev/null 2>&1
+echo '$INCLUDE "example.db.signed"' >> example.db
+# now retire key2 and resign the zone
+$SETTIME -I now $key2 > /dev/null 2>&1
+$SIGNER -SD -o example example.db > /dev/null 2>&1
+) || ret=1
+grep " $keyid2 " signer/example.db.signed > /dev/null 2>&1 || ret=1
+grep " $keyid3 " signer/example.db.signed > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking dnssec-signzone -R purges signatures from inactive keys ($n)"
+ret=0
+(
+cd signer
+$SIGNER -SDQ -o example example.db > /dev/null 2>&1
+) || ret=1
+grep " $keyid2 " signer/example.db.signed > /dev/null 2>&1 && ret=1
+grep " $keyid3 " signer/example.db.signed > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking dnssec-signzone retains unexpired signatures ($n)"
 ret=0
 (

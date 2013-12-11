@@ -609,8 +609,8 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	return (result);
 }
 
-static isc_boolean_t
-key_active(dst_key_t *key, isc_stdtime_t now) {
+isc_boolean_t
+dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now) {
 	isc_result_t result;
 	isc_stdtime_t publish, active, revoke, inactive, delete;
 	isc_boolean_t pubset = ISC_FALSE, actset = ISC_FALSE;
@@ -764,7 +764,7 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 		/*
 		 * If a key is marked inactive, skip it
 		 */
-		if (!key_active(keys[count], now)) {
+		if (!dns_dnssec_keyactive(keys[count], now)) {
 			dst_key_setinactive(pubkey, ISC_TRUE);
 			dst_key_free(&keys[count]);
 			keys[count] = pubkey;
