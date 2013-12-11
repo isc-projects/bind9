@@ -1,3 +1,6 @@
+3685.	[bug]		"rndc refresh" didn't work correctly with slave
+			zones using inline-signing. [RT #35105]
+
 3684.	[bug]		The list of included files would grow on reload.
 			[RT 35090]
 
