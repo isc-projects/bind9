@@ -6729,7 +6729,7 @@ ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 isc_result_t
 ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_result_t result;
-	dns_zone_t *zone = NULL;
+	dns_zone_t *zone = NULL, *raw = NULL;
 	const unsigned char msg1[] = "zone refresh queued";
 	const unsigned char msg2[] = "not a slave or stub zone";
 	dns_zonetype_t type;
@@ -6740,6 +6740,13 @@ ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 		return (result);
 	if (zone == NULL)
 		return (ISC_R_UNEXPECTEDEND);
+
+	dns_zone_getraw(zone, &raw);
+	if (raw != NULL) {
+		dns_zone_detach(&zone);
+		dns_zone_attach(raw, &zone);
+		dns_zone_detach(&raw);
+	}
 
 	type = dns_zone_gettype(zone);
 	if (type == dns_zone_slave || type == dns_zone_stub) {

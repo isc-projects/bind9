@@ -1,3 +1,6 @@
+3685.	[bug]		"rndc refresh" didn't work correctly with slave
+			zones using inline-signing. [RT #35105]
+
 	--- 9.9.5b1 released ---
 
 3683.	[cleanup]	Add a more detailed "not found" message to rndc
