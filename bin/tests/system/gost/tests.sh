@@ -28,7 +28,7 @@ DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
 
 # Check the example. domain
 
-echo "I:checking that positive validation works works ($n)"
+echo "I:checking that positive validation works ($n)"
 ret=0
 $DIG $DIGOPTS . @10.53.0.1 soa > dig.out.ns1.test$n || ret=1
 $DIG $DIGOPTS . @10.53.0.2 soa > dig.out.ns2.test$n || ret=1
