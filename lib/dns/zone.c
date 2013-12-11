@@ -11856,6 +11856,12 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 			linked = ISC_TRUE;
 			zone->statelist = NULL;
 		}
+		if (zone->statelist == &zone->zmgr->xfrin_in_progress) {
+			ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone,
+					statelink);
+			zone->statelist = NULL;
+			zmgr_resume_xfrs(zone->zmgr, ISC_FALSE);
+		}
 		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	}
 
@@ -14330,13 +14336,16 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	 * This transfer finishing freed up a transfer quota slot.
 	 * Let any other zones waiting for quota have it.
 	 */
-	UNLOCK_ZONE(zone);
-	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
-	ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone, statelink);
-	zone->statelist = NULL;
-	zmgr_resume_xfrs(zone->zmgr, ISC_FALSE);
-	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
-	LOCK_ZONE(zone);
+	if (zone->zmgr != NULL &&
+	    zone->statelist == &zone->zmgr->xfrin_in_progress) {
+		UNLOCK_ZONE(zone);
+		RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+		ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone, statelink);
+		zone->statelist = NULL;
+		zmgr_resume_xfrs(zone->zmgr, ISC_FALSE);
+		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+		LOCK_ZONE(zone);
+	}
 
 	/*
 	 * Retry with a different server if necessary.
