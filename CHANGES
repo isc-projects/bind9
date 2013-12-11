@@ -1,3 +1,7 @@
+3686.	[func]		"dnssec-signzone -Q" drops signatures from keys
+			that are still published but no longer active.
+			[RT #34990]
+
 3685.	[bug]		"rndc refresh" didn't work correctly with slave
 			zones using inline-signing. [RT #35105]
 

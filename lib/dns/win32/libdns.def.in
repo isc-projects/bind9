@@ -214,6 +214,7 @@ dns_dns64_unlink
 dns_dnssec_findmatchingkeys
 dns_dnssec_findzonekeys
 dns_dnssec_findzonekeys2
+dns_dnssec_keyactive
 dns_dnssec_keyfromrdata
 dns_dnssec_keylistfromrdataset
 dns_dnssec_selfsigns
