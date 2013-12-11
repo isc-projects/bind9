@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009-2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009-2013  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -190,7 +190,7 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 isc_boolean_t
 dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now);
 /*%<
- * 	
+ *
  * 	Returns ISC_TRUE if 'key' is active as of the time specified
  * 	in 'now' (i.e., if the activation date has passed, inactivation or
  * 	deletion date has not yet been reached, and the key is not revoked

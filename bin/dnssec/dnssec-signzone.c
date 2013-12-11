@@ -3058,7 +3058,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t make_keyset = ISC_FALSE;
 	isc_boolean_t set_salt = ISC_FALSE;
 	isc_boolean_t set_optout = ISC_FALSE;
- 	isc_boolean_t set_iter = ISC_FALSE;
+	isc_boolean_t set_iter = ISC_FALSE;
 	isc_boolean_t nonsecify = ISC_FALSE;
 
 	/* Unused letters: Bb G J M q Yy (and F is reserved). */
@@ -3357,7 +3357,7 @@ main(int argc, char *argv[]) {
 	result = dst_lib_init2(mctx, ectx, engine, eflags);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
-		      isc_result_totext(result)); 
+		      isc_result_totext(result));
 	isc_stdtime_get(&now);
 
 	if (startstr != NULL) {
