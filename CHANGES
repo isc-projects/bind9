@@ -1,3 +1,5 @@
+	--- 9.9.5b1 released ---
+
 3688.	[bug]		loadnode could return a freed node on out of memory.
 			[RT #35106]
 
@@ -10,8 +12,6 @@
 
 3685.	[bug]		"rndc refresh" didn't work correctly with slave
 			zones using inline-signing. [RT #35105]
-
-	--- 9.9.5b1 released ---
 
 3683.	[cleanup]	Add a more detailed "not found" message to rndc
 			commands which specify a zone name. [RT #35059]
