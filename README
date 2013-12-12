@@ -45,13 +45,17 @@ BIND 9
 	For a detailed list of user-visible changes from
 	previous releases, see the CHANGES file.
 
-        For up-to-date release notes and errata, see
-        http://www.isc.org/software/bind9/releasenotes
+	For up-to-date release notes and errata, see
+	http://www.isc.org/software/bind9/releasenotes
 
 BIND 9.6-ESV-R11 (Extended Support Version)
  
-       - "named" now preserves the capitalization of names when
-          responding to queries.
+	BIND 9.6-ESV-R11 is a maintenance release, fixing bugs in
+	BIND 9.6-ESV-R10, and also includes the following functional
+	enhancement:
+
+	 - "named" now preserves the capitalization of names when
+	    responding to queries.
 
 BIND 9.6-ESV-R10 (Extended Support Version)
 
@@ -66,8 +70,8 @@ BIND 9.6-ESV-R9 (Extended Support Version)
 
 BIND 9.6-ESV-R8 (Extended Support Version)
 
-        BIND 9.6-ESV-R8 includes several bug fixes and patches security
-        flaws described in CVE-2012-1667, CVE-2012-3817 and CVE-2012-4244.
+	BIND 9.6-ESV-R8 includes several bug fixes and patches security
+	flaws described in CVE-2012-1667, CVE-2012-3817 and CVE-2012-4244.
 
 BIND 9.6-ESV-R7 (Extended Support Version)
 
@@ -92,21 +96,21 @@ BIND 9.6.3/BIND 9.6-ESV-R4
 BIND 9.6.2
 
 	BIND 9.6.2 is a maintenance release, fixing bugs in 9.6.1.
-        It also introduces support for the SHA-2 DNSSEC algorithms,
-        RSASHA256 and RSASHA512.
+	It also introduces support for the SHA-2 DNSSEC algorithms,
+	RSASHA256 and RSASHA512.
 
-        Known issues in this release:
+	Known issues in this release:
 
-        - A validating resolver that has been incorrectly configured with
-          an invalid trust anchor will be unable to resolve names covered
-          by that trust anchor.  In all current versions of BIND 9, such a
-          resolver will also generate significant unnecessary DNS traffic
-          while trying to validate.  The latter problem will be addressed
-          in future BIND 9 releases.  In the meantime, to avoid these
-          problems, exercise caution when configuring "trusted-keys":
-          make sure all keys are correct and current when you add them,
-          and update your configuration in a timely manner when keys
-          roll over.
+	- A validating resolver that has been incorrectly configured with
+	  an invalid trust anchor will be unable to resolve names covered
+	  by that trust anchor.  In all current versions of BIND 9, such a
+	  resolver will also generate significant unnecessary DNS traffic
+	  while trying to validate.  The latter problem will be addressed
+	  in future BIND 9 releases.  In the meantime, to avoid these
+	  problems, exercise caution when configuring "trusted-keys":
+	  make sure all keys are correct and current when you add them,
+	  and update your configuration in a timely manner when keys
+	  roll over.
 
 BIND 9.6.1
 
@@ -114,17 +118,17 @@ BIND 9.6.1
 
 BIND 9.6.0
 
-        BIND 9.6.0 includes a number of changes from BIND 9.5 and earlier
-        releases, including:
+	BIND 9.6.0 includes a number of changes from BIND 9.5 and earlier
+	releases, including:
 
-        Full NSEC3 support
+	Full NSEC3 support
 
-        Automatic zone re-signing
+	Automatic zone re-signing
 
 	New update-policy methods tcp-self and 6to4-self
 
-        The BIND 8 resolver library, libbind, has been removed from the
-        BIND 9 distribution and is now available as a separate download.
+	The BIND 8 resolver library, libbind, has been removed from the
+	BIND 9 distribution and is now available as a separate download.
 
 	Change the default pid file location from /var/run to
 	/var/run/{named,lwresd} for improved chroot/setuid support.
@@ -146,9 +150,9 @@ BIND 9.5.0
 
 	Use Doxygen to generate internal documentation.
 
-        Efficient LRU cache-cleaning mechanism.
+	Efficient LRU cache-cleaning mechanism.
 
-        NSID support.
+	NSID support.
 
 BIND 9.4.0
 
@@ -357,28 +361,28 @@ BIND 9.2.0
 	including:
 
 	  - The size of the cache can now be limited using the
-            "max-cache-size" option.
+	    "max-cache-size" option.
 
 	  - The server can now automatically convert RFC1886-style
 	    recursive lookup requests into RFC2874-style lookups, 
 	    when enabled using the new option "allow-v6-synthesis".
-            This allows stub resolvers that support AAAA records
-            but not A6 record chains or binary labels to perform
-            lookups in domains that make use of these IPv6 DNS
-            features.
+	    This allows stub resolvers that support AAAA records
+	    but not A6 record chains or binary labels to perform
+	    lookups in domains that make use of these IPv6 DNS
+	    features.
 
 	  - Performance has been improved.
 
 	  - The man pages now use the more portable "man" macros
 	    rather than the "mandoc" macros, and are installed
-            by "make install".
+	    by "make install".
 
-          - The named.conf parser has been completely rewritten.
-            It now supports "include" directives in more
-            places such as inside "view" statements, and it no
-            longer has any reserved words.
+	  - The named.conf parser has been completely rewritten.
+	    It now supports "include" directives in more
+	    places such as inside "view" statements, and it no
+	    longer has any reserved words.
 
-          - The "rndc status" command is now implemented.
+	  - The "rndc status" command is now implemented.
 
 	  - rndc can now be configured automatically.
 
@@ -441,7 +445,7 @@ BIND 9.2.0
 		--with-libtool does not work on AIX.
 
 	A bug in some versions of the Microsoft DNS server can cause zone
-        transfers from a BIND 9 server to a W2K server to fail.  For details,
+	transfers from a BIND 9 server to a W2K server to fail.  For details,
 	see the "Zone Transfers" section in doc/misc/migration.
 
 
@@ -463,9 +467,9 @@ Building
 		Ubuntu 7.04, 7.10
 		Windows XP/2003/2008
 
-        NOTE:  As of BIND 9.5.1, 9.4.3, and 9.3.6, older versions of
-        Windows, including Windows NT and Windows 2000, are no longer
-        supported.
+	NOTE:  As of BIND 9.5.1, 9.4.3, and 9.3.6, older versions of
+	Windows, including Windows NT and Windows 2000, are no longer
+	supported.
 
 	We have recent reports from the user community that a supported
 	version of BIND will build and run on the following systems:
@@ -518,7 +522,7 @@ Building
 				    -DDIG_SIGCHASE_BU=1)
 		Disable dropping queries from particular well known ports.
 		  -DNS_CLIENT_DROPPORT=0
-	        Sibling glue checking in named-checkzone is enabled by default.
+		Sibling glue checking in named-checkzone is enabled by default.
 		To disable the default check set.  -DCHECK_SIBLING=0
 		named-checkzone checks out-of-zone addresses by default.
 		To disable this default set.  -DCHECK_LOCAL=0
@@ -565,10 +569,10 @@ Building
 	on the configure command line.  The default is operating
 	system dependent.
 
-        Support for the "fixed" rrset-order option can be enabled
-        or disabled by specifying "--enable-fixed-rrset" or
-        "--disable-fixed-rrset" on the configure command line.
-        The default is "disabled", to reduce memory footprint.
+	Support for the "fixed" rrset-order option can be enabled
+	or disabled by specifying "--enable-fixed-rrset" or
+	"--disable-fixed-rrset" on the configure command line.
+	The default is "disabled", to reduce memory footprint.
 
 	If your operating system has integrated support for IPv6, it
 	will be used automatically.  If you have installed KAME IPv6
