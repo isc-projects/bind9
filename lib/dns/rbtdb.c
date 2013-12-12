@@ -6868,28 +6868,21 @@ static isc_result_t
 loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 	 isc_boolean_t hasnsec)
 {
-	isc_result_t noderesult, nsecresult;
-	dns_rbtnode_t *nsecnode;
+	isc_result_t noderesult, nsecresult, tmpresult;
+	dns_rbtnode_t *nsecnode = NULL, *node = NULL;
 
-	noderesult = dns_rbt_addnode(rbtdb->tree, name, nodep);
-
-#ifdef BIND9
-	if (noderesult == ISC_R_SUCCESS && rbtdb->rpz_cidr != NULL)
-		dns_rpz_cidr_addip(rbtdb->rpz_cidr, name);
-#endif
-
+	noderesult = dns_rbt_addnode(rbtdb->tree, name, &node);
 	if (!hasnsec)
-		return (noderesult);
+		goto done;
 	if (noderesult == ISC_R_EXISTS) {
 		/*
 		 * Add a node to the auxiliary NSEC tree for an old node
 		 * just now getting an NSEC record.
 		 */
-		if ((*nodep)->nsec == DNS_RBT_NSEC_HAS_NSEC)
-			return (noderesult);
-	} else if (noderesult != ISC_R_SUCCESS) {
-		return (noderesult);
-	}
+		if (node->nsec == DNS_RBT_NSEC_HAS_NSEC)
+			goto done;
+	} else if (noderesult != ISC_R_SUCCESS)
+		goto done;
 
 	/*
 	 * Build the auxiliary tree for NSECs as we go.
@@ -6899,12 +6892,11 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 	 * Add nodes to the auxiliary tree after corresponding nodes have
 	 * been added to the main tree.
 	 */
-	nsecnode = NULL;
 	nsecresult = dns_rbt_addnode(rbtdb->nsec, name, &nsecnode);
 	if (nsecresult == ISC_R_SUCCESS) {
 		nsecnode->nsec = DNS_RBT_NSEC_NSEC;
-		(*nodep)->nsec = DNS_RBT_NSEC_HAS_NSEC;
-		return (noderesult);
+		node->nsec = DNS_RBT_NSEC_HAS_NSEC;
+		goto done;
 	}
 
 	if (nsecresult == ISC_R_EXISTS) {
@@ -6915,21 +6907,41 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 			      ISC_LOG_WARNING,
 			      "addnode: NSEC node already exists");
 #endif
-		(*nodep)->nsec = DNS_RBT_NSEC_HAS_NSEC;
-		return (noderesult);
+		node->nsec = DNS_RBT_NSEC_HAS_NSEC;
+		goto done;
 	}
 
-	nsecresult = dns_rbt_deletenode(rbtdb->tree, *nodep, ISC_FALSE);
-	if (nsecresult != ISC_R_SUCCESS)
-		isc_log_write(dns_lctx,
-			      DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE,
-			      ISC_LOG_WARNING,
-			      "loading_addrdataset: "
-			      "dns_rbt_deletenode: %s after "
-			      "dns_rbt_addnode(NSEC): %s",
-			      isc_result_totext(nsecresult),
-			      isc_result_totext(noderesult));
+	if (noderesult == ISC_R_SUCCESS) {
+		/*
+		 * Remove the node we just added above.
+		 */
+		tmpresult = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
+		if (tmpresult != ISC_R_SUCCESS)
+			isc_log_write(dns_lctx,
+				      DNS_LOGCATEGORY_DATABASE,
+				      DNS_LOGMODULE_CACHE,
+				      ISC_LOG_WARNING,
+				      "loading_addrdataset: "
+				      "dns_rbt_deletenode: %s after "
+				      "dns_rbt_addnode(NSEC): %s",
+				      isc_result_totext(tmpresult),
+				      isc_result_totext(noderesult));
+
+	}
+
+	/*
+	 * Set the error condition to be returned.
+	 */
+	noderesult = nsecresult;
+
+ done:
+#ifdef BIND9
+	if (noderesult == ISC_R_SUCCESS && rbtdb->rpz_cidr != NULL)
+		dns_rpz_cidr_addip(rbtdb->rpz_cidr, name);
+#endif
+	if (noderesult == ISC_R_SUCCESS || noderesult == ISC_R_EXISTS)
+		*nodep = node;
+
 	return (noderesult);
 }
 
