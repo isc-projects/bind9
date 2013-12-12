@@ -1,7 +1,7 @@
+	--- 9.8.7b1 released ---
+
 3688.	[bug]		loadnode could return a freed node on out of memory.
 			[RT #35106]
-
-	--- 9.8.7b1 released ---
 
 3683.	[cleanup]	Add a more detailed "not found" message to rndc
 			commands which specify a zone name. [RT #35059]
