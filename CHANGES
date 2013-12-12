@@ -1,3 +1,6 @@
+3688.	[bug]		loadnode could return a freed node on out of memory.
+			[RT #35106]
+
 3687.	[bug]		Address null pointer dereference in zone_xfrdone.
 			[RT #35042]
 
