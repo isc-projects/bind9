@@ -6914,7 +6914,7 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 				      isc_result_totext(tmpresult),
 				      isc_result_totext(noderesult));
 		if (rbtdb->rpzs != NULL && noderesult == ISC_R_SUCCESS)
-			dns_rpz_delete(rbtdb->rpzs, rbtdb->rpz_num, name);
+			dns_rpz_delete(rbtdb->load_rpzs, rbtdb->rpz_num, name);
 	}
 
 	/*
