@@ -1926,5 +1926,21 @@ n=`expr $n + 1`
 if test "$before" = "$after" ; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
+cp ns4/named4.conf ns4/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 reconfig 2>&1 | sed 's/^/I:ns4 /'
+sleep 3
+
+echo "I:check insecure delegation between static-stub zones ($n)"
+ret=0
+$DIG $DIGOPTS ns insecure.secure.example \
+	@10.53.0.4 > dig.out.ns4.1.test$n || ret=1
+grep "SERVFAIL" dig.out.ns4.1.test$n > /dev/null && ret=1
+$DIG $DIGOPTS ns secure.example \
+	@10.53.0.4 > dig.out.ns4.2.test$n || ret=1
+grep "SERVFAIL" dig.out.ns4.2.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
