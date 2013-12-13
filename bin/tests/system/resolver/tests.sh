@@ -379,13 +379,27 @@ done
 [ $ret = 0 ] && ret=$foo; 
 if [ $ret != 0 ]; then echo "I:failed"; status=1; fi
 
-echo "I:check for improved error message with SOA mismatch"
+n=`expr $n + 1`
+echo "I:check for improved error message with SOA mismatch ($n)"
 ret=0
 $DIG @10.53.0.1 -p 5300 www.sub.broken aaaa > dig.out.${n} || ret=1
 grep "not subdomain of zone" ns1/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+#HERE <<<
+cp ns7/named2.conf ns7/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.7 -p 9953 reconfig 2>&1 | sed 's/^/I:ns7 /'
 
+n=`expr $n + 1`
+echo "I:check resolution on the listening port ($n)"
+ret=0
+$DIG +tcp +tries=2 +time=5 mx example.net @10.53.0.7 -p 5300 > dig.ns7.out.${n} || ret=2
+grep "status: NOERROR" dig.ns7.out.${n} > /dev/null || ret=1
+grep "ANSWER: 1" dig.ns7.out.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+#HERE >>>
+
+echo "I:exit status: $status"
 exit $status
