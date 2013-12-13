@@ -934,8 +934,8 @@
 ./bin/tests/system/dnssec/ns2/child.optout.example.db	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns2/dlv.db.in		ZONE	2004,2007
 ./bin/tests/system/dnssec/ns2/dst.example.db.in	ZONE	2004,2007
-./bin/tests/system/dnssec/ns2/example.db.in	ZONE	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012
-./bin/tests/system/dnssec/ns2/insecure.secure.example.db	ZONE	2000,2001,2004,2007
+./bin/tests/system/dnssec/ns2/example.db.in	ZONE	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013
+./bin/tests/system/dnssec/ns2/insecure.secure.example.db	ZONE	2000,2001,2004,2007,2013
 ./bin/tests/system/dnssec/ns2/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2010,2011
 ./bin/tests/system/dnssec/ns2/private.secure.example.db.in	ZONE	2000,2001,2004,2007
 ./bin/tests/system/dnssec/ns2/rfc2335.example.db	X	2004
@@ -968,7 +968,7 @@
 ./bin/tests/system/dnssec/ns3/rsasha256.example.db.in	ZONE	2009
 ./bin/tests/system/dnssec/ns3/rsasha512.example.db.in	ZONE	2009
 ./bin/tests/system/dnssec/ns3/secure.below-cname.example.db.in	ZONE	2011,2012
-./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001,2004,2007,2008,2010,2012
+./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001,2004,2007,2008,2010,2012,2013
 ./bin/tests/system/dnssec/ns3/secure.nsec3.example.db.in	ZONE	2008
 ./bin/tests/system/dnssec/ns3/secure.optout.example.db.in	ZONE	2008
 ./bin/tests/system/dnssec/ns3/siginterval.example.db.in	ZONE	2013
@@ -981,6 +981,7 @@
 ./bin/tests/system/dnssec/ns4/named1.conf	CONF-C	2011
 ./bin/tests/system/dnssec/ns4/named2.conf	CONF-C	2011
 ./bin/tests/system/dnssec/ns4/named3.conf	CONF-C	2012
+./bin/tests/system/dnssec/ns4/named4.conf	CONF-C	2013
 ./bin/tests/system/dnssec/ns5/named.conf	CONF-C	2000,2001,2004,2006,2007
 ./bin/tests/system/dnssec/ns5/trusted.conf.bad	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/dnssec/ns6/named.args	X	2013
