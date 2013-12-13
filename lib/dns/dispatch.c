@@ -1397,8 +1397,8 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		}
 
 		/*
-		 * If both dispatches are bound to an address then fail as
-		 * the addresses can't be equal (enforced by the IP stack).
+		 * If each dispatch is bound to a different address
+		 * then fail.
 		 *
 		 * Note under Linux a packet can be sent out via IPv4 socket
 		 * and the response be received via a IPv6 socket.
@@ -1413,7 +1413,8 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		}
 		isc_sockaddr_anyofpf(&a1, isc_sockaddr_pf(&resp->disp->local));
 		isc_sockaddr_anyofpf(&a2, isc_sockaddr_pf(&disp->local));
-		if (!isc_sockaddr_eqaddr(&a1, &resp->disp->local) &&
+		if (!isc_sockaddr_eqaddr(&disp->local, &resp->disp->local) &&
+		    !isc_sockaddr_eqaddr(&a1, &resp->disp->local) &&
 		    !isc_sockaddr_eqaddr(&a2, &disp->local)) {
 			free_buffer(disp, ev->region.base, ev->region.length);
 			goto unlock;
