@@ -1,3 +1,7 @@
+3689.	[bug]		Fixed a bug causing an insecure delegation from one
+			static-stub zone to another to fail with a broken
+			trust chain. [RT #35081]
+
 3688.	[bug]		loadnode could return a freed node on out of memory.
 			[RT #35106]
 

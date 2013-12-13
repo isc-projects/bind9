@@ -3747,12 +3747,14 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 			 */
 			if (dns_rdatatype_atparent(fctx->type))
 				findoptions |= DNS_DBFIND_NOEXACT;
-			result = dns_view_findzonecut(res->view, name, domain,
-						      0, findoptions, ISC_TRUE,
+			result = dns_view_findzonecut(res->view, fwdname,
+						      domain, 0, findoptions,
+						      ISC_TRUE,
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup_name;
+
 			result = dns_name_dup(domain, mctx, &fctx->domain);
 			if (result != ISC_R_SUCCESS) {
 				dns_rdataset_disassociate(&fctx->nameservers);
@@ -7477,9 +7479,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		 * NXDOMAIN, NXRDATASET, or referral.
 		 */
 		result = noanswer_response(fctx, NULL, 0);
-		if (result == DNS_R_CHASEDSSERVERS) {
-		} else if (result == DNS_R_DELEGATION) {
-		force_referral:
+		switch (result) {
+		case ISC_R_SUCCESS:
+		case DNS_R_CHASEDSSERVERS:
+			break;
+		case DNS_R_DELEGATION:
+ force_referral:
 			/*
 			 * We don't have the answer, but we know a better
 			 * place to look.
@@ -7504,7 +7509,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			fctx->adberr = 0;
 
 			result = ISC_R_SUCCESS;
-		} else if (result != ISC_R_SUCCESS) {
+			break;
+		default:
 			/*
 			 * Something has gone wrong.
 			 */
