@@ -1178,7 +1178,8 @@ dlz_destroy(void *dbdata) {
 		ldap_instance_t *db = (ldap_instance_t *)dbdata;
 #if PTHREADS
 		/* cleanup the list of DBI's */
-		ldap_destroy_dblist((db_list_t *)(db->db));
+		if (db->db != NULL)
+			ldap_destroy_dblist((db_list_t *)(db->db));
 #else /* PTHREADS */
 		if (db->db->dbconn != NULL)
 			ldap_unbind_s((LDAP *)(db->db->dbconn));

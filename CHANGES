@@ -1,3 +1,6 @@
+3691.	[contrib]	Address null pointer dereference in LDAP and
+			MySQL DLZ modules.
+
 3690.	[bug]		Iterative responses could be missed when the source
 			port for an upstream query was the same as the
 			listener port (53). [RT #34925]

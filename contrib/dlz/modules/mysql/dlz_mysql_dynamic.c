@@ -1069,7 +1069,8 @@ dlz_destroy(void *dbdata) {
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
 #if PTHREADS
 	/* cleanup the list of DBI's */
-	mysql_destroy_dblist((db_list_t *)(db->db));
+	if (db->db != NULL)
+		mysql_destroy_dblist((db_list_t *)(db->db));
 #else /* PTHREADS */
 	mysql_destroy(db);
 #endif /* PTHREADS */
