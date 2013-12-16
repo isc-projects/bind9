@@ -1,3 +1,6 @@
+3692.	[bug]		Two calls to dns_db_getoriginnode were fatal if there
+			was no data at the node. [RT #35080]
+
 3691.	[contrib]	Address null pointer dereference in LDAP and
 			MySQL DLZ modules.
 
