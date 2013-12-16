@@ -39,13 +39,15 @@ LIBS =		@LIBS@ @ATFLIBS@
 OBJS =		dnstest.@O@
 SRCS =		dnstest.c master_test.c time_test.c \
 		zonemgr_test.c dbiterator_test.c \
-		dbversion_test.c nsec3_test.c rdataset_test.c rdata_test.c
+		dbversion_test.c nsec3_test.c rdataset_test.c rdata_test.c \
+		db_test.c
 
 SUBDIRS =
 TARGETS =	master_test@EXEEXT@ time_test@EXEEXT@ \
 		zonemgr_test@EXEEXT@ dbiterator_test@EXEEXT@ \
 		dbversion_test@EXEEXT@ nsec3_test@EXEEXT@ \
-		rdataset_test@EXEEXT@ rdata_test@EXEEXT@
+		rdataset_test@EXEEXT@ rdata_test@EXEEXT@ \
+		db_test@EXEEXT@
 		
 @BIND9_MAKE_RULES@
 
@@ -87,6 +89,11 @@ rdataset_test@EXEEXT@: rdataset_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 rdata_test@EXEEXT@: rdata_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			rdata_test.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+db_test@EXEEXT@: db_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			db_test.@O@ ${DNSLIBS} \
+			${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh

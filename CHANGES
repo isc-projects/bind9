@@ -1,3 +1,6 @@
+3692.	[bug]		Two calls to dns_db_getoriginnode were fatal if there
+			was no data at the node. [RT #35080]
+
 3689.	[bug]		Fixed a bug causing an insecure delegation from one
 			static-stub zone to another to fail with a broken
 			trust chain. [RT #35081]
