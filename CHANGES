@@ -1,3 +1,6 @@
+3692.	[bug]		Two calls to dns_db_getoriginnode were fatal if there
+			was no data at the node. [RT #35080]
+
 3690.	[bug]		Iterative responses could be missed when the source
 			port for an upstream query was the same as the
 			listener port (53). [RT #34925]
