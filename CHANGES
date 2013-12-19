@@ -1,8 +1,7 @@
 3693.	[security]	memcpy was incorrectly called with overlapping
-			ranges resulting a malformed names being generated
-			on some platforms.  This was subsequently detected
-			resulting in INSIST failures when serving NSEC3
-			signed zones.  [RT #35120]
+			ranges resulting in malformed names being generated
+			on some platforms.  This could cause INSIST failures
+			when serving NSEC3 signed zones.  [RT #35120]
 
 3692.	[bug]		Two calls to dns_db_getoriginnode were fatal if there
 			was no data at the node. [RT #35080]
