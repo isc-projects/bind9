@@ -1,3 +1,5 @@
+	--- 9.6-ESV-R10-P2 released ---
+
 3693.	[security]	memcpy was incorrectly called with overlapping
 			ranges resulting a malformed names being generated
 			on some platforms.  This was subsequently detected
