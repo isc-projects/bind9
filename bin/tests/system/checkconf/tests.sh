@@ -102,5 +102,21 @@ done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I: checking for missing key directory warning"
+ret=0
+rm -rf test.keydir
+n=`$CHECKCONF warn-keydir.conf 2>&1 | grep "'test.keydir' does not exist" | wc -l`
+[ $n -eq 1 ] || ret=1
+touch test.keydir
+n=`$CHECKCONF warn-keydir.conf 2>&1 | grep "'test.keydir' is not a directory" | wc -l`
+[ $n -eq 1 ] || ret=1
+rm -f test.keydir
+mkdir test.keydir
+n=`$CHECKCONF warn-keydir.conf 2>&1 | grep "key-directory" | wc -l`
+[ $n -eq 0 ] || ret=1
+rm -rf test.keydir
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
