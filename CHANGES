@@ -1,5 +1,5 @@
 3694.	[bug]		Warn when a key-directory is configured for a zone,
-			but does not exist or is not a directory. [RT #35109]
+			but does not exist or is not a directory. [RT #35108]
 
 3693.	[security]	memcpy was incorrectly called with overlapping
 			ranges resulting in malformed names being generated
