@@ -695,8 +695,8 @@ destroy_disp_ok(dns_dispatch_t *disp)
 /*
  * Called when refcount reaches 0 (and safe to destroy).
  *
- * The dispatcher must not be locked.
- * The manager must be locked.
+ * The dispatcher must be locked.
+ * The manager must not be locked.
  */
 static void
 destroy_disp(isc_task_t *task, isc_event_t *event) {
@@ -813,6 +813,7 @@ socket_search(dns_qid_t *qid, isc_sockaddr_t *dest, in_port_t port,
 {
 	dispsocket_t *dispsock;
 
+	REQUIRE(VALID_QID(qid));
 	REQUIRE(bucket < qid->qid_nbuckets);
 
 	dispsock = ISC_LIST_HEAD(qid->sock_table[bucket]);
@@ -1046,6 +1047,7 @@ entry_search(dns_qid_t *qid, isc_sockaddr_t *dest, dns_messageid_t id,
 {
 	dns_dispentry_t *res;
 
+	REQUIRE(VALID_QID(qid));
 	REQUIRE(bucket < qid->qid_nbuckets);
 
 	res = ISC_LIST_HEAD(qid->qid_table[bucket]);
@@ -2507,8 +2509,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
  * MUST be unlocked, and not used by anything.
  */
 static void
-dispatch_free(dns_dispatch_t **dispp)
-{
+dispatch_free(dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp;
 	dns_dispatchmgr_t *mgr;
 	int i;
@@ -3110,16 +3111,15 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	 * Try somewhat hard to find an unique ID.
 	 */
 	id = (dns_messageid_t)dispatch_random(DISP_ARC4CTX(disp));
-	bucket = dns_hash(qid, dest, id, localport);
 	ok = ISC_FALSE;
 	for (i = 0; i < 64; i++) {
+		bucket = dns_hash(qid, dest, id, localport);
 		if (entry_search(qid, dest, id, localport, bucket) == NULL) {
 			ok = ISC_TRUE;
 			break;
 		}
 		id += qid->qid_increment;
 		id &= 0x0000ffff;
-		bucket = dns_hash(qid, dest, id, localport);
 	}
 
 	if (!ok) {
@@ -3131,9 +3131,9 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	res = isc_mempool_get(disp->mgr->rpool);
 	if (res == NULL) {
 		UNLOCK(&qid->lock);
-		UNLOCK(&disp->lock);
 		if (dispsocket != NULL)
 			destroy_dispsocket(disp, &dispsocket);
+		UNLOCK(&disp->lock);
 		return (ISC_R_NOMEMORY);
 	}
 
