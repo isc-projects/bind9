@@ -1,3 +1,5 @@
+3695.	[bug]		Address a possible race in dispatch.c. [RT #35107]
+
 3694.	[bug]		Warn when a key-directory is configured for a zone,
 			but does not exist or is not a directory. [RT #35108]
 
