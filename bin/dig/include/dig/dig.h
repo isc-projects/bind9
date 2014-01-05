@@ -202,6 +202,7 @@ struct dig_query {
 	isc_uint32_t second_rr_serial;
 	isc_uint32_t msg_count;
 	isc_uint32_t rr_count;
+	isc_boolean_t ixfr_axfr;
 	char *servname;
 	char *userarg;
 	isc_bufferlist_t sendlist,

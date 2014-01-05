@@ -1,3 +1,6 @@
+3696.	[bug]		dig failed to handle AXFR style IXFR responses which
+			span multiple messages. [RT #35137]
+
 3695.	[bug]		Address a possible race in dispatch.c. [RT #35107]
 
 3694.	[bug]		Warn when a key-directory is configured for a zone,
