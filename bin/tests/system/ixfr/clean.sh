@@ -22,3 +22,4 @@ rm -f ns3/*.jnl ns3/mytest.db ns3/subtest.db
 rm -f ns4/*.jnl ns4/*.db
 rm -f */named.memstats
 rm -f dig.out
+rm -f ns3/large.db
