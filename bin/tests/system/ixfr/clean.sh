@@ -19,3 +19,5 @@
 
 rm -f ns1/named.conf ns1/myftp.db
 rm -f */named.memstats
+rm -f dig.out
+rm -f ns3/large.db

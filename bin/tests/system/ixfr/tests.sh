@@ -137,5 +137,17 @@ $DIGCMD nil. TXT | grep 'fallback AXFR' >/dev/null || {
     status=1
 }
 
+echo "I:testing DiG's handling of a multi message AXFR style IXFR response" 
+(
+(sleep 10 && kill $$) 2>/dev/null &
+sub=$!
+$DIG ixfr=0 large -p 5300 @10.53.0.3 > dig.out
+kill $sub
+)
+lines=`grep hostmaster.large dig.out | wc -l`
+test ${lines:-0} -eq 2 || { echo "I:failed"; status=1; }
+messages=`sed -n 's/^;;.*messages \([0-9]*\),.*/\1/p' dig.out`
+test ${messages:-0} -gt 1 || { echo "I:failed"; status=1; }
+
 echo "I:exit status: $status"
 exit $status
