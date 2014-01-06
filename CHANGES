@@ -1,3 +1,6 @@
+3697.	[bug]		Handle "." as a search list element when IDN support
+			is enabled. [RT #35133]
+
 3696.	[bug]		dig failed to handle AXFR style IXFR responses which
 			span multiple messages. [RT #35137]
 
