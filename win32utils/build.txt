@@ -41,15 +41,15 @@ Step 1: Download and build OpenSSL
   Download and untar the OpenSSL sources from http://www.openssl.org/.
   Extract them at in the same directory in which you extracted the BIND 9
   source:  If BIND 9 is in \build\bind-9.10.0, for instance, OpenSSL should
-  be in \build\openssl-1.0.1e (subject to version number changes).
+  be in \build\openssl-1.0.1f (subject to version number changes).
 
   Note: Building OpenSSL requires that you install Perl as it uses it
   during its build process. The following commands work as of
-  openssl-1.0.1e, but you should check the OpenSSL distribution to see
+  openssl-1.0.1f, but you should check the OpenSSL distribution to see
   if the build instructions in the INSTALL.W32 (or INSTALL.W64) file
   have changed, in particular for the assembler options:
 
-    cd openssl-1.0.1e
+    cd openssl-1.0.1f
     perl Configure --prefix=c:/openssl enable-static-engine VC-WIN32
     ms\do_ms
     nmake /f ms\ntdll.mak
@@ -62,7 +62,7 @@ Step 1: Download and build OpenSSL
   If you wish to use PKCS #11 to control a cryptographic hardware
   service module, please see "PKCS #11 (Cryptoki) support" in chapter 4
   of the BIND 9 Administrator Reference Guide.  You will need to apply
-  the patch in bind9\bin\pkcs11\openssl-1.0.1e-patch (this can be done
+  the patch in bind9\bin\pkcs11\openssl-1.0.1f-patch (this can be done
   using the Cygwin 'patch' utility) and add --pk11-libname and
   --pk11-flavor to the Configure command above.
 
@@ -74,12 +74,12 @@ Step 2: Download and build LibXML2
   Download and untar the libxml2 sources from ftp://xmlsoft.org/libxml2.
   Extract them in the same directory in which you extracted the BIND 9
   source:  If BIND 9 is in \build\bind-9.10.0, for instance, libxml2 should
-  be in \build\libxml2-2.7.7 (subject to version number changes).
+  be in \build\libxml2-2.9.1 (subject to version number changes).
 
   Now build libxml2, and copy the resulting files into the include and lib
   directories:
 
-   cd libxml2-2.7.7\win32
+   cd libxml2-2.9.1\win32
    cscript configure.js compiler=msvc vcmanifest=yes static=yes \
         debug=no iconv=no
    nmake /f Makefile.msvc libxml
