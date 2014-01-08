@@ -309,9 +309,7 @@
 ./bin/pkcs11/include/pkcs11f.h			X	2009
 ./bin/pkcs11/include/pkcs11t.h			X	2009
 ./bin/pkcs11/openssl-0.9.8y-patch		X	2013
-./bin/pkcs11/openssl-1.0.0k-patch		X	2013
 ./bin/pkcs11/openssl-1.0.0l-patch		X	2014
-./bin/pkcs11/openssl-1.0.1e-patch		X	2013
 ./bin/pkcs11/openssl-1.0.1f-patch		X	2014
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-destroy.c			X	2009,2010
