@@ -311,8 +311,8 @@
 ./bin/pkcs11/include/pkcs11f.h			X	2009
 ./bin/pkcs11/include/pkcs11t.h			X	2009
 ./bin/pkcs11/openssl-0.9.8y-patch		X	2013
-./bin/pkcs11/openssl-1.0.0k-patch		X	2013
-./bin/pkcs11/openssl-1.0.1e-patch		X	2013
+./bin/pkcs11/openssl-1.0.0l-patch		X	2014
+./bin/pkcs11/openssl-1.0.1f-patch		X	2014
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-destroy.c			X	2009,2010
 ./bin/pkcs11/pkcs11-destroy.docbook		SGML	2009
@@ -3971,7 +3971,7 @@
 ./win32utils/Configure				PERL	2013
 ./win32utils/GeoIP.diff				X	2013
 ./win32utils/bind9.sln.in			X	2013
-./win32utils/build.txt				TXT.BRIEF	2013
+./win32utils/build.txt				TXT.BRIEF	2013,2014
 ./win32utils/index.html				HTML	2006,2007,2008,2012,2013
 ./win32utils/legacy/BINDBuild.dsw.in		X	2001,2005,2006,2008,2009,2010,2013
 ./win32utils/legacy/BuildAll.bat.in		BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2013
