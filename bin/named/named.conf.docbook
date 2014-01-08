@@ -365,7 +365,7 @@ options {
 	zone-statistics <replaceable>boolean</replaceable>;
 	key-directory <replaceable>quoted_string</replaceable>;
 	managed-keys-directory <replaceable>quoted_string</replaceable>;
-	auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>create</constant>|<constant>off</constant>;
+	auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>;
 	try-tcp-refresh <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl-cache <replaceable>boolean</replaceable>;
