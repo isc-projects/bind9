@@ -303,8 +303,8 @@ context_connect(lwres_context_t *ctx) {
 	int domain;
 
 	if (ctx->confdata.lwnext != 0) {
-		memcpy(&ctx->address, &ctx->confdata.lwservers[0],
-		       sizeof(lwres_addr_t));
+		memmove(&ctx->address, &ctx->confdata.lwservers[0],
+			sizeof(lwres_addr_t));
 		LWRES_LINK_INIT(&ctx->address, link);
 	} else {
 		/* The default is the IPv4 loopback address 127.0.0.1. */
@@ -318,16 +318,16 @@ context_connect(lwres_context_t *ctx) {
 	}
 
 	if (ctx->address.family == LWRES_ADDRTYPE_V4) {
-		memcpy(&sin.sin_addr, ctx->address.address,
-		       sizeof(sin.sin_addr));
+		memmove(&sin.sin_addr, ctx->address.address,
+			sizeof(sin.sin_addr));
 		sin.sin_port = htons(lwres_udp_port);
 		sin.sin_family = AF_INET;
 		sa = (struct sockaddr *)&sin;
 		salen = sizeof(sin);
 		domain = PF_INET;
 	} else if (ctx->address.family == LWRES_ADDRTYPE_V6) {
-		memcpy(&sin6.sin6_addr, ctx->address.address,
-		       sizeof(sin6.sin6_addr));
+		memmove(&sin6.sin6_addr, ctx->address.address,
+			sizeof(sin6.sin6_addr));
 		sin6.sin6_port = htons(lwres_udp_port);
 		sin6.sin6_family = AF_INET6;
 		sa = (struct sockaddr *)&sin6;

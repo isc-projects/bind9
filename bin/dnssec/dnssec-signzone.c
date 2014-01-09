@@ -730,7 +730,7 @@ hashlist_add(hashlist_t *l, const unsigned char *hash, size_t len)
 			fatal("unable to grow hashlist: out of memory");
 	}
 	memset(l->hashbuf + l->entries * l->length, 0, l->length);
-	memcpy(l->hashbuf + l->entries * l->length, hash, len);
+	memmove(l->hashbuf + l->entries * l->length, hash, len);
 	l->entries++;
 }
 
@@ -2668,7 +2668,7 @@ set_nsec3params(isc_boolean_t update_chain, isc_boolean_t set_salt,
 			      "Use -u to update it.");
 	} else if (!set_salt) {
 		salt_length = orig_saltlen;
-		memcpy(saltbuf, orig_salt, orig_saltlen);
+		memmove(saltbuf, orig_salt, orig_saltlen);
 		salt = saltbuf;
 	}
 

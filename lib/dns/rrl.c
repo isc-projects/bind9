@@ -439,8 +439,8 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 		break;
 	case AF_INET6:
 		key->s.ipv6 = ISC_TRUE;
-		memcpy(key->s.ip, &client_addr->type.sin6.sin6_addr,
-		       sizeof(key->s.ip));
+		memmove(key->s.ip, &client_addr->type.sin6.sin6_addr,
+			sizeof(key->s.ip));
 		for (i = 0; i < DNS_RRL_MAX_PREFIX/32; ++i)
 			key->s.ip[i] &= rrl->ipv6_mask[i];
 		break;
@@ -776,7 +776,7 @@ add_log_str(isc_buffer_t *lb, const char *str, unsigned int str_len) {
 			return;
 		str_len = region.length;
 	}
-	memcpy(region.base, str, str_len);
+	memmove(region.base, str, str_len);
 	isc_buffer_add(lb, str_len);
 }
 
@@ -863,7 +863,7 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e,
 		snprintf(strbuf, sizeof(strbuf), "/%d", rrl->ipv6_prefixlen);
 		cidr.family = AF_INET6;
 		memset(&cidr.type.in6, 0,  sizeof(cidr.type.in6));
-		memcpy(&cidr.type.in6, e->key.s.ip, sizeof(e->key.s.ip));
+		memmove(&cidr.type.in6, e->key.s.ip, sizeof(e->key.s.ip));
 	} else {
 		snprintf(strbuf, sizeof(strbuf), "/%d", rrl->ipv4_prefixlen);
 		cidr.family = AF_INET;

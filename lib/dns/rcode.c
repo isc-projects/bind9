@@ -194,7 +194,7 @@ str_totext(const char *source, isc_buffer_t *target) {
 	if (l > region.length)
 		return (ISC_R_NOSPACE);
 
-	memcpy(region.base, source, l);
+	memmove(region.base, source, l);
 	isc_buffer_add(target, l);
 	return (ISC_R_SUCCESS);
 }

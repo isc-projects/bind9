@@ -224,7 +224,7 @@ add_server(isc_mem_t *mctx, const char *address_str,
 
 		v4 = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
 		if (memcmp(v4, zeroaddress, 4) == 0)
-			memcpy(v4, loopaddress, 4);
+			memmove(v4, loopaddress, 4);
 	}
 
 	address = isc_mem_get(mctx, sizeof(*address));
@@ -238,7 +238,7 @@ add_server(isc_mem_t *mctx, const char *address_str,
 		goto cleanup;
 	}
 	address->length = res->ai_addrlen;
-	memcpy(&address->type.ss, res->ai_addr, res->ai_addrlen);
+	memmove(&address->type.ss, res->ai_addr, res->ai_addrlen);
 	ISC_LINK_INIT(address, link);
 	ISC_LIST_APPEND(*nameservers, address, link);
 
@@ -258,14 +258,14 @@ create_addr(const char *buffer, isc_netaddr_t *addr, int convert_zero) {
 			unsigned char zeroaddress[] = {0, 0, 0, 0};
 			unsigned char loopaddress[] = {127, 0, 0, 1};
 			if (memcmp(&v4, zeroaddress, 4) == 0)
-				memcpy(&v4, loopaddress, 4);
+				memmove(&v4, loopaddress, 4);
 		}
 		addr->family = AF_INET;
-		memcpy(&addr->type.in, &v4, NS_INADDRSZ);
+		memmove(&addr->type.in, &v4, NS_INADDRSZ);
 		addr->zone = 0;
 	} else if (inet_pton(AF_INET6, buffer, &v6) == 1) {
 		addr->family = AF_INET6;
-		memcpy(&addr->type.in6, &v6, NS_IN6ADDRSZ);
+		memmove(&addr->type.in6, &v6, NS_IN6ADDRSZ);
 		addr->zone = 0;
 	} else
 		return (ISC_R_BADADDRESSFORM); /* Unrecognised format. */

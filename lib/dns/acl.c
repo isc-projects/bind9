@@ -291,8 +291,8 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
 			return (ISC_R_NOMEMORY);
 
 		/* Copy in the original elements */
-		memcpy(newmem, dest->elements,
-		       dest->length * sizeof(dns_aclelement_t));
+		memmove(newmem, dest->elements,
+			dest->length * sizeof(dns_aclelement_t));
 
 		/* Release the memory for the old elements array */
 		isc_mem_put(dest->mctx, dest->elements,

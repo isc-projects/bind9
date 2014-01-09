@@ -489,7 +489,7 @@ isc_file_progname(const char *filename, char *buf, size_t buflen) {
 
 	if (len > buflen)
 		return (ISC_R_NOSPACE);
-	memcpy(buf, base, len);
+	memmove(buf, base, len);
 
 	return (ISC_R_SUCCESS);
 }

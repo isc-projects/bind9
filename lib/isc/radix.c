@@ -62,11 +62,11 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 
 	if (family == AF_INET6) {
 		prefix->bitlen = (bitlen >= 0) ? bitlen : 128;
-		memcpy(&prefix->add.sin6, dest, 16);
+		memmove(&prefix->add.sin6, dest, 16);
 	} else {
 		/* AF_UNSPEC is "any" or "none"--treat it as AF_INET */
 		prefix->bitlen = (bitlen >= 0) ? bitlen : 32;
-		memcpy(&prefix->add.sin, dest, 4);
+		memmove(&prefix->add.sin, dest, 4);
 	}
 
 	prefix->family = family;

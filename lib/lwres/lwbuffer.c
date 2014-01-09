@@ -339,7 +339,7 @@ lwres_buffer_putmem(lwres_buffer_t *b, const unsigned char *base,
 	REQUIRE(b->used + length <= b->length);
 
 	cp = (unsigned char *)b->base + b->used;
-	memcpy(cp, base, length);
+	memmove(cp, base, length);
 	b->used += length;
 }
 
@@ -357,5 +357,5 @@ lwres_buffer_getmem(lwres_buffer_t *b, unsigned char *base,
 	cp += b->current;
 	b->current += length;
 
-	memcpy(base, cp, length);
+	memmove(base, cp, length);
 }

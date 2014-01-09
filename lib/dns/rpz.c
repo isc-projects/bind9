@@ -1115,7 +1115,7 @@ dns_rpz_cidr_find(dns_rpz_cidr_t *cidr, const isc_netaddr_t *netaddr,
 		 * one could cast netaddr->type.in6 to dns_rpz_cidr_key_t *,
 		 * but there are objections.
 		 */
-		memcpy(src_ip6.w, &netaddr->type.in6, sizeof(src_ip6.w));
+		memmove(src_ip6.w, &netaddr->type.in6, sizeof(src_ip6.w));
 		for (i = 0; i < 4; i++) {
 			tgt_ip.w[i] = ntohl(src_ip6.w[i]);
 		}

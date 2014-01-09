@@ -253,7 +253,7 @@ opensslgost_todns(const dst_key_t *key, isc_buffer_t *data) {
 	len = i2d_PUBKEY(pkey, &p);
 	INSIST(len == sizeof(der));
 	INSIST(memcmp(gost_prefix, der, 37) == 0);
-	memcpy(r.base, der + 37, 64);
+	memmove(r.base, der + 37, 64);
 	isc_buffer_add(data, 64);
 
 	return (ISC_R_SUCCESS);
@@ -272,8 +272,8 @@ opensslgost_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	if (r.length != 64)
 		return (DST_R_INVALIDPUBLICKEY);
-	memcpy(der, gost_prefix, 37);
-	memcpy(der + 37, r.base, 64);
+	memmove(der, gost_prefix, 37);
+	memmove(der + 37, r.base, 64);
 	isc_buffer_forward(data, 64);
 
 	p = der;

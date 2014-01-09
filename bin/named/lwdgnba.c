@@ -226,12 +226,12 @@ ns_lwdclient_processgnba(ns_lwdclient_t *client, lwres_buffer_t *b) {
 		client->na.family = AF_INET;
 		if (req->addr.length != 4)
 			goto out;
-		memcpy(&client->na.type.in, req->addr.address, 4);
+		memmove(&client->na.type.in, req->addr.address, 4);
 	} else if (req->addr.family == LWRES_ADDRTYPE_V6) {
 		client->na.family = AF_INET6;
 		if (req->addr.length != 16)
 			goto out;
-		memcpy(&client->na.type.in6, req->addr.address, 16);
+		memmove(&client->na.type.in6, req->addr.address, 16);
 	} else {
 		goto out;
 	}

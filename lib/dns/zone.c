@@ -2517,7 +2517,7 @@ isspf(const dns_rdata_t *rdata) {
 		INSIST(tl <= rdl);
 		if (len > sizeof(buf) - i - 1)
 			len = sizeof(buf) - i - 1;
-		memcpy(buf + i, data, len);
+		memmove(buf + i, data, len);
 		i += len;
 		data += tl;
 		rdl -= tl;
@@ -2874,7 +2874,7 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	nsec3chain->nsec3param.iterations = nsec3param->iterations;
 	nsec3chain->nsec3param.flags = nsec3param->flags;
 	nsec3chain->nsec3param.salt_length = nsec3param->salt_length;
-	memcpy(nsec3chain->salt, nsec3param->salt, nsec3param->salt_length);
+	memmove(nsec3chain->salt, nsec3param->salt, nsec3param->salt_length);
 	nsec3chain->nsec3param.salt = nsec3chain->salt;
 	nsec3chain->seen_nsec = ISC_FALSE;
 	nsec3chain->delete_nsec = ISC_FALSE;
@@ -4979,7 +4979,7 @@ set_addrkeylist(unsigned int count,
 	newaddrs = isc_mem_get(mctx, count * sizeof(*newaddrs));
 	if (newaddrs == NULL)
 		return (ISC_R_NOMEMORY);
-	memcpy(newaddrs, addrs, count * sizeof(*newaddrs));
+	memmove(newaddrs, addrs, count * sizeof(*newaddrs));
 
 	newnames = NULL;
 	if (names != NULL) {

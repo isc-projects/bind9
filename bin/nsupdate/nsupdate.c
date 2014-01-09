@@ -840,13 +840,16 @@ setup_system(void) {
 		if (servers == NULL)
 			fatal("out of memory");
 		for (i = 0; i < ns_total; i++) {
-			if (lwconf->nameservers[i].family == LWRES_ADDRTYPE_V4) {
+			if (lwconf->nameservers[i].family == LWRES_ADDRTYPE_V4)
+			{
 				struct in_addr in4;
-				memcpy(&in4, lwconf->nameservers[i].address, 4);
+				memmove(&in4,
+					lwconf->nameservers[i].address, 4);
 				isc_sockaddr_fromin(&servers[i], &in4, dnsport);
 			} else {
 				struct in6_addr in6;
-				memcpy(&in6, lwconf->nameservers[i].address, 16);
+				memmove(&in6,
+					lwconf->nameservers[i].address, 16);
 				isc_sockaddr_fromin6(&servers[i], &in6,
 						     dnsport);
 			}
@@ -2580,7 +2583,7 @@ start_gssrequest(dns_name_t *master) {
 	if (userserver == NULL)
 		get_address(namestr, dnsport, kserver);
 	else
-		(void)memcpy(kserver, userserver, sizeof(isc_sockaddr_t));
+		(void)memmove(kserver, userserver, sizeof(isc_sockaddr_t));
 
 	dns_fixedname_init(&fname);
 	servname = dns_fixedname_name(&fname);

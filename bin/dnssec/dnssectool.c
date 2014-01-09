@@ -725,11 +725,11 @@ record_nsec3(const unsigned char *rawhash, const dns_rdata_nsec3_t *nsec3,
 	element->next_length = nsec3->next_length;
 	element->iterations = nsec3->iterations;
 	cp = (unsigned char *)(element + 1);
-	memcpy(cp, nsec3->salt, nsec3->salt_length);
+	memmove(cp, nsec3->salt, nsec3->salt_length);
 	cp += nsec3->salt_length;
-	memcpy(cp, rawhash, nsec3->next_length);
+	memmove(cp, rawhash, nsec3->next_length);
 	cp += nsec3->next_length;
-	memcpy(cp, nsec3->next, nsec3->next_length);
+	memmove(cp, nsec3->next, nsec3->next_length);
 	result = isc_heap_insert(chains, element);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "isc_heap_insert failed: %s\n",

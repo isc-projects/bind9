@@ -955,7 +955,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 
 	memset(msg, 0, sizeof(*msg));
 
-	memcpy(&msg->to_addr, &dev->address.type, dev->address.length);
+	memmove(&msg->to_addr, &dev->address.type, dev->address.length);
 	msg->to_addr_len = dev->address.length;
 
 	buffer = ISC_LIST_HEAD(dev->bufferlist);
@@ -977,7 +977,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		   "alloc_buffer %p %d %p %d", cpbuffer, sizeof(buflist_t),
 		   cpbuffer->buf, write_count);
 
-		memcpy(cpbuffer->buf,(dev->region.base + dev->n), write_count);
+		memmove(cpbuffer->buf,(dev->region.base + dev->n), write_count);
 		cpbuffer->buflen = (unsigned int)write_count;
 		ISC_LIST_ENQUEUE(lpo->bufferlist, cpbuffer, link);
 		iov[0].buf = cpbuffer->buf;
@@ -1017,7 +1017,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 			   "alloc_buffer %p %d %p %d", cpbuffer, sizeof(buflist_t),
 			   cpbuffer->buf, write_count);
 
-			memcpy(cpbuffer->buf,(used.base + skip_count), uselen);
+			memmove(cpbuffer->buf,(used.base + skip_count), uselen);
 			cpbuffer->buflen = uselen;
 			iov[iovcount].buf = cpbuffer->buf;
 			iov[iovcount].len = (u_long)(used.length - skip_count);
@@ -1220,8 +1220,8 @@ fill_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 
 	if (sock->type == isc_sockettype_udp) {
 		dev->address.length = sock->recvbuf.from_addr_len;
-		memcpy(&dev->address.type, &sock->recvbuf.from_addr,
-		    sock->recvbuf.from_addr_len);
+		memmove(&dev->address.type, &sock->recvbuf.from_addr,
+			sock->recvbuf.from_addr_len);
 		if (isc_sockaddr_getport(&dev->address) == 0) {
 			if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL)) {
 				socket_log(__LINE__, sock, &dev->address, IOEVENT,
@@ -1247,8 +1247,10 @@ fill_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 			REQUIRE(ISC_BUFFER_VALID(buffer));
 			if (isc_buffer_availablelength(buffer) > 0) {
 				isc_buffer_availableregion(buffer, &r);
-				copylen = min(r.length, sock->recvbuf.remaining);
-				memcpy(r.base, sock->recvbuf.consume_position, copylen);
+				copylen = min(r.length,
+					      sock->recvbuf.remaining);
+				memmove(r.base, sock->recvbuf.consume_position,
+					copylen);
 				sock->recvbuf.consume_position += copylen;
 				sock->recvbuf.remaining -= copylen;
 				isc_buffer_add(buffer, copylen);
@@ -1258,7 +1260,8 @@ fill_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		}
 	} else { // Single-buffer receive
 		copylen = min(dev->region.length - dev->n, sock->recvbuf.remaining);
-		memcpy(dev->region.base + dev->n, sock->recvbuf.consume_position, copylen);
+		memmove(dev->region.base + dev->n,
+			sock->recvbuf.consume_position, copylen);
 		sock->recvbuf.consume_position += copylen;
 		sock->recvbuf.remaining -= copylen;
 		dev->n += copylen;
@@ -2061,7 +2064,7 @@ internal_accept(isc_socket_t *sock, IoCompletionInfo *lpo, int accept_errno) {
 		sizeof(SOCKADDR_STORAGE) + 16, sizeof(SOCKADDR_STORAGE) + 16,
 		(LPSOCKADDR *)&localaddr, &localaddr_len,
 		(LPSOCKADDR *)&remoteaddr, &remoteaddr_len);
-	memcpy(&adev->address.type, remoteaddr, remoteaddr_len);
+	memmove(&adev->address.type, remoteaddr, remoteaddr_len);
 	adev->address.length = remoteaddr_len;
 	nsock->address = adev->address;
 	nsock->pf = adev->address.type.sa.sa_family;
