@@ -3112,7 +3112,8 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	 */
 	id = (dns_messageid_t)dispatch_random(DISP_ARC4CTX(disp));
 	ok = ISC_FALSE;
-	for (i = 0; i < 64; i++) {
+	i = 0;
+	do {
 		bucket = dns_hash(qid, dest, id, localport);
 		if (entry_search(qid, dest, id, localport, bucket) == NULL) {
 			ok = ISC_TRUE;
@@ -3120,7 +3121,7 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 		}
 		id += qid->qid_increment;
 		id &= 0x0000ffff;
-	}
+	} while (i++ < 64);
 
 	if (!ok) {
 		UNLOCK(&qid->lock);
