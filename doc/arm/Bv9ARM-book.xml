@@ -10257,24 +10257,49 @@ example.com                 CNAME   rpz-tcp-only.
         </para>
 
         <para>
+          Broken-out subsets of the statistics can be viewed at
+          <ulink url="http://127.0.0.1:8888/xml/v3/status"
+                  >http://127.0.0.1:8888/xml/v3/status</ulink>
+          (server uptime and last reconfiguration time),
+          <ulink url="http://127.0.0.1:8888/xml/v3/server"
+                  >http://127.0.0.1:8888/xml/v3/server</ulink>
+          (server and resolver statistics),
+          <ulink url="http://127.0.0.1:8888/xml/v3/zones"
+                  >http://127.0.0.1:8888/xml/v3/zones</ulink>
+          (zone statistics),
+          <ulink url="http://127.0.0.1:8888/xml/v3/net"
+                  >http://127.0.0.1:8888/xml/v3/net</ulink>
+          (network status and socket statistics),
+          <ulink url="http://127.0.0.1:8888/xml/v3/mem"
+                  >http://127.0.0.1:8888/xml/v3/mem</ulink>
+          (memory manager statistics),
+          <ulink url="http://127.0.0.1:8888/xml/v3/tasks"
+                  >http://127.0.0.1:8888/xml/v3/tasks</ulink>
+          (task manager statistics).
+        </para>
+
+        <para>
           The full set of statistics can also be read in JSON format at
           <ulink url="http://127.0.0.1:8888/json"
-                  >http://127.0.0.1:8888/json</ulink>.
-          Broken-out subsets of the statistics can be viewed at
-          <ulink url="http://127.0.0.1:8888/json/server"
-                  >http://127.0.0.1:8888/json/server</ulink>
+                  >http://127.0.0.1:8888/json</ulink>,
+          with the broken-out subsets at
+          <ulink url="http://127.0.0.1:8888/json/v1/status"
+                  >http://127.0.0.1:8888/json/v1/status</ulink>
+          (server uptime and last reconfiguration time),
+          <ulink url="http://127.0.0.1:8888/json/v1/server"
+                  >http://127.0.0.1:8888/json/v1/server</ulink>
           (server and resolver statistics),
-          <ulink url="http://127.0.0.1:8888/json/zones"
-                  >http://127.0.0.1:8888/json/zones</ulink>
+          <ulink url="http://127.0.0.1:8888/json/v1/zones"
+                  >http://127.0.0.1:8888/json/v1/zones</ulink>
           (zone statistics),
-          <ulink url="http://127.0.0.1:8888/json/net"
-                  >http://127.0.0.1:8888/json/net</ulink>
+          <ulink url="http://127.0.0.1:8888/json/v1/net"
+                  >http://127.0.0.1:8888/json/v1/net</ulink>
           (network status and socket statistics),
-          <ulink url="http://127.0.0.1:8888/json/mem"
-                  >http://127.0.0.1:8888/json/mem</ulink>
+          <ulink url="http://127.0.0.1:8888/json/v1/mem"
+                  >http://127.0.0.1:8888/json/v1/mem</ulink>
           (memory manager statistics),
-          <ulink url="http://127.0.0.1:8888/json/tasks"
-                  >http://127.0.0.1:8888/json/tasks</ulink>
+          <ulink url="http://127.0.0.1:8888/json/v1/tasks"
+                  >http://127.0.0.1:8888/json/v1/tasks</ulink>
           (task manager statistics).
         </para>
       </sect2>

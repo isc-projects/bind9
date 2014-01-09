@@ -1,3 +1,14 @@
+3700.	[func]		Allow access to subgroups of XML statistics via
+			special URLs http://<server>:<port>/xml/v3/server,
+			/zones, /net, /tasks, /mem, and /status.  [RT #35115]
+
+3699.	[bug]		Improvements to statistics channel XSL stylesheet:
+			the stylesheet can now be cached by the browser;
+			section headers are omitted from the stats display
+			when there is no data in those sections to be
+			displayed; counters are now right-justified for
+			easier readability. [RT #35117]
+
 3698.	[cleanup]	Replaced all uses of memcpy() with memmove().
 			[RT #35120]
 

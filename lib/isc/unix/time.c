@@ -407,6 +407,24 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	INSIST(flen < len);
 }
 
+isc_result_t
+isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
+	struct tm t_tm;
+	time_t when;
+	char *p;
+
+	REQUIRE(buf != NULL);
+	REQUIRE(t != NULL);
+	p = strptime(buf, "%a, %d %b %Y %H:%M:%S %Z", &t_tm);
+	if (p == NULL)
+		return (ISC_R_UNEXPECTED);
+	when = timegm(&t_tm);
+	if (when == -1)
+		return (ISC_R_UNEXPECTED);
+	isc_time_set(t, when, 0);
+	return (ISC_R_SUCCESS);
+}
+
 void
 isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;

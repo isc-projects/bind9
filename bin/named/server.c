@@ -8779,6 +8779,9 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 				  "zone %s added to view %s via addzone",
 				  zonename, viewname);
 
+	/* Adding a zone counts as reconfiguration */
+	CHECK(isc_time_now(&ns_g_configtime));
+
 	result = ISC_R_SUCCESS;
 
  cleanup:
@@ -9037,6 +9040,9 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				  NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 				  "zone %s removed via delzone", zonename);
+
+	/* Removing a zone counts as reconfiguration */
+	CHECK(isc_time_now(&ns_g_configtime));
 
 	result = ISC_R_SUCCESS;
 
