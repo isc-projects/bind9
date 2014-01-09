@@ -296,7 +296,7 @@ hname_to_tname(char *src, char *target, size_t len) {
 		 */
 		if (srclen >= len)
 			return (1);
-		memcpy(target, src, srclen + 1);
+		memmove(target, src, srclen + 1);
 		return (0);
 	}
 

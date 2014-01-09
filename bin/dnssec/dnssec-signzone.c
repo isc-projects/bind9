@@ -645,7 +645,7 @@ hashlist_add(hashlist_t *l, const unsigned char *hash, size_t len)
 			fatal("unable to grow hashlist: out of memory");
 	}
 	memset(l->hashbuf + l->entries * l->length, 0, l->length);
-	memcpy(l->hashbuf + l->entries * l->length, hash, len);
+	memmove(l->hashbuf + l->entries * l->length, hash, len);
 	l->entries++;
 }
 
@@ -1559,7 +1559,8 @@ verifyzone(void) {
 			fatal("no self signing keys found");
 		fprintf(stderr, "No self signing KSK found. Using self signed "
 			"ZSK's for active algorithm list.\n");
-		memcpy(ksk_algorithms, self_algorithms, sizeof(ksk_algorithms));
+		memmove(ksk_algorithms, self_algorithms,
+			sizeof(ksk_algorithms));
 		if (!allzsksigned)
 			fprintf(stderr, "warning: not all ZSK's are self "
 				"signed.\n");

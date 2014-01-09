@@ -8464,7 +8464,7 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, dns_name_t *name,
 			}
 			memset(new, 0, len);
 			if (algorithms != NULL)
-				memcpy(new, algorithms, *algorithms);
+				memmove(new, algorithms, *algorithms);
 			new[len-1] |= mask;
 			*new = len;
 			node->data = new;

@@ -1475,8 +1475,8 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	OLDOFFSETLEN(node) = OFFSETLEN(node) = labels;
 	ATTRS(node) = name->attributes;
 
-	memcpy(NAME(node), region.base, region.length);
-	memcpy(OFFSETS(node), name->offsets, labels);
+	memmove(NAME(node), region.base, region.length);
+	memmove(OFFSETS(node), name->offsets, labels);
 
 #if DNS_RBT_USEMAGIC
 	node->magic = DNS_RBTNODE_MAGIC;
@@ -1837,7 +1837,7 @@ dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 		 * information, which will be needed when linking up
 		 * delete to the successor's old location.
 		 */
-		memcpy(tmp, successor, sizeof(dns_rbtnode_t));
+		memmove(tmp, successor, sizeof(dns_rbtnode_t));
 
 		if (IS_ROOT(delete)) {
 			*rootp = successor;

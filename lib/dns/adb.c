@@ -528,12 +528,12 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		dns_rdataset_current(rdataset, &rdata);
 		if (rdtype == dns_rdatatype_a) {
 			INSIST(rdata.length == 4);
-			memcpy(&ina.s_addr, rdata.data, 4);
+			memmove(&ina.s_addr, rdata.data, 4);
 			isc_sockaddr_fromin(&sockaddr, &ina, 0);
 			hookhead = &adbname->v4;
 		} else {
 			INSIST(rdata.length == 16);
-			memcpy(in6a.s6_addr, rdata.data, 16);
+			memmove(in6a.s6_addr, rdata.data, 16);
 			isc_sockaddr_fromin6(&sockaddr, &in6a, 0);
 			hookhead = &adbname->v6;
 		}

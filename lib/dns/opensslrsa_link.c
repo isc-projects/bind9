@@ -473,7 +473,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		INSIST(prefixlen + digestlen <= sizeof(digest));
 
 		memmove(digest + prefixlen, digest, digestlen);
-		memcpy(digest, prefix, prefixlen);
+		memmove(digest, prefix, prefixlen);
 		status = RSA_private_encrypt(digestlen + prefixlen,
 					     digest, r.base, rsa,
 					     RSA_PKCS1_PADDING);

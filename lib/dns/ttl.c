@@ -68,7 +68,7 @@ ttlfmt(unsigned int t, const char *s, isc_boolean_t verbose,
 	isc_buffer_availableregion(target, &region);
 	if (len > region.length)
 		return (ISC_R_NOSPACE);
-	memcpy(region.base, tmp, len);
+	memmove(region.base, tmp, len);
 	isc_buffer_add(target, len);
 
 	return (ISC_R_SUCCESS);

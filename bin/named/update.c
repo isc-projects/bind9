@@ -3138,7 +3138,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			 */
 			dns_rdata_clone(&tuple->rdata, &rdata);
 			INSIST(rdata.length <= sizeof(buf));
-			memcpy(buf, rdata.data, rdata.length);
+			memmove(buf, rdata.data, rdata.length);
 			buf[1] |= DNS_NSEC3FLAG_CREATE;
 			buf[1] &= ~DNS_NSEC3FLAG_UPDATE;
 			rdata.data = buf;
@@ -3215,7 +3215,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		 */
 		dns_rdata_clone(&tuple->rdata, &rdata);
 		INSIST(rdata.length <= sizeof(buf));
-		memcpy(buf, rdata.data, rdata.length);
+		memmove(buf, rdata.data, rdata.length);
 		buf[1] |= DNS_NSEC3FLAG_REMOVE;
 		rdata.data = buf;
 
@@ -3420,7 +3420,7 @@ delete_chains(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	     result = dns_rdataset_next(&rdataset)) {
 		dns_rdataset_current(&rdataset, &rdata);
 		INSIST(rdata.length <= sizeof(buf));
-		memcpy(buf, rdata.data, rdata.length);
+		memmove(buf, rdata.data, rdata.length);
 
 		if (buf[1] == (DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC)) {
 			dns_rdata_reset(&rdata);
@@ -3858,7 +3858,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				 * Set the NSEC3CHAIN creation flag.
 				 */
 				INSIST(rdata.length <= sizeof(buf));
-				memcpy(buf, rdata.data, rdata.length);
+				memmove(buf, rdata.data, rdata.length);
 				buf[1] |= DNS_NSEC3FLAG_UPDATE;
 				rdata.data = buf;
 				/*

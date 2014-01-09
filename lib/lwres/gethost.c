@@ -331,7 +331,7 @@ copytobuf(struct hostent *he, struct hostent *hptr, char *buf, int buflen) {
 	 */
         hptr->h_addr_list = ptr;
         for (i = 0; he->h_addr_list[i]; i++, ptr++) {
-                memcpy(cp, he->h_addr_list[i], n);
+                memmove(cp, he->h_addr_list[i], n);
                 hptr->h_addr_list[i] = cp;
                 cp += n;
         }

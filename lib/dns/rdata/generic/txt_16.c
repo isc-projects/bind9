@@ -110,7 +110,7 @@ towire_txt(ARGS_TOWIRE) {
 	if (region.length < rdata->length)
 		return (ISC_R_NOSPACE);
 
-	memcpy(region.base, rdata->data, rdata->length);
+	memmove(region.base, rdata->data, rdata->length);
 	isc_buffer_add(target, rdata->length);
 	return (ISC_R_SUCCESS);
 }

@@ -209,7 +209,7 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	buf = isc_mem_allocate(dst__memory_pool, sig->length);
 	if (buf == NULL)
 		return (ISC_R_FAILURE);
-	memcpy(buf, sig->base, sig->length);
+	memmove(buf, sig->base, sig->length);
 	r.base = buf;
 	r.length = sig->length;
 	REGION_TO_GBUFFER(r, gsig);

@@ -681,7 +681,7 @@ create_string(cfg_parser_t *pctx, const char *contents, const cfg_type_t *type,
 		isc_mem_put(pctx->mctx, obj, sizeof(*obj));
 		return (ISC_R_NOMEMORY);
 	}
-	memcpy(obj->value.string.base, contents, len);
+	memmove(obj->value.string.base, contents, len);
 	obj->value.string.base[len] = '\0';
 
 	*ret = obj;
@@ -1601,7 +1601,7 @@ parse_token(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		goto cleanup;
 	}
 	obj->value.string.length = r.length;
-	memcpy(obj->value.string.base, r.base, r.length);
+	memmove(obj->value.string.base, r.base, r.length);
 	obj->value.string.base[r.length] = '\0';
 	*ret = obj;
 	return (result);

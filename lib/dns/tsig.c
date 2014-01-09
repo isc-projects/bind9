@@ -1172,21 +1172,21 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		 * Extract the header.
 		 */
 		isc_buffer_usedregion(source, &r);
-		memcpy(header, r.base, DNS_MESSAGE_HEADERLEN);
+		memmove(header, r.base, DNS_MESSAGE_HEADERLEN);
 		isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
 
 		/*
 		 * Decrement the additional field counter.
 		 */
-		memcpy(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
+		memmove(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
 		addcount = htons((isc_uint16_t)(ntohs(addcount) - 1));
-		memcpy(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
+		memmove(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 
 		/*
 		 * Put in the original id.
 		 */
 		id = htons(tsig.originalid);
-		memcpy(&header[0], &id, 2);
+		memmove(&header[0], &id, 2);
 
 		/*
 		 * Digest the modified header.
@@ -1411,16 +1411,16 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	 * Extract the header.
 	 */
 	isc_buffer_usedregion(source, &r);
-	memcpy(header, r.base, DNS_MESSAGE_HEADERLEN);
+	memmove(header, r.base, DNS_MESSAGE_HEADERLEN);
 	isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
 
 	/*
 	 * Decrement the additional field counter if necessary.
 	 */
 	if (has_tsig) {
-		memcpy(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
+		memmove(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
 		addcount = htons((isc_uint16_t)(ntohs(addcount) - 1));
-		memcpy(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
+		memmove(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 	}
 
 	/*
@@ -1429,7 +1429,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	/* XXX Can TCP transfers be forwarded?  How would that work? */
 	if (has_tsig) {
 		id = htons(tsig.originalid);
-		memcpy(&header[0], &id, 2);
+		memmove(&header[0], &id, 2);
 	}
 
 	/*

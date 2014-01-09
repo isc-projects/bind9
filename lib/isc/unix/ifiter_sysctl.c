@@ -171,7 +171,7 @@ internal_current(isc_interfaceiter_t *iter) {
 			namelen = sizeof(iter->current.name) - 1;
 
 		memset(iter->current.name, 0, sizeof(iter->current.name));
-		memcpy(iter->current.name, sdl->sdl_data, namelen);
+		memmove(iter->current.name, sdl->sdl_data, namelen);
 
 		iter->current.flags = 0;
 

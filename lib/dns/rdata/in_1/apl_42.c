@@ -148,7 +148,7 @@ totext_in_apl(ARGS_TOTEXT) {
 			INSIST(len <= 4);
 			INSIST(prefix <= 32);
 			memset(buf, 0, sizeof(buf));
-			memcpy(buf, sr.base, len);
+			memmove(buf, sr.base, len);
 			RETERR(inet_totext(AF_INET, &ir, target));
 			break;
 
@@ -156,7 +156,7 @@ totext_in_apl(ARGS_TOTEXT) {
 			INSIST(len <= 16);
 			INSIST(prefix <= 128);
 			memset(buf, 0, sizeof(buf));
-			memcpy(buf, sr.base, len);
+			memmove(buf, sr.base, len);
 			RETERR(inet_totext(AF_INET6, &ir, target));
 			break;
 

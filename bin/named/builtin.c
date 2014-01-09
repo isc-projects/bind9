@@ -89,7 +89,7 @@ put_txt(dns_sdblookup_t *lookup, const char *text) {
 	if (len > 255)
 		len = 255; /* Silently truncate */
 	buf[0] = len;
-	memcpy(&buf[1], text, len);
+	memmove(&buf[1], text, len);
 	return (dns_sdb_putrdata(lookup, dns_rdatatype_txt, 0, buf, len + 1));
 }
 
@@ -257,7 +257,7 @@ builtin_create(const char *zone, int argc, char **argv,
 			if (empty != NULL)
 				isc_mem_put(ns_g_mctx, empty, sizeof (*empty));
 		} else {
-			memcpy(empty, &empty_builtin, sizeof (empty_builtin));
+			memmove(empty, &empty_builtin, sizeof (empty_builtin));
 			empty->server = server;
 			empty->contact = contact;
 			*dbdata = empty;

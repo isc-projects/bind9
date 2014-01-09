@@ -261,7 +261,7 @@ isc_hash_ctxinit(isc_hash_t *hctx) {
 			else
 				copylen = hctx->vectorlen - i;
 
-			memcpy(p, &pr, copylen);
+			memmove(p, &pr, copylen);
 		}
 		INSIST(p == (unsigned char *)hctx->rndvector +
 		       hctx->vectorlen);

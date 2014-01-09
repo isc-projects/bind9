@@ -83,7 +83,7 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 
 	memset(buffer, 0, DNS_NSEC_BUFFERSIZE);
 	dns_name_toregion(target, &r);
-	memcpy(buffer, r.base, r.length);
+	memmove(buffer, r.base, r.length);
 	r.base = buffer;
 	/*
 	 * Use the end of the space for a raw bitmap leaving enough

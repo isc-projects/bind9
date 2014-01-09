@@ -424,7 +424,7 @@ static isc_result_t
 append(const char *text, int len, char **p, char *end) {
 	if (len > end - *p)
 		return (ISC_R_NOSPACE);
-	memcpy(*p, text, len);
+	memmove(*p, text, len);
 	*p += len;
 	return (ISC_R_SUCCESS);
 }
@@ -3761,7 +3761,7 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 	fromlen = isc_buffer_usedlength(buffer) - used_org;
 	if (fromlen >= MAXDLEN)
 		return (ISC_R_SUCCESS);
-	memcpy(tmp1, (char *)isc_buffer_base(buffer) + used_org, fromlen);
+	memmove(tmp1, (char *)isc_buffer_base(buffer) + used_org, fromlen);
 	end_with_dot = (tmp1[fromlen - 1] == '.') ? ISC_TRUE : ISC_FALSE;
 	if (absolute && !end_with_dot) {
 		fromlen++;
@@ -3790,7 +3790,7 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 		return (ISC_R_NOSPACE);
 
 	isc_buffer_subtract(buffer, isc_buffer_usedlength(buffer) - used_org);
-	memcpy(isc_buffer_used(buffer), tmp1, tolen);
+	memmove(isc_buffer_used(buffer), tmp1, tolen);
 	isc_buffer_add(buffer, tolen);
 
 	return (ISC_R_SUCCESS);

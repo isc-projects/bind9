@@ -2024,7 +2024,7 @@ isspf(const dns_rdata_t *rdata) {
 		INSIST(tl <= rdl);
 		if (len > sizeof(buf) - i - 1)
 			len = sizeof(buf) - i - 1;
-		memcpy(buf + i, data, len);
+		memmove(buf + i, data, len);
 		i += len;
 		data += tl;
 		rdl -= tl;
@@ -2341,7 +2341,7 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	nsec3chain->nsec3param.iterations = nsec3param->iterations;
 	nsec3chain->nsec3param.flags = nsec3param->flags;
 	nsec3chain->nsec3param.salt_length = nsec3param->salt_length;
-	memcpy(nsec3chain->salt, nsec3param->salt, nsec3param->salt_length);
+	memmove(nsec3chain->salt, nsec3param->salt, nsec3param->salt_length);
 	nsec3chain->nsec3param.salt = nsec3chain->salt;
 	nsec3chain->seen_nsec = ISC_FALSE;
 	nsec3chain->delete_nsec = ISC_FALSE;
@@ -3405,7 +3405,7 @@ dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
 			UNLOCK_ZONE(zone);
 			return (ISC_R_NOMEMORY);
 		}
-		memcpy(new, notify, count * sizeof(*new));
+		memmove(new, notify, count * sizeof(*new));
 		zone->notify = new;
 		zone->notifycnt = count;
 	}
@@ -3527,7 +3527,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 		result = ISC_R_NOMEMORY;
 		goto unlock;
 	}
-	memcpy(new, masters, count * sizeof(*new));
+	memmove(new, masters, count * sizeof(*new));
 
 	/*
 	 * Similarly for mastersok.

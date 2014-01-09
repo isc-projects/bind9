@@ -115,7 +115,7 @@ inet_pton4(const char *src, unsigned char *dst) {
 	}
 	if (octets < 4)
 		return (0);
-	memcpy(dst, tmp, NS_INADDRSZ);
+	memmove(dst, tmp, NS_INADDRSZ);
 	return (1);
 }
 
@@ -209,6 +209,6 @@ inet_pton6(const char *src, unsigned char *dst) {
 	}
 	if (tp != endp)
 		return (0);
-	memcpy(dst, tmp, NS_IN6ADDRSZ);
+	memmove(dst, tmp, NS_IN6ADDRSZ);
 	return (1);
 }

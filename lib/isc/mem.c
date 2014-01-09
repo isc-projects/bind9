@@ -376,9 +376,9 @@ more_basic_blocks(isc_mem_t *ctx) {
 			return (ISC_FALSE);
 		}
 		if (ctx->basic_table_size != 0) {
-			memcpy(table, ctx->basic_table,
-			       ctx->basic_table_size *
-			       sizeof(unsigned char *));
+			memmove(table, ctx->basic_table,
+				ctx->basic_table_size *
+			 	  sizeof(unsigned char *));
 			(ctx->memfree)(ctx->arg, ctx->basic_table);
 		}
 		ctx->basic_table = table;
@@ -1416,7 +1416,7 @@ isc__mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
 				oldsize -= ALIGNMENT_SIZE;
 			}
 			copysize = (oldsize > size) ? size : oldsize;
-			memcpy(new_ptr, ptr, copysize);
+			memmove(new_ptr, ptr, copysize);
 			isc__mem_free(ctx, ptr FLARG_PASS);
 		}
 	} else if (ptr != NULL)

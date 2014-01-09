@@ -349,7 +349,7 @@ journal_pos_encode(journal_rawpos_t *raw, journal_pos_t *cooked) {
 static void
 journal_header_decode(journal_rawheader_t *raw, journal_header_t *cooked) {
 	INSIST(sizeof(cooked->format) == sizeof(raw->h.format));
-	memcpy(cooked->format, raw->h.format, sizeof(cooked->format));
+	memmove(cooked->format, raw->h.format, sizeof(cooked->format));
 	journal_pos_decode(&raw->h.begin, &cooked->begin);
 	journal_pos_decode(&raw->h.end, &cooked->end);
 	cooked->index_size = decode_uint32(raw->h.index_size);
@@ -359,7 +359,7 @@ static void
 journal_header_encode(journal_header_t *cooked, journal_rawheader_t *raw) {
 	INSIST(sizeof(cooked->format) == sizeof(raw->h.format));
 	memset(raw->pad, 0, sizeof(raw->pad));
-	memcpy(raw->h.format, cooked->format, sizeof(raw->h.format));
+	memmove(raw->h.format, cooked->format, sizeof(raw->h.format));
 	journal_pos_encode(&raw->h.begin, &cooked->begin);
 	journal_pos_encode(&raw->h.end, &cooked->end);
 	encode_uint32(cooked->index_size, raw->h.index_size);
@@ -512,7 +512,7 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 		return (ISC_R_NOMEMORY);
 	}
 	memset(mem, 0, size);
-	memcpy(mem, &rawheader, sizeof(rawheader));
+	memmove(mem, &rawheader, sizeof(rawheader));
 
 	result = isc_stdio_write(mem, 1, (size_t) size, fp, NULL);
 	if (result != ISC_R_SUCCESS) {

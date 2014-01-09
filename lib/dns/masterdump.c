@@ -226,7 +226,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 			int n = t;
 			if (n > N_TABS)
 				n = N_TABS;
-			memcpy(p, tabs, n);
+			memmove(p, tabs, n);
 			p += n;
 			t -= n;
 		}
@@ -247,7 +247,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 		int n = t;
 		if (n > N_SPACES)
 			n = N_SPACES;
-		memcpy(p, spaces, n);
+		memmove(p, spaces, n);
 		p += n;
 		t -= n;
 	}
@@ -337,7 +337,7 @@ str_totext(const char *source, isc_buffer_t *target) {
 	if (l > region.length)
 		return (ISC_R_NOSPACE);
 
-	memcpy(region.base, source, l);
+	memmove(region.base, source, l);
 	isc_buffer_add(target, l);
 	return (ISC_R_SUCCESS);
 }
@@ -454,7 +454,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			isc_buffer_availableregion(target, &r);
 			if (r.length < length)
 				return (ISC_R_NOSPACE);
-			memcpy(r.base, ttlbuf, length);
+			memmove(r.base, ttlbuf, length);
 			isc_buffer_add(target, length);
 			column += length;
 
