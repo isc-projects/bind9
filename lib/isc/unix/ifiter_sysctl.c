@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -37,7 +37,7 @@
 		sizeof(__uint64_t))
 #else
 #define ROUNDUP(a) ((a) > 0 ? (1 + (((a) - 1) | (sizeof(long) - 1))) \
-                    : sizeof(long))
+		    : sizeof(long))
 #endif
 
 #define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'S')
@@ -58,9 +58,9 @@ struct isc_interfaceiter {
 static int mib[6] = {
 	CTL_NET,
 	PF_ROUTE,
-        0,
+	0,
 	0, 			/* Any address family. */
-        NET_RT_IFLIST,
+	NET_RT_IFLIST,
 	0 			/* Flags. */
 };
 
