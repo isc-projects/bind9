@@ -162,7 +162,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 	isc_buffer_availableregion(target, &tregion);
 	if (tregion.length < total)
 		return (ISC_R_NOSPACE);
-	memcpy(tregion.base, sregion.base, total);
+	memmove(tregion.base, sregion.base, total);
 	isc_buffer_forward(source, total);
 	isc_buffer_add(target, total);
 

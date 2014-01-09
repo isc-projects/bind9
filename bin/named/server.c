@@ -9124,7 +9124,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 		ptr = next_token(&args, " \t");
 		if (ptr == NULL)
 			return (ISC_R_UNEXPECTEDEND);
-		memcpy(keystr, ptr, sizeof(keystr));
+		memmove(keystr, ptr, sizeof(keystr));
 	} else if (strcasecmp(ptr, "-nsec3param") == 0) {
 		const char *hashstr, *flagstr, *iterstr;
 		char nbuf[512];

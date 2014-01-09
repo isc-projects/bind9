@@ -120,7 +120,7 @@ main(int argc, char **argv) {
 
 	result = isc_file_progname(*argv, program, sizeof(program));
 	if (result != ISC_R_SUCCESS)
-		memcpy(program, "rndc-confgen", 13);
+		memmove(program, "rndc-confgen", 13);
 	progname = program;
 
 	keyname = DEFAULT_KEYNAME;

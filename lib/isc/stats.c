@@ -275,8 +275,8 @@ copy_counters(isc_stats_t *stats) {
 	}
 #else
 	UNUSED(i);
-	memcpy(stats->copiedcounters, stats->counters,
-	       stats->ncounters * sizeof(isc_stat_t));
+	memmove(stats->copiedcounters, stats->counters,
+		stats->ncounters * sizeof(isc_stat_t));
 #endif
 
 #ifdef ISC_RWLOCK_USEATOMIC

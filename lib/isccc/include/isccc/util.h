@@ -109,7 +109,7 @@
 
 #define GET_MEM(v, c, w) \
 	do { \
-		memcpy(v, w, c); \
+		memmove(v, w, c); \
 		w += c; \
 	} while (0)
 
@@ -193,7 +193,7 @@
 
 #define PUT_MEM(s, c, w) \
 	do { \
-		memcpy(w, s, c); \
+		memmove(w, s, c); \
 		w += c; \
 	} while (0)
 

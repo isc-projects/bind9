@@ -1193,7 +1193,7 @@ main(int argc, char *argv[]) {
 		dns_rdata_init(&last);
 		region.base = malloc(region.length = rdata.length);
 		if (region.base) {
-			memcpy(region.base, rdata.data, rdata.length);
+			memmove(region.base, rdata.data, rdata.length);
 			dns_rdata_fromregion(&last, class, type, &region);
 			lasttype = type;
 			first = 0;

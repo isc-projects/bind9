@@ -1243,8 +1243,8 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 			version->hash = rbtdb->current_version->hash;
 			version->salt_length =
 				rbtdb->current_version->salt_length;
-			memcpy(version->salt, rbtdb->current_version->salt,
-			       version->salt_length);
+			memmove(version->salt, rbtdb->current_version->salt,
+				version->salt_length);
 		} else {
 			version->flags = 0;
 			version->iterations = 0;
@@ -2284,8 +2284,8 @@ setnsec3parameters(dns_db_t *db, rbtdb_version_t *version) {
 				if (nsec3param.flags != 0)
 					continue;
 
-				memcpy(version->salt, nsec3param.salt,
-				       nsec3param.salt_length);
+				memmove(version->salt, nsec3param.salt,
+					nsec3param.salt_length);
 				version->hash = nsec3param.hash;
 				version->salt_length = nsec3param.salt_length;
 				version->iterations = nsec3param.iterations;
@@ -7314,7 +7314,7 @@ rbt_datawriter(FILE *rbtfile, unsigned char *data, void *arg,
 					  sizeof(rdatasetheader_t));
 
 		p = (unsigned char *) header;
-		memcpy(&newheader, p, sizeof(rdatasetheader_t));
+		memmove(&newheader, p, sizeof(rdatasetheader_t));
 		newheader.down = NULL;
 		newheader.next = NULL;
 		off = where;
@@ -7401,8 +7401,8 @@ rbtdb_write_header(FILE *rbtfile, off_t tree_location, off_t nsec_location,
 	}
 
 	memset(&header, 0, sizeof(rbtdb_file_header_t));
-	memcpy(header.version1, FILE_VERSION, sizeof(header.version1));
-	memcpy(header.version2, FILE_VERSION, sizeof(header.version2));
+	memmove(header.version1, FILE_VERSION, sizeof(header.version1));
+	memmove(header.version2, FILE_VERSION, sizeof(header.version2));
 	header.ptrsize = (isc_uint32_t) sizeof(void *);
 	header.bigendian = (1 == htonl(1)) ? 1 : 0;
 	header.tree = (isc_uint64_t) tree_location;
@@ -7627,7 +7627,8 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *version, dns_hash_t *hash,
 			*hash = rbtversion->hash;
 		if (salt != NULL && salt_length != NULL) {
 			REQUIRE(*salt_length >= rbtversion->salt_length);
-			memcpy(salt, rbtversion->salt, rbtversion->salt_length);
+			memmove(salt, rbtversion->salt,
+				rbtversion->salt_length);
 		}
 		if (salt_length != NULL)
 			*salt_length = rbtversion->salt_length;

@@ -3679,7 +3679,7 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event) {
 		isc_event_free(ISC_EVENT_PTR(&newsevent));
 		return;
 	}
-	memcpy(buf, sevent->region.base, sevent->n);
+	memmove(buf, sevent->region.base, sevent->n);
 	newsevent->region.base = buf;
 	newsevent->region.length = disp->mgr->buffersize;
 	newsevent->n = sevent->n;

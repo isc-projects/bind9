@@ -1431,8 +1431,8 @@ dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp,
 		load_rpzs = *load_rpzsp;
 		load_rpzs->p.num_zones = rpzs->p.num_zones;
 		load_rpzs->total_triggers = rpzs->total_triggers;
-		memcpy(load_rpzs->triggers, rpzs->triggers,
-		       sizeof(load_rpzs->triggers));
+		memmove(load_rpzs->triggers, rpzs->triggers,
+			sizeof(load_rpzs->triggers));
 		memset(&load_rpzs->triggers[rpz_num], 0,
 		       sizeof(load_rpzs->triggers[rpz_num]));
 		load_rpzs->zones[rpz_num] = rpz;
@@ -1457,7 +1457,7 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 		rpzs->have.type |= zbit;				\
 	}
 
-	memcpy(&old_totals, &rpzs->total_triggers, sizeof(old_totals));
+	memmove(&old_totals, &rpzs->total_triggers, sizeof(old_totals));
 	memset(&rpzs->total_triggers, 0, sizeof(rpzs->total_triggers));
 	for (n = 0; n < rpzs->p.num_zones; ++n) {
 		zbit = DNS_RPZ_ZBIT(n);
@@ -1946,7 +1946,7 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		 * one could cast netaddr->type.in6 to dns_rpz_cidr_key_t *,
 		 * but some people object.
 		 */
-		memcpy(src_ip6.w, &netaddr->type.in6, sizeof(src_ip6.w));
+		memmove(src_ip6.w, &netaddr->type.in6, sizeof(src_ip6.w));
 		for (i = 0; i < 4; i++) {
 			tgt_ip.w[i] = ntohl(src_ip6.w[i]);
 		}

@@ -391,7 +391,7 @@ parse_updatepolicy(cfg_parser_t *pctx, const cfg_type_t *type,
 			isc_mem_put(pctx->mctx, obj, sizeof(*obj));
 			return (ISC_R_NOMEMORY);
 		}
-		memcpy(obj->value.string.base, "local", 5);
+		memmove(obj->value.string.base, "local", 5);
 		obj->value.string.base[5] = '\0';
 		*ret = obj;
 		return (ISC_R_SUCCESS);

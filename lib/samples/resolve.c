@@ -202,7 +202,7 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 		exit(1);
 	}
 	INSIST(res->ai_addrlen <= sizeof(sa.type));
-	memcpy(&sa.type, res->ai_addr, res->ai_addrlen);
+	memmove(&sa.type, res->ai_addr, res->ai_addrlen);
 	sa.length = res->ai_addrlen;
 	freeaddrinfo(res);
 	ISC_LINK_INIT(&sa, link);

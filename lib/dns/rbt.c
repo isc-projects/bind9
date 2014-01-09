@@ -429,8 +429,8 @@ write_header(FILE *file, dns_rbt_t *rbt, isc_uint64_t first_node_offset,
 	}
 
 	memset(&header, 0, sizeof(file_header_t));
-	memcpy(header.version1, FILE_VERSION, sizeof(header.version1));
-	memcpy(header.version2, FILE_VERSION, sizeof(header.version2));
+	memmove(header.version1, FILE_VERSION, sizeof(header.version1));
+	memmove(header.version2, FILE_VERSION, sizeof(header.version2));
 	header.first_node_offset = first_node_offset;
 	header.ptrsize = (isc_uint32_t) sizeof(void *);
 	header.bigendian = (1 == htonl(1)) ? 1 : 0;
@@ -700,7 +700,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 	}
 
 	/* memorize header contents prior to fixup */
-	memcpy(&header, n, sizeof(header));
+	memmove(&header, n, sizeof(header));
 
 	if (n->left_is_relative) {
 		CONFIRM(n->left <= (dns_rbtnode_t *) nodemax);
@@ -2141,8 +2141,8 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	OLDOFFSETLEN(node) = OFFSETLEN(node) = labels;
 	ATTRS(node) = name->attributes;
 
-	memcpy(NAME(node), region.base, region.length);
-	memcpy(OFFSETS(node), name->offsets, labels);
+	memmove(NAME(node), region.base, region.length);
+	memmove(OFFSETS(node), name->offsets, labels);
 
 #if DNS_RBT_USEMAGIC
 	node->magic = DNS_RBTNODE_MAGIC;
@@ -2506,7 +2506,7 @@ deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 		 * information, which will be needed when linking up
 		 * delete to the successor's old location.
 		 */
-		memcpy(tmp, successor, sizeof(dns_rbtnode_t));
+		memmove(tmp, successor, sizeof(dns_rbtnode_t));
 
 		if (IS_ROOT(delete)) {
 			*rootp = successor;

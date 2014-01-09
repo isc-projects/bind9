@@ -188,7 +188,7 @@ isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source) {
 
 	target = (char *) isc_mem_allocate(mctx, source->length + 1);
 	if (target != NULL) {
-		memcpy(source->base, target, source->length);
+		memmove(source->base, target, source->length);
 		target[source->length] = '\0';
 	}
 

@@ -51,7 +51,7 @@ fromtext_l32(ARGS_FROMTEXT) {
 	isc_buffer_availableregion(target, &region);
 	if (region.length < 4)
 		return (ISC_R_NOSPACE);
-	memcpy(region.base, &addr, 4);
+	memmove(region.base, &addr, 4);
 	isc_buffer_add(target, 4);
 	return (ISC_R_SUCCESS);
 }

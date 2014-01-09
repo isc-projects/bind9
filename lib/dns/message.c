@@ -1675,8 +1675,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		msg->saved.base = isc_mem_get(msg->mctx, msg->saved.length);
 		if (msg->saved.base == NULL)
 			return (ISC_R_NOMEMORY);
-		memcpy(msg->saved.base, isc_buffer_base(&origsource),
-		       msg->saved.length);
+		memmove(msg->saved.base, isc_buffer_base(&origsource),
+			msg->saved.length);
 		msg->free_saved = 1;
 	}
 
@@ -1748,7 +1748,7 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer) {
 	 * Copy the contents from the old to the new buffer.
 	 */
 	isc_buffer_add(buffer, r.length);
-	memcpy(rn.base, r.base, r.length);
+	memmove(rn.base, r.base, r.length);
 
 	msg->buffer = buffer;
 

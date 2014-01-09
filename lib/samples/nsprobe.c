@@ -1101,7 +1101,7 @@ main(int argc, char *argv[]) {
 			(long)res->ai_addrlen);
 		exit(1);
 	}
-	memcpy(&sa.type.sa, res->ai_addr, res->ai_addrlen);
+	memmove(&sa.type.sa, res->ai_addr, res->ai_addrlen);
 	sa.length = res->ai_addrlen;
 	freeaddrinfo(res);
 	ISC_LINK_INIT(&sa, link);

@@ -159,7 +159,7 @@ internal_current(isc_interfaceiter_t *iter) {
 		namelen = sizeof(iter->current.name) - 1;
 
 	memset(iter->current.name, 0, sizeof(iter->current.name));
-	memcpy(iter->current.name, ifa->ifa_name, namelen);
+	memmove(iter->current.name, ifa->ifa_name, namelen);
 
 	iter->current.flags = 0;
 

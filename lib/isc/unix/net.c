@@ -540,7 +540,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 #ifdef IPV6_TCLASS
 	case IPV6_TCLASS:
 		cmsgp->cmsg_len = cmsg_len(sizeof(dscp));
-		memcpy(CMSG_DATA(cmsgp), &dscp, sizeof(dscp));
+		memmove(CMSG_DATA(cmsgp), &dscp, sizeof(dscp));
 		break;
 #endif
 	default:

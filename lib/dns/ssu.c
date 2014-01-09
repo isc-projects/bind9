@@ -217,7 +217,7 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 			result = ISC_R_NOMEMORY;
 			goto failure;
 		}
-		memcpy(rule->types, types, ntypes * sizeof(dns_rdatatype_t));
+		memmove(rule->types, types, ntypes * sizeof(dns_rdatatype_t));
 	} else
 		rule->types = NULL;
 

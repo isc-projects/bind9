@@ -1262,7 +1262,7 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 				void *ptr;
 
 				DE_CONST(stack, ptr);
-				memcpy(new, stack, oldsize);
+				memmove(new, stack, oldsize);
 				isc_mem_put(mctx, ptr, oldsize);
 			}
 			stack = new;

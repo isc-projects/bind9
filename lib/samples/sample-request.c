@@ -221,7 +221,7 @@ main(int argc, char *argv[]) {
 		exit(1);
 	}
 	INSIST(res->ai_addrlen <= sizeof(sa.type));
-	memcpy(&sa.type, res->ai_addr, res->ai_addrlen);
+	memmove(&sa.type, res->ai_addr, res->ai_addrlen);
 	freeaddrinfo(res);
 	sa.length = res->ai_addrlen;
 	ISC_LINK_INIT(&sa, link);

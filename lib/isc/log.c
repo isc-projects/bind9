@@ -1130,7 +1130,7 @@ sync_channellist(isc_logconfig_t *lcfg) {
 	if (lcfg->channellist_count != 0) {
 		bytes = lcfg->channellist_count *
 			sizeof(ISC_LIST(isc_logchannellist_t));
-		memcpy(lists, lcfg->channellists, bytes);
+		memmove(lists, lcfg->channellists, bytes);
 		isc_mem_put(lctx->mctx, lcfg->channellists, bytes);
 	}
 

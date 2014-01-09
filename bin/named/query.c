@@ -4606,12 +4606,12 @@ rpz_rewrite_ip_rrset(ns_client_t *client,
 		switch (rdata.type) {
 		case dns_rdatatype_a:
 			INSIST(rdata.length == 4);
-			memcpy(&ina.s_addr, rdata.data, 4);
+			memmove(&ina.s_addr, rdata.data, 4);
 			isc_netaddr_fromin(&netaddr, &ina);
 			break;
 		case dns_rdatatype_aaaa:
 			INSIST(rdata.length == 16);
-			memcpy(in6a.s6_addr, rdata.data, 16);
+			memmove(in6a.s6_addr, rdata.data, 16);
 			isc_netaddr_fromin6(&netaddr, &in6a);
 			break;
 		default:
@@ -5381,12 +5381,12 @@ rdata_tonetaddr(const dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
 	switch (rdata->type) {
 	case dns_rdatatype_a:
 		INSIST(rdata->length == 4);
-		memcpy(&ina.s_addr, rdata->data, 4);
+		memmove(&ina.s_addr, rdata->data, 4);
 		isc_netaddr_fromin(netaddr, &ina);
 		return (ISC_R_SUCCESS);
 	case dns_rdatatype_aaaa:
 		INSIST(rdata->length == 16);
-		memcpy(in6a.s6_addr, rdata->data, 16);
+		memmove(in6a.s6_addr, rdata->data, 16);
 		isc_netaddr_fromin6(netaddr, &in6a);
 		return (ISC_R_SUCCESS);
 	default:
