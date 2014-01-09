@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -378,7 +378,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 		if (ctx->basic_table_size != 0) {
 			memmove(table, ctx->basic_table,
 				ctx->basic_table_size *
-			 	  sizeof(unsigned char *));
+				  sizeof(unsigned char *));
 			(ctx->memfree)(ctx->arg, ctx->basic_table);
 		}
 		ctx->basic_table = table;
