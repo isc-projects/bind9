@@ -186,7 +186,7 @@ fromwire_soa(ARGS_FROMWIRE) {
 	if (tregion.length < 20)
 		return (ISC_R_NOSPACE);
 
-	memcpy(tregion.base, sregion.base, 20);
+	memmove(tregion.base, sregion.base, 20);
 	isc_buffer_forward(source, 20);
 	isc_buffer_add(target, 20);
 
@@ -224,7 +224,7 @@ towire_soa(ARGS_TOWIRE) {
 	if (tregion.length < 20)
 		return (ISC_R_NOSPACE);
 
-	memcpy(tregion.base, sregion.base, 20);
+	memmove(tregion.base, sregion.base, 20);
 	isc_buffer_add(target, 20);
 	return (ISC_R_SUCCESS);
 }

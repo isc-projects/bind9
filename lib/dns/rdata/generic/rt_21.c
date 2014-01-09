@@ -109,7 +109,7 @@ fromwire_rt(ARGS_FROMWIRE) {
 		return (ISC_R_NOSPACE);
 	if (sregion.length < 2)
 		return (ISC_R_UNEXPECTEDEND);
-	memcpy(tregion.base, sregion.base, 2);
+	memmove(tregion.base, sregion.base, 2);
 	isc_buffer_forward(source, 2);
 	isc_buffer_add(target, 2);
 	return (dns_name_fromwire(&name, source, dctx, options, target));
@@ -130,7 +130,7 @@ towire_rt(ARGS_TOWIRE) {
 	dns_rdata_toregion(rdata, &region);
 	if (tr.length < 2)
 		return (ISC_R_NOSPACE);
-	memcpy(tr.base, region.base, 2);
+	memmove(tr.base, region.base, 2);
 	isc_region_consume(&region, 2);
 	isc_buffer_add(target, 2);
 

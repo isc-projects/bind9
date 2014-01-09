@@ -63,7 +63,7 @@ isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
 
 	HMAC_Final(ctx, newdigest, NULL);
 	HMAC_CTX_cleanup(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -94,7 +94,7 @@ isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len) {
 
 	HMAC_Final(ctx, newdigest, NULL);
 	HMAC_CTX_cleanup(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -125,7 +125,7 @@ isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len) {
 
 	HMAC_Final(ctx, newdigest, NULL);
 	HMAC_CTX_cleanup(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -156,7 +156,7 @@ isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len) {
 
 	HMAC_Final(ctx, newdigest, NULL);
 	HMAC_CTX_cleanup(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -187,7 +187,7 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 
 	HMAC_Final(ctx, newdigest, NULL);
 	HMAC_CTX_cleanup(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -213,7 +213,7 @@ isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
 		isc_sha1_update(&sha1ctx, key, len);
 		isc_sha1_final(&sha1ctx, ctx->key);
 	} else
-		memcpy(ctx->key, key, len);
+		memmove(ctx->key, key, len);
 
 	isc_sha1_init(&ctx->sha1ctx);
 	memset(ipad, IPAD, sizeof(ipad));
@@ -260,7 +260,7 @@ isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
 	isc_sha1_update(&ctx->sha1ctx, newdigest, ISC_SHA1_DIGESTLENGTH);
 	isc_sha1_final(&ctx->sha1ctx, newdigest);
 	isc_hmacsha1_invalidate(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -281,7 +281,7 @@ isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
 		isc_sha224_update(&sha224ctx, key, len);
 		isc_sha224_final(ctx->key, &sha224ctx);
 	} else
-		memcpy(ctx->key, key, len);
+		memmove(ctx->key, key, len);
 
 	isc_sha224_init(&ctx->sha224ctx);
 	memset(ipad, IPAD, sizeof(ipad));
@@ -326,7 +326,7 @@ isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len) {
 	isc_sha224_update(&ctx->sha224ctx, opad, sizeof(opad));
 	isc_sha224_update(&ctx->sha224ctx, newdigest, ISC_SHA224_DIGESTLENGTH);
 	isc_sha224_final(newdigest, &ctx->sha224ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -347,7 +347,7 @@ isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
 		isc_sha256_update(&sha256ctx, key, len);
 		isc_sha256_final(ctx->key, &sha256ctx);
 	} else
-		memcpy(ctx->key, key, len);
+		memmove(ctx->key, key, len);
 
 	isc_sha256_init(&ctx->sha256ctx);
 	memset(ipad, IPAD, sizeof(ipad));
@@ -392,7 +392,7 @@ isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len) {
 	isc_sha256_update(&ctx->sha256ctx, opad, sizeof(opad));
 	isc_sha256_update(&ctx->sha256ctx, newdigest, ISC_SHA256_DIGESTLENGTH);
 	isc_sha256_final(newdigest, &ctx->sha256ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -413,7 +413,7 @@ isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
 		isc_sha384_update(&sha384ctx, key, len);
 		isc_sha384_final(ctx->key, &sha384ctx);
 	} else
-		memcpy(ctx->key, key, len);
+		memmove(ctx->key, key, len);
 
 	isc_sha384_init(&ctx->sha384ctx);
 	memset(ipad, IPAD, sizeof(ipad));
@@ -458,7 +458,7 @@ isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len) {
 	isc_sha384_update(&ctx->sha384ctx, opad, sizeof(opad));
 	isc_sha384_update(&ctx->sha384ctx, newdigest, ISC_SHA384_DIGESTLENGTH);
 	isc_sha384_final(newdigest, &ctx->sha384ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -479,7 +479,7 @@ isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
 		isc_sha512_update(&sha512ctx, key, len);
 		isc_sha512_final(ctx->key, &sha512ctx);
 	} else
-		memcpy(ctx->key, key, len);
+		memmove(ctx->key, key, len);
 
 	isc_sha512_init(&ctx->sha512ctx);
 	memset(ipad, IPAD, sizeof(ipad));
@@ -524,7 +524,7 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 	isc_sha512_update(&ctx->sha512ctx, opad, sizeof(opad));
 	isc_sha512_update(&ctx->sha512ctx, newdigest, ISC_SHA512_DIGESTLENGTH);
 	isc_sha512_final(newdigest, &ctx->sha512ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 #endif /* !ISC_PLATFORM_OPENSSLHASH */

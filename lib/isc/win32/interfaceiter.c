@@ -88,14 +88,14 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 	dst->family = family;
 	switch (family) {
 	case AF_INET:
-		memcpy(&dst->type.in,
-		       &((struct sockaddr_in *) src)->sin_addr,
-		       sizeof(struct in_addr));
+		memmove(&dst->type.in,
+			&((struct sockaddr_in *) src)->sin_addr,
+			sizeof(struct in_addr));
 		break;
 	case	AF_INET6:
-		memcpy(&dst->type.in6,
-		       &((struct sockaddr_in6 *) src)->sin6_addr,
-		       sizeof(struct in6_addr));
+		memmove(&dst->type.in6,
+			&((struct sockaddr_in6 *) src)->sin6_addr,
+			sizeof(struct in6_addr));
 		dst->zone = ((struct sockaddr_in6 *) src)->sin6_scope_id;
 		break;
 	default:
@@ -425,7 +425,7 @@ internal_next(isc_interfaceiter_t *iter) {
 		return (ISC_R_NOMORE);
 
 	memset(&(iter->IFData), 0, sizeof(INTERFACE_INFO));
-	memcpy(&(iter->IFData), iter->pos4, sizeof(INTERFACE_INFO));
+	memmove(&(iter->IFData), iter->pos4, sizeof(INTERFACE_INFO));
 	iter->numIF++;
 
 	return (ISC_R_SUCCESS);
@@ -443,7 +443,7 @@ isc_result_t
 isc_interfaceiter_current(isc_interfaceiter_t *iter,
 			  isc_interface_t *ifdata) {
 	REQUIRE(iter->result == ISC_R_SUCCESS);
-	memcpy(ifdata, &iter->current, sizeof(*ifdata));
+	memmove(ifdata, &iter->current, sizeof(*ifdata));
 	return (ISC_R_SUCCESS);
 }
 

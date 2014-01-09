@@ -121,11 +121,11 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	*p++ = iterations;
 
 	*p++ = (unsigned char)salt_length;
-	memcpy(p, salt, salt_length);
+	memmove(p, salt, salt_length);
 	p += salt_length;
 
 	*p++ = (unsigned char)hash_length;
-	memcpy(p, nexthash, hash_length);
+	memmove(p, nexthash, hash_length);
 	p += hash_length;
 
 	r.length = (unsigned int)(p - buffer);
@@ -629,7 +629,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 				flags = nsec3.flags;
 			next_length = nsec3.next_length;
 			INSIST(next_length <= sizeof(nexthash));
-			memcpy(nexthash, nsec3.next, next_length);
+			memmove(nexthash, nsec3.next, next_length);
 			dns_rdataset_disassociate(&rdataset);
 			/*
 			 * If the NSEC3 is not for a unsecure delegation then
@@ -726,7 +726,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 					   rdataset.ttl, &rdata, &tuple));
 		CHECK(do_one_tuple(&tuple, db, version, diff));
 		INSIST(old_length <= sizeof(nexthash));
-		memcpy(nexthash, old_next, old_length);
+		memmove(nexthash, old_next, old_length);
 		if (!CREATE(nsec3param->flags))
 			flags = nsec3.flags;
 		dns_rdata_reset(&rdata);
@@ -847,7 +847,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 						   &tuple));
 			CHECK(do_one_tuple(&tuple, db, version, diff));
 			INSIST(old_length <= sizeof(nexthash));
-			memcpy(nexthash, old_next, old_length);
+			memmove(nexthash, old_next, old_length);
 			if (!CREATE(nsec3param->flags))
 				flags = nsec3.flags;
 			dns_rdata_reset(&rdata);
@@ -996,7 +996,7 @@ dns_nsec3param_toprivate(dns_rdata_t *src, dns_rdata_t *target,
 
 	REQUIRE(DNS_RDATA_INITIALIZED(target));
 
-	memcpy(buf + 1, src->data, src->length);
+	memmove(buf + 1, src->data, src->length);
 	buf[0] = 0;
 	target->data = buf;
 	target->length = src->length + 1;
@@ -1131,7 +1131,7 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 	     result = dns_rdataset_next(&rdataset)) {
 		dns_rdataset_current(&rdataset, &rdata);
 		INSIST(rdata.length <= sizeof(buf));
-		memcpy(buf, rdata.data, rdata.length);
+		memmove(buf, rdata.data, rdata.length);
 
 		/*
 		 * Private NSEC3 record length >= 6.
@@ -1395,7 +1395,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	if (result == ISC_R_SUCCESS) {
 		next_length = nsec3.next_length;
 		INSIST(next_length <= sizeof(nexthash));
-		memcpy(nexthash, nsec3.next, next_length);
+		memmove(nexthash, nsec3.next, next_length);
 	}
 	dns_rdataset_disassociate(&rdataset);
 	if (result == ISC_R_NOMORE)
@@ -1498,7 +1498,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		if (result == ISC_R_SUCCESS) {
 			next_length = nsec3.next_length;
 			INSIST(next_length <= sizeof(nexthash));
-			memcpy(nexthash, nsec3.next, next_length);
+			memmove(nexthash, nsec3.next, next_length);
 		}
 		dns_rdataset_disassociate(&rdataset);
 		if (result == ISC_R_NOMORE)

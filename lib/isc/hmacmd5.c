@@ -83,7 +83,7 @@ isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 		isc_md5_update(&md5ctx, key, len);
 		isc_md5_final(&md5ctx, ctx->key);
 	} else
-		memcpy(ctx->key, key, len);
+		memmove(ctx->key, key, len);
 
 	isc_md5_init(&ctx->md5ctx);
 	memset(ipad, IPAD, sizeof(ipad));

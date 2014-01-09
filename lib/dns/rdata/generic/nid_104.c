@@ -155,7 +155,7 @@ tostruct_nid(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &region);
 	nid->pref = uint16_fromregion(&region);
-	memcpy(nid->nid, region.base, region.length);
+	memmove(nid->nid, region.base, region.length);
 	return (ISC_R_SUCCESS);
 }
 

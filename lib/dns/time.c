@@ -98,7 +98,7 @@ dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 	if (l > region.length)
 		return (ISC_R_NOSPACE);
 
-	memcpy(region.base, buf, l);
+	memmove(region.base, buf, l);
 	isc_buffer_add(target, l);
 	return (ISC_R_SUCCESS);
 }

@@ -188,7 +188,7 @@ main(int argc, char *argv[]) {
 			exit(1);
 		}
 		INSIST(res->ai_addrlen <= sizeof(sa_auth.type));
-		memcpy(&sa_auth.type, res->ai_addr, res->ai_addrlen);
+		memmove(&sa_auth.type, res->ai_addr, res->ai_addrlen);
 		freeaddrinfo(res);
 		sa_auth.length = res->ai_addrlen;
 		ISC_LINK_INIT(&sa_auth, link);
@@ -210,7 +210,7 @@ main(int argc, char *argv[]) {
 			exit(1);
 		}
 		INSIST(res->ai_addrlen <= sizeof(sa_recursive.type));
-		memcpy(&sa_recursive.type, res->ai_addr, res->ai_addrlen);
+		memmove(&sa_recursive.type, res->ai_addr, res->ai_addrlen);
 		freeaddrinfo(res);
 		sa_recursive.length = res->ai_addrlen;
 		ISC_LINK_INIT(&sa_recursive, link);

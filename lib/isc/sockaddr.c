@@ -332,7 +332,7 @@ isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 #endif
 	sockaddr->type.sin6.sin6_addr.s6_addr[10] = 0xff;
 	sockaddr->type.sin6.sin6_addr.s6_addr[11] = 0xff;
-	memcpy(&sockaddr->type.sin6.sin6_addr.s6_addr[12], ina, 4);
+	memmove(&sockaddr->type.sin6.sin6_addr.s6_addr[12], ina, 4);
 	sockaddr->type.sin6.sin6_port = htons(port);
 	sockaddr->length = sizeof(sockaddr->type.sin6);
 	ISC_LINK_INIT(sockaddr, link);
@@ -386,7 +386,7 @@ isc_sockaddr_fromnetaddr(isc_sockaddr_t *sockaddr, const isc_netaddr_t *na,
 #ifdef ISC_PLATFORM_HAVESALEN
 		sockaddr->type.sin6.sin6_len = sizeof(sockaddr->type.sin6);
 #endif
-		memcpy(&sockaddr->type.sin6.sin6_addr, &na->type.in6, 16);
+		memmove(&sockaddr->type.sin6.sin6_addr, &na->type.in6, 16);
 #ifdef ISC_PLATFORM_HAVESCOPEID
 		sockaddr->type.sin6.sin6_scope_id = isc_netaddr_getzone(na);
 #endif

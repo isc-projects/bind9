@@ -147,7 +147,7 @@ tostruct_eui64(ARGS_TOSTRUCT) {
 	eui64->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&eui64->common, link);
 
-	memcpy(eui64->eui64, rdata->data, rdata->length);
+	memmove(eui64->eui64, rdata->data, rdata->length);
 	return (ISC_R_SUCCESS);
 }
 
