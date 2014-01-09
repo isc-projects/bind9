@@ -31,7 +31,7 @@ then
 	ret=0
 	$PERL $SYSTEMTESTTOP/stop.pl . ns2 || ret=1
 	sleep 1
-	(cd ns2; $NAMED -f -d 100 -c named.conf >> named.run 2>&1 & )
+	(cd ns2; $NAMED -g -d 100 -c named.conf >> named.run 2>&1 & )
 	sleep 2
 	$DIG $DIGOPTS soa . @10.53.0.2 > dig.out.ns2.test$n || ret=1
 	grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
