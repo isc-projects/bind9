@@ -5,7 +5,7 @@
 static char xslmsg[] =
 	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 	"<!--\n"
-	" - Copyright (C) 2006-2009, 2012, 2013 Internet Systems Consortium, Inc. (\"ISC\")\n"
+	" - Copyright (C) 2006-2009, 2012-2014 Internet Systems Consortium, Inc. (\"ISC\")\n"
 	" -\n"
 	" - Permission to use, copy, modify, and/or distribute this software for any\n"
 	" - purpose with or without fee is hereby granted, provided that the above\n"
@@ -25,7 +25,7 @@ static char xslmsg[] =
 	"<!-- \045Id: bind9.xsl,v 1.21 2009/01/27 23:47:54 tbox Exp \045 -->\n"
 	"<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns=\"http://www.w3.org/1999/xhtml\" version=\"1.0\">\n"
 	" <xsl:output method=\"html\" indent=\"yes\" version=\"4.0\"/>\n"
-	" <xsl:template match=\"statistics[@version=&quot;3.1&quot;]\">\n"
+	" <xsl:template match=\"statistics[@version=&quot;3.4&quot;]\">\n"
 	" <html>\n"
 	" <head>\n"
 	" <xsl:if test=\"system-property('xsl:vendor')!='Transformiix'\">\n"
