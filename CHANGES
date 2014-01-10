@@ -1,4 +1,4 @@
-3701.	[func]		named-checkconf can now obscure shared secrets 
+3701.	[func]		named-checkconf can now obscure shared secrets
 			when printing by specifying '-x'. [RT #34465]
 
 3700.	[func]		Allow access to subgroups of XML statistics via
