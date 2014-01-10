@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008-2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -1156,7 +1156,7 @@ else fprintf(stderr, "WTF WHERE'S RESQUERYRSTATS\n");
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 					 ISC_XMLCHAR "opcode"));
 
-	dns_opcodestats_dump(server->opcodestats, opcodestat_dump, &dumparg, 
+	dns_opcodestats_dump(server->opcodestats, opcodestat_dump, &dumparg,
 			     ISC_STATSDUMP_VERBOSE);
 	if (dumparg.result != ISC_R_SUCCESS)
 		goto error;

@@ -1,6 +1,6 @@
 	--- 9.9.5rc1 released ---
 
-3701.	[func]		named-checkconf can now obscure shared secrets 
+3701.	[func]		named-checkconf can now obscure shared secrets
 			when printing by specifying '-x'. [RT #34465]
 
 3699.	[bug]		Improvements to statistics channel XSL stylesheet:
@@ -8,8 +8,8 @@
 			section headers are omitted from the stats display
 			when there is no data in those sections to be
 			displayed; counters are now right-justified for
-			easier readability. (Only available with 
-                        configure --enable-newstats.) [RT #35117]
+			easier readability. (Only available with
+			configure --enable-newstats.) [RT #35117]
 
 3698.	[cleanup]	Replaced all uses of memcpy() with memmove().
 			[RT #35120]
