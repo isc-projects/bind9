@@ -226,6 +226,13 @@ isc_string_strlcat(char *dst, const char *src, size_t size);
 #define strlcat isc_string_strlcat
 #endif
 
+char *
+isc_string_strcasestr(const char *big, const char *little);
+
+#ifdef ISC_PLATFORM_NEEDSTRCASESTR
+#define strrcasestr isc_string_strrcasestr
+#endif
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_STRING_H */

@@ -546,6 +546,7 @@ isc_string_printf
 isc_string_printf_truncate
 isc_string_regiondup
 isc_string_separate
+isc_string_strcasestr
 isc_string_strlcat
 isc_string_strlcpy
 isc_string_touint64
