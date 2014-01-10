@@ -418,7 +418,7 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 	p = strptime(buf, "%a, %d %b %Y %H:%M:%S %Z", &t_tm);
 	if (p == NULL)
 		return (ISC_R_UNEXPECTED);
-	when = timegm(&t_tm);
+	when = mktime(&t_tm);
 	if (when == -1)
 		return (ISC_R_UNEXPECTED);
 	isc_time_set(t, when, 0);
