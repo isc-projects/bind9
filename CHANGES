@@ -1,3 +1,5 @@
+	--- 9.8.7rc1 released ---
+
 3701.	[func]		named-checkconf can now suppress the printing of
 			shared secrets by specifying '-x'. [RT #34465]
 

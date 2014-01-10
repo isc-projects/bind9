@@ -58,6 +58,10 @@ BIND 9.8.7
 
 	 - "named" now preserves the capitalization of names when
 	    responding to queries.
+         - "named-checkconf -px" will print the contents of configuration
+           files with the shared secrets obscured, making it easier to
+           share configuration (e.g. when submitting a bug report)
+           without revealing private information.
 
 BIND 9.8.6
 
