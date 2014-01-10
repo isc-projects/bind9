@@ -230,7 +230,7 @@ char *
 isc_string_strcasestr(const char *big, const char *little);
 
 #ifdef ISC_PLATFORM_NEEDSTRCASESTR
-#define strrcasestr isc_string_strrcasestr
+#define strcasestr isc_string_strcasestr
 #endif
 
 ISC_LANG_ENDDECLS

@@ -27,6 +27,7 @@
 #include <isc/print.h>
 #include <isc/socket.h>
 #include <isc/stats.h>
+#include <isc/string.h>
 #include <isc/task.h>
 
 #include <dns/cache.h>

@@ -243,6 +243,27 @@ isc_time_seconds(const isc_time_t *t) {
 	return ((isc_uint32_t)i3);
 }
 
+isc_result_t
+isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
+	time_t seconds;
+
+	REQUIRE(t != NULL);
+	INSIST(t->nanoseconds < NS_PER_S);
+
+	seconds = (time_t)isc_time_seconds(t);
+
+	INSIST(sizeof(unsigned int) == sizeof(isc_uint32_t));
+	INSIST(sizeof(time_t) >= sizeof(isc_uint32_t));
+
+	if (t->seconds > (~0U>>1) && seconds <= (time_t)(~0U>>1))
+		return (ISC_R_RANGE);
+
+	*secondsp = seconds;
+
+	return (ISC_R_SUCCESS);
+}
+
+
 isc_uint32_t
 isc_time_nanoseconds(const isc_time_t *t) {
 	ULARGE_INTEGER i;
@@ -296,6 +317,25 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	} else {
 		buf[0] = 0;
 	}
+}
+
+#include "strptime.c"
+isc_result_t
+isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
+	struct tm t_tm;
+	time_t when;
+	char *p;
+
+	REQUIRE(buf != NULL);
+	REQUIRE(t != NULL);
+	p = strptime(buf, "%a, %d %b %Y %H:%M:%S %Z", &t_tm);
+	if (p == NULL)
+		return (ISC_R_UNEXPECTED);
+	when = mktime(&t_tm);
+	if (when == -1)
+		return (ISC_R_UNEXPECTED);
+	isc_time_set(t, when, 0);
+	return (ISC_R_SUCCESS);
 }
 
 void
