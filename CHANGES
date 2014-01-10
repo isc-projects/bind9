@@ -1,3 +1,6 @@
+3701.	[func]		named-checkconf can now suppress the printing of
+			shared secrets by specifying '-x'. [RT #34465]
+
 3698.	[cleanup]	Replaced all uses of memcpy() with memmove().
 			[RT #35120]
 

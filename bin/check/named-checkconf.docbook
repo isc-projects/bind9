@@ -60,6 +60,7 @@
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="req">filename</arg>
       <arg><option>-p</option></arg>
+      <arg><option>-x</option></arg>
       <arg><option>-z</option></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -125,6 +126,21 @@
           <para>
 	    Print out the <filename>named.conf</filename> and included files
 	    in canonical form if no errors were detected.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-x</term>
+        <listitem>
+          <para>
+	    When printing the configuration files in canonical
+            form, obscure shared secrets by replacing them with
+            strings of question marks ('?'). This allows the
+            contents of <filename>named.conf</filename> and related
+            files to be shared &mdash; for example, when submitting
+            bug reports &mdash; without compromising private data.
+            This option cannot be used without <option>-p</option>.
           </para>
         </listitem>
       </varlistentry>
