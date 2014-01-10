@@ -63,6 +63,10 @@ BIND 9.9.5
 	 - When re-signing a zone, the new "dnssec-signzone -Q" option
 	   drops signatures from keys that are still published but are
 	   no longer active.
+         - "named-checkconf -px" will print the contents of configuration
+           files with the shared secrets obscured, making it easier to
+           share configuration (e.g. when submitting a bug report)
+           without revealing private information.
 
 BIND 9.9.4
 

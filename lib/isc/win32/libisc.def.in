@@ -302,6 +302,7 @@ isc_hmacsha512_sign
 isc_hmacsha512_update
 isc_hmacsha512_verify
 isc_httpdmgr_addurl
+isc_httpdmgr_addurl2
 isc_httpdmgr_create
 isc_httpdmgr_shutdown
 isc_interfaceiter_create
@@ -581,6 +582,7 @@ isc_time_microdiff
 isc_time_nanoseconds
 isc_time_now
 isc_time_nowplusinterval
+isc_time_parsehttptimestamp
 isc_time_seconds
 isc_time_set
 isc_time_settoepoch
