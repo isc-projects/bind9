@@ -224,6 +224,16 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2);
  *	The difference of t1 - t2, or 0 if t1 <= t2.
  */
 
+isc_result_t
+isc_time_parsehttptimestamp(char *input, isc_time_t *t);
+/*%<
+ * Parse the time in 'input' into the isc_time_t pointed to by 't',
+ * expecting a format like "Mon, 30 Aug 2000 04:06:47 GMT"
+ *
+ *  Requires:
+ *\li      'buf' and 't' are not NULL.
+ */
+
 isc_uint32_t
 isc_time_nanoseconds(const isc_time_t *t);
 /*
@@ -267,6 +277,16 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len);
  *      'len' > 0
  *      'buf' points to an array of at least len chars
  *
+ */
+
+isc_result_t
+isc_time_parsehttptimestamp(char *input, isc_time_t *t);
+/*%<
+ * Parse the time in 'input' into the isc_time_t pointed to by 't',
+ * expecting a format like "Mon, 30 Aug 2000 04:06:47 GMT"
+ *
+ *  Requires:
+ *\li      'buf' and 't' are not NULL.
  */
 
 void
