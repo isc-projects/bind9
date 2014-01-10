@@ -104,6 +104,12 @@
 @ISC_PLATFORM_HAVECMPXCHG@
 
 /*
+ * If the strcasestr() operation is not available on this platform,
+ * ISC_PLATFORM_NEEDSTRCASESTR will be defined.
+ */
+@ISC_PLATFORM_NEEDSTRCASESTR@
+
+/*
  * Set up a macro for importing and exporting from the DLL
  */
 

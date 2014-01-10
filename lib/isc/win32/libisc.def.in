@@ -583,6 +583,7 @@ isc_time_nanoseconds
 isc_time_now
 isc_time_nowplusinterval
 isc_time_parsehttptimestamp
+isc_time_secondsastimet
 isc_time_seconds
 isc_time_set
 isc_time_settoepoch

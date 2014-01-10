@@ -332,6 +332,7 @@ my @substdefp = ("ISC_PLATFORM_HAVEATOMICSTORE",
                  "ISC_PLATFORM_HAVECMPXCHG",
                  "ISC_PLATFORM_HAVEXADD",
                  "ISC_PLATFORM_HAVEXADDQ",
+                 "ISC_PLATFORM_NEEDSTRCASESTR",
                  "ISC_PLATFORM_OPENSSLHASH",
                  "ISC_PLATFORM_USEBACKTRACE");
 
@@ -1056,6 +1057,9 @@ if ($msc_ver < 1400) {
 if ($msc_ver >= 1700) {
     $configdefp{"ISC_PLATFORM_USEBACKTRACE"} = 1;
 }
+
+# no version of MSVS supports strcasestr() yet
+$configdefp{"ISC_PLATFORM_NEEDSTRCASESTR"} = 1;
 
 # warn when cross compiling
 
