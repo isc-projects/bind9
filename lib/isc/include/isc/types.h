@@ -103,7 +103,9 @@ typedef int (*isc_sockfdwatch_t)(isc_task_t *, isc_socket_t *, void *, int);
 
 /* The following cannot be listed alphabetically due to forward reference */
 typedef isc_result_t (isc_httpdaction_t)(const char *url,
+					 isc_httpdurl_t *urlinfo,
 					 const char *querystring,
+					 const char *headers,
 					 void *arg,
 					 unsigned int *retcode,
 					 const char **retmsg,

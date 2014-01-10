@@ -1057,7 +1057,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 			ISC_XMLCHAR "type=\"text/xsl\" href=\"/bind9.ver3.xsl\""));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "3.0"));
+					 ISC_XMLCHAR "3.3"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = statsformat_xml;
@@ -1093,9 +1093,9 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 			if (dumparg.result != ISC_R_SUCCESS)
 				goto error;
 		}
+else fprintf(stderr, "WTF WHERE'S RESQUERYRSTATS\n");
 		TRY0(xmlTextWriterEndElement(writer));
 
-		/* <resstats> */
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "resstats"));
@@ -1109,7 +1109,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 			if (result != ISC_R_SUCCESS)
 				goto error;
 		}
-		TRY0(xmlTextWriterEndElement(writer)); /* </resstats> */
+		TRY0(xmlTextWriterEndElement(writer));
 
 		cacherrstats = dns_db_getrrsetstats(view->cachedb);
 		if (cacherrstats != NULL) {
@@ -1155,8 +1155,8 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 					 ISC_XMLCHAR "opcode"));
 
-	dns_opcodestats_dump(server->opcodestats, opcodestat_dump, &dumparg,
-			     0);
+	dns_opcodestats_dump(server->opcodestats, opcodestat_dump, &dumparg, 
+			     ISC_STATSDUMP_VERBOSE);
 	if (dumparg.result != ISC_R_SUCCESS)
 		goto error;
 
@@ -1370,10 +1370,10 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "server"));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "boot-time"));
 	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR boottime));
-	TRY0(xmlTextWriterEndElement(writer));
+	TRY0(xmlTextWriterEndElement(writer)); /* boot-time */
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "current-time"));
 	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR nowstr));
-	TRY0(xmlTextWriterEndElement(writer));
+	TRY0(xmlTextWriterEndElement(writer)); /* current-time */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "requests"));
 	dumparg.result = ISC_R_SUCCESS;
@@ -1461,7 +1461,8 @@ wrap_xmlfree(isc_buffer_t *buffer, void *arg) {
 }
 
 static isc_result_t
-render_index(const char *url, const char *querystring, void *arg,
+render_index(const char *url, isc_httpdurl_t *urlinfo,
+	     const char *querystring, const char *headers, void *arg,
 	     unsigned int *retcode, const char **retmsg, const char **mimetype,
 	     isc_buffer_t *b, isc_httpdfree_t **freecb,
 	     void **freecb_args)
@@ -1472,7 +1473,9 @@ render_index(const char *url, const char *querystring, void *arg,
 	isc_result_t result;
 
 	UNUSED(url);
+	UNUSED(urlinfo);
 	UNUSED(querystring);
+	UNUSED(headers);
 
 	result = generatexml(server, &msglen, &msg);
 
@@ -1495,22 +1498,56 @@ render_index(const char *url, const char *querystring, void *arg,
 #endif	/* HAVE_LIBXML2 */
 
 static isc_result_t
-render_xsl(const char *url, const char *querystring, void *args,
-	   unsigned int *retcode, const char **retmsg, const char **mimetype,
-	   isc_buffer_t *b, isc_httpdfree_t **freecb,
-	   void **freecb_args)
+render_xsl(const char *url, isc_httpdurl_t *urlinfo,
+	   const char *querystring, const char *headers,
+	   void *args, unsigned int *retcode, const char **retmsg,
+	   const char **mimetype, isc_buffer_t *b,
+	   isc_httpdfree_t **freecb, void **freecb_args)
 {
+	isc_result_t result;
+
 	UNUSED(url);
 	UNUSED(querystring);
 	UNUSED(args);
 
-	*retcode = 200;
-	*retmsg = "OK";
-	*mimetype = "text/xslt+xml";
-	isc_buffer_reinit(b, xslmsg, strlen(xslmsg));
-	isc_buffer_add(b, strlen(xslmsg));
 	*freecb = NULL;
 	*freecb_args = NULL;
+	*mimetype = "text/xslt+xml";
+
+	if (urlinfo->isstatic) {
+		isc_time_t when;
+		char *p = strcasestr(headers, "If-Modified-Since: ");
+
+		if (p != NULL) {
+			time_t t1, t2;
+			p += strlen("If-Modified-Since: ");
+			result = isc_time_parsehttptimestamp(p, &when);
+			if (result != ISC_R_SUCCESS)
+				goto send;
+
+			result = isc_time_secondsastimet(&when, &t1);
+			if (result != ISC_R_SUCCESS)
+				goto send;
+
+			result = isc_time_secondsastimet(&urlinfo->loadtime,
+							 &t2);
+			if (result != ISC_R_SUCCESS)
+				goto send;
+
+			if (t1 < t2)
+				goto send;
+
+			*retcode = 304;
+			*retmsg = "Not modified";
+			return (ISC_R_SUCCESS);
+		}
+	}
+
+ send:
+	*retcode = 200;
+	*retmsg = "OK";
+	isc_buffer_reinit(b, xslmsg, strlen(xslmsg));
+	isc_buffer_add(b, strlen(xslmsg));
 
 	return (ISC_R_SUCCESS);
 }
