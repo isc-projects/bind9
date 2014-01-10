@@ -90,5 +90,8 @@ FAQ: FAQ.xml
 	LC_ALL=C ${W3M} -T text/html -dump -cols 72 >$@.tmp
 	mv $@.tmp $@
 
+unit::
+	sh ${top_srcdir}/unit/unittest.sh
+
 clean::
 	rm -f FAQ.tmp
