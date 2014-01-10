@@ -1,3 +1,5 @@
+	--- 9.6-ESV-R11rc1 released ---
+
 3698.	[cleanup]	Replaced all uses of memcpy() with memmove().
 			[RT #35120]
 
