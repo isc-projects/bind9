@@ -248,14 +248,13 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
 	time_t seconds;
 
 	REQUIRE(t != NULL);
-	INSIST(t->nanoseconds < NS_PER_S);
 
 	seconds = (time_t)isc_time_seconds(t);
 
 	INSIST(sizeof(unsigned int) == sizeof(isc_uint32_t));
 	INSIST(sizeof(time_t) >= sizeof(isc_uint32_t));
 
-	if (t->seconds > (~0U>>1) && seconds <= (time_t)(~0U>>1))
+	if (isc_time_seconds(t) > (~0U>>1) && seconds <= (time_t)(~0U>>1))
 		return (ISC_R_RANGE);
 
 	*secondsp = seconds;
