@@ -3392,6 +3392,7 @@
 ./lib/isc/win32/stdio.c				C	2000,2001,2004,2007,2013
 ./lib/isc/win32/stdtime.c			C	1999,2000,2001,2004,2007,2013
 ./lib/isc/win32/strerror.c			C	2001,2002,2004,2007
+./lib/isc/win32/strptime.c			X	2014
 ./lib/isc/win32/syslog.c			C	2001,2002,2003,2004,2007
 ./lib/isc/win32/syslog.h			C	2001,2002,2004,2007
 ./lib/isc/win32/thread.c			C	1998,1999,2000,2001,2004,2005,2007
