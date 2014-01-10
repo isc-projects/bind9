@@ -1,5 +1,5 @@
-3701.	[func]		named-checkconf can now suppress the printing of
-			shared secrets by specifying '-x'. [RT #34465]
+3701.	[func]		named-checkconf can now obscure shared secrets 
+			when printing by specifying '-x'. [RT #34465]
 
 3699.	[bug]		Improvements to statistics channel XSL stylesheet:
 			the stylesheet can now be cached by the browser;
