@@ -482,10 +482,11 @@ main(int argc, char **argv) {
 	isc_entropy_t *ectx = NULL;
 	isc_boolean_t load_zones = ISC_FALSE;
 	isc_boolean_t print = ISC_FALSE;
+	unsigned int flags = 0;
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((c = isc_commandline_parse(argc, argv, "dhjt:pvz")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "dhjt:pvxz")) != EOF) {
 		switch (c) {
 		case 'd':
 			debug++;
@@ -512,6 +513,10 @@ main(int argc, char **argv) {
 			printf(VERSION "\n");
 			exit(0);
 
+		case 'x':
+			flags |= CFG_PRINTER_XKEY;
+			break;
+
 		case 'z':
 			load_zones = ISC_TRUE;
 			docheckmx = ISC_FALSE;
@@ -532,6 +537,11 @@ main(int argc, char **argv) {
 				program, isc_commandline_option);
 			exit(1);
 		}
+	}
+
+	if (((flags & CFG_PRINTER_XKEY) != 0) && !print) {
+		fprintf(stderr, "%s: -x cannot be used without -p\n", program);
+		exit(1);
 	}
 
 	if (isc_commandline_index + 1 < argc)
@@ -574,7 +584,7 @@ main(int argc, char **argv) {
 	}
 
 	if (print && exit_status == 0)
-		cfg_print(config, output, NULL);
+		cfg_printx(config, flags, output, NULL);
 	cfg_obj_destroy(parser, &config);
 
 	cfg_parser_destroy(&parser);

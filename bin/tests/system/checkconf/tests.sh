@@ -34,6 +34,16 @@ cmp good.conf.in good.conf.out || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I: checking that named-checkconf -x removes secrets"
+ret=0
+# ensure there is a secret and that it is not the check string.
+grep 'secret "' good.conf.in > /dev/null || ret=1
+grep 'secret "????????????????"' good.conf.in > /dev/null 2>&1 && ret=1
+$CHECKCONF -p -x good.conf.in | grep -v '^good.conf.in:' > good.conf.out 2>&1 || ret=1
+grep 'secret "????????????????"' good.conf.out > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 for bad in bad*.conf
 do
 	ret=0
