@@ -1,3 +1,6 @@
+3701.	[func]		named-checkconf can now suppress the printing of
+			shared secrets by specifying '-x'. [RT #34465]
+
 3700.	[func]		Allow access to subgroups of XML statistics via
 			special URLs http://<server>:<port>/xml/v3/server,
 			/zones, /net, /tasks, /mem, and /status.  [RT #35115]
