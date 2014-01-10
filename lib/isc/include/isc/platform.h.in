@@ -199,6 +199,11 @@
  */
 @ISC_PLATFORM_NEEDMEMMOVE@
 
+/*
+ * Define if this system needs strcasestr.
+ */
+@ISC_PLATFORM_NEEDSTRCASESTR@
+
 /***
  *** Miscellaneous.
  ***/
