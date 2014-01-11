@@ -1,3 +1,10 @@
+3702.	[func]		'dnssec-coverage -l' option specifies a length
+			of time to check for coverage; events further into
+			the future are ignored.  'dnssec-coverage -z'
+			checks only ZSK events, and 'dnssec-coverage -k'
+			checks only KSK events.  (Thanks to Peter Palfrader.)
+			[RT #35168]
+
 3701.	[func]		named-checkconf can now obscure shared secrets
 			when printing by specifying '-x'. [RT #34465]
 
