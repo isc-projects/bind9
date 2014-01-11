@@ -568,7 +568,7 @@ foreach (@ARGV) {
     } elsif (/^disable-(.*)$/i) {
         appargs($_);
         myenable($1, "no");
-    } elsif (/^enable-(.$)$/i) {
+    } elsif (/^enable-(.*)$/i) {
         appargs($_);
         myenable($1, "yes");
     } elsif (/^without-(.*)$/i) {
