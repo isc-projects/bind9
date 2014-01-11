@@ -15,6 +15,7 @@
  */
 
 #include <config.h>
+#include <stdlib.h>
 
 #include <atf-c.h>
 
@@ -30,6 +31,7 @@ ATF_TC_BODY(isc_time_parsehttptimestamp, tc) {
 	isc_time_t t, x;
 	char buf[100];
 
+	setenv("TZ", "PST8PDT", 1);
 	result = isc_time_now(&t);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
