@@ -305,6 +305,36 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len);
 
 isc_uint32_t
 isc_time_seconds(const isc_time_t *t);
+/*%<
+ * Return the number of seconds since the epoch stored in a time structure.
+ *
+ * Requires:
+ *
+ *\li	't' is a valid pointer.
+ */
+
+isc_result_t
+isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp);
+/*%<
+ * Ensure the number of seconds in an isc_time_t is representable by a time_t.
+ *
+ * Notes:
+ *\li	The number of seconds stored in an isc_time_t might be larger
+ *	than the number of seconds a time_t is able to handle.  Since
+ *	time_t is mostly opaque according to the ANSI/ISO standard
+ *	(essentially, all you can be sure of is that it is an arithmetic type,
+ *	not even necessarily integral), it can be tricky to ensure that
+ *	the isc_time_t is in the range a time_t can handle.  Use this
+ *	function in place of isc_time_seconds() any time you need to set a
+ *	time_t from an isc_time_t.
+ *
+ * Requires:
+ *\li	't' is a valid pointer.
+ *
+ * Returns:
+ *\li	Success
+ *\li	Out of range
+ */
 
 ISC_LANG_ENDDECLS
 
