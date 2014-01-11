@@ -318,6 +318,31 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	}
 }
 
+static time_t
+timetfromtm(struct tm *tm) {
+	time_t ret;
+	int i, yday = 0, leapday;
+	int mdays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 };
+
+	leapday = ((((tm->tm_year + 1900 ) % 4) == 0 &&
+		    ((tm->tm_year + 1900 ) % 100) != 0) ||
+		   ((tm->tm_year + 1900 ) % 400) == 0) ? 1 : 0;
+	mdays[1] += leapday;
+
+	yday = tm->tm_mday - 1;
+	for (i = 1; i <= tm->tm_mon; i++)
+		yday += mdays[i - 1];
+	ret = tm->tm_sec +
+	      (60 * tm->tm_min) +
+	      (3600 * tm->tm_hour) +
+	      (86400 * (yday +
+		       ((tm->tm_year - 70) * 365) +
+		       ((tm->tm_year - 69) / 4) -
+		       ((tm->tm_year - 1) / 100) +
+		       ((tm->tm_year + 299) / 400)));
+	return (ret);
+}
+
 #include "strptime.c"
 isc_result_t
 isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
@@ -330,7 +355,7 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 	p = strptime(buf, "%a, %d %b %Y %H:%M:%S %Z", &t_tm);
 	if (p == NULL)
 		return (ISC_R_UNEXPECTED);
-	when = mktime(&t_tm);
+	when = timetfromtm(&t_tm);
 	if (when == -1)
 		return (ISC_R_UNEXPECTED);
 	isc_time_set(t, when, 0);
