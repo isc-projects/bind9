@@ -4141,6 +4141,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_stdtime_t now;
 	isc_uint32_t ttl;
+	unsigned options;
 
 	UNUSED(task); /* for now */
 
@@ -4382,7 +4383,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto noanswer_response;
 
-	unsigned options = 0;
+	options = 0;
 	if ((fctx->options & DNS_FETCHOPT_PREFETCH) != 0)
 		options = DNS_DBADD_PREFETCH;
 	result = dns_db_addrdataset(fctx->cache, node, NULL, now,
