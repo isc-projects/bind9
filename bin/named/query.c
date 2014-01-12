@@ -3826,7 +3826,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	ns_client_t *dummy = NULL;
 
 	if (client->view->prefetch_trigger == 0U ||
-            rdataset->ttl > client->view->prefetch_trigger ||
+	    rdataset->ttl > client->view->prefetch_trigger ||
 	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0)
 		return;
 

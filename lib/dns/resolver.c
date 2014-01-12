@@ -4932,7 +4932,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 					addedrdataset = asigrdataset;
 					result = dns_db_addrdataset(fctx->cache,
 								node, NULL, now,
-								sigrdataset, 
+								sigrdataset,
 								options,
 								addedrdataset);
 					if (result == DNS_R_UNCHANGED)
