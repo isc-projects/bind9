@@ -615,6 +615,7 @@ ns_query_init(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	client->query.fetch = NULL;
+	client->query.prefetch = NULL;
 	client->query.authdb = NULL;
 	client->query.authzone = NULL;
 	client->query.authdbset = ISC_FALSE;
@@ -3784,6 +3785,79 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	}
 
 	dns_resolver_destroyfetch(&fetch);
+}
+
+static void
+prefetch_done(isc_task_t *task, isc_event_t *event) {
+	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
+	ns_client_t *client;
+
+	UNUSED(task);
+
+	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
+	client = devent->ev_arg;
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(task == client->task);
+
+	LOCK(&client->query.fetchlock);
+	if (client->query.prefetch != NULL) {
+		INSIST(devent->fetch == client->query.prefetch);
+		client->query.prefetch = NULL;
+	}
+	UNLOCK(&client->query.fetchlock);
+	if (devent->fetch != NULL)
+		dns_resolver_destroyfetch(&devent->fetch);
+	if (devent->node != NULL)
+		dns_db_detachnode(devent->db, &devent->node);
+	if (devent->db != NULL)
+		dns_db_detach(&devent->db);
+	query_putrdataset(client, &devent->rdataset);
+	isc_event_free(&event);
+	ns_client_detach(&client);
+}
+
+static void
+query_prefetch(ns_client_t *client, dns_name_t *qname,
+	       dns_rdataset_t *rdataset)
+{
+	isc_result_t result;
+	isc_sockaddr_t *peeraddr;
+	dns_rdataset_t *tmprdataset;
+	ns_client_t *dummy = NULL;
+
+	if (client->view->prefetch_trigger == 0U ||
+            rdataset->ttl > client->view->prefetch_trigger ||
+	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0)
+		return;
+
+	if (client->recursionquota == NULL) {
+		result = isc_quota_attach(&ns_g_server->recursionquota,
+					  &client->recursionquota);
+		if (result != ISC_R_SUCCESS)
+			return;
+	}
+	if (client->query.prefetch != NULL)
+		return;
+
+	tmprdataset = query_newrdataset(client);
+	if (tmprdataset == NULL)
+		return;
+	if ((client->attributes & NS_CLIENTATTR_TCP) == 0)
+		peeraddr = &client->peeraddr;
+	else
+		peeraddr = NULL;
+	ns_client_attach(client, &dummy);
+	unsigned options = client->query.fetchoptions | DNS_FETCHOPT_PREFETCH;
+	result = dns_resolver_createfetch2(client->view->resolver,
+					   qname, rdataset->type, NULL, NULL,
+					   NULL, peeraddr, client->message->id,
+					   options, client->task,
+					   prefetch_done, client, tmprdataset,
+					   NULL, &client->query.prefetch);
+	if (result != ISC_R_SUCCESS) {
+		query_putrdataset(client, &tmprdataset);
+		ns_client_detach(&dummy);
+	}
 }
 
 static isc_result_t
@@ -7271,6 +7345,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			noqname = rdataset;
 		else
 			noqname = NULL;
+		if (!is_zone && RECURSIONOK(client))
+			query_prefetch(client, fname, rdataset);
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
 		if (noqname != NULL)
@@ -7343,6 +7419,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				      NULL);
 			need_wildcardproof = ISC_TRUE;
 		}
+		if (!is_zone && RECURSIONOK(client))
+			query_prefetch(client, fname, rdataset);
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
 		/*
@@ -7547,6 +7625,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				if (rpz_st != NULL)
 					rdataset->ttl = ISC_MIN(rdataset->ttl,
 							    rpz_st->m.ttl);
+				if (!is_zone && RECURSIONOK(client))
+					query_prefetch(client, fname, rdataset);
 				query_addrrset(client,
 					       fname != NULL ? &fname : &tname,
 					       &rdataset, NULL,
@@ -7801,9 +7881,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			query_filter64(client, &fname, rdataset, dbuf,
 				       DNS_SECTION_ANSWER);
 			query_putrdataset(client, &rdataset);
-		} else
+		} else {
+			if (!is_zone && RECURSIONOK(client))
+				query_prefetch(client, fname, rdataset);
 			query_addrrset(client, &fname, &rdataset,
 				       sigrdatasetp, dbuf, DNS_SECTION_ANSWER);
+		}
 
 		if (noqname != NULL)
 			query_addnoqnameproof(client, noqname);

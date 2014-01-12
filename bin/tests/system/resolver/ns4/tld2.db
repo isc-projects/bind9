@@ -24,3 +24,4 @@ $TTL 300
 				)
 @			NS	ns.tld.
 ns			A	10.53.0.4
+fetch  10              TXT     A short ttl

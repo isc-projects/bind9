@@ -4382,8 +4382,11 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto noanswer_response;
 
+	unsigned options = 0;
+	if ((fctx->options & DNS_FETCHOPT_PREFETCH) != 0)
+		options = DNS_DBADD_PREFETCH;
 	result = dns_db_addrdataset(fctx->cache, node, NULL, now,
-				    vevent->rdataset, 0, ardataset);
+				    vevent->rdataset, options, ardataset);
 	if (result != ISC_R_SUCCESS &&
 	    result != DNS_R_UNCHANGED)
 		goto noanswer_response;
@@ -4794,6 +4797,12 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 			rdataset->ttl = res->view->maxcachettl;
 
 		/*
+		 * Mark the rdataset as being prefetch eligible.
+		 */
+		if (rdataset->ttl > fctx->res->view->prefetch_eligible)
+			rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
+
+		/*
 		 * Find the SIG for this rdataset, if we have it.
 		 */
 		for (sigrdataset = ISC_LIST_HEAD(name->list);
@@ -4845,6 +4854,13 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 			}
 
 			/*
+			 * Mark the rdataset as being prefetch eligible.
+			 */
+			if (rdataset->ttl > fctx->res->view->prefetch_eligible)
+				rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
+
+
+			/*
 			 * Cache this rdataset/sigrdataset pair as
 			 * pending data.  Track whether it was additional
 			 * or not.
@@ -4858,6 +4874,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 			if (sigrdataset != NULL)
 				sigrdataset->trust = trust;
 			if (!need_validation || !ANSWER(rdataset)) {
+				options = 0;
 				if (ANSWER(rdataset) &&
 				   rdataset->type != dns_rdatatype_rrsig) {
 					isc_result_t tresult;
@@ -4874,10 +4891,13 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 							      ISC_R_SUCCESS);
 					}
 				}
+				if ((fctx->options & DNS_FETCHOPT_PREFETCH) != 0)
+						options = DNS_DBADD_PREFETCH;
 				addedrdataset = ardataset;
 				result = dns_db_addrdataset(fctx->cache, node,
 							    NULL, now, rdataset,
-							    0, addedrdataset);
+							    options,
+							    addedrdataset);
 				if (result == DNS_R_UNCHANGED) {
 					result = ISC_R_SUCCESS;
 					if (!need_validation &&
@@ -4911,7 +4931,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 					addedrdataset = asigrdataset;
 					result = dns_db_addrdataset(fctx->cache,
 								node, NULL, now,
-								sigrdataset, 0,
+								sigrdataset, 
+								options,
 								addedrdataset);
 					if (result == DNS_R_UNCHANGED)
 						result = ISC_R_SUCCESS;
@@ -4999,7 +5020,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 				 * over the existing cache contents.
 				 */
 				options = DNS_DBADD_FORCE;
-			} else
+			} else if ((fctx->options & DNS_FETCHOPT_PREFETCH) != 0)
+				options = DNS_DBADD_PREFETCH;
+			else
 				options = 0;
 
 			if (ANSWER(rdataset) &&

@@ -3401,6 +3401,33 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	CHECK(configure_view_acl(vconfig, config, "filter-aaaa", NULL,
 				 actx, ns_g_mctx, &view->aaaa_acl));
 #endif
+	obj = NULL;
+	result = ns_config_get(maps, "prefetch", &obj);
+	if (result == ISC_R_SUCCESS) {
+		const cfg_obj_t *trigger, *eligible;
+
+		trigger = cfg_tuple_get(obj, "trigger");
+		view->prefetch_trigger = cfg_obj_asuint32(trigger);
+		if (view->prefetch_trigger > 10)
+			view->prefetch_trigger = 10;
+		eligible = cfg_tuple_get(obj, "eligible");
+		if (cfg_obj_isvoid(eligible)) {
+			int i;
+			for (i = 1; maps[i] != NULL; i++) {
+				obj = NULL;
+				result = ns_config_get(&maps[i],
+						       "prefetch", &obj);
+				INSIST(result == ISC_R_SUCCESS);
+				eligible = cfg_tuple_get(obj, "eligible");
+				if (cfg_obj_isuint32(eligible))
+					break;
+			}
+			INSIST(cfg_obj_isuint32(eligible));
+		}
+		view->prefetch_eligible = cfg_obj_asuint32(eligible);
+		if (view->prefetch_eligible < view->prefetch_trigger + 6)
+			view->prefetch_eligible = view->prefetch_trigger + 6;
+	}
 
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-enable", &obj);

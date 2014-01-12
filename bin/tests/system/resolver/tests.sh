@@ -403,7 +403,6 @@ grep "not subdomain of zone" ns1/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-#HERE <<<
 cp ns7/named2.conf ns7/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.7 -p 9953 reconfig 2>&1 | sed 's/^/I:ns7 /'
 
@@ -415,7 +414,49 @@ grep "status: NOERROR" dig.ns7.out.${n} > /dev/null || ret=1
 grep "ANSWER: 1" dig.ns7.out.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
-#HERE >>>
+
+n=`expr $n + 1`
+echo "I:check prefetch (${n})"
+ret=0
+$DIG @10.53.0.5 -p 5300 fetch.tld txt > dig.out.1.${n} || ret=1
+ttl1=`awk '/"A" "short" "ttl"/ { print $2 - 2 }' dig.out.1.${n}`
+# sleep so we are in prefetch range
+sleep ${ttl1:-0}
+# trigger prefetch
+$DIG @10.53.0.5 -p 5300 fetch.tld txt > dig.out.2.${n} || ret=1
+ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
+sleep 1
+# check that prefetch occured
+$DIG @10.53.0.5 -p 5300 fetch.tld txt > dig.out.3.${n} || ret=1
+ttl=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.3.${n}`
+test ${ttl:-0} -gt ${ttl2:-1} || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check prefetch disabled (${n})"
+ret=0
+$DIG @10.53.0.7 -p 5300 fetch.example.net txt > dig.out.1.${n} || ret=1
+ttl1=`awk '/"A" "short" "ttl"/ { print $2 - 1 }' dig.out.1.${n}`
+# sleep so we are in expire range
+sleep ${ttl1:-0}
+# look for zero ttl, allow for one miss at getting zero ttl
+for i in 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9
+do 
+	$DIG @10.53.0.7 -p 5300 fetch.example.net txt > dig.out.2.${n} || ret=1
+	ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
+	test ${ttl2:-1} -eq 0 && break
+	sleep 1
+done
+test ${ttl2:-1} -eq 0 || ret=1
+# delay so that any prefetched record will have a lower ttl than expected
+sleep 3
+# check that prefetch has not occured
+$DIG @10.53.0.7 -p 5300 fetch.example.net txt > dig.out.3.${n} || ret=1
+ttl=`awk '/"A" "short" "ttl"/ { print $2 - 1 }' dig.out.3.${n}`
+test ${ttl:-0} -eq ${ttl1:-1} || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:exit status: $status"
 exit $status

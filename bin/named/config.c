@@ -80,6 +80,7 @@ options {\n\
 #	pid-file \"" NS_LOCALSTATEDIR "/run/named/named.pid\"; /* or /lwresd.pid */\n\
 	bindkeys-file \"" NS_SYSCONFDIR "/bind.keys\";\n\
 	port 53;\n\
+	prefetch 2 9;\n\
 	recursing-file \"named.recursing\";\n\
 	secroots-file \"named.secroots\";\n\
 "

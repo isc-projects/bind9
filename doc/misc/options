@@ -139,9 +139,9 @@ options {
         fake-iquery <boolean>; // obsolete
         fetch-glue <boolean>; // obsolete
         files <size>;
-        filter-aaaa { <address_match_element>; ... }; // not configured
-        filter-aaaa-on-v4 <filter_aaaa>; // not configured
-        filter-aaaa-on-v6 <filter_aaaa>; // not configured
+        filter-aaaa { <address_match_element>; ... };
+        filter-aaaa-on-v4 <filter_aaaa>;
+        filter-aaaa-on-v6 <filter_aaaa>;
         flush-zones-on-shutdown <boolean>;
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
@@ -199,6 +199,7 @@ options {
         pid-file ( <quoted_string> | none );
         port <integer>;
         preferred-glue <string>;
+        prefetch <integer> [ <integer> ];
         provide-ixfr <boolean>;
         query-source <querysource4>;
         query-source-v6 <querysource6>;
@@ -397,9 +398,9 @@ view <string> <optional_class> {
         empty-server <string>;
         empty-zones-enable <boolean>;
         fetch-glue <boolean>; // obsolete
-        filter-aaaa { <address_match_element>; ... }; // not configured
-        filter-aaaa-on-v4 <filter_aaaa>; // not configured
-        filter-aaaa-on-v6 <filter_aaaa>; // not configured
+        filter-aaaa { <address_match_element>; ... };
+        filter-aaaa-on-v4 <filter_aaaa>;
+        filter-aaaa-on-v6 <filter_aaaa>;
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
@@ -446,6 +447,7 @@ view <string> <optional_class> {
         notify-to-soa <boolean>;
         nsec3-test-zone <boolean>; // test only
         preferred-glue <string>;
+        prefetch <integer> [ <integer> ];
         provide-ixfr <boolean>;
         query-source <querysource4>;
         query-source-v6 <querysource6>;

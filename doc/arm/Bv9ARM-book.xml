@@ -8736,6 +8736,21 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		</para>
               </listitem>
             </varlistentry>
+
+            <varlistentry>
+              <term><command>prefetch</command></term>
+              <listitem>
+		<para>
+		  Specifies the trigger ttl value (range [1..10])
+		  at which prefetch of the current query will be
+		  made and optionally the minimum ttl value that will be
+		  accepted for the records to be candidates for
+		  prefetching.  The defaults are 2 and 9 respectively.
+		  Setting a trigger ttl value of 0 will disable
+		  prefetching.  A minimum delta of 6 is enforced.
+		</para>
+	      </listitem>
+	    </varlistentry>
 	  </variablelist>
 
         </sect3>

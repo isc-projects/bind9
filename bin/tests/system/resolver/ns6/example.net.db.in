@@ -20,3 +20,4 @@ $TTL 600
 @	IN MX	0 mail
 ns	IN A	10.53.0.6
 mail	IN A	10.53.0.6
+fetch 10 IN TXT A short ttl

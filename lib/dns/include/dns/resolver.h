@@ -87,15 +87,16 @@ typedef struct dns_fetchevent {
 /*
  * Options that modify how a 'fetch' is done.
  */
-#define DNS_FETCHOPT_TCP		0x01	     /*%< Use TCP. */
-#define DNS_FETCHOPT_UNSHARED		0x02	     /*%< See below. */
-#define DNS_FETCHOPT_RECURSIVE		0x04	     /*%< Set RD? */
-#define DNS_FETCHOPT_NOEDNS0		0x08	     /*%< Do not use EDNS. */
-#define DNS_FETCHOPT_FORWARDONLY	0x10	     /*%< Only use forwarders. */
-#define DNS_FETCHOPT_NOVALIDATE		0x20	     /*%< Disable validation. */
-#define DNS_FETCHOPT_EDNS512		0x40	     /*%< Advertise a 512 byte
+#define DNS_FETCHOPT_TCP		0x001	     /*%< Use TCP. */
+#define DNS_FETCHOPT_UNSHARED		0x002	     /*%< See below. */
+#define DNS_FETCHOPT_RECURSIVE		0x004	     /*%< Set RD? */
+#define DNS_FETCHOPT_NOEDNS0		0x008	     /*%< Do not use EDNS. */
+#define DNS_FETCHOPT_FORWARDONLY	0x010	     /*%< Only use forwarders. */
+#define DNS_FETCHOPT_NOVALIDATE		0x020	     /*%< Disable validation. */
+#define DNS_FETCHOPT_EDNS512		0x040	     /*%< Advertise a 512 byte
 							  UDP buffer. */
-#define DNS_FETCHOPT_WANTNSID           0x80         /*%< Request NSID */
+#define DNS_FETCHOPT_WANTNSID           0x080         /*%< Request NSID */
+#define DNS_FETCHOPT_PREFETCH           0x100         /*%< Request NSID */
 
 #define	DNS_FETCHOPT_EDNSVERSIONSET	0x00800000
 #define	DNS_FETCHOPT_EDNSVERSIONMASK	0xff000000

@@ -1402,6 +1402,43 @@ static cfg_type_t cfg_type_lookaside = {
 	&cfg_rep_tuple, lookaside_fields
 };
 
+static isc_result_t
+parse_optional_uint32(cfg_parser_t *pctx, const cfg_type_t *type,
+		      cfg_obj_t **ret)
+{
+	isc_result_t result;
+	UNUSED(type);
+
+	CHECK(cfg_peektoken(pctx, ISC_LEXOPT_NUMBER | ISC_LEXOPT_CNUMBER));
+	if (pctx->token.type == isc_tokentype_number) {
+		CHECK(cfg_parse_obj(pctx, &cfg_type_uint32, ret));
+	} else {
+		CHECK(cfg_parse_obj(pctx, &cfg_type_void, ret));
+	}
+ cleanup:
+	return (result);
+}
+
+static void
+doc_optional_uint32(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "[ <integer> ]");
+}
+
+static cfg_type_t cfg_type_optional_uint32 = {
+	"optional_uint32", parse_optional_uint32, NULL, doc_optional_uint32,
+	NULL, NULL };
+
+static cfg_tuplefielddef_t prefetch_fields[] = {
+	{ "trigger", &cfg_type_uint32, 0 },
+	{ "eligible", &cfg_type_optional_uint32, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_prefetch = {
+	"prefetch", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, prefetch_fields
+};
 /*
  * DNS64.
  */
@@ -1483,6 +1520,7 @@ view_clauses[] = {
 	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "min-roots", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTIMP },
 	{ "minimal-responses", &cfg_type_boolean, 0 },
+	{ "prefetch", &cfg_type_prefetch, 0 },
 	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	/*
@@ -1537,32 +1575,6 @@ view_only_clauses[] = {
 /*%
  * Sig-validity-interval.
  */
-static isc_result_t
-parse_optional_uint32(cfg_parser_t *pctx, const cfg_type_t *type,
-		      cfg_obj_t **ret)
-{
-	isc_result_t result;
-	UNUSED(type);
-
-	CHECK(cfg_peektoken(pctx, ISC_LEXOPT_NUMBER | ISC_LEXOPT_CNUMBER));
-	if (pctx->token.type == isc_tokentype_number) {
-		CHECK(cfg_parse_obj(pctx, &cfg_type_uint32, ret));
-	} else {
-		CHECK(cfg_parse_obj(pctx, &cfg_type_void, ret));
-	}
- cleanup:
-	return (result);
-}
-
-static void
-doc_optional_uint32(cfg_printer_t *pctx, const cfg_type_t *type) {
-	UNUSED(type);
-	cfg_print_cstr(pctx, "[ <integer> ]");
-}
-
-static cfg_type_t cfg_type_optional_uint32 = {
-	"optional_uint32", parse_optional_uint32, NULL, doc_optional_uint32,
-	NULL, NULL };
 
 static cfg_tuplefielddef_t validityinterval_fields[] = {
 	{ "validity", &cfg_type_uint32, 0 },

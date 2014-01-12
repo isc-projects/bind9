@@ -252,6 +252,7 @@ struct dns_db {
 #define DNS_DBADD_FORCE			0x02
 #define DNS_DBADD_EXACT			0x04
 #define DNS_DBADD_EXACTTTL		0x08
+#define DNS_DBADD_PREFETCH		0x10
 /*@}*/
 
 /*%

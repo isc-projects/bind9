@@ -1,3 +1,6 @@
+3703.	[func]		Prefetch about to expire records if they are queried
+			for, see prefetch option for details. [RT #35041]
+
 3702.	[func]		'dnssec-coverage -l' option specifies a length
 			of time to check for coverage; events further into
 			the future are ignored.  'dnssec-coverage -z'

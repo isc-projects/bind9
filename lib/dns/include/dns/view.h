@@ -149,6 +149,8 @@ struct dns_view {
 	isc_boolean_t			requestnsid;
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
+	dns_ttl_t			prefetch_trigger;
+	dns_ttl_t			prefetch_eligible;
 	in_port_t			dstport;
 	dns_aclenv_t			aclenv;
 	dns_rdatatype_t			preferred_glue;
