@@ -91,8 +91,8 @@ isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
 
 	SystemTimeToFileTime(&epoch, &temp);
 
-	i1.LowPart = t->absolute.dwLowDateTime;
-	i1.HighPart = t->absolute.dwHighDateTime;
+	i1.LowPart = temp.dwLowDateTime;
+	i1.HighPart = temp.dwHighDateTime;
 
 	i1.QuadPart += (unsigned __int64)nanoseconds/100;
 	i1.QuadPart += (unsigned __int64)seconds*10000000;
