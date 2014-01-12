@@ -1685,11 +1685,11 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 #endif /* NEWSTATS */
 #endif
 #ifdef NEWSTATS
-	isc_httpdmgr_addurl(listener->httpdmgr, "/bind9.ver3.xsl", render_xsl,
-			    server);
+	isc_httpdmgr_addurl2(listener->httpdmgr, "/bind9.ver3.xsl", ISC_TRUE,
+			     render_xsl, server);
 #else /* OLDSTATS */
-	isc_httpdmgr_addurl(listener->httpdmgr, "/bind9.xsl", render_xsl,
-			    server);
+	isc_httpdmgr_addurl2(listener->httpdmgr, "/bind9.xsl", ISC_TRUE,
+			     render_xsl, server);
 #endif /* NEWSTATS */
 	*listenerp = listener;
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
