@@ -51,8 +51,9 @@ BIND 9
 BIND 9.6-ESV-R11 (Extended Support Version)
  
 	BIND 9.6-ESV-R11 is a maintenance release, fixing bugs in
-	BIND 9.6-ESV-R10, and also includes the following functional
-	enhancement:
+	BIND 9.6-ESV-R10, and patches the security flaws described
+	in CVE-2013-6320 and CVE-2014-0591. It also includes the
+	following functional enhancement:
 
 	 - "named" now preserves the capitalization of names when
 	    responding to queries.
