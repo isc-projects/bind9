@@ -3824,6 +3824,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	isc_sockaddr_t *peeraddr;
 	dns_rdataset_t *tmprdataset;
 	ns_client_t *dummy = NULL;
+	unsigned int options;
 
 	if (client->view->prefetch_trigger == 0U ||
 	    rdataset->ttl > client->view->prefetch_trigger ||
@@ -3847,7 +3848,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	else
 		peeraddr = NULL;
 	ns_client_attach(client, &dummy);
-	unsigned options = client->query.fetchoptions | DNS_FETCHOPT_PREFETCH;
+	options = client->query.fetchoptions | DNS_FETCHOPT_PREFETCH;
 	result = dns_resolver_createfetch2(client->view->resolver,
 					   qname, rdataset->type, NULL, NULL,
 					   NULL, peeraddr, client->message->id,
