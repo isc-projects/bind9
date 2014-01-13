@@ -2525,7 +2525,7 @@
 ./lib/dns/gssapictx.c				C	2000,2001,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/hmac_link.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012
-./lib/dns/include/dns/Makefile.in		MAKE	1998,1999,2000,2001,2002,2003,2004,2007,2008,2009,2011,2012
+./lib/dns/include/dns/Makefile.in		MAKE	1998,1999,2000,2001,2002,2003,2004,2007,2008,2009,2011,2012,2014
 ./lib/dns/include/dns/acache.h			C	2004,2006,2007,2013
 ./lib/dns/include/dns/acl.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2011
 ./lib/dns/include/dns/adb.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2013
@@ -2924,7 +2924,7 @@
 ./lib/irs/getaddrinfo.c				C	2009,2012,2013,2014
 ./lib/irs/getnameinfo.c				C	2009,2011,2012,2013
 ./lib/irs/include/Makefile.in			MAKE	2009,2012
-./lib/irs/include/irs/Makefile.in		MAKE	2009,2012
+./lib/irs/include/irs/Makefile.in		MAKE	2009,2012,2014
 ./lib/irs/include/irs/context.h			C	2009
 ./lib/irs/include/irs/dnsconf.h			C	2009
 ./lib/irs/include/irs/netdb.h.in		C	2009
