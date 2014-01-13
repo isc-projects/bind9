@@ -53,15 +53,16 @@ BIND 9
 
 BIND 9.8.7
  
-	BIND 9.8.7 includes several bug fixes and the following
-	functional enhancement:
+	BIND 9.8.7 includes several bug fixes and patches the security
+	flaws described in CVE-2013-6320 and CVE-2014-0591.  It also
+	includes the following functional enhancements:
 
 	 - "named" now preserves the capitalization of names when
 	    responding to queries.
-         - "named-checkconf -px" will print the contents of configuration
-           files with the shared secrets obscured, making it easier to
-           share configuration (e.g. when submitting a bug report)
-           without revealing private information.
+	 - "named-checkconf -px" will print the contents of configuration
+	   files with the shared secrets obscured, making it easier to
+	   share configuration (e.g. when submitting a bug report)
+	   without revealing private information.
 
 BIND 9.8.6
 
