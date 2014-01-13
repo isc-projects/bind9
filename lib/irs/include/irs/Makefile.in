@@ -39,6 +39,8 @@ install:: installdirs
 	done
 	${INSTALL_DATA} netdb.h ${DESTDIR}${includedir}/irs
 	${INSTALL_DATA} platform.h ${DESTDIR}${includedir}/irs
+	${INSTALL_DATA} resconf.h ${DESTDIR}${includedir}/irs
+	${INSTALL_DATA} types.h ${DESTDIR}${includedir}/irs
 
 distclean::
 	rm -f netdb.h platform.h
