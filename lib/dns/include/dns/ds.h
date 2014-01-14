@@ -29,10 +29,6 @@
 #define DNS_DSDIGEST_GOST (3)
 #define DNS_DSDIGEST_SHA384 (4)
 
-/* should not be here... */
-
-#define ISC_GOST_DIGESTLENGTH 32U
-
 /*
  * Assuming SHA-384 digest type.
  */

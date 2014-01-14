@@ -23,12 +23,14 @@ top_srcdir =	@top_srcdir@
 
 @LIBISC_API@
 
+@BIND9_MAKE_INCLUDES@
+
 CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/@ISC_THREAD_DIR@/include \
 		-I${srcdir}/@ISC_ARCH_DIR@/include \
 		-I./include \
-		-I${srcdir}/include @ISC_OPENSSL_INC@
-CDEFINES =	@USE_OPENSSL@
+		-I${srcdir}/include ${ISCPK11_INCLUDES} @ISC_OPENSSL_INC@
+CDEFINES =	@CRYPTO@
 CWARNINGS =
 
 # Alphabetically

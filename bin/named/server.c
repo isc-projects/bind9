@@ -6497,6 +6497,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->in_roothints = NULL;
 	server->blackholeacl = NULL;
 
+	/* Must be first. */
+	CHECKFATAL(dst_lib_init2(ns_g_mctx, ns_g_entropy,
+				 ns_g_engine, ISC_ENTROPY_GOODONLY),
+		   "initializing DST");
+
 	CHECKFATAL(dns_rootns_create(mctx, dns_rdataclass_in, NULL,
 				     &server->in_roothints),
 		   "setting up root hints");
@@ -6512,10 +6517,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(server->reload_event == NULL ?
 		   ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "allocating reload event");
-
-	CHECKFATAL(dst_lib_init2(ns_g_mctx, ns_g_entropy,
-				 ns_g_engine, ISC_ENTROPY_GOODONLY),
-		   "initializing DST");
 
 	server->tkeyctx = NULL;
 	CHECKFATAL(dns_tkeyctx_create(ns_g_mctx, ns_g_entropy,

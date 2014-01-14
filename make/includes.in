@@ -21,6 +21,10 @@
 # latter case, because there are no machine-generated OS-specific
 # headers.
 
+ISCPK11_INCLUDES = @BIND9_ISCPK11_BUILDINCLUDE@ \
+	-I${top_srcdir}/lib/iscpk11/unix/include \
+	-I${top_srcdir}/lib/iscpk11/include
+
 ISC_INCLUDES = @BIND9_ISC_BUILDINCLUDE@ \
 	-I${top_srcdir}/lib/isc \
 	-I${top_srcdir}/lib/isc/include \

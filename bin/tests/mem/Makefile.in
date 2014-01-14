@@ -27,14 +27,16 @@ CDEFINES =
 CWARNINGS =
 
 ISCLIBS =	../../../lib/isc/libisc.@A@
-TAPIDEPLIBS =	../../../lib/tests/libt_api.@A@
-
-ISCDEPLIBS =	../../../lib/isc/libisc.@A@
+ISCPK11LIBS =	../../../lib/iscpk11/libiscpk11.@A@
 TAPILIBS =	../../../lib/tests/libt_api.@A@
 
-DEPLIBS =	${TAPIDEPLIBS} ${ISCDEPLIBS}
+ISCDEPLIBS =	../../../lib/isc/libisc.@A@
+ISCPK11DEPLIBS = ../../../lib/iscpk11/libiscpk11.@A@
+TAPIDEPLIBS =	../../../lib/tests/libt_api.@A@
 
-LIBS =		${TAPILIBS} ${ISCLIBS} @LIBS@
+DEPLIBS =	${TAPIDEPLIBS} ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+
+LIBS =		${TAPILIBS} ${ISCLIBS} ${ISCPK11LIBS} @LIBS@
 
 TARGETS =	t_mem@EXEEXT@
 

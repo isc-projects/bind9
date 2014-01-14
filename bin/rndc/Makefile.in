@@ -24,7 +24,8 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES = -I${srcdir}/include ${ISC_INCLUDES} ${ISCCC_INCLUDES} \
-	${ISCCFG_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES}
+	${ISCCFG_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
+	${ISCPK11_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
@@ -35,17 +36,20 @@ ISCLIBS =	../../lib/isc/libisc.@A@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
+ISCPK11LIBS =	../../lib/iscpk11/libiscpk11.@A@
 
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCDEPLIBS =	../../lib/isccc/libisccc.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
+ISCPK11DEPLIBS = ../../lib/iscpk11/libiscpk11.@A@
 
-LIBS =		${ISCLIBS} @LIBS@
-NOSYMLIBS =	${ISCNOSYMLIBS} @LIBS@
+LIBS =		${ISCLIBS} ${ISCPK11LIBS} @LIBS@
+NOSYMLIBS =	${ISCNOSYMLIBS} ${ISCPK11LIBS} @LIBS@
 
-RNDCDEPLIBS =	${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${BIND9DEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
+RNDCDEPLIBS =	${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${BIND9DEPLIBS} \
+		${DNSDEPLIBS} ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
 
 CONFDEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 

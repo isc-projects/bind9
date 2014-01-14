@@ -132,14 +132,11 @@ int sigwait(const unsigned int *set, int *sig);
 /** define if you have strerror in the C library. */
 #undef HAVE_STRERROR
 
-/** Define if you are running under Compaq TruCluster. */
-#undef HAVE_TRUCLUSTER
-
 /* Define if OpenSSL includes DSA support */
 #undef HAVE_OPENSSL_DSA
 
-/* Define if OpenSSL includes ECDSA support */
-#undef HAVE_OPENSSL_ECDSA
+/* Define if you have getpassphrase in the C library. */
+#undef HAVE_GETPASSPHRASE
 
 /* Define to the length type used by the socket API (socklen_t, size_t, int). */
 #undef ISC_SOCKADDR_LEN_T
@@ -187,6 +184,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
+
+/* Define if clock_gettime is available. */
+#undef HAVE_CLOCK_GETTIME
 
 /* Define to 1 if you have the <devpoll.h> header file. */
 #undef HAVE_DEVPOLL_H
@@ -310,6 +310,12 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if your OpenSSL version supports GOST. */
 #undef HAVE_OPENSSL_GOST
+
+/* Define if your PKCS11 provider supports ECDSA. */
+#undef HAVE_PKCS11_ECDSA
+
+/* Define if your PKCS11 provider supports GOST. */
+#undef HAVE_PKCS11_GOST
 
 /* Define to 1 if you have the `pthread_yield' function. */
 #undef HAVE_PTHREAD_YIELD

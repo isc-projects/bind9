@@ -45,7 +45,13 @@
 #include <dst/dst.h>
 #include <dst/gssapi.h>
 
+#include "dst_internal.h"
+
 #define TKEY_RANDOM_AMOUNT 16
+
+#ifdef PKCS11CRYPTO
+#include <iscpk11/pk11.h>
+#endif
 
 #define RETERR(x) do { \
 	result = (x); \
@@ -382,8 +388,8 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	if (randomdata == NULL)
 		goto failure;
 
-	result = isc_entropy_getdata(tctx->ectx, randomdata,
-				     TKEY_RANDOM_AMOUNT, NULL, 0);
+	result = dst__entropy_getdata(randomdata, TKEY_RANDOM_AMOUNT,
+				      ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		tkey_log("process_dhtkey: failed to obtain entropy: %s",
 			 isc_result_totext(result));

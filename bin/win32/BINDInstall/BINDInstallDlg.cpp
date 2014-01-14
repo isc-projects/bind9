@@ -131,6 +131,9 @@ const FileData installFiles[] =
 	{"libisc.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libisccfg.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libisccc.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+#ifdef USE_PKCS11
+	{"libiscpk11.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+#endif
 	{"libdns.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"liblwres.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 #ifdef OPENSSL
@@ -181,9 +184,12 @@ const FileData installFiles[] =
 	{"named-journalprint.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"named-rrchecker.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"isc-hmax-fixup.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
+#ifdef USE_PKCS11
 	{"pkcs11-destroy.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-keygen.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-list.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
+	{"pkcs11-tokens.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
+#endif
 #ifdef USE_PYTHON
 	{"dnssec-checkds.py", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"dnssec-coverage.py", FileData::BinDir, FileData::Normal, FALSE, FALSE},

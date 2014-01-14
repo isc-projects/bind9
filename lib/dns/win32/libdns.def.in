@@ -1040,6 +1040,7 @@ dns_zt_unmount
 dst_algorithm_supported
 dst_context_adddata
 dst_context_create
+dst_context_create3
 dst_context_destroy
 dst_context_sign
 dst_context_verify

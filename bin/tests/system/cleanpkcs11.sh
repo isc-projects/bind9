@@ -16,6 +16,9 @@
 
 # $Id: cleanpkcs11.sh,v 1.3 2010/06/08 23:50:24 tbox Exp $
 
+SYSTEMTESTTOP=.
+. $SYSTEMTESTTOP/conf.sh
+
 if [ ! -x ../../pkcs11/pkcs11-destroy ]; then exit 1; fi
 
-../../pkcs11/pkcs11-destroy -s ${SLOT:-0} -p 1234
+$PK11DEL -w0 > /dev/null 2>&1

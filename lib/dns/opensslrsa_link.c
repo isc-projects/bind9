@@ -744,8 +744,7 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
 static int
-progress_cb(int p, int n, BN_GENCB *cb)
-{
+progress_cb(int p, int n, BN_GENCB *cb) {
 	union {
 		void *dptr;
 		void (*fptr)(int);
@@ -1297,8 +1296,6 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			continue;
 		case TAG_RSA_LABEL:
 			continue;
-		case TAG_RSA_PIN:
-			continue;
 		default:
 			bn = BN_bin2bn(priv.elements[i].data,
 				       priv.elements[i].length, NULL);
@@ -1448,6 +1445,7 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 
 static dst_func_t opensslrsa_functions = {
 	opensslrsa_createctx,
+	NULL, /*%< createctx2 */
 	opensslrsa_destroyctx,
 	opensslrsa_adddata,
 	opensslrsa_sign,

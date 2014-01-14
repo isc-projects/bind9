@@ -53,7 +53,10 @@ usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr,	"    %s [options] keyfile\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
-#ifdef USE_PKCS11
+#if defined(PKCS11CRYPTO)
+	fprintf(stderr, "    -E engine:    specify PKCS#11 provider "
+					"(default: %s)\n", PK11_LIB_LOCATION);
+#elif defined(USE_PKCS11)
 	fprintf(stderr, "    -E engine:    specify OpenSSL engine "
 					   "(default \"pkcs11\")\n");
 #else
@@ -76,7 +79,7 @@ int
 main(int argc, char **argv) {
 	isc_result_t result;
 #ifdef USE_PKCS11
-	const char *engine = "pkcs11";
+	const char *engine = PKCS11_ENGINE;
 #else
 	const char *engine = NULL;
 #endif

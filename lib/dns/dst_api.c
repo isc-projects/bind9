@@ -162,7 +162,7 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	REQUIRE(mctx != NULL);
 	REQUIRE(dst_initialized == ISC_FALSE);
 
-#ifndef OPENSSL
+#if !defined(OPENSSL) && !defined(PKCS11CRYPTO)
 	UNUSED(engine);
 #endif
 
@@ -227,7 +227,24 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA256]));
 	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
 #endif
-#endif /* OPENSSL */
+#elif PKCS11CRYPTO
+	dst__pkcs11_init(mctx, engine);
+	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSAMD5]));
+	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA1]));
+	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
+	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA256]));
+	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA512]));
+	RETERR(dst__pkcs11dsa_init(&dst_t_func[DST_ALG_DSA]));
+	RETERR(dst__pkcs11dsa_init(&dst_t_func[DST_ALG_NSEC3DSA]));
+	RETERR(dst__pkcs11dh_init(&dst_t_func[DST_ALG_DH]));
+#ifdef HAVE_PKCS11_ECDSA
+	RETERR(dst__pkcs11ecdsa_init(&dst_t_func[DST_ALG_ECDSA256]));
+	RETERR(dst__pkcs11ecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
+#endif
+#ifdef HAVE_PKCS11_GOST
+	RETERR(dst__pkcs11gost_init(&dst_t_func[DST_ALG_ECCGOST]));
+#endif
+#endif /* if OPENSSL, elif PKCS11CRYPTO */
 #ifdef GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 #endif
@@ -252,7 +269,9 @@ dst_lib_destroy(void) {
 			dst_t_func[i]->cleanup();
 #ifdef OPENSSL
 	dst__openssl_destroy();
-#endif
+#elif PKCS11CRYPTO
+	(void) dst__pkcs11_destroy();
+#endif /* if OPENSSL, elif PKCS11CRYPTO */
 	if (dst__memory_pool != NULL)
 		isc_mem_detach(&dst__memory_pool);
 	if (dst_entropy_pool != NULL)
@@ -270,7 +289,7 @@ dst_algorithm_supported(unsigned int alg) {
 
 isc_boolean_t
 dst_ds_digest_supported(unsigned int digest_type) {
-#ifdef HAVE_OPENSSL_GOST
+#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
 	return  (ISC_TF(digest_type == DNS_DSDIGEST_SHA1 ||
 			digest_type == DNS_DSDIGEST_SHA256 ||
 			digest_type == DNS_DSDIGEST_GOST ||
@@ -284,13 +303,31 @@ dst_ds_digest_supported(unsigned int digest_type) {
 
 isc_result_t
 dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp) {
-	return (dst_context_create2(key, mctx,
-				    DNS_LOGCATEGORY_GENERAL, dctxp));
+	return (dst_context_create4(key, mctx, DNS_LOGCATEGORY_GENERAL,
+				    ISC_TRUE, 0, dctxp));
 }
 
 isc_result_t
 dst_context_create2(dst_key_t *key, isc_mem_t *mctx,
-		    isc_logcategory_t *category, dst_context_t **dctxp) {
+		    isc_logcategory_t *category, dst_context_t **dctxp)
+{
+	return (dst_context_create4(key, mctx, category, ISC_TRUE, 0, dctxp));
+}
+
+isc_result_t
+dst_context_create3(dst_key_t *key, isc_mem_t *mctx,
+		    isc_logcategory_t *category, isc_boolean_t useforsigning,
+		    dst_context_t **dctxp)
+{
+	return (dst_context_create4(key, mctx, category,
+				    useforsigning, 0, dctxp));
+}
+
+isc_result_t
+dst_context_create4(dst_key_t *key, isc_mem_t *mctx,
+		    isc_logcategory_t *category, isc_boolean_t useforsigning,
+		    int maxbits, dst_context_t **dctxp)
+{
 	dst_context_t *dctx;
 	isc_result_t result;
 
@@ -299,7 +336,8 @@ dst_context_create2(dst_key_t *key, isc_mem_t *mctx,
 	REQUIRE(mctx != NULL);
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
 
-	if (key->func->createctx == NULL)
+	if (key->func->createctx == NULL &&
+	    key->func->createctx2 == NULL)
 		return (DST_R_UNSUPPORTEDALG);
 	if (key->keydata.generic == NULL)
 		return (DST_R_NULLKEY);
@@ -310,7 +348,14 @@ dst_context_create2(dst_key_t *key, isc_mem_t *mctx,
 	dctx->key = key;
 	dctx->mctx = mctx;
 	dctx->category = category;
-	result = key->func->createctx(key, dctx);
+	if (useforsigning)
+		dctx->use = DO_SIGN;
+	else
+		dctx->use = DO_VERIFY;
+	if (key->func->createctx2 != NULL)
+		result = key->func->createctx2(key, maxbits, dctx);
+	else
+		result = key->func->createctx(key, dctx);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, dctx, sizeof(dst_context_t));
 		return (result);
@@ -1801,7 +1846,7 @@ algorithm_status(unsigned int alg) {
 
 	if (dst_algorithm_supported(alg))
 		return (ISC_R_SUCCESS);
-#ifndef OPENSSL
+#if !defined(OPENSSL) && !defined(PKCS11CRYPTO)
 	if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
 	    alg == DST_ALG_DSA || alg == DST_ALG_DH ||
 	    alg == DST_ALG_HMACMD5 || alg == DST_ALG_NSEC3DSA ||
@@ -1849,15 +1894,23 @@ dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
 
 	if (len == 0)
 		return (ISC_R_SUCCESS);
+
+#ifdef PKCS11CRYPTO
+	UNUSED(pseudo);
+	UNUSED(flags);
+	return (pk11_rand_bytes(buf, len));
+#else /* PKCS11CRYPTO */
 	if (pseudo)
 		flags &= ~ISC_ENTROPY_GOODONLY;
 	else
 		flags |= ISC_ENTROPY_BLOCKING;
 	return (isc_entropy_getdata(dst_entropy_pool, buf, len, NULL, flags));
+#endif /* PKCS11CRYPTO */
 }
 
 unsigned int
 dst__entropy_status(void) {
+#ifdef PKCS11CRYPTO
 #ifdef GSSAPI
 	unsigned int flags = dst_entropy_flags;
 	isc_result_t ret;
@@ -1879,6 +1932,9 @@ dst__entropy_status(void) {
 	}
 #endif
 	return (isc_entropy_status(dst_entropy_pool));
+#else
+	return (0);
+#endif
 }
 
 isc_buffer_t *

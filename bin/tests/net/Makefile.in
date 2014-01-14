@@ -27,12 +27,14 @@ CDEFINES =
 CWARNINGS =
 
 ISCLIBS =	../../../lib/isc/libisc.@A@
+ISCPK11LIBS =	../../../lib/iscpk11/libiscpk11.@A@
 
 ISCDEPLIBS =	../../../lib/isc/libisc.@A@
+ISCPK11DEPLIBS = ../../../lib/iscpk11/libiscpk11.@A@
 
-DEPLIBS =	${ISCDEPLIBS}
+DEPLIBS =	${ISCDEPLIBS} ${ISCPK11DEPLIBS}
 
-LIBS =		${ISCLIBS} @LIBS@
+LIBS =		${ISCLIBS} ${ISCPK11LIBS} @LIBS@
 
 TARGETS =	t_net@EXEEXT@
 

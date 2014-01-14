@@ -119,10 +119,10 @@
 #define LIBISC_EXTERNAL_DATA __declspec(dllimport)
 #endif
 
-#ifdef LIBISCCFG_EXPORTS
-#define LIBISCCFG_EXTERNAL_DATA __declspec(dllexport)
+#ifdef LIBDNS_EXPORTS
+#define LIBDNS_EXTERNAL_DATA __declspec(dllexport)
 #else
-#define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport)
+#define LIBDNS_EXTERNAL_DATA __declspec(dllimport)
 #endif
 
 #ifdef LIBISCCC_EXPORTS
@@ -131,10 +131,16 @@
 #define LIBISCCC_EXTERNAL_DATA __declspec(dllimport)
 #endif
 
-#ifdef LIBDNS_EXPORTS
-#define LIBDNS_EXTERNAL_DATA __declspec(dllexport)
+#ifdef LIBISCCFG_EXPORTS
+#define LIBISCCFG_EXTERNAL_DATA __declspec(dllexport)
 #else
-#define LIBDNS_EXTERNAL_DATA __declspec(dllimport)
+#define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport)
+#endif
+
+#ifdef LIBISCPK11_EXPORTS
+#define LIBISCPK11_EXTERNAL_DATA __declspec(dllexport)
+#else
+#define LIBISCPK11_EXTERNAL_DATA __declspec(dllimport)
 #endif
 
 #ifdef LIBBIND9_EXPORTS

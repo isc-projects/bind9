@@ -84,6 +84,12 @@
 typedef EVP_MD_CTX isc_sha256_t;
 typedef EVP_MD_CTX isc_sha512_t;
 
+#elif PKCS11CRYPTO
+#include <iscpk11/pk11.h>
+
+typedef iscpk11_context_t isc_sha256_t;
+typedef iscpk11_context_t isc_sha512_t;
+
 #else
 
 /*

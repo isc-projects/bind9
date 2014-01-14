@@ -228,6 +228,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	mctx = NULL;
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	RUNCHECK(isc_mem_create(0, 0, &mctx));
 
 	ectx = NULL;

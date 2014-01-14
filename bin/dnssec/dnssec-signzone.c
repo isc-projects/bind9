@@ -2946,7 +2946,10 @@ usage(void) {
 	fprintf(stderr, "verify generated signatures\n");
 	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-E engine:\n");
-#ifdef USE_PKCS11
+#if defined(PKCS11CRYPTO)
+	fprintf(stderr, "\t\tpath to PKCS#11 provider library "
+		"(default is %s)\n", PK11_LIB_LOCATION);
+#elif defined(USE_PKCS11)
 	fprintf(stderr, "\t\tname of an OpenSSL engine to use "
 				"(default is \"pkcs11\")\n");
 #else
@@ -3044,7 +3047,7 @@ main(int argc, char *argv[]) {
 	isc_log_t *log = NULL;
 	isc_boolean_t pseudorandom = ISC_FALSE;
 #ifdef USE_PKCS11
-	const char *engine = "pkcs11";
+	const char *engine = PKCS11_ENGINE;
 #else
 	const char *engine = NULL;
 #endif

@@ -30,6 +30,7 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
+#include "dst_gost.h"
 
 #include <openssl/err.h>
 #include <openssl/objects.h>
@@ -43,6 +44,60 @@ extern const EVP_MD *EVP_gost(void);
 const EVP_MD *EVP_gost(void) {
 	return (opensslgost_digest);
 }
+
+/* ISC methods */
+
+isc_result_t
+isc_gost_init(isc_gost_t *ctx) {
+	const EVP_MD *md;
+	int ret;
+
+	INSIST(ctx != NULL);
+
+	md = EVP_gost();
+	if (md == NULL)
+		return (DST_R_CRYPTOFAILURE);
+	EVP_MD_CTX_init(ctx);
+	ret = EVP_DigestInit(ctx, md);
+	if (ret != 1)
+		return (DST_R_CRYPTOFAILURE);
+	return (ISC_R_SUCCESS);
+}
+
+void
+isc_gost_invalidate(isc_gost_t *ctx) {
+	EVP_MD_CTX_cleanup(ctx);
+}
+
+isc_result_t
+isc_gost_update(isc_gost_t *ctx, const unsigned char *data,
+		unsigned int len)
+{
+	int ret;
+
+	INSIST(ctx != NULL);
+	INSIST(data != NULL);
+
+	ret = EVP_DigestUpdate(ctx, (const void *) data, (size_t) len);
+	if (ret != 1)
+		return (DST_R_CRYPTOFAILURE);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_gost_final(isc_gost_t *ctx, unsigned char *digest) {
+	int ret;
+
+	INSIST(ctx != NULL);
+	INSIST(digest != NULL);
+
+	ret = EVP_DigestFinal(ctx, digest, NULL);
+	if (ret != 1)
+		return (DST_R_CRYPTOFAILURE);
+	return (ISC_R_SUCCESS);
+}
+
+/* DST methods */
 
 #define DST_RET(a) {ret = a; goto err;}
 
@@ -285,6 +340,8 @@ opensslgost_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	return (ISC_R_SUCCESS);
 }
 
+#ifdef USE_GOSTASN1
+
 static isc_result_t
 opensslgost_tofile(const dst_key_t *key, const char *directory) {
 	EVP_PKEY *pkey;
@@ -318,7 +375,7 @@ opensslgost_tofile(const dst_key_t *key, const char *directory) {
 	priv.elements[0].tag = TAG_GOST_PRIVASN1;
 	priv.elements[0].length = len;
 	priv.elements[0].data = der;
-	priv.nelements = GOST_NTAGS;
+	priv.nelements = 1;
 
 	result = dst__privstruct_writefile(key, &priv, directory);
  fail:
@@ -327,12 +384,67 @@ opensslgost_tofile(const dst_key_t *key, const char *directory) {
 	return (result);
 }
 
+#else
+
+static isc_result_t
+opensslgost_tofile(const dst_key_t *key, const char *directory) {
+	EVP_PKEY *pkey;
+	EC_KEY *eckey;
+	const BIGNUM *privkey;
+	dst_private_t priv;
+	isc_result_t ret;
+	unsigned char *buf = NULL;
+
+	if (key->keydata.pkey == NULL)
+		return (DST_R_NULLKEY);
+
+	pkey = key->keydata.pkey;
+	eckey = EVP_PKEY_get0(pkey);
+	if (eckey == NULL)
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	privkey = EC_KEY_get0_private_key(eckey);
+	if (privkey == NULL)
+		return (ISC_R_FAILURE);
+
+	buf = isc_mem_get(key->mctx, BN_num_bytes(privkey));
+	if (buf == NULL)
+		return (ISC_R_NOMEMORY);
+
+	priv.elements[0].tag = TAG_GOST_PRIVRAW;
+	priv.elements[0].length = BN_num_bytes(privkey);
+	BN_bn2bin(privkey, buf);
+	priv.elements[0].data = buf;
+	priv.nelements = 1;
+
+	ret = dst__privstruct_writefile(key, &priv, directory);
+
+	if (buf != NULL)
+		isc_mem_put(key->mctx, buf, BN_num_bytes(privkey));
+	return (ret);
+}
+#endif
+
+unsigned char gost_dummy_key[71] = {
+	0x30, 0x45, 0x02, 0x01, 0x00, 0x30, 0x1c, 0x06,
+	0x06, 0x2a, 0x85, 0x03, 0x02, 0x02, 0x13, 0x30,
+	0x12, 0x06, 0x07, 0x2a, 0x85, 0x03, 0x02, 0x02,
+	0x23, 0x01, 0x06, 0x07, 0x2a, 0x85, 0x03, 0x02,
+	0x02, 0x1e, 0x01, 0x04, 0x22, 0x02, 0x20, 0x1b,
+	0x3f, 0x94, 0xf7, 0x1a, 0x5f, 0x2f, 0xe7, 0xe5,
+	0x74, 0x0b, 0x8c, 0xd4, 0xb7, 0x18, 0xdd, 0x65,
+	0x68, 0x26, 0xd1, 0x54, 0xfb, 0x77, 0xba, 0x63,
+	0x72, 0xd9, 0xf0, 0x63, 0x87, 0xe0, 0xd6
+};
+
 static isc_result_t
 opensslgost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_mem_t *mctx = key->mctx;
 	EVP_PKEY *pkey = NULL;
+	EC_KEY *eckey;
+	const EC_POINT *pubkey = NULL;
+	BIGNUM *privkey = NULL;
 	const unsigned char *p;
 
 	UNUSED(pub);
@@ -349,12 +461,53 @@ opensslgost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		key->keydata.pkey = pub->keydata.pkey;
 		pub->keydata.pkey = NULL;
 	} else {
-		INSIST(priv.elements[0].tag == TAG_GOST_PRIVASN1);
-		p = priv.elements[0].data;
-		if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
-				   (long) priv.elements[0].length) == NULL)
-			DST_RET(dst__openssl_toresult2("d2i_PrivateKey",
-						     DST_R_INVALIDPRIVATEKEY));
+		INSIST((priv.elements[0].tag == TAG_GOST_PRIVASN1) ||
+		       (priv.elements[0].tag == TAG_GOST_PRIVRAW));
+	
+		if (priv.elements[0].tag == TAG_GOST_PRIVASN1) {
+			p = priv.elements[0].data;
+			if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
+				    (long) priv.elements[0].length) == NULL)
+				DST_RET(dst__openssl_toresult2(
+					    "d2i_PrivateKey",
+					    DST_R_INVALIDPRIVATEKEY));
+		} else {
+			if ((pub != NULL) && (pub->keydata.pkey != NULL)) {
+				eckey = EVP_PKEY_get0(pub->keydata.pkey);
+				pubkey = EC_KEY_get0_public_key(eckey);
+			}
+	
+			privkey = BN_bin2bn(priv.elements[0].data,
+					    priv.elements[0].length, NULL);
+			if (privkey == NULL)
+				DST_RET(ISC_R_NOMEMORY);
+	
+			/* can't create directly the whole key */
+			p = gost_dummy_key;
+			if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
+				    (long) sizeof(gost_dummy_key)) == NULL)
+				DST_RET(dst__openssl_toresult2(
+					    "d2i_PrivateKey",
+					    DST_R_INVALIDPRIVATEKEY));
+	
+			eckey = EVP_PKEY_get0(pkey);
+			if (eckey == NULL)
+				return (dst__openssl_toresult(
+					    DST_R_OPENSSLFAILURE));
+			if (!EC_KEY_set_private_key(eckey, privkey))
+				DST_RET(ISC_R_NOMEMORY);
+	
+			/* have to (re)set the public key */
+#ifdef notyet
+			(void) gost2001_compute_public(eckey);
+#else
+			if ((pubkey != NULL) &&
+			    !EC_KEY_set_public_key(eckey, pubkey))
+				DST_RET(ISC_R_NOMEMORY);
+#endif
+			BN_clear_free(privkey);
+			privkey = NULL;
+		}
 		key->keydata.pkey = pkey;
 	}
 	key->key_size = EVP_PKEY_bits(pkey);
@@ -363,6 +516,8 @@ opensslgost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	return (ISC_R_SUCCESS);
 
  err:
+	if (privkey != NULL)
+		BN_clear_free(privkey);
 	if (pkey != NULL)
 		EVP_PKEY_free(pkey);
 	opensslgost_destroy(key);
@@ -382,6 +537,7 @@ opensslgost_cleanup(void) {
 
 static dst_func_t opensslgost_functions = {
 	opensslgost_createctx,
+	NULL, /*%< createctx2 */
 	opensslgost_destroyctx,
 	opensslgost_adddata,
 	opensslgost_sign,

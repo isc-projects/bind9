@@ -63,6 +63,11 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#if PKCS11CRYPTO
+#include <iscpk11/internal.h>
+#include <iscpk11/pk11.h>
+#endif
+
 #ifdef ISC_PLATFORM_OPENSSLHASH
 
 void
@@ -217,6 +222,272 @@ isc_sha384_final(isc_uint8_t digest[], isc_sha384_t *context) {
 	} else {
 		EVP_MD_CTX_cleanup(context);
 	}
+}
+
+#elif PKCS11CRYPTO
+
+void
+isc_sha224_init(isc_sha224_t *context) {
+	CK_RV rv;
+	CK_MECHANISM mech = { CKM_SHA224, NULL, 0 };
+
+	if (context == (isc_sha224_t *)0) {
+		return;
+	}
+	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_FALSE, ISC_FALSE,
+				       NULL, 0) == ISC_R_SUCCESS);
+	PK11_FATALCHECK(pkcs_C_DigestInit, (context->session, &mech));
+}
+
+void
+isc_sha224_invalidate(isc_sha224_t *context) {
+	CK_BYTE garbage[ISC_SHA224_DIGESTLENGTH];
+	CK_ULONG len = ISC_SHA224_DIGESTLENGTH;
+
+	if (context->handle == NULL)
+		return;
+	(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+	memset(garbage, 0, sizeof(garbage));
+	pk11_return_session(context);
+}
+
+void
+isc_sha224_update(isc_sha224_t *context, const isc_uint8_t* data, size_t len) {
+	CK_RV rv;
+	CK_BYTE_PTR pPart;
+
+	if (len == 0U) {
+		/* Calling with no data is valid - we do nothing */
+		return;
+	}
+
+	/* Sanity check: */
+	REQUIRE(context != (isc_sha224_t *)0 && data != (isc_uint8_t*)0);
+
+	DE_CONST(data, pPart);
+	PK11_FATALCHECK(pkcs_C_DigestUpdate,
+			(context->session, pPart, (CK_ULONG) len));
+}
+
+void
+isc_sha224_final(isc_uint8_t digest[], isc_sha224_t *context) {
+	CK_RV rv;
+	CK_ULONG len = ISC_SHA224_DIGESTLENGTH;
+
+	/* Sanity check: */
+	REQUIRE(context != (isc_sha224_t *)0);
+
+	/* If no digest buffer is passed, we don't bother doing this: */
+	if (digest != (isc_uint8_t*)0) {
+		PK11_FATALCHECK(pkcs_C_DigestFinal,
+				(context->session,
+				 (CK_BYTE_PTR) digest,
+				 &len));
+	} else {
+		CK_BYTE garbage[ISC_SHA224_DIGESTLENGTH];
+
+		(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+		memset(garbage, 0, sizeof(garbage));
+	}
+	pk11_return_session(context);
+}
+
+void
+isc_sha256_init(isc_sha256_t *context) {
+	CK_RV rv;
+	CK_MECHANISM mech = { CKM_SHA256, NULL, 0 };
+
+	if (context == (isc_sha256_t *)0) {
+		return;
+	}
+	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_FALSE, ISC_FALSE,
+				       NULL, 0) == ISC_R_SUCCESS);
+	PK11_FATALCHECK(pkcs_C_DigestInit, (context->session, &mech));
+}
+
+void
+isc_sha256_invalidate(isc_sha256_t *context) {
+	CK_BYTE garbage[ISC_SHA256_DIGESTLENGTH];
+	CK_ULONG len = ISC_SHA256_DIGESTLENGTH;
+
+	if (context->handle == NULL)
+		return;
+	(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+	memset(garbage, 0, sizeof(garbage));
+	pk11_return_session(context);
+}
+
+void
+isc_sha256_update(isc_sha256_t *context, const isc_uint8_t* data, size_t len) {
+	CK_RV rv;
+	CK_BYTE_PTR pPart;
+
+	if (len == 0U) {
+		/* Calling with no data is valid - we do nothing */
+		return;
+	}
+
+	/* Sanity check: */
+	REQUIRE(context != (isc_sha256_t *)0 && data != (isc_uint8_t*)0);
+
+	DE_CONST(data, pPart);
+	PK11_FATALCHECK(pkcs_C_DigestUpdate,
+			(context->session, pPart, (CK_ULONG) len));
+}
+
+void
+isc_sha256_final(isc_uint8_t digest[], isc_sha256_t *context) {
+	CK_RV rv;
+	CK_ULONG len = ISC_SHA256_DIGESTLENGTH;
+
+	/* Sanity check: */
+	REQUIRE(context != (isc_sha256_t *)0);
+
+	/* If no digest buffer is passed, we don't bother doing this: */
+	if (digest != (isc_uint8_t*)0) {
+		PK11_FATALCHECK(pkcs_C_DigestFinal,
+				(context->session,
+				 (CK_BYTE_PTR) digest,
+				 &len));
+	} else {
+		CK_BYTE garbage[ISC_SHA256_DIGESTLENGTH];
+
+		(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+		memset(garbage, 0, sizeof(garbage));
+	}
+	pk11_return_session(context);
+}
+
+void
+isc_sha512_init(isc_sha512_t *context) {
+	CK_RV rv;
+	CK_MECHANISM mech = { CKM_SHA512, NULL, 0 };
+
+	if (context == (isc_sha512_t *)0) {
+		return;
+	}
+	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_FALSE, ISC_FALSE,
+				       NULL, 0) == ISC_R_SUCCESS);
+	PK11_FATALCHECK(pkcs_C_DigestInit, (context->session, &mech));
+}
+
+void
+isc_sha512_invalidate(isc_sha512_t *context) {
+	CK_BYTE garbage[ISC_SHA512_DIGESTLENGTH];
+	CK_ULONG len = ISC_SHA512_DIGESTLENGTH;
+
+	if (context->handle == NULL)
+		return;
+	(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+	memset(garbage, 0, sizeof(garbage));
+	pk11_return_session(context);
+}
+
+void
+isc_sha512_update(isc_sha512_t *context, const isc_uint8_t* data, size_t len) {
+	CK_RV rv;
+	CK_BYTE_PTR pPart;
+
+	if (len == 0U) {
+		/* Calling with no data is valid - we do nothing */
+		return;
+	}
+
+	/* Sanity check: */
+	REQUIRE(context != (isc_sha512_t *)0 && data != (isc_uint8_t*)0);
+
+	DE_CONST(data, pPart);
+	PK11_FATALCHECK(pkcs_C_DigestUpdate,
+			(context->session, pPart, (CK_ULONG) len));
+}
+
+void
+isc_sha512_final(isc_uint8_t digest[], isc_sha512_t *context) {
+	CK_RV rv;
+	CK_ULONG len = ISC_SHA512_DIGESTLENGTH;
+
+	/* Sanity check: */
+	REQUIRE(context != (isc_sha512_t *)0);
+
+	/* If no digest buffer is passed, we don't bother doing this: */
+	if (digest != (isc_uint8_t*)0) {
+		PK11_FATALCHECK(pkcs_C_DigestFinal,
+				(context->session,
+				 (CK_BYTE_PTR) digest,
+				 &len));
+	} else {
+		CK_BYTE garbage[ISC_SHA512_DIGESTLENGTH];
+
+		(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+		memset(garbage, 0, sizeof(garbage));
+	}
+	pk11_return_session(context);
+}
+
+void
+isc_sha384_init(isc_sha384_t *context) {
+	CK_RV rv;
+	CK_MECHANISM mech = { CKM_SHA384, NULL, 0 };
+
+	if (context == (isc_sha384_t *)0) {
+		return;
+	}
+	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_FALSE, ISC_FALSE,
+				       NULL, 0) == ISC_R_SUCCESS);
+	PK11_FATALCHECK(pkcs_C_DigestInit, (context->session, &mech));
+}
+
+void
+isc_sha384_invalidate(isc_sha384_t *context) {
+	CK_BYTE garbage[ISC_SHA384_DIGESTLENGTH];
+	CK_ULONG len = ISC_SHA384_DIGESTLENGTH;
+
+	if (context->handle == NULL)
+		return;
+	(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+	memset(garbage, 0, sizeof(garbage));
+	pk11_return_session(context);
+}
+
+void
+isc_sha384_update(isc_sha384_t *context, const isc_uint8_t* data, size_t len) {
+	CK_RV rv;
+	CK_BYTE_PTR pPart;
+
+	if (len == 0U) {
+		/* Calling with no data is valid - we do nothing */
+		return;
+	}
+
+	/* Sanity check: */
+	REQUIRE(context != (isc_sha384_t *)0 && data != (isc_uint8_t*)0);
+
+	DE_CONST(data, pPart);
+	PK11_FATALCHECK(pkcs_C_DigestUpdate,
+			(context->session, pPart, (CK_ULONG) len));
+}
+
+void
+isc_sha384_final(isc_uint8_t digest[], isc_sha384_t *context) {
+	CK_RV rv;
+	CK_ULONG len = ISC_SHA384_DIGESTLENGTH;
+
+	/* Sanity check: */
+	REQUIRE(context != (isc_sha384_t *)0);
+
+	/* If no digest buffer is passed, we don't bother doing this: */
+	if (digest != (isc_uint8_t*)0) {
+		PK11_FATALCHECK(pkcs_C_DigestFinal,
+				(context->session,
+				 (CK_BYTE_PTR) digest,
+				 &len));
+	} else {
+		CK_BYTE garbage[ISC_SHA384_DIGESTLENGTH];
+
+		(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+		memset(garbage, 0, sizeof(garbage));
+	}
+	pk11_return_session(context);
 }
 
 #else
@@ -1312,6 +1583,8 @@ isc_sha224_end(isc_sha224_t *context, char buffer[]) {
 	} else {
 #ifdef ISC_PLATFORM_OPENSSLHASH
 		EVP_MD_CTX_cleanup(context);
+#elif PKCS11CRYPTO
+		pk11_return_session(context);
 #else
 		memset(context, 0, sizeof(*context));
 #endif
@@ -1351,6 +1624,8 @@ isc_sha256_end(isc_sha256_t *context, char buffer[]) {
 	} else {
 #ifdef ISC_PLATFORM_OPENSSLHASH
 		EVP_MD_CTX_cleanup(context);
+#elif PKCS11CRYPTO
+		pk11_return_session(context);
 #else
 		memset(context, 0, sizeof(*context));
 #endif
@@ -1390,6 +1665,8 @@ isc_sha512_end(isc_sha512_t *context, char buffer[]) {
 	} else {
 #ifdef ISC_PLATFORM_OPENSSLHASH
 		EVP_MD_CTX_cleanup(context);
+#elif PKCS11CRYPTO
+		pk11_return_session(context);
 #else
 		memset(context, 0, sizeof(*context));
 #endif
@@ -1429,6 +1706,8 @@ isc_sha384_end(isc_sha384_t *context, char buffer[]) {
 	} else {
 #ifdef ISC_PLATFORM_OPENSSLHASH
 		EVP_MD_CTX_cleanup(context);
+#elif PKCS11CRYPTO
+		pk11_return_session(context);
 #else
 		memset(context, 0, sizeof(*context));
 #endif

@@ -26,13 +26,16 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} ${ISC_INCLUDES} @DST_OPENSSL_INC@
-CDEFINES =	@USE_OPENSSL@ -DTESTS="\"${top_builddir}/lib/dns/tests/\""
+CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} ${ISC_INCLUDES} \
+		${ISCPK11_INCLUDES} @DST_OPENSSL_INC@
+CDEFINES =	@CRYPTO@ -DTESTS="\"${top_builddir}/lib/dns/tests/\""
 
 ISCLIBS =	../../isc/libisc.@A@
 ISCDEPLIBS =	../../isc/libisc.@A@
 DNSLIBS =	../libdns.@A@ @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../libdns.@A@
+ISCPK11LIBS =	../../iscpk11/libiscpk11.@A@
+ISCPK11DEPLIBS = ../../iscpk11/libiscpk11.@A@
 
 LIBS =		@LIBS@ @ATFLIBS@
 
@@ -43,6 +46,7 @@ SRCS =		db_test.c \
 		dispatch_test.c \
 		dnstest.c \
 		geoip_test.c \
+		gost_test.c \
 		master_test.c \
 		nsec3_test.c \
 		private_test.c \
@@ -62,6 +66,7 @@ TARGETS =	db_test@EXEEXT@ \
 		dbversion_test@EXEEXT@ \
 		dispatch_test@EXEEXT@ \
 		geoip_test@EXEEXT@ \
+		gost_test@EXEEXT@ \
 		master_test@EXEEXT@ \
 		nsec3_test@EXEEXT@ \
 		private_test@EXEEXT@ \
@@ -76,7 +81,8 @@ TARGETS =	db_test@EXEEXT@ \
 
 @BIND9_MAKE_RULES@
 
-master_test@EXEEXT@: master_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+master_test@EXEEXT@: master_test.@O@ dnstest.@O@ \
+		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
 	test -d testdata || mkdir testdata
 	test -d testdata/master || mkdir testdata/master
 	${PERL} ${srcdir}/mkraw.pl < ${srcdir}/testdata/master/master12.data.in \
@@ -87,86 +93,101 @@ master_test@EXEEXT@: master_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 		> testdata/master/master14.data
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			master_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
-time_test@EXEEXT@: time_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+time_test@EXEEXT@: time_test.@O@ dnstest.@O@ \
+		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			time_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
-private_test@EXEEXT@: private_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+private_test@EXEEXT@: private_test.@O@ dnstest.@O@ \
+		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			private_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
-update_test@EXEEXT@: update_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+update_test@EXEEXT@: update_test.@O@ dnstest.@O@ \
+		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			update_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
-zonemgr_test@EXEEXT@: zonemgr_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+zonemgr_test@EXEEXT@: zonemgr_test.@O@ dnstest.@O@ \
+		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			zonemgr_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
-dbiterator_test@EXEEXT@: dbiterator_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+dbiterator_test@EXEEXT@: dbiterator_test.@O@ dnstest.@O@ \
+		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			dbiterator_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
-dbdiff_test@EXEEXT@: dbdiff_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+dbdiff_test@EXEEXT@: dbdiff_test.@O@ dnstest.@O@ \
+		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			dbdiff_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
-dbversion_test@EXEEXT@: dbversion_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+dbversion_test@EXEEXT@: dbversion_test.@O@ dnstest.@O@ \
+		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			dbversion_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
-zt_test@EXEEXT@: zt_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+zt_test@EXEEXT@: zt_test.@O@ dnstest.@O@ \
+		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			zt_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
-nsec3_test@EXEEXT@: nsec3_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+nsec3_test@EXEEXT@: nsec3_test.@O@ dnstest.@O@ \
+		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			nsec3_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
-				
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+
 rdataset_test@EXEEXT@: rdataset_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			rdataset_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 dispatch_test@EXEEXT@: dispatch_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			dispatch_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 rdatasetstats_test@EXEEXT@: rdatasetstats_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			rdatasetstats_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 rbt_test@EXEEXT@: rbt_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			rbt_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+				${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 rdata_test@EXEEXT@: rdata_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			rdata_test.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
+			rdata_test.@O@ ${DNSLIBS} \
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 geoip_test@EXEEXT@: geoip_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			geoip_test.@O@ dnstest.@O@ ${DNSLIBS} \
-			${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 db_test@EXEEXT@: db_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			db_test.@O@ ${DNSLIBS} \
-			${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+
+gost_test@EXEEXT@: gost_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			gost_test.@O@ dnstest.@O@ ${DNSLIBS} \
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh

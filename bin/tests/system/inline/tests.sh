@@ -862,11 +862,17 @@ do
    fi
    if test $alg = 12 
    then
-	sh ../gost/prereq.sh 2>/dev/null || continue;
+	fail=0
+	$KEYGEN -q -r ../$RANDFILE -a eccgost test > /dev/null 2>&1 || fail=1
+	rm -f Ktest*
+	[ $fail != 0 ] && continue
    fi
    if test $alg = 13 
    then
-	sh ../ecdsa/prereq.sh 2>/dev/null || continue;
+	fail=0
+	$KEYGEN -q -r ../$RANDFILE -a ecdsap256sha256 test > /dev/null 2>&1 || fail=1
+	rm -f Ktest*
+	[ $fail != 0 ] && continue
 	# dsa and ecdsa both require a source of randomness when
 	# generating signatures
 	sh checkdsa.sh 2>/dev/null || continue;

@@ -51,6 +51,7 @@
         <arg choice="plain">-l <replaceable class="parameter">label</replaceable></arg>
       </group>
       <arg><option>-p <replaceable class="parameter">PIN</replaceable></option></arg>
+      <arg><option>-w <replaceable class="parameter">seconds</replaceable></option></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
 
@@ -62,9 +63,9 @@
       <option>label</option>.
     </para>
     <para>
-      Matching keys are displayed before being destroyed.  There is a
-      five second delay to allow the user to interrupt the process
-      before the destruction takes place.
+      Matching keys are displayed before being destroyed.  By default,
+      there is a five second delay to allow the user to interrupt the
+      process before the destruction takes place.
     </para>
   </refsect1>
 
@@ -116,6 +117,17 @@
           <para>
             Specify the PIN for the device.  If no PIN is provided on the
             command line, <command>pkcs11-destroy</command> will prompt for it.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-w <replaceable class="parameter">seconds</replaceable></term>
+        <listitem>
+          <para>
+            Specify how long to pause before carrying out key destruction.
+            The default is five seconds.  If set to <literal>0</literal>,
+            destruction will be immediate.
           </para>
         </listitem>
       </varlistentry>

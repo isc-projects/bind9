@@ -78,7 +78,7 @@ rm -f ns5/bits.bk.signed
 rm -f ns5/bits.bk.signed.jnl
 rm -f */*.jbk
 rm -f random.data
-rm -f dig.out.ns*.test*
+rm -f dig.out.ns*
 rm -f signing.out*
 rm -f freeze.test*
 rm -f thaw.test*

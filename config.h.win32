@@ -137,6 +137,11 @@
 /* Define if you have DH_generate_parameters(). */
 #define HAVE_DH_GENERATE_PARAMETERS
 
+/* Define if you have getpassphrase in the C library. */
+#define HAVE_GETPASSPHRASE
+
+char *getpassphrase(const char *);
+
 /*
  * Define to 1 if you want to use the DLZ "dlopen" driver
  * (which has the same name on windows even though it uses
@@ -328,6 +333,12 @@ typedef __int64 off_t;
 
 /* Define if your OpenSSL version supports GOST. */
 @HAVE_OPENSSL_GOST@
+
+/* Define if your PKCS11 provider supports ECDSA. */
+@HAVE_PKCS11_ECDSA@
+
+/* Define if your PKCS11 provider supports GOST. */
+@HAVE_PKCS11_GOST@
 
 /* Define to 1 if you have the `readline' function. */
 @HAVE_READLINE@

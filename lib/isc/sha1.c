@@ -44,8 +44,12 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#ifdef ISC_PLATFORM_OPENSSLHASH
+#if PKCS11CRYPTO
+#include <iscpk11/internal.h>
+#include <iscpk11/pk11.h>
+#endif
 
+#ifdef ISC_PLATFORM_OPENSSLHASH
 void
 isc_sha1_init(isc_sha1_t *context)
 {
@@ -75,6 +79,50 @@ isc_sha1_final(isc_sha1_t *context, unsigned char *digest) {
 	INSIST(context != 0);
 
 	EVP_DigestFinal(context, digest, NULL);
+}
+
+#elif PKCS11CRYPTO
+
+void
+isc_sha1_init(isc_sha1_t *ctx) {
+	CK_RV rv;
+	CK_MECHANISM mech = { CKM_SHA_1, NULL, 0 };
+
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_FALSE, ISC_FALSE,
+				       NULL, 0) == ISC_R_SUCCESS);
+	PK11_FATALCHECK(pkcs_C_DigestInit, (ctx->session, &mech));
+}
+
+void
+isc_sha1_invalidate(isc_sha1_t *ctx) {
+	CK_BYTE garbage[ISC_SHA1_DIGESTLENGTH];
+	CK_ULONG len = ISC_SHA1_DIGESTLENGTH;
+
+	if (ctx->handle == NULL)
+		return;
+	(void) pkcs_C_DigestFinal(ctx->session, garbage, &len);
+	memset(garbage, 0, sizeof(garbage));
+	pk11_return_session(ctx);
+}
+
+void
+isc_sha1_update(isc_sha1_t *ctx, const unsigned char *buf, unsigned int len) {
+	CK_RV rv;
+	CK_BYTE_PTR pPart;
+
+	DE_CONST(buf, pPart);
+	PK11_FATALCHECK(pkcs_C_DigestUpdate,
+			(ctx->session, pPart, (CK_ULONG) len));
+}
+
+void
+isc_sha1_final(isc_sha1_t *ctx, unsigned char *digest) {
+	CK_RV rv;
+	CK_ULONG len = ISC_SHA1_DIGESTLENGTH;
+
+	PK11_FATALCHECK(pkcs_C_DigestFinal,
+			(ctx->session, (CK_BYTE_PTR) digest, &len));
+	pk11_return_session(ctx);
 }
 
 #else

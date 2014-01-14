@@ -16,12 +16,25 @@
 
 # $Id: prereq.sh,v 1.3 2010/06/08 23:50:24 tbox Exp $
 
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 ../../../tools/genrandom 400 random.data
 
-if $KEYGEN -q -a RSAMD5 -b 512 -n zone -r random.data foo > /dev/null 2>&1
-then
-    rm -f Kfoo*
+rsafail=0 eccfail=0
+
+$KEYGEN -q -r random.data foo > /dev/null 2>&1 || rsafail=1
+rm -f Kfoo*
+
+$KEYGEN -q -a ECDSAP256SHA256 -r random.data foo > /dev/null 2>&1 || eccfail=1
+rm -f Kfoo*
+
+if [ $rsafail = 0 -a $eccfail = 0 ]; then
+	echo both > supported
+elif [ $rsafail = 1 -a $eccfail = 1 ]; then
+	echo "I:This test requires PKCS#11 support for either RSA or ECDSA cryptography." >&2
+	exit 255
+elif [ $rsafail = 0 ]; then
+	echo rsaonly > supported
 else
-    echo "I:This test requires that --with-openssl was used." >&2
-    exit 1
+        echo ecconly > supported
 fi

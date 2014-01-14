@@ -83,6 +83,12 @@ BIND 9.10.0
 	 - The internal and export versions of the BIND libraries
 	   (libisc, libdns, etc) have been unified so that external
 	   library clients can use the same libraries as BIND itself.
+	 - A new compile-time option allows the BIND 9 cryptography
+	   functions to use the PKCS#11 API natively, so that BIND
+	   can drive a cryptographic hardware service module directly
+	   instead of using a modified OpenSSL as an intermediary.
+	   This has been tested with the Thales nShield HSM and with
+	   SoftHSMv2 from the Open DNSSEC project.
 	 - New 'dnssec-coverage' tool to check DNSSEC key coverage
 	   for a zone and report if a lapse in signing coverage has
 	   been inadvertently scheduled.

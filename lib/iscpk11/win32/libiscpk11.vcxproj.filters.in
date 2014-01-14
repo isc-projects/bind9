@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Library Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Pkcs11 Header Files">
+      <UniqueIdentifier>{1237add4-05ec-41e0-bd7d-a38581c3da42}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Win32 Header Files">
+      <UniqueIdentifier>{e5eed450-93e9-4032-9d4e-b44047e87f9c}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Library Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Win32 Source Files">
+      <UniqueIdentifier>{cbb410e0-8d49-4706-a369-6f840a0b1af4}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\iscpk11\constants.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\iscpk11\internal.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\iscpk11\pk11.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\iscpk11\version.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\pkcs11\pkcs11.h">
+      <Filter>Pkcs11 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\pkcs11\pkcs11f.h">
+      <Filter>Pkcs11 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\pkcs11\pkcs11t.h">
+      <Filter>Pkcs11 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pkcs11\cryptoki.h">
+      <Filter>Win32 Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\pk11.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DLLMain.c">
+      <Filter>Win32 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pk11_api.c">
+      <Filter>Win32 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="version.c">
+      <Filter>Win32 Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libiscpk11.def" />
+  </ItemGroup>
+</Project>

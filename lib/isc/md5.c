@@ -41,10 +41,15 @@
 #include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/types.h>
+
+#if PKCS11CRYPTO
+#include <iscpk11/internal.h>
+#include <iscpk11/pk11.h>
+#endif
+
 #include <isc/util.h>
 
 #ifdef ISC_PLATFORM_OPENSSLHASH
-
 void
 isc_md5_init(isc_md5_t *ctx) {
 	EVP_DigestInit(ctx, EVP_md5());
@@ -63,6 +68,50 @@ isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len) {
 void
 isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 	EVP_DigestFinal(ctx, digest, NULL);
+}
+
+#elif PKCS11CRYPTO
+
+void
+isc_md5_init(isc_md5_t *ctx) {
+	CK_RV rv;
+	CK_MECHANISM mech = { CKM_MD5, NULL, 0 };
+
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_FALSE, ISC_FALSE,
+				       NULL, 0) == ISC_R_SUCCESS);
+	PK11_FATALCHECK(pkcs_C_DigestInit, (ctx->session, &mech));
+}
+
+void
+isc_md5_invalidate(isc_md5_t *ctx) {
+	CK_BYTE garbage[ISC_MD5_DIGESTLENGTH];
+	CK_ULONG len = ISC_MD5_DIGESTLENGTH;
+
+	if (ctx->handle == NULL)
+		return;
+	(void) pkcs_C_DigestFinal(ctx->session, garbage, &len);
+	memset(garbage, 0, sizeof(garbage));
+	pk11_return_session(ctx);
+}
+
+void
+isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len) {
+	CK_RV rv;
+	CK_BYTE_PTR pPart;
+
+	DE_CONST(buf, pPart);
+	PK11_FATALCHECK(pkcs_C_DigestUpdate,
+			(ctx->session, pPart, (CK_ULONG) len));
+}
+
+void
+isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
+	CK_RV rv;
+	CK_ULONG len = ISC_MD5_DIGESTLENGTH;
+
+	PK11_FATALCHECK(pkcs_C_DigestFinal,
+			(ctx->session, (CK_BYTE_PTR) digest, &len));
+	pk11_return_session(ctx);
 }
 
 #else

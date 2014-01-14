@@ -26,7 +26,8 @@ top_srcdir =	@top_srcdir@
 READLINE_LIB = @READLINE_LIB@
 
 CINCLUDES =	-I${srcdir}/include ${DNS_INCLUDES} ${BIND9_INCLUDES} \
-		${ISC_INCLUDES} ${LWRES_INCLUDES} ${ISCCFG_INCLUDES}
+		${ISC_INCLUDES} ${LWRES_INCLUDES} ${ISCCFG_INCLUDES} \
+		${ISCPK11_INCLUDES}
 
 CDEFINES =	-DVERSION=\"${VERSION}\"
 CWARNINGS =
@@ -37,20 +38,22 @@ BIND9LIBS =	../../lib/bind9/libbind9.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
+ISCPK11LIBS =	../../lib/iscpk11/libiscpk11.@A@
 
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
+ISCPK11DEPLIBS = ../../lib/iscpk11/libiscpk11.@A@
 
-DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS} ${ISCCFGDEPLIBS} \
-		${LWRESDEPLIBS}
+DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS} \
+		${ISCPK11DEPLIBS} ${ISCCFGDEPLIBS} ${LWRESDEPLIBS}
 
-LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCCFGLIBS} \
+LIBS =		${LWRESLIBS} ${BIND9LIBS} ${ISCCFGLIBS} \
 		${ISCLIBS} @IDNLIBS@ @LIBS@
 
-NOSYMLIBS =	${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCCFGLIBS} \
+NOSYMLIBS =	${LWRESLIBS} ${BIND9LIBS} ${ISCCFGLIBS} \
 		${ISCNOSYMLIBS} @IDNLIBS@ @LIBS@
 
 SUBDIRS =
@@ -73,14 +76,17 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 dig@EXEEXT@: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 	export BASEOBJS="dig.@O@ dighost.@O@ ${UOBJS}"; \
+	export LIBS0="${DNSLIBS} ${ISCPK11LIBS}"; \
 	${FINALBUILDCMD}
 
 host@EXEEXT@: host.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 	export BASEOBJS="host.@O@ dighost.@O@ ${UOBJS}"; \
+	export LIBS0="${DNSLIBS} ${ISCPK11LIBS}"; \
 	${FINALBUILDCMD}
 
 nslookup@EXEEXT@: nslookup.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 	export BASEOBJS="nslookup.@O@ dighost.@O@ ${READLINE_LIB} ${UOBJS}"; \
+	export LIBS0="${DNSLIBS} ${ISCPK11LIBS}"; \
 	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}

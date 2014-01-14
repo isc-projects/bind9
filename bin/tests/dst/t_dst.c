@@ -110,7 +110,8 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 	isc_buffer_add(&databuf, strlen(data));
 	isc_buffer_usedregion(&databuf, &datareg);
 
-	ret = dst_context_create(key, mctx, &ctx);
+	ret = dst_context_create3(key, mctx,
+				  DNS_LOGCATEGORY_GENERAL, ISC_TRUE, &ctx);
 	if (ret != exp_result) {
 		t_info("dst_context_create(%d) returned (%s) expected (%s)\n",
 		       dst_key_alg(key), dst_result_totext(ret),
@@ -139,7 +140,8 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 	dst_context_destroy(&ctx);
 
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
-	ret = dst_context_create(key, mctx, &ctx);
+	ret = dst_context_create3(key, mctx,
+				  DNS_LOGCATEGORY_GENERAL, ISC_FALSE, &ctx);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_context_create(%d) returned (%s)\n",
 		       dst_key_alg(key), dst_result_totext(ret));
@@ -798,7 +800,9 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	memset(sig, 0, sizeof(sig));
 	isc_buffer_init(&sigbuf, sig, sizeof(sig));
 
-	isc_result = dst_context_create(key, mctx, &ctx);
+	isc_result = dst_context_create3(key, mctx,
+					 DNS_LOGCATEGORY_GENERAL,
+					 ISC_TRUE, &ctx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_context_create(%d) failed %s\n",
 		       dst_result_totext(isc_result));
@@ -864,7 +868,9 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	if (strstr(expected_result, "!"))
 		exp_res = 1;
 
-	isc_result = dst_context_create(key, mctx, &ctx);
+	isc_result = dst_context_create3(key, mctx,
+					 DNS_LOGCATEGORY_GENERAL,
+					 ISC_FALSE, &ctx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_context_create returned %s\n",
 			isc_result_totext(isc_result));

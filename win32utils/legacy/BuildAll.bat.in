@@ -37,6 +37,12 @@ echo Build all of the Library files
 
 cd ..\..\lib
 
+@IF PKCS11
+cd iscpk11\win32
+nmake /nologo -f libiscpk11.mak CFG="libiscpk11 - Win32 Release"  NO_EXTERNAL_DEPS="1"
+cd ..\..
+@END PKCS11
+
 cd isc\win32
 nmake /nologo -f libisc.mak CFG="libisc - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
@@ -126,6 +132,7 @@ cd pkcs11\win32
 nmake /nologo -f pk11keygen.mak CFG="pk11keygen - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f pk11list.mak CFG="pk11list - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f pk11destroy.mak CFG="pk11destroy - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f pk11tokens.mak CFG="pk11tokens - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 @END PKCS11
 

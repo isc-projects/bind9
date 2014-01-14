@@ -132,14 +132,11 @@ int sigwait(const unsigned int *set, int *sig);
 /** define if you have strerror in the C library. */
 #undef HAVE_STRERROR
 
-/** Define if you are running under Compaq TruCluster. */
-#undef HAVE_TRUCLUSTER
-
 /* Define if OpenSSL includes DSA support */
 #undef HAVE_OPENSSL_DSA
 
-/* Define if OpenSSL includes ECDSA support */
-#undef HAVE_OPENSSL_ECDSA
+/* Define if you have getpassphrase in the C library. */
+#undef HAVE_GETPASSPHRASE
 
 /* Define to the length type used by the socket API (socklen_t, size_t, int). */
 #undef ISC_SOCKADDR_LEN_T

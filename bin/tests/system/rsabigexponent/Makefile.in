@@ -24,7 +24,7 @@ top_srcdir =	@top_srcdir@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} @DST_OPENSSL_INC@
 
-CDEFINES =	@USE_OPENSSL@
+CDEFINES =	@CRYPTO@
 CWARNINGS =
 
 DNSLIBS =	../../../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@

@@ -309,6 +309,7 @@ hmacmd5_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 static dst_func_t hmacmd5_functions = {
 	hmacmd5_createctx,
+	NULL, /*%< createctx2 */
 	hmacmd5_destroyctx,
 	hmacmd5_adddata,
 	hmacmd5_sign,
@@ -585,6 +586,7 @@ hmacsha1_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 static dst_func_t hmacsha1_functions = {
 	hmacsha1_createctx,
+	NULL, /*%< createctx2 */
 	hmacsha1_destroyctx,
 	hmacsha1_adddata,
 	hmacsha1_sign,
@@ -863,6 +865,7 @@ hmacsha224_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 static dst_func_t hmacsha224_functions = {
 	hmacsha224_createctx,
+	NULL, /*%< createctx2 */
 	hmacsha224_destroyctx,
 	hmacsha224_adddata,
 	hmacsha224_sign,
@@ -1141,6 +1144,7 @@ hmacsha256_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 static dst_func_t hmacsha256_functions = {
 	hmacsha256_createctx,
+	NULL, /*%< createctx2 */
 	hmacsha256_destroyctx,
 	hmacsha256_adddata,
 	hmacsha256_sign,
@@ -1419,6 +1423,7 @@ hmacsha384_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 static dst_func_t hmacsha384_functions = {
 	hmacsha384_createctx,
+	NULL, /*%< createctx2 */
 	hmacsha384_destroyctx,
 	hmacsha384_adddata,
 	hmacsha384_sign,
@@ -1697,6 +1702,7 @@ hmacsha512_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 static dst_func_t hmacsha512_functions = {
 	hmacsha512_createctx,
+	NULL, /*%< createctx2 */
 	hmacsha512_destroyctx,
 	hmacsha512_adddata,
 	hmacsha512_sign,

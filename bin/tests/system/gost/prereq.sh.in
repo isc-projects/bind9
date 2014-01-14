@@ -16,9 +16,16 @@
 
 # $Id: prereq.sh.in,v 1.4 2010/12/27 13:38:43 marka Exp $
 
-OPENSSL_GOST="@OPENSSL_GOST@"
-if test -z "$OPENSSL_GOST"
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+../../../tools/genrandom 400 random.data
+
+fail=0
+$KEYGEN -q -a eccgost test > /dev/null 2>&1 || fail=1
+rm -f Ktest* random.data
+
+if [ $fail != 0 ]
 then
-    echo "I:This test requires a openssl version with gost support." >&2
+    echo "I:This test requires support for GOST cryptography." >&2
     exit 255
 fi

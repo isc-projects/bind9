@@ -104,9 +104,6 @@
     <ClInclude Include="..\include\isc\interfaceiter.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\ipv6.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\iterated_hash.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -209,6 +206,9 @@
     <ClInclude Include="..\include\isc\rwlock.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\safe.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\serial.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -222,9 +222,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\socket.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\isc\stats.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\stdio.h">
@@ -512,6 +509,9 @@
     <ClCompile Include="..\mem.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\nls\msgcat.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\mutexblock.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -531,9 +531,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\portset.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\nls\msgcat.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\quota.c">
@@ -561,6 +558,9 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\rwlock.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\safe.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\serial.c">

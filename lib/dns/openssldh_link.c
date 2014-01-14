@@ -630,6 +630,7 @@ openssldh_cleanup(void) {
 
 static dst_func_t openssldh_functions = {
 	NULL, /*%< createctx */
+	NULL, /*%< createctx2 */
 	NULL, /*%< destroyctx */
 	NULL, /*%< adddata */
 	NULL, /*%< openssldh_sign */

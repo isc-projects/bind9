@@ -38,11 +38,8 @@
 
 #include <dst/dst.h>
 
-#ifdef HAVE_OPENSSL_GOST
-#include <dst/result.h>
-#include <openssl/evp.h>
-
-extern const EVP_MD * EVP_gost(void);
+#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
+#include "dst_gost.h"
 #endif
 
 isc_result_t
@@ -59,9 +56,8 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 	isc_sha1_t sha1;
 	isc_sha256_t sha256;
 	isc_sha384_t sha384;
-#ifdef HAVE_OPENSSL_GOST
-	EVP_MD_CTX ctx;
-	const EVP_MD *md;
+#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
+	isc_gost_t gost;
 #endif
 
 	REQUIRE(key != NULL);
@@ -88,29 +84,23 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 		isc_sha1_final(&sha1, digest);
 		break;
 
-#ifdef HAVE_OPENSSL_GOST
-#define CHECK(x)					\
-	if ((x) != 1) {					\
-		EVP_MD_CTX_cleanup(&ctx);		\
-		return (DST_R_CRYPTOFAILURE);		\
-	}
+#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
+#define RETERR(x) do {					\
+	isc_result_t ret = (x);				\
+	if (ret != ISC_R_SUCCESS) {			\
+		isc_gost_invalidate(&gost);		\
+		return (ret);				\
+	}						\
+} while (0)
 
 	case DNS_DSDIGEST_GOST:
-		md = EVP_gost();
-		if (md == NULL)
-			return (DST_R_CRYPTOFAILURE);
-		EVP_MD_CTX_init(&ctx);
-		CHECK(EVP_DigestInit(&ctx, md));
+		RETERR(isc_gost_init(&gost));
 		dns_name_toregion(name, &r);
-		CHECK(EVP_DigestUpdate(&ctx,
-				       (const void *) r.base,
-				       (size_t) r.length));
+		RETERR(isc_gost_update(&gost, r.base, r.length));
 		dns_rdata_toregion(key, &r);
 		INSIST(r.length >= 4);
-		CHECK(EVP_DigestUpdate(&ctx,
-				       (const void *) r.base,
-				       (size_t) r.length));
-		CHECK(EVP_DigestFinal(&ctx, digest, NULL));
+		RETERR(isc_gost_update(&gost, r.base, r.length));
+		RETERR(isc_gost_final(&gost, digest));
 		break;
 #endif
 
@@ -147,7 +137,7 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 		ds.length = ISC_SHA1_DIGESTLENGTH;
 		break;
 
-#ifdef HAVE_OPENSSL_GOST
+#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
 	case DNS_DSDIGEST_GOST:
 		ds.length = ISC_GOST_DIGESTLENGTH;
 		break;

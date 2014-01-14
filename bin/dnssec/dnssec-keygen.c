@@ -119,10 +119,15 @@ usage(void) {
 	fprintf(stderr, "        (DNSKEY generation defaults to ZONE)\n");
 	fprintf(stderr, "    -c <class>: (default: IN)\n");
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
-#ifdef USE_PKCS11
-	fprintf(stderr, "    -E <engine name> (default \"pkcs11\")\n");
+	fprintf(stderr, "    -E <engine>:\n");
+#if defined(PKCS11CRYPTO)
+	fprintf(stderr, "        path to PKCS#11 provider library "
+				"(default is %s)\n", PK11_LIB_LOCATION);
+#elif defined(USE_PKCS11)
+	fprintf(stderr, "        name of an OpenSSL engine to use "
+				"(default is \"pkcs11\")\n");
 #else
-	fprintf(stderr, "    -E <engine name>\n");
+	fprintf(stderr, "        name of an OpenSSL engine to use\n");
 #endif
 	fprintf(stderr, "    -f <keyflag>: KSK | REVOKE\n");
 	fprintf(stderr, "    -g <generator>: use specified generator "
@@ -223,7 +228,7 @@ main(int argc, char **argv) {
 	isc_log_t	*log = NULL;
 	isc_entropy_t	*ectx = NULL;
 #ifdef USE_PKCS11
-	const char	*engine = "pkcs11";
+	const char	*engine = PKCS11_ENGINE;
 #else
 	const char	*engine = NULL;
 #endif

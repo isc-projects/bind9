@@ -76,10 +76,15 @@ usage(void) {
 			       "NSEC3RSASHA1 if using -3)\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -c class (default: IN)\n");
-#ifdef USE_PKCS11
-	fprintf(stderr, "    -E enginename (default: pkcs11)\n");
+	fprintf(stderr, "    -E <engine>:\n");
+#if defined(PKCS11CRYPTO)
+	fprintf(stderr, "        path to PKCS#11 provider library "
+				"(default is %s)\n", PK11_LIB_LOCATION);
+#elif defined(USE_PKCS11)
+	fprintf(stderr, "        name of an OpenSSL engine to use "
+				"(default is \"pkcs11\")\n");
 #else
-	fprintf(stderr, "    -E enginename\n");
+	fprintf(stderr, "        name of an OpenSSL engine to use\n");
 #endif
 	fprintf(stderr, "    -f keyflag: KSK | REVOKE\n");
 	fprintf(stderr, "    -K directory: directory in which to place "
@@ -116,7 +121,7 @@ main(int argc, char **argv) {
 	char		*nametype = NULL, *type = NULL;
 	const char	*directory = NULL;
 #ifdef USE_PKCS11
-	const char	*engine = "pkcs11";
+	const char	*engine = PKCS11_ENGINE;
 #else
 	const char	*engine = NULL;
 #endif
@@ -334,16 +339,15 @@ main(int argc, char **argv) {
 	if (argc > isc_commandline_index + 1)
 		fatal("extraneous arguments");
 
-	if (strchr(label, ':') == NULL &&
-	    engine != NULL && strlen(engine) != 0U) {
+	if (strchr(label, ':') == NULL) {
 		char *l;
 		int len;
 
-		len = strlen(label) + strlen(engine) + 2;
+		len = strlen(label) + 8;
 		l = isc_mem_allocate(mctx, len);
 		if (l == NULL)
 			fatal("cannot allocate memory");
-		snprintf(l, len, "%s:%s", engine, label);
+		snprintf(l, len, "pkcs11:%s", label);
 		isc_mem_free(mctx, label);
 		label = l;
 	}
@@ -460,7 +464,7 @@ main(int argc, char **argv) {
 
 	/* associate the key */
 	ret = dst_key_fromlabel(name, alg, flags, protocol,
-				rdclass, engine, label, NULL, mctx, &key);
+				rdclass, "pkcs11", label, NULL, mctx, &key);
 	isc_entropy_stopcallbacksources(ectx);
 
 	if (ret != ISC_R_SUCCESS) {
@@ -468,7 +472,7 @@ main(int argc, char **argv) {
 		char algstr[DNS_SECALG_FORMATSIZE];
 		dns_name_format(name, namestr, sizeof(namestr));
 		dns_secalg_format(alg, algstr, sizeof(algstr));
-		fatal("failed to get key %s/%s: %s\n",
+		fatal("failed to get key %s/%s: %s",
 		      namestr, algstr, isc_result_totext(ret));
 		/* NOTREACHED */
 		exit(-1);

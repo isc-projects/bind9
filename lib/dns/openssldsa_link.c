@@ -586,7 +586,7 @@ openssldsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dsa->flags &= ~DSA_FLAG_CACHE_MONT_P;
 	key->keydata.dsa = dsa;
 
-	for (i=0; i < priv.nelements; i++) {
+	for (i = 0; i < priv.nelements; i++) {
 		BIGNUM *bn;
 		bn = BN_bin2bn(priv.elements[i].data,
 			       priv.elements[i].length, NULL);
@@ -639,6 +639,7 @@ openssldsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 static dst_func_t openssldsa_functions = {
 	openssldsa_createctx,
+	NULL, /*%< createctx2 */
 	openssldsa_destroyctx,
 	openssldsa_adddata,
 	openssldsa_sign,

@@ -16,9 +16,16 @@
 
 # $Id$
 
-OPENSSL_ECDSA="@OPENSSL_ECDSA@"
-if test -z "$OPENSSL_ECDSA"
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+../../../tools/genrandom 400 random.data
+
+fail=0
+$KEYGEN -q -a ecdsap256sha256 test > /dev/null 2>&1 || fail=1
+rm -f Ktest* random.data
+
+if [ $fail != 0 ]
 then
-    echo "I:This test requires a openssl version with ecdsa support." >&2
+    echo "I:This test requires support for ECDSA cryptography." >&2
     exit 255
 fi

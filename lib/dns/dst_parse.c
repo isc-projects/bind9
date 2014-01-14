@@ -93,7 +93,6 @@ static struct parse_map map[] = {
 	{TAG_RSA_COEFFICIENT, "Coefficient:"},
 	{TAG_RSA_ENGINE, "Engine:" },
 	{TAG_RSA_LABEL, "Label:" },
-	{TAG_RSA_PIN, "PIN:" },
 
 	{TAG_DH_PRIME, "Prime(p):"},
 	{TAG_DH_GENERATOR, "Generator(g):"},
@@ -107,8 +106,11 @@ static struct parse_map map[] = {
 	{TAG_DSA_PUBLIC, "Public_value(y):"},
 
 	{TAG_GOST_PRIVASN1, "GostAsn1:"},
+	{TAG_GOST_PRIVRAW, "PrivateKey:"},
 
 	{TAG_ECDSA_PRIVATEKEY, "PrivateKey:"},
+	{TAG_ECDSA_ENGINE, "Engine:" },
+	{TAG_ECDSA_LABEL, "Label:" },
 
 	{TAG_HMACMD5_KEY, "Key:"},
 	{TAG_HMACMD5_BITS, "Bits:"},
@@ -262,22 +264,42 @@ check_gost(const dst_private_t *priv, isc_boolean_t external) {
 
 	if (priv->nelements != GOST_NTAGS)
 		return (-1);
-	if (priv->elements[0].tag != TAG(DST_ALG_ECCGOST, 0))
+	if ((priv->elements[0].tag != TAG(DST_ALG_ECCGOST, 0)) &&
+	    (priv->elements[0].tag != TAG(DST_ALG_ECCGOST, 1)))
 		return (-1);
 	return (0);
 }
 
 static int
 check_ecdsa(const dst_private_t *priv, isc_boolean_t external) {
+	int i, j;
+	isc_boolean_t have[ECDSA_NTAGS];
+	isc_boolean_t ok;
+	unsigned int mask;
 
 	if (external)
 		return ((priv->nelements == 0) ? 0 : -1);
 
-	if (priv->nelements != ECDSA_NTAGS)
-		return (-1);
-	if (priv->elements[0].tag != TAG(DST_ALG_ECDSA256, 0))
-		return (-1);
-	return (0);
+	for (i = 0; i < ECDSA_NTAGS; i++)
+		have[i] = ISC_FALSE;
+	for (j = 0; j < priv->nelements; j++) {
+		for (i = 0; i < ECDSA_NTAGS; i++)
+			if (priv->elements[j].tag == TAG(DST_ALG_ECDSA256, i))
+				break;
+		if (i == ECDSA_NTAGS)
+			return (-1);
+		have[i] = ISC_TRUE;
+	}
+
+	mask = ~0;
+	mask <<= sizeof(mask) * 8 - TAG_SHIFT;
+	mask >>= sizeof(mask) * 8 - TAG_SHIFT;
+
+	if (have[TAG_ECDSA_ENGINE & mask])
+		ok = have[TAG_ECDSA_LABEL & mask];
+	else
+		ok = have[TAG_ECDSA_PRIVATEKEY & mask];
+	return (ok ? 0 : -1 );
 }
 
 static int

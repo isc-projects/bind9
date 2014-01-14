@@ -34,16 +34,20 @@ top_srcdir =	@top_srcdir@
 
 USE_ISC_SPNEGO = @USE_ISC_SPNEGO@
 
-CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} \
-		${ISC_INCLUDES} @DST_OPENSSL_INC@ @DST_GSSAPI_INC@
+CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} ${ISC_INCLUDES} \
+		${ISCPK11_INCLUDES} @DST_OPENSSL_INC@ @DST_GSSAPI_INC@
 
-CDEFINES =	-DUSE_MD5 @USE_OPENSSL@ @USE_GSSAPI@ ${USE_ISC_SPNEGO}
+CDEFINES =	-DUSE_MD5 @CRYPTO@ @USE_GSSAPI@ ${USE_ISC_SPNEGO}
 
 CWARNINGS =
 
 ISCLIBS =	../../lib/isc/libisc.@A@
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
+
+ISCPK11LIBS =	../../lib/iscpk11/libiscpk11.@A@
+
+ISCPK11DEPLIBS = ../../lib/iscpk11/libiscpk11.@A@
 
 LIBS =		@LIBS@
 
@@ -54,7 +58,10 @@ OPENSSLLINKOBJS = openssl_link.@O@ openssldh_link.@O@ openssldsa_link.@O@ \
 		  opensslecdsa_link.@O@ @OPENSSLGOSTLINKOBJS@ \
 		  opensslrsa_link.@O@
 
-DSTOBJS =	@DST_EXTRA_OBJS@ @OPENSSLLINKOBJS@ \
+PKCS11LINKOBJS	= pkcs11dh_link.@O@ pkcs11dsa_link.@O@ pkcs11rsa_link.@O@ \
+		pkcs11ecdsa_link.@O@ pkcs11gost_link.@O@ pkcs11.@O@
+
+DSTOBJS =	@DST_EXTRA_OBJS@ @OPENSSLLINKOBJS@ @PKCS11LINKOBJS@ \
 		dst_api.@O@ dst_lib.@O@ dst_parse.@O@ dst_result.@O@ \
 		gssapi_link.@O@ gssapictx.@O@ hmac_link.@O@ key.@O@ 
 
@@ -89,7 +96,10 @@ OPENSSLGOSTLINKSRCS = opensslgost_link.c
 OPENSSLLINKSRCS = openssl_link.c openssldh_link.c openssldsa_link.c \
 		  opensslecdsa_link.c @OPENSSLGOSTLINKSRCS@ opensslrsa_link.c
 
-DSTSRCS =	@DST_EXTRA_SRCS@ @OPENSSLLINKSRCS@ \
+PKCS11LINKSRCS	= pkcs11dh_link.c pkcs11dsa_link.c pkcs11rsa_link.c \
+		pkcs11ecdsa_link.c pkcs11gost_link.c pkcs11.c
+
+DSTSRCS =	@DST_EXTRA_SRCS@ @OPENSSLLINKSRCS@ @PKCS11LINKSRCS@ \
 		dst_api.c dst_lib.c dst_parse.c \
 		dst_result.c gssapi_link.c gssapictx.c \
 		hmac_link.c key.c
@@ -142,7 +152,7 @@ libdns.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libdns.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
-		${OBJS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ ${LIBS}
+		${OBJS} ${ISCLIBS} ${ISCPK11LIBS} @DNS_CRYPTO_LIBS@ ${LIBS}
 
 timestamp: libdns.@A@
 	touch timestamp

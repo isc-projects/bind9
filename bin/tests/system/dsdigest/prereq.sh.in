@@ -16,22 +16,22 @@
 
 # $Id$
 
-OPENSSL_ECDSA="@OPENSSL_ECDSA@"
-OPENSSL_GOST="@OPENSSL_GOST@"
-if test -n "$OPENSSL_ECDSA"
-then
-    if test -n "$OPENSSL_GOST"
-    then
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+../../../tools/genrandom 400 random.data
+
+gostfail=0 ecdsafail=0
+$KEYGEN -q -a eccgost test > /dev/null 2>&1 || gostfail=1
+$KEYGEN -q -a ecdsap256sha256 test > /dev/null 2>&1 || ecdsafail=1
+rm -f Ktest* random.data
+
+if [ $gostfail = 0 -a $ecdsafail = 0 ]; then
 	echo both > supported
-    else
-	echo ecdsa > supported
-    fi
-else
-    if test -n "$OPENSSL_GOST"
-    then
-	echo gost > supported
-    else
-	echo "I:This test requires a openssl version with ecdsa or gost support." >&2
+elif [ $gostfail = 1 -a $ecdsafail = 1 ]; then
+	echo "I:This test requires support for ECDSA or GOST cryptography." >&2
 	exit 255
-    fi
+elif [ $gostfail = 0 ]; then
+	echo gost > supported
+else
+        echo ecdsa > supported
 fi

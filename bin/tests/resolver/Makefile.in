@@ -20,7 +20,8 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${TEST_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	${TEST_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} \
+		${ISCPK11_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
@@ -28,13 +29,15 @@ CWARNINGS =
 # Note that we do not want to use libtool for libt_api
 DNSLIBS =	../../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../../lib/isc/libisc.@A@
+ISCPK11LIBS =	../../../lib/iscpk11/libiscpk11.@A@
 
 DNSDEPLIBS =	../../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../../lib/isc/libisc.@A@
+ISCPK11DEPLIBS = ../../../lib/iscpk11/libiscpk11.@A@
 
-DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
+DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
 
-LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
+LIBS =		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} @LIBS@
 
 TLIB =		../../../lib/tests/libt_api.@A@
 

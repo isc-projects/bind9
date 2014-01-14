@@ -1,3 +1,13 @@
+3705.	[func]		"configure --enable-native-pkcs11" enables BIND
+			to use the PKCS#11 API for all cryptographic
+			functions, so that it can drive a hardware service
+			module directly without the need to use a modified
+			OpenSSL as intermediary (so long as the HSM's vendor
+			provides a complete-enough implementation of the
+			PKCS#11 interface). This has been tested successfully
+			with the Thales nShield HSM and with SoftHSMv2 from
+			the OpenDNSSEC project. [RT #29031]
+
 3704.	[protocol]	Accept integer timestamps in RRSIG records. [RT #35185]
 
 3703.	[func]		To improve recursive resolver performance, cache

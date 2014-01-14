@@ -149,8 +149,8 @@ EXTERN const char *		lwresd_g_defaultpidfile INIT(NS_LOCALSTATEDIR
 
 EXTERN const char *		ns_g_username		INIT(NULL);
 
-#ifdef USE_PKCS11
-EXTERN const char *		ns_g_engine		INIT("pkcs11");
+#if defined(USE_PKCS11)
+EXTERN const char *		ns_g_engine		INIT(PKCS11_ENGINE);
 #else
 EXTERN const char *		ns_g_engine		INIT(NULL);
 #endif

@@ -21,20 +21,22 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${TEST_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	${TEST_INCLUDES} ${ISC_INCLUDES} ${ISCPK11_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 ISCLIBS =	../../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
 TAPIDEPLIBS =	../../../lib/tests/libt_api.@A@
+ISCPK11LIBS =	../../../lib/iscpk11/libiscpk11.@A@
 
 ISCDEPLIBS =	../../../lib/isc/libisc.@A@
 TAPILIBS =	../../../lib/tests/libt_api.@A@
+ISCPK11DEPLIBS = ../../../lib/iscpk11/libiscpk11.@A@
 
-DEPLIBS =	${TAPIDEPLIBS} ${ISCDEPLIBS}
+DEPLIBS =	${TAPIDEPLIBS} ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
 
-LIBS =		${TAPILIBS} ${ISCLIBS} @LIBS@
+LIBS =		${TAPILIBS} ${ISCLIBS} ${ISCPK11LIBS} @LIBS@
 
 TARGETS =	t_tasks@EXEEXT@
 

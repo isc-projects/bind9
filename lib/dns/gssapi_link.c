@@ -358,6 +358,7 @@ gssapi_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
 
 static dst_func_t gssapi_functions = {
 	gssapi_create_signverify_ctx,
+	NULL, /*%< createctx2 */
 	gssapi_destroy_signverify_ctx,
 	gssapi_adddata,
 	gssapi_sign,

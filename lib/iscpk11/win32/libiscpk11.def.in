@@ -1,0 +1,61 @@
+LIBRARY libiscpk11
+
+; Exported Functions
+EXPORTS
+
+@IF PKCS11
+dst__pkcs11_init
+dst__pkcs11_destroy
+getpassphrase
+pk11_attribute_bytype
+pk11_attribute_first
+pk11_attribute_next
+pk11_dump_tokens
+pk11_error_fatalcheck
+pk11_get_best_token
+pk11_get_lib_name
+pk11_get_session
+pk11_mem_get
+pk11_mem_put
+pk11_numbits
+pk11_parse_uri
+pk11_rand_bytes
+pk11_rand_seed_fromfile
+pk11_return_session
+pk11_set_lib_name
+pk11_shutdown
+pkcs_C_CloseSession
+pkcs_C_CreateObject
+pkcs_C_DeriveKey
+pkcs_C_DestroyObject
+pkcs_C_DigestFinal
+pkcs_C_DigestInit
+pkcs_C_DigestUpdate
+pkcs_C_Finalize
+pkcs_C_FindObjects
+pkcs_C_FindObjectsFinal
+pkcs_C_FindObjectsInit
+pkcs_C_GenerateKey
+pkcs_C_GenerateKeyPair
+pkcs_C_GenerateRandom
+pkcs_C_GetAttributeValue
+pkcs_C_GetMechanismInfo
+pkcs_C_GetSlotList
+pkcs_C_GetTokenInfo
+pkcs_C_Initialize
+pkcs_C_Login
+pkcs_C_Logout
+pkcs_C_OpenSession
+pkcs_C_SeedRandom
+pkcs_C_SetAttributeValue
+pkcs_C_Sign
+pkcs_C_SignFinal
+pkcs_C_SignInit
+pkcs_C_SignUpdate
+pkcs_C_Verify
+pkcs_C_VerifyFinal
+pkcs_C_VerifyInit
+pkcs_C_VerifyUpdate
+@END PKCS11
+
+; Exported Data

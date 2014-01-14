@@ -61,6 +61,6 @@
 
 #undef CK_PKCS11_FUNCTION_INFO
 
-#include "pkcs11.h"
+#include <pkcs11/pkcs11.h>
 
 #endif /* ___CRYPTOKI_H_INC___ */

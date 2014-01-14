@@ -187,6 +187,15 @@ isc_result_t
 dst_context_create2(dst_key_t *key, isc_mem_t *mctx,
 		    isc_logcategory_t *category, dst_context_t **dctxp);
 
+isc_result_t
+dst_context_create3(dst_key_t *key, isc_mem_t *mctx,
+		    isc_logcategory_t *category, isc_boolean_t useforsigning,
+		    dst_context_t **dctxp);
+
+isc_result_t
+dst_context_create4(dst_key_t *key, isc_mem_t *mctx,
+		    isc_logcategory_t *category, isc_boolean_t useforsigning,
+		    int maxbits, dst_context_t **dctxp);
 /*%<
  * Creates a context to be used for a sign or verify operation.
  *

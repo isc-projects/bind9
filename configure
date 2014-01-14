@@ -1178,6 +1178,7 @@ BIND9_DNS_BUILDINCLUDE
 BIND9_ISCCFG_BUILDINCLUDE
 BIND9_ISCCC_BUILDINCLUDE
 BIND9_ISC_BUILDINCLUDE
+BIND9_ISCPK11_BUILDINCLUDE
 BIND9_TOP_BUILDDIR
 UNITTESTS
 ATFLIBS
@@ -1299,6 +1300,25 @@ IRIX_DNSSEC_WARNINGS_HACK
 MKDEPPROG
 MKDEPCFLAGS
 MKDEPCC
+PKCS11_TEST
+PKCS11_GOST
+PKCS11_ECDSA
+CRYPTO
+PKCS11LINKSRCS
+PKCS11LINKOBJS
+PKCS11_PROVIDER
+PKCS11_ENGINE
+PKCS11_TOOLS
+USE_PKCS11
+ISC_OPENSSL_INC
+ISC_PLATFORM_OPENSSLHASH
+OPENSSL_GOST
+OPENSSL_ECDSA
+OPENSSLLINKSRCS
+OPENSSLLINKOBJS
+OPENSSLGOSTLINKSRCS
+OPENSSLGOSTLINKOBJS
+DST_OPENSSL_INC
 ISC_THREAD_DIR
 THREADOPTSRCS
 THREADOPTOBJS
@@ -1315,19 +1335,6 @@ ISC_PLATFORM_GSSAPIHEADER
 ISC_PLATFORM_HAVEGSSAPI
 GEOIPLINKOBJS
 GEOIPLINKSRCS
-PKCS11_PROVIDER
-PKCS11_TOOLS
-USE_PKCS11
-ISC_OPENSSL_INC
-ISC_PLATFORM_OPENSSLHASH
-OPENSSL_GOST
-OPENSSL_ECDSA
-OPENSSLLINKSRCS
-OPENSSLLINKOBJS
-OPENSSLGOSTLINKSRCS
-OPENSSLGOSTLINKOBJS
-DST_OPENSSL_INC
-USE_OPENSSL
 LWRES_PLATFORM_NEEDSYSSELECTH
 ISC_PLATFORM_NEEDSYSSELECTH
 ISC_PLATFORM_HAVEDEVPOLL
@@ -1434,6 +1441,7 @@ PATH_SEPARATOR
 SHELL'
 ac_subst_files='BIND9_MAKE_INCLUDES
 BIND9_MAKE_RULES
+LIBISCPK11_API
 LIBISC_API
 LIBISCCC_API
 LIBISCCFG_API
@@ -1458,16 +1466,17 @@ with_python
 enable_kqueue
 enable_epoll
 enable_devpoll
-with_openssl
-enable_openssl_version_check
-with_ecdsa
-with_gost
-enable_openssl_hash
-with_pkcs11
 with_geoip
 with_gssapi
 with_randomdev
 enable_threads
+enable_native_pkcs11
+with_openssl
+with_pkcs11
+with_ecdsa
+with_gost
+enable_openssl_version_check
+enable_openssl_hash
 with_libxml2
 with_libjson
 enable_largefile
@@ -2135,10 +2144,11 @@ Optional Features:
   --enable-kqueue         use BSD kqueue when available [default=yes]
   --enable-epoll          use Linux epoll when available [default=auto]
   --enable-devpoll        use /dev/poll when available [default=yes]
+  --enable-threads        enable multithreading
+  --enable-native-pkcs11  use native PKCS11 for all crypto [default=no]
   --enable-openssl-version-check
                           Check OpenSSL Version [default=yes]
   --enable-openssl-hash   use OpenSSL for hash functions [default=no]
-  --enable-threads        enable multithreading
   --enable-largefile	  64-bit file support
   --enable-backtrace      log stack backtrace on abort [default=yes]
   --enable-symtable       use internal symbol table for backtrace
@@ -2167,15 +2177,15 @@ Optional Packages:
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
   --with-python=PATH      Specify path to python interpreter
-  --with-openssl=PATH     Build with OpenSSL yes|no|path.
-			  (Required for DNSSEC)
-  --with-ecdsa            OpenSSL ECDSA
-  --with-gost             OpenSSL GOST
-  --with-pkcs11=PATH      Build with PKCS11 support yes|no|path
-                          (PATH is for the PKCS11 provider)
   --with-geoip=PATH       Build with GeoIP support (yes|no|path)
   --with-gssapi=PATH      Specify path for system-supplied GSSAPI [default=yes]
   --with-randomdev=PATH   Specify path for random device
+  --with-openssl=PATH     Build with OpenSSL yes|no|path.
+			  (Crypto is required for DNSSEC)
+  --with-pkcs11=PATH      Build with PKCS11 support yes|no|path
+                          (PATH is for the PKCS11 provider)
+  --with-ecdsa            Crypto ECDSA
+  --with-gost             Crypto GOST
   --with-libxml2=PATH     Build with libxml2 library yes|no|path
   --with-libjson=PATH     Build with libjson0 library yes|no|path
   --with-purify=PATH      use Rational purify
@@ -13948,534 +13958,8 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
 
 
 #
-# was --with-openssl specified?
+# GeoIP support?
 #
-OPENSSL_WARNING=
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL library" >&5
-$as_echo_n "checking for OpenSSL library... " >&6; }
-
-# Check whether --with-openssl was given.
-if test "${with_openssl+set}" = set; then :
-  withval=$with_openssl; use_openssl="$withval"
-else
-  use_openssl="auto"
-fi
-
-
-openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
-if test "$use_openssl" = "auto"
-then
-	for d in $openssldirs
-	do
-		if test -f $d/include/openssl/opensslv.h
-		then
-			use_openssl=$d
-			break
-		fi
-	done
-fi
-OPENSSL_ECDSA=""
-OPENSSL_GOST=""
-case "$use_openssl" in
-	no)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		DST_OPENSSL_INC=""
-		USE_OPENSSL=""
-		OPENSSLGOSTLINKOBJS=""
-		OPENSSLGOSTLINKSRS=""
-		OPENSSLLINKOBJS=""
-		OPENSSLLINKSRCS=""
-		;;
-	auto)
-		DST_OPENSSL_INC=""
-		USE_OPENSSL=""
-		OPENSSLGOSTLINKOBJS=""
-		OPENSSLGOSTLINKSRS=""
-		OPENSSLLINKOBJS=""
-		OPENSSLLINKSRCS=""
-		as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
-If you don't want OpenSSL, use --without-openssl" "$LINENO" 5
-		;;
-	*)
-		if test "$use_openssl" = "yes"
-		then
-			# User did not specify a path - guess it
-			for d in $openssldirs
-			do
-				if test -f $d/include/openssl/opensslv.h
-				then
-					use_openssl=$d
-					break
-				fi
-			done
-			if test "$use_openssl" = "yes"
-			then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
-$as_echo "not found" >&6; }
-				as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path" "$LINENO" 5
-			fi
-		elif ! test -f "$use_openssl"/include/openssl/opensslv.h
-		then
-			as_fn_error $? "\"$use_openssl/include/openssl/opensslv.h\" not found" "$LINENO" 5
-		fi
-		USE_OPENSSL='-DOPENSSL'
-		if test "$use_openssl" = "/usr"
-		then
-			DST_OPENSSL_INC=""
-			DNS_OPENSSL_LIBS="-lcrypto"
-		else
-			DST_OPENSSL_INC="-I$use_openssl/include"
-			case $host in
-			*-solaris*)
-				DNS_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
-				;;
-			*-hp-hpux*)
-				DNS_OPENSSL_LIBS="-L$use_openssl/lib -Wl,+b: -lcrypto"
-				;;
-			*-apple-darwin*)
-				#
-				# Apple's ld seaches for serially for dynamic
-				# then static libraries.  This means you can't
-				# use -L to override dynamic system libraries
-				# with static ones when linking.  Instead
-				# we specify a absolute path.
-				#
-				if test -f "$use_openssl/lib/libcrypto.dylib"
-				then
-					DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
-				else
-					DNS_OPENSSL_LIBS="$use_openssl/lib/libcrypto.a"
-				fi
-				;;
-			*)
-				DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
-				;;
-			esac
-		fi
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using OpenSSL from $use_openssl/lib and $use_openssl/include" >&5
-$as_echo "using OpenSSL from $use_openssl/lib and $use_openssl/include" >&6; }
-
-		saved_cflags="$CFLAGS"
-		saved_libs="$LIBS"
-		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
-		LIBS="$LIBS $DNS_OPENSSL_LIBS"
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether linking with OpenSSL works" >&5
-$as_echo_n "checking whether linking with OpenSSL works... " >&6; }
-		if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming it does work on target platform" >&5
-$as_echo "assuming it does work on target platform" >&6; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <openssl/err.h>
-int main() {
-	ERR_clear_error();
-	return (0);
-}
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		 as_fn_error $? "Could not run test program using OpenSSL from
-$use_openssl/lib and $use_openssl/include.
-Please check the argument to --with-openssl and your
-shared library configuration (e.g., LD_LIBRARY_PATH)." "$LINENO" 5
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether linking with OpenSSL requires -ldl" >&5
-$as_echo_n "checking whether linking with OpenSSL requires -ldl... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <openssl/err.h>
-int
-main ()
-{
- DSO_METHOD_dlfcn();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-else
-  LIBS="$LIBS -ldl"
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <openssl/err.h>
-
-int
-main ()
-{
- DSO_METHOD_dlfcn();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-		DNS_OPENSSL_LIBS="$DNS_OPENSSL_LIBS -ldl"
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: unknown" >&5
-$as_echo "unknown" >&6; }
-		 as_fn_error $? "OpenSSL has unsupported dynamic loading" "$LINENO" 5
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-# Check whether --enable-openssl-version-check was given.
-if test "${enable_openssl_version_check+set}" = set; then :
-  enableval=$enable_openssl_version_check;
-fi
-
-case "$enable_openssl_version_check" in
-yes|'')
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking OpenSSL library version" >&5
-$as_echo_n "checking OpenSSL library version... " >&6; }
-		if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming target platform has compatible version" >&5
-$as_echo "assuming target platform has compatible version" >&6; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdio.h>
-#include <openssl/opensslv.h>
-int main() {
-	if ((OPENSSL_VERSION_NUMBER >= 0x009070cfL &&
-	     OPENSSL_VERSION_NUMBER < 0x00908000L) ||
-	     OPENSSL_VERSION_NUMBER >= 0x0090804fL)
-		return (0);
-	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
-		OPENSSL_VERSION_NUMBER);
-	printf("Require OPENSSL_VERSION_NUMBER 0x009070cf or greater (0.9.7l)\n"
-	       "Require OPENSSL_VERSION_NUMBER 0x0090804f or greater (0.9.8d)\n\n");
-	return (1);
-}
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok" >&5
-$as_echo "ok" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not compatible" >&5
-$as_echo "not compatible" >&6; }
-		 OPENSSL_WARNING=yes
-
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-;;
-no)
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Skipped OpenSSL version check" >&5
-$as_echo "Skipped OpenSSL version check" >&6; }
-;;
-esac
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL DSA support" >&5
-$as_echo_n "checking for OpenSSL DSA support... " >&6; }
-        if test -f $use_openssl/include/openssl/dsa.h
-        then
-                $as_echo "#define HAVE_OPENSSL_DSA 1" >>confdefs.h
-
-                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-        else
-                { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-        fi
-
-        for ac_func in EVP_sha256 EVP_sha384 EVP_sha512
-do :
-  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
-ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-done
-
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL ECDSA support" >&5
-$as_echo_n "checking for OpenSSL ECDSA support... " >&6; }
-        have_ecdsa=""
-        if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-ecdsa" >&5
-$as_echo "using --with-ecdsa" >&6; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdio.h>
-#include <openssl/ecdsa.h>
-#include <openssl/objects.h>
-int main() {
-	EC_KEY *ec256, *ec384;
-
-#if !defined(HAVE_EVP_SHA256) || !defined(HAVE_EVP_SHA384)
-	return (1);
-#endif
-	ec256 = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-	ec384 = EC_KEY_new_by_curve_name(NID_secp384r1);
-	if (ec256 == NULL || ec384 == NULL)
-		return (2);
-	return (0);
-}
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-        have_ecdsa="yes"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-        have_ecdsa="no"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-# Check whether --with-ecdsa was given.
-if test "${with_ecdsa+set}" = set; then :
-  withval=$with_ecdsa; with_ecdsa="$withval"
-else
-  with_ecdsa="auto"
-fi
-
-        case "$with_ecdsa" in
-        yes)
-            case "$have_ecdsa" in
-            no)  as_fn_error $? "ecdsa not supported" "$LINENO" 5 ;;
-            *)  have_ecdsa=yes ;;
-            esac
-            ;;
-        no)
-            have_ecdsa=no ;;
-        *)
-            case "$have_ecdsa" in
-            yes|no) ;;
-            *) as_fn_error $? "need --with-ecdsa=[yes or no]" "$LINENO" 5 ;;
-            esac
-            ;;
-        esac
-        case $have_ecdsa in
-        yes)
-                OPENSSL_ECDSA="yes"
-
-$as_echo "#define HAVE_OPENSSL_ECDSA 1" >>confdefs.h
-
-                ;;
-        *)
-                ;;
-        esac
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL GOST support" >&5
-$as_echo_n "checking for OpenSSL GOST support... " >&6; }
-        have_gost=""
-        if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-gost" >&5
-$as_echo "using --with-gost" >&6; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <openssl/conf.h>
-#include <openssl/engine.h>
-int main() {
-#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-	ENGINE *e;
-	EC_KEY *ek;
-
-	ek = NULL;
-	OPENSSL_config(NULL);
-
-	e = ENGINE_by_id("gost");
-	if (e == NULL)
-		return (1);
-	if (ENGINE_init(e) <= 0)
-		return (1);
-	return (0);
-#else
-	return (1);
-#endif
-}
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-        have_gost="yes"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-        have_gost="no"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-# Check whether --with-gost was given.
-if test "${with_gost+set}" = set; then :
-  withval=$with_gost; with_gost="$withval"
-else
-  with_gost="auto"
-fi
-
-        case "$with_gost" in
-        yes)
-            case "$have_gost" in
-            no)  as_fn_error $? "gost not supported" "$LINENO" 5 ;;
-            *)  have_gost=yes ;;
-            esac
-            ;;
-        no)
-            have_gost=no ;;
-        *)
-            case "$have_gost" in
-            yes|no) ;;
-            *) as_fn_error $? "need --with-gost=[yes or no]" "$LINENO" 5 ;;
-            esac
-            ;;
-        esac
-        case $have_gost in
-        yes)
-		OPENSSL_GOST="yes"
-		OPENSSLGOSTLINKOBJS='${OPENSSLGOSTLINKOBJS}'
-		OPENSSLGOSTLINKSRCS='${OPENSSLGOSTLINKSRCS}'
-
-$as_echo "#define HAVE_OPENSSL_GOST 1" >>confdefs.h
-
-		;;
-        *)
-                ;;
-        esac
-        CFLAGS="$saved_cflags"
-        LIBS="$saved_libs"
-        OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
-        OPENSSLLINKSRCS='${OPENSSLLINKSRCS}'
-
-        ;;
-esac
-
-#
-# This would include the system openssl path (and linker options to use
-# it as needed) if it is found.
-#
-
-
-
-
-
-
-
-
-
-
-DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
-
-#
-# Use OpenSSL for hash functions
-#
-
-# Check whether --enable-openssl-hash was given.
-if test "${enable_openssl_hash+set}" = set; then :
-  enableval=$enable_openssl_hash; want_openssl_hash="$enableval"
-else
-  want_openssl_hash="no"
-fi
-
-case $want_openssl_hash in
-	yes)
-		if test "$USE_OPENSSL" = ""
-		then
-			as_fn_error $? "No OpenSSL for hash functions" "$LINENO" 5
-		fi
-		ISC_PLATFORM_OPENSSLHASH="#define ISC_PLATFORM_OPENSSLHASH 1"
-		ISC_OPENSSL_INC="$DST_OPENSSL_INC"
-		;;
-	no)
-		ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
-		ISC_OPENSSL_INC=""
-		;;
-esac
-
-
-
-#
-# PKCS11 (aka crypto hardware) support
-#
-# This works only with the right OpenSSL with PKCS11 engine!
-#
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 support" >&5
-$as_echo_n "checking for PKCS11 support... " >&6; }
-
-# Check whether --with-pkcs11 was given.
-if test "${with_pkcs11+set}" = set; then :
-  withval=$with_pkcs11; use_pkcs11="$withval"
-else
-  use_pkcs11="no"
-fi
-
-
-case "$use_pkcs11" in
-	no|'')
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
-$as_echo "disabled" >&6; }
-		USE_PKCS11=''
-		PKCS11_TOOLS=''
-		;;
-	yes|*)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using OpenSSL with PKCS11 support" >&5
-$as_echo "using OpenSSL with PKCS11 support" >&6; }
-		USE_PKCS11='-DUSE_PKCS11'
-		PKCS11_TOOLS=pkcs11
-		;;
-esac
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 tools" >&5
-$as_echo_n "checking for PKCS11 tools... " >&6; }
-case "$use_pkcs11" in
-	no|yes|'')
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
-$as_echo "disabled" >&6; }
-		PKCS11_PROVIDER="undefined"
-		;;
-       *)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: PKCS11 provider is \"$use_pkcs11\"" >&5
-$as_echo "PKCS11 provider is \"$use_pkcs11\"" >&6; }
-		PKCS11_PROVIDER="$use_pkcs11"
-		;;
-esac
-
-
 GEOIPLINKSRCS=
 GEOIPLINKOBJS=
 
@@ -16053,6 +15537,767 @@ fi
 
 ISC_THREAD_DIR=$thread_dir
 
+
+#
+# was --enable-native-pkcs11 specified?
+#  (note it implies both --without-openssl and --with-pkcs11)
+#
+# Check whether --enable-native-pkcs11 was given.
+if test "${enable_native_pkcs11+set}" = set; then :
+  enableval=$enable_native_pkcs11; want_native_pkcs11="$enableval"
+else
+  want_native_pkcs11="no"
+fi
+
+
+#
+# was --with-openssl specified?
+#
+OPENSSL_WARNING=
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL library" >&5
+$as_echo_n "checking for OpenSSL library... " >&6; }
+
+# Check whether --with-openssl was given.
+if test "${with_openssl+set}" = set; then :
+  withval=$with_openssl; use_openssl="$withval"
+else
+  use_openssl="auto"
+fi
+
+
+#
+# was --with-pkcs11 specified?
+#
+
+# Check whether --with-pkcs11 was given.
+if test "${with_pkcs11+set}" = set; then :
+  withval=$with_pkcs11; use_pkcs11="$withval"
+else
+  use_pkcs11="auto"
+fi
+
+
+openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
+if test "$use_openssl" = "auto"
+then
+	if test "$want_native_pkcs11" = "yes"
+	then
+		use_openssl="native_pkcs11"
+	else
+		for d in $openssldirs
+		do
+			if test -f $d/include/openssl/opensslv.h
+			then
+				use_openssl=$d
+				break
+			fi
+		done
+	fi
+fi
+OPENSSL_ECDSA=""
+OPENSSL_GOST=""
+
+# Check whether --with-ecdsa was given.
+if test "${with_ecdsa+set}" = set; then :
+  withval=$with_ecdsa; with_ecdsa="$withval"
+else
+  with_ecdsa="auto"
+fi
+
+
+# Check whether --with-gost was given.
+if test "${with_gost+set}" = set; then :
+  withval=$with_gost; with_gost="$withval"
+else
+  with_gost="auto"
+fi
+
+case "$use_openssl" in
+	native_pkcs11)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled because of native PKCS11" >&5
+$as_echo "disabled because of native PKCS11" >&6; }
+		DST_OPENSSL_INC=""
+		CRYPTO=""
+		OPENSSLGOSTLINKOBJS=""
+		OPENSSLGOSTLINKSRS=""
+		OPENSSLLINKOBJS=""
+		OPENSSLLINKSRCS=""
+		;;
+	no)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		DST_OPENSSL_INC=""
+		CRYPTO=""
+		OPENSSLGOSTLINKOBJS=""
+		OPENSSLGOSTLINKSRS=""
+		OPENSSLLINKOBJS=""
+		OPENSSLLINKSRCS=""
+		;;
+	auto)
+		DST_OPENSSL_INC=""
+		CRYPTO=""
+		OPENSSLGOSTLINKOBJS=""
+		OPENSSLGOSTLINKSRS=""
+		OPENSSLLINKOBJS=""
+		OPENSSLLINKSRCS=""
+		as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
+If you don't want OpenSSL, use --without-openssl" "$LINENO" 5
+		;;
+	*)
+		if test "$use_openssl" = "yes"
+		then
+			# User did not specify a path - guess it
+			for d in $openssldirs
+			do
+				if test -f $d/include/openssl/opensslv.h
+				then
+					use_openssl=$d
+					break
+				fi
+			done
+			if test "$use_openssl" = "yes"
+			then
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+$as_echo "not found" >&6; }
+				as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path" "$LINENO" 5
+			fi
+		elif ! test -f "$use_openssl"/include/openssl/opensslv.h
+		then
+			as_fn_error $? "\"$use_openssl/include/openssl/opensslv.h\" not found" "$LINENO" 5
+		fi
+		CRYPTO='-DOPENSSL'
+		if test "$use_openssl" = "/usr"
+		then
+			DST_OPENSSL_INC=""
+			DNS_OPENSSL_LIBS="-lcrypto"
+		else
+			DST_OPENSSL_INC="-I$use_openssl/include"
+			case $host in
+			*-solaris*)
+				DNS_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
+				;;
+			*-hp-hpux*)
+				DNS_OPENSSL_LIBS="-L$use_openssl/lib -Wl,+b: -lcrypto"
+				;;
+			*-apple-darwin*)
+				#
+				# Apple's ld seaches for serially for dynamic
+				# then static libraries.  This means you can't
+				# use -L to override dynamic system libraries
+				# with static ones when linking.  Instead
+				# we specify a absolute path.
+				#
+				if test -f "$use_openssl/lib/libcrypto.dylib"
+				then
+					DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+				else
+					DNS_OPENSSL_LIBS="$use_openssl/lib/libcrypto.a"
+				fi
+				;;
+			*)
+				DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+				;;
+			esac
+		fi
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using OpenSSL from $use_openssl/lib and $use_openssl/include" >&5
+$as_echo "using OpenSSL from $use_openssl/lib and $use_openssl/include" >&6; }
+
+		saved_cc="$CC"
+		saved_cflags="$CFLAGS"
+		saved_libs="$LIBS"
+		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
+		LIBS="$LIBS $DNS_OPENSSL_LIBS"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether linking with OpenSSL works" >&5
+$as_echo_n "checking whether linking with OpenSSL works... " >&6; }
+		if test "$cross_compiling" = yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming it does work on target platform" >&5
+$as_echo "assuming it does work on target platform" >&6; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <openssl/err.h>
+int main() {
+	ERR_clear_error();
+	return (0);
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		 as_fn_error $? "Could not run test program using OpenSSL from
+$use_openssl/lib and $use_openssl/include.
+Please check the argument to --with-openssl and your
+shared library configuration (e.g., LD_LIBRARY_PATH)." "$LINENO" 5
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether linking with OpenSSL requires -ldl" >&5
+$as_echo_n "checking whether linking with OpenSSL requires -ldl... " >&6; }
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <openssl/err.h>
+int
+main ()
+{
+ DSO_METHOD_dlfcn();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+else
+  LIBS="$LIBS -ldl"
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <openssl/err.h>
+
+int
+main ()
+{
+ DSO_METHOD_dlfcn();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+		DNS_OPENSSL_LIBS="$DNS_OPENSSL_LIBS -ldl"
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: unknown" >&5
+$as_echo "unknown" >&6; }
+		 as_fn_error $? "OpenSSL has unsupported dynamic loading" "$LINENO" 5
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+# Check whether --enable-openssl-version-check was given.
+if test "${enable_openssl_version_check+set}" = set; then :
+  enableval=$enable_openssl_version_check;
+fi
+
+case "$enable_openssl_version_check" in
+yes|'')
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking OpenSSL library version" >&5
+$as_echo_n "checking OpenSSL library version... " >&6; }
+		if test "$cross_compiling" = yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming target platform has compatible version" >&5
+$as_echo "assuming target platform has compatible version" >&6; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <openssl/opensslv.h>
+int main() {
+	if ((OPENSSL_VERSION_NUMBER >= 0x009070cfL &&
+	     OPENSSL_VERSION_NUMBER < 0x00908000L) ||
+	     OPENSSL_VERSION_NUMBER >= 0x0090804fL)
+		return (0);
+	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
+		OPENSSL_VERSION_NUMBER);
+	printf("Require OPENSSL_VERSION_NUMBER 0x009070cf or greater (0.9.7l)\n"
+	       "Require OPENSSL_VERSION_NUMBER 0x0090804f or greater (0.9.8d)\n\n");
+	return (1);
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok" >&5
+$as_echo "ok" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not compatible" >&5
+$as_echo "not compatible" >&6; }
+		 OPENSSL_WARNING=yes
+
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+;;
+no)
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Skipped OpenSSL version check" >&5
+$as_echo "Skipped OpenSSL version check" >&6; }
+;;
+esac
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL DSA support" >&5
+$as_echo_n "checking for OpenSSL DSA support... " >&6; }
+        if test -f $use_openssl/include/openssl/dsa.h
+        then
+                $as_echo "#define HAVE_OPENSSL_DSA 1" >>confdefs.h
+
+                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+        else
+                { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        fi
+
+        for ac_func in EVP_sha256 EVP_sha384 EVP_sha512
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL ECDSA support" >&5
+$as_echo_n "checking for OpenSSL ECDSA support... " >&6; }
+        have_ecdsa=""
+        if test "$cross_compiling" = yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-ecdsa" >&5
+$as_echo "using --with-ecdsa" >&6; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <openssl/ecdsa.h>
+#include <openssl/objects.h>
+int main() {
+	EC_KEY *ec256, *ec384;
+
+#if !defined(HAVE_EVP_SHA256) || !defined(HAVE_EVP_SHA384)
+	return (1);
+#endif
+	ec256 = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+	ec384 = EC_KEY_new_by_curve_name(NID_secp384r1);
+	if (ec256 == NULL || ec384 == NULL)
+		return (2);
+	return (0);
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+        have_ecdsa="yes"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        have_ecdsa="no"
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+        case "$with_ecdsa" in
+        yes)
+            case "$have_ecdsa" in
+            no)  as_fn_error $? "ecdsa not supported" "$LINENO" 5 ;;
+            *)  have_ecdsa=yes ;;
+            esac
+            ;;
+        no)
+            have_ecdsa=no ;;
+        *)
+            case "$have_ecdsa" in
+            yes|no) ;;
+            *) as_fn_error $? "need --with-ecdsa=[yes or no]" "$LINENO" 5 ;;
+            esac
+            ;;
+        esac
+        case $have_ecdsa in
+        yes)
+                OPENSSL_ECDSA="yes"
+
+$as_echo "#define HAVE_OPENSSL_ECDSA 1" >>confdefs.h
+
+                ;;
+        *)
+                ;;
+        esac
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL GOST support" >&5
+$as_echo_n "checking for OpenSSL GOST support... " >&6; }
+        have_gost=""
+        case "$use_pkcs11" in
+                auto|no)
+                        ;;
+                *)
+                        if $use_threads; then
+                                CC="$CC -pthread"
+                        fi
+                        ;;
+        esac
+        if test "$cross_compiling" = yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-gost" >&5
+$as_echo "using --with-gost" >&6; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <openssl/conf.h>
+#include <openssl/engine.h>
+int main() {
+#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
+	ENGINE *e;
+	EC_KEY *ek;
+
+	ek = NULL;
+	OPENSSL_config(NULL);
+
+	e = ENGINE_by_id("gost");
+	if (e == NULL)
+		return (1);
+	if (ENGINE_init(e) <= 0)
+		return (1);
+	return (0);
+#else
+	return (1);
+#endif
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+        have_gost="yes"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        have_gost="no"
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+        case "$with_gost" in
+        yes)
+            case "$have_gost" in
+            no)  as_fn_error $? "gost not supported" "$LINENO" 5 ;;
+            *)  have_gost=yes ;;
+            esac
+            ;;
+        no)
+            have_gost=no ;;
+        *)
+            case "$have_gost" in
+            yes|no) ;;
+            *) as_fn_error $? "need --with-gost=[yes or no]" "$LINENO" 5 ;;
+            esac
+            ;;
+        esac
+        case $have_gost in
+        yes)
+		OPENSSL_GOST="yes"
+		OPENSSLGOSTLINKOBJS='${OPENSSLGOSTLINKOBJS}'
+		OPENSSLGOSTLINKSRCS='${OPENSSLGOSTLINKSRCS}'
+
+$as_echo "#define HAVE_OPENSSL_GOST 1" >>confdefs.h
+
+		;;
+        *)
+                ;;
+        esac
+        CC="$saved_cc"
+        CFLAGS="$saved_cflags"
+        LIBS="$saved_libs"
+        OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
+        OPENSSLLINKSRCS='${OPENSSLLINKSRCS}'
+
+        ;;
+esac
+
+#
+# This would include the system openssl path (and linker options to use
+# it as needed) if it is found.
+#
+
+
+
+
+
+
+
+
+
+DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
+
+#
+# Use OpenSSL for hash functions
+#
+
+# Check whether --enable-openssl-hash was given.
+if test "${enable_openssl_hash+set}" = set; then :
+  enableval=$enable_openssl_hash; want_openssl_hash="$enableval"
+else
+  want_openssl_hash="no"
+fi
+
+case $want_openssl_hash in
+	yes)
+		if test "$CRYPTO" = ""
+		then
+			as_fn_error $? "No OpenSSL for hash functions" "$LINENO" 5
+		fi
+		ISC_PLATFORM_OPENSSLHASH="#define ISC_PLATFORM_OPENSSLHASH 1"
+		ISC_OPENSSL_INC="$DST_OPENSSL_INC"
+		;;
+	no)
+		ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
+		ISC_OPENSSL_INC=""
+		;;
+esac
+
+
+
+#
+# PKCS11 (aka crypto hardware) support (--with moved just after openssl)
+#
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 support" >&5
+$as_echo_n "checking for PKCS11 support... " >&6; }
+
+if test "$use_pkcs11" = "auto"
+then
+	if test "$want_native_pkcs11" = "yes"
+	then
+		use_pkcs11="yes"
+	else
+		use_pkcs11="no"
+	fi
+fi
+
+case "$use_pkcs11" in
+	no)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		USE_PKCS11=''
+		PKCS11_TEST=''
+		PKCS11_TOOLS=''
+		;;
+	yes|*)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+                if ! $use_threads; then
+			as_fn_error $? "PKCS11 requires thread support" "$LINENO" 5
+                fi
+		if test "$CRYPTO" != ""
+		then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL with PKCS11 support" >&5
+$as_echo_n "checking for OpenSSL with PKCS11 support... " >&6; }
+                        saved_cc="$CC"
+			saved_cflags="$CFLAGS"
+			saved_libs="$LIBS"
+                        CC="$CC -pthread"
+			CFLAGS="$CFLAGS $DST_OPENSSL_INC"
+			LIBS="$LIBS $DNS_OPENSSL_LIBS"
+			if test "$cross_compiling" = yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: cross compile" >&5
+$as_echo "cross compile" >&6; }
+			PKCS11_TEST=''
+			PKCS11_ENGINE='-DPKCS11_ENGINE=NULL'
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <openssl/conf.h>
+#include <openssl/engine.h>
+int main() {
+	ENGINE *e;
+
+	OPENSSL_config(NULL);
+	e = ENGINE_by_id("pkcs11");
+	if (e == NULL)
+		return (1);
+	if (ENGINE_init(e) <= 0)
+		return (1);
+	return (0);
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+			PKCS11_TEST=pkcs11ssl
+			PKCS11_ENGINE='-DPKCS11_ENGINE="\"pkcs11\""'
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+			PKCS11_TEST=''
+			PKCS11_ENGINE='-DPKCS11_ENGINE=NULL'
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+                        CC="$saved_cc"
+			CFLAGS="$saved_cflags"
+			LIBS="$saved_libs"
+		else
+			PKCS11_TEST=''
+			PKCS11_ENGINE='-DPKCS11_ENGINE=NULL'
+
+		fi
+		USE_PKCS11='-DUSE_PKCS11'
+		PKCS11_TOOLS=pkcs11
+		ac_fn_c_check_func "$LINENO" "getpassphrase" "ac_cv_func_getpassphrase"
+if test "x$ac_cv_func_getpassphrase" = xyes; then :
+  $as_echo "#define HAVE_GETPASSPHRASE 1" >>confdefs.h
+
+fi
+
+		;;
+esac
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 tools" >&5
+$as_echo_n "checking for PKCS11 tools... " >&6; }
+case "$use_pkcs11" in
+	no)
+		PKCS11_PROVIDER="undefined"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
+		;;
+	yes|'')
+		PKCS11_PROVIDER="undefined"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabled" >&5
+$as_echo "enabled" >&6; }
+		;;
+	*)
+		PKCS11_PROVIDER="$use_pkcs11"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabled, PKCS11 provider is $PKCS11_PROVIDER" >&5
+$as_echo "enabled, PKCS11 provider is $PKCS11_PROVIDER" >&6; }
+		;;
+esac
+
+
+
+PKCS11_ECDSA=""
+PKCS11_GOST=""
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for native PKCS11" >&5
+$as_echo_n "checking for native PKCS11... " >&6; }
+
+case "$want_native_pkcs11" in
+	yes)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using native PKCS11 crypto" >&5
+$as_echo "using native PKCS11 crypto" >&6; }
+		CRYPTO="-DPKCS11CRYPTO"
+		PKCS11LINKOBJS='${PKCS11LINKOBJS}'
+		PKCS11LINKSRCS='${PKCS11LINKSRCS}'
+                PKCS11_TEST=pkcs11
+		case "$with_ecdsa" in
+		no)
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled PKCS11 ECDSA" >&5
+$as_echo "disabled PKCS11 ECDSA" >&6; }
+			;;
+		*)
+			PKCS11_ECDSA="yes"
+
+$as_echo "#define HAVE_PKCS11_ECDSA 1" >>confdefs.h
+
+			;;
+		esac
+		case "$with_gost" in
+		yes)
+			PKCS11_GOST="yes"
+
+$as_echo "#define HAVE_PKCS11_GOST 1" >>confdefs.h
+
+			;;
+		*)
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled PKCS11 GOST" >&5
+$as_echo "disabled PKCS11 GOST" >&6; }
+			;;
+		esac
+		;;
+	no|'')
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
+		;;
+esac
+
+
+
+
+
+
+
+
+# for PKCS11 benchmarks
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking clock_gettime" >&5
+$as_echo_n "checking clock_gettime... " >&6; }
+have_clock_gt=no
+ac_fn_c_check_func "$LINENO" "clock_gettime" "ac_cv_func_clock_gettime"
+if test "x$ac_cv_func_clock_gettime" = xyes; then :
+  have_clock_gt=yes
+fi
+
+if test "$have_clock_gt" = "no"; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for clock_gettime in -lrt" >&5
+$as_echo_n "checking for clock_gettime in -lrt... " >&6; }
+if ${ac_cv_lib_rt_clock_gettime+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lrt  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char clock_gettime ();
+int
+main ()
+{
+return clock_gettime ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_rt_clock_gettime=yes
+else
+  ac_cv_lib_rt_clock_gettime=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rt_clock_gettime" >&5
+$as_echo "$ac_cv_lib_rt_clock_gettime" >&6; }
+if test "x$ac_cv_lib_rt_clock_gettime" = xyes; then :
+  have_clock_gt=ye
+fi
+
+fi
+
+if test "$have_clock_gt" = "yes"; then
+
+$as_echo "#define HAVE_CLOCK_GETTIME 1" >>confdefs.h
+
+fi
 
 #
 # was --with-libxml2 specified?
@@ -19952,7 +20197,9 @@ BIND9_TOP_BUILDDIR=`pwd`
 
 
 
+
 if test "X$srcdir" != "X"; then
+	BIND9_ISCPK11_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/iscpk11/include"
 	BIND9_ISC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isc/include"
 	BIND9_ISCCC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccc/include"
 	BIND9_ISCCFG_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccfg/include"
@@ -19960,6 +20207,7 @@ if test "X$srcdir" != "X"; then
 	BIND9_LWRES_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/lwres/include"
 	BIND9_BIND9_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/bind9/include"
 else
+	BIND9_ISCPK11_BUILDINCLUDE=""
 	BIND9_ISC_BUILDINCLUDE=""
 	BIND9_ISCCC_BUILDINCLUDE=""
 	BIND9_ISCCFG_BUILDINCLUDE=""
@@ -20005,6 +20253,9 @@ fi
 BIND9_CONFIGARGS="`echo $BIND9_CONFIGARGS | sed 's/^ //'`"
 BIND9_CONFIGARGS="CONFIGARGS=${BIND9_CONFIGARGS}"
 
+
+
+LIBISCPK11_API="$srcdir/lib/iscpk11/api"
 
 
 LIBISC_API="$srcdir/lib/isc/api"
@@ -20993,7 +21244,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/dsdigest/prereq.sh bin/tests/system/ecdsa/prereq.sh bin/tests/system/dlzredir/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/gost/prereq.sh bin/tests/system/inline/checkdsa.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/check-secure-delegation.pl contrib/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh"
+ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/dsdigest/prereq.sh bin/tests/system/ecdsa/prereq.sh bin/tests/system/dlzredir/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/gost/prereq.sh bin/tests/system/inline/checkdsa.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/check-secure-delegation.pl contrib/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/iscpk11/Makefile lib/iscpk11/include/Makefile lib/iscpk11/include/iscpk11/Makefile lib/iscpk11/include/pkcs11/Makefile lib/iscpk11/unix/Makefile lib/iscpk11/unix/include/Makefile lib/iscpk11/unix/include/pkcs11/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh"
 
 
 #
@@ -22028,6 +22279,8 @@ do
     "bin/tests/mem/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/mem/Makefile" ;;
     "bin/tests/names/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/names/Makefile" ;;
     "bin/tests/net/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/net/Makefile" ;;
+    "bin/tests/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/pkcs11/Makefile" ;;
+    "bin/tests/pkcs11/benchmarks/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/pkcs11/benchmarks/Makefile" ;;
     "bin/tests/rbt/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/rbt/Makefile" ;;
     "bin/tests/resolver/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/resolver/Makefile" ;;
     "bin/tests/sockaddr/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/sockaddr/Makefile" ;;
@@ -22102,6 +22355,13 @@ do
     "lib/isccfg/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isccfg/Makefile" ;;
     "lib/isccfg/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isccfg/include/Makefile" ;;
     "lib/isccfg/include/isccfg/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isccfg/include/isccfg/Makefile" ;;
+    "lib/iscpk11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/Makefile" ;;
+    "lib/iscpk11/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/include/Makefile" ;;
+    "lib/iscpk11/include/iscpk11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/include/iscpk11/Makefile" ;;
+    "lib/iscpk11/include/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/include/pkcs11/Makefile" ;;
+    "lib/iscpk11/unix/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/unix/Makefile" ;;
+    "lib/iscpk11/unix/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/unix/include/Makefile" ;;
+    "lib/iscpk11/unix/include/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/unix/include/pkcs11/Makefile" ;;
     "lib/lwres/Makefile") CONFIG_FILES="$CONFIG_FILES lib/lwres/Makefile" ;;
     "lib/lwres/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/lwres/include/Makefile" ;;
     "lib/lwres/include/lwres/Makefile") CONFIG_FILES="$CONFIG_FILES lib/lwres/include/lwres/Makefile" ;;
@@ -23422,7 +23682,13 @@ $use_threads && echo "    Multiprocessing support (--enable-threads)"
 
 test "$use_geoip" = "no" || echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
+test "$want_native_pkcs11" = "yes" && \
+    echo "    Native PKCS#11 support (--enable-native-pkcs11)"
 test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
+test "$OPENSSL_GOST" = "yes" -o "$PKCS11_GOST" = "yes" && \
+    echo "    GOST algorithm support (--with-gost)"
+test "$OPENSSL_ECDSA" = "yes" -o "$PKCS11_ECDSA" = "yes" && \
+    echo "    ECDSA algorithm support (--with-ecdsa)"
 test "$enable_fixed" = "yes" && \
     echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 test "$enable_filter" = "yes" && \
@@ -23439,12 +23705,8 @@ test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
 if test "$enable_full_report" = "yes"; then
     test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" || \
         echo "    IPv6 support (--enable-ipv6)"
-    test "X$USE_OPENSSL" = "X" || \
+    test "X$CRYPTO" = "X" -o "$want_native_pkcs11" = "yes" || \
             echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-    test "$OPENSSL_GOST" != "yes" || \
-            echo "    GOST algorithm support (--with-gost)"
-    test "$OPENSSL_ECDSA" != "yes" || \
-            echo "    ECDSA algorithm support (--with-ecdsa)"
     test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
     test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
     test "X$have_libjson" = "X" || echo "    JSON statistics (--with-libjson)"
@@ -23482,11 +23744,13 @@ test "$want_backtrace" = "yes" || \
     echo "    Print backtrace on crash (--enable-backtrace)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 
-test "X$USE_OPENSSL" = "X" && \
-        echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-test "X$USE_OPENSSL" != "X" -a "$OPENSSL_GOST" != "yes" && \
+test "X$CRYPTO" = "X" -o "$want_native_pkcs11" = "yes" && \
+    echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+test "$want_native_pkcs11" != "yes" && \
+    echo "    Native PKCS#11 cryptography/DNSSEC (--enable-native-pkcs11)"
+test "X$CRYPTO" = "X" -o "$OPENSSL_GOST" = "yes" -o "$PKCS11_GOST" = "yes" || \
     echo "    GOST algorithm support (--with-gost)"
-test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ECDSA" != "yes" && \
+test "X$CRYPTO" = "X" -o "$OPENSSL_ECDSA" = "yes" -o "$PKCS11_ECDSA" = "yes" || \
     echo "    ECDSA algorithm support (--with-ecdsa)"
 test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
 test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
@@ -23494,9 +23758,11 @@ test "X$have_libjson" = "X" && echo "    JSON statistics (--with-libjson)"
 
 echo "========================================================================"
 
-if test "X$USE_OPENSSL" = "X"; then
+if test "X$CRYPTO" = "X"; then
 cat << \EOF
-BIND is being built without OpenSSL. This means it will not have DNSSEC support.
+BIND 9 is being built without cryptography support. This means it will
+not have DNSSEC support. Use --with-openssl, or --with-pkcs11 and
+--enable-native-pkcs11 to enable cryptography.
 EOF
 fi
 

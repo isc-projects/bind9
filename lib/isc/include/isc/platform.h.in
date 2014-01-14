@@ -332,6 +332,7 @@
 #define LIBDNS_EXTERNAL_DATA
 #define LIBISCCC_EXTERNAL_DATA
 #define LIBISCCFG_EXTERNAL_DATA
+#define LIBISCPK11_EXTERNAL_DATA
 #define LIBBIND9_EXTERNAL_DATA
 #define LIBTESTS_EXTERNAL_DATA
 #else /*! \brief ISC_PLATFORM_USEDECLSPEC */
@@ -354,6 +355,11 @@
 #define LIBISCCFG_EXTERNAL_DATA __declspec(dllexport)
 #else
 #define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport)
+#endif
+#ifdef LIBISCPK11_EXPORTS
+#define LIBISCPK11_EXTERNAL_DATA __declspec(dllexport)
+#else
+#define LIBISCPK11_EXTERNAL_DATA __declspec(dllimport)
 #endif
 #ifdef LIBBIND9_EXPORTS
 #define LIBBIND9_EXTERNAL_DATA __declspec(dllexport)

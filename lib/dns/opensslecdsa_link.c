@@ -474,7 +474,7 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 	priv.elements[0].length = BN_num_bytes(privkey);
 	BN_bn2bin(privkey, buf);
 	priv.elements[0].data = buf;
-	priv.nelements = ECDSA_NTAGS;
+	priv.nelements = 1;
 	ret = dst__privstruct_writefile(key, &priv, directory);
 
  err:
@@ -522,7 +522,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	EVP_PKEY *pkey, *pubpkey;
 	EC_KEY *eckey = NULL, *pubeckey = NULL;
 	const EC_POINT *pubkey;
-	BIGNUM *privkey;
+	BIGNUM *privkey = NULL;
 	int group_nid;
 	isc_mem_t *mctx = key->mctx;
 
@@ -584,6 +584,8 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	ret = ISC_R_SUCCESS;
 
  err:
+	if (privkey != NULL)
+		BN_clear_free(privkey);
 	if (eckey != NULL)
 		EC_KEY_free(eckey);
 	if (pubeckey != NULL)
@@ -595,6 +597,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 static dst_func_t opensslecdsa_functions = {
 	opensslecdsa_createctx,
+	NULL, /*%< createctx2 */
 	opensslecdsa_destroyctx,
 	opensslecdsa_adddata,
 	opensslecdsa_sign,

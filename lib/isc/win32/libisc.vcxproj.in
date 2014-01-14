@@ -53,8 +53,12 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>BIND9;WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBISC_EXPORTS;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@include;..\include;win32;..\..\isccfg\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BIND9;@CRYPTO@WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBISC_EXPORTS;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+@IF PKCS11
+      <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@include;..\include;win32;..\..\isccfg\include;..\..\iscpk11\win32\include;..\..\iscpk11\include;</AdditionalIncludeDirectories>
+@ELSE PKCS11
+      <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@include;..\include;win32;..\..\isccfg\include;</AdditionalIncludeDirectories>
+@END PKCS11
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <PrecompiledHeaderOutputFile>.\$(Configuration)\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\$(Configuration)\</AssemblerListingLocation>
@@ -66,7 +70,12 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+@IF PKCS11
+      <AdditionalLibraryDirectories>..\..\iscpk11\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libiscpk11.lib;@LIBXML2_LIB@ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+@ELSE PKCS11
       <AdditionalDependencies>@LIBXML2_LIB@ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+@END PKCS11
       <ModuleDefinitionFile>$(ProjectName).def</ModuleDefinitionFile>
       <ImportLibrary>.\$(Configuration)\$(ProjectName).lib</ImportLibrary>
     </Link>
@@ -126,8 +135,12 @@ copy /Y @VCREDIST_PATH@	..\Build\Debug\
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>@INTRINSIC@</IntrinsicFunctions>
-      <PreprocessorDefinitions>BIND9;WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBISC_EXPORTS;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BIND9;@CRYPTO@WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBISC_EXPORTS;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+@IF PKCS11
+      <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@include;..\include;win32;..\..\isccfg\include;..\..\iscpk11\win32\include;..\..\iscpk11\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+@ELSE PKCS11
       <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@include;..\include;win32;..\..\isccfg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+@END PKCS11
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <StringPooling>true</StringPooling>
@@ -142,7 +155,12 @@ copy /Y @VCREDIST_PATH@	..\Build\Debug\
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+@IF PKCS11
+      <AdditionalLibraryDirectories>..\..\iscpk11\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libiscpk11.lib;@LIBXML2_LIB@ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+@ELSE PKCS11
       <AdditionalDependencies>@LIBXML2_LIB@ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+@END PKCS11
       <ModuleDefinitionFile>$(ProjectName).def</ModuleDefinitionFile>
       <ImportLibrary>.\$(Configuration)\$(ProjectName).lib</ImportLibrary>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
@@ -181,9 +199,12 @@ copy ..\bin\dnssec\dnssec-keyfromlabel.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-settime.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-revoke.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-verify.html ..\Build\Release
+@IF PKCS11
 copy ..\bin\pkcs11\pkcs11-keygen.html ..\Build\Release
 copy ..\bin\pkcs11\pkcs11-list.html ..\Build\Release
 copy ..\bin\pkcs11\pkcs11-destroy.html ..\Build\Release
+copy ..\bin\pkcs11\pkcs11-tokens.html ..\Build\Release
+@END PKCS11
 
 echo Copying the migration notes.
 
@@ -264,7 +285,6 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClInclude Include="..\include\isc\hmacsha.h" />
     <ClInclude Include="..\include\isc\httpd.h" />
     <ClInclude Include="..\include\isc\interfaceiter.h" />
-    <ClInclude Include="..\include\isc\ipv6.h" />
     <ClInclude Include="..\include\isc\iterated_hash.h" />
     <ClInclude Include="..\include\isc\json.h" />
     <ClInclude Include="..\include\isc\lang.h" />
@@ -299,12 +319,12 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClInclude Include="..\include\isc\result.h" />
     <ClInclude Include="..\include\isc\resultclass.h" />
     <ClInclude Include="..\include\isc\rwlock.h" />
+    <ClInclude Include="..\include\isc\safe.h" />
     <ClInclude Include="..\include\isc\serial.h" />
     <ClInclude Include="..\include\isc\sha1.h" />
     <ClInclude Include="..\include\isc\sha2.h" />
     <ClInclude Include="..\include\isc\sockaddr.h" />
     <ClInclude Include="..\include\isc\socket.h" />
-    <ClInclude Include="..\include\isc\stats.h" />
     <ClInclude Include="..\include\isc\stdio.h" />
     <ClInclude Include="..\include\isc\stdlib.h" />
     <ClInclude Include="..\include\isc\string.h" />
@@ -395,6 +415,7 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClCompile Include="..\region.c" />
     <ClCompile Include="..\result.c" />
     <ClCompile Include="..\rwlock.c" />
+    <ClCompile Include="..\safe.c" />
     <ClCompile Include="..\serial.c" />
     <ClCompile Include="..\sha1.c" />
     <ClCompile Include="..\sha2.c" />

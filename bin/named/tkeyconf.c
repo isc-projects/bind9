@@ -125,7 +125,6 @@ ns_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 		}
 	}
 
-
 	*tctxp = tctx;
 	return (ISC_R_SUCCESS);
 
