@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011-2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -102,7 +102,7 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 			RETTOK(ISC_R_RANGE);
 		time_expire = l;
 	} else
-                RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_expire));
+		RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_expire));
 	RETERR(uint32_tobuffer(time_expire, target));
 
 	/*

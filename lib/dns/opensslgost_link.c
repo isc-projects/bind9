@@ -463,7 +463,7 @@ opensslgost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	} else {
 		INSIST((priv.elements[0].tag == TAG_GOST_PRIVASN1) ||
 		       (priv.elements[0].tag == TAG_GOST_PRIVRAW));
-	
+
 		if (priv.elements[0].tag == TAG_GOST_PRIVASN1) {
 			p = priv.elements[0].data;
 			if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
@@ -476,12 +476,12 @@ opensslgost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 				eckey = EVP_PKEY_get0(pub->keydata.pkey);
 				pubkey = EC_KEY_get0_public_key(eckey);
 			}
-	
+
 			privkey = BN_bin2bn(priv.elements[0].data,
 					    priv.elements[0].length, NULL);
 			if (privkey == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-	
+
 			/* can't create directly the whole key */
 			p = gost_dummy_key;
 			if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
@@ -489,14 +489,14 @@ opensslgost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 				DST_RET(dst__openssl_toresult2(
 					    "d2i_PrivateKey",
 					    DST_R_INVALIDPRIVATEKEY));
-	
+
 			eckey = EVP_PKEY_get0(pkey);
 			if (eckey == NULL)
 				return (dst__openssl_toresult(
 					    DST_R_OPENSSLFAILURE));
 			if (!EC_KEY_set_private_key(eckey, privkey))
 				DST_RET(ISC_R_NOMEMORY);
-	
+
 			/* have to (re)set the public key */
 #ifdef notyet
 			(void) gost2001_compute_public(eckey);
