@@ -1,3 +1,5 @@
+3704.	[protocol]	Accept integer timestamps in RRSIG records. [RT #35185]
+
 3703.	[func]		To improve recursive resolver performance, cache
 			records which are still being requested by clients
 			can now be automatically refreshed from the
