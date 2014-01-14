@@ -90,7 +90,19 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_expire));
+	if (strlen(DNS_AS_STR(token)) <= 10U &&
+	    *DNS_AS_STR(token) != '-' && *DNS_AS_STR(token) != '+') {
+		char *end;
+		unsigned long l;
+
+		l = strtoul(DNS_AS_STR(token), &end, 10);
+		if (l == ULONG_MAX || *end != 0)
+			RETTOK(DNS_R_SYNTAX);
+		if ((isc_uint64_t)l > (isc_uint64_t)0xffffffff)
+			RETTOK(ISC_R_RANGE);
+		time_expire = l;
+	} else
+                RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_expire));
 	RETERR(uint32_tobuffer(time_expire, target));
 
 	/*
@@ -98,7 +110,19 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_signed));
+	if (strlen(DNS_AS_STR(token)) <= 10U &&
+	    *DNS_AS_STR(token) != '-' && *DNS_AS_STR(token) != '+') {
+		char *end;
+		unsigned long l;
+
+		l = strtoul(DNS_AS_STR(token), &end, 10);
+		if (l == ULONG_MAX || *end != 0)
+			RETTOK(DNS_R_SYNTAX);
+		if ((isc_uint64_t)l > (isc_uint64_t)0xffffffff)
+			RETTOK(ISC_R_RANGE);
+		time_signed = l;
+	} else
+		RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_signed));
 	RETERR(uint32_tobuffer(time_signed, target));
 
 	/*
