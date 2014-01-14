@@ -8737,17 +8737,36 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
               </listitem>
             </varlistentry>
 
-            <varlistentry>
-              <term><command>prefetch</command></term>
-              <listitem>
+	    <varlistentry>
+	      <term><command>prefetch</command></term>
+	      <listitem>
 		<para>
-		  Specifies the trigger ttl value (range [1..10])
-		  at which prefetch of the current query will be
-		  made and optionally the minimum ttl value that will be
-		  accepted for the records to be candidates for
-		  prefetching.  The defaults are 2 and 9 respectively.
-		  Setting a trigger ttl value of 0 will disable
-		  prefetching.  A minimum delta of 6 is enforced.
+		  When a query is received for cached data which
+		  is to expire shortly, <command>named</command> can
+		  refresh the data from the authoritative server
+		  immediately, ensuring that the cache always has an
+		  answer available.
+		</para>
+		<para>
+		  The <option>prefetch</option> specifies the the
+		  "trigger" TTL value at which prefetch of the current
+		  query will take place: when a cache record with a
+		  lower TTL value is encountered during query processing,
+		  it will be refreshed.  Valid trigger TTL values are 1 to
+		  10 seconds.  Setting a trigger TTL to zero disables
+		  prefetch.
+		<para>
+		  An optional second argument can be used
+		  to set the smallest <emphasis>original</emphasis>
+		  TTL value that will be accepted for a record to be
+		  eligible for prefetching.  The difference between
+		  the trigger TTL and the eligibility TTL must be
+		  at least 6 seconds.
+		</para>
+		</para>
+		  The default trigger and eligibility TTLs are
+		  <literal>2</literal> and <literal>9</literal>,
+		  respectively.
 		</para>
 	      </listitem>
 	    </varlistentry>

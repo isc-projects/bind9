@@ -1,5 +1,10 @@
-3703.	[func]		Prefetch about to expire records if they are queried
-			for, see prefetch option for details. [RT #35041]
+3703.	[func]		To improve recursive resolver performance, cache
+			records which are still being requested by clients
+			can now be automatically refreshed from the
+			authoritative server before they expire, reducing
+			or eliminating the time window in which no answer
+			is available in the cache. See the "prefetch" option
+			for more details. [RT #35041]
 
 3702.	[func]		'dnssec-coverage -l' option specifies a length
 			of time to check for coverage; events further into
