@@ -56,62 +56,62 @@ TARGETS =	taskpool_test@EXEEXT@ socket_test@EXEEXT@ hash_test@EXEEXT@ \
 taskpool_test@EXEEXT@: taskpool_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			taskpool_test.@O@ isctest.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 task_test@EXEEXT@: task_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			task_test.@O@ isctest.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 socket_test@EXEEXT@: socket_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			socket_test.@O@ isctest.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 hash_test@EXEEXT@: hash_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			hash_test.@O@ ${ISCLIBS} ${ISCPK11LIBS} \
-			${ISCLIBS} ${LIBS}
+			hash_test.@O@ \
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 lex_test@EXEEXT@: lex_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			lex_test.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 queue_test@EXEEXT@: queue_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			queue_test.@O@ isctest.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 symtab_test@EXEEXT@: symtab_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			symtab_test.@O@ isctest.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 parse_test@EXEEXT@: parse_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			parse_test.@O@ isctest.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 sockaddr_test@EXEEXT@: sockaddr_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			sockaddr_test.@O@ isctest.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 pool_test@EXEEXT@: pool_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			pool_test.@O@ isctest.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 regex_test@EXEEXT@: regex_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			regex_test.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 safe_test@EXEEXT@: safe_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			safe_test.@O@ \
-			${ISCLIBS} ${ISCPK11LIBS} ${ISCLIBS} ${LIBS}
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 time_test@EXEEXT@: time_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
