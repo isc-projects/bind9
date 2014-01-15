@@ -53,6 +53,7 @@
 #include <unistd.h>
 
 #include <isc/commandline.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/types.h>
 
