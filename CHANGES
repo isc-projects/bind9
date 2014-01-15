@@ -8,7 +8,7 @@
 			Note: Callers will need to be updated to treat
 			ISC_R_FILENOTFOUND as a qualified success or else
 			they will leak memory. The following code fragment
-			will work with both only and new versions without
+			will work with both old and new versions without
 			changing the behaviour of the existing code.
 
 			resconf = NULL;
