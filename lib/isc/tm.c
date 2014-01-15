@@ -55,6 +55,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
+
+#include <isc/tm.h>
 
 /*
  * Portable conversion routines for struct tm, replacing
