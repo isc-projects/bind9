@@ -755,6 +755,7 @@ port_search(dns_dispatch_t *disp, in_port_t port) {
 static dispportentry_t *
 new_portentry(dns_dispatch_t *disp, in_port_t port) {
 	dispportentry_t *portentry;
+	dns_qid_t *qid;
 
 	REQUIRE(disp->port_table != NULL);
 
@@ -763,10 +764,13 @@ new_portentry(dns_dispatch_t *disp, in_port_t port) {
 		return (portentry);
 
 	portentry->port = port;
-	portentry->refs = 0;
+	portentry->refs = 1;
 	ISC_LINK_INIT(portentry, link);
+	qid = DNS_QID(disp);
+	LOCK(&qid->lock);
 	ISC_LIST_APPEND(disp->port_table[port % DNS_DISPATCH_PORTTABLESIZE],
 			portentry, link);
+	UNLOCK(&qid->lock);
 
 	return (portentry);
 }
@@ -777,7 +781,6 @@ new_portentry(dns_dispatch_t *disp, in_port_t port) {
 static void
 deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
 	dispportentry_t *portentry = *portentryp;
-	isc_boolean_t unlink = ISC_FALSE;
 	dns_qid_t *qid;
 
 	REQUIRE(disp->port_table != NULL);
@@ -786,15 +789,14 @@ deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
 	qid = DNS_QID(disp);
 	LOCK(&qid->lock);
 	portentry->refs--;
-	unlink = ISC_TF(portentry->refs == 0);
-	UNLOCK(&qid->lock);
 
-	if (unlink) {
+	if (portentry->refs == 0) {
 		ISC_LIST_UNLINK(disp->port_table[portentry->port %
 						 DNS_DISPATCH_PORTTABLESIZE],
 				portentry, link);
 		isc_mempool_put(disp->portpool, portentry);
 	}
+	UNLOCK(&qid->lock);
 
 	*portentryp = NULL;
 }
@@ -916,8 +918,11 @@ get_dispsocket(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 					result = ISC_R_NOMEMORY;
 					break;
 				}
+			} else {
+				LOCK(&qid->lock);
+				portentry->refs++;
+				UNLOCK(&qid->lock);
 			}
-			portentry->refs++;
 			break;
 		} else if (result == ISC_R_NOPERM) {
 			char buf[ISC_SOCKADDR_FORMATSIZE];
