@@ -8755,6 +8755,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  it will be refreshed.  Valid trigger TTL values are 1 to
 		  10 seconds.  Setting a trigger TTL to zero disables
 		  prefetch.
+		</para>
 		<para>
 		  An optional second argument can be used
 		  to set the smallest <emphasis>original</emphasis>
@@ -8763,7 +8764,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  the trigger TTL and the eligibility TTL must be
 		  at least 6 seconds.
 		</para>
-		</para>
+		<para>
 		  The default trigger and eligibility TTLs are
 		  <literal>2</literal> and <literal>9</literal>,
 		  respectively.
