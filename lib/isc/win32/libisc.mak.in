@@ -194,6 +194,7 @@ CLEAN :
 	-@erase "$(INTDIR)\thread.obj"
 	-@erase "$(INTDIR)\time.obj"
 	-@erase "$(INTDIR)\timer.obj"
+	-@erase "$(INTDIR)\tm.obj"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(INTDIR)\version.obj"
 	-@erase "$(INTDIR)\win32os.obj"
@@ -301,6 +302,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\task.obj" \
 	"$(INTDIR)\taskpool.obj" \
 	"$(INTDIR)\timer.obj" \
+	"$(INTDIR)\tm.obj" \
 	"$(INTDIR)\parseint.obj" \
 	"$(INTDIR)\pool.obj" \
 	"$(INTDIR)\portset.obj" \
@@ -485,6 +487,8 @@ CLEAN :
 	-@erase "$(INTDIR)\time.sbr"
 	-@erase "$(INTDIR)\timer.obj"
 	-@erase "$(INTDIR)\timer.sbr"
+	-@erase "$(INTDIR)\tm.obj"
+	-@erase "$(INTDIR)\tm.sbr"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(INTDIR)\vc60.pdb"
 	-@erase "$(INTDIR)\version.obj"
@@ -589,6 +593,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\task.sbr" \
 	"$(INTDIR)\taskpool.sbr" \
 	"$(INTDIR)\timer.sbr" \
+	"$(INTDIR)\tm.sbr" \
 	"$(INTDIR)\parseint.sbr" \
 	"$(INTDIR)\pool.sbr" \
 	"$(INTDIR)\portset.sbr" \
@@ -686,6 +691,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\task.obj" \
 	"$(INTDIR)\taskpool.obj" \
 	"$(INTDIR)\timer.obj" \
+	"$(INTDIR)\tm.obj" \
 	"$(INTDIR)\parseint.obj" \
 	"$(INTDIR)\pool.obj" \
 	"$(INTDIR)\portset.obj" \
@@ -2164,6 +2170,24 @@ SOURCE=..\timer.c
 
 
 "$(INTDIR)\timer.obj"	"$(INTDIR)\timer.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\tm.c
+
+!IF  "$(CFG)" == "libisc - @PLATFORM@ Release"
+
+
+"$(INTDIR)\tm.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\tm.obj"	"$(INTDIR)\tm.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
