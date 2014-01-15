@@ -1402,7 +1402,7 @@
 ./contrib/queryperf/missing/addrinfo.h		X	2004
 ./contrib/queryperf/missing/getaddrinfo.c	X	2004
 ./contrib/queryperf/missing/getnameinfo.c	X	2004
-./contrib/queryperf/queryperf.c			X	2001,2002,2003,2004,2005,2007,2012,2013
+./contrib/queryperf/queryperf.c			X	2001,2002,2003,2004,2005,2007,2012,2013,2014
 ./contrib/queryperf/utils/gen-data-queryperf.py	X	2003,2008
 ./contrib/sdb/bdb/README			X	2002
 ./contrib/sdb/bdb/bdb.c				X	2002,2012
