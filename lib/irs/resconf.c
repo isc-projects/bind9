@@ -483,7 +483,7 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 {
 	FILE *fp = NULL;
 	char word[256];
-	isc_result_t rval, ret;
+	isc_result_t rval, ret = ISC_R_SUCCESS;
 	irs_resconf_t *conf;
 	int i, stopchar;
 
@@ -508,7 +508,6 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 
 	errno = 0;
 	if ((fp = fopen(filename, "r")) != NULL) {
-		ret = ISC_R_SUCCESS;
 		do {
 			stopchar = getword(fp, word, sizeof(word));
 			if (stopchar == EOF) {
