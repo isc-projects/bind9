@@ -64,7 +64,8 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		rwlock.@O@ \
 		safe.@O@ serial.@O@ sha1.@O@ sha2.@O@ sockaddr.@O@ stats.@O@ \
 		string.@O@ strtoul.@O@ symtab.@O@ task.@O@ taskpool.@O@ \
-		timer.@O@ version.@O@ ${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
+		tm.@O@ timer.@O@ version.@O@ \
+		${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
 SYMTBLOBJS =	backtrace-emptytbl.@O@
 
 # Alphabetically
@@ -80,7 +81,7 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 		ratelimiter.c refcount.c region.c regex.c result.c rwlock.c \
 		safe.c serial.c sha1.c sha2.c sockaddr.c stats.c string.c \
 		strtoul.c symtab.c symtbl-empty.c task.c taskpool.c timer.c \
-		version.c
+		tm.c version.c
 
 LIBS =		@LIBS@
 

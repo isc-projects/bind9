@@ -588,6 +588,8 @@ isc_time_seconds
 isc_time_set
 isc_time_settoepoch
 isc_time_subtract
+isc_tm_timegm
+isc_tm_strptime
 isc_win32os_majorversion
 isc_win32os_minorversion
 isc_win32os_servicepackmajor

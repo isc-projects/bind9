@@ -312,6 +312,7 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClInclude Include="..\include\isc\task.h" />
     <ClInclude Include="..\include\isc\taskpool.h" />
     <ClInclude Include="..\include\isc\timer.h" />
+    <ClInclude Include="..\include\isc\tm.h" />
     <ClInclude Include="..\include\isc\types.h" />
     <ClInclude Include="..\include\isc\util.h" />
     <ClInclude Include="..\include\isc\version.h" />
@@ -405,6 +406,7 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClCompile Include="..\task.c" />
     <ClCompile Include="..\taskpool.c" />
     <ClCompile Include="..\timer.c" />
+    <ClCompile Include="..\tm.c" />
     <ClCompile Include="app.c" />
     <ClCompile Include="condition.c" />
     <ClCompile Include="dir.c" />

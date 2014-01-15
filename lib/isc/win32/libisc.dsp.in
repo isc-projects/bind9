@@ -561,6 +561,10 @@ SOURCE=..\include\isc\timer.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isc\tm.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\include\isc\win32os.h
 # End Source File
 # Begin Source File
@@ -802,6 +806,10 @@ SOURCE=..\taskpool.c
 # Begin Source File
 
 SOURCE=..\timer.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\tm.c
 # End Source File
 # Begin Source File
 

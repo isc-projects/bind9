@@ -1,3 +1,7 @@
+3709.	[port]		Use built-in versions of strptime() and timegm()
+			on all platforms to avoid portability issues.
+			[RT #35183]
+
 3708.	[bug]		Address a portentry locking issue in dispatch.c.
 			[RT #35128]
 

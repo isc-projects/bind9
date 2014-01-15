@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
 /*-
  * Copyright (c) 1997, 1998 The NetBSD Foundation, Inc.
  * All rights reserved.
@@ -33,10 +49,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+/*
+ * Portable conversion routines for struct tm, replacing
+ * timegm() and strptime(), which are not available on all
+ * platforms and don't always behave the same way when they
+ * are.
+ */
 
 /*
  * We do not implement alternate representations. However, we always
@@ -49,8 +74,6 @@
 #ifndef TM_YEAR_BASE
 #define TM_YEAR_BASE 1900
 #endif
-
-static	int conv_num(const char **, int *, int, int);
 
 static const char *day[7] = {
 	"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
@@ -71,8 +94,57 @@ static const char *am_pm[2] = {
 	"AM", "PM"
 };
 
-static char *
-strptime(const char *buf, const char *fmt, struct tm *tm) {
+static int
+conv_num(const char **buf, int *dest, int llim, int ulim) {
+	int result = 0;
+
+	/* The limit also determines the number of valid digits. */
+	int rulim = ulim;
+
+	if (**buf < '0' || **buf > '9')
+		return (0);
+
+	do {
+		result *= 10;
+		result += *(*buf)++ - '0';
+		rulim /= 10;
+	} while ((result * 10 <= ulim) &&
+		 rulim && **buf >= '0' && **buf <= '9');
+
+	if (result < llim || result > ulim)
+		return (0);
+
+	*dest = result;
+	return (1);
+}
+
+time_t
+isc_tm_timegm(struct tm *tm) {
+	time_t ret;
+	int i, yday = 0, leapday;
+	int mdays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 };
+
+	leapday = ((((tm->tm_year + 1900 ) % 4) == 0 &&
+		    ((tm->tm_year + 1900 ) % 100) != 0) ||
+		   ((tm->tm_year + 1900 ) % 400) == 0) ? 1 : 0;
+	mdays[1] += leapday;
+
+	yday = tm->tm_mday - 1;
+	for (i = 1; i <= tm->tm_mon; i++)
+		yday += mdays[i - 1];
+	ret = tm->tm_sec +
+	      (60 * tm->tm_min) +
+	      (3600 * tm->tm_hour) +
+	      (86400 * (yday +
+		       ((tm->tm_year - 70) * 365) +
+		       ((tm->tm_year - 69) / 4) -
+		       ((tm->tm_year - 1) / 100) +
+		       ((tm->tm_year + 299) / 400)));
+	return (ret);
+}
+
+char *
+isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm) {
 	char c;
 	const char *bp;
 	size_t len = 0;
@@ -123,43 +195,43 @@ literal:
 		 */
 		case 'c':	/* Date and time, using the locale's format. */
 			LEGAL_ALT(ALT_E);
-			if (!(bp = strptime(bp, "%x %X", tm)))
+			if (!(bp = isc_tm_strptime(bp, "%x %X", tm)))
 				return (0);
 			break;
 
 		case 'D':	/* The date as "%m/%d/%y". */
 			LEGAL_ALT(0);
-			if (!(bp = strptime(bp, "%m/%d/%y", tm)))
+			if (!(bp = isc_tm_strptime(bp, "%m/%d/%y", tm)))
 				return (0);
 			break;
 
 		case 'R':	/* The time as "%H:%M". */
 			LEGAL_ALT(0);
-			if (!(bp = strptime(bp, "%H:%M", tm)))
+			if (!(bp = isc_tm_strptime(bp, "%H:%M", tm)))
 				return (0);
 			break;
 
 		case 'r':	/* The time in 12-hour clock representation. */
 			LEGAL_ALT(0);
-			if (!(bp = strptime(bp, "%I:%M:%S %p", tm)))
+			if (!(bp = isc_tm_strptime(bp, "%I:%M:%S %p", tm)))
 				return (0);
 			break;
 
 		case 'T':	/* The time as "%H:%M:%S". */
 			LEGAL_ALT(0);
-			if (!(bp = strptime(bp, "%H:%M:%S", tm)))
+			if (!(bp = isc_tm_strptime(bp, "%H:%M:%S", tm)))
 				return (0);
 			break;
 
 		case 'X':	/* The time, using the locale's format. */
 			LEGAL_ALT(ALT_E);
-			if (!(bp = strptime(bp, "%H:%M:%S", tm)))
+			if (!(bp = isc_tm_strptime(bp, "%H:%M:%S", tm)))
 				return (0);
 			break;
 
 		case 'x':	/* The date, using the locale's format. */
 			LEGAL_ALT(ALT_E);
-			if (!(bp = strptime(bp, "%m/%d/%y", tm)))
+			if (!(bp = isc_tm_strptime(bp, "%m/%d/%y", tm)))
 				return (0);
 			break;
 
@@ -365,28 +437,4 @@ literal:
 
 	/* LINTED functional specification */
 	return ((char *)bp);
-}
-
-static int
-conv_num(const char **buf, int *dest, int llim, int ulim) {
-	int result = 0;
-
-	/* The limit also determines the number of valid digits. */
-	int rulim = ulim;
-
-	if (**buf < '0' || **buf > '9')
-		return (0);
-
-	do {
-		result *= 10;
-		result += *(*buf)++ - '0';
-		rulim /= 10;
-	} while ((result * 10 <= ulim) &&
-		 rulim && **buf >= '0' && **buf <= '9');
-
-	if (result < llim || result > ulim)
-		return (0);
-
-	*dest = result;
-	return (1);
 }

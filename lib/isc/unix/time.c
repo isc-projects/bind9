@@ -34,6 +34,7 @@
 #include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/time.h>
+#include <isc/tm.h>
 #include <isc/util.h>
 
 #define NS_PER_S	1000000000	/*%< Nanoseconds per second. */
@@ -408,31 +409,6 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	INSIST(flen < len);
 }
 
-static time_t
-timetfromtm(struct tm *tm) {
-	time_t ret;
-	int i, yday = 0, leapday;
-	int mdays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 };
-
-	leapday = ((((tm->tm_year + 1900 ) % 4) == 0 &&
-		    ((tm->tm_year + 1900 ) % 100) != 0) ||
-		   ((tm->tm_year + 1900 ) % 400) == 0) ? 1 : 0;
-	mdays[1] += leapday;
-
-	yday = tm->tm_mday - 1;
-	for (i = 1; i <= tm->tm_mon; i++)
-		yday += mdays[i - 1];
-	ret = tm->tm_sec +
-	      (60 * tm->tm_min) +
-	      (3600 * tm->tm_hour) +
-	      (86400 * (yday +
-		       ((tm->tm_year - 70) * 365) +
-		       ((tm->tm_year - 69) / 4) -
-		       ((tm->tm_year - 1) / 100) +
-		       ((tm->tm_year + 299) / 400)));
-	return (ret);
-}
-
 isc_result_t
 isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 	struct tm t_tm;
@@ -441,10 +417,10 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 
 	REQUIRE(buf != NULL);
 	REQUIRE(t != NULL);
-	p = strptime(buf, "%a, %d %b %Y %H:%M:%S", &t_tm);
+	p = isc_tm_strptime(buf, "%a, %d %b %Y %H:%M:%S", &t_tm);
 	if (p == NULL)
 		return (ISC_R_UNEXPECTED);
-	when = timetfromtm(&t_tm);
+	when = isc_tm_timegm(&t_tm);
 	if (when == -1)
 		return (ISC_R_UNEXPECTED);
 	isc_time_set(t, when, 0);
