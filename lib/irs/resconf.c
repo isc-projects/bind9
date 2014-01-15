@@ -507,45 +507,50 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 		conf->search[i] = NULL;
 
 	errno = 0;
-	if ((fp = fopen(filename, "r")) == NULL) {
-		isc_mem_put(mctx, conf, sizeof(*conf));
-		return (ISC_R_INVALIDFILE);
-	}
-
-	ret = ISC_R_SUCCESS;
-	do {
-		stopchar = getword(fp, word, sizeof(word));
-		if (stopchar == EOF) {
-			rval = ISC_R_SUCCESS;
-			POST(rval);
-			break;
-		}
-
-		if (strlen(word) == 0U)
-			rval = ISC_R_SUCCESS;
-		else if (strcmp(word, "nameserver") == 0)
-			rval = resconf_parsenameserver(conf, fp);
-		else if (strcmp(word, "domain") == 0)
-			rval = resconf_parsedomain(conf, fp);
-		else if (strcmp(word, "search") == 0)
-			rval = resconf_parsesearch(conf, fp);
-		else if (strcmp(word, "sortlist") == 0)
-			rval = resconf_parsesortlist(conf, fp);
-		else if (strcmp(word, "options") == 0)
-			rval = resconf_parseoption(conf, fp);
-		else {
-			/* unrecognised word. Ignore entire line */
-			rval = ISC_R_SUCCESS;
-			stopchar = eatline(fp);
+	if ((fp = fopen(filename, "r")) != NULL) {
+		ret = ISC_R_SUCCESS;
+		do {
+			stopchar = getword(fp, word, sizeof(word));
 			if (stopchar == EOF) {
+				rval = ISC_R_SUCCESS;
+				POST(rval);
 				break;
 			}
-		}
-		if (ret == ISC_R_SUCCESS && rval != ISC_R_SUCCESS)
-			ret = rval;
-	} while (1);
 
-	fclose(fp);
+			if (strlen(word) == 0U)
+				rval = ISC_R_SUCCESS;
+			else if (strcmp(word, "nameserver") == 0)
+				rval = resconf_parsenameserver(conf, fp);
+			else if (strcmp(word, "domain") == 0)
+				rval = resconf_parsedomain(conf, fp);
+			else if (strcmp(word, "search") == 0)
+				rval = resconf_parsesearch(conf, fp);
+			else if (strcmp(word, "sortlist") == 0)
+				rval = resconf_parsesortlist(conf, fp);
+			else if (strcmp(word, "options") == 0)
+				rval = resconf_parseoption(conf, fp);
+			else {
+				/* unrecognised word. Ignore entire line */
+				rval = ISC_R_SUCCESS;
+				stopchar = eatline(fp);
+				if (stopchar == EOF) {
+					break;
+				}
+			}
+			if (ret == ISC_R_SUCCESS && rval != ISC_R_SUCCESS)
+				ret = rval;
+		} while (1);
+
+		fclose(fp);
+	} else {
+		switch (errno) {
+		case ENOENT:
+			break;
+		default:
+			isc_mem_put(mctx, conf, sizeof(*conf));
+			return (ISC_R_INVALIDFILE);
+		}
+	}
 
 	/* If we don't find a nameserver fall back to localhost */
 	if (conf->numns == 0) {
@@ -575,8 +580,11 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 
 	if (ret != ISC_R_SUCCESS)
 		irs_resconf_destroy(&conf);
-	else
+	else {
+		if (fp == NULL)
+			ret = ISC_R_FILENOTFOUND;
 		*confp = conf;
+	}
 
 	return (ret);
 }
