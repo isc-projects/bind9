@@ -93,14 +93,15 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	if (strlen(DNS_AS_STR(token)) <= 10U &&
 	    *DNS_AS_STR(token) != '-' && *DNS_AS_STR(token) != '+') {
 		char *end;
-		unsigned long l;
+		unsigned long u;
+		isc_uint64_t u64;
 
-		l = strtoul(DNS_AS_STR(token), &end, 10);
-		if (l == ULONG_MAX || *end != 0)
+		u64 = u = strtoul(DNS_AS_STR(token), &end, 10);
+		if (u == ULONG_MAX || *end != 0)
 			RETTOK(DNS_R_SYNTAX);
-		if ((isc_uint64_t)l > (isc_uint64_t)0xffffffff)
+		if (u64 > 0xffffffffUL)
 			RETTOK(ISC_R_RANGE);
-		time_expire = l;
+		time_expire = u;
 	} else
 		RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_expire));
 	RETERR(uint32_tobuffer(time_expire, target));
@@ -113,14 +114,15 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	if (strlen(DNS_AS_STR(token)) <= 10U &&
 	    *DNS_AS_STR(token) != '-' && *DNS_AS_STR(token) != '+') {
 		char *end;
-		unsigned long l;
-
-		l = strtoul(DNS_AS_STR(token), &end, 10);
-		if (l == ULONG_MAX || *end != 0)
+		unsigned long u;
+		isc_uint64_t u64;
+		
+		u64 = u = strtoul(DNS_AS_STR(token), &end, 10);
+		if (u == ULONG_MAX || *end != 0)
 			RETTOK(DNS_R_SYNTAX);
-		if ((isc_uint64_t)l > (isc_uint64_t)0xffffffff)
+		if (u64 > 0xffffffffUL)
 			RETTOK(ISC_R_RANGE);
-		time_signed = l;
+		time_signed = u;
 	} else
 		RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_signed));
 	RETERR(uint32_tobuffer(time_signed, target));
