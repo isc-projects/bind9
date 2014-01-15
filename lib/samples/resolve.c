@@ -401,7 +401,7 @@ main(int argc, char *argv[]) {
 		isc_sockaddrlist_t *nameservers;
 
 		result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
 			fprintf(stderr, "irs_resconf_load failed: %d\n",
 				result);
 			exit(1);
