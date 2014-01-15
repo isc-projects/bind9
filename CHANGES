@@ -1,3 +1,6 @@
+3708.	[bug]		Address a portentry locking issue in dispatch.c.
+			[RT #35128]
+
 3707.	[bug]		irs_resconf_load now returns ISC_R_FILENOTFOUND
 			on a missing resolv.conf file and initializes the
 			structure as if it had been configured with:
