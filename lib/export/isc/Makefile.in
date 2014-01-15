@@ -73,6 +73,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		rwlock.@O@ safe.@O@ serial.@O@ sha1.@O@ sha2.@O@ \
 		sockaddr.@O@ stats.@O@ string.@O@ \
 		symtab.@O@ \
+		tm.@0@ \
 		version.@O@ \
 		${APIOBJS} ${ISCDRIVEROBJS} \
 		${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
@@ -96,6 +97,7 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 		random.c refcount.c region.c regex.c result.c rwlock.c \
 		safe.c serial.c sha1.c sha2.c sockaddr.c \
 		stats.c string.c symtab.c \
+		tm.c \
 		version.c \
 		${APISRCS} ${ISCDRIVERSRCS}
 
