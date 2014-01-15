@@ -31,11 +31,9 @@ CINCLUDES =	-I. ${ISC_INCLUDES} ${DNS_INCLUDES} ${ISCPK11_INCLUDES}
 CDEFINES =	@CRYPTO@ @USE_PKCS11@ -DPK11_LIB_LOCATION=\"${PROVIDER}\"
 CWARNINGS =
 
-ISCLIBS =	../../lib/isc/libisc.@A@
 ISCPK11LIBS =	../../lib/iscpk11/libiscpk11.@A@
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
-ISCPK11DEPLIBS = libiscpk11.@A@
 
 LIBS =		@LIBS@
 
@@ -70,7 +68,7 @@ libiscpk11.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libiscpk11.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
-		${OBJS} ${ISCLIBS} ${LIBS}
+		${OBJS} ${LIBS}
 
 timestamp: libiscpk11.@A@
 	touch timestamp
