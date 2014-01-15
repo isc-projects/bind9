@@ -20,8 +20,11 @@
 /*! \file isc/tm.h
  * Provides portable conversion routines for struct tm.
  */
-
 #include <time.h>
+
+#include <isc/lang.h>
+#include <isc/types.h>
+
 
 ISC_LANG_BEGINDECLS
 

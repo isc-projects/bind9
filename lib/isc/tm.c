@@ -55,6 +55,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
+
+#include <isc/tm.h>
+#include <isc/util.h>
 
 /*
  * Portable conversion routines for struct tm, replacing
@@ -145,7 +149,7 @@ isc_tm_timegm(struct tm *tm) {
 
 char *
 isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm) {
-	char c;
+	char c, *ret;
 	const char *bp;
 	size_t len = 0;
 	int alt_format, i, split_year = 0;
@@ -157,8 +161,8 @@ isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm) {
 		alt_format = 0;
 
 		/* Eat up white-space. */
-		if (isspace(c)) {
-			while (isspace(*bp))
+		if (isspace((int) c)) {
+			while (isspace((int) *bp))
 				bp++;
 
 			fmt++;
@@ -423,7 +427,7 @@ literal:
 		case 'n':	/* Any kind of white-space. */
 		case 't':
 			LEGAL_ALT(0);
-			while (isspace(*bp))
+			while (isspace((int) *bp))
 				bp++;
 			break;
 
@@ -436,5 +440,6 @@ literal:
 	}
 
 	/* LINTED functional specification */
-	return ((char *)bp);
+	DE_CONST(bp, ret);
+	return (ret);
 }
