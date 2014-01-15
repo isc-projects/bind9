@@ -73,7 +73,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		rwlock.@O@ safe.@O@ serial.@O@ sha1.@O@ sha2.@O@ \
 		sockaddr.@O@ stats.@O@ string.@O@ \
 		symtab.@O@ \
-		tm.@0@ \
+		tm.@O@ \
 		version.@O@ \
 		${APIOBJS} ${ISCDRIVEROBJS} \
 		${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
