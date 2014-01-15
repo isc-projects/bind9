@@ -116,7 +116,7 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 		char *end;
 		unsigned long u;
 		isc_uint64_t u64;
-		
+
 		u64 = u = strtoul(DNS_AS_STR(token), &end, 10);
 		if (u == ULONG_MAX || *end != 0)
 			RETTOK(DNS_R_SYNTAX);
