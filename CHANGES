@@ -1,3 +1,6 @@
+3706.	[contrib]	queryperf: Fixed a possible integer overflow when
+			printing results. [RT #35182]
+
 3704.	[protocol]	Accept integer timestamps in RRSIG records. [RT #35185]
 
 	--- 9.8.7rc1 released ---
