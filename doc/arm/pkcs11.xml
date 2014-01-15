@@ -40,13 +40,13 @@
   </para>
   <para>
     There are two available mechanisms for PKCS#11 support in BIND 9:
-    OpenSSL-based PKCS#11 and native PKCS#11.  The first mechanism
-    BIND uses a modified version of OpenSSL which loads the provider
-    library and operates the HSM indirectly; any cryptographic operations
-    not supported by the HSM can be carried out by OpenSSL instead.
-    The second mechanism enables BIND to bypass OpenSSL completely;
-    BIND loads the provider library and uses the PKCS#11 API to drive
-    the HSM itself.
+    OpenSSL-based PKCS#11 and native PKCS#11.  When using the first
+    mechanism, BIND uses a modified version of OpenSSL, which loads
+    the provider library and operates the HSM indirectly; any
+    cryptographic operations not supported by the HSM can be carried
+    out by OpenSSL instead.  The second mechanism enables BIND to bypass
+    OpenSSL completely; BIND loads the provider library itself, and uses
+    the PKCS#11 API to drive the HSM directly.
   </para>
   <sect2>
     <title>Prerequisites</title>
@@ -75,7 +75,7 @@
     </para>
     <screen>
 $ <userinput>cd bind9</userinput>
-$ <userinput>./configure --without-openssl --enable-native-pkcs11 \
+$ <userinput>./configure --enable-native-pkcs11 \
     --with-pkcs11=<replaceable>provider-library-path</replaceable></userinput>
     </screen>
     <para>
