@@ -1,3 +1,6 @@
+3706.	[contrib]	queryperf: Fixed a possible integer overflow when
+			printing results. [RT #35182]
+
 3705.	[func]		"configure --enable-native-pkcs11" enables BIND
 			to use the PKCS#11 API for all cryptographic
 			functions, so that it can drive a hardware service
