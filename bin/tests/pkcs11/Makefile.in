@@ -37,12 +37,12 @@ SRCS =		pkcs11-md5sum.c pkcs11-hmacmd5.c
 @BIND9_MAKE_RULES@
 
 pkcs11-md5sum@EXEEXT@: @srcdir@/pkcs11-md5sum.c
-	${CC} ${ALL_CFLAGS} ${LDFLAGS} \
-	-o $@ @srcdir@/pkcs11-md5sum.c ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} \
+		-o $@ @srcdir@/pkcs11-md5sum.c ${LIBS}
 
 pkcs11-hmacmd5@EXEEXT@: @srcdir@/pkcs11-hmacmd5.c
-	${CC} ${ALL_CFLAGS} ${LDFLAGS} \
-	-o $@ @srcdir@/pkcs11-hmacmd5.c ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} \
+		-o $@ @srcdir@/pkcs11-hmacmd5.c ${LIBS}
 
 test:
 

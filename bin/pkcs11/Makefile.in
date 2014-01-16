@@ -48,20 +48,20 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 @BIND9_MAKE_RULES@
 
 pkcs11-list@EXEEXT@: @srcdir@/pkcs11-list.@O@
-	${CC} ${ALL_CFLAGS} ${LDFLAGS} \
-	-o $@ @srcdir@/pkcs11-list.@O@ ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} \
+		-o $@ @srcdir@/pkcs11-list.@O@ ${LIBS}
 
 pkcs11-destroy@EXEEXT@: @srcdir@/pkcs11-destroy.@O@
-	${CC} ${ALL_CFLAGS} ${LDFLAGS} \
-	-o $@ @srcdir@/pkcs11-destroy.@O@ ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} \
+		-o $@ @srcdir@/pkcs11-destroy.@O@ ${LIBS}
 
 pkcs11-keygen@EXEEXT@: @srcdir@/pkcs11-keygen.@O@
-	${CC} ${ALL_CFLAGS} ${LDFLAGS} \
-	-o $@ @srcdir@/pkcs11-keygen.@O@ ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} \
+		-o $@ @srcdir@/pkcs11-keygen.@O@ ${LIBS}
 
 pkcs11-tokens@EXEEXT@: @srcdir@/pkcs11-tokens.@O@
-	${CC} ${ALL_CFLAGS} ${LDFLAGS} \
-	-o $@ @srcdir@/pkcs11-tokens.@O@ ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} \
+		-o $@ @srcdir@/pkcs11-tokens.@O@ ${LIBS}
 
 doc man:: ${MANOBJS}
 
@@ -73,10 +73,14 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
 install:: ${TARGETS} installdirs
-	${INSTALL_PROGRAM} pkcs11-list@EXEEXT@ ${DESTDIR}${sbindir}
-	${INSTALL_PROGRAM} pkcs11-destroy@EXEEXT@ ${DESTDIR}${sbindir}
-	${INSTALL_PROGRAM} pkcs11-keygen@EXEEXT@ ${DESTDIR}${sbindir}
-	${INSTALL_PROGRAM} pkcs11-tokens@EXEEXT@ ${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} pkcs11-list@EXEEXT@ \
+		${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} pkcs11-destroy@EXEEXT@ \
+		${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} pkcs11-keygen@EXEEXT@ \
+		${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} pkcs11-tokens@EXEEXT@ \
+		${DESTDIR}${sbindir}
 	${INSTALL_DATA} ${srcdir}/pkcs11-list.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/pkcs11-destroy.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/pkcs11-keygen.8 ${DESTDIR}${mandir}/man8
