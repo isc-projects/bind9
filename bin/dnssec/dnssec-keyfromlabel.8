@@ -67,7 +67,9 @@ Use an NSEC3\-capable algorithm to generate a DNSSEC key. If this option is used
 .PP
 \-E \fIengine\fR
 .RS 4
-Specifies the name of the crypto hardware (OpenSSL engine). When compiled with PKCS#11 support it defaults to "pkcs11".
+Specifies the cryptographic hardware to use.
+.sp
+When BIND is built with OpenSSL PKCS#11 support, this defaults to the string "pkcs11", which identifies an OpenSSL engine that can drive a cryptographic accelerator or hardware service module. When BIND is built with native PKCS#11 cryptography (\-\-enable\-native\-pkcs11), it defaults to the path of the PKCS#11 provider library specified via "\-\-with\-pkcs11".
 .RE
 .PP
 \-l \fIlabel\fR

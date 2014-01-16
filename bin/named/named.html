@@ -87,13 +87,21 @@
 	    not examined.
           </p></dd>
 <dt><span class="term">-E <em class="replaceable"><code>engine-name</code></em></span></dt>
-<dd><p>
-            Use a crypto hardware (OpenSSL engine) for the crypto operations
-            it supports, for instance re-signing with private keys from
-            a secure key store. When compiled with PKCS#11 support
-            <em class="replaceable"><code>engine-name</code></em>
-            defaults to pkcs11, the empty name resets it to no engine.
-          </p></dd>
+<dd>
+<p>
+            When applicable, specifies the hardware to use for
+            cryptographic operations, such as a secure key store used
+            for signing.
+          </p>
+<p>
+            When BIND is built with OpenSSL PKCS#11 support, this defaults
+            to the string "pkcs11", which identifies an OpenSSL engine
+            that can drive a cryptographic accelerator or hardware service
+            module.  When BIND is built with native PKCS#11 cryptography
+            (--enable-native-pkcs11), it defaults to the path of the PKCS#11
+            provider library specified via "--with-pkcs11".
+          </p>
+</dd>
 <dt><span class="term">-f</span></dt>
 <dd><p>
             Run the server in the foreground (i.e. do not daemonize).
@@ -245,7 +253,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544117"></a><h2>SIGNALS</h2>
+<a name="id2544115"></a><h2>SIGNALS</h2>
 <p>
       In routine operation, signals should not be used to control
       the nameserver; <span><strong class="command">rndc</strong></span> should be used
@@ -266,7 +274,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544233"></a><h2>CONFIGURATION</h2>
+<a name="id2544231"></a><h2>CONFIGURATION</h2>
 <p>
       The <span><strong class="command">named</strong></span> configuration file is too complex
       to describe in detail here.  A complete description is provided
@@ -283,7 +291,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544269"></a><h2>FILES</h2>
+<a name="id2544267"></a><h2>FILES</h2>
 <div class="variablelist"><dl>
 <dt><span class="term"><code class="filename">/etc/named.conf</code></span></dt>
 <dd><p>
@@ -296,7 +304,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544309"></a><h2>SEE ALSO</h2>
+<a name="id2544307"></a><h2>SEE ALSO</h2>
 <p><em class="citetitle">RFC 1033</em>,
       <em class="citetitle">RFC 1034</em>,
       <em class="citetitle">RFC 1035</em>,
@@ -309,7 +317,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544379"></a><h2>AUTHOR</h2>
+<a name="id2544377"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
