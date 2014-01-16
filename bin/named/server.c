@@ -1310,26 +1310,22 @@ on_disable_list(const cfg_obj_t *disablelist, dns_name_t *zonename) {
 	return (ISC_FALSE);
 }
 
-static void
-check_dbtype(dns_zone_t **zonep, unsigned int dbtypec, const char **dbargv,
+static isc_result_t
+check_dbtype(dns_zone_t *zone, unsigned int dbtypec, const char **dbargv,
 	     isc_mem_t *mctx)
 {
 	char **argv = NULL;
 	unsigned int i;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
-	result = dns_zone_getdbtype(*zonep, &argv, mctx);
-	if (result != ISC_R_SUCCESS) {
-		dns_zone_detach(zonep);
-		return;
-	}
+	CHECK(dns_zone_getdbtype(zone, &argv, mctx));
 
 	/*
 	 * Check that all the arguments match.
 	 */
 	for (i = 0; i < dbtypec; i++)
 		if (argv[i] == NULL || strcmp(argv[i], dbargv[i]) != 0) {
-			dns_zone_detach(zonep);
+			CHECK(ISC_R_FAILURE);
 			break;
 		}
 
@@ -1337,8 +1333,11 @@ check_dbtype(dns_zone_t **zonep, unsigned int dbtypec, const char **dbargv,
 	 * Check that there are not extra arguments.
 	 */
 	if (i == dbtypec && argv[i] != NULL)
-		dns_zone_detach(zonep);
+		result = ISC_R_FAILURE;
+
+ cleanup:
 	isc_mem_free(mctx, argv);
+	return (result);
 }
 
 static isc_result_t
@@ -1784,12 +1783,21 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 	 * Is the existing zone the ok to use?
 	 */
 	if (zone != NULL) {
-		if (db != NULL)
-			check_dbtype(&zone, rbt_dbtypec, rbt_dbtype,
-				     view->mctx);
-		else
-			check_dbtype(&zone, empty_dbtypec, empty_dbtype,
-				     view->mctx);
+		unsigned int typec;
+		const char **dbargv;
+
+		if (db != NULL) {
+			typec = rbt_dbtypec;
+			dbargv = rbt_dbtype;
+		} else {
+			typec = empty_dbtypec;
+			dbargv = empty_dbtype;
+		}
+
+		result = check_dbtype(zone, typec, dbargv, view->mctx);
+		if (result != ISC_R_SUCCESS)
+			zone = NULL;
+
 		if (zone != NULL && dns_zone_gettype(zone) != dns_zone_master)
 			zone = NULL;
 		if (zone != NULL && dns_zone_getfile(zone) != NULL)

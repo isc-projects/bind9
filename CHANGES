@@ -1,3 +1,7 @@
+3710.	[bug]		Address double dns_zone_detach when switching to
+			using automatic empty zones from regular zones.
+			[RT #35177]
+
 3707.	[bug]		irs_resconf_load now returns ISC_R_FILENOTFOUND
 			on a missing resolv.conf file and initializes the
 			structure as if it had been configured with:
