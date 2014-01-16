@@ -1,3 +1,7 @@
+3710.	[bug]		Address double dns_zone_detach when switching to
+			using automatic empty zones from regular zones.
+			[RT #35177]
+
 3709.	[port]		Use built-in versions of strptime() and timegm()
 			on all platforms to avoid portability issues.
 			[RT #35183]
