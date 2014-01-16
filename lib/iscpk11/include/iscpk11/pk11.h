@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -46,7 +46,7 @@ struct iscpk11_object {
 	CK_BBOOL		reqlogon;
 	CK_BYTE			attrcnt;
 	CK_ATTRIBUTE		*repr;
-};	
+};
 
 struct iscpk11_context {
 	void			*handle;

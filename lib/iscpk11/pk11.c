@@ -1,17 +1,17 @@
 /*
- * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND ISC AND NETWORK ASSOCIATES DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE
- * FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 /*
@@ -198,12 +198,12 @@ static isc_mutex_t sessionlock;
 static iscpk11_sessionlist_t actives;
 
 static CK_C_INITIALIZE_ARGS pk11_init_args = {
-        NULL_PTR,               /* CreateMutex */
-        NULL_PTR,               /* DestroyMutex */
-        NULL_PTR,               /* LockMutex */
-        NULL_PTR,               /* UnlockMutex */
-        CKF_OS_LOCKING_OK,      /* flags */
-        NULL_PTR,               /* pReserved */
+	NULL_PTR,               /* CreateMutex */
+	NULL_PTR,               /* DestroyMutex */
+	NULL_PTR,               /* LockMutex */
+	NULL_PTR,               /* UnlockMutex */
+	CKF_OS_LOCKING_OK,      /* flags */
+	NULL_PTR,               /* pReserved */
 };
 
 #ifndef PK11_LIB_LOCATION
@@ -290,8 +290,8 @@ dst__pkcs11_init(isc_mem_t *mctx, const char *engine) {
 		UNLOCK(&alloclock);
 	}
 
-        if (engine != NULL)
-                lib_name = engine;
+	if (engine != NULL)
+		lib_name = engine;
 
 	/* Initialize the CRYPTOKI library */
 	rv = pkcs_C_Initialize((CK_VOID_PTR) &pk11_init_args);
@@ -408,7 +408,7 @@ pk11_rand_seed_fromfile(const char *randomfile) {
 	if (stream != NULL)
 		(void) isc_stdio_close(stream);
 	pk11_return_session(&ctx);
-}		
+}
 
 isc_result_t
 pk11_get_session(iscpk11_context_t *ctx, iscpk11_optype_t optype,
@@ -570,7 +570,7 @@ free_session_list(iscpk11_sessionlist_t *slist) {
 }
 
 static isc_result_t
-setup_session(iscpk11_session_t *sp, iscpk11_token_t *token, 
+setup_session(iscpk11_session_t *sp, iscpk11_token_t *token,
 	      isc_boolean_t rw)
 {
 	CK_RV rv;
@@ -1065,7 +1065,7 @@ pk11_parse_uri(iscpk11_object_t *obj, const char *label,
 		DST_RET(DST_R_NOENGINE);
 	*p++ = '\0';
 	if (strcmp(uri, "pkcs11") != 0)
-		DST_RET(DST_R_NOENGINE);	
+		DST_RET(DST_R_NOENGINE);
 
 	/* get attributes */
 	for (na = p; na != NULL;) {

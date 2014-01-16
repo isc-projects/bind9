@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -53,7 +53,7 @@
  *    attribute CKA_EC_PARAMS (choice with OID namedCurve)
  *    attribute CKA_EC_POINT (point Q)
  *  private keys:
- *    object class CKO_PRIVATE_KEY 
+ *    object class CKO_PRIVATE_KEY
  *    key type CKK_EC
  *    attribute CKA_EC_PARAMS (choice with OID namedCurve)
  *    attribute CKA_VALUE (big int d)

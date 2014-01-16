@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -60,7 +60,7 @@
  *    attribute CKA_GOSTR3411_PARAMS
  *    attribute CKA_GOST28147_PARAMS
  *  private keys:
- *    object class CKO_PRIVATE_KEY 
+ *    object class CKO_PRIVATE_KEY
  *    key type CKK_GOSTR3410
  *    attribute CKA_VALUE (big int d)
  *    attribute CKA_GOSTR3410_PARAMS
@@ -568,7 +568,7 @@ pkcs11gost_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	isc_mem_put(key->mctx, pk11_ctx, sizeof(*pk11_ctx));
 
 	return (ISC_R_SUCCESS);
-				 
+
     err:
 	pkcs11gost_destroy(key);
 	if (priv != CK_INVALID_HANDLE)
