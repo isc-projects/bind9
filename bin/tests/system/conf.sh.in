@@ -63,7 +63,9 @@ RRCHECKER=$TOP/bin/tools/named-rrchecker
 SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case checkconf @CHECKDS@ checknames checkzone @COVERAGE@
          database dlv dlvauto dlz dlzexternal dlzredir dname dns64 dnssec
-	 dsdigest dscp ecdsa formerr forward glue gost ixfr inline limits
+	 dsdigest dscp ecdsa
+	 emptyzones
+	 formerr forward glue gost ixfr inline limits
 	 logfileconfig lwresd masterfile masterformat metadata
 	 notify nsupdate pending @PKCS11_TEST@ redirect resolver rndc rpz
 	 rrl rrchecker rrsetorder rsabigexponent smartsign sortlist spf
