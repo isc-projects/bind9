@@ -44,7 +44,9 @@ CHECKCONF=$TOP/bin/check/named-checkconf
 # load on the machine to make it unusable to other users.
 # v6synth
 SUBDIRS="acl additional allow_query builtin cacheclean case checkconf
-	 checknames checkzone database dlv dlz dname dnssec formerr
+	 checknames checkzone database dlv dlz dname dnssec
+	 emptyzones
+	 formerr
 	 forward glue ixfr limits logfileconfig lwresd masterfile
 	 masterformat notify nsupdate pending resolver rndc rrsetorder
 	 spf sortlist stub tkey unknown upforwd views wildcard xfer
