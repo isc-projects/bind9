@@ -14,11 +14,15 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
-    :
+    if $PERL -e 'use Net::DNS; die if $Net::DNS::VERSION == 0.73;' 2>/dev/null
+    then
+        :
+    else
+        echo "I:Net::DNS version 0.73 has a bug that causes this test to fail: please update." >&2
+        exit 1
+    fi
 else
     echo "I:This test requires the Net::DNS library." >&2
     exit 1
