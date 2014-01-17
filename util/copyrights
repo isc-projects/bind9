@@ -248,7 +248,7 @@
 ./bin/named/named.html				HTML	DOCBOOK
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006,2007
 ./bin/named/statschannel.c			C	2008,2009,2010,2011,2012,2013
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006,2007,2009,2010,2012
@@ -272,7 +272,7 @@
 ./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013
 ./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/nsupdate/.gitignore			X	2012
-./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008,2009,2012
+./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008,2009,2012,2014
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
 ./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
@@ -823,7 +823,7 @@
 ./bin/tests/system/common/rndc.conf		CONF-C	2000,2001,2004,2007
 ./bin/tests/system/common/rndc.key		CONF-C	2011
 ./bin/tests/system/common/root.hint		ZONE	2000,2001,2004,2007
-./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/tests/system/database/clean.sh		SH	2011,2012
 ./bin/tests/system/database/ns1/named.conf1	CONF-C	2011
 ./bin/tests/system/database/ns1/named.conf2	CONF-C	2011
@@ -1004,6 +1004,14 @@
 ./bin/tests/system/ecdsa/prereq.sh.in		SH	2012
 ./bin/tests/system/ecdsa/setup.sh		SH	2012
 ./bin/tests/system/ecdsa/tests.sh		SH	2012,2013
+./bin/tests/system/emptyzones/clean.sh		SH	2014
+./bin/tests/system/emptyzones/ns1/empty.db	ZONE	2014
+./bin/tests/system/emptyzones/ns1/named1.conf	CONF-C	2014
+./bin/tests/system/emptyzones/ns1/named2.conf	CONF-C	2014
+./bin/tests/system/emptyzones/ns1/rfc1918.zones	CONF-C	2014
+./bin/tests/system/emptyzones/ns1/root.hint	ZONE	2014
+./bin/tests/system/emptyzones/setup.sh		SH	2014
+./bin/tests/system/emptyzones/tests.sh		SH	2014
 ./bin/tests/system/filter-aaaa/.gitignore	X	2012
 ./bin/tests/system/filter-aaaa/Makefile.in	MAKE	2010,2011,2012
 ./bin/tests/system/filter-aaaa/clean.sh		SH	2010,2012
@@ -1511,7 +1519,7 @@
 ./bin/tests/system/xfer/ns4/root.db.in		ZONE	2011,2012
 ./bin/tests/system/xfer/ns6/named.conf		CONF-C	2011,2012
 ./bin/tests/system/xfer/ns7/named.conf		CONF-C	2011,2012
-./bin/tests/system/xfer/prereq.sh		SH	2011,2012
+./bin/tests/system/xfer/prereq.sh		SH	2011,2012,2014
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004,2007,2011,2012,2013
 ./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012,2013
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2007,2012
