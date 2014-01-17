@@ -755,6 +755,12 @@ pkcs11ecdsa_tofile(const dst_key_t *key, const char *directory) {
 	if (key->keydata.pkey == NULL)
 		return (DST_R_NULLKEY);
 
+	if (key->external) {
+		priv.nelements = 0;
+		result = dst__privstruct_writefile(key, &priv, directory);
+		goto fail;
+	}
+
 	ec = key->keydata.pkey;
 	attr = pk11_attribute_bytype(ec, CKA_VALUE);
 	if (attr != NULL) {
@@ -923,6 +929,9 @@ pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	ret = dst__privstruct_parse(key, DST_ALG_ECDSA256, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
+
+	if (key->external && priv.nelements != 0)
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	for (i = 0; i < priv.nelements; i++) {
 		switch (priv.elements[i].tag) {

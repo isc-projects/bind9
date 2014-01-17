@@ -398,6 +398,11 @@ opensslgost_tofile(const dst_key_t *key, const char *directory) {
 	if (key->keydata.pkey == NULL)
 		return (DST_R_NULLKEY);
 
+	if (key->external) {
+		priv.nelements = 0;
+		return (dst__privstruct_writefile(key, &priv, directory));
+	}
+
 	pkey = key->keydata.pkey;
 	eckey = EVP_PKEY_get0(pkey);
 	if (eckey == NULL)

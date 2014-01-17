@@ -720,6 +720,12 @@ pkcs11gost_tofile(const dst_key_t *key, const char *directory) {
 	if (key->keydata.pkey == NULL)
 		return (DST_R_NULLKEY);
 
+	if (key->external) {
+		priv.nelements = 0;
+		result = dst__privstruct_writefile(key, &priv, directory);
+		goto fail;
+	}
+
 	gost = key->keydata.pkey;
 	attr = pk11_attribute_bytype(gost, CKA_VALUE2);
 	if (attr != NULL) {
@@ -758,6 +764,9 @@ pkcs11gost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	ret = dst__privstruct_parse(key, DST_ALG_ECDSA256, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
+
+	if (key->external && priv.nelements != 0)
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	if (priv.elements[0].tag == TAG_GOST_PRIVASN1) {
 		dst__privstruct_free(&priv, mctx);

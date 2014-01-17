@@ -928,6 +928,12 @@ pkcs11dsa_tofile(const dst_key_t *key, const char *directory) {
 	    (pub_key == NULL) || (priv_key ==NULL))
 		return (DST_R_NULLKEY);
 
+	if (key->external) {
+		priv.nelements = 0;
+		result = dst__privstruct_writefile(key, &priv, directory);
+		goto fail;
+	}
+
 	priv.elements[cnt].tag = TAG_DSA_PRIME;
 	priv.elements[cnt].length = (unsigned short) prime->ulValueLen;
 	memcpy(bufs[cnt], prime->pValue, prime->ulValueLen);
@@ -976,6 +982,9 @@ pkcs11dsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	ret = dst__privstruct_parse(key, DST_ALG_DSA, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
+
+	if (key->external && priv.nelements != 0)
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	dsa = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*dsa));
 	if (dsa == NULL)
