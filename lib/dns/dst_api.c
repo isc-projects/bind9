@@ -1910,7 +1910,7 @@ dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
 
 unsigned int
 dst__entropy_status(void) {
-#ifdef PKCS11CRYPTO
+#ifndef PKCS11CRYPTO
 #ifdef GSSAPI
 	unsigned int flags = dst_entropy_flags;
 	isc_result_t ret;
