@@ -1165,6 +1165,14 @@
 ./bin/tests/system/ecdsa/prereq.sh.in		SH	2012,2014
 ./bin/tests/system/ecdsa/setup.sh		SH	2012
 ./bin/tests/system/ecdsa/tests.sh		SH	2012,2013
+./bin/tests/system/emptyzones/clean.sh		SH	2014
+./bin/tests/system/emptyzones/ns1/empty.db	ZONE	2014
+./bin/tests/system/emptyzones/ns1/named1.conf	CONF-C	2014
+./bin/tests/system/emptyzones/ns1/named2.conf	CONF-C	2014
+./bin/tests/system/emptyzones/ns1/rfc1918.zones	CONF-C	2014
+./bin/tests/system/emptyzones/ns1/root.hint	ZONE	2014
+./bin/tests/system/emptyzones/setup.sh		SH	2014
+./bin/tests/system/emptyzones/tests.sh		SH	2014
 ./bin/tests/system/filter-aaaa/.gitignore	X	2012
 ./bin/tests/system/filter-aaaa/Makefile.in	MAKE	2010,2011,2012
 ./bin/tests/system/filter-aaaa/clean.sh		SH	2010,2012
@@ -1347,7 +1355,7 @@
 ./bin/tests/system/logfileconfig/ns1/root.db	ZONE	2011
 ./bin/tests/system/logfileconfig/setup.sh	SH	2011,2012
 ./bin/tests/system/logfileconfig/tests.sh	SH	2011,2012,2013
-./bin/tests/system/lwresd/Makefile.in		MAKE	2000,2001,2002,2004,2007,2009,2012
+./bin/tests/system/lwresd/Makefile.in		MAKE	2000,2001,2002,2004,2007,2009,2012,2014
 ./bin/tests/system/lwresd/clean.sh		SH	2008,2012,2013
 ./bin/tests/system/lwresd/lwresd1/lwresd.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/lwresd/lwresd1/resolv.conf	CONF-SH	2000,2001,2004,2007,2012
@@ -1849,7 +1857,7 @@
 ./bin/tests/system/xfer/ns4/root.db.in		ZONE	2011
 ./bin/tests/system/xfer/ns6/named.conf		CONF-C	2011
 ./bin/tests/system/xfer/ns7/named.conf		CONF-C	2011
-./bin/tests/system/xfer/prereq.sh		SH	2011,2012
+./bin/tests/system/xfer/prereq.sh		SH	2011,2012,2014
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004,2007,2011,2012,2013
 ./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012,2013
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2007,2012
