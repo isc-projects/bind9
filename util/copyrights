@@ -2709,7 +2709,7 @@
 ./lib/export/samples/sample-update.c		C	2009,2010,2012,2013,2014
 ./lib/export/samples/sample.c			C	2009,2012,2013,2014
 ./lib/irs/Makefile.in				MAKE	2009,2012
-./lib/irs/api					X	2009,2010,2011,2012,2013
+./lib/irs/api					X	2009,2010,2011,2012,2013,2014
 ./lib/irs/context.c				C	2009
 ./lib/irs/dnsconf.c				C	2009,2012
 ./lib/irs/gai_strerror.c			C	2009
