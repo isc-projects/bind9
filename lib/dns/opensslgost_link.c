@@ -340,7 +340,7 @@ opensslgost_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	return (ISC_R_SUCCESS);
 }
 
-#ifdef USE_GOSTASN1
+#ifdef PREFER_GOSTASN1
 
 static isc_result_t
 opensslgost_tofile(const dst_key_t *key, const char *directory) {
@@ -429,7 +429,7 @@ opensslgost_tofile(const dst_key_t *key, const char *directory) {
 }
 #endif
 
-unsigned char gost_dummy_key[71] = {
+static unsigned char gost_dummy_key[71] = {
 	0x30, 0x45, 0x02, 0x01, 0x00, 0x30, 0x1c, 0x06,
 	0x06, 0x2a, 0x85, 0x03, 0x02, 0x02, 0x13, 0x30,
 	0x12, 0x06, 0x07, 0x2a, 0x85, 0x03, 0x02, 0x02,

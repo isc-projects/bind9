@@ -338,6 +338,7 @@ my @substdefh = ("ALLOW_FILTER_AAAA",
                  "HAVE_PKCS11_GOST",
                  "HAVE_READLINE",
                  "ISC_LIST_CHECKINIT",
+                 "PREFER_GOSTASN1",
                  "WITH_IDN");
 
 # for platform.h
@@ -509,7 +510,7 @@ my @help = (
 "  with-openssl[=PATH]   build with OpenSSL yes|no|path\n",
 "  with-pkcs11[=PATH]    build with PKCS#11 support yes|no|provider-path\n",
 "  with-ecdsa            crypto ECDSA\n",
-"  with-gost             crypto GOST\n",
+"  with-gost[=ENC]       crypto GOST yes|no|raw|ans1\n",
 "  with-gssapi[=PATH]    build with MIT KfW GSSAPI yes|no|path\n",
 "  with-libxml2[=PATH]   build with libxml2 library yes|no|path\n",
 "  with-geoip[=PATH]     build with GeoIP support yes|no|path\n",
@@ -547,6 +548,7 @@ my $use_pkcs11 = "no";
 my $pkcs11_path = "unknown";
 my $use_ecdsa = "auto";
 my $use_gost = "auto";
+my $gost_encoding = "raw";
 my $use_gssapi = "no";
 my $gssapi_path = "C:\\Program\ Files\\MIT\\Kerberos\\";
 my $use_geoip = "no";
@@ -757,6 +759,7 @@ sub mywith {
             $use_gost = "no";
         } elsif ($val =~ /^yes$/i) {
             $use_gost = "yes";
+            $gost_encoding = $val;
         }
     } elsif ($key =~ /^gssapi$/i) {
         if ($val !~ /^no$/i) {
@@ -943,6 +946,7 @@ if ($verbose) {
         print "gost: disabled\n";
     } else {
         print "gost: enabled\n";
+        print "gost private key encoding: $gost_encoding\n";
     }
     if ($use_gssapi eq "no") {
         print "gssapi: disabled\n";
@@ -1589,6 +1593,12 @@ EOF
 if ($use_gost ne "no") {
     $use_gost = "yes";
     $configdefh{"HAVE_OPENSSL_GOST"} = 1;
+}
+
+if ($gost_encoding eq "ans1") {
+    $configdefh{"PREFER_GOSTASN1"} = 1;
+} elsif ($gost_encoding ne "raw") {
+    die "Unrecognized GOST private key encoding: $gost_encoding\n";
 }
 
 # enable-openssl-hash

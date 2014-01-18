@@ -455,6 +455,9 @@ int sigwait(const unsigned int *set, int *sig);
    (O_NDELAY/O_NONBLOCK). */
 #undef PORT_NONBLOCK
 
+/* Define if GOST private keys are encoded in ASN.1. */
+#undef PREFER_GOSTASN1
+
 /* The size of `void *', as computed by sizeof. */
 #undef SIZEOF_VOID_P
 

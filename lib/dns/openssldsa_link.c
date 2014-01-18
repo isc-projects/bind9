@@ -573,8 +573,6 @@ openssldsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	isc_mem_t *mctx = key->mctx;
 #define DST_RET(a) {ret = a; goto err;}
 
-	UNUSED(pub);
-
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_DSA, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)

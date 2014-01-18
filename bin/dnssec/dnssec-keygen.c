@@ -139,7 +139,6 @@ usage(void) {
 			"records with (default: 0)\n");
 	fprintf(stderr, "    -T <rrtype>: DNSKEY | KEY (default: DNSKEY; "
 			"use KEY for SIG(0))\n");
-	fprintf(stderr, "        ECCGOST:\tignored\n");
 	fprintf(stderr, "    -t <type>: "
 			"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
 			"(default: AUTHCONF)\n");

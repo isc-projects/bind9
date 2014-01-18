@@ -757,8 +757,7 @@ pkcs11ecdsa_tofile(const dst_key_t *key, const char *directory) {
 
 	if (key->external) {
 		priv.nelements = 0;
-		result = dst__privstruct_writefile(key, &priv, directory);
-		goto fail;
+		return (dst__privstruct_writefile(key, &priv, directory));
 	}
 
 	ec = key->keydata.pkey;

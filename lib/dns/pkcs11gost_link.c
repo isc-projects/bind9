@@ -708,6 +708,68 @@ pkcs11gost_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	return (ISC_R_NOMEMORY);
 }
 
+static unsigned char gost_private_der[39] = {
+	0x30, 0x45, 0x02, 0x01, 0x00, 0x30, 0x1c, 0x06,
+	0x06, 0x2a, 0x85, 0x03, 0x02, 0x02, 0x13, 0x30,
+	0x12, 0x06, 0x07, 0x2a, 0x85, 0x03, 0x02, 0x02,
+	0x23, 0x01, 0x06, 0x07, 0x2a, 0x85, 0x03, 0x02,
+	0x02, 0x1e, 0x01, 0x04, 0x22, 0x02, 0x20
+};
+
+#ifdef PREFER_GOSTASN1
+
+static isc_result_t
+pkcs11gost_tofile(const dst_key_t *key, const char *directory) {
+	isc_result_t ret;
+	iscpk11_object_t *gost;
+	dst_private_t priv;
+	unsigned char *buf = NULL;
+	unsigned int i = 0;
+	CK_ATTRIBUTE *attr;
+	int adj;
+
+	if (key->keydata.pkey == NULL)
+		return (DST_R_NULLKEY);
+
+	if (key->external) {
+		priv.nelements = 0;
+		return (dst__privstruct_writefile(key, &priv, directory));
+	}
+
+	gost = key->keydata.pkey;
+	attr = pk11_attribute_bytype(gost, CKA_VALUE2);
+	if (attr != NULL) {
+		buf = isc_mem_get(key->mctx, attr->ulValueLen + 39);
+		if (buf == NULL)
+			return (ISC_R_NOMEMORY);
+		priv.elements[i].tag = TAG_GOST_PRIVASN1;
+		priv.elements[i].length =
+			(unsigned short) attr->ulValueLen + 39;
+		memcpy(buf, gost_private_der, 39);
+		memcpy(buf +39, attr->pValue, attr->ulValueLen);
+		adj = (int) attr->ulValueLen - 32;
+		if (adj != 0) {
+			buf[1] += adj;
+			buf[36] += adj;
+			buf[38] += adj;
+		}
+		priv.elements[i].data = buf;
+		i++;
+	} else
+		return (DST_R_CRYPTOFAILURE);
+
+	priv.nelements = i;
+	ret = dst__privstruct_writefile(key, &priv, directory);
+
+	if (buf != NULL) {
+		memset(buf, 0, attr->ulValueLen);
+		isc_mem_put(key->mctx, buf, attr->ulValueLen);
+	}
+	return (ret);
+}
+
+#else
+
 static isc_result_t
 pkcs11gost_tofile(const dst_key_t *key, const char *directory) {
 	isc_result_t ret;
@@ -722,8 +784,7 @@ pkcs11gost_tofile(const dst_key_t *key, const char *directory) {
 
 	if (key->external) {
 		priv.nelements = 0;
-		result = dst__privstruct_writefile(key, &priv, directory);
-		goto fail;
+		return (dst__privstruct_writefile(key, &priv, directory));
 	}
 
 	gost = key->keydata.pkey;
@@ -737,8 +798,8 @@ pkcs11gost_tofile(const dst_key_t *key, const char *directory) {
 		memcpy(buf, attr->pValue, attr->ulValueLen);
 		priv.elements[i].data = buf;
 		i++;
-	}
-	/* else return (DST_R_NULLKEY); */
+	} else
+		return (DST_R_CRYPTOFAILURE);
 
 	priv.nelements = i;
 	ret = dst__privstruct_writefile(key, &priv, directory);
@@ -749,6 +810,7 @@ pkcs11gost_tofile(const dst_key_t *key, const char *directory) {
 	}
 	return (ret);
 }
+#endif
 
 static isc_result_t
 pkcs11gost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
@@ -769,13 +831,24 @@ pkcs11gost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	if (priv.elements[0].tag == TAG_GOST_PRIVASN1) {
-		dst__privstruct_free(&priv, mctx);
-		memset(&priv, 0, sizeof(priv));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_CRYPTO, ISC_LOG_WARNING,
-			      "GostAsn1 private key format is "
-			      "no longer supported\n");
-		return (DST_R_INVALIDPRIVATEKEY);
+		int adj = (int) priv.elements[0].length - (39 + 32);
+		unsigned char buf[39];
+
+		if ((adj > 0) || (adj < -31))
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+		memcpy(buf, gost_private_der, 39);
+		if (adj != 0) {
+			buf[1] += adj;
+			buf[36] += adj;
+			buf[38] += adj;
+		}
+		if (memcmp(priv.elements[0].data, buf, 39) != 0)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+		priv.elements[0].tag = TAG_GOST_PRIVRAW;
+		priv.elements[0].length -= 39;
+		memmove(priv.elements[0].data,
+			priv.elements[0].data + 39,
+			32 + adj);
 	}
 
 	gost = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*gost));

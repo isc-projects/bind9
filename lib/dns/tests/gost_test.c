@@ -30,10 +30,23 @@
 
 #include "dnstest.h"
 
-#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
-
+#ifdef HAVE_OPENSSL_GOST
 #include "../dst_gost.h"
+#include <openssl/err.h>
+#include <openssl/objects.h>
+#include <openssl/rsa.h>
+#include <openssl/engine.h>
+#endif
 
+#ifdef HAVE_PKCS11_GOST
+#include "../dst_gost.h"
+#include <iscpk11/internal.h>
+#define WANT_GOST_PARAMS
+#include <iscpk11/constants.h>
+#include <pkcs11/pkcs11.h>
+#endif
+
+#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
 /*
  * Test data from Wikipedia GOST (hash function)
  */
@@ -82,12 +95,12 @@ typedef struct hash_testcase {
 	int repeats;
 } hash_testcase_t;
 
-ATF_TC(isc_gost);
-ATF_TC_HEAD(isc_gost, tc) {
+ATF_TC(isc_gost_md);
+ATF_TC_HEAD(isc_gost_md, tc) {
 	atf_tc_set_md_var(tc, "descr",
 			  "GOST R 34.11-94 examples from Wikipedia");
 }
-ATF_TC_BODY(isc_gost, tc) {
+ATF_TC_BODY(isc_gost_md, tc) {
 	isc_gost_t gost;
 	isc_result_t result;
 
@@ -135,6 +148,7 @@ ATF_TC_BODY(isc_gost, tc) {
 			"46765E71B765472786E4770D565830A76",
 			1
 		},
+
 		/* Test 6 */
 		{
 			TEST_INPUT("ABCDEFGHIJKLMNOPQRSTUVWXYZabcde"
@@ -208,6 +222,145 @@ ATF_TC_BODY(isc_gost, tc) {
 
 	dns_test_end();
 }
+
+ATF_TC(isc_gost_private);
+ATF_TC_HEAD(isc_gost_private, tc) {
+  atf_tc_set_md_var(tc, "descr", "GOST R 34.10-2001 private key");
+}
+ATF_TC_BODY(isc_gost_private, tc) {
+	isc_result_t result;
+	unsigned char privraw[31] = {
+		0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+		0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
+		0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
+		0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e
+	};
+#ifdef HAVE_OPENSSL_GOST
+	unsigned char rbuf[32];
+	unsigned char privasn1[70] = {
+		0x30, 0x44, 0x02, 0x01, 0x00, 0x30, 0x1c, 0x06,
+		0x06, 0x2a, 0x85, 0x03, 0x02, 0x02, 0x13, 0x30,
+		0x12, 0x06, 0x07, 0x2a, 0x85, 0x03, 0x02, 0x02,
+		0x23, 0x01, 0x06, 0x07, 0x2a, 0x85, 0x03, 0x02,
+		0x02, 0x1e, 0x01, 0x04, 0x21, 0x02, 0x1f, 0x01,
+		0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+		0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11,
+		0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19,
+		0x1a, 0x1b, 0x1c, 0x1d, 0x1e
+	};
+	unsigned char abuf[71];
+	unsigned char gost_dummy_key[71] = {
+		0x30, 0x45, 0x02, 0x01, 0x00, 0x30, 0x1c, 0x06,
+		0x06, 0x2a, 0x85, 0x03, 0x02, 0x02, 0x13, 0x30,
+		0x12, 0x06, 0x07, 0x2a, 0x85, 0x03, 0x02, 0x02,
+		0x23, 0x01, 0x06, 0x07, 0x2a, 0x85, 0x03, 0x02,
+		0x02, 0x1e, 0x01, 0x04, 0x22, 0x02, 0x20, 0x1b,
+		0x3f, 0x94, 0xf7, 0x1a, 0x5f, 0x2f, 0xe7, 0xe5,
+		0x74, 0x0b, 0x8c, 0xd4, 0xb7, 0x18, 0xdd, 0x65,
+		0x68, 0x26, 0xd1, 0x54, 0xfb, 0x77, 0xba, 0x63,
+		0x72, 0xd9, 0xf0, 0x63, 0x87, 0xe0, 0xd6
+	};
+	EVP_PKEY *pkey;
+	EC_KEY *eckey;
+	BIGNUM *privkey;
+	const BIGNUM *privkey1;
+	const unsigned char *p;
+	int len;
+	unsigned char *q;
+
+	result = dns_test_begin(NULL, ISC_FALSE);
+	ATF_REQUIRE(result == ISC_R_SUCCESS);
+
+	/* raw parse */
+	privkey = BN_bin2bn(privraw, (int) sizeof(privraw), NULL);
+	ATF_REQUIRE(privkey != NULL);
+	p = gost_dummy_key;
+	pkey = NULL;
+	ATF_REQUIRE(d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
+				   (long) sizeof(gost_dummy_key)) != NULL);
+	ATF_REQUIRE(pkey != NULL);
+	ATF_REQUIRE(EVP_PKEY_bits(pkey) == 256);
+	eckey = EVP_PKEY_get0(pkey);
+	ATF_REQUIRE(eckey != NULL);
+	ATF_REQUIRE(EC_KEY_set_private_key(eckey, privkey) == 1);
+	BN_clear_free(privkey);
+
+	/* asn1 tofile */
+	len = i2d_PrivateKey(pkey, NULL);
+	ATF_REQUIRE(len == 70);
+	q = abuf;
+	ATF_REQUIRE(i2d_PrivateKey(pkey, &q) == len);
+	ATF_REQUIRE(memcmp(abuf, privasn1, len) == 0);
+	EVP_PKEY_free(pkey);
+
+	/* asn1 parse */
+	p = privasn1;
+	pkey = NULL;
+	ATF_REQUIRE(d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
+				   (long) len) != NULL);
+	ATF_REQUIRE(pkey != NULL);
+	eckey = EVP_PKEY_get0(pkey);
+	ATF_REQUIRE(eckey != NULL);
+	privkey1 = EC_KEY_get0_private_key(eckey);
+	len = BN_num_bytes(privkey1);
+	ATF_REQUIRE(len == 31);
+	ATF_REQUIRE(BN_bn2bin(privkey1, rbuf) == len);
+	ATF_REQUIRE(memcmp(rbuf, privraw, len) == 0);
+
+	dns_test_end();
+#else
+	CK_BBOOL truevalue = TRUE;
+	CK_BBOOL falsevalue = FALSE;
+	CK_OBJECT_CLASS keyClass = CKO_PRIVATE_KEY;
+	CK_KEY_TYPE keyType = CKK_GOSTR3410;
+	CK_ATTRIBUTE keyTemplate[] =
+	{
+		{ CKA_CLASS, &keyClass, (CK_ULONG) sizeof(keyClass) },
+		{ CKA_KEY_TYPE, &keyType, (CK_ULONG) sizeof(keyType) },
+		{ CKA_TOKEN, &falsevalue, (CK_ULONG) sizeof(falsevalue) },
+		{ CKA_PRIVATE, &falsevalue, (CK_ULONG) sizeof(falsevalue) },
+		{ CKA_SENSITIVE, &falsevalue, (CK_ULONG) sizeof(falsevalue) },
+		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) },
+		{ CKA_VALUE, privraw, sizeof(privraw) },
+		{ CKA_GOSTR3410_PARAMS, pk11_gost_a_paramset,
+		  (CK_ULONG) sizeof(pk11_gost_a_paramset) },
+		{ CKA_GOSTR3411_PARAMS, pk11_gost_paramset,
+		  (CK_ULONG) sizeof(pk11_gost_paramset) }
+	};
+	CK_MECHANISM mech = { CKM_GOSTR3410_WITH_GOSTR3411, NULL, 0 };
+	CK_BYTE sig[64];
+	CK_ULONG siglen;
+	iscpk11_context_t pk11_ctx;
+
+	result = dns_test_begin(NULL, ISC_FALSE);
+	ATF_REQUIRE(result == ISC_R_SUCCESS);
+
+	/* create the private key */
+	memset(&pk11_ctx, 0, sizeof(pk11_ctx));
+	ATF_REQUIRE(pk11_get_session(&pk11_ctx, OP_GOST, ISC_FALSE, ISC_FALSE,
+				     NULL, pk11_get_best_token(OP_GOST)) ==
+		    ISC_R_SUCCESS);
+	pk11_ctx.object = CK_INVALID_HANDLE;
+	pk11_ctx.ontoken = ISC_FALSE;
+	ATF_REQUIRE(pkcs_C_CreateObject(pk11_ctx.session, keyTemplate,
+					(CK_ULONG) 9, &pk11_ctx.object) ==
+		    CKR_OK);
+	ATF_REQUIRE(pk11_ctx.object != CK_INVALID_HANDLE);
+
+	/* sign something */
+	ATF_REQUIRE(pkcs_C_SignInit(pk11_ctx.session, &mech,
+				    pk11_ctx.object) == CKR_OK);
+	siglen = 0;
+	ATF_REQUIRE(pkcs_C_Sign(pk11_ctx.session, sig, 64,
+				NULL, &siglen) == CKR_OK);
+	ATF_REQUIRE(siglen == 64);
+	ATF_REQUIRE(pkcs_C_Sign(pk11_ctx.session, sig, 64,
+				sig, &siglen) == CKR_OK);
+	ATF_REQUIRE(siglen == 64);
+
+	dns_test_end();
+#endif
+};
 #else
 ATF_TC(untested);
 ATF_TC_HEAD(untested, tc) {
@@ -223,7 +376,8 @@ ATF_TC_BODY(untested, tc) {
  */
 ATF_TP_ADD_TCS(tp) {
 #if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
-	ATF_TP_ADD_TC(tp, isc_gost);
+	ATF_TP_ADD_TC(tp, isc_gost_md);
+	ATF_TP_ADD_TC(tp, isc_gost_private);
 #else
 	ATF_TP_ADD_TC(tp, untested);
 #endif

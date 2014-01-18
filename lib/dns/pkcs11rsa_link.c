@@ -903,11 +903,17 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 	CK_ATTRIBUTE  *d = NULL, *p = NULL, *q = NULL;
 	CK_ATTRIBUTE *dmp1 = NULL, *dmq1 = NULL, *iqmp = NULL;
 	dst_private_t priv;
-	unsigned char *bufs[8];
+	unsigned char *bufs[10];
 	isc_result_t result;
 
 	if (key->keydata.pkey == NULL)
 		return (DST_R_NULLKEY);
+
+	if (key->external) {
+		priv.nelements = 0;
+		return (dst__privstruct_writefile(key, &priv, directory));
+	}
+
 	rsa = key->keydata.pkey;
 
 	for (attr = pk11_attribute_first(rsa);
@@ -944,13 +950,7 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 
 	memset(bufs, 0, sizeof(bufs));
 
-	if (key->external) {
-		priv.nelements = 0;
-		result = dst__privstruct_writefile(key, &priv, directory);
-		goto fail;
-	}
-
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 10; i++) {
 		bufs[i] = isc_mem_get(key->mctx, modulus->ulValueLen);
 		if (bufs[i] == NULL) {
 			result = ISC_R_NOMEMORY;
@@ -1038,7 +1038,7 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 	priv.nelements = i;
 	result = dst__privstruct_writefile(key, &priv, directory);
  fail:
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 10; i++) {
 		if (bufs[i] == NULL)
 			break;
 		memset(bufs[i], 0, modulus->ulValueLen);
@@ -1374,7 +1374,7 @@ pkcs11rsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	attr = pk11_attribute_bytype(rsa, CKA_PUBLIC_EXPONENT);
 	INSIST(attr != NULL);
 	if (!key->external &&
-	    pk11_numbits(attr->pValue, attr->ulValueLen > RSA_MAX_PUBEXP_BITS))
+	    pk11_numbits(attr->pValue, attr->ulValueLen) > RSA_MAX_PUBEXP_BITS)
 		DST_RET(ISC_R_RANGE);
 
 	dst__privstruct_free(&priv, mctx);

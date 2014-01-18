@@ -340,6 +340,9 @@ typedef __int64 off_t;
 /* Define if your PKCS11 provider supports GOST. */
 @HAVE_PKCS11_GOST@
 
+/* Define if GOST private keys are encoded in ASN.1. */
+@PREFER_GOSTASN1@
+
 /* Define to 1 if you have the `readline' function. */
 @HAVE_READLINE@
 

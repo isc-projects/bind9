@@ -902,6 +902,11 @@ pkcs11dsa_tofile(const dst_key_t *key, const char *directory) {
 	if (key->keydata.pkey == NULL)
 		return (DST_R_NULLKEY);
 
+	if (key->external) {
+		priv.nelements = 0;
+		return (dst__privstruct_writefile(key, &priv, directory));
+	}
+
 	dsa = key->keydata.pkey;
 
 	for (attr = pk11_attribute_first(dsa);
@@ -927,12 +932,6 @@ pkcs11dsa_tofile(const dst_key_t *key, const char *directory) {
 	if ((prime == NULL) || (subprime == NULL) || (base == NULL) ||
 	    (pub_key == NULL) || (priv_key ==NULL))
 		return (DST_R_NULLKEY);
-
-	if (key->external) {
-		priv.nelements = 0;
-		result = dst__privstruct_writefile(key, &priv, directory);
-		goto fail;
-	}
 
 	priv.elements[cnt].tag = TAG_DSA_PRIME;
 	priv.elements[cnt].length = (unsigned short) prime->ulValueLen;

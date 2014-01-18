@@ -2185,7 +2185,7 @@ Optional Packages:
   --with-pkcs11=PATH      Build with PKCS11 support yes|no|path
                           (PATH is for the PKCS11 provider)
   --with-ecdsa            Crypto ECDSA
-  --with-gost             Crypto GOST
+  --with-gost             Crypto GOST yes|no|raw|asn1.
   --with-libxml2=PATH     Build with libxml2 library yes|no|path
   --with-libjson=PATH     Build with libjson0 library yes|no|path
   --with-purify=PATH      use Rational purify
@@ -15612,6 +15612,25 @@ else
   with_gost="auto"
 fi
 
+gosttype="raw"
+case "$with_gost" in
+	raw)
+		with_gost="yes"
+		;;
+	asn1)
+
+$as_echo "#define PREFER_GOSTASN1 1" >>confdefs.h
+
+                gosttype="asn1"
+		with_gost="yes"
+		;;
+	auto|yes|no)
+		;;
+	*)
+		as_fn_error $? "unknown GOST private key encoding" "$LINENO" 5
+		;;
+esac
+
 case "$use_openssl" in
 	native_pkcs11)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled because of native PKCS11" >&5
@@ -15998,7 +16017,7 @@ fi
         *)
             case "$have_gost" in
             yes|no) ;;
-            *) as_fn_error $? "need --with-gost=[yes or no]" "$LINENO" 5 ;;
+            *) as_fn_error $? "need --with-gost=[yes, no, raw or asn1]" "$LINENO" 5 ;;
             esac
             ;;
         esac
@@ -23679,14 +23698,31 @@ echo "Configuration summary:"
 echo "------------------------------------------------------------------------"
 echo "Optional features enabled:"
 $use_threads && echo "    Multiprocessing support (--enable-threads)"
-
 test "$use_geoip" = "no" || echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
-test "$want_native_pkcs11" = "yes" && \
-    echo "    Native PKCS#11 support (--enable-native-pkcs11)"
-test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
-test "$OPENSSL_GOST" = "yes" -o "$PKCS11_GOST" = "yes" && \
-    echo "    GOST algorithm support (--with-gost)"
+
+# these lines are only printed if run with --enable-full-report
+if test "$enable_full_report" = "yes"; then
+    test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" || \
+        echo "    IPv6 support (--enable-ipv6)"
+    test "X$CRYPTO" = "X" -o "$want_native_pkcs11" = "yes" || \
+            echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+    test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
+    test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
+    test "X$have_libjson" = "X" || echo "    JSON statistics (--with-libjson)"
+fi
+
+if test "$use_pkcs11" != "no"; then
+    if test "$want_native_pkcs11" = "yes"; then
+        echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
+    else
+        echo "    PKCS#11/Cryptoki support using OpenSSL (--with-pkcs11)"
+    fi
+    echo "        Provider library: $PKCS11_PROVIDER"
+fi
+if test "$OPENSSL_GOST" = "yes" -o "$PKCS11_GOST" = "yes"; then
+    echo "    GOST algorithm support (encoding: $gosttype) (--with-gost)"
+fi
 test "$OPENSSL_ECDSA" = "yes" -o "$PKCS11_ECDSA" = "yes" && \
     echo "    ECDSA algorithm support (--with-ecdsa)"
 test "$enable_fixed" = "yes" && \
@@ -23699,18 +23735,8 @@ test "$want_symtable" = "minimal" && \
     echo "    Use symbol table for backtrace, named only (--enable-symtable)"
 test "$want_symtable" = "yes" -o "$want_symtable" = "all" && \
     echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
+test "$use_libtool" = "no" || echo "    Use GNU libtool (--with-libtool)"
 test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
-
-# these lines are only printed if run with --enable-full-report
-if test "$enable_full_report" = "yes"; then
-    test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" || \
-        echo "    IPv6 support (--enable-ipv6)"
-    test "X$CRYPTO" = "X" -o "$want_native_pkcs11" = "yes" || \
-            echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-    test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
-    test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
-    test "X$have_libjson" = "X" || echo "    JSON statistics (--with-libjson)"
-fi
 
 echo "    Dynamically loadable zone (DLZ) drivers:"
 test "$use_dlz_bdb" = "no" || \
@@ -23737,21 +23763,27 @@ test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
 
 test "$use_geoip" = "no" && echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
-test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 test "$enable_fixed" = "yes" || \
     echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
-test "$want_backtrace" = "yes" || \
-    echo "    Print backtrace on crash (--enable-backtrace)"
-test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 
-test "X$CRYPTO" = "X" -o "$want_native_pkcs11" = "yes" && \
+if test "X$CRYPTO" = "X" -o "$want_native_pkcs11" = "yes"
+then
     echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-test "$want_native_pkcs11" != "yes" && \
-    echo "    Native PKCS#11 cryptography/DNSSEC (--enable-native-pkcs11)"
+elif "$use_pkcs11" = "no"; then
+    echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
+fi
+test "$want_native_pkcs11" = "yes" ||
+    echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
 test "X$CRYPTO" = "X" -o "$OPENSSL_GOST" = "yes" -o "$PKCS11_GOST" = "yes" || \
     echo "    GOST algorithm support (--with-gost)"
 test "X$CRYPTO" = "X" -o "$OPENSSL_ECDSA" = "yes" -o "$PKCS11_ECDSA" = "yes" || \
     echo "    ECDSA algorithm support (--with-ecdsa)"
+
+test "$want_backtrace" = "yes" || \
+    echo "    Print backtrace on crash (--enable-backtrace)"
+test "$use_libtool" = "yes" || echo "    Use GNU libtool (--with-libtool)"
+test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
+
 test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
 test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
 test "X$have_libjson" = "X" && echo "    JSON statistics (--with-libjson)"
