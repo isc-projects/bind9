@@ -23769,7 +23769,7 @@ test "$enable_fixed" = "yes" || \
 if test "X$CRYPTO" = "X" -o "$want_native_pkcs11" = "yes"
 then
     echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-elif "$use_pkcs11" = "no"; then
+elif test "$use_pkcs11" = "no"; then
     echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 fi
 test "$want_native_pkcs11" = "yes" ||
