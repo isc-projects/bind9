@@ -1,5 +1,5 @@
 #! /bin/sh
-# Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2014  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1996-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -21965,24 +21965,26 @@ if test "$enable_full_report" = "yes"; then
     test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
 fi
 
-test "X$USE_DLZ" = "X" || echo "    Dynamically loadable zone (DLZ) drivers:"
-test "$use_dlz_bdb" = "no" || \
-    echo "        Berkeley DB (--with-dlz-bdb)"
-test "$use_dlz_ldap" = "no" || \
-    echo "        LDAP (--with-dlz-ldap)"
-test "$use_dlz_mysql" = "no" || \
-    echo "        MySQL (--with-dlz-mysql)"
-test "$use_dlz_odbc" = "no" || \
-    echo "        ODBC (--with-dlz-bdb)"
-test "$use_dlz_postgres" = "no" || \
-    echo "        Postgres (--with-dlz-postgres)"
-test "$use_dlz_filesystem" = "no" || \
-    echo "        Filesystem (--with-dlz-filesystem)"
-test "$use_dlz_stub" = "no" || \
-    echo "        Stub (--with-dlz-stub)"
-test "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" = "no no no no no no no" && echo "        None"
-echo
+if test "X$USE_DLZ" != "X"; then
+    echo "    Dynamically loadable zone (DLZ) drivers:"
+    test "$use_dlz_bdb" = "no" || \
+        echo "        Berkeley DB (--with-dlz-bdb)"
+    test "$use_dlz_ldap" = "no" || \
+        echo "        LDAP (--with-dlz-ldap)"
+    test "$use_dlz_mysql" = "no" || \
+        echo "        MySQL (--with-dlz-mysql)"
+    test "$use_dlz_odbc" = "no" || \
+        echo "        ODBC (--with-dlz-bdb)"
+    test "$use_dlz_postgres" = "no" || \
+        echo "        Postgres (--with-dlz-postgres)"
+    test "$use_dlz_filesystem" = "no" || \
+        echo "        Filesystem (--with-dlz-filesystem)"
+    test "$use_dlz_stub" = "no" || \
+        echo "        Stub (--with-dlz-stub)"
+    test "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" = "no no no no no no no" && echo "        None"
+fi
 
+echo
 echo "Features disabled or unavailable on this platform:"
 $use_threads || echo "    Multiprocessing support (--enable-threads)"
 test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
@@ -21992,6 +21994,8 @@ test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 test "$enable_fixed" = "yes" || \
     echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
+test "X$USE_DLZ" = "X" && \
+    echo "    Dynamically loadable zone (DLZ) drivers (--with-dlz-{ldap,mysql,...})"
 
 test "X$USE_OPENSSL" = "X" && \
         echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
