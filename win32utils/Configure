@@ -2326,6 +2326,7 @@ sub makeversion {
         $Version = "$Version.$Versions{'PATCHVER'}";
     }
     $Version = "$Version$Versions{'RELEASETYPE'}$Versions{'RELEASEVER'}";
+    $Version = "$Version$Versions{'EXTENSIONS'}";
     if ($verbose) {
         print "BIND Version: $Version\n";
     }
