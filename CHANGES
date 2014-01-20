@@ -1,3 +1,7 @@
+3712.	[placeholder]
+
+3711.	[placeholder]
+
 3710.	[bug]		Address double dns_zone_detach when switching to
 			using automatic empty zones from regular zones.
 			[RT #35177]
