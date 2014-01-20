@@ -1664,12 +1664,36 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * Master & slave zones must have a "also-notify" field.
+	 * Master & slave zones may have an "also-notify" field, but
+	 * shouldn't if notify is disabled.
 	 */
 	if (ztype == MASTERZONE || ztype == SLAVEZONE ) {
+		isc_boolean_t donotify = ISC_TRUE;
+
+		obj = NULL;
+		tresult = cfg_map_get(zoptions, "notify", &obj);
+		if (tresult != ISC_R_SUCCESS && voptions != NULL)
+			tresult = cfg_map_get(voptions, "notify", &obj);
+		if (tresult != ISC_R_SUCCESS && goptions != NULL)
+			tresult = cfg_map_get(goptions, "notify", &obj);
+		if (tresult == ISC_R_SUCCESS) {
+			if (cfg_obj_isboolean(obj))
+				donotify = cfg_obj_asboolean(obj);
+			else {
+				const char *notifystr = cfg_obj_asstring(obj);
+				if (ztype != MASTERZONE &&
+				    strcasecmp(notifystr, "master-only") == 0)
+					donotify = ISC_FALSE;
+			}
+		}
+
 		obj = NULL;
 		tresult = cfg_map_get(zoptions, "also-notify", &obj);
-		if (tresult == ISC_R_SUCCESS) {
+		if (tresult == ISC_R_SUCCESS && !donotify) {
+			cfg_obj_log(zoptions, logctx, ISC_LOG_WARNING,
+				    "zone '%s': 'also-notify' set but "
+				    "'notify' is disabled", znamestr);
+		} else if (tresult == ISC_R_SUCCESS) {
 			isc_uint32_t count;
 			tresult = validate_masters(obj, config, &count,
 						   logctx, mctx);
