@@ -638,4 +638,10 @@ pkcs_C_GenerateRandom(CK_SESSION_HANDLE hSession, CK_BYTE_PTR RandomData,
 	return (*sym)(hSession, RandomData, ulRandomLen);
 }
 
+#else /* USE_PKCS11 */
+
+#include <isc/util.h>
+
+EMPTY_TRANSLATION_UNIT
+
 #endif /* USE_PKCS11 */
