@@ -39,7 +39,7 @@ OBJS =		context.@O@ \
 # Alphabetically
 SRCS =		context.c \
 		dnsconf.c \
-		gai_sterror.c getaddrinfo.c getnameinfo.c \
+		gai_strerror.c getaddrinfo.c getnameinfo.c \
 		resconf.c
 
 LIBS =		@LIBS@
