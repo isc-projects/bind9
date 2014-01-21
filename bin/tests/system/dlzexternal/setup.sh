@@ -14,10 +14,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3 2010/12/20 23:47:20 tbox Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-../../../tools/genrandom 400 random.data
-$DDNSCONFGEN -q -r random.data -z example.nil > ns1/ddns.key
+test -e $RANDFILE || $GENRANDOM 400 $RANDFILE
+
+$DDNSCONFGEN -q -r $RANDFILE -z example.nil > ns1/ddns.key

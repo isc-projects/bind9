@@ -14,10 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.7 2011/03/20 09:03:47 marka Exp $
-
-TOP=${SYSTEMTESTTOP:=.}/../../../..
-
 ./dlopen ||  {
         echo "I:dlopen() not supported - skipping dlzexternal test"
         exit 255

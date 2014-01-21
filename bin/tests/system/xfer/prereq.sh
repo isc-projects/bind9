@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
     if $PERL -e 'use Net::DNS; die if $Net::DNS::VERSION == 0.73;' 2>/dev/null

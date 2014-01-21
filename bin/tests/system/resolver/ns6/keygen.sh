@@ -19,8 +19,6 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=../random.data
-
 zone=example.net
 zonefile="${zone}.db"
 infile="${zonefile}.in"

@@ -12,12 +12,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.11 2012/02/14 23:47:15 tbox Exp $
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+test -e $RANDFILE || $GENRANDOM 400 $RANDFILE
 
 rm -f named-compilezone
 ln -s $CHECKZONE named-compilezone
-
-../../../tools/genrandom 400 random.data
 
 rm -f ns1/example.db.raw
 cp ns1/example.db ns2/

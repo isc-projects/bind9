@@ -14,12 +14,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3 2010/12/17 00:57:38 marka Exp $
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 sed 's/SERVER_CONFIG_PLACEHOLDER/server-names { "ns.example.net"; };/' ns2/named.conf.in > ns2/named.conf
 
 sed 's/EXAMPLE_ZONE_PLACEHOLDER/zone "example" { type master; file "example.db.signed"; };/' ns3/named.conf.in > ns3/named.conf
 
-../../../tools/genrandom 400 random.data
+test -e $RANDFILE || $GENRANDOM 400 $RANDFILE
 
 cd ns3 && sh -e sign.sh

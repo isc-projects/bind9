@@ -14,9 +14,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.7 2012/02/09 23:47:17 tbox Exp $
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
-../../../tools/genrandom 400 random.data
+test -e $RANDFILE || $GENRANDOM 400 $RANDFILE
 
 cp ns4/tld1.db ns4/tld.db
 cp ns6/to-be-removed.tld.db.in ns6/to-be-removed.tld.db

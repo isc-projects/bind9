@@ -37,6 +37,7 @@ test: subdirs
 testclean clean distclean::
 	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
 	rm -f systests.output
+	rm -f random.data
 
 distclean::
 	rm -f conf.sh

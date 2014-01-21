@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.7 2007/06/19 23:47:05 tbox Exp $
-
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
     :
@@ -24,3 +22,5 @@ else
     echo "I:This test requires the Net::DNS library." >&2
     exit 1
 fi
+
+exec sh ../testcrypto.sh

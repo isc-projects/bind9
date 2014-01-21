@@ -21,8 +21,6 @@ SYSTEMTESTTOP=..
 
 status=0
 
-RANDFILE=./random.data
-
 pzone=parent.nil
 pfile=parent.db
 

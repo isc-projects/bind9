@@ -19,8 +19,6 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=../random.data
-
 zone=example
 rm -f K${zone}.+*+*.key
 rm -f K${zone}.+*+*.private

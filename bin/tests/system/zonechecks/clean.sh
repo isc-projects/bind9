@@ -14,10 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.8 2012/01/31 23:47:32 tbox Exp $
-
 rm -f *.out
 rm -f */named.memstats
 rm -f */*.db */*.db.signed */K*.key */K*.private */*.jnl */dsset-*
 rm -f rndc.out.*
-rm -f random.data

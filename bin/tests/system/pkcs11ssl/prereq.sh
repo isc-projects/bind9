@@ -14,21 +14,5 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.3 2010/06/08 23:50:24 tbox Exp $
-
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
-../../../tools/genrandom 400 random.data
-
-echo rsaonly > supported
-exit 0
-
-rsafail=0 eccfail=0
-
-$KEYGEN -q -r random.data foo > /dev/null 2>&1 || rsafail=1
-rm -f Kfoo*
-
-if [ $rsafail = 1 ]; then
-	echo "I:This test requires OpenSSL built with PKCS#11 support." >&2
-	exit 255
-fi
+echo "I:(PKCS#11 via OpenSSL)" >&2
+exec sh ../testcrypto.sh rsa

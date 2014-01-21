@@ -4016,12 +4016,9 @@ AC_CONFIG_FILES([
 	bin/tests/system/dlz/prereq.sh
 	bin/tests/system/dlzexternal/Makefile
 	bin/tests/system/dlzexternal/ns1/named.conf
-	bin/tests/system/dsdigest/prereq.sh
-	bin/tests/system/ecdsa/prereq.sh
 	bin/tests/system/dlzredir/prereq.sh
 	bin/tests/system/filter-aaaa/Makefile
 	bin/tests/system/geoip/Makefile
-	bin/tests/system/gost/prereq.sh
 	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/lwresd/Makefile
 	bin/tests/system/rpz/Makefile

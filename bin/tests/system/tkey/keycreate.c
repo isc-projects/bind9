@@ -233,7 +233,7 @@ main(int argc, char *argv[]) {
 
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
-	RUNCHECK(isc_entropy_createfilesource(ectx, "random.data"));
+	RUNCHECK(isc_entropy_createfilesource(ectx, "../random.data"));
 	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
 
 	log = NULL;

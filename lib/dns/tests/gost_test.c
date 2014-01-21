@@ -368,7 +368,7 @@ ATF_TC_HEAD(untested, tc) {
 }
 ATF_TC_BODY(untested, tc) {
 	UNUSED(tc);
-	atf_tc_skip("GOST hash not available");
+	atf_tc_skip("GOST not available");
 }
 #endif
 /*

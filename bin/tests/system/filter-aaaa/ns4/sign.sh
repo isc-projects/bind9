@@ -19,7 +19,6 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=../random.data
 dlvsets=
 
 zone=signed.

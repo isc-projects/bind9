@@ -14,14 +14,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 rm -f supported
 rm -f */K* */dsset-* */*.signed */trusted.conf
 rm -f ns1/root.db
 rm -f ns1/signer.err
 rm -f ns2/good.db ns2/bad.db
 rm -f dig.out*
-rm -f random.data
 rm -f */named.run
 rm -f */named.memstats

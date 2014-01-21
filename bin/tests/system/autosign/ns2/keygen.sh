@@ -19,8 +19,6 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=../random.data
-
 # Have the child generate subdomain keys and pass DS sets to us.
 ( cd ../ns3 && sh keygen.sh )
 

@@ -14,15 +14,16 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
-../../../tools/genrandom 400 random.data
+test -e $RANDFILE || $GENRANDOM 400 $RANDFILE
 
 if ./bigkey > /dev/null 2>&1
 then
     rm -f Kexample.*
 else
     echo "I:This test requires cryptography" >&2
-    echo "I:--with-openssl, or --with-pkcs11 and --enable-native-pkcs11" >&2
+    echo "I:configure with --with-openssl, or --with-pkcs11 and --enable-native-pkcs11" >&2
     exit 1
 fi

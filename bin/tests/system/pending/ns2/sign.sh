@@ -19,8 +19,6 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=../random.data
-
 for domain in example example.com; do
 	zone=${domain}.
 	infile=${domain}.db.in

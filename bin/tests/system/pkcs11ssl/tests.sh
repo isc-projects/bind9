@@ -19,8 +19,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=random.data
-
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
 
 status=0

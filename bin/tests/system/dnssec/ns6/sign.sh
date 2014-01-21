@@ -19,8 +19,6 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=../random.data
-
 zone=optout-tld
 infile=optout-tld.db.in
 zonefile=optout-tld.db

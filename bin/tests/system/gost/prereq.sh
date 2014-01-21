@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2010, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,24 +14,4 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
-../../../tools/genrandom 400 random.data
-
-gostfail=0 ecdsafail=0
-$KEYGEN -q -a eccgost test > /dev/null 2>&1 || gostfail=1
-$KEYGEN -q -a ecdsap256sha256 test > /dev/null 2>&1 || ecdsafail=1
-rm -f Ktest* random.data
-
-if [ $gostfail = 0 -a $ecdsafail = 0 ]; then
-	echo both > supported
-elif [ $gostfail = 1 -a $ecdsafail = 1 ]; then
-	echo "I:This test requires support for ECDSA or GOST cryptography." >&2
-	exit 255
-elif [ $gostfail = 0 ]; then
-	echo gost > supported
-else
-        echo ecdsa > supported
-fi
+exec sh ../testcrypto.sh gost

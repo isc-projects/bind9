@@ -14,19 +14,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.3 2010/06/08 23:50:24 tbox Exp $
-
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
-../../../tools/genrandom 400 random.data
-
+echo "I:(Native PKCS#11)" >&2
 rsafail=0 eccfail=0
 
-$KEYGEN -q -r random.data foo > /dev/null 2>&1 || rsafail=1
-rm -f Kfoo*
-
-$KEYGEN -q -a ECDSAP256SHA256 -r random.data foo > /dev/null 2>&1 || eccfail=1
-rm -f Kfoo*
+sh ../testcrypto.sh -q rsa || rsafail=1
+sh ../testcrypto.sh -q ecdsa || eccfail=1
 
 if [ $rsafail = 0 -a $eccfail = 0 ]; then
 	echo both > supported

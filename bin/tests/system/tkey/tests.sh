@@ -24,8 +24,6 @@ DIGOPTS="@10.53.0.1 -p 5300"
 
 status=0
 
-RANDFILE=random.data
-
 echo "I:generating new DH key"
 ret=0
 dhkeyname=`$KEYGEN -T KEY -a DH -b 768 -n host -r $RANDFILE client` || ret=1

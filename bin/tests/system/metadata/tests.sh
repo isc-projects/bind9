@@ -19,7 +19,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=./random.data
 pzone=parent.nil pfile=parent.db
 czone=child.parent.nil cfile=child.db
 status=0

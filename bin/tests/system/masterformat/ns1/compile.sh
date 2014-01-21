@@ -16,7 +16,6 @@
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
-RANDFILE=../random.data
 
 ../named-compilezone -D -F raw -o example.db.raw example \
         example.db > /dev/null 2>&1

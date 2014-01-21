@@ -17,8 +17,6 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=../random.data
-
 dumpit () {
 	echo "D:${debug}: dumping ${1}"
 	cat "${1}" | sed 's/^/D:/'

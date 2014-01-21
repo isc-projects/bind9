@@ -14,15 +14,4 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.3 2010/01/18 23:48:40 tbox Exp $
-
-../../../tools/genrandom 400 random.data
-
-if $KEYGEN -q -r random.data foo > /dev/null 2>&1
-then
-    rm -f Kfoo*
-else
-    echo "I:This test requires cryptography" >&2
-    echo "I:--with-openssl, or --with-pkcs11 and --enable-native-pkcs11" >&2
-    exit 1
-fi
+exec sh ../testcrypto.sh

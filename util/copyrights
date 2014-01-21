@@ -936,6 +936,7 @@
 ./bin/tests/system/coverage/08-zsk-ttl/README	X	2013
 ./bin/tests/system/coverage/08-zsk-ttl/expect	X	2013
 ./bin/tests/system/coverage/clean.sh		SH	2013
+./bin/tests/system/coverage/prereq.sh		SH	2014
 ./bin/tests/system/coverage/setup.sh		SH	2013,2014
 ./bin/tests/system/coverage/tests.sh		SH	2013,2014
 ./bin/tests/system/database/clean.sh		SH	2011,2012
@@ -978,6 +979,7 @@
 ./bin/tests/system/dlv/ns6/hints		ZONE	2010
 ./bin/tests/system/dlv/ns6/named.conf		CONF-C	2010,2011
 ./bin/tests/system/dlv/ns6/sign.sh		SH	2010,2011,2012
+./bin/tests/system/dlv/prereq.sh		SH	2014
 ./bin/tests/system/dlv/setup.sh			SH	2004,2007,2009,2011,2012
 ./bin/tests/system/dlv/tests.sh			SH	2004,2007,2010,2011,2012
 ./bin/tests/system/dlvauto/clean.sh		SH	2011,2012
@@ -986,6 +988,7 @@
 ./bin/tests/system/dlvauto/ns1/root.db.in	ZONE	2011
 ./bin/tests/system/dlvauto/ns1/sign.sh		SH	2011,2012
 ./bin/tests/system/dlvauto/ns2/named.conf	CONF-C	2011,2013
+./bin/tests/system/dlvauto/prereq.sh		SH	2014
 ./bin/tests/system/dlvauto/setup.sh		SH	2011,2012
 ./bin/tests/system/dlvauto/tests.sh		SH	2011,2012,2014
 ./bin/tests/system/dlz/.gitignore		X	2012
@@ -998,7 +1001,7 @@
 ./bin/tests/system/dlz/prereq.sh.in		SH	2011,2012
 ./bin/tests/system/dlz/tests.sh			SH	2010,2011,2012,2013
 ./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011,2012
-./bin/tests/system/dlzexternal/clean.sh		X	2010,2012
+./bin/tests/system/dlzexternal/clean.sh		SH	2010,2012
 ./bin/tests/system/dlzexternal/dlopen.c		C	2011
 ./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013
 ./bin/tests/system/dlzexternal/driver.h		C	2011
@@ -1006,7 +1009,7 @@
 ./bin/tests/system/dlzexternal/ns1/named.conf.in	CONF-C	2011,2012,2013
 ./bin/tests/system/dlzexternal/prereq.sh	SH	2010,2011,2012
 ./bin/tests/system/dlzexternal/setup.sh		SH	2010,2012
-./bin/tests/system/dlzexternal/tests.sh		X	2010,2011,2012,2013
+./bin/tests/system/dlzexternal/tests.sh		SH	2010,2011,2012,2013
 ./bin/tests/system/dlzredir/.gitignore		X	2012
 ./bin/tests/system/dlzredir/clean.sh		SH	2012
 ./bin/tests/system/dlzredir/ns1/dns-root/dns.d/-/A=10=100.100.100.2=	X	2012
@@ -1044,6 +1047,7 @@
 ./bin/tests/system/dns64/ns1/sign.sh		SH	2010,2012
 ./bin/tests/system/dns64/ns2/named.conf		CONF-C	2010,2011,2013
 ./bin/tests/system/dns64/ns2/rpz.db		ZONE	2013
+./bin/tests/system/dns64/prereq.sh		SH	2014
 ./bin/tests/system/dns64/setup.sh		SH	2010,2012
 ./bin/tests/system/dns64/tests.sh		SH	2010,2011,2012,2013
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004,2011
@@ -1319,6 +1323,7 @@
 ./bin/tests/system/inline/ns5/named.conf.post	CONF-C	2011
 ./bin/tests/system/inline/ns5/named.conf.pre	CONF-C	2011
 ./bin/tests/system/inline/ns6/named.conf	CONF-C	2011
+./bin/tests/system/inline/prereq.sh		SH	2014
 ./bin/tests/system/inline/setup.sh		SH	2011,2012,2013
 ./bin/tests/system/inline/tests.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/ixfr/ans2/startme		X	2011
@@ -1390,6 +1395,7 @@
 ./bin/tests/system/masterformat/ns2/formerly-text.db.in	ZONE	2011
 ./bin/tests/system/masterformat/ns2/named.conf	CONF-C	2005,2007,2011,2012
 ./bin/tests/system/masterformat/ns3/named.conf	CONF-C	2012,2013
+./bin/tests/system/masterformat/prereq.sh	SH	2014
 ./bin/tests/system/masterformat/setup.sh	SH	2005,2006,2007,2011,2012,2013
 ./bin/tests/system/masterformat/tests.sh	SH	2005,2007,2011,2012,2013
 ./bin/tests/system/metadata/child.db		ZONE	2009
@@ -1422,6 +1428,7 @@
 ./bin/tests/system/nsupdate/ns3/named.conf	CONF-C	2010,2011,2013
 ./bin/tests/system/nsupdate/ns3/nsec3param.test.db.in	ZONE	2010
 ./bin/tests/system/nsupdate/ns3/sign.sh		SH	2010,2011,2012
+./bin/tests/system/nsupdate/prereq.sh		SH	2014
 ./bin/tests/system/nsupdate/setup.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012
 ./bin/tests/system/nsupdate/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013
 ./bin/tests/system/nsupdate/update_test.pl	PERL	2000,2001,2004,2007,2012
@@ -1477,6 +1484,7 @@
 ./bin/tests/system/redirect/ns2/example.db.in	ZONE	2013
 ./bin/tests/system/redirect/ns2/named.conf	CONF-C	2011,2013
 ./bin/tests/system/redirect/ns2/redirect.db.in	ZONE	2011.2013,2013
+./bin/tests/system/redirect/prereq.sh		SH	2014
 ./bin/tests/system/redirect/setup.sh		SH	2011,2012,2013
 ./bin/tests/system/redirect/tests.sh		SH	2011,2012,2013
 ./bin/tests/system/relay/README			TXT.BRIEF	2000,2001,2004
@@ -1556,6 +1564,7 @@
 ./bin/tests/system/rpz/ns5/named.args		X	2013
 ./bin/tests/system/rpz/ns5/named.conf		CONF-C	2012,2013
 ./bin/tests/system/rpz/ns5/tld5.db		ZONE	2013
+./bin/tests/system/rpz/prereq.sh		SH	2014
 ./bin/tests/system/rpz/qperf.sh			SH	2012,2013
 ./bin/tests/system/rpz/rpz.c			C	2011,2012,2013
 ./bin/tests/system/rpz/setup.sh			SH	2011,2012,2013
@@ -1693,6 +1702,7 @@
 ./bin/tests/system/staticstub/ns4/named.conf	CONF-C	2010
 ./bin/tests/system/staticstub/ns4/sign.sh	SH	2010,2012
 ./bin/tests/system/staticstub/ns4/sub.example.db.in	ZONE	2010
+./bin/tests/system/staticstub/prereq.sh		SH	2014
 ./bin/tests/system/staticstub/setup.sh		SH	2010,2012
 ./bin/tests/system/staticstub/tests.sh		SH	2010,2011,2012,2013
 ./bin/tests/system/statistics/ans4/ans.pl	PERL	2012
@@ -1746,16 +1756,16 @@
 ./bin/tests/system/tsig/tests.sh		SH	2005,2006,2007,2011,2012
 ./bin/tests/system/tsiggss/Makefile.in		MAKE	2011,2012
 ./bin/tests/system/tsiggss/authsock.pl		PERL	2011,2012
-./bin/tests/system/tsiggss/clean.sh		X	2010,2011
+./bin/tests/system/tsiggss/clean.sh		SH	2010,2011
 ./bin/tests/system/tsiggss/gssapi_krb.c		C	2011
 ./bin/tests/system/tsiggss/ns1/administrator.ccache	X	2010
 ./bin/tests/system/tsiggss/ns1/dns.keytab	X	2010
 ./bin/tests/system/tsiggss/ns1/example.nil.db.in	X	2011
 ./bin/tests/system/tsiggss/ns1/named.conf	CONF-C	2010,2011,2013
 ./bin/tests/system/tsiggss/ns1/testdenied.ccache	X	2010
-./bin/tests/system/tsiggss/prereq.sh		SH	2010,2011,2012
+./bin/tests/system/tsiggss/prereq.sh		SH	2010,2011,2012,2014
 ./bin/tests/system/tsiggss/setup.sh		SH	2010,2011,2012
-./bin/tests/system/tsiggss/tests.sh		X	2010,2011
+./bin/tests/system/tsiggss/tests.sh		SH	2010,2011
 ./bin/tests/system/unknown/clean.sh		SH	2000,2001,2004,2007,2012,2013
 ./bin/tests/system/unknown/large.out		X	2012
 ./bin/tests/system/unknown/ns1/broken1.db	ZONE	2000,2001,2004,2007
@@ -1799,6 +1809,7 @@
 ./bin/tests/system/v6synth/tests.sh		SH	2001,2004,2007,2012
 ./bin/tests/system/verify/.gitignore		X	2012
 ./bin/tests/system/verify/clean.sh		SH	2012
+./bin/tests/system/verify/prereq.sh		SH	2014
 ./bin/tests/system/verify/setup.sh		SH	2012
 ./bin/tests/system/verify/tests.sh		SH	2012,2013
 ./bin/tests/system/verify/zones/genzones.sh	SH	2012,2013
@@ -1838,6 +1849,7 @@
 ./bin/tests/system/wildcard/ns4/named.conf	CONF-C	2012
 ./bin/tests/system/wildcard/ns5/hints		ZONE	2013
 ./bin/tests/system/wildcard/ns5/named.conf	CONF-C	2013
+./bin/tests/system/wildcard/prereq.sh		SH	2014
 ./bin/tests/system/wildcard/setup.sh		SH	2012
 ./bin/tests/system/wildcard/tests.sh		SH	2012,2013
 ./bin/tests/system/xfer/ans5/badkeydata		X	2011
@@ -1889,6 +1901,7 @@
 ./bin/tests/system/zonechecks/ns1/named.conf	CONF-C	2012,2013
 ./bin/tests/system/zonechecks/ns2/named.conf	CONF-C	2012,2013
 ./bin/tests/system/zonechecks/nxdomain.db	ZONE	2004,2007
+./bin/tests/system/zonechecks/prereq.sh		SH	2014
 ./bin/tests/system/zonechecks/setup.sh		SH	2012,2013
 ./bin/tests/system/zonechecks/tests.sh		SH	2004,2007,2009,2012,2013
 ./bin/tests/t_api.pl				PERL	1999,2000,2001,2004,2007,2012
@@ -3043,7 +3056,7 @@
 ./lib/dns/tests/gost_test.c			C	2014
 ./lib/dns/tests/master_test.c			C	2011,2012,2013
 ./lib/dns/tests/mkraw.pl			PERL	2011,2012
-./lib/dns/tests/nsec3_test.c			C	2012
+./lib/dns/tests/nsec3_test.c			C	2012,2014
 ./lib/dns/tests/private_test.c			C	2011,2012
 ./lib/dns/tests/rbt_test.c			C	2012,2013,2014
 ./lib/dns/tests/rdata_test.c			C	2012,2013

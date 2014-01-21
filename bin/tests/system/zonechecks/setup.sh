@@ -14,17 +14,18 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3 2012/01/31 23:47:32 tbox Exp $
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 sh clean.sh
+test -e $RANDFILE || $GENRANDOM 400 $RANDFILE
 
-../../../tools/genrandom 400 random.data
 sh ../genzone.sh 1 > ns1/master.db
 cd ns1
 touch master.db.signed
 echo '$INCLUDE "master.db.signed"' >> master.db
-$KEYGEN -r ../random.data -3q master.example > /dev/null 2>&1
-$KEYGEN -r ../random.data -3qfk master.example > /dev/null 2>&1
+$KEYGEN -r $RANDFILE -3q master.example > /dev/null 2>&1
+$KEYGEN -r $RANDFILE -3qfk master.example > /dev/null 2>&1
 $SIGNER -SD -o master.example master.db > /dev/null 2>&1
 echo '$INCLUDE "soa.db"' > reload.db
 echo '@ 0 NS .' >> reload.db

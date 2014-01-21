@@ -14,13 +14,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2 2011/03/21 18:06:06 each Exp $
-
 rm -f ns2/nil.db ns2/other.db ns2/static.db ns2/*.jnl
 rm -f ns2/session.key
 rm -f ns2/named.stats
 rm -f ns3/named_dump.db
 rm -f ns*/named.memstats
 rm -f ns*/named.run
-rm -f random.data
 rm -f ns4/*.conf
