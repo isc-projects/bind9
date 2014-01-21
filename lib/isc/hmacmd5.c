@@ -169,7 +169,7 @@ isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 		PK11_FATALCHECK(pkcs_C_DigestFinal,
 				(ctx->session, (CK_BYTE_PTR) ctx->key, &kl));
 	} else
-		memcpy(ctx->key, key, len);
+		memmove(ctx->key, key, len);
 	PK11_FATALCHECK(pkcs_C_DigestInit, (ctx->session, &mech));
 	memset(ipad, IPAD, PADLEN);
 	for (i = 0; i < PADLEN; i++)

@@ -219,9 +219,8 @@ pkcs11ecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 							    attr->ulValueLen);
 			if (keyTemplate[5].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[5].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[5].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[5].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_VALUE:
@@ -230,9 +229,8 @@ pkcs11ecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 							    attr->ulValueLen);
 			if (keyTemplate[6].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[6].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[6].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
 			break;
 		}
@@ -328,9 +326,8 @@ pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 							    attr->ulValueLen);
 			if (keyTemplate[5].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[5].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[5].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[5].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_EC_POINT:
@@ -339,9 +336,8 @@ pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 							    attr->ulValueLen);
 			if (keyTemplate[6].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[6].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[6].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
 			break;
 		}
@@ -437,16 +433,16 @@ pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 					   sizeof(pk11_ecc_prime256v1)); \
 		if (attr->pValue == NULL) \
 			DST_RET(ISC_R_NOMEMORY); \
-		memcpy(attr->pValue, \
-		       pk11_ecc_prime256v1, sizeof(pk11_ecc_prime256v1)); \
+		memmove(attr->pValue, \
+			pk11_ecc_prime256v1, sizeof(pk11_ecc_prime256v1)); \
 		attr->ulValueLen = sizeof(pk11_ecc_prime256v1); \
 	} else { \
 		attr->pValue = isc_mem_get(key->mctx, \
 					   sizeof(pk11_ecc_secp384r1)); \
 		if (attr->pValue == NULL) \
 			DST_RET(ISC_R_NOMEMORY); \
-		memcpy(attr->pValue, \
-		       pk11_ecc_secp384r1, sizeof(pk11_ecc_secp384r1)); \
+		memmove(attr->pValue, \
+			pk11_ecc_secp384r1, sizeof(pk11_ecc_secp384r1)); \
 		attr->ulValueLen = sizeof(pk11_ecc_secp384r1); \
 	}
 
@@ -651,7 +647,7 @@ pkcs11ecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	isc_buffer_availableregion(data, &r);
 	if (r.length < len)
 		return (ISC_R_NOSPACE);
-	memcpy(r.base, (CK_BYTE_PTR) attr->pValue + 3, len);
+	memmove(r.base, (CK_BYTE_PTR) attr->pValue + 3, len);
 	isc_buffer_add(data, len);
 
 	return (ISC_R_SUCCESS);
@@ -694,16 +690,16 @@ pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 			isc_mem_get(key->mctx, sizeof(pk11_ecc_prime256v1));
 		if (attr->pValue == NULL)
 			goto nomemory;
-		memcpy(attr->pValue,
-		       pk11_ecc_prime256v1, sizeof(pk11_ecc_prime256v1));
+		memmove(attr->pValue,
+			pk11_ecc_prime256v1, sizeof(pk11_ecc_prime256v1));
 		attr->ulValueLen = sizeof(pk11_ecc_prime256v1);
 	} else {
 		attr->pValue =
 			isc_mem_get(key->mctx, sizeof(pk11_ecc_secp384r1));
 		if (attr->pValue == NULL)
 			goto nomemory;
-		memcpy(attr->pValue,
-		       pk11_ecc_secp384r1, sizeof(pk11_ecc_secp384r1));
+		memmove(attr->pValue,
+			pk11_ecc_secp384r1, sizeof(pk11_ecc_secp384r1));
 		attr->ulValueLen = sizeof(pk11_ecc_secp384r1);
 	}
 
@@ -715,7 +711,7 @@ pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	((CK_BYTE_PTR) attr->pValue)[0] = TAG_OCTECT_STRING;
 	((CK_BYTE_PTR) attr->pValue)[1] = len + 1;
 	((CK_BYTE_PTR) attr->pValue)[2] = UNCOMPRESSED;
-	memcpy((CK_BYTE_PTR) attr->pValue + 3, r.base, len);
+	memmove((CK_BYTE_PTR) attr->pValue + 3, r.base, len);
 	attr->ulValueLen = len + 3;
 
 	isc_buffer_forward(data, len);
@@ -768,7 +764,7 @@ pkcs11ecdsa_tofile(const dst_key_t *key, const char *directory) {
 			return (ISC_R_NOMEMORY);
 		priv.elements[i].tag = TAG_ECDSA_PRIVATEKEY;
 		priv.elements[i].length = (unsigned short) attr->ulValueLen;
-		memcpy(buf, attr->pValue, attr->ulValueLen);
+		memmove(buf, attr->pValue, attr->ulValueLen);
 		priv.elements[i].data = buf;
 		i++;
 	}
@@ -840,7 +836,7 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	attr->pValue = isc_mem_get(key->mctx, pubattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(attr->pValue, pubattr->pValue, pubattr->ulValueLen);
+	memmove(attr->pValue, pubattr->pValue, pubattr->ulValueLen);
 	attr->ulValueLen = pubattr->ulValueLen;
 	attr++;
 
@@ -849,7 +845,7 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	attr->pValue = isc_mem_get(key->mctx, pubattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(attr->pValue, pubattr->pValue, pubattr->ulValueLen);
+	memmove(attr->pValue, pubattr->pValue, pubattr->ulValueLen);
 	attr->ulValueLen = pubattr->ulValueLen;
 
 	ret = pk11_parse_uri(ec, label, key->mctx, OP_EC);
@@ -973,7 +969,7 @@ pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	attr->pValue = isc_mem_get(key->mctx, pattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(attr->pValue, pattr->pValue, pattr->ulValueLen);
+	memmove(attr->pValue, pattr->pValue, pattr->ulValueLen);
 	attr->ulValueLen = pattr->ulValueLen;
 
 	attr++;
@@ -983,7 +979,7 @@ pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	attr->pValue = isc_mem_get(key->mctx, pattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(attr->pValue, pattr->pValue, pattr->ulValueLen);
+	memmove(attr->pValue, pattr->pValue, pattr->ulValueLen);
 	attr->ulValueLen = pattr->ulValueLen;
 
 	attr++;
@@ -991,7 +987,7 @@ pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	attr->pValue = isc_mem_get(key->mctx, priv.elements[0].length);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(attr->pValue, priv.elements[0].data, priv.elements[0].length);
+	memmove(attr->pValue, priv.elements[0].data, priv.elements[0].length);
 	attr->ulValueLen = priv.elements[0].length;
 
 	dst__privstruct_free(&priv, mctx);

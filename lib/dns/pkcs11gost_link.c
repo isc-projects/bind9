@@ -189,9 +189,8 @@ pkcs11gost_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[6].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[6].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[6].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
 			break;
 		}
@@ -291,9 +290,8 @@ pkcs11gost_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[5].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[5].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[5].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[5].ulValueLen = attr->ulValueLen;
 			break;
 		}
@@ -644,7 +642,7 @@ pkcs11gost_todns(const dst_key_t *key, isc_buffer_t *data) {
 	isc_buffer_availableregion(data, &r);
 	if (r.length < ISC_GOST_PUBKEYLENGTH)
 		return (ISC_R_NOSPACE);
-	memcpy(r.base, (CK_BYTE_PTR) attr->pValue, ISC_GOST_PUBKEYLENGTH);
+	memmove(r.base, (CK_BYTE_PTR) attr->pValue, ISC_GOST_PUBKEYLENGTH);
 	isc_buffer_add(data, ISC_GOST_PUBKEYLENGTH);
 
 	return (ISC_R_SUCCESS);
@@ -676,7 +674,7 @@ pkcs11gost_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	attr->pValue = isc_mem_get(key->mctx, ISC_GOST_PUBKEYLENGTH);
 	if (attr->pValue == NULL)
 		goto nomemory;
-	memcpy((CK_BYTE_PTR) attr->pValue, r.base, ISC_GOST_PUBKEYLENGTH);
+	memmove((CK_BYTE_PTR) attr->pValue, r.base, ISC_GOST_PUBKEYLENGTH);
 	attr->ulValueLen = ISC_GOST_PUBKEYLENGTH;
 
 	isc_buffer_forward(data, ISC_GOST_PUBKEYLENGTH);
@@ -745,8 +743,8 @@ pkcs11gost_tofile(const dst_key_t *key, const char *directory) {
 		priv.elements[i].tag = TAG_GOST_PRIVASN1;
 		priv.elements[i].length =
 			(unsigned short) attr->ulValueLen + 39;
-		memcpy(buf, gost_private_der, 39);
-		memcpy(buf +39, attr->pValue, attr->ulValueLen);
+		memmove(buf, gost_private_der, 39);
+		memmove(buf +39, attr->pValue, attr->ulValueLen);
 		adj = (int) attr->ulValueLen - 32;
 		if (adj != 0) {
 			buf[1] += adj;
@@ -795,7 +793,7 @@ pkcs11gost_tofile(const dst_key_t *key, const char *directory) {
 			return (ISC_R_NOMEMORY);
 		priv.elements[i].tag = TAG_GOST_PRIVRAW;
 		priv.elements[i].length = (unsigned short) attr->ulValueLen;
-		memcpy(buf, attr->pValue, attr->ulValueLen);
+		memmove(buf, attr->pValue, attr->ulValueLen);
 		priv.elements[i].data = buf;
 		i++;
 	} else
@@ -836,7 +834,7 @@ pkcs11gost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 		if ((adj > 0) || (adj < -31))
 			DST_RET(DST_R_INVALIDPRIVATEKEY);
-		memcpy(buf, gost_private_der, 39);
+		memmove(buf, gost_private_der, 39);
 		if (adj != 0) {
 			buf[1] += adj;
 			buf[36] += adj;
@@ -871,7 +869,7 @@ pkcs11gost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	attr->pValue = isc_mem_get(key->mctx, pattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(attr->pValue, pattr->pValue, pattr->ulValueLen);
+	memmove(attr->pValue, pattr->pValue, pattr->ulValueLen);
 	attr->ulValueLen = pattr->ulValueLen;
 
 	attr++;
@@ -879,7 +877,7 @@ pkcs11gost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	attr->pValue = isc_mem_get(key->mctx, priv.elements[0].length);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(attr->pValue, priv.elements[0].data, priv.elements[0].length);
+	memmove(attr->pValue, priv.elements[0].data, priv.elements[0].length);
 	attr->ulValueLen = priv.elements[0].length;
 
 	dst__privstruct_free(&priv, mctx);

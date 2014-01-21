@@ -642,10 +642,10 @@ choose_slots(void) {
 		token->slotid = slot;
 		ISC_LINK_INIT(token, link);
 		ISC_LIST_INIT(token->sessions);
-		memcpy(token->name, tokenInfo.label, 32);
-		memcpy(token->manuf, tokenInfo.manufacturerID, 32);
-		memcpy(token->model, tokenInfo.model, 16);
-		memcpy(token->serial, tokenInfo.serialNumber, 16);
+		memmove(token->name, tokenInfo.label, 32);
+		memmove(token->manuf, tokenInfo.manufacturerID, 32);
+		memmove(token->model, tokenInfo.model, 16);
+		memmove(token->serial, tokenInfo.serialNumber, 16);
 		ISC_LIST_APPEND(tokens, token, link);
 		if ((tokenInfo.flags & CKF_RNG) == 0)
 			goto try_rsa;
@@ -1002,7 +1002,7 @@ pk11strcmp(const char *x, size_t lenx, const char *y, size_t leny) {
 	memset(buf, ' ', 32);
 	if (lenx > leny)
 		lenx = leny;
-	memcpy(buf, x, lenx);
+	memmove(buf, x, lenx);
 	return (ISC_TF(memcmp(buf, y, leny) == 0));
 }
 
@@ -1018,7 +1018,7 @@ push_attribute(iscpk11_object_t *obj, isc_mem_t *mctx, size_t len) {
 		return (NULL);
 	}
 	memset(obj->repr, 0, (cnt + 1) * sizeof(*attr));
-	memcpy(obj->repr, old, cnt * sizeof(*attr));
+	memmove(obj->repr, old, cnt * sizeof(*attr));
 	attr = obj->repr + cnt;
 	attr->ulValueLen = (CK_ULONG) len;
 	attr->pValue = isc_mem_get(mctx, len);
@@ -1057,7 +1057,7 @@ pk11_parse_uri(iscpk11_object_t *obj, const char *label,
 	uri = isc_mem_get(mctx, len);
 	if (uri == NULL)
 		return (ISC_R_NOMEMORY);
-	memcpy(uri, label, len);
+	memmove(uri, label, len);
 
 	/* get the URI scheme */
 	p = strchr(uri, ':');
@@ -1097,7 +1097,7 @@ pk11_parse_uri(iscpk11_object_t *obj, const char *label,
 			if (attr == NULL)
 				DST_RET(ISC_R_NOMEMORY);
 			attr->type = CKA_LABEL;
-			memcpy(attr->pValue, v, l);
+			memmove(attr->pValue, v, l);
 		} else if (strcmp(a, "token") == 0) {
 			/* token: CK_TOKEN_INFO label */
 			if (token == NULL)
@@ -1150,7 +1150,7 @@ pk11_parse_uri(iscpk11_object_t *obj, const char *label,
 			if (attr == NULL)
 				DST_RET(ISC_R_NOMEMORY);
 			attr->type = CKA_ID;
-			memcpy(attr->pValue, v, l);
+			memmove(attr->pValue, v, l);
 		} else if (strcmp(a, "pin-source") == 0) {
 			/* pin-source: PIN */
 			ret = isc_stdio_open(v, "r", &stream);
@@ -1187,7 +1187,7 @@ pk11_parse_uri(iscpk11_object_t *obj, const char *label,
 		DST_RET(ISC_R_NOTFOUND);
 	obj->slot = token->slotid;
 	if (gotpin) {
-		memcpy(token->pin, pin, PINLEN);
+		memmove(token->pin, pin, PINLEN);
 		obj->reqlogon = ISC_TRUE;
 	}
 

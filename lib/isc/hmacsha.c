@@ -269,7 +269,7 @@ isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -342,7 +342,7 @@ isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len) {
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -415,7 +415,7 @@ isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len) {
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -488,7 +488,7 @@ isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len) {
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 
@@ -561,7 +561,7 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
-	memcpy(digest, newdigest, len);
+	memmove(digest, newdigest, len);
 	memset(newdigest, 0, sizeof(newdigest));
 }
 

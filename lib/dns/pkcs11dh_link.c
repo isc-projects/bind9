@@ -114,7 +114,7 @@ pkcs11dh_loadpriv(const dst_key_t *key,
 	keyTemplate[6].pValue = isc_mem_get(key->mctx, attr->ulValueLen);
 	if (keyTemplate[6].pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(keyTemplate[6].pValue, attr->pValue, attr->ulValueLen);
+	memmove(keyTemplate[6].pValue, attr->pValue, attr->ulValueLen);
 	keyTemplate[6].ulValueLen = attr->ulValueLen;
 
 	attr = pk11_attribute_bytype(priv, CKA_BASE);
@@ -123,7 +123,7 @@ pkcs11dh_loadpriv(const dst_key_t *key,
 	keyTemplate[7].pValue = isc_mem_get(key->mctx, attr->ulValueLen);
 	if (keyTemplate[7].pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(keyTemplate[7].pValue, attr->pValue, attr->ulValueLen);
+	memmove(keyTemplate[7].pValue, attr->pValue, attr->ulValueLen);
 	keyTemplate[7].ulValueLen = attr->ulValueLen;
 
 	attr = pk11_attribute_bytype(priv, CKA_VALUE2);
@@ -132,7 +132,7 @@ pkcs11dh_loadpriv(const dst_key_t *key,
 	keyTemplate[8].pValue = isc_mem_get(key->mctx, attr->ulValueLen);
 	if (keyTemplate[8].pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(keyTemplate[8].pValue, attr->pValue, attr->ulValueLen);
+	memmove(keyTemplate[8].pValue, attr->pValue, attr->ulValueLen);
 	keyTemplate[8].ulValueLen = attr->ulValueLen;
 
 	PK11_CALL(pkcs_C_CreateObject,
@@ -205,7 +205,7 @@ pkcs11dh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	mech.pParameter = isc_mem_get(pub->mctx, mech.ulParameterLen);
 	if (mech.pParameter == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(mech.pParameter, attr->pValue, mech.ulParameterLen);
+	memmove(mech.pParameter, attr->pValue, mech.ulParameterLen);
 
 	ret = pkcs11dh_loadpriv(priv, ctx.session, &hKey);
 	if (ret != ISC_R_SUCCESS)
@@ -236,7 +236,7 @@ pkcs11dh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	isc_buffer_availableregion(secret, &r);
 	if (r.length < attr->ulValueLen - i)
 		DST_RET(ISC_R_NOSPACE);
-	memcpy(r.base, secValue + i, attr->ulValueLen - i);
+	memmove(r.base, secValue + i, attr->ulValueLen - i);
 	isc_buffer_add(secret, attr->ulValueLen - i);
 	ret = ISC_R_SUCCESS;
 
@@ -418,31 +418,32 @@ pkcs11dh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 				isc_mem_get(key->mctx, sizeof(pk11_dh_bn768));
 			if (pubTemplate[4].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(pubTemplate[4].pValue,
-			       pk11_dh_bn768, sizeof(pk11_dh_bn768));
+			memmove(pubTemplate[4].pValue,
+				pk11_dh_bn768, sizeof(pk11_dh_bn768));
 			pubTemplate[4].ulValueLen = sizeof(pk11_dh_bn768);
 		} else if (bits == 1024) {
 			pubTemplate[4].pValue =
 				isc_mem_get(key->mctx, sizeof(pk11_dh_bn1024));
 			if (pubTemplate[4].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(pubTemplate[4].pValue,
-			       pk11_dh_bn1024, sizeof(pk11_dh_bn1024));
+			memmove(pubTemplate[4].pValue,
+				pk11_dh_bn1024, sizeof(pk11_dh_bn1024));
 			pubTemplate[4].ulValueLen = sizeof(pk11_dh_bn1024);
 		} else {
 			pubTemplate[4].pValue =
 				isc_mem_get(key->mctx, sizeof(pk11_dh_bn1536));
 			if (pubTemplate[4].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(pubTemplate[4].pValue,
-			       pk11_dh_bn1536, sizeof(pk11_dh_bn1536));
+			memmove(pubTemplate[4].pValue,
+				pk11_dh_bn1536, sizeof(pk11_dh_bn1536));
 			pubTemplate[4].ulValueLen = sizeof(pk11_dh_bn1536);
 		}
 		pubTemplate[5].pValue = isc_mem_get(key->mctx,
 						    sizeof(pk11_dh_bn2));
 		if (pubTemplate[5].pValue == NULL)
 			DST_RET(ISC_R_NOMEMORY);
-		memcpy(pubTemplate[5].pValue, pk11_dh_bn2, sizeof(pk11_dh_bn2));
+		memmove(pubTemplate[5].pValue, pk11_dh_bn2,
+			sizeof(pk11_dh_bn2));
 		pubTemplate[5].ulValueLen = sizeof(pk11_dh_bn2);
 	} else {
 		PK11_RET(pkcs_C_GenerateKey,
@@ -706,16 +707,16 @@ pkcs11dh_todns(const dst_key_t *key, isc_buffer_t *data) {
 			*r.base = 3;
 	}
 	else
-		memcpy(r.base, prime, plen);
+		memmove(r.base, prime, plen);
 	r.base += plen;
 
 	uint16_toregion(glen, &r);
 	if (glen > 0)
-		memcpy(r.base, base, glen);
+		memmove(r.base, base, glen);
 	r.base += glen;
 
 	uint16_toregion(publen, &r);
-	memcpy(r.base, pub, publen);
+	memmove(r.base, pub, publen);
 	r.base += publen;
 
 	isc_buffer_add(data, dnslen);
@@ -863,21 +864,21 @@ pkcs11dh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	attr[0].pValue = isc_mem_get(key->mctx, plen_);
 	if (attr[0].pValue == NULL)
 		goto nomemory;
-	memcpy(attr[0].pValue, prime, plen_);
+	memmove(attr[0].pValue, prime, plen_);
 	attr[0].ulValueLen = (CK_ULONG) plen_;
 
 	attr[1].type = CKA_BASE;
 	attr[1].pValue = isc_mem_get(key->mctx, glen_);
 	if (attr[1].pValue == NULL)
 		goto nomemory;
-	memcpy(attr[1].pValue, base, glen_);
+	memmove(attr[1].pValue, base, glen_);
 	attr[1].ulValueLen = (CK_ULONG) glen_;
 
 	attr[2].type = CKA_VALUE;
 	attr[2].pValue = isc_mem_get(key->mctx, publen);
 	if (attr[2].pValue == NULL)
 		goto nomemory;
-	memcpy(attr[2].pValue, pub, publen);
+	memmove(attr[2].pValue, pub, publen);
 	attr[2].ulValueLen = (CK_ULONG) publen;
 
 	isc_buffer_forward(data, plen + glen + publen + 6);
@@ -961,25 +962,25 @@ pkcs11dh_tofile(const dst_key_t *key, const char *directory) {
 
 	priv.elements[i].tag = TAG_DH_PRIME;
 	priv.elements[i].length = (unsigned short) prime->ulValueLen;
-	memcpy(bufs[i], prime->pValue, prime->ulValueLen);
+	memmove(bufs[i], prime->pValue, prime->ulValueLen);
 	priv.elements[i].data = bufs[i];
 	i++;
 
 	priv.elements[i].tag = TAG_DH_GENERATOR;
 	priv.elements[i].length = (unsigned short) base->ulValueLen;
-	memcpy(bufs[i], base->pValue, base->ulValueLen);
+	memmove(bufs[i], base->pValue, base->ulValueLen);
 	priv.elements[i].data = bufs[i];
 	i++;
 
 	priv.elements[i].tag = TAG_DH_PRIVATE;
 	priv.elements[i].length = (unsigned short) prv->ulValueLen;
-	memcpy(bufs[i], prv->pValue, prv->ulValueLen);
+	memmove(bufs[i], prv->pValue, prv->ulValueLen);
 	priv.elements[i].data = bufs[i];
 	i++;
 
 	priv.elements[i].tag = TAG_DH_PUBLIC;
 	priv.elements[i].length = (unsigned short) pub->ulValueLen;
-	memcpy(bufs[i], pub->pValue, pub->ulValueLen);
+	memmove(bufs[i], pub->pValue, pub->ulValueLen);
 	priv.elements[i].data = bufs[i];
 	i++;
 
@@ -1034,7 +1035,7 @@ pkcs11dh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		bn = isc_mem_get(key->mctx, priv.elements[i].length);
 		if (bn == NULL)
 			DST_RET(ISC_R_NOMEMORY);
-		memcpy(bn, priv.elements[i].data, priv.elements[i].length);
+		memmove(bn, priv.elements[i].data, priv.elements[i].length);
 
 		switch (priv.elements[i].tag) {
 			case TAG_DH_PRIME:

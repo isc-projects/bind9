@@ -126,9 +126,8 @@ pkcs11dsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[6].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[6].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[6].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_SUBPRIME:
@@ -137,9 +136,8 @@ pkcs11dsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[7].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[7].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[7].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[7].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_BASE:
@@ -148,9 +146,8 @@ pkcs11dsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[8].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[8].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[8].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[8].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_VALUE2:
@@ -159,9 +156,8 @@ pkcs11dsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[9].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[9].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[9].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[9].ulValueLen = attr->ulValueLen;
 			break;
 		}
@@ -260,9 +256,8 @@ pkcs11dsa_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[5].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[5].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[5].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[5].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_SUBPRIME:
@@ -271,9 +266,8 @@ pkcs11dsa_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[6].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[6].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[6].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_BASE:
@@ -282,9 +276,8 @@ pkcs11dsa_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[7].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[7].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[7].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[7].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_VALUE:
@@ -293,9 +286,8 @@ pkcs11dsa_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[8].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[8].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[8].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[8].ulValueLen = attr->ulValueLen;
 			break;
 		}
@@ -754,20 +746,20 @@ pkcs11dsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	memset(r.base, 0, dnslen);
 	*r.base++ = t;
 	cp = (CK_BYTE *) subprime->pValue;
-	memcpy(r.base + ISC_SHA1_DIGESTLENGTH - subprime->ulValueLen,
-	       cp, subprime->ulValueLen);
+	memmove(r.base + ISC_SHA1_DIGESTLENGTH - subprime->ulValueLen,
+		cp, subprime->ulValueLen);
 	r.base += ISC_SHA1_DIGESTLENGTH;
 	cp = (CK_BYTE *) prime->pValue;
-	memcpy(r.base + key->key_size/8 - prime->ulValueLen,
-	       cp, prime->ulValueLen);
+	memmove(r.base + key->key_size/8 - prime->ulValueLen,
+		cp, prime->ulValueLen);
 	r.base += p_bytes;
 	cp = (CK_BYTE *) base->pValue;
-	memcpy(r.base + key->key_size/8 - base->ulValueLen,
-	       cp, base->ulValueLen);
+	memmove(r.base + key->key_size/8 - base->ulValueLen,
+		cp, base->ulValueLen);
 	r.base += p_bytes;
 	cp = (CK_BYTE *) pub_key->pValue;
-	memcpy(r.base + key->key_size/8 - pub_key->ulValueLen,
-	       cp, pub_key->ulValueLen);
+	memmove(r.base + key->key_size/8 - pub_key->ulValueLen,
+		cp, pub_key->ulValueLen);
 	r.base += p_bytes;
 
 	isc_buffer_add(data, dnslen);
@@ -833,28 +825,28 @@ pkcs11dsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	attr[0].pValue = isc_mem_get(key->mctx, p_bytes);
 	if (attr[0].pValue == NULL)
 		goto nomemory;
-	memcpy(attr[0].pValue, prime, p_bytes);
+	memmove(attr[0].pValue, prime, p_bytes);
 	attr[0].ulValueLen = p_bytes;
 
 	attr[1].type = CKA_SUBPRIME;
 	attr[1].pValue = isc_mem_get(key->mctx, ISC_SHA1_DIGESTLENGTH);
 	if (attr[1].pValue == NULL)
 		goto nomemory;
-	memcpy(attr[1].pValue, subprime, ISC_SHA1_DIGESTLENGTH);
+	memmove(attr[1].pValue, subprime, ISC_SHA1_DIGESTLENGTH);
 	attr[1].ulValueLen = ISC_SHA1_DIGESTLENGTH;
 
 	attr[2].type = CKA_BASE;
 	attr[2].pValue = isc_mem_get(key->mctx, p_bytes);
 	if (attr[2].pValue == NULL)
 		goto nomemory;
-	memcpy(attr[2].pValue, base, p_bytes);
+	memmove(attr[2].pValue, base, p_bytes);
 	attr[2].ulValueLen = p_bytes;
 
 	attr[3].type = CKA_VALUE;
 	attr[3].pValue = isc_mem_get(key->mctx, p_bytes);
 	if (attr[3].pValue == NULL)
 		goto nomemory;
-	memcpy(attr[3].pValue, pub_key, p_bytes);
+	memmove(attr[3].pValue, pub_key, p_bytes);
 	attr[3].ulValueLen = p_bytes;
 
 	key->keydata.pkey = dsa;
@@ -935,31 +927,31 @@ pkcs11dsa_tofile(const dst_key_t *key, const char *directory) {
 
 	priv.elements[cnt].tag = TAG_DSA_PRIME;
 	priv.elements[cnt].length = (unsigned short) prime->ulValueLen;
-	memcpy(bufs[cnt], prime->pValue, prime->ulValueLen);
+	memmove(bufs[cnt], prime->pValue, prime->ulValueLen);
 	priv.elements[cnt].data = bufs[cnt];
 	cnt++;
 
 	priv.elements[cnt].tag = TAG_DSA_SUBPRIME;
 	priv.elements[cnt].length = (unsigned short) subprime->ulValueLen;
-	memcpy(bufs[cnt], subprime->pValue, subprime->ulValueLen);
+	memmove(bufs[cnt], subprime->pValue, subprime->ulValueLen);
 	priv.elements[cnt].data = bufs[cnt];
 	cnt++;
 
 	priv.elements[cnt].tag = TAG_DSA_BASE;
 	priv.elements[cnt].length = (unsigned short) base->ulValueLen;
-	memcpy(bufs[cnt], base->pValue, base->ulValueLen);
+	memmove(bufs[cnt], base->pValue, base->ulValueLen);
 	priv.elements[cnt].data = bufs[cnt];
 	cnt++;
 
 	priv.elements[cnt].tag = TAG_DSA_PRIVATE;
 	priv.elements[cnt].length = (unsigned short) priv_key->ulValueLen;
-	memcpy(bufs[cnt], priv_key->pValue, priv_key->ulValueLen);
+	memmove(bufs[cnt], priv_key->pValue, priv_key->ulValueLen);
 	priv.elements[cnt].data = bufs[cnt];
 	cnt++;
 
 	priv.elements[cnt].tag = TAG_DSA_PUBLIC;
 	priv.elements[cnt].length = (unsigned short) pub_key->ulValueLen;
-	memcpy(bufs[cnt], pub_key->pValue, pub_key->ulValueLen);
+	memmove(bufs[cnt], pub_key->pValue, pub_key->ulValueLen);
 	priv.elements[cnt].data = bufs[cnt];
 	cnt++;
 
@@ -1009,9 +1001,7 @@ pkcs11dsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		bn = isc_mem_get(key->mctx, priv.elements[i].length);
 		if (bn == NULL)
 			DST_RET(ISC_R_NOMEMORY);
-		memcpy(bn,
-		       priv.elements[i].data,
-		       priv.elements[i].length);
+		memmove(bn, priv.elements[i].data, priv.elements[i].length);
 
 		switch (priv.elements[i].tag) {
 			case TAG_DSA_PRIME:

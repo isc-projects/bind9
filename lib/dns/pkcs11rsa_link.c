@@ -121,9 +121,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[6].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[6].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[6].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_PUBLIC_EXPONENT:
@@ -132,9 +131,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[7].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[7].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[7].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[7].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_PRIVATE_EXPONENT:
@@ -143,9 +141,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[8].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[8].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[8].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[8].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_PRIME_1:
@@ -154,9 +151,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[9].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[9].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[9].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[9].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_PRIME_2:
@@ -165,9 +161,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							    attr->ulValueLen);
 			if (keyTemplate[10].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[10].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[10].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[10].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_EXPONENT_1:
@@ -176,9 +171,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							     attr->ulValueLen);
 			if (keyTemplate[11].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[11].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[11].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[11].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_EXPONENT_2:
@@ -187,9 +181,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							     attr->ulValueLen);
 			if (keyTemplate[12].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[12].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[12].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[12].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_COEFFICIENT:
@@ -198,9 +191,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 							     attr->ulValueLen);
 			if (keyTemplate[13].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[13].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[13].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[13].ulValueLen = attr->ulValueLen;
 			break;
 		}
@@ -319,9 +311,8 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 							    attr->ulValueLen);
 			if (keyTemplate[5].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[5].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[5].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[5].ulValueLen = attr->ulValueLen;
 			break;
 		case CKA_PUBLIC_EXPONENT:
@@ -330,9 +321,8 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 							    attr->ulValueLen);
 			if (keyTemplate[6].pValue == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(keyTemplate[6].pValue,
-			       attr->pValue,
-			       attr->ulValueLen);
+			memmove(keyTemplate[6].pValue, attr->pValue,
+				attr->ulValueLen);
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
 			if (pk11_numbits(attr->pValue,
 					 attr->ulValueLen) > maxbits &&
@@ -785,9 +775,9 @@ pkcs11rsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	if (r.length < e_bytes + mod_bytes)
 		return (ISC_R_NOSPACE);
 
-	memcpy(r.base, exponent, e_bytes);
+	memmove(r.base, exponent, e_bytes);
 	isc_region_consume(&r, e_bytes);
-	memcpy(r.base, modulus, mod_bytes);
+	memmove(r.base, modulus, mod_bytes);
 
 	isc_buffer_add(data, e_bytes + mod_bytes);
 
@@ -855,13 +845,13 @@ pkcs11rsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	attr[0].pValue = isc_mem_get(key->mctx, mod_bytes);
 	if (attr[0].pValue == NULL)
 		goto nomemory;
-	memcpy(attr[0].pValue, modulus, mod_bytes);
+	memmove(attr[0].pValue, modulus, mod_bytes);
 	attr[0].ulValueLen = (CK_ULONG) mod_bytes;
 	attr[1].type = CKA_PUBLIC_EXPONENT;
 	attr[1].pValue = isc_mem_get(key->mctx, e_bytes);
 	if (attr[1].pValue == NULL)
 		goto nomemory;
-	memcpy(attr[1].pValue, exponent, e_bytes);
+	memmove(attr[1].pValue, exponent, e_bytes);
 	attr[1].ulValueLen = (CK_ULONG) e_bytes;
 
 	key->keydata.pkey = rsa;
@@ -963,20 +953,20 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 
 	priv.elements[i].tag = TAG_RSA_MODULUS;
 	priv.elements[i].length = (unsigned short) modulus->ulValueLen;
-	memcpy(bufs[i], modulus->pValue, modulus->ulValueLen);
+	memmove(bufs[i], modulus->pValue, modulus->ulValueLen);
 	priv.elements[i].data = bufs[i];
 	i++;
 
 	priv.elements[i].tag = TAG_RSA_PUBLICEXPONENT;
 	priv.elements[i].length = (unsigned short) exponent->ulValueLen;
-	memcpy(bufs[i], exponent->pValue, exponent->ulValueLen);
+	memmove(bufs[i], exponent->pValue, exponent->ulValueLen);
 	priv.elements[i].data = bufs[i];
 	i++;
 
 	if (d != NULL) {
 		priv.elements[i].tag = TAG_RSA_PRIVATEEXPONENT;
 		priv.elements[i].length = (unsigned short) d->ulValueLen;
-		memcpy(bufs[i], d->pValue, d->ulValueLen);
+		memmove(bufs[i], d->pValue, d->ulValueLen);
 		priv.elements[i].data = bufs[i];
 		i++;
 	}
@@ -984,7 +974,7 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 	if (p != NULL) {
 		priv.elements[i].tag = TAG_RSA_PRIME1;
 		priv.elements[i].length = (unsigned short) p->ulValueLen;
-		memcpy(bufs[i], p->pValue, p->ulValueLen);
+		memmove(bufs[i], p->pValue, p->ulValueLen);
 		priv.elements[i].data = bufs[i];
 		i++;
 	}
@@ -992,7 +982,7 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 	if (q != NULL) {
 		priv.elements[i].tag = TAG_RSA_PRIME2;
 		priv.elements[i].length = (unsigned short) q->ulValueLen;
-		memcpy(bufs[i], q->pValue, q->ulValueLen);
+		memmove(bufs[i], q->pValue, q->ulValueLen);
 		priv.elements[i].data = bufs[i];
 		i++;
 	}
@@ -1000,7 +990,7 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 	if (dmp1 != NULL) {
 		priv.elements[i].tag = TAG_RSA_EXPONENT1;
 		priv.elements[i].length = (unsigned short) dmp1->ulValueLen;
-		memcpy(bufs[i], dmp1->pValue, dmp1->ulValueLen);
+		memmove(bufs[i], dmp1->pValue, dmp1->ulValueLen);
 		priv.elements[i].data = bufs[i];
 		i++;
 	}
@@ -1008,7 +998,7 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 	if (dmq1 != NULL) {
 		priv.elements[i].tag = TAG_RSA_EXPONENT2;
 		priv.elements[i].length = (unsigned short) dmq1->ulValueLen;
-		memcpy(bufs[i], dmq1->pValue, dmq1->ulValueLen);
+		memmove(bufs[i], dmq1->pValue, dmq1->ulValueLen);
 		priv.elements[i].data = bufs[i];
 		i++;
 	}
@@ -1016,7 +1006,7 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 	if (iqmp != NULL) {
 		priv.elements[i].tag = TAG_RSA_COEFFICIENT;
 		priv.elements[i].length = (unsigned short) iqmp->ulValueLen;
-		memcpy(bufs[i], iqmp->pValue, iqmp->ulValueLen);
+		memmove(bufs[i], iqmp->pValue, iqmp->ulValueLen);
 		priv.elements[i].data = bufs[i];
 		i++;
 	}
@@ -1090,7 +1080,7 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	attr->pValue = isc_mem_get(key->mctx, pubattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(attr->pValue, pubattr->pValue, pubattr->ulValueLen);
+	memmove(attr->pValue, pubattr->pValue, pubattr->ulValueLen);
 	attr->ulValueLen = pubattr->ulValueLen;
 	attr++;
 
@@ -1099,7 +1089,7 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	attr->pValue = isc_mem_get(key->mctx, pubattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memcpy(attr->pValue, pubattr->pValue, pubattr->ulValueLen);
+	memmove(attr->pValue, pubattr->pValue, pubattr->ulValueLen);
 	attr->ulValueLen = pubattr->ulValueLen;
 
 	ret = pk11_parse_uri(rsa, label, key->mctx, OP_RSA);
@@ -1302,9 +1292,8 @@ pkcs11rsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			bn = isc_mem_get(key->mctx, priv.elements[i].length);
 			if (bn == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-			memcpy(bn,
-			       priv.elements[i].data,
-			       priv.elements[i].length);
+			memmove(bn, priv.elements[i].data,
+				priv.elements[i].length);
 		}
 
 		switch (priv.elements[i].tag) {
