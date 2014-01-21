@@ -36,7 +36,7 @@
 #define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
 #endif
 #include <winsock2.h>
-#endif WIN32
+#endif	/* WIN32 */
 #include <dns/log.h>
 
 #ifdef HAVE_GEOIP
