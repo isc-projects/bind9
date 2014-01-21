@@ -2118,12 +2118,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	if (copy_suffix) {
 		if ((suffix->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
 			absolute = ISC_TRUE;
-		if (suffix == name && suffix->buffer == target)
-			memmove(ndata + prefix_length, suffix->ndata,
-				suffix->length);
-		else
-			memmove(ndata + prefix_length, suffix->ndata,
-				suffix->length);
+		memmove(ndata + prefix_length, suffix->ndata, suffix->length);
 	}
 
 	/*
