@@ -79,7 +79,7 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 		parseint.c portset.c quota.c radix.c random.c \
 		ratelimiter.c refcount.c region.c regex.c result.c rwlock.c \
 		safe.c serial.c sha1.c sha2.c sockaddr.c stats.c string.c \
-		strtoul.c symtab.c symtbl-empty.c task.c taskpool.c timer.c \
+		strtoul.c symtab.c task.c taskpool.c timer.c \
 		version.c
 
 LIBS =		@LIBS@
