@@ -1,3 +1,8 @@
+3715.	[bug]		The region and city databases could fail to
+			initialize when using some versions of libGeoIP,
+			causing assertion failures when named was
+			configured to use them. [RT #35427]
+
 3714.	[test]		System tests that need to test for cryptography
 			support before running can now use a common
 			"testcrypto.sh" script to do so. [RT #35213]

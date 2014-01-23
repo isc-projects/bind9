@@ -655,8 +655,11 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 		maxlen = 255;
  getcountry:
 		db = DB46(reqaddr, geoip, country);
-		INSIST(db != NULL);
+		if (db == NULL)
+			return (ISC_FALSE);
+
 		INSIST(elt->as_string != NULL);
+
 		cs = country_lookup(db, subtype, reqaddr->family,
 				    ipnum, ipnum6);
 		if (cs != NULL && strncasecmp(elt->as_string, cs, maxlen) == 0)
@@ -675,6 +678,9 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 		INSIST(elt->as_string != NULL);
 
 		db = DB46(reqaddr, geoip, city);
+		if (db == NULL)
+			return (ISC_FALSE);
+
 		record = city_lookup(db, subtype,
 				     reqaddr->family, ipnum, ipnum6);
 		if (record == NULL)
@@ -688,6 +694,9 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_city_metrocode:
 		db = DB46(reqaddr, geoip, city);
+		if (db == NULL)
+			return (ISC_FALSE);
+
 		record = city_lookup(db, subtype,
 				     reqaddr->family, ipnum, ipnum6);
 		if (record == NULL)
@@ -699,6 +708,9 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_city_areacode:
 		db = DB46(reqaddr, geoip, city);
+		if (db == NULL)
+			return (ISC_FALSE);
+
 		record = city_lookup(db, subtype,
 				     reqaddr->family, ipnum, ipnum6);
 		if (record == NULL)
@@ -711,7 +723,10 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 	case dns_geoip_region_countrycode:
 	case dns_geoip_region_code:
 	case dns_geoip_region_name:
-		INSIST(geoip->region != NULL);
+	case dns_geoip_region:
+		if (geoip->region == NULL)
+			return (ISC_FALSE);
+
 		INSIST(elt->as_string != NULL);
 
 		/* Region DB is not supported for IPv6 */
@@ -744,7 +759,9 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 		db = geoip->domain;
 
  getname:
-		INSIST(db != NULL);
+		if (db == NULL)
+			return (ISC_FALSE);
+
 		INSIST(elt->as_string != NULL);
 		/* ISP, Org, AS, and Domain are not supported for IPv6 */
 		if (reqaddr->family == AF_INET6)

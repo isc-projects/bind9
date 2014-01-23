@@ -45,7 +45,7 @@ static dns_geoip_databases_t geoip = {
 };
 
 static void
-init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition,
+init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
 	      GeoIPOptions method, const char *name)
 {
 	char *info;
@@ -61,18 +61,22 @@ init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition,
 	}
 
 	if (! GeoIP_db_avail(edition)) {
-		fprintf(stderr, "GeoIP %s DB not available\n", name);
-		return;
+		fprintf(stderr, "GeoIP %s (type %d) DB not available\n",
+			name, edition);
+		goto fail;
 	}
 
-	fprintf(stderr, "initializing GeoIP %s DB\n", name);
+	fprintf(stderr, "initializing GeoIP %s (type %d) DB\n",
+		name, edition);
 
 	db = GeoIP_open_type(edition, method);
 	if (db == NULL) {
-		fprintf(stderr, "failed to initialize GeoIP %s DB; "
-				"geoip matches using this database will fail\n",
-				name);
-		return;
+		fprintf(stderr,
+			"failed to initialize GeoIP %s (type %d) DB%s\n",
+			name, edition, fallback == 0
+		 	 ? "; geoip matches using this database will fail"
+			 : "");
+		goto fail;
 	}
 
 	info = GeoIP_database_info(db);
@@ -80,22 +84,16 @@ init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition,
 		fprintf(stderr, "%s\n", info);
 
 	*dbp = db;
-}
+	return;
 
-static GeoIPDBTypes
-choose_rev(GeoIPDBTypes primary, GeoIPDBTypes secondary, const char *name) {
-	if (GeoIP_db_avail(primary))
-		return (primary);
-	if (GeoIP_db_avail(secondary))
-		return (secondary);
-	fprintf(stderr, "GeoIP %s DB: neither revision available\n", name);
-	return (0);
+ fail:
+	if (fallback != 0)
+		init_geoip_db(dbp, fallback, 0, method, name);
 }
 
 static void
 load_geoip(const char *dir) {
 	GeoIPOptions method;
-	GeoIPDBTypes edition;
 
 #ifdef _WIN32
 	method = GEOIP_STANDARD;
@@ -109,38 +107,31 @@ load_geoip(const char *dir) {
 		GeoIP_setup_custom_directory(p);
 	}
 
-	init_geoip_db(&geoip.country_v4, GEOIP_COUNTRY_EDITION,
+	init_geoip_db(&geoip.country_v4, GEOIP_COUNTRY_EDITION, 0,
 		      method, "Country (IPv4)");
 #ifdef HAVE_GEOIP_V6
-	init_geoip_db(&geoip.country_v6, GEOIP_COUNTRY_EDITION_V6,
+	init_geoip_db(&geoip.country_v6, GEOIP_COUNTRY_EDITION_V6, 0,
 		      method, "Country (IPv6)");
 #endif
 
-	edition = choose_rev(GEOIP_CITY_EDITION_REV0,
-			     GEOIP_CITY_EDITION_REV1, "City (IPv4)");
-	if (edition != 0)
-		init_geoip_db(&geoip.city_v4, edition, method, "City (IPv4)");
+	init_geoip_db(&geoip.city_v4, GEOIP_CITY_EDITION_REV1,
+		      GEOIP_CITY_EDITION_REV0, method, "City (IPv4)");
 #if defined(HAVE_GEOIP_V6) && defined(HAVE_GEOIP_CITY_V6)
-	edition = choose_rev(GEOIP_CITY_EDITION_REV0_V6,
-			     GEOIP_CITY_EDITION_REV1_V6, "City (IPv6)");
-	if (edition != 0)
-		init_geoip_db(&geoip.city_v6, edition, method, "City (IPv6)");
+	init_geoip_db(&geoip.city_v6, GEOIP_CITY_EDITION_REV1_V6,
+		      GEOIP_CITY_EDITION_REV0_V6, method, "City (IPv6)");
 #endif
 
-	edition = choose_rev(GEOIP_REGION_EDITION_REV0,
-			     GEOIP_REGION_EDITION_REV1, "Region");
-	if (edition != 0)
-		init_geoip_db(&geoip.region, edition, method, "Region");
-
-	init_geoip_db(&geoip.isp, GEOIP_ISP_EDITION,
+	init_geoip_db(&geoip.region, GEOIP_REGION_EDITION_REV1,
+		      GEOIP_REGION_EDITION_REV0, method, "Region");
+	init_geoip_db(&geoip.isp, GEOIP_ISP_EDITION, 0,
 		      method, "ISP");
-	init_geoip_db(&geoip.org, GEOIP_ORG_EDITION,
+	init_geoip_db(&geoip.org, GEOIP_ORG_EDITION, 0,
 		      method, "Org");
-	init_geoip_db(&geoip.as, GEOIP_ASNUM_EDITION,
+	init_geoip_db(&geoip.as, GEOIP_ASNUM_EDITION, 0,
 		      method, "AS");
-	init_geoip_db(&geoip.domain, GEOIP_DOMAIN_EDITION,
+	init_geoip_db(&geoip.domain, GEOIP_DOMAIN_EDITION, 0,
 		      method, "Domain");
-	init_geoip_db(&geoip.netspeed, GEOIP_NETSPEED_EDITION,
+	init_geoip_db(&geoip.netspeed, GEOIP_NETSPEED_EDITION, 0,
 		      method, "NetSpeed");
 }
 
