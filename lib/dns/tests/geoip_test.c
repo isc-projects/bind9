@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -74,7 +74,7 @@ init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
 		fprintf(stderr,
 			"failed to initialize GeoIP %s (type %d) DB%s\n",
 			name, edition, fallback == 0
-		 	 ? "; geoip matches using this database will fail"
+			 ? "; geoip matches using this database will fail"
 			 : "");
 		goto fail;
 	}
