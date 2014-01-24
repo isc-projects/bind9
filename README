@@ -436,10 +436,11 @@ Bug Reports and Mailing Lists
 		bind-workers-request@isc.org
 
 
-Advertising Acknowledgment
+Acknowledgments
 
-This product includes software developed by the OpenSSL Project
-for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/).  This
-product includes cryptographic software written by Eric Young
-(eay@cryptsoft.com).  This product includes software written by
-Tim Hudson (tjh@cryptsoft.com).
+	- This product includes software developed by the OpenSSL Project
+	  for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/).
+	- This product includes cryptographic software written by Eric
+	  Young (eay@cryptsoft.com).
+	- This product includes software written by Tim Hudson
+	  (tjh@cryptsoft.com).
