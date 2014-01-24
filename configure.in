@@ -15,7 +15,7 @@
 
 dnl
 AC_DIVERT_PUSH(1)dnl
-esyscmd([sed "s/^/# /" COPYRIGHT])dnl
+esyscmd([sed -e 's/^/# /' -e '/Portions of this code/,$d' COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
 AC_REVISION($Revision: 1.512.8.15 $)
