@@ -48,7 +48,7 @@
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./bin/dig/nslookup.1				MAN	DOCBOOK
 ./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2011,2012,2013
-./bin/dig/nslookup.docbook			SGML	2004,2005,2006,2007,2010,2012,2013
+./bin/dig/nslookup.docbook			SGML	2004,2005,2006,2007,2010,2012,2013,2014
 ./bin/dig/nslookup.html				HTML	DOCBOOK
 ./bin/dig/win32/dig.dsp				X	2001,2002,2004,2005,2006
 ./bin/dig/win32/dig.dsw				X	2001
@@ -1345,7 +1345,7 @@
 ./contrib/idn/idnkit-1.0-src/wsock/wsock20/make.wnt	X	2003
 ./contrib/idn/idnkit-1.0-src/wsock/wsock20/ws2_32.def	X	2003
 ./contrib/linux/coredump-patch			X	2000,2001
-./contrib/named-bootconf/named-bootconf.sh	SH.PORTION	1999,2000,2001,2004,2006,2007,2012
+./contrib/named-bootconf/named-bootconf.sh	SH.PORTION	1999,2000,2001,2004,2006,2007,2012,2014
 ./contrib/nanny/nanny.pl			PERL	2000,2001,2004,2007,2012
 ./contrib/nslint-2.1a3/CHANGES			X	2001
 ./contrib/nslint-2.1a3/FILES			X	2001
@@ -1370,7 +1370,7 @@
 ./contrib/nslint-2.1a3/nslint.c			X	2001,2011,2012
 ./contrib/nslint-2.1a3/savestr.c		X	2001
 ./contrib/nslint-2.1a3/savestr.h		X	2001
-./contrib/nslint-2.1a3/strerror.c		X	2001
+./contrib/nslint-2.1a3/strerror.c		X	2001,2014
 ./contrib/pkcs11-keygen/PEM_write_pubkey.c	X	2008
 ./contrib/pkcs11-keygen/README			X	2008
 ./contrib/pkcs11-keygen/destroyobj.c		X	2008
@@ -1396,7 +1396,7 @@
 ./contrib/query-loc-0.4.0/install-sh		X	2008
 ./contrib/query-loc-0.4.0/loc.c			X	2008,2013
 ./contrib/query-loc-0.4.0/loc.h			X	2008
-./contrib/query-loc-0.4.0/loc_ntoa.c		X	2008
+./contrib/query-loc-0.4.0/loc_ntoa.c		X	2008,2014
 ./contrib/query-loc-0.4.0/query-loc.1		X	2008
 ./contrib/query-loc-0.4.0/query-loc.c		X	2008
 ./contrib/query-loc-0.4.0/reconf		X	2008
@@ -1793,7 +1793,7 @@
 ./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008,2012
 ./lib/dns/forward.c				C	2000,2001,2004,2005,2007,2012
 ./lib/dns/gen-unix.h				C	1999,2000,2001,2004,2005,2007,2009,2012
-./lib/dns/gen-win32.h				C	1999,2000,2001,2004,2005,2006,2007,2009,2012
+./lib/dns/gen-win32.h				C	1999,2000,2001,2004,2005,2006,2007,2009,2012,2014
 ./lib/dns/gen.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2012,2013
 ./lib/dns/gssapi_link.c				C	2000,2001,2002,2004,2005,2006,2007,2008,2011,2012,2014
 ./lib/dns/gssapictx.c				C	2000,2001,2004,2005,2006,2007,2008,2010,2011,2012,2013
@@ -2123,7 +2123,7 @@
 ./lib/isc/bitstring.c				C	1999,2000,2001,2004,2005,2007
 ./lib/isc/buffer.c				C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2012,2014
 ./lib/isc/bufferlist.c				C	1999,2000,2001,2004,2005,2007
-./lib/isc/commandline.c				C.PORTION	1999,2000,2001,2004,2005,2007,2008
+./lib/isc/commandline.c				C.PORTION	1999,2000,2001,2004,2005,2007,2008,2014
 ./lib/isc/entropy.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2012
 ./lib/isc/error.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005,2007
@@ -2213,7 +2213,7 @@
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012
 ./lib/isc/include/isc/version.h			C	2001,2004,2005,2006,2007
 ./lib/isc/include/isc/xml.h			C	2006,2007
-./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001,2004,2005,2007,2009,2012
+./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001,2004,2005,2007,2009,2012,2014
 ./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2009,2012
 ./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2007,2014
 ./lib/isc/iterated_hash.c			C	2006,2008,2009,2012
@@ -2283,7 +2283,7 @@
 ./lib/isc/sparc64/include/isc/atomic.h		C	2005,2007,2013
 ./lib/isc/stats.c				C	2009,2012,2014
 ./lib/isc/string.c				C	1999,2000,2001,2003,2004,2005,2006,2007,2011,2012,2014
-./lib/isc/strtoul.c				C	2003,2004,2005,2007
+./lib/isc/strtoul.c				C	2003,2004,2005,2007,2014
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2011,2012,2013
 ./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2010,2011,2012
 ./lib/isc/task_p.h				C	2000,2001,2004,2005,2007,2012
@@ -2470,7 +2470,7 @@
 ./lib/lwres/getipnode.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2012,2014
 ./lib/lwres/getnameinfo.c			C.PORTION	1999,2000,2001,2003,2004,2005,2007,2011,2012,2013
 ./lib/lwres/getrrset.c				C	2000,2001,2002,2003,2004,2005,2007,2012,2014
-./lib/lwres/herror.c				C.PORTION	2000,2001,2003,2004,2005,2007,2011,2012
+./lib/lwres/herror.c				C.PORTION	2000,2001,2003,2004,2005,2007,2011,2012,2014
 ./lib/lwres/include/Makefile.in			MAKE	2000,2001,2004,2007,2012
 ./lib/lwres/include/lwres/Makefile.in		MAKE	2000,2001,2004,2007,2012
 ./lib/lwres/include/lwres/context.h		C	2000,2001,2004,2005,2006,2007,2008,2012
@@ -2488,7 +2488,7 @@
 ./lib/lwres/include/lwres/version.h		C	2001,2004,2005,2006,2007
 ./lib/lwres/lwbuffer.c				C	2000,2001,2004,2005,2007,2014
 ./lib/lwres/lwconfig.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2014
-./lib/lwres/lwinetaton.c			C.PORTION	1996,1997,1998,1999,2000,2001,2003,2004,2005,2007,2012
+./lib/lwres/lwinetaton.c			C.PORTION	1996,1997,1998,1999,2000,2001,2003,2004,2005,2007,2012,2014
 ./lib/lwres/lwinetntop.c			C	1996,1997,1998,1999,2000,2001,2003,2004,2005,2007
 ./lib/lwres/lwinetpton.c			C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2011,2012,2014
 ./lib/lwres/lwpacket.c				C	2000,2001,2004,2005,2007
@@ -2552,7 +2552,7 @@
 ./lib/lwres/man/resolver.5			MAN	2000,2001,2004,2007
 ./lib/lwres/print.c				C	1999,2000,2001,2003,2004,2005,2007,2011,2012
 ./lib/lwres/print_p.h				C	1999,2000,2001,2003,2004,2007,2010,2012
-./lib/lwres/strtoul.c				C	2003,2004,2005,2007
+./lib/lwres/strtoul.c				C	2003,2004,2005,2007,2014
 ./lib/lwres/unix/Makefile.in			MAKE	2001,2004,2007,2012
 ./lib/lwres/unix/include/Makefile.in		MAKE	2001,2004,2007,2012
 ./lib/lwres/unix/include/lwres/Makefile.in	MAKE	2001,2004,2007,2012
@@ -2593,7 +2593,7 @@
 ./make/.gitignore				X	2012
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2012
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007,2012
-./make/mkdep.in					X	1999,2000,2001,2006,2011
+./make/mkdep.in					X	1999,2000,2001,2006,2011,2014
 ./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
 ./mkinstalldirs					X	1996,2012
 ./unit/.gitignore				X	2012
