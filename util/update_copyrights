@@ -354,6 +354,7 @@ foreach $file (keys %file_types) {
                         $/ = "";            # paragraph at a time
                         while (<SOURCE>) {
                                 # Not very maintainable, but ok enough for now.
+				last if /Portions of this code/;
                                 last unless
                                   /[Cc]opyright/ ||
                                   /See COPYRIGHT in the source root/ ||
