@@ -3588,7 +3588,7 @@
 ./util/tabify-changes				SH	2004,2007,2012
 ./util/update-drafts.pl				PERL	2000,2001,2004,2007,2012
 ./util/update_branches				PERL	2005,2007,2012
-./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2012,2013
+./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014
 ./util/xc					SH	2012,2013
 ./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./win32utils/Configure				PERL	2013,2014
