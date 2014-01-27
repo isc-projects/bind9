@@ -1,3 +1,5 @@
+	--- 9.6-ESV-R11 released ---
+
 	--- 9.6-ESV-R11rc2 released ---
 
 3710.	[bug]		Address double dns_zone_detach when switching to
