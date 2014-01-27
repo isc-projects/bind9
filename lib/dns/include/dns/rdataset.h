@@ -653,7 +653,7 @@ dns_rdataset_expire(dns_rdataset_t *rdataset);
 
 const char *
 dns_trust_totext(dns_trust_t trust);
-/*
+/*%<
  * Display trust in textual form.
  */
 
