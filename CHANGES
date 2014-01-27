@@ -1,3 +1,5 @@
+	--- 9.8.7 released ---
+
 	--- 9.8.7rc2 released ---
 
 3710.	[bug]		Address double dns_zone_detach when switching to
