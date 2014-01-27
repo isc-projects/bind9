@@ -1,3 +1,10 @@
+3717.	[port]		hpux: Treat EOPNOTSUPP as a expected error code when
+			probing to see if it is possible to set dscp values
+			on a per packet basis. [RT #35252]
+
+3716.	[bug]		The dns_request code was setting dcsp values when not
+			requested.  [RT #35252]
+
 3715.	[bug]		The region and city databases could fail to
 			initialize when using some versions of libGeoIP,
 			causing assertion failures when named was

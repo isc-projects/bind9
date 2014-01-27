@@ -497,8 +497,8 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	} control;
 	struct cmsghdr *cmsgp;
 	int dscp = 46;
-	struct iovec iovec = { (void *)&iovec, sizeof(iovec) };
-	char buf[sizeof(iovec)];
+	struct iovec iovec;
+	char buf[1] = { 0 };
 	isc_result_t result;
 
 	if (bind(s, res->ai_addr, res->ai_addrlen) < 0) {
@@ -516,6 +516,9 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 			      "getsockname: %s", strbuf);
 		return (ISC_FALSE);
 	}
+
+	iovec.iov_base = buf;
+	iovec.iov_len = sizeof(buf);
 
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_name = (struct sockaddr *)&ss;
@@ -553,6 +556,9 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 #ifdef ENOPROTOOPT
 		case ENOPROTOOPT:
 #endif
+#ifdef EOPNOTSUPP
+		case EOPNOTSUPP:
+#endif
 		case EINVAL:
 			break;
 		default:
@@ -582,7 +588,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	iovec.iov_base = buf;
-	iovec.iov_len = sizeof(len);
+	iovec.iov_len = sizeof(buf);
 
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_name = (struct sockaddr *)&ss;

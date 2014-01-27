@@ -665,7 +665,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      dns_request_t **requestp)
 {
 	return(dns_request_createraw4(requestmgr, msgbuf, srcaddr, destaddr,
-				      0, options, timeout, 0, 0, task, action,
+				      -1, options, timeout, 0, 0, task, action,
 				      arg, requestp));
 }
 
@@ -683,7 +683,7 @@ dns_request_createraw2(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		udpretries = timeout / udptimeout;
 
 	return (dns_request_createraw4(requestmgr, msgbuf, srcaddr, destaddr,
-				       0, options, timeout, udptimeout,
+				       -1, options, timeout, udptimeout,
 				       udpretries, task, action, arg,
 				       requestp));
 }
@@ -697,7 +697,7 @@ dns_request_createraw3(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		       dns_request_t **requestp)
 {
 	return (dns_request_createraw4(requestmgr, msgbuf, srcaddr, destaddr,
-				       0, options, timeout, udptimeout,
+				       -1, options, timeout, udptimeout,
 				       udpretries, task, action, arg,
 				       requestp));
 }
@@ -868,7 +868,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   dns_request_t **requestp)
 {
 	return (dns_request_createvia4(requestmgr, message, NULL, address,
-				       0, options, key, timeout, 0, 0, task,
+				       -1, options, key, timeout, 0, 0, task,
 				       action, arg, requestp));
 }
 
@@ -881,7 +881,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		      dns_request_t **requestp)
 {
 	return(dns_request_createvia4(requestmgr, message, srcaddr, destaddr,
-				      0, options, key, timeout, 0, 0, task,
+				      -1, options, key, timeout, 0, 0, task,
 				      action, arg, requestp));
 }
 
@@ -898,7 +898,7 @@ dns_request_createvia2(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	if (udptimeout != 0)
 		udpretries = timeout / udptimeout;
 	return (dns_request_createvia4(requestmgr, message, srcaddr, destaddr,
-				       0, options, key, timeout, udptimeout,
+				       -1, options, key, timeout, udptimeout,
 				       udpretries, task, action, arg,
 				       requestp));
 }
@@ -913,7 +913,7 @@ dns_request_createvia3(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		       dns_request_t **requestp)
 {
 	return (dns_request_createvia4(requestmgr, message, srcaddr, destaddr,
-				       0, options, key, timeout, udptimeout,
+				       -1, options, key, timeout, udptimeout,
 				       udpretries, task, action, arg,
 				       requestp));
 }
