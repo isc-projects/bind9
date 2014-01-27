@@ -674,7 +674,7 @@ dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 
 const char *
 dns_trust_totext(dns_trust_t trust);
-/*
+/*%<
  * Display trust in textual form.
  */
 
