@@ -1228,7 +1228,7 @@
 ./bin/tests/system/resolver/ans2/ans.pl		PERL	2000,2001,2004,2007,2009,2010,2012
 ./bin/tests/system/resolver/ans3/ans.pl		PERL	2000,2001,2004,2007,2009,2012
 ./bin/tests/system/resolver/clean.sh		SH	2008,2009,2010,2011,2012,2013
-./bin/tests/system/resolver/ns1/named.conf	CONF-C	2000,2001,2004,2007,2009
+./bin/tests/system/resolver/ns1/named.conf	CONF-C	2000,2001,2004,2007,2009,2014
 ./bin/tests/system/resolver/ns1/root.hint	ZONE	2000,2001,2004,2007
 ./bin/tests/system/resolver/ns4/broken.db	ZONE	2012
 ./bin/tests/system/resolver/ns4/child.server.db	ZONE	2011,2012
@@ -2446,7 +2446,7 @@
 ./lib/dns/opensslgost_link.c			C	2010,2011,2012,2014
 ./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2014
 ./lib/dns/order.c				C	2002,2004,2005,2007
-./lib/dns/peer.c				C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2012
+./lib/dns/peer.c				C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2012,2014
 ./lib/dns/portlist.c				C	2003,2004,2005,2006,2007,2014
 ./lib/dns/private.c				C	2009,2012
 ./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2011,2012,2014
