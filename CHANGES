@@ -1,3 +1,5 @@
+3718.	[bug]		A missing ISC_LINK_INIT in log.c. [RT #35260]
+
 	--- 9.8.7 released ---
 
 	--- 9.8.7rc2 released ---
