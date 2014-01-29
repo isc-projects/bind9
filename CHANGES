@@ -1,3 +1,5 @@
+3720.	[bug]		Address compiler warnings. [RT #35261]
+
 3719.	[bug]		Address memory leak in in peer.c. [RT #35255]
 
 3718.	[bug]		A missing ISC_LINK_INIT in log.c. [RT #35260]
