@@ -324,13 +324,26 @@ main(int argc, char **argv) {
 	 * XXXDCL NT
 	 */
 	fputc('\n', stderr);
-	system("head " TEST_FILE "*; rm -f " TEST_FILE "*");
+	if (system("head " TEST_FILE "*; rm -f " TEST_FILE "*") != 0) {
+		fprintf(stderr, "system(\"head " TEST_FILE "*; rm -f "
+			TEST_FILE "*\") failed\n");
+		goto cleanup;
+	}
 
-	freopen(syslog_file, "r", stdin);
+	/* This is highly system specific. */
+	if (freopen(syslog_file, "r", stdin) == NULL) {
+		fprintf(stderr, "freopen(%s, \"r\", stdin) failed\n",
+			syslog_file);
+		goto cleanup;
+	}
 	fprintf(stderr, "\n==> %s <==\n", syslog_file);
-	system("tail -2");
+	if (system("tail -2") != 0) {
+		fprintf(stderr, "system(\"tail -2\") failed\n");
+		goto cleanup;
+	}
 	fputc('\n', stderr);
 
+ cleanup:
 	isc_log_destroy(&lctx);
 
 	if (show_final_mem)
