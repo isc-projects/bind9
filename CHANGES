@@ -1,3 +1,5 @@
+3719.	[bug]		Address memory leak in in peer.c. [RT #35255]
+
 3718.	[bug]		A missing ISC_LINK_INIT in log.c. [RT #35260]
 
 3717.	[port]		hpux: Treat EOPNOTSUPP as a expected error code when
