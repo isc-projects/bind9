@@ -4937,7 +4937,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> deny-answer-addresses { <replaceable>address_match_list</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
     <optional> deny-answer-aliases { <replaceable>namelist</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
     <optional> rate-limit {
-	<optional> responses-per-second <replaceable>number</replaceable> ; </optional>
+	<optional> domain <replaceable>domain</replaceable> ; </optional>
+	<optional> responses-per-second <optional>size <replaceable>number</replaceable></optional> <optional>ratio <replaceable>fixedpoint</replaceable></optional> <replaceable>number</replaceable> ; </optional>
 	<optional> referrals-per-second <replaceable>number</replaceable> ; </optional>
 	<optional> nodata-per-second <replaceable>number</replaceable> ; </optional>
 	<optional> nxdomains-per-second <replaceable>number</replaceable> ; </optional>
@@ -9837,18 +9838,20 @@ example.com                 CNAME   rpz-tcp-only.
 	  <para>
 	    All non-empty responses for a valid domain name (qname)
 	    and record type (qtype) are identical and have a limit specified
-	    with <command>responses-per-second</command>
-	    (default 0 or no limit).
+	    by the base <command>responses-per-second</command> option
+	    (that is, <command>responses-per-second</command> with only a
+	    single argument and no additional modifiers).
+	    The default is 0, which indicates that there should be no limit.
 	    All empty (NODATA) responses for a valid domain,
 	    regardless of query type, are identical.
 	    Responses in the NODATA class are limited by
 	    <command>nodata-per-second</command>
-	    (default <command>responses-per-second</command>).
+	    (default base <command>responses-per-second</command>).
 	    Requests for any and all undefined subdomains of a given
 	    valid domain result in NXDOMAIN errors, and are identical
 	    regardless of query type.
 	    They are limited by <command>nxdomain-per-second</command>
-	    (default <command>responses-per-second</command>).
+	    (default base <command>responses-per-second</command>).
 	    This controls some attacks using random names, but
 	    can be relaxed or turned off (set to 0)
 	    on servers that expect many legitimate
@@ -9856,7 +9859,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    Referrals or delegations to the server of a given
 	    domain are identical and are limited by
 	    <command>referrals-per-second</command>
-	    (default <command>responses-per-second</command>).
+	    (default base <command>responses-per-second</command>).
 	  </para>
 
 	  <para>
@@ -9872,11 +9875,76 @@ example.com                 CNAME   rpz-tcp-only.
 	    This controls attacks using invalid requests or distant,
 	    broken authoritative servers.
 	    By default the limit on errors is the same as the
-	    <command>responses-per-second</command> value,
+	    default base <command>responses-per-second</command> value,
 	    but it can be set separately with
 	    <command>errors-per-second</command>.
 	  </para>
 
+	  <para>
+	    In addition to the base 
+	    <command>responses-per-second</command> value,
+	    up to four (4) additional
+	    <command>responses-per-second</command> options can be
+	    configured, with additional parameters to indicate that
+	    they apply to responses larger than a given size,
+	    or with an amplification factor larger than a given
+	    value.
+	    The <command>size</command> parameter sets the minimum
+	    DNS response size that will trigger the use of this 
+	    <command>responses-per-second</command> option.
+	    The <command>ratio</command> parameter sets the minimum
+	    DNS response-size / request-size ratio that falls into the
+	    band, to two decimal places.
+	    These selective rate limits are applied after any other
+	    rate limits have been applied, and they only apply to
+	    positive answers. For example:
+	  </para>
+<programlisting>
+rate-limit {
+  responses-per-second 10;
+  responses-per-second size 1100 5;
+};
+</programlisting>
+	  <para>
+	    ...indicates that responses should be limited to ten per second
+	    for responses up to 1099 bytes in size, but only five per second
+	    for responses larger than that. This configuration:
+	  </para>
+<programlisting>
+rate-limit {
+  responses-per-second 10;
+  responses-per-second ratio 7.25 5;
+  responses-per-second ratio 15.00 2;
+};
+</programlisting>
+	  <para>
+	    ...indicates that responses should be limited to ten per
+	    second if the amplification factor is below 7.25, five per
+	    second if above 7.25 but below 15, and two per second if
+	    above 15.
+	  </para>
+	  <para>
+	    Both sizes and ratios can be used together. For example:
+	  </para>
+<programlisting>
+rate-limit {
+  responses-per-second 10;
+  responses-per-second size 1000 ratio 5.00 5;
+  responses-per-second ratio 10.00 2;
+};
+</programlisting>
+	  <para>
+	    This configuration will rate-limit to five per second if
+	    the ratio is over 5 <emphasis>or</emphasis> the size is over
+	    1000, and to two per second if the ratio is over 10. In the
+	    event that two bands might be chosen (i.e., because the size
+	    is over 1000 <emphasis>and</emphasis> the ratio is over 10),
+	    the one that appears last in the configuration file is the
+	    one chosen.  To eliminate any ambiguity, it is recommended
+	    that under normal circumstnaces, rate limiting bands should
+	    be configured using either <command>size</command> or
+	    <command>ratio</command> parameters, but not both.
+	  </para>
 	  <para>
 	    Many attacks using DNS involve UDP requests with forged source
 	    addresses.
@@ -9936,6 +10004,33 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 
 	  <para>
+            The optional <command>domain</command> clause specifies
+            the namespace to which rate limits will apply.  It
+            is possible to use different rate limits for different names
+            by specifying multiple <command>rate-limit</command> blocks
+            with different <command>domain</command> clauses.
+            The <command>rate-limit</command> statement's
+            <command>domain</command> most closely matches the query
+	    name will be the one applied to a given query.
+	  </para>
+
+	  <para>
+	    Rate limiters for different name spaces maintain
+	    separate counters: If, for example, there is a
+	    <command>rate-limit</command> statement for "com" and
+	    another for "example.com", queries matching "example.com"
+	    will not be debited against the rate limiter for "com".
+	  </para>
+
+	  <para>
+	    If a <command>rate-limit</command> statement does not specify a
+	    <command>domain</command>, then it applies to the root domain
+	    (".") and thus affects the entire DNS namespace, except those
+	    portions covered by other <command>rate-limit</command>
+	    statements.
+	  </para>
+
+	  <para>
 	    Communities of DNS clients can be given their own parameters or no
 	    rate limiting by putting
 	    <command>rate-limit</command> statements in <command>view</command>
@@ -9950,39 +10045,36 @@ example.com                 CNAME   rpz-tcp-only.
 
 	  <para>
 	    UDP responses of all kinds can be limited with the
-	    <command>all-per-second</command> phrase.
-	    This rate limiting is unlike the rate limiting provided by
+	    <command>all-per-second</command> phrase.  This rate
+	    limiting is unlike the rate limiting provided by
 	    <command>responses-per-second</command>,
 	    <command>errors-per-second</command>, and
 	    <command>nxdomains-per-second</command> on a DNS server
-	    which are often invisible to the victim of a DNS reflection attack.
-	    Unless the forged requests of the attack are the same as the
-	    legitimate requests of the victim, the victim's requests are
-	    not affected.
-	    Responses affected by an <command>all-per-second</command> limit
-	    are always dropped; the <command>slip</command> value has no
-	    effect.
-	    An <command>all-per-second</command> limit should be
-	    at least 4 times as large as the other limits,
-	    because single DNS clients often send bursts of legitimate
-	    requests.
-	    For example, the receipt of a single mail message can prompt
-	    requests from an SMTP server for NS, PTR, A, and AAAA records
-	    as the incoming SMTP/TCP/IP connection is considered.
-	    The SMTP server can need additional NS, A, AAAA, MX, TXT, and SPF
-	    records as it considers the STMP <command>Mail From</command>
-	    command.
-	    Web browsers often repeatedly resolve the same names that
-	    are repeated in HTML &lt;IMG&gt; tags in a page.
-	    <command>All-per-second</command> is similar to the
-	    rate limiting offered by firewalls but often inferior.
-	    Attacks that justify ignoring the
-	    contents of DNS responses are likely to be attacks on the
-	    DNS server itself.
-	    They usually should be discarded before the DNS server
-	    spends resources making TCP connections or parsing DNS requests,
-	    but that rate limiting must be done before the
-	    DNS server sees the requests.
+	    which are often invisible to the victim of a DNS
+	    reflection attack.  Unless the forged requests of the
+	    attack are the same as the legitimate requests of the
+	    victim, the victim's requests are not affected.  Responses
+	    affected by an <command>all-per-second</command> limit
+	    are always dropped; the <command>slip</command> value
+	    has no effect.  An <command>all-per-second</command>
+	    limit should be at least 4 times as large as the other
+	    limits, because single DNS clients often send bursts
+	    of legitimate requests.  For example, the receipt of a
+	    single mail message can prompt requests from an SMTP
+	    server for NS, PTR, A, and AAAA records as the incoming
+	    SMTP/TCP/IP connection is considered.  The SMTP server
+	    can need additional NS, A, AAAA, MX, TXT, and SPF records
+	    as it considers the STMP <command>Mail From</command>
+	    command.  Web browsers often repeatedly resolve the
+	    same names that are repeated in HTML &lt;IMG&gt; tags
+	    in a page.  <command>All-per-second</command> is similar
+	    to the rate limiting offered by firewalls but often
+	    inferior.  Attacks that justify ignoring the contents
+	    of DNS responses are likely to be attacks on the DNS
+	    server itself.  They usually should be discarded before
+	    the DNS server spends resources make TCP connections
+	    or parsing DNS requests, but that rate limiting must
+	    be done before the DNS server sees the requests.
 	  </para>
 
 	  <para>
