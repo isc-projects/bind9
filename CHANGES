@@ -1,3 +1,6 @@
+3721.	[doc]		Improved doucmentation of the EDNS processing
+			enhancements introduced in change #3593. [RT #35275]
+
 3720.	[bug]		Address compiler warnings. [RT #35261]
 
 3719.	[bug]		Address memory leak in in peer.c. [RT #35255]
