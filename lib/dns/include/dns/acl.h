@@ -230,6 +230,10 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
  * and 'matchelt' is non-NULL, *matchelt will be pointed to the matching
  * element.
  *
+ * 'env' points to the current ACL environment, including the
+ * current values of localhost and localnets and (if applicable)
+ * the GeoIP context.
+ *
  * Returns:
  *\li	#ISC_R_SUCCESS		Always succeeds.
  */

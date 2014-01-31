@@ -249,8 +249,9 @@ country_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 
 	if (prev_state != NULL &&
 	    prev_state->subtype == subtype &&
+	    prev_state->family == family &&
 	    ((prev_state->family == AF_INET && prev_state->ipnum == ipnum) ||
-	     (prev_state->family == AF_INET6 &&
+	     (prev_state->family == AF_INET6 && ipnum6 != NULL &&
 	      memcmp(prev_state->ipnum6.s6_addr, ipnum6->s6_addr, 16) == 0)))
 		text = prev_state->text;
 

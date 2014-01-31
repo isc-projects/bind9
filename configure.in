@@ -605,7 +605,7 @@ AC_ARG_WITH(geoip,
 
 if test "$use_geoip" = "yes"
 then
-	for d in /usr /usr/local
+	for d in /usr /usr/local /opt/local
 	do
 		if test -f $d/include/GeoIP.h
 		then
