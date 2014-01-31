@@ -153,6 +153,7 @@
 
 #include <errno.h>
 #include <string.h>
+#include <stdint.h>
 
 #include <lwres/net.h>
 #include <lwres/netdb.h>
