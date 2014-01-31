@@ -1380,6 +1380,7 @@
 ./bin/tests/system/resolver/ns6/named.conf	CONF-C	2010,2012
 ./bin/tests/system/resolver/ns6/root.db		ZONE	2010,2011
 ./bin/tests/system/resolver/ns6/to-be-removed.tld.db.in	ZONE	2012
+./bin/tests/system/resolver/ns7/.gitignore	X	2014
 ./bin/tests/system/resolver/ns7/named.args	X	2011,2012
 ./bin/tests/system/resolver/ns7/named1.conf	CONF-C	2010,2011,2013
 ./bin/tests/system/resolver/ns7/named2.conf	CONF-C	2013
