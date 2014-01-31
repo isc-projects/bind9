@@ -6,7 +6,7 @@
 3722.	[bug]		Using geoip ACLs in a blackhole statement 
 			could cause a segfault. [RT #35272]
 
-3721.	[doc]		Improved doucmentation of the EDNS processing
+3721.	[doc]		Improved documentation of the EDNS processing
 			enhancements introduced in change #3593. [RT #35275]
 
 3720.	[bug]		Address compiler warnings. [RT #35261]
