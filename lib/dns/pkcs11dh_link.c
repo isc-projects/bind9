@@ -925,6 +925,9 @@ pkcs11dh_tofile(const dst_key_t *key, const char *directory) {
 	if (key->keydata.pkey == NULL)
 		return (DST_R_NULLKEY);
 
+	if (key->external)
+		return (DST_R_EXTERNALKEY);
+
 	dh = key->keydata.pkey;
 
 	for (attr = pk11_attribute_first(dh);
@@ -1012,6 +1015,9 @@ pkcs11dh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	ret = dst__privstruct_parse(key, DST_ALG_DH, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
+
+	if (key->external)
+		DST_RET(DST_R_EXTERNALKEY);
 
 	dh = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*dh));
 	if (dh == NULL)

@@ -452,69 +452,70 @@ opensslgost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	BIGNUM *privkey = NULL;
 	const unsigned char *p;
 
-	UNUSED(pub);
-
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_ECCGOST, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
 	if (key->external) {
-		INSIST(priv.nelements == 0);
+		if (priv.nelements != 0)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		if (pub == NULL)
 			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		key->keydata.pkey = pub->keydata.pkey;
 		pub->keydata.pkey = NULL;
-	} else {
-		INSIST((priv.elements[0].tag == TAG_GOST_PRIVASN1) ||
-		       (priv.elements[0].tag == TAG_GOST_PRIVRAW));
-
-		if (priv.elements[0].tag == TAG_GOST_PRIVASN1) {
-			p = priv.elements[0].data;
-			if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
-				    (long) priv.elements[0].length) == NULL)
-				DST_RET(dst__openssl_toresult2(
-					    "d2i_PrivateKey",
-					    DST_R_INVALIDPRIVATEKEY));
-		} else {
-			if ((pub != NULL) && (pub->keydata.pkey != NULL)) {
-				eckey = EVP_PKEY_get0(pub->keydata.pkey);
-				pubkey = EC_KEY_get0_public_key(eckey);
-			}
-
-			privkey = BN_bin2bn(priv.elements[0].data,
-					    priv.elements[0].length, NULL);
-			if (privkey == NULL)
-				DST_RET(ISC_R_NOMEMORY);
-
-			/* can't create directly the whole key */
-			p = gost_dummy_key;
-			if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
-				    (long) sizeof(gost_dummy_key)) == NULL)
-				DST_RET(dst__openssl_toresult2(
-					    "d2i_PrivateKey",
-					    DST_R_INVALIDPRIVATEKEY));
-
-			eckey = EVP_PKEY_get0(pkey);
-			if (eckey == NULL)
-				return (dst__openssl_toresult(
-					    DST_R_OPENSSLFAILURE));
-			if (!EC_KEY_set_private_key(eckey, privkey))
-				DST_RET(ISC_R_NOMEMORY);
-
-			/* have to (re)set the public key */
-#ifdef notyet
-			(void) gost2001_compute_public(eckey);
-#else
-			if ((pubkey != NULL) &&
-			    !EC_KEY_set_public_key(eckey, pubkey))
-				DST_RET(ISC_R_NOMEMORY);
-#endif
-			BN_clear_free(privkey);
-			privkey = NULL;
-		}
-		key->keydata.pkey = pkey;
+		key->key_size = pub->key_size;
+		dst__privstruct_free(&priv, mctx);
+		memset(&priv, 0, sizeof(priv));
+		return (ISC_R_SUCCESS);
 	}
+
+	INSIST((priv.elements[0].tag == TAG_GOST_PRIVASN1) ||
+	       (priv.elements[0].tag == TAG_GOST_PRIVRAW));
+
+	if (priv.elements[0].tag == TAG_GOST_PRIVASN1) {
+		p = priv.elements[0].data;
+		if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
+				   (long) priv.elements[0].length) == NULL)
+			DST_RET(dst__openssl_toresult2(
+					    "d2i_PrivateKey",
+					    DST_R_INVALIDPRIVATEKEY));
+	} else {
+		if ((pub != NULL) && (pub->keydata.pkey != NULL)) {
+			eckey = EVP_PKEY_get0(pub->keydata.pkey);
+			pubkey = EC_KEY_get0_public_key(eckey);
+		}
+
+		privkey = BN_bin2bn(priv.elements[0].data,
+				    priv.elements[0].length, NULL);
+		if (privkey == NULL)
+			DST_RET(ISC_R_NOMEMORY);
+
+		/* can't create directly the whole key */
+		p = gost_dummy_key;
+		if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
+				   (long) sizeof(gost_dummy_key)) == NULL)
+			DST_RET(dst__openssl_toresult2(
+					    "d2i_PrivateKey",
+					    DST_R_INVALIDPRIVATEKEY));
+
+		eckey = EVP_PKEY_get0(pkey);
+		if (eckey == NULL)
+			return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		if (!EC_KEY_set_private_key(eckey, privkey))
+			DST_RET(ISC_R_NOMEMORY);
+
+		/* have to (re)set the public key */
+#ifdef notyet
+		(void) gost2001_compute_public(eckey);
+#else
+		if ((pubkey != NULL) && !EC_KEY_set_public_key(eckey, pubkey))
+			DST_RET(ISC_R_NOMEMORY);
+#endif
+		BN_clear_free(privkey);
+		privkey = NULL;
+	}
+	key->keydata.pkey = pkey;
 	key->key_size = EVP_PKEY_bits(pkey);
 	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));

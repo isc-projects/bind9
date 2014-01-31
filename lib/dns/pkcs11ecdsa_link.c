@@ -918,15 +918,28 @@ pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
-	REQUIRE((pub != NULL) && (pub->keydata.pkey != NULL));
+
+	if ((pub == NULL) || (pub->keydata.pkey == NULL))
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_ECDSA256, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	if (key->external && priv.nelements != 0)
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	if (key->external) {
+		if (priv.nelements != 0)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+
+		key->keydata.pkey = pub->keydata.pkey;
+		pub->keydata.pkey = NULL;
+		key->key_size = pub->key_size;
+
+		dst__privstruct_free(&priv, mctx);
+		memset(&priv, 0, sizeof(priv));
+
+		return (ISC_R_SUCCESS);
+	}
 
 	for (i = 0; i < priv.nelements; i++) {
 		switch (priv.elements[i].tag) {

@@ -744,7 +744,7 @@ pkcs11gost_tofile(const dst_key_t *key, const char *directory) {
 		priv.elements[i].length =
 			(unsigned short) attr->ulValueLen + 39;
 		memmove(buf, gost_private_der, 39);
-		memmove(buf +39, attr->pValue, attr->ulValueLen);
+		memmove(buf + 39, attr->pValue, attr->ulValueLen);
 		adj = (int) attr->ulValueLen - 32;
 		if (adj != 0) {
 			buf[1] += adj;
@@ -818,15 +818,27 @@ pkcs11gost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	CK_ATTRIBUTE *attr, *pattr;
 	isc_mem_t *mctx = key->mctx;
 
-	REQUIRE((pub != NULL) && (pub->keydata.pkey != NULL));
+	if ((pub == NULL) || (pub->keydata.pkey == NULL))
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_ECDSA256, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	if (key->external && priv.nelements != 0)
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	if (key->external) {
+		if (priv.nelements != 0)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+
+		key->keydata.pkey = pub->keydata.pkey;
+		pub->keydata.pkey = NULL;
+		key->key_size = pub->key_size;
+
+		dst__privstruct_free(&priv, mctx);
+		memset(&priv, 0, sizeof(priv));
+
+		return (ISC_R_SUCCESS);
+	}
 
 	if (priv.elements[0].tag == TAG_GOST_PRIVASN1) {
 		int adj = (int) priv.elements[0].length - (39 + 32);

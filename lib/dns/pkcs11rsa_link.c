@@ -1234,8 +1234,21 @@ pkcs11rsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	if (key->external && priv.nelements != 0)
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	if (key->external) {
+		if (priv.nelements != 0)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+		if (pub == NULL)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+
+		key->keydata.pkey = pub->keydata.pkey;
+		pub->keydata.pkey = NULL;
+		key->key_size = pub->key_size;
+
+		dst__privstruct_free(&priv, mctx);
+		memset(&priv, 0, sizeof(priv));
+
+		return (ISC_R_SUCCESS);
+	}
 
 	for (i = 0; i < priv.nelements; i++) {
 		switch (priv.elements[i].tag) {
@@ -1362,8 +1375,7 @@ pkcs11rsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	attr = pk11_attribute_bytype(rsa, CKA_PUBLIC_EXPONENT);
 	INSIST(attr != NULL);
-	if (!key->external &&
-	    pk11_numbits(attr->pValue, attr->ulValueLen) > RSA_MAX_PUBEXP_BITS)
+	if (pk11_numbits(attr->pValue, attr->ulValueLen) > RSA_MAX_PUBEXP_BITS)
 		DST_RET(ISC_R_RANGE);
 
 	dst__privstruct_free(&priv, mctx);

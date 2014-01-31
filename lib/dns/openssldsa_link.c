@@ -578,6 +578,19 @@ openssldsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
+	if (key->external) {
+		if (priv.nelements != 0)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+		if (pub == NULL)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+		key->keydata.pkey = pub->keydata.pkey;
+		pub->keydata.pkey = NULL;
+		key->key_size = pub->key_size;
+		dst__privstruct_free(&priv, mctx);
+		memset(&priv, 0, sizeof(priv));
+		return (ISC_R_SUCCESS);
+	}
+
 	dsa = DSA_new();
 	if (dsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
@@ -610,22 +623,8 @@ openssldsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		}
 	}
 	dst__privstruct_free(&priv, mctx);
-
-	if (key->external) {
-		if (pub == NULL)
-			DST_RET(DST_R_INVALIDPRIVATEKEY);
-		dsa->q = pub->keydata.dsa->q;
-		pub->keydata.dsa->q = NULL;
-		dsa->p = pub->keydata.dsa->p;
-		pub->keydata.dsa->p = NULL;
-		dsa->g = pub->keydata.dsa->g;
-		pub->keydata.dsa->g =  NULL;
-		dsa->pub_key = pub->keydata.dsa->pub_key;
-		pub->keydata.dsa->pub_key = NULL;
-	}
-
+	memset(&priv, 0, sizeof(priv));
 	key->key_size = BN_num_bits(dsa->p);
-
 	return (ISC_R_SUCCESS);
 
  err:

@@ -968,14 +968,26 @@ pkcs11dsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	CK_ATTRIBUTE *attr;
 	isc_mem_t *mctx = key->mctx;
 
-	UNUSED(pub);
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_DSA, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	if (key->external && priv.nelements != 0)
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	if (key->external) {
+		if (priv.nelements != 0)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+		if (pub == NULL)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
+
+		key->keydata.pkey = pub->keydata.pkey;
+		pub->keydata.pkey = NULL;
+		key->key_size = pub->key_size;
+
+		dst__privstruct_free(&priv, mctx);
+		memset(&priv, 0, sizeof(priv));
+
+		return (ISC_R_SUCCESS);
+	}
 
 	dsa = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*dsa));
 	if (dsa == NULL)

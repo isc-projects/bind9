@@ -1,3 +1,6 @@
+3723.	[cleanup]	Imported keys are now handled the same way
+			regardless of DNSSEC algorithm. [RT #35215]
+
 3722.	[bug]		Using geoip ACLs in a blackhole statement 
 			could cause a segfault. [RT #35272]
 
