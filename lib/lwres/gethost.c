@@ -153,7 +153,9 @@
 
 #include <errno.h>
 #include <string.h>
-#include <stdint.h>
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h> /* uintptr_t */
+#endif
 
 #include <lwres/net.h>
 #include <lwres/netdb.h>
