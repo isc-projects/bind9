@@ -76,7 +76,7 @@ BIND 9.10.0
 	   using the MaxMind GeoIP databases.
 	 - Zone data can now be shared between views, allowing
 	   multiple views to serve the same zones authoritatively
-	   witout storing multiple copies in memory.
+	   without storing multiple copies in memory.
 	 - New XML schema (version 3) for the statistics channel
 	   includes many new statistics and uses a flattened XML tree
 	   for faster parsing.
@@ -296,7 +296,7 @@ Building
 	If these are installed at a nonstandard prefix, use
 	"--with-libxml2=/prefix" or "--with-libjson=/prefix".
 
-	On some platforms it is necessary to explictly request large
+	On some platforms it is necessary to explicitly request large
 	file support to handle files bigger than 2GB.  This can be
 	done by "--enable-largefile" on the configure command line.
 
@@ -401,7 +401,7 @@ Change Log
 			  server addresses and keys
 
 	   [tuning]       Changes to built-in configuration defaults
-			  and constants to improve performanceo
+			  and constants to improve performance
 
 	   [protocol]     Updates to the DNS protocol such as new
 			  RR types
