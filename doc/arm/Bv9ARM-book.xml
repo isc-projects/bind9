@@ -8598,7 +8598,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  bytes, to control the size of packets received from
 		  authoritative servers in response to recursive queries.
 		  Valid values are 512 to 4096 (values outside this range
-		  will be silently adjusted).  The default value is 4096.
+		  will be silently adjusted to the nearest value within
+		  it).  The default value is 4096.
 		</para>
 		<para>
 		  The usual reason for setting
@@ -8620,7 +8621,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  successes using plain DNS, <command>named</command>
 		  will default to plain DNS for future communications
 		  with that server.  (Periodically, <command>named</command>
-		  will an EDNS query to see if the situation has improved.)
+		  will send an EDNS query to see if the situation has
+		  improved.)
 		</para>
 		<para>
 		  However, if the initial query is successful with
@@ -8635,8 +8637,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  are 512, 1232, 1432, and 4096, but never exceeding
 		  <command>edns-udp-size</command>.  (The values 1232 and
 		  1432 are chosen to allow for an IPv4/IPv6 encapsulated
-		  UDP message to be sent without fragmentation at Ethernet
-		  and IPv6 network mimimum MTU sizes.)
+		  UDP message to be sent without fragmentation at the
+		  minimum MTU sizes for Ethernet and IPv6 networks.)
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8648,8 +8650,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  Sets the maximum EDNS UDP message size
 		  <command>named</command> will send in bytes.
 		  Valid values are 512 to 4096 (values outside this
-		  range will be silently adjusted).  The default
-		  value is 4096.
+		  range will be silently adjusted to the nearest
+		  value within it).  The default value is 4096.
 		</para>
 		<para>
 		  This value applies to responses sent by a server; to
@@ -10004,13 +10006,13 @@ rate-limit {
 	  </para>
 
 	  <para>
-            The optional <command>domain</command> clause specifies
-            the namespace to which rate limits will apply.  It
-            is possible to use different rate limits for different names
-            by specifying multiple <command>rate-limit</command> blocks
-            with different <command>domain</command> clauses.
-            The <command>rate-limit</command> statement's
-            <command>domain</command> most closely matches the query
+	    The optional <command>domain</command> clause specifies
+	    the namespace to which rate limits will apply.  It
+	    is possible to use different rate limits for different names
+	    by specifying multiple <command>rate-limit</command> blocks
+	    with different <command>domain</command> clauses.
+	    The <command>rate-limit</command> statement's
+	    <command>domain</command> most closely matches the query
 	    name will be the one applied to a given query.
 	  </para>
 
@@ -10225,7 +10227,8 @@ rate-limit {
 	    The <command>edns-udp-size</command> option sets the EDNS UDP size
 	    that is advertised by <command>named</command> when querying the remote server.
 	    Valid values are 512 to 4096 bytes (values outside this range will be
-	    silently adjusted).  This option is useful when you wish to
+	    silently adjusted to the nearest value within it).  This option is
+	    useful when you wish to
 	    advertises a different value to this server than the value you
 	    advertise globally, for example, when there is a firewall at the
 	    remote site that is blocking large replies.
