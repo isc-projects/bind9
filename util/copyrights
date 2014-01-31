@@ -1243,7 +1243,7 @@
 ./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013
 ./bin/tests/system/geoip/.gitignore		X	2013
 ./bin/tests/system/geoip/Makefile.in		MAKE	2013
-./bin/tests/system/geoip/clean.sh		SH	2013
+./bin/tests/system/geoip/clean.sh		SH	2013,2014
 ./bin/tests/system/geoip/data/GeoIP.csv		X	2013
 ./bin/tests/system/geoip/data/GeoIP.dat		X	2013
 ./bin/tests/system/geoip/data/GeoIPASNum.csv	X	2013
@@ -1272,6 +1272,7 @@
 ./bin/tests/system/geoip/ns2/named1.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named10.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named11.conf	CONF-C	2013
+./bin/tests/system/geoip/ns2/named12.conf	CONF-C	2014
 ./bin/tests/system/geoip/ns2/named2.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named3.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named4.conf	CONF-C	2013
@@ -1282,7 +1283,7 @@
 ./bin/tests/system/geoip/ns2/named9.conf	CONF-C	2013
 ./bin/tests/system/geoip/prereq.sh		SH	2013
 ./bin/tests/system/geoip/setup.sh		SH	2013
-./bin/tests/system/geoip/tests.sh		SH	2013
+./bin/tests/system/geoip/tests.sh		SH	2013,2014
 ./bin/tests/system/glue/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/glue/fi.good			X	2000,2001
 ./bin/tests/system/glue/noglue.good		X	2000,2001
@@ -2699,7 +2700,7 @@
 ./lib/Atffile					X	2011
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007,2012,2013,2014
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2009,2012
-./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012,2013
+./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012,2013,2014
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004,2007,2012
@@ -2723,7 +2724,7 @@
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008,2012,2013
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2013,2014
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013
+./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007,2009,2013
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007,2011,2012
@@ -2747,7 +2748,7 @@
 ./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2012,2014
 ./lib/dns/dst_pkcs11.h				C	2014
-./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008,2012,2013
+./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008,2012,2013,2014
 ./lib/dns/ecdb.c				C	2009,2010,2011,2012,2013
 ./lib/dns/forward.c				C	2000,2001,2004,2005,2007,2009,2013
 ./lib/dns/gen-unix.h				C	1999,2000,2001,2004,2005,2007,2009
@@ -2760,7 +2761,7 @@
 ./lib/dns/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012
 ./lib/dns/include/dns/Makefile.in		MAKE	1998,1999,2000,2001,2002,2003,2004,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/include/dns/acache.h			C	2004,2006,2007,2013
-./lib/dns/include/dns/acl.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2011,2013
+./lib/dns/include/dns/acl.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2011,2013,2014
 ./lib/dns/include/dns/adb.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2013
 ./lib/dns/include/dns/bit.h			C	2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/byaddr.h			C	2000,2001,2002,2003,2004,2005,2006,2007
@@ -2850,7 +2851,7 @@
 ./lib/dns/include/dst/dst.h			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/include/dst/gssapi.h			C	2000,2001,2004,2005,2006,2007,2009,2010,2011,2013
 ./lib/dns/include/dst/lib.h			C	1999,2000,2001,2004,2005,2006,2007
-./lib/dns/include/dst/result.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2012
+./lib/dns/include/dst/result.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2012,2014
 ./lib/dns/iptable.c				C	2007,2008,2009,2013
 ./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2010,2011,2013,2014
 ./lib/dns/key.c					C	2001,2004,2005,2006,2007,2011
@@ -3128,7 +3129,7 @@
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2013
 ./lib/irs/Makefile.in				MAKE	2009,2012,2014
-./lib/irs/api					X	2009,2010,2011,2012,2013
+./lib/irs/api					X	2009,2010,2011,2012,2013,2014
 ./lib/irs/context.c				C	2009
 ./lib/irs/dnsconf.c				C	2009,2012
 ./lib/irs/gai_strerror.c			C	2009
@@ -3151,7 +3152,7 @@
 ./lib/isc/alpha/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007,2009
-./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013
+./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014
 ./lib/isc/app_api.c				C	2009,2013
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007,2008,2009
 ./lib/isc/backtrace-emptytbl.c			C	2009
@@ -3472,7 +3473,7 @@
 ./lib/isc/x86_64/include/isc/atomic.h		C	2005,2007,2008
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2009,2011,2012
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/api					X	2001,2006,2008,2009,2010,2011,2012,2013
+./lib/isccc/api					X	2001,2006,2008,2009,2010,2011,2012,2013,2014
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007,2013
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007,2012,2013
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005,2007
@@ -3507,7 +3508,7 @@
 ./lib/isccc/win32/version.c			C	2001,2004,2007
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009,2011,2012,2013
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012,2013
+./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012,2013,2014
 ./lib/isccfg/dnsconf.c				C	2009
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004,2007,2012
 ./lib/isccfg/include/isccfg/Makefile.in		MAKE	2001,2002,2004,2005,2007,2012
@@ -3562,7 +3563,7 @@
 ./lib/iscpk11/win32/pk11_api.c			C	2014
 ./lib/iscpk11/win32/version.c			C	2014
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007,2012
-./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011,2012,2013
+./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011,2012,2013,2014
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007,2011,2012
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008,2009,2012,2013,2014
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007,2008
@@ -4061,7 +4062,7 @@
 ./util/update_branches				PERL	2005,2007,2012
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014
 ./util/xc					SH	2012,2013
-./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./win32utils/Configure				PERL	2013,2014
 ./win32utils/GeoIP.diff				X	2013
 ./win32utils/bind9.sln.in			X	2013,2014
@@ -4073,4 +4074,4 @@
 ./win32utils/legacy/BuildSetup.bat.in		BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014
 ./win32utils/legacy/makedefs.pl			PERL	2001,2004,2007,2009,2012,2013
 ./win32utils/legacy/win32-build.txt		TXT.BRIEF	2001,2002,2004,2005,2008,2009,2012,2013
-./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007,2008,2009,2012,2013
+./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007,2008,2009,2012,2013,2014
