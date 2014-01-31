@@ -823,7 +823,6 @@ t_dns_name_fullcompare(void) {
 	if (fp != NULL) {
 		line = 0;
 		while ((p = t_fgetbs(fp)) != NULL) {
-
 			++line;
 
 			/*
@@ -851,8 +850,8 @@ t_dns_name_fullcompare(void) {
 				else if (!strcmp(Tokens[2], "commonancestor"))
 					reln = dns_namereln_commonancestor;
 				else {
-					t_info("bad format at line %d\n",
-					       line);
+					t_info("bad format at line %d\n", line);
+					(void)free(p);
 					continue;
 				}
 				result = test_dns_name_fullcompare(
