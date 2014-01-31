@@ -408,6 +408,8 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 
 #ifdef HAVE_GEOIP
 	case dns_aclelementtype_geoip:
+		if (env == NULL || env->geoip == NULL) 
+			return (ISC_FALSE);
 		return (dns_geoip_match(reqaddr, env->geoip, &e->geoip_elem));
 #endif
 	default:

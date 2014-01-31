@@ -229,5 +229,18 @@ done
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
+echo "I:reloading server"
+cp -f ns2/named12.conf ns2/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'
+sleep 3
+
+n=`expr $n + 1`
+echo "I:checking GeoIP blackhole ACL"
+ret=0
+$DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 status 2>&1 > rndc.out.ns2.test$n || ret=1
+[ $ret -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

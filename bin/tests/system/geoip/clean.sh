@@ -16,4 +16,4 @@
 
 rm -f ns2/named.conf
 rm -f ns2/example[1234567].db
-rm -f dig.out.*
+rm -f dig.out.* rndc.out.*

@@ -101,7 +101,6 @@ ns_geoip_load(char *dir) {
 	return;
 #else
 	GeoIPOptions method;
-	GeoIPDBTypes edition;
 
 #ifdef _WIN32
 	method = GEOIP_STANDARD;
