@@ -70,12 +70,12 @@
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#dnssec.dynamic.zones">DNSSEC, Dynamic Zones, and Automatic Signing</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2610405">Converting from insecure to secure</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2610442">Dynamic DNS update method</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2610473">Converting from insecure to secure</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2610510">Dynamic DNS update method</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2563579">Fully automatic zone signing</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2563751">Private-type records</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2563788">DNSKEY rollovers</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2563801">Dynamic DNS update method</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2563683">Private-type records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2563720">DNSKEY rollovers</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2563733">Dynamic DNS update method</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2583427">Automatic key rollovers</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2583453">NSEC3PARAM rollovers via UPDATE</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2583463">Converting from NSEC to NSEC3</a></span></dt>
@@ -91,8 +91,8 @@
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#dlz-info">DLZ (Dynamically Loadable Zones)</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2610357">Configuring DLZ</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2610499">Sample DLZ Driver</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2610425">Configuring DLZ</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2583738">Sample DLZ Driver</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2571627">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
 <dd><dl>
@@ -1061,7 +1061,7 @@ options {
   from insecure to signed and back again. A secure zone can use
   either NSEC or NSEC3 chains.</p>
 <div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title">
-<a name="id2610405"></a>Converting from insecure to secure</h3></div></div></div></div>
+<a name="id2610473"></a>Converting from insecure to secure</h3></div></div></div></div>
 <p>Changing a zone from insecure to secure can be done in two
   ways: using a dynamic DNS update, or the 
   <span><strong class="command">auto-dnssec</strong></span> zone option.</p>
@@ -1087,7 +1087,7 @@ options {
   well. An NSEC chain will be generated as part of the initial
   signing process.</p>
 <div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title">
-<a name="id2610442"></a>Dynamic DNS update method</h3></div></div></div></div>
+<a name="id2610510"></a>Dynamic DNS update method</h3></div></div></div></div>
 <p>To insert the keys via dynamic update:</p>
 <pre class="screen">
         % nsupdate
@@ -1179,7 +1179,7 @@ options {
   configuration. If this has not been done, the configuration will
   fail.</p>
 <div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title">
-<a name="id2563751"></a>Private-type records</h3></div></div></div></div>
+<a name="id2563683"></a>Private-type records</h3></div></div></div></div>
 <p>The state of the signing process is signaled by
   private-type records (with a default type value of 65534). When
   signing is complete, these records will have a nonzero value for
@@ -1220,12 +1220,12 @@ options {
 <p>
   </p>
 <div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title">
-<a name="id2563788"></a>DNSKEY rollovers</h3></div></div></div></div>
+<a name="id2563720"></a>DNSKEY rollovers</h3></div></div></div></div>
 <p>As with insecure-to-secure conversions, rolling DNSSEC
   keys can be done in two ways: using a dynamic DNS update, or the 
   <span><strong class="command">auto-dnssec</strong></span> zone option.</p>
 <div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title">
-<a name="id2563801"></a>Dynamic DNS update method</h3></div></div></div></div>
+<a name="id2563733"></a>Dynamic DNS update method</h3></div></div></div></div>
 <p> To perform key rollovers via dynamic update, you need to add
   the <code class="filename">K*</code> files for the new keys so that 
   <span><strong class="command">named</strong></span> can find them. You can then add the new
@@ -1439,7 +1439,7 @@ $ <strong class="userinput"><code>dnssec-signzone -S -K keys example.net</code><
   </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2610357"></a>Configuring DLZ</h3></div></div></div>
+<a name="id2610425"></a>Configuring DLZ</h3></div></div></div>
 <p>
       A DLZ database is configured with a <span><strong class="command">dlz</strong></span>
       statement in <code class="filename">named.conf</code>:
@@ -1488,7 +1488,7 @@ $ <strong class="userinput"><code>dnssec-signzone -S -K keys example.net</code><
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2610499"></a>Sample DLZ Driver</h3></div></div></div>
+<a name="id2583738"></a>Sample DLZ Driver</h3></div></div></div>
 <p>
       For guidance in implementation of DLZ modules, the directory
       <code class="filename">contrib/dlz/example</code> contains a basic
