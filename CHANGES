@@ -1,3 +1,7 @@
+3724.	[bug]		win32: Fixed a bug that prevented dig and
+			host from exiting properly after completing
+			a UDP query. [RT #35288]
+
 	--- 9.6-ESV-R11 released ---
 
 	--- 9.6-ESV-R11rc2 released ---
