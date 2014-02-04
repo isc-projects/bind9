@@ -1,3 +1,7 @@
+3724.	[bug]		win32: Fixed a bug that prevented dig and
+			host from exiting properly after completing
+			a UDP query. [RT #35288]
+
 	--- 9.9.5 released ---
 
 	--- 9.9.5rc2 released ---
