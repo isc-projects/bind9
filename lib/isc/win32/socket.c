@@ -1390,7 +1390,7 @@ startio_send(isc_socket_t *sock, isc_socketevent_t *dev, int *nbytes,
 
 	*nbytes = internal_sendmsg(sock, lpo, msghdr, 0, send_errno);
 
-	if (*nbytes < 0) {
+	if (*nbytes <= 0) {
 		/*
 		 * I/O has been initiated
 		 * completion will be through the completion port
@@ -2945,13 +2945,14 @@ socket_send(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 
 	io_state = startio_send(sock, dev, &cc, &send_errno);
 	switch (io_state) {
-	case DOIO_PENDING:	/* I/O started. Nothing more to do */
+	case DOIO_PENDING:	/* I/O started. Enqueue completion event. */
 	case DOIO_SOFT:
 		/*
 		 * We couldn't send all or part of the request right now, so
 		 * queue it unless ISC_SOCKFLAG_NORETRY is set.
 		 */
-		if ((flags & ISC_SOCKFLAG_NORETRY) == 0) {
+		if ((flags & ISC_SOCKFLAG_NORETRY) == 0 ||
+		    io_state == DOIO_PENDING) {
 			isc_task_attach(task, &ntask);
 			dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
 

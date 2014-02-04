@@ -1,3 +1,7 @@
+3724.	[bug]		win32: Fixed a bug that prevented dig and
+			host from exiting properly after completing
+			a UDP query. [RT #35288]
+
 3720.	[bug]		Address compiler warnings. [RT #35261]
 
 3719.	[bug]		Address memory leak in in peer.c. [RT #35255]
