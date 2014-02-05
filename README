@@ -416,6 +416,11 @@ Change Log
 
 	   [doc]          Documentation
 
+	   [placeholder]  Used in the master development branch to
+			  reserve change numbers for use in other
+			  branches, e.g. when fixing a bug that only
+			  exists in older releases
+
 	In general, [func] and [experimental] tags will only appear
 	in new-feature releases (i.e., those with version numbers
 	ending in zero).  Some new functionality may be backported to
