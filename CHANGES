@@ -1,3 +1,5 @@
+	--- 9.9.5-W1 released ---
+
 3724.	[bug]		win32: Fixed a bug that prevented dig and
 			host from exiting properly after completing
 			a UDP query. [RT #35288]
