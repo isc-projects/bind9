@@ -1,3 +1,6 @@
+3728.	[doc]		Expanded native-PKCS#11 documentation,
+			specifically pkcs11: URI labels. [RT #35287]
+
 3727.	[func]		The isc_bitstring API is no longer used and
 			has been removed from libisc. [RT #35284]
 

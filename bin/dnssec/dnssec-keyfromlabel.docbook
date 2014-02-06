@@ -151,9 +151,32 @@
         <term>-l <replaceable class="parameter">label</replaceable></term>
         <listitem>
           <para>
-            Specifies the label of the key pair in the crypto hardware.
-            The label may be preceded by an optional OpenSSL engine name,
-            separated by a colon, as in "pkcs11:keylabel".
+            Specifies the label for a key pair in the crypto hardware.
+          </para>
+          <para>
+            When <acronym>BIND</acronym> 9 is built with OpenSSL-based
+            PKCS#11 support, the label is an arbitrary string that
+            identifies a particular key.  It may be preceded by an
+            optional OpenSSL engine name, followed by a colon, as in
+            "pkcs11:<replaceable>keylabel<replaceable>".
+          </para>
+          <para>
+            When <acronym>BIND</acronym> 9 is built with native PKCS#11
+            support, the label is a PKCS#11 URI string in the format
+            "pkcs11:<option>keyword</option>=<replaceable>value</replaceable><optional>;<option>keyword</option>=<replaceable>value</replaceable>;...</optional>"
+            Keywords include "token", which identifies the HSM; "object", which
+            identifies the key; and "pin-source", which identifies a file from
+            which the HSM's PIN code can be obtained.  The label will be
+            stored in the on-disk "private" file.
+          </para>
+          <para>
+            If the label contains a
+            <option>pin-source</option> field, tools using the generated
+            key files will be able to use the HSM for signing and other
+            operations without any need for an operator to manually enter
+            a PIN.  Note: Making the HSM's PIN accessible in this manner
+            may reduce the security advantage of using an HSM; be sure
+            this is what you want to do before making use of this feature.
           </para>
         </listitem>
       </varlistentry>
@@ -437,7 +460,8 @@
         <refentrytitle>dnssec-signzone</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
-      <citetitle>RFC 4034</citetitle>.
+      <citetitle>RFC 4034</citetitle>,
+      <citetitle>The PKCS#11 URI Scheme (draft-pechanec-pkcs11uri-13)</citetitle>.
     </para>
   </refsect1>
 
