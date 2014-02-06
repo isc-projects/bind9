@@ -107,9 +107,6 @@ isc_base32hex_totext
 isc_base64_decodestring
 isc_base64_tobuffer
 isc_base64_totext
-isc_bitstring_copy
-isc_bitstring_init
-isc_bitstring_invalidate
 isc_buffer_allocate
 isc_buffer_compact
 isc_buffer_copyregion

@@ -245,10 +245,6 @@ SOURCE=.\include\isc\bindevt.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\isc\bitstring.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\include\isc\boolean.h
 # End Source File
 # Begin Source File
@@ -654,10 +650,6 @@ SOURCE=..\base64.c
 # Begin Source File
 
 SOURCE=..\bind9.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\bitstring.c
 # End Source File
 # Begin Source File
 

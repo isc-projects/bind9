@@ -265,7 +265,6 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClInclude Include="..\include\isc\base32.h" />
     <ClInclude Include="..\include\isc\base64.h" />
     <ClInclude Include="..\include\isc\bind9.h" />
-    <ClInclude Include="..\include\isc\bitstring.h" />
     <ClInclude Include="..\include\isc\boolean.h" />
     <ClInclude Include="..\include\isc\buffer.h" />
     <ClInclude Include="..\include\isc\bufferlist.h" />
@@ -376,7 +375,6 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClCompile Include="..\base32.c" />
     <ClCompile Include="..\base64.c" />
     <ClCompile Include="..\bind9.c" />
-    <ClCompile Include="..\bitstring.c" />
     <ClCompile Include="..\buffer.c" />
     <ClCompile Include="..\bufferlist.c" />
     <ClCompile Include="..\commandline.c" />
