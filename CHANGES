@@ -1,3 +1,7 @@
+3725.	[contrib]	Updated zkt and nslint to newest versions,
+			cleaned up and rearranged the contrib
+			directory, and added a README.
+
 	--- 9.10.0a2 released ---
 
 3724.	[bug]		win32: Fixed a bug that prevented dig and

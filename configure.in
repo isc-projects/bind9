@@ -4030,8 +4030,8 @@ AC_CONFIG_FILES([
 	bin/tests/virtual-time/Makefile
 	bin/tests/virtual-time/conf.sh
 	bin/tools/Makefile
-	contrib/check-secure-delegation.pl
-	contrib/zone-edit.sh
+	contrib/scripts/check-secure-delegation.pl
+	contrib/scripts/zone-edit.sh
 	doc/Makefile
 	doc/arm/Makefile
 	doc/doxygen/Doxyfile
