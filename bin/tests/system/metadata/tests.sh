@@ -175,5 +175,22 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking correct behavior setting activation without publication date ($n)"
+ret=0
+key=`$KEYGEN -q -r $RANDFILE -A +1w $czone`
+pub=`$SETTIME -upP $key | awk '{print $2}'`
+act=`$SETTIME -upA $key | awk '{print $2}'`
+[ $pub -eq $act ] || ret=1
+key=`$KEYGEN -q -r $RANDFILE -A +1w -i 1d $czone`
+pub=`$SETTIME -upP $key | awk '{print $2}'`
+act=`$SETTIME -upA $key | awk '{print $2}'`
+[ $pub -lt $act ] || ret=1
+key=`$KEYGEN -q -r $RANDFILE -A +1w -P never $czone`
+pub=`$SETTIME -upP $key | awk '{print $2}'`
+[ $pub = "UNSET" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

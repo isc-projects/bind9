@@ -343,10 +343,7 @@ main(int argc, char **argv) {
 			      "To generate a key with TYPE=KEY, use -T KEY.\n");
 			break;
 		case 'L':
-			if (strcmp(isc_commandline_argument, "none") == 0)
-				ttl = 0;
-			else
-				ttl = strtottl(isc_commandline_argument);
+			ttl = strtottl(isc_commandline_argument);
 			setttl = ISC_TRUE;
 			break;
 		case 'n':
@@ -403,61 +400,41 @@ main(int argc, char **argv) {
 			if (setpub || unsetpub)
 				fatal("-P specified more than once");
 
-			if (strcasecmp(isc_commandline_argument, "none")) {
-				setpub = ISC_TRUE;
-				publish = strtotime(isc_commandline_argument,
-						    now, now);
-			} else {
-				unsetpub = ISC_TRUE;
-			}
+			publish = strtotime(isc_commandline_argument,
+					    now, now, &setpub);
+			unsetpub = !setpub;
 			break;
 		case 'A':
 			if (setact || unsetact)
 				fatal("-A specified more than once");
 
-			if (strcasecmp(isc_commandline_argument, "none")) {
-				setact = ISC_TRUE;
-				activate = strtotime(isc_commandline_argument,
-						     now, now);
-			} else {
-				unsetact = ISC_TRUE;
-			}
+			activate = strtotime(isc_commandline_argument,
+					     now, now, &setact);
+			unsetact = !setact;
 			break;
 		case 'R':
 			if (setrev || unsetrev)
 				fatal("-R specified more than once");
 
-			if (strcasecmp(isc_commandline_argument, "none")) {
-				setrev = ISC_TRUE;
-				revoke = strtotime(isc_commandline_argument,
-						   now, now);
-			} else {
-				unsetrev = ISC_TRUE;
-			}
+			revoke = strtotime(isc_commandline_argument,
+					   now, now, &setrev);
+			unsetrev = !setrev;
 			break;
 		case 'I':
 			if (setinact || unsetinact)
 				fatal("-I specified more than once");
 
-			if (strcasecmp(isc_commandline_argument, "none")) {
-				setinact = ISC_TRUE;
-				inactive = strtotime(isc_commandline_argument,
-						     now, now);
-			} else {
-				unsetinact = ISC_TRUE;
-			}
+			inactive = strtotime(isc_commandline_argument,
+					     now, now, &setinact);
+			unsetinact = !setinact;
 			break;
 		case 'D':
 			if (setdel || unsetdel)
 				fatal("-D specified more than once");
 
-			if (strcasecmp(isc_commandline_argument, "none")) {
-				setdel = ISC_TRUE;
-				delete = strtotime(isc_commandline_argument,
-						   now, now);
-			} else {
-				unsetdel = ISC_TRUE;
-			}
+			delete = strtotime(isc_commandline_argument,
+					   now, now, &setdel);
+			unsetdel = !setdel;
 			break;
 		case 'S':
 			predecessor = isc_commandline_argument;
@@ -936,9 +913,9 @@ main(int argc, char **argv) {
 
 			if (setpub)
 				dst_key_settime(key, DST_TIME_PUBLISH, publish);
-			else if (setact)
+			else if (setact && !unsetpub)
 				dst_key_settime(key, DST_TIME_PUBLISH,
-						activate);
+						activate - prepub);
 			else if (!genonly && !unsetpub)
 				dst_key_settime(key, DST_TIME_PUBLISH, now);
 
