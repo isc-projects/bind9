@@ -239,10 +239,7 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 'L':
-			if (strcmp(isc_commandline_argument, "none") == 0)
-				ttl = 0;
-			else
-				ttl = strtottl(isc_commandline_argument);
+			ttl = strtottl(isc_commandline_argument);
 			setttl = ISC_TRUE;
 			break;
 		case 'v':
@@ -255,65 +252,45 @@ main(int argc, char **argv) {
 				fatal("-P specified more than once");
 
 			changed = ISC_TRUE;
-			if (!strcasecmp(isc_commandline_argument, "none")) {
-				unsetpub = ISC_TRUE;
-			} else {
-				setpub = ISC_TRUE;
-				pub = strtotime(isc_commandline_argument,
-						now, now);
-			}
+			pub = strtotime(isc_commandline_argument,
+					now, now, &setpub);
+			unsetpub = !setpub;
 			break;
 		case 'A':
 			if (setact || unsetact)
 				fatal("-A specified more than once");
 
 			changed = ISC_TRUE;
-			if (!strcasecmp(isc_commandline_argument, "none")) {
-				unsetact = ISC_TRUE;
-			} else {
-				setact = ISC_TRUE;
-				act = strtotime(isc_commandline_argument,
-						now, now);
-			}
+			act = strtotime(isc_commandline_argument,
+					now, now, &setact);
+			unsetact = !setact;
 			break;
 		case 'R':
 			if (setrev || unsetrev)
 				fatal("-R specified more than once");
 
 			changed = ISC_TRUE;
-			if (!strcasecmp(isc_commandline_argument, "none")) {
-				unsetrev = ISC_TRUE;
-			} else {
-				setrev = ISC_TRUE;
-				rev = strtotime(isc_commandline_argument,
-						now, now);
-			}
+			rev = strtotime(isc_commandline_argument,
+					now, now, &setrev);
+			unsetrev = !setrev;
 			break;
 		case 'I':
 			if (setinact || unsetinact)
 				fatal("-I specified more than once");
 
 			changed = ISC_TRUE;
-			if (!strcasecmp(isc_commandline_argument, "none")) {
-				unsetinact = ISC_TRUE;
-			} else {
-				setinact = ISC_TRUE;
-				inact = strtotime(isc_commandline_argument,
-						now, now);
-			}
+			inact = strtotime(isc_commandline_argument,
+					now, now, &setinact);
+			unsetinact = !setinact;
 			break;
 		case 'D':
 			if (setdel || unsetdel)
 				fatal("-D specified more than once");
 
 			changed = ISC_TRUE;
-			if (!strcasecmp(isc_commandline_argument, "none")) {
-				unsetdel = ISC_TRUE;
-			} else {
-				setdel = ISC_TRUE;
-				del = strtotime(isc_commandline_argument,
-						now, now);
-			}
+			del = strtotime(isc_commandline_argument,
+					now, now, &setdel);
+			unsetdel = !setdel;
 			break;
 		case 'S':
 			predecessor = isc_commandline_argument;

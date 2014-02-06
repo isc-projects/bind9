@@ -1,3 +1,11 @@
+3730.	[cleanup]	Added "never" as a synonym for "none" when
+			configuring key event dates in the dnssec tools.
+			[RT #35277]
+
+3729.	[bug]		dnssec-kegeyn could set the publication date
+			incorrectly when only the activation date was
+			specified on the command line. [RT #35278]
+
 3728.	[doc]		Expanded native-PKCS#11 documentation,
 			specifically pkcs11: URI labels. [RT #35287]
 

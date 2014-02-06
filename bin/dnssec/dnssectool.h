@@ -68,7 +68,8 @@ cleanup_entropy(isc_entropy_t **ectx);
 dns_ttl_t strtottl(const char *str);
 
 isc_stdtime_t
-strtotime(const char *str, isc_int64_t now, isc_int64_t base);
+strtotime(const char *str, isc_int64_t now, isc_int64_t base,
+	  isc_boolean_t *setp);
 
 dns_rdataclass_t
 strtoclass(const char *str);
