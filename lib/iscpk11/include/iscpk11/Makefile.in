@@ -25,7 +25,7 @@ top_srcdir =	@top_srcdir@
 # machine generated.  The latter are handled specially in the
 # install target below.
 #
-HEADERS =	pk11.h internal.h dns_pkcs11.h version.h
+HEADERS =	pk11.h internal.h version.h
 SUBDIRS =
 TARGETS =
 
