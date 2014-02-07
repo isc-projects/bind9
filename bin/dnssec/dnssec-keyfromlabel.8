@@ -145,7 +145,7 @@ Allows DNSSEC key files to be generated even if the key ID would collide with th
 .RE
 .SH "TIMING OPTIONS"
 .PP
-Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS. If the argument begins with a '+' or '\-', it is interpreted as an offset from the present time. For convenience, if such an offset is followed by one of the suffixes 'y', 'mo', 'w', 'd', 'h', or 'mi', then the offset is computed in years (defined as 365 24\-hour days, ignoring leap years), months (defined as 30 24\-hour days), weeks, days, hours, or minutes, respectively. Without a suffix, the offset is computed in seconds.
+Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS. If the argument begins with a '+' or '\-', it is interpreted as an offset from the present time. For convenience, if such an offset is followed by one of the suffixes 'y', 'mo', 'w', 'd', 'h', or 'mi', then the offset is computed in years (defined as 365 24\-hour days, ignoring leap years), months (defined as 30 24\-hour days), weeks, days, hours, or minutes, respectively. Without a suffix, the offset is computed in seconds. To explicitly prevent a date from being set, use 'none' or 'never'.
 .PP
 \-P \fIdate/offset\fR
 .RS 4
