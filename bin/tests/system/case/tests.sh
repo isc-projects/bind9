@@ -23,11 +23,28 @@ status=0
 n=0
 
 n=`expr $n + 1`
-echo "I:testing case sensitive responses ($n)"
+echo "I:testing case preserving responses - no acl ($n)"
 ret=0
-$DIG $DIGOPTS mx example. @10.53.0.1 -p 5300 > dig.n1.test$n
-grep "0.mail.eXaMpLe" dig.n1.test$n > /dev/null || ret=1
-grep "mAiL.example" dig.n1.test$n > /dev/null || ret=1
+$DIG $DIGOPTS mx example. @10.53.0.1 -p 5300 > dig.ns1.test$n
+grep "0.mail.eXaMpLe" dig.ns1.test$n > /dev/null || ret=1
+grep "mAiL.example" dig.ns1.test$n > /dev/null || ret=1
+test $ret -eq 0 || echo "I:failed"
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:testing no-case-compress acl '{ 10.53.0.2; }' ($n)"
+ret=0
+
+# check that we preserve zone case for non-matching query (10.53.0.1)
+$DIG $DIGOPTS mx example. -b 10.53.0.1 @10.53.0.1 -p 5300 > dig.ns1.test$n
+grep "0.mail.eXaMpLe" dig.ns1.test$n > /dev/null || ret=1
+grep "mAiL.example" dig.ns1.test$n > /dev/null || ret=1
+
+# check that we don't preserve zone case for match (10.53.0.2)
+$DIG $DIGOPTS mx example. -b 10.53.0.2 @10.53.0.2 -p 5300 > dig.ns2.test$n
+grep "0.mail.example" dig.ns2.test$n > /dev/null || ret=1
+grep "mail.example" dig.ns2.test$n > /dev/null || ret=1
+
 test $ret -eq 0 || echo "I:failed"
 status=`expr $status + $ret`
 

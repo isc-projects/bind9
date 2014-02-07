@@ -1522,6 +1522,7 @@ view_clauses[] = {
 	{ "minimal-responses", &cfg_type_boolean, 0 },
 	{ "prefetch", &cfg_type_prefetch, 0 },
 	{ "preferred-glue", &cfg_type_astring, 0 },
+	{ "no-case-compress", &cfg_type_bracketed_aml, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	/*
 	 * Note that the query-source option syntax is different
