@@ -2478,8 +2478,10 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 			break;
 		case isc_sockettype_raw:
 			sock->fd = socket(sock->pf, SOCK_RAW, 0);
+#ifdef PF_ROUTE
 			if (sock->pf == PF_ROUTE)
 				sock->bound = 1;
+#endif
 			break;
 		case isc_sockettype_fdwatch:
 			/*
