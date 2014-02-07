@@ -1,3 +1,6 @@
+3732.	[contrib]	Fixed a type mismatch causing the ODBC DLZ
+			driver to dump core on 64-bit systems. [RT #35324]
+
 3731.	[func]		Added a "no-case-compress" ACL, which causes
 			named to use case-insensitive compression
 			(disabling change #3645) for specified
