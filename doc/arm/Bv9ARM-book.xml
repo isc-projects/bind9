@@ -9424,7 +9424,7 @@ deny-answer-aliases { "example.net"; };
 	    tree is used to quickly identify response policy zones
 	    containing triggers that match the current query.  This
 	    imposes an upper limit of 32 on the number of policy zones
-	    in a single <command>response-policy</option> option; more
+	    in a single <command>response-policy</command> option; more
 	    than that is a configuration error.
 	  </para>
 

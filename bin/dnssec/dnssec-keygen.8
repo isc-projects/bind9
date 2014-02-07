@@ -201,7 +201,7 @@ Sets the debugging level.
 .RE
 .SH "TIMING OPTIONS"
 .PP
-Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS. If the argument begins with a '+' or '\-', it is interpreted as an offset from the present time. For convenience, if such an offset is followed by one of the suffixes 'y', 'mo', 'w', 'd', 'h', or 'mi', then the offset is computed in years (defined as 365 24\-hour days, ignoring leap years), months (defined as 30 24\-hour days), weeks, days, hours, or minutes, respectively. Without a suffix, the offset is computed in seconds.
+Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS. If the argument begins with a '+' or '\-', it is interpreted as an offset from the present time. For convenience, if such an offset is followed by one of the suffixes 'y', 'mo', 'w', 'd', 'h', or 'mi', then the offset is computed in years (defined as 365 24\-hour days, ignoring leap years), months (defined as 30 24\-hour days), weeks, days, hours, or minutes, respectively. Without a suffix, the offset is computed in seconds. To explicitly prevent a date from being set, use 'none' or 'never'.
 .PP
 \-P \fIdate/offset\fR
 .RS 4
@@ -210,7 +210,7 @@ Sets the date on which a key is to be published to the zone. After that date, th
 .PP
 \-A \fIdate/offset\fR
 .RS 4
-Sets the date on which the key is to be activated. After that date, the key will be included in the zone and used to sign it. If not set, and if the \-G option has not been used, the default is "now".
+Sets the date on which the key is to be activated. After that date, the key will be included in the zone and used to sign it. If not set, and if the \-G option has not been used, the default is "now". If set, if and \-P is not set, then the publication date will be set to the activation date minus the prepublication interval.
 .RE
 .PP
 \-R \fIdate/offset\fR
