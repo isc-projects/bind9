@@ -16,8 +16,9 @@
 
 /* $Id$ */
 
-#ifdef OPENSSL
 #include <config.h>
+
+#if defined(OPENSSL)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -240,6 +241,8 @@ main(int argc, char **argv) {
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <isc/util.h>
 
 int
 main(int argc, char **argv) {
