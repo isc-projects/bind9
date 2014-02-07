@@ -2875,7 +2875,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 
 	/*
 	 * Ignore case when compressing responses to the specified
-	 * clients. This causes case not always to be presrerved,
+	 * clients. This causes case not always to be preserved,
 	 * and is needed by some broken clients.
 	 */
 	CHECK(configure_view_acl(vconfig, config, "no-case-compress", NULL,
