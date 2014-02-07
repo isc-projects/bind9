@@ -1,3 +1,16 @@
+3732.	[contrib]	Fixed a type mismatch causing the ODBC DLZ
+			driver to dump core on 64-bit systems. [RT #35324]
+
+3731.	[func]		Added a "no-case-compress" ACL, which causes
+			named to use case-insensitive compression
+			(disabling change #3645) for specified
+			clients. (This is useful when dealing
+			with broken client implementations that
+			use case-sensitive name comparisons,
+			rejecting responses that fail to match the
+			capitalization of the query that was sent.)
+			[RT #35300]
+
 3730.	[cleanup]	Added "never" as a synonym for "none" when
 			configuring key event dates in the dnssec tools.
 			[RT #35277]

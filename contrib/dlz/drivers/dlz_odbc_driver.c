@@ -734,7 +734,7 @@ odbc_get_resultset(const char *zone, const char *record,
 static isc_result_t
 odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data) {
 
-	SQLINTEGER size;
+	SQLLEN size;
 
 	REQUIRE(data != NULL && *data == NULL);
 
@@ -763,7 +763,7 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 		   SQLSMALLINT endField, char **retData) {
 
 	isc_result_t result;
-	SQLINTEGER size;
+	SQLLEN size;
 	int totSize = 0;
 	SQLSMALLINT i;
 	int j = 0;
