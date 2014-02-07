@@ -231,8 +231,8 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	if (mgr->route != NULL)
 		isc_socket_detach(&mgr->route);
  cleanup_aclenv:
-#endif
 	dns_aclenv_destroy(&mgr->aclenv);
+#endif
  cleanup_listenon:
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
