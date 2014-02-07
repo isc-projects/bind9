@@ -14,11 +14,8 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.4 2010/12/18 02:12:43 each Exp $
-
-
 rm -f ns1/K*
 rm -f ns1/signed.db*
 rm -f ns1/dsset-signed.
 rm -f */named.memstats
-rm -f dig.out.* random.data
+rm -f dig.out.*

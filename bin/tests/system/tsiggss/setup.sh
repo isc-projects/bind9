@@ -19,12 +19,9 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE="random.data"
-
+test -e $RANDFILE || $GENRANDOM 400 $RANDFILE
 
 rm -f ns1/*.jnl ns1/K*.key ns1/K*.private ns1/_default.tsigkeys
-
-../../../tools/genrandom 400 $RANDFILE
 
 key=`$KEYGEN -Cq -K ns1 -a DSA -b 512 -r $RANDFILE -n HOST -T KEY key.example.nil.`
 cat ns1/example.nil.db.in ns1/${key}.key > ns1/example.nil.db

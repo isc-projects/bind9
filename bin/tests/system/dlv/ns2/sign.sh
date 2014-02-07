@@ -23,8 +23,6 @@ echo "I:dlv/ns2/sign.sh"
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=../random.data
-
 zone=druz.
 infile=druz.db.in
 zonefile=druz.db

@@ -14,14 +14,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.3.126.2 2011/05/26 23:47:06 tbox Exp $
-
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
 echo "I:dlv/ns6/sign.sh"
-
-RANDFILE=../random.data
 
 zone=grand.child1.utld.
 infile=child.db.in

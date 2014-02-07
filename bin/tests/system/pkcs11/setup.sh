@@ -19,8 +19,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=random.data
-
 zone=example
 infile=ns1/example.db.in
 zonefile=ns1/example.db

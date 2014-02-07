@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.33.14.6 2012/02/22 23:46:35 tbox Exp $
-
 rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed
 rm -f */trusted.conf */managed.conf */tmp* */*.jnl */*.bk
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
@@ -30,7 +28,6 @@ rm -f ns2/nsec3chain-test.db
 rm -f */example.bk
 rm -f dig.out.*
 rm -f sample.out*
-rm -f random.data
 rm -f ns2/dlv.db
 rm -f ns3/multiple.example.db ns3/nsec3-unknown.example.db ns3/nsec3.example.db
 rm -f ns3/optout-unknown.example.db ns3/optout.example.db

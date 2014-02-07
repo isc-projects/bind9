@@ -116,6 +116,7 @@ else
 	echo "R:PASS"
 
 	# Clean up.
+        rm -f $SYSTEMTESTTOP/random.data
 	if test -f $test/clean.sh
 	then
 	   ( cd $test && sh clean.sh "$@" )

@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
-rm -f dig.out.* rndc.out.* random.data ns1/named.conf
+rm -f dig.out.* rndc.out.* ns1/named.conf
 rm -f K* ns1/K*
 rm -f */named.memstats

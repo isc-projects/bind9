@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 rm -f named-compilezone
 rm -f ns1/example.db.raw
 rm -f ns1/large.db ns1/large.db.raw

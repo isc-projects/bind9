@@ -16,6 +16,10 @@
 
 3718.	[bug]		A missing ISC_LINK_INIT in log.c. [RT #35260]
 
+3714.	[test]		System tests that need to test for cryptography
+			support before running can now use a common
+			"testcrypto.sh" script to do so. [RT #35213]
+
 	--- 9.8.7 released ---
 
 	--- 9.8.7rc2 released ---

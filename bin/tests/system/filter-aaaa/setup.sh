@@ -14,11 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.2 2010/06/22 03:58:36 marka Exp $
-
 sh clean.sh
 
-../../../tools/genrandom 400 random.data
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+test -e $RANDFILE || $GENRANDOM 400 $RANDFILE
 
 (cd ns1 && sh -e sign.sh)
 (cd ns4 && sh -e sign.sh)

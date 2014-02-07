@@ -14,18 +14,14 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-. ./clean.sh
+sh ./clean.sh
 
-RANDFILE=./random.data
+test -e $RANDFILE || $GENRANDOM 400 $RANDFILE
 
 pzone=parent.nil
 czone=child.parent.nil
-
-../../../tools/genrandom 400 $RANDFILE
 
 echo "I:generating keys"
 

@@ -19,8 +19,6 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=../random.data
-
 zone=secure.example
 zonefile="${zone}.db"
 infile="${zonefile}.in"

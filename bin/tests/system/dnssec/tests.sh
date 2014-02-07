@@ -1221,7 +1221,6 @@ echo "I:checking that we can sign a zone with out-of-zone records ($n)"
 ret=0
 (
 cd signer
-RANDFILE=../random.data
 zone=example
 key1=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 key2=`$KEYGEN -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
@@ -1236,7 +1235,6 @@ echo "I:checking that we can sign a zone (NSEC3) with out-of-zone records ($n)"
 ret=0
 (
 cd signer
-RANDFILE=../random.data
 zone=example
 key1=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 key2=`$KEYGEN -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
@@ -1252,7 +1250,6 @@ echo "I:checking that dnsssec-signzone updates originalttl on ttl changes ($n)"
 ret=0
 (
 cd signer
-RANDFILE=../random.data
 zone=example
 key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 key2=`$KEYGEN -q -r $RANDFILE -f KSK -a RSASHA1 -b 1024 -n zone $zone`
@@ -1268,8 +1265,8 @@ status=`expr $status + $ret`
 
 echo "I:checking dnssec-signzone purges RRSIGs from formerly-owned glue (nsec) ($n)"
 ret=0
-key1=`$KEYGEN -K signer -q -r random.data -a NSEC3RSASHA1 -b 1024 -n zone example`
-key2=`$KEYGEN -K signer -q -r random.data -f KSK -a NSEC3RSASHA1 -b 1024 -n zone example`
+key1=`$KEYGEN -K signer -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone example`
+key2=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone example`
 (
 cd signer
 cat example.db.in $key1.key $key2.key > example2.db
@@ -1545,7 +1542,7 @@ echo "I:checking that the NSEC3 record for the apex is properly signed when a DN
 ret=0
 (
 cd ns3
-kskname=`$KEYGEN -q -3 -r ../random.data -fk update-nsec3.example`
+kskname=`$KEYGEN -q -3 -r $RANDFILE -fk update-nsec3.example`
 (
 echo zone update-nsec3.example
 echo server 10.53.0.3 5300
@@ -1692,7 +1689,6 @@ ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 freeze expiring.example 2>&1 | sed 's/^/I:ns3 /'
 (
 cd ns3
-RANDFILE=../random.data
 for file in K*.moved; do
   mv $file `basename $file .moved`
 done

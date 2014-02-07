@@ -23,7 +23,6 @@ echo "I:dlv/ns3/sign.sh"
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-RANDFILE=../random.data
 dlvzone=dlv.utld.
 dlvsets=
 dssets=
