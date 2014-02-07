@@ -59,6 +59,7 @@
 #define NS_COMMAND_NULL		"null"
 #define NS_COMMAND_NOTIFY	"notify"
 #define NS_COMMAND_VALIDATION	"validation"
+#define NS_COMMAND_SCAN 	"scan"
 #define NS_COMMAND_SIGN 	"sign"
 #define NS_COMMAND_LOADKEYS 	"loadkeys"
 #define NS_COMMAND_ADDZONE	"addzone"

@@ -206,7 +206,13 @@ enum {
 	isc_sockstatscounter_tcp6active = 55,
 	isc_sockstatscounter_unixactive = 56,
 
-	isc_sockstatscounter_max = 57
+	isc_sockstatscounter_rawopen = 57,
+	isc_sockstatscounter_rawopenfail = 58,
+	isc_sockstatscounter_rawclose = 59,
+	isc_sockstatscounter_rawrecvfail = 60,
+	isc_sockstatscounter_rawactive = 61,
+
+	isc_sockstatscounter_max = 62
 };
 
 /***
@@ -280,7 +286,8 @@ typedef enum {
 	isc_sockettype_udp = 1,
 	isc_sockettype_tcp = 2,
 	isc_sockettype_unix = 3,
-	isc_sockettype_fdwatch = 4
+	isc_sockettype_fdwatch = 4,
+	isc_sockettype_raw = 5
 } isc_sockettype_t;
 
 /*@{*/

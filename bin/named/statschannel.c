@@ -372,6 +372,7 @@ init_desc(void) {
 	SET_SOCKSTATDESC(tcp4open, "TCP/IPv4 sockets opened", "TCP4Open");
 	SET_SOCKSTATDESC(tcp6open, "TCP/IPv6 sockets opened", "TCP6Open");
 	SET_SOCKSTATDESC(unixopen, "Unix domain sockets opened", "UnixOpen");
+	SET_SOCKSTATDESC(rawopen, "Raw sockets opened", "RawOpen");
 	SET_SOCKSTATDESC(udp4openfail, "UDP/IPv4 socket open failures",
 			 "UDP4OpenFail");
 	SET_SOCKSTATDESC(udp6openfail, "UDP/IPv6 socket open failures",
@@ -382,6 +383,8 @@ init_desc(void) {
 			 "TCP6OpenFail");
 	SET_SOCKSTATDESC(unixopenfail, "Unix domain socket open failures",
 			 "UnixOpenFail");
+	SET_SOCKSTATDESC(rawopenfail, "Raw socket open failures",
+			 "RawOpenFail");
 	SET_SOCKSTATDESC(udp4close, "UDP/IPv4 sockets closed", "UDP4Close");
 	SET_SOCKSTATDESC(udp6close, "UDP/IPv6 sockets closed", "UDP6Close");
 	SET_SOCKSTATDESC(tcp4close, "TCP/IPv4 sockets closed", "TCP4Close");
@@ -389,6 +392,7 @@ init_desc(void) {
 	SET_SOCKSTATDESC(unixclose, "Unix domain sockets closed", "UnixClose");
 	SET_SOCKSTATDESC(fdwatchclose, "FDwatch sockets closed",
 			 "FDWatchClose");
+	SET_SOCKSTATDESC(rawclose, "Raw sockets closed", "RawClose");
 	SET_SOCKSTATDESC(udp4bindfail, "UDP/IPv4 socket bind failures",
 			 "UDP4BindFail");
 	SET_SOCKSTATDESC(udp6bindfail, "UDP/IPv6 socket bind failures",
@@ -455,12 +459,14 @@ init_desc(void) {
 			 "UnixRecvErr");
 	SET_SOCKSTATDESC(fdwatchrecvfail, "FDwatch recv errors",
 			 "FDwatchRecvErr");
+	SET_SOCKSTATDESC(rawrecvfail, "Raw recv errors", "RawRecvErr");
 	SET_SOCKSTATDESC(udp4active, "UDP/IPv4 sockets active", "UDP4Active");
 	SET_SOCKSTATDESC(udp6active, "UDP/IPv6 sockets active", "UDP6Active");
 	SET_SOCKSTATDESC(tcp4active, "TCP/IPv4 sockets active", "TCP4Active");
 	SET_SOCKSTATDESC(tcp6active, "TCP/IPv6 sockets active", "TCP6Active");
 	SET_SOCKSTATDESC(unixactive, "Unix domain sockets active",
 			 "UnixActive");
+	SET_SOCKSTATDESC(rawactive, "Raw sockets active", "RawActive");
 	INSIST(i == isc_sockstatscounter_max);
 
 	/* Initialize DNSSEC statistics */
@@ -985,7 +991,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 			ISC_XMLCHAR "type=\"text/xsl\" href=\"/bind9.xsl\""));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "3.4"));
+					 ISC_XMLCHAR "3.5"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = isc_statsformat_xml;

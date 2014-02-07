@@ -52,6 +52,7 @@
 /*% default configuration */
 static char defaultconf[] = "\
 options {\n\
+	automatic-interface-scan yes;\n\
 #	blackhole {none;};\n"
 #ifndef WIN32
 "	coresize default;\n\

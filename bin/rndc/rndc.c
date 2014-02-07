@@ -163,6 +163,7 @@ command is one of the following:\n\
 		Add zone to given view. Requires new-zone-file option.\n\
   delzone [-clean] zone [class [view]]\n\
 		Removes zone from given view. Requires new-zone-file option.\n\
+  scan		Scan available network interfaces for changes.\n\
   signing -list zone [class [view]]\n\
 		List the private records showing the state of DNSSEC\n\
 		signing in the given zone.\n\

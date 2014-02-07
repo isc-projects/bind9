@@ -4741,16 +4741,25 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 }
 
 /*
- * This event callback is invoked to do periodic network
- * interface scanning.
+ * This event callback is invoked to do periodic network interface
+ * scanning.  It is also called by ns_server_scan_interfaces(),
+ * invoked by "rndc scan"
  */
+
 static void
 interface_timer_tick(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	ns_server_t *server = (ns_server_t *) event->ev_arg;
 	INSIST(task == server->task);
 	UNUSED(task);
+
+	if (event->ev_type == NS_EVENT_IFSCAN)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+			      "automatic interface rescan");
+
 	isc_event_free(&event);
+
 	/*
 	 * XXX should scan interfaces unlocked and get exclusive access
 	 * only to replace ACLs.
@@ -5675,6 +5684,14 @@ load_configuration(const char *filename, ns_server_t *server,
 				      NULL, &interval, ISC_FALSE));
 	}
 	server->interface_interval = interface_interval;
+
+	/*
+	 * Enable automatic interface scans.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "automatic-interface-scan", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	server->interface_auto = cfg_obj_asboolean(obj);
 
 	/*
 	 * Configure the dialup heartbeat timer.
@@ -6900,6 +6917,17 @@ ns_server_reloadwanted(ns_server_t *server) {
 	if (server->reload_event != NULL)
 		isc_task_send(server->task, &server->reload_event);
 	UNLOCK(&server->reload_event_lock);
+}
+
+void
+ns_server_scan_interfaces(ns_server_t *server) {
+	isc_event_t *event;
+
+	event = isc_event_allocate(ns_g_mctx, server, NS_EVENT_IFSCAN,
+				   interface_timer_tick, server,
+				   sizeof(isc_event_t));
+	if (event != NULL)
+		isc_task_send(server->task, &event);
 }
 
 static char *

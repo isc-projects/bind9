@@ -112,7 +112,8 @@ BIND 9.10.0
 	 - "named" now listens on IPv6 as well as IPv4 interfaces
 	   by default.
 	 - "named" now preserves the capitalization of names when
-	   responding to queries.
+	   responding to queries.  The former behavior can be restored
+           for specific clients via the new "no-case-compress" ACL.
 	 - new "dnssec-importkey" command allows the use of offline
 	   DNSSEC keys with automatic DNSKEY management.
 	 - New 'named-rrchecker' tool to verify the syntactic
@@ -124,7 +125,11 @@ BIND 9.10.0
 	   files with the shared secrets obscured, making it easier to
 	   share configuration (e.g. when submitting a bug report)
 	   without revealing private information.
-
+	 - "rndc scan" causes named to re-scan network interfaces for
+	   changes in local addresses.
+	 - On operating systems with support for routing sockets,
+	   network interfaces are re-scanned automatically whenever
+	   they change.
 
 BIND 9.9.0
 

@@ -37,6 +37,7 @@
 #define NS_EVENTCLASS		ISC_EVENTCLASS(0x4E43)
 #define NS_EVENT_RELOAD		(NS_EVENTCLASS + 0)
 #define NS_EVENT_CLIENTCONTROL	(NS_EVENTCLASS + 1)
+#define NS_EVENT_IFSCAN		(NS_EVENTCLASS + 2)
 
 /*%
  * Name server state.  Better here than in lots of separate global variables.
@@ -114,6 +115,7 @@ struct ns_server {
 	dns_name_t		*session_keyname;
 	unsigned int		session_keyalg;
 	isc_uint16_t		session_keybits;
+	isc_boolean_t		interface_auto;
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')
@@ -198,6 +200,12 @@ ns_server_reloadwanted(ns_server_t *server);
  * may be called asynchronously, from outside the server's task.
  * If a reload is already scheduled or in progress, the call
  * is ignored.
+ */
+
+void
+ns_server_scan_interfaces(ns_server_t *server);
+/*%<
+ * Trigger a interface scan.
  */
 
 void
