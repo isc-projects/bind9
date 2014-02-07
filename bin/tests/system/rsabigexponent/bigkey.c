@@ -16,8 +16,9 @@
 
 /* $Id$ */
 
-#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 #include <config.h>
+
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -248,6 +249,8 @@ main(int argc, char **argv) {
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <isc/util.h>
 
 int
 main(int argc, char **argv) {
