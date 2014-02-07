@@ -468,7 +468,7 @@ t1(void) {
 	if (!dst_algorithm_supported(DST_ALG_RSAMD5)) {
 		dst_lib_destroy();
 		t_info("library built without crypto support\n");
-		t_result(T_UNTESTED);
+		t_result(T_SKIPPED);
 		return;
 	}
 
@@ -978,7 +978,7 @@ t2_vfy(char **av) {
 	if (!dst_algorithm_supported(DST_ALG_RSAMD5)) {
 		dst_lib_destroy();
 		t_info("library built without crypto support\n");
-		return (T_UNTESTED);
+		return (T_SKIPPED);
 	}
 
 	t_info("testing %s, %s, %s, %s, %s, %s\n",
