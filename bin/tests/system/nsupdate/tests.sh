@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2009-2013  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2009-2014  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -169,7 +169,7 @@ grep ns6.other.nil dig.out.ns1 > /dev/null 2>&1 || ret=1
 
 ret=0
 echo "I:check SIG(0) key is accepted"
-key=`$KEYGEN -q -r random.data -a NSEC3RSASHA1 -b 512 -T KEY -n ENTITY xxx`
+key=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 512 -T KEY -n ENTITY xxx`
 echo "" | $NSUPDATE -k ${key}.private > /dev/null 2>&1 || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 

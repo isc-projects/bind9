@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -17,12 +17,11 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-KEYGEN="$KEYGEN -qr random.data"
+KEYGEN="$KEYGEN -qr $RANDFILE"
 
 sh clean.sh
 
 ln -s $CHECKZONE named-compilezone
-../../../tools/genrandom 400 random.data
 
 # Test 1: KSK goes inactive before successor is active
 dir=01-ksk-inactive

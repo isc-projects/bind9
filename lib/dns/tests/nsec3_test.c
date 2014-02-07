@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,6 +29,7 @@
 
 #include "dnstest.h"
 
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 /*
  * Helper functions
  */
@@ -74,12 +75,26 @@ ATF_TC_BODY(max_iterations, tc) {
 	iteration_test("testdata/nsec3/min-1024.db", 150);
 	iteration_test("testdata/nsec3/min-2048.db", 500);
 }
+#else
+ATF_TC(untested);
+ATF_TC_HEAD(untested, tc) {
+	atf_tc_set_md_var(tc, "descr", "skipping nsec3 test");
+}
+ATF_TC_BODY(untested, tc) {
+	UNUSED(tc);
+	atf_tc_skip("DNSSEC not available");
+}
+#endif
 
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 	ATF_TP_ADD_TC(tp, max_iterations);
+#else
+	ATF_TP_ADD_TC(tp, untested);
+#endif
 
 	return (atf_no_error());
 }

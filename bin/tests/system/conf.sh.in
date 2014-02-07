@@ -54,6 +54,9 @@ JOURNALPRINT=$TOP/bin/tools/named-journalprint
 VERIFY=$TOP/bin/dnssec/dnssec-verify
 ARPANAME=$TOP/bin/tools/arpaname
 SAMPLE=$TOP/lib/export/samples/sample
+GENRANDOM=$TOP/bin/tools/genrandom
+
+RANDFILE=$TOP/bin/tests/system/random.data
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.

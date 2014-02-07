@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011-2014  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -20,7 +20,6 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="+tcp +dnssec"
-RANDFILE=random.data
 
 status=0
 n=0
@@ -623,8 +622,8 @@ grep "ANSWER: 1," dig.out.ns5.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:setup broken"; fi
 status=`expr $status + $ret`
 cp ns5/named.conf.post ns5/named.conf
-(cd ns5; $KEYGEN -q -r ../$RANDFILE bits) > /dev/null 2>&1
-(cd ns5; $KEYGEN -q -r ../$RANDFILE -f KSK bits) > /dev/null 2>&1
+(cd ns5; $KEYGEN -q -r $RANDFILE bits) > /dev/null 2>&1
+(cd ns5; $KEYGEN -q -r $RANDFILE -f KSK bits) > /dev/null 2>&1
 $RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 reload 2>&1 | sed 's/^/I:ns5 /'
 for i in 1 2 3 4 5 6 7 8 9 10
 do
