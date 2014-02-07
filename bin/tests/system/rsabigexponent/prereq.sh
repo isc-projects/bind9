@@ -25,5 +25,5 @@ then
 else
     echo "I:This test requires cryptography" >&2
     echo "I:configure with --with-openssl, or --with-pkcs11 and --enable-native-pkcs11" >&2
-    exit 1
+    exit 255
 fi
