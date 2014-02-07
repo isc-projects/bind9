@@ -51,6 +51,15 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.8.8
+
+	BIND 9.8.8 is a maintenance release, and also includes
+        the following new functionality.
+
+	 - The former behavior with respect to capitalization of names
+           (prior to BIND 9.8.7) can be restored for specific clients via
+           the new "no-case-compress" ACL.
+
 BIND 9.8.7
  
 	BIND 9.8.7 includes several bug fixes and patches the security
