@@ -4741,6 +4741,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> no-case-compress { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> use-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
     <optional> avoid-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
     <optional> use-v6-udp-ports { <replaceable>port_list</replaceable> }; </optional>
@@ -7057,6 +7058,59 @@ options {
                 </para>
               </listitem>
             </varlistentry>
+
+	    <varlistentry>
+	      <term><command>no-case-compress</command></term> <listitem>
+		<para>
+                  Specifies a list of addresses which require responses
+                  to use case-insensitive compression.  This ACL can be
+                  used when <command>named</command> needs to work with
+                  clients that do not comply with the requirement in RFC
+                  1034 to use case-insensitive name comparisons when
+                  checking for matching domain names.
+                </para>
+                <para>
+                  If left undefined, the ACL defaults to
+                  <command>none</command>: case-insensitive compression
+                  will be used for all clients.  If the ACL is defined and
+                  matches a client, then case will be ignored when
+                  compressing domain names in DNS responses sent to that
+                  client.
+                </para>
+                <para>
+                  This can result in slightly smaller responses: if
+                  a response contains the names "example.com" and
+                  "example.COM", case-insensitive compression would treat
+                  the second one as a duplicate.  It also ensures
+                  that the case of the query name exactly matches the
+                  case of the owner names of returned records, rather
+                  than matching the case of the records entered in
+                  the zone file.  This allows responses to exactly
+                  match the query, which is required by some clients
+                  due to incorrect use of case-sensitive comparisions.
+                </para>
+                <para>
+                  Case-insensitive compression is <emphasis>always</emphasis>
+                  used in AXFR and IXFR responses, regardless of whether
+                  the client matches this ACL.
+                </para>
+                <para>
+                  There are circusmstances in which <command>named</command>
+                  will not preserve the case of owner names of records:
+                  if a zone file defines records of different types with
+                  the same name, but the capitalization of the name is
+                  different (e.g., "www.example.com/A" and
+                  "WWW.EXAMPLE.COM/AAAA"), then all resposnes for that
+                  name will use the <emphasis>first</emphasis> version
+                  of the name that was used in the zone file.  This
+                  limitation may be addressed in a future release.  However,
+                  domain names specified in the rdata of resource records
+                  (i.e., records of type NS, MX, CNAME, etc) will always
+                  have their case preserved unless the client matches this
+                  ACL.
+                </para>
+	      </listitem>
+	    </varlistentry>
 
             <varlistentry>
               <term><command>resolver-query-timeout</command></term>
