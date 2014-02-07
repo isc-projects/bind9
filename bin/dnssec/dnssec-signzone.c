@@ -3365,17 +3365,18 @@ main(int argc, char *argv[]) {
 	isc_stdtime_get(&now);
 
 	if (startstr != NULL) {
-		starttime = strtotime(startstr, now, now);
+		starttime = strtotime(startstr, now, now, NULL);
 	} else
 		starttime = now - 3600;  /* Allow for some clock skew. */
 
 	if (endstr != NULL)
-		endtime = strtotime(endstr, now, starttime);
+		endtime = strtotime(endstr, now, starttime, NULL);
 	else
 		endtime = starttime + (30 * 24 * 60 * 60);
 
 	if (dnskey_endstr != NULL) {
-		dnskey_endtime = strtotime(dnskey_endstr, now, starttime);
+		dnskey_endtime = strtotime(dnskey_endstr, now, starttime,
+					   NULL);
 		if (endstr != NULL && dnskey_endtime == endtime)
 			fprintf(stderr, "WARNING: -e and -X were both set, "
 					"but have identical values.\n");

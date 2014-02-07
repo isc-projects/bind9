@@ -485,6 +485,13 @@ $ <userinput>dnssec-keyfromlabel -l sample-ksk -f KSK example.net</userinput>
       different keylabel, a smaller key size, and omitting "-f KSK"
       from the dnssec-keyfromlabel arguments:
     </para>
+    <para>
+      (Note: When using OpenSSL-based PKCS#11 the label is an arbitrary
+      string which identifies the key.  With native PKCS#11, the label is
+      a PKCS#11 URI string which may include other details about the key
+      and the HSM, including its PIN. See
+      <xref linkend="man.dnssec-keyfromlabel"/> for details.)
+    </para>
     <screen>
 $ <userinput>pkcs11-keygen -b 1024 -l sample-zsk</userinput>
 $ <userinput>dnssec-keyfromlabel -l sample-zsk example.net</userinput>
@@ -595,7 +602,7 @@ $ <userinput>dnssec-signzone -E '' -S example.net</userinput>
       <para>
         Placing the HSM's PIN in a text file in this manner may reduce the
         security advantage of using an HSM. Be sure this is what you want to
-        do before configuring OpenSSL in this way.
+        do before configuring the system in this way.
       </para>
     </warning>
   </sect2>

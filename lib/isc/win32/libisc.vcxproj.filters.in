@@ -44,9 +44,6 @@
     <ClInclude Include="..\include\isc\bind9.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\bitstring.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\boolean.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -441,9 +438,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\bind9.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\bitstring.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\buffer.c">

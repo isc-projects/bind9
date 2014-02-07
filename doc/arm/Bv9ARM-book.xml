@@ -9365,6 +9365,16 @@ deny-answer-aliases { "example.net"; };
 	  </para>
 
 	  <para>
+	    A <command>response-policy</command> option can support
+	    multiple policy zones.  To maximize performance, a radix
+	    tree is used to quickly identify response policy zones
+	    containing triggers that match the current query.  This
+	    imposes an upper limit of 32 on the number of policy zones
+	    in a single <command>response-policy</option> option; more
+	    than that is a configuration error.
+	  </para>
+
+	  <para>
 	    Five policy triggers can be encoded in RPZ records.
 	    <variablelist>
 	      <varlistentry>

@@ -1628,8 +1628,12 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 
 	rpz_obj = cfg_listelt_value(element);
 
-	if (view->rpzs->p.num_zones >= DNS_RPZ_MAX_ZONES)
-		return (ISC_R_NOMEMORY);
+	if (view->rpzs->p.num_zones >= DNS_RPZ_MAX_ZONES) {
+		cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
+			    "limit of %d response policy zones exceeded",
+			    DNS_RPZ_MAX_ZONES);
+		return (ISC_R_FAILURE);
+	}
 
 	new = isc_mem_get(view->rpzs->mctx, sizeof(*new));
 	if (new == NULL) {

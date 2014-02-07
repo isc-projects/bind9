@@ -1,3 +1,21 @@
+3730.	[cleanup]	Added "never" as a synonym for "none" when
+			configuring key event dates in the dnssec tools.
+			[RT #35277]
+
+3729.	[bug]		dnssec-kegeyn could set the publication date
+			incorrectly when only the activation date was
+			specified on the command line. [RT #35278]
+
+3728.	[doc]		Expanded native-PKCS#11 documentation,
+			specifically pkcs11: URI labels. [RT #35287]
+
+3727.	[func]		The isc_bitstring API is no longer used and
+			has been removed from libisc. [RT #35284]
+
+3726.	[cleanup]	Clarified the error message when attempting
+			to configure more than 32 response-policy zones.
+			[RT #35283]
+
 3725.	[contrib]	Updated zkt and nslint to newest versions,
 			cleaned up and rearranged the contrib
 			directory, and added a README.
