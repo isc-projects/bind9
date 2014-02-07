@@ -158,7 +158,7 @@
             PKCS#11 support, the label is an arbitrary string that
             identifies a particular key.  It may be preceded by an
             optional OpenSSL engine name, followed by a colon, as in
-            "pkcs11:<replaceable>keylabel<replaceable>".
+            "pkcs11:<replaceable>keylabel</replaceable>".
           </para>
           <para>
             When <acronym>BIND</acronym> 9 is built with native PKCS#11
