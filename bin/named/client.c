@@ -214,6 +214,8 @@ static void ns_client_checkactive(ns_client_t *client);
 static void client_start(isc_task_t *task, isc_event_t *event);
 static void client_request(isc_task_t *task, isc_event_t *event);
 static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
+static inline isc_boolean_t
+allowed(isc_netaddr_t *addr, dns_name_t *signer, dns_acl_t *acl);
 
 void
 ns_client_recursing(ns_client_t *client) {
@@ -972,7 +974,19 @@ ns_client_send(ns_client_t *client) {
 	result = dns_compress_init(&cctx, -1, client->mctx);
 	if (result != ISC_R_SUCCESS)
 		goto done;
-	dns_compress_setsensitive(&cctx, ISC_TRUE);
+	if (client->peeraddr_valid && client->view != NULL) {
+		isc_netaddr_t netaddr;
+		dns_name_t *name = NULL;
+
+		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+		if (client->message->tsigkey != NULL)
+			name = &client->message->tsigkey->name;
+		if (client->view->nocasecompress == NULL ||
+		    !allowed(&netaddr, name, client->view->nocasecompress))
+		{
+			dns_compress_setsensitive(&cctx, ISC_TRUE);
+		}
+	}
 	cleanup_cctx = ISC_TRUE;
 
 	result = dns_message_renderbegin(client->message, &cctx, &buffer);
