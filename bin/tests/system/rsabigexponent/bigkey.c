@@ -243,6 +243,8 @@ main(int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
+	UNUSED(argc);
+	UNUSED(argv);
 	fprintf(stderr, "Compiled without OpenSSL\n");
 	exit(1);
 }
