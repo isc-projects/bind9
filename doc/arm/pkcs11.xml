@@ -149,7 +149,7 @@ $ <userinput>./configure --enable-native-pkcs11 \
       necessary to build OpenSSL with the patch in place, and configure
       it with the path to your HSM's PKCS#11 provider library.
     </para>
-    </sect3>
+    <sect3>
       <title>Patching OpenSSL</title>
       <screen>
 $ <userinput>wget <ulink>http://www.openssl.org/source/openssl-0.9.8y.tar.gz</ulink></userinput>
@@ -293,10 +293,10 @@ $ <userinput>./Configure linux-x86_64 -pthread \
             --pk11-flavor=sign-only \
             --prefix=/opt/pkcs11/usr</userinput>
 </screen>
-     <para>
-       After configuring, run "<command>make</command>"
-       and "<command>make test</command>".
-     </para>
+      <para>
+        After configuring, run "<command>make</command>"
+        and "<command>make test</command>".
+      </para>
     </sect3>
     <para>
       Once you have built OpenSSL, run
