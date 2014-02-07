@@ -15,7 +15,7 @@
 			configuring key event dates in the dnssec tools.
 			[RT #35277]
 
-3729.	[bug]		dnssec-kegeyn could set the publication date
+3729.	[bug]		dnssec-keygen could set the publication date
 			incorrectly when only the activation date was
 			specified on the command line. [RT #35278]
 
