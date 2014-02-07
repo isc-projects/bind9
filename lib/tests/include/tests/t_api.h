@@ -38,7 +38,7 @@
 #define	T_PASS		0x1
 #define	T_FAIL		0x2
 #define	T_UNRESOLVED	0x3
-#define	T_UNSUPPORTED	0x4
+#define	T_SKIPPED	0x4
 #define	T_UNTESTED	0x5
 #define	T_THREADONLY	0x6
 #define	T_PKCS11ONLY	0x7

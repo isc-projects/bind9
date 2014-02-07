@@ -250,7 +250,9 @@ main(int argc, char **argv) {
 #include <stdlib.h>
 
 int
-main() {
+main(int argc, char **argv) {
+	UNUSED(argc);
+	UNUSED(argv);
 	fprintf(stderr, "Compiled without Crypto\n");
 	exit(1);
 }
