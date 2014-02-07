@@ -1,3 +1,10 @@
+3733.	[func]		Improve interface scanning support.  Interface
+			information will be automatically updated if the
+			OS supports routing sockets.  Use
+			"automatic-interface-scan no;" to disable.
+
+			Add "rndc scan" to trigger a scan. [RT #23027]
+
 3732.	[contrib]	Fixed a type mismatch causing the ODBC DLZ
 			driver to dump core on 64-bit systems. [RT #35324]
 

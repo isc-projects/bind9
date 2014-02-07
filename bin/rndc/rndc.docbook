@@ -340,6 +340,18 @@
       </varlistentry>
 
       <varlistentry>
+        <term><userinput>scan</userinput></term>
+        <listitem>
+          <para>
+             Scan the list of available network interfaces
+             for changes, without performing a full
+             <command>reconfig</command> or waiting for the
+             <command>interface-interval</command> timer.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term><userinput>sync <optional>-clean</optional> <optional><replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></optional></userinput></term>
         <listitem>
           <para>

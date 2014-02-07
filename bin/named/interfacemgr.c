@@ -33,6 +33,14 @@
 #include <named/client.h>
 #include <named/log.h>
 #include <named/interfacemgr.h>
+#include <named/server.h>
+
+#ifdef HAVE_NET_ROUTE_H
+#include <net/route.h>
+#if defined(RTM_VERSION) && defined(RTM_NEWADDR) && defined(RTM_DELADDR)
+#define USE_ROUTE_SOCKET 1
+#endif
+#endif
 
 #define IFMGR_MAGIC			ISC_MAGIC('I', 'F', 'M', 'G')
 #define NS_INTERFACEMGR_VALID(t)	ISC_MAGIC_VALID(t, IFMGR_MAGIC)
@@ -55,6 +63,11 @@ struct ns_interfacemgr {
 	dns_aclenv_t		aclenv;		/*%< Localhost/localnets ACLs */
 	ISC_LIST(ns_interface_t) interfaces;	/*%< List of interfaces. */
 	ISC_LIST(isc_sockaddr_t) listenon;
+#ifdef USE_ROUTE_SOCKET
+	isc_task_t *		task;
+	isc_socket_t *		route;
+	unsigned char		buf[2048];
+#endif
 };
 
 static void
@@ -62,6 +75,69 @@ purge_old_interfaces(ns_interfacemgr_t *mgr);
 
 static void
 clearlistenon(ns_interfacemgr_t *mgr);
+
+#ifdef USE_ROUTE_SOCKET
+static void
+route_event(isc_task_t *task, isc_event_t *event) {
+	isc_socketevent_t *sevent = NULL;
+	ns_interfacemgr_t *mgr = NULL;
+	isc_region_t r;
+	isc_result_t result;
+	struct rt_msghdr *rtm;
+
+	UNUSED(task);
+
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
+	mgr = event->ev_arg;
+	sevent = (isc_socketevent_t *)event;
+
+	if (sevent->result != ISC_R_SUCCESS) {
+		if (sevent->result != ISC_R_CANCELED)
+			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+				      "automatic interface scanning "
+				      "terminated: %s",
+				      isc_result_totext(sevent->result));
+		ns_interfacemgr_detach(&mgr);
+		isc_event_free(&event);
+		return;
+	}
+
+	rtm = (struct rt_msghdr *)mgr->buf;
+	if (rtm->rtm_version != RTM_VERSION) {
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "automatic interface rescanning disabled: "
+			      "rtm->rtm_version mismatch (%u != %u) "
+			      "recompile required", rtm->rtm_version,
+			      RTM_VERSION);
+		isc_task_detach(&mgr->task);
+		isc_socket_detach(&mgr->route);
+		ns_interfacemgr_detach(&mgr);
+		isc_event_free(&event);
+		return;
+	}
+
+	switch (rtm->rtm_type) {
+	case RTM_NEWADDR:
+	case RTM_DELADDR:
+		if (ns_g_server->interface_auto)
+			ns_server_scan_interfaces(ns_g_server);
+		break;
+	default:
+		break;
+	}
+
+	/*
+	 * Look for next route event.
+	 */
+	r.base = mgr->buf;
+	r.length = sizeof(mgr->buf);
+	result = isc_socket_recv(mgr->route, &r, 1, mgr->task,
+				 route_event, mgr);
+	if (result != ISC_R_SUCCESS)
+		ns_interfacemgr_detach(&mgr);
+	isc_event_free(&event);
+}
+#endif
 
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
@@ -112,11 +188,51 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	mgr->aclenv.geoip = ns_g_geoip;
 #endif
 
+#ifdef USE_ROUTE_SOCKET
+	mgr->route = NULL;
+	result = isc_socket_create(mgr->socketmgr, PF_ROUTE,
+				   isc_sockettype_raw, &mgr->route);
+	switch (result) {
+	case ISC_R_NOPERM:
+	case ISC_R_SUCCESS:
+	case ISC_R_NOTIMPLEMENTED:
+	    break;
+	default:
+		goto cleanup_aclenv;
+	}
+
+	mgr->task = NULL;
+	if (mgr->route != NULL) {
+		result = isc_task_create(taskmgr, 0, &mgr->task);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_route;
+	}
+	mgr->references = (mgr->route != NULL) ? 2 : 1;
+#else
 	mgr->references = 1;
+#endif
 	mgr->magic = IFMGR_MAGIC;
 	*mgrp = mgr;
+
+#ifdef USE_ROUTE_SOCKET
+	if (mgr->route != NULL) {
+		isc_region_t r = { mgr->buf, sizeof(mgr->buf) };
+
+		result = isc_socket_recv(mgr->route, &r, 1, mgr->task,
+					 route_event, mgr);
+		if (result != ISC_R_SUCCESS)
+			ns_interfacemgr_detach(&mgr);
+	}
+#endif
 	return (ISC_R_SUCCESS);
 
+#ifdef USE_ROUTE_SOCKET
+ cleanup_route:
+	if (mgr->route != NULL)
+		isc_socket_detach(&mgr->route);
+ cleanup_aclenv:
+#endif
+	dns_aclenv_destroy(&mgr->aclenv);
  cleanup_listenon:
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
@@ -128,6 +244,13 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 static void
 ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+
+#ifdef USE_ROUTE_SOCKET
+	if (mgr->route != NULL)
+		isc_socket_detach(&mgr->route);
+	if (mgr->task != NULL)
+		isc_task_detach(&mgr->task);
+#endif
 	dns_aclenv_destroy(&mgr->aclenv);
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
@@ -179,6 +302,10 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 	 * consider all interfaces "old".
 	 */
 	mgr->generation++;
+#ifdef USE_ROUTE_SOCKET
+	if (mgr->route != NULL)
+		isc_socket_cancel(mgr->route, mgr->task, ISC_SOCKCANCEL_RECV);
+#endif
 	purge_old_interfaces(mgr);
 }
 

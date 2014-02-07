@@ -952,6 +952,7 @@ bindkeys_clauses[] = {
  */
 static cfg_clausedef_t
 options_clauses[] = {
+	{ "automatic-interface-scan", &cfg_type_boolean, 0 },
 	{ "avoid-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "bindkeys-file", &cfg_type_qstring, 0 },

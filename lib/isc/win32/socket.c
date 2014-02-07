@@ -1672,6 +1672,11 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	if (dup_socket != NULL)
 		return (ISC_R_NOTIMPLEMENTED);
 
+#ifndef SOCK_RAW
+	if (type == isc_sockettype_raw)
+		return (ISC_R_NOTIMPLEMENTED);
+#endif
+
 	result = allocate_socket(manager, type, &sock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -1704,6 +1709,13 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		case isc_sockettype_tcp:
 			sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);
 			break;
+#ifdef SOCK_RAW
+		case isc_sockettype_raw:
+			sock->fd = socket(pf, SOCK_RAW, 0);
+			if (pf == PF_ROUTE)
+				sock->bound = 1;
+			break;
+#endif
 		}
 #if 0
 	} else {

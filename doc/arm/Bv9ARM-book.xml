@@ -5735,6 +5735,23 @@ options {
 	  <variablelist>
 
 	    <varlistentry>
+	      <term><command>automatic-interface-scan</command></term>
+	      <listitem>
+		<para>
+		  If <userinput>yes</userinput> and supported by the OS,
+		  automatically rescan network interfaces when the interface
+		  addresses are added or removed.  The default is
+		  <userinput>yes</userinput>.
+		</para>
+		<para>
+		  Currently the OS needs to support routing sockets for
+		  <command>automatic-interface-scan</command> to be
+		  supported.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>allow-new-zones</command></term>
 	      <listitem>
 		<para>

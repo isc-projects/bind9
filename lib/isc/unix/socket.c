@@ -737,6 +737,19 @@ static const isc_statscounter_t fdwatchstatsindex[] = {
 	isc_sockstatscounter_fdwatchrecvfail,
 	-1
 };
+static const isc_statscounter_t rawstatsindex[] = {
+	isc_sockstatscounter_rawopen,
+	isc_sockstatscounter_rawopenfail,
+	isc_sockstatscounter_rawclose,
+	-1,
+	-1,
+	-1,
+	-1,
+	-1,
+	-1,
+	isc_sockstatscounter_rawrecvfail,
+	isc_sockstatscounter_rawactive
+};
 
 #if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL) || \
     defined(USE_WATCHER_THREAD)
@@ -1884,6 +1897,7 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 			return (DOIO_EOF);
 		break;
 	case isc_sockettype_udp:
+	case isc_sockettype_raw:
 		break;
 	case isc_sockettype_fdwatch:
 	default:
@@ -2462,6 +2476,11 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		case isc_sockettype_unix:
 			sock->fd = socket(sock->pf, SOCK_STREAM, 0);
 			break;
+		case isc_sockettype_raw:
+			sock->fd = socket(sock->pf, SOCK_RAW, 0);
+			if (sock->pf == PF_ROUTE)
+				sock->bound = 1;
+			break;
 		case isc_sockettype_fdwatch:
 			/*
 			 * We should not be called for isc_sockettype_fdwatch
@@ -2795,6 +2814,9 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		break;
 	case isc_sockettype_unix:
 		sock->statsindex = unixstatsindex;
+		break;
+	case isc_sockettype_raw:
+		sock->statsindex = rawstatsindex;
 		break;
 	default:
 		INSIST(0);
