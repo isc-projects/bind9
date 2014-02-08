@@ -79,6 +79,7 @@ options {
         attach-cache <string>;
         auth-nxdomain <boolean>; // default changed
         auto-dnssec ( allow | maintain | off );
+        automatic-interface-scan <boolean>;
         avoid-v4-udp-ports { <portrange>; ... };
         avoid-v6-udp-ports { <portrange>; ... };
         bindkeys-file <quoted_string>;
@@ -188,6 +189,7 @@ options {
         multi-master <boolean>;
         multiple-cnames <boolean>; // obsolete
         named-xfer <quoted_string>; // obsolete
+        no-case-compress { <address_match_element>; ... };
         notify <notifytype>;
         notify-delay <integer>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
@@ -438,6 +440,7 @@ view <string> <optional_class> {
         min-roots <integer>; // not implemented
         minimal-responses <boolean>;
         multi-master <boolean>;
+        no-case-compress { <address_match_element>; ... };
         notify <notifytype>;
         notify-delay <integer>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [

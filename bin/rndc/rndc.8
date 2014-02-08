@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004, 2005, 2007, 2013 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004, 2005, 2007, 2013, 2014 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000, 2001 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
@@ -181,6 +181,15 @@ Suspend updates to a dynamic zone. If no zone is specified, then all zones are s
 Enable updates to a frozen dynamic zone. If no zone is specified, then all frozen zones are enabled. This causes the server to reload the zone from disk, and re\-enables dynamic updates after the load has completed. After a zone is thawed, dynamic updates will no longer be refused. If the zone has changed and the
 \fBixfr\-from\-differences\fR
 option is in use, then the journal file will be updated to reflect changes in the zone. Otherwise, if the zone has changed, any existing journal file will be removed.
+.RE
+.PP
+\fBscan\fR
+.RS 4
+Scan the list of available network interfaces for changes, without performing a full
+\fBreconfig\fR
+or waiting for the
+\fBinterface\-interval\fR
+timer.
 .RE
 .PP
 \fBsync \fR\fB[\-clean]\fR\fB \fR\fB[\fIzone\fR [\fIclass\fR [\fIview\fR]]]\fR
@@ -428,7 +437,7 @@ BIND 9 Administrator Reference Manual.
 .PP
 Internet Systems Consortium
 .SH "COPYRIGHT"
-Copyright \(co 2004, 2005, 2007, 2013 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004, 2005, 2007, 2013, 2014 Internet Systems Consortium, Inc. ("ISC")
 .br
 Copyright \(co 2000, 2001 Internet Software Consortium.
 .br
