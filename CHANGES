@@ -1,7 +1,7 @@
 3733.	[func]		Improve interface scanning support.  Interface
 			information will be automatically updated if the
-			OS supports routing sockets.  Use
-			"automatic-interface-scan no;" to disable.
+			OS supports routing sockets (MacOS, *BSD, Linux).
+			Use "automatic-interface-scan no;" to disable.
 
 			Add "rndc scan" to trigger a scan. [RT #23027]
 

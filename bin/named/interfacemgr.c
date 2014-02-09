@@ -39,6 +39,20 @@
 #include <net/route.h>
 #if defined(RTM_VERSION) && defined(RTM_NEWADDR) && defined(RTM_DELADDR)
 #define USE_ROUTE_SOCKET 1
+#define ROUTE_SOCKET_PROTOCOL PF_ROUTE
+#define MSGHDR rt_msghdr
+#define MSGTYPE rtm_type
+#endif
+#endif
+
+#if defined(HAVE_LINUX_NETLINK_H) && defined(HAVE_LINUX_RTNETLINK_H)
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+#if defined(RTM_NEWADDR) && defined(RTM_DELADDR)
+#define USE_ROUTE_SOCKET 1
+#define ROUTE_SOCKET_PROTOCOL PF_NETLINK
+#define MSGHDR nlmsghdr
+#define MSGTYPE nlmsg_type
 #endif
 #endif
 
@@ -83,7 +97,7 @@ route_event(isc_task_t *task, isc_event_t *event) {
 	ns_interfacemgr_t *mgr = NULL;
 	isc_region_t r;
 	isc_result_t result;
-	struct rt_msghdr *rtm;
+	struct MSGHDR *rtm;
 
 	UNUSED(task);
 
@@ -102,7 +116,8 @@ route_event(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
-	rtm = (struct rt_msghdr *)mgr->buf;
+	rtm = (struct MSGHDR *)mgr->buf;
+#ifdef RTM_VERSION
 	if (rtm->rtm_version != RTM_VERSION) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "automatic interface rescanning disabled: "
@@ -115,8 +130,9 @@ route_event(isc_task_t *task, isc_event_t *event) {
 		isc_event_free(&event);
 		return;
 	}
+#endif
 
-	switch (rtm->rtm_type) {
+	switch (rtm->MSGTYPE) {
 	case RTM_NEWADDR:
 	case RTM_DELADDR:
 		if (ns_g_server->interface_auto)
@@ -190,12 +206,13 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 #ifdef USE_ROUTE_SOCKET
 	mgr->route = NULL;
-	result = isc_socket_create(mgr->socketmgr, PF_ROUTE,
+	result = isc_socket_create(mgr->socketmgr, ROUTE_SOCKET_PROTOCOL,
 				   isc_sockettype_raw, &mgr->route);
 	switch (result) {
 	case ISC_R_NOPERM:
 	case ISC_R_SUCCESS:
 	case ISC_R_NOTIMPLEMENTED:
+	case ISC_R_FAMILYNOSUPPORT:
 	    break;
 	default:
 		goto cleanup_aclenv;

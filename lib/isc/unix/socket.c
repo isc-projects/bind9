@@ -28,6 +28,11 @@
 #include <sys/time.h>
 #include <sys/uio.h>
 
+#if defined(HAVE_LINUX_NETLINK_H) && defined(HAVE_LINUX_RTNETLINK_H)
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stddef.h>
@@ -2477,10 +2482,41 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 			sock->fd = socket(sock->pf, SOCK_STREAM, 0);
 			break;
 		case isc_sockettype_raw:
-			sock->fd = socket(sock->pf, SOCK_RAW, 0);
-#ifdef PF_ROUTE
-			if (sock->pf == PF_ROUTE)
-				sock->bound = 1;
+			errno = EPFNOSUPPORT;
+			/*
+			 * PF_ROUTE is a alias for PF_NETLINK on linux.
+			 */
+#if defined(PF_ROUTE)
+			if (sock->fd == -1 && sock->pf == PF_ROUTE) {
+#ifdef NETLINK_ROUTE
+				sock->fd = socket(sock->pf, SOCK_RAW,
+						  NETLINK_ROUTE);
+#else
+				sock->fd = socket(sock->pf, SOCK_RAW, 0);
+#endif
+				if (sock->fd != -1) {
+#ifdef NETLINK_ROUTE
+					struct sockaddr_nl sa;
+					int n;
+
+					/*
+					 * Do an implicit bind.
+					 */
+					memset(&sa, 0, sizeof(sa));
+					sa.nl_family = AF_NETLINK;
+					sa.nl_groups = RTMGRP_IPV4_IFADDR |
+						       RTMGRP_IPV6_IFADDR;
+					n = bind(sock->fd,
+						 (struct sockaddr *) &sa,
+						 sizeof(sa));
+					if (n < 0) {
+						close(sock->fd);
+						sock->fd = -1;
+					}
+#endif
+					sock->bound = 1;
+				}
+			}
 #endif
 			break;
 		case isc_sockettype_fdwatch:
