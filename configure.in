@@ -3341,6 +3341,7 @@ DLZ_SYSTEM_TEST=""
 #
 SO="so"
 SO_CFLAGS=""
+SO_LDFLAGS=""
 SO_LD=""
 SO_TARGETS=""
 
@@ -3365,29 +3366,36 @@ if test "$dlopen" = "yes"; then
 	case $host in
 		*-linux*)
 			SO_CFLAGS="-fPIC"
+			SO_LDFLAGS=""
 			if test "$have_dl" = "yes"
 			then
 				if test "$use_libtool" = "yes"; then
-					SO_LD="${CC} -Xcompiler -shared"
+					SO_LDFLAGS="-Xcompiler -shared"
+					SO_LD="${CC}"
 				else
-					SO_LD="${CC} -shared"
+					SO_LDFLAGS="-shared"
+					SO_LD="${CC}"
 				fi
 			else
-				SO_LD="ld -shared"
+				SO_LDFLAGS="-shared"
+				SO_LD="ld"
 			fi
 			;;
 		*-freebsd*|*-openbsd*|*-netbsd*)
 			SO_CFLAGS="-fpic"
-			SO_LD="ld -Bshareable -x"
+			SO_LDFLAGS="-Bshareable -x"
+			SO_LD="ld"
 			;;
 		*-solaris*)
 			SO_CFLAGS="-KPIC"
-			SO_LD="ld -G -z text"
+			SO_LDFLAGS="-G -z text"
+			SO_LD="ld"
 			;;
 		*-hp-hpux*)
 			SO=sl
 			SO_CFLAGS="+z"
-			SO_LD="ld -b"
+			SO_LDFLAGS="-b"
+			SO_LD="ld"
 			;;
 		*)
 			SO_CFLAGS="-fPIC"
@@ -3396,7 +3404,16 @@ if test "$dlopen" = "yes"; then
 
 	if test "X$GCC" = "Xyes"; then
 		SO_CFLAGS="-fPIC"
-		test -n "$SO_LD" || SO_LD="${CC} -shared"
+		if test -z "$SO_LD"
+		then
+			if test "$use_libtool" = "yes"; then
+				SO_LDFLAGS="-Xcompiler -shared"
+				SO_LD="${CC}"
+			else
+				SO_LDFLAGS="-shared"
+				SO_LD="${CC}"
+			fi
+		fi
 	fi
 
 	# If we still don't know how to make shared objects, don't make any.
@@ -3409,6 +3426,7 @@ fi
 
 AC_SUBST(SO)
 AC_SUBST(SO_CFLAGS)
+AC_SUBST(SO_LDFLAGS)
 AC_SUBST(SO_LD)
 AC_SUBST(SO_TARGETS)
 

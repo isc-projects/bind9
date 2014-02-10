@@ -1,3 +1,5 @@
+3734.	[bug]		Improve building with libtool. [RT #35314]
+
 3732.	[contrib]	Fixed a type mismatch causing the ODBC DLZ
 			driver to dump core on 64-bit systems. [RT #35324]
 
