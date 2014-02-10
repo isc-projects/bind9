@@ -1,3 +1,5 @@
+3734.	[bug]		Improve building with libtool. [RT #35314]
+
 3733.	[func]		Improve interface scanning support.  Interface
 			information will be automatically updated if the
 			OS supports routing sockets (MacOS, *BSD, Linux).
