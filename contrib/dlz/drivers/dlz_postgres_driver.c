@@ -292,10 +292,8 @@ postgres_get_resultset(const char *zone, const char *record,
 	unsigned int i = 0;
 	unsigned int j = 0;
 
-#if 0
 	/* temporarily get a unique thread # */
 	unsigned int dlz_thread_num = 1+(int) (1000.0*rand()/(RAND_MAX+1.0));
-#endif
 
 	REQUIRE(*rs == NULL);
 
