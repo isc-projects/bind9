@@ -886,7 +886,7 @@
 ./bin/tests/system/dlz/ns1/named.conf		CONF-C	2010
 ./bin/tests/system/dlz/prereq.sh.in		SH	2011,2012
 ./bin/tests/system/dlz/tests.sh			SH	2010,2011,2012,2013
-./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011,2012
+./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011,2012,2014
 ./bin/tests/system/dlzexternal/clean.sh		X	2010,2014
 ./bin/tests/system/dlzexternal/dlopen.c		C	2011
 ./bin/tests/system/dlzexternal/driver.c		C	2011,2012
