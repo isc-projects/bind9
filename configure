@@ -1645,9 +1645,9 @@ Optional Features:
   --enable-largefile	  64-bit file support
   --enable-backtrace      log stack backtrace on abort [default=yes]
   --enable-symtable       use internal symbol table for backtrace
-                          [all|minimal(default)|none]
+			  [all|minimal(default)|none]
   --enable-exportlib	  build exportable library (GNU make required)
-                          [default=no]
+			  [default=no]
   --enable-ipv6           use IPv6 default=autodetect
   --enable-getifaddrs     Enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
@@ -1677,18 +1677,18 @@ Optional Packages:
   --with-ecdsa            OpenSSL ECDSA
   --with-gost             OpenSSL GOST
   --with-pkcs11=PATH      Build with PKCS11 support yes|no|path
-                          (PATH is for the PKCS11 provider)
+			  (PATH is for the PKCS11 provider)
   --with-gssapi=PATH      Specify path for system-supplied GSSAPI [default=yes]
   --with-randomdev=PATH   Specify path for random device
   --with-libxml2=PATH     Build with libxml2 library yes|no|path
   --with-purify=PATH      use Rational purify
   --with-libtool          use GNU libtool
   --with-export-libdir=PATH
-                          installation directory for the export library
-                          [EPREFIX/lib/bind9]
+			  installation directory for the export library
+			  [EPREFIX/lib/bind9]
   --with-export-includedir=PATH
-                          installation directory for the header files of the
-                          export library [PREFIX/include/bind9]
+			  installation directory for the header files of the
+			  export library [PREFIX/include/bind9]
   --with-kame=PATH	  use Kame IPv6 default path /usr/local/v6
   --with-readline=LIBSPEC    specify readline library default -lreadline
 
@@ -11699,14 +11699,14 @@ $as_echo "disabled" >&6; }
 			esac
 			break
 		fi
-                testscript='try: import argparse
+		testscript='try: import argparse
 except: exit(1)'
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
 $as_echo_n "checking python module 'argparse'... " >&6; }
-                if $PYTHON -c "$testscript"; then
-                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
+		if $PYTHON -c "$testscript"; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
 $as_echo "found, using $PYTHON" >&6; }
-                else
+		else
 			case "$use_python" in
 			unspec)
 				PYTHON=""
@@ -11716,12 +11716,12 @@ $as_echo "found, using $PYTHON" >&6; }
 $as_echo "not found, python disabled" >&6; }
 				;;
 			yes)
-                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no found" >&5
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no found" >&5
 $as_echo "no found" >&6; }
-                        as_fn_error $? "python 'argparse' module not supported" "$LINENO" 5
+			as_fn_error $? "python 'argparse' module not supported" "$LINENO" 5
 				;;
 			esac
-                fi
+		fi
 		;;
 esac
 
@@ -11729,7 +11729,7 @@ PYTHON_TOOLS=''
 CHECKDS=''
 COVERAGE=''
 if test "X$PYTHON" != "X"; then
-        PYTHON_TOOLS=python
+	PYTHON_TOOLS=python
 	CHECKDS=checkds
 	COVERAGE=coverage
 fi
@@ -13073,12 +13073,12 @@ yes)
 
 $as_echo "#define USE_RRL 1" >>confdefs.h
 
-        RRLLINKOBJS='${RRLOBJS}'
-        RRLLINKSRCS='${RRLSRCS}'
+	RRLLINKOBJS='${RRLOBJS}'
+	RRLLINKSRCS='${RRLSRCS}'
 	;;
 *)
-        RRLLINKOBJS=""
-        RRLLINKSRCS=""
+	RRLLINKOBJS=""
+	RRLLINKSRCS=""
 	;;
 esac
 
@@ -13737,20 +13737,20 @@ $as_echo "Skipped OpenSSL version check" >&6; }
 ;;
 esac
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL DSA support" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL DSA support" >&5
 $as_echo_n "checking for OpenSSL DSA support... " >&6; }
-        if test -f $use_openssl/include/openssl/dsa.h
-        then
-                $as_echo "#define HAVE_OPENSSL_DSA 1" >>confdefs.h
+	if test -f $use_openssl/include/openssl/dsa.h
+	then
+		$as_echo "#define HAVE_OPENSSL_DSA 1" >>confdefs.h
 
-                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-        else
-                { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-        fi
+	fi
 
-        for ac_func in EVP_sha256 EVP_sha384 EVP_sha512
+	for ac_func in EVP_sha256 EVP_sha384 EVP_sha512
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -13763,10 +13763,10 @@ fi
 done
 
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL ECDSA support" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL ECDSA support" >&5
 $as_echo_n "checking for OpenSSL ECDSA support... " >&6; }
-        have_ecdsa=""
-        if test "$cross_compiling" = yes; then :
+	have_ecdsa=""
+	if test "$cross_compiling" = yes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-ecdsa" >&5
 $as_echo "using --with-ecdsa" >&6; }
 else
@@ -13793,11 +13793,11 @@ _ACEOF
 if ac_fn_c_try_run "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-        have_ecdsa="yes"
+	have_ecdsa="yes"
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-        have_ecdsa="no"
+	have_ecdsa="no"
 fi
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
   conftest.$ac_objext conftest.beam conftest.$ac_ext
@@ -13811,37 +13811,37 @@ else
   with_ecdsa="auto"
 fi
 
-        case "$with_ecdsa" in
-        yes)
-            case "$have_ecdsa" in
-            no)  as_fn_error $? "ecdsa not supported" "$LINENO" 5 ;;
-            *)  have_ecdsa=yes ;;
-            esac
-            ;;
-        no)
-            have_ecdsa=no ;;
-        *)
-            case "$have_ecdsa" in
-            yes|no) ;;
-            *) as_fn_error $? "need --with-ecdsa=[yes or no]" "$LINENO" 5 ;;
-            esac
-            ;;
-        esac
-        case $have_ecdsa in
-        yes)
-                OPENSSL_ECDSA="yes"
+	case "$with_ecdsa" in
+	yes)
+	    case "$have_ecdsa" in
+	    no)  as_fn_error $? "ecdsa not supported" "$LINENO" 5 ;;
+	    *)  have_ecdsa=yes ;;
+	    esac
+	    ;;
+	no)
+	    have_ecdsa=no ;;
+	*)
+	    case "$have_ecdsa" in
+	    yes|no) ;;
+	    *) as_fn_error $? "need --with-ecdsa=[yes or no]" "$LINENO" 5 ;;
+	    esac
+	    ;;
+	esac
+	case $have_ecdsa in
+	yes)
+		OPENSSL_ECDSA="yes"
 
 $as_echo "#define HAVE_OPENSSL_ECDSA 1" >>confdefs.h
 
-                ;;
-        *)
-                ;;
-        esac
+		;;
+	*)
+		;;
+	esac
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL GOST support" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL GOST support" >&5
 $as_echo_n "checking for OpenSSL GOST support... " >&6; }
-        have_gost=""
-        if test "$cross_compiling" = yes; then :
+	have_gost=""
+	if test "$cross_compiling" = yes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-gost" >&5
 $as_echo "using --with-gost" >&6; }
 else
@@ -13873,11 +13873,11 @@ _ACEOF
 if ac_fn_c_try_run "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-        have_gost="yes"
+	have_gost="yes"
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-        have_gost="no"
+	have_gost="no"
 fi
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
   conftest.$ac_objext conftest.beam conftest.$ac_ext
@@ -13891,24 +13891,24 @@ else
   with_gost="auto"
 fi
 
-        case "$with_gost" in
-        yes)
-            case "$have_gost" in
-            no)  as_fn_error $? "gost not supported" "$LINENO" 5 ;;
-            *)  have_gost=yes ;;
-            esac
-            ;;
-        no)
-            have_gost=no ;;
-        *)
-            case "$have_gost" in
-            yes|no) ;;
-            *) as_fn_error $? "need --with-gost=[yes or no]" "$LINENO" 5 ;;
-            esac
-            ;;
-        esac
-        case $have_gost in
-        yes)
+	case "$with_gost" in
+	yes)
+	    case "$have_gost" in
+	    no)  as_fn_error $? "gost not supported" "$LINENO" 5 ;;
+	    *)  have_gost=yes ;;
+	    esac
+	    ;;
+	no)
+	    have_gost=no ;;
+	*)
+	    case "$have_gost" in
+	    yes|no) ;;
+	    *) as_fn_error $? "need --with-gost=[yes or no]" "$LINENO" 5 ;;
+	    esac
+	    ;;
+	esac
+	case $have_gost in
+	yes)
 		OPENSSL_GOST="yes"
 		OPENSSLGOSTLINKOBJS='${OPENSSLGOSTLINKOBJS}'
 		OPENSSLGOSTLINKSRCS='${OPENSSLGOSTLINKSRCS}'
@@ -13916,15 +13916,15 @@ fi
 $as_echo "#define HAVE_OPENSSL_GOST 1" >>confdefs.h
 
 		;;
-        *)
-                ;;
-        esac
-        CFLAGS="$saved_cflags"
-        LIBS="$saved_libs"
-        OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
-        OPENSSLLINKSRCS='${OPENSSLLINKSRCS}'
+	*)
+		;;
+	esac
+	CFLAGS="$saved_cflags"
+	LIBS="$saved_libs"
+	OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
+	OPENSSLLINKSRCS='${OPENSSLLINKSRCS}'
 
-        ;;
+	;;
 esac
 
 #
@@ -14053,10 +14053,10 @@ then
 	    for d in $krb5dirs
 	    do
 		if test -f $d/include/gssapi/gssapi_krb5.h -o \
-		        -f $d/include/krb5.h
+			-f $d/include/krb5.h
 		then
 			if test -f $d/include/gssapi/gssapi.h -o \
-			        -f $d/include/gssapi.h
+				-f $d/include/gssapi.h
 			then
 				use_gssapi=$d
 				break
@@ -14355,11 +14355,11 @@ esac
 CHECK_DSA=0
 if grep "#define PATH_RANDOMDEV " confdefs.h > /dev/null
 then
-        case "$host" in
-        *darwin*|*freebsd*)
-                CHECK_DSA=1
-                ;;
-        esac
+	case "$host" in
+	*darwin*|*freebsd*)
+		CHECK_DSA=1
+		;;
+	esac
 fi
 
 
@@ -16861,7 +16861,7 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #include <sys/socket.h>
 #include <netdb.h>
 int getnameinfo(const struct sockaddr *, socklen_t, char *,
-                socklen_t, char *, socklen_t, unsigned int);
+		socklen_t, char *, socklen_t, unsigned int);
 int
 main ()
 {
@@ -16887,7 +16887,7 @@ else
 #include <sys/socket.h>
 #include <netdb.h>
 int getnameinfo(const struct sockaddr *, socklen_t, char *,
-                size_t, char *, size_t, int);
+		size_t, char *, size_t, int);
 int
 main ()
 {
@@ -17171,7 +17171,7 @@ done
 		READLINE_LIB="$readline"
 	fi
 	LIBS="$saved_LIBS"
-        ;;
+	;;
 esac
 
 ISC_PRINT_OBJS=
@@ -17640,7 +17640,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 # Older HP-UX doesn't have gettune
 #
 case "$host" in
-  	*-hp-hpux*)
+	*-hp-hpux*)
 		for ac_header in sys/dyntune.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "sys/dyntune.h" "ac_cv_header_sys_dyntune_h" "$ac_includes_default"
@@ -18012,7 +18012,7 @@ $as_echo_n "checking architecture type for atomic operations... " >&6; }
 	i[3456]86-*)
 		# XXX: some old x86 architectures actually do not support
 		#      (some of) these operations.  Do we need stricter checks?
-                # The cast to long int works around a bug in the HP C Compiler
+		# The cast to long int works around a bug in the HP C Compiler
 # version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
 # declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
 # This bug is HP SR number 8606223364.
@@ -18053,7 +18053,7 @@ _ACEOF
 		fi
 	;;
 	x86_64-*|amd64-*)
-                # The cast to long int works around a bug in the HP C Compiler
+		# The cast to long int works around a bug in the HP C Compiler
 # version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
 # declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
 # This bug is HP SR number 8606223364.
@@ -18722,7 +18722,7 @@ $as_echo "auto" >&6; }
 	;;
 *)
 	docbook_xsl_trees="$withval"
-    	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $docbook_xsl_trees" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $docbook_xsl_trees" >&5
 $as_echo "$docbook_xsl_trees" >&6; }
 	;;
 esac
@@ -19332,7 +19332,7 @@ fi
 	if test "$have_dl" = "yes"; then
 		LIBS="-ldl $LIBS"
 	fi
-        for ac_func in dlopen dlclose dlsym
+	for ac_func in dlopen dlclose dlsym
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -19370,12 +19370,12 @@ if test "$dlopen" = "yes"; then
 		*-solaris*)
 			SO_CFLAGS="-KPIC"
 			SO_LD="ld -G -z text"
-                        ;;
+			;;
 		*-hp-hpux*)
 			SO=sl
 			SO_CFLAGS="+z"
 			SO_LD="ld -b"
-                        ;;
+			;;
 		*)
 			SO_CFLAGS="-fPIC"
 			;;
@@ -19383,7 +19383,7 @@ if test "$dlopen" = "yes"; then
 
 	if test "X$GCC" = "Xyes"; then
 		SO_CFLAGS="-fPIC"
-                test -n "$SO_LD" || SO_LD="${CC} -shared"
+		test -n "$SO_LD" || SO_LD="${CC} -shared"
 	fi
 
 	# If we still don't know how to make shared objects, don't make any.
@@ -22669,13 +22669,13 @@ test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
 # these lines are only printed if run with --enable-full-report
 if test "$enable_full_report" = "yes"; then
     test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" || \
-        echo "    IPv6 support (--enable-ipv6)"
+	echo "    IPv6 support (--enable-ipv6)"
     test "X$USE_OPENSSL" = "X" || \
-            echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+	    echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
     test "$OPENSSL_GOST" != "yes" || \
-            echo "    GOST algorithm support (--with-gost)"
+	    echo "    GOST algorithm support (--with-gost)"
     test "$OPENSSL_ECDSA" != "yes" || \
-            echo "    ECDSA algorithm support (--with-ecdsa)"
+	    echo "    ECDSA algorithm support (--with-ecdsa)"
     test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
     test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
 fi
@@ -22701,7 +22701,7 @@ echo
 echo "Features disabled or unavailable on this platform:"
 $use_threads || echo "    Multiprocessing support (--enable-threads)"
 test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
-        echo "    IPv6 support (--enable-ipv6)"
+	echo "    IPv6 support (--enable-ipv6)"
 test "$enable_rrl" = "yes" || \
     echo "    Response Rate Limiting (--enable-rrl)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
@@ -22713,7 +22713,7 @@ test "$want_backtrace" = "yes" || \
     echo "    Print backtrace on crash (--enable-backtrace)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 test "X$USE_OPENSSL" = "X" && \
-        echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+	echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
 test "X$USE_OPENSSL" != "X" -a "$OPENSSL_GOST" != "yes" && \
     echo "    GOST algorithm support (--with-gost)"
 test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ECDSA" != "yes" && \
