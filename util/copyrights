@@ -3267,7 +3267,6 @@
 ./lib/isc/base32.c				C	2008,2009,2013,2014
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2013,2014
 ./lib/isc/bind9.c				C	2013
-./lib/isc/bitstring.c				C	1999,2000,2001,2004,2005,2007
 ./lib/isc/buffer.c				C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2012,2014
 ./lib/isc/bufferlist.c				C	1999,2000,2001,2004,2005,2007
 ./lib/isc/commandline.c				C.PORTION	1999,2000,2001,2004,2005,2007,2008,2014
@@ -3294,7 +3293,6 @@
 ./lib/isc/include/isc/base32.h			C	2008
 ./lib/isc/include/isc/base64.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/bind9.h			C	2009,2013
-./lib/isc/include/isc/bitstring.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/boolean.h			C	1998,1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/buffer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2010,2012,2014
 ./lib/isc/include/isc/bufferlist.h		C	1999,2000,2001,2004,2005,2006,2007
