@@ -15213,7 +15213,7 @@ $as_echo "no" >&6; }
 	fi
 	case "$host" in
 	*-hp-hpux*)
-		LDFLAGS="-Wl,+vnocompatwarnings $LDFLAGS"
+		CFLAGS="-Wl,+vnocompatwarnings $CFLAGS"
 		;;
 	esac
 else
@@ -15241,7 +15241,7 @@ else
 		esac
 		CCOPT="$CCOPT -Ae -z"
 		CCNOOPT="$CCNOOPT -Ae -z"
-		LDFLAGS="-Wl,+vnocompatwarnings $LDFLAGS"
+		CFLAGS="-Wl,+vnocompatwarnings $CFLAGS"
 		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;
 	*-sgi-irix*)
