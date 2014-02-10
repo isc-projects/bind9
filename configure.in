@@ -172,12 +172,12 @@ case "$use_python" in
 			esac
 			break
 		fi
-                testscript='try: import argparse
+		testscript='try: import argparse
 except: exit(1)'
 		AC_MSG_CHECKING([python module 'argparse'])
-                if $PYTHON -c "$testscript"; then
-                        AC_MSG_RESULT([found, using $PYTHON])
-                else
+		if $PYTHON -c "$testscript"; then
+			AC_MSG_RESULT([found, using $PYTHON])
+		else
 			case "$use_python" in
 			unspec)
 				PYTHON=""
@@ -186,11 +186,11 @@ except: exit(1)'
 				AC_MSG_RESULT([not found, python disabled])
 				;;
 			yes)
-                        AC_MSG_RESULT([no found])
-                        AC_MSG_ERROR([python 'argparse' module not supported])
+			AC_MSG_RESULT([no found])
+			AC_MSG_ERROR([python 'argparse' module not supported])
 				;;
 			esac
-                fi
+		fi
 		;;
 esac
 
@@ -198,7 +198,7 @@ PYTHON_TOOLS=''
 CHECKDS=''
 COVERAGE=''
 if test "X$PYTHON" != "X"; then
-        PYTHON_TOOLS=python
+	PYTHON_TOOLS=python
 	CHECKDS=checkds
 	COVERAGE=coverage
 fi
@@ -482,7 +482,7 @@ AC_ARG_ENABLE(newstats,
 	[  --enable-newstats       use the new statistics])
 case "$enable_newstats" in
 yes)
-        AC_DEFINE(NEWSTATS, 1, [Use the new XML schema for statistics])
+	AC_DEFINE(NEWSTATS, 1, [Use the new XML schema for statistics])
 	;;
 *)
 	;;
@@ -495,13 +495,13 @@ AC_ARG_ENABLE(rrl,
 	[  --enable-rrl            use DNS Response Rate Limiting])
 case "$enable_rrl" in
 yes)
-        AC_DEFINE(USE_RRL, 1, [Enable DNS Response Rate Limiting])
-        RRLLINKOBJS='${RRLOBJS}'
-        RRLLINKSRCS='${RRLSRCS}'
+	AC_DEFINE(USE_RRL, 1, [Enable DNS Response Rate Limiting])
+	RRLLINKOBJS='${RRLOBJS}'
+	RRLLINKSRCS='${RRLSRCS}'
 	;;
 *)
-        RRLLINKOBJS=""
-        RRLLINKSRCS=""
+	RRLLINKOBJS=""
+	RRLLINKSRCS=""
 	;;
 esac
 AC_SUBST(RRLLINKOBJS)
@@ -804,20 +804,20 @@ no)
 ;;
 esac
 
-        AC_MSG_CHECKING(for OpenSSL DSA support)
-        if test -f $use_openssl/include/openssl/dsa.h
-        then
-                AC_DEFINE(HAVE_OPENSSL_DSA)
-                AC_MSG_RESULT(yes)
-        else
-                AC_MSG_RESULT(no)
-        fi
+	AC_MSG_CHECKING(for OpenSSL DSA support)
+	if test -f $use_openssl/include/openssl/dsa.h
+	then
+		AC_DEFINE(HAVE_OPENSSL_DSA)
+		AC_MSG_RESULT(yes)
+	else
+		AC_MSG_RESULT(no)
+	fi
 
-        AC_CHECK_FUNCS(EVP_sha256 EVP_sha384 EVP_sha512)
+	AC_CHECK_FUNCS(EVP_sha256 EVP_sha384 EVP_sha512)
 
-        AC_MSG_CHECKING(for OpenSSL ECDSA support)
-        have_ecdsa=""
-        AC_TRY_RUN([
+	AC_MSG_CHECKING(for OpenSSL ECDSA support)
+	have_ecdsa=""
+	AC_TRY_RUN([
 #include <stdio.h>
 #include <openssl/ecdsa.h>
 #include <openssl/objects.h>
@@ -834,42 +834,42 @@ int main() {
 	return (0);
 }
 ],
-        [AC_MSG_RESULT(yes)
-        have_ecdsa="yes"],
-        [AC_MSG_RESULT(no)
-        have_ecdsa="no"],
-        [AC_MSG_RESULT(using --with-ecdsa)])
-        AC_ARG_WITH(ecdsa, [  --with-ecdsa            OpenSSL ECDSA],
-	            with_ecdsa="$withval", with_ecdsa="auto")
-        case "$with_ecdsa" in
-        yes)
-            case "$have_ecdsa" in
-            no)  AC_MSG_ERROR([ecdsa not supported]) ;;
-            *)  have_ecdsa=yes ;;
-            esac
-            ;;
-        no)
-            have_ecdsa=no ;;
-        *)
-            case "$have_ecdsa" in
-            yes|no) ;;
-            *) AC_MSG_ERROR([need --with-ecdsa=[[yes or no]]]) ;;
-            esac
-            ;;
-        esac
-        case $have_ecdsa in
-        yes)
-                OPENSSL_ECDSA="yes"
-                AC_DEFINE(HAVE_OPENSSL_ECDSA, 1,
-                          [Define if your OpenSSL version supports ECDSA.])
-                ;;
-        *)
-                ;;
-        esac
+	[AC_MSG_RESULT(yes)
+	have_ecdsa="yes"],
+	[AC_MSG_RESULT(no)
+	have_ecdsa="no"],
+	[AC_MSG_RESULT(using --with-ecdsa)])
+	AC_ARG_WITH(ecdsa, [  --with-ecdsa            OpenSSL ECDSA],
+		    with_ecdsa="$withval", with_ecdsa="auto")
+	case "$with_ecdsa" in
+	yes)
+	    case "$have_ecdsa" in
+	    no)  AC_MSG_ERROR([ecdsa not supported]) ;;
+	    *)  have_ecdsa=yes ;;
+	    esac
+	    ;;
+	no)
+	    have_ecdsa=no ;;
+	*)
+	    case "$have_ecdsa" in
+	    yes|no) ;;
+	    *) AC_MSG_ERROR([need --with-ecdsa=[[yes or no]]]) ;;
+	    esac
+	    ;;
+	esac
+	case $have_ecdsa in
+	yes)
+		OPENSSL_ECDSA="yes"
+		AC_DEFINE(HAVE_OPENSSL_ECDSA, 1,
+			  [Define if your OpenSSL version supports ECDSA.])
+		;;
+	*)
+		;;
+	esac
 
-        AC_MSG_CHECKING(for OpenSSL GOST support)
-        have_gost=""
-        AC_TRY_RUN([
+	AC_MSG_CHECKING(for OpenSSL GOST support)
+	have_gost=""
+	AC_TRY_RUN([
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 int main() {
@@ -891,46 +891,46 @@ int main() {
 #endif
 }
 ],
-        [AC_MSG_RESULT(yes)
-        have_gost="yes"],
-        [AC_MSG_RESULT(no)
-        have_gost="no"],
-        [AC_MSG_RESULT(using --with-gost)])
-        AC_ARG_WITH(gost, [  --with-gost             OpenSSL GOST],
-                    with_gost="$withval", with_gost="auto")
-        case "$with_gost" in
-        yes)
-            case "$have_gost" in
-            no)  AC_MSG_ERROR([gost not supported]) ;;
-            *)  have_gost=yes ;;
-            esac
-            ;;
-        no)
-            have_gost=no ;;
-        *)
-            case "$have_gost" in
-            yes|no) ;;
-            *) AC_MSG_ERROR([need --with-gost=[[yes or no]]]) ;;
-            esac
-            ;;
-        esac
-        case $have_gost in
-        yes)
+	[AC_MSG_RESULT(yes)
+	have_gost="yes"],
+	[AC_MSG_RESULT(no)
+	have_gost="no"],
+	[AC_MSG_RESULT(using --with-gost)])
+	AC_ARG_WITH(gost, [  --with-gost             OpenSSL GOST],
+		    with_gost="$withval", with_gost="auto")
+	case "$with_gost" in
+	yes)
+	    case "$have_gost" in
+	    no)  AC_MSG_ERROR([gost not supported]) ;;
+	    *)  have_gost=yes ;;
+	    esac
+	    ;;
+	no)
+	    have_gost=no ;;
+	*)
+	    case "$have_gost" in
+	    yes|no) ;;
+	    *) AC_MSG_ERROR([need --with-gost=[[yes or no]]]) ;;
+	    esac
+	    ;;
+	esac
+	case $have_gost in
+	yes)
 		OPENSSL_GOST="yes"
 		OPENSSLGOSTLINKOBJS='${OPENSSLGOSTLINKOBJS}'
 		OPENSSLGOSTLINKSRCS='${OPENSSLGOSTLINKSRCS}'
 		AC_DEFINE(HAVE_OPENSSL_GOST, 1,
 			  [Define if your OpenSSL version supports GOST.])
 		;;
-        *)
-                ;;
-        esac
-        CFLAGS="$saved_cflags"
-        LIBS="$saved_libs"
-        OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
-        OPENSSLLINKSRCS='${OPENSSLLINKSRCS}'
+	*)
+		;;
+	esac
+	CFLAGS="$saved_cflags"
+	LIBS="$saved_libs"
+	OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
+	OPENSSLLINKSRCS='${OPENSSLLINKSRCS}'
 
-        ;;
+	;;
 esac
 
 #
@@ -982,7 +982,7 @@ AC_SUBST(ISC_OPENSSL_INC)
 AC_MSG_CHECKING(for PKCS11 support)
 AC_ARG_WITH(pkcs11,
 [  --with-pkcs11[=PATH]      Build with PKCS11 support [yes|no|path]
-                          (PATH is for the PKCS11 provider)],
+			  (PATH is for the PKCS11 provider)],
    use_pkcs11="$withval", use_pkcs11="no")
 
 case "$use_pkcs11" in
@@ -1039,10 +1039,10 @@ then
 	    for d in $krb5dirs
 	    do
 		if test -f $d/include/gssapi/gssapi_krb5.h -o \
-		        -f $d/include/krb5.h
+			-f $d/include/krb5.h
 		then
 			if test -f $d/include/gssapi/gssapi.h -o \
-			        -f $d/include/gssapi.h
+				-f $d/include/gssapi.h
 			then
 				use_gssapi=$d
 				break
@@ -1252,11 +1252,11 @@ esac
 CHECK_DSA=0
 if grep "#define PATH_RANDOMDEV " confdefs.h > /dev/null
 then
-        case "$host" in
-        *darwin*|*freebsd*)
-                CHECK_DSA=1
-                ;;
-        esac
+	case "$host" in
+	*darwin*|*freebsd*)
+		CHECK_DSA=1
+		;;
+	esac
 fi
 AC_SUBST(CHECK_DSA)
 
@@ -1716,7 +1716,7 @@ AC_SUBST(ISC_PLATFORM_USEBACKTRACE)
 
 AC_ARG_ENABLE(symtable,
 [  --enable-symtable       use internal symbol table for backtrace
-                          [[all|minimal(default)|none]]],
+			  [[all|minimal(default)|none]]],
 		want_symtable="$enableval",  want_symtable="minimal")
 case $want_symtable in
 yes|all|minimal)     # "yes" is a hidden value equivalent to "minimal"
@@ -1774,7 +1774,7 @@ AC_SUBST(LIBTOOL_IN_MAIN)
 #
 AC_ARG_ENABLE(exportlib,
 	[  --enable-exportlib	  build exportable library (GNU make required)
-                          [[default=no]]])
+			  [[default=no]]])
 case "$enable_exportlib" in
 	yes)
 		gmake=
@@ -1799,8 +1799,8 @@ AC_SUBST(BIND9_CO_RULE)
 
 AC_ARG_WITH(export-libdir,
 	[  --with-export-libdir[=PATH]
-                          installation directory for the export library
-                          [[EPREFIX/lib/bind9]]],
+			  installation directory for the export library
+			  [[EPREFIX/lib/bind9]]],
 	export_libdir="$withval",)
 if test -z "$export_libdir"; then
 	export_libdir="\${exec_prefix}/lib/bind9/"
@@ -1809,8 +1809,8 @@ AC_SUBST(export_libdir)
 
 AC_ARG_WITH(export-includedir,
 	[  --with-export-includedir[=PATH]
-                          installation directory for the header files of the
-                          export library [[PREFIX/include/bind9]]],
+			  installation directory for the header files of the
+			  export library [[PREFIX/include/bind9]]],
 	export_includedir="$withval",)
 if test -z "$export_includedir"; then
 	export_includedir="\${prefix}/include/bind9/"
@@ -2298,7 +2298,7 @@ AC_TRY_COMPILE([
 #include <sys/socket.h>
 #include <netdb.h>
 int getnameinfo(const struct sockaddr *, socklen_t, char *,
-                socklen_t, char *, socklen_t, unsigned int);],
+		socklen_t, char *, socklen_t, unsigned int);],
 [ return (0);],
 	[AC_MSG_RESULT(socklen_t for buflen; u_int for flags)
 	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, socklen_t,
@@ -2310,7 +2310,7 @@ int getnameinfo(const struct sockaddr *, socklen_t, char *,
 #include <sys/socket.h>
 #include <netdb.h>
 int getnameinfo(const struct sockaddr *, socklen_t, char *,
-                size_t, char *, size_t, int);],
+		size_t, char *, size_t, int);],
 [ return (0);],
 	[AC_MSG_RESULT(size_t for buflen; int for flags)
 	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, size_t)
@@ -2441,8 +2441,8 @@ AC_SUBST(ISC_PLATFORM_NEEDSTRCASESTR)
 
 AC_SUBST(READLINE_LIB)
 AC_ARG_WITH(readline,
-        [  --with-readline[=LIBSPEC]    specify readline library [default -lreadline]],
-        readline="$withval", readline="-lreadline")
+	[  --with-readline[=LIBSPEC]    specify readline library [default -lreadline]],
+	readline="$withval", readline="-lreadline")
 case "$readline" in
 no)	;;
 *)
@@ -2458,7 +2458,7 @@ no)	;;
 		READLINE_LIB="$readline"
 	fi
 	LIBS="$saved_LIBS"
-        ;;
+	;;
 esac
 
 ISC_PRINT_OBJS=
@@ -2676,7 +2676,7 @@ AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
 # Older HP-UX doesn't have gettune
 #
 case "$host" in
-  	*-hp-hpux*)
+	*-hp-hpux*)
 		AC_CHECK_HEADERS(sys/dyntune.h)
 		;;
 	*)
@@ -2877,7 +2877,7 @@ if test "$use_atomic" = "yes"; then
 	[i[3456]86-*])
 		# XXX: some old x86 architectures actually do not support
 		#      (some of) these operations.  Do we need stricter checks?
-                AC_CHECK_SIZEOF([void *])
+		AC_CHECK_SIZEOF([void *])
 		if test $ac_cv_sizeof_void_p = 8; then
 			arch=x86_64
 			have_xaddq=yes
@@ -2886,7 +2886,7 @@ if test "$use_atomic" = "yes"; then
 		fi
 	;;
 	x86_64-*|amd64-*)
-                AC_CHECK_SIZEOF([void *])
+		AC_CHECK_SIZEOF([void *])
 		if test $ac_cv_sizeof_void_p = 8; then
 			arch=x86_64
 			have_xaddq=yes
@@ -3210,7 +3210,7 @@ auto)
 	;;
 *)
 	docbook_xsl_trees="$withval"
-    	AC_MSG_RESULT($docbook_xsl_trees)
+	AC_MSG_RESULT($docbook_xsl_trees)
 	;;
 esac
 
@@ -3510,7 +3510,7 @@ if test "$dlopen" = "yes"; then
 	if test "$have_dl" = "yes"; then
 		LIBS="-ldl $LIBS"
 	fi
-        AC_CHECK_FUNCS(dlopen dlclose dlsym,,dlopen=no)
+	AC_CHECK_FUNCS(dlopen dlclose dlsym,,dlopen=no)
 fi
 
 if test "$dlopen" = "yes"; then
@@ -3535,12 +3535,12 @@ if test "$dlopen" = "yes"; then
 		*-solaris*)
 			SO_CFLAGS="-KPIC"
 			SO_LD="ld -G -z text"
-                        ;;
+			;;
 		*-hp-hpux*)
 			SO=sl
 			SO_CFLAGS="+z"
 			SO_LD="ld -b"
-                        ;;
+			;;
 		*)
 			SO_CFLAGS="-fPIC"
 			;;
@@ -3548,7 +3548,7 @@ if test "$dlopen" = "yes"; then
 
 	if test "X$GCC" = "Xyes"; then
 		SO_CFLAGS="-fPIC"
-                test -n "$SO_LD" || SO_LD="${CC} -shared"
+		test -n "$SO_LD" || SO_LD="${CC} -shared"
 	fi
 
 	# If we still don't know how to make shared objects, don't make any.
@@ -3910,13 +3910,13 @@ test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
 # these lines are only printed if run with --enable-full-report 
 if test "$enable_full_report" = "yes"; then
     test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" || \
-        echo "    IPv6 support (--enable-ipv6)"
+	echo "    IPv6 support (--enable-ipv6)"
     test "X$USE_OPENSSL" = "X" || \
-            echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+	    echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
     test "$OPENSSL_GOST" != "yes" || \
-            echo "    GOST algorithm support (--with-gost)"
+	    echo "    GOST algorithm support (--with-gost)"
     test "$OPENSSL_ECDSA" != "yes" || \
-            echo "    ECDSA algorithm support (--with-ecdsa)"
+	    echo "    ECDSA algorithm support (--with-ecdsa)"
     test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
     test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
 fi
@@ -3942,7 +3942,7 @@ echo
 echo "Features disabled or unavailable on this platform:"
 $use_threads || echo "    Multiprocessing support (--enable-threads)"
 test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
-        echo "    IPv6 support (--enable-ipv6)"
+	echo "    IPv6 support (--enable-ipv6)"
 test "$enable_rrl" = "yes" || \
     echo "    Response Rate Limiting (--enable-rrl)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
@@ -3954,7 +3954,7 @@ test "$want_backtrace" = "yes" || \
     echo "    Print backtrace on crash (--enable-backtrace)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 test "X$USE_OPENSSL" = "X" && \
-        echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+	echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
 test "X$USE_OPENSSL" != "X" -a "$OPENSSL_GOST" != "yes" && \
     echo "    GOST algorithm support (--with-gost)"
 test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ECDSA" != "yes" && \
