@@ -75,7 +75,7 @@ rm -f ns5/bits.bk.jnl
 rm -f ns5/bits.bk.signed
 rm -f ns5/bits.bk.signed.jnl
 rm -f */*.jbk
-rm -f dig.out.ns*.test*
+rm -f dig.out.ns*
 rm -f signing.out*
 rm -f freeze.test*
 rm -f thaw.test*
@@ -84,3 +84,4 @@ rm -f ns3/test-?.bk
 rm -f ns3/test-?.bk.signed
 rm -f ns3/test-?.bk.signed.jnl
 rm -f import.key Kimport*
+rm -f checkgost checkdsa checkecdsa

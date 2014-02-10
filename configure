@@ -803,6 +803,7 @@ THREADOPTSRCS
 THREADOPTOBJS
 ISC_PLATFORM_USETHREADS
 ALWAYS_DEFINES
+CHECK_DSA
 DNS_CRYPTO_LIBS
 DNS_GSSAPI_LIBS
 DST_GSSAPI_INC
@@ -14346,6 +14347,21 @@ _ACEOF
 $as_echo "using \"$use_randomdev\"" >&6; }
 		;;
 esac
+
+#
+# Only check dsa signature generation on these platforms when performing
+# system tests.
+#
+CHECK_DSA=0
+if grep "#define PATH_RANDOMDEV " confdefs.h > /dev/null
+then
+        case "$host" in
+        *darwin*|*freebsd*)
+                CHECK_DSA=1
+                ;;
+        esac
+fi
+
 
 #
 # Do we have arc4random() ?

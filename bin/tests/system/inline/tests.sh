@@ -846,7 +846,7 @@ $DIG $DIGOPTS @10.53.0.2 -p 5300 test-$zone SOA > dig.out.ns2.$zone.test$n
 grep "status: NOERROR," dig.out.ns2.$zone.test$n  > /dev/null || { ret=1; cat dig.out.ns2.$zone.test$n; }
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 addzone test-$zone \
 	'{ type slave; masters { 10.53.0.2; }; file "'test-$zone.bk'"; inline-signing yes; auto-dnssec maintain; allow-transfer { any; }; };'
-$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 delzone test-$zone
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 delzone test-$zone > /dev/null 2>&1
 done
 
 n=`expr $n + 1`
@@ -855,22 +855,9 @@ ret=0
 $DIG $DIGOPTS @10.53.0.3 -p 5300 dnskey externalkey > dig.out.ns3.test$n
 for alg in 3 7 12 13
 do
-   if test $alg = 3
-   then
-	sh checkdsa.sh 2>/dev/null || continue;
-   fi
-   if test $alg = 12 
-   then
-	sh ../gost/prereq.sh 2>/dev/null || continue;
-   fi
-   if test $alg = 13 
-   then
-	sh ../ecdsa/prereq.sh 2>/dev/null || continue;
-	# dsa and ecdsa both require a source of randomness when
-	# generating signatures
-	sh checkdsa.sh 2>/dev/null || continue;
-   fi
-   test $alg = 3 -a ! -r /dev/random -a ! -r /dev/urandom && continue
+   [ $alg = 3 -a ! -f checkdsa ] && continue;
+   [ $alg = 12 -a ! -f checkgost ] && continue;
+   [ $alg = 13 -a ! -f checkecdsa ] && continue;
 
    case $alg in
    3) echo "I: checking DSA";;

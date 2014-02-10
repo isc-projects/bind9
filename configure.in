@@ -1246,6 +1246,21 @@ case "$use_randomdev" in
 esac
 
 #
+# Only check dsa signature generation on these platforms when performing
+# system tests.
+#
+CHECK_DSA=0
+if grep "#define PATH_RANDOMDEV " confdefs.h > /dev/null
+then
+        case "$host" in
+        *darwin*|*freebsd*)
+                CHECK_DSA=1
+                ;;
+        esac
+fi
+AC_SUBST(CHECK_DSA)
+
+#
 # Do we have arc4random() ?
 #
 AC_CHECK_FUNC(arc4random, AC_DEFINE(HAVE_ARC4RANDOM))
