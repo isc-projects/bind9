@@ -837,6 +837,7 @@ PERL
 ETAGS
 LN
 ARFLAGS
+BACKTRACECFLAGS
 CCNOOPT
 CCOPT
 STD_CWARNINGS
@@ -11329,6 +11330,7 @@ fi
 
 
 
+
 # Warn if the user specified libbind, which is now deprecated
 # Check whether --enable-libbind was given.
 if test "${enable_libbind+set}" = set; then :
@@ -15213,7 +15215,8 @@ $as_echo "no" >&6; }
 	fi
 	case "$host" in
 	*-hp-hpux*)
-		STD_CWARNINGS="$STD_CWARNINGS -Wl,+vnocompatwarnings"
+		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
+		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
 		;;
 	esac
 else
@@ -15241,7 +15244,8 @@ else
 		esac
 		CCOPT="$CCOPT -Ae -z"
 		CCNOOPT="$CCNOOPT -Ae -z"
-		STD_CWARNINGS="$STD_CWARNINGS -Wl,+vnocompatwarnings"
+		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
+		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
 		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;
 	*-sgi-irix*)
