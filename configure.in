@@ -51,6 +51,7 @@ AC_SUBST(STD_CDEFINES)
 AC_SUBST(STD_CWARNINGS)
 AC_SUBST(CCOPT)
 AC_SUBST(CCNOOPT)
+AC_SUBST(BACKTRACECFLAGS)
 
 # Warn if the user specified libbind, which is now deprecated
 AC_ARG_ENABLE(libbind, [  --enable-libbind	  deprecated])
@@ -1524,7 +1525,8 @@ if test "X$GCC" = "Xyes"; then
 	fi
 	case "$host" in
 	*-hp-hpux*)
-		STD_CWARNINGS="$STD_CWARNINGS -Wl,+vnocompatwarnings"
+		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
+		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
 		;;
 	esac
 else
@@ -1552,7 +1554,8 @@ else
 		esac
 		CCOPT="$CCOPT -Ae -z"
 		CCNOOPT="$CCNOOPT -Ae -z"
-		STD_CWARNINGS="$STD_CWARNINGS -Wl,+vnocompatwarnings"
+		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
+		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
 		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;
 	*-sgi-irix*)
