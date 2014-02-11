@@ -1524,7 +1524,7 @@ if test "X$GCC" = "Xyes"; then
 	fi
 	case "$host" in
 	*-hp-hpux*)
-		CFLAGS="-Wl,+vnocompatwarnings $CFLAGS"
+		STD_CWARNINGS="$STD_CWARNINGS -Wl,+vnocompatwarnings"
 		;;
 	esac
 else
@@ -1552,7 +1552,7 @@ else
 		esac
 		CCOPT="$CCOPT -Ae -z"
 		CCNOOPT="$CCNOOPT -Ae -z"
-		CFLAGS="-Wl,+vnocompatwarnings $CFLAGS"
+		STD_CWARNINGS="$STD_CWARNINGS -Wl,+vnocompatwarnings"
 		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;
 	*-sgi-irix*)
@@ -3546,7 +3546,7 @@ if test "$dlopen" = "yes"; then
 		*-hp-hpux*)
 			SO=sl
 			SO_CFLAGS="+z"
-			SO_LDFLAGS="-b"
+			SO_LDFLAGS="-b +vnocompatwarnings"
 			SO_LD="ld"
 			;;
 		*)
