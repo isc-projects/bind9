@@ -13484,7 +13484,6 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset, prdataset;
-	dns_rdata_t rdata_in, prdata_in, prdata_out;
 	dns_dbversion_t *version = NULL;
 	nsec3param_t *nsec3param = NULL;
 	nsec3param_t *nsec3p = NULL;
@@ -13518,8 +13517,10 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset))
 	{
-		dns_rdata_init(&rdata_in);
-		dns_rdataset_current(&rdataset, &rdata_in);
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_t private = DNS_RDATA_INIT;
+
+		dns_rdataset_current(&rdataset, &rdata);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 			      "looping through nsec3param data");
@@ -13532,11 +13533,10 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 		 * now transfer the data from the rdata to
 		 * the nsec3param
 		 */
-		dns_rdata_init(&prdata_out);
-		dns_nsec3param_toprivate(&rdata_in, &prdata_out,
+		dns_nsec3param_toprivate(&rdata, &private,
 					 zone->privatetype, nsec3param->data,
 					 sizeof(nsec3param->data));
-		nsec3param->length = prdata_out.length;
+		nsec3param->length = private.length;
 		ISC_LIST_APPEND(*nsec3list, nsec3param, link);
 	}
 
@@ -13556,26 +13556,39 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&prdataset))
 	{
-		dns_rdata_init(&prdata_in);
-		dns_rdataset_current(&prdataset, &prdata_in);
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_t private = DNS_RDATA_INIT;
+
+		dns_rdataset_current(&prdataset, &private);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 			      "looping through nsec3param private data");
 
-		if (!dns_nsec3param_fromprivate(&prdata_in, &prdata_out,
+		/*
+		 * Do we have a valid private record?
+		 */
+		if (!dns_nsec3param_fromprivate(&private, &rdata,
 						buf, sizeof(buf)))
 			continue;
 
-		if ((prdata_out.data[1] & DNS_NSEC3FLAG_REMOVE) !=0) {
-			prdata_out.data[1] = 0;
+		/*
+		 * Remove any NSEC3PARAM records scheduled to be removed.
+		 */
+		if (NSEC3REMOVE(rdata.data[1])) {
+			/*
+			 * Zero out the flags.
+			 */
+			rdata.data[1] = 0;
 
 			for (nsec3p = ISC_LIST_HEAD(*nsec3list);
 			     nsec3p != NULL;
 			     nsec3p = next)
 			{
 				next = ISC_LIST_NEXT(nsec3p, link);
-				if (memcmp(prdata_out.data, nsec3p->data,
-				    sizeof(nsec3p->data)) == 0) {
+				
+				if (nsec3p->length == rdata.length + 1 &&
+				    memcmp(rdata.data, nsec3p->data + 1,
+					   nsec3p->length - 1) == 0) {
 					ISC_LIST_UNLINK(*nsec3list,
 							nsec3p, link);
 					isc_mem_put(zone->mctx, nsec3p,
@@ -13590,11 +13603,13 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 			CHECK(ISC_R_NOMEMORY);
 		ISC_LINK_INIT(nsec3param, link);
 
-		dns_rdata_init(&prdata_out);
-		dns_nsec3param_toprivate(&prdata_in, &prdata_out,
-			zone->privatetype, nsec3param->data,
-			sizeof(nsec3param->data));
-		nsec3param->length = prdata_out.length;
+		/*
+		 * Copy the remaining private records so the nsec/nsec3
+		 * chain gets created.
+		 */
+		INSIST(private.length <= sizeof(nsec3param->data));
+		memmove(nsec3param->data, private.data, private.length);
+		nsec3param->length = private.length;
 		ISC_LIST_APPEND(*nsec3list, nsec3param, link);
 	}
 
@@ -13810,6 +13825,12 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "receive_secure_db: %s",
 			     dns_result_totext(result));
 
+	while (!ISC_LIST_EMPTY(nsec3list)) {
+		nsec3param_t *nsec3p;
+		nsec3p = ISC_LIST_HEAD(nsec3list);
+		ISC_LIST_UNLINK(nsec3list, nsec3p, link);
+		isc_mem_put(zone->mctx, nsec3p, sizeof(nsec3param_t));
+	}
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
 	if (db != NULL) {
