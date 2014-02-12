@@ -78,7 +78,7 @@
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005,2007,2009,2012,2013,2014
 ./bin/dig/dig.1					MAN	DOCBOOK
 ./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013
+./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014
 ./bin/dig/dig.html				HTML	DOCBOOK
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/dig/host.1				MAN	DOCBOOK
@@ -2809,7 +2809,7 @@
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2009,2012
 ./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012,2013,2014
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007
+./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007,2014
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004,2007,2012
 ./lib/bind9/include/bind9/Makefile.in		MAKE	2001,2004,2007,2012
 ./lib/bind9/include/bind9/check.h		C	2001,2004,2005,2006,2007
@@ -3285,7 +3285,7 @@
 ./lib/isc/ia64/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/ia64/include/isc/Makefile.in		MAKE	2007,2012
 ./lib/isc/ia64/include/isc/atomic.h		C	2006,2007,2009,2012
-./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012
+./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012,2014
 ./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2013
 ./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009
@@ -3474,7 +3474,7 @@
 ./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008,2009,2011,2012,2013
 ./lib/isc/timer_p.h				C	2000,2001,2004,2005,2007,2009
 ./lib/isc/tm.c					C	2014
-./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2009,2012
+./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2014
 ./lib/isc/unix/app.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2013
 ./lib/isc/unix/dir.c				C	1999,2000,2001,2004,2005,2007,2008,2009,2011,2012
 ./lib/isc/unix/entropy.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2012
@@ -3485,7 +3485,7 @@
 ./lib/isc/unix/ifiter_getifaddrs.c		C	2003,2004,2005,2007,2008,2009,2014
 ./lib/isc/unix/ifiter_ioctl.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2014
 ./lib/isc/unix/ifiter_sysctl.c			C	1999,2000,2001,2002,2003,2004,2005,2007,2014
-./lib/isc/unix/include/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012
+./lib/isc/unix/include/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012,2014
 ./lib/isc/unix/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012,2013
 ./lib/isc/unix/include/isc/dir.h		C	1999,2000,2001,2004,2005,2007
 ./lib/isc/unix/include/isc/int.h		C	1999,2000,2001,2004,2005,2007
@@ -3516,7 +3516,7 @@
 ./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2011,2012,2014
 ./lib/isc/version.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/win32/DLLMain.c			C	2001,2004,2007
-./lib/isc/win32/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009,2012
+./lib/isc/win32/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009,2012,2014
 ./lib/isc/win32/app.c				C	1999,2000,2001,2004,2007,2009,2013
 ./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004,2006,2007
 ./lib/isc/win32/dir.c				C	1999,2000,2001,2004,2007,2008,2009,2011,2012,2013
@@ -3525,7 +3525,7 @@
 ./lib/isc/win32/errno2result.h			C	2000,2001,2004,2005,2007
 ./lib/isc/win32/file.c				C	2000,2001,2002,2004,2007,2009,2011,2012,2013
 ./lib/isc/win32/fsaccess.c			C	2000,2001,2002,2004,2007,2013
-./lib/isc/win32/include/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012
+./lib/isc/win32/include/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012,2014
 ./lib/isc/win32/include/isc/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012,2013
 ./lib/isc/win32/include/isc/atomic.h		C	2013
 ./lib/isc/win32/include/isc/bind_registry.h	C	2001,2004,2007
@@ -3799,7 +3799,7 @@
 ./lib/win32/bindevt/bindevt.mak.in		X	2001,2006,2013
 ./lib/win32/bindevt/bindevt.mc			MC	2001,2004,2007
 ./lib/win32/bindevt/bindevt.vcxproj.filters.in	X	2013
-./lib/win32/bindevt/bindevt.vcxproj.in		X	2013
+./lib/win32/bindevt/bindevt.vcxproj.in		X	2013,2014
 ./lib/win32/bindevt/bindevt.vcxproj.user	X	2013
 ./libtool.m4/libtool.m4				X	2012
 ./libtool.m4/ltoptions.m4			X	2012
@@ -4157,11 +4157,11 @@
 ./win32utils/GeoIP.diff				X	2013
 ./win32utils/bind9.sln.in			X	2013,2014
 ./win32utils/build.txt				TXT.BRIEF	2013,2014
-./win32utils/index.html				HTML	2006,2007,2008,2012,2013
+./win32utils/index.html				HTML	2006,2007,2008,2012,2013,2014
 ./win32utils/legacy/BINDBuild.dsw.in		X	2001,2005,2006,2008,2009,2010,2013,2014
 ./win32utils/legacy/BuildAll.bat.in		BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2013,2014
 ./win32utils/legacy/BuildPost.bat.in		BAT	2005,2006,2013
 ./win32utils/legacy/BuildSetup.bat.in		BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014
 ./win32utils/legacy/makedefs.pl			PERL	2001,2004,2007,2009,2012,2013
-./win32utils/legacy/win32-build.txt		TXT.BRIEF	2001,2002,2004,2005,2008,2009,2012,2013
+./win32utils/legacy/win32-build.txt		TXT.BRIEF	2001,2002,2004,2005,2008,2009,2012,2013,2014
 ./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007,2008,2009,2012,2013,2014
