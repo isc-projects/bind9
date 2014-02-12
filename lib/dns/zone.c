@@ -13149,7 +13149,7 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 			     nsec3p = next)
 			{
 				next = ISC_LIST_NEXT(nsec3p, link);
-				
+
 				if (nsec3p->length == rdata.length + 1 &&
 				    memcmp(rdata.data, nsec3p->data + 1,
 					   nsec3p->length - 1) == 0) {
