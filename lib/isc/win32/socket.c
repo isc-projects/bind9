@@ -1712,8 +1712,10 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #ifdef SOCK_RAW
 		case isc_sockettype_raw:
 			sock->fd = socket(pf, SOCK_RAW, 0);
+#ifdef PF_ROUTE
 			if (pf == PF_ROUTE)
 				sock->bound = 1;
+#endif
 			break;
 #endif
 		}
