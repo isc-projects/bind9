@@ -16,10 +16,10 @@
 
 /* $Id$ */
 
-#ifndef ISCPK11_CONSTANTS_H
-#define ISCPK11_CONSTANTS_H 1
+#ifndef PK11_CONSTANTS_H
+#define PK11_CONSTANTS_H 1
 
-/*! \file iscpk11/constants.h */
+/*! \file pk11/constants.h */
 
 /*%
  * Static arrays of data used for key template initalization
@@ -104,4 +104,4 @@ static CK_BYTE pk11_gost_paramset[] = {
 };
 #endif
 
-#endif /* ISCPK11_CONSTANTS_H */
+#endif /* PK11_CONSTANTS_H */

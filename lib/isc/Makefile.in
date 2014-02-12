@@ -25,16 +25,18 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
+PROVIDER =	@PKCS11_PROVIDER@
+
 CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/@ISC_THREAD_DIR@/include \
 		-I${srcdir}/@ISC_ARCH_DIR@/include \
 		-I./include \
-		-I${srcdir}/include ${ISCPK11_INCLUDES} @ISC_OPENSSL_INC@
-CDEFINES =	@CRYPTO@
+		-I${srcdir}/include @ISC_OPENSSL_INC@ ${DNS_INCLUDES}
+CDEFINES =	@CRYPTO@ -DPK11_LIB_LOCATION=\"${PROVIDER}\"
 CWARNINGS =
 
 # Alphabetically
-UNIXOBJS =	@ISC_ISCIPV6_O@ \
+UNIXOBJS =	@ISC_ISCIPV6_O@ @ISC_ISCPK11_API_O@ \
 		unix/app.@O@ unix/dir.@O@ unix/entropy.@O@ \
 		unix/errno2result.@O@ unix/file.@O@ unix/fsaccess.@O@ \
 		unix/interfaceiter.@O@ unix/keyboard.@O@ unix/net.@O@ \
@@ -52,7 +54,7 @@ WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/file.@O@ \
 		win32/thread.@O@ win32/time.@O@
 
 # Alphabetically
-OBJS =		@ISC_EXTRA_OBJS@ \
+OBJS =		@ISC_EXTRA_OBJS@ @ISC_PK11_O@ \
 		assertions.@O@ backtrace.@O@ base32.@O@ base64.@O@ \
 		bind9.@O@ buffer.@O@ bufferlist.@O@ \
 		commandline.@O@ crc64.@O@ error.@O@ event.@O@ \
@@ -71,7 +73,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 SYMTBLOBJS =	backtrace-emptytbl.@O@
 
 # Alphabetically
-SRCS =		@ISC_EXTRA_SRCS@ \
+SRCS =		@ISC_EXTRA_SRCS@ @ISC_PK11_C@ \
 		assertions.c backtrace.c base32.c base64.c bind9.c \
 		buffer.c bufferlist.c commandline.c crc64.c \
 		error.c event.c heap.c hex.c hmacmd5.c hmacsha.c \

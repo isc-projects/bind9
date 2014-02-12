@@ -9329,7 +9329,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 static isc_result_t
 putstr(isc_buffer_t *b, const char *str) {
-	size_t l = strlen(str);
+	unsigned int l = strlen(str);
 
 	/*
 	 * Use >= to leave space for NUL termination.

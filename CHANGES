@@ -1,3 +1,6 @@
+3735.	[cleanup]	Merged the libiscpk11 library into libisc
+			to simplify dependencies. [RT #35205]
+
 3734.	[bug]		Improve building with libtool. [RT #35314]
 
 3733.	[func]		Improve interface scanning support.  Interface

@@ -34,8 +34,8 @@
 #include <isc/util.h>
 
 #if PKCS11CRYPTO || PKCS11CRYPTOWITHHMAC
-#include <iscpk11/internal.h>
-#include <iscpk11/pk11.h>
+#include <pk11/internal.h>
+#include <pk11/pk11.h>
 #endif
 
 #ifdef ISC_PLATFORM_OPENSSLHASH

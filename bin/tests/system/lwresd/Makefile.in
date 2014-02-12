@@ -23,22 +23,20 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${LWRES_INCLUDES} ${ISC_INCLUDES} ${ISCPK11_INCLUDES}
+CINCLUDES =	${LWRES_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 LWRESLIBS =	../../../../lib/lwres/liblwres.@A@
 ISCLIBS =	../../../../lib/isc/libisc.@A@
-ISCPK11LIBS =	../../../../lib/iscpk11/libiscpk11.@A@
 
 LWRESDEPLIBS =	../../../../lib/lwres/liblwres.@A@
 ISCDEPLIBS =	../../../../lib/isc/libisc.@A@
-ISCPK11DEPLIBS = ../../../../lib/iscpk11/libiscpk11.@A@
 
-DEPLIBS =	${LWRESDEPLIBS} ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+DEPLIBS =	${LWRESDEPLIBS} ${ISCDEPLIBS}
 
-LIBS =		${LWRESLIBS} ${ISCLIBS} ${ISCPK11LIBS} @LIBS@
+LIBS =		${LWRESLIBS} ${ISCLIBS} @LIBS@
 
 TARGETS =	lwtest@EXEEXT@
 

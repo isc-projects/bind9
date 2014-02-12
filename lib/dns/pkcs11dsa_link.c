@@ -33,7 +33,7 @@
 #include "dst_parse.h"
 #include "dst_pkcs11.h"
 
-#include <iscpk11/internal.h>
+#include <pk11/internal.h>
 
 /*
  * FIPS 186-2 DSA keys:
@@ -95,13 +95,13 @@ pkcs11dsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 		{ CKA_VALUE, NULL, 0 }
 	};
 	CK_ATTRIBUTE *attr;
-	iscpk11_object_t *dsa;
-	iscpk11_context_t *pk11_ctx;
+	pk11_object_t *dsa;
+	pk11_context_t *pk11_ctx;
 	isc_result_t ret;
 	unsigned int i;
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(dctx->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(dctx->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_DSA, ISC_FALSE, ISC_FALSE, NULL,
@@ -225,13 +225,13 @@ pkcs11dsa_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 		{ CKA_VALUE, NULL, 0 }
 	};
 	CK_ATTRIBUTE *attr;
-	iscpk11_object_t *dsa;
-	iscpk11_context_t *pk11_ctx;
+	pk11_object_t *dsa;
+	pk11_context_t *pk11_ctx;
 	isc_result_t ret;
 	unsigned int i;
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(dctx->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(dctx->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_DSA, ISC_FALSE, ISC_FALSE, NULL,
@@ -346,7 +346,7 @@ pkcs11dsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 static void
 pkcs11dsa_destroyctx(dst_context_t *dctx) {
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 
 	if (pk11_ctx != NULL) {
 		if (!pk11_ctx->ontoken &&
@@ -363,7 +363,7 @@ pkcs11dsa_destroyctx(dst_context_t *dctx) {
 static isc_result_t
 pkcs11dsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	CK_RV rv;
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 	isc_result_t ret = ISC_R_SUCCESS;
 
 	if (dctx->use == DO_SIGN)
@@ -386,7 +386,7 @@ pkcs11dsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	CK_RV rv;
 	CK_ULONG siglen = ISC_SHA1_DIGESTLENGTH * 2;
 	isc_region_t r;
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 	isc_result_t ret = ISC_R_SUCCESS;
 
 	isc_buffer_availableregion(sig, &r);
@@ -409,7 +409,7 @@ pkcs11dsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 static isc_result_t
 pkcs11dsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	CK_RV rv;
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 	isc_result_t ret = ISC_R_SUCCESS;
 
 	PK11_CALL(pkcs_C_VerifyFinal,
@@ -422,7 +422,7 @@ pkcs11dsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 static isc_boolean_t
 pkcs11dsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
-	iscpk11_object_t *dsa1, *dsa2;
+	pk11_object_t *dsa1, *dsa2;
 	CK_ATTRIBUTE *attr1, *attr2;
 
 	dsa1 = key1->keydata.pkey;
@@ -528,16 +528,16 @@ pkcs11dsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) },
 	};
 	CK_ATTRIBUTE *attr;
-	iscpk11_object_t *dsa;
-	iscpk11_context_t *pk11_ctx;
+	pk11_object_t *dsa;
+	pk11_context_t *pk11_ctx;
 	isc_result_t ret;
 	unsigned int i;
 
 	UNUSED(unused);
 	UNUSED(callback);
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(key->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(key->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_DSA, ISC_FALSE, ISC_FALSE, NULL,
@@ -550,7 +550,7 @@ pkcs11dsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 		 (pk11_ctx->session, &mech, dpTemplate, (CK_ULONG) 5, &dp),
 		 DST_R_CRYPTOFAILURE);
 
-	dsa = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*dsa));
+	dsa = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*dsa));
 	if (dsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	memset(dsa, 0, sizeof(*dsa));
@@ -649,7 +649,7 @@ pkcs11dsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 
 static isc_boolean_t
 pkcs11dsa_isprivate(const dst_key_t *key) {
-	iscpk11_object_t *dsa = key->keydata.pkey;
+	pk11_object_t *dsa = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (dsa == NULL)
@@ -660,7 +660,7 @@ pkcs11dsa_isprivate(const dst_key_t *key) {
 
 static void
 pkcs11dsa_destroy(dst_key_t *key) {
-	iscpk11_object_t *dsa = key->keydata.pkey;
+	pk11_object_t *dsa = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (dsa == NULL)
@@ -699,7 +699,7 @@ pkcs11dsa_destroy(dst_key_t *key) {
 
 static isc_result_t
 pkcs11dsa_todns(const dst_key_t *key, isc_buffer_t *data) {
-	iscpk11_object_t *dsa;
+	pk11_object_t *dsa;
 	CK_ATTRIBUTE *attr;
 	isc_region_t r;
 	int dnslen;
@@ -769,7 +769,7 @@ pkcs11dsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 static isc_result_t
 pkcs11dsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
-	iscpk11_object_t *dsa;
+	pk11_object_t *dsa;
 	isc_region_t r;
 	unsigned int t, p_bytes;
 	CK_BYTE *prime, *subprime, *base, *pub_key;
@@ -779,7 +779,7 @@ pkcs11dsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (r.length == 0)
 		return (ISC_R_SUCCESS);
 
-	dsa = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*dsa));
+	dsa = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*dsa));
 	if (dsa == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(dsa, 0, sizeof(*dsa));
@@ -884,7 +884,7 @@ pkcs11dsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 pkcs11dsa_tofile(const dst_key_t *key, const char *directory) {
 	int cnt = 0;
-	iscpk11_object_t *dsa;
+	pk11_object_t *dsa;
 	CK_ATTRIBUTE *attr;
 	CK_ATTRIBUTE *prime = NULL, *subprime = NULL, *base = NULL;
 	CK_ATTRIBUTE *pub_key = NULL, *priv_key = NULL;
@@ -964,7 +964,7 @@ pkcs11dsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
-	iscpk11_object_t *dsa = NULL;
+	pk11_object_t *dsa = NULL;
 	CK_ATTRIBUTE *attr;
 	isc_mem_t *mctx = key->mctx;
 
@@ -989,7 +989,7 @@ pkcs11dsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		return (ISC_R_SUCCESS);
 	}
 
-	dsa = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*dsa));
+	dsa = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*dsa));
 	if (dsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	memset(dsa, 0, sizeof(*dsa));

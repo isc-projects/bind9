@@ -330,7 +330,7 @@ strtotime(const char *str, isc_int64_t now, isc_int64_t base,
 	isc_result_t result;
 	const char *orig = str;
 	char *endp;
-	int n;
+	size_t n;
 
 	if (isnone(str)) {
 		if (setp != NULL)

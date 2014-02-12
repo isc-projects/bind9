@@ -676,7 +676,6 @@ BIND9_DNS_BUILDINCLUDE
 BIND9_ISCCFG_BUILDINCLUDE
 BIND9_ISCCC_BUILDINCLUDE
 BIND9_ISC_BUILDINCLUDE
-BIND9_ISCPK11_BUILDINCLUDE
 BIND9_TOP_BUILDDIR
 UNITTESTS
 ATFLIBS
@@ -805,6 +804,12 @@ CRYPTO
 PKCS11LINKSRCS
 PKCS11LINKOBJS
 PKCS11_PROVIDER
+ISC_ISCPK11_API_O
+ISC_ISCPK11_API_C
+ISC_PK11_API_O
+ISC_PK11_API_C
+ISC_PK11_O
+ISC_PK11_C
 PKCS11_ENGINE
 PKCS11_TOOLS
 USE_PKCS11
@@ -940,7 +945,6 @@ PATH_SEPARATOR
 SHELL'
 ac_subst_files='BIND9_MAKE_INCLUDES
 BIND9_MAKE_RULES
-LIBISCPK11_API
 LIBISC_API
 LIBISCCC_API
 LIBISCCFG_API
@@ -969,6 +973,7 @@ with_geoip
 with_gssapi
 with_randomdev
 enable_threads
+with_libtool
 enable_native_pkcs11
 with_openssl
 with_pkcs11
@@ -980,7 +985,6 @@ with_libxml2
 with_libjson
 enable_largefile
 with_purify
-with_libtool
 enable_backtrace
 enable_symtable
 enable_ipv6
@@ -1679,6 +1683,7 @@ Optional Packages:
   --with-geoip=PATH       Build with GeoIP support (yes|no|path)
   --with-gssapi=PATH      Specify path for system-supplied GSSAPI [default=yes]
   --with-randomdev=PATH   Specify path for random device
+  --with-libtool          use GNU libtool
   --with-openssl=PATH     Build with OpenSSL yes|no|path.
 			  (Crypto is required for DNSSEC)
   --with-pkcs11=PATH      Build with PKCS11 support yes|no|path
@@ -1688,7 +1693,6 @@ Optional Packages:
   --with-libxml2=PATH     Build with libxml2 library yes|no|path
   --with-libjson=PATH     Build with libjson0 library yes|no|path
   --with-purify=PATH      use Rational purify
-  --with-libtool          use GNU libtool
   --with-kame=PATH	  use Kame IPv6 default path /usr/local/v6
   --with-readline=LIBSPEC    specify readline library default -lreadline
 
@@ -15041,6 +15045,46 @@ fi
 ISC_THREAD_DIR=$thread_dir
 
 
+
+# Check whether --with-libtool was given.
+if test "${with_libtool+set}" = set; then :
+  withval=$with_libtool; use_libtool="$withval"
+else
+  use_libtool="no"
+fi
+
+
+case $use_libtool in
+	yes)
+
+		O=lo
+		A=la
+		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
+		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
+		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
+		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
+		case "$host" in
+		*) LIBTOOL_ALLOW_UNDEFINED= ;;
+		esac
+		case "$host" in
+		*-ibm-aix*) LIBTOOL_IN_MAIN="-Wl,-bI:T_testlist.imp" ;;
+		*) LIBTOOL_IN_MAIN= ;;
+		esac;
+		;;
+	*)
+		O=o
+		A=a
+		LIBTOOL=
+
+		LIBTOOL_MKDEP_SED=
+		LIBTOOL_MODE_COMPILE=
+		LIBTOOL_MODE_INSTALL=
+		LIBTOOL_MODE_LINK=
+		LIBTOOL_ALLOW_UNDEFINED=
+		LIBTOOL_IN_MAIN=
+		;;
+esac
+
 #
 # was --enable-native-pkcs11 specified?
 #  (note it implies both --without-openssl and --with-pkcs11)
@@ -15608,9 +15652,15 @@ case "$use_pkcs11" in
 	no)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-		USE_PKCS11=''
-		PKCS11_TEST=''
-		PKCS11_TOOLS=''
+		USE_PKCS11=""
+		PKCS11_TEST=""
+		PKCS11_TOOLS=""
+		ISC_PK11_C=""
+		ISC_PK11_O=""
+		ISC_PK11_API_C=""
+		ISC_PK11_API_O=""
+		ISC_ISCPK11_API_C=""
+		ISC_ISCPK11_API_O=""
 		;;
 	yes|*)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
@@ -15683,8 +15733,20 @@ if test "x$ac_cv_func_getpassphrase" = xyes; then :
 
 fi
 
+		ISC_PK11_C="pk11.c"
+		ISC_PK11_O="pk11.$O"
+		ISC_PK11_API_C="pk11_api.c"
+		ISC_PK11_API_O="pk11_api.$O"
+		ISC_ISCPK11_API_C="unix/pk11_api.c"
+		ISC_ISCPK11_API_O="unix/pk11_api.$O"
 		;;
 esac
+
+
+
+
+
+
 
 
 
@@ -16418,46 +16480,6 @@ esac
 
 
 
-
-
-# Check whether --with-libtool was given.
-if test "${with_libtool+set}" = set; then :
-  withval=$with_libtool; use_libtool="$withval"
-else
-  use_libtool="no"
-fi
-
-
-case $use_libtool in
-	yes)
-
-		O=lo
-		A=la
-		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
-		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
-		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
-		case "$host" in
-		*) LIBTOOL_ALLOW_UNDEFINED= ;;
-		esac
-		case "$host" in
-		*-ibm-aix*) LIBTOOL_IN_MAIN="-Wl,-bI:T_testlist.imp" ;;
-		*) LIBTOOL_IN_MAIN= ;;
-		esac;
-		;;
-	*)
-		O=o
-		A=a
-		LIBTOOL=
-
-		LIBTOOL_MKDEP_SED=
-		LIBTOOL_MODE_COMPILE=
-		LIBTOOL_MODE_INSTALL=
-		LIBTOOL_MODE_LINK=
-		LIBTOOL_ALLOW_UNDEFINED=
-		LIBTOOL_IN_MAIN=
-		;;
-esac
 
 #
 # enable/disable dumping stack backtrace.  Also check if the system supports
@@ -19721,9 +19743,7 @@ BIND9_TOP_BUILDDIR=`pwd`
 
 
 
-
 if test "X$srcdir" != "X"; then
-	BIND9_ISCPK11_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/iscpk11/include"
 	BIND9_ISC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isc/include"
 	BIND9_ISCCC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccc/include"
 	BIND9_ISCCFG_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccfg/include"
@@ -19731,7 +19751,6 @@ if test "X$srcdir" != "X"; then
 	BIND9_LWRES_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/lwres/include"
 	BIND9_BIND9_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/bind9/include"
 else
-	BIND9_ISCPK11_BUILDINCLUDE=""
 	BIND9_ISC_BUILDINCLUDE=""
 	BIND9_ISCCC_BUILDINCLUDE=""
 	BIND9_ISCCFG_BUILDINCLUDE=""
@@ -19777,9 +19796,6 @@ fi
 BIND9_CONFIGARGS="`echo $BIND9_CONFIGARGS | sed 's/^ //'`"
 BIND9_CONFIGARGS="CONFIGARGS=${BIND9_CONFIGARGS}"
 
-
-
-LIBISCPK11_API="$srcdir/lib/iscpk11/api"
 
 
 LIBISC_API="$srcdir/lib/isc/api"
@@ -20786,7 +20802,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/dlzredir/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/inline/checkdsa.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/iscpk11/Makefile lib/iscpk11/include/Makefile lib/iscpk11/include/iscpk11/Makefile lib/iscpk11/include/pkcs11/Makefile lib/iscpk11/unix/Makefile lib/iscpk11/unix/include/Makefile lib/iscpk11/unix/include/pkcs11/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh"
+ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/dlzredir/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/inline/checkdsa.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isc/unix/include/pkcs11/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh"
 
 
 #
@@ -21883,24 +21899,20 @@ do
     "lib/isc/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isc/include/Makefile" ;;
     "lib/isc/include/isc/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isc/include/isc/Makefile" ;;
     "lib/isc/include/isc/platform.h") CONFIG_FILES="$CONFIG_FILES lib/isc/include/isc/platform.h" ;;
+    "lib/isc/include/pk11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isc/include/pk11/Makefile" ;;
+    "lib/isc/include/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isc/include/pkcs11/Makefile" ;;
     "lib/isc/tests/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isc/tests/Makefile" ;;
     "lib/isc/nls/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isc/nls/Makefile" ;;
     "lib/isc/unix/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isc/unix/Makefile" ;;
     "lib/isc/unix/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isc/unix/include/Makefile" ;;
     "lib/isc/unix/include/isc/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isc/unix/include/isc/Makefile" ;;
+    "lib/isc/unix/include/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isc/unix/include/pkcs11/Makefile" ;;
     "lib/isccc/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isccc/Makefile" ;;
     "lib/isccc/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isccc/include/Makefile" ;;
     "lib/isccc/include/isccc/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isccc/include/isccc/Makefile" ;;
     "lib/isccfg/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isccfg/Makefile" ;;
     "lib/isccfg/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isccfg/include/Makefile" ;;
     "lib/isccfg/include/isccfg/Makefile") CONFIG_FILES="$CONFIG_FILES lib/isccfg/include/isccfg/Makefile" ;;
-    "lib/iscpk11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/Makefile" ;;
-    "lib/iscpk11/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/include/Makefile" ;;
-    "lib/iscpk11/include/iscpk11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/include/iscpk11/Makefile" ;;
-    "lib/iscpk11/include/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/include/pkcs11/Makefile" ;;
-    "lib/iscpk11/unix/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/unix/Makefile" ;;
-    "lib/iscpk11/unix/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/unix/include/Makefile" ;;
-    "lib/iscpk11/unix/include/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES lib/iscpk11/unix/include/pkcs11/Makefile" ;;
     "lib/lwres/Makefile") CONFIG_FILES="$CONFIG_FILES lib/lwres/Makefile" ;;
     "lib/lwres/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/lwres/include/Makefile" ;;
     "lib/lwres/include/lwres/Makefile") CONFIG_FILES="$CONFIG_FILES lib/lwres/include/lwres/Makefile" ;;

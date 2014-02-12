@@ -46,13 +46,13 @@ typedef HMAC_CTX isc_hmacsha384_t;
 typedef HMAC_CTX isc_hmacsha512_t;
 
 #elif PKCS11CRYPTO
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 
-typedef iscpk11_context_t isc_hmacsha1_t;
-typedef iscpk11_context_t isc_hmacsha224_t;
-typedef iscpk11_context_t isc_hmacsha256_t;
-typedef iscpk11_context_t isc_hmacsha384_t;
-typedef iscpk11_context_t isc_hmacsha512_t;
+typedef pk11_context_t isc_hmacsha1_t;
+typedef pk11_context_t isc_hmacsha224_t;
+typedef pk11_context_t isc_hmacsha256_t;
+typedef pk11_context_t isc_hmacsha384_t;
+typedef pk11_context_t isc_hmacsha512_t;
 
 #else
 

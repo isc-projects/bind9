@@ -160,11 +160,4 @@ cd ..\..\lib\win32\bindevt
 mc bindevt.mc
 cd ..\..\..\win32utils\legacy
 
-@IF PKCS11
-echo Build libisc.lib import library
-
-cd ..\..\lib\isc\win32
-call mklib.bat Release
-@END PKCS11
-
 rem Done

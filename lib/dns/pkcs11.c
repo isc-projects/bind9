@@ -21,8 +21,8 @@
 #include <dns/log.h>
 #include <dns/result.h>
 
-#include <iscpk11/pk11.h>
-#include <iscpk11/internal.h>
+#include <pk11/pk11.h>
+#include <pk11/internal.h>
 
 #include "dst_pkcs11.h"
 

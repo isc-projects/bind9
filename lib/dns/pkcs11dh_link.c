@@ -32,10 +32,10 @@
 #include "dst_parse.h"
 #include "dst_pkcs11.h"
 
-#include <iscpk11/pk11.h>
-#include <iscpk11/internal.h>
+#include <pk11/pk11.h>
+#include <pk11/internal.h>
 #define WANT_DH_PRIMES
-#include <iscpk11/constants.h>
+#include <pk11/constants.h>
 
 #include <pkcs11/pkcs11.h>
 
@@ -98,7 +98,7 @@ pkcs11dh_loadpriv(const dst_key_t *key,
 		{ CKA_VALUE, NULL, 0 }
 	};
 	CK_ATTRIBUTE *attr;
-	const iscpk11_object_t *priv;
+	const pk11_object_t *priv;
 	isc_result_t ret;
 	unsigned int i;
 
@@ -179,7 +179,7 @@ pkcs11dh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 		{ CKA_VALUE, NULL, 0 }
 	};
 	CK_BYTE *secValue;
-	iscpk11_context_t ctx;
+	pk11_context_t ctx;
 	isc_result_t ret;
 	unsigned int i;
 	isc_region_t r;
@@ -261,7 +261,7 @@ pkcs11dh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 
 static isc_boolean_t
 pkcs11dh_compare(const dst_key_t *key1, const dst_key_t *key2) {
-	iscpk11_object_t *dh1, *dh2;
+	pk11_object_t *dh1, *dh2;
 	CK_ATTRIBUTE *attr1, *attr2;
 
 	dh1 = key1->keydata.pkey;
@@ -318,7 +318,7 @@ pkcs11dh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 
 static isc_boolean_t
 pkcs11dh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
-	iscpk11_object_t *dh1, *dh2;
+	pk11_object_t *dh1, *dh2;
 	CK_ATTRIBUTE *attr1, *attr2;
 
 	dh1 = key1->keydata.pkey;
@@ -395,14 +395,14 @@ pkcs11dh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 		{ CKA_DERIVE, &truevalue, (CK_ULONG) sizeof(truevalue) },
 	};
 	CK_ATTRIBUTE *attr;
-	iscpk11_object_t *dh = NULL;
-	iscpk11_context_t *pk11_ctx;
+	pk11_object_t *dh = NULL;
+	pk11_context_t *pk11_ctx;
 	isc_result_t ret;
 
 	UNUSED(callback);
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(key->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(key->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_DH, ISC_FALSE, ISC_FALSE, NULL,
@@ -485,7 +485,7 @@ pkcs11dh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 		  &pub, &priv),
 		 DST_R_CRYPTOFAILURE);
 
-	dh = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*dh));
+	dh = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*dh));
 	if (dh == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	memset(dh, 0,  sizeof(*dh));
@@ -586,7 +586,7 @@ pkcs11dh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 
 static isc_boolean_t
 pkcs11dh_isprivate(const dst_key_t *key) {
-	iscpk11_object_t *dh = key->keydata.pkey;
+	pk11_object_t *dh = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (dh == NULL)
@@ -597,7 +597,7 @@ pkcs11dh_isprivate(const dst_key_t *key) {
 
 static void
 pkcs11dh_destroy(dst_key_t *key) {
-	iscpk11_object_t *dh = key->keydata.pkey;
+	pk11_object_t *dh = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (dh == NULL)
@@ -650,7 +650,7 @@ uint16_fromregion(isc_region_t *region) {
 
 static isc_result_t
 pkcs11dh_todns(const dst_key_t *key, isc_buffer_t *data) {
-	iscpk11_object_t *dh;
+	pk11_object_t *dh;
 	CK_ATTRIBUTE *attr;
 	isc_region_t r;
 	isc_uint16_t dnslen, plen = 0, glen = 0, publen = 0;
@@ -726,7 +726,7 @@ pkcs11dh_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 static isc_result_t
 pkcs11dh_fromdns(dst_key_t *key, isc_buffer_t *data) {
-	iscpk11_object_t *dh;
+	pk11_object_t *dh;
 	isc_region_t r;
 	isc_uint16_t plen, glen, plen_, glen_, publen;
 	CK_BYTE *prime = NULL, *base = NULL, *pub = NULL;
@@ -737,7 +737,7 @@ pkcs11dh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (r.length == 0)
 		return (ISC_R_SUCCESS);
 
-	dh = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*dh));
+	dh = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*dh));
 	if (dh == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(dh, 0, sizeof(*dh));
@@ -915,7 +915,7 @@ pkcs11dh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 pkcs11dh_tofile(const dst_key_t *key, const char *directory) {
 	int i;
-	iscpk11_object_t *dh;
+	pk11_object_t *dh;
 	CK_ATTRIBUTE *attr;
 	CK_ATTRIBUTE *prime = NULL, *base = NULL, *pub = NULL, *prv = NULL;
 	dst_private_t priv;
@@ -1004,7 +1004,7 @@ pkcs11dh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
-	iscpk11_object_t *dh = NULL;
+	pk11_object_t *dh = NULL;
 	CK_ATTRIBUTE *attr;
 	isc_mem_t *mctx;
 
@@ -1019,7 +1019,7 @@ pkcs11dh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	if (key->external)
 		DST_RET(DST_R_EXTERNALKEY);
 
-	dh = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*dh));
+	dh = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*dh));
 	if (dh == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	memset(dh, 0, sizeof(*dh));

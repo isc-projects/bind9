@@ -57,7 +57,7 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 
 #if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
 #define getpassphrase(x)	getpass(x)
@@ -129,7 +129,7 @@ main(int argc, char *argv[]) {
 		{ CKA_MODULUS, modulus, (CK_ULONG) sizeof(modulus) },
 		{ CKA_PUBLIC_EXPONENT, exponent, (CK_ULONG) sizeof(exponent) }
 	};
-	iscpk11_context_t pctx;
+	pk11_context_t pctx;
 	char *lib_name = NULL;
 	char *pin = NULL;
 	int error = 0;

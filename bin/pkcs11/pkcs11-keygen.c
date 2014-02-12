@@ -67,10 +67,10 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 #define WANT_DH_PRIMES
 #define WANT_ECC_CURVES
-#include <iscpk11/constants.h>
+#include <pk11/constants.h>
 
 #if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
 #define getpassphrase(x)	getpass(x)
@@ -273,7 +273,7 @@ main(int argc, char *argv[]) {
 	CK_OBJECT_HANDLE privatekey, publickey, domainparams;
 	CK_BYTE exponent[5];
 	CK_ULONG expsize = 0;
-	iscpk11_context_t pctx;
+	pk11_context_t pctx;
 	int error = 0;
 	int c, errflg = 0;
 	int hide = 1, special = 0, quiet = 0;

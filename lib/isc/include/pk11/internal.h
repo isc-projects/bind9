@@ -14,14 +14,33 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.h,v 1.9 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id$ */
 
-/*! \file iscpk11/version.h */
+#ifndef PK11_INTERNAL_H
+#define PK11_INTERNAL_H 1
 
-#include <isc/platform.h>
+/*! \file pk11/internal.h */
 
-LIBISCPK11_EXTERNAL_DATA extern const char pk11_version[];
+ISC_LANG_BEGINDECLS
 
-LIBISCPK11_EXTERNAL_DATA extern const unsigned int pk11_libinterface;
-LIBISCPK11_EXTERNAL_DATA extern const unsigned int pk11_librevision;
-LIBISCPK11_EXTERNAL_DATA extern const unsigned int pk11_libage;
+const char *pk11_get_lib_name(void);
+
+void *pk11_mem_get(size_t size);
+
+void pk11_mem_put(void *ptr, size_t size);
+
+CK_SLOT_ID pk11_get_best_token(pk11_optype_t optype);
+
+unsigned int pk11_numbits(CK_BYTE_PTR data, unsigned int bytecnt);
+
+CK_ATTRIBUTE *pk11_attribute_first(const pk11_object_t *obj);
+
+CK_ATTRIBUTE *pk11_attribute_next(const pk11_object_t *obj,
+				  CK_ATTRIBUTE *attr);
+
+CK_ATTRIBUTE *pk11_attribute_bytype(const pk11_object_t *obj,
+				    CK_ATTRIBUTE_TYPE type);
+
+ISC_LANG_ENDDECLS
+
+#endif /* PK11_INTERNAL_H */

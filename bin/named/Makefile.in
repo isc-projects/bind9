@@ -49,7 +49,6 @@ DLZDRIVER_LIBS =	@DLZ_DRIVER_LIBS@
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include -I. \
 		${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
 		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
-		${ISCPK11_INCLUDES} \
 		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES} @DST_OPENSSL_INC@
 
 CDEFINES =      @CONTRIB_DLZ@ @USE_PKCS11@ @PKCS11_ENGINE@ @CRYPTO@
@@ -63,7 +62,6 @@ ISCLIBS =	../../lib/isc/libisc.@A@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
-ISCPK11LIBS =	../../lib/iscpk11/libiscpk11.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
@@ -71,20 +69,16 @@ ISCCCDEPLIBS =	../../lib/isccc/libisccc.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
-ISCPK11DEPLIBS = ../../lib/iscpk11/libiscpk11.@A@
 
 DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} \
-		${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${ISCDEPLIBS} \
-		${ISCPK11DEPLIBS}
+		${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${ISCDEPLIBS}
 
 LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} \
-		${ISCPK11LIBS} \
 		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBS@
 
 NOSYMLIBS =	${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCNOSYMLIBS} \
-		${ISCPK11LIBS} \
 		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBS@
 
 SUBDIRS =	unix

@@ -56,7 +56,7 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 
 #ifndef HAVE_CLOCK_GETTIME
 #ifndef CLOCK_REALTIME
@@ -88,7 +88,7 @@ main(int argc, char *argv[]) {
 	CK_SESSION_HANDLE hSession = CK_INVALID_HANDLE;
 	CK_MECHANISM mech = { CKM_SHA_1, NULL, 0 };
 	CK_ULONG len = sizeof(buf);
-	iscpk11_context_t pctx;
+	pk11_context_t pctx;
 	char *lib_name = NULL;
 	int error = 0;
 	int c, errflg = 0;

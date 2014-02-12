@@ -40,9 +40,9 @@
 
 #ifdef HAVE_PKCS11_GOST
 #include "../dst_gost.h"
-#include <iscpk11/internal.h>
+#include <pk11/internal.h>
 #define WANT_GOST_PARAMS
-#include <iscpk11/constants.h>
+#include <pk11/constants.h>
 #include <pkcs11/pkcs11.h>
 #endif
 
@@ -330,7 +330,7 @@ ATF_TC_BODY(isc_gost_private, tc) {
 	CK_MECHANISM mech = { CKM_GOSTR3410_WITH_GOSTR3411, NULL, 0 };
 	CK_BYTE sig[64];
 	CK_ULONG siglen;
-	iscpk11_context_t pk11_ctx;
+	pk11_context_t pk11_ctx;
 
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);

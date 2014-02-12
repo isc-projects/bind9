@@ -47,7 +47,7 @@
 #include <isc/util.h>
 
 #ifdef PKCS11CRYPTO
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 #endif
 
 #define ENTROPY_MAGIC		ISC_MAGIC('E', 'n', 't', 'e')

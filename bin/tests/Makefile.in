@@ -22,7 +22,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
-		${LWRES_INCLUDES} ${ISCPK11_INCLUDES} ${OMAPI_INCLUDES}
+		${LWRES_INCLUDES} ${OMAPI_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
@@ -33,14 +33,12 @@ ISCLIBS =	../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @DNS_CRYPTO_LIBS@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
-ISCPK11LIBS = 	../../lib/iscpk11/libiscpk11.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCDEPNOSYMLIBS = ../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
-ISCPK11DEPLIBS = ../../lib/iscpk11/libiscpk11.@A@
 
 LIBS =		@LIBS@
 
@@ -144,13 +142,13 @@ BTTEST_CFLAGS =	${BACKTRACECFLAGS} ${EXT_CFLAGS} ${ALL_CPPFLAGS} -g \
 
 all_tests: ${XTARGETS}
 
-adb_test@EXEEXT@: adb_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+adb_test@EXEEXT@: adb_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ adb_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-backtrace_test_nosymtbl@EXEEXT@: backtrace_test.c ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+backtrace_test_nosymtbl@EXEEXT@: backtrace_test.c ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${BTTEST_CFLAGS} ${LDFLAGS} -o $@ \
-	backtrace_test.c ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+	backtrace_test.c ${ISCLIBS} ${LIBS}
 
 backtrace_test@EXEEXT@: backtrace_test_nosymtbl@EXEEXT@
 	#first step: create a first symbol table
@@ -174,149 +172,149 @@ backtrace_test@EXEEXT@: backtrace_test_nosymtbl@EXEEXT@
 	-o $@ backtrace_test.c symtbl.c ${ISCNOSYMLIBS} ${LIBS}
 	rm -f symtbl.c
 
-nsecify@EXEEXT@: nsecify.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+nsecify@EXEEXT@: nsecify.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ nsecify.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-byaddr_test@EXEEXT@: byaddr_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+byaddr_test@EXEEXT@: byaddr_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ byaddr_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-byname_test@EXEEXT@: byname_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+byname_test@EXEEXT@: byname_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ byname_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-lex_test@EXEEXT@: lex_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+lex_test@EXEEXT@: lex_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ lex_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-lfsr_test@EXEEXT@: lfsr_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+lfsr_test@EXEEXT@: lfsr_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ lfsr_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-log_test@EXEEXT@: log_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+log_test@EXEEXT@: log_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ log_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-name_test@EXEEXT@: name_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+name_test@EXEEXT@: name_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ name_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-hash_test@EXEEXT@: hash_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+hash_test@EXEEXT@: hash_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ hash_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-entropy_test@EXEEXT@: entropy_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+entropy_test@EXEEXT@: entropy_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ entropy_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-entropy2_test@EXEEXT@: entropy2_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+entropy2_test@EXEEXT@: entropy2_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ entropy2_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-sock_test@EXEEXT@: sock_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+sock_test@EXEEXT@: sock_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ sock_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-sym_test@EXEEXT@: sym_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+sym_test@EXEEXT@: sym_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ sym_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-task_test@EXEEXT@: task_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+task_test@EXEEXT@: task_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ task_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-shutdown_test@EXEEXT@: shutdown_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+shutdown_test@EXEEXT@: shutdown_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ shutdown_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-timer_test@EXEEXT@: timer_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+timer_test@EXEEXT@: timer_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ timer_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-ratelimiter_test@EXEEXT@: ratelimiter_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+ratelimiter_test@EXEEXT@: ratelimiter_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ratelimiter_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-rbt_test@EXEEXT@: rbt_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+rbt_test@EXEEXT@: rbt_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rbt_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-rdata_test@EXEEXT@: rdata_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+rdata_test@EXEEXT@: rdata_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rdata_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-rwlock_test@EXEEXT@: rwlock_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+rwlock_test@EXEEXT@: rwlock_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rwlock_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-wire_test@EXEEXT@: wire_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+wire_test@EXEEXT@: wire_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ wire_test.@O@ printmsg.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-master_test@EXEEXT@: master_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+master_test@EXEEXT@: master_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ master_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-db_test@EXEEXT@: db_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+db_test@EXEEXT@: db_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ db_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-compress_test@EXEEXT@: compress_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+compress_test@EXEEXT@: compress_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ compress_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-mempool_test@EXEEXT@: mempool_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+mempool_test@EXEEXT@: mempool_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ mempool_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-serial_test@EXEEXT@: serial_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+serial_test@EXEEXT@: serial_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ serial_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-zone_test@EXEEXT@: zone_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+zone_test@EXEEXT@: zone_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zone_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-fsaccess_test@EXEEXT@: fsaccess_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+fsaccess_test@EXEEXT@: fsaccess_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ fsaccess_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-inter_test@EXEEXT@: inter_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+inter_test@EXEEXT@: inter_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ inter_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-keyboard_test@EXEEXT@: keyboard_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+keyboard_test@EXEEXT@: keyboard_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ keyboard_test.@O@ \
-		${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
-lwresconf_test@EXEEXT@: lwresconf_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${LWRESDEPLIBS}
+lwresconf_test@EXEEXT@: lwresconf_test.@O@ ${ISCDEPLIBS} ${LWRESDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ lwresconf_test.@O@ \
-		${LWRESLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
-lwres_test@EXEEXT@: lwres_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${LWRESDEPLIBS}
+lwres_test@EXEEXT@: lwres_test.@O@ ${ISCDEPLIBS} ${LWRESDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ lwres_test.@O@ \
-		${LWRESLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
 gxbn_test@EXEEXT@: gxbn_test.@O@ ${LWRESDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ gxbn_test.@O@ \
-		${LWRESLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
 gxba_test@EXEEXT@: gxba_test.@O@ ${LWRESDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ gxba_test.@O@ \
-		${LWRESLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
-sig0_test@EXEEXT@: sig0_test.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS} ${DNSDEPLIBS}
+sig0_test@EXEEXT@: sig0_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ sig0_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-cfg_test@EXEEXT@: cfg_test.@O@ ${ISCCFGDEPLIBS} ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+cfg_test@EXEEXT@: cfg_test.@O@ ${ISCCFGDEPLIBS} ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ cfg_test.@O@ \
-		${ISCCFGLIBS} ${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${ISCCFGLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 makejournal@EXEEXT@: makejournal.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ makejournal.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 distclean::
 	rm -f headerdep_test.sh

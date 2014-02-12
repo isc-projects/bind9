@@ -33,10 +33,10 @@
 #include "dst_parse.h"
 #include "dst_pkcs11.h"
 
-#include <iscpk11/pk11.h>
-#include <iscpk11/internal.h>
+#include <pk11/pk11.h>
+#include <pk11/internal.h>
 #define WANT_ECC_CURVES
-#include <iscpk11/constants.h>
+#include <pk11/constants.h>
 
 #include <pkcs11/pkcs11.h>
 
@@ -79,8 +79,8 @@ pkcs11ecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	CK_RV rv;
 	CK_MECHANISM mech = {0, NULL, 0 };
 	CK_SLOT_ID slotid;
-	iscpk11_context_t *pk11_ctx;
-	iscpk11_object_t *ec = key->keydata.pkey;
+	pk11_context_t *pk11_ctx;
+	pk11_object_t *ec = key->keydata.pkey;
 	isc_result_t ret;
 
 	UNUSED(key);
@@ -92,8 +92,8 @@ pkcs11ecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	else
 		mech.mechanism = CKM_SHA384;
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(dctx->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(dctx->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
@@ -122,7 +122,7 @@ static void
 pkcs11ecdsa_destroyctx(dst_context_t *dctx) {
 	CK_BYTE garbage[ISC_SHA384_DIGESTLENGTH];
 	CK_ULONG len = ISC_SHA384_DIGESTLENGTH;
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
 		dctx->key->key_alg == DST_ALG_ECDSA384);
@@ -140,7 +140,7 @@ pkcs11ecdsa_destroyctx(dst_context_t *dctx) {
 static isc_result_t
 pkcs11ecdsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	CK_RV rv;
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 	isc_result_t ret = ISC_R_SUCCESS;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
@@ -176,9 +176,9 @@ pkcs11ecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	CK_BYTE digest[ISC_SHA384_DIGESTLENGTH];
 	CK_ULONG dgstlen;
 	CK_ULONG siglen;
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 	dst_key_t *key = dctx->key;
-	iscpk11_object_t *ec = key->keydata.pkey;
+	pk11_object_t *ec = key->keydata.pkey;
 	isc_region_t r;
 	isc_result_t ret = ISC_R_SUCCESS;
 	unsigned int i;
@@ -297,9 +297,9 @@ pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	CK_ATTRIBUTE *attr;
 	CK_BYTE digest[ISC_SHA384_DIGESTLENGTH];
 	CK_ULONG dgstlen;
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 	dst_key_t *key = dctx->key;
-	iscpk11_object_t *ec = key->keydata.pkey;
+	pk11_object_t *ec = key->keydata.pkey;
 	isc_result_t ret = ISC_R_SUCCESS;
 	unsigned int i;
 
@@ -381,7 +381,7 @@ pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 static isc_boolean_t
 pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
-	iscpk11_object_t *ec1, *ec2;
+	pk11_object_t *ec1, *ec2;
 	CK_ATTRIBUTE *attr1, *attr2;
 
 	ec1 = key1->keydata.pkey;
@@ -482,8 +482,8 @@ pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) }
 	};
 	CK_ATTRIBUTE *attr;
-	iscpk11_object_t *ec;
-	iscpk11_context_t *pk11_ctx;
+	pk11_object_t *ec;
+	pk11_context_t *pk11_ctx;
 	isc_result_t ret;
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
@@ -491,8 +491,8 @@ pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	UNUSED(unused);
 	UNUSED(callback);
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(key->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(key->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_FALSE, ISC_FALSE, NULL,
@@ -500,7 +500,7 @@ pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
-	ec = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*ec));
+	ec = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*ec));
 	if (ec == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	memset(ec, 0, sizeof(*ec));
@@ -579,7 +579,7 @@ pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 
 static isc_boolean_t
 pkcs11ecdsa_isprivate(const dst_key_t *key) {
-	iscpk11_object_t *ec = key->keydata.pkey;
+	pk11_object_t *ec = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (ec == NULL)
@@ -590,7 +590,7 @@ pkcs11ecdsa_isprivate(const dst_key_t *key) {
 
 static void
 pkcs11ecdsa_destroy(dst_key_t *key) {
-	iscpk11_object_t *ec = key->keydata.pkey;
+	pk11_object_t *ec = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (ec == NULL)
@@ -623,7 +623,7 @@ pkcs11ecdsa_destroy(dst_key_t *key) {
 
 static isc_result_t
 pkcs11ecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
-	iscpk11_object_t *ec;
+	pk11_object_t *ec;
 	isc_region_t r;
 	unsigned int len;
 	CK_ATTRIBUTE *attr;
@@ -655,7 +655,7 @@ pkcs11ecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 static isc_result_t
 pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
-	iscpk11_object_t *ec;
+	pk11_object_t *ec;
 	isc_region_t r;
 	unsigned int len;
 	CK_ATTRIBUTE *attr;
@@ -674,7 +674,7 @@ pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (r.length != len)
 		return (DST_R_INVALIDPUBLICKEY);
 
-	ec = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*ec));
+	ec = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*ec));
 	if (ec == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(ec, 0, sizeof(*ec));
@@ -742,7 +742,7 @@ pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 pkcs11ecdsa_tofile(const dst_key_t *key, const char *directory) {
 	isc_result_t ret;
-	iscpk11_object_t *ec;
+	pk11_object_t *ec;
 	dst_private_t priv;
 	unsigned char *buf = NULL;
 	unsigned int i = 0;
@@ -810,9 +810,9 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	CK_ULONG cnt;
 	CK_ATTRIBUTE *attr;
 	CK_ATTRIBUTE *pubattr;
-	iscpk11_object_t *ec;
-	iscpk11_object_t *pubec;
-	iscpk11_context_t *pk11_ctx = NULL;
+	pk11_object_t *ec;
+	pk11_object_t *pubec;
+	pk11_context_t *pk11_ctx = NULL;
 	isc_result_t ret;
 
 	if (label == NULL)
@@ -852,8 +852,8 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(key->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(key->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_FALSE,
@@ -910,7 +910,7 @@ static isc_result_t
 pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
-	iscpk11_object_t *ec = NULL;
+	pk11_object_t *ec = NULL;
 	CK_ATTRIBUTE *attr, *pattr;
 	isc_mem_t *mctx = key->mctx;
 	unsigned int i;
@@ -953,7 +953,7 @@ pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			break;
 		}
 	}
-	ec = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*ec));
+	ec = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*ec));
 	if (ec == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	memset(ec, 0, sizeof(*ec));
@@ -1032,14 +1032,14 @@ pkcs11ecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	};
 	CK_ULONG cnt;
 	CK_ATTRIBUTE *attr;
-	iscpk11_object_t *ec;
-	iscpk11_context_t *pk11_ctx = NULL;
+	pk11_object_t *ec;
+	pk11_context_t *pk11_ctx = NULL;
 	isc_result_t ret;
 	unsigned int i;
 
 	UNUSED(pin);
 
-	ec = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*ec));
+	ec = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*ec));
 	if (ec == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(ec, 0, sizeof(*ec));
@@ -1061,8 +1061,8 @@ pkcs11ecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(key->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(key->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_FALSE,

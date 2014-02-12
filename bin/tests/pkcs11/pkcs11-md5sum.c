@@ -70,7 +70,7 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 
 #if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
 #define getpassphrase(x)	getpass(x)
@@ -89,7 +89,7 @@ main(int argc, char *argv[]) {
 	CK_SESSION_HANDLE hSession;
 	CK_MECHANISM mech = { CKM_MD5, NULL, 0 };
 	CK_ULONG len;
-	iscpk11_context_t pctx;
+	pk11_context_t pctx;
 	char *lib_name = NULL;
 	char *pin = NULL;
 	int error = 0;

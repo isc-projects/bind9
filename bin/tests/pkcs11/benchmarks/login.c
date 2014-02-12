@@ -56,8 +56,8 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
-#include <iscpk11/pk11.h>
-#include <iscpk11/internal.h>
+#include <pk11/pk11.h>
+#include <pk11/internal.h>
 
 #if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
 #define getpassphrase(x)	getpass(x)

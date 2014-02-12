@@ -43,11 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 @COPTX@ @COPTI@ /O2 /D "BIND9" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "libdns_EXPORTS" @COPTY@ /FD /c
-@IF PKCS11
-# ADD CPP /nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../iscpk11/win32/include" /I "../../iscpk11/include" @LIBXML2_INC@ @OPENSSL_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "NDEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" @COPTY@ /FD /c
-@ELSE PKCS11
 # ADD CPP /nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" @LIBXML2_INC@ @OPENSSL_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "NDEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" @COPTY@ /FD /c
-@END PKCS11
 # SUBTRACT CPP /X
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -58,11 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll @MACHINE@
-@IF PKCS11
-# ADD LINK32 @LIBXML2_LIB@ user32.lib advapi32.lib ws2_32.lib ../../isc/win32/Release/libisc.lib ../../iscpk11/win32/Release/libiscpk11.lib @OPENSSL_LIB@ @GSSAPI_LIB@ @KRB5_LIB@ @GEOIP_LIB@ /nologo /dll @MACHINE@ /out:"../../../Build/Release/libdns.dll"
-@ELSE PKCS11
 # ADD LINK32 @LIBXML2_LIB@ user32.lib advapi32.lib ws2_32.lib ../../isc/win32/Release/libisc.lib @OPENSSL_LIB@ @GSSAPI_LIB@ @KRB5_LIB@ @GEOIP_LIB@ /nologo /dll @MACHINE@ /out:"../../../Build/Release/libdns.dll"
-@END PKCS11
 
 !ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
 
@@ -78,11 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /D "BIND9" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "libdns_EXPORTS" @COPTY@ /FD /GZ /c
-@IF PKCS11
-# ADD CPP /nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../iscpk11/win32/include" /I "../../iscpk11/include" @OPENSSL_INC@ @LIBXML2_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "_DEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" /FR @COPTY@ /FD /GZ /c
-@ELSE PKCS11
 # ADD CPP /nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" @OPENSSL_INC@ @LIBXML2_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "_DEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" /FR @COPTY@ /FD /GZ /c
-@END PKCS11
 # SUBTRACT CPP /X
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -93,11 +81,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug @MACHINE@ /pdbtype:sept
-@IF PKCS11
-# ADD LINK32 @LIBXML2_LIB@ user32.lib advapi32.lib ws2_32.lib ../../isc/win32/debug/libisc.lib ../../iscpk11/win32/Debug/libiscpk11.lib @OPENSSL_LIB@ @GSSAPI_LIB@ @KRB5_LIB@ @GEOIP_LIB@ /nologo /dll /map /debug @MACHINE@ /out:"../../../Build/Debug/libdns.dll" /pdbtype:sept
-@ELSE PKCS11
 # ADD LINK32 @LIBXML2_LIB@ user32.lib advapi32.lib ws2_32.lib ../../isc/win32/debug/libisc.lib @OPENSSL_LIB@ @GSSAPI_LIB@ @KRB5_LIB@ @GEOIP_LIB@ /nologo /dll /map /debug @MACHINE@ /out:"../../../Build/Debug/libdns.dll" /pdbtype:sept
-@END PKCS11
 
 !ENDIF 
 

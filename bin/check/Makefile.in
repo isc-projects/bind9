@@ -24,7 +24,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${BIND9_INCLUDES} ${DNS_INCLUDES} ${ISCCFG_INCLUDES} \
-		${ISC_INCLUDES} ${ISCPK11_INCLUDES}
+		${ISC_INCLUDES}
 
 CDEFINES = 	-DNAMED_CONFFILE=\"${sysconfdir}/named.conf\"
 CWARNINGS =
@@ -34,13 +34,11 @@ ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
-ISCPK11LIBS =	../../lib/iscpk11/libiscpk11.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
-ISCPK11DEPLIBS = ../../lib/iscpk11/libiscpk11.@A@
 
 LIBS =		${ISCLIBS} @LIBS@
 NOSYMLIBS =	${ISCNOSYMLIBS} @LIBS@
@@ -72,15 +70,14 @@ named-checkzone.@O@: named-checkzone.c
 		-c ${srcdir}/named-checkzone.c
 
 named-checkconf@EXEEXT@: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} \
-		${ISCCFGDEPLIBS} ${BIND9DEPLIBS} ${ISCPK11DEPLIBS}
+		${ISCCFGDEPLIBS} ${BIND9DEPLIBS}
 	export BASEOBJS="named-checkconf.@O@ check-tool.@O@"; \
-	export LIBS0="${BIND9LIBS} ${ISCCFGLIBS} ${DNSLIBS} ${ISCPK11LIBS}"; \
+	export LIBS0="${BIND9LIBS} ${ISCCFGLIBS} ${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
-named-checkzone@EXEEXT@: named-checkzone.@O@ check-tool.@O@ \
-		${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
+named-checkzone@EXEEXT@: named-checkzone.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	export BASEOBJS="named-checkzone.@O@ check-tool.@O@"; \
-	export LIBS0="${ISCCFGLIBS} ${DNSLIBS} ${ISCPK11LIBS}"; \
+	export LIBS0="${ISCCFGLIBS} ${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}

@@ -14,10 +14,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ISCPK11_PK11_H
-#define ISCPK11_PK11_H 1
+#ifndef PK11_PK11_H
+#define PK11_PK11_H 1
 
-/*! \file iscpk11/pk11.h */
+/*! \file pk11/pk11.h */
 
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -37,9 +37,9 @@ ISC_LANG_BEGINDECLS
 #define VALID_SES(x)	ISC_MAGIC_VALID(x, SES_MAGIC)
 #define VALID_TOK(x)	ISC_MAGIC_VALID(x, TOK_MAGIC)
 
-typedef struct iscpk11_context iscpk11_context_t;
+typedef struct pk11_context pk11_context_t;
 
-struct iscpk11_object {
+struct pk11_object {
 	CK_OBJECT_HANDLE	object;
 	CK_SLOT_ID		slot;
 	CK_BBOOL		ontoken;
@@ -48,7 +48,7 @@ struct iscpk11_object {
 	CK_ATTRIBUTE		*repr;
 };
 
-struct iscpk11_context {
+struct pk11_context {
 	void			*handle;
 	CK_SESSION_HANDLE	session;
 	CK_BBOOL		ontoken;
@@ -58,7 +58,7 @@ struct iscpk11_context {
 #endif
 };
 
-typedef struct iscpk11_object iscpk11_object_t;
+typedef struct pk11_object pk11_object_t;
 
 typedef enum {
 	OP_ANY = 0,
@@ -70,7 +70,7 @@ typedef enum {
 	OP_EC = 6,
 	OP_GOST = 7,
 	OP_MAX = 8
-} iscpk11_optype_t;
+} pk11_optype_t;
 
 /*%
  * Function prototypes
@@ -81,8 +81,8 @@ void pk11_set_lib_name(const char *lib_name);
  * Set the PKCS#11 provider (aka library) path/name.
  */
 
-isc_result_t pk11_get_session(iscpk11_context_t *ctx,
-			      iscpk11_optype_t optype,
+isc_result_t pk11_get_session(pk11_context_t *ctx,
+			      pk11_optype_t optype,
 			      isc_boolean_t rw,
 			      isc_boolean_t logon,
 			      const char *pin,
@@ -98,7 +98,7 @@ isc_result_t pk11_get_session(iscpk11_context_t *ctx,
  * slot:  device slot ID
  */
 
-void pk11_return_session(iscpk11_context_t *ctx);
+void pk11_return_session(pk11_context_t *ctx);
 /*%<
  * Release an active PKCS#11 session for reuse.
  */
@@ -112,8 +112,8 @@ isc_result_t pk11_rand_bytes(unsigned char *buf, int num);
 
 void pk11_rand_seed_fromfile(const char *randomfile);
 
-isc_result_t pk11_parse_uri(iscpk11_object_t *obj, const char *label,
-			    isc_mem_t *mctx, iscpk11_optype_t optype);
+isc_result_t pk11_parse_uri(pk11_object_t *obj, const char *label,
+			    isc_mem_t *mctx, pk11_optype_t optype);
 
 ISC_PLATFORM_NORETURN_PRE void
 pk11_error_fatalcheck(const char *file, int line,
@@ -258,4 +258,4 @@ pkcs_C_GenerateRandom(CK_SESSION_HANDLE hSession, CK_BYTE_PTR RandomData,
 
 ISC_LANG_ENDDECLS
 
-#endif /* ISCPK11_PK11_H */
+#endif /* PK11_PK11_H */

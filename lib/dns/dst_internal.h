@@ -119,7 +119,7 @@ struct dst_key {
 		DH *dh;
 		EVP_PKEY *pkey;
 #elif PKCS11CRYPTO
-		iscpk11_object_t *pkey;
+		pk11_object_t *pkey;
 #endif
 		dst_hmacmd5_key_t *hmacmd5;
 		dst_hmacsha1_key_t *hmacsha1;
@@ -167,7 +167,7 @@ struct dst_context {
 #ifdef OPENSSL
 		EVP_MD_CTX *evp_md_ctx;
 #elif PKCS11CRYPTO
-		iscpk11_context_t *pk11_ctx;
+		pk11_context_t *pk11_ctx;
 #endif
 	} ctxdata;
 };

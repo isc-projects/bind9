@@ -34,7 +34,7 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 
 extern void dst__pkcs11_init(isc_mem_t *mctx, const char *engine);
 

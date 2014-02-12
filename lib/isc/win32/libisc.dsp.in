@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 @COPTX@ @COPTI@ /O2 /D "BIND9" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBISC_EXPORTS" @COPTY@ /FD /c
 @IF PKCS11
-# ADD CPP /nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../" @LIBXML2_INC@ /I "include" /I "../include" /I "win32" /I "../../isccfg/include" /I "../../iscpk11/win32/include" /I "../../iscpk11/include" /D "BIND9" @CRYPTO@ /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBISC_EXPORTS" @COPTY@ /FD /c
+# ADD CPP /nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../" @LIBXML2_INC@ /I "include" /I "../include" /I "win32" /I "../../isccfg/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /D "BIND9" @CRYPTO@ @PK11_LIB_LOCATION@ /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBISC_EXPORTS" @COPTY@ /FD /c
 @ELSE PKCS11
 # ADD CPP /nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../" @LIBXML2_INC@ /I "include" /I "../include" /I "win32" /I "../../isccfg/include" /D "BIND9" /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBISC_EXPORTS" @COPTY@ /FD /c
 @END PKCS11
@@ -57,11 +57,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll @MACHINE@
-@IF PKCS11
-# ADD LINK32 @LIBXML2_LIB@ user32.lib advapi32.lib ws2_32.lib ../../iscpk11/win32/Release/libiscpk11.lib /nologo /dll @MACHINE@ /out:"../../../Build/Release/libisc.dll"
-@ELSE PKCS11
 # ADD LINK32 @LIBXML2_LIB@ user32.lib advapi32.lib ws2_32.lib /nologo /dll @MACHINE@ /out:"../../../Build/Release/libisc.dll"
-@END PKCS11
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "libisc - @PLATFORM@ Debug"
@@ -79,7 +75,7 @@ LINK32=link.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /D "BIND9" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBISC_EXPORTS" @COPTY@ /FD /GZ /c
 @IF PKCS11
-# ADD CPP /nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../" @LIBXML2_INC@ /I "include" /I "../include" /I "win32" /I "../../isccfg/include" /I "../../iscpk11/win32/include" /I "../../iscpk11/include" /D "BIND9" @CRYPTO@ /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "LIBISC_EXPORTS" /FR @COPTY@ /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../" @LIBXML2_INC@ /I "include" /I "../include" /I "win32" /I "../../isccfg/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /D "BIND9" @CRYPTO@ @PK11_LIB_LOCATION@ /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "LIBISC_EXPORTS" /FR @COPTY@ /FD /GZ /c
 @ELSE PKCS11
 # ADD CPP /nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../" @LIBXML2_INC@ /I "include" /I "../include" /I "win32" /I "../../isccfg/include" /D "BIND9" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "LIBISC_EXPORTS" /FR @COPTY@ /FD /GZ /c
 @END PKCS11
@@ -92,11 +88,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug @MACHINE@ /pdbtype:sept
-@IF PKCS11
-# ADD LINK32 @LIBXML2_LIB@ user32.lib advapi32.lib ws2_32.lib ../../iscpk11/win32/Debug/libiscpk11.lib /nologo /dll /map /debug @MACHINE@ /out:"../../../Build/Debug/libisc.dll" /pdbtype:sept
-@ELSE PKCS11
 # ADD LINK32 @LIBXML2_LIB@ user32.lib advapi32.lib ws2_32.lib /nologo /dll /map /debug @MACHINE@ /out:"../../../Build/Debug/libisc.dll" /pdbtype:sept
-@END PKCS11
 
 !ENDIF 
 
@@ -167,6 +159,12 @@ SOURCE=.\once.c
 
 SOURCE=.\os.c
 # End Source File
+@IF PKCS11
+# Begin Source File
+
+SOURCE=.\pk11_api.c
+# End Source File
+@END PKCS11
 # Begin Source File
 
 SOURCE=.\resource.c
@@ -339,6 +337,12 @@ SOURCE=.\include\isc\int.h
 
 SOURCE=..\include\isc\interfaceiter.h
 # End Source File
+@IF PKCS11
+# Begin Source File
+
+SOURCE=..\include\pk11\internal.h
+# End Source File
+@END PKCS11
 # Begin Source File
 
 SOURCE=.\include\isc\ipv6.h
@@ -447,6 +451,12 @@ SOURCE=..\include\isc\os.h
 
 SOURCE=..\include\isc\parseint.h
 # End Source File
+@IF PKCS11
+# Begin Source File
+
+SOURCE=..\include\pk11\pk11.h
+# End Source File
+@END PKCS11
 # Begin Source File
 
 SOURCE=..\include\isc\pool.h
@@ -763,6 +773,12 @@ SOURCE=..\ondestroy.c
 
 SOURCE=..\parseint.c
 # End Source File
+@IF PKCS11
+# Begin Source File
+
+SOURCE=..\pk11.c
+# End Source File
+@END PKCS11
 # Begin Source File
 
 SOURCE=..\pool.c

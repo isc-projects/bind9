@@ -21,20 +21,18 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${TEST_INCLUDES} ${ISC_INCLUDES} ${ISCPK11_INCLUDES}
+CINCLUDES =	${TEST_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 ISCLIBS =	../../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
-ISCPK11LIBS =	../../../lib/iscpk11/libiscpk11.@A@
 
 ISCDEPLIBS =	../../../lib/isc/libisc.@A@
-ISCPK11DEPLIBS = ../../../lib/iscpk11/libiscpk11.@A@
 
-DEPLIBS =	${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+DEPLIBS =	${ISCDEPLIBS}
 
-LIBS =		${ISCLIBS} ${ISCPK11LIBS} @LIBS@
+LIBS =		${ISCLIBS} @LIBS@
 
 TLIB =		../../../lib/tests/libt_api.@A@
 

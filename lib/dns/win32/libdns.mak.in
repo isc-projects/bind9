@@ -230,11 +230,7 @@ CLEAN :
 
 LIBXML=@LIBXML2_LIB@
 CPP=cl.exe
-@IF PKCS11
-CPP_PROJ=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../iscpk11/win32/include" /I "../../iscpk11/include" @OPENSSL_INC@ @LIBXML2_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "NDEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" /Fp"$(INTDIR)\libdns.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-@ELSE PKCS11
 CPP_PROJ=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" @OPENSSL_INC@ @LIBXML2_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "NDEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" /Fp"$(INTDIR)\libdns.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-@END PKCS11
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -274,11 +270,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\libdns.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-@IF PKCS11
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib $(LIBXML) ../../isc/win32/Release/libisc.lib ../../iscpk11/win32/Release/libiscpk11.lib @OPENSSL_LIB@ @GSSAPI_LIB@ @KRB5_LIB@ @GEOIP_LIB@ /nologo /dll /incremental:no /pdb:"$(OUTDIR)\libdns.pdb" @MACHINE@ /def:".\libdns.def" /out:"../../../Build/Release/libdns.dll" /implib:"$(OUTDIR)\libdns.lib" 
-@ELSE PKCS11
 LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib $(LIBXML) ../../isc/win32/Release/libisc.lib @OPENSSL_LIB@ @GSSAPI_LIB@ @KRB5_LIB@ @GEOIP_LIB@ /nologo /dll /incremental:no /pdb:"$(OUTDIR)\libdns.pdb" @MACHINE@ /def:".\libdns.def" /out:"../../../Build/Release/libdns.dll" /implib:"$(OUTDIR)\libdns.lib" 
-@END PKCS11
 DEF_FILE= \
 	".\libdns.def"
 LINK32_OBJS= \
@@ -625,11 +617,7 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-@IF PKCS11
-CPP_PROJ=/nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../iscpk11/win32/include" /I "../../iscpk11/include" @OPENSSL_INC@ @LIBXML2_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "_DEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libdns.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
-@ELSE PKCS11
 CPP_PROJ=/nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" @OPENSSL_INC@ @LIBXML2_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "_DEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libdns.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
-@END PKCS11
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -775,11 +763,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-@IF PKCS11
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib $(LIBXML) ../../isc/win32/Debug/libisc.lib ../../iscpk11/win32/Debug/libiscpk11.lib @OPENSSL_LIB@ @GSSAPI_LIB@ @KRB5_LIB@ @GEOIP_LIB@ @GEOIP_LIB@ /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\libdns.pdb" /map:"$(INTDIR)\libdns.map" /debug @MACHINE@ /def:".\libdns.def" /out:"../../../Build/Debug/libdns.dll" /implib:"$(OUTDIR)\libdns.lib" /pdbtype:sept 
-@ELSE PKCS11
 LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib $(LIBXML) ../../isc/win32/Debug/libisc.lib @OPENSSL_LIB@ @GSSAPI_LIB@ @KRB5_LIB@ @GEOIP_LIB@ @GEOIP_LIB@ /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\libdns.pdb" /map:"$(INTDIR)\libdns.map" /debug @MACHINE@ /def:".\libdns.def" /out:"../../../Build/Debug/libdns.dll" /implib:"$(OUTDIR)\libdns.lib" /pdbtype:sept 
-@END PKCS11
 DEF_FILE= \
 	".\libdns.def"
 LINK32_OBJS= \
@@ -1125,11 +1109,7 @@ SOURCE=..\dispatch.c
 
 !IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
 
-@IF PKCS11
-CPP_SWITCHES=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../iscpk11/win32/include" /I "../../iscpk11/include" @OPENSSL_INC@ @LIBXML2_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "NDEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" /Fp"$(INTDIR)\libdns.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-@ELSE PKCS11
 CPP_SWITCHES=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" @OPENSSL_INC@ @LIBXML2_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "NDEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" /Fp"$(INTDIR)\libdns.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-@END PKCS11
 
 "$(INTDIR)\dispatch.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -1139,11 +1119,7 @@ CPP_SWITCHES=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../" /I "incl
 
 !ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
 
-@IF PKCS11
-CPP_SWITCHES=/nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../iscpk11/win32/include" /I "../../iscpk11/include" @OPENSSL_INC@ @LIBXML2_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "_DEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libdns.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
-@ELSE PKCS11
 CPP_SWITCHES=/nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" @OPENSSL_INC@ @LIBXML2_INC@ @GSSAPI_INC@ @GEOIP_INC@ /D "_DEBUG" /D "BIND9" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" @CRYPTO@ @USE_GSSAPI@ @USE_ISC_SPNEGO@ /D "LIBDNS_EXPORTS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libdns.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
-@END PKCS11
 
 "$(INTDIR)\dispatch.obj"	"$(INTDIR)\dispatch.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<

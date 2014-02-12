@@ -333,7 +333,7 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 	when = isc_tm_timegm(&t_tm);
 	if (when == -1)
 		return (ISC_R_UNEXPECTED);
-	isc_time_set(t, when, 0);
+	isc_time_set(t, (unsigned int)when, 0);
 	return (ISC_R_SUCCESS);
 }
 

@@ -50,7 +50,7 @@
 #define TKEY_RANDOM_AMOUNT 16
 
 #ifdef PKCS11CRYPTO
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 #endif
 
 #define RETERR(x) do { \

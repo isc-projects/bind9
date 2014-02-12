@@ -21,8 +21,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${TEST_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} \
-		${ISCPK11_INCLUDES}
+CINCLUDES =	${TEST_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
@@ -30,16 +29,14 @@ CWARNINGS =
 DNSLIBS =	../../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../../lib/isc/libisc.@A@
 ISCCFGLIBS = 	../../../lib/isccfg/libisccfg.@A@
-ISCPK11LIBS = 	../../../lib/iscpk11/libiscpk11.@A@
 
 DNSDEPLIBS =	../../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../../lib/isc/libisc.@A@
 ISCCFGDEPLIBS = ../../../lib/isccfg/libisccfg.@A@
-ISCPK11DEPLIBS = ../../../lib/iscpk11/libiscpk11.@A@
 
-DEPLIBS =	${DNSDEPLIBS} ${ISCCFGDEPLIBS} ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+DEPLIBS =	${DNSDEPLIBS} ${ISCCFGDEPLIBS} ${ISCDEPLIBS}
 
-LIBS =		${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} ${ISCPK11LIBS} @LIBS@
+LIBS =		${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
 
 TLIB =		../../../lib/tests/libt_api.@A@
 

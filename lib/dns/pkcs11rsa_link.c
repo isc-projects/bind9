@@ -34,7 +34,7 @@
 #include "dst_parse.h"
 #include "dst_pkcs11.h"
 
-#include <iscpk11/internal.h>
+#include <pk11/internal.h>
 
 /*
  * Limit the size of public exponents.
@@ -78,8 +78,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 	};
 	CK_ATTRIBUTE *attr;
 	CK_SLOT_ID slotid;
-	iscpk11_object_t *rsa;
-	iscpk11_context_t *pk11_ctx;
+	pk11_object_t *rsa;
+	pk11_context_t *pk11_ctx;
 	isc_result_t ret;
 	unsigned int i;
 
@@ -91,8 +91,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 
 	rsa = key->keydata.pkey;
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(dctx->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(dctx->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
@@ -278,8 +278,8 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 		{ CKA_PUBLIC_EXPONENT, NULL, 0 },
 	};
 	CK_ATTRIBUTE *attr;
-	iscpk11_object_t *rsa;
-	iscpk11_context_t *pk11_ctx;
+	pk11_object_t *rsa;
+	pk11_context_t *pk11_ctx;
 	isc_result_t ret;
 	unsigned int i;
 
@@ -291,8 +291,8 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 
 	rsa = key->keydata.pkey;
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(dctx->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(dctx->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_RSA, ISC_FALSE,
@@ -411,13 +411,13 @@ pkcs11rsa_createctx2(dst_key_t *key, int maxbits, dst_context_t *dctx) {
 
 static void
 pkcs11rsa_destroyctx(dst_context_t *dctx) {
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 
 	if (pk11_ctx != NULL) {
 		if (!pk11_ctx->ontoken &&
 		    (pk11_ctx->object != CK_INVALID_HANDLE))
 			(void) pkcs_C_DestroyObject(pk11_ctx->session,
-					       pk11_ctx->object);
+						    pk11_ctx->object);
 		pk11_return_session(pk11_ctx);
 		memset(pk11_ctx, 0, sizeof(*pk11_ctx));
 		isc_mem_put(dctx->mctx, pk11_ctx, sizeof(*pk11_ctx));
@@ -428,7 +428,7 @@ pkcs11rsa_destroyctx(dst_context_t *dctx) {
 static isc_result_t
 pkcs11rsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	CK_RV rv;
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 	isc_result_t ret = ISC_R_SUCCESS;
 
 	if (dctx->use == DO_SIGN)
@@ -451,7 +451,7 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	CK_RV rv;
 	CK_ULONG siglen = 0;
 	isc_region_t r;
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 	isc_result_t ret = ISC_R_SUCCESS;
 
 	PK11_RET(pkcs_C_SignFinal,
@@ -476,7 +476,7 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 static isc_result_t
 pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	CK_RV rv;
-	iscpk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
+	pk11_context_t *pk11_ctx = dctx->ctxdata.pk11_ctx;
 	isc_result_t ret = ISC_R_SUCCESS;
 
 	PK11_CALL(pkcs_C_VerifyFinal,
@@ -489,7 +489,7 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 static isc_boolean_t
 pkcs11rsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
-	iscpk11_object_t *rsa1, *rsa2;
+	pk11_object_t *rsa1, *rsa2;
 	CK_ATTRIBUTE *attr1, *attr2;
 
 	rsa1 = key1->keydata.pkey;
@@ -567,15 +567,15 @@ pkcs11rsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) },
 	};
 	CK_ATTRIBUTE *attr;
-	iscpk11_object_t *rsa;
-	iscpk11_context_t *pk11_ctx;
+	pk11_object_t *rsa;
+	pk11_context_t *pk11_ctx;
 	isc_result_t ret;
 	unsigned int i;
 
 	UNUSED(callback);
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(key->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(key->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_RSA, ISC_FALSE, ISC_FALSE, NULL,
@@ -607,7 +607,7 @@ pkcs11rsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 		  &pub, &priv),
 		 DST_R_CRYPTOFAILURE);
 
-	rsa = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*rsa));
+	rsa = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*rsa));
 	if (rsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	memset(rsa, 0, sizeof(*rsa));
@@ -678,7 +678,7 @@ pkcs11rsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 
 static isc_boolean_t
 pkcs11rsa_isprivate(const dst_key_t *key) {
-	iscpk11_object_t *rsa = key->keydata.pkey;
+	pk11_object_t *rsa = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (rsa == NULL)
@@ -689,7 +689,7 @@ pkcs11rsa_isprivate(const dst_key_t *key) {
 
 static void
 pkcs11rsa_destroy(dst_key_t *key) {
-	iscpk11_object_t *rsa = key->keydata.pkey;
+	pk11_object_t *rsa = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (rsa == NULL)
@@ -732,7 +732,7 @@ pkcs11rsa_destroy(dst_key_t *key) {
 
 static isc_result_t
 pkcs11rsa_todns(const dst_key_t *key, isc_buffer_t *data) {
-	iscpk11_object_t *rsa;
+	pk11_object_t *rsa;
 	CK_ATTRIBUTE *attr;
 	isc_region_t r;
 	unsigned int e_bytes = 0, mod_bytes = 0;
@@ -786,7 +786,7 @@ pkcs11rsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 static isc_result_t
 pkcs11rsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
-	iscpk11_object_t *rsa;
+	pk11_object_t *rsa;
 	isc_region_t r;
 	unsigned int e_bytes, mod_bytes;
 	CK_BYTE *exponent = NULL, *modulus = NULL;
@@ -796,7 +796,7 @@ pkcs11rsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (r.length == 0)
 		return (ISC_R_SUCCESS);
 
-	rsa = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*rsa));
+	rsa = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*rsa));
 	if (rsa == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(rsa, 0, sizeof(*rsa));
@@ -887,7 +887,7 @@ pkcs11rsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 	int i;
-	iscpk11_object_t *rsa;
+	pk11_object_t *rsa;
 	CK_ATTRIBUTE *attr;
 	CK_ATTRIBUTE *modulus = NULL, *exponent = NULL;
 	CK_ATTRIBUTE  *d = NULL, *p = NULL, *q = NULL;
@@ -1054,9 +1054,9 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	CK_ULONG cnt;
 	CK_ATTRIBUTE *attr;
 	CK_ATTRIBUTE *pubattr;
-	iscpk11_object_t *rsa;
-	iscpk11_object_t *pubrsa;
-	iscpk11_context_t *pk11_ctx = NULL;
+	pk11_object_t *rsa;
+	pk11_object_t *pubrsa;
+	pk11_context_t *pk11_ctx = NULL;
 	isc_result_t ret;
 
 	if (label == NULL)
@@ -1096,8 +1096,8 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(key->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(key->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_RSA, ISC_FALSE,
@@ -1157,7 +1157,7 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 }
 
 static isc_result_t
-rsa_check(iscpk11_object_t *rsa, iscpk11_object_t *pubrsa) {
+rsa_check(pk11_object_t *rsa, pk11_object_t *pubrsa) {
 	CK_ATTRIBUTE *pubattr, *privattr;
 	CK_BYTE *priv_exp = NULL, *priv_mod = NULL;
 	CK_BYTE *pub_exp = NULL, *pub_mod = NULL;
@@ -1224,7 +1224,7 @@ pkcs11rsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
-	iscpk11_object_t *rsa;
+	pk11_object_t *rsa;
 	CK_ATTRIBUTE *attr;
 	isc_mem_t *mctx = key->mctx;
 	const char *engine = NULL, *label = NULL;
@@ -1262,7 +1262,7 @@ pkcs11rsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			break;
 		}
 	}
-	rsa = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*rsa));
+	rsa = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*rsa));
 	if (rsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	memset(rsa, 0, sizeof(*rsa));
@@ -1407,14 +1407,14 @@ pkcs11rsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	};
 	CK_ULONG cnt;
 	CK_ATTRIBUTE *attr;
-	iscpk11_object_t *rsa;
-	iscpk11_context_t *pk11_ctx = NULL;
+	pk11_object_t *rsa;
+	pk11_context_t *pk11_ctx = NULL;
 	isc_result_t ret;
 	unsigned int i;
 
 	UNUSED(pin);
 
-	rsa = (iscpk11_object_t *) isc_mem_get(key->mctx, sizeof(*rsa));
+	rsa = (pk11_object_t *) isc_mem_get(key->mctx, sizeof(*rsa));
 	if (rsa == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(rsa, 0, sizeof(*rsa));
@@ -1436,8 +1436,8 @@ pkcs11rsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
-	pk11_ctx = (iscpk11_context_t *) isc_mem_get(key->mctx,
-						     sizeof(*pk11_ctx));
+	pk11_ctx = (pk11_context_t *) isc_mem_get(key->mctx,
+						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_RSA, ISC_FALSE,

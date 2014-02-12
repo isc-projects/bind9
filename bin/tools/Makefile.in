@@ -21,7 +21,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
-		${LWRES_INCLUDES} ${ISCPK_11INCLUDES} ${OMAPI_INCLUDES}
+		${LWRES_INCLUDES} ${OMAPI_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
@@ -31,16 +31,14 @@ ISCLIBS =	../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
-ISCPK11LIBS = 	../../lib/iscpk11/libiscpk11.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
-ISCPK11DEPLIBS = ../../lib/iscpk11/libiscpk11.@A@
 
-LIBS =		${ISCLIBS} ${ISCPK11LIBS} @LIBS@
-NOSYMLIBS =	${ISCNOSYMLIBS} ${ISCPK11LIBS} @LIBS@
+LIBS =		${ISCLIBS} @LIBS@
+NOSYMLIBS =	${ISCNOSYMLIBS} @LIBS@
 
 SUBDIRS = 
 
@@ -58,28 +56,26 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
-arpaname@EXEEXT@: arpaname.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
+arpaname@EXEEXT@: arpaname.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} \
 		-o $@ arpaname.@O@ ${ISCLIBS} ${LIBS}
 
-named-journalprint@EXEEXT@: named-journalprint.@O@ ${ISCDEPLIBS} \
-		${DNSDEPLIBS} ${ISCPK11DEPLIBS}
+named-journalprint@EXEEXT@: named-journalprint.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	export BASEOBJS="named-journalprint.@O@"; \
 	export LIBS0="${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
-named-rrchecker@EXEEXT@: named-rrchecker.@O@ ${ISCDEPLIBS} \
-		${DNSDEPLIBS} ${ISCPK11DEPLIBS}
+named-rrchecker@EXEEXT@: named-rrchecker.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	export BASEOBJS="named-rrchecker.@O@"; \
 	export LIBS0="${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
-nsec3hash@EXEEXT@: nsec3hash.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCPK11DEPLIBS}
+nsec3hash@EXEEXT@: nsec3hash.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	export BASEOBJS="nsec3hash.@O@"; \
 	export LIBS0="${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
-isc-hmac-fixup@EXEEXT@: isc-hmac-fixup.@O@ ${ISCDEPLIBS} ${ISCPK11DEPLIBS}
+isc-hmac-fixup@EXEEXT@: isc-hmac-fixup.@O@ ${ISCDEPLIBS}
 	export BASEOBJS="isc-hmac-fixup.@O@"; \
 	export LIBS0="${ISCLIBS}"; \
 	${FINALBUILDCMD}

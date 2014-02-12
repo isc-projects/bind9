@@ -60,7 +60,7 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 
 #ifdef WIN32
 #define sleep(x)	Sleep(x)
@@ -78,7 +78,7 @@ main(int argc, char *argv[]) {
 	CK_SESSION_HANDLE hSession;
 	CK_BYTE attr_id[2];
 	CK_OBJECT_HANDLE akey[50];
-	iscpk11_context_t pctx;
+	pk11_context_t pctx;
 	char *lib_name = NULL;
 	char *label = NULL;
 	char *pin = NULL;

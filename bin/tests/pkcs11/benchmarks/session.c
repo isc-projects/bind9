@@ -56,8 +56,8 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
-#include <iscpk11/pk11.h>
-#include <iscpk11/internal.h>
+#include <pk11/pk11.h>
+#include <pk11/internal.h>
 
 #ifndef HAVE_CLOCK_GETTIME
 #ifndef CLOCK_REALTIME

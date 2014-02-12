@@ -41,9 +41,9 @@
 typedef EVP_MD_CTX isc_sha1_t;
 
 #elif PKCS11CRYPTO
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 
-typedef iscpk11_context_t isc_sha1_t;
+typedef pk11_context_t isc_sha1_t;
 
 #else
 

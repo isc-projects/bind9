@@ -29,9 +29,9 @@
 typedef EVP_MD_CTX isc_gost_t;
 #endif
 #ifdef HAVE_PKCS11_GOST
-#include <iscpk11/pk11.h>
+#include <pk11/pk11.h>
 
-typedef iscpk11_context_t isc_gost_t;
+typedef pk11_context_t isc_gost_t;
 #endif
 
 ISC_LANG_BEGINDECLS

@@ -22,14 +22,13 @@ top_srcdir =	@top_srcdir@
 
 PROVIDER =	@PKCS11_PROVIDER@
 
-CINCLUDES =	${ISC_INCLUDES} ${ISCPK11_INCLUDES}
+CINCLUDES =	${ISC_INCLUDES}
 
 CDEFINES =	-DPK11_LIB_LOCATION=\"${PROVIDER}\"
 
 ISCLIBS =	../../../../lib/isc/libisc.@A@
-ISCPK11LIBS =	../../../../lib/iscpk11/libiscpk11.@A@
 
-LIBS =		${ISCPK11LIBS} ${ISCLIBS} @LIBS@
+LIBS =		${ISCLIBS} @LIBS@
 
 SUBDIRS =
 

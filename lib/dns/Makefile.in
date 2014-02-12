@@ -35,7 +35,7 @@ top_srcdir =	@top_srcdir@
 USE_ISC_SPNEGO = @USE_ISC_SPNEGO@
 
 CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} ${ISC_INCLUDES} \
-		${ISCPK11_INCLUDES} @DST_OPENSSL_INC@ @DST_GSSAPI_INC@
+		@DST_OPENSSL_INC@ @DST_GSSAPI_INC@
 
 CDEFINES =	-DUSE_MD5 @CRYPTO@ @USE_GSSAPI@ ${USE_ISC_SPNEGO}
 
@@ -44,10 +44,6 @@ CWARNINGS =
 ISCLIBS =	../../lib/isc/libisc.@A@
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
-
-ISCPK11LIBS =	../../lib/iscpk11/libiscpk11.@A@
-
-ISCPK11DEPLIBS = ../../lib/iscpk11/libiscpk11.@A@
 
 LIBS =		@LIBS@
 
@@ -152,7 +148,7 @@ libdns.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libdns.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
-		${OBJS} ${ISCLIBS} ${ISCPK11LIBS} @DNS_CRYPTO_LIBS@ ${LIBS}
+		${OBJS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ ${LIBS}
 
 timestamp: libdns.@A@
 	touch timestamp

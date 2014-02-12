@@ -131,9 +131,6 @@ const FileData installFiles[] =
 	{"libisc.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libisccfg.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libisccc.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
-#ifdef USE_PKCS11
-	{"libiscpk11.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
-#endif
 	{"libdns.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"liblwres.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 #ifdef OPENSSL

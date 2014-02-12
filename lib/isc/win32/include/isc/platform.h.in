@@ -137,12 +137,6 @@
 #define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport)
 #endif
 
-#ifdef LIBISCPK11_EXPORTS
-#define LIBISCPK11_EXTERNAL_DATA __declspec(dllexport)
-#else
-#define LIBISCPK11_EXTERNAL_DATA __declspec(dllimport)
-#endif
-
 #ifdef LIBBIND9_EXPORTS
 #define LIBBIND9_EXTERNAL_DATA __declspec(dllexport)
 #else

@@ -20,14 +20,14 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${ISC_INCLUDES} ${ISCPK11_INCLUDES}
+CINCLUDES =	${ISC_INCLUDES}
 
 CDEFINES =
 
 ISCLIBS =	../../lib/isc/libisc.@A@
-ISCPK11LIBS =	../../lib/iscpk11/libiscpk11.@A@
 
-LIBS =		${ISCPK11LIBS} ${ISCLIBS} @LIBS@
+# if FORCE_STATIC_PROVIDER: LIBS += ${PROVIDER}
+LIBS =		${ISCLIBS} @LIBS@
 
 SUBDIRS =	benchmarks
 

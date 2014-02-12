@@ -109,8 +109,6 @@
 
 #include <config.h>
 
-#ifdef USE_PKCS11
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -124,8 +122,8 @@
 
 #include <dst/result.h>
 
-#include <iscpk11/pk11.h>
-#include <iscpk11/internal.h>
+#include <pk11/pk11.h>
+#include <pk11/internal.h>
 
 #include <pkcs11/cryptoki.h>
 #include <pkcs11/pkcs11.h>
@@ -144,23 +142,23 @@ static isc_mem_t *pk11_mctx = NULL;
 static isc_int32_t allocsize = 0;
 static isc_boolean_t initialized = ISC_FALSE;
 
-typedef struct iscpk11_session iscpk11_session_t;
-typedef struct iscpk11_token iscpk11_token_t;
-typedef ISC_LIST(iscpk11_session_t) iscpk11_sessionlist_t;
+typedef struct pk11_session pk11_session_t;
+typedef struct pk11_token pk11_token_t;
+typedef ISC_LIST(pk11_session_t) pk11_sessionlist_t;
 
-struct iscpk11_session {
+struct pk11_session {
 	unsigned int		magic;
 	CK_SESSION_HANDLE	session;
-	ISC_LINK(iscpk11_session_t) link;
-	iscpk11_token_t		*token;
+	ISC_LINK(pk11_session_t) link;
+	pk11_token_t		*token;
 };
 
-struct iscpk11_token {
+struct pk11_token {
 	unsigned int		magic;
 	unsigned int		operations;
-	ISC_LINK(iscpk11_token_t) link;
+	ISC_LINK(pk11_token_t)	link;
 	CK_SLOT_ID		slotid;
-	iscpk11_sessionlist_t	sessions;
+	pk11_sessionlist_t	sessions;
 	isc_boolean_t		logged;
 	char			name[32];
 	char			manuf[32];
@@ -168,34 +166,34 @@ struct iscpk11_token {
 	char			serial[16];
 	char			pin[PINLEN];
 };
-static ISC_LIST(iscpk11_token_t) tokens;
+static ISC_LIST(pk11_token_t) tokens;
 
-static iscpk11_token_t *rand_token;
-static iscpk11_token_t *best_rsa_token;
-static iscpk11_token_t *best_dsa_token;
-static iscpk11_token_t *best_dh_token;
-static iscpk11_token_t *digest_token;
-static iscpk11_token_t *best_ec_token;
-static iscpk11_token_t *best_gost_token;
+static pk11_token_t *rand_token;
+static pk11_token_t *best_rsa_token;
+static pk11_token_t *best_dsa_token;
+static pk11_token_t *best_dh_token;
+static pk11_token_t *digest_token;
+static pk11_token_t *best_ec_token;
+static pk11_token_t *best_gost_token;
 
 static isc_result_t free_all_sessions(void);
-static isc_result_t free_session_list(iscpk11_sessionlist_t *slist);
-static isc_result_t setup_session(iscpk11_session_t *sp,
-				  iscpk11_token_t *token,
+static isc_result_t free_session_list(pk11_sessionlist_t *slist);
+static isc_result_t setup_session(pk11_session_t *sp,
+				  pk11_token_t *token,
 				  isc_boolean_t rw);
 static void choose_slots(void);
-static isc_result_t token_login(iscpk11_session_t *sp);
+static isc_result_t token_login(pk11_session_t *sp);
 static char *percent_decode(char *x, size_t *len);
 static isc_boolean_t pk11strcmp(const char *x, size_t lenx,
 				const char *y, size_t leny);
-static CK_ATTRIBUTE *push_attribute(iscpk11_object_t *obj,
+static CK_ATTRIBUTE *push_attribute(pk11_object_t *obj,
 				    isc_mem_t *mctx,
 				    size_t len);
 
 static isc_mutex_t alloclock;
 static isc_mutex_t sessionlock;
 
-static iscpk11_sessionlist_t actives;
+static pk11_sessionlist_t actives;
 
 static CK_C_INITIALIZE_ARGS pk11_init_args = {
 	NULL_PTR,               /* CreateMutex */
@@ -248,7 +246,7 @@ pk11_mem_get(size_t size) {
 	else {
 		ptr = malloc(size);
 		if (ptr != NULL)
-			allocsize += size;
+			allocsize += (int)size;
 	}
 	UNLOCK(&alloclock);
 
@@ -266,7 +264,7 @@ pk11_mem_put(void *ptr, size_t size) {
 		isc_mem_put(pk11_mctx, ptr, size);
 	else {
 		if (ptr != NULL)
-			allocsize -= size;
+			allocsize -= (int)size;
 		free(ptr);
 	}
 	UNLOCK(&alloclock);
@@ -321,7 +319,7 @@ dst__pkcs11_init(isc_mem_t *mctx, const char *engine) {
 
 isc_result_t
 dst__pkcs11_destroy(void) {
-	iscpk11_token_t *token, *next;
+	pk11_token_t *token, *next;
 	isc_result_t ret;
 
 	ret = free_all_sessions();
@@ -362,7 +360,7 @@ isc_result_t
 pk11_rand_bytes(unsigned char *buf, int num) {
 	isc_result_t ret;
 	CK_RV rv;
-	iscpk11_context_t ctx;
+	pk11_context_t ctx;
 
 	ret = pk11_get_session(&ctx, OP_RAND, ISC_FALSE, ISC_FALSE, NULL, 0);
 	if (ret != ISC_R_SUCCESS)
@@ -383,7 +381,7 @@ static CK_BYTE seed[SEEDSIZE];
 
 void
 pk11_rand_seed_fromfile(const char *randomfile) {
-	iscpk11_context_t ctx;
+	pk11_context_t ctx;
 	FILE *stream = NULL;
 	size_t cc = 0;
 	isc_result_t ret;
@@ -411,13 +409,13 @@ pk11_rand_seed_fromfile(const char *randomfile) {
 }
 
 isc_result_t
-pk11_get_session(iscpk11_context_t *ctx, iscpk11_optype_t optype,
+pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 		 isc_boolean_t rw, isc_boolean_t logon,
 		 const char *pin, CK_SLOT_ID slot)
 {
-	iscpk11_token_t *token = NULL;
-	iscpk11_sessionlist_t *freelist;
-	iscpk11_session_t *sp;
+	pk11_token_t *token = NULL;
+	pk11_sessionlist_t *freelist;
+	pk11_session_t *sp;
 	isc_result_t ret = ISC_R_SUCCESS;
 
 	dst__pkcs11_init(NULL, NULL);
@@ -425,7 +423,7 @@ pk11_get_session(iscpk11_context_t *ctx, iscpk11_optype_t optype,
 	/* wait for initialization to finish */
 	UNLOCK(&sessionlock);
 
-	memset(ctx, 0, sizeof(iscpk11_context_t));
+	memset(ctx, 0, sizeof(pk11_context_t));
 	ctx->handle = NULL;
 	ctx->session = CK_INVALID_HANDLE;
 	switch(optype) {
@@ -501,8 +499,8 @@ pk11_get_session(iscpk11_context_t *ctx, iscpk11_optype_t optype,
 }
 
 void
-pk11_return_session(iscpk11_context_t *ctx) {
-	iscpk11_session_t *sp = (iscpk11_session_t *) ctx->handle;
+pk11_return_session(pk11_context_t *ctx) {
+	pk11_session_t *sp = (pk11_session_t *) ctx->handle;
 
 	if (sp == NULL)
 		return;
@@ -524,7 +522,7 @@ pk11_return_session(iscpk11_context_t *ctx) {
 
 static isc_result_t
 free_all_sessions(void) {
-	iscpk11_token_t *token;
+	pk11_token_t *token;
 	isc_result_t ret = ISC_R_SUCCESS;
 	isc_result_t oret;
 
@@ -545,8 +543,8 @@ free_all_sessions(void) {
 }
 
 static isc_result_t
-free_session_list(iscpk11_sessionlist_t *slist) {
-	iscpk11_session_t *sp;
+free_session_list(pk11_sessionlist_t *slist) {
+	pk11_session_t *sp;
 	CK_RV rv;
 	isc_result_t ret;
 
@@ -570,7 +568,7 @@ free_session_list(iscpk11_sessionlist_t *slist) {
 }
 
 static isc_result_t
-setup_session(iscpk11_session_t *sp, iscpk11_token_t *token,
+setup_session(pk11_session_t *sp, pk11_token_t *token,
 	      isc_boolean_t rw)
 {
 	CK_RV rv;
@@ -587,9 +585,9 @@ setup_session(iscpk11_session_t *sp, iscpk11_token_t *token,
 }
 
 static isc_result_t
-token_login(iscpk11_session_t *sp) {
+token_login(pk11_session_t *sp) {
 	CK_RV rv;
-	iscpk11_token_t *token = sp->token;
+	pk11_token_t *token = sp->token;
 	isc_result_t ret = ISC_R_SUCCESS;
 
 	LOCK(&sessionlock);
@@ -618,7 +616,7 @@ choose_slots(void) {
 	CK_SLOT_ID slot;
 	CK_SLOT_ID_PTR slotList;
 	CK_ULONG slotCount;
-	iscpk11_token_t *token;
+	pk11_token_t *token;
 	unsigned int i;
 
 	slotCount = 0;
@@ -811,8 +809,8 @@ choose_slots(void) {
 }
 
 CK_SLOT_ID
-pk11_get_best_token(iscpk11_optype_t optype) {
-	iscpk11_token_t *token = NULL;
+pk11_get_best_token(pk11_optype_t optype) {
+	pk11_token_t *token = NULL;
 
 	switch (optype) {
 	case OP_RAND:
@@ -880,12 +878,12 @@ pk11_numbits(CK_BYTE_PTR data, unsigned int bytecnt) {
 }
 
 CK_ATTRIBUTE *
-pk11_attribute_first(const iscpk11_object_t *obj) {
+pk11_attribute_first(const pk11_object_t *obj) {
 	return (obj->repr);
 }
 
 CK_ATTRIBUTE *
-pk11_attribute_next(const iscpk11_object_t *obj, CK_ATTRIBUTE *attr) {
+pk11_attribute_next(const pk11_object_t *obj, CK_ATTRIBUTE *attr) {
 	CK_ATTRIBUTE *next;
 
 	next = attr + 1;
@@ -895,7 +893,7 @@ pk11_attribute_next(const iscpk11_object_t *obj, CK_ATTRIBUTE *attr) {
 }
 
 CK_ATTRIBUTE *
-pk11_attribute_bytype(const iscpk11_object_t *obj, CK_ATTRIBUTE_TYPE type) {
+pk11_attribute_bytype(const pk11_object_t *obj, CK_ATTRIBUTE_TYPE type) {
 	CK_ATTRIBUTE *attr;
 
 	for(attr = pk11_attribute_first(obj);
@@ -1007,7 +1005,7 @@ pk11strcmp(const char *x, size_t lenx, const char *y, size_t leny) {
 }
 
 static CK_ATTRIBUTE *
-push_attribute(iscpk11_object_t *obj, isc_mem_t *mctx, size_t len) {
+push_attribute(pk11_object_t *obj, isc_mem_t *mctx, size_t len) {
 	CK_ATTRIBUTE *old = obj->repr;
 	CK_ATTRIBUTE *attr;
 	CK_BYTE cnt = obj->attrcnt;
@@ -1040,11 +1038,11 @@ push_attribute(iscpk11_object_t *obj, isc_mem_t *mctx, size_t len) {
 #define DST_RET(a)	{ ret = a; goto err; }
 
 isc_result_t
-pk11_parse_uri(iscpk11_object_t *obj, const char *label,
-	       isc_mem_t *mctx, iscpk11_optype_t optype)
+pk11_parse_uri(pk11_object_t *obj, const char *label,
+	       isc_mem_t *mctx, pk11_optype_t optype)
 {
 	CK_ATTRIBUTE *attr;
-	iscpk11_token_t *token = NULL;
+	pk11_token_t *token = NULL;
 	char *uri, *p, *a, *na, *v;
 	size_t len, l;
 	FILE *stream = NULL;
@@ -1210,7 +1208,7 @@ pk11_error_fatalcheck(const char *file, int line,
 void
 pk11_dump_tokens(void)
 {
-	iscpk11_token_t *token;
+	pk11_token_t *token;
 	isc_boolean_t first;
 
 	printf("DEFAULTS\n");
@@ -1272,11 +1270,3 @@ pk11_dump_tokens(void)
 		printf(")\n");
 	}
 }
-
-#else /* USE_PKCS11 */
-
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
-
-#endif /* USE_PKCS11 */

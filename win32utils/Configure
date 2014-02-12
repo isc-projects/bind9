@@ -24,6 +24,7 @@
 require 5.000;
 use strict;
 use File::Spec;
+use Cwd;
 
 # files to configure
 
@@ -156,14 +157,10 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\lib\\isc\\win32\\libisc.def",
                 "..\\lib\\isc\\win32\\libisc.dsp",
                 "..\\lib\\isc\\win32\\libisc.mak",
-                "..\\lib\\isc\\win32\\mklib.bat",
                 "..\\lib\\isccc\\win32\\libisccc.dsp",
                 "..\\lib\\isccc\\win32\\libisccc.mak",
                 "..\\lib\\isccfg\\win32\\libisccfg.dsp",
                 "..\\lib\\isccfg\\win32\\libisccfg.mak",
-                "..\\lib\\iscpk11\\win32\\libiscpk11.def",
-                "..\\lib\\iscpk11\\win32\\libiscpk11.dsp",
-                "..\\lib\\iscpk11\\win32\\libiscpk11.mak",
                 "..\\lib\\lwres\\win32\\liblwres.dsp",
                 "..\\lib\\lwres\\win32\\liblwres.mak",
                 "..\\lib\\tests\\win32\\libtests.dsp",
@@ -305,8 +302,6 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\lib\\isccc\\win32\\libisccc.vcxproj.filters",
                    "..\\lib\\isccfg\\win32\\libisccfg.vcxproj",
                    "..\\lib\\isccfg\\win32\\libisccfg.vcxproj.filters",
-                   "..\\lib\\iscpk11\\win32\\libiscpk11.vcxproj",
-                   "..\\lib\\iscpk11\\win32\\libiscpk11.vcxproj.filters",
                    "..\\lib\\lwres\\win32\\liblwres.vcxproj",
                    "..\\lib\\lwres\\win32\\liblwres.vcxproj.filters",
                    "..\\lib\\tests\\win32\\libtests.vcxproj",
@@ -987,50 +982,71 @@ if ($verbose) {
 # Check environment
 
 # infer vcredist when not given
-
 if ($vcredist_path eq " --infer-- ") {
     if ($verbose) {
         print "trying to infer vcredist path from build environment\n";
     }
-    if ($ENV{"VCRedistPath"} ne "") {
-        $vcredist_path = $ENV{"VCRedistPath"};
-    } elsif ($ENV{"FrameworkSDKDir"} ne "") {
-        if (($want_win32 eq "yes") &&
-            (-f File::Spec->catfile($ENV{"FrameworkSDKDir"},
-                                    "BootStrapper", "Packages",
-                                    "vcredist_x86", "vcredist_x86.exe"))) {
-            $vcredist_path = File::Spec->catfile($ENV{"FrameworkSDKDir"},
-                                                 "BootStrapper",
-                                                 "Packages",
-                                                 "vcredist_x86",
-                                                 "vcredist_x86.exe");
-        } elsif (($want_x64 eq "yes") &&
-                 (-f File::Spec->catfile($ENV{"FrameworkSDKDir"},
-                                         "BootStrapper", "Packages",
-                                         "vcredist_x64",
-                                         "vcredist_x64.exe"))) {
-            $vcredist_path = File::Spec->catfile($ENV{"FrameworkSDKDir"},
-                                                 "BootStrapper",
-                                                 "Packages",
-                                                 "vcredist_x64",
-                                                 "vcredist_x64.exe");
-        }
-    } elsif ($ENV{"VCINSTALLDIR"} ne "") {
-        if (($want_win32 eq "yes") &&
-            (-f File::Spec->catfile($ENV{"VCINSTALLDIR"}, "redist",
-                                    "1033", "vcredist_x86.exe"))) {
-            $vcredist_path = File::Spec->catfile($ENV{"VCINSTALLDIR"},
-                                                 "redist", "1033",
-                                                 "vcredist_x86.exe");
-        } elsif (($want_x64 eq "yes") &&
-                 (-f File::Spec->catfile($ENV{"VCINSTALLDIR"}, "redist",
-                                         "1033", "vcredist_x64.exe"))) {
-            $vcredist_path = File::Spec->catfile($ENV{"VCINSTALLDIR"},
-                                                 "redist", "1033",
-                                                 "vcredist_x64.exe");
-        }
+
+    my @vcpaths = {};
+    push(@vcpaths, $ENV{"VCRedistPath"}) if ($ENV{"VCRedistPath"} ne "");
+    push(@vcpaths, File::Spec->catfile( cwd(), "..", ".." ));
+
+    if ($ENV{"FrameworkSDKDir"} ne "" && $want_win32 eq "yes") {
+        push(@vcpaths, File::Spec->catfile($ENV{"FrameworkSDKDir"},
+                                           "BootStrapper", "Packages",
+                                           "vcredist_x86"));
+    } elsif ($ENV{"FrameworkSDKDir"} ne "" && $want_x64 eq "yes") {
+        push(@vcpaths, File::Spec->catfile($ENV{"FrameworkSDKDir"},
+                                           "BootStrapper", "Packages",
+                                           "vcredist_x64"));
+    }
+
+    if ($ENV{"WindowsSDKDir"} ne "" && $want_win32 eq "yes") {
+        push(@vcpaths, File::Spec->catfile($ENV{"WindowsSDKDir"},
+                                           "BootStrapper", "Packages",
+                                           "vcredist_x86"));
+    } elsif ($ENV{"WindowsSDKDir"} ne "" && $want_x64 eq "yes") {
+        push(@vcpaths, File::Spec->catfile($ENV{"WindowsSDKDir"},
+                                           "BootStrapper", "Packages",
+                                           "vcredist_x64"));
+    }
+
+    if ($ENV{"WindowsSDKDir_old"} ne "" && $want_win32 eq "yes") {
+        push(@vcpaths, File::Spec->catfile($ENV{"WindowsSDKDir_old"},
+                                           "BootStrapper", "Packages",
+                                           "vcredist_x86"));
+    } elsif ($ENV{"WindowsSDKDir_old"} ne "" && $want_x64 eq "yes") {
+        push(@vcpaths, File::Spec->catfile($ENV{"WindowsSDKDir_old"},
+                                           "BootStrapper", "Packages",
+                                           "vcredist_x64"));
+    }
+
+    if ($ENV{"VCINSTALLDIR"}) {
+        push(@vcpaths, File::Spec->catfile($ENV{"VCINSTALLDIR"},
+                                           "redist", "1033"));
+    }
+
+    my $rfile;
+    if ($want_win32 eq "yes") {
+        $rfile = "vcredist_x86.exe";
     } else {
+        $rfile = "vcredist_x64.exe";
+    }
+
+    foreach (@vcpaths) {
+        my $vp = File::Spec->catfile($_, $rfile);
+        if (-f $vp) {
+            $vcredist_path = $vp;
+            last;
+        }
+    }
+
+    if ($vcredist_path eq " --infer-- ") {
         die "with-vcredist is REQUIRED\n";
+    }
+
+    if ($verbose) {
+        print "found vcredist at " . $vcredist_path . "\n";
     }
 }
 
@@ -2148,8 +2164,10 @@ sub setupfile {
             } elsif ($1 ~~ @substdefd) {
                 if (defined($configdefd{$1})) {
                     my $def = $configdefd{$1};
+                    my $pre = "$`";
+                    my $post = "$'";
                     $def =~ s/([\\ "])/\\$1/g;
-                    $line = qq($`/D "$def"$');
+                    $line = qq($pre/D "$def"$post);
                 } else {
                     $line = "$`$'";
                 }
@@ -2308,15 +2326,13 @@ sub setupproject {
 sub makeversion {
     # List of directories with version files
 
-    my @dirlist = ("iscpk11", "isc", "dns", "isccc",
-                   "isccfg", "lwres", "bind9");
+    my @dirlist = ("isc", "dns", "isccc", "isccfg", "lwres", "bind9");
     my %LibMacros = (
         "bind9"   => "LIBBIND9_EXPORTS",
         "dns"     => "LIBDNS_EXPORTS",
         "isc"     => "LIBISC_EXPORTS",
         "isccc"   => "LIBISCCC_EXPORTS",
         "isccfg"  => "LIBISCCFG_EXPORTS",
-        "iscpk11" => "LIBISCPK11_EXPORTS",
         "lwres"   => "LIBLWRES_EXPORTS");
     my @VersionNames = ("LIBINTERFACE", "LIBREVISION", "LIBAGE");
     my %Versions;
