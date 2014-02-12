@@ -129,7 +129,6 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 
 			*addrcount = 1;
 			return (ISC_R_SUCCESS);
-			
 		}
 	}
 #ifdef USE_GETADDRINFO
