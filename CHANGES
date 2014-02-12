@@ -1,3 +1,7 @@
+3736.	[bug]		nsupdate: When specifying a server by name,
+			fall back to alternate addresses if the first
+			address for that name is not reachable. [RT #25784]
+			
 3735.	[cleanup]	Merged the libiscpk11 library into libisc
 			to simplify dependencies. [RT #35205]
 
