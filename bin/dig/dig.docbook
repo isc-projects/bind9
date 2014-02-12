@@ -138,7 +138,7 @@
 
     <para>
       The IN and CH class names overlap with the IN and CH top level
-      domains names.  Either use the <option>-t</option> and
+      domain names.  Either use the <option>-t</option> and
       <option>-c</option> options to specify the type and class, 
       use the <option>-q</option> the specify the domain name, or
       use "IN." and "CH." when looking up these top level domains.
@@ -281,7 +281,7 @@
 
     <para>
       The <option>-q</option> option sets the query name to 
-      <parameter>name</parameter>.  This useful do distinguish the
+      <parameter>name</parameter>.  This is useful to distinguish the
       <parameter>name</parameter> from other arguments.
     </para>
 
