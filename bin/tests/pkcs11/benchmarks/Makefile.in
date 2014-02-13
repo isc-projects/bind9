@@ -26,7 +26,7 @@ CINCLUDES =	${ISC_INCLUDES}
 
 CDEFINES =	-DPK11_LIB_LOCATION=\"${PROVIDER}\"
 
-ISCLIBS =	../../../../lib/isc/libisc.@A@
+ISCLIBS =	../../../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 
 LIBS =		${ISCLIBS} @LIBS@
 

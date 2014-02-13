@@ -1261,15 +1261,15 @@ If you don't want OpenSSL, use --without-openssl])
 		if test "$use_openssl" = "/usr"
 		then
 			DST_OPENSSL_INC=""
-			DNS_OPENSSL_LIBS="-lcrypto"
+			DST_OPENSSL_LIBS="-lcrypto"
 		else
 			DST_OPENSSL_INC="-I$use_openssl/include"
 			case $host in
 			*-solaris*)
-				DNS_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
+				DST_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
 				;;
 			*-hp-hpux*)
-				DNS_OPENSSL_LIBS="-L$use_openssl/lib -Wl,+b: -lcrypto"
+				DST_OPENSSL_LIBS="-L$use_openssl/lib -Wl,+b: -lcrypto"
 				;;
 			*-apple-darwin*)
 				#
@@ -1281,13 +1281,13 @@ If you don't want OpenSSL, use --without-openssl])
 				#
 				if test -f "$use_openssl/lib/libcrypto.dylib"
 				then
-					DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+					DST_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
 				else
-					DNS_OPENSSL_LIBS="$use_openssl/lib/libcrypto.a"
+					DST_OPENSSL_LIBS="$use_openssl/lib/libcrypto.a"
 				fi
 				;;
 			*)
-				DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+				DST_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
 				;;
 			esac
 		fi
@@ -1297,7 +1297,7 @@ If you don't want OpenSSL, use --without-openssl])
 		saved_cflags="$CFLAGS"
 		saved_libs="$LIBS"
 		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
-		LIBS="$LIBS $DNS_OPENSSL_LIBS"
+		LIBS="$LIBS $DST_OPENSSL_LIBS"
 		AC_MSG_CHECKING(whether linking with OpenSSL works)
 		AC_TRY_RUN([
 #include <openssl/err.h>
@@ -1324,7 +1324,7 @@ shared library configuration (e.g., LD_LIBRARY_PATH).)],
 #include <openssl/err.h>
 ],[ DSO_METHOD_dlfcn(); ],
 		[AC_MSG_RESULT(yes)
-		DNS_OPENSSL_LIBS="$DNS_OPENSSL_LIBS -ldl"
+		DST_OPENSSL_LIBS="$DST_OPENSSL_LIBS -ldl"
 		],
 		 [AC_MSG_RESULT(unknown)
 		 AC_MSG_ERROR(OpenSSL has unsupported dynamic loading)],
@@ -1513,12 +1513,13 @@ AC_SUBST(OPENSSLLINKSRCS)
 AC_SUBST(OPENSSL_ECDSA)
 AC_SUBST(OPENSSL_GOST)
 
-DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
+DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
 
 #
 # Use OpenSSL for hash functions
 #
 
+AC_MSG_CHECKING(for using OpenSSL for hash functions)
 AC_ARG_ENABLE(openssl-hash,
 	[  --enable-openssl-hash   use OpenSSL for hash functions [[default=no]]],
 	want_openssl_hash="$enableval", want_openssl_hash="no")
@@ -1528,16 +1529,21 @@ case $want_openssl_hash in
 		then
 			AC_MSG_ERROR([No OpenSSL for hash functions])
 		fi
+		AC_MSG_RESULT(yes)
 		ISC_PLATFORM_OPENSSLHASH="#define ISC_PLATFORM_OPENSSLHASH 1"
 		ISC_OPENSSL_INC="$DST_OPENSSL_INC"
+		ISC_OPENSSL_LIBS="$DST_OPENSSL_LIBS"
 		;;
 	no)
+		AC_MSG_RESULT(no)
 		ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
 		ISC_OPENSSL_INC=""
+		ISC_OPENSSL_LIBS=""
 		;;
 esac
 AC_SUBST(ISC_PLATFORM_OPENSSLHASH)
 AC_SUBST(ISC_OPENSSL_INC)
+AC_SUBST(ISC_OPENSSL_LIBS)
 
 #
 # PKCS11 (aka crypto hardware) support (--with moved just after openssl)
@@ -1580,7 +1586,7 @@ case "$use_pkcs11" in
 			saved_libs="$LIBS"
 			CC="$CC -pthread"
 			CFLAGS="$CFLAGS $DST_OPENSSL_INC"
-			LIBS="$LIBS $DNS_OPENSSL_LIBS"
+			LIBS="$LIBS $DST_OPENSSL_LIBS"
 			AC_TRY_RUN([
 #include <openssl/conf.h>
 #include <openssl/engine.h>
@@ -3947,6 +3953,35 @@ for e in $DNS_GSSAPI_LIBS ; do
     esac
 done
 DNS_GSSAPI_LIBS="$NEWFLAGS"
+
+NEWFLAGS=""
+for e in $ISC_OPENSSL_LIBS ; do
+    case $e in
+	-L*)
+	    case $host_os in
+		netbsd*)
+		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		freebsd*)
+		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		solaris*)
+		    ee=`echo $e | sed -e 's%^-L%-R%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		*)
+		    NEWFLAGS="$NEWFLAGS $e"
+		    ;;
+		esac
+	    ;;
+	*)
+	    NEWFLAGS="$NEWFLAGS $e"
+	    ;;
+    esac
+done
+ISC_OPENSSL_LIBS="$NEWFLAGS"
 
 NEWFLAGS=""
 for e in $DNS_CRYPTO_LIBS ; do

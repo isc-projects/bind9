@@ -87,7 +87,7 @@ SRCS =		@ISC_EXTRA_SRCS@ @ISC_PK11_C@ \
 		strtoul.c symtab.c task.c taskpool.c timer.c \
 		tm.c version.c
 
-LIBS =		@LIBS@
+LIBS =		@ISC_OPENSSL_LIBS@ @LIBS@
 
 # Note: the order of SUBDIRS is important.
 # Attempt to disable parallel processing.

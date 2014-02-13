@@ -24,7 +24,7 @@ CINCLUDES =	${ISC_INCLUDES}
 
 CDEFINES =
 
-ISCLIBS =	../../lib/isc/libisc.@A@
+ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 
 # if FORCE_STATIC_PROVIDER: LIBS += ${PROVIDER}
 LIBS =		${ISCLIBS} @LIBS@

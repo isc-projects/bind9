@@ -25,7 +25,7 @@ CINCLUDES =	${TEST_INCLUDES} ${ISC_INCLUDES}
 CDEFINES =
 CWARNINGS =
 
-ISCLIBS =	../../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
+ISCLIBS =	../../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 
 ISCDEPLIBS =	../../../lib/isc/libisc.@A@
 

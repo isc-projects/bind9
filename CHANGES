@@ -1,3 +1,5 @@
+3738.	[bug]		--enable-openssl-hash failed to build. [RT #35343]
+
 3737.	[bug]		'rndc retransfer' could trigger a assertion failure
 			with inline zones. [RT #35353]
 
