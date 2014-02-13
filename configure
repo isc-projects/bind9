@@ -813,6 +813,7 @@ ISC_PK11_C
 PKCS11_ENGINE
 PKCS11_TOOLS
 USE_PKCS11
+ISC_OPENSSL_LIBS
 ISC_OPENSSL_INC
 ISC_PLATFORM_OPENSSLHASH
 OPENSSL_GOST
@@ -15235,15 +15236,15 @@ $as_echo "not found" >&6; }
 		if test "$use_openssl" = "/usr"
 		then
 			DST_OPENSSL_INC=""
-			DNS_OPENSSL_LIBS="-lcrypto"
+			DST_OPENSSL_LIBS="-lcrypto"
 		else
 			DST_OPENSSL_INC="-I$use_openssl/include"
 			case $host in
 			*-solaris*)
-				DNS_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
+				DST_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
 				;;
 			*-hp-hpux*)
-				DNS_OPENSSL_LIBS="-L$use_openssl/lib -Wl,+b: -lcrypto"
+				DST_OPENSSL_LIBS="-L$use_openssl/lib -Wl,+b: -lcrypto"
 				;;
 			*-apple-darwin*)
 				#
@@ -15255,13 +15256,13 @@ $as_echo "not found" >&6; }
 				#
 				if test -f "$use_openssl/lib/libcrypto.dylib"
 				then
-					DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+					DST_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
 				else
-					DNS_OPENSSL_LIBS="$use_openssl/lib/libcrypto.a"
+					DST_OPENSSL_LIBS="$use_openssl/lib/libcrypto.a"
 				fi
 				;;
 			*)
-				DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+				DST_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
 				;;
 			esac
 		fi
@@ -15272,7 +15273,7 @@ $as_echo "using OpenSSL from $use_openssl/lib and $use_openssl/include" >&6; }
 		saved_cflags="$CFLAGS"
 		saved_libs="$LIBS"
 		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
-		LIBS="$LIBS $DNS_OPENSSL_LIBS"
+		LIBS="$LIBS $DST_OPENSSL_LIBS"
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether linking with OpenSSL works" >&5
 $as_echo_n "checking whether linking with OpenSSL works... " >&6; }
 		if test "$cross_compiling" = yes; then :
@@ -15340,7 +15341,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-		DNS_OPENSSL_LIBS="$DNS_OPENSSL_LIBS -ldl"
+		DST_OPENSSL_LIBS="$DST_OPENSSL_LIBS -ldl"
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: unknown" >&5
@@ -15602,12 +15603,14 @@ esac
 
 
 
-DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
+DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
 
 #
 # Use OpenSSL for hash functions
 #
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for using OpenSSL for hash functions" >&5
+$as_echo_n "checking for using OpenSSL for hash functions... " >&6; }
 # Check whether --enable-openssl-hash was given.
 if test "${enable_openssl_hash+set}" = set; then :
   enableval=$enable_openssl_hash; want_openssl_hash="$enableval"
@@ -15621,14 +15624,21 @@ case $want_openssl_hash in
 		then
 			as_fn_error $? "No OpenSSL for hash functions" "$LINENO" 5
 		fi
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 		ISC_PLATFORM_OPENSSLHASH="#define ISC_PLATFORM_OPENSSLHASH 1"
 		ISC_OPENSSL_INC="$DST_OPENSSL_INC"
+		ISC_OPENSSL_LIBS="$DST_OPENSSL_LIBS"
 		;;
 	no)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 		ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
 		ISC_OPENSSL_INC=""
+		ISC_OPENSSL_LIBS=""
 		;;
 esac
+
 
 
 
@@ -15677,7 +15687,7 @@ $as_echo_n "checking for OpenSSL with PKCS11 support... " >&6; }
 			saved_libs="$LIBS"
 			CC="$CC -pthread"
 			CFLAGS="$CFLAGS $DST_OPENSSL_INC"
-			LIBS="$LIBS $DNS_OPENSSL_LIBS"
+			LIBS="$LIBS $DST_OPENSSL_LIBS"
 			if test "$cross_compiling" = yes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: cross compile" >&5
 $as_echo "cross compile" >&6; }
@@ -20751,6 +20761,35 @@ for e in $DNS_GSSAPI_LIBS ; do
     esac
 done
 DNS_GSSAPI_LIBS="$NEWFLAGS"
+
+NEWFLAGS=""
+for e in $ISC_OPENSSL_LIBS ; do
+    case $e in
+	-L*)
+	    case $host_os in
+		netbsd*)
+		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		freebsd*)
+		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		solaris*)
+		    ee=`echo $e | sed -e 's%^-L%-R%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		*)
+		    NEWFLAGS="$NEWFLAGS $e"
+		    ;;
+		esac
+	    ;;
+	*)
+	    NEWFLAGS="$NEWFLAGS $e"
+	    ;;
+    esac
+done
+ISC_OPENSSL_LIBS="$NEWFLAGS"
 
 NEWFLAGS=""
 for e in $DNS_CRYPTO_LIBS ; do
