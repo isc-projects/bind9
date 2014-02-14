@@ -20,7 +20,7 @@
 #define GENERIC_TLSA_52_H 1
 
 /*!
- *  \brief per draft-ietf-dane-protocol-19.txt
+ *  \brief per rfc6698.txt
  */
 typedef struct dns_rdata_tlsa {
 	dns_rdatacommon_t	common;

@@ -3,19 +3,22 @@
 
 Domain Name System Operations                                 W. Mekking
 Internet-Draft                                                NLnet Labs
-Intended status: Standards Track                           June 29, 2010
-Expires: December 31, 2010
+Intended status: Standards Track                       December 21, 2010
+Expires: June 24, 2011
 
 
     Automated (DNSSEC) Child Parent Synchronization using DNS UPDATE
-                   draft-mekking-dnsop-auto-cpsync-00
+                   draft-mekking-dnsop-auto-cpsync-01
 
 Abstract
 
    This document proposes a way to synchronise existing trust anchors
-   automatically between a child zone and its parent.  The algorithm can
+   automatically between a child zone and its parent.  The protocol can
    be used for other Resource Records that are required to delegate from
-   a parent to a child such as NS and glue records.
+   a parent to a child such as NS and glue records.  The synchronization
+   allows for a third party to be involved, thus the protocol is
+   suitable for both cases, whether you have to communicate to the
+   registry or to the registrar.
 
 Requirements Language
 
@@ -38,7 +41,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 31, 2010.
+   This Internet-Draft will expire on June 24, 2011.
 
 Copyright Notice
 
@@ -46,17 +49,17 @@ Copyright Notice
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
+
+
+
+Mekking                   Expires June 24, 2011                 [Page 1]
+
+Internet-Draft        Child Parent Synchronization         December 2010
+
+
    Provisions Relating to IETF Documents
    (http://trustee.ietf.org/license-info) in effect on the date of
    publication of this document.  Please review these documents
-
-
-
-Mekking                 Expires December 31, 2010               [Page 1]
-
-Internet-Draft        Child Parent Synchronization             June 2010
-
-
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
@@ -66,9 +69,12 @@ Internet-Draft        Child Parent Synchronization             June 2010
 1.  Introduction
 
    This memo defines a way to synchronise existing trust anchors
-   automatically between a child zone and its parent.  The algorithm can
+   automatically between a child zone and its parent.  The protocol can
    be used for other Resource Records that are required to delegate from
-   a parent to a child such as NS and glue records.
+   a parent to a child such as NS and glue records.  The synchronization
+   allows for a third party to be involved, thus the protocol is
+   suitable for both cases, whether you have to communicate to the
+   registry or to the registrar.
 
    To create a DNSSEC RFC 4035 [RFC4035] chain of trust, child zones
    must submit their DNSKEYs, or hashes of their DNSKEYs, to their
@@ -82,37 +88,60 @@ Internet-Draft        Child Parent Synchronization             June 2010
    The DNS UPDATE mechanism RFC 2136 [RFC2136] can be used to push zone
    changes to the parent.
 
-   To bootstrap the direct communication channel, information must be
-   exchanged in order to detect service location and granting update
-   privileges.  A new or existing child zone can request a direct
-   communication channel with the parent.  If the parent allows for
-   direct communication with child zones, the parent can share the
-   required data to set up the channel to the child zone.  Once the
-   child has the required credentials, it can use the direct
-   communication channel with the parent to request zone changes related
-   to its delegation.
+   To bootstrap the communication channel, information must be exchanged
+   in order to detect service location and granting update privileges.
+   A new or existing child zone is in need of a communication channel
+   with the parent.  This can be a direct channel or a channel through a
+   third party:
 
-   If a third party is involved, the third party can act on behalf of
-   the parent.  In this case, the third party will give out the required
-   credentials to set up the communication channel.
+      If the parent allows for direct communication channel with child
+      zones, the parent can share the required data to set up the
+      channel to the child zone.  Once the child has the required
+      credentials, it can use the direct communication channel with the
+      parent to request zone changes related to its delegation.
 
-   It is RECOMMENDED that the direct communication channel is secured
-   with TSIG [RFC2845] or SIG0 [RFC2931].
+      If a third party is involved, the third party acts on behalf of
+      the parent.  In this case, the third party will give out the
+      required credentials to set up the communication channel.
 
-2.  Access and Update Control
+   Allowing for a third party in the communication channel ensures
+
+
+
+Mekking                   Expires June 24, 2011                 [Page 2]
+
+Internet-Draft        Child Parent Synchronization         December 2010
+
+
+   flexibility of the service location.
+
+   Please note that the document only describes the front end of the
+   synchronization service.  The first reason for that is that it is not
+   necessary to write down how the DNS UPDATE is processed after it is
+   accepted.  It is merely a goal to provide a way for the child zone to
+   automatically update the records at the zone cut.  The second reason
+   is that flexibility is needed in order to fit the protocol into the
+   multifarious policies that exist among the great number of
+   registrars.
+
+   Thus, it is not required that the DNS UPDATE immediately updates the
+   name server.  Thus, it would still be possible to monitor the
+   incoming updates with the tools of your choice.  It is not a
+   replacement of your RR provisioning system.  The records in the DNS
+   UPDATE can be converted into any kind of format.
+
+2.  Service Discovery
+
+   The service location is handed out during bootstrap.  If this
+   information is missing or incorrect, the normal guidelines for
+   sending DNS UPDATE messages SHOULD be followed.
+
+3.  Access and Update Control
 
    The DNS UPDATE normally is used for granting update permissions to a
    machine that is within the boundary of the same organization.  This
    document proposes to grant child zones the same permissions.
    However, it MUST NOT be possible that a child zone updates
-
-
-
-Mekking                 Expires December 31, 2010               [Page 2]
-
-Internet-Draft        Child Parent Synchronization             June 2010
-
-
    information in the parent zone that falls outside the administrative
    domain of the corresponding delegation.  For example, it MUST NOT be
    possible for a child zone to update the data that the parent is
@@ -124,23 +153,34 @@ Internet-Draft        Child Parent Synchronization             June 2010
       delegation specific.  Currently those are records with RRtype NS
       or DS.
 
-   Or:   The owner name is a subdomain of the child zone name and RRtype
-      is glue specific.  Currently those are records with RRtype A or
-      AAAA.
+   Or:   The owner name exists in the right side of the NS RRset
+      belonging to the child zone and RRtype is is glue specific.
+      Currently those are records with RRtype A or AAAA.
 
-   This list may be expanded in the future, if there is need for more
-   delegation related zone content.
+   We can make a distinction here between narrow and wide glue records.
+   Narrow glue records are said to be glue specific records with an
+   owner name that is a subdomain of the child zone.  Wide glue records
+   are glue specific records with an owner name that is outside of the
+
+
+
+Mekking                   Expires June 24, 2011                 [Page 3]
+
+Internet-Draft        Child Parent Synchronization         December 2010
+
+
+   delegated child domain.
+
+   These updates MAY be refused if it conflicts with the local policy.
+   This list may be expanded, if there is need for more delegation
+   related zone content.
 
    In case of adding or deleting delegation specific records, the DNSSEC
    related RRs in the parent zone might need to be updated.
 
-   The service location may be handed out by the registrar during
-   bootstrap If this information is missing, the normal guidelines for
-   sending DNS UPDATE messages SHOULD be followed.
+4.  Update Mechanism
 
-3.  Update Mechanism
-
-3.1.  Child Duties
+4.1.  Update Request
 
    Updating the NS RRset or corresponding glue at the parent, an update
    can be sent at any time.  Updating the DS RRset is part of key
@@ -156,33 +196,34 @@ Internet-Draft        Child Parent Synchronization             June 2010
    this document, the child should poll the parent zone for a short
    time, until the DS is visible at all parent name servers.
 
-   To discuss: A child zone might be unable to reach all parent name
-   servers.
+   [Author's note] To discuss: A child zone might be unable to reach all
+   parent name servers.
 
    The child notifies the parent of the requested changes by sending a
    DNS UPDATE message.  If it receives a NOERROR reply in return, the
-
-
-
-Mekking                 Expires December 31, 2010               [Page 3]
-
-Internet-Draft        Child Parent Synchronization             June 2010
-
-
    update is acknowledged by the parent zone.  Otherwise, the child MAY
    retry transmitting the update.  In order to prevent duplicate
    updates, it SHOULD follow the guidelines described in RFC 2136
    [RFC2136].
 
-3.2.  Parent Duties
+4.2.  Processing the Update
 
-   When the master DNS server of the parent receives a DNS UPDATE from
-   one of its children the following must be done:
+   An incoming DNS UPDATE message is processed as follows:
 
    Step 1:  Check the TSIG/SIG0 credentials.  In case of TSIG, the
       parent should follow the TSIG processing described in section 3.2
       of RFC 2845.  In case of SIG0, the parent should follow the SIG0
       processing described in section 3.2 of RFC 2931.
+
+
+
+
+
+
+Mekking                   Expires June 24, 2011                 [Page 4]
+
+Internet-Draft        Child Parent Synchronization         December 2010
+
 
    Step 2:  Verify that the updates matches the update policy for child
       zones.
@@ -193,15 +234,9 @@ Internet-Draft        Child Parent Synchronization             June 2010
    Step 4:  If verified, apply changes.  How that is done is a matter of
       policy.
 
-3.3.  Proxy considerations
+5.  Examples
 
-   Some environments don't allow for direct communication between parent
-   and child zone.  In these case, the parent duties can be performed by
-   a different party (for example, the registar).  The third party will
-   forward the update to the parent zone.  In what format depends on
-   local policy.
-
-4.  Example BIND9 Configuration
+5.1.  Example BIND9 Configuration
 
    This is how a parent zone can configure a policy to enable a child
    zone synchronize delegation specific records.  The first rule of the
@@ -217,14 +252,6 @@ Internet-Draft        Child Parent Synchronization             June 2010
 
    key math.example.com. {
    algorithm HMAC-MD5;
-
-
-
-Mekking                 Expires December 31, 2010               [Page 4]
-
-Internet-Draft        Child Parent Synchronization             June 2010
-
-
    secret "secretformath";
    }
 
@@ -238,31 +265,79 @@ Internet-Draft        Child Parent Synchronization             June 2010
    };
    };
 
-5.  Security Considerations
+6.  Security Considerations
 
    Automating the synchronization of (DNSSEC) records between the parent
-   and child created a new channel.  We have recommended that this
-   channel should be secured with TSIG or SIG0.  There is an advantage
-   and a disadvantage of the new security channel.  The disadvantage is
-   that you create a new attack window for your DNSSEC credentials.  If
-   the automated synchronization is used for updating DS records at the
-   parent, you SHOULD pick a cryptographically an equally strong or
-   stronger TSIG/SIG0 key than the strength of your DNSSEC keys.
+   and child creates a new communication channel.  It is up to the
+   policy of the parent, or the third party acting on behalf of the
+   parent, who is allowed such privileges.  A policy would usually
+   include a form of access control.  It is recommended that it involves
+   transaction authentication, for example TSIG [RFC2845] or SIG0
+
+
+
+Mekking                   Expires June 24, 2011                 [Page 5]
+
+Internet-Draft        Child Parent Synchronization         December 2010
+
+
+   [RFC2931].
+
+   In the jungle of the DNS, many stakeholders exist.  The registrant of
+   a zone might not be the one that maintains the zone.  That can
+   possibly mean that many stakeholders need to possess the security
+   credentials in order to use this synchronization channel.  However,
+   this problem exist with any kind of transaction authentication.
+
+   The disadvantage of adding a new communication channel is that you
+   create a new attack window onto your DNS and DNSSEC records.  When
+   using this synchronization method for your DNSSEC records, a
+   cryptographically equally strong, or stronger private key SHOULD be
+   used, compared to the strength of your DNSSEC keys.
 
    The advantage is that if somehow your DNSSEC keys are compromised,
    you can still use this channel to perform an emergency key rollover.
 
-6.  IANA Considerations
+7.  IANA Considerations
 
    None.
 
-7.  Acknowledgments
+8.  Acknowledgments
 
-   Rickard Bellgrim, Wolfgang Nagele, Wouter Wijngaards and more.
+   Mark Andrews, Rickard Bellgrim, Wolfgang Nagele, Wouter Wijngaards.
 
-8.  References
+9.  Changelog
 
-8.1.  Informative References
+   01:
+
+      - Make it clear that the solution is flexible and it can fit into
+      many and diverse environments of registrars.
+
+      - Short section about service discovery.
+
+      - Add text about narrow glue records.
+
+      - Add text about transaction authentication concerns with respect
+      to many stakeholders involved.
+
+   00:
+
+      - Initial document
+
+10.  References
+
+
+
+
+
+
+
+Mekking                   Expires June 24, 2011                 [Page 6]
+
+Internet-Draft        Child Parent Synchronization         December 2010
+
+
+10.1.  Informative References
 
    [RFC2136]    Vixie, P., Thomson, S., Rekhter, Y., and J. Bound,
                 "Dynamic Updates in the Domain Name System (DNS
@@ -274,14 +349,7 @@ Internet-Draft        Child Parent Synchronization             June 2010
    [keytiming]  Morris, S., Ihren, J., and J. Dickinson, "DNSSEC Key
                 Timing Considerations", March 2010.
 
-
-
-Mekking                 Expires December 31, 2010               [Page 5]
-
-Internet-Draft        Child Parent Synchronization             June 2010
-
-
-8.2.  Normative References
+10.2.  Normative References
 
    [RFC2119]    Bradner, S., "Key words for use in RFCs to Indicate
                 Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -320,17 +388,5 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-Mekking                 Expires December 31, 2010               [Page 6]
+Mekking                   Expires June 24, 2011                 [Page 7]
 
