@@ -16,7 +16,7 @@
 
 /* $Id$ */
 
-/* draft-ietf-dane-protocol-19.txt */
+/* rfc6698.txt */
 
 #ifndef RDATA_GENERIC_TLSA_52_C
 #define RDATA_GENERIC_TLSA_52_C
