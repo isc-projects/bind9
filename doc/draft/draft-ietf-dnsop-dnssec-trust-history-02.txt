@@ -4,11 +4,11 @@
 Domain Name System Operations                              W. Wijngaards
 Internet-Draft                                                O. Kolkman
 Intended status: Standards Track                              NLnet Labs
-Expires: August 26, 2010                               February 22, 2010
+Expires: December 31, 2010                                 June 29, 2010
 
 
                   DNSSEC Trust Anchor History Service
-                draft-ietf-dnsop-dnssec-trust-history-01
+                draft-ietf-dnsop-dnssec-trust-history-02
 
 Abstract
 
@@ -25,49 +25,43 @@ Requirements Language
 
 Status of This Memo
 
-   This Internet-Draft is submitted to IETF in full conformance with the
+   This Internet-Draft is submitted in full conformance with the
    provisions of BCP 78 and BCP 79.
 
    Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups.  Note that
-   other groups may also distribute working documents as Internet-
-   Drafts.
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/ietf/1id-abstracts.txt.
-
-   The list of Internet-Draft Shadow Directories can be accessed at
-   http://www.ietf.org/shadow.html.
-
-   This Internet-Draft will expire on August 26, 2010.
+   This Internet-Draft will expire on December 31, 2010.
 
 Copyright Notice
 
    Copyright (c) 2010 IETF Trust and the persons identified as the
-
-
-
-Wijngaards & Kolkman     Expires August 26, 2010                [Page 1]
-
-Internet-Draft            Trust History Service            February 2010
-
-
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
    (http://trustee.ietf.org/license-info) in effect on the date of
    publication of this document.  Please review these documents
+
+
+
+Wijngaards & Kolkman    Expires December 31, 2010               [Page 1]
+
+Internet-Draft            Trust History Service                June 2010
+
+
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
    the Trust Legal Provisions and are provided without warranty as
-   described in the BSD License.
+   described in the Simplified BSD License.
 
 1.  Introduction
 
@@ -80,7 +74,7 @@ Internet-Draft            Trust History Service            February 2010
    trust-anchor.  Using a newly defined resource record (RR) that links
    old DNSKEYS together, the TALINK RR, a validator fetches old DNSKEY
    RRsets and checks they form a chain to the latest key (see
-   Section 2).  The lists of old DNSKEYS, linked with the TALINK RRs, do
+   Section 3).  The lists of old DNSKEYS, linked with the TALINK RRs, do
    not necessarily need to be published in the zone for which the DNSKEY
    history is being maintained but can be published in any DNS domain.
    We will call the entity that offers the trust history the History
@@ -88,12 +82,123 @@ Internet-Draft            Trust History Service            February 2010
    maintainer of the validator, possibly based on a hint provided, using
    the TALINK, by the zone owner.
 
-   The algorithm that the validator uses to construct a history and
-   reconfigure a new key is detailed in Section 3.  The algorithms for
-   how providers of trust history can fetch the DNSKEY data as published
-   by the zone they track and publish that are explained in Section 4.
+   Section 2 provides background on the mechanism and usage.  It looks
+   at the viewpoints of publishers and consumers of trust anchors, the
+   use of keys with revocation flags, and SEP flags.
 
-2.  The  TALINK Resource Record
+   The algorithm that the validator uses to construct a history and
+   reconfigure a new key is detailed in Section 4, it uses the TALINK RR
+   type defined in Section 3.  The algorithms for how providers of trust
+   history can fetch the DNSKEY data as published by the zone they track
+   and publish that are explained in Section 5.
+
+2.  Motivation and Description
+
+   Validators provide a service in DNSSEC that can be seen from two
+   ways.  Seen from the publisher's point of view, they provide
+   assurance that the data as received is as it was when it left the
+   publisher's hands.  In this way of looking at things, validators
+   provide a publication integrity service.  The publisher can be
+   confident that nobody can alter the published data (if it is
+   validated), because any alteration will be detected.  So it protects
+   a publisher from being seen to send someone to the wrong place.
+
+   From the consumer's point of view, validators provide a reason to
+   trust the data from the network.  In this view, the validator is
+
+
+
+Wijngaards & Kolkman    Expires December 31, 2010               [Page 2]
+
+Internet-Draft            Trust History Service                June 2010
+
+
+   making a claim about whether the data ought to be accepted or not.
+   This is subtly different from the publisher's point of view, because
+   the question for the consumer is not whether the data is safe while
+   the consumer is not looking, but whether the data is safe for the
+   consumer at the moment of consumption.  Validation protects a
+   consumer from going to the wrong place.
+
+   These two slightly different ways of looking at the situation result
+   in slightly different operational goals.  Whereas publishers want to
+   make assertions about their data, by controlling the roll over of
+   keys, consumers want to get the best assurance that they can get that
+   the data they are consuming is correct.
+
+   If a validator has been offline during a key rollover event for one
+   of its trust anchors, then the validator will be unable to validate
+   answers that need that trust anchor.  For the publisher, this state
+   of affairs is acceptable: the publisher is confident that no
+   validator ever consumes the wrong data.  For the consumer, however,
+   this state of affairs represents an outage.
+
+   Since publishers of trust anchors already use a chained series of
+   keys to perform rollovers under some circumstances (see [RFC5011]),
+   it is possible to use the history of that chain to allow a validator
+   to resume service for the consumer without needing to use an out-of-
+   band mechanism to obtain a new trust anchor.  This improves the
+   experience for consumers of validated data, and increases the chances
+   that DNSSEC is useful for consumers of DNS data.
+
+   The mechanism to do this is a double-linked list that recounts a
+   portion of the history of DNSKEY Resource Records.  The list is used
+   by a validator to catch up with the changes that the validator
+   somehow missed.  This approach may be thought of as replaying the
+   [RFC5011] rollover history, only at a later time.
+
+2.1.  Considerations for Using a Revoked Key
+
+   The keys that the publisher rolled are marked REVOKED by the RFC5011
+   protocol.  At this point the publisher considers the keys revoked,
+   but the validators have not yet seen this or marked the keys as
+   revoked.  In the RFC5011 protocol, the validators probe regularly and
+   can then see if keys are revoked.  If unable to probe, they will be
+   unable to see if keys are revoked.  Hence when using a history to
+   recount rollovers, the consumer's validator has also missed a number
+   of revocations.  The goal is to pick up the right keys and also the
+   new revocations along the way.
+
+   Although the keys have been marked by the publisher as REVOKED a long
+   time ago, for the consumer these REVOKED keys are new information.
+
+
+
+Wijngaards & Kolkman    Expires December 31, 2010               [Page 3]
+
+Internet-Draft            Trust History Service                June 2010
+
+
+   Their storage in the history list makes it possible for consumers to
+   pick up key revocations if they missed the revocation announcement
+   because they could not probe.
+
+   This is the allowed usage of REVOKED keys.  The publisher is
+   announcing their presence.  And the validators mark them as REVOKED
+   after verification.  The initial part of this verification is the
+   reverse walk through the history list, which is to avoid exposing
+   which key is trusted.  This means that older signatures with keys
+   that have in the meantime been revoked are used to construct and
+   verify the history list by the validator.
+
+   A consequence is that once a publisher marks keys as REVOKED, there
+   will still be consumers who are using such keys, because they have
+   not seen the revocation.  From the publishers point of view they are
+   revoked and the revocation is filed in the historical key list.  From
+   the consumers point of view, it has not seen a revocation yet, and a
+   historical key list lookup algorithm is a state change where a new
+   trusted key is obtained while the old key is observed to be revoked.
+
+2.2.  Motivation for Requiring the SEP Bit
+
+   The SEP bit is used to differentiate Key Signing Keys from other
+   keys.  It is defined in [RFC3757], it is used to designate trust
+   anchors in [RFC5011].  The protocol herein specified requires that
+   DNSKEYs that are subject to use for the trust history service have
+   the SEP bit set.  The reason for this is to keep the set of keys that
+   need to be stored in history small.
+
+3.  The  TALINK Resource Record
 
    The DNS Resource Record type TALINK (decimal 58) ties the elements of
    a linked list of DNSKEY RRs together.
@@ -105,17 +210,22 @@ Internet-Draft            Trust History Service            February 2010
    The presentation format is the two domain names.  The wire encoding
    is the two domain names, with no compression so the type can be
    treated according to [RFC3597].  The list is a double linked list,
-
-
-
-Wijngaards & Kolkman     Expires August 26, 2010                [Page 2]
-
-Internet-Draft            Trust History Service            February 2010
-
-
    because this empowers low memory hosts to perform consistency checks.
 
-3.  Trust History Lookup
+   The TALINK used at the zone apex holds the endpoints of the list.
+   The TALINKs that form the lists hold previous and next entries.
+   These TALINKs are distinguished by their usage (entrypoint or list
+   connection).  The double linked list is not circular, because lookups
+   must stop when they reach the oldest entry.
+
+
+
+Wijngaards & Kolkman    Expires December 31, 2010               [Page 4]
+
+Internet-Draft            Trust History Service                June 2010
+
+
+4.  Trust History Lookup
 
    This is the algorithm that a validator uses to detect and resolve the
    situation in which a trust-anchor is out of sync with the DNSKEYs
@@ -123,10 +233,10 @@ Internet-Draft            Trust History Service            February 2010
    which is used to link various old DNSKEYs as published by the History
    Provider, to arrive from the outdated configured Trust Anchor to one
    that matches the current DNSKEY.  The TALINK RR type is defined in
-   Section 2.
+   Section 3.
 
    When the algorithm below results in failure the trust history cannot
-   be build and a new trust anchor will need to be re-configured using
+   be built and a new trust anchor will need to be re-configured using
    another mechanism.
 
    Step 1:  The validator performs a DNSKEY lookup to the target zone,
@@ -144,12 +254,14 @@ Internet-Draft            Trust History Service            February 2010
       The results can differ if a key-rollover is in progress and not
       all nameservers are in sync yet.  This case can be detected by
       checking that the older keyset signs the newer and take the newer
-      as result keyset.  The keysets are distinguished by the average
-      over the middle of the inception and expiration dates of the
-      signatures that are validated by the keyset itself.  Otherwise,
-      the history lookup fails.  If the check fails then the
-      inconsistency may be the result of spoofing, or compromise of
-      (DNS) infrastructure elements.
+      as result keyset.  If both of the keysets sign each other, the
+      result keyset has the newest rrsig that validates it using the
+      other keyset.  Use the the average over the middle of the
+      inception and expiration dates of the signatures that are
+      validated (and for serial arithmetic assume all dates on these
+      signatures lie within 2^(SERIAL_BITS-1) distance).  If the keysets
+      do not sign each other then this is not a secure change in the
+      keyset and the history lookup fails.
 
    Step 2:  Fetch the trust history list end points.  Perform a query of
       QTYPE TALINK and QNAME the domain name that is configured to be
@@ -159,24 +271,23 @@ Internet-Draft            Trust History Service            February 2010
    Step 3:  Go backwards through the trust history list as provided by
       the TALINK linked list.  Verify that the keyset validly signs the
       next keyset.  This is [RFC4034] validation, but the RRSIG
-      expiration date is ignored.  [Editor note: Are we shure that there
-      are no server implementations that will not serve expired RRSIG,
+      expiration date is ignored.  Replace the owner domain name with
+      the target zone name for verification.  One of the keys that signs
 
 
 
-Wijngaards & Kolkman     Expires August 26, 2010                [Page 3]
+Wijngaards & Kolkman    Expires December 31, 2010               [Page 5]
 
-Internet-Draft            Trust History Service            February 2010
+Internet-Draft            Trust History Service                June 2010
 
 
-      are such 'smart' servers allowed by the specs?  In other words do
-      we need clarification in the DNSSEC-updates document?]  Replace
-      the owner domain name with the target zone name for verification.
-      One of the keys that signs the next keyset MUST have the SEP bit
-      set.  The middle of inception and expiration date from the valid
-      signature MUST be older than that of the signature that validates
-      the next keys in the list.  Query type TALINK to get previous and
-      next locations.
+      the next keyset MUST have the SEP bit set.  The middle of
+      inception and expiration date from the valid signature MUST be
+      older than that of the signature that validates the next keys in
+      the list.  Take the average if multiple signatures validate (and
+      for serial arithmetic assume all dates on these signatures lie
+      within 2^(SERIAL_BITS-1) distance).  Query type TALINK to get
+      previous and next locations.
 
       If all SEP keys have the REVOKE flag set at this step, and the
       keyset is signed by all SEP keys, then continue but store that the
@@ -198,7 +309,7 @@ Internet-Draft            Trust History Service            February 2010
       store the result on stable storage.  Use the new trust anchor for
       validation (if using [RFC5011], put it in state VALID).
 
-4.  Trust History Tracker
+5.  Trust History Tracker
 
    External trackers can poll the target zone DNSKEY RRset regularly.
    Ignore date changes in the RRSIG.  Ignore changes to keys with no SEP
@@ -220,16 +331,18 @@ Internet-Draft            Trust History Service            February 2010
 
 
 
-Wijngaards & Kolkman     Expires August 26, 2010                [Page 4]
+
+Wijngaards & Kolkman    Expires December 31, 2010               [Page 6]
 
-Internet-Draft            Trust History Service            February 2010
+Internet-Draft            Trust History Service                June 2010
 
 
-5.  Example
+6.  Example
 
-   In this example example.com is the History Provider for example.net.
-   The DNSKEY rdata and RRSIG rdata is omitted for brevity, it is a copy
-   and paste of the data from example.net.
+   In this example the trust history for the 'example.net' zone is
+   published in the 'example.com' namespace.  The DNSKEY rdata and RRSIG
+   rdata is omitted for brevity, it is a copy and paste of the data from
+   example.net.
 
    $ORIGIN example.com.
    example.com. TALINK h0.example.com. h2.example.com.
@@ -250,7 +363,7 @@ Internet-Draft            Trust History Service            February 2010
    by providing the TALINK shown here at example.com at the apex of the
    example.net zone.  The TALINK at example.com is then not needed.
 
-6.  Deployment
+7.  Deployment
 
    The trust history is advertised with TALINK RRs at the zone apex.
    These represent alternative history sources, that can be searched in
@@ -275,10 +388,9 @@ Internet-Draft            Trust History Service            February 2010
 
 
 
-
-Wijngaards & Kolkman     Expires August 26, 2010                [Page 5]
+Wijngaards & Kolkman    Expires December 31, 2010               [Page 7]
 
-Internet-Draft            Trust History Service            February 2010
+Internet-Draft            Trust History Service                June 2010
 
 
    In general, the decision can be that any key - no matter how old or
@@ -296,13 +408,11 @@ Internet-Draft            Trust History Service            February 2010
    argument that perceived security is worse than no security.
 
    The history lookup can be used on its own.  Then, the trust history
-   is used whenever the key rolls over and no polling is performed.
-   This has associated risks, in that the immediate rollover without
-   timeout that it provides could be abused, and certainly when taken
-   together with leap-of-faith such systems SHOULD inform their user
-   that the key has changed and urge them to do immediate checks.
-   Initially we put a hold down timer on such rollovers to mitigate the
-   abuse risks but these make following normal rollovers impossible.
+   is used whenever the key rolls over and no polling is performed.  The
+   results of trust history lookup SHOULD be stored on stable storage,
+   so that the trust history lookup does not need to be performed if the
+   last results are okay and for use as trusted anchor in the next
+   history lookup.
 
    If a validator is also using [RFC5011] for the target zone, then the
    trust history algorithm SHOULD only be invoked if the [RFC5011]
@@ -320,7 +430,7 @@ Internet-Draft            Trust History Service            February 2010
    History Provider.  The test History Provider provides access to a
    generated back-dated test history.
 
-7.  Security Considerations
+8.  Security Considerations
 
    The History Provider only provides copies of old data.  If that
    historic data is altered or withheld the lookup algorithm fails
@@ -329,15 +439,15 @@ Internet-Draft            Trust History Service            February 2010
    to the original private keys (through theft, cryptanalisis, or
    otherwise), history can be altered without failure of the algorithm.
    Below we only consider MIMAs and assume the History Provider is a
-
-
-
-Wijngaards & Kolkman     Expires August 26, 2010                [Page 6]
-
-Internet-Draft            Trust History Service            February 2010
-
-
    trusted party.
+
+
+
+
+Wijngaards & Kolkman    Expires December 31, 2010               [Page 8]
+
+Internet-Draft            Trust History Service                June 2010
+
 
    Spoofing by a MIMA of data looked up in step 2 or 3, i.e. spoofing of
    TALINK and DNSKEY data, can present some alternate history.  However
@@ -376,25 +486,24 @@ Internet-Draft            Trust History Service            February 2010
 
    Rollover with [RFC5011] revokes keys after use.  If a History
    Provider is used, then such revoked keys SHOULD be used to perform
-   history tracking and history lookup.  The old keys that the validator
-   starts with and final current keys MUST NOT be trusted if they are
-   revoked.
+   history tracking and history lookup.  The trust anchor keys that the
+   validator has in its own storage and final current keys that it
+   stores MUST NOT be trusted if they are revoked.
 
-   Depending on choices by the validator operator, it may accept a leap-
-   of-faith, and possibly allow non-hold-down rollovers.  Although this
-   allows very fast emergency rollover if all clients are known to do
-   trust-history lookups without the RFC5011-algorithm, it also allows
-   an attacker with the private key to attempt to take over a zone
+   If the validator operator chooses to operate trust history without
+   also using [RFC5011] the trust anchor does not get hold-down timer
+   protection.  This has associated risks, in that the immediate
+   rollover without timeout that it provides could be abused (if private
+   keys are compromised).  Such abuse could result in the stored lookup
+   results to become compromised.  The key changes can be logged, to
+   inform operators and keep an audit trail.
 
 
 
-Wijngaards & Kolkman     Expires August 26, 2010                [Page 7]
+Wijngaards & Kolkman    Expires December 31, 2010               [Page 9]
 
-Internet-Draft            Trust History Service            February 2010
+Internet-Draft            Trust History Service                June 2010
 
-
-   quickly and get validators to roll to a trust anchor of the
-   attacker's choosing.
 
    The SEP bit is checked to make sure that control over the KSK is
    necessary to change the keyset for the target zone.
@@ -409,31 +518,35 @@ Internet-Draft            Trust History Service            February 2010
    enables a replay attack of old DNSSEC data and signatures.  This
    vulnerability exists also in plain DNSSEC.
 
-8.  IANA Considerations
+9.  IANA Considerations
 
    Resource record type TALINK has been defined using RFC5395 expert
    review, it has RR type number 58 (decimal).
 
-9.  Acknowledgments
+10.  Acknowledgments
 
-   Thanks to the people who provided review and suggestions, Joe Abley,
-   George Barwood, Edward Lewis, Michael StJohns, Bert Hubert, Mark
-   Andrews, Ted Lemon, Steve Crocker, Bill Manning, Eric Osterweil,
-   Wolfgang Nagele, Alfred Hoenes, Olafur Gudmundsson, Roy Arends and
-   Matthijs Mekking.
+   Thanks to the people who provided review and suggestions, Peter Koch,
+   Andrew Sullivan, Joe Abley, George Barwood, Edward Lewis, Michael
+   StJohns, Bert Hubert, Mark Andrews, Ted Lemon, Steve Crocker, Bill
+   Manning, Eric Osterweil, Wolfgang Nagele, Alfred Hoenes, Olafur
+   Gudmundsson, Roy Arends and Matthijs Mekking.
 
-10.  References
+11.  References
 
-10.1.  Informative References
+11.1.  Informative References
 
    [NIST800-57]  Barker, E., Barker, W., Burr, W., Polk, W., and M.
                  Smid, "Recommendations for Key Management", NIST
                  SP 800-57, March 2007.
 
+   [RFC3757]     Kolkman, O., Schlyter, J., and E. Lewis, "Domain Name
+                 System KEY (DNSKEY) Resource Record (RR) Secure Entry
+                 Point (SEP) Flag", RFC 3757, April 2004.
+
    [RFC5011]     StJohns, M., "Automated Updates of DNS Security
                  (DNSSEC) Trust Anchors", RFC 5011, September 2007.
 
-10.2.  Normative References
+11.2.  Normative References
 
    [RFC2119]     Bradner, S., "Key words for use in RFCs to Indicate
                  Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -443,10 +556,9 @@ Internet-Draft            Trust History Service            February 2010
 
 
 
-
-Wijngaards & Kolkman     Expires August 26, 2010                [Page 8]
+Wijngaards & Kolkman    Expires December 31, 2010              [Page 10]
 
-Internet-Draft            Trust History Service            February 2010
+Internet-Draft            Trust History Service                June 2010
 
 
    [RFC4034]     Arends, R., Austein, R., Larson, M., Massey, D., and S.
@@ -500,5 +612,5 @@ Authors' Addresses
 
 
 
-Wijngaards & Kolkman     Expires August 26, 2010                [Page 9]
+Wijngaards & Kolkman    Expires December 31, 2010              [Page 11]
 

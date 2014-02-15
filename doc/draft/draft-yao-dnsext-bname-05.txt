@@ -3,13 +3,13 @@
 Network Working Group                                             J. Yao
 Internet-Draft                                                    X. Lee
 Intended status: Standards Track                                   CNNIC
-Expires: February 12, 2011                                      P. Vixie
+Expires: February 20, 2011                                      P. Vixie
                                             Internet Software Consortium
-                                                         August 11, 2010
+                                                         August 19, 2010
 
 
-                      Bundle DNS Name Redirection
-                     draft-yao-dnsext-bname-04.txt
+                      Bundled DNS Name Redirection
+                     draft-yao-dnsext-bname-05.txt
 
 Abstract
 
@@ -34,7 +34,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on February 12, 2011.
+   This Internet-Draft will expire on February 20, 2011.
 
 Copyright Notice
 
@@ -51,7 +51,7 @@ Copyright Notice
 
 
 
-Yao, et al.             Expires February 12, 2011               [Page 1]
+Yao, et al.             Expires February 20, 2011               [Page 1]
 
 Internet-Draft                    bname                      August 2010
 
@@ -81,33 +81,33 @@ Table of Contents
      3.1.  Format . . . . . . . . . . . . . . . . . . . . . . . . . .  4
      3.2.  The BNAME Substitution . . . . . . . . . . . . . . . . . .  4
      3.3.  The BNAME Rules  . . . . . . . . . . . . . . . . . . . . .  4
-   4.  Query Processing . . . . . . . . . . . . . . . . . . . . . . .  4
+     3.4.  BNAME Examples . . . . . . . . . . . . . . . . . . . . . .  4
+   4.  Query Processing . . . . . . . . . . . . . . . . . . . . . . .  5
      4.1.  Processing by Servers  . . . . . . . . . . . . . . . . . .  5
      4.2.  Processing by Resolvers  . . . . . . . . . . . . . . . . .  8
    5.  BNAME in DNSSEC  . . . . . . . . . . . . . . . . . . . . . . .  9
      5.1.  BNAME validating . . . . . . . . . . . . . . . . . . . . .  9
      5.2.  BNAME alias algorithm identifiers  . . . . . . . . . . . . 10
-   6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 10
-   7.  Security Considerations  . . . . . . . . . . . . . . . . . . . 10
-   8.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 11
-   9.  Change History . . . . . . . . . . . . . . . . . . . . . . . . 11
-     9.1.  draft-yao-dnsext-bname: Version 00 . . . . . . . . . . . . 11
-     9.2.  draft-yao-dnsext-bname: Version 01 . . . . . . . . . . . . 11
-     9.3.  draft-yao-dnsext-bname: Version 02 . . . . . . . . . . . . 11
-     9.4.  draft-yao-dnsext-bname: Version 03 . . . . . . . . . . . . 11
-   10. References . . . . . . . . . . . . . . . . . . . . . . . . . . 12
-     10.1. Normative References . . . . . . . . . . . . . . . . . . . 12
-     10.2. Informative References . . . . . . . . . . . . . . . . . . 13
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 13
+     5.3.  Signaling of BNAME . . . . . . . . . . . . . . . . . . . . 10
+   6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 11
+   7.  Security Considerations  . . . . . . . . . . . . . . . . . . . 12
+   8.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 12
+   9.  Change History . . . . . . . . . . . . . . . . . . . . . . . . 12
+     9.1.  draft-yao-dnsext-bname: Version 00 . . . . . . . . . . . . 12
+     9.2.  draft-yao-dnsext-bname: Version 01 . . . . . . . . . . . . 12
+     9.3.  draft-yao-dnsext-bname: Version 02 . . . . . . . . . . . . 12
+     9.4.  draft-yao-dnsext-bname: Version 03 . . . . . . . . . . . . 12
+     9.5.  draft-yao-dnsext-bname: Version 04 . . . . . . . . . . . . 13
+     9.6.  draft-yao-dnsext-bname: Version 05 . . . . . . . . . . . . 13
+   10. References . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+     10.1. Normative References . . . . . . . . . . . . . . . . . . . 13
+     10.2. Informative References . . . . . . . . . . . . . . . . . . 14
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 14
 
 
 
 
-
-
-
-
-Yao, et al.             Expires February 12, 2011               [Page 2]
+Yao, et al.             Expires February 20, 2011               [Page 2]
 
 Internet-Draft                    bname                      August 2010
 
@@ -163,7 +163,7 @@ Internet-Draft                    bname                      August 2010
 
 
 
-Yao, et al.             Expires February 12, 2011               [Page 3]
+Yao, et al.             Expires February 20, 2011               [Page 3]
 
 Internet-Draft                    bname                      August 2010
 
@@ -212,18 +212,46 @@ Internet-Draft                    bname                      August 2010
    restriction applies only to records of the same class as the BNAME
    record.
 
+3.4.  BNAME Examples
 
-4.  Query Processing
-
-   To exploit the BNAME mechanism the name resolution algorithms
-
+   The table below shows some examples of the BNAME usage.
 
 
-Yao, et al.             Expires February 12, 2011               [Page 4]
+
+
+Yao, et al.             Expires February 20, 2011               [Page 4]
 
 Internet-Draft                    bname                      August 2010
 
 
+        QNAME            owner  BNAME   target         result
+       ---------------- -------------- -------------- -----------------
+       com.             example.com.   example.net.   <no match>
+       com.                 com.          net.           net.
+       example.com.     example.com.   example.net.   example.net.
+       a.example.com.   example.com.   example.net.   a.example.net.
+       a.b.example.com. example.com.   example.net.   a.b.example.net.
+       ab.example.com.  b.example.com. example.net.   <no match>
+       bar.example.com. example.com.   example.net.   bar.example.net.
+       a.b.example.com. b.example.com. example.net.   a.example.net.
+       a.example.com.   example.com.   b.example.net. a.b.example.net.
+
+                      Table 1. BNAME Usage Examples.
+
+
+   If the owner name of the CNAME RR is regarded as the target of the MX
+   RR, it may cause some problems.  Some mail servers may directly
+   connect the owner name of the CNAME instead of the name pointed by
+   CNAME for mail delivery and cause the undelivery of the mails.  BNAME
+   has the similar problems with CNAME.  This document specifies that
+   the owner name of the BNAME should not be the targets of some RRs
+   such as MX, SRV and PTR.  In case that the owner name of the BNAME RR
+   is the target of some RRs, it should be cautious.
+
+
+4.  Query Processing
+
+   To exploit the BNAME mechanism the name resolution algorithms
    [RFC1034] must be modified slightly for both servers and resolvers.
    Both modified algorithms incorporate the operation of making a
    substitution on a name (either QNAME or SNAME) under control of a
@@ -244,40 +272,20 @@ Internet-Draft                    bname                      August 2010
 
    If the owner name of the bname is same with the name queryed, when
    preparing a response, a server performing a BNAME substitution will
+
+
+
+Yao, et al.             Expires February 20, 2011               [Page 5]
+
+Internet-Draft                    bname                      August 2010
+
+
    not include the relevant BNAME RR in the answer section unless the
    type queryed is BNAME.  A CNAME RR will be synthesized and included
-   in the answer section unless the type queryed is BNAME or the query
-   is the DNSSEC query.
+   in the answer section unless the type queryed is BNAME.
 
    The provided synthesized CNAME RR if there has one, MUST have
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Yao, et al.             Expires February 12, 2011               [Page 5]
-
-Internet-Draft                    bname                      August 2010
 
 
       The same CLASS as the QCLASS of the query,
@@ -323,15 +331,7 @@ Internet-Draft                    bname                      August 2010
 
 
 
-
-
-
-
-
-
-
-
-Yao, et al.             Expires February 12, 2011               [Page 6]
+Yao, et al.             Expires February 20, 2011               [Page 6]
 
 Internet-Draft                    bname                      August 2010
 
@@ -387,7 +387,7 @@ Internet-Draft                    bname                      August 2010
 
 
 
-Yao, et al.             Expires February 12, 2011               [Page 7]
+Yao, et al.             Expires February 20, 2011               [Page 7]
 
 Internet-Draft                    bname                      August 2010
 
@@ -443,7 +443,7 @@ Internet-Draft                    bname                      August 2010
 
 
 
-Yao, et al.             Expires February 12, 2011               [Page 8]
+Yao, et al.             Expires February 20, 2011               [Page 8]
 
 Internet-Draft                    bname                      August 2010
 
@@ -499,7 +499,7 @@ Internet-Draft                    bname                      August 2010
 
 
 
-Yao, et al.             Expires February 12, 2011               [Page 9]
+Yao, et al.             Expires February 20, 2011               [Page 9]
 
 Internet-Draft                    bname                      August 2010
 
@@ -535,7 +535,64 @@ Internet-Draft                    bname                      August 2010
    algorithm identifiers are used with the BNAME hash algorithm SHA1.
    Using other BNAME hash algorithms requires allocation of a new alias.
    Validating resolvers which follow the BNAME specification MUST
-   recognize the new alias algorithm identifier.
+   recognize the new alias algorithm identifier.  The future new DNSSEC
+   algorithms are suggested to indicate the support of BNAME.
+
+5.3.  Signaling of BNAME
+
+   A new UB (Understand BNAME) bit in the EDNS flags field [RFC2671]can
+   be used to signal that the resolvers can understand BNAME in DNSSEC.
+   BNAME aware resolvers can set the Understand-BNAME (UB bit) to
+   receive a response without the synthesized CNAMEs.  The UB bit is
+   part of the EDNS extended RCODE and Flags field[RFC2671].  Resolvers
+   should set this in a query to request omission of the synthesized
+   CNAMEs.
+
+   If the query is a DNSSEC query, the BNAME enabled resolvers MUST set
+   the UB bit in the query.  The server receiving the UB bit MUST not
+   issue synthesized CNAMEs.  Servers copy the UB bit to the response,
+   and should delete the synthesized CNAMEs from the answer if there has
+
+
+
+Yao, et al.             Expires February 20, 2011              [Page 10]
+
+Internet-Draft                    bname                      August 2010
+
+
+   one.
+
+   If the query is the DNSSEC query but the UB bit is not set, the
+   server should follow the rules below:
+   o  If the owner name of the bname is the suffix of the name queryed
+      but different, when preparing a response, a server performing a
+      BNAME substitution will in all cases include the relevant BNAME RR
+      in the answer section.  An unsigned CNAME RR is synthesized and
+      included in the answer section.  This will help the client to
+      reach the correct DNS data.
+   o  If the owner name of the bname is same with the name queryed, when
+      preparing a response, a DNSSEC enabled server performing a BNAME
+      substitution will not include the relevant BNAME RR and its RRSIG
+      RR in the answer section unless the type queryed is BNAME.  An
+      unsigned CNAME RR will be synthesized and included in the answer
+      section unless the type queryed is BNAME.
+   o  Since the BNAME-unaware DNSSEC resolvers do not know the alias
+      algorithm defined in secton 5.2 of this document, any response
+      from these zones signed with these alias algorithms unknown to
+      them will be regarded as the insecure one according to section 5.2
+      of [RFC4035].
+
+   Below are Updated EDNS extended RCODE and Flags fields [RFC2671]:
+
+
+                  +0 (MSB)                +1 (LSB)
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+      0: |   EXTENDED-RCODE      |       VERSION         |
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+      2: |DO|UB|                 Z                       |
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+
+
 
 
 6.  IANA Considerations
@@ -544,22 +601,24 @@ Internet-Draft                    bname                      August 2010
    the IANA registry "DNS SECURITY ALGORITHM NUMBERS".  IANA is
    requested to assign the number to Y and Z.
 
-   [[anchor14: Note in draft: before this document goes to WG Last call,
+   [[anchor15: Note in draft: before this document goes to WG Last call,
    it is better that we list all DNSSEC algorithms that need to be
    aliased to reflect compatibility with this extension.]]
+
+
+
+
+
+
+
+Yao, et al.             Expires February 20, 2011              [Page 11]
+
+Internet-Draft                    bname                      August 2010
 
 
 7.  Security Considerations
 
    Both ASCII domain name labels and non-ASCII ones have some aliases.
-
-
-
-Yao, et al.             Expires February 12, 2011              [Page 10]
-
-Internet-Draft                    bname                      August 2010
-
-
    We can bundle the domain name labels and their aliases through BNAME
    in the DNS resolutions.  The name labels and their aliases in the
    particular languages are only known by those who know these
@@ -583,7 +642,7 @@ Internet-Draft                    bname                      August 2010
 
 9.  Change History
 
-   [[anchor17: RFC Editor: Please remove this section.]]
+   [[anchor18: RFC Editor: Please remove this section.]]
 
 9.1.  draft-yao-dnsext-bname: Version 00
 
@@ -605,16 +664,25 @@ Internet-Draft                    bname                      August 2010
    o  Update the IANA consideration
 
 
-10.  References
 
 
 
-
-
-Yao, et al.             Expires February 12, 2011              [Page 11]
+Yao, et al.             Expires February 20, 2011              [Page 12]
 
 Internet-Draft                    bname                      August 2010
 
+
+9.5.  draft-yao-dnsext-bname: Version 04
+
+   o  Improve the text
+
+9.6.  draft-yao-dnsext-bname: Version 05
+
+   o  add section: bname examples
+   o  add section: Signaling of BNAME
+
+
+10.  References
 
 10.1.  Normative References
 
@@ -652,6 +720,14 @@ Internet-Draft                    bname                      August 2010
               (RR) Types", RFC 3597, September 2003.
 
    [RFC3629]  Yergeau, F., "UTF-8, a transformation format of ISO
+
+
+
+Yao, et al.             Expires February 20, 2011              [Page 13]
+
+Internet-Draft                    bname                      August 2010
+
+
               10646", RFC 3629, November 2003.
 
    [RFC3743]  Konishi, K., Huang, K., Qian, H., and Y. Ko, "Joint
@@ -664,14 +740,6 @@ Internet-Draft                    bname                      August 2010
               RFC 4033, March 2005.
 
    [RFC4034]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
-
-
-
-Yao, et al.             Expires February 12, 2011              [Page 12]
-
-Internet-Draft                    bname                      August 2010
-
-
               Rose, "Resource Records for the DNS Security Extensions",
               RFC 4034, March 2005.
 
@@ -702,6 +770,20 @@ Authors' Addresses
    Email: yaojk@cnnic.cn
 
 
+
+
+
+
+
+
+
+
+
+Yao, et al.             Expires February 20, 2011              [Page 14]
+
+Internet-Draft                    bname                      August 2010
+
+
    Xiaodong LEE
    CNNIC
    No.4 South 4th Street, Zhongguancun
@@ -723,7 +805,37 @@ Authors' Addresses
 
 
 
-Yao, et al.             Expires February 12, 2011              [Page 13]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yao, et al.             Expires February 20, 2011              [Page 15]
 
 
 
