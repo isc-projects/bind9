@@ -1,3 +1,6 @@
+3740.	[contrib]	Minor fixes to configure --with-dlz-bdb,
+			--with-dlz-postgres and --with-dlz-odbc. [RT #35340]
+
 3739.	[func]		Added per-zone stats counters to track TCP and
 			UDP queries. [RT #35375]
 

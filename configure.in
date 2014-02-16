@@ -1708,7 +1708,7 @@ AC_MSG_CHECKING(clock_gettime)
 have_clock_gt=no
 AC_CHECK_FUNC(clock_gettime,have_clock_gt=yes,)
 if test "$have_clock_gt" = "no"; then
-	AC_CHECK_LIB(rt,clock_gettime,have_clock_gt=ye,,)
+	AC_CHECK_LIB(rt,clock_gettime,have_clock_gt=yes,)
 fi
 
 if test "$have_clock_gt" = "yes"; then
@@ -4245,7 +4245,7 @@ test "$use_dlz_ldap" = "no" || \
 test "$use_dlz_mysql" = "no" || \
     echo "        MySQL (--with-dlz-mysql)"
 test "$use_dlz_odbc" = "no" || \
-    echo "        ODBC (--with-dlz-bdb)"
+    echo "        ODBC (--with-dlz-odbc)"
 test "$use_dlz_postgres" = "no" || \
     echo "        Postgres (--with-dlz-postgres)"
 test "$use_dlz_filesystem" = "no" || \
