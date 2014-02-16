@@ -15004,7 +15004,7 @@ if test "x$ac_cv_func_sysconf" = xyes; then :
 
 fi
 
-
+else
 	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
 	thread_dir=nothreads
 	THREADOPTOBJS=""
