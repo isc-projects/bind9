@@ -1,3 +1,6 @@
+3740.	[contrib]	Minor fixes to configure --with-dlz-bdb,
+			--with-dlz-postgres and --with-dlz-odbc. [RT #35340]
+
 3737.	[bug]		'rndc retransfer' could trigger a assertion failure
 			with inline zones. [RT #35353]
 
