@@ -33,7 +33,6 @@ NAMED=$TOP/bin/named/named
 # if the program is libtoolized.
 LWRESD="$TOP/bin/named/named -l"
 DIG=$TOP/bin/dig/dig
-DELVE=$TOP/bin/delve/delve
 RNDC=$TOP/bin/rndc/rndc
 NSUPDATE=$TOP/bin/nsupdate/nsupdate
 DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen

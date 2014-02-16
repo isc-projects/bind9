@@ -67,5 +67,6 @@ rm -f ns6/optout-tld.db
 rm -f nosign.before
 rm -f signing.out*
 rm -f canonical?.*
+rm -f ns1/resolve.key
 rm -f ns3/siginterval.conf
 rm -f ns4/named_dump.db
