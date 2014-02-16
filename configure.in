@@ -1405,7 +1405,7 @@ then
 	# Look for sysconf to allow detection of the number of processors.
 	#
 	AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
-
+else
 	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
 	thread_dir=nothreads
 	THREADOPTOBJS=""
