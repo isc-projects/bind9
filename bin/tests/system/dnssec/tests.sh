@@ -822,7 +822,7 @@ if [ -x ${RESOLVE} ] ; then
    ret=0
    echo "I:checking failed validation using dns_client ($n)"
    $RESOLVE $RESKEY -p 5300 -t a -s 10.53.0.4 a.bogus.example > /dev/null 2> resolve.out$n || ret=1
-   grep "resolution failed: no valid RRSIG" resolve.out$n > /dev/null || ret=1
+   grep "resolution failed: RRSIG failed to verify" resolve.out$n > /dev/null || ret=1
    n=`expr $n + 1`
    if [ $ret != 0 ]; then echo "I:failed"; fi
    status=`expr $status + $ret`
@@ -1730,7 +1730,7 @@ ret=0
 $DIG $DIGOPTS +noauth expired.example. +dnssec @10.53.0.4 soa > dig.out.ns4.test$n || ret=1
 grep "SERVFAIL" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
-grep "expired.example .*: RRSIG has expired" ns4/named.run > /dev/null || ret=1
+grep "expired.example/.*: RRSIG has expired" ns4/named.run > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
