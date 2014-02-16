@@ -662,7 +662,7 @@ load_keys(const cfg_obj_t *keys, dns_client_t *client) {
 		     elt2 = cfg_list_next(elt2))
 		{
 			key = cfg_listelt_value(elt2);
-			CHECK(key_fromconfig(key, client)); 
+			CHECK(key_fromconfig(key, client));
 		}
 	}
 
