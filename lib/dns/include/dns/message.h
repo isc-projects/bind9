@@ -139,6 +139,7 @@ typedef int dns_messagetextflag_t;
 #define DNS_MESSAGETEXTFLAG_NOHEADERS	0x0002
 #define DNS_MESSAGETEXTFLAG_ONESOA	0x0004
 #define DNS_MESSAGETEXTFLAG_OMITSOA	0x0008
+#define DNS_MESSAGETEXTFLAG_COMMENTDATA	0x0010
 
 /*
  * Dynamic update names for these sections.
@@ -1356,10 +1357,16 @@ dns_message_gettimeadjust(dns_message_t *msg);
  * Requires:
  *\li	msg be a valid message.
  */
+
 void
 dns_message_logpacket(dns_message_t *message, const char *description,
 		      isc_logcategory_t *category, isc_logmodule_t *module,
 		      int level, isc_mem_t *mctx);
+void
+dns_message_logfmtpacket(dns_message_t *message, const char *description,
+			 isc_logcategory_t *category, isc_logmodule_t *module,
+			 const dns_master_style_t *style, int level,
+			 isc_mem_t *mctx);
 /*%<
  * Log 'message' at the specified logging parameters.
  * 'description' will be emitted at the start of the message and will

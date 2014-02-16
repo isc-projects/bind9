@@ -47,7 +47,7 @@
 #include <named/config.h>
 #include <named/globals.h>
 
-#include "bind.keys.h"
+#include <bind.keys.h>
 
 /*% default configuration */
 static char defaultconf[] = "\

@@ -26,7 +26,7 @@ CINCLUDES =	-I${srcdir}/include -I../dns/include \
 		-I${top_srcdir}/lib/irs/include \
 		-I../../irs/include
 
-CDEFINES =
+CDEFINES =	-DVERSION=\"${VERSION}\" -DSYSCONFDIR=\"${sysconfdir}\"
 CWARNINGS =
 
 ISCLIBS =	../isc/libisc.@A@
@@ -45,15 +45,18 @@ LIBS =		${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
 
 SUBDIRS =
 
-TARGETS =	resolve@EXEEXT@ sample-async@EXEEXT@ sample-gai@EXEEXT@ \
+TARGETS =	resolve@EXEEXT@ \
+		sample-async@EXEEXT@ sample-gai@EXEEXT@ \
 		sample-update@EXEEXT@ sample-request@EXEEXT@ nsprobe@EXEEXT@
 
-OBJS =		resolve.@O@ sample-async.@O@ sample-gai.@O@ sample-update.@O@ \
+OBJS =		resolve.@O@ \
+		sample-async.@O@ sample-gai.@O@ sample-update.@O@ \
 		sample-request.@O@ nsprobe.@O@
 
 UOBJS =
 
-SRCS =		resolve.c sample-async.c sample-gai.c sample-update.c \
+SRCS =		resolve.c \
+		sample-async.c sample-gai.c sample-update.c \
 		sample-request.c nsprobe.c
 
 MANPAGES =

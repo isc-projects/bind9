@@ -149,8 +149,8 @@ rm -rf TODO EXCLUDED conftools doc/design doc/dev doc/draft doc/expired \
     lib/lwres/man/resolver.5 contrib/zkt/doc/rfc5011.txt \
     bin/tests/system/relay lib/cfg
 
-# Remove everything but mksymtbl.pl from util
-find util -name mksymtbl.pl -prune -o -type f -print | xargs rm -f
+# Remove everything but mksymtbl.pl and bindkeys.pl from util
+find util -name bindkeys.pl -o -name mksymtbl.pl -prune -o -type f -print | xargs rm -f
 find util -depth -type d -print | xargs rmdir 2>/dev/null
 
 # Remove all .gitignore files

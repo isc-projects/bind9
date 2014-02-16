@@ -1125,6 +1125,8 @@ static inline isc_result_t
 create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	     isc_taskaction_t callback, const char *caller)
 {
+	unsigned int fopts = 0;
+
 	if (dns_rdataset_isassociated(&val->frdataset))
 		dns_rdataset_disassociate(&val->frdataset);
 	if (dns_rdataset_isassociated(&val->fsigrdataset))
@@ -1136,9 +1138,12 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		return (DNS_R_NOVALIDSIG);
 	}
 
+	if ((val->options & DNS_VALIDATOR_NOCDFLAG) != 0)
+		fopts |= DNS_FETCHOPT_NOCDFLAG;
+
 	validator_logcreate(val, name, type, caller, "fetch");
 	return (dns_resolver_createfetch(val->view->resolver, name, type,
-					 NULL, NULL, NULL, 0,
+					 NULL, NULL, NULL, fopts,
 					 val->event->ev_sender,
 					 callback, val,
 					 &val->frdataset,
@@ -1155,6 +1160,7 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		 isc_taskaction_t action, const char *caller)
 {
 	isc_result_t result;
+	unsigned int vopts = 0;
 
 	if (check_deadlock(val, name, type, rdataset, sigrdataset)) {
 		validator_log(val, ISC_LOG_DEBUG(3),
@@ -1162,9 +1168,12 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		return (DNS_R_NOVALIDSIG);
 	}
 
+	/* OK to clear other options, but preserve NOCDFLAG */
+	vopts |= (val->options & DNS_VALIDATOR_NOCDFLAG);
+
 	validator_logcreate(val, name, type, caller, "validator");
 	result = dns_validator_create(val->view, name, type,
-				      rdataset, sigrdataset, NULL, 0,
+				      rdataset, sigrdataset, NULL, vopts,
 				      val->task, action, val,
 				      &val->subvalidator);
 	if (result == ISC_R_SUCCESS) {
@@ -1545,7 +1554,7 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
  */
 static isc_result_t
 validate(dns_validator_t *val, isc_boolean_t resume) {
-	isc_result_t result;
+	isc_result_t result, vresult = DNS_R_NOVALIDSIG;
 	dns_validatorevent_t *event;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 
@@ -1610,9 +1619,9 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		}
 
 		do {
-			result = verify(val, val->key, &rdata,
+			vresult = verify(val, val->key, &rdata,
 					val->siginfo->keyid);
-			if (result == ISC_R_SUCCESS)
+			if (vresult == ISC_R_SUCCESS)
 				break;
 			if (val->keynode != NULL) {
 				dns_keynode_t *nextnode = NULL;
@@ -1636,7 +1645,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 					break;
 			}
 		} while (1);
-		if (result != ISC_R_SUCCESS)
+		if (vresult != ISC_R_SUCCESS)
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "failed to verify rdataset");
 		else {
@@ -1670,12 +1679,12 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "looking for noqname proof");
 			return (nsecvalidate(val, ISC_FALSE));
-		} else if (result == ISC_R_SUCCESS) {
+		} else if (vresult == ISC_R_SUCCESS) {
 			marksecure(event);
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "marking as secure, "
 				      "noqname proof not needed");
-			return (result);
+			return (ISC_R_SUCCESS);
 		} else {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "verify failure: %s",
@@ -1691,7 +1700,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 	}
 
 	validator_log(val, ISC_LOG_INFO, "no valid signature found");
-	return (DNS_R_NOVALIDSIG);
+	return (vresult);
 }
 
 /*%
@@ -3886,7 +3895,7 @@ dns_validator_destroy(dns_validator_t **validatorp) {
 	LOCK(&val->lock);
 
 	val->attributes |= VALATTR_SHUTDOWN;
-	validator_log(val, ISC_LOG_DEBUG(3), "dns_validator_destroy");
+	validator_log(val, ISC_LOG_DEBUG(4), "dns_validator_destroy");
 
 	want_destroy = exit_check(val);
 
@@ -3919,8 +3928,8 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 		dns_rdatatype_format(val->event->type, typebuf,
 				     sizeof(typebuf));
 		isc_log_write(dns_lctx, category, module, level,
-			      "%.*svalidating @%p: %s %s: %s", depth, spaces,
-			      val, namebuf, typebuf, msgbuf);
+			      "%.*svalidating %s/%s: %s", depth, spaces,
+			      namebuf, typebuf, msgbuf);
 	} else {
 		isc_log_write(dns_lctx, category, module, level,
 			      "%.*svalidator @%p: %s", depth, spaces,

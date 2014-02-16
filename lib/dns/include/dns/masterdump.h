@@ -103,6 +103,10 @@ typedef struct dns_master_style dns_master_style_t;
 /*% Don't printout the cryptographic parts of DNSSEC records. */
 #define	DNS_STYLEFLAG_NOCRYPTO		0x08000000U
 
+/*% Comment out data by prepending with ";" */
+#define	DNS_STYLEFLAG_COMMENTDATA	0x10000000U
+
+
 ISC_LANG_BEGINDECLS
 
 /***
@@ -150,6 +154,11 @@ LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_simple;
  * The style used for debugging, "dig" output, etc.
  */
 LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_debug;
+
+/*%
+ * Similar to dns_master_style_debug but data is prepended with ";"
+ */
+LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_comment;
 
 /*%
  * The style used for dumping "key" zones.

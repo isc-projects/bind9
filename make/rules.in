@@ -46,9 +46,10 @@ top_builddir =	@BIND9_TOP_BUILDDIR@
 ### All
 ###
 ### Makefile may define:
+###	PREREQS
 ###	TARGETS
 
-all: subdirs ${TARGETS} testdirs
+all: ${PREREQS} subdirs ${TARGETS} testdirs
 
 ###
 ### Subdirectories

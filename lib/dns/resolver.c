@@ -1827,13 +1827,17 @@ resquery_send(resquery_t *query) {
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_RD;
 
 	/*
-	 * Set CD if the client says don't validate or the question is
-	 * under a secure entry point and it is not a recursive query.
+	 * Set CD if the client says not to validate, or if the
+	 * question is under a secure entry point and this is a
+	 * recursive/forward query -- unless the client said not to.
 	 */
-	if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0) {
+	if ((query->options & DNS_FETCHOPT_NOCDFLAG) != 0)
+		/* Do nothing */
+		;
+	else if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0)
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
-	} else if (res->view->enablevalidation &&
-		   (fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0) {
+	else if (res->view->enablevalidation &&
+		 ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0)) {
 		result = dns_view_issecuredomain(res->view, &fctx->name,
 						 &secure_domain);
 		if (result != ISC_R_SUCCESS)
@@ -2509,8 +2513,8 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
 	isc_sockaddr_format(address, addrbuf, sizeof(addrbuf));
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "error (%s%s%s) resolving '%s/%s/%s': %s",
-		      dns_result_totext(reason), spc, code,
+		      "%s%s%s resolving '%s/%s/%s': %s",
+		      code, spc, dns_result_totext(reason),
 		      namebuf, typebuf, classbuf, addrbuf);
 }
 
@@ -4711,6 +4715,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 		}
 	}
 
+	if ((fctx->options & DNS_FETCHOPT_NOCDFLAG) != 0)
+		valoptions |= DNS_VALIDATOR_NOCDFLAG;
+
 	if ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0)
 		need_validation = ISC_FALSE;
 	else
@@ -5242,6 +5249,9 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			secure_domain = ISC_TRUE;
 		}
 	}
+
+	if ((fctx->options & DNS_FETCHOPT_NOCDFLAG) != 0)
+		valoptions |= DNS_VALIDATOR_NOCDFLAG;
 
 	if ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0)
 		need_validation = ISC_FALSE;
@@ -6736,7 +6746,8 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		FCTXTRACE("continuing to look for parent's NS records");
 		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns, domain,
-						  nsrdataset, NULL, 0, task,
+						  nsrdataset, NULL,
+						  fctx->options, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
@@ -6900,7 +6911,7 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 			case DNS_OPT_NSID:
 				if (query->options & DNS_FETCHOPT_WANTNSID)
 					log_nsid(&optbuf, optlen, query,
-						 ISC_LOG_INFO,
+						 ISC_LOG_DEBUG(3),
 						 query->fctx->res->mctx);
 				isc_buffer_forward(&optbuf, optlen);
 				break;
@@ -7106,10 +7117,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Log the incoming packet.
 	 */
-	dns_message_logpacket(message, "received packet:\n",
-			      DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
-			      ISC_LOG_DEBUG(10), fctx->res->mctx);
-
+	dns_message_logfmtpacket(message, "received packet:\n",
+				 DNS_LOGCATEGORY_RESOLVER,
+				 DNS_LOGMODULE_PACKETS,
+				 &dns_master_style_comment,
+				 ISC_LOG_DEBUG(10),
+				 fctx->res->mctx);
 	/*
 	 * Process receive opt record.
 	 */
@@ -7700,7 +7713,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns,
-						  NULL, NULL, NULL, 0, task,
+						  NULL, NULL, NULL,
+						  fctx->options, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
@@ -8349,7 +8363,7 @@ log_fetch(dns_name_t *name, dns_rdatatype_t type) {
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, level,
-		      "createfetch: %s %s", namebuf, typebuf);
+		      "fetch: %s/%s", namebuf, typebuf);
 }
 
 isc_result_t

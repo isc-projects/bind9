@@ -2515,9 +2515,9 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 
 	result = isc_taskmgr_excltask(adb->taskmgr, &adb->excl);
 	if (result != ISC_R_SUCCESS) {
-		DP(ISC_LOG_INFO, "adb: task-exclusive mode unavailable, "
-				 "intializing table sizes to %u\n",
-				 nbuckets[11]);
+		DP(DEF_LEVEL, "adb: task-exclusive mode unavailable, "
+			      "intializing table sizes to %u\n",
+			      nbuckets[11]);
 		adb->nentries = nbuckets[11];
 		adb->nnames= nbuckets[11];
 

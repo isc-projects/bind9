@@ -220,7 +220,6 @@ isc__app_ctxstart(isc_appctx_t *ctx0) {
 	sigset_t sset;
 	char strbuf[ISC_STRERRORSIZE];
 
-
 	REQUIRE(VALID_APPCTX(ctx));
 
 	/*

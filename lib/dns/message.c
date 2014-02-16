@@ -3465,6 +3465,16 @@ dns_message_logpacket(dns_message_t *message, const char *description,
 		      isc_logcategory_t *category, isc_logmodule_t *module,
 		      int level, isc_mem_t *mctx)
 {
+	dns_message_logfmtpacket(message, description, category, module,
+				 &dns_master_style_debug, level, mctx);
+}
+
+void
+dns_message_logfmtpacket(dns_message_t *message, const char *description,
+			 isc_logcategory_t *category, isc_logmodule_t *module,
+			 const dns_master_style_t *style, int level,
+			 isc_mem_t *mctx)
+{
 	isc_buffer_t buffer;
 	char *buf = NULL;
 	int len = 1024;
@@ -3483,8 +3493,7 @@ dns_message_logpacket(dns_message_t *message, const char *description,
 		if (buf == NULL)
 			break;
 		isc_buffer_init(&buffer, buf, len);
-		result = dns_message_totext(message, &dns_master_style_debug,
-					    0, &buffer);
+		result = dns_message_totext(message, style, 0, &buffer);
 		if (result == ISC_R_NOSPACE) {
 			isc_mem_put(mctx, buf, len);
 			len += 1024;

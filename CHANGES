@@ -1,3 +1,12 @@
+3741.	[func]		"delve" (domain entity lookup and validation engine):
+			A new tool with dig-like semantics for performing DNS
+			lookups, with internal DNSSEC validation, using the
+			same resolver and validator logic as named. This
+			allows easy validation of DNSSEC data in environments
+			with untrustworthy resolvers, and assists with
+			troubleshooting of DNSSEC problems. (Note: not yet
+			available on win32.) [RT #32406]
+
 3740.	[contrib]	Minor fixes to configure --with-dlz-bdb,
 			--with-dlz-postgres and --with-dlz-odbc. [RT #35340]
 

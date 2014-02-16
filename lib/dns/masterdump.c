@@ -174,6 +174,18 @@ dns_master_style_debug = {
 	24, 32, 40, 48, 80, 8, UINT_MAX
 };
 
+/*%
+ * Similar, but with each line commented out.
+ */
+LIBDNS_EXTERNAL_DATA const dns_master_style_t
+dns_master_style_comment = {
+	DNS_STYLEFLAG_REL_OWNER |
+	DNS_STYLEFLAG_MULTILINE |
+	DNS_STYLEFLAG_RRCOMMENT |
+	DNS_STYLEFLAG_COMMENTDATA,
+	24, 32, 40, 48, 80, 8, UINT_MAX
+};
+
 
 #define N_SPACES 10
 static char spaces[N_SPACES+1] = "          ";
@@ -304,6 +316,14 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 			return (DNS_R_TEXTTOOLONG);
 		r.base[0] = '\n';
 		isc_buffer_add(&buf, 1);
+
+		if ((ctx->style.flags & DNS_STYLEFLAG_COMMENTDATA) != 0) {
+			isc_buffer_availableregion(&buf, &r);
+			if (r.length < 1)
+				return (DNS_R_TEXTTOOLONG);
+			r.base[0] = ';';
+			isc_buffer_add(&buf, 1);
+		}
 
 		result = indent(&col, ctx->style.rdata_column,
 				ctx->style.tab_width, &buf);
@@ -440,6 +460,12 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 	while (result == ISC_R_SUCCESS) {
 		column = 0;
+
+		/*
+		 * Comment?
+		 */
+		if ((ctx->style.flags & DNS_STYLEFLAG_COMMENTDATA) != 0)
+			isc_buffer_putstr(target, ";");
 
 		/*
 		 * Owner name.

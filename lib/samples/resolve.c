@@ -116,7 +116,7 @@ set_key(dns_client_t *client, char *keynamestr, char *keystr,
 
 	result = isc_mem_create(0, 0, mctxp);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to crate mctx\n");
+		fprintf(stderr, "failed to create mctx\n");
 		exit(1);
 	}
 

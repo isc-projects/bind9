@@ -205,6 +205,7 @@ LIBISC_EXTERNAL_DATA isc_logmodule_t isc_modules[] = {
 	{ "interface", 0 },
 	{ "timer", 0 },
 	{ "file", 0 },
+	{ "other", 0 },
 	{ NULL, 0 }
 };
 
@@ -1413,7 +1414,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	const char *iformat;
 	struct stat statbuf;
 	isc_boolean_t matched = ISC_FALSE;
-	isc_boolean_t printtime, printtag;
+	isc_boolean_t printtime, printtag, printcolon;
 	isc_boolean_t printcategory, printmodule, printlevel;
 	isc_logconfig_t *lcfg;
 	isc_logchannel_t *channel;
@@ -1642,7 +1643,10 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 		printtime     = ISC_TF((channel->flags & ISC_LOG_PRINTTIME)
 				       != 0);
-		printtag      = ISC_TF((channel->flags & ISC_LOG_PRINTTAG)
+		printtag      = ISC_TF((channel->flags &
+					(ISC_LOG_PRINTTAG|ISC_LOG_PRINTPREFIX))
+				       != 0 && lcfg->tag != NULL);
+		printcolon    = ISC_TF((channel->flags & ISC_LOG_PRINTTAG)
 				       != 0 && lcfg->tag != NULL);
 		printcategory = ISC_TF((channel->flags & ISC_LOG_PRINTCATEGORY)
 				       != 0);
@@ -1696,11 +1700,12 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			/* FALLTHROUGH */
 
 		case ISC_LOG_TOFILEDESC:
-			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s%s%s%s\n",
+			fprintf(FILE_STREAM(channel),
+				"%s%s%s%s%s%s%s%s%s%s\n",
 				printtime     ? time_string	: "",
 				printtime     ? " "		: "",
 				printtag      ? lcfg->tag	: "",
-				printtag      ? ": "		: "",
+				printcolon    ? ": "		: "",
 				printcategory ? category->name	: "",
 				printcategory ? ": "		: "",
 				printmodule   ? (module != NULL ? module->name
@@ -1743,11 +1748,12 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			       printtime     ? time_string	: "",
 			       printtime     ? " "		: "",
 			       printtag      ? lcfg->tag	: "",
-			       printtag      ? ": "		: "",
+			       printcolon    ? ": "		: "",
 			       printcategory ? category->name	: "",
 			       printcategory ? ": "		: "",
-			       printmodule   ? (module != NULL	? module->name
-								: "no_module")
+			       printmodule   ? (module != NULL
+						 ? module->name
+						 : "no_module")
 								: "",
 			       printmodule   ? ": "		: "",
 			       printlevel    ? level_string	: "",
