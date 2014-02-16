@@ -465,7 +465,9 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 		if (result == ISC_R_NOSPACE) {
 			isc_mem_put(mctx, t, len);
 			len += 1024;
-		} else
+		} else if (result == ISC_R_NOMORE)
+			result = ISC_R_SUCCESS;
+		else
 			CHECK(result);
 	} while (result == ISC_R_NOSPACE);
 
