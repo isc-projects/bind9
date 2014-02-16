@@ -65,14 +65,3 @@ cp trusted.conf ../ns4/trusted.conf
 cp trusted.conf ../ns6/trusted.conf
 cp trusted.conf ../ns7/trusted.conf
 cp managed.conf ../ns4/managed.conf
-#
-#  Save keyid for managed key id test.
-#
-keyid=`expr $keyname : 'K.+001+\(.*\)'`
-keyid=`expr $keyid + 0`
-echo "$keyid" > managed.key.id
-cat $keyname.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print "-a $alg -e -k $dn -K $key\n"
-' > resolve.key
