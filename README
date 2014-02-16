@@ -60,9 +60,15 @@ BIND 9.10.0
 	   impact of reflection and amplification attacks, is
 	   always compiled in and no longer requires a compile-time
 	   option to enable it.
-	 - A new zone file format, "map", allows zone data to be
-	   stored in a format that can be mapped directly into memory,
-	   allowing much faster zone loading.
+	 - A new zone file format, "map", stores zone data in a
+	   format that can be mapped directly into memory, allowing
+	   significantly faster zone loading.
+	 - "delve" (domain entity lookup and validation engine) is a
+	   new tool with dig-like semantics for looking up DNS data
+	   and performing internal DNSSEC validation.  This allows
+	   easy validation in environments where the resolver may
+	   not be trustworthy, and assists with troubleshooting of
+	   DNSSEC problems.
 	 - Improved EDNS(0) processing for better resolver performance
 	   and reliability over slow or lossy connections.
 	 - Substantial improvement in response-policy zone (RPZ)
@@ -97,12 +103,12 @@ BIND 9.10.0
 	   instead of using a modified OpenSSL as an intermediary.
 	   This has been tested with the Thales nShield HSM and with
 	   SoftHSMv2 from the Open DNSSEC project.
-	 - New 'dnssec-coverage' tool to check DNSSEC key coverage
+	 - New "dnssec-coverage" tool to check DNSSEC key coverage
 	   for a zone and report if a lapse in signing coverage has
 	   been inadvertently scheduled.
 	 - Signing algorithm flexibility and other improvements
 	   for the "rndc" control channel.
-	 - 'named-checkzone' and 'named-compilezone' can now read
+	 - "named-checkzone" and "named-compilezone" can now read
 	   journal files, allowing them to process dynamic zones.
 	 - Multiple DLZ databases can now be configured.  Individual
 	   zones can be configured to be served from a specific DLZ
@@ -116,7 +122,7 @@ BIND 9.10.0
            for specific clients via the new "no-case-compress" ACL.
 	 - new "dnssec-importkey" command allows the use of offline
 	   DNSSEC keys with automatic DNSKEY management.
-	 - New 'named-rrchecker' tool to verify the syntactic
+	 - New "named-rrchecker" tool to verify the syntactic
 	   correctness of individual resource records.
 	 - When re-signing a zone, the new "dnssec-signzone -Q" option
 	   drops signatures from keys that are still published but are
