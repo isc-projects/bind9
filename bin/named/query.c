@@ -6316,6 +6316,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			dns_db_attach(db, &client->query.authdb);
 		}
 		client->query.authdbset = ISC_TRUE;
+
+		/* Track TCP vs UDP stats per zone */
+		if ((client->attributes & NS_CLIENTATTR_TCP) != 0)
+			inc_stats(client, dns_nsstatscounter_tcp);
+		else
+			inc_stats(client, dns_nsstatscounter_udp);
 	}
 
  db_find:

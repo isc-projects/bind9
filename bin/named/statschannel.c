@@ -170,7 +170,7 @@ init_desc(void) {
 	SET_NSSTATDESC(sig0in, "requests with SIG(0) received", "ReqSIG0");
 	SET_NSSTATDESC(invalidsig, "requests with invalid signature",
 		       "ReqBadSIG");
-	SET_NSSTATDESC(tcp, "TCP requests received", "ReqTCP");
+	SET_NSSTATDESC(requesttcp, "TCP requests received", "ReqTCP");
 	SET_NSSTATDESC(authrej, "auth queries rejected", "AuthQryRej");
 	SET_NSSTATDESC(recurserej, "recursive queries rejected", "RecQryRej");
 	SET_NSSTATDESC(xfrrej, "transfer requests rejected", "XfrRej");
@@ -218,6 +218,8 @@ init_desc(void) {
 		       "RateSlipped");
 	SET_NSSTATDESC(rpz_rewrites, "response policy zone rewrites",
 		       "RPZRewrites");
+	SET_NSSTATDESC(udp, "UDP queries received", "QryUDP");
+	SET_NSSTATDESC(tcp, "TCP queries received", "QryTCP");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */

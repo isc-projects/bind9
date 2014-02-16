@@ -1728,7 +1728,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 	if (TCP_CLIENT(client))
 		isc_stats_increment(ns_g_server->nsstats,
-				    dns_nsstatscounter_tcp);
+				    dns_nsstatscounter_requesttcp);
 
 	/*
 	 * It's a request.  Parse it.

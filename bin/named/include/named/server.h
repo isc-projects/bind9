@@ -132,7 +132,7 @@ enum {
 	dns_nsstatscounter_tsigin = 4,
 	dns_nsstatscounter_sig0in = 5,
 	dns_nsstatscounter_invalidsig = 6,
-	dns_nsstatscounter_tcp = 7,
+	dns_nsstatscounter_requesttcp = 7,
 
 	dns_nsstatscounter_authrej = 8,
 	dns_nsstatscounter_recurserej = 9,
@@ -176,7 +176,10 @@ enum {
 
 	dns_nsstatscounter_rpz_rewrites = 40,
 
-	dns_nsstatscounter_max = 41
+	dns_nsstatscounter_udp = 41,
+	dns_nsstatscounter_tcp = 42,
+
+	dns_nsstatscounter_max = 43
 };
 
 void

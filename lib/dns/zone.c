@@ -1088,7 +1088,7 @@ zone_free(dns_zone_t *zone) {
 		isc_stats_detach(&zone->stats);
 	if (zone->requeststats != NULL)
 		isc_stats_detach(&zone->requeststats);
-	if(zone->rcvquerystats != NULL )
+	if (zone->rcvquerystats != NULL)
 		dns_stats_detach(&zone->rcvquerystats);
 	if (zone->db != NULL)
 		zone_detachdb(zone);
