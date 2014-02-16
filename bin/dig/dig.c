@@ -1092,7 +1092,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			if (splitwidth)
 				splitwidth += 3;
 			if (result != ISC_R_SUCCESS)
-				fatal("Couldn't parse retries");
+				fatal("Couldn't parse split");
 			break;
 		case 't': /* stats */
 			FULLCHECK("stats");
