@@ -1,3 +1,6 @@
+3740.	[contrib]	Minor fixes to configure --with-dlz-bdb,
+			--with-dlz-postgres and --with-dlz-odbc. [RT #35340]
+
 3736.	[bug]		nsupdate: When specifying a server by name,
 			fall back to alternate addresses if the first
 			address for that name is not reachable. [RT #25784]

@@ -1281,7 +1281,6 @@ then
 	#
 	AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
 
-else
 	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
 	thread_dir=nothreads
 	THREADOPTOBJS=""
@@ -3787,7 +3786,7 @@ test "$use_dlz_ldap" = "no" || \
 test "$use_dlz_mysql" = "no" || \
     echo "        MySQL (--with-dlz-mysql)"
 test "$use_dlz_odbc" = "no" || \
-    echo "        ODBC (--with-dlz-bdb)"
+    echo "        ODBC (--with-dlz-odbc)"
 test "$use_dlz_postgres" = "no" || \
     echo "        Postgres (--with-dlz-postgres)"
 test "$use_dlz_filesystem" = "no" || \
