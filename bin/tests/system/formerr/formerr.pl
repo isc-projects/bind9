@@ -45,7 +45,7 @@
 #
 # XXX: Doesn't support IPv6 yet
 
-require 5.006.001;
+require 5.006_001;
 
 use strict;
 use Getopt::Std;
