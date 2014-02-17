@@ -197,8 +197,8 @@ linux_setcaps(cap_t caps) {
 #ifdef HAVE_LIBCAP
 #define SET_CAP(flag) \
 	do { \
-		capval = (flag); \
 		cap_flag_value_t curval; \
+		capval = (flag); \
 		err = cap_get_flag(curcaps, capval, CAP_PERMITTED, &curval); \
 		if (err != -1 && curval) { \
 			err = cap_set_flag(caps, CAP_EFFECTIVE, 1, &capval, CAP_SET); \

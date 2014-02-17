@@ -1,3 +1,6 @@
+3742.	[port]		linux: libcap support: curval was used before it
+			was declared. [RT #35387]
+
 	--- 9.8.7-W1 released ---
 
 3724.	[bug]		win32: Fixed a bug that prevented dig and
