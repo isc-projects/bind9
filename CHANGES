@@ -1,3 +1,8 @@
+3743.	[bug]		delegation-only flag wasn't working in forward zone
+			declarations despite being documented.  This is
+			needed to support turning off forwarding and turning
+			on delegation only at the same name.  [RT #35392]
+
 3742.	[port]		linux: libcap support: declare curval at start of
 			block. [RT #35387]
 

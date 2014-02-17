@@ -1323,7 +1323,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "notify", MASTERZONE | SLAVEZONE },
 	{ "also-notify", MASTERZONE | SLAVEZONE },
 	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "delegation-only", HINTZONE | STUBZONE | DELEGATIONZONE },
+	{ "delegation-only", HINTZONE | STUBZONE | FORWARDZONE |
+	   DELEGATIONZONE },
 	{ "forward", MASTERZONE | SLAVEZONE | STUBZONE |
 	  STATICSTUBZONE | FORWARDZONE },
 	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE |
