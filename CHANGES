@@ -1,3 +1,6 @@
+3742.	[port]		linux: libcap support: curval was used before it
+			was declared. [RT #35387]
+
 3740.	[contrib]	Minor fixes to configure --with-dlz-bdb,
 			--with-dlz-postgres and --with-dlz-odbc. [RT #35340]
 
