@@ -1,5 +1,5 @@
-3742.	[port]		linux: libcap support: curval was used before it
-			was declared. [RT #35387]
+3742.	[port]		linux: libcap support: declare curval at start of
+			block. [RT #35387]
 
 	--- 9.9.5-W1 released ---
 
