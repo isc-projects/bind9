@@ -314,10 +314,13 @@ status=`expr $status + $ret`
 
 echo "I:checking RRSIG expiry date correctness"
 dnskey_expiry=`$CHECKZONE -o - $czone $cfile.signed 2> /dev/null |
-              awk '$4 == "RRSIG" && $5 == "DNSKEY" {print $9; exit}'`
+              awk '$4 == "RRSIG" && $5 == "DNSKEY" {print $9; exit}' |
+              cut -c1-10`
 soa_expiry=`$CHECKZONE -o - $czone $cfile.signed 2> /dev/null |
-           awk '$4 == "RRSIG" && $5 == "SOA" {print $9; exit}'`
+           awk '$4 == "RRSIG" && $5 == "SOA" {print $9; exit}' |
+           cut -c1-10`
 [ $dnskey_expiry -gt $soa_expiry ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:waiting 30 seconds for key activation"
