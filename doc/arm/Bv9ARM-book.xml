@@ -10074,7 +10074,6 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     type forward;
     <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
-    <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
 };
 
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
