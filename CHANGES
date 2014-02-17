@@ -1,5 +1,5 @@
-3742.	[port]		linux: libcap support: curval was used before it
-			was declared. [RT #35387]
+3742.	[port]		linux: libcap support: declare curval at start of
+			block. [RT #35387]
 
 3741.	[func]		"delve" (domain entity lookup and validation engine):
 			A new tool with dig-like semantics for performing DNS
