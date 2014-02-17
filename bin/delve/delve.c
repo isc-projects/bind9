@@ -91,6 +91,7 @@ static isc_log_t *lctx = NULL;
 static char *server = NULL;
 static const char *port = "53";
 static isc_sockaddr_t *srcaddr4 = NULL, *srcaddr6 = NULL;
+static isc_sockaddr_t a4, a6;
 static char *curqname = NULL, *qname = NULL;
 static isc_boolean_t classset = ISC_FALSE;
 static dns_rdatatype_t qtype = dns_rdatatype_none;
@@ -1127,7 +1128,6 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 	char textname[MAXNAME];
 	struct in_addr in4;
 	struct in6_addr in6;
-	isc_sockaddr_t a4, a6;
 	in_port_t srcport;
 	isc_uint32_t num;
 	char *hash;
