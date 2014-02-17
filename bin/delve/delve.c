@@ -765,11 +765,15 @@ addserver(dns_client_t *client) {
 
 	if (use_ipv4 && inet_pton(AF_INET, server, &in4) == 1) {
 		sa = isc_mem_get(mctx, sizeof(*sa));
+		if (sa == NULL)
+			return (ISC_R_NOMEMORY);
 		ISC_LINK_INIT(sa, link);
 		isc_sockaddr_fromin(sa, &in4, destport);
 		ISC_LIST_APPEND(servers, sa, link);
 	} else if (use_ipv6 && inet_pton(AF_INET6, server, &in6) == 1) {
 		sa = isc_mem_get(mctx, sizeof(*sa));
+		if (sa == NULL)
+			return (ISC_R_NOMEMORY);
 		ISC_LINK_INIT(sa, link);
 		isc_sockaddr_fromin6(sa, &in6, destport);
 		ISC_LIST_APPEND(servers, sa, link);
@@ -791,15 +795,24 @@ addserver(dns_client_t *client) {
 			return (ISC_R_FAILURE);
 		}
 
-		for (cur = res; cur != NULL; cur = res->ai_next) {
+		result = ISC_R_SUCCESS;
+		for (cur = res; cur != NULL; cur = cur->ai_next) {
+			if (cur->ai_family != AF_INET &&
+			    cur->ai_family != AF_INET6)
+				continue;
 			sa = isc_mem_get(mctx, sizeof(*sa));
+			if (sa == NULL) {
+				result = ISC_R_NOMEMORY;
+				break;
+			}
 			memset(sa, 0, sizeof(*sa));
 			ISC_LINK_INIT(sa, link);
-			memmove(&sa->type, res->ai_addr, res->ai_addrlen);
-			sa->length = res->ai_addrlen;
+			memmove(&sa->type, cur->ai_addr, cur->ai_addrlen);
+			sa->length = cur->ai_addrlen;
 			ISC_LIST_APPEND(servers, sa, link);
-			freeaddrinfo(res);
 		}
+		freeaddrinfo(res);
+		CHECK(result);
 	}
 
 
