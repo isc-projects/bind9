@@ -191,6 +191,10 @@ usage(void) {
 	exit(1);
 }
 
+ISC_PLATFORM_NORETURN_PRE static void
+fatal(const char *format, ...)
+ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
+
 static void
 fatal(const char *format, ...) {
 	va_list args;
@@ -203,6 +207,9 @@ fatal(const char *format, ...) {
 	fprintf(stderr, "\n");
 	exit(1);
 }
+
+static void
+warn(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void
 warn(const char *format, ...) {
@@ -227,6 +234,9 @@ static isc_logmodule_t modules[] = {
 	{ "delve",	 		0 },
 	{ NULL, 			0 }
 };
+
+static void
+delve_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
 static void
 delve_log(int level, const char *fmt, ...) {
