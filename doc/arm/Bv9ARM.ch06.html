@@ -98,7 +98,7 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597186">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597733">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597860">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597928">Other Zone File Directives</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2598201"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
@@ -1726,8 +1726,8 @@ category notify { null; };
                       Delegation only.  Logs queries that have been
                       forced to NXDOMAIN as the result of a
                       delegation-only zone or a
-                      <span><strong class="command">delegation-only</strong></span> in a hint
-                      or stub zone declaration.
+                      <span><strong class="command">delegation-only</strong></span> in a
+                      forward, hint or stub zone declaration.
                     </p>
                   </td>
 </tr>
@@ -7166,9 +7166,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <dt><span class="term"><span><strong class="command">delegation-only</strong></span></span></dt>
 <dd>
 <p>
-                    The flag only applies to hint and stub zones.  If set
-                    to <strong class="userinput"><code>yes</code></strong>, then the zone will also be
-                    treated as if it is also a delegation-only type zone.
+                    The flag only applies to forward, hint and stub
+                    zones.  If set to <strong class="userinput"><code>yes</code></strong>,
+                    then the zone will also be treated as if it is
+                    also a delegation-only type zone.
                   </p>
 <p>
                     See caveats in <a href="Bv9ARM.ch06.html#root_delegation_only"><span><strong class="command">root-delegation-only</strong></span></a>.
@@ -9172,7 +9173,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2597860"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2597928"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -9187,7 +9188,7 @@ example.com. NS ns2.example.net.
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2597882"></a>The <span><strong class="command">@</strong></span> (at-sign)</h4></div></div></div>
+<a name="id2597950"></a>The <span><strong class="command">@</strong></span> (at-sign)</h4></div></div></div>
 <p>
               When used in the label (or name) field, the asperand or
               at-sign (@) symbol represents the current origin.
@@ -9198,7 +9199,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2597898"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2597966"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -10276,7 +10277,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2600728"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2600796"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -10430,7 +10431,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2601179"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2601248"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
