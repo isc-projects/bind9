@@ -408,8 +408,6 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 	if (!showdnssec && rdataset->type == dns_rdatatype_rrsig)
 		return (ISC_R_SUCCESS);
 
-	isc_buffer_init(&target, t, sizeof(t));
-
 	if (first || rdataset->trust != trust) {
 		if (!first && showtrust && !short_form)
 			putchar('\n');
