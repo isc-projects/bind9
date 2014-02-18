@@ -1618,5 +1618,5 @@ cleanup:
 
 	dns_lib_shutdown();
 
-	exit(0);
+	return (0);
 }
