@@ -1800,8 +1800,8 @@ category notify { null; };
                       Delegation only.  Logs queries that have been
                       forced to NXDOMAIN as the result of a
                       delegation-only zone or a
-                      <span><strong class="command">delegation-only</strong></span> in a hint
-                      or stub zone declaration.
+                      <span><strong class="command">delegation-only</strong></span> in a
+                      forward, hint or stub zone declaration.
                     </p>
                   </td>
 </tr>
@@ -4947,7 +4947,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2586293"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2586225"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -6079,7 +6079,7 @@ deny-answer-aliases { "example.net"; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2589097"></a>Response Policy Zone (RPZ) Rewriting</h4></div></div></div>
+<a name="id2589029"></a>Response Policy Zone (RPZ) Rewriting</h4></div></div></div>
 <p>
             <acronym class="acronym">BIND</acronym> 9 includes a limited
             mechanism to modify DNS responses for requests
@@ -8081,9 +8081,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <dt><span class="term"><span><strong class="command">delegation-only</strong></span></span></dt>
 <dd>
 <p>
-                    The flag only applies to hint and stub zones.  If set
-                    to <strong class="userinput"><code>yes</code></strong>, then the zone will also be
-                    treated as if it is also a delegation-only type zone.
+                    The flag only applies to forward, hint and stub
+                    zones.  If set to <strong class="userinput"><code>yes</code></strong>,
+                    then the zone will also be treated as if it is
+                    also a delegation-only type zone.
                   </p>
 <p>
                     See caveats in <a href="Bv9ARM.ch06.html#root_delegation_only"><span><strong class="command">root-delegation-only</strong></span></a>.
@@ -8839,7 +8840,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2597797"></a>Multiple views</h4></div></div></div>
+<a name="id2597865"></a>Multiple views</h4></div></div></div>
 <p>
               When multiple views are in use, a zone may be
               referenced by more than one of them. Often, the views
@@ -10708,7 +10709,7 @@ HOST-127.EXAMPLE. MX 0 .
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602078"></a>Name Server Statistics Counters</h4></div></div></div>
+<a name="id2602147"></a>Name Server Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -11996,7 +11997,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2605630"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2605699"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
