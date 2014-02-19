@@ -255,6 +255,8 @@ struct dns_adbentry {
 	unsigned char			to1232;		/* IPv6 nofrag */
 	unsigned char			to512;		/* plain DNS */
 	isc_sockaddr_t                  sockaddr;
+	unsigned char *			sit;
+	isc_uint16_t			sitlen;
 
 	isc_stdtime_t                   expires;
 	/*%<
@@ -1802,6 +1804,8 @@ new_adbentry(dns_adb_t *adb) {
 	e->to1432 = 0;
 	e->to1232 = 0;
 	e->to512 = 0;
+	e->sit = NULL;
+	e->sitlen = 0;
 	isc_random_get(&r);
 	e->srtt = (r & 0x1f) + 1;
 	e->expires = 0;
@@ -1837,6 +1841,9 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry) {
 	INSIST(!ISC_LINK_LINKED(e, plink));
 
 	e->magic = 0;
+
+	if (e->sit != NULL)
+		isc_mem_put(adb->mctx, e->sit, e->sitlen);
 
 	li = ISC_LIST_HEAD(e->lameinfo);
 	while (li != NULL) {
@@ -3425,6 +3432,16 @@ dump_entry(FILE *f, dns_adbentry_t *entry, isc_boolean_t debug,
 		entry->to512, entry->plain, entry->plainto);
 	if (entry->udpsize != 0U)
 		fprintf(f, " [udpsize %u]", entry->udpsize);
+#ifdef ISC_PLATFORM_USESIT
+	if (entry->sit != NULL) {
+		unsigned int i;
+		fprintf(f, " [sit=");
+		for (i = 0; i < entry->sitlen; i++)
+			fprintf(f, "%02x", entry->sit[i]);
+		fprintf(f, "]");
+	}
+#endif
+
 	if (entry->expires != 0)
 		fprintf(f, " [ttl %d]", entry->expires - now);
 	fprintf(f, "\n");
@@ -4086,6 +4103,7 @@ dns_adb_plainresponse(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
+
 	addr->entry->plain++;
 	if (addr->entry->plain == 0xff) {
 		addr->entry->edns >>= 1;
@@ -4240,6 +4258,59 @@ dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 	UNLOCK(&adb->entrylocks[bucket]);
 
 	return (size);
+}
+
+void
+dns_adb_setsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+	       const unsigned char *sit, size_t len)
+{
+	int bucket;
+
+	REQUIRE(DNS_ADB_VALID(adb));
+	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
+
+	bucket = addr->entry->lock_bucket;
+	LOCK(&adb->entrylocks[bucket]);
+
+	if (addr->entry->sit != NULL &&
+	    (sit == NULL || len != addr->entry->sitlen)) {
+		isc_mem_put(adb->mctx, addr->entry->sit, addr->entry->sitlen);
+		addr->entry->sit = NULL;
+		addr->entry->sitlen = 0;
+	}
+
+	if (addr->entry->sit == NULL && sit != NULL && len != 0U) {
+		addr->entry->sit = isc_mem_get(adb->mctx, len);
+		if (addr->entry->sit != NULL)
+			addr->entry->sitlen = len;
+	}
+
+	if (addr->entry->sit != NULL)
+		memcpy(addr->entry->sit, sit, len);
+	UNLOCK(&adb->entrylocks[bucket]);
+}
+
+size_t
+dns_adb_getsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+	       unsigned char *sit, size_t len)
+{
+	int bucket;
+
+	REQUIRE(DNS_ADB_VALID(adb));
+	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
+
+	bucket = addr->entry->lock_bucket;
+	LOCK(&adb->entrylocks[bucket]);
+	if (sit != NULL && addr->entry->sit != NULL &&
+	    len >= addr->entry->sitlen)
+	{
+		memcpy(sit, addr->entry->sit, addr->entry->sitlen);
+		len = addr->entry->sitlen;
+	} else
+		len = 0;
+	UNLOCK(&adb->entrylocks[bucket]);
+
+	return (len);
 }
 
 isc_result_t

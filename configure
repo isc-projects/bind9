@@ -700,6 +700,8 @@ XSLTPROC
 W3M
 PDFLATEX
 LATEX
+HAVE_SIT
+ISC_PLATFORM_USESIT
 ISC_ARCH_DIR
 ISC_PLATFORM_USEMACASM
 ISC_PLATFORM_USESTDASM
@@ -816,6 +818,7 @@ PKCS11_TOOLS
 USE_PKCS11
 ISC_OPENSSL_LIBS
 ISC_OPENSSL_INC
+ISC_PLATFORM_OPENSSLAES
 ISC_PLATFORM_OPENSSLHASH
 OPENSSL_GOST
 OPENSSL_ECDSA
@@ -983,6 +986,8 @@ with_ecdsa
 with_gost
 enable_openssl_version_check
 enable_openssl_hash
+enable_openssl_aes
+with_sit_alg
 with_libxml2
 with_libjson
 enable_largefile
@@ -1002,6 +1007,7 @@ enable_fixed_rrset
 enable_rpz_nsip
 enable_rpz_nsdname
 enable_filter_aaaa
+enable_sit
 with_docbook_xsl
 with_idn
 with_libiconv
@@ -1652,25 +1658,25 @@ Optional Features:
   --enable-threads        enable multithreading
   --enable-native-pkcs11  use native PKCS11 for all crypto [default=no]
   --enable-openssl-version-check
-                          Check OpenSSL Version [default=yes]
+                          check OpenSSL version [default=yes]
   --enable-openssl-hash   use OpenSSL for hash functions [default=no]
+  --enable-openssl-aes    use OpenSSL for aes [default=no]
   --enable-largefile	  64-bit file support
   --enable-backtrace      log stack backtrace on abort [default=yes]
   --enable-symtable       use internal symbol table for backtrace
 			  [all|minimal(default)|none]
   --enable-ipv6           use IPv6 default=autodetect
-  --enable-getifaddrs     Enable the use of getifaddrs() [yes|no].
+  --enable-getifaddrs     enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
   --disable-linux-caps	  disable linux capabilities
   --enable-atomic	  enable machine specific atomic operations
 			  [default=autodetect]
-  --enable-fixed-rrset    enable fixed rrset ordering
-			  [default=no]
+  --enable-fixed-rrset    enable fixed rrset ordering [default=no]
   --disable-rpz-nsip	  disable rpz-nsip rules [default=enabled]
   --disable-rpz-nsdname	  disable rpz-nsdname rules [default=enabled]
-  --enable-filter-aaaa    enable filtering of AAAA records
-			  [default=no]
+  --enable-filter-aaaa    enable filtering of AAAA records [default=no]
+  --enable-sit            enable source identity token [default=no]
   --enable-full-report	  report values of all configure options
 
 Optional Packages:
@@ -1681,7 +1687,7 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-  --with-python=PATH      Specify path to python interpreter
+  --with-python=PATH      specify path to python interpreter
   --with-geoip=PATH       Build with GeoIP support (yes|no|path)
   --with-gssapi=PATH      Specify path for system-supplied GSSAPI [default=yes]
   --with-randomdev=PATH   Specify path for random device
@@ -1692,19 +1698,20 @@ Optional Packages:
 			  (PATH is for the PKCS11 provider)
   --with-ecdsa            Crypto ECDSA
   --with-gost             Crypto GOST yes|no|raw|asn1.
-  --with-libxml2=PATH     Build with libxml2 library yes|no|path
-  --with-libjson=PATH     Build with libjson0 library yes|no|path
+  --with-sit-alg=ALG      choose the algorithm for SIT [aes|sha1|sha256]
+  --with-libxml2=PATH     build with libxml2 library yes|no|path
+  --with-libjson=PATH     build with libjson0 library yes|no|path
   --with-purify=PATH      use Rational purify
   --with-kame=PATH	  use Kame IPv6 default path /usr/local/v6
   --with-readline=LIBSPEC    specify readline library default -lreadline
 
-  --with-docbook-xsl=PATH Specify path for Docbook-XSL stylesheets
+  --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
   --with-idn=MPREFIX      enable IDN support using idnkit default PREFIX
   --with-libiconv=IPREFIX GNU libiconv are in IPREFIX default PREFIX
   --with-iconv=LIBSPEC    specify iconv library default -liconv
   --with-idnlib=ARG       specify libidnkit
-  --with-atf=ARG          Automated Test Framework support
-  --with-dlopen=ARG       Support dynamically loadable DLZ drivers
+  --with-atf=ARG          support Automated Test Framework
+  --with-dlopen=ARG       support dynamically loadable DLZ drivers
   --with-dlz-postgres=PATH   Build with Postgres DLZ driver yes|no|path.
 			       (Required to use Postgres with DLZ)
   --with-dlz-mysql=PATH   Build with MySQL DLZ driver yes|no|path.
@@ -1719,7 +1726,7 @@ Optional Packages:
 			       (Required to use ODBC with DLZ)
   --with-dlz-stub=PATH   Build with stub DLZ driver yes|no.
 			       (Required to use stub driver with DLZ)
-  --with-make-clean      Run "make clean" at end of configure [yes|no].
+  --with-make-clean       run "make clean" at end of configure [yes|no]
 
 Some influential environment variables:
   CC          C compiler command
@@ -11381,6 +11388,7 @@ yes)
 	test "${enable_filter_aaaa+set}" = set || enable_filter_aaaa=yes
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
 	test "${enable_symtable+set}" = set || enable_symtable=all
+	test "${enable_sit+set}" = set || enable_sit=yes
 	;;
 esac
 #
@@ -15607,7 +15615,7 @@ esac
 DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
 
 #
-# Use OpenSSL for hash functions
+# Use OpenSSL for hash functions and/or aes
 #
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for using OpenSSL for hash functions" >&5
@@ -15618,6 +15626,51 @@ if test "${enable_openssl_hash+set}" = set; then :
 else
   want_openssl_hash="no"
 fi
+
+
+# Check whether --enable-openssl-aes was given.
+if test "${enable_openssl_aes+set}" = set; then :
+  enableval=$enable_openssl_aes; want_openssl_aes="$enableval"
+else
+  want_openssl_aes="no"
+fi
+
+
+#
+# Source Identity Token algorithm choice
+#
+
+# Check whether --with-sit-alg was given.
+if test "${with_sit_alg+set}" = set; then :
+  withval=$with_sit_alg; with_sit_alg="$withval"
+else
+  with_sit_alg="aes"
+fi
+
+
+case $with_sit_alg in
+	*1)
+		with_sit_alg="sha1"
+		want_openssl_hash="yes"
+
+$as_echo "#define HMAC_SHA1_SIT 1" >>confdefs.h
+
+		;;
+	*2*)
+		with_sit_alg="sha256"
+		want_openssl_hash="yes"
+
+$as_echo "#define HMAC_SHA256_SIT 1" >>confdefs.h
+
+		;;
+	*)
+		with_sit_alg="aes"
+		want_openssl_aes="yes"
+
+$as_echo "#define AES_SIT 1" >>confdefs.h
+
+		;;
+esac
 
 case $want_openssl_hash in
 	yes)
@@ -15639,6 +15692,20 @@ $as_echo "no" >&6; }
 		ISC_OPENSSL_LIBS=""
 		;;
 esac
+case $want_openssl_aes in
+	yes)
+		if test "$CRYPTO" = ""
+		then
+			as_fn_error $? "No OpenSSL for AES" "$LINENO" 5
+		fi
+		ISC_PLATFORM_OPENSSLAES="#define ISC_PLATFORM_OPENSSLAES 1"
+		ISC_OPENSSL_INC="$DST_OPENSSL_INC"
+		;;
+	no)
+		ISC_PLATFORM_OPENSSLAES="#undef ISC_PLATFORM_OPENSSLAES"
+		;;
+esac
+
 
 
 
@@ -18942,6 +19009,37 @@ $as_echo "#define ALLOW_FILTER_AAAA 1" >>confdefs.h
 esac
 
 #
+# Enable Source Identity Token support
+#
+# Check whether --enable-sit was given.
+if test "${enable_sit+set}" = set; then :
+  enableval=$enable_sit; enable_sit="$enableval"
+else
+  enable_sit="no"
+fi
+
+
+ISC_PLATFORM_USESIT="#undef ISC_PLATFORM_USESIT"
+HAVE_SIT=
+
+case "$enable_sit" in
+yes)
+
+$as_echo "#define ENABLE_SIT 1" >>confdefs.h
+
+	ISC_PLATFORM_USESIT="#define ISC_PLATFORM_USESIT 1"
+        HAVE_SIT=1
+	;;
+no)
+	;;
+*)
+	as_fn_error $? "\"enable-sit requires yes or no\"" "$LINENO" 5
+	;;
+esac
+
+
+
+#
 #  The following sets up how non-blocking i/o is established.
 #  Sunos, cygwin and solaris 2.x (x<5) require special handling.
 #
@@ -19709,9 +19807,6 @@ $as_echo "#define ATF_TEST 1" >>confdefs.h
 	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
 	ATFBIN="$atf/bin"
 	ATFLIBS="-L$atf/lib -latf-c"
-	if test "$want_openssl_hash" = yes; then
-		ATFLIBS="-L$atf/lib -latf-c $DNS_CRYPTO_LIBS"
-	fi
 	UNITTESTS=tests
 fi
 
@@ -20996,7 +21091,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/delve/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/dlzredir/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/inline/checkdsa.sh bin/tests/system/lwresd/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isc/unix/include/pkcs11/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh"
+ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/delve/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/dlzredir/prereq.sh bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/inline/checkdsa.sh bin/tests/system/lwresd/Makefile bin/tests/system/sit/prereq.sh bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isc/unix/include/pkcs11/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh"
 
 
 #
@@ -22047,6 +22142,7 @@ do
     "bin/tests/system/geoip/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/geoip/Makefile" ;;
     "bin/tests/system/inline/checkdsa.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/inline/checkdsa.sh" ;;
     "bin/tests/system/lwresd/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/lwresd/Makefile" ;;
+    "bin/tests/system/sit/prereq.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/sit/prereq.sh" ;;
     "bin/tests/system/rpz/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/rpz/Makefile" ;;
     "bin/tests/system/rsabigexponent/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/rsabigexponent/Makefile" ;;
     "bin/tests/system/tkey/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/tkey/Makefile" ;;
@@ -23427,6 +23523,12 @@ echo "Optional features enabled:"
 $use_threads && echo "    Multiprocessing support (--enable-threads)"
 test "$use_geoip" = "no" || echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
+if test "$enable_sit" != "no"; then
+    echo "    Source Identity Token support (--enable-sit)"
+    if test "$enable_full_report" = "yes" -o "$with_sit_alg" != "aes"; then
+        echo "        Algorithm: $with_sit_alg"
+    fi
+fi
 
 # these lines are only printed if run with --enable-full-report
 if test "$enable_full_report" = "yes"; then
@@ -23490,6 +23592,8 @@ test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
 
 test "$use_geoip" = "no" && echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
+test "$enable_sit" = "no" && echo "    Source Identity Token support (--enable-sit)"
+
 test "$enable_fixed" = "yes" || \
     echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 

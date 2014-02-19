@@ -924,6 +924,18 @@
           </listitem>
         </varlistentry>
 
+        <varlistentry>
+          <term><option>+[no]sit<optional>=####</optional></option></term>
+          <listitem>
+            <para>
+	      Send a Source Identity Token EDNS option, with optional value.
+	      Replaying a SIT from a previous response will allow the
+	      server to identify a previous client.  The default is
+	      <option>+nosit</option>.
+            </para>
+          </listitem>
+        </varlistentry>
+
       </variablelist>
 
     </para>

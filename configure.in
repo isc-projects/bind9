@@ -74,6 +74,7 @@ yes)
 	test "${enable_filter_aaaa+set}" = set || enable_filter_aaaa=yes
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
 	test "${enable_symtable+set}" = set || enable_symtable=all
+	test "${enable_sit+set}" = set || enable_sit=yes
 	;;
 esac
 #
@@ -136,7 +137,7 @@ AC_SUBST(PERL)
 # If python is unavailable, we simply don't build those.
 #
 AC_ARG_WITH(python,
-[  --with-python=PATH      Specify path to python interpreter],
+[  --with-python=PATH      specify path to python interpreter],
     use_python="$withval", use_python="unspec")
 
 case "$use_python" in
@@ -1335,7 +1336,7 @@ shared library configuration (e.g., LD_LIBRARY_PATH).)],
 		 
 AC_ARG_ENABLE(openssl-version-check,
 [AC_HELP_STRING([--enable-openssl-version-check],
-	[Check OpenSSL Version @<:@default=yes@:>@])])
+	[check OpenSSL version @<:@default=yes@:>@])])
 case "$enable_openssl_version_check" in
 yes|'')
 		AC_MSG_CHECKING(OpenSSL library version)
@@ -1516,13 +1517,46 @@ AC_SUBST(OPENSSL_GOST)
 DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
 
 #
-# Use OpenSSL for hash functions
+# Use OpenSSL for hash functions and/or aes
 #
 
 AC_MSG_CHECKING(for using OpenSSL for hash functions)
 AC_ARG_ENABLE(openssl-hash,
 	[  --enable-openssl-hash   use OpenSSL for hash functions [[default=no]]],
 	want_openssl_hash="$enableval", want_openssl_hash="no")
+
+AC_ARG_ENABLE(openssl-aes,
+	[  --enable-openssl-aes    use OpenSSL for aes [[default=no]]],
+	want_openssl_aes="$enableval", want_openssl_aes="no")
+
+#
+# Source Identity Token algorithm choice
+#
+AC_ARG_WITH(sit-alg,
+	[  --with-sit-alg=ALG      choose the algorithm for SIT [[aes|sha1|sha256]]],
+	with_sit_alg="$withval", with_sit_alg="aes")
+
+case $with_sit_alg in
+	*1)
+		with_sit_alg="sha1"
+		want_openssl_hash="yes"
+		AC_DEFINE(HMAC_SHA1_SIT, 1,
+			  [Use HMAC-SHA1 for Source Identity Token generation])
+		;;
+	*2*)
+		with_sit_alg="sha256"
+		want_openssl_hash="yes"
+		AC_DEFINE(HMAC_SHA256_SIT, 1,
+			  [Use HMAC-SHA256 for Source Identity Token generation])
+		;;
+	*)
+		with_sit_alg="aes"
+		want_openssl_aes="yes"
+		AC_DEFINE(AES_SIT, 1,
+			  [Use AES for Source Identity Token generation])
+		;;
+esac
+
 case $want_openssl_hash in
 	yes)
 		if test "$CRYPTO" = ""
@@ -1541,7 +1575,21 @@ case $want_openssl_hash in
 		ISC_OPENSSL_LIBS=""
 		;;
 esac
+case $want_openssl_aes in
+	yes)
+		if test "$CRYPTO" = ""
+		then
+			AC_MSG_ERROR([No OpenSSL for AES])
+		fi
+		ISC_PLATFORM_OPENSSLAES="#define ISC_PLATFORM_OPENSSLAES 1"
+		ISC_OPENSSL_INC="$DST_OPENSSL_INC"
+		;;
+	no)
+		ISC_PLATFORM_OPENSSLAES="#undef ISC_PLATFORM_OPENSSLAES"
+		;;
+esac
 AC_SUBST(ISC_PLATFORM_OPENSSLHASH)
+AC_SUBST(ISC_PLATFORM_OPENSSLAES)
 AC_SUBST(ISC_OPENSSL_INC)
 AC_SUBST(ISC_OPENSSL_LIBS)
 
@@ -1720,7 +1768,7 @@ fi
 #
 AC_MSG_CHECKING(for libxml2 library)
 AC_ARG_WITH(libxml2,
-[  --with-libxml2[=PATH]     Build with libxml2 library [yes|no|path]],
+[  --with-libxml2[=PATH]     build with libxml2 library [yes|no|path]],
     use_libxml2="$withval", use_libxml2="auto")
 
 case "$use_libxml2" in
@@ -1762,7 +1810,7 @@ fi
 #
 AC_MSG_CHECKING(for json library)
 AC_ARG_WITH(libjson,
-[  --with-libjson[=PATH]     Build with libjson0 library [yes|no|path]],
+[  --with-libjson[=PATH]     build with libjson0 library [yes|no|path]],
     use_libjson="$withval", use_libjson="auto")
 
 have_libjson=""
@@ -2626,7 +2674,7 @@ AC_SUBST(ISC_LWRES_GETNAMEINFOPROTO)
 AC_SUBST(ISC_IRS_GETNAMEINFOSOCKLEN)
 
 AC_ARG_ENABLE(getifaddrs,
-[  --enable-getifaddrs     Enable the use of getifaddrs() [[yes|no]].],
+[  --enable-getifaddrs     enable the use of getifaddrs() [[yes|no]].],
     want_getifaddrs="$enableval",  want_getifaddrs="yes")
 
 #
@@ -3294,8 +3342,7 @@ AC_SUBST(ISC_ARCH_DIR)
 # Activate "rrset-order fixed" or not?
 #
 AC_ARG_ENABLE(fixed-rrset,
-	[  --enable-fixed-rrset    enable fixed rrset ordering
-			  [[default=no]]],
+	[  --enable-fixed-rrset    enable fixed rrset ordering [[default=no]]],
 			enable_fixed="$enableval",
 			enable_fixed="no")
 case "$enable_fixed" in
@@ -3349,8 +3396,7 @@ esac
 # Activate "filter-aaaa-on-v4/v6" or not?
 #
 AC_ARG_ENABLE(filter-aaaa,
-	[  --enable-filter-aaaa    enable filtering of AAAA records
-			  [[default=no]]],
+	[  --enable-filter-aaaa    enable filtering of AAAA records [[default=no]]],
 			enable_filter="$enableval",
 			enable_filter="no")
 case "$enable_filter" in
@@ -3363,6 +3409,31 @@ case "$enable_filter" in
 	*)
 		;;
 esac
+
+#
+# Enable Source Identity Token support
+#
+AC_ARG_ENABLE(sit,
+	[  --enable-sit            enable source identity token [[default=no]]],
+	enable_sit="$enableval", enable_sit="no")
+
+ISC_PLATFORM_USESIT="#undef ISC_PLATFORM_USESIT"
+HAVE_SIT=
+
+case "$enable_sit" in
+yes)
+	AC_DEFINE(ENABLE_SIT, 1, [Define to enable 'sit' support.])
+	ISC_PLATFORM_USESIT="#define ISC_PLATFORM_USESIT 1"
+        HAVE_SIT=1
+	;;
+no)
+	;;
+*)
+	AC_MSG_ERROR("enable-sit requires yes or no")
+	;;
+esac
+AC_SUBST(ISC_PLATFORM_USESIT)
+AC_SUBST(HAVE_SIT)
 
 #
 #  The following sets up how non-blocking i/o is established.
@@ -3476,7 +3547,7 @@ AC_SUBST($1)
 #
 AC_MSG_CHECKING(for Docbook-XSL path)
 AC_ARG_WITH(docbook-xsl,
-[  --with-docbook-xsl=PATH Specify path for Docbook-XSL stylesheets],
+[  --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets],
    docbook_path="$withval", docbook_path="auto")
 case "$docbook_path" in
 auto)
@@ -3614,7 +3685,7 @@ AC_SUBST(IDNLIBS)
 # Check whether to build Automated Test Framework unit tests
 #
 AC_ARG_WITH(atf,
-	[  --with-atf=ARG          Automated Test Framework support],
+	[  --with-atf=ARG          support Automated Test Framework],
 	atf="$withval", atf="no")
 if test "$atf" = yes; then
 	atf=`pwd`/unit/atf
@@ -3640,9 +3711,6 @@ if test "$atf" != no; then
 	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
 	ATFBIN="$atf/bin"
 	ATFLIBS="-L$atf/lib -latf-c"
-	if test "$want_openssl_hash" = yes; then
-		ATFLIBS="-L$atf/lib -latf-c $DNS_CRYPTO_LIBS"
-	fi
 	UNITTESTS=tests
 fi
 AC_SUBST(ATFBIN)
@@ -3778,7 +3846,7 @@ SO_LD=""
 SO_TARGETS=""
 
 AC_ARG_WITH(dlopen,
-	[  --with-dlopen=ARG       Support dynamically loadable DLZ drivers],
+	[  --with-dlopen=ARG       support dynamically loadable DLZ drivers],
 	dlopen="$withval", dlopen="yes")
 
 case $host in
@@ -4096,6 +4164,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/geoip/Makefile
 	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/lwresd/Makefile
+	bin/tests/system/sit/prereq.sh
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/rsabigexponent/Makefile
 	bin/tests/system/tkey/Makefile
@@ -4185,7 +4254,7 @@ AC_OUTPUT
 # Now that the Makefiles exist we can ensure that everything is rebuilt.
 #
 AC_ARG_WITH(make-clean,
-[  --with-make-clean      Run "make clean" at end of configure [[yes|no]].],
+[  --with-make-clean       run "make clean" at end of configure [[yes|no]]],
     make_clean="$withval", make_clean="yes")
 case "$make_clean" in
 yes)
@@ -4203,6 +4272,12 @@ echo "Optional features enabled:"
 $use_threads && echo "    Multiprocessing support (--enable-threads)"
 test "$use_geoip" = "no" || echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
+if test "$enable_sit" != "no"; then
+    echo "    Source Identity Token support (--enable-sit)"
+    if test "$enable_full_report" = "yes" -o "$with_sit_alg" != "aes"; then
+        echo "        Algorithm: $with_sit_alg"
+    fi
+fi
 
 # these lines are only printed if run with --enable-full-report 
 if test "$enable_full_report" = "yes"; then
@@ -4266,6 +4341,8 @@ test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
 
 test "$use_geoip" = "no" && echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
+test "$enable_sit" = "no" && echo "    Source Identity Token support (--enable-sit)"
+
 test "$enable_fixed" = "yes" || \
     echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 

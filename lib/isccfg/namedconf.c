@@ -980,6 +980,9 @@ options_clauses[] = {
 	{ "interface-interval", &cfg_type_uint32, 0 },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
+#ifdef ISC_PLATFORM_USESIT
+	{ "sit-secret", &cfg_type_qstring, 0 },
+#endif
 	{ "managed-keys-directory", &cfg_type_qstring, 0 },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },
 	{ "max-rsa-exponent-size", &cfg_type_uint32, 0 },
@@ -1513,6 +1516,9 @@ view_clauses[] = {
 	{ "fetch-glue", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_uint32, 0 },
+#ifdef ISC_PLATFORM_USESIT
+	{ "nosit-udp-size", &cfg_type_uint32, 0 },
+#endif
 	{ "max-acache-size", &cfg_type_sizenodefault, 0 },
 	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
@@ -1535,6 +1541,10 @@ view_clauses[] = {
 	{ "queryport-pool-updateinterval", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "recursion", &cfg_type_boolean, 0 },
+	{ "request-ixfr", &cfg_type_boolean, 0 },
+#ifdef ISC_PLATFORM_USESIT
+	{ "request-sit", &cfg_type_boolean, 0 },
+#endif
 	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "resolver-query-timeout", &cfg_type_uint32, 0 },
 	{ "rfc2308-type1", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
@@ -1811,6 +1821,10 @@ server_clauses[] = {
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
 	{ "support-ixfr", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+#ifdef ISC_PLATFORM_USESIT
+	{ "request-sit", &cfg_type_boolean, 0 },
+#endif
+	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "transfers", &cfg_type_uint32, 0 },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "keys", &cfg_type_server_key_kludge, 0 },

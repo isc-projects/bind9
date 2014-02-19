@@ -161,6 +161,7 @@ struct ns_client {
 	ISC_LINK(ns_client_t)	link;
 	ISC_LINK(ns_client_t)	rlink;
 	ISC_QLINK(ns_client_t)	ilink;
+	unsigned char		cookie[8];
 };
 
 typedef ISC_QUEUE(ns_client_t) client_queue_t;
@@ -180,6 +181,8 @@ typedef ISC_LIST(ns_client_t) client_list_t;
 #define NS_CLIENTATTR_FILTER_AAAA_RC	0x080 /*%< recursing for A against AAAA */
 #endif
 #define NS_CLIENTATTR_WANTAD		0x100 /*%< want AD in response if possible */
+#define NS_CLIENTATTR_WANTSIT		0x200 /*%< include SIT */
+#define NS_CLIENTATTR_HAVESIT		0x400 /*%< has a valid SIT */
 
 extern unsigned int ns_client_requests;
 

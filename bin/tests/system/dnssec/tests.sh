@@ -2081,7 +2081,7 @@ echo server 10.53.0.3 5300
 echo update add fail.nosign.example 300 in txt "reject me"
 echo send
 ) | $NSUPDATE > /dev/null 2>&1 && ret=1
-$DIG +noall +answer +dnssec -p 5300 fail.nosign.example txt @10.53.0.3 \
+$DIG +tcp +noall +answer +dnssec -p 5300 fail.nosign.example txt @10.53.0.3 \
         > dig.out.ns3.test$n 2>&1
 [ -s dig.out.ns3.test$n ] && ret=1
 n=`expr $n + 1`

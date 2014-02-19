@@ -130,6 +130,9 @@ struct dig_lookup {
 		done_as_is,
 		besteffort,
 		dnssec,
+#ifdef ISC_PLATFORM_USESIT
+		sit,
+#endif
 		nsid;   /*% Name Server ID (RFC 5001) */
 #ifdef DIG_SIGCHASE
 isc_boolean_t	sigchase;
@@ -184,6 +187,9 @@ isc_boolean_t	sigchase;
 	isc_buffer_t *querysig;
 	isc_uint32_t msgcounter;
 	dns_fixedname_t fdomain;
+#ifdef ISC_PLATFORM_USESIT
+	char *sitvalue;
+#endif
 };
 
 /*% The dig_query structure */

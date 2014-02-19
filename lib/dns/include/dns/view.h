@@ -148,6 +148,7 @@ struct dns_view {
 	dns_rrl_t *			rrl;
 	isc_boolean_t			provideixfr;
 	isc_boolean_t			requestnsid;
+	isc_boolean_t			requestsit;
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
 	dns_ttl_t			prefetch_trigger;
@@ -163,6 +164,7 @@ struct dns_view {
 	dns_name_t *			dlv;
 	dns_fixedname_t			dlv_fixed;
 	isc_uint16_t			maxudp;
+	isc_uint16_t			situdp;
 	unsigned int			maxbits;
 	dns_aaaa_t			v4_aaaa;
 	dns_aaaa_t			v6_aaaa;
@@ -204,6 +206,8 @@ struct dns_view {
 	char *				new_zone_file;
 	void *				new_zone_config;
 	void				(*cfg_destroy)(void **);
+
+	unsigned char			secret[33];	/* Client secret */
 };
 
 #define DNS_VIEW_MAGIC			ISC_MAGIC('V','i','e','w')

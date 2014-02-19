@@ -189,8 +189,9 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 
 	request = NULL;
 	result = dns_request_create(requestmgr, query, &address,
-				    0, initialkey, TIMEOUT, task,
-				    recvquery, query, &request);
+				    DNS_REQUESTOPT_TCP, initialkey,
+				    TIMEOUT, task, recvquery, query,
+				    &request);
 	CHECK("dns_request_create", result);
 }
 

@@ -110,6 +110,11 @@
 @ISC_PLATFORM_NEEDSTRCASESTR@
 
 /*
+ * Define to enable Source Identity Token support.
+ */
+#define ISC_PLATFORM_USESIT 1
+
+/*
  * Set up a macro for importing and exporting from the DLL
  */
 

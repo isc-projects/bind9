@@ -1,3 +1,17 @@
+3744.	[experimental]	SIT: send and process Source Identity Tokens
+			(which are similar to DNS Cookies by Donald Eastlake)
+			and are designed to help clients detect off path
+			spoofed responses and for servers to detect legitimate
+			clients.
+
+			SIT use a experimental EDNS option code (65001).
+
+			SIT can be enabled via --enable-developer or
+			--enable-sit.  It is on by default in Windows.
+
+			RRL processing as been updated to know about SIT with
+			legitimate clients not being rate limited. [RT #35389]
+			
 3743.	[bug]		delegation-only flag wasn't working in forward zone
 			declarations despite being documented.  This is
 			needed to support turning off forwarding and turning

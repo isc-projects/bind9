@@ -112,6 +112,14 @@ options {\n\
 	use-ixfr true;\n\
 	edns-udp-size 4096;\n\
 	max-udp-size 4096;\n\
+"
+#ifdef ISC_PLATFORM_USESIT
+"\
+	nosit-udp-size 4096;\n\
+	request-sit true;\n\
+"
+#endif
+"\
 	request-nsid false;\n\
 	reserved-sockets 512;\n\
 \n\

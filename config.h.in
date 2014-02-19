@@ -147,6 +147,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* Use AES for Source Identity Token generation */
+#undef AES_SIT
+
 /* Define to enable the "filter-aaaa-on-v4" and "filter-aaaa-on-v6" options.
    */
 #undef ALLOW_FILTER_AAAA
@@ -169,6 +172,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to enable rpz-nsip rules. */
 #undef ENABLE_RPZ_NSIP
+
+/* Define to enable 'sit' support. */
+#undef ENABLE_SIT
 
 /* Solaris hack to get select_large_fdset. */
 #undef FD_SETSIZE
@@ -421,6 +427,12 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
+
+/* Use HMAC-SHA1 for Source Identity Token generation */
+#undef HMAC_SHA1_SIT
+
+/* Use HMAC-SHA256 for Source Identity Token generation */
+#undef HMAC_SHA256_SIT
 
 /* return type of gai_strerror */
 #undef IRS_GAISTRERROR_RETURN_T

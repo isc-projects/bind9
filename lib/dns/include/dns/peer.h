@@ -74,6 +74,7 @@ struct dns_peer {
 	isc_boolean_t		request_ixfr;
 	isc_boolean_t		support_edns;
 	isc_boolean_t		request_nsid;
+	isc_boolean_t		request_sit;
 	dns_name_t	       *key;
 	isc_sockaddr_t	       *transfer_source;
 	isc_dscp_t		transfer_dscp;
@@ -158,6 +159,12 @@ dns_peer_setrequestnsid(dns_peer_t *peer, isc_boolean_t newval);
 
 isc_result_t
 dns_peer_getrequestnsid(dns_peer_t *peer, isc_boolean_t *retval);
+
+isc_result_t
+dns_peer_setrequestsit(dns_peer_t *peer, isc_boolean_t newval);
+
+isc_result_t
+dns_peer_getrequestsit(dns_peer_t *peer, isc_boolean_t *retval);
 
 isc_result_t
 dns_peer_setsupportedns(dns_peer_t *peer, isc_boolean_t newval);

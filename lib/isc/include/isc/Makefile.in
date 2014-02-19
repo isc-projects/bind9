@@ -26,7 +26,7 @@ top_srcdir =	@top_srcdir@
 # machine generated.  The latter are handled specially in the
 # install target below.
 #
-HEADERS =	app.h assertions.h base64.h bind9.h boolean.h buffer.h \
+HEADERS =	aes.h app.h assertions.h base64.h bind9.h boolean.h buffer.h \
 		bufferlist.h commandline.h entropy.h error.h event.h \
 		eventclass.h file.h formatcheck.h fsaccess.h \
 		hash.h heap.h hex.h hmacmd5.h hmacsha.h \

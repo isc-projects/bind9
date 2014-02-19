@@ -106,6 +106,8 @@
 /*%< EDNS0 extended OPT codes */
 #define DNS_OPT_NSID		0x0003		/*%< NSID opt code */
 #define DNS_OPT_CLIENT_SUBNET	0x0008		/*%< client subnet opt code */
+/*%< Experimental options [65001...65534] as per RFC6891 */
+#define DNS_OPT_SIT		65001		/*%< SIT opt code */
 
 #define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD|DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
@@ -1390,7 +1392,6 @@ dns_message_buildopt(dns_message_t *msg, dns_rdataset_t **opt,
  * \li	 ISC_R_NOSPACE
  * \li	 other.
  */
-
 
 ISC_LANG_ENDDECLS
 

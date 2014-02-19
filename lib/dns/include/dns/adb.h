@@ -728,6 +728,32 @@ dns_adb_flushnames(dns_adb_t *adb, dns_name_t *name);
  *\li	'name' is valid.
  */
 
+void
+dns_adb_setsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+	       const unsigned char *sit, size_t len);
+/*%<
+ * Record the Source Identity Token (SIT) associated with this addresss.  If
+ * sit is NULL or len is zero. The recorded SIT is cleared.
+ *
+ * Requires:
+ *\li	'adb' is valid.
+ *\li	'addr' is valid.
+ */
+
+size_t
+dns_adb_getsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+	       unsigned char *sit, size_t len);
+/*
+ * Retieve the saved SIT value and store it in 'sit' which has size 'len'.
+ *
+ * Requires:
+ *\li	'adb' is valid.
+ *\li	'addr' is valid.
+ *
+ * Returns:
+ *	The size of the sit token or zero if it doesn't fit in the buffer
+ *	or it doesn't exist.
+ */
 
 ISC_LANG_ENDDECLS
 

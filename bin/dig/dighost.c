@@ -74,6 +74,7 @@
 #include <isc/base64.h>
 #include <isc/entropy.h>
 #include <isc/file.h>
+#include <isc/hex.h>
 #include <isc/lang.h>
 #include <isc/log.h>
 #include <isc/netaddr.h>
@@ -176,6 +177,8 @@ int fatalexit = 0;
 char keynametext[MXNAME];
 char keyfile[MXNAME] = "";
 char keysecret[MXNAME] = "";
+unsigned char cookie_secret[33];
+unsigned char cookie[8];
 dns_name_t *hmacname = NULL;
 unsigned int digestbits = 0;
 isc_buffer_t *namebuf = NULL;
@@ -766,6 +769,9 @@ make_empty_lookup(void) {
 	looknew->besteffort = ISC_TRUE;
 	looknew->dnssec = ISC_FALSE;
 	looknew->nsid = ISC_FALSE;
+#ifdef ISC_PLATFORM_USESIT
+	looknew->sit = ISC_FALSE;
+#endif
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = ISC_FALSE;
 #if DIG_SIGCHASE_TD
@@ -801,6 +807,9 @@ make_empty_lookup(void) {
 	looknew->new_search = ISC_FALSE;
 	looknew->done_as_is = ISC_FALSE;
 	looknew->need_search = ISC_FALSE;
+#ifdef ISC_PLATFORM_USESIT
+	looknew->sitvalue = NULL;
+#endif
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->connecting);
@@ -847,6 +856,10 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->besteffort = lookold->besteffort;
 	looknew->dnssec = lookold->dnssec;
 	looknew->nsid = lookold->nsid;
+#ifdef ISC_PLATFORM_USESIT
+	looknew->sit = lookold->sit;
+	looknew->sitvalue = lookold->sitvalue;
+#endif
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = lookold->sigchase;
 #if DIG_SIGCHASE_TD
@@ -1210,6 +1223,7 @@ setup_system(void) {
 	dig_searchlist_t *domain = NULL;
 	lwres_result_t lwresult;
 	unsigned int lwresflags;
+	isc_result_t result;
 
 	debug("setup_system()");
 
@@ -1288,7 +1302,10 @@ setup_system(void) {
 #endif
 
 #endif
-
+	result = isc_entropy_getdata(entp, cookie_secret,
+				     sizeof(cookie_secret), NULL, 0);
+	if (result != ISC_R_SUCCESS)
+		fatal("unable to generate cookie secret");
 }
 
 /*%
@@ -1381,46 +1398,18 @@ setup_libs(void) {
  */
 static void
 add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
-	isc_boolean_t dnssec, isc_boolean_t nsid)
+	isc_boolean_t dnssec, dns_ednsopt_t *ednsopts, size_t count)
 {
 	dns_rdataset_t *rdataset = NULL;
-	dns_rdatalist_t *rdatalist = NULL;
-	dns_rdata_t *rdata = NULL;
 	isc_result_t result;
+	unsigned int flags = 0;
 
 	debug("add_opt()");
-	result = dns_message_gettemprdataset(msg, &rdataset);
-	check_result(result, "dns_message_gettemprdataset");
-	dns_rdataset_init(rdataset);
-	result = dns_message_gettemprdatalist(msg, &rdatalist);
-	check_result(result, "dns_message_gettemprdatalist");
-	result = dns_message_gettemprdata(msg, &rdata);
-	check_result(result, "dns_message_gettemprdata");
-
-	debug("setting udp size of %d", udpsize);
-	rdatalist->type = dns_rdatatype_opt;
-	rdatalist->covers = 0;
-	rdatalist->rdclass = udpsize;
-	rdatalist->ttl = edns << 16;
 	if (dnssec)
-		rdatalist->ttl |= DNS_MESSAGEEXTFLAG_DO;
-	if (nsid) {
-		isc_buffer_t *b = NULL;
-
-		result = isc_buffer_allocate(mctx, &b, 4);
-		check_result(result, "isc_buffer_allocate");
-		isc_buffer_putuint16(b, DNS_OPT_NSID);
-		isc_buffer_putuint16(b, 0);
-		rdata->data = isc_buffer_base(b);
-		rdata->length = isc_buffer_usedlength(b);
-		dns_message_takebuffer(msg, &b);
-	} else {
-		rdata->data = NULL;
-		rdata->length = 0;
-	}
-	ISC_LIST_INIT(rdatalist->rdata);
-	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+		flags |= DNS_MESSAGEEXTFLAG_DO;
+	result = dns_message_buildopt(msg, &rdataset, edns, udpsize, flags,
+				      ednsopts, count);
+	check_result(result, "dns_message_buildopt");
 	result = dns_message_setopt(msg, rdataset);
 	check_result(result, "dns_message_setopt");
 }
@@ -2008,6 +1997,15 @@ insert_soa(dig_lookup_t *lookup) {
 	dns_message_addname(lookup->sendmsg, soaname, DNS_SECTION_AUTHORITY);
 }
 
+#ifdef ISC_PLATFORM_USESIT
+static void
+compute_cookie(unsigned char *cookie, size_t len) {
+	/* XXXMPA need to fix, should be per server. */
+	INSIST(len >= 8U);
+	memcpy(cookie, cookie_secret, 8);
+}
+#endif
+
 /*%
  * Setup the supplied lookup structure, making it ready to start sending
  * queries to servers.  Create and initialize the message to be sent as
@@ -2276,12 +2274,44 @@ setup_lookup(dig_lookup_t *lookup) {
 					 &lookup->renderbuf);
 	check_result(result, "dns_message_renderbegin");
 	if (lookup->udpsize > 0 || lookup->dnssec || lookup->edns > -1) {
+#define EDNSOPTS 2
+		dns_ednsopt_t opts[EDNSOPTS];
+		int i = 0;
 		if (lookup->udpsize == 0)
 			lookup->udpsize = 4096;
 		if (lookup->edns < 0)
 			lookup->edns = 0;
+		if (lookup->nsid) {
+			INSIST(i < EDNSOPTS);
+			opts[i].code = DNS_OPT_NSID;
+			opts[i].length = 0;
+			opts[i].value = NULL;
+			i++;
+		}
+#ifdef ISC_PLATFORM_USESIT
+		if (lookup->sit) {
+			INSIST(i < EDNSOPTS);
+			opts[i].code = DNS_OPT_SIT;
+			if (lookup->sitvalue != NULL) {
+				char bb[256];
+				isc_buffer_t b;
+
+				isc_buffer_init(&b, bb, sizeof(bb));
+				result = isc_hex_decodestring(lookup->sitvalue,
+							      &b);
+				check_result(result, "isc_hex_decodestring");
+				opts[i].value = isc_buffer_base(&b);
+				opts[i].length = isc_buffer_usedlength(&b);
+			} else {
+				compute_cookie(cookie, sizeof(cookie));
+				opts[i].length = 8;
+				opts[i].value = cookie;
+			}
+			i++;
+		}
+#endif
 		add_opt(lookup->sendmsg, lookup->udpsize,
-			lookup->edns, lookup->dnssec, lookup->nsid);
+			lookup->edns, lookup->dnssec, opts, i);
 	}
 
 	result = dns_message_rendersection(lookup->sendmsg,
@@ -3109,6 +3139,67 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	return (ISC_TRUE);
 }
 
+#ifdef ISC_PLATFORM_USESIT
+static void
+process_sit(dig_lookup_t *l, isc_buffer_t *optbuf, size_t optlen) {
+	char bb[256];
+	isc_buffer_t hexbuf;
+	size_t len;
+	const unsigned char *sit;
+	isc_result_t result;
+
+	if (l->sitvalue != NULL) {
+		isc_buffer_init(&hexbuf, bb, sizeof(bb));
+		result = isc_hex_decodestring(l->sitvalue, &hexbuf);
+		check_result(result, "isc_hex_decodestring");
+		sit = isc_buffer_base(&hexbuf);
+		len = isc_buffer_usedlength(&hexbuf);
+	} else {
+		sit = cookie;
+		len = sizeof(cookie);
+	}
+
+	if (optlen >= len && optlen >= 8U) {
+		if (memcmp(isc_buffer_current(optbuf), sit, 8) == 0) {
+			if (l->comments)
+				printf(";; SIT client cookie part match\n");
+		} else
+			printf(";; Warning: SIT client cookie part mis-match\n");
+	} else
+		printf(";; Warning: SIT bad token (too short)\n");
+	isc_buffer_forward(optbuf, optlen);
+}
+
+static void
+process_opt(dig_lookup_t *l, dns_rdataset_t *opt) {
+	dns_rdata_t rdata;
+	isc_result_t result;
+	isc_buffer_t optbuf;
+	isc_uint16_t optcode, optlen;
+
+        result = dns_rdataset_first(opt);
+        if (result == ISC_R_SUCCESS) {
+                dns_rdata_init(&rdata);
+                dns_rdataset_current(opt, &rdata);
+                isc_buffer_init(&optbuf, rdata.data, rdata.length);
+                isc_buffer_add(&optbuf, rdata.length);
+                while (isc_buffer_remaininglength(&optbuf) >= 4) {
+                        optcode = isc_buffer_getuint16(&optbuf);
+                        optlen = isc_buffer_getuint16(&optbuf);
+                        switch (optcode) {
+                        case DNS_OPT_SIT:
+                                process_sit(l, &optbuf, optlen);
+                                break;
+                        default:
+                                isc_buffer_forward(&optbuf, optlen);
+                                break;
+                        }
+                }
+        }
+}
+#endif
+
+
 /*%
  * Event handler for recv complete.  Perform whatever actions are necessary,
  * based on the specifics of the user's request.
@@ -3369,7 +3460,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	}
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0 &&
 	    !l->ignore && !l->tcp_mode) {
-		printf(";; Truncated, retrying in TCP mode.\n");
+		if (l->comments)
+			printf(";; Truncated, retrying in TCP mode.\n");
 		n = requeue_lookup(l, ISC_TRUE);
 		n->tcp_mode = ISC_TRUE;
 		n->origin = query->lookup->origin;
@@ -3401,7 +3493,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		 */
 		if ((ISC_LIST_HEAD(l->q) != query) ||
 		    (ISC_LIST_NEXT(query, link) != NULL)) {
-			if( l->comments == ISC_TRUE )
+			if (l->comments)
 				printf(";; Got %s from %s, "
 				       "trying next server\n",
 				       msg->rcode == dns_rcode_servfail ?
@@ -3468,6 +3560,16 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			check_result(result, "isc_timer_reset");
 		}
 	}
+
+#ifdef ISC_PLATFORM_USESIT
+	if (l->sitvalue != NULL) {
+		if (msg->opt == NULL)
+			printf(";; expected opt record in response\n");
+		else
+			process_opt(l, msg->opt);
+	} else if (l->sit && msg->opt != NULL)
+		process_opt(l, msg->opt);
+#endif
 
 	if (!l->doing_xfr || l->xfr_q == query) {
 		if (msg->rcode == dns_rcode_nxdomain &&

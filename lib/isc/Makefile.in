@@ -55,7 +55,7 @@ WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/file.@O@ \
 
 # Alphabetically
 OBJS =		@ISC_EXTRA_OBJS@ @ISC_PK11_O@ \
-		assertions.@O@ backtrace.@O@ base32.@O@ base64.@O@ \
+		aes.@O@ assertions.@O@ backtrace.@O@ base32.@O@ base64.@O@ \
 		bind9.@O@ buffer.@O@ bufferlist.@O@ \
 		commandline.@O@ crc64.@O@ error.@O@ event.@O@ \
 		hash.@O@ heap.@O@ hex.@O@ hmacmd5.@O@ hmacsha.@O@ \
@@ -74,7 +74,7 @@ SYMTBLOBJS =	backtrace-emptytbl.@O@
 
 # Alphabetically
 SRCS =		@ISC_EXTRA_SRCS@ @ISC_PK11_C@ \
-		assertions.c backtrace.c base32.c base64.c bind9.c \
+		aes.c assertions.c backtrace.c base32.c base64.c bind9.c \
 		buffer.c bufferlist.c commandline.c crc64.c \
 		error.c event.c heap.c hex.c hmacmd5.c hmacsha.c \
 		httpd.c inet_aton.c iterated_hash.c \

@@ -32,6 +32,12 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#ifdef AES_SIT
+#include <isc/aes.h>
+#else
+#include <isc/hmacsha.h>
+#endif
+
 #include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/cache.h>
@@ -1733,6 +1739,83 @@ add_triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	ISC_LIST_INITANDAPPEND(fctx->edns512, tried, link);
 }
 
+#ifdef ISC_PLATFORM_USESIT
+static void
+compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
+#ifdef AES_SIT
+	unsigned char digest[ISC_AES_BLOCK_LENGTH];
+	unsigned char input[16];
+	isc_netaddr_t netaddr;
+	unsigned int i;
+
+	INSIST(len >= 8U);
+
+	isc_netaddr_fromsockaddr(&netaddr, &query->addrinfo->sockaddr);
+	switch (netaddr.family) {
+	case AF_INET:
+		memcpy(input, (unsigned char *)&netaddr.type.in, 4);
+		memset(input + 4, 0, 12);
+		break;
+	case AF_INET6:
+		memcpy(input, (unsigned char *)&netaddr.type.in6, 16);
+		break;
+	}
+	isc_aes128_crypt(query->fctx->res->view->secret, input, digest);
+	for (i = 0; i < 8; i++)
+		digest[i] ^= digest[i + 8];
+	memcpy(sit, digest, 8);
+#endif
+#ifdef HMAC_SHA1_SIT
+	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
+	isc_netaddr_t netaddr;
+	isc_hmacsha1_t hmacsha1;
+
+	INSIST(len >= 8U);
+
+	isc_hmacsha1_init(&hmacsha1, query->fctx->res->view->secret,
+			  ISC_SHA1_DIGESTLENGTH);
+	isc_netaddr_fromsockaddr(&netaddr, &query->addrinfo->sockaddr);
+	switch (netaddr.family) {
+	case AF_INET:
+		isc_hmacsha1_update(&hmacsha1,
+				    (unsigned char *)&netaddr.type.in, 4);
+		break;
+	case AF_INET6:
+		isc_hmacsha1_update(&hmacsha1,
+				    (unsigned char *)&netaddr.type.in6, 16);
+		break;
+	}
+	isc_hmacsha1_sign(&hmacsha1, digest, sizeof(digest));
+	memcpy(sit, digest, 8);
+	isc_hmacsha1_invalidate(&hmacsha1);
+#endif
+#ifdef HMAC_SHA256_SIT
+	unsigned char digest[ISC_SHA256_DIGESTLENGTH];
+	isc_netaddr_t netaddr;
+	isc_hmacsha256_t hmacsha256;
+
+	INSIST(len >= 8U);
+
+	isc_hmacsha256_init(&hmacsha256, query->fctx->res->view->secret,
+			    ISC_SHA256_DIGESTLENGTH);
+	isc_netaddr_fromsockaddr(&netaddr, &query->addrinfo->sockaddr);
+	switch (netaddr.family) {
+	case AF_INET:
+		isc_hmacsha256_update(&hmacsha256,
+				      (unsigned char *)&netaddr.type.in, 4);
+		break;
+	case AF_INET6:
+		isc_hmacsha256_update(&hmacsha256,
+				      (unsigned char *)&netaddr.type.in6, 16);
+		break;
+	}
+	isc_hmacsha256_sign(&hmacsha256, digest, sizeof(digest));
+	memcpy(sit, digest, 8);
+	isc_hmacsha256_invalidate(&hmacsha256);
+#endif
+}
+#endif
+
 static isc_result_t
 resquery_send(resquery_t *query) {
 	fetchctx_t *fctx;
@@ -1757,10 +1840,6 @@ resquery_send(resquery_t *query) {
 	dns_ednsopt_t ednsopts[EDNSOPTS];
 	unsigned ednsopt = 0;
 	isc_uint16_t hint = 0, udpsize = 0;	/* No EDNS */
-
-	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-	isc_sockaddr_format(&query->addrinfo->sockaddr,
-			    addrbuf, sizeof(addrbuf));
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -1935,6 +2014,10 @@ resquery_send(resquery_t *query) {
 			unsigned int version = 0;       /* Default version. */
 			unsigned int flags = query->addrinfo->flags;
 			isc_boolean_t reqnsid = res->view->requestnsid;
+#ifdef ISC_PLATFORM_USESIT
+			isc_boolean_t reqsit = res->view->requestsit;
+			unsigned char sit[64];
+#endif
 
 			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
 			    (query->options & DNS_FETCHOPT_EDNS512) == 0) {
@@ -1974,9 +2057,13 @@ resquery_send(resquery_t *query) {
 				version >>= DNS_FETCHOPT_EDNSVERSIONSHIFT;
 			}
 
-			/* request NSID for current view or peer? */
-			if (peer != NULL)
+			/* Request NSID/SIT for current view or peer? */
+			if (peer != NULL) {
 				(void) dns_peer_getrequestnsid(peer, &reqnsid);
+#ifdef ISC_PLATFORM_USESIT
+				(void) dns_peer_getrequestsit(peer, &reqsit);
+#endif
+			}
 			if (reqnsid) {
 				INSIST(ednsopt < EDNSOPTS);
 				ednsopts[ednsopt].code = DNS_OPT_NSID;
@@ -1984,6 +2071,28 @@ resquery_send(resquery_t *query) {
 				ednsopts[ednsopt].value = NULL;
 				ednsopt++;
 			}
+#ifdef ISC_PLATFORM_USESIT
+			if (reqsit) {
+				INSIST(ednsopt < EDNSOPTS);
+				ednsopts[ednsopt].code = DNS_OPT_SIT;
+				ednsopts[ednsopt].length =
+					dns_adb_getsit(fctx->adb,
+						       query->addrinfo,
+						       sit, sizeof(sit));
+				if (ednsopts[ednsopt].length != 0) {
+					ednsopts[ednsopt].value = sit;
+					inc_stats(fctx->res,
+						  dns_resstatscounter_sitout);
+				} else {
+					compute_cc(query, sit, sizeof(sit));
+					ednsopts[ednsopt].value = sit;
+					ednsopts[ednsopt].length = 8;
+					inc_stats(fctx->res,
+						  dns_resstatscounter_sitcc);
+				}
+				ednsopt++;
+			}
+#endif
 			result = fctx_addopt(fctx->qmessage, version,
 					     udpsize, ednsopts, ednsopt);
 			if (reqnsid && result == ISC_R_SUCCESS) {
@@ -6896,6 +7005,11 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 	isc_result_t result;
 	isc_uint16_t optcode;
 	isc_uint16_t optlen;
+#ifdef ISC_PLATFORM_USESIT
+	unsigned char *sit;
+	dns_adbaddrinfo_t *addrinfo;
+	unsigned char cookie[8];
+#endif
 
 	result = dns_rdataset_first(opt);
 	if (result == ISC_R_SUCCESS) {
@@ -6915,6 +7029,23 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 						 query->fctx->res->mctx);
 				isc_buffer_forward(&optbuf, optlen);
 				break;
+#ifdef ISC_PLATFORM_USESIT
+			case DNS_OPT_SIT:
+				sit = isc_buffer_current(&optbuf);
+				compute_cc(query, cookie, sizeof(cookie));
+				if (optlen >= 8U &&
+				    memcmp(cookie, sit, 8) == 0) {
+					inc_stats(query->fctx->res,
+						  dns_resstatscounter_sitok);
+					addrinfo = query->addrinfo;
+					dns_adb_setsit(query->fctx->adb,
+						       addrinfo, sit, optlen);
+				}
+				isc_buffer_forward(&optbuf, optlen);
+				inc_stats(query->fctx->res,
+					  dns_resstatscounter_sitin);
+				break;
+#endif
 			default:
 				isc_buffer_forward(&optbuf, optlen);
 				break;

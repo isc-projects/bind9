@@ -63,6 +63,9 @@ static char *argv0;
 static int addresscount = 0;
 
 static char domainopt[DNS_NAME_MAXTEXT];
+#ifdef ISC_PLATFORM_USESIT
+static char sitvalue[256];
+#endif
 
 static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
@@ -223,6 +226,9 @@ help(void) {
 "                 +[no]trace          (Trace delegation down from root [+dnssec])\n"
 "                 +[no]dnssec         (Request DNSSEC records)\n"
 "                 +[no]nsid           (Request Name Server ID)\n"
+#ifdef ISC_PLATFORM_USESIT
+"                 +[no]sit            (Request a Source Identity Token)\n"
+#endif
 #ifdef DIG_SIGCHASE
 "                 +[no]sigchase       (Chase DNSSEC signatures)\n"
 "                 +trusted-key=####   (Trusted Key when chasing DNSSEC sigs)\n"
@@ -1086,14 +1092,34 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			}
 			break;
+		case 'i':
+			switch (cmd[2]) {
 #ifdef DIG_SIGCHASE
-		case 'i': /* sigchase */
-			FULLCHECK("sigchase");
-			lookup->sigchase = state;
-			if (lookup->sigchase)
-				lookup->dnssec = ISC_TRUE;
-			break;
+			case 'g': /* sigchase */
+				FULLCHECK("sigchase");
+				lookup->sigchase = state;
+				if (lookup->sigchase)
+					lookup->dnssec = ISC_TRUE;
+				break;
 #endif
+#ifdef ISC_PLATFORM_USESIT
+			case 't': /* sit */
+				FULLCHECK("sit");
+				if (state && lookup->edns == -1)
+					lookup->edns = 0;
+				lookup->sit = state;
+				if (value != NULL) {
+					strncpy(sitvalue, value,
+						sizeof(sitvalue));
+					lookup->sitvalue = sitvalue;
+				} else
+					lookup->sitvalue = NULL;
+				break;
+#endif
+			default:
+				goto invalid_option;
+			}
+			break;
 		case 'p': /* split */
 			FULLCHECK("split");
 			if (value != NULL && !state)

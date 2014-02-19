@@ -3255,6 +3255,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 
 			if (optcode == DNS_OPT_NSID) {
 				ADD_STRING(target, "; NSID");
+			} else if (optcode == DNS_OPT_SIT) {
+				ADD_STRING(target, "; SIT");
 			} else {
 				ADD_STRING(target, "; OPT=");
 				sprintf(buf, "%u", optcode);
@@ -3267,10 +3269,30 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 
 				optdata = isc_buffer_current(&optbuf);
 				for (i = 0; i < optlen; i++) {
-					sprintf(buf, "%02x ", optdata[i]);
+					const char *sep;
+					switch (optcode) {
+					case DNS_OPT_SIT:
+						sep = "";
+						break;
+					default:
+						sep = " ";
+						break;
+					}
+					sprintf(buf, "%02x%s", optdata[i], sep);
 					ADD_STRING(target, buf);
 				}
 
+				isc_buffer_forward(&optbuf, optlen);
+
+				if (optcode == DNS_OPT_SIT) {
+					ADD_STRING(target, "\n");
+					break;
+				}
+
+				/*
+				 * For non-SIT options, add a printable
+				 * version
+				 */
 				ADD_STRING(target, "(\"");
 				for (i = 0; i < optlen; i++) {
 					if (isprint(optdata[i]))
@@ -3281,7 +3303,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 						isc_buffer_putstr(target, ".");
 				}
 				ADD_STRING(target, "\")");
-				isc_buffer_forward(&optbuf, optlen);
 			}
 			ADD_STRING(target, "\n");
 		}

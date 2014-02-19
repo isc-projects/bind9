@@ -40,6 +40,7 @@
 #include <isc/parseint.h>
 #include <isc/portset.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/resource.h>
 #include <isc/sha2.h>
@@ -52,6 +53,12 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 #include <isc/xml.h>
+
+#ifdef AES_SIT
+#include <isc/aes.h>
+#else
+#include <isc/hmacsha.h>
+#endif
 
 #include <isccfg/namedconf.h>
 
@@ -1156,6 +1163,13 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	(void)cfg_map_get(cpeer, "request-nsid", &obj);
 	if (obj != NULL)
 		CHECK(dns_peer_setrequestnsid(peer, cfg_obj_asboolean(obj)));
+
+#ifdef ISC_PLATFORM_USESIT
+	obj = NULL;
+	(void)cfg_map_get(cpeer, "request-sit", &obj);
+	if (obj != NULL)
+		CHECK(dns_peer_setrequestsit(peer, cfg_obj_asboolean(obj)));
+#endif
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "edns", &obj);
@@ -2999,6 +3013,21 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		udpsize = 4096;
 	view->maxudp = udpsize;
 
+#ifdef ISC_PLATFORM_USESIT
+	/*
+	 * Set the maximum UDP when a SIT is not provided.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "nosit-udp-size", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	udpsize = cfg_obj_asuint32(obj);
+	if (udpsize < 128)
+		udpsize = 128;
+	if (udpsize > view->maxudp)
+		udpsize = view->maxudp;
+	view->situdp = udpsize;
+#endif
+
 	/*
 	 * Set the maximum rsa exponent bits.
 	 */
@@ -3370,6 +3399,13 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	result = ns_config_get(maps, "request-nsid", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->requestnsid = cfg_obj_asboolean(obj);
+
+#ifdef ENABLE_LTR
+	obj = NULL;
+	result = ns_config_get(maps, "request-sit", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->requestsit = cfg_obj_asboolean(obj);
+#endif
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-clients-per-query", &obj);
@@ -4042,6 +4078,13 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	result = dns_view_create(ns_g_mctx, viewclass, viewname, &view);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+
+	result = isc_entropy_getdata(ns_g_entropy, view->secret,
+				     sizeof(view->secret), NULL, 0);
+	if (result != ISC_R_SUCCESS) {
+		dns_view_detach(&view);
+		return (result);
+	}
 
 #ifdef HAVE_GEOIP
 	view->aclenv.geoip = ns_g_geoip;
@@ -6152,6 +6195,43 @@ load_configuration(const char *filename, ns_server_t *server,
 	} else {
 		server->flushonshutdown = ISC_FALSE;
 	}
+
+#ifdef ENABLE_LTR
+	obj = NULL;
+	result = ns_config_get(maps, "sit-secret", &obj);
+	if (result == ISC_R_SUCCESS) {
+		isc_buffer_t b;
+
+		memset(server->secret, 0, sizeof(server->secret));
+		isc_buffer_init(&b, server->secret, sizeof(server->secret));
+		result = isc_hex_decodestring(cfg_obj_asstring(obj), &b);
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
+			goto cleanup;
+#ifdef AES_SIT
+		if (isc_buffer_usedlength(&b) != ISC_AES128_KEYLENGTH)
+			CHECKM(ISC_R_RANGE,
+			       "AES sit-secret must be on 128 bits");
+#endif
+#ifdef HMAC_SHA1_SIT
+		if (isc_buffer_usedlength(&b) != ISC_SHA1_DIGESTLENGTH)
+			CHECKM(ISC_R_RANGE,
+			       "SHA1 sit-secret must be on 160 bits");
+#endif
+#ifdef HMAC_SHA256_SIT
+		if (isc_buffer_usedlength(&b) != ISC_SHA256_DIGESTLENGTH)
+			CHECKM(ISC_R_RANGE,
+			       "SHA256 sit-secret must be on 160 bits");
+#endif
+	} else {
+		result = isc_entropy_getdata(ns_g_entropy,
+					     server->secret,
+					     sizeof(server->secret),
+					     NULL,
+					     0);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
+#endif
 
 	result = ISC_R_SUCCESS;
 

@@ -4766,6 +4766,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> multiple-cnames <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable>; </optional>
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> request-sit <replaceable>yes_or_no</replaceable>; </optional>
     <optional> request-nsid <replaceable>yes_or_no</replaceable>; </optional>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
@@ -6226,6 +6227,35 @@ options {
 		  The default is <userinput>no</userinput>.
 		</para>
 	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>request-sit</command></term>
+	      <para>
+		If <userinput>yes</userinput>, then a SIT (Source Identity
+		Token) EDNS option is sent along with the query.  If the
+                resolver has previously talked to the server, the SIT
+                returned in the previous transaction is sent.  This
+                is used by the server to determine whether the resolver
+                has talked to it before.  A resolver sending the corret
+                SIT is assumed not to be an off-path attacker sending a
+                spoofed-source query; the query is therefore unlikely to
+                be part of a reflection/amplification attack: resolvers
+                sending a correct SIT option are not subject to response
+                rate limiting (RRL).  Resolvers which do not send a correct
+                SIT option may be limited to receiving smaller responses
+                via the <command>nosit-udp-size</command> option.
+	      </para>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>sit-secret</command></term>
+	      <para>
+		If set, this is a shared secret used for generating and
+		verifying Source Identity Token EDNS options within a
+		anycast cluster.  If not set the system will generation
+		a random secret at startup.
+	      </para>
 	    </varlistentry>
 
 	    <varlistentry>
@@ -10199,6 +10229,7 @@ rate-limit {
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns-udp-size <replaceable>number</replaceable> ; </optional>
+    <optional> nosit-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> max-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> transfers <replaceable>number</replaceable> ; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable> ; ]</optional>
@@ -10322,6 +10353,14 @@ rate-limit {
 	    be silently adjusted).  This option is useful when you
 	    know that there is a firewall that is blocking large
 	    replies from <command>named</command>.
+	  </para>
+
+	  <para>
+	    The <command>nosit-udp-size</command> option sets the
+	    maximum size of udp responses that will be sent to
+	    queries without a valid source identity token.  The command
+	    <command>max-udp-size</command> option may further limit
+	    the response size.
 	  </para>
 
 	  <para>

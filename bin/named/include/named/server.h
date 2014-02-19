@@ -116,6 +116,7 @@ struct ns_server {
 	unsigned int		session_keyalg;
 	isc_uint16_t		session_keybits;
 	isc_boolean_t		interface_auto;
+	unsigned char		secret[33];	/*%< Source Identity Token */
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')
@@ -179,7 +180,18 @@ enum {
 	dns_nsstatscounter_udp = 41,
 	dns_nsstatscounter_tcp = 42,
 
+#ifdef ISC_PLATFORM_USESIT
+	dns_nsstatscounter_sitopt = 43,
+	dns_nsstatscounter_sitbadsize = 44,
+	dns_nsstatscounter_sitbadtime = 45,
+	dns_nsstatscounter_sitnomatch = 46,
+	dns_nsstatscounter_sitmatch = 47,
+	dns_nsstatscounter_sitnew = 48,
+
+	dns_nsstatscounter_max = 49
+#else
 	dns_nsstatscounter_max = 43
+#endif
 };
 
 void

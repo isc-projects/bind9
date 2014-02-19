@@ -140,9 +140,9 @@ options {
         fake-iquery <boolean>; // obsolete
         fetch-glue <boolean>; // obsolete
         files <size>;
-        filter-aaaa { <address_match_element>; ... }; // not configured
-        filter-aaaa-on-v4 <filter_aaaa>; // not configured
-        filter-aaaa-on-v6 <filter_aaaa>; // not configured
+        filter-aaaa { <address_match_element>; ... };
+        filter-aaaa-on-v4 <filter_aaaa>;
+        filter-aaaa-on-v6 <filter_aaaa>;
         flush-zones-on-shutdown <boolean>;
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
@@ -161,6 +161,8 @@ options {
             <address_match_element>; ... };
         listen-on-v6 [ port <integer> ] [ dscp <integer> ] {
             <address_match_element>; ... };
+        sit-secret <quoted_string>;
+        nosit-udp-size <integer>;
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys-directory <quoted_string>;
         masterfile-format ( text | raw | map );
@@ -230,6 +232,7 @@ options {
         recursion <boolean>;
         recursive-clients <integer>;
         request-ixfr <boolean>;
+        request-sit <boolean>;
         request-nsid <boolean>;
         reserved-sockets <integer>;
         resolver-query-timeout <integer>;
@@ -304,6 +307,8 @@ server <netprefix> {
         query-source <querysource4>;
         query-source-v6 <querysource6>;
         request-ixfr <boolean>;
+        request-sit <boolean>;
+        request-nsid <boolean>;
         support-ixfr <boolean>; // obsolete
         transfer-format ( many-answers | one-answer );
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
@@ -400,9 +405,9 @@ view <string> <optional_class> {
         empty-server <string>;
         empty-zones-enable <boolean>;
         fetch-glue <boolean>; // obsolete
-        filter-aaaa { <address_match_element>; ... }; // not configured
-        filter-aaaa-on-v4 <filter_aaaa>; // not configured
-        filter-aaaa-on-v6 <filter_aaaa>; // not configured
+        filter-aaaa { <address_match_element>; ... };
+        filter-aaaa-on-v4 <filter_aaaa>;
+        filter-aaaa-on-v6 <filter_aaaa>;
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
@@ -414,6 +419,7 @@ view <string> <optional_class> {
         };
         key-directory <quoted_string>;
         lame-ttl <integer>;
+        nosit-udp-size <integer>;
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys { <string> <string> <integer> <integer> <integer>
             <quoted_string>; ... };
@@ -475,6 +481,7 @@ view <string> <optional_class> {
         };
         recursion <boolean>;
         request-ixfr <boolean>;
+        request-sit <boolean>;
         request-nsid <boolean>;
         resolver-query-timeout <integer>;
         response-policy { zone <quoted_string> [ policy ( given | disabled
@@ -503,6 +510,8 @@ view <string> <optional_class> {
                 query-source <querysource4>;
                 query-source-v6 <querysource6>;
                 request-ixfr <boolean>;
+                request-sit <boolean>;
+                request-nsid <boolean>;
                 support-ixfr <boolean>; // obsolete
                 transfer-format ( many-answers | one-answer );
                 transfer-source ( <ipv4_address> | * ) [ port ( <integer> |

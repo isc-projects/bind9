@@ -98,6 +98,13 @@
 /*% Want WANTAD? */
 #define WANTAD(c)		(((c)->attributes & \
 				  NS_CLIENTATTR_WANTAD) != 0)
+#ifdef ISC_PLATFORM_USESIT
+/*% Client presented a valid Source Identity Token. */
+#define HAVESIT(c)		(((c)->attributes & \
+				  NS_CLIENTATTR_HAVESIT) != 0)
+#else
+#define HAVESIT(c)		(0)
+#endif
 
 /*% No authority? */
 #define NOAUTHORITY(c)		(((c)->query.attributes & \
@@ -6371,7 +6378,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	 * Don't mess with responses rewritten by RPZ
 	 * Count each response at most once.
 	 */
-	if (client->view->rrl != NULL &&
+	if (client->view->rrl != NULL && !HAVESIT(client) &&
 	    ((fname != NULL && dns_name_isabsolute(fname)) ||
 	     (result == ISC_R_NOTFOUND && !RECURSIONOK(client))) &&
 	    !(result == DNS_R_DELEGATION && !is_zone && RECURSIONOK(client)) &&
