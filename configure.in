@@ -1520,6 +1520,11 @@ DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
 # Use OpenSSL for hash functions and/or aes
 #
 
+saved_libs="$LIBS"
+LIBS="$LIBS $DNS_CRYPTO_LIBS"
+AC_CHECK_FUNCS(AES_encrypt)
+LIBS="$saved_libs"
+
 AC_MSG_CHECKING(for using OpenSSL for hash functions)
 AC_ARG_ENABLE(openssl-hash,
 	[  --enable-openssl-hash   use OpenSSL for hash functions [[default=no]]],
@@ -1550,11 +1555,6 @@ case $with_sit_alg in
 			  [Use HMAC-SHA256 for Source Identity Token generation])
 		;;
 	auto)
-		saved_libs="$LIBS"
-		LIBS="$LIBS $DNS_CRYPTO_LIBS"
-		AC_CHECK_FUNCS(AES_encrypt)
-		LIBS="$saved_libs"
-		
 		if test "$ac_cv_func_AES_encrypt" = "yes"
 		then
 			with_sit_alg="aes"
@@ -1563,7 +1563,10 @@ case $with_sit_alg in
 				 [Use AES for Source Identity Token generation])
 		else
 			with_sit_alg="sha256"
-			want_openssl_hash="yes"
+			if test "$CRYPTO" = "-DOPENSSL"
+			then
+				want_openssl_hash="yes"
+			fi
 			AC_DEFINE(HMAC_SHA256_SIT, 1,
 		         [Use HMAC-SHA256 for Source Identity Token generation])
 		fi
