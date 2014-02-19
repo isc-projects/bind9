@@ -1,4 +1,4 @@
-3748.	[func]		Use delve to test dns_client interfaces. [RT #35383]
+3748.	[test]		Use delve to test dns_client interfaces. [RT #35383]
 
 3747.	[bug]		A race condition could lead to a core dump when
 			destroying a resolver fetch object. [RT #35385]
