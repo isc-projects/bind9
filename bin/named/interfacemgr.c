@@ -57,7 +57,7 @@
 #endif
 
 #ifdef TUNE_LARGE
-#define UDPBUFFERS 32768 
+#define UDPBUFFERS 32768
 #else
 #define UDPBUFFERS 1000
 #endif /* TUNE_LARGE */

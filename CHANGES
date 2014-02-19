@@ -6,7 +6,7 @@
 3746.	[func]		New "max-zone-ttl" option enforces maximum
 			TTLs for zones. If loading a zone containing a
 			higher TTL, the load fails. DDNS updates with
-			higher TTLs are accepted but the TTL is truncated. 
+			higher TTLs are accepted but the TTL is truncated.
 			(Note: Currently supported for master zones only;
 			inline-signing slaves will be added.) [RT #38405]
 
@@ -19,7 +19,7 @@
 			(similar to DNS Cookies by Donald Eastlake 3rd),
 			which are designed to help clients detect off-path
 			spoofed responses and for servers to identify
-                        legitimate clients.
+			legitimate clients.
 
 			SIT uses an experimental EDNS option code (65001).
 			[This will be changed to a IANA assigned value if
@@ -27,14 +27,14 @@
 
 			SIT can be enabled via "configure --enable-sit" (or
 			--enable-developer). It is enabled by default in
-                        Windows.
+			Windows.
 
-                        Servers can be configured to send smaller responses
-                        to clients that have not identified themselves via
-                        SIT.  RRL processing has also been updated;
-                        legitimate clients are not subject to rate
-                        limiting. [RT #35389]
-			
+			Servers can be configured to send smaller responses
+			to clients that have not identified themselves via
+			SIT.  RRL processing has also been updated;
+			legitimate clients are not subject to rate
+			limiting. [RT #35389]
+
 3743.	[bug]		delegation-only flag wasn't working in forward zone
 			declarations despite being documented.  This is
 			needed to support turning off forwarding and turning

@@ -396,12 +396,12 @@ struct dns_zone {
 
 	isc_boolean_t		sourceserialset;
 	isc_uint32_t		sourceserial;
-	
+
 	/*%
 	 * maximum zone ttl
 	 */
 	dns_ttl_t		maxttl;
-	
+
 };
 
 typedef struct {
@@ -1535,7 +1535,7 @@ dns_zone_getmaxttl(dns_zone_t *zone) {
 void
 dns_zone_setmaxttl(dns_zone_t *zone, dns_ttl_t maxttl) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	
+
 	LOCK_ZONE(zone);
 	if (maxttl != 0)
 		zone->options2 |= DNS_ZONEOPT2_CHECKTTL;

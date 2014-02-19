@@ -316,7 +316,7 @@ init_desc(void) {
 	SET_RESSTATDESC(sitin, "SIT replies received", "SitIn");
 	SET_RESSTATDESC(sitok, "SIT client cookie ok", "SitClientOk");
 #endif
-	
+
 	INSIST(i == dns_resstatscounter_max);
 
 	/* Initialize adb statistics */

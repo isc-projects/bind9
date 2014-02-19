@@ -3177,25 +3177,25 @@ process_opt(dig_lookup_t *l, dns_rdataset_t *opt) {
 	isc_buffer_t optbuf;
 	isc_uint16_t optcode, optlen;
 
-        result = dns_rdataset_first(opt);
-        if (result == ISC_R_SUCCESS) {
-                dns_rdata_init(&rdata);
-                dns_rdataset_current(opt, &rdata);
-                isc_buffer_init(&optbuf, rdata.data, rdata.length);
-                isc_buffer_add(&optbuf, rdata.length);
-                while (isc_buffer_remaininglength(&optbuf) >= 4) {
-                        optcode = isc_buffer_getuint16(&optbuf);
-                        optlen = isc_buffer_getuint16(&optbuf);
-                        switch (optcode) {
-                        case DNS_OPT_SIT:
-                                process_sit(l, &optbuf, optlen);
-                                break;
-                        default:
-                                isc_buffer_forward(&optbuf, optlen);
-                                break;
-                        }
-                }
-        }
+	result = dns_rdataset_first(opt);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdata_init(&rdata);
+		dns_rdataset_current(opt, &rdata);
+		isc_buffer_init(&optbuf, rdata.data, rdata.length);
+		isc_buffer_add(&optbuf, rdata.length);
+		while (isc_buffer_remaininglength(&optbuf) >= 4) {
+			optcode = isc_buffer_getuint16(&optbuf);
+			optlen = isc_buffer_getuint16(&optbuf);
+			switch (optcode) {
+			case DNS_OPT_SIT:
+				process_sit(l, &optbuf, optlen);
+				break;
+			default:
+				isc_buffer_forward(&optbuf, optlen);
+				break;
+			}
+		}
+	}
 }
 #endif
 
