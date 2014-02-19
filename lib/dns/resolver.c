@@ -357,6 +357,7 @@ typedef struct {
 
 struct dns_fetch {
 	unsigned int			magic;
+	isc_mem_t *			mctx;
 	fetchctx_t *			private;
 };
 
@@ -8561,6 +8562,8 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 	fetch = isc_mem_get(res->mctx, sizeof(*fetch));
 	if (fetch == NULL)
 		return (ISC_R_NOMEMORY);
+	fetch->mctx = NULL;
+	isc_mem_attach(res->mctx, &fetch->mctx);
 
 	bucketnum = dns_name_fullhash(name, ISC_FALSE) % res->nbuckets;
 
@@ -8651,7 +8654,7 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 		FTRACE("created");
 		*fetchp = fetch;
 	} else
-		isc_mem_put(res->mctx, fetch, sizeof(*fetch));
+		isc_mem_putanddetach(&fetch->mctx, fetch, sizeof(*fetch));
 
 	return (result);
 }
@@ -8742,7 +8745,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 
 	UNLOCK(&res->buckets[bucketnum].lock);
 
-	isc_mem_put(res->mctx, fetch, sizeof(*fetch));
+	isc_mem_putanddetach(&fetch->mctx, fetch, sizeof(*fetch));
 	*fetchp = NULL;
 
 	if (bucket_empty)

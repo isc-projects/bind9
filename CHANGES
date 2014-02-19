@@ -1,3 +1,6 @@
+3747.	[bug]		A race condition could lead to a core dump when
+			destroying a resolver fetch object. [RT #35385]
+
 3746.	[func]		New "max-zone-ttl" option enforces maximum
 			TTLs for zones. If loading a zone containing a
 			higher TTL, the load fails. DDNS updates with
