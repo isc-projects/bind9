@@ -1,3 +1,6 @@
+3747.	[bug]		A race condition could lead to a core dump when
+			destroying a resolver fetch object. [RT #35385]
+
 3743.	[bug]		delegation-only flag wasn't working in forward zone
 			declarations despite being documented.  This is
 			needed to support turning off forwarding and turning
