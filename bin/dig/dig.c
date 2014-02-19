@@ -1092,6 +1092,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			}
 			break;
+#if defined(DIG_SIGCHASE) || defined(ISC_PLATFORM_USESIT)
 		case 'i':
 			switch (cmd[2]) {
 #ifdef DIG_SIGCHASE
@@ -1120,6 +1121,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			}
 			break;
+#endif
 		case 'p': /* split */
 			FULLCHECK("split");
 			if (value != NULL && !state)
