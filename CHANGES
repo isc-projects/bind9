@@ -5,6 +5,8 @@
                         legitimate clients.
 
 			SIT uses an experimental EDNS option code (65001).
+			[This will be changed to a IANA assigned value if
+			 the experiment is deemed a success.]
 
 			SIT can be enabled via "configure --enable-sit" (or
 			--enable-developer). It is enabled by default in
