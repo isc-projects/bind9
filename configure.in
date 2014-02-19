@@ -1534,7 +1534,7 @@ AC_ARG_ENABLE(openssl-aes,
 #
 AC_ARG_WITH(sit-alg,
 	[  --with-sit-alg=ALG      choose the algorithm for SIT [[aes|sha1|sha256]]],
-	with_sit_alg="$withval", with_sit_alg="aes")
+	with_sit_alg="$withval", with_sit_alg="auto")
 
 case $with_sit_alg in
 	*1)
@@ -1548,6 +1548,25 @@ case $with_sit_alg in
 		want_openssl_hash="yes"
 		AC_DEFINE(HMAC_SHA256_SIT, 1,
 			  [Use HMAC-SHA256 for Source Identity Token generation])
+		;;
+	auto)
+		saved_libs="$LIBS"
+		LIBS="$LIBS $DNS_CRYPTO_LIBS"
+		AC_CHECK_FUNCS(AES_encrypt)
+		LIBS="$saved_libs"
+		
+		if test "$ac_cv_func_AES_encrypt" = "yes"
+		then
+			with_sit_alg="aes"
+			want_openssl_aes="yes"
+			AC_DEFINE(AES_SIT, 1,
+				 [Use AES for Source Identity Token generation])
+		else
+			with_sit_alg="sha256"
+			want_openssl_hash="yes"
+			AC_DEFINE(HMAC_SHA256_SIT, 1,
+		         [Use HMAC-SHA256 for Source Identity Token generation])
+		fi
 		;;
 	*)
 		with_sit_alg="aes"

@@ -15644,7 +15644,7 @@ fi
 if test "${with_sit_alg+set}" = set; then :
   withval=$with_sit_alg; with_sit_alg="$withval"
 else
-  with_sit_alg="aes"
+  with_sit_alg="auto"
 fi
 
 
@@ -15662,6 +15662,37 @@ $as_echo "#define HMAC_SHA1_SIT 1" >>confdefs.h
 
 $as_echo "#define HMAC_SHA256_SIT 1" >>confdefs.h
 
+		;;
+	auto)
+		saved_libs="$LIBS"
+		LIBS="$LIBS $DNS_CRYPTO_LIBS"
+		for ac_func in AES_encrypt
+do :
+  ac_fn_c_check_func "$LINENO" "AES_encrypt" "ac_cv_func_AES_encrypt"
+if test "x$ac_cv_func_AES_encrypt" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_AES_ENCRYPT 1
+_ACEOF
+
+fi
+done
+
+		LIBS="$saved_libs"
+
+		if test "$ac_cv_func_AES_encrypt" = "yes"
+		then
+			with_sit_alg="aes"
+			want_openssl_aes="yes"
+
+$as_echo "#define AES_SIT 1" >>confdefs.h
+
+		else
+			with_sit_alg="sha256"
+			want_openssl_hash="yes"
+
+$as_echo "#define HMAC_SHA256_SIT 1" >>confdefs.h
+
+		fi
 		;;
 	*)
 		with_sit_alg="aes"
