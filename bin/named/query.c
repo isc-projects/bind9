@@ -4295,7 +4295,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name,
 					  &prefix);
 		result = dns_name_concatenate(&prefix, suffix, p_name, NULL);
 		if (result == ISC_R_SUCCESS)
-			return (ISC_R_SUCCESS);
+			break;
 		INSIST(result == DNS_R_NAMETOOLONG);
 		/*
 		 * Trim the trigger name until the combination is not too long.
@@ -4314,6 +4314,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name,
 		}
 		++first;
 	}
+	return (ISC_R_SUCCESS);
 }
 
 /*
