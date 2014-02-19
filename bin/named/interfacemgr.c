@@ -56,6 +56,12 @@
 #endif
 #endif
 
+#ifdef TUNE_LARGE
+#define UDPBUFFERS 32768 
+#else
+#define UDPBUFFERS 1000
+#endif /* TUNE_LARGE */
+
 #define IFMGR_MAGIC			ISC_MAGIC('I', 'F', 'M', 'G')
 #define NS_INTERFACEMGR_VALID(t)	ISC_MAGIC_VALID(t, IFMGR_MAGIC)
 
@@ -424,7 +430,8 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 		result = dns_dispatch_getudp_dup(ifp->mgr->dispatchmgr,
 						 ns_g_socketmgr,
 						 ns_g_taskmgr, &ifp->addr,
-						 4096, 1000, 32768, 8219, 8237,
+						 4096, UDPBUFFERS,
+						 32768, 8219, 8237,
 						 attrs, attrmask,
 						 &ifp->udpdispatch[disp],
 						 disp == 0

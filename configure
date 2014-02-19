@@ -1014,6 +1014,7 @@ with_libiconv
 with_iconv
 with_idnlib
 with_atf
+with_tuning
 with_dlopen
 with_dlz_postgres
 with_dlz_mysql
@@ -1711,6 +1712,7 @@ Optional Packages:
   --with-iconv=LIBSPEC    specify iconv library default -liconv
   --with-idnlib=ARG       specify libidnkit
   --with-atf=ARG          support Automated Test Framework
+  --with-tuning=ARG       Specify server tuning (large or default)
   --with-dlopen=ARG       support dynamically loadable DLZ drivers
   --with-dlz-postgres=PATH   Build with Postgres DLZ driver yes|no|path.
 			       (Required to use Postgres with DLZ)
@@ -19869,6 +19871,38 @@ done
 
 
 #
+# was --with-tuning specified?
+#
+
+# Check whether --with-tuning was given.
+if test "${with_tuning+set}" = set; then :
+  withval=$with_tuning; use_tuning="$withval"
+else
+  use_tuning="no"
+fi
+
+
+case "$use_tuning" in
+	large)
+		if ! $use_threads; then
+			as_fn_error $? "Large-system tuning requires threads." "$LINENO" 5
+		fi
+
+$as_echo "#define TUNE_LARGE 1" >>confdefs.h
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using large-system tuning" >&5
+$as_echo "using large-system tuning" >&6; }
+		;;
+	no|default)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using default tuning" >&5
+$as_echo "using default tuning" >&6; }
+		;;
+	yes|*)
+                as_fn_error $? "You must specify \"large\" or \"default\" for --with-tuning." "$LINENO" 5
+		;;
+esac
+
+#
 # Substitutions
 #
 
@@ -23552,6 +23586,7 @@ echo "Configuration summary:"
 echo "------------------------------------------------------------------------"
 echo "Optional features enabled:"
 $use_threads && echo "    Multiprocessing support (--enable-threads)"
+test "$use_tuning" = "large" && echo "    Large-system tuning (--with-tuning)"
 test "$use_geoip" = "no" || echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
 if test "$enable_sit" != "no"; then
@@ -23620,6 +23655,7 @@ echo "Features disabled or unavailable on this platform:"
 $use_threads || echo "    Multiprocessing support (--enable-threads)"
 test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
 	echo "    IPv6 support (--enable-ipv6)"
+test "$use_tuning" = "large" || echo "    Large-system tuning (--with-tuning)"
 
 test "$use_geoip" = "no" && echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"

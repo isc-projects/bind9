@@ -262,6 +262,9 @@
 	  <para>
 	    Allow <command>named</command> to use up to
 	    <replaceable class="parameter">#max-socks</replaceable> sockets.
+            The default value is 4096 on systems built with default
+            configuration options, and 21000 on systems built with
+            "configure --with-tuning=large".
 	  </para>
           <warning>
             <para>

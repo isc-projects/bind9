@@ -71,6 +71,11 @@ BIND 9.10.0
 	   DNSSEC problems.
 	 - Improved EDNS(0) processing for better resolver performance
 	   and reliability over slow or lossy connections.
+	 - A new "configure --with-tuning=large" option tunes certain
+	   compiled-in constants and default settings to values better
+	   suited to large servers with abundant memory.  This can
+	   improve performance on such servers, but will consume more
+	   memory and may degrade performance on smaller systems.
 	 - Substantial improvement in response-policy zone (RPZ)
 	   performance.  Up to 32 response-policy zones can be
 	   configured with minimal performance loss.
@@ -119,7 +124,7 @@ BIND 9.10.0
 	   by default.
 	 - "named" now preserves the capitalization of names when
 	   responding to queries.  The former behavior can be restored
-           for specific clients via the new "no-case-compress" ACL.
+	   for specific clients via the new "no-case-compress" ACL.
 	 - new "dnssec-importkey" command allows the use of offline
 	   DNSSEC keys with automatic DNSKEY management.
 	 - New "named-rrchecker" tool to verify the syntactic
@@ -296,6 +301,14 @@ Building
 
 	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
+
+	Certain compiled-in constants and default settings can be
+	increased to values better suited to large servers with abundant
+	memory resources (e.g, 64-bit servers with 12G or more of memory)
+	by specifying "--with-tuning=large" on the configure command
+	line. This can improve performance on big servers, but will
+	consume more memory and may degrade performance on smaller
+	systems.
 
 	For the server to support DNSSEC, you need to build it
 	with crypto support.  You must have OpenSSL 0.9.5a

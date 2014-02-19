@@ -132,6 +132,16 @@
 #define SIZE_MAX ((size_t)-1)
 #endif
 
+#ifdef TUNE_LARGE
+#define RESOLVER_NTASKS 523
+#define UDPBUFFERS 32768
+#define EXCLBUFFERS 32768
+#else
+#define RESOLVER_NTASKS 31
+#define UDPBUFFERS 1000
+#define EXCLBUFFERS 4096
+#endif /* TUNE_LARGE */
+
 /*%
  * Check an operation for failure.  Assumes that the function
  * using it has a 'result' variable and a 'cleanup' label.
@@ -960,7 +970,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 	isc_sockaddr_t sa;
 	unsigned int attrs, attrmask;
 	const cfg_obj_t *obj = NULL;
-	unsigned int maxdispatchbuffers;
+	unsigned int maxdispatchbuffers = UDPBUFFERS;
 	isc_dscp_t dscp = -1;
 
 	switch (af) {
@@ -1014,7 +1024,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 	}
 	if (isc_sockaddr_getport(&sa) == 0) {
 		attrs |= DNS_DISPATCHATTR_EXCLUSIVE;
-		maxdispatchbuffers = 4096;
+		maxdispatchbuffers = EXCLBUFFERS;
 	} else {
 		INSIST(obj != NULL);
 		if (is_firstview) {
@@ -1023,7 +1033,6 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 				    "suppresses port randomization and can be "
 				    "insecure.");
 		}
-		maxdispatchbuffers = 1000;
 	}
 
 	attrmask = 0;
@@ -2929,8 +2938,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	dns_view_setresquerystats(view, resquerystats);
 
 	ndisp = 4 * ISC_MIN(ns_g_udpdisp, MAX_UDP_DISPATCH);
-	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31, ndisp,
-				      ns_g_socketmgr, ns_g_timermgr,
+	CHECK(dns_view_createresolver(view, ns_g_taskmgr, RESOLVER_NTASKS,
+				      ndisp, ns_g_socketmgr, ns_g_timermgr,
 				      resopts, ns_g_dispatchmgr,
 				      dispatch4, dispatch6));
 
@@ -6898,7 +6907,7 @@ ns_add_reserved_dispatch(ns_server_t *server, const isc_sockaddr_t *addr) {
 
 	result = dns_dispatch_getudp(ns_g_dispatchmgr, ns_g_socketmgr,
 				     ns_g_taskmgr, &dispatch->addr, 4096,
-				     1000, 32768, 16411, 16433,
+				     UDPBUFFERS, 32768, 16411, 16433,
 				     attrs, attrmask, &dispatch->dispatch);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;

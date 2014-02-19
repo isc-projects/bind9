@@ -158,7 +158,11 @@ int isc_dscp_check_value = -1;
  */
 #ifndef ISC_SOCKET_MAXSOCKETS
 #if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL)
+#ifdef TUNE_LARGE
+#define ISC_SOCKET_MAXSOCKETS 21000
+#else
 #define ISC_SOCKET_MAXSOCKETS 4096
+#endif /* TUNE_LARGE */
 #elif defined(USE_SELECT)
 #define ISC_SOCKET_MAXSOCKETS FD_SETSIZE
 #endif	/* USE_KQUEUE... */
@@ -220,7 +224,11 @@ typedef enum { poll_idle, poll_active, poll_checking } pollstate_t;
  */
 #if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL)
 #ifndef ISC_SOCKET_MAXEVENTS
+#ifdef TUNE_LARGE
+#define ISC_SOCKET_MAXEVENTS	2048
+#else
 #define ISC_SOCKET_MAXEVENTS	64
+#endif /* TUNE_LARGE */
 #endif
 #endif
 
@@ -296,7 +304,11 @@ typedef isc_event_t intev_t;
 /*%
  * The size to raise the receive buffer to (from BIND 8).
  */
+#ifdef TUNE_LARGE
+#define RCVBUFSIZE (16*1024*1024)
+#else
 #define RCVBUFSIZE (32*1024)
+#endif /* TUNE_LARGE */
 
 /*%
  * The number of times a send operation is repeated if the result is EINTR.

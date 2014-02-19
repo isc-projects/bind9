@@ -1,3 +1,8 @@
+3745.	[func]		"configure --with-tuning=large" adjusts various
+			compiled-in constants and default settings to
+			values suited to large servers with abundant
+			memory. [RT #29538]
+
 3744.	[experimental]	SIT: send and process Source Identity Tokens
 			(similar to DNS Cookies by Donald Eastlake 3rd),
 			which are designed to help clients detect off-path

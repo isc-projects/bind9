@@ -68,6 +68,12 @@
 
 #define MAX_RESTARTS 16
 
+#ifdef TUNE_LARGE
+#define RESOLVER_NTASKS 523
+#else
+#define RESOLVER_NTASKS 31
+#endif /* TUNE_LARGE */
+
 /*%
  * DNS client object
  */
@@ -509,9 +515,9 @@ dns_client_createx2(isc_mem_t *mctx, isc_appctx_t *actx,
 	}
 
 	/* Create the default view for class IN */
-	result = createview(mctx, dns_rdataclass_in, options, taskmgr, 31,
-			    socketmgr, timermgr, dispatchmgr,
-			    dispatchv4, dispatchv6, &view);
+	result = createview(mctx, dns_rdataclass_in, options, taskmgr,
+			    RESOLVER_NTASKS, socketmgr, timermgr,
+			    dispatchmgr, dispatchv4, dispatchv6, &view);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	ISC_LIST_INIT(client->viewlist);

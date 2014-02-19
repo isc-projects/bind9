@@ -491,6 +491,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
+/* Define to use large-system tuning. */
+#undef TUNE_LARGE
+
 /* Defined if you need to use ioctl(FIONBIO) instead a fcntl call to make
    non-blocking. */
 #undef USE_FIONBIO_IOCTL

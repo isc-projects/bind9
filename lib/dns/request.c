@@ -619,7 +619,7 @@ find_udp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 				    requestmgr->socketmgr,
 				    requestmgr->taskmgr,
 				    srcaddr, 4096,
-				    1000, 32768, 16411, 16433,
+				    32768, 32768, 16411, 16433,
 				    attrs, attrmask,
 				    dispatchp));
 }

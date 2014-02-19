@@ -3740,6 +3740,29 @@ AC_CHECK_HEADERS(locale.h)
 AC_CHECK_FUNCS(setlocale)
 
 #
+# was --with-tuning specified?
+#
+AC_ARG_WITH(tuning,
+	[  --with-tuning=ARG       Specify server tuning (large or default)],
+	use_tuning="$withval", use_tuning="no")
+
+case "$use_tuning" in
+	large)
+		if ! $use_threads; then
+			AC_MSG_ERROR([Large-system tuning requires threads.])
+		fi
+                AC_DEFINE(TUNE_LARGE, 1, [Define to use large-system tuning.])
+		AC_MSG_RESULT(using large-system tuning)
+		;;
+	no|default)
+		AC_MSG_RESULT(using default tuning)
+		;;
+	yes|*)
+                AC_MSG_ERROR([You must specify "large" or "default" for --with-tuning.])
+		;;
+esac
+
+#
 # Substitutions
 #
 AC_SUBST(BIND9_TOP_BUILDDIR)
@@ -4289,6 +4312,7 @@ echo "Configuration summary:"
 echo "------------------------------------------------------------------------"
 echo "Optional features enabled:"
 $use_threads && echo "    Multiprocessing support (--enable-threads)"
+test "$use_tuning" = "large" && echo "    Large-system tuning (--with-tuning)"
 test "$use_geoip" = "no" || echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
 if test "$enable_sit" != "no"; then
@@ -4357,6 +4381,7 @@ echo "Features disabled or unavailable on this platform:"
 $use_threads || echo "    Multiprocessing support (--enable-threads)"
 test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
 	echo "    IPv6 support (--enable-ipv6)"
+test "$use_tuning" = "large" || echo "    Large-system tuning (--with-tuning)"
 
 test "$use_geoip" = "no" && echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
