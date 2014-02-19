@@ -1564,6 +1564,7 @@ compute_sit(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 	isc_hmacsha1_t hmacsha1;
 
 	cp = isc_buffer_used(buf);
+	isc_buffer_putmem(buf, client->cookie, 8);
 	isc_buffer_putuint32(buf, nonce);
 	isc_buffer_putuint32(buf, when);
 
@@ -1594,6 +1595,7 @@ compute_sit(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 	isc_hmacsha256_t hmacsha256;
 
 	cp = isc_buffer_used(buf);
+	isc_buffer_putmem(buf, client->cookie, 8);
 	isc_buffer_putuint32(buf, nonce);
 	isc_buffer_putuint32(buf, when);
 
