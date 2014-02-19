@@ -68,4 +68,29 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking with max ttl (text) ($n)"
+ret=0
+$CHECKZONE -l 300 example zones/good1.db > test.out1.$n 2>&1 && ret=1
+$CHECKZONE -l 600 example zones/good1.db > test.out2.$n 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking with max ttl (raw) ($n)"
+ret=0
+$CHECKZONE -f raw -l 300 example good1.db.raw > test.out1.$n 2>&1 && ret=1
+$CHECKZONE -f raw -l 600 example good1.db.raw > test.out2.$n 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking with max ttl (map) ($n)"
+ret=0
+$CHECKZONE -f map -l 300 example good1.db.map > test.out1.$n 2>&1 && ret=1
+$CHECKZONE -f map -l 600 example good1.db.map > test.out2.$n 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:exit status: $status"
 exit $status

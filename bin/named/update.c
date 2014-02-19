@@ -2434,7 +2434,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	update_event_t *uev = (update_event_t *) event;
 	dns_zone_t *zone = uev->zone;
 	ns_client_t *client = (ns_client_t *)event->ev_arg;
-
 	isc_result_t result;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *oldver = NULL;
@@ -2450,11 +2449,12 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_ssutable_t *ssutable = NULL;
 	dns_fixedname_t tmpnamefixed;
 	dns_name_t *tmpname = NULL;
-	unsigned int options;
+	unsigned int options, options2;
 	dns_difftuple_t *tuple;
 	dns_rdata_dnskey_t dnskey;
 	isc_boolean_t had_dnskey;
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
+	dns_ttl_t maxttl = 0;
 
 	INSIST(event->ev_type == DNS_EVENT_UPDATE);
 
@@ -2730,6 +2730,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 */
 
 	options = dns_zone_getoptions(zone);
+	options2 = dns_zone_getoptions2(zone);
 	for (result = dns_message_firstname(request, DNS_SECTION_UPDATE);
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(request, DNS_SECTION_UPDATE))
@@ -2853,6 +2854,18 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				update_log(client, zone, LOGLEVEL_PROTOCOL,
 					   "warning: ownername '%s' contains "
 					   "a non-terminal wildcard", namestr);
+			}
+
+			if ((options2 & DNS_ZONEOPT2_CHECKTTL) != 0) {
+				maxttl = dns_zone_getmaxttl(zone);
+				if (ttl > maxttl) {
+					ttl = maxttl;
+					update_log(client, zone,
+						   LOGLEVEL_PROTOCOL,
+						   "reducing TTL to the "
+						   "configured max-zone-ttl %d",
+						   maxttl);
+				}
 			}
 
 			if (isc_log_wouldlog(ns_g_lctx, LOGLEVEL_PROTOCOL)) {

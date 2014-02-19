@@ -198,6 +198,7 @@ configure_zone(const char *vclass, const char *view,
 	const cfg_obj_t *obj = NULL;
 	const cfg_obj_t *fmtobj = NULL;
 	dns_masterformat_t masterformat;
+	dns_ttl_t maxttl = 0;
 
 	zone_options = DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_MANYERRORS;
 
@@ -373,11 +374,20 @@ configure_zone(const char *vclass, const char *view,
 			masterformat = dns_masterformat_text;
 		else if (strcasecmp(masterformatstr, "raw") == 0)
 			masterformat = dns_masterformat_raw;
+		else if (strcasecmp(masterformatstr, "map") == 0)
+			masterformat = dns_masterformat_map;
 		else
 			INSIST(0);
 	}
 
-	result = load_zone(mctx, zname, zfile, masterformat, zclass, NULL);
+	obj = NULL;
+	if (get_maps(maps, "max-zone-ttl", &obj)) {
+		maxttl = cfg_obj_asuint32(obj);
+		zone_options2 |= DNS_ZONEOPT2_CHECKTTL;
+	}
+
+	result = load_zone(mctx, zname, zfile, masterformat,
+			   zclass, maxttl, NULL);
 	if (result != ISC_R_SUCCESS)
 		fprintf(stderr, "%s/%s/%s: %s\n", view, zname, zclass,
 			dns_result_totext(result));

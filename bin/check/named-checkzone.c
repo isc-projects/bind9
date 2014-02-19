@@ -115,6 +115,7 @@ main(int argc, char **argv) {
 	dns_masterformat_t outputformat = dns_masterformat_text;
 	dns_masterrawheader_t header;
 	isc_uint32_t rawversion = 1, serialnum = 0;
+	dns_ttl_t maxttl = 0;
 	isc_boolean_t snset = ISC_FALSE;
 	isc_boolean_t logdump = ISC_FALSE;
 	FILE *errout = stdout;
@@ -169,7 +170,7 @@ main(int argc, char **argv) {
 	isc_commandline_errprint = ISC_FALSE;
 
 	while ((c = isc_commandline_parse(argc, argv,
-			       "c:df:hi:jJ:k:L:m:n:qr:s:t:o:vw:DF:M:S:T:W:"))
+			       "c:df:hi:jJ:k:L:l:m:n:qr:s:t:o:vw:DF:M:S:T:W:"))
 	       != EOF) {
 		switch (c) {
 		case 'c':
@@ -262,6 +263,18 @@ main(int argc, char **argv) {
 				exit(1);
 			}
 			break;
+
+		case 'l':
+			zone_options2 |= DNS_ZONEOPT2_CHECKTTL;
+			endp = NULL;
+			maxttl = strtol(isc_commandline_argument, &endp, 0);
+			if (*endp != '\0') {
+				fprintf(stderr, "maximum TTL "
+						"must be numeric");
+				exit(1);
+			}
+			break;
+
 
 		case 'n':
 			if (ARGCMP("ignore")) {
@@ -523,7 +536,7 @@ main(int argc, char **argv) {
 	origin = argv[isc_commandline_index++];
 	filename = argv[isc_commandline_index++];
 	result = load_zone(mctx, origin, filename, inputformat, classname,
-			   &zone);
+			   maxttl, &zone);
 
 	if (snset) {
 		dns_master_initrawheader(&header);

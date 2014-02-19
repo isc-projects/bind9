@@ -1431,6 +1431,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	isc_boolean_t root = ISC_FALSE;
 	const cfg_listelt_t *element;
 	isc_boolean_t dlz;
+	dns_masterformat_t masterformat;
 
 	static optionstable options[] = {
 	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE | REDIRECTZONE |
@@ -1460,6 +1461,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "min-retry-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "max-refresh-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "min-refresh-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
+	{ "max-zone-ttl", MASTERZONE | REDIRECTZONE },
 	{ "dnssec-secure-to-insecure", MASTERZONE },
 	{ "sig-re-signing-interval", MASTERZONE | SLAVEZONE },
 	{ "sig-signing-nodes", MASTERZONE | SLAVEZONE },
@@ -1858,12 +1860,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	if (root) {
 		if (voptions != NULL)
 			(void)cfg_map_get(voptions, "forwarders", &obj);
-		if (obj == NULL) {
-			const cfg_obj_t *options = NULL;
-			(void)cfg_map_get(config, "options", &options);
-			if (options != NULL)
-				(void)cfg_map_get(options, "forwarders", &obj);
-		}
+		if (obj == NULL && goptions != NULL)
+			(void)cfg_map_get(goptions, "forwarders", &obj);
 	}
 	if (check_forward(zoptions, obj, logctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
@@ -1937,6 +1935,41 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 					    snamestr, znamestr);
 				result = ISC_R_FAILURE;
 			}
+		}
+	}
+
+
+	/*
+	 * Check that max-zone-ttl isn't used with masterfile-format map
+	 */
+	masterformat = dns_masterformat_text;
+	obj = NULL;
+	(void)cfg_map_get(zoptions, "masterfile-format", &obj);
+	if (obj != NULL) {
+		const char *masterformatstr = cfg_obj_asstring(obj);
+		if (strcasecmp(masterformatstr, "text") == 0)
+			masterformat = dns_masterformat_text;
+		else if (strcasecmp(masterformatstr, "raw") == 0)
+			masterformat = dns_masterformat_raw;
+		else if (strcasecmp(masterformatstr, "map") == 0)
+			masterformat = dns_masterformat_map;
+		else
+			INSIST(0);
+	}
+
+	if (masterformat == dns_masterformat_map) {
+		obj = NULL;
+		(void)cfg_map_get(zoptions, "max-zone-ttl", &obj);
+		if (obj == NULL && voptions != NULL)
+			(void)cfg_map_get(voptions, "max-zone-ttl", &obj);
+		if (obj == NULL && goptions !=NULL)
+			(void)cfg_map_get(goptions, "max-zone-ttl", &obj);
+		if (obj != NULL) {
+			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+				    "zone '%s': 'max-zone-ttl' is not "
+				    "compatible with 'masterfile-format map'",
+				    znamestr);
+			result = ISC_R_FAILURE;
 		}
 	}
 

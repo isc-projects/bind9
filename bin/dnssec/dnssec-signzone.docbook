@@ -74,6 +74,7 @@
       <arg><option>-k <replaceable class="parameter">key</replaceable></option></arg>
       <arg><option>-L <replaceable class="parameter">serial</replaceable></option></arg>
       <arg><option>-l <replaceable class="parameter">domain</replaceable></option></arg>
+      <arg><option>-M <replaceable class="parameter">domain</replaceable></option></arg>
       <arg><option>-i <replaceable class="parameter">interval</replaceable></option></arg>
       <arg><option>-I <replaceable class="parameter">input-format</replaceable></option></arg>
       <arg><option>-j <replaceable class="parameter">jitter</replaceable></option></arg>
@@ -231,6 +232,26 @@
           <para>
             Generate a DLV set in addition to the key (DNSKEY) and DS sets.
             The domain is appended to the name of the records.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-M <replaceable class="parameter">maxttl</replaceable></term>
+        <listitem>
+          <para>
+            Sets the maximum TTL for the signed zone.
+            Any TTL higher than <replaceable>maxttl</replaceable> in the
+            input zone will be reduced to <replaceable>maxttl</replaceable>
+            in the output. This provides certainty as to the largest
+            possible TTL in the signed zone, which is useful to know when
+            rolling keys because it is the longest possible time before
+            signatures that have been retrieved by resolvers will expire
+            from resolver caches.  Zones that are signed with this
+            option should be configured to use a matching
+            <option>max-zone-ttl</option> in <filename>named.conf</filename>.
+            (Note: This option is incompatible with <option>-D</option>,
+            because it modifies non-DNSSEC data in the output zone.)
           </para>
         </listitem>
       </varlistentry>

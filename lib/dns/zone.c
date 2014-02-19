@@ -227,6 +227,7 @@ struct dns_zone {
 	dns_zonetype_t		type;
 	unsigned int		flags;
 	unsigned int		options;
+	unsigned int		options2;
 	unsigned int		db_argc;
 	char			**db_argv;
 	isc_time_t		expiretime;
@@ -395,6 +396,12 @@ struct dns_zone {
 
 	isc_boolean_t		sourceserialset;
 	isc_uint32_t		sourceserial;
+	
+	/*%
+	 * maximum zone ttl
+	 */
+	dns_ttl_t		maxttl;
+	
 };
 
 typedef struct {
@@ -460,6 +467,7 @@ typedef struct {
 #define DNS_ZONEFLG_SENDSECURE  0x40000000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
+#define DNS_ZONE_OPTION2(z,o) (((z)->options2 & (o)) != 0)
 #define DNS_ZONEKEY_OPTION(z,o) (((z)->keyopts & (o)) != 0)
 
 /* Flags for zone_load() */
@@ -909,6 +917,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->mastersok = NULL;
 	zone->masterscnt = 0;
 	zone->curmaster = 0;
+	zone->maxttl = 0;
 	zone->notify = NULL;
 	zone->notifykeynames = NULL;
 	zone->notifydscp = NULL;
@@ -1516,6 +1525,28 @@ dns_zone_getfile(dns_zone_t *zone) {
 	return (zone->masterfile);
 }
 
+dns_ttl_t
+dns_zone_getmaxttl(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->maxttl);
+}
+
+void
+dns_zone_setmaxttl(dns_zone_t *zone, dns_ttl_t maxttl) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	
+	LOCK_ZONE(zone);
+	if (maxttl != 0)
+		zone->options2 |= DNS_ZONEOPT2_CHECKTTL;
+	else
+		zone->options2 &= ~DNS_ZONEOPT2_CHECKTTL;
+	zone->maxttl = maxttl;
+	UNLOCK_ZONE(zone);
+
+	return;
+}
+
 static isc_result_t
 default_journal(dns_zone_t *zone) {
 	isc_result_t result;
@@ -2047,6 +2078,8 @@ get_master_options(dns_zone_t *zone) {
 		options |= DNS_MASTER_CHECKMXFAIL;
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKWILDCARD))
 		options |= DNS_MASTER_CHECKWILDCARD;
+	if (DNS_ZONE_OPTION2(zone, DNS_ZONEOPT2_CHECKTTL))
+		options |= DNS_MASTER_CHECKTTL;
 	return (options);
 }
 
@@ -2103,7 +2136,7 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 
 	options = get_master_options(load->zone);
 
-	result = dns_master_loadfileinc4(load->zone->masterfile,
+	result = dns_master_loadfileinc5(load->zone->masterfile,
 					 dns_db_origin(load->db),
 					 dns_db_origin(load->db),
 					 load->zone->rdclass, options, 0,
@@ -2112,7 +2145,8 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 					 &load->zone->lctx,
 					 zone_registerinclude,
 					 load->zone, load->zone->mctx,
-					 load->zone->masterformat);
+					 load->zone->masterformat,
+					 load->zone->maxttl);
 	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE &&
 	    result != DNS_R_SEENINCLUDE)
 		goto fail;
@@ -2268,13 +2302,14 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			zone_idetach(&callbacks.zone);
 			return (result);
 		}
-		result = dns_master_loadfile4(zone->masterfile,
+		result = dns_master_loadfile5(zone->masterfile,
 					      &zone->origin, &zone->origin,
 					      zone->rdclass, options, 0,
 					      &callbacks,
 					      zone_registerinclude,
 					      zone, zone->mctx,
-					      zone->masterformat);
+					      zone->masterformat,
+					      zone->maxttl);
 		tresult = dns_db_endload(db, &callbacks);
 		if (result == ISC_R_SUCCESS)
 			result = tresult;
@@ -4986,7 +5021,8 @@ dns_zone_setflag(dns_zone_t *zone, unsigned int flags, isc_boolean_t value) {
 }
 
 void
-dns_zone_setoption(dns_zone_t *zone, unsigned int option, isc_boolean_t value)
+dns_zone_setoption(dns_zone_t *zone, unsigned int option,
+		   isc_boolean_t value)
 {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -4998,12 +5034,32 @@ dns_zone_setoption(dns_zone_t *zone, unsigned int option, isc_boolean_t value)
 	UNLOCK_ZONE(zone);
 }
 
+void
+dns_zone_setoption2(dns_zone_t *zone, unsigned int option,
+		    isc_boolean_t value)
+{
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (value)
+		zone->options2 |= option;
+	else
+		zone->options2 &= ~option;
+	UNLOCK_ZONE(zone);
+}
+
 unsigned int
 dns_zone_getoptions(dns_zone_t *zone) {
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->options);
+}
+
+unsigned int
+dns_zone_getoptions2(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->options2);
 }
 
 void

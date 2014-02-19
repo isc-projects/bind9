@@ -114,6 +114,9 @@ struct dns_loadctx {
 					    const char *filename);
 	isc_result_t		(*load)(dns_loadctx_t *lctx);
 
+	/* Members used by all formats */
+	isc_uint32_t		maxttl;
+
 	/* Members specific to the text format: */
 	isc_lex_t		*lex;
 	isc_boolean_t		keep_lex;
@@ -556,6 +559,8 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_ctx;
 
+	lctx->maxttl = 0;
+	
 	lctx->format = format;
 	switch (format) {
 	default:
@@ -1605,8 +1610,9 @@ load_text(dns_loadctx_t *lctx) {
 			GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 
 		explicit_ttl = ISC_FALSE;
-		if (dns_ttl_fromtext(&token.value.as_textregion, &lctx->ttl)
-				== ISC_R_SUCCESS) {
+		result = dns_ttl_fromtext(&token.value.as_textregion,
+					  &lctx->ttl);
+		if (result == ISC_R_SUCCESS) {
 			limit_ttl(callbacks, source, line, &lctx->ttl);
 			explicit_ttl = ISC_TRUE;
 			lctx->ttl_known = ISC_TRUE;
@@ -1951,6 +1957,17 @@ load_text(dns_loadctx_t *lctx) {
 					   "TTL set to prior TTL (%lu)",
 					   source, line, this->ttl);
 			lctx->ttl = this->ttl;
+		}
+
+		if ((lctx->options & DNS_MASTER_CHECKTTL) != 0 &&
+		    lctx->ttl > lctx->maxttl)
+		{
+			(callbacks->error)(callbacks,
+				   "dns_master_load: %s:%lu: "
+				   "TTL %d exceeds configured max-zone-ttl %d",
+				   source, line, lctx->ttl, lctx->maxttl);
+			result = ISC_R_RANGE;
+			goto log_and_cleanup;
 		}
 
 		ISC_LIST_APPEND(this->rdata, &rdata[rdcount], link);
@@ -2381,6 +2398,18 @@ load_raw(dns_loadctx_t *lctx) {
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 
+		if ((lctx->options & DNS_MASTER_CHECKTTL) != 0 &&
+		    rdatalist.ttl > lctx->maxttl)
+		{
+			(callbacks->error)(callbacks,
+					   "dns_master_load: "
+					   "TTL %d exceeds configured "
+					   "max-zone-ttl %d", 
+					   rdatalist.ttl, lctx->maxttl);
+			result = ISC_R_RANGE;
+			goto cleanup;
+		}
+
 		/* Rdata contents. */
 		if (rdcount > rdata_size) {
 			dns_rdata_t *new_rdata = NULL;
@@ -2510,9 +2539,9 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 		    dns_rdataclass_t zclass, unsigned int options,
 		    dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
-	return (dns_master_loadfile4(master_file, top, origin, zclass, options,
-				     0, callbacks, NULL, NULL, mctx,
-				     dns_masterformat_text));
+	return (dns_master_loadfile5(master_file, top, origin, zclass,
+				     options, 0, callbacks, NULL, NULL,
+				     mctx, dns_masterformat_text, 0));
 }
 
 isc_result_t
@@ -2522,8 +2551,9 @@ dns_master_loadfile2(const char *master_file, dns_name_t *top,
 		     dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx,
 		     dns_masterformat_t format)
 {
-	return (dns_master_loadfile4(master_file, top, origin, zclass, options,
-				     0, callbacks, NULL, NULL, mctx, format));
+	return (dns_master_loadfile5(master_file, top, origin, zclass,
+				     options, 0, callbacks, NULL, NULL,
+				     mctx, format, 0));
 }
 
 isc_result_t
@@ -2533,9 +2563,9 @@ dns_master_loadfile3(const char *master_file, dns_name_t *top,
 		     dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx,
 		     dns_masterformat_t format)
 {
-	return (dns_master_loadfile4(master_file, top, origin, zclass, options,
-				     resign, callbacks, NULL, NULL, mctx,
-				     format));
+	return (dns_master_loadfile5(master_file, top, origin, zclass,
+				     options, resign, callbacks, NULL, NULL,
+				     mctx, format, 0));
 }
 
 isc_result_t
@@ -2546,6 +2576,21 @@ dns_master_loadfile4(const char *master_file, dns_name_t *top,
 		     dns_masterincludecb_t include_cb, void *include_arg,
 		     isc_mem_t *mctx, dns_masterformat_t format)
 {
+	return (dns_master_loadfile5(master_file, top, origin, zclass,
+				     options, resign, callbacks,
+				     include_cb, include_arg,
+				     mctx, format, 0));
+}
+
+isc_result_t
+dns_master_loadfile5(const char *master_file, dns_name_t *top,
+		     dns_name_t *origin, dns_rdataclass_t zclass,
+		     unsigned int options, isc_uint32_t resign,
+		     dns_rdatacallbacks_t *callbacks,
+		     dns_masterincludecb_t include_cb, void *include_arg,
+		     isc_mem_t *mctx, dns_masterformat_t format,
+		     dns_ttl_t maxttl)
+{
 	dns_loadctx_t *lctx = NULL;
 	isc_result_t result;
 
@@ -2554,6 +2599,8 @@ dns_master_loadfile4(const char *master_file, dns_name_t *top,
 				include_cb, include_arg, NULL, &lctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+
+	lctx->maxttl = maxttl;
 
 	result = (lctx->openfile)(lctx, master_file);
 	if (result != ISC_R_SUCCESS)
@@ -2619,6 +2666,24 @@ dns_master_loadfileinc4(const char *master_file, dns_name_t *top,
 			dns_masterincludecb_t include_cb, void *include_arg,
 			isc_mem_t *mctx, dns_masterformat_t format)
 {
+	options &= ~DNS_MASTER_CHECKTTL;
+	return (dns_master_loadfileinc5(master_file, top, origin, zclass,
+					options, resign, callbacks, task,
+					done, done_arg, lctxp, include_cb, 
+					include_arg, mctx, format, 0));
+}
+
+isc_result_t
+dns_master_loadfileinc5(const char *master_file, dns_name_t *top,
+			dns_name_t *origin, dns_rdataclass_t zclass,
+			unsigned int options, isc_uint32_t resign,
+			dns_rdatacallbacks_t *callbacks,
+			isc_task_t *task, dns_loaddonefunc_t done,
+			void *done_arg, dns_loadctx_t **lctxp,
+			dns_masterincludecb_t include_cb, void *include_arg,
+			isc_mem_t *mctx, dns_masterformat_t format, 
+			isc_uint32_t maxttl)
+{
 	dns_loadctx_t *lctx = NULL;
 	isc_result_t result;
 
@@ -2630,6 +2695,8 @@ dns_master_loadfileinc4(const char *master_file, dns_name_t *top,
 				include_cb, include_arg, NULL, &lctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+
+	lctx->maxttl = maxttl;
 
 	result = (lctx->openfile)(lctx, master_file);
 	if (result != ISC_R_SUCCESS)

@@ -74,6 +74,7 @@
       <arg><option>-m <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-M <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">mode</replaceable></option></arg>
+      <arg><option>-l <replaceable class="parameter">ttl</replaceable></option></arg>
       <arg><option>-L <replaceable class="parameter">serial</replaceable></option></arg>
       <arg><option>-o <replaceable class="parameter">filename</replaceable></option></arg>
       <arg><option>-r <replaceable class="parameter">mode</replaceable></option></arg>
@@ -102,6 +103,7 @@
       <arg><option>-k <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-m <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">mode</replaceable></option></arg>
+      <arg><option>-l <replaceable class="parameter">ttl</replaceable></option></arg>
       <arg><option>-L <replaceable class="parameter">serial</replaceable></option></arg>
       <arg><option>-r <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-s <replaceable class="parameter">style</replaceable></option></arg>
@@ -297,6 +299,19 @@
             <command>"warn"</command>
 	    (default for <command>named-checkzone</command>) and
             <command>"ignore"</command>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-l <replaceable class="parameter">ttl</replaceable></term>
+        <listitem>
+          <para>
+            Sets a maximum permissible TTL for the input file.
+            Any record with a TTL higher than this value will cause
+            the zone to be rejected.  This is similar to using the
+            <command>max-zone-ttl</command> option in
+            <filename>named.conf</filename>.
           </para>
         </listitem>
       </varlistentry>

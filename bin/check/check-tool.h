@@ -37,7 +37,7 @@ setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp);
 isc_result_t
 load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	  dns_masterformat_t fileformat, const char *classname,
-	  dns_zone_t **zonep);
+	  dns_ttl_t maxttl, dns_zone_t **zonep);
 
 isc_result_t
 dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
@@ -56,6 +56,7 @@ extern isc_boolean_t docheckmx;
 extern isc_boolean_t docheckns;
 extern isc_boolean_t dochecksrv;
 extern unsigned int zone_options;
+extern unsigned int zone_options2;
 
 ISC_LANG_ENDDECLS
 

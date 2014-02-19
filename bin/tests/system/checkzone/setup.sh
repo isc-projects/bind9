@@ -1,6 +1,4 @@
-#!/bin/sh
-#
-# Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,5 +12,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-rm -f good.conf.in good.conf.out badzero.conf *.out
-rm -rf test.keydir
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+rm -f named-compilezone
+ln -s $CHECKZONE named-compilezone
+
+./named-compilezone -D -F raw -o good1.db.raw example \
+        zones/good1.db > /dev/null 2>&1
+./named-compilezone -D -F map -o good1.db.map example \
+        zones/good1.db > /dev/null 2>&1

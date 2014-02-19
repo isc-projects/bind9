@@ -163,6 +163,20 @@ n=`$CHECKCONF warn-keydir.conf 2>&1 | grep "key-directory" | wc -l`
 [ $n -eq 0 ] || ret=1
 rm -rf test.keydir
 if [ $ret != 0 ]; then echo "I:failed"; fi
+
+echo "I: checking that named-checkconf -z catches conflicting ttl with max-ttl"
+ret=0
+$CHECKCONF -z max-ttl.conf > check.out 2>&1
+grep 'TTL 900 exceeds configured max-zone-ttl 600' check.out > /dev/null 2>&1 || ret=1
+grep 'TTL 900 exceeds configured max-zone-ttl 600' check.out > /dev/null 2>&1 || ret=1
+grep 'TTL 900 exceeds configured max-zone-ttl 600' check.out > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo "I: checking that named-checkconf -z catches invalid max-ttl"
+ret=0
+$CHECKCONF -z max-ttl-bad.conf > /dev/null 2>&1 && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
 echo "I:exit status: $status"

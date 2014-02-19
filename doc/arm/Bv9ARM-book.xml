@@ -4879,6 +4879,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> lame-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-ncache-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-cache-ttl <replaceable>number</replaceable>; </optional>
+    <optional> max-zone-ttl <replaceable>number</replaceable> ; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> <optional><replaceable>number</replaceable></optional> ; </optional>
     <optional> sig-signing-nodes <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-signatures <replaceable>number</replaceable> ; </optional>
@@ -5693,6 +5694,34 @@ options {
 	  </varlistentry>
 
 	  <varlistentry>
+            <term><command>max-zone-ttl</command></term>
+            <listitem>
+              <para>
+                Specifies a maximum permissible TTL value.
+                When loading a zone file using a
+                <option>masterfile-format</option> of
+                <constant>text</constant> or <constant>raw</constant>,
+                any record encountered with a TTL higher than
+                <option>max-zone-ttl</option> will cause the zone to
+                be rejected.
+              </para>
+              <para>
+                This is useful in DNSSEC-signed zones because when
+                rolling to a new DNSKEY, the old key needs to remain
+                available until RRSIG records have expired from
+                caches.  The<option>max-zone-ttl</option> option guarantees
+                that the largest TTL in the zone will be no higher
+                the set value.
+              </para>
+              <para>
+                (NOTE: Because <constant>map</constant>-format files
+                load directly into memory, this option cannot be
+                used with them.)
+              </para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
 	    <term><command>zone-statistics</command></term>
 	    <listitem>
 	      <para>
@@ -10966,6 +10995,7 @@ view "external" {
     <optional> inline-signing <replaceable>yes_or_no</replaceable>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> serial-update-method <constant>increment</constant>|<constant>unixtime</constant>; </optional>
+    <optional> max-zone-ttl <replaceable>number</replaceable> ; </optional>
 };
 
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
@@ -11097,6 +11127,7 @@ zone <replaceable>"."</replaceable> <optional><replaceable>class</replaceable></
     file <replaceable>string</replaceable> ;
     <optional> masterfile-format (<constant>text</constant>|<constant>raw</constant>|<constant>map</constant>) ; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> max-zone-ttl <replaceable>number</replaceable> ; </optional>
 };
 
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
@@ -12220,6 +12251,16 @@ example.com. NS ns2.example.net.
 		  <para>
 		    See the description of <command>masterfile-format</command>
 		    in <xref linkend="tuning"/>.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>max-zone-ttl</command></term>
+		<listitem>
+		  <para>
+		    See the description of <command>max-zone-ttl</command>
+		    in <xref linkend="options"/>.
 		  </para>
 		</listitem>
 	      </varlistentry>

@@ -1,3 +1,10 @@
+3746.	[func]		New "max-zone-ttl" option enforces maximum
+			TTLs for zones. If loading a zone containing a
+			higher TTL, the load fails. DDNS updates with
+			higher TTLs are accepted but the TTL is truncated. 
+			(Note: Currently supported for master zones only;
+			inline-signing slaves will be added.) [RT #38405]
+
 3745.	[func]		"configure --with-tuning=large" adjusts various
 			compiled-in constants and default settings to
 			values suited to large servers with abundant

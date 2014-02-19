@@ -89,6 +89,12 @@ typedef enum {
 #define DNS_ZONEOPT_CHECKDUPRRFAIL 0x40000000U	/*%< fatal check-dup-records failures */
 #define DNS_ZONEOPT_CHECKSPF	  0x80000000U	/*%< check SPF records */
 
+/*
+ * The following zone options are shifted left into the
+ * higher-order 32 bits of the options.
+ */
+#define DNS_ZONEOPT2_CHECKTTL	  0x00000001	/*%< check max-zone-ttl */
+
 #ifndef NOMINUM_PUBLIC
 /*
  * Nominum specific options build down.
@@ -287,6 +293,30 @@ dns_zone_getfile(dns_zone_t *zone);
  *
  * Returns:
  *\li	Pointer to null-terminated file name, or NULL.
+ */
+
+void
+dns_zone_setmaxttl(dns_zone_t *zone, isc_uint32_t maxttl);
+/*%<
+ * 	Sets the max ttl of the zone.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *\li	void
+ */
+
+dns_ttl_t
+dns_zone_getmaxttl(dns_zone_t *zone);
+/*%<
+ * 	Gets the max ttl of the zone.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *\li	isc_uint32_t maxttl.
  */
 
 isc_result_t
@@ -630,10 +660,19 @@ dns_zone_unload(dns_zone_t *zone);
  */
 
 void
-dns_zone_setoption(dns_zone_t *zone, unsigned int option, isc_boolean_t value);
+dns_zone_setoption(dns_zone_t *zone, unsigned int option,
+		   isc_boolean_t value);
+void
+dns_zone_setoption2(dns_zone_t *zone, unsigned int option,
+		    isc_boolean_t value);
 /*%<
- *	Set given options on ('value' == ISC_TRUE) or off ('value' ==
- *	#ISC_FALSE).
+ *	Set the given options on ('value' == ISC_TRUE) or off
+ *	('value' == #ISC_FALSE).
+ *
+ *	dns_zone_setoption2() has been introduced because the number
+ *	of options needed now exceeds the 32 bits in the zone->options
+ *	field; it should be used set options with names beginning
+ *	with DNS_ZONEOPT2_.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -641,8 +680,16 @@ dns_zone_setoption(dns_zone_t *zone, unsigned int option, isc_boolean_t value);
 
 unsigned int
 dns_zone_getoptions(dns_zone_t *zone);
+unsigned int
+dns_zone_getoptions2(dns_zone_t *zone);
 /*%<
  *	Returns the current zone options.
+ *
+ *	Callers should be aware there is now more than one set of zone
+ *	options.  dns_zone_getoptions2() has been introduced because the
+ *	number of options needed now exceeds the 32 bits in the
+ *	zone->options field. It returns the options whose names begin
+ *	with DNS_ZONEOPT2_.
  *
  * Require:
  *\li	'zone' to be a valid zone.

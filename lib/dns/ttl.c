@@ -142,14 +142,14 @@ dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl) {
 	isc_result_t result;
 
 	result = bind_ttl(source, ttl);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS && result != ISC_R_RANGE)
 		result = DNS_R_BADTTL;
 	return (result);
 }
 
 static isc_result_t
 bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
-	isc_uint32_t tmp = 0;
+	isc_uint64_t tmp = 0ULL;
 	isc_uint32_t n;
 	char *s;
 	char buf[64];
@@ -179,32 +179,32 @@ bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
 		switch (*s) {
 		case 'w':
 		case 'W':
-			tmp += n * 7 * 24 * 3600;
+			tmp += (isc_uint64_t) n * 7 * 24 * 3600;
 			s++;
 			break;
 		case 'd':
 		case 'D':
-			tmp += n * 24 * 3600;
+			tmp += (isc_uint64_t) n * 24 * 3600;
 			s++;
 			break;
 		case 'h':
 		case 'H':
-			tmp += n * 3600;
+			tmp += (isc_uint64_t) n * 3600;
 			s++;
 			break;
 		case 'm':
 		case 'M':
-			tmp += n * 60;
+			tmp += (isc_uint64_t) n * 60;
 			s++;
 			break;
 		case 's':
 		case 'S':
-			tmp += n;
+			tmp += (isc_uint64_t) n;
 			s++;
 			break;
 		case '\0':
 			/* Plain number? */
-			if (tmp != 0)
+			if (tmp != 0ULL)
 				return (DNS_R_SYNTAX);
 			tmp = n;
 			break;
@@ -212,6 +212,10 @@ bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
 			return (DNS_R_SYNTAX);
 		}
 	} while (*s != '\0');
-	*ttl = tmp;
+
+	if (tmp > 0xffffffffULL)
+		return (ISC_R_RANGE);
+
+	*ttl = (isc_uint32_t)(tmp & 0xffffffffUL);
 	return (ISC_R_SUCCESS);
 }

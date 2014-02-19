@@ -554,6 +554,23 @@ fi
 
 n=`expr $n + 1`
 ret=0
+echo "I:check that ttl is capped by max-ttl ($n)"
+$NSUPDATE <<END > /dev/null || ret=1
+server 10.53.0.1 5300
+update add cap.max-ttl.nil. 600 A 10.10.10.3
+update add nocap.max-ttl.nil. 150 A 10.10.10.3
+send
+END
+sleep 2
+$DIG @10.53.0.1 -p 5300  cap.max-ttl.nil | grep "^cap.max-ttl.nil.	300" > /dev/null 2>&1 || ret=1
+$DIG @10.53.0.1 -p 5300  nocap.max-ttl.nil | grep "^nocap.max-ttl.nil.	150" > /dev/null 2>&1 || ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
+fi
+
+n=`expr $n + 1`
+ret=0
 echo "I:add a record which is truncated when logged. ($n)"
 $NSUPDATE verylarge || ret=1
 $DIG +tcp @10.53.0.1 -p 5300 txt txt.update.nil > dig.out.ns1.test$n

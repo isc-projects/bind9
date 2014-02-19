@@ -58,6 +58,7 @@
 #define DNS_MASTER_RESIGN	0x00002000
 #define DNS_MASTER_KEY	 	0x00004000	/*%< Loading a key zone master file. */
 #define DNS_MASTER_NOTTL	0x00008000	/*%< Don't require ttl. */
+#define DNS_MASTER_CHECKTTL	0x00010000	/*%< Check max-zone-ttl */
 
 ISC_LANG_BEGINDECLS
 
@@ -160,6 +161,19 @@ dns_master_loadfile4(const char *master_file,
 		     dns_masterformat_t format);
 
 isc_result_t
+dns_master_loadfile5(const char *master_file,
+		     dns_name_t *top,
+		     dns_name_t *origin,
+		     dns_rdataclass_t zclass,
+		     unsigned int options,
+		     isc_uint32_t resign,
+		     dns_rdatacallbacks_t *callbacks,
+		     dns_masterincludecb_t include_cb,
+		     void *include_arg, isc_mem_t *mctx,
+		     dns_masterformat_t format,
+		     dns_ttl_t maxttl);
+
+isc_result_t
 dns_master_loadstream(FILE *stream,
 		      dns_name_t *top,
 		      dns_name_t *origin,
@@ -235,6 +249,21 @@ dns_master_loadfileinc4(const char *master_file,
 			dns_loadctx_t **ctxp,
 			dns_masterincludecb_t include_cb, void *include_arg,
 			isc_mem_t *mctx, dns_masterformat_t format);
+
+isc_result_t
+dns_master_loadfileinc5(const char *master_file,
+			dns_name_t *top,
+			dns_name_t *origin,
+			dns_rdataclass_t zclass,
+			unsigned int options,
+			isc_uint32_t resign,
+			dns_rdatacallbacks_t *callbacks,
+			isc_task_t *task,
+			dns_loaddonefunc_t done, void *done_arg,
+			dns_loadctx_t **ctxp,
+			dns_masterincludecb_t include_cb, void *include_arg,
+			isc_mem_t *mctx, dns_masterformat_t format, 
+			isc_uint32_t maxttl);
 
 isc_result_t
 dns_master_loadstreaminc(FILE *stream,

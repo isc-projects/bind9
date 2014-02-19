@@ -123,6 +123,10 @@ BIND 9.10.0
 	   OpenSSL as an intermediary.  This has been tested with the
 	   Thales nShield HSM and with SoftHSMv2 from the Open DNSSEC
 	   project.
+	 - The new "max-zone-ttl" option enforces maximum TTLs for
+	   zones. This can simplify the process of rolling DNSSEC keys
+	   by guaranteeing that cached signatures will have expired
+	   within the specified amount of time.
 	 - New "dnssec-coverage" tool to check DNSSEC key coverage
 	   for a zone and report if a lapse in signing coverage has
 	   been inadvertently scheduled.

@@ -1526,6 +1526,16 @@ awk '/IN *SOA/ {if (NF != 7) exit(1)}' signer/signer.out.4 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking TTLs are capped by dnssec-signzone -M ($n)"
+ret=0
+(
+cd signer
+$SIGNER -O full -f signer.out.8 -S -M 30 -o example example.db > /dev/null 2>&1
+) || ret=1
+awk '/^;/ { next; } $2 > 30 { exit 1; }' signer/signer.out.8 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking validated data are not cached longer than originalttl ($n)"
 ret=0
 $DIG $DIGOPTS +ttl +noauth a.ttlpatch.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1

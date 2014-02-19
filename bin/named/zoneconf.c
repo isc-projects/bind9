@@ -880,7 +880,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	} else
 		dns_zone_settype(zone, ztype);
 
-
 	obj = NULL;
 	result = cfg_map_get(zoptions, "database", &obj);
 	if (result == ISC_R_SUCCESS)
@@ -960,6 +959,21 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			masterformat = dns_masterformat_map;
 		else
 			INSIST(0);
+	}
+
+	obj = NULL;
+	result = ns_config_get(maps, "max-zone-ttl", &obj);
+	if (result == ISC_R_SUCCESS && masterformat == dns_masterformat_map) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "zone '%s': 'max-zone-ttl' is not compatible "
+			      "with 'masterfile-format map'", zname);
+		return (ISC_R_FAILURE);
+	} else if (result == ISC_R_SUCCESS) {
+		dns_ttl_t maxttl = cfg_obj_asuint32(obj);
+		dns_zone_setmaxttl(zone, maxttl);
+		if (raw != NULL)
+			dns_zone_setmaxttl(raw, maxttl);
 	}
 
 	if (raw != NULL && filename != NULL) {
