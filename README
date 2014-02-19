@@ -57,9 +57,20 @@ BIND 9.10.0
 	releases.  New features include:
 
 	 - DNS Response-rate limiting (DNS RRL), which blunts the
-	   impact of reflection and amplification attacks, is
-	   always compiled in and no longer requires a compile-time
-	   option to enable it.
+	   impact of reflection and amplification attacks, is always
+	   compiled in and no longer requires a compile-time option
+	   to enable it.
+	 - An experimental "Source Identity Token" (SIT) EDNS option
+	   is now available.  Similar to DNS Cookies as invented by
+	   Donald Eastlake 3rd, these are designed to enable clients
+	   to detect off-path spoofed responses, and to enable servers
+	   to detect spoofed-source queries.  Servers can be configured
+	   to send smaller responses to clients that have not identified
+	   themselves using a SIT option, reducing the effectiveness of
+	   amplification attacks.  RRL processing has also been updated;
+	   clients proven to be legitimate via SIT are not subject to
+	   rate limiting.  Use "configure --enable-sit" to enable this
+	   feature in BIND.
 	 - A new zone file format, "map", stores zone data in a
 	   format that can be mapped directly into memory, allowing
 	   significantly faster zone loading.
@@ -87,27 +98,31 @@ BIND 9.10.0
 	 - New "rpz-client-ip" triggers and drop policies allowing
 	   response policies based on the IP address of the client.
 	 - ACLs can now be specified based on geographic location
-	   using the MaxMind GeoIP databases.
+	   using the MaxMind GeoIP databases.  Use "configure
+	   --with-geoip" to enable.
 	 - Zone data can now be shared between views, allowing
 	   multiple views to serve the same zones authoritatively
 	   without storing multiple copies in memory.
 	 - New XML schema (version 3) for the statistics channel
 	   includes many new statistics and uses a flattened XML tree
-	   for faster parsing.
+	   for faster parsing. The older schema is now deprecated.
 	 - A new stylesheet, based on the Google Charts API, displays
 	   XML statistics in charts and graphs on javascript-enabled
 	   browsers.
 	 - The statistics channel can now provide data in JSON
 	   format as well as XML.
+	 - New stats counters track TCP and UDP queries on a
+	   per-zone basis.
 	 - The internal and export versions of the BIND libraries
 	   (libisc, libdns, etc) have been unified so that external
 	   library clients can use the same libraries as BIND itself.
-	 - A new compile-time option allows the BIND 9 cryptography
-	   functions to use the PKCS#11 API natively, so that BIND
-	   can drive a cryptographic hardware service module directly
-	   instead of using a modified OpenSSL as an intermediary.
-	   This has been tested with the Thales nShield HSM and with
-	   SoftHSMv2 from the Open DNSSEC project.
+	 - A new compile-time option, "configure --enable-native-pkcs11",
+	   allows BIND 9 cryptography functions to use the PKCS#11 API
+	   natively, so that BIND can drive a cryptographic hardware
+	   service module (HSM) directly instead of using a modified
+	   OpenSSL as an intermediary.  This has been tested with the
+	   Thales nShield HSM and with SoftHSMv2 from the Open DNSSEC
+	   project.
 	 - New "dnssec-coverage" tool to check DNSSEC key coverage
 	   for a zone and report if a lapse in signing coverage has
 	   been inadvertently scheduled.
