@@ -2076,7 +2076,7 @@ resquery_send(resquery_t *query) {
 			if (reqsit) {
 				INSIST(ednsopt < EDNSOPTS);
 				ednsopts[ednsopt].code = DNS_OPT_SIT;
-				ednsopts[ednsopt].length =
+				ednsopts[ednsopt].length = (isc_uint16_t)
 					dns_adb_getsit(fctx->adb,
 						       query->addrinfo,
 						       sit, sizeof(sit));

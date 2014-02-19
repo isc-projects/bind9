@@ -1644,7 +1644,7 @@ process_sit(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 			memcpy(client->cookie, isc_buffer_current(buf), 8);
 		else
 			memset(client->cookie, 0, 8);
-		isc_buffer_forward(buf, optlen);
+		isc_buffer_forward(buf, (unsigned int)optlen);
 
 		if (optlen == 8)
 			isc_stats_increment(ns_g_server->nsstats,

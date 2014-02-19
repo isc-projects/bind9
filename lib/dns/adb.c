@@ -4282,7 +4282,7 @@ dns_adb_setsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	if (addr->entry->sit == NULL && sit != NULL && len != 0U) {
 		addr->entry->sit = isc_mem_get(adb->mctx, len);
 		if (addr->entry->sit != NULL)
-			addr->entry->sitlen = len;
+			addr->entry->sitlen = (isc_uint16_t)len;
 	}
 
 	if (addr->entry->sit != NULL)

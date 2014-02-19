@@ -3167,7 +3167,7 @@ process_sit(dig_lookup_t *l, isc_buffer_t *optbuf, size_t optlen) {
 			printf(";; Warning: SIT client cookie part mis-match\n");
 	} else
 		printf(";; Warning: SIT bad token (too short)\n");
-	isc_buffer_forward(optbuf, optlen);
+	isc_buffer_forward(optbuf, (unsigned int)optlen);
 }
 
 static void
