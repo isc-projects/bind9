@@ -1,7 +1,7 @@
 3749.	[func]		"dig +subnet" sends an EDNS client subnet option
 			containing the specified address/prefix when
-                        querying. (Thanks to Wilmer van der Gaast.)
-                        [RT #35415]
+			querying. (Thanks to Wilmer van der Gaast.)
+			[RT #35415]
 
 3748.	[test]		Use delve to test dns_client interfaces. [RT #35383]
 
