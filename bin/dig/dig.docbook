@@ -936,6 +936,16 @@
           </listitem>
         </varlistentry>
 
+        <varlistentry>
+          <term><option>+[no]subnet=addr/prefix<option></term>
+          <listitem>
+            <para>
+	      Send an EDNS Client Subnet option with the speciifed
+              IP address or network prefix.
+            </para>
+          </listitem>
+        </varlistentry>
+
       </variablelist>
 
     </para>

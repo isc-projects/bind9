@@ -192,6 +192,7 @@ help(void) {
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
 "                 +ndots=###          (Set NDOTS value)\n"
+"                 +subnet=addr        (Set edns-client-subnet option)\n"
 "                 +[no]edns[=###]     (Set EDNS version) [0]\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]showsearch     (Search with intermediate results)\n"
@@ -1155,6 +1156,23 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		case 't': /* stats */
 			FULLCHECK("stats");
 			lookup->stats = state;
+			break;
+		case 'u': /* subnet */
+			FULLCHECK("subnet");
+			if (state && value == NULL)
+				goto need_value;
+			if (!state) {
+				if (lookup->ecs_addr != NULL) {
+					isc_mem_free(mctx, lookup->ecs_addr);
+					lookup->ecs_addr = NULL;
+				}
+				break;
+			}
+			if (lookup->edns == -1)
+				lookup->edns = 0;
+			result = parse_netprefix(&lookup->ecs_addr, value);
+			if (result != ISC_R_SUCCESS)
+				fatal("Couldn't parse client");
 			break;
 		default:
 			goto invalid_option;

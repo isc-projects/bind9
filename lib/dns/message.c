@@ -3191,6 +3191,43 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	return (result);
 }
 
+static isc_result_t
+render_ecs(isc_buffer_t *optbuf, isc_buffer_t *target) {
+	int i;
+	char addr[16], addr_text[64];
+	isc_uint16_t family;
+	isc_uint8_t addrlen, addrbytes, scopelen;
+
+	INSIST(isc_buffer_remaininglength(optbuf) >= 4);
+	family = isc_buffer_getuint16(optbuf);
+	addrlen = isc_buffer_getuint8(optbuf);
+	scopelen = isc_buffer_getuint8(optbuf);
+
+	addrbytes = (addrlen + 7) / 8;
+	INSIST(isc_buffer_remaininglength(optbuf) >= addrbytes);
+
+	memset(addr, 0, sizeof(addr));
+	for (i = 0; i < addrbytes; i ++)
+		addr[i] = isc_buffer_getuint8(optbuf);
+
+	if (family == 1)
+		inet_ntop(AF_INET, addr, addr_text, sizeof(addr_text));
+	else if (family == 2)
+		inet_ntop(AF_INET6, addr, addr_text, sizeof(addr_text));
+	else {
+		snprintf(addr_text, sizeof(addr_text),
+			 "Unsupported family %d",
+			 family);
+		ADD_STRING(target, addr_text);
+		return (ISC_R_SUCCESS);
+	}
+
+	ADD_STRING(target, addr_text);
+	sprintf(addr_text, "/%d/%d", addrlen, scopelen);
+	ADD_STRING(target, addr_text);
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 dns_message_pseudosectiontotext(dns_message_t *msg,
 				dns_pseudosection_t section,
@@ -3257,6 +3294,11 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				ADD_STRING(target, "; NSID");
 			} else if (optcode == DNS_OPT_SIT) {
 				ADD_STRING(target, "; SIT");
+			} else if (optcode == DNS_OPT_CLIENT_SUBNET) {
+				ADD_STRING(target, "; CLIENT-SUBNET: ");
+				render_ecs(&optbuf, target);
+				ADD_STRING(target, "\n");
+				break;
 			} else {
 				ADD_STRING(target, "; OPT=");
 				sprintf(buf, "%u", optcode);

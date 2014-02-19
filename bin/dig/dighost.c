@@ -78,14 +78,13 @@
 #include <isc/lang.h>
 #include <isc/log.h>
 #include <isc/netaddr.h>
-#ifdef DIG_SIGCHASE
 #include <isc/netdb.h>
-#endif
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/serial.h>
+#include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -807,6 +806,7 @@ make_empty_lookup(void) {
 	looknew->new_search = ISC_FALSE;
 	looknew->done_as_is = ISC_FALSE;
 	looknew->need_search = ISC_FALSE;
+	looknew->ecs_addr = NULL;
 #ifdef ISC_PLATFORM_USESIT
 	looknew->sitvalue = NULL;
 #endif
@@ -890,6 +890,12 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->tsigctx = NULL;
 	looknew->need_search = lookold->need_search;
 	looknew->done_as_is = lookold->done_as_is;
+
+	if (lookold->ecs_addr != NULL) {
+		size_t len = sizeof(isc_sockaddr_t);
+		looknew->ecs_addr = isc_mem_allocate(mctx, len);
+		memmove(looknew->ecs_addr, lookold->ecs_addr, len);
+	}
 
 	if (servers)
 		clone_server_list(lookold->my_server_list,
@@ -1003,6 +1009,65 @@ parse_bits(char *arg, const char *desc, isc_uint32_t max) {
 		fatal("couldn't parse digest bits");
 	tmp = (tmp + 7) & ~0x7U;
 	return (tmp);
+}
+
+isc_result_t
+parse_netprefix(isc_sockaddr_t **sap, const char *value) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_sockaddr_t *sa = NULL;
+	struct in_addr in4;
+	struct in6_addr in6;
+	isc_uint32_t netmask = 0;
+	char *slash = NULL;
+	isc_boolean_t parsed = ISC_FALSE;
+
+	if ((slash = strchr(value, '/'))) {
+		*slash = '\0';
+		result = isc_parse_uint32(&netmask, slash + 1, 10);
+		if (result != ISC_R_SUCCESS) {
+			*slash = '/';
+			fatal("invalid prefix length '%s': %s\n",
+			      value, isc_result_totext(result));
+		}
+	}
+
+	sa = isc_mem_allocate(mctx, sizeof(*sa));
+	if (inet_pton(AF_INET6, value, &in6) == 1) {
+		isc_sockaddr_fromin6(sa, &in6, 0);
+		parsed = ISC_TRUE;
+		if (netmask == 0 || netmask > 128)
+			netmask = 128;
+	} else if (inet_pton(AF_INET, value, &in4) == 1) {
+		parsed = ISC_TRUE;
+		isc_sockaddr_fromin(sa, &in4, 0);
+		if (netmask == 0 || netmask > 32)
+			netmask = 32;
+	} else if (netmask != 0) {
+		char buf[64];
+		int i;
+
+		strlcpy(buf, value, sizeof(buf));
+		for (i = 0; i < 3; i++) {
+			strlcat(buf, ".0", sizeof(buf));
+			if (inet_pton(AF_INET, buf, &in4) == 1) {
+				parsed = ISC_TRUE;
+				isc_sockaddr_fromin(sa, &in4, 0);
+				break;
+			}
+		}
+
+	}
+
+	if (slash != NULL)
+		*slash = '/';
+
+	if (!parsed)
+		fatal("invalid address '%s'", value);
+
+	sa->length = netmask;
+	*sap = sa;
+
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -1394,7 +1459,8 @@ setup_libs(void) {
 
 /*%
  * Add EDNS0 option record to a message.  Currently, the only supported
- * options are UDP buffer size, the DO bit, and NSID request.
+ * options are UDP buffer size, the DO bit, and EDNS options
+ * (e.g., NSID, SIT, client-subnet)
  */
 static void
 add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
@@ -1567,6 +1633,9 @@ destroy_lookup(dig_lookup_t *lookup) {
 
 	if (lookup->tsigctx != NULL)
 		dst_context_destroy(&lookup->tsigctx);
+
+	if (lookup->ecs_addr != NULL)
+		isc_mem_free(mctx, lookup->ecs_addr);
 
 	isc_mem_free(mctx, lookup);
 }
@@ -2022,6 +2091,10 @@ setup_lookup(dig_lookup_t *lookup) {
 	isc_buffer_t b;
 	dns_compress_t cctx;
 	char store[MXNAME];
+	char ecsbuf[20];
+#ifdef ISC_PLATFORM_USESIT
+	char sitbuf[256];
+#endif
 #ifdef WITH_IDN
 	idn_result_t mr;
 	char utf8_textname[MXNAME], utf8_origin[MXNAME], idn_textname[MXNAME];
@@ -2273,14 +2346,18 @@ setup_lookup(dig_lookup_t *lookup) {
 	result = dns_message_renderbegin(lookup->sendmsg, &cctx,
 					 &lookup->renderbuf);
 	check_result(result, "dns_message_renderbegin");
-	if (lookup->udpsize > 0 || lookup->dnssec || lookup->edns > -1) {
-#define EDNSOPTS 2
+	if (lookup->udpsize > 0 || lookup->dnssec ||
+	    lookup->edns > -1 || lookup->ecs_addr != NULL)
+	{
+#define EDNSOPTS 3
 		dns_ednsopt_t opts[EDNSOPTS];
 		int i = 0;
+
 		if (lookup->udpsize == 0)
 			lookup->udpsize = 4096;
 		if (lookup->edns < 0)
 			lookup->edns = 0;
+
 		if (lookup->nsid) {
 			INSIST(i < EDNSOPTS);
 			opts[i].code = DNS_OPT_NSID;
@@ -2288,15 +2365,56 @@ setup_lookup(dig_lookup_t *lookup) {
 			opts[i].value = NULL;
 			i++;
 		}
+
+		if (lookup->ecs_addr != NULL) {
+			isc_uint32_t prefixlen;
+			struct sockaddr *sa;
+			struct sockaddr_in *sin;
+			struct sockaddr_in6 *sin6;
+			size_t addrl;
+			isc_buffer_t b;
+
+			sa = &lookup->ecs_addr->type.sa;
+			prefixlen = lookup->ecs_addr->length;
+
+			/* Round up prefix len to a multiple of 8 */
+			addrl = (prefixlen + 7) / 8;
+
+			INSIST(i < EDNSOPTS);
+			opts[i].code = DNS_OPT_CLIENT_SUBNET;
+			opts[i].length = addrl + 4;
+			check_result(result, "isc_buffer_allocate");
+			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
+			if (sa->sa_family == AF_INET) {
+				sin = (struct sockaddr_in *) sa;
+				isc_buffer_putuint16(&b, 1);
+				isc_buffer_putuint8(&b, prefixlen);
+				isc_buffer_putuint8(&b, 0);
+				isc_buffer_putmem(&b,
+					  (isc_uint8_t *) &sin->sin_addr,
+					  addrl);
+			} else {
+				sin6 = (struct sockaddr_in6 *) sa;
+				isc_buffer_putuint16(&b, 2);
+				isc_buffer_putuint8(&b, prefixlen);
+				isc_buffer_putuint8(&b, 0);
+				isc_buffer_putmem(&b,
+					  (isc_uint8_t *) &sin6->sin6_addr,
+					  addrl);
+			}
+
+			opts[i].value = (isc_uint8_t *) ecsbuf;
+			i++;
+		}
+
 #ifdef ISC_PLATFORM_USESIT
 		if (lookup->sit) {
 			INSIST(i < EDNSOPTS);
 			opts[i].code = DNS_OPT_SIT;
 			if (lookup->sitvalue != NULL) {
-				char bb[256];
 				isc_buffer_t b;
 
-				isc_buffer_init(&b, bb, sizeof(bb));
+				isc_buffer_init(&b, sitbuf, sizeof(sitbuf));
 				result = isc_hex_decodestring(lookup->sitvalue,
 							      &b);
 				check_result(result, "isc_hex_decodestring");
@@ -2310,6 +2428,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			i++;
 		}
 #endif
+
 		add_opt(lookup->sendmsg, lookup->udpsize,
 			lookup->edns, lookup->dnssec, opts, i);
 	}
@@ -2377,6 +2496,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		ISC_LINK_INIT(query, link);
 		ISC_LIST_ENQUEUE(lookup->q, query, link);
 	}
+
 	/* XXX qrflag, print_query, etc... */
 	if (!ISC_LIST_EMPTY(lookup->q) && qr) {
 		extrabytes = 0;
