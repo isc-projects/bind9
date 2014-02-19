@@ -1,5 +1,5 @@
 3744.	[experimental]	SIT: send and process Source Identity Tokens
-			(similar to DNS Cookies by Donald Eastlake),
+			(similar to DNS Cookies by Donald Eastlake 3rd),
 			which are designed to help clients detect off-path
 			spoofed responses and for servers to identify
                         legitimate clients.
