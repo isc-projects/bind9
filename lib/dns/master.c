@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011-2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -560,7 +560,7 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		goto cleanup_ctx;
 
 	lctx->maxttl = 0;
-	
+
 	lctx->format = format;
 	switch (format) {
 	default:
@@ -2404,7 +2404,7 @@ load_raw(dns_loadctx_t *lctx) {
 			(callbacks->error)(callbacks,
 					   "dns_master_load: "
 					   "TTL %d exceeds configured "
-					   "max-zone-ttl %d", 
+					   "max-zone-ttl %d",
 					   rdatalist.ttl, lctx->maxttl);
 			result = ISC_R_RANGE;
 			goto cleanup;
@@ -2669,7 +2669,7 @@ dns_master_loadfileinc4(const char *master_file, dns_name_t *top,
 	options &= ~DNS_MASTER_CHECKTTL;
 	return (dns_master_loadfileinc5(master_file, top, origin, zclass,
 					options, resign, callbacks, task,
-					done, done_arg, lctxp, include_cb, 
+					done, done_arg, lctxp, include_cb,
 					include_arg, mctx, format, 0));
 }
 
@@ -2681,7 +2681,7 @@ dns_master_loadfileinc5(const char *master_file, dns_name_t *top,
 			isc_task_t *task, dns_loaddonefunc_t done,
 			void *done_arg, dns_loadctx_t **lctxp,
 			dns_masterincludecb_t include_cb, void *include_arg,
-			isc_mem_t *mctx, dns_masterformat_t format, 
+			isc_mem_t *mctx, dns_masterformat_t format,
 			isc_uint32_t maxttl)
 {
 	dns_loadctx_t *lctx = NULL;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011-2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -262,7 +262,7 @@ dns_master_loadfileinc5(const char *master_file,
 			dns_loaddonefunc_t done, void *done_arg,
 			dns_loadctx_t **ctxp,
 			dns_masterincludecb_t include_cb, void *include_arg,
-			isc_mem_t *mctx, dns_masterformat_t format, 
+			isc_mem_t *mctx, dns_masterformat_t format,
 			isc_uint32_t maxttl);
 
 isc_result_t

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -642,7 +642,7 @@ check_ttls(dns_zone_t *zone, dns_ttl_t maxttl) {
 		if (result == ISC_R_NOMORE)
 			result = ISC_R_SUCCESS;
 		CHECK(result);
-			
+
 		dns_rdatasetiter_destroy(&rdsiter);
 		dns_db_detachnode(db, &node);
 	}

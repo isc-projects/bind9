@@ -12,15 +12,15 @@
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2013,2014
 ./bin/check/.gitignore				X	2012
 ./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006,2007,2009,2012,2014
-./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./bin/check/check-tool.h			C	2000,2001,2002,2004,2005,2007,2010,2011,2013
+./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/check/check-tool.h			C	2000,2001,2002,2004,2005,2007,2010,2011,2013,2014
 ./bin/check/named-checkconf.8			MAN	DOCBOOK
 ./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014
 ./bin/check/named-checkconf.docbook		SGML	2000,2001,2002,2004,2005,2007,2009,2014
 ./bin/check/named-checkconf.html		HTML	DOCBOOK
 ./bin/check/named-checkzone.8			MAN	DOCBOOK
-./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013
+./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014
 ./bin/check/named-checkzone.html		HTML	DOCBOOK
 ./bin/check/win32/checkconf.dsp.in		X	2001,2004,2005,2006,2009,2013,2014
 ./bin/check/win32/checkconf.dsw			X	2001,2013
@@ -209,10 +209,8 @@
 ./bin/dnssec/win32/verify.vcxproj.user		X	2013
 ./bin/named/.gitignore				X	2012
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./bin/named/bind.keys.h				X	2009,2010,2011,2012
 ./bin/named/bind9.xsl				SGML	2006,2007,2008,2009,2012,2013,2014
 ./bin/named/bind9.xsl.h				X	2007,2008,2009,2011,2012,2013,2014
-./bin/named/bindkeys.pl				PERL	2009,2010,2011,2012
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005,2007,2009,2010,2011,2012,2013,2014
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
@@ -223,7 +221,7 @@
 ./bin/named/include/.gitignore			X	2012
 ./bin/named/include/dlz/dlz_dlopen_driver.h	C	2011
 ./bin/named/include/named/builtin.h		C	2001,2004,2005,2007
-./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
+./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./bin/named/include/named/config.h		C	2001,2002,2004,2005,2006,2007,2009,2013
 ./bin/named/include/named/control.h		C	2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2014
 ./bin/named/include/named/geoip.h		C	2013
@@ -283,7 +281,7 @@
 ./bin/named/unix/dlz_dlopen_driver.c		C	2011,2012,2013
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005,2007,2008,2009
 ./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014
-./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/named/win32/dlz_dlopen_driver.c		C	2011,2012,2013
 ./bin/named/win32/include/named/ntservice.h	C	1999,2000,2001,2002,2003,2004,2007
 ./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004,2007,2008,2009
@@ -863,10 +861,11 @@
 ./bin/tests/system/checkconf/bad-dnssec.conf	CONF-C	2012,2013
 ./bin/tests/system/checkconf/bad-inline-slave.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-many.conf	CONF-C	2005,2012
+./bin/tests/system/checkconf/bad-maxttlmap.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-sharedzone1.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-sharedzone2.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-tsig.conf	CONF-C	2012,2013
-./bin/tests/system/checkconf/clean.sh		SH	2011,2012,2013
+./bin/tests/system/checkconf/clean.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/checkconf/dlz-bad.conf	CONF-C	2012,2013
 ./bin/tests/system/checkconf/dnssec.1		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.2		CONF-C	2011
@@ -876,6 +875,10 @@
 ./bin/tests/system/checkconf/inline-bad.conf	CONF-C	2013
 ./bin/tests/system/checkconf/inline-good.conf	CONF-C	2013
 ./bin/tests/system/checkconf/inline-no.conf	CONF-C	2013
+./bin/tests/system/checkconf/max-ttl.conf	CONF-C	2014
+./bin/tests/system/checkconf/maxttl-bad.conf	CONF-C	2014
+./bin/tests/system/checkconf/maxttl-bad.db	ZONE	2014
+./bin/tests/system/checkconf/maxttl.db		ZONE	2014
 ./bin/tests/system/checkconf/notify.conf	CONF-C	2014
 ./bin/tests/system/checkconf/range.conf		CONF-C	2013
 ./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012,2013,2014
@@ -911,8 +914,9 @@
 ./bin/tests/system/checknames/ns3/root.hints	ZONE	2004,2007
 ./bin/tests/system/checknames/setup.sh		SH	2004,2007,2012
 ./bin/tests/system/checknames/tests.sh		SH	2004,2007,2012,2013
-./bin/tests/system/checkzone/clean.sh		SH	2011,2012,2013
-./bin/tests/system/checkzone/tests.sh		SH	2011,2012,2013
+./bin/tests/system/checkzone/clean.sh		SH	2011,2012,2013,2014
+./bin/tests/system/checkzone/setup.sh		SH	2014
+./bin/tests/system/checkzone/tests.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/checkzone/zones/bad1.db	ZONE	2013
 ./bin/tests/system/checkzone/zones/good1.db	ZONE	2011
 ./bin/tests/system/checkzone/zones/spf.db	ZONE	2013
@@ -1428,7 +1432,8 @@
 ./bin/tests/system/nsupdate/knowngood.ns1.afterstop	X	2001,2004
 ./bin/tests/system/nsupdate/knowngood.ns1.before	X	2000,2001,2003,2004,2009
 ./bin/tests/system/nsupdate/ns1/example1.db	ZONE	2000,2001,2002,2004,2007,2009
-./bin/tests/system/nsupdate/ns1/named.conf	CONF-C	2000,2001,2004,2005,2007,2009,2011,2012,2013
+./bin/tests/system/nsupdate/ns1/max-ttl.db	ZONE	2014
+./bin/tests/system/nsupdate/ns1/named.conf	CONF-C	2000,2001,2004,2005,2007,2009,2011,2012,2013,2014
 ./bin/tests/system/nsupdate/ns2/named.conf	CONF-C	2000,2001,2004,2007,2011,2013
 ./bin/tests/system/nsupdate/ns3/dnskey.test.db.in	ZONE	2011
 ./bin/tests/system/nsupdate/ns3/example.db.in	ZONE	2010
@@ -1661,6 +1666,15 @@
 ./bin/tests/system/runall.sh			SH	2000,2001,2004,2007,2010,2011,2012
 ./bin/tests/system/send.pl			PERL	2001,2004,2007,2011,2012
 ./bin/tests/system/setup.sh			SH	2000,2001,2004,2007,2012
+./bin/tests/system/sit/.gitignore		X	2014
+./bin/tests/system/sit/clean.sh			SH	2014
+./bin/tests/system/sit/ns1/example.db		ZONE	2014
+./bin/tests/system/sit/ns1/named.conf		CONF-C	2014
+./bin/tests/system/sit/ns1/root.hint		ZONE	2014
+./bin/tests/system/sit/ns2/named.conf		CONF-C	2014
+./bin/tests/system/sit/ns2/root.db		ZONE	2014
+./bin/tests/system/sit/prereq.sh.in		SH	2014
+./bin/tests/system/sit/tests.sh			SH	2014
 ./bin/tests/system/smartsign/child.db		ZONE	2010
 ./bin/tests/system/smartsign/clean.sh		SH	2010,2012,2014
 ./bin/tests/system/smartsign/parent.db		ZONE	2010
@@ -2104,7 +2118,7 @@
 ./bin/win32/BINDInstall/res/BINDInstall.rc2	X	2001
 ./bin/win32/BINDInstall/resource.h		X	2001,2005,2009
 ./bind.keys					X	2009,2010,2011
-./bind.keys.h					C	2014
+./bind.keys.h					X	2009,2010,2011,2012,2014
 ./config.guess					X	1998,1999,2000,2001,2004,2009,2013
 ./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./config.h.win32				C	1999,2000,2001,2004,2006,2007,2008,2009,2011,2012,2013,2014
@@ -2876,7 +2890,7 @@
 ./lib/dns/include/dns/Makefile.in		MAKE	1998,1999,2000,2001,2002,2003,2004,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/include/dns/acache.h			C	2004,2006,2007,2013
 ./lib/dns/include/dns/acl.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2011,2013,2014
-./lib/dns/include/dns/adb.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2013
+./lib/dns/include/dns/adb.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2013,2014
 ./lib/dns/include/dns/bit.h			C	2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/byaddr.h			C	2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/include/dns/cache.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2011,2012,2013
@@ -2910,7 +2924,7 @@
 ./lib/dns/include/dns/lib.h			C	1999,2000,2001,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/log.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2011,2012,2013,2014
 ./lib/dns/include/dns/lookup.h			C	2000,2001,2004,2005,2006,2007,2009
-./lib/dns/include/dns/master.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013
+./lib/dns/include/dns/master.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2011,2013,2014
 ./lib/dns/include/dns/message.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014
 ./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013
@@ -2919,7 +2933,7 @@
 ./lib/dns/include/dns/nsec3.h			C	2008,2009,2010,2011,2012,2013
 ./lib/dns/include/dns/opcode.h			C	2002,2004,2005,2006,2007
 ./lib/dns/include/dns/order.h			C	2002,2004,2005,2006,2007
-./lib/dns/include/dns/peer.h			C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2013
+./lib/dns/include/dns/peer.h			C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2013,2014
 ./lib/dns/include/dns/portlist.h		C	2003,2004,2005,2006,2007
 ./lib/dns/include/dns/private.h			C	2009,2011,2012
 ./lib/dns/include/dns/rbt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012,2013,2014
@@ -2944,7 +2958,7 @@
 ./lib/dns/include/dns/secproto.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/soa.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/ssu.h			C	2000,2001,2003,2004,2005,2006,2007,2008,2010,2011
-./lib/dns/include/dns/stats.h			C	2000,2001,2004,2005,2006,2007,2008,2009,2012
+./lib/dns/include/dns/stats.h			C	2000,2001,2004,2005,2006,2007,2008,2009,2012,2014
 ./lib/dns/include/dns/tcpmsg.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/time.h			C	1999,2000,2001,2004,2005,2006,2007,2012
 ./lib/dns/include/dns/timer.h			C	2000,2001,2004,2005,2006,2007
@@ -2958,7 +2972,7 @@
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006,2007,2012,2013
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2013
-./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/include/dns/zonekey.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2011
 ./lib/dns/include/dst/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012
@@ -2975,7 +2989,7 @@
 ./lib/dns/log.c					C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2011,2012,2013,2014
 ./lib/dns/lookup.c				C	2000,2001,2003,2004,2005,2007,2013
 ./lib/dns/mapapi				X	2013
-./lib/dns/master.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
+./lib/dns/master.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/masterdump.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/message.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
@@ -3262,6 +3276,7 @@
 ./lib/irs/version.c				C	2009
 ./lib/isc/Atffile				X	2011
 ./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./lib/isc/aes.c					C	2014
 ./lib/isc/alpha/Makefile.in			MAKE	2007,2012
 ./lib/isc/alpha/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007,2012
@@ -3294,6 +3309,7 @@
 ./lib/isc/ia64/include/isc/atomic.h		C	2006,2007,2009,2012
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012,2014
 ./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014
+./lib/isc/include/isc/aes.h			C	2014
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2013
 ./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/backtrace.h		C	2009
@@ -3463,6 +3479,7 @@
 ./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007,2011,2012,2013
 ./lib/isc/tests/Atffile				X	2011
 ./lib/isc/tests/Makefile.in			MAKE	2011,2012,2013,2014
+./lib/isc/tests/aes_test.c			C	2014
 ./lib/isc/tests/hash_test.c			C	2011,2012,2013,2014
 ./lib/isc/tests/isctest.c			C	2011,2012,2013
 ./lib/isc/tests/isctest.h			C	2011,2012
@@ -4133,7 +4150,7 @@
 ./util/COPYRIGHT.NOM				X	2001,2004,2007
 ./util/COPYRIGHT.PORTION			X	1996,1997,1998,1999,2000,2001,2004,2007
 ./util/altbuild.sh				SH	2000,2001,2002,2004,2007,2008,2012
-./util/bindkeys.pl				PERL	2014
+./util/bindkeys.pl				PERL	2009,2010,2011,2012,2014
 ./util/branchsync.sh				SH	2013
 ./util/check-changes				PERL	2002,2004,2007,2012
 ./util/check-includes.pl			PERL	2000,2001,2004,2007,2012
