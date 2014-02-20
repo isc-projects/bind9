@@ -3270,7 +3270,9 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 
 #ifdef ISC_PLATFORM_USESIT
 static void
-process_sit(dig_lookup_t *l, isc_buffer_t *optbuf, size_t optlen) {
+process_sit(dig_lookup_t *l, dns_message_t *msg,
+	    isc_buffer_t *optbuf, size_t optlen)
+{
 	char bb[256];
 	isc_buffer_t hexbuf;
 	size_t len;
@@ -3290,21 +3292,25 @@ process_sit(dig_lookup_t *l, isc_buffer_t *optbuf, size_t optlen) {
 
 	if (optlen >= len && optlen >= 8U) {
 		if (memcmp(isc_buffer_current(optbuf), sit, 8) == 0) {
-			if (l->comments)
-				printf(";; SIT client cookie part match\n");
-		} else
+			msg->sitok = 1;
+		} else {
 			printf(";; Warning: SIT client cookie part mis-match\n");
-	} else
+			msg->sitbad = 1;
+		}
+	} else {
 		printf(";; Warning: SIT bad token (too short)\n");
+		msg->sitbad = 1;
+	}
 	isc_buffer_forward(optbuf, (unsigned int)optlen);
 }
 
 static void
-process_opt(dig_lookup_t *l, dns_rdataset_t *opt) {
+process_opt(dig_lookup_t *l, dns_message_t *msg) {
 	dns_rdata_t rdata;
 	isc_result_t result;
 	isc_buffer_t optbuf;
 	isc_uint16_t optcode, optlen;
+	dns_rdataset_t *opt = msg->opt;
 
 	result = dns_rdataset_first(opt);
 	if (result == ISC_R_SUCCESS) {
@@ -3317,7 +3323,7 @@ process_opt(dig_lookup_t *l, dns_rdataset_t *opt) {
 			optlen = isc_buffer_getuint16(&optbuf);
 			switch (optcode) {
 			case DNS_OPT_SIT:
-				process_sit(l, &optbuf, optlen);
+				process_sit(l, msg, &optbuf, optlen);
 				break;
 			default:
 				isc_buffer_forward(&optbuf, optlen);
@@ -3695,9 +3701,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (msg->opt == NULL)
 			printf(";; expected opt record in response\n");
 		else
-			process_opt(l, msg->opt);
+			process_opt(l, msg);
 	} else if (l->sit && msg->opt != NULL)
-		process_opt(l, msg->opt);
+		process_opt(l, msg);
 #endif
 
 	if (!l->doing_xfr || l->xfr_q == query) {

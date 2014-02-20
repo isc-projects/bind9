@@ -437,6 +437,8 @@ msginit(dns_message_t *m) {
 	m->saved.base = NULL;
 	m->saved.length = 0;
 	m->free_saved = 0;
+	m->sitok = 0;
+	m->sitbad = 0;
 	m->querytsig = NULL;
 }
 
@@ -485,6 +487,8 @@ msgresetopt(dns_message_t *msg)
 		dns_rdataset_disassociate(msg->opt);
 		isc_mempool_put(msg->rdspool, msg->opt);
 		msg->opt = NULL;
+		msg->sitok = 0;
+		msg->sitbad = 0;
 	}
 }
 
@@ -3342,6 +3346,10 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				isc_buffer_forward(&optbuf, optlen);
 
 				if (optcode == DNS_OPT_SIT) {
+					if (msg->sitok)
+						ADD_STRING(target, " (good)");
+					if (msg->sitbad)
+						ADD_STRING(target, " (bad)");
 					ADD_STRING(target, "\n");
 					continue;
 				}

@@ -218,6 +218,8 @@ struct dns_message {
 	unsigned int			verify_attempted : 1;
 	unsigned int			free_query : 1;
 	unsigned int			free_saved : 1;
+	unsigned int			sitok : 1;
+	unsigned int			sitbad : 1;
 
 	unsigned int			opt_reserved;
 	unsigned int			sig_reserved;
