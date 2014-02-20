@@ -395,6 +395,6 @@ ns_client_sourceip(dns_clientinfo_t *ci, isc_sockaddr_t **addrp);
 
 isc_result_t
 ns_client_addopt(ns_client_t *client, dns_message_t *message,
-                 dns_rdataset_t **opt);
+		 dns_rdataset_t **opt);
 
 #endif /* NAMED_CLIENT_H */

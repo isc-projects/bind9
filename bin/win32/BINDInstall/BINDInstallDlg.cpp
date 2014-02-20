@@ -231,7 +231,7 @@ CBINDInstallDlg::CBINDInstallDlg(CWnd* pParent /*=NULL*/)
 	SHGetFolderPath(NULL, CSIDL_FLAG_CREATE|CSIDL_PROGRAM_FILES,
 			NULL, SHGFP_TYPE_CURRENT, progfiles);
 #endif
-	
+
 	m_defaultDir = progfiles;
 	m_defaultDir += "\\ISC BIND 9";
 	m_installed = FALSE;

@@ -7882,7 +7882,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			dns_zone_getexpiretime(zone, &expiretime);
 			secs = isc_time_seconds(&expiretime);
 			if (secs >= client->now && result == ISC_R_SUCCESS) {
-				client->attributes |= NS_CLIENTATTR_HAVEEXPIRE; 
+				client->attributes |= NS_CLIENTATTR_HAVEEXPIRE;
 				client->expire = secs - client->now;
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1083,7 +1083,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			    mnemonic, (xfr->tsigkey != NULL) ? ": TSIG " : "",
 			    keyname, current_serial);
 
-	
+
 	dns_zone_getraw(zone, &raw);
 	mayberaw = (raw != NULL) ? raw : zone;
 	if ((client->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0 &&
