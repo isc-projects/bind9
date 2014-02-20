@@ -151,6 +151,13 @@ fromwire_opt(ARGS_FROMWIRE) {
 			isc_region_consume(&sregion, addrbytes);
 			break;
 		}
+#ifdef notyet
+		case DNS_OPT_EXPIRE:
+			if (length != 0 && length != 4)
+				return (DNS_R_FORMERR);
+			isc_region_consume(&sregion, length);
+			break;
+#endif
 		default:
 			isc_region_consume(&sregion, length);
 			break;
