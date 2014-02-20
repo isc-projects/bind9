@@ -2655,24 +2655,29 @@ exit 0;
 # Notes: Unix configure.in options
 #  --enable-developer partially supported
 #  --enable-newstats (9.9/9.9sub only)
+#  --enable-native-pkcs11 supported
 #  --enable-openssl-version-check included without a way to disable it
 #  --enable-openssl-hash supported
+#  --enable-openssl-aes TODO
 #  --enable-threads included without a way to disable it
 #  --enable-backtrace backtrace included without a way to disable it
 #  --enable-symtable incompatible with DLLs (or libtool)
 #  --enable-exportlib TODO (obsolete)
 #  --enable-ipv6 included without a way to disable it
-#  --enable-atomic supported (renamed intrinsic)
+#  --enable-atomic supported (renamed to intrinsic)
 #  --enable-spnego support (part of GSSAPI)
 #  --enable-fixed-rrset supported
 #  --disable-rpz-nsip supported
 #  --disable-rpz-nsdname supported
 #  --enable-filter-aaaa supported
+#  --enable-sit included without a way to disable it (TO BE FIXED)
+#  --enable-full-report supported by verbose
 #  --with-python supported
 #  --with-openssl supported
+#  --with-pkcs11 supported
 #  --with-ecdsa supported
 #  --with-gost supported
-#  --with-pkcs11 supported
+#  --with-sit-alg TODO (aes wired down)
 #  --with-geoip supported
 #  --with-gssapi supported with MIT (K)erberos (f)or (W)indows
 #  --with-libxml2 supported
