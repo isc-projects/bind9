@@ -1,3 +1,5 @@
+	--- 9.10.0b1 released ---
+
 3754.	[cleanup]	win32: Installer now places files in the
 			Program Files area rather than system services.
 			[RT #35361]
@@ -7,8 +9,6 @@
 3752.	[bug]		Address potential REQUIRE failure if
 			DNS_STYLEFLAG_COMMENTDATA is set when printing out
 			a rdataset.
-
-	--- 9.10.0b1 released ---
 
 3751.	[tuning]	The default setting for the -U option (setting
 			the number of UDP listeners per interface) has
