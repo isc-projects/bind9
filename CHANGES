@@ -1,3 +1,7 @@
+3751.	[tuning]	The default setting for the -U option (setting
+			the number of UDP listeners per interface) has
+			been adjusted to improve performance. [RT #35417]
+
 3747.	[bug]		A race condition could lead to a core dump when
 			destroying a resolver fetch object. [RT #35385]
 
