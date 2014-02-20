@@ -1,3 +1,5 @@
+3753.	[bug]		allow-notify was ignoring keys. [RT #35425]
+
 3752.	[bug]		Address potential REQUIRE failure if
 			DNS_STYLEFLAG_COMMENTDATA is set when printing out
 			a rdataset.
