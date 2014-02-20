@@ -44,6 +44,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/result.h>
 #include <dns/tsig.h>
+#include <dns/ttl.h>
 #include <dns/view.h>
 
 #ifdef SKAN_MSG_DEBUG
@@ -3307,7 +3308,9 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					ADD_STRING(target, "; EXPIRE: ");
 					snprintf(buf, sizeof(buf), "%u", secs);
 					ADD_STRING(target, buf);
-					ADD_STRING(target, "\n");
+					ADD_STRING(target, " (");
+					dns_ttl_totext(secs, ISC_TRUE, target);
+					ADD_STRING(target, ")\n");
 					break;
 				}
 				ADD_STRING(target, "; EXPIRE");
