@@ -1,3 +1,5 @@
+3753.	[bug]		allow-notify was ignoring keys. [RT #35425]
+
 3751.	[tuning]	The default setting for the -U option (setting
 			the number of UDP listeners per interface) has
 			been adjusted to improve performance. [RT #35417]
