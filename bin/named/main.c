@@ -646,8 +646,14 @@ create_managers(void) {
 #ifdef WIN32
 	ns_g_udpdisp = 1;
 #else
-	if (ns_g_udpdisp == 0)
-		ns_g_udpdisp = ns_g_cpus_detected;
+	if (ns_g_udpdisp == 0) {
+		if (ns_g_cpus_detected == 1)
+			ns_g_udpdisp = 1;
+		else if (ns_g_cpus_detected < 4)
+			ns_g_udpdisp = 2;
+		else
+			ns_g_udpdisp = ns_g_cpus_detected / 2;
+	}
 	if (ns_g_udpdisp > ns_g_cpus)
 		ns_g_udpdisp = ns_g_cpus;
 #endif

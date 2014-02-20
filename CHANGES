@@ -1,5 +1,9 @@
 	--- 9.10.0b1 released ---
 
+3751.	[tuning]	The default setting for the -U option (setting
+			the number of UDP listeners per interface) has
+			been adjusted to improve performance. [RT #35417]
+
 3750.	[experimental]	Partially implement EDNS EXPIRE option as described
 			in draft-andrews-dnsext-expire-00.  Retrivial of
 			remaining time to expiry from slave zones is supported.
