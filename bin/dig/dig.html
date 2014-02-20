@@ -599,13 +599,31 @@
 	      than creating a new TCP socket for each lookup.  The default
 	      is <code class="option">+nokeepopen</code>.
             </p></dd>
+<dt><span class="term"><code class="option">+[no]sit[<span class="optional">=####</span>]</code></span></dt>
+<dd><p>
+	      Send a Source Identity Token EDNS option, with optional value.
+	      Replaying a SIT from a previous response will allow the
+	      server to identify a previous client.  The default is
+	      <code class="option">+nosit</code>.  Currently using experimental value
+	      65001 for the option code.
+            </p></dd>
+<dt><span class="term"><code class="option">+[no]subnet=addr/prefix</code></span></dt>
+<dd><p>
+	      Send an EDNS Client Subnet option with the speciifed
+              IP address or network prefix.
+            </p></dd>
+<dt><span class="term"><code class="option">+[no]expire</code></span></dt>
+<dd><p>
+	      Send an EDNS Expire option.  Currently using experimental
+	      value 65002 for the option code.
+            </p></dd>
 </dl></div>
 <p>
 
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545358"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2545405"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -651,7 +669,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545420"></a><h2>IDN SUPPORT</h2>
+<a name="id2545536"></a><h2>IDN SUPPORT</h2>
 <p>
       If <span><strong class="command">dig</strong></span> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -665,14 +683,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545443"></a><h2>FILES</h2>
+<a name="id2545558"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545528"></a><h2>SEE ALSO</h2>
+<a name="id2545575"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -680,7 +698,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545565"></a><h2>BUGS</h2>
+<a name="id2545612"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>

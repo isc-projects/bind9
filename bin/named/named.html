@@ -154,6 +154,9 @@
 <p>
 	    Allow <span><strong class="command">named</strong></span> to use up to
 	    <em class="replaceable"><code>#max-socks</code></em> sockets.
+            The default value is 4096 on systems built with default
+            configuration options, and 21000 on systems built with
+            "configure --with-tuning=large".
 	  </p>
 <div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Warning</h3>
@@ -198,10 +201,12 @@
             Use <em class="replaceable"><code>#listeners</code></em>
             worker threads to listen for incoming UDP packets on each
             address.  If not specified, <span><strong class="command">named</strong></span> will
-            use the number of detected CPUs.  If <code class="option">-n</code>
-            has been set to a higher value than the number of CPUs,
-            then <code class="option">-U</code> may be increased as high as that
-            value, but no higher.
+            calculate a default value based on the number of detected
+            CPUs: 1 for 1 CPU, 2 for 2-4 CPUs, and the number of
+            detected CPUs divided by 2 for values higher than 4.
+            If <code class="option">-n</code> has been set to a higher value than
+            the number of detected CPUs, then <code class="option">-U</code> may
+            be increased as high as that value, but no higher.
           </p></dd>
 <dt><span class="term">-u <em class="replaceable"><code>user</code></em></span></dt>
 <dd>
@@ -253,7 +258,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544118"></a><h2>SIGNALS</h2>
+<a name="id2544185"></a><h2>SIGNALS</h2>
 <p>
       In routine operation, signals should not be used to control
       the nameserver; <span><strong class="command">rndc</strong></span> should be used
@@ -274,7 +279,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544166"></a><h2>CONFIGURATION</h2>
+<a name="id2544233"></a><h2>CONFIGURATION</h2>
 <p>
       The <span><strong class="command">named</strong></span> configuration file is too complex
       to describe in detail here.  A complete description is provided
@@ -291,7 +296,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544202"></a><h2>FILES</h2>
+<a name="id2544269"></a><h2>FILES</h2>
 <div class="variablelist"><dl>
 <dt><span class="term"><code class="filename">/etc/named.conf</code></span></dt>
 <dd><p>
@@ -304,7 +309,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544310"></a><h2>SEE ALSO</h2>
+<a name="id2544377"></a><h2>SEE ALSO</h2>
 <p><em class="citetitle">RFC 1033</em>,
       <em class="citetitle">RFC 1034</em>,
       <em class="citetitle">RFC 1035</em>,
@@ -317,7 +322,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544380"></a><h2>AUTHOR</h2>
+<a name="id2544448"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>

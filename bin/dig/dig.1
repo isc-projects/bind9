@@ -546,6 +546,22 @@ Include an EDNS name server ID request when sending a query.
 Keep the TCP socket open between queries and reuse it rather than creating a new TCP socket for each lookup. The default is
 \fB+nokeepopen\fR.
 .RE
+.PP
+\fB+[no]sit\fR\fB[=####]\fR
+.RS 4
+Send a Source Identity Token EDNS option, with optional value. Replaying a SIT from a previous response will allow the server to identify a previous client. The default is
+\fB+nosit\fR. Currently using experimental value 65001 for the option code.
+.RE
+.PP
+\fB+[no]subnet=addr/prefix\fR
+.RS 4
+Send an EDNS Client Subnet option with the speciifed IP address or network prefix.
+.RE
+.PP
+\fB+[no]expire\fR
+.RS 4
+Send an EDNS Expire option. Currently using experimental value 65002 for the option code.
+.RE
 .SH "MULTIPLE QUERIES"
 .PP
 The BIND 9 implementation of

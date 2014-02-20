@@ -153,7 +153,7 @@ Allow
 \fBnamed\fR
 to use up to
 \fI#max\-socks\fR
-sockets.
+sockets. The default value is 4096 on systems built with default configuration options, and 21000 on systems built with "configure \-\-with\-tuning=large".
 .RS
 .B "Warning:"
 This option should be unnecessary for the vast majority of users. The use of this option could even be harmful because the specified value may exceed the limitation of the underlying system API. It is therefore set only when the default configuration causes exhaustion of file descriptors and the operational environment is known to support the specified number of sockets. Note also that the actual maximum number is normally a little fewer than the specified value because
@@ -183,9 +183,9 @@ Use
 \fI#listeners\fR
 worker threads to listen for incoming UDP packets on each address. If not specified,
 \fBnamed\fR
-will use the number of detected CPUs. If
+will calculate a default value based on the number of detected CPUs: 1 for 1 CPU, 2 for 2\-4 CPUs, and the number of detected CPUs divided by 2 for values higher than 4. If
 \fB\-n\fR
-has been set to a higher value than the number of CPUs, then
+has been set to a higher value than the number of detected CPUs, then
 \fB\-U\fR
 may be increased as high as that value, but no higher.
 .RE
