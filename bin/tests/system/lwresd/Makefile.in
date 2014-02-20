@@ -29,7 +29,7 @@ CDEFINES =
 CWARNINGS =
 
 LWRESLIBS =	../../../../lib/lwres/liblwres.@A@
-ISCLIBS =	../../../../lib/isc/libisc.@A@
+ISCLIBS =	../../../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 
 LWRESDEPLIBS =	../../../../lib/lwres/liblwres.@A@
 ISCDEPLIBS =	../../../../lib/isc/libisc.@A@
