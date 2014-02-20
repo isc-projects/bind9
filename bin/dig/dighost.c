@@ -2349,8 +2349,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->udpsize > 0 || lookup->dnssec ||
 	    lookup->edns > -1 || lookup->ecs_addr != NULL)
 	{
-#define EDNSOPTS 3
-		dns_ednsopt_t opts[EDNSOPTS];
+		dns_ednsopt_t opts[DNS_OPT_EDNSOPTIONS];
 		int i = 0;
 
 		if (lookup->udpsize == 0)
@@ -2359,7 +2358,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			lookup->edns = 0;
 
 		if (lookup->nsid) {
-			INSIST(i < EDNSOPTS);
+			INSIST(i < DNS_OPT_EDNSOPTIONS);
 			opts[i].code = DNS_OPT_NSID;
 			opts[i].length = 0;
 			opts[i].value = NULL;
@@ -2380,7 +2379,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			/* Round up prefix len to a multiple of 8 */
 			addrl = (prefixlen + 7) / 8;
 
-			INSIST(i < EDNSOPTS);
+			INSIST(i < DNS_OPT_EDNSOPTIONS);
 			opts[i].code = DNS_OPT_CLIENT_SUBNET;
 			opts[i].length = addrl + 4;
 			check_result(result, "isc_buffer_allocate");
@@ -2409,7 +2408,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 #ifdef ISC_PLATFORM_USESIT
 		if (lookup->sit) {
-			INSIST(i < EDNSOPTS);
+			INSIST(i < DNS_OPT_EDNSOPTIONS);
 			opts[i].code = DNS_OPT_SIT;
 			if (lookup->sitvalue != NULL) {
 				isc_buffer_t b;

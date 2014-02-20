@@ -109,6 +109,9 @@
 /*%< Experimental options [65001...65534] as per RFC6891 */
 #define DNS_OPT_SIT		65001		/*%< SIT opt code */
 
+/*%< The number of EDNS options we know about. */
+#define DNS_OPT_EDNSOPTIONS	3
+
 #define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD|DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
 
