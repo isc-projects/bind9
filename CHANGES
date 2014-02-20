@@ -1,3 +1,7 @@
+3754.	[cleanup]	win32: Installer now places files in the
+			Program Files area rather than system services.
+			[RT #35361]
+
 3753.	[bug]		allow-notify was ignoring keys. [RT #35425]
 
 3751.	[tuning]	The default setting for the -U option (setting
