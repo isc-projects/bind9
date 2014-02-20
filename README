@@ -130,8 +130,9 @@ BIND 9.10.0
 	 - "dig +subnet" sends an EDNS CLIENT-SUBNET option when
 	   querying.
 	 - "dig +expire" sends an EDNS EXPIRE option when querying.
-	   When sent with an SOA query, this will report the expiry
-	   time of a slave zone.
+	   When this option is sent with an SOA query to a server
+	   that supports it, it will report the expiry time of
+	   a slave zone.
 	 - New "dnssec-coverage" tool to check DNSSEC key coverage
 	   for a zone and report if a lapse in signing coverage has
 	   been inadvertently scheduled.
