@@ -41,9 +41,10 @@
 // #define BINARIES_INSTALL
 
 /*
- * msvcrt.dll is the release c-runtime library for MSVC.  msvcrtd.dll is the debug
- * c-runtime library for MSVC.  If you have debug binaries you want to have DEBUG_BINARIES
- * defined.  If you have release binaries you want to have RELEASE_BINARIES defined.
+ * msvcrt.dll is the release c-runtime library for MSVC.  msvcrtd.dll
+ * is the debug c-runtime library for MSVC.  If you have debug
+ * binaries you want to have DEBUG_BINARIES defined.  If you have
+ * release binaries you want to have RELEASE_BINARIES defined.
  * If you have both, then define them both.
  * Of course, you need msvcrt[d].dll present to install it!
  */
@@ -57,6 +58,7 @@
 #include "BINDInstallDlg.h"
 #include "DirBrowse.h"
 #include <winsvc.h>
+#include <shlobj.h>
 #include <named/ntservice.h>
 #include <isc/bind_registry.h>
 #include <isc/ntgroups.h>
@@ -194,7 +196,8 @@ const FileData installFiles[] =
 
 CBINDInstallDlg::CBINDInstallDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CBINDInstallDlg::IDD, pParent) {
-	char buf[MAX_PATH];
+	char winsys[MAX_PATH];
+	char progfiles[MAX_PATH];
 
 	//{{AFX_DATA_INIT(CBINDInstallDlg)
 	m_targetDir = _T("");
@@ -208,13 +211,23 @@ CBINDInstallDlg::CBINDInstallDlg(CWnd* pParent /*=NULL*/)
 	m_accountPassword = _T("");
 	m_accountName = _T("");
 	//}}AFX_DATA_INIT
-	// Note that LoadIcon does not require a subsequent DestroyIcon in Win32
+	// Note that LoadIcon does not require a subsequent
+	// DestroyIcon in Win32
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
-	GetSystemDirectory(buf, MAX_PATH);
-	m_winSysDir = buf;
-	m_defaultDir = buf;
-	m_defaultDir += "\\dns";
+	GetSystemDirectory(winsys, MAX_PATH);
+	m_winSysDir = winsys;
+
+#ifndef _WIN64
+	SHGetFolderPath(NULL, CSIDL_FLAG_CREATE|CSIDL_PROGRAM_FILESX86,
+			NULL, SHGFP_TYPE_CURRENT, progfiles);
+#else
+	SHGetFolderPath(NULL, CSIDL_FLAG_CREATE|CSIDL_PROGRAM_FILES,
+			NULL, SHGFP_TYPE_CURRENT, progfiles);
+#endif
+	
+	m_defaultDir = progfiles;
+	m_defaultDir += "\\ISC BIND 9";
 	m_installed = FALSE;
 	m_accountExists = FALSE;
 	m_accountUsed = FALSE;
@@ -517,7 +530,7 @@ void CBINDInstallDlg::OnInstall() {
 	if (!m_toolsOnly) {
 		if (m_accountExists == FALSE) {
 			success = CreateServiceAccount(m_accountName.GetBuffer(30),
-							m_accountPassword.GetBuffer(30));
+						       m_accountPassword.GetBuffer(30));
 			if (success == FALSE) {
 				MsgBox(IDS_CREATEACCOUNT_FAILED);
 				return;
@@ -670,9 +683,10 @@ void CBINDInstallDlg::CopyFiles() {
 
 		try {
 /*
- * Ignore Version checking.  We need to make sure that all files get copied regardless
- * of whether or not they are earlier or later versions since we cannot guarantee
- * that we have either backward or forward compatibility between versions.
+ * Ignore Version checking.  We need to make sure that all files get
+ * copied regardless of whether or not they are earlier or later
+ * versions since we cannot guarantee that we have either backward or
+ * forward compatibility between versions.
  */
 			bindFile.CopyFileNoVersion(origFile);
 		}
@@ -966,7 +980,8 @@ void CBINDInstallDlg::UnregisterService(BOOL uninstall) {
 				DWORD err = GetLastError();
 				if (err != ERROR_SERVICE_MARKED_FOR_DELETE &&
 				   err != ERROR_SERVICE_DOES_NOT_EXIST) {
-					MsgBox(IDS_ERR_REMOVE_SERVICE, GetErrMessage());
+					MsgBox(IDS_ERR_REMOVE_SERVICE,
+					       GetErrMessage());
 					break;
 				}
 			}
