@@ -15684,7 +15684,10 @@ $as_echo "#define HMAC_SHA256_SIT 1" >>confdefs.h
 		if test "$ac_cv_func_AES_encrypt" = "yes"
 		then
 			with_sit_alg="aes"
-			want_openssl_aes="yes"
+			if test "$CRYPTO" = "-DOPENSSL"
+			then
+				want_openssl_aes="yes"
+			fi
 
 $as_echo "#define AES_SIT 1" >>confdefs.h
 

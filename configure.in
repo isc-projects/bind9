@@ -1558,7 +1558,10 @@ case $with_sit_alg in
 		if test "$ac_cv_func_AES_encrypt" = "yes"
 		then
 			with_sit_alg="aes"
-			want_openssl_aes="yes"
+			if test "$CRYPTO" = "-DOPENSSL"
+			then
+				want_openssl_aes="yes"
+			fi
 			AC_DEFINE(AES_SIT, 1,
 				 [Use AES for Source Identity Token generation])
 		else

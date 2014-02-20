@@ -188,6 +188,9 @@ int sigwait(const unsigned int *set, int *sig);
    MSVC and with C++ compilers. */
 #undef FLEXIBLE_ARRAY_MEMBER
 
+/* Define to 1 if you have the `AES_encrypt' function. */
+#undef HAVE_AES_ENCRYPT
+
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
 
