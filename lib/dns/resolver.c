@@ -7035,12 +7035,14 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 				compute_cc(query, cookie, sizeof(cookie));
 				if (optlen >= 8U &&
 				    memcmp(cookie, sit, 8) == 0) {
+					query->fctx->rmessage->sitok = 1;
 					inc_stats(query->fctx->res,
 						  dns_resstatscounter_sitok);
 					addrinfo = query->addrinfo;
 					dns_adb_setsit(query->fctx->adb,
 						       addrinfo, sit, optlen);
-				}
+				} else
+					query->fctx->rmessage->sitbad = 1;
 				isc_buffer_forward(&optbuf, optlen);
 				inc_stats(query->fctx->res,
 					  dns_resstatscounter_sitin);
