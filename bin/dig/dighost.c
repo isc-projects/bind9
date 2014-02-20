@@ -3290,11 +3290,12 @@ process_sit(dig_lookup_t *l, dns_message_t *msg,
 		len = sizeof(cookie);
 	}
 
+	INSIST(msg->sitok == 0 && msg->sitbad == 0);
 	if (optlen >= len && optlen >= 8U) {
 		if (memcmp(isc_buffer_current(optbuf), sit, 8) == 0) {
 			msg->sitok = 1;
 		} else {
-			printf(";; Warning: SIT client cookie part mis-match\n");
+			printf(";; Warning: SIT client cookie mismatch\n");
 			msg->sitbad = 1;
 		}
 	} else {

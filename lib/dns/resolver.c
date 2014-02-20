@@ -7033,6 +7033,8 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 			case DNS_OPT_SIT:
 				sit = isc_buffer_current(&optbuf);
 				compute_cc(query, cookie, sizeof(cookie));
+				INSIST(query->fctx->rmessage->sitbad == 0 &&
+				       query->fctx->rmessage->sitok == 0);
 				if (optlen >= 8U &&
 				    memcmp(cookie, sit, 8) == 0) {
 					query->fctx->rmessage->sitok = 1;
