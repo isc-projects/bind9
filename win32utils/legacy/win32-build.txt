@@ -91,12 +91,12 @@ After the build has completed, run the BuildPost.bat file:
 
 ...which does post-build processing.
 
-Installation is accomplished by running the BINDInstall program. All DLL's
-are copied to the system32 area and all applications (including BINDInstall
-which may be necessary for uninstalling BIND 9) to the dns/bin directory.
-If BIND 8 has previously been installed on the system it must be uninstalled
-first by running it's own BINDInstall program.  The BIND 9 installer does
-not yet do this.
+Installation is accomplished by running the BINDInstall program. All
+DLL's are copied to the Program Files area and all applications
+(including BINDInstall which may be necessary for uninstalling BIND 9)
+to the bin directory.  If BIND 8 has previously been installed on the
+system it must be uninstalled first by running it's own BINDInstall
+program.  The BIND 9 installer does not yet do this.
 
 All bugs found, whether in the process of building the application or
 running BIND or the tools should be reported to the bind9 bugs email

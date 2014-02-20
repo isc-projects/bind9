@@ -31,7 +31,8 @@ or for master zones supporting dynamic updates. The account will
 also need read access to the named.conf and any other file that it
 needs to read.
 
-"NT AUTHORITY\LocalService" is also an acceptable account. 
+"NT AUTHORITY\LocalService" is also an acceptable account
+(and the only acceptable on some recent versions of Windows).
 This account is built into Windows and no password is required.
 Appropriate file permissions will also need to be set for "NT
 AUTHORITY\LocalService" similar to those that would have been
@@ -39,13 +40,14 @@ required for the "named" account.
 
 It is important that on Windows the directory directive is used in
 the options section to tell BIND where to find the files used in
-named.conf (default %WINDOWS%\system32\dns\etc\named.conf). For
+named.conf (default %ProgramFiles%\ISC BIND 9\etc\named.conf). For
 example:
 
 	options {
-		directory "C:\WINDOWS\system32\dns\etc";
+		directory "C:\Program Files (x86)\ISC BIND 9\etc";
 	};
 
+for a 32 bit BIND on a 64 bit US Domestic indows system.
 Messages are logged to the Application log in the EventViewer.
 
 CONTROLLING BIND:
@@ -132,7 +134,7 @@ information. However, if you do create a resolv.conf file as follows,
 the tools will use it in preference to the registry name server
 entries.
 
-Place resolv.conf the System32\Drivers\etc directory. It must
+Place resolv.conf the "ISC BIND 9"\etc directory. It must
 contain a list of recursive server addresses.  The format of this
 file is:
 

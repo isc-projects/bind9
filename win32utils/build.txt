@@ -186,11 +186,11 @@ Step 7: Building BIND
 Step 8: Install
 
   Installation is accomplished by running the BINDInstall program. All
-  DLL's are copied to the system32 area and all applications (including
-  BINDInstall which may be necessary for uninstalling BIND 9) to the
-  dns/bin directory.  If BIND 8 has previously been installed on the system
-  it must be uninstalled first by running it's own BINDInstall program.
-  The BIND 9 installer does not yet do this.
+  DLL's are copied to the Program Files area and all applications
+  (including BINDInstall which may be necessary for uninstalling BIND
+  9) to the bin directory.  If BIND 8 has previously been installed on
+  the system it must be uninstalled first by running it's own
+  BINDInstall program.  The BIND 9 installer does not yet do this.
 
   Note: BINDInstall.exe requires the MFC (Microsoft Foundation Class).
   This is only distributed with non-free (i.e., not "Express") versions of

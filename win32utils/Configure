@@ -2018,7 +2018,8 @@ if ($use_python ne "no") {
     $configcond{"PYTHON"} = 1;
     $configdefd{"USE_PYTHON"} = "USE_PYTHON";
     $configvar{"PYTHON"} = "$python_command";
-    $configvar{"prefix"} = "C:\\Windows\\system32\\dns";
+    # Only a default!
+    $configvar{"prefix"} = "C:\\Program Files\Isc Bind 9";
 }
 
 # with-vcredist
