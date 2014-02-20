@@ -3843,6 +3843,8 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 					  &client->recursionquota);
 		if (result != ISC_R_SUCCESS)
 			return;
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_recursclients);
 	}
 	if (client->query.prefetch != NULL)
 		return;
