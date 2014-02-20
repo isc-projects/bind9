@@ -334,7 +334,8 @@ my @substdefh = ("ALLOW_FILTER_AAAA",
                  "HAVE_READLINE",
                  "ISC_LIST_CHECKINIT",
                  "PREFER_GOSTASN1",
-                 "WITH_IDN");
+                 "WITH_IDN",
+                 "TUNE_LARGE");
 
 # for platform.h
 
@@ -464,6 +465,7 @@ my @withlist = ("cross-compile",
                 "python",
                 "readline",
                 "tests",
+                "tuning",
                 "vcredist");
 
 # general arguments
@@ -514,6 +516,7 @@ my @help = (
 "  with-idn[=PATH]       build with IDN kit support yes|no|path\n",
 "  with-iconv[=PATH]     path of the iconv DLL [default=same than idn]\n",
 "  with-vcredist[=PATH]  visual C++ redistributable package yes|path\n",
+"  with-tuning=OPTION    tune for plaform size (large|default)\n",
 "  with-cross-compile    32 / 64 bit build / host plaforms\n");
 
 # Parse arguments
@@ -560,6 +563,7 @@ my $iconv_path = " --idn-- ";
 my $use_vcredist = "yes";
 my $vcredist_path = " --infer-- ";
 my $cross_compile = "no";
+my $tuning = "default";
 
 # no arguments -> usage
 
@@ -817,6 +821,10 @@ sub mywith {
     } elsif ($key =~ /^cross-compile$/i) {
         if ($val =~ /^yes$/i) {
             $cross_compile = "yes";
+        }
+    } elsif ($key =~ /^tuning$/i) {
+        if ($val =~ /^large$/i) {
+            $tuning = "large";
         }
     } else {
         $want_unknown = "yes";
@@ -2019,6 +2027,11 @@ if (!grep { -f and -x } $vcredist_path) {
     die "$vcredist_path is not correct\n";
 } else {
     $configvar{"VCREDIST_PATH"} = "$vcredist_path";
+}
+
+# tuning
+if ($tuning eq "large") {
+    $configdefh{"TUNE_LARGE"} = 1;
 }
 
 # setup config.h with %configdefh

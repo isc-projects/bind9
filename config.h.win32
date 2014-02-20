@@ -367,6 +367,9 @@ typedef __int64 off_t;
 /* From enable developer */
 @ISC_LIST_CHECKINIT@
 
+/* Large system tuning */
+@TUNE_LARGE@
+
 /* Avoid warnings with strlen() */
 #ifdef _WIN64
 #define strlen(x)	(unsigned int) strlen(x)
