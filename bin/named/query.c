@@ -6073,7 +6073,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	dns_fixedname_t fixed;
 	dns_fixedname_t wildcardname;
 	dns_dbversion_t *version, *zversion;
-	dns_zone_t *zone;
+	dns_zone_t *zone, *raw = NULL, *mayberaw;
 	dns_rdata_cname_t cname;
 	dns_rdata_dname_t dname;
 	unsigned int options;
@@ -7864,10 +7864,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		    dns_name_equal(client->query.qname, dns_rootname))
 			client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
 
+		/*
+		 * Return the time to expire for slave zones.
+		 */
+		if (is_zone)
+			dns_zone_getraw(zone, &raw);
+		mayberaw = (raw != NULL) ? raw : zone;
+
 		if (is_zone && qtype == dns_rdatatype_soa &&
 		    (client->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0 &&
 		    client->query.restarts == 0 &&
-		    dns_zone_gettype(zone) == dns_zone_slave) {
+		    dns_zone_gettype(mayberaw) == dns_zone_slave) {
 			isc_time_t expiretime;
 			isc_uint32_t secs;
 			dns_zone_getexpiretime(zone, &expiretime);
@@ -7877,6 +7884,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				client->expire = secs - client->now;
 			}
 		}
+		if (raw != NULL)
+			dns_zone_detach(&raw);
 
 		if (dns64) {
 			qtype = type = dns_rdatatype_aaaa;

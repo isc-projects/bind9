@@ -249,7 +249,6 @@ allowed(isc_netaddr_t *addr, dns_name_t *signer, dns_acl_t *acl);
 static void compute_sit(ns_client_t *client, isc_uint32_t when,
 			isc_uint32_t nonce, isc_buffer_t *buf);
 #endif
-static inline isc_result_t client_addopt(ns_client_t *client);
 
 void
 ns_client_recursing(ns_client_t *client) {
@@ -1018,7 +1017,8 @@ client_send(ns_client_t *client) {
 	 * Create an OPT for our reply.
 	 */
 	if ((client->attributes & NS_CLIENTATTR_WANTOPT) != 0) {
-		result = client_addopt(client);
+		result = ns_client_addopt(client, client->message,
+					  &client->opt);
 		if (result != ISC_R_SUCCESS)
 			goto done;
 	}
@@ -1377,8 +1377,10 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 	ns_client_send(client);
 }
 
-static inline isc_result_t
-client_addopt(ns_client_t *client) {
+isc_result_t
+ns_client_addopt(ns_client_t *client, dns_message_t *message,
+		 dns_rdataset_t **opt)
+{
 	char nsid[BUFSIZ], *nsidp;
 #ifdef ISC_PLATFORM_USESIT
 	unsigned char sit[SIT_SIZE];
@@ -1392,7 +1394,9 @@ client_addopt(ns_client_t *client) {
 	unsigned int flags;
 	unsigned char expire[4];
 
-	REQUIRE(client->opt == NULL);	/* XXXRTH free old. */
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(opt != NULL && *opt == NULL);
+	REQUIRE(message != NULL);
 
 	view = client->view;
 	resolver = (view != NULL) ? view->resolver : NULL;
@@ -1456,8 +1460,8 @@ client_addopt(ns_client_t *client) {
 		count++;
 	}
 
-	result = dns_message_buildopt(client->message, &client->opt, 0,
-				      udpsize, flags, ednsopts, count);
+	result = dns_message_buildopt(message, opt, 0, udpsize, flags,
+				      ednsopts, count);
 	return (result);
 }
 
@@ -1748,7 +1752,8 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	if (client->ednsversion > 0) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_badednsver);
-		result = client_addopt(client);
+		result = ns_client_addopt(client, client->message,
+					  &client->opt);
 		if (result == ISC_R_SUCCESS)
 			result = DNS_R_BADVERS;
 		ns_client_error(client, result);

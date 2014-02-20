@@ -729,7 +729,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	isc_result_t result;
 	dns_name_t *question_name;
 	dns_rdataset_t *question_rdataset;
-	dns_zone_t *zone = NULL;
+	dns_zone_t *zone = NULL, *raw = NULL, *mayberaw;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_rdataclass_t question_class;
@@ -1083,6 +1083,23 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			    mnemonic, (xfr->tsigkey != NULL) ? ": TSIG " : "",
 			    keyname, current_serial);
 
+	
+	dns_zone_getraw(zone, &raw);
+	mayberaw = (raw != NULL) ? raw : zone;
+	if ((client->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0 &&
+	    dns_zone_gettype(mayberaw) == dns_zone_slave) {
+		isc_time_t expiretime;
+		isc_uint32_t secs;
+		dns_zone_getexpiretime(zone, &expiretime);
+		secs = isc_time_seconds(&expiretime);
+		if (secs >= client->now && result == ISC_R_SUCCESS) {
+			client->attributes |= NS_CLIENTATTR_HAVEEXPIRE;
+			client->expire = secs - client->now;
+		}
+	}
+	if (raw != NULL)
+		dns_zone_detach(&raw);
+
 	/*
 	 * Hand the context over to sendstream().  Set xfr to NULL;
 	 * sendstream() is responsible for either passing the
@@ -1291,6 +1308,21 @@ sendstream(xfrout_ctx_t *xfr) {
 		CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
 		if (xfr->lasttsig != NULL)
 			isc_buffer_free(&xfr->lasttsig);
+
+		/*
+		 * Add a EDNS option to the message?
+		 */
+		if ((xfr->client->attributes & NS_CLIENTATTR_WANTOPT) != 0) {
+			dns_rdataset_t *opt = NULL;
+
+			CHECK(ns_client_addopt(xfr->client, msg, &opt));
+			CHECK(dns_message_setopt(msg, opt));
+			/*
+			 * Add to first message only.
+			 */
+			xfr->client->attributes &= ~NS_CLIENTATTR_WANTNSID;
+			xfr->client->attributes &= ~NS_CLIENTATTR_HAVEEXPIRE;
+		}
 
 		/*
 		 * Account for reserved space.
