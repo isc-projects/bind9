@@ -134,7 +134,6 @@
  * Maximum EDNS0 input packet size.
  */
 #define RECV_BUFFER_SIZE                4096            /* XXXRTH  Constant. */
-#define EDNSOPTS			2
 
 /*%
  * This defines the maximum number of timeouts we will permit before we
@@ -1672,7 +1671,7 @@ resquery_send(resquery_t *query) {
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	isc_boolean_t secure_domain;
 	isc_boolean_t connecting = ISC_FALSE;
-	dns_ednsopt_t ednsopts[EDNSOPTS];
+	dns_ednsopt_t ednsopts[DNS_OPT_EDNSOPTIONS];
 	unsigned ednsopt = 0;
 
 	fctx = query->fctx;
@@ -1857,7 +1856,7 @@ resquery_send(resquery_t *query) {
 			if (peer != NULL)
 				(void) dns_peer_getrequestnsid(peer, &reqnsid);
 			if (reqnsid) {
-				INSIST(ednsopt < EDNSOPTS);
+				INSIST(ednsopt < DNS_OPT_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_NSID;
 				ednsopts[ednsopt].length = 0;
 				ednsopts[ednsopt].value = NULL;
