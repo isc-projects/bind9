@@ -3299,7 +3299,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				ADD_STRING(target, "; CLIENT-SUBNET: ");
 				render_ecs(&optbuf, target);
 				ADD_STRING(target, "\n");
-				break;
+				continue;
 			} else if (optcode == DNS_OPT_EXPIRE) {
 				if (optlen == 4) {
 					char buf[sizeof("4294967296")];
@@ -3311,7 +3311,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					ADD_STRING(target, " (");
 					dns_ttl_totext(secs, ISC_TRUE, target);
 					ADD_STRING(target, ")\n");
-					break;
+					continue;
 				}
 				ADD_STRING(target, "; EXPIRE");
 			} else {
@@ -3343,7 +3343,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 
 				if (optcode == DNS_OPT_SIT) {
 					ADD_STRING(target, "\n");
-					break;
+					continue;
 				}
 
 				/*
