@@ -599,7 +599,7 @@ check_ttls(dns_zone_t *zone, dns_ttl_t maxttl) {
 	name = dns_fixedname_name(&fname);
 	dns_rdataset_init(&rdataset);
 
-	dns_zone_getdb(zone, &db);
+	CHECK(dns_zone_getdb(zone, &db));
 	INSIST(db != NULL);
 
 	CHECK(dns_db_newversion(db, &version));
