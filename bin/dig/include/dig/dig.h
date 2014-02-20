@@ -130,6 +130,7 @@ struct dig_lookup {
 		done_as_is,
 		besteffort,
 		dnssec,
+		expire,
 #ifdef ISC_PLATFORM_USESIT
 		sit,
 #endif

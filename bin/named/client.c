@@ -249,6 +249,7 @@ allowed(isc_netaddr_t *addr, dns_name_t *signer, dns_acl_t *acl);
 static void compute_sit(ns_client_t *client, isc_uint32_t when,
 			isc_uint32_t nonce, isc_buffer_t *buf);
 #endif
+static inline isc_result_t client_addopt(ns_client_t *client);
 
 void
 ns_client_recursing(ns_client_t *client) {
@@ -1014,6 +1015,15 @@ client_send(ns_client_t *client) {
 #endif
 
 	/*
+	 * Create an OPT for our reply.
+	 */
+	if ((client->attributes & NS_CLIENTATTR_WANTOPT) != 0) {
+		result = client_addopt(client);
+		if (result != ISC_R_SUCCESS)
+			goto done;
+	}
+
+	/*
 	 * XXXRTH  The following doesn't deal with TCP buffer resizing.
 	 */
 	result = client_allocsendbuf(client, &buffer, &tcpbuffer, 0,
@@ -1380,6 +1390,7 @@ client_addopt(ns_client_t *client) {
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	int count = 0;
 	unsigned int flags;
+	unsigned char expire[4];
 
 	REQUIRE(client->opt == NULL);	/* XXXRTH free old. */
 
@@ -1432,6 +1443,18 @@ client_addopt(ns_client_t *client) {
 		count++;
 	}
 #endif
+	if ((client->attributes & NS_CLIENTATTR_HAVEEXPIRE) != 0) {
+		isc_buffer_t buf;
+
+		INSIST(count < DNS_EDNSOPTIONS);
+
+		isc_buffer_init(&buf, expire, sizeof(expire));
+		isc_buffer_putuint32(&buf, client->expire);
+		ednsopts[count].code = DNS_OPT_EXPIRE;
+		ednsopts[count].length = 4;
+		ednsopts[count].value = expire;
+		count++;
+	}
 
 	result = dns_message_buildopt(client->message, &client->opt, 0,
 				      udpsize, flags, ednsopts, count);
@@ -1752,6 +1775,10 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 				process_sit(client, &optbuf, optlen);
 				break;
 #endif
+			case DNS_OPT_EXPIRE:
+				client->attributes |= NS_CLIENTATTR_WANTEXPIRE;
+				isc_buffer_forward(&optbuf, optlen);
+				break;
 			default:
 				isc_buffer_forward(&optbuf, optlen);
 				break;
@@ -1760,15 +1787,8 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	}
 
 	isc_stats_increment(ns_g_server->nsstats, dns_nsstatscounter_edns0in);
+	client->attributes |= NS_CLIENTATTR_WANTOPT;
 
-	/*
-	 * Create an OPT for our reply.
-	 */
-	result = client_addopt(client);
-	if (result != ISC_R_SUCCESS) {
-		ns_client_error(client, result);
-		goto cleanup;
-	}
  cleanup:
 	return (result);
 }

@@ -931,7 +931,8 @@
 	      Send a Source Identity Token EDNS option, with optional value.
 	      Replaying a SIT from a previous response will allow the
 	      server to identify a previous client.  The default is
-	      <option>+nosit</option>.
+	      <option>+nosit</option>.  Currently using experimental value
+	      65001 for the option code.
             </para>
           </listitem>
         </varlistentry>
@@ -942,6 +943,16 @@
             <para>
 	      Send an EDNS Client Subnet option with the speciifed
               IP address or network prefix.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><option>+[no]expire</option></term>
+          <listitem>
+            <para>
+	      Send an EDNS Expire option.  Currently using experimental
+	      value 65002 for the option code.
             </para>
           </listitem>
         </varlistentry>

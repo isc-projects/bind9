@@ -767,6 +767,7 @@ make_empty_lookup(void) {
 	looknew->servfail_stops = ISC_TRUE;
 	looknew->besteffort = ISC_TRUE;
 	looknew->dnssec = ISC_FALSE;
+	looknew->expire = ISC_FALSE;
 	looknew->nsid = ISC_FALSE;
 #ifdef ISC_PLATFORM_USESIT
 	looknew->sit = ISC_FALSE;
@@ -855,6 +856,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->servfail_stops = lookold->servfail_stops;
 	looknew->besteffort = lookold->besteffort;
 	looknew->dnssec = lookold->dnssec;
+	looknew->expire = lookold->expire;
 	looknew->nsid = lookold->nsid;
 #ifdef ISC_PLATFORM_USESIT
 	looknew->sit = lookold->sit;
@@ -2427,6 +2429,14 @@ setup_lookup(dig_lookup_t *lookup) {
 			i++;
 		}
 #endif
+
+		if (lookup->expire) {
+			INSIST(i < DNS_EDNSOPTIONS);
+			opts[i].code = DNS_OPT_EXPIRE;
+			opts[i].length = 0;
+			opts[i].value = NULL;
+			i++;
+		}
 
 		add_opt(lookup->sendmsg, lookup->udpsize,
 			lookup->edns, lookup->dnssec, opts, i);

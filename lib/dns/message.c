@@ -3299,6 +3299,18 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				render_ecs(&optbuf, target);
 				ADD_STRING(target, "\n");
 				break;
+			} else if (optcode == DNS_OPT_EXPIRE) {
+				if (optlen == 4) {
+					char buf[sizeof("4294967296")];
+					isc_uint32_t secs;
+					secs = isc_buffer_getuint32(&optbuf);
+					ADD_STRING(target, "; EXPIRE: ");
+					snprintf(buf, sizeof(buf), "%u", secs);
+					ADD_STRING(target, buf);
+					ADD_STRING(target, "\n");
+					break;
+				}
+				ADD_STRING(target, "; EXPIRE");
 			} else {
 				ADD_STRING(target, "; OPT=");
 				sprintf(buf, "%u", optcode);

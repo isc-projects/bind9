@@ -162,6 +162,7 @@ struct ns_client {
 	ISC_LINK(ns_client_t)	rlink;
 	ISC_QLINK(ns_client_t)	ilink;
 	unsigned char		cookie[8];
+	isc_uint32_t		expire;
 };
 
 typedef ISC_QUEUE(ns_client_t) client_queue_t;
@@ -170,19 +171,22 @@ typedef ISC_LIST(ns_client_t) client_list_t;
 #define NS_CLIENT_MAGIC			ISC_MAGIC('N','S','C','c')
 #define NS_CLIENT_VALID(c)		ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
 
-#define NS_CLIENTATTR_TCP		0x001
-#define NS_CLIENTATTR_RA		0x002 /*%< Client gets recursive service */
-#define NS_CLIENTATTR_PKTINFO		0x004 /*%< pktinfo is valid */
-#define NS_CLIENTATTR_MULTICAST		0x008 /*%< recv'd from multicast */
-#define NS_CLIENTATTR_WANTDNSSEC	0x010 /*%< include dnssec records */
-#define NS_CLIENTATTR_WANTNSID          0x020 /*%< include nameserver ID */
+#define NS_CLIENTATTR_TCP		0x0001
+#define NS_CLIENTATTR_RA		0x0002 /*%< Client gets recursive service */
+#define NS_CLIENTATTR_PKTINFO		0x0004 /*%< pktinfo is valid */
+#define NS_CLIENTATTR_MULTICAST		0x0008 /*%< recv'd from multicast */
+#define NS_CLIENTATTR_WANTDNSSEC	0x0010 /*%< include dnssec records */
+#define NS_CLIENTATTR_WANTNSID          0x0020 /*%< include nameserver ID */
 #ifdef ALLOW_FILTER_AAAA
-#define NS_CLIENTATTR_FILTER_AAAA	0x040 /*%< suppress AAAAs */
-#define NS_CLIENTATTR_FILTER_AAAA_RC	0x080 /*%< recursing for A against AAAA */
+#define NS_CLIENTATTR_FILTER_AAAA	0x0040 /*%< suppress AAAAs */
+#define NS_CLIENTATTR_FILTER_AAAA_RC	0x0080 /*%< recursing for A against AAAA */
 #endif
-#define NS_CLIENTATTR_WANTAD		0x100 /*%< want AD in response if possible */
-#define NS_CLIENTATTR_WANTSIT		0x200 /*%< include SIT */
-#define NS_CLIENTATTR_HAVESIT		0x400 /*%< has a valid SIT */
+#define NS_CLIENTATTR_WANTAD		0x0100 /*%< want AD in response if possible */
+#define NS_CLIENTATTR_WANTSIT		0x0200 /*%< include SIT */
+#define NS_CLIENTATTR_HAVESIT		0x0400 /*%< has a valid SIT */
+#define NS_CLIENTATTR_WANTEXPIRE	0x0800 /*%< return seconds to expire */
+#define NS_CLIENTATTR_HAVEEXPIRE	0x1000 /*%< return seconds to expire */
+#define NS_CLIENTATTR_WANTOPT		0x2000 /*%< add opt to reply */
 
 extern unsigned int ns_client_requests;
 

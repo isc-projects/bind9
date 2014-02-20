@@ -201,5 +201,12 @@ awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check expire option returned from slave zone"
+ret=0
+$DIG @10.53.0.2 -p 5300 +expire soa expire-test > dig.out.expire
+grep EXPIRE: dig.out.expire > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

@@ -226,6 +226,7 @@ help(void) {
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root [+dnssec])\n"
 "                 +[no]dnssec         (Request DNSSEC records)\n"
+"                 +[no]expire         (Request time to expire)\n"
 "                 +[no]nsid           (Request Name Server ID)\n"
 #ifdef ISC_PLATFORM_USESIT
 "                 +[no]sit            (Request a Source Identity Token)\n"
@@ -919,19 +920,29 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'e':
-		FULLCHECK("edns");
-		if (!state) {
-			lookup->edns = -1;
+		switch (cmd[1]) {
+		case 'd':
+			FULLCHECK("edns");
+			if (!state) {
+				lookup->edns = -1;
+				break;
+			}
+			if (value == NULL) {
+				lookup->edns = 0;
+				break;
+			}
+			result = parse_uint(&num, value, 255, "edns");
+			if (result != ISC_R_SUCCESS)
+				fatal("Couldn't parse edns");
+			lookup->edns = num;
 			break;
-		}
-		if (value == NULL) {
-			lookup->edns = 0;
+		case 'x':
+			FULLCHECK("expire");
+			lookup->expire = state;
 			break;
+		default:
+			goto invalid_option;
 		}
-		result = parse_uint(&num, value, 255, "edns");
-		if (result != ISC_R_SUCCESS)
-			fatal("Couldn't parse edns");
-		lookup->edns = num;
 		break;
 	case 'f': /* fail */
 		FULLCHECK("fail");

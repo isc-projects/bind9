@@ -7864,6 +7864,20 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		    dns_name_equal(client->query.qname, dns_rootname))
 			client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
 
+		if (is_zone && qtype == dns_rdatatype_soa &&
+		    (client->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0 &&
+		    client->query.restarts == 0 &&
+		    dns_zone_gettype(zone) == dns_zone_slave) {
+			isc_time_t expiretime;
+			isc_uint32_t secs;
+			dns_zone_getexpiretime(zone, &expiretime);
+			secs = isc_time_seconds(&expiretime);
+			if (secs >= client->now && result == ISC_R_SUCCESS) {
+				client->attributes |= NS_CLIENTATTR_HAVEEXPIRE; 
+				client->expire = secs - client->now;
+			}
+		}
+
 		if (dns64) {
 			qtype = type = dns_rdatatype_aaaa;
 			result = query_dns64(client, &fname, rdataset,
