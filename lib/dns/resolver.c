@@ -1674,7 +1674,7 @@ resquery_send(resquery_t *query) {
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	isc_boolean_t secure_domain;
 	isc_boolean_t connecting = ISC_FALSE;
-	dns_ednsopt_t ednsopts[DNS_OPT_EDNSOPTIONS];
+	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	unsigned ednsopt = 0;
 
 	fctx = query->fctx;
@@ -1859,7 +1859,7 @@ resquery_send(resquery_t *query) {
 			if (peer != NULL)
 				(void) dns_peer_getrequestnsid(peer, &reqnsid);
 			if (reqnsid) {
-				INSIST(ednsopt < DNS_OPT_EDNSOPTIONS);
+				INSIST(ednsopt < DNS_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_NSID;
 				ednsopts[ednsopt].length = 0;
 				ednsopts[ednsopt].value = NULL;
