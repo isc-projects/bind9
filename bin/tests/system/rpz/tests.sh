@@ -526,11 +526,11 @@ if test -n "$QPERF"; then
 
     MIN_PERCENT=30
     if test "$PERCENT" -lt $MIN_PERCENT; then
-	setret "I:$RPZ qps with rpz or $PERCENT% is below $MIN_PERCENT% of $NORPZ qps"
+	echo "I:$RPZ qps with rpz or $PERCENT% is below $MIN_PERCENT% of $NORPZ qps"
     fi
 
     if test "$PERCENT" -ge 100; then
-	setret "I:$RPZ qps with RPZ or $PERCENT% of $NORPZ qps without RPZ is too high"
+	echo "I:$RPZ qps with RPZ or $PERCENT% of $NORPZ qps without RPZ is too high"
     fi
 
     ckstats $ns5 performance ns5 200
