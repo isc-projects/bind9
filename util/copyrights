@@ -1300,7 +1300,7 @@
 ./bin/tests/system/rpz/test4			ZONE	2011,2012,2013
 ./bin/tests/system/rpz/test4a			ZONE	2013
 ./bin/tests/system/rpz/test5			ZONE	2011,2012,2013
-./bin/tests/system/rpz/tests.sh			SH	2011,2012,2013
+./bin/tests/system/rpz/tests.sh			SH	2011,2012,2013,2014
 ./bin/tests/system/rrsetorder/clean.sh		SH	2006,2007,2008,2011,2012
 ./bin/tests/system/rrsetorder/dig.out.fixed.good	X	2006
 ./bin/tests/system/rrsetorder/dig.out.random.good1	X	2006
@@ -1725,11 +1725,11 @@
 ./bin/win32/BINDInstall/BINDInstall.dsw		X	2001
 ./bin/win32/BINDInstall/BINDInstall.h		C.PORTION	2001,2004,2007
 ./bin/win32/BINDInstall/BINDInstall.mak.in	X	2001,2006,2007,2009,2013
-./bin/win32/BINDInstall/BINDInstall.rc		X	2001,2005,2009
+./bin/win32/BINDInstall/BINDInstall.rc		X	2001,2005,2009,2014
 ./bin/win32/BINDInstall/BINDInstall.vcxproj.filters.in	X	2013
 ./bin/win32/BINDInstall/BINDInstall.vcxproj.in	X	2013
 ./bin/win32/BINDInstall/BINDInstall.vcxproj.user	X	2013
-./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2003,2004,2005,2006,2007,2008,2009,2010,2013
+./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2003,2004,2005,2006,2007,2008,2009,2010,2013,2014
 ./bin/win32/BINDInstall/BINDInstallDlg.h	C.PORTION	2001,2004,2007,2009
 ./bin/win32/BINDInstall/DirBrowse.cpp		C.PORTION	2001,2004,2007
 ./bin/win32/BINDInstall/DirBrowse.h		C.PORTION	2001,2004,2007
@@ -3585,7 +3585,7 @@
 ./util/commit-arm.sh				SH	2012
 ./util/copyrights				X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./util/file_year.sh				SH	2012
-./util/kit.sh					SH	2000,2001,2002,2003,2004,2007,2008,2009,2010,2012,2013
+./util/kit.sh					SH	2000,2001,2002,2003,2004,2007,2008,2009,2010,2012,2013,2014
 ./util/mandoc2docbook.pl			PERL	2001,2004,2007,2012
 ./util/mdnbuildtest.sh				SH	2000,2001,2004,2007,2012
 ./util/memleak.pl				PERL	1999,2000,2001,2004,2007,2012
@@ -3611,6 +3611,6 @@
 ./win32utils/legacy/BuildAll.bat.in		BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2013
 ./win32utils/legacy/BuildPost.bat.in		BAT	2005,2006,2013
 ./win32utils/legacy/BuildSetup.bat.in		BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2012,2013
-./win32utils/legacy/makedefs.pl			PERL	2001,2004,2007,2009,2012,2013
-./win32utils/legacy/win32-build.txt		TXT.BRIEF	2001,2002,2004,2005,2008,2009,2012,2013
-./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007,2008,2009,2012
+./win32utils/legacy/makedefs.pl			PERL	2001,2004,2007,2009,2012,2013,2014
+./win32utils/legacy/win32-build.txt		TXT.BRIEF	2001,2002,2004,2005,2008,2009,2012,2013,2014
+./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007,2008,2009,2012,2014
