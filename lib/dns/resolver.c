@@ -1837,7 +1837,7 @@ resquery_send(resquery_t *query) {
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	isc_boolean_t secure_domain;
 	isc_boolean_t connecting = ISC_FALSE;
-	dns_ednsopt_t ednsopts[DNS_OPT_EDNSOPTIONS];
+	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	unsigned ednsopt = 0;
 	isc_uint16_t hint = 0, udpsize = 0;	/* No EDNS */
 
@@ -2065,7 +2065,7 @@ resquery_send(resquery_t *query) {
 #endif
 			}
 			if (reqnsid) {
-				INSIST(ednsopt < DNS_OPT_EDNSOPTIONS);
+				INSIST(ednsopt < DNS_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_NSID;
 				ednsopts[ednsopt].length = 0;
 				ednsopts[ednsopt].value = NULL;
@@ -2073,7 +2073,7 @@ resquery_send(resquery_t *query) {
 			}
 #ifdef ISC_PLATFORM_USESIT
 			if (reqsit) {
-				INSIST(ednsopt < DNS_OPT_EDNSOPTIONS);
+				INSIST(ednsopt < DNS_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_SIT;
 				ednsopts[ednsopt].length = (isc_uint16_t)
 					dns_adb_getsit(fctx->adb,

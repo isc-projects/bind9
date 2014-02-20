@@ -1377,7 +1377,7 @@ client_addopt(ns_client_t *client) {
 	dns_view_t *view;
 	dns_resolver_t *resolver;
 	isc_uint16_t udpsize;
-	dns_ednsopt_t ednsopts[DNS_OPT_EDNSOPTIONS];
+	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	int count = 0;
 	unsigned int flags;
 
@@ -1406,7 +1406,7 @@ client_addopt(ns_client_t *client) {
 		} else
 			nsidp = ns_g_server->server_id;
 
-		INSIST(count < DNS_OPT_EDNSOPTIONS);
+		INSIST(count < DNS_EDNSOPTIONS);
 		ednsopts[count].code = DNS_OPT_NSID;
 		ednsopts[count].length = strlen(nsidp);
 		ednsopts[count].value = (unsigned char *)nsidp;
@@ -1425,7 +1425,7 @@ client_addopt(ns_client_t *client) {
 
 		compute_sit(client, now, nonce, &buf);
 
-		INSIST(count < DNS_OPT_EDNSOPTIONS);
+		INSIST(count < DNS_EDNSOPTIONS);
 		ednsopts[count].code = DNS_OPT_SIT;
 		ednsopts[count].length = SIT_SIZE;
 		ednsopts[count].value = sit;
