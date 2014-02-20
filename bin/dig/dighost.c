@@ -2383,7 +2383,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 			INSIST(i < DNS_EDNSOPTIONS);
 			opts[i].code = DNS_OPT_CLIENT_SUBNET;
-			opts[i].length = addrl + 4;
+			opts[i].length = (isc_uint16_t) addrl + 4;
 			check_result(result, "isc_buffer_allocate");
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
 			if (sa->sa_family == AF_INET) {
@@ -2393,7 +2393,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				isc_buffer_putuint8(&b, 0);
 				isc_buffer_putmem(&b,
 					  (isc_uint8_t *) &sin->sin_addr,
-					  addrl);
+					  (unsigned int) addrl);
 			} else {
 				sin6 = (struct sockaddr_in6 *) sa;
 				isc_buffer_putuint16(&b, 2);
@@ -2401,7 +2401,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				isc_buffer_putuint8(&b, 0);
 				isc_buffer_putmem(&b,
 					  (isc_uint8_t *) &sin6->sin6_addr,
-					  addrl);
+					  (unsigned int) addrl);
 			}
 
 			opts[i].value = (isc_uint8_t *) ecsbuf;
