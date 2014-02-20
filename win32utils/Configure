@@ -1200,42 +1200,42 @@ if ($enable_intrinsics eq "yes") {
 # enable-native-pkcs11
 if ($enable_native_pkcs11 eq "yes") {
     if ($use_openssl eq "auto") {
-	$use_openssl = "no";
+        $use_openssl = "no";
     }
     if ($use_openssl ne "no") {
-	die "can't have both OpenSSL and native PKCS#11\n";
+        die "can't have both OpenSSL and native PKCS#11\n";
     }
     if ($use_pkcs11 ne "yes") {
-	if ($verbose) {
-	    print "native PKCS#11 support: force with-pkcs11\n";
-	}
-	$use_pkcs11 = "yes";
+        if ($verbose) {
+            print "native PKCS#11 support: force with-pkcs11\n";
+        }
+        $use_pkcs11 = "yes";
     }
     if ($pkcs11_path eq "unknown") {
-	if ($verbose) {
-	    print "native PKCS#11 support: no PKCS#11 provider defined?\n";
-	}
+        if ($verbose) {
+            print "native PKCS#11 support: no PKCS#11 provider defined?\n";
+        }
     }
     $configdefd{"CRYPTO"} = "PKCS11CRYPTO";
     if ($use_ecdsa eq "no") {
-	if ($verbose) {
-	    print "no ECDSA support in native PKCS#11\n";
-	}
+        if ($verbose) {
+            print "no ECDSA support in native PKCS#11\n";
+        }
     } else {
-	if ($verbose) {
-	    print "enabled ECDSA support in native PKCS#11\n";
-	}
-	$configdefh{"HAVE_PKCS11_ECDSA"} = 1;
+        if ($verbose) {
+            print "enabled ECDSA support in native PKCS#11\n";
+        }
+        $configdefh{"HAVE_PKCS11_ECDSA"} = 1;
     }
     if ($use_gost eq "no") {
-	if ($verbose) {
-	    print "no GOST support in native PKCS#11\n";
-	}
+        if ($verbose) {
+            print "no GOST support in native PKCS#11\n";
+        }
     } else {
-	if ($verbose) {
-	    print "enabled GOST support in native PKCS#11\n";
-	}
-	$configdefh{"HAVE_PKCS11_GOST"} = 1;
+        if ($verbose) {
+            print "enabled GOST support in native PKCS#11\n";
+        }
+        $configdefh{"HAVE_PKCS11_GOST"} = 1;
     }
 }
 
