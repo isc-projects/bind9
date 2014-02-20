@@ -1,3 +1,5 @@
+3753.	[bug]		allow-notify was ignoring keys. [RT #35425]
+
 3747.	[bug]		A race condition could lead to a core dump when
 			destroying a resolver fetch object. [RT #35385]
 
