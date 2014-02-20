@@ -127,8 +127,11 @@ BIND 9.10.0
 	   zones. This can simplify the process of rolling DNSSEC keys
 	   by guaranteeing that cached signatures will have expired
 	   within the specified amount of time.
-	 - "dig +subnet" sends an EDNS client-subnet option when
-           querying.
+	 - "dig +subnet" sends an EDNS CLIENT-SUBNET option when
+	   querying.
+	 - "dig +expire" sends an EDNS EXPIRE option when querying.
+	   When sent with an SOA query, this will report the expiry
+	   time of a slave zone.
 	 - New "dnssec-coverage" tool to check DNSSEC key coverage
 	   for a zone and report if a lapse in signing coverage has
 	   been inadvertently scheduled.
