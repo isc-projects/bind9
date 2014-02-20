@@ -465,7 +465,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		 * Comment?
 		 */
 		if ((ctx->style.flags & DNS_STYLEFLAG_COMMENTDATA) != 0)
-			isc_buffer_putstr(target, ";");
+			RETERR(str_totext(";", target));
 
 		/*
 		 * Owner name.

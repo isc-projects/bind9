@@ -1,3 +1,7 @@
+3752.	[bug]		Address potential REQUIRE failure if
+			DNS_STYLEFLAG_COMMENTDATA is set when printing out
+			a rdataset.
+
 	--- 9.10.0b1 released ---
 
 3751.	[tuning]	The default setting for the -U option (setting
