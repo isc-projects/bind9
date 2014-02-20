@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2010, 2013  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2010, 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -225,7 +225,7 @@ CBINDInstallDlg::CBINDInstallDlg(CWnd* pParent /*=NULL*/)
 	SHGetFolderPath(NULL, CSIDL_FLAG_CREATE|CSIDL_PROGRAM_FILES,
 			NULL, SHGFP_TYPE_CURRENT, progfiles);
 #endif
-	
+
 	m_defaultDir = progfiles;
 	m_defaultDir += "\\ISC BIND 9";
 	m_installed = FALSE;
