@@ -77,7 +77,7 @@
       files will be generated.
     </para>
     <para>
-      The newly-created .private file does <emphasis>not</command>
+      The newly-created .private file does <emphasis>not</emphasis>
       contain private key data, and cannot be used for signing.
       However, having a .private file makes it possible to set
       publication (<option>-P</option>) and deletion
