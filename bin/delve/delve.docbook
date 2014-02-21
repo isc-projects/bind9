@@ -20,7 +20,7 @@
 <refentry id="man.delve">
 
   <refentryinfo>
-    <date>February 12, 2014</date>
+    <date>February 21, 2014</date>
   </refentryinfo>
 
   <refmeta>
@@ -66,6 +66,11 @@
     <cmdsynopsis>
       <command>delve</command>
       <arg><option>-h</option></arg>
+    </cmdsynopsis>
+
+    <cmdsynopsis>
+      <command>delve</command>
+      <arg><option>-v</option></arg>
     </cmdsynopsis>
 
     <cmdsynopsis>
@@ -189,8 +194,9 @@
   <refsect1>
     <title>OPTIONS</title>
     <variablelist>
+
       <varlistentry>
-	<term>-a</term>
+	<term>-a <replaceable class="parameter">anchor-file</replaceable></term>
 	<listitem>
 	  <para>
 	    Specifies a file from which to read DNSSEC trust anchors.
@@ -223,7 +229,7 @@
       </varlistentry>
 
       <varlistentry>
-	<term>-b</term>
+	<term>-b  <replaceable class="parameter">address</replaceable></term>
 	<listitem>
 	  <para>
 	    Sets the source IP address of the query to
@@ -236,12 +242,37 @@
       </varlistentry>
 
       <varlistentry>
-	<term>-c</term>
+	<term>-c <replaceable class="parameter">class</replaceable></term>
 	<listitem>
 	  <para>
 	    Sets the query class for the requested data. Currently,
 	    only class "IN" is supported in <command>delve</command>
 	    and any other value is ignored.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-d <replaceable class="parameter">level</replaceable></term>
+	<listitem>
+	  <para>
+	    Set the systemwide debug level to <option>level</option>.
+	    The allowed range is from 0 to 99.
+	    The default is 0 (no debugging).
+	    Debugging traces from <command>delve</command> become
+	    more verbose as the debug level increases.
+	    See the <option>+mtrace</option>, <option>+rtrace</option>,
+	    and <option>+vtrace</option> options below for additional
+	    debugging details.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-h</term>
+	<listitem>
+	  <para>
+	    Display the <command>delve</command> help usage output and exit.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -271,13 +302,72 @@
       </varlistentry>
 
       <varlistentry>
-	<term>-p</term>
+	<term>-p <replaceable class="parameter">port#</replaceable></term>
 	<listitem>
 	  <para>
 	    Specifies a destination port to use for queries instead of
 	    the standard DNS port number 53.  This option would be used
 	    with a name server that has been configured to listen
 	    for queries on a non-standard port number.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-q <replaceable class="parameter">name</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the query name to <parameter>name</parameter>.
+	    While the query name can be specified without using the
+	    <option>-q</option>, it is sometimes necessary to disambiguate
+	    names from types or classes (for example, when looking up the
+	    name "ns", which could be misinterpreted as the type NS,
+	    or "ch", which could be misinterpreted as class CH).
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-t <replaceable class="parameter">type</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the query type to <parameter>type</parameter>, which
+	    can be any valid query type supported in BIND 9 except
+	    for zone transfer types AXFR and IXFR. As with
+	    <option>-q</option>, this is useful to distinguish
+	    query name type or class when they are ambiguous.
+	    it is sometimes necessary to disambiguate names from types.
+	  </para>
+	  <para>
+	    The default query type is "A", unless the <option>-x</option>
+	    option is supplied to indicate a reverse lookup, in which case
+	    it is "PTR".
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-v</term>
+	<listitem>
+	  <para>
+	    Print the <command>delve</command> version and exit.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-x <replaceable class="parameter">addr</replaceable></term>
+	<listitem>
+	  <para>
+	    Performs a reverse lookup, mapping an addresses to
+	    a name.  <parameter>addr</parameter> is an IPv4 address in
+	    dotted-decimal notation, or a colon-delimited IPv6 address.
+	    When <option>-x</option> is used, there is no need to provide
+	    the <parameter>name</parameter> or <parameter>type</parameter>
+	    arguments.  <command>delve</command> automatically performs a
+	    lookup for a name like <literal>11.12.13.10.in-addr.arpa</literal>
+	    and sets the query type to PTR.  IPv6 addresses are looked up
+	    using nibble format under the IP6.ARPA domain.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -300,55 +390,6 @@
 	</listitem>
       </varlistentry>
 
-      <varlistentry>
-	<term>-q</term>
-	<listitem>
-	  <para>
-	    Sets the query name to <parameter>name</parameter>.
-	    While the query name can be specified without using the
-	    <option>-q</option>, it is sometimes necessary to disambiguate
-	    names from types or classes (for example, when looking up the
-	    name "ns", which could be misinterpreted as the type NS,
-	    or "ch", which could be misinterpreted as class CH).
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-	<term>-t</term>
-	<listitem>
-	  <para>
-	    Sets the query type to <parameter>type</parameter>, which
-	    can be any valid query type supported in BIND 9 except
-	    for zone transfer types AXFR and IXFR. As with
-	    <option>-q</option>, this is useful to distinguish
-	    query name type or class when they are ambiguous.
-	    it is sometimes necessary to disambiguate names from types.
-	  </para>
-	  <para>
-	    The default query type is "A", unless the <option>-x</option>
-	    option is supplied to indicate a reverse lookup, in which case
-	    it is "PTR".
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-	<term>-x</term>
-	<listitem>
-	  <para>
-	    Performs a reverse lookup, mapping an addresses to
-	    a name.  <parameter>addr</parameter> is an IPv4 address in
-	    dotted-decimal notation, or a colon-delimited IPv6 address.
-	    When <option>-x</option> is used, there is no need to provide
-	    the <parameter>name</parameter> or <parameter>type</parameter>
-	    arguments.  <command>delve</command> automatically performs a
-	    lookup for a name like <literal>11.12.13.10.in-addr.arpa</literal>
-	    and sets the query type to PTR.  IPv6 addresses are looked up
-	    using nibble format under the IP6.ARPA domain.
-	  </para>
-	</listitem>
-      </varlistentry>
     </variablelist>
   </refsect1>
 
@@ -581,8 +622,8 @@
 	  <term><option>+[no]root[=ROOT]</option></term>
 	  <listitem>
 	    <para>
-	      Indicates whether to perform conventional (non-
-	      lookaside) DNSSEC validation, and if so, specifies the
+	      Indicates whether to perform conventional (non-lookaside)
+	      DNSSEC validation, and if so, specifies the
 	      name of a trust anchor.  The default is to validate using
 	      a trust anchor of "." (the root zone), for which there is
 	      a built-in key.  If specifying a different trust anchor,
