@@ -147,6 +147,7 @@ options {
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
+        geoip-directory ( <quoted_string> | none ); // not configured
         has-old-clients <boolean>; // obsolete
         heartbeat-interval <integer>;
         host-statistics <boolean>; // not implemented
@@ -191,6 +192,7 @@ options {
         multiple-cnames <boolean>; // obsolete
         named-xfer <quoted_string>; // obsolete
         no-case-compress { <address_match_element>; ... };
+        nosit-udp-size <integer>; // not configured
         notify <notifytype>;
         notify-delay <integer>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
@@ -233,6 +235,7 @@ options {
         request-ixfr <boolean>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
+        request-sit <boolean>; // not configured
         reserved-sockets <integer>;
         resolver-query-timeout <integer>;
         response-policy { zone <quoted_string> [ policy ( given | disabled
@@ -257,6 +260,7 @@ options {
         sig-signing-signatures <integer>;
         sig-signing-type <integer>;
         sig-validity-interval <integer> [ <integer> ];
+        sit-secret <quoted_string>; // not configured
         sortlist { <address_match_element>; ... };
         stacksize <size>;
         statistics-file <quoted_string>;
@@ -307,6 +311,7 @@ server <netprefix> {
         query-source-v6 <querysource6>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
+        request-sit <boolean>; // not configured
         support-ixfr <boolean>; // obsolete
         transfer-format ( many-answers | one-answer );
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
@@ -445,6 +450,7 @@ view <string> <optional_class> {
         minimal-responses <boolean>;
         multi-master <boolean>;
         no-case-compress { <address_match_element>; ... };
+        nosit-udp-size <integer>; // not configured
         notify <notifytype>;
         notify-delay <integer>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
@@ -481,6 +487,7 @@ view <string> <optional_class> {
         request-ixfr <boolean>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
+        request-sit <boolean>; // not configured
         resolver-query-timeout <integer>;
         response-policy { zone <quoted_string> [ policy ( given | disabled
             | passthru | no-op | drop | tcp-only | nxdomain | nodata |
@@ -509,6 +516,7 @@ view <string> <optional_class> {
                 query-source-v6 <querysource6>;
                 request-ixfr <boolean>;
                 request-nsid <boolean>;
+                request-sit <boolean>; // not configured
                 support-ixfr <boolean>; // obsolete
                 transfer-format ( many-answers | one-answer );
                 transfer-source ( <ipv4_address> | * ) [ port ( <integer> |

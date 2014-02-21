@@ -975,6 +975,9 @@ options_clauses[] = {
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
 #ifdef HAVE_GEOIP
 	{ "geoip-directory", &cfg_type_qstringornone, 0 },
+#else
+	{ "geoip-directory", &cfg_type_qstringornone,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_GEOIP */
 	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "heartbeat-interval", &cfg_type_uint32, 0 },
@@ -986,6 +989,8 @@ options_clauses[] = {
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 #ifdef ISC_PLATFORM_USESIT
 	{ "sit-secret", &cfg_type_qstring, 0 },
+#else
+	{ "sit-secret", &cfg_type_qstring, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ "managed-keys-directory", &cfg_type_qstring, 0 },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },
@@ -1522,6 +1527,8 @@ view_clauses[] = {
 	{ "lame-ttl", &cfg_type_uint32, 0 },
 #ifdef ISC_PLATFORM_USESIT
 	{ "nosit-udp-size", &cfg_type_uint32, 0 },
+#else
+	{ "nosit-udp-size", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ "max-acache-size", &cfg_type_sizenodefault, 0 },
 	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
@@ -1548,6 +1555,8 @@ view_clauses[] = {
 	{ "request-ixfr", &cfg_type_boolean, 0 },
 #ifdef ISC_PLATFORM_USESIT
 	{ "request-sit", &cfg_type_boolean, 0 },
+#else
+	{ "request-sit", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "resolver-query-timeout", &cfg_type_uint32, 0 },
@@ -1828,6 +1837,8 @@ server_clauses[] = {
 	{ "support-ixfr", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 #ifdef ISC_PLATFORM_USESIT
 	{ "request-sit", &cfg_type_boolean, 0 },
+#else
+	{ "request-sit", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "transfers", &cfg_type_uint32, 0 },
@@ -2212,8 +2223,8 @@ static cfg_type_t cfg_type_geoipdb = {
 };
 
 static cfg_tuplefielddef_t geoip_fields[] = {
-	{ "negated", &cfg_type_void, 0},
-	{ "db", &cfg_type_geoipdb, 0},
+	{ "negated", &cfg_type_void, 0 },
+	{ "db", &cfg_type_geoipdb, 0 },
 	{ "subtype", &cfg_type_geoiptype, 0 },
 	{ "search", &cfg_type_astring, 0 },
 	{ NULL, NULL, 0 }
