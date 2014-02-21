@@ -15,7 +15,7 @@
 			been adjusted to improve performance. [RT #35417]
 
 3750.	[experimental]	Partially implement EDNS EXPIRE option as described
-			in draft-andrews-dnsext-expire-00.  Retrievial of
+			in draft-andrews-dnsext-expire-00.  Retrieval of
 			the remaining time until expiry for slave zones
 			is supported.
 
@@ -51,7 +51,7 @@
 			legitimate clients.
 
 			SIT uses an experimental EDNS option code (65001),
-			which will be changed to an an IANA-assigned value
+			which will be changed to an IANA-assigned value
 			if the experiment is deemed a success.
 
 			SIT can be enabled via "configure --enable-sit" (or
@@ -2195,7 +2195,7 @@
 			as a zone's masters clause.  This means it is
 			now possible to specify a TSIG key to use when
 			sending notifies to a given server, or to include
-			an explicit named masters list in an also-notfiy
+			an explicit named masters list in an also-notify
 			statement.  [RT #23508]
 
 3108.	[cleanup]	dnssec-signzone: Clarified some error and
