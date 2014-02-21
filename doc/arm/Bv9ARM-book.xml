@@ -6264,12 +6264,12 @@ options {
 		If <userinput>yes</userinput>, then a SIT (Source Identity
 		Token) EDNS option is sent along with the query.  If the
                 resolver has previously talked to the server, the SIT
-                returned in the previous transaction is sent.  This
+                returned in the previous transaction is sent. This
                 is used by the server to determine whether the resolver
-                has talked to it before.  A resolver sending the corret
+                has talked to it before. A resolver sending the correct
                 SIT is assumed not to be an off-path attacker sending a
                 spoofed-source query; the query is therefore unlikely to
-                be part of a reflection/amplification attack: resolvers
+                be part of a reflection/amplification attack, so resolvers
                 sending a correct SIT option are not subject to response
                 rate limiting (RRL).  Resolvers which do not send a correct
                 SIT option may be limited to receiving smaller responses
@@ -6282,7 +6282,7 @@ options {
 	      <para>
 		If set, this is a shared secret used for generating and
 		verifying Source Identity Token EDNS options within a
-		anycast cluster.  If not set the system will generation
+		anycast cluster.  If not set the system will generate
 		a random secret at startup.
 	      </para>
 	    </varlistentry>
@@ -10386,7 +10386,7 @@ rate-limit {
 
 	  <para>
 	    The <command>nosit-udp-size</command> option sets the
-	    maximum size of udp responses that will be sent to
+	    maximum size of UDP responses that will be sent to
 	    queries without a valid source identity token.  The command
 	    <command>max-udp-size</command> option may further limit
 	    the response size.

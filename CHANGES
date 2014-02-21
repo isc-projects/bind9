@@ -15,11 +15,12 @@
 			been adjusted to improve performance. [RT #35417]
 
 3750.	[experimental]	Partially implement EDNS EXPIRE option as described
-			in draft-andrews-dnsext-expire-00.  Retrivial of
-			remaining time to expiry from slave zones is supported.
+			in draft-andrews-dnsext-expire-00.  Retrievial of
+			the remaining time until expiry for slave zones
+			is supported.
 
-			EXPIRE uses an experimental option code (65002) and
-			is subject to change. [RT #35416]
+			EXPIRE uses an experimental option code (65002),
+			which is subject to change. [RT #35416]
 
 3749.	[func]		"dig +subnet" sends an EDNS client subnet option
 			containing the specified address/prefix when
@@ -49,9 +50,9 @@
 			spoofed responses and for servers to identify
 			legitimate clients.
 
-			SIT uses an experimental EDNS option code (65001).
-			[This will be changed to a IANA assigned value if
-			 the experiment is deemed a success.]
+			SIT uses an experimental EDNS option code (65001),
+			which will be changed to an an IANA-assigned value
+			if the experiment is deemed a success.
 
 			SIT can be enabled via "configure --enable-sit" (or
 			--enable-developer). It is enabled by default in
