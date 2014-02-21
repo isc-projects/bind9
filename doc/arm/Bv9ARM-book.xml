@@ -17614,6 +17614,7 @@ zone "example.com" {
       <xi:include href="../../bin/python/dnssec-checkds.docbook"/>
       <xi:include href="../../bin/python/dnssec-coverage.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-dsfromkey.docbook"/>
+      <xi:include href="../../bin/dnssec/dnssec-importkey.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-keyfromlabel.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-keygen.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-revoke.docbook"/>
@@ -17624,6 +17625,7 @@ zone "example.com" {
       <xi:include href="../../bin/check/named-checkzone.docbook"/>
       <xi:include href="../../bin/named/named.docbook"/>
       <xi:include href="../../bin/tools/named-journalprint.docbook"/>
+      <xi:include href="../../bin/tools/named-rrchecker.docbook"/>
       <!-- named.conf.docbook and others? -->
       <xi:include href="../../bin/nsupdate/nsupdate.docbook"/>
       <xi:include href="../../bin/rndc/rndc.docbook"/>
