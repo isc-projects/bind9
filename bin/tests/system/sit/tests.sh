@@ -54,7 +54,7 @@ echo "I:checking response size without valid SIT ($n)"
 ret=0
 $DIG +sit large.example txt @10.53.0.1 -p 5300 +ignore > dig.out.test$n
 havetc dig.out.test$n || ret=1
-grep ";; SIT client cookie part match" dig.out.test$n > /dev/null || ret=1
+grep "; SIT:.*(good)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -65,7 +65,7 @@ $DIG +sit large.example txt @10.53.0.1 -p 5300 > dig.out.test$n.l
 sit=`getsit dig.out.test$n.l`
 $DIG +qr +sit=$sit large.example txt @10.53.0.1 -p 5300 +ignore > dig.out.test$n
 havetc dig.out.test$n && ret=1
-grep ";; SIT client cookie part match" dig.out.test$n > /dev/null || ret=1
+grep "; SIT:.*(good)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -74,7 +74,7 @@ echo "I:checking response size with SIT recursive ($n)"
 ret=0
 $DIG +qr +sit=$sit large.xxx txt @10.53.0.1 -p 5300 +ignore > dig.out.test$n
 havetc dig.out.test$n && ret=1
-grep ";; SIT client cookie part match" dig.out.test$n > /dev/null || ret=1
+grep "; SIT:.*(good)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
