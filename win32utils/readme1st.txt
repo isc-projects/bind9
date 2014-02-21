@@ -122,9 +122,9 @@ INCLUDED TOOLS:
 The following tools have been built for Windows: dig, nslookup,
 host, nsupdate, ddns-confgen, rndc, rndc-confgen, named-checkconf,
 named-checkzone, named-compilezone, named-journalprint,
-dnssec-importkey, dnssec-keygen, dnssec-signzone, dnssec-dsfromkey,
-dnssec-keyfromlabel, dnssec-revoke, dnssec-settime and
-dnssec-verify.  The latter tools are for use with DNSSEC.  All tools
+named-rrchecker, dnssec-importkey, dnssec-keygen, dnssec-signzone,
+dnssec-dsfromkey, dnssec-keyfromlabel, dnssec-revoke, dnssec-settime
+and dnssec-verify.  The latter tools are for use with DNSSEC.  All tools
 are installed in the "%ProgramFiles%\ISC BIND 9\bin" directory.
 
 IMPORTANT NOTE ON USING THE TOOLS:
