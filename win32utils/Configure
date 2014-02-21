@@ -1915,7 +1915,7 @@ if ($use_python ne "no") {
     $configdefd{"USE_PYTHON"} = "USE_PYTHON";
     $configvar{"PYTHON"} = "$python_command";
     # Only a default!
-    $configvar{"prefix"} = "C:\\Program Files\Isc Bind 9";
+    $configvar{"prefix"} = "C:\\Program Files\ISC BIND 9";
 }
 
 # with-vcredist
