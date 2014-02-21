@@ -9837,9 +9837,9 @@ deny-answer-aliases { "example.net"; };
 	    DNSSEC requests (DO=1) unless <command>break-dnssec yes</command>
 	    is in use, because the response would depend on whether or not
 	    RRSIG records were found during resolution.
-	    The option can cause appear to rewrite error responses
-	    such as SERVFAIL when no recursion is done to discover problems
-	    at the authoritative server.
+            Using this option can cause error responses such as SERVFAIL to
+            appear to be rewritten, since no recursion is being done to
+            discover problems at the authoritative server.
 	  </para>
 
 	  <para>
