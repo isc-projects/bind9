@@ -49,10 +49,11 @@
 <h2>Synopsis</h2>
 <div class="cmdsynopsis"><p><code class="command">delve</code>  [@server] [<code class="option">-4</code>] [<code class="option">-6</code>] [<code class="option">-a <em class="replaceable"><code>anchor-file</code></em></code>] [<code class="option">-b <em class="replaceable"><code>address</code></em></code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-d <em class="replaceable"><code>level</code></em></code>] [<code class="option">-i</code>] [<code class="option">-m</code>] [<code class="option">-p <em class="replaceable"><code>port#</code></em></code>] [<code class="option">-q <em class="replaceable"><code>name</code></em></code>] [<code class="option">-t <em class="replaceable"><code>type</code></em></code>] [<code class="option">-x <em class="replaceable"><code>addr</code></em></code>] [name] [type] [class] [queryopt...]</p></div>
 <div class="cmdsynopsis"><p><code class="command">delve</code>  [<code class="option">-h</code>]</p></div>
+<div class="cmdsynopsis"><p><code class="command">delve</code>  [<code class="option">-v</code>]</p></div>
 <div class="cmdsynopsis"><p><code class="command">delve</code>  [queryopt...] [query...]</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2614452"></a><h2>DESCRIPTION</h2>
+<a name="id2614458"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">delve</strong></span>
       (Domain Entity Lookup &amp; Validation Engine) is a tool for sending
       DNS queries and validating the results, using the the same internal
@@ -95,7 +96,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2614524"></a><h2>SIMPLE USAGE</h2>
+<a name="id2614736"></a><h2>SIMPLE USAGE</h2>
 <p>
       A typical invocation of <span><strong class="command">delve</strong></span> looks like:
       </p>
@@ -150,9 +151,9 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2614929"></a><h2>OPTIONS</h2>
+<a name="id2614867"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
-<dt><span class="term">-a</span></dt>
+<dt><span class="term">-a <em class="replaceable"><code>anchor-file</code></em></span></dt>
 <dd>
 <p>
 	    Specifies a file from which to read DNSSEC trust anchors.
@@ -182,7 +183,7 @@
 	    validation in <span><strong class="command">delve</strong></span>.
 	  </p>
 </dd>
-<dt><span class="term">-b</span></dt>
+<dt><span class="term">-b  <em class="replaceable"><code>address</code></em></span></dt>
 <dd><p>
 	    Sets the source IP address of the query to
 	    <em class="parameter"><code>address</code></em>.  This must be a valid address
@@ -190,11 +191,26 @@
 	    An optional source port may be specified by appending
 	    "#&lt;port&gt;"
 	  </p></dd>
-<dt><span class="term">-c</span></dt>
+<dt><span class="term">-c <em class="replaceable"><code>class</code></em></span></dt>
 <dd><p>
 	    Sets the query class for the requested data. Currently,
 	    only class "IN" is supported in <span><strong class="command">delve</strong></span>
 	    and any other value is ignored.
+	  </p></dd>
+<dt><span class="term">-d <em class="replaceable"><code>level</code></em></span></dt>
+<dd><p>
+	    Set the systemwide debug level to <code class="option">level</code>.
+	    The allowed range is from 0 to 99.
+	    The default is 0 (no debugging).
+	    Debugging traces from <span><strong class="command">delve</strong></span> become
+	    more verbose as the debug level increases.
+	    See the <code class="option">+mtrace</code>, <code class="option">+rtrace</code>,
+	    and <code class="option">+vtrace</code> options below for additional
+	    debugging details.
+	  </p></dd>
+<dt><span class="term">-h</span></dt>
+<dd><p>
+	    Display the <span><strong class="command">delve</strong></span> help usage output and exit.
 	  </p></dd>
 <dt><span class="term">-i</span></dt>
 <dd><p>
@@ -210,22 +226,14 @@
 <dd><p>
 	    Enables memory usage debugging.
 	  </p></dd>
-<dt><span class="term">-p</span></dt>
+<dt><span class="term">-p <em class="replaceable"><code>port#</code></em></span></dt>
 <dd><p>
 	    Specifies a destination port to use for queries instead of
 	    the standard DNS port number 53.  This option would be used
 	    with a name server that has been configured to listen
 	    for queries on a non-standard port number.
 	  </p></dd>
-<dt><span class="term">-4</span></dt>
-<dd><p>
-	    Forces <span><strong class="command">delve</strong></span> to only use IPv4.
-	  </p></dd>
-<dt><span class="term">-6</span></dt>
-<dd><p>
-	    Forces <span><strong class="command">delve</strong></span> to only use IPv6.
-	  </p></dd>
-<dt><span class="term">-q</span></dt>
+<dt><span class="term">-q <em class="replaceable"><code>name</code></em></span></dt>
 <dd><p>
 	    Sets the query name to <em class="parameter"><code>name</code></em>.
 	    While the query name can be specified without using the
@@ -234,7 +242,7 @@
 	    name "ns", which could be misinterpreted as the type NS,
 	    or "ch", which could be misinterpreted as class CH).
 	  </p></dd>
-<dt><span class="term">-t</span></dt>
+<dt><span class="term">-t <em class="replaceable"><code>type</code></em></span></dt>
 <dd>
 <p>
 	    Sets the query type to <em class="parameter"><code>type</code></em>, which
@@ -250,7 +258,11 @@
 	    it is "PTR".
 	  </p>
 </dd>
-<dt><span class="term">-x</span></dt>
+<dt><span class="term">-v</span></dt>
+<dd><p>
+	    Print the <span><strong class="command">delve</strong></span> version and exit.
+	  </p></dd>
+<dt><span class="term">-x <em class="replaceable"><code>addr</code></em></span></dt>
 <dd><p>
 	    Performs a reverse lookup, mapping an addresses to
 	    a name.  <em class="parameter"><code>addr</code></em> is an IPv4 address in
@@ -262,10 +274,18 @@
 	    and sets the query type to PTR.  IPv6 addresses are looked up
 	    using nibble format under the IP6.ARPA domain.
 	  </p></dd>
+<dt><span class="term">-4</span></dt>
+<dd><p>
+	    Forces <span><strong class="command">delve</strong></span> to only use IPv4.
+	  </p></dd>
+<dt><span class="term">-6</span></dt>
+<dd><p>
+	    Forces <span><strong class="command">delve</strong></span> to only use IPv6.
+	  </p></dd>
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2670533"></a><h2>QUERY OPTIONS</h2>
+<a name="id2670712"></a><h2>QUERY OPTIONS</h2>
 <p><span><strong class="command">delve</strong></span>
       provides a number of query options which affect the way results are
       displayed, and in some cases the way lookups are performed.
@@ -421,8 +441,8 @@
 	    </p></dd>
 <dt><span class="term"><code class="option">+[no]root[=ROOT]</code></span></dt>
 <dd><p>
-	      Indicates whether to perform conventional (non-
-	      lookaside) DNSSEC validation, and if so, specifies the
+	      Indicates whether to perform conventional (non-lookaside)
+	      DNSSEC validation, and if so, specifies the
 	      name of a trust anchor.  The default is to validate using
 	      a trust anchor of "." (the root zone), for which there is
 	      a built-in key.  If specifying a different trust anchor,
@@ -445,12 +465,12 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2670981"></a><h2>FILES</h2>
+<a name="id2671160"></a><h2>FILES</h2>
 <p><code class="filename">/etc/bind.keys</code></p>
 <p><code class="filename">/etc/resolv.conf</code></p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2671000"></a><h2>SEE ALSO</h2>
+<a name="id2671179"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">dig</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <em class="citetitle">RFC4034</em>,
