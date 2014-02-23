@@ -846,6 +846,11 @@ findserver(dns_client_t *client) {
 	irs_resconf_t *resconf = NULL;
 	isc_sockaddrlist_t *nameservers;
 	isc_sockaddr_t *sa, *next;
+	isc_uint32_t destport;
+
+	result = parse_uint(&destport, port, 0xffff, "port");
+	if (result != ISC_R_SUCCESS)
+		fatal("Couldn't parse port number");
 
 	result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
@@ -856,27 +861,26 @@ findserver(dns_client_t *client) {
 
 	/* Get nameservers from resolv.conf */
 	nameservers = irs_resconf_getnameservers(resconf);
-
-	/* Remove nameservers using incompatible protocol family */
 	for (sa = ISC_LIST_HEAD(*nameservers); sa != NULL; sa = next) {
 		next = ISC_LIST_NEXT(sa, link);
-		if (!use_ipv4 && sa->type.sa.sa_family == AF_INET) {
-			ISC_LIST_UNLINK(*nameservers, sa, link);
-			isc_mem_put(mctx, sa, sizeof(*sa));
+
+		/* Set destination port */
+		if (sa->type.sa.sa_family == AF_INET && use_ipv4) {
+			sa->type.sin.sin_port = htons(destport);
+			continue;
 		}
-		if (!use_ipv6 && sa->type.sa.sa_family == AF_INET6) {
-			ISC_LIST_UNLINK(*nameservers, sa, link);
-			isc_mem_put(mctx, sa, sizeof(*sa));
+		if (sa->type.sa.sa_family == AF_INET6 && use_ipv6) {
+			sa->type.sin6.sin6_port = htons(destport);
+			continue;
 		}
+
+		/* Incompatible protocol family */
+		ISC_LIST_UNLINK(*nameservers, sa, link);
+		isc_mem_put(mctx, sa, sizeof(*sa));
 	}
 
 	/* None found, use localhost */
 	if (ISC_LIST_EMPTY(*nameservers)) {
-		isc_uint32_t destport;
-		result = parse_uint(&destport, port, 0xffff, "port");
-		if (result != ISC_R_SUCCESS)
-			fatal("Couldn't parse port number");
-
 		if (use_ipv4) {
 			struct in_addr localhost;
 			localhost.s_addr = htonl(INADDR_LOOPBACK);
@@ -897,8 +901,7 @@ findserver(dns_client_t *client) {
 				result = ISC_R_NOMEMORY;
 				goto cleanup;
 			}
-			isc_sockaddr_fromin6(sa, &in6addr_loopback,
-					     destport);
+			isc_sockaddr_fromin6(sa, &in6addr_loopback, destport);
 
 			ISC_LINK_INIT(sa, link);
 			ISC_LIST_APPEND(*nameservers, sa, link);
