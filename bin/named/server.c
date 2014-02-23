@@ -3409,7 +3409,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	INSIST(result == ISC_R_SUCCESS);
 	view->requestnsid = cfg_obj_asboolean(obj);
 
-#ifdef ENABLE_LTR
+#ifdef ENABLE_SIT
 	obj = NULL;
 	result = ns_config_get(maps, "request-sit", &obj);
 	INSIST(result == ISC_R_SUCCESS);
@@ -6205,7 +6205,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		server->flushonshutdown = ISC_FALSE;
 	}
 
-#ifdef ENABLE_LTR
+#ifdef ENABLE_SIT
 	obj = NULL;
 	result = ns_config_get(maps, "sit-secret", &obj);
 	if (result == ISC_R_SUCCESS) {
@@ -6229,7 +6229,7 @@ load_configuration(const char *filename, ns_server_t *server,
 #ifdef HMAC_SHA256_SIT
 		if (isc_buffer_usedlength(&b) != ISC_SHA256_DIGESTLENGTH)
 			CHECKM(ISC_R_RANGE,
-			       "SHA256 sit-secret must be on 160 bits");
+			       "SHA256 sit-secret must be on 256 bits");
 #endif
 	} else {
 		result = isc_entropy_getdata(ns_g_entropy,
