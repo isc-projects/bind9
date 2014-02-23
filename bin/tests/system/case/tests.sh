@@ -23,6 +23,15 @@ status=0
 n=0
 
 n=`expr $n + 1`
+echo "I:waiting for zone transfer to complete ($n)"
+ret=0
+for i in 1 2 3 4 5 6 7 8 9
+do
+	$DIG $DIGOPTS soa example. @10.53.0.2 -p 5300 > dig.ns2.test$n
+	grep SOA dig.ns2.test$n > /dev/null && break
+done
+
+n=`expr $n + 1`
 echo "I:testing case preserving responses - no acl ($n)"
 ret=0
 $DIG $DIGOPTS mx example. @10.53.0.1 -p 5300 > dig.ns1.test$n
