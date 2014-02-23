@@ -1084,21 +1084,23 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			    keyname, current_serial);
 
 
-	dns_zone_getraw(zone, &raw);
-	mayberaw = (raw != NULL) ? raw : zone;
-	if ((client->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0 &&
-	    dns_zone_gettype(mayberaw) == dns_zone_slave) {
-		isc_time_t expiretime;
-		isc_uint32_t secs;
-		dns_zone_getexpiretime(zone, &expiretime);
-		secs = isc_time_seconds(&expiretime);
-		if (secs >= client->now && result == ISC_R_SUCCESS) {
-			client->attributes |= NS_CLIENTATTR_HAVEEXPIRE;
-			client->expire = secs - client->now;
+	if (zone != NULL) {
+		dns_zone_getraw(zone, &raw);
+		mayberaw = (raw != NULL) ? raw : zone;
+		if ((client->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0 &&
+		    dns_zone_gettype(mayberaw) == dns_zone_slave) {
+			isc_time_t expiretime;
+			isc_uint32_t secs;
+			dns_zone_getexpiretime(zone, &expiretime);
+			secs = isc_time_seconds(&expiretime);
+			if (secs >= client->now && result == ISC_R_SUCCESS) {
+				client->attributes |= NS_CLIENTATTR_HAVEEXPIRE;
+				client->expire = secs - client->now;
+			}
 		}
+		if (raw != NULL)
+			dns_zone_detach(&raw);
 	}
-	if (raw != NULL)
-		dns_zone_detach(&raw);
 
 	/*
 	 * Hand the context over to sendstream().  Set xfr to NULL;
