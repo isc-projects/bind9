@@ -1560,29 +1560,25 @@ compute_sit(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 	isc_buffer_putmem(buf, client->cookie, 8);
 	isc_buffer_putuint32(buf, nonce);
 	isc_buffer_putuint32(buf, when);
-	memcpy(input, cp, 8);
+	memmove(input, cp, 16);
+	isc_aes128_crypt(ns_g_server->secret, input, digest);
+	for (i = 0; i < 8; i++)
+		input[i] = digest[i] ^ digest[i + 8];
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	switch (netaddr.family) {
 	case AF_INET:
-		memcpy(input + 8, (unsigned char *)&netaddr.type.in, 4);
+		memmove(input + 8, (unsigned char *)&netaddr.type.in, 4);
 		memset(input + 12, 0, 4);
 		isc_aes128_crypt(ns_g_server->secret, input, digest);
 		break;
 	case AF_INET6:
-		memcpy(input + 8, (unsigned char *)&netaddr.type.in6, 16);
+		memmove(input + 8, (unsigned char *)&netaddr.type.in6, 16);
 		isc_aes128_crypt(ns_g_server->secret, input, digest);
 		for (i = 0; i < 8; i++)
 			input[i + 8] = digest[i] ^ digest[i + 8];
 		isc_aes128_crypt(ns_g_server->secret, input + 8, digest);
 		break;
-	default:
-		isc_aes128_crypt(ns_g_server->secret, input, digest);
-		break;
 	}
-	memcpy(input, client->cookie, 8);
-	for (i = 0; i < 8; i++)
-		input[i + 8] = digest[i] ^ digest[i + 8];
-	isc_aes128_crypt(ns_g_server->secret, input, digest);
 	for (i = 0; i < 8; i++)
 		digest[i] ^= digest[i + 8];
 	isc_buffer_putmem(buf, digest, 8);
@@ -1601,7 +1597,7 @@ compute_sit(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 	isc_hmacsha1_init(&hmacsha1,
 			  ns_g_server->secret,
 			  ISC_SHA1_DIGESTLENGTH);
-	isc_hmacsha1_update(&hmacsha1, cp, 8);
+	isc_hmacsha1_update(&hmacsha1, cp, 16);
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	switch (netaddr.family) {
 	case AF_INET:
@@ -1632,7 +1628,7 @@ compute_sit(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 	isc_hmacsha256_init(&hmacsha256,
 			    ns_g_server->secret,
 			    ISC_SHA256_DIGESTLENGTH);
-	isc_hmacsha256_update(&hmacsha256, cp, 8);
+	isc_hmacsha256_update(&hmacsha256, cp, 16);
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	switch (netaddr.family) {
 	case AF_INET:
@@ -1671,7 +1667,7 @@ process_sit(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		 * Not our token.
 		 */
 		if (optlen >= 8U)
-			memcpy(client->cookie, isc_buffer_current(buf), 8);
+			memmove(client->cookie, isc_buffer_current(buf), 8);
 		else
 			memset(client->cookie, 0, 8);
 		isc_buffer_forward(buf, (unsigned int)optlen);
@@ -1689,7 +1685,7 @@ process_sit(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	 * Process all of the incoming buffer.
 	 */
 	old = isc_buffer_current(buf);
-	memcpy(client->cookie, old, 8);
+	memmove(client->cookie, old, 8);
 	isc_buffer_forward(buf, 8);
 	nonce = isc_buffer_getuint32(buf);
 	when = isc_buffer_getuint32(buf);

@@ -1753,17 +1753,17 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 	isc_netaddr_fromsockaddr(&netaddr, &query->addrinfo->sockaddr);
 	switch (netaddr.family) {
 	case AF_INET:
-		memcpy(input, (unsigned char *)&netaddr.type.in, 4);
+		memmove(input, (unsigned char *)&netaddr.type.in, 4);
 		memset(input + 4, 0, 12);
 		break;
 	case AF_INET6:
-		memcpy(input, (unsigned char *)&netaddr.type.in6, 16);
+		memmove(input, (unsigned char *)&netaddr.type.in6, 16);
 		break;
 	}
 	isc_aes128_crypt(query->fctx->res->view->secret, input, digest);
 	for (i = 0; i < 8; i++)
 		digest[i] ^= digest[i + 8];
-	memcpy(sit, digest, 8);
+	memmove(sit, digest, 8);
 #endif
 #ifdef HMAC_SHA1_SIT
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
@@ -1786,7 +1786,7 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 		break;
 	}
 	isc_hmacsha1_sign(&hmacsha1, digest, sizeof(digest));
-	memcpy(sit, digest, 8);
+	memmove(sit, digest, 8);
 	isc_hmacsha1_invalidate(&hmacsha1);
 #endif
 #ifdef HMAC_SHA256_SIT
@@ -1810,7 +1810,7 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 		break;
 	}
 	isc_hmacsha256_sign(&hmacsha256, digest, sizeof(digest));
-	memcpy(sit, digest, 8);
+	memmove(sit, digest, 8);
 	isc_hmacsha256_invalidate(&hmacsha256);
 #endif
 }

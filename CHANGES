@@ -1,7 +1,7 @@
+	--- 9.10.0b1 released ---
+
 3755.	[func]		Add stats counters for known EDNS options + others.
 			[RT #35447]
-
-	--- 9.10.0b1 released ---
 
 3754.	[cleanup]	win32: Installer now places files in the
 			Program Files area rather than system services.

@@ -2073,7 +2073,7 @@ static void
 compute_cookie(unsigned char *cookie, size_t len) {
 	/* XXXMPA need to fix, should be per server. */
 	INSIST(len >= 8U);
-	memcpy(cookie, cookie_secret, 8);
+	memmove(cookie, cookie_secret, 8);
 }
 #endif
 

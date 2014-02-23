@@ -4286,7 +4286,7 @@ dns_adb_setsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	}
 
 	if (addr->entry->sit != NULL)
-		memcpy(addr->entry->sit, sit, len);
+		memmove(addr->entry->sit, sit, len);
 	UNLOCK(&adb->entrylocks[bucket]);
 }
 
@@ -4304,7 +4304,7 @@ dns_adb_getsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	if (sit != NULL && addr->entry->sit != NULL &&
 	    len >= addr->entry->sitlen)
 	{
-		memcpy(sit, addr->entry->sit, addr->entry->sitlen);
+		memmove(sit, addr->entry->sit, addr->entry->sitlen);
 		len = addr->entry->sitlen;
 	} else
 		len = 0;
