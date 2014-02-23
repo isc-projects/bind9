@@ -220,6 +220,9 @@ init_desc(void) {
 		       "RPZRewrites");
 	SET_NSSTATDESC(udp, "UDP queries received", "QryUDP");
 	SET_NSSTATDESC(tcp, "TCP queries received", "QryTCP");
+	SET_NSSTATDESC(nsidopt, "NSID option received", "NSIDOpt");
+	SET_NSSTATDESC(expireopt, "Expire option recieved", "ExpireOpt");
+	SET_NSSTATDESC(otheropt, "Other EDNS option recieved", "OtherOpt");
 #ifdef ISC_PLATFORM_USESIT
 	SET_NSSTATDESC(sitopt, "source identity token option received",
 		       "SitOpt");

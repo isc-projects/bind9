@@ -1776,6 +1776,8 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 			optlen = isc_buffer_getuint16(&optbuf);
 			switch (optcode) {
 			case DNS_OPT_NSID:
+				isc_stats_increment(ns_g_server->nsstats,
+						    dns_nsstatscounter_nsidopt);
 				client->attributes |= NS_CLIENTATTR_WANTNSID;
 				isc_buffer_forward(&optbuf, optlen);
 				break;
@@ -1785,10 +1787,14 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 				break;
 #endif
 			case DNS_OPT_EXPIRE:
+				isc_stats_increment(ns_g_server->nsstats,
+						  dns_nsstatscounter_expireopt);
 				client->attributes |= NS_CLIENTATTR_WANTEXPIRE;
 				isc_buffer_forward(&optbuf, optlen);
 				break;
 			default:
+				isc_stats_increment(ns_g_server->nsstats,
+						  dns_nsstatscounter_otheropt);
 				isc_buffer_forward(&optbuf, optlen);
 				break;
 			}
