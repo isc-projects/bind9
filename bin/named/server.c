@@ -3409,7 +3409,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	INSIST(result == ISC_R_SUCCESS);
 	view->requestnsid = cfg_obj_asboolean(obj);
 
-#ifdef ENABLE_SIT
+#ifdef ISC_PLATFORM_USESIT
 	obj = NULL;
 	result = ns_config_get(maps, "request-sit", &obj);
 	INSIST(result == ISC_R_SUCCESS);
@@ -6205,7 +6205,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		server->flushonshutdown = ISC_FALSE;
 	}
 
-#ifdef ENABLE_SIT
+#ifdef ISC_PLATFORM_USESIT
 	obj = NULL;
 	result = ns_config_get(maps, "sit-secret", &obj);
 	if (result == ISC_R_SUCCESS) {
