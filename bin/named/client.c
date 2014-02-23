@@ -1575,6 +1575,9 @@ compute_sit(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 			input[i + 8] = digest[i] ^ digest[i + 8];
 		isc_aes128_crypt(ns_g_server->secret, input + 8, digest);
 		break;
+	default:
+		isc_aes128_crypt(ns_g_server->secret, input, digest);
+		break;
 	}
 	memcpy(input, client->cookie, 8);
 	for (i = 0; i < 8; i++)
