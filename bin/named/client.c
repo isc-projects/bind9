@@ -1555,6 +1555,7 @@ compute_sit(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 	unsigned char *cp;
 	unsigned int i;
 
+	memset(input, 0, sizeof(input));
 	cp = isc_buffer_used(buf);
 	isc_buffer_putmem(buf, client->cookie, 8);
 	isc_buffer_putuint32(buf, nonce);
