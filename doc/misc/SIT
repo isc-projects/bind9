@@ -1,3 +1,8 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+$Id$
+
 		Source Identity Token
 
 Source Identity Token (SIT) is based in Donald Eastlake 3rd's DNS Cookies[1].
