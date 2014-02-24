@@ -1,3 +1,7 @@
+3756.	[bug]		GSSAPI Kerberos realm checking was broken in
+			check_config leading to spurious messages being
+			logged.  [RT #35443]
+
 	--- 9.10.0b1 released ---
 
 3755.	[func]		Add stats counters for known EDNS options + others.
