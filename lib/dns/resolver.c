@@ -7265,6 +7265,19 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	if (opt != NULL)
 		process_opt(query, opt);
 
+#ifdef notyet
+#ifdef ISC_PLATFORM_USESIT
+	if (message->sitbad) {
+		/*
+		 * If the SIT is bad assume it is a attack and retry.
+		 */
+		resend = ISC_TRUE;
+		/* XXXMPA log it */
+		goto done;
+	}
+#endif
+#endif
+
 	/*
 	 * If the message is signed, check the signature.  If not, this
 	 * returns success anyway.
