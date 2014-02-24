@@ -69,11 +69,11 @@ AES
 
 HMAC SHA1
 
-	hash = trunc(hmacsha1(client|nonce|when|address, secret), 8);
+	hash = trunc(hmacsha1(secret, client|nonce|when|address), 8);
 
 HMAC SHA256
 
-	hash = trunc(hmacsha256(client|nonce|when|address, secret), 8);
+	hash = trunc(hmacsha256(secret, client|nonce|when|address), 8);
 
 [1]
 INTERNET-DRAFT                                           Donald Eastlake
