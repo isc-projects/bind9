@@ -2782,6 +2782,7 @@
 ./doc/doxygen/isc-header.html			HTML	2006,2007
 ./doc/doxygen/mainpage				X	2006
 ./doc/misc/Makefile.in				MAKE	2001,2004,2007,2009,2012
+./doc/misc/SIT					TXT.BRIEF	2004
 ./doc/misc/dnssec				TXT.BRIEF	2000,2001,2002,2004
 ./doc/misc/format-options.pl			PERL	2001,2004,2007,2012
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
