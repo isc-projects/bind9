@@ -3448,7 +3448,6 @@ HAVE_SIT=
 
 case "$enable_sit" in
 yes)
-	AC_DEFINE(ENABLE_SIT, 1, [Define to enable 'sit' support.])
 	ISC_PLATFORM_USESIT="#define ISC_PLATFORM_USESIT 1"
         HAVE_SIT=1
 	;;

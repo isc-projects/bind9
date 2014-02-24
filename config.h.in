@@ -173,9 +173,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to enable rpz-nsip rules. */
 #undef ENABLE_RPZ_NSIP
 
-/* Define to enable 'sit' support. */
-#undef ENABLE_SIT
-
 /* Solaris hack to get select_large_fdset. */
 #undef FD_SETSIZE
 

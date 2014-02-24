@@ -19064,9 +19064,6 @@ HAVE_SIT=
 
 case "$enable_sit" in
 yes)
-
-$as_echo "#define ENABLE_SIT 1" >>confdefs.h
-
 	ISC_PLATFORM_USESIT="#define ISC_PLATFORM_USESIT 1"
         HAVE_SIT=1
 	;;
