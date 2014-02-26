@@ -1,3 +1,6 @@
+3757.	[port]		Enable Python tools (dnssec-coverage,
+			dnssec-checkds) to run on Windows. [RT #34355]
+
 3756.	[bug]		GSSAPI Kerberos realm checking was broken in
 			check_config leading to spurious messages being
 			logged.  [RT #35443]
