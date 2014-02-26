@@ -207,7 +207,7 @@ struct dns_view {
 	void *				new_zone_config;
 	void				(*cfg_destroy)(void **);
 
-	unsigned char			secret[33];	/* Client secret */
+	unsigned char			secret[32];	/* Client secret */
 };
 
 #define DNS_VIEW_MAGIC			ISC_MAGIC('V','i','e','w')
