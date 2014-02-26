@@ -165,7 +165,7 @@
 ./bin/dnssec/win32/importkey.dsw		X	2014
 ./bin/dnssec/win32/importkey.mak.in		X	2013
 ./bin/dnssec/win32/importkey.vcxproj.filters.in	X	2013
-./bin/dnssec/win32/importkey.vcxproj.in		X	2013
+./bin/dnssec/win32/importkey.vcxproj.in		X	2013,2014
 ./bin/dnssec/win32/importkey.vcxproj.user	X	2013
 ./bin/dnssec/win32/keyfromlabel.dsp.in		X	2008,2009,2013
 ./bin/dnssec/win32/keyfromlabel.dsw		X	2008
@@ -351,11 +351,11 @@
 ./bin/python/dnssec-checkds.8			MAN	2012,2013
 ./bin/python/dnssec-checkds.docbook		SGML	2012,2013
 ./bin/python/dnssec-checkds.html		HTML	DOCBOOK
-./bin/python/dnssec-checkds.py.in		PYTHON	2012,2013
+./bin/python/dnssec-checkds.py.in		PYTHON	2012,2013,2014
 ./bin/python/dnssec-coverage.8			MAN	2013
 ./bin/python/dnssec-coverage.docbook		SGML	2013
 ./bin/python/dnssec-coverage.html		HTML	2013
-./bin/python/dnssec-coverage.py.in		PYTHON	2013
+./bin/python/dnssec-coverage.py.in		PYTHON	2013,2014
 ./bin/python/win32.py				PYTHON	2013
 ./bin/rndc/.gitignore				X	2012
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007,2009,2012
@@ -845,6 +845,7 @@
 ./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012,2013,2014
 ./bin/tests/system/checkconf/warn-keydir.conf	CONF-C	2013
 ./bin/tests/system/checkds/clean.sh		SH	2012,2013
+./bin/tests/system/checkds/dig.pl		PERL	2014
 ./bin/tests/system/checkds/dig.sh		SH	2012,2013
 ./bin/tests/system/checkds/missing.example.dlv.example.dlv.db	X	2012
 ./bin/tests/system/checkds/missing.example.dnskey.db	X	2012
