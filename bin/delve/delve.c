@@ -1525,7 +1525,7 @@ main(int argc, char *argv[]) {
 	dns_name_t *query_name, *response_name;
 	dns_rdataset_t *rdataset;
 	dns_namelist_t namelist;
-	unsigned int resopt;
+	unsigned int resopt, clopt;
 	isc_appctx_t *actx = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
@@ -1572,8 +1572,9 @@ main(int argc, char *argv[]) {
 #endif
 
 	/* Create client */
+	clopt = DNS_CLIENTCREATEOPT_USECACHE;
 	result = dns_client_createx2(mctx, actx, taskmgr, socketmgr, timermgr,
-				     0, &client, srcaddr4, srcaddr6);
+				     clopt, &client, srcaddr4, srcaddr6);
 	if (result != ISC_R_SUCCESS) {
 		delve_log(ISC_LOG_ERROR, "dns_client_create: %s",
 			  isc_result_totext(result));

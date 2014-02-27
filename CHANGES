@@ -1,3 +1,6 @@
+3763.	[bug]		delve: Cache DNSSEC records to avoid the need to
+			re-fetch them when restarting validation. [RT #35476]
+
 3762.	[bug]		Address build problems with --pkcs11-native +
 			--with-openssl with ECDSA support. [RT #35467]
 
