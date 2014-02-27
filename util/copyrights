@@ -325,9 +325,6 @@
 ./bin/pkcs11/win32/pk11list.vcxproj.in		X	2013
 ./bin/pkcs11/win32/pk11list.vcxproj.user	X	2013
 ./bin/pkcs11/win32/win32.c			C	2009
-./bin/python/dnssec-checkds.py.in		PYTHON	2013
-./bin/python/dnssec-coverage.py.in		PYTHON	2013
-./bin/python/win32.py				PYTHON	2013
 ./bin/rndc/.gitignore				X	2012
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007,2009,2012
 ./bin/rndc/include/rndc/os.h			C	2001,2004,2005,2007,2009
