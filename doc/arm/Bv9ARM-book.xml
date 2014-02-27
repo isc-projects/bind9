@@ -1477,13 +1477,23 @@ controls {
 
 	<para>
 	  If you have to make changes to a dynamic zone
-	  manually, the following procedure will work: Disable dynamic updates
-	      to the zone using
+	  manually, the following procedure will work:
+	  Disable dynamic updates to the zone using
 	  <command>rndc freeze <replaceable>zone</replaceable></command>.
-	  This will also remove the zone's <filename>.jnl</filename> file
-	  and update the master file.  Edit the zone file.  Run
+	  This will update the zone's master file with the changes
+	  stored in its <filename>.jnl</filename> file.
+	  Edit the zone file.  Run
 	  <command>rndc thaw <replaceable>zone</replaceable></command>
 	  to reload the changed zone and re-enable dynamic updates.
+	</para>
+
+	<para>
+	  <command>rndc sync <replaceable>zone</replaceable></command>
+	  will update the zone file with changes from the journal file
+	  without stopping dynamic updates; this may be useful for viewing
+	  the current zone state.  To remove the <filename>.jnl</filename>
+	  file after updating the zone file, use
+	  <command>rndc sync -clean</command>.
 	</para>
 
       </sect2>
