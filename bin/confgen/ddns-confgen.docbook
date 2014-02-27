@@ -17,10 +17,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: ddns-confgen.docbook,v 1.6 2009/09/18 22:08:55 fdupont Exp $ -->
 <refentry id="man.ddns-confgen">
   <refentryinfo>
-    <date>Jan 29, 2009</date>
+    <date>September 18, 2009</date>
   </refentryinfo>
 
   <refmeta>

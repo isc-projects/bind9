@@ -18,11 +18,10 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.47 2010/03/04 23:50:34 tbox Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
-    <date>June 30, 2000</date>
+    <date>February 12, 2014</date>
   </refentryinfo>
 
   <refmeta>

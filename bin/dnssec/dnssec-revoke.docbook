@@ -17,10 +17,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-revoke.docbook,v 1.7.266.2 2011/10/20 23:46:27 tbox Exp $ -->
 <refentry id="man.dnssec-revoke">
   <refentryinfo>
-    <date>June 1, 2009</date>
+    <date>October 20, 2011</date>
   </refentryinfo>
 
   <refmeta>

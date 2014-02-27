@@ -17,10 +17,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keyfromlabel.docbook,v 1.18.14.2 2011/02/28 01:19:58 tbox Exp $ -->
 <refentry id="man.dnssec-keyfromlabel">
   <refentryinfo>
-    <date>February 8, 2008</date>
+    <date>February 07, 2014</date>
   </refentryinfo>
 
   <refmeta>
