@@ -1448,37 +1448,47 @@ controls {
           ignored.
         </para>
 
-        <para>
-          When a server is restarted after a shutdown or crash, it will replay
-              the journal file to incorporate into the zone any updates that
-          took
-          place after the last zone dump.
-        </para>
+	<para>
+	  When a server is restarted after a shutdown or crash, it will replay
+	      the journal file to incorporate into the zone any updates that
+	  took
+	  place after the last zone dump.
+	</para>
 
-        <para>
-          Changes that result from incoming incremental zone transfers are
-          also
-          journalled in a similar way.
-        </para>
+	<para>
+	  Changes that result from incoming incremental zone transfers are
+	  also
+	  journalled in a similar way.
+	</para>
 
-        <para>
-          The zone files of dynamic zones cannot normally be edited by
-          hand because they are not guaranteed to contain the most recent
-          dynamic changes &mdash; those are only in the journal file.
-          The only way to ensure that the zone file of a dynamic zone
-          is up to date is to run <command>rndc stop</command>.
-        </para>
+	<para>
+	  The zone files of dynamic zones cannot normally be edited by
+	  hand because they are not guaranteed to contain the most recent
+	  dynamic changes &mdash; those are only in the journal file.
+	  The only way to ensure that the zone file of a dynamic zone
+	  is up to date is to run <command>rndc stop</command>.
+	</para>
 
-        <para>
-          If you have to make changes to a dynamic zone
-          manually, the following procedure will work: Disable dynamic updates
-              to the zone using
-          <command>rndc freeze <replaceable>zone</replaceable></command>.
-          This will also remove the zone's <filename>.jnl</filename> file
-          and update the master file.  Edit the zone file.  Run
-          <command>rndc thaw <replaceable>zone</replaceable></command>
-          to reload the changed zone and re-enable dynamic updates.
-        </para>
+	<para>
+	  If you have to make changes to a dynamic zone
+	  manually, the following procedure will work:
+	  Disable dynamic updates to the zone using
+	  <command>rndc freeze <replaceable>zone</replaceable></command>.
+	  This will update the zone's master file with the changes
+	  stored in its <filename>.jnl</filename> file.
+	  Edit the zone file.  Run
+	  <command>rndc thaw <replaceable>zone</replaceable></command>
+	  to reload the changed zone and re-enable dynamic updates.
+	</para>
+
+	<para>
+	  <command>rndc sync <replaceable>zone</replaceable></command>
+	  will update the zone file with changes from the journal file
+	  without stopping dynamic updates; this may be useful for viewing
+	  the current zone state.  To remove the <filename>.jnl</filename>
+	  file after updating the zone file, use
+	  <command>rndc sync -clean</command>.
+	</para>
 
       </sect2>
 
