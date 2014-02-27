@@ -1,3 +1,6 @@
+3761.	[bug]		Address dangling reference bug in dns_keytable_add.
+			[RT #35471]
+
 3760.	[bug]		Improve SIT with native PKCS#11 and on Windows.
 			[RT #35433]
 

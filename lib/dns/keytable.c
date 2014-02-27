@@ -174,6 +174,7 @@ insert(dns_keytable_t *keytable, isc_boolean_t managed,
 			for (k = node->data; k != NULL; k = k->next) {
 				if (k->key == NULL) {
 					k->key = *keyp;
+					*keyp = NULL; /* transfer ownership */
 					break;
 				}
 				if (dst_key_compare(k->key, *keyp) == ISC_TRUE)
@@ -182,7 +183,7 @@ insert(dns_keytable_t *keytable, isc_boolean_t managed,
 
 			if (k == NULL)
 				result = ISC_R_SUCCESS;
-			else
+			else if (*keyp != NULL)
 				dst_key_free(keyp);
 		}
 
