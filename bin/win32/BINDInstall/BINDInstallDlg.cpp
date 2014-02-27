@@ -135,6 +135,7 @@ const FileData installFiles[] =
 	{"libisccc.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libdns.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"liblwres.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
+	{"libirs.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 #ifdef OPENSSL
 	{"libeay32.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 #endif
@@ -164,6 +165,7 @@ const FileData installFiles[] =
 	{"dig.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
 	{"host.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
 	{"nslookup.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
+	{"delve.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
 	{"arpaname.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
 	{"nsec3hash.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"genrandom.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},

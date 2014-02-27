@@ -50,6 +50,7 @@
 #include <fcntl.h>
 #include <process.h>
 
+#include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
 #include <isc/condition.h>
@@ -4066,4 +4067,25 @@ error:
 }
 #endif /* HAVE_LIBXML2 */
 
-#include "../socket_api.c"
+/*
+ * Replace ../socket_api.c
+ */
+
+isc_result_t
+isc__socket_register() {
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_socketmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
+			  isc_socketmgr_t **managerp)
+{
+	isc_result_t result;
+
+	result = isc_socketmgr_create(mctx, managerp);
+
+	if (result == ISC_R_SUCCESS)
+		isc_appctx_setsocketmgr(actx, *managerp);
+
+	return (result);
+}

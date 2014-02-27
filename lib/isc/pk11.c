@@ -116,6 +116,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/platform.h>
 #include <isc/stdio.h>
 #include <isc/thread.h>
 #include <isc/util.h>
@@ -175,6 +176,7 @@ static pk11_token_t *best_dh_token;
 static pk11_token_t *digest_token;
 static pk11_token_t *best_ec_token;
 static pk11_token_t *best_gost_token;
+static pk11_token_t *aes_token;
 
 static isc_result_t free_all_sessions(void);
 static isc_result_t free_session_list(pk11_sessionlist_t *slist);
@@ -313,6 +315,10 @@ dst__pkcs11_init(isc_mem_t *mctx, const char *engine) {
 		FATAL_ERROR(__FILE__, __LINE__, "Can't find random service");
 	if (digest_token == NULL)
 		FATAL_ERROR(__FILE__, __LINE__, "Can't find digest service");
+#if defined(ISC_PLATFORM_USESIT) && defined(AES_SIT)
+	if (aes_token == NULL)
+		FATAL_ERROR(__FILE__, __LINE__, "Can't find AES encrypt");
+#endif
 #endif /* PKCS11CRYPTO */
 	UNLOCK(&sessionlock);
 }
@@ -342,6 +348,8 @@ dst__pkcs11_destroy(void) {
 			best_ec_token = NULL;
 		if (token == best_gost_token)
 			best_gost_token = NULL;
+		if (token == aes_token)
+			aes_token = NULL;
 		pk11_mem_put(token, sizeof(*token));
 		token = next;
 	}
@@ -433,6 +441,9 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 		break;
 	case OP_DIGEST:
 		token = digest_token;
+		break;
+	case OP_AES:
+		token = aes_token;
 		break;
 	case OP_ANY:
 		for (token = ISC_LIST_HEAD(tokens);
@@ -786,22 +797,30 @@ choose_slots(void) {
 		/* does GOST require digest too? */
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_GOSTR3411, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0))
-			continue;
+			goto try_aes;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_GOSTR3410_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0))
-			continue;
+			goto try_aes;
 		rv = pkcs_C_GetMechanismInfo(slot,
 					     CKM_GOSTR3410_WITH_GOSTR3411,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0))
-			continue;
+			goto try_aes;
 		token->operations |= 1 << OP_GOST;
 		if (best_gost_token == NULL)
 			best_gost_token = token;
+
+	try_aes:
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_AES_ECB, &mechInfo);
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_ENCRYPT) == 0))
+			continue;
+		token->operations |= 1 << OP_AES;
+		if (aes_token == NULL)
+			aes_token = token;
 	}
 
 	if (slotList != NULL)
@@ -833,6 +852,9 @@ pk11_get_best_token(pk11_optype_t optype) {
 		break;
 	case OP_GOST:
 		token = best_gost_token;
+		break;
+	case OP_AES:
+		token = aes_token;
 		break;
 	default:
 		break;
@@ -1218,6 +1240,8 @@ pk11_dump_tokens(void)
 	printf("\tbest_dh_token=%p\n", best_dh_token);
 	printf("\tdigest_token=%p\n", digest_token);
 	printf("\tbest_ec_token=%p\n", best_ec_token);
+	printf("\tbest_gost_token=%p\n", best_gost_token);
+	printf("\taes_token=%p\n", aes_token);
 
 	for (token = ISC_LIST_HEAD(tokens);
 	     token != NULL;

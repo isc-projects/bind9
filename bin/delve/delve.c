@@ -17,6 +17,7 @@
 #include <config.h>
 #include <bind.keys.h>
 
+#ifndef WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <signal.h>
@@ -25,11 +26,13 @@
 
 #include <arpa/inet.h>
 
-#include <unistd.h>
+#include <netdb.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netdb.h>
+#include <unistd.h>
 
 #include <isc/app.h>
 #include <isc/base64.h>
@@ -37,6 +40,9 @@
 #include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#ifdef WIN32
+#include <isc/ntpaths.h>
+#endif
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
@@ -538,7 +544,7 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 	isc_result_t result;
 	isc_buffer_t b;
 	dns_name_t *n;
-	size_t len;
+	unsigned int len;
 
 	REQUIRE(fn != NULL && name != NULL && text != NULL);
 	len = strlen(text);
@@ -694,8 +700,16 @@ setup_dnsseckeys(dns_client_t *client) {
 	if (!root_validation && !dlv_validation)
 		return (ISC_R_SUCCESS);
 
-	if (filename == NULL)
+	if (filename == NULL) {
+#ifndef WIN32
 		filename = SYSCONFDIR "/bind.keys";
+#else
+		static char buf[MAX_PATH];
+		strlcpy(buf, isc_ntpaths_get(SYS_CONF_DIR), sizeof(buf));
+		strlcat(buf, "\\bind.keys", sizeof(buf));
+		filename = buf;
+#endif
+	}
 
 	if (trust_anchor == NULL)
 		trust_anchor = isc_mem_strdup(mctx, ".");
@@ -816,7 +830,7 @@ addserver(dns_client_t *client) {
 			memset(sa, 0, sizeof(*sa));
 			ISC_LINK_INIT(sa, link);
 			memmove(&sa->type, cur->ai_addr, cur->ai_addrlen);
-			sa->length = cur->ai_addrlen;
+			sa->length = (unsigned int)cur->ai_addrlen;
 			ISC_LIST_APPEND(servers, sa, link);
 		}
 		freeaddrinfo(res);
@@ -1517,13 +1531,15 @@ main(int argc, char *argv[]) {
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_timermgr_t *timermgr = NULL;
 	dns_master_style_t *style = NULL;
+#ifndef WIN32
 	struct sigaction sa;
+#endif
 
 	preparse_args(argc, argv);
 	progname = argv[0];
 
-	argc -= optind;
-	argv += optind;
+	argc--;
+	argv++;
 
 	isc_lib_register();
 	result = dns_lib_init();
@@ -1547,11 +1563,13 @@ main(int argc, char *argv[]) {
 
 	CHECK(isc_app_ctxstart(actx));
 
+#ifndef WIN32
 	/* Unblock SIGINT if it's been blocked by isc_app_ctxstart() */
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
 	if (sigfillset(&sa.sa_mask) != 0 || sigaction(SIGINT, &sa, NULL) < 0)
 		fatal("Couldn't set up signal handler");
+#endif
 
 	/* Create client */
 	result = dns_client_createx2(mctx, actx, taskmgr, socketmgr, timermgr,

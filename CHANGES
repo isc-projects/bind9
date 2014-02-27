@@ -1,3 +1,10 @@
+3760.	[bug]		Improve SIT with native PKCS#11 and on Windows.
+			[RT #35433]
+
+3759.	[port]		Enable delve on Windows. [RT #35441]
+
+3758.	[port]		Enable export library APIs on windows. [RT #35382]
+
 3757.	[port]		Enable Python tools (dnssec-coverage,
 			dnssec-checkds) to run on Windows. [RT #34355]
 
@@ -88,8 +95,7 @@
 			same resolver and validator logic as named. This
 			allows easy validation of DNSSEC data in environments
 			with untrustworthy resolvers, and assists with
-			troubleshooting of DNSSEC problems. (Note: not yet
-			available on win32.) [RT #32406]
+			troubleshooting of DNSSEC problems. [RT #32406]
 
 3740.	[contrib]	Minor fixes to configure --with-dlz-bdb,
 			--with-dlz-postgres and --with-dlz-odbc. [RT #35340]

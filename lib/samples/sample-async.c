@@ -18,6 +18,7 @@
 
 #include <config.h>
 
+#ifndef WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -26,12 +27,15 @@
 #include <arpa/inet.h>
 
 #include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <isc/app.h>
 #include <isc/buffer.h>
+#include <isc/commandline.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
@@ -202,7 +206,7 @@ process_answer(isc_task_t *task, isc_event_t *event) {
 static isc_result_t
 dispatch_query(struct query_trans *trans) {
 	isc_result_t result;
-	size_t namelen;
+	unsigned int namelen;
 	isc_buffer_t b;
 	char buf[4096];	/* XXX ad hoc constant, but should be enough */
 	char *cp;
@@ -275,15 +279,16 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	int i;
 
-	while ((ch = getopt(argc, argv, "s:t:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "s:t:")) != -1) {
 		switch (ch) {
 		case 't':
-			tr.base = optarg;
-			tr.length = strlen(optarg);
+			tr.base = isc_commandline_argument;
+			tr.length = strlen(isc_commandline_argument);
 			result = dns_rdatatype_fromtext(&type, &tr);
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr,
-					"invalid RRtype: %s\n", optarg);
+					"invalid RRtype: %s\n",
+					isc_commandline_argument);
 				exit(1);
 			}
 			break;
@@ -294,15 +299,16 @@ main(int argc, char *argv[]) {
 					MAX_SERVERS);
 				exit(1);
 			}
-			serveraddr[nservers++] = (const char *)optarg;
+			serveraddr[nservers++] =
+				(const char *)isc_commandline_argument;
 			break;
 		default:
 			usage();
 		}
 	}
 
-	argc -= optind;
-	argv += optind;
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
 	if (argc < 1)
 		usage();
 

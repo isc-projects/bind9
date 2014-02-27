@@ -3051,7 +3051,9 @@ dns_client_updaterec(dns_client_updateop_t op, dns_name_t *owner,
 		dns_rdatalist_init(&updaterec->rdatalist);
 		dns_rdata_init(&updaterec->rdata);
 		isc_buffer_init(&updaterec->buffer, updaterec->data,
-				size - offsetof(dns_client_updaterec_t, data));
+				(unsigned int)
+				(size -
+				 offsetof(dns_client_updaterec_t, data)));
 		dns_name_copy(owner, target, &updaterec->buffer);
 		if (source != NULL) {
 			isc_region_t r;

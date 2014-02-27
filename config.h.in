@@ -185,9 +185,6 @@ int sigwait(const unsigned int *set, int *sig);
    MSVC and with C++ compilers. */
 #undef FLEXIBLE_ARRAY_MEMBER
 
-/* Define to 1 if you have the `AES_encrypt' function. */
-#undef HAVE_AES_ENCRYPT
-
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
 
@@ -320,8 +317,14 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <net/route.h> header file. */
 #undef HAVE_NET_ROUTE_H
 
+/* Define if your OpenSSL version supports AES */
+#undef HAVE_OPENSSL_AES
+
 /* Define if your OpenSSL version supports ECDSA. */
 #undef HAVE_OPENSSL_ECDSA
+
+/* Define if your OpenSSL version supports EVP AES */
+#undef HAVE_OPENSSL_EVP_AES
 
 /* Define if your OpenSSL version supports GOST. */
 #undef HAVE_OPENSSL_GOST

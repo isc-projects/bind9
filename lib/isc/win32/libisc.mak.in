@@ -114,6 +114,9 @@ ALL : "..\..\..\Build\Release\libisc.dll"
 
 
 CLEAN :
+@IF AES
+	-@erase "$(INTDIR)\aes.obj"
+@END AES
 	-@erase "$(INTDIR)\app.obj"
 	-@erase "$(INTDIR)\assertions.obj"
 	-@erase "$(INTDIR)\backtrace.obj"
@@ -253,6 +256,9 @@ LINK32_OBJS= \
 	"$(INTDIR)\time.obj" \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\win32os.obj" \
+@IF AES
+	"$(INTDIR)\aes.obj" \
+@END AES
 	"$(INTDIR)\assertions.obj" \
 	"$(INTDIR)\backtrace.obj" \
 	"$(INTDIR)\backtrace-emptytbl.obj" \
@@ -331,6 +337,10 @@ ALL : "..\..\..\Build\Debug\libisc.dll" "$(OUTDIR)\libisc.bsc"
 
 
 CLEAN :
+@IF AES
+	-@erase "$(INTDIR)\aes.obj"
+	-@erase "$(INTDIR)\aes.sbr"
+@END AES
 	-@erase "$(INTDIR)\app.obj"
 	-@erase "$(INTDIR)\app.sbr"
 	-@erase "$(INTDIR)\assertions.obj"
@@ -551,6 +561,9 @@ BSC32_SBRS= \
 	"$(INTDIR)\time.sbr" \
 	"$(INTDIR)\version.sbr" \
 	"$(INTDIR)\win32os.sbr" \
+@IF AES
+	"$(INTDIR)\aes.sbr" \
+@END AES
 	"$(INTDIR)\assertions.sbr" \
 	"$(INTDIR)\backtrace.sbr" \
 	"$(INTDIR)\backtrace-emptytbl.sbr" \
@@ -650,6 +663,9 @@ LINK32_OBJS= \
 	"$(INTDIR)\time.obj" \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\win32os.obj" \
+@IF AES
+	"$(INTDIR)\aes.obj" \
+@END AES
 	"$(INTDIR)\assertions.obj" \
 	"$(INTDIR)\backtrace.obj" \
 	"$(INTDIR)\backtrace-emptytbl.obj" \
@@ -1177,6 +1193,24 @@ SOURCE=.\win32os.c
 
 
 !ENDIF 
+
+@IF AES
+SOURCE=..\aes.c
+
+!IF  "$(CFG)" == "libisc - @PLATFORM@ Release"
+
+
+"$(INTDIR)\aes.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "libisc - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\aes.obj"	"$(INTDIR)\aes.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+@END AES
 
 SOURCE=..\assertions.c
 

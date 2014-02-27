@@ -69,7 +69,8 @@ typedef enum {
 	OP_DIGEST = 5,
 	OP_EC = 6,
 	OP_GOST = 7,
-	OP_MAX = 8
+	OP_AES = 8,
+	OP_MAX = 9
 } pk11_optype_t;
 
 /*%
@@ -182,6 +183,15 @@ pkcs_C_FindObjects(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE_PTR phObject,
 
 CK_RV
 pkcs_C_FindObjectsFinal(CK_SESSION_HANDLE hSession);
+
+CK_RV
+pkcs_C_EncryptInit(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism,
+		   CK_OBJECT_HANDLE hKey);
+
+CK_RV
+pkcs_C_Encrypt(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
+	       CK_ULONG ulDataLen, CK_BYTE_PTR pEncryptedData,
+	       CK_ULONG_PTR pulEncryptedDataLen);
 
 CK_RV
 pkcs_C_DigestInit(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism);

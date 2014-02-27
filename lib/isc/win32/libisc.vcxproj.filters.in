@@ -26,6 +26,11 @@
     <None Include="libisc.def" />
   </ItemGroup>
   <ItemGroup>
+@IF AES
+    <ClInclude Include="..\include\isc\aes.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+@END AES
     <ClInclude Include="..\include\isc\app.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -452,6 +457,11 @@
       <Filter>Win32 Source Files</Filter>
     </ClCompile>
 @END PKCS11
+@IF AES
+    <ClCompile Include="..\aes.c">
+      <Filter>Win32 Source Files</Filter>
+    </ClCompile>
+@END AES
     <ClCompile Include="..\assertions.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>

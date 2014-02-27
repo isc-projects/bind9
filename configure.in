@@ -1103,12 +1103,14 @@ AC_SUBST(THREADOPTSRCS)
 ISC_THREAD_DIR=$thread_dir
 AC_SUBST(ISC_THREAD_DIR)
 
+AC_MSG_CHECKING(for libtool)
 AC_ARG_WITH(libtool,
 	    [  --with-libtool          use GNU libtool],
 	    use_libtool="$withval", use_libtool="no")
 
 case $use_libtool in
 	yes)
+		AC_MSG_RESULT(yes)
 		AM_PROG_LIBTOOL
 		O=lo
 		A=la
@@ -1125,6 +1127,7 @@ case $use_libtool in
 		esac;
 		;;
 	*)
+		AC_MSG_RESULT(no)
 		O=o
 		A=a
 		LIBTOOL=
@@ -1149,8 +1152,6 @@ AC_ARG_ENABLE(native-pkcs11,
 #
 # was --with-openssl specified?
 #
-OPENSSL_WARNING=
-AC_MSG_CHECKING(for OpenSSL library)
 AC_ARG_WITH(openssl,
 [  --with-openssl[=PATH]     Build with OpenSSL [yes|no|path].
 			  (Crypto is required for DNSSEC)],
@@ -1164,6 +1165,87 @@ AC_ARG_WITH(pkcs11,
 			  (PATH is for the PKCS11 provider)],
    use_pkcs11="$withval", use_pkcs11="auto")
 
+#
+# were --with-ecdsa, --with-gost, --with-aes specified
+#
+AC_ARG_WITH(ecdsa, [  --with-ecdsa            Crypto ECDSA],
+	    with_ecdsa="$withval", with_ecdsa="auto")
+AC_ARG_WITH(gost, [  --with-gost             Crypto GOST [yes|no|raw|asn1].],
+	    with_gost="$withval", with_gost="auto")
+AC_ARG_WITH(aes, [  --with-aes              Crypto AES],
+	    with_aes="$withval", with_aes="checksit")
+
+#
+# was --enable-openssl-hash specified?
+#
+AC_ARG_ENABLE(openssl-hash,
+	[  --enable-openssl-hash   use OpenSSL for hash functions [[default=no]]],
+	want_openssl_hash="$enableval", want_openssl_hash="checksit")
+
+#
+# Enable Source Identity Token support
+#
+AC_MSG_CHECKING(for Source Identity Token support)
+AC_ARG_ENABLE(sit,
+	[  --enable-sit            enable source identity token [[default=no]]],
+	enable_sit="$enableval", enable_sit="no")
+HAVE_SIT=
+ISC_PLATFORM_USESIT="#undef ISC_PLATFORM_USESIT"
+
+case "$enable_sit" in
+yes)
+	AC_MSG_RESULT(yes)
+	ISC_PLATFORM_USESIT="#define ISC_PLATFORM_USESIT 1"
+	HAVE_SIT=1
+	;;
+no)
+	AC_MSG_RESULT(no)
+	;;
+*)
+	AC_MSG_ERROR("enable-sit requires yes or no")
+	;;
+esac
+AC_SUBST(ISC_PLATFORM_USESIT)
+AC_SUBST(HAVE_SIT)
+
+#
+# Source Identity Token algorithm choice
+#
+AC_ARG_WITH(sit-alg,
+	[  --with-sit-alg=ALG      choose the algorithm for SIT [[aes|sha1|sha256]]],
+	with_sit_alg="$withval", with_sit_alg="auto")
+
+if test "$enable_sit" = "yes"
+then
+	case $with_sit_alg in
+		*1)
+			with_sit_alg="sha1"
+			;;
+		*2*)
+			with_sit_alg="sha256"
+			;;
+		auto)
+			if test "$with_aes" != "no"
+			then
+				with_aes="yes"
+			fi
+			;;
+		*)
+			with_sit_alg="aes"
+			if test "$with_aes" != "no"
+			then
+				with_aes="yes"
+			fi
+			;;
+	esac
+fi
+if test "with_aes" = "checksit"
+then
+	with_aes="no"
+fi
+
+AC_MSG_CHECKING(for OpenSSL library)
+OPENSSL_WARNING=
 openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
 if test "$use_openssl" = "auto"
 then
@@ -1183,11 +1265,6 @@ then
 fi
 OPENSSL_ECDSA=""
 OPENSSL_GOST=""
-AC_ARG_WITH(ecdsa, [  --with-ecdsa            Crypto ECDSA],
-	    with_ecdsa="$withval", with_ecdsa="auto")
-AC_ARG_WITH(gost,
-[  --with-gost             Crypto GOST [yes|no|raw|asn1].],
-	    with_gost="$withval", with_gost="auto")
 gosttype="raw"
 case "$with_gost" in
 	raw)
@@ -1210,7 +1287,7 @@ case "$use_openssl" in
 	native_pkcs11)
 		AC_MSG_RESULT(disabled because of native PKCS11)
 		DST_OPENSSL_INC=""
-		CRYPTO=""
+		CRYPTO="-DPKCS11CRYPTO"
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
@@ -1380,7 +1457,6 @@ esac
 	AC_MSG_CHECKING(for OpenSSL ECDSA support)
 	have_ecdsa=""
 	AC_TRY_RUN([
-#include <stdio.h>
 #include <openssl/ecdsa.h>
 #include <openssl/objects.h>
 int main() {
@@ -1492,6 +1568,52 @@ int main() {
 	*)
 		;;
 	esac
+
+	have_aes="no"
+	AC_MSG_CHECKING(for OpenSSL AES support)
+	AC_TRY_RUN([
+#include <openssl/evp.h>
+int main() {
+	EVP_CIPHER *aes128, *aes192, *aes256;
+
+	aes128 = EVP_aes_128_ecb();
+	aes192 = EVP_aes_192_ecb();
+	aes256 = EVP_aes_256_ecb();
+	if (aes128 == NULL || aes192 == NULL || aes256 == NULL)
+		return (1);
+	return (0);
+}
+],
+	[AC_MSG_RESULT(yes)
+	 have_aes="evp"],
+	[AC_CHECK_FUNC(AES_encrypt,
+	[AC_MSG_RESULT(yes)
+	 have_aes="yes"],
+	[AC_MSG_RESULT(no)])],
+	[AC_MSG_RESULT(using --with-aes)])
+
+	ISC_OPENSSL_INC=""
+	ISC_OPENSSL_LIBS=""
+	if test "$with_aes" = "yes"
+	then
+		case "$have_aes" in
+		evp)
+			AC_DEFINE(HAVE_OPENSSL_EVP_AES, 1,
+				  [Define if your OpenSSL version supports EVP AES])
+			ISC_OPENSSL_INC="$DST_OPENSSL_INC"
+			ISC_OPENSSL_LIBS="$DST_OPENSSL_LIBS"
+			;;
+		yes)	
+			AC_DEFINE(HAVE_OPENSSL_AES, 1,
+				  [Define if your OpenSSL version supports AES])
+			ISC_OPENSSL_INC="$DST_OPENSSL_INC"
+			ISC_OPENSSL_LIBS="$DST_OPENSSL_LIBS"
+			;;
+		*)
+			;;
+		esac
+	fi
+
 	CC="$saved_cc"
 	CFLAGS="$saved_cflags"
 	LIBS="$saved_libs"
@@ -1516,75 +1638,98 @@ AC_SUBST(OPENSSL_GOST)
 
 DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
 
-#
-# Use OpenSSL for hash functions and/or aes
-#
-
-saved_libs="$LIBS"
-LIBS="$LIBS $DNS_CRYPTO_LIBS"
-AC_CHECK_FUNCS(AES_encrypt)
-LIBS="$saved_libs"
-
-AC_MSG_CHECKING(for using OpenSSL for hash functions)
-AC_ARG_ENABLE(openssl-hash,
-	[  --enable-openssl-hash   use OpenSSL for hash functions [[default=no]]],
-	want_openssl_hash="$enableval", want_openssl_hash="no")
-
-AC_ARG_ENABLE(openssl-aes,
-	[  --enable-openssl-aes    use OpenSSL for aes [[default=no]]],
-	want_openssl_aes="$enableval", want_openssl_aes="no")
+ISC_PLATFORM_WANTAES="#undef ISC_PLATFORM_WANTAES"
+if test "$with_aes" = "yes"
+then
+	if test "X$CRYPTO" = "X"
+	then
+		with_aes="no"
+	fi
+fi
+if test "$with_aes" = "yes"
+then
+	ISC_PLATFORM_WANTAES="#define ISC_PLATFORM_WANTAES 1"
+fi
+AC_SUBST(ISC_PLATFORM_WANTAES)
 
 #
-# Source Identity Token algorithm choice
+# Choose SIT algorithm
 #
-AC_ARG_WITH(sit-alg,
-	[  --with-sit-alg=ALG      choose the algorithm for SIT [[aes|sha1|sha256]]],
-	with_sit_alg="$withval", with_sit_alg="auto")
 
-case $with_sit_alg in
-	*1)
-		with_sit_alg="sha1"
-		want_openssl_hash="yes"
-		AC_DEFINE(HMAC_SHA1_SIT, 1,
-			  [Use HMAC-SHA1 for Source Identity Token generation])
-		;;
-	*2*)
-		with_sit_alg="sha256"
-		want_openssl_hash="yes"
-		AC_DEFINE(HMAC_SHA256_SIT, 1,
-			  [Use HMAC-SHA256 for Source Identity Token generation])
-		;;
-	auto)
-		if test "$ac_cv_func_AES_encrypt" = "yes"
+if test "$enable_sit" = "yes"
+then
+	AC_MSG_CHECKING(for the Algorithm for SIT)
+	if test "$with_sit_alg" = "auto"
+	then
+		if test "$with_aes" = "yes"
 		then
 			with_sit_alg="aes"
-			if test "$CRYPTO" = "-DOPENSSL"
-			then
-				want_openssl_aes="yes"
-			fi
-			AC_DEFINE(AES_SIT, 1,
-				 [Use AES for Source Identity Token generation])
 		else
 			with_sit_alg="sha256"
-			if test "$CRYPTO" = "-DOPENSSL"
+		fi
+	fi
+fi
+case $with_sit_alg in
+	sha1)
+		if test "$enable_sit" != "yes"
+		then
+			AC_MSG_ERROR("with-sit-alg requires enable-sit");
+		fi
+		AC_MSG_RESULT(sha1)
+		if test "$CRYPTO" = "-DOPENSSL"
+		then
+			if test "$want_openssl_hash" = "checksit"
 			then
 				want_openssl_hash="yes"
 			fi
-			AC_DEFINE(HMAC_SHA256_SIT, 1,
-		         [Use HMAC-SHA256 for Source Identity Token generation])
 		fi
+		AC_DEFINE(HMAC_SHA1_SIT, 1,
+			  [Use HMAC-SHA1 for Source Identity Token generation])
 		;;
-	*)
-		with_sit_alg="aes"
-		want_openssl_aes="yes"
+	sha256)
+		if test "$enable_sit" != "yes"
+		then
+			AC_MSG_ERROR("with-sit-alg requires enable-sit");
+		fi
+		AC_MSG_RESULT(sha256)
+		if test "$CRYPTO" = "-DOPENSSL"
+		then
+			if test "$want_openssl_hash" = "checksit"
+			then
+				want_openssl_hash="yes"
+			fi
+		fi
+		AC_DEFINE(HMAC_SHA256_SIT, 1,
+			  [Use HMAC-SHA256 for Source Identity Token generation])
+		;;
+	aes)
+		if test "$enable_sit" != "yes"
+		then
+			AC_MSG_ERROR("with-sit-alg requires enable-sit");
+		fi
+		AC_MSG_RESULT(aes)
+		if test "$with_aes" != "yes"
+		then
+			AC_MSG_ERROR("SIT wants to use unavailable AES");
+		fi
 		AC_DEFINE(AES_SIT, 1,
 			  [Use AES for Source Identity Token generation])
 		;;
 esac
+if test "$want_openssl_hash" = "checksit"
+then
+	want_openssl_hash="no"
+fi
 
+#
+# Use OpenSSL for hash functions
+#
+
+AC_MSG_CHECKING(for using OpenSSL for hash functions)
+ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
 case $want_openssl_hash in
 	yes)
-		if test "$CRYPTO" = ""
+		if test "$CRYPTO" != "-DOPENSSL"
 		then
 			AC_MSG_ERROR([No OpenSSL for hash functions])
 		fi
@@ -1595,27 +1740,9 @@ case $want_openssl_hash in
 		;;
 	no)
 		AC_MSG_RESULT(no)
-		ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
-		ISC_OPENSSL_INC=""
-		ISC_OPENSSL_LIBS=""
-		;;
-esac
-case $want_openssl_aes in
-	yes)
-		if test "$CRYPTO" = ""
-		then
-			AC_MSG_ERROR([No OpenSSL for AES])
-		fi
-		ISC_PLATFORM_OPENSSLAES="#define ISC_PLATFORM_OPENSSLAES 1"
-		ISC_OPENSSL_INC="$DST_OPENSSL_INC"
-		ISC_OPENSSL_LIBS="$DST_OPENSSL_LIBS"
-		;;
-	no)
-		ISC_PLATFORM_OPENSSLAES="#undef ISC_PLATFORM_OPENSSLAES"
 		;;
 esac
 AC_SUBST(ISC_PLATFORM_OPENSSLHASH)
-AC_SUBST(ISC_PLATFORM_OPENSSLAES)
 AC_SUBST(ISC_OPENSSL_INC)
 AC_SUBST(ISC_OPENSSL_LIBS)
 
@@ -1652,7 +1779,7 @@ case "$use_pkcs11" in
 		if ! $use_threads; then
 			AC_MSG_ERROR([PKCS11 requires thread support])
 		fi
-		if test "$CRYPTO" != ""
+		if test "$CRYPTO" = "-DOPENSSL"
 		then
 			AC_MSG_CHECKING(for OpenSSL with PKCS11 support)
 			saved_cc="$CC"
@@ -1739,7 +1866,6 @@ AC_MSG_CHECKING(for native PKCS11)
 case "$want_native_pkcs11" in
 	yes)
 		AC_MSG_RESULT(using native PKCS11 crypto)
-		CRYPTO="-DPKCS11CRYPTO"
 		PKCS11LINKOBJS='${PKCS11LINKOBJS}'
 		PKCS11LINKSRCS='${PKCS11LINKSRCS}'
 		PKCS11_TEST=pkcs11
@@ -3437,30 +3563,6 @@ case "$enable_filter" in
 esac
 
 #
-# Enable Source Identity Token support
-#
-AC_ARG_ENABLE(sit,
-	[  --enable-sit            enable source identity token [[default=no]]],
-	enable_sit="$enableval", enable_sit="no")
-
-ISC_PLATFORM_USESIT="#undef ISC_PLATFORM_USESIT"
-HAVE_SIT=
-
-case "$enable_sit" in
-yes)
-	ISC_PLATFORM_USESIT="#define ISC_PLATFORM_USESIT 1"
-        HAVE_SIT=1
-	;;
-no)
-	;;
-*)
-	AC_MSG_ERROR("enable-sit requires yes or no")
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_USESIT)
-AC_SUBST(HAVE_SIT)
-
-#
 #  The following sets up how non-blocking i/o is established.
 #  Sunos, cygwin and solaris 2.x (x<5) require special handling.
 #
@@ -3757,14 +3859,14 @@ case "$use_tuning" in
 		if ! $use_threads; then
 			AC_MSG_ERROR([Large-system tuning requires threads.])
 		fi
-                AC_DEFINE(TUNE_LARGE, 1, [Define to use large-system tuning.])
+		AC_DEFINE(TUNE_LARGE, 1, [Define to use large-system tuning.])
 		AC_MSG_RESULT(using large-system tuning)
 		;;
 	no|default)
 		AC_MSG_RESULT(using default tuning)
 		;;
 	yes|*)
-                AC_MSG_ERROR([You must specify "large" or "default" for --with-tuning.])
+		AC_MSG_ERROR([You must specify "large" or "default" for --with-tuning.])
 		;;
 esac
 
@@ -4324,7 +4426,7 @@ test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
 if test "$enable_sit" != "no"; then
     echo "    Source Identity Token support (--enable-sit)"
     if test "$enable_full_report" = "yes" -o "$with_sit_alg" != "aes"; then
-        echo "        Algorithm: $with_sit_alg"
+	echo "        Algorithm: $with_sit_alg"
     fi
 fi
 

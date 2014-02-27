@@ -69,8 +69,6 @@ isc_socketmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 	return (result);
 }
 
-#ifndef WIN32
-
 isc_result_t
 isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	isc_result_t result;
@@ -403,5 +401,3 @@ isc_result_t
 isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 	return (isc__socket_getpeername(sock, addressp));
 }
-
-#endif

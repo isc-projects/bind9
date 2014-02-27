@@ -51,6 +51,8 @@
  */
 #include <config.h>
 
+#include <isc/net.h>
+
 #include <irs/netdb.h>
 
 /*% Text of error messages. */
