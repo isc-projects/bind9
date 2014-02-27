@@ -17,11 +17,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id$ -->
-
 <refentry id="man.dnssec-checkds">
   <refentryinfo>
-    <date>April 11, 2012</date>
+    <date>January 02, 2013</date>
   </refentryinfo>
 
   <refmeta>

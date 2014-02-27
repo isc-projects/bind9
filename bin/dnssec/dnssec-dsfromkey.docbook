@@ -17,10 +17,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-dsfromkey.docbook,v 1.17 2011/10/25 01:54:18 marka Exp $ -->
 <refentry id="man.dnssec-dsfromkey">
   <refentryinfo>
-    <date>August 26, 2009</date>
+    <date>May 17, 2012</date>
   </refentryinfo>
 
   <refmeta>

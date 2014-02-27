@@ -17,10 +17,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: isc-config.sh.docbook,v 1.2 2009/02/18 23:47:48 tbox Exp $ -->
 <refentry id="man.isc-config.sh">
   <refentryinfo>
-    <date>December 19, 2008</date>
+    <date>February 18, 2009</date>
   </refentryinfo>
 
   <refmeta>

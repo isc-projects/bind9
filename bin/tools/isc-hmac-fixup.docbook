@@ -17,10 +17,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: isc-hmac-fixup.docbook,v 1.2 2010/01/07 21:52:11 each Exp $ -->
 <refentry id="man.isc-hmac-fixup">
   <refentryinfo>
-    <date>January 5, 2010</date>
+    <date>April 28, 2013</date>
   </refentryinfo>
 
   <refmeta>
