@@ -1,3 +1,6 @@
+3761.	[bug]		Address dangling reference bug in dns_keytable_add.
+			[RT #35471]
+
 3757.	[port]		Enable Python tools (dnssec-coverage,
 			dnssec-checkds) to run on Windows. [RT #34355]
 
