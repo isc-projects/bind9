@@ -18,10 +18,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id$ -->
 <refentry id="man.nsupdate">
   <refentryinfo>
-    <date>Aug 25, 2009</date>
+    <date>March 10, 2012</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle><application>nsupdate</application></refentrytitle>

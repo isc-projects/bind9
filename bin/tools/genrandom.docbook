@@ -17,10 +17,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: genrandom.docbook,v 1.8 2011/08/08 23:46:41 tbox Exp $ -->
 <refentry id="man.genrandom">
   <refentryinfo>
-    <date>Feb 19, 2009</date>
+    <date>August 08, 2011</date>
   </refentryinfo>
 
   <refmeta>

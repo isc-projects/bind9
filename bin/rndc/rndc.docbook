@@ -18,10 +18,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.docbook,v 1.21 2007/12/14 20:39:14 marka Exp $ -->
 <refentry id="man.rndc">
   <refentryinfo>
-    <date>June 7, 2013</date>
+    <date>February 07, 2014</date>
   </refentryinfo>
 
   <refmeta>

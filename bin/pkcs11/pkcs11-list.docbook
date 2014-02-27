@@ -17,10 +17,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: pkcs11-list.docbook,v 1.2 2009/10/05 12:07:08 fdupont Exp $ -->
 <refentry id="man.pkcs11-list">
   <refentryinfo>
-    <date>Sep 18, 2009</date>
+    <date>October 05, 2009</date>
   </refentryinfo>
 
   <refmeta>
