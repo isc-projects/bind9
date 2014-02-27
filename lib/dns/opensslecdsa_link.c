@@ -18,7 +18,7 @@
 
 #include <config.h>
 
-#ifdef HAVE_OPENSSL_ECDSA
+#if defined(OPENSSL) && defined(HAVE_OPENSSL_ECDSA)
 
 #if !defined(HAVE_EVP_SHA256) || !defined(HAVE_EVP_SHA384)
 #error "ECDSA without EVP for SHA2?"

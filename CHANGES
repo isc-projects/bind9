@@ -1,3 +1,6 @@
+3762.	[bug]		Address build problems with --pkcs11-native +
+			--with-openssl with ECDSA support. [RT #35467]
+
 3761.	[bug]		Address dangling reference bug in dns_keytable_add.
 			[RT #35471]
 
