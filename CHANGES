@@ -1,3 +1,8 @@
+3764.	[bug]		The dnssec-keygen/settime -S and -i options
+			(to set up a successor key and set the prepublication
+			interval) were missing from dnssec-keyfromlabel.
+			[RT #35394]
+
 3763.	[bug]		delve: Cache DNSSEC records to avoid the need to
 			re-fetch them when restarting validation. [RT #35476]
 
