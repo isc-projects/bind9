@@ -1,3 +1,8 @@
+3764.	[bug]		The dnssec-keygen/settime -S and -i options
+			(to set up a successor key and set the prepublication
+			interval) were missing from dnssec-keyfromlabel.
+			[RT #35394]
+
 3761.	[bug]		Address dangling reference bug in dns_keytable_add.
 			[RT #35471]
 
