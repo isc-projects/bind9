@@ -24,6 +24,7 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/event.h>
+#include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
@@ -822,6 +823,13 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	char secret[1024];
 	unsigned int algtype;
 	isc_buffer_t b;
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_CONTROL, ISC_LOG_INFO,
+		      "configuring command channel from '%s'",
+		      ns_g_keyfile);
+	if (! isc_file_exists(ns_g_keyfile))
+		return (ISC_R_FILENOTFOUND);
 
 	CHECK(cfg_parser_create(mctx, ns_g_lctx, &pctx));
 	CHECK(cfg_parse_file(pctx, ns_g_keyfile, &cfg_type_rndckey, &config));
