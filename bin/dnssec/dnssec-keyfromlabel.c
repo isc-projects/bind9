@@ -353,7 +353,7 @@ main(int argc, char **argv) {
 
 		if (strcasecmp(algname, "RSA") == 0) {
 			fprintf(stderr, "The use of RSA (RSAMD5) is not "
-				        "recommended.\nIf you still wish to "
+					"recommended.\nIf you still wish to "
 					"use RSA (RSAMD5) please specify "
 					"\"-a RSAMD5\"\n");
 			if (freeit != NULL)
@@ -393,27 +393,27 @@ main(int argc, char **argv) {
 		}
 
 		if (!oldstyle && prepub > 0) {
-                        if (setpub && setact && (activate - prepub) < publish)
-                                fatal("Activation and publication dates "
-                                      "are closer together than the\n\t"
-                                      "prepublication interval.");
+			if (setpub && setact && (activate - prepub) < publish)
+				fatal("Activation and publication dates "
+				      "are closer together than the\n\t"
+				      "prepublication interval.");
 
-                        if (!setpub && !setact) {
-                                setpub = setact = ISC_TRUE;
-                                publish = now;
-                                activate = now + prepub;
-                        } else if (setpub && !setact) {
-                                setact = ISC_TRUE;
-                                activate = publish + prepub;
-                        } else if (setact && !setpub) {
-                                setpub = ISC_TRUE;
-                                publish = activate - prepub;
-                        }
+			if (!setpub && !setact) {
+				setpub = setact = ISC_TRUE;
+				publish = now;
+				activate = now + prepub;
+			} else if (setpub && !setact) {
+				setact = ISC_TRUE;
+				activate = publish + prepub;
+			} else if (setact && !setpub) {
+				setpub = ISC_TRUE;
+				publish = activate - prepub;
+			}
 
-                        if ((activate - prepub) < now)
-                                fatal("Time until activation is shorter "
-                                      "than the\n\tprepublication interval.");
-                }
+			if ((activate - prepub) < now)
+				fatal("Time until activation is shorter "
+				      "than the\n\tprepublication interval.");
+		}
 	} else {
 		char keystr[DST_KEY_FORMATSIZE];
 		isc_stdtime_t when;
