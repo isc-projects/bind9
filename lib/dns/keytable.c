@@ -574,6 +574,8 @@ dns_keytable_dump(dns_keytable_t *keytable, FILE *fp)
 
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 		for (knode = node->data; knode != NULL; knode = knode->next) {
+			if (knode->key == NULL)
+				continue;
 			dst_key_format(knode->key, pbuf, sizeof(pbuf));
 			fprintf(fp, "%s ; %s\n", pbuf,
 				knode->managed ? "managed" : "trusted");
