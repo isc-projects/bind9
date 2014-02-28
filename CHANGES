@@ -1,3 +1,6 @@
+3767.	[func]		Log explicitly when using rndc.key to configure
+			command channel. [RT #35316]
+
 3765.	[bug]		Fixed a bug in "rndc secroots" that could crash
 			named when dumping an empty keynode. [RT #35469]
 
@@ -842,7 +845,7 @@
 			     when queryperf is available.
 			 - the encoding of PASSTHRU action to "rpz-passthru".
 			     (The old encoding is still accepted.)
-		       [RT #26172]
+			[RT #26172]
 
 
 3329.	[bug]		Handle RRSIG signer-name case consistently: We
