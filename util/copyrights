@@ -144,7 +144,7 @@
 ./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2013,2014
 ./bin/dnssec/dnssec-signzone.html		HTML	DOCBOOK
-./bin/dnssec/dnssec-verify.8			MAN	2012
+./bin/dnssec/dnssec-verify.8			MAN	2012,2014
 ./bin/dnssec/dnssec-verify.c			C	2012
 ./bin/dnssec/dnssec-verify.docbook		SGML	2012,2014
 ./bin/dnssec/dnssec-verify.html			HTML	DOCBOOK
@@ -348,13 +348,13 @@
 ./bin/pkcs11/win32/win32.c			C	2009
 ./bin/python/.gitignore				X	2012,2013
 ./bin/python/Makefile.in			MAKE	2012,2013
-./bin/python/dnssec-checkds.8			MAN	2012,2013
+./bin/python/dnssec-checkds.8			MAN	2012,2013,2014
 ./bin/python/dnssec-checkds.docbook		SGML	2012,2013,2014
 ./bin/python/dnssec-checkds.html		HTML	DOCBOOK
 ./bin/python/dnssec-checkds.py.in		PYTHON	2012,2013,2014
-./bin/python/dnssec-coverage.8			MAN	2013
+./bin/python/dnssec-coverage.8			MAN	2013,2014
 ./bin/python/dnssec-coverage.docbook		SGML	2013,2014
-./bin/python/dnssec-coverage.html		HTML	2013
+./bin/python/dnssec-coverage.html		HTML	2013,2014
 ./bin/python/dnssec-coverage.py.in		PYTHON	2013,2014
 ./bin/rndc/.gitignore				X	2012
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007,2009,2012
@@ -2487,9 +2487,9 @@
 ./docutil/patch-db2latex-nested-param-bug	X	2007
 ./docutil/patch-db2latex-xsltproc-title-bug	X	2007
 ./install-sh					X	1998,1999,2000,2001
-./isc-config.sh.1				MAN	2009,2012
+./isc-config.sh.1				MAN	2009,2012,2014
 ./isc-config.sh.docbook				SGML	2009,2014
-./isc-config.sh.html				HTML	2009,2011,2012
+./isc-config.sh.html				HTML	2009,2011,2012,2014
 ./isc-config.sh.in				SH	2000,2001,2003,2004,2007,2012,2013
 ./lib/.gitignore				X	2012
 ./lib/Atffile					X	2011
