@@ -1,3 +1,6 @@
+3766.	[cleanup]	Fixed problems with building outside the source
+			tree when using native PKCS#11. [RT #35459]
+
 3765.	[bug]		Fixed a bug in "rndc secroots" that could crash
 			named when dumping an empty keynode. [RT #35469]
 
