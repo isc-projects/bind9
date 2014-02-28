@@ -120,9 +120,12 @@ BIND 9.10.0
 	   allows BIND 9 cryptography functions to use the PKCS#11 API
 	   natively, so that BIND can drive a cryptographic hardware
 	   service module (HSM) directly instead of using a modified
-	   OpenSSL as an intermediary.  This has been tested with the
-	   Thales nShield HSM and with SoftHSMv2 from the Open DNSSEC
-	   project.
+	   OpenSSL as an intermediary. (Note: This feature requires an
+	   HSM to have a full implementation of the PKCS#11 API; many
+	   current HSMs only have partial implementations. The new
+	   "pkcs11-tokens" command can be used to check API completeness.
+	   Native PKCS#11 is known to work with the Thales nShield HSM
+	   and with SoftHSM version 2 from the Open DNSSEC project.)
 	 - The new "max-zone-ttl" option enforces maximum TTLs for
 	   zones. This can simplify the process of rolling DNSSEC keys
 	   by guaranteeing that cached signatures will have expired
