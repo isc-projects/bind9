@@ -829,7 +829,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		const cfg_obj_t *builtin_managed_keys = NULL;
 
 		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "using built-in DLV key for view %s",
 			      view->name);
 
@@ -862,7 +862,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		const cfg_obj_t *builtin_managed_keys = NULL;
 
 		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "using built-in root key for view %s",
 			      view->name);
 

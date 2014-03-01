@@ -1,3 +1,6 @@
+3771.	[cleanup]	Adjusted log level for "using built-in key"
+			messages. [RT #24383]
+
 3770.	[bug]		"dig +trace" could fail with an assertion when it
 			needed to fall back to TCP due to a truncated
 			response. [RT #24660]
