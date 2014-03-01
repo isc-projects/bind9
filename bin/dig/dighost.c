@@ -883,6 +883,9 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	dns_name_copy(dns_fixedname_name(&lookold->fdomain),
 		      dns_fixedname_name(&looknew->fdomain), NULL);
 
+	dns_name_copy(dns_fixedname_name(&lookold->fdomain),
+		      dns_fixedname_name(&looknew->fdomain), NULL);
+
 	if (servers)
 		clone_server_list(lookold->my_server_list,
 				  &looknew->my_server_list);
