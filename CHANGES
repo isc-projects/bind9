@@ -1,3 +1,6 @@
+3769.	[doc]		Improved documentation of "rndc signing -list".
+			[RT #30652]
+
 3768.	[bug]		"dnssec-checkds" was missing the SHA-384 digest
 			algorithm. [RT #34000]
 

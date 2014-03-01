@@ -632,8 +632,8 @@
         <term><userinput>signing <optional>( -list | -clear <replaceable>keyid/algorithm</replaceable> | -clear <literal>all</literal> | -nsec3param ( <replaceable>parameters</replaceable> | <literal>none</literal> ) ) </optional> <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional> </userinput></term>
         <listitem>
           <para>
-            List, edit, or remove the DNSSEC signing state for 
-            the specified zone.  The status of ongoing DNSSEC
+            List, edit, or remove the DNSSEC signing state records
+            for the specified zone.  The status of ongoing DNSSEC
             operations (such as signing or generating
             NSEC3 chains) is stored in the zone in the form
             of DNS resource records of type

@@ -7073,53 +7073,53 @@ options {
 	    <varlistentry>
 	      <term><command>no-case-compress</command></term> <listitem>
 		<para>
-                  Specifies a list of addresses which require responses
-                  to use case-insensitive compression.  This ACL can be
-                  used when <command>named</command> needs to work with
-                  clients that do not comply with the requirement in RFC
-                  1034 to use case-insensitive name comparisons when
-                  checking for matching domain names.
-                </para>
-                <para>
-                  If left undefined, the ACL defaults to
-                  <command>none</command>: case-insensitive compression
-                  will be used for all clients.  If the ACL is defined and
-                  matches a client, then case will be ignored when
-                  compressing domain names in DNS responses sent to that
-                  client.
-                </para>
-                <para>
-                  This can result in slightly smaller responses: if
-                  a response contains the names "example.com" and
-                  "example.COM", case-insensitive compression would treat
-                  the second one as a duplicate.  It also ensures
-                  that the case of the query name exactly matches the
-                  case of the owner names of returned records, rather
-                  than matching the case of the records entered in
-                  the zone file.  This allows responses to exactly
-                  match the query, which is required by some clients
-                  due to incorrect use of case-sensitive comparisions.
-                </para>
-                <para>
-                  Case-insensitive compression is <emphasis>always</emphasis>
-                  used in AXFR and IXFR responses, regardless of whether
-                  the client matches this ACL.
-                </para>
-                <para>
-                  There are circusmstances in which <command>named</command>
-                  will not preserve the case of owner names of records:
-                  if a zone file defines records of different types with
-                  the same name, but the capitalization of the name is
-                  different (e.g., "www.example.com/A" and
-                  "WWW.EXAMPLE.COM/AAAA"), then all resposnes for that
-                  name will use the <emphasis>first</emphasis> version
-                  of the name that was used in the zone file.  This
-                  limitation may be addressed in a future release.  However,
-                  domain names specified in the rdata of resource records
-                  (i.e., records of type NS, MX, CNAME, etc) will always
-                  have their case preserved unless the client matches this
-                  ACL.
-                </para>
+		  Specifies a list of addresses which require responses
+		  to use case-insensitive compression.  This ACL can be
+		  used when <command>named</command> needs to work with
+		  clients that do not comply with the requirement in RFC
+		  1034 to use case-insensitive name comparisons when
+		  checking for matching domain names.
+		</para>
+		<para>
+		  If left undefined, the ACL defaults to
+		  <command>none</command>: case-insensitive compression
+		  will be used for all clients.  If the ACL is defined and
+		  matches a client, then case will be ignored when
+		  compressing domain names in DNS responses sent to that
+		  client.
+		</para>
+		<para>
+		  This can result in slightly smaller responses: if
+		  a response contains the names "example.com" and
+		  "example.COM", case-insensitive compression would treat
+		  the second one as a duplicate.  It also ensures
+		  that the case of the query name exactly matches the
+		  case of the owner names of returned records, rather
+		  than matching the case of the records entered in
+		  the zone file.  This allows responses to exactly
+		  match the query, which is required by some clients
+		  due to incorrect use of case-sensitive comparisions.
+		</para>
+		<para>
+		  Case-insensitive compression is <emphasis>always</emphasis>
+		  used in AXFR and IXFR responses, regardless of whether
+		  the client matches this ACL.
+		</para>
+		<para>
+		  There are circusmstances in which <command>named</command>
+		  will not preserve the case of owner names of records:
+		  if a zone file defines records of different types with
+		  the same name, but the capitalization of the name is
+		  different (e.g., "www.example.com/A" and
+		  "WWW.EXAMPLE.COM/AAAA"), then all resposnes for that
+		  name will use the <emphasis>first</emphasis> version
+		  of the name that was used in the zone file.  This
+		  limitation may be addressed in a future release.  However,
+		  domain names specified in the rdata of resource records
+		  (i.e., records of type NS, MX, CNAME, etc) will always
+		  have their case preserved unless the client matches this
+		  ACL.
+		</para>
 	      </listitem>
 	    </varlistentry>
 
@@ -8488,7 +8488,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  Specify a private RDATA type to be used when generating
-		  key signing records.  The default is
+		  signing state records.  The default is
 		  <literal>65534</literal>.
 		</para>
 		<para>
@@ -8496,13 +8496,20 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  in a future version once there is a standard type.
 		</para>
 		<para>
-		  These records can be removed from the zone once named
-		  has completed signing the zone with the matching key
-		  using <command>nsupdate</command> or
-		  <command>rndc signing -clear</command>.
-		  <command>rndc signing -clear</command> is the only supported
-		  way to remove these records from
-		  <command>inline-signing</command> zones.
+		  Signing state records are used to internally by
+		  <command>named</command> to track the current state of
+		  a zone-signing process, i.e., whether it is still active
+		  or has been completed.  The records can be inspected
+		  using the command
+		  <command>rndc signing -list <replaceable>zone</replaceable></command>.
+		  Once <command>named</command> has finished signing
+		  a zone with a particular key, the signing state
+		  record associated with that key can be removed from
+		  the zone by running
+		  <command>rndc signing -clear <replaceable>keyid/algorithm</replaceable> <replaceable>zone</replaceable></command>.
+		  To clear all of the completed signing state
+		  records for a zone, use
+		  <command>rndc signing -clear all <replaceable>zone</replaceable></command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
