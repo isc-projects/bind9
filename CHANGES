@@ -1,3 +1,6 @@
+3768.	[bug]		"dnssec-checkds" was missing the SHA-384 digest
+			algorithm. [RT #34000]
+
 3767.	[func]		Log explicitly when using rndc.key to configure
 			command channel. [RT #35316]
 

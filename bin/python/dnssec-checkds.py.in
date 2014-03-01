@@ -57,7 +57,7 @@ def shellquote(s):
 # Delegation Signer (DS) resource record
 ############################################################################
 class DSRR:
-    hashalgs = {1: 'SHA-1', 2: 'SHA-256', 3: 'GOST'}
+    hashalgs = {1: 'SHA-1', 2: 'SHA-256', 3: 'GOST', 4: 'SHA-384' }
     rrname=''
     rrclass='IN'
     rrtype='DS'
@@ -107,7 +107,7 @@ class DSRR:
 # DNSSEC Lookaside Validation (DLV) resource record
 ############################################################################
 class DLVRR:
-    hashalgs = {1: 'SHA-1', 2: 'SHA-256', 3: 'GOST'}
+    hashalgs = {1: 'SHA-1', 2: 'SHA-256', 3: 'GOST', 4: 'SHA-384' }
     parent=''
     dlvname=''
     rrname='IN'
