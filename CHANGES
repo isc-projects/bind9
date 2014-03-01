@@ -1,3 +1,7 @@
+3770.	[bug]		"dig +trace" could fail with an assertion when it
+			needed to fall back to TCP due to a truncated
+			response. [RT #24660]
+
 3769.	[doc]		Improved documentation of "rndc signing -list".
 			[RT #30652]
 
