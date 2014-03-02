@@ -384,7 +384,7 @@ command.)
 .PP
 \fBsigning \fR\fB[( \-list | \-clear \fIkeyid/algorithm\fR | \-clear all | \-nsec3param ( \fIparameters\fR | none ) ) ]\fR\fB \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR
 .RS 4
-List, edit, or remove the DNSSEC signing state for the specified zone. The status of ongoing DNSSEC operations (such as signing or generating NSEC3 chains) is stored in the zone in the form of DNS resource records of type
+List, edit, or remove the DNSSEC signing state records for the specified zone. The status of ongoing DNSSEC operations (such as signing or generating NSEC3 chains) is stored in the zone in the form of DNS resource records of type
 \fBsig\-signing\-type\fR.
 \fBrndc signing \-list\fR
 converts these records into a human\-readable form, indicating which keys are currently signing or have finished signing the zone, and which NSEC3 chains are being created or removed.
