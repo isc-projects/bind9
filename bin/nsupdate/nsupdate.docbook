@@ -74,6 +74,7 @@
       <arg><option>-v</option></arg>
       <arg><option>-T</option></arg>
       <arg><option>-P</option></arg>
+      <arg><option>-V</option></arg>
       <arg>filename</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -255,6 +256,10 @@
       private types specific to <command>named</command>.  These options
       may be combined.  <command>nsupdate</command> will exit after the
       lists are printed.
+    </para>
+    <para>
+      The -V option causes <command>nsupdate</command> to print the
+      version number and exit.
     </para>
   </refsect1>
 
@@ -637,6 +642,28 @@
           <listitem>
             <para>
               Turn on debugging.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+              <command>version</command>
+            </term>
+          <listitem>
+            <para>
+              Print version number.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+              <command>help</command>
+            </term>
+          <listitem>
+            <para>
+              Print a list of commands.
             </para>
           </listitem>
         </varlistentry>

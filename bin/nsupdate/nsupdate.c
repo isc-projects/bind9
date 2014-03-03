@@ -962,7 +962,7 @@ get_addresses(char *host, in_port_t port,
 		      host, isc_result_totext(result));
 }
 
-#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:Pr:R::t:Tu:"
+#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:Pr:R::t:Tu:V"
 
 static void
 pre_parse_args(int argc, char **argv) {
@@ -1024,6 +1024,11 @@ pre_parse_args(int argc, char **argv) {
 }
 
 static void
+version(void) {
+	fputs("nsupdate " VERSION "\n", stderr);
+}
+
+static void
 parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 	int ch;
 	isc_uint32_t i;
@@ -1059,6 +1064,10 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 			break;
 		case 'v':
 			usevc = ISC_TRUE;
+			break;
+		case 'V':
+			version();
+			exit(0);
 			break;
 		case 'k':
 			keyfile = isc_commandline_argument;
@@ -2022,6 +2031,7 @@ do_next_command(char *cmdline) {
 	}
 	if (strcasecmp(word, "help") == 0) {
 		fprintf(stdout,
+"nsupdate " VERSION ":\n"
 "local address [port]      (set local resolver)\n"
 "server address [port]     (set master server for zone)\n"
 "send                      (send the update request)\n"
@@ -2040,6 +2050,10 @@ do_next_command(char *cmdline) {
 "[prereq] yxrrset ....     (does this RRset not exist)\n"
 "[update] add ....         (add the given record to the zone)\n"
 "[update] del[ete] ....    (remove the given record(s) from the zone)\n");
+		return (STATUS_MORE);
+	}
+	if (strcasecmp(word, "version") == 0) {
+		fprintf(stdout, "nsupdate " VERSION "\n");
 		return (STATUS_MORE);
 	}
 	fprintf(stderr, "incorrect section name: %s\n", word);

@@ -231,6 +231,18 @@ nslookup -query=hinfo  -timeout=10
       </varlistentry>
 
       <varlistentry>
+        <term><constant>version</constant></term>
+        <listitem>
+          <para>
+            Prints the version number. (This can also be
+	    done from the command line by using
+	    <option>-version</option>, which will print
+	    the version number and immediately exit.)
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term><constant>exit</constant></term>
         <listitem>
           <para>
