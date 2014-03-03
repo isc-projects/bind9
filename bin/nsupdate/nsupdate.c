@@ -958,7 +958,7 @@ get_addresses(char *host, in_port_t port,
 		      host, isc_result_totext(result));
 }
 
-#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:r:R::t:u:"
+#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:r:R::t:u:V"
 
 static void
 pre_parse_args(int argc, char **argv) {
@@ -990,6 +990,11 @@ pre_parse_args(int argc, char **argv) {
 	}
 	isc_commandline_reset = ISC_TRUE;
 	isc_commandline_index = 1;
+}
+
+static void
+version(void) {
+	fputs("nsupdate " VERSION "\n", stderr);
 }
 
 static void
@@ -1028,6 +1033,10 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 			break;
 		case 'v':
 			usevc = ISC_TRUE;
+			break;
+		case 'V':
+			version();
+			exit(0);
 			break;
 		case 'k':
 			keyfile = isc_commandline_argument;
@@ -1997,6 +2006,7 @@ get_next_command(void) {
 	}
 	if (strcasecmp(word, "help") == 0) {
 		fprintf(stdout,
+"nsupdate " VERSION ":\n"
 "local address [port]      (set local resolver)\n"
 "server address [port]     (set master server for zone)\n"
 "send                      (send the update request)\n"
@@ -2015,6 +2025,10 @@ get_next_command(void) {
 "prereq yxrrset ....       (does this RRset not exist)\n"
 "update add ....           (add the given record to the zone)\n"
 "update delete ....        (remove the given record(s) from the zone)\n");
+		return (STATUS_MORE);
+	}
+	if (strcasecmp(word, "version") == 0) {
+		fprintf(stdout, "nsupdate " VERSION "\n");
 		return (STATUS_MORE);
 	}
 	fprintf(stderr, "incorrect section name: %s\n", word);

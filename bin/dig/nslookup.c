@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.127.38.2 2011/02/28 01:19:58 tbox Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -574,6 +572,11 @@ set_ndots(const char *value) {
 }
 
 static void
+version(void) {
+	fputs("nslookup " VERSION "\n", stderr);
+}
+
+static void
 setoption(char *opt) {
 	if (strncasecmp(opt, "all", 4) == 0) {
 		show_settings(ISC_TRUE, ISC_FALSE);
@@ -784,9 +787,12 @@ parse_args(int argc, char **argv) {
 	for (argc--, argv++; argc > 0; argc--, argv++) {
 		debug("main parsing %s", argv[0]);
 		if (argv[0][0] == '-') {
-			if (argv[0][1] != 0)
+			if (strncasecmp(argv[0], "-ver", 4) == 0) {
+				version();
+				exit(0);
+			} else if (argv[0][1] != 0) {
 				setoption(&argv[0][1]);
-			else
+			} else
 				have_lookup = ISC_TRUE;
 		} else {
 			if (!have_lookup) {
