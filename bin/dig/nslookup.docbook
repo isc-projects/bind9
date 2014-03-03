@@ -133,6 +133,11 @@ nslookup -query=hinfo  -timeout=10
 </programlisting>
       <!-- </informalexample> -->
     </para>
+    <para>
+      The <option>-version</option> option causes
+      <command>nslookup</command> to print the version
+      number and immediately exits.
+    </para>
 
   </refsect1>
 
@@ -226,18 +231,6 @@ nslookup -query=hinfo  -timeout=10
         <listitem>
           <para>
             not implemented
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term><constant>version</constant></term>
-        <listitem>
-          <para>
-            Prints the version number. (This can also be
-	    done from the command line by using
-	    <option>-version</option>, which will print
-	    the version number and immediately exit.)
           </para>
         </listitem>
       </varlistentry>
