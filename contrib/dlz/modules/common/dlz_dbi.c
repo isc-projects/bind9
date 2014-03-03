@@ -291,13 +291,11 @@ build_querystring(query_list_t *querylist) {
 		tseg = DLZ_LIST_NEXT(tseg, link);
 	}
 
-	/* allocate memory for the string */
 	qs = malloc(length + 1);
-	/* couldn't allocate memory,  We need more ram! */
 	if (qs == NULL)
 		return (NULL);
 
-	*qs = 0;
+	*qs = '\0';
 	/* start at the top of the list again */
 	tseg = DLZ_LIST_HEAD(*querylist);
 	while (tseg != NULL) {

@@ -1,3 +1,7 @@
+3772.	[contrib]	Added sqlite3 dynamically-loadable DLZ module.
+			(Based in part on a contribution from Tim Tessier.)
+			[RT #20822]
+
 3771.	[cleanup]	Adjusted log level for "using built-in key"
 			messages. [RT #24383]
 
