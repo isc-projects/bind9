@@ -3294,8 +3294,6 @@
 ./lib/irs/win32/Makefile.in			MAKE	2014
 ./lib/irs/win32/include/Makefile.in		MAKE	2014
 ./lib/irs/win32/include/irs/Makefile.in		MAKE	2014
-./lib/irs/win32/include/irs/netdb.h		C	2014
-./lib/irs/win32/include/irs/platform.h		C	2014
 ./lib/irs/win32/libirs.def			X	2014
 ./lib/irs/win32/libirs.dsp.in			X	2014
 ./lib/irs/win32/libirs.dsw			X	2001,2014
