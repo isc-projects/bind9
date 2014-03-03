@@ -72,6 +72,12 @@
       <arg><option>-r <replaceable class="parameter">udpretries</replaceable></option></arg>
       <arg><option>-R <replaceable class="parameter">randomdev</replaceable></option></arg>
       <arg><option>-v</option></arg>
+<<<<<<< HEAD
+=======
+      <arg><option>-T</option></arg>
+      <arg><option>-P</option></arg>
+      <arg><option>-V</option></arg>
+>>>>>>> 67d01dc... [master] add "version" options to host/nslookup/nsupdate
       <arg>filename</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -237,6 +243,10 @@
       instead of the default.  The special value
       <filename>keyboard</filename> indicates that keyboard input
       should be used.  This option may be specified multiple times.
+    </para>
+    <para>
+      The -V option causes <command>nsupdate</command> to print the
+      version number and exit.
     </para>
   </refsect1>
 
@@ -619,6 +629,28 @@
           <listitem>
             <para>
               Turn on debugging.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+              <command>version</command>
+            </term>
+          <listitem>
+            <para>
+              Print version number.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+              <command>help</command>
+            </term>
+          <listitem>
+            <para>
+              Print a list of commands.
             </para>
           </listitem>
         </varlistentry>

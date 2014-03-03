@@ -65,6 +65,8 @@
       <arg><option>-m <replaceable class="parameter">flag</replaceable></option></arg>
       <arg><option>-4</option></arg>
       <arg><option>-6</option></arg>
+      <arg><option>-v</option></arg>
+      <arg><option>-V</option></arg>
       <arg choice="req">name</arg>
       <arg choice="opt">server</arg>
     </cmdsynopsis>
@@ -237,6 +239,11 @@
       flags
       <parameter>record</parameter>, <parameter>usage</parameter> and
       <parameter>trace</parameter>.
+    </para>
+
+    <para>
+      The <option>-V</option> option causes <command>host</command>
+      to print the version number and exit.
     </para>
   </refsect1>
 

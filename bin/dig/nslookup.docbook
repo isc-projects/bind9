@@ -133,6 +133,11 @@ nslookup -query=hinfo  -timeout=10
 </programlisting>
       <!-- </informalexample> -->
     </para>
+    <para>
+      The <option>-version</option> option causes
+      <command>nslookup</command> to print the version
+      number and immediately exits.
+    </para>
 
   </refsect1>
 
