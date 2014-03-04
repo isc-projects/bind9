@@ -1,6 +1,6 @@
 3776.	[bug]		"rndc -q" suppresses output from successful
 			rndc commands. Errors are printed on stderr.
-                        [RT #21393]
+			[RT #21393]
 
 3775.	[bug]		dlz_dlopen driver could return the wrong error
 			code on API version mismatch, leading to a segfault.
