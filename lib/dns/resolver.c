@@ -6935,14 +6935,15 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
 	static const char hex[17] = "0123456789abcdef";
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_uint16_t buflen, i;
-	unsigned char *p, *buf, *pbuf, *nsid;
+	unsigned char *p, *nsid;
+	unsigned char *buf = NULL, *pbuf = NULL;
 
 	/* Allocate buffer for storing hex version of the NSID */
 	buflen = (isc_uint16_t)nsid_len * 2 + 1;
 	buf = isc_mem_get(mctx, buflen);
 	if (buf == NULL)
-		return;
-	pbuf = isc_mem_get(mctx, nsid_len);
+		goto cleanup;
+	pbuf = isc_mem_get(mctx, nsid_len + 1);
 	if (pbuf == NULL)
 		goto cleanup;
 
@@ -6971,7 +6972,10 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
 		      DNS_LOGMODULE_RESOLVER, level,
 		      "received NSID %s (\"%s\") from %s", buf, pbuf, addrbuf);
  cleanup:
-	isc_mem_put(mctx, buf, buflen);
+	if (pbuf != NULL)
+		isc_mem_put(mctx, pbuf, nsid_len + 1);
+	if (buf != NULL)
+		isc_mem_put(mctx, buf, buflen);
 }
 
 static isc_boolean_t
