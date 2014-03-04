@@ -63,7 +63,7 @@ static isc_logcategory_t categories[] = {
 };
 
 static void
-cleanup_managers() {
+cleanup_managers(void) {
 	if (maintask != NULL)
 		isc_task_destroy(&maintask);
 	if (socketmgr != NULL)
@@ -75,7 +75,7 @@ cleanup_managers() {
 }
 
 static isc_result_t
-create_managers() {
+create_managers(void) {
 	isc_result_t result;
 #ifdef ISC_PLATFORM_USETHREADS
 	ncpus = isc_os_ncpus();
@@ -143,7 +143,7 @@ isc_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 }
 
 void
-isc_test_end() {
+isc_test_end(void) {
 	if (maintask != NULL)
 		isc_task_detach(&maintask);
 	if (taskmgr != NULL)

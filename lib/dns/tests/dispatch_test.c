@@ -65,7 +65,7 @@ make_dispatchset(unsigned int ndisps) {
 }
 
 static void
-teardown() {
+teardown(void) {
 	if (dset != NULL)
 		dns_dispatchset_destroy(&dset);
 	if (dispatchmgr != NULL)

@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 /* Principal Authors: DCL */
@@ -646,7 +644,7 @@ dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 
 	isc_crc64_final(&crc);
 #ifdef DEBUG
-	hexdump("serializing CRC", crc, sizeof(crc));
+	hexdump("serializing CRC", &crc, sizeof(crc));
 #endif
 
 	/* Serialize header */
@@ -841,7 +839,7 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 
 	isc_crc64_final(&crc);
 #ifdef DEBUG
-	hexdump("deserializing CRC", crc, sizeof(crc));
+	hexdump("deserializing CRC", &crc, sizeof(crc));
 #endif
 
 	/* Check file hash */

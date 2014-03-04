@@ -722,13 +722,13 @@ try_dscp_v6(void) {
 }
 
 static void
-try_dscp() {
+try_dscp(void) {
 	try_dscp_v4();
 	try_dscp_v6();
 }
 
 static void
-initialize_dscp() {
+initialize_dscp(void) {
 	RUNTIME_CHECK(isc_once_do(&once_dscp, try_dscp) == ISC_R_SUCCESS);
 }
 

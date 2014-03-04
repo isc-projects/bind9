@@ -4072,7 +4072,7 @@ error:
  */
 
 isc_result_t
-isc__socket_register() {
+isc__socket_register(void) {
 	return (ISC_R_SUCCESS);
 }
 

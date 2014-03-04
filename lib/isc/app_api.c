@@ -179,7 +179,7 @@ isc_appctx_settimermgr(isc_appctx_t *ctx, isc_timermgr_t *timermgr) {
 }
 
 isc_result_t
-isc_app_start() {
+isc_app_start(void) {
 	if (isc_bind9)
 		return (isc__app_start());
 
@@ -205,7 +205,7 @@ isc_app_run() {
 }
 
 isc_result_t
-isc_app_shutdown() {
+isc_app_shutdown(void) {
 	if (isc_bind9)
 		return (isc__app_shutdown());
 
@@ -213,7 +213,7 @@ isc_app_shutdown() {
 }
 
 isc_result_t
-isc_app_reload() {
+isc_app_reload(void) {
 	if (isc_bind9)
 		return (isc__app_reload());
 
@@ -221,7 +221,7 @@ isc_app_reload() {
 }
 
 void
-isc_app_finish() {
+isc_app_finish(void) {
 	if (!isc_bind9)
 		return;
 
@@ -229,7 +229,7 @@ isc_app_finish() {
 }
 
 void
-isc_app_block() {
+isc_app_block(void) {
 	if (!isc_bind9)
 		return;
 
@@ -237,7 +237,7 @@ isc_app_block() {
 }
 
 void
-isc_app_unblock() {
+isc_app_unblock(void) {
 	if (!isc_bind9)
 		return;
 

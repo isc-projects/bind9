@@ -59,8 +59,9 @@ check_result(isc_result_t result, const char *message) {
 }
 
 static void
-usage() {
-	printf("Usage: %s salt algorithm iterations domain\n", program);
+usage(void) {
+	fprintf(stderr, "Usage: %s salt algorithm iterations domain\n",
+		program);
 	exit(1);
 }
 

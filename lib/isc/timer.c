@@ -1050,7 +1050,7 @@ isc__timermgr_dispatch(isc_timermgr_t *manager0) {
 #endif /* USE_TIMER_THREAD */
 
 isc_result_t
-isc__timer_register() {
+isc__timer_register(void) {
 	return (isc_timer_register(isc__timermgr_create));
 }
 

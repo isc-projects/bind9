@@ -317,7 +317,7 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 }
 
 isc_result_t
-isc__app_run() {
+isc__app_run(void) {
 	return (isc__app_ctxrun((isc_appctx_t *)&isc_g_appctx));
 }
 
@@ -346,7 +346,7 @@ isc__app_ctxshutdown(isc_appctx_t *ctx0) {
 }
 
 isc_result_t
-isc__app_shutdown() {
+isc__app_shutdown(void) {
 	return (isc__app_ctxshutdown((isc_appctx_t *)&isc_g_appctx));
 }
 
@@ -480,7 +480,7 @@ isc__appctx_settimermgr(isc_appctx_t *ctx0, isc_timermgr_t *timermgr) {
 }
 
 isc_result_t
-isc__app_register() {
+isc__app_register(void) {
 	return (isc_app_register(isc__appctx_create));
 }
 

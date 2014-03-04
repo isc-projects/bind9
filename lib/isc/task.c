@@ -1757,7 +1757,7 @@ isc__task_privilege(isc_task_t *task0) {
 }
 
 isc_result_t
-isc__task_register() {
+isc__task_register(void) {
 	return (isc_task_register(isc__taskmgr_create));
 }
 

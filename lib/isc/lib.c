@@ -97,7 +97,7 @@ do_register(void) {
 }
 
 void
-isc_lib_register() {
+isc_lib_register(void) {
 	RUNTIME_CHECK(isc_once_do(&register_once, do_register)
 		      == ISC_R_SUCCESS);
 }

@@ -250,7 +250,7 @@ keyclass_fromtext(const char *name) {
 }
 
 static void
-usage() {
+usage(void) {
 	fprintf(stderr,
 		"Usage:\n"
 		"\tpkcs11-keygen -a algorithm -b keysize -l label\n"

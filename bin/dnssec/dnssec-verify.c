@@ -165,7 +165,8 @@ main(int argc, char *argv[]) {
 #endif
 	char *classname = NULL;
 	dns_rdataclass_t rdclass;
-	char ch, *endp;
+	char *endp;
+	int ch;
 
 #define CMDLINE_FLAGS \
 	"m:o:I:c:E:v:xz"

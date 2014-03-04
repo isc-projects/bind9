@@ -112,7 +112,7 @@ waitfor(completion_t *completion) {
 #endif
 
 static void
-waitbody() {
+waitbody(void) {
 #ifndef ISC_PLATFORM_USETHREADS
 	struct timeval tv;
 	isc_socketwait_t *swait = NULL;

@@ -334,6 +334,6 @@ isc_net_enableipv6(void) {
 }
 
 unsigned int
-isc_net_probedscp() {
+isc_net_probedscp(void) {
 	return (0);
 }
