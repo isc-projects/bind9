@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #include "config.h"
 
 #include <isc/result.h>
@@ -770,19 +768,24 @@ rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
 
 static void
 rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
-	ecdb_rdatasetiter_t *ecdbiterator;
 	isc_mem_t *mctx;
+	union {
+		dns_rdatasetiter_t *rdatasetiterator;
+		ecdb_rdatasetiter_t *ecdbiterator;
+	} u;
 
 	REQUIRE(iteratorp != NULL);
-	ecdbiterator = (ecdb_rdatasetiter_t *)*iteratorp;
-	REQUIRE(DNS_RDATASETITER_VALID(&ecdbiterator->common));
+	REQUIRE(DNS_RDATASETITER_VALID(*iteratorp));
 
-	mctx = ecdbiterator->common.db->mctx;
+	u.rdatasetiterator = *iteratorp;
 
-	ecdbiterator->common.magic = 0;
+	mctx = u.ecdbiterator->common.db->mctx;
+	u.ecdbiterator->common.magic = 0;
 
-	dns_db_detachnode(ecdbiterator->common.db, &ecdbiterator->common.node);
-	isc_mem_put(mctx, ecdbiterator, sizeof(ecdb_rdatasetiter_t));
+	dns_db_detachnode(u.ecdbiterator->common.db,
+			  &u.ecdbiterator->common.node);
+	isc_mem_put(mctx, u.ecdbiterator,
+		    sizeof(ecdb_rdatasetiter_t));
 
 	*iteratorp = NULL;
 }

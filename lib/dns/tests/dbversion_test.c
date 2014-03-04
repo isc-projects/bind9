@@ -57,7 +57,7 @@ static dns_db_t *db1 = NULL, *db2 = NULL;
 static dns_dbversion_t *v1 = NULL, *v2 = NULL;
 
 static void
-setup_db() {
+setup_db(void) {
 	isc_result_t result;
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db1);
@@ -71,7 +71,7 @@ setup_db() {
 }
 
 static void
-close_db() {
+close_db(void) {
 	if (v1 != NULL) {
 		dns_db_closeversion(db1, &v1, ISC_FALSE);
 		ATF_REQUIRE_EQ(v1, NULL);

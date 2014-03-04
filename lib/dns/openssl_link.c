@@ -242,8 +242,7 @@ dst__openssl_init(const char *engine) {
 }
 
 void
-dst__openssl_destroy() {
-
+dst__openssl_destroy(void) {
 	/*
 	 * Sequence taken from apps_shutdown() in <apps/apps.h>.
 	 */

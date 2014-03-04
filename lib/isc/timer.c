@@ -1066,7 +1066,7 @@ isc__timermgr_dispatch(isc_timermgr_t *manager0) {
 
 #ifdef USE_TIMERIMPREGISTER
 isc_result_t
-isc__timer_register() {
+isc__timer_register(void) {
 	return (isc_timer_register(isc__timermgr_create));
 }
 #endif

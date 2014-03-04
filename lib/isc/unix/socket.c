@@ -5864,7 +5864,7 @@ isc__socket_gettag(isc_socket_t *socket0) {
 
 #ifdef USE_SOCKETIMPREGISTER
 isc_result_t
-isc__socket_register() {
+isc__socket_register(void) {
 	return (isc_socket_register(isc__socketmgr_create));
 }
 #endif

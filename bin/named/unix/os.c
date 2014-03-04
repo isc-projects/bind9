@@ -607,7 +607,7 @@ ns_os_changeuser(void) {
 }
 
 void
-ns_os_adjustnofile() {
+ns_os_adjustnofile(void) {
 #ifdef HAVE_LINUXTHREADS
 	isc_result_t result;
 	isc_resourcevalue_t newvalue;

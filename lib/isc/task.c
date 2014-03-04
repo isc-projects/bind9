@@ -1524,7 +1524,7 @@ isc__task_endexclusive(isc_task_t *task0) {
 
 #ifdef USE_SOCKETIMPREGISTER
 isc_result_t
-isc__task_register() {
+isc__task_register(void) {
 	return (isc_task_register(isc__taskmgr_create));
 }
 #endif

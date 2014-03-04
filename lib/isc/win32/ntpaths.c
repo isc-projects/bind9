@@ -50,7 +50,7 @@ static DWORD baseLen = MAX_PATH;
 static BOOL Initialized = FALSE;
 
 void
-isc_ntpaths_init() {
+isc_ntpaths_init(void) {
 	HKEY hKey;
 	BOOL keyFound = TRUE;
 

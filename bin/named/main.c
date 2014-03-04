@@ -687,7 +687,7 @@ destroy_managers(void) {
 }
 
 static void
-dump_symboltable() {
+dump_symboltable(void) {
 	int i;
 	isc_result_t result;
 	const char *fname;
