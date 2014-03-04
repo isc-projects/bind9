@@ -330,6 +330,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 			   "dlz_dlopen: incorrect version %d "
 			   "should be %d in '%s'",
 			   cd->version, DLZ_DLOPEN_VERSION, cd->dl_path);
+		result = ISC_R_FAILURE;
 		goto failed;
 	}
 
