@@ -330,6 +330,17 @@ main(int argc, char **argv) {
 		if (argc > isc_commandline_index + 1)
 			fatal("extraneous arguments");
 
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+		isc_buffer_init(&buf, argv[isc_commandline_index],
+				strlen(argv[isc_commandline_index]));
+		isc_buffer_add(&buf, strlen(argv[isc_commandline_index]));
+		ret = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
+		if (ret != ISC_R_SUCCESS)
+			fatal("invalid key name %s: %s",
+			      argv[isc_commandline_index],
+			      isc_result_totext(ret));
+
 		if (strchr(label, ':') == NULL) {
 			char *l;
 			int len;
@@ -541,16 +552,6 @@ main(int argc, char **argv) {
 	    alg == DNS_KEYALG_DH)
 		fatal("a key with algorithm '%s' cannot be a zone key",
 		      algname);
-
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
-	isc_buffer_init(&buf, argv[isc_commandline_index],
-			strlen(argv[isc_commandline_index]));
-	isc_buffer_add(&buf, strlen(argv[isc_commandline_index]));
-	ret = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
-	if (ret != ISC_R_SUCCESS)
-		fatal("invalid key name %s: %s", argv[isc_commandline_index],
-		      isc_result_totext(ret));
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
 
