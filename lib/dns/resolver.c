@@ -15,11 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
+#include <ctype.h>
 
 #include <isc/log.h>
 #include <isc/platform.h>
@@ -6936,21 +6935,33 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
 	static const char hex[17] = "0123456789abcdef";
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_uint16_t buflen, i;
-	unsigned char *p, *buf, *nsid;
+	unsigned char *p, *buf, *pbuf, *nsid;
 
 	/* Allocate buffer for storing hex version of the NSID */
 	buflen = (isc_uint16_t)nsid_len * 2 + 1;
 	buf = isc_mem_get(mctx, buflen);
 	if (buf == NULL)
 		return;
+	pbuf = isc_mem_get(mctx, nsid_len);
+	if (pbuf == NULL)
+		goto cleanup;
 
 	/* Convert to hex */
 	p = buf;
 	nsid = isc_buffer_current(opt);
 	for (i = 0; i < nsid_len; i++) {
-		*p++ = hex[(nsid[0] >> 4) & 0xf];
-		*p++ = hex[nsid[0] & 0xf];
-		nsid++;
+		*p++ = hex[(nsid[i] >> 4) & 0xf];
+		*p++ = hex[nsid[i] & 0xf];
+	}
+	*p = '\0';
+
+	/* Make printable version */
+	p = pbuf;
+	for (i = 0; i < nsid_len; i++) {
+		if (isprint(nsid[i]))
+			*p++ = nsid[i];
+		else
+			*p++ = '.';
 	}
 	*p = '\0';
 
@@ -6958,11 +6969,9 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
 			    sizeof(addrbuf));
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, level,
-		      "received NSID '%s' from %s", buf, addrbuf);
-
-	/* Clean up */
+		      "received NSID %s (\"%s\") from %s", buf, pbuf, addrbuf);
+ cleanup:
 	isc_mem_put(mctx, buf, buflen);
-	return;
 }
 
 static isc_boolean_t
