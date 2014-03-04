@@ -138,7 +138,7 @@ openlog(const char *name, int flags, ...) {
  * In fact if we failed then we would have nowhere to put the message
  */
 void
-closelog() {
+closelog(void) {
 	DeregisterEventSource(hAppLog);
 }
 

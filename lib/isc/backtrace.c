@@ -140,7 +140,7 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes) {
 #elif defined(BACKTRACE_X86STACK)
 #ifdef __x86_64__
 static unsigned long
-getrbp() {
+getrbp(void) {
 	__asm("movq %rbp, %rax\n");
 }
 #endif

@@ -2540,7 +2540,7 @@ report(const char *format, ...) {
 }
 
 static void
-build_final_keylist() {
+build_final_keylist(void) {
 	isc_result_t result;
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t diff;

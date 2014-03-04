@@ -44,7 +44,7 @@ int bindmain(int, char *[]); /* From main.c */
  * Initialize the Service by registering it.
  */
 void
-ntservice_init() {
+ntservice_init(void) {
 	if (!foreground) {
 		/* Register handler with the SCM */
 		hServiceStatus = RegisterServiceCtrlHandler(BIND_SERVICE_NAME,
@@ -64,14 +64,14 @@ ntservice_init() {
 }
 
 void
-ntservice_shutdown() {
+ntservice_shutdown(void) {
 	UpdateSCM(SERVICE_STOPPED);
 }
 /*
  * Routine to check if this is a service or a foreground program
  */
 BOOL
-ntservice_isservice() {
+ntservice_isservice(void) {
 	return(!foreground);
 }
 /*

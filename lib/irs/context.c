@@ -148,7 +148,7 @@ thread_key_mutex_init(void) {
 }
 
 static isc_result_t
-thread_key_init() {
+thread_key_init(void) {
 	isc_result_t result;
 
 	result = isc_once_do(&once, thread_key_mutex_init);

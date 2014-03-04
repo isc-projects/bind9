@@ -2258,7 +2258,7 @@ isc__mempool_getfillcount(isc_mempool_t *mpctx0) {
 
 #ifdef USE_MEMIMPREGISTER
 isc_result_t
-isc__mem_register() {
+isc__mem_register(void) {
 	return (isc_mem_register(isc__mem_create2));
 }
 #endif

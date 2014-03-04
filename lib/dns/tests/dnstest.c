@@ -76,7 +76,7 @@ static isc_logcategory_t categories[] = {
 };
 
 static void
-cleanup_managers() {
+cleanup_managers(void) {
 	if (app_running)
 		isc_app_finish();
 	if (socketmgr != NULL)
@@ -90,7 +90,7 @@ cleanup_managers() {
 }
 
 static isc_result_t
-create_managers() {
+create_managers(void) {
 	isc_result_t result;
 #ifdef ISC_PLATFORM_USETHREADS
 	ncpus = isc_os_ncpus();
@@ -167,7 +167,7 @@ dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 }
 
 void
-dns_test_end() {
+dns_test_end(void) {
 	if (lctx != NULL)
 		isc_log_destroy(&lctx);
 	if (dst_active) {
@@ -243,7 +243,7 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 }
 
 isc_result_t
-dns_test_setupzonemgr() {
+dns_test_setupzonemgr(void) {
 	isc_result_t result;
 	REQUIRE(zonemgr == NULL);
 
@@ -272,7 +272,7 @@ dns_test_releasezone(dns_zone_t *zone) {
 }
 
 void
-dns_test_closezonemgr() {
+dns_test_closezonemgr(void) {
 	REQUIRE(zonemgr != NULL);
 
 	dns_zonemgr_shutdown(zonemgr);

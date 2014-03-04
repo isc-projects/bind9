@@ -76,7 +76,7 @@ isc_sockaddr_t addr;
 			(void)NULL
 
 static void
-usage() {
+usage(void) {
 	fprintf(stderr,
 		"usage: zone_test [-dqsSM] [-c class] [-f file] zone\n");
 	exit(1);

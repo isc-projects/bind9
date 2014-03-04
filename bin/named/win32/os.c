@@ -56,7 +56,7 @@ static char *version_error =
 	"named requires Windows 2000 Service Pack 2 or later to run correctly";
 
 void
-ns_paths_init() {
+ns_paths_init(void) {
 	if (!Initialized)
 		isc_ntpaths_init();
 

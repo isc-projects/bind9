@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.9 2009/09/02 23:48:03 tbox Exp $ */
-
 #include <config.h>
 
 #include <sys/types.h>
