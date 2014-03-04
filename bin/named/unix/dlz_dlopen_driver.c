@@ -335,6 +335,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 			   "dlz_dlopen: %s: incorrect driver API version %d, "
 			   "requires %d",
 			   cd->dl_path, cd->version, DLZ_DLOPEN_VERSION);
+		result = ISC_R_FAILURE;
 		goto failed;
 	}
 

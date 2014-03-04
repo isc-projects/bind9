@@ -1,3 +1,7 @@
+3775.	[bug]		dlz_dlopen driver could return the wrong error
+			code on API version mismatch, leading to a segfault.
+			[RT #35495]
+
 3774.	[func]		When using "request-nsid", log the NSID value in
 			printable form as well as hex. [RT #20864]
 
