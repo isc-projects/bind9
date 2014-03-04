@@ -33,7 +33,7 @@
 nsupdate \- Dynamic DNS update utility
 .SH "SYNOPSIS"
 .HP 9
-\fBnsupdate\fR [\fB\-d\fR] [\fB\-D\fR] [[\fB\-g\fR] | [\fB\-o\fR] | [\fB\-l\fR] | [\fB\-y\ \fR\fB\fI[hmac:]\fR\fIkeyname:secret\fR\fR] | [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-R\ \fR\fB\fIrandomdev\fR\fR] [\fB\-v\fR] [\fB\-T\fR] [\fB\-P\fR] [filename]
+\fBnsupdate\fR [\fB\-d\fR] [\fB\-D\fR] [[\fB\-g\fR] | [\fB\-o\fR] | [\fB\-l\fR] | [\fB\-y\ \fR\fB\fI[hmac:]\fR\fIkeyname:secret\fR\fR] | [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-R\ \fR\fB\fIrandomdev\fR\fR] [\fB\-v\fR] [\fB\-T\fR] [\fB\-P\fR] [\fB\-V\fR] [filename]
 .SH "DESCRIPTION"
 .PP
 \fBnsupdate\fR
@@ -183,6 +183,10 @@ prints out the list of private types specific to
 \fBnamed\fR. These options may be combined.
 \fBnsupdate\fR
 will exit after the lists are printed.
+.PP
+The \-V option causes
+\fBnsupdate\fR
+to print the version number and exit.
 .SH "INPUT FORMAT"
 .PP
 \fBnsupdate\fR
@@ -371,6 +375,16 @@ Displays the answer.
 \fBdebug\fR
 .RS 4
 Turn on debugging.
+.RE
+.PP
+\fBversion\fR
+.RS 4
+Print version number.
+.RE
+.PP
+\fBhelp\fR
+.RS 4
+Print a list of commands.
 .RE
 .PP
 Lines beginning with a semicolon are comments and are ignored.
