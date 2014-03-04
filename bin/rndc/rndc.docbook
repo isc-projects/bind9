@@ -58,6 +58,7 @@
       <arg><option>-k <replaceable class="parameter">key-file</replaceable></option></arg>
       <arg><option>-s <replaceable class="parameter">server</replaceable></option></arg>
       <arg><option>-p <replaceable class="parameter">port</replaceable></option></arg>
+      <arg><option>-a</option></arg>
       <arg><option>-V</option></arg>
       <arg><option>-y <replaceable class="parameter">key_id</replaceable></option></arg>
       <arg choice="req">command</arg>
@@ -160,6 +161,16 @@
             <replaceable class="parameter">port</replaceable>
             instead
             of BIND 9's default control channel port, 953.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-q</term>
+        <listitem>
+          <para>
+            Quiet mode: Message text returned by the server
+            will not be printed except when there is an error.
           </para>
         </listitem>
       </varlistentry>

@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.142 2012/02/03 22:27:17 each Exp $ */
-
 /*! \file */
 
 /*
@@ -88,6 +86,7 @@ static char *args;
 static char program[256];
 static isc_socket_t *sock = NULL;
 static isc_uint32_t serial;
+static isc_boolean_t quiet = ISC_FALSE;
 
 static void rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task);
 
@@ -271,8 +270,8 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 
 	result = isccc_cc_lookupstring(data, "text", &textmsg);
 	if (result == ISC_R_SUCCESS) {
-		if (strlen(textmsg) != 0U)
-			printf("%s\n", textmsg);
+		if ((!quiet || failed) && strlen(textmsg) != 0U)
+			fprintf(failed ? stderr : stdout, "%s\n", textmsg);
 	} else if (result != ISC_R_NOTFOUND)
 		fprintf(stderr, "%s: parsing response failed: %s\n",
 			progname, isc_result_totext(result));
@@ -727,8 +726,8 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 
 int
 main(int argc, char **argv) {
-	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_task_t *task = NULL;
 	isc_log_t *log = NULL;
@@ -761,7 +760,7 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((ch = isc_commandline_parse(argc, argv, "b:c:hk:Mmp:s:Vy:"))
+	while ((ch = isc_commandline_parse(argc, argv, "b:c:hk:Mmp:qs:Vy:"))
 	       != -1) {
 		switch (ch) {
 		case 'b':
@@ -798,6 +797,10 @@ main(int argc, char **argv) {
 			if (remoteport > 65535 || remoteport == 0)
 				fatal("port '%s' out of range",
 				      isc_commandline_argument);
+			break;
+
+		case 'q':
+			quiet = ISC_TRUE;
 			break;
 
 		case 's':
