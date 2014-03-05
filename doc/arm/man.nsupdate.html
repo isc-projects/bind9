@@ -47,10 +47,10 @@
 </div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">nsupdate</code>  [<code class="option">-d</code>] [<code class="option">-D</code>] [[<code class="option">-g</code>] |  [<code class="option">-o</code>] |  [<code class="option">-l</code>] |  [<code class="option">-y <em class="replaceable"><code>[<span class="optional">hmac:</span>]keyname:secret</code></em></code>] |  [<code class="option">-k <em class="replaceable"><code>keyfile</code></em></code>]] [<code class="option">-t <em class="replaceable"><code>timeout</code></em></code>] [<code class="option">-u <em class="replaceable"><code>udptimeout</code></em></code>] [<code class="option">-r <em class="replaceable"><code>udpretries</code></em></code>] [<code class="option">-R <em class="replaceable"><code>randomdev</code></em></code>] [<code class="option">-v</code>] [filename]</p></div>
+<div class="cmdsynopsis"><p><code class="command">nsupdate</code>  [<code class="option">-d</code>] [<code class="option">-D</code>] [[<code class="option">-g</code>] |  [<code class="option">-o</code>] |  [<code class="option">-l</code>] |  [<code class="option">-y <em class="replaceable"><code>[<span class="optional">hmac:</span>]keyname:secret</code></em></code>] |  [<code class="option">-k <em class="replaceable"><code>keyfile</code></em></code>]] [<code class="option">-t <em class="replaceable"><code>timeout</code></em></code>] [<code class="option">-u <em class="replaceable"><code>udptimeout</code></em></code>] [<code class="option">-r <em class="replaceable"><code>udpretries</code></em></code>] [<code class="option">-R <em class="replaceable"><code>randomdev</code></em></code>] [<code class="option">-v</code>] [<code class="option">-V</code>] [filename]</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2641947"></a><h2>DESCRIPTION</h2>
+<a name="id2641859"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">nsupdate</strong></span>
       is used to submit Dynamic DNS Update requests as defined in RFC 2136
       to a name server.
@@ -208,9 +208,13 @@
       <code class="filename">keyboard</code> indicates that keyboard input
       should be used.  This option may be specified multiple times.
     </p>
+<p>
+      The -V option causes <span><strong class="command">nsupdate</strong></span> to print the
+      version number and exit.
+    </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2642418"></a><h2>INPUT FORMAT</h2>
+<a name="id2642407"></a><h2>INPUT FORMAT</h2>
 <p><span><strong class="command">nsupdate</strong></span>
       reads input from
       <em class="parameter"><code>filename</code></em>
@@ -490,6 +494,18 @@
 <dd><p>
               Turn on debugging.
             </p></dd>
+<dt><span class="term">
+              <span><strong class="command">version</strong></span>
+            </span></dt>
+<dd><p>
+              Print version number.
+            </p></dd>
+<dt><span class="term">
+              <span><strong class="command">help</strong></span>
+            </span></dt>
+<dd><p>
+              Print a list of commands.
+            </p></dd>
 </dl></div>
 <p>
     </p>
@@ -498,7 +514,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2683010"></a><h2>EXAMPLES</h2>
+<a name="id2675050"></a><h2>EXAMPLES</h2>
 <p>
       The examples below show how
       <span><strong class="command">nsupdate</strong></span>
@@ -552,7 +568,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2683060"></a><h2>FILES</h2>
+<a name="id2675169"></a><h2>FILES</h2>
 <div class="variablelist"><dl>
 <dt><span class="term"><code class="constant">/etc/resolv.conf</code></span></dt>
 <dd><p>
@@ -575,7 +591,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2683143"></a><h2>SEE ALSO</h2>
+<a name="id2675252"></a><h2>SEE ALSO</h2>
 <p>
       <em class="citetitle">RFC 2136</em>,
       <em class="citetitle">RFC 3007</em>,
@@ -590,7 +606,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2683201"></a><h2>BUGS</h2>
+<a name="id2675309"></a><h2>BUGS</h2>
 <p>
       The TSIG key is redundantly stored in two separate files.
       This is a consequence of nsupdate using the DST library
