@@ -58,7 +58,7 @@
       <arg><option>-k <replaceable class="parameter">key-file</replaceable></option></arg>
       <arg><option>-s <replaceable class="parameter">server</replaceable></option></arg>
       <arg><option>-p <replaceable class="parameter">port</replaceable></option></arg>
-      <arg><option>-a</option></arg>
+      <arg><option>-q</option></arg>
       <arg><option>-V</option></arg>
       <arg><option>-y <replaceable class="parameter">key_id</replaceable></option></arg>
       <arg choice="req">command</arg>
