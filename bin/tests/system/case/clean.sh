@@ -14,4 +14,5 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-rm -f dig.n1.test1
+rm -f dig.ns*.test*
+rm -f ns2/example.bk
