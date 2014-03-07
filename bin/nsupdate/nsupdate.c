@@ -2072,12 +2072,12 @@ check_tsig_error(dns_rdataset_t *rdataset, isc_buffer_t *b) {
 	if (tsig.error != 0) {
 		if (isc_buffer_remaininglength(b) < 1)
 		      check_result(ISC_R_NOSPACE, "isc_buffer_remaininglength");
-		isc__buffer_putstr(b, "(" /*)*/);
+		isc_buffer_putstr(b, "(" /*)*/);
 		result = dns_tsigrcode_totext(tsig.error, b);
 		check_result(result, "dns_tsigrcode_totext");
 		if (isc_buffer_remaininglength(b) < 1)
 		      check_result(ISC_R_NOSPACE, "isc_buffer_remaininglength");
-		isc__buffer_putstr(b,  /*(*/ ")");
+		isc_buffer_putstr(b,  /*(*/ ")");
 	}
 }
 
