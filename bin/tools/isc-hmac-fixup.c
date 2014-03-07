@@ -52,7 +52,7 @@ main(int argc, char **argv)  {
 		fprintf(stderr, "error: %s\n", isc_result_totext(result));
 		return (1);
 	}
-	isc__buffer_usedregion(&buf, &r);
+	isc_buffer_usedregion(&buf, &r);
 
 	if (!strcasecmp(argv[1], "md5") ||
 	    !strcasecmp(argv[1], "hmac-md5")) {
