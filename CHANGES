@@ -1,7 +1,7 @@
 3777.	[bug]		EDNS EXPIRE code could dump core when processing
 			DLZ queries. [RT #35493]
 
-3776.	[bug]		"rndc -q" suppresses output from successful
+3776.	[func]		"rndc -q" suppresses output from successful
 			rndc commands. Errors are printed on stderr.
 			[RT #21393]
 
