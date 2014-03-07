@@ -582,8 +582,8 @@ ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 		}
 	}
 
-	isc__buffer_init(&buffer, str, sizeof(str));
-	isc__buffer_add(&buffer, len);
+	isc_buffer_init(&buffer, str, sizeof(str));
+	isc_buffer_add(&buffer, len);
 	result = dns_name_fromtext(ip_name, &buffer, base_name, 0, NULL);
 	return (result);
 }

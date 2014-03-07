@@ -2301,7 +2301,7 @@ query_dns64(ns_client_t *client, dns_name_t **namep, dns_rdataset_t *rdataset,
 		     dns64 != NULL; dns64 = dns_dns64_next(dns64)) {
 
 			dns_rdataset_current(rdataset, &rdata);
-			isc__buffer_availableregion(buffer, &r);
+			isc_buffer_availableregion(buffer, &r);
 			INSIST(r.length >= 16);
 			result = dns_dns64_aaaafroma(dns64, &netaddr,
 						     client->signer,
