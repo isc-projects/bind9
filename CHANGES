@@ -1,3 +1,6 @@
+3778.	[bug]		Log a warning when the wrong address family is
+			used in "listen-on" or "listen-on-v6". [RT #17848]
+
 3775.	[bug]		dlz_dlopen driver could return the wrong error
 			code on API version mismatch, leading to a segfault.
 			[RT #35495]

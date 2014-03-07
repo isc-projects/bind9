@@ -343,12 +343,12 @@ ns_server_reload(isc_task_t *task, isc_event_t *event);
 
 static isc_result_t
 ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
-			cfg_aclconfctx_t *actx,
-			isc_mem_t *mctx, ns_listenelt_t **target);
+			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
+			isc_uint16_t family, ns_listenelt_t **target);
 static isc_result_t
 ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
-			 cfg_aclconfctx_t *actx,
-			 isc_mem_t *mctx, ns_listenlist_t **target);
+			 cfg_aclconfctx_t *actx, isc_mem_t *mctx,
+			 isc_uint16_t family, ns_listenlist_t **target);
 
 static isc_result_t
 configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
@@ -4979,7 +4979,8 @@ load_configuration(const char *filename, ns_server_t *server,
 			/* check return code? */
 			(void)ns_listenlist_fromconfig(clistenon, config,
 						       ns_g_aclconfctx,
-						       ns_g_mctx, &listenon);
+						       ns_g_mctx, AF_INET,
+						       &listenon);
 		} else if (!ns_g_lwresdonly) {
 			/*
 			 * Not specified, use default.
@@ -5006,7 +5007,8 @@ load_configuration(const char *filename, ns_server_t *server,
 			/* check return code? */
 			(void)ns_listenlist_fromconfig(clistenon, config,
 						       ns_g_aclconfctx,
-						       ns_g_mctx, &listenon);
+						       ns_g_mctx, AF_INET6,
+						       &listenon);
 		} else if (!ns_g_lwresdonly) {
 			isc_boolean_t enable;
 			/*
@@ -6455,8 +6457,8 @@ ns_server_togglequerylog(ns_server_t *server) {
 
 static isc_result_t
 ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
-			 cfg_aclconfctx_t *actx,
-			 isc_mem_t *mctx, ns_listenlist_t **target)
+			 cfg_aclconfctx_t *actx, isc_mem_t *mctx,
+			 isc_uint16_t family, ns_listenlist_t **target)
 {
 	isc_result_t result;
 	const cfg_listelt_t *element;
@@ -6475,7 +6477,7 @@ ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 		ns_listenelt_t *delt = NULL;
 		const cfg_obj_t *listener = cfg_listelt_value(element);
 		result = ns_listenelt_fromconfig(listener, config, actx,
-						 mctx, &delt);
+						 mctx, family, &delt);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		ISC_LIST_APPEND(dlist->elts, delt, link);
@@ -6494,8 +6496,8 @@ ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
  */
 static isc_result_t
 ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
-			cfg_aclconfctx_t *actx,
-			isc_mem_t *mctx, ns_listenelt_t **target)
+			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
+			isc_uint16_t family, ns_listenelt_t **target)
 {
 	isc_result_t result;
 	const cfg_obj_t *portobj;
@@ -6526,9 +6528,9 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = cfg_acl_fromconfig(cfg_tuple_get(listener, "acl"),
-				   config, ns_g_lctx, actx, mctx, 0,
-				   &delt->acl);
+	result = cfg_acl_fromconfig2(cfg_tuple_get(listener, "acl"),
+				     config, ns_g_lctx, actx, mctx, 0,
+				     family, &delt->acl);
 	if (result != ISC_R_SUCCESS) {
 		ns_listenelt_destroy(delt);
 		return (result);
