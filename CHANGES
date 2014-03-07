@@ -1,3 +1,6 @@
+3778.	[bug]		Log a warning when the wrong address family is
+			used in "listen-on" or "listen-on-v6". [RT #17848]
+
 3777.	[bug]		EDNS EXPIRE code could dump core when processing
 			DLZ queries. [RT #35493]
 
