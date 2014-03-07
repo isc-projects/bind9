@@ -4598,8 +4598,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
         <para>
           The <command>listen-on</command> statement specifies a
           list of
-          addresses (and ports) that this instance of a lightweight resolver
-          daemon
+          IPv4 addresses (and ports) that this instance of a lightweight
+          resolver daemon
           should accept requests on.  If no port is specified, port 921 is
           used.
           If this statement is omitted, requests will be accepted on
@@ -7142,11 +7142,13 @@ options {
         <sect3>
           <title>Interfaces</title>
           <para>
-            The interfaces and ports that the server will answer queries
-            from may be specified using the <command>listen-on</command> option. <command>listen-on</command> takes
-            an optional port and an <varname>address_match_list</varname>.
-            The server will listen on all interfaces allowed by the address
-            match list. If a port is not specified, port 53 will be used.
+	    The interfaces and ports that the server will answer queries
+	    from may be specified using the <command>listen-on</command> option. <command>listen-on</command> takes
+            an optional port and an <varname>address_match_list</varname>
+            of IPv4 addresses.  (IPv6 addresses are ignored, with a
+            logged warning.)
+	    The server will listen on all interfaces allowed by the address
+	    match list. If a port is not specified, port 53 will be used.
           </para>
           <para>
             Multiple <command>listen-on</command> statements are
@@ -7191,11 +7193,13 @@ listen-on port 1234 { !1.2.3.4; 1.2/16; };
           </para>
 
           <para>
-            A list of particular IPv6 addresses can also be specified, in
-            which case
-            the server listens on a separate socket for each specified
-            address,
-            regardless of whether the desired API is supported by the system.
+	    A list of particular IPv6 addresses can also be specified, in
+	    which case
+	    the server listens on a separate socket for each specified
+	    address,
+	    regardless of whether the desired API is supported by the system.
+            IPv4 addresses specified in <command>listen-on-v6</command>
+            will be ignored, with a logged warning.
           </para>
 
           <para>
