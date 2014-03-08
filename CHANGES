@@ -1,3 +1,6 @@
+3779.	[cleanup]	Clarify the error message when using an option
+			that was not enabled at compile time. [RT #35504]
+
 3778.	[bug]		Log a warning when the wrong address family is
 			used in "listen-on" or "listen-on-v6". [RT #17848]
 
