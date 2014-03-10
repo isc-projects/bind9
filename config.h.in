@@ -335,6 +335,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if your PKCS11 provider supports GOST. */
 #undef HAVE_PKCS11_GOST
 
+/* Support for PTHREAD_MUTEX_ADAPTIVE_NP */
+#undef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
+
 /* Define to 1 if you have the `pthread_yield' function. */
 #undef HAVE_PTHREAD_YIELD
 

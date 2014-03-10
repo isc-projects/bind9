@@ -260,8 +260,20 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 	char strbuf[ISC_STRERRORSIZE];
 	isc_result_t result = ISC_R_SUCCESS;
 	int err;
+#ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
+	pthread_mutexattr_t attr;
 
+	if (pthread_mutexattr_init(&attr) != 0)
+		return (ISC_R_UNEXPECTED);
+	if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ADAPTIVE_NP) != 0) {
+		pthread_mutexattr_destroy(&attr);
+		return (ISC_R_UNEXPECTED);
+	}
+	err = pthread_mutex_init(mp, &attr);
+#else /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 	err = pthread_mutex_init(mp, ISC__MUTEX_ATTRS);
+#endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
+
 	if (err == ENOMEM)
 		return (ISC_R_NOMEMORY);
 	if (err != 0) {

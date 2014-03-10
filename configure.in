@@ -1,4 +1,5 @@
 # Copyright (C) 2004-2014  Internet Systems Consortium, Inc. ("ISC")
+
 # Copyright (C) 1998-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -1021,6 +1022,33 @@ then
 
 	AC_CHECK_FUNC(pthread_attr_setstacksize,
 		      AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE),)
+
+        AC_ARG_WITH(locktype,
+                [  --with-locktype=ARG       Specify mutex lock type (adaptive or standard)],
+                locktype="$withval", locktype="adaptive")
+
+        case "$locktype" in
+                adaptive)
+                        AC_MSG_CHECKING([for PTHREAD_MUTEX_ADAPTIVE_NP])
+
+                        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+                          #define _GNU_SOURCE
+                          #include <pthread.h>
+                        ]], [[
+                          return (PTHREAD_MUTEX_ADAPTIVE_NP);
+                        ]])],
+                        [ AC_MSG_RESULT(using adaptive lock type)
+                          AC_DEFINE([HAVE_PTHREAD_MUTEX_ADAPTIVE_NP], 1,
+                                    [Support for PTHREAD_MUTEX_ADAPTIVE_NP]) ],
+                        [ AC_MSG_RESULT(using standard lock type) ])
+                        ;;
+                standard)
+                        AC_MSG_RESULT(using standard lock type)
+                        ;;
+                *)
+                        AC_MSG_ERROR([You must specify "adaptive" or "standard" for --with-locktype.])
+                        ;;
+        esac
 
 	AC_CHECK_HEADERS(sched.h)
 
@@ -4419,7 +4447,12 @@ echo "========================================================================"
 echo "Configuration summary:"
 echo "------------------------------------------------------------------------"
 echo "Optional features enabled:"
-$use_threads && echo "    Multiprocessing support (--enable-threads)"
+if $use_threads; then
+    echo "    Multiprocessing support (--enable-threads)"
+    if test "$enable_full_report" = "yes" -o "$locktype" = "standard"; then
+        echo "        Mutex lock type: $locktype"
+    fi
+fi
 test "$use_tuning" = "large" && echo "    Large-system tuning (--with-tuning)"
 test "$use_geoip" = "no" || echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"

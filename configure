@@ -978,6 +978,7 @@ with_geoip
 with_gssapi
 with_randomdev
 enable_threads
+with_locktype
 with_libtool
 enable_native_pkcs11
 with_openssl
@@ -1691,6 +1692,7 @@ Optional Packages:
   --with-geoip=PATH       Build with GeoIP support (yes|no|path)
   --with-gssapi=PATH      Specify path for system-supplied GSSAPI [default=yes]
   --with-randomdev=PATH   Specify path for random device
+  --with-locktype=ARG       Specify mutex lock type (adaptive or standard)
   --with-libtool          use GNU libtool
   --with-openssl=PATH     Build with OpenSSL yes|no|path.
 			  (Crypto is required for DNSSEC)
@@ -14855,6 +14857,57 @@ if test "x$ac_cv_func_pthread_attr_setstacksize" = xyes; then :
 fi
 
 
+
+# Check whether --with-locktype was given.
+if test "${with_locktype+set}" = set; then :
+  withval=$with_locktype; locktype="$withval"
+else
+  locktype="adaptive"
+fi
+
+
+        case "$locktype" in
+                adaptive)
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PTHREAD_MUTEX_ADAPTIVE_NP" >&5
+$as_echo_n "checking for PTHREAD_MUTEX_ADAPTIVE_NP... " >&6; }
+
+                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+                          #define _GNU_SOURCE
+                          #include <pthread.h>
+
+int
+main ()
+{
+
+                          return (PTHREAD_MUTEX_ADAPTIVE_NP);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: using adaptive lock type" >&5
+$as_echo "using adaptive lock type" >&6; }
+
+$as_echo "#define HAVE_PTHREAD_MUTEX_ADAPTIVE_NP 1" >>confdefs.h
+
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: using standard lock type" >&5
+$as_echo "using standard lock type" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+                        ;;
+                standard)
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: using standard lock type" >&5
+$as_echo "using standard lock type" >&6; }
+                        ;;
+                *)
+                        as_fn_error $? "You must specify \"adaptive\" or \"standard\" for --with-locktype." "$LINENO" 5
+                        ;;
+        esac
+
 	for ac_header in sched.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "sched.h" "ac_cv_header_sched_h" "$ac_includes_default"
@@ -23715,7 +23768,12 @@ echo "========================================================================"
 echo "Configuration summary:"
 echo "------------------------------------------------------------------------"
 echo "Optional features enabled:"
-$use_threads && echo "    Multiprocessing support (--enable-threads)"
+if $use_threads; then
+    echo "    Multiprocessing support (--enable-threads)"
+    if test "$enable_full_report" = "yes" -o "$locktype" = "standard"; then
+        echo "        Mutex lock type: $locktype"
+    fi
+fi
 test "$use_tuning" = "large" && echo "    Large-system tuning (--with-tuning)"
 test "$use_geoip" = "no" || echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"

@@ -1,3 +1,8 @@
+3781.	[tuning]	Use adaptive mutex locks when available; this
+			has been found to improve performance under load
+			on many systems. "configure --with-locktype=standard"
+			restores conventional mutex locks. [RT #32576]
+
 3780.	[bug]		$GENERATE handled negative numbers incorrectly. 
 			[RT #25528]
 
