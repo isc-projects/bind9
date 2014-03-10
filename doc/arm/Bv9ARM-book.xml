@@ -12971,8 +12971,9 @@ HOST-127.EXAMPLE. MX 0 .
 		    <para>
 		      This can be one of two forms: start-stop
 		      or start-stop/step. If the first form is used, then step
-		      is set to
-		      1. All of start, stop and step must be positive.
+		      is set to 1. start, stop and step must be positive
+		      integers between 0 and (2^31)-1. start must not be
+		      larger than stop.
 		    </para>
 		  </entry>
 		</row>

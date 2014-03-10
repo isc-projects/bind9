@@ -802,7 +802,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	isc_buffer_t target;
 	isc_result_t result;
 	isc_textregion_t r;
-	unsigned int start, stop, step, i;
+	int start, stop, step, i;
 	dns_incctx_t *ictx;
 
 	ictx = lctx->inc;
@@ -820,8 +820,10 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	}
 	isc_buffer_init(&target, target_mem, target_size);
 
-	n = sscanf(range, "%u-%u/%u", &start, &stop, &step);
-	if (n < 2 || stop < start) {
+	n = sscanf(range, "%d-%d/%d", &start, &stop, &step);
+	if ((n < 2) || (start < 0) || (stop < 0) || (step < 0) ||
+	    (stop < start))
+	{
 	       (*callbacks->error)(callbacks,
 				  "%s: %s:%lu: invalid range '%s'",
 				  "$GENERATE", source, line, range);
