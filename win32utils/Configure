@@ -2933,6 +2933,7 @@ exit 0;
 #  --with-libjson not supported on WIN32 (package not available on WIN32)
 #  --with-purify ? (package available on WIN32 but for free?)
 #  --with-libtool not supported on WIN32 (never)
+#  --with-locktype not supported on WIN32 (not yet available on WIN32)
 #  --with-readline supported
 #  --with-idn support
 #  --with-[lib]iconv (part of IDN)
