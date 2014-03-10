@@ -1,3 +1,6 @@
+3780.	[bug]		$GENERATE handled negative numbers incorrectly. 
+			[RT #25528]
+
 3779.	[cleanup]	Clarify the error message when using an option
 			that was not enabled at compile time. [RT #35504]
 
