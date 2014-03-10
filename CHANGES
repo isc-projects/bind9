@@ -1,4 +1,4 @@
-3780.	[bug]		$GENERATE handled negative numbers incorrectly. 
+3780.	[bug]		$GENERATE handled negative numbers incorrectly.
 			[RT #25528]
 
 3779.	[cleanup]	Clarify the error message when using an option
