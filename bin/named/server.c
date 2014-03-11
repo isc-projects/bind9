@@ -9265,6 +9265,40 @@ newzone_cfgctx_destroy(void **cfgp) {
 	*cfgp = NULL;
 }
 
+static isc_result_t
+generate_salt(unsigned char *salt, size_t saltlen) {
+	int i, num_ints;
+	union {
+		unsigned char rnd[256];
+		isc_uint32_t rnd32[64];
+	} rnd;
+	unsigned char text[512 + 1];
+	isc_region_t r;
+	isc_buffer_t buf;
+
+	if (saltlen > 256)
+		return (ISC_R_RANGE);
+
+	num_ints = (saltlen + sizeof(isc_uint32_t) - 1) / sizeof(isc_uint32_t);
+	for (i = 0; i < num_ints; i++)
+		isc_random_get(&rnd.rnd32[i]);
+
+	memcpy(salt, rnd.rnd, saltlen);
+
+	r.base = rnd.rnd;
+	r.length = saltlen;
+
+	isc_buffer_init(&buf, text, sizeof(text));
+	isc_hex_totext(&r, 2, "", &buf);
+	text[saltlen * 2] = 0;
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "generated salt: %s", text);
+
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -9334,9 +9368,18 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 				return (ISC_R_RANGE);
 
 			ptr = next_token(&args, " \t");
-			if (ptr == NULL)
+			if (ptr == NULL) {
 				return (ISC_R_UNEXPECTEDEND);
-			if (strcmp(ptr, "-") != 0) {
+			} else if (strcasecmp(ptr, "auto") == 0) {
+				/* Auto-generate a random salt.
+				 * XXXMUKS: This currently uses the
+				 * minimum recommended length by RFC
+				 * 5155 (64 bits). It should be made
+				 * configurable.
+				 */
+				saltlen = 8;
+				CHECK(generate_salt(salt, saltlen));
+			} else if (strcmp(ptr, "-") != 0) {
 				isc_buffer_t buf;
 
 				isc_buffer_init(&buf, salt, sizeof(salt));

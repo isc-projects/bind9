@@ -1898,7 +1898,7 @@ ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 0 0 - inline.example > /dev/null 2>&1 || ret=1
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 status > /dev/null || ret=1
 for i in 1 2 3 4 5 6 7 8 9 10 ; do
-        salt=`$DIG $DIGOPTS +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}'`
+	salt=`$DIG $DIGOPTS +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}'`
 	if [ "$salt" = "-" ]; then
 		break;
 	fi
@@ -1906,6 +1906,39 @@ for i in 1 2 3 4 5 6 7 8 9 10 ; do
 	sleep 1
 done;
 [ "$salt" = "-" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that 'rndc signing -nsec3param' works with 'auto' as salt ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 0 0 auto inline.example > /dev/null 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 status > /dev/null || ret=1
+for i in 1 2 3 4 5 6 7 8 9 10 ; do
+	salt=`$DIG $DIGOPTS +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}'`
+	[ -n "$salt" -a "$salt" != "-" ] && break
+	echo "I:sleeping ...."
+	sleep 1
+done;
+[ "$salt" != "-" ] || ret=1
+[ `expr length $salt` -eq 16 ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that 'rndc signing -nsec3param' with 'auto' as salt again generates a different salt ($n)"
+ret=0
+oldsalt=$salt
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 0 0 auto inline.example > /dev/null 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 status > /dev/null || ret=1
+for i in 1 2 3 4 5 6 7 8 9 10 ; do
+	salt=`$DIG $DIGOPTS +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}'`
+	[ -n "$salt" -a "$salt" != "$oldsalt" ] && break
+	echo "I:sleeping ...."
+	sleep 1
+done;
+[ "$salt" != "$oldsalt" ] || ret=1
+[ `expr length $salt` -eq 16 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

@@ -723,8 +723,10 @@
             defines the number of additional times to apply
             the algorithm when generating an NSEC3 hash.  The
             <option>salt</option> is a string of data expressed
-            in hexadecimal, or a hyphen (`-') if no salt is
-            to be used.
+            in hexadecimal, a hyphen (`-') if no salt is
+            to be used, or the keyword <literal>auto</literal>,
+            which causes <command>named</command> to generate a
+            random 64-bit salt.
           </para>
           <para>
             So, for example, to create an NSEC3 chain using

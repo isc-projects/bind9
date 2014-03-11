@@ -1,3 +1,7 @@
+3781.	[func]		Specifying "auto" as the salt when using
+			"rndc signing -nsec3param" causes named to
+			generate a 64-bit salt at random. [RT #35322]
+
 3781.	[tuning]	Use adaptive mutex locks when available; this
 			has been found to improve performance under load
 			on many systems. "configure --with-locktype=standard"
