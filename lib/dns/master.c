@@ -798,13 +798,12 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	dns_rdatalist_t rdatalist;
 	dns_rdatatype_t type;
 	rdatalist_head_t head;
-	int n;
 	int target_size = MINTSIZ;	/* only one rdata at a time */
 	isc_buffer_t buffer;
 	isc_buffer_t target;
 	isc_result_t result;
 	isc_textregion_t r;
-	int start, stop, step, i;
+	int i, n, start, stop, step = 0;
 	dns_incctx_t *ictx;
 
 	ictx = lctx->inc;
