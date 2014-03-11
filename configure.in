@@ -1355,6 +1355,11 @@ case "$use_openssl" in
 If you don't want OpenSSL, use --without-openssl])
 		;;
 	*)
+		if test "$want_native_pkcs11" = "yes"
+		then
+                        AC_MSG_RESULT()
+			AC_MSG_ERROR([OpenSSL and native PKCS11 cannot be used together.])
+		fi
 		if test "$use_openssl" = "yes"
 		then
 			# User did not specify a path - guess it
@@ -1910,24 +1915,28 @@ case "$want_native_pkcs11" in
 		PKCS11LINKOBJS='${PKCS11LINKOBJS}'
 		PKCS11LINKSRCS='${PKCS11LINKSRCS}'
 		PKCS11_TEST=pkcs11
+		AC_MSG_CHECKING(for PKCS11 ECDSA)
 		case "$with_ecdsa" in
 		no)
-			AC_MSG_RESULT([disabled PKCS11 ECDSA])
+			AC_MSG_RESULT(disabled)
 			;;
 		*)
+			AC_MSG_RESULT(enabled)
 			PKCS11_ECDSA="yes"
 			AC_DEFINE(HAVE_PKCS11_ECDSA, 1,
 				  [Define if your PKCS11 provider supports ECDSA.])
 			;;
 		esac
+		AC_MSG_CHECKING(for PKCS11 GOST)
 		case "$with_gost" in
 		yes)
+			AC_MSG_RESULT(enabled)
 			PKCS11_GOST="yes"
 			AC_DEFINE(HAVE_PKCS11_GOST, 1,
 				  [Define if your PKCS11 provider supports GOST.])
 			;;
 		*)
-			AC_MSG_RESULT([disabled PKCS11 GOST])
+			AC_MSG_RESULT(disabled)
 			;;
 		esac
 		;;
@@ -1945,7 +1954,6 @@ AC_SUBST(PKCS11_TEST)
 
 # for PKCS11 benchmarks
 
-AC_MSG_CHECKING(clock_gettime)
 have_clock_gt=no
 AC_CHECK_FUNC(clock_gettime,have_clock_gt=yes,)
 if test "$have_clock_gt" = "no"; then

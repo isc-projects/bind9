@@ -15378,6 +15378,12 @@ $as_echo "no" >&6; }
 If you don't want OpenSSL, use --without-openssl" "$LINENO" 5
 		;;
 	*)
+		if test "$want_native_pkcs11" = "yes"
+		then
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+			as_fn_error $? "OpenSSL and native PKCS11 cannot be used together." "$LINENO" 5
+		fi
 		if test "$use_openssl" = "yes"
 		then
 			# User did not specify a path - guess it
@@ -16111,28 +16117,36 @@ $as_echo "using native PKCS11 crypto" >&6; }
 		PKCS11LINKOBJS='${PKCS11LINKOBJS}'
 		PKCS11LINKSRCS='${PKCS11LINKSRCS}'
 		PKCS11_TEST=pkcs11
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 ECDSA" >&5
+$as_echo_n "checking for PKCS11 ECDSA... " >&6; }
 		case "$with_ecdsa" in
 		no)
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled PKCS11 ECDSA" >&5
-$as_echo "disabled PKCS11 ECDSA" >&6; }
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
 			;;
 		*)
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabled" >&5
+$as_echo "enabled" >&6; }
 			PKCS11_ECDSA="yes"
 
 $as_echo "#define HAVE_PKCS11_ECDSA 1" >>confdefs.h
 
 			;;
 		esac
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 GOST" >&5
+$as_echo_n "checking for PKCS11 GOST... " >&6; }
 		case "$with_gost" in
 		yes)
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabled" >&5
+$as_echo "enabled" >&6; }
 			PKCS11_GOST="yes"
 
 $as_echo "#define HAVE_PKCS11_GOST 1" >>confdefs.h
 
 			;;
 		*)
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled PKCS11 GOST" >&5
-$as_echo "disabled PKCS11 GOST" >&6; }
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
 			;;
 		esac
 		;;
@@ -16151,8 +16165,6 @@ esac
 
 # for PKCS11 benchmarks
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking clock_gettime" >&5
-$as_echo_n "checking clock_gettime... " >&6; }
 have_clock_gt=no
 ac_fn_c_check_func "$LINENO" "clock_gettime" "ac_cv_func_clock_gettime"
 if test "x$ac_cv_func_clock_gettime" = xyes; then :
