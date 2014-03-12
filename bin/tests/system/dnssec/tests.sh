@@ -1921,7 +1921,7 @@ for i in 1 2 3 4 5 6 7 8 9 10 ; do
 	sleep 1
 done;
 [ "$salt" != "-" ] || ret=1
-[ `expr length $salt` -eq 16 ] || ret=1
+[ `expr "${salt}" : ".*"` -eq 16 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -1938,7 +1938,7 @@ for i in 1 2 3 4 5 6 7 8 9 10 ; do
 	sleep 1
 done;
 [ "$salt" != "$oldsalt" ] || ret=1
-[ `expr length $salt` -eq 16 ] || ret=1
+[ `expr "$salt" : ".*"` -eq 16 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
