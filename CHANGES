@@ -1,4 +1,4 @@
-3781.	[func]		Specifying "auto" as the salt when using
+3782.	[func]		Specifying "auto" as the salt when using
 			"rndc signing -nsec3param" causes named to
 			generate a 64-bit salt at random. [RT #35322]
 
