@@ -496,8 +496,10 @@
             defines the number of additional times to apply
             the algorithm when generating an NSEC3 hash.  The
             <code class="option">salt</code> is a string of data expressed
-            in hexadecimal, or a hyphen (`-') if no salt is
-            to be used.
+            in hexadecimal, a hyphen (`-') if no salt is
+            to be used, or the keyword <code class="literal">auto</code>,
+            which causes <span><strong class="command">named</strong></span> to generate a
+            random 64-bit salt.
           </p>
 <p>
             So, for example, to create an NSEC3 chain using
@@ -517,7 +519,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542125"></a><h2>LIMITATIONS</h2>
+<a name="id2542133"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -527,7 +529,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542144"></a><h2>SEE ALSO</h2>
+<a name="id2542151"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -537,7 +539,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545408"></a><h2>AUTHOR</h2>
+<a name="id2545415"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
