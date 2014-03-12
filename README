@@ -176,6 +176,8 @@ BIND 9.10.0
 	 - On operating systems with support for routing sockets,
 	   network interfaces are re-scanned automatically whenever
 	   they change.
+	 - "tsig-keygen" is now available as an alternate command
+	   name to use for "ddns-confgen".
 
 BIND 9.9.0
 
