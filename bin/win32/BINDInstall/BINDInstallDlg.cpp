@@ -171,6 +171,7 @@ const FileData installFiles[] =
 	{"genrandom.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"rndc-confgen.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"ddns-confgen.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
+	{"tsig-keygen.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"dnssec-keygen.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"dnssec-signzone.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"dnssec-dsfromkey.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},

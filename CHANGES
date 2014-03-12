@@ -1,3 +1,8 @@
+3783.	[func]		"tsig-keygen" is now available as an alternate
+			command name for "ddns-confgen".  It generates
+			a TSIG key in named.conf format without comments.
+			[RT #35503]
+
 3782.	[func]		Specifying "auto" as the salt when using
 			"rndc signing -nsec3param" causes named to
 			generate a 64-bit salt at random. [RT #35322]

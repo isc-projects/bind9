@@ -37,6 +37,7 @@ DELVE=$TOP/bin/delve/delve
 RNDC=$TOP/bin/rndc/rndc
 NSUPDATE=$TOP/bin/nsupdate/nsupdate
 DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
+TSIGKEYGEN=$TOP/bin/confgen/tsig-keygen
 RNDCCONFGEN=$TOP/bin/confgen/rndc-confgen
 KEYGEN=$TOP/bin/dnssec/dnssec-keygen
 KEYFRLAB=$TOP/bin/dnssec/dnssec-keyfromlabel
