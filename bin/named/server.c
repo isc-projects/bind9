@@ -9277,7 +9277,7 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	isc_buffer_t buf;
 	isc_result_t result;
 
-	if (saltlen > 256)
+	if (saltlen > 256U)
 		return (ISC_R_RANGE);
 
 	num_ints = (saltlen + sizeof(isc_uint32_t) - 1) / sizeof(isc_uint32_t);
