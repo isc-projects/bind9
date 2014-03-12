@@ -9275,6 +9275,7 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	unsigned char text[512 + 1];
 	isc_region_t r;
 	isc_buffer_t buf;
+	isc_result_t result;
 
 	if (saltlen > 256)
 		return (ISC_R_RANGE);
@@ -9289,7 +9290,8 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	r.length = saltlen;
 
 	isc_buffer_init(&buf, text, sizeof(text));
-	isc_hex_totext(&r, 2, "", &buf);
+	result = isc_hex_totext(&r, 2, "", &buf);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	text[saltlen * 2] = 0;
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
