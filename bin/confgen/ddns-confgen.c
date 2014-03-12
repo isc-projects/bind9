@@ -199,7 +199,7 @@ main(int argc, char **argv) {
 
 	if (self_domain != NULL && zone != NULL)
 		usage(1);	/* -s and -z cannot coexist */
-	
+
 	if (argc > isc_commandline_index)
 		usage(1);
 
