@@ -1,3 +1,8 @@
+3784.	[bug]		Using "rrset-order fixed" when it had not been
+			enabled at compile time caused inconsistent
+			results. It now works as documented, defaulting
+			to cyclic mode. [RT #28104]
+
 3783.	[func]		"tsig-keygen" is now available as an alternate
 			command name for "ddns-confgen".  It generates
 			a TSIG key in named.conf format without comments.

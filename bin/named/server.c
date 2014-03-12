@@ -1113,7 +1113,11 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 	INSIST(cfg_obj_isstring(obj));
 	str = cfg_obj_asstring(obj);
 	if (!strcasecmp(str, "fixed"))
+#if DNS_RDATASET_FIXED
 		mode = DNS_RDATASETATTR_FIXEDORDER;
+#else
+		mode = 0;
+#endif /* DNS_RDATASET_FIXED */
 	else if (!strcasecmp(str, "random"))
 		mode = DNS_RDATASETATTR_RANDOMIZE;
 	else if (!strcasecmp(str, "cyclic"))
