@@ -868,6 +868,7 @@
 ./bin/tests/system/checkconf/bad-inline-slave.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-many.conf	CONF-C	2005,2012
 ./bin/tests/system/checkconf/bad-maxttlmap.conf	CONF-C	2014
+./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-sharedzone1.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-sharedzone2.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-tsig.conf	CONF-C	2012,2013
@@ -3302,6 +3303,8 @@
 ./lib/irs/win32/Makefile.in			MAKE	2014
 ./lib/irs/win32/include/Makefile.in		MAKE	2014
 ./lib/irs/win32/include/irs/Makefile.in		MAKE	2014
+./lib/irs/win32/include/irs/netdb.h		C	2014
+./lib/irs/win32/include/irs/platform.h		C	2014
 ./lib/irs/win32/libirs.def			X	2014
 ./lib/irs/win32/libirs.dsp.in			X	2014
 ./lib/irs/win32/libirs.dsw			X	2001,2014
@@ -3405,7 +3408,7 @@
 ./lib/isc/include/isc/region.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2013
 ./lib/isc/include/isc/resource.h		C	2000,2001,2004,2005,2006,2007,2008
 ./lib/isc/include/isc/result.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012
-./lib/isc/include/isc/resultclass.h		C	1999,2000,2001,2004,2005,2006,2007,2009
+./lib/isc/include/isc/resultclass.h		C	1999,2000,2001,2004,2005,2006,2007,2009,2014
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/safe.h			C	2013
 ./lib/isc/include/isc/serial.h			C	1999,2000,2001,2004,2005,2006,2007,2009
@@ -3430,6 +3433,7 @@
 ./lib/isc/include/pk11/constants.h		C	2014
 ./lib/isc/include/pk11/internal.h		C	2014
 ./lib/isc/include/pk11/pk11.h			C	2014
+./lib/isc/include/pk11/result.h			C	2014
 ./lib/isc/include/pkcs11/Makefile.in		MAKE	2014
 ./lib/isc/include/pkcs11/pkcs11.h		X	2014
 ./lib/isc/include/pkcs11/pkcs11f.h		X	2014
@@ -3470,6 +3474,7 @@
 ./lib/isc/ondestroy.c				C	2000,2001,2004,2005,2007
 ./lib/isc/parseint.c				C	2001,2002,2003,2004,2005,2007,2012
 ./lib/isc/pk11.c				C	2014
+./lib/isc/pk11_result.c				C	2014
 ./lib/isc/pool.c				C	2013
 ./lib/isc/portset.c				C	2008
 ./lib/isc/powerpc/Makefile.in			MAKE	2007,2012
@@ -4236,7 +4241,7 @@
 ./util/mandoc2docbook.pl			PERL	2001,2004,2007,2012
 ./util/mdnbuildtest.sh				SH	2000,2001,2004,2007,2012
 ./util/memleak.pl				PERL	1999,2000,2001,2004,2007,2012
-./util/merge_copyrights				PERL	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013
+./util/merge_copyrights				PERL	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014
 ./util/mksymtbl.pl				PERL	2009,2012
 ./util/nanny.pl					PERL	2000,2001,2004,2007,2012
 ./util/new-func					PERL	2005,2007,2012
