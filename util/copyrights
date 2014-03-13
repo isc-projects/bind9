@@ -785,6 +785,7 @@
 ./bin/tests/system/case/ns1/named.conf		CONF-C	2013
 ./bin/tests/system/case/ns2/named.conf		CONF-C	2014
 ./bin/tests/system/case/tests.sh		SH	2013,2014
+./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad.conf		CONF-C	2005,2007
 ./bin/tests/system/checkconf/badtsig.conf	CONF-C	2012,2013
 ./bin/tests/system/checkconf/clean.sh		SH	2011,2012,2013
@@ -3587,7 +3588,7 @@
 ./util/mandoc2docbook.pl			PERL	2001,2004,2007,2012
 ./util/mdnbuildtest.sh				SH	2000,2001,2004,2007,2012
 ./util/memleak.pl				PERL	1999,2000,2001,2004,2007,2012
-./util/merge_copyrights				PERL	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013
+./util/merge_copyrights				PERL	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014
 ./util/mksymtbl.pl				PERL	2009,2012
 ./util/nanny.pl					PERL	2000,2001,2004,2007,2012
 ./util/new-func					PERL	2005,2007,2012
