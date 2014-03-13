@@ -9271,7 +9271,7 @@ newzone_cfgctx_destroy(void **cfgp) {
 
 static isc_result_t
 generate_salt(unsigned char *salt, size_t saltlen) {
-	int i, num_ints;
+	int i, n;
 	union {
 		unsigned char rnd[256];
 		isc_uint32_t rnd32[64];
@@ -9284,14 +9284,14 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	if (saltlen > 256U)
 		return (ISC_R_RANGE);
 
-	num_ints = (saltlen + sizeof(isc_uint32_t) - 1) / sizeof(isc_uint32_t);
-	for (i = 0; i < num_ints; i++)
+	n = (int) (saltlen + sizeof(isc_uint32_t) - 1) / sizeof(isc_uint32_t);
+	for (i = 0; i < n; i++)
 		isc_random_get(&rnd.rnd32[i]);
 
 	memcpy(salt, rnd.rnd, saltlen);
 
 	r.base = rnd.rnd;
-	r.length = saltlen;
+	r.length = (unsigned int) saltlen;
 
 	isc_buffer_init(&buf, text, sizeof(text));
 	result = isc_hex_totext(&r, 2, "", &buf);
