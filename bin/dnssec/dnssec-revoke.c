@@ -38,6 +38,10 @@
 
 #include <dst/dst.h>
 
+#ifdef PKCS11CRYPTO
+#include <pk11/result.h>
+#endif
+
 #include "dnssectool.h"
 
 const char *program = "dnssec-revoke";
@@ -103,6 +107,9 @@ main(int argc, char **argv) {
 	if (result != ISC_R_SUCCESS)
 		fatal("Out of memory");
 
+#ifdef PKCS11CRYPTO
+	pk11_result_register();
+#endif
 	dns_result_register();
 
 	isc_commandline_errprint = ISC_FALSE;

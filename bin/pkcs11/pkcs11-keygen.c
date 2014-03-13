@@ -68,6 +68,7 @@
 #include <isc/types.h>
 
 #include <pk11/pk11.h>
+#include <pk11/result.h>
 #define WANT_DH_PRIMES
 #define WANT_ECC_CURVES
 #include <pk11/constants.h>
@@ -291,6 +292,7 @@ main(int argc, char *argv[]) {
 	CK_ULONG public_attrcnt = 0, private_attrcnt = PRIVATE_ATTRS;
 	CK_ULONG domain_attrcnt = 0, param_attrcnt = 0;
 	key_class_t keyclass = key_rsa;
+	pk11_optype_t op_type = OP_ANY;
 
 #define OPTIONS ":a:b:ei:l:m:Pp:qSs:"
 	while ((c = isc_commandline_parse(argc, argv, OPTIONS)) != -1) {
@@ -364,6 +366,7 @@ main(int argc, char *argv[]) {
 
 	switch (keyclass) {
 	case key_rsa:
+		op_type = OP_RSA;
 		if (expsize == 0)
 			expsize = 3;
 		if (bits == 0)
@@ -394,6 +397,7 @@ main(int argc, char *argv[]) {
 		public_template[RSA_PUBLIC_EXPONENT].ulValueLen = expsize;
 		break;
 	case key_ecc:
+		op_type = OP_EC;
 		if (bits == 0)
 			bits = 256;
 		else if (bits != 256 && bits != 384) {
@@ -422,6 +426,7 @@ main(int argc, char *argv[]) {
 
 		break;
 	case key_dsa:
+		op_type = OP_DSA;
 		if (bits == 0)
 			usage();
 
@@ -445,6 +450,7 @@ main(int argc, char *argv[]) {
 		domain_template[DSA_DOMAIN_PRIMEBITS].ulValueLen = sizeof(bits);
 		break;
 	case key_dh:
+		op_type = OP_DH;
 		if (special && bits == 0)
 			bits = 1024;
 		else if (special &&
@@ -511,6 +517,8 @@ main(int argc, char *argv[]) {
 		private_template[PRIVATE_ID].ulValueLen = idlen;
 	}
 
+	pk11_result_register();
+
 	/* Initialize the CRYPTOKI library */
 	if (lib_name != NULL)
 		pk11_set_lib_name(lib_name);
@@ -518,11 +526,17 @@ main(int argc, char *argv[]) {
 	if (pin == NULL)
 		pin = getpassphrase("Enter Pin: ");
 
-	result = pk11_get_session(&pctx, OP_ANY, ISC_TRUE, ISC_TRUE,
-				  (const char *) pin, slot);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "Error initializing PKCS#11: %s\n",
-			isc_result_totext(result));
+	result = pk11_get_session(&pctx, op_type, ISC_FALSE, ISC_TRUE,
+				  ISC_TRUE, (const char *) pin, slot);
+	if (result == PK11_R_NORANDOMSERVICE ||
+	    result == PK11_R_NODIGESTSERVICE ||
+	    result == PK11_R_NOAESSERVICE) {
+		fprintf(stderr, "Warning: %s\n", isc_result_totext(result));
+		fprintf(stderr, "This HSM will not work with BIND 9 "
+				"using native PKCS#11.\n");
+	} else if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "Unrecoverable error initializing "
+				"PKCS#11: %s\n", isc_result_totext(result));
 		exit(1);
 	}
 
@@ -684,7 +698,7 @@ main(int argc, char *argv[]) {
 
  exit_session:
 	pk11_return_session(&pctx);
-	pk11_shutdown();
+	(void) pk11_finalize();
 
 	exit(error);
 }

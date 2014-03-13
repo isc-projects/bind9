@@ -169,6 +169,7 @@ CLEAN :
 @IF PKCS11
 	-@erase "$(INTDIR)\pk11.obj"
 	-@erase "$(INTDIR)\pk11_api.obj"
+	-@erase "$(INTDIR)\pk11_result.obj"
 @END PKCS11
 	-@erase "$(INTDIR)\pool.obj"
 	-@erase "$(INTDIR)\portset.obj"
@@ -293,6 +294,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\ondestroy.obj" \
 @IF PKCS11
 	"$(INTDIR)\pk11.obj" \
+	"$(INTDIR)\pk11_result.obj" \
 @END PKCS11
 	"$(INTDIR)\quota.obj" \
 	"$(INTDIR)\radix.obj" \
@@ -442,6 +444,7 @@ CLEAN :
 @IF PKCS11
 	-@erase "$(INTDIR)\pk11.obj"
 	-@erase "$(INTDIR)\pk11_api.obj"
+	-@erase "$(INTDIR)\pk11_result.obj"
 @END PKCS11
 	-@erase "$(INTDIR)\pool.obj"
 	-@erase "$(INTDIR)\pool.sbr"
@@ -598,6 +601,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\ondestroy.sbr" \
 @IF PKCS11
 	"$(INTDIR)\pk11.sbr" \
+	"$(INTDIR)\pk11_result.sbr" \
 @END PKCS11
 	"$(INTDIR)\quota.sbr" \
 	"$(INTDIR)\radix.sbr" \
@@ -700,6 +704,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\ondestroy.obj" \
 @IF PKCS11
 	"$(INTDIR)\pk11.obj" \
+	"$(INTDIR)\pk11_result.obj" \
 @END PKCS11
 	"$(INTDIR)\quota.obj" \
 	"$(INTDIR)\radix.obj" \
@@ -1837,6 +1842,24 @@ SOURCE=..\pk11.c
 
 
 "$(INTDIR)\pk11.obj"	"$(INTDIR)\pk11.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\pk11_result.c
+
+!IF  "$(CFG)" == "libisc - @PLATFORM@ Release"
+
+
+"$(INTDIR)\pk11_result.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\pk11_result.obj"	"$(INTDIR)\pk11_result.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

@@ -196,8 +196,8 @@ pkcs11dh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	if (attr == NULL)
 		return (DST_R_INVALIDPUBLICKEY);
 
-	ret = pk11_get_session(&ctx, OP_DH, ISC_FALSE, ISC_FALSE, NULL,
-			       pk11_get_best_token(OP_DH));
+	ret = pk11_get_session(&ctx, OP_DH, ISC_TRUE, ISC_FALSE, ISC_FALSE,
+			       NULL, pk11_get_best_token(OP_DH));
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -405,8 +405,8 @@ pkcs11dh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_DH, ISC_FALSE, ISC_FALSE, NULL,
-			       pk11_get_best_token(OP_DH));
+	ret = pk11_get_session(pk11_ctx, OP_DH, ISC_TRUE, ISC_FALSE,
+			       ISC_FALSE, NULL, pk11_get_best_token(OP_DH));
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 

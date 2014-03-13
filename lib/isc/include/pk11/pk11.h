@@ -82,8 +82,25 @@ void pk11_set_lib_name(const char *lib_name);
  * Set the PKCS#11 provider (aka library) path/name.
  */
 
+isc_result_t pk11_initialize(isc_mem_t *mctx, const char *engine);
+/*%<
+ * Initialize PKCS#11 device
+ *
+ * mctx:   memory context to attach to pk11_mctx.
+ * engine: PKCS#11 provider (aka library) path/name.
+ *
+ * returns:
+ *         ISC_R_SUCCESS
+ *         PK11_R_NOPROVIDER: can't load the provider
+ *         PK11_R_INITFAILED: C_Initialize() failed
+ *         PK11_R_NORANDOMSERVICE: can't find required random service
+ *         PK11_R_NODIGESTSERVICE: can't find required digest service
+ *         PK11_R_NOAESSERVICE: can't find required AES service
+ */
+
 isc_result_t pk11_get_session(pk11_context_t *ctx,
 			      pk11_optype_t optype,
+			      isc_boolean_t need_services,
 			      isc_boolean_t rw,
 			      isc_boolean_t logon,
 			      const char *pin,
@@ -91,6 +108,13 @@ isc_result_t pk11_get_session(pk11_context_t *ctx,
 /*%<
  * Initialize PKCS#11 device and acquire a session.
  *
+ * need_services:
+ * 	  if ISC_TRUE, this session requires full PKCS#11 API
+ * 	  support including random and digest services, and
+ * 	  the lack of these services will cause the session not
+ * 	  to be initialized.  If ISC_FALSE, the function will return
+ * 	  an error code indicating the missing service, but the
+ * 	  session will be usable for other purposes.
  * rw:    if ISC_TRUE, session will be read/write (useful for
  *        generating or destroying keys); otherwise read-only.
  * login: indicates whether to log in to the device
@@ -104,7 +128,7 @@ void pk11_return_session(pk11_context_t *ctx);
  * Release an active PKCS#11 session for reuse.
  */
 
-void pk11_shutdown(void);
+isc_result_t pk11_finalize(void);
 /*%<
  * Shut down PKCS#11 device and free all sessions.
  */

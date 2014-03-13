@@ -88,8 +88,8 @@ isc_sha1_init(isc_sha1_t *ctx) {
 	CK_RV rv;
 	CK_MECHANISM mech = { CKM_SHA_1, NULL, 0 };
 
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_FALSE, ISC_FALSE,
-				       NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	PK11_FATALCHECK(pkcs_C_DigestInit, (ctx->session, &mech));
 }
 

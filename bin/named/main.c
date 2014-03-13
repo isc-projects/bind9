@@ -50,8 +50,12 @@
 #include <dns/view.h>
 
 #include <dst/result.h>
+#ifdef PKCS11CRYPTO
+#include <pk11/result.h>
+#endif
 
 #include <dlz/dlz_dlopen_driver.h>
+
 
 /*
  * Defining NS_MAIN provides storage declarations (rather than extern)
@@ -1131,6 +1135,9 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 	dst_result_register();
 	isccc_result_register();
+#ifdef PKCS11CRYPTO
+	pk11_result_register();
+#endif
 
 	parse_command_line(argc, argv);
 

@@ -41,6 +41,10 @@
 
 #include <dst/dst.h>
 
+#ifdef PKCS11CRYPTO
+#include <pk11/result.h>
+#endif
+
 #include "dnssectool.h"
 
 const char *program = "dnssec-settime";
@@ -168,6 +172,9 @@ main(int argc, char **argv) {
 
 	setup_logging(verbose, mctx, &log);
 
+#ifdef PKCS11CRYPTO
+	pk11_result_register();
+#endif
 	dns_result_register();
 
 	isc_commandline_errprint = ISC_FALSE;

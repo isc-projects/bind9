@@ -58,6 +58,7 @@
 #include <isc/types.h>
 
 #include <pk11/pk11.h>
+#include <pk11/result.h>
 
 #if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
 #define getpassphrase(x)	getpass(x)
@@ -155,6 +156,8 @@ main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+	pk11_result_register();
+
 	/* Allocate hanles */
 	hKey = (CK_SESSION_HANDLE *)
 		malloc(count * sizeof(CK_SESSION_HANDLE));
@@ -173,8 +176,11 @@ main(int argc, char *argv[]) {
 		pin = getpassphrase("Enter Pin: ");
 
 	result = pk11_get_session(&pctx, OP_ANY, ISC_TRUE, ISC_TRUE,
-				  (const char *) pin, slot);
-	if (result != ISC_R_SUCCESS) {
+				  ISC_TRUE, (const char *) pin, slot);
+	if ((result != ISC_R_SUCCESS) &&
+	    (result != PK11_R_NORANDOMSERVICE) &&
+	    (result != PK11_R_NODIGESTSERVICE) &&
+	    (result != PK11_R_NOAESSERVICE)) {
 		fprintf(stderr, "Error initializing PKCS#11: %s\n",
 			isc_result_totext(result));
 		exit(1);
@@ -249,7 +255,7 @@ main(int argc, char *argv[]) {
 
 	free(hKey);
 	pk11_return_session(&pctx);
-	pk11_shutdown();
+	(void) pk11_finalize();
 
 	exit(error);
 }

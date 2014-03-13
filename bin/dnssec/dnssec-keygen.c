@@ -58,6 +58,10 @@
 
 #include <dst/dst.h>
 
+#ifdef PKCS11CRYPTO
+#include <pk11/result.h>
+#endif
+
 #include "dnssectool.h"
 
 #define MAX_RSA 4096 /* should be long enough... */
@@ -254,6 +258,9 @@ main(int argc, char **argv) {
 	if (argc == 1)
 		usage();
 
+#ifdef PKCS11CRYPTO
+	pk11_result_register();
+#endif
 	dns_result_register();
 
 	isc_commandline_errprint = ISC_FALSE;

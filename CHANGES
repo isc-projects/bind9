@@ -1,3 +1,8 @@
+3786.	[func]		Provide more detailed error codes when using
+			native PKCS#11. "pkcs11-tokens" now fails robustly
+			rather than asserting when run against an HSM with
+			an incomplete PCKS#11 API implementation. [RT #35479]
+
 3785.	[bug]		Debugging code dumphex didn't accept arbitarily long
 			input (only compiled with -DDEBUG). [RT #35544]
 

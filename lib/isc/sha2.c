@@ -234,8 +234,8 @@ isc_sha224_init(isc_sha224_t *context) {
 	if (context == (isc_sha224_t *)0) {
 		return;
 	}
-	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_FALSE, ISC_FALSE,
-				       NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	PK11_FATALCHECK(pkcs_C_DigestInit, (context->session, &mech));
 }
 
@@ -300,8 +300,8 @@ isc_sha256_init(isc_sha256_t *context) {
 	if (context == (isc_sha256_t *)0) {
 		return;
 	}
-	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_FALSE, ISC_FALSE,
-				       NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	PK11_FATALCHECK(pkcs_C_DigestInit, (context->session, &mech));
 }
 
@@ -366,8 +366,8 @@ isc_sha512_init(isc_sha512_t *context) {
 	if (context == (isc_sha512_t *)0) {
 		return;
 	}
-	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_FALSE, ISC_FALSE,
-				       NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	PK11_FATALCHECK(pkcs_C_DigestInit, (context->session, &mech));
 }
 
@@ -432,8 +432,8 @@ isc_sha384_init(isc_sha384_t *context) {
 	if (context == (isc_sha384_t *)0) {
 		return;
 	}
-	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_FALSE, ISC_FALSE,
-				       NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(context, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	PK11_FATALCHECK(pkcs_C_DigestInit, (context->session, &mech));
 }
 

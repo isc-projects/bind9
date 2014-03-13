@@ -57,6 +57,7 @@
 #include <isc/types.h>
 
 #include <pk11/pk11.h>
+#include <pk11/result.h>
 
 #ifndef HAVE_CLOCK_GETTIME
 #ifndef CLOCK_REALTIME
@@ -88,6 +89,7 @@ main(int argc, char *argv[]) {
 	CK_SESSION_HANDLE hSession = CK_INVALID_HANDLE;
 	CK_ULONG len = sizeof(buf);
 	pk11_context_t pctx;
+	pk11_optype_t op_type = OP_RAND;
 	char *lib_name = NULL;
 	int error = 0;
 	int c, errflg = 0;
@@ -103,6 +105,7 @@ main(int argc, char *argv[]) {
 			break;
 		case 's':
 			slot = atoi(isc_commandline_argument);
+			op_type = OP_ANY;
 			break;
 		case 'n':
 			count = atoi(isc_commandline_argument);
@@ -128,13 +131,17 @@ main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+	pk11_result_register();
+
 	/* Initialize the CRYPTOKI library */
 	if (lib_name != NULL)
 		pk11_set_lib_name(lib_name);
 
-	result = pk11_get_session(&pctx, OP_ANY, ISC_FALSE, ISC_FALSE,
-				  NULL, slot);
-	if (result != ISC_R_SUCCESS) {
+	result = pk11_get_session(&pctx, op_type, ISC_FALSE, ISC_FALSE,
+				  ISC_FALSE, NULL, slot);
+	if ((result != ISC_R_SUCCESS) &&
+	    (result != PK11_R_NODIGESTSERVICE) &&
+	    (result != PK11_R_NOAESSERVICE)) {
 		fprintf(stderr, "Error initializing PKCS#11: %s\n",
 			isc_result_totext(result));
 		exit(1);
@@ -179,7 +186,7 @@ main(int argc, char *argv[]) {
 
     exit_session:
 	pk11_return_session(&pctx);
-	pk11_shutdown();
+	(void) pk11_finalize();
 
 	exit(error);
 }

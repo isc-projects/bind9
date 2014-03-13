@@ -346,6 +346,7 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClInclude Include="..\include\pk11\constants.h" />
     <ClInclude Include="..\include\pk11\internal.h" />
     <ClInclude Include="..\include\pk11\pk11.h" />
+    <ClInclude Include="..\include\pk11\result.h" />
     <ClInclude Include="..\include\pkcs11\pkcs11.h" />
     <ClInclude Include="..\include\pkcs11\pkcs11f.h" />
     <ClInclude Include="..\include\pkcs11\pkcs11t.h" />
@@ -448,6 +449,7 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClCompile Include="..\tm.c" />
 @IF PKCS11
     <ClCompile Include="..\pk11.c" />
+    <ClCompile Include="..\pk11_result.c" />
 @END PKCS11
     <ClCompile Include="app.c" />
     <ClCompile Include="condition.c" />

@@ -219,8 +219,8 @@ isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
 	};
 
 	DE_CONST(key, keyTemplate[5].pValue);
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_FALSE, ISC_FALSE,
-				       NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,
@@ -292,8 +292,8 @@ isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
 	};
 
 	DE_CONST(key, keyTemplate[5].pValue);
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_FALSE, ISC_FALSE,
-				       NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,
@@ -365,8 +365,8 @@ isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
 	};
 
 	DE_CONST(key, keyTemplate[5].pValue);
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_FALSE, ISC_FALSE,
-				       NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,
@@ -438,8 +438,8 @@ isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
 	};
 
 	DE_CONST(key, keyTemplate[5].pValue);
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_FALSE, ISC_FALSE,
-				       NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,
@@ -511,8 +511,8 @@ isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
 	};
 
 	DE_CONST(key, keyTemplate[5].pValue);
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_FALSE, ISC_FALSE,
-				       NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,

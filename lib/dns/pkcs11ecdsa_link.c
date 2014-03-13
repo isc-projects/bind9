@@ -101,7 +101,7 @@ pkcs11ecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		slotid = ec->slot;
 	else
 		slotid = pk11_get_best_token(OP_EC);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_FALSE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE, ISC_FALSE,
 			       NULL, slotid);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
@@ -495,8 +495,8 @@ pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_FALSE, ISC_FALSE, NULL,
-			       pk11_get_best_token(OP_EC));
+	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
+			       ISC_FALSE, NULL, pk11_get_best_token(OP_EC));
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
@@ -856,7 +856,7 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
 			       ec->reqlogon, NULL, ec->slot);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
@@ -1065,7 +1065,7 @@ pkcs11ecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
 			       ec->reqlogon, NULL, ec->slot);
 	if (ret != ISC_R_SUCCESS)
 		goto err;

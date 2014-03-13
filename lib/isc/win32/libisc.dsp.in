@@ -519,6 +519,12 @@ SOURCE=..\include\isc\resource.h
 
 SOURCE=..\include\isc\result.h
 # End Source File
+@IF PKCS11
+# Begin Source File
+
+SOURCE=..\include\pk11\result.h
+# End Source File
+@END PKCS11
 # Begin Source File
 
 SOURCE=..\include\isc\resultclass.h
@@ -789,6 +795,10 @@ SOURCE=..\parseint.c
 # Begin Source File
 
 SOURCE=..\pk11.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\pk11_result.c
 # End Source File
 @END PKCS11
 # Begin Source File

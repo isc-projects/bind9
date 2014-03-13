@@ -228,7 +228,7 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
 #endif
 #elif PKCS11CRYPTO
-	dst__pkcs11_init(mctx, engine);
+	RETERR(dst__pkcs11_init(mctx, engine));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSAMD5]));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA1]));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
