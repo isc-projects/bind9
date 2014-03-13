@@ -96,6 +96,8 @@ while (<CHANGES>) {
 	    $file_types{$_} = "MAKE";
 	} elsif ($base =~ /\/(named|rndc|good|bad).{0,2}\.conf$/) {
 	    $file_types{$_} = "CONF-C";
+	} elsif ($base =~ /\/checkconf\/(good|bad)-.*\.conf$/) {
+	    $file_types{$_} = "CONF-C";
 	} elsif ($base =~ /\/resolv.?\.conf$/) {
 	    $file_types{$_} = "CONF-SH";
 	} elsif ($base =~ /\.(db|hint)$/) {
