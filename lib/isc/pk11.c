@@ -437,7 +437,7 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	isc_result_t service_ret = ISC_R_SUCCESS;
 #else
 	UNUSED(need_services);
-#endif 
+#endif
 
 	memset(ctx, 0, sizeof(pk11_context_t));
 	ctx->handle = NULL;
