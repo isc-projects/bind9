@@ -1,3 +1,6 @@
+3785.	[bug]		Debugging code dumphex didn't accept arbitarily long
+			input (only compiled with -DDEBUG). [RT #35544]
+
 3784.	[bug]		Using "rrset-order fixed" when it had not been
 			enabled at compile time caused inconsistent
 			results. It now works as documented, defaulting

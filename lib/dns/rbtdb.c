@@ -748,16 +748,25 @@ static unsigned int init_count;
 #ifdef DEBUG
 static void
 hexdump(const char *desc, unsigned char *data, size_t size) {
-	char hexdump[BUFSIZ];
+	char hexdump[BUFSIZ * 2 + 1];
 	isc_buffer_t b;
 	isc_region_t r;
+	isc_result_t result;
+	size_t bytes;
 
-	isc_buffer_init(&b, hexdump, sizeof(hexdump));
-	r.base = data;
-	r.length = size;
-	isc_hex_totext(&r, 0, "", &b);
-	isc_buffer_putuint8(&b, 0);
-	fprintf(stderr, "%s: %s\n", desc, hexdump);
+	fprintf(stderr, "%s: ", desc);
+	do {
+		isc_buffer_init(&b, hexdump, sizeof(hexdump));
+		r.base = data;
+		r.length = bytes = (size > BUFSIZ) ? BUFSIZ : size;
+		result = isc_hex_totext(&r, 0, "", &b);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		isc_buffer_putuint8(&b, 0);
+		fprintf(stderr, "%s", hexdump);
+		data += bytes;
+		size -= bytes;
+	} while (size > 0);
+	fprintf(stderr, "\n");
 }
 #endif
 
