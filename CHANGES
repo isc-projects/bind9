@@ -103,7 +103,7 @@
 
 3759.	[port]		Enable delve on Windows. [RT #35441]
 
-3758.	[port]		Enable export library APIs on windows. [RT #35382]
+3758.	[port]		Enable export library APIs on Windows. [RT #35382]
 
 3757.	[port]		Enable Python tools (dnssec-coverage,
 			dnssec-checkds) to run on Windows. [RT #34355]
