@@ -1,3 +1,7 @@
+3787.	[bug]		The code that checks whether "auto-dnssec" is
+			allowed was ignoring "allow-update" ACLs set at
+			the options or view level. [RT #29536]
+
 3786.	[func]		Provide more detailed error codes when using
 			native PKCS#11. "pkcs11-tokens" now fails robustly
 			rather than asserting when run against an HSM with
