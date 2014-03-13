@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,22 +14,19 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id$ */
+
 /*! \file */
 
 #ifndef IRS_NETDB_H
 #define IRS_NETDB_H 1
 
 #include <stddef.h>	/* Required on FreeBSD (and  others?) for size_t. */
-#include <sys/types.h>
-
-#define off_t _off_t
 
 /*
  * Define if <netdb.h> does not declare struct addrinfo.
  */
-#if _MSC_VER < 1600
-#define ISC_IRS_NEEDADDRINFO 1
-#endif
+#undef ISC_IRS_NEEDADDRINFO
 
 #ifdef ISC_IRS_NEEDADDRINFO
 struct addrinfo {
@@ -45,7 +42,7 @@ struct addrinfo {
 #endif
 
 /*
- * Undefine all \#defines we are interested in as <netdb.h> may or may not have
+ * Undefine all #defines we are interested in as <netdb.h> may or may not have
  * defined them.
  */
 
@@ -158,6 +155,47 @@ struct addrinfo {
 #define	NI_NAMEREQD	0x00000004
 #define	NI_NUMERICSERV	0x00000008
 #define	NI_DGRAM	0x00000010
+
+/*
+ * Define to map into irs_ namespace.
+ */
+
+#define IRS_NAMESPACE
+
+#ifdef IRS_NAMESPACE
+
+/*
+ * Use our versions not the ones from the C library.
+ */
+
+#ifdef getnameinfo
+#undef getnameinfo
+#endif
+#define getnameinfo irs_getnameinfo
+
+#ifdef getaddrinfo
+#undef getaddrinfo
+#endif
+#define getaddrinfo irs_getaddrinfo
+
+#ifdef freeaddrinfo
+#undef freeaddrinfo
+#endif
+#define freeaddrinfo irs_freeaddrinfo
+
+#ifdef gai_strerror
+#undef gai_strerror
+#endif
+#define gai_strerror irs_gai_strerror
+
+#endif
+
+int getaddrinfo(const char *, const char *,
+		const struct addrinfo *, struct addrinfo **);
+int getnameinfo(const struct sockaddr *, socklen_t, char *,
+		DWORD, char *, DWORD, int);
+void freeaddrinfo(struct addrinfo *);
+char *gai_strerror(int);
 
 /*
  * Tell Emacs to use C mode on this file.
