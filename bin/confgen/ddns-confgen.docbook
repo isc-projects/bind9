@@ -84,7 +84,7 @@
       When run as <command>ddns-confgen</command>, the generated
       key is accompanied by configuration text and instructions
       that can be used with <command>nsupdate</command> and
-      </command>named</command> when setting up dynamic DNS,
+      <command>named</command> when setting up dynamic DNS,
       including an example <command>update-policy</command>
       statement.  (This usage similar to the
       <command>rndc-confgen</command> command for setting
