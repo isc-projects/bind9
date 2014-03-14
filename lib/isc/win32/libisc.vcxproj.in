@@ -207,6 +207,7 @@ copy ..\bin\tools\arpaname.html ..\Build\Release
 copy ..\bin\tools\genrandom.html ..\Build\Release
 copy ..\bin\tools\isc-hmac-fixup.html ..\Build\Release
 copy ..\bin\tools\named-journalprint.html ..\Build\Release
+copy ..\bin\tools\named-rrchecker.html ..\Build\Release
 copy ..\bin\tools\nsec3hash.html ..\Build\Release
 
 echo Copying the migration notes.
