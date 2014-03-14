@@ -118,6 +118,10 @@
 			support before running can now use a common
 			"testcrypto.sh" script to do so. [RT #35213]
 
+3713.	[bug]		Save memory by not storing "also-notify" addresses
+			in zone objects that are configured not to send
+			notify requests. [RT #35195]
+
 	--- 9.9.5 released ---
 
 	--- 9.9.5rc2 released ---
