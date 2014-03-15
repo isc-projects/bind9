@@ -1,3 +1,6 @@
+3788.	[bug]		dns_peer_getrequestsit was returning request_nsid by
+			mistake.
+
 	--- 9.10.0b2 released ---
 
 3787.	[bug]		The code that checks whether "auto-dnssec" is

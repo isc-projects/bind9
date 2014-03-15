@@ -468,7 +468,7 @@ dns_peer_getrequestsit(dns_peer_t *peer, isc_boolean_t *retval) {
 	REQUIRE(retval != NULL);
 
 	if (DNS_BIT_CHECK(REQUEST_SIT_BIT, &peer->bitflags)) {
-		*retval = peer->request_nsid;
+		*retval = peer->request_sit;
 		return (ISC_R_SUCCESS);
 	} else
 		return (ISC_R_NOTFOUND);
