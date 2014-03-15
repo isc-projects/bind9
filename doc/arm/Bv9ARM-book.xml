@@ -10104,8 +10104,8 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	  <title><command>managed-keys</command> Statement Grammar</title>
 
 <programlisting><command>managed-keys</command> {
-    <replaceable>name</replaceable> <literal>initial-key</literal> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key-data</replaceable> ;
-    <optional> <replaceable>name</replaceable> <literal>initial-key</literal> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key-data</replaceable> ; <optional>...</optional></optional>
+    <replaceable>name</replaceable> initial-key <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key-data</replaceable> ;
+    <optional> <replaceable>name</replaceable> initial-key <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key-data</replaceable> ; <optional>...</optional></optional>
 };
 </programlisting>
 
