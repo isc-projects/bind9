@@ -1590,7 +1590,7 @@ main(int argc, char *argv[]) {
 	CHECK(setup_dnsseckeys(client));
 
 	/* Construct QNAME */
-	convert_name(&qfn, &query_name, qname);
+	CHECK(convert_name(&qfn, &query_name, qname));
 
 	/* Set up resolution options */
 	resopt = DNS_CLIENTRESOPT_ALLOWRUN | DNS_CLIENTRESOPT_NOCDFLAG;
