@@ -121,7 +121,7 @@
  */
 #endif
 
-#define SIT_SIZE 24 /* 8 + 4 + 4 + 8 */
+#define SIT_SIZE 24U /* 8 + 4 + 4 + 8 */
 
 /*% nameserver client manager structure */
 struct ns_clientmgr {
@@ -1672,7 +1672,7 @@ process_sit(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 			memset(client->cookie, 0, 8);
 		isc_buffer_forward(buf, (unsigned int)optlen);
 
-		if (optlen == 8)
+		if (optlen == 8U)
 			isc_stats_increment(ns_g_server->nsstats,
 					    dns_nsstatscounter_sitnew);
 		else
