@@ -865,7 +865,7 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 		result = ISC_R_INVALIDFILE;
 
  cleanup:
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS && rbt != NULL) {
 		rbt->root = NULL;
 		rbt->nodecount = 0;
 		dns_rbt_destroy(&rbt);

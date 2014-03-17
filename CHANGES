@@ -1,3 +1,5 @@
+3789.	[bug]		Null pointer dereference on rbt creation failure.
+
 3788.	[bug]		dns_peer_getrequestsit was returning request_nsid by
 			mistake.
 
