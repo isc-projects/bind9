@@ -7505,6 +7505,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		} else if (message->rcode == dns_rcode_badvers) {
 			unsigned int flags, mask;
 			unsigned int version;
+#ifdef ISC_PLATFORM_USESIT
+			unsigned char sit[64];
+#endif
 
 			inc_stats(fctx->res, dns_resstatscounter_badvers);
 
@@ -7512,11 +7515,16 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			/*
 			 * Some servers return BADVERS to unknown
 			 * EDNS options.  This cannot be long term
-			 * strategy.
+			 * strategy.  Do not disable SIT if we have
+			 * already have received a SIT from this
+			 * server.
 			 */
-			dns_adb_changeflags(fctx->adb, query->addrinfo,
-					    FCTX_ADDRINFO_NOSIT,
-					    FCTX_ADDRINFO_NOSIT);
+			if (dns_adb_getsit(fctx->adb, query->addrinfo,
+				           sit, sizeof(sit)) == 0U) {
+				dns_adb_changeflags(fctx->adb, query->addrinfo,
+						    FCTX_ADDRINFO_NOSIT,
+						    FCTX_ADDRINFO_NOSIT);
+			}
 #endif
 
 			resend = ISC_TRUE;
