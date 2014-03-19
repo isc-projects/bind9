@@ -204,7 +204,7 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type, void *tag)
 void
 isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task) {
 	REQUIRE(ISCAPI_TASK_VALID(task));
-	return (mgr->methods->setexcltask(mgr, task));
+	mgr->methods->setexcltask(mgr, task);
 }
 
 isc_result_t

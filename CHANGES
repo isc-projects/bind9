@@ -1,3 +1,5 @@
+3791.	[bug]		solaris: remove extraneous return. [RT #35589]
+
 3787.	[bug]		The code that checks whether "auto-dnssec" is
 			allowed was ignoring "allow-update" ACLs set at
 			the options or view level. [RT #29536]
