@@ -319,6 +319,7 @@ init_desc(void) {
 	SET_RESSTATDESC(sitin, "SIT replies received", "SitIn");
 	SET_RESSTATDESC(sitok, "SIT client cookie ok", "SitClientOk");
 #endif
+	SET_RESSTATDESC(badvers, "bad EDNS version", "BadEDNSVersion");
 
 	INSIST(i == dns_resstatscounter_max);
 

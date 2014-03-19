@@ -459,13 +459,14 @@ struct dns_resolver {
 #define VALID_RESOLVER(res)		ISC_MAGIC_VALID(res, RES_MAGIC)
 
 /*%
- * Private addrinfo flags.  These must not conflict with DNS_FETCHOPT_NOEDNS0,
- * which we also use as an addrinfo flag.
+ * Private addrinfo flags.  These must not conflict with DNS_FETCHOPT_NOEDNS0
+ * (0x008) which we also use as an addrinfo flag.
  */
 #define FCTX_ADDRINFO_MARK              0x0001
 #define FCTX_ADDRINFO_FORWARDER         0x1000
 #define FCTX_ADDRINFO_TRIED             0x2000
 #define FCTX_ADDRINFO_EDNSOK            0x4000
+#define FCTX_ADDRINFO_NOSIT             0x8000
 
 #define UNMARKED(a)                     (((a)->flags & FCTX_ADDRINFO_MARK) \
 					 == 0)
@@ -473,6 +474,8 @@ struct dns_resolver {
 					 FCTX_ADDRINFO_FORWARDER) != 0)
 #define TRIED(a)                        (((a)->flags & \
 					 FCTX_ADDRINFO_TRIED) != 0)
+#define NOSIT(a)                        (((a)->flags & \
+					 FCTX_ADDRINFO_NOSIT) != 0)
 
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 #define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
@@ -2063,6 +2066,10 @@ resquery_send(resquery_t *query) {
 				(void) dns_peer_getrequestsit(peer, &reqsit);
 #endif
 			}
+#ifdef ISC_PLATFORM_USESIT
+			if (NOSIT(query->addrinfo))
+				reqsit = ISC_FALSE;
+#endif
 			if (reqnsid) {
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_NSID;
@@ -7498,6 +7505,19 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		} else if (message->rcode == dns_rcode_badvers) {
 			unsigned int flags, mask;
 			unsigned int version;
+
+			inc_stats(fctx->res, dns_resstatscounter_badvers);
+
+#ifdef ISC_PLATFORM_USESIT
+			/*
+			 * Some servers return BADVERS to unknown
+			 * EDNS options.  This cannot be long term
+			 * strategy.
+			 */
+			dns_adb_changeflags(fctx->adb, query->addrinfo,
+					    FCTX_ADDRINFO_NOSIT,
+					    FCTX_ADDRINFO_NOSIT);
+#endif
 
 			resend = ISC_TRUE;
 			INSIST(opt != NULL);

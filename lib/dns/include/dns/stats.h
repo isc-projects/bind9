@@ -72,9 +72,11 @@ enum {
 	dns_resstatscounter_sitin = 37,
 	dns_resstatscounter_sitok = 38,
 
-	dns_resstatscounter_max = 39,
+	dns_resstatscounter_badvers = 39,
+	dns_resstatscounter_max = 40,
 #else
-	dns_resstatscounter_max = 35,
+	dns_resstatscounter_badvers = 35,
+	dns_resstatscounter_max = 36,
 #endif
 
 	/*

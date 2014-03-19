@@ -1,3 +1,7 @@
+3790.	[bug]		Handle broken nameservers that send BADVERS in
+			response to unknown EDNS options.  Maintain
+			statistics on BADVERS responses.
+
 3789.	[bug]		Null pointer dereference on rbt creation failure.
 
 3788.	[bug]		dns_peer_getrequestsit was returning request_nsid by
