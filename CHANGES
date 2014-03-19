@@ -1,3 +1,5 @@
+3791.	[placeholder]
+
 3790.	[bug]		Handle broken nameservers that send BADVERS in
 			response to unknown EDNS options.  Maintain
 			statistics on BADVERS responses.
