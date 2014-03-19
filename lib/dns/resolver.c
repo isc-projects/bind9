@@ -7520,7 +7520,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * server.
 			 */
 			if (dns_adb_getsit(fctx->adb, query->addrinfo,
-				           sit, sizeof(sit)) == 0U) {
+					   sit, sizeof(sit)) == 0U) {
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
 						    FCTX_ADDRINFO_NOSIT,
 						    FCTX_ADDRINFO_NOSIT);
