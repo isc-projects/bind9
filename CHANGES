@@ -1,3 +1,6 @@
+3792.	[func]		Provide links to the alternate statistics views when
+			displaying in a browser.  [RT #35605]
+
 3791.	[bug]		solaris: remove extraneous return. [RT #35589]
 
 3787.	[bug]		The code that checks whether "auto-dnssec" is
