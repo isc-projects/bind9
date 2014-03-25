@@ -7441,6 +7441,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		case dns_rcode_refused:
 			inc_stats(fctx->res, dns_resstatscounter_refused);
 			break;
+		case dns_rcode_badvers:
+			inc_stats(fctx->res, dns_resstatscounter_badvers);
+			break;
 		default:
 			inc_stats(fctx->res, dns_resstatscounter_othererror);
 			break;
@@ -7507,11 +7510,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			unsigned int version;
 #ifdef ISC_PLATFORM_USESIT
 			unsigned char sit[64];
-#endif
 
-			inc_stats(fctx->res, dns_resstatscounter_badvers);
-
-#ifdef ISC_PLATFORM_USESIT
 			/*
 			 * Some servers return BADVERS to unknown
 			 * EDNS options.  This cannot be long term
