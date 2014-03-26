@@ -3410,7 +3410,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		<entry colname="2">
 		  <para>
 		    Matches the IPv4 and IPv6 addresses of all network
-		    interfaces on the system.
+		    interfaces on the system.  When addresses are
+		    added or removed, the <command>localhost</command>
+		    ACL element is updated to reflect the changes.
 		  </para>
 		</entry>
 	      </row>
@@ -3422,6 +3424,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		  <para>
 		    Matches any host on an IPv4 or IPv6 network
 		    for which the system has an interface.
+		    When addresses are added or removed,
+		    the <command>localnets</command>
+		    ACL element is updated to reflect the changes.
 		    Some systems do not provide a way to determine the prefix
 		    lengths of
 		    local IPv6 addresses.
