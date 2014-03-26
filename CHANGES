@@ -1,3 +1,6 @@
+3793.	[bug]		zone.c:save_nsec3param() could assert when out of
+			memory. [RT #35621]
+
 3792.	[func]		Provide links to the alternate statistics views when
 			displaying in a browser.  [RT #35605]
 

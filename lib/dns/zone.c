@@ -13570,10 +13570,12 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 	REQUIRE(nsec3list != NULL);
 	REQUIRE(ISC_LIST_EMPTY(*nsec3list));
 
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_init(&prdataset);
+
 	dns_db_attach(zone->db, &db);
 	CHECK(dns_db_getoriginnode(db, &node));
 
-	dns_rdataset_init(&rdataset);
 	dns_db_currentversion(db, &version);
 	result = dns_db_findrdataset(db, node, version,
 				     dns_rdatatype_nsec3param,
@@ -13616,7 +13618,6 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 	}
 
  getprivate:
-	dns_rdataset_init(&prdataset);
 	result = dns_db_findrdataset(db, node, version, zone->privatetype,
 				     dns_rdatatype_none, 0, &prdataset, NULL);
 	if (result != ISC_R_SUCCESS)
