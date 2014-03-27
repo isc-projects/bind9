@@ -2288,7 +2288,7 @@ dns_dispatchmgr_setudp(dns_dispatchmgr_t *mgr,
 	if (mgr->spool != NULL) {
 		if (maxrequests < DNS_DISPATCH_POOLSOCKS * 2) {
 			isc_mempool_setmaxalloc(mgr->spool,
-					        DNS_DISPATCH_POOLSOCKS * 2);
+						DNS_DISPATCH_POOLSOCKS * 2);
 			isc_mempool_setfreemax(mgr->spool,
 					       DNS_DISPATCH_POOLSOCKS * 2);
 		}
