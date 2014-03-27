@@ -84,7 +84,7 @@ dns_dns64_create(isc_mem_t *mctx, isc_netaddr_t *prefix,
  *                      zero.
  *	'client'	to be NULL or a valid acl.
  *	'mapped'	to be NULL or a valid acl.
- *	'exculded'	to be NULL or a valid acl.
+ *	'excluded'	to be NULL or a valid acl.
  *
  * Returns:
  *	ISC_R_SUCCESS
