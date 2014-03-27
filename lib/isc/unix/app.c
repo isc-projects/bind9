@@ -379,7 +379,7 @@ isc__app_start(void) {
 	}
 	presult = sigprocmask(SIG_UNBLOCK, &sset, NULL);
 	if (presult != 0) {
-		isc__strerror(presult, strbuf, sizeof(strbuf));
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_app_start() sigprocmask: %s", strbuf);
 		return (ISC_R_UNEXPECTED);
