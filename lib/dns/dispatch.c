@@ -2286,9 +2286,12 @@ dns_dispatchmgr_setudp(dns_dispatchmgr_t *mgr,
 
 	/* Create or adjust socket pool */
 	if (mgr->spool != NULL) {
-		if (maxrequests < DNS_DISPATCH_POOLSOCKS * 2)
-		  isc_mempool_setmaxalloc(mgr->spool, DNS_DISPATCH_POOLSOCKS * 2);
-		  isc_mempool_setfreemax(mgr->spool, DNS_DISPATCH_POOLSOCKS * 2);
+		if (maxrequests < DNS_DISPATCH_POOLSOCKS * 2) {
+			isc_mempool_setmaxalloc(mgr->spool,
+					        DNS_DISPATCH_POOLSOCKS * 2);
+			isc_mempool_setfreemax(mgr->spool,
+					       DNS_DISPATCH_POOLSOCKS * 2);
+		}
 		UNLOCK(&mgr->buffer_lock);
 		return (ISC_R_SUCCESS);
 	}
