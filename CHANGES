@@ -1,3 +1,5 @@
+3794.	[maint]		Added AAAA for C.ROOT-SERVERS.NET.
+
 3791.	[bug]		solaris: remove extraneous return. [RT #35589]
 
 3787.	[bug]		The code that checks whether "auto-dnssec" is
