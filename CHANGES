@@ -1,3 +1,5 @@
+3794.	[maint]		Added AAAA for C.ROOT-SERVERS.NET.
+
 3793.	[bug]		zone.c:save_nsec3param() could assert when out of
 			memory. [RT #35621]
 
