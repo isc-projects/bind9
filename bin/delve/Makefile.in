@@ -70,7 +70,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 
-install:: delve@EXEEXT@
+install:: delve@EXEEXT@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
 		delve@EXEEXT@ ${DESTDIR}${bindir}
 	${INSTALL_DATA} ${srcdir}/delve.1 ${DESTDIR}${mandir}/man1
