@@ -143,18 +143,6 @@ get_checknames(const cfg_obj_t **maps, const cfg_obj_t **obj) {
 }
 
 static isc_result_t
-config_get(const cfg_obj_t **maps, const char *name, const cfg_obj_t **obj) {
-	int i;
-
-	for (i = 0;; i++) {
-		if (maps[i] == NULL)
-			return (ISC_R_NOTFOUND);
-		if (cfg_map_get(maps[i], name, obj) == ISC_R_SUCCESS)
-			return (ISC_R_SUCCESS);
-	}
-}
-
-static isc_result_t
 configure_hint(const char *zfile, const char *zclass, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -366,8 +354,7 @@ configure_zone(const char *vclass, const char *view,
 
 	masterformat = dns_masterformat_text;
 	fmtobj = NULL;
-	result = config_get(maps, "masterfile-format", &fmtobj);
-	if (result == ISC_R_SUCCESS) {
+	if (get_maps(maps, "masterfile-format", &fmtobj)) {
 		const char *masterformatstr = cfg_obj_asstring(fmtobj);
 		if (strcasecmp(masterformatstr, "text") == 0)
 			masterformat = dns_masterformat_text;
