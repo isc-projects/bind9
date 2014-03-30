@@ -1486,7 +1486,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "integrity-check", MASTERZONE },
 	{ "check-mx-cname", MASTERZONE },
 	{ "check-srv-cname", MASTERZONE },
-	{ "masterfile-format", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE |
+	{ "masterfile-format", MASTERZONE | SLAVEZONE | STUBZONE |
 	  REDIRECTZONE },
 	{ "update-check-ksk", MASTERZONE | SLAVEZONE },
 	{ "dnssec-dnskey-kskonly", MASTERZONE | SLAVEZONE },

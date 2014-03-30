@@ -1,3 +1,6 @@
+3795.	[bug]		Make named-checkconf detect raw masterfiles for
+			hint zones and reject them. [RT #35268]
+
 3794.	[maint]		Added AAAA for C.ROOT-SERVERS.NET.
 
 3793.	[bug]		zone.c:save_nsec3param() could assert when out of
