@@ -644,12 +644,11 @@ case "$use_geoip" in
 		then
 			CFLAGS="$CFLAGS -I$use_geoip/include"
 			CPPFLAGS="$CPPFLAGS -I$use_geoip/include"
+			LIBS="$LIBS -L$use_geoip/lib"
 			case "$host_os" in
 				netbsd*|openbsd*|solaris*)
 					LIBS="$LIBS -Wl,-rpath=$use_geoip/lib"
 					;;
-				*)
-					LIBS="$LIBS -L$use_geoip/lib"
 			esac
 		elif test "$use_geoip" = "yes"
 		then
