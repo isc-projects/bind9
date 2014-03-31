@@ -1,3 +1,5 @@
+3796.	[bug]		Register dns error codes. [RT #35629]
+
 3795.	[bug]		Make named-checkconf detect raw masterfiles for
 			hint zones and reject them. [RT #35268]
 
