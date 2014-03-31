@@ -829,6 +829,7 @@
 ./bin/tests/system/case/tests.sh		SH	2013,2014
 ./bin/tests/system/checkconf/bad-also-notify.conf	CONF-C	2012,2013
 ./bin/tests/system/checkconf/bad-dnssec.conf	CONF-C	2012,2013
+./bin/tests/system/checkconf/bad-hint.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-inline-slave.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-many.conf	CONF-C	2005,2012
 ./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014
