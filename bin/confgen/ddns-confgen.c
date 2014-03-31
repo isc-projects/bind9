@@ -99,6 +99,8 @@ main(int argc, char **argv) {
 	int len = 0;
 	int ch;
 
+	dns_result_register();
+
 	result = isc_file_progname(*argv, program, sizeof(program));
 	if (result != ISC_R_SUCCESS)
 		memmove(program, "ddns-confgen", 13);
