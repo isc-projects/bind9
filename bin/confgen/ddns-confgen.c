@@ -42,6 +42,10 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
+#ifdef PKCS11CRYPTO
+#include <pk11/result.h>
+#endif
+
 #include <dns/keyvalues.h>
 #include <dns/name.h>
 #include <dns/result.h>
