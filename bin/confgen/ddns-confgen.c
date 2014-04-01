@@ -46,6 +46,7 @@
 
 #include <dns/keyvalues.h>
 #include <dns/name.h>
+#include <dns/result.h>
 
 #include <dst/dst.h>
 #include <confgen/os.h>
