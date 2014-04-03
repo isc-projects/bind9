@@ -16216,15 +16216,19 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rt_clock_gettime" >&5
 $as_echo "$ac_cv_lib_rt_clock_gettime" >&6; }
 if test "x$ac_cv_lib_rt_clock_gettime" = xyes; then :
-  have_clock_gt=yes
+  have_clock_gt=rt
 fi
 
 fi
 
-if test "$have_clock_gt" = "yes"; then
+if test "$have_clock_gt" != "no"; then
 
 $as_echo "#define HAVE_CLOCK_GETTIME 1" >>confdefs.h
 
+fi
+
+if test "$have_clock_gt" = "rt"; then
+	LIBS="-lrt $LIBS"
 fi
 
 #

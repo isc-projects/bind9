@@ -1962,11 +1962,15 @@ AC_SUBST(PKCS11_TEST)
 have_clock_gt=no
 AC_CHECK_FUNC(clock_gettime,have_clock_gt=yes,)
 if test "$have_clock_gt" = "no"; then
-	AC_CHECK_LIB(rt,clock_gettime,have_clock_gt=yes,)
+	AC_CHECK_LIB(rt,clock_gettime,have_clock_gt=rt,)
 fi
 
-if test "$have_clock_gt" = "yes"; then
+if test "$have_clock_gt" != "no"; then
 	AC_DEFINE(HAVE_CLOCK_GETTIME, 1, [Define if clock_gettime is available.])
+fi
+
+if test "$have_clock_gt" = "rt"; then
+	LIBS="-lrt $LIBS"
 fi
 
 #
