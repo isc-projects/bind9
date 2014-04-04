@@ -1,3 +1,6 @@
+3799.	[bug]		Improve named's command line error reporting.
+			[RT #35603]
+
 3796.	[bug]		Register dns error codes. [RT #35629]
 
 3795.	[bug]		Make named-checkconf detect raw masterfiles for
