@@ -1,3 +1,6 @@
+3800.	[bug]		A pending event on the route socket could cause an
+			assertion failure when shutting down named. [RT #35674]
+
 3799.	[bug]		Improve named's command line error reporting.
 			[RT #35603]
 
