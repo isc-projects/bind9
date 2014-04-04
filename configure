@@ -14094,6 +14094,7 @@ if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
  ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"
+		     gssapi_hack="#include <$ac_header>"
 fi
 
 done
@@ -14112,6 +14113,7 @@ if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
  ISC_PLATFORM_GSSAPI_KRB5_HEADER="#define ISC_PLATFORM_GSSAPI_KRB5_HEADER <$ac_header>"
+		     gssapi_krb5_hack="#include <$ac_header>"
 fi
 
 done
@@ -14126,6 +14128,7 @@ if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
  ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"
+		    krb5_hack="#include <$ac_header>"
 fi
 
 done
@@ -14165,6 +14168,7 @@ done
 		    "-lgssapi" \
 		    "-lgssapi -lkrb5 -ldes -lcrypt -lasn1 -lroken -lcom_err" \
 		    "-lgssapi -lkrb5 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
+		    "-lgssapi -lkrb5 -lgssapi_krb5 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
 		    "-lgssapi -lkrb5 -lhx509 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
 		    "-lgss -lkrb5"
 		do
@@ -14184,10 +14188,15 @@ $as_echo_n "checking linking as $TRY_LIBS... " >&6; }
 		    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
+#include <sys/types.h>
+$gssapi_hack
+$gssapi_krb5_hack
+$krb5_hack
+
 int
 main ()
 {
-gss_acquire_cred();krb5_init_context()
+gss_acquire_cred(NULL, NULL, 0, NULL, 0, NULL, NULL, NULL);krb5_init_context(NULL);gsskrb5_register_acceptor_identity(NULL);
   ;
   return 0;
 }

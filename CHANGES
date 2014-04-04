@@ -1,3 +1,5 @@
+3801.	[port]		Fix probing for gssapi support on FreeBSD. [RT #35615]
+
 3799.	[bug]		Improve named's command line error reporting.
 			[RT #35603]
 
