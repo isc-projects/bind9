@@ -1,3 +1,5 @@
+3801.	[port]		Fix probing for gssapi support on FreeBSD. [RT #35615]
+
 3800.	[bug]		A pending event on the route socket could cause an
 			assertion failure when shutting down named. [RT #35674]
 

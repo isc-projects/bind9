@@ -24,7 +24,7 @@
  *****/
 
 /*
- * Portable netdb.h support.
+ * Portable <sys/stat.h> support.
  *
  * This module is responsible for defining S_IS??? macros.
  *
