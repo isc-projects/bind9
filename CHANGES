@@ -1,3 +1,5 @@
+3802.	[bug]		Various header files were not being installed.
+
 	--- 9.10.0rc1 released ---
 
 3801.	[port]		Fix probing for gssapi support on FreeBSD. [RT #35615]
