@@ -1,3 +1,6 @@
+3799.	[bug]		Improve named's command line error reporting.
+			[RT #35603]
+
 3798.	[bug]		'rndc zonestatus' was reporting the wrong re-signing
 			time. [RT #35659]
 
