@@ -13855,8 +13855,6 @@ done
 		    as_fn_error $? "krb5.h not found" "$LINENO" 5
 		fi
 
-		CPPFLAGS="$saved_cppflags"
-
 		#
 		# XXXDCL This probably doesn't work right on all systems.
 		# It will need to be worked on as problems become evident.
@@ -13932,6 +13930,8 @@ $as_echo "yes" >&6; }; break ;;
 $as_echo "no" >&6; } ;;
 		    esac
 		done
+
+		CPPFLAGS="$saved_cppflags"
 
 		case $gssapi_linked in
 		no) as_fn_error $? "could not determine proper GSSAPI linkage" "$LINENO" 5 ;;
