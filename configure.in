@@ -1087,8 +1087,6 @@ case "$use_gssapi" in
 		    AC_MSG_ERROR([krb5.h not found])
 		fi
 
-		CPPFLAGS="$saved_cppflags"
-
 		#
 		# XXXDCL This probably doesn't work right on all systems.
 		# It will need to be worked on as problems become evident.
@@ -1145,6 +1143,8 @@ $krb5_hack
 		    no)  AC_MSG_RESULT(no) ;;
 		    esac
 		done
+
+		CPPFLAGS="$saved_cppflags"
 
 		case $gssapi_linked in
 		no) AC_MSG_ERROR(could not determine proper GSSAPI linkage) ;;
