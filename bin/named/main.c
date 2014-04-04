@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -410,16 +408,16 @@ static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
 	int port;
+	const char *p;
 	isc_boolean_t disable6 = ISC_FALSE;
 	isc_boolean_t disable4 = ISC_FALSE;
 
 	save_command_line(argc, argv);
 
 	/* PLEASE keep options synchronized when main is hooked! */
+#define CMDLINE_FLAGS "46c:C:d:E:fFgi:lm:n:N:p:P:sS:t:T:U:u:vVx:"
 	isc_commandline_errprint = ISC_FALSE;
-	while ((ch = isc_commandline_parse(argc, argv,
-					   "46c:C:d:E:fFgi:lm:n:N:p:P:"
-					   "sS:t:T:U:u:vVx:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case '4':
 			if (disable4)
@@ -585,8 +583,14 @@ parse_command_line(int argc, char *argv[]) {
 			usage();
 			if (isc_commandline_option == '?')
 				exit(0);
-			ns_main_earlyfatal("unknown option '-%c'",
-					   isc_commandline_option);
+			p = strchr(CMDLINE_FLAGS, isc_commandline_option);
+			if (p == NULL || *++p != ':')
+				ns_main_earlyfatal("unknown option '-%c'",
+						   isc_commandline_option);
+			else
+				ns_main_earlyfatal("option '-%c' requires "
+						   "an argument",
+						   isc_commandline_option);
 			/* FALLTHROUGH */
 		default:
 			ns_main_earlyfatal("parsing options returned %d", ch);
