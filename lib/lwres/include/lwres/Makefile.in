@@ -24,8 +24,8 @@ top_srcdir =	@top_srcdir@
 # machine generated.  The latter are handled specially in the
 # install target below.
 #
-HEADERS =	context.h lwbuffer.h lwpacket.h lwres.h result.h \
-		int.h lang.h list.h ipv6.h version.h
+HEADERS =	context.h int.h ipv6.h lang.h list.h lwbuffer.h lwpacket.h \
+		lwres.h result.h stdlib.h version.h
 
 SUBDIRS =
 TARGETS =
