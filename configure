@@ -14194,7 +14194,10 @@ $krb5_hack
 int
 main ()
 {
-gss_acquire_cred(NULL, NULL, 0, NULL, 0, NULL, NULL, NULL);krb5_init_context(NULL);gsskrb5_register_acceptor_identity(NULL);
+gss_acquire_cred(NULL, NULL, 0, NULL, 0, NULL, NULL, NULL);krb5_init_context(NULL);
+#if defined(HAVE_GSSAPI_KRB5_H) || defined(HAVE_GSSAPI_GSSAPI_KRB5_H)
+gsskrb5_register_acceptor_identity(NULL);
+#endif
   ;
   return 0;
 }
