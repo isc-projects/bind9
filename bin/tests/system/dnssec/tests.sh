@@ -2439,7 +2439,27 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-
+echo "I:check the correct resigning time is reported in zonestatus ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 \
+		zonestatus secure.example > rndc.out.test$n
+# next resign node: secure.example/DNSKEY
+name=`awk '/next resign node:/ { print $4 }' rndc.out.test$n | sed 's;/; ;'`
+# next resign time: Thu, 24 Apr 2014 10:38:16 GMT
+time=`awk 'BEGIN { m["Jan"] = "01"; m["Feb"] = "02"; m["Mar"] = "03";
+		   m["Apr"] = "04"; m["May"] = "05"; m["Jun"] = "06";
+		   m["Jul"] = "07"; m["Aug"] = "08"; m["Sep"] = "09";
+		   m["Oct"] = "10"; m["Nov"] = "11"; m["Dec"] = "12";}
+	 /next resign time:/ { printf "%d%s%02d%s\n", $7, m[$6], $5, $8 }' rndc.out.test$n | sed 's/://g'`
+$DIG $DIGOPTS +noall +answer $name @10.53.0.3 -p 5300 > dig.out.test$n
+expire=`awk '$4 == "RRSIG" { print $9 }' dig.out.test$n`
+inception=`awk '$4 == "RRSIG" { print $10 }' dig.out.test$n`
+t1=`echo "$time < $expire" | bc`
+t2=`echo "$time > $inception" | bc`
+[ "$t1" = 1 -a "$t2" = 1 ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:exit status: $status"
 exit $status

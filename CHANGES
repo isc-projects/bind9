@@ -1,3 +1,6 @@
+3798.	[bug]		'rndc zonestatus' was reporting the wrong re-signing
+			time. [RT #35659]
+
 3797.	[port]		netbsd: geoip support probing was broken. [RT #35642]
 
 3796.	[bug]		Register dns and pkcs#11 error codes. [RT #35629]

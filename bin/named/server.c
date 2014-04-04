@@ -9633,7 +9633,8 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 					     typebuf, sizeof(typebuf));
 			snprintf(resignbuf, sizeof(resignbuf),
 				     "%s/%s", namebuf, typebuf);
-			isc_time_set(&resigntime, next.resign, 0);
+			isc_time_set(&resigntime, next.resign -
+				dns_zone_getsigresigninginterval(zone), 0);
 			isc_time_formathttptimestamp(&resigntime, rtbuf,
 						     sizeof(rtbuf));
 			dns_rdataset_disassociate(&next);
