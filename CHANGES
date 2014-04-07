@@ -1,4 +1,4 @@
-3804.   [bug]           Corrected a race condition in dispatch.c in which
+3804.	[bug]		Corrected a race condition in dispatch.c in which
 			portentry could be reset leading to an assertion
 			failure in socket_search(). (Change #3708
 			addressed the same issue but was incomplete.)
