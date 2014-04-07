@@ -1,8 +1,8 @@
 3804.   [bug]           Corrected a race condition in dispatch.c in which
-                        portentry could be reset leading to an assertion
-                        failure in socket_search(). (Change #3708
-                        addressed the same issue but was incomplete.)
-                        [RT #35128]
+			portentry could be reset leading to an assertion
+			failure in socket_search(). (Change #3708
+			addressed the same issue but was incomplete.)
+			[RT #35128]
 
 3803.	[bug]		"named-checkconf -z" incorrectly rejected zones
 			using alternate data sources for not having a "file"
