@@ -2454,7 +2454,7 @@ time=`awk 'BEGIN { m["Jan"] = "01"; m["Feb"] = "02"; m["Mar"] = "03";
 $DIG $DIGOPTS +noall +answer $name @10.53.0.3 -p 5300 > dig.out.test$n
 expire=`awk '$4 == "RRSIG" { print $9 }' dig.out.test$n`
 inception=`awk '$4 == "RRSIG" { print $10 }' dig.out.test$n`
-test "$time" "<" "$expire" -a "$time" ">" "$inception" || ret=1
+$PERL -e 'exit(0) if ("'"$time"'" lt "'"$expire"'" && "'"$time"'" gt "'"$inception"'"); exit(1);' || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
