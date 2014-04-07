@@ -1,3 +1,7 @@
+3803.	[bug]		"named-checkconf -z" incorrectly rejected zones
+			using alternate data sources for not having a "file"
+			option. [RT #35685]
+
 3802.	[bug]		Various header files were not being installed.
 
 3801.	[port]		Fix probing for gssapi support on FreeBSD. [RT #35615]
