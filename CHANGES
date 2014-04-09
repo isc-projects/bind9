@@ -1,3 +1,6 @@
+3805.	[contrib]	Added contrib/perftcpdns, a performance testing tool
+			for DNS over TCP. [RT #35710]
+
 	--- 9.10.0rc1 released ---
 
 3804.	[bug]		Corrected a race condition in dispatch.c in which
