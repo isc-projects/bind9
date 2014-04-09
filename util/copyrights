@@ -2443,6 +2443,10 @@
 ./contrib/nslint-3.0a2/savestr.h		X	2001,2014
 ./contrib/nslint-3.0a2/strerror.c		X	2001,2014
 ./contrib/nslint-3.0a2/version.h		X	2014
+./contrib/perftcpdns/Makefile.in		X	2014
+./contrib/perftcpdns/configure			X	2014
+./contrib/perftcpdns/configure.in		X	2014
+./contrib/perftcpdns/perftcpdns.c		X	2014
 ./contrib/query-loc-0.4.0/ADDRESSES		X	2008
 ./contrib/query-loc-0.4.0/ALGO			X	2008
 ./contrib/query-loc-0.4.0/INSTALL		X	2008
