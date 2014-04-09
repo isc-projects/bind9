@@ -1,3 +1,6 @@
+3805.	[contrib]	Added contrib/perftcpdns, a performance testing tool
+			for DNS over TCP. [RT #35710]
+
 3803.	[bug]		"named-checkconf -z" incorrectly rejected zones
 			using alternate data sources for not having a "file"
 			option. [RT #35685]
