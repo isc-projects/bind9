@@ -49,13 +49,13 @@
  *  - the due date is compared with the current date (aka now).
  *  - if the due is before, lateconn counter is incremented, else
  *   the thread sleeps for the difference,
- *  - the next step is to reget the current , if it is still
+ *  - the next step is to reget the current date, if it is still
  *   before the due date (e.g., because the sleep was interrupted)
  *   the first shortwait counter is incremented.
  *  - if it is after (common case) the number of connect calls is
  *   computed from the difference between now and due divided by rate,
  *   rounded to the next number,
- *  - this number of connect() calls is bounded by the -a<aggressivity>
+ *  - this number of connect() calls is bounded by the -a<aggressiveness>
  *   parameter to avoid too many back to back new connection attempts.
  *  - the compconn counter is incremented, errors (other than EINPROGRESS
  *   from not blocking connect()) are printed. When an error is
@@ -245,7 +245,7 @@ int gotmaxloss = -1;			/* max{p}loss[0] was set */
 int maxloss[2];				/* maximum number of losses */
 double maxploss[2] = {0., 0.};		/* maximum percentage */
 char *localname;			/* local address or interface */
-int aggressivity = 1;			/* back to back connections */
+int aggressiveness = 1;			/* back to back connections */
 int seeded;				/* is a seed provided */
 unsigned int seed;			/* randomization seed */
 char *templatefile;			/* template file name */
@@ -1381,8 +1381,8 @@ connecting(void *dummy)
 			toconnect += now.tv_sec - due.tv_sec;
 			toconnect *= rate;
 			toconnect++;
-			if (toconnect > (double) aggressivity)
-				i = aggressivity;
+			if (toconnect > (double) aggressiveness)
+				i = aggressiveness;
 			else
 				i = (int) toconnect;
 			compconn += i;
@@ -1708,7 +1708,7 @@ usage(void)
 	fprintf(stderr, "%s",
 "perftcpdns [-huvX0] [-4|-6] [-r<rate>] [-t<report>] [-p<test-period>]\n"
 "    [-n<num-request>]* [-d<lost-time>]* [-D<max-loss>]* [-T<template-file>]\n"
-"    [-l<local-addr>] [-L<local-port>]* [-a<aggressivity>] [-s<seed>]\n"
+"    [-l<local-addr>] [-L<local-port>]* [-a<aggressiveness>] [-s<seed>]\n"
 "    [-M<memory>] [-x<diagnostic-selector>] [-P<port>] server\n"
 "\f\n"
 "The server argument is the name/address of the DNS server to contact.\n"
@@ -1717,7 +1717,7 @@ usage(void)
 "-0: Add EDNS0 option with DO flag.\n"
 "-4: TCP/IPv4 operation (default). This is incompatible with the -6 option.\n"
 "-6: TCP/IPv6 operation. This is incompatible with the -4 option.\n"
-"-a<aggressivity>: When the target sending rate is not yet reached,\n"
+"-a<aggressiveness>: When the target sending rate is not yet reached,\n"
 "    control how many connections are initiated before the next pause.\n"
 "-d<lost-time>: Specify the time after which a connection or a query is\n"
 "    treated as having been lost. The value is given in seconds and\n"
@@ -2008,10 +2008,10 @@ main(const int argc, char * const argv[])
 		break;
 
 	case 'a':
-		aggressivity = atoi(optarg);
-		if (aggressivity <= 0) {
+		aggressiveness = atoi(optarg);
+		if (aggressiveness <= 0) {
 			fprintf(stderr,
-				"aggressivity must be a positive integer\n");
+				"aggressiveness must be a positive integer\n");
 			usage();
 			exit(2);
 		}
@@ -2125,7 +2125,7 @@ main(const int argc, char * const argv[])
 			else
 				printf("*");
 		}
-		printf(" aggressivity=%d", aggressivity);
+		printf(" aggressiveness=%d", aggressiveness);
 		if (seeded)
 			printf(" seed=%u", seed);
 		if (templatefile != NULL)
