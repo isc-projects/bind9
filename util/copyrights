@@ -2211,10 +2211,10 @@
 ./contrib/nslint-2.1a3/savestr.c		X	2001
 ./contrib/nslint-2.1a3/savestr.h		X	2001
 ./contrib/nslint-2.1a3/strerror.c		X	2001,2014
-./contrib/perftcpdns/Makefile.in		X	2014
+./contrib/perftcpdns/Makefile.in		MAKE	2014
 ./contrib/perftcpdns/configure			X	2014
-./contrib/perftcpdns/configure.in		X	2014
-./contrib/perftcpdns/perftcpdns.c		X	2014
+./contrib/perftcpdns/configure.in		SH	2014
+./contrib/perftcpdns/perftcpdns.c		C	2013,2014
 ./contrib/pkcs11-keygen/README			X	2008,2009
 ./contrib/query-loc-0.4.0/ADDRESSES		X	2008
 ./contrib/query-loc-0.4.0/ALGO			X	2008
