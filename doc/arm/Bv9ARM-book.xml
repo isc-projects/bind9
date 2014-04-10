@@ -10017,7 +10017,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    Requests for any and all undefined subdomains of a given
 	    valid domain result in NXDOMAIN errors, and are identical
 	    regardless of query type.
-	    They are limited by <command>nxdomain-per-second</command>
+	    They are limited by <command>nxdomains-per-second</command>
 	    (default base <command>responses-per-second</command>).
 	    This controls some attacks using random names, but
 	    can be relaxed or turned off (set to 0)
