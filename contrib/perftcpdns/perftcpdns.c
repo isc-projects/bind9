@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -701,7 +701,7 @@ sendquery(struct exchange *x)
 	if ((size_t) ret == length_query + off)
 		return 0;
 	return -errno;
-}	
+}
 
 /*
  * poll ready and send
@@ -1562,7 +1562,7 @@ getserveraddr(const int flags)
 		hints.ai_protocol = IPPROTO_TCP;
 	}
 	hints.ai_flags = AI_ADDRCONFIG | flags;
-	
+
 	ret = getaddrinfo(servername, NULL, &hints, &res);
 	if (ret != 0) {
 		fprintf(stderr, "bad server=%s: %s\n",
@@ -1604,7 +1604,7 @@ getlocaladdr(void)
 		hints.ai_protocol = IPPROTO_TCP;
 	}
 	hints.ai_flags = AI_ADDRCONFIG;
-	
+
 	ret = getaddrinfo(localname, NULL, &hints, &res);
 	if (ret != 0) {
 		fprintf(stderr,
@@ -2438,7 +2438,7 @@ main(const int argc, char * const argv[])
 	/* round-time trip statistics */
 	if (xrcount != 0) {
 		double avg, stddev;
-		
+
 		avg = dsum / xrcount;
 		stddev = sqrt(dsumsq / xrcount - avg * avg);
 		printf("RTT: min/avg/max/stddev:  %.3f/%.3f/%.3f/%.3f ms\n",
