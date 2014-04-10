@@ -21,6 +21,7 @@ AC_PREREQ(2.13)
 AC_PROG_CC
 
 AC_CHECK_LIB(m, sqrt)
+AC_CHECK_LIB(rt, clock_gettime)
 
 case "$host" in
         *-freebsd*)
