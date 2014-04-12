@@ -307,7 +307,8 @@ release.
  - When the web pages are up, announce the release on
    bind-announce@isc.org
 
- - Increment the version in the file "version"
+ - Increment the version in the file "version", "configure.in" and
+   "doc/arm/Bv9ARM-book.xml".
 
  - Resume doing pullups
 
