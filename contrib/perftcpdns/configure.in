@@ -21,6 +21,16 @@ AC_PROG_CC
 AC_CHECK_LIB(m, sqrt)
 AC_CHECK_LIB(rt, clock_gettime)
 
+AC_MSG_CHECKING(epoll support)
+AC_TRY_RUN([
+#include <sys/epoll.h>
+int main() {
+	if (epoll_create(1) < 0)
+		return (1);
+	return (0);
+}
+], [AC_MSG_RESULT(yes)], [AC_MSG_ERROR(epoll not found)])
+
 case "$host" in
         *-freebsd*)
                 # We don't want to set -lpthread as that break
