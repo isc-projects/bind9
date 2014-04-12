@@ -18,9 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed -e 's/^/# /' -e '/Portions of this code/,$d' COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.533 $)
-
-AC_INIT(lib/dns/name.c)
+AC_INIT(BIND, [9.9], [bind9-bugs@isc.org], [], [https://www.isc.org/downloads/BIND/])
 AC_PREREQ(2.59)
 
 AC_CONFIG_HEADER(config.h)
