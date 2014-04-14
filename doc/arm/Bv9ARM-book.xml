@@ -8953,17 +8953,20 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  query will take place: when a cache record with a
 		  lower TTL value is encountered during query processing,
 		  it will be refreshed.  Valid trigger TTL values are 1 to
-		  10 seconds.  Setting a trigger TTL to zero (0) causes
+		  10 seconds.  Values larger than 10 seconds will be silently
+		  reduced to 10.
+		  Setting a trigger TTL to zero (0) causes
 		  prefetch to be disabled.
 		  The default trigger TTL is <literal>2</literal>.
 		</para>
 		<para>
-		  An optional second argument can be used
-		  to set the smallest <emphasis>original</emphasis>
+		  An optional second argument specifies the "eligibility"
+		  TTL: the smallest <emphasis>original</emphasis>
 		  TTL value that will be accepted for a record to be
-		  eligible for prefetching.  The difference between
-		  the trigger TTL and the eligibility TTL must be
-		  at least 6 seconds.  
+		  eligible for prefetching.  The eligibility TTL must
+		  be at least six seconds longer than the trigger TTL;
+		  if it isn't, <command>named</command> will silently
+		  adjust it upward.
 		  The default eligibility TTL is <literal>9</literal>.
 		</para>
 	      </listitem>
