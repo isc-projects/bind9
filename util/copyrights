@@ -291,6 +291,7 @@
 ./bin/pkcs11/openssl-0.9.8y-patch		X	2013
 ./bin/pkcs11/openssl-1.0.0l-patch		X	2014
 ./bin/pkcs11/openssl-1.0.1f-patch		X	2014
+./bin/pkcs11/openssl-1.0.1g-patch		X	2014
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-destroy.c			X	2009,2010
 ./bin/pkcs11/pkcs11-destroy.docbook		SGML	2009,2014
