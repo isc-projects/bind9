@@ -8948,7 +8948,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  answer available.
 		</para>
 		<para>
-		  The <option>prefetch</option> specifies the the
+		  The <option>prefetch</option> specifies the
 		  "trigger" TTL value at which prefetch of the current
 		  query will take place: when a cache record with a
 		  lower TTL value is encountered during query processing,
