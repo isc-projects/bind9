@@ -4953,6 +4953,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> resolver-query-timeout <replaceable>number</replaceable> ; </optional>
     <optional> deny-answer-addresses { <replaceable>address_match_list</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
     <optional> deny-answer-aliases { <replaceable>namelist</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
+    <optional> prefetch <replaceable>number</replaceable> <optional><replaceable>number</replaceable></optional> ; </optional>
+
     <optional> rate-limit {
 	<optional> domain <replaceable>domain</replaceable> ; </optional>
 	<optional> responses-per-second <optional>size <replaceable>number</replaceable></optional> <optional>ratio <replaceable>fixedpoint</replaceable></optional> <replaceable>number</replaceable> ; </optional>
@@ -4970,13 +4972,18 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> exempt-clients  { <replaceable>address_match_list</replaceable> } ; </optional>
 	<optional> max-table-size <replaceable>number</replaceable> ; </optional>
 	<optional> min-table-size <replaceable>number</replaceable> ; </optional>
-      } ; </optional>
-    <optional> response-policy { <replaceable>zone_name</replaceable>
-	<optional> policy given | disabled | passthru | drop | nxdomain | nodata | cname <replaceable>domain</replaceable> </optional>
-	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional> ;
-    } <optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional>
-	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional> <optional> min-ns-dots <replaceable>number</replaceable> </optional>
-	<optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> </optional> ; </optional>
+    } ; </optional>
+    <optional> response-policy {
+	zone <replaceable>zone_name</replaceable> ;
+	<optional> policy <replaceable>given | disabled | passthru | drop | nxdomain | nodata | cname</replaceable> <replaceable>domain</replaceable> ; </optional>
+	<optional> recursive-only <replaceable>yes_or_no</replaceable> ; </optional>
+	<optional> max-policy-ttl <replaceable>number</replaceable> ; </optional> ;
+	<optional> recursive-only <replaceable>yes_or_no</replaceable> ; </optional>
+	<optional> max-policy-ttl <replaceable>number</replaceable> ; </optional>
+	<optional> break-dnssec <replaceable>yes_or_no</replaceable> ; </optional>
+	<optional> min-ns-dots <replaceable>number</replaceable> ; </optional>
+	<optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> ; </optional>
+    } ; </optional>
 };
 </programlisting>
 
@@ -8946,8 +8953,9 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  query will take place: when a cache record with a
 		  lower TTL value is encountered during query processing,
 		  it will be refreshed.  Valid trigger TTL values are 1 to
-		  10 seconds.  Setting a trigger TTL to zero disables
-		  prefetch.
+		  10 seconds.  Setting a trigger TTL to zero (0) causes
+		  prefetch to be disabled.
+		  The default trigger TTL is <literal>2</literal>.
 		</para>
 		<para>
 		  An optional second argument can be used
@@ -8955,12 +8963,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  TTL value that will be accepted for a record to be
 		  eligible for prefetching.  The difference between
 		  the trigger TTL and the eligibility TTL must be
-		  at least 6 seconds.
-		</para>
-		<para>
-		  The default trigger and eligibility TTLs are
-		  <literal>2</literal> and <literal>9</literal>,
-		  respectively.
+		  at least 6 seconds.  
+		  The default eligibility TTL is <literal>9</literal>.
 		</para>
 	      </listitem>
 	    </varlistentry>

@@ -190,6 +190,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->provideixfr = ISC_TRUE;
 	view->maxcachettl = 7 * 24 * 3600;
 	view->maxncachettl = 3 * 3600;
+	view->prefetch_eligible = 0;
+	view->prefetch_trigger = 0;
 	view->dstport = 53;
 	view->preferred_glue = 0;
 	view->flush = ISC_FALSE;
