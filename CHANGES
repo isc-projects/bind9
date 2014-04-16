@@ -1,4 +1,4 @@
-3809.	[doc]		Fix NSID documentation.  
+3809.	[doc]		Fix NSID documentation.
 
 3807.	[bug]		Fix sign extention bug in dns_name_fromtext when
 			lowercase is set. [RT #35743]
