@@ -9748,6 +9748,7 @@ ns.domain.com.rpz-nsdname   CNAME   .
     <optional> bogus <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> provide-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> request-nsid <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> max-udp-size <replaceable>number</replaceable> ; </optional>
@@ -9954,6 +9955,13 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	    only <command>query-source-v6</command> can be specified.
 	  </para>
 
+	  <para>
+	    The <command>request-nsid</command> clause determines
+	    whether the local server will add a NSID EDNS option
+	    to requests sent to the server.  This overrides
+	    <command>request-nsid</command> set at the view or
+	    option level. 
+	  </para>
 	</sect2>
 
       <sect2 id="statschannels">
