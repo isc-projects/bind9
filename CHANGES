@@ -1,3 +1,5 @@
+3809.	[doc]		Fix SIT and NSID documentation.  
+
 3808.	[doc]		Clean up "prefetch" documentation. [RT #35751]
 
 3807.	[bug]		Fix sign extention bug in dns_name_fromtext when

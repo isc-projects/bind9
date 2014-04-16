@@ -6281,31 +6281,36 @@ options {
 
 	    <varlistentry>
 	      <term><command>request-sit</command></term>
-	      <para>
-		If <userinput>yes</userinput>, then a SIT (Source Identity
-		Token) EDNS option is sent along with the query.  If the
-		resolver has previously talked to the server, the SIT
-		returned in the previous transaction is sent. This
-		is used by the server to determine whether the resolver
-		has talked to it before. A resolver sending the correct
-		SIT is assumed not to be an off-path attacker sending a
-		spoofed-source query; the query is therefore unlikely to
-		be part of a reflection/amplification attack, so resolvers
-		sending a correct SIT option are not subject to response
-		rate limiting (RRL).  Resolvers which do not send a correct
-		SIT option may be limited to receiving smaller responses
-		via the <command>nosit-udp-size</command> option.
-	      </para>
+	      <listitem>
+		<para>
+		  If <userinput>yes</userinput>, then a SIT (Source
+		  Identity Token) EDNS option is sent along with
+		  the query.  If the resolver has previously talked
+		  to the server, the SIT returned in the previous
+		  transaction is sent. This is used by the server
+		  to determine whether the resolver has talked to
+		  it before. A resolver sending the correct SIT is
+		  assumed not to be an off-path attacker sending a
+		  spoofed-source query; the query is therefore
+		  unlikely to be part of a reflection/amplification
+		  attack, so resolvers sending a correct SIT option
+		  are not subject to response rate limiting (RRL).
+		  Resolvers which do not send a correct SIT option
+		  may be limited to receiving smaller responses via
+		  the <command>nosit-udp-size</command> option.
+		</para>
+	      </listitem>
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>sit-secret</command></term>
-	      <para>
-		If set, this is a shared secret used for generating and
-		verifying Source Identity Token EDNS options within a
-		anycast cluster.  If not set the system will generate
-		a random secret at startup.
-	      </para>
+	      <term><command>sit-secret</command></term> <listitem>
+		<para>
+		  If set, this is a shared secret used for generating
+		  and verifying Source Identity Token EDNS options
+		  within a anycast cluster.  If not set the system
+		  will generate a random secret at startup.
+		</para>
+	      </listitem>
 	    </varlistentry>
 
 	    <varlistentry>
@@ -10288,6 +10293,8 @@ rate-limit {
     <optional> bogus <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> provide-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> request-nsid <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> request-sit <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> nosit-udp-size <replaceable>number</replaceable> ; </optional>
@@ -10504,6 +10511,23 @@ rate-limit {
 	    only <command>query-source-v6</command> can be specified.
 	  </para>
 
+	  <para>
+	    The <command>request-nsid</command> clause determines
+	    whether the local server will add a NSID EDNS option
+	    to requests sent to the server.  This overrides
+	    <command>request-nsid</command> set at the view or
+	    option level. 
+	  </para>
+
+	  <para>
+	    The <command>request-sit</command> clause determines
+	    whether the local server will add a SIT EDNS option
+	    to requests sent to the server.  This overrides
+	    <command>request-sit</command> set at the view or
+	    option level.  Named may determine that SIT is not
+	    supported by the remote server and not add a SIT
+	    EDNS option to requests.
+	  </para>
 	</sect2>
 
       <sect2 id="statschannels">
