@@ -581,5 +581,21 @@ if [ $ret -ne 0 ]; then
     status=1
 fi
 
+n=`expr $n + 1`
+echo "I:check that yyyymmddvv serial number is correctly generated ($n)"
+oldserial=`$DIG +short yyyymmddvv.nil. soa @10.53.0.1 -p 5300 | awk '{print $3}'` || ret=1
+$NSUPDATE <<END > /dev/null 2>&1 || ret=1
+    server 10.53.0.1 5300
+    ttl 600
+    update add new.yyyymmddvv.nil in a 1.2.3.4
+    send
+END
+now=`$PERL -e '@lt=localtime(); printf "%.4d%.2d%2d00\n",$lt[5]+1900,$lt[4]+1,$lt[3];'`
+sleep 1
+serial=`$DIG +short yyyymmddvv.nil. soa @10.53.0.1 -p 5300 | awk '{print $3}'` || ret=1
+[ "$oldserial" -ne "$serial" ] || ret=1
+[ "$serial" -eq "$now" ] || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
 echo "I:exit status: $status"
 exit $status

@@ -594,7 +594,8 @@ static cfg_type_t cfg_type_dnssecupdatemode = {
 	&cfg_rep_string, &dnssecupdatemode_enums
 };
 
-static const char *updatemethods_enums[] = { "increment", "unixtime", NULL };
+static const char *updatemethods_enums[] = {
+	"increment", "unixtime", "date", NULL };
 static cfg_type_t cfg_type_updatemethod = {
 	"updatemethod", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
 	&cfg_rep_string, &updatemethods_enums

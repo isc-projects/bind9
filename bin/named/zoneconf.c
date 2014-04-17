@@ -1576,6 +1576,9 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		if (strcasecmp(cfg_obj_asstring(obj), "unixtime") == 0)
 			dns_zone_setserialupdatemethod(zone,
 						    dns_updatemethod_unixtime);
+		else if (strcasecmp(cfg_obj_asstring(obj), "date") == 0)
+			dns_zone_setserialupdatemethod(zone,
+						       dns_updatemethod_date);
 		else
 			dns_zone_setserialupdatemethod(zone,
 						  dns_updatemethod_increment);

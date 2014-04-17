@@ -14,9 +14,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #include <config.h>
+
+#include <time.h>
 
 #include <isc/log.h>
 #include <isc/netaddr.h>
@@ -26,6 +26,7 @@
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -1846,6 +1847,14 @@ dns_update_signatures(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	return (result);
 }
 
+static isc_stdtime_t
+epoch_to_yyyymmdd(time_t when) {
+	struct tm *tm;
+	tm = localtime(&when);
+	return (((tm->tm_year + 1900) * 10000) +
+		((tm->tm_mon + 1) * 100) + tm->tm_mday);
+}
+
 isc_uint32_t
 dns_update_soaserial(isc_uint32_t serial, dns_updatemethod_t method) {
 	isc_stdtime_t now;
@@ -1854,6 +1863,13 @@ dns_update_soaserial(isc_uint32_t serial, dns_updatemethod_t method) {
 		isc_stdtime_get(&now);
 		if (now != 0 && isc_serial_gt(now, serial))
 			return (now);
+	} else if (method == dns_updatemethod_date) {
+		isc_uint32_t new_serial;
+
+		isc_stdtime_get(&now);
+		new_serial = epoch_to_yyyymmdd((time_t) now) * 100;
+		if (new_serial != 0 && isc_serial_gt(new_serial, serial))
+			return (new_serial);
 	}
 
 	/* RFC1982 */

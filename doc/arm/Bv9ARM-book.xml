@@ -11050,7 +11050,7 @@ view "external" {
     <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
     <optional> inline-signing <replaceable>yes_or_no</replaceable>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
-    <optional> serial-update-method <constant>increment</constant>|<constant>unixtime</constant>; </optional>
+    <optional> serial-update-method <constant>increment</constant>|<constant>unixtime</constant>|<constant>date</constant>; </optional>
     <optional> max-zone-ttl <replaceable>number</replaceable> ; </optional>
 };
 
@@ -12273,6 +12273,15 @@ example.com. NS ns2.example.net.
 		    since the UNIX epoch, unless the serial number is
 		    already greater than or equal to that value, in which
 		    case it is simply incremented by one.
+		  </para>
+		  <para>
+		    When set to 
+		    <command>serial-update-method date;</command>, the
+                    new SOA serial number will be the current date
+                    in the form "YYYYMMDD", followed by two zeroes,
+                    unless the existing serial number is already greater
+                    than or equal to that value, in which case it is
+                    incremented by one.
 		  </para>
 		</listitem>
 	      </varlistentry>

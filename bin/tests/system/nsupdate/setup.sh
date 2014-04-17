@@ -31,6 +31,7 @@ rm -f ns3/example.db.jnl
 cp -f ns1/example1.db ns1/example.db
 sed 's/example.nil/other.nil/g' ns1/example1.db > ns1/other.db
 sed 's/example.nil/unixtime.nil/g' ns1/example1.db > ns1/unixtime.db
+sed 's/example.nil/yyyymmddvv.nil/g' ns1/example1.db > ns1/yyyymmddvv.db
 sed 's/example.nil/keytests.nil/g' ns1/example1.db > ns1/keytests.db
 cp -f ns3/example.db.in ns3/example.db
 

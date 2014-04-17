@@ -347,12 +347,12 @@ typedef enum {
  * \li	_increment:	Add one to the current serial, skipping 0.
  * \li	_unixtime:	Set to the seconds since 00:00 Jan 1, 1970,
  *			if possible.
- * \li	_yyyymmvv:	Set to Year, Month, Version, if possible.
- *			(Not yet implemented)
+ * \li	_date:		Set to YYYYMMDDVV: Year, Month, Day, Version
  */
 typedef enum {
 	dns_updatemethod_increment = 0,
-	dns_updatemethod_unixtime
+	dns_updatemethod_unixtime,
+	dns_updatemethod_date
 } dns_updatemethod_t;
 
 /*
