@@ -29,8 +29,8 @@
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/string.h>
-#include <isc/util.h>
 #include <isc/task.h>
+#include <isc/util.h>
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
@@ -755,7 +755,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 {
 	isc_result_t result;
 	char option_store[256];
-	char *cmd, *value, *ptr;
+	char *cmd, *value, *ptr, *code;
 	isc_uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
 #ifdef DIG_SIGCHASE
@@ -922,19 +922,54 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 'e':
 		switch (cmd[1]) {
 		case 'd':
-			FULLCHECK("edns");
-			if (!state) {
-				lookup->edns = -1;
+			switch(cmd[2]) {
+			case 'n':
+				switch (cmd[3]) {
+				case 's':
+					switch (cmd[4]) {
+					case 0:
+						FULLCHECK("edns");
+						if (!state) {
+							lookup->edns = -1;
+							break;
+						}
+						if (value == NULL) {
+							lookup->edns = 0;
+							break;
+						}
+						result = parse_uint(&num,
+								    value,
+								    255,
+								    "edns");
+						if (result != ISC_R_SUCCESS)
+							fatal("Couldn't parse "
+							      "edns");
+						lookup->edns = num;
+						break;
+					case 'o':
+						FULLCHECK("ednsopt");
+						if (!state) {
+							lookup->ednsoptscnt = 0;
+							break;
+						}
+						if (value == NULL)
+							fatal("ednsopt no "
+							      "code point "
+							      "specified");
+						code = next_token(&value, ":");
+						save_opt(lookup, code, value);
+						break;
+					default:
+						goto invalid_option;
+					}
+					break;
+				default:
+					goto invalid_option;
+				}
 				break;
+			default:
+				goto invalid_option;
 			}
-			if (value == NULL) {
-				lookup->edns = 0;
-				break;
-			}
-			result = parse_uint(&num, value, 255, "edns");
-			if (result != ISC_R_SUCCESS)
-				fatal("Couldn't parse edns");
-			lookup->edns = num;
 			break;
 		case 'x':
 			FULLCHECK("expire");

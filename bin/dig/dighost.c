@@ -811,6 +811,8 @@ make_empty_lookup(void) {
 #ifdef ISC_PLATFORM_USESIT
 	looknew->sitvalue = NULL;
 #endif
+	looknew->ednsopts = NULL;
+	looknew->ednsoptscnt = 0;
 	dns_fixedname_init(&looknew->fdomain);
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
@@ -863,6 +865,8 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->sit = lookold->sit;
 	looknew->sitvalue = lookold->sitvalue;
 #endif
+	looknew->ednsopts = lookold->ednsopts;
+	looknew->ednsoptscnt = lookold->ednsoptscnt;
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = lookold->sigchase;
 #if DIG_SIGCHASE_TD
@@ -1461,6 +1465,45 @@ setup_libs(void) {
 	check_result(result, "isc_mutex_init");
 
 	dns_result_register();
+}
+
+#define EDNSOPTS 100U
+static dns_ednsopt_t ednsopts[EDNSOPTS];
+static unsigned char ednsoptscnt = 0;
+
+void
+save_opt(dig_lookup_t *lookup, char *code, char *value) {
+        isc_uint32_t num;
+        isc_buffer_t b;
+        isc_result_t result;
+
+        if (ednsoptscnt == EDNSOPTS)
+                fatal("too many ednsopts");
+
+        result = parse_uint(&num, code, 65535, "ednsopt");
+	if (result != ISC_R_SUCCESS)
+		fatal("bad edns code point: %s", code);
+
+        ednsopts[ednsoptscnt].code = num;
+        ednsopts[ednsoptscnt].length = 0;
+        ednsopts[ednsoptscnt].value = NULL;
+
+        if (value != NULL) {
+                char *buf;
+                buf = isc_mem_allocate(mctx, strlen(value)/2 + 1);
+                if (buf == NULL)
+                        fatal("out of memory");
+                isc_buffer_init(&b, buf, strlen(value)/2 + 1);
+                result = isc_hex_decodestring(value, &b);
+                check_result(result, "isc_hex_decodestring");
+                ednsopts[ednsoptscnt].value = isc_buffer_base(&b);
+                ednsopts[ednsoptscnt].length = isc_buffer_usedlength(&b);
+        }
+
+        if (lookup->ednsoptscnt == 0)
+                lookup->ednsopts = &ednsopts[ednsoptscnt];
+        lookup->ednsoptscnt++;
+        ednsoptscnt++;
 }
 
 /*%
@@ -2354,7 +2397,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->udpsize > 0 || lookup->dnssec ||
 	    lookup->edns > -1 || lookup->ecs_addr != NULL)
 	{
-		dns_ednsopt_t opts[DNS_EDNSOPTIONS];
+		dns_ednsopt_t opts[EDNSOPTS + DNS_EDNSOPTIONS];
 		int i = 0;
 
 		if (lookup->udpsize == 0)
@@ -2439,6 +2482,12 @@ setup_lookup(dig_lookup_t *lookup) {
 			opts[i].length = 0;
 			opts[i].value = NULL;
 			i++;
+		}
+
+		if (lookup->ednsoptscnt != 0) {
+			memmove(&opts[i], lookup->ednsopts,
+			        sizeof(dns_ednsopt_t) * lookup->ednsoptscnt);
+			i += lookup->ednsoptscnt;
 		}
 
 		add_opt(lookup->sendmsg, lookup->udpsize,
@@ -4142,6 +4191,12 @@ destroy_libs(void) {
 #endif
 	debug("Removing log context");
 	isc_log_destroy(&lctx);
+
+	while (ednsoptscnt > 0U) {
+		ednsoptscnt--;
+		if (ednsopts[ednsoptscnt].value != NULL)
+			isc_mem_free(mctx, ednsopts[ednsoptscnt].value);
+	}
 
 	debug("Destroy memory");
 	if (memdebugging != 0)

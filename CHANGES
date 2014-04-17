@@ -1,3 +1,6 @@
+3812.	[func]		Dig now supports sending arbitary EDNS options from
+			the command line (+ednsopt=code[:value]). [RT #35584]
+
 3811.	[func]		"serial-update-method date;" sets serial number
 			on dynamic update to today's date in YYYYMMDDNN
 			format. (Thanks to Bradley Forschinger.) [RT #24903]

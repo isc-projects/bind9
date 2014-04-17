@@ -192,6 +192,8 @@ isc_boolean_t	sigchase;
 #ifdef ISC_PLATFORM_USESIT
 	char *sitvalue;
 #endif
+	dns_ednsopt_t *ednsopts;
+	unsigned int ednsoptscnt;
 };
 
 /*% The dig_query structure */
@@ -426,6 +428,8 @@ chase_scanname(dns_name_t *name, dns_rdatatype_t type, dns_rdatatype_t covers);
 void
 chase_sig(dns_message_t *msg);
 #endif
+
+void save_opt(dig_lookup_t *lookup, char *code, char *value);
 
 ISC_LANG_ENDDECLS
 

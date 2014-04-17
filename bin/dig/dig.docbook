@@ -803,11 +803,23 @@
 	  <term><option>+edns=#</option></term>
 	  <listitem>
 	    <para>
-	       Specify the EDNS version to query with.  Valid values
-	       are 0 to 255.  Setting the EDNS version will cause
-	       a EDNS query to be sent.  <option>+noedns</option>
-	       clears the remembered EDNS version.  EDNS is set to
-	       0 by default.
+	      Specify the EDNS version to query with.  Valid values
+	      are 0 to 255.  Setting the EDNS version will cause
+	      a EDNS query to be sent.  <option>+noedns</option>
+	      clears the remembered EDNS version.  EDNS is set to
+	      0 by default.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><option>+[no]ednsopt[=code[:value]]</option></term>
+	  <listitem>
+	    <para>
+	      Specify EDNS option with code point <option>code</code>
+	      and optionally payload of <option>value</value> as a
+	      hexadecimal string.  <option>+noednsopt</option>
+	      clears the EDNS options to to be sent.
 	    </para>
 	  </listitem>
 	</varlistentry>
