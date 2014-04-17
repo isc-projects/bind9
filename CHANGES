@@ -1,3 +1,6 @@
+3810.	[bug]		Work around broken nameservers that fail to ignore
+			unknown EDNS options. [RT #35766]
+
 3809.	[doc]		Fix SIT and NSID documentation.
 
 3808.	[doc]		Clean up "prefetch" documentation. [RT #35751]

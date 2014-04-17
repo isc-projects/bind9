@@ -7455,6 +7455,24 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (message->rcode != dns_rcode_noerror &&
 	    message->rcode != dns_rcode_nxdomain) {
+#ifdef ISC_PLATFORM_USESIT
+		unsigned char sit[64];
+
+		/*
+		 * Some servers do not ignore unknown EDNS options.
+		 */
+		if (!NOSIT(query->addrinfo) &&
+		    (message->rcode == dns_rcode_formerr ||
+		     message->rcode == dns_rcode_notimp ||
+		     message->rcode == dns_rcode_refused) &&
+		     dns_adb_getsit(fctx->adb, query->addrinfo,
+				   sit, sizeof(sit)) == 0U) {
+			dns_adb_changeflags(fctx->adb, query->addrinfo,
+					    FCTX_ADDRINFO_NOSIT,
+					    FCTX_ADDRINFO_NOSIT);
+			resend = ISC_TRUE;
+		} else
+#endif
 		if (((message->rcode == dns_rcode_formerr ||
 		      message->rcode == dns_rcode_notimp) ||
 		     (message->rcode == dns_rcode_servfail &&
