@@ -647,6 +647,18 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]ednsopt[=code[:value]]</option></term>
+	  <listitem>
+	    <para>
+	      Specify EDNS option with code point <option>code</code>
+	      and optionally payload of <option>value</value> as a
+	      hexadecimal string.  <option>+noednsopt</option>
+	      clears the EDNS options to to be sent.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]expire</option></term>
 	  <listitem>
 	    <para>

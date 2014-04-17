@@ -165,6 +165,9 @@
 			conditions causing SERVFAILs when resolving.
 			[RT #35538]
 
+3812.	[func]		Dig now supports sending arbitary EDNS options from
+			the command line (+ednsopt=code[:value]). [RT #35584]
+
 	--- 9.10.2 released ---
 
 	--- 9.10.2rc2 released ---
