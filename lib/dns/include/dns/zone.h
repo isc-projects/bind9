@@ -262,6 +262,9 @@ dns_zone_setfile(dns_zone_t *zone, const char *file);
 isc_result_t
 dns_zone_setfile2(dns_zone_t *zone, const char *file,
 		  dns_masterformat_t format);
+isc_result_t
+dns_zone_setfile3(dns_zone_t *zone, const char *file,
+		  dns_masterformat_t format, const dns_master_style_t *style);
 /*%<
  *    Sets the name of the master file in the format of 'format' from which
  *    the zone loads its database to 'file'.
@@ -274,6 +277,11 @@ dns_zone_setfile2(dns_zone_t *zone, const char *file,
  *    dns_zone_setfile() is a backward-compatible form of
  *    dns_zone_setfile2(), which always specifies the
  *    dns_masterformat_text (RFC1035) format.
+ *
+ *    dns_zone_setfile2() is a backward-compatible form of
+ *    dns_zone_setfile3(), which also specifies the style
+ *    that should be used if a zone using the 'text'
+ *    masterformat is ever dumped.
  *
  * Require:
  *\li	'zone' to be a valid zone.

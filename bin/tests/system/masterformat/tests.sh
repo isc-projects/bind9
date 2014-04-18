@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -33,6 +31,15 @@ israw () {
              ($style, $version) = unpack("NN", $input);
              exit 1 if ($style != 2 || $version > 1);' < $1
     return $?
+}
+
+isfull () {
+    # there should be no whitespace at the beginning of a line
+    if grep '^[ 	][ 	]*' $1 > /dev/null 2>&1; then
+	return 1
+    else
+	return 0
+    fi
 }
 
 rawversion () {
@@ -132,6 +139,13 @@ status=`expr $status + $ret`
 echo "I:checking that slave was saved in text format when configured"
 ret=0
 israw ns2/transfer.db.txt && ret=1
+isfull ns2/transfer.db.txt && ret=1
+[ $ret -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+echo "I:checking that slave was saved in 'full' style when configured"
+ret=0
+isfull ns2/transfer.db.full > /dev/null 2>&1 || ret=1
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 

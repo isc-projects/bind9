@@ -15,10 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
-/*% */
-
 #include <config.h>
 
 #include <isc/buffer.h>
@@ -34,6 +30,7 @@
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/name.h>
+#include <dns/masterdump.h>
 #include <dns/rdata.h>
 #include <dns/rdatatype.h>
 #include <dns/rdataset.h>
@@ -827,6 +824,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	isc_boolean_t warn = ISC_FALSE, ignore = ISC_FALSE;
 	isc_boolean_t ixfrdiff;
 	dns_masterformat_t masterformat;
+	const dns_master_style_t *masterstyle = &dns_master_style_default;
 	isc_stats_t *zoneqrystats;
 	dns_stats_t *rcvquerystats;
 	dns_zonestat_level_t statlevel;
@@ -947,7 +945,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	else
 		masterformat = dns_masterformat_text;
 	obj = NULL;
-	result= ns_config_get(maps, "masterfile-format", &obj);
+	result = ns_config_get(maps, "masterfile-format", &obj);
 	if (result == ISC_R_SUCCESS) {
 		const char *masterformatstr = cfg_obj_asstring(obj);
 
@@ -957,6 +955,27 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			masterformat = dns_masterformat_raw;
 		else if (strcasecmp(masterformatstr, "map") == 0)
 			masterformat = dns_masterformat_map;
+		else
+			INSIST(0);
+	}
+
+	obj = NULL;
+	result = ns_config_get(maps, "masterfile-style", &obj);
+	if (result == ISC_R_SUCCESS) {
+		const char *masterstylestr = cfg_obj_asstring(obj);
+
+		if (masterformat != dns_masterformat_text) {
+			cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
+				    "zone '%s': 'masterfile-style' "
+				    "can only be used with "
+				    "'masterfile-format text'", zname);
+			return (ISC_R_FAILURE);
+		}
+
+		if (strcasecmp(masterstylestr, "full") == 0)
+			masterstyle = &dns_master_style_full;
+		else if (strcasecmp(masterstylestr, "relative") == 0)
+			masterstyle = &dns_master_style_default;
 		else
 			INSIST(0);
 	}
@@ -981,19 +1000,21 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		size_t signedlen = strlen(filename) + sizeof(SIGNED);
 		char *signedname;
 
-		RETERR(dns_zone_setfile2(raw, filename, masterformat));
+		RETERR(dns_zone_setfile3(raw, filename,
+					 masterformat, masterstyle));
 		signedname = isc_mem_get(mctx, signedlen);
 		if (signedname == NULL)
 			return (ISC_R_NOMEMORY);
 
 		(void)snprintf(signedname, signedlen, "%s" SIGNED, filename);
-		result = dns_zone_setfile2(zone, signedname,
-					   dns_masterformat_raw);
+		result = dns_zone_setfile3(zone, signedname,
+					   dns_masterformat_raw, NULL);
 		isc_mem_put(mctx, signedname, signedlen);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	} else
-		RETERR(dns_zone_setfile2(zone, filename, masterformat));
+		RETERR(dns_zone_setfile3(zone, filename,
+					 masterformat, masterstyle));
 
 	obj = NULL;
 	result = cfg_map_get(zoptions, "journal", &obj);

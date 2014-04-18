@@ -1,3 +1,9 @@
+3814.	[func]		The "masterfile-style" zone option controls the
+			formatting of dumped zone files. Options are
+			"relative" (multiline format) and "full" (one
+			record per line). The default is "relative".
+			[RT #20798]
+
 3813.	[func]		"host" now recognizes the "timeout", "attempts" and
 			"debug" options when set in /etc/resolv.conf.
 			(Thanks to Adam Tkac at RedHat.) [RT #21885]

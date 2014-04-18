@@ -1117,6 +1117,11 @@ static cfg_type_t cfg_type_masterformat = {
 	&cfg_rep_string, &masterformat_enums
 };
 
+static const char *masterstyle_enums[] = { "full", "relative", NULL };
+static cfg_type_t cfg_type_masterstyle = {
+	"masterstyle", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &masterstyle_enums
+};
 
 
 /*%
@@ -1647,6 +1652,7 @@ zone_clauses[] = {
 	{ "key-directory", &cfg_type_qstring, 0 },
 	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "masterfile-format", &cfg_type_masterformat, 0 },
+	{ "masterfile-style", &cfg_type_masterstyle, 0 },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-journal-size", &cfg_type_sizenodefault, 0 },
 	{ "max-refresh-time", &cfg_type_uint32, 0 },

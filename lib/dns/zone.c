@@ -221,6 +221,7 @@ struct dns_zone {
 	ISC_LIST(dns_include_t)	newincludes;	/* Loading */
 	unsigned int		nincludes;
 	dns_masterformat_t	masterformat;
+	const dns_master_style_t *masterstyle;
 	char			*journal;
 	isc_int32_t		journalsize;
 	dns_rdataclass_t	rdclass;
@@ -881,6 +882,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	ISC_LIST_INIT(zone->newincludes);
 	zone->nincludes = 0;
 	zone->masterformat = dns_masterformat_none;
+	zone->masterstyle = NULL;
 	zone->keydirectory = NULL;
 	zone->journalsize = -1;
 	zone->journal = NULL;
@@ -1497,12 +1499,23 @@ dns_zone_setstring(dns_zone_t *zone, char **field, const char *value) {
 
 isc_result_t
 dns_zone_setfile(dns_zone_t *zone, const char *file) {
-	return (dns_zone_setfile2(zone, file, dns_masterformat_text));
+	return (dns_zone_setfile3(zone, file, dns_masterformat_text,
+				  &dns_master_style_default));
 }
 
 isc_result_t
 dns_zone_setfile2(dns_zone_t *zone, const char *file,
-		  dns_masterformat_t format) {
+		  dns_masterformat_t format)
+{
+	return (dns_zone_setfile3(zone, file, format,
+				  &dns_master_style_default));
+}
+
+isc_result_t
+dns_zone_setfile3(dns_zone_t *zone, const char *file,
+		  dns_masterformat_t format,
+		  const dns_master_style_t *style)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1511,6 +1524,8 @@ dns_zone_setfile2(dns_zone_t *zone, const char *file,
 	result = dns_zone_setstring(zone, &zone->masterfile, file);
 	if (result == ISC_R_SUCCESS) {
 		zone->masterformat = format;
+		if (format == dns_masterformat_text)
+			zone->masterstyle = style;
 		result = default_journal(zone);
 	}
 	UNLOCK_ZONE(zone);
@@ -2203,6 +2218,8 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 			get_raw_serial(zone->raw, &rawdata);
 		if (zone->type == dns_zone_key)
 			output_style = &dns_master_style_keyzone;
+		else if (zone->masterstyle != NULL)
+			output_style = zone->masterstyle;
 		else
 			output_style = &dns_master_style_default;
 		result = dns_master_dumpinc3(zone->mctx, zone->db, version,
