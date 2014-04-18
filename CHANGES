@@ -1,3 +1,7 @@
+3813.	[func]		"host" now recognizes the "timeout", "attempts" and
+			"debug" options when set in /etc/resolv.conf.
+			(Thanks to Adam Tkac at RedHat.) [RT #21885]
+
 3812.	[func]		Dig now supports sending arbitary EDNS options from
 			the command line (+ednsopt=code[:value]). [RT #35584]
 

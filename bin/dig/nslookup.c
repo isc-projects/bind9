@@ -909,9 +909,8 @@ main(int argc, char **argv) {
 	setup_libs();
 	progname = argv[0];
 
-	parse_args(argc, argv);
-
 	setup_system();
+	parse_args(argc, argv);
 	if (domainopt[0] != '\0')
 		set_search_domain(domainopt);
 	if (in_use)

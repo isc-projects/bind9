@@ -1974,8 +1974,8 @@ main(int argc, char **argv) {
 	result = isc_app_start();
 	check_result(result, "isc_app_start");
 	setup_libs();
-	parse_args(ISC_FALSE, ISC_FALSE, argc, argv);
 	setup_system();
+	parse_args(ISC_FALSE, ISC_FALSE, argc, argv);
 	if (domainopt[0] != '\0') {
 		set_search_domain(domainopt);
 		usesearch = ISC_TRUE;

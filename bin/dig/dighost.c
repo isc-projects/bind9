@@ -126,7 +126,8 @@ isc_boolean_t
 	showsearch = ISC_FALSE,
 	qr = ISC_FALSE,
 	is_dst_up = ISC_FALSE,
-	keep_open = ISC_FALSE;
+	keep_open = ISC_FALSE,
+	verbose = ISC_FALSE;
 in_port_t port = 53;
 unsigned int timeout = 0;
 unsigned int extrabytes;
@@ -1330,9 +1331,23 @@ setup_system(void) {
 		}
 	}
 
+	if (lwconf->resdebug) {
+		verbose = ISC_TRUE;
+		debug("verbose is on");
+	}
 	if (ndots == -1) {
 		ndots = lwconf->ndots;
 		debug("ndots is %d.", ndots);
+	}
+	if (lwconf->attempts) {
+		tries = lwconf->attempts + 1;
+		if (tries < 2)
+			tries = 2;
+		debug("tries is %d.", tries);
+	}
+	if (lwconf->timeout) {
+		timeout = lwconf->timeout;
+		debug("timeout is %d.", timeout);
 	}
 
 	/* If user doesn't specify server use nameservers from resolv.conf. */

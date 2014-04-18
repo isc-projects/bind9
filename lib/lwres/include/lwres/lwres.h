@@ -243,6 +243,8 @@ typedef struct {
 	lwres_uint8_t	resdebug;      /*%< non-zero if 'options debug' set */
 	lwres_uint8_t	ndots;	       /*%< set to n in 'options ndots:n' */
 	lwres_uint8_t	no_tld_query;  /*%< non-zero if 'options no_tld_query' */
+	lwres_int32_t	attempts;      /*%< set to n in 'options attempts:n' */
+	lwres_int32_t	timeout;       /*%< set to n in 'options timeout:n' */
 } lwres_conf_t;
 
 #define LWRES_ADDRTYPE_V4		0x00000001U	/*%< ipv4 */

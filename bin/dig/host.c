@@ -681,6 +681,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 	lookup->servfail_stops = ISC_FALSE;
 	lookup->comments = ISC_FALSE;
+	short_form = !verbose;
 
 	while ((c = isc_commandline_parse(argc, argv, optstring)) != -1) {
 		switch (c) {
@@ -891,8 +892,8 @@ main(int argc, char **argv) {
 	result = isc_app_start();
 	check_result(result, "isc_app_start");
 	setup_libs();
-	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
+	parse_args(ISC_FALSE, argc, argv);
 	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
 	check_result(result, "isc_app_onrun");
 	isc_app_run();

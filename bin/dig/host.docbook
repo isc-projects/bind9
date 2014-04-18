@@ -125,7 +125,9 @@
       options are equivalent.  They have been provided for backwards
       compatibility.  In previous versions, the <option>-d</option> option
       switched on debugging traces and <option>-v</option> enabled verbose
-      output.
+      output.  Verbose output can also be enabled by setting the
+      <parameter>debug</parameter> option in
+      <filename>/etc/resolv.conf</filename>.
     </para>
 
     <para>
@@ -163,10 +165,12 @@
       indicates
       how many times <command>host</command> will repeat a query
       that does
-      not get answered.  The default number of retries is 1.  If
+      not get answered.  If
       <parameter>number</parameter> is negative or zero, the
       number of
-      retries will default to 1.
+      retries will default to 1.  The default value is 1, or
+      the value of the <parameter>attempts</parameter> option in
+      <filename>/etc/resolv.conf</filename>, if set.
     </para>
 
     <para>
@@ -224,7 +228,11 @@
       will
       effectively wait forever for a reply.  The time to wait for a response
       will be set to the number of seconds given by the hardware's maximum
-      value for an integer quantity.
+      value for an integer quantity.  By default, <command>host</command>
+      will wait for 5 seconds for UDP responses and 10 seconds for TCP
+      connections.  These defaults can be overridden by the
+      <parameter>timeout</parameter> option in
+      <filename>/etc/resolv.conf</filename>.
     </para>
 
     <para>
