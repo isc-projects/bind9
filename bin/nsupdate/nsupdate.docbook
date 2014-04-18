@@ -20,7 +20,7 @@
 
 <refentry id="man.nsupdate">
   <refentryinfo>
-    <date>March 10, 2012</date>
+    <date>April 18, 2014</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle><application>nsupdate</application></refentrytitle>
@@ -159,7 +159,13 @@
       <optional><parameter>hmac:</parameter></optional><parameter>keyname:secret.</parameter>
       <parameter>keyname</parameter> is the name of the key, and
       <parameter>secret</parameter> is the base64 encoded shared secret.
-      Use of the <option>-y</option> option is discouraged because the
+      <parameter>hmac</parameter> is the name of the key algorithm;
+      valid choices are <literal>hmac-md5</literal>,
+      <literal>hmac-sha1</literal>, <literal>hmac-sha224</literal>,
+      <literal>hmac-sha256</literal>, <literal>hmac-sha384</literal>, or
+      <literal>hmac-sha512</literal>.  If <parameter>hmac</parameter>
+      is not specified, the default is <literal>hmac-md5</literal>.
+      NOTE: Use of the <option>-y</option> option is discouraged because the
       shared secret is supplied as a command line argument in clear text.
       This may be visible in the output from
       <citerefentry>
