@@ -944,7 +944,7 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 }
 
 
-static void
+void
 setup_text_key(void) {
 	isc_result_t result;
 	dns_name_t keyname;
@@ -1192,7 +1192,7 @@ read_confkey(void) {
 	return (result);
 }
 
-static void
+void
 setup_file_key(void) {
 	isc_result_t result;
 	dst_key_t *dstkey = NULL;

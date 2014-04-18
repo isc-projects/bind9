@@ -432,6 +432,9 @@ chase_sig(dns_message_t *msg);
 
 void save_opt(dig_lookup_t *lookup, char *code, char *value);
 
+void setup_file_key(void);
+void setup_text_key(void);
+
 ISC_LANG_ENDDECLS
 
 #endif

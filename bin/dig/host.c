@@ -894,6 +894,10 @@ main(int argc, char **argv) {
 	setup_libs();
 	setup_system();
 	parse_args(ISC_FALSE, argc, argv);
+	if (keyfile[0] != 0)
+		setup_file_key();
+	else if (keysecret[0] != 0)
+		setup_text_key();
 	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
 	check_result(result, "isc_app_onrun");
 	isc_app_run();

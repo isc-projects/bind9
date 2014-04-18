@@ -911,6 +911,10 @@ main(int argc, char **argv) {
 
 	setup_system();
 	parse_args(argc, argv);
+	if (keyfile[0] != 0)
+		setup_file_key();
+	else if (keysecret[0] != 0)
+		setup_text_key();
 	if (domainopt[0] != '\0')
 		set_search_domain(domainopt);
 	if (in_use)
