@@ -1,3 +1,5 @@
+3815.	[doc]		Clarify "nsupdate -y" usage in man page. [RT #35808]
+
 3814.	[func]		The "masterfile-style" zone option controls the
 			formatting of dumped zone files. Options are
 			"relative" (multiline format) and "full" (one
