@@ -1,3 +1,5 @@
+3815.	[doc]		Clarify "nsupdate -y" usage in man page. [RT #35808]
+
 3809.	[doc]		Fix NSID documentation.
 
 3807.	[bug]		Fix sign extention bug in dns_name_fromtext when
