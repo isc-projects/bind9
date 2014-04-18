@@ -1420,14 +1420,14 @@
 ./bin/tests/system/masterformat/ns1/compile.sh	SH	2005,2006,2007,2011,2012,2013,2014
 ./bin/tests/system/masterformat/ns1/example.db	ZONE	2005,2007
 ./bin/tests/system/masterformat/ns1/large.db.in	ZONE	2012
-./bin/tests/system/masterformat/ns1/named.conf	CONF-C	2005,2007,2011,2012,2013
+./bin/tests/system/masterformat/ns1/named.conf	CONF-C	2005,2007,2011,2012,2013,2014
 ./bin/tests/system/masterformat/ns1/signed.db	ZONE	2013
 ./bin/tests/system/masterformat/ns2/formerly-text.db.in	ZONE	2011
-./bin/tests/system/masterformat/ns2/named.conf	CONF-C	2005,2007,2011,2012
+./bin/tests/system/masterformat/ns2/named.conf	CONF-C	2005,2007,2011,2012,2014
 ./bin/tests/system/masterformat/ns3/named.conf	CONF-C	2012,2013
 ./bin/tests/system/masterformat/prereq.sh	SH	2014
 ./bin/tests/system/masterformat/setup.sh	SH	2005,2006,2007,2011,2012,2013,2014
-./bin/tests/system/masterformat/tests.sh	SH	2005,2007,2011,2012,2013
+./bin/tests/system/masterformat/tests.sh	SH	2005,2007,2011,2012,2013,2014
 ./bin/tests/system/metadata/child.db		ZONE	2009
 ./bin/tests/system/metadata/clean.sh		SH	2009,2011,2012,2014
 ./bin/tests/system/metadata/parent.db		ZONE	2009
@@ -3729,7 +3729,7 @@
 ./lib/lwres/include/lwres/list.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007
 ./lib/lwres/include/lwres/lwbuffer.h		C	2000,2001,2004,2005,2006,2007
 ./lib/lwres/include/lwres/lwpacket.h		C	1999,2000,2001,2004,2005,2006,2007
-./lib/lwres/include/lwres/lwres.h		C	2000,2001,2004,2005,2006,2007
+./lib/lwres/include/lwres/lwres.h		C	2000,2001,2004,2005,2006,2007,2014
 ./lib/lwres/include/lwres/netdb.h.in		C	2000,2001,2004,2005,2007,2009
 ./lib/lwres/include/lwres/platform.h.in		C	2000,2001,2004,2005,2007
 ./lib/lwres/include/lwres/result.h		C	2000,2001,2004,2005,2006,2007
