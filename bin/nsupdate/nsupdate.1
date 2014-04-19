@@ -20,11 +20,11 @@
 .\"     Title: nsupdate
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.71.1 <http://docbook.sf.net/>
-.\"      Date: July 09, 2010
+.\"      Date: April 18, 2014
 .\"    Manual: BIND9
 .\"    Source: BIND9
 .\"
-.TH "NSUPDATE" "1" "July 09, 2010" "BIND9" "BIND9"
+.TH "NSUPDATE" "1" "April 18, 2014" "BIND9" "BIND9"
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -97,7 +97,18 @@ option is used, a signature is generated from
 \fIkeyname\fR
 is the name of the key, and
 \fIsecret\fR
-is the base64 encoded shared secret. Use of the
+is the base64 encoded shared secret.
+\fIhmac\fR
+is the name of the key algorithm; valid choices are
+hmac\-md5,
+hmac\-sha1,
+hmac\-sha224,
+hmac\-sha256,
+hmac\-sha384, or
+hmac\-sha512. If
+\fIhmac\fR
+is not specified, the default is
+hmac\-md5. NOTE: Use of the
 \fB\-y\fR
 option is discouraged because the shared secret is supplied as a command line argument in clear text. This may be visible in the output from
 \fBps\fR(1)
