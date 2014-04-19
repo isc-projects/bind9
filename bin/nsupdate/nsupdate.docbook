@@ -400,15 +400,17 @@
         <varlistentry>
           <term>
               <command>key</command>
-              <arg choice="req">name</arg>
+              <arg choice="opt">hmac:</arg><arg choice="req">keyname</arg>
               <arg choice="req">secret</arg>
             </term>
           <listitem>
             <para>
               Specifies that all updates are to be TSIG-signed using the
-              <parameter>keyname</parameter> <parameter>keysecret</parameter> pair.
-              The <command>key</command> command
-              overrides any key specified on the command line via
+              <parameter>keyname</parameter> <parameter>secret</parameter> pair.
+              If <parameter>hmac</parameter> is specified, then it sets the
+              signing algorithm in use; the default is
+              <literal>hmac-md5</literal>.  The <command>key</command>
+              command overrides any key specified on the command line via
               <option>-y</option> or <option>-k</option>.
             </para>
           </listitem>
