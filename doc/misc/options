@@ -165,6 +165,7 @@ options {
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys-directory <quoted_string>;
         masterfile-format ( text | raw | map );
+        masterfile-style ( full | relative );
         match-mapped-addresses <boolean>;
         max-acache-size <size_no_default>;
         max-cache-size <size_no_default>;
@@ -251,7 +252,7 @@ options {
         secroots-file <quoted_string>;
         serial-queries <integer>; // obsolete
         serial-query-rate <integer>;
-        serial-update-method ( increment | unixtime );
+        serial-update-method ( increment | unixtime | date );
         server-id ( <quoted_string> | none | hostname );
         session-keyalg <string>;
         session-keyfile ( <quoted_string> | none );
@@ -426,6 +427,7 @@ view <string> <optional_class> {
         managed-keys { <string> <string> <integer> <integer> <integer>
             <quoted_string>; ... };
         masterfile-format ( text | raw | map );
+        masterfile-style ( full | relative );
         match-clients { <address_match_element>; ... };
         match-destinations { <address_match_element>; ... };
         match-recursive-only <boolean>;
@@ -500,7 +502,7 @@ view <string> <optional_class> {
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
         search <boolean>;
-        serial-update-method ( increment | unixtime );
+        serial-update-method ( increment | unixtime | date );
         server <netprefix> {
                 bogus <boolean>;
                 edns <boolean>;
@@ -592,6 +594,7 @@ view <string> <optional_class> {
                 key-directory <quoted_string>;
                 maintain-ixfr-base <boolean>; // obsolete
                 masterfile-format ( text | raw | map );
+                masterfile-style ( full | relative );
                 masters [ port <integer> ] [ dscp <integer> ] { ( <masters>
                     | <ipv4_address> [ port <integer> ] | <ipv6_address> [
                     port <integer> ] ) [ key <string> ]; ... };
@@ -618,7 +621,7 @@ view <string> <optional_class> {
                 pubkey <integer> <integer> <integer>
                     <quoted_string>; // obsolete
                 request-ixfr <boolean>;
-                serial-update-method ( increment | unixtime );
+                serial-update-method ( increment | unixtime | date );
                 server-addresses { ( <ipv4_address> | <ipv6_address> ) [
                     port <integer> ]; ... };
                 server-names { <quoted_string>; ... };
@@ -691,6 +694,7 @@ zone <string> <optional_class> {
         key-directory <quoted_string>;
         maintain-ixfr-base <boolean>; // obsolete
         masterfile-format ( text | raw | map );
+        masterfile-style ( full | relative );
         masters [ port <integer> ] [ dscp <integer> ] { ( <masters> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
@@ -716,7 +720,7 @@ zone <string> <optional_class> {
         nsec3-test-zone <boolean>; // test only
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
         request-ixfr <boolean>;
-        serial-update-method ( increment | unixtime );
+        serial-update-method ( increment | unixtime | date );
         server-addresses { ( <ipv4_address> | <ipv6_address> ) [ port
             <integer> ]; ... };
         server-names { <quoted_string>; ... };

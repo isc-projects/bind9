@@ -82,7 +82,10 @@ option is used. The two options are equivalent. They have been provided for back
 \fB\-d\fR
 option switched on debugging traces and
 \fB\-v\fR
-enabled verbose output.
+enabled verbose output. Verbose output can also be enabled by setting the
+\fIdebug\fR
+option in
+\fI/etc/resolv.conf\fR.
 .PP
 List mode is selected by the
 \fB\-l\fR
@@ -115,9 +118,12 @@ option.
 \fInumber\fR
 indicates how many times
 \fBhost\fR
-will repeat a query that does not get answered. The default number of retries is 1. If
+will repeat a query that does not get answered. If
 \fInumber\fR
-is negative or zero, the number of retries will default to 1.
+is negative or zero, the number of retries will default to 1. The default value is 1, or the value of the
+\fIattempts\fR
+option in
+\fI/etc/resolv.conf\fR, if set.
 .PP
 Non\-recursive queries can be made via the
 \fB\-r\fR
@@ -178,7 +184,12 @@ is less than one, the wait interval is set to one second. When the
 \fB\-w\fR
 option is used,
 \fBhost\fR
-will effectively wait forever for a reply. The time to wait for a response will be set to the number of seconds given by the hardware's maximum value for an integer quantity.
+will effectively wait forever for a reply. The time to wait for a response will be set to the number of seconds given by the hardware's maximum value for an integer quantity. By default,
+\fBhost\fR
+will wait for 5 seconds for UDP responses and 10 seconds for TCP connections. These defaults can be overridden by the
+\fItimeout\fR
+option in
+\fI/etc/resolv.conf\fR.
 .PP
 The
 \fB\-s\fR

@@ -489,6 +489,17 @@ Specify the EDNS version to query with. Valid values are 0 to 255. Setting the E
 clears the remembered EDNS version. EDNS is set to 0 by default.
 .RE
 .PP
+\fB+[no]ednsopt[=code[:value]]\fR
+.RS 4
+Specify EDNS option with code point
+\fBcode\fR
+and optionally payload of
+\fBvalue\fR
+as a hexadecimal string.
+\fB+noednsopt\fR
+clears the EDNS options to to be sent.
+.RE
+.PP
 \fB+[no]multiline\fR
 .RS 4
 Print records like the SOA records in a verbose multi\-line format with human\-readable comments. The default is to print each record on a single line, to facilitate machine parsing of the
