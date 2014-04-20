@@ -258,12 +258,15 @@ Specify the default time to live for records to be added. The value
 will clear the default ttl.
 .RE
 .PP
-\fBkey\fR {name} {secret}
+\fBkey\fR [hmac:] {keyname} {secret}
 .RS 4
 Specifies that all updates are to be TSIG\-signed using the
 \fIkeyname\fR
-\fIkeysecret\fR
-pair. The
+\fIsecret\fR
+pair. If
+\fIhmac\fR
+is specified, then it sets the signing algorithm in use; the default is
+hmac\-md5. The
 \fBkey\fR
 command overrides any key specified on the command line via
 \fB\-y\fR
