@@ -306,14 +306,16 @@
             </p></dd>
 <dt><span class="term">
               <span><strong class="command">key</strong></span>
-               {name}
+               [hmac:] {keyname}
                {secret}
             </span></dt>
 <dd><p>
               Specifies that all updates are to be TSIG-signed using the
-              <em class="parameter"><code>keyname</code></em> <em class="parameter"><code>keysecret</code></em> pair.
-              The <span><strong class="command">key</strong></span> command
-              overrides any key specified on the command line via
+              <em class="parameter"><code>keyname</code></em> <em class="parameter"><code>secret</code></em> pair.
+              If <em class="parameter"><code>hmac</code></em> is specified, then it sets the
+              signing algorithm in use; the default is
+              <code class="literal">hmac-md5</code>.  The <span><strong class="command">key</strong></span>
+              command overrides any key specified on the command line via
               <code class="option">-y</code> or <code class="option">-k</code>.
             </p></dd>
 <dt><span class="term">
@@ -502,7 +504,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544780"></a><h2>EXAMPLES</h2>
+<a name="id2544791"></a><h2>EXAMPLES</h2>
 <p>
       The examples below show how
       <span><strong class="command">nsupdate</strong></span>
@@ -556,7 +558,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544824"></a><h2>FILES</h2>
+<a name="id2544835"></a><h2>FILES</h2>
 <div class="variablelist"><dl>
 <dt><span class="term"><code class="constant">/etc/resolv.conf</code></span></dt>
 <dd><p>
@@ -579,7 +581,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544907"></a><h2>SEE ALSO</h2>
+<a name="id2542119"></a><h2>SEE ALSO</h2>
 <p>
       <em class="citetitle">RFC 2136</em>,
       <em class="citetitle">RFC 3007</em>,
@@ -594,7 +596,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542166"></a><h2>BUGS</h2>
+<a name="id2542177"></a><h2>BUGS</h2>
 <p>
       The TSIG key is redundantly stored in two separate files.
       This is a consequence of nsupdate using the DST library
