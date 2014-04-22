@@ -1,3 +1,6 @@
+3816.	[func]		"dig +qr" now reports query size. (Thanks to
+			Tony Finch.) [RT #35822]
+
 3815.	[doc]		Clarify "nsupdate -y" usage in man page. [RT #35808]
 
 3814.	[func]		The "masterfile-style" zone option controls the

@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.345 2011/12/07 17:23:28 each Exp $ */
-
 /*! \file
  *  \note
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2578,6 +2576,9 @@ setup_lookup(dig_lookup_t *lookup) {
 		extrabytes = 0;
 		printmessage(ISC_LIST_HEAD(lookup->q), lookup->sendmsg,
 			     ISC_TRUE);
+		if (lookup->stats)
+			printf(";; QUERY SIZE: %u\n\n",
+			       isc_buffer_usedlength(&lookup->renderbuf));
 	}
 }
 

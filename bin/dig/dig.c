@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.245 2011/12/07 17:23:28 each Exp $ */
-
 /*! \file */
 
 #include <config.h>
