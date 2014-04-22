@@ -1486,37 +1486,37 @@ static unsigned char ednsoptscnt = 0;
 
 void
 save_opt(dig_lookup_t *lookup, char *code, char *value) {
-        isc_uint32_t num;
-        isc_buffer_t b;
-        isc_result_t result;
+	isc_uint32_t num;
+	isc_buffer_t b;
+	isc_result_t result;
 
-        if (ednsoptscnt == EDNSOPTS)
-                fatal("too many ednsopts");
+	if (ednsoptscnt == EDNSOPTS)
+		fatal("too many ednsopts");
 
-        result = parse_uint(&num, code, 65535, "ednsopt");
+	result = parse_uint(&num, code, 65535, "ednsopt");
 	if (result != ISC_R_SUCCESS)
 		fatal("bad edns code point: %s", code);
 
-        ednsopts[ednsoptscnt].code = num;
-        ednsopts[ednsoptscnt].length = 0;
-        ednsopts[ednsoptscnt].value = NULL;
+	ednsopts[ednsoptscnt].code = num;
+	ednsopts[ednsoptscnt].length = 0;
+	ednsopts[ednsoptscnt].value = NULL;
 
-        if (value != NULL) {
-                char *buf;
-                buf = isc_mem_allocate(mctx, strlen(value)/2 + 1);
-                if (buf == NULL)
-                        fatal("out of memory");
-                isc_buffer_init(&b, buf, strlen(value)/2 + 1);
-                result = isc_hex_decodestring(value, &b);
-                check_result(result, "isc_hex_decodestring");
-                ednsopts[ednsoptscnt].value = isc_buffer_base(&b);
-                ednsopts[ednsoptscnt].length = isc_buffer_usedlength(&b);
-        }
+	if (value != NULL) {
+		char *buf;
+		buf = isc_mem_allocate(mctx, strlen(value)/2 + 1);
+		if (buf == NULL)
+			fatal("out of memory");
+		isc_buffer_init(&b, buf, strlen(value)/2 + 1);
+		result = isc_hex_decodestring(value, &b);
+		check_result(result, "isc_hex_decodestring");
+		ednsopts[ednsoptscnt].value = isc_buffer_base(&b);
+		ednsopts[ednsoptscnt].length = isc_buffer_usedlength(&b);
+	}
 
-        if (lookup->ednsoptscnt == 0)
-                lookup->ednsopts = &ednsopts[ednsoptscnt];
-        lookup->ednsoptscnt++;
-        ednsoptscnt++;
+	if (lookup->ednsoptscnt == 0)
+		lookup->ednsopts = &ednsopts[ednsoptscnt];
+	lookup->ednsoptscnt++;
+	ednsoptscnt++;
 }
 
 /*%
@@ -2499,7 +2499,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 		if (lookup->ednsoptscnt != 0) {
 			memmove(&opts[i], lookup->ednsopts,
-			        sizeof(dns_ednsopt_t) * lookup->ednsoptscnt);
+				sizeof(dns_ednsopt_t) * lookup->ednsoptscnt);
 			i += lookup->ednsoptscnt;
 		}
 
