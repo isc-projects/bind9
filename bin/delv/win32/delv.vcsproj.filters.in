@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\delve.c">
+    <ClCompile Include="..\delv.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

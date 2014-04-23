@@ -373,7 +373,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "delve"="..\..\bin\delve\win32\delve.dsp" - Package Owner=<4>
+Project: "delv"="..\..\bin\delv\win32\delv.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

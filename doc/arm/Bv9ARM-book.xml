@@ -17667,7 +17667,7 @@ zone "example.com" {
       <title>Manual pages</title>
       <xi:include href="../../bin/dig/dig.docbook"/>
       <xi:include href="../../bin/dig/host.docbook"/>
-      <xi:include href="../../bin/delve/delve.docbook"/>
+      <xi:include href="../../bin/delv/delv.docbook"/>
       <xi:include href="../../bin/python/dnssec-checkds.docbook"/>
       <xi:include href="../../bin/python/dnssec-coverage.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-dsfromkey.docbook"/>

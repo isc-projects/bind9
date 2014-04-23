@@ -17,20 +17,20 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<refentry id="man.delve">
+<refentry id="man.delv">
 
   <refentryinfo>
-    <date>February 21, 2014</date>
+    <date>April 23, 2014</date>
   </refentryinfo>
 
   <refmeta>
-    <refentrytitle>delve</refentrytitle>
+    <refentrytitle>delv</refentrytitle>
     <manvolnum>1</manvolnum>
     <refmiscinfo>BIND9</refmiscinfo>
   </refmeta>
 
   <refnamediv>
-    <refname>delve</refname>
+    <refname>delv</refname>
     <refpurpose>DNS lookup and validation utility</refpurpose>
   </refnamediv>
 
@@ -43,7 +43,7 @@
 
   <refsynopsisdiv>
     <cmdsynopsis>
-      <command>delve</command>
+      <command>delv</command>
       <arg choice="opt">@server</arg>
       <arg><option>-4</option></arg>
       <arg><option>-6</option></arg>
@@ -64,17 +64,17 @@
     </cmdsynopsis>
 
     <cmdsynopsis>
-      <command>delve</command>
+      <command>delv</command>
       <arg><option>-h</option></arg>
     </cmdsynopsis>
 
     <cmdsynopsis>
-      <command>delve</command>
+      <command>delv</command>
       <arg><option>-v</option></arg>
     </cmdsynopsis>
 
     <cmdsynopsis>
-      <command>delve</command>
+      <command>delv</command>
       <arg choice="opt" rep="repeat">queryopt</arg>
       <arg choice="opt" rep="repeat">query</arg>
     </cmdsynopsis>
@@ -82,13 +82,13 @@
 
   <refsect1>
     <title>DESCRIPTION</title>
-    <para><command>delve</command>
-      (Domain Entity Lookup &amp; Validation Engine) is a tool for sending
+    <para><command>delv</command>
+      (Domain Entity Lookup &amp; Validation) is a tool for sending
       DNS queries and validating the results, using the the same internal
       resolver and validator logic as <command>named</command>.
     </para>
     <para>
-      <command>delve</command> will send to a specified name server all
+      <command>delv</command> will send to a specified name server all
       queries needed to fetch and validate the requested data; this
       includes the original requested query, subsequent queries to follow
       CNAME or DNAME chains, and queries for DNSKEY, DS and DLV records
@@ -101,25 +101,25 @@
       By default, responses are validated using built-in DNSSEC trust
       anchors for the root zone (".") and for the ISC DNSSEC lookaside
       validation zone ("dlv.isc.org").  Records returned by
-      <command>delve</command> are either fully validated or
+      <command>delv</command> are either fully validated or
       were not signed.  If validation fails, an explanation of
       the failure is included in the output; the validation process
-      can be traced in detail.  Because <command>delve</command> does
+      can be traced in detail.  Because <command>delv</command> does
       not rely on an external server to carry out validation, it can
       be used to check the validity of DNS responses in environments
       where local name servers may not be trustworthy.
     </para>
     <para>
       Unless it is told to query a specific name server,
-      <command>delve</command> will try each of the servers listed in
+      <command>delv</command> will try each of the servers listed in
       <filename>/etc/resolv.conf</filename>. If no usable server
-      addresses are found, <command>delve</command> will send
+      addresses are found, <command>delv</command> will send
       queries to the localhost addresses (127.0.0.1 for IPv4, ::1
       for IPv6).
     </para>
     <para>
       When no command line arguments or options are given,
-      <command>delve</command> will perform an NS query for "."
+      <command>delv</command> will perform an NS query for "."
       (the root zone).
     </para>
   </refsect1>
@@ -128,8 +128,8 @@
     <title>SIMPLE USAGE</title>
 
     <para>
-      A typical invocation of <command>delve</command> looks like:
-      <programlisting> delve @server name type </programlisting>
+      A typical invocation of <command>delv</command> looks like:
+      <programlisting> delv @server name type </programlisting>
       where:
 
       <variablelist>
@@ -141,21 +141,21 @@
 	      can be an IPv4 address in dotted-decimal notation or an IPv6
 	      address in colon-delimited notation.  When the supplied
 	      <parameter>server</parameter> argument is a hostname,
-	      <command>delve</command> resolves that name before
+	      <command>delv</command> resolves that name before
 	      querying that name server (note, however, that this
 	      initial lookup is <emphasis>not</emphasis> validated
 	      by DNSSEC).
 	    </para>
 	    <para>
 	      If no <parameter>server</parameter> argument is
-	      provided, <command>delve</command> consults
+	      provided, <command>delv</command> consults
 	      <filename>/etc/resolv.conf</filename>; if an
 	      address is found there, it queries the name server at
 	      that address. If either of the <option>-4</option> or
 	      <option>-6</option> options are in use, then
 	      only addresses for the corresponding transport
 	      will be tried.  If no usable addresses are found,
-	      <command>delve</command> will send queries to
+	      <command>delv</command> will send queries to
 	      the localhost addresses (127.0.0.1 for IPv4,
 	      ::1 for IPv6).
 	    </para>
@@ -180,7 +180,7 @@
 	      <parameter>type</parameter> can be any valid query
 	      type.  If no
 	      <parameter>type</parameter> argument is supplied,
-	      <command>delve</command> will perform a lookup for an
+	      <command>delv</command> will perform a lookup for an
 	      A record.
 	    </para>
 	  </listitem>
@@ -213,17 +213,17 @@
 	  </para>
 	  <para>
 	    Note: When reading the trust anchor file,
-	    <command>delve</command> treats <option>managed-keys</option>
+	    <command>delv</command> treats <option>managed-keys</option>
 	    statements and <option>trusted-keys</option> statements
 	    identically.  That is, for a managed key, it is the
 	    <emphasis>initial</emphasis> key that is trusted; RFC 5011
-	    key management is not supported. <command>delve</command>
+	    key management is not supported. <command>delv</command>
 	    will not consult the managed-keys database maintained by
 	    <command>named</command>. This means that if either of the
 	    keys in <filename>/etc/bind.keys</filename> is revoked
 	    and rolled over, it will be necessary to update
 	    <filename>/etc/bind.keys</filename> to use DNSSEC
-	    validation in <command>delve</command>.
+	    validation in <command>delv</command>.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -246,7 +246,7 @@
 	<listitem>
 	  <para>
 	    Sets the query class for the requested data. Currently,
-	    only class "IN" is supported in <command>delve</command>
+	    only class "IN" is supported in <command>delv</command>
 	    and any other value is ignored.
 	  </para>
 	</listitem>
@@ -259,7 +259,7 @@
 	    Set the systemwide debug level to <option>level</option>.
 	    The allowed range is from 0 to 99.
 	    The default is 0 (no debugging).
-	    Debugging traces from <command>delve</command> become
+	    Debugging traces from <command>delv</command> become
 	    more verbose as the debug level increases.
 	    See the <option>+mtrace</option>, <option>+rtrace</option>,
 	    and <option>+vtrace</option> options below for additional
@@ -272,7 +272,7 @@
 	<term>-h</term>
 	<listitem>
 	  <para>
-	    Display the <command>delve</command> help usage output and exit.
+	    Display the <command>delv</command> help usage output and exit.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -285,7 +285,7 @@
 	    (Note, however, this does not set the CD bit on upstream
 	    queries. If the server being queried is performing DNSSEC
 	    validation, then it will not return invalid data; this
-	    can cause <command>delve</command> to time out. When it
+	    can cause <command>delv</command> to time out. When it
 	    is necessary to examine invalid data to debug a DNSSEC
 	    problem, use <command>dig +cd</command>.)
 	  </para>
@@ -350,7 +350,7 @@
 	<term>-v</term>
 	<listitem>
 	  <para>
-	    Print the <command>delve</command> version and exit.
+	    Print the <command>delv</command> version and exit.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -364,7 +364,7 @@
 	    dotted-decimal notation, or a colon-delimited IPv6 address.
 	    When <option>-x</option> is used, there is no need to provide
 	    the <parameter>name</parameter> or <parameter>type</parameter>
-	    arguments.  <command>delve</command> automatically performs a
+	    arguments.  <command>delv</command> automatically performs a
 	    lookup for a name like <literal>11.12.13.10.in-addr.arpa</literal>
 	    and sets the query type to PTR.  IPv6 addresses are looked up
 	    using nibble format under the IP6.ARPA domain.
@@ -376,7 +376,7 @@
 	<term>-4</term>
 	<listitem>
 	  <para>
-	    Forces <command>delve</command> to only use IPv4.
+	    Forces <command>delv</command> to only use IPv4.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -385,7 +385,7 @@
 	<term>-6</term>
 	<listitem>
 	  <para>
-	    Forces <command>delve</command> to only use IPv6.
+	    Forces <command>delv</command> to only use IPv6.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -396,7 +396,7 @@
   <refsect1>
     <title>QUERY OPTIONS</title>
 
-    <para><command>delve</command>
+    <para><command>delv</command>
       provides a number of query options which affect the way results are
       displayed, and in some cases the way lookups are performed.
     </para>
@@ -416,12 +416,12 @@
 	  <listitem>
 	    <para>
 	      Controls whether to set the CD (checking disabled) bit in
-	      queries sent by <command>delve</command>. This may be useful
+	      queries sent by <command>delv</command>. This may be useful
 	      when troubleshooting DNSSEC problems from behind a validating
 	      resolver. A validating resolver will block invalid responses,
 	      making it difficult to retrieve them for analysis. Setting
 	      the CD flag on queries will cause the resolver to return
-	      invalid responses, which <command>delve</command> can then
+	      invalid responses, which <command>delv</command> can then
 	      validate internally and report the errors in detail.
 	    </para>
 	  </listitem>
@@ -452,7 +452,7 @@
 	  <listitem>
 	    <para>
 	      Toggle resolver fetch logging. This reports the
-	      name and type of each query sent by <command>delve</command>
+	      name and type of each query sent by <command>delv</command>
 	      in the process of carrying out the resolution and validation
 	      process: this includes including the original query and
 	      all subsequent queries to follow CNAMEs and to establish a
@@ -473,7 +473,7 @@
 	  <listitem>
 	    <para>
 	      Toggle message logging. This produces a detailed dump of
-	      the responses received by <command>delve</command> in the
+	      the responses received by <command>delv</command> in the
 	      process of carrying out the resolution and validation process.
 	    </para>
 	    <para>
@@ -595,7 +595,7 @@
 	      Print long records (such as RRSIG, DNSKEY, and SOA records)
 	      in a verbose multi-line format with human-readable comments.
 	      The default is to print each record on a single line, to
-	      facilitate machine parsing of the <command>delve</command>
+	      facilitate machine parsing of the <command>delv</command>
 	      output.
 	    </para>
 	  </listitem>
@@ -606,7 +606,7 @@
 	  <listitem>
 	    <para>
 	      Indicates whether to display RRSIG records in the
-	      <command>delve</command> output.  The default is to
+	      <command>delv</command> output.  The default is to
 	      do so.  Note that (unlike in <command>dig</command>)
 	      this does <emphasis>not</emphasis> control whether to
 	      request DNSSEC records or whether to validate them.

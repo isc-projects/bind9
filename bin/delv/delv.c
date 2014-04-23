@@ -88,7 +88,7 @@
 
 #define MAXNAME (DNS_NAME_MAXTEXT+1)
 
-/* Variables used internally by delve. */
+/* Variables used internally by delv. */
 char *progname;
 static isc_mem_t *mctx = NULL;
 static isc_log_t *lctx = NULL;
@@ -155,7 +155,7 @@ parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
 static void
 usage(void) {
 	fputs(
-"Usage:  delve [@server] {q-opt} {d-opt} [domain] [q-type] [q-class]\n"
+"Usage:  delv [@server] {q-opt} {d-opt} [domain] [q-type] [q-class]\n"
 "Where:  domain	  is in the Domain Name System\n"
 "        q-class  is one of (in,hs,ch,...) [default: in]\n"
 "        q-type   is one of (a,any,mx,ns,soa,hinfo,axfr,txt,...) [default:a]\n"
@@ -230,22 +230,22 @@ warn(const char *format, ...) {
 }
 
 static isc_logcategory_t categories[] = {
-	{ "delve",	     0 },
+	{ "delv",	     0 },
 	{ NULL,		     0 }
 };
 #define LOGCATEGORY_DEFAULT		(&categories[0])
 #define LOGMODULE_DEFAULT		(&modules[0])
 
 static isc_logmodule_t modules[] = {
-	{ "delve",	 		0 },
+	{ "delv",	 		0 },
 	{ NULL, 			0 }
 };
 
 static void
-delve_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
+delv_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
 static void
-delve_log(int level, const char *fmt, ...) {
+delv_log(int level, const char *fmt, ...) {
 	va_list ap;
 	char msgbuf[2048];
 
@@ -416,7 +416,7 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 	if (!dns_rdataset_isassociated(rdataset)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(owner, namebuf, sizeof(namebuf));
-		delve_log(ISC_LOG_DEBUG(4),
+		delv_log(ISC_LOG_DEBUG(4),
 			  "WARN: empty rdataset %s", namebuf);
 		return (ISC_R_SUCCESS);
 	}
@@ -556,7 +556,7 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 
 	result = dns_name_fromtext(n, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		delve_log(ISC_LOG_ERROR, "failed to convert QNAME %s: %s",
+		delv_log(ISC_LOG_ERROR, "failed to convert QNAME %s: %s",
 			  text, isc_result_totext(result));
 		return (result);
 	}
@@ -595,10 +595,10 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 		return (ISC_R_SUCCESS);
 
 	if (match_root)
-		delve_log(ISC_LOG_DEBUG(3), "adding trust anchor %s",
+		delv_log(ISC_LOG_DEBUG(3), "adding trust anchor %s",
 			  trust_anchor);
 	if (match_dlv)
-		delve_log(ISC_LOG_DEBUG(3), "adding DLV trust anchor %s",
+		delv_log(ISC_LOG_DEBUG(3), "adding DLV trust anchor %s",
 			  dlv_anchor);
 
 	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
@@ -762,7 +762,7 @@ setup_dnsseckeys(dns_client_t *client) {
 
  cleanup:
 	if (result != ISC_R_SUCCESS)
-		delve_log(ISC_LOG_ERROR, "setup_dnsseckeys: %s",
+		delv_log(ISC_LOG_ERROR, "setup_dnsseckeys: %s",
 			  isc_result_totext(result));
 	return (result);
 }
@@ -811,7 +811,7 @@ addserver(dns_client_t *client) {
 		hints.ai_protocol = IPPROTO_UDP;
 		gai_error = getaddrinfo(server, port, &hints, &res);
 		if (gai_error != 0) {
-			delve_log(ISC_LOG_ERROR,
+			delv_log(ISC_LOG_ERROR,
 				  "getaddrinfo failed: %s",
 				  gai_strerror(gai_error));
 			return (ISC_R_FAILURE);
@@ -848,7 +848,7 @@ addserver(dns_client_t *client) {
 	}
 
 	if (result != ISC_R_SUCCESS)
-		delve_log(ISC_LOG_ERROR, "addserver: %s",
+		delv_log(ISC_LOG_ERROR, "addserver: %s",
 			  isc_result_totext(result));
 
 	return (result);
@@ -868,7 +868,7 @@ findserver(dns_client_t *client) {
 
 	result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
-		delve_log(ISC_LOG_ERROR, "irs_resconf_load: %s",
+		delv_log(ISC_LOG_ERROR, "irs_resconf_load: %s",
 			  isc_result_totext(result));
 		goto cleanup;
 	}
@@ -925,7 +925,7 @@ findserver(dns_client_t *client) {
 	result = dns_client_setservers(client, dns_rdataclass_in, NULL,
 				       nameservers);
 	if (result != ISC_R_SUCCESS)
-		delve_log(ISC_LOG_ERROR, "dns_client_setservers: %s",
+		delv_log(ISC_LOG_ERROR, "dns_client_setservers: %s",
 			  isc_result_totext(result));
 
 cleanup:
@@ -1207,7 +1207,7 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 			/* handled in preparse_args() */
 			break;
 		case 'v':
-			fputs("delve " VERSION "\n", stderr);
+			fputs("delv " VERSION "\n", stderr);
 			exit(0);
 			/* NOTREACHED */
 		default:
@@ -1363,7 +1363,7 @@ preparse_args(int argc, char **argv) {
 /*
  * Argument parsing is based on dig, but simplified: only one
  * QNAME/QCLASS/QTYPE tuple can be specified, and options have
- * been removed that aren't applicable to delve. The interface
+ * been removed that aren't applicable to delv. The interface
  * should be familiar to dig users, however.
  */
 static void
@@ -1576,7 +1576,7 @@ main(int argc, char *argv[]) {
 	result = dns_client_createx2(mctx, actx, taskmgr, socketmgr, timermgr,
 				     clopt, &client, srcaddr4, srcaddr6);
 	if (result != ISC_R_SUCCESS) {
-		delve_log(ISC_LOG_ERROR, "dns_client_create: %s",
+		delv_log(ISC_LOG_ERROR, "dns_client_create: %s",
 			  isc_result_totext(result));
 		goto cleanup;
 	}
@@ -1606,7 +1606,7 @@ main(int argc, char *argv[]) {
 	result = dns_client_resolve(client, query_name, dns_rdataclass_in,
 				    qtype, resopt, &namelist);
 	if (result != ISC_R_SUCCESS)
-		delve_log(ISC_LOG_ERROR, "resolution failed: %s",
+		delv_log(ISC_LOG_ERROR, "resolution failed: %s",
 			  isc_result_totext(result));
 
 	for (response_name = ISC_LIST_HEAD(namelist);
@@ -1617,7 +1617,7 @@ main(int argc, char *argv[]) {
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			result = printdata(rdataset, response_name, style);
 			if (result != ISC_R_SUCCESS)
-				delve_log(ISC_LOG_ERROR, "print data failed");
+				delv_log(ISC_LOG_ERROR, "print data failed");
 		}
 	}
 

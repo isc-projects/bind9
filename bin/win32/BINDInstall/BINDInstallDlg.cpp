@@ -165,7 +165,7 @@ const FileData installFiles[] =
 	{"dig.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
 	{"host.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
 	{"nslookup.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
-	{"delve.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
+	{"delv.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
 	{"arpaname.exe", FileData::BinDir, FileData::Normal, FALSE, TRUE},
 	{"nsec3hash.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"genrandom.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},

@@ -4331,7 +4331,7 @@ AC_CONFIG_FILES([
 	bin/check/Makefile
 	bin/confgen/Makefile
 	bin/confgen/unix/Makefile
-	bin/delve/Makefile
+	bin/delv/Makefile
 	bin/dig/Makefile
 	bin/dnssec/Makefile
 	bin/named/Makefile
