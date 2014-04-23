@@ -44,36 +44,33 @@ NOSYMLIBS =	${DNSLIBS} ${IRSLIBS} ${ISCCFGLIBS} ${ISCNOSYMLIBS} @LIBS@
 
 SUBDIRS =
 
-TARGETS =	delve@EXEEXT@
+TARGETS =	delv@EXEEXT@
 
-OBJS =		delve.@O@
+OBJS =		delv.@O@
 
-SRCS =		delve.c
+SRCS =		delv.c
 
-MANPAGES =	delve.1
+MANPAGES =	delv.1
 
-HTMLPAGES =	delve.html
+HTMLPAGES =	delv.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
-delve@EXEEXT@: delve.@O@ ${DEPLIBS}
-	export BASEOBJS="delve.@O@"; \
+delv@EXEEXT@: delv.@O@ ${DEPLIBS}
+	export BASEOBJS="delv.@O@"; \
 	export LIBS0="${DNSLIBS}"; \
 	${FINALBUILDCMD}
-
-#	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-#	delve.@O@ ${LIBS}
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 
-install:: delve@EXEEXT@ installdirs
+install:: delv@EXEEXT@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
-		delve@EXEEXT@ ${DESTDIR}${bindir}
-	${INSTALL_DATA} ${srcdir}/delve.1 ${DESTDIR}${mandir}/man1
+		delv@EXEEXT@ ${DESTDIR}${bindir}
+	${INSTALL_DATA} ${srcdir}/delv.1 ${DESTDIR}${mandir}/man1
 
 doc man:: ${MANOBJS}
 

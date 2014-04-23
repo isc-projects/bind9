@@ -116,8 +116,8 @@ nmake /nologo /nologo -f host.mak CFG="host - @PLATFORM@ Release"  NO_EXTERNAL_D
 nmake /nologo -f nslookup.mak CFG="nslookup - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
-cd delve\win32
-nmake /nologo -f delve.mak CFG="delve - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
+cd delv\win32
+nmake /nologo -f delv.mak CFG="delv - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 cd nsupdate\win32

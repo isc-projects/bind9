@@ -1,8 +1,6 @@
 3816.	[func]		"dig +qr" now reports query size. (Thanks to
 			Tony Finch.) [RT #35822]
 
-3815.	[doc]		Clarify "nsupdate -y" usage in man page. [RT #35808]
-
 3814.	[func]		The "masterfile-style" zone option controls the
 			formatting of dumped zone files. Options are
 			"relative" (multiline format) and "full" (one
@@ -21,6 +19,12 @@
 			format. (Thanks to Bradley Forschinger.) [RT #24903]
 
 	--- 9.10.0 released ---
+
+3817.	[func]		The "delve" command is now spelled "delv" to avoid
+			a namespace collision with the Xapian project.
+			[RT #35801]
+
+3815.	[doc]		Clarify "nsupdate -y" usage in man page. [RT #35808]
 
 3810.	[bug]		Work around broken nameservers that fail to ignore
 			unknown EDNS options. [RT #35766]

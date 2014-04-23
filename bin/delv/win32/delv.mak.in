@@ -1,20 +1,20 @@
-# Microsoft Developer Studio Generated NMAKE File, Based on delve.dsp
+# Microsoft Developer Studio Generated NMAKE File, Based on delv.dsp
 !IF "$(CFG)" == ""
-CFG=delve - @PLATFORM@ Debug
-!MESSAGE No configuration specified. Defaulting to delve - @PLATFORM@ Debug.
+CFG=delv - @PLATFORM@ Debug
+!MESSAGE No configuration specified. Defaulting to delv - @PLATFORM@ Debug.
 !ENDIF 
 
-!IF "$(CFG)" != "delve - @PLATFORM@ Release" && "$(CFG)" != "delve - @PLATFORM@ Debug"
+!IF "$(CFG)" != "delv - @PLATFORM@ Release" && "$(CFG)" != "delv - @PLATFORM@ Debug"
 !MESSAGE Invalid configuration "$(CFG)" specified.
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "delve.mak" CFG="delve - @PLATFORM@ Debug"
+!MESSAGE NMAKE /f "delv.mak" CFG="delv - @PLATFORM@ Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "delve - @PLATFORM@ Release" (based on "@PLATFORM@ (x86) Console Application")
-!MESSAGE "delve - @PLATFORM@ Debug" (based on "@PLATFORM@ (x86) Console Application")
+!MESSAGE "delv - @PLATFORM@ Release" (based on "@PLATFORM@ (x86) Console Application")
+!MESSAGE "delv - @PLATFORM@ Debug" (based on "@PLATFORM@ (x86) Console Application")
 !MESSAGE 
 !ERROR An invalid configuration is specified.
 !ENDIF 
@@ -25,7 +25,7 @@ NULL=
 NULL=nul
 !ENDIF 
 
-!IF  "$(CFG)" == "delve - @PLATFORM@ Release"
+!IF  "$(CFG)" == "delv - @PLATFORM@ Release"
 _VC_MANIFEST_INC=0
 _VC_MANIFEST_BASENAME=__VC80
 !ELSE
@@ -100,25 +100,25 @@ _VC_MANIFEST_CLEAN=
 
 !endif
 
-!IF  "$(CFG)" == "delve - @PLATFORM@ Release"
+!IF  "$(CFG)" == "delv - @PLATFORM@ Release"
 
 OUTDIR=.\Release
 INTDIR=.\Release
 
-ALL : "..\..\..\Build\Release\delve.exe"
+ALL : "..\..\..\Build\Release\delv.exe"
 
 
 CLEAN :
-	-@erase "$(INTDIR)\delve.obj"
+	-@erase "$(INTDIR)\delv.obj"
 	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "..\..\..\Build\Release\delve.exe"
+	-@erase "..\..\..\Build\Release\delv.exe"
 	-@$(_VC_MANIFEST_CLEAN)
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "../../../" @LIBXML2_INC@ @OPENSSL_INC@ /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/isccfg/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /I "../../../lib/irs/win32/include" /I "../../../lib/irs/include" /D "NDEBUG" /D "__STDC__" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\delve.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "../../../" @LIBXML2_INC@ @OPENSSL_INC@ /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/isccfg/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /I "../../../lib/irs/win32/include" /I "../../../lib/irs/include" /D "NDEBUG" /D "__STDC__" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\delv.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -152,21 +152,21 @@ CPP_PROJ=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "../../../" @LIBXML2_INC@ @OPENS
 
 RSC=rc.exe
 BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\delve.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\delv.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libdns.lib ../../../lib/isccfg/win32/Release/libisccfg.lib ../../../lib/irs/win32/Release/libirs.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\delve.pdb" @MACHINE@ /out:"../../../Build/Release/delve.exe" 
+LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libdns.lib ../../../lib/isccfg/win32/Release/libisccfg.lib ../../../lib/irs/win32/Release/libirs.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\delv.pdb" @MACHINE@ /out:"../../../Build/Release/delv.exe" 
 LINK32_OBJS= \
-	"$(INTDIR)\delve.obj"
+	"$(INTDIR)\delv.obj"
 
-"..\..\..\Build\Release\delve.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"..\..\..\Build\Release\delv.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
     $(_VC_MANIFEST_EMBED_EXE)
 
-!ELSEIF  "$(CFG)" == "delve - @PLATFORM@ Debug"
+!ELSEIF  "$(CFG)" == "delv - @PLATFORM@ Debug"
 
 OUTDIR=.\Debug
 INTDIR=.\Debug
@@ -174,18 +174,18 @@ INTDIR=.\Debug
 OutDir=.\Debug
 # End Custom Macros
 
-ALL : "..\..\..\Build\Debug\delve.exe" "$(OUTDIR)\delve.bsc"
+ALL : "..\..\..\Build\Debug\delv.exe" "$(OUTDIR)\delv.bsc"
 
 
 CLEAN :
-	-@erase "$(INTDIR)\delve.obj"
-	-@erase "$(INTDIR)\delve.sbr"
+	-@erase "$(INTDIR)\delv.obj"
+	-@erase "$(INTDIR)\delv.sbr"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(INTDIR)\vc60.pdb"
-	-@erase "$(OUTDIR)\delve.pdb"
-	-@erase "$(OUTDIR)\delve.bsc"
-	-@erase "..\..\..\Build\Debug\delve.exe"
-	-@erase "..\..\..\Build\Debug\delve.ilk"
+	-@erase "$(OUTDIR)\delv.pdb"
+	-@erase "$(OUTDIR)\delv.bsc"
+	-@erase "..\..\..\Build\Debug\delv.exe"
+	-@erase "..\..\..\Build\Debug\delv.ilk"
 	-@$(_VC_MANIFEST_CLEAN)
 
 "$(OUTDIR)" :
@@ -226,21 +226,21 @@ CPP_PROJ=/nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "../../../" @LIBXML2_IN
 
 RSC=rc.exe
 BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\delve.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\delv.bsc" 
 BSC32_SBRS= \
-	"$(INTDIR)\delve.sbr"
+	"$(INTDIR)\delv.sbr"
 
-"$(OUTDIR)\delve.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
+"$(OUTDIR)\delv.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib ../../../lib/isccfg/win32/Debug/libisccfg.lib ../../../lib/irs/win32/Debug/libirs.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\delve.pdb" /debug @MACHINE@ /out:"../../../Build/Debug/delve.exe" /pdbtype:sept 
+LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib ../../../lib/isccfg/win32/Debug/libisccfg.lib ../../../lib/irs/win32/Debug/libirs.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\delv.pdb" /debug @MACHINE@ /out:"../../../Build/Debug/delv.exe" /pdbtype:sept 
 LINK32_OBJS= \
-	"$(INTDIR)\delve.obj"
+	"$(INTDIR)\delv.obj"
 
-"..\..\..\Build\Debug\delve.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"..\..\..\Build\Debug\delv.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -250,28 +250,28 @@ LINK32_OBJS= \
 
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
-!IF EXISTS("delve.dep")
-!INCLUDE "delve.dep"
+!IF EXISTS("delv.dep")
+!INCLUDE "delv.dep"
 !ELSE 
-!MESSAGE Warning: cannot find "delve.dep"
+!MESSAGE Warning: cannot find "delv.dep"
 !ENDIF 
 !ENDIF 
 
 
-!IF "$(CFG)" == "delve - @PLATFORM@ Release" || "$(CFG)" == "delve - @PLATFORM@ Debug"
-SOURCE="..\delve.c"
+!IF "$(CFG)" == "delv - @PLATFORM@ Release" || "$(CFG)" == "delv - @PLATFORM@ Debug"
+SOURCE="..\delv.c"
 
-!IF  "$(CFG)" == "delve - @PLATFORM@ Release"
+!IF  "$(CFG)" == "delv - @PLATFORM@ Release"
 
 
-"$(INTDIR)\delve.obj" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\delv.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "delve - @PLATFORM@ Debug"
+!ELSEIF  "$(CFG)" == "delv - @PLATFORM@ Debug"
 
 
-"$(INTDIR)\delve.obj"	"$(INTDIR)\delve.sbr" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\delv.obj"	"$(INTDIR)\delv.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
