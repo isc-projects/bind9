@@ -16,63 +16,63 @@
 .\"
 .hy 0
 .ad l
-.\"     Title: delve
+.\"     Title: delv
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.71.1 <http://docbook.sf.net/>
-.\"      Date: February 21, 2014
+.\"      Date: April 23, 2014
 .\"    Manual: BIND9
 .\"    Source: BIND9
 .\"
-.TH "DELVE" "1" "February 21, 2014" "BIND9" "BIND9"
+.TH "DELV" "1" "April 23, 2014" "BIND9" "BIND9"
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
 .SH "NAME"
-delve \- DNS lookup and validation utility
+delv \- DNS lookup and validation utility
 .SH "SYNOPSIS"
-.HP 6
-\fBdelve\fR [@server] [\fB\-4\fR] [\fB\-6\fR] [\fB\-a\ \fR\fB\fIanchor\-file\fR\fR] [\fB\-b\ \fR\fB\fIaddress\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-d\ \fR\fB\fIlevel\fR\fR] [\fB\-i\fR] [\fB\-m\fR] [\fB\-p\ \fR\fB\fIport#\fR\fR] [\fB\-q\ \fR\fB\fIname\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-x\ \fR\fB\fIaddr\fR\fR] [name] [type] [class] [queryopt...]
-.HP 6
-\fBdelve\fR [\fB\-h\fR]
-.HP 6
-\fBdelve\fR [\fB\-v\fR]
-.HP 6
-\fBdelve\fR [queryopt...] [query...]
+.HP 5
+\fBdelv\fR [@server] [\fB\-4\fR] [\fB\-6\fR] [\fB\-a\ \fR\fB\fIanchor\-file\fR\fR] [\fB\-b\ \fR\fB\fIaddress\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-d\ \fR\fB\fIlevel\fR\fR] [\fB\-i\fR] [\fB\-m\fR] [\fB\-p\ \fR\fB\fIport#\fR\fR] [\fB\-q\ \fR\fB\fIname\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-x\ \fR\fB\fIaddr\fR\fR] [name] [type] [class] [queryopt...]
+.HP 5
+\fBdelv\fR [\fB\-h\fR]
+.HP 5
+\fBdelv\fR [\fB\-v\fR]
+.HP 5
+\fBdelv\fR [queryopt...] [query...]
 .SH "DESCRIPTION"
 .PP
-\fBdelve\fR
-(Domain Entity Lookup & Validation Engine) is a tool for sending DNS queries and validating the results, using the the same internal resolver and validator logic as
+\fBdelv\fR
+(Domain Entity Lookup & Validation) is a tool for sending DNS queries and validating the results, using the the same internal resolver and validator logic as
 \fBnamed\fR.
 .PP
-\fBdelve\fR
+\fBdelv\fR
 will send to a specified name server all queries needed to fetch and validate the requested data; this includes the original requested query, subsequent queries to follow CNAME or DNAME chains, and queries for DNSKEY, DS and DLV records to establish a chain of trust for DNSSEC validation. It does not perform iterative resolution, but simulates the behavior of a name server configured for DNSSEC validating and forwarding.
 .PP
 By default, responses are validated using built\-in DNSSEC trust anchors for the root zone (".") and for the ISC DNSSEC lookaside validation zone ("dlv.isc.org"). Records returned by
-\fBdelve\fR
+\fBdelv\fR
 are either fully validated or were not signed. If validation fails, an explanation of the failure is included in the output; the validation process can be traced in detail. Because
-\fBdelve\fR
+\fBdelv\fR
 does not rely on an external server to carry out validation, it can be used to check the validity of DNS responses in environments where local name servers may not be trustworthy.
 .PP
 Unless it is told to query a specific name server,
-\fBdelve\fR
+\fBdelv\fR
 will try each of the servers listed in
 \fI/etc/resolv.conf\fR. If no usable server addresses are found,
-\fBdelve\fR
+\fBdelv\fR
 will send queries to the localhost addresses (127.0.0.1 for IPv4, ::1 for IPv6).
 .PP
 When no command line arguments or options are given,
-\fBdelve\fR
+\fBdelv\fR
 will perform an NS query for "." (the root zone).
 .SH "SIMPLE USAGE"
 .PP
 A typical invocation of
-\fBdelve\fR
+\fBdelv\fR
 looks like:
 .sp
 .RS 4
 .nf
- delve @server name type 
+ delv @server name type 
 .fi
 .RE
 .sp
@@ -83,7 +83,7 @@ where:
 is the name or IP address of the name server to query. This can be an IPv4 address in dotted\-decimal notation or an IPv6 address in colon\-delimited notation. When the supplied
 \fIserver\fR
 argument is a hostname,
-\fBdelve\fR
+\fBdelv\fR
 resolves that name before querying that name server (note, however, that this initial lookup is
 \fInot\fR
 validated by DNSSEC).
@@ -91,14 +91,14 @@ validated by DNSSEC).
 If no
 \fIserver\fR
 argument is provided,
-\fBdelve\fR
+\fBdelv\fR
 consults
 \fI/etc/resolv.conf\fR; if an address is found there, it queries the name server at that address. If either of the
 \fB\-4\fR
 or
 \fB\-6\fR
 options are in use, then only addresses for the corresponding transport will be tried. If no usable addresses are found,
-\fBdelve\fR
+\fBdelv\fR
 will send queries to the localhost addresses (127.0.0.1 for IPv4, ::1 for IPv6).
 .RE
 .PP
@@ -114,7 +114,7 @@ indicates what type of query is required \(em ANY, A, MX, etc.
 can be any valid query type. If no
 \fItype\fR
 argument is supplied,
-\fBdelve\fR
+\fBdelv\fR
 will perform a lookup for an A record.
 .RE
 .SH "OPTIONS"
@@ -133,7 +133,7 @@ or
 options.
 .sp
 Note: When reading the trust anchor file,
-\fBdelve\fR
+\fBdelv\fR
 treats
 \fBmanaged\-keys\fR
 statements and
@@ -141,14 +141,14 @@ statements and
 statements identically. That is, for a managed key, it is the
 \fIinitial\fR
 key that is trusted; RFC 5011 key management is not supported.
-\fBdelve\fR
+\fBdelv\fR
 will not consult the managed\-keys database maintained by
 \fBnamed\fR. This means that if either of the keys in
 \fI/etc/bind.keys\fR
 is revoked and rolled over, it will be necessary to update
 \fI/etc/bind.keys\fR
 to use DNSSEC validation in
-\fBdelve\fR.
+\fBdelv\fR.
 .RE
 .PP
 \-b \fIaddress\fR
@@ -160,7 +160,7 @@ Sets the source IP address of the query to
 \-c \fIclass\fR
 .RS 4
 Sets the query class for the requested data. Currently, only class "IN" is supported in
-\fBdelve\fR
+\fBdelv\fR
 and any other value is ignored.
 .RE
 .PP
@@ -168,7 +168,7 @@ and any other value is ignored.
 .RS 4
 Set the systemwide debug level to
 \fBlevel\fR. The allowed range is from 0 to 99. The default is 0 (no debugging). Debugging traces from
-\fBdelve\fR
+\fBdelv\fR
 become more verbose as the debug level increases. See the
 \fB+mtrace\fR,
 \fB+rtrace\fR, and
@@ -179,14 +179,14 @@ options below for additional debugging details.
 \-h
 .RS 4
 Display the
-\fBdelve\fR
+\fBdelv\fR
 help usage output and exit.
 .RE
 .PP
 \-i
 .RS 4
 Insecure mode. This disables internal DNSSEC validation. (Note, however, this does not set the CD bit on upstream queries. If the server being queried is performing DNSSEC validation, then it will not return invalid data; this can cause
-\fBdelve\fR
+\fBdelv\fR
 to time out. When it is necessary to examine invalid data to debug a DNSSEC problem, use
 \fBdig +cd\fR.)
 .RE
@@ -222,7 +222,7 @@ option is supplied to indicate a reverse lookup, in which case it is "PTR".
 \-v
 .RS 4
 Print the
-\fBdelve\fR
+\fBdelv\fR
 version and exit.
 .RE
 .PP
@@ -237,7 +237,7 @@ is used, there is no need to provide the
 or
 \fItype\fR
 arguments.
-\fBdelve\fR
+\fBdelv\fR
 automatically performs a lookup for a name like
 11.12.13.10.in\-addr.arpa
 and sets the query type to PTR. IPv6 addresses are looked up using nibble format under the IP6.ARPA domain.
@@ -246,19 +246,19 @@ and sets the query type to PTR. IPv6 addresses are looked up using nibble format
 \-4
 .RS 4
 Forces
-\fBdelve\fR
+\fBdelv\fR
 to only use IPv4.
 .RE
 .PP
 \-6
 .RS 4
 Forces
-\fBdelve\fR
+\fBdelv\fR
 to only use IPv6.
 .RE
 .SH "QUERY OPTIONS"
 .PP
-\fBdelve\fR
+\fBdelv\fR
 provides a number of query options which affect the way results are displayed, and in some cases the way lookups are performed.
 .PP
 Each query option is identified by a keyword preceded by a plus sign (+). Some keywords set or reset an option. These may be preceded by the string
@@ -269,8 +269,8 @@ to negate the meaning of that keyword. Other keywords assign values to options l
 \fB+[no]cdflag\fR
 .RS 4
 Controls whether to set the CD (checking disabled) bit in queries sent by
-\fBdelve\fR. This may be useful when troubleshooting DNSSEC problems from behind a validating resolver. A validating resolver will block invalid responses, making it difficult to retrieve them for analysis. Setting the CD flag on queries will cause the resolver to return invalid responses, which
-\fBdelve\fR
+\fBdelv\fR. This may be useful when troubleshooting DNSSEC problems from behind a validating resolver. A validating resolver will block invalid responses, making it difficult to retrieve them for analysis. Setting the CD flag on queries will cause the resolver to return invalid responses, which
+\fBdelv\fR
 can then validate internally and report the errors in detail.
 .RE
 .PP
@@ -287,7 +287,7 @@ Controls whether to display the TTL when printing a record. The default is to di
 \fB+[no]rtrace\fR
 .RS 4
 Toggle resolver fetch logging. This reports the name and type of each query sent by
-\fBdelve\fR
+\fBdelv\fR
 in the process of carrying out the resolution and validation process: this includes including the original query and all subsequent queries to follow CNAMEs and to establish a chain of trust for DNSSEC validation.
 .sp
 This is equivalent to setting the debug level to 1 in the "resolver" logging category. Setting the systemwide debug level to 1 using the
@@ -298,7 +298,7 @@ option will product the same output (but will affect other logging categories as
 \fB+[no]mtrace\fR
 .RS 4
 Toggle message logging. This produces a detailed dump of the responses received by
-\fBdelve\fR
+\fBdelv\fR
 in the process of carrying out the resolution and validation process.
 .sp
 This is equivalent to setting the debug level to 10 for the the "packets" module of the "resolver" logging category. Setting the systemwide debug level to 10 using the
@@ -365,14 +365,14 @@ as a group.
 \fB+[no]multiline\fR
 .RS 4
 Print long records (such as RRSIG, DNSKEY, and SOA records) in a verbose multi\-line format with human\-readable comments. The default is to print each record on a single line, to facilitate machine parsing of the
-\fBdelve\fR
+\fBdelv\fR
 output.
 .RE
 .PP
 \fB+[no]dnssec\fR
 .RS 4
 Indicates whether to display RRSIG records in the
-\fBdelve\fR
+\fBdelv\fR
 output. The default is to do so. Note that (unlike in
 \fBdig\fR) this does
 \fInot\fR
