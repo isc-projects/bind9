@@ -81,8 +81,8 @@ BIND 9.10.0
 	   assists with troubleshooting of DNSSEC problems. (NOTE:
 	   In previous development releases of BIND 9.10, this utility
 	   was called "delve". The spelling has been changed to avoid
-	   confusion with the "delve" utility that included with
-	   the Xapian search engine.)
+	   confusion with the "delve" utility included with the Xapian
+	   search engine.)
 	 - Improved EDNS(0) processing for better resolver performance
 	   and reliability over slow or lossy connections.
 	 - A new "configure --with-tuning=large" option tunes certain
