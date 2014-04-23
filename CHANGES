@@ -1,4 +1,4 @@
-	--- 9.10.0 released ---
+	--- 9.10.0rc2 released ---
 
 3817.	[func]		The "delve" command is now spelled "delv" to avoid
 			a namespace collision with the Xapian project.
