@@ -56,8 +56,14 @@ BIND 9.11.0
 	BIND 9.11.0 includes a number of changes from BIND 9.10 and earlier
 	releases.  New features include:
 
-	- Dig now supports sending of arbitary EDNS options by specifying
+	- A new "masterfile-style" zone option controls the formatting
+	  of text zone files:  When set to "full", a zone file is dumped
+	  in single-line-per-record format.
+	- "dig" now supports sending arbitary EDNS options by specifying
 	  them on the command line.
+	- "serial-update-format" can now be set to "date". On update,
+	  the serial number will be set to the current date in YYYYMMDDNN
+	  format.
 
 BIND 9.10.0
 
@@ -189,51 +195,6 @@ BIND 9.10.0
 	   they change.
 	 - "tsig-keygen" is now available as an alternate command
 	   name to use for "ddns-confgen".
-
-BIND 9.9.0
-
-	BIND 9.9.0 includes a number of changes from BIND 9.8 and earlier
-	releases.  New features include:
-
-	- Inline signing, allowing automatic DNSSEC signing of
-	  master zones without modification of the zonefile, or
-	  "bump in the wire" signing in slaves.
-	- NXDOMAIN redirection.
-	- New 'rndc flushtree' command clears all data under a given
-	  name from the DNS cache.
-	- New 'rndc sync' command dumps pending changes in a dynamic
-	  zone to disk without a freeze/thaw cycle.
-	- New 'rndc signing' command displays or clears signing status
-	  records in 'auto-dnssec' zones.
-	- NSEC3 parameters for 'auto-dnssec' zones can now be set prior
-	  to signing, eliminating the need to initially sign with NSEC.
-	- Startup time improvements on large authoritative servers.
-	- Slave zones are now saved in raw format by default.
-	- Several improvements to response policy zones (RPZ).
-	- Improved hardware scalability by using multiple threads
-	  to listen for queries and using finer-grained client locking
-	- The 'also-notify' option now takes the same syntax as
-	  'masters', so it can used named masterlists and TSIG keys.
-	- 'dnssec-signzone -D' writes an output file containing only DNSSEC
-	  data, which can be included by the primary zone file.
-	- 'dnssec-signzone -R' forces removal of signatures that are
-	  not expired but were created by a key which no longer exists.
-	- 'dnssec-signzone -X' allows a separate expiration date to
-	  be specified for DNSKEY signatures from other signatures.
-	- New '-L' option to dnssec-keygen, dnssec-settime, and
-	  dnssec-keyfromlabel sets the default TTL for the key.
-	- dnssec-dsfromkey now supports reading from standard input,
-	  to make it easier to convert DNSKEY to DS.
-	- RFC 1918 reverse zones have been added to the empty-zones
-	  table per RFC 6303.
-	- Dynamic updates can now optionally set the zone's SOA serial
-	  number to the current UNIX time.
-	- DLZ modules can now retrieve the source IP address of
-	  the querying client.
-	- 'request-ixfr' option can now be set at the per-zone level.
-	- 'dig +rrcomments' turns on comments about DNSKEY records,
-	  indicating their key ID, algorithm and function
-	- Simplified nsupdate syntax and added readline support
 
 Building
 
