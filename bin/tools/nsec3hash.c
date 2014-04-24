@@ -116,7 +116,7 @@ main(int argc, char **argv) {
 	region.base = hash;
 	region.length = length;
 	isc_buffer_init(&buffer, text, sizeof(text));
-	isc_base32hex_totext(&region, 1, "", &buffer);
+	isc_base32hexnp_totext(&region, 1, "", &buffer);
 	fprintf(stdout, "%.*s (salt=%s, hash=%u, iterations=%u)\n",
 		(int)isc_buffer_usedlength(&buffer), text, argv[1], hash_alg, iterations);
 	return(0);
