@@ -928,8 +928,11 @@
 ./bin/tests/system/checkzone/clean.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/checkzone/setup.sh		SH	2014
 ./bin/tests/system/checkzone/tests.sh		SH	2011,2012,2013,2014
+./bin/tests/system/checkzone/zones/bad-nsec3-padded.db	ZONE	2014
+./bin/tests/system/checkzone/zones/bad-nsec3owner-padded.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/bad1.db	ZONE	2013
 ./bin/tests/system/checkzone/zones/bad2.db	ZONE	2014
+./bin/tests/system/checkzone/zones/good-nsec3-nopadhash.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/good1.db	ZONE	2011
 ./bin/tests/system/checkzone/zones/spf.db	ZONE	2013
 ./bin/tests/system/checkzone/zones/test1.db	ZONE	2013
@@ -1949,7 +1952,7 @@
 ./bin/tests/t_api.pl				PERL	1999,2000,2001,2004,2007,2012
 ./bin/tests/task_test.c				C	1998,1999,2000,2001,2004,2007,2013
 ./bin/tests/tasks/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004,2007,2009,2012,2014
-./bin/tests/tasks/t_tasks.c			C	1998,1999,2000,2001,2004,2005,2007,2009,2011,2013
+./bin/tests/tasks/t_tasks.c			C	1998,1999,2000,2001,2004,2005,2007,2009,2011,2013,2014
 ./bin/tests/tasks/win32/t_tasks.dsp.in		X	2013
 ./bin/tests/tasks/win32/t_tasks.dsw		X	2013
 ./bin/tests/tasks/win32/t_tasks.mak.in		X	2013
@@ -3100,7 +3103,7 @@
 ./lib/dns/rdata/generic/nid_104.h		C	2013
 ./lib/dns/rdata/generic/ns_2.c			C	1998,1999,2000,2001,2004,2007,2009
 ./lib/dns/rdata/generic/ns_2.h			C	1998,1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/generic/nsec3_50.c		C	2008,2009,2011,2012
+./lib/dns/rdata/generic/nsec3_50.c		C	2008,2009,2011,2012,2014
 ./lib/dns/rdata/generic/nsec3_50.h		C	2008,2011,2012
 ./lib/dns/rdata/generic/nsec3param_51.c		C	2008,2009
 ./lib/dns/rdata/generic/nsec3param_51.h		C	2008
@@ -3326,7 +3329,7 @@
 ./lib/isc/crc64.c				C	2013
 ./lib/isc/entropy.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2014
 ./lib/isc/error.c				C	1998,1999,2000,2001,2004,2005,2007
-./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005,2007
+./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005,2007,2014
 ./lib/isc/fsaccess.c				C	2000,2001,2004,2005,2007
 ./lib/isc/hash.c				C	2003,2004,2005,2006,2007,2009,2013,2014
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2013,2014
@@ -3344,7 +3347,7 @@
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2013,2014
 ./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/backtrace.h		C	2009
-./lib/isc/include/isc/base32.h			C	2008
+./lib/isc/include/isc/base32.h			C	2008,2014
 ./lib/isc/include/isc/base64.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/bind9.h			C	2009,2013
 ./lib/isc/include/isc/boolean.h			C	1998,1999,2000,2001,2004,2005,2006,2007
@@ -3354,7 +3357,7 @@
 ./lib/isc/include/isc/crc64.h			C	2013
 ./lib/isc/include/isc/entropy.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/error.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2009
-./lib/isc/include/isc/event.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007
+./lib/isc/include/isc/event.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2014
 ./lib/isc/include/isc/eventclass.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/include/isc/file.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012
 ./lib/isc/include/isc/formatcheck.h		C	2000,2001,2004,2005,2006,2007
@@ -3413,7 +3416,7 @@
 ./lib/isc/include/isc/stdlib.h			C	2003,2004,2005,2006,2007
 ./lib/isc/include/isc/string.h			C	2000,2001,2003,2004,2005,2006,2007,2014
 ./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2011,2012,2013
-./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013
+./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014
 ./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004,2005,2006,2007,2011,2012
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012,2013
 ./lib/isc/include/isc/tm.h			C	2014
