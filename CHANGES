@@ -1,3 +1,6 @@
+3818.	[bug]		Stop lying to the optimizer that 'void *arg' is a
+			constant in isc_event_allocate.
+
 3815.	[doc]		Clarify "nsupdate -y" usage in man page. [RT #35808]
 
 3809.	[doc]		Fix NSID documentation.
