@@ -100,7 +100,7 @@ fromtext_nsec3(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
 	isc_buffer_init(&b, bm, sizeof(bm));
-	RETTOK(isc_base32hex_decodestring(DNS_AS_STR(token), &b));
+	RETTOK(isc_base32hexnp_decodestring(DNS_AS_STR(token), &b));
 	if (isc_buffer_usedlength(&b) > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(isc_buffer_usedlength(&b), target));
@@ -187,7 +187,7 @@ totext_nsec3(ARGS_TOTEXT) {
 
 	i = sr.length;
 	sr.length = j;
-	RETERR(isc_base32hex_totext(&sr, 1, "", target));
+	RETERR(isc_base32hexnp_totext(&sr, 1, "", target));
 	sr.length = i - j;
 
 	for (i = 0; i < sr.length; i += len) {
@@ -455,15 +455,26 @@ digest_nsec3(ARGS_DIGEST) {
 
 static inline isc_boolean_t
 checkowner_nsec3(ARGS_CHECKOWNER) {
+	unsigned char owner[NSEC3_MAX_HASH_LENGTH];
+	isc_buffer_t buffer;
+	dns_label_t label;
 
-       REQUIRE(type == 50);
+	REQUIRE(type == 50);
 
-       UNUSED(name);
-       UNUSED(type);
-       UNUSED(rdclass);
-       UNUSED(wildcard);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
 
-       return (ISC_TRUE);
+	/*
+	 * First label is a base32hex string without padding.
+	 */
+	dns_name_getlabel(name, 0, &label);
+	isc_region_consume(&label, 1);
+	isc_buffer_init(&buffer, owner, sizeof(owner));
+	if (isc_base32hexnp_decoderegion(&label, &buffer) == ISC_R_SUCCESS)
+		return (ISC_TRUE);
+
+	return (ISC_FALSE);
 }
 
 static inline isc_boolean_t
