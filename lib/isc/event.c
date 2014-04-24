@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -60,7 +60,7 @@ isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 
 isc_event_t *
 isc_event_constallocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
-		        isc_taskaction_t action, const void *arg, size_t size)
+			isc_taskaction_t action, const void *arg, size_t size)
 {
 	isc_event_t *event;
 	void *deconst_arg;
