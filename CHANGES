@@ -2,7 +2,7 @@
 			displayed without padding.  This is not a issue for
 			currently defined algorithms but may be for future
 			hash algorithms. [RT #27925]
-			
+
 3818.	[bug]		Stop lying to the optimizer that 'void *arg' is a
 			constant in isc_event_allocate.
 
