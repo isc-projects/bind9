@@ -91,6 +91,8 @@
 #define DNS_MASTER_LHS 2048
 #define DNS_MASTER_RHS MINTSIZ
 
+#define CHECKNAMESFAIL(x) (((x) & DNS_MASTER_CHECKNAMESFAIL) != 0)
+
 typedef ISC_LIST(dns_rdatalist_t) rdatalist_head_t;
 
 typedef struct dns_incctx dns_incctx_t;
@@ -1768,7 +1770,8 @@ load_text(dns_loadctx_t *lctx) {
 				dns_name_format(name, namebuf, sizeof(namebuf));
 				result = DNS_R_BADOWNERNAME;
 				desc = dns_result_totext(result);
-				if ((lctx->options & DNS_MASTER_CHECKNAMESFAIL) != 0) {
+				if (CHECKNAMESFAIL(lctx->options) ||
+				    type == dns_rdatatype_nsec3) {
 					(*callbacks->error)(callbacks,
 							    "%s:%lu: %s: %s",
 							    source, line,

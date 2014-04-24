@@ -336,7 +336,7 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_name_getlabel(&nsec3name, 0, &hashlabel);
 		isc_region_consume(&hashlabel, 1);
 		isc_buffer_init(&buffer, owner, sizeof(owner));
-		result = isc_base32hex_decoderegion(&hashlabel, &buffer);
+		result = isc_base32hexnp_decoderegion(&hashlabel, &buffer);
 		if (result != ISC_R_SUCCESS) {
 			dns_rdataset_disassociate(&set);
 			continue;
