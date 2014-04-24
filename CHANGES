@@ -1,3 +1,6 @@
+3818.	[bug]		Stop lying to the optimizer that 'void *arg' is a
+			constant in isc_event_allocate.
+
 3817.	[func]		The "delve" command is now spelled "delv" to avoid
 			a namespace collision with the Xapian project.
 			[RT #35801]
