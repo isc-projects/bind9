@@ -1034,7 +1034,7 @@
 ./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011,2012,2014
 ./bin/tests/system/dlzexternal/clean.sh		SH	2010,2012,2014
 ./bin/tests/system/dlzexternal/dlopen.c		C	2011
-./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013
+./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013,2014
 ./bin/tests/system/dlzexternal/driver.h		C	2011
 ./bin/tests/system/dlzexternal/ns1/.gitignore	X	2012
 ./bin/tests/system/dlzexternal/ns1/named.conf.in	CONF-C	2011,2012,2013
@@ -2184,9 +2184,9 @@
 ./contrib/dlz/drivers/rules.in			X	2005,2010
 ./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010,2011,2012
 ./contrib/dlz/example/Makefile			X	2010,2013
-./contrib/dlz/example/README			X	2011,2012,2013
-./contrib/dlz/example/dlz_example.c		X	2010,2011,2012,2013
-./contrib/dlz/example/named.conf		X	2011
+./contrib/dlz/example/README			X	2011,2012,2013,2014
+./contrib/dlz/example/dlz_example.c		X	2010,2011,2012,2013,2014
+./contrib/dlz/example/named.conf		X	2011,2014
 ./contrib/dlz/example/win32/DLLMain.c		X	2011
 ./contrib/dlz/example/win32/dxdriver.def	X	2011
 ./contrib/dlz/example/win32/dxdriver.dsw	X	2011
@@ -2202,8 +2202,8 @@
 ./contrib/dlz/modules/filesystem/dlz_filesystem_dynamic.c	X	2013
 ./contrib/dlz/modules/include/dlz_dbi.h		X	2013
 ./contrib/dlz/modules/include/dlz_list.h	X	2013
-./contrib/dlz/modules/include/dlz_minimal.h	X	2013
-./contrib/dlz/modules/include/dlz_pthread.h	X	2013
+./contrib/dlz/modules/include/dlz_minimal.h	X	2013,2014
+./contrib/dlz/modules/include/dlz_pthread.h	X	2013,2014
 ./contrib/dlz/modules/ldap/Makefile		X	2013
 ./contrib/dlz/modules/ldap/dlz_ldap_dynamic.c	X	2013
 ./contrib/dlz/modules/ldap/testing/README	X	2013
@@ -2217,6 +2217,13 @@
 ./contrib/dlz/modules/mysql/testing/dlz.data	X	2013
 ./contrib/dlz/modules/mysql/testing/dlz.schema	X	2013
 ./contrib/dlz/modules/mysql/testing/named.conf	X	2013
+./contrib/dlz/modules/mysqldyn/Makefile		X	2014
+./contrib/dlz/modules/mysqldyn/README		X	2014
+./contrib/dlz/modules/mysqldyn/dlz_mysqldyn_mod.c	X	2014
+./contrib/dlz/modules/mysqldyn/testing/README	X	2014
+./contrib/dlz/modules/mysqldyn/testing/dlz.data	X	2014
+./contrib/dlz/modules/mysqldyn/testing/dlz.schema	X	2014
+./contrib/dlz/modules/mysqldyn/testing/named.conf	X	2014
 ./contrib/dlz/modules/perl/Makefile		X	2013
 ./contrib/dlz/modules/perl/README		X	2013
 ./contrib/dlz/modules/perl/dlz_perl_callback.xs	X	2013
@@ -2877,7 +2884,7 @@
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/dns/client.c				C	2009,2010,2011,2012,2013,2014
-./lib/dns/clientinfo.c				C	2011
+./lib/dns/clientinfo.c				C	2011,2014
 ./lib/dns/compress.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/db.c					C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011,2012,2013
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004,2005,2007
@@ -2917,7 +2924,7 @@
 ./lib/dns/include/dns/callbacks.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2013
 ./lib/dns/include/dns/cert.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/client.h			C	2009,2013,2014
-./lib/dns/include/dns/clientinfo.h		C	2011
+./lib/dns/include/dns/clientinfo.h		C	2011,2014
 ./lib/dns/include/dns/compress.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/db.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/include/dns/dbiterator.h		C	1999,2000,2001,2004,2005,2006,2007
@@ -3184,7 +3191,7 @@
 ./lib/dns/rriterator.c				C	2009,2011,2012
 ./lib/dns/rrl.c					C	2012,2013,2014
 ./lib/dns/sdb.c					C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
-./lib/dns/sdlz.c				C.PORTION	1999,2000,2001,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./lib/dns/sdlz.c				C.PORTION	1999,2000,2001,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/soa.c					C	2000,2001,2004,2005,2007,2009
 ./lib/dns/spnego.asn1				X	2006
 ./lib/dns/spnego.c				C	2006,2007,2008,2009,2010,2011,2012,2013,2014
@@ -3418,7 +3425,7 @@
 ./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2011,2012,2013
 ./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014
 ./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004,2005,2006,2007,2011,2012
-./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012,2013
+./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012,2013,2014
 ./lib/isc/include/isc/tm.h			C	2014
 ./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012
