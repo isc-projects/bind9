@@ -426,8 +426,7 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 }
 
 static void
-attachversion(dns_db_t *db, dns_dbversion_t *source,
-	      dns_dbversion_t **targetp)
+attachversion(dns_db_t *db, dns_dbversion_t *source, dns_dbversion_t **targetp)
 {
 	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)db;
 
@@ -854,7 +853,9 @@ findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	REQUIRE(VALID_SDLZDB(sdlz));
 	REQUIRE(nodep == NULL || *nodep == NULL);
-	REQUIRE(version == NULL || version == (void*)&sdlz->dummy_version);
+	REQUIRE(version == NULL ||
+		version == (void*)&sdlz->dummy_version ||
+		version == sdlz->future_version);
 
 	UNUSED(options);
 	UNUSED(sdlz);

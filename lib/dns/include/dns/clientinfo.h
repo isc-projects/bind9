@@ -52,10 +52,11 @@ ISC_LANG_BEGINDECLS
  ***** Types
  *****/
 
-#define DNS_CLIENTINFO_VERSION 1
+#define DNS_CLIENTINFO_VERSION 2
 typedef struct dns_clientinfo {
 	isc_uint16_t version;
 	void *data;
+	void *dbversion;
 } dns_clientinfo_t;
 
 typedef isc_result_t (*dns_clientinfo_sourceip_t)(dns_clientinfo_t *client,
@@ -78,7 +79,7 @@ dns_clientinfomethods_init(dns_clientinfomethods_t *methods,
 			   dns_clientinfo_sourceip_t sourceip);
 
 void
-dns_clientinfo_init(dns_clientinfo_t *ci, void *data);
+dns_clientinfo_init(dns_clientinfo_t *ci, void *data, void *versionp);
 
 ISC_LANG_ENDDECLS
 

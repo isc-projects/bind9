@@ -87,6 +87,27 @@ responses.  (Normally, this feature would be used to alter responses in
 some other fashion, e.g., by providing different address records for
 a particular name depending on the network from which the query arrived.)
 
+DYNAMIC UPDATES AND TRANSACTIONS:
+
+If a DLZ module wants to implement dynamic DNS updates (DDNS), the
+normal calling sequence is
+ - dlz_newversion (start a 'transaction')
+ - dlz_addrdataset (add records)
+ - dlz_subrdataset (remove records)
+ - dlz_closeversion (end a 'transaction')
+
+However, BIND may also query the database during the transaction
+(e.g., to check prerequisites), and your DLZ might need to know whether
+the lookup is against the pre-existing data, or the new data.
+dlz_lookup() doesn't give you access to the 'versionp' pointer
+directly, so it must be passed via 'clientinfo' structure if
+it is needed.
+
+The dlz_example.c code has sample code to show how to get the 'versionp'
+pointer from within dlz_lookup(). If it's set to NULL, we query
+the standard database; if non-NULL, we query against the in-flight
+data within the appropriate uncommitted transaction.
+
 IMPLEMENTATION NOTES:
 
 The minimal set of type definitions, prototypes, and macros needed

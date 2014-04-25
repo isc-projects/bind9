@@ -1,3 +1,14 @@
+3821.	[contrib]	Added a new "mysqldyn" DLZ module with dynamic
+			update and transaction support. Thanks to Marty
+			Lee for the contribution. [RT #35656]
+
+3820.	[func]		The DLZ API doesn't pass the database version to
+			the lookup() function; this can cause DLZ modules
+			that allow dynamic updates to mishandle prerequisite
+			checks. This has been corrected by adding a
+			'dbversion' field to the dns_clientinfo_t
+			structure. [RT #35656]
+
 3819.	[bug]		NSEC3 hashes need to be able to be entered and
 			displayed without padding.  This is not a issue for
 			currently defined algorithms but may be for future

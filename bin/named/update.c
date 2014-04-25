@@ -541,9 +541,21 @@ foreach_rrset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	isc_result_t result;
 	dns_dbnode_t *node;
 	dns_rdatasetiter_t *iter;
+	dns_clientinfomethods_t cm;
+	dns_clientinfo_t ci;
+	dns_dbversion_t *oldver = NULL;
+
+	dns_clientinfomethods_init(&cm, ns_client_sourceip);
+
+	/*
+	 * Only set the clientinfo 'versionp' if the new version is
+	 * different from the current version
+	 */
+	dns_db_currentversion(db, &oldver);
+	dns_clientinfo_init(&ci, NULL, (ver != oldver) ? ver : NULL);
 
 	node = NULL;
-	result = dns_db_findnode(db, name, ISC_FALSE, &node);
+	result = dns_db_findnodeext(db, name, ISC_FALSE, &cm, &ci, &node);
 	if (result == ISC_R_NOTFOUND)
 		return (ISC_R_SUCCESS);
 	if (result != ISC_R_SUCCESS)
@@ -620,6 +632,18 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	isc_result_t result;
 	dns_dbnode_t *node;
 	dns_rdataset_t rdataset;
+	dns_clientinfomethods_t cm;
+	dns_clientinfo_t ci;
+	dns_dbversion_t *oldver = NULL;
+
+	dns_clientinfomethods_init(&cm, ns_client_sourceip);
+
+	/*
+	 * Only set the clientinfo 'versionp' if the new version is
+	 * different from the current version
+	 */
+	dns_db_currentversion(db, &oldver);
+	dns_clientinfo_init(&ci, NULL, (ver != oldver) ? ver : NULL);
 
 	if (type == dns_rdatatype_any)
 		return (foreach_node_rr(db, ver, name,
@@ -630,7 +654,8 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	    (type == dns_rdatatype_rrsig && covers == dns_rdatatype_nsec3))
 		result = dns_db_findnsec3node(db, name, ISC_FALSE, &node);
 	else
-		result = dns_db_findnode(db, name, ISC_FALSE, &node);
+		result = dns_db_findnodeext(db, name, ISC_FALSE,
+					    &cm, &ci, &node);
 	if (result == ISC_R_NOTFOUND)
 		return (ISC_R_SUCCESS);
 	if (result != ISC_R_SUCCESS)

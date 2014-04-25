@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*
  * This provides a very simple example of an external loadable DLZ
  * driver, with update support.
@@ -251,7 +249,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 	va_end(ap);
 
-	if (argc < 2) {
+	if (argc < 2 || argv[1][0] == '\0') {
 		if (state->log != NULL)
 			state->log(ISC_LOG_ERROR,
 				   "dlz_example: please specify a zone name");
@@ -259,11 +257,16 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		return (ISC_R_FAILURE);
 	}
 
-	state->zone_name = strdup(argv[1]);
+	/* Ensure zone name is absolute */
+	state->zone_name = malloc(strlen(argv[1]) + 2);
 	if (state->zone_name == NULL) {
 		free(state);
 		return (ISC_R_NOMEMORY);
 	}
+	if (argv[1][strlen(argv[1]) - 1] == '.')
+		strcpy(state->zone_name, argv[1]);
+	else
+		sprintf(state->zone_name, "%s.", argv[1]);
 
 	if (strcmp(state->zone_name, ".") == 0)
 		extra = ".root";
@@ -313,7 +316,6 @@ dlz_destroy(void *dbdata) {
 	free(state);
 }
 
-
 /*
  * See if we handle a given zone
  */
@@ -325,6 +327,7 @@ dlz_findzonedb(void *dbdata, const char *name,
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	isc_sockaddr_t *src;
 	char addrbuf[100];
+	char absolute[1024];
 
 	strcpy(addrbuf, "unknown");
 	if (methods != NULL &&
@@ -335,11 +338,11 @@ dlz_findzonedb(void *dbdata, const char *name,
 		methods->sourceip(clientinfo, &src);
 		fmt_address(src, addrbuf, sizeof(addrbuf));
 	}
-	fprintf(stderr, "findzonedb: connection from: %s\n", addrbuf);
 
 	state->log(ISC_LOG_INFO,
 		   "dlz_example: dlz_findzonedb called with name '%s' "
-		   "in zone DB '%s'", name, state->zone_name);
+		   "in zone DB '%s' from %s",
+		   name, state->zone_name, addrbuf);
 
 	/*
 	 * Returning ISC_R_NOTFOUND will cause the query logic to
@@ -374,6 +377,10 @@ dlz_findzonedb(void *dbdata, const char *name,
 	if (strcasecmp(state->zone_name, name) == 0)
 		return (ISC_R_SUCCESS);
 
+	snprintf(absolute, sizeof(absolute), "%s.", name);
+	if (strcasecmp(state->zone_name, absolute) == 0)
+		return (ISC_R_SUCCESS);
+
 	return (ISC_R_NOTFOUND);
 }
 
@@ -394,6 +401,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	isc_result_t result;
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	isc_boolean_t found = ISC_FALSE;
+	void *dbversion = NULL;
 	isc_sockaddr_t *src;
 	char full_name[256];
 	char buf[512];
@@ -410,6 +418,30 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	} else
 		snprintf(full_name, 255, "%s.%s", name, state->zone_name);
 
+	/*
+	 * If we need to know the database version (as set in
+	 * the 'newversion' dlz function) we can pick it up from the
+	 * clientinfo.
+	 *
+	 * This allows a lookup to query the correct version of the DNS
+	 * data, if the DLZ can differentiate between versions.
+	 *
+	 * For example, if a new database transaction is created by
+	 * 'newversion', the lookup should query within the same
+	 * transaction scope if it can.
+	 *
+	 * If the DLZ only operates on 'live' data, then version
+	 * wouldn't necessarily be needed.
+	 */
+	if (clientinfo != NULL &&
+	    clientinfo->version >= DNS_CLIENTINFO_VERSION) {
+		dbversion = clientinfo->dbversion;
+		if (dbversion != NULL && *(isc_boolean_t *)dbversion)
+			state->log(ISC_LOG_INFO,
+				   "dlz_example: lookup against live "
+				   "transaction\n");
+	}
+
 	if (strcmp(name, "source-addr") == 0) {
 		strcpy(buf, "unknown");
 		if (methods != NULL &&
@@ -422,7 +454,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 			fmt_address(src, buf, sizeof(buf));
 		}
 
-		fprintf(stderr, "lookup: connection from: %s\n", buf);
+		state->log(ISC_LOG_INFO,
+			   "dlz_example: lookup connection from %s\n", buf);
 
 		found = ISC_TRUE;
 		result = state->putrr(lookup, "TXT", 0, buf);
@@ -642,6 +675,7 @@ modrdataset(struct dlz_example_data *state, const char *name,
 	    const char *rdatastr, struct record *list)
 {
 	char *full_name, *dclass, *type, *data, *ttlstr, *buf;
+	char absolute[1024];
 	isc_result_t result;
 #if defined(WIN32) || defined(_REENTRANT)
 	char *saveptr = NULL;
@@ -678,6 +712,11 @@ modrdataset(struct dlz_example_data *state, const char *name,
 	data = STRTOK_R(NULL, "\t", &saveptr);
 	if (data == NULL)
 		goto error;
+
+	if (name[strlen(name) - 1] != '.') {
+		snprintf(absolute, sizeof(absolute), "%s.", name);
+		name = absolute;
+	}
 
 	result = add_name(state, list, name, type,
 			  strtoul(ttlstr, NULL, 10), data);
@@ -721,7 +760,6 @@ dlz_subrdataset(const char *name, const char *rdatastr,
 
 	return (modrdataset(state, name, rdatastr, &state->deletes[0]));
 }
-
 
 isc_result_t
 dlz_delrdataset(const char *name, const char *type,

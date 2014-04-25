@@ -80,6 +80,12 @@ typedef uint32_t dns_ttl_t;
 
 /* other useful definitions */
 #define UNUSED(x) (void)(x)
+#define DE_CONST(konst, var) \
+	do { \
+		union { const void *k; void *v; } _u; \
+		_u.k = konst; \
+		var = _u.v; \
+	} while (0)
 
 /* opaque structures */
 typedef void *dns_sdlzlookup_t;
@@ -105,22 +111,26 @@ typedef struct isc_sockaddr {
 	void *                          link;
 } isc_sockaddr_t;
 
-#define DNS_CLIENTINFO_VERSION 1
+#define DNS_CLIENTINFO_VERSION 2
 typedef struct dns_clientinfo {
 	uint16_t version;
 	void *data;
+	void *dbversion;
 } dns_clientinfo_t;
 
 typedef isc_result_t (*dns_clientinfo_sourceip_t)(dns_clientinfo_t *client,
 						  isc_sockaddr_t **addrp);
 
-#define DNS_CLIENTINFOMETHODS_VERSION 1
-#define DNS_CLIENTINFOMETHODS_AGE 0
+typedef isc_result_t (*dns_clientinfo_version_t)(dns_clientinfo_t *client,
+						  void **addrp);
 
+#define DNS_CLIENTINFOMETHODS_VERSION 2
+#define DNS_CLIENTINFOMETHODS_AGE 1
 typedef struct dns_clientinfomethods {
 	uint16_t version;
 	uint16_t age;
 	dns_clientinfo_sourceip_t sourceip;
+	dns_clientinfo_version_t dbversion;
 } dns_clientinfomethods_t;
 #endif /* DLZ_DLOPEN_VERSION > 1 */
 

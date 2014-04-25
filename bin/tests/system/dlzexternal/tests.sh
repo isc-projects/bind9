@@ -67,6 +67,20 @@ status=`expr $status + $ret`
 test_update deny.example.nil. TXT "86400 TXT helloworld" "helloworld" should_fail && ret=1
 status=`expr $status + $ret`
 
+echo "I:testing prerequisites are checked correctly"
+ret=0
+cat > ns1/update.txt << EOF
+server 10.53.0.1 5300
+prereq nxdomain testdc3.example.nil
+update add testdc3.example.nil 86500 in a 10.53.0.12
+send
+EOF
+$NSUPDATE -k ns1/ddns.key ns1/update.txt > /dev/null 2>&1 && ret=1
+out=`$DIG $DIGOPTS +short a testdc3.example.nil`
+[ "$out" = "10.53.0.12" ] && ret=1
+[ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
 echo "I:testing passing client info into DLZ driver"
 ret=0
 out=`$DIG $DIGOPTS +short -t txt -q source-addr.example.nil | grep -v '^;'`
