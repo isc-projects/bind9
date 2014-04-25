@@ -126,7 +126,7 @@ struct isc__timermgr {
 isc_result_t
 isc__timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		  const isc_time_t *expires, const isc_interval_t *interval,
-		  isc_task_t *task, isc_taskaction_t action, const void *arg,
+		  isc_task_t *task, isc_taskaction_t action, void *arg,
 		  isc_timer_t **timerp);
 isc_result_t
 isc__timer_reset(isc_timer_t *timer, isc_timertype_t type,
@@ -378,7 +378,7 @@ destroy(isc__timer_t *timer) {
 isc_result_t
 isc__timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 		  const isc_time_t *expires, const isc_interval_t *interval,
-		  isc_task_t *task, isc_taskaction_t action, const void *arg,
+		  isc_task_t *task, isc_taskaction_t action, void *arg,
 		  isc_timer_t **timerp)
 {
 	isc__timermgr_t *manager = (isc__timermgr_t *)manager0;
