@@ -281,14 +281,14 @@ typedef struct isc_socketmethods {
 				unsigned int options);
 	isc_result_t	(*sendto)(isc_socket_t *sock, isc_region_t *region,
 				  isc_task_t *task, isc_taskaction_t action,
-				  const void *arg, isc_sockaddr_t *address,
+				  void *arg, isc_sockaddr_t *address,
 				  struct in6_pktinfo *pktinfo);
 	isc_result_t	(*connect)(isc_socket_t *sock, isc_sockaddr_t *addr,
 				   isc_task_t *task, isc_taskaction_t action,
-				   const void *arg);
+				   void *arg);
 	isc_result_t	(*recv)(isc_socket_t *sock, isc_region_t *region,
 				unsigned int minimum, isc_task_t *task,
-				isc_taskaction_t action, const void *arg);
+				isc_taskaction_t action, void *arg);
 	void		(*cancel)(isc_socket_t *sock, isc_task_t *task,
 				  unsigned int how);
 	isc_result_t	(*getsockname)(isc_socket_t *sock,
@@ -658,7 +658,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog);
 
 isc_result_t
 isc_socket_accept(isc_socket_t *sock,
-		  isc_task_t *task, isc_taskaction_t action, const void *arg);
+		  isc_task_t *task, isc_taskaction_t action, void *arg);
 /*%<
  * Queue accept event.  When a new connection is received, the task will
  * get an ISC_SOCKEVENT_NEWCONN event with the sender set to the listen
@@ -682,7 +682,7 @@ isc_socket_accept(isc_socket_t *sock,
 isc_result_t
 isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addressp,
 		   isc_task_t *task, isc_taskaction_t action,
-		   const void *arg);
+		   void *arg);
 /*%<
  * Connect 'socket' to peer with address *saddr.  When the connection
  * succeeds, or when an error occurs, a CONNECT event with action 'action'
@@ -749,11 +749,11 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp);
 isc_result_t
 isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 		unsigned int minimum,
-		isc_task_t *task, isc_taskaction_t action, const void *arg);
+		isc_task_t *task, isc_taskaction_t action, void *arg);
 isc_result_t
 isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		 unsigned int minimum,
-		 isc_task_t *task, isc_taskaction_t action, const void *arg);
+		 isc_task_t *task, isc_taskaction_t action, void *arg);
 
 isc_result_t
 isc_socket_recv2(isc_socket_t *sock, isc_region_t *region,
@@ -836,21 +836,21 @@ isc_socket_recv2(isc_socket_t *sock, isc_region_t *region,
 /*@{*/
 isc_result_t
 isc_socket_send(isc_socket_t *sock, isc_region_t *region,
-		isc_task_t *task, isc_taskaction_t action, const void *arg);
+		isc_task_t *task, isc_taskaction_t action, void *arg);
 isc_result_t
 isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
-		  isc_task_t *task, isc_taskaction_t action, const void *arg,
+		  isc_task_t *task, isc_taskaction_t action, void *arg,
 		  isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
 isc_result_t
 isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		 isc_task_t *task, isc_taskaction_t action, const void *arg);
+		 isc_task_t *task, isc_taskaction_t action, void *arg);
 isc_result_t
 isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		   isc_task_t *task, isc_taskaction_t action, const void *arg,
+		   isc_task_t *task, isc_taskaction_t action, void *arg,
 		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
 isc_result_t
 isc_socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		    isc_task_t *task, isc_taskaction_t action, const void *arg,
+		    isc_task_t *task, isc_taskaction_t action, void *arg,
 		    isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		    unsigned int flags);
 isc_result_t
