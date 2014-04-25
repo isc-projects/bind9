@@ -112,7 +112,7 @@ typedef struct {
 				       const isc_interval_t *interval,
 				       isc_task_t *task,
 				       isc_taskaction_t action,
-				       const void *arg,
+				       void *arg,
 				       isc_timer_t **timerp);
 } isc_timermgrmethods_t;
 
@@ -173,7 +173,7 @@ isc_timer_create(isc_timermgr_t *manager,
 		 const isc_interval_t *interval,
 		 isc_task_t *task,
 		 isc_taskaction_t action,
-		 const void *arg,
+		 void *arg,
 		 isc_timer_t **timerp);
 /*%<
  * Create a new 'type' timer managed by 'manager'.  The timers parameters
