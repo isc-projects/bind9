@@ -16242,12 +16242,10 @@ dns_zone_checknames(dns_zone_t *zone, dns_name_t *name, dns_rdata_t *rdata) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMES) &&
-	    rdata->type != dns_rdatatype_nsec3)
+	if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMES))
 		return (ISC_R_SUCCESS);
 
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMESFAIL) ||
-	    rdata->type == dns_rdatatype_nsec3) {
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMESFAIL)) {
 		level = ISC_LOG_ERROR;
 		fail = ISC_TRUE;
 	}
