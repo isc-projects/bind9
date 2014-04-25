@@ -128,7 +128,7 @@ typedef struct isc_taskmethods {
 	unsigned int (*unsend)(isc_task_t *task, void *sender, isc_eventtype_t type,
 			       void *tag, isc_eventlist_t *events);
 	isc_result_t (*onshutdown)(isc_task_t *task, isc_taskaction_t action,
-				   const void *arg);
+				   void *arg);
 	void (*shutdown)(isc_task_t *task);
 	void (*setname)(isc_task_t *task, const char *name, void *tag);
 	unsigned int (*purgeevents)(isc_task_t *task, void *sender,
@@ -441,7 +441,7 @@ isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
 
 isc_result_t
 isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action,
-		    const void *arg);
+		    void *arg);
 /*%<
  * Send a shutdown event with action 'action' and argument 'arg' when
  * 'task' is shutdown.

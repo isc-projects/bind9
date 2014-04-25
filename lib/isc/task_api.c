@@ -172,7 +172,7 @@ isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
 }
 
 isc_result_t
-isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, const void *arg)
+isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg)
 {
 	REQUIRE(ISCAPI_TASK_VALID(task));
 

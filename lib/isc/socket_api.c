@@ -131,7 +131,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
 
 isc_result_t
 isc_socket_sendto(isc_socket_t *sock, isc_region_t *region, isc_task_t *task,
-		  isc_taskaction_t action, const void *arg,
+		  isc_taskaction_t action, void *arg,
 		  isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
 {
 	REQUIRE(ISCAPI_SOCKET_VALID(sock));
@@ -154,7 +154,7 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 
 isc_result_t
 isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, isc_task_t *task,
-		   isc_taskaction_t action, const void *arg)
+		   isc_taskaction_t action, void *arg)
 {
 	REQUIRE(ISCAPI_SOCKET_VALID(sock));
 
@@ -163,7 +163,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, isc_task_t *task,
 
 isc_result_t
 isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
-		isc_task_t *task, isc_taskaction_t action, const void *arg)
+		isc_task_t *task, isc_taskaction_t action, void *arg)
 {
 	REQUIRE(ISCAPI_SOCKET_VALID(sock));
 
