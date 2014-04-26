@@ -4573,6 +4573,9 @@ removed(dns_zone_t *zone, void *uap) {
 	case dns_zone_stub:
 		type = "stub";
 		break;
+	case dns_zone_staticstub:
+		type = "static-stub";
+		break;
 	case dns_zone_redirect:
 		type = "redirect";
 		break;
