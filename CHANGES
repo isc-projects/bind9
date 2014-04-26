@@ -1,3 +1,6 @@
+3822.	[bug]		Log the correct type of static-stub zones when
+			removing them. [RT #35842]
+
 3821.	[contrib]	Added a new "mysqldyn" DLZ module with dynamic
 			update and transaction support. Thanks to Marty
 			Lee for the contribution. [RT #35656]
