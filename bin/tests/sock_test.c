@@ -247,6 +247,11 @@ timeout(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
+static char one[] = "1";
+static char two[] = "2";
+static char xso1[] = "so1";
+static char xso2[] = "so2";
+
 int
 main(int argc, char *argv[]) {
 	isc_task_t *t1, *t2;
@@ -301,9 +306,9 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
 	t2 = NULL;
 	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_onshutdown(t1, my_shutdown, "1") ==
+	RUNTIME_CHECK(isc_task_onshutdown(t1, my_shutdown, one) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_onshutdown(t2, my_shutdown, "2") ==
+	RUNTIME_CHECK(isc_task_onshutdown(t2, my_shutdown, two) ==
 		      ISC_R_SUCCESS);
 
 	printf("task 1 = %p\n", t1);
@@ -333,7 +338,7 @@ main(int argc, char *argv[]) {
 	/*
 	 * Queue up the first accept event.
 	 */
-	RUNTIME_CHECK(isc_socket_accept(so1, t1, my_listen, "so1")
+	RUNTIME_CHECK(isc_socket_accept(so1, t1, my_listen, xso1)
 		      == ISC_R_SUCCESS);
 	isc_time_settoepoch(&expires);
 	isc_interval_set(&interval, 10, 0);
@@ -357,7 +362,7 @@ main(int argc, char *argv[]) {
 					&so2) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_socket_connect(so2, &sockaddr, t2,
-					 my_connect, "so2") == ISC_R_SUCCESS);
+					 my_connect, xso2) == ISC_R_SUCCESS);
 
 	/*
 	 * Detaching these is safe, since the socket will attach to the
