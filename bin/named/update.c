@@ -553,6 +553,7 @@ foreach_rrset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 */
 	dns_db_currentversion(db, &oldver);
 	dns_clientinfo_init(&ci, NULL, (ver != oldver) ? ver : NULL);
+	dns_db_closeversion(db, &oldver, ISC_FALSE);
 
 	node = NULL;
 	result = dns_db_findnodeext(db, name, ISC_FALSE, &cm, &ci, &node);
@@ -644,6 +645,7 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 */
 	dns_db_currentversion(db, &oldver);
 	dns_clientinfo_init(&ci, NULL, (ver != oldver) ? ver : NULL);
+	dns_db_closeversion(db, &oldver, ISC_FALSE);
 
 	if (type == dns_rdatatype_any)
 		return (foreach_node_rr(db, ver, name,
