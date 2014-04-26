@@ -1,3 +1,6 @@
+3822.	[bug]		Log the correct type of static-stub zones when
+			removing them. [RT #35842]
+
 3819.	[bug]		NSEC3 hashes need to be able to be entered and
 			displayed without padding.  This is not a issue for
 			currently defined algorithms but may be for future
