@@ -8318,7 +8318,7 @@ zone_maintenance(dns_zone_t *zone) {
 	}
 
 	/*
-	 * Master/redirect zones send notifies now, if needed
+	 * Master zones send notifies now, if needed
 	 */
 	switch (zone->type) {
 	case dns_zone_master:
