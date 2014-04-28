@@ -357,7 +357,7 @@ static void dump_entry(FILE *, dns_adbentry_t *, isc_boolean_t, isc_stdtime_t);
  * Private flag(s) for entries.
  * MUST NOT overlap FCTX_ADDRINFO_xxx and DNS_FETCHOPT_NOEDNS0.
  */
-#define ENTRY_IS_DEAD		0x80000000
+#define ENTRY_IS_DEAD		0x00400000
 
 /*
  * To the name, address classes are all that really exist.  If it has a
@@ -4040,6 +4040,9 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
+
+	REQUIRE((bits & ENTRY_IS_DEAD) == 0);
+	REQUIRE((mask & ENTRY_IS_DEAD) == 0);
 
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
