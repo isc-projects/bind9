@@ -885,11 +885,14 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 static void
 rpz_log_rewrite(ns_client_t *client, isc_boolean_t disabled,
 		dns_rpz_policy_t policy, dns_rpz_type_t type,
-		dns_zone_t *p_zone, dns_name_t *p_name)
+		dns_zone_t *p_zone, dns_name_t *p_name,
+		dns_name_t *cname)
 {
 	isc_stats_t *zonestats;
 	char qname_buf[DNS_NAME_FORMATSIZE];
 	char p_name_buf[DNS_NAME_FORMATSIZE];
+	char cname_buf[DNS_NAME_FORMATSIZE] = { 0 };
+	const char *s1 = cname_buf, *s2 = cname_buf;
 
 	/*
 	 * Count enabled rewrites in the global counter.
@@ -911,12 +914,17 @@ rpz_log_rewrite(ns_client_t *client, isc_boolean_t disabled,
 
 	dns_name_format(client->query.qname, qname_buf, sizeof(qname_buf));
 	dns_name_format(p_name, p_name_buf, sizeof(p_name_buf));
+	if (cname != NULL) {
+		s1 = " (CNAME to: ";
+		dns_name_format(cname, cname_buf, sizeof(cname_buf));
+		s2 = ")";
+	}
 
 	ns_client_log(client, DNS_LOGCATEGORY_RPZ, NS_LOGMODULE_QUERY,
-		      DNS_RPZ_INFO_LEVEL, "%srpz %s %s rewrite %s via %s",
+		      DNS_RPZ_INFO_LEVEL, "%srpz %s %s rewrite %s via %s%s%s%s",
 		      disabled ? "disabled " : "",
 		      dns_rpz_type2str(type), dns_rpz_policy2str(policy),
-		      qname_buf, p_name_buf);
+		      qname_buf, p_name_buf, s1, cname_buf, s2);
 }
 
 static void
@@ -4618,7 +4626,7 @@ rpz_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 			 * and try the next eligible policy zone.
 			 */
 			rpz_log_rewrite(client, ISC_TRUE, policy, rpz_type,
-					p_zone, p_name);
+					p_zone, p_name, NULL);
 		}
 	}
 
@@ -4944,7 +4952,7 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 			 * and try the next eligible policy zone.
 			 */
 			rpz_log_rewrite(client, ISC_TRUE, policy, rpz_type,
-					p_zone, p_name);
+					p_zone, p_name, NULL);
 			break;
 		}
 	}
@@ -5311,7 +5319,8 @@ cleanup:
 		if (st->m.policy == DNS_RPZ_POLICY_PASSTHRU &&
 		    result != DNS_R_DELEGATION)
 			rpz_log_rewrite(client, ISC_FALSE, st->m.policy,
-					st->m.type, st->m.zone, st->p_name);
+					st->m.type, st->m.zone, st->p_name,
+					NULL);
 		rpz_match_clear(st);
 	}
 	if (st->m.policy == DNS_RPZ_POLICY_ERROR) {
@@ -5428,7 +5437,7 @@ rpz_add_cname(ns_client_t *client, dns_rpz_st_t *st,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	rpz_log_rewrite(client, ISC_FALSE, st->m.policy,
-			st->m.type, st->m.zone, st->p_name);
+			st->m.type, st->m.zone, st->p_name, fname);
 	ns_client_qnamereplace(client, fname);
 	/*
 	 * Turn off DNSSEC because the results of a
@@ -6587,14 +6596,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				rpz_log_rewrite(client, ISC_FALSE,
 						rpz_st->m.policy,
 						rpz_st->m.type, zone,
-						rpz_st->p_name);
+						rpz_st->p_name, NULL);
 				goto cleanup;
 			case DNS_RPZ_POLICY_DROP:
 				QUERY_ERROR(DNS_R_DROP);
 				rpz_log_rewrite(client, ISC_FALSE,
 						rpz_st->m.policy,
 						rpz_st->m.type, zone,
-						rpz_st->p_name);
+						rpz_st->p_name, NULL);
 				goto cleanup;
 			case DNS_RPZ_POLICY_NXDOMAIN:
 				result = DNS_R_NXDOMAIN;
@@ -6664,7 +6673,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			rpz_st->q.is_zone = is_zone;
 			is_zone = ISC_TRUE;
 			rpz_log_rewrite(client, ISC_FALSE, rpz_st->m.policy,
-					rpz_st->m.type, zone, rpz_st->p_name);
+					rpz_st->m.type, zone, rpz_st->p_name,
+					NULL);
 		}
 	}
 
