@@ -1,5 +1,9 @@
 	--- 9.10.0 released ---
 
+3824.	[bug]		A collision between two flag values could cause
+			problems with cache cleaning when SIT was enabled.
+			[RT #35858]
+
 	--- 9.10.0rc2 released ---
 
 3817.	[func]		The "delve" command is now spelled "delv" to avoid
