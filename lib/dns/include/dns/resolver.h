@@ -97,6 +97,7 @@ typedef struct dns_fetchevent {
 							  UDP buffer. */
 #define DNS_FETCHOPT_WANTNSID           0x80         /*%< Request NSID */
 
+/* Reserved in use by adb.c		0x00400000 */
 #define	DNS_FETCHOPT_EDNSVERSIONSET	0x00800000
 #define	DNS_FETCHOPT_EDNSVERSIONMASK	0xff000000
 #define	DNS_FETCHOPT_EDNSVERSIONSHIFT	24
