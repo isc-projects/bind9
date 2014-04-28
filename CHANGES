@@ -1,3 +1,7 @@
+3824.	[bug]		A collision between two flag values could cause
+			problems with cache cleaning when SIT was enabled.
+			[RT #35858]
+
 3823.	[func]		Log the rpz cname target when rewriting. [RT #35667]
 
 3822.	[bug]		Log the correct type of static-stub zones when
