@@ -653,13 +653,12 @@ sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 
 	len = (size_t)size;
 	p = buf;
-	while (len) {
+	while (len != 0U) {
 		isc_result = isc_stdio_read(p, 1, len, fp, &rval);
 		if (isc_result == ISC_R_SUCCESS) {
 			len -= rval;
 			p += rval;
-		}
-		else {
+		} else {
 			t_info("read failed %d, result: %s\n",
 			       (int)rval, isc_result_totext(isc_result));
 			(void) free(buf);
@@ -671,12 +670,12 @@ sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 
 	p = buf;
 	len = size;
-	while (len > 0) {
+	while (len > 0U) {
 		if ((*p == '\r') || (*p == '\n')) {
 			++p;
 			--len;
 			continue;
-		} else if (len < 2)
+		} else if (len < 2U)
                        return (1);
 		if (('0' <= *p) && (*p <= '9'))
 			val = *p - '0';
