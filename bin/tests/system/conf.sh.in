@@ -61,7 +61,7 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case checkconf checknames checkzone database dlv
 	 dlvauto dlz dlzexternal dname dns64 dnssec ecdsa
 	 emptyzones
-	 formerr
+	 filter-aaaa formerr
 	 forward glue gost ixfr limits logfileconfig lwresd masterfile
 	 masterformat metadata notify nsupdate pending pkcs11
 	 resolver rndc rpz rrsetorder sortlist smartsign spf staticstub
