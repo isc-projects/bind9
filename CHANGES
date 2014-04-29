@@ -1,3 +1,7 @@
+3827.	[contrib]	The example DLZ driver (a version of which is
+			also used in the dlzexternal system test) could
+			use absolute names as relative. [RT #35802]
+
 3826.	[bug]		Corrected a use-after-free in isc_radix_remove().
 			(This function is not used in BIND, but could have
 			caused problems in programs linking to libisc.)
