@@ -1,3 +1,6 @@
+3825.	[bug]		Address sign extension bug in isc_regex_validate.
+			[RT #35758]
+
 3824.	[bug]		A collision between two flag values could cause
 			problems with cache cleaning when SIT was enabled.
 			[RT #35858]
