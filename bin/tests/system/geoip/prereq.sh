@@ -19,5 +19,5 @@ then
     :
 else
     echo "I:This test requires GeoIP support." >&2
-    exit 1
+    exit 255
 fi
