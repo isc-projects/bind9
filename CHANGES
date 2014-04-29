@@ -2,8 +2,7 @@
 			[RT #35758]
 
 3824.	[bug]		A collision between two flag values could cause
-			problems with cache cleaning when SIT was enabled.
-			[RT #35858]
+			problems with cache cleaning. [RT #35858]
 
 3822.	[bug]		Log the correct type of static-stub zones when
 			removing them. [RT #35842]
