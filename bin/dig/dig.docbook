@@ -511,6 +511,17 @@
         </varlistentry>
 
         <varlistentry>
+          <term><option>+[no]ttlunits</option></term>
+          <listitem>
+            <para>
+              Display [do not display] the TTL in friendly human-readable
+              time units of "s", "m", "h", "d", and "w", representing
+              seconds, minutes, hours, days and weeks.  Implies +ttlid.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
           <term><option>+[no]recurse</option></term>
 	  <listitem>
 	    <para>

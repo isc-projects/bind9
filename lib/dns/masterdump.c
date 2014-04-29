@@ -494,15 +494,25 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			unsigned int length;
 
 			INDENT_TO(ttl_column);
-			length = snprintf(ttlbuf, sizeof(ttlbuf), "%u",
-					  rdataset->ttl);
-			INSIST(length <= sizeof(ttlbuf));
-			isc_buffer_availableregion(target, &r);
-			if (r.length < length)
-				return (ISC_R_NOSPACE);
-			memmove(r.base, ttlbuf, length);
-			isc_buffer_add(target, length);
-			column += length;
+			if ((ctx->style.flags & DNS_STYLEFLAG_TTL_UNITS) != 0) {
+				length = target->used;
+				result = dns_ttl_totext2(rdataset->ttl,
+							ISC_FALSE, ISC_FALSE,
+							target);
+				if (result != ISC_R_SUCCESS)
+					return (result);
+				column += target->used - length;
+			} else {
+				length = snprintf(ttlbuf, sizeof(ttlbuf), "%u",
+						  rdataset->ttl);
+				INSIST(length <= sizeof(ttlbuf));
+				isc_buffer_availableregion(target, &r);
+				if (r.length < length)
+					return (ISC_R_NOSPACE);
+				memmove(r.base, ttlbuf, length);
+				isc_buffer_add(target, length);
+				column += length;
+			}
 
 			/*
 			 * If the $TTL directive is not in use, the TTL we

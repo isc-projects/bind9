@@ -69,7 +69,7 @@ static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
 	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE,
 	onesoa = ISC_FALSE, rrcomments = ISC_FALSE, use_usec = ISC_FALSE,
-	nocrypto = ISC_FALSE;
+	nocrypto = ISC_FALSE, ttlunits = ISC_FALSE;
 static isc_uint32_t splitwidth = 0xffffffff;
 
 /*% opcode text */
@@ -218,6 +218,7 @@ help(void) {
 "                 +[no]short          (Disable everything except short\n"
 "                                      form of answer)\n"
 "                 +[no]ttlid          (Control display of ttls in records)\n"
+"                 +[no]ttlunits       (Display TTLs in human-readable units)\n"
 "                 +[no]all            (Set or clear all display flags)\n"
 "                 +[no]qr             (Print question before sending)\n"
 "                 +[no]nssearch       (Search all authoritative nameservers)\n"
@@ -424,6 +425,8 @@ printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
 		return(ISC_FALSE);
 
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
+	if (ttlunits)
+		styleflags |= DNS_STYLEFLAG_TTL_UNITS;
 	if (nottl)
 		styleflags |= DNS_STYLEFLAG_NO_TTL;
 	if (noclass)
@@ -483,6 +486,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		styleflags |= DNS_STYLEFLAG_COMMENT;
 	if (rrcomments)
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
+	if (ttlunits)
+		styleflags |= DNS_STYLEFLAG_TTL_UNITS;
 	if (nottl)
 		styleflags |= DNS_STYLEFLAG_NO_TTL;
 	if (noclass)
@@ -1297,9 +1302,18 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			}
 			break;
-		case 't': /* ttlid */
-			FULLCHECK("ttlid");
-			nottl = ISC_TF(!state);
+		case 't':
+			switch (cmd[3]) {
+			case 'i': /* ttlid */
+				FULLCHECK("ttlid");
+				nottl = ISC_TF(!state);
+				break;
+			case 'u': /* ttlunits */
+				FULLCHECK("ttlunits");
+				nottl = ISC_FALSE;
+				ttlunits = ISC_TF(state);
+				break;
+			}
 			break;
 		default:
 			goto invalid_option;

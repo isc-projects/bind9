@@ -1,3 +1,8 @@
+3829.	[func]		"dig +ttlunits" causes dig to print TTL values
+			with time-unit suffixes: w, d, h, m, s for
+			weeks, days, hours, minutes, and seconds. (Thanks
+			to Tony Finch.) [RT #35823]
+
 3828.	[placeholder]
 
 3827.	[func]		"dnssec-signzone -N date" updates serial number

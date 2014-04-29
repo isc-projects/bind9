@@ -106,6 +106,8 @@ typedef struct dns_master_style dns_master_style_t;
 /*% Comment out data by prepending with ";" */
 #define	DNS_STYLEFLAG_COMMENTDATA	0x10000000U
 
+/*% Print TTL with human-readable units. */
+#define DNS_STYLEFLAG_TTL_UNITS		0x20000000U
 
 ISC_LANG_BEGINDECLS
 

@@ -61,6 +61,9 @@ BIND 9.11.0
 	  in single-line-per-record format.
 	- "dig" now supports sending arbitary EDNS options by specifying
 	  them on the command line.
+	- "dig +ttlunits" causes dig to print TTL values with time-unit
+	  suffixes: w, d, h, m, s for weeks, days, hours, minutes, and
+	  seconds.
 	- "serial-update-format" can now be set to "date". On update,
 	  the serial number will be set to the current date in YYYYMMDDNN
 	  format.

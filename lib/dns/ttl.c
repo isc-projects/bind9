@@ -79,6 +79,13 @@ ttlfmt(unsigned int t, const char *s, isc_boolean_t verbose,
  */
 isc_result_t
 dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose, isc_buffer_t *target) {
+	return (dns_ttl_totext2(src, verbose, ISC_TRUE, target));
+}
+
+isc_result_t
+dns_ttl_totext2(isc_uint32_t src, isc_boolean_t verbose,
+		isc_boolean_t upcase, isc_buffer_t *target)
+{
 	unsigned secs, mins, hours, days, weeks, x;
 
 	secs = src % 60;   src /= 60;
@@ -116,7 +123,7 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose, isc_buffer_t *target) {
 	 * in upper case. (Why?  Because BIND 8 does that.
 	 * Presumably it has a reason.)
 	 */
-	if (x == 1 && !verbose) {
+	if (x == 1 && upcase && !verbose) {
 		isc_region_t region;
 		/*
 		 * The unit letter is the last character in the
