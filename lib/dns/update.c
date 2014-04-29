@@ -1858,18 +1858,23 @@ epoch_to_yyyymmdd(time_t when) {
 isc_uint32_t
 dns_update_soaserial(isc_uint32_t serial, dns_updatemethod_t method) {
 	isc_stdtime_t now;
+	isc_uint32_t new_serial;
 
-	if (method == dns_updatemethod_unixtime) {
+	switch (method) {
+	case dns_updatemethod_none:
+		return (serial);
+	case dns_updatemethod_unixtime:
 		isc_stdtime_get(&now);
 		if (now != 0 && isc_serial_gt(now, serial))
 			return (now);
-	} else if (method == dns_updatemethod_date) {
-		isc_uint32_t new_serial;
-
+		break;
+	case dns_updatemethod_date:
 		isc_stdtime_get(&now);
 		new_serial = epoch_to_yyyymmdd((time_t) now) * 100;
 		if (new_serial != 0 && isc_serial_gt(new_serial, serial))
 			return (new_serial);
+	case dns_updatemethod_increment:
+		break;
 	}
 
 	/* RFC1982 */

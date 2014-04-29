@@ -344,13 +344,16 @@ typedef enum {
 /*%
  * DNS Serial Number Update Method.
  *
+ * \li	_none:		Keep the current serial.
  * \li	_increment:	Add one to the current serial, skipping 0.
  * \li	_unixtime:	Set to the seconds since 00:00 Jan 1, 1970,
  *			if possible.
- * \li	_date:		Set to YYYYMMDDVV: Year, Month, Day, Version
+ * \li	_date:		Set to today's date in YYYYMMDDVV format:
+ *                      (Year, Month, Day, Version)
  */
 typedef enum {
-	dns_updatemethod_increment = 0,
+	dns_updatemethod_none = 0,
+	dns_updatemethod_increment,
 	dns_updatemethod_unixtime,
 	dns_updatemethod_date
 } dns_updatemethod_t;

@@ -1,3 +1,7 @@
+3827.	[func]		"dnssec-signzone -N date" updates serial number
+			to the current date in YYYYMMDDNN format.
+			[RT #35800]
+
 3826.	[bug]		Corrected a use-after-free in isc_radix_remove().
 			(This function is not used in BIND, but could have
 			caused problems in programs linking to libisc.)

@@ -430,8 +430,8 @@
           <para>
             The SOA serial number format of the signed zone.
 	    Possible formats are <command>"keep"</command> (default),
-            <command>"increment"</command> and
-	    <command>"unixtime"</command>.
+            <command>"increment"</command>, <command>"unixtime"</command>,
+            and <command>"date"</command>.
           </para>
 
           <variablelist>
@@ -455,6 +455,14 @@
               <listitem>
                 <para>Set the SOA serial number to the number of seconds
 	        since epoch.</para>
+	      </listitem>
+            </varlistentry>
+
+	    <varlistentry>
+	      <term><command>"date"</command></term>
+              <listitem>
+                <para>Set the SOA serial number to today's date in
+                YYYYMMDDNN format.</para>
 	      </listitem>
             </varlistentry>
 	 </variablelist>

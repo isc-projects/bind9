@@ -83,6 +83,7 @@
 #include <dns/result.h>
 #include <dns/soa.h>
 #include <dns/time.h>
+#include <dns/update.h>
 
 #include <dst/dst.h>
 
@@ -118,6 +119,7 @@ static int nsec_datatype = dns_rdatatype_nsec;
 #define SOA_SERIAL_KEEP		0
 #define SOA_SERIAL_INCREMENT	1
 #define SOA_SERIAL_UNIXTIME	2
+#define SOA_SERIAL_DATE		3
 
 typedef struct signer_event sevent_t;
 struct signer_event {
@@ -1249,7 +1251,7 @@ get_soa_ttls(void) {
  * Increment (or set if nonzero) the SOA serial
  */
 static isc_result_t
-setsoaserial(isc_uint32_t serial) {
+setsoaserial(isc_uint32_t serial, dns_updatemethod_t method) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
@@ -1275,7 +1277,10 @@ setsoaserial(isc_uint32_t serial) {
 
 	old_serial = dns_soa_getserial(&rdata);
 
-	if (serial) {
+	if (method == dns_updatemethod_date ||
+	    method == dns_updatemethod_unixtime) {
+		new_serial = dns_update_soaserial(old_serial, method);
+	} else if (serial != 0 || method == dns_updatemethod_none) {
 		/* Set SOA serial to the value provided. */
 		new_serial = serial;
 	} else {
@@ -3524,6 +3529,8 @@ main(int argc, char *argv[]) {
 			serialformat = SOA_SERIAL_INCREMENT;
 		else if (strcasecmp(serialformatstr, "unixtime") == 0)
 			serialformat = SOA_SERIAL_UNIXTIME;
+		else if (strcasecmp(serialformatstr, "date") == 0)
+			serialformat = SOA_SERIAL_DATE;
 		else
 			fatal("unknown soa serial format: %s",
 			      serialformatstr);
@@ -3649,10 +3656,13 @@ main(int argc, char *argv[]) {
 
 	switch (serialformat) {
 		case SOA_SERIAL_INCREMENT:
-			setsoaserial(0);
+			setsoaserial(0, dns_updatemethod_increment);
 			break;
 		case SOA_SERIAL_UNIXTIME:
-			setsoaserial(now);
+			setsoaserial(now, dns_updatemethod_unixtime);
+			break;
+		case SOA_SERIAL_DATE:
+			setsoaserial(now, dns_updatemethod_date);
 			break;
 		case SOA_SERIAL_KEEP:
 		default:

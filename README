@@ -64,6 +64,7 @@ BIND 9.11.0
 	- "serial-update-format" can now be set to "date". On update,
 	  the serial number will be set to the current date in YYYYMMDDNN
 	  format.
+	- "dnssec-signzone -N date" sets the serial number to YYYYMMDDNN.
 
 BIND 9.10.0
 

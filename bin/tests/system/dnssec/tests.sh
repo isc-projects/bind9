@@ -1536,6 +1536,18 @@ awk '/^;/ { next; } $2 > 30 { exit 1; }' signer/signer.out.8 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking dnssec-signzone -N date ($n)"
+ret=0
+(
+cd signer
+$SIGNER -O full -f signer.out.9 -S -N date -o example example2.db > /dev/null 2>&1
+) || ret=1
+now=`$PERL -e '@lt=localtime(); printf "%.4d%.2d%2d00\n",$lt[5]+1900,$lt[4]+1,$lt[3];'`
+serial=`awk '/^;/ { next; } $4 == "SOA" { print $7 }' signer/signer.out.9`
+[ "$now" -eq "$serial" ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking validated data are not cached longer than originalttl ($n)"
 ret=0
 $DIG $DIGOPTS +ttl +noauth a.ttlpatch.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
