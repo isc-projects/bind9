@@ -619,23 +619,28 @@ sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 
 	p = buf;
 	len = size;
-	while(len) {
+	while (len > 0) {
 		if ((*p == '\r') || (*p == '\n')) {
 			++p;
 			--len;
 			continue;
-		}
+		} else if (len < 2)
+                       return (1);
 		if (('0' <= *p) && (*p <= '9'))
 			val = *p - '0';
-		else
+		else if (('A' <= *p) && (*p <= 'F'))
 			val = *p - 'A' + 10;
+		else
+			return (1);
 		++p;
 		val <<= 4;
 		--len;
 		if (('0' <= *p) && (*p <= '9'))
 			val |= (*p - '0');
-		else
+		else if (('A' <= *p) && (*p <= 'F'))
 			val |= (*p - 'A' + 10);
+		else
+			return (1);
 		++p;
 		--len;
 		isc_buffer_putuint8(iscbuf, val);
