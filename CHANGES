@@ -1,3 +1,8 @@
+3826.	[bug]		Corrected a use-after-free in isc_radix_remove().
+			(This function is not used in BIND, but could have
+			caused problems in programs linking to libisc.)
+			[RT #35870]
+
 3825.	[bug]		Address sign extension bug in isc_regex_validate.
 			[RT #35758]
 
