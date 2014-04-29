@@ -678,7 +678,7 @@ sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 			--len;
 			continue;
 		} else if (len < 2U)
-                       return (1);
+		       return (1);
 		if (('0' <= *p) && (*p <= '9'))
 			val = *p - '0';
 		else if (('A' <= *p) && (*p <= 'F'))
