@@ -220,7 +220,7 @@ isc_regex_validate(const char *c) {
 				++c;
 				switch (*c) {
 				case '.':	/* collating element */
-					if (range) --range;
+					if (range != 0) --range;
 					++c;
 					state = parse_ce;
 					seen_ce = ISC_FALSE;
@@ -255,11 +255,11 @@ isc_regex_validate(const char *c) {
 			default:
 			inside:
 				seen_char = ISC_TRUE;
-				if (range == 2 && *c < range_start)
+				if (range == 2 && (*c & 0xff) < range_start)
 					FAIL("out of order range");
 				if (range != 0)
 					--range;
-				range_start = *c;
+				range_start = *c & 0xff;
 				++c;
 				break;
 			};
