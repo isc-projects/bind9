@@ -1414,7 +1414,7 @@
 ./bin/tests/system/stub/tests.sh		SH	2000,2001,2004,2007,2011,2012
 ./bin/tests/system/testcrypto.sh		SH	2014
 ./bin/tests/system/testsock.pl			PERL	2000,2001,2004,2007,2010,2011,2012,2013
-./bin/tests/system/testsock6.pl			PERL	2010,2012
+./bin/tests/system/testsock6.pl			PERL	2010,2012,2014
 ./bin/tests/system/tkey/Makefile.in		MAKE	2001,2002,2004,2007,2009,2012
 ./bin/tests/system/tkey/clean.sh		SH	2001,2004,2007,2011,2012,2013,2014
 ./bin/tests/system/tkey/keycreate.c		C	2001,2004,2005,2007,2009,2011,2012,2014
@@ -2397,7 +2397,7 @@
 ./lib/dns/include/dns/rdataslab.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/request.h			C	2000,2001,2002,2004,2005,2006,2007,2009,2010
-./lib/dns/include/dns/resolver.h		C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./lib/dns/include/dns/resolver.h		C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014
 ./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/rpz.h			C	2011,2012,2013
@@ -2898,7 +2898,7 @@
 ./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2013
 ./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005,2007,2012
 ./lib/isc/refcount.c				C	2005,2007
-./lib/isc/regex.c				C	2013
+./lib/isc/regex.c				C	2013,2014
 ./lib/isc/region.c				C	2002,2004,2005,2007
 ./lib/isc/result.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2008,2012
 ./lib/isc/rwlock.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2011,2012
