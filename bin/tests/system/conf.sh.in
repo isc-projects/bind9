@@ -63,10 +63,10 @@ RANDFILE=$TOP/bin/tests/system/random.data
 # v6synth
 SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case checkconf @CHECKDS@ checknames checkzone @COVERAGE@
-         database dlv dlvauto dlz dlzexternal dname dns64 dnssec ecdsa
-	 emptyzones
-         formerr forward glue gost ixfr inline limits logfileconfig
-         lwresd masterfile masterformat metadata notify nsupdate pending
+	 database dlv dlvauto dlz dlzexternal dname dns64 dnssec ecdsa
+	 emptyzones filter-aaaa formerr forward glue gost ixfr inline
+	 limits logfileconfig
+	 lwresd masterfile masterformat metadata notify nsupdate pending
 	 pkcs11 redirect resolver rndc rpz rrl rrsetorder rsabigexponent
 	 smartsign sortlist spf staticstub stub tkey tsig tsiggss unknown
 	 upforwd verify views wildcard xfer xferquota zero zonechecks"
