@@ -138,6 +138,22 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 			goto cleanup;
 	}
 
+	if (ns_g_logfile != NULL) {
+		destination.file.stream = NULL;
+		destination.file.name = ns_g_logfile;
+		destination.file.versions = ISC_LOG_ROLLNEVER;
+		destination.file.maximum_size = 0;
+		result = isc_log_createchannel(lcfg, "default_logfile",
+					       ISC_LOG_TOFILE,
+					       ISC_LOG_DYNAMIC,
+					       &destination,
+					       ISC_LOG_PRINTTIME|
+					       ISC_LOG_PRINTCATEGORY|
+					       ISC_LOG_PRINTLEVEL);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
+
 #if ISC_FACILITY != LOG_DAEMON
 	destination.facility = ISC_FACILITY;
 	result = isc_log_createchannel(lcfg, "default_syslog",
@@ -161,9 +177,7 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 isc_result_t
 ns_log_setsafechannels(isc_logconfig_t *lcfg) {
 	isc_result_t result;
-#if ISC_FACILITY != LOG_DAEMON
 	isc_logdestination_t destination;
-#endif
 
 	if (! ns_g_logstderr) {
 		result = isc_log_createchannel(lcfg, "default_debug",
@@ -180,6 +194,22 @@ ns_log_setsafechannels(isc_logconfig_t *lcfg) {
 		isc_log_setdebuglevel(ns_g_lctx, 0);
 	} else {
 		isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
+	}
+
+	if (ns_g_logfile != NULL) {
+		destination.file.stream = NULL;
+		destination.file.name = ns_g_logfile;
+		destination.file.versions = ISC_LOG_ROLLNEVER;
+		destination.file.maximum_size = 0;
+		result = isc_log_createchannel(lcfg, "default_logfile",
+					       ISC_LOG_TOFILE,
+					       ISC_LOG_DYNAMIC,
+					       &destination,
+					       ISC_LOG_PRINTTIME|
+					       ISC_LOG_PRINTCATEGORY|
+					       ISC_LOG_PRINTLEVEL);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 	}
 
 #if ISC_FACILITY != LOG_DAEMON
@@ -199,21 +229,23 @@ ns_log_setsafechannels(isc_logconfig_t *lcfg) {
 
 isc_result_t
 ns_log_setdefaultcategory(isc_logconfig_t *lcfg) {
-	isc_result_t result;
-
-	if (! ns_g_logstderr && ! ns_g_nosyslog) {
-		result = isc_log_usechannel(lcfg, "default_syslog",
-					    ISC_LOGCATEGORY_DEFAULT, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-	}
+	isc_result_t result = ISC_R_SUCCESS;
 
 	result = isc_log_usechannel(lcfg, "default_debug",
 				    ISC_LOGCATEGORY_DEFAULT, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = ISC_R_SUCCESS;
+	if (! ns_g_logstderr) {
+		if (ns_g_logfile != NULL)
+			result = isc_log_usechannel(lcfg, "default_logfile",
+						    ISC_LOGCATEGORY_DEFAULT,
+						    NULL);
+		else if (! ns_g_nosyslog)
+			result = isc_log_usechannel(lcfg, "default_syslog",
+						    ISC_LOGCATEGORY_DEFAULT,
+						    NULL);
+	}
 
  cleanup:
 	return (result);

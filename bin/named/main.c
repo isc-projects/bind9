@@ -421,7 +421,7 @@ parse_command_line(int argc, char *argv[]) {
 	save_command_line(argc, argv);
 
 	/* PLEASE keep options synchronized when main is hooked! */
-#define CMDLINE_FLAGS "46c:C:d:D:E:fFgi:lm:n:N:p:P:sS:t:T:U:u:vVx:"
+#define CMDLINE_FLAGS "46c:C:d:D:E:fFgi:lL:m:n:N:p:P:sS:t:T:U:u:vVx:"
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -477,6 +477,9 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'l':
 			ns_g_lwresdonly = ISC_TRUE;
+			break;
+		case 'L':
+			ns_g_logfile = isc_commandline_argument;
 			break;
 		case 'm':
 			set_flags(isc_commandline_argument, mem_debug_flags,

@@ -68,6 +68,8 @@ BIND 9.11.0
 	  the serial number will be set to the current date in YYYYMMDDNN
 	  format.
 	- "dnssec-signzone -N date" sets the serial number to YYYYMMDDNN.
+	- "named -L <filename>" causes named to send log messages to
+	   the specified file by default instead of to the system log.
 
 BIND 9.10.0
 

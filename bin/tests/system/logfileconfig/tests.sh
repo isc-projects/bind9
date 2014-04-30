@@ -24,10 +24,12 @@ PLAINCONF="${THISDIR}/${CONFDIR}/named.plain"
 DIRCONF="${THISDIR}/${CONFDIR}/named.dirconf"
 PIPECONF="${THISDIR}/${CONFDIR}/named.pipeconf"
 SYMCONF="${THISDIR}/${CONFDIR}/named.symconf"
+PLAINCONF="${THISDIR}/${CONFDIR}/named.plainconf"
 PLAINFILE="named_log"
 DIRFILE="named_dir"
 PIPEFILE="named_pipe"
 SYMFILE="named_sym"
+DLFILE="named_deflog"
 PIDFILE="${THISDIR}/${CONFDIR}/named.pid"
 myRNDC="$RNDC -c ${THISDIR}/${CONFDIR}/rndc.conf"
 myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -T clienttest -T nosyslog -d 99 -U 4"
@@ -225,6 +227,28 @@ then
 	fi
 else
 	echo "I: skipping symlink test (unable to create symlink)"
+fi
+
+status=0
+
+# Now stop the server again and test the -L option
+rm -f $DLFILE
+$myRNDC stop
+cp $PLAINCONF named.conf
+$myNAMED -L $DLFILE > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "I:failed to start $myNAMED"
+	echo "I:exit status: $status"
+	exit $status
+fi
+
+sleep 1
+if [ -f "$DLFILE" ]; then
+        echo "I: testing default logfile using named -L succeeded"
+else
+	echo "I:testing default logfile using named -L failed"
+	echo "I:exit status: 1"
+	exit 1
 fi
 
 echo "I:exit status: $status"
