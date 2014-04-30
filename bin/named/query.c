@@ -257,6 +257,9 @@ query_error(ns_client_t *client, isc_result_t result, int line) {
 		break;
 	}
 
+	if (ns_g_server->log_queries)
+		loglevel = ISC_LOG_INFO;
+
 	log_queryerror(client, result, line, loglevel);
 
 	ns_client_error(client, result);

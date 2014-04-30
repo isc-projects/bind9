@@ -1,3 +1,7 @@
+3830.	[func]		When query logging is enabled, log query errors at
+			the same level ('info') as the queries themselves.
+			[RT #35844]
+
 3829.	[func]		"dig +ttlunits" causes dig to print TTL values
 			with time-unit suffixes: w, d, h, m, s for
 			weeks, days, hours, minutes, and seconds. (Thanks
