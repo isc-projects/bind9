@@ -2,7 +2,7 @@
 			leading to multiple re-generations of the same RRSIG
 			when a zone transfer was in progress. [RT #35273]
 
-2833.	[bug]		Cross compiling was broken due to calling genrandom at
+3833.	[bug]		Cross compiling was broken due to calling genrandom at
 			build time. [RT #35869]
 
 3826.	[bug]		Corrected bad INSIST logic in isc_radix_remove().
