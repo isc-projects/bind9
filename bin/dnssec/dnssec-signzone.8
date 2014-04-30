@@ -222,9 +222,9 @@ Specifies the number of threads to use. By default, one thread is started for ea
 The SOA serial number format of the signed zone. Possible formats are
 \fB"keep"\fR
 (default),
-\fB"increment"\fR
-and
-\fB"unixtime"\fR.
+\fB"increment"\fR,
+\fB"unixtime"\fR, and
+\fB"date"\fR.
 .RS 4
 .PP
 \fB"keep"\fR
@@ -240,6 +240,11 @@ Increment the SOA serial number using RFC 1982 arithmetics.
 \fB"unixtime"\fR
 .RS 4
 Set the SOA serial number to the number of seconds since epoch.
+.RE
+.PP
+\fB"date"\fR
+.RS 4
+Set the SOA serial number to today's date in YYYYMMDDNN format.
 .RE
 .RE
 .RE
