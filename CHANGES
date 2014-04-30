@@ -1,3 +1,6 @@
+2833.	[bug]		Cross compiling was broken due to calling genrandom at
+			build time. [RT #35869]
+
 3832.	[func]		"named -L <filename>" causes named to send log
 			messages to the specified file by default instead
 			of to the system log. (Thanks to Tony Finch.)
