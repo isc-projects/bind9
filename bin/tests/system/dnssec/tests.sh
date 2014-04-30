@@ -2094,7 +2094,7 @@ status=`expr $status + $ret`
 
 echo "I:testing soon-to-expire RRSIGs without a replacement private key ($n)"
 ret=0
-$DIG +noall +answer +dnssec +nottl -p 5300 expiring.example ns @10.53.0.3 | grep RRSIG > dig.out.ns3.test$n 2>&1
+$DIG +noall +answer +dnssec +nottlid -p 5300 expiring.example ns @10.53.0.3 | grep RRSIG > dig.out.ns3.test$n 2>&1
 # there must be a signature here
 [ -s dig.out.ns3.test$n ] || ret=1
 n=`expr $n + 1`
@@ -2119,7 +2119,7 @@ status=`expr $status + $ret`
 
 echo "I:testing expiring records aren't resigned with 'no-resign' ($n)"
 ret=0
-$DIG +noall +answer +dnssec +nottl -p 5300 nosign.example ns @10.53.0.3 | \
+$DIG +noall +answer +dnssec +nottlid -p 5300 nosign.example ns @10.53.0.3 | \
         grep RRSIG | sed 's/[ 	][ 	]*/ /g' > dig.out.ns3.test$n 2>&1
 # the NS RRSIG should not be changed
 cmp -s nosign.before dig.out.ns3.test$n || ret=1
