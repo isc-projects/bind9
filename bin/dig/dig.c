@@ -1313,6 +1313,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				nottl = ISC_FALSE;
 				ttlunits = ISC_TF(state);
 				break;
+			default:
+				goto invalid_option;
 			}
 			break;
 		default:
