@@ -1,3 +1,6 @@
+2833.	[bug]		Cross compiling was broken due to calling genrandom at
+			build time. [RT #35869]
+
 3831.	[cleanup]	Reduce logging noise when EDNS state changes occur.
 			[RT #35843]
 
