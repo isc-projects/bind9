@@ -1,3 +1,6 @@
+2833.	[bug]		Cross compiling was broken due to calling genrandom at
+			build time. [RT #35869]
+
 3826.	[bug]		Corrected bad INSIST logic in isc_radix_remove().
 			[RT #35870]
 
