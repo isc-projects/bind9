@@ -1,3 +1,7 @@
+3831.	[cleanup]	Reduce logging noise when EDNS state changes occur.
+			[RT #35843]
+
+
 3827.	[contrib]	The example DLZ driver (a version of which is
 			also used in the dlzexternal system test) could
 			use absolute names as relative. [RT #35802]

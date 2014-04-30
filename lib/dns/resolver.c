@@ -7330,18 +7330,18 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	     message->rcode == dns_rcode_refused ||
 	     message->rcode == dns_rcode_yxdomain) &&
 	     bad_edns(fctx, &query->addrinfo->sockaddr)) {
-/*
- * XXXMPA  We need to drop/remove the logging here when we have more
- * experience.
- */
-		char buf[4096], addrbuf[ISC_SOCKADDR_FORMATSIZE];
-		isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
-				    sizeof(addrbuf));
-		snprintf(buf, sizeof(buf), "received packet from %s "
-			 "(bad edns):\n", addrbuf);
-		dns_message_logpacket(message, buf,
-			      DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
-			      ISC_LOG_NOTICE, fctx->res->mctx);
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+			char buf[4096], addrbuf[ISC_SOCKADDR_FORMATSIZE];
+			isc_sockaddr_format(&query->addrinfo->sockaddr,
+					    addrbuf, sizeof(addrbuf));
+			snprintf(buf, sizeof(buf),
+				 "received packet from %s (bad edns):\n",
+				 addrbuf);
+			dns_message_logpacket(message, buf,
+				      DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER,
+				      ISC_LOG_DEBUG(3), fctx->res->mctx);
+		}
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
@@ -7350,28 +7350,28 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		    message->rcode == dns_rcode_nxdomain) &&
 		   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		/*
-		 * Old versions of named incorrectly drop the OPT record
-		 * when there is a signed, truncated response so check that
-		 * TC is not set.
-		 */
-/*
- * XXXMPA  We need to drop/remove the logging here when we have more
- * experience.
- */
-		char buf[4096], addrbuf[ISC_SOCKADDR_FORMATSIZE];
-		/*
 		 * We didn't get a OPT record in response to a EDNS query.
+		 *
+		 * Old versions of named incorrectly drop the OPT record
+		 * when there is a signed, truncated response so we check
+		 * that TC is not set.
+		 *
 		 * Record that the server is not talking EDNS.  While this
 		 * should be safe to do for any rcode we limit it to NOERROR
 		 * and NXDOMAIN.
 		 */
-		isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
-				    sizeof(addrbuf));
-		snprintf(buf, sizeof(buf), "received packet from %s (no opt):\n",
-			 addrbuf);
-		dns_message_logpacket(message, buf,
-			      DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
-			      ISC_LOG_NOTICE, fctx->res->mctx);
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+			char buf[4096], addrbuf[ISC_SOCKADDR_FORMATSIZE];
+			isc_sockaddr_format(&query->addrinfo->sockaddr,
+					    addrbuf, sizeof(addrbuf));
+			snprintf(buf, sizeof(buf),
+				 "received packet from %s (no opt):\n",
+				 addrbuf);
+			dns_message_logpacket(message, buf,
+				      DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER,
+				      ISC_LOG_DEBUG(3), fctx->res->mctx);
+		}
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
