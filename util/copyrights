@@ -485,7 +485,7 @@
 ./bin/tests/dst/Ktest.+003+23616.key.in		X	2001,2004,2013
 ./bin/tests/dst/Ktest.+003+23616.private.in	X	2001,2013
 ./bin/tests/dst/Ktest.+003+49667.key.in		X	2001,2004,2013
-./bin/tests/dst/Makefile.in			MAKE	1999,2000,2001,2002,2004,2006,2007,2008,2009,2010,2012,2013
+./bin/tests/dst/Makefile.in			MAKE	1999,2000,2001,2002,2004,2006,2007,2008,2009,2010,2012,2013,2014
 ./bin/tests/dst/dst_2_data.in			X	1999,2000,2001,2013
 ./bin/tests/dst/dst_test.c			C	1999,2000,2001,2004,2005,2007,2009,2012
 ./bin/tests/dst/gsstest.c			C	2006,2007,2009,2010,2011,2013
@@ -979,7 +979,7 @@
 ./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011,2012,2014
 ./bin/tests/system/dlzexternal/clean.sh		X	2010,2014
 ./bin/tests/system/dlzexternal/dlopen.c		C	2011
-./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013
+./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013,2014
 ./bin/tests/system/dlzexternal/driver.h		C	2011
 ./bin/tests/system/dlzexternal/ns1/.gitignore	X	2012
 ./bin/tests/system/dlzexternal/ns1/named.conf.in	CONF-C	2011
@@ -1985,7 +1985,7 @@
 ./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010,2011,2012
 ./contrib/dlz/example/Makefile			X	2010,2013
 ./contrib/dlz/example/README			X	2011,2013
-./contrib/dlz/example/dlz_example.c		X	2010,2011,2012,2013
+./contrib/dlz/example/dlz_example.c		X	2010,2011,2012,2013,2014
 ./contrib/dlz/example/named.conf		X	2011
 ./contrib/dlz/example/win32/DLLMain.c		X	2011
 ./contrib/dlz/example/win32/dxdriver.def	X	2011
