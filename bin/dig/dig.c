@@ -1303,16 +1303,22 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			}
 			break;
 		case 't':
-			switch (cmd[3]) {
-			case 0:
-			case 'i': /* ttlid */
-				FULLCHECK2("ttl", "ttlid");
-				nottl = ISC_TF(!state);
-				break;
-			case 'u': /* ttlunits */
-				FULLCHECK("ttlunits");
-				nottl = ISC_FALSE;
-				ttlunits = ISC_TF(state);
+			switch (cmd[2]) {
+			case 'l':
+				switch (cmd[3]) {
+				case 0:
+				case 'i': /* ttlid */
+					FULLCHECK2("ttl", "ttlid");
+					nottl = ISC_TF(!state);
+					break;
+				case 'u': /* ttlunits */
+					FULLCHECK("ttlunits");
+					nottl = ISC_FALSE;
+					ttlunits = ISC_TF(state);
+					break;
+				default:
+					goto invalid_option;
+				}
 				break;
 			default:
 				goto invalid_option;
