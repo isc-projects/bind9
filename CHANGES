@@ -1,3 +1,6 @@
+2833.	[bug]		Cross compiling was broken due to calling genrandom at
+			build time. [RT #35869]
+
 3827.	[contrib]	The example DLZ driver (a version of which is
 			also used in the dlzexternal system test) could
 			use absolute names as relative. [RT #35802]
