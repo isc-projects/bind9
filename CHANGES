@@ -1,3 +1,7 @@
+3834.	[bug]		The re-signing heaps were not being updated soon enough
+			leading to multiple re-generations of the same RRSIG
+			when a zone transfer was in progress. [RT #35273]
+
 2833.	[bug]		Cross compiling was broken due to calling genrandom at
 			build time. [RT #35869]
 
