@@ -21,5 +21,12 @@ SYSTEMTESTTOP=..
 
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 
-(cd ns1 && sh -e sign.sh)
-(cd ns4 && sh -e sign.sh)
+if sh ../testcrypto.sh -q
+then
+	(cd ns1 && sh -e sign.sh)
+	(cd ns4 && sh -e sign.sh)
+else
+	echo "I:using pre-signed zones"
+	cp -f ns1/signed.db.presigned ns1/signed.db.signed
+	cp -f ns4/signed.db.presigned ns4/signed.db.signed
+fi
