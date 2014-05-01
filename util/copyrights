@@ -2532,7 +2532,6 @@
 ./contrib/zkt-1.1.2/domaincmp.c			X	2008,2010,2014
 ./contrib/zkt-1.1.2/domaincmp.h			X	2008,2010,2014
 ./contrib/zkt-1.1.2/examples/dnssec.conf	X	2010,2014
-./contrib/zkt-1.1.2/examples/flat/core		X	2014
 ./contrib/zkt-1.1.2/examples/flat/dist.sh	X	2014
 ./contrib/zkt-1.1.2/examples/flat/dnssec.conf	X	2014
 ./contrib/zkt-1.1.2/examples/flat/dyn.example.net/Kdyn.example.net.+007+30323.key	X	2010,2014
