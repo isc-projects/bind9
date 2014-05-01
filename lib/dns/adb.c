@@ -500,7 +500,7 @@ set_adbstat(dns_adb_t *adb, isc_uint64_t val, isc_statscounter_t counter) {
 static inline void
 dec_adbstats(dns_adb_t *adb, isc_statscounter_t counter) {
 	if (adb->view->adbstats != NULL)
-		isc_stats_increment(adb->view->adbstats, counter);
+		isc_stats_decrement(adb->view->adbstats, counter);
 }
 
 static inline void
