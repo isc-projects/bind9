@@ -1,5 +1,5 @@
 3835.	[bug]		Geoip ACL elements didn't work correctly when
-                        referenced via named or nested ACLs. [RT #35879]
+			referenced via named or nested ACLs. [RT #35879]
 
 3834.	[bug]		The re-signing heaps were not being updated soon enough
 			leading to multiple re-generations of the same RRSIG
