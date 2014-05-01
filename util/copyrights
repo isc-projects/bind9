@@ -1053,7 +1053,7 @@
 ./bin/tests/system/filter-aaaa/ns4/sign.sh	SH	2010,2012,2014
 ./bin/tests/system/filter-aaaa/ns4/signed.db.in	ZONE	2010,2012
 ./bin/tests/system/filter-aaaa/ns4/signed.db.presigned	X	2014
-./bin/tests/system/filter-aaaa/ns4/unsigned.db	ZONE	2010,2012
+./bin/tests/system/filter-aaaa/ns4/unsigned.db	ZONE	2010,2012,2014
 ./bin/tests/system/filter-aaaa/prereq.sh	SH	2010,2012,2014
 ./bin/tests/system/filter-aaaa/setup.sh		SH	2010,2012,2014
 ./bin/tests/system/filter-aaaa/tests.sh		SH	2010,2012
