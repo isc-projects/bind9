@@ -456,12 +456,17 @@ geoip_can_answer(dns_aclelement_t *elt, cfg_aclconfctx_t *ctx) {
 
 static isc_result_t
 parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
-		    cfg_aclconfctx_t *ctx, dns_aclelement_t *de)
+		    cfg_aclconfctx_t *ctx, dns_aclelement_t *dep)
 {
 	const cfg_obj_t *ge;
 	const char *dbname = NULL;
 	const char *stype, *search;
 	dns_geoip_subtype_t subtype;
+	dns_aclelement_t de;
+
+	REQUIRE(dep != NULL);
+
+	de = *dep;
 
 	ge = cfg_tuple_get(obj, "db");
 	if (!cfg_obj_isvoid(ge))
@@ -473,70 +478,72 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 	if (strcasecmp(stype, "country") == 0 && strlen(search) == 2) {
 		/* Two-letter country code */
 		subtype = dns_geoip_countrycode;
-		strncpy(de->geoip_elem.as_string, search, 2);
+		strncpy(de.geoip_elem.as_string, search, 2);
 	} else if (strcasecmp(stype, "country") == 0 && strlen(search) == 3) {
 		/* Three-letter country code */
 		subtype = dns_geoip_countrycode3;
-		strncpy(de->geoip_elem.as_string, search, 3);
+		strncpy(de.geoip_elem.as_string, search, 3);
 	} else if (strcasecmp(stype, "country") == 0) {
 		/* Country name */
 		subtype = dns_geoip_countryname;
-		strncpy(de->geoip_elem.as_string, search, 255);
+		strncpy(de.geoip_elem.as_string, search, 255);
 	} else if (strcasecmp(stype, "region") == 0 && strlen(search) == 2) {
 		/* Two-letter region code */
 		subtype = dns_geoip_region;
-		strncpy(de->geoip_elem.as_string, search, 2);
+		strncpy(de.geoip_elem.as_string, search, 2);
 	} else if (strcasecmp(stype, "region") == 0) {
 		/* Region name */
 		subtype = dns_geoip_regionname;
-		strncpy(de->geoip_elem.as_string, search, 255);
+		strncpy(de.geoip_elem.as_string, search, 255);
 	} else if (strcasecmp(stype, "city") == 0) {
 		/* City name */
 		subtype = dns_geoip_city_name;
-		strncpy(de->geoip_elem.as_string, search, 255);
+		strncpy(de.geoip_elem.as_string, search, 255);
 	} else if (strcasecmp(stype, "postal") == 0 && strlen(search) < 7) {
 		subtype = dns_geoip_city_postalcode;
-		strncpy(de->geoip_elem.as_string, search, 6);
-		de->geoip_elem.as_string[6] = '\0';
+		strncpy(de.geoip_elem.as_string, search, 6);
+		de.geoip_elem.as_string[6] = '\0';
 	} else if (strcasecmp(stype, "metro") == 0) {
 		subtype = dns_geoip_city_metrocode;
-		de->geoip_elem.as_int = atoi(search);
+		de.geoip_elem.as_int = atoi(search);
 	} else if (strcasecmp(stype, "area") == 0) {
 		subtype = dns_geoip_city_areacode;
-		de->geoip_elem.as_int = atoi(search);
+		de.geoip_elem.as_int = atoi(search);
 	} else if (strcasecmp(stype, "tz") == 0) {
 		subtype = dns_geoip_city_timezonecode;
-		strncpy(de->geoip_elem.as_string, search, 255);
+		strncpy(de.geoip_elem.as_string, search, 255);
 	} else if (strcasecmp(stype, "continent") == 0 && strlen(search) == 2) {
 		/* Two-letter continent code */
 		subtype = dns_geoip_city_continentcode;
-		strncpy(de->geoip_elem.as_string, search, 2);
+		strncpy(de.geoip_elem.as_string, search, 2);
 	} else if (strcasecmp(stype, "isp") == 0) {
 		subtype = dns_geoip_isp_name;
-		strncpy(de->geoip_elem.as_string, search, 255);
+		strncpy(de.geoip_elem.as_string, search, 255);
 	} else if (strcasecmp(stype, "asnum") == 0) {
 		subtype = dns_geoip_as_asnum;
-		strncpy(de->geoip_elem.as_string, search, 255);
+		strncpy(de.geoip_elem.as_string, search, 255);
 	} else if (strcasecmp(stype, "org") == 0) {
 		subtype = dns_geoip_org_name;
-		strncpy(de->geoip_elem.as_string, search, 255);
+		strncpy(de.geoip_elem.as_string, search, 255);
 	} else if (strcasecmp(stype, "domain") == 0) {
 		subtype = dns_geoip_domain_name;
-		strncpy(de->geoip_elem.as_string, search, 255);
+		strncpy(de.geoip_elem.as_string, search, 255);
 	} else if (strcasecmp(stype, "netspeed") == 0) {
 		subtype = dns_geoip_netspeed_id;
-		de->geoip_elem.as_int = atoi(search);
+		de.geoip_elem.as_int = atoi(search);
 	} else
 		INSIST(0);
 
-	de->geoip_elem.subtype = get_subtype(obj, lctx, subtype, dbname);
+	de.geoip_elem.subtype = get_subtype(obj, lctx, subtype, dbname);
 
-	if (! geoip_can_answer(de, ctx)) {
+	if (! geoip_can_answer(&de, ctx)) {
 		cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
 			    "no GeoIP database installed which can answer "
 			    "queries of type '%s'", stype);
 		return (ISC_R_FAILURE);
 	}
+
+	*dep = de;
 
 	return (ISC_R_SUCCESS);
 }

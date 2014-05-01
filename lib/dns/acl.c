@@ -337,6 +337,12 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
 				return result;
 		}
 
+		/* Duplicate GeoIP data */
+		if (source->elements[i].type == dns_aclelementtype_geoip) {
+			dest->elements[nelem + i].geoip_elem =
+				source->elements[i].geoip_elem;
+		}
+
 		/* reverse sense of positives if this is a negative acl */
 		if (!pos && source->elements[i].negative == ISC_FALSE) {
 			dest->elements[nelem + i].negative = ISC_TRUE;
