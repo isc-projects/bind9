@@ -1,3 +1,5 @@
+3836.	[bug]		Address C++ keyword usage in header file.
+
 3835.	[bug]		Geoip ACL elements didn't work correctly when
 			referenced via named or nested ACLs. [RT #35879]
 
