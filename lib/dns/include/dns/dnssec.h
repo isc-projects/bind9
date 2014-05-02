@@ -292,11 +292,11 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 			       const char *directory, isc_mem_t *mctx,
 			       dns_rdataset_t *keyset, dns_rdataset_t *keysigs,
 			       dns_rdataset_t *soasigs, isc_boolean_t savekeys,
-			       isc_boolean_t public,
+			       isc_boolean_t publickey,
 			       dns_dnsseckeylist_t *keylist);
 /*%<
  * Append the contents of a DNSKEY rdataset 'keyset' to 'keylist'.
- * Omit duplicates.  If 'public' is ISC_FALSE, search 'directory' for
+ * Omit duplicates.  If 'publickey' is ISC_FALSE, search 'directory' for
  * matching key files, and load the private keys that go with
  * the public ones.  If 'savekeys' is ISC_TRUE, mark the keys so
  * they will not be deleted or inactivated regardless of metadata.
