@@ -95,8 +95,8 @@ typedef struct dns_fetchevent {
 #define DNS_FETCHOPT_NOVALIDATE		0x020	     /*%< Disable validation. */
 #define DNS_FETCHOPT_EDNS512		0x040	     /*%< Advertise a 512 byte
 							  UDP buffer. */
-#define DNS_FETCHOPT_WANTNSID		0x080         /*%< Request NSID */
-#define DNS_FETCHOPT_PREFETCH		0x100         /*%< Request NSID */
+#define DNS_FETCHOPT_WANTNSID		0x080	     /*%< Request NSID */
+#define DNS_FETCHOPT_PREFETCH		0x100	     /*%< Do prefetch */
 #define DNS_FETCHOPT_NOCDFLAG		0x200	     /*%< Don't set CD flag. */
 
 /* Reserved in use by adb.c		0x00400000 */
