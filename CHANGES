@@ -1,3 +1,5 @@
+3838.	[protocol]	EDNS EXPIRE as been assigned a code point of 9.
+
 3837.	[security]	A NULL pointer is passed to query_prefetch resulting
 			a REQUIRE assertion failure when a fetch is actually
 			initiated.  [ RT #35899]
