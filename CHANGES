@@ -1,3 +1,7 @@
+3837.	[security]	A NULL pointer is passed to query_prefetch resulting
+			a REQUIRE assertion failure when a fetch is actually
+			initiated.  [ RT #35899]
+
 3836.	[bug]		Address C++ keyword usage in header file.
 
 3835.	[bug]		Geoip ACL elements didn't work correctly when
