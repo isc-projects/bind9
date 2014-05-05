@@ -7642,8 +7642,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				if (rpz_st != NULL)
 					rdataset->ttl = ISC_MIN(rdataset->ttl,
 							    rpz_st->m.ttl);
-				if (!is_zone && RECURSIONOK(client))
-					query_prefetch(client, fname, rdataset);
+				if (!is_zone && RECURSIONOK(client)) {
+					dns_name_t *name;
+					name = (fname != NULL) ? fname : tname;
+					query_prefetch(client, name, rdataset);
+				}
 				query_addrrset(client,
 					       fname != NULL ? &fname : &tname,
 					       &rdataset, NULL,
