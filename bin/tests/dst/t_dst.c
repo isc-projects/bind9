@@ -624,13 +624,13 @@ sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 			--len;
 			continue;
 		} else if (len < 2U)
-		       return (1);
+		       goto err;
 		if (('0' <= *p) && (*p <= '9'))
 			val = *p - '0';
 		else if (('A' <= *p) && (*p <= 'F'))
 			val = *p - 'A' + 10;
 		else
-			return (1);
+			goto err;
 		++p;
 		val <<= 4;
 		--len;
@@ -639,13 +639,17 @@ sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 		else if (('A' <= *p) && (*p <= 'F'))
 			val |= (*p - 'A' + 10);
 		else
-			return (1);
+			goto err;
 		++p;
 		--len;
 		isc_buffer_putuint8(iscbuf, val);
 	}
 	(void) free(buf);
 	return(0);
+
+ err:
+	(void) free(buf);
+	return (1);
 }
 
 static void
