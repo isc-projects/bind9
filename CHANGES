@@ -2,7 +2,7 @@
 
 3837.	[security]	A NULL pointer is passed to query_prefetch resulting
 			a REQUIRE assertion failure when a fetch is actually
-			initiated.  [ RT #35899]
+			initiated.  [RT #35899]
 
 	--- 9.10.0 released ---
 
