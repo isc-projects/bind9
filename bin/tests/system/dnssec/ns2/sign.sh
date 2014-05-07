@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.41.40.8 2011/11/04 05:35:58 each Exp $
-
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -26,7 +24,7 @@ zonefile=example.db
 
 # Have the child generate a zone key and pass it to us.
 
-( cd ../ns3 && sh sign.sh )
+( cd ../ns3 && $SHELL sign.sh )
 
 for subdomain in secure bogus dynamic keyless nsec3 optout nsec3-unknown \
     optout-unknown multiple rsasha256 rsasha512 kskonly update-nsec3 \

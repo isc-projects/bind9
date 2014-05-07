@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.6.164.2 2011/10/20 23:46:28 tbox Exp $
-
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -23,7 +21,7 @@ zone=.
 zonefile=root.db
 infile=root.db.in
 
-(cd ../ns2 && sh keygen.sh )
+(cd ../ns2 && $SHELL keygen.sh )
 
 cat $infile ../ns2/dsset-example. > $zonefile
 

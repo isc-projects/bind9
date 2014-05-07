@@ -15,18 +15,16 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-sh clean.sh
+$SHELL clean.sh
 
-sh ../genzone.sh 1 6 7 >ns1/slave.db
-sh ../genzone.sh 2 3 >ns2/example.db
-sh ../genzone.sh 2 3 >ns2/tsigzone.db
-sh ../genzone.sh 6 3 >ns6/master.db
-sh ../genzone.sh 7 >ns7/master2.db
+$SHELL ../genzone.sh 1 6 7 >ns1/slave.db
+$SHELL ../genzone.sh 2 3 >ns2/example.db
+$SHELL ../genzone.sh 2 3 >ns2/tsigzone.db
+$SHELL ../genzone.sh 6 3 >ns6/master.db
+$SHELL ../genzone.sh 7 >ns7/master2.db
 
 rm -f ns4/*.db ns4/*.jnl
 cp -f ns4/root.db.in ns4/root.db

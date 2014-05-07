@@ -14,11 +14,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-sh clean.sh
+$SHELL clean.sh
 
 cp ns1/named.plain ns1/named.conf

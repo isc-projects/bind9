@@ -14,7 +14,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3 2010/08/12 01:31:36 marka Exp $
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+$SHELL clean.sh
 
 cp -f ns2/named1.conf ns2/named.conf
 cp -f ns2/default.nzf.in ns2/3bf305731dd26307.nzf

@@ -15,7 +15,8 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 rm -f ns1/*.db ns1/*.jnl
 
@@ -43,5 +44,5 @@ controls {
 EOF
 
 # Setup initial db files for ns3
-sh ../genzone.sh 3 > ns3/large.db
+$SHELL ../genzone.sh 3 > ns3/large.db
 awk 'END { for (i = 0; i < 10000; i++) printf("record%d 10 IN TXT this is record %d\n", i, i) }' < /dev/null >> ns3/large.db

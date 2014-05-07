@@ -14,13 +14,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.7.112.2 2011/05/26 23:47:04 tbox Exp $
-
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
 # Have the child generate subdomain keys and pass DS sets to us.
-( cd ../ns3 && sh keygen.sh )
+( cd ../ns3 && $SHELL keygen.sh )
 
 for subdomain in secure nsec3 optout rsasha256 rsasha512 nsec3-to-nsec oldsigs
 do
