@@ -10948,70 +10948,25 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype,
 
 static isc_result_t
 add_opt(dns_message_t *message, isc_uint16_t udpsize, isc_boolean_t reqnsid) {
-	dns_rdataset_t *rdataset = NULL;
-	dns_rdatalist_t *rdatalist = NULL;
-	dns_rdata_t *rdata = NULL;
 	isc_result_t result;
-
-	result = dns_message_gettemprdatalist(message, &rdatalist);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	result = dns_message_gettemprdata(message, &rdata);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	result = dns_message_gettemprdataset(message, &rdataset);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	dns_rdataset_init(rdataset);
-
-	rdatalist->type = dns_rdatatype_opt;
-	rdatalist->covers = 0;
-
-	/*
-	 * Set Maximum UDP buffer size.
-	 */
-	rdatalist->rdclass = udpsize;
-
-	/*
-	 * Set EXTENDED-RCODE, VERSION, DO and Z to 0.
-	 */
-	rdatalist->ttl = 0;
+	dns_rdataset_t *rdataset = NULL;
+	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
+	int count = 0;
 
 	/* Set EDNS options if applicable */
 	if (reqnsid) {
-		unsigned char data[4];
-		isc_buffer_t buf;
-
-		isc_buffer_init(&buf, data, sizeof(data));
-		isc_buffer_putuint16(&buf, DNS_OPT_NSID);
-		isc_buffer_putuint16(&buf, 0);
-		rdata->data = data;
-		rdata->length = sizeof(data);
-	} else {
-		rdata->data = NULL;
-		rdata->length = 0;
+		INSIST(count < DNS_EDNSOPTIONS);
+		ednsopts[count].code = DNS_OPT_NSID;
+		ednsopts[count].length = 0;
+		ednsopts[count].value = NULL;
+		count++;
 	}
-
-	rdata->rdclass = rdatalist->rdclass;
-	rdata->type = rdatalist->type;
-	rdata->flags = 0;
-
-	ISC_LIST_INIT(rdatalist->rdata);
-	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset)
-		      == ISC_R_SUCCESS);
+	result = dns_message_buildopt(message, &rdataset, 0, udpsize, 0,
+				      ednsopts, count);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	return (dns_message_setopt(message, rdataset));
-
- cleanup:
-	if (rdatalist != NULL)
-		dns_message_puttemprdatalist(message, &rdatalist);
-	if (rdataset != NULL)
-		dns_message_puttemprdataset(message, &rdataset);
-	if (rdata != NULL)
-		dns_message_puttemprdata(message, &rdata);
-
-	return (result);
 }
 
 static void
