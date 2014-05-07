@@ -1272,9 +1272,11 @@ fi
 AC_SUBST(CHECK_DSA)
 
 #
-# Do we have arc4random() ?
+# Do we have arc4random(), etc ? arc4random_addrandom() has been removed
+# from OpenBSD 5.5 onwards.
 #
 AC_CHECK_FUNC(arc4random, AC_DEFINE(HAVE_ARC4RANDOM))
+AC_CHECK_FUNC(arc4random_addrandom, AC_DEFINE(HAVE_ARC4RANDOM_ADDRANDOM))
 
 sinclude(config.threads.in)dnl
 

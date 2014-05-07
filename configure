@@ -14396,11 +14396,18 @@ fi
 
 
 #
-# Do we have arc4random() ?
+# Do we have arc4random(), etc ? arc4random_addrandom() has been removed
+# from OpenBSD 5.5 onwards.
 #
 ac_fn_c_check_func "$LINENO" "arc4random" "ac_cv_func_arc4random"
 if test "x$ac_cv_func_arc4random" = xyes; then :
   $as_echo "#define HAVE_ARC4RANDOM 1" >>confdefs.h
+
+fi
+
+ac_fn_c_check_func "$LINENO" "arc4random_addrandom" "ac_cv_func_arc4random_addrandom"
+if test "x$ac_cv_func_arc4random_addrandom" = xyes; then :
+  $as_echo "#define HAVE_ARC4RANDOM_ADDRANDOM 1" >>confdefs.h
 
 fi
 
