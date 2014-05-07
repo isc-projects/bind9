@@ -73,6 +73,9 @@
 /** define if arc4random() exists */
 #undef HAVE_ARC4RANDOM
 
+/** define if arc4random_addrandom() exists */
+#undef HAVE_ARC4RANDOM_ADDRANDOM
+
 /**
  * define if pthread_setconcurrency() should be called to tell the
  * OS how many threads we might want to run.
