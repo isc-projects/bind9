@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.11 2007/06/19 23:47:00 tbox Exp $
-
 #
 # Run a system test.
 #
@@ -34,7 +32,7 @@ test -d $test || { echo "$0: $test: no such test" >&2; exit 1; }
 # Set up any dynamically generated test data
 if test -f $test/setup.sh
 then
-   ( cd $test && sh setup.sh "$@" )
+   ( cd $test && $SHELL setup.sh "$@" )
 fi
 
 

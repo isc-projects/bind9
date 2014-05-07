@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2008/07/19 00:02:14 each Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -41,7 +39,7 @@ EOF
 }
 
 ret=0
-sh ../genzone.sh 0 > tempzone
+$SHELL ../genzone.sh 0 > tempzone
 $CHECKZONE -Dq . tempzone | sed '/^;/d' |
 while read -r n tt cl ty rest
 do

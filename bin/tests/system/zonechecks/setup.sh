@@ -17,10 +17,11 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-sh clean.sh
+$SHELL clean.sh
+
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 
-sh ../genzone.sh 1 > ns1/master.db
+$SHELL ../genzone.sh 1 > ns1/master.db
 cd ns1
 touch master.db.signed
 echo '$INCLUDE "master.db.signed"' >> master.db
