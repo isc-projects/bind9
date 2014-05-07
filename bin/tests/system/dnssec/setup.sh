@@ -18,11 +18,11 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-sh clean.sh 
+$SHELL clean.sh 
 
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 
-cd ns1 && sh sign.sh
+cd ns1 && $SHELL sign.sh
 
 echo "a.bogus.example.	A	10.0.0.22" >>../ns3/bogus.example.db.signed
 

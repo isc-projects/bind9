@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -176,6 +174,6 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ $status = 0 ]; then sh clean.sh; fi
+if [ $status = 0 ]; then $SHELL clean.sh; fi
 echo "I:exit status: $status"
 exit $status

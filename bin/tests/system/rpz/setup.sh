@@ -14,17 +14,14 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
-
 set -e
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-QPERF=`sh qperf.sh`
+QPERF=`$SHELL qperf.sh`
 
-sh clean.sh
+$SHELL clean.sh
 
 # set up test policy zones.
 #   bl is the main test zone
