@@ -1,3 +1,6 @@
+3840.	[port]		Check for arc4random_addrandom() before using it;
+			it's been removed from OpenBSD 5.5. [RT #35907]
+
 3839.	[test]		Use only posix-compatible shell in system tests.
 			[RT #35625]
 
