@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.13 2012/01/04 23:46:49 tbox Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -225,7 +223,7 @@ status=`expr $status + $ret`
 
 echo "I: Shutting down slave"
 
-(cd ..; sh stop.sh rrsetorder ns2 )
+(cd ..; $SHELL stop.sh rrsetorder ns2 )
 
 echo "I: Checking for slave's on disk copy of zone"
 
@@ -237,7 +235,7 @@ fi
 
 echo "I: Re-starting slave"
 
-(cd ..; sh start.sh --noclean rrsetorder ns2 )
+(cd ..; $SHELL start.sh --noclean rrsetorder ns2 )
 
 #
 #

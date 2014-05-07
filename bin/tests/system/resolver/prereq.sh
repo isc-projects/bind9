@@ -15,6 +15,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
     :
@@ -23,4 +26,4 @@ else
     exit 1
 fi
 
-exec sh ../testcrypto.sh
+exec $SHELL ../testcrypto.sh

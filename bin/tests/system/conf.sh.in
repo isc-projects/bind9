@@ -71,6 +71,9 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 smartsign sortlist spf staticstub stub tkey tsig tsiggss unknown
 	 upforwd verify views wildcard xfer xferquota zero zonechecks"
 
+# Use the CONFIG_SHELL detected by configure for tests
+SHELL=@SHELL@
+
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
 if test -n "$PERL"
