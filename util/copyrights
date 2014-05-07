@@ -8,7 +8,7 @@
 ./HISTORY					X	2010,2013
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012
+./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2014
 ./aclocal.m4					X	1999,2000,2001,2012,2014
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2013
 ./bin/check/.gitignore				X	2012
@@ -689,7 +689,7 @@
 ./bin/tests/system/acl/ns2/named3.conf		CONF-C	2008
 ./bin/tests/system/acl/ns2/named4.conf		CONF-C	2008
 ./bin/tests/system/acl/ns2/named5.conf		CONF-C	2013
-./bin/tests/system/acl/setup.sh			SH	2008,2012
+./bin/tests/system/acl/setup.sh			SH	2008,2012,2014
 ./bin/tests/system/acl/tests.sh			SH	2008,2012,2013
 ./bin/tests/system/additional/clean.sh		SH	2013
 ./bin/tests/system/additional/ns1/named.args	X	2013
@@ -712,7 +712,7 @@
 ./bin/tests/system/addzone/ns2/named2.conf	CONF-C	2010,2011
 ./bin/tests/system/addzone/ns2/normal.db	ZONE	2010
 ./bin/tests/system/addzone/ns2/previous.db	ZONE	2010
-./bin/tests/system/addzone/setup.sh		SH	2010,2012,2013
+./bin/tests/system/addzone/setup.sh		SH	2010,2012,2013,2014
 ./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013
 ./bin/tests/system/allow_query/clean.sh		SH	2010,2012
 ./bin/tests/system/allow_query/ns2/aclallow.db	ZONE	2010
@@ -859,8 +859,8 @@
 ./bin/tests/system/checkds/ok.example.dlv.example.dlv.db	X	2012
 ./bin/tests/system/checkds/ok.example.dnskey.db	X	2012
 ./bin/tests/system/checkds/ok.example.ds.db	X	2012
-./bin/tests/system/checkds/setup.sh		SH	2012,2013
-./bin/tests/system/checkds/tests.sh		SH	2012,2013
+./bin/tests/system/checkds/setup.sh		SH	2012,2013,2014
+./bin/tests/system/checkds/tests.sh		SH	2012,2013,2014
 ./bin/tests/system/checkds/wrong.example.dlv.example.dlv.db	X	2012
 ./bin/tests/system/checkds/wrong.example.dnskey.db	X	2012
 ./bin/tests/system/checkds/wrong.example.ds.db	X	2012
@@ -888,7 +888,7 @@
 ./bin/tests/system/checkzone/zones/good-nsec3-nopadhash.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/good1.db	ZONE	2011
 ./bin/tests/system/checkzone/zones/spf.db	ZONE	2013
-./bin/tests/system/cleanall.sh			SH	2000,2001,2004,2007,2012
+./bin/tests/system/cleanall.sh			SH	2000,2001,2004,2007,2012,2014
 ./bin/tests/system/cleanpkcs11.sh		SH	2010,2012
 ./bin/tests/system/common/controls.conf		CONF-C	2000,2001,2004,2007
 ./bin/tests/system/common/rndc.conf		CONF-C	2000,2001,2004,2007
@@ -1248,7 +1248,7 @@
 ./bin/tests/system/logfileconfig/ns1/named.symconf	CONF-C	2011
 ./bin/tests/system/logfileconfig/ns1/rndc.conf	CONF-C	2011
 ./bin/tests/system/logfileconfig/ns1/root.db	ZONE	2011
-./bin/tests/system/logfileconfig/setup.sh	SH	2011,2012
+./bin/tests/system/logfileconfig/setup.sh	SH	2011,2012,2014
 ./bin/tests/system/logfileconfig/tests.sh	SH	2011,2012,2013
 ./bin/tests/system/lwresd/Makefile.in		MAKE	2000,2001,2002,2004,2007,2009,2012
 ./bin/tests/system/lwresd/clean.sh		SH	2008,2012,2013
@@ -1283,7 +1283,7 @@
 ./bin/tests/system/masterformat/ns2/formerly-text.db.in	ZONE	2011
 ./bin/tests/system/masterformat/ns2/named.conf	CONF-C	2005,2007,2011,2012
 ./bin/tests/system/masterformat/prereq.sh	SH	2014
-./bin/tests/system/masterformat/setup.sh	SH	2005,2006,2007,2011,2012
+./bin/tests/system/masterformat/setup.sh	SH	2005,2006,2007,2011,2012,2014
 ./bin/tests/system/masterformat/tests.sh	SH	2005,2007,2011,2012
 ./bin/tests/system/metadata/child.db		ZONE	2009
 ./bin/tests/system/metadata/clean.sh		SH	2009,2011,2012,2014
@@ -1414,7 +1414,7 @@
 ./bin/tests/system/rndc/ns2/named.conf		CONF-C	2011,2012
 ./bin/tests/system/rndc/ns2/secondkey.conf	CONF-C	2012
 ./bin/tests/system/rndc/ns3/named.conf		CONF-C	2012,2013
-./bin/tests/system/rndc/setup.sh		SH	2011,2012
+./bin/tests/system/rndc/setup.sh		SH	2011,2012,2014
 ./bin/tests/system/rndc/tests.sh		SH	2011,2012
 ./bin/tests/system/rpz/.gitignore		X	2012
 ./bin/tests/system/rpz/Makefile.in		MAKE	2011,2012,2013
@@ -1496,7 +1496,7 @@
 ./bin/tests/system/rrsetorder/ns1/root.db	ZONE	2006,2007,2012
 ./bin/tests/system/rrsetorder/ns2/named.conf	CONF-C	2006,2007
 ./bin/tests/system/rrsetorder/ns3/named.conf	CONF-C	2006,2007
-./bin/tests/system/rrsetorder/tests.sh		SH	2006,2007,2008,2011,2012
+./bin/tests/system/rrsetorder/tests.sh		SH	2006,2007,2008,2011,2012,2014
 ./bin/tests/system/rsabigexponent/Makefile.in	MAKE	2012
 ./bin/tests/system/rsabigexponent/bigkey.c	C	2012,2014
 ./bin/tests/system/rsabigexponent/clean.sh	SH	2012,2014
@@ -1525,7 +1525,7 @@
 ./bin/tests/system/run.sh			SH	2000,2001,2004,2007,2010,2012,2014
 ./bin/tests/system/runall.sh			SH	2000,2001,2004,2007,2010,2011,2012,2014
 ./bin/tests/system/send.pl			PERL	2001,2004,2007,2011,2012
-./bin/tests/system/setup.sh			SH	2000,2001,2004,2007,2012
+./bin/tests/system/setup.sh			SH	2000,2001,2004,2007,2012,2014
 ./bin/tests/system/smartsign/child.db		ZONE	2010
 ./bin/tests/system/smartsign/clean.sh		SH	2010,2012,2014
 ./bin/tests/system/smartsign/parent.db		ZONE	2010
@@ -1586,7 +1586,7 @@
 ./bin/tests/system/stress/ns4/named.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/stress/setup.pl		PERL	2000,2001,2004,2007,2012
 ./bin/tests/system/stress/setup.sh		SH	2000,2001,2004,2007,2012
-./bin/tests/system/stress/tests.sh		SH	2000,2001,2004,2007,2012
+./bin/tests/system/stress/tests.sh		SH	2000,2001,2004,2007,2012,2014
 ./bin/tests/system/stress/update.pl		PERL	2000,2001,2004,2007,2012
 ./bin/tests/system/stub/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/stub/knowngood.dig.out.norec	X	2000,2001
@@ -1729,7 +1729,7 @@
 ./bin/tests/system/xfer/ns6/named.conf		CONF-C	2011
 ./bin/tests/system/xfer/ns7/named.conf		CONF-C	2011
 ./bin/tests/system/xfer/prereq.sh		SH	2011,2012,2014
-./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004,2007,2011,2012,2013
+./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004,2007,2011,2012,2013,2014
 ./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012,2013
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/xferquota/ns1/changing1.db	ZONE	2000,2001,2004,2007
@@ -1748,7 +1748,7 @@
 ./bin/tests/system/zero/ns3/named.conf		CONF-C	2013
 ./bin/tests/system/zero/ns3/root.hint		ZONE	2013
 ./bin/tests/system/zero/ns4/named.conf		CONF-C	2013
-./bin/tests/system/zero/setup.sh		SH	2013
+./bin/tests/system/zero/setup.sh		SH	2013,2014
 ./bin/tests/system/zero/tests.sh		SH	2013
 ./bin/tests/system/zonechecks/a.db		ZONE	2004,2007
 ./bin/tests/system/zonechecks/aaaa.db		ZONE	2004,2007
@@ -1941,7 +1941,7 @@
 ./bin/win32/BINDInstall/resource.h		X	2001,2005,2009
 ./bind.keys					X	2009,2010,2011
 ./config.guess					X	1998,1999,2000,2001,2004,2009,2013
-./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./config.h.win32				C	1999,2000,2001,2004,2006,2007,2008,2009,2011,2012,2013
 ./config.sub					X	1998,1999,2000,2001,2004,2013
 ./config.threads.in				X	2005,2006,2010,2011,2012
@@ -3129,7 +3129,7 @@
 ./lib/isc/pthreads/thread.c			C	2000,2001,2003,2004,2005,2007,2013
 ./lib/isc/quota.c				C	2000,2001,2004,2005,2007
 ./lib/isc/radix.c				C	2007,2008,2009,2011,2012,2013,2014
-./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2013
+./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2013,2014
 ./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005,2007,2012
 ./lib/isc/refcount.c				C	2005,2007
 ./lib/isc/regex.c				C	2013,2014
