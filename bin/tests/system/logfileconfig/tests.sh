@@ -34,6 +34,14 @@ PIDFILE="${THISDIR}/${CONFDIR}/named.pid"
 myRNDC="$RNDC -c ${THISDIR}/${CONFDIR}/rndc.conf"
 myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -T clienttest -T nosyslog -d 99 -U 4"
 
+waitforpidfile() {
+	for _w in 1 2 3 4 5 6 7 8 9 10
+	do
+		test -f $PIDFILE && break
+		sleep 1
+	done
+}
+
 status=0
 
 cd $CONFDIR
@@ -233,20 +241,28 @@ status=0
 
 # Now stop the server again and test the -L option
 rm -f $DLFILE
-$myRNDC stop
-cp $PLAINCONF named.conf
-$myNAMED -L $DLFILE > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-	echo "I:failed to start $myNAMED"
-	echo "I:exit status: $status"
-	exit $status
-fi
+$PERL ../../stop.pl .. ns1
+if ! test -f $PIDFILE; then
+	cp $PLAINCONF named.conf
+	$myNAMED -L $DLFILE > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		echo "I:failed to start $myNAMED"
+		echo "I:exit status: $status"
+		exit $status
+	fi
 
-sleep 1
-if [ -f "$DLFILE" ]; then
-        echo "I: testing default logfile using named -L succeeded"
+	waitforpidfile
+
+	sleep 1
+	if [ -f "$DLFILE" ]; then
+		echo "I: testing default logfile using named -L succeeded"
+	else
+		echo "I:testing default logfile using named -L failed"
+		echo "I:exit status: 1"
+		exit 1
+	fi
 else
-	echo "I:testing default logfile using named -L failed"
+	echo "I:failed to cleanly stop $myNAMED"
 	echo "I:exit status: 1"
 	exit 1
 fi
