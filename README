@@ -71,6 +71,9 @@ BIND 9.11.0
 	- "named -L <filename>" causes named to send log messages to
 	   the specified file by default instead of to the system log.
 
+        This release addresses the security flaw described in
+        CVE-2014-3214.
+
 BIND 9.10.0
 
 	BIND 9.10.0 includes a number of changes from BIND 9.9 and earlier
