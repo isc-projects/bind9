@@ -11,7 +11,7 @@
 
 3837.	[security]	A NULL pointer is passed to query_prefetch resulting
 			a REQUIRE assertion failure when a fetch is actually
-			initiated.  [RT #35899]
+			initiated (CVE-2014-3214).  [RT #35899]
 
 3836.	[bug]		Address C++ keyword usage in header file.
 
