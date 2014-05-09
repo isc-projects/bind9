@@ -106,6 +106,7 @@
 /*%< EDNS0 extended OPT codes */
 #define DNS_OPT_NSID		0x0003		/*%< NSID opt code */
 #define DNS_OPT_CLIENT_SUBNET	0x0008		/*%< client subnet opt code */
+#define DNS_OPT_EXPIRE		0x0009		/*%< EXPIRE opt code */
 
 /*%< The number of EDNS options we know about. */
 #define DNS_EDNSOPTIONS	3
