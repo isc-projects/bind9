@@ -441,12 +441,13 @@ ttl1=`awk '/"A" "short" "ttl"/ { print $2 - 1 }' dig.out.1.${n}`
 # sleep so we are in expire range
 sleep ${ttl1:-0}
 # look for zero ttl, allow for one miss at getting zero ttl
-for i in 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9
+zerotonine="0 1 2 3 4 5 6 7 8 9"
+for i in $zerotonine $zerotonine $zerotonine $zerotonine
 do 
 	$DIG @10.53.0.7 -p 5300 fetch.example.net txt > dig.out.2.${n} || ret=1
 	ttl2=`awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n}`
 	test ${ttl2:-1} -eq 0 && break
-	sleep 1
+	$PERL -e 'select(undef, undef, undef, 0.05);' 
 done
 test ${ttl2:-1} -eq 0 || ret=1
 # delay so that any prefetched record will have a lower ttl than expected
