@@ -7,6 +7,8 @@
 3839.	[test]		Use only posix-compatible shell in system tests.
 			[RT #35625]
 
+3838.	[protocol]	EDNS EXPIRE as been assigned a code point of 9.
+
 3836.	[bug]		Address C++ keyword usage in header file.
 
 3834.	[bug]		The re-signing heaps were not being updated soon enough
