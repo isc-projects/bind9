@@ -51,6 +51,11 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.10.0-P1
+
+        This release addresses the security flaw described in
+        CVE-2014-3214.
+
 BIND 9.10.0
 
 	BIND 9.10.0 includes a number of changes from BIND 9.9 and earlier
