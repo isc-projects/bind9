@@ -7994,8 +7994,10 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			trust_key(zone, keyname, &dnskey, mctx);
 		}
 
-		if (!deletekey)
+		if (!deletekey) {
+			INSIST(newkey || updatekey);
 			set_refreshkeytimer(zone, &keydata, now);
+		}
 	}
 
 	/*
