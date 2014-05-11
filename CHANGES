@@ -1,3 +1,5 @@
+3842.	[bug]		Adjust RRL log-only logging category. [RT #35945]
+
 3841.	[cleanup]	Refactor zone.c:add_opt to use dns_message_buildopt.
 			[RT #35924]
 
