@@ -5964,8 +5964,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * with other truncated responses in RespTruncated.
 			 */
 			if (wouldlog) {
-				ns_client_log(client,
-					      NS_LOGCATEGORY_QUERY_EERRORS,
+				ns_client_log(client, DNS_LOGCATEGORY_RRL,
 					      NS_LOGMODULE_QUERY,
 					      DNS_RRL_LOG_DROP,
 					      "%s", log_buf);
