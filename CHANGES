@@ -1,3 +1,6 @@
+3846.	[bug]		"dig +notcp ixfr=<serial>" should result in a UDP
+			ixfr query. [RT #35980]
+
 3845.	[doc]		Remove documention for yet to be committed RRL
 			changes. [RT #35897]
 
