@@ -1,3 +1,7 @@
+3843.	[bug]		Use the x64 version of the Microsoft Visual C++
+			Redistributable when built for 64 bit Windows.
+			(Thanks to Giovanni Paterno.) [RT #35973]
+
 3842.	[bug]		Adjust RRL log-only logging category. [RT #35945]
 
 3841.	[cleanup]	Refactor zone.c:add_opt to use dns_message_buildopt.

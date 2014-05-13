@@ -563,8 +563,13 @@ void CBINDInstallDlg::OnInstall() {
 	 * Enclose full path to Vcredist_x86.exe in quotes as
 	 * m_currentDir may contain spaces.
 	 */
+#ifndef _WIN64
 	sprintf(Vcredist_x86, "\"%s\\Vcredist_x86.exe\"",
 		(LPCTSTR) m_currentDir);
+#else
+	sprintf(Vcredist_x86, "\"%s\\Vcredist_x64.exe\"",
+		(LPCTSTR) m_currentDir);
+#endif
 	system(Vcredist_x86);
 #endif
 	try {
