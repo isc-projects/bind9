@@ -1,3 +1,6 @@
+3844.	[doc]		Remove documention for yet to be committed RRL
+			changes. [RT #35897]
+
 3843.	[protocol]	Check EDNS EXPIRE option in dns_rdata_fromwire.
 			[RT #35969]
 
