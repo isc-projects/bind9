@@ -1106,8 +1106,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		switch (cmd[1]) {
 		case 'c': /* tcp */
 			FULLCHECK("tcp");
-			if (!is_batchfile)
+			if (!is_batchfile) {
 				lookup->tcp_mode = state;
+				lookup->tcp_mode_set = ISC_TRUE;
+			}
 			break;
 		case 'i': /* timeout */
 			FULLCHECK("timeout");
@@ -1187,8 +1189,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		break;
 	case 'v':
 		FULLCHECK("vc");
-		if (!is_batchfile)
+		if (!is_batchfile) {
 			lookup->tcp_mode = state;
+			lookup->tcp_mode_set = ISC_TRUE;
+		}
 		break;
 	default:
 	invalid_option:
@@ -1403,7 +1407,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				(*lookup)->ixfr_serial = serial;
 				(*lookup)->section_question = plusquest;
 				(*lookup)->comments = pluscomm;
-				(*lookup)->tcp_mode = ISC_TRUE;
+				if (!(*lookup)->tcp_mode_set)
+					(*lookup)->tcp_mode = ISC_TRUE;
 			} else {
 				(*lookup)->rdtype = rdtype;
 				(*lookup)->rdtypeset = ISC_TRUE;
@@ -1669,7 +1674,8 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 						lookup->section_question =
 							plusquest;
 						lookup->comments = pluscomm;
-						lookup->tcp_mode = ISC_TRUE;
+						if (!lookup->tcp_mode_set)
+							lookup->tcp_mode = ISC_TRUE;
 					} else {
 						lookup->rdtype = rdtype;
 						lookup->rdtypeset = ISC_TRUE;
