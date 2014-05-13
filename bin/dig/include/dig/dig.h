@@ -117,6 +117,7 @@ struct dig_lookup {
 		trace, /*% dig +trace */
 		trace_root, /*% initial query for either +trace or +nssearch */
 		tcp_mode,
+		tcp_mode_set,
 		ip6_int,
 		comments,
 		stats,

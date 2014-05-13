@@ -1,3 +1,6 @@
+3846.	[bug]		"dig +notcp ixfr=<serial>" should result in a UDP
+			ixfr query. [RT #35980]
+
 3844.	[bug]		Use the x64 version of the Microsoft Visual C++
 			Redistributable when built for 64 bit Windows.
 			(Thanks to Giovanni Paterno.) [RT #35973]

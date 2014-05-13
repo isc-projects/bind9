@@ -365,10 +365,11 @@
           <term><option>+[no]tcp</option></term>
           <listitem>
             <para>
-              Use [do not use] TCP when querying name servers.  The default
-              behavior is to use UDP unless an AXFR or IXFR query is
-              requested, in
-              which case a TCP connection is used.
+              Use [do not use] TCP when querying name servers. The
+              default behavior is to use UDP unless
+              an <literal>ixfr=N</literal> query is requested, in
+              which case the default is TCP.
+              AXFR queries always use TCP.
             </para>
           </listitem>
         </varlistentry>
