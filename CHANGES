@@ -9,6 +9,10 @@
 3850.	[bug]		Disabling forwarding could trigger a REQUIRE assertion.
 			[RT #35979]
 
+3843.	[bug]		Use the x64 version of the Microsoft Visual C++
+			Redistributable when built for 64 bit Windows.
+			[RT #35973]
+
 3838.	[protocol]	EDNS EXPIRE as been assigned a code point of 9.
 
 	--- 9.10.0-P1 released ---
