@@ -2,6 +2,9 @@
 			Redistributable when built for 64 bit Windows.
 			(Thanks to Giovanni Paterno.) [RT #35973]
 
+3843.	[protocol]	Check EDNS EXPIRE option in dns_rdata_fromwire.
+			[RT #35969]
+
 3842.	[bug]		Adjust RRL log-only logging category. [RT #35945]
 
 3841.	[cleanup]	Refactor zone.c:add_opt to use dns_message_buildopt.
