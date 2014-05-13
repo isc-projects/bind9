@@ -1,3 +1,6 @@
+3843.	[protocol]	Check EDNS EXPIRE option in dns_rdata_fromwire.
+			[RT #35969]
+
 3841.	[cleanup]	Refactor zone.c:add_opt to use dns_message_buildopt.
 			[RT #35924]
 
