@@ -1,3 +1,6 @@
+3846.	[bug]		"dig +notcp ixfr=<serial>" should result in a UDP
+			ixfr query. [RT #35980]
+
 3845.	[placeholder]
 
 3844.	[bug]		Use the x64 version of the Microsoft Visual C++
