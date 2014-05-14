@@ -32,7 +32,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed -e 's/^/# /' -e '/Portions of this code/,$d' COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_INIT(BIND, [9.10], [bind9-bugs@isc.org], [], [https://www.isc.org/downloads/BIND/])
+AC_INIT(BIND, [9.11], [bind9-bugs@isc.org], [], [https://www.isc.org/downloads/BIND/])
 AC_PREREQ(2.59)
 
 AC_CONFIG_HEADER(config.h)
