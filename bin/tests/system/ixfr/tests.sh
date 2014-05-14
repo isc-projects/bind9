@@ -161,11 +161,11 @@ sleep 2
 $DIG +notcp ixfr=1 test -p 5300 @10.53.0.3 > dig.out1 || ret=1
 $DIG ixfr=1 +notcp test -p 5300 @10.53.0.3 > dig.out2 || ret=1
 $PERL ../digcomp.pl dig.out1 dig.out2 || ret=1
-awk '$4 == "SOA" { soacnt++} END {exit(soacnt == 1 ? 0 : 1);}' dig.out1 || ret=1
-awk '$4 == "SOA" { exit($7 == 4 ? 0 : 1);}' dig.out1 || ret=1
+awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out1 || ret=1
+awk '$4 == "SOA" { if ($7 == 4) exit(0); else exit(1);}' dig.out1 || ret=1
 # Should be incremental transfer.
 $DIG ixfr=1 test -p 5300 @10.53.0.3 > dig.out3 || ret=1
-awk '$4 == "SOA" { soacnt++} END {exit(soacnt == 6 ? 0 : 1);}' dig.out3 || ret=1
+awk '$4 == "SOA" { soacnt++} END { if (soacnt == 6) exit(0); else exit(1);}' dig.out3 || ret=1
 if [ ${ret} != 0 ]; then
 	echo "I:failed";
 	status=1;
