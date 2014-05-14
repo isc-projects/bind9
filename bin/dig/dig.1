@@ -249,7 +249,9 @@ to negate the meaning of that keyword. Other keywords assign values to options l
 .PP
 \fB+[no]tcp\fR
 .RS 4
-Use [do not use] TCP when querying name servers. The default behavior is to use UDP unless an AXFR or IXFR query is requested, in which case a TCP connection is used.
+Use [do not use] TCP when querying name servers. The default behavior is to use UDP unless an
+ixfr=N
+query is requested, in which case the default is TCP. AXFR queries always use TCP.
 .RE
 .PP
 \fB+[no]vc\fR
