@@ -264,10 +264,11 @@
 <div class="variablelist"><dl>
 <dt><span class="term"><code class="option">+[no]tcp</code></span></dt>
 <dd><p>
-              Use [do not use] TCP when querying name servers.  The default
-              behavior is to use UDP unless an AXFR or IXFR query is
-              requested, in
-              which case a TCP connection is used.
+              Use [do not use] TCP when querying name servers. The
+              default behavior is to use UDP unless
+              an <code class="literal">ixfr=N</code> query is requested, in
+              which case the default is TCP.
+              AXFR queries always use TCP.
             </p></dd>
 <dt><span class="term"><code class="option">+[no]vc</code></span></dt>
 <dd><p>
@@ -627,7 +628,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545418"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2545421"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -673,7 +674,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545548"></a><h2>IDN SUPPORT</h2>
+<a name="id2545552"></a><h2>IDN SUPPORT</h2>
 <p>
       If <span><strong class="command">dig</strong></span> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -687,14 +688,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545571"></a><h2>FILES</h2>
+<a name="id2545574"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545588"></a><h2>SEE ALSO</h2>
+<a name="id2545591"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -702,7 +703,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545625"></a><h2>BUGS</h2>
+<a name="id2545628"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>
