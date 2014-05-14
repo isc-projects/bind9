@@ -3,7 +3,7 @@
 
 3844.	[bug]		Use the x64 version of the Microsoft Visual C++
 			Redistributable when built for 64 bit Windows.
-			(Thanks to Giovanni Paterno.) [RT #35973]
+			[RT #35973]
 
 3843.	[protocol]	Check EDNS EXPIRE option in dns_rdata_fromwire.
 			[RT #35969]
