@@ -19246,7 +19246,7 @@ test -n "$PG_CONFIG" || PG_CONFIG="not found"
 	fi
 fi
 
-if test "$use_dlz_postgres" = "yes"
+if test "$use_dlz_postgres" = "yes/include"
 then
 	# User did not specify path and Postgres didn't say - guess it
 	pgdirs="/usr /usr/local /usr/local/pgsql /usr/pkg"
@@ -19261,7 +19261,7 @@ then
 	done
 fi
 
-if test "$use_dlz_postgres" = "yes"
+if test "$use_dlz_postgres" = "yes/include"
 then
 	# Still no joy, give up
 
