@@ -572,8 +572,7 @@
           <term><option>+[no]expire</option></term>
 	  <listitem>
 	    <para>
-	      Send an EDNS Expire option.  Currently using experimental
-	      value 65002 for the option code.
+	      Send an EDNS Expire option.
 	    </para>
 	  </listitem>
 	</varlistentry>
