@@ -1,3 +1,5 @@
+3849.	[doc]		Alphabetized dig's +options. [RT #35992]
+
 3848.	[bug]		Adjust 'statistics-channels specified but not effective'
 			error message to account for JSON support. [RT #36008]
 
