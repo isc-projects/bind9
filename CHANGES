@@ -1,3 +1,5 @@
+3849.	[doc]		Alphabetized dig's +options. [RT #35992]
+
 3847.	[bug]		'configure --with-dlz-postgres' failed to fail when
 			there is not support available.
 
