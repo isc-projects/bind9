@@ -3925,17 +3925,18 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	/*
 	 * DSCP value for forwarded requests.
 	 */
-	dscpobj = cfg_tuple_get(forwarders, "dscp");
-	if (!cfg_obj_isuint32(dscpobj))
-		dscp = ns_g_dscp;
-	else {
-		if (cfg_obj_asuint32(dscpobj) > 63) {
-			cfg_obj_log(dscpobj, ns_g_lctx, ISC_LOG_ERROR,
-				    "dscp value '%u' is out of range",
-				    cfg_obj_asuint32(dscpobj));
-			return (ISC_R_RANGE);
+	dscp = ns_g_dscp;
+	if (forwarders != NULL) {
+		dscpobj = cfg_tuple_get(forwarders, "dscp");
+		if (cfg_obj_isuint32(dscpobj)) {
+			if (cfg_obj_asuint32(dscpobj) > 63) {
+				cfg_obj_log(dscpobj, ns_g_lctx, ISC_LOG_ERROR,
+					    "dscp value '%u' is out of range",
+					    cfg_obj_asuint32(dscpobj));
+				return (ISC_R_RANGE);
+			}
+			dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 		}
-		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 	}
 
 	faddresses = NULL;
