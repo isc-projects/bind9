@@ -112,41 +112,41 @@
 <dt><span class="term"><code class="constant">server</code></span></dt>
 <dd>
 <p>
-              is the name or IP address of the name server to query.  This
-              can be an IPv4 address in dotted-decimal notation or an IPv6
-              address in colon-delimited notation.  When the supplied
-              <em class="parameter"><code>server</code></em> argument is a hostname,
-              <span><strong class="command">dig</strong></span> resolves that name before querying
-              that name server.
-            </p>
+	      is the name or IP address of the name server to query.  This
+	      can be an IPv4 address in dotted-decimal notation or an IPv6
+	      address in colon-delimited notation.  When the supplied
+	      <em class="parameter"><code>server</code></em> argument is a hostname,
+	      <span><strong class="command">dig</strong></span> resolves that name before querying
+	      that name server.
+	    </p>
 <p>
-              If no <em class="parameter"><code>server</code></em> argument is
-              provided, <span><strong class="command">dig</strong></span> consults
-              <code class="filename">/etc/resolv.conf</code>; if an
-              address is found there, it queries the name server at
-              that address. If either of the <code class="option">-4</code> or
-              <code class="option">-6</code> options are in use, then
-              only addresses for the corresponding transport
-              will be tried.  If no usable addresses are found,
-              <span><strong class="command">dig</strong></span> will send the query to the
-              local host.  The reply from the name server that
-              responds is displayed.
-            </p>
+	      If no <em class="parameter"><code>server</code></em> argument is
+	      provided, <span><strong class="command">dig</strong></span> consults
+	      <code class="filename">/etc/resolv.conf</code>; if an
+	      address is found there, it queries the name server at
+	      that address. If either of the <code class="option">-4</code> or
+	      <code class="option">-6</code> options are in use, then
+	      only addresses for the corresponding transport
+	      will be tried.  If no usable addresses are found,
+	      <span><strong class="command">dig</strong></span> will send the query to the
+	      local host.  The reply from the name server that
+	      responds is displayed.
+	    </p>
 </dd>
 <dt><span class="term"><code class="constant">name</code></span></dt>
 <dd><p>
-              is the name of the resource record that is to be looked up.
-            </p></dd>
+	      is the name of the resource record that is to be looked up.
+	    </p></dd>
 <dt><span class="term"><code class="constant">type</code></span></dt>
 <dd><p>
-              indicates what type of query is required &#8212;
-              ANY, A, MX, SIG, etc.
-              <em class="parameter"><code>type</code></em> can be any valid query
-              type.  If no
-              <em class="parameter"><code>type</code></em> argument is supplied,
-              <span><strong class="command">dig</strong></span> will perform a lookup for an
-              A record.
-            </p></dd>
+	      indicates what type of query is required &#8212;
+	      ANY, A, MX, SIG, etc.
+	      <em class="parameter"><code>type</code></em> can be any valid query
+	      type.  If no
+	      <em class="parameter"><code>type</code></em> argument is supplied,
+	      <span><strong class="command">dig</strong></span> will perform a lookup for an
+	      A record.
+	    </p></dd>
 </dl></div>
 <p>
     </p>
@@ -373,6 +373,12 @@
 	      Deprecated, treated as a synonym for
 	      <em class="parameter"><code>+[no]search</code></em>
 	    </p></dd>
+<dt><span class="term"><code class="option">+[no]dnssec</code></span></dt>
+<dd><p>
+	      Requests DNSSEC records be sent by setting the DNSSEC
+	      OK bit (DO) in the OPT record in the additional section
+	      of the query.
+	    </p></dd>
 <dt><span class="term"><code class="option">+domain=somename</code></span></dt>
 <dd><p>
 	      Set the search list to contain the single domain
@@ -381,12 +387,6 @@
 	      <code class="filename">/etc/resolv.conf</code>, and enable
 	      search list processing as if the
 	      <em class="parameter"><code>+search</code></em> option were given.
-	    </p></dd>
-<dt><span class="term"><code class="option">+[no]dnssec</code></span></dt>
-<dd><p>
-	      Requests DNSSEC records be sent by setting the DNSSEC
-	      OK bit (DO) in the OPT record in the additional section
-	      of the query.
 	    </p></dd>
 <dt><span class="term"><code class="option">+[no]edns[=#]</code></span></dt>
 <dd><p>
@@ -571,13 +571,13 @@
 <dt><span class="term"><code class="option">+time=T</code></span></dt>
 <dd><p>
 
-              Sets the timeout for a query to
-              <em class="parameter"><code>T</code></em> seconds.  The default
+	      Sets the timeout for a query to
+	      <em class="parameter"><code>T</code></em> seconds.  The default
 	      timeout is 5 seconds.
-              An attempt to set <em class="parameter"><code>T</code></em> to less
-              than 1 will result
-              in a query timeout of 1 second being applied.
-            </p></dd>
+	      An attempt to set <em class="parameter"><code>T</code></em> to less
+	      than 1 will result
+	      in a query timeout of 1 second being applied.
+	    </p></dd>
 <dt><span class="term"><code class="option">+[no]topdown</code></span></dt>
 <dd><p>
 	      When chasing DNSSEC signature chains perform a top-down
@@ -632,10 +632,10 @@
 	    </p></dd>
 <dt><span class="term"><code class="option">+[no]ttlunits</code></span></dt>
 <dd><p>
-              Display [do not display] the TTL in friendly human-readable
-              time units of "s", "m", "h", "d", and "w", representing
-              seconds, minutes, hours, days and weeks.  Implies +ttlid.
-            </p></dd>
+	      Display [do not display] the TTL in friendly human-readable
+	      time units of "s", "m", "h", "d", and "w", representing
+	      seconds, minutes, hours, days and weeks.  Implies +ttlid.
+	    </p></dd>
 <dt><span class="term"><code class="option">+[no]vc</code></span></dt>
 <dd><p>
 	      Use [do not use] TCP when querying name servers.  This
