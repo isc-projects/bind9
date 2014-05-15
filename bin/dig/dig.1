@@ -459,6 +459,11 @@ Provide a terse answer. The default is to print the answer in a verbose form.
 Perform [do not perform] a search showing intermediate results.
 .RE
 .PP
+\fB+[no]sigchase\fR
+.RS 4
+Chase DNSSEC signature chains. Requires dig be compiled with \-DDIG_SIGCHASE.
+.RE
+.PP
 \fB+split=W\fR
 .RS 4
 Split long hex\- or base64\-formatted fields in resource records into chunks of
@@ -470,11 +475,6 @@ is rounded up to the nearest multiple of 4).
 or
 \fI+split=0\fR
 causes fields not to be split at all. The default is 56 characters, or 44 characters when multiline mode is active.
-.RE
-.PP
-\fB+[no]sigchase\fR
-.RS 4
-Chase DNSSEC signature chains. Requires dig be compiled with \-DDIG_SIGCHASE.
 .RE
 .PP
 \fB+[no]stats\fR
