@@ -531,6 +531,17 @@
 	</varlistentry>
 
         <varlistentry>
+          <term><option>+[no]dnssec</option></term>
+	  <listitem>
+	    <para>
+	      Requests DNSSEC records be sent by setting the DNSSEC
+	      OK bit (DO) in the OPT record in the additional section
+	      of the query.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+        <varlistentry>
           <term><option>+domain=somename</option></term>
 	  <listitem>
 	    <para>
@@ -540,17 +551,6 @@
 	      <filename>/etc/resolv.conf</filename>, and enable
 	      search list processing as if the
 	      <parameter>+search</parameter> option were given.
-	    </para>
-	  </listitem>
-	</varlistentry>
-
-        <varlistentry>
-          <term><option>+[no]dnssec</option></term>
-	  <listitem>
-	    <para>
-	      Requests DNSSEC records be sent by setting the DNSSEC
-	      OK bit (DO) in the OPT record in the additional section
-	      of the query.
 	    </para>
 	  </listitem>
 	</varlistentry>
