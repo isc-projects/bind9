@@ -582,9 +582,7 @@
 	  <listitem>
 	    <para>
 	      Ignore truncation in UDP responses instead of retrying
-	      with TCP.
-	       By
-	      default, TCP retries are performed.
+	      with TCP.  By default, TCP retries are performed.
 	    </para>
 	  </listitem>
 	</varlistentry>
