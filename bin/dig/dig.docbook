@@ -540,7 +540,7 @@
 	</varlistentry>
 
 	<varlistentry>
-	  <term><option>+[no]edns[=#</option>]</term>
+	  <term><option>+[no]edns[=#]</option></term>
 	  <listitem>
 	    <para>
 	       Specify the EDNS version to query with.  Valid values
