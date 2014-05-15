@@ -328,6 +328,11 @@ Deprecated, treated as a synonym for
 \fI+[no]search\fR
 .RE
 .PP
+\fB+[no]dnssec\fR
+.RS 4
+Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO) in the OPT record in the additional section of the query.
+.RE
+.PP
 \fB+domain=somename\fR
 .RS 4
 Set the search list to contain the single domain
@@ -337,11 +342,6 @@ directive in
 \fI/etc/resolv.conf\fR, and enable search list processing as if the
 \fI+search\fR
 option were given.
-.RE
-.PP
-\fB+[no]dnssec\fR
-.RS 4
-Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO) in the OPT record in the additional section of the query.
 .RE
 .PP
 \fB+[no]edns[=#]\fR
