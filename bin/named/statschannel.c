@@ -2353,11 +2353,11 @@ ns_statschannels_configure(ns_server_t *server, const cfg_obj_t *config,
 	 * address-in-use error.
 	 */
 	if (statschannellist != NULL) {
-#ifndef HAVE_LIBXML2
+#if !defined(HAVE_LIBXML2) && !defined(HAVE_JSON)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "statistics-channels specified but not effective "
-			      "due to missing XML library");
+			      "due to missing XML and/or JSON library");
 #endif
 
 		for (element = cfg_list_first(statschannellist);
