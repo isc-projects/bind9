@@ -544,7 +544,7 @@
 	       Specify the EDNS version to query with.  Valid values
 	       are 0 to 255.  Setting the EDNS version will cause
 	       a EDNS query to be sent.  <option>+noedns</option>
-	       clears the remembered EDNS version. EDNS is set to
+	       clears the remembered EDNS version.  EDNS is set to
 	       0 by default.
 	    </para>
 	  </listitem>
