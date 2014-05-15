@@ -755,6 +755,16 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]sigchase</option></term>
+	  <listitem>
+	    <para>
+	      Chase DNSSEC signature chains.  Requires dig be
+	      compiled with -DDIG_SIGCHASE.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+split=W</option></term>
 	  <listitem>
 	    <para>
@@ -766,16 +776,6 @@
 	      <parameter>+split=0</parameter> causes fields not to
 	      be split at all.  The default is 56 characters, or
 	      44 characters when multiline mode is active.
-	    </para>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>+[no]sigchase</option></term>
-	  <listitem>
-	    <para>
-	      Chase DNSSEC signature chains.  Requires dig be
-	      compiled with -DDIG_SIGCHASE.
 	    </para>
 	  </listitem>
 	</varlistentry>
