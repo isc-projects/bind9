@@ -575,7 +575,7 @@
 	      Specify EDNS option with code point <option>code</option>
 	      and optionally payload of <option>value</option> as a
 	      hexadecimal string.  <option>+noednsopt</option>
-	      clears the EDNS options to to be sent.
+	      clears the EDNS options to be sent.
 	    </para>
 	  </listitem>
 	</varlistentry>
