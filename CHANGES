@@ -1,3 +1,9 @@
+3852.	[func]		Increase the default number of clients available
+			for servicing lightweight resolver queries, and
+			make them configurable via the "lwres-tasks" and
+			"lwres-clients" options.  (Thanks to Tomas Hozza.)
+			[RT #35857]
+
 3851.	[func]		Allow libseccomp based system-call filtering
 			on Linux; use "configure --enable-seccomp" to
 			turn it on.  Thanks to Loganaden Velvindron for

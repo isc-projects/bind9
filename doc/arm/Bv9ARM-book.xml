@@ -2563,7 +2563,12 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	be configured to act as a lightweight resolver daemon using the
 	<command>lwres</command> statement in <filename>named.conf</filename>.
       </para>
-
+      <para>
+        The number of client queries that the <command>lwresd</command>
+        daemon is able to serve can be set using the
+        <option>lwres-tasks</option> and <option>lwres-clients</option> 
+        statements in the configuration.
+      </para>
     </sect1>
   </chapter>
 
@@ -4654,6 +4659,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> view <replaceable>view_name</replaceable>; </optional>
     <optional> search { <replaceable>domain_name</replaceable> ; <optional> <replaceable>domain_name</replaceable> ; ... </optional> }; </optional>
     <optional> ndots <replaceable>number</replaceable>; </optional>
+    <optional> lwres-tasks <replaceable>number</replaceable>; </optional>
+    <optional> lwres-clients <replaceable>number</replaceable>; </optional>
 };
 </programlisting>
 
@@ -4711,7 +4718,32 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	  minimum
 	  number of dots in a relative domain name that should result in an
 	  exact match lookup before search path elements are appended.
-	</para>
+        </para>
+        <para>
+          The <option>lwres-tasks</option> statement specifies the number
+          of worker threads the lightweight resolver will dedicate to serving
+          clients.  By default the number is the same as the number of CPUs on
+          the system; this can be overridden using the <option>-n</option>
+          command line option when starting the server. 
+        </para>
+        <para>
+          The <option>lwres-clients</option> specifies
+          the number of client objects per thread the lightweight
+          resolver should create to serve client queries.
+          By default, if the lightweight resolver runs as a part
+          of <command>named</command>, 256 client objects are
+          created for each task; if it runs as <command>lwresd</command>,
+          1024 client objects are created for each thread. The maximum
+          value is 32768; higher values will be silently ignored and
+          the maximum will be used instead.
+          Note that setting too high a value may overconsume
+          system resources.
+        </para>
+        <para>
+          The maximum number of client queries that the lightweight
+          resolver can handle at any one time equals
+          <option>lwres-tasks</option> times <option>lwres-clients</option>.
+        </para>
       </sect2>
       <sect2>
 	<title><command>masters</command> Statement Grammar</title>

@@ -36,6 +36,8 @@ struct ns_lwresd {
 	dns_view_t *view;
 	ns_lwsearchlist_t *search;
 	unsigned int ndots;
+	unsigned int ntasks;
+	unsigned int nclients;
 	isc_mem_t *mctx;
 	isc_boolean_t shutting_down;
 	unsigned int refs;

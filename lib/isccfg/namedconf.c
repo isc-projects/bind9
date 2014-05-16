@@ -2925,6 +2925,8 @@ lwres_clauses[] = {
 	{ "view", &cfg_type_lwres_view, 0 },
 	{ "search", &cfg_type_lwres_searchlist, 0 },
 	{ "ndots", &cfg_type_uint32, 0 },
+	{ "lwres-tasks", &cfg_type_uint32, 0},
+	{ "lwres-clients", &cfg_type_uint32, 0},
 	{ NULL, NULL, 0 }
 };
 

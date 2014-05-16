@@ -187,6 +187,8 @@ lwres {
 	view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>;
 	search { <replaceable>string</replaceable>; ... };
 	ndots <replaceable>integer</replaceable>;
+	lwres-tasks <replaceable>integer</replaceable>;
+	lwres-clients <replaceable>integer</replaceable>;
 };
 </literallayout>
   </refsect1>
