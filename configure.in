@@ -89,6 +89,69 @@ yes)
 	test "${enable_sit+set}" = set || enable_sit=yes
 	;;
 esac
+
+#libseccomp sandboxing
+AC_ARG_ENABLE(seccomp,
+	AS_HELP_STRING([--enable-seccomp],[enable support for libseccomp sysstem call filtering [default=no]]))
+case "$enable_seccomp" in
+	yes|'')
+	case $host_os in
+	linux*)
+		;;
+	*)
+		AC_MSG_WARN([seccomp is not supported on non-linux platforms; disabling it])
+		enable_seccomp=no
+		;;
+	esac
+	AC_SEARCH_LIBS(seccomp_init, [seccomp])
+	if test "$ac_cv_search_seccomp_init" = "-lseccomp" ; then
+		AC_TRY_RUN([
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <errno.h>
+		#include <sys/prctl.h>
+		#include <linux/seccomp.h>
+
+		int main(void)
+		{
+			int ret;
+
+			ret = prctl(PR_GET_SECCOMP, 0, 0, 0, 0);
+			if (ret < 0) {
+				switch (errno) {
+				case ENOSYS:
+					return 1;
+				case EINVAL:
+					return 1;
+				default:
+					return 1;
+				}
+			}
+			ret = 
+			prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, NULL, 0, 0);
+			if (ret < 0) {
+				switch (errno) {
+				case EINVAL:
+					return 1;
+				case EFAULT:
+					return 0;
+				default:
+					return 1;
+			}
+		}
+	return 1;
+	}
+	]
+	, AC_DEFINE([HAVE_LIBSECCOMP], 1, 
+	[Define to use libseccomp system call filtering.])   
+	, []
+	)
+	fi
+		;;
+	no)
+		;;
+esac
+
 #
 # Make very sure that these are the first files processed by
 # config.status, since we use the processed output as the input for
@@ -4533,6 +4596,8 @@ test "$enable_fixed" = "yes" && \
     echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 test "$enable_filter" = "yes" && \
     echo "    AAAA filtering (--enable-filter-aaaa)"
+test "$enable_seccomp" = yes && \
+    echo "    Use libseccomp system call filtering (--enable-seccomp)"
 test "$want_backtrace" = "yes" && \
     echo "    Print backtrace on crash (--enable-backtrace)"
 test "$want_symtable" = "minimal" && \
@@ -4586,6 +4651,8 @@ test "X$CRYPTO" = "X" -o "$OPENSSL_GOST" = "yes" -o "$PKCS11_GOST" = "yes" || \
 test "X$CRYPTO" = "X" -o "$OPENSSL_ECDSA" = "yes" -o "$PKCS11_ECDSA" = "yes" || \
     echo "    ECDSA algorithm support (--with-ecdsa)"
 
+test "$enable_seccomp" = yes || \
+    echo "    Use libseccomp system call filtering (--enable-seccomp)"
 test "$want_backtrace" = "yes" || \
     echo "    Print backtrace on crash (--enable-backtrace)"
 test "$use_libtool" = "yes" || echo "    Use GNU libtool (--with-libtool)"
