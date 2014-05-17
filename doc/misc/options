@@ -40,6 +40,8 @@ logging {
 lwres {
         listen-on [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
+        lwres-clients <integer>;
+        lwres-tasks <integer>;
         ndots <integer>;
         search { <string>; ... };
         view <string> <optional_class>;

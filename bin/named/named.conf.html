@@ -152,11 +152,13 @@ lwres {<br>
 	view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em>;<br>
 	search { <em class="replaceable"><code>string</code></em>; ... };<br>
 	ndots <em class="replaceable"><code>integer</code></em>;<br>
+	lwres-tasks <em class="replaceable"><code>integer</code></em>;<br>
+	lwres-clients <em class="replaceable"><code>integer</code></em>;<br>
 };<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543708"></a><h2>OPTIONS</h2>
+<a name="id2543715"></a><h2>OPTIONS</h2>
 <div class="literallayout"><p><br>
 options {<br>
 	avoid-v4-udp-ports { <em class="replaceable"><code>port</code></em>; ... };<br>
@@ -362,7 +364,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544594"></a><h2>VIEW</h2>
+<a name="id2544600"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -527,7 +529,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545316"></a><h2>ZONE</h2>
+<a name="id2545322"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint | redirect |<br>
@@ -624,12 +626,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545705"></a><h2>FILES</h2>
+<a name="id2545712"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545717"></a><h2>SEE ALSO</h2>
+<a name="id2545723"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named-checkconf</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
