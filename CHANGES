@@ -1,3 +1,6 @@
+3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to seperate out
+			the handling of a rdataset with no records. [RT #35968]
+
 3850.	[bug]		Disabling forwarding could trigger a REQUIRE assertion.
 			[RT #35979]
 
