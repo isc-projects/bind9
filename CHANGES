@@ -1,3 +1,6 @@
+3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to seperate out
+			the handling of a rdataset with no records. [RT #35968]
+
 3849.	[doc]		Alphabetized dig's +options. [RT #35992]
 
 3847.	[bug]		'configure --with-dlz-postgres' failed to fail when
