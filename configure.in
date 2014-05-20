@@ -4595,6 +4595,11 @@ test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
 test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
 test "X$have_libjson" = "X" && echo "    JSON statistics (--with-libjson)"
 
+if test "X$ac_unrecognized_opts" != "X"; then
+    echo
+    echo "Unrecognized options:"
+    echo "    $ac_unrecognized_opts"
+fi
 echo "========================================================================"
 
 if test "X$CRYPTO" = "X"; then
