@@ -1,3 +1,6 @@
+3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to seperate out
+			the handling of a rdataset with no records. [RT #35968]
+
 3852.	[func]		Increase the default number of clients available
 			for servicing lightweight resolver queries, and
 			make them configurable via the "lwres-tasks" and
