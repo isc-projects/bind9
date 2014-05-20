@@ -22543,6 +22543,11 @@ test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ECDSA" != "yes" && \
     echo "    ECDSA algorithm support (--with-ecdsa)"
 test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
 
+if test "X$ac_unrecognized_opts" != "X"; then
+    echo
+    echo "Unrecognized options:"
+    echo "    $ac_unrecognized_opts"
+fi
 echo "========================================================================"
 
 if test "X$USE_OPENSSL" = "X"; then
