@@ -1,5 +1,5 @@
 3854.	[cleanup]	Report unrecognized options, if any, in the final
-                        configure summary. [RT #36014]
+			configure summary. [RT #36014]
 
 3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to seperate out
 			the handling of a rdataset with no records. [RT #35968]
