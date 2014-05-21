@@ -792,6 +792,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	dns_adbfind_t *find;
 	dns_adbaddrinfo_t *addrinfo;
 	isc_socket_t *socket;
+	isc_stdtime_t now;
 
 	query = *queryp;
 	fctx = query->fctx;
@@ -863,13 +864,13 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	 * Age RTTs of servers not tried.
 	 */
 	factor = DNS_ADB_RTTADJAGE;
+	isc_stdtime_get(&now);
 	if (finish != NULL)
 		for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
 		     addrinfo != NULL;
 		     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
 			if (UNMARKED(addrinfo))
-				dns_adb_adjustsrtt(fctx->adb, addrinfo,
-						   0, factor);
+				dns_adb_agesrtt(fctx->adb, addrinfo, now);
 
 	if (finish != NULL && TRIEDFIND(fctx))
 		for (find = ISC_LIST_HEAD(fctx->finds);
@@ -879,16 +880,15 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			     addrinfo != NULL;
 			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
 				if (UNMARKED(addrinfo))
-					dns_adb_adjustsrtt(fctx->adb, addrinfo,
-							   0, factor);
+					dns_adb_agesrtt(fctx->adb, addrinfo,
+							now);
 
 	if (finish != NULL && TRIEDALT(fctx)) {
 		for (addrinfo = ISC_LIST_HEAD(fctx->altaddrs);
 		     addrinfo != NULL;
 		     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
 			if (UNMARKED(addrinfo))
-				dns_adb_adjustsrtt(fctx->adb, addrinfo,
-						   0, factor);
+				dns_adb_agesrtt(fctx->adb, addrinfo, now);
 		for (find = ISC_LIST_HEAD(fctx->altfinds);
 		     find != NULL;
 		     find = ISC_LIST_NEXT(find, publink))
@@ -896,8 +896,8 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			     addrinfo != NULL;
 			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
 				if (UNMARKED(addrinfo))
-					dns_adb_adjustsrtt(fctx->adb, addrinfo,
-							   0, factor);
+					dns_adb_agesrtt(fctx->adb, addrinfo,
+							now);
 	}
 
 	/*

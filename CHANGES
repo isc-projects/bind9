@@ -1,3 +1,6 @@
+3855.	[bug]		Limit smoothed round trip time aging to no more than
+			once a second. [RT #32909]
+
 3854.	[cleanup]	Report unrecognized options, if any, in the final
 			configure summary. [RT #36014]
 
