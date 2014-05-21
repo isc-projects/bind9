@@ -79,6 +79,12 @@ stats_dumparg {
 
 static isc_once_t once = ISC_ONCE_INIT;
 
+#if defined(HAVE_LIBXML2) || defined(HAVE_JSON)
+#define EXTENDED_STATS
+#else
+#undef EXTENDED_STATS
+#endif
+
 /*%
  * Statistics descriptions.  These could be statistically initialized at
  * compile time, but we configure them run time in the init_desc() function
@@ -90,7 +96,7 @@ static const char *adbstats_desc[dns_adbstats_max];
 static const char *zonestats_desc[dns_zonestatscounter_max];
 static const char *sockstats_desc[isc_sockstatscounter_max];
 static const char *dnssecstats_desc[dns_dnssecstats_max];
-#ifdef HAVE_LIBXML2
+#if defined(EXTENDED_STATS)
 static const char *nsstats_xmldesc[dns_nsstatscounter_max];
 static const char *resstats_xmldesc[dns_resstatscounter_max];
 static const char *adbstats_xmldesc[dns_adbstats_max];
@@ -104,7 +110,7 @@ static const char *dnssecstats_xmldesc[dns_dnssecstats_max];
 #define zonestats_xmldesc NULL
 #define sockstats_xmldesc NULL
 #define dnssecstats_xmldesc NULL
-#endif	/* HAVE_LIBXML2 */
+#endif	/* EXTENDED_STATS */
 
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
 
@@ -125,13 +131,13 @@ set_desc(int counter, int maxcounter, const char *fdesc, const char **fdescs,
 	 const char *xdesc, const char **xdescs)
 {
 	REQUIRE(counter < maxcounter);
-	REQUIRE(fdescs[counter] == NULL);
-#ifdef HAVE_LIBXML2
-	REQUIRE(xdescs[counter] == NULL);
+	REQUIRE(fdescs != NULL && fdescs[counter] == NULL);
+#if defined(EXTENDED_STATS)
+	REQUIRE(xdescs != NULL && xdescs[counter] == NULL);
 #endif
 
 	fdescs[counter] = fdesc;
-#ifdef HAVE_LIBXML2
+#if defined(EXTENDED_STATS)
 	xdescs[counter] = xdesc;
 #else
 	UNUSED(xdesc);
@@ -146,7 +152,7 @@ init_desc(void) {
 	/* Initialize name server statistics */
 	for (i = 0; i < dns_nsstatscounter_max; i++)
 		nsstats_desc[i] = NULL;
-#ifdef HAVE_LIBXML2
+#if defined(EXTENDED_STATS)
 	for (i = 0; i < dns_nsstatscounter_max; i++)
 		nsstats_xmldesc[i] = NULL;
 #endif
@@ -241,7 +247,7 @@ init_desc(void) {
 	/* Initialize resolver statistics */
 	for (i = 0; i < dns_resstatscounter_max; i++)
 		resstats_desc[i] = NULL;
-#ifdef  HAVE_LIBXML2
+#if defined(EXTENDED_STATS)
 	for (i = 0; i < dns_resstatscounter_max; i++)
 		resstats_xmldesc[i] = NULL;
 #endif
@@ -326,7 +332,7 @@ init_desc(void) {
 	/* Initialize adb statistics */
 	for (i = 0; i < dns_adbstats_max; i++)
 		adbstats_desc[i] = NULL;
-#ifdef  HAVE_LIBXML2
+#if defined(EXTENDED_STATS)
 	for (i = 0; i < dns_adbstats_max; i++)
 		adbstats_xmldesc[i] = NULL;
 #endif
@@ -348,7 +354,7 @@ init_desc(void) {
 	/* Initialize zone statistics */
 	for (i = 0; i < dns_zonestatscounter_max; i++)
 		zonestats_desc[i] = NULL;
-#ifdef  HAVE_LIBXML2
+#if defined(EXTENDED_STATS)
 	for (i = 0; i < dns_zonestatscounter_max; i++)
 		zonestats_xmldesc[i] = NULL;
 #endif
@@ -381,7 +387,7 @@ init_desc(void) {
 	/* Initialize socket statistics */
 	for (i = 0; i < isc_sockstatscounter_max; i++)
 		sockstats_desc[i] = NULL;
-#ifdef  HAVE_LIBXML2
+#if defined(EXTENDED_STATS)
 	for (i = 0; i < isc_sockstatscounter_max; i++)
 		sockstats_xmldesc[i] = NULL;
 #endif
@@ -500,7 +506,7 @@ init_desc(void) {
 	/* Initialize DNSSEC statistics */
 	for (i = 0; i < dns_dnssecstats_max; i++)
 		dnssecstats_desc[i] = NULL;
-#ifdef  HAVE_LIBXML2
+#if defined(EXTENDED_STATS)
 	for (i = 0; i < dns_dnssecstats_max; i++)
 		dnssecstats_xmldesc[i] = NULL;
 #endif
@@ -537,7 +543,7 @@ init_desc(void) {
 		INSIST(sockstats_desc[i] != NULL);
 	for (i = 0; i < dns_dnssecstats_max; i++)
 		INSIST(dnssecstats_desc[i] != NULL);
-#ifdef  HAVE_LIBXML2
+#if defined(EXTENDED_STATS)
 	for (i = 0; i < dns_nsstatscounter_max; i++)
 		INSIST(nsstats_xmldesc[i] != NULL);
 	for (i = 0; i < dns_resstatscounter_max; i++)
@@ -581,7 +587,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 	json_object *job, *cat, *counter;
 #endif
 
-#if !defined(HAVE_LIBXML2) && !defined(HAVE_JSON)
+#if !defined(EXTENDED_STATS)
 	UNUSED(category);
 #endif
 
@@ -2353,7 +2359,7 @@ ns_statschannels_configure(ns_server_t *server, const cfg_obj_t *config,
 	 * address-in-use error.
 	 */
 	if (statschannellist != NULL) {
-#if !defined(HAVE_LIBXML2) && !defined(HAVE_JSON)
+#ifndef EXTENDED_STATS
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "statistics-channels specified but not effective "
