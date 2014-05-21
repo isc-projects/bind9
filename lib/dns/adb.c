@@ -4036,7 +4036,7 @@ dns_adb_agesrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr, isc_stdtime_t now) {
 }
 
 static void
-adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor, 
+adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
 	   isc_stdtime_t now)
 {
 	isc_uint64_t new_srtt;
