@@ -925,7 +925,6 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	/*
 	 * Age RTTs of servers not tried.
 	 */
-	factor = DNS_ADB_RTTADJAGE;
 	isc_stdtime_get(&now);
 	if (finish != NULL)
 		for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
