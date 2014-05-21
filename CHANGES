@@ -1,5 +1,5 @@
 3856.	[bug]		Configuring libjson without also configuring libxml
-			resulting in a REQUIRE assertion when retrieving
+			resulted in a REQUIRE assertion when retrieving
 			statistics using json. [RT #36009]
 
 3855.	[bug]		Limit smoothed round trip time aging to no more than
