@@ -512,7 +512,12 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *qname,
  */
 
 /*
- * A reasonable default for RTT adjustments
+ * Reasonable defaults for RTT adjustments
+ *
+ * (Note: these values function both as scaling factors and as
+ * indicators of the type of RTT adjustment operation taking place.
+ * Adjusting the scaling factors is fine, as long as they all remain
+ * unique values.)
  */
 #define DNS_ADB_RTTADJDEFAULT		7	/*%< default scale */
 #define DNS_ADB_RTTADJREPLACE		0	/*%< replace with our rtt */
@@ -523,18 +528,6 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		   unsigned int rtt, unsigned int factor);
 /*%<
  * Mix the round trip time into the existing smoothed rtt.
-
- * The formula used
- * (where srtt is the existing rtt value, and rtt and factor are arguments to
- * this function):
- *
- *\code
- *	new_srtt = (old_srtt / 10 * factor) + (rtt / 10 * (10 - factor));
- *\endcode
- *
- * XXXRTH  Do we want to publish the formula?  What if we want to change how
- *         this works later on?  Recommend/require that the units are
- *	   microseconds?
  *
  * Requires:
  *
@@ -543,6 +536,24 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  *\li	addr be valid.
  *
  *\li	0 <= factor <= 10
+ *
+ * Note:
+ *
+ *\li	The srtt in addr will be updated to reflect the new global
+ *	srtt value.  This may include changes made by others.
+ */
+
+void
+dns_adb_agesrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr, isc_stdtime_t now);
+/*
+ * dns_adb_agesrtt is equivalent to dns_adb_adjustsrtt with factor
+ * equal to DNS_ADB_RTTADJAGE and the current time passed in.
+ *
+ * Requires:
+ *
+ *\li	adb be valid.
+ *
+ *\li	addr be valid.
  *
  * Note:
  *
