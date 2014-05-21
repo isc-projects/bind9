@@ -2041,15 +2041,26 @@ case "$use_libjson" in
 		libjson_libs=""
 		;;
 	auto|yes)
-		if test -f "/usr/include/json/json.h"
-		then
-			libjson_cflags="-I /usr/include/json"
-			have_libjson="yes"
-		elif test -f "/usr/include/json-c/json.h"
-		then
-			libjson_cflags="-I /usr/include/json-c"
-			have_libjson="yes"
-		fi
+		for d in /usr /usr/local /opt/local
+		do
+			if test -f "${d}/include/json/json.h"
+			then
+				libjson_cflags="-I ${d}/include/json"
+				if test ${d} != /usr
+				then
+					LIBS="$LIBS -L${d}/lib"
+				fi
+				have_libjson="yes"
+			elif test -f "${d}/include/json-c/json.h"
+			then
+				libjson_cflags="-I ${d}/include/json-c"
+				if test ${d} != /usr
+				then
+					LIBS="$LIBS -L${d}/lib"
+				fi
+				have_libjson="yes"
+			fi
+		done
 		;;
 	*)
 		if test -f "${use_libjson}/include/json/json.h"
@@ -2072,8 +2083,11 @@ if test "X${have_libjson}" != "X"
 then
 	AC_MSG_RESULT(yes)
 	AC_SEARCH_LIBS([json_object_new_int64], [json json-c], [],
-		       [AC_MSG_WARN([found libjson include but not library.])
+		       [AC_MSG_ERROR([found libjson include but not library.])
 			have_libjson=""])
+elif test "X$use_libjson" = Xyes
+then
+	AC_MSG_ERROR([include/json{,-c}/json.h not found.])
 else
 	AC_MSG_RESULT(no)
 fi
