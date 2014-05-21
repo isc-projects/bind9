@@ -245,6 +245,7 @@ struct dns_adbentry {
 	isc_sockaddr_t                  sockaddr;
 
 	isc_stdtime_t                   expires;
+	isc_stdtime_t			lastage;
 	/*%<
 	 * A nonzero 'expires' field indicates that the entry should
 	 * persist until that time.  This allows entries found
@@ -321,6 +322,8 @@ static inline isc_boolean_t unlink_entry(dns_adb_t *, dns_adbentry_t *);
 static isc_boolean_t kill_name(dns_adbname_t **, isc_eventtype_t);
 static void water(void *, int);
 static void dump_entry(FILE *, dns_adbentry_t *, isc_boolean_t, isc_stdtime_t);
+static void adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt,
+		       unsigned int factor, isc_stdtime_t now);
 
 /*
  * MUST NOT overlap DNS_ADBFIND_* flags!
@@ -1756,6 +1759,7 @@ new_adbentry(dns_adb_t *adb) {
 	e->flags = 0;
 	isc_random_get(&r);
 	e->srtt = (r & 0x1f) + 1;
+	e->lastage = 0;
 	e->expires = 0;
 	ISC_LIST_INIT(e->lameinfo);
 	ISC_LINK_INIT(e, plink);
@@ -3912,8 +3916,7 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		   unsigned int rtt, unsigned int factor)
 {
 	int bucket;
-	unsigned int new_srtt;
-	isc_stdtime_t now;
+	isc_stdtime_t now = 0;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
@@ -3922,21 +3925,52 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 
-	if (factor == DNS_ADB_RTTADJAGE)
-		new_srtt = addr->entry->srtt * 98 / 100;
-	else
+	if (addr->entry->expires == 0 || factor == DNS_ADB_RTTADJAGE)
+		isc_stdtime_get(&now);
+	adjustsrtt(addr, rtt, factor, now);
+
+	UNLOCK(&adb->entrylocks[bucket]);
+}
+
+void
+dns_adb_agesrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr, isc_stdtime_t now) {
+	int bucket;
+
+	REQUIRE(DNS_ADB_VALID(adb));
+	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
+
+	bucket = addr->entry->lock_bucket;
+	LOCK(&adb->entrylocks[bucket]);
+
+	adjustsrtt(addr, 0, DNS_ADB_RTTADJAGE, now);
+
+	UNLOCK(&adb->entrylocks[bucket]);
+}
+
+static void
+adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor, 
+	   isc_stdtime_t now)
+{
+	isc_uint64_t new_srtt;
+
+	if (factor == DNS_ADB_RTTADJAGE) {
+		if (addr->entry->lastage != now) {
+			new_srtt = addr->entry->srtt;
+			new_srtt <<= 9;
+			new_srtt -= addr->entry->srtt;
+			new_srtt >>= 9;
+			addr->entry->lastage = now;
+		} else
+			new_srtt = addr->entry->srtt;
+	} else
 		new_srtt = (addr->entry->srtt / 10 * factor)
 			+ (rtt / 10 * (10 - factor));
 
 	addr->entry->srtt = new_srtt;
 	addr->srtt = new_srtt;
 
-	if (addr->entry->expires == 0) {
-		isc_stdtime_get(&now);
+	if (addr->entry->expires == 0)
 		addr->entry->expires = now + ADB_ENTRY_WINDOW;
-	}
-
-	UNLOCK(&adb->entrylocks[bucket]);
 }
 
 void
