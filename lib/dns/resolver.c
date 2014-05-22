@@ -168,6 +168,7 @@ typedef struct query {
 	dns_tsigkey_t			*tsigkey;
 	isc_socketevent_t		sendevent;
 	isc_dscp_t			dscp;
+	int 				ednsversion;
 	unsigned int			options;
 	unsigned int			attributes;
 	unsigned int			sends;
@@ -476,6 +477,9 @@ struct dns_resolver {
 					 FCTX_ADDRINFO_TRIED) != 0)
 #define NOSIT(a)                        (((a)->flags & \
 					 FCTX_ADDRINFO_NOSIT) != 0)
+#define EDNSOK(a)                       (((a)->flags & \
+					 FCTX_ADDRINFO_EDNSOK) != 0)
+
 
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 #define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
@@ -902,7 +906,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			 * seen a EDNS response.
 			 */
 			if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
-			    (query->addrinfo->flags & FCTX_ADDRINFO_EDNSOK) == 0) {
+			    EDNSOK(query->addrinfo)) {
 				mask >>= 2;
 			}
 			rtt = query->addrinfo->srtt + (value & mask);
@@ -1985,12 +1989,11 @@ resquery_send(resquery_t *query) {
 		struct tried *tried;
 
 		if (fctx->timeouts > (MAX_EDNS0_TIMEOUTS * 2) &&
-		    (query->addrinfo->flags & FCTX_ADDRINFO_EDNSOK) == 0) {
+		    !EDNSOK(query->addrinfo)) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
 			fctx->reason = "disabling EDNS";
 		} else if ((tried = triededns512(fctx, sockaddr)) != NULL &&
-		    tried->count >= 2U &&
-		    (query->addrinfo->flags & FCTX_ADDRINFO_EDNSOK) == 0) {
+		    tried->count >= 2U && !EDNSOK(query->addrinfo)) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
 			fctx->reason = "disabling EDNS";
 		} else if ((tried = triededns(fctx, sockaddr)) != NULL) {
@@ -2098,6 +2101,7 @@ resquery_send(resquery_t *query) {
 				ednsopt++;
 			}
 #endif
+			query->ednsversion = version;
 			result = fctx_addopt(fctx->qmessage, version,
 					     udpsize, ednsopts, ednsopt);
 			if (reqnsid && result == ISC_R_SUCCESS) {
@@ -2109,6 +2113,7 @@ resquery_send(resquery_t *query) {
 				 * bit.
 				 */
 				query->options |= DNS_FETCHOPT_NOEDNS0;
+				query->ednsversion = -1;
 				udpsize = 0;
 			}
 		} else {
@@ -2118,8 +2123,10 @@ resquery_send(resquery_t *query) {
 			 * not using EDNS0.
 			 */
 			query->options |= DNS_FETCHOPT_NOEDNS0;
+			query->ednsversion = -1;
 		}
-	}
+	} else
+		query->ednsversion = -1;
 
 	/*
 	 * Record the UDP EDNS size choosen.
@@ -7323,7 +7330,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 * EDNS may not be supported so we can now cache the lack of
 	 * EDNS support.
 	 */
-	if (opt == NULL &&
+	if (opt == NULL && !EDNSOK(query->addrinfo) &&
 	    (message->rcode == dns_rcode_noerror ||
 	     message->rcode == dns_rcode_nxdomain ||
 	     message->rcode == dns_rcode_refused ||
@@ -7345,6 +7352,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
 	} else if (opt == NULL && (message->flags & DNS_MESSAGEFLAG_TC) == 0 &&
+		   !EDNSOK(query->addrinfo) &&
 		   (message->rcode == dns_rcode_noerror ||
 		    message->rcode == dns_rcode_nxdomain) &&
 		   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
@@ -7377,11 +7385,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * If we get a non error response to a EDNS query record the fact
-	 * so we won't fallback to plain DNS in the future for this server.
+	 * If we get a non error EDNS response record the fact so we
+	 * won't fallback to plain DNS in the future for this server.
 	 */
-	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
-	    (query->addrinfo->flags & FCTX_ADDRINFO_EDNSOK) == 0 &&
+	if (opt != NULL && !EDNSOK(query->addrinfo) &&
+	    (query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
 	    (message->rcode == dns_rcode_noerror ||
 	     message->rcode == dns_rcode_nxdomain ||
 	     message->rcode == dns_rcode_refused ||
@@ -7550,6 +7558,18 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				DNS_FETCHOPT_EDNSVERSIONSET;
 			mask = DNS_FETCHOPT_EDNSVERSIONMASK |
 			       DNS_FETCHOPT_EDNSVERSIONSET;
+			/*
+			 * Record that we got a good EDNS response.
+			 */
+			if (query->ednsversion > (int)version &&
+			    !EDNSOK(query->addrinfo)) {
+				dns_adb_changeflags(fctx->adb, query->addrinfo,
+						    FCTX_ADDRINFO_EDNSOK,
+						    FCTX_ADDRINFO_EDNSOK);
+			}
+			/*
+			 * Record the supported EDNS version.
+			 */
 			switch (version) {
 			case 0:
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
