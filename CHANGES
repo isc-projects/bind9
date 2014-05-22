@@ -1,3 +1,6 @@
+3857.	[bug]		Make it harder for a incorrect NOEDNS classification
+			to be made. [RT #36020]
+
 3856.	[bug]		Configuring libjson without also configuring libxml
 			resulted in a REQUIRE assertion when retrieving
 			statistics using json. [RT #36009]
