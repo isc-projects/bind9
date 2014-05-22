@@ -906,7 +906,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			 * seen a EDNS response.
 			 */
 			if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
-			    EDNSOK(query->addrinfo)) {
+			    !EDNSOK(query->addrinfo)) {
 				mask >>= 2;
 			}
 			rtt = query->addrinfo->srtt + (value & mask);
