@@ -59,9 +59,6 @@
     <ClInclude Include="..\include\isc\commandline.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\crc64.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\entropy.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -440,9 +437,6 @@
     <ClCompile Include="..\base64.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\bind9.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\bitstring.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -453,9 +447,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\commandline.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\crc64.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\error.c">
