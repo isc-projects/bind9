@@ -309,6 +309,7 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClInclude Include="..\include\isc\result.h" />
     <ClInclude Include="..\include\isc\resultclass.h" />
     <ClInclude Include="..\include\isc\rwlock.h" />
+    <ClInclude Include="..\include\isc\safe.h" />
     <ClInclude Include="..\include\isc\serial.h" />
     <ClInclude Include="..\include\isc\sha1.h" />
     <ClInclude Include="..\include\isc\sha2.h" />
@@ -404,6 +405,7 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClCompile Include="..\region.c" />
     <ClCompile Include="..\result.c" />
     <ClCompile Include="..\rwlock.c" />
+    <ClCompile Include="..\safe.c" />
     <ClCompile Include="..\serial.c" />
     <ClCompile Include="..\sha1.c" />
     <ClCompile Include="..\sha2.c" />
