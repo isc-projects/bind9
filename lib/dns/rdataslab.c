@@ -194,7 +194,8 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	/*
 	 * Put into DNSSEC order.
 	 */
-	qsort(x, nalloc, sizeof(struct xrdata), compare_rdata);
+	if (nalloc > 1)
+		qsort(x, nalloc, sizeof(struct xrdata), compare_rdata);
 
 	/*
 	 * Remove duplicates and compute the total storage required.
