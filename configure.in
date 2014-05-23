@@ -2209,17 +2209,32 @@ MKDEPCFLAGS="-M"
 IRIX_DNSSEC_WARNINGS_HACK=""
 
 if test "X$GCC" = "Xyes"; then
+	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"
 	AC_MSG_CHECKING(if "$CC" supports -fno-strict-aliasing)
-	SAVE_CFLAGS=$CFLAGS
+	SAVE_CFLAGS="$CFLAGS"
 	CFLAGS="$CFLAGS -fno-strict-aliasing"
 	AC_TRY_COMPILE(,, [FNOSTRICTALIASING=yes],[FNOSTRICTALIASING=no])
-	CFLAGS=$SAVE_CFLAGS
+	CFLAGS="$SAVE_CFLAGS"
 	if test "$FNOSTRICTALIASING" = "yes"; then
 		AC_MSG_RESULT(yes)
-	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith -fno-strict-aliasing"
+		STD_CWARNINGS="$STD_CWARNINGS -fno-strict-aliasing"
 	else
 		AC_MSG_RESULT(no)
-	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"
+	fi
+	#
+	# turn off delete null pointer checks
+	#
+	AC_MSG_CHECKING(if "$CC" supports -fno-delete-null-pointer-checks)
+	SAVE_CFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS -fno-delete-null-pointer-checks"
+	AC_TRY_COMPILE(,, [FNODELETENULLPOINTERCHECKS=yes],
+			  [FNODELETENULLPOINTERCHECKS=no])
+	CFLAGS="$SAVE_CFLAGS"
+	if test "$FNODELETENULLPOINTERCHECKS" = "yes"; then
+		AC_MSG_RESULT(yes)
+		STD_CWARNINGS="$STD_CWARNINGS -fno-delete-null-pointer-checks"
+	else
+		AC_MSG_RESULT(no)
 	fi
 	case "$host" in
 	*-hp-hpux*)

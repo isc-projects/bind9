@@ -1,3 +1,6 @@
+3858.	[bug]		Disable GCC 4.9 "delete null pointer check".
+			[RT #35968]
+
 3857.	[bug]		Make it harder for a incorrect NOEDNS classification
 			to be made. [RT #36020]
 
