@@ -1,3 +1,7 @@
+3860.	[bug]		ioctl(DP_POLL) array size needs to be determined
+			at run time as it is limited to {OPEN_MAX}.
+			[RT #35878]
+
 3858.	[bug]		Disable GCC 4.9 "delete null pointer check".
 			[RT #35968]
 
