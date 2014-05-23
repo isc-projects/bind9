@@ -354,7 +354,6 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClCompile Include="..\backtrace.c" />
     <ClCompile Include="..\base32.c" />
     <ClCompile Include="..\base64.c" />
-    <ClCompile Include="..\bind9.c" />
     <ClCompile Include="..\bitstring.c" />
     <ClCompile Include="..\buffer.c" />
     <ClCompile Include="..\bufferlist.c" />
