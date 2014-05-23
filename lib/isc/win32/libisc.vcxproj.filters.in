@@ -161,9 +161,6 @@
     <ClInclude Include="..\include\isc\parseint.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\pool.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\portset.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -519,9 +516,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\parseint.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\pool.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\portset.c">
