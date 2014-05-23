@@ -1,3 +1,5 @@
+	--- 9.10.0-P2 released ---
+
 3858.	[bug]		Disable GCC 4.9 "delete null pointer check".
 			[RT #35968]
 
