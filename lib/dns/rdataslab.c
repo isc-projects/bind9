@@ -194,7 +194,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	/*
 	 * Put into DNSSEC order.
 	 */
-	if (nalloc > 1)
+	if (nalloc > 1U)
 		qsort(x, nalloc, sizeof(struct xrdata), compare_rdata);
 
 	/*
