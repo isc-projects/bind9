@@ -283,7 +283,6 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClInclude Include="..\include\isc\ondestroy.h" />
     <ClInclude Include="..\include\isc\os.h" />
     <ClInclude Include="..\include\isc\parseint.h" />
-    <ClInclude Include="..\include\isc\pool.h" />
     <ClInclude Include="..\include\isc\portset.h" />
     <ClInclude Include="..\include\isc\print.h" />
     <ClInclude Include="..\include\isc\queue.h" />
@@ -382,7 +381,6 @@ copy /Y @VCREDIST_PATH@ ..\Build\Release\
     <ClCompile Include="..\nls\msgcat.c" />
     <ClCompile Include="..\ondestroy.c" />
     <ClCompile Include="..\parseint.c" />
-    <ClCompile Include="..\pool.c" />
     <ClCompile Include="..\portset.c" />
     <ClCompile Include="..\quota.c" />
     <ClCompile Include="..\radix.c" />
