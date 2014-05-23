@@ -51,6 +51,11 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.8.7-P1
+ 
+	This release should be used if you compile with GCC 4.9.0 or
+	later.
+
 BIND 9.8.7
  
 	BIND 9.8.7 includes several bug fixes and patches the security
