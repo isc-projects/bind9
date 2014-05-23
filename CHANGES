@@ -1,3 +1,5 @@
+	--- 9.8.7-P1 released ---
+
 3859.	[bug]		Don't call qsort with a null pointer. [RT #35968]
 
 3858.	[bug]		Disable GCC 4.9 "delete null pointer check".
