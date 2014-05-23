@@ -1,3 +1,5 @@
+3859.	[placeholder]
+
 3858.	[bug]		Disable GCC 4.9 "delete null pointer check".
 			[RT #35968]
 
