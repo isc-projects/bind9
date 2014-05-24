@@ -5882,7 +5882,7 @@ isc__socketmgr_waitevents(isc_socketmgr_t *manager0, struct timeval *tvp,
 						  &manager->open_max);
 		if (result != ISC_R_SUCCESS)
 			manager->open_max = 64;
-		manager->calls == 0;
+		manager->calls = 0;
 	}
 	for (pass = 0; pass < 2; pass++) {
 		dvp.dp_fds = manager->events;
