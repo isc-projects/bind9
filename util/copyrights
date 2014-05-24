@@ -2678,8 +2678,8 @@
 ./lib/dns/win32/libdns.dsp.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013
-./lib/dns/win32/libdns.vcxproj.filters.in	X	2013
-./lib/dns/win32/libdns.vcxproj.in		X	2013
+./lib/dns/win32/libdns.vcxproj.filters.in	X	2013,2014
+./lib/dns/win32/libdns.vcxproj.in		X	2013,2014
 ./lib/dns/win32/libdns.vcxproj.user		X	2013
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013
@@ -3606,7 +3606,7 @@
 ./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./win32utils/Configure				PERL	2013,2014
 ./win32utils/GeoIP.diff				X	2013
-./win32utils/bind9.sln.in			X	2013
+./win32utils/bind9.sln.in			X	2013,2014
 ./win32utils/build.txt				TXT.BRIEF	2013,2014
 ./win32utils/index.html				HTML	2006,2007,2008,2012
 ./win32utils/legacy/BINDBuild.dsw.in		X	2001,2005,2006,2008,2009,2010,2013
