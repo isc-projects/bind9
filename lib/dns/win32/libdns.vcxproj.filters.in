@@ -185,9 +185,6 @@
     <ClCompile Include="..\rriterator.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\rrl.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sdb.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -222,9 +219,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\ttl.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\update.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\validator.c">
@@ -489,9 +483,6 @@
     <ClInclude Include="..\include\dns\rriterator.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\dns\rrl.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\dns\sdb.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -532,9 +523,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\types.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dns\update.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\validator.h">
