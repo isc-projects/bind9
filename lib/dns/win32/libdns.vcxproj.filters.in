@@ -48,9 +48,6 @@
     <ClCompile Include="..\callbacks.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\clientinfo.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\compress.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -326,9 +323,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\cert.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dns\clientinfo.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\compress.h">
