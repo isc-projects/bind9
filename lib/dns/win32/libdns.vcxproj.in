@@ -174,7 +174,6 @@
     <ClCompile Include="..\rootns.c" />
     <ClCompile Include="..\rpz.c" />
     <ClCompile Include="..\rriterator.c" />
-    <ClCompile Include="..\rrl.c" />
     <ClCompile Include="..\sdb.c" />
     <ClCompile Include="..\sdlz.c" />
     <ClCompile Include="..\soa.c" />
@@ -188,7 +187,6 @@
     <ClCompile Include="..\tkey.c" />
     <ClCompile Include="..\tsig.c" />
     <ClCompile Include="..\ttl.c" />
-    <ClCompile Include="..\update.c" />
     <ClCompile Include="..\validator.c" />
     <ClCompile Include="..\view.c" />
     <ClCompile Include="..\xfrin.c" />
@@ -267,7 +265,6 @@
     <ClInclude Include="..\include\dns\rootns.h" />
     <ClInclude Include="..\include\dns\rpz.h" />
     <ClInclude Include="..\include\dns\rriterator.h" />
-    <ClInclude Include="..\include\dns\rrl.h" />
     <ClInclude Include="..\include\dns\sdb.h" />
     <ClInclude Include="..\include\dns\sdlz.h" />
     <ClInclude Include="..\include\dns\secalg.h" />
@@ -282,7 +279,6 @@
     <ClInclude Include="..\include\dns\tsig.h" />
     <ClInclude Include="..\include\dns\ttl.h" />
     <ClInclude Include="..\include\dns\types.h" />
-    <ClInclude Include="..\include\dns\update.h" />
     <ClInclude Include="..\include\dns\validator.h" />
     <ClInclude Include="..\include\dns\version.h" />
     <ClInclude Include="..\include\dns\view.h" />
