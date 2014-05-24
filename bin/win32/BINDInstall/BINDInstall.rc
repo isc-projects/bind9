@@ -162,7 +162,7 @@ BEGIN
             VALUE "LegalCopyright", "Copyright © 2000,2014"
             VALUE "OriginalFilename", "BINDInstall.EXE"
             VALUE "ProductName", "ISC BIND 9"
-            VALUE "ProductVersion", "9.10.0"
+            VALUE "ProductVersion", "9.8.8"
         END
     END
     BLOCK "VarFileInfo"
