@@ -113,7 +113,6 @@
     <ClCompile Include="..\byaddr.c" />
     <ClCompile Include="..\cache.c" />
     <ClCompile Include="..\callbacks.c" />
-    <ClCompile Include="..\clientinfo.c" />
     <ClCompile Include="..\compress.c" />
     <ClCompile Include="..\db.c" />
     <ClCompile Include="..\dbiterator.c" />
@@ -212,7 +211,6 @@
     <ClInclude Include="..\include\dns\cache.h" />
     <ClInclude Include="..\include\dns\callbacks.h" />
     <ClInclude Include="..\include\dns\cert.h" />
-    <ClInclude Include="..\include\dns\clientinfo.h" />
     <ClInclude Include="..\include\dns\compress.h" />
     <ClInclude Include="..\include\dns\db.h" />
     <ClInclude Include="..\include\dns\dbiterator.h" />
