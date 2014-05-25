@@ -3196,7 +3196,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				dns_pseudosection_t section,
 				const dns_master_style_t *style,
 				dns_messagetextflag_t flags,
-				isc_buffer_t *target) {
+				isc_buffer_t *target)
+{
 	dns_rdataset_t *ps = NULL;
 	dns_name_t *name = NULL;
 	isc_result_t result;
@@ -3270,8 +3271,11 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					sprintf(buf, "%02x ", optdata[i]);
 					ADD_STRING(target, buf);
 				}
+
 				for (i = 0; i < optlen; i++) {
 					ADD_STRING(target, " (");
+					if (!isc_buffer_availablelength(target))
+						return (ISC_R_NOSPACE);
 					if (isprint(optdata[i]))
 						isc_buffer_putmem(target,
 								  &optdata[i],
