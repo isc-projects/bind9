@@ -1,5 +1,9 @@
 	--- 9.8.7-P1 released ---
 
+3861.	[security]	Missing isc_buffer_availablelength check results
+			in a REQUIRE assertion when printing out a packet.
+			[RT #36078]
+
 3859.	[bug]		Don't call qsort with a null pointer. [RT #35968]
 
 3858.	[bug]		Disable GCC 4.9 "delete null pointer check".
