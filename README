@@ -72,7 +72,7 @@ BIND 9.11.0
 	   the specified file by default instead of to the system log.
 
         This release addresses the security flaw described in
-        CVE-2014-3214.
+        CVE-2014-3214 and CVE-2014-3859.
 
 BIND 9.10.0
 
