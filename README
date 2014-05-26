@@ -60,6 +60,9 @@ BIND 9.8.8
            (prior to BIND 9.8.7) can be restored for specific clients via
            the new "no-case-compress" ACL.
 
+	This release addresses the security flaw described in
+	CVE-2014-3859.
+
 BIND 9.8.7
  
 	BIND 9.8.7 includes several bug fixes and patches the security
