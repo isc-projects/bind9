@@ -3198,6 +3198,9 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 	int len = 1024;
 	isc_result_t result;
 
+	if (!isc_log_wouldlog(ns_g_lctx, ISC_LOG_DEBUG(1)))
+		return;
+
 	/*
 	 * Note that these are multiline debug messages.  We want a newline
 	 * to appear in the log after each message.
