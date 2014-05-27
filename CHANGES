@@ -1,9 +1,8 @@
 3862.	[cleanup]	Return immediately if we are not going to log the
 			message in ns_client_dumpmessage.
 
-3861.	[security]	Missing isc_buffer_availablelength check results
-			in a REQUIRE assertion when printing out a packet
-			(CVE-2014-3859).  [RT #36078]
+3861.	[bug]		Benign missing isc_buffer_availablelength check in
+			dns_message_pseudosectiontotext.  [RT #36078]
 
 3860.	[bug]		ioctl(DP_POLL) array size needs to be determined
 			at run time as it is limited to {OPEN_MAX}.
