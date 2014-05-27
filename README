@@ -53,9 +53,8 @@ BIND 9
 
 BIND 9.8.7-P1
  
-	This release addresses the security flaw described in
-	CVE-2014-3859.  This release should also be used if you
-	compile with GCC 4.9.0 or later.
+	This release should be used if you compile with GCC 4.9.0 or
+	later.
 
 BIND 9.8.7
  
