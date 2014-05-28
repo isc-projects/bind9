@@ -4051,8 +4051,8 @@ adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
 		} else
 			new_srtt = addr->entry->srtt;
 	} else
-		new_srtt = (addr->entry->srtt / 10 * factor)
-			+ (rtt / 10 * (10 - factor));
+		new_srtt = ((isc_uint64_t)addr->entry->srtt / 10 * factor)
+			+ ((isc_uint64_t)rtt / 10 * (10 - factor));
 
 	addr->entry->srtt = (unsigned int) new_srtt;
 	addr->srtt = (unsigned int) new_srtt;
