@@ -20,7 +20,7 @@
 3854.	[cleanup]	Report unrecognized options, if any, in the final
 			configure summary. [RT #36014]
 
-3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to seperate out
+3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to separate out
 			the handling of a rdataset with no records. [RT #35968]
 
 3849.	[doc]		Alphabetized dig's +options. [RT #35992]
@@ -82,7 +82,7 @@
 
 3809.	[doc]		Fix NSID documentation.
 
-3807.	[bug]		Fix sign extention bug in dns_name_fromtext when
+3807.	[bug]		Fix sign extension bug in dns_name_fromtext when
 			lowercase is set. [RT #35743]
 
 3806.	[test]		Improved system test portability. [RT #35625]
