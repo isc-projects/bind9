@@ -8130,8 +8130,8 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY,
 		      level, "query: %s %s %s %s%s%s%s%s%s (%s)", namebuf,
 		      classname, typename, WANTRECURSION(client) ? "+" : "-",
-		      (client->signer != NULL) ? "S": "",
-		      (client->opt != NULL) ? "E" : "",
+		      (client->signer != NULL) ? "S" : "",
+		      (client->ednsversion >= 0) ? "E" : "",
 		      ((client->attributes & NS_CLIENTATTR_TCP) != 0) ?
 				 "T" : "",
 		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
@@ -8210,8 +8210,6 @@ ns_query_start(ns_client_t *client) {
 	if (!client->view->enablednssec) {
 		message->flags &= ~DNS_MESSAGEFLAG_CD;
 		client->extflags &= ~DNS_MESSAGEEXTFLAG_DO;
-		if (client->opt != NULL)
-			client->opt->ttl &= ~DNS_MESSAGEEXTFLAG_DO;
 	}
 
 	if ((message->flags & DNS_MESSAGEFLAG_RD) != 0)
@@ -8323,7 +8321,7 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Turn on minimal responses for EDNS/UDP bufsize 512 queries.
 	 */
-	if (client->opt != NULL && client->udpsize <= 512U &&
+	if (client->ednsversion >= 0 && client->udpsize <= 512U &&
 	    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
