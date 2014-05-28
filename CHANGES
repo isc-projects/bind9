@@ -1,3 +1,7 @@
+3863.	[bug]		The "E" flag was missing from the query log as a
+			unintended side effect of code rearrangement to
+			support EDNS EXPIRE. [RT #36117]
+
 3862.	[cleanup]	Return immediately if we are not going to log the
 			message in ns_client_dumpmessage.
 
