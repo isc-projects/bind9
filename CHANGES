@@ -27,7 +27,7 @@
 3854.	[cleanup]	Report unrecognized options, if any, in the final
 			configure summary. [RT #36014]
 
-3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to seperate out
+3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to separate out
 			the handling of a rdataset with no records. [RT #35968]
 
 3852.	[func]		Increase the default number of clients available
@@ -169,7 +169,7 @@
 			"debug" options when set in /etc/resolv.conf.
 			(Thanks to Adam Tkac at RedHat.) [RT #21885]
 
-3812.	[func]		Dig now supports sending arbitary EDNS options from
+3812.	[func]		Dig now supports sending arbitrary EDNS options from
 			the command line (+ednsopt=code[:value]). [RT #35584]
 
 3811.	[func]		"serial-update-method date;" sets serial number
@@ -183,7 +183,7 @@
 
 3808.	[doc]		Clean up "prefetch" documentation. [RT #35751]
 
-3807.	[bug]		Fix sign extention bug in dns_name_fromtext when
+3807.	[bug]		Fix sign extension bug in dns_name_fromtext when
 			lowercase is set. [RT #35743]
 
 3806.	[test]		Improved system test portability. [RT #35625]
@@ -753,7 +753,7 @@
 3660.	[cleanup]	Changed the name of "isc-config.sh" to "bind9-config".
 			[RT #23825]
 
-3659.	[port]		solaris: don't add explict dependencies/rules for
+3659.	[port]		solaris: don't add explicit dependencies/rules for
 			python programs as make won't use the implicit rules.
 			[RT #34835]
 
