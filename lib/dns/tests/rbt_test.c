@@ -49,6 +49,7 @@
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
+#include <isc/print.h>
 
 #include <dns/log.h>
 #include <dns/name.h>
