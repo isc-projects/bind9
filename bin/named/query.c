@@ -6600,7 +6600,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				rpz_log_rewrite(client, ISC_FALSE,
 					         rpz_st->m.policy,
 						 rpz_st->m.type, zone,
-						 rpz_st->p_name, NULL);
+						 rpz_st->p_name);
 				goto cleanup;
 			case DNS_RPZ_POLICY_NODATA:
 				/*
@@ -6611,7 +6611,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				rpz_log_rewrite(client, ISC_FALSE,
 					         rpz_st->m.policy,
 						 rpz_st->m.type, zone,
-						 rpz_st->p_name, NULL);
+						 rpz_st->p_name);
 				goto cleanup;
 			case DNS_RPZ_POLICY_RECORD:
 				result = rpz_st->m.result;
