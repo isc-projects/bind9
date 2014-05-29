@@ -1,3 +1,6 @@
+3864.	[bug]		RPZ didn't work well when being used as forwarder.
+			[RT #36060]
+
 3863.	[bug]		The "E" flag was missing from the query log as a
 			unintended side effect of code rearrangement to
 			support EDNS EXPIRE. [RT #36117]
