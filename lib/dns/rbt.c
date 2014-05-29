@@ -1455,7 +1455,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 
 		if (compared == dns_namereln_none) {
 #ifdef DNS_RBT_USEHASH
-		        /*
+			/*
 			 * Here, current is pointing at a subtree root
 			 * node. We try to find a matching node using
 			 * the hashtable. We can get one of 3 results
@@ -3017,9 +3017,9 @@ printnodename(dns_rbtnode_t *node, isc_boolean_t quoted, FILE *f) {
 	dns_name_format(&name, buffer, sizeof(buffer));
 
 	if (quoted)
-	        fprintf(f, "\"%s\"", buffer);
+		fprintf(f, "\"%s\"", buffer);
 	else
-	        fprintf(f, "%s", buffer);
+		fprintf(f, "%s", buffer);
 }
 
 static void
@@ -3030,7 +3030,7 @@ print_text_helper(dns_rbtnode_t *root, dns_rbtnode_t *parent,
 	dns_rbt_indent(f, depth);
 
 	if (root != NULL) {
-	        printnodename(root, ISC_TRUE, f);
+		printnodename(root, ISC_TRUE, f);
 		fprintf(f, " (%s, %s", direction,
 			IS_RED(root) ? "RED" : "BLACK");
 
@@ -3040,7 +3040,7 @@ print_text_helper(dns_rbtnode_t *root, dns_rbtnode_t *parent,
 
 			fprintf(f, " (BAD parent pointer! -> ");
 			if (PARENT(root) != NULL)
-			        printnodename(PARENT(root), ISC_TRUE, f);
+				printnodename(PARENT(root), ISC_TRUE, f);
 			else
 				fprintf(f, "NULL");
 			fprintf(f, ")");
