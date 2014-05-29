@@ -395,7 +395,7 @@ isc_hash_calc(const unsigned char *key, unsigned int keylen,
 }
 
 void
-isc__hash_setvec(const uint16_t *vec) {
+isc__hash_setvec(const isc_uint16_t *vec) {
 	int i;
 	hash_random_t *p;
 

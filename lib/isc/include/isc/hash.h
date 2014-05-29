@@ -20,7 +20,7 @@
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
 
-#include <stdint.h>
+#include <isc/types.h>
 
 /*****
  ***** Module Info
@@ -183,7 +183,7 @@ isc_hash_calc(const unsigned char *key, unsigned int keylen,
 /*@}*/
 
 void
-isc__hash_setvec(const uint16_t *vec);
+isc__hash_setvec(const isc_uint16_t *vec);
 
 /*!<
  * \brief Set the contents of the random vector used in hashing.
