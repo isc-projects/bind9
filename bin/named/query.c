@@ -5734,11 +5734,29 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 			switch (rpz_st->m.policy) {
 			case DNS_RPZ_POLICY_NXDOMAIN:
-				result = DNS_R_NXDOMAIN;
-				break;
+				client->message->rcode = dns_rcode_nxdomain;
+				/*
+				 * Don't fall through as it will add a SOA
+				 * for the black list zone which breaks
+				 * sanity checking of result by nameservers.
+				 */
+				client->message->rcode = dns_rcode_nxdomain;
+				rpz_log_rewrite(client, ISC_FALSE,
+						rpz_st->m.policy,
+						rpz_st->m.type, zone,
+						rpz_st->qname);
+				goto cleanup;
 			case DNS_RPZ_POLICY_NODATA:
-				result = DNS_R_NXRRSET;
-				break;
+				/*
+				 * Don't fall through as it will add a SOA
+				 * for the black list zone which breaks
+				 * sanity checking of result by nameservers.
+				 */
+				rpz_log_rewrite(client, ISC_FALSE,
+						rpz_st->m.policy,
+						rpz_st->m.type, zone,
+						rpz_st->qname);
+				goto cleanup;
 			case DNS_RPZ_POLICY_RECORD:
 				result = rpz_st->m.result;
 				if (qtype == dns_rdatatype_any &&
