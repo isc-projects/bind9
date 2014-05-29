@@ -360,7 +360,7 @@ nxdomain a0-1s-cname.tld2s  +dnssec @$ns6  # 19
 drop a3-8.tld2 any @$ns6                   # 20 drop
 
 end_group
-ckstats $ns3 test1 ns3 23
+ckstats $ns3 test1 ns3 22
 ckstats $ns5 test1 ns5 0
 ckstats $ns6 test1 ns6 0
 
