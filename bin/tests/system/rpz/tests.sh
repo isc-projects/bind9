@@ -26,6 +26,7 @@ ns2=$ns.2		# authoritative server whose records are rewritten
 ns3=$ns.3		# main rewriting resolver
 ns4=$ns.4		# another authoritative server that is rewritten
 ns5=$ns.5		# another rewriting resolver
+ns6=$ns.6		# a forwarding server
 
 HAVE_CORE=
 SAVE_RESULTS=
@@ -334,6 +335,34 @@ addr 35.35.35.35 "x.servfail @$ns5"	# 35 qname-wait-recurse no
 end_group
 ckstats $ns3 test1 ns3 22
 ckstats $ns5 test1 ns5 1
+ckstats $ns6 test1 ns6 0
+
+start_group "NXDOMAIN/NODATA action on QNAME trigger" test1
+nxdomain a0-1.tld2 @$ns6                   # 1
+nodata a3-1.tld2 @$ns6                     # 2
+nodata a3-2.tld2 @$ns6                     # 3 nodata at DNAME itself
+nxdomain a4-2.tld2 @$ns6                   # 4 rewrite based on CNAME target
+nxdomain a4-2-cname.tld2 @$ns6             # 5
+nodata a4-3-cname.tld2 @$ns6               # 6
+addr 12.12.12.12  "a4-1.sub1.tld2 @$ns6"   # 7 A replacement
+addr 12.12.12.12  "a4-1.sub2.tld2 @$ns6"   # 8 A replacement with wildcard
+addr 127.4.4.1    "a4-4.tld2 @$ns6"        # 9 prefer 1st conflicting QNAME zone
+addr 12.12.12.12  "nxc1.sub1.tld2 @$ns6"   # 10 replace NXDOMAIN w/ CNAME
+addr 12.12.12.12  "nxc2.sub1.tld2 @$ns6"   # 11 replace NXDOMAIN w/ CNAME chain
+addr 127.6.2.1    "a6-2.tld2 @$ns6"        # 12
+addr 56.56.56.56  "a3-6.tld2 @$ns6"        # 13 wildcard CNAME
+addr 57.57.57.57  "a3-7.sub1.tld2 @$ns6"   # 14 wildcard CNAME
+addr 127.0.0.16   "a4-5-cname3.tld2 @$ns6" # 15 CNAME chain
+addr 127.0.0.17   "a4-6-cname3.tld2 @$ns6" # 16 stop short in CNAME chain
+nxdomain c1.crash2.tld3 @$ns6              # 17 assert in rbtdb.c
+nxdomain a0-1.tld2 +dnssec @$ns6           # 18 simple DO=1 without sigs
+nxdomain a0-1s-cname.tld2s  +dnssec @$ns6  # 19
+drop a3-8.tld2 any @$ns6                   # 20 drop
+
+end_group
+ckstats $ns3 test1 ns3 23
+ckstats $ns5 test1 ns5 0
+ckstats $ns6 test1 ns6 0
 
 start_group "IP rewrites" test2
 nodata a3-1.tld2			# 1 NODATA
