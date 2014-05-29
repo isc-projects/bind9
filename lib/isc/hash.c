@@ -393,3 +393,17 @@ isc_hash_calc(const unsigned char *key, unsigned int keylen,
 
 	return (hash_calc(hash, key, keylen, case_sensitive));
 }
+
+void
+isc__hash_setvec(const isc_uint16_t *vec) {
+	int i;
+	hash_random_t *p;
+
+	if (hash == NULL)
+		return;
+
+	p = hash->rndvector;
+	for (i = 0; i < 256; i++) {
+		p[i] = vec[i];
+	}
+}

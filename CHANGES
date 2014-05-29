@@ -1,3 +1,6 @@
+3865.	[test]		Improved testability of the red-black tree
+			implementation and added unit tests. [RT #35904]
+
 3864.	[bug]		RPZ didn't work well when being used as forwarder.
 			[RT #36060]
 
