@@ -478,13 +478,13 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check that E was logged on EDNS queries in the query log (${n})"
 ret=0
-grep "query: fetchall.tld IN ANY +E" ns5/named.run > /dev/null || ret=1
+$DIG @10.53.0.5 -p 5300 +edns edns.fetchall.tld any > dig.out.2.${n} || ret=1
+grep "query: edns.fetchall.tld IN ANY +E" ns5/named.run > /dev/null || ret=1
 $DIG @10.53.0.5 -p 5300 +noedns noedns.fetchall.tld any > dig.out.2.${n} || ret=1
 grep "query: noedns.fetchall.tld IN ANY" ns5/named.run > /dev/null || ret=1
 grep "query: noedns.fetchall.tld IN ANY +E" ns5/named.run > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
-
 
 echo "I:exit status: $status"
 exit $status
