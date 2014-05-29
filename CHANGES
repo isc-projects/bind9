@@ -1,3 +1,6 @@
+3864.	[bug]		RPZ didn't work well when being used as forwarder.
+			[RT #36060]
+
 3862.	[cleanup]	Return immediately if we are not going to log the
 			message in ns_client_dumpmessage.
 
