@@ -682,7 +682,7 @@
 ./bin/tests/rbt/win32/t_rbt.vcxproj.filters.in	X	2013
 ./bin/tests/rbt/win32/t_rbt.vcxproj.in		X	2013
 ./bin/tests/rbt/win32/t_rbt.vcxproj.user	X	2013
-./bin/tests/rbt_test.c				C	1999,2000,2001,2004,2005,2007,2009,2011,2012
+./bin/tests/rbt_test.c				C	1999,2000,2001,2004,2005,2007,2009,2011,2012,2014
 ./bin/tests/rbt_test.out			X	1999,2000,2001
 ./bin/tests/rbt_test.txt			SH	1999,2000,2001,2004,2007,2012
 ./bin/tests/rdata_test.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2011,2012,2014
@@ -1081,7 +1081,7 @@
 ./bin/tests/system/dns64/ns2/rpz.db		ZONE	2013
 ./bin/tests/system/dns64/prereq.sh		SH	2014
 ./bin/tests/system/dns64/setup.sh		SH	2010,2012,2014
-./bin/tests/system/dns64/tests.sh		SH	2010,2011,2012,2013
+./bin/tests/system/dns64/tests.sh		SH	2010,2011,2012,2013,2014
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004,2011
 ./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004,2007,2010,2012
@@ -1603,6 +1603,8 @@
 ./bin/tests/system/rpz/ns5/named.args		X	2013
 ./bin/tests/system/rpz/ns5/named.conf		CONF-C	2012,2013
 ./bin/tests/system/rpz/ns5/tld5.db		ZONE	2013
+./bin/tests/system/rpz/ns6/hints		ZONE	2014
+./bin/tests/system/rpz/ns6/named.conf		CONF-C	2014
 ./bin/tests/system/rpz/prereq.sh		SH	2014
 ./bin/tests/system/rpz/qperf.sh			SH	2012,2013
 ./bin/tests/system/rpz/rpz.c			C	2011,2012,2013
@@ -3221,6 +3223,7 @@
 ./lib/dns/tests/mkraw.pl			PERL	2011,2012
 ./lib/dns/tests/nsec3_test.c			C	2012,2014
 ./lib/dns/tests/private_test.c			C	2011,2012
+./lib/dns/tests/rbt_serialize_test.c		C	2014
 ./lib/dns/tests/rbt_test.c			C	2012,2013,2014
 ./lib/dns/tests/rdata_test.c			C	2012,2013
 ./lib/dns/tests/rdataset_test.c			C	2012
@@ -3373,7 +3376,7 @@
 ./lib/isc/include/isc/file.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012
 ./lib/isc/include/isc/formatcheck.h		C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/fsaccess.h		C	2000,2001,2004,2005,2006,2007,2009
-./lib/isc/include/isc/hash.h			C	2003,2004,2005,2006,2007,2009,2013
+./lib/isc/include/isc/hash.h			C	2003,2004,2005,2006,2007,2009,2013,2014
 ./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2012
 ./lib/isc/include/isc/hex.h			C	2000,2001,2004,2005,2006,2007,2008
 ./lib/isc/include/isc/hmacmd5.h			C	2000,2001,2004,2005,2006,2007,2009,2014
