@@ -1,3 +1,6 @@
+3866.	[bug]		Named could die on disk full in generate_session_key.
+			[RT #36119]
+
 3865.	[test]		Improved testability of the red-black tree
 			implementation and added unit tests. [RT #35904]
 
