@@ -137,6 +137,9 @@
     <ClCompile Include="..\nsec3.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\nta.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\order.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -467,6 +470,9 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\nsec3.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dns\nta.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\opcode.h">

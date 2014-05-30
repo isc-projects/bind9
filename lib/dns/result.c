@@ -163,6 +163,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"expired",			       /*%< 107 DNS_R_EXPIRED */
 	"not dynamic",			       /*%< 108 DNS_R_NOTDYNAMIC */
 	"bad EUI"			       /*%< 109 DNS_R_BADEUI */
+	"covered by negative trust anchor"     /*%< 110 DNS_R_NTACOVERED */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

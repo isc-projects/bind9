@@ -69,8 +69,8 @@ DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		iptable.@O@ journal.@O@ keydata.@O@ keytable.@O@ \
 		lib.@O@ log.@O@ lookup.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
-		name.@O@ ncache.@O@ nsec.@O@ nsec3.@O@ order.@O@ peer.@O@ \
-		portlist.@O@ private.@O@ \
+		name.@O@ ncache.@O@ nsec.@O@ nsec3.@O@ nta.@O@ \
+		order.@O@ peer.@O@ portlist.@O@ private.@O@ \
 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rcode.@O@ rdata.@O@ \
 		rdatalist.@O@ rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ \
 		request.@O@ resolver.@O@ result.@O@ rootns.@O@ \
@@ -106,7 +106,8 @@ DNSSRCS =	acache.c acl.c adb.c byaddr.c \
 		dlz.c dns64.c dnssec.c ds.c forward.c geoip.c \
 		iptable.c journal.c keydata.c keytable.c lib.c log.c \
 		lookup.c master.c masterdump.c message.c \
-		name.c ncache.c nsec.c nsec3.c order.c peer.c portlist.c \
+		name.c ncache.c nsec.c nsec3.c nta.c \
+		order.c peer.c portlist.c \
 		rbt.c rbtdb.c rbtdb64.c rcode.c rdata.c rdatalist.c \
 		rdataset.c rdatasetiter.c rdataslab.c request.c \
 		resolver.c result.c rootns.c rpz.c rrl.c rriterator.c \

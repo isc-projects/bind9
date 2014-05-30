@@ -98,10 +98,11 @@ struct dns_view {
 	dns_db_t *			hints;
 
 	/*
-	 * security roots.
+	 * security roots and negative trust anchors.
 	 * internal use only; access via * dns_view_getsecroots()
 	 */
 	dns_keytable_t *		secroots_priv;
+	dns_ntatable_t *		ntatable_priv;
 
 	isc_mutex_t			lock;
 	isc_boolean_t			frozen;
@@ -1075,16 +1076,48 @@ dns_view_iscacheshared(dns_view_t *view);
  */
 
 isc_result_t
-dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx);
+dns_view_initntatable(dns_view_t *view, isc_mem_t *mctx);
 /*%<
- * Initialize security roots for the view.  (Note that secroots is
- * NULL until this function is called, so any function using
- * secroots must check its validity first.  One way to do this is
- * use dns_view_getsecroots() and check its return value.)
+ * Initialize the negative trust anchor table for the view.
  *
  * Requires:
  * \li	'view' is valid.
- * \li	'view->secroots' is NULL.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS
+ *\li	Any other result indicates failure
+ */
+
+isc_result_t
+dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp);
+/*%<
+ * Get the negative trust anchor table for this view.  Returns
+ * ISC_R_NOTFOUND if the table not been initialized for the view.
+ *
+ * '*ntp' is attached on success; the caller is responsible for
+ * detaching it with dns_ntatable_detach().
+ *
+ * Requires:
+ * \li	'view' is valid.
+ * \li	'nta' is not NULL and '*nta' is NULL.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS
+ *\li	ISC_R_NOTFOUND
+ */
+
+isc_result_t
+dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx);
+/*%<
+ * Initialize security roots for the view, detaching any previously
+ * existing security roots first.  (Note that secroots_priv is
+ * NULL until this function is called, so any function using
+ * security roots must check that they have been initialized first.
+ * One way to do this is use dns_view_getsecroots() and check its
+ * return value.)
+ *
+ * Requires:
+ * \li	'view' is valid.
  *
  * Returns:
  *\li	ISC_R_SUCCESS
@@ -1111,10 +1144,10 @@ dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp);
 
 isc_result_t
 dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
-			 isc_boolean_t *secure_domain);
+			isc_stdtime_t now, isc_boolean_t *secure_domain);
 /*%<
- * Is 'name' at or beneath a trusted key?  Put answer in
- * '*secure_domain'.
+ * Is 'name' at or beneath a trusted key, and not covered by a valid
+ * negative trust anchor?  Put answer in '*secure_domain'.
  *
  * Requires:
  * \li	'view' is valid.
@@ -1122,6 +1155,20 @@ dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
  * Returns:
  *\li	ISC_R_SUCCESS
  *\li	Any other value indicates failure
+ */
+
+isc_boolean_t
+dns_view_ntacovers(dns_view_t *view, isc_stdtime_t now,
+		   dns_name_t *name, dns_name_t *anchor);
+/*%<
+ * Is there a current negative trust anchor above 'name' and below 'anchor'?
+ *
+ * Requires:
+ * \li	'view' is valid.
+ *
+ * Returns:
+ *\li	ISC_R_TRUE
+ *\li	ISC_R_FALSE
  */
 
 void

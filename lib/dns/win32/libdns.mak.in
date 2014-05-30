@@ -166,6 +166,7 @@ CLEAN :
 	-@erase "$(INTDIR)\ncache.obj"
 	-@erase "$(INTDIR)\nsec.obj"
 	-@erase "$(INTDIR)\nsec3.obj"
+	-@erase "$(INTDIR)\nta.obj"
 @IF OPENSSL
 	-@erase "$(INTDIR)\openssl_link.obj"
 	-@erase "$(INTDIR)\openssldh_link.obj"
@@ -315,6 +316,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\ncache.obj" \
 	"$(INTDIR)\nsec.obj" \
 	"$(INTDIR)\nsec3.obj" \
+	"$(INTDIR)\nta.obj" \
 	"$(INTDIR)\order.obj" \
 	"$(INTDIR)\peer.obj" \
 	"$(INTDIR)\portlist.obj" \
@@ -504,6 +506,8 @@ CLEAN :
 	-@erase "$(INTDIR)\nsec.sbr"
 	-@erase "$(INTDIR)\nsec3.obj"
 	-@erase "$(INTDIR)\nsec3.sbr"
+	-@erase "$(INTDIR)\nta.obj"
+	-@erase "$(INTDIR)\nta.sbr"
 @IF OPENSSL
 	-@erase "$(INTDIR)\openssl_link.obj"
 	-@erase "$(INTDIR)\openssl_link.sbr"
@@ -705,6 +709,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\ncache.sbr" \
 	"$(INTDIR)\nsec.sbr" \
 	"$(INTDIR)\nsec3.sbr" \
+	"$(INTDIR)\nta.sbr" \
 	"$(INTDIR)\order.sbr" \
 	"$(INTDIR)\peer.sbr" \
 	"$(INTDIR)\portlist.sbr" \
@@ -820,6 +825,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\ncache.obj" \
 	"$(INTDIR)\nsec.obj" \
 	"$(INTDIR)\nsec3.obj" \
+	"$(INTDIR)\nta.obj" \
 	"$(INTDIR)\order.obj" \
 	"$(INTDIR)\peer.obj" \
 	"$(INTDIR)\portlist.obj" \
@@ -1554,6 +1560,24 @@ SOURCE=..\nsec3.c
 
 
 "$(INTDIR)\nsec3.obj"	"$(INTDIR)\nsec3.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\nta.c
+
+!IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
+
+
+"$(INTDIR)\nta.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\nta.obj"	"$(INTDIR)\nta.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

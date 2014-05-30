@@ -276,6 +276,10 @@ SOURCE=..\include\dns\nsec3.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\nta.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\order.h
 # End Source File
 # Begin Source File
@@ -611,6 +615,10 @@ SOURCE=..\nsec.c
 # Begin Source File
 
 SOURCE=..\nsec3.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\nta.c
 # End Source File
 # Begin Source File
 

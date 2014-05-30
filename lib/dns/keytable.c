@@ -524,10 +524,10 @@ dns_keytable_detachkeynode(dns_keytable_t *keytable, dns_keynode_t **keynodep)
 
 isc_result_t
 dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
-			    isc_boolean_t *wantdnssecp)
+			    dns_name_t *foundname, isc_boolean_t *wantdnssecp)
 {
 	isc_result_t result;
-	void *data;
+	dns_rbtnode_t *node = NULL;
 
 	/*
 	 * Is 'name' at or beneath a trusted key?
@@ -539,11 +539,10 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
 
-	data = NULL;
-	result = dns_rbt_findname(keytable->table, name, 0, NULL, &data);
-
+	result = dns_rbt_findnode(keytable->table, name, foundname, &node,
+				  NULL, DNS_RBTFIND_NOOPTIONS, NULL, NULL);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		INSIST(data != NULL);
+		INSIST(node->data != NULL);
 		*wantdnssecp = ISC_TRUE;
 		result = ISC_R_SUCCESS;
 	} else if (result == ISC_R_NOTFOUND) {

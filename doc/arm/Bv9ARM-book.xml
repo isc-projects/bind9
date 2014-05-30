@@ -10756,6 +10756,10 @@ rate-limit {
 	    level are inherited by all views, but keys defined in a view
 	    are only used within that view.
 	  </para>
+	  <para>
+	    Validation below specified names can be temporarily disabled
+	    by using <command>rndc nta</command>.
+	  </para>
 	</sect2>
 
 	<sect2>

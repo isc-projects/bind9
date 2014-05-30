@@ -597,6 +597,38 @@
       </varlistentry>
 
       <varlistentry>
+        <term><userinput>nta <replaceable>domain</replaceable> <replaceable>duration</replaceable> </userinput></term>
+        <listitem>
+          <para>
+            Sets a DNSSEC negative trust anchor (NTA)
+            for <option>domain</option>, with a lifetime of
+            <option>duration</option> (up to a limit of one day).
+          </para>
+          <para>
+            A negative trust anchor selectively disables
+            DNSSEC validation for zones that known to be
+            failing because of misconfiguration rather than
+            an attack.  When data to be validated is
+            at or below an active NTA (and above any other
+            configured trust anchors), <command>named</command> will
+            abort the DNSSEC validation process and treat the data as
+            insecure rather than bogus.  This continues until the
+            NTA's lifetime is elapsed, or until the server is
+            restarted (NTA's do not persist across restarts).
+          </para>
+          <para>
+            TTL-style suffixes can be used to specify
+            <option>duration</option> in seconds, minutes, or hours.
+          </para>
+          <para>
+            If the specified domain already has an NTA, its duration
+            will be updated to the new value.  Setting
+            <option>duration</option> to zero will delete the NTA.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term><userinput>tsig-list</userinput></term>
         <listitem>
           <para>

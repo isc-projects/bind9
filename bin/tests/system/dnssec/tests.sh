@@ -1648,6 +1648,33 @@ ret=0
 $DIG $DIGOPTS ns algroll. @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking positive and negative validation with negative trust anchors ($n)"
+ret=0
+# check correct initial behavior
+$DIG $DIGOPTS a.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.1 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.1 > /dev/null || ret=1
+$DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
+# add negative trust anchors
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta bogus.example 15s 2>&1 | sed 's/^/I:ns4 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta secure.example 15s 2>&1 | sed 's/^/I:ns4 /'
+# check behavior with NTA's in place
+$DIG $DIGOPTS a.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.3 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.3 > /dev/null && ret=1
+$DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.4 || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.4 > /dev/null && ret=1
+echo "I: waiting for NTA expiration"
+sleep 15
+# check correct behavior after expiry
+$DIG $DIGOPTS b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.5 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.5 > /dev/null || ret=1
+$DIG $DIGOPTS b.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.6 || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.6 > /dev/null || ret=1
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

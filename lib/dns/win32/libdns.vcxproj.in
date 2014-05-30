@@ -152,6 +152,7 @@
     <ClCompile Include="..\ncache.c" />
     <ClCompile Include="..\nsec.c" />
     <ClCompile Include="..\nsec3.c" />
+    <ClCompile Include="..\nta.c" />
 @IF OPENSSL
     <ClCompile Include="..\openssldh_link.c" />
     <ClCompile Include="..\openssldsa_link.c" />
@@ -269,6 +270,7 @@
     <ClInclude Include="..\include\dns\ncache.h" />
     <ClInclude Include="..\include\dns\nsec.h" />
     <ClInclude Include="..\include\dns\nsec3.h" />
+    <ClInclude Include="..\include\dns\nta.h" />
     <ClInclude Include="..\include\dns\opcode.h" />
     <ClInclude Include="..\include\dns\order.h" />
     <ClInclude Include="..\include\dns\peer.h" />

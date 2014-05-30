@@ -45,6 +45,7 @@
 #include <dns/keyvalues.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
+#include <dns/nta.h>
 #include <dns/order.h>
 #include <dns/peer.h>
 #include <dns/rrl.h>
@@ -110,6 +111,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		}
 	}
 	view->secroots_priv = NULL;
+	view->ntatable_priv = NULL;
 	view->fwdtable = NULL;
 	result = dns_fwdtable_create(mctx, &view->fwdtable);
 	if (result != ISC_R_SUCCESS) {
@@ -444,6 +446,8 @@ destroy(dns_view_t *view) {
 		dns_stats_detach(&view->resquerystats);
 	if (view->secroots_priv != NULL)
 		dns_keytable_detach(&view->secroots_priv);
+	if (view->ntatable_priv != NULL)
+		dns_ntatable_detach(&view->ntatable_priv);
 	for (dns64 = ISC_LIST_HEAD(view->dns64);
 	     dns64 != NULL;
 	     dns64 = ISC_LIST_HEAD(view->dns64)) {
@@ -1772,6 +1776,24 @@ dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp) {
 }
 
 isc_result_t
+dns_view_initntatable(dns_view_t *view, isc_mem_t *mctx) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	if (view->ntatable_priv != NULL)
+		dns_ntatable_detach(&view->ntatable_priv);
+	return (dns_ntatable_create(mctx, &view->ntatable_priv));
+}
+
+isc_result_t
+dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(ntp != NULL && *ntp == NULL);
+	if (view->ntatable_priv == NULL)
+		return (ISC_R_NOTFOUND);
+	dns_ntatable_attach(view->ntatable_priv, ntp);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
 dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->secroots_priv != NULL)
@@ -1789,15 +1811,46 @@ dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp) {
 	return (ISC_R_SUCCESS);
 }
 
+isc_boolean_t
+dns_view_ntacovers(dns_view_t *view, isc_stdtime_t now,
+		   dns_name_t *name, dns_name_t *anchor)
+{
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->ntatable_priv == NULL)
+		return (ISC_FALSE);
+
+	return (dns_ntatable_covered(view->ntatable_priv, now, name, anchor));
+}
+
 isc_result_t
 dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
-			 isc_boolean_t *secure_domain) {
+			isc_stdtime_t now, isc_boolean_t *secure_domain)
+{
+	isc_result_t result;
+	isc_boolean_t secure = ISC_FALSE;
+	dns_fixedname_t fn;
+	dns_name_t *anchor;
+
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	if (view->secroots_priv == NULL)
 		return (ISC_R_NOTFOUND);
-	return (dns_keytable_issecuredomain(view->secroots_priv, name,
-					    secure_domain));
+
+	dns_fixedname_init(&fn);
+	anchor = dns_fixedname_name(&fn);
+
+	result = dns_keytable_issecuredomain(view->secroots_priv, name,
+					     anchor, &secure);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	if (secure && view->ntatable_priv != NULL &&
+	    dns_ntatable_covered(view->ntatable_priv, now, name, anchor))
+		secure = ISC_FALSE;
+
+	*secure_domain = secure;
+	return (ISC_R_SUCCESS);
 }
 
 void

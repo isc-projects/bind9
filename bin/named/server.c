@@ -78,6 +78,7 @@
 #include <dns/lib.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
+#include <dns/nta.h>
 #include <dns/order.h>
 #include <dns/peer.h>
 #include <dns/portlist.h>
@@ -94,6 +95,7 @@
 #include <dns/stats.h>
 #include <dns/tkey.h>
 #include <dns/tsig.h>
+#include <dns/ttl.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -821,6 +823,14 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "couldn't create keytable");
+		return (ISC_R_UNEXPECTED);
+	}
+
+	result = dns_view_initntatable(view, mctx);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "couldn't create NTA table");
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -9754,5 +9764,135 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 		dns_zone_detach(&raw);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
+	return (result);
+}
+
+isc_result_t
+ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
+	dns_view_t *view;
+	dns_ntatable_t *ntatable = NULL;
+	isc_result_t result;
+	char *ptr, *nametext, *viewname;
+	isc_stdtime_t now, when;
+	isc_time_t t;
+	char tbuf[64];
+	const char *msg = NULL;
+	dns_fixedname_t fn;
+	dns_name_t *ntaname;
+	dns_ttl_t ntattl;
+	isc_textregion_t tr;
+
+	dns_fixedname_init(&fn);
+	ntaname = dns_fixedname_name(&fn);
+
+	/* Skip the command name. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/* Get the NTA name. */
+	nametext = next_token(&args, " \t");
+	if (nametext == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	if (strcmp(nametext, ".") == 0)
+		ntaname = dns_rootname;
+	else {
+		isc_buffer_t b;
+		isc_buffer_init(&b, nametext, strlen(nametext));
+		isc_buffer_add(&b, strlen(nametext));
+		CHECK(dns_name_fromtext(ntaname, &b, dns_rootname, 0, NULL));
+	}
+
+	/* Get the NTA duration. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	tr.base = ptr;
+	tr.length = strlen(ptr);
+	CHECK(dns_ttl_fromtext(&tr, &ntattl));
+
+	if (ntattl > 86400) {
+		msg = "NTA cannot exceed one day";
+		CHECK(ISC_R_RANGE);
+	}
+
+	/* Look for the view name. */
+	viewname = next_token(&args, " \t");
+
+	/* Set up the NTA */
+	isc_stdtime_get(&now);
+	when = now + ntattl;
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		if (viewname != NULL &&
+		    strcmp(view->name, viewname) != 0)
+			continue;
+
+		if (ntatable != NULL)
+			dns_ntatable_detach(&ntatable);
+
+		result = dns_view_getntatable(view, &ntatable);
+		if (result == ISC_R_NOTFOUND) {
+			result = ISC_R_SUCCESS;
+			continue;
+		}
+
+		result = dns_view_flushnode(view, ntaname, ISC_TRUE);
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "flush tree '%s' in cache view '%s': %s",
+			      nametext, view->name,
+			      isc_result_totext(result));
+
+		isc_time_set(&t, when, 0);
+		isc_time_formattimestamp(&t, tbuf, sizeof(tbuf));
+
+		if (ntattl > 0) {
+			CHECK(dns_ntatable_add(ntatable, ntaname, when));
+
+			CHECK(putstr(text, "Negative trust anchor added: "));
+			CHECK(putstr(text, nametext));
+			CHECK(putstr(text, "/"));
+			CHECK(putstr(text, view->name));
+			CHECK(putstr(text, ", expires "));
+			CHECK(putstr(text, tbuf));
+
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "added NTA '%s' (%d sec) in view '%s'",
+				      nametext, ntattl, view->name);
+		} else {
+			CHECK(dns_ntatable_delete(ntatable, ntaname));
+
+			CHECK(putstr(text, "Negative trust anchor removed: "));
+			CHECK(putstr(text, nametext));
+			CHECK(putstr(text, "/"));
+			CHECK(putstr(text, view->name));
+
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "removed NTA '%s' in view %s",
+				      nametext, view->name);
+		}
+
+		if (isc_buffer_availablelength(text) == 0)
+			return (ISC_R_NOSPACE);
+
+		isc_buffer_putuint8(text, 0);
+	}
+	isc_task_endexclusive(server->task);
+
+	if (msg != NULL && strlen(msg) < isc_buffer_availablelength(text))
+		isc_buffer_putstr(text, msg);
+ cleanup:
+	if (ntatable != NULL)
+		dns_ntatable_detach(&ntatable);
 	return (result);
 }

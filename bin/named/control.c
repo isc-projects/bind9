@@ -213,6 +213,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		result = ns_server_signing(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_ZONESTATUS)) {
 		result = ns_server_zonestatus(ns_g_server, command, text);
+	} else if (command_compare(command, NS_COMMAND_NTA)) {
+		result = ns_server_nta(ns_g_server, command, text);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,

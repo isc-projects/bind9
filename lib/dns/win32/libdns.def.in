@@ -483,6 +483,14 @@ dns_nsec_isset
 dns_nsec_nseconly
 dns_nsec_setbit
 dns_nsec_typepresent
+dns_nta_create
+dns_ntatable_add
+dns_ntatable_attach
+dns_ntatable_covered
+dns_ntatable_create
+dns_ntatable_delete
+dns_ntatable_detach
+dns_ntatable_dump
 dns_opcode_totext
 dns_opcodestats_create
 dns_opcodestats_dump

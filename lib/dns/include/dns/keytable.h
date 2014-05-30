@@ -386,7 +386,7 @@ dns_keytable_detachkeynode(dns_keytable_t *keytable,
 
 isc_result_t
 dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
-			    isc_boolean_t *wantdnssecp);
+			    dns_name_t *foundname, isc_boolean_t *wantdnssecp);
 /*%<
  * Is 'name' at or beneath a trusted key?
  *
@@ -396,12 +396,16 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
  *
  *\li	'name' is a valid absolute name.
  *
- *\li	'*wantsdnssecp' is a valid isc_boolean_t.
+ *\li	'foundanme' is NULL or is a pointer to an initialized dns_name_t
  *
+ *\li	'*wantsdnssecp' is a valid isc_boolean_t.
+ 
  * Ensures:
  *
  *\li	On success, *wantsdnssecp will be ISC_TRUE if and only if 'name'
- *	is at or beneath a trusted key.
+ *	is at or beneath a trusted key.  If 'foundname' is not NULL, then
+ *	it will be updated to contain the name of the closest enclosing
+ *	trust anchor.
  *
  * Returns:
  *

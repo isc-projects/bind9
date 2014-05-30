@@ -43,8 +43,6 @@
 #include <dns/view.h>
 #include <dns/zone.h>
 
-#include <dst/dst.h>
-
 #include "dnstest.h"
 
 isc_mem_t *mctx = NULL;
@@ -185,6 +183,26 @@ dns_test_end(void) {
 
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
+}
+
+/*
+ * Create a view.
+ */
+isc_result_t
+dns_test_makeview(const char *name, dns_view_t **viewp)
+{
+	isc_result_t result;
+	dns_view_t *view = NULL;
+
+	CHECK(dns_view_create(mctx, dns_rdataclass_in, name, &view));
+	*viewp = view;
+
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (view != NULL)
+		dns_view_detach(&view);
+	return (result);
 }
 
 /*

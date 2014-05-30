@@ -1822,6 +1822,29 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 #endif
 
 static isc_result_t
+issecuredomain(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
+	       isc_stdtime_t now, isc_boolean_t *issecure)
+{
+	dns_name_t suffix;
+	unsigned int labels;
+
+	/*
+	 * For DS variants we need to check fom the parent domain,
+	 * since there may be a negative trust anchor for the name,
+	 * while the enclosing domain where the DS record lives is
+	 * under a secure entry point.
+	 */
+	labels = dns_name_countlabels(name);
+	if (dns_rdatatype_atparent(type) && labels > 1) {
+		dns_name_init(&suffix, NULL);
+		dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
+		name = &suffix;
+	}
+
+	return (dns_view_issecuredomain(view, name, now, issecure));
+}
+
+static isc_result_t
 resquery_send(resquery_t *query) {
 	fetchctx_t *fctx;
 	isc_result_t result;
@@ -1922,8 +1945,9 @@ resquery_send(resquery_t *query) {
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
 	else if (res->view->enablevalidation &&
 		 ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0)) {
-		result = dns_view_issecuredomain(res->view, &fctx->name,
-						 &secure_domain);
+		result = issecuredomain(res->view, &fctx->name,
+					fctx->type, query->start.seconds,
+					&secure_domain);
 		if (result != ISC_R_SUCCESS)
 			secure_domain = ISC_FALSE;
 		if (res->view->dlv != NULL)
@@ -4825,8 +4849,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 	 * Is DNSSEC validation required for this name?
 	 */
 	if (res->view->enablevalidation) {
-		result = dns_view_issecuredomain(res->view, name,
-						 &secure_domain);
+		result = issecuredomain(res->view, name, fctx->type,
+					now, &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
@@ -5360,8 +5384,8 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	 * Is DNSSEC validation required for this name?
 	 */
 	if (fctx->res->view->enablevalidation) {
-		result = dns_view_issecuredomain(res->view, name,
-						 &secure_domain);
+		result = issecuredomain(res->view, name, fctx->type,
+					now, &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 

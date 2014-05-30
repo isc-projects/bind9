@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #include <config.h>
 
 #include <isc/base32.h>
@@ -1649,12 +1647,9 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "failed to verify rdataset");
 		else {
-			isc_stdtime_t now;
-
-			isc_stdtime_get(&now);
 			dns_rdataset_trimttl(event->rdataset,
 					     event->sigrdataset,
-					     val->siginfo, now,
+					     val->siginfo, val->start,
 					     val->view->acceptexpired);
 		}
 
@@ -3075,6 +3070,11 @@ startfinddlvsep(dns_validator_t *val, dns_name_t *unsecure) {
 		markanswer(val, "startfinddlvsep (1)");
 		return (ISC_R_SUCCESS);
 	}
+	if (result == DNS_R_NTACOVERED) {
+		validator_log(val, ISC_LOG_DEBUG(3), "DLV covered by NTA");
+		validator_done(val, ISC_R_SUCCESS);
+		return (ISC_R_SUCCESS);
+	}
 	if (result != ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3), "DLV lookup: %s",
 			      dns_result_totext(result));
@@ -3163,6 +3163,9 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 		validator_log(val, ISC_LOG_DEBUG(2), "DLV concatenate failed");
 		return (DNS_R_NOVALIDSIG);
 	}
+
+	if (dns_view_ntacovers(val->view, val->start, dlvname, val->view->dlv))
+		return (DNS_R_NTACOVERED);
 
 	while (dns_name_countlabels(dlvname) >=
 	       dns_name_countlabels(val->view->dlv) + val->dlvlabels) {
@@ -3780,6 +3783,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	dns_fixedname_init(&val->wild);
 	dns_fixedname_init(&val->nearest);
 	dns_fixedname_init(&val->closest);
+	isc_stdtime_get(&val->start);
 	ISC_LINK_INIT(val, link);
 	val->magic = VALIDATOR_MAGIC;
 

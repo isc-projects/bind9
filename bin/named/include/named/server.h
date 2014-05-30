@@ -392,4 +392,11 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text);
  */
 isc_result_t
 ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text);
+
+/*%
+ * Adds a Negative Trust Anchor (NTA) for a specified name and
+ * duration, in a particular view if specified, or in all views.
+ */
+isc_result_t
+ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text);
 #endif /* NAMED_SERVER_H */

@@ -67,6 +67,7 @@
 #define NS_COMMAND_SYNC		"sync"
 #define NS_COMMAND_SIGNING	"signing"
 #define NS_COMMAND_ZONESTATUS	"zonestatus"
+#define NS_COMMAND_NTA		"nta"
 
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);

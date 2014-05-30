@@ -153,8 +153,9 @@
 #define DNS_R_EXPIRED			(ISC_RESULTCLASS_DNS + 107)
 #define DNS_R_NOTDYNAMIC 		(ISC_RESULTCLASS_DNS + 108)
 #define DNS_R_BADEUI	 		(ISC_RESULTCLASS_DNS + 109)
+#define DNS_R_NTACOVERED		(ISC_RESULTCLASS_DNS + 110)
 
-#define DNS_R_NRESULTS			110	/*%< Number of results */
+#define DNS_R_NRESULTS			111	/*%< Number of results */
 
 /*
  * DNS wire format rcodes.

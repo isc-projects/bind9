@@ -1,3 +1,12 @@
+3867.	[func]		"rndc nta" can now be used to set a temporary
+			negative trust anchor, which disables DNSSEC
+			validation below a specified name for a specified
+			period of time (not exceeding 24 hours).  This
+			can be used when validation for a domain is known
+			to be failing due to a configuration error on
+			the part of the domain owner rather than a
+			spoofing attack. [RT #29358]
+
 3866.	[bug]		Named could die on disk full in generate_session_key.
 			[RT #36119]
 

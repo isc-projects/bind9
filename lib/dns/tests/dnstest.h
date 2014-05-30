@@ -58,6 +58,9 @@ void
 dns_test_end(void);
 
 isc_result_t
+dns_test_makeview(const char *name, dns_view_t **viewp);
+
+isc_result_t
 dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 				  isc_boolean_t keepview);
 

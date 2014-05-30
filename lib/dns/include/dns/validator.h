@@ -165,6 +165,7 @@ struct dns_validator {
 	unsigned int			depth;
 	unsigned int			authcount;
 	unsigned int			authfail;
+	isc_stdtime_t			start;
 };
 
 /*%

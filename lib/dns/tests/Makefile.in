@@ -45,6 +45,7 @@ SRCS =		db_test.c \
 		dnstest.c \
 		geoip_test.c \
 		gost_test.c \
+		keytable_test.c \
 		master_test.c \
 		nsec3_test.c \
 		private_test.c \
@@ -66,6 +67,7 @@ TARGETS =	db_test@EXEEXT@ \
 		dispatch_test@EXEEXT@ \
 		geoip_test@EXEEXT@ \
 		gost_test@EXEEXT@ \
+		keytable_test@EXEEXT@ \
 		master_test@EXEEXT@ \
 		nsec3_test@EXEEXT@ \
 		private_test@EXEEXT@ \
@@ -92,6 +94,11 @@ master_test@EXEEXT@: master_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 		> testdata/master/master14.data
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			master_test.@O@ dnstest.@O@ ${DNSLIBS} \
+				${ISCLIBS} ${LIBS}
+
+keytable_test@EXEEXT@: keytable_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			keytable_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
 
 time_test@EXEEXT@: time_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
