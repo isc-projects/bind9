@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -171,7 +171,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, dns_name_t *name,
 			nta_detach(ntatable->mctx, &nta);
 		}
 		result = ISC_R_SUCCESS;
-	} 
+	}
 
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 
@@ -213,7 +213,7 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, dns_name_t *name) {
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 	result = delete(ntatable, name);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
-	
+
 	return (result);
 }
 

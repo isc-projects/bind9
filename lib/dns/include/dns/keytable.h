@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2010, 2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -399,7 +399,7 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
  *\li	'foundanme' is NULL or is a pointer to an initialized dns_name_t
  *
  *\li	'*wantsdnssecp' is a valid isc_boolean_t.
- 
+
  * Ensures:
  *
  *\li	On success, *wantsdnssecp will be ISC_TRUE if and only if 'name'
