@@ -2952,7 +2952,7 @@
 ./lib/dns/include/dns/journal.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2009,2011,2013
 ./lib/dns/include/dns/keydata.h			C	2009
 ./lib/dns/include/dns/keyflags.h		C	1999,2000,2001,2004,2005,2006,2007
-./lib/dns/include/dns/keytable.h		C	2000,2001,2004,2005,2007,2009,2010
+./lib/dns/include/dns/keytable.h		C	2000,2001,2004,2005,2007,2009,2010,2014
 ./lib/dns/include/dns/keyvalues.h		C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2012
 ./lib/dns/include/dns/lib.h			C	1999,2000,2001,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/log.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2011,2012,2013,2014
@@ -2964,6 +2964,7 @@
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2013
 ./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2011,2012
 ./lib/dns/include/dns/nsec3.h			C	2008,2009,2010,2011,2012,2013
+./lib/dns/include/dns/nta.h			C	2014
 ./lib/dns/include/dns/opcode.h			C	2002,2004,2005,2006,2007
 ./lib/dns/include/dns/order.h			C	2002,2004,2005,2006,2007
 ./lib/dns/include/dns/peer.h			C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2013,2014
@@ -2980,7 +2981,7 @@
 ./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/request.h			C	2000,2001,2002,2004,2005,2006,2007,2009,2010,2013
 ./lib/dns/include/dns/resolver.h		C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/rpz.h			C	2011,2012,2013
 ./lib/dns/include/dns/rriterator.h		C	2009,2011
@@ -3029,6 +3030,7 @@
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2010,2011,2012,2013
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/nsec3.c				C	2006,2008,2009,2010,2011,2012,2013,2014
+./lib/dns/nta.c					C	2014
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014
 ./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
@@ -3191,7 +3193,7 @@
 ./lib/dns/rdataslab.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/request.c				C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2011,2012,2013
+./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2010,2012,2013,2014
 ./lib/dns/rpz.c					C	2011,2012,2013,2014
 ./lib/dns/rriterator.c				C	2009,2011,2012
@@ -3216,9 +3218,10 @@
 ./lib/dns/tests/dbversion_test.c		C	2011,2012,2014
 ./lib/dns/tests/dispatch_test.c			C	2012,2014
 ./lib/dns/tests/dnstest.c			C	2011,2012,2013,2014
-./lib/dns/tests/dnstest.h			C	2011,2012
+./lib/dns/tests/dnstest.h			C	2011,2012,2014
 ./lib/dns/tests/geoip_test.c			C	2013,2014
 ./lib/dns/tests/gost_test.c			C	2014
+./lib/dns/tests/keytable_test.c			C	2014
 ./lib/dns/tests/master_test.c			C	2011,2012,2013
 ./lib/dns/tests/mkraw.pl			PERL	2011,2012
 ./lib/dns/tests/nsec3_test.c			C	2012,2014
