@@ -332,6 +332,26 @@ or
 to be effective. It defaults to enabled.
 .RE
 .PP
+\fBnta \fR\fB\fIdomain\fR\fR\fB \fR\fB\fIduration\fR\fR\fB \fR
+.RS 4
+Sets a DNSSEC negative trust anchor (NTA) for
+\fBdomain\fR, with a lifetime of
+\fBduration\fR
+(up to a limit of one day).
+.sp
+A negative trust anchor selectively disables DNSSEC validation for zones that known to be failing because of misconfiguration rather than an attack. When data to be validated is at or below an active NTA (and above any other configured trust anchors),
+\fBnamed\fR
+will abort the DNSSEC validation process and treat the data as insecure rather than bogus. This continues until the NTA's lifetime is elapsed, or until the server is restarted (NTA's do not persist across restarts).
+.sp
+TTL\-style suffixes can be used to specify
+\fBduration\fR
+in seconds, minutes, or hours.
+.sp
+If the specified domain already has an NTA, its duration will be updated to the new value. Setting
+\fBduration\fR
+to zero will delete the NTA.
+.RE
+.PP
 \fBtsig\-list\fR
 .RS 4
 List the names of all TSIG keys currently configured for use by

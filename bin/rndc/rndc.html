@@ -386,6 +386,35 @@
             <strong class="userinput"><code>auto</code></strong> to be effective.
             It defaults to enabled.
           </p></dd>
+<dt><span class="term"><strong class="userinput"><code>nta <em class="replaceable"><code>domain</code></em> <em class="replaceable"><code>duration</code></em> </code></strong></span></dt>
+<dd>
+<p>
+            Sets a DNSSEC negative trust anchor (NTA)
+            for <code class="option">domain</code>, with a lifetime of
+            <code class="option">duration</code> (up to a limit of one day).
+          </p>
+<p>
+            A negative trust anchor selectively disables
+            DNSSEC validation for zones that known to be
+            failing because of misconfiguration rather than
+            an attack.  When data to be validated is
+            at or below an active NTA (and above any other
+            configured trust anchors), <span><strong class="command">named</strong></span> will
+            abort the DNSSEC validation process and treat the data as
+            insecure rather than bogus.  This continues until the
+            NTA's lifetime is elapsed, or until the server is
+            restarted (NTA's do not persist across restarts).
+          </p>
+<p>
+            TTL-style suffixes can be used to specify
+            <code class="option">duration</code> in seconds, minutes, or hours.
+          </p>
+<p>
+            If the specified domain already has an NTA, its duration
+            will be updated to the new value.  Setting
+            <code class="option">duration</code> to zero will delete the NTA.
+          </p>
+</dd>
 <dt><span class="term"><strong class="userinput"><code>tsig-list</code></strong></span></dt>
 <dd><p>
             List the names of all TSIG keys currently configured
@@ -519,7 +548,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542133"></a><h2>LIMITATIONS</h2>
+<a name="id2542115"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -529,7 +558,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542151"></a><h2>SEE ALSO</h2>
+<a name="id2542133"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -539,7 +568,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545415"></a><h2>AUTHOR</h2>
+<a name="id2545465"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
