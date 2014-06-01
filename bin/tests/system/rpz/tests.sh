@@ -158,6 +158,23 @@ ckstats () {
     eval "${NSDIR}_CNT=$NEW_CNT"
 }
 
+ckstatsrange () {
+    HOST=$1
+    LABEL="$2"
+    NSDIR="$3"
+    MIN="$4"
+    MAX="$4"
+    $RNDCCMD $HOST stats
+    NEW_CNT=0`sed -n -e 's/[	 ]*\([0-9]*\).response policy.*/\1/p'  \
+		    $NSDIR/named.stats | tail -1`
+    eval "OLD_CNT=0\$${NSDIR}_CNT"
+    GOT=`expr $NEW_CNT - $OLD_CNT`
+    if test "$GOT" -lt "$MIN" -o "$GOT" -gt "$MAX"; then
+	setret "I:wrong $LABEL $NSDIR statistics of $GOT instead of ${MIN}..${MAX}"
+    fi
+    eval "${NSDIR}_CNT=$NEW_CNT"
+}
+
 # $1=message  $2=optional test file name
 start_group () {
     ret=0
@@ -360,7 +377,7 @@ nxdomain a0-1s-cname.tld2s  +dnssec @$ns6  # 19
 drop a3-8.tld2 any @$ns6                   # 20 drop
 
 end_group
-ckstats $ns3 test1 ns3 22
+ckstatsrange $ns3 test1 ns3 22 23
 ckstats $ns5 test1 ns5 0
 ckstats $ns6 test1 ns6 0
 
