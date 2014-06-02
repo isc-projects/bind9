@@ -1,3 +1,7 @@
+3868.	[bug]		isc_mem_setwater incorrectly cleared hi_called
+			potentially leaving over memory cleaner running.
+			[RT #35270]
+
 3867.	[func]		"rndc nta" can now be used to set a temporary
 			negative trust anchor, which disables DNSSEC
 			validation below a specified name for a specified
