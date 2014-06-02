@@ -1785,7 +1785,6 @@ isc__mem_setwater(isc_mem_t *ctx0, isc_mem_water_t water, void *water_arg,
 		ctx->water_arg = water_arg;
 		ctx->hi_water = hiwater;
 		ctx->lo_water = lowater;
-		ctx->hi_called = ISC_FALSE;
 	}
 	MCTXUNLOCK(ctx, &ctx->lock);
 
