@@ -163,7 +163,7 @@ ckstatsrange () {
     LABEL="$2"
     NSDIR="$3"
     MIN="$4"
-    MAX="$4"
+    MAX="$5"
     $RNDCCMD $HOST stats
     NEW_CNT=0`sed -n -e 's/[	 ]*\([0-9]*\).response policy.*/\1/p'  \
 		    $NSDIR/named.stats | tail -1`
