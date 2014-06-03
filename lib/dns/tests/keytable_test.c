@@ -589,11 +589,11 @@ ATF_TC_BODY(nta, tc) {
 
 ATF_TC(untested);
 ATF_TC_HEAD(untested, tc) {
-        atf_tc_set_md_var(tc, "descr", "skipping keytable test");
+	atf_tc_set_md_var(tc, "descr", "skipping keytable test");
 }
 ATF_TC_BODY(untested, tc) {
-        UNUSED(tc);
-        atf_tc_skip("DNSSEC not available");
+	UNUSED(tc);
+	atf_tc_skip("DNSSEC not available");
 }
 #endif
 
