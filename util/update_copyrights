@@ -507,7 +507,7 @@ foreach $file (keys %file_types) {
 			s/^(\t*) {1,7}\t/$1\t/ while (/^\t* {1,7}\t/);
 			# Convert 8 spaces into tabs if at start of line
 			# or preceeded by tabs.
-			s/^(\t*)        /$1\t/ while (/^\t*        /);
+			s/^(\t*) {8}/$1\t/ while (/^\t* {8}/);
 			# Remove trailing white space.
 			s/[ \t]*$//;
 				$body = "$body$_";
