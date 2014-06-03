@@ -23,6 +23,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
+
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/util.h>
@@ -582,10 +584,24 @@ ATF_TC_BODY(nta, tc) {
 	dns_test_end();
 }
 
+#else
+#include <isc/util.h>
+
+ATF_TC(untested);
+ATF_TC_HEAD(untested, tc) {
+        atf_tc_set_md_var(tc, "descr", "skipping keytable test");
+}
+ATF_TC_BODY(untested, tc) {
+        UNUSED(tc);
+        atf_tc_skip("DNSSEC not available");
+}
+#endif
+
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 	ATF_TP_ADD_TC(tp, add);
 	ATF_TP_ADD_TC(tp, delete);
 	ATF_TP_ADD_TC(tp, deletekeynode);
@@ -593,6 +609,9 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, issecuredomain);
 	ATF_TP_ADD_TC(tp, dump);
 	ATF_TP_ADD_TC(tp, nta);
+#else
+	ATF_TP_ADD_TC(tp, untested);
+#endif
 
 	return (atf_no_error());
 }
