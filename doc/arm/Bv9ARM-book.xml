@@ -12692,6 +12692,10 @@ view external {
 	      the behavior of the containing view, rather than changing
 	      the zone object itself.)
 	    </para>
+	    <para>
+	      An <command>in-view</command> zone cannot be used as a
+	      response policy zone.
+	    </para>
 	  </sect3>
 
 	</sect2>
