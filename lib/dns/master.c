@@ -2279,7 +2279,7 @@ load_raw(dns_loadctx_t *lctx) {
 		rdatalist.covers = isc_buffer_getuint16(&target);
 		rdatalist.ttl =  isc_buffer_getuint32(&target);
 		rdcount = isc_buffer_getuint32(&target);
-		if (rdcount == 0) {
+		if (rdcount == 0 || rdcount > 0xffff) {
 			result = ISC_R_RANGE;
 			goto cleanup;
 		}
