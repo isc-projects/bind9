@@ -662,6 +662,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking for activated but unpublished key ($n)"
+ret=0
+id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < activate-now-publish-1day.key`
+$DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
+grep '; key id = '"$id"'$' dig.out.ns1.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking that standby key does not sign records ($n)"
 ret=0
 id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < standby.key`
