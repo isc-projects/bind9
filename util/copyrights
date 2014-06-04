@@ -3342,6 +3342,7 @@
 ./lib/isc/bind9.c				C	2013
 ./lib/isc/buffer.c				C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2012,2014
 ./lib/isc/bufferlist.c				C	1999,2000,2001,2004,2005,2007
+./lib/isc/chacha_private.h			C	2014
 ./lib/isc/commandline.c				C.PORTION	1999,2000,2001,2004,2005,2007,2008,2014
 ./lib/isc/crc64.c				C	2013
 ./lib/isc/entropy.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2014
@@ -3413,7 +3414,7 @@
 ./lib/isc/include/isc/queue.h			C	2011,2012,2013
 ./lib/isc/include/isc/quota.h			C	2000,2001,2004,2005,2007
 ./lib/isc/include/isc/radix.h			C	2007,2008,2013,2014
-./lib/isc/include/isc/random.h			C	1999,2000,2001,2004,2005,2006,2007,2009
+./lib/isc/include/isc/random.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2014
 ./lib/isc/include/isc/ratelimiter.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/refcount.h		C	2001,2003,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/regex.h			C	2013
@@ -3540,6 +3541,7 @@
 ./lib/isc/tests/parse_test.c			C	2012,2013
 ./lib/isc/tests/pool_test.c			C	2013
 ./lib/isc/tests/queue_test.c			C	2011,2012
+./lib/isc/tests/random_test.c			C	2014
 ./lib/isc/tests/regex_test.c			C	2013
 ./lib/isc/tests/safe_test.c			C	2013
 ./lib/isc/tests/sockaddr_test.c			C	2012
