@@ -98,7 +98,7 @@ DSTSRCS =	@DST_EXTRA_SRCS@ @OPENSSLLINKSRCS@ @PKCS11LINKSRCS@ \
 		dst_result.c gssapi_link.c gssapictx.c \
 		hmac_link.c key.c
 
-GEOIOLINKSRCS = geoip.c 
+GEOIPLINKSRCS = geoip.c
 
 DNSSRCS =	acache.c acl.c adb.c byaddr.c \
 		cache.c callbacks.c clientinfo.c compress.c \

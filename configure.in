@@ -4000,6 +4000,10 @@ if test "$atf" != no; then
 	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
 	ATFBIN="$atf/bin"
 	ATFLIBS="-L$atf/lib -latf-c"
+	AC_CHECK_LIB(m, exp, libm=yes, libm=no)
+	if test "$libm" = "yes"; then
+		ATFLIBS="$ATFLIBS -lm"
+	fi
 	UNITTESTS=tests
 fi
 AC_SUBST(ATFBIN)

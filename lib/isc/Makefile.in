@@ -72,6 +72,8 @@ OBJS =		@ISC_EXTRA_OBJS@ @ISC_PK11_O@ @ISC_PK11_RESULT_O@ \
 		${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
 SYMTBLOBJS =	backtrace-emptytbl.@O@
 
+CHACHASRCS =	chacha_private.h
+
 # Alphabetically
 SRCS =		@ISC_EXTRA_SRCS@ @ISC_PK11_C@ @ISC_PK11_RESULT_C@ \
 		aes.c assertions.c backtrace.c base32.c base64.c bind9.c \
@@ -81,7 +83,7 @@ SRCS =		@ISC_EXTRA_SRCS@ @ISC_PK11_C@ @ISC_PK11_RESULT_C@ \
 		lex.c lfsr.c lib.c log.c \
 		md5.c mem.c mutexblock.c \
 		netaddr.c netscope.c pool.c ondestroy.c \
-		parseint.c portset.c quota.c radix.c random.c \
+		parseint.c portset.c quota.c radix.c random.c ${CHACHASRCS} \
 		ratelimiter.c refcount.c region.c regex.c result.c rwlock.c \
 		safe.c serial.c sha1.c sha2.c sockaddr.c stats.c string.c \
 		strtoul.c symtab.c task.c taskpool.c timer.c \

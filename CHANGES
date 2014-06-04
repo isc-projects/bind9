@@ -1,3 +1,9 @@
+3870.	[func]		Updated the random number generator used in
+			the resolver to use the updated ChaCha based one
+			(similar to OpenBSD's changes). Also moved the
+			RNG to libisc and added unit tests for it.
+			[RT #35942]
+
 3869.	[doc]		Document that in-view zones cannot be used for
 			response policy zones. [RT #35941]
 

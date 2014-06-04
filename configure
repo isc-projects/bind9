@@ -20269,6 +20269,51 @@ $as_echo "#define ATF_TEST 1" >>confdefs.h
 	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
 	ATFBIN="$atf/bin"
 	ATFLIBS="-L$atf/lib -latf-c"
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for exp in -lm" >&5
+$as_echo_n "checking for exp in -lm... " >&6; }
+if ${ac_cv_lib_m_exp+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char exp ();
+int
+main ()
+{
+return exp ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_m_exp=yes
+else
+  ac_cv_lib_m_exp=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_exp" >&5
+$as_echo "$ac_cv_lib_m_exp" >&6; }
+if test "x$ac_cv_lib_m_exp" = xyes; then :
+  libm=yes
+else
+  libm=no
+fi
+
+	if test "$libm" = "yes"; then
+		ATFLIBS="$ATFLIBS -lm"
+	fi
 	UNITTESTS=tests
 fi
 
