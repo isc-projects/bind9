@@ -4291,6 +4291,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	isc_stdtime_t now;
 	isc_uint32_t ttl;
 	unsigned options;
+	isc_uint32_t bucketnum;
 
 	UNUSED(task); /* for now */
 
@@ -4307,7 +4308,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	FCTXTRACE("received validation completion event");
 
-	LOCK(&res->buckets[fctx->bucketnum].lock);
+	bucketnum = fctx->bucketnum;
+	LOCK(&res->buckets[bucketnum].lock);
 
 	ISC_LIST_UNLINK(fctx->validators, vevent->validator, link);
 	fctx->validator = NULL;
@@ -4329,7 +4331,6 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 * so, destroy the fctx.
 	 */
 	if (SHUTTINGDOWN(fctx) && !sentresponse) {
-		isc_uint32_t bucketnum = fctx->bucketnum;
 		isc_boolean_t bucket_empty;
 		bucket_empty = maybe_destroy(fctx, ISC_TRUE);
 		UNLOCK(&res->buckets[bucketnum].lock);
@@ -4432,7 +4433,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		result = fctx->vresult;
 		add_bad(fctx, addrinfo, result, badns_validation);
 		isc_event_free(&event);
-		UNLOCK(&res->buckets[fctx->bucketnum].lock);
+		UNLOCK(&res->buckets[bucketnum].lock);
 		INSIST(fctx->validator == NULL);
 		fctx->validator = ISC_LIST_HEAD(fctx->validators);
 		if (fctx->validator != NULL)
@@ -4563,7 +4564,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		dns_db_detachnode(fctx->cache, &node);
 		if (SHUTTINGDOWN(fctx))
 			bucket_empty = maybe_destroy(fctx, ISC_TRUE);
-		UNLOCK(&res->buckets[fctx->bucketnum].lock);
+		UNLOCK(&res->buckets[bucketnum].lock);
 		if (bucket_empty)
 			empty_bucket(res);
 		goto cleanup_event;
@@ -4580,7 +4581,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * be validated.
 		 */
 		dns_db_detachnode(fctx->cache, &node);
-		UNLOCK(&res->buckets[fctx->bucketnum].lock);
+		UNLOCK(&res->buckets[bucketnum].lock);
 		dns_validator_send(ISC_LIST_HEAD(fctx->validators));
 		goto cleanup_event;
 	}
@@ -4663,7 +4664,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (node != NULL)
 		dns_db_detachnode(fctx->cache, &node);
 
-	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+	UNLOCK(&res->buckets[bucketnum].lock);
 	fctx_done(fctx, result, __LINE__); /* Locks bucket. */
 
  cleanup_event:
