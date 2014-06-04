@@ -339,7 +339,7 @@ dns_nta_create(isc_mem_t *mctx, dns_nta_t **target) {
 
 	result = isc_refcount_init(&nta->refcount, 1);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, nta, sizeof(nta));
+		isc_mem_put(mctx, nta, sizeof(dns_nta_t));
 		return (result);
 	}
 
