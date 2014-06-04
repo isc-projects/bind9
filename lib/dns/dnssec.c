@@ -1251,7 +1251,10 @@ get_hints(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	/* Metadata says activate (so we must also publish) */
 	if (actset && active <= now) {
 		key->hint_sign = ISC_TRUE;
-		key->hint_publish = ISC_TRUE;
+
+		/* Only publish if publish time has already passed. */
+		if (pubset && publish <= now)
+			key->hint_publish = ISC_TRUE;
 	}
 
 	/*
