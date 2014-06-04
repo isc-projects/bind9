@@ -14,6 +14,7 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+
 /*%
  * ChaCha based random number generator derived from OpenBSD.
  *
