@@ -605,6 +605,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 	CHECK(dns_nsec3_hashname(&fixed, nexthash, &next_length,
 				 name, origin, hash, iterations,
 				 salt, salt_length));
+	INSIST(next_length <= sizeof(nexthash));
 
 	/*
 	 * Create the node if it doesn't exist and hold

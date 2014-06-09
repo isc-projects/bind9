@@ -120,7 +120,9 @@ main(int argc, char **argv) {
 		return (0);
 	}
 
-	len = strlen(argv[isc_commandline_index]) + 2;
+	len = strlen(argv[isc_commandline_index]);
+	INSIST((len + 2) > len);
+	len += 2;
 	name = (char *) malloc(len);
 	if (name == NULL) {
 		perror("malloc");
