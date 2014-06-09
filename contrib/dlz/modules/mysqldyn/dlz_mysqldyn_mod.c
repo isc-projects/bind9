@@ -1620,7 +1620,7 @@ dlz_addrdataset(const char *name, const char *rdatastr,
 		 * SOA: zone admin serial refresh retry expire min
 		 */
 		char sn[32];
-		sscanf(record->data, "%*s %*s %s %*s %*s %*s %*s", sn);
+		sscanf(record->data, "%*s %*s %31s %*s %*s %*s %*s", sn);
 		query = build_query(state, txn->dbi, U_SERIAL, sn,
 				    txn->zone_id);
 		if (query == NULL) {
