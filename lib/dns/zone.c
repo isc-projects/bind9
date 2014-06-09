@@ -2391,16 +2391,13 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		dns_rdataset_disassociate(&rdataset);
 
  notxt:
-		if (have_spf != have_txt) {
+		if (have_spf && !have_txt) {
 			char namebuf[DNS_NAME_FORMATSIZE];
-			const char *found = have_txt ? "TXT" : "SPF";
-			const char *need = have_txt ? "SPF" : "TXT";
 
 			dns_name_format(name, namebuf, sizeof(namebuf));
-			dns_zone_log(zone, ISC_LOG_WARNING, "'%s' found SPF/%s "
-				     "record but no SPF/%s record found, add "
-				     "matching type %s record", namebuf, found,
-				     need, need);
+			dns_zone_log(zone, ISC_LOG_WARNING, "'%s' found type "
+				     "SPF record but no SPF TXT record found, "
+				     "add matching type TXT record", namebuf);
 		}
 
  next:
