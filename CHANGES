@@ -1,3 +1,5 @@
+3873.	[protocol]	Only warn for SPF without TXT spf record. [RT #36210]
+
 3872.	[bug]		Address issues found by static analysis. [RT #36209]
 
 3871.	[bug]		Don't publish an activated key automatically before
