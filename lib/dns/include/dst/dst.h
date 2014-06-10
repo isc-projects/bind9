@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.34 2011/10/20 21:20:02 marka Exp $ */
-
 #ifndef DST_DST_H
 #define DST_DST_H 1
 
@@ -299,6 +297,29 @@ dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
  *
  * Ensures:
  * \li	If successful, secret will contain the derived shared secret.
+ */
+
+isc_result_t
+dst_key_getfilename(dns_name_t *name, dns_keytag_t id, unsigned int alg,
+		    int type, const char *directory,
+		    isc_mem_t *mctx, isc_buffer_t *buf);
+/*%<
+ * Generates a key filename for the name, algorithm, and
+ * id, and places it in the buffer 'buf'. If directory is NULL, the
+ * current directory is assumed.
+ *
+ * Requires:
+ * \li	"name" is a valid absolute dns name.
+ * \li	"id" is a valid key tag identifier.
+ * \li	"alg" is a supported key algorithm.
+ * \li	"type" is DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or the bitwise union.
+ *		  DST_TYPE_KEY look for a KEY record otherwise DNSKEY
+ * \li	"mctx" is a valid memory context.
+ * \li	"buf" is not NULL.
+ *
+ * Returns:
+ * \li	ISC_R_SUCCESS
+ * \li	any other result indicates failure
  */
 
 isc_result_t

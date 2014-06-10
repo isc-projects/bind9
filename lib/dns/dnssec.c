@@ -15,10 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*
- * $Id$
- */
-
 /*! \file */
 
 #include <config.h>
@@ -739,18 +735,36 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			char keybuf[DNS_NAME_FORMATSIZE];
-			char algbuf[DNS_SECALG_FORMATSIZE];
-			dns_name_format(dst_key_name(pubkey), keybuf,
-					sizeof(keybuf));
-			dns_secalg_format(dst_key_alg(pubkey), algbuf,
-					  sizeof(algbuf));
+			char filename[ISC_DIR_NAMEMAX];
+			isc_result_t result2;
+			isc_buffer_t buf;
+
+			isc_buffer_init(&buf, filename, ISC_DIR_NAMEMAX);
+			result2 = dst_key_getfilename(dst_key_name(pubkey),
+						      dst_key_id(pubkey),
+						      dst_key_alg(pubkey),
+						      (DST_TYPE_PUBLIC |
+						       DST_TYPE_PRIVATE),
+						      directory, mctx,
+						      &buf);
+			if (result2 != ISC_R_SUCCESS) {
+				char namebuf[DNS_NAME_FORMATSIZE];
+				char algbuf[DNS_SECALG_FORMATSIZE];
+
+				dns_name_format(dst_key_name(pubkey),
+						namebuf, sizeof(namebuf));
+				dns_secalg_format(dst_key_alg(pubkey),
+						  algbuf, sizeof(algbuf));
+				snprintf(filename, sizeof(filename) - 1,
+					 "key file for %s/%s/%d",
+					 namebuf, algbuf, dst_key_id(pubkey));
+			}
+
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
 				      "dns_dnssec_findzonekeys2: error "
-				      "reading private key file %s/%s/%d: %s",
-				      keybuf, algbuf, dst_key_id(pubkey),
-				      isc_result_totext(result));
+				      "reading %s: %s",
+				      filename, isc_result_totext(result));
 		}
 
 		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
@@ -1597,18 +1611,36 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			char keybuf[DNS_NAME_FORMATSIZE];
-			char algbuf[DNS_SECALG_FORMATSIZE];
-			dns_name_format(dst_key_name(pubkey), keybuf,
-					sizeof(keybuf));
-			dns_secalg_format(dst_key_alg(pubkey), algbuf,
-					  sizeof(algbuf));
+			char filename[ISC_DIR_NAMEMAX];
+			isc_result_t result2;
+			isc_buffer_t buf;
+
+			isc_buffer_init(&buf, filename, ISC_DIR_NAMEMAX);
+			result2 = dst_key_getfilename(dst_key_name(pubkey),
+						      dst_key_id(pubkey),
+						      dst_key_alg(pubkey),
+						      (DST_TYPE_PUBLIC |
+						       DST_TYPE_PRIVATE),
+						      directory, mctx,
+						      &buf);
+			if (result2 != ISC_R_SUCCESS) {
+				char namebuf[DNS_NAME_FORMATSIZE];
+				char algbuf[DNS_SECALG_FORMATSIZE];
+
+				dns_name_format(dst_key_name(pubkey),
+						namebuf, sizeof(namebuf));
+				dns_secalg_format(dst_key_alg(pubkey),
+						  algbuf, sizeof(algbuf));
+				snprintf(filename, sizeof(filename) - 1,
+					 "key file for %s/%s/%d",
+					 namebuf, algbuf, dst_key_id(pubkey));
+			}
+
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
 				      "dns_dnssec_keylistfromrdataset: error "
-				      "reading private key file %s/%s/%d: %s",
-				      keybuf, algbuf, dst_key_id(pubkey),
-				      isc_result_totext(result));
+				      "reading %s: %s",
+				      filename, isc_result_totext(result));
 		}
 
 		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {

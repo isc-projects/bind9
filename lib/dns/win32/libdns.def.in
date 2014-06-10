@@ -1109,6 +1109,7 @@ dst_key_fromlabel
 dst_key_fromnamedfile
 dst_key_generate
 dst_key_generate2
+dst_key_getfilename
 dst_key_getprivateformat
 dst_key_gettime
 dst_key_getttl

@@ -505,14 +505,40 @@ dst_key_isexternal(dst_key_t *key) {
 }
 
 isc_result_t
+dst_key_getfilename(dns_name_t *name, dns_keytag_t id,
+		    unsigned int alg, int type, const char *directory,
+		    isc_mem_t *mctx, isc_buffer_t *buf)
+{
+	isc_result_t result;
+
+	REQUIRE(dst_initialized == ISC_TRUE);
+	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) != 0);
+	REQUIRE(mctx != NULL);
+	REQUIRE(buf != NULL);
+
+	CHECKALG(alg);
+
+	result = buildfilename(name, id, alg, type, directory, buf);
+	if (result == ISC_R_SUCCESS) {
+		if (isc_buffer_availablelength(buf) > 0)
+			isc_buffer_putuint8(buf, 0);
+		else
+			result = ISC_R_NOSPACE;
+	}
+
+	return (result);
+}
+
+isc_result_t
 dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
 		 unsigned int alg, int type, const char *directory,
 		 isc_mem_t *mctx, dst_key_t **keyp)
 {
-	char filename[ISC_DIR_NAMEMAX];
-	isc_buffer_t b;
-	dst_key_t *key;
 	isc_result_t result;
+	char filename[ISC_DIR_NAMEMAX];
+	isc_buffer_t buf;
+	dst_key_t *key;
 
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(dns_name_isabsolute(name));
@@ -522,30 +548,35 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
 
 	CHECKALG(alg);
 
-	isc_buffer_init(&b, filename, sizeof(filename));
-	result = buildfilename(name, id, alg, type, directory, &b);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
 	key = NULL;
-	result = dst_key_fromnamedfile(filename, NULL, type, mctx, &key);
+
+	isc_buffer_init(&buf, filename, ISC_DIR_NAMEMAX);
+	result = dst_key_getfilename(name, id, alg, type, NULL, mctx, &buf);
 	if (result != ISC_R_SUCCESS)
-		return (result);
+		goto out;
+
+	result = dst_key_fromnamedfile(filename, directory, type, mctx, &key);
+	if (result != ISC_R_SUCCESS)
+		goto out;
 
 	result = computeid(key);
-	if (result != ISC_R_SUCCESS) {
-		dst_key_free(&key);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto out;
 
 	if (!dns_name_equal(name, key->key_name) || id != key->key_id ||
 	    alg != key->key_alg) {
-		dst_key_free(&key);
-		return (DST_R_INVALIDPRIVATEKEY);
+		result = DST_R_INVALIDPRIVATEKEY;
+		goto out;
 	}
 
 	*keyp = key;
-	return (ISC_R_SUCCESS);
+	result = ISC_R_SUCCESS;
+
+ out:
+	if ((key != NULL) && (result != ISC_R_SUCCESS))
+		dst_key_free(&key);
+
+	return (result);
 }
 
 isc_result_t
