@@ -3342,7 +3342,7 @@
 ./lib/isc/bind9.c				C	2013
 ./lib/isc/buffer.c				C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2012,2014
 ./lib/isc/bufferlist.c				C	1999,2000,2001,2004,2005,2007
-./lib/isc/chacha_private.h			C	2014
+./lib/isc/chacha_private.h			X	2014
 ./lib/isc/commandline.c				C.PORTION	1999,2000,2001,2004,2005,2007,2008,2014
 ./lib/isc/crc64.c				C	2013
 ./lib/isc/entropy.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2014
