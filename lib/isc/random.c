@@ -64,8 +64,8 @@
 #define KEYSTREAM_ONLY
 #include "chacha_private.h"
 
-#define CHACHA_KEYSIZE 32
-#define CHACHA_IVSIZE 8
+#define CHACHA_KEYSIZE 32U
+#define CHACHA_IVSIZE 8U
 #define CHACHA_BLOCKSIZE 64
 #define CHACHA_BUFFERSIZE (16 * CHACHA_BLOCKSIZE)
 
