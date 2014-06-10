@@ -94,7 +94,7 @@ esac
 AC_ARG_ENABLE(seccomp,
 	AS_HELP_STRING([--enable-seccomp],[enable support for libseccomp sysstem call filtering [default=no]]))
 case "$enable_seccomp" in
-	yes|'')
+	yes)
 	case $host_os in
 	linux*)
 		;;
@@ -148,7 +148,7 @@ case "$enable_seccomp" in
 	)
 	fi
 		;;
-	no)
+	*)
 		;;
 esac
 

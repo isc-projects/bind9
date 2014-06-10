@@ -11425,7 +11425,7 @@ if test "${enable_seccomp+set}" = set; then :
 fi
 
 case "$enable_seccomp" in
-	yes|'')
+	yes)
 	case $host_os in
 	linux*)
 		;;
@@ -11551,7 +11551,7 @@ fi
 
 	fi
 		;;
-	no)
+	*)
 		;;
 esac
 
