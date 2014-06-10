@@ -1,3 +1,6 @@
+3876.	[bug]		Improve efficiency of DLZ redirect zones by
+			suppressing unnecessary database lookups. [RT #35835]
+
 3875.	[cleanup]	Clarify log message when unable to read private
 			key files. [RT #24702]
 

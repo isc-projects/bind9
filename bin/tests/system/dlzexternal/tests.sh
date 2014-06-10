@@ -20,8 +20,15 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
+n=0
 
 DIGOPTS="@10.53.0.1 -p 5300"
+
+newtest() {
+	n=`expr $n + 1`
+	echo "${1} (${n})"
+	ret=0
+}
 
 test_update() {
     host="$1"
@@ -36,7 +43,7 @@ update add $host $cmd
 send
 EOF
 
-    echo "I:testing update for $host $type $cmd $comment"
+    newtest "I:testing update for $host $type $cmd${comment:+ }$comment"
     $NSUPDATE -k ns1/ddns.key ns1/update.txt > /dev/null 2>&1 || {
 	[ "$should_fail" ] || \
              echo "I:update failed for $host $type $cmd"
@@ -53,8 +60,6 @@ EOF
     return 0
 }
 
-ret=0
-
 test_update testdc1.example.nil. A "86400 A 10.53.0.10" "10.53.0.10" || ret=1
 status=`expr $status + $ret`
 
@@ -67,8 +72,7 @@ status=`expr $status + $ret`
 test_update deny.example.nil. TXT "86400 TXT helloworld" "helloworld" should_fail && ret=1
 status=`expr $status + $ret`
 
-echo "I:testing prerequisites are checked correctly"
-ret=0
+newtest "I:testing prerequisites are checked correctly"
 cat > ns1/update.txt << EOF
 server 10.53.0.1 5300
 prereq nxdomain testdc3.example.nil
@@ -81,16 +85,14 @@ out=`$DIG $DIGOPTS +short a testdc3.example.nil`
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-echo "I:testing passing client info into DLZ driver"
-ret=0
+newtest "I:testing passing client info into DLZ driver"
 out=`$DIG $DIGOPTS +short -t txt -q source-addr.example.nil | grep -v '^;'`
 addr=`eval echo "$out" | cut -f1 -d'#'`
 [ "$addr" = "10.53.0.1" ] || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-ret=0
-echo "I:testing DLZ driver is cleaned up on reload"
+newtest "I:testing DLZ driver is cleaned up on reload"
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload 2>&1 | sed 's/^/I:ns1 /'
 for i in 0 1 2 3 4 5 6 7 8 9; do
     ret=0
@@ -101,45 +103,39 @@ done
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-ret=0
-echo "I:testing multiple DLZ drivers"
+newtest "I:testing multiple DLZ drivers"
 test_update testdc1.alternate.nil. A "86400 A 10.53.0.10" "10.53.0.10" || ret=1
 status=`expr $status + $ret`
 
-ret=0
-echo "I:testing AXFR from DLZ drivers"
-$DIG $DIGOPTS +noall +answer axfr example.nil > dig.out.ns1.1
-n=`cat dig.out.ns1.1 | wc -l`
-[ "$n" -eq 4 ] || ret=1
-$DIG $DIGOPTS +noall +answer axfr alternate.nil > dig.out.ns1.2
-n=`cat dig.out.ns1.2 | wc -l`
-[ "$n" -eq 5 ] || ret=1
+newtest "I:testing AXFR from DLZ drivers"
+$DIG $DIGOPTS +noall +answer axfr example.nil > dig.out.ns1.test$n
+lines=`cat dig.out.ns1.test$n | wc -l`
+[ ${lines:-0} -eq 4 ] || ret=1
+$DIG $DIGOPTS +noall +answer axfr alternate.nil > dig.out.ns1.test$n
+lines=`cat dig.out.ns1.test$n | wc -l`
+[ ${lines:-0} -eq 5 ] || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-ret=0
-echo "I:testing unsearched/unregistered DLZ zone is not found"
-$DIG $DIGOPTS +noall +answer ns other.nil > dig.out.ns1.3
-grep "3600.IN.NS.other.nil." dig.out.ns1.3 > /dev/null && ret=1
+newtest "I:testing unsearched/unregistered DLZ zone is not found"
+$DIG $DIGOPTS +noall +answer ns other.nil > dig.out.ns1.test$n
+grep "3600.IN.NS.other.nil." dig.out.ns1.test$n > /dev/null && ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-ret=0
-echo "I:testing unsearched/registered DLZ zone is found"
-$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.4
-grep "3600.IN.NS.zone.nil." dig.out.ns1.4 > /dev/null || ret=1
+newtest "I:testing unsearched/registered DLZ zone is found"
+$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.test$n
+grep "3600.IN.NS.zone.nil." dig.out.ns1.test$n > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-ret=0
-echo "I:testing unsearched/registered DLZ zone is found"
-$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.5
-grep "3600.IN.NS.zone.nil." dig.out.ns1.5 > /dev/null || ret=1
+newtest "I:testing unsearched/registered DLZ zone is found"
+$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.test$n
+grep "3600.IN.NS.zone.nil." dig.out.ns1.test$n > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-ret=0
-echo "I:testing correct behavior with findzone returning ISC_R_NOMORE"
+newtest "I:testing correct behavior with findzone returning ISC_R_NOMORE"
 $DIG $DIGOPTS +noall a test.example.com > /dev/null 2>&1 || ret=1
 # we should only find one logged lookup per searched DLZ database
 lines=`grep "dlz_findzonedb.*test\.example\.com.*example.nil" ns1/named.run | wc -l`
@@ -149,8 +145,7 @@ lines=`grep "dlz_findzonedb.*test\.example\.com.*alternate.nil" ns1/named.run | 
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-ret=0
-echo "I:testing findzone can return different results per client"
+newtest "I:testing findzone can return different results per client"
 $DIG $DIGOPTS -b 10.53.0.1 +noall a test.example.net > /dev/null 2>&1 || ret=1
 # we should only find one logged lookup per searched DLZ database
 lines=`grep "dlz_findzonedb.*example\.net.*example.nil" ns1/named.run | wc -l`
@@ -166,18 +161,34 @@ lines=`grep "dlz_findzonedb.*example\.net.*alternate.nil" ns1/named.run | wc -l`
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-ret=0
-echo "I:testing zone returning oversized data"
-$DIG $DIGOPTS txt too-long.example.nil > dig.out.ns1.6 2>&1 || ret=1
-grep "status: SERVFAIL" dig.out.ns1.6 > /dev/null || ret=1
+newtest "I:testing zone returning oversized data"
+$DIG $DIGOPTS txt too-long.example.nil > dig.out.ns1.test$n 2>&1 || ret=1
+grep "status: SERVFAIL" dig.out.ns1.test$n > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-ret=0
-echo "I:testing zone returning oversized data at zone origin"
-$DIG $DIGOPTS txt bigcname.domain > dig.out.ns1.7 2>&1 || ret=1
-grep "status: SERVFAIL" dig.out.ns1.7 > /dev/null || ret=1
+newtest "I:testing zone returning oversized data at zone origin"
+$DIG $DIGOPTS txt bigcname.domain > dig.out.ns1.test$n 2>&1 || ret=1
+grep "status: SERVFAIL" dig.out.ns1.test$n > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+newtest "I:checking redirected lookup for nonexistent name"
+$DIG $DIGOPTS @10.53.0.1 unexists a > dig.out.ns1.test$n || ret=1
+grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
+grep "^unexists.*A.*100.100.100.2" dig.out.ns1.test$n > /dev/null || ret=1
+grep "flags:[^;]* aa[ ;]" dig.out.ns1.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+newtest "I:checking redirected lookup for a long nonexistent name"
+$DIG $DIGOPTS @10.53.0.1 long.name.is.not.there a > dig.out.ns1.test$n || ret=1
+grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
+grep "^long.name.*A.*100.100.100.3" dig.out.ns1.test$n > /dev/null || ret=1
+grep "flags:[^;]* aa[ ;]" dig.out.ns1.test$n > /dev/null || ret=1
+lookups=`grep "lookup #.*\.not\.there" ns1/named.run | wc -l`
+[ "$lookups" -eq 1 ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 exit $status

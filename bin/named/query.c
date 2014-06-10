@@ -6031,8 +6031,8 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	 * Lookup the requested data in the redirect zone.
 	 */
 	result = dns_db_findext(db, client->query.qname, dbversion->version,
-				qtype, 0, client->now, &node, found, &cm, &ci,
-				&trdataset, NULL);
+				qtype, DNS_DBFIND_NOZONECUT, client->now,
+				&node, found, &cm, &ci, &trdataset, NULL);
 	if (result != ISC_R_SUCCESS) {
 		if (dns_rdataset_isassociated(&trdataset))
 			dns_rdataset_disassociate(&trdataset);

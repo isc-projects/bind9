@@ -405,6 +405,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	isc_sockaddr_t *src;
 	char full_name[256];
 	char buf[512];
+	static char last[256] = { 0 };
+	static int count = 0;
 	int i;
 
 	UNUSED(zone);
@@ -415,8 +417,21 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	if (strcmp(name, "@") == 0) {
 		strncpy(full_name, state->zone_name, 255);
 		full_name[255] = '\0';
-	} else
+	} else if (strcmp(state->zone_name, ".") == 0)
+		snprintf(full_name, 255, "%s.", name);
+	else
 		snprintf(full_name, 255, "%s.%s", name, state->zone_name);
+
+	/*
+	 * For test purposes, log all calls to dlz_lookup()
+	 */
+	if (strncasecmp(full_name, last, 255) == 0)
+		count++;
+	else {
+		count = 1;
+		strncpy(last, full_name, 255);
+	}
+	state->log(ISC_LOG_INFO, "lookup #%d for %s", count, full_name);
 
 	/*
 	 * If we need to know the database version (as set in
@@ -439,7 +454,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		if (dbversion != NULL && *(isc_boolean_t *)dbversion)
 			state->log(ISC_LOG_INFO,
 				   "dlz_example: lookup against live "
-				   "transaction\n");
+				   "transaction");
 	}
 
 	if (strcmp(name, "source-addr") == 0) {
@@ -455,7 +470,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		}
 
 		state->log(ISC_LOG_INFO,
-			   "dlz_example: lookup connection from %s\n", buf);
+			   "dlz_example: lookup connection from %s", buf);
 
 		found = ISC_TRUE;
 		result = state->putrr(lookup, "TXT", 0, buf);
@@ -475,6 +490,24 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 			return (result);
 	}
 
+	/* Tests for DLZ redirection zones */
+	if (strcmp(name, "*") == 0 && strcmp(zone, ".") == 0) {
+		result = state->putrr(lookup, "A", 0, "100.100.100.2");
+		found = ISC_TRUE;
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+
+	if (strcmp(name, "long.name.is.not.there") == 0 &&
+	    strcmp(zone, ".") == 0)
+	{
+		result = state->putrr(lookup, "A", 0, "100.100.100.3");
+		found = ISC_TRUE;
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+
+	/* Answer from current records */
 	for (i = 0; i < MAX_RECORDS; i++) {
 		if (strcasecmp(state->current[i].name, full_name) == 0) {
 			found = ISC_TRUE;

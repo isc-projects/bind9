@@ -242,6 +242,7 @@ struct dns_db {
 #define DNS_DBFIND_COVERINGNSEC		0x0040
 #define DNS_DBFIND_FORCENSEC3		0x0080
 #define DNS_DBFIND_ADDITIONALOK		0x0100
+#define DNS_DBFIND_NOZONECUT		0x0200
 /*@}*/
 
 /*@{*/
@@ -784,6 +785,15 @@ dns_db_findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  * \li	If the #DNS_DBFIND_NOWILD option is set, then wildcard matching will
  *	be disabled.  This option is only meaningful for zone databases.
  *
+ * \li  If the #DNS_DBFIND_NOZONECUT option is set, the database is
+ *	assumed to contain no zone cuts above 'name'.  An implementation
+ *	may therefore choose to search for a match beginning at 'name'
+ *	rather than walking down the tree to check check for delegations.
+ *	If #DNS_DBFIND_NOWILD is not set, wildcard matching will be
+ *	attempted at each node starting at the direct ancestor of 'name'
+ *	and working up to the zone origin.  This option is only meaningful
+ *	when querying redirect zones.
+ *
  * \li	If the #DNS_DBFIND_FORCENSEC option is set, the database is assumed to
  *	have NSEC records, and these will be returned when appropriate.  This
  *	is only necessary when querying a database that was not secure
@@ -795,7 +805,7 @@ dns_db_findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	that it is correct.  This only affects answers returned from the
  *	cache.
  *
- * \li	In the #DNS_DBFIND_FORCENSEC3 option is set, then we are looking
+ * \li	If the #DNS_DBFIND_FORCENSEC3 option is set, then we are looking
  *	in the NSEC3 tree and not the main tree.  Without this option being
  *	set NSEC3 records will not be found.
  *
