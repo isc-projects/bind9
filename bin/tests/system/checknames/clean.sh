@@ -21,4 +21,6 @@ rm -f nsupdate.out.test*
 rm -f ns1/*.example.db
 rm -f ns1/*.update.db
 rm -f ns1/*.update.db.jnl
+rm -f ns4/*.update.db
+rm -f ns4/*.update.db.jnl
 rm -f */named.memstats

@@ -21,3 +21,5 @@ cp ns1/fail.example.db.in ns1/fail.example.db
 cp ns1/ignore.update.db.in ns1/ignore.update.db
 cp ns1/warn.update.db.in ns1/warn.update.db
 cp ns1/fail.update.db.in ns1/fail.update.db
+
+cp ns4/master-ignore.update.db.in ns4/master-ignore.update.db
