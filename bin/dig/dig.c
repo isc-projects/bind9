@@ -758,7 +758,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	char *cmd, *value, *ptr;
 	isc_uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
-#ifdef DIG_SIGCHASE
+#if defined(DIG_SIGCHASE) || defined(ISC_PLATFORM_USESIT)
 	size_t n;
 #endif
 
@@ -1122,8 +1122,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					lookup->edns = 0;
 				lookup->sit = state;
 				if (value != NULL) {
-					strncpy(sitvalue, value,
-						sizeof(sitvalue));
+					n = strlcpy(sitvalue, value,
+						    sizeof(sitvalue));
+					if (n >= sizeof(sitvalue))
+						fatal("SIT data too large");
 					lookup->sitvalue = sitvalue;
 				} else
 					lookup->sitvalue = NULL;
