@@ -243,15 +243,13 @@ isc_rng_attach(isc_rng_t *source, isc_rng_t **targetp) {
 }
 
 static void
-destroy(isc_rng_t **rngp) {
-	isc_rng_t *rng = *rngp;
+destroy(isc_rng_t *rng) {
 
 	REQUIRE(VALID_RNG(rng));
 
-	isc_mutex_destroy(&rng->lock);
 	rng->magic = 0;
+	isc_mutex_destroy(&rng->lock);
 	isc_mem_putanddetach(&rng->mctx, rng, sizeof(isc_rng_t));
-	*rngp = NULL;
 }
 
 void
@@ -273,7 +271,7 @@ isc_rng_detach(isc_rng_t **rngp) {
 	UNLOCK(&rng->lock);
 
 	if (dest)
-		destroy(rngp);
+		destroy(rng);
 }
 
 static void
