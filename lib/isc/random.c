@@ -231,6 +231,7 @@ isc_rng_create(isc_mem_t *mctx, isc_entropy_t *entropy, isc_rng_t **rngp) {
 
 void
 isc_rng_attach(isc_rng_t *source, isc_rng_t **targetp) {
+
 	REQUIRE(VALID_RNG(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
@@ -255,10 +256,13 @@ destroy(isc_rng_t **rngp) {
 
 void
 isc_rng_detach(isc_rng_t **rngp) {
-	isc_rng_t *rng = *rngp;
+	isc_rng_t *rng;
 	isc_boolean_t dest = ISC_FALSE;
 
-	REQUIRE(VALID_RNG(rng));
+	REQUIRE(rngp != NULL && VALID_RNG(*rngp));
+
+	rng = *rngp;
+	*rngp = NULL;
 
 	LOCK(&rng->lock);
 
@@ -266,13 +270,10 @@ isc_rng_detach(isc_rng_t **rngp) {
 	rng->references--;
 	if (rng->references == 0)
 		dest = ISC_TRUE;
+	UNLOCK(&rng->lock);
 
 	if (dest)
 		destroy(rngp);
-	else {
-		UNLOCK(&rng->lock);
-		*rngp = NULL;
-	}
 }
 
 static void
