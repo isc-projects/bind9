@@ -1,16 +1,16 @@
-	--- 9.8.7-P1 released ---
-
 3861.	[bug]		Benign missing isc_buffer_availablelength check in
 			dns_message_pseudosectiontotext.  [RT #36078]
+
+3843.	[bug]		Use the x64 version of the Microsoft Visual C++
+			Redistributable when built for 64 bit Windows.
+			[RT #35973]
+
+	--- 9.8.7-P1 released ---
 
 3859.	[bug]		Don't call qsort with a null pointer. [RT #35968]
 
 3858.	[bug]		Disable GCC 4.9 "delete null pointer check".
 			[RT #35968]
-
-3843.	[bug]		Use the x64 version of the Microsoft Visual C++
-			Redistributable when built for 64 bit Windows.
-			[RT #35973]
 
 3742.	[port]		linux: libcap support: declare curval at start of
 			block. [RT #35387]
