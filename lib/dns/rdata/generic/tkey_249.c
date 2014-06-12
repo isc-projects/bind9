@@ -459,7 +459,7 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	/*
 	 * Key.
 	 */
-	INSIST(tkey->keylen + 2 <= sr.length);
+	INSIST(tkey->keylen + 2U <= sr.length);
 	tkey->key = mem_maybedup(mctx, sr.base, tkey->keylen);
 	if (tkey->key == NULL)
 		goto cleanup;
