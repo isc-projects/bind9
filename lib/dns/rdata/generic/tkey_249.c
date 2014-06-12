@@ -465,6 +465,7 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	/*
 	 * Key.
 	 */
+	INSIST(tkey->keylen + 2 <= sr.length);
 	tkey->key = mem_maybedup(mctx, sr.base, tkey->keylen);
 	if (tkey->key == NULL)
 		goto cleanup;
@@ -479,6 +480,7 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	/*
 	 * Other.
 	 */
+	INSIST(tkey->otherlen <= sr.length);
 	tkey->other = mem_maybedup(mctx, sr.base, tkey->otherlen);
 	if (tkey->other == NULL)
 		goto cleanup;
