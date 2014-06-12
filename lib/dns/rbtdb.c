@@ -2719,20 +2719,6 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
 		node = NULL;
 		result = dns_rbt_addnode(tree, name, &node);
 		if (result == ISC_R_SUCCESS) {
-			if (rbtdb->rpzs != NULL && tree == rbtdb->tree) {
-				dns_fixedname_t fnamef;
-				dns_name_t *fname;
-
-				dns_fixedname_init(&fnamef);
-				fname = dns_fixedname_name(&fnamef);
-				dns_rbt_fullnamefromnode(node, fname);
-				result = dns_rpz_add(rbtdb->rpzs,
-						     rbtdb->rpz_num, fname);
-				if (result != ISC_R_SUCCESS) {
-					RWUNLOCK(&rbtdb->tree_lock, locktype);
-					return (result);
-				}
-			}
 			dns_rbt_namefromnode(node, &nodename);
 #ifdef DNS_RBT_USEHASH
 			node->locknum = node->hashval % rbtdb->node_lock_count;
@@ -2763,6 +2749,33 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
 		INSIST(node->nsec == DNS_RBT_NSEC_NSEC3);
 
 	reactivate_node(rbtdb, node, locktype);
+
+	/*
+	 * Always try to add the policy zone data, because this node might
+	 * already have been implicitly created by the previous addition of
+	 * a longer domain.  A common example is adding *.example.com
+	 * (implicitly creating example.com) followed by explicitly adding
+	 * example.com.
+	 */
+	if (create && rbtdb->rpzs != NULL && tree == rbtdb->tree) {
+		dns_fixedname_t fnamef;
+		dns_name_t *fname;
+
+		dns_fixedname_init(&fnamef);
+		fname = dns_fixedname_name(&fnamef);
+		dns_rbt_fullnamefromnode(node, fname);
+		result = dns_rpz_add(rbtdb->rpzs, rbtdb->rpz_num, fname);
+		if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
+			/*
+			 * It is too late to give up, so merely complain.
+			 */
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
+				      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
+				      "dns_rpz_add(): %s",
+				      isc_result_totext(result));
+		}
+	}
+
 	RWUNLOCK(&rbtdb->tree_lock, locktype);
 
 	*nodep = (dns_dbnode_t *)node;

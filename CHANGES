@@ -1,3 +1,7 @@
+3877.	[bug]		Inserting and deleting parent and child nodes
+			in response policy zones could trigger an assertion
+			failure. [RT #36272]
+
 3876.	[bug]		Improve efficiency of DLZ redirect zones by
 			suppressing unnecessary database lookups. [RT #35835]
 
