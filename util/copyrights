@@ -1600,9 +1600,10 @@
 ./bin/tests/system/rpz/ns4/hints		ZONE	2011,2013
 ./bin/tests/system/rpz/ns4/named.conf		CONF-C	2011,2012,2013
 ./bin/tests/system/rpz/ns4/tld4.db		ZONE	2011,2012,2013
+./bin/tests/system/rpz/ns5/empty.db.in		ZONE	2014
 ./bin/tests/system/rpz/ns5/hints		ZONE	2011,2012,2013
 ./bin/tests/system/rpz/ns5/named.args		X	2013
-./bin/tests/system/rpz/ns5/named.conf		CONF-C	2012,2013
+./bin/tests/system/rpz/ns5/named.conf		CONF-C	2012,2013,2014
 ./bin/tests/system/rpz/ns5/tld5.db		ZONE	2013
 ./bin/tests/system/rpz/ns6/hints		ZONE	2014
 ./bin/tests/system/rpz/ns6/named.conf		CONF-C	2014
@@ -3072,7 +3073,7 @@
 ./lib/dns/rdata/generic/gpos_27.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/hinfo_13.c		C	1998,1999,2000,2001,2002,2004,2007,2009
 ./lib/dns/rdata/generic/hinfo_13.h		C	1998,1999,2000,2001,2004,2007
-./lib/dns/rdata/generic/hip_55.c		C	2009,2011,2013
+./lib/dns/rdata/generic/hip_55.c		C	2009,2011,2013,2014
 ./lib/dns/rdata/generic/hip_55.h		C	2009
 ./lib/dns/rdata/generic/ipseckey_45.c		C	2005,2007,2009,2011,2012,2014
 ./lib/dns/rdata/generic/ipseckey_45.h		C	2005,2007
@@ -3140,7 +3141,7 @@
 ./lib/dns/rdata/generic/spf_99.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/sshfp_44.c		C	2003,2004,2006,2007,2009,2011,2012,2013
 ./lib/dns/rdata/generic/sshfp_44.h		C	2003,2004,2005,2006,2007
-./lib/dns/rdata/generic/tkey_249.c		C	1999,2000,2001,2002,2003,2004,2007,2009,2011,2012
+./lib/dns/rdata/generic/tkey_249.c		C	1999,2000,2001,2002,2003,2004,2007,2009,2011,2012,2014
 ./lib/dns/rdata/generic/tkey_249.h		C	1999,2000,2001,2003,2004,2005,2007
 ./lib/dns/rdata/generic/tlsa_52.c		C	2012,2014
 ./lib/dns/rdata/generic/tlsa_52.h		C	2012,2014
