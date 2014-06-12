@@ -606,5 +606,28 @@ $DIG +noall +answer -p 5300 @$ns3 any a3-2.tld2 > dig.out.any
 ttl=`awk '/a3-2 tld2 text/ {print $2}' dig.out.any`
 if test ${ttl:=0} -eq 0; then setret I:failed; fi
 
+echo "I:checking rpz updates/transfers with parent nodes added after children"
+# regression test for RT #36272: the success condition
+# is the slave server not crashing.
+nsd() {
+    nsupdate -p 5300 << EOF
+server $1
+ttl 300
+update $2 $3 IN CNAME .
+update $2 $4 IN CNAME .
+send
+EOF
+    sleep 2
+}
+
+for i in 1 2 3 4 5; do
+    nsd $ns5 add example.com.policy1. '*.example.com.policy1.'
+    nsd $ns5 delete example.com.policy1. '*.example.com.policy1.'
+done
+for i in 1 2 3 4 5; do
+    nsd $ns5 add '*.example.com.policy1.' example.com.policy1.
+    nsd $ns5 delete '*.example.com.policy1.' example.com.policy1.
+done
+
 echo "I:exit status: $status"
 exit $status

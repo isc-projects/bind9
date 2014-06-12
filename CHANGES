@@ -1,3 +1,7 @@
+3877.	[bug]		Inserting and deleting parent and child nodes
+			in response policy zones could trigger an assertion
+			failure. [RT #36272]
+
 3874.	[test]		Check that only "check-names master" is needed for
 			updates to be accepted.
 
