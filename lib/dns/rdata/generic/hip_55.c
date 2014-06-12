@@ -318,6 +318,8 @@ tostruct_hip(ARGS_TOSTRUCT) {
 		goto cleanup;
 	isc_region_consume(&region, hip->hit_len);
 
+	INSIST(hip->key_len <= region.length);
+
 	hip->key = mem_maybedup(mctx, region.base, hip->key_len);
 	if (hip->key == NULL)
 		goto cleanup;
