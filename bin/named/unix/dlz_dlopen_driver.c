@@ -245,11 +245,13 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	cd->dl_path = isc_mem_strdup(cd->mctx, argv[1]);
 	if (cd->dl_path == NULL) {
+		result = ISC_R_NOMEMORY;
 		goto failed;
 	}
 
 	cd->dlzname = isc_mem_strdup(cd->mctx, dlzname);
 	if (cd->dlzname == NULL) {
+		result = ISC_R_NOMEMORY;
 		goto failed;
 	}
 
@@ -279,6 +281,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		dlopen_log(ISC_LOG_ERROR,
 			   "dlz_dlopen failed to open library '%s' - %s",
 			   cd->dl_path, dlerror());
+		result = ISC_R_FAILURE;
 		goto failed;
 	}
 
@@ -298,6 +301,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	    cd->dlz_findzonedb == NULL)
 	{
 		/* We're missing a required symbol */
+		result = ISC_R_FAILURE;
 		goto failed;
 	}
 
@@ -378,7 +382,6 @@ failed:
 	isc_mem_destroy(&mctx);
 	return (result);
 }
-
 
 /*
  * Called when bind is shutting down
