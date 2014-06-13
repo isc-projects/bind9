@@ -16,7 +16,7 @@
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
-    if $PERL -e 'use Net::DNS; die if $Net::DNS::VERSION == 0.73;' 2>/dev/null
+    if $PERL -e 'use Net::DNS; die if $Net::DNS::VERSION >= 0.73;' 2>/dev/null
     then
         :
     else
