@@ -46,6 +46,9 @@ void
 vbprintf(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
 void
+version(const char *program);
+
+void
 type_format(const dns_rdatatype_t type, char *cp, unsigned int size);
 #define TYPE_FORMATSIZE 20
 

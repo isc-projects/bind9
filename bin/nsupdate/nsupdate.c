@@ -962,6 +962,11 @@ get_addresses(char *host, in_port_t port,
 		      host, isc_result_totext(result));
 }
 
+static void
+version(void) {
+	fputs("nsupdate " VERSION "\n", stderr);
+}
+
 #define PARSE_ARGS_FMT "dDML:y:ghlovk:p:r:R::t:u:V"
 
 static void
@@ -985,7 +990,11 @@ pre_parse_args(int argc, char **argv) {
 					argv[0], isc_commandline_option);
 			fprintf(stderr, "usage: nsupdate [-dD] [-L level] [-l]"
 				"[-g | -o | -y keyname:secret | -k keyfile] "
-				"[-v] [filename]\n");
+				"[-v] [-V] [filename]\n");
+			exit(1);
+
+		case 'V':
+			version();
 			exit(1);
 
 		default:
@@ -994,11 +1003,6 @@ pre_parse_args(int argc, char **argv) {
 	}
 	isc_commandline_reset = ISC_TRUE;
 	isc_commandline_index = 1;
-}
-
-static void
-version(void) {
-	fputs("nsupdate " VERSION "\n", stderr);
 }
 
 static void
@@ -1037,10 +1041,6 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 			break;
 		case 'v':
 			usevc = ISC_TRUE;
-			break;
-		case 'V':
-			version();
-			exit(0);
 			break;
 		case 'k':
 			keyfile = isc_commandline_argument;
