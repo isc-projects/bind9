@@ -39,7 +39,7 @@ echo "S:$test:`date`" >&2
 echo "T:$test:1:A" >&2
 echo "A:System test $test" >&2
 
-if [ x$PERL = x ]
+if [ x${PERL:+set} = x ]
 then
     echo "I:Perl not available.  Skipping test." >&2
     echo "R:UNTESTED" >&2
