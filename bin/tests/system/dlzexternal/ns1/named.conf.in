@@ -61,7 +61,7 @@ dlz "unsearched2" {
 };
 
 dlz redzone {
-	database "dlopen ../driver.so .";
+	database "dlopen ../driver.@SO@ .";
 	search no;
 };
 
