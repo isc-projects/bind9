@@ -29,8 +29,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.285.32.1 2012/02/07 00:44:12 each Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -2972,6 +2970,7 @@ usage(void) {
 	fprintf(stderr, "\t-j jitter:\n");
 	fprintf(stderr, "\t\trandomize signature end time up to jitter seconds\n");
 	fprintf(stderr, "\t-v debuglevel (0)\n");
+	fprintf(stderr, "\t-V:\tprint version information\n");
 	fprintf(stderr, "\t-o origin:\n");
 	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
 	fprintf(stderr, "\t-f outfile:\n");
@@ -3030,6 +3029,7 @@ usage(void) {
 	fprintf(stderr, "Signing Keys: ");
 	fprintf(stderr, "(default: all zone keys that have private keys)\n");
 	fprintf(stderr, "\tkeyfile (Kname+alg+tag)\n");
+
 	exit(0);
 }
 
@@ -3112,7 +3112,7 @@ main(int argc, char *argv[]) {
 
 	/* Unused letters: Bb G J q Yy (and F is reserved). */
 #define CMDLINE_FLAGS \
-	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:L:l:m:M:n:N:o:O:PpQRr:s:ST:tuUv:X:xzZ:"
+	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:L:l:m:M:n:N:o:O:PpQRr:s:ST:tuUv:VX:xzZ:"
 
 	/*
 	 * Process memory debugging argument first.
@@ -3230,10 +3230,6 @@ main(int argc, char *argv[]) {
 				fatal("iterations must be numeric");
 			if (nsec3iter  > 0xffffU)
 				fatal("iterations too big");
-			break;
-
-		case 'h':
-			usage();
 			break;
 
 		case 'I':
@@ -3393,17 +3389,24 @@ main(int argc, char *argv[]) {
 			if (isc_commandline_option != '?')
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
+			/* FALLTHROUGH */
+		case 'h':
+			/* Does not return. */
 			usage();
+
+		case 'V':
+			/* Does not return. */
+			version(program);
+
+		case 'Z':	/* Undocumented test options */
+			if (!strcmp(isc_commandline_argument, "nonsecify"))
+				nonsecify = ISC_TRUE;
 			break;
 
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n",
 				program, isc_commandline_option);
 			exit(1);
-		case 'Z':	/* Undocumented test options */
-			if (!strcmp(isc_commandline_argument, "nonsecify"))
-				nonsecify = ISC_TRUE;
-			break;
 		}
 	}
 

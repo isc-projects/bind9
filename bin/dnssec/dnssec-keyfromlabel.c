@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.38 2011/11/30 00:48:51 marka Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -103,6 +101,7 @@ usage(void) {
 		"(default: AUTHCONF)\n");
 	fprintf(stderr, "    -y: permit keys that might collide\n");
 	fprintf(stderr, "    -v verbose level\n");
+	fprintf(stderr, "    -V: print version information\n");
 	fprintf(stderr, "Date options:\n");
 	fprintf(stderr, "    -P date/[+-]offset: set key publication date\n");
 	fprintf(stderr, "    -A date/[+-]offset: set key activation date\n");
@@ -187,7 +186,7 @@ main(int argc, char **argv) {
 
 	isc_stdtime_get(&now);
 
-#define CMDLINE_FLAGS "3A:a:Cc:D:E:Ff:GhI:i:kK:L:l:n:P:p:R:S:t:v:y"
+#define CMDLINE_FLAGS "3A:a:Cc:D:E:Ff:GhI:i:kK:L:l:n:P:p:R:S:t:v:Vy"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 	    switch (ch) {
 		case '3':
@@ -310,7 +309,12 @@ main(int argc, char **argv) {
 					program, isc_commandline_option);
 			/* FALLTHROUGH */
 		case 'h':
+			/* Does not return. */
 			usage();
+
+		case 'V':
+			/* Does not return. */
+			version(program);
 
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n",

@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.24 2011/10/20 23:46:51 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -72,6 +70,7 @@ usage(void) {
 	fprintf(stderr, "    -r:	   remove old keyfiles after "
 					   "creating revoked version\n");
 	fprintf(stderr, "    -v level:	   set level of verbosity\n");
+	fprintf(stderr, "    -V: print version information\n");
 	fprintf(stderr, "Output:\n");
 	fprintf(stderr, "     K<name>+<alg>+<new id>.key, "
 			     "K<name>+<alg>+<new id>.private\n");
@@ -114,7 +113,7 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((ch = isc_commandline_parse(argc, argv, "E:fK:rRhv:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "E:fK:rRhv:V")) != -1) {
 		switch (ch) {
 		    case 'E':
 			engine = isc_commandline_argument;
@@ -150,7 +149,12 @@ main(int argc, char **argv) {
 					program, isc_commandline_option);
 			/* Falls into */
 		    case 'h':
+			/* Does not return. */
 			usage();
+
+		    case 'V':
+			/* Does not return. */
+			version(program);
 
 		    default:
 			fprintf(stderr, "%s: unhandled option -%c\n",
