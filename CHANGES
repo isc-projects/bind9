@@ -1,3 +1,6 @@
+3878.	[bug]		Using the incorrect filename for a DLZ module
+			caused a segmentation fault on startup. [RT #36286]
+
 3874.	[test]		Check that only "check-names master" is needed for
 			updates to be accepted.
 
