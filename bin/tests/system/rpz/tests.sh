@@ -610,7 +610,7 @@ echo "I:checking rpz updates/transfers with parent nodes added after children"
 # regression test for RT #36272: the success condition
 # is the slave server not crashing.
 nsd() {
-    nsupdate -p 5300 << EOF
+    $NSUPDATE -p 5300 << EOF
 server $1
 ttl 300
 update $2 $3 IN CNAME .
