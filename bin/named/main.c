@@ -814,12 +814,17 @@ setup_seccomp() {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_MAIN, ISC_LOG_WARNING,
 			      "libseccomp unable to load filter");
-		return;
+	} else {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+			      "libseccomp sandboxing active");
 	}
 
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "libseccomp sandboxing active");
+	/*
+	 * Release filter in ctx. Filters already loaded are not
+	 * affected.
+	 */
+	seccomp_release(ctx);
 }
 #endif /* HAVE_LIBSECCOMP */
 
