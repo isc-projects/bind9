@@ -133,8 +133,14 @@ add_name(struct dlz_example_data *state, struct record *list,
 		return (ISC_R_NOSPACE);
 
 	strncpy(list[i].name, name, sizeof(list[i].name));
+	list[i].name[sizeof(list[i].name) - 1] = '\0';
+
 	strncpy(list[i].type, type, sizeof(list[i].type));
+	list[i].type[sizeof(list[i].type) - 1] = '\0';
+
 	strncpy(list[i].data, data, sizeof(list[i].data));
+	list[i].data[sizeof(list[i].data) - 1] = '\0';
+
 	list[i].ttl = ttl;
 
 	return (ISC_R_SUCCESS);

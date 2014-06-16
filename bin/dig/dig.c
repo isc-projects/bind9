@@ -1124,6 +1124,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				if (value != NULL) {
 					n = strlcpy(sitvalue, value,
 						    sizeof(sitvalue));
+					sitvalue[sizeof(sitvalue) - 1] = '\0';
+
 					if (n >= sizeof(sitvalue))
 						fatal("SIT data too large");
 					lookup->sitvalue = sitvalue;
@@ -1545,6 +1547,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				ip6_int, ISC_FALSE) == ISC_R_SUCCESS) {
 			strncpy((*lookup)->textname, textname,
 				sizeof((*lookup)->textname));
+			(*lookup)->textname[sizeof((*lookup)->textname)-1] = 0;
 			debug("looking up %s", (*lookup)->textname);
 			(*lookup)->trace_root = ISC_TF((*lookup)->trace  ||
 						(*lookup)->ns_search_only);
