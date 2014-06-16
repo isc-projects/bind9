@@ -91,6 +91,7 @@ int scmp_syscalls[] = {
 	SCMP_SYS(getdents),
 	SCMP_SYS(rename),
 	SCMP_SYS(utimes),
+	SCMP_SYS(dup),
 #endif
 };
 const char *scmp_syscall_names[] = {
@@ -153,6 +154,7 @@ const char *scmp_syscall_names[] = {
 	"getdents",
 	"rename",
 	"utimes",
+	"dup",
 #endif
 };
 #endif /* __x86_64__ */
