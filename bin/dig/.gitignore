@@ -1,6 +1,6 @@
-dig
-host
-nslookup
+/dig
+/host
+/nslookup
 .libs
 dig-symtbl.c
 host-symtbl.c

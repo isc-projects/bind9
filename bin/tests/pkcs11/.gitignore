@@ -1,0 +1,13 @@
+create
+find
+genrsa
+login
+privrsa
+pubrsa
+random
+session
+sha1
+sign
+verify
+pkcs11-hmacmd5
+pkcs11-md5sum
