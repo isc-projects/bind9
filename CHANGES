@@ -1,3 +1,7 @@
+3880.	[test]		Update ans.pl to work with new TSIG support in
+			Net::DNS; add additional Net::DNS version prerequisite
+			checks. [RT #36327]
+
 3879.	[func]		Add version printing option to various BIND utilities.
 			[RT #10686]
 
