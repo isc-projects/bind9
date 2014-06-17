@@ -1,3 +1,4 @@
+!config.h
 Makefile
 atf
 unittest.sh

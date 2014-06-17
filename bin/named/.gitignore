@@ -1,3 +1,4 @@
 .libs
+/named
+/lwresd
 named-symtbl.c
-lwresd
