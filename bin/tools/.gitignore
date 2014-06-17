@@ -2,4 +2,5 @@ arpaname
 genrandom
 isc-hmac-fixup
 named-journalprint
+named-rrchecker
 nsec3hash

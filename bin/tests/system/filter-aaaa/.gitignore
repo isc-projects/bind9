@@ -1,3 +1,4 @@
 filter-aaaa
-named1.conf
-named2.conf
+named.conf
+named.memstats
+named.run
