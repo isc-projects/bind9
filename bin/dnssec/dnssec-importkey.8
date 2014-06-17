@@ -32,9 +32,9 @@
 dnssec\-importkey \- Import DNSKEY records from external systems so they can be managed.
 .SH "SYNOPSIS"
 .HP 17
-\fBdnssec\-importkey\fR [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-L\ \fR\fB\fIttl\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-h\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] {\fBkeyfile\fR}
+\fBdnssec\-importkey\fR [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-L\ \fR\fB\fIttl\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-h\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-V\fR] {\fBkeyfile\fR}
 .HP 17
-\fBdnssec\-importkey\fR {\fB\-f\ \fR\fB\fIfilename\fR\fR} [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-L\ \fR\fB\fIttl\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-h\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fBdnsname\fR]
+\fBdnssec\-importkey\fR {\fB\-f\ \fR\fB\fIfilename\fR\fR} [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-L\ \fR\fB\fIttl\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-h\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-V\fR] [\fBdnsname\fR]
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-importkey\fR
@@ -79,6 +79,11 @@ Emit usage message and exit.
 \-v \fIlevel\fR
 .RS 4
 Sets the debugging level.
+.RE
+.PP
+\-V
+.RS 4
+Prints version information.
 .RE
 .SH "TIMING OPTIONS"
 .PP
