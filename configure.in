@@ -3304,7 +3304,7 @@ if test -f "${srcdir}/srcid"; then
 	. "${srcdir}/srcid"
 	BIND9_SRCID="SRCID=$SRCID"
 elif test -d "${srcdir}/.git"; then
-	BIND9_SRCID="SRCID="`(cd "${srcdir}";git log -n 1 --format=%h)`
+	BIND9_SRCID="SRCID="`(cd "${srcdir}";git rev-parse --short HEAD)`
 fi
 
 AC_SUBST(BIND9_SRCID)
