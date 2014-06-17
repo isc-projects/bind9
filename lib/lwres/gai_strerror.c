@@ -63,7 +63,8 @@ static const char *gai_messages[] = {
 	"ai_socktype not supported",
 	"system error returned in errno",
 	"bad hints",
-	"bad protocol"
+	"bad protocol",
+	"overflow"
 };
 
 /*% Returns an error message corresponding to an error code returned by getaddrinfo() */
