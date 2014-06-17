@@ -1162,8 +1162,6 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				if (value != NULL) {
 					n = strlcpy(sitvalue, value,
 						    sizeof(sitvalue));
-					sitvalue[sizeof(sitvalue) - 1] = '\0';
-
 					if (n >= sizeof(sitvalue))
 						fatal("SIT data too large");
 					lookup->sitvalue = sitvalue;
