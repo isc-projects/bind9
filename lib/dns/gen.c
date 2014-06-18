@@ -451,6 +451,7 @@ add(int rdclass, const char *classname, int type, const char *typename,
 	}
 	newcc->rdclass = rdclass;
 	strncpy(newcc->classname, classname, sizeof(newcc->classname));
+	newcc->classname[sizeof(newcc->classname) - 1] = '\0';
 	cc = classes;
 	oldcc = NULL;
 
