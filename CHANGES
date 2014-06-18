@@ -1,3 +1,11 @@
+3882.	[func]		By default, negative trust anchors will be tested
+			periodically to see whether data below them can be
+			validated, and if so, they will be allowed to
+			expire early. The "rndc nta -force" option
+			overrides this behvaior.  The default NTA lifetime
+			and the recheck frequency can be configured by the
+			"nta-lifetime" and "nta-recheck" options. [RT #36146]
+
 3881.	[bug]		Address memory leak with UPDATE error handling.
 			[RT #36303]
 

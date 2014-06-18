@@ -1139,6 +1139,9 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	if ((val->options & DNS_VALIDATOR_NOCDFLAG) != 0)
 		fopts |= DNS_FETCHOPT_NOCDFLAG;
 
+	if ((val->options & DNS_VALIDATOR_NONTA) != 0)
+		fopts |= DNS_FETCHOPT_NONTA;
+
 	validator_logcreate(val, name, type, caller, "fetch");
 	return (dns_resolver_createfetch(val->view->resolver, name, type,
 					 NULL, NULL, NULL, fopts,
@@ -3164,7 +3167,8 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 		return (DNS_R_NOVALIDSIG);
 	}
 
-	if (dns_view_ntacovers(val->view, val->start, dlvname, val->view->dlv))
+	if (((val->options & DNS_VALIDATOR_NONTA) == 0) &&
+	    dns_view_ntacovers(val->view, val->start, dlvname, val->view->dlv))
 		return (DNS_R_NTACOVERED);
 
 	while (dns_name_countlabels(dlvname) >=

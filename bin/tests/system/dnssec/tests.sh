@@ -1568,7 +1568,7 @@ keyid=`cat ns1/managed.key.id`
 linecount=`grep "./RSAMD5/$keyid ; trusted" ns4/named.secroots | wc -l`
 [ "$linecount" -eq 1 ] || ret=1
 linecount=`cat ns4/named.secroots | wc -l`
-[ "$linecount" -eq 5 ] || ret=1
+[ "$linecount" -eq 10 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -1654,26 +1654,88 @@ status=`expr $status + $ret`
 
 echo "I:checking positive and negative validation with negative trust anchors ($n)"
 ret=0
+#
 # check correct initial behavior
+#
 $DIG $DIGOPTS a.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.1 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.1 > /dev/null || ret=1
-$DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
-grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
+$DIG $DIGOPTS badds.example. soa @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null || ret=1
+$DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.3 || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.3 > /dev/null || ret=1
+
+#
 # add negative trust anchors
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta bogus.example 15s 2>&1 | sed 's/^/I:ns4 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta secure.example 15s 2>&1 | sed 's/^/I:ns4 /'
+#
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -f -l 15s bogus.example 2>&1 | sed 's/^/I:ns4 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta badds.example 2>&1 | sed 's/^/I:ns4 /'
+lines=`$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d | wc -l`
+[ "$lines" -eq 2 ] || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta secure.example 2>&1 | sed 's/^/I:ns4 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta fakenode.secure.example 2>&1 | sed 's/^/I:ns4 /'
+lines=`$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d | wc -l`
+[ "$lines" -eq 4 ] || ret=1
+
+#
 # check behavior with NTA's in place
-$DIG $DIGOPTS a.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.3 || ret=1
-grep "status: SERVFAIL" dig.out.ns4.test$n.3 > /dev/null && ret=1
-$DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.4 || ret=1
-grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.4 > /dev/null && ret=1
-echo "I: waiting for NTA expiration"
-sleep 15
-# check correct behavior after expiry
-$DIG $DIGOPTS b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.5 || ret=1
-grep "status: SERVFAIL" dig.out.ns4.test$n.5 > /dev/null || ret=1
-$DIG $DIGOPTS b.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.6 || ret=1
-grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.6 > /dev/null || ret=1
+#
+$DIG $DIGOPTS a.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.4 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.4 > /dev/null && ret=1
+$DIG $DIGOPTS badds.example. soa @10.53.0.4 > dig.out.ns4.test$n.5 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.5 > /dev/null && ret=1
+$DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.6 || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.6 > /dev/null && ret=1
+$DIG $DIGOPTS a.fakenode.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.7 || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.7 > /dev/null && ret=1
+echo "I: dumping secroots"
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 secroots | sed 's/^/I:ns4 /'
+grep "bogus.example: expiry" ns4/named.secroots > /dev/null || ret=1
+grep "badds.example: expiry" ns4/named.secroots > /dev/null || ret=1
+grep "secure.example: expiry" ns4/named.secroots > /dev/null || ret=1
+grep "fakenode.secure.example: expiry" ns4/named.secroots > /dev/null || ret=1
+echo "I: waiting for NTA rechecks/expirations"
+
+#
+# secure.example and badds.example used default nta-duration
+# (configured as 10s in ns4/named1.conf), but nta recheck interval
+# is configured to 7s, so at t=8 the NTAs for secure.example and
+# fakenode.secure.example should both be lifted, but badds.example
+# should still be going.
+#
+sleep 8
+$DIG $DIGOPTS b.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.8 || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.8 > /dev/null || ret=1
+$DIG $DIGOPTS b.fakenode.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.9 || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.9 > /dev/null || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n.9 > /dev/null || ret=1
+$DIG $DIGOPTS badds.example. soa @10.53.0.4 > dig.out.ns4.test$n.10 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.10 > /dev/null && ret=1
+
+#
+# bogus.example was set to expire in 15s, so at t=11
+# it should still be NTA'd, but badds.example used the default
+# lifetime of 10s, so it should revert to SERVFAIL now.
+#
+sleep 3
+$DIG $DIGOPTS b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.11 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.11 > /dev/null && ret=1
+$DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.12 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.12 > /dev/null || ret=1
+$DIG $DIGOPTS c.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.13 || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.13 > /dev/null || ret=1
+
+#
+# at t=16, all the NTAs should have expired.
+#
+sleep 5
+# check correct behavior after bogus.example expiry
+$DIG $DIGOPTS d.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.14 || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.14 > /dev/null || ret=1
+$DIG $DIGOPTS c.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.15 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.15 > /dev/null || ret=1
+# check nta table has been cleaned up now
+lines=`$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d | wc -l`
+[ "$lines" -eq 0 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

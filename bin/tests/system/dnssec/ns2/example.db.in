@@ -65,6 +65,10 @@ ns.insecure		A	10.53.0.3
 bogus			NS	ns.bogus
 ns.bogus		A	10.53.0.3
 
+; A subdomain with a corrupt DS
+badds			NS	ns.badds
+ns.badds		A	10.53.0.3
+
 ; A dynamic secure subdomain
 dynamic			NS	dynamic
 dynamic			A	10.53.0.3

@@ -459,3 +459,18 @@ zonefile=siginterval.example.db
 kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
 zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
 cp $infile $zonefile
+
+#
+# A zone with a bad DS in the parent
+# (sourced from bogus.example.db.in)
+#
+zone=badds.example.
+infile=bogus.example.db.in
+zonefile=badds.example.db
+
+keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+
+cat $infile $keyname.key >$zonefile
+
+$SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+sed -e 's/bogus/badds/g' < dsset-bogus.example. > dsset-badds.example.

@@ -192,6 +192,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->provideixfr = ISC_TRUE;
 	view->maxcachettl = 7 * 24 * 3600;
 	view->maxncachettl = 3 * 3600;
+	view->nta_lifetime = 0;
+	view->nta_recheck = 0;
 	view->prefetch_eligible = 0;
 	view->prefetch_trigger = 0;
 	view->dstport = 53;
@@ -1776,11 +1778,14 @@ dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp) {
 }
 
 isc_result_t
-dns_view_initntatable(dns_view_t *view, isc_mem_t *mctx) {
+dns_view_initntatable(dns_view_t *view,
+		      isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr)
+{
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->ntatable_priv != NULL)
 		dns_ntatable_detach(&view->ntatable_priv);
-	return (dns_ntatable_create(mctx, &view->ntatable_priv));
+	return (dns_ntatable_create(view, taskmgr, timermgr,
+				    &view->ntatable_priv));
 }
 
 isc_result_t
@@ -1825,7 +1830,8 @@ dns_view_ntacovers(dns_view_t *view, isc_stdtime_t now,
 
 isc_result_t
 dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
-			isc_stdtime_t now, isc_boolean_t *secure_domain)
+			isc_stdtime_t now, isc_boolean_t checknta,
+			isc_boolean_t *secure_domain)
 {
 	isc_result_t result;
 	isc_boolean_t secure = ISC_FALSE;
@@ -1845,7 +1851,7 @@ dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	if (secure && view->ntatable_priv != NULL &&
+	if (checknta && secure && view->ntatable_priv != NULL &&
 	    dns_ntatable_covered(view->ntatable_priv, now, name, anchor))
 		secure = ISC_FALSE;
 

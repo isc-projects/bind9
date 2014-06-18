@@ -98,6 +98,7 @@ typedef struct dns_fetchevent {
 #define DNS_FETCHOPT_WANTNSID		0x080	     /*%< Request NSID */
 #define DNS_FETCHOPT_PREFETCH		0x100	     /*%< Do prefetch */
 #define DNS_FETCHOPT_NOCDFLAG		0x200	     /*%< Don't set CD flag. */
+#define DNS_FETCHOPT_NONTA		0x400	     /*%< Ignore NTA table. */
 
 /* Reserved in use by adb.c		0x00400000 */
 #define	DNS_FETCHOPT_EDNSVERSIONSET	0x00800000

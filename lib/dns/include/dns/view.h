@@ -152,6 +152,8 @@ struct dns_view {
 	isc_boolean_t			requestsit;
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
+	isc_uint32_t			nta_lifetime;
+	isc_uint32_t			nta_recheck;
 	dns_ttl_t			prefetch_trigger;
 	dns_ttl_t			prefetch_eligible;
 	in_port_t			dstport;
@@ -1076,7 +1078,8 @@ dns_view_iscacheshared(dns_view_t *view);
  */
 
 isc_result_t
-dns_view_initntatable(dns_view_t *view, isc_mem_t *mctx);
+dns_view_initntatable(dns_view_t *view,
+		      isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr);
 /*%<
  * Initialize the negative trust anchor table for the view.
  *
@@ -1144,10 +1147,14 @@ dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp);
 
 isc_result_t
 dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
-			isc_stdtime_t now, isc_boolean_t *secure_domain);
+			isc_stdtime_t now, isc_boolean_t checknta,
+			isc_boolean_t *secure_domain);
 /*%<
  * Is 'name' at or beneath a trusted key, and not covered by a valid
  * negative trust anchor?  Put answer in '*secure_domain'.
+ *
+ * If 'checknta' is ISC_FALSE, ignore the NTA table in determining
+ * whether this is a secure domain.
  *
  * Requires:
  * \li	'view' is valid.

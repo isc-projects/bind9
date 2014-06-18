@@ -136,6 +136,7 @@ static cfg_type_t cfg_type_sizenodefault;
 static cfg_type_t cfg_type_sockaddr4wild;
 static cfg_type_t cfg_type_sockaddr6wild;
 static cfg_type_t cfg_type_statschannels;
+static cfg_type_t cfg_type_ttlval;
 static cfg_type_t cfg_type_view;
 static cfg_type_t cfg_type_viewopts;
 static cfg_type_t cfg_type_zone;
@@ -1544,6 +1545,8 @@ view_clauses[] = {
 	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "min-roots", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTIMP },
 	{ "minimal-responses", &cfg_type_boolean, 0 },
+	{ "nta-recheck", &cfg_type_ttlval, 0 },
+	{ "nta-lifetime", &cfg_type_ttlval, 0 },
 	{ "prefetch", &cfg_type_prefetch, 0 },
 	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "no-case-compress", &cfg_type_bracketed_aml, 0 },
@@ -3182,7 +3185,7 @@ static cfg_type_t cfg_type_masterselement = {
 };
 
 static isc_result_t
-parse_maxttlval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+parse_ttlval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
 	isc_uint32_t ttl;
@@ -3213,15 +3216,16 @@ parse_maxttlval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 }
 
 /*%
- * A size value (number + optional unit).
+ * A TTL value (number + optional unit).
  */
-static cfg_type_t cfg_type_maxttlval = {
-	"maxttlval", parse_maxttlval, cfg_print_uint64, cfg_doc_terminal,
-	&cfg_rep_uint64, NULL };
+static cfg_type_t cfg_type_ttlval = {
+	"ttlval", parse_ttlval, cfg_print_uint64, cfg_doc_terminal,
+	&cfg_rep_uint64, NULL
+};
 
 static isc_result_t
 parse_maxttl(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	return (parse_enum_or_other(pctx, type, &cfg_type_maxttlval, ret));
+	return (parse_enum_or_other(pctx, type, &cfg_type_ttlval, ret));
 }
 
 /*%

@@ -4939,6 +4939,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
+    <optional> nta-lifetime <replaceable>duration</replaceable> ; </optional>
+    <optional> nta-recheck <replaceable>duration</replaceable> ; </optional>
     <optional> port <replaceable>ip_port</replaceable>; </optional>
     <optional> dscp <replaceable>ip_dscp</replaceable></optional> ;
     <optional> additional-from-auth <replaceable>yes_or_no</replaceable> ; </optional>
@@ -5745,6 +5747,69 @@ options {
 		</para>
 	    </listitem>
 	  </varlistentry>
+
+	  <varlistentry>
+	    <term><command>nta-lifetime</command></term>
+	    <listitem>
+		<para>
+		  Species the default lifetime, in seconds,
+		  that will be used for negative trust anchors added
+		  via <command>rndc nta</command>. 
+		</para>
+		<para>
+		  A negative trust anchor selectively disables
+		  DNSSEC validation for zones that known to be
+		  failing because of misconfiguration rather than
+		  an attack.  When data to be validated is
+		  at or below an active NTA (and above any other
+		  configured trust anchors), <command>named</command> will
+		  abort the DNSSEC validation process and treat the data as
+		  insecure rather than bogus.  This continues until the
+		  NTA's lifetime is elapsed, or until the server is
+		  restarted (NTA's do not persist across restarts).
+		</para>
+		<para>
+		  For convienience, TTL-style time unit suffixes can be
+		  used to specify the NTA lifetime in seconds, minutes
+		  or hours.  <option>nta-lifetime</option> defaults to
+                  one hour.  It cannot exceed one day.
+		</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><command>nta-recheck</command></term>
+	    <listitem>
+		<para>
+                  Species how often to check whether negative
+                  trust anchors added via <command>rndc nta</command>
+                  are still necessary.
+		</para>
+		<para>
+                  A negative trust anchor is normally used when a
+                  domain has stopped validating due to operator error;
+                  it temporarily disables DNSSEC validation for that
+                  domain. In the interest of ensuring that DNSSEC
+                  validation is turned back on as soon as possible, 
+                  <command>named</command> will periodically send a
+                  query to the domain, ignoring negative trust anchors,
+                  to find out whether it can now be validated.  If so,
+                  the negative trust anchor is allowed to expire early.
+		</para>
+		<para>
+                  Validity checks can be disabled for an indivdiual
+                  NTA by using <command>rndc nta -f</command>, or
+                  for all NTA's by setting <option>nta-recheck</option>
+                  to zero.
+		</para>
+		<para>
+		  For convienience, TTL-style time unit suffixes can be
+                  used to specify the NTA recheck interval in seconds,
+                  minutes or hours.  The default is five minutes.
+		</para>
+	    </listitem>
+	  </varlistentry>
+
 
 	  <varlistentry>
 	    <term><command>max-zone-ttl</command></term>

@@ -783,6 +783,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	const char *str;
 	dns_name_t *name;
 	isc_buffer_t b;
+	isc_uint32_t lifetime;
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
@@ -1152,6 +1153,38 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	tresult = check_dscp(options, logctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
+
+	obj = NULL;
+	(void)cfg_map_get(options, "nta-lifetime", &obj);
+	if (obj != NULL) {
+		lifetime = cfg_obj_asuint32(obj);
+		if (lifetime > 86400) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'nta-lifetime' cannot exceed one day");
+			result = ISC_R_RANGE;
+		} else if (lifetime == 0) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'nta-lifetime' may not be zero");
+			result = ISC_R_RANGE;
+		}
+	}
+
+	obj = NULL;
+	(void)cfg_map_get(options, "nta-recheck", &obj);
+	if (obj != NULL) {
+		isc_uint32_t recheck = cfg_obj_asuint32(obj);
+		if (recheck > 86400) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'nta-recheck' cannot exceed one day");
+			result = ISC_R_RANGE;
+		}
+
+		if (recheck > lifetime)
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "'nta-recheck' (%d seconds) is "
+				    "greater than 'nta-lifetime' "
+				    "(%d seconds)", recheck, lifetime);
+	}
 
 	return (result);
 }

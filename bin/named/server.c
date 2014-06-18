@@ -826,7 +826,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = dns_view_initntatable(view, mctx);
+	result = dns_view_initntatable(view, ns_g_taskmgr, ns_g_timermgr);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -3567,6 +3567,16 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		CHECK(mustbesecure(obj, view->resolver));
 
 	obj = NULL;
+	result = ns_config_get(maps, "nta-recheck", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->nta_recheck = cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "nta-lifetime", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->nta_lifetime = cfg_obj_asuint32(obj);
+
+	obj = NULL;
 	result = ns_config_get(maps, "preferred-glue", &obj);
 	if (result == ISC_R_SUCCESS) {
 		str = cfg_obj_asstring(obj);
@@ -3626,6 +3636,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	} else {
 		empty_zones_enable = ISC_FALSE;
 	}
+
 	if (empty_zones_enable && !lwresd_g_useresolvconf) {
 		const char *empty;
 		int empty_zone = 0;
@@ -7768,6 +7779,7 @@ isc_result_t
 ns_server_dumpsecroots(ns_server_t *server, char *args) {
 	dns_view_t *view;
 	dns_keytable_t *secroots = NULL;
+	dns_ntatable_t *ntatable = NULL;
 	isc_result_t result;
 	char *ptr;
 	FILE *fp = NULL;
@@ -7801,10 +7813,24 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
 				result = ISC_R_SUCCESS;
 				continue;
 			}
-			fprintf(fp, "\n Start view %s\n\n", view->name);
+			fprintf(fp, "\n Start view %s\n", view->name);
+			fprintf(fp, "   Secure roots:\n\n");
 			result = dns_keytable_dump(secroots, fp);
 			if (result != ISC_R_SUCCESS)
 				fprintf(fp, " dumpsecroots failed: %s\n",
+					isc_result_totext(result));
+
+			if (ntatable != NULL)
+				dns_ntatable_detach(&ntatable);
+			result = dns_view_getntatable(view, &ntatable);
+			if (result == ISC_R_NOTFOUND) {
+				result = ISC_R_SUCCESS;
+				continue;
+			}
+			fprintf(fp, "\n   Negative trust anchors:\n\n");
+			result = dns_ntatable_dump(ntatable, fp);
+			if (result != ISC_R_SUCCESS)
+				fprintf(fp, " dumpntatable failed: %s\n",
 					isc_result_totext(result));
 		}
 		if (ptr != NULL)
@@ -7814,6 +7840,8 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
  cleanup:
 	if (secroots != NULL)
 		dns_keytable_detach(&secroots);
+	if (ntatable != NULL)
+		dns_ntatable_detach(&ntatable);
 	if (fp != NULL)
 		(void)isc_stdio_close(fp);
 	if (result == ISC_R_SUCCESS)
@@ -9772,15 +9800,18 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_view_t *view;
 	dns_ntatable_t *ntatable = NULL;
 	isc_result_t result;
-	char *ptr, *nametext, *viewname;
+	char *ptr, *nametext = NULL, *viewname;
 	isc_stdtime_t now, when;
 	isc_time_t t;
 	char tbuf[64];
 	const char *msg = NULL;
+	isc_boolean_t dump = ISC_FALSE, force = ISC_FALSE;
 	dns_fixedname_t fn;
 	dns_name_t *ntaname;
 	dns_ttl_t ntattl;
-	isc_textregion_t tr;
+	isc_boolean_t ttlset = ISC_FALSE;
+
+	UNUSED(force);
 
 	dns_fixedname_init(&fn);
 	ntaname = dns_fixedname_name(&fn);
@@ -9790,8 +9821,78 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
+	for (;;) {
+		size_t len;
+
+		/* Check for options */
+		ptr = next_token(&args, " \t");
+		if (ptr == NULL)
+			return (ISC_R_UNEXPECTEDEND);
+
+		len = strlen(ptr);
+
+		if (strncasecmp(ptr, "-dump", len) == 0)
+			dump = ISC_TRUE;
+		else if (strncasecmp(ptr, "-remove", len) == 0) {
+			ntattl = 0;
+			ttlset = ISC_TRUE;
+		} else if (strncasecmp(ptr, "-force", len) == 0) {
+			force = ISC_TRUE;
+			continue;
+		} else if (strncasecmp(ptr, "-lifetime", len) == 0) {
+			isc_textregion_t tr;
+
+			ptr = next_token(&args, " \t");
+			if (ptr == NULL) {
+				msg = "No lifetime specified";
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+
+			tr.base = ptr;
+			tr.length = strlen(ptr);
+			result = dns_ttl_fromtext(&tr, &ntattl);
+			if (result != ISC_R_SUCCESS) {
+				msg = "could not parse NTA lifetime";
+				CHECK(result);
+			}
+
+			if (ntattl > 86400) {
+				msg = "NTA lifetime cannot exceed one day";
+				CHECK(ISC_R_RANGE);
+			}
+
+			ttlset = ISC_TRUE;
+			continue;
+		} else
+			nametext = ptr;
+
+		break;
+	}
+
+	/*
+	 * If -dump was specified, list NTA's and return
+	 */
+	if (dump) {
+		for (view = ISC_LIST_HEAD(server->viewlist);
+		     view != NULL;
+		     view = ISC_LIST_NEXT(view, link))
+		{
+			if (ntatable != NULL)
+				dns_ntatable_detach(&ntatable);
+			result = dns_view_getntatable(view, &ntatable);
+			if (result == ISC_R_NOTFOUND) {
+				result = ISC_R_SUCCESS;
+				continue;
+			}
+			CHECK(dns_ntatable_totext(ntatable, text));
+		}
+
+		goto cleanup;
+	}
+
 	/* Get the NTA name. */
-	nametext = next_token(&args, " \t");
+	if (nametext == NULL)
+		nametext = next_token(&args, " \t");
 	if (nametext == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
@@ -9804,26 +9905,10 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 		CHECK(dns_name_fromtext(ntaname, &b, dns_rootname, 0, NULL));
 	}
 
-	/* Get the NTA duration. */
-	ptr = next_token(&args, " \t");
-	if (ptr == NULL)
-		return (ISC_R_UNEXPECTEDEND);
-
-	tr.base = ptr;
-	tr.length = strlen(ptr);
-	CHECK(dns_ttl_fromtext(&tr, &ntattl));
-
-	if (ntattl > 86400) {
-		msg = "NTA cannot exceed one day";
-		CHECK(ISC_R_RANGE);
-	}
-
 	/* Look for the view name. */
 	viewname = next_token(&args, " \t");
 
-	/* Set up the NTA */
 	isc_stdtime_get(&now);
-	when = now + ntattl;
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -9834,6 +9919,12 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 		if (viewname != NULL &&
 		    strcmp(view->name, viewname) != 0)
 			continue;
+
+		if (view->nta_lifetime == 0 || view->nta_recheck == 0)
+			continue;
+
+		if (!ttlset)
+			ntattl = view->nta_lifetime;
 
 		if (ntatable != NULL)
 			dns_ntatable_detach(&ntatable);
@@ -9851,11 +9942,13 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 			      nametext, view->name,
 			      isc_result_totext(result));
 
-		isc_time_set(&t, when, 0);
-		isc_time_formattimestamp(&t, tbuf, sizeof(tbuf));
+		if (ntattl != 0) {
+			CHECK(dns_ntatable_add(ntatable, ntaname,
+					       force, now, ntattl));
 
-		if (ntattl > 0) {
-			CHECK(dns_ntatable_add(ntatable, ntaname, when));
+			when = now + ntattl;
+			isc_time_set(&t, when, 0);
+			isc_time_formattimestamp(&t, tbuf, sizeof(tbuf));
 
 			CHECK(putstr(text, "Negative trust anchor added: "));
 			CHECK(putstr(text, nametext));

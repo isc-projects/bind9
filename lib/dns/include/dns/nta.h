@@ -28,21 +28,31 @@
  * DNSSEC validation.
  */
 
+#include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
+#include <isc/task.h>
+#include <isc/timer.h>
 
 #include <dns/types.h>
+#include <dns/rdataset.h>
+#include <dns/resolver.h>
+#include <dns/view.h>
 
 ISC_LANG_BEGINDECLS
 
 struct dns_ntatable {
 	/* Unlocked. */
 	unsigned int		magic;
-	isc_mem_t		*mctx;
+	dns_view_t		*view;
 	isc_rwlock_t		rwlock;
+	isc_uint32_t		recheck;
+	isc_taskmgr_t		*taskmgr;
+	isc_timermgr_t		*timermgr;
+	isc_task_t		*task;
 	/* Locked by rwlock. */
 	isc_uint32_t		references;
 	dns_rbt_t		*table;
@@ -51,23 +61,18 @@ struct dns_ntatable {
 #define NTATABLE_MAGIC		ISC_MAGIC('N', 'T', 'A', 't')
 #define VALID_NTATABLE(nt) 	ISC_MAGIC_VALID(nt, NTATABLE_MAGIC)
 
-struct dns_nta {
-	unsigned int		magic;
-	isc_refcount_t		refcount;
-	isc_stdtime_t		expiry;
-};
-
-#define NTA_MAGIC		ISC_MAGIC('N', 'T', 'A', 'n')
-#define VALID_NTA(nn)	 	ISC_MAGIC_VALID(nn, NTA_MAGIC)
-
 isc_result_t
-dns_ntatable_create(isc_mem_t *mctx, dns_ntatable_t **ntatablep);
+dns_ntatable_create(dns_view_t *view,
+		    isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
+		    dns_ntatable_t **ntatablep);
 /*%<
- * Create an NTA table.
+ * Create an NTA table in view 'view'.
  *
  * Requires:
  *
- *\li	'mctx' is a valid memory context.
+ *\li	'view' is a valid view.
+ *
+ *\li	'tmgr' is a valid timer manager.
  *
  *\li	ntatablep != NULL && *ntatablep == NULL
  *
@@ -116,10 +121,13 @@ dns_ntatable_detach(dns_ntatable_t **ntatablep);
 
 isc_result_t
 dns_ntatable_add(dns_ntatable_t *ntatable, dns_name_t *name,
-		 isc_uint32_t expiry);
+		 isc_boolean_t force, isc_stdtime_t now,
+		 isc_uint32_t lifetime);
 /*%<
  * Add a negative trust anchor to 'ntatable' for name 'name',
- * which will expire at time 'expiry'.
+ * which will expire at time 'now' + 'lifetime'.  If 'force' is ISC_FALSE,
+ * then the name will be checked periodically to see if it's bogus;
+ * if not, then the NTA will be allowed to expire early.
  *
  * Notes:
  *
@@ -191,15 +199,15 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
  */
 
 isc_result_t
-dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp);
+dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t *buf);
 /*%<
- * Dump the NTA table on fp.
+ * Dump the NTA table to buffer 'buf'
  */
 
 isc_result_t
-dns_nta_create(isc_mem_t *mctx, dns_nta_t **target);
+dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp);
 /*%<
- * Allocate space for an NTA
+ * Dump the NTA table to the file opened as 'fp'.
  */
 ISC_LANG_ENDDECLS
 

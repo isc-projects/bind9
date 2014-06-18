@@ -1823,7 +1823,8 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 
 static isc_result_t
 issecuredomain(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
-	       isc_stdtime_t now, isc_boolean_t *issecure)
+	       isc_stdtime_t now, isc_boolean_t checknta,
+	       isc_boolean_t *issecure)
 {
 	dns_name_t suffix;
 	unsigned int labels;
@@ -1841,7 +1842,7 @@ issecuredomain(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		name = &suffix;
 	}
 
-	return (dns_view_issecuredomain(view, name, now, issecure));
+	return (dns_view_issecuredomain(view, name, now, checknta, issecure));
 }
 
 static isc_result_t
@@ -1944,10 +1945,13 @@ resquery_send(resquery_t *query) {
 	else if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0)
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
 	else if (res->view->enablevalidation &&
-		 ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0)) {
+		 ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0))
+	{
+		isc_boolean_t checknta =
+			ISC_TF((query->options & DNS_FETCHOPT_NONTA) == 0);
 		result = issecuredomain(res->view, &fctx->name,
 					fctx->type, query->start.seconds,
-					&secure_domain);
+					checknta, &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			secure_domain = ISC_FALSE;
 		if (res->view->dlv != NULL)
@@ -4833,6 +4837,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 	isc_task_t *task;
 	isc_boolean_t fail;
 	unsigned int valoptions = 0;
+	isc_boolean_t checknta = ISC_TRUE;
 
 	/*
 	 * The appropriate bucket lock must be held.
@@ -4849,14 +4854,19 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
+	if ((fctx->options & DNS_FETCHOPT_NONTA) != 0) {
+		valoptions |= DNS_VALIDATOR_NONTA;
+		checknta = ISC_FALSE;
+	}
+
 	if (res->view->enablevalidation) {
 		result = issecuredomain(res->view, name, fctx->type,
-					now, &secure_domain);
+					now, checknta, &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
 		if (!secure_domain && res->view->dlv != NULL) {
-			valoptions = DNS_VALIDATOR_DLV;
+			valoptions |= DNS_VALIDATOR_DLV;
 			secure_domain = ISC_TRUE;
 		}
 	}
@@ -5362,6 +5372,7 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	dns_fetchevent_t *event;
 	isc_uint32_t ttl;
 	unsigned int valoptions = 0;
+	isc_boolean_t checknta = ISC_TRUE;
 
 	FCTXTRACE("ncache_message");
 
@@ -5384,14 +5395,19 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
+	if ((fctx->options & DNS_FETCHOPT_NONTA) != 0) {
+		valoptions |= DNS_VALIDATOR_NONTA;
+		checknta = ISC_FALSE;
+	}
+
 	if (fctx->res->view->enablevalidation) {
 		result = issecuredomain(res->view, name, fctx->type,
-					now, &secure_domain);
+					now, checknta, &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
 		if (!secure_domain && res->view->dlv != NULL) {
-			valoptions = DNS_VALIDATOR_DLV;
+			valoptions |= DNS_VALIDATOR_DLV;
 			secure_domain = ISC_TRUE;
 		}
 	}
@@ -8275,6 +8291,7 @@ dns_resolver_create(dns_view_t *view,
 	result = isc_task_create(taskmgr, 0, &task);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_primelock;
+	isc_task_setname(task, "resolver_task", NULL);
 
 	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
 				  task, spillattimer_countdown, res,

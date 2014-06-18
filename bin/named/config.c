@@ -53,6 +53,7 @@
 static char defaultconf[] = "\
 options {\n\
 	automatic-interface-scan yes;\n\
+	bindkeys-file \"" NS_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n"
 #ifndef WIN32
 "	coresize default;\n\
@@ -78,8 +79,9 @@ options {\n\
 	memstatistics-file \"named.memstats\";\n\
 	multiple-cnames no;\n\
 #	named-xfer <obsolete>;\n\
+	nta-lifetime 3600;\n\
+	nta-recheck 300;\n\
 #	pid-file \"" NS_LOCALSTATEDIR "/run/named/named.pid\"; /* or /lwresd.pid */\n\
-	bindkeys-file \"" NS_SYSCONFDIR "/bind.keys\";\n\
 	port 53;\n\
 	prefetch 2 9;\n\
 	recursing-file \"named.recursing\";\n\

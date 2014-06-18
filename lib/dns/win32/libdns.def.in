@@ -483,7 +483,6 @@ dns_nsec_isset
 dns_nsec_nseconly
 dns_nsec_setbit
 dns_nsec_typepresent
-dns_nta_create
 dns_ntatable_add
 dns_ntatable_attach
 dns_ntatable_covered

@@ -26,6 +26,7 @@ cd ns1 && $SHELL sign.sh
 
 echo "a.bogus.example.	A	10.0.0.22" >>../ns3/bogus.example.db.signed
 echo "b.bogus.example.	A	10.0.0.23" >>../ns3/bogus.example.db.signed
+echo "c.bogus.example.	A	10.0.0.23" >>../ns3/bogus.example.db.signed
 
 cd ../ns3 && cp -f siginterval1.conf siginterval.conf
 cd ../ns4 && cp -f named1.conf named.conf

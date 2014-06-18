@@ -463,10 +463,9 @@
         <term><userinput>secroots <optional><replaceable>view ...</replaceable></optional></userinput></term>
         <listitem>
           <para>
-            Dump the server's security roots to the secroots
-            file for the specified views.  If no view is
-            specified, security roots for all
-            views are dumped.
+            Dump the server's security roots and negative trust anchors
+            to the secroots file for the specified views.  If no view is
+            specified, all views are dumped.
           </para>
         </listitem>
       </varlistentry>
@@ -597,12 +596,19 @@
       </varlistentry>
 
       <varlistentry>
-        <term><userinput>nta <replaceable>domain</replaceable> <replaceable>duration</replaceable> </userinput></term>
+        <term><userinput>nta
+	<optional>( -d | -f | -r | -l <replaceable>duration</replaceable>)</optional>
+	<replaceable>domain</replaceable>
+	<optional><replaceable>view</replaceable></optional>
+	</userinput></term>
         <listitem>
           <para>
             Sets a DNSSEC negative trust anchor (NTA)
             for <option>domain</option>, with a lifetime of
-            <option>duration</option> (up to a limit of one day).
+            <option>lifetime</option>.  The default lifetime is
+            configured in <file>named.conf</file> via the
+            <option>nta-lifetime</option>, and defaults to
+            one hour.  The lifetime cannot exceed one day.
           </para>
           <para>
             A negative trust anchor selectively disables
@@ -617,13 +623,40 @@
             restarted (NTA's do not persist across restarts).
           </para>
           <para>
-            TTL-style suffixes can be used to specify
-            <option>duration</option> in seconds, minutes, or hours.
+            An existing NTA can be removed by using the
+            <option>-remove</option> option.
           </para>
           <para>
-            If the specified domain already has an NTA, its duration
-            will be updated to the new value.  Setting
-            <option>duration</option> to zero will delete the NTA.
+            An NTA's lifetime can be specified with the
+            <option>-lifetime</option> option.  TTL-style
+            suffixes can be used to specify the lifetime in
+            seconds, minutes, or hours.  If the specified NTA
+            already exists, its lifetime will be updated to the
+            new value.  Setting <option>lifetime</option> to zero
+            is equivalent to <option>-remove</option>.
+          </para>
+          <para>
+            If <option>-dump</option> is used, any other arguments
+            are ignored, and a list of existing NTAs is printed
+            (note that this may include NTAs that are expired but
+            have not yet been cleaned up).
+          </para>
+          <para>
+            Normally, <command>named</command> will periodically
+            test to see whether data below an NTA can now be
+            validated (see the <option>nta-recheck</option> option
+            in the Administrator Reference Manual for details).
+            If data can be validated, then the NTA is regarded as
+            no longer necessary, and will be allowed to expire
+            early.  The <option>-force</option> overrides this
+            behavior and forces an NTA to persist for its entire
+            lifetime, regardless of whether data could be
+            validated if the NTA were not present.
+          </para>
+          <para>
+            All of these options can be shortened, i.e., to
+            <option>-l</option>, <option>-r</option>, <option>-d</option>,
+            and <option>-f</option>.
           </para>
         </listitem>
       </varlistentry>
