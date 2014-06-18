@@ -1,3 +1,6 @@
+3881.	[bug]		Address memory leak with UPDATE error handling.
+			[RT #36303]
+
 3880.	[test]		Update ans.pl to work with new TSIG support in
 			Net::DNS; add additional Net::DNS version prerequisite
 			checks. [RT #36327]

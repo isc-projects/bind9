@@ -2887,10 +2887,18 @@ update_action(isc_task_t *task, isc_event_t *event) {
 					dns_diff_clear(&ctx.del_diff);
 					dns_diff_clear(&ctx.add_diff);
 				} else {
-					CHECK(do_diff(&ctx.del_diff, db, ver,
-						      &diff));
-					CHECK(do_diff(&ctx.add_diff, db, ver,
-						      &diff));
+					result = do_diff(&ctx.del_diff, db, ver,
+							 &diff);
+					if (result == ISC_R_SUCCESS) {
+						result = do_diff(&ctx.add_diff,
+								 db, ver,
+								 &diff);
+					}
+					if (result != ISC_R_SUCCESS) {
+						dns_diff_clear(&ctx.del_diff);
+						dns_diff_clear(&ctx.add_diff);
+						goto failure;
+					}
 					CHECK(update_one_rr(db, ver, &diff,
 							    DNS_DIFFOP_ADD,
 							    name, ttl, &rdata));
