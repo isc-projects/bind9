@@ -189,8 +189,11 @@ int scmp_syscalls[] = {
 	SCMP_SYS(rt_sigsuspend),
 	SCMP_SYS(fstat64),
 	SCMP_SYS(epoll_ctl),
-	SCMP_SYS(gettimeofday)
-	SCMP_SYS(unlink)
+	SCMP_SYS(gettimeofday),
+	SCMP_SYS(unlink),
+#ifndef ISC_PLATFORM_USETHREADS
+	SCMP_SYS(fcntl64),
+#endif
 };
 const char *scmp_syscall_names[] = {
 	"access",
@@ -222,8 +225,11 @@ const char *scmp_syscall_names[] = {
 	"rt_sigsuspend",
 	"fstat64",
 	"epoll_ctl",
-	"gettimeofday"
-	"unlink"
+	"gettimeofday",
+	"unlink",
+#ifndef ISC_PLATFORM_USETHREADS
+        "fcntl64",
+#endif
 };
 #endif /* __i386__ */
 #endif /* HAVE_LIBSECCOMP */
