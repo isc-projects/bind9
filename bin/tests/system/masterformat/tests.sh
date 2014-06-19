@@ -82,7 +82,8 @@ ret=0
 set -- 1 2 3
 for zone in example example-explicit example-compat; do
     for server in $*; do
-	for name in ns mx a aaaa cname dname txt rrsig nsec dnskey ds; do
+	for name in ns mx a aaaa cname dname txt rrsig nsec \
+		    dnskey ds cdnskey cds; do
 		$DIG $DIGOPTS $name.$zone. $name @10.53.0.$server -p 5300
 		echo
 	done > dig.out.$zone.$server

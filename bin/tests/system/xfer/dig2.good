@@ -9,6 +9,8 @@ a601.example.		3600	IN	A6	127 ::1 foo.
 a601.example.		3600	IN	A6	128  .
 afsdb01.example.	3600	IN	AFSDB	0 hostname.example.
 afsdb02.example.	3600	IN	AFSDB	65535 .
+cdnskey01.example.	3600	IN	CDNSKEY	512 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aRyzWZriO6i2od GWWQVucZqKVsENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esga60z yGW6LFe9r8n6paHrlG5ojqf0BaqHT+8=
+cds01.example.		3600	IN	CDS	30795 1 1 310D27F4D82C1FC2400704EA9939FE6E1CEAA3B9
 cert01.example.		3600	IN	CERT	65534 65535 PRIVATEOID MxFcby9k/yvedMfQgKzhH5er0Mu/vILz45IkskceFGgiWCn/GxHhai6V AuHAoNUz4YoU1tVfSCSqQYn6//11U6Nld80jEeC8aTrO+KKmCaY=
 cname01.example.	3600	IN	CNAME	cname-target.
 cname02.example.	3600	IN	CNAME	cname-target.example.
