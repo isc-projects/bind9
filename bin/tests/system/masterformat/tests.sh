@@ -25,8 +25,8 @@ echo "I:checking that master file in the raw format worked"
 
 for server in 1 2
 do
-	for name in ns mx a aaaa cname dname txt rrsig nsec dnskey ds
-	do
+	for name in ns mx a aaaa cname dname txt rrsig nsec \
+		    dnskey ds cdnskey cds; do
 		$DIG $DIGOPTS $name.example. $name @10.53.0.$server -p 5300
 		echo
 	done > dig.out.$server
