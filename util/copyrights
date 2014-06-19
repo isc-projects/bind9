@@ -1092,7 +1092,7 @@
 ./bin/tests/system/dnssec/ns2/child.optout.example.db	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns2/dlv.db.in		ZONE	2004,2007
 ./bin/tests/system/dnssec/ns2/dst.example.db.in	ZONE	2004,2007
-./bin/tests/system/dnssec/ns2/example.db.in	ZONE	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013
+./bin/tests/system/dnssec/ns2/example.db.in	ZONE	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/tests/system/dnssec/ns2/insecure.secure.example.db	ZONE	2000,2001,2004,2007,2013
 ./bin/tests/system/dnssec/ns2/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2010,2011
 ./bin/tests/system/dnssec/ns2/private.secure.example.db.in	ZONE	2000,2001,2004,2007
@@ -1101,7 +1101,7 @@
 ./bin/tests/system/dnssec/ns2/single-nsec3.db.in	ZONE	2010
 ./bin/tests/system/dnssec/ns3/auto-nsec.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/auto-nsec3.example.db.in	ZONE	2011
-./bin/tests/system/dnssec/ns3/bogus.example.db.in	ZONE	2000,2001,2004,2007
+./bin/tests/system/dnssec/ns3/bogus.example.db.in	ZONE	2000,2001,2004,2007,2014
 ./bin/tests/system/dnssec/ns3/dynamic.example.db.in	ZONE	2002,2004,2007
 ./bin/tests/system/dnssec/ns3/expired.example.db.in	ZONE	2011,2012
 ./bin/tests/system/dnssec/ns3/expiring.example.db.in	ZONE	2011,2012
@@ -1114,7 +1114,7 @@
 ./bin/tests/system/dnssec/ns3/kskonly.example.db.in	ZONE	2010
 ./bin/tests/system/dnssec/ns3/lower.example.db.in	ZONE	2012
 ./bin/tests/system/dnssec/ns3/multiple.example.db.in	ZONE	2006,2008
-./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012,2013
+./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/tests/system/dnssec/ns3/nosign.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/nsec3-unknown.example.db.in	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns3/nsec3.example.db.in	ZONE	2006,2008
@@ -1128,7 +1128,7 @@
 ./bin/tests/system/dnssec/ns3/rsasha256.example.db.in	ZONE	2009
 ./bin/tests/system/dnssec/ns3/rsasha512.example.db.in	ZONE	2009
 ./bin/tests/system/dnssec/ns3/secure.below-cname.example.db.in	ZONE	2011
-./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001,2004,2007,2008,2010,2012,2013
+./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001,2004,2007,2008,2010,2012,2013,2014
 ./bin/tests/system/dnssec/ns3/secure.nsec3.example.db.in	ZONE	2008
 ./bin/tests/system/dnssec/ns3/secure.optout.example.db.in	ZONE	2008
 ./bin/tests/system/dnssec/ns3/siginterval.example.db.in	ZONE	2013
@@ -1140,7 +1140,7 @@
 ./bin/tests/system/dnssec/ns3/ttlpatch.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/update-nsec3.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/upper.example.db.in	ZONE	2012
-./bin/tests/system/dnssec/ns4/named1.conf	CONF-C	2011,2013
+./bin/tests/system/dnssec/ns4/named1.conf	CONF-C	2011,2013,2014
 ./bin/tests/system/dnssec/ns4/named2.conf	CONF-C	2011,2013
 ./bin/tests/system/dnssec/ns4/named3.conf	CONF-C	2012,2013
 ./bin/tests/system/dnssec/ns4/named4.conf	CONF-C	2013
@@ -1269,7 +1269,7 @@
 ./bin/tests/system/forward/ns5/named.conf	CONF-C	2011
 ./bin/tests/system/forward/ns5/root.db		ZONE	2011
 ./bin/tests/system/forward/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013
-./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013
+./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013,2014
 ./bin/tests/system/geoip/.gitignore		X	2013
 ./bin/tests/system/geoip/Makefile.in		MAKE	2013
 ./bin/tests/system/geoip/clean.sh		SH	2013,2014
@@ -1419,7 +1419,7 @@
 ./bin/tests/system/masterfile/tests.sh		SH	2001,2004,2007,2010,2012
 ./bin/tests/system/masterformat/clean.sh	SH	2005,2007,2011,2012,2013,2014
 ./bin/tests/system/masterformat/ns1/compile.sh	SH	2005,2006,2007,2011,2012,2013,2014
-./bin/tests/system/masterformat/ns1/example.db	ZONE	2005,2007
+./bin/tests/system/masterformat/ns1/example.db	ZONE	2005,2007,2014
 ./bin/tests/system/masterformat/ns1/large.db.in	ZONE	2012
 ./bin/tests/system/masterformat/ns1/named.conf	CONF-C	2005,2007,2011,2012,2013,2014
 ./bin/tests/system/masterformat/ns1/signed.db	ZONE	2013
@@ -1615,7 +1615,7 @@
 ./bin/tests/system/rrchecker/clean.sh		SH	2013
 ./bin/tests/system/rrchecker/privatelist.good	X	2013
 ./bin/tests/system/rrchecker/tests.sh		SH	2013,2014
-./bin/tests/system/rrchecker/typelist.good	X	2013
+./bin/tests/system/rrchecker/typelist.good	X	2013,2014
 ./bin/tests/system/rrl/.gitignore		X	2013,2014
 ./bin/tests/system/rrl/clean.sh			SH	2012,2013
 ./bin/tests/system/rrl/ns1/named.conf		CONF-C	2012,2013
@@ -1905,8 +1905,8 @@
 ./bin/tests/system/xfer/ans5/unsigned		X	2011
 ./bin/tests/system/xfer/ans5/wrongkey		X	2011
 ./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004,2007,2011,2012,2013
-./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009,2011,2012,2013
-./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009,2011,2012,2013
+./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014
+./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014
 ./bin/tests/system/xfer/ns1/named.conf		CONF-C	2000,2001,2004,2007,2011
 ./bin/tests/system/xfer/ns1/root.db		ZONE	2000,2001,2004,2007
 ./bin/tests/system/xfer/ns2/named.conf		CONF-C	2000,2001,2004,2005,2007,2013
@@ -2889,7 +2889,7 @@
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007,2009,2013
-./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
+./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/dns/client.c				C	2009,2010,2011,2012,2013,2014
 ./lib/dns/clientinfo.c				C	2011,2014
@@ -3062,6 +3062,10 @@
 ./lib/dns/rdata/ch_3/a_1.h			C	2005,2007
 ./lib/dns/rdata/generic/afsdb_18.c		C	1999,2000,2001,2003,2004,2005,2007,2009,2014
 ./lib/dns/rdata/generic/afsdb_18.h		C	1999,2000,2001,2004,2005,2007
+./lib/dns/rdata/generic/cdnskey_60.c		C	2014
+./lib/dns/rdata/generic/cdnskey_60.h		C	2014
+./lib/dns/rdata/generic/cds_59.c		C	2014
+./lib/dns/rdata/generic/cds_59.h		C	2014
 ./lib/dns/rdata/generic/cert_37.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012
 ./lib/dns/rdata/generic/cert_37.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/cname_5.c		C	1998,1999,2000,2001,2004,2007,2009
