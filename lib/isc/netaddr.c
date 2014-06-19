@@ -235,6 +235,7 @@ isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen) {
 	nbytes = prefixlen / 8;
 	nbits = prefixlen % 8;
 	if (nbits != 0) {
+		INSIST(nbytes < ipbytes);
 		if ((p[nbytes] & (0xff>>nbits)) != 0U)
 			return (ISC_R_FAILURE);
 		nbytes++;
