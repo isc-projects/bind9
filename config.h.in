@@ -281,6 +281,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `scf' library (-lscf). */
 #undef HAVE_LIBSCF
 
+/* Define to use libseccomp system call filtering. */
+#undef HAVE_LIBSECCOMP
+
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
 

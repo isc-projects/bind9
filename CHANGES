@@ -81,6 +81,11 @@
 3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to separate out
 			the handling of a rdataset with no records. [RT #35968]
 
+3851.	[func]		Allow libseccomp based system-call filtering
+			on Linux; use "configure --enable-seccomp" to
+			turn it on.  Thanks to Loganaden Velvindron for
+			the contribution. [RT #35347]
+
 3850.	[bug]		Disabling forwarding could trigger a REQUIRE assertion.
 			[RT #35979]
 

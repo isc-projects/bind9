@@ -70,6 +70,7 @@
 #include <named/server.h>
 #include <named/lwresd.h>
 #include <named/main.h>
+#include <named/seccomp.h>
 #ifdef HAVE_LIBSCF
 #include <named/ns_smf_globals.h>
 #endif
@@ -770,6 +771,60 @@ dump_symboltable(void) {
 	}
 }
 
+#ifdef HAVE_LIBSECCOMP
+static void
+setup_seccomp() {
+	scmp_filter_ctx ctx;
+	unsigned int i;
+	int ret;
+
+	/* Make sure the lists are in sync */
+	INSIST((sizeof(scmp_syscalls) / sizeof(int)) ==
+	       (sizeof(scmp_syscall_names) / sizeof(const char *)));
+
+	ctx = seccomp_init(SCMP_ACT_KILL);
+	if (ctx == NULL) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_WARNING,
+			      "libseccomp activation failed");
+		return;
+	}
+
+	for (i = 0 ; i < sizeof(scmp_syscalls)/sizeof(*(scmp_syscalls)); i++) {
+		ret = seccomp_rule_add(ctx, SCMP_ACT_ALLOW,
+				       scmp_syscalls[i], 0);
+		if (ret < 0)
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_MAIN, ISC_LOG_WARNING,
+				      "libseccomp rule failed: %s",
+				      scmp_syscall_names[i]);
+
+		else
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_MAIN, ISC_LOG_DEBUG(9),
+				      "added libseccomp rule: %s",
+				      scmp_syscall_names[i]);
+	}
+
+	ret = seccomp_load(ctx);
+	if (ret < 0) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_WARNING,
+			      "libseccomp unable to load filter");
+	} else {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+			      "libseccomp sandboxing active");
+	}
+
+	/*
+	 * Release filter in ctx. Filters already loaded are not
+	 * affected.
+	 */
+	seccomp_release(ctx);
+}
+#endif /* HAVE_LIBSECCOMP */
+
 static void
 setup(void) {
 	isc_result_t result;
@@ -983,6 +1038,10 @@ setup(void) {
 #endif
 
 	ns_server_create(ns_g_mctx, &ns_g_server);
+
+#ifdef HAVE_LIBSECCOMP
+	setup_seccomp();
+#endif /* HAVE_LIBSECCOMP */
 }
 
 static void
