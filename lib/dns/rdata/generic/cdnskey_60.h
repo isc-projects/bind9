@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2014  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2003  Internet Software Consortium.
+ * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,13 +19,13 @@
 
 /* CDNSKEY records have the same RDATA fields as DNSKEY records. */
 typedef struct dns_rdata_cdnskey {
-        dns_rdatacommon_t	common;
-        isc_mem_t *		mctx;
-        isc_uint16_t		flags;
-        isc_uint8_t		protocol;
-        isc_uint8_t		algorithm;
-        isc_uint16_t		datalen;
-        unsigned char *		data;
+	dns_rdatacommon_t	common;
+	isc_mem_t *		mctx;
+	isc_uint16_t		flags;
+	isc_uint8_t		protocol;
+	isc_uint8_t		algorithm;
+	isc_uint16_t		datalen;
+	unsigned char *		data;
 } dns_rdata_cdnskey_t;
 
 
