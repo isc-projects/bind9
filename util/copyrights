@@ -1175,7 +1175,7 @@
 ./bin/tests/system/forward/ns5/named.conf	CONF-C	2011
 ./bin/tests/system/forward/ns5/root.db		ZONE	2011
 ./bin/tests/system/forward/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013
-./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013
+./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013,2014
 ./bin/tests/system/glue/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/glue/fi.good			X	2000,2001
 ./bin/tests/system/glue/noglue.good		X	2000,2001
@@ -1280,14 +1280,14 @@
 ./bin/tests/system/masterfile/tests.sh		SH	2001,2004,2007,2010,2012
 ./bin/tests/system/masterformat/clean.sh	SH	2005,2007,2011,2012,2014
 ./bin/tests/system/masterformat/ns1/compile.sh	SH	2005,2006,2007,2011,2012
-./bin/tests/system/masterformat/ns1/example.db	ZONE	2005,2007
+./bin/tests/system/masterformat/ns1/example.db	ZONE	2005,2007,2014
 ./bin/tests/system/masterformat/ns1/large.db.in	ZONE	2012
 ./bin/tests/system/masterformat/ns1/named.conf	CONF-C	2005,2007,2011,2012
 ./bin/tests/system/masterformat/ns2/formerly-text.db.in	ZONE	2011
 ./bin/tests/system/masterformat/ns2/named.conf	CONF-C	2005,2007,2011,2012
 ./bin/tests/system/masterformat/prereq.sh	SH	2014
 ./bin/tests/system/masterformat/setup.sh	SH	2005,2006,2007,2011,2012,2014
-./bin/tests/system/masterformat/tests.sh	SH	2005,2007,2011,2012
+./bin/tests/system/masterformat/tests.sh	SH	2005,2007,2011,2012,2014
 ./bin/tests/system/metadata/child.db		ZONE	2009
 ./bin/tests/system/metadata/clean.sh		SH	2009,2011,2012,2014
 ./bin/tests/system/metadata/parent.db		ZONE	2009
@@ -1722,8 +1722,8 @@
 ./bin/tests/system/xfer/ans5/unsigned		X	2011
 ./bin/tests/system/xfer/ans5/wrongkey		X	2011
 ./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004,2007,2011,2012,2013
-./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009,2011,2012,2013
-./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009,2011,2012,2013
+./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014
+./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014
 ./bin/tests/system/xfer/ns1/named.conf		CONF-C	2000,2001,2004,2007,2011
 ./bin/tests/system/xfer/ns1/root.db		ZONE	2000,2001,2004,2007
 ./bin/tests/system/xfer/ns2/named.conf		CONF-C	2000,2001,2004,2005,2007,2013
@@ -2694,6 +2694,10 @@
 ./lib/dns/rdata/ch_3/a_1.h			C	2005,2007
 ./lib/dns/rdata/generic/afsdb_18.c		C	1999,2000,2001,2003,2004,2005,2007,2009,2014
 ./lib/dns/rdata/generic/afsdb_18.h		C	1999,2000,2001,2004,2005,2007
+./lib/dns/rdata/generic/cdnskey_60.c		C	2014
+./lib/dns/rdata/generic/cdnskey_60.h		C	2014
+./lib/dns/rdata/generic/cds_59.c		C	2014
+./lib/dns/rdata/generic/cds_59.h		C	2014
 ./lib/dns/rdata/generic/cert_37.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012
 ./lib/dns/rdata/generic/cert_37.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/cname_5.c		C	1998,1999,2000,2001,2004,2007,2009
