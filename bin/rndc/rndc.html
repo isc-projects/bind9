@@ -311,10 +311,9 @@
           </p></dd>
 <dt><span class="term"><strong class="userinput"><code>secroots [<span class="optional"><em class="replaceable"><code>view ...</code></em></span>]</code></strong></span></dt>
 <dd><p>
-            Dump the server's security roots to the secroots
-            file for the specified views.  If no view is
-            specified, security roots for all
-            views are dumped.
+            Dump the server's security roots and negative trust anchors
+            to the secroots file for the specified views.  If no view is
+            specified, all views are dumped.
           </p></dd>
 <dt><span class="term"><strong class="userinput"><code>stop [<span class="optional">-p</span>]</code></strong></span></dt>
 <dd><p>
@@ -386,12 +385,19 @@
             <strong class="userinput"><code>auto</code></strong> to be effective.
             It defaults to enabled.
           </p></dd>
-<dt><span class="term"><strong class="userinput"><code>nta <em class="replaceable"><code>domain</code></em> <em class="replaceable"><code>duration</code></em> </code></strong></span></dt>
+<dt><span class="term"><strong class="userinput"><code>nta
+	[<span class="optional">( -d | -f | -r | -l <em class="replaceable"><code>duration</code></em>)</span>]
+	<em class="replaceable"><code>domain</code></em>
+	[<span class="optional"><em class="replaceable"><code>view</code></em></span>]
+	</code></strong></span></dt>
 <dd>
 <p>
             Sets a DNSSEC negative trust anchor (NTA)
             for <code class="option">domain</code>, with a lifetime of
-            <code class="option">duration</code> (up to a limit of one day).
+            <code class="option">lifetime</code>.  The default lifetime is
+            configured in <font color="red">&lt;file&gt;named.conf&lt;/file&gt;</font> via the
+            <code class="option">nta-lifetime</code>, and defaults to
+            one hour.  The lifetime cannot exceed one day.
           </p>
 <p>
             A negative trust anchor selectively disables
@@ -406,13 +412,40 @@
             restarted (NTA's do not persist across restarts).
           </p>
 <p>
-            TTL-style suffixes can be used to specify
-            <code class="option">duration</code> in seconds, minutes, or hours.
+            An existing NTA can be removed by using the
+            <code class="option">-remove</code> option.
           </p>
 <p>
-            If the specified domain already has an NTA, its duration
-            will be updated to the new value.  Setting
-            <code class="option">duration</code> to zero will delete the NTA.
+            An NTA's lifetime can be specified with the
+            <code class="option">-lifetime</code> option.  TTL-style
+            suffixes can be used to specify the lifetime in
+            seconds, minutes, or hours.  If the specified NTA
+            already exists, its lifetime will be updated to the
+            new value.  Setting <code class="option">lifetime</code> to zero
+            is equivalent to <code class="option">-remove</code>.
+          </p>
+<p>
+            If <code class="option">-dump</code> is used, any other arguments
+            are ignored, and a list of existing NTAs is printed
+            (note that this may include NTAs that are expired but
+            have not yet been cleaned up).
+          </p>
+<p>
+            Normally, <span><strong class="command">named</strong></span> will periodically
+            test to see whether data below an NTA can now be
+            validated (see the <code class="option">nta-recheck</code> option
+            in the Administrator Reference Manual for details).
+            If data can be validated, then the NTA is regarded as
+            no longer necessary, and will be allowed to expire
+            early.  The <code class="option">-force</code> overrides this
+            behavior and forces an NTA to persist for its entire
+            lifetime, regardless of whether data could be
+            validated if the NTA were not present.
+          </p>
+<p>
+            All of these options can be shortened, i.e., to
+            <code class="option">-l</code>, <code class="option">-r</code>, <code class="option">-d</code>,
+            and <code class="option">-f</code>.
           </p>
 </dd>
 <dt><span class="term"><strong class="userinput"><code>tsig-list</code></strong></span></dt>
@@ -548,7 +581,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542115"></a><h2>LIMITATIONS</h2>
+<a name="id2545241"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -558,7 +591,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542133"></a><h2>SEE ALSO</h2>
+<a name="id2542119"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -568,7 +601,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545465"></a><h2>AUTHOR</h2>
+<a name="id2542174"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>

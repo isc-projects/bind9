@@ -204,6 +204,8 @@ options {
             [ dscp <integer> ];
         notify-to-soa <boolean>;
         nsec3-test-zone <boolean>; // test only
+        nta-lifetime <ttlval>;
+        nta-recheck <ttlval>;
         pid-file ( <quoted_string> | none );
         port <integer>;
         preferred-glue <string>;
@@ -463,6 +465,8 @@ view <string> <optional_class> {
             [ dscp <integer> ];
         notify-to-soa <boolean>;
         nsec3-test-zone <boolean>; // test only
+        nta-lifetime <ttlval>;
+        nta-recheck <ttlval>;
         preferred-glue <string>;
         prefetch <integer> [ <integer> ];
         provide-ixfr <boolean>;
