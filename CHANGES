@@ -1,3 +1,5 @@
+3884.	[protocol]	Add CDS and CDNSKEY record types. [RT #36333]
+
 3883.	[placeholder]
 
 3882.	[func]		By default, negative trust anchors will be tested
