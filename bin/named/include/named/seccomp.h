@@ -228,7 +228,7 @@ const char *scmp_syscall_names[] = {
 	"gettimeofday",
 	"unlink",
 #ifndef ISC_PLATFORM_USETHREADS
-        "fcntl64",
+	"fcntl64",
 #endif
 };
 #endif /* __i386__ */
