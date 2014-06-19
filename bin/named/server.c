@@ -9799,7 +9799,7 @@ isc_result_t
 ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_view_t *view;
 	dns_ntatable_t *ntatable = NULL;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	char *ptr, *nametext = NULL, *viewname;
 	isc_stdtime_t now, when;
 	isc_time_t t;
