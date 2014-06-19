@@ -1,3 +1,5 @@
+	--- 9.8.8b1 released ---
+
 3884.	[protocol]	Add CDS and CDNSKEY record types. [RT #36333]
 
 3881.	[bug]		Address memory leak with UPDATE error handling.
