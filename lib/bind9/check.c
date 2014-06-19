@@ -783,7 +783,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	const char *str;
 	dns_name_t *name;
 	isc_buffer_t b;
-	isc_uint32_t lifetime;
+	isc_uint32_t lifetime = 3600;
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
