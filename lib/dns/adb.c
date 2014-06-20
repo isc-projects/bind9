@@ -3966,8 +3966,9 @@ adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
 		new_srtt = (addr->entry->srtt / 10 * factor)
 			+ (rtt / 10 * (10 - factor));
 
-	addr->entry->srtt = new_srtt;
-	addr->srtt = new_srtt;
+	new_srtt &= 0xffffffff;
+	addr->entry->srtt = (unsigned int) new_srtt;
+	addr->srtt = (unsigned int) new_srtt;
 
 	if (addr->entry->expires == 0)
 		addr->entry->expires = now + ADB_ENTRY_WINDOW;
