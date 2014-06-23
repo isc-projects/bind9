@@ -1949,8 +1949,8 @@ resquery_send(resquery_t *query) {
 	{
 		isc_boolean_t checknta =
 			ISC_TF((query->options & DNS_FETCHOPT_NONTA) == 0);
-		result = issecuredomain(res->view, &fctx->name,
-					fctx->type, query->start.seconds,
+		result = issecuredomain(res->view, &fctx->name, fctx->type,
+					isc_time_seconds(&query->start),
 					checknta, &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			secure_domain = ISC_FALSE;
