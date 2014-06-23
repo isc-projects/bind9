@@ -2131,7 +2131,7 @@ load_raw(dns_loadctx_t *lctx) {
 					 isc_result_totext(result));
 			return (result);
 		}
-		isc_buffer_add(&target, hdrlen);
+		isc_buffer_add(&target, (unsigned int)hdrlen);
 		format = isc_buffer_getuint32(&target);
 		if (format != dns_masterformat_raw) {
 			(*callbacks->error)(callbacks,
