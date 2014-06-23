@@ -2136,7 +2136,7 @@ load_raw(dns_loadctx_t *lctx) {
 					 isc_result_totext(result));
 			return (result);
 		}
-		isc_buffer_add(&target, commonlen);
+		isc_buffer_add(&target, (unsigned int)commonlen);
 		header.format = isc_buffer_getuint32(&target);
 		if (header.format != dns_masterformat_raw) {
 			(*callbacks->error)(callbacks,
@@ -2169,7 +2169,7 @@ load_raw(dns_loadctx_t *lctx) {
 			return (result);
 		}
 
-		isc_buffer_add(&target, remainder);
+		isc_buffer_add(&target, (unsigned int)remainder);
 		header.dumptime = isc_buffer_getuint32(&target);
 		if (header.version == DNS_RAWFORMAT_VERSION) {
 			header.flags = isc_buffer_getuint32(&target);
