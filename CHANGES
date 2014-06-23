@@ -1,3 +1,6 @@
+3885.	[port]		Use 'open()' rather than 'file()' to open files in
+			python.
+
 3884.	[protocol]	Add CDS and CDNSKEY record types. [RT #36333]
 
 3883.	[placeholder]
