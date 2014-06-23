@@ -2712,7 +2712,7 @@
 ./lib/export/irs/Makefile.in			MAKE	2009,2011,2012,2013
 ./lib/export/irs/include/Makefile.in		MAKE	2009,2011,2012
 ./lib/export/irs/include/irs/Makefile.in	MAKE	2009,2012
-./lib/export/isc/Makefile.in			MAKE	2009,2010,2012,2013
+./lib/export/isc/Makefile.in			MAKE	2009,2010,2012,2013,2014
 ./lib/export/isc/include/Makefile.in		MAKE	2009,2011,2012
 ./lib/export/isc/include/isc/Makefile.in	MAKE	2009,2012,2013
 ./lib/export/isc/include/isc/bind9.h		C	2009
