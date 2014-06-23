@@ -334,7 +334,7 @@ strtotime(const char *str, isc_int64_t now, isc_int64_t base,
 	isc_result_t result;
 	const char *orig = str;
 	char *endp;
-	int n;
+	size_t n;
 
 	if (isnone(str)) {
 		if (setp != NULL)
@@ -356,14 +356,14 @@ strtotime(const char *str, isc_int64_t now, isc_int64_t base,
 	 *   [+-]offset
 	 */
 	n = strspn(str, "0123456789");
-	if ((n == 8 || n == 14) &&
+	if ((n == 8u || n == 14u) &&
 	    (str[n] == '\0' || str[n] == '-' || str[n] == '+'))
 	{
 		char timestr[15];
 
 		strlcpy(timestr, str, sizeof(timestr));
 		timestr[n] = 0;
-		if (n == 8)
+		if (n == 8u)
 			strlcat(timestr, "000000", sizeof(timestr));
 		result = dns_time64_fromtext(timestr, &val);
 		if (result != ISC_R_SUCCESS)
