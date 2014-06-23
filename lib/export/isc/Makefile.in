@@ -22,11 +22,19 @@ export_srcdir =	@top_srcdir@/lib/export
 
 @LIBISC_API@
 
-CINCLUDES =	-I${srcdir}/unix/include \
+CINCLUDES =	-Iunix/include \
+		-I@ISC_THREAD_DIR@/include \
+		-I@ISC_ARCH_DIR@/include \
+		-Iinclude \
+		-I../../../lib/isc/unix/include \
+		-I../../../lib/isc/@ISC_THREAD_DIR@/include \
+		-I../../../lib/isc/@ISC_ARCH_DIR@/include \
+		-I../../../lib/isc/include \
+		-I${srcdir}/unix/include \
 		-I${srcdir}/@ISC_THREAD_DIR@/include \
 		-I${srcdir}/@ISC_ARCH_DIR@/include \
-		-I${export_srcdir}/isc/include -I${srcdir}/include \
-		@ISC_OPENSSL_INC@
+		-I${export_srcdir}/isc/include \
+	        -I${srcdir}/include @ISC_OPENSSL_INC@
 CDEFINES =	@USE_OPENSSL@ -DUSE_APPIMPREGISTER -DUSE_MEMIMPREGISTER \
 		-DUSE_SOCKETIMPREGISTER -DUSE_TASKIMPREGISTER \
 		-DUSE_TIMERIMPREGISTER
