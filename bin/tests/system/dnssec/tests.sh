@@ -33,7 +33,7 @@ showprivate () {
     echo "-- $@ --"
     $DIG $DIGOPTS +nodnssec +short @$2 -t type65534 $1 | cut -f3 -d' ' |
         while read record; do
-            perl -e 'my $rdata = pack("H*", @ARGV[0]);
+            $PERL -e 'my $rdata = pack("H*", @ARGV[0]);
                 die "invalid record" unless length($rdata) == 5;
                 my ($alg, $key, $remove, $complete) = unpack("CnCC", $rdata);
                 my $action = "signing";
