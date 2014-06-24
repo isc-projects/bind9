@@ -213,6 +213,7 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 		dns_db_detach(&devent->db);
 
 	isc_event_free(&event);
+	isc_stdtime_get(&now);
 
 	switch (eresult) {
 	case ISC_R_SUCCESS:
@@ -220,7 +221,6 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	case DNS_R_NXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
 	case DNS_R_NXRRSET:
-		isc_stdtime_get(&now);
 		nta->expiry = now;
 		break;
 	default:
