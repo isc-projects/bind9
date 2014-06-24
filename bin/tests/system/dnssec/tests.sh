@@ -33,7 +33,7 @@ showprivate () {
     echo "-- $@ --"
     $DIG $DIGOPTS +nodnssec +short @$2 -t type65534 $1 | cut -f3 -d' ' |
         while read record; do
-            perl -e 'my $rdata = pack("H*", @ARGV[0]);
+            $PERL -e 'my $rdata = pack("H*", @ARGV[0]);
                 die "invalid record" unless length($rdata) == 5;
                 my ($alg, $key, $remove, $complete) = unpack("CnCC", $rdata);
                 my $action = "signing";
@@ -58,7 +58,7 @@ checkprivate () {
 
 # check that a zone file is raw format, version 0
 israw0 () {
-    cat $1 | perl -e 'binmode STDIN;
+    cat $1 | $PERL -e 'binmode STDIN;
 		      read(STDIN, $input, 8);
                       ($style, $version) = unpack("NN", $input);
                       exit 1 if ($style != 2 || $version != 0);'
@@ -67,7 +67,7 @@ israw0 () {
 
 # check that a zone file is raw format, version 1
 israw1 () {
-    cat $1 | perl -e 'binmode STDIN;
+    cat $1 | $PERL -e 'binmode STDIN;
 		      read(STDIN, $input, 8);
                       ($style, $version) = unpack("NN", $input);
                       exit 1 if ($style != 2 || $version != 1);'
