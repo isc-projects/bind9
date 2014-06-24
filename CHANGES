@@ -1,3 +1,6 @@
+3887.	[cleanup]	Make all static symbols in rbtdb64 end in "64" so
+			they are easier to use in a debugger. [RT #36373]
+
 	--- 9.8.8b1 released ---
 
 3884.	[protocol]	Add CDS and CDNSKEY record types. [RT #36333]
