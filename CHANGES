@@ -1,3 +1,6 @@
+3886.	[bug]		rbtdb_write_header should use a once to initialize
+			FILE_VERSION. [RT #36374]
+
 3885.	[port]		Use 'open()' rather than 'file()' to open files in
 			python.
 

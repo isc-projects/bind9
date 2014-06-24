@@ -36,6 +36,7 @@
 #include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
+#include <isc/once.h>
 #include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/random.h>
@@ -7452,6 +7453,18 @@ rbtdb_zero_header(FILE *rbtfile) {
 	return (result);
 }
 
+static isc_once_t once = ISC_ONCE_INIT;
+
+static void
+init_file_version(void) {
+	int n;
+
+	memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
+	n = snprintf(FILE_VERSION, sizeof(FILE_VERSION),
+		 "RBTDB Image %s %s", dns_major, dns_mapapi);
+	INSIST(n < sizeof(FILE_VERSION));
+}
+
 /*
  * Write the file header out, recording the locations of the three
  * RBT's used in the rbtdb: tree, nsec, and nsec3, and including NodeDump
@@ -7465,11 +7478,7 @@ rbtdb_write_header(FILE *rbtfile, off_t tree_location, off_t nsec_location,
 	rbtdb_file_header_t header;
 	isc_result_t result;
 
-	if (FILE_VERSION[0] == '\0') {
-		memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
-		snprintf(FILE_VERSION, sizeof(FILE_VERSION),
-			 "RBTDB Image %s %s", dns_major, dns_mapapi);
-	}
+	RUNTIME_CHECK(isc_once_do(&once, init_file_version) == ISC_R_SUCCESS);
 
 	memset(&header, 0, sizeof(rbtdb_file_header_t));
 	memmove(header.version1, FILE_VERSION, sizeof(header.version1));
