@@ -55,7 +55,7 @@ test_update testdenied.example.nil. TXT "86400 TXT helloworld" "helloworld" || s
 
 echo "I:testing external update policy"
 test_update testcname.example.nil. TXT "86400 CNAME testdenied.example.nil" "testdenied" && status=1
-perl ./authsock.pl --type=CNAME --path=ns1/auth.sock --pidfile=authsock.pid --timeout=120 > /dev/null 2>&1 &
+$PERL ./authsock.pl --type=CNAME --path=ns1/auth.sock --pidfile=authsock.pid --timeout=120 > /dev/null 2>&1 &
 sleep 1
 test_update testcname.example.nil. TXT "86400 CNAME testdenied.example.nil" "testdenied" || status=1
 test_update testcname.example.nil. TXT "86400 A 10.53.0.13" "10.53.0.13" && status=1

@@ -20,7 +20,7 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 israw () {
-    perl -e 'binmode STDIN;
+    $PERL -e 'binmode STDIN;
              read(STDIN, $input, 8);
              ($style, $version) = unpack("NN", $input);
              exit 1 if ($style != 2 || $version > 1);' < $1
@@ -28,7 +28,7 @@ israw () {
 }
 
 rawversion () {
-    perl -e 'binmode STDIN;
+    $PERL -e 'binmode STDIN;
              read(STDIN, $input, 8);
              if (length($input) < 8) { print "not raw\n"; exit 0; };
              ($style, $version) = unpack("NN", $input);
@@ -36,7 +36,7 @@ rawversion () {
 }
 
 sourceserial () {
-    perl -e 'binmode STDIN;
+    $PERL -e 'binmode STDIN;
              read(STDIN, $input, 20);
              if (length($input) < 20) { print "UNSET\n"; exit; };
              ($format, $version, $dumptime, $flags, $sourceserial) = 
