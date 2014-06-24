@@ -351,7 +351,7 @@ ATF_TC_BODY(rbt_check_distance_random, tc) {
 	 * 2log(n). This check verifies that the tree is balanced.
 	 */
 	dns_rbt_t *mytree = NULL;
-	const int log_num_nodes = 16;
+	const unsigned int log_num_nodes = 16;
 
 	int i;
 	isc_result_t result;
@@ -407,12 +407,12 @@ ATF_TC_BODY(rbt_check_distance_random, tc) {
 	}
 
 	/* 1 (root . node) + (1 << log_num_nodes) */
-	ATF_CHECK_EQ(1 + (1 << log_num_nodes), dns_rbt_nodecount(mytree));
+	ATF_CHECK_EQ(1U + (1U << log_num_nodes), dns_rbt_nodecount(mytree));
 
 	/* The distance from each node to its sub-tree root must be less
 	 * than 2 * log(n).
 	 */
-	ATF_CHECK((2 * log_num_nodes) >= dns__rbt_getheight(mytree));
+	ATF_CHECK((2U * log_num_nodes) >= dns__rbt_getheight(mytree));
 
 	/* Also check RB tree properties */
 	tree_ok = dns__rbt_checkproperties(mytree);
@@ -435,7 +435,7 @@ ATF_TC_BODY(rbt_check_distance_ordered, tc) {
 	 * 2log(n). This check verifies that the tree is balanced.
 	 */
 	dns_rbt_t *mytree = NULL;
-	const int log_num_nodes = 16;
+	const unsigned int log_num_nodes = 16;
 
 	int i;
 	isc_result_t result;
@@ -479,12 +479,12 @@ ATF_TC_BODY(rbt_check_distance_ordered, tc) {
 	}
 
 	/* 1 (root . node) + (1 << log_num_nodes) */
-	ATF_CHECK_EQ(1 + (1 << log_num_nodes), dns_rbt_nodecount(mytree));
+	ATF_CHECK_EQ(1U + (1U << log_num_nodes), dns_rbt_nodecount(mytree));
 
 	/* The distance from each node to its sub-tree root must be less
 	 * than 2 * log(n).
 	 */
-	ATF_CHECK((2 * log_num_nodes) >= dns__rbt_getheight(mytree));
+	ATF_CHECK((2U * log_num_nodes) >= dns__rbt_getheight(mytree));
 
 	/* Also check RB tree properties */
 	tree_ok = dns__rbt_checkproperties(mytree);
