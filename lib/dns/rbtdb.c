@@ -7462,7 +7462,7 @@ init_file_version(void) {
 	memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
 	n = snprintf(FILE_VERSION, sizeof(FILE_VERSION),
 		 "RBTDB Image %s %s", dns_major, dns_mapapi);
-	INSIST(n < sizeof(FILE_VERSION));
+	INSIST(n > 0 && (unsigned int)n < sizeof(FILE_VERSION));
 }
 
 /*
