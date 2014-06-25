@@ -109,9 +109,6 @@
  */
 typedef struct rbtdb_file_header rbtdb_file_header_t;
 
-/* Pad to 32 bytes */
-static char FILE_VERSION[32] = "\0";
-
 /* Header length, always the same size regardless of structure size */
 #define RBTDB_HEADER_LENGTH	1024
 
@@ -840,6 +837,9 @@ static void free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log,
 		       isc_event_t *event);
 static void overmem(dns_db_t *db, isc_boolean_t overmem);
 static void setnsec3parameters(dns_db_t *db, rbtdb_version_t *version);
+
+/* Pad to 32 bytes */
+static char FILE_VERSION[32] = "\0";
 
 /*%
  * 'init_count' is used to initialize 'newheader->count' which inturn
