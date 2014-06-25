@@ -92,6 +92,8 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define rdatasetheader_t rdatasetheader64_t
 #define rbtdb_version_t rbtdb_version64_t
 
+#define init_count init_count64
+
 #define cache_methods cache_methods64
 #define dbiterator_methods dbiterator_methods64
 #define rdataset_methods rdataset_methods64
