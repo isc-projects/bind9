@@ -893,6 +893,7 @@ dns_zone_get_rpz_num
 dns_zone_getadded
 dns_zone_getaltxfrsource4dscp
 dns_zone_getaltxfrsource6dscp
+dns_zone_getautomatic
 dns_zone_getchecknames
 dns_zone_getclass
 dns_zone_getdb
@@ -978,6 +979,7 @@ dns_zone_setaltxfrsource4
 dns_zone_setaltxfrsource4dscp
 dns_zone_setaltxfrsource6
 dns_zone_setaltxfrsource6dscp
+dns_zone_setautomatic
 dns_zone_setcheckmx
 dns_zone_setchecknames
 dns_zone_setcheckns

@@ -372,6 +372,11 @@ struct dns_zone {
 	isc_boolean_t           added;
 
 	/*%
+	 * True if added by automatically by named.
+	 */
+	isc_boolean_t           automatic;
+
+	/*%
 	 * response policy data to be relayed to the database
 	 */
 	dns_rpz_zones_t		*rpzs;
@@ -986,6 +991,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->nodes = 100;
 	zone->privatetype = (dns_rdatatype_t)0xffffU;
 	zone->added = ISC_FALSE;
+	zone->automatic = ISC_FALSE;
 	zone->rpzs = NULL;
 	zone->rpz_num = DNS_RPZ_INVALID_NUM;
 	ISC_LIST_INIT(zone->forwards);
@@ -16192,6 +16198,17 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 			count++;
 		}
 		break;
+	case DNS_ZONESTATE_AUTOMATIC:
+		for (zone = ISC_LIST_HEAD(zmgr->zones);
+		     zone != NULL;
+		     zone = ISC_LIST_NEXT(zone, link)) {
+			dns_view_t *view = zone->view;
+			if (view != NULL && strcmp(view->name, "_bind") == 0)
+				continue;
+			if (zone->automatic)
+				count++;
+		}
+		break;
 	default:
 		INSIST(0);
 	}
@@ -17196,6 +17213,21 @@ dns_zone_nscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 				  ISC_FALSE);
 	dns_db_detachnode(db, &node);
 	return (result);
+}
+
+void
+dns_zone_setautomatic(dns_zone_t *zone, isc_boolean_t automatic) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->automatic = automatic;
+	UNLOCK_ZONE(zone);
+}
+
+isc_boolean_t
+dns_zone_getautomatic(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->automatic);
 }
 
 void

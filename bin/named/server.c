@@ -2259,6 +2259,7 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, ISC_TRUE);
 	dns_zone_setnotifytype(zone, dns_notifytype_no);
 	dns_zone_setdialup(zone, dns_dialuptype_no);
+	dns_zone_setautomatic(zone, ISC_TRUE);
 	if (view->queryacl)
 		dns_zone_setqueryacl(zone, view->queryacl);
 	else
@@ -8227,7 +8228,8 @@ ns_server_flushnode(ns_server_t *server, char *args, isc_boolean_t tree) {
 
 isc_result_t
 ns_server_status(ns_server_t *server, isc_buffer_t *text) {
-	int zonecount, xferrunning, xferdeferred, soaqueries;
+	unsigned int zonecount, xferrunning, xferdeferred, soaqueries;
+	unsigned int automatic;
 	unsigned int n;
 	const char *ob = "", *cb = "", *alt = "";
 	char boottime[80], configtime[80];
@@ -8247,6 +8249,8 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 					    DNS_ZONESTATE_XFERDEFERRED);
 	soaqueries = dns_zonemgr_getcount(server->zonemgr,
 					  DNS_ZONESTATE_SOAQUERY);
+	automatic = dns_zonemgr_getcount(server->zonemgr,
+					 DNS_ZONESTATE_AUTOMATIC);
 
 	isc_time_formathttptimestamp(&ns_g_boottime, boottime,
 				     sizeof(boottime));
@@ -8263,7 +8267,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "worker threads: %u\n"
 		     "UDP listeners per interface: %u\n"
 #endif
-		     "number of zones: %u\n"
+		     "number of zones: %u (%u automatic)\n"
 		     "debug level: %d\n"
 		     "xfers running: %u\n"
 		     "xfers deferred: %u\n"
@@ -8277,8 +8281,9 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 #ifdef ISC_PLATFORM_USETHREADS
 		     ns_g_cpus_detected, ns_g_cpus, ns_g_udpdisp,
 #endif
-		     zonecount, ns_g_debuglevel, xferrunning, xferdeferred,
-		     soaqueries, server->log_queries ? "ON" : "OFF",
+		     zonecount, automatic, ns_g_debuglevel, xferrunning,
+		     xferdeferred, soaqueries,
+		     server->log_queries ? "ON" : "OFF",
 		     server->recursionquota.used, server->recursionquota.soft,
 		     server->recursionquota.max,
 		     server->tcpquota.used, server->tcpquota.max);

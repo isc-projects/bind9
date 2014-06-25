@@ -135,6 +135,7 @@ typedef enum {
 #define DNS_ZONESTATE_XFERDEFERRED	2
 #define DNS_ZONESTATE_SOAQUERY		3
 #define DNS_ZONESTATE_ANY		4
+#define DNS_ZONESTATE_AUTOMATIC		5
 
 ISC_LANG_BEGINDECLS
 
@@ -2123,6 +2124,25 @@ dns_zone_getadded(dns_zone_t *zone);
 /*%
  * Returns ISC_TRUE if the zone was originally added at runtime
  * using "rndc addzone".
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+void
+dns_zone_setautomatic(dns_zone_t *zone, isc_boolean_t automatic);
+/*%
+ * Sets the value of zone->automatic, which should be ISC_TRUE for
+ * zones that were automatically added by named.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+isc_boolean_t
+dns_zone_getautomatic(dns_zone_t *zone);
+/*%
+ * Returns ISC_TRUE if the zone was added automatically by named.
  *
  * Requires:
  * \li	'zone' to be valid.

@@ -341,5 +341,12 @@ done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:testing automatic zones are reported"
+ret=0
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf status > rndc.status || ret=1
+grep "number of zones: 98 (97 automatic)" rndc.status > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
