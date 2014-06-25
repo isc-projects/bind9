@@ -1444,7 +1444,7 @@
 ./bin/tests/system/tsig/tests.sh		SH	2005,2006,2007,2011,2012
 ./bin/tests/system/tsiggss/Makefile.in		MAKE	2011,2012
 ./bin/tests/system/tsiggss/authsock.pl		PERL	2011,2012
-./bin/tests/system/tsiggss/clean.sh		X	2010,2011
+./bin/tests/system/tsiggss/clean.sh		X	2010,2011,2014
 ./bin/tests/system/tsiggss/gssapi_krb.c		C	2011,2012
 ./bin/tests/system/tsiggss/ns1/administrator.ccache	X	2010
 ./bin/tests/system/tsiggss/ns1/dns.keytab	X	2010
