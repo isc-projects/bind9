@@ -145,6 +145,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define rbtdb_version_t rbtdb_version64_t
 
 #define once once64
+#define FILE_VERSION FILE_VERSION64
 
 #define cache_methods cache_methods64
 #define dbiterator_methods dbiterator_methods64
@@ -155,6 +156,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define acache_callback acache_callback64
 #define acache_cancelentry acache_cancelentry64
 #define activeempty activeempty64
+#define activeemtpynode activeemtpynode64
 #define add32 add64
 #define add_changed add_changed64
 #define add_empty_wildcards add_empty_wildcards64
@@ -196,11 +198,13 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define expire_header expire_header64
 #define expirenode expirenode64
 #define find_closest_nsec find_closest_nsec64
+#define find_coveringnsec find_coveringnsec64
 #define find_deepest_zonecut find_deepest_zonecut64
 #define findnode findnode64
 #define findnodeintree findnodeintree64
 #define findnsec3node findnsec3node64
 #define flush_deletions flush_deletions64
+#define free_acachearray free_acachearray64
 #define free_noqname free_noqname64
 #define free_rbtdb free_rbtdb64
 #define free_rbtdb_callback free_rbtdb_callback64
@@ -219,6 +223,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define loadnode loadnode64
 #define matchparams matchparams64
 #define maybe_free_rbtdb maybe_free_rbtdb64
+#define new_reference new_reference64
 #define newversion newversion64
 #define nodecount nodecount64
 #define overmem overmem64
@@ -253,13 +258,17 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define rpz_ready rpz_ready64
 #define serialize serialize64
 #define set_index set_index64
+#define set_ttl set_ttl64
 #define setcachestats setcachestats64
 #define setsigningtime setsigningtime64
 #define settask settask64
 #define setup_delegation setup_delegation64
 #define subtractrdataset subtractrdataset64
 #define ttl_sooner ttl_sooner64
+#define update_cachestats update_cachestats64
 #define update_header update_header64
+#define update_newheader update_newheader64
+#define update_rrsetstats update_rrsetstats64
 #define zone_find zone_find64
 #define zone_findrdataset zone_findrdataset64
 #define zone_findzonecut zone_findzonecut64
