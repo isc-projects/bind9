@@ -2134,7 +2134,7 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
  * references exist.
  */
 static void
-closesocket(isc__socketmgr_t *manager, isc__socket_t *sock, int fd) {
+socketclose(isc__socketmgr_t *manager, isc__socket_t *sock, int fd) {
 	isc_sockettype_t type = sock->type;
 	int lockid = FDLOCK_ID(fd);
 
@@ -2219,7 +2219,7 @@ destroy(isc__socket_t **sockp) {
 	if (sock->fd >= 0) {
 		fd = sock->fd;
 		sock->fd = -1;
-		closesocket(manager, sock, fd);
+		socketclose(manager, sock, fd);
 	}
 
 	LOCK(&manager->lock);
@@ -3174,7 +3174,7 @@ isc__socket_close(isc_socket_t *sock0) {
 
 	UNLOCK(&sock->lock);
 
-	closesocket(manager, sock, fd);
+	socketclose(manager, sock, fd);
 
 	return (ISC_R_SUCCESS);
 }
