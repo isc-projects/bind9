@@ -1,3 +1,6 @@
+3889.	[port]		hurd: configure fixes as per:
+			https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=746540
+
 3887.	[cleanup]	Make all static symbols in rbtdb64 end in "64" so
 			they are easier to use in a debugger. [RT #36373]
 

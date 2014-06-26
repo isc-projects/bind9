@@ -12591,7 +12591,7 @@ case "$host" in
 	# as it breaks how the two halves (Basic and Advanced) of the IPv6
 	# Socket API were designed to be used but we have to live with it.
 	# Define _GNU_SOURCE to pull in the IPv6 Advanced Socket API.
-	*-linux* | *-kfreebsd*-gnu)
+	*-linux* | *-kfreebsd*-gnu*)
 		STD_CDEFINES="$STD_CDEFINES -D_GNU_SOURCE"
 		CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 		;;
@@ -20383,7 +20383,7 @@ if test -f "${srcdir}/srcid"; then
 	. "${srcdir}/srcid"
 	BIND9_SRCID="SRCID=$SRCID"
 elif test -d "${srcdir}/.git"; then
-	BIND9_SRCID="SRCID="`(cd "${srcdir}";git log -n 1 --format=%h)`
+	BIND9_SRCID="SRCID="`(cd "${srcdir}";git rev-parse --short HEAD)`
 fi
 
 
@@ -20534,7 +20534,7 @@ fi
 
 if test "$dlopen" = "yes"; then
 	case $host in
-		*-linux*)
+		*-linux*|*-gnu*)
 			SO_CFLAGS="-fPIC"
 			SO_LDFLAGS=""
 			if test "$have_dl" = "yes"
