@@ -1654,6 +1654,7 @@ status=`expr $status + $ret`
 
 echo "I:checking positive and negative validation with negative trust anchors ($n)"
 ret=0
+
 #
 # check correct initial behavior
 #
@@ -1664,10 +1665,14 @@ grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null || ret=1
 $DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.3 || ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.3 > /dev/null || ret=1
 
+if [ $ret != 0 ]; then echo "I:failed - checking initial state"; fi
+status=`expr $status + $ret`
+ret=0
+
 #
 # add negative trust anchors
 #
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -f -l 15s bogus.example 2>&1 | sed 's/^/I:ns4 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -f -l 20s bogus.example 2>&1 | sed 's/^/I:ns4 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta badds.example 2>&1 | sed 's/^/I:ns4 /'
 lines=`$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d | wc -l`
 [ "$lines" -eq 2 ] || ret=1
@@ -1675,6 +1680,11 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta secure.example 2>&1 | sed 
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta fakenode.secure.example 2>&1 | sed 's/^/I:ns4 /'
 lines=`$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d | wc -l`
 [ "$lines" -eq 4 ] || ret=1
+start=`$PERL -e 'print time()."\n";'`
+
+if [ $ret != 0 ]; then echo "I:failed - adding NTA's failed"; fi
+status=`expr $status + $ret`
+ret=0
 
 #
 # check behavior with NTA's in place
@@ -1693,6 +1703,11 @@ grep "bogus.example: expiry" ns4/named.secroots > /dev/null || ret=1
 grep "badds.example: expiry" ns4/named.secroots > /dev/null || ret=1
 grep "secure.example: expiry" ns4/named.secroots > /dev/null || ret=1
 grep "fakenode.secure.example: expiry" ns4/named.secroots > /dev/null || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed - with NTA's in place failed"; fi
+status=`expr $status + $ret`
+ret=0
+
 echo "I: waiting for NTA rechecks/expirations"
 
 #
@@ -1702,7 +1717,7 @@ echo "I: waiting for NTA rechecks/expirations"
 # fakenode.secure.example should both be lifted, but badds.example
 # should still be going.
 #
-sleep 8
+$PERL -e 'my $delay =  '$start' + 8 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 $DIG $DIGOPTS b.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.8 || ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.8 > /dev/null || ret=1
 $DIG $DIGOPTS b.fakenode.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.9 || ret=1
@@ -1711,12 +1726,16 @@ grep "status: NXDOMAIN" dig.out.ns4.test$n.9 > /dev/null || ret=1
 $DIG $DIGOPTS badds.example. soa @10.53.0.4 > dig.out.ns4.test$n.10 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.10 > /dev/null && ret=1
 
+if [ $ret != 0 ]; then echo "I:failed - checking that default nta's were lifted"; fi
+status=`expr $status + $ret`
+ret=0
+
 #
 # bogus.example was set to expire in 15s, so at t=11
 # it should still be NTA'd, but badds.example used the default
 # lifetime of 10s, so it should revert to SERVFAIL now.
 #
-sleep 3
+$PERL -e 'my $delay = '$start' + 11 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 $DIG $DIGOPTS b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.11 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.11 > /dev/null && ret=1
 $DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.12 || ret=1
@@ -1724,10 +1743,14 @@ grep "status: SERVFAIL" dig.out.ns4.test$n.12 > /dev/null || ret=1
 $DIG $DIGOPTS c.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.13 || ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.13 > /dev/null || ret=1
 
+if [ $ret != 0 ]; then echo "I:failed - checking that default nta's were lifted"; fi
+status=`expr $status + $ret`
+ret=0
+
 #
-# at t=16, all the NTAs should have expired.
+# at t=21, all the NTAs should have expired.
 #
-sleep 5
+$PERL -e 'my $delay = '$start' + 21 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 # check correct behavior after bogus.example expiry
 $DIG $DIGOPTS d.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.14 || ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.14 > /dev/null || ret=1
