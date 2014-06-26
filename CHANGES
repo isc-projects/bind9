@@ -1,3 +1,6 @@
+3889.	[port]		hurd: configure fixes as per:
+			https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=746540
+
 3888.	[func]		'rndc status' now reports the number of automatic
 			zones. [RT #36015]
 
