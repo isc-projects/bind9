@@ -1726,12 +1726,12 @@ grep "status: NXDOMAIN" dig.out.ns4.test$n.9 > /dev/null || ret=1
 $DIG $DIGOPTS badds.example. soa @10.53.0.4 > dig.out.ns4.test$n.10 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.10 > /dev/null && ret=1
 
-if [ $ret != 0 ]; then echo "I:failed - checking that default nta's were lifted"; fi
+if [ $ret != 0 ]; then echo "I:failed - checking that default nta's were lifted due to recheck"; fi
 status=`expr $status + $ret`
 ret=0
 
 #
-# bogus.example was set to expire in 15s, so at t=11
+# bogus.example was set to expire in 20s, so at t=11
 # it should still be NTA'd, but badds.example used the default
 # lifetime of 10s, so it should revert to SERVFAIL now.
 #
@@ -1743,7 +1743,7 @@ grep "status: SERVFAIL" dig.out.ns4.test$n.12 > /dev/null || ret=1
 $DIG $DIGOPTS c.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.13 || ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.13 > /dev/null || ret=1
 
-if [ $ret != 0 ]; then echo "I:failed - checking that default nta's were lifted"; fi
+if [ $ret != 0 ]; then echo "I:failed - checking that default nta's were lifted due to lifetime"; fi
 status=`expr $status + $ret`
 ret=0
 
@@ -1760,7 +1760,7 @@ grep "status: SERVFAIL" dig.out.ns4.test$n.15 > /dev/null || ret=1
 lines=`$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d | wc -l`
 [ "$lines" -eq 0 ] || ret=1
 n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo "I:failed - that all nta's have been lifted"; fi
 status=`expr $status + $ret`
 
 # Run a minimal update test if possible.  This is really just
