@@ -162,10 +162,6 @@
 3825.	[bug]		Address sign extension bug in isc_regex_validate.
 			[RT #35758]
 
-3824.	[bug]		A collision between two flag values could cause
-			problems with cache cleaning when SIT was enabled.
-			[RT #35858]
-
 3822.	[bug]		Log the correct type of static-stub zones when
 			removing them. [RT #35842]
 
@@ -178,6 +174,10 @@
 			constant in isc_event_allocate.
 
 	--- 9.10.0 released ---
+
+3824.	[bug]		A collision between two flag values could cause
+			problems with cache cleaning when SIT was enabled.
+			[RT #35858]
 
 	--- 9.10.0rc2 released ---
 
