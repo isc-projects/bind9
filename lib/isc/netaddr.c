@@ -240,7 +240,7 @@ isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen) {
 			return (ISC_R_FAILURE);
 		nbytes++;
 	}
-	if (memcmp(p + nbytes, zeros, ipbytes - nbytes) != 0)
+	if (nbytes < ipbytes && memcmp(p + nbytes, zeros, ipbytes - nbytes) != 0)
 		return (ISC_R_FAILURE);
 	return (ISC_R_SUCCESS);
 }
