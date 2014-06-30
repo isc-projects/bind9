@@ -7,13 +7,13 @@
 3858.	[bug]		Disable GCC 4.9 "delete null pointer check".
 			[RT #35968]
 
-3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to seperate out
+3853.	[cleanup]	Refactor dns_rdataslab_fromrdataset to separate out
 			the handling of a rdataset with no records. [RT #35968]
 
 3850.	[bug]		Disabling forwarding could trigger a REQUIRE assertion.
 			[RT #35979]
 
-3843.	[bug]		Use the x64 version of the Microsoft Visual C++
+3844.	[bug]		Use the x64 version of the Microsoft Visual C++
 			Redistributable when built for 64 bit Windows.
 			[RT #35973]
 
@@ -46,7 +46,7 @@
 
 3808.	[doc]		Clean up "prefetch" documentation. [RT #35751]
 
-3807.	[bug]		Fix sign extention bug in dns_name_fromtext when
+3807.	[bug]		Fix sign extension bug in dns_name_fromtext when
 			lowercase is set. [RT #35743]
 
 3806.	[test]		Improved system test portability. [RT #35625]
@@ -616,7 +616,7 @@
 3660.	[cleanup]	Changed the name of "isc-config.sh" to "bind9-config".
 			[RT #23825]
 
-3659.	[port]		solaris: don't add explict dependencies/rules for
+3659.	[port]		solaris: don't add explicit dependencies/rules for
 			python programs as make won't use the implicit rules.
 			[RT #34835]
 
