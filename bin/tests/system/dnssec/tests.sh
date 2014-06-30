@@ -1674,11 +1674,13 @@ ret=0
 #
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -f -l 20s bogus.example 2>&1 | sed 's/^/I:ns4 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta badds.example 2>&1 | sed 's/^/I:ns4 /'
-lines=`$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d | wc -l`
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.1
+lines=`wc -l < rndc.out.ns4.test$n.1`
 [ "$lines" -eq 2 ] || ret=1
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta secure.example 2>&1 | sed 's/^/I:ns4 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta fakenode.secure.example 2>&1 | sed 's/^/I:ns4 /'
-lines=`$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d | wc -l`
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.2
+lines=`wc -l < rndc.out.ns4.test$n.2`
 [ "$lines" -eq 4 ] || ret=1
 start=`$PERL -e 'print time()."\n";'`
 
@@ -1757,7 +1759,8 @@ grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.14 > /dev/null || ret=1
 $DIG $DIGOPTS c.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.15 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.15 > /dev/null || ret=1
 # check nta table has been cleaned up now
-lines=`$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d | wc -l`
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.3
+lines=`wc -l < rndc.out.ns4.test$n.3`
 [ "$lines" -eq 0 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed - that all nta's have been lifted"; fi
@@ -2566,15 +2569,15 @@ status=`expr $status + $ret`
 echo "I:check the correct resigning time is reported in zonestatus ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 \
-		zonestatus secure.example > rndc.out.test$n
+		zonestatus secure.example > rndc.out.ns3.test$n
 # next resign node: secure.example/DNSKEY
-name=`awk '/next resign node:/ { print $4 }' rndc.out.test$n | sed 's;/; ;'`
+name=`awk '/next resign node:/ { print $4 }' rndc.out.ns3.test$n | sed 's;/; ;'`
 # next resign time: Thu, 24 Apr 2014 10:38:16 GMT
 time=`awk 'BEGIN { m["Jan"] = "01"; m["Feb"] = "02"; m["Mar"] = "03";
 		   m["Apr"] = "04"; m["May"] = "05"; m["Jun"] = "06";
 		   m["Jul"] = "07"; m["Aug"] = "08"; m["Sep"] = "09";
 		   m["Oct"] = "10"; m["Nov"] = "11"; m["Dec"] = "12";}
-	 /next resign time:/ { printf "%d%s%02d%s\n", $7, m[$6], $5, $8 }' rndc.out.test$n | sed 's/://g'`
+	 /next resign time:/ { printf "%d%s%02d%s\n", $7, m[$6], $5, $8 }' rndc.out.ns3.test$n | sed 's/://g'`
 $DIG $DIGOPTS +noall +answer $name @10.53.0.3 -p 5300 > dig.out.test$n
 expire=`awk '$4 == "RRSIG" { print $9 }' dig.out.test$n`
 inception=`awk '$4 == "RRSIG" { print $10 }' dig.out.test$n`

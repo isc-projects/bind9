@@ -70,3 +70,4 @@ rm -f signing.out*
 rm -f canonical?.*
 rm -f ns3/siginterval.conf
 rm -f ns4/named_dump.db
+rm -f ns3/badds.example.db
