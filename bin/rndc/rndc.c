@@ -158,6 +158,18 @@ command is one of the following:\n\
 		Delete a TKEY-negotiated TSIG key.\n\
   validation newstate [view]\n\
 		Enable / disable DNSSEC validation.\n\
+  nta [-lifetime duration] [-force] domain [view]\n\
+		Set a negative trust anchor, disabling DNSSEC validation\n\
+		for the given domain.\n\
+		Using -lifetime specifies the duration of the NTA, up\n\
+		to one day.\n\
+		Using -force prevents the NTA from expiring before its\n\
+		full lifetime, even if the domain can validate sooner.\n\
+  nta -remove domain [view]\n\
+		Remove a negative trust anchor, re-enabling validation\n\
+		for the given domain.\n\
+  nta -dump\n\
+		List all negative trust anchors.\n\
   addzone zone [class [view]] { zone-options }\n\
 		Add zone to given view. Requires new-zone-file option.\n\
   delzone [-clean] zone [class [view]]\n\
