@@ -1169,8 +1169,8 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		return (DNS_R_NOVALIDSIG);
 	}
 
-	/* OK to clear other options, but preserve NOCDFLAG */
-	vopts |= (val->options & DNS_VALIDATOR_NOCDFLAG);
+	/* OK to clear other options, but preserve NOCDFLAG and NONTA. */
+	vopts |= (val->options & (DNS_VALIDATOR_NOCDFLAG|DNS_VALIDATOR_NONTA));
 
 	validator_logcreate(val, name, type, caller, "validator");
 	result = dns_validator_create(val->view, name, type,
