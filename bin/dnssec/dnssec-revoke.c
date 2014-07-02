@@ -253,12 +253,10 @@ main(int argc, char **argv) {
 			dst_key_buildfilename(key, DST_TYPE_PRIVATE, dir, &buf);
 			if (strcmp(oldname, newname) == 0)
 				goto cleanup;
-			if (access(oldname, F_OK) == 0)
-				unlink(oldname);
+			(void)unlink(oldname);
 			isc_buffer_clear(&buf);
 			dst_key_buildfilename(key, DST_TYPE_PUBLIC, dir, &buf);
-			if (access(oldname, F_OK) == 0)
-				unlink(oldname);
+			(void)unlink(oldname);
 		}
 	} else {
 		dst_key_format(key, keystr, sizeof(keystr));
