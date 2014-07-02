@@ -444,7 +444,7 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 	}
 	if (result == ISC_R_SUCCESS) {
 		nta = (dns_nta_t *) node->data;
-		answer = ISC_TF(nta->expiry > now);
+		answer = ISC_TF(nta->expiry >= now);
 	}
 
 	/* Deal with expired NTA */
