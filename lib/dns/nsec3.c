@@ -883,8 +883,8 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 		dns_db_detachnode(db, &newnode);
 	} while (1);
 
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_SUCCESS;
+	/* result cannot be ISC_R_NOMORE here */
+	INSIST(result != ISC_R_NOMORE);
 
  failure:
 	if (dbit != NULL)
