@@ -1,3 +1,6 @@
+3891.	[bug]		Use ${INSTALL_SCRIPT} rather than ${INSTALL_PROGRAM}
+			to install python programs.
+
 3890.	[bug]		RRSIG sets that were not loaded in a single transaction
 			at start up where not being correctly added to
 			re-signing heaps.  [RT #36302]
