@@ -1,3 +1,6 @@
+3892.	[bug]		Setting '-t aaaa' in .digrc had unintended side
+			effects. [RT #36452]
+
 3890.	[bug]		RRSIG sets that were not loaded in a single transaction
 			at start up where not being correctly added to
 			re-signing heaps.  [RT #36302]
