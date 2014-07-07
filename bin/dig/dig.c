@@ -1411,7 +1411,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 					(*lookup)->tcp_mode = ISC_TRUE;
 			} else {
 				(*lookup)->rdtype = rdtype;
-				if (!config_only) 
+				if (!config_only)
 					(*lookup)->rdtypeset = ISC_TRUE;
 				if (rdtype == dns_rdatatype_axfr) {
 					(*lookup)->section_question = plusquest;
