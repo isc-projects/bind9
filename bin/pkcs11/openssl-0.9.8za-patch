@@ -1,7 +1,7 @@
 Index: openssl/Configure
-diff -u openssl/Configure:1.8.6.1.4.1 openssl/Configure:1.8.2.1
---- openssl/Configure:1.8.6.1.4.1	Tue May 14 14:41:19 2013
-+++ openssl/Configure	Tue May 14 14:56:15 2013
+diff -u openssl/Configure:1.8.6.1.4.1.2.1 openssl/Configure:1.8.2.2
+--- openssl/Configure:1.8.6.1.4.1.2.1	Thu Jul  3 12:12:31 2014
++++ openssl/Configure	Thu Jul  3 12:31:57 2014
 @@ -12,7 +12,7 @@
  
  # see INSTALL for instructions.
@@ -135,9 +135,9 @@ diff -u openssl/Configure:1.8.6.1.4.1 openssl/Configure:1.8.2.1
  	s/^SHLIB_VERSION_HISTORY=.*/SHLIB_VERSION_HISTORY=$shlib_version_history/;
  	s/^SHLIB_MAJOR=.*/SHLIB_MAJOR=$shlib_major/;
 Index: openssl/Makefile.org
-diff -u openssl/Makefile.org:1.4.6.1 openssl/Makefile.org:1.4
---- openssl/Makefile.org:1.4.6.1	Sun Jan 15 15:45:33 2012
-+++ openssl/Makefile.org	Mon Jun 13 14:25:15 2011
+diff -u openssl/Makefile.org:1.4.6.1.6.1 openssl/Makefile.org:1.4.2.1
+--- openssl/Makefile.org:1.4.6.1.6.1	Thu Jul  3 12:12:31 2014
++++ openssl/Makefile.org	Thu Jul  3 12:31:58 2014
 @@ -26,6 +26,9 @@
  INSTALL_PREFIX=
  INSTALLTOP=/usr/local/ssl
@@ -150,7 +150,7 @@ diff -u openssl/Makefile.org:1.4.6.1 openssl/Makefile.org:1.4
  
 Index: openssl/README.pkcs11
 diff -u /dev/null openssl/README.pkcs11:1.6.4.2
---- /dev/null	Fri Oct  4 14:48:08 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/README.pkcs11	Fri Oct  4 14:45:25 2013
 @@ -0,0 +1,266 @@
 +ISC modified
@@ -629,7 +629,7 @@ diff -u openssl/crypto/engine/Makefile:1.6.6.1 openssl/crypto/engine/Makefile:1.
  tb_cipher.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
 Index: openssl/crypto/engine/cryptoki.h
 diff -u /dev/null openssl/crypto/engine/cryptoki.h:1.4
---- /dev/null	Fri Oct  4 14:48:08 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/cryptoki.h	Thu Dec 18 00:14:12 2008
 @@ -0,0 +1,103 @@
 +/*
@@ -736,12 +736,12 @@ diff -u /dev/null openssl/crypto/engine/cryptoki.h:1.4
 +
 +#endif	/* _CRYPTOKI_H */
 Index: openssl/crypto/engine/eng_all.c
-diff -u openssl/crypto/engine/eng_all.c:1.4.6.1 openssl/crypto/engine/eng_all.c:1.4
---- openssl/crypto/engine/eng_all.c:1.4.6.1	Sun Jan 15 15:45:36 2012
-+++ openssl/crypto/engine/eng_all.c	Mon Jun 13 14:25:19 2011
+diff -u openssl/crypto/engine/eng_all.c:1.4.6.1.6.1 openssl/crypto/engine/eng_all.c:1.4.2.1
+--- openssl/crypto/engine/eng_all.c:1.4.6.1.6.1	Thu Jul  3 12:12:33 2014
++++ openssl/crypto/engine/eng_all.c	Thu Jul  3 12:31:59 2014
 @@ -110,6 +110,14 @@
- #if defined(OPENSSL_SYS_WIN32) && !defined(OPENSSL_NO_CAPIENG)
- 	ENGINE_load_capi();
+ #if defined(__OpenBSD__) || defined(__FreeBSD__) || defined(HAVE_CRYPTODEV)
+ 	ENGINE_load_cryptodev();
  #endif
 +#ifndef OPENSSL_NO_HW_PKCS11
 +#ifndef OPENSSL_NO_HW_PKCS11CA
@@ -755,13 +755,13 @@ diff -u openssl/crypto/engine/eng_all.c:1.4.6.1 openssl/crypto/engine/eng_all.c:
  	}
  
 Index: openssl/crypto/engine/engine.h
-diff -u openssl/crypto/engine/engine.h:1.4.6.1 openssl/crypto/engine/engine.h:1.4
---- openssl/crypto/engine/engine.h:1.4.6.1	Sun Jan 15 15:45:36 2012
-+++ openssl/crypto/engine/engine.h	Mon Jun 13 14:25:19 2011
+diff -u openssl/crypto/engine/engine.h:1.4.6.1.6.1 openssl/crypto/engine/engine.h:1.4.2.1
+--- openssl/crypto/engine/engine.h:1.4.6.1.6.1	Thu Jul  3 12:12:33 2014
++++ openssl/crypto/engine/engine.h	Thu Jul  3 12:32:00 2014
 @@ -344,6 +344,12 @@
- void ENGINE_load_capi(void);
- #endif
- #endif
+ void ENGINE_load_cryptodev(void);
+ void ENGINE_load_padlock(void);
+ void ENGINE_load_builtin_engines(void);
 +#ifndef OPENSSL_NO_HW_PKCS11CA
 +void ENGINE_load_pk11ca(void);
 +#endif
@@ -773,7 +773,7 @@ diff -u openssl/crypto/engine/engine.h:1.4.6.1 openssl/crypto/engine/engine.h:1.
   * "registry" handling. */
 Index: openssl/crypto/engine/hw_pk11.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.4
---- /dev/null	Fri Oct  4 14:48:08 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/hw_pk11.c	Fri Oct  4 14:45:25 2013
 @@ -0,0 +1,4116 @@
 +/*
@@ -4894,7 +4894,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26.4.4
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11_err.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11_err.c:1.4.10.1
---- /dev/null	Fri Oct  4 14:48:08 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/hw_pk11_err.c	Tue Jun 14 21:52:40 2011
 @@ -0,0 +1,288 @@
 +/*
@@ -5187,7 +5187,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_err.c:1.4.10.1
 +}
 Index: openssl/crypto/engine/hw_pk11_err.h
 diff -u /dev/null openssl/crypto/engine/hw_pk11_err.h:1.9.10.2
---- /dev/null	Fri Oct  4 14:48:08 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/hw_pk11_err.h	Fri Oct  4 14:45:25 2013
 @@ -0,0 +1,440 @@
 +/*
@@ -5632,7 +5632,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_err.h:1.9.10.2
 +#endif /* HW_PK11_ERR_H */
 Index: openssl/crypto/engine/hw_pk11_pub.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.7
---- /dev/null	Fri Oct  4 14:48:08 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/hw_pk11_pub.c	Fri Oct  4 14:45:25 2013
 @@ -0,0 +1,3556 @@
 +/*
@@ -9193,7 +9193,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32.4.7
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11ca.h
 diff -u /dev/null openssl/crypto/engine/hw_pk11ca.h:1.2.4.2
---- /dev/null	Fri Oct  4 14:48:08 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/hw_pk11ca.h	Wed Jun 15 21:12:32 2011
 @@ -0,0 +1,32 @@
 +/* Redefine all pk11/PK11 external symbols to pk11ca/PK11CA */
@@ -9230,7 +9230,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11ca.h:1.2.4.2
 +#define ENGINE_load_pk11		ENGINE_load_pk11ca
 Index: openssl/crypto/engine/hw_pk11so.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.3
---- /dev/null	Fri Oct  4 14:48:08 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/hw_pk11so.c	Fri Oct  4 14:45:25 2013
 @@ -0,0 +1,1775 @@
 +/*
@@ -11010,7 +11010,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.3.4.3
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11so.h
 diff -u /dev/null openssl/crypto/engine/hw_pk11so.h:1.2.4.2
---- /dev/null	Fri Oct  4 14:48:09 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/hw_pk11so.h	Wed Jun 15 21:12:32 2011
 @@ -0,0 +1,32 @@
 +/* Redefine all pk11/PK11 external symbols to pk11so/PK11SO */
@@ -11047,7 +11047,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.h:1.2.4.2
 +#define ENGINE_load_pk11		ENGINE_load_pk11so
 Index: openssl/crypto/engine/hw_pk11so_pub.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.6
---- /dev/null	Fri Oct  4 14:48:09 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/hw_pk11so_pub.c	Fri Oct  4 14:45:25 2013
 @@ -0,0 +1,1642 @@
 +/*
@@ -12694,7 +12694,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2.4.6
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/pkcs11.h
 diff -u /dev/null openssl/crypto/engine/pkcs11.h:1.1.1.1
---- /dev/null	Fri Oct  4 14:48:09 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/pkcs11.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,299 @@
 +/* pkcs11.h include file for PKCS #11. */
@@ -12998,7 +12998,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11.h:1.1.1.1
 +#endif
 Index: openssl/crypto/engine/pkcs11f.h
 diff -u /dev/null openssl/crypto/engine/pkcs11f.h:1.1.1.1
---- /dev/null	Fri Oct  4 14:48:09 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/pkcs11f.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,912 @@
 +/* pkcs11f.h include file for PKCS #11. */
@@ -13915,7 +13915,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11f.h:1.1.1.1
 +#endif
 Index: openssl/crypto/engine/pkcs11t.h
 diff -u /dev/null openssl/crypto/engine/pkcs11t.h:1.2
---- /dev/null	Fri Oct  4 14:48:09 2013
+--- /dev/null	Thu Jul  3 12:39:57 2014
 +++ openssl/crypto/engine/pkcs11t.h	Sat Aug 30 11:58:07 2008
 @@ -0,0 +1,1885 @@
 +/* pkcs11t.h include file for PKCS #11. */
@@ -15804,10 +15804,10 @@ diff -u /dev/null openssl/crypto/engine/pkcs11t.h:1.2
 +
 +#endif
 Index: openssl/util/libeay.num
-diff -u openssl/util/libeay.num:1.7.6.1.4.1 openssl/util/libeay.num:1.7.2.1
---- openssl/util/libeay.num:1.7.6.1.4.1	Tue May 14 14:41:22 2013
-+++ openssl/util/libeay.num	Tue May 14 14:56:18 2013
-@@ -3729,3 +3729,5 @@
+diff -u openssl/util/libeay.num:1.7.6.1.4.1.2.1 openssl/util/libeay.num:1.7.2.2
+--- openssl/util/libeay.num:1.7.6.1.4.1.2.1	Thu Jul  3 12:12:37 2014
++++ openssl/util/libeay.num	Thu Jul  3 12:32:04 2014
+@@ -3730,3 +3730,5 @@
  pqueue_size                             4114	EXIST::FUNCTION:
  OPENSSL_uni2asc                         4115	EXIST:NETWARE:FUNCTION:
  OPENSSL_asc2uni                         4116	EXIST:NETWARE:FUNCTION:
@@ -15894,9 +15894,9 @@ diff -u openssl/util/mkdef.pl:1.6.6.1 openssl/util/mkdef.pl:1.6
  			if ($keyword eq "STATIC_ENGINE" && $no_static_engine) { return 0; }
  			if ($keyword eq "GMP" && $no_gmp) { return 0; }
 Index: openssl/util/pl/VC-32.pl
-diff -u openssl/util/pl/VC-32.pl:1.6.6.1.2.1 openssl/util/pl/VC-32.pl:1.6.2.1
---- openssl/util/pl/VC-32.pl:1.6.6.1.2.1	Tue Jun 19 14:58:52 2012
-+++ openssl/util/pl/VC-32.pl	Tue Jun 19 15:00:09 2012
+diff -u openssl/util/pl/VC-32.pl:1.6.6.1.2.1.4.1 openssl/util/pl/VC-32.pl:1.6.2.2
+--- openssl/util/pl/VC-32.pl:1.6.6.1.2.1.4.1	Thu Jul  3 12:12:38 2014
++++ openssl/util/pl/VC-32.pl	Thu Jul  3 12:32:04 2014
 @@ -52,7 +52,7 @@
      my $f = $shlib || $fips ?' /MD':' /MT';
      $lib_cflag='/Zl' if (!$shlib);	# remove /DEFAULTLIBs from static lib
