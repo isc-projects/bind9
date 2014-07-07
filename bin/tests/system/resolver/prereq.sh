@@ -20,7 +20,7 @@ SYSTEMTESTTOP=..
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
-    if $PERL -e 'use Net::DNS; die if ($Net::DNS::VERSION >= 0.76 && $Net::DNS::VERSION <= 0.77);' 2>/dev/null
+    if $PERL -e 'use Net::DNS; die if ($Net::DNS::VERSION eq "0.76" || $Net::DNS::VERSION eq "0.77");' 2>/dev/null
     then
 	:
     else
