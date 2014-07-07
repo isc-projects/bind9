@@ -1,0 +1,10 @@
+split-rrsig.		3660	IN SOA	. . (
+					1          ; serial
+					3600       ; refresh (1 hour)
+					3600       ; retry (1 hour)
+					3600       ; expire (1 hour)
+					3600       ; minimum (1 hour)
+					)
+			3660	NS	ns.example.
+a.split-rrsig.		3660	IN A	192.0.2.2
+b.split-rrsig.		3660	IN A	192.0.2.2

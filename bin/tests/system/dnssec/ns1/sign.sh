@@ -24,6 +24,7 @@ zonefile=root.db
 
 (cd ../ns2 && $SHELL sign.sh )
 (cd ../ns6 && $SHELL sign.sh )
+(cd ../ns7 && $SHELL sign.sh )
 
 cp ../ns2/dsset-example. .
 cp ../ns2/dsset-dlv. .
