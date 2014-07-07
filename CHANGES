@@ -1,3 +1,7 @@
+3890.	[bug]		RRSIG sets that were not loaded in a single transaction
+			at start up where not being correctly added to
+			re-signing heaps.  [RT #36302]
+
 3889.	[port]		hurd: configure fixes as per:
 			https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=746540
 

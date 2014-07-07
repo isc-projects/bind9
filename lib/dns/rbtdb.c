@@ -6360,6 +6360,19 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			 */
 			newheader->down = NULL;
 			free_rdataset(rbtdb, rbtdb->common.mctx, header);
+
+			idx = newheader->node->locknum;
+			if (IS_CACHE(rbtdb)) {
+				ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
+						 newheader, link);
+				INSIST(rbtdb->heaps != NULL);
+				(void)isc_heap_insert(rbtdb->heaps[idx],
+						      newheader);
+			} else if (RESIGN(newheader)) {
+				result = resign_insert(rbtdb, idx, newheader);
+				if (result != ISC_R_SUCCESS)
+					return (result);
+			}
 		} else {
 			newheader->down = topheader;
 			topheader->next = newheader;
