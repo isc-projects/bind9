@@ -1,7 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2004, 2007, 2009, 2011-2014  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,17 +14,22 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-SYSTEMTESTTOP=..
+# $Id: sign.sh,v 1.43 2011/11/04 05:36:28 each Exp $
+
+SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL clean.sh 
+zone=split-rrsig
+infile=split-rrsig.in
+zonefile=split-rrsig.db
 
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+k1=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 768 -n zone $zone`
+k2=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 768 -n zone $zone`
 
-cd ns1 && $SHELL sign.sh
+cat $infile $k1.key $k2.key >$zonefile
 
-echo "a.bogus.example.	A	10.0.0.22" >>../ns3/bogus.example.db.signed
-
-cd ../ns3 && cp -f siginterval1.conf siginterval.conf
-cd ../ns4 && cp -f named1.conf named.conf
-cd ../ns5 && cp -f trusted.conf.bad trusted.conf
+$SIGNER -P -3 - -A -r $RANDFILE -o $zone -O full -f $zonefile.unsplit -e now-3600 -s now-7200 $zonefile > /dev/null 2>&1
+awk 'BEGIN { r = ""; }
+     $4 == "RRSIG" && $5 == "SOA" && r == "" { r = $0; next; }
+     { print }
+     END { print r }' $zonefile.unsplit > $zonefile.signed
