@@ -41,8 +41,8 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
 install:: ${TARGETS} installdirs
-	${INSTALL_PROGRAM} dnssec-checkds@EXEEXT@ ${DESTDIR}${sbindir}
-	${INSTALL_PROGRAM} dnssec-coverage@EXEEXT@ ${DESTDIR}${sbindir}
+	${INSTALL_SCRIPT} dnssec-checkds@EXEEXT@ ${DESTDIR}${sbindir}
+	${INSTALL_SCRIPT} dnssec-coverage@EXEEXT@ ${DESTDIR}${sbindir}
 	${INSTALL_DATA} ${srcdir}/dnssec-checkds.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/dnssec-coverage.8 ${DESTDIR}${mandir}/man8
 
