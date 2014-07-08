@@ -945,7 +945,7 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_libbind
-enable_error
+enable_warn_error
 enable_developer
 enable_kqueue
 enable_epoll
@@ -11366,9 +11366,9 @@ It is available from http://www.isc.org as a separate download." "$LINENO" 5
 		;;
 esac
 
-# Check whether --enable-error was given.
-if test "${enable_error+set}" = set; then :
-  enableval=$enable_error;
+# Check whether --enable-warn_error was given.
+if test "${enable_warn_error+set}" = set; then :
+  enableval=$enable_warn_error;
 fi
 
 
