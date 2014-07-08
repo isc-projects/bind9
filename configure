@@ -972,6 +972,7 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_libbind
+enable_warn_error
 enable_developer
 enable_seccomp
 with_python
@@ -1662,6 +1663,7 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-libbind	  deprecated
+  --enable-warn-error	  turn on -Werror when compiling
   --enable-developer      enable developer build settings
   --enable-seccomp        enable support for libseccomp sysstem call filtering
                           [default=no]
@@ -11401,6 +11403,12 @@ It is available from http://www.isc.org as a separate download." "$LINENO" 5
 		;;
 esac
 
+# Check whether --enable-warn_error was given.
+if test "${enable_warn_error+set}" = set; then :
+  enableval=$enable_warn_error;
+fi
+
+
 # Check whether --enable-developer was given.
 if test "${enable_developer+set}" = set; then :
   enableval=$enable_developer;
@@ -11415,6 +11423,7 @@ yes)
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
 	test "${enable_symtable+set}" = set || enable_symtable=all
 	test "${enable_sit+set}" = set || enable_sit=yes
+	test "${enable_warn_error+set}" = set || enable_warn_error=yes
 	;;
 esac
 
@@ -16777,6 +16786,9 @@ $as_echo "no" >&6; }
 		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
 		;;
 	esac
+	if test "X$enable_warn_error" = Xyes; then
+		STD_CWARNINGS="$STD_CWARNINGS -Werror"
+	fi
 else
 	case $host in
 	*-dec-osf*)
