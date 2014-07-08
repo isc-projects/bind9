@@ -28,8 +28,9 @@ k2=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 768 -n zone $zone`
 
 cat $infile $k1.key $k2.key >$zonefile
 
-$SIGNER -P -3 - -A -r $RANDFILE -o $zone -O full -f $zonefile.unsplit -e now-3600 -s now-7200 $zonefile > /dev/null 2>&1
+$SIGNER -P -3 - -A -r $RANDFILE -o $zone -f $zonefile.unsplit -e now-3600 -s now-7200 $zonefile > /dev/null 2>&1
+$CHECKZONE -s full -D -q $zone $zonefile.unsplit |
 awk 'BEGIN { r = ""; }
      $4 == "RRSIG" && $5 == "SOA" && r == "" { r = $0; next; }
      { print }
-     END { print r }' $zonefile.unsplit > $zonefile.signed
+     END { print r }' > $zonefile.signed
