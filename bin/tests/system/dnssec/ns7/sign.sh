@@ -20,7 +20,7 @@ SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
 zone=split-rrsig
-infile=split-rrsig.in
+infile=split-rrsig.db.in
 zonefile=split-rrsig.db
 
 k1=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 768 -n zone $zone`
