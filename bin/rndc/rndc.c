@@ -148,9 +148,9 @@ command is one of the following:\n\
 		Delete a TKEY-negotiated TSIG key.\n\
   validation newstate [view]\n\
 		Enable / disable DNSSEC validation.\n\
-  addzone [\"file\"] zone [class [view]] { zone-options }\n\
+  addzone zone [class [view]] { zone-options }\n\
 		Add zone to given view. Requires new-zone-file option.\n\
-  delzone [\"file\"] zone [class [view]]\n\
+  delzone zone [class [view]]\n\
 		Removes zone from given view. Requires new-zone-file option.\n\
   *restart	Restart the server.\n\
 \n\
