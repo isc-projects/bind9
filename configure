@@ -945,6 +945,7 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_libbind
+enable_error
 enable_developer
 enable_kqueue
 enable_epoll
@@ -1627,6 +1628,7 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-libbind	  deprecated
+  --enable-warn-error	  turn on -Werror when compiling
   --enable-developer      enable developer build settings
   --enable-kqueue         use BSD kqueue when available [default=yes]
   --enable-epoll          use Linux epoll when available [default=auto]
@@ -11364,6 +11366,12 @@ It is available from http://www.isc.org as a separate download." "$LINENO" 5
 		;;
 esac
 
+# Check whether --enable-error was given.
+if test "${enable_error+set}" = set; then :
+  enableval=$enable_error;
+fi
+
+
 # Check whether --enable-developer was given.
 if test "${enable_developer+set}" = set; then :
   enableval=$enable_developer;
@@ -11385,6 +11393,7 @@ yes)
 		;;
 	esac
 	test "${enable_symtable+set}" = set || enable_symtable=all
+	test "${enable_warn_error+set}" = set || enable_warn_error=yes
 	;;
 esac
 #
@@ -15287,6 +15296,9 @@ $as_echo "no" >&6; }
 		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
 		;;
 	esac
+	if test "X$enable_warn_error" = Xyes; then
+		STD_CWARNINGS="$STD_CWARNINGS -Werror"
+	fi
 else
 	case $host in
 	*-dec-osf*)
