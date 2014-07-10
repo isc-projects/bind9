@@ -55,6 +55,15 @@ struct dns_nta {
 #define NTA_MAGIC		ISC_MAGIC('N', 'T', 'A', 'n')
 #define VALID_NTA(nn)	 	ISC_MAGIC_VALID(nn, NTA_MAGIC)
 
+/*
+ * Obtain a reference to the nta object.  Released by
+ * nta_detach.
+ */
+static void
+nta_ref(dns_nta_t *nta) {
+	isc_refcount_increment(&nta->refcount, NULL);
+}
+
 static void
 nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
 	unsigned int refs;
@@ -197,6 +206,7 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_nta_t *nta = devent->ev_arg;
 	isc_result_t eresult = devent->result;
 	dns_ntatable_t *ntatable = nta->ntatable;
+	dns_view_t *view = ntatable->view;
 	isc_stdtime_t now;
 
 	UNUSED(task);
@@ -234,6 +244,7 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	if (nta->timer != NULL && nta->expiry - now < ntatable->recheck)
 		(void) isc_timer_reset(nta->timer, isc_timertype_inactive,
 				       NULL, NULL, ISC_TRUE);
+	nta_detach(view->mctx, &nta);
 }
 
 static void
@@ -241,6 +252,7 @@ checkbogus(isc_task_t *task, isc_event_t *event) {
 	dns_nta_t *nta = event->ev_arg;
 	dns_ntatable_t *ntatable = nta->ntatable;
 	dns_view_t *view = ntatable->view;
+	isc_result_t result;
 
 	if (nta->fetch != NULL) {
 		dns_resolver_cancelfetch(nta->fetch);
@@ -253,14 +265,17 @@ checkbogus(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	(void)dns_resolver_createfetch(view->resolver, nta->name,
-				       dns_rdatatype_nsec,
-				       NULL, NULL, NULL,
-				       DNS_FETCHOPT_NONTA,
-				       task, fetch_done, nta,
-				       &nta->rdataset,
-				       &nta->sigrdataset,
-				       &nta->fetch);
+	nta_ref(nta);
+	result = dns_resolver_createfetch(view->resolver, nta->name,
+				          dns_rdatatype_nsec,
+				          NULL, NULL, NULL,
+				          DNS_FETCHOPT_NONTA,
+				          task, fetch_done, nta,
+				          &nta->rdataset,
+				          &nta->sigrdataset,
+				          &nta->fetch);
+	if (result != ISC_R_SUCCESS)
+		nta_detach(view->mctx, &nta);
 }
 
 static isc_result_t
