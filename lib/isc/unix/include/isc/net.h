@@ -376,4 +376,8 @@ isc_net_aton(const char *cp, struct in_addr *addr);
 
 ISC_LANG_ENDDECLS
 
+#ifndef INADDR_ANY
+#error INADDR_ANY not defined
+#endif
+
 #endif /* ISC_NET_H */
