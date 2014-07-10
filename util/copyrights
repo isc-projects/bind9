@@ -3383,7 +3383,7 @@
 ./lib/isc/include/isc/error.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/event.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2014
 ./lib/isc/include/isc/eventclass.h		C	1998,1999,2000,2001,2004,2005,2007
-./lib/isc/include/isc/file.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012
+./lib/isc/include/isc/file.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012,2014
 ./lib/isc/include/isc/formatcheck.h		C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/fsaccess.h		C	2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/hash.h			C	2003,2004,2005,2006,2007,2009,2013,2014
@@ -3574,7 +3574,7 @@
 ./lib/isc/unix/include/isc/dir.h		C	1999,2000,2001,2004,2005,2007
 ./lib/isc/unix/include/isc/int.h		C	1999,2000,2001,2004,2005,2007
 ./lib/isc/unix/include/isc/keyboard.h		C	2000,2001,2004,2005,2007
-./lib/isc/unix/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013
+./lib/isc/unix/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013,2014
 ./lib/isc/unix/include/isc/netdb.h		C	1999,2000,2001,2004,2005,2007
 ./lib/isc/unix/include/isc/offset.h		C	2000,2001,2004,2005,2007,2008
 ./lib/isc/unix/include/isc/stat.h		C	2004,2007,2014
