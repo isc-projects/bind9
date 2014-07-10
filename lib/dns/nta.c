@@ -267,13 +267,13 @@ checkbogus(isc_task_t *task, isc_event_t *event) {
 
 	nta_ref(nta);
 	result = dns_resolver_createfetch(view->resolver, nta->name,
-				          dns_rdatatype_nsec,
-				          NULL, NULL, NULL,
-				          DNS_FETCHOPT_NONTA,
-				          task, fetch_done, nta,
-				          &nta->rdataset,
-				          &nta->sigrdataset,
-				          &nta->fetch);
+					  dns_rdatatype_nsec,
+					  NULL, NULL, NULL,
+					  DNS_FETCHOPT_NONTA,
+					  task, fetch_done, nta,
+					  &nta->rdataset,
+					  &nta->sigrdataset,
+					  &nta->fetch);
 	if (result != ISC_R_SUCCESS)
 		nta_detach(view->mctx, &nta);
 }
