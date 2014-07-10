@@ -192,6 +192,8 @@ help(void) {
 "                 +ndots=###          (Set NDOTS value)\n"
 "                 +subnet=addr        (Set edns-client-subnet option)\n"
 "                 +[no]edns[=###]     (Set EDNS version) [0]\n"
+"                 +ednsopt=###[:value] (Send specified EDNS option)\n"
+"                 +noednsopt          (Clear list of +ednsopt options)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]showsearch     (Search with intermediate results)\n"
 "                 +[no]defname        (Ditto)\n"
