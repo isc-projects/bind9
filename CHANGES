@@ -1,3 +1,7 @@
+3894.	[bug]		Buffers in isc_print_vsnprintf were not properly
+			initialized leading to potential overflows when
+			printing out quad values. [RT #36505]
+
 3893.	[bug]		Peer DSCP values could be returned without being set.
 			[RT #36538]
 
