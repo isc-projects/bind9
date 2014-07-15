@@ -260,7 +260,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (hi != 0)
 						sprintf(buf, "%lu", hi);
 					else
-						buf[0] = '\n';
+						buf[0] = '\0';
 					sprintf(buf + strlen(buf), "%lu", mid);
 					sprintf(buf + strlen(buf), "%lu", lo);
 				}
@@ -317,7 +317,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (hi != 0)
 						sprintf(buf, "%lu", hi);
 					else
-						buf[0] = '\n';
+						buf[0] = '\0';
 					sprintf(buf + strlen(buf), "%lu", mid);
 					sprintf(buf + strlen(buf), "%lu", lo);
 				}
