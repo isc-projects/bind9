@@ -48,7 +48,7 @@ ATF_TC_BODY(snprintf, tc) {
 	char buf[10000];
 	isc_uint64_t ll = 8589934592ULL;
 	int n;
-	
+
 	UNUSED(tc);
 
 	/*
