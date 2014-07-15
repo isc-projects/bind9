@@ -1,3 +1,7 @@
+3894.	[bug]		Buffers in isc_print_vsnprintf were not properly
+			initialized leading to potential overflows when
+			printing out quad values. [RT #36505]
+
 3892.	[bug]		Setting '-t aaaa' in .digrc had unintended side
 			effects. [RT #36452]
 
