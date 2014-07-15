@@ -38,10 +38,13 @@
  */
 #if !defined(ISC_PLATFORM_NEEDVSNPRINTF) && defined(ISC__PRINT_SOURCE)
 #define ISC_PLATFORM_NEEDVSNPRINTF
+#undef snprintf
+#undef vsnprintf
 #endif
 
 #if !defined(ISC_PLATFORM_NEEDSPRINTF) && defined(ISC__PRINT_SOURCE)
 #define ISC_PLATFORM_NEEDSPRINTF
+#undef sprintf
 #endif
 
 /***
