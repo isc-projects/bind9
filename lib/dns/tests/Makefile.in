@@ -48,6 +48,7 @@ SRCS =		db_test.c \
 		keytable_test.c \
 		master_test.c \
 		nsec3_test.c \
+		peer_test.c \
 		private_test.c \
 		rbt_test.c \
 		rbt_serialize_test.c \
@@ -70,6 +71,7 @@ TARGETS =	db_test@EXEEXT@ \
 		keytable_test@EXEEXT@ \
 		master_test@EXEEXT@ \
 		nsec3_test@EXEEXT@ \
+		peer_test@EXEEXT@ \
 		private_test@EXEEXT@ \
 		rbt_test@EXEEXT@ \
 		rbt_serialize_test@EXEEXT@ \
@@ -104,6 +106,11 @@ keytable_test@EXEEXT@: keytable_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 time_test@EXEEXT@: time_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			time_test.@O@ dnstest.@O@ ${DNSLIBS} \
+				${ISCLIBS} ${LIBS}
+
+peer_test@EXEEXT@: peer_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			peer_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
 
 private_test@EXEEXT@: private_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
