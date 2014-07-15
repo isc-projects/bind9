@@ -243,6 +243,7 @@ help(void) {
 "                 +[no]multiline      (Print records in an expanded format)\n"
 "                 +[no]onesoa         (AXFR prints only one soa record)\n"
 "                 +[no]keepopen       (Keep the TCP socket open between queries)\n"
+"                 +[no]dscp[=###]     (Set the DSCP value to ### [0..63])\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
 "        local d-opts and servers (after host name) affect only that lookup.\n"
 "        -h                           (print help and exit)\n"
@@ -919,6 +920,19 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			strncpy(domainopt, value, sizeof(domainopt));
 			domainopt[sizeof(domainopt)-1] = '\0';
+			break;
+		case 's': /* dscp */
+			FULLCHECK("dscp");
+			if (!state) {
+				lookup->dscp = -1;
+				break;
+			}
+			if (value == NULL)
+				goto need_value;
+			result = parse_uint(&num, value, 0x3f, "DSCP");
+			if (result != ISC_R_SUCCESS)
+				fatal("Couldn't parse DSCP value");
+			lookup->dscp = num;
 			break;
 		default:
 			goto invalid_option;

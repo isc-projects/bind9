@@ -813,6 +813,7 @@ make_empty_lookup(void) {
 #endif
 	looknew->ednsopts = NULL;
 	looknew->ednsoptscnt = 0;
+	looknew->dscp = -1;
 	dns_fixedname_init(&looknew->fdomain);
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
@@ -898,6 +899,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->tsigctx = NULL;
 	looknew->need_search = lookold->need_search;
 	looknew->done_as_is = lookold->done_as_is;
+	looknew->dscp = lookold->dscp;
 
 	if (lookold->ecs_addr != NULL) {
 		size_t len = sizeof(isc_sockaddr_t);
@@ -2781,6 +2783,8 @@ send_tcp_connect(dig_query_t *query) {
 	check_result(result, "isc_socket_create");
 	sockcount++;
 	debug("sockcount=%d", sockcount);
+	if (query->lookup->dscp != -1)
+		isc_socket_dscp(query->sock, query->lookup->dscp);
 	if (specified_source)
 		result = isc_socket_bind(query->sock, &bind_address,
 					 ISC_SOCKET_REUSEADDRESS);
@@ -2857,6 +2861,8 @@ send_udp(dig_query_t *query) {
 		check_result(result, "isc_socket_create");
 		sockcount++;
 		debug("sockcount=%d", sockcount);
+		if (query->lookup->dscp != -1)
+			isc_socket_dscp(query->sock, query->lookup->dscp);
 		if (specified_source) {
 			result = isc_socket_bind(query->sock, &bind_address,
 						 ISC_SOCKET_REUSEADDRESS);

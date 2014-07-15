@@ -195,6 +195,7 @@ isc_boolean_t	sigchase;
 #endif
 	dns_ednsopt_t *ednsopts;
 	unsigned int ednsoptscnt;
+	isc_dscp_t dscp;
 };
 
 /*% The dig_query structure */

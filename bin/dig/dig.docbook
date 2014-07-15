@@ -556,6 +556,16 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+dscp=value</option></term> <listitem>
+	    <para>
+	      Set the DSCP code point to be used when sending the
+	      query.  Valid DSCP code points are in the range
+	      [0..63].  By default no code point is explictly set.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]edns[=#]</option></term>
 	  <listitem>
 	    <para>
