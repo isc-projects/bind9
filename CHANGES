@@ -1,3 +1,6 @@
+3893.	[bug]		Peer DSCP values could be returned without being set.
+			[RT #36538]
+
 3892.	[bug]		Setting '-t aaaa' in .digrc had unintended side
 			effects. [RT #36452]
 
