@@ -117,7 +117,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 		dot = neg = space = plus = left = zero = alt = h = l = q = 0;
 		width = precision = 0;
 		head = "";
-		length = pad = zeropad = 0;
+		pad = zeropad = 0;
 
 		do {
 			if (*format == '#') {
