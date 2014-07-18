@@ -11503,7 +11503,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 							    &zone->sourceaddr);
 			if (result == ISC_R_SUCCESS)
 				have_xfrsource = ISC_TRUE;
-			dns_peer_gettransferdscp(peer, &dscp);
+			(void)dns_peer_gettransferdscp(peer, &dscp);
 			if (dscp != -1)
 				have_xfrdscp = ISC_TRUE;
 			if (zone->view->resolver != NULL)
