@@ -1090,6 +1090,7 @@ allocate_socketevent(isc_mem_t *mctx, isc_socket_t *sock,
 	ev->attributes = 0;
 	ev->destroy = ev->ev_destroy;
 	ev->ev_destroy = destroy_socketevent;
+	ev->dscp = 0;
 
 	return (ev);
 }
@@ -1470,6 +1471,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 
 	sock->manager = manager;
 	sock->type = type;
+	sock->dscp = 0;		/* TOS/TCLASS is zero until set. */
 	sock->fd = INVALID_SOCKET;
 
 	ISC_LINK_INIT(sock, link);

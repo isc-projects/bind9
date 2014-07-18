@@ -614,7 +614,7 @@ try_dscp_v4(void) {
 	int s, dscp = 0, n;
 #ifdef IP_RECVTOS
 	int on = 1;
-#endif
+#endif /* IP_RECVTOS */
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -648,23 +648,29 @@ try_dscp_v4(void) {
 	on = 1;
 	if (setsockopt(s, IPPROTO_IP, IP_RECVTOS, &on, sizeof(on)) == 0)
 		dscp_result |= ISC_NET_DSCPRECVV4;
-#endif
+#endif /* IP_RECVTOS */
+
 #ifdef ISC_NET_BSD44MSGHDR
+
 #ifndef ISC_CMSG_IP_TOS
 #ifdef __APPLE__
 #define ISC_CMSG_IP_TOS 0	/* As of 10.8.2. */
-#else
+#else /* ! __APPLE__ */
 #define ISC_CMSG_IP_TOS 1
-#endif
-#endif
+#endif /* ! __APPLE__ */
+#endif /* ! ISC_CMSG_IP_TOS */
+
 #if ISC_CMSG_IP_TOS
 	if (cmsgsend(s, IPPROTO_IP, IP_TOS, res0))
 		dscp_result |= ISC_NET_DSCPPKTV4;
-#endif
-#endif
+#endif /* ISC_CMSG_IP_TOS */
+
+#endif /* ISC_NET_BSD44MSGHDR */
+
 	freeaddrinfo(res0);
 	close(s);
-#endif
+
+#endif /* IP_TOS */
 }
 
 static void
@@ -677,7 +683,7 @@ try_dscp_v6(void) {
 	int s, dscp = 0, n;
 #if defined(IPV6_RECVTCLASS)
 	int on = 1;
-#endif
+#endif /* IPV6_RECVTCLASS */
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET6;
@@ -709,16 +715,19 @@ try_dscp_v6(void) {
 	on = 1;
 	if (setsockopt(s, IPPROTO_IPV6, IPV6_RECVTCLASS, &on, sizeof(on)) == 0)
 		dscp_result |= ISC_NET_DSCPRECVV6;
-#endif
+#endif /* IPV6_RECVTCLASS */
+
 #ifdef ISC_NET_BSD44MSGHDR
 	if (cmsgsend(s, IPPROTO_IPV6, IPV6_TCLASS, res0))
 		dscp_result |= ISC_NET_DSCPPKTV6;
-#endif
+#endif /* ISC_NET_BSD44MSGHDR */
+
 	freeaddrinfo(res0);
 	close(s);
-#endif
-#endif
-#endif
+
+#endif /* IPV6_TCLASS */
+#endif /* WANT_IPV6 */
+#endif /* ISC_PLATFORM_HAVEIPV6 */
 }
 
 static void

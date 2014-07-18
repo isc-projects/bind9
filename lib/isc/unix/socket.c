@@ -363,7 +363,8 @@ struct isc__socket {
 				connecting : 1,     /* connect pending */
 				bound : 1,          /* bound to local addr */
 				dupped : 1,
-				active : 1;         /* currently active */
+				active : 1,         /* currently active */
+				pktdscp : 1;	    /* per packet dscp */
 
 #ifdef ISC_NET_RECVOVERFLOW
 	unsigned char		overflow; /* used for MSG_TRUNC fake */
@@ -378,7 +379,7 @@ struct isc__socket {
 	isc_sockfdwatch_t	fdwatchcb;
 	int			fdwatchflags;
 	isc_task_t		*fdwatchtask;
-	int			dscp;
+	unsigned int		dscp;
 };
 
 #define SOCKET_MANAGER_MAGIC	ISC_MAGIC('I', 'O', 'm', 'g')
@@ -1527,11 +1528,12 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 		memmove(CMSG_DATA(cmsgp), &use_min_mtu, sizeof(use_min_mtu));
 #endif
 	}
-	if (isc_dscp_check_value != -1) {
+
+	if (isc_dscp_check_value > -1) {
 		if (sock->type == isc_sockettype_udp)
 			INSIST((int)dev->dscp == isc_dscp_check_value);
-		if (sock->type == isc_sockettype_tcp)
-			INSIST(sock->dscp == isc_dscp_check_value);
+		else if (sock->type == isc_sockettype_tcp)
+			INSIST((int)sock->dscp == isc_dscp_check_value);
 	}
 
 	if ((sock->type == isc_sockettype_udp) &&
@@ -1539,10 +1541,10 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 	{
 		int dscp = (dev->dscp << 2) & 0xff;
 
+		INSIST(dev->dscp < 0x40 && dev->dscp >= 0);
+
 #ifdef IP_TOS
-		if (sock->pf == AF_INET &&
-		    ((isc_net_probedscp() & ISC_NET_DSCPPKTV4) != 0))
-		{
+		if (sock->pf == AF_INET && sock->pktdscp) {
 			cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +
 						   msg->msg_controllen);
 			msg->msg_control = (void *)sock->sendcmsgbuf;
@@ -1553,7 +1555,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 			cmsgp->cmsg_type = IP_TOS;
 			cmsgp->cmsg_len = cmsg_len(sizeof(char));
 			*(unsigned char*)CMSG_DATA(cmsgp) = dscp;
-		} else if (sock->pf == AF_INET) {
+		} else if (sock->pf == AF_INET && sock->dscp != dev->dscp) {
 			if (setsockopt(sock->fd, IPPROTO_IP, IP_TOS,
 			       (void *)&dscp, sizeof(int)) < 0)
 			{
@@ -1568,13 +1570,12 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 							ISC_MSG_FAILED,
 							"failed"),
 						 strbuf);
-			}
+			} else
+				sock->dscp = dscp;
 		}
 #endif
 #if defined(IPPROTO_IPV6) && defined(IPV6_TCLASS)
-		if (sock->pf == AF_INET6 &&
-		    ((isc_net_probedscp() & ISC_NET_DSCPPKTV6) != 0))
-		{
+		if (sock->pf == AF_INET6 && sock->pktdscp) {
 			cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +
 						   msg->msg_controllen);
 			msg->msg_control = (void *)sock->sendcmsgbuf;
@@ -1585,7 +1586,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 			cmsgp->cmsg_type = IPV6_TCLASS;
 			cmsgp->cmsg_len = cmsg_len(sizeof(dscp));
 			memmove(CMSG_DATA(cmsgp), &dscp, sizeof(dscp));
-		} else if (sock->pf == AF_INET6) {
+		} else if (sock->pf == AF_INET6 && sock->dscp != dev->dscp) {
 			if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_TCLASS,
 				       (void *)&dscp, sizeof(int)) < 0) {
 				char strbuf[ISC_STRERRORSIZE];
@@ -1599,7 +1600,8 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 							ISC_MSG_FAILED,
 							"failed"),
 						 strbuf);
-			}
+			} else
+				sock->dscp = dscp;
 		}
 #endif
 	}
@@ -2257,7 +2259,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->manager = manager;
 	sock->type = type;
 	sock->fd = -1;
-	sock->dscp = -1;
+	sock->dscp = 0;		/* TOS/TCLASS is zero until set. */
 	sock->dupped = 0;
 	sock->statsindex = NULL;
 
@@ -2328,6 +2330,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->connected = 0;
 	sock->connecting = 0;
 	sock->bound = 0;
+	sock->pktdscp = 0;
 
 	/*
 	 * Initialize the lock.
@@ -2861,6 +2864,8 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	case isc_sockettype_udp:
 		sock->statsindex =
 			(pf == AF_INET) ? udp4statsindex : udp6statsindex;
+#define DCSPPKT(pf) ((pf == AF_INET) ? ISC_NET_DSCPPKTV4 : ISC_NET_DSCPPKTV6)
+		sock->pktdscp = (isc_net_probedscp() & DCSPPKT(pf)) != 0;
 		break;
 	case isc_sockettype_tcp:
 		sock->statsindex =
@@ -3566,8 +3571,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		/*
 		 * Ensure DSCP settings are inherited across accept.
 		 */
-		if (sock->dscp != -1)
-			setdscp(NEWCONNSOCK(dev), sock->dscp);
+		setdscp(NEWCONNSOCK(dev), sock->dscp);
 
 		/*
 		 * Save away the remote address
@@ -6148,6 +6152,7 @@ isc__socket_dscp(isc_socket_t *sock0, isc_dscp_t dscp) {
 	if (dscp < 0)
 		return;
 
+	/* The DSCP value must not be changed once it has been set. */
 	if (isc_dscp_check_value != -1)
 		INSIST(dscp == isc_dscp_check_value);
 #endif
