@@ -1,3 +1,6 @@
+3896.	[bug]		Address performance issues with DSCP code on some
+			platforms. [RT #36534]
+
 3894.	[bug]		Buffers in isc_print_vsnprintf were not properly
 			initialized leading to potential overflows when
 			printing out quad values. [RT #36505]
