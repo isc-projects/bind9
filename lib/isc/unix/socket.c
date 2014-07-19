@@ -1541,7 +1541,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 	{
 		int dscp = (dev->dscp << 2) & 0xff;
 
-		INSIST(dev->dscp < 0x40 && dev->dscp >= 0);
+		INSIST(dev->dscp < 0x40);
 
 #ifdef IP_TOS
 		if (sock->pf == AF_INET && sock->pktdscp) {
