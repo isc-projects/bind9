@@ -248,6 +248,9 @@ dns_rpz_policy2str(dns_rpz_policy_t policy) {
 	case DNS_RPZ_POLICY_WILDCNAME:
 		str = "CNAME";
 		break;
+	case DNS_RPZ_POLICY_MISS:
+		str = "MISS";
+		break;
 	default:
 		str = "";
 		POST(str);
@@ -1653,6 +1656,7 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 	load_rpzs->rbt = rbt;
 
 	rpzs->total_triggers = load_rpzs->total_triggers;
+	rpzs->have = load_rpzs->have;
 
 	UNLOCK(&rpzs->search_lock);
 

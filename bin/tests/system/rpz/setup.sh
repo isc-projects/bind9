@@ -116,3 +116,4 @@ $PERL -e 'for ($cnt = $val = 1; $cnt <= 3000; ++$cnt) {
 
 cp ns2/bl.tld2.db.in ns2/bl.tld2.db
 cp ns5/empty.db.in ns5/empty.db
+cp ns5/empty.db.in ns5/policy2.db

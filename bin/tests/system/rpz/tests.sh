@@ -27,6 +27,7 @@ ns3=$ns.3		# main rewriting resolver
 ns4=$ns.4		# another authoritative server that is rewritten
 ns5=$ns.5		# another rewriting resolver
 ns6=$ns.6		# a forwarding server
+ns7=$ns.7		# another rewriting resolver
 
 HAVE_CORE=
 SAVE_RESULTS=
@@ -628,6 +629,13 @@ for i in 1 2 3 4 5; do
     nsd $ns5 add '*.example.com.policy1.' example.com.policy1.
     nsd $ns5 delete '*.example.com.policy1.' example.com.policy1.
 done
+
+echo "I:checking checking that going from a empty policy zone works"
+nsd $ns5 add '*.x.servfail.policy2.' x.servfail.policy2.
+sleep 1
+$RNDCCMD $ns7 reload policy2
+$DIG z.x.servfail -p 5300 @$ns7 > dig.out.ns7
+grep NXDOMAIN dig.out.ns7 > /dev/null || setret I:failed;
 
 echo "I:exit status: $status"
 exit $status

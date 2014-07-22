@@ -1608,6 +1608,8 @@
 ./bin/tests/system/rpz/ns5/tld5.db		ZONE	2013
 ./bin/tests/system/rpz/ns6/hints		ZONE	2014
 ./bin/tests/system/rpz/ns6/named.conf		CONF-C	2014
+./bin/tests/system/rpz/ns7/hints		ZONE	2014
+./bin/tests/system/rpz/ns7/named.conf		CONF-C	2014
 ./bin/tests/system/rpz/prereq.sh		SH	2014
 ./bin/tests/system/rpz/qperf.sh			SH	2012,2013
 ./bin/tests/system/rpz/rpz.c			C	2011,2012,2013
