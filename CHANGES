@@ -1,3 +1,7 @@
+3897.	[bug]		RPZ summary information was not properly being updated
+			after a AXFR resulting in changes sometimes being
+			ignored.  [RT #35885]
+
 3896.	[bug]		Address performance issues with DSCP code on some
 			platforms. [RT #36534]
 
