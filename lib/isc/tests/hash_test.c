@@ -40,7 +40,7 @@
 unsigned char digest[ISC_SHA512_DIGESTLENGTH];
 unsigned char buffer[1024];
 const char *s;
-char str[ISC_SHA512_DIGESTLENGTH];
+char str[2 * ISC_SHA512_DIGESTLENGTH + 1];
 unsigned char key[20];
 int i = 0;
 
@@ -52,7 +52,7 @@ tohexstr(unsigned char *d, unsigned int len, char *out);
  * Postcondition: A String representation of the given hexadecimal number is
  *   placed into the array *out
  *
- * 'out' MUST point to an array of at least len / 2 + 1
+ * 'out' MUST point to an array of at least len * 2 + 1
  *
  * Return values: ISC_R_SUCCESS if the operation is sucessful
  */

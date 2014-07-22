@@ -1,3 +1,6 @@
+3898.	[bug]		To small a buffer in tohexstr() calls in test code.
+			[RT #36598]
+
 3897.	[bug]		RPZ summary information was not properly being updated
 			after a AXFR resulting in changes sometimes being
 			ignored.  [RT #35885]
