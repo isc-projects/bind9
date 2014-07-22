@@ -1832,27 +1832,27 @@ static cfg_type_t cfg_type_key = {
 static cfg_clausedef_t
 server_clauses[] = {
 	{ "bogus", &cfg_type_boolean, 0 },
+	{ "edns", &cfg_type_boolean, 0 },
+	{ "edns-udp-size", &cfg_type_uint32, 0 },
+	{ "keys", &cfg_type_server_key_kludge, 0 },
+	{ "max-udp-size", &cfg_type_uint32, 0 },
+	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
+	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
+	{ "query-source", &cfg_type_querysource4, 0 },
+	{ "query-source-v6", &cfg_type_querysource6, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
-	{ "support-ixfr", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "request-nsid", &cfg_type_boolean, 0 },
 #ifdef ISC_PLATFORM_USESIT
 	{ "request-sit", &cfg_type_boolean, 0 },
 #else
 	{ "request-sit", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
-	{ "request-nsid", &cfg_type_boolean, 0 },
-	{ "transfers", &cfg_type_uint32, 0 },
+	{ "support-ixfr", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
-	{ "keys", &cfg_type_server_key_kludge, 0 },
-	{ "edns", &cfg_type_boolean, 0 },
-	{ "edns-udp-size", &cfg_type_uint32, 0 },
-	{ "max-udp-size", &cfg_type_uint32, 0 },
-	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
-	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
-	{ "query-source", &cfg_type_querysource4, 0 },
-	{ "query-source-v6", &cfg_type_querysource6, 0 },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
+	{ "transfers", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_clausedef_t *
