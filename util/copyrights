@@ -788,6 +788,7 @@
 ./bin/tests/system/case/tests.sh		SH	2013,2014
 ./bin/tests/system/checkconf/altdb.conf		CONF-C	2014
 ./bin/tests/system/checkconf/bad-hint.conf	CONF-C	2014
+./bin/tests/system/checkconf/bad-master-request-ixfr.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad.conf		CONF-C	2005,2007
 ./bin/tests/system/checkconf/badtsig.conf	CONF-C	2012,2013
