@@ -835,6 +835,7 @@
 ./bin/tests/system/checkconf/bad-hint.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-inline-slave.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-many.conf	CONF-C	2005,2012
+./bin/tests/system/checkconf/bad-master-request-ixfr.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-tsig.conf	CONF-C	2012,2013
 ./bin/tests/system/checkconf/clean.sh		SH	2011,2012,2013
