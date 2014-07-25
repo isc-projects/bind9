@@ -874,6 +874,7 @@
 ./bin/tests/system/checkconf/bad-hint.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-inline-slave.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-many.conf	CONF-C	2005,2012
+./bin/tests/system/checkconf/bad-master-request-ixfr.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-maxttlmap.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-sharedzone1.conf	CONF-C	2013
