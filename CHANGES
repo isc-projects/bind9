@@ -1,3 +1,6 @@
+3899.	[bug]		"request-ixfr" is only applicable to slave and redirect
+			zones. [RT #36608]
+
 3898.	[bug]		Too small a buffer in tohexstr() calls in test code.
 			[RT #36598]
 
