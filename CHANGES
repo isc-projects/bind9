@@ -1,3 +1,5 @@
+3900.	[bug]		Fix a crash in PostgreSQL DLZ driver. [RT #36637]
+
 3899.	[bug]		"request-ixfr" is only applicable to slave and redirect
 			zones. [RT #36608]
 
