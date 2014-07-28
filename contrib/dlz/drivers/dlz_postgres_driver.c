@@ -577,6 +577,7 @@ postgres_get_resultset(const char *zone, const char *record,
 #endif
 			PQclear(*rs);	/* get rid of it */
 			/* in case this was the last attempt */
+			*rs = NULL;
 			result = ISC_R_FAILURE;
 		}
 	}
