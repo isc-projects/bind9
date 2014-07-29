@@ -1923,7 +1923,7 @@
 ./bin/tests/system/xfer/ns7/named.conf		CONF-C	2011
 ./bin/tests/system/xfer/prereq.sh		SH	2011,2012,2014
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004,2007,2011,2012,2013,2014
-./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012,2013
+./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012,2013,2014
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/xferquota/ns1/changing1.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/xferquota/ns1/changing2.db	ZONE	2000,2001,2004,2007
@@ -3067,6 +3067,8 @@
 ./lib/dns/rdata/ch_3/a_1.h			C	2005,2007
 ./lib/dns/rdata/generic/afsdb_18.c		C	1999,2000,2001,2003,2004,2005,2007,2009,2014
 ./lib/dns/rdata/generic/afsdb_18.h		C	1999,2000,2001,2004,2005,2007
+./lib/dns/rdata/generic/caa_257.c		C	2014
+./lib/dns/rdata/generic/caa_257.h		C	2014
 ./lib/dns/rdata/generic/cdnskey_60.c		C	2014
 ./lib/dns/rdata/generic/cdnskey_60.h		C	2014
 ./lib/dns/rdata/generic/cds_59.c		C	2014
@@ -3087,15 +3089,15 @@
 ./lib/dns/rdata/generic/eui48_108.h		C	2013
 ./lib/dns/rdata/generic/eui64_109.c		C	2013,2014
 ./lib/dns/rdata/generic/eui64_109.h		C	2013
-./lib/dns/rdata/generic/gpos_27.c		C	1999,2000,2001,2002,2004,2005,2007,2009
+./lib/dns/rdata/generic/gpos_27.c		C	1999,2000,2001,2002,2004,2005,2007,2009,2014
 ./lib/dns/rdata/generic/gpos_27.h		C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/generic/hinfo_13.c		C	1998,1999,2000,2001,2002,2004,2007,2009
+./lib/dns/rdata/generic/hinfo_13.c		C	1998,1999,2000,2001,2002,2004,2007,2009,2014
 ./lib/dns/rdata/generic/hinfo_13.h		C	1998,1999,2000,2001,2004,2007
 ./lib/dns/rdata/generic/hip_55.c		C	2009,2011,2013,2014
 ./lib/dns/rdata/generic/hip_55.h		C	2009
 ./lib/dns/rdata/generic/ipseckey_45.c		C	2005,2007,2009,2011,2012,2014
 ./lib/dns/rdata/generic/ipseckey_45.h		C	2005,2007
-./lib/dns/rdata/generic/isdn_20.c		C	1999,2000,2001,2002,2004,2005,2007,2009,2013
+./lib/dns/rdata/generic/isdn_20.c		C	1999,2000,2001,2002,2004,2005,2007,2009,2013,2014
 ./lib/dns/rdata/generic/isdn_20.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/key_25.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012,2013
 ./lib/dns/rdata/generic/key_25.h		C	1999,2000,2001,2004,2005,2007
@@ -3123,7 +3125,7 @@
 ./lib/dns/rdata/generic/mr_9.h			C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/mx_15.c			C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2012
 ./lib/dns/rdata/generic/mx_15.h			C	1998,1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/generic/naptr_35.c		C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011,2012,2013
+./lib/dns/rdata/generic/naptr_35.c		C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/rdata/generic/naptr_35.h		C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/dns/rdata/generic/nid_104.c		C	2013,2014
 ./lib/dns/rdata/generic/nid_104.h		C	2013
@@ -3167,9 +3169,9 @@
 ./lib/dns/rdata/generic/txt_16.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/unspec_103.c		C	1999,2000,2001,2002,2004,2007,2009
 ./lib/dns/rdata/generic/unspec_103.h		C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/generic/uri_256.c		C	2011,2012
+./lib/dns/rdata/generic/uri_256.c		C	2011,2012,2014
 ./lib/dns/rdata/generic/uri_256.h		C	2011,2012
-./lib/dns/rdata/generic/x25_19.c		C	1999,2000,2001,2002,2004,2005,2007,2009
+./lib/dns/rdata/generic/x25_19.c		C	1999,2000,2001,2002,2004,2005,2007,2009,2014
 ./lib/dns/rdata/generic/x25_19.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/hs_4/a_1.c			C	1999,2000,2001,2002,2004,2007,2009,2014
 ./lib/dns/rdata/hs_4/a_1.h			C	1999,2000,2001,2004,2005,2007
