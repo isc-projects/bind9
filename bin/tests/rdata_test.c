@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.52 2011/08/28 09:10:41 marka Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -284,6 +282,11 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		result = dns_rdata_tostruct(rdata, sp = &uri, NULL);
 		break;
 	}
+	case dns_rdatatype_caa: {
+		static dns_rdata_caa_t caa;
+		result = dns_rdata_tostruct(rdata, sp = &caa, NULL);
+		break;
+	}
 	case dns_rdatatype_wks: {
 		static dns_rdata_in_wks_t in_wks;
 		result = dns_rdata_tostruct(rdata, sp = &in_wks, NULL);
@@ -549,6 +552,11 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	case dns_rdatatype_uri: {
 		static dns_rdata_uri_t uri;
 		result = dns_rdata_tostruct(rdata, sp = &uri, mctx);
+		break;
+	}
+	case dns_rdatatype_caa: {
+		static dns_rdata_caa_t caa;
+		result = dns_rdata_tostruct(rdata, sp = &caa, mctx);
 		break;
 	}
 	case dns_rdatatype_wks: {
@@ -846,6 +854,11 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	case dns_rdatatype_uri: {
 		dns_rdata_uri_t uri;
 		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &uri, b);
+		break;
+	}
+	case dns_rdatatype_caa: {
+		dns_rdata_caa_t caa;
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &caa, b);
 		break;
 	}
 	case dns_rdatatype_wks: {
