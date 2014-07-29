@@ -1296,7 +1296,7 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
  * 'lenbyte' indicates whether to use length bytes in the encoding:
  * The URI rdatatype uses length bytes for each 255-byte chunk of
  * TXT, while the CAA rdatatype's length length is established by
- * the overall rdata length. 
+ * the overall rdata length.
  */
 static isc_result_t
 multitxt_totext(isc_region_t *source, isc_buffer_t *target,
