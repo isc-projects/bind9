@@ -1,3 +1,6 @@
+3056.	[protocol]	Added support for CAA record type (RFC 6844).
+			[RT #36625]
+
 3900.	[bug]		Fix a crash in PostgreSQL DLZ driver. [RT #36637]
 
 3899.	[bug]		"request-ixfr" is only applicable to slave and redirect
