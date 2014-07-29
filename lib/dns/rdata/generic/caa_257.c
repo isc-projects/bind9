@@ -154,7 +154,7 @@ fromwire_caa(ARGS_FROMWIRE) {
 		RETERR(DNS_R_FORMERR);
 
 	/* Tag */
-	for (i = 0; i < sr.length; i++)
+	for (i = 0; i < len; i++)
 		if (!alphanumeric[sr.base[i]])
 			RETERR(DNS_R_FORMERR);
 	RETERR(mem_tobuffer(target, sr.base, len));
