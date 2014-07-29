@@ -25,8 +25,8 @@ typedef struct dns_rdata_caa {
 	isc_uint8_t		flags;
 	unsigned char *		tag;
 	isc_uint8_t		tag_len;
-        unsigned char		*value;
-        isc_uint8_t		value_len;
+	unsigned char		*value;
+	isc_uint8_t		value_len;
 } dns_rdata_caa_t;
 
 #endif /* GENERIC_CAA_257_H */
