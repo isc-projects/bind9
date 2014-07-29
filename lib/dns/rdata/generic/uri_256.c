@@ -58,7 +58,8 @@ fromtext_uri(ARGS_FROMTEXT) {
 				      isc_tokentype_qstring, ISC_FALSE));
 	if (token.type != isc_tokentype_qstring)
 		RETTOK(DNS_R_SYNTAX);
-	RETTOK(multitxt_fromtext(&token.value.as_textregion, target));
+	RETTOK(multitxt_fromtext(&token.value.as_textregion, target,
+				 ISC_TRUE));
 	return (ISC_R_SUCCESS);
 }
 
@@ -94,7 +95,7 @@ totext_uri(ARGS_TOTEXT) {
 	/*
 	 * Target URI
 	 */
-	RETERR(multitxt_totext(&region, target));
+	RETERR(multitxt_totext(&region, target, ISC_TRUE));
 	return (ISC_R_SUCCESS);
 }
 
@@ -121,7 +122,7 @@ fromwire_uri(ARGS_FROMWIRE) {
 	/*
 	 * Target URI
 	 */
-	RETERR(multitxt_fromwire(source, target));
+	RETERR(multitxt_fromwire(source, target, ISC_TRUE));
 
 	return (ISC_R_SUCCESS);
 }
