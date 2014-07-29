@@ -1,4 +1,4 @@
-3056.	[protocol]	Added support for CAA record type (RFC 6844).
+3901.	[protocol]	Added support for CAA record type (RFC 6844).
 			[RT #36625]
 
 3900.	[bug]		Fix a crash in PostgreSQL DLZ driver. [RT #36637]
