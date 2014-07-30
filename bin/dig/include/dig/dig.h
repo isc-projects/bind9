@@ -220,6 +220,7 @@ struct dig_query {
 	ISC_LINK(dig_query_t) clink;
 	isc_sockaddr_t sockaddr;
 	isc_time_t time_sent;
+	isc_time_t time_recv;
 	isc_uint64_t byte_count;
 	isc_buffer_t sendbuf;
 };
