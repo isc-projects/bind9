@@ -1,3 +1,6 @@
+3902.	bug]		liblwres wasn't handling link-local addresses in
+			nameserver clauses in resolv.conf. [RT #36039]
+
 3901.	[protocol]	Added support for CAA record type (RFC 6844).
 			[RT #36625]
 

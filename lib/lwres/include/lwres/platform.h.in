@@ -100,6 +100,11 @@
  */
 @LWRES_PLATFORM_NEEDSTRTOUL@
 
+/*! \brief
+ * Define if this system needs strlcpy.
+ */
+@LWRES_PLATFORM_NEEDSTRLCPY@
+
 #ifndef LWRES_PLATFORM_USEDECLSPEC
 #define LIBLWRES_EXTERNAL_DATA
 #else

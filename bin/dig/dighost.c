@@ -613,7 +613,8 @@ addr2af(int lwresaddrtype)
 static void
 copy_server_list(lwres_conf_t *confdata, dig_serverlist_t *dest) {
 	dig_server_t *newsrv;
-	char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
+	char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255") +
+		 sizeof("%4000000000")];
 	int af;
 	int i;
 
@@ -628,6 +629,12 @@ copy_server_list(lwres_conf_t *confdata, dig_serverlist_t *dest) {
 
 		lwres_net_ntop(af, confdata->nameservers[i].address,
 				   tmp, sizeof(tmp));
+		if (af == AF_INET6 && confdata->nameservers[i].zone != 0) {
+			char buf[sizeof("%4000000000")];
+			snprintf(buf, sizeof(buf), "%%%u",
+				 confdata->nameservers[i].zone);
+			strlcat(tmp, buf, sizeof(tmp));
+		}
 		newsrv = make_server(tmp, tmp);
 		ISC_LINK_INIT(newsrv, link);
 		ISC_LIST_ENQUEUE(*dest, newsrv, link);
