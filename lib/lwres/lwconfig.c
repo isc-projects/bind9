@@ -69,6 +69,7 @@
 
 #include "assert_p.h"
 #include "context_p.h"
+#include "print_p.h"
 
 
 #if ! defined(NS_INADDRSZ)
