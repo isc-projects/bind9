@@ -3388,6 +3388,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	INSIST(recvcount >= 0);
 
 	query = event->ev_arg;
+	TIME_NOW(&query->time_recv);
 	debug("lookup=%p, query=%p", query->lookup, query);
 
 	l = query->lookup;

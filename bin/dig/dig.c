@@ -255,7 +255,6 @@ help(void) {
 void
 received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_uint64_t diff;
-	isc_time_t now;
 	time_t tnow;
 	struct tm tmnow;
 	char time_str[100];
@@ -263,10 +262,8 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 
 	isc_sockaddr_format(from, fromtext, sizeof(fromtext));
 
-	TIME_NOW(&now);
-
 	if (query->lookup->stats && !short_form) {
-		diff = isc_time_microdiff(&now, &query->time_sent);
+		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		if (use_usec)
 			printf(";; Query time: %ld usec\n", (long) diff);
 		else
@@ -295,7 +292,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		}
 		puts("");
 	} else if (query->lookup->identify && !short_form) {
-		diff = isc_time_microdiff(&now, &query->time_sent);
+		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		if (use_usec)
 			printf(";; Received %" ISC_PRINT_QUADFORMAT "u bytes "
 			       "from %s(%s) in %ld us\n\n",
@@ -331,7 +328,6 @@ static isc_result_t
 say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	isc_result_t result;
 	isc_uint64_t diff;
-	isc_time_t now;
 	char store[sizeof("12345678901234567890")];
 	unsigned int styleflags = 0;
 
@@ -349,8 +345,7 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		return (result);
 	check_result(result, "dns_rdata_totext");
 	if (query->lookup->identify) {
-		TIME_NOW(&now);
-		diff = isc_time_microdiff(&now, &query->time_sent);
+		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		ADD_STRING(buf, " from server ");
 		ADD_STRING(buf, query->servname);
 		if (use_usec)
