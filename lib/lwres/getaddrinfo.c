@@ -134,13 +134,12 @@
 #include <config.h>
 
 #include <errno.h>
+#include <string.h>
 
-#include <isc/string.h>
-
+#include <lwres/compat.h>
 #include <lwres/lwres.h>
 #include <lwres/net.h>
 #include <lwres/netdb.h>
-#include <lwres/stdlib.h>
 
 #define SA(addr)	((struct sockaddr *)(addr))
 #define SIN(addr)	((struct sockaddr_in *)(addr))
