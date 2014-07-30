@@ -9800,6 +9800,21 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 	return (result);
 }
 
+static inline isc_boolean_t
+argcheck(char *cmd, const char *full) {
+	size_t l;
+
+	if (cmd == NULL || cmd[0] != '-')
+		return (ISC_FALSE);
+
+	cmd++;
+	l = strlen(cmd);
+	if (l > strlen(full) || strncasecmp(cmd, full, l) != 0)
+		return (ISC_FALSE);
+
+	return (ISC_TRUE);
+}
+
 isc_result_t
 ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_view_t *view;
@@ -9827,24 +9842,20 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 		return (ISC_R_UNEXPECTEDEND);
 
 	for (;;) {
-		size_t len;
-
 		/* Check for options */
 		ptr = next_token(&args, " \t");
 		if (ptr == NULL)
 			return (ISC_R_UNEXPECTEDEND);
 
-		len = strlen(ptr);
-
-		if (strncasecmp(ptr, "-dump", len) == 0)
+		if (argcheck(ptr, "dump"))
 			dump = ISC_TRUE;
-		else if (strncasecmp(ptr, "-remove", len) == 0) {
+		else if (argcheck(ptr, "remove")) {
 			ntattl = 0;
 			ttlset = ISC_TRUE;
-		} else if (strncasecmp(ptr, "-force", len) == 0) {
+		} else if (argcheck(ptr, "force")) {
 			force = ISC_TRUE;
 			continue;
-		} else if (strncasecmp(ptr, "-lifetime", len) == 0) {
+		} else if (argcheck(ptr, "lifetime")) {
 			isc_textregion_t tr;
 
 			ptr = next_token(&args, " \t");
