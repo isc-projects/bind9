@@ -15,12 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdlib.h,v 1.6 2007/06/19 23:47:23 tbox Exp $ */
+#ifndef LWRES_COMPAT_H
+#define LWRES_COMPAT_H 1
 
-#ifndef LWRES_STDLIB_H
-#define LWRES_STDLIB_H 1
-
-/*! \file lwres/stdlib.h */
+/*! \file lwres/compat.h */
 
 #include <stdlib.h>
 
@@ -31,9 +29,14 @@
 #define strtoul lwres_strtoul
 #endif
 
+#ifdef LWRES_PLATFORM_NEEDSTRLCPY
+#define strlcpy lwres_strlcpy
+#endif
+
 LWRES_LANG_BEGINDECLS
 
 unsigned long lwres_strtoul(const char *, char **, int);
+size_t lwres_strlcpy(char *dst, const char *src, size_t size);
 
 LWRES_LANG_ENDDECLS
 

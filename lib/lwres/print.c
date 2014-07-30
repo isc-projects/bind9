@@ -25,7 +25,7 @@
 
 #define	LWRES__PRINT_SOURCE	/* Used to get the lwres_print_* prototypes. */
 
-#include <lwres/stdlib.h>
+#include <lwres/compat.h>
 
 #include "assert_p.h"
 #include "print_p.h"
