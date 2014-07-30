@@ -1,3 +1,6 @@
+3903.	[bug]		Improve the accuracy of DiG's reported round trip
+			time. [RT 36611]
+
 3902.	[bug]		liblwres wasn't handling link-local addresses in
 			nameserver clauses in resolv.conf. [RT #36039]
 
