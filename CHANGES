@@ -1,3 +1,6 @@
+3906.	[protocol]	Update URI record format to comply with
+			draft-faltstrom-uri-08. [RT #36642]
+
 3905.	[bug]		Address deadlock between view.c and adb.c. [RT #36341]
 
 3904.	[func]		Add the RPZ SOA to the additional section. [RT36507]

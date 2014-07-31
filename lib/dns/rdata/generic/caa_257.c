@@ -81,8 +81,7 @@ fromtext_caa(ARGS_FROMTEXT) {
 	if (token.type != isc_tokentype_qstring &&
 	    token.type != isc_tokentype_string)
 		RETERR(DNS_R_SYNTAX);
-	RETERR(multitxt_fromtext(&token.value.as_textregion, target,
-				 ISC_FALSE));
+	RETERR(multitxt_fromtext(&token.value.as_textregion, target));
 	return (ISC_R_SUCCESS);
 }
 
@@ -116,7 +115,7 @@ totext_caa(ARGS_TOTEXT) {
 	/*
 	 * Value
 	 */
-	RETERR(multitxt_totext(&region, target, ISC_FALSE));
+	RETERR(multitxt_totext(&region, target));
 	return (ISC_R_SUCCESS);
 }
 
@@ -164,7 +163,7 @@ fromwire_caa(ARGS_FROMWIRE) {
 	/*
 	 * Value
 	 */
-	RETERR(multitxt_fromwire(source, target, ISC_FALSE));
+	RETERR(multitxt_fromwire(source, target));
 
 	return (ISC_R_SUCCESS);
 }
