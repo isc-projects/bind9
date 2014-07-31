@@ -152,7 +152,7 @@ command is one of the following:\n\
   recursing	Dump the queries that are currently recursing (named.recursing)\n\
   tsig-list	List all currently active TSIG keys, including both statically\n\
 		configured and TKEY-negotiated keys.\n\
-  tsig-delete keyname [view]	\n\
+  tsig-delete keyname [view]\n\
 		Delete a TKEY-negotiated TSIG key.\n\
   validation newstate [view]\n\
 		Enable / disable DNSSEC validation.\n\
