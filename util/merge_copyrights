@@ -102,7 +102,7 @@ while (<CHANGES>) {
 	    $file_types{$_} = "CONF-SH";
 	} elsif ($base =~ /\.(db|hint)$/) {
 	    $file_types{$_} = "ZONE";
-	} elsif ($base =~ /(\/\.gitignore|\.(gif|jpg))$/i) {
+	} elsif ($base =~ /(\/\.gitignore|Atffile|\.(gif|jpg))$/i) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.(def|dep|dsp|dsw|mak|sln)$/i) {
 	    $file_types{$_} = "X";
