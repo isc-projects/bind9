@@ -5996,7 +5996,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 						    "unrelated %s %s in "
 						    "%s authority section",
 						    tbuf, qbuf, nbuf);
-					return (DNS_R_FORMERR);
+					goto nextname;
 				}
 				if (type == dns_rdatatype_ns) {
 					/*
@@ -6059,6 +6059,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 				}
 			}
 		}
+ nextname:
 		result = dns_message_nextname(message, section);
 		if (result == ISC_R_NOMORE)
 			break;
