@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file
  *
  * \note
@@ -157,7 +155,7 @@ struct dns_adb {
 	unsigned int                    *entry_refcnt;
 
 	isc_event_t                     cevent;
-	isc_boolean_t                   cevent_sent;
+	isc_boolean_t                   cevent_out;
 	isc_boolean_t                   shutting_down;
 	isc_eventlist_t                 whenshutdown;
 	isc_event_t			growentries;
@@ -324,6 +322,7 @@ static void water(void *, int);
 static void dump_entry(FILE *, dns_adbentry_t *, isc_boolean_t, isc_stdtime_t);
 static void adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt,
 		       unsigned int factor, isc_stdtime_t now);
+static void shutdown_task(isc_task_t *task, isc_event_t *ev);
 
 /*
  * MUST NOT overlap DNS_ADBFIND_* flags!
@@ -1501,10 +1500,13 @@ check_exit(dns_adb_t *adb) {
 		 * If there aren't any external references either, we're
 		 * done.  Send the control event to initiate shutdown.
 		 */
-		INSIST(!adb->cevent_sent);      /* Sanity check. */
+		INSIST(!adb->cevent_out);      /* Sanity check. */
+		ISC_EVENT_INIT(&adb->cevent, sizeof(adb->cevent), 0, NULL,
+			       DNS_EVENT_ADBCONTROL, shutdown_task, adb,
+			       adb, NULL, NULL);
 		event = &adb->cevent;
 		isc_task_send(adb->task, &event);
-		adb->cevent_sent = ISC_TRUE;
+		adb->cevent_out = ISC_TRUE;
 	}
 }
 
@@ -2434,10 +2436,9 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->view = view;
 	adb->taskmgr = taskmgr;
 	adb->next_cleanbucket = 0;
-	ISC_EVENT_INIT(&adb->cevent, sizeof(adb->cevent), 0, NULL,
-		       DNS_EVENT_ADBCONTROL, shutdown_task, adb,
-		       adb, NULL, NULL);
-	adb->cevent_sent = ISC_FALSE;
+	ISC_EVENT_INIT(&adb->cevent, sizeof(adb->cevent),
+		       0, NULL, 0, NULL, NULL, NULL, NULL, NULL);
+	adb->cevent_out = ISC_FALSE;
 	adb->shutting_down = ISC_FALSE;
 	ISC_LIST_INIT(adb->whenshutdown);
 
@@ -2471,7 +2472,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 				 "intializing table sizes to %u\n",
 				 nbuckets[11]);
 		adb->nentries = nbuckets[11];
-		adb->nnames= nbuckets[11];
+		adb->nnames = nbuckets[11];
 
 	}
 
@@ -2744,9 +2745,28 @@ dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp) {
 	UNLOCK(&adb->lock);
 }
 
+static void
+shutdown_stage2(isc_task_t *task, isc_event_t *event) {
+	dns_adb_t *adb;
+
+	UNUSED(task);
+
+	adb = event->ev_arg;
+	INSIST(DNS_ADB_VALID(adb));
+
+	LOCK(&adb->lock);
+	INSIST(adb->shutting_down);
+	adb->cevent_out = ISC_FALSE;
+	(void)shutdown_names(adb);
+	(void)shutdown_entries(adb);
+	if (dec_adb_irefcnt(adb))
+		check_exit(adb);
+	UNLOCK(&adb->lock);
+}
+
 void
 dns_adb_shutdown(dns_adb_t *adb) {
-	isc_boolean_t need_check_exit;
+	isc_event_t *event;
 
 	/*
 	 * Shutdown 'adb'.
@@ -2757,11 +2777,16 @@ dns_adb_shutdown(dns_adb_t *adb) {
 	if (!adb->shutting_down) {
 		adb->shutting_down = ISC_TRUE;
 		isc_mem_setwater(adb->mctx, water, adb, 0, 0);
-		need_check_exit = shutdown_names(adb);
-		if (!need_check_exit)
-			need_check_exit = shutdown_entries(adb);
-		if (need_check_exit)
-			check_exit(adb);
+		/*
+		 * Isolate shutdown_names and shutdown_entries calls.
+		 */
+		inc_adb_irefcnt(adb);
+		ISC_EVENT_INIT(&adb->cevent, sizeof(adb->cevent), 0, NULL,
+			       DNS_EVENT_ADBCONTROL, shutdown_stage2, adb,
+			       adb, NULL, NULL);
+		adb->cevent_out = ISC_TRUE;
+		event = &adb->cevent;
+		isc_task_send(adb->task, &event);
 	}
 
 	UNLOCK(&adb->lock);
