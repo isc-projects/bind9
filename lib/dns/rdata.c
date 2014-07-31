@@ -125,16 +125,13 @@ static isc_result_t
 txt_fromwire(isc_buffer_t *source, isc_buffer_t *target);
 
 static isc_result_t
-multitxt_totext(isc_region_t *source, isc_buffer_t *target,
-		isc_boolean_t lenbyte);
+multitxt_totext(isc_region_t *source, isc_buffer_t *target);
 
 static isc_result_t
-multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target,
-		  isc_boolean_t lenbyte);
+multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target);
 
 static isc_result_t
-multitxt_fromwire(isc_buffer_t *source, isc_buffer_t *target,
-		  isc_boolean_t lenbyte);
+multitxt_fromwire(isc_buffer_t *source, isc_buffer_t *target);
 
 static isc_boolean_t
 name_prefix(dns_name_t *name, dns_name_t *origin, dns_name_t *target);
@@ -1293,15 +1290,9 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 
 /*
  * Conversion of TXT-like rdata fields without length limits.
- * 'lenbyte' indicates whether to use length bytes in the encoding:
- * The URI rdatatype uses length bytes for each 255-byte chunk of
- * TXT, while the CAA rdatatype's length length is established by
- * the overall rdata length.
  */
 static isc_result_t
-multitxt_totext(isc_region_t *source, isc_buffer_t *target,
-		isc_boolean_t lenbyte)
-{
+multitxt_totext(isc_region_t *source, isc_buffer_t *target) {
 	unsigned int tl;
 	unsigned int n0, n;
 	unsigned char *sp;
@@ -1318,13 +1309,8 @@ multitxt_totext(isc_region_t *source, isc_buffer_t *target,
 	*tp++ = '"';
 	tl--;
 	do {
-		if (lenbyte) {
-			n0 = n = *sp++;
-			REQUIRE(n0 + 1 <= source->length);
-		} else {
-			n = source->length;
-			n0 = source->length - 1;
-		}
+		n = source->length;
+		n0 = source->length - 1;
 
 		while (n--) {
 			if (*sp < 0x20 || *sp >= 0x7f) {
@@ -1361,9 +1347,7 @@ multitxt_totext(isc_region_t *source, isc_buffer_t *target,
 }
 
 static isc_result_t
-multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target,
-		  isc_boolean_t lenbyte)
-{
+multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 	isc_region_t tregion;
 	isc_boolean_t escape;
 	unsigned int n, nrem;
@@ -1382,16 +1366,6 @@ multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target,
 		nrem = tregion.length;
 		if (nrem < 1)
 			return (ISC_R_NOSPACE);
-
-		if (lenbyte) {
-			/* length byte */
-			nrem--;
-			t++;
-
-			/* 255 byte character-string slice */
-			if (nrem > 255)
-				nrem = 255;
-		}
 
 		while (n != 0) {
 			--n;
@@ -1427,19 +1401,13 @@ multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target,
 		if (escape)
 			return (DNS_R_SYNTAX);
 
-		if (lenbyte) {
-			*t0 = (unsigned char)(t - t0 - 1);
-			isc_buffer_add(target, *t0 + 1);
-		} else
-			isc_buffer_add(target, t - t0);
+		isc_buffer_add(target, t - t0);
 	} while (n != 0);
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
-multitxt_fromwire(isc_buffer_t *source, isc_buffer_t *target,
-		  isc_boolean_t lenbyte)
-{
+multitxt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 	unsigned int n;
 	isc_region_t sregion;
 	isc_region_t tregion;
@@ -1451,12 +1419,8 @@ multitxt_fromwire(isc_buffer_t *source, isc_buffer_t *target,
 	do {
 		if (n != 256U)
 			return (DNS_R_SYNTAX);
-		if (lenbyte) {
-			n = *sregion.base + 1;
-			if (n > sregion.length)
-				return (ISC_R_UNEXPECTEDEND);
-		} else
-			n = sregion.length;
+
+		n = sregion.length;
 
 		isc_buffer_availableregion(target, &tregion);
 		if (n > tregion.length)
