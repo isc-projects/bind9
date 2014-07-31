@@ -6633,7 +6633,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		associated = dns_rdataset_isassociated(rdataset);
 		section = nxrewrite ? DNS_SECTION_ADDITIONAL :
 				      DNS_SECTION_AUTHORITY;
-			
+
 		result = query_addsoa(client, db, version, ISC_UINT32_MAX,
 				      associated, section);
 		if (result != ISC_R_SUCCESS) {
