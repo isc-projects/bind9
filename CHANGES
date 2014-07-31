@@ -1,3 +1,5 @@
+3905.	[bug]		Address deadlock between view.c and adb.c. [RT #36341]
+
 3904.	[func]		Add the RPZ SOA to the additional section. [RT36507]
 
 3903.	[bug]		Improve the accuracy of DiG's reported round trip
