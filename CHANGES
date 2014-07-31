@@ -1,3 +1,5 @@
+3904.	[func]		Add the RPZ SOA to the additional section. [RT36507]
+
 3903.	[bug]		Improve the accuracy of DiG's reported round trip
 			time. [RT 36611]
 
