@@ -124,6 +124,8 @@ command is one of the following:\n\
   notify zone [class [view]]\n\
 		Resend NOTIFY messages for the zone.\n\
   notrace	Set debugging level to 0.\n\
+  nta -dump\n\
+		List all negative trust anchors.\n\
   nta [-lifetime duration] [-force] domain [view]\n\
 		Set a negative trust anchor, disabling DNSSEC validation\n\
 		for the given domain.\n\
@@ -134,8 +136,6 @@ command is one of the following:\n\
   nta -remove domain [view]\n\
 		Remove a negative trust anchor, re-enabling validation\n\
 		for the given domain.\n\
-  nta -dump\n\
-		List all negative trust anchors.\n\
   querylog newstate\n\
 		Enable / disable query logging.\n\
   reconfig	Reload configuration file and new zones only.\n\
