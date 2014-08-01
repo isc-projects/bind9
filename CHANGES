@@ -1,3 +1,5 @@
+3907.	[cleanup]	Alphabetise rndc help. [RT#36683]
+
 3906.	[protocol]	Update URI record format to comply with
 			draft-faltstrom-uri-08. [RT #36642]
 
