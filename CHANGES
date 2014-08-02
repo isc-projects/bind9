@@ -1,3 +1,6 @@
+3908.	[bug]		rndc now differentiates between a zone in multiple
+			views and a zone that doesn't exist at all. [RT #36691]
+
 3907.	[cleanup]	Alphabetise rndc help. [RT#36683]
 
 3906.	[protocol]	Update URI record format to comply with
