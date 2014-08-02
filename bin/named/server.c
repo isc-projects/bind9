@@ -7127,6 +7127,10 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 			snprintf(problem, sizeof(problem),
 				 "no matching zone '%s' in any view",
 				 zonetxt);
+		else if (result == ISC_R_MULTIPLE)
+			snprintf(problem, sizeof(problem),
+				 "zone '%s' was found in multiple views",
+				 zonetxt);
 	} else {
 		result = dns_viewlist_find(&server->viewlist, viewtxt,
 					   rdclass, &view);

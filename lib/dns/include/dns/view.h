@@ -740,6 +740,7 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name, isc_boolean_t allc
  * Returns:
  *\li	#ISC_R_SUCCESS          A matching zone was found.
  *\li	#ISC_R_NOTFOUND         No matching zone was found.
+ *\li	#ISC_R_MULTIPLE         Multiple zones with the same name were found.
  */
 
 isc_result_t
