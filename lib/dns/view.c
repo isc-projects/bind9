@@ -1441,7 +1441,7 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 		if (zone2 != NULL) {
 			dns_zone_detach(&zone1);
 			dns_zone_detach(&zone2);
-			return (ISC_R_NOTFOUND);
+			return (ISC_R_MULTIPLE);
 		}
 	}
 

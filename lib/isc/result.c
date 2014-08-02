@@ -103,6 +103,7 @@ static const char *text[ISC_R_NRESULTS] = {
 	"invalid address format",		/*%< 59 */
 	"bad base32 encoding",			/*%< 60 */
 	"unset",				/*%< 61 */
+	"multiple",				/*%< 62 */
 };
 
 #define ISC_RESULT_RESULTSET			2
