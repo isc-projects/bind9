@@ -1,4 +1,4 @@
-3910.	[bug]		When computing the number of elements required for a
+3909.	[bug]		When computing the number of elements required for a
 			acl count_acl_elements could have a short count leading
 			to a assertion failure.  Also zero out new acl elements
 			in dns_acl_merge.  [RT #36675]
