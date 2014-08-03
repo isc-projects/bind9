@@ -213,14 +213,16 @@ convert_keyname(const cfg_obj_t *keyobj, isc_log_t *lctx, isc_mem_t *mctx,
  * elements table after all the nested ACLs have been merged in to the
  * parent.
  */
-static int
+static isc_result_t
 count_acl_elements(const cfg_obj_t *caml, const cfg_obj_t *cctx,
-		   isc_boolean_t *has_negative)
+		   isc_log_t *lctx, cfg_aclconfctx_t *ctx, isc_mem_t *mctx,
+		   isc_uint32_t *count, isc_boolean_t *has_negative)
 {
 	const cfg_listelt_t *elt;
-	const cfg_obj_t *cacl = NULL;
 	isc_result_t result;
-	int n = 0;
+	isc_uint32_t n = 0;
+
+	REQUIRE(count != NULL);
 
 	if (has_negative != NULL)
 		*has_negative = ISC_FALSE;
@@ -241,7 +243,12 @@ count_acl_elements(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 			n++;
 		} else if (cfg_obj_islist(ce)) {
 			isc_boolean_t negative;
-			n += count_acl_elements(ce, cctx, &negative);
+			isc_uint32_t sub;
+			result = count_acl_elements(ce, cctx, lctx, ctx, mctx,
+						    &sub, &negative);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+			n += sub;
 			if (negative)
 				n++;
 		} else if (cfg_obj_isstring(ce)) {
@@ -251,15 +258,27 @@ count_acl_elements(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 				n++;
 			} else if (strcasecmp(name, "any") != 0 &&
 				   strcasecmp(name, "none") != 0) {
-				result = get_acl_def(cctx, name, &cacl);
-				if (result == ISC_R_SUCCESS)
-					n += count_acl_elements(cacl, cctx,
-								NULL) + 1;
+				dns_acl_t *inneracl = NULL;
+				/*
+				 * Convert any named acls we reference now if
+				 * they have not already been converted.
+				 */
+				result = convert_named_acl(ce, cctx, lctx, ctx,
+							   mctx, 0, &inneracl);
+				if (result == ISC_R_SUCCESS) {
+					if (inneracl->has_negatives)
+						n++;
+					else
+						n += inneracl->length;
+					dns_acl_detach(&inneracl);
+				} else
+					return (result);
 			}
 		}
 	}
 
-	return n;
+	*count = n;
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -307,11 +326,14 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 		 * elements table.  (Note that if nest_level is nonzero,
 		 * *everything* goes in the elements table.)
 		 */
-		int nelem;
+		isc_uint32_t nelem;
 
-		if (nest_level == 0)
-			nelem = count_acl_elements(caml, cctx, NULL);
-		else
+		if (nest_level == 0) {
+			result = count_acl_elements(caml, cctx, lctx, ctx,
+						    mctx, &nelem, NULL);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+		} else
 			nelem = cfg_list_length(caml, ISC_FALSE);
 
 		result = dns_acl_create(mctx, nelem, &dacl);
@@ -325,6 +347,8 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 	     elt = cfg_list_next(elt)) {
 		const cfg_obj_t *ce = cfg_listelt_value(elt);
 		isc_boolean_t	neg;
+
+		INSIST(dacl->length <= dacl->alloc);
 
 		if (cfg_obj_istuple(ce)) {
 			/* This must be a negated element. */
@@ -377,6 +401,7 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 				goto cleanup;
 
 			if (nest_level > 0) {
+				INSIST(dacl->length < dacl->alloc);
 				de->type = dns_aclelementtype_nestedacl;
 				de->negative = neg;
 			} else
@@ -398,6 +423,7 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 				goto cleanup;
 nested_acl:
 			if (nest_level > 0 || inneracl->has_negatives) {
+				INSIST(dacl->length < dacl->alloc);
 				de->type = dns_aclelementtype_nestedacl;
 				de->negative = neg;
 				if (de->nestedacl != NULL)
@@ -407,14 +433,18 @@ nested_acl:
 				dns_acl_detach(&inneracl);
 				/* Fall through. */
 			} else {
+				INSIST(dacl->length + inneracl->length
+				       <= dacl->alloc);
 				dns_acl_merge(dacl, inneracl,
 					      ISC_TF(!neg));
 				de += inneracl->length;  /* elements added */
 				dns_acl_detach(&inneracl);
+				INSIST(dacl->length <= dacl->alloc);
 				continue;
 			}
 		} else if (cfg_obj_istype(ce, &cfg_type_keyref)) {
 			/* Key name. */
+			INSIST(dacl->length < dacl->alloc);
 			de->type = dns_aclelementtype_keyname;
 			de->negative = neg;
 			dns_name_init(&de->keyname, NULL);
@@ -433,6 +463,7 @@ nested_acl:
 					goto cleanup;
 
 				if (nest_level != 0) {
+					INSIST(dacl->length < dacl->alloc);
 					de->type = dns_aclelementtype_nestedacl;
 					de->negative = neg;
 				} else
@@ -454,19 +485,26 @@ nested_acl:
 					dacl->has_negatives = !neg;
 
 				if (nest_level != 0) {
+					INSIST(dacl->length < dacl->alloc);
 					de->type = dns_aclelementtype_nestedacl;
 					de->negative = !neg;
 				} else
 					continue;
 			} else if (strcasecmp(name, "localhost") == 0) {
+				INSIST(dacl->length < dacl->alloc);
 				de->type = dns_aclelementtype_localhost;
 				de->negative = neg;
 			} else if (strcasecmp(name, "localnets") == 0) {
+				INSIST(dacl->length < dacl->alloc);
 				de->type = dns_aclelementtype_localnets;
 				de->negative = neg;
 			} else {
 				if (inneracl != NULL)
 					dns_acl_detach(&inneracl);
+				/*
+				 * This call should just find the cached
+				 * of the named acl.
+				 */
 				result = convert_named_acl(ce, cctx, lctx, ctx,
 							   mctx, new_nest_level,
 							   &inneracl);
