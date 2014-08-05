@@ -627,14 +627,14 @@ resolver_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
+	isc_event_free(&event);
+
 	LOCK(&view->lock);
 
 	view->attributes |= DNS_VIEWATTR_RESSHUTDOWN;
 	done = all_done(view);
 
 	UNLOCK(&view->lock);
-
-	isc_event_free(&event);
 
 	if (done)
 		destroy(view);
@@ -651,14 +651,14 @@ adb_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
+	isc_event_free(&event);
+
 	LOCK(&view->lock);
 
 	view->attributes |= DNS_VIEWATTR_ADBSHUTDOWN;
 	done = all_done(view);
 
 	UNLOCK(&view->lock);
-
-	isc_event_free(&event);
 
 	if (done)
 		destroy(view);
@@ -675,14 +675,14 @@ req_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
+	isc_event_free(&event);
+
 	LOCK(&view->lock);
 
 	view->attributes |= DNS_VIEWATTR_REQSHUTDOWN;
 	done = all_done(view);
 
 	UNLOCK(&view->lock);
-
-	isc_event_free(&event);
 
 	if (done)
 		destroy(view);
