@@ -1,3 +1,5 @@
+3910.	[bug]		Fix races to free event during shutdown. [RT#36720]
+
 3909.	[bug]		When computing the number of elements required for a
 			acl count_acl_elements could have a short count leading
 			to a assertion failure.  Also zero out new acl elements
