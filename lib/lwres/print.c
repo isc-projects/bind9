@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #include <config.h>
 
 #include <ctype.h>
@@ -25,7 +23,8 @@
 
 #define	LWRES__PRINT_SOURCE	/* Used to get the lwres_print_* prototypes. */
 
-#include <lwres/compat.h>
+#include <lwres/stdlib.h>
+#include <lwres/string.h>
 
 #include "assert_p.h"
 #include "print_p.h"
