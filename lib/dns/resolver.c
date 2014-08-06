@@ -2053,8 +2053,9 @@ resquery_send(resquery_t *query) {
 
 			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
 			    (query->options & DNS_FETCHOPT_EDNS512) == 0) {
-				udpsize = dns_adb_probesize(fctx->adb,
-							    query->addrinfo);
+				udpsize = dns_adb_probesize2(fctx->adb,
+							     query->addrinfo,
+							     fctx->timeouts);
 				if (udpsize > res->udpsize)
 					udpsize = res->udpsize;
 			}
@@ -7452,10 +7453,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		if ((options & DNS_FETCHOPT_TCP) != 0) {
 			broken_server = DNS_R_TRUNCATEDTCP;
 			keep_trying = ISC_TRUE;
-		} else if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
-			   (query->options & DNS_FETCHOPT_EDNS512) == 0 &&
-			   !triededns(fctx, &query->addrinfo->sockaddr)) {
-			resend = ISC_TRUE;
 		} else {
 			options |= DNS_FETCHOPT_TCP;
 			resend = ISC_TRUE;

@@ -605,8 +605,11 @@ dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
 
 unsigned int
 dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
+unsigned int
+dns_adb_probesize2(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups);
 /*%
  * Return suggested EDNS UDP size based on observed responses / failures.
+ * 'lookups' is the number of times the current lookup has been attempted.
  *
  * Requires:
  *

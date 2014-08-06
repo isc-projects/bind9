@@ -1,3 +1,5 @@
+3912.	[bug]		Address some unrecoverable lookup failures. [RT #36330]
+
 3911.	[func]		Implement EDNS EXPIRE option client side, allowing
 			a slave server to set the expiration timer correctly
 			when transferring zone data from another slave
