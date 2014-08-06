@@ -1,3 +1,5 @@
+3912.	[bug]		Address some unrecoverable lookup failures. [RT #36330]
+
 3910.	[bug]		Fix races to free event during shutdown. [RT#36720]
 
 3909.	[bug]		When computing the number of elements required for a

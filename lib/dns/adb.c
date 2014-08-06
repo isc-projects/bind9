@@ -4297,6 +4297,11 @@ dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 
 unsigned int
 dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
+	return dns_adb_probesize2(adb, addr, 0);
+}
+
+unsigned int
+dns_adb_probesize2(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups) {
 	int bucket;
 	unsigned int size;
 
@@ -4305,14 +4310,21 @@ dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
-	if (addr->entry->to1232 > EDNSTOS)
+	if (addr->entry->to1232 > EDNSTOS || lookups >= 2)
 		size = 512;
-	else if (addr->entry->to1432 > EDNSTOS)
+	else if (addr->entry->to1432 > EDNSTOS || lookups >= 1)
 		size = 1232;
 	else if (addr->entry->to4096 > EDNSTOS)
 		size = 1432;
 	else
 		size = 4096;
+	/*
+	 * Don't shrink probe size below what we have seen due to multiple
+	 * lookups.
+	 */
+	if (lookups > 0 &&
+	    size < addr->entry->udpsize && addr->entry->udpsize < 4096)
+		size = addr->entry->udpsize;
 	UNLOCK(&adb->entrylocks[bucket]);
 
 	return (size);
