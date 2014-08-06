@@ -3168,6 +3168,8 @@
 ./lib/lwres/include/lwres/netdb.h.in		C	2000,2001,2004,2005,2007,2009,2014
 ./lib/lwres/include/lwres/platform.h.in		C	2000,2001,2004,2005,2007,2014
 ./lib/lwres/include/lwres/result.h		C	2000,2001,2004,2005,2006,2007
+./lib/lwres/include/lwres/stdlib.h		C	2014
+./lib/lwres/include/lwres/string.h		C	2014
 ./lib/lwres/include/lwres/version.h		C	2001,2004,2005,2006,2007
 ./lib/lwres/lwbuffer.c				C	2000,2001,2004,2005,2007,2014
 ./lib/lwres/lwconfig.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2014
