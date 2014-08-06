@@ -49,15 +49,14 @@
 static char sccsid[] = "@(#)strtoul.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
 
-/* $Id$ */
-
 #include <config.h>
 
 #include <limits.h>
 #include <ctype.h>
 #include <errno.h>
 
-#include <lwres/compat.h>
+#include <lwres/stdlib.h>
+#include <lwres/string.h>
 
 #define DE_CONST(konst, var) \
 	do { \
