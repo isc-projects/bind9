@@ -10509,8 +10509,15 @@ rate-limit {
 
 	  <para>
 	    The <command>request-expire</command> clause determines
-	    whether the local server, acting as a slave, will request
-	    the EDNS EXPIRE value.
+            whether the local server, when acting as a slave, will
+            request the EDNS EXPIRE value.  The EDNS EXPIRE value
+            indicates the remaining time before the zone data will
+            expire and need to be be refreshed.  This is used
+            when a secondary server transfers a zone from another
+            secondary server; when transferring from the primary, the
+            expiration timer is set from the EXPIRE field of the SOA
+            record instead. 
+            The default is <command>yes</command>.
 	  </para>
 
 	  <para>

@@ -1,4 +1,7 @@
-3911.	[func]		Implement EDNS EXPIRE option client side. [RT #35925]
+3911.	[func]		Implement EDNS EXPIRE option client side, allowing
+                        a slave server to set the expiration timer correctly
+                        when transferring zone data from another slave
+                        server. [RT #35925]
 
 3910.	[bug]		Fix races to free event during shutdown. [RT#36720]
 
