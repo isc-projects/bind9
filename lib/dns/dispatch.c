@@ -1245,8 +1245,8 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		} else {
 			free_buffer(disp, ev->region.base, ev->region.length);
 
-			UNLOCK(&disp->lock);
 			isc_event_free(&ev_in);
+			UNLOCK(&disp->lock);
 			return;
 		}
 	} else if (ev->result != ISC_R_SUCCESS) {
@@ -1257,8 +1257,8 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 				     "odd socket result in udp_recv(): %s",
 				     isc_result_totext(ev->result));
 
-		UNLOCK(&disp->lock);
 		isc_event_free(&ev_in);
+		UNLOCK(&disp->lock);
 		return;
 	}
 
@@ -1432,9 +1432,8 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		 */
 		deactivate_dispsocket(disp, dispsock);
 	}
-	UNLOCK(&disp->lock);
-
 	isc_event_free(&ev_in);
+	UNLOCK(&disp->lock);
 }
 
 /*
@@ -1616,9 +1615,8 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
  restart:
 	(void)startrecv(disp, NULL);
 
-	UNLOCK(&disp->lock);
-
 	isc_event_free(&ev_in);
+	UNLOCK(&disp->lock);
 }
 
 /*

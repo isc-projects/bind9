@@ -1,5 +1,7 @@
 	--- 9.8.8b2 released ---
 
+3913.	[bug]		Address race issue in dispatch. [RT #36731]
+
 3910.	[bug]		Fix races to free event during shutdown. [RT#36720]
 
 3909.	[bug]		When computing the number of elements required for a
