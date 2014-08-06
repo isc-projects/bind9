@@ -1,3 +1,5 @@
+3913.	[bug]		Address race issue in dispatch. [RT #36731]
+
 3912.	[bug]		Address some unrecoverable lookup failures. [RT #36330]
 
 3911.	[func]		Implement EDNS EXPIRE option client side, allowing
