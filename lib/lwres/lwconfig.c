@@ -61,11 +61,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <lwres/compat.h>
 #include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>
 #include <lwres/net.h>
 #include <lwres/result.h>
+#include <lwres/stdlib.h>
+#include <lwres/string.h>
 
 #include "assert_p.h"
 #include "context_p.h"
