@@ -237,6 +237,7 @@ options {
         recursing-file <quoted_string>;
         recursion <boolean>;
         recursive-clients <integer>;
+        request-expire <boolean>;
         request-ixfr <boolean>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
@@ -314,6 +315,7 @@ server <netprefix> {
         provide-ixfr <boolean>;
         query-source <querysource4>;
         query-source-v6 <querysource6>;
+        request-expire <boolean>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
         request-sit <boolean>; // not configured
@@ -492,6 +494,7 @@ view <string> <optional_class> {
                 window <integer>;
         };
         recursion <boolean>;
+        request-expire <boolean>;
         request-ixfr <boolean>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
@@ -522,6 +525,7 @@ view <string> <optional_class> {
                 provide-ixfr <boolean>;
                 query-source <querysource4>;
                 query-source-v6 <querysource6>;
+                request-expire <boolean>;
                 request-ixfr <boolean>;
                 request-nsid <boolean>;
                 request-sit <boolean>; // not configured
@@ -626,6 +630,7 @@ view <string> <optional_class> {
                 nsec3-test-zone <boolean>; // test only
                 pubkey <integer> <integer> <integer>
                     <quoted_string>; // obsolete
+                request-expire <boolean>;
                 request-ixfr <boolean>;
                 serial-update-method ( increment | unixtime | date );
                 server-addresses { ( <ipv4_address> | <ipv6_address> ) [
@@ -725,6 +730,7 @@ zone <string> <optional_class> {
         notify-to-soa <boolean>;
         nsec3-test-zone <boolean>; // test only
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
+        request-expire <boolean>;
         request-ixfr <boolean>;
         serial-update-method ( increment | unixtime | date );
         server-addresses { ( <ipv4_address> | <ipv6_address> ) [ port
