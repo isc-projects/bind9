@@ -4934,6 +4934,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> use-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> provide-ixfr <replaceable>yes_or_no</replaceable>; </optional>
     <optional> request-ixfr <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> request-expire <replaceable>yes_or_no</replaceable>; </optional>
     <optional> treat-cr-as-space <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> min-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
@@ -6471,6 +6472,17 @@ options {
 		<para>
 		  See the description of
 		  <command>request-ixfr</command> in
+		  <xref linkend="server_statement_definition_and_usage"/>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>request-expire</command></term>
+	      <listitem>
+		<para>
+		  See the description of
+		  <command>request-expire</command> in
 		  <xref linkend="server_statement_definition_and_usage"/>.
 		</para>
 	      </listitem>
@@ -10390,6 +10402,7 @@ rate-limit {
     <optional> bogus <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> provide-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> request-expire <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-nsid <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-sit <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
@@ -10492,6 +10505,12 @@ rate-limit {
 	    master
 	    and slave claim to support it, for example if one of the servers
 	    is buggy and crashes or corrupts data when IXFR is used.
+	  </para>
+
+	  <para>
+	    The <command>request-expire</command> clause determines
+	    whether the local server, acting as a slave, will request
+	    the EDNS EXPIRE value.
 	  </para>
 
 	  <para>

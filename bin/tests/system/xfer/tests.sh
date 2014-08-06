@@ -331,5 +331,17 @@ $DIGCMD nil. TXT | grep 'incorrect key AXFR' >/dev/null && {
     status=1
 }
 
+echo "I:check that we ask for and get a EDNS EXPIRE response"
+# force a refresh query
+$RNDC -s 10.53.0.7 -p 9953 -c ../common/rndc.conf refresh edns-expire 2>&1 | sed 's/^/I:ns7 /'
+sleep 10
+
+# there may be multiple log entries so get the last one.
+expire=`awk '/edns-expire\/IN: got EDNS EXPIRE of/ { x=$9 } END { print x }' ns7/named.run`
+test ${expire:-0} -gt 0 -a ${expire:-0} -lt 1814400 || {
+    echo "I:failed (expire=${expire:-0})"
+    status=1
+}
+
 echo "I:exit status: $status"
 exit $status

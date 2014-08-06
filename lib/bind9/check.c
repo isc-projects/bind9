@@ -1513,6 +1513,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "notify-source", MASTERZONE | SLAVEZONE },
 	{ "notify-source-v6", MASTERZONE | SLAVEZONE },
 	{ "pubkey", MASTERZONE | SLAVEZONE | STUBZONE },
+	{ "request-expire", SLAVEZONE | REDIRECTZONE },
 	{ "request-ixfr", SLAVEZONE | REDIRECTZONE },
 	{ "server-addresses", STATICSTUBZONE },
 	{ "server-names", STATICSTUBZONE },
@@ -1534,8 +1535,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	static optionstable dialups[] = {
 	{ "notify", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
 	{ "notify-passive", SLAVEZONE | STREDIRECTZONE },
-	{ "refresh", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "passive", SLAVEZONE | STUBZONE | STREDIRECTZONE },
+	{ "refresh", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	};
 
 	znamestr = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));

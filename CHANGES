@@ -1,3 +1,5 @@
+3911.	[func]		Implement EDNS EXPIRE option client side. [RT #35925]
+
 3910.	[bug]		Fix races to free event during shutdown. [RT#36720]
 
 3909.	[bug]		When computing the number of elements required for a

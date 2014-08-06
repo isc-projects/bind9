@@ -2185,6 +2185,26 @@ dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval);
  */
 
 isc_boolean_t
+dns_zone_getrequestexpire(dns_zone_t *zone);
+/*%
+ * Returns the true/false value of the request-expire option in the zone.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+void
+dns_zone_setrequestexpire(dns_zone_t *zone, isc_boolean_t flag);
+/*%
+ * Sets the request-expire option for the zone. Either true or false. The
+ * default value is determined by the setting of this option in the view.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+
+isc_boolean_t
 dns_zone_getrequestixfr(dns_zone_t *zone);
 /*%
  * Returns the true/false value of the request-ixfr option in the zone.

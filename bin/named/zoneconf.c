@@ -1257,6 +1257,11 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 					   ixfrdiff);
 
 		obj = NULL;
+		result = ns_config_get(maps, "request-expire", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setrequestexpire(zone, cfg_obj_asboolean(obj));
+
+		obj = NULL;
 		result = ns_config_get(maps, "request-ixfr", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setrequestixfr(zone, cfg_obj_asboolean(obj));

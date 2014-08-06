@@ -26,6 +26,7 @@ rm -f dig.out.ns5 dig.out.ns6 dig.out.ns7
 rm -f dig.out.soa.ns3
 rm -f axfr.out
 rm -f ns1/slave.db ns2/slave.db
+rm -f ns1/edns-expire.db
 rm -f ns2/example.db ns2/tsigzone.db ns2/example.db.jnl
 rm -f ns3/example.bk ns3/tsigzone.bk ns3/example.bk.jnl
 rm -f ns3/master.bk ns3/master.bk.jnl

@@ -47,6 +47,7 @@
 #define NOTIFY_DSCP_BIT                 10
 #define TRANSFER_DSCP_BIT               11
 #define QUERY_DSCP_BIT                 	12
+#define REQUEST_EXPIRE_BIT              13
 
 static void
 peerlist_delete(dns_peerlist_t **list);
@@ -472,6 +473,32 @@ dns_peer_getrequestsit(dns_peer_t *peer, isc_boolean_t *retval) {
 
 	if (DNS_BIT_CHECK(REQUEST_SIT_BIT, &peer->bitflags)) {
 		*retval = peer->request_sit;
+		return (ISC_R_SUCCESS);
+	} else
+		return (ISC_R_NOTFOUND);
+}
+
+isc_result_t
+dns_peer_setrequestexpire(dns_peer_t *peer, isc_boolean_t newval) {
+	isc_boolean_t existed;
+
+	REQUIRE(DNS_PEER_VALID(peer));
+
+	existed = DNS_BIT_CHECK(REQUEST_EXPIRE_BIT, &peer->bitflags);
+
+	peer->request_expire = newval;
+	DNS_BIT_SET(REQUEST_EXPIRE_BIT, &peer->bitflags);
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_getrequestexpire(dns_peer_t *peer, isc_boolean_t *retval) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(retval != NULL);
+
+	if (DNS_BIT_CHECK(REQUEST_EXPIRE_BIT, &peer->bitflags)) {
+		*retval = peer->request_expire;
 		return (ISC_R_SUCCESS);
 	} else
 		return (ISC_R_NOTFOUND);

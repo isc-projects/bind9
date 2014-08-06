@@ -143,6 +143,7 @@ options {\n\
 	recursion true;\n\
 	provide-ixfr true;\n\
 	request-ixfr true;\n\
+	request-expire true;\n\
 	fetch-glue no;\n\
 	rfc2308-type1 no;\n\
 	additional-from-auth true;\n\

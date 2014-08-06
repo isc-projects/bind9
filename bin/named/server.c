@@ -1178,6 +1178,11 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 		CHECK(dns_peer_setprovideixfr(peer, cfg_obj_asboolean(obj)));
 
 	obj = NULL;
+	(void)cfg_map_get(cpeer, "request-expire", &obj);
+	if (obj != NULL)
+		CHECK(dns_peer_setrequestexpire(peer, cfg_obj_asboolean(obj)));
+
+	obj = NULL;
 	(void)cfg_map_get(cpeer, "request-ixfr", &obj);
 	if (obj != NULL)
 		CHECK(dns_peer_setrequestixfr(peer, cfg_obj_asboolean(obj)));

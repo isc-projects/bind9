@@ -393,6 +393,11 @@ struct dns_zone {
 	isc_boolean_t		requestixfr;
 
 	/*%
+	 * whether EDNS EXPIRE is requested
+	 */
+	isc_boolean_t		requestexpire;
+
+	/*%
 	 * Outstanding forwarded UPDATE requests.
 	 */
 	dns_forwardlist_t	forwards;
@@ -999,6 +1004,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->secure = NULL;
 	zone->sourceserial = 0;
 	zone->sourceserialset = ISC_FALSE;
+	zone->requestixfr = ISC_TRUE;
+	zone->requestexpire = ISC_TRUE;
 
 	zone->magic = ZONE_MAGIC;
 
@@ -10935,6 +10942,90 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 }
 
 /*
+ * Get the EDNS EXPIRE option from the response and if it exists trim
+ * expire to be not more than it.
+ */
+static void
+get_edns_expire(dns_zone_t * zone, dns_message_t *message,
+		isc_uint32_t *expirep)
+{
+	isc_result_t result;
+	isc_uint32_t expire;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_buffer_t optbuf;
+	isc_uint16_t optcode;
+	isc_uint16_t optlen;
+
+	REQUIRE(expirep != NULL);
+	REQUIRE(message != NULL);
+
+	if (message->opt == NULL)
+		return;
+
+	result = dns_rdataset_first(message->opt);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdataset_current(message->opt, &rdata);
+		isc_buffer_init(&optbuf, rdata.data, rdata.length);
+		isc_buffer_add(&optbuf, rdata.length);
+		while (isc_buffer_remaininglength(&optbuf) >= 4) {
+			optcode = isc_buffer_getuint16(&optbuf);
+			optlen = isc_buffer_getuint16(&optbuf);
+			/*
+			 * A EDNS EXPIRE response has a length of 4.
+			 */
+			if (optcode != DNS_OPT_EXPIRE || optlen != 4) {
+				isc_buffer_forward(&optbuf, optlen);
+				continue;
+			}
+			expire = isc_buffer_getuint32(&optbuf);
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "got EDNS EXPIRE of %u\n", expire);
+			/*
+			 * Trim *expirep?
+			 */
+			if (expire < *expirep)
+				*expirep = expire;
+			break;
+		}
+	}
+}
+
+/*
+ * Set the file modification time zone->expire seconds before expiretime.
+ */
+static void
+setmodtime(dns_zone_t *zone, isc_time_t *expiretime) {
+	isc_result_t result;
+	isc_time_t when;
+	isc_interval_t i;
+
+	isc_interval_set(&i, zone->expire, 0);
+	result = isc_time_subtract(expiretime, &i, &when);
+	if (result != ISC_R_SUCCESS)
+		return;
+
+	result = ISC_R_FAILURE;
+	if (zone->journal != NULL)
+		result = isc_file_settime(zone->journal, &when);
+	if (result == ISC_R_SUCCESS &&
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP))
+		result = isc_file_settime(zone->masterfile, &when);
+	else if (result != ISC_R_SUCCESS)
+		result = isc_file_settime(zone->masterfile, &when);
+
+	/*
+	 * Someone removed the file from underneath us!
+	 */
+	if (result == ISC_R_FILENOTFOUND) {
+		zone_needdump(zone, DNS_DUMP_DELAY);
+	} else if (result != ISC_R_SUCCESS)
+		dns_zone_log(zone, ISC_LOG_ERROR, "refresh: could not set "
+			     "file modification time of '%s': %s",
+			     zone->masterfile, dns_result_totext(result));
+}
+
+/*
  * An SOA query has finished (successfully or not).
  */
 static void
@@ -11050,6 +11141,15 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "refresh: rcode (%.*s) retrying without "
 				     "EDNS master %s (source %s)",
+				     (int)rb.used, rcode, master, source);
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+			goto same_master;
+		}
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS) &&
+		    msg->rcode == dns_rcode_badvers) {
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "refresh: rcode (%.*s) retrying without "
+				     "EDNS EXPIRE OPTION master %s (source %s)",
 				     (int)rb.used, rcode, master, source);
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			goto same_master;
@@ -11219,30 +11319,26 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		if (msg != NULL)
 			dns_message_destroy(&msg);
 	} else if (isc_serial_eq(soa.serial, oldserial)) {
-		if (zone->masterfile != NULL) {
-			result = ISC_R_FAILURE;
-			if (zone->journal != NULL)
-				result = isc_file_settime(zone->journal, &now);
-			if (result == ISC_R_SUCCESS &&
-			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
-			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
-				result = isc_file_settime(zone->masterfile,
-							  &now);
-			} else if (result != ISC_R_SUCCESS)
-				result = isc_file_settime(zone->masterfile,
-							  &now);
-			/* Someone removed the file from underneath us! */
-			if (result == ISC_R_FILENOTFOUND) {
-				zone_needdump(zone, DNS_DUMP_DELAY);
-			} else if (result != ISC_R_SUCCESS)
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "refresh: could not set file "
-					     "modification time of '%s': %s",
-					     zone->masterfile,
-					     dns_result_totext(result));
+		isc_time_t expiretime;
+		isc_uint32_t expire;
+
+		/*
+		 * Compute the new expire time based on this response.
+		 */
+		expire = zone->expire;
+		get_edns_expire(zone, msg, &expire);
+		DNS_ZONE_TIME_ADD(&now, expire, &expiretime);
+
+		/*
+		 * Has the expire time improved?
+		 */
+		if (isc_time_compare(&expiretime, &zone->expiretime) > 0) {
+			zone->expiretime = expiretime;
+			if (zone->masterfile != NULL)
+				setmodtime(zone, &expiretime);
 		}
+
 		DNS_ZONE_JITTER_ADD(&now, zone->refresh, &zone->refreshtime);
-		DNS_ZONE_TIME_ADD(&now, zone->expire, &zone->expiretime);
 		zone->mastersok[zone->curmaster] = ISC_TRUE;
 		goto next_master;
 	} else {
@@ -11416,7 +11512,9 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype,
 }
 
 static isc_result_t
-add_opt(dns_message_t *message, isc_uint16_t udpsize, isc_boolean_t reqnsid) {
+add_opt(dns_message_t *message, isc_uint16_t udpsize, isc_boolean_t reqnsid,
+	isc_boolean_t reqexpire)
+{
 	isc_result_t result;
 	dns_rdataset_t *rdataset = NULL;
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
@@ -11426,6 +11524,13 @@ add_opt(dns_message_t *message, isc_uint16_t udpsize, isc_boolean_t reqnsid) {
 	if (reqnsid) {
 		INSIST(count < DNS_EDNSOPTIONS);
 		ednsopts[count].code = DNS_OPT_NSID;
+		ednsopts[count].length = 0;
+		ednsopts[count].value = NULL;
+		count++;
+	}
+	if (reqexpire) {
+		INSIST(count < DNS_EDNSOPTIONS);
+		ednsopts[count].code = DNS_OPT_EXPIRE;
 		ednsopts[count].length = 0;
 		ednsopts[count].value = NULL;
 		count++;
@@ -11450,7 +11555,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t options;
 	isc_boolean_t cancel = ISC_TRUE;
 	int timeout;
-	isc_boolean_t have_xfrsource, have_xfrdscp, reqnsid;
+	isc_boolean_t have_xfrsource, have_xfrdscp, reqnsid, reqexpire;
 	isc_uint16_t udpsize = SEND_BUFFER_SIZE;
 	isc_dscp_t dscp = -1;
 
@@ -11513,6 +11618,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 
 	have_xfrsource = have_xfrdscp = ISC_FALSE;
 	reqnsid = zone->view->requestnsid;
+	reqexpire = zone->requestexpire;
 	if (zone->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
 		isc_boolean_t edns;
@@ -11534,6 +11640,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 				  dns_resolver_getudpsize(zone->view->resolver);
 			(void)dns_peer_getudpsize(peer, &udpsize);
 			(void)dns_peer_getrequestnsid(peer, &reqnsid);
+			(void)dns_peer_getrequestexpire(peer, &reqexpire);
 		}
 	}
 
@@ -11575,7 +11682,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		  DNS_REQUESTOPT_TCP : 0;
 
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
-		result = add_opt(message, udpsize, reqnsid);
+		result = add_opt(message, udpsize, reqnsid, reqexpire);
 		if (result != ISC_R_SUCCESS)
 			zone_debuglog(zone, me, 1,
 				      "unable to add opt record: %s",
@@ -11790,7 +11897,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 
 	}
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
-		result = add_opt(message, udpsize, reqnsid);
+		result = add_opt(message, udpsize, reqnsid, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
 			zone_debuglog(zone, me, 1,
 				      "unable to add opt record: %s",
@@ -17306,6 +17413,18 @@ isc_boolean_t
 dns_zone_getrequestixfr(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	return (zone->requestixfr);
+}
+
+void
+dns_zone_setrequestexpire(dns_zone_t *zone, isc_boolean_t flag) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone->requestexpire = flag;
+}
+
+isc_boolean_t
+dns_zone_getrequestexpire(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->requestexpire);
 }
 
 void
