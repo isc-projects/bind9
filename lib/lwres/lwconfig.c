@@ -487,7 +487,7 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr, int convert_zero) {
 
 #ifdef HAVE_IF_NAMETOINDEX
 			zone = if_nametoindex(percent);
-			if (zone != 0) {
+			if (zone != 0U) {
 				addr->zone = zone;
 				return (LWRES_R_SUCCESS);
 			}
