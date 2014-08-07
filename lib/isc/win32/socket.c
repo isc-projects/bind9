@@ -1471,7 +1471,6 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 
 	sock->manager = manager;
 	sock->type = type;
-	sock->dscp = 0;		/* TOS/TCLASS is zero until set. */
 	sock->fd = INVALID_SOCKET;
 
 	ISC_LINK_INIT(sock, link);
