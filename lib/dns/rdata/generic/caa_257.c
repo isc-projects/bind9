@@ -152,20 +152,15 @@ fromwire_caa(ARGS_FROMWIRE) {
 	if (sr.length < len || len == 0)
 		RETERR(DNS_R_FORMERR);
 
-	/* Tag */
+	/* Check the Tag's value */
 	for (i = 0; i < len; i++)
 		if (!alphanumeric[sr.base[i]])
 			RETERR(DNS_R_FORMERR);
-	RETERR(mem_tobuffer(target, sr.base, len));
-	isc_region_consume(&sr, len);
-	isc_buffer_forward(source, len);
-
 	/*
-	 * Value
+	 * Tag + Value
 	 */
-	RETERR(multitxt_fromwire(source, target));
-
-	return (ISC_R_SUCCESS);
+	isc_buffer_forward(source, sr.length);
+	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
 static inline isc_result_t
