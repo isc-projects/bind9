@@ -67,6 +67,9 @@
  */
 /*@LWRES_PLATFORM_NEEDSYSSELECTH@ */
 
+/* VS2005 does not provide strlcpy() */
+#define LWRES_PLATFORM_NEEDSTRLCPY
+
 /*
  * Define some Macros
  */
