@@ -1,5 +1,8 @@
 	--- 9.10.1b2 released ---
 
+3914.	[bug]		Allow the URI target and CAA value fields to
+			be zero length. [RT #36737]
+
 3913.	[bug]		Address race issue in dispatch. [RT #36731]
 
 3912.	[bug]		Address some unrecoverable lookup failures. [RT #36330]
