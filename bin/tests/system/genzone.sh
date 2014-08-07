@@ -304,10 +304,12 @@ eui64			EUI64	01-23-45-67-89-ab-cd-ef
 ; type 256
 uri01			URI	10 20 "https://www.isc.org/"
 uri02			URI	30 40 "https://www.isc.org/HolyCowThisSureIsAVeryLongURIRecordIDontEvenKnowWhatSomeoneWouldEverWantWithSuchAThingButTheSpecificationRequiresThatWesupportItSoHereWeGoTestingItLaLaLaLaLaLaLaSeriouslyThoughWhyWouldYouEvenConsiderUsingAURIThisLongItSeemsLikeASillyIdeaButEnhWhatAreYouGonnaDo/"
+uri03			URI	30 40 ""
 
 ; type 257
 caa01                   CAA     0 issue "ca.example.net; policy=ev"
 caa02                   CAA     128 tbs "Unknown"
+caa03                   CAA     128 tbs ""
 
 ; keydata (internal type used for managed-keys)
 keydata			TYPE65533	\# 0

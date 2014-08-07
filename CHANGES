@@ -1,5 +1,8 @@
 	--- 9.9.6b2 released ---
 
+3914.	[bug]		Allow the URI target and CAA value fields to
+			be zero length. [RT #36737]
+
 3913.	[bug]		Address race issue in dispatch. [RT #36731]
 
 3910.	[bug]		Fix races to free event during shutdown. [RT#36720]

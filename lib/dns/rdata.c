@@ -130,9 +130,6 @@ multitxt_totext(isc_region_t *source, isc_buffer_t *target);
 static isc_result_t
 multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target);
 
-static isc_result_t
-multitxt_fromwire(isc_buffer_t *source, isc_buffer_t *target);
-
 static isc_boolean_t
 name_prefix(dns_name_t *name, dns_name_t *origin, dns_name_t *target);
 
@@ -1403,35 +1400,6 @@ multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 
 		isc_buffer_add(target, t - t0);
 	} while (n != 0);
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-multitxt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
-	unsigned int n;
-	isc_region_t sregion;
-	isc_region_t tregion;
-
-	isc_buffer_activeregion(source, &sregion);
-	if (sregion.length == 0)
-		return(ISC_R_UNEXPECTEDEND);
-	n = 256U;
-	do {
-		if (n != 256U)
-			return (DNS_R_SYNTAX);
-
-		n = sregion.length;
-
-		isc_buffer_availableregion(target, &tregion);
-		if (n > tregion.length)
-			return (ISC_R_NOSPACE);
-
-		if (tregion.base != sregion.base)
-			memmove(tregion.base, sregion.base, n);
-		isc_buffer_forward(source, n);
-		isc_buffer_add(target, n);
-		isc_buffer_activeregion(source, &sregion);
-	} while (sregion.length != 0);
 	return (ISC_R_SUCCESS);
 }
 
