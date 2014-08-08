@@ -816,7 +816,6 @@ static void
 fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		 isc_time_t *finish, isc_boolean_t no_response)
 {
-	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	fetchctx_t *fctx;
 	resquery_t *query;
 	unsigned int rtt, rttms;
@@ -834,9 +833,6 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	REQUIRE(!RESQUERY_CANCELED(query));
 
 	query->attributes |= RESQUERY_ATTR_CANCELED;
-
-	isc_sockaddr_format(&query->addrinfo->sockaddr,
-			    addrbuf, sizeof(addrbuf));
 
 	/*
 	 * Should we update the RTT?
