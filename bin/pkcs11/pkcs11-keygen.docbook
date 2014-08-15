@@ -17,13 +17,13 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<refentry id="man.pkcs11-ecgen">
+<refentry id="man.pkcs11-keygen">
   <refentryinfo>
     <date>January 15, 2014</date>
   </refentryinfo>
 
   <refmeta>
-    <refentrytitle><application>pkcs11-ecgen</application></refentrytitle>
+    <refentrytitle><application>pkcs11-keygen</application></refentrytitle>
     <manvolnum>8</manvolnum>
     <refmiscinfo>BIND9</refmiscinfo>
   </refmeta>
@@ -142,7 +142,7 @@
         <listitem>
           <para>
             Specify the PIN for the device.  If no PIN is provided on
-            the command line, <command>pkcs11-ecgen</command> will
+            the command line, <command>pkcs11-keygen</command> will
             prompt for it.
           </para>
         </listitem>
