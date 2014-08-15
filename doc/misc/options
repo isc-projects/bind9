@@ -239,7 +239,6 @@ options {
         recursive-clients <integer>;
         request-expire <boolean>;
         request-ixfr <boolean>;
-        request-ixfr <boolean>;
         request-nsid <boolean>;
         request-sit <boolean>; // not configured
         reserved-sockets <integer>;
@@ -495,7 +494,6 @@ view <string> <optional_class> {
         };
         recursion <boolean>;
         request-expire <boolean>;
-        request-ixfr <boolean>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
         request-sit <boolean>; // not configured

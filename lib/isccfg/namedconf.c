@@ -1561,7 +1561,6 @@ view_clauses[] = {
 	{ "queryport-pool-updateinterval", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "recursion", &cfg_type_boolean, 0 },
-	{ "request-ixfr", &cfg_type_boolean, 0 },
 #ifdef ISC_PLATFORM_USESIT
 	{ "request-sit", &cfg_type_boolean, 0 },
 #else
