@@ -560,7 +560,7 @@
 	    <para>
 	      Set the DSCP code point to be used when sending the
 	      query.  Valid DSCP code points are in the range
-	      [0..63].  By default no code point is explictly set.
+	      [0..63].  By default no code point is explicitly set.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -856,7 +856,7 @@
 	  <term><option>+[no]subnet=addr/prefix</option></term>
 	  <listitem>
 	    <para>
-	      Send an EDNS Client Subnet option with the speciifed
+	      Send an EDNS Client Subnet option with the specified
 	      IP address or network prefix.
 	    </para>
 	  </listitem>
