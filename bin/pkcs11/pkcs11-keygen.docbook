@@ -185,20 +185,17 @@
     <title>SEE ALSO</title>
     <para>
       <citerefentry>
-        <refentrytitle>pkcs11-rsagen</refentrytitle><manvolnum>3</manvolnum>
+        <refentrytitle>pkcs11-destroy</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citerefentry>
-        <refentrytitle>pkcs11-dsagen</refentrytitle><manvolnum>3</manvolnum>
+        <refentrytitle>pkcs11-list</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citerefentry>
-        <refentrytitle>pkcs11-list</refentrytitle><manvolnum>3</manvolnum>
+        <refentrytitle>pkcs11-tokens</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citerefentry>
-        <refentrytitle>pkcs11-destroy</refentrytitle><manvolnum>3</manvolnum>
-      </citerefentry>,
-      <citerefentry>
-        <refentrytitle>dnssec-keyfromlabel</refentrytitle><manvolnum>3</manvolnum>
-      </citerefentry>,
+        <refentrytitle>dnssec-keyfromlabel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
     </para>
   </refsect1>
 
