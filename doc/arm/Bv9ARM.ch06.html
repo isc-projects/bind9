@@ -437,7 +437,7 @@
                   In most cases, setting a value to 0 does not
                   literally mean zero; it means "undefined" or
                   "as big as possible", depending on the context.
-                  See the expalantions of particular parameters
+                  See the explanations of particular parameters
                   that use <code class="varname">size_spec</code>
                   for details on how they interpret its use. 
                 </p>
@@ -3082,7 +3082,7 @@ options {
                   restarted (NTA's do not persist across restarts).
                 </p>
 <p>
-                  For convienience, TTL-style time unit suffixes can be
+                  For convenience, TTL-style time unit suffixes can be
                   used to specify the NTA lifetime in seconds, minutes
                   or hours.  <code class="option">nta-lifetime</code> defaults to
                   one hour.  It cannot exceed one day.
@@ -3107,13 +3107,13 @@ options {
                   the negative trust anchor is allowed to expire early.
                 </p>
 <p>
-                  Validity checks can be disabled for an indivdiual
+                  Validity checks can be disabled for an individual
                   NTA by using <span><strong class="command">rndc nta -f</strong></span>, or
                   for all NTA's by setting <code class="option">nta-recheck</code>
                   to zero.
                 </p>
 <p>
-                  For convienience, TTL-style time unit suffixes can be
+                  For convenience, TTL-style time unit suffixes can be
                   used to specify the NTA recheck interval in seconds,
                   minutes or hours.  The default is five minutes.
                 </p>
@@ -4406,7 +4406,7 @@ options {
                   than matching the case of the records entered in
                   the zone file.  This allows responses to exactly
                   match the query, which is required by some clients
-                  due to incorrect use of case-sensitive comparisions.
+                  due to incorrect use of case-sensitive comparisons.
                 </p>
 <p>
                   Case-insensitive compression is <span class="emphasis"><em>always</em></span>
@@ -4414,12 +4414,12 @@ options {
                   the client matches this ACL.
                 </p>
 <p>
-                  There are circusmstances in which <span><strong class="command">named</strong></span>
+                  There are circumstances in which <span><strong class="command">named</strong></span>
                   will not preserve the case of owner names of records:
                   if a zone file defines records of different types with
                   the same name, but the capitalization of the name is
                   different (e.g., "www.example.com/A" and
-                  "WWW.EXAMPLE.COM/AAAA"), then all resposnes for that
+                  "WWW.EXAMPLE.COM/AAAA"), then all responses for that
                   name will use the <span class="emphasis"><em>first</em></span> version
                   of the name that was used in the zone file.  This
                   limitation may be addressed in a future release.  However,
@@ -6772,7 +6772,7 @@ rate-limit {
             is over 1000 <span class="emphasis"><em>and</em></span> the ratio is over 10),
             the one that appears last in the configuration file is the
             one chosen.  To eliminate any ambiguity, it is recommended
-            that under normal circumstnaces, rate limiting bands should
+            that under normal circumstances, rate limiting bands should
             be configured using either <span><strong class="command">size</strong></span> or
             <span><strong class="command">ratio</strong></span> parameters, but not both.
           </p>
@@ -10316,8 +10316,7 @@ view external {
                     <p>
                       Each RR can have a TTL as the second
                       field in the RR, which will control how long other
-                      servers can cache
-                      the it.
+                      servers can cache it.
                     </p>
                   </td>
 </tr>
