@@ -2219,7 +2219,7 @@
 ./doc/arm/isc-logo.eps				X	2005,2010
 ./doc/arm/isc-logo.pdf				X	2005,2010
 ./doc/arm/latex-fixup.pl			PERL	2005,2007,2012
-./doc/arm/libdns.xml				SGML	2010
+./doc/arm/libdns.xml				SGML	2010,2014
 ./doc/arm/man.arpaname.html			X	2009,2010,2011,2012,2013,2014
 ./doc/arm/man.ddns-confgen.html			X	2009,2010,2011,2012,2013,2014
 ./doc/arm/man.dig.html				X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
@@ -2242,7 +2242,7 @@
 ./doc/arm/man.rndc.conf.html			X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./doc/arm/man.rndc.html				X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./doc/arm/managed-keys.xml			SGML	2010
-./doc/arm/pkcs11.xml				SGML	2010,2012,2013
+./doc/arm/pkcs11.xml				SGML	2010,2012,2013,2014
 ./doc/design/addressdb				TXT.BRIEF	2000,2001,2004
 ./doc/design/compression			TXT.BRIEF	1999,2000,2001,2004
 ./doc/design/database				TXT.BRIEF	1999,2000,2001,2004
