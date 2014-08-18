@@ -149,7 +149,7 @@
       </varlistentry>
 
       <varlistentry>
-        <term>-e</term>
+        <term>-q</term>
         <listitem>
           <para>
             Quiet mode: suppress unnecessary output.
