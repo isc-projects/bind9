@@ -270,7 +270,7 @@ $ <userinput>make</userinput>
   consists of a single domain name. Example:
   <literallayout>
   www.example.com
-  mx.examle.net
+  mx.example.net
   ns.xxx.example
 </literallayout>
   </listitem>
