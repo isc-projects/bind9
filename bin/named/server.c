@@ -4845,11 +4845,6 @@ interface_timer_tick(isc_task_t *task, isc_event_t *event) {
 	INSIST(task == server->task);
 	UNUSED(task);
 
-	if (event->ev_type == NS_EVENT_IFSCAN)
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
-			      "automatic interface rescan");
-
 	isc_event_free(&event);
 
 	/*
@@ -6514,7 +6509,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	CHECKFATAL(ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
 					  ns_g_socketmgr, ns_g_dispatchmgr,
-					  &server->interfacemgr),
+					  server->task, &server->interfacemgr),
 		   "creating interface manager");
 
 	CHECKFATAL(isc_timer_create(ns_g_timermgr, isc_timertype_inactive,
@@ -7061,13 +7056,16 @@ ns_server_reloadwanted(ns_server_t *server) {
 
 void
 ns_server_scan_interfaces(ns_server_t *server) {
-	isc_event_t *event;
+	isc_result_t result;
 
-	event = isc_event_allocate(ns_g_mctx, server, NS_EVENT_IFSCAN,
-				   interface_timer_tick, server,
-				   sizeof(isc_event_t));
-	if (event != NULL)
-		isc_task_send(server->task, &event);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+		      "automatic interface rescan");
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	scan_interfaces(server, ISC_TRUE);
+	isc_task_endexclusive(server->task);
 }
 
 static char *

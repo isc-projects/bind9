@@ -1,3 +1,6 @@
+3915	[bug]		Address a assertion if a route event arrived while
+			shutting down. [RT #36887]
+
 3914.	[bug]		Allow the URI target and CAA value fields to
 			be zero length. [RT #36737]
 
