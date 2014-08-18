@@ -2900,7 +2900,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		  In most cases, setting a value to 0 does not
 		  literally mean zero; it means "undefined" or
 		  "as big as possible", depending on the context.
-		  See the expalantions of particular parameters
+		  See the explanations of particular parameters
 		  that use <varname>size_spec</varname>
 		  for details on how they interpret its use. 
 		</para>
@@ -7311,7 +7311,7 @@ options {
 		  than matching the case of the records entered in
 		  the zone file.  This allows responses to exactly
 		  match the query, which is required by some clients
-		  due to incorrect use of case-sensitive comparisions.
+		  due to incorrect use of case-sensitive comparisons.
 		</para>
 		<para>
 		  Case-insensitive compression is <emphasis>always</emphasis>
@@ -7319,12 +7319,12 @@ options {
 		  the client matches this ACL.
 		</para>
 		<para>
-		  There are circusmstances in which <command>named</command>
+		  There are circumstances in which <command>named</command>
 		  will not preserve the case of owner names of records:
 		  if a zone file defines records of different types with
 		  the same name, but the capitalization of the name is
 		  different (e.g., "www.example.com/A" and
-		  "WWW.EXAMPLE.COM/AAAA"), then all resposnes for that
+		  "WWW.EXAMPLE.COM/AAAA"), then all responses for that
 		  name will use the <emphasis>first</emphasis> version
 		  of the name that was used in the zone file.  This
 		  limitation may be addressed in a future release.  However,
@@ -13896,8 +13896,7 @@ view external {
 		    <para>
 		      Each RR can have a TTL as the second
 		      field in the RR, which will control how long other
-		      servers can cache
-		      the it.
+		      servers can cache it.
 		    </para>
 		  </entry>
 		</row>

@@ -122,7 +122,7 @@ BIND 9.10.0
 	   browsers.
 	 - The statistics channel can now provide data in JSON
 	   format as well as XML.
-	 - New stats counters track TCP and UDP queries recieved
+	 - New stats counters track TCP and UDP queries received
 	   per zone, and EDNS options received in total.
 	 - The internal and export versions of the BIND libraries
 	   (libisc, libdns, etc) have been unified so that external
