@@ -3702,8 +3702,8 @@ geoip org "Internet Systems Consortium";
 
 	<para>
 	  The <replaceable>algorithm_id</replaceable> is a string
-	  that specifies a security/authentication algorithm.  Named
-	  supports <literal>hmac-md5</literal>,
+	  that specifies a security/authentication algorithm.  The
+	  <command>named</command> server supports <literal>hmac-md5</literal>,
 	  <literal>hmac-sha1</literal>, <literal>hmac-sha224</literal>,
 	  <literal>hmac-sha256</literal>, <literal>hmac-sha384</literal>
 	  and <literal>hmac-sha512</literal> TSIG authentication.
@@ -4813,6 +4813,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable>; </optional>
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
     <optional> request-sit <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> sit-secret <replaceable>secret_string</replaceable>; </optional>
     <optional> request-nsid <replaceable>yes_or_no</replaceable>; </optional>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
@@ -4852,6 +4853,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> allow-recursion-on { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> automatic-interface-scan { <replaceable>yes_or_no</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-update-mode ( <replaceable>maintain</replaceable> | <replaceable>no-resign</replaceable> ); </optional>
     <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
@@ -5010,7 +5012,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     } ; </optional>
     <optional> response-policy {
 	zone <replaceable>zone_name</replaceable> ;
-	<optional> policy <replaceable>given | disabled | passthru | drop | nxdomain | nodata | cname</replaceable> <replaceable>domain</replaceable> ; </optional>
+	<optional> policy <replaceable>given | disabled | passthru | drop | tcp-only | nxdomain | nodata | cname</replaceable> <replaceable>domain</replaceable> ; </optional>
 	<optional> recursive-only <replaceable>yes_or_no</replaceable> ; </optional>
 	<optional> max-policy-ttl <replaceable>number</replaceable> ; </optional> ;
 	<optional> recursive-only <replaceable>yes_or_no</replaceable> ; </optional>
@@ -9179,7 +9181,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	<sect3 id="empty">
 	  <title>Built-in Empty Zones</title>
 	  <para>
-	    Named has some built-in empty zones (SOA and NS records only).
+	    The <command>named</command> server has some built-in
+	    empty zones (SOA and NS records only).
 	    These are for zones that should normally be answered locally
 	    and which queries should not be sent to the Internet's root
 	    servers.  The official servers which cover these namespaces
@@ -9191,9 +9194,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    IPv6 unknown address.
 	  </para>
 	  <para>
-	    Named will attempt to determine if a built-in zone already exists
-	    or is active (covered by a forward-only forwarding declaration)
-	    and will not create an empty zone in that case.
+	    The server will attempt to determine if a built-in zone
+	    already exists or is active (covered by a forward-only
+	    forwarding declaration) and will not create an empty
+	    zone in that case.
 	  </para>
 	  <para>
 	    The current list of empty zones is:
@@ -9790,7 +9794,7 @@ deny-answer-aliases { "example.net"; };
 	    Any of the policies can be used with any of the triggers.
 	    For example, while the <command>TCP-only</command> policy is
 	    commonly used with <command>client-IP</command> triggers,
-	    it cn be used with any type of trigger to force the use of
+	    it can be used with any type of trigger to force the use of
 	    TCP for responses with owner names in a zone.
 	    <variablelist>
 	      <varlistentry>
@@ -10355,7 +10359,7 @@ rate-limit {
 	    as it considers the STMP <command>Mail From</command>
 	    command.  Web browsers often repeatedly resolve the
 	    same names that are repeated in HTML &lt;IMG&gt; tags
-	    in a page.  <command>All-per-second</command> is similar
+	    in a page.  <command>all-per-second</command> is similar
 	    to the rate limiting offered by firewalls but often
 	    inferior.  Attacks that justify ignoring the contents
 	    of DNS responses are likely to be attacks on the DNS
@@ -10647,9 +10651,9 @@ rate-limit {
 	    whether the local server will add a SIT EDNS option
 	    to requests sent to the server.  This overrides
 	    <command>request-sit</command> set at the view or
-	    option level.  Named may determine that SIT is not
-	    supported by the remote server and not add a SIT
-	    EDNS option to requests.
+	    option level.  The <command>named</command> server may
+	    determine that SIT is not supported by the remote server
+	    and not add a SIT EDNS option to requests.
 	  </para>
 	</sect2>
 
