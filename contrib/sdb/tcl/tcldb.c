@@ -213,7 +213,8 @@ static dns_sdbmethods_t tcldb_methods = {
 	NULL, /* authority */
 	NULL, /* allnodes */
 	tcldb_create,
-	NULL /* destroy */
+	NULL, /* destroy */
+	NULL /* lookup2 */
 };
 
 /*

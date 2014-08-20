@@ -137,7 +137,7 @@ addrdata(dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata)
     res = sqlite3_exec(dbi.db, sql, add_rdata_cb, NULL, &errmsg);
     sqlite3_free(sql);
 
-    if (result != SQLITE_OK) {
+    if (res != SQLITE_OK) {
 	fprintf(stderr, "INSERT failed: %s\n", errmsg);
 	closeandexit(1);
     }

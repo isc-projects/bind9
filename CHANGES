@@ -1,3 +1,6 @@
+3916.	[contrib]	zone2sqlite checked wrong result code.  Address
+			compiler warnings. [RT #36931]
+
 	--- 9.9.6b2 released ---
 
 3914.	[bug]		Allow the URI target and CAA value fields to
