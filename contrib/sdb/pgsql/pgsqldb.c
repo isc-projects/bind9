@@ -324,7 +324,8 @@ static dns_sdbmethods_t pgsqldb_methods = {
 	NULL, /* authority */
 	pgsqldb_allnodes,
 	pgsqldb_create,
-	pgsqldb_destroy
+	pgsqldb_destroy,
+	NULL /* lookup2 */
 };
 
 /*

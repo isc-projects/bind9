@@ -119,7 +119,8 @@ static dns_sdbmethods_t timedb_methods = {
 	timedb_authority,
 	NULL,	/* allnodes */
 	NULL,	/* create */
-	NULL	/* destroy */
+	NULL,	/* destroy */
+	NULL	/* lookup2 */
 };
 
 /*
