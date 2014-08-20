@@ -229,7 +229,8 @@ bdb_init(void)
 		NULL,
 		bdb_allnodes,
 		bdb_create,
-		bdb_destroy
+		bdb_destroy,
+		NULL /* lookup2 */
 	};
 
 	return dns_sdb_register(DRIVERNAME, &bdb_methods, NULL, 0, ns_g_mctx,
