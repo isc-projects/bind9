@@ -323,7 +323,7 @@ debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 void
 check_result(isc_result_t result, const char *msg);
 
-void
+isc_boolean_t
 setup_lookup(dig_lookup_t *lookup);
 
 void
