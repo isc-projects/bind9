@@ -1,0 +1,8 @@
+$TTL 3600
+@	SOA	ns2.example. . 1 3600 1200 86400 1200
+@	NS	ns2.example.
+;
+;	As we are testing empty zone behaviour ns3 doesn't need to be
+;	configured to serve 10.in-addr.arpa.
+;
+10	NS	ns3.example.

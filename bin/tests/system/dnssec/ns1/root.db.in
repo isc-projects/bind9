@@ -34,3 +34,4 @@ algroll			NS	ns2.algroll
 ns2.algroll.		A	10.53.0.2
 optout-tld		NS	ns6.optout-tld.
 ns6.optout-tld.		A	10.53.0.6
+in-addr.arpa.		NS	ns2.example.
