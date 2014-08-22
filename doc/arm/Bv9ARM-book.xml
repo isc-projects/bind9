@@ -4779,6 +4779,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> hostname <replaceable>hostname_string</replaceable>; </optional>
     <optional> server-id <replaceable>server_id_string</replaceable>; </optional>
     <optional> directory <replaceable>path_name</replaceable>; </optional>
+    <optional> geoip-directory <replaceable>path_name</replaceable>; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> managed-keys-directory <replaceable>path_name</replaceable>; </optional>
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
@@ -5156,6 +5157,21 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		which the server
 		was started. The directory specified should be an absolute
 		path.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><command>geoip-directory</command></term>
+	    <listitem>
+	      <para>
+		Specifies the directory containing GeoIP
+		<filename>.dat</filename> database files for GeoIP
+		initialization.  By default, this option is unset
+		and the GeoIP support will use libGeoIP's
+		built-in directory.
+		(For details, see <xref linkend="acl"/> about the
+		<command>geoip</command> ACL.)
 	      </para>
 	    </listitem>
 	  </varlistentry>
