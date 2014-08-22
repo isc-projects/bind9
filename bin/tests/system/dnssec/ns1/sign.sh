@@ -28,6 +28,8 @@ zonefile=root.db
 
 cp ../ns2/dsset-example. .
 cp ../ns2/dsset-dlv. .
+cp ../ns2/dsset-in-addr.arpa. .
+
 grep "8 [12] " ../ns2/dsset-algroll. > dsset-algroll.
 cp ../ns6/dsset-optout-tld. .
 

@@ -27,6 +27,7 @@ rm -f ns2/private.secure.example.db
 rm -f ns2/badparam.db ns2/badparam.db.bad
 rm -f ns2/single-nsec3.db
 rm -f ns2/nsec3chain-test.db
+rm -f ns2/in-addr.arpa.db
 rm -f */example.bk
 rm -f dig.out.*
 rm -f rndc.out.*

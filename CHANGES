@@ -1,3 +1,5 @@
+3925.	[bug]		DS lookup of RFC 1918 empty zones failed. [RT #36917]
+
 3924.	[bug]		Improve 'rndc addzone' error reporting. [RT #35187]
 
 3923.	[bug]		Sanity check the xml2-config output. [RT #22246]
