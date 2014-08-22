@@ -1,4 +1,4 @@
-3924.	[bug]		Improve 'rndc addzone' error reporting. RT #35187]
+3924.	[bug]		Improve 'rndc addzone' error reporting. [RT #35187]
 
 3923.	[bug]		Sanity check the xml2-config output. [RT #22246]
 
