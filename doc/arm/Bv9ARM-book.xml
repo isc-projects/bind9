@@ -16938,7 +16938,7 @@ zone "example.com" {
 		  <firstname>E.</firstname>
 		</author>
 		<title>A Security Problem and Proposed Correction With Widely
-		  Deployed <acronym>DNS</acronym> Software.</title>
+		  Deployed <acronym>DNS</acronym> Software</title>
 		<pubdate>October 1993</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17096,7 +17096,7 @@ zone "example.com" {
 		</authorgroup>
 		<title>A <acronym>DNS</acronym> RR for Specifying the
 		  Location of
-		  Services.</title>
+		  Services</title>
 		<pubdate>October 1996</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17351,7 +17351,7 @@ zone "example.com" {
 		  <surname>Lottor</surname>
 		  <firstname>M.</firstname>
 		</author>
-		<title>Domain administrators operations guide.</title>
+		<title>Domain administrators operations guide</title>
 		<pubdate>November 1987</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17386,7 +17386,7 @@ zone "example.com" {
 		    <surname>Vixie</surname>
 		  </author>
 		</authorgroup>
-		<title>Operational Criteria for Root Name Servers.</title>
+		<title>Operational Criteria for Root Name Servers</title>
 		<pubdate>October 1996</pubdate>
 	      </biblioentry>
 	      <biblioentry>
@@ -17402,7 +17402,7 @@ zone "example.com" {
 		  </author>
 		</authorgroup>
 		<title>Use of <acronym>DNS</acronym> Aliases for
-		  Network Services.</title>
+		  Network Services</title>
 		<pubdate>October 1997</pubdate>
 	      </biblioentry>
 	    </bibliodiv>
