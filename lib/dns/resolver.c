@@ -3617,7 +3617,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 			 */
 			if (dns_rdatatype_atparent(fctx->type))
 				findoptions |= DNS_DBFIND_NOEXACT;
-			result = dns_view_findzonecut(res->view, fwdname,
+			result = dns_view_findzonecut(res->view, name,
 						      domain, 0, findoptions,
 						      ISC_TRUE,
 						      &fctx->nameservers,
