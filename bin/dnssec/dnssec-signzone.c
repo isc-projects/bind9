@@ -426,6 +426,8 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	result = dns_db_findrdataset(gdb, node, gversion, dns_rdatatype_rrsig,
 				     set->type, 0, &sigset, NULL);
 	if (result == ISC_R_NOTFOUND) {
+		vbprintf(2, "no existing signatures for %s/%s\n",
+			 namestr, typestr);
 		result = ISC_R_SUCCESS;
 		nosigs = ISC_TRUE;
 	}
@@ -2072,10 +2074,14 @@ remove_records(dns_dbnode_t *node, dns_rdatatype_t which,
 }
 
 /*
- * Remove signatures covering the given type (0 == all signatures).
+ * Remove signatures covering the given type.  If type == 0,
+ * then remove all signatures, unless this is a delegation, in
+ * which case remove all signatures except for DS or nsec_datatype
  */
 static void
-remove_sigs(dns_dbnode_t *node, dns_rdatatype_t which) {
+remove_sigs(dns_dbnode_t *node, isc_boolean_t delegation,
+	    dns_rdatatype_t which)
+{
 	isc_result_t result;
 	dns_rdatatype_t type, covers;
 	dns_rdatasetiter_t *rdsiter = NULL;
@@ -2092,14 +2098,21 @@ remove_sigs(dns_dbnode_t *node, dns_rdatatype_t which) {
 		covers = rdataset.covers;
 		dns_rdataset_disassociate(&rdataset);
 
-		if (type == dns_rdatatype_rrsig &&
-		    (covers == which || which == 0))
-		{
-			result = dns_db_deleterdataset(gdb, node, gversion,
-						       type, covers);
-			check_result(result, "dns_db_deleterdataset()");
+		if (type != dns_rdatatype_rrsig)
 			continue;
-		}
+
+		if (which == 0 && delegation &&
+		    (dns_rdatatype_atparent(covers) ||
+		     (nsec_datatype == dns_rdatatype_nsec &&
+		      covers == nsec_datatype)))
+			continue;
+
+		if (which != 0 && covers != which)
+			continue;
+
+		result = dns_db_deleterdataset(gdb, node, gversion,
+					       type, covers);
+		check_result(result, "dns_db_deleterdataset()");
 	}
 	dns_rdatasetiter_destroy(&rdsiter);
 }
@@ -2186,7 +2199,7 @@ nsecify(void) {
 		if (delegation(name, node, &nsttl)) {
 			zonecut = dns_fixedname_name(&fzonecut);
 			dns_name_copy(name, zonecut, NULL);
-			remove_sigs(node, 0);
+			remove_sigs(node, ISC_TRUE, 0);
 			if (generateds)
 				add_ds(name, node, nsttl);
 		}
@@ -2208,7 +2221,7 @@ nsecify(void) {
 			    (zonecut != NULL &&
 			     dns_name_issubdomain(nextname, zonecut)))
 			{
-				remove_sigs(nextnode, 0);
+				remove_sigs(nextnode, ISC_FALSE, 0);
 				remove_records(nextnode, dns_rdatatype_nsec,
 					       ISC_FALSE);
 				dns_db_detachnode(gdb, &nextnode);
@@ -2619,7 +2632,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			if (!dns_name_issubdomain(nextname, gorigin) ||
 			    (zonecut != NULL &&
 			     dns_name_issubdomain(nextname, zonecut))) {
-				remove_sigs(nextnode, 0);
+				remove_sigs(nextnode, ISC_FALSE, 0);
 				dns_db_detachnode(gdb, &nextnode);
 				result = dns_dbiterator_next(dbiter);
 				continue;
@@ -2627,7 +2640,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			if (delegation(nextname, nextnode, &nsttl)) {
 				zonecut = dns_fixedname_name(&fzonecut);
 				dns_name_copy(nextname, zonecut, NULL);
-				remove_sigs(nextnode, 0);
+				remove_sigs(nextnode, ISC_TRUE, 0);
 				if (generateds)
 					add_ds(nextname, nextnode, nsttl);
 				if (OPTOUT(nsec3flags) &&
