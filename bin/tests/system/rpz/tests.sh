@@ -181,6 +181,11 @@ clean_result () {
 # $1=dig args $2=other dig output file
 ckresult () {
     #ckalive "$1" "I:server crashed by 'dig $1'" || return 1
+    if grep "flags:.* aa .*ad;" $DIGNM; then
+	setret "I:'dig $1' AA and AD set;"
+    elif grep "flags:.* aa .*ad;" $DIGNM; then
+	setret "I:'dig $1' AD set;"
+    fi
     if $PERL $SYSTEMTESTTOP/digcomp.pl $DIGNM $2 >/dev/null; then
 	clean_result ${DIGNM}*
 	return 0
