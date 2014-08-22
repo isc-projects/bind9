@@ -100,6 +100,10 @@
 
 #include <dig/dig.h>
 
+#ifdef PKCS11CRYPTO
+#include <pk11/result.h>
+#endif
+
 #if ! defined(NS_INADDRSZ)
 #define NS_INADDRSZ	 4
 #endif
@@ -1415,6 +1419,11 @@ setup_libs(void) {
 
 	debug("setup_libs()");
 
+#ifdef PKCS11CRYPTO
+	pk11_result_register();
+#endif
+	dns_result_register();
+
 	result = isc_net_probeipv4();
 	if (result == ISC_R_SUCCESS)
 		have_ipv4 = ISC_TRUE;
@@ -1473,8 +1482,6 @@ setup_libs(void) {
 
 	result = isc_mutex_init(&lookup_lock);
 	check_result(result, "isc_mutex_init");
-
-	dns_result_register();
 }
 
 /*%
