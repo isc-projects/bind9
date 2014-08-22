@@ -1,3 +1,5 @@
+3928.	[test]		Improve rndc system test. [RT #36898]
+
 3927.	[bug]		dig: report PKCS#11 error codes correctly when
 			compiled with --enable-native-pkcs11. [RT #36956]
 
