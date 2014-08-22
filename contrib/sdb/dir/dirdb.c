@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2011, 2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -179,7 +179,8 @@ static dns_sdbmethods_t dirdb_methods = {
 	dirdb_authority,
 	NULL, /* allnodes */
 	dirdb_create,
-	dirdb_destroy
+	dirdb_destroy,
+	NULL /* lookup2 */
 };
 
 /*

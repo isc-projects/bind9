@@ -2085,9 +2085,15 @@ esac
 
 if test "X$libxml2_libs" != "X"
 then
-	AC_MSG_RESULT(yes)
 	CFLAGS="$CFLAGS $libxml2_cflags"
 	LIBS="$LIBS $libxml2_libs"
+	#
+	# Sanity check xml2-config output.
+	#
+	AC_TRY_LINK([#include <libxml/xmlwriter.h>],
+		    [return(xmlTextWriterStartElement(NULL, NULL));],
+		    AC_MSG_RESULT(yes),
+		    AC_MSG_ERROR(xml2-config returns badness))
 	AC_DEFINE(HAVE_LIBXML2, 1, [Define if libxml2 was found])
 else
 	AC_MSG_RESULT(no)

@@ -1,3 +1,33 @@
+3925.	[bug]		DS lookup of RFC 1918 empty zones failed. [RT #36917]
+
+3924.	[bug]		Improve 'rndc addzone' error reporting. [RT #35187]
+
+3923.	[bug]		Sanity check the xml2-config output. [RT #22246]
+
+3922.	[bug]		When resigning, dnssec-signzone was removing
+			all signatures from delegation nodes. It now
+			retains	DS and (if applicable) NSEC signatures.
+			[RT #36946]
+
+3921.	[bug]		AD was inappopriately set on RPZ responses. [RT #36833]
+
+3920.	[doc]		Added doc for masterfile-style. [RT #36823]
+
+3919.	[bug]		dig: continue to next line if a address lookup fails
+			in batch mode. [RT #36755]
+			
+3918.	[doc]		Update check-spf documentation. [RT #36910]
+
+3917.	[bug]		dig, nslookup and host now continue on names that are
+			too long after applying a search list elements.
+			[RT #36892]
+
+3916.	[contrib]	zone2sqlite checked wrong result code.  Address
+			compiler warnings. [RT #36931]
+
+3915.	[bug]		Address a assertion if a route event arrived while
+			shutting down. [RT #36887]
+
 3914.	[bug]		Allow the URI target and CAA value fields to
 			be zero length. [RT #36737]
 

@@ -4841,7 +4841,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> check-mx-cname ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-srv-cname ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-sibling <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> check-spf ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
+    <optional> check-spf ( <replaceable>warn</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> allow-new-zones { <replaceable>yes_or_no</replaceable> }; </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
@@ -4981,6 +4981,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> max-clients-per-query <replaceable>number</replaceable> ; </optional>
     <optional> masterfile-format
 	    (<constant>text</constant>|<constant>raw</constant>|<constant>map</constant>) ; </optional>
+    <optional> masterfile-style
+	    (<constant>relative</constant>|<constant>full</constant>) ; </optional>
     <optional> empty-server <replaceable>name</replaceable> ; </optional>
     <optional> empty-contact <replaceable>name</replaceable> ; </optional>
     <optional> empty-zones-enable <replaceable>yes_or_no</replaceable> ; </optional>
@@ -6879,10 +6881,13 @@ options {
 		  The default is <command>yes</command>.
 		</para>
 		<para>
-		  Check that the two forms of Sender Policy Framework
-		  records (TXT records starting with "v=spf1" and SPF) either
-		  both exist or both don't exist.  Warnings are
-		  emitted it they don't and be suppressed with
+		  The use of the SPF record for publishing Sender
+		  Policy Framework is deprecated as the migration
+		  from using TXT records to SPF records was abandoned.
+		  Enabling this option also checks that a TXT Sender
+		  Policy Framework record exists (starts with "v=spf1")
+		  if there is an SPF record. Warnings are emitted if the
+		  TXT record does not exist and can be suppressed with
 		  <command>check-spf</command>.
 		</para>
 	      </listitem>
@@ -6924,11 +6929,11 @@ options {
 	      <term><command>check-spf</command></term>
 	      <listitem>
 		<para>
-		  When performing integrity checks, check that the
-		  two forms of Sender Policy Framwork records (TXT
-		  records starting with "v=spf1" and SPF) both exist
-		  or both don't exist and issue a warning if not
-		  met.  The default is <command>warn</command>.
+		  If <command>check-integrity</command> is set then
+		  check that there is a TXT Sender Policy Framework
+		  record present (starts with "v=spf1") if there is an
+		  SPF record present. The default is
+		  <command>warn</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8992,6 +8997,31 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      </listitem>
 	    </varlistentry>
 
+	    <varlistentry>
+	      <term><command>masterfile-style</command></term>
+	      <listitem>
+                <para>
+                  Specifies the formatting of zone files during dump
+                  when the <option>masterfile-format</option> is
+                  <constant>text</constant>. (This option is ignored
+                  with any other <option>masterfile-format</option>.)
+                </para>
+                <para>
+                  When set to <constant>relative</constant>,
+                  records are printed in a multi-line format with owner
+                  names expressed relative to a shared origin.  When set
+                  to <constant>full</constant>, records are printed in
+                  a single-line format with absolute owner names.
+                  The <constant>full</constant> format is most suitable
+                  when a zone file needs to be processed automatically
+                  by a script.  The <constant>relative</constant> format
+                  is more human-readable, and is thus suitable when a
+                  zone is to be edited by hand.  The default is
+                  <constant>relative</constant>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
 	    <varlistentry id="clients-per-query">
 	      <term><command>clients-per-query</command></term>
 	      <term><command>max-clients-per-query</command></term>
@@ -9000,7 +9030,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  initial value (minimum) and maximum number of recursive
 		  simultaneous clients for any given query
 		  (&lt;qname,qtype,qclass&gt;) that the server will accept
-		  before dropping additional clients.  <command>named</command> will attempt to
+                  before dropping additional clients.
+                  <command>named</command> will attempt to
 		  self tune this value and changes will be logged.  The
 		  default values are 10 and 100.
 		</para>
@@ -11144,7 +11175,7 @@ view "external" {
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-mx (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> check-spf ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
+    <optional> check-spf ( <replaceable>warn</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-integrity <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>

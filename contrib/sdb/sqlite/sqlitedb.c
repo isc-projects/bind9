@@ -306,7 +306,8 @@ static dns_sdbmethods_t sqlitedb_methods = {
     NULL, /* authority */
     sqlitedb_allnodes,
     sqlitedb_create,
-    sqlitedb_destroy
+    sqlitedb_destroy,
+    NULL /* lookup2 */
 };
 
 

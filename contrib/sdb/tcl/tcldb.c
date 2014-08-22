@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2011, 2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -213,7 +213,8 @@ static dns_sdbmethods_t tcldb_methods = {
 	NULL, /* authority */
 	NULL, /* allnodes */
 	tcldb_create,
-	NULL /* destroy */
+	NULL, /* destroy */
+	NULL /* lookup2 */
 };
 
 /*
