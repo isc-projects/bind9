@@ -1,3 +1,6 @@
+3927.	[bug]		dig: report PKCS#11 error codes correctly when
+			compiled with --enable-native-pkcs11. [RT #36956]
+
 3926.	[doc]		Added doc for geoip-directory. [RT #36877]
 
 3925.	[bug]		DS lookup of RFC 1918 empty zones failed. [RT #36917]
