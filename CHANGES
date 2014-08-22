@@ -1,3 +1,5 @@
+3918.	[doc]		Update check-spf documentation. [RT #36910]
+
 3917.	[bug]		dig, nslookup and host now continue on names that are
 			too long after applying a search list elements.
 			[RT #36892]
