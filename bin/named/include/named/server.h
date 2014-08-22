@@ -372,7 +372,7 @@ ns_server_validation(ns_server_t *server, char *args, isc_buffer_t *text);
  * Add a zone to a running process
  */
 isc_result_t
-ns_server_add_zone(ns_server_t *server, char *args);
+ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text);
 
 /*%
  * Deletes a zone from a running process
