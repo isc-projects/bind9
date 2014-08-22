@@ -15431,10 +15431,30 @@ esac
 
 if test "X$libxml2_libs" != "X"
 then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
 	CFLAGS="$CFLAGS $libxml2_cflags"
 	LIBS="$LIBS $libxml2_libs"
+	#
+	# Sanity check xml2-config output.
+	#
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <libxml/xmlwriter.h>
+int
+main ()
+{
+return(xmlTextWriterStartElement(NULL, NULL));
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  as_fn_error $? "xml2-config returns badness" "$LINENO" 5
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
 
 $as_echo "#define HAVE_LIBXML2 1" >>confdefs.h
 

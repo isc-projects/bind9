@@ -1,3 +1,5 @@
+3923.	[bug]		Sanity check the xml2-config output. [RT #22246]
+
 3922.	[bug]		When resigning, dnssec-signzone was removing
 			all signatures from delegation nodes. It now
 			retains	DS and (if applicable) NSEC signatures.
