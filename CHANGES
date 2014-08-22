@@ -1,3 +1,5 @@
+3919.	[doc]		Added doc for masterfile-style. [RT #36823]
+
 3918.	[doc]		Update check-spf documentation. [RT #36910]
 
 3917.	[bug]		dig, nslookup and host now continue on names that are

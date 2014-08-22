@@ -4979,6 +4979,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> max-clients-per-query <replaceable>number</replaceable> ; </optional>
     <optional> masterfile-format
 	    (<constant>text</constant>|<constant>raw</constant>|<constant>map</constant>) ; </optional>
+    <optional> masterfile-style
+	    (<constant>relative</constant>|<constant>full</constant>) ; </optional>
     <optional> empty-server <replaceable>name</replaceable> ; </optional>
     <optional> empty-contact <replaceable>name</replaceable> ; </optional>
     <optional> empty-zones-enable <replaceable>yes_or_no</replaceable> ; </optional>
@@ -8993,6 +8995,31 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      </listitem>
 	    </varlistentry>
 
+	    <varlistentry>
+	      <term><command>masterfile-style</command></term>
+	      <listitem>
+                <para>
+                  Specifies the formatting of zone files during dump
+                  when the <option>masterfile-format</option> is
+                  <constant>text</constant>. (This option is ignored
+                  with any other <option>masterfile-format</option>.)
+                </para>
+                <para>
+                  When set to <constant>relative</constant>,
+                  records are printed in a multi-line format with owner
+                  names expressed relative to a shared origin.  When set
+                  to <constant>full</constant>, records are printed in
+                  a single-line format with absolute owner names.
+                  The <constant>full</constant> format is most suitable
+                  when a zone file needs to be processed automatically
+                  by a script.  The <constant>relative</constant> format
+                  is more human-readable, and is thus suitable when a
+                  zone is to be edited by hand.  The default is
+                  <constant>relative</constant>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
 	    <varlistentry id="clients-per-query">
 	      <term><command>clients-per-query</command></term>
 	      <term><command>max-clients-per-query</command></term>
@@ -9001,7 +9028,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  initial value (minimum) and maximum number of recursive
 		  simultaneous clients for any given query
 		  (&lt;qname,qtype,qclass&gt;) that the server will accept
-		  before dropping additional clients.  <command>named</command> will attempt to
+                  before dropping additional clients.
+                  <command>named</command> will attempt to
 		  self tune this value and changes will be logged.  The
 		  default values are 10 and 100.
 		</para>
