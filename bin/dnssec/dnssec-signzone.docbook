@@ -82,6 +82,7 @@
       <arg><option>-O <replaceable class="parameter">output-format</replaceable></option></arg>
       <arg><option>-P</option></arg>
       <arg><option>-p</option></arg>
+      <arg><option>-Q</option></arg>
       <arg><option>-R</option></arg>
       <arg><option>-r <replaceable class="parameter">randomdev</replaceable></option></arg>
       <arg><option>-S</option></arg>
