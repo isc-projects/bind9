@@ -1,5 +1,8 @@
-3919.	[doc]		Added doc for masterfile-style. [RT #36823]
+3920.	[doc]		Added doc for masterfile-style. [RT #36823]
 
+3919.	[bug]		dig: continue to next line if a address lookup fails
+			in batch mode. [RT #36755]
+			
 3918.	[doc]		Update check-spf documentation. [RT #36910]
 
 3917.	[bug]		dig, nslookup and host now continue on names that are
