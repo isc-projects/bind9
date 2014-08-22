@@ -1520,6 +1520,16 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking that DS at a RFC 1918 empty zone lookup succeeds ($n)"
+ret=0
+$DIG $DIGOPTS +noauth 10.in-addr.arpa ds @10.53.0.2 >dig.out.ns2.test$n || ret=1
+$DIG $DIGOPTS +noauth 10.in-addr.arpa ds @10.53.0.6 >dig.out.ns6.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns6.test$n || ret=1
+grep "status: NOERROR" dig.out.ns6.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking expired signatures remain with "'"allow-update { none; };"'" and no keys available ($n)"
 ret=0
 $DIG $DIGOPTS +noauth expired.example. +dnssec @10.53.0.3 soa > dig.out.ns3.test$n || ret=1

@@ -1198,6 +1198,7 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	dns_name_t *zfname;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_fixedname_t zfixedname;
+	unsigned int ztoptions = 0;
 
 #ifndef BIND9
 	UNUSED(zone);
@@ -1224,9 +1225,12 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 #ifdef BIND9
 	zone = NULL;
 	LOCK(&view->lock);
-	if (view->zonetable != NULL)
-		result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
-	else
+	if (view->zonetable != NULL) {
+		if ((options & DNS_DBFIND_NOEXACT) != 0)
+			ztoptions |= DNS_ZTFIND_NOEXACT;
+		result = dns_zt_find(view->zonetable, name, ztoptions,
+				     NULL, &zone);
+	} else
 		result = ISC_R_NOTFOUND;
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
