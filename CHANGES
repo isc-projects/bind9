@@ -1,3 +1,8 @@
+3922.	[bug]		When resigning, dnssec-signzone was removing
+			all signatures from delegation nodes. It now
+			retains	DS and (if applicable) NSEC signatures.
+			[RT #36946]
+
 3921.	[bug]		AD was inappopriately set on RPZ responses. [RT #36833]
 
 3920.	[doc]		Added doc for masterfile-style. [RT #36823]
