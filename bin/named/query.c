@@ -4868,7 +4868,7 @@ rpz_add_cname(ns_client_t *client, dns_rpz_st_t *st,
 	 * response policy zone cannot verify.
 	 */
 	client->attributes &= ~(NS_CLIENTATTR_WANTDNSSEC |
-				DNS_MESSAGEFLAG_AD);
+				NS_CLIENTATTR_WANTAD);
 	return (ISC_R_SUCCESS);
 }
 
@@ -5807,7 +5807,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * response policy zone cannot verify.
 			 */
 			client->attributes &= ~(NS_CLIENTATTR_WANTDNSSEC |
-						DNS_MESSAGEFLAG_AD);
+						NS_CLIENTATTR_WANTAD);
+			client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			query_putrdataset(client, &sigrdataset);
 			rpz_st->q.is_zone = is_zone;
 			is_zone = ISC_TRUE;
