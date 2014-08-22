@@ -1549,7 +1549,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		if (strncmp(rv[0], "%", 1) == 0)
 			break;
 		if (rv[0][0] == '@') {
-			
+
 			if (is_batchfile && !config_only) {
 				addresscount = getaddresses(lookup, &rv[0][1],
 							     &result);
@@ -1557,14 +1557,14 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 					fprintf(stderr, "couldn't get address "
 						"for '%s': %s: skipping "
 						"lookup\n", &rv[0][1],
-					        isc_result_totext(result));
+						isc_result_totext(result));
 					if (ISC_LINK_LINKED(lookup, link))
 						ISC_LIST_DEQUEUE(lookup_list,
 								 lookup, link);
 					destroy_lookup(lookup);
 					return;
 				}
-			} else 
+			} else
 				addresscount = getaddresses(lookup, &rv[0][1],
 							    NULL);
 		} else if (rv[0][0] == '+') {
