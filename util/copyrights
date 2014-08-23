@@ -1586,7 +1586,7 @@
 ./bin/tests/system/rndc/ns3/named.conf		CONF-C	2012,2013
 ./bin/tests/system/rndc/ns4/named.conf.in	CONF-C	2013
 ./bin/tests/system/rndc/setup.sh		SH	2011,2012,2013,2014
-./bin/tests/system/rndc/tests.sh		SH	2011,2012,2013
+./bin/tests/system/rndc/tests.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/rpz/.gitignore		X	2012
 ./bin/tests/system/rpz/Makefile.in		MAKE	2011,2012,2013
 ./bin/tests/system/rpz/clean.sh			SH	2011,2012,2013,2014
