@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -9071,10 +9069,10 @@ inuse(const char* file, isc_boolean_t first, isc_buffer_t *text) {
 	    strlen(file) + (first ? sizeof(INUSEMSG) : sizeof("\n")))
 	{
 		if (first)
-			putstr(text, INUSEMSG);
+			(void) putstr(text, INUSEMSG);
 		else
-			putstr(text, "\n");
-		putstr(text, file);
+			(void) putstr(text, "\n");
+		(void) putstr(text, file);
 		return (ISC_FALSE);
 	}
 	return (first);
@@ -9819,7 +9817,7 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
  cleanup:
 	/* Indicate truncated output if possible. */
 	if (result == ISC_R_NOSPACE)
-		putstr(text, "\n...");
+		(void) putstr(text, "\n...");
 	if ((result == ISC_R_SUCCESS || result == ISC_R_NOSPACE))
 		putnull(text);
 
@@ -10041,8 +10039,8 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 	}
 	isc_task_endexclusive(server->task);
 
-	if (msg != NULL && strlen(msg) < isc_buffer_availablelength(text))
-		isc_buffer_putstr(text, msg);
+	if (msg != NULL)
+		(void) putstr(text, msg);
  cleanup:
 	if (ntatable != NULL)
 		dns_ntatable_detach(&ntatable);
