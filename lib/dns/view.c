@@ -1198,7 +1198,9 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	dns_name_t *zfname;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_fixedname_t zfixedname;
+#ifdef BIND9
 	unsigned int ztoptions = 0;
+#endif
 
 #ifndef BIND9
 	UNUSED(zone);
