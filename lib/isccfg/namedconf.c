@@ -1601,7 +1601,6 @@ view_clausesets[] = {
 	namedconf_or_view_clauses,
 	view_clauses,
 	zone_clauses,
-	dynamically_loadable_zones_clauses,
 	NULL
 };
 static cfg_type_t cfg_type_viewopts = {
