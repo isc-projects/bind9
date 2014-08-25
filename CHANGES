@@ -1,3 +1,5 @@
+3929.	[bug]		'host -a' needed to clear idnoptions. [RT #36963]
+
 3928.	[test]		Improve rndc system test. [RT #36898]
 
 3927.	[bug]		dig: report PKCS#11 error codes correctly when
