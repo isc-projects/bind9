@@ -765,6 +765,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			if (!lookup->rdtypeset ||
 			    lookup->rdtype != dns_rdatatype_axfr)
 				lookup->rdtype = dns_rdatatype_any;
+#ifdef WITH_IDN
+			idnoptions = 0;
+#endif
 			list_type = dns_rdatatype_any;
 			list_addresses = ISC_FALSE;
 			lookup->rdtypeset = ISC_TRUE;

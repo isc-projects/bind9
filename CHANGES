@@ -1,3 +1,5 @@
+3929.	[bug]		'host -a' needed to clear idnoptions. [RT #36963]
+
 3928.	[test]		Improve rndc system test. [RT #36898]
 
 3925.	[bug]		DS lookup of RFC 1918 empty zones failed. [RT #36917]
