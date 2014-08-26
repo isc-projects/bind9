@@ -120,34 +120,8 @@ static cfg_type_t cfg_type_view;
 static cfg_type_t cfg_type_viewopts;
 static cfg_type_t cfg_type_zone;
 static cfg_type_t cfg_type_zoneopts;
-static cfg_type_t cfg_type_dynamically_loadable_zones;
-static cfg_type_t cfg_type_dynamically_loadable_zones_opts;
 static cfg_type_t cfg_type_v4_aaaa;
-
-/*
- * Clauses that can be found in a 'dynamically loadable zones' statement
- */
-static cfg_clausedef_t
-dynamically_loadable_zones_clauses[] = {
-	{ "database", &cfg_type_astring, 0 },
-	{ NULL, NULL, 0 }
-};
-
-/*
- * A dynamically loadable zones statement.
- */
-static cfg_tuplefielddef_t dynamically_loadable_zones_fields[] = {
-	{ "name", &cfg_type_astring, 0 },
-	{ "options", &cfg_type_dynamically_loadable_zones_opts, 0 },
-	{ NULL, NULL, 0 }
-};
-
-static cfg_type_t cfg_type_dynamically_loadable_zones = {
-	"dlz", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
-	&cfg_rep_tuple,
-	dynamically_loadable_zones_fields
-	};
-
+static cfg_type_t cfg_type_dlz;
 
 /*% tkey-dhkey */
 
@@ -865,7 +839,7 @@ namedconf_or_view_clauses[] = {
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
 	/* only 1 DLZ per view allowed */
-	{ "dlz", &cfg_type_dynamically_loadable_zones, 0 },
+	{ "dlz", &cfg_type_dlz, 0 },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
 	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
@@ -1620,15 +1594,19 @@ static cfg_type_t cfg_type_zoneopts = {
 
 /*% The "dynamically loadable zones" statement syntax. */
 
+static cfg_clausedef_t
+dlz_clauses[] = {
+	{ "database", &cfg_type_astring, 0 },
+	{ NULL, NULL, 0 }
+};
 static cfg_clausedef_t *
-dynamically_loadable_zones_clausesets[] = {
-	dynamically_loadable_zones_clauses,
+dlz_clausesets[] = {
+	dlz_clauses,
 	NULL
 };
-static cfg_type_t cfg_type_dynamically_loadable_zones_opts = {
-	"dynamically_loadable_zones_opts", cfg_parse_map,
-	cfg_print_map, cfg_doc_map, &cfg_rep_map,
-	dynamically_loadable_zones_clausesets
+static cfg_type_t cfg_type_dlz = {
+	"dlz", cfg_parse_named_map, cfg_print_map, cfg_doc_map,
+	 &cfg_rep_map, dlz_clausesets
 };
 
 /*%
