@@ -321,7 +321,6 @@ view <string> <optional_class> {
         check-wildcard <boolean>;
         cleaning-interval <integer>;
         clients-per-query <integer>;
-        database <string>;
         deny-answer-addresses { <address_match_element>; ... } [
             except-from { <quoted_string>; ... } ];
         deny-answer-aliases { <quoted_string>; ... } [ except-from {
