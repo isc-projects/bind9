@@ -366,7 +366,6 @@ view <string> <optional_class> {
         check-wildcard <boolean>;
         cleaning-interval <integer>;
         clients-per-query <integer>;
-        database <string>;
         deny-answer-addresses { <address_match_element>; ... } [
             except-from { <quoted_string>; ... } ];
         deny-answer-aliases { <quoted_string>; ... } [ except-from {
@@ -497,7 +496,6 @@ view <string> <optional_class> {
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
-        search <boolean>;
         serial-update-method ( increment | unixtime );
         server <netprefix> {
                 bogus <boolean>;
