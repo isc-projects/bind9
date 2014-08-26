@@ -9870,7 +9870,7 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_fixedname_t fn;
 	dns_name_t *ntaname;
 	dns_ttl_t ntattl;
-	isc_boolean_t ttlset = ISC_FALSE;
+	isc_boolean_t ttlset = ISC_FALSE, excl = ISC_FALSE;
 
 	UNUSED(force);
 
@@ -9969,6 +9969,7 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	excl = ISC_TRUE;
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
@@ -10037,11 +10038,13 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 		isc_buffer_putuint8(text, 0);
 	}
-	isc_task_endexclusive(server->task);
 
 	if (msg != NULL)
 		(void) putstr(text, msg);
+
  cleanup:
+	if (excl)
+		isc_task_endexclusive(server->task);
 	if (ntatable != NULL)
 		dns_ntatable_detach(&ntatable);
 	return (result);
