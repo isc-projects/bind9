@@ -2562,13 +2562,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		const cfg_obj_t *dlzopts;
-		obj = NULL;
+		dlz = cfg_listelt_value(element);
 
 		obj = NULL;
-		dlz = cfg_listelt_value(element);
-		dlzopts = cfg_tuple_get(dlz, "options");
-		(void)cfg_map_get(dlzopts, "database", &obj);
+		(void)cfg_map_get(dlz, "database", &obj);
 		if (obj != NULL) {
 			dns_dlzdb_t *dlzdb = NULL;
 			const cfg_obj_t *name, *search = NULL;
@@ -2585,7 +2582,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 				goto cleanup;
 			}
 
-			name = cfg_tuple_get(dlz, "name");
+			name = cfg_map_getname(dlz);
 			result = dns_dlzcreate(mctx, cfg_obj_asstring(name),
 					       dlzargv[0], dlzargc, dlzargv,
 					       &dlzdb);
@@ -2600,7 +2597,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			 * method now.  If not searchable, we'll take
 			 * care of it when we process the zone statement.
 			 */
-			(void)cfg_map_get(dlzopts, "search", &search);
+			(void)cfg_map_get(dlz, "search", &search);
 			if (search == NULL || cfg_obj_asboolean(search)) {
 				dlzdb->search = ISC_TRUE;
 				result = dns_dlzconfigure(view, dlzdb,
