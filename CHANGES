@@ -1,3 +1,8 @@
+3931.	[cleanup]	Cleanup how dlz grammer is defined. [RT #36879]
+
+3930.	[bug]		"rndc nta -r" could cause a server hang if the
+			NTA was not found. [RT #36909]
+
 3929.	[bug]		'host -a' needed to clear idnoptions. [RT #36963]
 
 3928.	[test]		Improve rndc system test. [RT #36898]
