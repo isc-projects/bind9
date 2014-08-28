@@ -468,23 +468,19 @@ casecompare_hip(ARGS_COMPARE) {
 
 	INSIST(r1.length > 4);
 	INSIST(r2.length > 4);
-	r1.length = 4;
-	r2.length = 4;
-	order = isc_region_compare(&r1, &r2);
+	order = memcmp(r1.base, r2.base, 4);
 	if (order != 0)
 		return (order);
 
 	hit_len = uint8_fromregion(&r1);
 	isc_region_consume(&r1, 2);         /* hit length + algorithm */
 	key_len = uint16_fromregion(&r1);
-
-	dns_rdata_toregion(rdata1, &r1);
-	dns_rdata_toregion(rdata2, &r2);
-	isc_region_consume(&r1, 4);
+	isc_region_consume(&r1, 2);         /* key length */
 	isc_region_consume(&r2, 4);
+
 	INSIST(r1.length >= (unsigned) (hit_len + key_len));
 	INSIST(r2.length >= (unsigned) (hit_len + key_len));
-	order = isc_region_compare(&r1, &r2);
+	order = memcmp(r1.base, r2.base, hit_len + key_len);
 	if (order != 0)
 		return (order);
 	isc_region_consume(&r1, hit_len + key_len);
