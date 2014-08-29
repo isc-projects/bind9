@@ -482,6 +482,7 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 	const char *stype, *search;
 	dns_geoip_subtype_t subtype;
 	dns_aclelement_t de;
+	size_t len;
 
 	REQUIRE(dep != NULL);
 
@@ -493,35 +494,52 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 
 	stype = cfg_obj_asstring(cfg_tuple_get(obj, "subtype"));
 	search = cfg_obj_asstring(cfg_tuple_get(obj, "search"));
+	len = strlen(search);
 
-	if (strcasecmp(stype, "country") == 0 && strlen(search) == 2) {
+	if (len == 0) {
+		cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
+			    "zero-length geoip search field");
+		return (ISC_R_FAILURE);
+	}
+
+	if (strcasecmp(stype, "country") == 0 && len == 2) {
 		/* Two-letter country code */
 		subtype = dns_geoip_countrycode;
-		strncpy(de.geoip_elem.as_string, search, 2);
-	} else if (strcasecmp(stype, "country") == 0 && strlen(search) == 3) {
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
+	} else if (strcasecmp(stype, "country") == 0 && len == 3) {
 		/* Three-letter country code */
 		subtype = dns_geoip_countrycode3;
-		strncpy(de.geoip_elem.as_string, search, 3);
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "country") == 0) {
 		/* Country name */
 		subtype = dns_geoip_countryname;
-		strncpy(de.geoip_elem.as_string, search, 255);
-	} else if (strcasecmp(stype, "region") == 0 && strlen(search) == 2) {
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
+	} else if (strcasecmp(stype, "region") == 0 && len == 2) {
 		/* Two-letter region code */
 		subtype = dns_geoip_region;
-		strncpy(de.geoip_elem.as_string, search, 2);
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "region") == 0) {
 		/* Region name */
 		subtype = dns_geoip_regionname;
-		strncpy(de.geoip_elem.as_string, search, 255);
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "city") == 0) {
 		/* City name */
 		subtype = dns_geoip_city_name;
-		strncpy(de.geoip_elem.as_string, search, 255);
-	} else if (strcasecmp(stype, "postal") == 0 && strlen(search) < 7) {
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
+	} else if (strcasecmp(stype, "postal") == 0 && len < 7) {
 		subtype = dns_geoip_city_postalcode;
-		strncpy(de.geoip_elem.as_string, search, 6);
-		de.geoip_elem.as_string[6] = '\0';
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
+	} else if (strcasecmp(stype, "postal") == 0) {
+		cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
+			    "geoiop postal code (%s) too long", search);
+		return (ISC_R_FAILURE);
 	} else if (strcasecmp(stype, "metro") == 0) {
 		subtype = dns_geoip_city_metrocode;
 		de.geoip_elem.as_int = atoi(search);
@@ -530,23 +548,33 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 		de.geoip_elem.as_int = atoi(search);
 	} else if (strcasecmp(stype, "tz") == 0) {
 		subtype = dns_geoip_city_timezonecode;
-		strncpy(de.geoip_elem.as_string, search, 255);
-	} else if (strcasecmp(stype, "continent") == 0 && strlen(search) == 2) {
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
+	} else if (strcasecmp(stype, "continent") == 0 && len == 2) {
 		/* Two-letter continent code */
 		subtype = dns_geoip_city_continentcode;
-		strncpy(de.geoip_elem.as_string, search, 2);
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
+	} else if (strcasecmp(stype, "continent") == 0) {
+		cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
+			    "geoiop continent code (%s) too long", search);
+		return (ISC_R_FAILURE);
 	} else if (strcasecmp(stype, "isp") == 0) {
 		subtype = dns_geoip_isp_name;
-		strncpy(de.geoip_elem.as_string, search, 255);
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "asnum") == 0) {
 		subtype = dns_geoip_as_asnum;
-		strncpy(de.geoip_elem.as_string, search, 255);
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "org") == 0) {
 		subtype = dns_geoip_org_name;
-		strncpy(de.geoip_elem.as_string, search, 255);
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "domain") == 0) {
 		subtype = dns_geoip_domain_name;
-		strncpy(de.geoip_elem.as_string, search, 255);
+		strlcpy(de.geoip_elem.as_string, search,
+			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "netspeed") == 0) {
 		subtype = dns_geoip_netspeed_id;
 		de.geoip_elem.as_int = atoi(search);

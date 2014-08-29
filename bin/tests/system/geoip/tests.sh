@@ -197,7 +197,7 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /
 sleep 3
 
 n=`expr $n + 1`
-echo "I:checking GeoIP domain database ($n)"
+echo "I:checking GeoIP asnum database - ASNNNN only ($n)"
 ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
@@ -216,10 +216,10 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /
 sleep 3
 
 n=`expr $n + 1`
-echo "I:checking GeoIP netspeed database ($n)"
+echo "I:checking GeoIP domain database ($n)"
 ret=0
 lret=0
-for i in 1 2 3 4; do
+for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
     j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
     [ "$i" = "$j" ] || lret=1
@@ -235,6 +235,25 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /
 sleep 3
 
 n=`expr $n + 1`
+echo "I:checking GeoIP netspeed database ($n)"
+ret=0
+lret=0
+for i in 1 2 3 4; do
+    $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
+    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    [ "$i" = "$j" ] || lret=1
+    [ $lret -eq 1 ] && break
+done
+[ $lret -eq 1 ] && ret=1
+[ $ret -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+echo "I:reloading server"
+cp -f ns2/named13.conf ns2/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'
+sleep 3
+
+n=`expr $n + 1`
 echo "I:checking GeoIP blackhole ACL ($n)"
 ret=0
 $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n || ret=1
@@ -243,7 +262,7 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 status 2>&1 > rndc.out.ns2.tes
 status=`expr $status + $ret`
 
 echo "I:reloading server"
-cp -f ns2/named13.conf ns2/named.conf
+cp -f ns2/named14.conf ns2/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'
 sleep 3
 

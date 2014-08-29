@@ -1,3 +1,8 @@
+3935.	[bug]		"geoip asnum" ACL elements would not match unless
+			the full organization name was specified.  They
+			can now match against the AS number alone (e.g.,
+			AS1234). [RT #36945]
+
 3934.	[bug]		Catch bad 'sit-secret' in named-checkconf.  Improve
 			sit-secret documentation. [RT #36980]
 

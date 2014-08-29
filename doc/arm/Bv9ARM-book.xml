@@ -2563,7 +2563,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	be configured to act as a lightweight resolver daemon using the
 	<command>lwres</command> statement in <filename>named.conf</filename>.
       </para>
-
     </sect1>
   </chapter>
 
@@ -3454,17 +3453,20 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	  "isp", "org", "asnum", "domain" and "netspeed".
 	</para>
 	<para>
-	  <replaceable>value</replaceable> is the value to searched for
-	  within the database.  A string may be quoted if it contains
-	  spaces or other special characters.  If this is a "country"
-	  search and the string is two characters long, then it must be a
-	  standard ISO-3166-1 two-letter country code, and if it is three
-	  characters long then it must be an ISO-3166-1 three-letter
-	  country code; otherwise it is the full name of the country.
-	  Similarly, if this is a "region" search and the string is
-	  two characters long, then it must be a standard two-letter state
-	  or province abbreviation; otherwise it is the full name of the
-	  state or province.
+	  <replaceable>value</replaceable> is the value to search
+	  for within the database.  A string may be quoted if it
+	  contains spaces or other special characters.  If this is
+	  an "asnum" search, then the leading "ASNNNN" string can be
+	  used, otherwise the full description must be used (e.g.
+	  "ASNNNN Example Company Name").  If this is a "country"
+	  search and the string is two characters long, then it must
+	  be a standard ISO-3166-1 two-letter country code, and if it
+	  is three characters long then it must be an ISO-3166-1
+	  three-letter country code; otherwise it is the full name
+	  of the country.  Similarly, if this is a "region" search
+	  and the string is two characters long, then it must be a
+	  standard two-letter state or province abbreviation;
+	  otherwise it is the full name of the state or province.
 	</para>
 	<para>
 	  The <replaceable>database</replaceable> field indicates which
@@ -8911,7 +8913,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  initial value (minimum) and maximum number of recursive
 		  simultaneous clients for any given query
 		  (&lt;qname,qtype,qclass&gt;) that the server will accept
-		  before dropping additional clients.  <command>named</command> will attempt to
+		  before dropping additional clients.
+		  <command>named</command> will attempt to
 		  self tune this value and changes will be logged.  The
 		  default values are 10 and 100.
 		</para>

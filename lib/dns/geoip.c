@@ -766,8 +766,21 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 			return (ISC_FALSE);
 
 		s = name_lookup(db, subtype, ipnum);
-		if (s != NULL && strcasecmp(elt->as_string, s) == 0)
-			return (ISC_TRUE);
+		if (s != NULL) {
+			size_t l;
+			if (strcasecmp(elt->as_string, s) == 0)
+				return (ISC_TRUE);
+			if (subtype != dns_geoip_as_asnum)
+				break;
+			/*
+			 * Just check if the ASNNNN value matches.
+			 */
+			l = strlen(elt->as_string);
+			if (l > 0U && strchr(elt->as_string, ' ') == NULL &&
+			    strncasecmp(elt->as_string, s, l) == 0 &&
+			    s[l] == ' ')
+				return (ISC_TRUE);
+		}
 		break;
 
 	case dns_geoip_netspeed_id:
