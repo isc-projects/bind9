@@ -2564,10 +2564,10 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	<command>lwres</command> statement in <filename>named.conf</filename>.
       </para>
       <para>
-        The number of client queries that the <command>lwresd</command>
-        daemon is able to serve can be set using the
-        <option>lwres-tasks</option> and <option>lwres-clients</option> 
-        statements in the configuration.
+	The number of client queries that the <command>lwresd</command>
+	daemon is able to serve can be set using the
+	<option>lwres-tasks</option> and <option>lwres-clients</option> 
+	statements in the configuration.
       </para>
     </sect1>
   </chapter>
@@ -3459,17 +3459,20 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	  "isp", "org", "asnum", "domain" and "netspeed".
 	</para>
 	<para>
-	  <replaceable>value</replaceable> is the value to searched for
-	  within the database.  A string may be quoted if it contains
-	  spaces or other special characters.  If this is a "country"
-	  search and the string is two characters long, then it must be a
-	  standard ISO-3166-1 two-letter country code, and if it is three
-	  characters long then it must be an ISO-3166-1 three-letter
-	  country code; otherwise it is the full name of the country.
-	  Similarly, if this is a "region" search and the string is
-	  two characters long, then it must be a standard two-letter state
-	  or province abbreviation; otherwise it is the full name of the
-	  state or province.
+	  <replaceable>value</replaceable> is the value to search
+	  for within the database.  A string may be quoted if it
+	  contains spaces or other special characters.  If this is
+	  an "asnum" search, then the leading "ASNNNN" string can be
+	  used, otherwise the full description must be used (e.g.
+	  "ASNNNN Example Company Name").  If this is a "country"
+	  search and the string is two characters long, then it must
+	  be a standard ISO-3166-1 two-letter country code, and if it
+	  is three characters long then it must be an ISO-3166-1
+	  three-letter country code; otherwise it is the full name
+	  of the country.  Similarly, if this is a "region" search
+	  and the string is two characters long, then it must be a
+	  standard two-letter state or province abbreviation;
+	  otherwise it is the full name of the state or province.
 	</para>
 	<para>
 	  The <replaceable>database</replaceable> field indicates which
@@ -4718,32 +4721,32 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	  minimum
 	  number of dots in a relative domain name that should result in an
 	  exact match lookup before search path elements are appended.
-        </para>
-        <para>
-          The <option>lwres-tasks</option> statement specifies the number
-          of worker threads the lightweight resolver will dedicate to serving
-          clients.  By default the number is the same as the number of CPUs on
-          the system; this can be overridden using the <option>-n</option>
-          command line option when starting the server. 
-        </para>
-        <para>
-          The <option>lwres-clients</option> specifies
-          the number of client objects per thread the lightweight
-          resolver should create to serve client queries.
-          By default, if the lightweight resolver runs as a part
-          of <command>named</command>, 256 client objects are
-          created for each task; if it runs as <command>lwresd</command>,
-          1024 client objects are created for each thread. The maximum
-          value is 32768; higher values will be silently ignored and
-          the maximum will be used instead.
-          Note that setting too high a value may overconsume
-          system resources.
-        </para>
-        <para>
-          The maximum number of client queries that the lightweight
-          resolver can handle at any one time equals
-          <option>lwres-tasks</option> times <option>lwres-clients</option>.
-        </para>
+	</para>
+	<para>
+	  The <option>lwres-tasks</option> statement specifies the number
+	  of worker threads the lightweight resolver will dedicate to serving
+	  clients.  By default the number is the same as the number of CPUs on
+	  the system; this can be overridden using the <option>-n</option>
+	  command line option when starting the server. 
+	</para>
+	<para>
+	  The <option>lwres-clients</option> specifies
+	  the number of client objects per thread the lightweight
+	  resolver should create to serve client queries.
+	  By default, if the lightweight resolver runs as a part
+	  of <command>named</command>, 256 client objects are
+	  created for each task; if it runs as <command>lwresd</command>,
+	  1024 client objects are created for each thread. The maximum
+	  value is 32768; higher values will be silently ignored and
+	  the maximum will be used instead.
+	  Note that setting too high a value may overconsume
+	  system resources.
+	</para>
+	<para>
+	  The maximum number of client queries that the lightweight
+	  resolver can handle at any one time equals
+	  <option>lwres-tasks</option> times <option>lwres-clients</option>.
+	</para>
       </sect2>
       <sect2>
 	<title><command>masters</command> Statement Grammar</title>
@@ -5793,7 +5796,7 @@ options {
 		  For convenience, TTL-style time unit suffixes can be
 		  used to specify the NTA lifetime in seconds, minutes
 		  or hours.  <option>nta-lifetime</option> defaults to
-                  one hour.  It cannot exceed one day.
+		  one hour.  It cannot exceed one day.
 		</para>
 	    </listitem>
 	  </varlistentry>
@@ -5802,31 +5805,31 @@ options {
 	    <term><command>nta-recheck</command></term>
 	    <listitem>
 		<para>
-                  Species how often to check whether negative
-                  trust anchors added via <command>rndc nta</command>
-                  are still necessary.
+		  Species how often to check whether negative
+		  trust anchors added via <command>rndc nta</command>
+		  are still necessary.
 		</para>
 		<para>
-                  A negative trust anchor is normally used when a
-                  domain has stopped validating due to operator error;
-                  it temporarily disables DNSSEC validation for that
-                  domain. In the interest of ensuring that DNSSEC
-                  validation is turned back on as soon as possible, 
-                  <command>named</command> will periodically send a
-                  query to the domain, ignoring negative trust anchors,
-                  to find out whether it can now be validated.  If so,
-                  the negative trust anchor is allowed to expire early.
+		  A negative trust anchor is normally used when a
+		  domain has stopped validating due to operator error;
+		  it temporarily disables DNSSEC validation for that
+		  domain. In the interest of ensuring that DNSSEC
+		  validation is turned back on as soon as possible, 
+		  <command>named</command> will periodically send a
+		  query to the domain, ignoring negative trust anchors,
+		  to find out whether it can now be validated.  If so,
+		  the negative trust anchor is allowed to expire early.
 		</para>
 		<para>
-                  Validity checks can be disabled for an individual
-                  NTA by using <command>rndc nta -f</command>, or
-                  for all NTA's by setting <option>nta-recheck</option>
-                  to zero.
+		  Validity checks can be disabled for an individual
+		  NTA by using <command>rndc nta -f</command>, or
+		  for all NTA's by setting <option>nta-recheck</option>
+		  to zero.
 		</para>
 		<para>
 		  For convenience, TTL-style time unit suffixes can be
-                  used to specify the NTA recheck interval in seconds,
-                  minutes or hours.  The default is five minutes.
+		  used to specify the NTA recheck interval in seconds,
+		  minutes or hours.  The default is five minutes.
 		</para>
 	    </listitem>
 	  </varlistentry>
@@ -9020,24 +9023,24 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    <varlistentry>
 	      <term><command>masterfile-style</command></term>
 	      <listitem>
-                <para>
-                  Specifies the formatting of zone files during dump
-                  when the <option>masterfile-format</option> is
-                  <constant>text</constant>. (This option is ignored
-                  with any other <option>masterfile-format</option>.)
-                </para>
-                <para>
-                  When set to <constant>relative</constant>,
-                  records are printed in a multi-line format with owner
-                  names expressed relative to a shared origin.  When set
-                  to <constant>full</constant>, records are printed in
-                  a single-line format with absolute owner names.
-                  The <constant>full</constant> format is most suitable
-                  when a zone file needs to be processed automatically
-                  by a script.  The <constant>relative</constant> format
-                  is more human-readable, and is thus suitable when a
-                  zone is to be edited by hand.  The default is
-                  <constant>relative</constant>.
+		<para>
+		  Specifies the formatting of zone files during dump
+		  when the <option>masterfile-format</option> is
+		  <constant>text</constant>. (This option is ignored
+		  with any other <option>masterfile-format</option>.)
+		</para>
+		<para>
+		  When set to <constant>relative</constant>,
+		  records are printed in a multi-line format with owner
+		  names expressed relative to a shared origin.  When set
+		  to <constant>full</constant>, records are printed in
+		  a single-line format with absolute owner names.
+		  The <constant>full</constant> format is most suitable
+		  when a zone file needs to be processed automatically
+		  by a script.  The <constant>relative</constant> format
+		  is more human-readable, and is thus suitable when a
+		  zone is to be edited by hand.  The default is
+		  <constant>relative</constant>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -9050,8 +9053,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  initial value (minimum) and maximum number of recursive
 		  simultaneous clients for any given query
 		  (&lt;qname,qtype,qclass&gt;) that the server will accept
-                  before dropping additional clients.
-                  <command>named</command> will attempt to
+		  before dropping additional clients.
+		  <command>named</command> will attempt to
 		  self tune this value and changes will be logged.  The
 		  default values are 10 and 100.
 		</para>
@@ -10564,15 +10567,15 @@ rate-limit {
 
 	  <para>
 	    The <command>request-expire</command> clause determines
-            whether the local server, when acting as a slave, will
-            request the EDNS EXPIRE value.  The EDNS EXPIRE value
-            indicates the remaining time before the zone data will
-            expire and need to be be refreshed.  This is used
-            when a secondary server transfers a zone from another
-            secondary server; when transferring from the primary, the
-            expiration timer is set from the EXPIRE field of the SOA
-            record instead. 
-            The default is <command>yes</command>.
+	    whether the local server, when acting as a slave, will
+	    request the EDNS EXPIRE value.  The EDNS EXPIRE value
+	    indicates the remaining time before the zone data will
+	    expire and need to be be refreshed.  This is used
+	    when a secondary server transfers a zone from another
+	    secondary server; when transferring from the primary, the
+	    expiration timer is set from the EXPIRE field of the SOA
+	    record instead. 
+	    The default is <command>yes</command>.
 	  </para>
 
 	  <para>
@@ -12459,11 +12462,11 @@ example.com. NS ns2.example.net.
 		  <para>
 		    When set to 
 		    <command>serial-update-method date;</command>, the
-                    new SOA serial number will be the current date
-                    in the form "YYYYMMDD", followed by two zeroes,
-                    unless the existing serial number is already greater
-                    than or equal to that value, in which case it is
-                    incremented by one.
+		    new SOA serial number will be the current date
+		    in the form "YYYYMMDD", followed by two zeroes,
+		    unless the existing serial number is already greater
+		    than or equal to that value, in which case it is
+		    incremented by one.
 		  </para>
 		</listitem>
 	      </varlistentry>

@@ -1313,10 +1313,11 @@
 ./bin/tests/system/geoip/geoip.c		C	2013
 ./bin/tests/system/geoip/ns2/example.db.in	ZONE	2013
 ./bin/tests/system/geoip/ns2/named1.conf	CONF-C	2013
-./bin/tests/system/geoip/ns2/named10.conf	CONF-C	2013
+./bin/tests/system/geoip/ns2/named10.conf	CONF-C	2014
 ./bin/tests/system/geoip/ns2/named11.conf	CONF-C	2013
-./bin/tests/system/geoip/ns2/named12.conf	CONF-C	2014
+./bin/tests/system/geoip/ns2/named12.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named13.conf	CONF-C	2014
+./bin/tests/system/geoip/ns2/named14.conf	CONF-C	2014
 ./bin/tests/system/geoip/ns2/named2.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named3.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named4.conf	CONF-C	2013
