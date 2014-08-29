@@ -1,3 +1,6 @@
+3934.	[bug]		Catch bad 'sit-secret' in named-checkconf.  Improve
+			sit-secrets documentation. [RT #36980]
+
 3933.	[bug]		Corrected the implementation of dns_rdata_casecompare()
 			for the HIP rdata type.  [RT #36911]
 

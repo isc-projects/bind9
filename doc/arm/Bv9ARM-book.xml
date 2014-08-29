@@ -6318,12 +6318,16 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>sit-secret</command></term> <listitem>
+	      <term><command>sit-secret</command></term>
+	      <listitem>
 		<para>
 		  If set, this is a shared secret used for generating
 		  and verifying Source Identity Token EDNS options
 		  within a anycast cluster.  If not set the system
-		  will generate a random secret at startup.
+		  will generate a random secret at startup.  The
+		  shared secret is encoded as a hex string and needs
+		  to be 128 bits for AES128, 160 bits for SHA1 and
+		  256 bits for SHA256.
 		</para>
 	      </listitem>
 	    </varlistentry>
