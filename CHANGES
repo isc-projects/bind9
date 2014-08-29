@@ -1,3 +1,24 @@
+3936.	[func]		Added authoritative support for the EDNS Client
+			Subnet (ECS) option.
+
+			ACLs can now include "ecs" elements which specify
+			an address or network prefix; if an ECS option is
+			included in a DNS query, then the address encoded
+			in the option will be matched against "ecs" ACL
+			elements.
+
+			Also, if an ECS address is included in a query,
+			then it will be used instead of the client source
+			address when matching "geoip" ACL elements.  This
+			behavior can be overridden with "geoip-use-ecs no;".
+
+			When "ecs" or "geoip" ACL elements are used to
+			select a view for a query, the response will include
+			an ECS option to indicate which client network the
+			answer is valid for.
+
+			(Thanks to Vincent Bernat.) [RT #36781]
+
 3935.	[bug]		"geoip asnum" ACL elements would not match unless
 			the full organization name was specified.  They
 			can now match against the AS number alone (e.g.,

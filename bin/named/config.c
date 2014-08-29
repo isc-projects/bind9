@@ -177,6 +177,11 @@ options {\n\
 	nsec3-test-zone no;\n\
 	allow-new-zones no;\n\
 "
+#ifdef HAVE_GEOIP
+"\
+	geoip-use-ecs yes;\n\
+"
+#endif
 #ifdef ALLOW_FILTER_AAAA
 "	filter-aaaa-on-v4 no;\n\
 	filter-aaaa-on-v6 no;\n\

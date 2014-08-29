@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.13 2008/12/01 23:47:45 tbox Exp $ */
-
 /*
  * This source was adapted from MRT's RCS Ids:
  * Id: radix.h,v 1.6 1999/08/03 03:32:53 masaki Exp
@@ -34,7 +32,7 @@
 #ifndef _RADIX_H
 #define _RADIX_H
 
-#define NETADDR_TO_PREFIX_T(na,pt,bits) \
+#define NETADDR_TO_PREFIX_T(na,pt,bits,isecs) \
 	do { \
 		memset(&(pt), 0, sizeof(pt)); \
 		if((na) != NULL) { \
@@ -50,6 +48,7 @@
 			(pt).family = AF_UNSPEC; \
 			(pt).bitlen = 0; \
 		} \
+		(pt).ecs = isecs; \
 		isc_refcount_init(&(pt).refcount, 0); \
 	} while(0)
 
@@ -57,6 +56,7 @@ typedef struct isc_prefix {
 	isc_mem_t *mctx;
 	unsigned int family;	/* AF_INET | AF_INET6, or AF_UNSPEC for "any" */
 	unsigned int bitlen;	/* 0 for "any" */
+	isc_boolean_t ecs;	/* ISC_TRUE for an EDNS client subnet address */
 	isc_refcount_t refcount;
 	union {
 		struct in_addr sin;
@@ -81,23 +81,32 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
  * return the one that was added first.
  *
  * An IPv4 prefix and an IPv6 prefix may share a radix tree node if they
- * have the same length and bit pattern (e.g., 127/8 and 7f::/8).  To
- * disambiguate between them, node_num and data are two-element arrays;
- * node_num[0] and data[0] are used for IPv4 addresses, node_num[1]
- * and data[1] for IPv6 addresses.  The only exception is a prefix of
- * 0/0 (aka "any" or "none"), which is always stored as IPv4 but matches
- * IPv6 addresses too.
+ * have the same length and bit pattern (e.g., 127/8 and 7f::/8).  Also,
+ * a node that matches a client address may also match an EDNS client
+ * subnet address.  To disambiguate between these, node_num and data
+ * are four-element arrays;
+ *
+ *   - node_num[0] and data[0] are used for IPv4 client addresses
+ *   - node_num[1] and data[1] for IPv4 client subnet addresses
+ *   - node_num[2] and data[2] are used for IPv6 client addresses
+ *   - node_num[3] and data[3] for IPv6 client subnet addresses
+ *
+ * A prefix of 0/0 (aka "any" or "none"), is always stored as IPv4,
+ * but matches IPv6 addresses too, as well as all client subnet
+ * addresses.
  */
 
-#define ISC_IS6(family) ((family) == AF_INET6 ? 1 : 0)
+#define ISC_RADIX_OFF(p) \
+	((((p)->family == AF_INET6) ? 1 : 0) + ((p)->ecs ? 2 : 0))
+
 typedef struct isc_radix_node {
 	isc_mem_t *mctx;
 	isc_uint32_t bit;		/* bit length of the prefix */
 	isc_prefix_t *prefix;		/* who we are in radix tree */
 	struct isc_radix_node *l, *r;	/* left and right children */
 	struct isc_radix_node *parent;	/* may be used */
-	void *data[2];			/* pointers to IPv4 and IPV6 data */
-	int node_num[2];		/* which node this was in the tree,
+	void *data[4];			/* pointers to IPv4 and IPV6 data */
+	int node_num[4];		/* which node this was in the tree,
 					   or -1 for glue nodes */
 } isc_radix_node_t;
 

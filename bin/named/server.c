@@ -4684,6 +4684,9 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 static void
 scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
 	isc_boolean_t match_mapped = server->aclenv.match_mapped;
+#ifdef HAVE_GEOIP
+	isc_boolean_t use_ecs = server->aclenv.geoip_use_ecs;
+#endif
 
 	ns_interfacemgr_scan(server->interfacemgr, verbose);
 	/*
@@ -4694,6 +4697,9 @@ scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
 			ns_interfacemgr_getaclenv(server->interfacemgr));
 
 	server->aclenv.match_mapped = match_mapped;
+#ifdef HAVE_GEOIP
+	server->aclenv.geoip_use_ecs = use_ecs;
+#endif
 }
 
 static isc_result_t
@@ -5554,6 +5560,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	} else
 		ns_geoip_load(NULL);
 	ns_g_aclconfctx->geoip = ns_g_geoip;
+
+	obj = NULL;
+	result = ns_config_get(maps, "geoip-use-ecs", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	ns_g_server->aclenv.geoip_use_ecs = cfg_obj_asboolean(obj);
 #endif /* HAVE_GEOIP */
 
 	/*

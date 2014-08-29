@@ -950,8 +950,11 @@ options_clauses[] = {
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
 #ifdef HAVE_GEOIP
 	{ "geoip-directory", &cfg_type_qstringornone, 0 },
+	{ "geoip-use-ecs", &cfg_type_boolean, 0 },
 #else
 	{ "geoip-directory", &cfg_type_qstringornone,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "geoip-use-ecs", &cfg_type_qstringornone,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_GEOIP */
 	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
@@ -2282,6 +2285,16 @@ doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type) {
 #endif /* HAVE_GEOIP */
 
 /*%
+ * An EDNS client subnet address
+ */
+
+static keyword_type_t ecs_kw = { "ecs", &cfg_type_netprefix };
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_ecsprefix = {
+	"edns_client_subnet", parse_keyvalue, print_keyvalue, doc_keyvalue,
+	&cfg_rep_netprefix, &ecs_kw
+};
+
+/*%
  * A "controls" statement is represented as a map with the multivalued
  * "inet" and "unix" clauses.
  */
@@ -2570,6 +2583,9 @@ parse_addrmatchelt(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) 
 		if (pctx->token.type == isc_tokentype_string &&
 		    (strcasecmp(TOKEN_STRING(pctx), "key") == 0)) {
 			CHECK(cfg_parse_obj(pctx, &cfg_type_keyref, ret));
+		} else if (pctx->token.type == isc_tokentype_string &&
+			   (strcasecmp(TOKEN_STRING(pctx), "ecs") == 0)) {
+			CHECK(cfg_parse_obj(pctx, &cfg_type_ecsprefix, ret));
 		} else if (pctx->token.type == isc_tokentype_string &&
 			   (strcasecmp(TOKEN_STRING(pctx), "geoip") == 0)) {
 #ifdef HAVE_GEOIP
