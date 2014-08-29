@@ -1,3 +1,7 @@
+3937.	[func]		Added some debug logging to better indicate the
+			conditions causing SERVFAILs when resolving.
+			[RT #35538]
+
 3936.	[func]		Added authoritative support for the EDNS Client
 			Subnet (ECS) option.
 
