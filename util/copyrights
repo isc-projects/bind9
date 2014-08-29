@@ -880,6 +880,16 @@
 ./bin/tests/system/checkconf/bad-sharedzone1.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-sharedzone2.conf	CONF-C	2013
 ./bin/tests/system/checkconf/bad-tsig.conf	CONF-C	2012,2013
+./bin/tests/system/checkconf/check-dup-records-fail.conf	CONF-C	2014
+./bin/tests/system/checkconf/check-dup-records.db	ZONE	2014
+./bin/tests/system/checkconf/check-mx-cname-fail.conf	CONF-C	2014
+./bin/tests/system/checkconf/check-mx-cname.db	ZONE	2014
+./bin/tests/system/checkconf/check-mx-fail.conf	CONF-C	2014
+./bin/tests/system/checkconf/check-mx.db	ZONE	2014
+./bin/tests/system/checkconf/check-names-fail.conf	CONF-C	2014
+./bin/tests/system/checkconf/check-names.db	ZONE	2014
+./bin/tests/system/checkconf/check-srv-cname-fail.conf	CONF-C	2014
+./bin/tests/system/checkconf/check-srv-cname.db	ZONE	2014
 ./bin/tests/system/checkconf/clean.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/checkconf/dlz-bad.conf	CONF-C	2012,2013
 ./bin/tests/system/checkconf/dnssec.1		CONF-C	2011
