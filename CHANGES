@@ -1,3 +1,8 @@
+3933.	[bug]		Corrected the implementation of dns_rdata_casecompare()
+			for the HIP rdata type.  [RT #36911]
+
+3932.	[test]		Improved named-checkconf tests. [RT #36911]
+
 3931.	[cleanup]	Cleanup how dlz grammer is defined. [RT #36879]
 
 3930.	[bug]		"rndc nta -r" could cause a server hang if the
