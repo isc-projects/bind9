@@ -12,7 +12,7 @@
 ./aclocal.m4					X	1999,2000,2001,2012,2014
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2013
 ./bin/check/.gitignore				X	2012
-./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006,2007,2009,2012
+./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006,2007,2009,2012,2014
 ./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2012
 ./bin/check/check-tool.h			C	2000,2001,2002,2004,2005,2007,2010
 ./bin/check/named-checkconf.8			MAN	DOCBOOK
@@ -792,7 +792,17 @@
 ./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad.conf		CONF-C	2005,2007
 ./bin/tests/system/checkconf/badtsig.conf	CONF-C	2012,2013
-./bin/tests/system/checkconf/clean.sh		SH	2011,2012,2013
+./bin/tests/system/checkconf/check-dup-records-fail.conf	CONF-C	2014
+./bin/tests/system/checkconf/check-dup-records.db	ZONE	2014
+./bin/tests/system/checkconf/check-mx-cname-fail.conf	CONF-C	2014
+./bin/tests/system/checkconf/check-mx-cname.db	ZONE	2014
+./bin/tests/system/checkconf/check-mx-fail.conf	CONF-C	2014
+./bin/tests/system/checkconf/check-mx.db	ZONE	2014
+./bin/tests/system/checkconf/check-names-fail.conf	CONF-C	2014
+./bin/tests/system/checkconf/check-names.db	ZONE	2014
+./bin/tests/system/checkconf/check-srv-cname-fail.conf	CONF-C	2014
+./bin/tests/system/checkconf/check-srv-cname.db	ZONE	2014
+./bin/tests/system/checkconf/clean.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/checkconf/dnssec.1		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.2		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.3		CONF-C	2011
