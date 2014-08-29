@@ -23,6 +23,7 @@
 
 #include <isc/hex.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/util.h>
