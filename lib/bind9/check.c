@@ -1201,16 +1201,16 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	}
 
 #ifdef ISC_PLATFORM_USESIT
-        obj = NULL;
-        (void) cfg_map_get(options, "sit-secret", &obj);
-        if (obj != NULL) {
-                isc_buffer_t b;
+	obj = NULL;
+	(void) cfg_map_get(options, "sit-secret", &obj);
+	if (obj != NULL) {
+		isc_buffer_t b;
 		unsigned char secret[32];
 
-                memset(secret, 0, sizeof(secret));
-                isc_buffer_init(&b, secret, sizeof(secret));
-                tresult = isc_hex_decodestring(cfg_obj_asstring(obj), &b);
-		if (tresult == ISC_R_NOSPACE) {	
+		memset(secret, 0, sizeof(secret));
+		isc_buffer_init(&b, secret, sizeof(secret));
+		tresult = isc_hex_decodestring(cfg_obj_asstring(obj), &b);
+		if (tresult == ISC_R_NOSPACE) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "sit-secret: too long");
 		} else if (tresult != ISC_R_SUCCESS) {
@@ -1220,15 +1220,15 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 #ifdef AES_SIT
-                if (tresult == ISC_R_SUCCESS &&
+		if (tresult == ISC_R_SUCCESS &&
 		    isc_buffer_usedlength(&b) != ISC_AES128_KEYLENGTH) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-                                    "AES sit-secret must be on 128 bits");
+				    "AES sit-secret must be on 128 bits");
 			result = ISC_R_RANGE;
 		}
 #endif
 #ifdef HMAC_SHA1_SIT
-                if (tresult == ISC_R_SUCCESS &&
+		if (tresult == ISC_R_SUCCESS &&
 		    isc_buffer_usedlength(&b) != ISC_SHA1_DIGESTLENGTH) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "SHA1 sit-secret must be on 160 bits");
@@ -1236,14 +1236,14 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		}
 #endif
 #ifdef HMAC_SHA256_SIT
-                if (tresult == ISC_R_SUCCESS &&
+		if (tresult == ISC_R_SUCCESS &&
 		    isc_buffer_usedlength(&b) != ISC_SHA256_DIGESTLENGTH) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-                                    "SHA256 sit-secret must be on 256 bits");
+				    "SHA256 sit-secret must be on 256 bits");
 			result = ISC_R_RANGE;
 		}
 #endif
-        }
+	}
 #endif
 
 	return (result);

@@ -361,7 +361,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 			int next = ++radix->num_added_node;
 			if (fam == AF_UNSPEC) {
 				/* "any" or "none" */
-				for (i = 0; i < 4; i++) 
+				for (i = 0; i < 4; i++)
 					node->node_num[i] = next;
 			} else {
 				node->node_num[ISC_RADIX_OFF(prefix)] = next;
@@ -484,7 +484,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 			int next = ++radix->num_added_node;
 			if (fam == AF_UNSPEC) {
 				/* "any" or "none" */
-				for (i = 0; i < 4; i++) 
+				for (i = 0; i < 4; i++)
 					node->node_num[i] = next;
 			} else {
 				node->node_num[ISC_RADIX_OFF(prefix)] = next;
@@ -535,7 +535,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		int next = ++radix->num_added_node;
 		if (fam == AF_UNSPEC) {
 			/* "any" or "none" */
-			for (i = 0; i < 4; i++) 
+			for (i = 0; i < 4; i++)
 				new_node->node_num[i] = next;
 		} else {
 			new_node->node_num[ISC_RADIX_OFF(prefix)] = next;

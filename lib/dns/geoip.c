@@ -259,7 +259,7 @@ country_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	      memcmp(prev_state->ipnum6.s6_addr, ipnum6->s6_addr, 16) == 0)))
 	{
 		text = prev_state->text;
-		if (scope != NULL) 
+		if (scope != NULL)
 			*scope = prev_state->scope;
 	}
 
@@ -418,7 +418,7 @@ city_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	      memcmp(prev_state->ipnum6.s6_addr, ipnum6->s6_addr, 16) == 0)))
 	{
 		record = prev_state->record;
-		if (scope != NULL) 
+		if (scope != NULL)
 			*scope = record->netmask;
 	}
 
@@ -499,7 +499,7 @@ region_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	    is_region(prev_state->subtype))
 	{
 		region = prev_state->region;
-		if (scope != NULL) 
+		if (scope != NULL)
 			*scope = prev_state->scope;
 	}
 
@@ -539,7 +539,7 @@ name_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	    prev_state->subtype == subtype)
 	{
 		name = prev_state->name;
-		if (scope != NULL) 
+		if (scope != NULL)
 			*scope = prev_state->scope;
 	}
 
@@ -579,7 +579,7 @@ netspeed_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	if (prev_state != NULL && prev_state->ipnum == ipnum &&
 	    prev_state->subtype == subtype) {
 		id = prev_state->id;
-		if (scope != NULL) 
+		if (scope != NULL)
 			*scope = prev_state->scope;
 		found = ISC_TRUE;
 	}
