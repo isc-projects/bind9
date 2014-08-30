@@ -54,4 +54,7 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_sessionkey;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref;
 /*%< A key reference, used as an ACL element */
 
+/*%< An EDNS client subnet address, used as an ACL element */
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_ecsprefix;
+
 #endif /* ISCCFG_NAMEDCONF_H */

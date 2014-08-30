@@ -103,6 +103,7 @@ struct dns_aclenv {
 	isc_boolean_t match_mapped;
 #ifdef HAVE_GEOIP
 	dns_geoip_databases_t *geoip;
+	isc_boolean_t geoip_use_ecs;
 #endif
 };
 
@@ -212,12 +213,28 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	      const dns_aclenv_t *env,
 	      int *match,
 	      const dns_aclelement_t **matchelt);
+
+isc_result_t
+dns_acl_match2(const isc_netaddr_t *reqaddr,
+	       const dns_name_t *reqsigner,
+	       const isc_netaddr_t *ecs,
+	       isc_uint8_t ecslen,
+	       isc_uint8_t *scope,
+	       const dns_acl_t *acl,
+	       const dns_aclenv_t *env,
+	       int *match,
+	       const dns_aclelement_t **matchelt);
 /*%<
  * General, low-level ACL matching.  This is expected to
  * be useful even for weird stuff like the topology and sortlist statements.
  *
  * Match the address 'reqaddr', and optionally the key name 'reqsigner',
- * against 'acl'.  'reqsigner' may be NULL.
+ * and optionally the client prefix 'ecs' of length 'ecslen'
+ * (reported via EDNS client subnet option) against 'acl'.
+ *
+ * 'reqsigner' and 'ecs' may be NULL.  If an ACL matches against 'ecs'
+ * and 'ecslen', then 'scope' will be set to indicate the netmask that
+ * matched.
  *
  * If there is a match, '*match' will be set to an integer whose absolute
  * value corresponds to the order in which the matching value was inserted
@@ -244,6 +261,16 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		     const dns_aclelement_t *e,
 		     const dns_aclenv_t *env,
 		     const dns_aclelement_t **matchelt);
+
+isc_boolean_t
+dns_aclelement_match2(const isc_netaddr_t *reqaddr,
+		      const dns_name_t *reqsigner,
+		      const isc_netaddr_t *ecs,
+		      isc_uint8_t ecslen,
+		      isc_uint8_t *scope,
+		      const dns_aclelement_t *e,
+		      const dns_aclenv_t *env,
+		      const dns_aclelement_t **matchelt);
 /*%<
  * Like dns_acl_match, but matches against the single ACL element 'e'
  * rather than a complete ACL, and returns ISC_TRUE iff it matched.

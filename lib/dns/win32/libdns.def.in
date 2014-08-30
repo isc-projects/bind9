@@ -25,9 +25,11 @@ dns_acl_isany
 dns_acl_isinsecure
 dns_acl_isnone
 dns_acl_match
+dns_acl_match2
 dns_acl_merge
 dns_acl_none
 dns_aclelement_match
+dns_aclelement_match2
 dns_aclenv_copy
 dns_aclenv_destroy
 dns_aclenv_init

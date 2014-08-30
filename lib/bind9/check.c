@@ -24,16 +24,30 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/file.h>
+#include <isc/hex.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
+#include <isc/platform.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/symtab.h>
 #include <isc/util.h>
+
+#ifdef ISC_PLATFORM_USESIT
+#ifdef AES_SIT
+#include <isc/aes.h>
+#endif
+#ifdef HMAC_SHA1_SIT
+#include <isc/sha1.h>
+#endif
+#ifdef HMAC_SHA256_SIT
+#include <isc/sha2.h>
+#endif
+#endif
 
 #include <dns/acl.h>
 #include <dns/fixedname.h>
@@ -1185,6 +1199,52 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				    "greater than 'nta-lifetime' "
 				    "(%d seconds)", recheck, lifetime);
 	}
+
+#ifdef ISC_PLATFORM_USESIT
+	obj = NULL;
+	(void) cfg_map_get(options, "sit-secret", &obj);
+	if (obj != NULL) {
+		isc_buffer_t b;
+		unsigned char secret[32];
+
+		memset(secret, 0, sizeof(secret));
+		isc_buffer_init(&b, secret, sizeof(secret));
+		tresult = isc_hex_decodestring(cfg_obj_asstring(obj), &b);
+		if (tresult == ISC_R_NOSPACE) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "sit-secret: too long");
+		} else if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "sit-secret: invalid hex string");
+		}
+		if (tresult != ISC_R_SUCCESS)
+			result = tresult;
+#ifdef AES_SIT
+		if (tresult == ISC_R_SUCCESS &&
+		    isc_buffer_usedlength(&b) != ISC_AES128_KEYLENGTH) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "AES sit-secret must be on 128 bits");
+			result = ISC_R_RANGE;
+		}
+#endif
+#ifdef HMAC_SHA1_SIT
+		if (tresult == ISC_R_SUCCESS &&
+		    isc_buffer_usedlength(&b) != ISC_SHA1_DIGESTLENGTH) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "SHA1 sit-secret must be on 160 bits");
+			result = ISC_R_RANGE;
+		}
+#endif
+#ifdef HMAC_SHA256_SIT
+		if (tresult == ISC_R_SUCCESS &&
+		    isc_buffer_usedlength(&b) != ISC_SHA256_DIGESTLENGTH) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "SHA256 sit-secret must be on 256 bits");
+			result = ISC_R_RANGE;
+		}
+#endif
+	}
+#endif
 
 	return (result);
 }

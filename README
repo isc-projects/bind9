@@ -56,6 +56,12 @@ BIND 9.11.0
 	BIND 9.11.0 includes a number of changes from BIND 9.10 and earlier
 	releases.  New features include:
 
+	- The EDNS Client Subnet (ECS) option is now supported for
+	  authoritative servers; if a query contains an ECS option
+	  then ACLs containing "geoip" or "ecs" elements can match
+	  against the the address encoded in the option.  This can be
+	  used to select a view for a query, so that different answers
+	  can be provided depending on the client network.
 	- The EDNS EXPIRE option has been implemented on the client
 	  side, allowing a slave server to set the expiration timer
 	  correctly when transferring zone data from another slave

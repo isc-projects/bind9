@@ -137,9 +137,15 @@ struct ns_client {
 	isc_quota_t		*tcpquota;
 	isc_quota_t		*recursionquota;
 	ns_interface_t		*interface;
+
 	isc_sockaddr_t		peeraddr;
 	isc_boolean_t		peeraddr_valid;
 	isc_netaddr_t		destaddr;
+
+	isc_netaddr_t		ecs_addr;	/*%< EDNS client subnet */
+	isc_uint8_t		ecs_addrlen;
+	isc_uint8_t		ecs_scope;
+
 	struct in6_pktinfo	pktinfo;
 	isc_dscp_t		dscp;
 	isc_event_t		ctlevent;
@@ -187,6 +193,7 @@ typedef ISC_LIST(ns_client_t) client_list_t;
 #define NS_CLIENTATTR_WANTEXPIRE	0x0800 /*%< return seconds to expire */
 #define NS_CLIENTATTR_HAVEEXPIRE	0x1000 /*%< return seconds to expire */
 #define NS_CLIENTATTR_WANTOPT		0x2000 /*%< add opt to reply */
+#define NS_CLIENTATTR_HAVEECS		0x4000 /*%< sent an ECS option */
 
 extern unsigned int ns_client_requests;
 

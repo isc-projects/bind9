@@ -2564,10 +2564,10 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	<command>lwres</command> statement in <filename>named.conf</filename>.
       </para>
       <para>
-        The number of client queries that the <command>lwresd</command>
-        daemon is able to serve can be set using the
-        <option>lwres-tasks</option> and <option>lwres-clients</option> 
-        statements in the configuration.
+	The number of client queries that the <command>lwresd</command>
+	daemon is able to serve can be set using the
+	<option>lwres-tasks</option> and <option>lwres-clients</option> 
+	statements in the configuration.
       </para>
     </sect1>
   </chapter>
@@ -3444,63 +3444,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    </tbody>
 	  </tgroup>
 	</informaltable>
-
-	<para>
-	  When <acronym>BIND</acronym> 9 is built with GeoIP support,
-	  ACLs can also be used for geographic access restrictions.
-	  This is done by specifying an ACL element of the form:
-	  <command>geoip <optional>db <replaceable>database</replaceable></optional> <replaceable>field</replaceable> <replaceable>value</replaceable></command>
-	</para>
-	<para>
-	  The <replaceable>field</replaceable> indicates which field
-	  to search for a match.  Available fields are "country",
-	  "region", "city", "continent", "postal" (postal code),
-	  "metro" (metro code), "area" (area code), "tz" (timezone),
-	  "isp", "org", "asnum", "domain" and "netspeed".
-	</para>
-	<para>
-	  <replaceable>value</replaceable> is the value to searched for
-	  within the database.  A string may be quoted if it contains
-	  spaces or other special characters.  If this is a "country"
-	  search and the string is two characters long, then it must be a
-	  standard ISO-3166-1 two-letter country code, and if it is three
-	  characters long then it must be an ISO-3166-1 three-letter
-	  country code; otherwise it is the full name of the country.
-	  Similarly, if this is a "region" search and the string is
-	  two characters long, then it must be a standard two-letter state
-	  or province abbreviation; otherwise it is the full name of the
-	  state or province.
-	</para>
-	<para>
-	  The <replaceable>database</replaceable> field indicates which
-	  GeoIP database to search for a match.  In most cases this is
-	  unnecessary, because most search fields can only be found in
-	  a single database.  However, searches for country can be
-	  answered from the "city", "region", or "country" databases,
-	  and searches for region (i.e., state or province) can be
-	  answered from the "city" or "region" databases.  For these
-	  search types, specifying a <replaceable>database</replaceable>
-	  will force the query to be answered from that database and no
-	  other.  If <replaceable>database</replaceable> is not
-	  specified, then these queries will be answered from the "city",
-	  database if it is installed, or the "region" database if it is
-	  installed, or the "country" database, in that order.
-	</para>
-	<para>
-	  Some example GeoIP ACLs:
-	</para>
-	<programlisting>geoip country US;
-geoip country JAP;
-geoip db country country Canada;
-geoip db region region WA;
-geoip city "San Francisco";
-geoip region Oklahoma;
-geoip postal 95062;
-geoip tz "America/Los_Angeles";
-geoip org "Internet Systems Consortium";
-</programlisting>
-
-
       </sect2>
       <sect2>
 	<title><command>controls</command> Statement Grammar</title>
@@ -4718,32 +4661,32 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	  minimum
 	  number of dots in a relative domain name that should result in an
 	  exact match lookup before search path elements are appended.
-        </para>
-        <para>
-          The <option>lwres-tasks</option> statement specifies the number
-          of worker threads the lightweight resolver will dedicate to serving
-          clients.  By default the number is the same as the number of CPUs on
-          the system; this can be overridden using the <option>-n</option>
-          command line option when starting the server. 
-        </para>
-        <para>
-          The <option>lwres-clients</option> specifies
-          the number of client objects per thread the lightweight
-          resolver should create to serve client queries.
-          By default, if the lightweight resolver runs as a part
-          of <command>named</command>, 256 client objects are
-          created for each task; if it runs as <command>lwresd</command>,
-          1024 client objects are created for each thread. The maximum
-          value is 32768; higher values will be silently ignored and
-          the maximum will be used instead.
-          Note that setting too high a value may overconsume
-          system resources.
-        </para>
-        <para>
-          The maximum number of client queries that the lightweight
-          resolver can handle at any one time equals
-          <option>lwres-tasks</option> times <option>lwres-clients</option>.
-        </para>
+	</para>
+	<para>
+	  The <option>lwres-tasks</option> statement specifies the number
+	  of worker threads the lightweight resolver will dedicate to serving
+	  clients.  By default the number is the same as the number of CPUs on
+	  the system; this can be overridden using the <option>-n</option>
+	  command line option when starting the server. 
+	</para>
+	<para>
+	  The <option>lwres-clients</option> specifies
+	  the number of client objects per thread the lightweight
+	  resolver should create to serve client queries.
+	  By default, if the lightweight resolver runs as a part
+	  of <command>named</command>, 256 client objects are
+	  created for each task; if it runs as <command>lwresd</command>,
+	  1024 client objects are created for each thread. The maximum
+	  value is 32768; higher values will be silently ignored and
+	  the maximum will be used instead.
+	  Note that setting too high a value may overconsume
+	  system resources.
+	</para>
+	<para>
+	  The maximum number of client queries that the lightweight
+	  resolver can handle at any one time equals
+	  <option>lwres-tasks</option> times <option>lwres-clients</option>.
+	</para>
       </sect2>
       <sect2>
 	<title><command>masters</command> Statement Grammar</title>
@@ -4855,6 +4798,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> automatic-interface-scan { <replaceable>yes_or_no</replaceable> }; </optional>
+    <optional> geoip-use-ecs <replaceable>yes_or_no</replaceable>;</optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-update-mode ( <replaceable>maintain</replaceable> | <replaceable>no-resign</replaceable> ); </optional>
     <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
@@ -5793,7 +5737,7 @@ options {
 		  For convenience, TTL-style time unit suffixes can be
 		  used to specify the NTA lifetime in seconds, minutes
 		  or hours.  <option>nta-lifetime</option> defaults to
-                  one hour.  It cannot exceed one day.
+		  one hour.  It cannot exceed one day.
 		</para>
 	    </listitem>
 	  </varlistentry>
@@ -5802,31 +5746,31 @@ options {
 	    <term><command>nta-recheck</command></term>
 	    <listitem>
 		<para>
-                  Species how often to check whether negative
-                  trust anchors added via <command>rndc nta</command>
-                  are still necessary.
+		  Species how often to check whether negative
+		  trust anchors added via <command>rndc nta</command>
+		  are still necessary.
 		</para>
 		<para>
-                  A negative trust anchor is normally used when a
-                  domain has stopped validating due to operator error;
-                  it temporarily disables DNSSEC validation for that
-                  domain. In the interest of ensuring that DNSSEC
-                  validation is turned back on as soon as possible, 
-                  <command>named</command> will periodically send a
-                  query to the domain, ignoring negative trust anchors,
-                  to find out whether it can now be validated.  If so,
-                  the negative trust anchor is allowed to expire early.
+		  A negative trust anchor is normally used when a
+		  domain has stopped validating due to operator error;
+		  it temporarily disables DNSSEC validation for that
+		  domain. In the interest of ensuring that DNSSEC
+		  validation is turned back on as soon as possible, 
+		  <command>named</command> will periodically send a
+		  query to the domain, ignoring negative trust anchors,
+		  to find out whether it can now be validated.  If so,
+		  the negative trust anchor is allowed to expire early.
 		</para>
 		<para>
-                  Validity checks can be disabled for an individual
-                  NTA by using <command>rndc nta -f</command>, or
-                  for all NTA's by setting <option>nta-recheck</option>
-                  to zero.
+		  Validity checks can be disabled for an individual
+		  NTA by using <command>rndc nta -f</command>, or
+		  for all NTA's by setting <option>nta-recheck</option>
+		  to zero.
 		</para>
 		<para>
 		  For convenience, TTL-style time unit suffixes can be
-                  used to specify the NTA recheck interval in seconds,
-                  minutes or hours.  The default is five minutes.
+		  used to specify the NTA recheck interval in seconds,
+		  minutes or hours.  The default is five minutes.
 		</para>
 	    </listitem>
 	  </varlistentry>
@@ -6238,6 +6182,20 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>geoip-use-ecs</command></term>
+	      <listitem>
+		<para>
+		  When BIND is compiled with GeoIP support and configured
+		  with "geoip" ACL elements, this option indicates whether
+		  the EDNS Client Subnet option, if present in a request,
+		  should be used for matching against the GeoIP database.
+		  The default is 
+		  <command>geoip-use-ecs</command> <userinput>yes</userinput>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>has-old-clients</command></term>
 	      <listitem>
 		<para>
@@ -6421,12 +6379,16 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>sit-secret</command></term> <listitem>
+	      <term><command>sit-secret</command></term>
+	      <listitem>
 		<para>
 		  If set, this is a shared secret used for generating
 		  and verifying Source Identity Token EDNS options
 		  within a anycast cluster.  If not set the system
-		  will generate a random secret at startup.
+		  will generate a random secret at startup.  The
+		  shared secret is encoded as a hex string and needs
+		  to be 128 bits for AES128, 160 bits for SHA1 and
+		  256 bits for SHA256.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -9016,24 +8978,24 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    <varlistentry>
 	      <term><command>masterfile-style</command></term>
 	      <listitem>
-                <para>
-                  Specifies the formatting of zone files during dump
-                  when the <option>masterfile-format</option> is
-                  <constant>text</constant>. (This option is ignored
-                  with any other <option>masterfile-format</option>.)
-                </para>
-                <para>
-                  When set to <constant>relative</constant>,
-                  records are printed in a multi-line format with owner
-                  names expressed relative to a shared origin.  When set
-                  to <constant>full</constant>, records are printed in
-                  a single-line format with absolute owner names.
-                  The <constant>full</constant> format is most suitable
-                  when a zone file needs to be processed automatically
-                  by a script.  The <constant>relative</constant> format
-                  is more human-readable, and is thus suitable when a
-                  zone is to be edited by hand.  The default is
-                  <constant>relative</constant>.
+		<para>
+		  Specifies the formatting of zone files during dump
+		  when the <option>masterfile-format</option> is
+		  <constant>text</constant>. (This option is ignored
+		  with any other <option>masterfile-format</option>.)
+		</para>
+		<para>
+		  When set to <constant>relative</constant>,
+		  records are printed in a multi-line format with owner
+		  names expressed relative to a shared origin.  When set
+		  to <constant>full</constant>, records are printed in
+		  a single-line format with absolute owner names.
+		  The <constant>full</constant> format is most suitable
+		  when a zone file needs to be processed automatically
+		  by a script.  The <constant>relative</constant> format
+		  is more human-readable, and is thus suitable when a
+		  zone is to be edited by hand.  The default is
+		  <constant>relative</constant>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -9046,8 +9008,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  initial value (minimum) and maximum number of recursive
 		  simultaneous clients for any given query
 		  (&lt;qname,qtype,qclass&gt;) that the server will accept
-                  before dropping additional clients.
-                  <command>named</command> will attempt to
+		  before dropping additional clients.
+		  <command>named</command> will attempt to
 		  self tune this value and changes will be logged.  The
 		  default values are 10 and 100.
 		</para>
@@ -10560,15 +10522,15 @@ rate-limit {
 
 	  <para>
 	    The <command>request-expire</command> clause determines
-            whether the local server, when acting as a slave, will
-            request the EDNS EXPIRE value.  The EDNS EXPIRE value
-            indicates the remaining time before the zone data will
-            expire and need to be be refreshed.  This is used
-            when a secondary server transfers a zone from another
-            secondary server; when transferring from the primary, the
-            expiration timer is set from the EXPIRE field of the SOA
-            record instead. 
-            The default is <command>yes</command>.
+	    whether the local server, when acting as a slave, will
+	    request the EDNS EXPIRE value.  The EDNS EXPIRE value
+	    indicates the remaining time before the zone data will
+	    expire and need to be be refreshed.  This is used
+	    when a secondary server transfers a zone from another
+	    secondary server; when transferring from the primary, the
+	    expiration timer is set from the EXPIRE field of the SOA
+	    record instead. 
+	    The default is <command>yes</command>.
 	  </para>
 
 	  <para>
@@ -12455,11 +12417,11 @@ example.com. NS ns2.example.net.
 		  <para>
 		    When set to 
 		    <command>serial-update-method date;</command>, the
-                    new SOA serial number will be the current date
-                    in the form "YYYYMMDD", followed by two zeroes,
-                    unless the existing serial number is already greater
-                    than or equal to that value, in which case it is
-                    incremented by one.
+		    new SOA serial number will be the current date
+		    in the form "YYYYMMDD", followed by two zeroes,
+		    unless the existing serial number is already greater
+		    than or equal to that value, in which case it is
+		    incremented by one.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -16181,11 +16143,11 @@ HOST-127.EXAMPLE. MX 0 .
 	<title>Access Control Lists</title>
 	<para>
 	  Access Control Lists (ACLs) are address match lists that
-	  you can set up and nickname for future use in <command>allow-notify</command>,
-	  <command>allow-query</command>, <command>allow-query-on</command>,
-	  <command>allow-recursion</command>, <command>allow-recursion-on</command>,
+	  you can set up and nickname for future use in
+	  <command>allow-notify</command>, <command>allow-query</command>,
+	  <command>allow-query-on</command>, <command>allow-recursion</command>,
 	  <command>blackhole</command>, <command>allow-transfer</command>,
-	  etc.
+	  <command>match-clients</command>, etc.
 	</para>
 	<para>
 	  Using ACLs allows you to have finer control over who can access
@@ -16195,11 +16157,19 @@ HOST-127.EXAMPLE. MX 0 .
 	<para>
 	  It is a <emphasis>good idea</emphasis> to use ACLs, and to
 	  control access to your server. Limiting access to your server by
-	  outside parties can help prevent spoofing and denial of service (DoS) attacks against
-	  your server.
+	  outside parties can help prevent spoofing and denial of service
+	  (DoS) attacks against your server.
 	</para>
 	<para>
-	  Here is an example of how to properly apply ACLs:
+	  ACLs match clients on the basis of up to three characteristics:
+	  1) The client's IP address; 2) the TSIG or SIG(0) key that was
+	  used to sign the request, if any; and 3) an address prefix
+	  encoded in an EDNS Client Subnet option, if any.
+	</para>
+	<para>
+	  ACLs 
+	<para>
+	  Here is an example of ACLs based on client addresses:
 	</para>
 
 <programlisting>
@@ -16232,10 +16202,137 @@ zone "example.com" {
 </programlisting>
 
 	<para>
-	  This allows recursive queries of the server from the outside
-	  unless recursion has been previously disabled.
+	  This allows authoritative queries for "example.com" from any
+	  address, but recursive queries only from the networks specified
+	  in "our-nets", and no queries at all from the networks
+	  specified in "bogusnets".
+	</para>
+	<para>
+	  In addition to network addresses and prefixes, which are
+	  matched against the source address of the DNS request, ACLs
+	  may include <option>key</option> elements, which specify the
+	  name of a TSIG or SIG(0) key, or <option>ecs</option>
+	  elements, which specify a network prefix but are only matched
+	  if that prefix matches an EDNS client subnet option included
+	  in the request.
+	</para>
+	<para>
+	  The EDNS Client Subnet (ECS) option is used by a recursive
+	  resolver to inform an authoritative name server of the network
+	  address block from which the original query was received, enabling
+	  authoritative servers to give different answers to the same
+	  resolver for different resolver clients.  An ACL containing
+	  an element of the form
+	  <command>ecs <replaceable>prefix</replaceable></command>
+	  will match if a request arrives in containing an ECS option
+	  encoding an address within that prefix.  If the request has no
+	  ECS option, then "ecs" elements are simply ignored.  Addresses
+	  in ACLs that are not prefixed with "ecs" are matched only
+	  against the source address.
+	</para>
+	<para>
+	  When <acronym>BIND</acronym> 9 is built with GeoIP support,
+	  ACLs can also be used for geographic access restrictions.
+	  This is done by specifying an ACL element of the form:
+	  <command>geoip <optional>db <replaceable>database</replaceable></optional> <replaceable>field</replaceable> <replaceable>value</replaceable></command>
+	</para>
+	<para>
+	  The <replaceable>field</replaceable> indicates which field
+	  to search for a match.  Available fields are "country",
+	  "region", "city", "continent", "postal" (postal code),
+	  "metro" (metro code), "area" (area code), "tz" (timezone),
+	  "isp", "org", "asnum", "domain" and "netspeed".
+	</para>
+	<para>
+	  <replaceable>value</replaceable> is the value to search
+	  for within the database.  A string may be quoted if it
+	  contains spaces or other special characters.  If this is
+	  an "asnum" search, then the leading "ASNNNN" string can be
+	  used, otherwise the full description must be used (e.g.
+	  "ASNNNN Example Company Name").  If this is a "country"
+	  search and the string is two characters long, then it must
+	  be a standard ISO-3166-1 two-letter country code, and if it
+	  is three characters long then it must be an ISO-3166-1
+	  three-letter country code; otherwise it is the full name
+	  of the country.  Similarly, if this is a "region" search
+	  and the string is two characters long, then it must be a
+	  standard two-letter state or province abbreviation;
+	  otherwise it is the full name of the state or province.
+	</para>
+	<para>
+	  The <replaceable>database</replaceable> field indicates which
+	  GeoIP database to search for a match.  In most cases this is
+	  unnecessary, because most search fields can only be found in
+	  a single database.  However, searches for country can be
+	  answered from the "city", "region", or "country" databases,
+	  and searches for region (i.e., state or province) can be
+	  answered from the "city" or "region" databases.  For these
+	  search types, specifying a <replaceable>database</replaceable>
+	  will force the query to be answered from that database and no
+	  other.  If <replaceable>database</replaceable> is not
+	  specified, then these queries will be answered from the "city",
+	  database if it is installed, or the "region" database if it is
+	  installed, or the "country" database, in that order.
+	</para>
+	<para>
+	  By default, if a DNS query includes an EDNS Client Subnet (ECS)
+	  option which encodes a non-zero address prefix, then GeoIP ACLs
+	  will be matched against that address prefix.  Otherwise, they
+	  are matched against the source address of the query.  To
+	  prevent GeoIP ACLs from matching against ECS options, set
+	  the <command>geoip-use-ecs</option> to <literal>no</literal>.
+	</para>
+	<para>
+	  Some example GeoIP ACLs:
+	</para>
+	<programlisting>geoip country US;
+geoip country JAP;
+geoip db country country Canada;
+geoip db region region WA;
+geoip city "San Francisco";
+geoip region Oklahoma;
+geoip postal 95062;
+geoip tz "America/Los_Angeles";
+geoip org "Internet Systems Consortium";
+</programlisting>
+
+	<para>
+	  ACLs use a "first-match" logic rather than "best-match":
+	  if an address prefix matches an ACL element, then that ACL
+	  is considered to have matched even if a later element would
+	  have matched more specifically.  For example, the ACL
+	  <command> { 10/8; !10.0.0.1; }</command> would actually
+	  match a query from 10.0.0.1, because the first element
+	  indicated that the query should be accepted, and the second
+	  element is ignored.
+	</para>
+	<para>
+	  When using "nested" ACLs (that is, ACLs included or referenced
+	  within other ACLs), a negative match of a nested ACL will
+	  the containing ACL to continue looking for matches.  This
+	  enables complex ACLs to be constructed, in which multiple
+	  client characteristics can be checked at the same time. For
+	  example, to construct an ACL which allows queries only when
+	  it originates from a particular network <emphasis>and</emphasis>
+	  only when it is signed with a particular key, use:
+	</para>
+	<programlisting>
+allow-query { !{ !10/8; any; }; key example; };
+</programlisting>
+	<para>
+	  Within the nested ACL, any address that is
+	  <emphasis>not</emphasis> in the 10/8 network prefix will
+	  be rejected, and this will terminate processing of the
+	  ACL.  Any address that <emphasis>is</emphasis> in the 10/8
+	  network prefix will be accepted, but this causes a negative
+	  match of the nested ACL, so the containing ACL continues
+	  processing. The query will then be accepted if it is signed
+	  by the key "example", and rejected otherwise.  The ACL, then,
+	  will only matches when <emphasis>both</emphasis> conditions
+	  are true.
 	</para>
       </sect1>
+
       <sect1>
 	<title><command>Chroot</command> and <command>Setuid</command></title>
 	<para>
