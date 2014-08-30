@@ -7804,7 +7804,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 */
 			result = answer_response(fctx);
 			if (result != ISC_R_SUCCESS)
-				FCTXTRACE("answer_response (!NS)");
 				FCTXTRACE3("answer_response (!NS)", result);
 		} else {
 			if (fctx->type == dns_rdatatype_ns) {
