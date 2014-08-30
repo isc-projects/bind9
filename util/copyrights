@@ -727,6 +727,8 @@
 ./bin/tests/system/acl/ns2/named3.conf		CONF-C	2008
 ./bin/tests/system/acl/ns2/named4.conf		CONF-C	2008
 ./bin/tests/system/acl/ns2/named5.conf		CONF-C	2013
+./bin/tests/system/acl/ns2/named6.conf		CONF-C	2014
+./bin/tests/system/acl/ns2/named7.conf		CONF-C	2014
 ./bin/tests/system/acl/setup.sh			SH	2008,2012,2014
 ./bin/tests/system/acl/tests.sh			SH	2008,2012,2013,2014
 ./bin/tests/system/additional/clean.sh		SH	2013
@@ -1287,8 +1289,8 @@
 ./bin/tests/system/geoip/.gitignore		X	2013
 ./bin/tests/system/geoip/Makefile.in		MAKE	2013
 ./bin/tests/system/geoip/clean.sh		SH	2013,2014
-./bin/tests/system/geoip/data/GeoIP.csv		X	2013
-./bin/tests/system/geoip/data/GeoIP.dat		X	2013
+./bin/tests/system/geoip/data/GeoIP.csv		X	2013,2014
+./bin/tests/system/geoip/data/GeoIP.dat		X	2013,2014
 ./bin/tests/system/geoip/data/GeoIPASNum.csv	X	2013
 ./bin/tests/system/geoip/data/GeoIPASNum.dat	X	2013
 ./bin/tests/system/geoip/data/GeoIPASNumv6.csv	X	2013
@@ -1312,10 +1314,10 @@
 ./bin/tests/system/geoip/data/README		TXT.BRIEF	2013,2014
 ./bin/tests/system/geoip/geoip.c		C	2013
 ./bin/tests/system/geoip/ns2/example.db.in	ZONE	2013
-./bin/tests/system/geoip/ns2/named1.conf	CONF-C	2013
+./bin/tests/system/geoip/ns2/named1.conf	CONF-C	2013,2014
 ./bin/tests/system/geoip/ns2/named10.conf	CONF-C	2014
-./bin/tests/system/geoip/ns2/named11.conf	CONF-C	2013
-./bin/tests/system/geoip/ns2/named12.conf	CONF-C	2013
+./bin/tests/system/geoip/ns2/named11.conf	CONF-C	2013,2014
+./bin/tests/system/geoip/ns2/named12.conf	CONF-C	2013,2014
 ./bin/tests/system/geoip/ns2/named13.conf	CONF-C	2014
 ./bin/tests/system/geoip/ns2/named14.conf	CONF-C	2014
 ./bin/tests/system/geoip/ns2/named2.conf	CONF-C	2013
@@ -1711,6 +1713,8 @@
 ./bin/tests/system/send.pl			PERL	2001,2004,2007,2011,2012
 ./bin/tests/system/setup.sh			SH	2000,2001,2004,2007,2012,2014
 ./bin/tests/system/sit/.gitignore		X	2014
+./bin/tests/system/sit/bad-sit-badhex.conf	CONF-C	2014
+./bin/tests/system/sit/bad-sit-toolong.conf	CONF-C	2014
 ./bin/tests/system/sit/clean.sh			SH	2014
 ./bin/tests/system/sit/ns1/example.db		ZONE	2014
 ./bin/tests/system/sit/ns1/named.conf		CONF-C	2014
@@ -2970,8 +2974,8 @@
 ./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011
 ./lib/dns/include/dns/fixedname.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/forward.h			C	2000,2001,2004,2005,2006,2007,2009,2013
-./lib/dns/include/dns/geoip.h			C	2013
-./lib/dns/include/dns/iptable.h			C	2007,2012
+./lib/dns/include/dns/geoip.h			C	2013,2014
+./lib/dns/include/dns/iptable.h			C	2007,2012,2014
 ./lib/dns/include/dns/journal.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2009,2011,2013
 ./lib/dns/include/dns/keydata.h			C	2009
 ./lib/dns/include/dns/keyflags.h		C	1999,2000,2001,2004,2005,2006,2007
@@ -3037,7 +3041,7 @@
 ./lib/dns/include/dst/gssapi.h			C	2000,2001,2004,2005,2006,2007,2009,2010,2011,2013
 ./lib/dns/include/dst/lib.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dst/result.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2012,2014
-./lib/dns/iptable.c				C	2007,2008,2009,2013
+./lib/dns/iptable.c				C	2007,2008,2009,2013,2014
 ./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2010,2011,2013,2014
 ./lib/dns/key.c					C	2001,2004,2005,2006,2007,2011
 ./lib/dns/keydata.c				C	2009,2014
@@ -3748,7 +3752,7 @@
 ./lib/isccfg/include/isccfg/dnsconf.h		C	2009
 ./lib/isccfg/include/isccfg/grammar.h		C	2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014
 ./lib/isccfg/include/isccfg/log.h		C	2001,2004,2005,2006,2007,2009
-./lib/isccfg/include/isccfg/namedconf.h		C	2002,2004,2005,2006,2007,2009,2010
+./lib/isccfg/include/isccfg/namedconf.h		C	2002,2004,2005,2006,2007,2009,2010,2014
 ./lib/isccfg/include/isccfg/version.h		C	2001,2004,2005,2006,2007
 ./lib/isccfg/log.c				C	2001,2004,2005,2006,2007
 ./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
