@@ -177,6 +177,10 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	isc_result_t result;
 	ns_interfacemgr_t *mgr;
 
+#ifndef USE_ROUTE_SOCKET
+	UNUSED(task);
+#endif
+
 	REQUIRE(mctx != NULL);
 	REQUIRE(mgrp != NULL);
 	REQUIRE(*mgrp == NULL);
