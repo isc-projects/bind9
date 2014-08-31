@@ -10047,10 +10047,11 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 		isc_buffer_putuint8(text, 0);
 	}
 
-	if (msg != NULL)
-		(void) putstr(text, msg);
-
  cleanup:
+	if (msg != NULL) {
+		(void) putstr(text, msg);
+		(void) putnull(text);
+	}
 	if (excl)
 		isc_task_endexclusive(server->task);
 	if (ntatable != NULL)

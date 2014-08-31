@@ -16280,7 +16280,7 @@ zone "example.com" {
 	  will be matched against that address prefix.  Otherwise, they
 	  are matched against the source address of the query.  To
 	  prevent GeoIP ACLs from matching against ECS options, set
-	  the <command>geoip-use-ecs</option> to <literal>no</literal>.
+	  the <command>geoip-use-ecs</command> to <literal>no</literal>.
 	</para>
 	<para>
 	  Some example GeoIP ACLs:
