@@ -16167,8 +16167,6 @@ HOST-127.EXAMPLE. MX 0 .
 	  encoded in an EDNS Client Subnet option, if any.
 	</para>
 	<para>
-	  ACLs 
-	<para>
 	  Here is an example of ACLs based on client addresses:
 	</para>
 
