@@ -150,6 +150,7 @@ options {
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
         geoip-directory ( <quoted_string> | none ); // not configured
+        geoip-use-ecs ( <quoted_string> | none ); // not configured
         has-old-clients <boolean>; // obsolete
         heartbeat-interval <integer>;
         host-statistics <boolean>; // not implemented
