@@ -186,6 +186,7 @@ copy ..\bin\pkcs11\pkcs11-list.html ..\Build\Release
 copy ..\bin\pkcs11\pkcs11-destroy.html ..\Build\Release
 copy ..\bin\tools\arpaname.html ..\Build\Release
 copy ..\bin\tools\genrandom.html ..\Build\Release
+copy ..\bin\tools\isc-hmac-fixup.html ..\Build\Release
 copy ..\bin\tools\nsec3hash.html ..\Build\Release
 copy ..\bin\tools\named-journalprint.html ..\Build\Release
 copy ..\bin\tools\named-journalprint.html ..\Build\Release
