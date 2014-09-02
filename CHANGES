@@ -17,6 +17,9 @@
 			then it will be used instead of the client source
 			address when matching "geoip" ACL elements.  This
 			behavior can be overridden with "geoip-use-ecs no;".
+			(Note: to enable "geoip" ACLs, use "configure
+			--with-geoip". This requires libGeoIP version
+			1.5.0 or higher.)
 
 			When "ecs" or "geoip" ACL elements are used to
 			select a view for a query, the response will include
