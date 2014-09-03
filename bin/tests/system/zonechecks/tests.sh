@@ -161,12 +161,8 @@ fi
 
 echo "I: checking 'rdnc zonestatus' with duplicated zone name"
 ret=0 
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus duplicate.example > rndc.out.duplicate 2>&1
-checkfor "zone 'duplicate.example' was found in multiple views" rndc.out.duplicate
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus duplicate.example in primary > rndc.out.duplicate 2>&1
-checkfor "name: duplicate.example" rndc.out.duplicate
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus nosuchzone.example > rndc.out.duplicate 2>&1
-checkfor "no matching zone 'nosuchzone.example' in any view" rndc.out.duplicate
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload duplicate.example > rndc.out.duplicate 2>&1
+grep "zone 'duplicate.example' was found in multiple views" rndc.out.duplicate > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
