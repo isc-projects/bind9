@@ -53,8 +53,8 @@ BIND 9
 
 BIND 9.10.1
 
-	BIND 9.10.1 is a maintenance release and address bugs found in
-	BIND 9.10.0 and earlier:
+	BIND 9.10.1 is a maintenance release and addresses bugs
+        found in BIND 9.10.0 and earlier.
 
         This release addresses the security flaws described in
         CVE-2014-3214 and CVE-2014-3859.
