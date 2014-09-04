@@ -2807,7 +2807,7 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 	if (!NEEDNODATA(val) && !NEEDNOWILDCARD(val) && NEEDNOQNAME(val)) {
 		if (!FOUNDNOQNAME(val))
 			findnsec3proofs(val);
-		if (FOUNDNOQNAME(val) && FOUNDCLOSEST(val)) {
+		if (FOUNDNOQNAME(val) && FOUNDCLOSEST(val) && !FOUNDOPTOUT(val)) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "marking as secure, noqname proof found");
 			marksecure(val->event);
