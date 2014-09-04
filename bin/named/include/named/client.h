@@ -131,6 +131,7 @@ struct ns_client {
 	ns_query_t		query;
 	isc_stdtime_t		requesttime;
 	isc_stdtime_t		now;
+	isc_time_t		tnow;
 	dns_name_t		signername;   /*%< [T]SIG key name */
 	dns_name_t *		signer;	      /*%< NULL if not valid sig */
 	isc_boolean_t		mortal;	      /*%< Die after handling request */
@@ -194,6 +195,16 @@ typedef ISC_LIST(ns_client_t) client_list_t;
 #define NS_CLIENTATTR_HAVEEXPIRE	0x1000 /*%< return seconds to expire */
 #define NS_CLIENTATTR_WANTOPT		0x2000 /*%< add opt to reply */
 #define NS_CLIENTATTR_HAVEECS		0x4000 /*%< sent an ECS option */
+
+#define NS_CLIENTATTR_NOSETFC		0x4000 /*%< don't set servfail cache */
+
+/*
+ * Flag to use with the SERVFAIL cache to indicate
+ * that a query had the CD bit set.
+ */
+#define NS_FAILCACHE_CD		0x01
+
+
 
 extern unsigned int ns_client_requests;
 

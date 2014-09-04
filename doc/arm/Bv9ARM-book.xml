@@ -8670,13 +8670,27 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  <literal>1800</literal> (30 minutes).
 		</para>
 
-		<para>
-		  Lame-ttl also controls the amount of time DNSSEC
-		  validation failures are cached.  There is a minimum
-		  of 30 seconds applied to bad cache entries if the
-		  lame-ttl is set to less than 30 seconds.
-		</para>
+	      </listitem>
+	    </varlistentry>
 
+	      <term><command>servfail-ttl</command></term>
+	      <listitem>
+		<para>
+		  Sets the number of seconds to cache a
+		  SERVFAIL response due to DNSSEC validation failure or
+		  other general server failure.  If set to
+		  <literal>0</literal>, SERVFAIL caching is disabled.
+		  The SERVFAIL cache is not consulted if a query has
+		  the CD (Checking Disabled) bit set; this allows a
+		  query that failed due to DNSSEC validation to be retried
+		  without waiting for the SERVFAIL TTL to expire.
+		</para>
+		<para>
+		  The maximum value is <literal>300</literal>
+		  (5 minutes); any higher value will be silently
+		  reduced.  The default is <literal>10</literal>
+		  seconds.
+		</para>
 	      </listitem>
 	    </varlistentry>
 

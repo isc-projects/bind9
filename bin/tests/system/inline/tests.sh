@@ -614,6 +614,7 @@ done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+ret=0
 n=`expr $n + 1`
 echo "I:checking turning on of inline signing in a slave zone via reload ($n)"
 $DIG $DIGOPTS @10.53.0.5 -p 5300 +dnssec bits SOA > dig.out.ns5.test$n

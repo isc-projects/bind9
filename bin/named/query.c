@@ -29,6 +29,7 @@
 #include <isc/util.h>
 
 #include <dns/adb.h>
+#include <dns/badcache.h>
 #include <dns/byaddr.h>
 #include <dns/cache.h>
 #include <dns/db.h>
@@ -151,6 +152,8 @@
 #define DNS_GETDB_IGNOREACL 0x08U
 
 #define PENDINGOK(x)	(((x) & DNS_DBFIND_PENDINGOK) != 0)
+
+#define SFCACHE_CDFLAG 0x1
 
 typedef struct client_additionalctx {
 	ns_client_t *client;
@@ -6159,6 +6162,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	isc_boolean_t associated;
 	dns_section_t section;
 	dns_ttl_t ttl;
+	isc_boolean_t failcache;
+	isc_uint32_t flags;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_find");
 
@@ -6291,7 +6296,39 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	/*
 	 * Not returning from recursion.
+	 *
+	 * First, check for a recent match in the view's SERVFAIL cache.
+	 * If we find one, and it was from a query with CD=1, *or*
+	 * if the current query has CD=0, then we can just return
+	 * SERVFAIL now.
 	 */
+	flags = 0;
+	failcache = dns_badcache_find(client->view->failcache,
+				      client->query.qname, qtype,
+				      &flags, &client->tnow);
+	if (failcache && (((flags & NS_FAILCACHE_CD) != 0) ||
+			  ((client->message->flags & DNS_MESSAGEFLAG_CD) == 0)))
+	{
+		if (isc_log_wouldlog(ns_g_lctx, ISC_LOG_DEBUG(1))) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			char typename[DNS_RDATATYPE_FORMATSIZE];
+
+			dns_name_format(client->query.qname,
+					namebuf, sizeof(namebuf));
+			dns_rdatatype_format(qtype,
+					     typename, sizeof(typename));
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_QUERY, ISC_LOG_DEBUG(1),
+				      "servfail cache hit %s/%s (%s)",
+				      namebuf, typename,
+				      ((flags & NS_FAILCACHE_CD) != 0)
+				       ? "CD=1"
+				       : "CD=0");
+		}
+		client->attributes |= NS_CLIENTATTR_NOSETFC;
+		QUERY_ERROR(DNS_R_SERVFAIL);
+		goto cleanup;
+	}
 
 	/*
 	 * If it's a SIG query, we'll iterate the node.
@@ -8394,7 +8431,7 @@ ns_query_start(ns_client_t *client) {
 	 */
 	rdataset = ISC_LIST_HEAD(client->query.qname->list);
 	INSIST(rdataset != NULL);
-	qtype = rdataset->type;
+	client->query.qtype = qtype = rdataset->type;
 	dns_rdatatypestats_increment(ns_g_server->rcvquerystats, qtype);
 
 	if (dns_rdatatype_ismeta(qtype)) {

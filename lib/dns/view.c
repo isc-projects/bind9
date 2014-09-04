@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -33,6 +31,7 @@
 #include <dns/acache.h>
 #include <dns/acl.h>
 #include <dns/adb.h>
+#include <dns/badcache.h>
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
@@ -65,6 +64,7 @@
 #define REQSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_REQSHUTDOWN) != 0)
 
 #define DNS_VIEW_DELONLYHASH 111
+#define DNS_VIEW_FAILCACHESIZE 1021
 
 static void resolver_shutdown(isc_task_t *task, isc_event_t *event);
 static void adb_shutdown(isc_task_t *task, isc_event_t *event);
@@ -215,6 +215,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->new_zone_file = NULL;
 	view->new_zone_config = NULL;
 	view->cfg_destroy = NULL;
+	view->fail_ttl = 0;
+	view->failcache = NULL;
+	dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE, &view->failcache);
 
 	if (isc_bind9) {
 		result = dns_order_create(view->mctx, &view->order);
@@ -463,6 +466,7 @@ destroy(dns_view_t *view) {
 	dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
 	dns_fwdtable_destroy(&view->fwdtable);
 	dns_aclenv_destroy(&view->aclenv);
+	dns_badcache_destroy(&view->failcache);
 	DESTROYLOCK(&view->lock);
 	isc_refcount_destroy(&view->references);
 	isc_mem_free(view->mctx, view->name);
@@ -1540,6 +1544,7 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 		return (result);
 	dns_adb_dump(view->adb, fp);
 	dns_resolver_printbadcache(view->resolver, fp);
+	dns_badcache_print(view->failcache, "SERVFAIL cache", fp);
 	return (ISC_R_SUCCESS);
 }
 
@@ -1569,6 +1574,8 @@ dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly) {
 		dns_acache_setdb(view->acache, view->cachedb);
 	if (view->resolver != NULL)
 		dns_resolver_flushbadcache(view->resolver, NULL);
+	if (view->failcache != NULL)
+		dns_badcache_flush(view->failcache);
 
 	dns_adb_flush(view->adb);
 	return (ISC_R_SUCCESS);
@@ -1590,11 +1597,15 @@ dns_view_flushnode(dns_view_t *view, dns_name_t *name, isc_boolean_t tree) {
 			dns_adb_flushnames(view->adb, name);
 		if (view->resolver != NULL)
 			dns_resolver_flushbadnames(view->resolver, name);
+		if (view->failcache != NULL)
+			dns_badcache_flushtree(view->failcache, name);
 	} else {
 		if (view->adb != NULL)
 			dns_adb_flushname(view->adb, name);
 		if (view->resolver != NULL)
 			dns_resolver_flushbadcache(view->resolver, name);
+		if (view->failcache != NULL)
+			dns_badcache_flushname(view->failcache, name);
 	}
 
 	if (view->cache != NULL)
@@ -2012,3 +2023,16 @@ dns_view_searchdlz(dns_view_t *view, dns_name_t *name, unsigned int minlabels,
 
 	return (ISC_R_NOTFOUND);
 }
+
+isc_uint32_t
+dns_view_getfailttl(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	return (view->fail_ttl);
+}
+
+void
+dns_view_setfailttl(dns_view_t *view, isc_uint32_t fail_ttl) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	view->fail_ttl = fail_ttl;
+}
+

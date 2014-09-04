@@ -838,6 +838,7 @@ dns_view_flushnode
 dns_view_freeze
 dns_view_freezezones
 dns_view_getdynamickeyring
+dns_view_getfailttl
 dns_view_getpeertsig
 dns_view_getresquerystats
 dns_view_getresstats
@@ -854,6 +855,7 @@ dns_view_setcache
 dns_view_setcache2
 dns_view_setdstport
 dns_view_setdynamickeyring
+dns_view_setfailttl
 dns_view_sethints
 dns_view_setkeyring
 dns_view_setnewzones

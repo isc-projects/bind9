@@ -64,6 +64,7 @@
 
 #include <dns/acache.h>
 #include <dns/adb.h>
+#include <dns/badcache.h>
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
@@ -2349,7 +2350,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	size_t max_cache_size;
 	size_t max_acache_size;
 	size_t max_adb_size;
-	isc_uint32_t lame_ttl;
+	isc_uint32_t lame_ttl, fail_ttl;
 	dns_tsig_keyring_t *ring = NULL;
 	dns_view_t *pview = NULL;	/* Production view */
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;
@@ -3783,6 +3784,17 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	}
+
+	/*
+	 * Set the servfail-ttl.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "servfail-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	fail_ttl  = cfg_obj_asuint32(obj);
+	if (fail_ttl > 300)
+		fail_ttl = 300;
+	dns_view_setfailttl(view, fail_ttl);
 
 	result = ISC_R_SUCCESS;
 
@@ -7657,6 +7669,8 @@ dumpdone(void *arg, isc_result_t result) {
 		dns_adb_dump(dctx->view->view->adb, dctx->fp);
 		dns_resolver_printbadcache(dctx->view->view->resolver,
 					   dctx->fp);
+		dns_badcache_print(dctx->view->view->failcache,
+				   "SERVFAIL cache", dctx->fp);
 		dns_db_detach(&dctx->cache);
 	}
 	if (dctx->dumpzones) {

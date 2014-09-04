@@ -1,0 +1,153 @@
+/*
+ * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#ifndef DNS_BADCACHE_H
+#define DNS_BADCACHE_H 1
+
+/*****
+ ***** Module Info
+ *****/
+
+/*! \file dns/badcache.h
+ * \brief
+ * Defines dns_badcache_t, the "bad cache" object.
+ *
+ * Notes:
+ *\li 	A bad cache object is a hash table of name/type tuples,
+ *	indicating whether a given tuple known to be "bad" in some
+ *	sense (e.g., queries for that name and type have been
+ *	returning SERVFAIL). This is used for both the "bad server
+ *	cache" in the resolver and for the "servfail cache" in
+ *	the view.
+ *
+ * Reliability:
+ *
+ * Resources:
+ *
+ * Security:
+ *
+ * Standards:
+ */
+
+/***
+ ***	Imports
+ ***/
+
+#include <dns/types.h>
+
+ISC_LANG_BEGINDECLS
+
+/***
+ ***	Functions
+ ***/
+
+isc_result_t
+dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp);
+/*%
+ * Allocate and initialize a badcache and store it in '*bcp'.
+ *
+ * Requires:
+ * \li	mctx != NULL
+ * \li	bcp != NULL
+ * \li	*bcp == NULL
+ */
+
+void
+dns_badcache_destroy(dns_badcache_t **bcp);
+/*%
+ * Flush and then free badcache in 'bcp'. '*bcp' is set to NULL on return.
+ *
+ * Requires:
+ * \li	'*bcp' to be a valid badcache
+ */
+
+void
+dns_badcache_add(dns_badcache_t *bc, dns_name_t *name,
+		 dns_rdatatype_t type, isc_boolean_t update,
+		 isc_uint32_t flags, isc_time_t *expire);
+/*%
+ * Adds a badcache entry to the badcache 'bc' for name 'name' and
+ * type 'type'.  If an entry already exists, then it will be updated if
+ * 'update' is ISC_TRUE.  The entry will be stored with flags 'flags'
+ * and expiration date 'expire'.
+ *
+ * Requires:
+ * \li	bc to be a valid badcache.
+ * \li	name != NULL
+ * \li	expire != NULL
+ */
+
+isc_boolean_t
+dns_badcache_find(dns_badcache_t *bc, dns_name_t *name,
+		  dns_rdatatype_t type, isc_uint32_t *flagp,
+		  isc_time_t *now);
+/*%
+ * Returns ISC_TRUE if a record is found in the badcache 'bc' matching
+ * 'name' and 'type', with an expiration date later than 'now'.
+ * If 'flagp' is not NULL, then '*flagp' is updated to the flags
+ * that were stored in the badcache entry.  Returns ISC_FALSE if
+ * no matching record is found.
+ *
+ * Requires:
+ * \li	bc to be a valid badcache.
+ * \li	name != NULL
+ * \li	now != NULL
+ */
+
+void
+dns_badcache_flush(dns_badcache_t *bc);
+/*%
+ * Flush the entire bad cache.
+ *
+ * Requires:
+ * \li	bc to be a valid badcache
+ */
+
+void
+dns_badcache_flushname(dns_badcache_t *bc, dns_name_t *name);
+/*%
+ * Flush the bad cache of all entries at 'name'.
+ *
+ * Requires:
+ * \li	bc to be a valid badcache
+ * \li	name != NULL
+ */
+
+void
+dns_badcache_flushtree(dns_badcache_t *bc, dns_name_t *name);
+/*%
+ * Flush the bad cache of all entries at or below 'name'.
+ *
+ * Requires:
+ * \li	bc to be a valid badcache
+ * \li	name != NULL
+ */
+
+void
+dns_badcache_print(dns_badcache_t *bc, const char *cachename, FILE *fp);
+/*%
+ * Print the contents of badcache 'bc' (headed by the title 'cachename')
+ * to file pointer 'fp'.
+ *
+ * Requires:
+ * \li	bc to be a valid badcache
+ * \li	cachename != NULL
+ * \li	fp != NULL
+ */
+
+ISC_LANG_ENDDECLS
+
+#endif /* DNS_BADCACHE_H */

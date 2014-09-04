@@ -62,7 +62,7 @@ DSTOBJS =	@DST_EXTRA_OBJS@ @OPENSSLLINKOBJS@ @PKCS11LINKOBJS@ \
 GEOIPLINKOBJS = geoip.@O@
 
 # Alphabetically
-DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
+DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ badcache.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ clientinfo.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
 		dlz.@O@ dns64.@O@ dnssec.@O@ ds.@O@ forward.@O@ \
@@ -100,7 +100,7 @@ DSTSRCS =	@DST_EXTRA_SRCS@ @OPENSSLLINKSRCS@ @PKCS11LINKSRCS@ \
 
 GEOIPLINKSRCS = geoip.c
 
-DNSSRCS =	acache.c acl.c adb.c byaddr.c \
+DNSSRCS =	acache.c acl.c adb.c badcache. byaddr.c \
 		cache.c callbacks.c clientinfo.c compress.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
 		dlz.c dns64.c dnssec.c ds.c forward.c geoip.c \

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,30 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-// NS5
-
-include "../../common/rndc.key";
-
-controls { inet 10.53.0.5 port 9953 allow { any; } keys { rndc_key; }; };
-
-options {
-	query-source address 10.53.0.5;
-	notify-source 10.53.0.5;
-	transfer-source 10.53.0.5;
-	port 5300;
-	pid-file "named.pid";
-	listen-on { 10.53.0.5; };
-	listen-on-v6 { none; };
-	recursion no;
-	notify yes;
-	notify-delay 0;
-	servfail-ttl 0;
-};
-
-zone "bits" {
-	type slave;
-	masters { 10.53.0.2; };
-	file "bits.bk";
-	auto-dnssec maintain;
-	inline-signing yes;
+trusted-keys {
+    "." 256 3 1 "AQO6Cl+slAf+iuieDim9L3kujFHQD7s/IOj03ClMOpKYcTXtK4mRpuULVfvWxDi9Ew/gj0xLnnX7z9OJHIxLI+DSrAHd8Dm0XfBEAtVtJSn70GaPZgnLMw1rk5ap2DsEoWk=";
 };

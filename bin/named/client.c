@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.286 2012/01/31 23:47:30 tbox Exp $ */
-
 #include <config.h>
 
 #include <isc/formatcheck.h>
@@ -40,6 +38,7 @@
 #include <isc/hmacsha.h>
 #endif
 
+#include <dns/badcache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
@@ -1351,16 +1350,16 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 	}
 	message->rcode = rcode;
 
-	/*
-	 * FORMERR loop avoidance:  If we sent a FORMERR message
-	 * with the same ID to the same client less than two
-	 * seconds ago, assume that we are in an infinite error
-	 * packet dialog with a server for some protocol whose
-	 * error responses look enough like DNS queries to
-	 * elicit a FORMERR response.  Drop a packet to break
-	 * the loop.
-	 */
 	if (rcode == dns_rcode_formerr) {
+		/*
+		 * FORMERR loop avoidance:  If we sent a FORMERR message
+		 * with the same ID to the same client less than two
+		 * seconds ago, assume that we are in an infinite error
+		 * packet dialog with a server for some protocol whose
+		 * error responses look enough like DNS queries to
+		 * elicit a FORMERR response.  Drop a packet to break
+		 * the loop.
+		 */
 		if (isc_sockaddr_equal(&client->peeraddr,
 				       &client->formerrcache.addr) &&
 		    message->id == client->formerrcache.id &&
@@ -1376,6 +1375,27 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		client->formerrcache.addr = client->peeraddr;
 		client->formerrcache.time = client->requesttime;
 		client->formerrcache.id = message->id;
+	} else if (rcode == dns_rcode_servfail &&
+		   client->view != NULL && client->view->fail_ttl != 0 &&
+		   ((client->attributes & NS_CLIENTATTR_NOSETFC) == 0))
+	{
+		/*
+		 * SERVFAIL caching: store qname/qtype of failed queries
+		 */
+		isc_time_t expire;
+		isc_interval_t i;
+		isc_uint32_t flags = 0;
+
+		if ((message->flags & DNS_MESSAGEFLAG_CD) != 0)
+			flags = NS_FAILCACHE_CD;
+
+		isc_interval_set(&i, client->view->fail_ttl, 0);
+		result = isc_time_nowplusinterval(&expire, &i);
+		if (result == ISC_R_SUCCESS)
+			dns_badcache_add(client->view->failcache,
+					 client->query.qname,
+					 client->query.qtype,
+					 ISC_TRUE, flags, &expire);
 	}
 	ns_client_send(client);
 }
@@ -2009,6 +2029,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	isc_task_getcurrenttime(task, &client->requesttime);
 	client->now = client->requesttime;
+	isc_time_set(&client->tnow, client->now, 0);
 
 	if (result != ISC_R_SUCCESS) {
 		if (TCP_CLIENT(client)) {

@@ -1507,7 +1507,7 @@ view_clauses[] = {
 	{ "empty-zones-enable", &cfg_type_boolean, 0 },
 	{ "fetch-glue", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
-	{ "lame-ttl", &cfg_type_uint32, 0 },
+	{ "lame-ttl", &cfg_type_ttlval, 0 },
 #ifdef ISC_PLATFORM_USESIT
 	{ "nosit-udp-size", &cfg_type_uint32, 0 },
 #else
@@ -1547,6 +1547,7 @@ view_clauses[] = {
 	{ "rfc2308-type1", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
+	{ "servfail-ttl", &cfg_type_ttlval, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_NOTIMP },

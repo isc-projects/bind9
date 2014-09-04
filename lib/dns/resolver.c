@@ -39,6 +39,7 @@
 
 #include <dns/acl.h>
 #include <dns/adb.h>
+#include <dns/badcache.h>
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
@@ -164,6 +165,10 @@
  * disable EDNS0 on the query.
  */
 #define MAX_EDNS0_TIMEOUTS      3
+
+#define DNS_RESOLVER_BADCACHESIZE 1021
+#define DNS_RESOLVER_BADCACHETTL(fctx) \
+	(((fctx)->res->lame_ttl > 30 ) ? (fctx)->res->lame_ttl : 30)
 
 typedef struct fetchctx fetchctx_t;
 
@@ -401,18 +406,6 @@ typedef struct alternate {
 	ISC_LINK(struct alternate)      link;
 } alternate_t;
 
-typedef struct dns_badcache dns_badcache_t;
-struct dns_badcache {
-	dns_badcache_t *	next;
-	dns_rdatatype_t 	type;
-	isc_time_t		expire;
-	unsigned int		hashval;
-	dns_name_t		name;
-};
-#define DNS_BADCACHE_SIZE 1021
-#define DNS_BADCACHE_TTL(fctx) \
-	(((fctx)->res->lame_ttl > 30 ) ? (fctx)->res->lame_ttl : 30)
-
 struct dns_resolver {
 	/* Unlocked. */
 	unsigned int			magic;
@@ -462,11 +455,7 @@ struct dns_resolver {
 	isc_boolean_t			priming;
 	unsigned int			spillat;	/* clients-per-query */
 
-	/* Bad cache. */
-	dns_badcache_t  ** 		badcache;
-	unsigned int 			badcount;
-	unsigned int 			badhash;
-	unsigned int 			badsweep;
+	dns_badcache_t  * 		badcache;	 /* Bad cache. */
 
 	/* Locked by primelock. */
 	dns_fetch_t *			primefetch;
@@ -1228,7 +1217,7 @@ log_edns(fetchctx_t *fctx) {
 static void
 fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 	dns_resolver_t *res;
-	isc_boolean_t no_response;
+	isc_boolean_t no_response = ISC_FALSE;
 
 	REQUIRE(line >= 0);
 
@@ -1242,8 +1231,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 		 */
 		log_edns(fctx);
 		no_response = ISC_TRUE;
-	 } else
-		no_response = ISC_FALSE;
+	}
 
 	fctx->reason = NULL;
 	fctx_stopeverything(fctx, no_response);
@@ -3105,7 +3093,7 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 			 * them.
 			 */
 			FCTXTRACE("no addresses");
-			isc_interval_set(&i, DNS_BADCACHE_TTL(fctx), 0);
+			isc_interval_set(&i, DNS_RESOLVER_BADCACHETTL(fctx), 0);
 			result = isc_time_nowplusinterval(&expire, &i);
 			if (badcache &&
 			    (fctx->type == dns_rdatatype_dnskey ||
@@ -4499,7 +4487,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 			isc_time_t expire;
 			isc_interval_t i;
 
-			isc_interval_set(&i, DNS_BADCACHE_TTL(fctx), 0);
+			isc_interval_set(&i, DNS_RESOLVER_BADCACHETTL(fctx), 0);
 			tresult = isc_time_nowplusinterval(&expire, &i);
 			if (negative &&
 			    (fctx->type == dns_rdatatype_dnskey ||
@@ -8099,28 +8087,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
  *** Resolver Methods
  ***/
 static void
-destroy_badcache(dns_resolver_t *res) {
-	dns_badcache_t *bad, *next;
-	unsigned int i;
-
-	if (res->badcache != NULL) {
-		for (i = 0; i < res->badhash; i++)
-			for (bad = res->badcache[i]; bad != NULL;
-			     bad = next) {
-				next = bad->next;
-				isc_mem_put(res->mctx, bad, sizeof(*bad) +
-					    bad->name.length);
-				res->badcount--;
-			}
-		isc_mem_put(res->mctx, res->badcache,
-			    sizeof(*res->badcache) * res->badhash);
-		res->badcache = NULL;
-		res->badhash = 0;
-		INSIST(res->badcount == 0);
-	}
-}
-
-static void
 destroy(dns_resolver_t *res) {
 	unsigned int i;
 	alternate_t *a;
@@ -8157,7 +8123,7 @@ destroy(dns_resolver_t *res) {
 	}
 	dns_resolver_reset_algorithms(res);
 	dns_resolver_reset_ds_digests(res);
-	destroy_badcache(res);
+	dns_badcache_destroy(&res->badcache);
 	dns_resolver_resetmustbesecure(res);
 #if USE_ALGLOCK
 	isc_rwlock_destroy(&res->alglock);
@@ -8285,9 +8251,8 @@ dns_resolver_create(dns_view_t *view,
 	res->algorithms = NULL;
 	res->digests = NULL;
 	res->badcache = NULL;
-	res->badcount = 0;
-	res->badhash = 0;
-	res->badsweep = 0;
+	dns_badcache_init(res->mctx, DNS_RESOLVER_BADCACHESIZE,
+			  &res->badcache);
 	res->mustbesecure = NULL;
 	res->spillatmin = res->spillat = 10;
 	res->spillatmax = 100;
@@ -9121,329 +9086,35 @@ dns_resolver_getudpsize(dns_resolver_t *resolver) {
 
 void
 dns_resolver_flushbadcache(dns_resolver_t *resolver, dns_name_t *name) {
-	unsigned int i;
-	dns_badcache_t *bad, *prev, *next;
-
-	/*
-	 * Drop all entries that match the name, and also all expired
-	 * entries from the badcache.
-	 */
-
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	LOCK(&resolver->lock);
-	if (resolver->badcache == NULL)
-		goto unlock;
-
-	if (name != NULL) {
-		isc_time_t now;
-		isc_result_t result;
-		result = isc_time_now(&now);
-		if (result != ISC_R_SUCCESS)
-			isc_time_settoepoch(&now);
-		i = dns_name_hash(name, ISC_FALSE) % resolver->badhash;
-		prev = NULL;
-		for (bad = resolver->badcache[i]; bad != NULL; bad = next) {
-			int n;
-			next = bad->next;
-			n = isc_time_compare(&bad->expire, &now);
-			if (n < 0 || dns_name_equal(name, &bad->name)) {
-				if (prev == NULL)
-					resolver->badcache[i] = bad->next;
-				else
-					prev->next = bad->next;
-				isc_mem_put(resolver->mctx, bad, sizeof(*bad) +
-					    bad->name.length);
-				resolver->badcount--;
-			} else
-				prev = bad;
-		}
-	} else
-		destroy_badcache(resolver);
-
- unlock:
-	UNLOCK(&resolver->lock);
+	if (name != NULL)
+		dns_badcache_flushname(resolver->badcache, name);
+	else
+		dns_badcache_flush(resolver->badcache);
 }
 
 void
 dns_resolver_flushbadnames(dns_resolver_t *resolver, dns_name_t *name) {
-	dns_badcache_t *bad, *prev, *next;
-	unsigned int i;
-	int n;
-	isc_time_t now;
-	isc_result_t result;
-
-	/* Drop all expired entries from the badcache. */
-
-	REQUIRE(VALID_RESOLVER(resolver));
-	REQUIRE(name != NULL);
-
-	LOCK(&resolver->lock);
-	if (resolver->badcache == NULL)
-		goto unlock;
-
-	result = isc_time_now(&now);
-	if (result != ISC_R_SUCCESS)
-		isc_time_settoepoch(&now);
-
-	for (i = 0; i < resolver->badhash; i++) {
-		prev = NULL;
-		for (bad = resolver->badcache[i]; bad != NULL; bad = next) {
-			next = bad->next;
-			n = isc_time_compare(&bad->expire, &now);
-			if (n < 0 || dns_name_issubdomain(&bad->name, name)) {
-				if (prev == NULL)
-					resolver->badcache[i] = bad->next;
-				else
-					prev->next = bad->next;
-				isc_mem_put(resolver->mctx, bad, sizeof(*bad) +
-					    bad->name.length);
-				resolver->badcount--;
-			} else
-				prev = bad;
-		}
-	}
-
- unlock:
-	UNLOCK(&resolver->lock);
-}
-
-static void
-resizehash(dns_resolver_t *resolver, isc_time_t *now, isc_boolean_t grow) {
-	unsigned int newsize;
-	dns_badcache_t **new, *bad, *next;
-	unsigned int i;
-
-	/*
-	 * The number of buckets in the hashtable is modified in this
-	 * function. Afterwards, all the entries are remapped into the
-	 * corresponding new slot. Rehashing (hash computation) is
-	 * unnecessary as the hash values had been saved.
-	 */
-
-	if (grow)
-		newsize = resolver->badhash * 2 + 1;
-	else
-		newsize = (resolver->badhash - 1) / 2;
-
-	new = isc_mem_get(resolver->mctx,
-			  sizeof(*resolver->badcache) * newsize);
-	if (new == NULL)
-		return;
-	memset(new, 0, sizeof(*resolver->badcache) * newsize);
-
-	/*
-	 * Because the hashtable implements a simple modulus mapping
-	 * from hash to bucket (no extendible hashing is used), every
-	 * name in the hashtable has to be remapped to its new slot.
-	 * Entries that have expired (time) are dropped.
-	 */
-	for (i = 0; i < resolver->badhash; i++) {
-		for (bad = resolver->badcache[i]; bad != NULL; bad = next) {
-			next = bad->next;
-			if (isc_time_compare(&bad->expire, now) < 0) {
-				isc_mem_put(resolver->mctx, bad, sizeof(*bad) +
-					    bad->name.length);
-				resolver->badcount--;
-			} else {
-				bad->next = new[bad->hashval % newsize];
-				new[bad->hashval % newsize] = bad;
-			}
-		}
-	}
-	isc_mem_put(resolver->mctx, resolver->badcache,
-		    sizeof(*resolver->badcache) * resolver->badhash);
-	resolver->badhash = newsize;
-	resolver->badcache = new;
+	dns_badcache_flushtree(resolver->badcache, name);
 }
 
 void
 dns_resolver_addbadcache(dns_resolver_t *resolver, dns_name_t *name,
 			 dns_rdatatype_t type, isc_time_t *expire)
 {
-	isc_time_t now;
-	isc_result_t result = ISC_R_SUCCESS;
-	unsigned int i, hashval;
-	dns_badcache_t *bad, *prev, *next;
-
-	/*
-	 * The badcache is implemented as a hashtable keyed on the name,
-	 * and each bucket slot points to a linked list (separate
-	 * chaining).
-	 *
-	 * To avoid long list chains, if the number of entries in the
-	 * hashtable goes over number-of-buckets * 8, the
-	 * number-of-buckets is doubled. Similarly, if the number of
-	 * entries goes below number-of-buckets * 2, the number-of-buckets
-	 * is halved. See resizehash().
-	 */
-
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	LOCK(&resolver->lock);
-	if (resolver->badcache == NULL) {
-		resolver->badcache = isc_mem_get(resolver->mctx,
-						 sizeof(*resolver->badcache) *
-						 DNS_BADCACHE_SIZE);
-		if (resolver->badcache == NULL)
-			goto cleanup;
-		resolver->badhash = DNS_BADCACHE_SIZE;
-		memset(resolver->badcache, 0, sizeof(*resolver->badcache) *
-		       resolver->badhash);
-	}
-
-	result = isc_time_now(&now);
-	if (result != ISC_R_SUCCESS)
-		isc_time_settoepoch(&now);
-	hashval = dns_name_hash(name, ISC_FALSE);
-	i = hashval % resolver->badhash;
-	prev = NULL;
-	for (bad = resolver->badcache[i]; bad != NULL; bad = next) {
-		next = bad->next;
-		if (bad->type == type && dns_name_equal(name, &bad->name))
-			break;
-		/* Drop expired entries when walking the chain. */
-		if (isc_time_compare(&bad->expire, &now) < 0) {
-			if (prev == NULL)
-				resolver->badcache[i] = bad->next;
-			else
-				prev->next = bad->next;
-			isc_mem_put(resolver->mctx, bad, sizeof(*bad) +
-				    bad->name.length);
-			resolver->badcount--;
-		} else
-			prev = bad;
-	}
-	if (bad == NULL) {
-		/*
-		 * Insert the name into the badcache hashtable at the
-		 * head of the linked list at the appropriate slot. The
-		 * name data follows right after the allocation for the
-		 * linked list node.
-		 */
-		isc_buffer_t buffer;
-		bad = isc_mem_get(resolver->mctx, sizeof(*bad) + name->length);
-		if (bad == NULL)
-			goto cleanup;
-		bad->type = type;
-		bad->hashval = hashval;
-		bad->expire = *expire;
-		isc_buffer_init(&buffer, bad + 1, name->length);
-		dns_name_init(&bad->name, NULL);
-		dns_name_copy(name, &bad->name, &buffer);
-		bad->next = resolver->badcache[i];
-		resolver->badcache[i] = bad;
-		resolver->badcount++;
-		if (resolver->badcount > resolver->badhash * 8)
-			resizehash(resolver, &now, ISC_TRUE);
-		if (resolver->badcount < resolver->badhash * 2 &&
-		    resolver->badhash > DNS_BADCACHE_SIZE)
-			resizehash(resolver, &now, ISC_FALSE);
-	} else
-		bad->expire = *expire;
- cleanup:
-	UNLOCK(&resolver->lock);
+	(void) dns_badcache_add(resolver->badcache, name, type,
+				ISC_FALSE, 0, expire);
 }
 
 isc_boolean_t
 dns_resolver_getbadcache(dns_resolver_t *resolver, dns_name_t *name,
 			 dns_rdatatype_t type, isc_time_t *now)
 {
-	dns_badcache_t *bad, *prev, *next;
-	isc_boolean_t answer = ISC_FALSE;
-	unsigned int i;
-
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	LOCK(&resolver->lock);
-	if (resolver->badcache == NULL)
-		goto unlock;
-
-	i = dns_name_hash(name, ISC_FALSE) % resolver->badhash;
-	prev = NULL;
-	for (bad = resolver->badcache[i]; bad != NULL; bad = next) {
-		next = bad->next;
-		/*
-		 * Search the hash list. Clean out expired records as we go.
-		 */
-		if (isc_time_compare(&bad->expire, now) < 0) {
-			if (prev != NULL)
-				prev->next = bad->next;
-			else
-				resolver->badcache[i] = bad->next;
-			isc_mem_put(resolver->mctx, bad, sizeof(*bad) +
-				    bad->name.length);
-			resolver->badcount--;
-			continue;
-		}
-		if (bad->type == type && dns_name_equal(name, &bad->name)) {
-			answer = ISC_TRUE;
-			break;
-		}
-		prev = bad;
-	}
-
-	/*
-	 * Slow sweep to clean out stale records.
-	 */
-	i = resolver->badsweep++ % resolver->badhash;
-	bad = resolver->badcache[i];
-	if (bad != NULL && isc_time_compare(&bad->expire, now) < 0) {
-		resolver->badcache[i] = bad->next;
-		isc_mem_put(resolver->mctx, bad, sizeof(*bad) +
-			    bad->name.length);
-		resolver->badcount--;
-	}
-
- unlock:
-	UNLOCK(&resolver->lock);
-	return (answer);
+	return (dns_badcache_find(resolver->badcache, name, type, NULL, now));
 }
 
 void
 dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp) {
-	char namebuf[DNS_NAME_FORMATSIZE];
-	char typebuf[DNS_RDATATYPE_FORMATSIZE];
-	dns_badcache_t *bad, *next, *prev;
-	isc_time_t now;
-	unsigned int i;
-	isc_uint64_t t;
-
-	LOCK(&resolver->lock);
-	fprintf(fp, ";\n; Bad cache\n;\n");
-
-	if (resolver->badcache == NULL)
-		goto unlock;
-
-	TIME_NOW(&now);
-	for (i = 0; i < resolver->badhash; i++) {
-		prev = NULL;
-		for (bad = resolver->badcache[i]; bad != NULL; bad = next) {
-			next = bad->next;
-			if (isc_time_compare(&bad->expire, &now) < 0) {
-				if (prev != NULL)
-					prev->next = bad->next;
-				else
-					resolver->badcache[i] = bad->next;
-				isc_mem_put(resolver->mctx, bad, sizeof(*bad) +
-					    bad->name.length);
-				resolver->badcount--;
-				continue;
-			}
-			prev = bad;
-			dns_name_format(&bad->name, namebuf, sizeof(namebuf));
-			dns_rdatatype_format(bad->type, typebuf,
-					     sizeof(typebuf));
-			t = isc_time_microdiff(&bad->expire, &now);
-			t /= 1000;
-			fprintf(fp, "; %s/%s [ttl "
-				"%" ISC_PLATFORM_QUADFORMAT "u]\n",
-				namebuf, typebuf, t);
-		}
-	}
-
- unlock:
-	UNLOCK(&resolver->lock);
+	(void) dns_badcache_print(resolver->badcache, "Bad cache", fp);
 }
 
 static void

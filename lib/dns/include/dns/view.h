@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
 
@@ -177,6 +175,8 @@ struct dns_view {
 	dns_rpz_zones_t			*rpzs;
 	dns_dlzdblist_t 		dlz_searched;
 	dns_dlzdblist_t 		dlz_unsearched;
+	isc_uint32_t			fail_ttl;
+	dns_badcache_t			*failcache;
 
 	/*
 	 * Configurable data for server use only,
@@ -1238,6 +1238,24 @@ dns_view_searchdlz(dns_view_t *view, dns_name_t *name,
  * \li 'view' is valid.
  * \li 'name' is not NULL.
  * \li 'dbp' is not NULL and *dbp is NULL.
+ */
+
+isc_uint32_t
+dns_view_getfailttl(dns_view_t *view);
+/*%<
+ * Get the view's servfail-ttl.  zero => no servfail caching.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
+
+void
+dns_view_setfailttl(dns_view_t *view, isc_uint32_t failttl);
+/*%<
+ * Set the view's servfail-ttl.  zero => no servfail caching.
+ *
+ * Requires:
+ *\li	'view' to be valid.
  */
 
 ISC_LANG_ENDDECLS
