@@ -2109,6 +2109,9 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, dns_name_t* name,
 				if ((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0)
 					(*logit)(arg, ISC_LOG_DEBUG(3),
 						 "NSEC3 indicates optout");
+				else
+					(*logit)(arg, ISC_LOG_DEBUG(3),
+						 "NSEC3 indicates secure range");
 				*optout =
 				    ISC_TF(nsec3.flags & DNS_NSEC3FLAG_OPTOUT);
 			}
