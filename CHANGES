@@ -1,3 +1,6 @@
+3942.	[bug]		Wildcard responses from a optout range should be
+			marked as insecure. [RT #37072]
+
 3941.	[doc]		Include the BIND version number in the ARM. [RT #37067]
 
 	--- 9.9.6rc1 released ---
