@@ -13707,9 +13707,9 @@ else
 fi
 
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing GeoIP_id_by_addr_gl" >&5
-$as_echo_n "checking for library containing GeoIP_id_by_addr_gl... " >&6; }
-if ${ac_cv_search_GeoIP_id_by_addr_gl+:} false; then :
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing GeoIP_open" >&5
+$as_echo_n "checking for library containing GeoIP_open... " >&6; }
+if ${ac_cv_search_GeoIP_open+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_func_search_save_LIBS=$LIBS
@@ -13722,11 +13722,11 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char GeoIP_id_by_addr_gl ();
+char GeoIP_open ();
 int
 main ()
 {
-return GeoIP_id_by_addr_gl ();
+return GeoIP_open ();
   ;
   return 0;
 }
@@ -13739,30 +13739,30 @@ for ac_lib in '' GeoIP; do
     LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_GeoIP_id_by_addr_gl=$ac_res
+  ac_cv_search_GeoIP_open=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext
-  if ${ac_cv_search_GeoIP_id_by_addr_gl+:} false; then :
+  if ${ac_cv_search_GeoIP_open+:} false; then :
   break
 fi
 done
-if ${ac_cv_search_GeoIP_id_by_addr_gl+:} false; then :
+if ${ac_cv_search_GeoIP_open+:} false; then :
 
 else
-  ac_cv_search_GeoIP_id_by_addr_gl=no
+  ac_cv_search_GeoIP_open=no
 fi
 rm conftest.$ac_ext
 LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_GeoIP_id_by_addr_gl" >&5
-$as_echo "$ac_cv_search_GeoIP_id_by_addr_gl" >&6; }
-ac_res=$ac_cv_search_GeoIP_id_by_addr_gl
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_GeoIP_open" >&5
+$as_echo "$ac_cv_search_GeoIP_open" >&6; }
+ac_res=$ac_cv_search_GeoIP_open
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
-  as_fn_error $? "suitable GeoIP library not found" "$LINENO" 5
+  as_fn_error $? "GeoIP library not found" "$LINENO" 5
 
 fi
 
