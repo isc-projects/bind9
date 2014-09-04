@@ -608,7 +608,7 @@
             <option>lifetime</option>.  The default lifetime is
             configured in <file>named.conf</file> via the
             <option>nta-lifetime</option>, and defaults to
-            one hour.  The lifetime cannot exceed one day.
+            one hour.  The lifetime cannot exceed one week.
           </para>
           <para>
             A negative trust anchor selectively disables

@@ -5737,7 +5737,7 @@ options {
 		  For convenience, TTL-style time unit suffixes can be
 		  used to specify the NTA lifetime in seconds, minutes
 		  or hours.  <option>nta-lifetime</option> defaults to
-		  one hour.  It cannot exceed one day.
+		  one hour.  It cannot exceed one week.
 		</para>
 	    </listitem>
 	  </varlistentry>

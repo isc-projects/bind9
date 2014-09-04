@@ -9921,8 +9921,8 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 				CHECK(result);
 			}
 
-			if (ntattl > 86400) {
-				msg = "NTA lifetime cannot exceed one day";
+			if (ntattl > 604800) {
+				msg = "NTA lifetime cannot exceed one week";
 				CHECK(ISC_R_RANGE);
 			}
 

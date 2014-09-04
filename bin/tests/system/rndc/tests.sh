@@ -378,5 +378,11 @@ grep "query: foo9876.bind CH TXT" ns4/named.run > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:testing rndc nta time limits"
+ret=0
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf nta -l 2h nta1.example 2>&1 | grep "Negative trust anchor added" > /dev/null || ret=1
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf nta -l 1d nta2.example 2>&1 | grep "Negative trust anchor added" > /dev/null || ret=1
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf nta -l 1w nta3.example 2>&1 | grep "Negative trust anchor added" > /dev/null || ret=1
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf nta -l 8d nta4.example 2>&1 | grep "NTA lifetime cannot exceed one week" > /dev/null || ret=1
 echo "I:exit status: $status"
 exit $status
