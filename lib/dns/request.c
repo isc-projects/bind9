@@ -536,8 +536,9 @@ create_tcp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 	result = dns_dispatch_gettcp(requestmgr->dispatchmgr, destaddr,
 				     srcaddr, dispatchp);
 	if (result == ISC_R_SUCCESS) {
-		*connected = ISC_TRUE;
 		char peer[ISC_SOCKADDR_FORMATSIZE];
+
+		*connected = ISC_TRUE;
 		isc_sockaddr_format(destaddr, peer, sizeof(peer));
 		req_log(ISC_LOG_DEBUG(1), "attached to existing TCP "
 			"connection to %s", peer);
