@@ -1,3 +1,5 @@
+3941.	[doc]		Include the BIND version number in the ARM. [RT #37067]
+
 	--- 9.8.8rc1 released ---
 
 3933.	[bug]		Corrected the implementation of dns_rdata_casecompare()

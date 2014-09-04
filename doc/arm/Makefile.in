@@ -67,5 +67,7 @@ Bv9ARM.pdf: Bv9ARM.tex releaseinfo.xml
 	${PDFLATEX} '\batchmode\input Bv9ARM.tex' || (rm -f $@ ; exit 1)
 	${PDFLATEX} '\batchmode\input Bv9ARM.tex' || (rm -f $@ ; exit 1)
 
-releaseinfo.xml:
+FORCE:
+
+releaseinfo.xml: FORCE
 	echo >$@ '<releaseinfo>BIND Version ${VERSION}</releaseinfo>'
