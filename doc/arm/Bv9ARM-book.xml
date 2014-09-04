@@ -43,6 +43,7 @@
       <year>2003</year>
       <holder>Internet Software Consortium.</holder>
     </copyright>
+    <xi:include href="releaseinfo.xml"/>
   </bookinfo>
 
   <chapter id="Bv9ARM.ch01">

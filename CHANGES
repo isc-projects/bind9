@@ -1,3 +1,5 @@
+3941.	[doc]		Include the BIND version number in the ARM. [RT #37067]
+
 	--- 9.10.1rc1 released ---
 
 3935.	[bug]		"geoip asnum" ACL elements would not match unless
