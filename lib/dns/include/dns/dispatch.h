@@ -298,6 +298,13 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 		       unsigned int maxbuffers, unsigned int maxrequests,
 		       unsigned int buckets, unsigned int increment,
 		       unsigned int attributes, dns_dispatch_t **dispp);
+isc_result_t
+dns_dispatch_createtcp2(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
+                        isc_taskmgr_t *taskmgr, isc_sockaddr_t *localaddr,
+                        isc_sockaddr_t *destaddr, unsigned int buffersize,
+                        unsigned int maxbuffers, unsigned int maxrequests,
+                        unsigned int buckets, unsigned int increment,
+                        unsigned int attributes, dns_dispatch_t **dispp);
 /*%<
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
  *
@@ -368,6 +375,14 @@ dns_dispatch_starttcp(dns_dispatch_t *disp);
  * Requires:
  *\li	'disp' is valid.
  */
+
+isc_result_t
+dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
+                    isc_sockaddr_t *localaddr, dns_dispatch_t **dispp);
+/*
+ * Attempt to connect to a existing TCP connection.
+ */
+
 
 isc_result_t
 dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,

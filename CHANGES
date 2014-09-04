@@ -1,3 +1,6 @@
+3939.	[func]		Improve UPDATE forwarding performance by allowing TCP
+			connections to be shared. [RT #37039]
+
 3938.	[placeholder]
 
 3937.	[func]		Added some debug logging to better indicate the

@@ -209,10 +209,12 @@ dns_dispatch_attach
 dns_dispatch_cancel
 dns_dispatch_changeattributes
 dns_dispatch_createtcp
+dns_dispatch_createtcp2
 dns_dispatch_detach
 dns_dispatch_getdscp
 dns_dispatch_getlocaladdress
 dns_dispatch_getsocket
+dns_dispatch_gettcp
 dns_dispatch_getudp
 dns_dispatch_getudp_dup
 dns_dispatch_importrecv
