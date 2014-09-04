@@ -1,3 +1,5 @@
+3941.	[doc]		Include the BIND version number in the ARM. [RT #37067]
+
 3940.	[func]		"rndc nta" now allows negative trust anchors to be
 			set for up to one week. [RT #37069]
 
