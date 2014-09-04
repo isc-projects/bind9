@@ -3,7 +3,7 @@
 			default 10 seconds, limit 30). This can reduce
 			the frequency of retries when an authoritative
 			server is known to be failing, e.g., due to
-			ongoing DNSSEC validation problems. [RT #21347] 
+			ongoing DNSSEC validation problems. [RT #21347]
 
 3942.	[bug]		Wildcard responses from a optout range should be
 			marked as insecure. [RT #37072]

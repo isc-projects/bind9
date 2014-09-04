@@ -2519,11 +2519,11 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 
 isc_result_t
 dns_dispatch_createtcp2(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
-		        isc_taskmgr_t *taskmgr, isc_sockaddr_t *localaddr,
+			isc_taskmgr_t *taskmgr, isc_sockaddr_t *localaddr,
 			isc_sockaddr_t *destaddr, unsigned int buffersize,
-		        unsigned int maxbuffers, unsigned int maxrequests,
-		        unsigned int buckets, unsigned int increment,
-		        unsigned int attributes, dns_dispatch_t **dispp)
+			unsigned int maxbuffers, unsigned int maxrequests,
+			unsigned int buckets, unsigned int increment,
+			unsigned int attributes, dns_dispatch_t **dispp)
 {
 	isc_result_t result;
 	dns_dispatch_t *disp;
