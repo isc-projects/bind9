@@ -1796,7 +1796,7 @@ echo "I:check with bad nta lifetime"
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -l garbage foo > rndc.out.ns4.test$n.2 2>&1
 grep "'nta' failed: bad ttl" rndc.out.ns4.test$n.2 > /dev/null || ret=1
 echo "I:check with too long nta lifetime"
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -l 5d23h foo > rndc.out.ns4.test$n.3 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -l 7d1h foo > rndc.out.ns4.test$n.3 2>&1
 grep "'nta' failed: out of range" rndc.out.ns4.test$n.3 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
