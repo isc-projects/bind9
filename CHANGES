@@ -1,3 +1,5 @@
+	--- 9.8.8rc2 released ---
+
 3947.	[cleanup]	Set the executable bit on libraries when using
 			libtool. [RT #36786]
 
