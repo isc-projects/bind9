@@ -1,3 +1,5 @@
+3944.	[test]		Added a regression test for "server-id". [RT #37057]
+
 3943.	[func]		SERVFAIL responses can now be cached for a
 			limited time (configured by "servfail-ttl",
 			default 10 seconds, limit 30). This can reduce
