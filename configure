@@ -793,6 +793,7 @@ O
 ALWAYS_MAKE_SYMTABLE
 MKSYMTBL_PROGRAM
 ISC_PLATFORM_USEBACKTRACE
+INSTALL_LIBRARY
 PURIFY
 purify_path
 IRIX_DNSSEC_WARNINGS_HACK
@@ -15595,7 +15596,6 @@ esac
 
 
 
-
 # Check whether --with-libtool was given.
 if test "${with_libtool+set}" = set; then :
   withval=$with_libtool; use_libtool="$withval"
@@ -15613,6 +15613,7 @@ case $use_libtool in
 		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
 		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
 		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
+		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
 		case "$host" in
 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
 		esac
@@ -15632,8 +15633,10 @@ case $use_libtool in
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_ALLOW_UNDEFINED=
 		LIBTOOL_IN_MAIN=
+		INSTALL_LIBRARY='${INSTALL_DATA}'
 		;;
 esac
+
 
 #
 # enable/disable dumping stack backtrace.  Also check if the system supports
