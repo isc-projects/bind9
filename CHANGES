@@ -1,3 +1,6 @@
+3945.	[bug]		Invalid wildcard expansions could be incorrectly
+			accepted by the validator. [RT #37093]
+
 3944.	[test]		Added a regression test for "server-id". [RT #37057]
 
 3943.	[func]		SERVFAIL responses can now be cached for a
