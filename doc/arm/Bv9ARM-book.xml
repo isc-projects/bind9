@@ -71,12 +71,9 @@
 	<acronym>BIND</acronym> version 9 software package for
 	system administrators.
       </para>
-
-      <para>
-	This version of the manual corresponds to BIND version 9.10.
-      </para>
-
+      <xi:include href="pkgversion.xml"/>
     </sect1>
+
     <sect1>
       <title>Organization of This Document</title>
       <para>
