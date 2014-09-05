@@ -78,7 +78,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} liblwres.@A@ ${DESTDIR}${libdir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} liblwres.@A@ ${DESTDIR}${libdir}
 
 clean distclean::
 	rm -f liblwres.@A@ liblwres.la timestamp

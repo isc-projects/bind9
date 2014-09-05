@@ -1,3 +1,6 @@
+3947.	[cleanup]	Set the executable bit on libraries when using
+			libtool. [RT #36786]
+
 3946.	[cleanup]	Improved "configure" search for a python interpreter.
 			[RT #36992]
 

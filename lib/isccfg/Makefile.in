@@ -78,7 +78,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libisccfg.@A@ ${DESTDIR}${libdir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libisccfg.@A@ ${DESTDIR}${libdir}
 
 clean distclean::
 	rm -f libisccfg.@A@ timestamp

@@ -1712,7 +1712,6 @@ esac
 
 AC_SUBST(PURIFY)
 
-
 AC_ARG_WITH(libtool,
 	    [  --with-libtool          use GNU libtool],
 	    use_libtool="$withval", use_libtool="no")
@@ -1726,6 +1725,7 @@ case $use_libtool in
 		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
 		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
 		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
+		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
 		case "$host" in
 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
 		esac
@@ -1745,8 +1745,10 @@ case $use_libtool in
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_ALLOW_UNDEFINED=
 		LIBTOOL_IN_MAIN=
+		INSTALL_LIBRARY='${INSTALL_DATA}'
 		;;
 esac
+AC_SUBST(INSTALL_LIBRARY)
 
 #
 # enable/disable dumping stack backtrace.  Also check if the system supports
