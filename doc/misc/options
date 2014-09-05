@@ -160,7 +160,7 @@ options {
         interface-interval <integer>;
         ixfr-from-differences <ixfrdiff>;
         key-directory <quoted_string>;
-        lame-ttl <integer>;
+        lame-ttl <ttlval>;
         listen-on [ port <integer> ] [ dscp <integer> ] {
             <address_match_element>; ... };
         listen-on-v6 [ port <integer> ] [ dscp <integer> ] {
@@ -259,6 +259,7 @@ options {
         serial-query-rate <integer>;
         serial-update-method ( increment | unixtime | date );
         server-id ( <quoted_string> | none | hostname );
+        servfail-ttl <ttlval>;
         session-keyalg <string>;
         session-keyfile ( <quoted_string> | none );
         session-keyname <string>;
@@ -427,7 +428,7 @@ view <string> <optional_class> {
                 secret <string>;
         };
         key-directory <quoted_string>;
-        lame-ttl <integer>;
+        lame-ttl <ttlval>;
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys { <string> <string> <integer> <integer> <integer>
             <quoted_string>; ... };
@@ -534,6 +535,7 @@ view <string> <optional_class> {
                     <integer> | * ) ] [ dscp <integer> ];
                 transfers <integer>;
         };
+        servfail-ttl <ttlval>;
         sig-signing-nodes <integer>;
         sig-signing-signatures <integer>;
         sig-signing-type <integer>;
