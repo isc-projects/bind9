@@ -532,6 +532,7 @@ foreach $file (keys %file_types) {
 		if ($type eq 'SGML' && m:<bookinfo>.*?</bookinfo>:s) {
 			# print "bookinfo: $file\n";
 			my $r = copyrights(@years);
+			$r .= "    <xi:include href=\"releaseinfo.xml\"/>\n";
 			s:<bookinfo>.*?</bookinfo>:<bookinfo>\n$r  </bookinfo>:s;
 		}
 
