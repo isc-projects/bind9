@@ -4916,10 +4916,17 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 		}
 	}
 
-	if (valrdataset != NULL)
-		result = valcreate(fctx, addrinfo, name, fctx->type,
-				   valrdataset, valsigrdataset, valoptions,
-				   task);
+	if (valrdataset != NULL) {
+		dns_rdatatype_t vtype = fctx->type;
+		if (CHAINING(valrdataset)) {
+			if (valrdataset->type == dns_rdatatype_cname)
+				vtype = dns_rdatatype_cname;
+			else
+				vtype = dns_rdatatype_dname;
+		}
+		result = valcreate(fctx, addrinfo, name, vtype, valrdataset,
+				   valsigrdataset, valoptions, task);
+	}
 
 	if (result == ISC_R_SUCCESS && have_answer) {
 		fctx->attributes |= FCTX_ATTR_HAVEANSWER;
