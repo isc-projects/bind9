@@ -11764,15 +11764,22 @@ else
 fi
 
 
+python="python python3 python3.4 python3.3 python3.2 python3.1 python3.0 python2 python2.7 python2.6 python2.5 python2.4"
+testscript='try: import argparse
+except: exit(1)'
 case "$use_python" in
 	no)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for python support" >&5
+$as_echo_n "checking for python support... " >&6; }
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
 $as_echo "disabled" >&6; }
 		;;
 	unspec|yes|*)
 		case "$use_python" in
 		unspec|yes|'')
-			for ac_prog in python
+			for p in $python
+			do
+				for ac_prog in $p
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -11817,9 +11824,43 @@ fi
   test -n "$PYTHON" && break
 done
 
+				if test "X$PYTHON" == "X"; then
+					continue;
+				fi
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
+$as_echo_n "checking python module 'argparse'... " >&6; }
+				if ${PYTHON:-false} -c "$testscript"; then
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
+$as_echo "found, using $PYTHON" >&6; }
+					break
+				fi
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+$as_echo "not found" >&6; }
+				unset ac_cv_path_PYTHON
+				unset PYTHON
+			done
+			if test "X$PYTHON" == "X"
+			then
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for python support" >&5
+$as_echo_n "checking for python support... " >&6; }
+				case "$use_python" in
+				unspec)
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
+					;;
+				yes)
+					as_fn_error $? "missing python" "$LINENO" 5
+					;;
+				esac
+			fi
 			;;
 		*)
-			for ac_prog in $use_python
+			case "$use_python" in
+			/*)
+				PYTHON="$use_python"
+				;;
+			*)
+				for ac_prog in $use_python
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -11864,44 +11905,19 @@ fi
   test -n "$PYTHON" && break
 done
 
+				;;
+			esac
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
+$as_echo_n "checking python module 'argparse'... " >&6; }
+			if ${PYTHON:-false} -c "$testscript"; then
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
+$as_echo "found, using $PYTHON" >&6; }
+				break
+			else
+				as_fn_error $? "not found" "$LINENO" 5
+			fi
 			;;
 		esac
-		if test "X$PYTHON" == "X"
-		then
-			case "$use_python" in
-			unspec)
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
-$as_echo "disabled" >&6; }
-				;;
-			yes|*)
-				as_fn_error $? "missing python" "$LINENO" 5
-				;;
-			esac
-			break
-		fi
-		testscript='try: import argparse
-except: exit(1)'
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
-$as_echo_n "checking python module 'argparse'... " >&6; }
-		if $PYTHON -c "$testscript"; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
-$as_echo "found, using $PYTHON" >&6; }
-		else
-			case "$use_python" in
-			unspec)
-				PYTHON=""
-
-
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found, python disabled" >&5
-$as_echo "not found, python disabled" >&6; }
-				;;
-			yes)
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no found" >&5
-$as_echo "no found" >&6; }
-			as_fn_error $? "python 'argparse' module not supported" "$LINENO" 5
-				;;
-			esac
-		fi
 		;;
 esac
 
