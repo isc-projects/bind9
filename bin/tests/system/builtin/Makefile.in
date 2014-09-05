@@ -1,5 +1,4 @@
-# Copyright (C) 2004, 2007, 2008, 2010-2012, 2014  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,33 +12,45 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
+# $Id$
+
+
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
+@BIND9_VERSION@
+
 @BIND9_MAKE_INCLUDES@
 
-SUBDIRS =	builtin dlzexternal filter-aaaa lwresd rpz tkey tsiggss
-TARGETS =
+CINCLUDES =	${ISC_INCLUDES}
+
+CDEFINES =
+CWARNINGS =
+
+DNSLIBS =
+ISCLIBS =
+
+DNSDEPLIBS =
+ISCDEPLIBS =
+
+DEPLIBS =
+
+LIBS =		@LIBS@
+
+TARGETS =	gethostname@EXEEXT@
+
+SRCS =		gethostname.c
+
+OBJS =		gethostname.@O@
 
 @BIND9_MAKE_RULES@
 
-# Running the scripts below is bypassed when a separate
-# build directory is used.
+all: gethostname@EXEEXT@
 
-check: test
+gethostname@EXEEXT@: ${OBJS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS} ${LIBS}
 
-test: subdirs
-	if test -f ./runall.sh; then sh ./runall.sh; fi
+clean distclean::
+	rm -f ${TARGETS}
 
-testclean clean distclean::
-	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
-	rm -f systests.output
-	rm -f random.data
-
-distclean::
-	rm -f conf.sh
-
-installdirs:
-
-install::

@@ -1,6 +1,8 @@
 3945.	[bug]		Invalid wildcard expansions could be incorrectly
 			accepted by the validator. [RT #37093]
 
+3944.	[test]		Added a regression test for "server-id". [RT #37057]
+
 3942.	[bug]		Wildcard responses from a optout range should be
 			marked as insecure. [RT #37072]
 
