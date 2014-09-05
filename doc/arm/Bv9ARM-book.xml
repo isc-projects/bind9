@@ -8672,6 +8672,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      </listitem>
 	    </varlistentry>
 
+	    <varlistentry>
 	      <term><command>servfail-ttl</command></term>
 	      <listitem>
 		<para>

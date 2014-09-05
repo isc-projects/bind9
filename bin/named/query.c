@@ -6127,15 +6127,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 {
 	dns_db_t *db, *zdb;
 	dns_dbnode_t *node;
-	dns_rdatatype_t type;
+	dns_rdatatype_t type = qtype;
 	dns_name_t *fname, *zfname, *tname, *prefix;
 	dns_rdataset_t *rdataset, *trdataset;
 	dns_rdataset_t *sigrdataset, *zrdataset, *zsigrdataset;
 	dns_rdataset_t **sigrdatasetp;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdatasetiter_t *rdsiter;
-	isc_boolean_t want_restart, authoritative, is_zone, need_wildcardproof;
+	isc_boolean_t want_restart, is_zone, need_wildcardproof;
 	isc_boolean_t is_staticstub_zone;
+	isc_boolean_t authoritative = ISC_FALSE;
 	unsigned int n, nlabels;
 	dns_namereln_t namereln;
 	int order;
