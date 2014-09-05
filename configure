@@ -831,6 +831,7 @@ OPENSSLGOSTLINKOBJS
 DST_OPENSSL_INC
 HAVE_SIT
 ISC_PLATFORM_USESIT
+INSTALL_LIBRARY
 ISC_THREAD_DIR
 THREADOPTSRCS
 THREADOPTOBJS
@@ -15336,6 +15337,7 @@ $as_echo "yes" >&6; }
 		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
 		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
 		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
+		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
 		case "$host" in
 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
 		esac
@@ -15357,8 +15359,10 @@ $as_echo "no" >&6; }
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_ALLOW_UNDEFINED=
 		LIBTOOL_IN_MAIN=
+		INSTALL_LIBRARY='${INSTALL_DATA}'
 		;;
 esac
+
 
 #
 # was --enable-native-pkcs11 specified?
