@@ -300,6 +300,7 @@ INSTALL_PROGRAM =	@INSTALL_PROGRAM@
 LINK_PROGRAM =		@LN_S@
 INSTALL_SCRIPT =	@INSTALL_SCRIPT@
 INSTALL_DATA =		@INSTALL_DATA@
+INSTALL_LIBRARY =	@INSTALL_LIBRARY@
 
 ###
 ### Programs used when generating documentation.  It's ok for these
