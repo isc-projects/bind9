@@ -303,16 +303,16 @@ dns_badcache_flush(dns_badcache_t *bc) {
 
 void
 dns_badcache_flushname(dns_badcache_t *bc, dns_name_t *name) {
-	unsigned int i;
 	dns_bcentry_t *bad, *prev, *next;
+	isc_result_t result;
+	isc_time_t now;
+	unsigned int i;
 
 	REQUIRE(VALID_BADCACHE(bc));
 	REQUIRE(name != NULL);
 
 	LOCK(&bc->lock);
 
-	isc_time_t now;
-	isc_result_t result;
 	result = isc_time_now(&now);
 	if (result != ISC_R_SUCCESS)
 		isc_time_settoepoch(&now);
