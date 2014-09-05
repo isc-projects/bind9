@@ -772,8 +772,13 @@
 ./bin/tests/system/autosign/prereq.sh		SH	2009,2010,2012,2014
 ./bin/tests/system/autosign/setup.sh		SH	2009,2010,2012,2014
 ./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011,2012,2013,2014
+./bin/tests/system/builtin/Makefile.in		MAKE	2014
+./bin/tests/system/builtin/clean.sh		SH	2014
+./bin/tests/system/builtin/gethostname.c	C	2014
 ./bin/tests/system/builtin/ns1/named.conf	CONF-C	2011
-./bin/tests/system/builtin/tests.sh		SH	2011,2012
+./bin/tests/system/builtin/ns2/named.conf	CONF-C	2014
+./bin/tests/system/builtin/ns3/named.conf	CONF-C	2014
+./bin/tests/system/builtin/tests.sh		SH	2011,2012,2014
 ./bin/tests/system/cacheclean/clean.sh		SH	2001,2004,2007,2012
 ./bin/tests/system/cacheclean/dig.batch		X	2001
 ./bin/tests/system/cacheclean/knowngood.dig.out	X	2001
@@ -2326,7 +2331,7 @@
 ./lib/.gitignore				X	2012
 ./lib/Atffile					X	2011,2014
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007,2012,2013
-./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2009,2012
+./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2009,2012,2014
 ./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012,2013,2014
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007,2014
@@ -2347,7 +2352,7 @@
 ./lib/bind9/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/dns/.gitignore				X	2012,2013
 ./lib/dns/Atffile				X	2011
-./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008,2012,2013
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2014
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
@@ -3094,7 +3099,7 @@
 ./lib/isc/x86_64/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/x86_64/include/isc/Makefile.in	MAKE	2007,2012
 ./lib/isc/x86_64/include/isc/atomic.h		C	2005,2007,2008
-./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2009,2011,2012
+./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2009,2011,2012,2014
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/api					X	2001,2006,2008,2009,2010,2012,2013,2014
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007,2013
@@ -3129,7 +3134,7 @@
 ./lib/isccc/win32/libisccc.vcxproj.in		X	2013
 ./lib/isccc/win32/libisccc.vcxproj.user		X	2013
 ./lib/isccc/win32/version.c			C	2001,2004,2007
-./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009,2011,2012
+./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009,2011,2012,2014
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014
 ./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012,2013,2014
 ./lib/isccfg/dnsconf.c				C	2009
@@ -3311,7 +3316,7 @@
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2012
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007,2012
 ./make/mkdep.in					X	1999,2000,2001,2006,2011,2014
-./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012
+./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2014
 ./mkinstalldirs					X	1996,2012
 ./unit/.gitignore				X	2012,2014
 ./unit/Makefile.in				MAKE	2011,2012
