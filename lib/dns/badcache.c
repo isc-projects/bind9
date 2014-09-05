@@ -86,7 +86,7 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 	}
 
 	bc->size = bc->minsize = size;
-	memset(bc->table, 0, bc->size * sizeof(dns_bcentry_t *)); 
+	memset(bc->table, 0, bc->size * sizeof(dns_bcentry_t *));
 
 	bc->count = 0;
 	bc->sweep = 0;
