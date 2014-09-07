@@ -600,10 +600,10 @@ serial=`$DIG +short yyyymmddvv.nil. soa @10.53.0.1 -p 5300 | awk '{print $3}'` |
 n=`expr $n + 1`
 echo "I:send many simultaneous updates via a update forwarder ($n)"
 ret=0
-for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+for i in 0 1 2 3 4 5 6 7
 do
 (
-    for j in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+    for j in 0 1 2 3 4 5 6 7
     do
     (
 	$NSUPDATE << EOF
