@@ -620,7 +620,7 @@ done
 wait
 dig axfr many.test @10.53.0.1 -p 5300 > dig.out.test$n
 lines=`awk '$4 == "A" { l++ } END { print l }' dig.out.test$n`
-test ${lines:-0} -eq 289 || ret=1
+test ${lines:-0} -eq 64 || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
 echo "I:exit status: $status"
