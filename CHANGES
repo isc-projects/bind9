@@ -1,3 +1,6 @@
+3948.	[port]		solaris: RCVBUFSIZE was too large on Solaris with
+			--with-tuning=large. [RT #37059]
+
 3947.	[cleanup]	Set the executable bit on libraries when using
 			libtool. [RT #36786]
 

@@ -309,7 +309,11 @@ typedef isc_event_t intev_t;
  * The size to raise the receive buffer to (from BIND 8).
  */
 #ifdef TUNE_LARGE
+#ifdef sun
+#define RCVBUFSIZE (1*1024*1024)
+#else
 #define RCVBUFSIZE (16*1024*1024)
+#endif
 #else
 #define RCVBUFSIZE (32*1024)
 #endif /* TUNE_LARGE */
