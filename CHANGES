@@ -31,7 +31,7 @@
 
 3932.	[test]		Improved named-checkconf tests. [RT #36911]
 
-3931.	[cleanup]	Cleanup how dlz grammer is defined. [RT #36879]
+3931.	[cleanup]	Cleanup how dlz grammar is defined. [RT #36879]
 
 3929.	[bug]		'host -a' needed to clear idnoptions. [RT #36963]
 
@@ -53,7 +53,7 @@
 			retains	DS and (if applicable) NSEC signatures.
 			[RT #36946]
 
-3921.	[bug]		AD was inappopriately set on RPZ responses. [RT #36833]
+3921.	[bug]		AD was inappropriately set on RPZ responses. [RT #36833]
 
 3919.	[bug]		dig: continue to next line if a address lookup fails
 			in batch mode. [RT #36755]
@@ -89,7 +89,7 @@
 3908.	[bug]		rndc now differentiates between a zone in multiple
 			views and a zone that doesn't exist at all. [RT #36691]
 
-3907.	[cleanup]	Alphabetise rndc help. [RT #36683]
+3907.	[cleanup]	Alphabetize rndc help. [RT #36683]
 
 3906.	[protocol]	Update URI record format to comply with
 			draft-faltstrom-uri-08. [RT #36642]
