@@ -70,7 +70,7 @@
 
 3932.	[test]		Improved named-checkconf tests. [RT #36911]
 
-3931.	[cleanup]	Cleanup how dlz grammer is defined. [RT #36879]
+3931.	[cleanup]	Cleanup how dlz grammar is defined. [RT #36879]
 
 3930.	[bug]		"rndc nta -r" could cause a server hang if the
 			NTA was not found. [RT #36909]
@@ -95,7 +95,7 @@
 			retains	DS and (if applicable) NSEC signatures.
 			[RT #36946]
 
-3921.	[bug]		AD was inappopriately set on RPZ responses. [RT #36833]
+3921.	[bug]		AD was inappropriately set on RPZ responses. [RT #36833]
 
 3920.	[doc]		Added doc for masterfile-style. [RT #36823]
 
@@ -136,7 +136,7 @@
 3908.	[bug]		rndc now differentiates between a zone in multiple
 			views and a zone that doesn't exist at all. [RT #36691]
 
-3907.	[cleanup]	Alphabetise rndc help. [RT #36683]
+3907.	[cleanup]	Alphabetize rndc help. [RT #36683]
 
 3906.	[protocol]	Update URI record format to comply with
 			draft-faltstrom-uri-08. [RT #36642]
@@ -212,7 +212,7 @@
 			periodically to see whether data below them can be
 			validated, and if so, they will be allowed to
 			expire early. The "rndc nta -force" option
-			overrides this behvaior.  The default NTA lifetime
+			overrides this behavior.  The default NTA lifetime
 			and the recheck frequency can be configured by the
 			"nta-lifetime" and "nta-recheck" options. [RT #36146]
 
