@@ -44,6 +44,7 @@
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/ds.h>
+#include <dns/edns.h>
 #include <dns/events.h>
 #include <dns/forward.h>
 #include <dns/keytable.h>
@@ -2052,7 +2053,7 @@ resquery_send(resquery_t *query) {
 	 */
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
-			unsigned int version = 0;       /* Default version. */
+			unsigned int version = DNS_EDNS_VERSION;
 			unsigned int flags = query->addrinfo->flags;
 			isc_boolean_t reqnsid = res->view->requestnsid;
 #ifdef ISC_PLATFORM_USESIT
@@ -2099,12 +2100,18 @@ resquery_send(resquery_t *query) {
 				version >>= DNS_FETCHOPT_EDNSVERSIONSHIFT;
 			}
 
-			/* Request NSID/SIT for current view or peer? */
+			/* Request NSID/SIT/VERSION for current peer? */
 			if (peer != NULL) {
+				isc_uint8_t ednsversion;
 				(void) dns_peer_getrequestnsid(peer, &reqnsid);
 #ifdef ISC_PLATFORM_USESIT
 				(void) dns_peer_getrequestsit(peer, &reqsit);
 #endif
+				result = dns_peer_getednsversion(peer,
+								 &ednsversion);
+				if (result == ISC_R_SUCCESS &&
+				    ednsversion < version)
+					version = ednsversion;
 			}
 #ifdef ISC_PLATFORM_USESIT
 			if (NOSIT(query->addrinfo))
@@ -2118,6 +2125,15 @@ resquery_send(resquery_t *query) {
 				ednsopt++;
 			}
 #ifdef ISC_PLATFORM_USESIT
+#if DNS_EDNS_VERSION > 0
+			/*
+			 * Some EDNS(0) servers don't ignore unknown options
+			 * as it was not a explict requirement of RFC 2671.
+			 * Only send SIT to EDNS(1) servers.
+			 */
+			if (version < 1)
+				reqsit = ISC_FALSE;
+#endif
 			if (reqsit) {
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_SIT;
@@ -7630,7 +7646,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		} else if (message->rcode == dns_rcode_badvers) {
 			unsigned int flags, mask;
 			unsigned int version;
-#ifdef ISC_PLATFORM_USESIT
+#if defined(ISC_PLATFORM_USESIT) && DNS_EDNS_VERSION == 0
 			unsigned char sit[64];
 
 			/*
@@ -7665,17 +7681,15 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 						    FCTX_ADDRINFO_EDNSOK);
 			}
 			/*
-			 * Record the supported EDNS version.
+			 * XXXMPA we should really test against the version of
+			 * EDNS we sent in the request.
 			 */
-			switch (version) {
-			case 0:
+			if (version < DNS_EDNS_VERSION) {
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
 						    flags, mask);
-				break;
-			default:
+			} else {
 				broken_server = DNS_R_BADVERS;
 				keep_trying = ISC_TRUE;
-				break;
 			}
 		} else {
 			/*

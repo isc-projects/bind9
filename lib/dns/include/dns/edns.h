@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010, 2011, 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,39 +14,19 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named.conf,v 1.4 2011/03/13 23:47:36 tbox Exp $ */
+#ifndef DNS_EDNS_H
+#define DNS_EDNS_H 1
 
-// NS5
+/*%
+ * The maximum version on EDNS supported by this build.
+ */
+#define DNS_EDNS_VERSION 0
+#ifdef DRAFT_ANDREWS_EDNS1
+#undef DNS_EDNS_VERSION
+/*
+ * Warning: this currently disables sending SIT requests in resolver.c
+ */
+#define DNS_EDNS_VERSION 1 /* draft-andrews-edns1 */
+#endif
 
-controls { /* empty */ };
-
-options {
-	query-source address 10.53.0.5 dscp 7;
-	notify-source 10.53.0.5 dscp 8;
-	transfer-source 10.53.0.5 dscp 9;
-	port 5300;
-	pid-file "named.pid";
-	listen-on { 10.53.0.5; };
-	listen-on-v6 { none; };
-	recursion yes;
-	querylog yes;
-};
-
-server 10.53.0.7 {
-	edns-version 0;
-};
-
-zone "." {
-	type hint;
-	file "root.hint";
-};
-
-zone "moves" {
-	type master;
-	file "moves.db";
-};
-
-zone "child.server" {
-	type master;
-	file "child.server.db";
-};
+#endif

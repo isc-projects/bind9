@@ -41,6 +41,7 @@
 #include <dns/badcache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
+#include <dns/edns.h>
 #include <dns/events.h>
 #include <dns/message.h>
 #include <dns/peer.h>
@@ -1885,7 +1886,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	 * XXXRTH need library support for this!
 	 */
 	client->ednsversion = (opt->ttl & 0x00FF0000) >> 16;
-	if (client->ednsversion > 0) {
+	if (client->ednsversion > DNS_EDNS_VERSION) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_badednsver);
 		result = ns_client_addopt(client, client->message,

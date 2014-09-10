@@ -8265,6 +8265,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	char typename[DNS_RDATATYPE_FORMATSIZE];
 	char classname[DNS_RDATACLASS_FORMATSIZE];
 	char onbuf[ISC_NETADDR_FORMATSIZE];
+	char ednsbuf[sizeof("E(255)")] = { 0 };
 	dns_rdataset_t *rdataset;
 	int level = ISC_LOG_INFO;
 
@@ -8278,11 +8279,14 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	dns_rdatatype_format(rdataset->type, typename, sizeof(typename));
 	isc_netaddr_format(&client->destaddr, onbuf, sizeof(onbuf));
 
+	if (client->ednsversion >= 0)
+		snprintf(ednsbuf, sizeof(ednsbuf), "E(%d)",
+			 client->ednsversion);
+
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY,
 		      level, "query: %s %s %s %s%s%s%s%s%s (%s)", namebuf,
 		      classname, typename, WANTRECURSION(client) ? "+" : "-",
-		      (client->signer != NULL) ? "S" : "",
-		      (client->ednsversion >= 0) ? "E" : "",
+		      (client->signer != NULL) ? "S" : "", ednsbuf,
 		      ((client->attributes & NS_CLIENTATTR_TCP) != 0) ?
 				 "T" : "",
 		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",

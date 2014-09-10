@@ -48,6 +48,7 @@
 #define TRANSFER_DSCP_BIT               11
 #define QUERY_DSCP_BIT                 	12
 #define REQUEST_EXPIRE_BIT              13
+#define EDNS_VERSION_BIT	        14
 
 static void
 peerlist_delete(dns_peerlist_t **list);
@@ -837,4 +838,26 @@ dns_peer_getquerydscp(dns_peer_t *peer, isc_dscp_t *dscpp) {
 		return (ISC_R_SUCCESS);
 	}
 	return (ISC_R_NOTFOUND);
+}
+
+isc_result_t
+dns_peer_setednsversion(dns_peer_t *peer, isc_uint8_t ednsversion) {
+	REQUIRE(DNS_PEER_VALID(peer));
+
+	peer->ednsversion = ednsversion;
+	DNS_BIT_SET(EDNS_VERSION_BIT, &peer->bitflags);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_getednsversion(dns_peer_t *peer, isc_uint8_t *ednsversion) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(ednsversion != NULL);
+
+	if (DNS_BIT_CHECK(EDNS_VERSION_BIT, &peer->bitflags)) {
+		*ednsversion = peer->ednsversion;
+		return (ISC_R_SUCCESS);
+	} else
+		return (ISC_R_NOTFOUND);
 }

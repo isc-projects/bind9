@@ -1226,6 +1226,15 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 
 	obj = NULL;
+	(void)cfg_map_get(cpeer, "edns-version", &obj);
+	if (obj != NULL) {
+		isc_uint32_t ednsversion = cfg_obj_asuint32(obj);
+		if (ednsversion > 255)
+			ednsversion = 255;
+		CHECK(dns_peer_setednsversion(peer, (isc_uint8_t)ednsversion));
+	}
+
+	obj = NULL;
 	(void)cfg_map_get(cpeer, "max-udp-size", &obj);
 	if (obj != NULL) {
 		isc_uint32_t udpsize = cfg_obj_asuint32(obj);

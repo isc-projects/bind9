@@ -10433,6 +10433,7 @@ rate-limit {
     <optional> request-sit <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns-udp-size <replaceable>number</replaceable> ; </optional>
+    <optional> edns-version <replaceable>number</replaceable> ; </optional>
     <optional> nosit-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> max-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> transfers <replaceable>number</replaceable> ; </optional>
@@ -10553,23 +10554,40 @@ rate-limit {
 	  </para>
 
 	  <para>
-	    The <command>edns-udp-size</command> option sets the EDNS UDP size
-	    that is advertised by <command>named</command> when querying the remote server.
-	    Valid values are 512 to 4096 bytes (values outside this range will be
-	    silently adjusted to the nearest value within it).  This option is
-	    useful when you wish to
-	    advertises a different value to this server than the value you
-	    advertise globally, for example, when there is a firewall at the
-	    remote site that is blocking large replies.
+	    The <command>edns-udp-size</command> option sets the
+	    EDNS UDP size that is advertised by <command>named</command>
+	    when querying the remote server.  Valid values are 512
+	    to 4096 bytes (values outside this range will be silently
+	    adjusted to the nearest value within it).  This option
+	    is useful when you wish to advertise a different value
+	    to this server than the value you advertise globally,
+	    for example, when there is a firewall at the remote
+	    site that is blocking large replies.
+	  </para>
+
+	  <para>
+	    The <command>edns-version</command> option sets the
+	    maximum EDNS VERSION that will be sent to the server(s)
+	    by the resolver.  The actual EDNS version sent is still
+	    subject to normal EDNS version negotiation rules (see
+	    RFC 6891), the maximum EDNS version supported by the
+	    server, and any other heuristics that indicate that a
+	    lower version should be sent.  This option is intended
+	    to be used when a remote server reacts badly to a given
+	    EDNS version or higher; it should be set to the highest
+	    version the remote server is known to support.  Valid
+	    values are 0 to 255; higher values will be silently
+	    adjusted.  This option will not be needed until higher
+	    EDNS versions than 0 are in use.
 	  </para>
 
 	  <para>
 	    The <command>max-udp-size</command> option sets the
-	    maximum EDNS UDP message size <command>named</command> will send.  Valid
-	    values are 512 to 4096 bytes (values outside this range will
-	    be silently adjusted).  This option is useful when you
-	    know that there is a firewall that is blocking large
-	    replies from <command>named</command>.
+	    maximum EDNS UDP message size <command>named</command>
+	    will send.  Valid values are 512 to 4096 bytes (values
+	    outside this range will be silently adjusted).  This
+	    option is useful when you know that there is a firewall
+	    that is blocking large replies from <command>named</command>.
 	  </para>
 
 	  <para>

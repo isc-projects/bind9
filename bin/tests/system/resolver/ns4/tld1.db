@@ -28,3 +28,8 @@ $TTL 5
 to-be-removed 		NS	ns.to-be-removed
 ns.to-be-removed	A	10.53.0.6
 fetch	10		TXT	A short ttl
+no-edns-version.tld.	NS	ns.no-edns-version.tld.
+ns.no-edns-version.tld.	A	10.53.0.6
+edns-version.tld.	NS	ns.edns-version.tld.
+ns.edns-version.tld.	A	10.53.0.7
+

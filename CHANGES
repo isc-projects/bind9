@@ -1,3 +1,10 @@
+3949.	[experimental]	Experimental support for draft-andrews-edns1 by sending
+			EDNS(1) queries (define DRAFT_ANDREWS_EDNS1 when
+			building).  Add support for limiting the EDNS version
+			advertised to servers: server { edns-version 0; };
+			Log the EDNS version received in the query log.
+			[RT #35864]
+
 3948.	[port]		solaris: RCVBUFSIZE was too large on Solaris with
 			--with-tuning=large. [RT #37059]
 
