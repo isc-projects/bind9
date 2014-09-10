@@ -4871,6 +4871,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> max-ncache-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-cache-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-zone-ttl <replaceable>number</replaceable> ; </optional>
+    <optional> servfail-ttl <replaceable>number</replaceable>; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> <optional><replaceable>number</replaceable></optional> ; </optional>
     <optional> sig-signing-nodes <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-signatures <replaceable>number</replaceable> ; </optional>
