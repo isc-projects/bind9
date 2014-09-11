@@ -56,6 +56,19 @@ BIND 9.11.0
 	BIND 9.11.0 includes a number of changes from BIND 9.10 and earlier
 	releases.  New features include:
 
+	- SERVFAIL responses can now be cached for a limited time
+	  (defaulting to 10 seconds, with an upper limit of 30).
+	  This can reduce the frequency of retries when a query is
+	  persistently failing.
+	- The new "rndc nta" command can be used to set a "negative
+	  trust anchor", disabling DNSSEC validation for a specific
+	  domain; this can be used when responses from a domain are
+	  known to be failing validation due to administrative error
+	  rather than because of a spoofing attack. Negative trust
+	  anchors are strictly temporary; by default they expire after
+	  one hour, but can be configured to last up to one week.
+	- Update forwarding performance has been improved by allowing
+	  a single TCP connection to be shared by multiple updates.
 	- The EDNS Client Subnet (ECS) option is now supported for
 	  authoritative servers; if a query contains an ECS option
 	  then ACLs containing "geoip" or "ecs" elements can match
