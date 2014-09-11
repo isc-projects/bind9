@@ -7682,9 +7682,21 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			}
 			/*
 			 * XXXMPA we should really test against the version of
-			 * EDNS we sent in the request.
+			 * EDNS we sent in the request.  Some servers return
+			 * BADVERS for unknown EDNS options.
+			 * RFC 2671 was not clear that they should be ignored.
+			 * RFC 6891 is clear that that they should be ignored.
+			 * If we are supporting EDNS > 0 then perform strict
+			 * version checking of badvers responses.  We won't
+			 * be sending SIT etc. in that case.
 			 */
-			if (version < DNS_EDNS_VERSION) {
+#if DNS_EDNS_VERSION == 0
+			 /* Avoids a compiler warning with < 0 */
+			if (version <= DNS_EDNS_VERSION)
+#else
+			if (version < DNS_EDNS_VERSION)
+#endif
+			{
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
 						    flags, mask);
 			} else {
