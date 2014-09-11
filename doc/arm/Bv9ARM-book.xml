@@ -4939,8 +4939,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> prefetch <replaceable>number</replaceable> <optional><replaceable>number</replaceable></optional> ; </optional>
 
     <optional> rate-limit {
-	<optional> domain <replaceable>domain</replaceable> ; </optional>
-	<optional> responses-per-second <optional>size <replaceable>number</replaceable></optional> <optional>ratio <replaceable>fixedpoint</replaceable></optional> <replaceable>number</replaceable> ; </optional>
+	<optional> responses-per-second <replaceable>number</replaceable> ; </optional>
 	<optional> referrals-per-second <replaceable>number</replaceable> ; </optional>
 	<optional> nodata-per-second <replaceable>number</replaceable> ; </optional>
 	<optional> nxdomains-per-second <replaceable>number</replaceable> ; </optional>
@@ -10153,20 +10152,18 @@ example.com                 CNAME   rpz-tcp-only.
 	  <para>
 	    All non-empty responses for a valid domain name (qname)
 	    and record type (qtype) are identical and have a limit specified
-	    by the base <command>responses-per-second</command> option
-	    (that is, <command>responses-per-second</command> with only a
-	    single argument and no additional modifiers).
-	    The default is 0, which indicates that there should be no limit.
+	    with <command>responses-per-second</command>
+	    (default 0 or no limit).
 	    All empty (NODATA) responses for a valid domain,
 	    regardless of query type, are identical.
 	    Responses in the NODATA class are limited by
 	    <command>nodata-per-second</command>
-	    (default base <command>responses-per-second</command>).
+	    (default <command>responses-per-second</command>).
 	    Requests for any and all undefined subdomains of a given
 	    valid domain result in NXDOMAIN errors, and are identical
 	    regardless of query type.
 	    They are limited by <command>nxdomains-per-second</command>
-	    (default base <command>responses-per-second</command>).
+	    (default <command>responses-per-second</command>).
 	    This controls some attacks using random names, but
 	    can be relaxed or turned off (set to 0)
 	    on servers that expect many legitimate
@@ -10174,7 +10171,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    Referrals or delegations to the server of a given
 	    domain are identical and are limited by
 	    <command>referrals-per-second</command>
-	    (default base <command>responses-per-second</command>).
+	    (default <command>responses-per-second</command>).
 	  </para>
 
 	  <para>
@@ -10190,76 +10187,11 @@ example.com                 CNAME   rpz-tcp-only.
 	    This controls attacks using invalid requests or distant,
 	    broken authoritative servers.
 	    By default the limit on errors is the same as the
-	    default base <command>responses-per-second</command> value,
+	    <command>responses-per-second</command> value,
 	    but it can be set separately with
 	    <command>errors-per-second</command>.
 	  </para>
 
-	  <para>
-	    In addition to the base 
-	    <command>responses-per-second</command> value,
-	    up to four (4) additional
-	    <command>responses-per-second</command> options can be
-	    configured, with additional parameters to indicate that
-	    they apply to responses larger than a given size,
-	    or with an amplification factor larger than a given
-	    value.
-	    The <command>size</command> parameter sets the minimum
-	    DNS response size that will trigger the use of this 
-	    <command>responses-per-second</command> option.
-	    The <command>ratio</command> parameter sets the minimum
-	    DNS response-size / request-size ratio that falls into the
-	    band, to two decimal places.
-	    These selective rate limits are applied after any other
-	    rate limits have been applied, and they only apply to
-	    positive answers. For example:
-	  </para>
-<programlisting>
-rate-limit {
-  responses-per-second 10;
-  responses-per-second size 1100 5;
-};
-</programlisting>
-	  <para>
-	    ...indicates that responses should be limited to ten per second
-	    for responses up to 1099 bytes in size, but only five per second
-	    for responses larger than that. This configuration:
-	  </para>
-<programlisting>
-rate-limit {
-  responses-per-second 10;
-  responses-per-second ratio 7.25 5;
-  responses-per-second ratio 15.00 2;
-};
-</programlisting>
-	  <para>
-	    ...indicates that responses should be limited to ten per
-	    second if the amplification factor is below 7.25, five per
-	    second if above 7.25 but below 15, and two per second if
-	    above 15.
-	  </para>
-	  <para>
-	    Both sizes and ratios can be used together. For example:
-	  </para>
-<programlisting>
-rate-limit {
-  responses-per-second 10;
-  responses-per-second size 1000 ratio 5.00 5;
-  responses-per-second ratio 10.00 2;
-};
-</programlisting>
-	  <para>
-	    This configuration will rate-limit to five per second if
-	    the ratio is over 5 <emphasis>or</emphasis> the size is over
-	    1000, and to two per second if the ratio is over 10. In the
-	    event that two bands might be chosen (i.e., because the size
-	    is over 1000 <emphasis>and</emphasis> the ratio is over 10),
-	    the one that appears last in the configuration file is the
-	    one chosen.  To eliminate any ambiguity, it is recommended
-	    that under normal circumstances, rate limiting bands should
-	    be configured using either <command>size</command> or
-	    <command>ratio</command> parameters, but not both.
-	  </para>
 	  <para>
 	    Many attacks using DNS involve UDP requests with forged source
 	    addresses.
