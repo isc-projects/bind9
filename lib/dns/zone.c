@@ -2639,8 +2639,8 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 
  checkspf:
 		/*
-		 * Check if there is a type TXT spf record without a type SPF
-		 * RRset being present.
+		 * Check if there is a type SPF record without an
+		 * SPF-formatted type TXT record also being present.
 		 */
 		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKSPF))
 			goto next;
