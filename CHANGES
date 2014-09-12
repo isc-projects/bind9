@@ -1,3 +1,6 @@
+3950.	[port]		Changed the bin/python Makefile to work around a
+			bmake bug in FreeBSD 10 and NetBSD 6. [RT #36993]
+
 3949.	[experimental]	Experimental support for draft-andrews-edns1 by sending
 			EDNS(1) queries (define DRAFT_ANDREWS_EDNS1 when
 			building).  Add support for limiting the EDNS version
