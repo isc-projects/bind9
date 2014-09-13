@@ -1,3 +1,6 @@
+3951.	[func]		Add the ability to set yet-to-be-defined EDNS flags
+			to dig (+ednsflags=#). [RT #37142]
+
 3950.	[port]		Changed the bin/python Makefile to work around a
 			bmake bug in FreeBSD 10 and NetBSD 6. [RT #36993]
 

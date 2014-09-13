@@ -579,6 +579,18 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]ednsflags[=#]</option></term>
+	  <listitem>
+	    <para>
+	      Set the must-be-zero EDNS flags bits (Z bits) to the
+	      specified value. Decimal, hex and octal encodings are
+	      accepted. Setting a named flag (e.g. DO) will silently be
+	      ignored. By default, no Z bits are set.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]ednsopt[=code[:value]]</option></term>
 	  <listitem>
 	    <para>

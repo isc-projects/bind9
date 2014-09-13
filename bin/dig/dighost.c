@@ -782,6 +782,7 @@ make_empty_lookup(void) {
 	looknew->servfail_stops = ISC_TRUE;
 	looknew->besteffort = ISC_TRUE;
 	looknew->dnssec = ISC_FALSE;
+	looknew->ednsflags = 0;
 	looknew->expire = ISC_FALSE;
 	looknew->nsid = ISC_FALSE;
 #ifdef ISC_PLATFORM_USESIT
@@ -876,6 +877,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->servfail_stops = lookold->servfail_stops;
 	looknew->besteffort = lookold->besteffort;
 	looknew->dnssec = lookold->dnssec;
+	looknew->ednsflags = lookold->ednsflags;
 	looknew->expire = lookold->expire;
 	looknew->nsid = lookold->nsid;
 #ifdef ISC_PLATFORM_USESIT
@@ -1012,11 +1014,11 @@ setup_text_key(void) {
 	isc_buffer_free(&namebuf);
 }
 
-isc_result_t
-parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
-	   const char *desc) {
+static isc_result_t
+parse_uint_helper(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+		  const char *desc, int base) {
 	isc_uint32_t n;
-	isc_result_t result = isc_parse_uint32(&n, value, 10);
+	isc_result_t result = isc_parse_uint32(&n, value, base);
 	if (result == ISC_R_SUCCESS && n > max)
 		result = ISC_R_RANGE;
 	if (result != ISC_R_SUCCESS) {
@@ -1026,6 +1028,18 @@ parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
 	}
 	*uip = n;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+	   const char *desc) {
+	return (parse_uint_helper(uip, value, max, desc, 10));
+}
+
+isc_result_t
+parse_xint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+	   const char *desc) {
+	return (parse_uint_helper(uip, value, max, desc, 0));
 }
 
 static isc_uint32_t
@@ -1549,15 +1563,12 @@ save_opt(dig_lookup_t *lookup, char *code, char *value) {
  */
 static void
 add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
-	isc_boolean_t dnssec, dns_ednsopt_t *ednsopts, size_t count)
+	unsigned int flags, dns_ednsopt_t *ednsopts, size_t count)
 {
 	dns_rdataset_t *rdataset = NULL;
 	isc_result_t result;
-	unsigned int flags = 0;
 
 	debug("add_opt()");
-	if (dnssec)
-		flags |= DNS_MESSAGEEXTFLAG_DO;
 	result = dns_message_buildopt(msg, &rdataset, edns, udpsize, flags,
 				      ednsopts, count);
 	check_result(result, "dns_message_buildopt");
@@ -2451,6 +2462,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	    lookup->edns > -1 || lookup->ecs_addr != NULL)
 	{
 		dns_ednsopt_t opts[EDNSOPTS + DNS_EDNSOPTIONS];
+		unsigned int flags;
 		int i = 0;
 
 		if (lookup->udpsize == 0)
@@ -2543,8 +2555,12 @@ setup_lookup(dig_lookup_t *lookup) {
 			i += lookup->ednsoptscnt;
 		}
 
+		flags = lookup->ednsflags;
+		flags &= ~DNS_MESSAGEEXTFLAG_DO;
+		if (lookup->dnssec)
+			flags |= DNS_MESSAGEEXTFLAG_DO;
 		add_opt(lookup->sendmsg, lookup->udpsize,
-			lookup->edns, lookup->dnssec, opts, i);
+			lookup->edns, flags, opts, i);
 	}
 
 	result = dns_message_rendersection(lookup->sendmsg,
