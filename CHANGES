@@ -161,6 +161,9 @@
 			during operation. If the read failed, named
 			could segfault. [RT #38559]
 
+3951.	[func]		Add the ability to set yet-to-be-defined EDNS flags
+			to dig (+ednsflags=#). [RT #37142]
+
 3937.	[func]		Added some debug logging to better indicate the
 			conditions causing SERVFAILs when resolving.
 			[RT #35538]

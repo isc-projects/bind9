@@ -193,6 +193,7 @@ isc_boolean_t	sigchase;
 #endif
 	dns_ednsopt_t *ednsopts;
 	unsigned int ednsoptscnt;
+	unsigned int ednsflags;
 	dns_opcode_t opcode;
 };
 
@@ -345,6 +346,10 @@ setup_system(void);
 
 isc_result_t
 parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+	   const char *desc);
+
+isc_result_t
+parse_xint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
 	   const char *desc);
 
 isc_result_t
