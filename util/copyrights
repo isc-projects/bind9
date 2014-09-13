@@ -1219,6 +1219,10 @@
 ./bin/tests/system/ecdsa/prereq.sh		SH	2012,2014
 ./bin/tests/system/ecdsa/setup.sh		SH	2012,2014
 ./bin/tests/system/ecdsa/tests.sh		SH	2012,2013
+./bin/tests/system/ednscompliance/clean.sh	SH	2014
+./bin/tests/system/ednscompliance/ns1/named.conf	CONF-C	2014
+./bin/tests/system/ednscompliance/ns1/root.db	ZONE	2014
+./bin/tests/system/ednscompliance/tests.sh	SH	2014
 ./bin/tests/system/emptyzones/clean.sh		SH	2014
 ./bin/tests/system/emptyzones/ns1/empty.db	ZONE	2014
 ./bin/tests/system/emptyzones/ns1/named1.conf	CONF-C	2014
