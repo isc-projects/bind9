@@ -23,7 +23,7 @@ top_srcdir =	@top_srcdir@
 PYTHON	=	@PYTHON@
 
 TARGETS =	dnssec-checkds dnssec-coverage
-SRCS =		dnssec-checkds.py dnssec-coverage.py
+PYSRCS =	dnssec-checkds.py dnssec-coverage.py
 
 MANPAGES =	dnssec-checkds.8 dnssec-coverage.8
 HTMLPAGES =	dnssec-checkds.html dnssec-coverage.html
