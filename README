@@ -93,6 +93,8 @@ BIND 9.11.0
 	- "dnssec-signzone -N date" sets the serial number to YYYYMMDDNN.
 	- "named -L <filename>" causes named to send log messages to
 	   the specified file by default instead of to the system log.
+	- dig can now set arbitary EDNS options on requests (+ednsopt).
+	- dig can now set yet-to-be-defined EDNS flags on requests (+ednsflags).
 
 	This release addresses the security flaw described in
 	CVE-2014-3214 and CVE-2014-3859.
