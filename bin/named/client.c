@@ -1787,7 +1787,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	isc_netaddr_t caddr;
 	int i;
 
-	if (optlen < 4) {
+	if (optlen < 4U) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
 			      "EDNS client subnet option too short");
