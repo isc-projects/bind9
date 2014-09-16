@@ -1,3 +1,5 @@
+	--- 9.9.6 released ---
+
 3950.	[port]		Changed the bin/python Makefile to work around a
 			bmake bug in FreeBSD 10 and NetBSD 6. [RT #36993]
 
