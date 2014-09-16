@@ -1724,10 +1724,12 @@ Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
 
 Professional support for BIND is provided by Internet Systems Consortium,
-Inc., doing business as DNSco.  Information about paid support options is
-available at http://www.dns-co.com/solutions/.  Free support is provided by
-our user community via a mailing list.  Information on public email lists
-is available at https://www.isc.org/community/mailing-list/.
+Inc.  Information about paid support and training options is available at
+https://www.isc.org/support.
+
+Help can also often be found on the BIND Users mailing list
+(https://lists.isc.org/mailman/listinfo/bind-users) or in the #bind
+channel of the Freenode IRC service.
 
 Report bugs to <bind9-bugs@isc.org>.
 BIND home page: <https://www.isc.org/downloads/BIND/>.
