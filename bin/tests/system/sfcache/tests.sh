@@ -29,7 +29,7 @@ ret=0
 $DIG $DIGOPTS +dnssec foo.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
 $RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 dumpdb -all 2>&1 | sed 's/^/I:ns5 /'
 for i in 1 2 3 4 5 6 7 8 9 10; do
-    awk '/Zone/{out=0} out; /SERVFAIL/{out=1}' ns5/named_dump.db > sfcache.$n
+    awk '/Zone/{out=0} { if (out) print } /SERVFAIL/{out=1}' ns5/named_dump.db > sfcache.$n
     [ -s "sfcache.$n" ] && break
     sleep 1
 done
@@ -57,13 +57,13 @@ status=`expr $status + $ret`
 echo "I:disabling server to force non-dnssec SERVFAIL"
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stop 2>&1 | sed 's/^/I:ns2 /'
 
-awk '/SERVFAIL/ { next; out=1 } /Zone/ { out=0 } out { print }' ns5/named_dump.db
+awk '/SERVFAIL/ { next; out=1 } /Zone/ { out=0 } { if (out) print }' ns5/named_dump.db
 echo "I:checking SERVFAIL is cached ($n)"
 ret=0
 $DIG $DIGOPTS bar.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
 $RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 dumpdb -all 2>&1 | sed 's/^/I:ns5 /'
 for i in 1 2 3 4 5 6 7 8 9 10; do
-    awk '/Zone/{out=0} out; /SERVFAIL/{out=1}' ns5/named_dump.db > sfcache.$n
+    awk '/Zone/{out=0} { if (out) print } /SERVFAIL/{out=1}' ns5/named_dump.db > sfcache.$n
     [ -s "sfcache.$n" ] && break
     sleep 1
 done
