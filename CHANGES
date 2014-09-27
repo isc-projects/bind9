@@ -1,3 +1,6 @@
+3952.	[bug]		dns_name_fullcompare failed to set *nlabelsp when the
+			two name pointers were the same. [RT #37176]
+
 	--- 9.8.8 released ---
 
 	--- 9.8.8rc2 released ---

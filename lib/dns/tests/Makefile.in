@@ -42,6 +42,7 @@ SRCS =		db_test.c \
 		dbversion_test.c \
 		dnstest.c \
 		master_test.c \
+		name_test.c \
 		nsec3_test.c \
 		rdata_test.c \
 		rdataset_test.c \
@@ -53,6 +54,7 @@ TARGETS =	db_test@EXEEXT@ \
 		dbiterator_test@EXEEXT@ \
 		dbversion_test@EXEEXT@ \
 		master_test@EXEEXT@ \
+		name_test@EXEEXT@ \
 		nsec3_test@EXEEXT@ \
 		rdata_test@EXEEXT@ \
 		rdataset_test@EXEEXT@ \
@@ -84,6 +86,11 @@ dbiterator_test@EXEEXT@: dbiterator_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPL
 dbversion_test@EXEEXT@: dbversion_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			dbversion_test.@O@ dnstest.@O@ ${DNSLIBS} \
+				${ISCLIBS} ${LIBS}
+
+name_test@EXEEXT@: name_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			name_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
 
 nsec3_test@EXEEXT@: nsec3_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
