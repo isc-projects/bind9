@@ -1,3 +1,5 @@
+3954.	[bug]		Unchecked mutex init in dlz_dlopen_driver.c [RT #37112]
+
 3953.	[bug]		Don't escape semi-colon in TXT fields. [RT #37159]
 
 3952.	[bug]		dns_name_fullcompare failed to set *nlabelsp when the
