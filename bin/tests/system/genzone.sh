@@ -119,6 +119,9 @@ txt09			TXT	foo\010bar
 txt10			TXT	foo\ bar
 txt11			TXT	"\"foo\""
 txt12			TXT	\"foo\"
+txt13			TXT	"foo;"
+txt14			TXT	"foo\;"
+txt15			TXT	"bar\\;"
 
 ; type 17
 rp01			RP	mbox-dname txt-dname
