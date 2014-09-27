@@ -1,3 +1,5 @@
+3953.	[bug]		Don't escape semi-colon in TXT fields. [RT #37159]
+
 3952.	[bug]		dns_name_fullcompare failed to set *nlabelsp when the
 			two name pointers were the same. [RT #37176]
 
