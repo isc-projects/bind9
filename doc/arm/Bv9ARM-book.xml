@@ -4957,15 +4957,15 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     } ; </optional>
     <optional> response-policy {
 	zone <replaceable>zone_name</replaceable> ;
-	<optional> policy <replaceable>given | disabled | passthru | drop | tcp-only | nxdomain | nodata | cname</replaceable> <replaceable>domain</replaceable> ; </optional>
-	<optional> recursive-only <replaceable>yes_or_no</replaceable> ; </optional>
-	<optional> max-policy-ttl <replaceable>number</replaceable> ; </optional> ;
-	<optional> recursive-only <replaceable>yes_or_no</replaceable> ; </optional>
-	<optional> max-policy-ttl <replaceable>number</replaceable> ; </optional>
-	<optional> break-dnssec <replaceable>yes_or_no</replaceable> ; </optional>
-	<optional> min-ns-dots <replaceable>number</replaceable> ; </optional>
-	<optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> ; </optional>
-    } ; </optional>
+	<optional> policy <replaceable>given | disabled | passthru | drop | tcp-only | nxdomain | nodata | cname</replaceable> <replaceable>domain</replaceable> </optional>
+	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional>
+	<optional> max-policy-ttl <replaceable>number</replaceable> </optional> ;
+	}
+	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional>
+	<optional> max-policy-ttl <replaceable>number</replaceable> </optional>
+	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional>
+	<optional> min-ns-dots <replaceable>number</replaceable> </optional>
+	<optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> </optional> ; </optional>
 };
 </programlisting>
 
