@@ -2422,15 +2422,15 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     } ; </span>]
     [<span class="optional"> response-policy {
         zone <em class="replaceable"><code>zone_name</code></em> ;
-        [<span class="optional"> policy <em class="replaceable"><code>given | disabled | passthru | drop | tcp-only | nxdomain | nodata | cname</code></em> <em class="replaceable"><code>domain</code></em> ; </span>]
-        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-        [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> ; </span>] ;
-        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-        [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> break-dnssec <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-        [<span class="optional"> min-ns-dots <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> qname-wait-recurse <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    } ; </span>]
+        [<span class="optional"> policy <em class="replaceable"><code>given | disabled | passthru | drop | tcp-only | nxdomain | nodata | cname</code></em> <em class="replaceable"><code>domain</code></em> </span>]
+        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> </span>]
+        [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> </span>] ;
+        }
+        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> </span>]
+        [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> </span>]
+        [<span class="optional"> break-dnssec <em class="replaceable"><code>yes_or_no</code></em> </span>]
+        [<span class="optional"> min-ns-dots <em class="replaceable"><code>number</code></em> </span>]
+        [<span class="optional"> qname-wait-recurse <em class="replaceable"><code>yes_or_no</code></em> </span>] ; </span>]
 };
 </pre>
 </div>
@@ -4152,7 +4152,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2584470"></a>Dual-stack Servers</h4></div></div></div>
+<a name="id2584402"></a>Dual-stack Servers</h4></div></div></div>
 <p>
             Dual-stack servers are used as servers of last resort to work
             around
@@ -11504,7 +11504,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2604546"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2604477"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -11658,7 +11658,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2604997"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2604929"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
