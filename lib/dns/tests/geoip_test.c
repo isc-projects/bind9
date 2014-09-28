@@ -34,7 +34,7 @@
 #include <GeoIP.h>
 
 /* We use GeoIP databases from the 'geoip' system test */
-#define GEOIP_DATA "../../../bin/tests/system/geoip/data"
+#define TEST_GEOIP_DATA "../../../bin/tests/system/geoip/data"
 
 /*
  * Helper functions
@@ -203,7 +203,7 @@ ATF_TC_BODY(country, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.country_v4 == NULL) {
 		dns_test_end();
@@ -239,7 +239,7 @@ ATF_TC_BODY(country_v6, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.country_v6 == NULL) {
 		dns_test_end();
@@ -276,7 +276,7 @@ ATF_TC_BODY(city, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.city_v4 == NULL) {
 		dns_test_end();
@@ -339,7 +339,7 @@ ATF_TC_BODY(city_v6, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.city_v6 == NULL) {
 		dns_test_end();
@@ -398,7 +398,7 @@ ATF_TC_BODY(region, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.region == NULL) {
 		dns_test_end();
@@ -440,7 +440,7 @@ ATF_TC_BODY(best, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.region == NULL) {
 		dns_test_end();
@@ -520,7 +520,7 @@ ATF_TC_BODY(asnum, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.as == NULL) {
 		dns_test_end();
@@ -550,7 +550,7 @@ ATF_TC_BODY(isp, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.isp == NULL) {
 		dns_test_end();
@@ -579,7 +579,7 @@ ATF_TC_BODY(org, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.org == NULL) {
 		dns_test_end();
@@ -608,7 +608,7 @@ ATF_TC_BODY(domain, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.domain == NULL) {
 		dns_test_end();
@@ -637,7 +637,7 @@ ATF_TC_BODY(netspeed, tc) {
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
-	load_geoip(GEOIP_DATA);
+	load_geoip(TEST_GEOIP_DATA);
 
 	if (geoip.netspeed == NULL) {
 		dns_test_end();
