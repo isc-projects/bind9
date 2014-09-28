@@ -94,14 +94,14 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2665936">Prerequisites</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2665945">Native PKCS#11</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2611208">OpenSSL-based PKCS#11</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2638317">PKCS#11 Tools</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2638354">Using the HSM</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2638640">Specifying the engine on the command line</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2638756">Running named with automatic zone re-signing</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2638249">PKCS#11 Tools</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2638285">Using the HSM</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2638571">Specifying the engine on the command line</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2638688">Running named with automatic zone re-signing</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#dlz-info">DLZ (Dynamically Loadable Zones)</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2638820">Configuring DLZ</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2638752">Configuring DLZ</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2610768">Sample DLZ Driver</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2571588">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
@@ -1730,7 +1730,7 @@ $ <strong class="userinput"><code>./Configure linux-x86_64 -pthread \
     </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2638132"></a>Configuring BIND 9 for Linux with the AEP Keyper</h4></div></div></div>
+<a name="id2638064"></a>Configuring BIND 9 for Linux with the AEP Keyper</h4></div></div></div>
 <p>
         To link with the PKCS#11 provider, threads must be
         enabled in the BIND 9 build.
@@ -1750,7 +1750,7 @@ $ <strong class="userinput"><code>./configure CC="gcc -m32" --enable-threads \
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2638164"></a>Configuring BIND 9 for Solaris with the SCA 6000</h4></div></div></div>
+<a name="id2638096"></a>Configuring BIND 9 for Solaris with the SCA 6000</h4></div></div></div>
 <p>
         To link with the PKCS#11 provider, threads must be
         enabled in the BIND 9 build.
@@ -1772,7 +1772,7 @@ $ <strong class="userinput"><code>./configure CC="cc -xarch=amd64" --enable-thre
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2638268"></a>Configuring BIND 9 for SoftHSM</h4></div></div></div>
+<a name="id2638200"></a>Configuring BIND 9 for SoftHSM</h4></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>cd ../bind9</code></strong>
 $ <strong class="userinput"><code>./configure --enable-threads \
@@ -1793,7 +1793,7 @@ $ <strong class="userinput"><code>./configure --enable-threads \
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2638317"></a>PKCS#11 Tools</h3></div></div></div>
+<a name="id2638249"></a>PKCS#11 Tools</h3></div></div></div>
 <p>
       BIND 9 includes a minimal set of tools to operate the
       HSM, including 
@@ -1816,7 +1816,7 @@ $ <strong class="userinput"><code>./configure --enable-threads \
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2638354"></a>Using the HSM</h3></div></div></div>
+<a name="id2638285"></a>Using the HSM</h3></div></div></div>
 <p>
       For OpenSSL-based PKCS#11, we must first set up the runtime
       environment so the OpenSSL and PKCS#11 libraries can be loaded:
@@ -1937,7 +1937,7 @@ example.net.signed
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2638640"></a>Specifying the engine on the command line</h3></div></div></div>
+<a name="id2638571"></a>Specifying the engine on the command line</h3></div></div></div>
 <p>
       When using OpenSSL-based PKCS#11, the "engine" to be used by
       OpenSSL can be specified in <span><strong class="command">named</strong></span> and all of
@@ -1969,7 +1969,7 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2638756"></a>Running named with automatic zone re-signing</h3></div></div></div>
+<a name="id2638688"></a>Running named with automatic zone re-signing</h3></div></div></div>
 <p>
       If you want <span><strong class="command">named</strong></span> to dynamically re-sign zones
       using HSM keys, and/or to to sign new records inserted via nsupdate,
@@ -2056,7 +2056,7 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
   </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2638820"></a>Configuring DLZ</h3></div></div></div>
+<a name="id2638752"></a>Configuring DLZ</h3></div></div></div>
 <p>
       A DLZ database is configured with a <span><strong class="command">dlz</strong></span>
       statement in <code class="filename">named.conf</code>:

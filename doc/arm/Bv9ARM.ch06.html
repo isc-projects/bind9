@@ -78,19 +78,19 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and
             Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#statschannels"><span><strong class="command">statistics-channels</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591660"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591592"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#trusted-keys"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592009"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591941"><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592124"><span><strong class="command">managed-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592056"><span><strong class="command">managed-keys</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#managed-keys"><span><strong class="command">managed-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592491"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592423"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2594504"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2594436"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2598190">Zone File</a></span></dt>
 <dd><dl>
@@ -2443,15 +2443,15 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     } ; </span>]
     [<span class="optional"> response-policy {
         zone <em class="replaceable"><code>zone_name</code></em> ;
-        [<span class="optional"> policy <em class="replaceable"><code>given | disabled | passthru | drop | nxdomain | nodata | cname</code></em> <em class="replaceable"><code>domain</code></em> ; </span>]
-        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
+        [<span class="optional"> policy <em class="replaceable"><code>given | disabled | passthru | drop | nxdomain | nodata | cname</code></em> <em class="replaceable"><code>domain</code></em> </span>]
+        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> </span>]
         [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> ; </span>] ;
-        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-        [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> break-dnssec <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-        [<span class="optional"> min-ns-dots <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> qname-wait-recurse <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    } ; </span>]
+        } 
+        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> </span>]
+        [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> </span>]
+        [<span class="optional"> break-dnssec <em class="replaceable"><code>yes_or_no</code></em> </span>]
+        [<span class="optional"> min-ns-dots <em class="replaceable"><code>number</code></em> </span>]
+        [<span class="optional"> qname-wait-recurse <em class="replaceable"><code>yes_or_no</code></em> </span>] ; </span>]
 };
 </pre>
 </div>
@@ -6547,7 +6547,7 @@ example.com                 CNAME   rpz-tcp-only.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2590452"></a>Response Rate Limiting</h4></div></div></div>
+<a name="id2590384"></a>Response Rate Limiting</h4></div></div></div>
 <p>
             Excessive almost identical UDP <span class="emphasis"><em>responses</em></span>
             can be controlled by configuring a
@@ -7003,7 +7003,7 @@ example.com                 CNAME   rpz-tcp-only.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2591660"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+<a name="id2591592"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</h3></div></div></div>
 <p>
           The <span><strong class="command">statistics-channels</strong></span> statement
@@ -7119,7 +7119,7 @@ example.com                 CNAME   rpz-tcp-only.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592009"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2591941"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -7159,7 +7159,7 @@ example.com                 CNAME   rpz-tcp-only.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592124"></a><span><strong class="command">managed-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2592056"></a><span><strong class="command">managed-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">managed-keys</strong></span> {
     <em class="replaceable"><code>name</code></em> initial-key <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key-data</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>name</code></em> initial-key <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key-data</code></em> ; [<span class="optional">...</span>]</span>]
@@ -7297,7 +7297,7 @@ example.com                 CNAME   rpz-tcp-only.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592491"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2592423"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">view</strong></span> statement is a powerful
             feature
@@ -7619,10 +7619,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2594504"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2594436"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2594512"></a>Zone Types</h4></div></div></div>
+<a name="id2594443"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
