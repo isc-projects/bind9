@@ -1,3 +1,6 @@
+3955.	[bug]		Notify messages due to changes are no longer queued
+			behind startup notify messages. [RT #24454]
+
 3954.	[bug]		Unchecked mutex init in dlz_dlopen_driver.c [RT #37112]
 
 3953.	[bug]		Don't escape semi-colon in TXT fields. [RT #37159]

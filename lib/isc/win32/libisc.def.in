@@ -444,6 +444,7 @@ isc_random_jitter
 isc_random_seed
 isc_ratelimiter_attach
 isc_ratelimiter_create
+isc_ratelimiter_dequeue
 isc_ratelimiter_detach
 isc_ratelimiter_enqueue
 isc_ratelimiter_setinterval
