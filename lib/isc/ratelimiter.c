@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -298,7 +298,7 @@ isc_ratelimiter_detach(isc_ratelimiter_t **rlp) {
 	REQUIRE(rlp != NULL && *rlp != NULL);
 
 	rl = *rlp;
-	
+
 	LOCK(&rl->lock);
 	REQUIRE(rl->refs > 0);
 	rl->refs--;
