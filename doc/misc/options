@@ -199,6 +199,7 @@ options {
         nosit-udp-size <integer>; // not configured
         notify <notifytype>;
         notify-delay <integer>;
+        notify-rate <integer>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
             dscp <integer> ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ]
@@ -270,6 +271,7 @@ options {
         sit-secret <string>; // not configured
         sortlist { <address_match_element>; ... };
         stacksize <size>;
+        startup-notify-rate <integer>;
         statistics-file <quoted_string>;
         statistics-interval <integer>; // not yet implemented
         suppress-initial-notify <boolean>; // not yet implemented
