@@ -1,3 +1,6 @@
+3958.	[bug]		Detect when writeable files have multiple references
+			in named.conf. [RT #37172]
+
 3957.	[bug]		"dnssec-keygen -S" failed for ECCGOST, ECDSAP256SHA256
 			and ECDSAP384SHA384. [RT #37183]
 
