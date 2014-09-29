@@ -2388,7 +2388,7 @@ do
 	   alg=`expr $alg + 1`
 	   continue;;
 	esac
-	key1=`$KEYGEN -a $alg $size -n zone -r /dev/urandom example 2> keygen.err`
+	key1=`$KEYGEN -a $alg $size -n zone -r $RANDFILE example 2> keygen.err`
 	if grep "unsupported algorithm" keygen.err > /dev/null
 	then
 		alg=`expr $alg + 1`
@@ -2403,7 +2403,7 @@ do
 		continue
 	fi
 	$SETTIME -I now+4d $key1.private > /dev/null
-	key2=`$KEYGEN -v 10 -r /dev/urandom -i 3d -S $key1.private 2> /dev/null`
+	key2=`$KEYGEN -v 10 -r $RANDFILE -i 3d -S $key1.private 2> /dev/null`
 	test -f $key2.key -a -f $key2.private || {
 		ret=1
 		echo "I: 'dnssec-keygen -S' failed for algorithm: $alg"
