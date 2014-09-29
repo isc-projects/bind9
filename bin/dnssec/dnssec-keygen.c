@@ -541,6 +541,9 @@ main(int argc, char **argv) {
 				options |= DST_TYPE_KEY;
 		}
 
+		if (!dst_algorithm_supported(alg))
+			fatal("unsupported algorithm: %d", alg);
+
 		if (use_nsec3 &&
 		    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1 &&
 		    alg != DST_ALG_RSASHA256 && alg!= DST_ALG_RSASHA512 &&
@@ -708,8 +711,13 @@ main(int argc, char **argv) {
 			fatal("invalid DSS key size: %d", size);
 		break;
 	case DST_ALG_ECCGOST:
+		size = 256;
+		break;
 	case DST_ALG_ECDSA256:
+		size = 256;
+		break;
 	case DST_ALG_ECDSA384:
+		size = 384;
 		break;
 	case DST_ALG_HMACMD5:
 		options |= DST_TYPE_KEY;

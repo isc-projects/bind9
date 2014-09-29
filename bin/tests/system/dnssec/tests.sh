@@ -2367,5 +2367,52 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check that 'dnssec-keygen -S' works for all supported algorithms ($n)"
+ret=0
+alg=1
+until test $alg = 256
+do
+	size=
+	case $alg in
+	1) size="-b 512";;
+	2) # Diffie Helman
+	   alg=`expr $alg + 1`
+	   continue;;
+	3) size="-b 512";;
+	5) size="-b 512";;
+	6) size="-b 512";;
+	7) size="-b 512";;
+	8) size="-b 512";;
+	10) size="-b 1024";;
+	157|160|161|162|163|164|165) # private - non standard
+	   alg=`expr $alg + 1`
+	   continue;;
+	esac
+	key1=`$KEYGEN -a $alg $size -n zone -r /dev/urandom example 2> keygen.err`
+	if grep "unsupported algorithm" keygen.err > /dev/null
+	then
+		alg=`expr $alg + 1`
+		continue
+	fi
+	if test -z "$key1"
+	then
+		echo "I: '$KEYGEN -a $alg': failed"
+		cat keygen.err
+		ret=1
+		alg=`expr $alg + 1`
+		continue
+	fi
+	$SETTIME -I now+4d $key1.private > /dev/null
+	key2=`$KEYGEN -v 10 -r /dev/urandom -i 3d -S $key1.private 2> /dev/null`
+	test -f $key2.key -a -f $key2.private || {
+		ret=1
+		echo "I: 'dnssec-keygen -S' failed for algorithm: $alg"
+	}
+	alg=`expr $alg + 1`
+done
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
