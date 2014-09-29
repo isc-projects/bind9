@@ -4494,7 +4494,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 		DNS_ZONE_SETFLAG(zone,
 				 DNS_ZONEFLG_LOADED|
-			         DNS_ZONEFLG_NEEDSTARTUPNOTIFY);
+				 DNS_ZONEFLG_NEEDSTARTUPNOTIFY);
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SENDSECURE) &&
 		    inline_raw(zone))
 		{
@@ -10016,7 +10016,7 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val) {
 
 static isc_boolean_t
 notify_isqueued(dns_zone_t *zone, unsigned int flags, dns_name_t *name,
-	        isc_sockaddr_t *addr)
+		isc_sockaddr_t *addr)
 {
 	dns_notify_t *notify;
 	dns_zonemgr_t *zmgr;
