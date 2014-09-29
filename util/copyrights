@@ -795,6 +795,8 @@
 ./bin/tests/system/checkconf/bad-hint.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-master-request-ixfr.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014
+./bin/tests/system/checkconf/bad-sharedwritable1.conf	CONF-C	2014
+./bin/tests/system/checkconf/bad-sharedwritable2.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad.conf		CONF-C	2005,2007
 ./bin/tests/system/checkconf/badtsig.conf	CONF-C	2012,2013
 ./bin/tests/system/checkconf/check-dup-records-fail.conf	CONF-C	2014
@@ -2869,7 +2871,7 @@
 ./lib/isc/include/isc/quota.h			C	2000,2001,2004,2005,2007
 ./lib/isc/include/isc/radix.h			C	2007,2008,2014
 ./lib/isc/include/isc/random.h			C	1999,2000,2001,2004,2005,2006,2007,2009
-./lib/isc/include/isc/ratelimiter.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2009
+./lib/isc/include/isc/ratelimiter.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2014
 ./lib/isc/include/isc/refcount.h		C	2001,2003,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/regex.h			C	2013
 ./lib/isc/include/isc/region.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2013
@@ -2950,7 +2952,7 @@
 ./lib/isc/quota.c				C	2000,2001,2004,2005,2007
 ./lib/isc/radix.c				C	2007,2008,2009,2011,2012,2014
 ./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2013,2014
-./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005,2007,2012
+./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005,2007,2012,2014
 ./lib/isc/refcount.c				C	2005,2007
 ./lib/isc/regex.c				C	2013,2014
 ./lib/isc/region.c				C	2002,2004,2005,2007
