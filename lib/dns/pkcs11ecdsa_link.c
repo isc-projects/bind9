@@ -562,6 +562,11 @@ pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
 	isc_mem_put(key->mctx, pk11_ctx, sizeof(*pk11_ctx));
 
+	if (key->key_alg == DST_ALG_ECDSA256)
+		key->key_size = DNS_KEY_ECDSA256SIZE * 4;
+	else
+		key->key_size = DNS_KEY_ECDSA384SIZE * 4;
+
 	return (ISC_R_SUCCESS);
 
  err:
@@ -716,6 +721,7 @@ pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_forward(data, len);
 	key->keydata.pkey = ec;
+	key->key_size = len * 4;
 	return (ISC_R_SUCCESS);
 
  nomemory:
@@ -1005,6 +1011,10 @@ pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
+	if (key->key_alg == DST_ALG_ECDSA256)
+		key->key_size = DNS_KEY_ECDSA256SIZE * 4;
+	else
+		key->key_size = DNS_KEY_ECDSA384SIZE * 4;
 
 	return (ISC_R_SUCCESS);
 
@@ -1127,6 +1137,10 @@ pkcs11ecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	key->label = isc_mem_strdup(key->mctx, label);
 	if (key->label == NULL)
 		DST_RET(ISC_R_NOMEMORY);
+	if (key->key_alg == DST_ALG_ECDSA256)
+		key->key_size = DNS_KEY_ECDSA256SIZE * 4;
+	else
+		key->key_size = DNS_KEY_ECDSA384SIZE * 4;
 
 	pk11_return_session(pk11_ctx);
 	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
