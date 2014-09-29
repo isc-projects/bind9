@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.36 2011/10/17 01:33:27 marka Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -35,6 +33,8 @@ do
 	$DIG +tcp example @10.53.0.3 soa -p 5300 > dig.out.ns3.test$n || ret=1
 	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 	grep "flags:.* aa[ ;]" dig.out.ns3.test$n > /dev/null || ret=1
+        nr=`grep 'x[0-9].*sending notify to' ns2/named.run | wc -l`
+        [ $nr -eq 20 ] || ret=1
 	[ $ret = 0 ] && break
 	sleep 1
 done
@@ -52,6 +52,18 @@ grep "10.0.0.1" dig.out.ns3.test$n > /dev/null || ret=1
 
 $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 
+[ $ret = 0 ] || echo "I:failed"
+status=`expr $ret + $status`
+
+n=`expr $n + 1`
+echo "I:checking startup notify rate limit ($n)"
+ret=0
+grep 'x[0-9].*sending notify to' ns2/named.run |
+    sed 's/.*:\([0-9][0-9]\)\..*/\1/' | uniq -c | awk '{print $1}' > log.out
+# the notifies should span at least 4 seconds
+wc -l log.out | awk '$1 < 4 { exit(1) }' || ret=1
+# ... with no more than 5 in any one second
+awk '$1 > 5 { exit(1) }' log.out || ret=1
 [ $ret = 0 ] || echo "I:failed"
 status=`expr $ret + $status`
 

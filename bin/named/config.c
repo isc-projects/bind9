@@ -81,6 +81,7 @@ options {\n\
 #	named-xfer <obsolete>;\n\
 	nta-lifetime 3600;\n\
 	nta-recheck 300;\n\
+	notify-rate 20;\n\
 #	pid-file \"" NS_LOCALSTATEDIR "/run/named/named.pid\"; /* or /lwresd.pid */\n\
 	port 53;\n\
 	prefetch 2 9;\n\
@@ -99,6 +100,7 @@ options {\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
+	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
 	statistics-interval 60;\n\
 	tcp-clients 100;\n\

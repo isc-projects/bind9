@@ -89,6 +89,16 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
  *\li	'(*eventp)->ev_sender' to be NULL.
  */
 
+isc_result_t
+isc_ratelimiter_dequeue(isc_ratelimiter_t *rl, isc_event_t *event);
+/*
+ * Dequeue a event off the ratelimiter queue.
+ *
+ * Returns:
+ * \li	ISC_R_NOTFOUND if the event is no longer linked to the rate limiter.
+ * \li	ISC_R_SUCCESS
+ */
+
 void
 isc_ratelimiter_shutdown(isc_ratelimiter_t *ratelimiter);
 /*%<

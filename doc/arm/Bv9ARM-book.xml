@@ -4835,6 +4835,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> tcp-clients <replaceable>number</replaceable>; </optional>
     <optional> reserved-sockets <replaceable>number</replaceable>; </optional>
     <optional> recursive-clients <replaceable>number</replaceable>; </optional>
+    <optional> notify-rate <replaceable>number</replaceable>; </optional>
+    <optional> startup-notify-rate <replaceable>number</replaceable>; </optional>
     <optional> serial-query-rate <replaceable>number</replaceable>; </optional>
     <optional> serial-queries <replaceable>number</replaceable>; </optional>
     <optional> tcp-listen-queue <replaceable>number</replaceable>; </optional>
@@ -7783,6 +7785,31 @@ avoid-v6-udp-ports {};
 	      </listitem>
 	    </varlistentry>
 
+            <varlistentry>
+              <term><command>notify-rate</command></term>
+              <listitem>
+                <para>
+                  The rate at which NOTIFY requests will be sent
+                  during normal zone maintenance operations. (NOTIFY
+                  requests due to initial zone loading are subject
+                  to a separate rate limit; see below.) The default is
+                  20 per second.
+                </para>
+              </listitem>
+            </varlistentry>
+
+	    <varlistentry>
+	      <term><command>startup-notify-rate</command></term>
+	      <listitem>
+		<para>
+		  The rate at which NOTIFY requests will be sent
+		  when the name server is first starting up, or when
+		  zones have been newly added to the nameserver.
+		  The default is 20 per second.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
 	    <varlistentry>
 	      <term><command>serial-query-rate</command></term>
 	      <listitem>
@@ -7795,14 +7822,7 @@ avoid-v6-udp-ports {};
 		  rate at which queries are sent.  The value of the
 		  <command>serial-query-rate</command> option, an
 		  integer, is the maximum number of queries sent
-		  per second.  The default is 20.
-		</para>
-		<para>
-		  In addition to controlling the rate SOA refresh
-		  queries are issued at
-		  <command>serial-query-rate</command> also controls
-		  the rate at which NOTIFY messages are sent from
-		  both master and slave zones.
+		  per second.  The default is 20 per second.
 		</para>
 	      </listitem>
 	    </varlistentry>

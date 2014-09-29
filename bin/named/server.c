@@ -5702,6 +5702,16 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_zonemgr_settransfersperns(server->zonemgr, cfg_obj_asuint32(obj));
 
 	obj = NULL;
+	result = ns_config_get(maps, "notify-rate", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_zonemgr_setnotifyrate(server->zonemgr, cfg_obj_asuint32(obj));
+
+	obj = NULL;
+	result = ns_config_get(maps, "startup-notify-rate", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_zonemgr_setstartupnotifyrate(server->zonemgr, cfg_obj_asuint32(obj));
+
+	obj = NULL;
 	result = ns_config_get(maps, "serial-query-rate", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	dns_zonemgr_setserialqueryrate(server->zonemgr, cfg_obj_asuint32(obj));
