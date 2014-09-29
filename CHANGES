@@ -1,3 +1,6 @@
+3957.	[bug]		"dnssec-keygen -S" failed for ECCGOST, ECDSAP256SHA256
+			and ECDSAP384SHA384. [RT #37183]
+
 3955.	[bug]		Notify messages due to changes are no longer queued
 			behind startup notify messages. [RT #24454]
 
