@@ -48,6 +48,10 @@
 
 #include <bind9/check.h>
 
+static isc_result_t
+fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, isc_boolean_t writeable,
+	  isc_log_t *logctxlogc);
+
 static void
 freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
 	UNUSED(type);
@@ -1295,8 +1299,8 @@ check_nonzero(const cfg_obj_t *options, isc_log_t *logctx) {
 static isc_result_t
 check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       const cfg_obj_t *config, isc_symtab_t *symtab,
-	       dns_rdataclass_t defclass, cfg_aclconfctx_t *actx,
-	       isc_log_t *logctx, isc_mem_t *mctx)
+	       isc_symtab_t *files, dns_rdataclass_t defclass,
+	       cfg_aclconfctx_t *actx, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const char *znamestr;
 	const char *typestr;
@@ -1312,6 +1316,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	isc_buffer_t b;
 	isc_boolean_t root = ISC_FALSE;
 	const cfg_listelt_t *element;
+	isc_boolean_t ddns = ISC_FALSE;
 
 	static optionstable options[] = {
 	{ "allow-notify", SLAVEZONE | CHECKACL },
@@ -1592,7 +1597,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Master zones can't have both "allow-update" and "update-policy".
 	 */
 	if (ztype == MASTERZONE || ztype == SLAVEZONE) {
-		isc_boolean_t ddns = ISC_FALSE, signing = ISC_FALSE;
+		isc_boolean_t signing = ISC_FALSE;
 		isc_result_t res1, res2, res3;
 		const cfg_obj_t *au = NULL;
 		const char *arg;
@@ -1618,7 +1623,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		 * we should also check for allow-update at the
 		 * view and options levels.
 		 */
-		obj = NULL;
 		if (res1 != ISC_R_SUCCESS && voptions != NULL)
 			res1 = cfg_map_get(voptions, "allow-update", &au);
 		if (res1 != ISC_R_SUCCESS && goptions != NULL)
@@ -1875,8 +1879,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	      strcmp("rbt64", cfg_obj_asstring(obj)) == 0)))
 	{
 		isc_result_t res1;
-		obj = NULL;
-		tresult = cfg_map_get(zoptions, "file", &obj);
+		const cfg_obj_t *fileobj = NULL;
+		tresult = cfg_map_get(zoptions, "file", &fileobj);
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
 		if ((tresult != ISC_R_SUCCESS &&
@@ -1887,6 +1891,16 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			    "zone '%s': missing 'file' entry",
 			    znamestr);
 			result = tresult;
+		} else if (tresult == ISC_R_SUCCESS &&
+			   (ztype == SLAVEZONE || ddns)) {
+			tresult = fileexist(fileobj, files, ISC_TRUE, logctx);
+			if (tresult != ISC_R_SUCCESS)
+				result = tresult;
+		} else if (tresult == ISC_R_SUCCESS &&
+			   (ztype == MASTERZONE || ztype == HINTZONE)) {
+			tresult = fileexist(fileobj, files, ISC_FALSE, logctx);
+			if (tresult != ISC_R_SUCCESS)
+				result = tresult;
 		}
 	}
 
@@ -1990,6 +2004,47 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 		}
 	}
 	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, isc_boolean_t writeable,
+	  isc_log_t *logctx)
+{
+	isc_result_t result;
+	isc_symvalue_t symvalue;
+	unsigned int line;
+	const char *file;
+
+	result = isc_symtab_lookup(symtab, cfg_obj_asstring(obj), 0, &symvalue);
+	if (result == ISC_R_SUCCESS) {
+		if (writeable) {
+			file = cfg_obj_file(symvalue.as_cpointer);
+			line = cfg_obj_line(symvalue.as_cpointer);
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "writeable file '%s': already in use: "
+				    "%s:%u", cfg_obj_asstring(obj),
+				    file, line);
+			return (ISC_R_EXISTS);
+		}
+		result = isc_symtab_lookup(symtab, cfg_obj_asstring(obj), 2,
+					   &symvalue);
+		if (result == ISC_R_SUCCESS) {
+			file = cfg_obj_file(symvalue.as_cpointer);
+			line = cfg_obj_line(symvalue.as_cpointer);
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "writeable file '%s': already in use: "
+				    "%s:%u", cfg_obj_asstring(obj),
+				    file, line);
+			return (ISC_R_EXISTS);
+		}
+		return (ISC_R_SUCCESS);
+	}
+
+	symvalue.as_cpointer = obj;
+	result = isc_symtab_define(symtab, cfg_obj_asstring(obj),
+				   writeable ? 2 : 1, symvalue,
+				   isc_symexists_reject);
+	return (result);
 }
 
 /*
@@ -2299,7 +2354,7 @@ check_trusted_key(const cfg_obj_t *key, isc_boolean_t managed,
 static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
-	       isc_log_t *logctx, isc_mem_t *mctx)
+	       isc_symtab_t *files, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const cfg_obj_t *zones = NULL;
 	const cfg_obj_t *keys = NULL;
@@ -2342,7 +2397,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		const cfg_obj_t *zone = cfg_listelt_value(element);
 
 		tresult = check_zoneconf(zone, voptions, config, symtab,
-					 vclass, actx, logctx, mctx);
+					 files, vclass, actx, logctx,
+					 mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
@@ -2803,6 +2859,7 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	isc_symtab_t *symtab = NULL;
+	isc_symtab_t *files = NULL;
 
 	static const char *builtin[] = { "localhost", "localnets",
 					 "any", "none"};
@@ -2830,9 +2887,19 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 		if (check_dual_stack(options, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 
+	/*
+	 * Use case insensitve comparision as not all file systems are
+	 * case sensitive. This will prevent people using FOO.DB and foo.db
+	 * on case sensitive file systems but that shouldn't be a major issue.
+	 */
+	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_FALSE,
+				    &files);
+	if (tresult != ISC_R_SUCCESS)
+		result = tresult;
+
 	if (views == NULL) {
 		if (check_viewconf(config, NULL, NULL, dns_rdataclass_in,
-				   logctx, mctx) != ISC_R_SUCCESS)
+				   files, logctx, mctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	} else {
 		const cfg_obj_t *zones = NULL;
@@ -2903,13 +2970,15 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 			}
 		}
 		if (tresult == ISC_R_SUCCESS)
-			tresult = check_viewconf(config, voptions, key,
-						 vclass, logctx, mctx);
+			tresult = check_viewconf(config, voptions, key, vclass,
+						 files, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 	if (symtab != NULL)
 		isc_symtab_destroy(&symtab);
+	if (files != NULL)
+		isc_symtab_destroy(&files);
 
 	if (views != NULL && options != NULL) {
 		obj = NULL;
