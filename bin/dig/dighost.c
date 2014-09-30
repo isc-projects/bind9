@@ -4700,9 +4700,9 @@ contains_trusted_key(dns_name_t *name, dns_rdataset_t *rdataset,
 				       "DNSKEY RRset: %d\n",
 				       dst_key_id(dnsseckey));
 				result = sigchase_verify_sig_key(name, rdataset,
-							         dnsseckey,
-							         sigrdataset,
-							         mctx);
+								 dnsseckey,
+								 sigrdataset,
+								 mctx);
 				if (result == ISC_R_SUCCESS)
 					goto cleanup;
 			}

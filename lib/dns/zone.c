@@ -14503,7 +14503,7 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 	 * If we have a SIG(0) signed message we need to preserve the
 	 * query id as that is included in the SIG(0) computation.
 	 */
-	if (msg->sig0 != NULL) 
+	if (msg->sig0 != NULL)
 		forward->options |= DNS_REQUESTOPT_FIXEDID;
 
 	mr = dns_message_getrawmessage(msg);
