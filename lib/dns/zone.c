@@ -609,6 +609,7 @@ struct dns_forward {
 	isc_sockaddr_t		addr;
 	dns_updatecallback_t	callback;
 	void			*callback_arg;
+	unsigned int		options;
 	ISC_LINK(dns_forward_t)	link;
 };
 
@@ -14997,8 +14998,8 @@ sendtomaster(dns_forward_t *forward) {
 	result = dns_request_createraw4(forward->zone->view->requestmgr,
 					forward->msgbuf,
 					&src, &forward->addr, dscp,
-					DNS_REQUESTOPT_TCP, 15 /* XXX */,
-					0, 0, forward->zone->task,
+					forward->options, 15 /* XXX */,
+				        0, 0, forward->zone->task,
 					forward_callback, forward,
 					&forward->request);
 	if (result == ISC_R_SUCCESS) {
@@ -15144,6 +15145,13 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 	forward->callback_arg = callback_arg;
 	ISC_LINK_INIT(forward, link);
 	forward->magic = FORWARD_MAGIC;
+	forward->options = DNS_REQUESTOPT_TCP;
+	/*
+	 * If we have a SIG(0) signed message we need to preserve the
+	 * query id as that is included in the SIG(0) computation.
+	 */
+	if (msg->sig0 != NULL) 
+		forward->options |= DNS_REQUESTOPT_FIXEDID;
 
 	mr = dns_message_getrawmessage(msg);
 	if (mr == NULL) {

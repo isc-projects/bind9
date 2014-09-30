@@ -48,6 +48,7 @@
 
 #define DNS_REQUESTOPT_TCP 0x00000001U
 #define DNS_REQUESTOPT_CASE 0x00000002U
+#define DNS_REQUESTOPT_FIXEDID 0x00000004U
 
 typedef struct dns_requestevent {
 	ISC_EVENT_COMMON(struct dns_requestevent);

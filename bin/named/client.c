@@ -1376,7 +1376,7 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		client->formerrcache.addr = client->peeraddr;
 		client->formerrcache.time = client->requesttime;
 		client->formerrcache.id = message->id;
-	} else if (rcode == dns_rcode_servfail &&
+	} else if (rcode == dns_rcode_servfail && client->query.qname != NULL &&
 		   client->view != NULL && client->view->fail_ttl != 0 &&
 		   ((client->attributes & NS_CLIENTATTR_NOSETFC) == 0))
 	{
