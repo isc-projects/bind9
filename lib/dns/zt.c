@@ -395,16 +395,16 @@ freezezones(dns_zone_t *zone, void *uap) {
 			result = DNS_R_FROZEN;
 		if (result == ISC_R_SUCCESS)
 			result = dns_zone_flush(zone);
+		if (result == ISC_R_SUCCESS)
+			dns_zone_setupdatedisabled(zone, freeze);
 	} else {
 		if (frozen) {
-			result = dns_zone_load(zone);
+			result = dns_zone_loadandthaw(zone);
 			if (result == DNS_R_CONTINUE ||
 			    result == DNS_R_UPTODATE)
 				result = ISC_R_SUCCESS;
 		}
 	}
-	if (result == ISC_R_SUCCESS)
-		dns_zone_setupdatedisabled(zone, freeze);
 	view = dns_zone_getview(zone);
 	if (strcmp(view->name, "_bind") == 0 ||
 	    strcmp(view->name, "_default") == 0)
