@@ -74,3 +74,4 @@ rm -f ns4/named_dump.db
 rm -f ns7/split-rrsig.db ns7/split-rrsig.db.unsplit
 rm -f Kexample.*
 rm -f keygen.err
+rm -f ns3/future.example.db ns3/trusted-future.key

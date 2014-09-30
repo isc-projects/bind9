@@ -459,3 +459,15 @@ zonefile=siginterval.example.db
 kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
 zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
 cp $infile $zonefile
+
+#
+# A zone with future signatures.
+#
+zone=future.example
+infile=future.example.db.in
+zonefile=future.example.db
+kskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+zskname=`$KEYGEN -q -r $RANDFILE $zone`
+cat $infile $kskname.key $zskname.key >$zonefile
+$SIGNER -P -s +3600 -r $RANDFILE -o $zone $zonefile # > /dev/null 2>&1
+cp -f $kskname.key trusted-future.key
