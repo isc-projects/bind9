@@ -1126,6 +1126,7 @@
 ./bin/tests/system/dnssec/ns3/dynamic.example.db.in	ZONE	2002,2004,2007
 ./bin/tests/system/dnssec/ns3/expired.example.db.in	ZONE	2011,2012
 ./bin/tests/system/dnssec/ns3/expiring.example.db.in	ZONE	2011,2012
+./bin/tests/system/dnssec/ns3/future.example.db.in	ZONE	2014
 ./bin/tests/system/dnssec/ns3/inline.example.db	ZONE	2012
 ./bin/tests/system/dnssec/ns3/insecure.below-cname.example.db	ZONE	2011
 ./bin/tests/system/dnssec/ns3/insecure.example.db	ZONE	2000,2001,2004,2007
@@ -1893,13 +1894,13 @@
 ./bin/tests/system/upforwd/knowngood.before	X	2000,2001
 ./bin/tests/system/upforwd/knowngood.ns2.before	X	2000,2001
 ./bin/tests/system/upforwd/ns1/example1.db	ZONE	2000,2001,2004,2007
-./bin/tests/system/upforwd/ns1/named.conf	CONF-C	2000,2001,2004,2007
-./bin/tests/system/upforwd/ns2/named.conf	CONF-C	2000,2001,2004,2007
-./bin/tests/system/upforwd/ns3/named.conf	CONF-C	2000,2001,2004,2007,2011
+./bin/tests/system/upforwd/ns1/named.conf	CONF-C	2000,2001,2004,2007,2014
+./bin/tests/system/upforwd/ns2/named.conf	CONF-C	2000,2001,2004,2007,2014
+./bin/tests/system/upforwd/ns3/named.conf	CONF-C	2000,2001,2004,2007,2011,2014
 ./bin/tests/system/upforwd/ns3/nomaster.db	ZONE	2011
 ./bin/tests/system/upforwd/prereq.sh		SH	2012,2014
-./bin/tests/system/upforwd/setup.sh		SH	2000,2001,2004,2007,2011,2012
-./bin/tests/system/upforwd/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013
+./bin/tests/system/upforwd/setup.sh		SH	2000,2001,2004,2007,2011,2012,2014
+./bin/tests/system/upforwd/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014
 ./bin/tests/system/v6synth/clean.sh		SH	2001,2004,2007,2012
 ./bin/tests/system/v6synth/ns1/named.conf	CONF-C	2001,2004,2007
 ./bin/tests/system/v6synth/ns1/root.db		ZONE	2001,2004,2007
@@ -3040,7 +3041,7 @@
 ./lib/dns/include/dns/rdatasetiter.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/rdataslab.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008
-./lib/dns/include/dns/request.h			C	2000,2001,2002,2004,2005,2006,2007,2009,2010,2013
+./lib/dns/include/dns/request.h			C	2000,2001,2002,2004,2005,2006,2007,2009,2010,2013,2014
 ./lib/dns/include/dns/resolver.h		C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004,2005,2006,2007
@@ -3361,7 +3362,7 @@
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013
 ./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007
-./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2013
+./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2013,2014
 ./lib/irs/Makefile.in				MAKE	2009,2012,2014
 ./lib/irs/api					X	2009,2010,2011,2012,2013,2014
 ./lib/irs/context.c				C	2009,2014
