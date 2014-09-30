@@ -1,3 +1,6 @@
+3961.	[bug]		Forwarding of SIG(0) signed UPDATE messages failed with
+			BADSIG.  [RT #37216]
+
 3960.	[bug]		'dig +sigchase' could loop forever. [RT #37220]
 
 3959.	[bug]		Updates could be lost if they arrived immediately
