@@ -3126,7 +3126,7 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	return (dns_dispatch_addresponse3(disp, 0, dest, task, action, arg,
 					  idp, resp, sockmgr));
 }
-					  
+
 isc_result_t
 dns_dispatch_addresponse3(dns_dispatch_t *disp, unsigned int options,
 			  isc_sockaddr_t *dest, isc_task_t *task,
