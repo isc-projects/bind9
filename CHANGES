@@ -1,3 +1,5 @@
+3960.	[bug]		'dig +sigchase' could loop forever. [RT #37220]
+
 3959.	[bug]		Updates could be lost if they arrived immediately
 			after a rndc thaw. [RT #37233]
 
