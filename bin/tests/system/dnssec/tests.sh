@@ -2524,5 +2524,28 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+#
+# Test for +sigchase with a null set of trusted keys.
+#
+$DIG -p 5300 @10.53.0.3 +sigchase +trusted-key=/dev/null > dig.out.ns3.test$n 2>&1
+if grep "Invalid option: +sigchase" dig.out.ns3.test$n > /dev/null
+then
+	echo "I:Skipping 'dig +sigchase' tests"
+	n=`expr $n + 1`
+else
+	echo "I:checking that 'dig +sigchase' doesn't loop with future inception ($n)"
+	ret=0
+	$DIG -p 5300 @10.53.0.3 dnskey future.example +sigchase \
+		 +trusted-key=ns3/trusted-future.key > dig.out.ns3.test$n &
+	pid=$!
+	sleep 1
+	kill -9 $pid 2> /dev/null
+	wait $pid
+	grep ";; No DNSKEY is valid to check the RRSIG of the RRset: FAILED" dig.out.ns3.test$n > /dev/null || ret=1
+	if [ $ret != 0 ]; then echo "I:failed"; fi
+	status=`expr $status + $ret`
+	n=`expr $n + 1`
+fi
+
 echo "I:exit status: $status"
 exit $status
