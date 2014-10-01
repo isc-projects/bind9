@@ -5309,10 +5309,10 @@ sigchase_td(dns_message_t *msg)
 		isc_buffer_init(&b, buf, sizeof(buf));
 		result = dns_rcode_totext(msg->rcode, &b);
 		check_result(result, "dns_rcode_totext failed");
-		printf("error response code %.*s\n", 
+		printf("error response code %.*s\n",
 		       (int)isc_buffer_usedlength(&b), buf);
 		error_message = msg;
-		return;	
+		return;
 	}
 
 	if ((result = dns_message_firstname(msg, DNS_SECTION_ANSWER))

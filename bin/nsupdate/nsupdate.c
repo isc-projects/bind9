@@ -1921,8 +1921,8 @@ evaluate_checknames(char *cmdline) {
 	    strcasecmp(word, "on") == 0) {
 		checknames = ISC_TRUE;
 	} else if (strcasecmp(word, "no") == 0 ||
-	         strcasecmp(word, "false") == 0 ||
-	         strcasecmp(word, "off") == 0) {
+		 strcasecmp(word, "false") == 0 ||
+		 strcasecmp(word, "off") == 0) {
 		checknames = ISC_FALSE;
 	} else {
 		fprintf(stderr, "incorrect check-names directive: %s\n", word);
