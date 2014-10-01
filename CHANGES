@@ -1,3 +1,6 @@
+3963.	[test]		Added NXRRSET test cases to the "dlzexternal"
+			system test. [RT #37344]
+
 3962.	[bug]		'dig +topdown +trace +sigchase' address unhandled error
 			conditions. [RT #34663]
 
