@@ -1,3 +1,6 @@
+3962.	[bug]		'dig +topdown +trace +sigchase' address unhandled error
+			conditions. [RT #34663]
+
 3961.	[bug]		Forwarding of SIG(0) signed UPDATE messages failed with
 			BADSIG.  [RT #37216]
 
