@@ -83,8 +83,8 @@
 	  you may only want to listen on the loop back interfaces.
 	</para>
 	<para>
-	  Who do you offer recursive service to?  Is there a firewall
-	  to consider?  If so, is it stateless or stateful.  Are you
+	  To whom do you offer recursive service?  Is there a firewall
+	  to consider?  If so, is it stateless or stateful?  Are you
 	  directly on the Internet?  Are you on a private network? Are
 	  you on a NAT'd network? The answers
 	  to all these questions change how you configure even a
