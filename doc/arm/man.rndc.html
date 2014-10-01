@@ -50,7 +50,7 @@
 <div class="cmdsynopsis"><p><code class="command">rndc</code>  [<code class="option">-b <em class="replaceable"><code>source-address</code></em></code>] [<code class="option">-c <em class="replaceable"><code>config-file</code></em></code>] [<code class="option">-k <em class="replaceable"><code>key-file</code></em></code>] [<code class="option">-s <em class="replaceable"><code>server</code></em></code>] [<code class="option">-p <em class="replaceable"><code>port</code></em></code>] [<code class="option">-q</code>] [<code class="option">-V</code>] [<code class="option">-y <em class="replaceable"><code>key_id</code></em></code>] {command}</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2654298"></a><h2>DESCRIPTION</h2>
+<a name="id2657085"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">rndc</strong></span>
       controls the operation of a name
       server.  It supersedes the <span><strong class="command">ndc</strong></span> utility
@@ -81,7 +81,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2654348"></a><h2>OPTIONS</h2>
+<a name="id2657136"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-b <em class="replaceable"><code>source-address</code></em></span></dt>
 <dd><p>
@@ -152,7 +152,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2656209"></a><h2>COMMANDS</h2>
+<a name="id2661863"></a><h2>COMMANDS</h2>
 <p>
       A list of commands supported by <span><strong class="command">rndc</strong></span> can
       be seen by running <span><strong class="command">rndc</strong></span> without arguments.
@@ -371,15 +371,15 @@
           </p></dd>
 <dt><span class="term"><strong class="userinput"><code>flushname</code></strong> <em class="replaceable"><code>name</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>] </span></dt>
 <dd><p>
-            Flushes the given name from the server's DNS cache
-            and, if applicable, from the server's nameserver address
-            database or bad-server cache.
+            Flushes the given name from the view's DNS cache
+            and, if applicable, from the view's nameserver address
+            database, bad server cache and SERVFAIL cache.
           </p></dd>
 <dt><span class="term"><strong class="userinput"><code>flushtree</code></strong> <em class="replaceable"><code>name</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>] </span></dt>
 <dd><p>
             Flushes the given name, and all of its subdomains,
-            from the server's DNS cache, the address database,
-            and the bad server cache.
+            from the view's DNS cache, address database,
+            bad server cache, and SERVFAIL cache.
           </p></dd>
 <dt><span class="term"><strong class="userinput"><code>status</code></strong></span></dt>
 <dd><p>
@@ -415,7 +415,7 @@
             <code class="option">lifetime</code>.  The default lifetime is
             configured in <font color="red">&lt;file&gt;named.conf&lt;/file&gt;</font> via the
             <code class="option">nta-lifetime</code>, and defaults to
-            one hour.  The lifetime cannot exceed one day.
+            one hour.  The lifetime cannot exceed one week.
           </p>
 <p>
             A negative trust anchor selectively disables
@@ -599,7 +599,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2687749"></a><h2>LIMITATIONS</h2>
+<a name="id2684733"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -609,7 +609,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2687767"></a><h2>SEE ALSO</h2>
+<a name="id2684752"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -619,7 +619,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2687822"></a><h2>AUTHOR</h2>
+<a name="id2684807"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
@@ -643,5 +643,6 @@
 </tr>
 </table>
 </div>
+<p style="text-align: center;">BIND Version 9.11</p>
 </body>
 </html>

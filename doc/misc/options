@@ -150,6 +150,7 @@ options {
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
         geoip-directory ( <quoted_string> | none ); // not configured
+        geoip-use-ecs ( <quoted_string> | none ); // not configured
         has-old-clients <boolean>; // obsolete
         heartbeat-interval <integer>;
         host-statistics <boolean>; // not implemented
@@ -159,7 +160,7 @@ options {
         interface-interval <integer>;
         ixfr-from-differences <ixfrdiff>;
         key-directory <quoted_string>;
-        lame-ttl <integer>;
+        lame-ttl <ttlval>;
         listen-on [ port <integer> ] [ dscp <integer> ] {
             <address_match_element>; ... };
         listen-on-v6 [ port <integer> ] [ dscp <integer> ] {
@@ -198,6 +199,7 @@ options {
         nosit-udp-size <integer>; // not configured
         notify <notifytype>;
         notify-delay <integer>;
+        notify-rate <integer>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
             dscp <integer> ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ]
@@ -258,6 +260,7 @@ options {
         serial-query-rate <integer>;
         serial-update-method ( increment | unixtime | date );
         server-id ( <quoted_string> | none | hostname );
+        servfail-ttl <ttlval>;
         session-keyalg <string>;
         session-keyfile ( <quoted_string> | none );
         session-keyname <string>;
@@ -268,6 +271,7 @@ options {
         sit-secret <string>; // not configured
         sortlist { <address_match_element>; ... };
         stacksize <size>;
+        startup-notify-rate <integer>;
         statistics-file <quoted_string>;
         statistics-interval <integer>; // not yet implemented
         suppress-initial-notify <boolean>; // not yet implemented
@@ -305,6 +309,7 @@ server <netprefix> {
         bogus <boolean>;
         edns <boolean>;
         edns-udp-size <integer>;
+        edns-version <integer>;
         keys <server_key>;
         max-udp-size <integer>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
@@ -373,7 +378,6 @@ view <string> <optional_class> {
         check-wildcard <boolean>;
         cleaning-interval <integer>;
         clients-per-query <integer>;
-        database <string>;
         deny-answer-addresses { <address_match_element>; ... } [
             except-from { <quoted_string>; ... } ];
         deny-answer-aliases { <quoted_string>; ... } [ except-from {
@@ -427,7 +431,7 @@ view <string> <optional_class> {
                 secret <string>;
         };
         key-directory <quoted_string>;
-        lame-ttl <integer>;
+        lame-ttl <ttlval>;
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys { <string> <string> <integer> <integer> <integer>
             <quoted_string>; ... };
@@ -508,12 +512,12 @@ view <string> <optional_class> {
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
-        search <boolean>;
         serial-update-method ( increment | unixtime | date );
         server <netprefix> {
                 bogus <boolean>;
                 edns <boolean>;
                 edns-udp-size <integer>;
+                edns-version <integer>;
                 keys <server_key>;
                 max-udp-size <integer>;
                 notify-source ( <ipv4_address> | * ) [ port ( <integer> | *
@@ -535,6 +539,7 @@ view <string> <optional_class> {
                     <integer> | * ) ] [ dscp <integer> ];
                 transfers <integer>;
         };
+        servfail-ttl <ttlval>;
         sig-signing-nodes <integer>;
         sig-signing-signatures <integer>;
         sig-signing-type <integer>;

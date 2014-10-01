@@ -218,50 +218,63 @@ AC_ARG_WITH(python,
 [  --with-python=PATH      specify path to python interpreter],
     use_python="$withval", use_python="unspec")
 
+python="python python3 python3.4 python3.3 python3.2 python3.1 python3.0 python2 python2.7 python2.6 python2.5 python2.4"
+testscript='try: import argparse
+except: exit(1)'
 case "$use_python" in
 	no)
+		AC_MSG_CHECKING([for python support])
 		AC_MSG_RESULT(disabled)
 		;;
 	unspec|yes|*)
 		case "$use_python" in
 		unspec|yes|'')
-			AC_PATH_PROGS(PYTHON, python)
+			for p in $python
+			do
+				AC_PATH_PROGS(PYTHON, $p)
+				if test "X$PYTHON" == "X"; then
+					continue;
+				fi
+				AC_MSG_CHECKING([python module 'argparse'])
+				if ${PYTHON:-false} -c "$testscript"; then
+					AC_MSG_RESULT([found, using $PYTHON])
+					break
+				fi
+				AC_MSG_RESULT([not found])
+				unset ac_cv_path_PYTHON
+				unset PYTHON
+			done
+			if test "X$PYTHON" == "X"
+			then
+				AC_MSG_CHECKING([for python support])
+				case "$use_python" in
+				unspec)
+					AC_MSG_RESULT(disabled)
+					;;
+				yes)
+					AC_MSG_ERROR([missing python])
+					;;
+				esac
+			fi
 			;;
 		*)
-			AC_PATH_PROGS(PYTHON, $use_python)
+			case "$use_python" in
+			/*)
+				PYTHON="$use_python"
+				;;
+			*)
+				AC_PATH_PROGS(PYTHON, $use_python)
+				;;
+			esac
+			AC_MSG_CHECKING([python module 'argparse'])
+			if ${PYTHON:-false} -c "$testscript"; then
+				AC_MSG_RESULT([found, using $PYTHON])
+				break
+			else
+				AC_MSG_ERROR([not found])
+			fi
 			;;
 		esac
-		if test "X$PYTHON" == "X"
-		then
-			case "$use_python" in
-			unspec)
-				AC_MSG_RESULT(disabled)
-				;;
-			yes|*)
-				AC_MSG_ERROR([missing python])
-				;;
-			esac
-			break
-		fi
-		testscript='try: import argparse
-except: exit(1)'
-		AC_MSG_CHECKING([python module 'argparse'])
-		if $PYTHON -c "$testscript"; then
-			AC_MSG_RESULT([found, using $PYTHON])
-		else
-			case "$use_python" in
-			unspec)
-				PYTHON=""
-				AC_SUBST(CHECKDS)
-				AC_SUBST(COVERAGE)
-				AC_MSG_RESULT([not found, python disabled])
-				;;
-			yes)
-			AC_MSG_RESULT([no found])
-			AC_MSG_ERROR([python 'argparse' module not supported])
-				;;
-			esac
-		fi
 		;;
 esac
 
@@ -723,8 +736,8 @@ case "$use_geoip" in
 		AC_CHECK_HEADER(GeoIP.h, [],
 			[AC_MSG_ERROR([GeoIP header file not found])]
 		)
-		AC_SEARCH_LIBS(GeoIP_open, GeoIP, [],
-			[AC_MSG_ERROR([GeoIP library not found])]
+		AC_SEARCH_LIBS(GeoIP_id_by_addr_gl, GeoIP, [],
+			[AC_MSG_ERROR([suitable GeoIP library not found])]
 		)
 		AC_SEARCH_LIBS(fabsf, m, [],
 			[AC_MSG_ERROR([Math library not found])]
@@ -1236,6 +1249,7 @@ case $use_libtool in
 		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
 		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
 		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
+		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
 		case "$host" in
 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
 		esac
@@ -1256,8 +1270,10 @@ case $use_libtool in
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_ALLOW_UNDEFINED=
 		LIBTOOL_IN_MAIN=
+		INSTALL_LIBRARY='${INSTALL_DATA}'
 		;;
 esac
+AC_SUBST(INSTALL_LIBRARY)
 
 #
 # was --enable-native-pkcs11 specified?
@@ -4487,6 +4503,7 @@ AC_CONFIG_FILES([
 	bin/tests/resolver/Makefile
 	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
+	bin/tests/system/builtin/Makefile
 	bin/tests/system/conf.sh
 	bin/tests/system/dlz/prereq.sh
 	bin/tests/system/dlzexternal/Makefile
@@ -4495,9 +4512,10 @@ AC_CONFIG_FILES([
 	bin/tests/system/geoip/Makefile
 	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/lwresd/Makefile
-	bin/tests/system/sit/prereq.sh
+	bin/tests/system/resolver/Makefile
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/rsabigexponent/Makefile
+	bin/tests/system/sit/prereq.sh
 	bin/tests/system/tkey/Makefile
 	bin/tests/system/tsiggss/Makefile
 	bin/tests/tasks/Makefile

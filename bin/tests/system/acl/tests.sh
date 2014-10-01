@@ -150,5 +150,35 @@ $DIG +tcp soa example. \
     	@10.53.0.2 -b 10.53.0.3 -p 5300 > dig.out.${t}
 grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || { echo "I:test $t failed" ; status=1; }
 
+echo "I:testing EDNS client-subnet ACL processing"
+cp -f ns2/named6.conf ns2/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'
+sleep 5
+
+# should fail
+t=`expr $t + 1`
+$DIG $DIGOPTS tsigzone. \
+    	@10.53.0.2 -b 10.53.0.2 axfr -p 5300 > dig.out.${t}
+grep "^;" dig.out.${t} > /dev/null 2>&1 || { echo "I:test $t failed" ; status=1; }
+
+# should succeed
+t=`expr $t + 1`
+$DIG $DIGOPTS tsigzone. \
+    	@10.53.0.2 -b 10.53.0.2 +subnet="10.53.0/24" axfr -p 5300 > dig.out.${t}
+grep "^;" dig.out.${t} > /dev/null 2>&1 && { echo "I:test $t failed" ; status=1; }
+
+echo "I:testing EDNS client-subnet response scope"
+cp -f ns2/named7.conf ns2/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'
+sleep 5
+
+t=`expr $t + 1`
+$DIG example. soa @10.53.0.2 +subnet="10.53.0.1/32" -p 5300 > dig.out.${t}
+grep "CLIENT-SUBNET.*10.53.0.1/32/0" dig.out.${t} > /dev/null || { echo "I:test $t failed" ; status=1; }
+
+t=`expr $t + 1`
+$DIG example. soa @10.53.0.2 +subnet="192.0.2.128/32" -p 5300 > dig.out.${t}
+grep "CLIENT-SUBNET.*192.0.2.128/32/24" dig.out.${t} > /dev/null || { echo "I:test $t failed" ; status=1; }
+
 echo "I:exit status: $status"
 exit $status

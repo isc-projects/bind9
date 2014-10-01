@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -108,7 +108,7 @@ typedef struct dns_geoip_databases {
 ISC_LANG_BEGINDECLS
 
 isc_boolean_t
-dns_geoip_match(const isc_netaddr_t *reqaddr,
+dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
 		const dns_geoip_databases_t *geoip,
 		const dns_geoip_elem_t *elt);
 

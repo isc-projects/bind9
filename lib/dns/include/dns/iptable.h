@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2007, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -51,6 +51,10 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target);
 isc_result_t
 dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
 		      isc_uint16_t bitlen, isc_boolean_t pos);
+isc_result_t
+dns_iptable_addprefix2(dns_iptable_t *tab, isc_netaddr_t *addr,
+		       isc_uint16_t bitlen, isc_boolean_t pos,
+		       isc_boolean_t is_ecs);
 /*
  * Add an IP prefix to an existing IP table
  */

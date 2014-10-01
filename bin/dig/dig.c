@@ -192,6 +192,7 @@ help(void) {
 "                 +ndots=###          (Set NDOTS value)\n"
 "                 +subnet=addr        (Set edns-client-subnet option)\n"
 "                 +[no]edns[=###]     (Set EDNS version) [0]\n"
+"                 +ednsflags=###      (Set EDNS flag bits)\n"
 "                 +ednsopt=###[:value] (Send specified EDNS option)\n"
 "                 +noednsopt          (Clear list of +ednsopt options)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
@@ -959,6 +960,25 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 							fatal("Couldn't parse "
 							      "edns");
 						lookup->edns = num;
+						break;
+					case 'f':
+						FULLCHECK("ednsflags");
+						if (!state) {
+							lookup->ednsflags = 0;
+							break;
+						}
+						if (value == NULL) {
+							lookup->ednsflags = 0;
+							break;
+						}
+						result = parse_xint(&num,
+								    value,
+								    0xffff,
+								  "ednsflags");
+						if (result != ISC_R_SUCCESS)
+							fatal("Couldn't parse "
+							      "ednsflags");
+						lookup->ednsflags = num;
 						break;
 					case 'o':
 						FULLCHECK("ednsopt");

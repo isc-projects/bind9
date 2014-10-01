@@ -523,15 +523,30 @@ isblackholed(dns_dispatchmgr_t *dispatchmgr, isc_sockaddr_t *destaddr) {
 }
 
 static isc_result_t
-create_tcp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
+create_tcp_dispatch(isc_boolean_t newtcp, dns_requestmgr_t *requestmgr,
+		    isc_sockaddr_t *srcaddr,
 		    isc_sockaddr_t *destaddr, isc_dscp_t dscp,
-		    dns_dispatch_t **dispatchp)
+		    isc_boolean_t *connected, dns_dispatch_t **dispatchp)
 {
 	isc_result_t result;
 	isc_socket_t *socket = NULL;
 	isc_sockaddr_t src;
 	unsigned int attrs;
 	isc_sockaddr_t bind_any;
+
+	if (!newtcp) {
+		result = dns_dispatch_gettcp(requestmgr->dispatchmgr, destaddr,
+					     srcaddr, dispatchp);
+		if (result == ISC_R_SUCCESS) {
+			char peer[ISC_SOCKADDR_FORMATSIZE];
+
+			*connected = ISC_TRUE;
+			isc_sockaddr_format(destaddr, peer, sizeof(peer));
+			req_log(ISC_LOG_DEBUG(1), "attached to existing TCP "
+				"connection to %s", peer);
+			return (result);
+		}
+	}
 
 	result = isc_socket_create(requestmgr->socketmgr,
 				   isc_sockaddr_pf(destaddr),
@@ -554,7 +569,6 @@ create_tcp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 
 	attrs = 0;
 	attrs |= DNS_DISPATCHATTR_TCP;
-	attrs |= DNS_DISPATCHATTR_PRIVATE;
 	if (isc_sockaddr_pf(destaddr) == AF_INET)
 		attrs |= DNS_DISPATCHATTR_IPV4;
 	else
@@ -562,10 +576,11 @@ create_tcp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 	attrs |= DNS_DISPATCHATTR_MAKEQUERY;
 
 	isc_socket_dscp(socket, dscp);
-	result = dns_dispatch_createtcp(requestmgr->dispatchmgr,
-					socket, requestmgr->taskmgr,
-					4096, 2, 1, 1, 3, attrs,
-					dispatchp);
+	result = dns_dispatch_createtcp2(requestmgr->dispatchmgr,
+					 socket, requestmgr->taskmgr,
+					 srcaddr, destaddr,
+					 4096, 32768, 32768, 16411, 16433,
+					 attrs, dispatchp);
 cleanup:
 	isc_socket_detach(&socket);
 	return (result);
@@ -625,14 +640,18 @@ find_udp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 }
 
 static isc_result_t
-get_dispatch(isc_boolean_t tcp, dns_requestmgr_t *requestmgr,
+get_dispatch(isc_boolean_t tcp, isc_boolean_t newtcp,
+	     dns_requestmgr_t *requestmgr,
 	     isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
-	     isc_dscp_t dscp, dns_dispatch_t **dispatchp)
+	     isc_dscp_t dscp, isc_boolean_t *connected,
+	     dns_dispatch_t **dispatchp)
 {
 	isc_result_t result;
+
 	if (tcp)
-		result = create_tcp_dispatch(requestmgr, srcaddr,
-					     destaddr, dscp, dispatchp);
+		result = create_tcp_dispatch(newtcp, requestmgr, srcaddr,
+					     destaddr, dscp, connected,
+					     dispatchp);
 	else
 		result = find_udp_dispatch(requestmgr, srcaddr,
 					   destaddr, dispatchp);
@@ -718,7 +737,10 @@ dns_request_createraw4(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	isc_mem_t *mctx;
 	dns_messageid_t	id;
 	isc_boolean_t tcp = ISC_FALSE;
+	isc_boolean_t newtcp = ISC_FALSE;
 	isc_region_t r;
+	isc_boolean_t connected = ISC_FALSE;
+	unsigned int dispopt = 0;
 
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 	REQUIRE(msgbuf != NULL);
@@ -780,17 +802,30 @@ dns_request_createraw4(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	if ((options & DNS_REQUESTOPT_TCP) != 0 || r.length > 512)
 		tcp = ISC_TRUE;
 
-	result = get_dispatch(tcp, requestmgr, srcaddr, destaddr, dscp,
-			      &request->dispatch);
+ again:
+	result = get_dispatch(tcp, newtcp, requestmgr, srcaddr, destaddr, dscp,
+			      &connected, &request->dispatch);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = dns_dispatch_addresponse2(request->dispatch, destaddr, task,
-					   req_response, request, &id,
-					   &request->dispentry,
+	if ((options & DNS_REQUESTOPT_FIXEDID) != 0) {
+		id = (r.base[0] << 8) | r.base[1];
+		dispopt |= DNS_DISPATCHOPT_FIXEDID;
+	}
+
+	result = dns_dispatch_addresponse3(request->dispatch, dispopt,
+					   destaddr, task, req_response,
+					   request, &id, &request->dispentry,
 					   requestmgr->socketmgr);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
+			newtcp = ISC_TRUE;
+			connected = ISC_FALSE;
+			dns_dispatch_detach(&request->dispatch);
+			goto again;
+		}
 		goto cleanup;
+	}
 
 	socket = req_getsocket(request);
 	INSIST(socket != NULL);
@@ -828,14 +863,14 @@ dns_request_createraw4(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		goto unlink;
 
 	request->destaddr = *destaddr;
-	if (tcp) {
+	if (tcp && !connected) {
 		result = isc_socket_connect(socket, destaddr, task,
 					    req_connected, request);
 		if (result != ISC_R_SUCCESS)
 			goto unlink;
 		request->flags |= DNS_REQUEST_F_CONNECTING|DNS_REQUEST_F_TCP;
 	} else {
-		result = req_send(request, task, destaddr);
+		result = req_send(request, task, connected ? NULL : destaddr);
 		if (result != ISC_R_SUCCESS)
 			goto unlink;
 	}
@@ -935,6 +970,7 @@ dns_request_createvia4(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	dns_messageid_t	id;
 	isc_boolean_t tcp;
 	isc_boolean_t setkey = ISC_TRUE;
+	isc_boolean_t connected = ISC_FALSE;
 
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 	REQUIRE(message != NULL);
@@ -993,8 +1029,8 @@ dns_request_createvia4(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
  use_tcp:
 	tcp = ISC_TF((options & DNS_REQUESTOPT_TCP) != 0);
-	result = get_dispatch(tcp, requestmgr, srcaddr, destaddr, dscp,
-			      &request->dispatch);
+	result = get_dispatch(tcp, ISC_FALSE, requestmgr, srcaddr, destaddr,
+			      dscp, &connected, &request->dispatch);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -1050,14 +1086,14 @@ dns_request_createvia4(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		goto unlink;
 
 	request->destaddr = *destaddr;
-	if (tcp) {
+	if (tcp && !connected) {
 		result = isc_socket_connect(socket, destaddr, task,
 					    req_connected, request);
 		if (result != ISC_R_SUCCESS)
 			goto unlink;
 		request->flags |= DNS_REQUEST_F_CONNECTING|DNS_REQUEST_F_TCP;
 	} else {
-		result = req_send(request, task, destaddr);
+		result = req_send(request, task, connected ? NULL : destaddr);
 		if (result != ISC_R_SUCCESS)
 			goto unlink;
 	}

@@ -1,4 +1,126 @@
-3931.	[cleanup]	Cleanup how dlz grammer is defined. [RT #36879]
+3963.	[test]		Added NXRRSET test cases to the "dlzexternal"
+			system test. [RT #37344]
+
+3962.	[bug]		'dig +topdown +trace +sigchase' address unhandled error
+			conditions. [RT #34663]
+
+3961.	[bug]		Forwarding of SIG(0) signed UPDATE messages failed with
+			BADSIG.  [RT #37216]
+
+3960.	[bug]		'dig +sigchase' could loop forever. [RT #37220]
+
+3959.	[bug]		Updates could be lost if they arrived immediately
+			after a rndc thaw. [RT #37233]
+
+3958.	[bug]		Detect when writeable files have multiple references
+			in named.conf. [RT #37172]
+
+3957.	[bug]		"dnssec-keygen -S" failed for ECCGOST, ECDSAP256SHA256
+			and ECDSAP384SHA384. [RT #37183]
+
+3956.	[func]		Notify messages are now rate limited by notify-rate and
+			startup-notify-rate instead of serial-query-rate.
+			[RT #24454]
+
+3955.	[bug]		Notify messages due to changes are no longer queued
+			behind startup notify messages. [RT #24454]
+
+3954.	[bug]		Unchecked mutex init in dlz_dlopen_driver.c [RT #37112]
+
+3953.	[bug]		Don't escape semi-colon in TXT fields. [RT #37159]
+
+3952.	[bug]		dns_name_fullcompare failed to set *nlabelsp when the
+			two name pointers were the same. [RT #37176]
+
+3951.	[func]		Add the ability to set yet-to-be-defined EDNS flags
+			to dig (+ednsflags=#). [RT #37142]
+
+3950.	[port]		Changed the bin/python Makefile to work around a
+			bmake bug in FreeBSD 10 and NetBSD 6. [RT #36993]
+
+3949.	[experimental]	Experimental support for draft-andrews-edns1 by sending
+			EDNS(1) queries (define DRAFT_ANDREWS_EDNS1 when
+			building).  Add support for limiting the EDNS version
+			advertised to servers: server { edns-version 0; };
+			Log the EDNS version received in the query log.
+			[RT #35864]
+
+3948.	[port]		solaris: RCVBUFSIZE was too large on Solaris with
+			--with-tuning=large. [RT #37059]
+
+3947.	[cleanup]	Set the executable bit on libraries when using
+			libtool. [RT #36786]
+
+3946.	[cleanup]	Improved "configure" search for a python interpreter.
+			[RT #36992]
+
+3945.	[bug]		Invalid wildcard expansions could be incorrectly
+			accepted by the validator. [RT #37093]
+
+3944.	[test]		Added a regression test for "server-id". [RT #37057]
+
+3943.	[func]		SERVFAIL responses can now be cached for a
+			limited time (configured by "servfail-ttl",
+			default 10 seconds, limit 30). This can reduce
+			the frequency of retries when an authoritative
+			server is known to be failing, e.g., due to
+			ongoing DNSSEC validation problems. [RT #21347]
+
+3942.	[bug]		Wildcard responses from a optout range should be
+			marked as insecure. [RT #37072]
+
+3941.	[doc]		Include the BIND version number in the ARM. [RT #37067]
+
+3940.	[func]		"rndc nta" now allows negative trust anchors to be
+			set for up to one week. [RT #37069]
+
+3939.	[func]		Improve UPDATE forwarding performance by allowing TCP
+			connections to be shared. [RT #37039]
+
+3938.	[placeholder]
+
+3937.	[func]		Added some debug logging to better indicate the
+			conditions causing SERVFAILs when resolving.
+			[RT #35538]
+
+3936.	[func]		Added authoritative support for the EDNS Client
+			Subnet (ECS) option.
+
+			ACLs can now include "ecs" elements which specify
+			an address or network prefix; if an ECS option is
+			included in a DNS query, then the address encoded
+			in the option will be matched against "ecs" ACL
+			elements.
+
+			Also, if an ECS address is included in a query,
+			then it will be used instead of the client source
+			address when matching "geoip" ACL elements.  This
+			behavior can be overridden with "geoip-use-ecs no;".
+			(Note: to enable "geoip" ACLs, use "configure
+			--with-geoip". This requires libGeoIP version
+			1.5.0 or higher.)
+
+			When "ecs" or "geoip" ACL elements are used to
+			select a view for a query, the response will include
+			an ECS option to indicate which client network the
+			answer is valid for.
+
+			(Thanks to Vincent Bernat.) [RT #36781]
+
+3935.	[bug]		"geoip asnum" ACL elements would not match unless
+			the full organization name was specified.  They
+			can now match against the AS number alone (e.g.,
+			AS1234). [RT #36945]
+
+3934.	[bug]		Catch bad 'sit-secret' in named-checkconf.  Improve
+			sit-secret documentation. [RT #36980]
+
+3933.	[bug]		Corrected the implementation of dns_rdata_casecompare()
+			for the HIP rdata type.  [RT #36911]
+
+3932.	[test]		Improved named-checkconf tests. [RT #36911]
+
+3931.	[cleanup]	Cleanup how dlz grammar is defined. [RT #36879]
 
 3930.	[bug]		"rndc nta -r" could cause a server hang if the
 			NTA was not found. [RT #36909]
@@ -23,7 +145,7 @@
 			retains	DS and (if applicable) NSEC signatures.
 			[RT #36946]
 
-3921.	[bug]		AD was inappopriately set on RPZ responses. [RT #36833]
+3921.	[bug]		AD was inappropriately set on RPZ responses. [RT #36833]
 
 3920.	[doc]		Added doc for masterfile-style. [RT #36823]
 
@@ -64,7 +186,7 @@
 3908.	[bug]		rndc now differentiates between a zone in multiple
 			views and a zone that doesn't exist at all. [RT #36691]
 
-3907.	[cleanup]	Alphabetise rndc help. [RT #36683]
+3907.	[cleanup]	Alphabetize rndc help. [RT #36683]
 
 3906.	[protocol]	Update URI record format to comply with
 			draft-faltstrom-uri-08. [RT #36642]
@@ -140,7 +262,7 @@
 			periodically to see whether data below them can be
 			validated, and if so, they will be allowed to
 			expire early. The "rndc nta -force" option
-			overrides this behvaior.  The default NTA lifetime
+			overrides this behavior.  The default NTA lifetime
 			and the recheck frequency can be configured by the
 			"nta-lifetime" and "nta-recheck" options. [RT #36146]
 

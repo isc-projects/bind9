@@ -476,6 +476,10 @@ typedef struct {
 #define DNS_ZONEFLG_LOADPENDING	0x10000000U	/*%< Loading scheduled */
 #define DNS_ZONEFLG_NODELAY	0x20000000U
 #define DNS_ZONEFLG_SENDSECURE  0x40000000U
+#define DNS_ZONEFLG_NEEDSTARTUPNOTIFY 0x80000000U /*%< need to send out notify
+						   *   due to the zone just
+						   *   being loaded for the
+						   *   first time.  */
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 #define DNS_ZONE_OPTION2(z,o) (((z)->options2 & (o)) != 0)
@@ -515,6 +519,8 @@ struct dns_zonemgr {
 	isc_pool_t *		mctxpool;
 	isc_ratelimiter_t *	notifyrl;
 	isc_ratelimiter_t *	refreshrl;
+	isc_ratelimiter_t *	startupnotifyrl;
+	isc_ratelimiter_t *	startuprefreshrl;
 	isc_rwlock_t		rwlock;
 	isc_mutex_t		iolock;
 	isc_rwlock_t		urlock;
@@ -527,7 +533,10 @@ struct dns_zonemgr {
 	/* Configuration data. */
 	isc_uint32_t		transfersin;
 	isc_uint32_t		transfersperns;
+	unsigned int		notifyrate;
+	unsigned int		startupnotifyrate;
 	unsigned int		serialqueryrate;
+	unsigned int		startupserialqueryrate;
 
 	/* Locked by iolock */
 	isc_uint32_t		iolimit;
@@ -555,9 +564,11 @@ struct dns_notify {
 	dns_tsigkey_t		*key;
 	isc_dscp_t		dscp;
 	ISC_LINK(dns_notify_t)	link;
+	isc_event_t		*event;
 };
 
 #define DNS_NOTIFY_NOSOA	0x0001U
+#define DNS_NOTIFY_STARTUP	0x0002U
 
 /*%
  *	dns_stub holds state while performing a 'stub' transfer.
@@ -598,6 +609,7 @@ struct dns_forward {
 	isc_sockaddr_t		addr;
 	dns_updatecallback_t	callback;
 	void			*callback_arg;
+	unsigned int		options;
 	ISC_LINK(dns_forward_t)	link;
 };
 
@@ -785,6 +797,8 @@ static isc_result_t delete_nsec(dns_db_t *db, dns_dbversion_t *ver,
 				dns_diff_t *diff);
 static void zone_rekey(dns_zone_t *zone);
 static isc_result_t zone_send_securedb(dns_zone_t *zone, dns_db_t *db);
+static void setrl(isc_ratelimiter_t *rl, unsigned int *rate,
+		  unsigned int value);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
@@ -2896,8 +2910,8 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 
  checkspf:
 		/*
-		 * Check if there is a type TXT spf record without a type SPF
-		 * RRset being present.
+		 * Check if there is a type SPF record without an
+		 * SPF-formatted type TXT record also being present.
 		 */
 		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKSPF))
 			goto next;
@@ -4480,7 +4494,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		zone_attachdb(zone, db);
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 		DNS_ZONE_SETFLAG(zone,
-				 DNS_ZONEFLG_LOADED|DNS_ZONEFLG_NEEDNOTIFY);
+				 DNS_ZONEFLG_LOADED|
+				 DNS_ZONEFLG_NEEDSTARTUPNOTIFY);
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SENDSECURE) &&
 		    inline_raw(zone))
 		{
@@ -9330,7 +9345,8 @@ zone_maintenance(dns_zone_t *zone) {
 	 * Slaves send notifies before backing up to disk, masters after.
 	 */
 	if (zone->type == dns_zone_slave &&
-	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) &&
+	    (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
+	     DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY)) &&
 	    isc_time_compare(&now, &zone->notifytime) >= 0)
 		zone_notify(zone, &now);
 
@@ -9370,7 +9386,8 @@ zone_maintenance(dns_zone_t *zone) {
 	switch (zone->type) {
 	case dns_zone_master:
 	case dns_zone_redirect:
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) &&
+		if ((DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
+		     DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY))&&
 		    isc_time_compare(&now, &zone->notifytime) >= 0)
 			zone_notify(zone, &now);
 	default:
@@ -9999,21 +10016,50 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val) {
 }
 
 static isc_boolean_t
-notify_isqueued(dns_zone_t *zone, dns_name_t *name, isc_sockaddr_t *addr) {
+notify_isqueued(dns_zone_t *zone, unsigned int flags, dns_name_t *name,
+		isc_sockaddr_t *addr)
+{
 	dns_notify_t *notify;
+	dns_zonemgr_t *zmgr;
+	isc_result_t result;
 
 	for (notify = ISC_LIST_HEAD(zone->notifies);
 	     notify != NULL;
 	     notify = ISC_LIST_NEXT(notify, link)) {
 		if (notify->request != NULL)
 			continue;
+		if ((flags & DNS_NOTIFY_STARTUP) == 0)
+			notify->flags &= ~DNS_NOTIFY_STARTUP;
 		if (name != NULL && dns_name_dynamic(&notify->ns) &&
 		    dns_name_equal(name, &notify->ns))
-			return (ISC_TRUE);
+			goto requeue;
 		if (addr != NULL && isc_sockaddr_equal(addr, &notify->dst))
-			return (ISC_TRUE);
+			goto requeue;
 	}
 	return (ISC_FALSE);
+
+requeue:
+	/*
+	 * If we are enqueued on the startup ratelimiter and this is
+	 * not a startup notify, re-enqueue on the normal notify
+	 * ratelimiter.
+	 */
+	if (notify->event != NULL && (flags & DNS_NOTIFY_STARTUP) == 0) {
+		zmgr = notify->zone->zmgr;
+		result = isc_ratelimiter_dequeue(zmgr->startupnotifyrl,
+						 notify->event);
+		if (result != ISC_R_SUCCESS)
+			return (ISC_TRUE);
+		result = isc_ratelimiter_enqueue(notify->zone->zmgr->notifyrl,
+						 notify->zone->task,
+						 &notify->event);
+		if (result != ISC_R_SUCCESS) {
+			isc_event_free(&notify->event);
+			return (ISC_FALSE);
+		}
+	}
+
+	return (ISC_TRUE);
 }
 
 static isc_boolean_t
@@ -10111,6 +10157,7 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
 	notify->find = NULL;
 	notify->request = NULL;
 	notify->key = NULL;
+	notify->event = NULL;
 	isc_sockaddr_any(&notify->dst);
 	dns_name_init(&notify->ns, NULL);
 	ISC_LINK_INIT(notify, link);
@@ -10186,22 +10233,27 @@ notify_find_address(dns_notify_t *notify) {
 
 
 static isc_result_t
-notify_send_queue(dns_notify_t *notify) {
+notify_send_queue(dns_notify_t *notify, isc_boolean_t startup) {
 	isc_event_t *e;
 	isc_result_t result;
 
-	e = isc_event_allocate(notify->mctx, NULL,
-			       DNS_EVENT_NOTIFYSENDTOADDR,
-			       notify_send_toaddr,
-			       notify, sizeof(isc_event_t));
+	INSIST(notify->event == NULL);
+	e = isc_event_allocate(notify->mctx, NULL, DNS_EVENT_NOTIFYSENDTOADDR,
+			       notify_send_toaddr, notify, sizeof(isc_event_t));
 	if (e == NULL)
 		return (ISC_R_NOMEMORY);
+	if (startup)
+		notify->event = e;
 	e->ev_arg = notify;
 	e->ev_sender = NULL;
-	result = isc_ratelimiter_enqueue(notify->zone->zmgr->notifyrl,
+	result = isc_ratelimiter_enqueue(startup
+					  ? notify->zone->zmgr->startupnotifyrl
+					  : notify->zone->zmgr->notifyrl,
 					 notify->zone->task, &e);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		isc_event_free(&e);
+		notify->event = NULL;
+	}
 	return (result);
 }
 
@@ -10225,6 +10277,8 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK_ZONE(notify->zone);
+
+	notify->event = NULL;
 
 	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_LOADED) == 0) {
 		result = ISC_R_CANCELED;
@@ -10342,6 +10396,8 @@ notify_send(dns_notify_t *notify) {
 	isc_sockaddr_t dst;
 	isc_result_t result;
 	dns_notify_t *new = NULL;
+	unsigned int flags;
+	isc_boolean_t startup;
 
 	/*
 	 * Zone lock held by caller.
@@ -10353,20 +10409,20 @@ notify_send(dns_notify_t *notify) {
 	     ai != NULL;
 	     ai = ISC_LIST_NEXT(ai, publink)) {
 		dst = ai->sockaddr;
-		if (notify_isqueued(notify->zone, NULL, &dst))
+		if (notify_isqueued(notify->zone, notify->flags, NULL, &dst))
 			continue;
 		if (notify_isself(notify->zone, &dst))
 			continue;
 		new = NULL;
-		result = notify_create(notify->mctx,
-				       (notify->flags & DNS_NOTIFY_NOSOA),
-				       &new);
+		flags = notify->flags & DNS_NOTIFY_NOSOA;
+		result = notify_create(notify->mctx, flags, &new);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		zone_iattach(notify->zone, &new->zone);
 		ISC_LIST_APPEND(new->zone->notifies, new, link);
 		new->dst = dst;
-		result = notify_send_queue(new);
+		startup = ISC_TF((notify->flags & DNS_NOTIFY_STARTUP) != 0);
+		result = notify_send_queue(new, startup);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		new = NULL;
@@ -10412,11 +10468,14 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	dns_notifytype_t notifytype;
 	unsigned int flags = 0;
 	isc_boolean_t loggednotify = ISC_FALSE;
+	isc_boolean_t startup;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
+	startup = !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY);
 	notifytype = zone->notifytype;
 	DNS_ZONE_TIME_ADD(now, zone->notifydelay, &zone->notifytime);
 	UNLOCK_ZONE(zone);
@@ -10439,6 +10498,12 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	 */
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALNOTIFY))
 		flags |= DNS_NOTIFY_NOSOA;
+
+	/*
+	 * Record that this was a notify due to starting up.
+	 */
+	if (startup)
+		flags |= DNS_NOTIFY_STARTUP;
 
 	/*
 	 * Get SOA RRset.
@@ -10485,7 +10550,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		dns_tsigkey_t *key = NULL;
 
 		dst = zone->notify[i];
-		if (notify_isqueued(zone, NULL, &dst))
+		if (notify_isqueued(zone, flags, NULL, &dst))
 			continue;
 
 		result = notify_create(zone->mctx, flags, &notify);
@@ -10507,7 +10572,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		}
 
 		ISC_LIST_APPEND(zone->notifies, notify, link);
-		result = notify_send_queue(notify);
+		result = notify_send_queue(notify, startup);
 		if (result != ISC_R_SUCCESS)
 			notify_destroy(notify, ISC_TRUE);
 		if (!loggednotify) {
@@ -10557,7 +10622,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		}
 
 		LOCK_ZONE(zone);
-		isqueued = notify_isqueued(zone, &ns.name, NULL);
+		isqueued = notify_isqueued(zone, flags, &ns.name, NULL);
 		UNLOCK_ZONE(zone);
 		if (isqueued) {
 			result = dns_rdataset_next(&nsrdset);
@@ -12127,7 +12192,8 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		/* FALLTHROUGH */
 
 	case dns_zone_master:
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
+		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY))
 			next = zone->notifytime;
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
@@ -13202,9 +13268,12 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	if (message != NULL && message->rcode == dns_rcode_formerr &&
 	    (notify->flags & DNS_NOTIFY_NOSOA) == 0) {
+		isc_boolean_t startup;
+
 		notify->flags |= DNS_NOTIFY_NOSOA;
 		dns_request_destroy(&notify->request);
-		result = notify_send_queue(notify);
+		startup = ISC_TF((notify->flags & DNS_NOTIFY_STARTUP) != 0);
+		result = notify_send_queue(notify, startup);
 		if (result != ISC_R_SUCCESS)
 			notify_destroy(notify, ISC_FALSE);
 	} else {
@@ -14927,12 +14996,12 @@ sendtomaster(dns_forward_t *forward) {
 		goto unlock;
 	}
 	result = dns_request_createraw4(forward->zone->view->requestmgr,
-				       forward->msgbuf,
-				       &src, &forward->addr, dscp,
-				       DNS_REQUESTOPT_TCP, 15 /* XXX */,
-				       0, 0, forward->zone->task,
-				       forward_callback, forward,
-				       &forward->request);
+					forward->msgbuf,
+					&src, &forward->addr, dscp,
+					forward->options, 15 /* XXX */,
+					0, 0, forward->zone->task,
+					forward_callback, forward,
+					&forward->request);
 	if (result == ISC_R_SUCCESS) {
 		if (!ISC_LINK_LINKED(forward, link))
 			ISC_LIST_APPEND(forward->zone->forwards, forward, link);
@@ -15076,6 +15145,13 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 	forward->callback_arg = callback_arg;
 	ISC_LINK_INIT(forward, link);
 	forward->magic = FORWARD_MAGIC;
+	forward->options = DNS_REQUESTOPT_TCP;
+	/*
+	 * If we have a SIG(0) signed message we need to preserve the
+	 * query id as that is included in the SIG(0) computation.
+	 */
+	if (msg->sig0 != NULL)
+		forward->options |= DNS_REQUESTOPT_FIXEDID;
 
 	mr = dns_message_getrawmessage(msg);
 	if (mr == NULL) {
@@ -15136,7 +15212,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 {
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
-	isc_interval_t interval;
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
 	if (zmgr == NULL)
@@ -15153,6 +15228,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->task = NULL;
 	zmgr->notifyrl = NULL;
 	zmgr->refreshrl = NULL;
+	zmgr->startupnotifyrl = NULL;
+	zmgr->startuprefreshrl = NULL;
 	ISC_LIST_INIT(zmgr->zones);
 	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
 	ISC_LIST_INIT(zmgr->xfrin_in_progress);
@@ -15185,15 +15262,21 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	if (result != ISC_R_SUCCESS)
 		goto free_notifyrl;
 
-	/* default to 20 refresh queries / notifies per second. */
-	isc_interval_set(&interval, 0, 1000000000/2);
-	result = isc_ratelimiter_setinterval(zmgr->notifyrl, &interval);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_ratelimiter_setpertic(zmgr->notifyrl, 10);
+	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
+					&zmgr->startupnotifyrl);
+	if (result != ISC_R_SUCCESS)
+		goto free_refreshrl;
 
-	result = isc_ratelimiter_setinterval(zmgr->refreshrl, &interval);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_ratelimiter_setpertic(zmgr->refreshrl, 10);
+	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
+					&zmgr->startuprefreshrl);
+	if (result != ISC_R_SUCCESS)
+		goto free_startupnotifyrl;
+
+	/* default to 20 refresh queries / notifies per second. */
+	setrl(zmgr->notifyrl, &zmgr->notifyrate, 20);
+	setrl(zmgr->startupnotifyrl, &zmgr->startupnotifyrate, 20);
+	setrl(zmgr->refreshrl, &zmgr->serialqueryrate, 20);
+	setrl(zmgr->startuprefreshrl, &zmgr->startupserialqueryrate, 20);
 
 	zmgr->iolimit = 1;
 	zmgr->ioactive = 0;
@@ -15202,7 +15285,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	result = isc_mutex_init(&zmgr->iolock);
 	if (result != ISC_R_SUCCESS)
-		goto free_refreshrl;
+		goto free_startuprefreshrl;
 
 	zmgr->magic = ZONEMGR_MAGIC;
 
@@ -15213,6 +15296,10 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  free_iolock:
 	DESTROYLOCK(&zmgr->iolock);
 #endif
+ free_startuprefreshrl:
+	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
+ free_startupnotifyrl:
+	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
  free_refreshrl:
 	isc_ratelimiter_detach(&zmgr->refreshrl);
  free_notifyrl:
@@ -15416,6 +15503,8 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 
 	isc_ratelimiter_shutdown(zmgr->notifyrl);
 	isc_ratelimiter_shutdown(zmgr->refreshrl);
+	isc_ratelimiter_shutdown(zmgr->startupnotifyrl);
+	isc_ratelimiter_shutdown(zmgr->startuprefreshrl);
 
 	if (zmgr->task != NULL)
 		isc_task_destroy(&zmgr->task);
@@ -15547,6 +15636,8 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 	DESTROYLOCK(&zmgr->iolock);
 	isc_ratelimiter_detach(&zmgr->notifyrl);
 	isc_ratelimiter_detach(&zmgr->refreshrl);
+	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
+	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
 
 	isc_rwlock_destroy(&zmgr->urlock);
 	isc_rwlock_destroy(&zmgr->rwlock);
@@ -15909,14 +16000,12 @@ dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event) {
 }
 #endif
 
-void
-dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
+static void
+setrl(isc_ratelimiter_t *rl, unsigned int *rate, unsigned int value) {
 	isc_interval_t interval;
 	isc_uint32_t s, ns;
 	isc_uint32_t pertic;
 	isc_result_t result;
-
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	if (value == 0)
 		value = 1;
@@ -15937,15 +16026,51 @@ dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
 
 	isc_interval_set(&interval, s, ns);
 
-	result = isc_ratelimiter_setinterval(zmgr->notifyrl, &interval);
+	result = isc_ratelimiter_setinterval(rl, &interval);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_ratelimiter_setpertic(zmgr->notifyrl, pertic);
+	isc_ratelimiter_setpertic(rl, pertic);
 
-	result = isc_ratelimiter_setinterval(zmgr->refreshrl, &interval);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_ratelimiter_setpertic(zmgr->refreshrl, pertic);
+	*rate = value;
+}
 
-	zmgr->serialqueryrate = value;
+void
+dns_zonemgr_setnotifyrate(dns_zonemgr_t *zmgr, unsigned int value) {
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	setrl(zmgr->notifyrl, &zmgr->notifyrate, value);
+}
+
+void
+dns_zonemgr_setstartupnotifyrate(dns_zonemgr_t *zmgr, unsigned int value) {
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	setrl(zmgr->startupnotifyrl, &zmgr->startupnotifyrate, value);
+}
+
+void
+dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	setrl(zmgr->refreshrl, &zmgr->serialqueryrate, value);
+	/* XXXMPA seperate out once we have the code to support this. */
+	setrl(zmgr->startuprefreshrl, &zmgr->startupserialqueryrate, value);
+}
+
+unsigned int
+dns_zonemgr_getnotifyrate(dns_zonemgr_t *zmgr) {
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	return (zmgr->notifyrate);
+}
+
+unsigned int
+dns_zonemgr_getstartupnotifyrate(dns_zonemgr_t *zmgr) {
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	return (zmgr->startupnotifyrate);
 }
 
 unsigned int

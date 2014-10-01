@@ -597,5 +597,37 @@ serial=`$DIG +short yyyymmddvv.nil. soa @10.53.0.1 -p 5300 | awk '{print $3}'` |
 [ "$serial" -eq "$now" ] || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
+#
+#  Refactor to use perl to launch the parallel updates.
+#
+if false
+then
+n=`expr $n + 1`
+echo "I:send many simultaneous updates via a update forwarder ($n)"
+ret=0
+for i in 0 1 2 3 4 5 6 7
+do
+(
+    for j in 0 1 2 3 4 5 6 7
+    do
+    (
+	$NSUPDATE << EOF
+server 10.53.0.3 5300
+zone many.test
+update add $i-$j.many.test 0 IN A 1.2.3.4
+send
+EOF
+    ) &
+    done
+    wait
+) &
+done
+wait
+dig axfr many.test @10.53.0.1 -p 5300 > dig.out.test$n
+lines=`awk '$4 == "A" { l++ } END { print l }' dig.out.test$n`
+test ${lines:-0} -eq 64 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+fi
+
 echo "I:exit status: $status"
 exit $status

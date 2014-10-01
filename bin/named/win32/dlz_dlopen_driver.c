@@ -257,7 +257,9 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	triedload = ISC_TRUE;
 
 	/* Initialize the lock */
-	isc_mutex_init(&cd->lock);
+	result = isc_mutex_init(&cd->lock);
+	if (result != ISC_R_SUCCESS)
+		goto failed;
 
 	/* Open the library */
 	cd->dl_handle = LoadLibraryA(cd->dl_path);
@@ -268,7 +270,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 			   "dlz_dlopen failed to open library '%s' - %u",
 			   cd->dl_path, error);
 		result = ISC_R_FAILURE;
-		goto failed;
+		goto cleanup_lock;
 	}
 
 	/* Find the symbols */
@@ -288,7 +290,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	{
 		/* We're missing a required symbol */
 		result = ISC_R_FAILURE;
-		goto failed;
+		goto cleanup_lock;
 	}
 
 	cd->dlz_allowzonexfr = (dlz_dlopen_allowzonexfr_t *)
@@ -324,7 +326,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 			   "requires %d",
 			   cd->dl_path, cd->version, DLZ_DLOPEN_VERSION);
 		result = ISC_R_FAILURE;
-		goto failed;
+		goto cleanup_lock;
 	}
 
 	/*
@@ -344,12 +346,14 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 				NULL);
 	MAYBE_UNLOCK(cd);
 	if (result != ISC_R_SUCCESS)
-		goto failed;
+		goto cleanup_lock;
 
 	*dbdata = cd;
 
 	return (ISC_R_SUCCESS);
 
+cleanup_lock:
+	DESTROYLOCK(&cd->lock);
 failed:
 	dlopen_log(ISC_LOG_ERROR, "dlz_dlopen of '%s' failed", dlzname);
 	if (cd->dl_path)
@@ -390,7 +394,7 @@ dlopen_dlz_destroy(void *driverarg, void *dbdata) {
 	if (cd->dl_handle)
 		FreeLibrary(cd->dl_handle);
 
-	(void) isc_mutex_destroy(&cd->lock);
+	DESTROYLOCK(&cd->lock);
 
 	mctx = cd->mctx;
 	isc_mem_put(mctx, cd, sizeof(*cd));

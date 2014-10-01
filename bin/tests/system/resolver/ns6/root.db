@@ -1,4 +1,4 @@
-; Copyright (C) 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
+; Copyright (C) 2010, 2011, 2014  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -27,3 +27,12 @@ a.root-servers.nil.	A	10.53.0.6
 moves.			NS	ns.server.
 server.			NS	ns7.server.
 ns7.server.		A	10.53.0.7
+;
+; These two delegations are strictly not necessary as the test resolver (ns5)
+; doesn't have this zone as its root.  They are just done for consistancy with
+; the delegations in ns4/tld.
+;
+no-edns-version.tld.	NS	ns.no-edns-version.tld.
+ns.no-edns-version.tld.	A	10.53.0.6
+edns-version.tld.	NS	ns.edns-version.tld.
+ns.edns-version.tld.	A	10.53.0.7

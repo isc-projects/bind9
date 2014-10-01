@@ -476,6 +476,7 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+
 echo "I:check that E was logged on EDNS queries in the query log (${n})"
 ret=0
 $DIG @10.53.0.5 -p 5300 +edns edns.fetchall.tld any > dig.out.2.${n} || ret=1
@@ -499,6 +500,32 @@ grep 'extra type option' dig.out.2.${n} > /dev/null && ret=1
 grep ';1\.0\.0\.127\.in-addr\.arpa\..*IN.*PTR$' dig.out.3.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+edns=`./edns-version`
+
+n=`expr $n + 1`
+echo "I:check that EDNS version is logged (${n})"
+ret=0
+$DIG @10.53.0.5 -p 5300 +edns edns0.fetchall.tld any > dig.out.2.${n} || ret=1
+grep "query: edns0.fetchall.tld IN ANY +E(0)" ns5/named.run > /dev/null || ret=1
+if test ${edns:-0} != 0; then
+    $DIG @10.53.0.5 -p 5300 +edns=1 edns1.fetchall.tld any > dig.out.2.${n} || ret=1
+    grep "query: edns1.fetchall.tld IN ANY +E(1)" ns5/named.run > /dev/null || ret=1
+fi
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+if test ${edns:-0} != 0; then
+    n=`expr $n + 1`
+    echo "I:check that edns-version is honoured (${n})"
+    ret=0
+    $DIG @10.53.0.5 -p 5300 +edns no-edns-version.tld > dig.out.1.${n} || ret=1
+    grep "query: no-edns-version.tld IN A -E(1)" ns6/named.run > /dev/null || ret=1
+    $DIG @10.53.0.5 -p 5300 +edns edns-version.tld > dig.out.2.${n} || ret=1
+    grep "query: edns-version.tld IN A -E(0)" ns7/named.run > /dev/null || ret=1
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+fi
 
 echo "I:exit status: $status"
 exit $status

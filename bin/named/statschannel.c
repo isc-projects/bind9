@@ -242,6 +242,7 @@ init_desc(void) {
 		       "SitNoMatch");
 	SET_NSSTATDESC(sitmatch, "source identity token - match", "SitMatch");
 #endif
+	SET_NSSTATDESC(ecsopt, "EDNS client subnet option recieved", "ECSOpt");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */

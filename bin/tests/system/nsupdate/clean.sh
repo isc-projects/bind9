@@ -36,3 +36,5 @@ rm -f dig.out.*
 rm -f jp.out.ns3.*
 rm -f Kxxx.*
 rm -f typelist.out.*
+rm -f ns1/many.test.db ns3/many.test.db.jnl
+rm -f ns3/many.test.bk ns3/many.test.bk.jnl

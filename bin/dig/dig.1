@@ -356,6 +356,11 @@ Specify the EDNS version to query with. Valid values are 0 to 255. Setting the E
 clears the remembered EDNS version. EDNS is set to 0 by default.
 .RE
 .PP
+\fB+[no]ednsflags[=#]\fR
+.RS 4
+Set the must\-be\-zero EDNS flags bits (Z bits) to the specified value. Decimal, hex and octal encodings are accepted. Setting a named flag (e.g. DO) will silently be ignored. By default, no Z bits are set.
+.RE
+.PP
 \fB+[no]ednsopt[=code[:value]]\fR
 .RS 4
 Specify EDNS option with code point

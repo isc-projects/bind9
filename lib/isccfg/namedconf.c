@@ -950,8 +950,11 @@ options_clauses[] = {
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
 #ifdef HAVE_GEOIP
 	{ "geoip-directory", &cfg_type_qstringornone, 0 },
+	{ "geoip-use-ecs", &cfg_type_boolean, 0 },
 #else
 	{ "geoip-directory", &cfg_type_qstringornone,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "geoip-use-ecs", &cfg_type_qstringornone,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_GEOIP */
 	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
@@ -974,6 +977,7 @@ options_clauses[] = {
 	{ "memstatistics", &cfg_type_boolean, 0 },
 	{ "multiple-cnames", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "named-xfer", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "notify-rate", &cfg_type_uint32, 0 },
 	{ "pid-file", &cfg_type_qstringornone, 0 },
 	{ "port", &cfg_type_uint32, 0 },
 	{ "querylog", &cfg_type_boolean, 0 },
@@ -986,6 +990,7 @@ options_clauses[] = {
 	{ "serial-query-rate", &cfg_type_uint32, 0 },
 	{ "server-id", &cfg_type_serverid, 0 },
 	{ "stacksize", &cfg_type_size, 0 },
+	{ "startup-notify-rate", &cfg_type_uint32, 0 },
 	{ "statistics-file", &cfg_type_qstring, 0 },
 	{ "statistics-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_NYI },
 	{ "tcp-clients", &cfg_type_uint32, 0 },
@@ -1504,7 +1509,7 @@ view_clauses[] = {
 	{ "empty-zones-enable", &cfg_type_boolean, 0 },
 	{ "fetch-glue", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
-	{ "lame-ttl", &cfg_type_uint32, 0 },
+	{ "lame-ttl", &cfg_type_ttlval, 0 },
 #ifdef ISC_PLATFORM_USESIT
 	{ "nosit-udp-size", &cfg_type_uint32, 0 },
 #else
@@ -1544,6 +1549,7 @@ view_clauses[] = {
 	{ "rfc2308-type1", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
+	{ "servfail-ttl", &cfg_type_ttlval, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_NOTIMP },
@@ -1821,6 +1827,7 @@ server_clauses[] = {
 	{ "bogus", &cfg_type_boolean, 0 },
 	{ "edns", &cfg_type_boolean, 0 },
 	{ "edns-udp-size", &cfg_type_uint32, 0 },
+	{ "edns-version", &cfg_type_uint32, 0 },
 	{ "keys", &cfg_type_server_key_kludge, 0 },
 	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
@@ -2282,6 +2289,16 @@ doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type) {
 #endif /* HAVE_GEOIP */
 
 /*%
+ * An EDNS client subnet address
+ */
+
+static keyword_type_t ecs_kw = { "ecs", &cfg_type_netprefix };
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_ecsprefix = {
+	"edns_client_subnet", parse_keyvalue, print_keyvalue, doc_keyvalue,
+	&cfg_rep_netprefix, &ecs_kw
+};
+
+/*%
  * A "controls" statement is represented as a map with the multivalued
  * "inet" and "unix" clauses.
  */
@@ -2570,6 +2587,9 @@ parse_addrmatchelt(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) 
 		if (pctx->token.type == isc_tokentype_string &&
 		    (strcasecmp(TOKEN_STRING(pctx), "key") == 0)) {
 			CHECK(cfg_parse_obj(pctx, &cfg_type_keyref, ret));
+		} else if (pctx->token.type == isc_tokentype_string &&
+			   (strcasecmp(TOKEN_STRING(pctx), "ecs") == 0)) {
+			CHECK(cfg_parse_obj(pctx, &cfg_type_ecsprefix, ret));
 		} else if (pctx->token.type == isc_tokentype_string &&
 			   (strcasecmp(TOKEN_STRING(pctx), "geoip") == 0)) {
 #ifdef HAVE_GEOIP

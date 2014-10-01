@@ -271,7 +271,7 @@ $DIG $DIGOPTS a.wild.optout.example. \
 stripns dig.out.ns3.test$n > dig.out.ns3.stripped.test$n
 stripns dig.out.ns4.test$n > dig.out.ns4.stripped.test$n
 $PERL ../digcomp.pl dig.out.ns3.stripped.test$n dig.out.ns4.stripped.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
@@ -1796,7 +1796,7 @@ echo "I:check with bad nta lifetime"
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -l garbage foo > rndc.out.ns4.test$n.2 2>&1
 grep "'nta' failed: bad ttl" rndc.out.ns4.test$n.2 > /dev/null || ret=1
 echo "I:check with too long nta lifetime"
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -l 5d23h foo > rndc.out.ns4.test$n.3 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -l 7d1h foo > rndc.out.ns4.test$n.3 2>&1
 grep "'nta' failed: out of range" rndc.out.ns4.test$n.3 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -2639,6 +2639,76 @@ awk 'BEGIN { ok=0; } $4 == "SOA" { if ($7 > 1) ok=1; } END { if (!ok) exit(1); }
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+echo "I:check that 'dnssec-keygen -S' works for all supported algorithms ($n)"
+ret=0
+alg=1
+until test $alg = 256
+do
+	size=
+	case $alg in
+	1) size="-b 512";;
+	2) # Diffie Helman
+	   alg=`expr $alg + 1`
+	   continue;;
+	3) size="-b 512";;
+	5) size="-b 512";;
+	6) size="-b 512";;
+	7) size="-b 512";;
+	8) size="-b 512";;
+	10) size="-b 1024";;
+	157|160|161|162|163|164|165) # private - non standard
+	   alg=`expr $alg + 1`
+	   continue;;
+	esac
+	key1=`$KEYGEN -a $alg $size -n zone -r $RANDFILE example 2> keygen.err`
+	if grep "unsupported algorithm" keygen.err > /dev/null
+	then
+		alg=`expr $alg + 1`
+		continue
+	fi
+	if test -z "$key1"
+	then
+		echo "I: '$KEYGEN -a $alg': failed"
+		cat keygen.err
+		ret=1
+		alg=`expr $alg + 1`
+		continue
+	fi
+	$SETTIME -I now+4d $key1.private > /dev/null
+	key2=`$KEYGEN -v 10 -r $RANDFILE -i 3d -S $key1.private 2> /dev/null`
+	test -f $key2.key -a -f $key2.private || {
+		ret=1
+		echo "I: 'dnssec-keygen -S' failed for algorithm: $alg"
+	}
+	alg=`expr $alg + 1`
+done
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+#
+# Test for +sigchase with a null set of trusted keys.
+#
+$DIG -p 5300 @10.53.0.3 +sigchase +trusted-key=/dev/null > dig.out.ns3.test$n 2>&1
+if grep "Invalid option: +sigchase" dig.out.ns3.test$n > /dev/null
+then
+	echo "I:Skipping 'dig +sigchase' tests"
+	n=`expr $n + 1`
+else
+	echo "I:checking that 'dig +sigchase' doesn't loop with future inception ($n)"
+	ret=0
+	$DIG -p 5300 @10.53.0.3 dnskey future.example +sigchase \
+		 +trusted-key=ns3/trusted-future.key > dig.out.ns3.test$n &
+	pid=$!
+	sleep 1
+	kill -9 $pid 2> /dev/null
+	wait $pid
+	grep ";; No DNSKEY is valid to check the RRSIG of the RRset: FAILED" dig.out.ns3.test$n > /dev/null || ret=1
+	if [ $ret != 0 ]; then echo "I:failed"; fi
+	status=`expr $status + $ret`
+	n=`expr $n + 1`
+fi
 
 echo "I:exit status: $status"
 exit $status

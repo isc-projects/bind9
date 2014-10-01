@@ -266,7 +266,7 @@ so that include directives in the configuration file are processed as if run by 
 .PP
 \-T \fImode\fR
 .RS 4
-Check if Sender Policy Framework records (TXT and SPF) both exist or both don't exist. A warning is issued if they don't match. Possible modes are
+Check if Sender Policy Framework (SPF) records exist and issues a warning if an SPF\-formatted TXT record is not also present. Possible modes are
 \fB"warn"\fR
 (default),
 \fB"ignore"\fR.

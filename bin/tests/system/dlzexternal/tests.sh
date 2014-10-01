@@ -72,6 +72,12 @@ status=`expr $status + $ret`
 test_update deny.example.nil. TXT "86400 TXT helloworld" "helloworld" should_fail && ret=1
 status=`expr $status + $ret`
 
+newtest "I:testing nxrrset"
+$DIG $DIGOPTS testdc1.example.nil AAAA > dig.out.$n
+grep "status: NOERROR" dig.out.$n > /dev/null || ret=1
+grep "ANSWER: 0" dig.out.$n > /dev/null || ret=1
+status=`expr $status + $ret`
+
 newtest "I:testing prerequisites are checked correctly"
 cat > ns1/update.txt << EOF
 server 10.53.0.1 5300
@@ -178,6 +184,13 @@ $DIG $DIGOPTS @10.53.0.1 unexists a > dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 grep "^unexists.*A.*100.100.100.2" dig.out.ns1.test$n > /dev/null || ret=1
 grep "flags:[^;]* aa[ ;]" dig.out.ns1.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+newtest "I:checking no redirected lookup for nonexistent type"
+$DIG $DIGOPTS @10.53.0.1 exists aaaa > dig.out.ns1.test$n || ret=1
+grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
+grep "ANSWER: 0" dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

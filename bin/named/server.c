@@ -64,6 +64,7 @@
 
 #include <dns/acache.h>
 #include <dns/adb.h>
+#include <dns/badcache.h>
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
@@ -1225,6 +1226,15 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 
 	obj = NULL;
+	(void)cfg_map_get(cpeer, "edns-version", &obj);
+	if (obj != NULL) {
+		isc_uint32_t ednsversion = cfg_obj_asuint32(obj);
+		if (ednsversion > 255)
+			ednsversion = 255;
+		CHECK(dns_peer_setednsversion(peer, (isc_uint8_t)ednsversion));
+	}
+
+	obj = NULL;
 	(void)cfg_map_get(cpeer, "max-udp-size", &obj);
 	if (obj != NULL) {
 		isc_uint32_t udpsize = cfg_obj_asuint32(obj);
@@ -2349,7 +2359,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	size_t max_cache_size;
 	size_t max_acache_size;
 	size_t max_adb_size;
-	isc_uint32_t lame_ttl;
+	isc_uint32_t lame_ttl, fail_ttl;
 	dns_tsig_keyring_t *ring = NULL;
 	dns_view_t *pview = NULL;	/* Production view */
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;
@@ -3784,6 +3794,17 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			goto cleanup;
 	}
 
+	/*
+	 * Set the servfail-ttl.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "servfail-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	fail_ttl  = cfg_obj_asuint32(obj);
+	if (fail_ttl > 300)
+		fail_ttl = 300;
+	dns_view_setfailttl(view, fail_ttl);
+
 	result = ISC_R_SUCCESS;
 
  cleanup:
@@ -4684,6 +4705,9 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 static void
 scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
 	isc_boolean_t match_mapped = server->aclenv.match_mapped;
+#ifdef HAVE_GEOIP
+	isc_boolean_t use_ecs = server->aclenv.geoip_use_ecs;
+#endif
 
 	ns_interfacemgr_scan(server->interfacemgr, verbose);
 	/*
@@ -4694,6 +4718,9 @@ scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
 			ns_interfacemgr_getaclenv(server->interfacemgr));
 
 	server->aclenv.match_mapped = match_mapped;
+#ifdef HAVE_GEOIP
+	server->aclenv.geoip_use_ecs = use_ecs;
+#endif
 }
 
 static isc_result_t
@@ -5554,6 +5581,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	} else
 		ns_geoip_load(NULL);
 	ns_g_aclconfctx->geoip = ns_g_geoip;
+
+	obj = NULL;
+	result = ns_config_get(maps, "geoip-use-ecs", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	ns_g_server->aclenv.geoip_use_ecs = cfg_obj_asboolean(obj);
 #endif /* HAVE_GEOIP */
 
 	/*
@@ -5668,6 +5700,16 @@ load_configuration(const char *filename, ns_server_t *server,
 	result = ns_config_get(maps, "transfers-per-ns", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	dns_zonemgr_settransfersperns(server->zonemgr, cfg_obj_asuint32(obj));
+
+	obj = NULL;
+	result = ns_config_get(maps, "notify-rate", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_zonemgr_setnotifyrate(server->zonemgr, cfg_obj_asuint32(obj));
+
+	obj = NULL;
+	result = ns_config_get(maps, "startup-notify-rate", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_zonemgr_setstartupnotifyrate(server->zonemgr, cfg_obj_asuint32(obj));
 
 	obj = NULL;
 	result = ns_config_get(maps, "serial-query-rate", &obj);
@@ -7646,6 +7688,8 @@ dumpdone(void *arg, isc_result_t result) {
 		dns_adb_dump(dctx->view->view->adb, dctx->fp);
 		dns_resolver_printbadcache(dctx->view->view->resolver,
 					   dctx->fp);
+		dns_badcache_print(dctx->view->view->failcache,
+				   "SERVFAIL cache", dctx->fp);
 		dns_db_detach(&dctx->cache);
 	}
 	if (dctx->dumpzones) {
@@ -9910,8 +9954,8 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 				CHECK(result);
 			}
 
-			if (ntattl > 86400) {
-				msg = "NTA lifetime cannot exceed one day";
+			if (ntattl > 604800) {
+				msg = "NTA lifetime cannot exceed one week";
 				CHECK(ISC_R_RANGE);
 			}
 
@@ -10036,10 +10080,11 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 		isc_buffer_putuint8(text, 0);
 	}
 
-	if (msg != NULL)
-		(void) putstr(text, msg);
-
  cleanup:
+	if (msg != NULL) {
+		(void) putstr(text, msg);
+		(void) putnull(text);
+	}
 	if (excl)
 		isc_task_endexclusive(server->task);
 	if (ntatable != NULL)

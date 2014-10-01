@@ -182,18 +182,19 @@ enum {
 	dns_nsstatscounter_nsidopt = 43,
 	dns_nsstatscounter_expireopt = 44,
 	dns_nsstatscounter_otheropt = 45,
+	dns_nsstatscounter_ecsopt = 46,
 
 #ifdef ISC_PLATFORM_USESIT
-	dns_nsstatscounter_sitopt = 46,
-	dns_nsstatscounter_sitbadsize = 47,
-	dns_nsstatscounter_sitbadtime = 48,
-	dns_nsstatscounter_sitnomatch = 49,
-	dns_nsstatscounter_sitmatch = 50,
-	dns_nsstatscounter_sitnew = 51,
+	dns_nsstatscounter_sitopt = 47,
+	dns_nsstatscounter_sitbadsize = 48,
+	dns_nsstatscounter_sitbadtime = 49,
+	dns_nsstatscounter_sitnomatch = 50,
+	dns_nsstatscounter_sitmatch = 51,
+	dns_nsstatscounter_sitnew = 52,
 
-	dns_nsstatscounter_max = 52
+	dns_nsstatscounter_max = 53
 #else
-	dns_nsstatscounter_max = 46
+	dns_nsstatscounter_max = 47
 #endif
 };
 

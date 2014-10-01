@@ -81,6 +81,7 @@ options {\n\
 #	named-xfer <obsolete>;\n\
 	nta-lifetime 3600;\n\
 	nta-recheck 300;\n\
+	notify-rate 20;\n\
 #	pid-file \"" NS_LOCALSTATEDIR "/run/named/named.pid\"; /* or /lwresd.pid */\n\
 	port 53;\n\
 	prefetch 2 9;\n\
@@ -99,6 +100,7 @@ options {\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
+	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
 	statistics-interval 60;\n\
 	tcp-clients 100;\n\
@@ -155,6 +157,7 @@ options {\n\
 	cleaning-interval 0;  /* now meaningless */\n\
 	min-roots 2;\n\
 	lame-ttl 600;\n\
+	servfail-ttl 10;\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
 	max-cache-ttl 604800; /* 1 week */\n\
 	transfer-format many-answers;\n\
@@ -177,6 +180,11 @@ options {\n\
 	nsec3-test-zone no;\n\
 	allow-new-zones no;\n\
 "
+#ifdef HAVE_GEOIP
+"\
+	geoip-use-ecs yes;\n\
+"
+#endif
 #ifdef ALLOW_FILTER_AAAA
 "	filter-aaaa-on-v4 no;\n\
 	filter-aaaa-on-v6 no;\n\

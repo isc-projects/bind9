@@ -474,3 +474,15 @@ cat $infile $keyname.key >$zonefile
 
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 sed -e 's/bogus/badds/g' < dsset-bogus.example. > dsset-badds.example.
+
+#
+# A zone with future signatures.
+#
+zone=future.example
+infile=future.example.db.in
+zonefile=future.example.db
+kskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+zskname=`$KEYGEN -q -r $RANDFILE $zone`
+cat $infile $kskname.key $zskname.key >$zonefile
+$SIGNER -P -s +3600 -r $RANDFILE -o $zone $zonefile # > /dev/null 2>&1
+cp -f $kskname.key trusted-future.key

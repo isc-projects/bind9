@@ -85,6 +85,7 @@ struct dns_peer {
 	isc_dscp_t		query_dscp;
 	isc_uint16_t		udpsize;		/* receive size */
 	isc_uint16_t		maxudp;			/* transmit size */
+	isc_uint8_t		ednsversion;		/* edns version */
 
 	isc_uint32_t		bitflags;
 
@@ -248,6 +249,12 @@ dns_peer_setquerydscp(dns_peer_t *peer, isc_dscp_t dscp);
 
 isc_result_t
 dns_peer_getquerydscp(dns_peer_t *peer, isc_dscp_t *dscpp);
+
+isc_result_t
+dns_peer_setednsversion(dns_peer_t *peer, isc_uint8_t ednsversion);
+
+isc_result_t
+dns_peer_getednsversion(dns_peer_t *peer, isc_uint8_t *ednsversion);
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_PEER_H */

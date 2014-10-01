@@ -540,9 +540,9 @@
         <term><userinput>flushname</userinput> <replaceable>name</replaceable> <optional><replaceable>view</replaceable></optional> </term>
         <listitem>
           <para>
-            Flushes the given name from the server's DNS cache
-            and, if applicable, from the server's nameserver address
-            database or bad-server cache.
+            Flushes the given name from the view's DNS cache
+            and, if applicable, from the view's nameserver address
+            database, bad server cache and SERVFAIL cache.
           </para>
         </listitem>
       </varlistentry>
@@ -552,8 +552,8 @@
         <listitem>
           <para>
             Flushes the given name, and all of its subdomains,
-            from the server's DNS cache, the address database,
-            and the bad server cache.
+            from the view's DNS cache, address database,
+            bad server cache, and SERVFAIL cache.
           </para>
         </listitem>
       </varlistentry>
@@ -608,7 +608,7 @@
             <option>lifetime</option>.  The default lifetime is
             configured in <file>named.conf</file> via the
             <option>nta-lifetime</option>, and defaults to
-            one hour.  The lifetime cannot exceed one day.
+            one hour.  The lifetime cannot exceed one week.
           </para>
           <para>
             A negative trust anchor selectively disables

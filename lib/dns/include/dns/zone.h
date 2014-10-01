@@ -1768,12 +1768,48 @@ dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr);
  */
 
 void
+dns_zonemgr_setnotifyrate(dns_zonemgr_t *zmgr, unsigned int value);
+/*%<
+ *	Set the number of NOTIFY requests sent per second.
+ *
+ * Requires:
+ *\li	'zmgr' to be a valid zone manager
+ */
+
+void
+dns_zonemgr_setstartupnotifyrate(dns_zonemgr_t *zmgr, unsigned int value);
+/*%<
+ *	Set the number of startup NOTIFY requests sent per second.
+ *
+ * Requires:
+ *\li	'zmgr' to be a valid zone manager
+ */
+
+void
 dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value);
 /*%<
  *	Set the number of SOA queries sent per second.
  *
  * Requires:
  *\li	'zmgr' to be a valid zone manager
+ */
+
+unsigned int
+dns_zonemgr_getnotifyrate(dns_zonemgr_t *zmgr);
+/*%<
+ *	Return the number of NOTIFY requests sent per second.
+ *
+ * Requires:
+ *\li	'zmgr' to be a valid zone manager.
+ */
+
+unsigned int
+dns_zonemgr_getstartupnotifyrate(dns_zonemgr_t *zmgr);
+/*%<
+ *	Return the number of startup NOTIFY requests sent per second.
+ *
+ * Requires:
+ *\li	'zmgr' to be a valid zone manager.
  */
 
 unsigned int

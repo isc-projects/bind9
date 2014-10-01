@@ -48,6 +48,7 @@ struct ns_query {
 	isc_boolean_t			timerset;
 	dns_name_t *			qname;
 	dns_name_t *			origqname;
+	dns_rdatatype_t			qtype;
 	unsigned int			dboptions;
 	unsigned int			fetchoptions;
 	dns_db_t *			gluedb;
@@ -87,7 +88,6 @@ struct ns_query {
 #define NS_QUERYATTR_DNS64		0x4000
 #define NS_QUERYATTR_DNS64EXCLUDE	0x8000
 #define NS_QUERYATTR_RRL_CHECKED	0x10000
-
 
 isc_result_t
 ns_query_init(ns_client_t *client);

@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.286 2012/01/31 23:47:30 tbox Exp $ */
-
 #include <config.h>
 
 #include <isc/formatcheck.h>
@@ -40,8 +38,10 @@
 #include <isc/hmacsha.h>
 #endif
 
+#include <dns/badcache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
+#include <dns/edns.h>
 #include <dns/events.h>
 #include <dns/message.h>
 #include <dns/peer.h>
@@ -122,6 +122,7 @@
 #endif
 
 #define SIT_SIZE 24U /* 8 + 4 + 4 + 8 */
+#define ECS_SIZE 20U /* 2 + 1 + 1 + [0..16] */
 
 /*% nameserver client manager structure */
 struct ns_clientmgr {
@@ -244,7 +245,8 @@ static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
 static isc_result_t get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 			       dns_dispatch_t *disp, isc_boolean_t tcp);
 static inline isc_boolean_t
-allowed(isc_netaddr_t *addr, dns_name_t *signer, dns_acl_t *acl);
+allowed(isc_netaddr_t *addr, dns_name_t *signer, isc_netaddr_t *ecs_addr,
+	isc_uint8_t ecs_addrlen, isc_uint8_t *ecs_scope, dns_acl_t *acl);
 #ifdef ISC_PLATFORM_USESIT
 static void compute_sit(ns_client_t *client, isc_uint32_t when,
 			isc_uint32_t nonce, isc_buffer_t *buf);
@@ -1042,7 +1044,8 @@ client_send(ns_client_t *client) {
 		if (client->message->tsigkey != NULL)
 			name = &client->message->tsigkey->name;
 		if (client->view->nocasecompress == NULL ||
-		    !allowed(&netaddr, name, client->view->nocasecompress))
+		    !allowed(&netaddr, name, NULL, 0, NULL,
+			     client->view->nocasecompress))
 		{
 			dns_compress_setsensitive(&cctx, ISC_TRUE);
 		}
@@ -1348,16 +1351,16 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 	}
 	message->rcode = rcode;
 
-	/*
-	 * FORMERR loop avoidance:  If we sent a FORMERR message
-	 * with the same ID to the same client less than two
-	 * seconds ago, assume that we are in an infinite error
-	 * packet dialog with a server for some protocol whose
-	 * error responses look enough like DNS queries to
-	 * elicit a FORMERR response.  Drop a packet to break
-	 * the loop.
-	 */
 	if (rcode == dns_rcode_formerr) {
+		/*
+		 * FORMERR loop avoidance:  If we sent a FORMERR message
+		 * with the same ID to the same client less than two
+		 * seconds ago, assume that we are in an infinite error
+		 * packet dialog with a server for some protocol whose
+		 * error responses look enough like DNS queries to
+		 * elicit a FORMERR response.  Drop a packet to break
+		 * the loop.
+		 */
 		if (isc_sockaddr_equal(&client->peeraddr,
 				       &client->formerrcache.addr) &&
 		    message->id == client->formerrcache.id &&
@@ -1373,6 +1376,27 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		client->formerrcache.addr = client->peeraddr;
 		client->formerrcache.time = client->requesttime;
 		client->formerrcache.id = message->id;
+	} else if (rcode == dns_rcode_servfail && client->query.qname != NULL &&
+		   client->view != NULL && client->view->fail_ttl != 0 &&
+		   ((client->attributes & NS_CLIENTATTR_NOSETFC) == 0))
+	{
+		/*
+		 * SERVFAIL caching: store qname/qtype of failed queries
+		 */
+		isc_time_t expire;
+		isc_interval_t i;
+		isc_uint32_t flags = 0;
+
+		if ((message->flags & DNS_MESSAGEFLAG_CD) != 0)
+			flags = NS_FAILCACHE_CD;
+
+		isc_interval_set(&i, client->view->fail_ttl, 0);
+		result = isc_time_nowplusinterval(&expire, &i);
+		if (result == ISC_R_SUCCESS)
+			dns_badcache_add(client->view->failcache,
+					 client->query.qname,
+					 client->query.qtype,
+					 ISC_TRUE, flags, &expire);
 	}
 	ns_client_send(client);
 }
@@ -1381,6 +1405,7 @@ isc_result_t
 ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		 dns_rdataset_t **opt)
 {
+	unsigned char ecs[ECS_SIZE];
 	char nsid[BUFSIZ], *nsidp;
 #ifdef ISC_PLATFORM_USESIT
 	unsigned char sit[SIT_SIZE];
@@ -1459,6 +1484,38 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		ednsopts[count].value = expire;
 		count++;
 	}
+	if (((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) &&
+	    (client->ecs_addr.family == AF_INET ||
+	     client->ecs_addr.family == AF_INET6))
+	{
+		int i, addrbytes = (client->ecs_addrlen + 7) / 8;
+		isc_uint8_t *paddr;
+		isc_buffer_t buf;
+
+		/* Add client subnet option. */
+		isc_buffer_init(&buf, ecs, sizeof(ecs));
+		if (client->ecs_addr.family == AF_INET)
+			isc_buffer_putuint16(&buf, 1);
+		else
+			isc_buffer_putuint16(&buf, 2);
+		isc_buffer_putuint8(&buf, client->ecs_addrlen);
+		isc_buffer_putuint8(&buf, client->ecs_scope);
+
+		paddr = (isc_uint8_t *) &client->ecs_addr.type;
+		for (i = 0; i < addrbytes; i++) {
+			unsigned char uc;
+			uc = paddr[i];
+			if (i == addrbytes - 1 &&
+			    ((client->ecs_addrlen % 8) != 0))
+				uc &= (1U << (8 - (client->ecs_addrlen % 8)));
+			isc_buffer_putuint8(&buf, uc);
+		}
+
+		ednsopts[count].code = DNS_OPT_CLIENT_SUBNET;
+		ednsopts[count].length = addrbytes + 4;
+		ednsopts[count].value = ecs;
+		count++;
+	}
 
 	result = dns_message_buildopt(message, opt, 0, udpsize, flags,
 				      ednsopts, count);
@@ -1466,14 +1523,17 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 }
 
 static inline isc_boolean_t
-allowed(isc_netaddr_t *addr, dns_name_t *signer, dns_acl_t *acl) {
+allowed(isc_netaddr_t *addr, dns_name_t *signer,
+	isc_netaddr_t *ecs_addr, isc_uint8_t ecs_addrlen,
+	isc_uint8_t *ecs_scope, dns_acl_t *acl)
+{
 	int match;
 	isc_result_t result;
 
 	if (acl == NULL)
 		return (ISC_TRUE);
-	result = dns_acl_match(addr, signer, acl, &ns_g_server->aclenv,
-			       &match, NULL);
+	result = dns_acl_match2(addr, signer, ecs_addr, ecs_addrlen, ecs_scope,
+				acl, &ns_g_server->aclenv, &match, NULL);
 	if (result == ISC_R_SUCCESS && match > 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
@@ -1536,8 +1596,10 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 			tsig = dns_tsigkey_identity(mykey);
 		}
 
-		if (allowed(&netsrc, tsig, view->matchclients) &&
-		    allowed(&netdst, tsig, view->matchdestinations))
+		if (allowed(&netsrc, tsig, NULL, 0, NULL,
+			    view->matchclients) &&
+		    allowed(&netdst, tsig, NULL, 0, NULL,
+			    view->matchdestinations))
 			break;
 	}
 	return (ISC_TF(view == myview));
@@ -1719,6 +1781,81 @@ process_sit(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 #endif
 
 static isc_result_t
+process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
+	isc_uint16_t family;
+	isc_uint8_t addrlen, addrbytes, scope, *paddr;
+	isc_netaddr_t caddr;
+	int i;
+
+	if (optlen < 4U) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+			      "EDNS client subnet option too short");
+		return (DNS_R_FORMERR);
+	}
+
+	family = isc_buffer_getuint16(buf);
+	addrlen = isc_buffer_getuint8(buf);
+	scope = isc_buffer_getuint8(buf);
+	optlen -= 4;
+
+	if (scope != 0U) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+			      "EDNS client subnet option: invalid scope");
+		return (DNS_R_FORMERR);
+	}
+
+	memset(&caddr, 0, sizeof(caddr));
+	switch (family) {
+	case 1:
+		if (addrlen > 32U)
+			goto invalid_length;
+		caddr.family = AF_INET;
+		break;
+	case 2:
+		if (addrlen > 128U) {
+	invalid_length:
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+				      "EDNS client subnet option: invalid "
+				      "address length (%u) for %s",
+				      addrlen, family == 1 ? "IPv4" : "IPv6");
+			return (DNS_R_FORMERR);
+		}
+		caddr.family = AF_INET6;
+		break;
+	default:
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+			      "EDNS client subnet option: invalid family");
+		return (DNS_R_FORMERR);
+	}
+
+	addrbytes = (addrlen + 7) / 8;
+	if (isc_buffer_remaininglength(buf) < addrbytes) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+			      "EDNS client subnet option: address too short");
+		return (DNS_R_FORMERR);
+	}
+
+	paddr = (isc_uint8_t *) &caddr.type;
+	for (i = 0; i < addrbytes; i++) {
+		paddr[i] = isc_buffer_getuint8(buf);
+		optlen--;
+	}
+
+	memmove(&client->ecs_addr, &caddr, sizeof(caddr));
+	client->ecs_addrlen = addrlen;
+	client->ecs_scope = 0;
+	client->attributes |= NS_CLIENTATTR_HAVEECS;
+
+	isc_buffer_forward(buf, optlen);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
 process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	dns_rdata_t rdata;
 	isc_buffer_t optbuf;
@@ -1749,7 +1886,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	 * XXXRTH need library support for this!
 	 */
 	client->ednsversion = (opt->ttl & 0x00FF0000) >> 16;
-	if (client->ednsversion > 0) {
+	if (client->ednsversion > DNS_EDNS_VERSION) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_badednsver);
 		result = ns_client_addopt(client, client->message,
@@ -1787,6 +1924,15 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 						  dns_nsstatscounter_expireopt);
 				client->attributes |= NS_CLIENTATTR_WANTEXPIRE;
 				isc_buffer_forward(&optbuf, optlen);
+				break;
+			case DNS_OPT_CLIENT_SUBNET:
+				result = process_ecs(client, &optbuf, optlen);
+				if (result != ISC_R_SUCCESS) {
+					ns_client_error(client, result);
+					goto cleanup;
+				}
+				isc_stats_increment(ns_g_server->nsstats,
+						  dns_nsstatscounter_ecsopt);
 				break;
 			default:
 				isc_stats_increment(ns_g_server->nsstats,
@@ -1884,6 +2030,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	isc_task_getcurrenttime(task, &client->requesttime);
 	client->now = client->requesttime;
+	isc_time_set(&client->tnow, client->now, 0);
 
 	if (result != ISC_R_SUCCESS) {
 		if (TCP_CLIENT(client)) {
@@ -1925,7 +2072,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * client_newconn.
 	 */
 	if (!TCP_CLIENT(client)) {
-
 		if (ns_g_server->blackholeacl != NULL &&
 		    dns_acl_match(&netaddr, NULL, ns_g_server->blackholeacl,
 				  &ns_g_server->aclenv,
@@ -2033,6 +2179,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		opt = NULL;
 	else
 		opt = dns_message_getopt(client->message);
+
+	client->ecs_addrlen = 0;
+	client->ecs_scope = 0;
+
 	if (opt != NULL) {
 		/*
 		 * Are we dropping all EDNS queries?
@@ -2117,17 +2267,29 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		    client->message->rdclass == dns_rdataclass_any)
 		{
 			dns_name_t *tsig = NULL;
+			isc_netaddr_t *addr = NULL;
+			isc_uint8_t *scope = NULL;
 
 			sigresult = dns_message_rechecksig(client->message,
 							   view);
-			if (sigresult == ISC_R_SUCCESS)
-				tsig = dns_tsigkey_identity(client->message->tsigkey);
+			if (sigresult == ISC_R_SUCCESS) {
+				dns_tsigkey_t *tsigkey;
 
-			if (allowed(&netaddr, tsig, view->matchclients) &&
-			    allowed(&client->destaddr, tsig,
-				    view->matchdestinations) &&
-			    !((client->message->flags & DNS_MESSAGEFLAG_RD)
-			      == 0 && view->matchrecursiveonly))
+				tsigkey = client->message->tsigkey;
+				tsig = dns_tsigkey_identity(tsigkey);
+			}
+
+			if ((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) {
+				addr = &client->ecs_addr;
+				scope = &client->ecs_scope;
+			}
+
+			if (allowed(&netaddr, tsig, addr, client->ecs_addrlen,
+				    scope, view->matchclients) &&
+			    allowed(&client->destaddr, tsig, NULL,
+				    0, NULL, view->matchdestinations) &&
+			    !(view->matchrecursiveonly &&
+			    (client->message->flags & DNS_MESSAGEFLAG_RD) == 0))
 			{
 				dns_view_attach(view, &client->view);
 				break;
@@ -2519,6 +2681,8 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->recursionquota = NULL;
 	client->interface = NULL;
 	client->peeraddr_valid = ISC_FALSE;
+	client->ecs_addrlen = 0;
+	client->ecs_scope = 0;
 #ifdef ALLOW_FILTER_AAAA
 	client->filter_aaaa = dns_aaaa_ok;
 #endif
@@ -3055,6 +3219,8 @@ ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
 {
 	isc_result_t result;
 	isc_netaddr_t tmpnetaddr;
+	isc_netaddr_t *ecs_addr = NULL;
+	isc_uint8_t ecs_addrlen = 0;
 	int match;
 
 	if (acl == NULL) {
@@ -3069,11 +3235,18 @@ ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
 		netaddr = &tmpnetaddr;
 	}
 
-	result = dns_acl_match(netaddr, client->signer, acl,
-			       &ns_g_server->aclenv, &match, NULL);
+	if ((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) {
+		ecs_addr = &client->ecs_addr;
+		ecs_addrlen = client->ecs_addrlen;
+	}
+
+	result = dns_acl_match2(netaddr, client->signer,
+				ecs_addr, ecs_addrlen, NULL, acl,
+				&ns_g_server->aclenv, &match, NULL);
 
 	if (result != ISC_R_SUCCESS)
 		goto deny; /* Internal error, already logged. */
+
 	if (match > 0)
 		goto allow;
 	goto deny; /* Negative match or no match. */

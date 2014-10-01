@@ -56,6 +56,25 @@ BIND 9.11.0
 	BIND 9.11.0 includes a number of changes from BIND 9.10 and earlier
 	releases.  New features include:
 
+	- SERVFAIL responses can now be cached for a limited time
+	  (defaulting to 10 seconds, with an upper limit of 30).
+	  This can reduce the frequency of retries when a query is
+	  persistently failing.
+	- The new "rndc nta" command can be used to set a "negative
+	  trust anchor", disabling DNSSEC validation for a specific
+	  domain; this can be used when responses from a domain are
+	  known to be failing validation due to administrative error
+	  rather than because of a spoofing attack. Negative trust
+	  anchors are strictly temporary; by default they expire after
+	  one hour, but can be configured to last up to one week.
+	- Update forwarding performance has been improved by allowing
+	  a single TCP connection to be shared by multiple updates.
+	- The EDNS Client Subnet (ECS) option is now supported for
+	  authoritative servers; if a query contains an ECS option
+	  then ACLs containing "geoip" or "ecs" elements can match
+	  against the the address encoded in the option.  This can be
+	  used to select a view for a query, so that different answers
+	  can be provided depending on the client network.
 	- The EDNS EXPIRE option has been implemented on the client
 	  side, allowing a slave server to set the expiration timer
 	  correctly when transferring zone data from another slave
@@ -68,12 +87,16 @@ BIND 9.11.0
 	- "dig +ttlunits" causes dig to print TTL values with time-unit
 	  suffixes: w, d, h, m, s for weeks, days, hours, minutes, and
 	  seconds.
-	- "serial-update-format" can now be set to "date". On update,
+	- "serial-update-method" can now be set to "date". On update,
 	  the serial number will be set to the current date in YYYYMMDDNN
 	  format.
 	- "dnssec-signzone -N date" sets the serial number to YYYYMMDDNN.
 	- "named -L <filename>" causes named to send log messages to
 	   the specified file by default instead of to the system log.
+	- dig can now set arbitary EDNS options on requests (+ednsopt).
+	- dig can now set yet-to-be-defined EDNS flags on requests (+ednsflags).
+	- serial-query-rate no longer covers NOTIFY messages.  These are
+	  seperately controlled by notity-rate and startup-notify-rate.
 
 	This release addresses the security flaw described in
 	CVE-2014-3214 and CVE-2014-3859.
@@ -479,23 +502,29 @@ Change Log
 
 Bug Reports and Mailing Lists
 
-	Bugs reports should be sent to
+	Bug reports should be sent to:
 
 		bind9-bugs@isc.org
 
-	To join the BIND Users mailing list, send mail to
+	Feature requests can be sent to:
 
-		bind-users-request@isc.org
+		bind-suggest@isc.org
 
-	archives of which can be found via
+	To join or view the archives of the BIND Users mailing list,
+	visit:
 
-		http://www.isc.org/ops/lists/
+		https://lists.isc.org/mailman/listinfo/bind-users
 
 	If you're planning on making changes to the BIND 9 source
-	code, you might want to join the BIND Workers mailing list.
-	Send mail to
+	code, you may also want to join the BIND Workers mailing
+	list:
 
-		bind-workers-request@isc.org
+		https://lists.isc.org/mailman/listinfo/bind-workers
+
+	Information on read-only Git access, coding style and developer
+	guidelines can be found at:
+
+		http://www.isc.org/git/
 
 
 Acknowledgments

@@ -297,12 +297,12 @@ Flushes the server's cache.
 .PP
 \fBflushname\fR \fIname\fR [\fIview\fR]
 .RS 4
-Flushes the given name from the server's DNS cache and, if applicable, from the server's nameserver address database or bad\-server cache.
+Flushes the given name from the view's DNS cache and, if applicable, from the view's nameserver address database, bad server cache and SERVFAIL cache.
 .RE
 .PP
 \fBflushtree\fR \fIname\fR [\fIview\fR]
 .RS 4
-Flushes the given name, and all of its subdomains, from the server's DNS cache, the address database, and the bad server cache.
+Flushes the given name, and all of its subdomains, from the view's DNS cache, address database, bad server cache, and SERVFAIL cache.
 .RE
 .PP
 \fBstatus\fR
@@ -339,7 +339,7 @@ Sets a DNSSEC negative trust anchor (NTA) for
 \fBlifetime\fR. The default lifetime is configured in
 <file>named.conf</file>
 via the
-\fBnta\-lifetime\fR, and defaults to one hour. The lifetime cannot exceed one day.
+\fBnta\-lifetime\fR, and defaults to one hour. The lifetime cannot exceed one week.
 .sp
 A negative trust anchor selectively disables DNSSEC validation for zones that known to be failing because of misconfiguration rather than an attack. When data to be validated is at or below an active NTA (and above any other configured trust anchors),
 \fBnamed\fR

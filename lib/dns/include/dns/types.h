@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
 
@@ -45,6 +43,7 @@ typedef ISC_LIST(dns_adbaddrinfo_t)		dns_adbaddrinfolist_t;
 typedef struct dns_adbentry			dns_adbentry_t;
 typedef struct dns_adbfind			dns_adbfind_t;
 typedef ISC_LIST(dns_adbfind_t)			dns_adbfindlist_t;
+typedef struct dns_badcache 			dns_badcache_t;
 typedef struct dns_byaddr			dns_byaddr_t;
 typedef struct dns_client			dns_client_t;
 typedef void					dns_clientrestrans_t;

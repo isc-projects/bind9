@@ -218,6 +218,7 @@ struct dns_dispatch {
 	isc_socket_t	       *socket;		/*%< isc socket attached to */
 	isc_sockaddr_t		local;		/*%< local address */
 	in_port_t		localport;	/*%< local UDP port */
+	isc_sockaddr_t		peer;		/*%< peer address (TCP) */
 	isc_dscp_t		dscp;		/*%< "listen-on" DSCP value */
 	unsigned int		maxrequests;	/*%< max requests */
 	isc_event_t	       *ctlevent;
@@ -2126,7 +2127,6 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp) {
 
 	LOCK(&mgr->lock);
 	mgr->state |= MGR_SHUTTINGDOWN;
-
 	killit = destroy_mgr_ok(mgr);
 	UNLOCK(&mgr->lock);
 
@@ -2400,6 +2400,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 	disp->refcount = 1;
 	disp->recv_pending = 0;
 	memset(&disp->local, 0, sizeof(disp->local));
+	memset(&disp->peer, 0, sizeof(disp->peer));
 	disp->localport = 0;
 	disp->shutting_down = 0;
 	disp->shutdown_out = 0;
@@ -2507,6 +2508,23 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 		       unsigned int buckets, unsigned int increment,
 		       unsigned int attributes, dns_dispatch_t **dispp)
 {
+
+	attributes |= DNS_DISPATCHATTR_PRIVATE;  /* XXXMLG */
+
+	return (dns_dispatch_createtcp2(mgr, sock, taskmgr, NULL, NULL,
+					buffersize, maxbuffers, maxrequests,
+					buckets, increment, attributes,
+					dispp));
+}
+
+isc_result_t
+dns_dispatch_createtcp2(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
+			isc_taskmgr_t *taskmgr, isc_sockaddr_t *localaddr,
+			isc_sockaddr_t *destaddr, unsigned int buffersize,
+			unsigned int maxbuffers, unsigned int maxrequests,
+			unsigned int buckets, unsigned int increment,
+			unsigned int attributes, dns_dispatch_t **dispp)
+{
 	isc_result_t result;
 	dns_dispatch_t *disp;
 
@@ -2518,7 +2536,8 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	REQUIRE((attributes & DNS_DISPATCHATTR_TCP) != 0);
 	REQUIRE((attributes & DNS_DISPATCHATTR_UDP) == 0);
 
-	attributes |= DNS_DISPATCHATTR_PRIVATE;  /* XXXMLG */
+	if (destaddr == NULL)
+		attributes |= DNS_DISPATCHATTR_PRIVATE;  /* XXXMLG */
 
 	LOCK(&mgr->lock);
 
@@ -2565,6 +2584,23 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 
 	disp->attributes = attributes;
 
+	if (localaddr == NULL) {
+		if (destaddr != NULL) {
+			switch (isc_sockaddr_pf(destaddr)) {
+			case AF_INET:
+				isc_sockaddr_any(&disp->local);
+				break;
+			case AF_INET6:
+				isc_sockaddr_any6(&disp->local);
+				break;
+			}
+		}
+	} else
+		disp->local = *localaddr;
+
+	if (destaddr != NULL)
+		disp->peer = *destaddr;
+
 	/*
 	 * Append it to the dispatcher list.
 	 */
@@ -2573,7 +2609,6 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 
 	mgr_log(mgr, LVL(90), "created TCP dispatcher %p", disp);
 	dispatch_log(disp, LVL(90), "created task %p", disp->task[0]);
-
 	*dispp = disp;
 
 	return (ISC_R_SUCCESS);
@@ -2591,6 +2626,69 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	UNLOCK(&mgr->lock);
 
 	return (result);
+}
+
+isc_result_t
+dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
+		    isc_sockaddr_t *localaddr, dns_dispatch_t **dispp)
+{
+	dns_dispatch_t *disp;
+	isc_result_t result;
+	isc_sockaddr_t peeraddr;
+	isc_sockaddr_t sockname;
+	isc_sockaddr_t any;
+	unsigned int attributes, mask;
+	isc_boolean_t match = ISC_FALSE;
+
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	REQUIRE(destaddr != NULL);
+	REQUIRE(dispp != NULL && *dispp == NULL);
+
+	attributes = DNS_DISPATCHATTR_TCP;
+	mask = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_PRIVATE |
+	       DNS_DISPATCHATTR_EXCLUSIVE;
+
+	if (localaddr == NULL) {
+		switch (isc_sockaddr_pf(destaddr)) {
+		case AF_INET:
+			isc_sockaddr_any(&any);
+			break;
+		case AF_INET6:
+			isc_sockaddr_any6(&any);
+			break;
+		default:
+			return (ISC_R_NOTFOUND);
+		}
+		localaddr = &any;
+	}
+
+	LOCK(&mgr->lock);
+	disp = ISC_LIST_HEAD(mgr->list);
+	while (disp != NULL && !match) {
+		LOCK(&disp->lock);
+		if ((disp->shutting_down == 0) &&
+		    ATTRMATCH(disp->attributes, attributes, mask) &&
+		    (localaddr == NULL ||
+		     isc_sockaddr_eqaddr(localaddr, &disp->local))) {
+			result = isc_socket_getsockname(disp->socket,
+							&sockname);
+			if (result == ISC_R_SUCCESS)
+				result = isc_socket_getpeername(disp->socket,
+								&peeraddr);
+			if (result == ISC_R_SUCCESS &&
+			    isc_sockaddr_equal(destaddr, &peeraddr) &&
+			    isc_sockaddr_eqaddr(localaddr, &sockname)) {
+				/* attach */
+				disp->refcount++;
+				*dispp = disp;
+				match = ISC_TRUE;
+			}
+		}
+		UNLOCK(&disp->lock);
+		disp = ISC_LIST_NEXT(disp, link);
+	}
+	UNLOCK(&mgr->lock);
+	return (match ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
 }
 
 isc_result_t
@@ -3025,6 +3123,17 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			  dns_messageid_t *idp, dns_dispentry_t **resp,
 			  isc_socketmgr_t *sockmgr)
 {
+	return (dns_dispatch_addresponse3(disp, 0, dest, task, action, arg,
+					  idp, resp, sockmgr));
+}
+
+isc_result_t
+dns_dispatch_addresponse3(dns_dispatch_t *disp, unsigned int options,
+			  isc_sockaddr_t *dest, isc_task_t *task,
+			  isc_taskaction_t action, void *arg,
+			  dns_messageid_t *idp, dns_dispentry_t **resp,
+			  isc_socketmgr_t *sockmgr)
+{
 	dns_dispentry_t *res;
 	unsigned int bucket;
 	in_port_t localport = 0;
@@ -3112,10 +3221,14 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	}
 
 	/*
-	 * Try somewhat hard to find an unique ID.
+	 * Try somewhat hard to find an unique ID unless FIXEDID is set
+	 * in which case we use the id passed in via *idp.
 	 */
 	LOCK(&qid->lock);
-	id = (dns_messageid_t)isc_rng_random(DISP_RNGCTX(disp));
+	if ((options & DNS_DISPATCHOPT_FIXEDID) != 0)
+		id = *idp;
+	else
+		id = (dns_messageid_t)isc_rng_random(DISP_RNGCTX(disp));
 	ok = ISC_FALSE;
 	i = 0;
 	do {
@@ -3124,6 +3237,8 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			ok = ISC_TRUE;
 			break;
 		}
+		if ((disp->attributes & DNS_DISPATCHATTR_FIXEDID) != 0)
+			break;
 		id += qid->qid_increment;
 		id &= 0x0000ffff;
 	} while (i++ < 64);
@@ -3219,7 +3334,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE((disp->attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0);
 
-	return (dns_dispatch_addresponse2(disp, dest, task, action, arg,
+	return (dns_dispatch_addresponse3(disp, 0, dest, task, action, arg,
 					  idp, resp, NULL));
 }
 

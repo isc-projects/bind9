@@ -46,10 +46,10 @@
 <p><b>Table of Contents</b></p>
 <dl>
 <dt><span class="sect1"><a href="Bv9ARM.ch07.html#Access_Control_Lists">Access Control Lists</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch07.html#id2606733"><span><strong class="command">Chroot</strong></span> and <span><strong class="command">Setuid</strong></span></a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch07.html#id2607042"><span><strong class="command">Chroot</strong></span> and <span><strong class="command">Setuid</strong></span></a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2606951">The <span><strong class="command">chroot</strong></span> Environment</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2607011">Using the <span><strong class="command">setuid</strong></span> Function</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2607123">The <span><strong class="command">chroot</strong></span> Environment</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2607182">Using the <span><strong class="command">setuid</strong></span> Function</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch07.html#dynamic_update_security">Dynamic Update Security</a></span></dt>
 </dl>
@@ -59,11 +59,11 @@
 <a name="Access_Control_Lists"></a>Access Control Lists</h2></div></div></div>
 <p>
           Access Control Lists (ACLs) are address match lists that
-          you can set up and nickname for future use in <span><strong class="command">allow-notify</strong></span>,
-          <span><strong class="command">allow-query</strong></span>, <span><strong class="command">allow-query-on</strong></span>,
-          <span><strong class="command">allow-recursion</strong></span>, <span><strong class="command">allow-recursion-on</strong></span>,
+          you can set up and nickname for future use in
+          <span><strong class="command">allow-notify</strong></span>, <span><strong class="command">allow-query</strong></span>,
+          <span><strong class="command">allow-query-on</strong></span>, <span><strong class="command">allow-recursion</strong></span>,
           <span><strong class="command">blackhole</strong></span>, <span><strong class="command">allow-transfer</strong></span>,
-          etc.
+          <span><strong class="command">match-clients</strong></span>, etc.
         </p>
 <p>
           Using ACLs allows you to have finer control over who can access
@@ -73,11 +73,17 @@
 <p>
           It is a <span class="emphasis"><em>good idea</em></span> to use ACLs, and to
           control access to your server. Limiting access to your server by
-          outside parties can help prevent spoofing and denial of service (DoS) attacks against
-          your server.
+          outside parties can help prevent spoofing and denial of service
+          (DoS) attacks against your server.
         </p>
 <p>
-          Here is an example of how to properly apply ACLs:
+          ACLs match clients on the basis of up to three characteristics:
+          1) The client's IP address; 2) the TSIG or SIG(0) key that was
+          used to sign the request, if any; and 3) an address prefix
+          encoded in an EDNS Client Subnet option, if any.
+        </p>
+<p>
+          Here is an example of ACLs based on client addresses:
         </p>
 <pre class="programlisting">
 // Set up an ACL named "bogusnets" that will block
@@ -108,13 +114,138 @@ zone "example.com" {
 };
 </pre>
 <p>
-          This allows recursive queries of the server from the outside
-          unless recursion has been previously disabled.
+          This allows authoritative queries for "example.com" from any
+          address, but recursive queries only from the networks specified
+          in "our-nets", and no queries at all from the networks
+          specified in "bogusnets".
+        </p>
+<p>
+          In addition to network addresses and prefixes, which are
+          matched against the source address of the DNS request, ACLs
+          may include <code class="option">key</code> elements, which specify the
+          name of a TSIG or SIG(0) key, or <code class="option">ecs</code>
+          elements, which specify a network prefix but are only matched
+          if that prefix matches an EDNS client subnet option included
+          in the request.
+        </p>
+<p>
+          The EDNS Client Subnet (ECS) option is used by a recursive
+          resolver to inform an authoritative name server of the network
+          address block from which the original query was received, enabling
+          authoritative servers to give different answers to the same
+          resolver for different resolver clients.  An ACL containing
+          an element of the form
+          <span><strong class="command">ecs <em class="replaceable"><code>prefix</code></em></strong></span>
+          will match if a request arrives in containing an ECS option
+          encoding an address within that prefix.  If the request has no
+          ECS option, then "ecs" elements are simply ignored.  Addresses
+          in ACLs that are not prefixed with "ecs" are matched only
+          against the source address.
+        </p>
+<p>
+          When <acronym class="acronym">BIND</acronym> 9 is built with GeoIP support,
+          ACLs can also be used for geographic access restrictions.
+          This is done by specifying an ACL element of the form:
+          <span><strong class="command">geoip [<span class="optional">db <em class="replaceable"><code>database</code></em></span>] <em class="replaceable"><code>field</code></em> <em class="replaceable"><code>value</code></em></strong></span>
+        </p>
+<p>
+          The <em class="replaceable"><code>field</code></em> indicates which field
+          to search for a match.  Available fields are "country",
+          "region", "city", "continent", "postal" (postal code),
+          "metro" (metro code), "area" (area code), "tz" (timezone),
+          "isp", "org", "asnum", "domain" and "netspeed".
+        </p>
+<p>
+          <em class="replaceable"><code>value</code></em> is the value to search
+          for within the database.  A string may be quoted if it
+          contains spaces or other special characters.  If this is
+          an "asnum" search, then the leading "ASNNNN" string can be
+          used, otherwise the full description must be used (e.g.
+          "ASNNNN Example Company Name").  If this is a "country"
+          search and the string is two characters long, then it must
+          be a standard ISO-3166-1 two-letter country code, and if it
+          is three characters long then it must be an ISO-3166-1
+          three-letter country code; otherwise it is the full name
+          of the country.  Similarly, if this is a "region" search
+          and the string is two characters long, then it must be a
+          standard two-letter state or province abbreviation;
+          otherwise it is the full name of the state or province.
+        </p>
+<p>
+          The <em class="replaceable"><code>database</code></em> field indicates which
+          GeoIP database to search for a match.  In most cases this is
+          unnecessary, because most search fields can only be found in
+          a single database.  However, searches for country can be
+          answered from the "city", "region", or "country" databases,
+          and searches for region (i.e., state or province) can be
+          answered from the "city" or "region" databases.  For these
+          search types, specifying a <em class="replaceable"><code>database</code></em>
+          will force the query to be answered from that database and no
+          other.  If <em class="replaceable"><code>database</code></em> is not
+          specified, then these queries will be answered from the "city",
+          database if it is installed, or the "region" database if it is
+          installed, or the "country" database, in that order.
+        </p>
+<p>
+          By default, if a DNS query includes an EDNS Client Subnet (ECS)
+          option which encodes a non-zero address prefix, then GeoIP ACLs
+          will be matched against that address prefix.  Otherwise, they
+          are matched against the source address of the query.  To
+          prevent GeoIP ACLs from matching against ECS options, set
+          the <span><strong class="command">geoip-use-ecs</strong></span> to <code class="literal">no</code>.
+        </p>
+<p>
+          Some example GeoIP ACLs:
+        </p>
+<pre class="programlisting">geoip country US;
+geoip country JAP;
+geoip db country country Canada;
+geoip db region region WA;
+geoip city "San Francisco";
+geoip region Oklahoma;
+geoip postal 95062;
+geoip tz "America/Los_Angeles";
+geoip org "Internet Systems Consortium";
+</pre>
+<p>
+          ACLs use a "first-match" logic rather than "best-match":
+          if an address prefix matches an ACL element, then that ACL
+          is considered to have matched even if a later element would
+          have matched more specifically.  For example, the ACL
+          <span><strong class="command"> { 10/8; !10.0.0.1; }</strong></span> would actually
+          match a query from 10.0.0.1, because the first element
+          indicated that the query should be accepted, and the second
+          element is ignored.
+        </p>
+<p>
+          When using "nested" ACLs (that is, ACLs included or referenced
+          within other ACLs), a negative match of a nested ACL will
+          the containing ACL to continue looking for matches.  This
+          enables complex ACLs to be constructed, in which multiple
+          client characteristics can be checked at the same time. For
+          example, to construct an ACL which allows queries only when
+          it originates from a particular network <span class="emphasis"><em>and</em></span>
+          only when it is signed with a particular key, use:
+        </p>
+<pre class="programlisting">
+allow-query { !{ !10/8; any; }; key example; };
+</pre>
+<p>
+          Within the nested ACL, any address that is
+          <span class="emphasis"><em>not</em></span> in the 10/8 network prefix will
+          be rejected, and this will terminate processing of the
+          ACL.  Any address that <span class="emphasis"><em>is</em></span> in the 10/8
+          network prefix will be accepted, but this causes a negative
+          match of the nested ACL, so the containing ACL continues
+          processing. The query will then be accepted if it is signed
+          by the key "example", and rejected otherwise.  The ACL, then,
+          will only matches when <span class="emphasis"><em>both</em></span> conditions
+          are true.
         </p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2606733"></a><span><strong class="command">Chroot</strong></span> and <span><strong class="command">Setuid</strong></span>
+<a name="id2607042"></a><span><strong class="command">Chroot</strong></span> and <span><strong class="command">Setuid</strong></span>
 </h2></div></div></div>
 <p>
           On UNIX servers, it is possible to run <acronym class="acronym">BIND</acronym>
@@ -140,7 +271,7 @@ zone "example.com" {
         </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2606951"></a>The <span><strong class="command">chroot</strong></span> Environment</h3></div></div></div>
+<a name="id2607123"></a>The <span><strong class="command">chroot</strong></span> Environment</h3></div></div></div>
 <p>
             In order for a <span><strong class="command">chroot</strong></span> environment
             to
@@ -168,7 +299,7 @@ zone "example.com" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2607011"></a>Using the <span><strong class="command">setuid</strong></span> Function</h3></div></div></div>
+<a name="id2607182"></a>Using the <span><strong class="command">setuid</strong></span> Function</h3></div></div></div>
 <p>
             Prior to running the <span><strong class="command">named</strong></span> daemon,
             use
@@ -247,5 +378,6 @@ zone "example.com" {
 </tr>
 </table>
 </div>
+<p style="text-align: center;">BIND Version 9.11</p>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011, 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named.conf.post,v 1.2 2011/10/12 00:10:19 marka Exp $ */
+/* $Id$ */
 
 // NS5
 
@@ -33,6 +33,7 @@ options {
 	recursion no;
 	notify yes;
 	notify-delay 0;
+	servfail-ttl 0;
 };
 
 zone "bits" {

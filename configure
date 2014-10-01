@@ -831,6 +831,7 @@ OPENSSLGOSTLINKOBJS
 DST_OPENSSL_INC
 HAVE_SIT
 ISC_PLATFORM_USESIT
+INSTALL_LIBRARY
 ISC_THREAD_DIR
 THREADOPTSRCS
 THREADOPTOBJS
@@ -1760,10 +1761,12 @@ Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
 
 Professional support for BIND is provided by Internet Systems Consortium,
-Inc., doing business as DNSco.  Information about paid support options is
-available at http://www.dns-co.com/solutions/.  Free support is provided by
-our user community via a mailing list.  Information on public email lists
-is available at https://www.isc.org/community/mailing-list/.
+Inc.  Information about paid support and training options is available at
+https://www.isc.org/support.
+
+Help can also often be found on the BIND Users mailing list
+(https://lists.isc.org/mailman/listinfo/bind-users) or in the #bind
+channel of the Freenode IRC service.
 
 Report bugs to <bind9-bugs@isc.org>.
 BIND home page: <https://www.isc.org/downloads/BIND/>.
@@ -11764,15 +11767,22 @@ else
 fi
 
 
+python="python python3 python3.4 python3.3 python3.2 python3.1 python3.0 python2 python2.7 python2.6 python2.5 python2.4"
+testscript='try: import argparse
+except: exit(1)'
 case "$use_python" in
 	no)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for python support" >&5
+$as_echo_n "checking for python support... " >&6; }
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
 $as_echo "disabled" >&6; }
 		;;
 	unspec|yes|*)
 		case "$use_python" in
 		unspec|yes|'')
-			for ac_prog in python
+			for p in $python
+			do
+				for ac_prog in $p
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -11817,9 +11827,43 @@ fi
   test -n "$PYTHON" && break
 done
 
+				if test "X$PYTHON" == "X"; then
+					continue;
+				fi
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
+$as_echo_n "checking python module 'argparse'... " >&6; }
+				if ${PYTHON:-false} -c "$testscript"; then
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
+$as_echo "found, using $PYTHON" >&6; }
+					break
+				fi
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+$as_echo "not found" >&6; }
+				unset ac_cv_path_PYTHON
+				unset PYTHON
+			done
+			if test "X$PYTHON" == "X"
+			then
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for python support" >&5
+$as_echo_n "checking for python support... " >&6; }
+				case "$use_python" in
+				unspec)
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
+					;;
+				yes)
+					as_fn_error $? "missing python" "$LINENO" 5
+					;;
+				esac
+			fi
 			;;
 		*)
-			for ac_prog in $use_python
+			case "$use_python" in
+			/*)
+				PYTHON="$use_python"
+				;;
+			*)
+				for ac_prog in $use_python
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -11864,44 +11908,19 @@ fi
   test -n "$PYTHON" && break
 done
 
+				;;
+			esac
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
+$as_echo_n "checking python module 'argparse'... " >&6; }
+			if ${PYTHON:-false} -c "$testscript"; then
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
+$as_echo "found, using $PYTHON" >&6; }
+				break
+			else
+				as_fn_error $? "not found" "$LINENO" 5
+			fi
 			;;
 		esac
-		if test "X$PYTHON" == "X"
-		then
-			case "$use_python" in
-			unspec)
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
-$as_echo "disabled" >&6; }
-				;;
-			yes|*)
-				as_fn_error $? "missing python" "$LINENO" 5
-				;;
-			esac
-			break
-		fi
-		testscript='try: import argparse
-except: exit(1)'
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
-$as_echo_n "checking python module 'argparse'... " >&6; }
-		if $PYTHON -c "$testscript"; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
-$as_echo "found, using $PYTHON" >&6; }
-		else
-			case "$use_python" in
-			unspec)
-				PYTHON=""
-
-
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found, python disabled" >&5
-$as_echo "not found, python disabled" >&6; }
-				;;
-			yes)
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no found" >&5
-$as_echo "no found" >&6; }
-			as_fn_error $? "python 'argparse' module not supported" "$LINENO" 5
-				;;
-			esac
-		fi
 		;;
 esac
 
@@ -13707,9 +13726,9 @@ else
 fi
 
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing GeoIP_open" >&5
-$as_echo_n "checking for library containing GeoIP_open... " >&6; }
-if ${ac_cv_search_GeoIP_open+:} false; then :
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing GeoIP_id_by_addr_gl" >&5
+$as_echo_n "checking for library containing GeoIP_id_by_addr_gl... " >&6; }
+if ${ac_cv_search_GeoIP_id_by_addr_gl+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_func_search_save_LIBS=$LIBS
@@ -13722,11 +13741,11 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char GeoIP_open ();
+char GeoIP_id_by_addr_gl ();
 int
 main ()
 {
-return GeoIP_open ();
+return GeoIP_id_by_addr_gl ();
   ;
   return 0;
 }
@@ -13739,30 +13758,30 @@ for ac_lib in '' GeoIP; do
     LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_GeoIP_open=$ac_res
+  ac_cv_search_GeoIP_id_by_addr_gl=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext
-  if ${ac_cv_search_GeoIP_open+:} false; then :
+  if ${ac_cv_search_GeoIP_id_by_addr_gl+:} false; then :
   break
 fi
 done
-if ${ac_cv_search_GeoIP_open+:} false; then :
+if ${ac_cv_search_GeoIP_id_by_addr_gl+:} false; then :
 
 else
-  ac_cv_search_GeoIP_open=no
+  ac_cv_search_GeoIP_id_by_addr_gl=no
 fi
 rm conftest.$ac_ext
 LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_GeoIP_open" >&5
-$as_echo "$ac_cv_search_GeoIP_open" >&6; }
-ac_res=$ac_cv_search_GeoIP_open
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_GeoIP_id_by_addr_gl" >&5
+$as_echo "$ac_cv_search_GeoIP_id_by_addr_gl" >&6; }
+ac_res=$ac_cv_search_GeoIP_id_by_addr_gl
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
-  as_fn_error $? "GeoIP library not found" "$LINENO" 5
+  as_fn_error $? "suitable GeoIP library not found" "$LINENO" 5
 
 fi
 
@@ -15320,6 +15339,7 @@ $as_echo "yes" >&6; }
 		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
 		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
 		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
+		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
 		case "$host" in
 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
 		esac
@@ -15341,8 +15361,10 @@ $as_echo "no" >&6; }
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_ALLOW_UNDEFINED=
 		LIBTOOL_IN_MAIN=
+		INSTALL_LIBRARY='${INSTALL_DATA}'
 		;;
 esac
+
 
 #
 # was --enable-native-pkcs11 specified?
@@ -21668,7 +21690,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/delv/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/inline/checkdsa.sh bin/tests/system/lwresd/Makefile bin/tests/system/sit/prereq.sh bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isc/unix/include/pkcs11/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/tests/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh"
+ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/delv/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/rndc/Makefile bin/tests/Makefile bin/tests/atomic/Makefile bin/tests/db/Makefile bin/tests/dst/Makefile bin/tests/dst/Kdh.+002+18602.key bin/tests/dst/Kdh.+002+18602.private bin/tests/dst/Kdh.+002+48957.key bin/tests/dst/Kdh.+002+48957.private bin/tests/dst/Ktest.+001+00002.key bin/tests/dst/Ktest.+001+54622.key bin/tests/dst/Ktest.+001+54622.private bin/tests/dst/Ktest.+003+23616.key bin/tests/dst/Ktest.+003+23616.private bin/tests/dst/Ktest.+003+49667.key bin/tests/dst/dst_2_data bin/tests/dst/t2_data_1 bin/tests/dst/t2_data_2 bin/tests/dst/t2_dsasig bin/tests/dst/t2_rsasig bin/tests/hashes/Makefile bin/tests/headerdep_test.sh bin/tests/master/Makefile bin/tests/mem/Makefile bin/tests/names/Makefile bin/tests/net/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/rbt/Makefile bin/tests/resolver/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/builtin/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/named.conf bin/tests/system/filter-aaaa/Makefile bin/tests/system/geoip/Makefile bin/tests/system/inline/checkdsa.sh bin/tests/system/lwresd/Makefile bin/tests/system/resolver/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/sit/prereq.sh bin/tests/system/tkey/Makefile bin/tests/system/tsiggss/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isc/unix/include/pkcs11/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/tests/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh"
 
 
 #
@@ -22711,6 +22733,7 @@ do
     "bin/tests/resolver/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/resolver/Makefile" ;;
     "bin/tests/sockaddr/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/sockaddr/Makefile" ;;
     "bin/tests/system/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/Makefile" ;;
+    "bin/tests/system/builtin/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/builtin/Makefile" ;;
     "bin/tests/system/conf.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/conf.sh" ;;
     "bin/tests/system/dlz/prereq.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/dlz/prereq.sh" ;;
     "bin/tests/system/dlzexternal/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/dlzexternal/Makefile" ;;
@@ -22719,9 +22742,10 @@ do
     "bin/tests/system/geoip/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/geoip/Makefile" ;;
     "bin/tests/system/inline/checkdsa.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/inline/checkdsa.sh" ;;
     "bin/tests/system/lwresd/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/lwresd/Makefile" ;;
-    "bin/tests/system/sit/prereq.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/sit/prereq.sh" ;;
+    "bin/tests/system/resolver/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/resolver/Makefile" ;;
     "bin/tests/system/rpz/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/rpz/Makefile" ;;
     "bin/tests/system/rsabigexponent/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/rsabigexponent/Makefile" ;;
+    "bin/tests/system/sit/prereq.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/sit/prereq.sh" ;;
     "bin/tests/system/tkey/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/tkey/Makefile" ;;
     "bin/tests/system/tsiggss/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/tsiggss/Makefile" ;;
     "bin/tests/tasks/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/tasks/Makefile" ;;

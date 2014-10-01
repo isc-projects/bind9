@@ -1039,8 +1039,6 @@ unsigned int
 dns_rdatatype_attributes(dns_rdatatype_t type)
 {
 	RDATATYPE_ATTRIBUTE_SW
-	if (type >= (dns_rdatatype_t)128 && type < (dns_rdatatype_t)255)
-		return (DNS_RDATATYPEATTR_UNKNOWN | DNS_RDATATYPEATTR_META);
 	return (DNS_RDATATYPEATTR_UNKNOWN);
 }
 
@@ -1169,12 +1167,12 @@ txt_totext(isc_region_t *source, isc_boolean_t quote, isc_buffer_t *target) {
 			continue;
 		}
 		/*
-		 * Escape double quote, semi-colon, backslash.
-		 * If we are not enclosing the string in double
-		 * quotes also escape at sign.
+		 * Escape double quote and backslash.  If we are not
+		 * enclosing the string in double quotes also escape
+		 * at sign and semicolon.
 		 */
-		if (*sp == 0x22 || *sp == 0x3b || *sp == 0x5c ||
-		    (!quote && *sp == 0x40)) {
+		if (*sp == 0x22 || *sp == 0x5c ||
+		    (!quote && (*sp == 0x40 || *sp == 0x3b))) {
 			if (tl < 2)
 				return (ISC_R_NOSPACE);
 			*tp++ = '\\';
