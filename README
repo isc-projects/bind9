@@ -82,7 +82,7 @@ BIND 9.11.0
 	- A new "masterfile-style" zone option controls the formatting
 	  of text zone files:  When set to "full", a zone file is dumped
 	  in single-line-per-record format.
-	- "dig" now supports sending arbitary EDNS options by specifying
+	- "dig" now supports sending arbitrary EDNS options by specifying
 	  them on the command line.
 	- "dig +ttlunits" causes dig to print TTL values with time-unit
 	  suffixes: w, d, h, m, s for weeks, days, hours, minutes, and
@@ -93,10 +93,10 @@ BIND 9.11.0
 	- "dnssec-signzone -N date" sets the serial number to YYYYMMDDNN.
 	- "named -L <filename>" causes named to send log messages to
 	   the specified file by default instead of to the system log.
-	- dig can now set arbitary EDNS options on requests (+ednsopt).
+	- dig can now set arbitrary EDNS options on requests (+ednsopt).
 	- dig can now set yet-to-be-defined EDNS flags on requests (+ednsflags).
 	- serial-query-rate no longer covers NOTIFY messages.  These are
-	  seperately controlled by notity-rate and startup-notify-rate.
+	  separately controlled by notify-rate and startup-notify-rate.
 
 	This release addresses the security flaw described in
 	CVE-2014-3214 and CVE-2014-3859.
