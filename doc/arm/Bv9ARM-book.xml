@@ -9241,7 +9241,7 @@ deny-answer-aliases { "example.net"; };
 	    <acronym>BIND</acronym> 9 includes a limited
 	    mechanism to modify DNS responses for requests
 	    analogous to email anti-spam DNS blacklists.
-	    Responses can be changed to deny the existence of domains(NXDOMAIN),
+	    Responses can be changed to deny the existence of domains (NXDOMAIN),
 	    deny the existence of IP addresses for domains (NODATA),
 	    or contain other IP addresses or data.
 	  </para>
@@ -9328,7 +9328,7 @@ deny-answer-aliases { "example.net"; };
 	      <listitem>Among IP or NSIP triggers, prefer the trigger
 		with the longest prefix.
 	      </listitem>
-	      <listitem>Among triggers with the same prefex length,
+	      <listitem>Among triggers with the same prefix length,
 		prefer the IP or NSIP trigger that matches
 		the smallest IP address.
 	      </listitem>
