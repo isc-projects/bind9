@@ -1372,14 +1372,39 @@ dns_message_logpacket(dns_message_t *message, const char *description,
 		      isc_logcategory_t *category, isc_logmodule_t *module,
 		      int level, isc_mem_t *mctx);
 void
+dns_message_logpacket2(dns_message_t *message,
+		       const char *description, isc_sockaddr_t *address,
+		       isc_logcategory_t *category, isc_logmodule_t *module,
+		       int level, isc_mem_t *mctx);
+void
 dns_message_logfmtpacket(dns_message_t *message, const char *description,
 			 isc_logcategory_t *category, isc_logmodule_t *module,
 			 const dns_master_style_t *style, int level,
 			 isc_mem_t *mctx);
+void
+dns_message_logfmtpacket2(dns_message_t *message,
+			  const char *description, isc_sockaddr_t *address,
+			  isc_logcategory_t *category, isc_logmodule_t *module,
+			  const dns_master_style_t *style, int level,
+			  isc_mem_t *mctx);
 /*%<
  * Log 'message' at the specified logging parameters.
- * 'description' will be emitted at the start of the message and will
- * normally end with a newline.
+ *
+ * For dns_message_logpacket and dns_message_logfmtpacket expect the
+ * 'description' to end in a newline.
+ *
+ * For dns_message_logpacket2 and dns_message_logfmtpacket2
+ * 'description' will be emitted at the start of the message followed
+ * by the formatted address and a newline.
+ *
+ * Requires:
+ * \li   message be a valid.
+ * \li   description to be non NULL.
+ * \li   address to be non NULL.
+ * \li   category to be valid.
+ * \li   module to be valid.
+ * \li   style to be valid.
+ * \li   mctx to be a valid.
  */
 
 isc_result_t

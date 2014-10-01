@@ -2254,6 +2254,17 @@ resquery_send(resquery_t *query) {
 	}
 
 	/*
+	 * Log the outgoing packet.
+	 */
+	dns_message_logfmtpacket2(fctx->qmessage, "sending packet to",
+				  &query->addrinfo->sockaddr,
+				  DNS_LOGCATEGORY_RESOLVER,
+				  DNS_LOGMODULE_PACKETS,
+				  &dns_master_style_comment,
+				  ISC_LOG_DEBUG(11),
+				  fctx->res->mctx);
+
+	/*
 	 * We're now done with the query message.
 	 */
 	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
@@ -7388,12 +7399,13 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Log the incoming packet.
 	 */
-	dns_message_logfmtpacket(message, "received packet:\n",
-				 DNS_LOGCATEGORY_RESOLVER,
-				 DNS_LOGMODULE_PACKETS,
-				 &dns_master_style_comment,
-				 ISC_LOG_DEBUG(10),
-				 fctx->res->mctx);
+	dns_message_logfmtpacket2(message, "received packet from",
+				  &query->addrinfo->sockaddr,
+				  DNS_LOGCATEGORY_RESOLVER,
+				  DNS_LOGMODULE_PACKETS,
+				  &dns_master_style_comment,
+				  ISC_LOG_DEBUG(10),
+				  fctx->res->mctx);
 	/*
 	 * Process receive opt record.
 	 */
@@ -7449,18 +7461,13 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	     message->rcode == dns_rcode_refused ||
 	     message->rcode == dns_rcode_yxdomain) &&
 	     bad_edns(fctx, &query->addrinfo->sockaddr)) {
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
-			char buf[4096], addrbuf[ISC_SOCKADDR_FORMATSIZE];
-			isc_sockaddr_format(&query->addrinfo->sockaddr,
-					    addrbuf, sizeof(addrbuf));
-			snprintf(buf, sizeof(buf),
-				 "received packet from %s (bad edns):\n",
-				 addrbuf);
-			dns_message_logpacket(message, buf,
-				      DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER,
-				      ISC_LOG_DEBUG(3), fctx->res->mctx);
-		}
+		dns_message_logpacket2(message,
+				       "received packet (bad edns) from",
+				       &query->addrinfo->sockaddr,
+				       DNS_LOGCATEGORY_RESOLVER,
+				       DNS_LOGMODULE_RESOLVER,
+				       ISC_LOG_DEBUG(3),
+				       fctx->res->mctx);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
@@ -7480,18 +7487,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		 * should be safe to do for any rcode we limit it to NOERROR
 		 * and NXDOMAIN.
 		 */
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
-			char buf[4096], addrbuf[ISC_SOCKADDR_FORMATSIZE];
-			isc_sockaddr_format(&query->addrinfo->sockaddr,
-					    addrbuf, sizeof(addrbuf));
-			snprintf(buf, sizeof(buf),
-				 "received packet from %s (no opt):\n",
-				 addrbuf);
-			dns_message_logpacket(message, buf,
-				      DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER,
-				      ISC_LOG_DEBUG(3), fctx->res->mctx);
-		}
+		dns_message_logpacket2(message, "received packet (no opt) from",
+				       &query->addrinfo->sockaddr,
+				       DNS_LOGCATEGORY_RESOLVER,
+				       DNS_LOGMODULE_RESOLVER,
+				       ISC_LOG_DEBUG(3),
+				       fctx->res->mctx);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);

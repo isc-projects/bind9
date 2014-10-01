@@ -1,3 +1,6 @@
+3965.	[func]		Log outgoing packets and improve packet logging to
+			support logging the remote address. [RT #36624]
+
 3964.	[func]		nsupdate now performs check-names processing.
 			[RT #36266]
 

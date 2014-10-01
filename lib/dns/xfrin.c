@@ -1234,10 +1234,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 				   DNS_MESSAGEPARSE_PRESERVEORDER);
 
 	if (result == ISC_R_SUCCESS)
-		dns_message_logpacket(msg, "received message:\n",
-				      DNS_LOGCATEGORY_XFER_IN,
-				      DNS_LOGMODULE_XFER_IN,
-				      ISC_LOG_DEBUG(10), xfr->mctx);
+		dns_message_logpacket2(msg, "received message from",
+				       &tcpmsg->address,
+				       DNS_LOGCATEGORY_XFER_IN,
+				       DNS_LOGMODULE_XFER_IN,
+				       ISC_LOG_DEBUG(10), xfr->mctx);
 	else
 		xfrin_log(xfr, ISC_LOG_DEBUG(10), "dns_message_parse: %s",
 			  dns_result_totext(result));
