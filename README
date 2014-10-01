@@ -97,6 +97,8 @@ BIND 9.11.0
 	- dig can now set yet-to-be-defined EDNS flags on requests (+ednsflags).
 	- serial-query-rate no longer covers NOTIFY messages.  These are
 	  separately controlled by notify-rate and startup-notify-rate.
+	- nsupdate now performs check-names processing by default on records
+	  to be added.  This can be disabled with "check-names no".
 
 	This release addresses the security flaw described in
 	CVE-2014-3214 and CVE-2014-3859.

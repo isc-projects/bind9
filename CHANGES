@@ -1,3 +1,6 @@
+3964.	[func]		nsupdate now performs check-names processing.
+			[RT #36266]
+
 3963.	[test]		Added NXRRSET test cases to the "dlzexternal"
 			system test. [RT #37344]
 

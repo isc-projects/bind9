@@ -1833,7 +1833,6 @@ load_text(dns_loadctx_t *lctx) {
 				goto insist_and_cleanup;
 		}
 
-
 		if (type == dns_rdatatype_rrsig ||
 		    type == dns_rdatatype_sig)
 			covers = dns_rdata_covers(&rdata[rdcount]);

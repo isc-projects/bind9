@@ -457,6 +457,22 @@
 
         <varlistentry>
           <term>
+            <command>check-names</command>
+            <arg choice="req"><optional>yes_or_no</optional></arg>
+          </term>
+	  <listitem>
+	    <para>
+	      Turn on or off check-names processing on records to
+	      be added.  Check-names has no effect on prerequisites
+	      or records to be deleted.  By default check-names
+	      processing is on.  If check-names processing fails
+	      the record will not be added to the UPDATE message.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+        <varlistentry>
+          <term>
               <command><optional>prereq</optional> nxdomain</command>
               <arg choice="req">domain-name</arg>
             </term>

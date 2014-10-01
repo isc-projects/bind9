@@ -629,5 +629,32 @@ test ${lines:-0} -eq 64 || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 fi
 
+n=`expr $n + 1`
+echo "I:check check-names processing ($n)"
+ret=0
+$NSUPDATE << EOF > nsupdate.out1-$n 2>&1
+update add # 0 in a 1.2.3.4
+EOF
+grep "bad owner" nsupdate.out1-$n > /dev/null || ret=1
+
+$NSUPDATE << EOF > nsupdate.out2-$n 2>&1
+check-names off
+update add # 0 in a 1.2.3.4
+EOF
+grep "bad owner" nsupdate.out2-$n > /dev/null && ret=1
+
+$NSUPDATE << EOF > nsupdate.out3-$n 2>&1
+update add . 0 in mx 0 #
+EOF
+grep "bad name" nsupdate.out3-$n > /dev/null || ret=1
+
+$NSUPDATE << EOF > nsupdate.out4-$n 2>&1
+check-names off
+update add . 0 in mx 0 #
+EOF
+grep "bad name" nsupdate.out4-$n > /dev/null && ret=1
+
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
 echo "I:exit status: $status"
 exit $status
