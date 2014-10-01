@@ -56,6 +56,7 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -4489,6 +4490,9 @@ chase_scanname_section(dns_message_t *msg, dns_name_t *name,
 	dns_rdataset_t *rdataset;
 	dns_name_t *msg_name = NULL;
 
+	if (msg->counts[section] == 0)
+		return (NULL);
+
 	do {
 		dns_message_currentname(msg, section, &msg_name);
 		if (dns_name_compare(msg_name, name) == 0) {
@@ -5297,6 +5301,20 @@ sigchase_td(dns_message_t *msg)
 	isc_boolean_t have_answer = ISC_FALSE;
 	isc_boolean_t true = ISC_TRUE;
 
+	if (msg->rcode != dns_rcode_noerror &&
+	    msg->rcode != dns_rcode_nxdomain) {
+		char buf[20];
+		isc_buffer_t b;
+
+		isc_buffer_init(&b, buf, sizeof(buf));
+		result = dns_rcode_totext(msg->rcode, &b);
+		check_result(result, "dns_rcode_totext failed");
+		printf("error response code %.*s\n", 
+		       (int)isc_buffer_usedlength(&b), buf);
+		error_message = msg;
+		return;	
+	}
+
 	if ((result = dns_message_firstname(msg, DNS_SECTION_ANSWER))
 	    == ISC_R_SUCCESS) {
 		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
@@ -5309,10 +5327,13 @@ sigchase_td(dns_message_t *msg)
 		if (!current_lookup->trace_root_sigchase) {
 			result = dns_message_firstname(msg,
 						       DNS_SECTION_AUTHORITY);
-			if (result == ISC_R_SUCCESS)
-				dns_message_currentname(msg,
-							DNS_SECTION_AUTHORITY,
-							&name);
+			if (result != ISC_R_SUCCESS) {
+				printf("no answer or authority section\n");
+				error_message = msg;
+				return;
+			}
+			dns_message_currentname(msg, DNS_SECTION_AUTHORITY,
+						&name);
 			chase_nsrdataset
 				= chase_scanname_section(msg, name,
 							 dns_rdatatype_ns,
@@ -5322,7 +5343,7 @@ sigchase_td(dns_message_t *msg)
 			if (chase_nsrdataset != NULL) {
 				have_delegation_ns = ISC_TRUE;
 				printf("no response but there is a delegation"
-				       " in authority section:");
+				       " in authority section: ");
 				dns_name_print(name, stdout);
 				printf("\n");
 			} else {
