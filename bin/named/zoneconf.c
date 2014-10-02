@@ -707,6 +707,8 @@ configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		}
 	}
 
+	INSIST(dbversion == NULL);
+
 	return (result);
 }
 

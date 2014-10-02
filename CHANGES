@@ -1,3 +1,6 @@
+3966.	[bug]		Missing dns_db_closeversion call in receive_secure_db.
+			[RT #35746]
+
 3965.	[func]		Log outgoing packets and improve packet logging to
 			support logging the remote address. [RT #36624]
 
