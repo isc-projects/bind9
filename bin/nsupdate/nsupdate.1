@@ -296,6 +296,11 @@ rather than the default realm in
 \fIkrb5.conf\fR. If no realm is specified the saved realm is cleared.
 .RE
 .PP
+\fBcheck\-names\fR {[yes_or_no]}
+.RS 4
+Turn on or off check\-names processing on records to be added. Check\-names has no effect on prerequisites or records to be deleted. By default check\-names processing is on. If check\-names processing fails the record will not be added to the UPDATE message.
+.RE
+.PP
 \fB[prereq]\fR\fB nxdomain\fR {domain\-name}
 .RS 4
 Requires that no resource record of any type exists with name

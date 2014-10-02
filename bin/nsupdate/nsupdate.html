@@ -359,6 +359,17 @@
 	      realm is specified the saved realm is cleared.
             </p></dd>
 <dt><span class="term">
+            <span><strong class="command">check-names</strong></span>
+             {[<span class="optional">yes_or_no</span>]}
+          </span></dt>
+<dd><p>
+	      Turn on or off check-names processing on records to
+	      be added.  Check-names has no effect on prerequisites
+	      or records to be deleted.  By default check-names
+	      processing is on.  If check-names processing fails
+	      the record will not be added to the UPDATE message.
+	    </p></dd>
+<dt><span class="term">
               <span><strong class="command">[<span class="optional">prereq</span>] nxdomain</strong></span>
                {domain-name}
             </span></dt>
@@ -520,7 +531,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544861"></a><h2>EXAMPLES</h2>
+<a name="id2544884"></a><h2>EXAMPLES</h2>
 <p>
       The examples below show how
       <span><strong class="command">nsupdate</strong></span>
@@ -574,7 +585,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544905"></a><h2>FILES</h2>
+<a name="id2544928"></a><h2>FILES</h2>
 <div class="variablelist"><dl>
 <dt><span class="term"><code class="constant">/etc/resolv.conf</code></span></dt>
 <dd><p>
@@ -597,7 +608,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2541985"></a><h2>SEE ALSO</h2>
+<a name="id2542007"></a><h2>SEE ALSO</h2>
 <p>
       <em class="citetitle">RFC 2136</em>,
       <em class="citetitle">RFC 3007</em>,
@@ -612,7 +623,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542042"></a><h2>BUGS</h2>
+<a name="id2545273"></a><h2>BUGS</h2>
 <p>
       The TSIG key is redundantly stored in two separate files.
       This is a consequence of nsupdate using the DST library
