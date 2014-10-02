@@ -182,19 +182,24 @@ done
 if [ $ret != 0 ] ; then echo "I:failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
 
-echo "I:checking update forwarding to with sig0 ($n)"
-keyname=`cat keyname`
-$NSUPDATE -k $keyname.private -- - <<EOF
-server 10.53.0.3 5300
-zone example2
-update add unsigned.example2. 600 A 10.10.10.1
-update add unsigned.example2. 600 TXT Foo
-send
+if test -f keyname
+then
+	echo "I:checking update forwarding to with sig0 ($n)"
+	ret=0
+	keyname=`cat keyname`
+	$NSUPDATE -k $keyname.private -- - <<EOF
+	server 10.53.0.3 5300
+	zone example2
+	update add unsigned.example2. 600 A 10.10.10.1
+	update add unsigned.example2. 600 TXT Foo
+	send
 EOF
-$DIG unsigned.example2 A @10.53.0.1 -p 5300 > dig.out.ns1.test$n
-grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
-if [ $ret != 0 ] ; then echo "I:failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+	$DIG unsigned.example2 A @10.53.0.1 -p 5300 > dig.out.ns1.test$n
+	grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
+	if [ $ret != 0 ] ; then echo "I:failed"; fi
+	status=`expr $status + $ret`
+	n=`expr $n + 1`
+fi
 
 echo "I:exit status: $status"
 exit $status
