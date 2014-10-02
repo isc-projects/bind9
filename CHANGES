@@ -1,3 +1,6 @@
+3968.	[bug]		Silence spurious log messages when using 'named -[46]'.
+			[RT #37308]
+
 3967.	[test]		Add test for inlined signed zone in multiple views
 			with different DNSKEY sets. [RT #35759]
 

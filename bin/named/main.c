@@ -409,8 +409,6 @@ parse_command_line(int argc, char *argv[]) {
 	int ch;
 	int port;
 	const char *p;
-	isc_boolean_t disable6 = ISC_FALSE;
-	isc_boolean_t disable4 = ISC_FALSE;
 
 	save_command_line(argc, argv);
 
@@ -420,20 +418,20 @@ parse_command_line(int argc, char *argv[]) {
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case '4':
-			if (disable4)
+			if (ns_g_disable4)
 				ns_main_earlyfatal("cannot specify -4 and -6");
 			if (isc_net_probeipv4() != ISC_R_SUCCESS)
 				ns_main_earlyfatal("IPv4 not supported by OS");
 			isc_net_disableipv6();
-			disable6 = ISC_TRUE;
+			ns_g_disable6 = ISC_TRUE;
 			break;
 		case '6':
-			if (disable6)
+			if (ns_g_disable6)
 				ns_main_earlyfatal("cannot specify -4 and -6");
 			if (isc_net_probeipv6() != ISC_R_SUCCESS)
 				ns_main_earlyfatal("IPv6 not supported by OS");
 			isc_net_disableipv4();
-			disable4 = ISC_TRUE;
+			ns_g_disable4 = ISC_TRUE;
 			break;
 		case 'c':
 			ns_g_conffile = isc_commandline_argument;
