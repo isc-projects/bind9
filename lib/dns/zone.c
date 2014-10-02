@@ -3865,6 +3865,8 @@ failure:
 	if (ver != NULL)
 		dns_db_closeversion(db, &ver, ISC_TF(result == ISC_R_SUCCESS));
 
+	INSIST(ver == NULL);
+
 	return (result);
 }
 
@@ -4026,6 +4028,8 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	if (ver != NULL)
 		dns_db_closeversion(db, &ver, commit);
 	dns_diff_clear(&diff);
+
+	INSIST(ver == NULL);
 
 	return (result);
 }
@@ -6310,6 +6314,8 @@ zone_resigninc(dns_zone_t *zone) {
 		isc_interval_set(&ival, 300, 0);
 		isc_time_nowplusinterval(&zone->resigntime, &ival);
 	}
+
+	INSIST(version == NULL);
 }
 
 static isc_result_t
@@ -7793,6 +7799,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 	} else
 		isc_time_settoepoch(&zone->nsec3chaintime);
 	UNLOCK_ZONE(zone);
+
+	INSIST(version == NULL);
 }
 
 static isc_result_t
@@ -8340,6 +8348,8 @@ zone_sign(dns_zone_t *zone) {
 		isc_time_nowplusinterval(&zone->signingtime, &i);
 	} else
 		isc_time_settoepoch(&zone->signingtime);
+
+	INSIST(version == NULL);
 }
 
 static isc_result_t
@@ -9040,7 +9050,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		zone_needdump(zone, 30);
 	}
 
-  failure:
+ failure:
 
 	dns_diff_clear(&diff);
 	if (ver != NULL)
@@ -9071,6 +9081,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	UNLOCK_ZONE(zone);
 	if (free_needed)
 		zone_free(zone);
+
+	INSIST(ver == NULL);
 }
 
 /*
@@ -9243,6 +9255,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 		dns_db_closeversion(db, &ver, commit);
 	}
 	dns_db_detach(&db);
+
+	INSIST(ver == NULL);
 }
 
 static void
@@ -13500,6 +13514,9 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 		dns_journal_destroy(&rjournal);
 	dns_diff_clear(&diff);
 	dns_zone_idetach(&zone);
+
+	INSIST(oldver == NULL);
+	INSIST(newver == NULL);
 }
 
 static isc_result_t
@@ -13935,6 +13952,8 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	if (db != NULL) {
 		if (node != NULL)
 			dns_db_detachnode(db, &node);
+		if (version != NULL)
+			dns_db_closeversion(db, &version, ISC_FALSE);
 		dns_db_detach(&db);
 	}
 	if (rawnode != NULL)
@@ -13943,6 +13962,8 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	if (dbiterator != NULL)
 		dns_dbiterator_destroy(&dbiterator);
 	dns_zone_idetach(&zone);
+
+	INSIST(version == NULL);
 }
 
 static isc_result_t
@@ -17232,6 +17253,8 @@ zone_rekey(dns_zone_t *zone) {
 		dns_db_detachnode(db, &node);
 	if (db != NULL)
 		dns_db_detach(&db);
+
+	INSIST(ver == NULL);
 	return;
 
  failure:
@@ -17574,6 +17597,9 @@ keydone(isc_task_t *task, isc_event_t *event) {
 	dns_diff_clear(&diff);
 	isc_event_free(&event);
 	dns_zone_idetach(&zone);
+
+	INSIST(oldver == NULL);
+	INSIST(newver == NULL);
 }
 
 isc_result_t
@@ -17809,6 +17835,9 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 	dns_diff_clear(&diff);
 	isc_event_free(&event);
 	dns_zone_idetach(&zone);
+
+	INSIST(oldver == NULL);
+	INSIST(newver == NULL);
 }
 
 isc_result_t

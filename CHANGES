@@ -1,3 +1,6 @@
+3966.	[bug]		Missing dns_db_closeversion call in receive_secure_db.
+			[RT #35746]
+
 3962.	[bug]		'dig +topdown +trace +sigchase' address unhandled error
 			conditions. [RT #34663]
 
