@@ -24,7 +24,16 @@ rm -f ns1/example2.db.jnl ns2/example2.bk ns2/example2.bk.jnl
 cp -f ns3/nomaster.db ns3/nomaster1.db
 rm -f Ksig0.example2.*
 
+#
+# SIG(0) required cryptographic support which may not be configured.
+#
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE 
-keyname=`$KEYGEN  -q -r $RANDFILE -n HOST -a RSASHA1 -b 1024 -T KEY sig0.example2`
-cat ns1/example1.db $keyname.key > ns1/example2.db
-echo $keyname > keyname
+keyname=`$KEYGEN  -q -r $RANDFILE -n HOST -a RSASHA1 -b 1024 -T KEY sig0.example2 2>/dev/null`
+if test -n "$keyname"
+then
+	cat ns1/example1.db $keyname.key > ns1/example2.db
+	echo $keyname > keyname
+else
+	cat ns1/example1.db > ns1/example2.db
+	rm -f keyname
+fi

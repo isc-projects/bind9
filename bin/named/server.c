@@ -2293,6 +2293,9 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		dns_db_closeversion(db, &version, ISC_FALSE);
 	if (db != NULL)
 		dns_db_detach(&db);
+
+	INSIST(version == NULL);
+
 	return (result);
 }
 
@@ -5583,10 +5586,11 @@ load_configuration(const char *filename, ns_server_t *server,
 			isc_portset_addrange(v4portset, udpport_low,
 					     udpport_high);
 		}
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "using default UDP/IPv4 port range: [%d, %d]",
-			      udpport_low, udpport_high);
+		if (!ns_g_disable4)
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "using default UDP/IPv4 port range: "
+				      "[%d, %d]", udpport_low, udpport_high);
 	}
 	(void)ns_config_get(maps, "avoid-v4-udp-ports", &avoidv4ports);
 	if (avoidv4ports != NULL)
@@ -5605,10 +5609,11 @@ load_configuration(const char *filename, ns_server_t *server,
 			isc_portset_addrange(v6portset, udpport_low,
 					     udpport_high);
 		}
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "using default UDP/IPv6 port range: [%d, %d]",
-			      udpport_low, udpport_high);
+		if (!ns_g_disable6)
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "using default UDP/IPv6 port range: "
+				      "[%d, %d]", udpport_low, udpport_high);
 	}
 	(void)ns_config_get(maps, "avoid-v6-udp-ports", &avoidv6ports);
 	if (avoidv6ports != NULL)

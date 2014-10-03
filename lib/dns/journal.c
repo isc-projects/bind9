@@ -1392,6 +1392,8 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
 
 	dns_diff_clear(&diff);
 
+	INSIST(ver == NULL);
+
 	return (result);
 }
 
