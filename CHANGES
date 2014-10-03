@@ -1,3 +1,5 @@
+3969.	[test]		Added 'delv' system test. [RT #36901]
+
 3968.	[bug]		Silence spurious log messages when using 'named -[46]'.
 			[RT #37308]
 
