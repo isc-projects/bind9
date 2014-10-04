@@ -908,6 +908,7 @@
 ./bin/tests/system/checkzone/zones/bad-nsec3owner-padded.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/bad1.db	ZONE	2013
 ./bin/tests/system/checkzone/zones/bad2.db	ZONE	2014
+./bin/tests/system/checkzone/zones/badttl.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/good-nsec3-nopadhash.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/good1.db	ZONE	2011
 ./bin/tests/system/checkzone/zones/spf.db	ZONE	2013
