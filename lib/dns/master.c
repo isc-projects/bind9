@@ -1162,7 +1162,7 @@ load_text(dns_loadctx_t *lctx) {
 			} else if (strcasecmp(DNS_AS_STR(token),
 					      "$TTL") == 0) {
 				GETTOKENERR(lctx->lex, 0, &token, ISC_FALSE,
-				            lctx->ttl = 0;
+					    lctx->ttl = 0;
 					    lctx->default_ttl_known = ISC_TRUE;);
 				result =
 				   dns_ttl_fromtext(&token.value.as_textregion,
