@@ -37,8 +37,8 @@ test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 #
 $KEYGEN -K ns2/internal -r $RANDFILE -3q inline > /dev/null 2>&1
 $KEYGEN -K ns2/internal -r $RANDFILE -3qfk inline > /dev/null 2>&1
-k1=`$KEYGEN -K ns2/external -r $RANDFILE -3q inline`
-k2=`$KEYGEN -K ns2/external -r $RANDFILE -3qfk inline`
+k1=`$KEYGEN -K ns2/external -r $RANDFILE -3q inline 2> /dev/null`
+k2=`$KEYGEN -K ns2/external -r $RANDFILE -3qfk inline 2> /dev/null`
 $KEYGEN -K ns2/external -r $RANDFILE -3q inline > /dev/null 2>&1
 $KEYGEN -K ns2/external -r $RANDFILE -3qfk inline > /dev/null 2>&1
 test -n "$k1" && rm -f ns2/external/$k1.*
