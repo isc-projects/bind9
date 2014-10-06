@@ -1,3 +1,5 @@
+3972.	[bug]		Fix host's usage statement. [RT #37397]
+
 3971.	[bug]		Reduce the cascasding failures due to a bad $TTL line
 			in named-checkconf / named-checkzone. [RT #37138]
 
