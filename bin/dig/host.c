@@ -165,7 +165,7 @@ show_usage(void) {
 "       -4 use IPv4 query transport only\n"
 "       -6 use IPv6 query transport only\n"
 "       -m set memory debugging flag (trace|record|usage)\n"
-"       -v print version number and exit\n", stderr);
+"       -V print version number and exit\n", stderr);
 	exit(1);
 }
 
