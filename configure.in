@@ -95,7 +95,7 @@ esac
 
 #libseccomp sandboxing
 AC_ARG_ENABLE(seccomp,
-	AS_HELP_STRING([--enable-seccomp],[enable support for libseccomp sysstem call filtering [default=no]]))
+	AS_HELP_STRING([--enable-seccomp],[enable support for libseccomp system call filtering [default=no]]))
 case "$enable_seccomp" in
 	yes)
 	case $host_os in
@@ -1127,7 +1127,7 @@ then
 		      AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE),)
 
         AC_ARG_WITH(locktype,
-                [  --with-locktype=ARG       Specify mutex lock type (adaptive or standard)],
+                [  --with-locktype=ARG     Specify mutex lock type (adaptive or standard)],
                 locktype="$withval", locktype="adaptive")
 
         case "$locktype" in
@@ -2402,6 +2402,25 @@ esac
 
 AC_SUBST(PURIFY)
 
+#
+# Google/Great Performance Tools CPU Profiler
+#
+AC_MSG_CHECKING(whether to use gperftools profiler)
+AC_ARG_WITH(gperftools-profiler,
+	[  --with-gperftools-profiler  use gperftools CPU profiler],
+	use_profiler="$withval", use_profiler="no")
+
+case $use_profiler in
+	yes)
+		AC_MSG_RESULT(yes)
+		AC_DEFINE([HAVE_GPERFTOOLS_PROFILER], 1,
+		[Define to use gperftools CPU profiler.])
+		LIBS="$LIBS -lprofiler"
+		;;
+	*)
+		AC_MSG_RESULT(no)
+		;;
+esac
 
 #
 # enable/disable dumping stack backtrace.  Also check if the system supports
@@ -3478,7 +3497,8 @@ esac
 case $ac_cv_have_if_nametoindex in
 yes)
 	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
-	AC_DEFINE(HAVE_IF_NAMETOINDEX, 1)
+	AC_DEFINE(HAVE_IF_NAMETOINDEX, 1,
+	[Define to 1 if you have the if_nametoindex function.])
 	;;
 *)
 	ISC_PLATFORM_HAVEIFNAMETOINDEX="#undef ISC_PLATFORM_HAVEIFNAMETOINDEX"

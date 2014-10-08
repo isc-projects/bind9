@@ -2930,12 +2930,14 @@ exit 0;
 #  --with-libxml2 supported
 #  --with-libjson not supported on WIN32 (package not available on WIN32)
 #  --with-purify ? (package available on WIN32 but for free?)
+#  --with-gperftools-profiler (package not available on WIN32)
 #  --with-libtool not supported on WIN32 (never)
 #  --with-locktype not supported on WIN32 (not yet available on WIN32)
 #  --with-readline supported
 #  --with-idn support
 #  --with-[lib]iconv (part of IDN)
 #  --with-atf not supported on WIN32 (package not available on WIN32)
+#  --with-tuning supported
 #  --with-dlopen included without a way to disable it
 #  --with-dlz-* ?
 #
