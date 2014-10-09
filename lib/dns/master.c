@@ -251,7 +251,7 @@ loadctx_destroy(dns_loadctx_t *lctx);
 		} \
 	} while (0)
 #define GETTOKEN(lexer, options, token, eol) \
-	GETTOKENERR(lexer, options, token, eol, )
+	GETTOKENERR(lexer, options, token, eol, {} )
 
 #define COMMITALL \
 	do { \
