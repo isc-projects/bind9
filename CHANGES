@@ -1,3 +1,6 @@
+3975.	[bug]		Don't populate or use the bad cache for queries that
+			don't request or use recursion. [RT #37466]
+
 3974.	[bug]		handle DH_compute_key() failure correctly in
 			openssldh_link.c. [RT #37477]
 
