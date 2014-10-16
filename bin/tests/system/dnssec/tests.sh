@@ -2359,7 +2359,7 @@ $DIG +noall +additional +dnssec +cd -p 5300 expiring.example mx @10.53.0.4 > dig
 $DIG +noall +additional +dnssec -p 5300 expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
 ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
 ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
-for ttl in ${ttls:-0}; do
+for ttl in ${ttls:-300}; do
     [ ${ttl:-0} -eq 300 ] || ret=1
 done
 for ttl in ${ttls2:-0}; do
@@ -2413,7 +2413,7 @@ $DIG +noall +additional +dnssec +cd -p 5300 expiring.example mx @10.53.0.4 > dig
 $DIG +noall +additional +dnssec -p 5300 expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
 ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
 ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
-for ttl in ${ttls:-0}; do
+for ttl in ${ttls:-300}; do
     [ $ttl -eq 300 ] || ret=1
 done
 for ttl in ${ttls2:-0}; do
