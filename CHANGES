@@ -1,5 +1,19 @@
+3975.	[bug]		Don't populate or use the bad cache for queries that
+			don't request or use recursion. [RT #37466]
+
+3974.	[bug]		handle DH_compute_key() failure correctly in
+			openssldh_link.c. [RT #37477]
+
+3973.	[func]		Added hooks for Google/Great Performance Tools
+			CPU Profiler, including in real time. [RT #37339]
+
+3972.	[bug]		Fix host's usage statement. [RT #37397]
+
+3971.	[bug]		Reduce the cascasding failures due to a bad $TTL line
+			in named-checkconf / named-checkzone. [RT #37138]
+
 3970.   [contrib]       Fixed a use after free bug in the SDB LDAP driver.
-                        [RT #37237]
+			[RT #37237]
 
 3969.	[test]		Added 'delv' system test. [RT #36901]
 

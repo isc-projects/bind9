@@ -230,6 +230,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Build with GeoIP Country IPv6 support */
 #undef HAVE_GEOIP_V6
 
+/* Define to use gperftools CPU profiler. */
+#undef HAVE_GPERFTOOLS_PROFILER
+
 /* Define to 1 if you have the <gssapi/gssapi.h> header file. */
 #undef HAVE_GSSAPI_GSSAPI_H
 
@@ -242,7 +245,7 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <gssapi_krb5.h> header file. */
 #undef HAVE_GSSAPI_KRB5_H
 
-/* Define to 1 if you have the `if_nametoindex' function. */
+/* Define to 1 if you have the if_nametoindex function. */
 #undef HAVE_IF_NAMETOINDEX
 
 /* Define to 1 if you have the <inttypes.h> header file. */

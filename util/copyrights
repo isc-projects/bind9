@@ -959,6 +959,7 @@
 ./bin/tests/system/checkzone/zones/bad-nsec3owner-padded.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/bad1.db	ZONE	2013
 ./bin/tests/system/checkzone/zones/bad2.db	ZONE	2014
+./bin/tests/system/checkzone/zones/badttl.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/good-nsec3-nopadhash.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/good1.db	ZONE	2011
 ./bin/tests/system/checkzone/zones/spf.db	ZONE	2013
@@ -1002,6 +1003,13 @@
 ./bin/tests/system/database/ns1/named.conf2	CONF-C	2011,2013
 ./bin/tests/system/database/setup.sh		SH	2011,2012
 ./bin/tests/system/database/tests.sh		SH	2011,2012
+./bin/tests/system/delv/clean.sh		SH	2014
+./bin/tests/system/delv/ns1/named.conf		CONF-C	2014
+./bin/tests/system/delv/ns1/root.db		ZONE	2014
+./bin/tests/system/delv/ns2/example.db		ZONE	2014
+./bin/tests/system/delv/ns2/named.conf		CONF-C	2014
+./bin/tests/system/delv/ns3/named.conf		CONF-C	2014
+./bin/tests/system/delv/tests.sh		SH	2014
 ./bin/tests/system/dialup/ns1/example.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/dialup/ns1/named.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/dialup/ns1/root.db		ZONE	2000,2001,2004,2007

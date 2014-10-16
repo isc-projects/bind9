@@ -221,7 +221,7 @@ task_send(dns_loadctx_t *lctx);
 static void
 loadctx_destroy(dns_loadctx_t *lctx);
 
-#define GETTOKEN(lexer, options, token, eol) \
+#define GETTOKENERR(lexer, options, token, eol, err) \
 	do { \
 		result = gettoken(lexer, options, token, eol, callbacks); \
 		switch (result) { \
@@ -234,6 +234,7 @@ loadctx_destroy(dns_loadctx_t *lctx);
 				SETRESULT(lctx, result); \
 				LOGIT(result); \
 				read_till_eol = ISC_TRUE; \
+				err \
 				goto next_line; \
 			} else \
 				goto log_and_cleanup; \
@@ -249,6 +250,8 @@ loadctx_destroy(dns_loadctx_t *lctx);
 				goto log_and_cleanup; \
 		} \
 	} while (0)
+#define GETTOKEN(lexer, options, token, eol) \
+	GETTOKENERR(lexer, options, token, eol, {} )
 
 #define COMMITALL \
 	do { \
@@ -389,13 +392,19 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 	if (eol != ISC_TRUE)
 		if (token->type == isc_tokentype_eol ||
 		    token->type == isc_tokentype_eof) {
+			unsigned long int line;
+			const char *what;
+			const char *file;
+			file = isc_lex_getsourcename(lex);
+			line = isc_lex_getsourceline(lex);
+			if (token->type == isc_tokentype_eol) {
+				line--;
+				what = "line";
+			} else
+				what = "file";
 			(*callbacks->error)(callbacks,
 			    "dns_master_load: %s:%lu: unexpected end of %s",
-					    isc_lex_getsourcename(lex),
-					    isc_lex_getsourceline(lex),
-					    (token->type ==
-					     isc_tokentype_eol) ?
-					    "line" : "file");
+					    file, line, what);
 			return (ISC_R_UNEXPECTEDEND);
 		}
 	return (ISC_R_SUCCESS);
@@ -1152,7 +1161,9 @@ load_text(dns_loadctx_t *lctx) {
 				finish_origin = ISC_TRUE;
 			} else if (strcasecmp(DNS_AS_STR(token),
 					      "$TTL") == 0) {
-				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
+				GETTOKENERR(lctx->lex, 0, &token, ISC_FALSE,
+					    lctx->ttl = 0;
+					    lctx->default_ttl_known = ISC_TRUE;);
 				result =
 				   dns_ttl_fromtext(&token.value.as_textregion,
 						    &lctx->ttl);

@@ -1001,6 +1001,7 @@ with_libxml2
 with_libjson
 enable_largefile
 with_purify
+with_gperftools_profiler
 enable_backtrace
 enable_symtable
 enable_ipv6
@@ -1667,7 +1668,7 @@ Optional Features:
   --enable-libbind	  deprecated
   --enable-warn-error	  turn on -Werror when compiling
   --enable-developer      enable developer build settings
-  --enable-seccomp        enable support for libseccomp sysstem call filtering
+  --enable-seccomp        enable support for libseccomp system call filtering
                           [default=no]
   --enable-kqueue         use BSD kqueue when available [default=yes]
   --enable-epoll          use Linux epoll when available [default=auto]
@@ -1707,7 +1708,7 @@ Optional Packages:
   --with-geoip=PATH       Build with GeoIP support (yes|no|path)
   --with-gssapi=PATH      Specify path for system-supplied GSSAPI [default=yes]
   --with-randomdev=PATH   Specify path for random device
-  --with-locktype=ARG       Specify mutex lock type (adaptive or standard)
+  --with-locktype=ARG     Specify mutex lock type (adaptive or standard)
   --with-libtool          use GNU libtool
   --with-openssl=PATH     Build with OpenSSL yes|no|path.
 			  (Crypto is required for DNSSEC)
@@ -1720,6 +1721,7 @@ Optional Packages:
   --with-libxml2=PATH     build with libxml2 library yes|no|path
   --with-libjson=PATH     build with libjson0 library yes|no|path
   --with-purify=PATH      use Rational purify
+  --with-gperftools-profiler  use gperftools CPU profiler
   --with-kame=PATH	  use Kame IPv6 default path /usr/local/v6
   --with-readline=LIBSPEC    specify readline library default -lreadline
 
@@ -17106,6 +17108,34 @@ esac
 
 
 
+#
+# Google/Great Performance Tools CPU Profiler
+#
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use gperftools profiler" >&5
+$as_echo_n "checking whether to use gperftools profiler... " >&6; }
+
+# Check whether --with-gperftools-profiler was given.
+if test "${with_gperftools_profiler+set}" = set; then :
+  withval=$with_gperftools_profiler; use_profiler="$withval"
+else
+  use_profiler="no"
+fi
+
+
+case $use_profiler in
+	yes)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_GPERFTOOLS_PROFILER 1" >>confdefs.h
+
+		LIBS="$LIBS -lprofiler"
+		;;
+	*)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		;;
+esac
 
 #
 # enable/disable dumping stack backtrace.  Also check if the system supports
@@ -19107,7 +19137,8 @@ esac
 case $ac_cv_have_if_nametoindex in
 yes)
 	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
-	$as_echo "#define HAVE_IF_NAMETOINDEX 1" >>confdefs.h
+
+$as_echo "#define HAVE_IF_NAMETOINDEX 1" >>confdefs.h
 
 	;;
 *)

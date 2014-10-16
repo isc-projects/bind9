@@ -6303,32 +6303,36 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	 * if the current query has CD=0, then we can just return
 	 * SERVFAIL now.
 	 */
-	flags = 0;
-	failcache = dns_badcache_find(client->view->failcache,
-				      client->query.qname, qtype,
-				      &flags, &client->tnow);
-	if (failcache && (((flags & NS_FAILCACHE_CD) != 0) ||
-			  ((client->message->flags & DNS_MESSAGEFLAG_CD) == 0)))
-	{
-		if (isc_log_wouldlog(ns_g_lctx, ISC_LOG_DEBUG(1))) {
-			char namebuf[DNS_NAME_FORMATSIZE];
-			char typename[DNS_RDATATYPE_FORMATSIZE];
+	if (RECURSIONOK(client)) {
+		flags = 0;
+		failcache = dns_badcache_find(client->view->failcache,
+					      client->query.qname, qtype,
+					      &flags, &client->tnow);
+		if (failcache &&
+		    (((flags & NS_FAILCACHE_CD) != 0) ||
+		     ((client->message->flags & DNS_MESSAGEFLAG_CD) == 0)))
+		{
+			if (isc_log_wouldlog(ns_g_lctx, ISC_LOG_DEBUG(1))) {
+				char namebuf[DNS_NAME_FORMATSIZE];
+				char typename[DNS_RDATATYPE_FORMATSIZE];
 
-			dns_name_format(client->query.qname,
-					namebuf, sizeof(namebuf));
-			dns_rdatatype_format(qtype,
-					     typename, sizeof(typename));
-			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_QUERY, ISC_LOG_DEBUG(1),
-				      "servfail cache hit %s/%s (%s)",
-				      namebuf, typename,
-				      ((flags & NS_FAILCACHE_CD) != 0)
-				       ? "CD=1"
-				       : "CD=0");
+				dns_name_format(client->query.qname,
+						namebuf, sizeof(namebuf));
+				dns_rdatatype_format(qtype, typename,
+						     sizeof(typename));
+				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+					      NS_LOGMODULE_QUERY,
+					      ISC_LOG_DEBUG(1),
+					      "servfail cache hit %s/%s (%s)",
+					      namebuf, typename,
+					      ((flags & NS_FAILCACHE_CD) != 0)
+					       ? "CD=1"
+					       : "CD=0");
+			}
+			client->attributes |= NS_CLIENTATTR_NOSETFC;
+			QUERY_ERROR(DNS_R_SERVFAIL);
+			goto cleanup;
 		}
-		client->attributes |= NS_CLIENTATTR_NOSETFC;
-		QUERY_ERROR(DNS_R_SERVFAIL);
-		goto cleanup;
 	}
 
 	/*
@@ -8385,6 +8389,7 @@ ns_query_start(ns_client_t *client) {
 		 */
 		client->query.attributes &=
 			~(NS_QUERYATTR_RECURSIONOK|NS_QUERYATTR_CACHEOK);
+		client->query.attributes |= NS_CLIENTATTR_NOSETFC;
 	} else if ((client->attributes & NS_CLIENTATTR_RA) == 0 ||
 		   (message->flags & DNS_MESSAGEFLAG_RD) == 0) {
 		/*
@@ -8394,6 +8399,7 @@ ns_query_start(ns_client_t *client) {
 		 * doesn't want recursion, turn recursion off.
 		 */
 		client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
+		client->query.attributes |= NS_CLIENTATTR_NOSETFC;
 	}
 
 	/*
