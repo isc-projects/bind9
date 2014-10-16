@@ -620,7 +620,7 @@
             abort the DNSSEC validation process and treat the data as
             insecure rather than bogus.  This continues until the
             NTA's lifetime is elapsed, or until the server is
-            restarted (NTA's do not persist across restarts).
+            restarted (NTAs do not persist across restarts).
           </para>
           <para>
             An existing NTA can be removed by using the

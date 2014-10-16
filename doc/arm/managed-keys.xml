@@ -40,7 +40,7 @@ also in DNSSEC section above here in ARM -->
     <para>To set up an authoritative zone for RFC 5011 trust anchor
     maintenance, generate two (or more) key signing keys (KSKs) for
     the zone. Sign the zone with one of them; this is the "active"
-    KSK. All KSK's which do not sign the zone are "stand-by"
+    KSK. All KSKs which do not sign the zone are "stand-by"
     keys.</para>
     <para>Any validating resolver which is configured to use the
     active KSK as an RFC 5011-managed trust anchor will take note
@@ -82,8 +82,8 @@ $ <userinput>dnssec-signzone -S -K keys example.net</userinput>
     increasing by 128, and wrapping around at 65535. So, for
     example, the key "<filename>Kexample.com.+005+10000</filename>" becomes
     "<filename>Kexample.com.+005+10128</filename>".</para>
-    <para>If two keys have ID's exactly 128 apart, and one is
-    revoked, then the two key ID's will collide, causing several
+    <para>If two keys have IDs exactly 128 apart, and one is
+    revoked, then the two key IDs will collide, causing several
     problems. To prevent this, 
     <command>dnssec-keygen</command> will not generate a new key if
     another key is present which may collide. This checking will
@@ -95,6 +95,6 @@ $ <userinput>dnssec-signzone -S -K keys example.net</userinput>
     multiple directories or on multiple machines.</para>
     <para>It is expected that a future release of BIND 9 will
     address this problem in a different way, by storing revoked
-    keys with their original unrevoked key ID's.</para>
+    keys with their original unrevoked key IDs.</para>
   </sect2>
 </sect1>

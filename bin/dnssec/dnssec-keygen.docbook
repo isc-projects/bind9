@@ -158,7 +158,7 @@
           <para>
             The key size does not need to be specified if using a default
             algorithm.  The default key size is 1024 bits for zone signing
-            keys (ZSK's) and 2048 bits for key signing keys (KSK's,
+            keys (ZSKs) and 2048 bits for key signing keys (KSKs,
             generated with <option>-f KSK</option>).  However, if an
             algorithm is explicitly specified with the <option>-a</option>,
             then there is no default key size, and the <option>-b</option>

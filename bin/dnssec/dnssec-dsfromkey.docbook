@@ -167,7 +167,7 @@
         <term>-A</term>
         <listitem>
           <para>
-            Include ZSK's when generating DS records.  Without this option,
+            Include ZSKs when generating DS records.  Without this option,
             only keys which have the KSK flag set will be converted to DS
             records and printed.  Useful only in zone file mode. 
           </para>

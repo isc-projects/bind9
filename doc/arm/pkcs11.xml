@@ -64,7 +64,7 @@
       need. The HSM's provider library must have a complete implementation
       of the PKCS#11 API, so that all these functions are accessible. As of
       this writing, only the Thales nShield HSM and the latest development
-      version of SoftHSM can be used in this fashion.  For other HSM's,
+      version of SoftHSM can be used in this fashion.  For other HSMs,
       including the AEP Keyper, Sun SCA 6000 and older versions of SoftHSM,
       use OpenSSL-based PKCS#11. (Note: As more HSMs become capable of
       supporting native PKCS#11, it is expected that OpenSSL-based
