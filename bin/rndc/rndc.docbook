@@ -606,13 +606,13 @@
             Sets a DNSSEC negative trust anchor (NTA)
             for <option>domain</option>, with a lifetime of
             <option>lifetime</option>.  The default lifetime is
-            configured in <file>named.conf</file> via the
-            <option>nta-lifetime</option>, and defaults to
+            configured in <filename>named.conf</filename> via the
+            <option>nta-lifetime</option> option, and defaults to
             one hour.  The lifetime cannot exceed one week.
           </para>
           <para>
             A negative trust anchor selectively disables
-            DNSSEC validation for zones that known to be
+            DNSSEC validation for zones that are known to be
             failing because of misconfiguration rather than
             an attack.  When data to be validated is
             at or below an active NTA (and above any other
