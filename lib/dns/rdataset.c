@@ -80,6 +80,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
 	rdataset->private6 = NULL;
+	rdataset->private7 = NULL;
 	rdataset->resign = 0;
 }
 
