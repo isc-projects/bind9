@@ -1,3 +1,6 @@
+3978.	[test]		Added a unit test for Diffie-Hellman key
+			computation, completing change #3974. [RT #37477]
+
 3977.	[cleanup]	"rndc secroots" reported a "not found" error when
 			there were no negative trust anchors set. [RT #37506]
 
@@ -9,7 +12,7 @@
 3975.	[bug]		Don't populate or use the bad cache for queries that
 			don't request or use recursion. [RT #37466]
 
-3974.	[bug]		handle DH_compute_key() failure correctly in
+3974.	[bug]		Handle DH_compute_key() failure correctly in
 			openssldh_link.c. [RT #37477]
 
 3973.	[func]		Added hooks for Google/Great Performance Tools
