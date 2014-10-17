@@ -1,3 +1,8 @@
+3976.	[bug]		When refreshing managed-key trust anchors, clear
+			any cached trust so that they will always be
+			revalidated with the current set of secure
+			roots. [RT #37506]
+
 3974.	[bug]		handle DH_compute_key() failure correctly in
 			openssldh_link.c. [RT #37477]
 
