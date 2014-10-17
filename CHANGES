@@ -1,3 +1,6 @@
+3979.	[bug]		Negative trust anchor fetches where not properly
+			managed. [RT #37488]
+
 3978.	[test]		Added a unit test for Diffie-Hellman key
 			computation, completing change #3974. [RT #37477]
 
@@ -23,7 +26,7 @@
 3971.	[bug]		Reduce the cascasding failures due to a bad $TTL line
 			in named-checkconf / named-checkzone. [RT #37138]
 
-3970.   [contrib]       Fixed a use after free bug in the SDB LDAP driver.
+3970.	[contrib]	Fixed a use after free bug in the SDB LDAP driver.
 			[RT #37237]
 
 3969.	[test]		Added 'delv' system test. [RT #36901]
@@ -187,7 +190,7 @@
 
 3922.	[bug]		When resigning, dnssec-signzone was removing
 			all signatures from delegation nodes. It now
-			retains	DS and (if applicable) NSEC signatures.
+			retains DS and (if applicable) NSEC signatures.
 			[RT #36946]
 
 3921.	[bug]		AD was inappropriately set on RPZ responses. [RT #36833]

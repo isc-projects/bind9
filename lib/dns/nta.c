@@ -215,7 +215,9 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 		dns_rdataset_disassociate(&nta->rdataset);
 	if (dns_rdataset_isassociated(&nta->sigrdataset))
 		dns_rdataset_disassociate(&nta->sigrdataset);
-	dns_resolver_destroyfetch(&nta->fetch);
+	if (nta->fetch == devent->fetch)
+		nta->fetch = NULL;
+	dns_resolver_destroyfetch(&devent->fetch);
 
 	if (devent->node != NULL)
 		dns_db_detachnode(devent->db, &devent->node);
@@ -256,7 +258,7 @@ checkbogus(isc_task_t *task, isc_event_t *event) {
 
 	if (nta->fetch != NULL) {
 		dns_resolver_cancelfetch(nta->fetch);
-		dns_resolver_destroyfetch(&nta->fetch);
+		nta->fetch = NULL;
 	}
 	if (dns_rdataset_isassociated(&nta->rdataset))
 		dns_rdataset_disassociate(&nta->rdataset);
