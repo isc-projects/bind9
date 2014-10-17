@@ -2003,14 +2003,14 @@ status=`expr $status + $ret`
 echo "I:checking dnskey query with no data still gets put in cache ($n)"
 ret=0
 myDIGOPTS="+noadd +nosea +nostat +noquest +nocomm +nocmd -p 5300 @10.53.0.4"
-firstVal=`$DIG $myDIGOPTS insecure.example. dnskey|awk '{ print $2 }'`
+firstVal=`$DIG $myDIGOPTS insecure.example. dnskey| awk '$1 != ";;" { print $2 }'`
 sleep 1
-secondVal=`$DIG $myDIGOPTS insecure.example. dnskey|awk '{ print $2 }'`
-if [ $firstVal -eq $secondVal ]
+secondVal=`$DIG $myDIGOPTS insecure.example. dnskey| awk '$1 != ";;" { print $2 }'`
+if [ ${firstVal:-0} -eq ${secondVal:-0} ]
 then
 	sleep 1
-	thirdVal=`$DIG $myDIGOPTS insecure.example. dnskey|awk '{ print $2 }'`
-	if [ $firstVal -eq $thirdVal ]
+	thirdVal=`$DIG $myDIGOPTS insecure.example. dnskey|awk '$1 != ";;" { print $2 }'`
+	if [ ${firstVal:-0} -eq ${thirdVal:-0} ]
 	then
 		echo "I: cannot confirm query answer still in cache"
 		ret=1
@@ -2176,13 +2176,13 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload expiring.example 2>&1 |
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 flush
 $DIG +noall +answer +dnssec +cd -p 5300 expiring.example soa @10.53.0.4 > dig.out.ns4.1.$n
 $DIG +noall +answer +dnssec -p 5300 expiring.example soa @10.53.0.4 > dig.out.ns4.2.$n
-ttls=`awk '{print $2}' dig.out.ns4.1.$n`
-ttls2=`awk '{print $2}' dig.out.ns4.2.$n`
-for ttl in $ttls; do
-    [ $ttl -eq 300 ] || ret=1
+ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
+ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
+for ttl in ${ttls:-0}; do
+    [ ${ttl:-0} -eq 300 ] || ret=1
 done
-for ttl in $ttls2; do
-    [ $ttl -le 60 ] || ret=1
+for ttl in ${ttls2:-0}; do
+    [ ${ttl:-0} -le 60 ] || ret=1
 done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
@@ -2191,15 +2191,16 @@ status=`expr $status + $ret`
 echo "I:testing TTL is capped at RRSIG expiry time for records in the additional section ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 flush
+sleep 1
 $DIG +noall +additional +dnssec +cd -p 5300 expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
 $DIG +noall +additional +dnssec -p 5300 expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
-ttls=`awk '{print $2}' dig.out.ns4.1.$n`
-ttls2=`awk '{print $2}' dig.out.ns4.2.$n`
-for ttl in $ttls; do
-    [ $ttl -eq 300 ] || ret=1
+ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
+ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
+for ttl in ${ttls:-300}; do
+    [ ${ttl:-0} -eq 300 ] || ret=1
 done
-for ttl in $ttls2; do
-    [ $ttl -le 60 ] || ret=1
+for ttl in ${ttls2:-0}; do
+    [ ${ttl:-0} -le 60 ] || ret=1
 done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
@@ -2214,12 +2215,12 @@ ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 flush
 $DIG +noall +answer +dnssec +cd -p 5300 expiring.example soa @10.53.0.4 > dig.out.ns4.1.$n
 $DIG +noall +answer +dnssec -p 5300 expiring.example soa @10.53.0.4 > dig.out.ns4.2.$n
-ttls=`awk '{print $2}' dig.out.ns4.1.$n`
-ttls2=`awk '{print $2}' dig.out.ns4.2.$n`
-for ttl in $ttls; do
+ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
+ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
+for ttl in ${ttls:-0}; do
     [ $ttl -eq 300 ] || ret=1
 done
-for ttl in $ttls2; do
+for ttl in ${ttls2:-0}; do
     [ $ttl -le 120 -a $ttl -gt 60 ] || ret=1
 done
 n=`expr $n + 1`
@@ -2230,12 +2231,12 @@ echo "I:testing TTL of expired RRsets with dnssec-accept-expired yes; ($n)"
 ret=0
 $DIG +noall +answer +dnssec +cd -p 5300 expired.example soa @10.53.0.4 > dig.out.ns4.1.$n
 $DIG +noall +answer +dnssec -p 5300 expired.example soa @10.53.0.4 > dig.out.ns4.2.$n
-ttls=`awk '{print $2}' dig.out.ns4.1.$n`
-ttls2=`awk '{print $2}' dig.out.ns4.2.$n`
-for ttl in $ttls; do
+ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
+ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
+for ttl in ${ttls:-0}; do
     [ $ttl -eq 300 ] || ret=1
 done
-for ttl in $ttls2; do
+for ttl in ${ttls2:-0}; do
     [ $ttl -le 120 -a $ttl -gt 60 ] || ret=1
 done
 n=`expr $n + 1`
@@ -2247,12 +2248,12 @@ ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 flush
 $DIG +noall +additional +dnssec +cd -p 5300 expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
 $DIG +noall +additional +dnssec -p 5300 expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
-ttls=`awk '{print $2}' dig.out.ns4.1.$n`
-ttls2=`awk '{print $2}' dig.out.ns4.2.$n`
-for ttl in $ttls; do
+ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
+ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
+for ttl in ${ttls:-300}; do
     [ $ttl -eq 300 ] || ret=1
 done
-for ttl in $ttls2; do
+for ttl in ${ttls2:-0}; do
     [ $ttl -le 120  -a $ttl -gt 60 ] || ret=1
 done
 n=`expr $n + 1`
