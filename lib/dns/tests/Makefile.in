@@ -40,6 +40,7 @@ OBJS =		dnstest.@O@
 SRCS =		db_test.c \
 		dbdiff_test.c \
 		dbiterator_test.c \
+		dh_test.c \
 		dispatch_test.c \
 		dnstest.c \
 		master_test.c \
@@ -58,6 +59,7 @@ TARGETS =	db_test@EXEEXT@ \
 		dbdiff_test@EXEEXT@ \
 		dbiterator_test@EXEEXT@ \
 		dbversion_test@EXEEXT@ \
+		dh_test@EXEEXT@ \
 		dispatch_test@EXEEXT@ \
 		master_test@EXEEXT@ \
 		name_test@EXEEXT@ \
@@ -152,6 +154,11 @@ dispatch_test@EXEEXT@: dispatch_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 db_test@EXEEXT@: db_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			db_test.@O@ ${DNSLIBS} \
+			${ISCLIBS} ${LIBS}
+
+dh_test@EXEEXT@: dh_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			dh_test.@O@ dnstest.@O@ ${DNSLIBS} \
 			${ISCLIBS} ${LIBS}
 
 unit::
