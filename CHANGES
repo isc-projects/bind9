@@ -1,3 +1,8 @@
+3976.	[bug]		When refreshing managed-key trust anchors, clear
+			any cached trust so that they will always be
+			revalidated with the current set of secure
+			roots. [RT #37506]
+
 3975.	[bug]		Don't populate or use the bad cache for queries that
 			don't request or use recursion. [RT #37466]
 
