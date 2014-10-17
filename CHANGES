@@ -1,4 +1,4 @@
-3979.	[bug]		Negative trust anchor fetches where not properly
+3979.	[bug]		Negative trust anchor fetches were not properly
 			managed. [RT #37488]
 
 3978.	[test]		Added a unit test for Diffie-Hellman key
