@@ -1,3 +1,6 @@
+3977.	[cleanup]	"rndc secroots" reported a "not found" error when
+			there were no negative trust anchors set. [RT #37506]
+
 3976.	[bug]		When refreshing managed-key trust anchors, clear
 			any cached trust so that they will always be
 			revalidated with the current set of secure

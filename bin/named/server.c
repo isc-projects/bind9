@@ -7891,7 +7891,7 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
 			}
 			fprintf(fp, "\n   Negative trust anchors:\n\n");
 			result = dns_ntatable_dump(ntatable, fp);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
 				fprintf(fp, " dumpntatable failed: %s\n",
 					isc_result_totext(result));
 		}
