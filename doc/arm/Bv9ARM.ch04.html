@@ -1360,7 +1360,7 @@ options {
 <p>To set up an authoritative zone for RFC 5011 trust anchor
     maintenance, generate two (or more) key signing keys (KSKs) for
     the zone. Sign the zone with one of them; this is the "active"
-    KSK. All KSK's which do not sign the zone are "stand-by"
+    KSK. All KSKs which do not sign the zone are "stand-by"
     keys.</p>
 <p>Any validating resolver which is configured to use the
     active KSK as an RFC 5011-managed trust anchor will take note
@@ -1402,8 +1402,8 @@ $ <strong class="userinput"><code>dnssec-signzone -S -K keys example.net</code><
     increasing by 128, and wrapping around at 65535. So, for
     example, the key "<code class="filename">Kexample.com.+005+10000</code>" becomes
     "<code class="filename">Kexample.com.+005+10128</code>".</p>
-<p>If two keys have ID's exactly 128 apart, and one is
-    revoked, then the two key ID's will collide, causing several
+<p>If two keys have IDs exactly 128 apart, and one is
+    revoked, then the two key IDs will collide, causing several
     problems. To prevent this, 
     <span><strong class="command">dnssec-keygen</strong></span> will not generate a new key if
     another key is present which may collide. This checking will
@@ -1415,7 +1415,7 @@ $ <strong class="userinput"><code>dnssec-signzone -S -K keys example.net</code><
     multiple directories or on multiple machines.</p>
 <p>It is expected that a future release of BIND 9 will
     address this problem in a different way, by storing revoked
-    keys with their original unrevoked key ID's.</p>
+    keys with their original unrevoked key IDs.</p>
 </div>
 </div>
 <div class="sect1" lang="en">
@@ -1468,7 +1468,7 @@ $ <strong class="userinput"><code>dnssec-signzone -S -K keys example.net</code><
       need. The HSM's provider library must have a complete implementation
       of the PKCS#11 API, so that all these functions are accessible. As of
       this writing, only the Thales nShield HSM and the latest development
-      version of SoftHSM can be used in this fashion.  For other HSM's,
+      version of SoftHSM can be used in this fashion.  For other HSMs,
       including the AEP Keyper, Sun SCA 6000 and older versions of SoftHSM,
       use OpenSSL-based PKCS#11. (Note: As more HSMs become capable of
       supporting native PKCS#11, it is expected that OpenSSL-based

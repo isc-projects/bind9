@@ -337,13 +337,14 @@ to be effective. It defaults to enabled.
 Sets a DNSSEC negative trust anchor (NTA) for
 \fBdomain\fR, with a lifetime of
 \fBlifetime\fR. The default lifetime is configured in
-<file>named.conf</file>
+\fInamed.conf\fR
 via the
-\fBnta\-lifetime\fR, and defaults to one hour. The lifetime cannot exceed one week.
+\fBnta\-lifetime\fR
+option, and defaults to one hour. The lifetime cannot exceed one week.
 .sp
-A negative trust anchor selectively disables DNSSEC validation for zones that known to be failing because of misconfiguration rather than an attack. When data to be validated is at or below an active NTA (and above any other configured trust anchors),
+A negative trust anchor selectively disables DNSSEC validation for zones that are known to be failing because of misconfiguration rather than an attack. When data to be validated is at or below an active NTA (and above any other configured trust anchors),
 \fBnamed\fR
-will abort the DNSSEC validation process and treat the data as insecure rather than bogus. This continues until the NTA's lifetime is elapsed, or until the server is restarted (NTA's do not persist across restarts).
+will abort the DNSSEC validation process and treat the data as insecure rather than bogus. This continues until the NTA's lifetime is elapsed, or until the server is restarted (NTAs do not persist across restarts).
 .sp
 An existing NTA can be removed by using the
 \fB\-remove\fR

@@ -3037,7 +3037,7 @@ options {
                 </p>
 <p>
                   A negative trust anchor selectively disables
-                  DNSSEC validation for zones that known to be
+                  DNSSEC validation for zones that are known to be
                   failing because of misconfiguration rather than
                   an attack.  When data to be validated is
                   at or below an active NTA (and above any other
@@ -3045,7 +3045,7 @@ options {
                   abort the DNSSEC validation process and treat the data as
                   insecure rather than bogus.  This continues until the
                   NTA's lifetime is elapsed, or until the server is
-                  restarted (NTA's do not persist across restarts).
+                  restarted (NTAs do not persist across restarts).
                 </p>
 <p>
                   For convenience, TTL-style time unit suffixes can be
@@ -3075,7 +3075,7 @@ options {
 <p>
                   Validity checks can be disabled for an individual
                   NTA by using <span><strong class="command">rndc nta -f</strong></span>, or
-                  for all NTA's by setting <code class="option">nta-recheck</code>
+                  for all NTAs by setting <code class="option">nta-recheck</code>
                   to zero.
                 </p>
 <p>

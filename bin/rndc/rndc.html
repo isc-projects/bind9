@@ -395,13 +395,13 @@
             Sets a DNSSEC negative trust anchor (NTA)
             for <code class="option">domain</code>, with a lifetime of
             <code class="option">lifetime</code>.  The default lifetime is
-            configured in <font color="red">&lt;file&gt;named.conf&lt;/file&gt;</font> via the
-            <code class="option">nta-lifetime</code>, and defaults to
+            configured in <code class="filename">named.conf</code> via the
+            <code class="option">nta-lifetime</code> option, and defaults to
             one hour.  The lifetime cannot exceed one week.
           </p>
 <p>
             A negative trust anchor selectively disables
-            DNSSEC validation for zones that known to be
+            DNSSEC validation for zones that are known to be
             failing because of misconfiguration rather than
             an attack.  When data to be validated is
             at or below an active NTA (and above any other
@@ -409,7 +409,7 @@
             abort the DNSSEC validation process and treat the data as
             insecure rather than bogus.  This continues until the
             NTA's lifetime is elapsed, or until the server is
-            restarted (NTA's do not persist across restarts).
+            restarted (NTAs do not persist across restarts).
           </p>
 <p>
             An existing NTA can be removed by using the
