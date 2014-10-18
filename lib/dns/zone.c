@@ -8709,6 +8709,12 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+	 * Clear any cached trust level, as we need to run validation
+	 * over again; trusted keys might have changed.
+	 */
+	kfetch->dnskeyset.trust = kfetch->dnskeysigset.trust = dns_trust_none;
+
+	/*
 	 * Validate the dnskeyset against the current trusted keys.
 	 */
 	for (result = dns_rdataset_first(&kfetch->dnskeysigset);
@@ -8741,7 +8747,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 				dns_zone_log(zone, ISC_LOG_DEBUG(3),
 					     "Verifying DNSKEY set for zone "
-					     "'%s': %s", namebuf,
+					     "'%s' using key %d/%d: %s",
+					     namebuf, sig.keyid, sig.algorithm,
 					     dns_result_totext(result));
 
 				if (result == ISC_R_SUCCESS) {
