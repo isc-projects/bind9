@@ -1,3 +1,6 @@
+3980.	[bug]		Improve --with-tuning=large by self tuning of SO_RCVBUF
+			size. [RT #37187]
+
 3979.	[bug]		Negative trust anchor fetches were not properly
 			managed. [RT #37488]
 
