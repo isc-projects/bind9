@@ -4440,7 +4440,11 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 		inc_stats(res, dns_resstatscounter_valnegsuccess);
 
-		if (fctx->rmessage->rcode == dns_rcode_nxdomain)
+		/*
+		 * Cache DS NXDOMAIN seperately to other types.
+		 */
+		if (fctx->rmessage->rcode == dns_rcode_nxdomain &&
+		    fctx->type != dns_rdatatype_ds)
 			covers = dns_rdatatype_any;
 		else
 			covers = fctx->type;
@@ -7813,7 +7817,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (WANTNCACHE(fctx)) {
 		dns_rdatatype_t covers;
-		if (message->rcode == dns_rcode_nxdomain)
+
+		/*
+		 * Cache DS NXDOMAIN seperately to other types.
+		 */
+		if (message->rcode == dns_rcode_nxdomain &&
+		    fctx->type != dns_rdatatype_ds)
 			covers = dns_rdatatype_any;
 		else
 			covers = fctx->type;
