@@ -1,3 +1,9 @@
+3981.	[bug]		Cache DS/NXDOMAIN independently of other query types.
+			[RT #37467]
+
+3980.	[bug]		Improve --with-tuning=large by self tuning of SO_RCVBUF
+			size. [RT #37187]
+
 3978.	[test]		Added a unit test for Diffie-Hellman key
 			computation, completing change #3974. [RT #37477]
 
