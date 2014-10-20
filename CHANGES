@@ -1,3 +1,6 @@
+3985.	[doc]		Describe how +ndots and +search interact in dig.
+			[RT #37529]
+
 3982.	[doc]		Include release notes in product documentation.
 			[RT #37272]
 
