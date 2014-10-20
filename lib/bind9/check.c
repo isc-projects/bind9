@@ -1176,9 +1176,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	(void)cfg_map_get(options, "nta-lifetime", &obj);
 	if (obj != NULL) {
 		lifetime = cfg_obj_asuint32(obj);
-		if (lifetime > 86400) {
+		if (lifetime > 604800) {	/* 7 days */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "'nta-lifetime' cannot exceed one day");
+				    "'nta-lifetime' cannot exceed one week");
 			result = ISC_R_RANGE;
 		} else if (lifetime == 0) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
@@ -1191,9 +1191,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	(void)cfg_map_get(options, "nta-recheck", &obj);
 	if (obj != NULL) {
 		isc_uint32_t recheck = cfg_obj_asuint32(obj);
-		if (recheck > 86400) {
+		if (recheck > 604800) {		/* 7 days */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "'nta-recheck' cannot exceed one day");
+				    "'nta-recheck' cannot exceed one week");
 			result = ISC_R_RANGE;
 		}
 

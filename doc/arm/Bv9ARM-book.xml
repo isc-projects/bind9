@@ -5770,7 +5770,9 @@ options {
 		<para>
 		  For convenience, TTL-style time unit suffixes can be
 		  used to specify the NTA recheck interval in seconds,
-		  minutes or hours.  The default is five minutes.
+		  minutes or hours.  The default is five minutes.  It
+		  cannot be longer than <option>nta-lifetime</option>
+		  (which cannot be longer than a week).
 		</para>
 	    </listitem>
 	  </varlistentry>
