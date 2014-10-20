@@ -1,3 +1,6 @@
+3984.	[func]		Accept 256 byte long PINs in native PKCS#11
+			crypto. [RT #37410]
+
 3982.	[doc]		Include release notes in product documentation.
 			[RT #37272]
 
