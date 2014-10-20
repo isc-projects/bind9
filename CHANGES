@@ -1,3 +1,6 @@
+3985.	[doc]		Describe how +ndots and +search interact in dig.
+			[RT #37529]
+
 3984.	[func]		Accept 256 byte long PINs in native PKCS#11
 			crypto. [RT #37410]
 
