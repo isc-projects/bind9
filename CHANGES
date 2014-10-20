@@ -1,3 +1,6 @@
+3982.	[doc]		Include release notes in product documentation.
+			[RT #37272]
+
 3981.	[bug]		Cache DS/NXDOMAIN independently of other query types.
 			[RT #37467]
 

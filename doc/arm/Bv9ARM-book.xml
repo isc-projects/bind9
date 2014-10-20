@@ -15549,6 +15549,7 @@ zone "example.com" {
     </chapter>
     <appendix id="Bv9ARM.ch09">
       <title>Appendices</title>
+      <xi:include href="notes.xml"/>
       <sect1>
 	<title>Acknowledgments</title>
 	<sect2 id="historical_dns_information">
