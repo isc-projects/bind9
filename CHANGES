@@ -1,3 +1,6 @@
+3984.	[func]		Accept 256 byte long PINs in native PKCS#11
+			crypto. [RT #37410]
+
 3983.	[bug]		Change #3940 was incomplete: negative trust anchors
 			could be set to last up to a week, but the
 			"nta-lifetime" and "nta-recheck" options were
