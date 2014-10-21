@@ -33,6 +33,7 @@ initialize_action(void) {
 	/*
 	 * NOTE: VC++ 6.0 gets this function declaration wrong
 	 * so we compensate by casting the argument
+	 * NOTE: GetVersionEx() deprecated in Windows 8.1
 	 */
 	osVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 	bSuccess = GetVersionEx((OSVERSIONINFO *) &osVer);
