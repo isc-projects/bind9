@@ -5,7 +5,7 @@
 3987.	[func]		Handle future Visual Studio 14 incompatible changes.
 			[RT #37380]
 
-3986.	[doc]		Add the BIND version number to page footers 
+3986.	[doc]		Add the BIND version number to page footers
 			in the ARM. [RT #37398]
 
 3985.	[doc]		Describe how +ndots and +search interact in dig.

@@ -18301,7 +18301,7 @@ dns_zone_setserial(dns_zone_t *zone, isc_uint32_t serial) {
 	dns_zone_t *dummy = NULL;
 	isc_event_t *e = NULL;
 	struct ssevent *sse;
-	
+
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
