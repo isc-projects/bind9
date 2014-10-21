@@ -1,8 +1,8 @@
-3988.	[func]		Handle future Visual Studio 14 incompatible changes.
-			[RT #37380]
-
-3987.	[func]		Allow the zone serial of a dynamically updatable
+3988.	[func]		Allow the zone serial of a dynamically updatable
 			zone to be updated via rndc. [RT #37404]
+
+3987.	[func]		Handle future Visual Studio 14 incompatible changes.
+			[RT #37380]
 
 3986.	[doc]		Add the BIND version number to page footers 
 			in the ARM. [RT #37398]
