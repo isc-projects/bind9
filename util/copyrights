@@ -2890,7 +2890,7 @@
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005,2007,2014
 ./doc/xsl/isc-docbook-html.xsl.in		SGML	2005,2007,2014
 ./doc/xsl/isc-docbook-latex-mappings.xml	SGML	2005,2007
-./doc/xsl/isc-docbook-latex.xsl.in		SGML	2005,2007,2010
+./doc/xsl/isc-docbook-latex.xsl.in		SGML	2005,2007,2010,2014
 ./doc/xsl/isc-docbook-text.xsl			SGML	2005,2007
 ./doc/xsl/isc-manpage.xsl.in			SGML	2005,2007
 ./doc/xsl/isc-notes-latex.xsl.in		SGML	2014
@@ -3716,7 +3716,7 @@
 ./lib/isc/win32/time.c				C	1998,1999,2000,2001,2003,2004,2006,2007,2008,2009,2012,2013,2014
 ./lib/isc/win32/unistd.h			C	2000,2001,2004,2007,2008,2009
 ./lib/isc/win32/version.c			C	1998,1999,2000,2001,2004,2007
-./lib/isc/win32/win32os.c			C	2002,2004,2007,2013
+./lib/isc/win32/win32os.c			C	2002,2004,2007,2013,2014
 ./lib/isc/x86_32/Makefile.in			MAKE	2007,2012
 ./lib/isc/x86_32/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/x86_32/include/isc/Makefile.in	MAKE	2007,2012
