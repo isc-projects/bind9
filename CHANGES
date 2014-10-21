@@ -1,3 +1,6 @@
+3986.	[doc]		Add the BIND version number to page footers 
+			in the ARM. [RT #37398]
+
 3985.	[doc]		Describe how +ndots and +search interact in dig.
 			[RT #37529]
 
