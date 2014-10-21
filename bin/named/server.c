@@ -9449,6 +9449,8 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_boolean_t first = ISC_TRUE;
 	isc_boolean_t list = ISC_FALSE, clear = ISC_FALSE;
 	isc_boolean_t chain = ISC_FALSE;
+	isc_boolean_t setserial = ISC_FALSE;
+	isc_uint32_t serial = 0;
 	char keystr[DNS_SECALG_FORMATSIZE + 7];
 	unsigned short hash = 0, flags = 0, iter = 0, saltlen = 0;
 	unsigned char salt[255];
@@ -9524,6 +9526,12 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 				saltlen = isc_buffer_usedlength(&buf);
 			}
 		}
+	} else if (strcasecmp(ptr, "-serial") == 0) {
+		ptr = next_token(&args, " \t");
+		if (ptr == NULL)
+			return (ISC_R_UNEXPECTEDEND);
+		CHECK(isc_parse_uint32(&serial, ptr, 10));
+		setserial = ISC_TRUE;
 	} else
 		CHECK(DNS_R_SYNTAX);
 
@@ -9541,7 +9549,11 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 					     (isc_uint8_t)flags, iter,
 					     (isc_uint8_t)saltlen, salt,
 					     ISC_TRUE));
-		putstr(text, "request queued");
+		putstr(text, "nsec3param request queued");
+		putnull(text);
+	} else if (setserial) {
+		CHECK(dns_zone_setserial(zone, serial));
+		putstr(text, "serial request queued");
 		putnull(text);
 	} else if (list) {
 		privatetype = dns_zone_getprivatetype(zone);

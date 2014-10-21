@@ -2378,6 +2378,11 @@ dns_zone_getstatlevel(dns_zone_t *zone);
  * full, terse, or none.
  */
 
+isc_result_t
+dns_zone_setserial(dns_zone_t *zone, isc_uint32_t serial);
+/*%
+ * Set the zone's serial to 'serial'.
+ */
 ISC_LANG_ENDDECLS
 
 

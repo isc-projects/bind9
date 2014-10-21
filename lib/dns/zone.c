@@ -847,6 +847,11 @@ struct np3event {
 	nsec3param_t params;
 };
 
+struct ssevent {
+	isc_event_t event;
+	isc_uint32_t serial;
+};
+
 /*%
  * Increment resolver-related statistics counters.  Zone must be locked.
  */
@@ -17705,20 +17710,20 @@ keydone(isc_task_t *task, isc_event_t *event) {
 	dns_diff_init(zone->mctx, &diff);
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	if (zone->db != NULL) {
+	if (zone->db != NULL)
 		dns_db_attach(zone->db, &db);
-		dns_db_currentversion(db, &oldver);
-		result = dns_db_newversion(db, &newver);
-		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "keydone:dns_db_newversion -> %s",
-				     dns_result_totext(result));
-			goto failure;
-		}
-	}
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	if (db == NULL)
 		goto failure;
+
+	dns_db_currentversion(db, &oldver);
+	result = dns_db_newversion(db, &newver);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "keydone:dns_db_newversion -> %s",
+			     dns_result_totext(result));
+		goto failure;
+	}
 
 	result = dns_db_getoriginnode(db, &node);
 	if (result != ISC_R_SUCCESS)
@@ -17901,20 +17906,21 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 	dns_diff_init(zone->mctx, &diff);
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	if (zone->db != NULL) {
+	if (zone->db != NULL)
 		dns_db_attach(zone->db, &db);
-		dns_db_currentversion(db, &oldver);
-		result = dns_db_newversion(db, &newver);
-		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "setnsec3param:dns_db_newversion -> %s",
-				     dns_result_totext(result));
-			goto failure;
-		}
-	}
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	if (db == NULL)
 		goto failure;
+
+	dns_db_currentversion(db, &oldver);
+	result = dns_db_newversion(db, &newver);
+	if (result != ISC_R_SUCCESS) {
+		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "setnsec3param:dns_db_newversion -> %s",
+			     dns_result_totext(result));
+		goto failure;
+	}
 
 	CHECK(dns_db_getoriginnode(db, &node));
 
@@ -18190,4 +18196,144 @@ dns_zone_getstatlevel(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->statlevel);
+}
+
+static void
+setserial(isc_task_t *task, isc_event_t *event) {
+	isc_uint32_t oldserial, desired;
+	const char *me = "setserial";
+	isc_boolean_t commit = ISC_FALSE;
+	isc_result_t result;
+	dns_dbversion_t *oldver = NULL, *newver = NULL;
+	dns_zone_t *zone;
+	dns_db_t *db = NULL;
+	dns_diff_t diff;
+	struct ssevent *sse = (struct ssevent *)event;
+	dns_update_log_t log = { update_log_cb, NULL };
+	dns_difftuple_t *oldtuple = NULL, *newtuple = NULL;
+
+	UNUSED(task);
+
+	zone = event->ev_arg;
+	INSIST(DNS_ZONE_VALID(zone));
+
+	ENTER;
+
+	if (zone->update_disabled)
+		goto failure;
+
+	desired = sse->serial;
+
+	dns_diff_init(zone->mctx, &diff);
+
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zone->db != NULL)
+		dns_db_attach(zone->db, &db);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (db == NULL)
+		goto failure;
+
+	dns_db_currentversion(db, &oldver);
+	result = dns_db_newversion(db, &newver);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "setserial:dns_db_newversion -> %s",
+			     dns_result_totext(result));
+		goto failure;
+	}
+
+	CHECK(dns_db_createsoatuple(db, oldver, diff.mctx,
+				    DNS_DIFFOP_DEL, &oldtuple));
+	CHECK(dns_difftuple_copy(oldtuple, &newtuple));
+	newtuple->op = DNS_DIFFOP_ADD;
+
+	oldserial = dns_soa_getserial(&oldtuple->rdata);
+	if (desired == 0U)
+		desired = 1;
+	if (!isc_serial_gt(desired, oldserial)) {
+		if (desired != oldserial)
+			dns_zone_log(zone, ISC_LOG_INFO,
+				     "setserial: desired serial (%u) "
+				     "out of range (%u-%u)", desired,
+				     oldserial + 1, (oldserial + 0x7fffffff));
+		goto failure;
+	}
+
+	dns_soa_setserial(desired, &newtuple->rdata);
+	CHECK(do_one_tuple(&oldtuple, db, newver, &diff));
+	CHECK(do_one_tuple(&newtuple, db, newver, &diff));
+	result = dns_update_signatures(&log, zone, db,
+				       oldver, newver, &diff,
+				       zone->sigvalidityinterval);
+	if (result != ISC_R_NOTFOUND)
+		CHECK(result);
+
+	/* Write changes to journal file. */
+	CHECK(zone_journal(zone, &diff, NULL, "setserial"));
+	commit = ISC_TRUE;
+
+	LOCK_ZONE(zone);
+	zone_needdump(zone, 30);
+	UNLOCK_ZONE(zone);
+
+ failure:
+	if (oldtuple != NULL)
+		dns_difftuple_free(&oldtuple);
+	if (newtuple != NULL)
+		dns_difftuple_free(&newtuple);
+	if (oldver != NULL)
+		dns_db_closeversion(db, &oldver, ISC_FALSE);
+	if (newver != NULL)
+		dns_db_closeversion(db, &newver, commit);
+	if (db != NULL)
+		dns_db_detach(&db);
+	dns_diff_clear(&diff);
+	isc_event_free(&event);
+	dns_zone_idetach(&zone);
+
+	INSIST(oldver == NULL);
+	INSIST(newver == NULL);
+}
+
+isc_result_t
+dns_zone_setserial(dns_zone_t *zone, isc_uint32_t serial) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_zone_t *dummy = NULL;
+	isc_event_t *e = NULL;
+	struct ssevent *sse;
+	
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+
+	if (!inline_secure(zone)) {
+		if (!dns_zone_isdynamic(zone, ISC_TRUE)) {
+			result = DNS_R_NOTDYNAMIC;
+			goto failure;
+		}
+	}
+
+	if (zone->update_disabled) {
+		result = DNS_R_FROZEN;
+		goto failure;
+	}
+
+	e = isc_event_allocate(zone->mctx, zone, DNS_EVENT_SETSERIAL,
+			       setserial, zone, sizeof(struct ssevent));
+	if (e == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto failure;
+	}
+
+	sse = (struct ssevent *)e;
+	sse->serial = serial;
+
+	zone_iattach(zone, &dummy);
+	isc_task_send(zone->task, &e);
+
+ failure:
+	if (e != NULL)
+		isc_event_free(&e);
+	UNLOCK_ZONE(zone);
+	return (result);
 }

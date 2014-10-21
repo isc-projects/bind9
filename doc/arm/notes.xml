@@ -47,7 +47,14 @@
     <title>New Features</title>
     <itemizedlist>
       <listitem>
-	<para>None</para>
+	<para>
+	  rndc can be used to set the serial of dynamically updatable
+	  zones using "rndc signing -serial # zone".  This is
+	  particularly useful with inline zones which have been
+	  reset.  The serial should be set to a value larger than
+	  that on the slaves.  This will trigger a AXFR style
+	  transfer.
+	</para>
       </listitem>
     </itemizedlist>
   </sect2>

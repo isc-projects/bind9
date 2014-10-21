@@ -745,7 +745,7 @@
       </varlistentry>
 
       <varlistentry>
-        <term><userinput>signing <optional>( -list | -clear <replaceable>keyid/algorithm</replaceable> | -clear <literal>all</literal> | -nsec3param ( <replaceable>parameters</replaceable> | <literal>none</literal> ) ) </optional> <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional> </userinput></term>
+        <term><userinput>signing <optional>( -list | -clear <replaceable>keyid/algorithm</replaceable> | -clear <literal>all</literal> | -nsec3param ( <replaceable>parameters</replaceable> | <literal>none</literal> ) | -serial <replaceable>value</serial> ) </optional> <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional> </userinput></term>
         <listitem>
           <para>
             List, edit, or remove the DNSSEC signing state records
@@ -807,6 +807,13 @@
             removes an existing NSEC3 chain and replaces it
             with NSEC.
           </para>
+	  <para>
+            <command>rndc signing -serial value</command> sets
+	    the serial number of the zone to value.  If the value
+	    would cause the serial number to go backwards it will
+	    be rejected.  The primary use is to set the serial on
+	    inline signed zones.
+	  </para>
         </listitem>
       </varlistentry>
     </variablelist>
