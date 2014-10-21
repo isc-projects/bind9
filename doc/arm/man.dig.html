@@ -52,7 +52,7 @@
 <div class="cmdsynopsis"><p><code class="command">dig</code>  [global-queryopt...] [query...]</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2613072"></a><h2>DESCRIPTION</h2>
+<a name="id2613090"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dig</strong></span>
       (domain information groper) is a flexible tool
       for interrogating DNS name servers.  It performs DNS lookups and
@@ -99,7 +99,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2613584"></a><h2>SIMPLE USAGE</h2>
+<a name="id2613533"></a><h2>SIMPLE USAGE</h2>
 <p>
       A typical invocation of <span><strong class="command">dig</strong></span> looks like:
       </p>
@@ -152,7 +152,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2613709"></a><h2>OPTIONS</h2>
+<a name="id2613659"></a><h2>OPTIONS</h2>
 <p>
       The <code class="option">-b</code> option sets the source IP address of the query
       to <em class="parameter"><code>address</code></em>.  This must be a valid
@@ -260,7 +260,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2666152"></a><h2>QUERY OPTIONS</h2>
+<a name="id2666102"></a><h2>QUERY OPTIONS</h2>
 <p><span><strong class="command">dig</strong></span>
       provides a number of query options which affect
       the way in which lookups are made and the results displayed.  Some of
@@ -445,7 +445,8 @@
 	      are interpreted as relative names and will be searched
 	      for in the domains listed in the <code class="option">search</code>
 	      or <code class="option">domain</code> directive in
-	      <code class="filename">/etc/resolv.conf</code>.
+	      <code class="filename">/etc/resolv.conf</code> if
+	      <code class="option">+search</code> is set.
 	    </p></dd>
 <dt><span class="term"><code class="option">+[no]nsid</code></span></dt>
 <dd><p>
@@ -501,12 +502,21 @@
 	      record comments unless multiline mode is active.
 	    </p></dd>
 <dt><span class="term"><code class="option">+[no]search</code></span></dt>
-<dd><p>
+<dd>
+<p>
 	      Use [do not use] the search list defined by the
 	      searchlist or domain directive in
 	      <code class="filename">resolv.conf</code> (if any).  The search
 	      list is not used by default.
-	    </p></dd>
+	    </p>
+<p>
+	      'ndots' from <code class="filename">resolv.conf</code> (default 1)
+	       which may be overridden by <em class="parameter"><code>+ndots</code></em>
+	      determines if the name will be treated as relative
+	      or not and hence whether a search is eventually
+	      performed or not.
+	    </p>
+</dd>
 <dt><span class="term"><code class="option">+[no]short</code></span></dt>
 <dd><p>
 	      Provide a terse answer.  The default is to print the
@@ -636,7 +646,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2667447"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2667415"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -682,7 +692,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2667532"></a><h2>IDN SUPPORT</h2>
+<a name="id2667500"></a><h2>IDN SUPPORT</h2>
 <p>
       If <span><strong class="command">dig</strong></span> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -696,14 +706,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2667561"></a><h2>FILES</h2>
+<a name="id2667529"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2667582"></a><h2>SEE ALSO</h2>
+<a name="id2667550"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -711,7 +721,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2667620"></a><h2>BUGS</h2>
+<a name="id2667588"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>
