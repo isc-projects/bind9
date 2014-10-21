@@ -26,7 +26,7 @@
 
 3972.	[bug]		Fix host's usage statement. [RT #37397]
 
-3971.	[bug]		Reduce the cascasding failures due to a bad $TTL line
+3971.	[bug]		Reduce the cascading failures due to a bad $TTL line
 			in named-checkconf / named-checkzone. [RT #37138]
 
 3970.   [contrib]       Fixed a use after free bug in the SDB LDAP driver.
