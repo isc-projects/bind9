@@ -57,9 +57,9 @@ BIND 9.11.0
 	releases.  New features include:
 
 	- The zone serial number of a dynamically updatable zone
-	  can now be set via "rndc signing -serial". This allows
-	  inline-signing zones to be set to a specific serial
-	  number.
+	  can now be set via "rndc signing -serial <number> <zonename>".
+          This allows inline-signing zones to be set to a specific
+          serial number.
 	- SERVFAIL responses can now be cached for a limited time
 	  (defaulting to 10 seconds, with an upper limit of 30).
 	  This can reduce the frequency of retries when a query is
@@ -86,8 +86,6 @@ BIND 9.11.0
 	- A new "masterfile-style" zone option controls the formatting
 	  of text zone files:  When set to "full", a zone file is dumped
 	  in single-line-per-record format.
-	- "dig" now supports sending arbitrary EDNS options by specifying
-	  them on the command line.
 	- "dig +ttlunits" causes dig to print TTL values with time-unit
 	  suffixes: w, d, h, m, s for weeks, days, hours, minutes, and
 	  seconds.

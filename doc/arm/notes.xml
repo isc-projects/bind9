@@ -48,12 +48,114 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  rndc can be used to set the serial of dynamically updatable
-	  zones using "rndc signing -serial # zone".  This is
-	  particularly useful with inline zones which have been
-	  reset.  The serial should be set to a value larger than
-	  that on the slaves.  This will trigger a AXFR style
+          The serial number of a dynamically updatable zone can
+          now be set using
+          <command>rndc signing -serial <replaceable>number</replaceable> <replaceable>zonename</replaceable></command>.
+          This is particularly useful with <option>inline-signing</option>
+          zones that have been reset.  Setting the serial number to a value
+          larger than that on the slaves will trigger an AXFR-style
 	  transfer.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          When answering recursive queries, SERVFAIL responses can now be
+          cached by the server for a limited time; subsequent queries for
+          the same query name and type will return another SERVFAIL until
+          the cache times out.  This reduces the frequency of retries
+          when a query is persistently failing, which can be a burden
+          on recursive serviers.  The SERVFAIL cache timeout is controlled
+          by <option>servfail-ttl</option>, which defaults to 10 seconds
+          and has an upper limit of 30.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          The new <command>rndc nta</command> command can now be used to
+          set a "negative trust anchor" (NTA), disabling DNSSEC validation for
+          a specific domain; this can be used when responses from a domain
+          are known to be failing validation due to administrative error
+          rather than because of a spoofing attack. NTAs are strictly
+          temporary; by default they expire after one hour, but can be
+          configured to last up to one week.  The default NTA lifetime
+          can be changed by setting the <option>nta-lifetime</option> in
+          <filename>named.conf</filename>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The EDNS Client Subnet (ECS) option is now supported for
+          authoritative servers; if a query contains an ECS option then
+          ACLs containing <option>geoip</option> or <option>ecs</option>
+          elements can match against the the address encoded in the option.
+          This can be used to select a view for a query, so that different
+          answers can be provided depending on the client network.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The EDNS EXPIRE option has been implemented on the client
+	  side, allowing a slave server to set the expiration timer
+	  correctly when transferring zone data from another slave
+	  server.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          A new <option>masterfile-style</option> zone option controls
+          the formatting of text zone files:  When set to
+          <literal>full</literal>, the zone file will dumped in
+          single-line-per-record format.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          <command>dig +ednsopt</command> can now be used to set
+          arbitrary EDNS options in DNS requests.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          <command>dig +ednsflags</command> can now be used to set
+          yet-to-be-defined EDNS flags in DNS requests.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          <command>dig +ttlunits</command> causes dig to print TTL
+          values with time-unit suffixes: w, d, h, m, s for weeks,
+          days, hours, minutes, and seconds.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          <option>serial-update-method</option> can now be set to
+          <literal>date</literal>. On update, the serial number will
+          be set to the current date in YYYYMMDDNN format.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          <command>dnssec-signzone -N date</command> also sets the serial
+          number to YYYYMMDDNN.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          <command>named -L <replaceable>filename</replaceable></command>
+          causes named to send log messages to the specified file by
+          default instead of to the system log.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          The rate limiter configured by the
+          <option>serial-query-rate</option> option no longer covers
+          NOTIFY messages; those are now separately controlled by
+          <option>notify-rate</option> and
+          <option>startup-notify-rate</option> (the latter of which
+          controls the rate of NOTIFY messages sent when the server
+          is first started up or reconfigured).
 	</para>
       </listitem>
     </itemizedlist>
@@ -62,7 +164,18 @@
     <title>Feature Changes</title>
     <itemizedlist>
       <listitem>
-	<para>None</para>
+	<para>
+	  Update forwarding performance has been improved by allowing
+	  a single TCP connection to be shared between multiple updates.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          By default, <command>nsupdate</command> will now check
+          the correctness of hostnames when adding records of type
+          A, AAAA, MX, SOA, NS, SRV or PTR.  This behavior can be
+          disabled with <command>check-names no</command>.
+	</para>
       </listitem>
     </itemizedlist>
   </sect2>
