@@ -185,7 +185,9 @@ char *getpassphrase(const char *);
  * WIN32 specials until some other way of dealing with these is decided.
  */
 
+#if _MSC_VER < 1900
 #define snprintf _snprintf
+#endif
 #if _MSC_VER <= 1400
 #define vsnprintf _vsnprintf
 #endif
