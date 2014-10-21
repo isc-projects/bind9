@@ -56,6 +56,10 @@ BIND 9.11.0
 	BIND 9.11.0 includes a number of changes from BIND 9.10 and earlier
 	releases.  New features include:
 
+	- The zone serial number of a dynamically updatable zone
+	  can now be set via "rndc signing -serial". This allows
+	  inline-signing zones to be set to a specific serial
+	  number.
 	- SERVFAIL responses can now be cached for a limited time
 	  (defaulting to 10 seconds, with an upper limit of 30).
 	  This can reduce the frequency of retries when a query is

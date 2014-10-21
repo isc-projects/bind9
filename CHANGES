@@ -1,5 +1,6 @@
 3988.	[func]		Allow the zone serial of a dynamically updatable
-			zone to be updated via rndc. [RT #37404]
+			zone to be updated via "rndc signing -serial".
+			[RT #37404]
 
 3987.	[func]		Handle future Visual Studio 14 incompatible changes.
 			[RT #37380]
