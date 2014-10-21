@@ -2,7 +2,7 @@
 ./Atffile					X	2011
 ./CHANGES					X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013
+./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013,2014
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013,2014
 ./HISTORY					X	2010,2013
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
@@ -2830,6 +2830,10 @@
 ./doc/arm/man.rndc.conf.html			X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./doc/arm/man.rndc.html				X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./doc/arm/managed-keys.xml			SGML	2010
+./doc/arm/notes-wrapper.xml			SGML	2014
+./doc/arm/notes.html				X	2014
+./doc/arm/notes.pdf				X	2014
+./doc/arm/notes.xml				SGML	2014
 ./doc/arm/pkcs11.xml				SGML	2010,2012,2013,2014
 ./doc/design/addressdb				TXT.BRIEF	2000,2001,2004
 ./doc/design/compression			TXT.BRIEF	1999,2000,2001,2004
@@ -2881,7 +2885,7 @@
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
 ./doc/misc/sort-options.pl			PERL	2007,2012
 ./doc/xsl/.gitignore				X	2012
-./doc/xsl/Makefile.in				MAKE	2005,2007,2012
+./doc/xsl/Makefile.in				MAKE	2005,2007,2012,2014
 ./doc/xsl/copyright.xsl				SGML	2005,2007,2009
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005,2007,2014
 ./doc/xsl/isc-docbook-html.xsl.in		SGML	2005,2007,2014
@@ -2889,6 +2893,7 @@
 ./doc/xsl/isc-docbook-latex.xsl.in		SGML	2005,2007,2010
 ./doc/xsl/isc-docbook-text.xsl			SGML	2005,2007
 ./doc/xsl/isc-manpage.xsl.in			SGML	2005,2007
+./doc/xsl/isc-notes-latex.xsl.in		SGML	2014
 ./doc/xsl/pre-latex.xsl				SGML	2005,2007
 ./docutil/HTML_COPYRIGHT			X	2001,2004
 ./docutil/MAN_COPYRIGHT				X	2001,2004
