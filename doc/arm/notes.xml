@@ -179,6 +179,16 @@
     <itemizedlist>
       <listitem>
         <para>
+	  ACLs containing <command>geoip asnum</command> elements were
+	  not correctly matched unless the full organization name was
+	  specified in the ACL (as in
+	  <command>geoip asnum "AS1234 Example, Inc.";</command>).
+	  They can now match against the AS number alone (as in
+	  <command>geoip asnum "AS1234";</command>).
+        </para>
+      </listitem>
+      <listitem>
+	<para>
           When using native PKCS#11 cryptography (i.e.,
           <command>configure --enable-native-pkcs11</command>) HSM PINs
           of up to 256 characters can now be used.
