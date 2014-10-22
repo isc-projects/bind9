@@ -108,6 +108,15 @@
           [RT #37216]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          When checking for updates to trust anchors listed in
+          <option>managed-keys</option>, <command>named</command>
+          now revalidates keys based on the current set of
+          active trust anchors, without relying on any cached
+          record of previous validation. [RT #37506]
+        </para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_thanks">
