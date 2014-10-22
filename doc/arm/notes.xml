@@ -89,6 +89,16 @@
     <itemizedlist>
       <listitem>
         <para>
+	  When files that <command>named</command> opens for writing,
+	  such as zone journal files, were referenced more than once
+	  in <filename>named.conf</filename>, it could lead to file
+	  corruption as multiple threads wrote to the same file. This
+	  is now detected when loading <filename>named.conf</filename>
+	  and reported as an error. [RT #37172]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
           <command>dnssec-keygen -S</command> failed to generate successor
           keys for some algorithm types (including ECDSA and GOST) due to
           a difference in the content of private key files. This has been
