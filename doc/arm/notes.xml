@@ -96,6 +96,15 @@
     <itemizedlist>
       <listitem>
         <para>
+	  The error message generated when
+	  <command>named-checkzone</command> or
+	  <command>named-checkconf -z</command> encounters a
+	  <option>$TTL</option> directive without a value has
+	  been clarified. [RT #37138]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
 	  Semicolon characters (;) included in TXT records were
 	  incorrectly escaped with a backslash when the record was
 	  displayed as text. This is actually only necessary when there
