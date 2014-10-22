@@ -286,7 +286,7 @@
 	  (<command>configure --with-tuning=large</command>) caused
 	  problems on some platforms by setting a socket receive
 	  buffer size that was too large.  This is now detected and
-	  corrected at run time.
+	  corrected at run time. [RT #37187]
         </para>
       </listitem>
     </itemizedlist>
