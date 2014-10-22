@@ -218,7 +218,15 @@
     <itemizedlist>
       <listitem>
         <para>
-	  When files that <command>named</command> opens for writing,
+	  Semicolon characters (;) included in TXT records were
+	  incorrectly escaped with a backslash when the record was
+	  displayed as text. This is actually only necessary when there
+	  are no quotation marks. [RT #37159]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+	  When files opened for writing by <command>named</command>,
 	  such as zone journal files, were referenced more than once
 	  in <filename>named.conf</filename>, it could lead to file
 	  corruption as multiple threads wrote to the same file. This
