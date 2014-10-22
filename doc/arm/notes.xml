@@ -41,6 +41,13 @@
       <listitem>
 	<para>None</para>
       </listitem>
+      <listitem>
+        <para>
+          Errors reported when running <command>rndc addzone</command>
+          (e.g., when a zone file cannot be loaded) have been clarified
+          to make it easier to diagnose problems.
+        </para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_features">
@@ -122,9 +129,16 @@
       </listitem>
       <listitem>
 	<para>
-          <command>dig +ttlunits</command> causes dig to print TTL
-          values with time-unit suffixes: w, d, h, m, s for weeks,
-          days, hours, minutes, and seconds.
+          <command>dig +ttlunits</command> causes <command>dig</command>
+          to print TTL values with time-unit suffixes: w, d, h, m, s for
+          weeks, days, hours, minutes, and seconds.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          <command>dig +dscp=<replaceable>value</replaceable></command>
+          can now be used to set the DSCP code point in outgoing query
+          packets.
 	</para>
       </listitem>
       <listitem>
@@ -164,6 +178,19 @@
     <title>Feature Changes</title>
     <itemizedlist>
       <listitem>
+        <para>
+          NXDOMAIN responses to queries of type DS are now cached separately
+          from those for other types. This helps when using "grafted" zones
+          of type forward, for which the parent zone does not contain a
+          delegation, such as local top-level domains.  Previously a query
+          of type DS for such a zone could cause the zone apex to be cached
+          as NXDOMAIN, blocking all subsequent queries.  (Note: This
+          change is only helpful when DNSSEC validation is not enabled.
+          "Grafted" zones without a delegation in the parent are not a
+          recommended configuration.)
+        </para>
+      </listitem>
+      <listitem>
 	<para>
 	  Update forwarding performance has been improved by allowing
 	  a single TCP connection to be shared between multiple updates.
@@ -179,7 +206,7 @@
       </listitem>
     </itemizedlist>
   </sect2>
-  <sect2 id="relnotes_features">
+  <sect2 id="relnotes_bugs">
     <title>Bug Fixes</title>
     <itemizedlist>
       <listitem>
