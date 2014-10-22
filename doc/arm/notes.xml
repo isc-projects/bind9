@@ -218,6 +218,16 @@
     <itemizedlist>
       <listitem>
         <para>
+	  When files that <command>named</command> opens for writing,
+	  such as zone journal files, were referenced more than once
+	  in <filename>named.conf</filename>, it could lead to file
+	  corruption as multiple threads wrote to the same file. This
+	  is now detected when loading <filename>named.conf</filename>
+	  and reported as an error. [RT #37172]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
           When checking for updates to trust anchors listed in
           <option>managed-keys</option>, <command>named</command>
           now revalidates keys based on the current set of
