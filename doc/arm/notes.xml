@@ -179,6 +179,13 @@
     <itemizedlist>
       <listitem>
         <para>
+          When using native PKCS#11 cryptography (i.e.,
+          <command>configure --enable-native-pkcs11</command>) HSM PINs
+          of up to 256 characters can now be used.
+        </para>
+      </listitem>
+      <listitem>
+	<para>
           NXDOMAIN responses to queries of type DS are now cached separately
           from those for other types. This helps when using "grafted" zones
           of type forward, for which the parent zone does not contain a
