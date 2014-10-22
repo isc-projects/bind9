@@ -225,6 +225,15 @@
           record of previous validation. [RT #37506]
         </para>
       </listitem>
+      <listitem>
+        <para>
+	  Large-system tuning
+	  (<command>configure --with-tuning=large</command>) caused
+	  problems on some platforms by setting a socket receive
+	  buffer size that was too large.  This is now detected and
+	  corrected at run time.
+        </para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_thanks">
