@@ -172,6 +172,15 @@
           is first started up or reconfigured).
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The default number of tasks and client objects available
+	  for serving lightweight resolver queries have been increased,
+	  and are now configurable via the new <option>lwres-tasks</option>
+	  and <option>lwres-clients</option> options in
+	  <filename>named.conf</filename>. [RT #35857]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_changes">
