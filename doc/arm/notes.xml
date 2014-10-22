@@ -218,6 +218,15 @@
     <itemizedlist>
       <listitem>
         <para>
+	  <command>dig</command>, <command>host</command> and
+	  <command>nslookup</command> aborted when encountering
+	  a name which, after appending search list elements,
+	  exceeded 255 bytes. Such names are now skipped, but
+	  processing of other names will continue. [RT #36892]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
 	  The error message generated when
 	  <command>named-checkzone</command> or
 	  <command>named-checkconf -z</command> encounters a
