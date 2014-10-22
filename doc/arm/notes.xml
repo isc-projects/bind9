@@ -55,15 +55,58 @@
     <title>Feature Changes</title>
     <itemizedlist>
       <listitem>
-	<para>None</para>
+        <para>
+          NXDOMAIN responses to queries of type DS are now cached separately
+          from those for other types. This helps when using "grafted" zones
+          of type forward, for which the parent zone does not contain a
+          delegation, such as local top-level domains.  Previously a query
+          of type DS for such a zone could cause the zone apex to be cached
+          as NXDOMAIN, blocking all subsequent queries.  (Note: This
+          change is only helpful when DNSSEC validation is not enabled.
+          "Grafted" zones without a delegation in the parent are not a
+          recommended configuration.)
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          NOTIFY messages that are sent because a zone has been updated
+          are now given priority above NOTIFY messages that were scheduled
+          when the server started up. This should mitigate delays in zone
+          propagation when servers are restarted frequently.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Errors reported when running <command>rndc addzone</command>
+          (e.g., when a zone file cannot be loaded) have been clarified
+          to make it easier to diagnose problems.
+        </para>
       </listitem>
     </itemizedlist>
   </sect2>
-  <sect2 id="relnotes_features">
+  <sect2 id="relnotes_bugs">
     <title>Bug Fixes</title>
     <itemizedlist>
       <listitem>
-	<para>None</para>
+        <para>
+          <command>dnssec-keygen -S</command> failed to generate successor
+          keys for some algorithm types (including ECDSA and GOST) due to
+          a difference in the content of private key files. This has been
+          corrected. [RT #37183]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          UPDATE messages that arrived too soon after
+          an <command>rndc thaw</command> could be lost. [RT #37233]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Forwarding of UPDATE messages did not work when they were
+          signed with SIG(0); they resulted in a BADSIG response code.
+          [RT #37216]
+        </para>
       </listitem>
     </itemizedlist>
   </sect2>
