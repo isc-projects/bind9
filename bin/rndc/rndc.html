@@ -515,7 +515,7 @@
             of the <span><strong class="command">rndc delzone</strong></span> command.)
           </p>
 </dd>
-<dt><span class="term"><strong class="userinput"><code>signing [<span class="optional">( -list | -clear <em class="replaceable"><code>keyid/algorithm</code></em> | -clear <code class="literal">all</code> | -nsec3param ( <em class="replaceable"><code>parameters</code></em> | <code class="literal">none</code> ) ) </span>] <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>] </code></strong></span></dt>
+<dt><span class="term"><strong class="userinput"><code>signing [<span class="optional">( -list | -clear <em class="replaceable"><code>keyid/algorithm</code></em> | -clear <code class="literal">all</code> | -nsec3param ( <em class="replaceable"><code>parameters</code></em> | <code class="literal">none</code> ) | -serial <em class="replaceable"><code>value</code></em> ) </span>] <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>] </code></strong></span></dt>
 <dd>
 <p>
             List, edit, or remove the DNSSEC signing state records
@@ -577,11 +577,18 @@
             removes an existing NSEC3 chain and replaces it
             with NSEC.
           </p>
+<p>
+            <span><strong class="command">rndc signing -serial value</strong></span> sets
+	    the serial number of the zone to value.  If the value
+	    would cause the serial number to go backwards it will
+	    be rejected.  The primary use is to set the serial on
+	    inline signed zones.
+	  </p>
 </dd>
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545246"></a><h2>LIMITATIONS</h2>
+<a name="id2541979"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -591,7 +598,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2541988"></a><h2>SEE ALSO</h2>
+<a name="id2541997"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -601,7 +608,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542043"></a><h2>AUTHOR</h2>
+<a name="id2545534"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>

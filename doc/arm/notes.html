@@ -26,14 +26,14 @@
 <dl>
 <dt><span class="preface"><a href="#id2542024"> </a></span></dt>
 <dd><dl>
-<dt><span class="sect1"><a href="#id2542012">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
+<dt><span class="sect1"><a href="#id2542008">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_download">Download</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_security">Security Fixes</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_features">New Features</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_changes">Feature Changes</a></span></dt>
-<dt><span class="sect2"><a href="#relnotes_features">Bug Fixes</a></span></dt>
+<dt><span class="sect2"><a href="#relnotes_bugs">Bug Fixes</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_thanks">Thank You</a></span></dt>
 </dl></dd>
 </dl></dd>
@@ -45,21 +45,21 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="#id2542012">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
+<dt><span class="sect1"><a href="#id2542008">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_download">Download</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_security">Security Fixes</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_features">New Features</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_changes">Feature Changes</a></span></dt>
-<dt><span class="sect2"><a href="#relnotes_features">Bug Fixes</a></span></dt>
+<dt><span class="sect2"><a href="#relnotes_bugs">Bug Fixes</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_thanks">Thank You</a></span></dt>
 </dl></dd>
 </dl>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2542012"></a>Release Notes for BIND Version 9.11.0pre-alpha</h2></div></div></div>
+<a name="id2542008"></a>Release Notes for BIND Version 9.11.0pre-alpha</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -82,22 +82,206 @@
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-<div class="itemizedlist"><ul type="disc"><li><p>None</p></li></ul></div>
+<div class="itemizedlist"><ul type="disc">
+<li><p>None</p></li>
+<li><p>
+          Errors reported when running <span><strong class="command">rndc addzone</strong></span>
+          (e.g., when a zone file cannot be loaded) have been clarified
+          to make it easier to diagnose problems.
+        </p></li>
+</ul></div>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_features"></a>New Features</h3></div></div></div>
-<div class="itemizedlist"><ul type="disc"><li><p>None</p></li></ul></div>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+          The serial number of a dynamically updatable zone can
+          now be set using
+          <span><strong class="command">rndc signing -serial <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>zonename</code></em></strong></span>.
+          This is particularly useful with <code class="option">inline-signing</code>
+          zones that have been reset.  Setting the serial number to a value
+          larger than that on the slaves will trigger an AXFR-style
+	  transfer.
+	</p></li>
+<li><p>
+          When answering recursive queries, SERVFAIL responses can now be
+          cached by the server for a limited time; subsequent queries for
+          the same query name and type will return another SERVFAIL until
+          the cache times out.  This reduces the frequency of retries
+          when a query is persistently failing, which can be a burden
+          on recursive serviers.  The SERVFAIL cache timeout is controlled
+          by <code class="option">servfail-ttl</code>, which defaults to 10 seconds
+          and has an upper limit of 30.
+	</p></li>
+<li><p>
+          The new <span><strong class="command">rndc nta</strong></span> command can now be used to
+          set a "negative trust anchor" (NTA), disabling DNSSEC validation for
+          a specific domain; this can be used when responses from a domain
+          are known to be failing validation due to administrative error
+          rather than because of a spoofing attack. NTAs are strictly
+          temporary; by default they expire after one hour, but can be
+          configured to last up to one week.  The default NTA lifetime
+          can be changed by setting the <code class="option">nta-lifetime</code> in
+          <code class="filename">named.conf</code>.
+	</p></li>
+<li><p>
+	  The EDNS Client Subnet (ECS) option is now supported for
+          authoritative servers; if a query contains an ECS option then
+          ACLs containing <code class="option">geoip</code> or <code class="option">ecs</code>
+          elements can match against the the address encoded in the option.
+          This can be used to select a view for a query, so that different
+          answers can be provided depending on the client network.
+	</p></li>
+<li><p>
+	  The EDNS EXPIRE option has been implemented on the client
+	  side, allowing a slave server to set the expiration timer
+	  correctly when transferring zone data from another slave
+	  server.
+	</p></li>
+<li><p>
+          A new <code class="option">masterfile-style</code> zone option controls
+          the formatting of text zone files:  When set to
+          <code class="literal">full</code>, the zone file will dumped in
+          single-line-per-record format.
+	</p></li>
+<li><p>
+          <span><strong class="command">dig +ednsopt</strong></span> can now be used to set
+          arbitrary EDNS options in DNS requests.
+	</p></li>
+<li><p>
+          <span><strong class="command">dig +ednsflags</strong></span> can now be used to set
+          yet-to-be-defined EDNS flags in DNS requests.
+	</p></li>
+<li><p>
+          <span><strong class="command">dig +ttlunits</strong></span> causes <span><strong class="command">dig</strong></span>
+          to print TTL values with time-unit suffixes: w, d, h, m, s for
+          weeks, days, hours, minutes, and seconds.
+	</p></li>
+<li><p>
+          <span><strong class="command">dig +dscp=<em class="replaceable"><code>value</code></em></strong></span>
+          can now be used to set the DSCP code point in outgoing query
+          packets.
+	</p></li>
+<li><p>
+          <code class="option">serial-update-method</code> can now be set to
+          <code class="literal">date</code>. On update, the serial number will
+          be set to the current date in YYYYMMDDNN format.
+	</p></li>
+<li><p>
+          <span><strong class="command">dnssec-signzone -N date</strong></span> also sets the serial
+          number to YYYYMMDDNN.
+	</p></li>
+<li><p>
+          <span><strong class="command">named -L <em class="replaceable"><code>filename</code></em></strong></span>
+          causes named to send log messages to the specified file by
+          default instead of to the system log.
+	</p></li>
+<li><p>
+          The rate limiter configured by the
+          <code class="option">serial-query-rate</code> option no longer covers
+          NOTIFY messages; those are now separately controlled by
+          <code class="option">notify-rate</code> and
+          <code class="option">startup-notify-rate</code> (the latter of which
+          controls the rate of NOTIFY messages sent when the server
+          is first started up or reconfigured).
+	</p></li>
+<li><p>
+	  The default number of tasks and client objects available
+	  for serving lightweight resolver queries have been increased,
+	  and are now configurable via the new <code class="option">lwres-tasks</code>
+	  and <code class="option">lwres-clients</code> options in
+	  <code class="filename">named.conf</code>. [RT #35857]
+	</p></li>
+</ul></div>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
-<div class="itemizedlist"><ul type="disc"><li><p>None</p></li></ul></div>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+	  ACLs containing <span><strong class="command">geoip asnum</strong></span> elements were
+	  not correctly matched unless the full organization name was
+	  specified in the ACL (as in
+	  <span><strong class="command">geoip asnum "AS1234 Example, Inc.";</strong></span>).
+	  They can now match against the AS number alone (as in
+	  <span><strong class="command">geoip asnum "AS1234";</strong></span>).
+        </p></li>
+<li><p>
+          When using native PKCS#11 cryptography (i.e.,
+          <span><strong class="command">configure --enable-native-pkcs11</strong></span>) HSM PINs
+          of up to 256 characters can now be used.
+        </p></li>
+<li><p>
+          NXDOMAIN responses to queries of type DS are now cached separately
+          from those for other types. This helps when using "grafted" zones
+          of type forward, for which the parent zone does not contain a
+          delegation, such as local top-level domains.  Previously a query
+          of type DS for such a zone could cause the zone apex to be cached
+          as NXDOMAIN, blocking all subsequent queries.  (Note: This
+          change is only helpful when DNSSEC validation is not enabled.
+          "Grafted" zones without a delegation in the parent are not a
+          recommended configuration.)
+        </p></li>
+<li><p>
+	  Update forwarding performance has been improved by allowing
+	  a single TCP connection to be shared between multiple updates.
+	</p></li>
+<li><p>
+          By default, <span><strong class="command">nsupdate</strong></span> will now check
+          the correctness of hostnames when adding records of type
+          A, AAAA, MX, SOA, NS, SRV or PTR.  This behavior can be
+          disabled with <span><strong class="command">check-names no</strong></span>.
+	</p></li>
+</ul></div>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_features"></a>Bug Fixes</h3></div></div></div>
-<div class="itemizedlist"><ul type="disc"><li><p>None</p></li></ul></div>
+<a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+	  <span><strong class="command">dig</strong></span>, <span><strong class="command">host</strong></span> and
+	  <span><strong class="command">nslookup</strong></span> aborted when encountering
+	  a name which, after appending search list elements,
+	  exceeded 255 bytes. Such names are now skipped, but
+	  processing of other names will continue. [RT #36892]
+        </p></li>
+<li><p>
+	  The error message generated when
+	  <span><strong class="command">named-checkzone</strong></span> or
+	  <span><strong class="command">named-checkconf -z</strong></span> encounters a
+	  <code class="option">$TTL</code> directive without a value has
+	  been clarified. [RT #37138]
+        </p></li>
+<li><p>
+	  Semicolon characters (;) included in TXT records were
+	  incorrectly escaped with a backslash when the record was
+	  displayed as text. This is actually only necessary when there
+	  are no quotation marks. [RT #37159]
+        </p></li>
+<li><p>
+	  When files opened for writing by <span><strong class="command">named</strong></span>,
+	  such as zone journal files, were referenced more than once
+	  in <code class="filename">named.conf</code>, it could lead to file
+	  corruption as multiple threads wrote to the same file. This
+	  is now detected when loading <code class="filename">named.conf</code>
+	  and reported as an error. [RT #37172]
+        </p></li>
+<li><p>
+          When checking for updates to trust anchors listed in
+          <code class="option">managed-keys</code>, <span><strong class="command">named</strong></span>
+          now revalidates keys based on the current set of
+          active trust anchors, without relying on any cached
+          record of previous validation. [RT #37506]
+        </p></li>
+<li><p>
+	  Large-system tuning
+	  (<span><strong class="command">configure --with-tuning=large</strong></span>) caused
+	  problems on some platforms by setting a socket receive
+	  buffer size that was too large.  This is now detected and
+	  corrected at run time. [RT #37187]
+        </p></li>
+</ul></div>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">

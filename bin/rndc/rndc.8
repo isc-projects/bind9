@@ -431,7 +431,7 @@ option, zone files must be cleaned up by hand. (If the zone is of type "slave" o
 command.)
 .RE
 .PP
-\fBsigning \fR\fB[( \-list | \-clear \fIkeyid/algorithm\fR | \-clear all | \-nsec3param ( \fIparameters\fR | none ) ) ]\fR\fB \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR
+\fBsigning \fR\fB[( \-list | \-clear \fIkeyid/algorithm\fR | \-clear all | \-nsec3param ( \fIparameters\fR | none ) | \-serial \fIvalue\fR ) ]\fR\fB \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR
 .RS 4
 List, edit, or remove the DNSSEC signing state records for the specified zone. The status of ongoing DNSSEC operations (such as signing or generating NSEC3 chains) is stored in the zone in the form of DNS resource records of type
 \fBsig\-signing\-type\fR.
@@ -469,6 +469,9 @@ So, for example, to create an NSEC3 chain using the SHA\-1 hash algorithm, no op
 .sp
 \fBrndc signing \-nsec3param none\fR
 removes an existing NSEC3 chain and replaces it with NSEC.
+.sp
+\fBrndc signing \-serial value\fR
+sets the serial number of the zone to value. If the value would cause the serial number to go backwards it will be rejected. The primary use is to set the serial on inline signed zones.
 .RE
 .SH "LIMITATIONS"
 .PP
