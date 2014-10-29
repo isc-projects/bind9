@@ -1,3 +1,5 @@
+3989.	[cleanup]	Remove redundent dns_db_resigned calls. [RT #35748]
+
 3987.	[func]		Handle future Visual Studio 14 incompatible changes.
 			[RT #37380]
 

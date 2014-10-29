@@ -5402,7 +5402,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdataset_t rdataset;
 	unsigned int i;
 	dns_rdata_rrsig_t rrsig;
-	isc_boolean_t found, changed;
+	isc_boolean_t found;
 	isc_int64_t warn = 0, maybe = 0;
 
 	dns_rdataset_init(&rdataset);
@@ -5428,7 +5428,6 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		goto failure;
 	}
 
-	changed = ISC_FALSE;
 	for (result = dns_rdataset_first(&rdataset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset)) {
@@ -5444,8 +5443,6 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				result = update_one_rr(db, ver, zonediff->diff,
 					       DNS_DIFFOP_DELRESIGN, name,
 					       rdataset.ttl, &rdata);
-				if (incremental)
-					changed = ISC_TRUE;
 				if (result != ISC_R_SUCCESS)
 					break;
 				deleted = ISC_TRUE;
@@ -5464,7 +5461,6 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 					result = offline(db, ver, zonediff,
 							 name, rdataset.ttl,
 							 &rdata);
-					changed = ISC_TRUE;
 					if (result != ISC_R_SUCCESS)
 						break;
 				}
@@ -5528,7 +5524,6 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 					result = offline(db, ver, zonediff,
 							 name, rdataset.ttl,
 							 &rdata);
-					changed = ISC_TRUE;
 					break;
 				}
 				result = update_one_rr(db, ver, zonediff->diff,
@@ -5550,9 +5545,6 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		if (result != ISC_R_SUCCESS)
 			break;
 	}
-
-	if (changed && (rdataset.attributes & DNS_RDATASETATTR_RESIGN) != 0)
-		dns_db_resigned(db, &rdataset, ver);
 
 	dns_rdataset_disassociate(&rdataset);
 	if (result == ISC_R_NOMORE)
@@ -5788,8 +5780,7 @@ zone_resigninc(dns_zone_t *zone) {
 				     dns_result_totext(result));
 			break;
 		}
-		result	= dns_db_getsigningtime(db, &rdataset,
-						dns_fixedname_name(&fixed));
+		result	= dns_db_getsigningtime(db, &rdataset, name);
 		if (nkeys == 0 && result == ISC_R_NOTFOUND) {
 			result = ISC_R_SUCCESS;
 			break;
