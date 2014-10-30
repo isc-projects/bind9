@@ -7794,18 +7794,20 @@ avoid-v6-udp-ports {};
 	      </listitem>
 	    </varlistentry>
 
-            <varlistentry>
-              <term><command>notify-rate</command></term>
-              <listitem>
-                <para>
-                  The rate at which NOTIFY requests will be sent
-                  during normal zone maintenance operations. (NOTIFY
-                  requests due to initial zone loading are subject
-                  to a separate rate limit; see below.) The default is
-                  20 per second.
-                </para>
-              </listitem>
-            </varlistentry>
+	    <varlistentry>
+	      <term><command>notify-rate</command></term>
+	      <listitem>
+		<para>
+		  The rate at which NOTIFY requests will be sent
+		  during normal zone maintenance operations. (NOTIFY
+		  requests due to initial zone loading are subject
+		  to a separate rate limit; see below.) The default is
+		  20 per second.
+		  The lowest possible rate is one per second; when set
+		  to zero, it will be silently raised to one.
+		</para>
+	      </listitem>
+	    </varlistentry>
 
 	    <varlistentry>
 	      <term><command>startup-notify-rate</command></term>
@@ -7815,6 +7817,8 @@ avoid-v6-udp-ports {};
 		  when the name server is first starting up, or when
 		  zones have been newly added to the nameserver.
 		  The default is 20 per second.
+		  The lowest possible rate is one per second; when set
+		  to zero, it will be silently raised to one.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -7832,6 +7836,8 @@ avoid-v6-udp-ports {};
 		  <command>serial-query-rate</command> option, an
 		  integer, is the maximum number of queries sent
 		  per second.  The default is 20 per second.
+		  The lowest possible rate is one per second; when set
+		  to zero, it will be silently raised to one.
 		</para>
 	      </listitem>
 	    </varlistentry>
