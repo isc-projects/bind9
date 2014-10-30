@@ -161,6 +161,9 @@
 			during operation. If the read failed, named
 			could segfault. [RT #38559]
 
+3993.	[func]		Dig now supports EDNS negotiation by default.
+			(dig +[no]ednsnegotiation). [RT #37604]
+
 3951.	[func]		Add the ability to set yet-to-be-defined EDNS flags
 			to dig (+ednsflags=#). [RT #37142]
 
