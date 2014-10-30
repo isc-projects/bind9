@@ -98,6 +98,12 @@ ns.nsec3-unknown	A	10.53.0.3
 optout-unknown		NS	ns.optout-unknown
 ns.optout-unknown	A	10.53.0.3
 
+dnskey-unknown		NS	ns.dnskey-unknown
+ns.dnskey-unknown	A	10.53.0.3
+
+dnskey-nsec3-unknown	NS	ns.dnskey-nsec3-unknown
+ns.dnskey-nsec3-unknown	A	10.53.0.3
+
 multiple		NS	ns.multiple
 ns.multiple		A	10.53.0.3
 
