@@ -1,3 +1,6 @@
+3993.	[func]		Dig now supports EDNS negotiation by default.
+			(dig +[no]ednsnegotiation). [RT #37604]
+
 3992.	[func]		DiG can now send queries without questions
 			(dig +header-only). [RT #37599]
 

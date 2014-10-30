@@ -195,6 +195,7 @@ help(void) {
 "                 +ednsflags=###      (Set EDNS flag bits)\n"
 "                 +ednsopt=###[:value] (Send specified EDNS option)\n"
 "                 +noednsopt          (Clear list of +ednsopt options)\n"
+"                 +[no]ednsnegotiation (Set EDNS version negotiation)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]showsearch     (Search with intermediate results)\n"
 "                 +[no]defname        (Ditto)\n"
@@ -980,6 +981,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 							fatal("Couldn't parse "
 							      "ednsflags");
 						lookup->ednsflags = num;
+						break;
+					case 'n':
+						FULLCHECK("ednsnegotiation");
+						lookup->ednsneg = state;
 						break;
 					case 'o':
 						FULLCHECK("ednsopt");

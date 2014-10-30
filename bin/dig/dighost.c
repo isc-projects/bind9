@@ -832,6 +832,7 @@ make_empty_lookup(void) {
 #endif
 	looknew->ednsopts = NULL;
 	looknew->ednsoptscnt = 0;
+	looknew->ednsneg = ISC_TRUE;
 	looknew->dscp = -1;
 	dns_fixedname_init(&looknew->fdomain);
 	ISC_LINK_INIT(looknew, link);
@@ -889,6 +890,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 #endif
 	looknew->ednsopts = lookold->ednsopts;
 	looknew->ednsoptscnt = lookold->ednsoptscnt;
+	looknew->ednsneg = lookold->ednsneg;
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = lookold->sigchase;
 #if DIG_SIGCHASE_TD
@@ -3468,6 +3470,10 @@ process_opt(dig_lookup_t *l, dns_message_t *msg) {
 }
 #endif
 
+static int
+ednsvers(dns_rdataset_t *opt) {
+	return ((opt->ttl >> 16) & 0xff);
+}
 
 /*%
  * Event handler for recv complete.  Perform whatever actions are necessary,
@@ -3497,6 +3503,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	isc_region_t r;
 	isc_buffer_t *buf = NULL;
 #endif
+	int newedns;
 
 	UNUSED(task);
 	INSIST(!free_now);
@@ -3727,6 +3734,25 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			} else
 				goto udp_mismatch;
 		}
+	}
+	if (msg->rcode == dns_rcode_badvers && msg->opt != NULL &&
+	    (newedns = ednsvers(msg->opt)) < l->edns && l->ednsneg) {
+		/*
+		 * Add minimum EDNS version required checks here if needed.
+		 */
+		if (l->comments)
+			printf(";; BADVERS, retrying with EDNS version %u.\n",
+			       newedns);
+		l->edns = newedns;
+		n = requeue_lookup(l, ISC_TRUE);
+		n->origin = query->lookup->origin;
+		dns_message_destroy(&msg);
+		isc_event_free(&event);
+		clear_query(query);
+		cancel_lookup(l);
+		check_next_lookup(l);
+		UNLOCK_LOOKUP;
+		return;
 	}
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0 &&
 	    !l->ignore && !l->tcp_mode) {

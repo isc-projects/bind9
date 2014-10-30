@@ -136,7 +136,8 @@ struct dig_lookup {
 		sit,
 #endif
 		nsid,   /*% Name Server ID (RFC 5001) */
-		header_only;
+		header_only,
+		ednsneg;
 #ifdef DIG_SIGCHASE
 isc_boolean_t	sigchase;
 #if DIG_SIGCHASE_TD

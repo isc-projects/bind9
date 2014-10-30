@@ -48,7 +48,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:Unknown EDNS version ($n)"
 ret=0 reason=
-$DIG -p 5300 @10.53.0.1 +norec +edns=100 soa $zone > dig.out$n
+$DIG -p 5300 @10.53.0.1 +norec +edns=100 +noednsneg soa $zone > dig.out$n
 grep "status: BADVERS," dig.out$n > /dev/null || { ret=1; reason="status"; }
 grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
 grep "IN.SOA." dig.out$n > /dev/null && { ret=1; reaons="soa"; }
@@ -69,7 +69,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:Unknown EDNS version + option ($n)"
 ret=0 reason=
-$DIG -p 5300 @10.53.0.1 +norec +edns=100 +ednsopt=100 soa $zone > dig.out$n
+$DIG -p 5300 @10.53.0.1 +norec +edns=100 +noednsneg +ednsopt=100 soa $zone > dig.out$n
 grep "status: BADVERS," dig.out$n > /dev/null || { ret=1; reason="status"; }
 grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
 grep "; OPT=100" dig.out$n > /dev/null && { ret=1; reason="option"; }
@@ -91,11 +91,21 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:Unknown EDNS version + flag ($n)"
 ret=0 reason=
-$DIG -p 5300 @10.53.0.1 +norec +edns=100 +ednsflags=0x80 soa $zone > dig.out$n
+$DIG -p 5300 @10.53.0.1 +norec +edns=100 +noednsneg +ednsflags=0x80 soa $zone > dig.out$n
 grep "status: BADVERS," dig.out$n > /dev/null || { ret=1; reason="status"; }
 grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
 grep "EDNS:.*MBZ" dig.out$n > /dev/null > /dev/null && { ret=1; reason="mbz"; }
 grep "IN.SOA." dig.out$n > /dev/null && { ret=1; reason="soa"; }
+if [ $ret != 0 ]; then echo "I:failed $reason"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+echo "I:DiG's EDNS negotiation ($n)"
+ret=0 reason=
+$DIG -p 5300 @10.53.0.1 +norec +edns=100 soa $zone > dig.out$n
+grep "status: NOERROR," dig.out$n > /dev/null || { ret=1; reason="status"; }
+grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
+grep "IN.SOA." dig.out$n > /dev/null || { ret=1; reason="soa"; }
 if [ $ret != 0 ]; then echo "I:failed $reason"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`

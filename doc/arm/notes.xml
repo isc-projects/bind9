@@ -129,6 +129,12 @@
       </listitem>
       <listitem>
 	<para>
+	  <command>dig +[no]ednsnegotiation</command> can now be used enable /
+	  disable EDNS version negotiation.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
           <command>dig +header-only</command> can now be used to send
 	  queries without a question section.
 	</para>
