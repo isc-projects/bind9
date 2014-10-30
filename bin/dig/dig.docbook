@@ -623,6 +623,17 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]header-only</option></term>
+	  <listitem>
+	    <para>
+	      Send a query with a DNS header without a question section.
+	      The default is to add a question section.  The query type
+	      and query name are ignored when this is set.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]identify</option></term>
 	  <listitem>
 	    <para>

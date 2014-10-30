@@ -129,6 +129,12 @@
       </listitem>
       <listitem>
 	<para>
+          <command>dig +header-only</command> can now be used to send
+	  queries without a question section.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
           <command>dig +ttlunits</command> causes <command>dig</command>
           to print TTL values with time-unit suffixes: w, d, h, m, s for
           weeks, days, hours, minutes, and seconds.

@@ -230,6 +230,7 @@ help(void) {
 "                 +[no]dnssec         (Request DNSSEC records)\n"
 "                 +[no]expire         (Request time to expire)\n"
 "                 +[no]nsid           (Request Name Server ID)\n"
+"                 +[no]header-only    (Send query without a question section)\n"
 #ifdef ISC_PLATFORM_USESIT
 "                 +[no]sit            (Request a Source Identity Token)\n"
 #endif
@@ -1016,6 +1017,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 'f': /* fail */
 		FULLCHECK("fail");
 		lookup->servfail_stops = state;
+		break;
+	case 'h':
+		FULLCHECK("header-only");
+		lookup->header_only = state;
 		break;
 	case 'i':
 		switch (cmd[1]) {

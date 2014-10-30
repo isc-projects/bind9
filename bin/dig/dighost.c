@@ -786,6 +786,7 @@ make_empty_lookup(void) {
 	looknew->ednsflags = 0;
 	looknew->expire = ISC_FALSE;
 	looknew->nsid = ISC_FALSE;
+	looknew->header_only = ISC_FALSE;
 #ifdef ISC_PLATFORM_USESIT
 	looknew->sit = ISC_FALSE;
 #endif
@@ -881,6 +882,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->ednsflags = lookold->ednsflags;
 	looknew->expire = lookold->expire;
 	looknew->nsid = lookold->nsid;
+	looknew->header_only = lookold->header_only;
 #ifdef ISC_PLATFORM_USESIT
 	looknew->sit = lookold->sit;
 	looknew->sitvalue = lookold->sitvalue;
@@ -2431,8 +2433,9 @@ setup_lookup(dig_lookup_t *lookup) {
 		}
 	}
 
-	add_question(lookup->sendmsg, lookup->name, lookup->rdclass,
-		     lookup->rdtype);
+	if (!lookup->header_only)
+		add_question(lookup->sendmsg, lookup->name, lookup->rdclass,
+			     lookup->rdtype);
 
 	/* add_soa */
 	if (lookup->rdtype == dns_rdatatype_ixfr)
