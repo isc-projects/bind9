@@ -1,3 +1,6 @@
+3994.	[func]		Dig now supports setting the last unassigned DNS
+			header flag bit (dig +zflag). [RT #37421]
+
 3993.	[func]		Dig now supports EDNS negotiation by default.
 			(dig +[no]ednsnegotiation). [RT #37604]
 

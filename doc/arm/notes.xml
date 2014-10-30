@@ -148,6 +148,12 @@
       </listitem>
       <listitem>
 	<para>
+          <command>dig +zflag</command> can be used to set the last
+	  unassigned DNS header flag bit.  This bit in normally zero.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
           <command>dig +dscp=<replaceable>value</replaceable></command>
           can now be used to set the DSCP code point in outgoing query
           packets.

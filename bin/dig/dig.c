@@ -207,6 +207,7 @@ help(void) {
 "                 +[no]aaonly         (Set AA flag in query (+[no]aaflag))\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
+"                 +[no]zflag          (Set Z flag in query)\n"
 "                 +[no]cl             (Control display of class in records)\n"
 "                 +[no]cmd            (Control display of command line)\n"
 "                 +[no]comments       (Control display of comment lines)\n"
@@ -1379,6 +1380,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			lookup->tcp_mode = state;
 			lookup->tcp_mode_set = ISC_TRUE;
 		}
+		break;
+	case 'z': /* zflag */
+		FULLCHECK("zflag");
+		lookup->zflag = state;
 		break;
 	default:
 	invalid_option:

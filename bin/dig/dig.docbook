@@ -1024,6 +1024,16 @@
 	  </listitem>
 	</varlistentry>
 
+	<varlistentry>
+	  <term><option>+[no]zflag</option></term>
+	  <listitem>
+	    <para>
+	      Set [do not set] the last unassigned DNS header flag in a
+	      DNS query.  This flag is off by default.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
       </variablelist>
 
     </para>
