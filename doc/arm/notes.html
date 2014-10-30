@@ -154,6 +154,10 @@
           yet-to-be-defined EDNS flags in DNS requests.
 	</p></li>
 <li><p>
+          <span><strong class="command">dig +header-only</strong></span> can now be used to send
+	  queries without a question section.
+	</p></li>
+<li><p>
           <span><strong class="command">dig +ttlunits</strong></span> causes <span><strong class="command">dig</strong></span>
           to print TTL values with time-unit suffixes: w, d, h, m, s for
           weeks, days, hours, minutes, and seconds.
@@ -192,6 +196,10 @@
 	  and are now configurable via the new <code class="option">lwres-tasks</code>
 	  and <code class="option">lwres-clients</code> options in
 	  <code class="filename">named.conf</code>. [RT #35857]
+	</p></li>
+<li><p>
+	  Log output to files can now be buffered by specifying
+	  <span><strong class="command">buffered yes;</strong></span> when creating a channel.
 	</p></li>
 </ul></div>
 </div>

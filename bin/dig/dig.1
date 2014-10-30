@@ -382,6 +382,11 @@ Send an EDNS Expire option.
 Do not try the next server if you receive a SERVFAIL. The default is to not try the next server which is the reverse of normal stub resolver behavior.
 .RE
 .PP
+\fB+[no]header\-only\fR
+.RS 4
+Send a query with a DNS header without a question section. The default is to add a question section. The query type and query name are ignored when this is set.
+.RE
+.PP
 \fB+[no]identify\fR
 .RS 4
 Show [or do not show] the IP address and port number that supplied the answer when the

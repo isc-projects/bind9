@@ -25,6 +25,7 @@ key <string> {
 logging {
         category <string> { <string>; ... };
         channel <string> {
+                buffered <boolean>;
                 file <quoted_string> [ versions ( "unlimited" | <integer> )
                     ] [ size <size> ];
                 null;
