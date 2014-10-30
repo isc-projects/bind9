@@ -7503,7 +7503,9 @@ avoid-v6-udp-ports {};
 		  rate at which queries are sent.  The value of the
 		  <command>serial-query-rate</command> option, an
 		  integer, is the maximum number of queries sent
-		  per second.  The default is 20.
+		  per second.  The default is 20 per second.
+		  The lowest possible rate is one per second; when set
+		  to zero, it will be silently raised to one.
 		</para>
 		<para>
 		  In addition to controlling the rate SOA refresh
