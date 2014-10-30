@@ -77,3 +77,7 @@ rm -f ns7/split-rrsig.db ns7/split-rrsig.db.unsplit
 rm -f Kexample.*
 rm -f keygen.err
 rm -f ns3/future.example.db ns3/trusted-future.key
+rm -f ns3/dnskey-nsec3-unknown.example.db
+rm -f ns3/dnskey-nsec3-unknown.example.db.tmp
+rm -f ns3/dnskey-unknown.example.db
+rm -f ns3/dnskey-unknown.example.db.tmp

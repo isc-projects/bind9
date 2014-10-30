@@ -29,7 +29,8 @@ zonefile=example.db
 for subdomain in secure badds bogus dynamic keyless nsec3 optout \
 	nsec3-unknown optout-unknown multiple rsasha256 rsasha512 \
 	kskonly update-nsec3 auto-nsec auto-nsec3 secure.below-cname \
-	ttlpatch split-dnssec split-smart expired expiring upper lower
+	ttlpatch split-dnssec split-smart expired expiring upper lower \
+	dnskey-unknown dnskey-nsec3-unknown
 do
 	cp ../ns3/dsset-$subdomain.example. .
 done

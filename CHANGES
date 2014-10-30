@@ -1,3 +1,6 @@
+3990.	[testing]	Add tests for unknown DNSSEC algorithm handling.
+			[RT #37541]
+
 3989.	[cleanup]	Remove redundent dns_db_resigned calls. [RT #35748]
 
 3988.	[func]		Allow the zone serial of a dynamically updatable
