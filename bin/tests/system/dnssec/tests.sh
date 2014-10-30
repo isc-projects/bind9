@@ -2548,5 +2548,71 @@ else
 	n=`expr $n + 1`
 fi
 
+echo "I:checking that positive unknown NSEC3 hash algorithm does validate ($n)"
+ret=0
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.3 nsec3-unknown.example SOA > dig.out.ns3.test$n
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.4 nsec3-unknown.example SOA > dig.out.ns4.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that positive unknown NSEC3 hash algorithm with OPTOUT does validate ($n)"
+ret=0
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.3 optout-unknown.example SOA > dig.out.ns3.test$n
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.4 optout-unknown.example SOA > dig.out.ns4.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that negative unknown NSEC3 hash algorithm does not validate ($n)"
+ret=0
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.3 nsec3-unknown.example A > dig.out.ns3.test$n
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.4 nsec3-unknown.example A > dig.out.ns4.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: SERVFAIL," dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that negative unknown NSEC3 hash algorithm with OPTOUT does not validate ($n)"
+ret=0
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.3 optout-unknown.example A > dig.out.ns3.test$n
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.4 optout-unknown.example A > dig.out.ns4.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: SERVFAIL," dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that unknown DNSKEY algorithm validates as insecure ($n)"
+ret=0
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.3 dnskey-unknown.example A > dig.out.ns3.test$n
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.4 dnskey-unknown.example A > dig.out.ns4.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that unknown DNSKEY algorithm + unknown NSEC3 has algorithm validates as insecure ($n)"
+ret=0
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.3 dnskey-nsec3-unknown.example A > dig.out.ns3.test$n
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.4 dnskey-nsec3-unknown.example A > dig.out.ns4.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

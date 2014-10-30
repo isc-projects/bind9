@@ -175,7 +175,7 @@ cat $infile $keyname.key >$zonefile
 $SIGNER -P -g -3 - -A -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
 #
-# A nsec3 zone (non-optout) with unknown hash algorithm.
+# A nsec3 zone (non-optout) with unknown nsec3 hash algorithm (-U).
 #
 zone=nsec3-unknown.example.
 infile=nsec3-unknown.example.db.in
@@ -188,7 +188,7 @@ cat $infile $keyname.key >$zonefile
 $SIGNER -P -3 - -U -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
 #
-# A optout nsec3 zone.
+# A optout nsec3 zone with a unknown nsec3 hash algorithm (-U).
 #
 zone=optout-unknown.example.
 infile=optout-unknown.example.db.in
@@ -199,6 +199,42 @@ keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
 cat $infile $keyname.key >$zonefile
 
 $SIGNER -P -3 - -U -A -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+#
+# A zone with a unknown DNSKEY algorithm.
+# Algorithm 7 is replaced by 100 in the zone and dsset.
+#
+zone=dnskey-unknown.example.
+infile=dnskey-unknown.example.db.in
+zonefile=dnskey-unknown.example.db
+
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+
+cat $infile $keyname.key >$zonefile
+
+$SIGNER -P -3 - -r $RANDFILE -o $zone -O full -f ${zonefile}.tmp $zonefile > /dev/null 2>&1
+
+awk '$4 == "DNSKEY" { $7 = 100; print } $4 == "RRSIG" { $6 = 100; print } { print }' ${zonefile}.tmp > ${zonefile}.signed
+
+$DSFROMKEY -A -f ${zonefile}.signed $zone > dsset-${zone}
+
+#
+# A zone with a unknown DNSKEY algorithm + unknown NSEC3 hash algorithm (-U).
+# Algorithm 7 is replaced by 100 in the zone and dsset.
+#
+zone=dnskey-nsec3-unknown.example.
+infile=dnskey-nsec3-unknown.example.db.in
+zonefile=dnskey-nsec3-unknown.example.db
+
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+
+cat $infile $keyname.key >$zonefile
+
+$SIGNER -P -3 - -r $RANDFILE -o $zone -U -O full -f ${zonefile}.tmp $zonefile > /dev/null 2>&1
+
+awk '$4 == "DNSKEY" { $7 = 100; print } $4 == "RRSIG" { $6 = 100; print } { print }' ${zonefile}.tmp > ${zonefile}.signed
+
+$DSFROMKEY -A -f ${zonefile}.signed $zone > dsset-${zone}
 
 #
 # A multiple parameter nsec3 zone.
