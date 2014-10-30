@@ -181,6 +181,12 @@
 	  <filename>named.conf</filename>. [RT #35857]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Log output to files can now be buffered by specifying
+	  <command>buffered yes;</command> when creating a channel.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_changes">

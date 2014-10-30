@@ -185,10 +185,12 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
 		const cfg_obj_t *printcat = NULL;
 		const cfg_obj_t *printsev = NULL;
 		const cfg_obj_t *printtime = NULL;
+		const cfg_obj_t *buffered = NULL;
 
 		(void)cfg_map_get(channel, "print-category", &printcat);
 		(void)cfg_map_get(channel, "print-severity", &printsev);
 		(void)cfg_map_get(channel, "print-time", &printtime);
+		(void)cfg_map_get(channel, "buffered", &buffered);
 
 		if (printcat != NULL && cfg_obj_asboolean(printcat))
 			flags |= ISC_LOG_PRINTCATEGORY;
@@ -196,6 +198,8 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
 			flags |= ISC_LOG_PRINTTIME;
 		if (printsev != NULL && cfg_obj_asboolean(printsev))
 			flags |= ISC_LOG_PRINTLEVEL;
+		if (buffered != NULL && cfg_obj_asboolean(buffered))
+			flags |= ISC_LOG_BUFFERED;
 	}
 
 	level = ISC_LOG_INFO;

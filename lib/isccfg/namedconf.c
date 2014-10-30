@@ -1882,6 +1882,7 @@ channel_clauses[] = {
 	{ "print-time", &cfg_type_boolean, 0 },
 	{ "print-severity", &cfg_type_boolean, 0 },
 	{ "print-category", &cfg_type_boolean, 0 },
+	{ "buffered", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_clausedef_t *

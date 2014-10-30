@@ -3673,6 +3673,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
      [ <command>print-category</command> <option>yes</option> or <option>no</option>; ]
      [ <command>print-severity</command> <option>yes</option> or <option>no</option>; ]
      [ <command>print-time</command> <option>yes</option> or <option>no</option>; ]
+     [ <command>buffered</command> <option>yes</option> or <option>no</option>; ]
    }; ]
    [ <command>category</command> <replaceable>category_name</replaceable> {
      <replaceable>channel_name</replaceable> ; [ <replaceable>channel_name</replaceable> ; ... ]
@@ -3914,6 +3915,12 @@ notrace</command>. All debugging messages in the server have a debug
 
 	  <para>
 	    <computeroutput>28-Feb-2000 15:05:32.863 general: notice: running</computeroutput>
+	  </para>
+
+	  <para>
+	    If <command>buffered</command> has been turned on the output
+	    to files will not be flushed after each log entry.  By default
+	    all log messages are flushed.
 	  </para>
 
 	  <para>

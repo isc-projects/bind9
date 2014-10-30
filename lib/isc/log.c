@@ -708,6 +708,8 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 {
 	isc_logchannel_t *channel;
 	isc_mem_t *mctx;
+	unsigned int permitted = ISC_LOG_PRINTALL | ISC_LOG_DEBUGONLY |
+				 ISC_LOG_BUFFERED;
 
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(name != NULL);
@@ -715,8 +717,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		type == ISC_LOG_TOFILEDESC || type == ISC_LOG_TONULL);
 	REQUIRE(destination != NULL || type == ISC_LOG_TONULL);
 	REQUIRE(level >= ISC_LOG_CRITICAL);
-	REQUIRE((flags &
-		 (unsigned int)~(ISC_LOG_PRINTALL | ISC_LOG_DEBUGONLY)) == 0);
+	REQUIRE((flags & ~permitted) == 0);
 
 	/* XXXDCL find duplicate names? */
 
@@ -1415,7 +1416,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	struct stat statbuf;
 	isc_boolean_t matched = ISC_FALSE;
 	isc_boolean_t printtime, printtag, printcolon;
-	isc_boolean_t printcategory, printmodule, printlevel;
+	isc_boolean_t printcategory, printmodule, printlevel, buffered;
 	isc_logconfig_t *lcfg;
 	isc_logchannel_t *channel;
 	isc_logchannellist_t *category_channels;
@@ -1654,6 +1655,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				       != 0);
 		printlevel    = ISC_TF((channel->flags & ISC_LOG_PRINTLEVEL)
 				       != 0);
+		buffered      = ISC_TF((channel->flags & ISC_LOG_BUFFERED)
+				       != 0);
 
 		switch (channel->type) {
 		case ISC_LOG_TOFILE:
@@ -1715,7 +1718,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				printlevel    ? level_string	: "",
 				lctx->buffer);
 
-			fflush(FILE_STREAM(channel));
+			if (!buffered)
+				fflush(FILE_STREAM(channel));
 
 			/*
 			 * If the file now exceeds its maximum size
