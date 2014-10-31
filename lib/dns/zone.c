@@ -13386,7 +13386,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
 	if (zone->raw != NULL)
-                dns_zone_attach(zone->raw, &raw);
+		dns_zone_attach(zone->raw, &raw);
 	UNLOCK_ZONE(zone);
 
 	/*
