@@ -391,6 +391,11 @@
 	      accepted. Setting a named flag (e.g. DO) will silently be
 	      ignored. By default, no Z bits are set.
 	    </p></dd>
+<dt><span class="term"><code class="option">+[no]ednsnegotiation</code></span></dt>
+<dd><p>
+	      Enable / disable EDNS version negotiation. By default
+	      EDNS version negotiation is enabled.
+	    </p></dd>
 <dt><span class="term"><code class="option">+[no]ednsopt[=code[:value]]</code></span></dt>
 <dd><p>
 	      Specify EDNS option with code point <code class="option">code</code>
@@ -654,13 +659,18 @@
 	      is provided for backwards compatibility.  The "vc"
 	      stands for "virtual circuit".
 	    </p></dd>
+<dt><span class="term"><code class="option">+[no]zflag</code></span></dt>
+<dd><p>
+	      Set [do not set] the last unassigned DNS header flag in a
+	      DNS query.  This flag is off by default.
+	    </p></dd>
 </dl></div>
 <p>
 
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545326"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2545354"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -706,7 +716,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545388"></a><h2>IDN SUPPORT</h2>
+<a name="id2545416"></a><h2>IDN SUPPORT</h2>
 <p>
       If <span><strong class="command">dig</strong></span> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -720,14 +730,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545411"></a><h2>FILES</h2>
+<a name="id2545438"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545428"></a><h2>SEE ALSO</h2>
+<a name="id2545456"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -735,7 +745,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545533"></a><h2>BUGS</h2>
+<a name="id2545561"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>

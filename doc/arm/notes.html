@@ -154,6 +154,10 @@
           yet-to-be-defined EDNS flags in DNS requests.
 	</p></li>
 <li><p>
+	  <span><strong class="command">dig +[no]ednsnegotiation</strong></span> can now be used enable /
+	  disable EDNS version negotiation.
+	</p></li>
+<li><p>
           <span><strong class="command">dig +header-only</strong></span> can now be used to send
 	  queries without a question section.
 	</p></li>
@@ -161,6 +165,10 @@
           <span><strong class="command">dig +ttlunits</strong></span> causes <span><strong class="command">dig</strong></span>
           to print TTL values with time-unit suffixes: w, d, h, m, s for
           weeks, days, hours, minutes, and seconds.
+	</p></li>
+<li><p>
+          <span><strong class="command">dig +zflag</strong></span> can be used to set the last
+	  unassigned DNS header flag bit.  This bit in normally zero.
 	</p></li>
 <li><p>
           <span><strong class="command">dig +dscp=<em class="replaceable"><code>value</code></em></strong></span>

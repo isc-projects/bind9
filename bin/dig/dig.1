@@ -361,6 +361,11 @@ clears the remembered EDNS version. EDNS is set to 0 by default.
 Set the must\-be\-zero EDNS flags bits (Z bits) to the specified value. Decimal, hex and octal encodings are accepted. Setting a named flag (e.g. DO) will silently be ignored. By default, no Z bits are set.
 .RE
 .PP
+\fB+[no]ednsnegotiation\fR
+.RS 4
+Enable / disable EDNS version negotiation. By default EDNS version negotiation is enabled.
+.RE
+.PP
 \fB+[no]ednsopt[=code[:value]]\fR
 .RS 4
 Specify EDNS option with code point
@@ -609,6 +614,11 @@ Display [do not display] the TTL in friendly human\-readable time units of "s", 
 Use [do not use] TCP when querying name servers. This alternate syntax to
 \fI+[no]tcp\fR
 is provided for backwards compatibility. The "vc" stands for "virtual circuit".
+.RE
+.PP
+\fB+[no]zflag\fR
+.RS 4
+Set [do not set] the last unassigned DNS header flag in a DNS query. This flag is off by default.
 .RE
 .SH "MULTIPLE QUERIES"
 .PP
