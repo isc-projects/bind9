@@ -13181,7 +13181,7 @@ update_log_cb(void *arg, dns_zone_t *zone, int level, const char *message) {
 }
 
 static isc_result_t
-sync_secure_journal(dns_zone_t *zone, dns_journal_t *journal,
+sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 		    isc_uint32_t start, isc_uint32_t end,
 		    dns_difftuple_t **soatuplep, dns_diff_t *diff)
 {
@@ -13225,9 +13225,9 @@ sync_secure_journal(dns_zone_t *zone, dns_journal_t *journal,
 
 		/* Sanity. */
 		if (n_soa == 0) {
-			dns_zone_log(zone->raw, ISC_LOG_ERROR,
+			dns_zone_log(raw, ISC_LOG_ERROR,
 				     "corrupt journal file: '%s'\n",
-				     zone->raw->journal);
+				     raw->journal);
 			return (ISC_R_FAILURE);
 		}
 
@@ -13256,7 +13256,7 @@ sync_secure_journal(dns_zone_t *zone, dns_journal_t *journal,
 }
 
 static isc_result_t
-sync_secure_db(dns_zone_t *seczone, dns_db_t *secdb,
+sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 	       dns_dbversion_t *secver, dns_difftuple_t **soatuple,
 	       dns_diff_t *diff)
 {
@@ -13268,13 +13268,12 @@ sync_secure_db(dns_zone_t *seczone, dns_db_t *secdb,
 	dns_rdata_soa_t oldsoa, newsoa;
 
 	REQUIRE(DNS_ZONE_VALID(seczone));
-	REQUIRE(inline_secure(seczone));
 	REQUIRE(soatuple != NULL && *soatuple == NULL);
 
 	if (!seczone->sourceserialset)
 		return (DNS_R_UNCHANGED);
 
-	dns_db_attach(seczone->raw->db, &rawdb);
+	dns_db_attach(raw->db, &rawdb);
 	dns_db_currentversion(rawdb, &rawver);
 	result = dns_db_diffx(diff, rawdb, rawver, secdb, secver, NULL);
 	dns_db_closeversion(rawdb, &rawver, ISC_FALSE);
@@ -13361,7 +13360,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dns_journal_t *rjournal = NULL;
 	isc_uint32_t start, end;
-	dns_zone_t *zone;
+	dns_zone_t *zone, *raw = NULL;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *newver = NULL, *oldver = NULL;
 	dns_diff_t diff;
@@ -13386,10 +13385,14 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 		dns_db_attach(zone->db, &db);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
+	if (zone->raw != NULL)
+                dns_zone_attach(zone->raw, &raw);
+	UNLOCK_ZONE(zone);
+
 	/*
 	 * zone->db may be NULL if the load from disk failed.
 	 */
-	if (db == NULL || !inline_secure(zone)) {
+	if (db == NULL || raw == NULL) {
 		result = ISC_R_FAILURE;
 		goto failure;
 	}
@@ -13403,7 +13406,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	 * If that fails, then we'll fall back to a direct comparison
 	 * between raw and secure zones.
 	 */
-	result = dns_journal_open(zone->raw->mctx, zone->raw->journal,
+	result = dns_journal_open(raw->mctx, raw->journal,
 				  DNS_JOURNAL_WRITE, &rjournal);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
@@ -13442,12 +13445,12 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	 * zone.  If that fails, we recover by syncing up the databases
 	 * directly.
 	 */
-	result = sync_secure_journal(zone, rjournal, start, end,
+	result = sync_secure_journal(zone, raw, rjournal, start, end,
 				     &soatuple, &diff);
 	if (result == DNS_R_UNCHANGED)
 		goto failure;
 	else if (result != ISC_R_SUCCESS)
-		CHECK(sync_secure_db(zone, db, oldver, &soatuple, &diff));
+		CHECK(sync_secure_db(zone, raw, db, oldver, &soatuple, &diff));
 
 	CHECK(dns_diff_apply(&diff, db, newver));
 
@@ -13480,6 +13483,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	dns_journal_set_sourceserial(rjournal, end);
 	dns_journal_commit(rjournal);
 
+	LOCK_ZONE(zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 
 	zone->sourceserial = end;
@@ -13488,12 +13492,14 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 
 	TIME_NOW(&timenow);
 	zone_settimer(zone, &timenow);
+	UNLOCK_ZONE(zone);
 
 	dns_db_closeversion(db, &oldver, ISC_FALSE);
 	dns_db_closeversion(db, &newver, ISC_TRUE);
 
  failure:
-	UNLOCK_ZONE(zone);
+	if (raw != NULL)
+		dns_zone_detach(&raw);
 	if (result != ISC_R_SUCCESS)
 		dns_zone_log(zone, ISC_LOG_ERROR, "receive_secure_serial: %s",
 			     dns_result_totext(result));

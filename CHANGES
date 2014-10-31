@@ -1,3 +1,6 @@
+3995.	[bug]		receive_secure_serial holds the zone lock for too
+			long. [RT #37626]
+
 3990.	[testing]	Add tests for unknown DNSSEC algorithm handling.
 			[RT #37541]
 
