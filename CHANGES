@@ -1,3 +1,6 @@
+3995.	[bug]		receive_secure_serial holds the zone lock for too
+			long. [RT #37626]
+
 3994.	[func]		Dig now supports setting the last unassigned DNS
 			header flag bit (dig +zflag). [RT #37421]
 
