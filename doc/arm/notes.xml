@@ -181,6 +181,15 @@
       </listitem>
     </itemizedlist>
   </sect2>
+  <sect2 id="end_of_life">
+    <title>End of Life</title>
+    <para>
+      The end of life for BIND 9.10 is yet to be determined but
+      will not be before BIND 9.12.0 has been released for 6 months.
+      <ulink url="https://www.isc.org/downloads/software-support-policy/"
+        >https://www.isc.org/downloads/software-support-policy/</ulink>
+    </para>
+  </sect2>
   <sect2 id="relnotes_thanks">
     <title>Thank You</title>
     <para>
