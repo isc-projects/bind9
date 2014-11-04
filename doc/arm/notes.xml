@@ -254,6 +254,11 @@
           disabled with <command>check-names no</command>.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Added support for OPENPGPKEY type.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_bugs">
