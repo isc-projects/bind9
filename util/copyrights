@@ -2806,6 +2806,8 @@
 ./lib/dns/rdata/generic/null_10.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/nxt_30.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009
 ./lib/dns/rdata/generic/nxt_30.h		C	1999,2000,2001,2002,2004,2005,2007
+./lib/dns/rdata/generic/openpgpkey_61.c		C	2014
+./lib/dns/rdata/generic/openpgpkey_61.h		C	2014
 ./lib/dns/rdata/generic/opt_41.c		C	1998,1999,2000,2001,2002,2004,2005,2007,2009,2011,2012,2013,2014
 ./lib/dns/rdata/generic/opt_41.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/proforma.c		C	1998,1999,2000,2001,2002,2004,2007,2009
@@ -3225,6 +3227,7 @@
 ./lib/isc/tests/pool_test.c			C	2013
 ./lib/isc/tests/print_test.c			C	2014
 ./lib/isc/tests/queue_test.c			C	2011,2012
+./lib/isc/tests/radix_test.c			C	2014
 ./lib/isc/tests/regex_test.c			C	2013
 ./lib/isc/tests/safe_test.c			C	2013
 ./lib/isc/tests/sockaddr_test.c			C	2012
