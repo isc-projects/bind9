@@ -1,3 +1,5 @@
+3997.	[protocol]	Add OPENGPGKEY record. [RT# 37671]
+
 3996.	[bug]		Address use after free on out of memory error in
 			keyring_add. [RT #37639]
 
