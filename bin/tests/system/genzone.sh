@@ -252,6 +252,12 @@ cdnskey01		CDNSKEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
 				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
 				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )
 
+; type 61
+openpgpkey		OPENPGPKEY	( AQMFD5raczCJHViKtLYhWGz8hMY
+				9UGRuniJDBzC7w0aRyzWZriO6i2odGWWQVucZqKV
+				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
+				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )
+
 ; type 249
 ; TKEY is a meta-type and should never occur in master files.
 ; The text representation is not specified in the draft.

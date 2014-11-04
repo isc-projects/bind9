@@ -67,6 +67,7 @@ nsec01.example.		3600	IN	NSEC	a.secure.nil. NS SOA MX LOC RRSIG NSEC DNSKEY
 nsec02.example.		3600	IN	NSEC	. NSAP-PTR NSEC
 nsec03.example.		3600	IN	NSEC	. A
 nsec04.example.		3600	IN	NSEC	. TYPE127
+openpgpkey.example.	3600	IN	OPENPGPKEY  AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aRyzWZriO6i2od GWWQVucZqKVsENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esga60z yGW6LFe9r8n6paHrlG5ojqf0BaqHT+8=
 ptr01.example.		3600	IN	PTR	example.
 px01.example.		3600	IN	PX	65535 foo. bar.
 px02.example.		3600	IN	PX	65535 . .
