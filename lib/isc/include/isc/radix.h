@@ -32,7 +32,7 @@
 #ifndef _RADIX_H
 #define _RADIX_H
 
-#define NETADDR_TO_PREFIX_T(na,pt,bits,isecs) \
+#define NETADDR_TO_PREFIX_T(na,pt,bits,is_ecs)	\
 	do { \
 		memset(&(pt), 0, sizeof(pt)); \
 		if((na) != NULL) { \
@@ -48,7 +48,7 @@
 			(pt).family = AF_UNSPEC; \
 			(pt).bitlen = 0; \
 		} \
-		(pt).ecs = isecs; \
+		(pt).ecs = is_ecs; \
 		isc_refcount_init(&(pt).refcount, 0); \
 	} while(0)
 
