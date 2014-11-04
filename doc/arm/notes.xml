@@ -82,6 +82,11 @@
           to make it easier to diagnose problems.
         </para>
       </listitem>
+      <listitem>
+	<para>
+	  Added support for OPENPGPKEY type.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_bugs">
