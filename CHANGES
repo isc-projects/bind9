@@ -1,5 +1,5 @@
 3998.	[bug]		isc_radix_search was returning matches that were
-			to precise. [RT #37680]
+			too precise. [RT #37680]
 
 3997.	[protocol]	Add OPENGPGKEY record. [RT# 37671]
 
