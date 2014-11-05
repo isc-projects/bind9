@@ -5454,7 +5454,7 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
  * Only perform the update if the client is in the allow query acl and
  * returning the update would not cause a DNSSEC validation failure.
  */
-static isc_boolean_t
+static isc_result_t
 redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	 dns_dbnode_t **nodep, dns_db_t **dbp, dns_dbversion_t **versionp,
 	 dns_rdatatype_t qtype)
@@ -5473,7 +5473,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	CTRACE("redirect");
 
 	if (client->view->redirect == NULL)
-		return (ISC_FALSE);
+		return (ISC_R_NOTFOUND);
 
 	dns_fixedname_init(&fixed);
 	found = dns_fixedname_name(&fixed);
@@ -5483,15 +5483,15 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_clientinfo_init(&ci, client);
 
 	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
-		return (ISC_FALSE);
+		return (ISC_R_NOTFOUND);
 
 	if (WANTDNSSEC(client) && dns_rdataset_isassociated(rdataset)) {
 		if (rdataset->trust == dns_trust_secure)
-			return (ISC_FALSE);
+			return (ISC_R_NOTFOUND);
 		if (rdataset->trust == dns_trust_ultimate &&
 		    (rdataset->type == dns_rdatatype_nsec ||
 		     rdataset->type == dns_rdatatype_nsec3))
-			return (ISC_FALSE);
+			return (ISC_R_NOTFOUND);
 		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 			for (result = dns_rdataset_first(rdataset);
 			     result == ISC_R_SUCCESS;
@@ -5502,7 +5502,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 				if (type == dns_rdatatype_nsec ||
 				    type == dns_rdatatype_nsec3 ||
 				    type == dns_rdatatype_rrsig)
-					return (ISC_FALSE);
+					return (ISC_R_NOTFOUND);
 			}
 		}
 	}
@@ -5511,16 +5511,16 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 				 dns_zone_getqueryacl(client->view->redirect),
 					  ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
-		return (ISC_FALSE);
+		return (ISC_R_NOTFOUND);
 
 	result = dns_zone_getdb(client->view->redirect, &db);
 	if (result != ISC_R_SUCCESS)
-		return (ISC_FALSE);
+		return (ISC_R_NOTFOUND);
 
 	dbversion = query_findversion(client, db);
 	if (dbversion == NULL) {
 		dns_db_detach(&db);
-		return (ISC_FALSE);
+		return (ISC_R_NOTFOUND);
 	}
 
 	/*
@@ -5529,16 +5529,22 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	result = dns_db_findext(db, client->query.qname, dbversion->version,
 				qtype, 0, client->now, &node, found, &cm, &ci,
 				&trdataset, NULL);
-	if (result != ISC_R_SUCCESS) {
+	if (result == DNS_R_NXRRSET || result == DNS_R_NCACHENXRRSET) {
+		if (dns_rdataset_isassociated(rdataset))
+			dns_rdataset_disassociate(rdataset);
+		if (dns_rdataset_isassociated(&trdataset))
+			dns_rdataset_disassociate(&trdataset);
+		goto nxrrset;
+	} else if (result != ISC_R_SUCCESS) {
 		if (dns_rdataset_isassociated(&trdataset))
 			dns_rdataset_disassociate(&trdataset);
 		if (node != NULL)
 			dns_db_detachnode(db, &node);
 		dns_db_detach(&db);
-		return (ISC_FALSE);
+		return (ISC_R_NOTFOUND);
 	}
-	CTRACE("redirect: found data: done");
 
+	CTRACE("redirect: found data: done");
 	dns_name_copy(found, name, NULL);
 	if (dns_rdataset_isassociated(rdataset))
 		dns_rdataset_disassociate(rdataset);
@@ -5546,6 +5552,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_rdataset_clone(&trdataset, rdataset);
 		dns_rdataset_disassociate(&trdataset);
 	}
+ nxrrset:
 	if (*nodep != NULL)
 		dns_db_detachnode(*dbp, nodep);
 	dns_db_detach(dbp);
@@ -5558,7 +5565,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 				     NS_QUERYATTR_NOADDITIONAL);
 
-	return (ISC_TRUE);
+	return (result);
 }
 
 /*
@@ -5585,7 +5592,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	int order;
 	isc_buffer_t *dbuf;
 	isc_buffer_t b;
-	isc_result_t result, eresult;
+	isc_result_t result, eresult, tresult;
 	dns_fixedname_t fixed;
 	dns_fixedname_t wildcardname;
 	dns_dbversion_t *version, *zversion;
@@ -5600,6 +5607,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	int line = -1;
 	isc_boolean_t dns64_exclude, dns64;
 	isc_boolean_t nxrewrite = ISC_FALSE;
+	isc_boolean_t redirected = ISC_FALSE;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
 	isc_boolean_t associated;
@@ -5786,7 +5794,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		dns_db_t *tdb = NULL;
 		dns_zone_t *tzone = NULL;
 		dns_dbversion_t *tversion = NULL;
-		isc_result_t tresult;
 
 		tresult = query_getzonedb(client, client->query.qname, qtype,
 					 DNS_GETDB_PARTIAL, &tzone, &tdb,
@@ -6539,6 +6546,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * Look for a NSEC3 record if we don't have a NSEC record.
 		 */
  nxrrset_rrsig:
+		if (redirected)
+			goto cleanup;
 		if (!dns_rdataset_isassociated(rdataset) &&
 		     WANTDNSSEC(client)) {
 			if ((fname->attributes & DNS_NAMEATTR_WILDCARD) == 0) {
@@ -6659,10 +6668,21 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	case DNS_R_NXDOMAIN:
 		INSIST(is_zone);
-		if (!empty_wild &&
-		    redirect(client, fname, rdataset, &node, &db, &version,
-			     type))
-			break;
+		if (!empty_wild) {
+			tresult = redirect(client, fname, rdataset, &node,
+					   &db, &version, type);
+			if (tresult == ISC_R_SUCCESS)
+				break;
+			if (tresult == DNS_R_NXRRSET) {
+				redirected = ISC_TRUE;
+				goto iszone_nxrrset;
+			}
+			if (tresult == DNS_R_NCACHENXRRSET) {
+				redirected = ISC_TRUE;
+				is_zone = ISC_FALSE;
+				goto ncache_nxrrset;
+			}
+		}
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
 			 * If we've got a NSEC record, we need to save the
@@ -6725,9 +6745,22 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		goto cleanup;
 
 	case DNS_R_NCACHENXDOMAIN:
-		if (redirect(client, fname, rdataset, &node, &db, &version,
-			     type))
+		tresult = redirect(client, fname, rdataset, &node,
+				   &db, &version, type);
+		if (tresult == ISC_R_SUCCESS)
 			break;
+		if (tresult == DNS_R_NXRRSET) {
+			redirected = ISC_TRUE;
+			is_zone = ISC_TRUE;
+			goto iszone_nxrrset;
+		}
+		if (tresult == DNS_R_NCACHENXRRSET) {
+			redirected = ISC_TRUE;
+			result = tresult;
+			goto ncache_nxrrset;
+		}
+		/* FALLTHROUGH */
+
 	case DNS_R_NCACHENXRRSET:
 	ncache_nxrrset:
 		INSIST(!is_zone);
