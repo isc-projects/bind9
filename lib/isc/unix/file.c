@@ -69,6 +69,7 @@
 #include <isc/file.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/sha2.h>
 #include <isc/string.h>

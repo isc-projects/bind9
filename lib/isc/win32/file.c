@@ -32,6 +32,7 @@
 
 #include <isc/file.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/time.h>
 #include <isc/util.h>
