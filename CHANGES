@@ -1,3 +1,6 @@
+4000.	[bug]		NXDOMAIN redirection incorrectly handled NXRRSET
+			from the redirect zone. [RT #37722]
+
 3999.	[func]		"mkeys" and "nzf" files are now named after
 			their corresponding views, unless the view name
 			contains characters that would be incompatible
