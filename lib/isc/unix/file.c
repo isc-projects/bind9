@@ -720,8 +720,8 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 	 * plus null terminator)
 	 */
 	if (l < 65)
-		l = 65; 
-		
+		l = 65;
+
 	if (dir != NULL)
 		l += strlen(dir) + 1;
 	if (ext != NULL)
