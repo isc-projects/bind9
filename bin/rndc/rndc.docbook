@@ -699,10 +699,13 @@
           </para>
           <para>
             The configuration is saved in a file called
-           <filename><replaceable>hash</replaceable>.nzf</filename>,
-            where <replaceable>hash</replaceable> is a
-            cryptographic hash generated from the name of
-            the view.  When <command>named</command> is
+            <filename><replaceable>name</replaceable>.nzf</filename>,
+            where <replaceable>name</replaceable> is the
+            name of the view, or if it contains characters
+            that are incompatible with use as a file name, a
+            cryptographic hash generated from the name
+            of the view.
+            When <command>named</command> is
             restarted, the file will be loaded into the view
             configuration, so that zones that were added
             can persist after a restart.

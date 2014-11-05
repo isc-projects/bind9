@@ -1906,8 +1906,6 @@ dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
 	dst_key_free(&key);
 }
 
-#define NZF ".nzf"
-
 void
 dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 		     void (*cfg_destroy)(void **))
@@ -1926,13 +1924,17 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	}
 
 	if (allow) {
-		char buffer[ISC_SHA256_DIGESTSTRINGLENGTH + sizeof(NZF)];
-		isc_sha256_data((void *)view->name, strlen(view->name), buffer);
-		/* Truncate the hash at 16 chars; full length is overkill */
-		isc_string_printf(buffer + 16, sizeof(NZF), "%s", NZF);
-		view->new_zone_file = isc_mem_strdup(view->mctx, buffer);
-		view->new_zone_config = cfgctx;
-		view->cfg_destroy = cfg_destroy;
+		isc_result_t result;
+		char buffer[1024];
+
+		result = isc_file_sanitize(NULL, view->name, "nzf",
+					   buffer, sizeof(buffer));
+		if (result == ISC_R_SUCCESS) {
+			view->new_zone_file = isc_mem_strdup(view->mctx,
+							     buffer);
+			view->new_zone_config = cfgctx;
+			view->cfg_destroy = cfg_destroy;
+		}
 	}
 }
 

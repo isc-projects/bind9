@@ -5156,9 +5156,18 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		then managed keys for the server will be tracked in a single
 		file called <filename>managed-keys.bind</filename>.
 		Otherwise, managed keys will be tracked in separate files,
-		one file per view; each file name will be the SHA256 hash
-		of the view name, followed by the extension
+		one file per view; each file name will be the view name
+		(or, if it contains characters that are incompatible with
+		use as a file name, the SHA256 hash of the view name),
+		followed by the extension
 		<filename>.mkeys</filename>.
+	      </para>
+	      <para>
+		(Note: in previous releases, file names for views
+		always used the SHA256 hash of the view name. To ensure
+		compatibility after upgrade, if a file using the old
+		name format is found to exist, it will be used instead
+		of the new format.)
 	      </para>
 	    </listitem>
 	  </varlistentry>

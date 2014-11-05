@@ -1,3 +1,14 @@
+3999.	[func]		"mkeys" and "nzf" files are now named after
+			their corresponding views, unless the view name
+			contains characters that would be incompatible
+			with use in a filename (i.e., slash, backslash,
+			or capital letters). If a view name does contain
+			these characters, the files will still be named
+			using a cryptographic hash of the view name.
+			Regardless of this, if a file using the old name
+			format is found to exist, it will continue to be
+			used. [RT #37704]
+
 3998.	[bug]		isc_radix_search was returning matches that were
 			too precise. [RT #37680]
 

@@ -259,6 +259,22 @@
 	  Added support for OPENPGPKEY type.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The names of the files used to store managed keys and added
+	  zones for each view are no longer based on the SHA256 hash
+	  of the view name, except when this is necessary because the
+	  view name contains characters that would be incompatible with use
+	  as a file name.  For views whose names do not contain forward
+	  slashes ('/'), backslashes ('\'), or capital letters - which
+	  could potentially cause namespace collision problems on
+	  case-insensitive filesystems - files will now be named
+	  after the view (for example, <filename>internal.mkeys</filename>
+	  or <filename>external.nzf</filename>).  However, to ensure
+	  consistent behavior when upgrading, if a file using the old
+	  name format is found to exist, it will continue to be used.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_bugs">

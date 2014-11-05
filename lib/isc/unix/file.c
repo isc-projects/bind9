@@ -70,6 +70,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/random.h>
+#include <isc/sha2.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -694,4 +695,73 @@ isc_file_munmap(void *addr, size_t len) {
 	free(addr);
 	return (0);
 #endif
+}
+
+#define DISALLOW "\\/ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
+
+isc_result_t
+isc_file_sanitize(const char *dir, const char *base, const char *ext,
+		  char *path, size_t length)
+{
+	char buf[PATH_MAX], hash[PATH_MAX];
+	size_t l = 0;
+
+	REQUIRE(base != NULL);
+	REQUIRE(path != NULL);
+
+	l = strlen(base) + 1;
+
+	/*
+	 * allow room for a full sha256 hash (64 chars
+	 * plus null terminator)
+	 */
+	if (l < 65)
+		l = 65; 
+		
+	if (dir != NULL)
+		l += strlen(dir) + 1;
+	if (ext != NULL)
+		l += strlen(ext) + 1;
+
+	if (l > length || l > PATH_MAX)
+		return (ISC_R_NOSPACE);
+
+	/* Check whether the full-length SHA256 hash filename exists */
+	isc_sha256_data((const void *) base, strlen(base), hash);
+	snprintf(buf, sizeof(buf), "%s%s%s%s%s",
+		dir != NULL ? dir : "", dir != NULL ? "/" : "",
+		hash, ext != NULL ? "." : "", ext != NULL ? ext : "");
+	if (isc_file_exists(buf)) {
+		strlcpy(path, buf, length);
+		return (ISC_R_SUCCESS);
+	}
+
+	/* Check for a truncated SHA256 hash filename */
+	hash[16] = '\0';
+	snprintf(buf, sizeof(buf), "%s%s%s%s%s",
+		dir != NULL ? dir : "", dir != NULL ? "/" : "",
+		hash, ext != NULL ? "." : "", ext != NULL ? ext : "");
+	if (isc_file_exists(buf)) {
+		strlcpy(path, buf, length);
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * If neither hash filename already exists, then we'll use
+	 * the original base name if it has no disallowed characters,
+	 * or the truncated hash name if it does.
+	 */
+	if (strpbrk(base, DISALLOW) != NULL) {
+		strlcpy(path, buf, length);
+		return (ISC_R_SUCCESS);
+	}
+
+	snprintf(buf, sizeof(buf), "%s%s%s%s%s",
+		dir != NULL ? dir : "", dir != NULL ? "/" : "",
+		base, ext != NULL ? "." : "", ext != NULL ? ext : "");
+	strlcpy(path, buf, length);
+	return (ISC_R_SUCCESS);
 }

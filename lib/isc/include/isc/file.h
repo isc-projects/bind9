@@ -365,6 +365,35 @@ isc_file_munmap(void *addr, size_t len);
  * this platform, then we simply free the memory.
  */
 
+isc_result_t
+isc_file_sanitize(const char *dir, const char *base, const char *ext,
+		  char *path, size_t length);
+/*%<
+ * Generate a sanitized filename, such as for MKEYS or NZF files.
+ *
+ * Historically, MKEYS and NZF files used SHA256 hashes of the view
+ * name for the filename; this was to deal with the possibility of
+ * forbidden characters such as "/" being in a view name, and to
+ * avoid problems with case-insensitive file systems.
+ *
+ * Given a basename 'base' and an extension 'ext', this function checks
+ * for the existence of file using the old-style name format in directory
+ * 'dir'. If found, it returns the path to that file.  If there is no
+ * file already in place, a new pathname is generated; if the basename
+ * contains any excluded characters, then a truncated SHA256 hash is
+ * used, otherwise the basename is used.  The path name is copied
+ * into 'path', which must point to a buffer of at least 'length'
+ * bytes.
+ *
+ * Requires:
+ * - base != NULL
+ * - path != NULL
+ *
+ * Returns:
+ * - ISC_R_SUCCESS on success
+ * - ISC_R_NOSPACE if the resulting path would be longer than 'length'
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_FILE_H */

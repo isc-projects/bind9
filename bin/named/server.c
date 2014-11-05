@@ -4569,9 +4569,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
  * Configure built-in zone for storing managed-key data.
  */
 
-#define KEYZONE "managed-keys.bind"
-#define MKEYS ".mkeys"
-
 static isc_result_t
 add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	isc_result_t result;
@@ -4579,8 +4576,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	dns_zone_t *zone = NULL;
 	dns_acl_t *none = NULL;
 	char filename[PATH_MAX];
-	char buffer[ISC_SHA256_DIGESTSTRINGLENGTH + sizeof(MKEYS)];
-	int n;
+	isc_boolean_t defaultview;
 
 	REQUIRE(view != NULL);
 
@@ -4604,15 +4600,11 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	CHECK(dns_zonemgr_createzone(ns_g_server->zonemgr, &zone));
 	CHECK(dns_zone_setorigin(zone, dns_rootname));
 
-	isc_sha256_data((void *)view->name, strlen(view->name), buffer);
-	strcat(buffer, MKEYS);
-	n = snprintf(filename, sizeof(filename), "%s%s%s",
-		     directory ? directory : "", directory ? "/" : "",
-		     strcmp(view->name, "_default") == 0 ? KEYZONE : buffer);
-	if (n < 0 || (size_t)n >= sizeof(filename)) {
-		result = (n < 0) ? ISC_R_FAILURE : ISC_R_NOSPACE;
-		goto cleanup;
-	}
+	defaultview = ISC_TF(strcmp(view->name, "_default") == 0);
+	CHECK(isc_file_sanitize(directory,
+				defaultview ? "managed-keys" : view->name,
+				defaultview ? "bind" : "mkeys",
+				filename, sizeof(filename)));
 	CHECK(dns_zone_setfile(zone, filename));
 
 	dns_zone_setview(zone, view);

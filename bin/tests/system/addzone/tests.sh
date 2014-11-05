@@ -261,7 +261,7 @@ status=`expr $status + $ret`
 
 echo "I:checking new nzf file has comment ($n)"
 ret=0
-hcount=`grep "^# New zone file for view: external" ns2/3c4623849a49a539.nzf | wc -l`
+hcount=`grep "^# New zone file for view: external" ns2/external.nzf | wc -l`
 [ $hcount -eq 1 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi

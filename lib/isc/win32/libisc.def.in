@@ -230,6 +230,7 @@ isc_file_rename
 isc_file_renameunique
 isc_file_safecreate
 isc_file_safemovefile
+isc_file_sanitize
 isc_file_settime
 isc_file_splitpath
 isc_file_template
