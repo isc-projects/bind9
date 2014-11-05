@@ -184,6 +184,13 @@
 	  corrected at run time. [RT #37187]
         </para>
       </listitem>
+      <listitem>
+        <para>
+	  When NXDOMAIN redirection is in use, queries for a name
+	  that is present in the redirection zone but a type that
+	  is not present will now return NOERROR instead of NXDOMAIN.
+        </para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">

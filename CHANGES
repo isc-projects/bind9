@@ -1,3 +1,6 @@
+4000.	[bug]		NXDOMAIN redirection incorrectly handled NXRRSET
+			from the redirect zone. [RT #37722]
+
 3998.	[bug]		isc_radix_search was returning matches that were
 			too precise. [RT #37680]
 
