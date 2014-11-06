@@ -311,8 +311,8 @@ chacha_getuint16(isc_rng_t *rng) {
 	if (rng->have < sizeof(val))
 		chacha_rekey(rng, NULL, 0);
 
-	memcpy(&val, rng->buffer + CHACHA_BUFFERSIZE - rng->have,
-	       sizeof(val));
+	memmove(&val, rng->buffer + CHACHA_BUFFERSIZE - rng->have,
+		sizeof(val));
 	/* Clear the copied region. */
 	memset(rng->buffer + CHACHA_BUFFERSIZE - rng->have,
 	       0, sizeof(val));
