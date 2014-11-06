@@ -15,9 +15,11 @@
  */
 
 #include <config.h>
-#include <stdlib.h>
-#include <unistd.h>
+
 #include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include <atf-c.h>
 
@@ -44,6 +46,8 @@ ATF_TC_HEAD(isc_file_sanitize, tc) {
 ATF_TC_BODY(isc_file_sanitize, tc) {
 	isc_result_t result;
 	char buf[1024];
+
+	ATF_CHECK(chdir(TESTS) != -1);
 
 	unlink(F(TRUNC_SHA));
 	unlink(F(SHA));
