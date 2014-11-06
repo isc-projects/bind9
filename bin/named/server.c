@@ -9327,7 +9327,7 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	for (i = 0; i < n; i++)
 		isc_random_get(&rnd.rnd32[i]);
 
-	memcpy(salt, rnd.rnd, saltlen);
+	memmove(salt, rnd.rnd, saltlen);
 
 	r.base = rnd.rnd;
 	r.length = (unsigned int) saltlen;
