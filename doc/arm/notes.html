@@ -176,6 +176,11 @@
           active trust anchors, without relying on any cached
           record of previous validation. [RT #37506]
         </p></li>
+<li><p>
+	  When NXDOMAIN redirection is in use, queries for a name
+	  that is present in the redirection zone but a type that
+	  is not present will now return NOERROR instead of NXDOMAIN.
+        </p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
