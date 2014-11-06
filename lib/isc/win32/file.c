@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2009, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2009, 2011-2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -790,8 +790,8 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 	 * plus null terminator)
 	 */
 	if (l < 65)
-		l = 65; 
-		
+		l = 65;
+
 	if (dir != NULL)
 		l += strlen(dir) + 1;
 	if (ext != NULL)
