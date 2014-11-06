@@ -399,9 +399,9 @@ string specified on the command line is the zone configuration text that would o
 \fInamed.conf\fR.
 .sp
 The configuration is saved in a file called
-\fI\fIhash\fR\fR\fI.nzf\fR, where
-\fIhash\fR
-is a cryptographic hash generated from the name of the view. When
+\fI\fIname\fR\fR\fI.nzf\fR, where
+\fIname\fR
+is the name of the view, or if it contains characters that are incompatible with use as a file name, a cryptographic hash generated from the name of the view. When
 \fBnamed\fR
 is restarted, the file will be loaded into the view configuration, so that zones that were added can persist after a restart.
 .sp

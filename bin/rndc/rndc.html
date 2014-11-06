@@ -475,10 +475,13 @@
           </p>
 <p>
             The configuration is saved in a file called
-           <code class="filename"><em class="replaceable"><code>hash</code></em>.nzf</code>,
-            where <em class="replaceable"><code>hash</code></em> is a
-            cryptographic hash generated from the name of
-            the view.  When <span><strong class="command">named</strong></span> is
+            <code class="filename"><em class="replaceable"><code>name</code></em>.nzf</code>,
+            where <em class="replaceable"><code>name</code></em> is the
+            name of the view, or if it contains characters
+            that are incompatible with use as a file name, a
+            cryptographic hash generated from the name
+            of the view.
+            When <span><strong class="command">named</strong></span> is
             restarted, the file will be loaded into the view
             configuration, so that zones that were added
             can persist after a restart.
