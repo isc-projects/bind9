@@ -196,6 +196,11 @@
 	  buffer size that was too large.  This is now detected and
 	  corrected at run time. [RT #37187]
         </p></li>
+<li><p>
+	  When NXDOMAIN redirection is in use, queries for a name
+	  that is present in the redirection zone but a type that
+	  is not present will now return NOERROR instead of NXDOMAIN.
+        </p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
