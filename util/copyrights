@@ -753,7 +753,7 @@
 ./bin/tests/system/addzone/ns2/normal.db	ZONE	2010
 ./bin/tests/system/addzone/ns2/previous.db	ZONE	2010
 ./bin/tests/system/addzone/setup.sh		SH	2010,2012,2013,2014
-./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013
+./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013,2014
 ./bin/tests/system/allow_query/clean.sh		SH	2010,2012
 ./bin/tests/system/allow_query/ns2/aclallow.db	ZONE	2010
 ./bin/tests/system/allow_query/ns2/acldisallow.db	ZONE	2010
@@ -1564,7 +1564,7 @@
 ./bin/tests/system/redirect/ns2/redirect.db.in	ZONE	2011.2013,2013
 ./bin/tests/system/redirect/prereq.sh		SH	2014
 ./bin/tests/system/redirect/setup.sh		SH	2011,2012,2013,2014
-./bin/tests/system/redirect/tests.sh		SH	2011,2012,2013
+./bin/tests/system/redirect/tests.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/relay/README			TXT.BRIEF	2000,2001,2004
 ./bin/tests/system/relay/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/relay/ns1/named.conf		CONF-C	2000,2001,2004,2007
@@ -3628,6 +3628,7 @@
 ./lib/isc/tests/Atffile				X	2011
 ./lib/isc/tests/Makefile.in			MAKE	2011,2012,2013,2014
 ./lib/isc/tests/aes_test.c			C	2014
+./lib/isc/tests/file_test.c			C	2014
 ./lib/isc/tests/hash_test.c			C	2011,2012,2013,2014
 ./lib/isc/tests/isctest.c			C	2011,2012,2013,2014
 ./lib/isc/tests/isctest.h			C	2011,2012
@@ -3645,6 +3646,7 @@
 ./lib/isc/tests/symtab_test.c			C	2011,2012,2013
 ./lib/isc/tests/task_test.c			C	2011,2012
 ./lib/isc/tests/taskpool_test.c			C	2011,2012
+./lib/isc/tests/testdata/file/keep		X	2014
 ./lib/isc/tests/time_test.c			C	2014
 ./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008,2009,2011,2012,2013,2014
 ./lib/isc/timer_p.h				C	2000,2001,2004,2005,2007,2009
@@ -3698,7 +3700,7 @@
 ./lib/isc/win32/entropy.c			C	2000,2001,2002,2004,2007,2009,2013
 ./lib/isc/win32/errno2result.c			C	2000,2001,2002,2004,2005,2007,2008,2013
 ./lib/isc/win32/errno2result.h			C	2000,2001,2004,2005,2007
-./lib/isc/win32/file.c				C	2000,2001,2002,2004,2007,2009,2011,2012,2013
+./lib/isc/win32/file.c				C	2000,2001,2002,2004,2007,2009,2011,2012,2013,2014
 ./lib/isc/win32/fsaccess.c			C	2000,2001,2002,2004,2007,2013
 ./lib/isc/win32/include/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012,2014
 ./lib/isc/win32/include/isc/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012,2013,2014
