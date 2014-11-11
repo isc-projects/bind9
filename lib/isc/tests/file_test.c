@@ -46,6 +46,7 @@ ATF_TC_HEAD(isc_file_sanitize, tc) {
 ATF_TC_BODY(isc_file_sanitize, tc) {
 	isc_result_t result;
 	char buf[1024];
+	int fd;
 
 	ATF_CHECK(chdir(TESTS) != -1);
 
@@ -56,15 +57,19 @@ ATF_TC_BODY(isc_file_sanitize, tc) {
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(strcmp(buf, F(NAME)) == 0);
 
-	ATF_CHECK(creat(F(TRUNC_SHA), 0644) != -1);
+	fd = creat(F(TRUNC_SHA), 0644);
+	ATF_CHECK(fd != -1);
 	result = isc_file_sanitize("testdata/file", NAME, "test", buf, 1024);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(strcmp(buf, F(TRUNC_SHA)) == 0);
+	close(fd);
 
-	ATF_CHECK(creat(F(SHA), 0644) != -1);
+	fd = creat(F(SHA), 0644);
+	ATF_CHECK(fd != -1);
 	result = isc_file_sanitize("testdata/file", NAME, "test", buf, 1024);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(strcmp(buf, F(SHA)) == 0);
+	close(fd);
 
 	result = isc_file_sanitize("testdata/file", BAD1, "test", buf, 1024);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
