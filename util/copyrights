@@ -853,6 +853,7 @@
 ./bin/tests/system/autosign/prereq.sh		SH	2009,2010,2012,2014
 ./bin/tests/system/autosign/setup.sh		SH	2009,2010,2012,2014
 ./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011,2012,2013,2014
+./bin/tests/system/builtin/.gitignore		X	2014
 ./bin/tests/system/builtin/Makefile.in		MAKE	2014
 ./bin/tests/system/builtin/clean.sh		SH	2014
 ./bin/tests/system/builtin/gethostname.c	C	2014
@@ -2913,7 +2914,7 @@
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
 ./doc/misc/sort-options.pl			PERL	2007,2012
-./doc/xsl/.gitignore				X	2012
+./doc/xsl/.gitignore				X	2012,2014
 ./doc/xsl/Makefile.in				MAKE	2005,2007,2012,2014
 ./doc/xsl/copyright.xsl				SGML	2005,2007,2009
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005,2007,2014
@@ -4259,6 +4260,7 @@
 ./unit/atf-src/atf-run/user.hpp			X	2011,2013
 ./unit/atf-src/atf-run/user_test.cpp		X	2011,2013
 ./unit/atf-src/atf-run/zero_tcs_helper.c	X	2011,2013
+./unit/atf-src/atf-sh/.gitignore		X	2014
 ./unit/atf-src/atf-sh/Atffile			X	2011
 ./unit/atf-src/atf-sh/Kyuafile			X	2013
 ./unit/atf-src/atf-sh/Makefile.am.inc		X	2011,2013
