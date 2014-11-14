@@ -22,3 +22,4 @@ rm -f ns*/named.memstats
 rm -f ns*/named.run
 rm -f ns4/*.conf
 rm -f rndc.status
+rm -f rndc.output

@@ -384,5 +384,24 @@ $RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf nta -l 2h nta1.example 2>&1 | grep "
 $RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf nta -l 1d nta2.example 2>&1 | grep "Negative trust anchor added" > /dev/null || ret=1
 $RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf nta -l 1w nta3.example 2>&1 | grep "Negative trust anchor added" > /dev/null || ret=1
 $RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf nta -l 8d nta4.example 2>&1 | grep "NTA lifetime cannot exceed one week" > /dev/null || ret=1
-echo "I:exit status: $status"
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+for i in 512 1024 2048 4096 8192 16384 32768 65536 131072 262144 524288
+do
+	echo "I:testing rndc buffer size limits (size=${i})"
+	ret=0
+	$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf testgen ${i} 2>&1 > rndc.output || ret=1
+	actual_size=`./gencheck rndc.output`
+	if [ "$?" = "0" ]; then
+	    expected_size=`expr $i + 1`
+	    if [ $actual_size != $expected_size ]; then ret=1; fi
+	else
+	    ret=1
+	fi
+
+	if [ $ret != 0 ]; then echo "I:failed"; fi
+	status=`expr $status + $ret`
+done
+
 exit $status

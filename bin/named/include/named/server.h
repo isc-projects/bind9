@@ -235,7 +235,7 @@ ns_server_flushonshutdown(ns_server_t *server, isc_boolean_t flush);
  */
 
 isc_result_t
-ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t **text);
 /*%<
  * Act on a "reload" command from the command channel.
  */
@@ -247,20 +247,20 @@ ns_server_reconfigcommand(ns_server_t *server, char *args);
  */
 
 isc_result_t
-ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t **text);
 /*%<
  * Act on a "notify" command from the command channel.
  */
 
 isc_result_t
-ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t **text);
 /*%<
  * Act on a "refresh" command from the command channel.
  */
 
 isc_result_t
 ns_server_retransfercommand(ns_server_t *server, char *args,
-			    isc_buffer_t *text);
+			    isc_buffer_t **text);
 /*%<
  * Act on a "retransfer" command from the command channel.
  */
@@ -314,32 +314,32 @@ ns_server_flushnode(ns_server_t *server, char *args, isc_boolean_t tree);
  * Report the server's status.
  */
 isc_result_t
-ns_server_status(ns_server_t *server, isc_buffer_t *text);
+ns_server_status(ns_server_t *server, isc_buffer_t **text);
 
 /*%
  * Report a list of dynamic and static tsig keys, per view.
  */
 isc_result_t
-ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text);
+ns_server_tsiglist(ns_server_t *server, isc_buffer_t **text);
 
 /*%
  * Delete a specific key (with optional view).
  */
 isc_result_t
-ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t *text);
+ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t **text);
 
 /*%
  * Enable or disable updates for a zone.
  */
 isc_result_t
 ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
-		 isc_buffer_t *text);
+		 isc_buffer_t **text);
 
 /*%
  * Dump zone updates to disk, optionally removing the journal file
  */
 isc_result_t
-ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_sync(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Update a zone's DNSKEY set from the key repository.  If
@@ -349,7 +349,7 @@ ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text);
  * take place incrementally.
  */
 isc_result_t
-ns_server_rekey(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_rekey(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Dump the current recursive queries.
@@ -367,37 +367,44 @@ ns_add_reserved_dispatch(ns_server_t *server, const isc_sockaddr_t *addr);
  * Enable or disable dnssec validation.
  */
 isc_result_t
-ns_server_validation(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_validation(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Add a zone to a running process
  */
 isc_result_t
-ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Deletes a zone from a running process
  */
 isc_result_t
-ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Lists the status of the signing records for a given zone.
  */
 isc_result_t
-ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_signing(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Lists status information for a given zone (e.g., name, type, files,
  * load time, expiry, etc).
  */
 isc_result_t
-ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Adds a Negative Trust Anchor (NTA) for a specified name and
  * duration, in a particular view if specified, or in all views.
  */
 isc_result_t
-ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text);
+ns_server_nta(ns_server_t *server, char *args, isc_buffer_t **text);
+
+/*%
+ * Generates a test sequence that is only for use in system tests. The
+ * argument is the size of required output in bytes.
+ */
+isc_result_t
+ns_server_testgen(char *args, isc_buffer_t **text);
 #endif /* NAMED_SERVER_H */

@@ -68,6 +68,7 @@
 #define NS_COMMAND_SIGNING	"signing"
 #define NS_COMMAND_ZONESTATUS	"zonestatus"
 #define NS_COMMAND_NTA		"nta"
+#define NS_COMMAND_TESTGEN	"testgen"
 
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);
@@ -101,6 +102,6 @@ ns_controls_shutdown(ns_controls_t *controls);
  */
 
 isc_result_t
-ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text);
+ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t **text);
 
 #endif /* NAMED_CONTROL_H */

@@ -159,6 +159,8 @@ isc_buffer_getuint16
 isc_buffer_getuint32
 isc_buffer_getuint8
 isc_buffer_reinit
+isc_buffer_reallocate
+isc_buffer_reserve
 isc_bufferlist_availablecount
 isc_bufferlist_usedcount
 isc_commandline_parse

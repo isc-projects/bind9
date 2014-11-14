@@ -40,7 +40,7 @@ SRCS =		isctest.c taskpool_test.c socket_test.c hash_test.c \
 		sockaddr_test.c symtab_test.c task_test.c queue_test.c \
 		parse_test.c pool_test.c print_test.c regex_test.c \
 		socket_test.c safe_test.c time_test.c aes_test.c \
-		file_test.c
+		file_test.c buffer_test.c
 
 SUBDIRS =
 TARGETS =	taskpool_test@EXEEXT@ socket_test@EXEEXT@ hash_test@EXEEXT@ \
@@ -49,7 +49,7 @@ TARGETS =	taskpool_test@EXEEXT@ socket_test@EXEEXT@ hash_test@EXEEXT@ \
 		queue_test@EXEEXT@ parse_test@EXEEXT@ pool_test@EXEEXT@ \
 		print_test@EXEEXT@ regex_test@EXEEXT@ socket_test@EXEEXT@ \
 		safe_test@EXEEXT@ time_test@EXEEXT@ aes_test@EXEEXT@ \
-		file_test@EXEEXT@
+		file_test@EXEEXT@ buffer_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -124,6 +124,10 @@ aes_test@EXEEXT@: aes_test.@O@ ${ISCDEPLIBS}
 file_test@EXEEXT@: file_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			file_test.@O@ ${ISCLIBS} ${LIBS}
+
+buffer_test@EXEEXT@: buffer_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			buffer_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh

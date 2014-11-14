@@ -275,6 +275,14 @@
 	  name format is found to exist, it will continue to be used.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  "rndc" can now return text output of arbitrary size to
+	  the caller. (Prior to this, certain commands such as
+	  "rndc tsig-list" and "rndc zonestatus" could return
+	  truncated output.)
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_bugs">

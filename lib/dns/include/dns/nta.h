@@ -199,9 +199,9 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
  */
 
 isc_result_t
-dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t *buf);
+dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf);
 /*%<
- * Dump the NTA table to buffer 'buf'
+ * Dump the NTA table to buffer at 'buf'
  */
 
 isc_result_t

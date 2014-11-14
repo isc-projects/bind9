@@ -4535,6 +4535,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/lwresd/Makefile
 	bin/tests/system/resolver/Makefile
+	bin/tests/system/rndc/Makefile
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/rsabigexponent/Makefile
 	bin/tests/system/sit/prereq.sh

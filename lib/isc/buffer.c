@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.c,v 1.49 2008/09/25 04:02:39 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -465,6 +463,63 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 	*dynbuffer = dbuf;
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_buffer_reallocate(isc_buffer_t **dynbuffer, unsigned int length) {
+	isc_buffer_t *dbuf;
+
+	REQUIRE(dynbuffer != NULL);
+	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
+
+	if ((*dynbuffer)->length > length)
+		return (ISC_R_NOSPACE);
+
+	/*
+	 * XXXMUKS: This is far more expensive than plain realloc() as
+	 * it doesn't remap pages, but does ordinary copy. So is
+	 * isc_mem_reallocate(), which has additional issues.
+	 */
+	dbuf = isc_mem_get((*dynbuffer)->mctx, length + sizeof(isc_buffer_t));
+	if (dbuf == NULL)
+		return (ISC_R_NOMEMORY);
+
+	memmove(dbuf, *dynbuffer, (*dynbuffer)->length + sizeof(isc_buffer_t));
+	isc_mem_put(dbuf->mctx, *dynbuffer,
+		    (*dynbuffer)->length + sizeof(isc_buffer_t));
+
+	dbuf->base = ((unsigned char *)dbuf) + sizeof(isc_buffer_t);
+	dbuf->length = length;
+
+	INSIST(ISC_BUFFER_VALID(dbuf));
+
+	*dynbuffer = dbuf;
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
+	isc_uint64_t len;
+
+	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
+
+	len = (*dynbuffer)->length;
+	if ((len - (*dynbuffer)->used) > size)
+		return (ISC_R_SUCCESS);
+
+	/* Round to nearest buffer size increment */
+	len += size;
+	len = (len + ISC_BUFFER_INCR - 1 - ((len - 1) % ISC_BUFFER_INCR));
+
+	/* Cap at UINT_MAX */
+	if (len > UINT_MAX) {
+		len = UINT_MAX;
+		if ((len - (*dynbuffer)->used) < size)
+			return (ISC_R_NOMEMORY);
+	}
+
+	return (isc_buffer_reallocate(dynbuffer, (unsigned int) len));
 }
 
 void

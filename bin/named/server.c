@@ -155,7 +155,7 @@
 #define TCHECK(op) \
 	do { tresult = (op);					 \
 		if (tresult != ISC_R_SUCCESS) {			 \
-			isc_buffer_clear(text);			 \
+			isc_buffer_clear(*text);		 \
 			goto cleanup;	 			 \
 		}						 \
 	} while (0)
@@ -418,10 +418,16 @@ static void
 newzone_cfgctx_destroy(void **cfgp);
 
 static isc_result_t
-putstr(isc_buffer_t *b, const char *str);
+putstr(isc_buffer_t **b, const char *str);
 
 static isc_result_t
-putnull(isc_buffer_t *b);
+putmem(isc_buffer_t **b, const char *str, size_t len);
+
+static isc_result_t
+putuint8(isc_buffer_t **b, isc_uint8_t val);
+
+static isc_result_t
+putnull(isc_buffer_t **b);
 
 isc_result_t
 add_comment(FILE *fp, const char *viewname);
@@ -7138,7 +7144,7 @@ next_token(char **stringp, const char *delim) {
 static isc_result_t
 zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 	       dns_zone_t **zonep, const char **zonename,
-	       isc_buffer_t *text, isc_boolean_t skip)
+	       isc_buffer_t **text, isc_boolean_t skip)
 {
 	char *input, *ptr;
 	char *classtxt;
@@ -7243,7 +7249,7 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
  */
 isc_result_t
 ns_server_retransfercommand(ns_server_t *server, char *args,
-			    isc_buffer_t *text)
+			    isc_buffer_t **text)
 {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
@@ -7275,7 +7281,7 @@ ns_server_retransfercommand(ns_server_t *server, char *args,
  * Act on a "reload" command from the command channel.
  */
 isc_result_t
-ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t **text) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
@@ -7316,9 +7322,10 @@ ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 			}
 		}
 	}
-	if (msg != NULL && strlen(msg) < isc_buffer_availablelength(text))
-		isc_buffer_putmem(text, (const unsigned char *)msg,
-				  strlen(msg) + 1);
+	if (msg != NULL) {
+		putstr(text, msg);
+		putnull(text);
+	}
 	return (result);
 }
 
@@ -7337,10 +7344,10 @@ ns_server_reconfigcommand(ns_server_t *server, char *args) {
  * Act on a "notify" command from the command channel.
  */
 isc_result_t
-ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t **text) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
-	const unsigned char msg[] = "zone notify queued";
+	const char msg[] = "zone notify queued";
 
 	result = zone_from_args(server, args, NULL, &zone, NULL,
 				text, ISC_TRUE);
@@ -7351,8 +7358,8 @@ ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 	dns_zone_notify(zone);
 	dns_zone_detach(&zone);
-	if (sizeof(msg) <= isc_buffer_availablelength(text))
-		isc_buffer_putmem(text, msg, sizeof(msg));
+	putstr(text, msg);
+	putnull(text);
 
 	return (ISC_R_SUCCESS);
 }
@@ -7361,11 +7368,12 @@ ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text) {
  * Act on a "refresh" command from the command channel.
  */
 isc_result_t
-ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t **text)
+{
 	isc_result_t result;
 	dns_zone_t *zone = NULL, *raw = NULL;
-	const unsigned char msg1[] = "zone refresh queued";
-	const unsigned char msg2[] = "not a slave or stub zone";
+	const char msg1[] = "zone refresh queued";
+	const char msg2[] = "not a slave or stub zone";
 	dns_zonetype_t type;
 
 	result = zone_from_args(server, args, NULL, &zone, NULL,
@@ -7386,14 +7394,14 @@ ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	if (type == dns_zone_slave || type == dns_zone_stub) {
 		dns_zone_refresh(zone);
 		dns_zone_detach(&zone);
-		if (sizeof(msg1) <= isc_buffer_availablelength(text))
-			isc_buffer_putmem(text, msg1, sizeof(msg1));
+		putstr(text, msg1);
+		putnull(text);
 		return (ISC_R_SUCCESS);
 	}
 
 	dns_zone_detach(&zone);
-	if (sizeof(msg2) <= isc_buffer_availablelength(text))
-		isc_buffer_putmem(text, msg2, sizeof(msg2));
+	putstr(text, msg2);
+	putnull(text);
 	return (ISC_R_FAILURE);
 }
 
@@ -7969,7 +7977,7 @@ ns_server_setdebuglevel(ns_server_t *server, char *args) {
 }
 
 isc_result_t
-ns_server_validation(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_validation(ns_server_t *server, char *args, isc_buffer_t **text) {
 	char *ptr, *viewname;
 	dns_view_t *view;
 	isc_boolean_t changed = ISC_FALSE;
@@ -8016,29 +8024,16 @@ ns_server_validation(ns_server_t *server, char *args, isc_buffer_t *text) {
 			view->enablevalidation = enable;
 			changed = ISC_TRUE;
 		} else {
-			unsigned int n;
-			if (!first) {
-				n = snprintf((char *)isc_buffer_used(text),
-					     isc_buffer_availablelength(text),
-					     "\n");
-				if (n >= isc_buffer_availablelength(text)) {
-					result = ISC_R_NOSPACE;
-					goto out;
-				}
-				isc_buffer_add(text, n);
-			}
+			if (!first)
+				putstr(text, "\n");
+			putstr(text, "DNSSEC validation is ");
+			putstr(text, view->enablevalidation
+				       ? "enabled" : "disabled");
+			putstr(text, " (view ");
+			putstr(text, view->name);
+			putstr(text, ")");
+			putnull(text);
 			first = ISC_FALSE;
-			n = snprintf((char *)isc_buffer_used(text),
-				     isc_buffer_availablelength(text),
-				     "DNSSEC validation is %s (view %s)",
-				     view->enablevalidation ?
-				       "enabled" : "disabled",
-				     view->name);
-			if (n >= isc_buffer_availablelength(text)) {
-				result = ISC_R_NOSPACE;
-				goto out;
-			}
-			isc_buffer_add(text, n);
 		}
 	}
 
@@ -8280,12 +8275,12 @@ ns_server_flushnode(ns_server_t *server, char *args, isc_boolean_t tree) {
 }
 
 isc_result_t
-ns_server_status(ns_server_t *server, isc_buffer_t *text) {
+ns_server_status(ns_server_t *server, isc_buffer_t **text) {
+	isc_result_t result;
 	unsigned int zonecount, xferrunning, xferdeferred, soaqueries;
 	unsigned int automatic;
-	unsigned int n;
 	const char *ob = "", *cb = "", *alt = "";
-	char boottime[80], configtime[80];
+	char boottime[80], configtime[80], line[1024];
 
 	if (ns_g_server->version_set) {
 		ob = " (";
@@ -8310,40 +8305,93 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 	isc_time_formathttptimestamp(&ns_g_configtime, configtime,
 				     sizeof(configtime));
 
-	n = snprintf((char *)isc_buffer_used(text),
-		     isc_buffer_availablelength(text),
-		     "version: %s%s%s%s <id:%s>\n"
-		     "boot time: %s\n"
-		     "last configured: %s\n"
+	snprintf(line, sizeof(line), "version: %s%s%s%s <id:%s>\n",
+		 ns_g_version, ob, alt, cb, ns_g_srcid);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "boot time: %s\n", boottime);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "last configured: %s\n", configtime);
+	CHECK(putstr(text, line));
+
 #ifdef ISC_PLATFORM_USETHREADS
-		     "CPUs found: %u\n"
-		     "worker threads: %u\n"
-		     "UDP listeners per interface: %u\n"
+	snprintf(line, sizeof(line), "CPUs found: %u\n", ns_g_cpus_detected);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "worker threads: %u\n", ns_g_cpus);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "UDP listeners per interface: %u\n",
+		 ns_g_udpdisp);
+	CHECK(putstr(text, line));
+
 #endif
-		     "number of zones: %u (%u automatic)\n"
-		     "debug level: %d\n"
-		     "xfers running: %u\n"
-		     "xfers deferred: %u\n"
-		     "soa queries in progress: %u\n"
-		     "query logging is %s\n"
-		     "recursive clients: %d/%d/%d\n"
-		     "tcp clients: %d/%d\n"
-		     "server is up and running",
-		     ns_g_version, ob, alt, cb, ns_g_srcid,
-		     boottime, configtime,
-#ifdef ISC_PLATFORM_USETHREADS
-		     ns_g_cpus_detected, ns_g_cpus, ns_g_udpdisp,
-#endif
-		     zonecount, automatic, ns_g_debuglevel, xferrunning,
-		     xferdeferred, soaqueries,
-		     server->log_queries ? "ON" : "OFF",
+	snprintf(line, sizeof(line), "number of zones: %u (%u automatic)\n",
+		     zonecount, automatic);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "debug level: %d\n", ns_g_debuglevel);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "xfers running: %u\n", xferrunning);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "xfers deferred: %u\n", xferdeferred);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "soa queries in progress: %u\n",
+		     soaqueries);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "query logging is %s\n",
+		     server->log_queries ? "ON" : "OFF");
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "recursive clients: %d/%d/%d\n",
 		     server->recursionquota.used, server->recursionquota.soft,
-		     server->recursionquota.max,
+		     server->recursionquota.max);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "tcp clients: %d/%d\n",
 		     server->tcpquota.used, server->tcpquota.max);
-	if (n >= isc_buffer_availablelength(text))
-		return (ISC_R_NOSPACE);
-	isc_buffer_add(text, n);
+	CHECK(putstr(text, line));
+
+	CHECK(putstr(text, "server is up and running"));
+	CHECK(putnull(text));
+
 	return (ISC_R_SUCCESS);
+ cleanup:
+	return (result);
+}
+
+isc_result_t
+ns_server_testgen(char *args, isc_buffer_t **text) {
+	isc_result_t result;
+	char *ptr;
+	unsigned long count;
+	unsigned long i;
+	const unsigned char chars[] = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+	/* Skip the command name. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		count = 26;
+	else
+		count = strtoul(ptr, NULL, 10);
+
+	CHECK(isc_buffer_reserve(text, count));
+	for (i = 0; i < count; i++)
+		CHECK(putuint8(text, chars[i % (sizeof(chars) - 1)]));
+
+	CHECK(putnull(text));
+
+ cleanup:
+	return (result);
 }
 
 static isc_result_t
@@ -8410,13 +8458,12 @@ delete_keynames(dns_tsig_keyring_t *ring, char *target,
 }
 
 isc_result_t
-ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t *text) {
+ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t **text) {
 	isc_result_t result;
-	unsigned int n;
 	dns_view_t *view;
 	unsigned int foundkeys = 0;
-	char *target;
-	char *viewname;
+	char *target, *viewname;
+	char fbuf[16];
 
 	(void)next_token(&command, " \t");  /* skip command name */
 	target = next_token(&command, " \t");
@@ -8443,19 +8490,19 @@ ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t *text) {
 	}
 	isc_task_endexclusive(server->task);
 
-	n = snprintf((char *)isc_buffer_used(text),
-		     isc_buffer_availablelength(text),
-		     "%d tsig keys deleted.\n", foundkeys);
-	if (n >= isc_buffer_availablelength(text))
-		return (ISC_R_NOSPACE);
-	isc_buffer_add(text, n);
+	snprintf(fbuf, sizeof(fbuf), "%d", foundkeys);
 
-	return (ISC_R_SUCCESS);
+	CHECK(putstr(text, fbuf));
+	CHECK(putstr(text, " tsig keys deleted."));
+	CHECK(putnull(text));
+
+ cleanup:
+	return (result);
 }
 
 static isc_result_t
-list_keynames(dns_view_t *view, dns_tsig_keyring_t *ring, isc_buffer_t *text,
-	     unsigned int *foundkeys)
+list_keynames(dns_view_t *view, dns_tsig_keyring_t *ring, isc_buffer_t **text,
+	      unsigned int *foundkeys)
 {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char creatorstr[DNS_NAME_FORMATSIZE];
@@ -8466,7 +8513,6 @@ list_keynames(dns_view_t *view, dns_tsig_keyring_t *ring, isc_buffer_t *text,
 	dns_name_t *origin;
 	dns_rbtnode_t *node;
 	dns_tsigkey_t *tkey;
-	unsigned int n;
 	const char *viewname;
 
 	if (view != NULL)
@@ -8495,43 +8541,46 @@ list_keynames(dns_view_t *view, dns_tsig_keyring_t *ring, isc_buffer_t *text,
 		tkey = node->data;
 
 		if (tkey != NULL) {
-			(*foundkeys)++;
 			dns_name_format(&tkey->name, namestr, sizeof(namestr));
 			if (tkey->generated) {
 				dns_name_format(tkey->creator, creatorstr,
 						sizeof(creatorstr));
-				n = snprintf((char *)isc_buffer_used(text),
-					     isc_buffer_availablelength(text),
-					     "view \"%s\"; type \"dynamic\"; key \"%s\"; creator \"%s\";\n",
-					     viewname, namestr, creatorstr);
+				if (*foundkeys != 0)
+					putstr(text, "\n");
+				CHECK(putstr(text, "view \""));
+				CHECK(putstr(text, viewname));
+				CHECK(putstr(text,
+					     "\"; type \"dynamic\"; key \""));
+				CHECK(putstr(text, namestr));
+				CHECK(putstr(text, "\"; creator \""));
+				CHECK(putstr(text, creatorstr));
+				CHECK(putstr(text, "\";"));
 			} else {
-				n = snprintf((char *)isc_buffer_used(text),
-					     isc_buffer_availablelength(text),
-					     "view \"%s\"; type \"static\"; key \"%s\";\n",
-					     viewname, namestr);
+				if (*foundkeys != 0)
+					putstr(text, "\n");
+				CHECK(putstr(text, "view \""));
+				CHECK(putstr(text, viewname));
+				CHECK(putstr(text,
+					     "\"; type \"static\"; key \""));
+				CHECK(putstr(text, namestr));
+				CHECK(putstr(text, "\";"));
 			}
-			if (n >= isc_buffer_availablelength(text)) {
-				dns_rbtnodechain_invalidate(&chain);
-				return (ISC_R_NOSPACE);
-			}
-			isc_buffer_add(text, n);
+			(*foundkeys)++;
 		}
 		result = dns_rbtnodechain_next(&chain, &foundname, origin);
-		if (result == ISC_R_NOMORE)
+		if (result == ISC_R_NOMORE || result == DNS_R_NEWORIGIN)
 			break;
-		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
-			dns_rbtnodechain_invalidate(&chain);
-			return (result);
-		}
 	}
 
 	return (ISC_R_SUCCESS);
+ cleanup:
+	dns_rbtnodechain_invalidate(&chain);
+	return (result);
 }
 
 isc_result_t
-ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text) {
+ns_server_tsiglist(ns_server_t *server, isc_buffer_t **text) {
 	isc_result_t result;
-	unsigned int n;
 	dns_view_t *view;
 	unsigned int foundkeys = 0;
 
@@ -8559,14 +8608,11 @@ ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text) {
 	}
 	isc_task_endexclusive(server->task);
 
-	if (foundkeys == 0) {
-		n = snprintf((char *)isc_buffer_used(text),
-			     isc_buffer_availablelength(text),
-			     "no tsig keys found.\n");
-		if (n >= isc_buffer_availablelength(text))
-			return (ISC_R_NOSPACE);
-		isc_buffer_add(text, n);
-	}
+	if (foundkeys == 0)
+		putstr(text, "no tsig keys found.");
+
+	if (isc_buffer_usedlength(*text) > 0)
+		putnull(text);
 
 	return (ISC_R_SUCCESS);
 }
@@ -8575,7 +8621,7 @@ ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text) {
  * Act on a "sign" or "loadkeys" command from the command channel.
  */
 isc_result_t
-ns_server_rekey(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_rekey(ns_server_t *server, char *args, isc_buffer_t **text) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
@@ -8641,7 +8687,7 @@ synczone(dns_zone_t *zone, void *uap) {
 }
 
 isc_result_t
-ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_sync(ns_server_t *server, char *args, isc_buffer_t **text) {
 	isc_result_t result, tresult;
 	dns_view_t *view;
 	dns_zone_t *zone = NULL;
@@ -8691,9 +8737,10 @@ ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text) {
 	result = synczone(zone, &cleanup);
 	isc_task_endexclusive(server->task);
 
-	if (msg != NULL && strlen(msg) < isc_buffer_availablelength(text))
-		isc_buffer_putmem(text, (const unsigned char *)msg,
-				  strlen(msg) + 1);
+	if (msg != NULL) {
+		putstr(text, msg);
+		putnull(text);
+	}
 
 	view = dns_zone_getview(zone);
 	if (strcmp(view->name, "_default") == 0 ||
@@ -8724,7 +8771,7 @@ ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text) {
  */
 isc_result_t
 ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
-		 isc_buffer_t *text)
+		 isc_buffer_t **text)
 {
 	isc_result_t result, tresult;
 	dns_zone_t *zone = NULL, *raw = NULL;
@@ -8815,9 +8862,10 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 	}
 	isc_task_endexclusive(server->task);
 
-	if (msg != NULL && strlen(msg) < isc_buffer_availablelength(text))
-		isc_buffer_putmem(text, (const unsigned char *)msg,
-				  strlen(msg) + 1);
+	if (msg != NULL) {
+		putstr(text, msg);
+		putnull(text);
+	}
 
 	view = dns_zone_getview(zone);
 	if (strcmp(view->name, "_default") == 0 ||
@@ -8849,16 +8897,8 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
  * is managed by smf and is also running chroot.
  */
 isc_result_t
-ns_smf_add_message(isc_buffer_t *text) {
-	unsigned int n;
-
-	n = snprintf((char *)isc_buffer_used(text),
-		isc_buffer_availablelength(text),
-		"use svcadm(1M) to manage named");
-	if (n >= isc_buffer_availablelength(text))
-		return (ISC_R_NOSPACE);
-	isc_buffer_add(text, n);
-	return (ISC_R_SUCCESS);
+ns_smf_add_message(isc_buffer_t **text) {
+	return (putstr(text, "use svcadm(1M) to manage named"));
 }
 #endif /* HAVE_LIBSCF */
 
@@ -8883,7 +8923,7 @@ add_comment(FILE *fp, const char *viewname) {
  * Act on an "addzone" command from the command channel.
  */
 isc_result_t
-ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t **text) {
 	isc_result_t	     result, tresult;
 	isc_buffer_t	     argbuf;
 	size_t		     arglen;
@@ -9042,7 +9082,7 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	/* Emit the zone name, quoted and escaped */
 	isc_buffer_init(&buf, namebuf, sizeof(namebuf));
 	CHECK(dns_name_totext(dnsname, ISC_TRUE, &buf));
-	putnull(&buf);
+	isc_buffer_putuint8(&buf, 0);
 	CHECK(isc_stdio_write("zone \"", 6, 1, fp, NULL));
 	CHECK(isc_stdio_write(namebuf, strlen(namebuf), 1, fp, NULL));
 	CHECK(isc_stdio_write("\" ", 2, 1, fp, NULL));
@@ -9081,7 +9121,7 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	if (isc_buffer_usedlength(text) > 0)
+	if (isc_buffer_usedlength(*text) > 0)
 		putnull(text);
 	if (fp != NULL)
 		isc_stdio_close(fp);
@@ -9099,18 +9139,16 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 }
 
 static isc_boolean_t
-inuse(const char* file, isc_boolean_t first, isc_buffer_t *text) {
+inuse(const char* file, isc_boolean_t first, isc_buffer_t **text) {
 #define INUSEMSG "The following files were in use and may now be removed:\n"
 
-	if (file != NULL && isc_file_exists(file) &&
-	    isc_buffer_availablelength(text) >
-	    strlen(file) + (first ? sizeof(INUSEMSG) : sizeof("\n")))
-	{
+	if (file != NULL && isc_file_exists(file)) {
 		if (first)
 			(void) putstr(text, INUSEMSG);
 		else
 			(void) putstr(text, "\n");
 		(void) putstr(text, file);
+		putnull(text);
 		return (ISC_FALSE);
 	}
 	return (first);
@@ -9120,7 +9158,7 @@ inuse(const char* file, isc_boolean_t first, isc_buffer_t *text) {
  * Act on a "delzone" command from the command channel.
  */
 isc_result_t
-ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t **text) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_zone_t *raw = NULL;
@@ -9346,7 +9384,7 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	if (isc_buffer_usedlength(text) > 0)
+	if (isc_buffer_usedlength(*text) > 0)
 		putnull(text);
 	if (exclusive)
 		isc_task_endexclusive(server->task);
@@ -9429,7 +9467,7 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 }
 
 isc_result_t
-ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_signing(ns_server_t *server, char *args, isc_buffer_t **text) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_zone_t *zone = NULL;
 	dns_name_t *origin;
@@ -9576,21 +9614,13 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 			isc_buffer_init(&buf, output, sizeof(output));
 			CHECK(dns_private_totext(&priv, &buf));
-
 			if (!first)
-				putstr(text, "\n");
+				CHECK(putstr(text, "\n"));
+			CHECK(putstr(text, output));
 			first = ISC_FALSE;
-
-			n = snprintf((char *)isc_buffer_used(text),
-				     isc_buffer_availablelength(text),
-				     "%s", output);
-			if (n >= isc_buffer_availablelength(text))
-				CHECK(ISC_R_NOSPACE);
-
-			isc_buffer_add(text, (unsigned int)n);
 		}
 		if (!first)
-			putnull(text);
+			CHECK(putnull(text));
 
 		if (result == ISC_R_NOMORE)
 			result = ISC_R_SUCCESS;
@@ -9612,30 +9642,41 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 }
 
 static isc_result_t
-putstr(isc_buffer_t *b, const char *str) {
-	unsigned int l = strlen(str);
+putmem(isc_buffer_t **b, const char *str, size_t len) {
+	isc_result_t result;
 
-	/*
-	 * Use >= to leave space for NUL termination.
-	 */
-	if (l >= isc_buffer_availablelength(b))
+	result = isc_buffer_reserve(b, len);
+	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOSPACE);
 
-	isc_buffer_putmem(b, (const unsigned char *)str, l);
+	isc_buffer_putmem(*b, (const unsigned char *)str, len);
 	return (ISC_R_SUCCESS);
+}
+
+static inline isc_result_t
+putstr(isc_buffer_t **b, const char *str) {
+	return (putmem(b, str, strlen(str)));
 }
 
 static isc_result_t
-putnull(isc_buffer_t *b) {
-	if (isc_buffer_availablelength(b) == 0)
+putuint8(isc_buffer_t **b, isc_uint8_t val) {
+	isc_result_t result;
+
+	result = isc_buffer_reserve(b, 1);
+	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOSPACE);
 
-	isc_buffer_putuint8(b, 0);
+	isc_buffer_putuint8(*b, val);
 	return (ISC_R_SUCCESS);
 }
 
+static inline isc_result_t
+putnull(isc_buffer_t **b) {
+	return (putuint8(b, 0));
+}
+
 isc_result_t
-ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t **text) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_zone_t *zone = NULL, *raw = NULL;
 	const char *type, *file, *zonename = NULL;
@@ -9907,7 +9948,7 @@ argcheck(char *cmd, const char *full) {
 }
 
 isc_result_t
-ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_nta(ns_server_t *server, char *args, isc_buffer_t **text) {
 	dns_view_t *view;
 	dns_ntatable_t *ntatable = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -10083,10 +10124,7 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t *text) {
 				      nametext, view->name);
 		}
 
-		if (isc_buffer_availablelength(text) == 0)
-			return (ISC_R_NOSPACE);
-
-		isc_buffer_putuint8(text, 0);
+		CHECK(putnull(text));
 	}
 
  cleanup:

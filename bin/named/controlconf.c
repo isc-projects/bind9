@@ -83,7 +83,7 @@ struct controlconnection {
 	isc_boolean_t			ccmsg_valid;
 	isc_boolean_t			sending;
 	isc_timer_t *			timer;
-	unsigned char			buffer[2048];
+	isc_buffer_t *			buffer;
 	controllistener_t *		listener;
 	isc_uint32_t			nonce;
 	ISC_LINK(controlconnection_t)	link;
@@ -165,6 +165,9 @@ maybe_free_listener(controllistener_t *listener) {
 static void
 maybe_free_connection(controlconnection_t *conn) {
 	controllistener_t *listener = conn->listener;
+
+	if (conn->buffer != NULL)
+		isc_buffer_free(&conn->buffer);
 
 	if (conn->timer != NULL)
 		isc_timer_detach(&conn->timer);
@@ -326,15 +329,12 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	controlkey_t *key;
 	isccc_sexpr_t *request = NULL;
 	isccc_sexpr_t *response = NULL;
-	isccc_region_t ccregion;
 	isc_uint32_t algorithm;
 	isccc_region_t secret;
 	isc_stdtime_t now;
 	isc_buffer_t b;
 	isc_region_t r;
-	isc_uint32_t len;
-	isc_buffer_t text;
-	char textarray[2*1024];
+	isc_buffer_t *text;
 	isc_result_t result;
 	isc_result_t eresult;
 	isccc_sexpr_t *_ctrl;
@@ -348,6 +348,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	listener = conn->listener;
 	algorithm = DST_ALG_UNKNOWN;
 	secret.rstart = NULL;
+	text = NULL;
 
 	/* Is the server shutting down? */
 	if (listener->controls->shuttingdown)
@@ -366,6 +367,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	     key != NULL;
 	     key = ISC_LIST_NEXT(key, link))
 	{
+		isccc_region_t ccregion;
+
 		ccregion.rstart = isc_buffer_base(&conn->ccmsg.buffer);
 		ccregion.rend = isc_buffer_used(&conn->ccmsg.buffer);
 		secret.rstart = isc_mem_get(listener->mctx, key->secret.length);
@@ -445,7 +448,9 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		goto cleanup_request;
 	}
 
-	isc_buffer_init(&text, textarray, sizeof(textarray));
+	result = isc_buffer_allocate(listener->mctx, &text, 2 * 2048);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_request;
 
 	/*
 	 * Establish nonce.
@@ -471,12 +476,12 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
-	if (isc_buffer_usedlength(&text) > 0) {
+	if (isc_buffer_usedlength(text) > 0) {
 		isccc_sexpr_t *data;
 
 		data = isccc_alist_lookup(response, "_data");
 		if (data != NULL) {
-			char *str = (char *)isc_buffer_base(&text);
+			char *str = (char *)isc_buffer_base(text);
 			if (isccc_cc_definestring(data, "text", str) == NULL)
 				goto cleanup_response;
 		}
@@ -487,16 +492,26 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	    isccc_cc_defineuint32(_ctrl, "_nonce", conn->nonce) == NULL)
 		goto cleanup_response;
 
-	ccregion.rstart = conn->buffer + 4;
-	ccregion.rend = conn->buffer + sizeof(conn->buffer);
-	result = isccc_cc_towire(response, &ccregion, algorithm, &secret);
+	if (conn->buffer == NULL) {
+		result = isc_buffer_allocate(listener->mctx,
+					     &conn->buffer, 2 * 2048);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_response;
+	}
+
+	isc_buffer_clear(conn->buffer);
+	/* Skip the length field (4 bytes) */
+	isc_buffer_add(conn->buffer, 4);
+
+	result = isccc_cc_towire(response, &conn->buffer, algorithm, &secret);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_response;
-	isc_buffer_init(&b, conn->buffer, 4);
-	len = sizeof(conn->buffer) - REGION_SIZE(ccregion);
-	isc_buffer_putuint32(&b, len - 4);
-	r.base = conn->buffer;
-	r.length = len;
+
+	isc_buffer_init(&b, conn->buffer->base, 4);
+	isc_buffer_putuint32(&b, conn->buffer->used - 4);
+
+	r.base = conn->buffer->base;
+	r.length = conn->buffer->used;
 
 	result = isc_socket_send(conn->sock, &r, task, control_senddone, conn);
 	if (result != ISC_R_SUCCESS)
@@ -506,6 +521,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	isc_mem_put(listener->mctx, secret.rstart, REGION_SIZE(secret));
 	isccc_sexpr_free(&request);
 	isccc_sexpr_free(&response);
+	isc_buffer_free(&text);
 	return;
 
  cleanup_response:
@@ -514,6 +530,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
  cleanup_request:
 	isccc_sexpr_free(&request);
 	isc_mem_put(listener->mctx, secret.rstart, REGION_SIZE(secret));
+	if (text != NULL)
+		isc_buffer_free(&text);
 
  cleanup:
 	isc_socket_detach(&conn->sock);
@@ -549,6 +567,7 @@ newconnection(controllistener_t *listener, isc_socket_t *sock) {
 	isccc_ccmsg_init(listener->mctx, sock, &conn->ccmsg);
 	conn->ccmsg_valid = ISC_TRUE;
 	conn->sending = ISC_FALSE;
+	conn->buffer = NULL;
 	conn->timer = NULL;
 	isc_interval_set(&interval, 60, 0);
 	result = isc_timer_create(ns_g_timermgr, isc_timertype_once,
@@ -565,12 +584,13 @@ newconnection(controllistener_t *listener, isc_socket_t *sock) {
 					 control_recvmessage, conn);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	isccc_ccmsg_setmaxsize(&conn->ccmsg, 2048);
 
 	ISC_LIST_APPEND(listener->connections, conn, link);
 	return (ISC_R_SUCCESS);
 
  cleanup:
+	if (conn->buffer != NULL)
+		isc_buffer_free(&conn->buffer);
 	isccc_ccmsg_invalidate(&conn->ccmsg);
 	if (conn->timer != NULL)
 		isc_timer_detach(&conn->timer);

@@ -37,6 +37,7 @@
 /*! \file isccc/cc.h */
 
 #include <isc/lang.h>
+#include <isc/buffer.h>
 #include <isccc/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -65,7 +66,7 @@ ISC_LANG_BEGINDECLS
 
 /*% Send to Wire */
 isc_result_t
-isccc_cc_towire(isccc_sexpr_t *alist, isccc_region_t *target,
+isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 		isc_uint32_t algorithm, isccc_region_t *secret);
 
 /*% Get From Wire */

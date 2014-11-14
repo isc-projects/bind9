@@ -73,7 +73,7 @@ static int nserveraddrs;
 static int currentaddr = 0;
 static unsigned int remoteport = 0;
 static isc_socketmgr_t *socketmgr = NULL;
-static unsigned char databuf[2048];
+static isc_buffer_t *databuf;
 static isccc_ccmsg_t ccmsg;
 static isc_uint32_t algorithm;
 static isccc_region_t secret;
@@ -306,8 +306,6 @@ rndc_recvnonce(isc_task_t *task, isc_event_t *event) {
 	isccc_time_t now;
 	isc_region_t r;
 	isccc_sexpr_t *data;
-	isccc_region_t message;
-	isc_uint32_t len;
 	isc_buffer_t b;
 
 	recvs--;
@@ -354,15 +352,19 @@ rndc_recvnonce(isc_task_t *task, isc_event_t *event) {
 		if (isccc_cc_defineuint32(_ctrl, "_nonce", nonce) == NULL)
 			fatal("out of memory");
 	}
-	message.rstart = databuf + 4;
-	message.rend = databuf + sizeof(databuf);
+
+	isc_buffer_clear(databuf);
+	/* Skip the length field (4 bytes) */
+	isc_buffer_add(databuf, 4);
+
 	DO("render message",
-	   isccc_cc_towire(request, &message, algorithm, &secret));
-	len = sizeof(databuf) - REGION_SIZE(message);
-	isc_buffer_init(&b, databuf, 4);
-	isc_buffer_putuint32(&b, len - 4);
-	r.length = len;
-	r.base = databuf;
+	   isccc_cc_towire(request, &databuf, algorithm, &secret));
+
+	isc_buffer_init(&b, databuf->base, 4);
+	isc_buffer_putuint32(&b, databuf->used - 4);
+
+	r.base = databuf->base;
+	r.length = databuf->used;
 
 	isccc_ccmsg_cancelread(&ccmsg);
 	DO("schedule recv", isccc_ccmsg_readmessage(&ccmsg, task,
@@ -384,9 +386,7 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 	isccc_sexpr_t *request = NULL;
 	isccc_sexpr_t *data;
 	isccc_time_t now;
-	isccc_region_t message;
 	isc_region_t r;
-	isc_uint32_t len;
 	isc_buffer_t b;
 	isc_result_t result;
 
@@ -417,15 +417,19 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 		fatal("_data section missing");
 	if (isccc_cc_definestring(data, "type", "null") == NULL)
 		fatal("out of memory");
-	message.rstart = databuf + 4;
-	message.rend = databuf + sizeof(databuf);
+
+	isc_buffer_clear(databuf);
+	/* Skip the length field (4 bytes) */
+	isc_buffer_add(databuf, 4);
+
 	DO("render message",
-	   isccc_cc_towire(request, &message, algorithm, &secret));
-	len = sizeof(databuf) - REGION_SIZE(message);
-	isc_buffer_init(&b, databuf, 4);
-	isc_buffer_putuint32(&b, len - 4);
-	r.length = len;
-	r.base = databuf;
+	   isccc_cc_towire(request, &databuf, algorithm, &secret));
+
+	isc_buffer_init(&b, databuf->base, 4);
+	isc_buffer_putuint32(&b, databuf->used - 4);
+
+	r.base = databuf->base;
+	r.length = databuf->used;
 
 	isccc_ccmsg_init(mctx, sock, &ccmsg);
 	isccc_ccmsg_setmaxsize(&ccmsg, 1024 * 1024);
@@ -875,6 +879,9 @@ main(int argc, char **argv) {
 
 	command = *argv;
 
+	DO("allocate data buffer",
+	   isc_buffer_allocate(mctx, &databuf, 2048));
+
 	/*
 	 * Convert argc/argv into a space-delimited command string
 	 * similar to what the user might enter in interactive mode
@@ -930,6 +937,8 @@ main(int argc, char **argv) {
 	isccc_ccmsg_invalidate(&ccmsg);
 
 	dns_name_destroy();
+
+	isc_buffer_free(&databuf);
 
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);

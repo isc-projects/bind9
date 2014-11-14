@@ -108,84 +108,102 @@ static unsigned char auth_hsha[] = {
 #define HSHA_LENGTH	88
 
 static isc_result_t
-table_towire(isccc_sexpr_t *alist, isccc_region_t *target);
+table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer);
 
 static isc_result_t
-list_towire(isccc_sexpr_t *alist, isccc_region_t *target);
+list_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer);
 
 static isc_result_t
-value_towire(isccc_sexpr_t *elt, isccc_region_t *target)
+value_towire(isccc_sexpr_t *elt, isc_buffer_t **buffer)
 {
 	unsigned int len;
-	unsigned char *lenp;
 	isccc_region_t *vr;
 	isc_result_t result;
 
 	if (isccc_sexpr_binaryp(elt)) {
 		vr = isccc_sexpr_tobinary(elt);
 		len = REGION_SIZE(*vr);
-		if (REGION_SIZE(*target) < 1 + 4 + len)
+		result = isc_buffer_reserve(buffer, 1 + 4);
+		if (result != ISC_R_SUCCESS)
 			return (ISC_R_NOSPACE);
-		PUT8(ISCCC_CCMSGTYPE_BINARYDATA, target->rstart);
-		PUT32(len, target->rstart);
-		if (REGION_SIZE(*target) < len)
+		isc_buffer_putuint8(*buffer, ISCCC_CCMSGTYPE_BINARYDATA);
+		isc_buffer_putuint32(*buffer, len);
+
+		result = isc_buffer_reserve(buffer, len);
+		if (result != ISC_R_SUCCESS)
 			return (ISC_R_NOSPACE);
-		PUT_MEM(vr->rstart, len, target->rstart);
+		isc_buffer_putmem(*buffer, vr->rstart, len);
 	} else if (isccc_alist_alistp(elt)) {
-		if (REGION_SIZE(*target) < 1 + 4)
+		unsigned int used;
+		isc_buffer_t b;
+
+		result = isc_buffer_reserve(buffer, 1 + 4);
+		if (result != ISC_R_SUCCESS)
 			return (ISC_R_NOSPACE);
-		PUT8(ISCCC_CCMSGTYPE_TABLE, target->rstart);
+		isc_buffer_putuint8(*buffer, ISCCC_CCMSGTYPE_TABLE);
 		/*
 		 * Emit a placeholder length.
 		 */
-		lenp = target->rstart;
-		PUT32(0, target->rstart);
+		used = (*buffer)->used;
+		isc_buffer_putuint32(*buffer, 0);
+
 		/*
 		 * Emit the table.
 		 */
-		result = table_towire(elt, target);
+		result = table_towire(elt, buffer);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		len = (unsigned int)(target->rstart - lenp);
+
+		len = (*buffer)->used - used;
 		/*
 		 * 'len' is 4 bytes too big, since it counts
-		 * the placeholder length too.  Adjust and
+		 * the placeholder length too.	Adjust and
 		 * emit.
 		 */
 		INSIST(len >= 4U);
 		len -= 4;
-		PUT32(len, lenp);
+
+		isc_buffer_init(&b, (unsigned char *) (*buffer)->base + used, 4);
+		isc_buffer_putuint32(&b, len);
 	} else if (isccc_sexpr_listp(elt)) {
-		if (REGION_SIZE(*target) < 1 + 4)
+		unsigned int used;
+		isc_buffer_t b;
+
+		result = isc_buffer_reserve(buffer, 1 + 4);
+		if (result != ISC_R_SUCCESS)
 			return (ISC_R_NOSPACE);
-		PUT8(ISCCC_CCMSGTYPE_LIST, target->rstart);
+		isc_buffer_putuint8(*buffer, ISCCC_CCMSGTYPE_LIST);
 		/*
-		 * Emit a placeholder length and count.
+		 * Emit a placeholder length.
 		 */
-		lenp = target->rstart;
-		PUT32(0, target->rstart);
+		used = (*buffer)->used;
+		isc_buffer_putuint32(*buffer, 0);
+
 		/*
 		 * Emit the list.
 		 */
-		result = list_towire(elt, target);
+		result = list_towire(elt, buffer);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		len = (unsigned int)(target->rstart - lenp);
+
+		len = (*buffer)->used - used;
 		/*
 		 * 'len' is 4 bytes too big, since it counts
-		 * the placeholder length.  Adjust and emit.
+		 * the placeholder length too.	Adjust and
+		 * emit.
 		 */
 		INSIST(len >= 4U);
 		len -= 4;
-		PUT32(len, lenp);
+
+		isc_buffer_init(&b, (unsigned char *) (*buffer)->base + used, 4);
+		isc_buffer_putuint32(&b, len);
 	}
 
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
-table_towire(isccc_sexpr_t *alist, isccc_region_t *target)
-{
+table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer) {
 	isccc_sexpr_t *kv, *elt, *k, *v;
 	char *ks;
 	isc_result_t result;
@@ -203,14 +221,15 @@ table_towire(isccc_sexpr_t *alist, isccc_region_t *target)
 		/*
 		 * Emit the key name.
 		 */
-		if (REGION_SIZE(*target) < 1 + len)
+		result = isc_buffer_reserve(buffer, 1 + len);
+		if (result != ISC_R_SUCCESS)
 			return (ISC_R_NOSPACE);
-		PUT8(len, target->rstart);
-		PUT_MEM(ks, len, target->rstart);
+		isc_buffer_putuint8(*buffer, len);
+		isc_buffer_putmem(*buffer, (const unsigned char *) ks, len);
 		/*
 		 * Emit the value.
 		 */
-		result = value_towire(v, target);
+		result = value_towire(v, buffer);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
@@ -219,12 +238,11 @@ table_towire(isccc_sexpr_t *alist, isccc_region_t *target)
 }
 
 static isc_result_t
-list_towire(isccc_sexpr_t *list, isccc_region_t *target)
-{
+list_towire(isccc_sexpr_t *list, isc_buffer_t **buffer) {
 	isc_result_t result;
 
 	while (list != NULL) {
-		result = value_towire(ISCCC_SEXPR_CAR(list), target);
+		result = value_towire(ISCCC_SEXPR_CAR(list), buffer);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		list = ISCCC_SEXPR_CDR(list);
@@ -324,24 +342,24 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
 }
 
 isc_result_t
-isccc_cc_towire(isccc_sexpr_t *alist, isccc_region_t *target,
+isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 		isc_uint32_t algorithm, isccc_region_t *secret)
 {
-	unsigned char *hmac_rstart, *signed_rstart;
+	unsigned int hmac_size, signed_size;
 	isc_result_t result;
 
-	if (algorithm == ISCCC_ALG_HMACMD5) {
-		if (REGION_SIZE(*target) < 4 + sizeof(auth_hmd5))
-			return (ISC_R_NOSPACE);
-	} else {
-		if (REGION_SIZE(*target) < 4 + sizeof(auth_hsha))
-			return (ISC_R_NOSPACE);
-	}
+	result = isc_buffer_reserve(buffer,
+				    4 + ((algorithm == ISCCC_ALG_HMACMD5) ?
+					 sizeof(auth_hmd5) :
+					 sizeof(auth_hsha)));
+	if (result != ISC_R_SUCCESS)
+		return (ISC_R_NOSPACE);
 
 	/*
 	 * Emit protocol version.
 	 */
-	PUT32(1, target->rstart);
+	isc_buffer_putuint32(*buffer, 1);
+
 	if (secret != NULL) {
 		/*
 		 * Emit _auth section with zeroed HMAC signature.
@@ -349,19 +367,21 @@ isccc_cc_towire(isccc_sexpr_t *alist, isccc_region_t *target,
 		 * we know what it is.
 		 */
 		if (algorithm == ISCCC_ALG_HMACMD5) {
-			hmac_rstart = target->rstart + HMD5_OFFSET;
-			PUT_MEM(auth_hmd5, sizeof(auth_hmd5), target->rstart);
+			hmac_size = (*buffer)->used + HMD5_OFFSET;
+			isc_buffer_putmem(*buffer,
+					  auth_hmd5, sizeof(auth_hmd5));
 		} else {
 			unsigned char *hmac_alg;
 
-			hmac_rstart = target->rstart + HSHA_OFFSET;
-			hmac_alg = hmac_rstart - 1;
-			PUT_MEM(auth_hsha, sizeof(auth_hsha), target->rstart);
-			PUT8(algorithm, hmac_alg);
+			hmac_size = (*buffer)->used + HSHA_OFFSET;
+			hmac_alg = (unsigned char *) isc_buffer_used(*buffer) + HSHA_OFFSET - 1;
+			isc_buffer_putmem(*buffer,
+					  auth_hsha, sizeof(auth_hsha));
+			*hmac_alg = algorithm;
 		}
 	} else
-		hmac_rstart = NULL;
-	signed_rstart = target->rstart;
+		hmac_size = 0;
+	signed_size = (*buffer)->used;
 	/*
 	 * Delete any existing _auth section so that we don't try
 	 * to encode it.
@@ -370,13 +390,15 @@ isccc_cc_towire(isccc_sexpr_t *alist, isccc_region_t *target,
 	/*
 	 * Emit the message.
 	 */
-	result = table_towire(alist, target);
+	result = table_towire(alist, buffer);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (secret != NULL)
-		return (sign(signed_rstart,
-			     (unsigned int)(target->rstart - signed_rstart),
-			     hmac_rstart, algorithm, secret));
+		return (sign((unsigned char *) (*buffer)->base + signed_size,
+			     (*buffer)->used - signed_size,
+			     (hmac_size == 0 ? NULL :
+			      (unsigned char *) (*buffer)->base + hmac_size),
+			     algorithm, secret));
 	return (ISC_R_SUCCESS);
 }
 

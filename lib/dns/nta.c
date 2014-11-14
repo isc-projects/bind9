@@ -501,7 +501,7 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 }
 
 isc_result_t
-dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t *buf) {
+dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf) {
 	isc_result_t result;
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
@@ -539,11 +539,12 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t *buf) {
 				 n->expiry < now ? "expired" : "expiry",
 				 tbuf);
 			first = ISC_FALSE;
-			if (strlen(obuf) >= isc_buffer_availablelength(buf)) {
+			result = isc_buffer_reserve(buf, strlen(obuf));
+			if (result != ISC_R_SUCCESS) {
 				result = ISC_R_NOSPACE;
 				goto cleanup;
-			} else
-				isc_buffer_putstr(buf, obuf);
+			}
+			isc_buffer_putstr(*buf, obuf);
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
@@ -553,8 +554,9 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t *buf) {
 		}
 	}
 
-	if (isc_buffer_availablelength(buf) != 0)
-		isc_buffer_putuint8(buf, 0);
+	isc_buffer_reserve(buf, 1);
+	if (isc_buffer_availablelength(*buf) != 0)
+		isc_buffer_putuint8(*buf, 0);
 
    cleanup:
 	dns_rbtnodechain_invalidate(&chain);

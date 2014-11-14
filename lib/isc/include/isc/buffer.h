@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.55 2010/12/20 23:47:21 tbox Exp $ */
-
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
 
@@ -127,6 +125,13 @@ ISC_LANG_BEGINDECLS
 #define ISC_BUFFER_VALID(b)		ISC_MAGIC_VALID(b, ISC_BUFFER_MAGIC)
 /*@}*/
 
+/*!
+ * Size granularity for dynamically resizeable buffers; when reserving
+ * space in a buffer, we round the allocated buffer length up to the
+ * nearest * multiple of this value.
+ */
+#define ISC_BUFFER_INCR 2048
+
 /*
  * The following macros MUST be used only on valid buffers.  It is the
  * caller's responsibility to ensure this by using the ISC_BUFFER_VALID
@@ -203,6 +208,50 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
  *
  * Note:
  *\li	Changing the buffer's length field is not permitted.
+ */
+
+isc_result_t
+isc_buffer_reallocate(isc_buffer_t **dynbuffer, unsigned int length);
+/*!<
+ * \brief Reallocate the buffer to be "length" bytes long. The buffer
+ * pointer may move when you call this function.
+ *
+ * Requires:
+ *\li	"dynbuffer" is not NULL.
+ *
+ *\li	"*dynbuffer" is a valid dynamic buffer.
+ *
+ *\li	'length' > current length of buffer.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS		- success
+ *\li	ISC_R_NOMEMORY		- no memory available
+ *
+ * Ensures:
+ *\li	"*dynbuffer" will be valid on return and will contain all the
+ *	original data. However, the buffer pointer may be moved during
+ *	reallocation.
+ */
+
+isc_result_t
+isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size);
+/*!<
+ * \brief Make "size" bytes of space available in the buffer. The buffer
+ * pointer may move when you call this function.
+ *
+ * Requires:
+ *\li	"dynbuffer" is not NULL.
+ *
+ *\li	"*dynbuffer" is a valid dynamic buffer.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS		- success
+ *\li	ISC_R_NOMEMORY		- no memory available
+ *
+ * Ensures:
+ *\li	"*dynbuffer" will be valid on return and will contain all the
+ *	original data. However, the buffer pointer may be moved during
+ *	reallocation.
  */
 
 void
