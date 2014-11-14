@@ -1,3 +1,7 @@
+4004.	[bug]		When delegations had AAAA glue but not A, a
+			reference could be leaked causing an assertion
+			failure on shutdown. [RT #37796]
+
 4000.	[bug]		NXDOMAIN redirection incorrectly handled NXRRSET
 			from the redirect zone. [RT #37722]
 

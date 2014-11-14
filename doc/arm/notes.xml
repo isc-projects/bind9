@@ -191,6 +191,15 @@
 	  is not present will now return NOERROR instead of NXDOMAIN.
         </para>
       </listitem>
+      <listitem>
+        <para>
+	  When a zone contained a delegation to an IPv6 name server
+	  but not an IPv4 name server, it was possible for a memory
+	  reference to be left un-freed. This caused an assertion
+	  failure on server shutdown, but was otherwise harmless.
+	  [RT #37796]
+        </para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">

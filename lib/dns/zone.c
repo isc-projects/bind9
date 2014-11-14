@@ -2569,6 +2569,8 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 				     DNS_DBFIND_GLUEOK, 0, NULL,
 				     foundname, &aaaa, NULL);
 		if (tresult == ISC_R_SUCCESS) {
+			if (dns_rdataset_isassociated(&a))
+				dns_rdataset_disassociate(&a);
 			dns_rdataset_disassociate(&aaaa);
 			return (ISC_TRUE);
 		}
