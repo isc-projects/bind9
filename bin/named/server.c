@@ -417,7 +417,7 @@ end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
 static void
 newzone_cfgctx_destroy(void **cfgp);
 
-static isc_result_t
+static inline isc_result_t
 putstr(isc_buffer_t **b, const char *str);
 
 static isc_result_t
@@ -426,7 +426,7 @@ putmem(isc_buffer_t **b, const char *str, size_t len);
 static isc_result_t
 putuint8(isc_buffer_t **b, isc_uint8_t val);
 
-static isc_result_t
+static inline isc_result_t
 putnull(isc_buffer_t **b);
 
 isc_result_t
