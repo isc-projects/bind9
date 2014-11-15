@@ -67,7 +67,7 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 	 * 2048 bytes should already be available, so this call does
 	 * nothing.
 	 */
-	result = isc_buffer_reserve(&b, 2048);
+	result = isc_buffer_reserve(&b, 2000);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 
 	ATF_CHECK(ISC_BUFFER_VALID(b));
@@ -77,7 +77,7 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 	 * This call should grow it to 4096 bytes as only 2048 bytes are
 	 * available in the buffer.
 	 */
-	result = isc_buffer_reserve(&b, 2049);
+	result = isc_buffer_reserve(&b, 3000);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 
 	ATF_CHECK(ISC_BUFFER_VALID(b));

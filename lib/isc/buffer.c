@@ -505,19 +505,20 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
 
 	len = (*dynbuffer)->length;
-	if ((len - (*dynbuffer)->used) > size)
+	if ((len - (*dynbuffer)->used) >= size)
 		return (ISC_R_SUCCESS);
 
 	/* Round to nearest buffer size increment */
-	len += size;
+	len = size + (*dynbuffer)->used;
 	len = (len + ISC_BUFFER_INCR - 1 - ((len - 1) % ISC_BUFFER_INCR));
 
 	/* Cap at UINT_MAX */
 	if (len > UINT_MAX) {
 		len = UINT_MAX;
-		if ((len - (*dynbuffer)->used) < size)
-			return (ISC_R_NOMEMORY);
 	}
+
+	if ((len - (*dynbuffer)->used) < size)
+		return (ISC_R_NOMEMORY);
 
 	return (isc_buffer_reallocate(dynbuffer, (unsigned int) len));
 }
