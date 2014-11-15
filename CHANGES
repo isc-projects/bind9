@@ -2,7 +2,7 @@
 			commands is now dynamically resizable, allowing
 			arbitrarily large amounts of text to be sent back
 			to the client. (Prior to this change, it was
-			possible for the output of "rndc tsig-list" to be 
+			possible for the output of "rndc tsig-list" to be
 			truncated.) [RT #37731]
 
 4004.	[bug]		When delegations had AAAA glue but not A, a
