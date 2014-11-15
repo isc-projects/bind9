@@ -8897,7 +8897,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
  * is managed by smf and is also running chroot.
  */
 isc_result_t
-ns_smf_add_message(isc_buffer_t **text) {
+ns_smf_add_message(isc_buffer_t *text) {
 	return (putstr(text, "use svcadm(1M) to manage named"));
 }
 #endif /* HAVE_LIBSCF */
