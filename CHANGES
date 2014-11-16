@@ -9,11 +9,19 @@
 			reference could be leaked causing an assertion
 			failure on shutdown. [RT #37796]
 
-4003.	[placeholder]
+4003.	[security]	When geoip-directory was reconfigured during
+			named run-time, the previously loaded GeoIP
+			data could remain, potentially causing wrong
+			ACLs to be used or wrong results to be served
+			based on geolocation. [RT #37720]
 
-4002.	[placeholder]
+4002.	[security]	Lookups in GeoIP databases that were not
+			loaded could cause an assertion failure.
+			[RT #37679]
 
-4001.	[placeholder]
+4001.	[security]	The caching of GeoIP lookups did not always
+			handle address families correctly, potentially
+			resulting in an assertion failure. [RT #37672]
 
 4000.	[bug]		NXDOMAIN redirection incorrectly handled NXRRSET
 			from the redirect zone. [RT #37722]
