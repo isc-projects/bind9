@@ -1,3 +1,17 @@
+4003.	[security]	When geoip-directory was reconfigured during
+			named run-time, the previously loaded GeoIP
+			data could remain, potentially causing wrong
+			ACLs to be used or wrong results to be served
+			based on geolocation. [RT #37720]
+
+4002.	[security]	Lookups in GeoIP databases that were not
+			loaded could cause an assertion failure.
+			[RT #37679]
+
+4001.	[security]	The caching of GeoIP lookups did not always
+			handle address families correctly, potentially
+			resulting in an assertion failure. [RT #37672]
+
 	--- 9.10.1 released ---
 
 3950.	[port]		Changed the bin/python Makefile to work around a
