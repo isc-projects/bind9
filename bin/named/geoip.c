@@ -87,6 +87,7 @@ ns_geoip_init(void) {
 #ifndef HAVE_GEOIP
 	return;
 #else
+	GeoIP_cleanup();
 	if (ns_g_geoip == NULL)
 		ns_g_geoip = &geoip_table;
 #endif
