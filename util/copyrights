@@ -1344,11 +1344,12 @@
 ./bin/tests/system/geoip/ns2/named12.conf	CONF-C	2013,2014
 ./bin/tests/system/geoip/ns2/named13.conf	CONF-C	2014
 ./bin/tests/system/geoip/ns2/named14.conf	CONF-C	2014
+./bin/tests/system/geoip/ns2/named15.conf	CONF-C	2014
 ./bin/tests/system/geoip/ns2/named2.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named3.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named4.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named5.conf	CONF-C	2013
-./bin/tests/system/geoip/ns2/named6.conf	CONF-C	2013
+./bin/tests/system/geoip/ns2/named6.conf	CONF-C	2013,2014
 ./bin/tests/system/geoip/ns2/named7.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named8.conf	CONF-C	2013
 ./bin/tests/system/geoip/ns2/named9.conf	CONF-C	2013
