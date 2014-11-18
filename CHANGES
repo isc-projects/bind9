@@ -7,7 +7,7 @@
 			query (CVE-2014-8500).
 
 			The recursion depth limit is configured via the
-			"max-recursion-depth" option.  [RT #35780]
+			"max-recursion-depth" option.  [RT #37580]
 
 4003.	[security]	When geoip-directory was reconfigured during
 			named run-time, the previously loaded GeoIP
