@@ -8018,21 +8018,21 @@ ns_server_validation(ns_server_t *server, char *args, isc_buffer_t **text) {
 			continue;
 		result = dns_view_flushcache(view);
 		if (result != ISC_R_SUCCESS)
-			goto out;
+			goto cleanup;
 
 		if (set) {
 			view->enablevalidation = enable;
 			changed = ISC_TRUE;
 		} else {
 			if (!first)
-				putstr(text, "\n");
-			putstr(text, "DNSSEC validation is ");
-			putstr(text, view->enablevalidation
-				       ? "enabled" : "disabled");
-			putstr(text, " (view ");
-			putstr(text, view->name);
-			putstr(text, ")");
-			putnull(text);
+				CHECK(putstr(text, "\n"));
+			CHECK(putstr(text, "DNSSEC validation is "));
+			CHECK(putstr(text, view->enablevalidation
+				       ? "enabled" : "disabled"));
+			CHECK(putstr(text, " (view "));
+			CHECK(putstr(text, view->name));
+			CHECK(putstr(text, ")"));
+			CHECK(putnull(text));
 			first = ISC_FALSE;
 		}
 	}
@@ -8043,7 +8043,7 @@ ns_server_validation(ns_server_t *server, char *args, isc_buffer_t **text) {
 		result = ISC_R_SUCCESS;
 	else
 		result = ISC_R_FAILURE;
- out:
+ cleanup:
 	isc_task_endexclusive(server->task);
 	return (result);
 }
@@ -8546,7 +8546,7 @@ list_keynames(dns_view_t *view, dns_tsig_keyring_t *ring, isc_buffer_t **text,
 				dns_name_format(tkey->creator, creatorstr,
 						sizeof(creatorstr));
 				if (*foundkeys != 0)
-					putstr(text, "\n");
+					CHECK(putstr(text, "\n"));
 				CHECK(putstr(text, "view \""));
 				CHECK(putstr(text, viewname));
 				CHECK(putstr(text,
@@ -8557,7 +8557,7 @@ list_keynames(dns_view_t *view, dns_tsig_keyring_t *ring, isc_buffer_t **text,
 				CHECK(putstr(text, "\";"));
 			} else {
 				if (*foundkeys != 0)
-					putstr(text, "\n");
+					CHECK(putstr(text, "\n"));
 				CHECK(putstr(text, "view \""));
 				CHECK(putstr(text, viewname));
 				CHECK(putstr(text,
@@ -8609,12 +8609,15 @@ ns_server_tsiglist(ns_server_t *server, isc_buffer_t **text) {
 	isc_task_endexclusive(server->task);
 
 	if (foundkeys == 0)
-		putstr(text, "no tsig keys found.");
+		CHECK(putstr(text, "no tsig keys found."));
 
 	if (isc_buffer_usedlength(*text) > 0)
-		putnull(text);
+		CHECK(putnull(text));
 
 	return (ISC_R_SUCCESS);
+
+ cleanup:
+	return (result);
 }
 
 /*
