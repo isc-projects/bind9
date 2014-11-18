@@ -43,37 +43,35 @@ ATF_TC_HEAD(isc_file_sanitize, tc) {
 
 #define F(x) "testdata/file/" x ".test"
 
+static void
+touch(const char *filename) {
+	int fd;
+
+	unlink(filename);
+	fd = creat(filename, 0644);
+	if (fd != -1)
+		close(fd);
+}
+
 ATF_TC_BODY(isc_file_sanitize, tc) {
 	isc_result_t result;
 	char buf[1024];
-	int fd;
 
 	ATF_CHECK(chdir(TESTS) != -1);
-
-	unlink(F(TRUNC_SHA));
-	unlink(F(SHA));
 
 	result = isc_file_sanitize("testdata/file", NAME, "test", buf, 1024);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(strcmp(buf, F(NAME)) == 0);
 
-	fd = creat(F(TRUNC_SHA), 0644);
-	ATF_CHECK(fd != -1);
-	if (fd != -1) {
-		result = isc_file_sanitize("testdata/file", NAME, "test", buf, 1024);
-		ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-		ATF_CHECK(strcmp(buf, F(TRUNC_SHA)) == 0);
-		close(fd);
-	}
+	touch(F(TRUNC_SHA));
+	result = isc_file_sanitize("testdata/file", NAME, "test", buf, 1024);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+	ATF_CHECK(strcmp(buf, F(TRUNC_SHA)) == 0);
 
-	fd = creat(F(SHA), 0644);
-	ATF_CHECK(fd != -1);
-	if (fd != -1) {
-		result = isc_file_sanitize("testdata/file", NAME, "test", buf, 1024);
-		ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-		ATF_CHECK(strcmp(buf, F(SHA)) == 0);
-		close(fd);
-	}
+	touch(F(SHA));
+	result = isc_file_sanitize("testdata/file", NAME, "test", buf, 1024);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+	ATF_CHECK(strcmp(buf, F(SHA)) == 0);
 
 	result = isc_file_sanitize("testdata/file", BAD1, "test", buf, 1024);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);

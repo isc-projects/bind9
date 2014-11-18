@@ -7323,8 +7323,8 @@ ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t **text) {
 		}
 	}
 	if (msg != NULL) {
-		putstr(text, msg);
-		putnull(text);
+		(void) putstr(text, msg);
+		(void) putnull(text);
 	}
 	return (result);
 }
@@ -7358,8 +7358,8 @@ ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t **text) {
 
 	dns_zone_notify(zone);
 	dns_zone_detach(&zone);
-	putstr(text, msg);
-	putnull(text);
+	(void) putstr(text, msg);
+	(void) putnull(text);
 
 	return (ISC_R_SUCCESS);
 }
@@ -7394,14 +7394,14 @@ ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t **text)
 	if (type == dns_zone_slave || type == dns_zone_stub) {
 		dns_zone_refresh(zone);
 		dns_zone_detach(&zone);
-		putstr(text, msg1);
-		putnull(text);
+		(void) putstr(text, msg1);
+		(void) putnull(text);
 		return (ISC_R_SUCCESS);
 	}
 
 	dns_zone_detach(&zone);
-	putstr(text, msg2);
-	putnull(text);
+	(void) putstr(text, msg2);
+	(void) putnull(text);
 	return (ISC_R_FAILURE);
 }
 
@@ -8016,9 +8016,7 @@ ns_server_validation(ns_server_t *server, char *args, isc_buffer_t **text) {
 	{
 		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
 			continue;
-		result = dns_view_flushcache(view);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		CHECK(dns_view_flushcache(view));
 
 		if (set) {
 			view->enablevalidation = enable;
@@ -8028,7 +8026,7 @@ ns_server_validation(ns_server_t *server, char *args, isc_buffer_t **text) {
 				CHECK(putstr(text, "\n"));
 			CHECK(putstr(text, "DNSSEC validation is "));
 			CHECK(putstr(text, view->enablevalidation
-				       ? "enabled" : "disabled"));
+				            ? "enabled" : "disabled"));
 			CHECK(putstr(text, " (view "));
 			CHECK(putstr(text, view->name));
 			CHECK(putstr(text, ")"));
@@ -8614,8 +8612,6 @@ ns_server_tsiglist(ns_server_t *server, isc_buffer_t **text) {
 	if (isc_buffer_usedlength(*text) > 0)
 		CHECK(putnull(text));
 
-	return (ISC_R_SUCCESS);
-
  cleanup:
 	return (result);
 }
@@ -8696,7 +8692,7 @@ ns_server_sync(ns_server_t *server, char *args, isc_buffer_t **text) {
 	dns_zone_t *zone = NULL;
 	char classstr[DNS_RDATACLASS_FORMATSIZE];
 	char zonename[DNS_NAME_FORMATSIZE];
-	const char *vname, *sep, *msg = NULL, *arg;
+	const char *vname, *sep, *arg;
 	isc_boolean_t cleanup = ISC_FALSE;
 
 	(void) next_token(&args, " \t");
@@ -8739,11 +8735,6 @@ ns_server_sync(ns_server_t *server, char *args, isc_buffer_t **text) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	result = synczone(zone, &cleanup);
 	isc_task_endexclusive(server->task);
-
-	if (msg != NULL) {
-		putstr(text, msg);
-		putnull(text);
-	}
 
 	view = dns_zone_getview(zone);
 	if (strcmp(view->name, "_default") == 0 ||
@@ -8866,8 +8857,8 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 	isc_task_endexclusive(server->task);
 
 	if (msg != NULL) {
-		putstr(text, msg);
-		putnull(text);
+		(void) putstr(text, msg);
+		(void) putnull(text);
 	}
 
 	view = dns_zone_getview(zone);
@@ -9125,7 +9116,7 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t **text) {
 
  cleanup:
 	if (isc_buffer_usedlength(*text) > 0)
-		putnull(text);
+		(void) putnull(text);
 	if (fp != NULL)
 		isc_stdio_close(fp);
 	if (parser != NULL) {
@@ -9151,7 +9142,7 @@ inuse(const char* file, isc_boolean_t first, isc_buffer_t **text) {
 		else
 			(void) putstr(text, "\n");
 		(void) putstr(text, file);
-		putnull(text);
+		(void) putnull(text);
 		return (ISC_FALSE);
 	}
 	return (first);
@@ -9372,7 +9363,7 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t **text) {
 			file = dns_zone_getjournal(zone);
 			(void)inuse(file, first, text);
 		}
-		putnull(text);
+		(void) putnull(text);
 	}
 
 	CHECK(dns_zt_unmount(view->zonetable, zone));
@@ -9388,7 +9379,7 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t **text) {
 
  cleanup:
 	if (isc_buffer_usedlength(*text) > 0)
-		putnull(text);
+		(void) putnull(text);
 	if (exclusive)
 		isc_task_endexclusive(server->task);
 	if (ifp != NULL)
@@ -9575,19 +9566,19 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t **text) {
 
 	if (clear) {
 		CHECK(dns_zone_keydone(zone, keystr));
-		putstr(text, "request queued");
-		putnull(text);
+		(void) putstr(text, "request queued");
+		(void) putnull(text);
 	} else if (chain) {
 		CHECK(dns_zone_setnsec3param(zone, (isc_uint8_t)hash,
 					     (isc_uint8_t)flags, iter,
 					     (isc_uint8_t)saltlen, salt,
 					     ISC_TRUE));
-		putstr(text, "nsec3param request queued");
-		putnull(text);
+		(void) putstr(text, "nsec3param request queued");
+		(void) putnull(text);
 	} else if (setserial) {
 		CHECK(dns_zone_setserial(zone, serial));
-		putstr(text, "serial request queued");
-		putnull(text);
+		(void) putstr(text, "serial request queued");
+		(void) putnull(text);
 	} else if (list) {
 		privatetype = dns_zone_getprivatetype(zone);
 		origin = dns_zone_getorigin(zone);
@@ -9599,8 +9590,8 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t **text) {
 					     dns_rdatatype_none, 0,
 					     &privset, NULL);
 		if (result == ISC_R_NOTFOUND) {
-			putstr(text, "No signing records found");
-			putnull(text);
+			(void) putstr(text, "No signing records found");
+			(void) putnull(text);
 			result = ISC_R_SUCCESS;
 			goto cleanup;
 		}
@@ -9913,7 +9904,7 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t **text) {
 	if (result == ISC_R_NOSPACE)
 		(void) putstr(text, "\n...");
 	if ((result == ISC_R_SUCCESS || result == ISC_R_NOSPACE))
-		putnull(text);
+		(void) putnull(text);
 
 	if (db != NULL)
 		dns_db_detach(&db);
