@@ -136,6 +136,16 @@
 #define MAXIMUM_QUERY_TIMEOUT 30 /* The maximum time in seconds for the whole query to live. */
 #endif
 
+/* The default maximum number of recursions to follow before giving up. */
+#ifndef DEFAULT_RECURSION_DEPTH
+#define DEFAULT_RECURSION_DEPTH 7
+#endif
+
+/* The default maximum number of iterative queries to allow before giving up. */
+#ifndef DEFAULT_MAX_QUERIES
+#define DEFAULT_MAX_QUERIES 50
+#endif
+
 /*%
  * Maximum EDNS0 input packet size.
  */
@@ -310,6 +320,7 @@ struct fetchctx {
 	isc_uint64_t			duration;
 	isc_boolean_t			logged;
 	unsigned int			querysent;
+	unsigned int			totalqueries;
 	unsigned int			referrals;
 	unsigned int			lamecount;
 	unsigned int			neterr;
@@ -320,6 +331,7 @@ struct fetchctx {
 	isc_boolean_t			timeout;
 	dns_adbaddrinfo_t 		*addrinfo;
 	isc_sockaddr_t			*client;
+	unsigned int			depth;
 };
 
 #define FCTX_MAGIC			ISC_MAGIC('F', '!', '!', '!')
@@ -435,6 +447,7 @@ struct dns_resolver {
 	isc_timer_t *			spillattimer;
 	isc_boolean_t			zero_no_soa_ttl;
 	unsigned int			query_timeout;
+	unsigned int			maxdepth;
 
 	/* Locked by lock. */
 	unsigned int			references;
@@ -1154,6 +1167,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 			       event->result == DNS_R_NCACHENXRRSET);
 		}
 
+		event->qtotal = fctx->totalqueries;
 		isc_task_sendanddetach(&task, ISC_EVENT_PTR(&event));
 		count++;
 	}
@@ -1612,7 +1626,9 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_dispatch;
 	}
+
 	fctx->querysent++;
+	fctx->totalqueries++;
 
 	ISC_LIST_APPEND(fctx->queries, query, link);
 	query->fctx->nqueries++;
@@ -2441,9 +2457,10 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 		 */
 		INSIST(!SHUTTINGDOWN(fctx));
 		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
-		if (event->ev_type == DNS_EVENT_ADBMOREADDRESSES)
+		if (event->ev_type == DNS_EVENT_ADBMOREADDRESSES) {
 			want_try = ISC_TRUE;
-		else {
+			fctx->totalqueries += find->qtotal;
+		} else {
 			fctx->findfail++;
 			if (fctx->pending == 0) {
 				/*
@@ -2726,12 +2743,13 @@ findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 	 * See what we know about this address.
 	 */
 	find = NULL;
-	result = dns_adb_createfind(fctx->adb,
-				    res->buckets[fctx->bucketnum].task,
-				    fctx_finddone, fctx, name,
-				    &fctx->name, fctx->type,
-				    options, now, NULL,
-				    res->view->dstport, &find);
+	result = dns_adb_createfind2(fctx->adb,
+				     res->buckets[fctx->bucketnum].task,
+				     fctx_finddone, fctx, name,
+				     &fctx->name, fctx->type,
+				     options, now, NULL,
+				     res->view->dstport,
+				     fctx->depth + 1, &find);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_ALIAS) {
 			/*
@@ -2838,6 +2856,11 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 	}
 
 	res = fctx->res;
+
+	if (fctx->depth > res->maxdepth) {
+		FCTXTRACE("too much NS indirection");
+		return (DNS_R_SERVFAIL);
+	}
 
 	/*
 	 * Forwarders.
@@ -3276,6 +3299,9 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 
 	REQUIRE(!ADDRWAIT(fctx));
 
+	if (fctx->totalqueries > DEFAULT_MAX_QUERIES)
+		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+
 	addrinfo = fctx_nextaddress(fctx);
 	if (addrinfo == NULL) {
 		/*
@@ -3634,6 +3660,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		 * Normal fctx startup.
 		 */
 		fctx->state = fetchstate_active;
+		fctx->totalqueries = 0;
 		/*
 		 * Reset the control event for later use in shutting down
 		 * the fctx.
@@ -3703,6 +3730,7 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_sockaddr_t *client,
 	event->fetch = fetch;
 	event->client = client;
 	event->id = id;
+	event->qtotal = 0;
 	dns_fixedname_init(&event->foundname);
 
 	/*
@@ -3739,7 +3767,8 @@ log_ns_ttl(fetchctx_t *fctx, const char *where) {
 static isc_result_t
 fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	    dns_name_t *domain, dns_rdataset_t *nameservers,
-	    unsigned int options, unsigned int bucketnum, fetchctx_t **fctxp)
+	    unsigned int options, unsigned int bucketnum, unsigned int depth,
+	    fetchctx_t **fctxp)
 {
 	fetchctx_t *fctx;
 	isc_result_t result;
@@ -3791,6 +3820,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->state = fetchstate_init;
 	fctx->want_shutdown = ISC_FALSE;
 	fctx->cloned = ISC_FALSE;
+	fctx->depth = depth;
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->finds);
 	ISC_LIST_INIT(fctx->altfinds);
@@ -3809,6 +3839,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->pending = 0;
 	fctx->restarts = 0;
 	fctx->querysent = 0;
+	fctx->totalqueries = 0;
 	fctx->referrals = 0;
 	TIME_NOW(&fctx->start);
 	fctx->timeouts = 0;
@@ -8163,6 +8194,7 @@ dns_resolver_create(dns_view_t *view,
 	res->spillattimer = NULL;
 	res->zero_no_soa_ttl = ISC_FALSE;
 	res->query_timeout = DEFAULT_QUERY_TIMEOUT;
+	res->maxdepth = DEFAULT_RECURSION_DEPTH;
 	res->nbuckets = ntasks;
 	if (view->resstats != NULL)
 		isc_stats_set(view->resstats, ntasks,
@@ -8604,9 +8636,9 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 dns_rdataset_t *sigrdataset,
 			 dns_fetch_t **fetchp)
 {
-	return (dns_resolver_createfetch2(res, name, type, domain,
+	return (dns_resolver_createfetch3(res, name, type, domain,
 					  nameservers, forwarders, NULL, 0,
-					  options, task, action, arg,
+					  options, 0, task, action, arg,
 					  rdataset, sigrdataset, fetchp));
 }
 
@@ -8617,6 +8649,25 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 			  dns_forwarders_t *forwarders,
 			  isc_sockaddr_t *client, dns_messageid_t id,
 			  unsigned int options, isc_task_t *task,
+			  isc_taskaction_t action, void *arg,
+			  dns_rdataset_t *rdataset,
+			  dns_rdataset_t *sigrdataset,
+			  dns_fetch_t **fetchp)
+{
+	return (dns_resolver_createfetch3(res, name, type, domain,
+					  nameservers, forwarders, client, id,
+					  options, 0, task, action, arg,
+					  rdataset, sigrdataset, fetchp));
+}
+
+isc_result_t
+dns_resolver_createfetch3(dns_resolver_t *res, dns_name_t *name,
+			  dns_rdatatype_t type,
+			  dns_name_t *domain, dns_rdataset_t *nameservers,
+			  dns_forwarders_t *forwarders,
+			  isc_sockaddr_t *client, dns_messageid_t id,
+			  unsigned int options, unsigned int depth,
+			  isc_task_t *task,
 			  isc_taskaction_t action, void *arg,
 			  dns_rdataset_t *rdataset,
 			  dns_rdataset_t *sigrdataset,
@@ -8710,11 +8761,12 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 
 	if (fctx == NULL) {
 		result = fctx_create(res, name, type, domain, nameservers,
-				     options, bucketnum, &fctx);
+				     options, bucketnum, depth, &fctx);
 		if (result != ISC_R_SUCCESS)
 			goto unlock;
 		new_fctx = ISC_TRUE;
-	}
+	} else if (fctx->depth > depth)
+		fctx->depth = depth;
 
 	result = fctx_join(fctx, task, client, id, action, arg,
 			   rdataset, sigrdataset, fetch);
@@ -9658,5 +9710,17 @@ isc_dscp_t
 dns_resolver_getquerydscp6(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 	return (resolver->querydscp6);
+}
+
+void
+dns_resolver_setmaxdepth(dns_resolver_t *resolver, unsigned int maxdepth) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	resolver->maxdepth = maxdepth;
+}
+
+unsigned int
+dns_resolver_getmaxdepth(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	return (resolver->maxdepth);
 }
 

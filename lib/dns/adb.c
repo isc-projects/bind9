@@ -199,6 +199,7 @@ struct dns_adbfetch {
 	unsigned int                    magic;
 	dns_fetch_t                    *fetch;
 	dns_rdataset_t                  rdataset;
+	unsigned int			depth;
 };
 
 /*%
@@ -313,7 +314,7 @@ static inline void violate_locking_hierarchy(isc_mutex_t *, isc_mutex_t *);
 static isc_boolean_t clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *);
 static void clean_target(dns_adb_t *, dns_name_t *);
 static void clean_finds_at_name(dns_adbname_t *, isc_eventtype_t,
-				unsigned int);
+				isc_uint32_t, unsigned int);
 static isc_boolean_t check_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
 static isc_boolean_t check_expire_entry(dns_adb_t *, dns_adbentry_t **,
 					isc_stdtime_t);
@@ -321,7 +322,7 @@ static void cancel_fetches_at_name(dns_adbname_t *);
 static isc_result_t dbfind_name(dns_adbname_t *, isc_stdtime_t,
 				dns_rdatatype_t);
 static isc_result_t fetch_name(dns_adbname_t *, isc_boolean_t,
-			       dns_rdatatype_t);
+			       unsigned int, dns_rdatatype_t);
 static inline void check_exit(dns_adb_t *);
 static void destroy(dns_adb_t *);
 static isc_boolean_t shutdown_names(dns_adb_t *);
@@ -1024,7 +1025,7 @@ kill_name(dns_adbname_t **n, isc_eventtype_t ev) {
 	 * Clean up the name's various lists.  These two are destructive
 	 * in that they will always empty the list.
 	 */
-	clean_finds_at_name(name, ev, DNS_ADBFIND_ADDRESSMASK);
+	clean_finds_at_name(name, ev, 0, DNS_ADBFIND_ADDRESSMASK);
 	result4 = clean_namehooks(adb, &name->v4);
 	result6 = clean_namehooks(adb, &name->v6);
 	clean_target(adb, &name->target);
@@ -1449,7 +1450,7 @@ event_free(isc_event_t *event) {
  */
 static void
 clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
-		    unsigned int addrs)
+		    isc_uint32_t qtotal, unsigned int addrs)
 {
 	isc_event_t *ev;
 	isc_task_t *task;
@@ -1509,6 +1510,7 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			ev->ev_sender = find;
 			find->result_v4 = find_err_map[name->fetch_err];
 			find->result_v6 = find_err_map[name->fetch6_err];
+			find->qtotal += qtotal;
 			ev->ev_type = evtype;
 			ev->ev_destroy = event_free;
 			ev->ev_destroy_arg = find;
@@ -1884,6 +1886,7 @@ new_adbfind(dns_adb_t *adb) {
 	h->flags = 0;
 	h->result_v4 = ISC_R_UNEXPECTED;
 	h->result_v6 = ISC_R_UNEXPECTED;
+	h->qtotal = 0;
 	ISC_LINK_INIT(h, publink);
 	ISC_LINK_INIT(h, plink);
 	ISC_LIST_INIT(h->list);
@@ -2865,6 +2868,19 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   isc_stdtime_t now, dns_name_t *target,
 		   in_port_t port, dns_adbfind_t **findp)
 {
+	return (dns_adb_createfind2(adb, task, action, arg, name,
+				    qname, qtype, options, now,
+				    target, port, 0, findp));
+}
+
+isc_result_t
+dns_adb_createfind2(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
+		    void *arg, dns_name_t *name, dns_name_t *qname,
+		    dns_rdatatype_t qtype, unsigned int options,
+		    isc_stdtime_t now, dns_name_t *target,
+		    in_port_t port, unsigned int depth,
+		    dns_adbfind_t **findp)
+{
 	dns_adbfind_t *find;
 	dns_adbname_t *adbname;
 	int bucket;
@@ -3101,7 +3117,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * Start V4.
 		 */
 		if (WANT_INET(wanted_fetches) &&
-		    fetch_name(adbname, start_at_zone,
+		    fetch_name(adbname, start_at_zone, depth,
 			       dns_rdatatype_a) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL, "dns_adb_createfind: "
 			   "started A fetch for name %s (%p)",
@@ -3112,7 +3128,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * Start V6.
 		 */
 		if (WANT_INET6(wanted_fetches) &&
-		    fetch_name(adbname, start_at_zone,
+		    fetch_name(adbname, start_at_zone, depth,
 			       dns_rdatatype_aaaa) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL, "dns_adb_createfind: "
 			   "started AAAA fetch for name %s (%p)",
@@ -3744,6 +3760,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	isc_result_t result;
 	unsigned int address_type;
 	isc_boolean_t want_check_exit = ISC_FALSE;
+	isc_uint32_t qtotal = 0;
 
 	UNUSED(task);
 
@@ -3753,6 +3770,8 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	INSIST(DNS_ADBNAME_VALID(name));
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
+
+	qtotal = dev->qtotal;
 
 	bucket = name->lock_bucket;
 	LOCK(&adb->namelocks[bucket]);
@@ -3871,6 +3890,12 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		DP(DEF_LEVEL, "adb: fetch of '%s' %s failed: %s",
 		   buf, address_type == DNS_ADBFIND_INET ? "A" : "AAAA",
 		   dns_result_totext(dev->result));
+		/*
+		 * Don't record a failure unless this is the initial
+		 * fetch of a chain.
+		 */
+		if (fetch->depth > 1)
+			goto out;
 		/* XXXMLG Don't pound on bad servers. */
 		if (address_type == DNS_ADBFIND_INET) {
 			name->expire_v4 = ISC_MIN(name->expire_v4, now + 300);
@@ -3902,15 +3927,14 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	free_adbfetch(adb, &fetch);
 	isc_event_free(&ev);
 
-	clean_finds_at_name(name, ev_status, address_type);
+	clean_finds_at_name(name, ev_status, qtotal, address_type);
 
 	UNLOCK(&adb->namelocks[bucket]);
 }
 
 static isc_result_t
-fetch_name(dns_adbname_t *adbname,
-	   isc_boolean_t start_at_zone,
-	   dns_rdatatype_t type)
+fetch_name(dns_adbname_t *adbname, isc_boolean_t start_at_zone,
+	   unsigned int depth, dns_rdatatype_t type)
 {
 	isc_result_t result;
 	dns_adbfetch_t *fetch = NULL;
@@ -3955,12 +3979,14 @@ fetch_name(dns_adbname_t *adbname,
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
 	}
+	fetch->depth = depth;
 
-	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
-					  type, name, nameservers, NULL,
-					  options, adb->task, fetch_callback,
-					  adbname, &fetch->rdataset, NULL,
-					  &fetch->fetch);
+	result = dns_resolver_createfetch3(adb->view->resolver, &adbname->name,
+					   type, name, nameservers, NULL,
+					   NULL, 0, options, depth, adb->task,
+					   fetch_callback, adbname,
+					   &fetch->rdataset, NULL,
+					   &fetch->fetch);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 

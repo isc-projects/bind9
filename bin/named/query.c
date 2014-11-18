@@ -3863,12 +3863,13 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		peeraddr = NULL;
 	ns_client_attach(client, &dummy);
 	options = client->query.fetchoptions | DNS_FETCHOPT_PREFETCH;
-	result = dns_resolver_createfetch2(client->view->resolver,
+	result = dns_resolver_createfetch3(client->view->resolver,
 					   qname, rdataset->type, NULL, NULL,
 					   NULL, peeraddr, client->message->id,
-					   options, client->task,
-					   prefetch_done, client, tmprdataset,
-					   NULL, &client->query.prefetch);
+					   options, 0, client->task,
+					   prefetch_done, client,
+					   tmprdataset, NULL,
+					   &client->query.prefetch);
 	if (result != ISC_R_SUCCESS) {
 		query_putrdataset(client, &tmprdataset);
 		ns_client_detach(&dummy);
@@ -3983,12 +3984,11 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		peeraddr = &client->peeraddr;
 	else
 		peeraddr = NULL;
-	result = dns_resolver_createfetch2(client->view->resolver,
+	result = dns_resolver_createfetch3(client->view->resolver,
 					   qname, qtype, qdomain, nameservers,
 					   NULL, peeraddr, client->message->id,
-					   client->query.fetchoptions,
-					   client->task,
-					   query_resume, client,
+					   client->query.fetchoptions, 0,
+					   client->task, query_resume, client,
 					   rdataset, sigrdataset,
 					   &client->query.fetch);
 
