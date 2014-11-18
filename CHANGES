@@ -7,7 +7,7 @@
 			query (CVE-2014-8500).
 
 			The recursion depth limit is configured via the
-			"max-recursion-depth" option.  [RT #35780]
+			"max-recursion-depth" option.  [RT #37580]
 
 4005.	[func]		The buffer used for returning text from rndc
 			commands is now dynamically resizable, allowing
