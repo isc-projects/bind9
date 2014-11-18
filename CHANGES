@@ -24,15 +24,16 @@
 			named run-time, the previously loaded GeoIP
 			data could remain, potentially causing wrong
 			ACLs to be used or wrong results to be served
-			based on geolocation. [RT #37720]
+			based on geolocation (CVE-2014-8680). [RT #37720]
 
 4002.	[security]	Lookups in GeoIP databases that were not
-			loaded could cause an assertion failure.
-			[RT #37679]
+			loaded could cause an assertion failure
+			(CVE-2014-8680). [RT #37679]
 
 4001.	[security]	The caching of GeoIP lookups did not always
 			handle address families correctly, potentially
-			resulting in an assertion failure. [RT #37672]
+			resulting in an assertion failure (CVE-2014-8680).
+			[RT #37672]
 
 4000.	[bug]		NXDOMAIN redirection incorrectly handled NXRRSET
 			from the redirect zone. [RT #37722]
