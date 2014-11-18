@@ -8031,7 +8031,7 @@ ns_server_validation(ns_server_t *server, char *args, isc_buffer_t **text) {
 				CHECK(putstr(text, "\n"));
 			CHECK(putstr(text, "DNSSEC validation is "));
 			CHECK(putstr(text, view->enablevalidation
-				            ? "enabled" : "disabled"));
+					    ? "enabled" : "disabled"));
 			CHECK(putstr(text, " (view "));
 			CHECK(putstr(text, view->name));
 			CHECK(putstr(text, ")"));
