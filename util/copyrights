@@ -1448,6 +1448,15 @@
 ./bin/tests/system/lwresd/ns1/root.db		ZONE	2000,2001,2004,2007
 ./bin/tests/system/lwresd/resolv.conf		CONF-SH	2000,2001,2004,2007,2012
 ./bin/tests/system/lwresd/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013
+./bin/tests/system/many/clean.sh		SH	2014
+./bin/tests/system/many/ns1/named.conf		CONF-C	2014
+./bin/tests/system/many/ns2/named.conf		CONF-C	2014
+./bin/tests/system/many/ns3/named.conf		CONF-C	2014
+./bin/tests/system/many/ns4/named.conf		CONF-C	2014
+./bin/tests/system/many/ns5/hints.db		ZONE	2014
+./bin/tests/system/many/ns5/named.conf		CONF-C	2014
+./bin/tests/system/many/setup.sh		SH	2014
+./bin/tests/system/many/tests.sh		SH	2014
 ./bin/tests/system/masterfile/clean.sh		SH	2001,2004,2007,2010,2012
 ./bin/tests/system/masterfile/knowngood.dig.out	X	2001,2004,2012
 ./bin/tests/system/masterfile/ns1/include.db	ZONE	2001,2004,2007,2012
