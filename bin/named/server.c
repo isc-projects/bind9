@@ -3478,6 +3478,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	INSIST(result == ISC_R_SUCCESS);
 	dns_resolver_setmaxdepth(view->resolver, cfg_obj_asuint32(obj));
 
+	obj = NULL;
+	result = ns_config_get(maps, "max-recursion-queries", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_resolver_setmaxqueries(view->resolver, cfg_obj_asuint32(obj));
+
 #ifdef ALLOW_FILTER_AAAA
 	obj = NULL;
 	result = ns_config_get(maps, "filter-aaaa-on-v4", &obj);

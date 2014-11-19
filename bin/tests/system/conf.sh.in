@@ -70,7 +70,7 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
          dname dns64 dnssec dsdigest dscp ecdsa ednscompliance emptyzones
 	 filter-aaaa formerr forward geoip glue gost ixfr inline
 	 limits logfileconfig lwresd masterfile masterformat metadata
-	 notify nslookup nsupdate pending @PKCS11_TEST@ redirect
+	 notify nslookup nsupdate pending @PKCS11_TEST@ reclimit redirect
 	 resolver rndc rpz rrl rrchecker rrsetorder rsabigexponent
 	 sit sfcache smartsign sortlist spf staticstub statistics
 	 stub tkey tsig tsiggss unknown upforwd verify views wildcard
