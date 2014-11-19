@@ -1,3 +1,5 @@
+#!/bin/sh
+#
 # Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -12,10 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-rm -f ns1/[1-9]*example.tld?.db
-rm -f ns2/[1-9]*example.tld?.db
-rm -f ns1/zones.conf
-rm -f ns2/zones.conf
-rm -f */root.db
-rm -f ns3/tld1.db
-rm -f ns4/tld2.db
+rm -f dig.out*
+rm -f ans2/ans.limit
+rm -f ns3/named.conf

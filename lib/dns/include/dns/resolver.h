@@ -601,6 +601,18 @@ dns_resolver_getmaxdepth(dns_resolver_t *resolver);
  * \li	resolver to be valid.
  */
 
+void
+dns_resolver_setmaxqueries(dns_resolver_t *resolver, unsigned int queries);
+unsigned int
+dns_resolver_getmaxqueries(dns_resolver_t *resolver);
+/*%
+ * Get and set how many iterative queries will be allowed before
+ * terminating a recursive query.
+ *
+ * Requires:
+ * \li	resolver to be valid.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RESOLVER_H */
