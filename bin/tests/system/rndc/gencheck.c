@@ -79,7 +79,7 @@ main(int argc, char **argv)
 	ret = EXIT_SUCCESS;
 
  out:
-	printf("%zu\n", length);
+	printf("%lu\n", (unsigned long)length);
 
 	if (fd != -1)
 		close(fd);
