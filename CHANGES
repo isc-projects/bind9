@@ -8,7 +8,7 @@
 
 			The recursion depth limit is configured via the
 			"max-recursion-depth" option, and the query limit
-                        via the "max-recursion-queries" option.  [RT #37580]
+			via the "max-recursion-queries" option.  [RT #37580]
 
 4004.	[bug]		When delegations had AAAA glue but not A, a
 			reference could be leaked causing an assertion
