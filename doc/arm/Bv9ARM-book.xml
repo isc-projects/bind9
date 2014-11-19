@@ -8684,8 +8684,26 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  Sets the maximum number of levels of recursion
-		  permitted at any one time while resolving a name.
-		  The default is 7.
+		  that are permitted at any one time while servicing
+		  a recursive query. Resolving a name may require
+		  looking up a name server address, which in turn
+		  requires resolving another name, etc; if the number
+		  of indirections exceeds this value, the recursive
+		  query is terminated and returns SERVFAIL.  The
+		  default is 7.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry id="max-recursion-queries">
+	      <term><command>max-recursion-queries</command></term>
+	      <listitem>
+		<para>
+		  Sets the maximum number of iterative queries that
+		  may be sent while servicing a recursive query.
+		  If more queries are sent, the recursive query
+		  is terminated and returns SERVFAIL. The default
+		  is 50.
 		</para>
 	      </listitem>
 	    </varlistentry>

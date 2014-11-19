@@ -432,6 +432,7 @@ struct dns_resolver {
 	isc_boolean_t			zero_no_soa_ttl;
 	unsigned int			query_timeout;
 	unsigned int			maxdepth;
+	unsigned int			maxqueries;
 
 	/* Locked by lock. */
 	unsigned int			references;
@@ -2210,9 +2211,9 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 		 */
 		INSIST(!SHUTTINGDOWN(fctx));
 		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
+		fctx->totalqueries += find->qtotal;
 		if (event->ev_type == DNS_EVENT_ADBMOREADDRESSES) {
 			want_try = ISC_TRUE;
-			fctx->totalqueries += find->qtotal;
 		} else {
 			fctx->findfail++;
 			if (fctx->pending == 0) {
@@ -2242,7 +2243,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 	else if (want_done)
 		fctx_done(fctx, ISC_R_FAILURE, __LINE__);
 	else if (destroy) {
-			fctx_destroy(fctx);
+		fctx_destroy(fctx);
 		if (bucket_empty)
 			empty_bucket(res);
 	}
@@ -2611,7 +2612,10 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 	res = fctx->res;
 
 	if (fctx->depth > res->maxdepth) {
-		FCTXTRACE("too much NS indirection");
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+			      "too much NS indirection resolving '%s'",
+			      fctx->info);
 		return (DNS_R_SERVFAIL);
 	}
 
@@ -3053,8 +3057,14 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 
 	REQUIRE(!ADDRWAIT(fctx));
 
-	if (fctx->totalqueries > DEFAULT_MAX_QUERIES)
+	if (fctx->totalqueries > fctx->res->maxqueries) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+			      "exceeded max queries resolving '%s'",
+			      fctx->info);
 		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+		return;
+	}
 
 	addrinfo = fctx_nextaddress(fctx);
 	if (addrinfo == NULL) {
@@ -5704,7 +5714,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					char qbuf[DNS_NAME_FORMATSIZE];
 					char nbuf[DNS_NAME_FORMATSIZE];
 					char tbuf[DNS_RDATATYPE_FORMATSIZE];
-					dns_rdatatype_format(fctx->type, tbuf,
+					dns_rdatatype_format(type, tbuf,
 							     sizeof(tbuf));
 					dns_name_format(name, nbuf,
 							     sizeof(nbuf));
@@ -5713,7 +5723,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					log_formerr(fctx,
 						    "unrelated %s %s in "
 						    "%s authority section",
-						    tbuf, qbuf, nbuf);
+						    tbuf, nbuf, qbuf);
 					goto nextname;
 				}
 				if (type == dns_rdatatype_ns) {
@@ -7804,6 +7814,7 @@ dns_resolver_create(dns_view_t *view,
 	res->zero_no_soa_ttl = ISC_FALSE;
 	res->query_timeout = DEFAULT_QUERY_TIMEOUT;
 	res->maxdepth = DEFAULT_RECURSION_DEPTH;
+	res->maxqueries = DEFAULT_MAX_QUERIES;
 	res->nbuckets = ntasks;
 	res->activebuckets = ntasks;
 	res->buckets = isc_mem_get(view->mctx,
@@ -9155,4 +9166,16 @@ unsigned int
 dns_resolver_getmaxdepth(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 	return (resolver->maxdepth);
+}
+
+void
+dns_resolver_setmaxqueries(dns_resolver_t *resolver, unsigned int queries) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	resolver->maxqueries = queries;
+}
+
+unsigned int
+dns_resolver_getmaxqueries(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	return (resolver->maxqueries);
 }

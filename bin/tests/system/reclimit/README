@@ -1,0 +1,6 @@
+system test for recursion limits
+
+ns1  -- root server
+ans2 -- delegate to ns1.(n+1).example.com for all n, up to
+        the value specified in ans.limit
+ns3  -- resolver under test

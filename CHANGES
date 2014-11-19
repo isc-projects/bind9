@@ -7,7 +7,8 @@
 			query (CVE-2014-8500).
 
 			The recursion depth limit is configured via the
-			"max-recursion-depth" option.  [RT #37580]
+			"max-recursion-depth" option, and the query limit
+                        via the "max-recursion-queries" option.  [RT #37580]
 
 	--- 9.9.6 released ---
 
