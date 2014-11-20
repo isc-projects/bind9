@@ -21,13 +21,13 @@
  ***** Module Info
  *****/
 
-/*! \file isc/quota.h
+/*! \file isc/counter.h
  *
- * \brief The isc_quota_t object is a simple helper object for implementing
- * quotas on things like the number of simultaneous connections to
- * a server.  It keeps track of the amount of quota in use, and
- * encapsulates the locking necessary to allow multiple tasks to
- * share a quota.
+ * \brief The isc_counter_t object is a simplified version of the
+ * isc_quota_t object; it tracks the consumption of limited
+ * resources, returning an error condition when the quota is
+ * exceeded.  However, unlike isc_quota_t, attaching and detaching
+ * from a counter object does not increment or decrement the counter.
  */
 
 /***
@@ -43,46 +43,6 @@
  *****/
 
 ISC_LANG_BEGINDECLS
-
-void
-isc_quota_soft(isc_quota_t *quota, int soft);
-/*%<
- * Set a soft quota.
- */
-
-void
-isc_quota_max(isc_quota_t *quota, int max);
-/*%<
- * Re-set a maximum quota.
- */
-
-isc_result_t
-isc_quota_reserve(isc_quota_t *quota);
-/*%<
- * Attempt to reserve one unit of 'quota'.
- *
- * Returns:
- * \li 	#ISC_R_SUCCESS		Success
- * \li	#ISC_R_SOFTQUOTA	Success soft quota reached
- * \li	#ISC_R_QUOTA		Quota is full
- */
-
-void
-isc_quota_release(isc_quota_t *quota);
-
-isc_result_t
-isc_quota_attach(isc_quota_t *quota, isc_quota_t **p);
-/*%<
- * Like isc_quota_reserve, and also attaches '*p' to the
- * quota if successful (ISC_R_SUCCESS or ISC_R_SOFTQUOTA).
- */
-
-void
-isc_quota_detach(isc_quota_t **p);
-/*%<
- * Like isc_quota_release, and also detaches '*p' from the
- * quota.
- */
 
 isc_result_t
 isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp);
