@@ -39,7 +39,25 @@
     <title>Security Fixes</title>
     <itemizedlist>
       <listitem>
-	<para>None</para>
+	<para>
+	  A flaw in delegation handling could be exploited to put
+	  <command>named</command> into an infinite loop, in which
+	  each lookup of a name server triggered additional lookups
+	  of more name servers.  This has been addressed by placing
+	  limits on the number of levels of recursion
+	  <command>named</command> will allow (default 7), and
+	  on the number of queries that it will send before
+	  terminating a recursive query (default 50).
+	</para>
+	<para>
+	  The recursion depth limit is configured via the
+	  <option>max-recursion-depth</option> option, and the query limit
+	  via the <option>max-recursion-queries</option> option.
+	</para>
+	<para>
+	  The flaw was discovered by Florian Maury of ANSSI, and is
+	  disclosed in CVE-2014-8500. [RT #37580]
+	</para>
       </listitem>
     </itemizedlist>
   </sect2>
