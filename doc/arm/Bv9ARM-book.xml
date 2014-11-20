@@ -4862,6 +4862,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> clients-per-query <replaceable>number</replaceable> ; </optional>
     <optional> max-clients-per-query <replaceable>number</replaceable> ; </optional>
     <optional> max-recursion-depth <replaceable>number</replaceable> ; </optional>
+    <optional> max-recursion-queries <replaceable>number</replaceable> ; </optional>
     <optional> masterfile-format (<constant>text</constant>|<constant>raw</constant>) ; </optional>
     <optional> empty-server <replaceable>name</replaceable> ; </optional>
     <optional> empty-contact <replaceable>name</replaceable> ; </optional>
