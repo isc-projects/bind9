@@ -1,3 +1,5 @@
+	--- 9.9.6-P1 released ---
+
 4006.	[security]	A flaw in delegation handling could be exploited
 			to put named into an infinite loop.  This has
 			been addressed by placing limits on the number
