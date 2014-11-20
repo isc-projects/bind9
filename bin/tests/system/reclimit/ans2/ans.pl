@@ -34,13 +34,13 @@ my $send_response = 0;
 
 sub getlimit {
     if ( -e "ans.limit") {
-        open(FH, "<", "ans.limit");
-        my $line = <FH>;
-        chomp $line;
-        close FH;
-        if ($line =~ /^\d+$/) {
-            return $line;
-        }
+	open(FH, "<", "ans.limit");
+	my $line = <FH>;
+	chomp $line;
+	close FH;
+	if ($line =~ /^\d+$/) {
+	    return $line;
+	}
     }
 
     return 0;
@@ -61,53 +61,53 @@ sub reply_handler {
     $count += 1;
 
     if ($qname eq "count" ) {
-        if ($qtype eq "TXT") {
-            my ($ttl, $rdata) = (0, "$count");
-            my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
-            push @ans, $rr;
-            print ("\tcount: $count\n");
-        }
-        $rcode = "NOERROR";
+	if ($qtype eq "TXT") {
+	    my ($ttl, $rdata) = (0, "$count");
+	    my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
+	    push @ans, $rr;
+	    print ("\tcount: $count\n");
+	}
+	$rcode = "NOERROR";
     } elsif ($qname eq "reset" ) {
-        $count = 0;
-        $send_response = 0;
-        $limit = getlimit();
-        $rcode = "NOERROR";
-        print ("\tlimit: $limit\n");
+	$count = 0;
+	$send_response = 0;
+	$limit = getlimit();
+	$rcode = "NOERROR";
+	print ("\tlimit: $limit\n");
     } elsif ($qname eq "direct.example.org" ) {
-        if ($qtype eq "A") {
-            my ($ttl, $rdata) = (3600, $localaddr);
-            my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
-            push @ans, $rr;
-        }
-        $rcode = "NOERROR";
+	if ($qtype eq "A") {
+	    my ($ttl, $rdata) = (3600, $localaddr);
+	    my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
+	    push @ans, $rr;
+	}
+	$rcode = "NOERROR";
     } elsif ($qname eq "indirect.example.org") {
-        if (! $send_response) {
-            my $rr = new Net::DNS::RR("indirect.example.org 86400 $qclass NS ns1.1.example.org");
-            push @auth, $rr;
-        } elsif ($qtype eq "A") {
-            my ($ttl, $rdata) = (3600, $localaddr);
-            my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
-            push @ans, $rr;
-        } 
-        $rcode = "NOERROR";
+	if (! $send_response) {
+	    my $rr = new Net::DNS::RR("indirect.example.org 86400 $qclass NS ns1.1.example.org");
+	    push @auth, $rr;
+	} elsif ($qtype eq "A") {
+	    my ($ttl, $rdata) = (3600, $localaddr);
+	    my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
+	    push @ans, $rr;
+	} 
+	$rcode = "NOERROR";
     } elsif ($qname =~ /^ns1\.(\d+)\.example\.org$/) {
-        my $next = $1 + 1;
-        if ($limit == 0 || (! $send_response && $next <= $limit)) {
-            my $rr = new Net::DNS::RR("$1.example.org 86400 $qclass NS ns1.$next.example.org");
-            push @auth, $rr;
-        } else {
-            $send_response = 1;
-            if ($qtype eq "A") {
-                my ($ttl, $rdata) = (3600, $localaddr);
-                my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
-print("\tresponse: $qname $ttl $qclass $qtype $rdata\n");
-                push @ans, $rr;
-            }
-        }
-        $rcode = "NOERROR";
+	my $next = $1 + 1;
+	if ($limit == 0 || (! $send_response && $next <= $limit)) {
+	    my $rr = new Net::DNS::RR("$1.example.org 86400 $qclass NS ns1.$next.example.org");
+	    push @auth, $rr;
+	} else {
+	    $send_response = 1;
+	    if ($qtype eq "A") {
+		my ($ttl, $rdata) = (3600, $localaddr);
+		my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
+		print("\tresponse: $qname $ttl $qclass $qtype $rdata\n");
+		push @ans, $rr;
+	    }
+	}
+	$rcode = "NOERROR";
     } else {
-        $rcode = "NXDOMAIN";
+	$rcode = "NXDOMAIN";
     }
 
     # mark the answer as authoritive (by setting the 'aa' flag
