@@ -10,7 +10,7 @@
 
 			The recursion depth limit is configured via the
 			"max-recursion-depth" option, and the query limit
-                        via the "max-recursion-queries" option.  [RT #37580]
+			via the "max-recursion-queries" option.  [RT #37580]
 
 4003.	[security]	When geoip-directory was reconfigured during
 			named run-time, the previously loaded GeoIP
