@@ -1550,6 +1550,8 @@
 ./bin/tests/system/pkcs11ssl/usepkcs11		X	2014
 ./bin/tests/system/reclimit/README		TXT.BRIEF	2014
 ./bin/tests/system/reclimit/ans2/ans.pl		PERL	2014
+./bin/tests/system/reclimit/ans4/ans.pl		PERL	2014
+./bin/tests/system/reclimit/ans7/ans.pl		PERL	2014
 ./bin/tests/system/reclimit/clean.sh		SH	2014
 ./bin/tests/system/reclimit/ns1/named.conf	CONF-C	2014
 ./bin/tests/system/reclimit/ns1/root.db		ZONE	2014
@@ -3456,6 +3458,7 @@
 ./lib/isc/bufferlist.c				C	1999,2000,2001,2004,2005,2007
 ./lib/isc/chacha_private.h			X	2014
 ./lib/isc/commandline.c				C.PORTION	1999,2000,2001,2004,2005,2007,2008,2014
+./lib/isc/counter.c				C	2014
 ./lib/isc/crc64.c				C	2013
 ./lib/isc/entropy.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2014
 ./lib/isc/error.c				C	1998,1999,2000,2001,2004,2005,2007
@@ -3484,6 +3487,7 @@
 ./lib/isc/include/isc/buffer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2010,2012,2014
 ./lib/isc/include/isc/bufferlist.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/commandline.h		C	1999,2000,2001,2004,2005,2006,2007
+./lib/isc/include/isc/counter.h			C	2014
 ./lib/isc/include/isc/crc64.h			C	2013
 ./lib/isc/include/isc/entropy.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/error.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2009
@@ -3647,6 +3651,7 @@
 ./lib/isc/tests/Makefile.in			MAKE	2011,2012,2013,2014
 ./lib/isc/tests/aes_test.c			C	2014
 ./lib/isc/tests/buffer_test.c			C	2014
+./lib/isc/tests/counter_test.c			C	2014
 ./lib/isc/tests/file_test.c			C	2014
 ./lib/isc/tests/hash_test.c			C	2011,2012,2013,2014
 ./lib/isc/tests/isctest.c			C	2011,2012,2013,2014
