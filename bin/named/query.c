@@ -3880,7 +3880,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	result = dns_resolver_createfetch3(client->view->resolver,
 					   qname, qtype, qdomain, nameservers,
 					   NULL, peeraddr, client->message->id,
-					   client->query.fetchoptions, 0,
+					   client->query.fetchoptions, 0, NULL,
 					   client->task, query_resume, client,
 					   rdataset, sigrdataset,
 					   &client->query.fetch);
