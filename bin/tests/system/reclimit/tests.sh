@@ -90,29 +90,28 @@ sleep 2
 n=`expr $n + 1`
 echo "I: attempt excessive-queries lookup ($n)"
 ret=0
-echo "25" > ans2/ans.limit
+echo "13" > ans2/ans.limit
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 flush 2>&1 | sed 's/^/I:ns1 /'
 $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.3 indirect.example.org > dig.out.1.test$n || ret=1
 grep "status: SERVFAIL" dig.out.1.test$n > /dev/null || ret=1
-grep "exceeded max queries resolving 'indirect.example.org/A'" ns3/named.run > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
-[ $count -eq 100 ] || ret=1
+[ $count -le 50 ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: attempt permissible lookup ($n)"
 ret=0
-echo "24" > ans2/ans.limit
+echo "12" > ans2/ans.limit
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 flush 2>&1 | sed 's/^/I:ns1 /'
 $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.3 indirect.example.org > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
-[ $count -eq 97 ] || ret=1
+[ $count -le 50 ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -124,29 +123,43 @@ sleep 2
 n=`expr $n + 1`
 echo "I: attempt excessive-queries lookup ($n)"
 ret=0
-echo "21" > ans2/ans.limit
+echo "10" > ans2/ans.limit
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 flush 2>&1 | sed 's/^/I:ns1 /'
 $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.3 indirect.example.org > dig.out.1.test$n || ret=1
 grep "status: SERVFAIL" dig.out.1.test$n > /dev/null || ret=1
-grep "exceeded max queries resolving 'indirect.example.org/A'" ns3/named.run > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
-[ $count -eq 84 ] || ret=1
+[ $count -le 40 ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: attempt permissible lookup ($n)"
 ret=0
-echo "19" > ans2/ans.limit
+echo "9" > ans2/ans.limit
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 flush 2>&1 | sed 's/^/I:ns1 /'
 $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.3 indirect.example.org > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
-[ $count -eq 77 ] || ret=1
+[ $count -le 40 ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: attempting NS explosion ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 flush 2>&1 | sed 's/^/I:ns1 /'
+$DIG $DIGOPTS +short @10.53.0.3 ns1.1.example.net > dig.out.1.test$n || ret=1
+sleep 2
+$DIG $DIGOPTS +short @10.53.0.4 count txt > dig.out.2.test$n || ret=1
+eval count=`cat dig.out.2.test$n`
+[ $count -lt 50 ] || ret=1
+$DIG $DIGOPTS +short @10.53.0.7 count txt > dig.out.3.test$n || ret=1
+eval count=`cat dig.out.3.test$n`
+[ $count -lt 50 ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
