@@ -647,6 +647,17 @@
 	    </para>
 	  </listitem>
 	</varlistentry>
+
+	<varlistentry>
+	  <term><option>+[no]tcp</option></term>
+	  <listitem>
+	    <para>
+	      Controls whether to use TCP when sending queries.
+	      The default is to use UDP unless a truncated
+	      response has been received.
+	    </para>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
     </para>

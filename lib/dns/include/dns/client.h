@@ -85,12 +85,24 @@ ISC_LANG_BEGINDECLS
 #define DNS_CLIENTRESOPT_NOVALIDATE	0x04
 /*%< Don't set the CD flag on upstream queries. */
 #define DNS_CLIENTRESOPT_NOCDFLAG	0x08
+/*%< Use TCP transport. */
+#define DNS_CLIENTRESOPT_TCP		0x10
 
 /*%
  * Optional flags for dns_client_(start)request.
  */
 /*%< Allow running external context. */
 #define DNS_CLIENTREQOPT_ALLOWRUN	0x01
+/*%< Use TCP transport. */
+#define DNS_CLIENTREQOPT_TCP		0x02
+
+/*%
+ * Optional flags for dns_client_(start)update.
+ */
+/*%< Allow running external context. */
+#define DNS_CLIENTUPDOPT_ALLOWRUN	0x01
+/*%< Use TCP transport. */
+#define DNS_CLIENTUPDOPT_TCP		0x02
 
 /*%
  * A dns_clientresevent_t is sent when name resolution performed by a client
@@ -301,9 +313,12 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
  *
  * If any trusted keys are configured and the query name is considered to
  * belong to a secure zone, these functions also validate the responses
- * using DNSSEC by default.  If the DNS_CLIENTRESOPT_NODNSSEC flag is set
+ * using DNSSEC by default.  If the DNS_CLIENTRESOPT_NOVALIDATE flag is set
  * in 'options', DNSSEC validation is disabled regardless of the configured
- * trusted keys or the query name.
+ * trusted keys or the query name. With DNS_CLIENTRESOPT_NODNSSEC
+ * DNSSEC data is not returned with response. DNS_CLIENTRESOPT_NOCDFLAG
+ * disables the CD flag on queries, DNS_CLIENTRESOPT_TCP switches to
+ * the TCP (vs. UDP) transport.
  *
  * dns_client_resolve() provides a synchronous service.  This function starts
  * name resolution internally and blocks until it completes.  On success,
@@ -465,6 +480,8 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
  * the response message (on success).  On return, '*transp' is set to an opaque
  * transaction ID so that the caller can cancel this request.
  *
+ * DNS_CLIENTREQOPT_TCP switches to the TCP (vs. UDP) transport.
+ *
  * Requires:
  *
  *\li	'client' is a valid client.
@@ -567,6 +584,12 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
  * NULL, in which case the library tries the update without any transaction
  * authentication.
  *
+ * It is typically expected that the client object passed to
+ * dns_client_update() was created via dns_client_create() and has its own
+ * managers and contexts.  However, if the DNS_CLIENTUPDOPT_ALLOWRUN flag is
+ * set in 'options', this function performs the synchronous service even if
+ * it does not have its own manager and context structures.
+ *
  * dns_client_update() provides a synchronous service.  This function blocks
  * until the entire update procedure completes, including the additional
  * queries when necessary.
@@ -581,8 +604,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
  * structure.  On return, '*transp' is set to an opaque transaction ID so that
  * the caller can cancel this update process.
  *
- * Notes:
- *\li	No options are currently defined.
+ * DNS_CLIENTUPDOPT_TCP switches to the TCP (vs. UDP) transport.
  *
  * Requires:
  *

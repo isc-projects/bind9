@@ -233,6 +233,12 @@
 	  <command>buffered yes;</command> when creating a channel.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>delv +tcp</command> will exclusively use TCP when
+	  sending queries.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_changes">

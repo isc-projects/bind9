@@ -37,8 +37,8 @@ if [ -x ${DELV} ] ; then
   if [ $ret != 0 ]; then echo "I:failed"; fi 
   status=`expr $status + $ret`
 
-  echo "I:checking delv with IPv6 on IPv4 does not work ($n)"
   n=`expr $n + 1`
+  echo "I:checking delv with IPv6 on IPv4 does not work ($n)"
   if $TESTSOCK6 fd92:7065:b8e:ffff::3
   then
     ret=0
@@ -64,6 +64,14 @@ if [ -x ${DELV} ] ; then
   # doesn't matter if has answer
   grep -i "127\.in-addr\.arpa\." < delv.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi 
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking delv over TCP works ($n)"
+  ret=0
+  $DELV $DELVOPTS +tcp @10.53.0.3 a a.example > delv.out.test$n || ret=1
+  grep "10\.0\.0\.1$" < delv.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
   exit $status

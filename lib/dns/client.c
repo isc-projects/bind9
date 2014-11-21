@@ -132,6 +132,7 @@ typedef struct resctx {
 	isc_boolean_t		want_dnssec;
 	isc_boolean_t		want_validation;
 	isc_boolean_t		want_cdflag;
+	isc_boolean_t		want_tcp;
 
 	/* Locked */
 	ISC_LINK(struct resctx)	link;
@@ -222,6 +223,7 @@ typedef struct updatectx {
 	unsigned int			magic;
 	isc_mutex_t			lock;
 	dns_client_t			*client;
+	isc_boolean_t			want_tcp;
 
 	/* Locked */
 	dns_request_t			*updatereq;
@@ -784,6 +786,8 @@ start_fetch(resctx_t *rctx) {
 		fopts |= DNS_FETCHOPT_NOCDFLAG;
 	if (!rctx->want_validation)
 		fopts |= DNS_FETCHOPT_NOVALIDATE;
+	if (rctx->want_tcp)
+		fopts |= DNS_FETCHOPT_TCP;
 
 	result = dns_resolver_createfetch(rctx->view->resolver,
 					  dns_fixedname_name(&rctx->name),
@@ -1331,7 +1335,7 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
 	isc_mem_t *mctx;
 	isc_result_t result;
 	dns_rdataset_t *rdataset, *sigrdataset;
-	isc_boolean_t want_dnssec, want_validation, want_cdflag;
+	isc_boolean_t want_dnssec, want_validation, want_cdflag, want_tcp;
 
 	REQUIRE(DNS_CLIENT_VALID(client));
 	REQUIRE(transp != NULL && *transp == NULL);
@@ -1349,6 +1353,7 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
 	want_dnssec = ISC_TF((options & DNS_CLIENTRESOPT_NODNSSEC) == 0);
 	want_validation = ISC_TF((options & DNS_CLIENTRESOPT_NOVALIDATE) == 0);
 	want_cdflag = ISC_TF((options & DNS_CLIENTRESOPT_NOCDFLAG) == 0);
+	want_tcp = ISC_TF((options & DNS_CLIENTRESOPT_TCP) != 0);
 
 	/*
 	 * Prepare some intermediate resources
@@ -1406,6 +1411,7 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
 	rctx->want_dnssec = want_dnssec;
 	rctx->want_validation = want_validation;
 	rctx->want_cdflag = want_cdflag;
+	rctx->want_tcp = want_tcp;
 	ISC_LIST_INIT(rctx->namelist);
 	rctx->event = event;
 
@@ -1727,8 +1733,7 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 	dns_clientreqevent_t *event = NULL;
 	reqctx_t *ctx = NULL;
 	dns_tsectype_t tsectype = dns_tsectype_none;
-
-	UNUSED(options);
+	unsigned int reqoptions;
 
 	REQUIRE(DNS_CLIENT_VALID(client));
 	REQUIRE(qmessage != NULL);
@@ -1747,6 +1752,10 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 	UNLOCK(&client->lock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+
+	reqoptions = 0;
+	if ((options & DNS_CLIENTREQOPT_TCP) != 0)
+		reqoptions |= DNS_REQUESTOPT_TCP;
 
 	clone = NULL;
 	isc_task_attach(task, &clone);
@@ -1790,7 +1799,7 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 
 	ctx->request = NULL;
 	result = dns_request_createvia3(view->requestmgr, qmessage, NULL,
-					server, options, ctx->tsigkey,
+					server, reqoptions, ctx->tsigkey,
 					timeout, udptimeout, udpretries,
 					client->task, request_done, ctx,
 					&ctx->request);
@@ -1939,7 +1948,7 @@ update_done(isc_task_t *task, isc_event_t *event) {
 	dns_message_t *answer = NULL;
 	updatectx_t *uctx = event->ev_arg;
 	dns_client_t *client;
-	unsigned int timeout;
+	unsigned int timeout, reqoptions;
 
 	UNUSED(task);
 
@@ -1980,10 +1989,14 @@ update_done(isc_task_t *task, isc_event_t *event) {
 		timeout = client->update_timeout / uctx->nservers;
 		if (timeout < MIN_UPDATE_TIMEOUT)
 			timeout = MIN_UPDATE_TIMEOUT;
+		reqoptions = 0;
+		if (uctx->want_tcp)
+			reqoptions |= DNS_REQUESTOPT_TCP;
 		result = dns_request_createvia3(uctx->view->requestmgr,
 						uctx->updatemsg,
 						NULL,
-						uctx->currentserver, 0,
+						uctx->currentserver,
+						reqoptions,
 						uctx->tsigkey,
 						timeout,
 						client->update_udptimeout,
@@ -2010,7 +2023,7 @@ send_update(updatectx_t *uctx) {
 	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	dns_client_t *client = uctx->client;
-	unsigned int timeout;
+	unsigned int timeout, reqoptions;
 
 	REQUIRE(uctx->zonename != NULL && uctx->currentserver != NULL);
 
@@ -2037,10 +2050,13 @@ send_update(updatectx_t *uctx) {
 	timeout = client->update_timeout / uctx->nservers;
 	if (timeout < MIN_UPDATE_TIMEOUT)
 		timeout = MIN_UPDATE_TIMEOUT;
+	reqoptions = 0;
+	if (uctx->want_tcp)
+		reqoptions |= DNS_REQUESTOPT_TCP;
 	result = dns_request_createvia3(uctx->view->requestmgr,
 					uctx->updatemsg,
-					NULL, uctx->currentserver, 0,
-					uctx->tsigkey, timeout,
+					NULL, uctx->currentserver,
+					reqoptions, uctx->tsigkey, timeout,
 					client->update_udptimeout,
 					client->update_udpretries,
 					client->task, update_done, uctx,
@@ -2177,6 +2193,7 @@ process_soa(updatectx_t *uctx, dns_rdataset_t *soaset, dns_name_t *soaname) {
 	dns_rdata_t soarr = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	dns_name_t primary;
+	unsigned int resoptions;
 
 	result = dns_rdataset_first(soaset);
 	if (result != ISC_R_SUCCESS)
@@ -2206,10 +2223,14 @@ process_soa(updatectx_t *uctx, dns_rdataset_t *soaset, dns_name_t *soaname) {
 		 */
 		LOCK(&uctx->lock);
 		uctx->bp4 = uctx;
+		resoptions = 0;
+		if (uctx->want_tcp)
+			resoptions |= DNS_CLIENTRESOPT_TCP;
 		result = dns_client_startresolve(uctx->client, &primary,
 						 uctx->rdclass,
 						 dns_rdatatype_a,
-						 0, uctx->client->task,
+						 resoptions,
+						 uctx->client->task,
 						 resolveaddr_done, &uctx->bp4,
 						 &uctx->restrans);
 		if (result == ISC_R_SUCCESS) {
@@ -2218,7 +2239,8 @@ process_soa(updatectx_t *uctx, dns_rdataset_t *soaset, dns_name_t *soaname) {
 							 &primary,
 							 uctx->rdclass,
 							 dns_rdatatype_aaaa,
-							 0, uctx->client->task,
+							 resoptions,
+							 uctx->client->task,
 							 resolveaddr_done,
 							 &uctx->bp6,
 							 &uctx->restrans2);
@@ -2249,7 +2271,7 @@ receive_soa(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t seencname = ISC_FALSE;
 	isc_boolean_t droplabel = ISC_FALSE;
 	dns_name_t tname;
-	unsigned int nlabels;
+	unsigned int nlabels, reqoptions;
 
 	UNUSED(task);
 
@@ -2284,9 +2306,12 @@ receive_soa(isc_task_t *task, isc_event_t *event) {
 		/* Retry SOA request without TSIG */
 		dns_message_destroy(&rcvmsg);
 		dns_message_renderreset(uctx->soaquery);
+		reqoptions = 0;
+		if (uctx->want_tcp)
+			reqoptions |= DNS_REQUESTOPT_TCP;
 		result = dns_request_createvia3(uctx->view->requestmgr,
-						uctx->soaquery, NULL, addr, 0,
-						NULL,
+						uctx->soaquery, NULL, addr,
+						reqoptions, NULL,
 						client->find_timeout * 20,
 						client->find_timeout, 3,
 						uctx->client->task,
@@ -2384,9 +2409,13 @@ receive_soa(isc_task_t *task, isc_event_t *event) {
 			UNLOCK(&uctx->lock);
 			dns_message_renderreset(soaquery);
 			dns_message_settsigkey(soaquery, NULL);
+			reqoptions = 0;
+			if (uctx->want_tcp)
+				reqoptions |= DNS_REQUESTOPT_TCP;
 			result = dns_request_createvia3(uctx->view->requestmgr,
 							soaquery, NULL,
-							uctx->currentserver, 0,
+							uctx->currentserver,
+							reqoptions,
 							uctx->tsigkey,
 							client->find_timeout *
 							20,
@@ -2417,6 +2446,7 @@ request_soa(updatectx_t *uctx) {
 	dns_message_t *soaquery = uctx->soaquery;
 	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
+	unsigned int reqoptions;
 
 	if (soaquery == NULL) {
 		result = dns_message_create(uctx->client->mctx,
@@ -2438,10 +2468,13 @@ request_soa(updatectx_t *uctx) {
 	dns_message_addname(soaquery, name, DNS_SECTION_QUESTION);
 	rdataset = NULL;
 	name = NULL;
+	reqoptions = 0;
+	if (uctx->want_tcp)
+		reqoptions |= DNS_REQUESTOPT_TCP;
 
 	result = dns_request_createvia3(uctx->view->requestmgr,
-					soaquery, NULL, uctx->currentserver, 0,
-					uctx->tsigkey,
+					soaquery, NULL, uctx->currentserver,
+					reqoptions, uctx->tsigkey,
 					uctx->client->find_timeout * 20,
 					uctx->client->find_timeout, 3,
 					uctx->client->task, receive_soa, uctx,
@@ -2470,7 +2503,7 @@ resolvesoa_done(isc_task_t *task, isc_event_t *event) {
 	dns_name_t *name, tname;
 	dns_rdataset_t *rdataset = NULL;
 	isc_result_t result = rev->result;
-	unsigned int nlabels;
+	unsigned int nlabels, resoptions;
 
 	UNUSED(task);
 
@@ -2511,10 +2544,14 @@ resolvesoa_done(isc_task_t *task, isc_event_t *event) {
 		dns_name_getlabelsequence(&uctx->soaqname, 1, nlabels - 1,
 					  &tname);
 		dns_name_clone(&tname, &uctx->soaqname);
+		resoptions = 0;
+		if (uctx->want_tcp)
+			resoptions |= DNS_CLIENTRESOPT_TCP;
 
 		result = dns_client_startresolve(uctx->client, &uctx->soaqname,
 						 uctx->rdclass,
-						 dns_rdatatype_soa, 0,
+						 dns_rdatatype_soa,
+						 resoptions,
 						 uctx->client->task,
 						 resolvesoa_done, uctx,
 						 &uctx->restrans);
@@ -2658,11 +2695,11 @@ dns_client_update(dns_client_t *client, dns_rdataclass_t rdclass,
 	REQUIRE(DNS_CLIENT_VALID(client));
 
 	if ((client->attributes & DNS_CLIENTATTR_OWNCTX) == 0 &&
-	    (options & DNS_CLIENTRESOPT_ALLOWRUN) == 0) {
+	    (options & DNS_CLIENTUPDOPT_ALLOWRUN) == 0) {
 		/*
 		 * If the client is run under application's control, we need
 		 * to create a new running (sub)environment for this
-		 * particular resolution.
+		 * particular update.
 		 */
 		return (ISC_R_NOTIMPLEMENTED); /* XXXTBD */
 	} else
@@ -2742,6 +2779,8 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	dns_section_t section = DNS_SECTION_UPDATE;
 	isc_sockaddr_t *server, *sa = NULL;
 	dns_tsectype_t tsectype = dns_tsectype_none;
+	isc_boolean_t want_tcp;
+	unsigned int resoptions;
 
 	UNUSED(options);
 
@@ -2762,6 +2801,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	UNLOCK(&client->lock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+	want_tcp = ISC_TF((options & DNS_CLIENTUPDOPT_TCP) != 0);
 
 	/* Create a context and prepare some resources */
 	uctx = isc_mem_get(client->mctx, sizeof(*uctx));
@@ -2795,6 +2835,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	uctx->tsigkey = NULL;
 	uctx->sig0key = NULL;
 	uctx->zonename = NULL;
+	uctx->want_tcp = want_tcp;
 	dns_name_init(&uctx->soaqname, NULL);
 	ISC_LIST_INIT(uctx->servers);
 	uctx->nservers = 0;
@@ -2884,10 +2925,13 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 	} else {
+		resoptions = 0;
+		if (want_tcp)
+			resoptions |= DNS_CLIENTRESOPT_TCP;
 		dns_name_clone(uctx->firstname, &uctx->soaqname);
 		result = dns_client_startresolve(uctx->client, &uctx->soaqname,
 						 uctx->rdclass,
-						 dns_rdatatype_soa, 0,
+						 dns_rdatatype_soa, resoptions,
 						 client->task, resolvesoa_done,
 						 uctx, &uctx->restrans);
 		if (result != ISC_R_SUCCESS)

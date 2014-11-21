@@ -131,6 +131,8 @@ static isc_boolean_t
 	root_validation = ISC_TRUE,
 	dlv_validation = ISC_TRUE;
 
+static isc_boolean_t use_tcp = ISC_FALSE;
+
 static char *anchorfile = NULL;
 static char *trust_anchor = NULL;
 static char *dlv_anchor = NULL;
@@ -183,6 +185,7 @@ usage(void) {
 				       "comments)\n"
 "                 +[no]short          (Short form answer)\n"
 "                 +[no]split=##       (Split hex/base64 fields into chunks)\n"
+"                 +[no]tcp            (TCP mode)\n"
 "                 +[no]ttl            (Control display of ttls in records)\n"
 "                 +[no]trust          (Control display of trust level)\n"
 "                 +[no]rtrace         (Trace resolver fetches)\n"
@@ -1134,6 +1137,10 @@ plus_option(char *option) {
 		break;
 	case 't':
 		switch (cmd[1]) {
+		case 'c': /* tcp */
+			FULLCHECK("tcp");
+			use_tcp = state;
+			break;
 		case 'r': /* trust */
 			FULLCHECK("trust");
 			showtrust = state;
@@ -1627,6 +1634,8 @@ main(int argc, char *argv[]) {
 		resopt |= DNS_CLIENTRESOPT_NOVALIDATE;
 	if (cdflag)
 		resopt &= ~DNS_CLIENTRESOPT_NOCDFLAG;
+	if (use_tcp)
+		resopt |= DNS_CLIENTRESOPT_TCP;
 
 	/* Perform resolution */
 	ISC_LIST_INIT(namelist);
