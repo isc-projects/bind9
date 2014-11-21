@@ -894,13 +894,11 @@ n=`expr $n + 1`
 echo "I:testing updating inline secure serial via 'rndc signing -serial' ($n)"
 ret=0
 $DIG nsec3. SOA -p 5300 @10.53.0.3 > dig.out.n3.pre.test$n
-# NOTE: use printf("%u") instead of print, to work around a bug in old
-# awk implememntations that convert ints > 999999 to scientific notation
-newserial=`awk '$4 == "SOA" { printf("%u\n", $7 + 10) }' dig.out.n3.pre.test$n`
+newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n", $field[6] + 10) if ($field[3] eq "SOA"); }' < dig.out.n3.pre.test$n`
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -serial ${newserial:-0} nsec3 > /dev/null 2>&1
 sleep 1
 $DIG nsec3. SOA -p 5300 @10.53.0.3 > dig.out.ns3.post.test$n
-serial=`awk '$4 == "SOA" { printf("%u\n", $7) }' dig.out.ns3.post.test$n`
+serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns3.post.test$n`
 [ ${newserial:-0} -eq ${serial:-1} ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -909,8 +907,8 @@ n=`expr $n + 1`
 echo "I:testing updating inline secure serial via 'rndc signing -serial' with negative change ($n)"
 ret=0
 $DIG nsec3. SOA -p 5300 @10.53.0.3 > dig.out.n3.pre.test$n
-oldserial=`awk '$4 == "SOA" { printf("%u\n", $7) }' dig.out.n3.pre.test$n`
-newserial=`awk '$4 == "SOA" { printf("%u\n", $7 - 10) }' dig.out.n3.pre.test$n`
+oldserial=`awk '$4 == "SOA" { print $7 }' dig.out.n3.pre.test$n`
+newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n", $field[6] - 10) if ($field[3] eq "SOA"); }' < dig.out.n3.pre.test$n`
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -serial ${newserial:-0} nsec3 > /dev/null 2>&1
 sleep 1
 $DIG nsec3. SOA -p 5300 @10.53.0.3 > dig.out.ns3.post.test$n
@@ -926,14 +924,14 @@ n=`expr $n + 1`
 echo "I:testing updating inline secure serial via 'rndc signing -serial' when frozen ($n)"
 ret=0
 $DIG nsec3. SOA -p 5300 @10.53.0.3 > dig.out.n3.pre.test$n
-oldserial=`awk '$4 == "SOA" { printf("%u\n", $7) }' dig.out.n3.pre.test$n`
-newserial=`awk '$4 == "SOA" { printf("%u\n", $7 + 10) }' dig.out.n3.pre.test$n`
+oldserial=`awk '$4 == "SOA" { print $7 }' dig.out.n3.pre.test$n`
+newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n", $field[6] + 10) if ($field[3] eq "SOA"); }' < dig.out.n3.pre.test$n`
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 freeze nsec3 > /dev/null 2>&1
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -serial ${newserial:-0} nsec3 > /dev/null 2>&1
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 thaw nsec3 > /dev/null 2>&1
 sleep 1
 $DIG nsec3. SOA -p 5300 @10.53.0.3 > dig.out.ns3.post.test$n
-serial=`awk '$4 == "SOA" { printf("%u\n", $7) }' dig.out.ns3.post.test$n`
+serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns3.post.test$n`
 [ ${newserial:-0} -eq ${serial:-1} ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -942,11 +940,11 @@ n=`expr $n + 1`
 echo "I:testing updating dynamic serial via 'rndc signing -serial' ($n)"
 ret=0
 $DIG bits. SOA -p 5300 @10.53.0.2 > dig.out.ns2.pre.test$n
-newserial=`awk '$4 == "SOA" { printf("%u\n", $7 + 10) }' dig.out.ns2.pre.test$n`
+newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n", $field[6] + 10) if ($field[3] eq "SOA"); }' < dig.out.ns2.pre.test$n`
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 signing -serial ${newserial:-0} bits > /dev/null 2>&1
 sleep 1
 $DIG bits. SOA -p 5300 @10.53.0.2 > dig.out.ns2.post.test$n
-serial=`awk '$4 == "SOA" { printf("%u\n", $7) }' dig.out.ns2.post.test$n`
+serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns2.post.test$n`
 [ ${newserial:-0} -eq ${serial:-1} ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -955,12 +953,12 @@ n=`expr $n + 1`
 echo "I:testing updating dynamic serial via 'rndc signing -serial' with negative change ($n)"
 ret=0
 $DIG bits. SOA -p 5300 @10.53.0.2 > dig.out.ns2.pre.test$n
-oldserial=`awk '$4 == "SOA" { printf("%u\n", $7) }' dig.out.ns2.pre.test$n`
-newserial=`awk '$4 == "SOA" { printf("%u\n", $7 - 10) }' dig.out.ns2.pre.test$n`
+oldserial=`awk '$4 == "SOA" { print $7 }' dig.out.ns2.pre.test$n`
+newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n", $field[6] - 10) if ($field[3] eq "SOA"); }' < dig.out.ns2.pre.test$n`
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 signing -serial ${newserial:-0} bits > /dev/null 2>&1
 sleep 1
 $DIG bits. SOA -p 5300 @10.53.0.2 > dig.out.ns2.post.test$n
-serial=`awk '$4 == "SOA" { printf("%u\n", $7) }' dig.out.ns2.post.test$n`
+serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns2.post.test$n`
 [ ${oldserial:-0} -eq ${serial:-1} ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -969,14 +967,14 @@ n=`expr $n + 1`
 echo "I:testing updating dynamic serial via 'rndc signing -serial' when frozen ($n)"
 ret=0
 $DIG bits. SOA -p 5300 @10.53.0.2 > dig.out.ns2.pre.test$n
-oldserial=`awk '$4 == "SOA" { printf("%u\n", $7) }' dig.out.ns2.pre.test$n`
-newserial=`awk '$4 == "SOA" { printf("%u\n", $7 + 10) }' dig.out.ns2.pre.test$n`
+oldserial=`awk '$4 == "SOA" { print $7 }' dig.out.ns2.pre.test$n`
+newserial=`$PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n", $field[6] + 10) if ($field[3] eq "SOA"); }' < dig.out.ns2.pre.test$n`
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 freeze bits > /dev/null 2>&1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 signing -serial ${newserial:-0} bits > /dev/null 2>&1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 thaw bits > /dev/null 2>&1
 sleep 1
 $DIG bits. SOA -p 5300 @10.53.0.2 > dig.out.ns2.post.test$n
-serial=`awk '$4 == "SOA" { printf("%u\n", $7) }' dig.out.ns2.post.test$n`
+serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns2.post.test$n`
 [ ${oldserial:-0} -eq ${serial:-1} ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
