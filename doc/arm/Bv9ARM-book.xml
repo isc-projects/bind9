@@ -3372,12 +3372,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	</para>
 
 	<para>
-	  Note that an address match list's name must be defined
-	  with <command>acl</command> before it can be used
-	  elsewhere; no forward references are allowed.
-	</para>
-
-	<para>
 	  The following ACLs are built-in:
 	</para>
 
