@@ -719,7 +719,7 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 	 * allow room for a full sha256 hash (64 chars
 	 * plus null terminator)
 	 */
-	if (l < 65)
+	if (l < 65U)
 		l = 65;
 
 	if (dir != NULL)
@@ -727,7 +727,7 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 	if (ext != NULL)
 		l += strlen(ext) + 1;
 
-	if (l > length || l > PATH_MAX)
+	if (l > length || l > (unsigned)PATH_MAX)
 		return (ISC_R_NOSPACE);
 
 	/* Check whether the full-length SHA256 hash filename exists */
