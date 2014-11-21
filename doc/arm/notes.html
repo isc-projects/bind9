@@ -85,12 +85,44 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul type="disc">
-<li><p>None</p></li>
-<li><p>
-          Errors reported when running <span><strong class="command">rndc addzone</strong></span>
-          (e.g., when a zone file cannot be loaded) have been clarified
-          to make it easier to diagnose problems.
-        </p></li>
+<li>
+<p>
+	  A flaw in delegation handling could be exploited to put
+	  <span><strong class="command">named</strong></span> into an infinite loop, in which
+	  each lookup of a name server triggered additional lookups
+	  of more name servers.  This has been addressed by placing
+	  limits on the number of levels of recursion
+	  <span><strong class="command">named</strong></span> will allow (default 7), and
+	  on the number of queries that it will send before
+	  terminating a recursive query (default 50).
+	</p>
+<p>
+	  The recursion depth limit is configured via the
+	  <code class="option">max-recursion-depth</code> option, and the query limit
+	  via the <code class="option">max-recursion-queries</code> option.
+	</p>
+<p>
+	  The flaw was discovered by Florian Maury of ANSSI, and is
+	  disclosed in CVE-2014-8500. [RT #37580]
+	</p>
+</li>
+<li>
+<p>
+	  Two separate problems were identified in BIND's GeoIP code that
+	  could lead to an assertion failure. One was triggered by use of
+	  both IPv4 and IPv6 address families, the other by referencing
+	  a GeoIP database in <code class="filename">named.conf</code> which was
+	  not installed. Both are covered by CVE-2014-8680. [RT #37672]
+	  [RT #37679]
+	</p>
+<p>
+	  A less serious security flaw was also found in GeoIP: changes
+	  to the <span><strong class="command">geoip-directory</strong></span> option in
+	  <code class="filename">named.conf</code> were ignored when running
+	  <span><strong class="command">rndc reconfig</strong></span>. In theory, this could allow
+	  <span><strong class="command">named</strong></span> to allow access to unintended clients.
+	</p>
+</li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
@@ -274,6 +306,11 @@
 	  "rndc tsig-list" and "rndc zonestatus" could return
 	  truncated output.)
 	</p></li>
+<li><p>
+          Errors reported when running <span><strong class="command">rndc addzone</strong></span>
+          (e.g., when a zone file cannot be loaded) have been clarified
+          to make it easier to diagnose problems.
+        </p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
