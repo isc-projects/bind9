@@ -397,6 +397,11 @@ Indicates whether to perform DNSSEC lookaside validation, and if so, specifies t
 \fB\-a\fR
 must be used to specify a file containing the DLV key.
 .RE
+.PP
+\fB+[no]tcp\fR
+.RS 4
+Controls whether to use TCP when sending queries. The default is to use UDP unless a truncated response has been received.
+.RE
 .SH "FILES"
 .PP
 \fI/etc/bind.keys\fR
