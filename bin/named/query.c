@@ -3880,7 +3880,8 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	ns_client_t *dummy = NULL;
 	unsigned int options;
 
-	if (client->view->prefetch_trigger == 0U ||
+	if (client->query.prefetch != NULL ||
+	    client->view->prefetch_trigger == 0U ||
 	    rdataset->ttl > client->view->prefetch_trigger ||
 	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0)
 		return;
@@ -3893,8 +3894,6 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_recursclients);
 	}
-	if (client->query.prefetch != NULL)
-		return;
 
 	tmprdataset = query_newrdataset(client);
 	if (tmprdataset == NULL)
@@ -3916,6 +3915,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		query_putrdataset(client, &tmprdataset);
 		ns_client_detach(&dummy);
 	}
+	dns_rdataset_clearprefetch(rdataset);
 }
 
 static isc_result_t

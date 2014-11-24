@@ -114,6 +114,7 @@ typedef struct dns_rdatasetmethods {
 	void			(*settrust)(dns_rdataset_t *rdataset,
 					    dns_trust_t trust);
 	void			(*expire)(dns_rdataset_t *rdataset);
+	void			(*clearprefetch)(dns_rdataset_t *rdataset);
 } dns_rdatasetmethods_t;
 
 #define DNS_RDATASET_MAGIC	       ISC_MAGIC('D','N','S','R')
@@ -652,6 +653,17 @@ void
 dns_rdataset_expire(dns_rdataset_t *rdataset);
 /*%<
  * Mark the rdataset to be expired in the backing database.
+ */
+
+void
+dns_rdataset_clearprefetch(dns_rdataset_t *rdataset);
+/*%<
+ * Clear the PREFETCH attribute for the given rdataset in the
+ * underlying database.
+ *
+ * In the cache database, this signals that the rdataset is not
+ * eligible to be prefetched when the TTL is close to expiring.
+ * It has no function in other databases.
  */
 
 void
