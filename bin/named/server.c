@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -2046,6 +2044,16 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	dns_resolver_setclientsperquery(view->resolver,
 					cfg_obj_asuint32(obj),
 					max_clients_per_query);
+
+	obj = NULL;
+	result = ns_config_get(maps, "max-recursion-depth", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_resolver_setmaxdepth(view->resolver, cfg_obj_asuint32(obj));
+
+	obj = NULL;
+	result = ns_config_get(maps, "max-recursion-queries", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_resolver_setmaxqueries(view->resolver, cfg_obj_asuint32(obj));
 
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-enable", &obj);
