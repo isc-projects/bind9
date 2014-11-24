@@ -588,6 +588,17 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	REQUIRE(keysp != NULL && *keysp == NULL);
 	REQUIRE(countp != NULL);
 
+	/*
+	 * Get system defaults.
+	 */
+	result = ns_config_getport(config, &port);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = ns_config_getdscp(config, &dscp);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
  newlist:
 	addrlist = cfg_tuple_get(list, "addresses");
 	portobj = cfg_tuple_get(list, "port");
@@ -602,10 +613,6 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			goto cleanup;
 		}
 		port = (in_port_t) val;
-	} else {
-		result = ns_config_getport(config, &port);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
 	}
 
 	if (dscpobj != NULL && cfg_obj_isuint32(dscpobj)) {
@@ -616,10 +623,6 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			return (ISC_R_RANGE);
 		}
 		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
-	} else {
-		result = ns_config_getdscp(config, &dscp);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
 	}
 
 	result = ISC_R_NOMEMORY;

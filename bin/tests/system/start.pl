@@ -104,14 +104,28 @@ if ($server) {
 sub check_ports {
 	my $server = shift;
 	my $options = "";
+	my $port = 5300;
+	my $file = "";
+
+	$file = $testdir . "/" . $server . "/named.port" if ($server);
 
 	if ($server && $server =~ /(\d+)$/) {
 		$options = "-i $1";
 	}
 
+	if ($file ne "" && -e $file) {
+		open(FH, "<", $file);
+		while(my $line=<FH>) {
+			chomp $line;
+			$port = $line;
+			last;
+		}
+		close FH;
+	}
+
 	my $tries = 0;
 	while (1) {
-		my $return = system("$PERL $topdir/testsock.pl -p 5300 $options");
+		my $return = system("$PERL $topdir/testsock.pl -p $port $options");
 		last if ($return == 0);
 		if (++$tries > 4) {
 			print "$0: could not bind to server addresses, still running?\n";
@@ -258,11 +272,23 @@ sub start_server {
 sub verify_server {
 	my $server = shift;
 	my $n = $server;
+	my $port = 5300;
+
 	$n =~ s/^ns//;
+
+	if (-e "$testdir/$server/named.port") {
+		open(FH, "<", "$testdir/$server/named.port");
+		while(my $line=<FH>) {
+			chomp $line;
+			$port = $line;
+			last;
+		}
+		close FH;
+	}
 
 	my $tries = 0;
 	while (1) {
-		my $return = system("$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p 5300 version.bind. chaos txt \@10.53.0.$n > dig.out");
+		my $return = system("$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p $port version.bind. chaos txt \@10.53.0.$n > dig.out");
 		last if ($return == 0);
 		if (++$tries >= 30) {
 			print `grep ";" dig.out > /dev/null`;
