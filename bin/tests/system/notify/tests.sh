@@ -138,5 +138,25 @@ $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 [ $ret = 0 ] || echo "I:failed"
 status=`expr $ret + $status`
 
+n=`expr $n + 1`
+echo "I:checking notify to alternate port with master inheritance"
+$NSUPDATE << EOF
+server 10.53.0.2 5300
+zone x21
+update add added.x21 0 in txt "test string"
+send
+EOF
+for i in 1 2 3 4 5 6 7 8 9
+do
+	$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd added.x21.\
+		@10.53.0.4 txt -p 5301 > dig.out.ns4.test$n || ret=1
+	grep "test string" dig.out.ns4.test$n > /dev/null && break
+	sleep 1
+done
+grep "test string" dig.out.ns4.test$n > /dev/null || ret=1
+
+[ $ret = 0 ] || echo "I:failed"
+status=`expr $ret + $status`
+
 echo "I:exit status: $status"
 exit $status
