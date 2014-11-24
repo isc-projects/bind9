@@ -1,6 +1,6 @@
 4011.	[bug]		master's list port and dscp inheritance was not
 			properly implemented. [RT #37792]
-			
+
 4010.	[cleanup]	Clear the prefetchable state when initiating a prefetch.
 			[RT #37399]
 
