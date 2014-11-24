@@ -1,6 +1,6 @@
 4011.	[bug]		master's list port inheritance was not properly
 			implemented. [RT #37792]
-			
+
 4007.	[doc]		Remove acl forward reference restriction. [RT #37772]
 
 4006.	[security]	A flaw in delegation handling could be exploited
