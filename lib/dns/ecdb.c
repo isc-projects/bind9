@@ -113,7 +113,8 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	NULL,			/* setadditional */
 	NULL,			/* putadditional */
 	rdataset_settrust,	/* settrust */
-	NULL			/* expire */
+	NULL,			/* expire */
+	NULL			/* clearprefetch */
 };
 
 typedef struct ecdb_rdatasetiter {

@@ -1,3 +1,6 @@
+4010.	[cleanup]	Clear the prefetchable state when initiating a prefetch.
+			[RT #37399]
+
 4008.	[contrib]	Updated zkt to latest version (1.1.3). [RT #37886]
 
 4007.	[doc]		Remove acl forward reference restriction. [RT #37772]

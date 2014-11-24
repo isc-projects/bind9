@@ -206,6 +206,7 @@ static dns_rdatasetmethods_t question_methods = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
 	NULL
 };
 
@@ -773,6 +774,15 @@ dns_rdataset_expire(dns_rdataset_t *rdataset) {
 
 	if (rdataset->methods->expire != NULL)
 		(rdataset->methods->expire)(rdataset);
+}
+
+void
+dns_rdataset_clearprefetch(dns_rdataset_t *rdataset) {
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
+
+	if (rdataset->methods->clearprefetch != NULL)
+		(rdataset->methods->clearprefetch)(rdataset);
 }
 
 void

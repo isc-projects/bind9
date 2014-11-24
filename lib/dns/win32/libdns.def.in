@@ -597,6 +597,7 @@ dns_rdataclass_totext
 dns_rdatalist_init
 dns_rdatalist_tordataset
 dns_rdataset_additionaldata
+dns_rdataset_clearprefetch
 dns_rdataset_clone
 dns_rdataset_count
 dns_rdataset_current
