@@ -21,6 +21,12 @@
 # Clean up after zone transfer tests.
 #
 
-rm -f ns3/example.bk dig.out.ns2.test* dig.out.ns3.test*
-rm -f ns2/example.db
 rm -f */named.memstats
+rm -f dig.out.ns2.test*
+rm -f dig.out.ns3.test*
+rm -f dig.out.ns4.test*
+rm -f log.out
+rm -f ns2/example.db
+rm -f ns2/x21.db*
+rm -f ns3/example.bk
+rm -f ns4/x21.bk*
