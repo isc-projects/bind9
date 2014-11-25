@@ -7177,7 +7177,7 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 
 		tresult = putstr(text, problem);
 		if (tresult == ISC_R_SUCCESS)
-			putnull(text);
+			(void) putnull(text);
 	}
 
  cleanup:
