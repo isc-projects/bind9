@@ -230,6 +230,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define prune_tree prune_tree64
 #define rbt_datafixer rbt_datafixer64
 #define rbt_datawriter rbt_datawriter64
+#define rdataset_clearprefetch rdataset_clearprefetch64
 #define rdataset_clone rdataset_clone64
 #define rdataset_count rdataset_count64
 #define rdataset_current rdataset_current64
