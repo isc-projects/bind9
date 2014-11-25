@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005, 2007, 2014  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,9 +18,9 @@
 
 #ifndef NS_SMF_GLOBALS_H
 #define NS_SMF_GLOBALS_H 1
- 
+
 #include <libscf.h>
- 
+
 #undef EXTERN
 #undef INIT
 #ifdef NS_MAIN
@@ -30,7 +30,7 @@
 #define EXTERN extern
 #define INIT(v)
 #endif
-                
+
 EXTERN unsigned int	ns_smf_got_instance	INIT(0);
 EXTERN unsigned int	ns_smf_chroot		INIT(0);
 EXTERN unsigned int	ns_smf_want_disable	INIT(0);
@@ -40,5 +40,5 @@ isc_result_t ns_smf_get_instance(char **name, int debug, isc_mem_t *mctx);
 
 #undef EXTERN
 #undef INIT
- 
+
 #endif /* NS_SMF_GLOBALS_H */
