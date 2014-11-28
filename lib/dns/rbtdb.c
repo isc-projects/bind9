@@ -8730,6 +8730,7 @@ rdataset_clearprefetch(dns_rdataset_t *rdataset) {
 	dns_rbtnode_t *rbtnode = rdataset->private2;
 	rdatasetheader_t *header = rdataset->private3;
 
+	header--;
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_write);
 	header->attributes &= ~RDATASET_ATTR_PREFETCH;
