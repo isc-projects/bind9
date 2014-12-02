@@ -354,6 +354,9 @@ typedef __int64 off_t;
 /* Define if your OpenSSL version supports AES */
 @HAVE_OPENSSL_AES@
 
+/* HMAC_*() return ints */
+@HMAC_RETURN_INT@
+
 /* Use AES for Source Identity Token generation */
 @AES_SIT@
 

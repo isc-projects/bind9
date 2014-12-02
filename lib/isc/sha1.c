@@ -55,7 +55,7 @@ isc_sha1_init(isc_sha1_t *context)
 {
 	INSIST(context != NULL);
 
-	EVP_DigestInit(context, EVP_sha1());
+	RUNTIME_CHECK(EVP_DigestInit(context, EVP_sha1()) == 1);
 }
 
 void
@@ -70,7 +70,9 @@ isc_sha1_update(isc_sha1_t *context, const unsigned char *data,
 	INSIST(context != 0);
 	INSIST(data != 0);
 
-	EVP_DigestUpdate(context, (const void *) data, (size_t) len);
+	RUNTIME_CHECK(EVP_DigestUpdate(context,
+				       (const void *) data,
+				       (size_t) len) == 1);
 }
 
 void
@@ -78,7 +80,7 @@ isc_sha1_final(isc_sha1_t *context, unsigned char *digest) {
 	INSIST(digest != 0);
 	INSIST(context != 0);
 
-	EVP_DigestFinal(context, digest, NULL);
+	RUNTIME_CHECK(EVP_DigestFinal(context, digest, NULL) == 1);
 }
 
 #elif PKCS11CRYPTO

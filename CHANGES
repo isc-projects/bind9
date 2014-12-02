@@ -1,3 +1,8 @@
+4012.	[bug]		Check returned status of OpenSSL digest and HMAC
+			functions when they return one. Note this applies
+			only to FIPS capable OpenSSL libraries put in
+			FIPS mode and MD5. [RT #37944]
+
 4011.	[bug]		master's list port and dscp inheritance was not
 			properly implemented. [RT #37792]
 
