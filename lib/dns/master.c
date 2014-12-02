@@ -526,6 +526,7 @@ incctx_create(isc_mem_t *mctx, dns_name_t *origin, dns_incctx_t **ictxp) {
 	ictx->drop = ISC_FALSE;
 	ictx->glue_line = 0;
 	ictx->current_line = 0;
+	ictx->origin_changed = ISC_TRUE;
 
 	*ictxp = ictx;
 	return (ISC_R_SUCCESS);
@@ -1125,7 +1126,6 @@ load_text(dns_loadctx_t *lctx) {
 				line = isc_lex_getsourceline(lctx->lex);
 				source = isc_lex_getsourcename(lctx->lex);
 				ictx = lctx->inc;
-				EXPECTEOL;
 				continue;
 			}
 			done = ISC_TRUE;
@@ -1215,7 +1215,6 @@ load_text(dns_loadctx_t *lctx) {
 				    token.type == isc_tokentype_eof) {
 					if (token.type == isc_tokentype_eof)
 						WARNUNEXPECTEDEOF(lctx->lex);
-					isc_lex_ungettoken(lctx->lex, &token);
 					/*
 					 * No origin field.
 					 */
@@ -1434,6 +1433,7 @@ load_text(dns_loadctx_t *lctx) {
 			}
 			if (finish_include) {
 				finish_include = ISC_FALSE;
+				EXPECTEOL;
 				result = pushfile(include_file, new_name, lctx);
 				if (MANYERRS(lctx, result)) {
 					SETRESULT(lctx, result);
@@ -1444,6 +1444,7 @@ load_text(dns_loadctx_t *lctx) {
 					goto insist_and_cleanup;
 				}
 				ictx = lctx->inc;
+				ictx->origin_changed = ISC_TRUE;
 				source = isc_lex_getsourcename(lctx->lex);
 				line = isc_lex_getsourceline(lctx->lex);
 				POST(line);
@@ -2075,6 +2076,11 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	result = incctx_create(lctx->mctx, origin, &new);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+
+	/*
+	 * Push origin_changed.
+	 */
+	new->origin_changed = ictx->origin_changed;
 
 	/* Set current domain. */
 	if (ictx->glue != NULL || ictx->current != NULL) {

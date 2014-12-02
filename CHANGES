@@ -1,3 +1,7 @@
+4014.	[bug]		When including a master file origin_changed was
+			not being properly set leading to a potentially
+			spurious 'inherited owner' warning. [RT #37919]
+
 4012.	[bug]		Check returned status of OpenSSL digest and HMAC
 			functions when they return one. Note this applies
 			only to FIPS capable OpenSSL libraries put in
@@ -100,7 +104,7 @@
 3971.	[bug]		Reduce the cascading failures due to a bad $TTL line
 			in named-checkconf / named-checkzone. [RT #37138]
 
-3970.   [contrib]       Fixed a use after free bug in the SDB LDAP driver.
+3970.	[contrib]	Fixed a use after free bug in the SDB LDAP driver.
 			[RT #37237]
 
 3969.	[test]		Added 'delv' system test. [RT #36901]
@@ -201,7 +205,7 @@
 
 3922.	[bug]		When resigning, dnssec-signzone was removing
 			all signatures from delegation nodes. It now
-			retains	DS and (if applicable) NSEC signatures.
+			retains DS and (if applicable) NSEC signatures.
 			[RT #36946]
 
 3921.	[bug]		AD was inappropriately set on RPZ responses. [RT #36833]
