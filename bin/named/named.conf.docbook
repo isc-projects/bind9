@@ -112,6 +112,7 @@ server ( <replaceable>ipv4_address<optional>/prefixlen</optional></replaceable> 
 	edns <replaceable>boolean</replaceable>;
 	edns-udp-size <replaceable>integer</replaceable>;
 	max-udp-size <replaceable>integer</replaceable>;
+	tcp-only <replaceable>boolean</replaceable>;
 	provide-ixfr <replaceable>boolean</replaceable>;
 	request-ixfr <replaceable>boolean</replaceable>;
 	keys <replaceable>server_key</replaceable>;

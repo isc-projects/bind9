@@ -76,6 +76,7 @@ struct dns_peer {
 	isc_boolean_t		request_nsid;
 	isc_boolean_t		request_sit;
 	isc_boolean_t		request_expire;
+	isc_boolean_t		force_tcp;
 	dns_name_t	       *key;
 	isc_sockaddr_t	       *transfer_source;
 	isc_dscp_t		transfer_dscp;
@@ -176,6 +177,12 @@ dns_peer_getrequestexpire(dns_peer_t *peer, isc_boolean_t *retval);
 
 isc_result_t
 dns_peer_setsupportedns(dns_peer_t *peer, isc_boolean_t newval);
+
+isc_result_t
+dns_peer_getforcetcp(dns_peer_t *peer, isc_boolean_t *retval);
+
+isc_result_t
+dns_peer_setforcetcp(dns_peer_t *peer, isc_boolean_t newval);
 
 isc_result_t
 dns_peer_getsupportedns(dns_peer_t *peer, isc_boolean_t *retval);

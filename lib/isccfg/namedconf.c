@@ -1830,6 +1830,7 @@ server_clauses[] = {
 	{ "edns-version", &cfg_type_uint32, 0 },
 	{ "keys", &cfg_type_server_key_kludge, 0 },
 	{ "max-udp-size", &cfg_type_uint32, 0 },
+	{ "tcp-only", &cfg_type_boolean, 0 },
 	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
 	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },

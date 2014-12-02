@@ -1,4 +1,10 @@
-4012.	[bug]		Check returned status of OpenSSL digest and HMAC
+4013.	[func]		Add a new tcp-only option to server (config) /
+			peer (struct) to use TCP transport to send
+			queries (in place of UDP transport with a
+			TCP fallback on truncated (TC set) response).
+			[RT #37800]
+
+4012.	[cleanup]	Check returned status of OpenSSL digest and HMAC
 			functions when they return one. Note this applies
 			only to FIPS capable OpenSSL libraries put in
 			FIPS mode and MD5. [RT #37944]
@@ -6,8 +12,8 @@
 4011.	[bug]		master's list port and dscp inheritance was not
 			properly implemented. [RT #37792]
 
-4010.	[cleanup]	Clear the prefetchable state when initiating a prefetch.
-			[RT #37399]
+4010.	[cleanup]	Clear the prefetchable state when initiating a
+			prefetch. [RT #37399]
 
 4009.	[func]		delv: added a +tcp option. [RT #37855]
 

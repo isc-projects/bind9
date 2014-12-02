@@ -507,6 +507,7 @@ dns_order_find
 dns_peer_attach
 dns_peer_detach
 dns_peer_getbogus
+dns_peer_getforcetcp
 dns_peer_getkey
 dns_peer_getmaxudp
 dns_peer_getnotifydscp
@@ -523,6 +524,7 @@ dns_peer_gettransfersource
 dns_peer_new
 dns_peer_newprefix
 dns_peer_setbogus
+dns_peer_setforcetcp
 dns_peer_setkey
 dns_peer_setkeybycharp
 dns_peer_setmaxudp
