@@ -1,3 +1,7 @@
+4014.   [bug]           When including a master file origin_changed was
+			not being properly set leading to a potentially
+			spurious 'inherited owner' warning. [RT #37919]
+
 4013.	[func]		Add a new tcp-only option to server (config) /
 			peer (struct) to use TCP transport to send
 			queries (in place of UDP transport with a
