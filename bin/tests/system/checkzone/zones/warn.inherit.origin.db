@@ -1,0 +1,3 @@
+@ 0 IN SOA . . 0 0 0 0 0
+$ORIGIN @
+$INCLUDE "zones/inherit.db"
