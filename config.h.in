@@ -391,6 +391,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
 
+/* HMAC_*() return ints */
+#undef HMAC_RETURN_INT
+
 /* return type of gai_strerror */
 #undef IRS_GAISTRERROR_RETURN_T
 

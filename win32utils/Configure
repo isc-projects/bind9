@@ -321,6 +321,7 @@ my @substdefh = ("ALLOW_FILTER_AAAA",
                  "HAVE_OPENSSL_ECDSA",
                  "HAVE_OPENSSL_GOST",
                  "HAVE_READLINE",
+                 "HMAC_RETURN_INT",
                  "ISC_LIST_CHECKINIT",
                  "WITH_IDN");
 
@@ -1527,6 +1528,30 @@ if ($enable_openssl_hash eq "yes") {
         die "No OpenSSL for hash functions\n";
     }
     $configdefp{"ISC_PLATFORM_OPENSSLHASH"} = 1;
+    if ($verbose) {
+        print "checking HMAC_Init() return type\n";
+    }
+    open F, ">testhmac.c" || die $!;
+    print F << 'EOF';
+#include <openssl/hmac.h>
+
+int
+main(void)
+{
+        HMAC_CTX ctx;
+        int n = HMAC_Init(&ctx, NULL, 0, NULL);
+        n += HMAC_Update(&ctx, NULL, 0);
+        n += HMAC_Final(&ctx, NULL, NULL);
+        return(n);
+}
+EOF
+    close F;
+    my $include = $configinc{"OPENSSL_INC"};
+    my $library = $configlib{"OPENSSL_LIB"};
+    $compret = `cl /nologo /MD /I "$include" testhmac.c "$library"`;
+    if (grep { -f and -x } ".\\testhmac.exe") {
+        $configdefh{"HMAC_RETURN_INT"} = 1;
+    }
 }
 
 # with-pkcs11
