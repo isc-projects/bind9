@@ -171,6 +171,13 @@
         </p></li>
 <li><p>
 	  Added support for OPENPGPKEY type.
+        </p></li>
+<li><p>
+	  When encountering an authoritative name server whose name is
+	  an alias pointing to another name, the resolver treats
+	  this as an error and skips to the next server. Previously
+	  this happened silently; now the error will be logged to
+	  the newly-created "cname" log category.
 	</p></li>
 </ul></div>
 </div>
