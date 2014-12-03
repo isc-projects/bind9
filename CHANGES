@@ -1,4 +1,4 @@
-4017.	[testing]	Add system test to check lookups to legacy servers
+4017.	[test]		Add system test to check lookups to legacy servers
 			with broken DNS behaviour. [RT #37965]
 
 4016.	[bug]		Fix a dig segfault due to bad linked list usage.
