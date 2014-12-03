@@ -1,3 +1,7 @@
+4015.	[bug]		Nameservers that are skipped due to them being
+			CNAMEs were not being logged. They are now logged
+			to category 'cname' as per BIND 8. [RT #37935]
+
 4014.	[bug]		When including a master file origin_changed was
 			not being properly set leading to a potentially
 			spurious 'inherited owner' warning. [RT #37919]
