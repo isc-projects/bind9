@@ -32,4 +32,5 @@ no-edns-version.tld.	NS	ns.no-edns-version.tld.
 ns.no-edns-version.tld.	A	10.53.0.6
 edns-version.tld.	NS	ns.edns-version.tld.
 ns.edns-version.tld.	A	10.53.0.7
-
+cname			CNAME	ns7
+ns7			A	10.53.0.7
