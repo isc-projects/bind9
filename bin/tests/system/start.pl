@@ -186,6 +186,8 @@ sub start_server {
 				if (-e "$testdir/$server/named.maxudp1460");
 			$command .= "-c named.conf -d 99 -g -U 4";
 		}
+		$command .= " -T notcp"
+			if (-e "$testdir/$server/named.notcp");
 		if ($restart) {
 			$command .= " >>named.run 2>&1 &";
 		} else {
@@ -273,6 +275,7 @@ sub verify_server {
 	my $server = shift;
 	my $n = $server;
 	my $port = 5300;
+	my $tcp = "+tcp";
 
 	$n =~ s/^ns//;
 
@@ -286,9 +289,11 @@ sub verify_server {
 		close FH;
 	}
 
+	$tcp = "" if (-e "$testdir/$server/named.notcp");
+
 	my $tries = 0;
 	while (1) {
-		my $return = system("$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p $port version.bind. chaos txt \@10.53.0.$n > dig.out");
+		my $return = system("$DIG $tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p $port version.bind. chaos txt \@10.53.0.$n > dig.out");
 		last if ($return == 0);
 		if (++$tries >= 30) {
 			print `grep ";" dig.out > /dev/null`;

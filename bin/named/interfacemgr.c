@@ -567,7 +567,7 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_interface;
 
-	if (accept_tcp == ISC_TRUE) {
+	if (!ns_g_notcp && accept_tcp == ISC_TRUE) {
 		result = ns_interface_accepttcp(ifp);
 		if (result != ISC_R_SUCCESS) {
 			/*
