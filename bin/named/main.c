@@ -561,6 +561,8 @@ parse_command_line(int argc, char *argv[]) {
 			else if (!strncmp(isc_commandline_argument, "dscp=", 5))
 				isc_dscp_check_value =
 					   atoi(isc_commandline_argument + 5);
+			else if (!strcmp(isc_commandline_argument, "notcp"))
+				ns_g_notcp = ISC_TRUE;
 			else
 				fprintf(stderr, "unknown -T flag '%s\n",
 					isc_commandline_argument);

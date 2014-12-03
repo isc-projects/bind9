@@ -1,0 +1,3 @@
+@	60	SOA	ns marka.isc.org. 1 0 0 0 0
+@	60	NS	ns
+ns	60	A	10.53.0.4
