@@ -1,3 +1,6 @@
+4016.	[bug]		Fix a dig segfault due to bad linked list usage.
+			[RT #37591]
+
 4015.	[bug]		Nameservers that are skipped due to them being
 			CNAMEs were not being logged. They are now logged
 			to category 'cname' as per BIND 8. [RT #37935]

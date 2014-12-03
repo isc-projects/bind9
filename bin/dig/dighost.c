@@ -2977,7 +2977,8 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		query->waiting_connect = ISC_FALSE;
 		isc_event_free(&event);
 		l = query->lookup;
-		if (l->current_query != NULL)
+		if ((l->current_query != NULL) &&
+		    (ISC_LINK_LINKED(l->current_query, link)))
 			next = ISC_LIST_NEXT(l->current_query, link);
 		else
 			next = NULL;
