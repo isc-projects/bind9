@@ -4402,6 +4402,17 @@ category notify { null; };
 		    </para>
 		  </entry>
 		</row>
+		<row rowsep="0">
+		  <entry colname="1">
+		    <para><command>cname</command></para>
+		  </entry>
+		  <entry colname="2">
+		    <para>
+		      Logs nameservers that are skipped due to them being
+		      a CNAME rather than A / AAAA records.
+		    </para>
+		  </entry>
+		</row>
 	      </tbody>
 	    </tgroup>
 	  </informaltable>

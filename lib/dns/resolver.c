@@ -2751,11 +2751,19 @@ findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 				     fctx->depth + 1, fctx->qc, &find);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_ALIAS) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+
 			/*
 			 * XXXRTH  Follow the CNAME/DNAME chain?
 			 */
 			dns_adb_destroyfind(&find);
 			fctx->adberr++;
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CNAME,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+				      "skipping nameserver '%s' because it "
+				      "is a CNAME, while resolving '%s'",
+				      namebuf, fctx->info);
 		}
 	} else if (!ISC_LIST_EMPTY(find->list)) {
 		/*
