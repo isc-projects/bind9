@@ -1843,10 +1843,11 @@ resquery_send(resquery_t *query) {
 		     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
 		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
 		    !EDNSOK(query->addrinfo)) {
+			query->options |= DNS_FETCHOPT_NOEDNS0;
+			fctx->reason = "disabling EDNS";
 		} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
 			    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
-			   (query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
-			   !EDNSOK(query->addrinfo)) {
+			   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 			query->options |= DNS_FETCHOPT_EDNS512;
 			fctx->reason = "reducing the advertised EDNS UDP "
 				       "packet size to 512 octets";

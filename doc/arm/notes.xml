@@ -201,6 +201,15 @@
 	  [RT #37796]
         </para>
       </listitem>
+      <listitem>
+        <para>
+	  Due to an inadvertent removal of code in the previous
+	  release, when <command>named</command> encountered an
+	  authoritative name server which dropped all EDNS queries,
+	  it did not always try plain DNS. This has been corrected.
+	  [RT #37965]
+        </para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">
