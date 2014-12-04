@@ -29,4 +29,4 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA512 -b 4096 -n zone $zone 2> /dev
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
-$SIGNER -r $RANDFILE -g -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -r $RANDFILE -g -o $zone -f $outfile -e +30y $zonefile > /dev/null 2> signer.err || cat signer.err
