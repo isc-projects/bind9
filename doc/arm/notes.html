@@ -215,6 +215,13 @@
 	  failure on server shutdown, but was otherwise harmless.
 	  [RT #37796]
         </p></li>
+<li><p>
+	  Due to an inadvertent removal of code in the previous
+	  release, when <span><strong class="command">named</strong></span> encountered an
+	  authoritative name server which dropped all EDNS queries,
+	  it did not always try plain DNS. This has been corrected.
+	  [RT #37965]
+        </p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
