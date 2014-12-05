@@ -30,3 +30,14 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA512 -b 4096 -n zone $zone 2> /dev
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -g -o $zone -f $outfile -e +30y $zonefile > /dev/null 2> signer.err || cat signer.err
+
+grep -v '^;' $keyname2.key | $PERL -n -e '
+local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
+local $key = join("", @rest);
+print <<EOF
+trusted-keys {
+    "$dn" $flags $proto $alg "$key";
+};
+EOF
+' > trusted.conf
+cp trusted.conf ../ns1

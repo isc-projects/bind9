@@ -83,7 +83,6 @@ $DIG +tcp  @10.53.0.1 -p 5300 plain soa > dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
-n=`expr $n + 1`
 
 n=`expr $n + 1`
 echo "I:checking plain dns + no tcp server setup ($n)"
@@ -126,6 +125,7 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
 echo "I:checking edns 512 + no tcp server setup ($n)"
 ret=0
 $DIG +noedns @10.53.0.7 -p 5300 edns512-notcp soa > dig.out.1.test$n || ret=1
@@ -140,10 +140,24 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I:checking recursive lookup to edns 512 + no tcp server succeeds with server { edns no; } ($n)"
+echo "I:checking recursive lookup to edns 512 + no tcp server succeeds ($n)"
 ret=0
 $DIG +tcp  @10.53.0.1 -p 5300 edns512-notcp soa > dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+$PERL $SYSTEMTESTTOP/stop.pl . ns1
+
+cp -f ns1/named2.conf ns1/named.conf
+
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
+
+n=`expr $n + 1`
+echo "I:checking recursive lookup to edns 512 + no tcp + trust anchor fails ($n)"
+ret=0
+$DIG +tcp  @10.53.0.1 -p 5300 edns512-notcp soa > dig.out.test$n || ret=1
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

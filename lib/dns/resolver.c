@@ -1673,6 +1673,24 @@ add_triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	ISC_LIST_INITANDAPPEND(fctx->edns512, sa, link);
 }
 
+static isc_boolean_t
+wouldvalidate(fetchctx_t *fctx) {
+	isc_boolean_t secure_domain;
+	isc_result_t result;
+
+	if (!fctx->res->view->enablevalidation)
+		return (ISC_FALSE);
+
+	if (fctx->res->view->dlv != NULL)
+		return (ISC_TRUE);
+
+	result = dns_view_issecuredomain(fctx->res->view, &fctx->name,
+					 &secure_domain);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
+	return (secure_domain);
+}
+
 static isc_result_t
 resquery_send(resquery_t *query) {
 	fetchctx_t *fctx;
@@ -1842,7 +1860,7 @@ resquery_send(resquery_t *query) {
 		if ((triededns512(fctx, &query->addrinfo->sockaddr) ||
 		     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
 		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
-		    !EDNSOK(query->addrinfo)) {
+		    (!EDNSOK(query->addrinfo) || !wouldvalidate(fctx))) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
 			fctx->reason = "disabling EDNS";
 		} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
