@@ -1266,7 +1266,10 @@
 ./bin/tests/system/legacy/build.sh		SH	2014
 ./bin/tests/system/legacy/clean.sh		SH	2014
 ./bin/tests/system/legacy/ns1/named.conf	CONF-C	2014
+./bin/tests/system/legacy/ns1/named1.conf	CONF-C	2014
+./bin/tests/system/legacy/ns1/named2.conf	CONF-C	2014
 ./bin/tests/system/legacy/ns1/root.db		ZONE	2014
+./bin/tests/system/legacy/ns1/trusted.conf	X	2014
 ./bin/tests/system/legacy/ns2/dropedns.db	ZONE	2014
 ./bin/tests/system/legacy/ns2/named.conf	CONF-C	2014
 ./bin/tests/system/legacy/ns2/named.dropedns	X	2014
@@ -1292,6 +1295,7 @@
 ./bin/tests/system/legacy/ns7/named.conf	CONF-C	2014
 ./bin/tests/system/legacy/ns7/named.notcp	X	2014
 ./bin/tests/system/legacy/ns7/sign.sh		SH	2014
+./bin/tests/system/legacy/setup.sh		SH	2014
 ./bin/tests/system/legacy/tests.sh		SH	2014
 ./bin/tests/system/limits/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/limits/knowngood.dig.out.1000	X	2000,2001
