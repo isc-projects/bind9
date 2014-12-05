@@ -219,6 +219,12 @@
 	  [RT #37965]
         </para>
       </listitem>
+      <listitem>
+        <para>
+	  A regression caused nsupdate to use the default recursive servers
+	  rather than the SOA MNAME server when sending the UPDATE.
+        </para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">
