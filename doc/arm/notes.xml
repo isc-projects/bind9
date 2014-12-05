@@ -333,6 +333,15 @@
 	  the newly-created "cname" log category.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  If named is not configured to validate the answer then
+	  allow fallback to plain DNS on timeout even when we know
+	  the server supports EDNS.  This will allow the server to
+	  potentially resolve signed queries when TCP is being
+	  blocked.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_bugs">

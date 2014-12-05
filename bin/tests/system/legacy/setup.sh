@@ -1,3 +1,5 @@
+#!/bin/sh
+#
 # Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -12,18 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-rm -f dig.out.*
-rm -f ns1/named.conf
-rm -f ns?/named.memstats
-rm -f ns?/named.run
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
-# build.sh
-rm -f ns6/K*
-rm -f ns6/dsset-*
-rm -f ns6/edns512.db
-rm -f ns6/signer.err
-rm -f ns7/K*
-rm -f ns7/dsset-*
-rm -f ns7/edns512-notcp.db
-rm -f ns7/signer.err
-rm -f ns7/trusted.conf
+cp -f ns1/named1.conf ns1/named.conf

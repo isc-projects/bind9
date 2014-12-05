@@ -1875,6 +1875,26 @@ issecuredomain(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	return (dns_view_issecuredomain(view, name, now, checknta, issecure));
 }
 
+static isc_boolean_t
+wouldvalidate(fetchctx_t *fctx) {
+	isc_boolean_t secure_domain;
+	isc_result_t result;
+	isc_stdtime_t now;
+
+	if (!fctx->res->view->enablevalidation)
+		return (ISC_FALSE);
+
+	if (fctx->res->view->dlv != NULL)
+		return (ISC_TRUE);
+
+	isc_stdtime_get(&now);
+	result = dns_view_issecuredomain(fctx->res->view, &fctx->name,
+					 now, ISC_TRUE, &secure_domain);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
+	return (secure_domain);
+}
+
 static isc_result_t
 resquery_send(resquery_t *query) {
 	fetchctx_t *fctx;
@@ -2041,17 +2061,17 @@ resquery_send(resquery_t *query) {
 	    dns_adb_noedns(fctx->adb, query->addrinfo))
 		query->options |= DNS_FETCHOPT_NOEDNS0;
 
-
 	if (fctx->timeout && (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		isc_sockaddr_t *sockaddr = &query->addrinfo->sockaddr;
 		struct tried *tried;
 
 		if (fctx->timeouts > (MAX_EDNS0_TIMEOUTS * 2) &&
-		    !EDNSOK(query->addrinfo)) {
+		    (!EDNSOK(query->addrinfo) || !wouldvalidate(fctx))) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
 			fctx->reason = "disabling EDNS";
 		} else if ((tried = triededns512(fctx, sockaddr)) != NULL &&
-		    tried->count >= 2U && !EDNSOK(query->addrinfo)) {
+		    tried->count >= 2U &&
+		    (!EDNSOK(query->addrinfo) || !wouldvalidate(fctx))) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
 			fctx->reason = "disabling EDNS";
 		} else if ((tried = triededns(fctx, sockaddr)) != NULL) {
