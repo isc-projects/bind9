@@ -1,3 +1,7 @@
+4020.	[bug]		Change 3736 broke nsupdate's SOA MNAME discovery
+			resulting in updates being sent to the wrong server.
+			[RT #37925]
+
 4019.	[func]		If named is not configured to validate the answer
 		        then allow fallback to plain DNS on timeout even
 			when we know the server supports EDNS. [RT #37978]
