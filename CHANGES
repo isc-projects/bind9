@@ -3,7 +3,7 @@
 			[RT #37925]
 
 4019.	[func]		If named is not configured to validate the answer
-		        then allow fallback to plain DNS on timeout even
+			then allow fallback to plain DNS on timeout even
 			when we know the server supports EDNS. [RT #37978]
 
 4018.	[placeholder]

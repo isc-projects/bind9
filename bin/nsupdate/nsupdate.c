@@ -2354,7 +2354,7 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master) {
 	isc_result_t result;
 	dns_request_t *request = NULL;
 	unsigned int options = DNS_REQUESTOPT_CASE;
-        isc_sockaddr_t *srcaddr;
+	isc_sockaddr_t *srcaddr;
 
 	ddebug("send_update()");
 
@@ -2618,7 +2618,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		memset(master_servers, 0, size);
 		get_addresses(serverstr, dnsport, master_servers, master_total);
 		master_inuse = 0;
-	} else 
+	} else
 		master_from_servers();
 	dns_rdata_freestruct(&soa);
 
