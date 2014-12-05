@@ -147,19 +147,25 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-$PERL $SYSTEMTESTTOP/stop.pl . ns1
+if $SHELL ../testcrypto.sh > /dev/null 2>&1
+then
+    $PERL $SYSTEMTESTTOP/stop.pl . ns1
 
-cp -f ns1/named2.conf ns1/named.conf
+    cp -f ns1/named2.conf ns1/named.conf
 
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
 
-n=`expr $n + 1`
-echo "I:checking recursive lookup to edns 512 + no tcp + trust anchor fails ($n)"
-ret=0
-$DIG +tcp  @10.53.0.1 -p 5300 edns512-notcp soa > dig.out.test$n || ret=1
-grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+    n=`expr $n + 1`
+    echo "I:checking recursive lookup to edns 512 + no tcp + trust anchor fails ($n)"
+    ret=0
+    $DIG +tcp  @10.53.0.1 -p 5300 edns512-notcp soa > dig.out.test$n || ret=1
+    grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+else
+    echo "I:skipping checking recursive lookup to edns 512 + no tcp + trust anchor fails as crypto not enabled"
+fi 
+
 
 echo "I:exit status: $status"
 exit $status
