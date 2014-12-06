@@ -147,6 +147,13 @@
 	  this happened silently; now the error will be logged to
 	  the newly-created "cname" log category.
 	</p></li>
+<li><p>
+	  If named is not configured to validate the answer then
+	  allow fallback to plain DNS on timeout even when we know
+	  the server supports EDNS.  This will allow the server to
+	  potentially resolve signed queries when TCP is being
+	  blocked.
+	</p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
@@ -221,6 +228,10 @@
 	  authoritative name server which dropped all EDNS queries,
 	  it did not always try plain DNS. This has been corrected.
 	  [RT #37965]
+        </p></li>
+<li><p>
+	  A regression caused nsupdate to use the default recursive servers
+	  rather than the SOA MNAME server when sending the UPDATE.
         </p></li>
 </ul></div>
 </div>
