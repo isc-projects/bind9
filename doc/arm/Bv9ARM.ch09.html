@@ -68,13 +68,13 @@
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch09.html#bind9.library">BIND 9 DNS Library Support</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613638">Prerequisite</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613648">Compilation</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2612648">Installation</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2612679">Known Defects/Restrictions</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2612756">The dns.conf File</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2612782">Sample Applications</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613824">Library References</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613651">Prerequisite</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2612227">Compilation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2612251">Installation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2612282">Known Defects/Restrictions</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2612769">The dns.conf File</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2612795">Sample Applications</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613836">Library References</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -198,6 +198,13 @@
 	  this happened silently; now the error will be logged to
 	  the newly-created "cname" log category.
 	</p></li>
+<li><p>
+	  If named is not configured to validate the answer then
+	  allow fallback to plain DNS on timeout even when we know
+	  the server supports EDNS.  This will allow the server to
+	  potentially resolve signed queries when TCP is being
+	  blocked.
+	</p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
@@ -279,6 +286,10 @@
 	  authoritative name server which dropped all EDNS queries,
 	  it did not always try plain DNS. This has been corrected.
 	  [RT #37965]
+        </p></li>
+<li><p>
+	  A regression caused nsupdate to use the default recursive servers
+	  rather than the SOA MNAME server when sending the UPDATE.
         </p></li>
 </ul></div>
 </div>
@@ -883,7 +894,7 @@
 </ul></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2613638"></a>Prerequisite</h3></div></div></div>
+<a name="id2613651"></a>Prerequisite</h3></div></div></div>
 <p>GNU make is required to build the export libraries (other
   part of BIND 9 can still be built with other types of make). In
   the reminder of this document, "make" means GNU make. Note that
@@ -892,7 +903,7 @@
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2613648"></a>Compilation</h3></div></div></div>
+<a name="id2612227"></a>Compilation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>./configure --enable-exportlib <em class="replaceable"><code>[other flags]</code></em></code></strong>
 $ <strong class="userinput"><code>make</code></strong>
@@ -907,7 +918,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2612648"></a>Installation</h3></div></div></div>
+<a name="id2612251"></a>Installation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>cd lib/export</code></strong>
 $ <strong class="userinput"><code>make install</code></strong>
@@ -929,7 +940,7 @@ $ <strong class="userinput"><code>make install</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2612679"></a>Known Defects/Restrictions</h3></div></div></div>
+<a name="id2612282"></a>Known Defects/Restrictions</h3></div></div></div>
 <div class="itemizedlist"><ul type="disc">
 <li><p>Currently, win32 is not supported for the export
       library. (Normal BIND 9 application can be built as
@@ -969,7 +980,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2612756"></a>The dns.conf File</h3></div></div></div>
+<a name="id2612769"></a>The dns.conf File</h3></div></div></div>
 <p>The IRS library supports an "advanced" configuration file
   related to the DNS library for configuration parameters that
   would be beyond the capability of the
@@ -987,14 +998,14 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2612782"></a>Sample Applications</h3></div></div></div>
+<a name="id2612795"></a>Sample Applications</h3></div></div></div>
 <p>Some sample application programs using this API are
   provided for reference. The following is a brief description of
   these applications.
   </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2612791"></a>sample: a simple stub resolver utility</h4></div></div></div>
+<a name="id2612804"></a>sample: a simple stub resolver utility</h4></div></div></div>
 <p>
   It sends a query of a given name (of a given optional RR type) to a
   specified recursive server, and prints the result as a list of
@@ -1058,7 +1069,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2612882"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
+<a name="id2612894"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
 <p>
   Similar to "sample", but accepts a list
   of (query) domain names as a separate file and resolves the names
@@ -1099,7 +1110,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613208"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
+<a name="id2613289"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
 <p>
   It sends a query to a specified server, and
   prints the response with minimal processing. It doesn't act as a
@@ -1140,7 +1151,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613340"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
+<a name="id2613353"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
 <p>
   This is a test program
   to check getaddrinfo() and getnameinfo() behavior. It takes a
@@ -1157,7 +1168,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613355"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
+<a name="id2613368"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
 <p>
   It accepts a single update command as a
   command-line argument, sends an update request message to the
@@ -1252,7 +1263,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613760"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
+<a name="id2613772"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
 <p>
   It checks a set
   of domains to see the name servers of the domains behave
@@ -1309,7 +1320,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2613824"></a>Library References</h3></div></div></div>
+<a name="id2613836"></a>Library References</h3></div></div></div>
 <p>As of this writing, there is no formal "manual" of the
   libraries, except this document, header files (some of them
   provide pretty detailed explanations), and sample application

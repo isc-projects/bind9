@@ -26,7 +26,7 @@
 <dl>
 <dt><span class="preface"><a href="#id2542024"> </a></span></dt>
 <dd><dl>
-<dt><span class="sect1"><a href="#id2542008">Release Notes for BIND Version 9.10.1</a></span></dt>
+<dt><span class="sect1"><a href="#id2542007">Release Notes for BIND Version 9.10.1</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_download">Download</a></span></dt>
@@ -46,7 +46,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="#id2542008">Release Notes for BIND Version 9.10.1</a></span></dt>
+<dt><span class="sect1"><a href="#id2542007">Release Notes for BIND Version 9.10.1</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="sect2"><a href="#relnotes_download">Download</a></span></dt>
@@ -61,7 +61,7 @@
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2542008"></a>Release Notes for BIND Version 9.10.1</h2></div></div></div>
+<a name="id2542007"></a>Release Notes for BIND Version 9.10.1</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -179,6 +179,13 @@
 	  this happened silently; now the error will be logged to
 	  the newly-created "cname" log category.
 	</p></li>
+<li><p>
+	  If named is not configured to validate the answer then
+	  allow fallback to plain DNS on timeout even when we know
+	  the server supports EDNS.  This will allow the server to
+	  potentially resolve signed queries when TCP is being
+	  blocked.
+	</p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
@@ -260,6 +267,10 @@
 	  authoritative name server which dropped all EDNS queries,
 	  it did not always try plain DNS. This has been corrected.
 	  [RT #37965]
+        </p></li>
+<li><p>
+	  A regression caused nsupdate to use the default recursive servers
+	  rather than the SOA MNAME server when sending the UPDATE.
         </p></li>
 </ul></div>
 </div>
