@@ -15,5 +15,8 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f dig.out*
+rm -f ans?/ans.run
 rm -f ans2/ans.limit
+rm -f ns?/named.memstats
+rm -f ns?/named.run
 rm -f ns3/named.conf
