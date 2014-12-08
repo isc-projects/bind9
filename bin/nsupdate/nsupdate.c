@@ -731,7 +731,8 @@ doshutdown(void) {
 
 	/*
 	 * The isc_mem_put of master_servers must be before the
-	 * isc_mem_put of servers must is it NULL the pointer.
+	 * isc_mem_put of servers as it sets the servers pointer
+	 * to NULL.
 	 */
 	if (master_servers != NULL && master_servers != servers)
 		isc_mem_put(mctx, master_servers,
