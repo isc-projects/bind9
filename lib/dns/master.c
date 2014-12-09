@@ -2108,8 +2108,7 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	if (new != NULL)
-		incctx_destroy(lctx->mctx, new);
+	incctx_destroy(lctx->mctx, new);
 	return (result);
 }
 
