@@ -27,6 +27,7 @@ cfg_list_length
 cfg_list_next
 cfg_listelt_value
 cfg_log_init
+cfg_lookingat_netaddr
 cfg_map_get
 cfg_map_getname
 cfg_obj_asboolean
