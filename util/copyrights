@@ -3916,7 +3916,7 @@
 ./lib/lwres/win32/include/lwres/net.h		C	2000,2001,2004,2007,2013
 ./lib/lwres/win32/include/lwres/netdb.h		C	2000,2001,2004,2006,2007,2013
 ./lib/lwres/win32/include/lwres/platform.h	C	2000,2001,2004,2007,2014
-./lib/lwres/win32/liblwres.def			X	2001
+./lib/lwres/win32/liblwres.def			X	2001,2014
 ./lib/lwres/win32/liblwres.dsp.in		X	2001,2002,2004,2005,2007,2011,2013,2014
 ./lib/lwres/win32/liblwres.dsw			X	2001
 ./lib/lwres/win32/liblwres.mak.in		X	2001,2002,2004,2005,2006,2007,2011,2013,2014
