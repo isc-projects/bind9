@@ -3893,11 +3893,11 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 			goto out;
 		/* XXXMLG Don't pound on bad servers. */
 		if (address_type == DNS_ADBFIND_INET) {
-			name->expire_v4 = ISC_MIN(name->expire_v4, now + 300);
+			name->expire_v4 = ISC_MIN(name->expire_v4, now + 10);
 			name->fetch_err = FIND_ERR_FAILURE;
 			inc_stats(adb, dns_resstatscounter_gluefetchv4fail);
 		} else {
-			name->expire_v6 = ISC_MIN(name->expire_v6, now + 300);
+			name->expire_v6 = ISC_MIN(name->expire_v6, now + 10);
 			name->fetch6_err = FIND_ERR_FAILURE;
 			inc_stats(adb, dns_resstatscounter_gluefetchv6fail);
 		}

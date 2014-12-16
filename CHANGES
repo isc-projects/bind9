@@ -1,3 +1,7 @@
+4021.	[bug]		Adjust max-recursion-queries to accommodate 
+			the need for more queries when the cache is
+			empty. [RT #38104]
+
 4020.	[bug]		Change 3736 broke nsupdate's SOA MNAME discovery
 			resulting in updates being sent to the wrong server.
 			[RT #37925]
