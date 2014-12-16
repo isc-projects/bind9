@@ -1,4 +1,4 @@
-4021.	[bug]		Adjust max-recursion-queries to accommodate 
+4021.	[bug]		Adjust max-recursion-queries to accommodate
 			the need for more queries when the cache is
 			empty. [RT #38104]
 
