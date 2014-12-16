@@ -416,6 +416,7 @@ isc_mem_gettag
 isc_mem_inuse
 isc_mem_isovermem
 isc_mem_references
+isc_mem_register
 @IF LIBXML2
 isc_mem_renderxml
 @END LIBXML2
@@ -423,7 +424,7 @@ isc_mem_setdestroycheck
 isc_mem_setname
 isc_mem_setwater
 isc_mem_waterack
-sc_mempool_associatelock
+isc_mempool_associatelock
 isc_mempool_create
 isc_mempool_destroy
 isc_mempool_getallocated
