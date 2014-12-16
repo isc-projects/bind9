@@ -268,6 +268,13 @@
 	  rather than the SOA MNAME server when sending the UPDATE.
         </para>
       </listitem>
+      <listitem>
+        <para>
+	  Adjusted max-recursion-queries to accommodate the smaller
+	  initial packet sizes used in BIND 9.10 and higher when
+	  contacting authoritative servers for the first time.
+        </para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">
