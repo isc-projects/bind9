@@ -682,6 +682,7 @@ isc_taskmgr_create
 isc_taskmgr_createinctx
 isc_taskmgr_destroy
 isc_taskmgr_excltask
+isc_taskmgr_mode
 @IF JSON
 isc_taskmgr_renderjson
 @END JSON

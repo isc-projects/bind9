@@ -56,7 +56,9 @@ dns_adb_getudpsize
 dns_adb_getsit
 dns_adb_marklame
 dns_adb_noedns
+dns_adb_plainresponse
 dns_adb_probesize
+dns_adb_probesize2
 dns_adb_probesize512
 dns_adb_setadbsize
 dns_adb_setudpsize
@@ -120,6 +122,7 @@ dns_client_destroyrestrans
 dns_client_destroyupdatetrans
 dns_client_freeresanswer
 dns_client_freeupdate
+dns_client_mctx
 dns_client_request
 dns_client_resolve
 dns_client_setdlv
@@ -308,7 +311,7 @@ dns_dnsseckey_destroy
 dns_ds_buildrdata
 dns_dsdigest_fromtext
 dns_dsdigest_format
-dns_dsdigest_ftotext
+dns_dsdigest_totext
 dns_dumpctx_attach
 dns_dumpctx_cancel
 dns_dumpctx_db
@@ -416,6 +419,7 @@ dns_master_loadfileinc2
 dns_master_loadfileinc3
 dns_master_loadfileinc4
 dns_master_loadfileinc5
+dns_master_loadlexer
 dns_master_loadlexerinc
 dns_master_loadstream
 dns_master_loadstreaminc
@@ -744,12 +748,14 @@ dns_rdataset_setadditional
 dns_rdataset_settrust
 dns_rdataset_totext
 dns_rdataset_towire
+dns_rdataset_towirepartial
 dns_rdataset_towiresorted
 dns_rdataset_trimttl
 dns_rdatasetiter_current
 dns_rdatasetiter_destroy
 dns_rdatasetiter_first
 dns_rdatasetiter_next
+dns_rdatasetstats_create
 dns_rdatasetstats_decrement
 dns_rdatasetstats_dump
 dns_rdatasetstats_increment
@@ -874,6 +880,7 @@ dns_rriterator_pause
 dns_rrl
 dns_rrl_init
 dns_rrl_view_destroy
+dns_sdb_putnamedrdata
 dns_sdb_putnamedrr
 dns_sdb_putrdata
 dns_sdb_putrr
@@ -910,6 +917,7 @@ dns_ssutable_create
 dns_ssutable_createdlz
 dns_ssutable_detach
 dns_stats_alloccounters
+dns_stats_attach
 dns_stats_detach
 dns_stats_freecounters
 dns_tcpmsg_cancelread
