@@ -225,6 +225,12 @@
 	  rather than the SOA MNAME server when sending the UPDATE.
         </para>
       </listitem>
+      <listitem>
+        <para>
+	  Adjusted max-recursion-queries to better accommodate empty
+	  caches.
+        </para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">

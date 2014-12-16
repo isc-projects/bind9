@@ -3082,6 +3082,16 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 
 	REQUIRE(!ADDRWAIT(fctx));
 
+	/* We've already exceeded maximum query count */
+	if (isc_counter_used(fctx->qc) > fctx->res->maxqueries) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+			      "exceeded max queries resolving '%s'",
+			      fctx->info);
+		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+		return;
+	}
+
 	addrinfo = fctx_nextaddress(fctx);
 	if (addrinfo == NULL) {
 		/*
@@ -3119,14 +3129,16 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 		}
 	}
 
-	result = isc_counter_increment(fctx->qc);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-			      "exceeded max queries resolving '%s'",
-			      fctx->info);
-		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
-		return;
+	if (dns_name_countlabels(&fctx->domain) > 2) {
+		result = isc_counter_increment(fctx->qc);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+				      "exceeded max queries resolving '%s'",
+				      fctx->info);
+			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+			return;
+		}
 	}
 
 	result = fctx_query(fctx, addrinfo, fctx->options);
