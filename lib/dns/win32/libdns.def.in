@@ -56,6 +56,7 @@ dns_adb_marklame
 dns_adb_noedns
 dns_adb_plainresponse
 dns_adb_probesize
+dns_adb_probesize2
 dns_adb_probesize512
 dns_adb_setadbsize
 dns_adb_setudpsize
@@ -111,6 +112,7 @@ dns_client_destroyrestrans
 dns_client_destroyupdatetrans
 dns_client_freeresanswer
 dns_client_freeupdate
+dns_client_mctx
 dns_client_request
 dns_client_resolve
 dns_client_setdlv
@@ -297,7 +299,7 @@ dns_dnsseckey_destroy
 dns_ds_buildrdata
 dns_dsdigest_fromtext
 dns_dsdigest_format
-dns_dsdigest_ftotext
+dns_dsdigest_totext
 dns_dumpctx_attach
 dns_dumpctx_cancel
 dns_dumpctx_db
