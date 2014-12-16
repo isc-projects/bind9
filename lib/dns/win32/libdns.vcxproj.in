@@ -110,6 +110,7 @@
     <ClCompile Include="..\acache.c" />
     <ClCompile Include="..\acl.c" />
     <ClCompile Include="..\adb.c" />
+    <ClCompile Include="..\badcache.c" />
     <ClCompile Include="..\byaddr.c" />
     <ClCompile Include="..\cache.c" />
     <ClCompile Include="..\callbacks.c" />
@@ -227,6 +228,7 @@
     <ClInclude Include="..\include\dns\acache.h" />
     <ClInclude Include="..\include\dns\acl.h" />
     <ClInclude Include="..\include\dns\adb.h" />
+    <ClInclude Include="..\include\dns\badcache.h" />
     <ClInclude Include="..\include\dns\bit.h" />
     <ClInclude Include="..\include\dns\byaddr.h" />
     <ClInclude Include="..\include\dns\cache.h" />

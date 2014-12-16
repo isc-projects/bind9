@@ -39,6 +39,9 @@
     <ClCompile Include="..\adb.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\badcache.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\byaddr.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -345,6 +348,9 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\adb.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dns\badcache.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\bit.h">

@@ -110,6 +110,10 @@ SOURCE=..\include\dns\adb.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\badcache.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\bit.h
 # End Source File
 # Begin Source File
@@ -481,6 +485,10 @@ SOURCE=..\acl.c
 # Begin Source File
 
 SOURCE=..\adb.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\badcache.c
 # End Source File
 # Begin Source File
 

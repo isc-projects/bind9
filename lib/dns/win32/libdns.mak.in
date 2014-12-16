@@ -123,6 +123,7 @@ CLEAN :
 	-@erase "$(INTDIR)\acache.obj"
 	-@erase "$(INTDIR)\acl.obj"
 	-@erase "$(INTDIR)\adb.obj"
+	-@erase "$(INTDIR)\badcache.obj"
 	-@erase "$(INTDIR)\byaddr.obj"
 	-@erase "$(INTDIR)\cache.obj"
 	-@erase "$(INTDIR)\callbacks.obj"
@@ -281,6 +282,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\acache.obj" \
 	"$(INTDIR)\acl.obj" \
 	"$(INTDIR)\adb.obj" \
+	"$(INTDIR)\badcache.obj" \
 	"$(INTDIR)\byaddr.obj" \
 	"$(INTDIR)\cache.obj" \
 	"$(INTDIR)\callbacks.obj" \
@@ -420,6 +422,8 @@ CLEAN :
 	-@erase "$(INTDIR)\acl.sbr"
 	-@erase "$(INTDIR)\adb.obj"
 	-@erase "$(INTDIR)\adb.sbr"
+	-@erase "$(INTDIR)\badcache.obj"
+	-@erase "$(INTDIR)\badcache.sbr"
 	-@erase "$(INTDIR)\byaddr.obj"
 	-@erase "$(INTDIR)\byaddr.sbr"
 	-@erase "$(INTDIR)\cache.obj"

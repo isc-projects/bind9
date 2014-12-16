@@ -499,6 +499,11 @@ isc_resource_getlimit
 isc_resource_setlimit
 isc_result_register
 isc_result_totext
+isc_rng_attach
+isc_rng_create
+isc_rng_detach
+isc_rng_random
+isc_rng_uniformrandom
 isc_rwlock_destroy
 isc_rwlock_downgrade
 isc_rwlock_init

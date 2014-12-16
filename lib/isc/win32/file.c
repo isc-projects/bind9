@@ -34,10 +34,11 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
-#include <isc/time.h>
-#include <isc/util.h>
+#include <isc/sha2.h>
 #include <isc/stat.h>
 #include <isc/string.h>
+#include <isc/time.h>
+#include <isc/util.h>
 
 #include "errno2result.h"
 
