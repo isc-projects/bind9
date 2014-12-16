@@ -1159,7 +1159,11 @@ dst_context_verify
 dst_ds_digest_supported
 dst_gssapi_acceptctx
 dst_gssapi_acquirecred
+dst_gssapi_deletectx
+dst_gssapi_identitymatchesrealmkrb5
+dst_gssapi_identitymatchesrealmms
 dst_gssapi_initctx
+dst_gssapi_releasecred
 dst_key_alg
 dst_key_attach
 dst_key_buildfilename
