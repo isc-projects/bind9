@@ -393,6 +393,11 @@
 	  A regression caused nsupdate to use the default recursive servers
 	  rather than the SOA MNAME server when sending the UPDATE.
         </p></li>
+<li><p>
+	  Adjusted max-recursion-queries to accommodate the smaller
+	  initial packet sizes used in BIND 9.10 and higher when
+	  contacting authoritative servers for the first time.
+        </p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">

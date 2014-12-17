@@ -58,7 +58,7 @@
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2607733">Acknowledgments</a></span></dt>
 <dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch09.html#historical_dns_information">A Brief History of the <acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym></a></span></dt></dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2607836">General <acronym class="acronym">DNS</acronym> Reference Information</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2607905">General <acronym class="acronym">DNS</acronym> Reference Information</a></span></dt>
 <dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch09.html#ipv6addresses">IPv6 addresses (AAAA)</a></span></dt></dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch09.html#bibliography">Bibliography (and Suggested Reading)</a></span></dt>
 <dd><dl>
@@ -68,13 +68,13 @@
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch09.html#bind9.library">BIND 9 DNS Library Support</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2611882">Prerequisite</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2611892">Compilation</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2611916">Installation</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2611947">Known Defects/Restrictions</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613458">The dns.conf File</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613484">Sample Applications</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2614867">Library References</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613664">Prerequisite</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613673">Compilation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613698">Installation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613729">Known Defects/Restrictions</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613805">The dns.conf File</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2613832">Sample Applications</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2615010">Library References</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -412,6 +412,11 @@
 	  A regression caused nsupdate to use the default recursive servers
 	  rather than the SOA MNAME server when sending the UPDATE.
         </p></li>
+<li><p>
+	  Adjusted max-recursion-queries to accommodate the smaller
+	  initial packet sizes used in BIND 9.10 and higher when
+	  contacting authoritative servers for the first time.
+        </p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
@@ -539,7 +544,7 @@
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2607836"></a>General <acronym class="acronym">DNS</acronym> Reference Information</h2></div></div></div>
+<a name="id2607905"></a>General <acronym class="acronym">DNS</acronym> Reference Information</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="ipv6addresses"></a>IPv6 addresses (AAAA)</h3></div></div></div>
@@ -1015,7 +1020,7 @@
 </ul></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2611882"></a>Prerequisite</h3></div></div></div>
+<a name="id2613664"></a>Prerequisite</h3></div></div></div>
 <p>GNU make is required to build the export libraries (other
   part of BIND 9 can still be built with other types of make). In
   the reminder of this document, "make" means GNU make. Note that
@@ -1024,7 +1029,7 @@
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2611892"></a>Compilation</h3></div></div></div>
+<a name="id2613673"></a>Compilation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>./configure --enable-exportlib <em class="replaceable"><code>[other flags]</code></em></code></strong>
 $ <strong class="userinput"><code>make</code></strong>
@@ -1039,7 +1044,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2611916"></a>Installation</h3></div></div></div>
+<a name="id2613698"></a>Installation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>cd lib/export</code></strong>
 $ <strong class="userinput"><code>make install</code></strong>
@@ -1061,7 +1066,7 @@ $ <strong class="userinput"><code>make install</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2611947"></a>Known Defects/Restrictions</h3></div></div></div>
+<a name="id2613729"></a>Known Defects/Restrictions</h3></div></div></div>
 <div class="itemizedlist"><ul type="disc">
 <li><p>Currently, win32 is not supported for the export
       library. (Normal BIND 9 application can be built as
@@ -1101,7 +1106,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2613458"></a>The dns.conf File</h3></div></div></div>
+<a name="id2613805"></a>The dns.conf File</h3></div></div></div>
 <p>The IRS library supports an "advanced" configuration file
   related to the DNS library for configuration parameters that
   would be beyond the capability of the
@@ -1119,14 +1124,14 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2613484"></a>Sample Applications</h3></div></div></div>
+<a name="id2613832"></a>Sample Applications</h3></div></div></div>
 <p>Some sample application programs using this API are
   provided for reference. The following is a brief description of
   these applications.
   </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613493"></a>sample: a simple stub resolver utility</h4></div></div></div>
+<a name="id2613841"></a>sample: a simple stub resolver utility</h4></div></div></div>
 <p>
   It sends a query of a given name (of a given optional RR type) to a
   specified recursive server, and prints the result as a list of
@@ -1190,7 +1195,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613720"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
+<a name="id2614204"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
 <p>
   Similar to "sample", but accepts a list
   of (query) domain names as a separate file and resolves the names
@@ -1231,7 +1236,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613773"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
+<a name="id2614258"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
 <p>
   It sends a query to a specified server, and
   prints the response with minimal processing. It doesn't act as a
@@ -1272,7 +1277,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613837"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
+<a name="id2614322"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
 <p>
   This is a test program
   to check getaddrinfo() and getnameinfo() behavior. It takes a
@@ -1289,7 +1294,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613852"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
+<a name="id2614337"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
 <p>
   It accepts a single update command as a
   command-line argument, sends an update request message to the
@@ -1384,7 +1389,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2614803"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
+<a name="id2614877"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
 <p>
   It checks a set
   of domains to see the name servers of the domains behave
@@ -1441,7 +1446,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2614867"></a>Library References</h3></div></div></div>
+<a name="id2615010"></a>Library References</h3></div></div></div>
 <p>As of this writing, there is no formal "manual" of the
   libraries, except this document, header files (some of them
   provide pretty detailed explanations), and sample application
