@@ -3494,7 +3494,9 @@ esac
 case $ac_cv_have_if_nametoindex in
 yes)
 	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
-	AC_DEFINE(HAVE_IF_NAMETOINDEX, 1)
+        AC_DEFINE(HAVE_IF_NAMETOINDEX, 1,
+                  [Define to 1 if you have the if_nametoindex function.])
+
 	;;
 *)
 	ISC_PLATFORM_HAVEIFNAMETOINDEX="#undef ISC_PLATFORM_HAVEIFNAMETOINDEX"
