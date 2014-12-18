@@ -1060,7 +1060,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 						      sabuf, ifp->dscp);
 				}
 			} else {
-			        isc_boolean_t tcp_addr_in_use = ISC_FALSE;
+				isc_boolean_t tcp_addr_in_use = ISC_FALSE;
 
 				if (adjusting == ISC_FALSE &&
 				    ipv6_wildcard == ISC_TRUE)
