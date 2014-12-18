@@ -14,3 +14,4 @@
 
 rm -f ns1/named.run
 rm -f ns1/named.memstats
+rm -f ns*/named.lock

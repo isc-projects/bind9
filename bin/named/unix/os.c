@@ -55,6 +55,7 @@
 
 static char *pidfile = NULL;
 static int devnullfd = -1;
+static int singletonfd = -1;
 
 #ifndef ISC_FACILITY
 #define ISC_FACILITY LOG_DAEMON
@@ -900,10 +901,47 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	(void)fclose(lockfile);
 }
 
+isc_boolean_t
+ns_os_issingleton(const char *filename) {
+	struct flock lock;
+
+	if (singletonfd != -1)
+		return (ISC_TRUE);
+
+	/*
+	 * ns_os_openfile() uses safeopen() which removes any existing
+	 * files. We can't use that here.
+	 */
+	singletonfd = open(filename, O_WRONLY | O_CREAT,
+			   S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+	if (singletonfd == -1)
+		return (ISC_FALSE);
+
+	memset(&lock, 0, sizeof(lock));
+	lock.l_type = F_WRLCK;
+	lock.l_whence = SEEK_SET;
+	lock.l_start = 0;
+	lock.l_len = 1;
+
+	/* Non-blocking (does not wait for lock) */
+	if (fcntl(singletonfd, F_SETLK, &lock) == -1) {
+		close(singletonfd);
+		singletonfd = -1;
+		return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
+}
+
 void
 ns_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
+
+	if (singletonfd != -1) {
+		close(singletonfd);
+		singletonfd = -1;
+	}
 }
 
 isc_result_t

@@ -25,3 +25,4 @@ rm -rf ns1/root.db
 rm -rf ns2/example.db
 rm -rf ns2/example.com.db
 rm -rf nsupdate.out.test
+rm -f ns*/named.lock

@@ -14,3 +14,4 @@
 
 rm -f ns1/example.db
 rm -f nslookup.out*
+rm -f ns*/named.lock

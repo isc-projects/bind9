@@ -26,3 +26,4 @@ rm -f ns3/named.conf
 rm -f ns3/example.db
 rm -f ns4/sub.example.db
 rm -f dig.out.*
+rm -f ns*/named.lock

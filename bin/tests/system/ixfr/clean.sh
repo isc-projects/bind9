@@ -23,3 +23,4 @@ rm -f ns4/*.jnl ns4/*.db
 rm -f */named.memstats
 rm -f dig.out dig.out1 dig.out2 dig.out3
 rm -f ns3/large.db
+rm -f ns*/named.lock

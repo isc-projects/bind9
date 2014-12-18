@@ -20,3 +20,4 @@ rm -f zones/*.out*
 rm -f zones/dsset-*
 rm -f zones/K*
 rm -f verify.out*
+rm -f ns*/named.lock

@@ -133,6 +133,9 @@ EXTERN const char *		ns_g_logfile		INIT(NULL);
 EXTERN const char *		ns_g_defaultsessionkeyfile
 					INIT(NS_LOCALSTATEDIR "/run/named/"
 							      "session.key");
+EXTERN const char *		ns_g_singletonfile	INIT(NS_LOCALSTATEDIR
+							     "/run/named/"
+							     "named.lock");
 
 #if NS_RUN_PID_DIR
 EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR

@@ -170,6 +170,7 @@ sub start_server {
 			$command .= "$options";
 		} else {
 			$command .= "-D $server ";
+			$command .= "-X named.lock ";
 			$command .= "-m record,size,mctx ";
 			$command .= "-T clienttest ";
 			$command .= "-T nosoa " 

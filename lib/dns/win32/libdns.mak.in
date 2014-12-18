@@ -678,6 +678,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\acache.sbr" \
 	"$(INTDIR)\acl.sbr" \
 	"$(INTDIR)\adb.sbr" \
+	"$(INTDIR)\badcache.sbr" \
 	"$(INTDIR)\byaddr.sbr" \
 	"$(INTDIR)\cache.sbr" \
 	"$(INTDIR)\callbacks.sbr" \
@@ -794,6 +795,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\acache.obj" \
 	"$(INTDIR)\acl.obj" \
 	"$(INTDIR)\adb.obj" \
+	"$(INTDIR)\badcache.obj" \
 	"$(INTDIR)\byaddr.obj" \
 	"$(INTDIR)\cache.obj" \
 	"$(INTDIR)\callbacks.obj" \
@@ -966,6 +968,24 @@ SOURCE=..\adb.c
 
 
 "$(INTDIR)\adb.obj"	"$(INTDIR)\adb.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\badcache.c
+
+!IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
+
+
+"$(INTDIR)\badcache.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\badcache.obj"	"$(INTDIR)\badcache.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

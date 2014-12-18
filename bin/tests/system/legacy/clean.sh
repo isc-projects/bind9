@@ -16,6 +16,7 @@ rm -f dig.out.*
 rm -f ns1/named.conf
 rm -f ns?/named.memstats
 rm -f ns?/named.run
+rm -f ns*/named.lock
 
 # build.sh
 rm -f ns6/K*

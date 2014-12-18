@@ -15,3 +15,4 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f dig.out*
+rm -f ns*/named.lock

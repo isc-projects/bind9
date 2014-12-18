@@ -28,3 +28,4 @@ rm -f ns2/example.db
 rm -f ns2/x21.db*
 rm -f ns3/example.bk
 rm -f ns4/x21.bk*
+rm -f ns*/named.lock

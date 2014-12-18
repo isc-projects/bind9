@@ -19,3 +19,4 @@
 
 rm -f *.out
 rm -f */named.memstats
+rm -f ns*/named.lock

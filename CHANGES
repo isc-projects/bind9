@@ -1,3 +1,8 @@
+4022.	[func]		Stop multiple spawns of named by limiting number of
+			processes to 1. This is done by using a lockfile and
+			checking whether we can listen on any configured
+			TCP interfaces. [RT #37908]
+
 4021.	[bug]		Adjust max-recursion-queries to accommodate
 			the need for more queries when the cache is
 			empty. [RT #38104]

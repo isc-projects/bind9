@@ -72,9 +72,9 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 legacy limits logfileconfig lwresd masterfile masterformat
 	 metadata notify nslookup nsupdate pending @PKCS11_TEST@
 	 reclimit redirect resolver rndc rpz rrl rrchecker rrsetorder
-	 rsabigexponent sit sfcache smartsign sortlist spf staticstub
-	 statistics stub tcp tkey tsig tsiggss unknown upforwd
-	 verify views wildcard xfer xferquota zero zonechecks"
+	 rsabigexponent runtime sit sfcache smartsign sortlist spf
+	 staticstub statistics stub tcp tkey tsig tsiggss unknown
+	 upforwd verify views wildcard xfer xferquota zero zonechecks"
 
 # Use the CONFIG_SHELL detected by configure for tests
 SHELL=@SHELL@

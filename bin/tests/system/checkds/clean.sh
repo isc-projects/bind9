@@ -17,3 +17,4 @@
 # $Id$
 
 rm -f checkds.*
+rm -f ns*/named.lock

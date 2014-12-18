@@ -21,3 +21,4 @@ rm -f data2/*dat
 [ -d data2 ] && rmdir data2
 rm -f ns?/named.run
 rm -f ns?/named.memstats
+rm -f ns*/named.lock

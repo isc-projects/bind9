@@ -81,3 +81,4 @@ rm -f ns3/dnskey-nsec3-unknown.example.db
 rm -f ns3/dnskey-nsec3-unknown.example.db.tmp
 rm -f ns3/dnskey-unknown.example.db
 rm -f ns3/dnskey-unknown.example.db.tmp
+rm -f ns*/named.lock

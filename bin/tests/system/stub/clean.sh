@@ -22,3 +22,4 @@
 #
 rm -f dig.out.ns3 ns3/child.example.st
 rm -f */named.memstats
+rm -f ns*/named.lock

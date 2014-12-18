@@ -24,3 +24,4 @@ rm -f */named.run
 rm -f dig.out.*
 rm -f ns2/*.db
 rm -f rndc.out
+rm -f ns*/named.lock

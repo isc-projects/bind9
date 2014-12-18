@@ -20,3 +20,4 @@ rm -f random.data
 rm -f */named.memstats
 rm -f dig.*
 rm -f sfcache.*
+rm -f ns*/named.lock

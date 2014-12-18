@@ -13,3 +13,4 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f test.* good1.db.map good1.db.raw named-compilezone
+rm -f ns*/named.lock

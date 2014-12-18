@@ -27,3 +27,4 @@ rm -f ns1/delegations.db
 rm -f ns2/zone0*.db
 rm -f ns2/zone0*.jnl
 rm -f */named.memstats
+rm -f ns*/named.lock

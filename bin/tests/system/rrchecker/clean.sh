@@ -13,3 +13,4 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f classlist.out privatelist.out typelist.out tempzone checker.out
+rm -f ns*/named.lock

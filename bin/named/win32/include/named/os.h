@@ -55,6 +55,9 @@ ns_os_openfile(const char *filename, int mode, isc_boolean_t switch_user);
 void
 ns_os_writepidfile(const char *filename, isc_boolean_t first_time);
 
+isc_boolean_t
+ns_os_issingleton(const char *filename);
+
 void
 ns_os_shutdown(void);
 

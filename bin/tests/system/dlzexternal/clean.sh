@@ -22,3 +22,4 @@ rm -f ns1/update.txt
 rm -f */named.memstats
 rm -f ns1/ddns.key
 rm -f dig.out*
+rm -f ns*/named.lock

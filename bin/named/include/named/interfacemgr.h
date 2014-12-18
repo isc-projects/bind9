@@ -115,7 +115,14 @@ ns_interfacemgr_detach(ns_interfacemgr_t **targetp);
 void
 ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr);
 
-void
+isc_boolean_t
+ns_interfacemgr_islistening(ns_interfacemgr_t *mgr);
+/*%
+ * Return if the manager is listening on any interface. It can be called
+ * after a scan or adjust.
+ */
+
+isc_result_t
 ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose);
 /*%
  * Scan the operatings system's list of network interfaces
@@ -127,7 +134,7 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose);
  * in named.conf.
  */
 
-void
+isc_result_t
 ns_interfacemgr_adjust(ns_interfacemgr_t *mgr, ns_listenlist_t *list,
 		       isc_boolean_t verbose);
 /*%

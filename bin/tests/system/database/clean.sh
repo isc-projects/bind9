@@ -18,3 +18,4 @@
 
 rm -f ns1/named.conf ns1/named.run ns1/named.memstats
 rm -f dig.out.*
+rm -f ns*/named.lock

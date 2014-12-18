@@ -22,3 +22,4 @@ rm -f */named.memstats
 rm -f */*.bk
 rm -f */*.bk.*
 rm -f ns3/Kexample.*
+rm -f ns*/named.lock

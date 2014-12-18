@@ -25,3 +25,4 @@ rm -f dig.out.ns2
 rm -f dig.out.expire
 rm -f */named.memstats
 rm -f ns2/named_dump.db
+rm -f ns*/named.lock

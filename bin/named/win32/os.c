@@ -49,6 +49,7 @@
 
 static char *pidfile = NULL;
 static int devnullfd = -1;
+static int singletonfd = -1;
 
 static BOOL Initialized = FALSE;
 
@@ -282,10 +283,46 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	(void)fclose(lockfile);
 }
 
+isc_boolean_t
+ns_os_issingleton(const char *filename) {
+	OVERLAPPED o;
+
+	if (singletonfd != -1)
+		return (ISC_TRUE);
+
+	/*
+	 * ns_os_openfile() uses safeopen() which removes any existing
+	 * files. We can't use that here.
+	 */
+	singletonfd = open(filename, O_WRONLY | O_CREAT,
+			   S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+	if (singletonfd == -1)
+		return (ISC_FALSE);
+
+	memset(&o, 0, sizeof(o));
+	/* Expect ERROR_LOCK_VIOLATION if already locked */
+	if (!LockFileEx((HANDLE) _get_osfhandle(singletonfd),
+			LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY,
+			0, 0, 1, &o)) {
+		close(singletonfd);
+		singletonfd = -1;
+		return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
+}
+
 void
 ns_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
+
+	if (singletonfd != -1) {
+		(void) UnlockFile((HANDLE) _get_osfhandle(singletonfd),
+				  0, 0, 0, 1);
+		close(singletonfd);
+		singletonfd = -1;
+	}
 	ntservice_shutdown();	/* This MUST be the last thing done */
 }
 

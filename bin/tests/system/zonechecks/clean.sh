@@ -18,3 +18,4 @@ rm -f *.out
 rm -f */named.memstats
 rm -f */*.db */*.db.signed */K*.key */K*.private */*.jnl */dsset-*
 rm -f rndc.out.*
+rm -f ns*/named.lock

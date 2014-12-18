@@ -35,3 +35,4 @@ rm -f ns4/named.run ns4/named.conf
 rm -f ns4/named.memstats
 
 rm -f dig.out.*
+rm -f ns*/named.lock

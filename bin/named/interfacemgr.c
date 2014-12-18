@@ -545,17 +545,19 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
  tcp_bind_failure:
 	isc_socket_detach(&ifp->tcpsocket);
  tcp_socket_failure:
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 static isc_result_t
 ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		   const char *name, ns_interface_t **ifpret,
-		   isc_boolean_t accept_tcp, isc_dscp_t dscp)
+		   isc_boolean_t accept_tcp, isc_dscp_t dscp,
+		   isc_boolean_t *tcp_addr_in_use)
 {
 	isc_result_t result;
 	ns_interface_t *ifp = NULL;
 	REQUIRE(ifpret != NULL && *ifpret == NULL);
+	REQUIRE(tcp_addr_in_use == NULL || *tcp_addr_in_use == ISC_FALSE);
 
 	result = ns_interface_create(mgr, addr, name, &ifp);
 	if (result != ISC_R_SUCCESS)
@@ -570,6 +572,10 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	if (!ns_g_notcp && accept_tcp == ISC_TRUE) {
 		result = ns_interface_accepttcp(ifp);
 		if (result != ISC_R_SUCCESS) {
+			if ((result == ISC_R_ADDRINUSE) &&
+			    (tcp_addr_in_use != NULL))
+				*tcp_addr_in_use = ISC_TRUE;
+
 			/*
 			 * XXXRTH We don't currently have a way to easily stop
 			 * dispatch service, so we currently return
@@ -807,6 +813,8 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 	isc_boolean_t log_explicit = ISC_FALSE;
 	isc_boolean_t dolistenon;
 	char sabuf[ISC_SOCKADDR_FORMATSIZE];
+	isc_boolean_t tried_listening;
+	isc_boolean_t all_addresses_in_use;
 
 	if (ext_listen != NULL)
 		adjusting = ISC_TRUE;
@@ -883,7 +891,8 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 				result = ns_interface_setup(mgr, &listen_addr,
 							    "<any>", &ifp,
 							    ISC_TRUE,
-							    le->dscp);
+							    le->dscp,
+							    NULL);
 				if (result == ISC_R_SUCCESS)
 					ifp->flags |= NS_INTERFACEFLAG_ANYADDR;
 				else
@@ -913,6 +922,8 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 		clearlistenon(mgr);
 	}
 
+	tried_listening = ISC_FALSE;
+	all_addresses_in_use = ISC_TRUE;
 	for (result = isc_interfaceiter_first(iter);
 	     result == ISC_R_SUCCESS;
 	     result = isc_interfaceiter_next(iter))
@@ -1049,6 +1060,8 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 						      sabuf, ifp->dscp);
 				}
 			} else {
+			        isc_boolean_t tcp_addr_in_use = ISC_FALSE;
+
 				if (adjusting == ISC_FALSE &&
 				    ipv6_wildcard == ISC_TRUE)
 					continue;
@@ -1083,7 +1096,12 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 						    &ifp,
 						    (adjusting == ISC_TRUE) ?
 						    ISC_FALSE : ISC_TRUE,
-						    le->dscp);
+						    le->dscp,
+						    &tcp_addr_in_use);
+
+				tried_listening = ISC_TRUE;
+				if (!tcp_addr_in_use)
+					all_addresses_in_use = ISC_FALSE;
 
 				if (result != ISC_R_SUCCESS) {
 					isc_log_write(IFMGR_COMMON_LOGARGS,
@@ -1114,23 +1132,26 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 				 "interface iteration failed: %s",
 				 isc_result_totext(result));
 	else
-		result = ISC_R_SUCCESS;
+		result = ((tried_listening && all_addresses_in_use) ?
+			  ISC_R_ADDRINUSE : ISC_R_SUCCESS);
  cleanup_iter:
 	isc_interfaceiter_destroy(&iter);
 	return (result);
 }
 
-static void
+static isc_result_t
 ns_interfacemgr_scan0(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 		      isc_boolean_t verbose)
 {
+	isc_result_t result;
 	isc_boolean_t purge = ISC_TRUE;
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
 	mgr->generation++;	/* Increment the generation count. */
 
-	if (do_scan(mgr, ext_listen, verbose) != ISC_R_SUCCESS)
+	result = do_scan(mgr, ext_listen, verbose);
+	if ((result != ISC_R_SUCCESS) && (result != ISC_R_ADDRINUSE))
 		purge = ISC_FALSE;
 
 	/*
@@ -1152,18 +1173,27 @@ ns_interfacemgr_scan0(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_WARNING,
 			      "not listening on any interfaces");
 	}
+
+	return (result);
 }
 
-void
+isc_boolean_t
+ns_interfacemgr_islistening(ns_interfacemgr_t *mgr) {
+	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+
+	return (ISC_LIST_EMPTY(mgr->interfaces) ? ISC_FALSE : ISC_TRUE);
+}
+
+isc_result_t
 ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
-	ns_interfacemgr_scan0(mgr, NULL, verbose);
+	return (ns_interfacemgr_scan0(mgr, NULL, verbose));
 }
 
-void
+isc_result_t
 ns_interfacemgr_adjust(ns_interfacemgr_t *mgr, ns_listenlist_t *list,
 		       isc_boolean_t verbose)
 {
-	ns_interfacemgr_scan0(mgr, list, verbose);
+	return (ns_interfacemgr_scan0(mgr, list, verbose));
 }
 
 void

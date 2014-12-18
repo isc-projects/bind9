@@ -32,3 +32,4 @@ rm -f ns6/to-be-removed.tld.db ns6/to-be-removed.tld.db.jnl
 rm -f ns7/server.db ns7/server.db.jnl ns7/named.conf
 rm -f resolve.out
 rm -f .digrc
+rm -f ns*/named.lock

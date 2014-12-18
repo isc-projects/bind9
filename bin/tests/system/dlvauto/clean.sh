@@ -25,3 +25,4 @@ rm -f ns2/*.mkeys
 rm -f ns2/*.mkeys.jnl
 rm -f dig.out.ns?.test*
 rm -f ns2/named.secroots
+rm -f ns*/named.lock

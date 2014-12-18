@@ -16,3 +16,4 @@
 
 rm -f dig.ns*.test*
 rm -f ns2/example.bk
+rm -f ns*/named.lock

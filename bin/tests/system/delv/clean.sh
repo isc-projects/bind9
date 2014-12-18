@@ -17,3 +17,4 @@
 rm -f delv.out.test*
 rm -f */named.memstats
 rm -f */named.run
+rm -f ns*/named.lock

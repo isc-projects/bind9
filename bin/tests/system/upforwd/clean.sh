@@ -27,3 +27,4 @@ rm -f ns3/nomaster1.db
 rm -f */named.memstats
 rm -f Ksig0.example2.*
 rm -f keyname
+rm -f ns*/named.lock

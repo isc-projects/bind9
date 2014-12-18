@@ -43,3 +43,4 @@ rm -f ns6/dsset-*
 rm -f ns6/signer.err
 rm -f */named.memstats
 rm -f dig.out.ns*.test*
+rm -f ns*/named.lock

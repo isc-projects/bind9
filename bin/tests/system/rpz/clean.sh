@@ -21,3 +21,4 @@ rm -f ns5/requests ns5/example.db ns5/bl.db ns5/*.perf
 rm -f */named.memstats */named.run */named.stats */session.key
 rm -f */*.jnl */*.core */*.pid
 rm -f */policy2.db
+rm -f ns*/named.lock

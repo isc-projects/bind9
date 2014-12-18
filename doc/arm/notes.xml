@@ -239,6 +239,18 @@
 	  sending queries.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> will now check to see whether
+	  other name server processes are running before starting up.
+	  This is implemented in two ways: 1) by refusing to start
+	  if the configured network interfaces all return "address
+	  in use", and 2) by acquiring a file lock on
+	  <filename>/var/run/named/named.lock</filename>, or on a different
+	  file specified via the <command>named -X</command> command
+	  line option.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_changes">

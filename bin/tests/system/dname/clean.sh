@@ -21,3 +21,4 @@
 #
 rm -f */named.memstats
 rm -f dig.out.*
+rm -f ns*/named.lock

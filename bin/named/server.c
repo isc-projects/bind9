@@ -4718,14 +4718,15 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 	return (ISC_R_SUCCESS);
 }
 
-static void
+static isc_result_t
 scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
+	isc_result_t result;
 	isc_boolean_t match_mapped = server->aclenv.match_mapped;
 #ifdef HAVE_GEOIP
 	isc_boolean_t use_ecs = server->aclenv.geoip_use_ecs;
 #endif
 
-	ns_interfacemgr_scan(server->interfacemgr, verbose);
+	result = ns_interfacemgr_scan(server->interfacemgr, verbose);
 	/*
 	 * Update the "localhost" and "localnets" ACLs to match the
 	 * current set of network interfaces.
@@ -4737,6 +4738,8 @@ scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
 #ifdef HAVE_GEOIP
 	server->aclenv.geoip_use_ecs = use_ecs;
 #endif
+
+	return (result);
 }
 
 static isc_result_t
@@ -5827,7 +5830,20 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * to configure the query source, since the dispatcher we use might
 	 * be shared with an interface.
 	 */
-	scan_interfaces(server, ISC_TRUE);
+	result = scan_interfaces(server, ISC_TRUE);
+
+	/*
+	 * Check that named is able to TCP listen on at least one
+	 * interface. Otherwise, another named process could be running
+	 * and we should fail.
+	 */
+	if (first_time && (result == ISC_R_ADDRINUSE)) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "unable to listen on any configured interfaces");
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
 
 	/*
 	 * Arrange for further interface scanning to occur periodically

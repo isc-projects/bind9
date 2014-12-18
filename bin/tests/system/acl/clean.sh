@@ -23,3 +23,4 @@
 rm -f dig.out.*
 rm -f ns2/example.db ns2/tsigzone.db ns2/example.db.jnl ns2/named.conf
 rm -f */named.memstats
+rm -f ns*/named.lock
