@@ -247,6 +247,16 @@
 	  <span><strong class="command">delv +tcp</strong></span> will exclusively use TCP when
 	  sending queries.
 	</p></li>
+<li><p>
+	  <span><strong class="command">named</strong></span> will now check to see whether
+	  other name server processes are running before starting up.
+	  This is implemented in two ways: 1) by refusing to start
+	  if the configured network interfaces all return "address
+	  in use", and 2) by acquiring a file lock on
+	  <code class="filename">/var/run/named/named.lock</code>, or on a different
+	  file specified via the <span><strong class="command">named -X</strong></span> command
+	  line option.
+	</p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
