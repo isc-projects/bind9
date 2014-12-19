@@ -1388,7 +1388,7 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 			|| cmsgp->cmsg_type == IP_RECVTOS
 #endif
 			)) {
-			dev->dscp = (int) *(uint8_t *)CMSG_DATA(cmsgp);
+			dev->dscp = (int) *(unsigned char *)CMSG_DATA(cmsgp);
 			dev->dscp >>= 2;
 			dev->attributes |= ISC_SOCKEVENTATTR_DSCP;
 			goto next;

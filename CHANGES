@@ -1,3 +1,5 @@
+4025.	[port]		bsdi: failed to build. [RT #38047]
+
 4024.	[bug]		dns_rdata_opt_first, dns_rdata_opt_next,
 			dns_rdata_opt_current, dns_rdata_txt_first,
 			dns_rdata_txt_next and dns_rdata_txt_current were
