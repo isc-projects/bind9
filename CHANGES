@@ -7,7 +7,7 @@
 			implemented.
 
 			dns_rdata_spf_first, dns_rdata_spf_next and
-			dns_rdata_spf_current were document but not
+			dns_rdata_spf_current were documented but not
 			implemented.  The prototypes for these
 			functions have been removed. [RT #38068]
 
