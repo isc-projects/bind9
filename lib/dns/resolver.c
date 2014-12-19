@@ -3087,6 +3087,10 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 		stdoptions |= DNS_ADBFIND_INET;
 	if (res->dispatches6 != NULL)
 		stdoptions |= DNS_ADBFIND_INET6;
+
+	if ((stdoptions & DNS_ADBFIND_ADDRESSMASK) == 0)
+		return (DNS_R_SERVFAIL);
+
 	isc_stdtime_get(&now);
 
 	INSIST(ISC_LIST_EMPTY(fctx->finds));

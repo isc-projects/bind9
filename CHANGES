@@ -1,3 +1,18 @@
+4024.	[bug]		dns_rdata_opt_first, dns_rdata_opt_next,
+			dns_rdata_opt_current, dns_rdata_txt_first,
+			dns_rdata_txt_next and dns_rdata_txt_current were
+			documented but not implemented.  These have now been
+			implemented.
+
+			dns_rdata_spf_first, dns_rdata_spf_next and
+			dns_rdata_spf_current were document but not
+			implemented.  The prototypes for these
+			functions have been removed. [RT #38068]
+
+4023.	[bug]		win32: socket handling with explict ports and
+			invoking named with -4 was broken for some
+			configurations. [RT #38068]
+
 4022.	[func]		Stop multiple spawns of named by limiting number of
 			processes to 1. This is done by using a lockfile and
 			checking whether we can listen on any configured

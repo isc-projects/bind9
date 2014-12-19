@@ -165,23 +165,6 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, dns_name_t *keyname);
  *\li	Any other result indicates failure.
  */
 
-isc_result_t
-dns_ntatable_deletenta(dns_ntatable_t *ntatable, dns_name_t *name);
-/*%<
- * Delete node from 'ntatable' matching the name 'name'
- *
- * Requires:
- *
- *\li	'ntatable' points to a valid ntatable.
- *\li	'name' is a valid name.
- *
- * Returns:
- *
- *\li	ISC_R_SUCCESS
- *
- *\li	Any other result indicates failure.
- */
-
 isc_boolean_t
 dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 		     dns_name_t *name, dns_name_t *anchor);

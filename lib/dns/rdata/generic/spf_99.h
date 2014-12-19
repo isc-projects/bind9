@@ -38,14 +38,4 @@ typedef struct dns_rdata_spf {
  * ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS are already done
  * via rdatastructpre.h and rdatastructsuf.h.
  */
-
-isc_result_t
-dns_rdata_spf_first(dns_rdata_spf_t *);
-
-isc_result_t
-dns_rdata_spf_next(dns_rdata_spf_t *);
-
-isc_result_t
-dns_rdata_spf_current(dns_rdata_spf_t *, dns_rdata_spf_string_t *);
-
 #endif /* GENERIC_SPF_99_H */
