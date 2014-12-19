@@ -271,35 +271,35 @@ dns_rdata_txt_next(dns_rdata_txt_t *txt) {
 	REQUIRE(txt->txt != NULL && txt->txt_len != 0);
 
 	INSIST(txt->offset + 1 <= txt->txt_len);
-        r.base = txt->txt + txt->offset;
-        r.length = txt->txt_len - txt->offset;
-        length = uint8_fromregion(&r);
-        INSIST(txt->offset + 1 + length <= txt->txt_len);
-        txt->offset = txt->offset + 1 + length;
-        if (txt->offset == txt->txt_len)
-                return (ISC_R_NOMORE);
-        return (ISC_R_SUCCESS);
+	r.base = txt->txt + txt->offset;
+	r.length = txt->txt_len - txt->offset;
+	length = uint8_fromregion(&r);
+	INSIST(txt->offset + 1 + length <= txt->txt_len);
+	txt->offset = txt->offset + 1 + length;
+	if (txt->offset == txt->txt_len)
+		return (ISC_R_NOMORE);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
 dns_rdata_txt_current(dns_rdata_txt_t *txt, dns_rdata_txt_string_t *string) {
-        isc_region_t r;
+	isc_region_t r;
 
-        REQUIRE(txt != NULL);
-        REQUIRE(string != NULL);
-        REQUIRE(txt->common.rdtype == 16);
-        REQUIRE(txt->txt != NULL);
-        REQUIRE(txt->offset < txt->txt_len);
+	REQUIRE(txt != NULL);
+	REQUIRE(string != NULL);
+	REQUIRE(txt->common.rdtype == 16);
+	REQUIRE(txt->txt != NULL);
+	REQUIRE(txt->offset < txt->txt_len);
 
-        INSIST(txt->offset + 1 <= txt->txt_len);
-        r.base = txt->txt + txt->offset;
-        r.length = txt->txt_len - txt->offset;
+	INSIST(txt->offset + 1 <= txt->txt_len);
+	r.base = txt->txt + txt->offset;
+	r.length = txt->txt_len - txt->offset;
 
-        string->length = uint8_fromregion(&r);
-        isc_region_consume(&r, 1);
-        string->data = r.base;
-        INSIST(txt->offset + 1 + string->length <= txt->txt_len);
+	string->length = uint8_fromregion(&r);
+	isc_region_consume(&r, 1);
+	string->data = r.base;
+	INSIST(txt->offset + 1 + string->length <= txt->txt_len);
 
-        return (ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 #endif	/* RDATA_GENERIC_TXT_16_C */

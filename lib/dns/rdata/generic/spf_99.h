@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2014  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -21,17 +21,17 @@
 /* $Id: spf_99.h,v 1.4 2007/06/19 23:47:17 tbox Exp $ */
 
 typedef struct dns_rdata_spf_string {
-                isc_uint8_t    length;
-                unsigned char   *data;
+		isc_uint8_t    length;
+		unsigned char   *data;
 } dns_rdata_spf_string_t;
 
 typedef struct dns_rdata_spf {
-        dns_rdatacommon_t       common;
-        isc_mem_t               *mctx;
-        unsigned char           *txt;
-        isc_uint16_t            txt_len;
-        /* private */
-        isc_uint16_t            offset;
+	dns_rdatacommon_t       common;
+	isc_mem_t               *mctx;
+	unsigned char           *txt;
+	isc_uint16_t            txt_len;
+	/* private */
+	isc_uint16_t            offset;
 } dns_rdata_spf_t;
 
 /*
