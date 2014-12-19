@@ -326,6 +326,7 @@ initialize_ipv6only(void) {
 #endif /* WANT_IPV6 */
 
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
+#ifdef WANT_IPV6
 static void
 try_ipv6pktinfo(void) {
 	int s, on;
@@ -377,6 +378,7 @@ initialize_ipv6pktinfo(void) {
 	RUNTIME_CHECK(isc_once_do(&once_ipv6pktinfo,
 				  try_ipv6pktinfo) == ISC_R_SUCCESS);
 }
+#endif /* WANT_IPV6 */
 #endif /* ISC_PLATFORM_HAVEIN6PKTINFO */
 #endif /* ISC_PLATFORM_HAVEIPV6 */
 
@@ -620,7 +622,11 @@ try_dscp_v4(void) {
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
+#ifdef AI_NUMERICHOST
 	hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
+#else
+	hints.ai_flags = AI_PASSIVE;
+#endif
 
 	n = getaddrinfo("127.0.0.1", NULL, &hints, &res0);
 	if (n != 0 || res0 == NULL) {
@@ -689,7 +695,11 @@ try_dscp_v6(void) {
 	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
+#ifdef AI_NUMERICHOST
 	hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
+#else
+	hints.ai_flags = AI_PASSIVE;
+#endif
 
 	n = getaddrinfo("::1", NULL, &hints, &res0);
 	if (n != 0 || res0 == NULL) {

@@ -221,6 +221,12 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
+/* Define to 1 if you have the `fseeko' function. */
+#undef HAVE_FSEEKO
+
+/* Define to 1 if you have the `ftello' function. */
+#undef HAVE_FTELLO
+
 /* Build with GeoIP support */
 #undef HAVE_GEOIP
 
@@ -463,6 +469,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to the flags type used by getnameinfo(3). */
 #undef IRS_GETNAMEINFO_FLAGS_T
+
+/* Define to the sockaddr length type used by getnameinfo(3). */
+#undef IRS_GETNAMEINFO_SOCKLEN_T
 
 /* Define to allow building of objects for dlopen(). */
 #undef ISC_DLZ_DLOPEN

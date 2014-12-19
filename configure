@@ -768,6 +768,7 @@ ISC_IPV6_C
 ISC_ISCIPV6_O
 ISC_IPV6_O
 ISC_IPV6_H
+ISC_PLATFORM_HAVESOCKADDRSTORAGE
 ISC_PLATFORM_FIXIN6ISADDR
 ISC_PLATFORM_HAVEIN6PKTINFO
 LWRES_PLATFORM_NEEDIN6ADDRLOOPBACK
@@ -13028,6 +13029,20 @@ fi
 done
 
 
+# BSDI doesn't have ftello fseeko
+for ac_func in ftello fseeko
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler
 # is reported to not support "static inline" (RT #1212).
@@ -17608,6 +17623,36 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		;;
 esac
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct sockaddr_storage" >&5
+$as_echo_n "checking for struct sockaddr_storage... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <sys/types.h>
+#include <sys/socket.h>
+$isc_netinetin6_hack
+$isc_netinet6in6_hack
+
+int
+main ()
+{
+struct sockaddr_storage storage; return (0);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+ISC_PLATFORM_HAVESOCKADDRSTORAGE="#define ISC_PLATFORM_HAVESOCKADDRSTORAGE 1"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
 
 
 
@@ -18145,6 +18190,9 @@ if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: socklen_t for buflen; u_int for flags" >&5
 $as_echo "socklen_t for buflen; u_int for flags" >&6; }
 
+$as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t" >>confdefs.h
+
+
 $as_echo "#define IRS_GETNAMEINFO_BUFLEN_T socklen_t" >>confdefs.h
 
 
@@ -18170,6 +18218,34 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: size_t for buflen; int for flags" >&5
 $as_echo "size_t for buflen; int for flags" >&6; }
+	 $as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t" >>confdefs.h
+
+	 $as_echo "#define IRS_GETNAMEINFO_BUFLEN_T size_t" >>confdefs.h
+
+	 $as_echo "#define IRS_GETNAMEINFO_FLAGS_T int" >>confdefs.h
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+int getnameinfo(const struct sockaddr *, size_t, char *,
+		size_t, char *, size_t, int);
+int
+main ()
+{
+ return (0);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: size_t for buflen; int for flags" >&5
+$as_echo "size_t for buflen; int for flags" >&6; }
+	 $as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T size_t" >>confdefs.h
+
 	 $as_echo "#define IRS_GETNAMEINFO_BUFLEN_T size_t" >>confdefs.h
 
 	 $as_echo "#define IRS_GETNAMEINFO_FLAGS_T int" >>confdefs.h
@@ -18177,10 +18253,14 @@ $as_echo "size_t for buflen; int for flags" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: not match any subspecies; assume standard definition" >&5
 $as_echo "not match any subspecies; assume standard definition" >&6; }
+$as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t" >>confdefs.h
+
 $as_echo "#define IRS_GETNAMEINFO_BUFLEN_T socklen_t" >>confdefs.h
 
 $as_echo "#define IRS_GETNAMEINFO_FLAGS_T int" >>confdefs.h
 
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 fi
