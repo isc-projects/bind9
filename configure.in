@@ -409,6 +409,9 @@ AC_C_FLEXIBLE_ARRAY_MEMBER
 AC_CHECK_FUNCS(seteuid setresuid)
 AC_CHECK_FUNCS(setegid setresgid)
 
+# BSDI doesn't have ftello fseeko
+AC_CHECK_FUNCS(ftello fseeko)
+
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler
 # is reported to not support "static inline" (RT #1212).
@@ -2111,6 +2114,19 @@ $isc_netinet6in6_hack
 		;;
 esac
 
+AC_MSG_CHECKING(for struct sockaddr_storage)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>
+$isc_netinetin6_hack
+$isc_netinet6in6_hack
+],
+[struct sockaddr_storage storage; return (0);],
+[AC_MSG_RESULT(yes)
+ISC_PLATFORM_HAVESOCKADDRSTORAGE="#define ISC_PLATFORM_HAVESOCKADDRSTORAGE 1"],
+[AC_MSG_RESULT(no)
+ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"])
+
 AC_SUBST(ISC_PLATFORM_HAVEIPV6)
 AC_SUBST(LWRES_PLATFORM_HAVEIPV6)
 AC_SUBST(ISC_PLATFORM_NEEDNETINETIN6H)
@@ -2125,6 +2141,7 @@ AC_SUBST(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
 AC_SUBST(LWRES_PLATFORM_NEEDIN6ADDRLOOPBACK)
 AC_SUBST(ISC_PLATFORM_HAVEIN6PKTINFO)
 AC_SUBST(ISC_PLATFORM_FIXIN6ISADDR)
+AC_SUBST(ISC_PLATFORM_HAVESOCKADDRSTORAGE)
 AC_SUBST(ISC_IPV6_H)
 AC_SUBST(ISC_IPV6_O)
 AC_SUBST(ISC_ISCIPV6_O)
@@ -2374,6 +2391,8 @@ int getnameinfo(const struct sockaddr *, socklen_t, char *,
 		socklen_t, char *, socklen_t, unsigned int);],
 [ return (0);],
 	[AC_MSG_RESULT(socklen_t for buflen; u_int for flags)
+	 AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, socklen_t,
+		   [Define to the sockaddr length type used by getnameinfo(3).])
 	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, socklen_t,
 		   [Define to the buffer length type used by getnameinfo(3).])
 	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, unsigned int,
@@ -2386,11 +2405,24 @@ int getnameinfo(const struct sockaddr *, socklen_t, char *,
 		size_t, char *, size_t, int);],
 [ return (0);],
 	[AC_MSG_RESULT(size_t for buflen; int for flags)
+	 AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, socklen_t)
+	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, size_t)
+	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int)],
+[AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+int getnameinfo(const struct sockaddr *, size_t, char *,
+		size_t, char *, size_t, int);],
+[ return (0);],
+	[AC_MSG_RESULT(size_t for buflen; int for flags)
+	 AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, size_t)
 	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, size_t)
 	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int)],
 [AC_MSG_RESULT(not match any subspecies; assume standard definition)
+AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, socklen_t)
 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, socklen_t)
-AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int)])])
+AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int)])])])
 
 #
 # ...and same for gai_strerror().
