@@ -1800,7 +1800,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	*socketp = sock;
 
 	iocompletionport_update(sock);
-	
+
 	if (dup_socket) {
 #ifndef ISC_ALLOW_MAPPED
 		isc__socket_ipv6only(sock, ISC_TRUE);

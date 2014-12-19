@@ -374,7 +374,7 @@ dns_rdata_opt_current(dns_rdata_opt_t *opt, dns_rdata_opt_opcode_t *opcode) {
 	INSIST(opt->offset + 4 <= opt->length);
 	r.base = opt->options + opt->offset;
 	r.length = opt->length - opt->offset;
-	
+
 	opcode->opcode = uint16_fromregion(&r);
 	isc_region_consume(&r, 2);
 	opcode->length = uint16_fromregion(&r);

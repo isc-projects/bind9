@@ -195,11 +195,11 @@ struct in6_pktinfo {
 #ifdef ISC_PLATFORM_HAVESALEN
 #define _SS_PAD1SIZE (_SS_ALIGNSIZE - (2 * sizeof(isc_uint8_t)))
 #define _SS_PAD2SIZE (_SS_MAXSIZE - (_SS_ALIGNSIZE + _SS_PAD1SIZE \
-                       + 2 * sizeof(isc_uint8_t)))
+		       + 2 * sizeof(isc_uint8_t)))
 #else
 #define _SS_PAD1SIZE (_SS_ALIGNSIZE - sizeof(isc_uint16_t))
 #define _SS_PAD2SIZE (_SS_MAXSIZE - (_SS_ALIGNSIZE + _SS_PAD1SIZE \
-                        + sizeof(isc_uint16_t)))
+			+ sizeof(isc_uint16_t)))
 #endif
 
 struct sockaddr_storage {
