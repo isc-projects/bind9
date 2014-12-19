@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.30 2012/02/06 23:46:44 tbox Exp $
-
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
 # temporary files, start the server, and verify that the server is running.
@@ -201,6 +199,7 @@ sub start_server {
 		if ($options) {
 			$command .= "$options";
 		} else {
+			$command .= "-X lwresd.lock ";
 			$command .= "-m record,size,mctx ";
 			$command .= "-T clienttest ";
 			$command .= "-C resolv.conf -d 99 -g -U 4 ";

@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3 2012/02/03 23:46:58 tbox Exp $
-
 #
 # Clean up after lwresd tests.
 #
@@ -23,3 +21,4 @@ rm -f */named.memstats
 rm -f dig.out
 rm -f lwresd1/lwresd.run.resolv
 rm -f ns*/named.lock
+rm -f lwresd*/lwresd.lock
