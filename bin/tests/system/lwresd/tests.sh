@@ -55,7 +55,7 @@ $PERL $SYSTEMTESTTOP/stop.pl . lwresd1
 
 mv lwresd1/lwresd.run lwresd1/lwresd.run.resolv
 
-$PERL $SYSTEMTESTTOP/start.pl . lwresd1 -- "-m record,size,mctx -c lwresd.conf -d 99 -g"
+$PERL $SYSTEMTESTTOP/start.pl . lwresd1 -- "-X lwresd.lock -m record,size,mctx -c lwresd.conf -d 99 -g"
 
 echo "I:using lwresd.conf"
 ret=0
