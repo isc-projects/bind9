@@ -552,12 +552,12 @@ static isc_result_t
 ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		   const char *name, ns_interface_t **ifpret,
 		   isc_boolean_t accept_tcp, isc_dscp_t dscp,
-		   isc_boolean_t *tcp_addr_in_use)
+		   isc_boolean_t *addr_in_use)
 {
 	isc_result_t result;
 	ns_interface_t *ifp = NULL;
 	REQUIRE(ifpret != NULL && *ifpret == NULL);
-	REQUIRE(tcp_addr_in_use == NULL || *tcp_addr_in_use == ISC_FALSE);
+	REQUIRE(addr_in_use == NULL || *addr_in_use == ISC_FALSE);
 
 	result = ns_interface_create(mgr, addr, name, &ifp);
 	if (result != ISC_R_SUCCESS)
@@ -566,15 +566,18 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	ifp->dscp = dscp;
 
 	result = ns_interface_listenudp(ifp);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		if ((result == ISC_R_ADDRINUSE) && (addr_in_use != NULL))
+			*addr_in_use = ISC_TRUE;
 		goto cleanup_interface;
+	}
 
 	if (!ns_g_notcp && accept_tcp == ISC_TRUE) {
 		result = ns_interface_accepttcp(ifp);
 		if (result != ISC_R_SUCCESS) {
 			if ((result == ISC_R_ADDRINUSE) &&
-			    (tcp_addr_in_use != NULL))
-				*tcp_addr_in_use = ISC_TRUE;
+			    (addr_in_use != NULL))
+				*addr_in_use = ISC_TRUE;
 
 			/*
 			 * XXXRTH We don't currently have a way to easily stop
@@ -1060,7 +1063,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 						      sabuf, ifp->dscp);
 				}
 			} else {
-				isc_boolean_t tcp_addr_in_use = ISC_FALSE;
+				isc_boolean_t addr_in_use = ISC_FALSE;
 
 				if (adjusting == ISC_FALSE &&
 				    ipv6_wildcard == ISC_TRUE)
@@ -1097,10 +1100,10 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 						    (adjusting == ISC_TRUE) ?
 						    ISC_FALSE : ISC_TRUE,
 						    le->dscp,
-						    &tcp_addr_in_use);
+						    &addr_in_use);
 
 				tried_listening = ISC_TRUE;
-				if (!tcp_addr_in_use)
+				if (!addr_in_use)
 					all_addresses_in_use = ISC_FALSE;
 
 				if (result != ISC_R_SUCCESS) {

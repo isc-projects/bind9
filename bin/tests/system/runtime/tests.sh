@@ -30,18 +30,20 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:verifying that named checks for conflicting listeners ($n)"
 ret=0
-(cd ns2; $NAMED -c named.conf -D ns2-extra-1 -X .nolock -m record,size,mctx -d 99 -g -U 4 >> named2.run 2>&1 & )
+(cd ns2; $NAMED -c named-alt1.conf -D ns2-extra-1 -X .nolock -m record,size,mctx -d 99 -g -U 4 >> named2.run 2>&1 & )
 sleep 2
 grep "unable to listen on any configured interface" ns2/named2.run > /dev/null || ret=1
+[ -s ns2/named2.pid ] && kill -15 `cat ns2/named2.pid`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I:verifying that named checks for conflicting named processes ($n)"
 ret=0
-(cd ns2; $NAMED -c named-alt.conf -D ns2-extra-1 -X named.lock -m record,size,mctx -d 99 -g -U 4 >> named3.run 2>&1 & )
+(cd ns2; $NAMED -c named-alt2.conf -D ns2-extra-2 -X named.lock -m record,size,mctx -d 99 -g -U 4 >> named3.run 2>&1 & )
 sleep 2
 grep "another named process" ns2/named3.run > /dev/null || ret=1
+[ -s ns2/named3.pid ] && kill -15 `cat ns3/named2.pid`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
