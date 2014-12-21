@@ -5133,7 +5133,7 @@ sigchase_td(dns_message_t *msg)
 			dns_name_t tmp_name;
 
 			printf("\n;; We are in a Grand Father Problem:"
-			       " See 2.2.1 in RFC 3568\n");
+			       " See 2.2.1 in RFC 3658\n");
 			chase_rdataset = NULL;
 			chase_sigrdataset = NULL;
 			have_response = ISC_FALSE;
