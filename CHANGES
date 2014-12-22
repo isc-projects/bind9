@@ -1,3 +1,5 @@
+4027.	[port]		Net::DNS 0.81 compatibility. [RT #38165]
+
 4026.	[bug]		Fix RFC 3658 reference in dig +sigchase. [RT #38173]
 
 4025.	[port]		bsdi: failed to build. [RT #38047]
