@@ -77,6 +77,7 @@ dns_cache_setcleaninginterval
 dns_cache_setfilename
 dns_cert_fromtext
 dns_cert_totext
+@IF UNIXONLY
 dns_client_addtrustedkey
 dns_client_cancelrequest
 dns_client_cancelresolve
@@ -101,6 +102,7 @@ dns_client_startresolve
 dns_client_startupdate
 dns_client_update
 dns_client_updaterec
+@END UNIXONLY
 dns_clientinfo_init
 dns_clientinfomethods_init
 dns_compress_add
@@ -278,8 +280,10 @@ dns_dumpctx_cancel
 dns_dumpctx_db
 dns_dumpctx_detach
 dns_dumpctx_version
+@IF UNIXONLY
 dns_ecdb_register
 dns_ecdb_unregister
+@END UNIXONLY
 dns_fwdtable_add
 dns_fwdtable_create
 dns_fwdtable_delete
@@ -536,7 +540,6 @@ dns_peer_getquerysource
 dns_peer_getrequestnsid
 dns_peer_getrequestixfr
 dns_peer_getrequestnsid
-dns_peer_getrequestsit
 dns_peer_getsupportedns
 dns_peer_getudpsize
 dns_peer_gettransferformat
@@ -838,10 +841,12 @@ dns_tkey_processquery
 dns_tkeyctx_create
 dns_tkeyctx_destroy
 dns_trust_totext
+@IF UNIXONLY
 dns_tsec_create
 dns_tsec_destroy
 dns_tsec_getkey
 dns_tsec_gettype
+@END UNIXONLY
 dns_tsig_sign
 dns_tsig_verify
 dns_tsigkey_attach
@@ -978,7 +983,6 @@ dns_zone_getprivatetype
 dns_zone_getqueryacl
 dns_zone_getqueryonacl
 dns_zone_getraw
-dns_zone_getrcvquerystats
 dns_zone_getrequestixfr
 dns_zone_getrequeststats
 dns_zone_getserial
@@ -1066,7 +1070,6 @@ dns_zone_setorigin
 dns_zone_setprivatetype
 dns_zone_setqueryacl
 dns_zone_setqueryonacl
-dns_zone_setrcvquerystats
 dns_zone_setrawdata
 dns_zone_setrefreshkeyinterval
 dns_zone_setrequestixfr
@@ -1091,6 +1094,10 @@ dns_zone_setzeronosoattl
 dns_zone_signwithkey
 dns_zone_synckeyzone
 dns_zone_unload
+@IF NEWSTATS
+dns_zone_getrcvquerystats
+dns_zone_setrcvquerystats
+@END NEWSTATS
 dns_zonekey_iszonekey
 dns_zonemgr_attach
 dns_zonemgr_create

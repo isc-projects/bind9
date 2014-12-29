@@ -57,7 +57,6 @@ cfg_parse_astring
 cfg_parse_boolean
 cfg_parse_bracketed_list
 cfg_parse_buffer
-cfg_parse_dscp
 cfg_parse_enum
 cfg_parse_file
 cfg_parse_listelt
