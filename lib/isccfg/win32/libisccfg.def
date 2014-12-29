@@ -91,7 +91,6 @@ cfg_print_boolean
 cfg_print_bracketed_list
 cfg_print_chars
 cfg_print_cstr
-cfg_print_fixedpoint
 cfg_print_grammar
 cfg_print_map
 cfg_print_mapbody

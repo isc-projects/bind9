@@ -608,12 +608,12 @@ isc_socket_sendto2
 isc_socket_sendtov
 isc_socket_sendtov2
 isc_socket_sendv
-isc_socket_socketevent
 isc_socketmgr_create
 isc_socketmgr_create2
-isc_socketmgr_createinctx
 isc_socketmgr_destroy
 @END UNIXONLY
+isc_socket_socketevent
+isc_socketmgr_createinctx
 @IF LIBXML2
 isc_socketmgr_renderxml
 @END LIBXML2
