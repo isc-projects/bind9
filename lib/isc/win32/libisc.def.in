@@ -158,6 +158,7 @@ isc__timermgr_poke
 isc_assertion_failed
 isc_assertion_setcallback
 isc_assertion_typetotext
+@IF UNIXONLY
 isc_app_ctxfinish
 isc_app_ctxonrun
 isc_app_ctxrun
@@ -170,6 +171,7 @@ isc_appctx_destroy
 isc_appctx_setsocketmgr
 isc_appctx_settaskmgr
 isc_appctx_settimermgr
+@END UNIXONLY
 isc_backtrace_getsymbol
 isc_backtrace_getsymbolfromindex
 isc_backtrace_gettrace
@@ -371,7 +373,9 @@ isc_lfsr_generate32
 isc_lfsr_init
 isc_lfsr_skip
 isc_lib_initmsgcat
+@IF UNIXONLY
 isc_lib_register
+@END UNIXONLY
 isc_log_categorybyname
 isc_log_closefilelogs
 isc_log_create
@@ -406,6 +410,10 @@ isc_md5_final
 isc_md5_init
 isc_md5_invalidate
 isc_md5_update
+@IF LIBXML2
+isc_mem_renderxml
+@END LIBXML2
+@IF UNIXONLY
 isc_mem_attach
 isc_mem_create
 isc_mem_create2
@@ -417,9 +425,6 @@ isc_mem_inuse
 isc_mem_isovermem
 isc_mem_references
 isc_mem_register
-@IF LIBXML2
-isc_mem_renderxml
-@END LIBXML2
 isc_mem_setdestroycheck
 isc_mem_setname
 isc_mem_setwater
@@ -432,6 +437,7 @@ isc_mempool_setfillcount
 isc_mempool_setfreemax
 isc_mempool_setmaxalloc
 isc_mempool_setname
+@END UNIXONLY
 isc_msgcat_close
 isc_msgcat_get
 isc_msgcat_open
@@ -491,9 +497,11 @@ isc_portset_isset
 isc_portset_nports
 isc_portset_remove
 isc_portset_removerange
+@IF UNIXONLY
 isc_print_snprintf
 isc_print_sprintf
 isc_print_vsnprintf
+@END UNIXONLY
 isc_quota_attach
 isc_quota_destroy
 isc_quota_detach
@@ -586,7 +594,7 @@ isc_sockaddr_pf
 isc_sockaddr_setport
 isc_sockaddr_totext
 isc_sockaddr_v6fromin
-isc_socket_accept
+@IF UNIXONLY
 isc_socket_attach
 isc_socket_bind
 isc_socket_cancel
@@ -607,10 +615,12 @@ isc_socket_register
 isc_socket_send
 isc_socket_sendto
 isc_socket_sendto2
+isc_socket_socketevent
 isc_socketmgr_create
 isc_socketmgr_create2
 isc_socketmgr_createinctx
 isc_socketmgr_destroy
+@END UNIXONLY
 @IF LIBXML2
 isc_socketmgr_renderxml
 @END LIBXML2
@@ -648,13 +658,14 @@ isc_symtab_destroy
 isc_symtab_lookup
 isc_symtab_undefine
 isc_syslog_facilityfromstring
+isc_task_exiting
+@IF UNIXONLY
 isc_task_attach
 isc_task_beginexclusive
 isc_task_create
 isc_task_destroy
 isc_task_detach
 isc_task_endexclusive
-isc_task_exiting
 isc_task_onshutdown
 isc_task_privilege
 isc_task_purge
@@ -673,6 +684,7 @@ isc_taskmgr_excltask
 isc_taskmgr_mode
 isc_taskmgr_setexcltask
 isc_taskmgr_setmode
+@END UNIXONLY
 @IF LIBXML2
 isc_taskmgr_renderxml
 @END LIBXML2
@@ -704,6 +716,7 @@ isc_time_seconds
 isc_time_set
 isc_time_settoepoch
 isc_time_subtract
+@IF UNIXONLY
 isc_timer_attach
 isc_timer_create
 isc_timer_detach
@@ -713,6 +726,7 @@ isc_timer_touch
 isc_timermgr_create
 isc_timermgr_createinctx
 isc_timermgr_destroy
+@END UNIXONLY
 isc_tm_timegm
 isc_tm_strptime
 isc_win32os_majorversion
