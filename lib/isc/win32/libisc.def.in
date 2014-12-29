@@ -578,6 +578,7 @@ isc_sockaddr_setport
 isc_sockaddr_totext
 isc_sockaddr_v6fromin
 @IF UNIXONLY
+isc_socket_accept
 isc_socket_attach
 isc_socket_bind
 isc_socket_cancel
