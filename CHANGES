@@ -1,3 +1,5 @@
+	--- 9.9.7b1 released ---
+
 4027.	[port]		Net::DNS 0.81 compatibility. [RT #38165]
 
 4026.	[bug]		Fix RFC 3658 reference in dig +sigchase. [RT #38173]
@@ -18,8 +20,6 @@
 4023.	[bug]		win32: socket handling with explict ports and
 			invoking named with -4 was broken for some
 			configurations. [RT #38068]
-
-	--- 9.9.7b1 released ---
 
 4021.	[bug]		Adjust max-recursion-queries to accommodate
 			the need for more queries when the cache is
