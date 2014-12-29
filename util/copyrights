@@ -2069,7 +2069,7 @@
 ./contrib/dlz/drivers/rules.in			X	2005,2010
 ./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010,2011,2012
 ./contrib/dlz/example/Makefile			X	2010,2013
-./contrib/dlz/example/README			X	2011,2013
+./contrib/dlz/example/README			X	2011,2013,2014
 ./contrib/dlz/example/dlz_example.c		X	2010,2011,2012,2013,2014
 ./contrib/dlz/example/named.conf		X	2011
 ./contrib/dlz/example/win32/DLLMain.c		X	2011
