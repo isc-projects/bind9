@@ -57,7 +57,6 @@ dns_adb_noedns
 dns_adb_plainresponse
 dns_adb_probesize
 dns_adb_probesize2
-dns_adb_probesize512
 dns_adb_setadbsize
 dns_adb_setudpsize
 dns_adb_setsit
