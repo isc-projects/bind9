@@ -24,6 +24,7 @@ CINCLUDES =	-I${srcdir}/include \
 		-I${srcdir}/../@ISC_THREAD_DIR@/include \
 		-I${export_srcdir}/isc/include \
 		-I../include \
+		-I../../../isc/include \
 		-I${srcdir}/../include \
 		-I${srcdir}/..
 
