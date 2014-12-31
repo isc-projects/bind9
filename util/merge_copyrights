@@ -32,7 +32,7 @@ while (<COPYRIGHTS>) {
 }
 close(COPYRIGHTS);
 
-my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time());
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime(time());
 $sec = $min = $hour = $mday = $mon = $wday = $yday = $isdst = 0;
 $year += 1900;
 
