@@ -2833,6 +2833,11 @@
 ./doc/doxygen/isc-footer.html			HTML	2006,2007
 ./doc/doxygen/isc-header.html			HTML	2006,2007
 ./doc/doxygen/mainpage				X	2006
+./doc/markdown/.gitignore			X	2014
+./doc/markdown/Makefile				MAKE	2014
+./doc/markdown/dev.mkd				MKD	2014
+./doc/markdown/howto.mkd			MKD	2014
+./doc/markdown/style.mkd			MKD	2014
 ./doc/misc/Makefile.in				MAKE	2001,2004,2007,2009,2012
 ./doc/misc/SIT					TXT.BRIEF	2014
 ./doc/misc/dnssec				TXT.BRIEF	2000,2001,2002,2004
