@@ -178,6 +178,7 @@ foreach $file (keys %file_types) {
         $shell_comment = 0;
         $m4_comment = 0;
         $sgml_comment = 0;
+        $mkd_comment = 0;
         $zone_comment = 0;
         $man_comment = 0;
         $python_comment = 0;
@@ -212,10 +213,10 @@ foreach $file (keys %file_types) {
                 $prefix = " - ";
                 $end_comment = "-->\n";
         } elsif ($type eq "MKD") {
-                $sgml_comment = 1;
+                $mkd_comment = 1;
                 $start_comment = "<!---\n";
                 $prefix = " - ";
-                $end_comment = "--->\n";
+                $end_comment = "--->";
         } elsif ($type eq "TXT") {
                 $prefix = "";
         } else {
@@ -340,6 +341,29 @@ foreach $file (keys %file_types) {
                         }
                         while (defined($_)) {
                                 last if s/.*-->//;
+                                $_ = <SOURCE>;
+                        }
+                        print "$file: unterminated comment\n"
+                          unless defined($_);
+                        if ($_ ne "\n") {
+                                $first = $_;
+                        } else {
+                                $first = <SOURCE>;
+                        }
+                } else {
+                        $first = $_;
+                }
+        } elsif ($mkd_comment) {
+		$before_copyright = "";
+                if (/^<!/) {
+                        $_ = <SOURCE> if $_ eq "<!---\n";
+                        if ($_ !~ /[Cc]opyright/) {
+                                print "$file: non-copyright comment\n";
+                                close(SOURCE);
+                                next;
+                        }
+                        while (defined($_)) {
+                                last if s/.*--->//;
                                 $_ = <SOURCE>;
                         }
                         print "$file: unterminated comment\n"
