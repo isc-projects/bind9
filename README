@@ -51,7 +51,7 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
-BIND 9.10.1
+BIND 9.10.2
 
 	BIND 9.10.2 is a maintenance release and addresses bugs
 	found in BIND 9.10.1 and earlier, as well as the security
