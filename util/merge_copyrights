@@ -51,13 +51,13 @@ while (<CHANGES>) {
     next unless ($exists{$_});
 
     next if (m%/\.\# |		# CVS old conflict file
-               /CVS/ |		# CVS directory
-               /.git/ |		# git directory
-               util/newcopyrights | # our output
-               \.bak$ |		# created by update_copyrights
-               /(dnssafe|openssl)/.*\.[ch]$ |	# imported
-               doc/(draft|expired|rfc)/		# imported
-             %x);
+	       /CVS/ |		# CVS directory
+	       /.git/ |		# git directory
+	       util/newcopyrights | # our output
+	       \.bak$ |		# created by update_copyrights
+	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
+	       doc/(draft|expired|rfc)/		# imported
+	     %x);
 
     if (!$file_types{$_}) {
 	# Strip any .in extension to find out the file's real type.
@@ -74,23 +74,23 @@ while (<CHANGES>) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.(c|h|css)$/) {
 	    $file_types{$_} = "C";
-        } elsif ($base =~ /\.y$/) {
+	} elsif ($base =~ /\.y$/) {
 	    $file_types{$_} = "YACC";
-        } elsif ($base =~ /\.pl$/i) {
+	} elsif ($base =~ /\.pl$/i) {
 	    $file_types{$_} = "PERL";
-        } elsif ($base =~ /\.py$/i) {
+	} elsif ($base =~ /\.py$/i) {
 	    $file_types{$_} = "PYTHON";
-        } elsif ($base =~ /\.sh$/) {
+	} elsif ($base =~ /\.sh$/) {
 	    $file_types{$_} = "SH";
-        } elsif ($base =~ /\.docbook$/ ||
+	} elsif ($base =~ /\.docbook$/ ||
 		 $base =~ /.xsl$/ ||
 		 $base =~ /.xml$/) {
 	    $file_types{$_} = "SGML";
-        } elsif ($base =~ /doc\/arm\/.*\.html$/) {
+	} elsif ($base =~ /doc\/arm\/.*\.html$/) {
 	    $file_types{$_} = "X";
-        } elsif ($base =~ /\.html$/) {
+	} elsif ($base =~ /\.html$/) {
 	    $file_types{$_} = "HTML";
-        } elsif ($base =~ /\.(man|[0-9])$/) {
+	} elsif ($base =~ /\.(man|[0-9])$/) {
 	    $file_types{$_} = "MAN";
 	} elsif ($base =~ /\/Makefile$/) {
 	    $file_types{$_} = "MAKE";
@@ -102,6 +102,8 @@ while (<CHANGES>) {
 	    $file_types{$_} = "CONF-SH";
 	} elsif ($base =~ /\.(db|hint)$/) {
 	    $file_types{$_} = "ZONE";
+	} elsif ($base =~ /\.mkd$/) {
+	    $file_types{$_} = "MKD";
 	} elsif ($base =~ /(\/\.gitignore|Atffile|\.(gif|jpg))$/i) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.(def|dep|dsp|dsw|mak|sln)$/i) {
@@ -135,11 +137,11 @@ while (<CHANGES>) {
 	    $file_years{$_} = "$year";
 	}
     } else {
-        if (! defined($file_years{$_}) || $file_years{$_} eq "????") {
-            print "$_: must set copyright year(s) manually\n";
+	if (! defined($file_years{$_}) || $file_years{$_} eq "????") {
+	    print "$_: must set copyright year(s) manually\n";
 	    $file_years{$_} = "????";
-            next;
-        }
+	    next;
+	}
 
 	# track the modification years even if we are not going to be
 	# updating the copyrights.
@@ -182,7 +184,7 @@ foreach my $file (sort(keys(%file_types))) {
     printf NEWCOPYRIGHTS "%s\t%s\n", $file_types{$file}, $file_years{$file};
 
     if (($file_years{$file} eq "????") || ($file_types{$file} eq "?")) {
-        print "Unknown file type or year: $file\n";
+	print "Unknown file type or year: $file\n";
     }
 }
 close(NEWCOPYRIGHTS);
