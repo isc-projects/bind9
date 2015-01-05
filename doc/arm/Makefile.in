@@ -47,11 +47,11 @@ docclean manclean maintainer-clean distclean::
 
 notes.html: notes-wrapper.xml notes.xml releaseinfo.xml pkgversion.xml noteversion.xml
 	expand notes-wrapper.xml | \
-	${XSLTPROC} -o notes.html ../xsl/isc-docbook-html.xsl -
+	${XSLTPROC} --stringparam generate.toc "book toc" -o notes.html ../xsl/isc-docbook-html.xsl -
 
 notes.tex: notes-wrapper.xml notes.xml releaseinfo.xml pkgversion.xml noteversion.xml
 	expand notes-wrapper.xml | \
-	${XSLTPROC} ${top_srcdir}/doc/xsl/pre-latex.xsl - | \
+	${XSLTPROC} --stringparam generate.toc "book toc" ${top_srcdir}/doc/xsl/pre-latex.xsl - | \
 	${XSLTPROC} ${top_srcdir}/doc/xsl/isc-notes-latex.xsl - | \
 	@PERL@ latex-fixup.pl >$@.tmp 
 	if test -s $@.tmp; then mv $@.tmp $@; else rm -f $@.tmp; exit 1; fi
