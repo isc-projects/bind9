@@ -1,3 +1,7 @@
+4028.	[bug]		$GENERATE with a zero step was not being caught as a
+			error.  A $GENERATE with a / but no step was not being
+			caught as a error. [RT #38262]
+
 	--- 9.10.2b1 released ---
 
 4027.	[port]		Net::DNS 0.81 compatibility. [RT #38165]
