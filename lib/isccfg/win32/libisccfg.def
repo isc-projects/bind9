@@ -83,6 +83,8 @@ cfg_parser_attach
 cfg_parser_create
 cfg_parser_destroy
 cfg_parser_error
+cfg_parser_mapadd
+cfg_parser_reset
 cfg_parser_setcallback
 cfg_parser_warning
 cfg_peektoken
