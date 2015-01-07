@@ -67,6 +67,7 @@ EXTERN unsigned int		ns_g_cpus_detected	INIT(1);
 EXTERN isc_timermgr_t *		ns_g_timermgr		INIT(NULL);
 EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
 EXTERN cfg_parser_t *		ns_g_parser		INIT(NULL);
+EXTERN cfg_parser_t *		ns_g_addparser		INIT(NULL);
 EXTERN const char *		ns_g_version		INIT(VERSION);
 EXTERN const char *		ns_g_product		INIT(PRODUCT);
 EXTERN const char *		ns_g_description	INIT(DESCRIPTION);

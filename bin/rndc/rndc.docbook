@@ -730,9 +730,6 @@
         <listitem>
           <para>
             Delete a zone while the server is running.
-            Only zones that were originally added via
-            <command>rndc addzone</command> can be deleted
-            in this manner. 
           </para>
           <para>
             If the <option>-clean</option> is specified,
@@ -743,6 +740,25 @@
             type "slave" or "stub", the files needing to
             be cleaned up will be reported in the output
             of the <command>rndc delzone</command> command.)
+          </para>
+	  <para>
+            If the zone was originally added via
+	    <command>rndc addzone</command>, then it will be
+	    removed permanently. However, if it was originally
+	    configured in <filename>named.conf</filename>, then
+	    that original configuration is still in place; when
+	    the server is restarted or reconfigured, the zone will
+	    come back. To remove it permanently, it must also be
+	    removed from <filename>named.conf</filename>
+	  </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><userinput>showzone <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional> </userinput></term>
+        <listitem>
+          <para>
+            Print the configuration of a running zone.
           </para>
         </listitem>
       </varlistentry>

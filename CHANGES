@@ -1,3 +1,12 @@
+4030.	[func]		"rndc delzone" is now applicable to zones that were
+			configured in named.conf, as well as zones that
+			were added via "rndc addzone". (Note, however, that
+			if named.conf is not also modified, the deleted zone
+			will return when named is reloaded.) [RT #37887]
+
+4029.	[func]		"rndc showzone" displays the current configuration
+			of a specified zone. [RT #37887]
+
 4028.	[bug]		$GENERATE with a zero step was not being caught as a
 			error.  A $GENERATE with a / but no step was not being
 			caught as a error. [RT #38262]

@@ -5894,8 +5894,7 @@ options {
 	      <listitem>
 		<para>
 		  If <userinput>yes</userinput>, then zones can be
-		  added at runtime via <command>rndc addzone</command>
-		  or deleted via <command>rndc delzone</command>.
+		  added at runtime via <command>rndc addzone</command>.
 		  The default is <userinput>no</userinput>.
 		</para>
 	      </listitem>

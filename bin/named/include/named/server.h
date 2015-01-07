@@ -373,13 +373,19 @@ ns_server_validation(ns_server_t *server, char *args, isc_buffer_t **text);
  * Add a zone to a running process
  */
 isc_result_t
-ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t **text);
+ns_server_addzone(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Deletes a zone from a running process
  */
 isc_result_t
-ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t **text);
+ns_server_delzone(ns_server_t *server, char *args, isc_buffer_t **text);
+
+/*%
+ * Show current configuration for a given zone
+ */
+isc_result_t
+ns_server_showzone(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Lists the status of the signing records for a given zone.

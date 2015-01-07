@@ -92,6 +92,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking rndc showzone with previously added zone ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone previous.example > rndc.out.ns2.$n
+expected='zone "previous.example" { type master; file "previous.db"; };'
+[ "`cat rndc.out.ns2.$n`" = "$expected" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:deleting previously added zone ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone previous.example 2>&1 | sed 's/^/I:ns2 /'
@@ -130,13 +139,20 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:attempt to delete a normally-loaded zone ($n)"
+echo "I:checking rndc showzone with a normally-loaded zone ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone normal.example > rndc.out.ns2.$n
+expected='zone "normal.example" { type master; file "normal.db"; };'
+[ "`cat rndc.out.ns2.$n`" = "$expected" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:delete a normally-loaded zone ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone normal.example 2> rndc.out.ns2.$n
-grep "permission denied" rndc.out.ns2.$n > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.2 a.normal.example a > dig.out.ns2.$n
-grep 'status: NOERROR' dig.out.ns2.$n > /dev/null || ret=1
-grep '^a.normal.example' dig.out.ns2.$n > /dev/null || ret=1
+grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -267,6 +283,14 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking rndc showzone with newly added zone ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone added.example in external > rndc.out.ns2.$n
+expected='zone "added.example" in external { type master; file "added.db"; };'
+[ "`cat rndc.out.ns2.$n`" = "$expected" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:deleting newly added zone ($n)"
 ret=0

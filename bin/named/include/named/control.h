@@ -63,6 +63,7 @@
 #define NS_COMMAND_SIGN 	"sign"
 #define NS_COMMAND_LOADKEYS 	"loadkeys"
 #define NS_COMMAND_ADDZONE	"addzone"
+#define NS_COMMAND_SHOWZONE	"showzone"
 #define NS_COMMAND_DELZONE	"delzone"
 #define NS_COMMAND_SYNC		"sync"
 #define NS_COMMAND_SIGNING	"signing"

@@ -39,7 +39,6 @@
 #include <isc/types.h>
 #include <isc/list.h>
 
-
 /***
  *** Types
  ***/
@@ -142,6 +141,26 @@ cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
  *\li      #ISC_R_NOMEMORY                - no memory available
  *\li      #ISC_R_INVALIDFILE             - file doesn't exist or is unreadable
  *\li      others	                      - file contains errors
+ */
+
+isc_result_t
+cfg_parser_mapadd(cfg_parser_t *pctx, cfg_obj_t *mapobj,
+		  cfg_obj_t *obj, const char *clause);
+/*%<
+ * Add the object 'obj' to the specified clause in mapbody 'mapobj'.
+ * Used for adding new zones.
+ *
+ * Require:
+ * \li     'obj' is a valid cfg_obj_t.
+ * \li     'mapobj' is a valid cfg_obj_t of type map.
+ * \li     'pctx' is a valid cfg_parser_t.
+ */
+
+void
+cfg_parser_reset(cfg_parser_t *pctx);
+/*%<
+ * Reset an existing parser so it can be re-used for a new file or
+ * buffer.
  */
 
 void
@@ -412,6 +431,7 @@ cfg_printx(const cfg_obj_t *obj, unsigned int flags,
 	   void *closure);
 
 #define CFG_PRINTER_XKEY        0x1     /* '?' out shared keys. */
+#define CFG_PRINTER_ONELINE     0x2     /* print config as a single line */
 
 /*%<
  * Print the configuration object 'obj' by repeatedly calling the
@@ -474,7 +494,6 @@ cfg_obj_line(const cfg_obj_t *obj);
 /*%<
  * Return the line in file where this object was defined.
  */
-
 
 ISC_LANG_ENDDECLS
 

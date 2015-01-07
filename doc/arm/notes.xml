@@ -251,6 +251,23 @@
 	  line option.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>rndc delzone</command> can now be applied to zones
+	  which were configured in <filename>named.conf</filename>;
+	  it is no longer restricted to zones which were added by
+	  <command>rndc addzone</command>.  (Note, however, that
+	  this does not edit <filename>named.conf</filename>; the zone
+	  must be removed from the configuration or it will return
+	  when <command>named</command> is restarted or reloaded.)
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>rndc showzone</command> displays the current
+	  configuration for a specified zone.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_changes">

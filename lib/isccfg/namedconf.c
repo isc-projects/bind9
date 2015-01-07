@@ -304,9 +304,9 @@ parse_matchname(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 
 static void
 doc_matchname(cfg_printer_t *pctx, const cfg_type_t *type) {
-	cfg_print_chars(pctx, "[ ", 2);
+	cfg_print_cstr(pctx, "[ ");
 	cfg_doc_obj(pctx, type->of);
-	cfg_print_chars(pctx, " ]", 2);
+	cfg_print_cstr(pctx, " ]");
 }
 
 static const char *matchtype_enums[] = {
@@ -739,11 +739,11 @@ parse_boolorauto(cfg_parser_t *pctx, const cfg_type_t *type,
 static void
 print_boolorauto(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	if (obj->type->rep == &cfg_rep_void)
-		cfg_print_chars(pctx, "auto", 4);
+		cfg_print_cstr(pctx, "auto");
 	else if (obj->value.boolean)
-		cfg_print_chars(pctx, "yes", 3);
+		cfg_print_cstr(pctx, "yes");
 	else
-		cfg_print_chars(pctx, "no", 2);
+		cfg_print_cstr(pctx, "no");
 }
 
 static void
@@ -1117,18 +1117,18 @@ doc_rpz_policy(cfg_printer_t *pctx, const cfg_type_t *type) {
 	/*
 	 * This is cfg_doc_enum() without the trailing " )".
 	 */
-	cfg_print_chars(pctx, "( ", 2);
+	cfg_print_cstr(pctx, "( ");
 	for (p = type->of; *p != NULL; p++) {
 		cfg_print_cstr(pctx, *p);
 		if (p[1] != NULL)
-			cfg_print_chars(pctx, " | ", 3);
+			cfg_print_cstr(pctx, " | ");
 	}
 }
 
 static void
 doc_rpz_cname(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_doc_terminal(pctx, type);
-	cfg_print_chars(pctx, " )", 2);
+	cfg_print_cstr(pctx, " )");
 }
 
 /*
@@ -1232,9 +1232,9 @@ cfg_print_kv_tuple(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 		if (fieldobj->type->print == cfg_print_void)
 			continue;
 		if (i != 0) {
-			cfg_print_chars(pctx, " ", 1);
+			cfg_print_cstr(pctx, " ");
 			cfg_print_cstr(pctx, f->name);
-			cfg_print_chars(pctx, " ", 1);
+			cfg_print_cstr(pctx, " ");
 		}
 		cfg_print_obj(pctx, fieldobj);
 	}
@@ -1247,14 +1247,14 @@ cfg_doc_kv_tuple(cfg_printer_t *pctx, const cfg_type_t *type) {
 	fields = type->of;
 	for (f = fields; f->name != NULL; f++) {
 		if (f != fields) {
-			cfg_print_chars(pctx, " [ ", 3);
+			cfg_print_cstr(pctx, " [ ");
 			cfg_print_cstr(pctx, f->name);
 			if (f->type->doc != cfg_doc_void)
-				cfg_print_chars(pctx, " ", 1);
+				cfg_print_cstr(pctx, " ");
 		}
 		cfg_doc_obj(pctx, f->type);
 		if (f != fields)
-			cfg_print_chars(pctx, " ]", 2);
+			cfg_print_cstr(pctx, " ]");
 	}
 }
 
@@ -1931,11 +1931,11 @@ static cfg_tuplefielddef_t addzone_fields[] = {
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_addzone = {
-	"addzone", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, addzone_fields };
+	"zone", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, addzone_fields };
 
 static cfg_clausedef_t
 addzoneconf_clauses[] = {
-	{ "addzone", &cfg_type_addzone, 0 },
+	{ "zone", &cfg_type_addzone, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 
@@ -2119,7 +2119,7 @@ static void
 print_keyvalue(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	const keyword_type_t *kw = obj->type->of;
 	cfg_print_cstr(pctx, kw->name);
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	kw->type->print(pctx, obj);
 }
 
@@ -2127,18 +2127,18 @@ static void
 doc_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type) {
 	const keyword_type_t *kw = type->of;
 	cfg_print_cstr(pctx, kw->name);
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_doc_obj(pctx, kw->type);
 }
 
 static void
 doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type) {
 	const keyword_type_t *kw = type->of;
-	cfg_print_chars(pctx, "[ ", 2);
+	cfg_print_cstr(pctx, "[ ");
 	cfg_print_cstr(pctx, kw->name);
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_doc_obj(pctx, kw->type);
-	cfg_print_chars(pctx, " ]", 2);
+	cfg_print_cstr(pctx, " ]");
 }
 
 static const char *dialup_enums[] = {
@@ -2283,9 +2283,9 @@ doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, "[ db ");
 	cfg_doc_enum(pctx, &cfg_type_geoipdb);
 	cfg_print_cstr(pctx, " ]");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_doc_enum(pctx, &cfg_type_geoiptype);
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "<quoted_string>");
 }
 #endif /* HAVE_GEOIP */
@@ -2399,11 +2399,11 @@ static cfg_type_t cfg_type_controls = {
 static void
 doc_optional_bracketed_list(cfg_printer_t *pctx, const cfg_type_t *type) {
 	const keyword_type_t *kw = type->of;
-	cfg_print_chars(pctx, "[ ", 2);
+	cfg_print_cstr(pctx, "[ ");
 	cfg_print_cstr(pctx, kw->name);
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_doc_obj(pctx, kw->type);
-	cfg_print_chars(pctx, " ]", 2);
+	cfg_print_cstr(pctx, " ]");
 }
 
 static cfg_type_t cfg_type_optional_allow = {
@@ -2646,7 +2646,7 @@ static cfg_tuplefielddef_t negated_fields[] = {
 
 static void
 print_negated(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	cfg_print_chars(pctx, "!", 1);
+	cfg_print_cstr(pctx, "!");
 	cfg_print_tuple(pctx, obj);
 }
 
@@ -2881,9 +2881,9 @@ static void
 doc_logfile(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
 	cfg_print_cstr(pctx, "<quoted_string>");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ versions ( \"unlimited\" | <integer> ) ]");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ size <size> ]");
 }
 
@@ -3049,25 +3049,25 @@ static cfg_type_t cfg_type_nameport = {
 static void
 doc_sockaddrnameport(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
-	cfg_print_chars(pctx, "( ", 2);
+	cfg_print_cstr(pctx, "( ");
 	cfg_print_cstr(pctx, "<quoted_string>");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ port <integer> ]");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ dscp <integer> ]");
-	cfg_print_chars(pctx, " | ", 3);
+	cfg_print_cstr(pctx, " | ");
 	cfg_print_cstr(pctx, "<ipv4_address>");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ port <integer> ]");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ dscp <integer> ]");
-	cfg_print_chars(pctx, " | ", 3);
+	cfg_print_cstr(pctx, " | ");
 	cfg_print_cstr(pctx, "<ipv6_address>");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ port <integer> ]");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ dscp <integer> ]");
-	cfg_print_chars(pctx, " )", 2);
+	cfg_print_cstr(pctx, " )");
 }
 
 static isc_result_t
@@ -3141,17 +3141,17 @@ static cfg_type_t cfg_type_nameportiplist = {
 static void
 doc_masterselement(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
-	cfg_print_chars(pctx, "( ", 2);
+	cfg_print_cstr(pctx, "( ");
 	cfg_print_cstr(pctx, "<masters>");
-	cfg_print_chars(pctx, " | ", 3);
+	cfg_print_cstr(pctx, " | ");
 	cfg_print_cstr(pctx, "<ipv4_address>");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ port <integer> ]");
-	cfg_print_chars(pctx, " | ", 3);
+	cfg_print_cstr(pctx, " | ");
 	cfg_print_cstr(pctx, "<ipv6_address>");
-	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ port <integer> ]");
-	cfg_print_chars(pctx, " )", 2);
+	cfg_print_cstr(pctx, " )");
 }
 
 static isc_result_t
