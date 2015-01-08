@@ -17,12 +17,10 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<book xmlns:xi="http://www.w3.org/2001/XInclude">
-<preface>
-  <title>&#x00a0;</title>
+<article xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title/>
   <xi:include href="notes.xml"/>
-</preface>
-</book>
+</article>
 
 <!--
   - Local variables:

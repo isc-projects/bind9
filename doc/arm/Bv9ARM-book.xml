@@ -15587,14 +15587,15 @@ zone "example.com" {
 	</para>
       </sect1>
     </chapter>
-    <appendix id="Bv9ARM.ch09">
-      <title>Appendices</title>
-      <xi:include href="notes.xml"/>
-      <sect1>
-	<title>Acknowledgments</title>
-	<sect2 id="historical_dns_information">
-	  <title>A Brief History of the <acronym>DNS</acronym> and <acronym>BIND</acronym></title>
 
+    <appendix id="Bv9ARM.ch09">
+      <title>Release Notes</title>
+      <xi:include href="notes.xml"/>
+    </appendix>
+
+    <appendix id="Bv9ARM.ch10">
+      <title>A Brief History of the <acronym>DNS</acronym> and <acronym>BIND</acronym></title>
+      <sect1 id="historical_dns_information">
 	  <para>
 	    Although the "official" beginning of the Domain Name
 	    System occurred in 1984 with the publication of RFC 920, the
@@ -15690,11 +15691,12 @@ zone "example.com" {
 	    of several corporations, and by the tireless work efforts of
 	    numerous individuals.
 	  </para>
-	</sect2>
       </sect1>
-      <sect1>
-	<title>General <acronym>DNS</acronym> Reference Information</title>
-	<sect2 id="ipv6addresses">
+    </appendix>
+
+    <appendix id="Bv9ARM.ch11">
+      <title>General <acronym>DNS</acronym> Reference Information</title>
+      <sect1 id="ipv6addresses">
 	  <title>IPv6 addresses (AAAA)</title>
 	  <para>
 	    IPv6 addresses are 128-bit identifiers for interfaces and
@@ -15750,7 +15752,6 @@ zone "example.com" {
 	    string
 	    of zeros that can fit, and can be used only once in an address.
 	  </para>
-	</sect2>
       </sect1>
       <sect1 id="bibliography">
 	<title>Bibliography (and Suggested Reading)</title>
@@ -17003,13 +17004,14 @@ zone "example.com" {
 	  </bibliography>
 	</sect2>
       </sect1>
-
-      <xi:include href="libdns.xml"/>
-
     </appendix>
 
+    <appendix id="Bv9ARM.ch12">
+      <title>BIND 9 DNS Library Support</title>
+      <xi:include href="libdns.xml"/>
+    </appendix>
 
-    <reference id="Bv9ARM.ch10">
+    <reference id="Bv9ARM.ch13">
       <title>Manual pages</title>
       <xi:include href="../../bin/dig/dig.docbook"/>
       <xi:include href="../../bin/dig/host.docbook"/>
