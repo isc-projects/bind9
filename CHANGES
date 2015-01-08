@@ -1,3 +1,6 @@
+4031.	[bug]		named-checkconf -z failed to report a missing file
+			with a hint zone. [RT #38294]
+
 4028.	[bug]		$GENERATE with a zero step was not being caught as a
 			error.  A $GENERATE with a / but no step was not being
 			caught as a error. [RT #38262]
