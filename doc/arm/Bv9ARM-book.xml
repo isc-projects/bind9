@@ -2,7 +2,7 @@
 	      "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
- - Copyright (C) 2004-2014  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2015  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and/or distribute this software for any
@@ -34,6 +34,7 @@
       <year>2012</year>
       <year>2013</year>
       <year>2014</year>
+      <year>2015</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <copyright>
@@ -3703,6 +3704,19 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 };
 </programlisting>
 
+        <para>
+	  If <command>named</command> is started with the
+	  <option>-L</option> option, it logs to the specified file
+	  at startup, instead of using syslog. In this case the logging
+	  configuration will be:
+	</para>
+
+<programlisting>logging {
+     category default { default_logfile; default_debug; };
+     category unmatched { null; };
+};
+</programlisting>
+
 	<para>
 	  In <acronym>BIND</acronym> 9, the logging configuration
 	  is only established when
@@ -3711,7 +3725,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	  statement
 	  was parsed. When the server is starting up, all logging messages
 	  regarding syntax errors in the configuration file go to the default
-	  channels, or to standard error if the "<option>-g</option>" option
+	  channels, or to standard error if the <option>-g</option> option
 	  was specified.
 	</para>
 
@@ -3920,6 +3934,9 @@ notrace</command>. All debugging messages in the server have a debug
 	  <para>
 	    There are four predefined channels that are used for
 	    <command>named</command>'s default logging as follows.
+	    If <command>named</command> is started with the
+	    <option>-L</option> then a
+	    fifth channel <command>default_logfile</command> is added.
 	    How they are
 	    used is described in <xref linkend="the_category_phrase"/>.
 	  </para>
@@ -3933,7 +3950,7 @@ notrace</command>. All debugging messages in the server have a debug
 channel default_debug {
     // write to named.run in the working directory
     // Note: stderr is used instead of "named.run" if
-    // the server is started with the '-f' option.
+    // the server is started with the '-g' option.
     file "named.run";
     // log at the server's current debug level
     severity dynamic;
@@ -3950,6 +3967,15 @@ channel null {
    // toss anything sent to this channel
    null;
 };
+
+channel default_logfile {
+    // this channel is only present if named is
+    // started with the -L option, whose argument
+    // provides the file name
+    file "...";
+    // log at the server's current debug level
+    severity dynamic;
+};
 </programlisting>
 
 	  <para>
@@ -3962,14 +3988,15 @@ channel null {
 	  </para>
 
 	  <para>
-	    For security reasons, when the "<option>-u</option>"
+	    For security reasons, when the <option>-u</option>
 	    command line option is used, the <filename>named.run</filename> file
 	    is created only after <command>named</command> has
 	    changed to the
 	    new UID, and any debug output generated while <command>named</command> is
 	    starting up and still running as root is discarded.  If you need
-	    to capture this output, you must run the server with the "<option>-g</option>"
-	    option and redirect standard error to a file.
+	    to capture this output, you must run the server with the <option>-L</option>
+	    option to specify a default logfile, or the <option>-g</option>
+	    option to log to standard error which you can redirect to a file.
 	  </para>
 
 	  <para>
@@ -3994,6 +4021,14 @@ channel null {
 	  </para>
 
 <programlisting>category default { default_syslog; default_debug; };
+</programlisting>
+
+          <para>
+	    If you start <command>named</command> with the
+	    <option>-L</option> option then the default category is:
+	  </para>
+
+<programlisting>category default { default_logfile; default_debug; };
 </programlisting>
 
 	  <para>
@@ -16390,7 +16425,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	  On UNIX servers, it is possible to run <acronym>BIND</acronym>
 	  in a <emphasis>chrooted</emphasis> environment (using
 	  the <command>chroot()</command> function) by specifying
-	  the "<option>-t</option>" option for <command>named</command>.
+	  the <option>-t</option> option for <command>named</command>.
 	  This can help improve system security by placing
 	  <acronym>BIND</acronym> in a "sandbox", which will limit
 	  the damage done if a server is compromised.

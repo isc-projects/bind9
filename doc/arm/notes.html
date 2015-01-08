@@ -238,6 +238,19 @@
 	  file specified via the <span><strong class="command">named -X</strong></span> command
 	  line option.
 	</p></li>
+<li><p>
+	  <span><strong class="command">rndc delzone</strong></span> can now be applied to zones
+	  which were configured in <code class="filename">named.conf</code>;
+	  it is no longer restricted to zones which were added by
+	  <span><strong class="command">rndc addzone</strong></span>.  (Note, however, that
+	  this does not edit <code class="filename">named.conf</code>; the zone
+	  must be removed from the configuration or it will return
+	  when <span><strong class="command">named</strong></span> is restarted or reloaded.)
+	</p></li>
+<li><p>
+	  <span><strong class="command">rndc showzone</strong></span> displays the current
+	  configuration for a specified zone.
+	</p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
