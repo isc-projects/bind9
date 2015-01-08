@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004, 2005, 2007, 2013, 2014 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004, 2005, 2007, 2013-2015 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000, 2001 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
@@ -418,9 +418,7 @@ $\fBrndc addzone example.com '{ type master; file "example.com.db"; };'\fR
 .PP
 \fBdelzone \fR\fB[\-clean]\fR\fB \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR
 .RS 4
-Delete a zone while the server is running. Only zones that were originally added via
-\fBrndc addzone\fR
-can be deleted in this manner.
+Delete a zone while the server is running.
 .sp
 If the
 \fB\-clean\fR
@@ -429,6 +427,16 @@ is specified, the zone's master file (and journal file, if any) will be deleted 
 option, zone files must be cleaned up by hand. (If the zone is of type "slave" or "stub", the files needing to be cleaned up will be reported in the output of the
 \fBrndc delzone\fR
 command.)
+.sp
+If the zone was originally added via
+\fBrndc addzone\fR, then it will be removed permanently. However, if it was originally configured in
+\fInamed.conf\fR, then that original configuration is still in place; when the server is restarted or reconfigured, the zone will come back. To remove it permanently, it must also be removed from
+\fInamed.conf\fR
+.RE
+.PP
+\fBshowzone \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR
+.RS 4
+Print the configuration of a running zone.
 .RE
 .PP
 \fBsigning \fR\fB[( \-list | \-clear \fIkeyid/algorithm\fR | \-clear all | \-nsec3param ( \fIparameters\fR | none ) | \-serial \fIvalue\fR ) ]\fR\fB \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR
@@ -492,7 +500,7 @@ BIND 9 Administrator Reference Manual.
 .PP
 Internet Systems Consortium
 .SH "COPYRIGHT"
-Copyright \(co 2004, 2005, 2007, 2013, 2014 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004, 2005, 2007, 2013\-2015 Internet Systems Consortium, Inc. ("ISC")
 .br
 Copyright \(co 2000, 2001 Internet Software Consortium.
 .br
