@@ -62,6 +62,9 @@
   <xsl:param name="latex.maketitle"/>
   <xsl:param name="latex.use.fancyhdr"/>
 
+  <!-- Single column -->
+  <xsl:param name="latex.documentclass.article">a4paper,10pt,twoside,openright</xsl:param>
+
   <!--
     - Add support for multiple <para/> elements in a table entry.
     - db2latex is already typesetting the table entry as a parbox,
