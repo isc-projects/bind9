@@ -3863,16 +3863,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		if (dns_name_equal(origin, dns_rootname)) {
 			const char *hintsfile = cfg_obj_asstring(fileobj);
 
-			result = configure_hints(view, hintsfile);
-			if (result != ISC_R_SUCCESS) {
-				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-					      NS_LOGMODULE_SERVER,
-					      ISC_LOG_ERROR,
-					      "could not configure root hints "
-					      "from '%s': %s", hintsfile,
-					      isc_result_totext(result));
-				goto cleanup;
-			}
+			CHECK(configure_hints(view, hintsfile));
+
 			/*
 			 * Hint zones may also refer to delegation only points.
 			 */
