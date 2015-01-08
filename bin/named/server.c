@@ -9440,7 +9440,7 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 {
 	const cfg_obj_t *list = NULL;
 	const cfg_listelt_t *element;
-	const cfg_obj_t *result = ISC_R_SUCCESS;
+	const cfg_obj_t *result = NULL;
 
 	cfg_map_get(config, map_key_for_list, &list);
 	for (element = cfg_list_first(list);
