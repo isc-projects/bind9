@@ -5347,7 +5347,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 
 	/*
 	 * We attach the parser that was used for config as well
-	 * as the one that wil be used for added zones, to avoid
+	 * as the one that will be used for added zones, to avoid
 	 * a shutdown race later.
 	 */
 	cfg_parser_attach(conf_parser, &nzcfg->conf_parser);
