@@ -53,7 +53,8 @@ done
 
 echo "I: checking that named-checkconf -z catches missing hint file"
 ret=0
-$CHECKCONF -z hint-nofile.conf > /dev/null 2>&1 && ret=1
+$CHECKCONF -z hint-nofile.conf > hint-nofile.out 2>&1 && ret=1
+grep "could not configure root hints from 'nonexistent.db': file not found" hint-nofile.out > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

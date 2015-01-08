@@ -1,3 +1,6 @@
+4031.	[bug]		named-checkconf -z failed to report a missing file
+			with a hint zone. [RT #38294]
+
 4030.	[func]		"rndc delzone" is now applicable to zones that were
 			configured in named.conf, as well as zones that
 			were added via "rndc addzone". (Note, however, that
