@@ -221,9 +221,10 @@
 3974.	[bug]		Handle DH_compute_key() failure correctly in
 			openssldh_link.c. [RT #37477]
 
-3973.	[test]		Added hooks for Google Performance Tools
-			CPU profiler, including real-time/wall-clock
-			profiling. [RT #37339]
+3973.	[test]		Added hooks for Google Performance Tools CPU profiler,
+			including real-time/wall-clock profiling. Use
+			"configure --with-gperftools-profiler" to enable.
+			[RT #37339]
 
 3972.	[bug]		Fix host's usage statement. [RT #37397]
 
