@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.64 2009/11/04 05:58:46 marka Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -717,9 +715,6 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 				return (ISC_R_UNEXPECTED);
 			}
 #ifdef HAVE_GPERFTOOLS_PROFILER
-			/*
-			 * Don't want to get 99.99% real time is sigsuspend()!
-			 */
 			if (sigaddset(&sset, SIGALRM) != 0) {
 				isc__strerror(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
