@@ -54,6 +54,10 @@
 
 #include <dlz/dlz_dlopen_driver.h>
 
+#ifdef HAVE_GPERFTOOLS_PROFILER
+#include <gperftools/profiler.h>
+#endif
+
 
 /*
  * Defining NS_MAIN provides storage declarations (rather than extern)
@@ -1168,6 +1172,10 @@ main(int argc, char *argv[]) {
 	char *instance = NULL;
 #endif
 
+#ifdef HAVE_GPERFTOOLS_PROFILER
+	(void) ProfilerStart(NULL);
+#endif
+
 	/*
 	 * Record version in core image.
 	 * strings named.core | grep "named version:"
@@ -1286,6 +1294,10 @@ main(int argc, char *argv[]) {
 	ns_os_closedevnull();
 
 	ns_os_shutdown();
+
+#ifdef HAVE_GPERFTOOLS_PROFILER
+	ProfilerStop();
+#endif
 
 	return (0);
 }

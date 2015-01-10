@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.64 2009/11/04 05:58:46 marka Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -716,6 +714,15 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 						 strbuf);
 				return (ISC_R_UNEXPECTED);
 			}
+#ifdef HAVE_GPERFTOOLS_PROFILER
+			if (sigaddset(&sset, SIGALRM) != 0) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+						 "isc_app_run() sigsetops: %s",
+						 strbuf);
+				return (ISC_R_UNEXPECTED);
+			}
+#endif
 			result = sigsuspend(&sset);
 		} else {
 			/*
