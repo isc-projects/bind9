@@ -13,3 +13,4 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f ns1/named.conf
+rm -f dig.out.test*
