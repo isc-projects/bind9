@@ -444,6 +444,8 @@ req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
 	sendevent = isc_socket_socketevent(request->mctx, socket,
 					   ISC_SOCKEVENT_SENDDONE,
 					   req_senddone, request);
+	if (sendevent == NULL)
+		return (ISC_R_NOMEMORY);
 	if (request->dscp == -1) {
 		sendevent->attributes &= ~ISC_SOCKEVENTATTR_DSCP;
 		sendevent->dscp = 0;

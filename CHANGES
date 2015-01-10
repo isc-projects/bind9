@@ -1,3 +1,6 @@
+4033.	[bug]		Missing out of memory check in request.c:req_send.
+			[RT #38311]
+
 4032.	[bug]		Built-in "empty" zones did not correctly inherit the
 			"allow-transfer" ACL from the options or view.
 			[RT #38310]
