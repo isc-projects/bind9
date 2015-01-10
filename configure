@@ -980,6 +980,7 @@ with_libxml2
 enable_largefile
 with_purify
 with_libtool
+with_gperftools_profiler
 enable_backtrace
 enable_symtable
 enable_exportlib
@@ -1698,6 +1699,7 @@ Optional Packages:
   --with-libxml2=PATH     Build with libxml2 library yes|no|path
   --with-purify=PATH      use Rational purify
   --with-libtool          use GNU libtool
+  --with-gperftools-profiler  use gperftools CPU profiler
   --with-export-libdir=PATH
 			  installation directory for the export library
 			  [EPREFIX/lib/bind9]
@@ -16036,6 +16038,35 @@ case $use_libtool in
 		;;
 esac
 
+
+#
+# Google/Great Performance Tools CPU Profiler
+#
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use gperftools profiler" >&5
+$as_echo_n "checking whether to use gperftools profiler... " >&6; }
+
+# Check whether --with-gperftools-profiler was given.
+if test "${with_gperftools_profiler+set}" = set; then :
+  withval=$with_gperftools_profiler; use_profiler="$withval"
+else
+  use_profiler="no"
+fi
+
+
+case $use_profiler in
+	yes)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_GPERFTOOLS_PROFILER 1" >>confdefs.h
+
+		LIBS="$LIBS -lprofiler"
+		;;
+	*)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		;;
+esac
 
 #
 # enable/disable dumping stack backtrace.  Also check if the system supports
