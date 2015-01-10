@@ -459,6 +459,12 @@
 	  contacting authoritative servers for the first time.
         </para>
       </listitem>
+      <listitem>
+        <para>
+	  Built-in "empty" zones did not correctly inherit the
+	  "allow-transfer" ACL from the options or view. [RT #38310]
+        </para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">

@@ -14,3 +14,4 @@
 
 rm -f ns1/named.conf
 rm -f ns*/named.lock
+rm -f dig.out.test*
