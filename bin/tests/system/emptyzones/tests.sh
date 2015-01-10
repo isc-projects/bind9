@@ -32,4 +32,12 @@ $DIG +vc version.bind txt ch @10.53.0.1 -p 5300 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:check that allow-transfer { none; } works ($n)"
+ret=0
+$DIG axfr 10.in-addr.arpa @10.53.0.1 -p 5300 +all > dig.out.test$n || ret=1
+grep "status: REFUSED" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 exit $status
