@@ -576,6 +576,7 @@ dns_ntatable_create
 dns_ntatable_delete
 dns_ntatable_detach
 dns_ntatable_dump
+dns_ntatable_save
 dns_ntatable_totext
 dns_opcode_totext
 dns_opcodestats_create
@@ -1012,8 +1013,10 @@ dns_view_isdelegationonly
 dns_view_issecuredomain
 dns_view_load
 dns_view_loadnew
+dns_view_loadnta
 dns_view_ntacovers
 dns_view_restorekeyring
+dns_view_saventa
 dns_view_searchdlz
 dns_view_setadbstats
 dns_view_setcache
