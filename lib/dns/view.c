@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -2083,7 +2083,7 @@ dns_view_saventa(dns_view_t *view) {
 		result = ISC_R_SUCCESS;
 		goto cleanup;
 	} else
-	        CHECK(result);
+		CHECK(result);
 
 	result = dns_ntatable_save(ntatable, fp);
 	if (result == ISC_R_NOTFOUND) {
