@@ -1117,7 +1117,7 @@
 ./bin/tests/system/dns64/setup.sh		SH	2010,2012,2014
 ./bin/tests/system/dns64/tests.sh		SH	2010,2011,2012,2013,2014
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004,2011
-./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004,2007,2010,2012
 ./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001,2004,2006,2007
 ./bin/tests/system/dnssec/ns1/root.db.in	ZONE	2000,2001,2004,2007,2010,2013,2014
@@ -1195,10 +1195,11 @@
 ./bin/tests/system/dnssec/ns7/nosoa.secure.example.db	ZONE	2010
 ./bin/tests/system/dnssec/ns7/sign.sh		SH	2014
 ./bin/tests/system/dnssec/ns7/split-rrsig.db.in	ZONE	2014
+./bin/tests/system/dnssec/ntadiff.pl		PERL	2015
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006,2007,2009,2012,2014
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2009,2011,2012,2013,2014
 ./bin/tests/system/dnssec/signer/example.db.in	ZONE	2010
-./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/dscp/clean.sh		SH	2013,2014
 ./bin/tests/system/dscp/ns1/named.args		X	2013,2014
 ./bin/tests/system/dscp/ns1/named.conf		CONF-C	2013
@@ -2799,6 +2800,9 @@
 ./doc/arm/Bv9ARM.ch08.html			X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/Bv9ARM.ch10.html			X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./doc/arm/Bv9ARM.ch11.html			X	2015
+./doc/arm/Bv9ARM.ch12.html			X	2015
+./doc/arm/Bv9ARM.ch13.html			X	2015
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/Bv9ARM.pdf				X	2007,2008,2009,2010,2011,2012,2013,2014
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007,2009,2012,2014,2015
@@ -3028,7 +3032,7 @@
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2013
 ./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2011,2012
 ./lib/dns/include/dns/nsec3.h			C	2008,2009,2010,2011,2012,2013
-./lib/dns/include/dns/nta.h			C	2014
+./lib/dns/include/dns/nta.h			C	2014,2015
 ./lib/dns/include/dns/opcode.h			C	2002,2004,2005,2006,2007
 ./lib/dns/include/dns/order.h			C	2002,2004,2005,2006,2007
 ./lib/dns/include/dns/peer.h			C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2013,2014
@@ -3068,7 +3072,7 @@
 ./lib/dns/include/dns/update.h			C	2011
 ./lib/dns/include/dns/validator.h		C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013,2014
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006,2007,2012,2013
-./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2013
 ./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/include/dns/zonekey.h			C	2001,2004,2005,2006,2007
@@ -3094,7 +3098,7 @@
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2010,2011,2012,2013,2014
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/nsec3.c				C	2006,2008,2009,2010,2011,2012,2013,2014
-./lib/dns/nta.c					C	2014
+./lib/dns/nta.c					C	2014,2015
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014
 ./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
@@ -3349,7 +3353,7 @@
 ./lib/dns/update.c				C	2011,2012,2013,2014
 ./lib/dns/validator.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/version.c				C	1998,1999,2000,2001,2004,2005,2007,2012,2013
-./lib/dns/view.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./lib/dns/view.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/win32/DLLMain.c			C	2001,2004,2007
 ./lib/dns/win32/gen.dsp.in			X	2001,2013
 ./lib/dns/win32/gen.dsw				X	2001
@@ -3357,7 +3361,7 @@
 ./lib/dns/win32/gen.vcxproj.filters.in		X	2013
 ./lib/dns/win32/gen.vcxproj.in			X	2013
 ./lib/dns/win32/gen.vcxproj.user		X	2013
-./lib/dns/win32/libdns.def.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./lib/dns/win32/libdns.def.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/win32/libdns.dsp.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014
@@ -3678,7 +3682,7 @@
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004,2005,2007
 ./lib/isc/unix/strerror.c			C	2001,2004,2005,2007,2009
 ./lib/isc/unix/syslog.c				C	2001,2004,2005,2007
-./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2011,2012,2014
+./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2011,2012,2014,2015
 ./lib/isc/version.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/win32/DLLMain.c			C	2001,2004,2007
 ./lib/isc/win32/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009,2012,2014
@@ -3743,7 +3747,7 @@
 ./lib/isc/win32/syslog.c			C	2001,2002,2003,2004,2007,2014
 ./lib/isc/win32/syslog.h			C	2001,2002,2004,2007
 ./lib/isc/win32/thread.c			C	1998,1999,2000,2001,2004,2005,2007
-./lib/isc/win32/time.c				C	1998,1999,2000,2001,2003,2004,2006,2007,2008,2009,2012,2013,2014
+./lib/isc/win32/time.c				C	1998,1999,2000,2001,2003,2004,2006,2007,2008,2009,2012,2013,2014,2015
 ./lib/isc/win32/unistd.h			C	2000,2001,2004,2007,2008,2009
 ./lib/isc/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/isc/win32/win32os.c			C	2002,2004,2007,2013,2014
