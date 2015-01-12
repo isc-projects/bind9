@@ -273,6 +273,18 @@ ns_server_togglequerylog(ns_server_t *server, char *args);
  */
 
 /*%
+ * Save the current NTAs for all views to files.
+ */
+isc_result_t
+ns_server_saventa(ns_server_t *server);
+
+/*%
+ * Load NTAs for all views from files.
+ */
+isc_result_t
+ns_server_loadnta(ns_server_t *server);
+
+/*%
  * Dump the current statistics to the statistics file.
  */
 isc_result_t

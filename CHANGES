@@ -1,3 +1,8 @@
+4034.	[func]		When added, negative trust anchors (NTA) are now
+			saved to files (viewname.nta), in order to
+			persist across restarts of the named server.
+			[RT #37087]
+
 4033.	[bug]		Missing out of memory check in request.c:req_send.
 			[RT #38311]
 

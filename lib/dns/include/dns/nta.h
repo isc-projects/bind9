@@ -192,6 +192,12 @@ dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp);
 /*%<
  * Dump the NTA table to the file opened as 'fp'.
  */
+
+isc_result_t
+dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp);
+/*%<
+ * Save the NTA table to the file opened as 'fp', for later loading.
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_NTA_H */

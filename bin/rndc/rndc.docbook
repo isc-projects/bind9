@@ -606,7 +606,7 @@
           <para>
             Sets a DNSSEC negative trust anchor (NTA)
             for <option>domain</option>, with a lifetime of
-            <option>lifetime</option>.  The default lifetime is
+            <option>duration</option>.  The default lifetime is
             configured in <filename>named.conf</filename> via the
             <option>nta-lifetime</option> option, and defaults to
             one hour.  The lifetime cannot exceed one week.
@@ -620,8 +620,17 @@
             configured trust anchors), <command>named</command> will
             abort the DNSSEC validation process and treat the data as
             insecure rather than bogus.  This continues until the
-            NTA's lifetime is elapsed, or until the server is
-            restarted (NTAs do not persist across restarts).
+            NTA's lifetime is elapsed.
+          </para>
+          <para>
+            NTAs persist across restarts of the named server.
+            The NTAs for a view are saved in a file called
+            <filename><replaceable>name</replaceable>.nta</filename>,
+            where <replaceable>name</replaceable> is the
+            name of the view, or if it contains characters
+            that are incompatible with use as a file name, a
+            cryptographic hash generated from the name
+            of the view.
           </para>
           <para>
             An existing NTA can be removed by using the

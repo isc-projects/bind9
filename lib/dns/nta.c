@@ -38,11 +38,13 @@
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
+#include <dns/time.h>
 
 struct dns_nta {
 	unsigned int		magic;
 	isc_refcount_t		refcount;
 	dns_ntatable_t		*ntatable;
+	isc_boolean_t		forced;
 	isc_timer_t		*timer;
 	dns_fetch_t		*fetch;
 	dns_rdataset_t		rdataset;
@@ -360,6 +362,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, dns_name_t *name,
 		return (result);
 
 	nta->expiry = now + lifetime;
+	nta->forced = force;
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 
@@ -611,4 +614,72 @@ dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp) {
 	dns_rbtnodechain_invalidate(&chain);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 	return (result);
+}
+
+isc_result_t
+dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
+	isc_result_t result;
+	dns_rbtnode_t *node;
+	dns_rbtnodechain_t chain;
+	isc_stdtime_t now;
+	isc_boolean_t written = ISC_FALSE;
+
+	REQUIRE(VALID_NTATABLE(ntatable));
+
+	isc_stdtime_get(&now);
+
+	RWLOCK(&ntatable->rwlock, isc_rwlocktype_read);
+	dns_rbtnodechain_init(&chain, ntatable->view->mctx);
+	result = dns_rbtnodechain_first(&chain, ntatable->table, NULL, NULL);
+	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN)
+		goto cleanup;
+
+	for (;;) {
+		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
+		if (node->data != NULL) {
+			dns_nta_t *n = (dns_nta_t *) node->data;
+			if (now <= n->expiry) {
+				isc_buffer_t b;
+				char nbuf[DNS_NAME_FORMATSIZE + 1], tbuf[80];
+				dns_fixedname_t fn;
+				dns_name_t *name;
+
+				dns_fixedname_init(&fn);
+				name = dns_fixedname_name(&fn);
+				dns_rbt_fullnamefromnode(node, name);
+
+				isc_buffer_init(&b, nbuf, sizeof(nbuf) - 1);
+				result = dns_name_totext(name, ISC_FALSE, &b);
+				if (result != ISC_R_SUCCESS)
+					goto skip;
+
+				/* Zero terminate. */
+				isc_buffer_putuint8(&b, 0);
+
+				isc_buffer_init(&b, tbuf, sizeof(tbuf));
+				dns_time32_totext(n->expiry, &b);
+
+				fprintf(fp, "%s %s %s\n", nbuf,
+					n->forced ? "forced" : "regular",
+					tbuf);
+				written = ISC_TRUE;
+			}
+		}
+	skip:
+		result = dns_rbtnodechain_next(&chain, NULL, NULL);
+		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+			if (result == ISC_R_NOMORE)
+				result = ISC_R_SUCCESS;
+			break;
+		}
+	}
+
+   cleanup:
+	dns_rbtnodechain_invalidate(&chain);
+	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
+
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	else
+		return (written ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
 }

@@ -6620,6 +6620,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	isc_hash_init();
 
 	CHECKFATAL(load_zones(server, ISC_TRUE), "loading zones");
+
+	(void) ns_server_loadnta(server);
 }
 
 void
@@ -6659,6 +6661,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	cfg_obj_destroy(ns_g_parser, &ns_g_config);
 	cfg_parser_destroy(&ns_g_parser);
 	cfg_parser_destroy(&ns_g_addparser);
+
+	(void) ns_server_saventa(server);
 
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
@@ -10190,7 +10194,7 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t **text) {
 		    strcmp(view->name, viewname) != 0)
 			continue;
 
-		if (view->nta_lifetime == 0 || view->nta_recheck == 0)
+		if (view->nta_lifetime == 0)
 			continue;
 
 		if (!ttlset)
@@ -10207,7 +10211,7 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t **text) {
 
 		result = dns_view_flushnode(view, ntaname, ISC_TRUE);
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "flush tree '%s' in cache view '%s': %s",
 			      nametext, view->name,
 			      isc_result_totext(result));
@@ -10228,7 +10232,7 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t **text) {
 			CHECK(putstr(text, tbuf));
 
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 				      "added NTA '%s' (%d sec) in view '%s'",
 				      nametext, ntattl, view->name);
 		} else {
@@ -10240,12 +10244,22 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t **text) {
 			CHECK(putstr(text, view->name));
 
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 				      "removed NTA '%s' in view %s",
 				      nametext, view->name);
 		}
 
+		result = dns_view_saventa(view);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "error writing NTA file "
+				      "for view '%s': %s",
+				      view->name, isc_result_totext(result));
+		}
+
 		CHECK(putnull(text));
+
 	}
 
  cleanup:
@@ -10258,4 +10272,51 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t **text) {
 	if (ntatable != NULL)
 		dns_ntatable_detach(&ntatable);
 	return (result);
+}
+
+isc_result_t
+ns_server_saventa(ns_server_t *server) {
+	dns_view_t *view;
+
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		isc_result_t result = dns_view_saventa(view);
+
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "error writing NTA file "
+				      "for view '%s': %s",
+				      view->name, isc_result_totext(result));
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+ns_server_loadnta(ns_server_t *server) {
+	dns_view_t *view;
+
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		isc_result_t result = dns_view_loadnta(view);
+
+		if ((result != ISC_R_SUCCESS) &&
+		    (result != ISC_R_FILENOTFOUND) &&
+		    (result != ISC_R_NOTFOUND))
+		{
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "error loading NTA file "
+				      "for view '%s': %s",
+				      view->name, isc_result_totext(result));
+		}
+	}
+
+	return (ISC_R_SUCCESS);
 }

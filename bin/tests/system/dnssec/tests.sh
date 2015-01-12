@@ -1663,6 +1663,7 @@ grep "status: SERVFAIL" dig.out.ns4.test$n.1 > /dev/null || ret=1
 $DIG $DIGOPTS badds.example. soa @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null || ret=1
 $DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.3 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.3 > /dev/null && ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.3 > /dev/null || ret=1
 
 if [ $ret != 0 ]; then echo "I:failed - checking initial state"; fi
@@ -1693,9 +1694,12 @@ ret=0
 #
 $DIG $DIGOPTS a.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.4 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.4 > /dev/null && ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.4 > /dev/null && ret=1
 $DIG $DIGOPTS badds.example. soa @10.53.0.4 > dig.out.ns4.test$n.5 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.5 > /dev/null && ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.5 > /dev/null && ret=1
 $DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.6 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.6 > /dev/null && ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.6 > /dev/null && ret=1
 $DIG $DIGOPTS a.fakenode.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.7 || ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.7 > /dev/null && ret=1
@@ -1721,12 +1725,14 @@ echo "I: waiting for NTA rechecks/expirations"
 #
 $PERL -e 'my $delay =  '$start' + 8 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 $DIG $DIGOPTS b.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.8 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.8 > /dev/null && ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.8 > /dev/null || ret=1
 $DIG $DIGOPTS b.fakenode.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.9 || ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.9 > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n.9 > /dev/null || ret=1
 $DIG $DIGOPTS badds.example. soa @10.53.0.4 > dig.out.ns4.test$n.10 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.10 > /dev/null && ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.10 > /dev/null && ret=1
 
 if [ $ret != 0 ]; then echo "I:failed - checking that default nta's were lifted due to recheck"; fi
 status=`expr $status + $ret`
@@ -1738,11 +1744,17 @@ ret=0
 # lifetime of 10s, so it should revert to SERVFAIL now.
 #
 $PERL -e 'my $delay = '$start' + 11 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
+# check nta table
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n._11
+lines=`wc -l < rndc.out.ns4.test$n._11`
+[ "$lines" -eq 2 ] || ret=1
 $DIG $DIGOPTS b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.11 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.11 > /dev/null && ret=1
 $DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.12 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.12 > /dev/null || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.12 > /dev/null && ret=1
 $DIG $DIGOPTS c.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.13 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.13 > /dev/null && ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.13 > /dev/null || ret=1
 
 if [ $ret != 0 ]; then echo "I:failed - checking that default nta's were lifted due to lifetime"; fi
@@ -1755,6 +1767,7 @@ ret=0
 $PERL -e 'my $delay = '$start' + 21 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 # check correct behavior after bogus.example expiry
 $DIG $DIGOPTS d.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.14 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.14 > /dev/null && ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.14 > /dev/null || ret=1
 $DIG $DIGOPTS c.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.15 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.15 > /dev/null || ret=1
@@ -1763,8 +1776,9 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.3
 lines=`wc -l < rndc.out.ns4.test$n.3`
 [ "$lines" -eq 0 ] || ret=1
 n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed - that all nta's have been lifted"; fi
+if [ $ret != 0 ]; then echo "I:failed - checking that all nta's have been lifted"; fi
 status=`expr $status + $ret`
+ret=0
 
 n=`expr $n + 1`
 echo "I: testing NTA removals ($n)"
@@ -1772,6 +1786,7 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta badds.example 2>&1 | sed '
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.1
 grep "badds.example: expiry" rndc.out.ns4.test$n.1 > /dev/null || ret=1
 $DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.1 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.1 > /dev/null && ret=1
 grep "^a.badds.example." dig.out.ns4.test$n.1 > /dev/null || ret=1
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -remove badds.example > rndc.out.ns4.test$n.2
 grep "Negative trust anchor removed: badds.example/_default" rndc.out.ns4.test$n.2 > /dev/null || ret=1
@@ -1786,6 +1801,7 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -r foo > rndc.out.ns4.test
 grep "'nta' failed: not found" rndc.out.ns4.test$n.6 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+ret=0
 
 n=`expr $n + 1`
 echo "I: testing NTA with bogus lifetimes ($n)"
@@ -1800,7 +1816,248 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -l 7d1h foo > rndc.out.ns4
 grep "'nta' failed: out of range" rndc.out.ns4.test$n.3 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+ret=0
 
+#
+# check NTA persistence across restarts
+#
+n=`expr $n + 1`
+echo "I: testing NTA persistence across restarts ($n)"
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.1
+lines=`wc -l < rndc.out.ns4.test$n.1`
+[ "$lines" -eq 0 ] || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -f -l 30s bogus.example 2>&1 | sed 's/^/I:ns4 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -f -l 10s badds.example 2>&1 | sed 's/^/I:ns4 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.2
+lines=`wc -l < rndc.out.ns4.test$n.2`
+[ "$lines" -eq 2 ] || ret=1
+start=`$PERL -e 'print time()."\n";'`
+
+if [ $ret != 0 ]; then echo "I:failed - NTA persistence: adding NTA's failed"; fi
+status=`expr $status + $ret`
+ret=0
+
+echo "I:killing ns4 with SIGTERM"
+cd ns4
+kill -TERM `cat named.pid`
+rm named.pid
+cd ..
+
+#
+# ns4 has now shutdown. wait until t=14 when badds.example's NTA
+# (lifetime=10s) would have expired, and then restart ns4.
+#
+echo "I:waiting till 14s have passed since NTAs were added before restarting ns4"
+$PERL -e 'my $delay = '$start' + 14 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
+
+if
+        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns4
+then
+        echo "I:restarted server ns4"
+else
+        echo "I:could not restart server ns4"
+        exit 1
+fi
+
+echo "I:sleeping for an additional 4 seconds for ns4 to fully startup"
+sleep 4
+
+#
+# ns4 should be back up now. The NTA for bogus.example should still be
+# valid, whereas badds.example should not have been added during named
+# startup (as it had already expired).
+#
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.3
+lines=`wc -l < rndc.out.ns4.test$n.3`
+[ "$lines" -eq 1 ] || ret=1
+grep "bogus.example: expiry" rndc.out.ns4.test$n.3 > /dev/null || ret=1
+$DIG $DIGOPTS b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.4 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.4 > /dev/null && ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.4 > /dev/null && ret=1
+$DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.5 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.5 > /dev/null || ret=1
+
+# cleanup
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -remove bogus.example > rndc.out.ns4.test$n.6
+
+if [ $ret != 0 ]; then echo "I:failed - NTA persistence: restoring NTA failed"; fi
+status=`expr $status + $ret`
+ret=0
+
+#
+# check "regular" attribute in NTA file works as expected at named
+# startup.
+#
+n=`expr $n + 1`
+echo "I: testing loading regular attribute from NTA file ($n)"
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.1 2>/dev/null
+lines=`wc -l < rndc.out.ns4.test$n.1`
+[ "$lines" -eq 0 ] || ret=1
+# initially, secure.example. validates with AD=1
+$DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null && ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
+
+echo "I:killing ns4 with SIGTERM"
+cd ns4
+kill -TERM `cat named.pid`
+rm named.pid
+cd ..
+
+echo "I:sleeping for an additional 4 seconds for ns4 to fully shutdown"
+sleep 4
+
+#
+# ns4 has now shutdown. add NTA for secure.example. directly into the
+# _default.nta file with the regular attribute and some future timestamp.
+#
+year=`date +%Y`
+future="`expr 20 + ${year}`0101010000"
+echo "secure.example. regular $future" > ns4/_default.nta
+start=`$PERL -e 'print time()."\n";'`
+
+if
+        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns4
+then
+        echo "I:restarted server ns4"
+else
+        echo "I:could not restart server ns4"
+        exit 1
+fi
+
+# nta-recheck is configured as 7s, so at t=10 the NTAs for
+# secure.example. should be lifted as it is not a forced NTA.
+echo "I:waiting till 10s have passed after ns4 was restarted"
+$PERL -e 'my $delay = '$start' + 10 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
+
+# secure.example. should now return an AD=1 answer (still validates) as
+# the NTA has been lifted.
+$DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.3 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.3 > /dev/null && ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.3 > /dev/null || ret=1
+
+# cleanup
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -remove secure.example > rndc.out.ns4.test$n.4 2>/dev/null
+
+if [ $ret != 0 ]; then echo "I:failed - NTA persistence: loading regular NTAs failed"; fi
+status=`expr $status + $ret`
+ret=0
+
+#
+# check "forced" attribute in NTA file works as expected at named
+# startup.
+#
+n=`expr $n + 1`
+echo "I: testing loading forced attribute from NTA file ($n)"
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.1 2>/dev/null
+lines=`wc -l < rndc.out.ns4.test$n.1`
+[ "$lines" -eq 0 ] || ret=1
+# initially, secure.example. validates with AD=1
+$DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null && ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
+
+echo "I:killing ns4 with SIGTERM"
+cd ns4
+kill -TERM `cat named.pid`
+rm named.pid
+cd ..
+
+echo "I:sleeping for an additional 4 seconds for ns4 to fully shutdown"
+sleep 4
+
+#
+# ns4 has now shutdown. add NTA for secure.example. directly into the
+# _default.nta file with the forced attribute and some future timestamp.
+#
+echo "secure.example. forced $future" > ns4/_default.nta
+start=`$PERL -e 'print time()."\n";'`
+
+if
+        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns4
+then
+        echo "I:restarted server ns4"
+else
+        echo "I:could not restart server ns4"
+        exit 1
+fi
+
+# nta-recheck is configured as 7s, but even at t=10 the NTAs for
+# secure.example. should not be lifted as it is a forced NTA.
+echo "I:waiting till 10s have passed after ns4 was restarted"
+$PERL -e 'my $delay = '$start' + 10 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
+
+# secure.example. should now return an AD=0 answer (non-authenticated)
+# as the NTA is still there.
+$DIG $DIGOPTS a.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.3 || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n.3 > /dev/null && ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.3 > /dev/null && ret=1
+
+# cleanup
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -remove secure.example > rndc.out.ns4.test$n.4 2>/dev/null
+
+if [ $ret != 0 ]; then echo "I:failed - NTA persistence: loading forced NTAs failed"; fi
+status=`expr $status + $ret`
+ret=0
+
+#
+# check that NTA lifetime read from file is clamped to 1 week.
+#
+n=`expr $n + 1`
+echo "I: testing loading out of bounds lifetime from NTA file ($n)"
+
+echo "I:killing ns4 with SIGTERM"
+cd ns4
+kill -TERM `cat named.pid`
+rm named.pid
+cd ..
+
+echo "I:sleeping for an additional 4 seconds for ns4 to fully shutdown"
+sleep 4
+
+#
+# ns4 has now shutdown. add NTA for secure.example. directly into the
+# _default.nta file with a lifetime well into the future.
+#
+echo "secure.example. forced $future" > ns4/_default.nta
+added=`$PERL -e 'print time()."\n";'`
+
+if
+        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns4
+then
+        echo "I:restarted server ns4"
+else
+        echo "I:could not restart server ns4"
+        exit 1
+fi
+
+echo "I:sleeping for an additional 4 seconds for ns4 to fully startup"
+sleep 4
+
+# dump the NTA to a file
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.1 2>/dev/null
+lines=`wc -l < rndc.out.ns4.test$n.1`
+[ "$lines" -eq 1 ] || ret=1
+ts=`awk '{print $3" "$4}' < rndc.out.ns4.test$n.1`
+# rndc nta outputs localtime, so append the timezone
+ts_with_zone="$ts `date +%z`"
+# ntadiff.pl computes $ts_with_zone - ($added + 1week)
+d=`./ntadiff.pl "$ts_with_zone" "$added"`
+echo "ts=$ts" > rndc.out.ns4.test$n.2
+echo "ts_with_zone=$ts_with_zone" >> rndc.out.ns4.test$n.2
+echo "d=$d" >> rndc.out.ns4.test$n.2
+# diff from $added(now) + 1week to the clamped NTA lifetime should be
+# less than a few seconds.
+[ $d -lt 10 ] || ret=1
+
+# cleanup
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -remove secure.example > rndc.out.ns4.test$n.3 2>/dev/null
+
+if [ $ret != 0 ]; then echo "I:failed - NTA lifetime clamping failed"; fi
+status=`expr $status + $ret`
+ret=0
+
+echo "I:completed NTA tests"
 
 # Run a minimal update test if possible.  This is really just
 # a regression test for RT #2399; more tests should be added.

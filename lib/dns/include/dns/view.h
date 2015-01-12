@@ -152,6 +152,7 @@ struct dns_view {
 	dns_ttl_t			maxncachettl;
 	isc_uint32_t			nta_lifetime;
 	isc_uint32_t			nta_recheck;
+	char				*nta_file;
 	dns_ttl_t			prefetch_trigger;
 	dns_ttl_t			prefetch_eligible;
 	in_port_t			dstport;
@@ -1253,6 +1254,24 @@ void
 dns_view_setfailttl(dns_view_t *view, isc_uint32_t failttl);
 /*%<
  * Set the view's servfail-ttl.  zero => no servfail caching.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
+
+isc_result_t
+dns_view_saventa(dns_view_t *view);
+/*%<
+ * Save NTA for names in this view to a file.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
+
+isc_result_t
+dns_view_loadnta(dns_view_t *view);
+/*%<
+ * Loads NTA for names in this view from a file.
  *
  * Requires:
  *\li	'view' to be valid.

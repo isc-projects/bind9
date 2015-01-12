@@ -21,6 +21,7 @@
 
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/lex.h>
 #include <isc/print.h>
 #include <isc/sha2.h>
 #include <isc/stats.h>
@@ -55,9 +56,15 @@
 #include <dns/result.h>
 #include <dns/rpz.h>
 #include <dns/stats.h>
+#include <dns/time.h>
 #include <dns/tsig.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
+
+#define CHECK(op) \
+	do { result = (op);					 \
+	       if (result != ISC_R_SUCCESS) goto cleanup;	 \
+	} while (0)
 
 #define RESSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_RESSHUTDOWN) != 0)
 #define ADBSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_ADBSHUTDOWN) != 0)
@@ -76,6 +83,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 {
 	dns_view_t *view;
 	isc_result_t result;
+	char buffer[1024];
 
 	/*
 	 * Create a view.
@@ -88,6 +96,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (view == NULL)
 		return (ISC_R_NOMEMORY);
 
+	view->nta_file = NULL;
 	view->mctx = NULL;
 	isc_mem_attach(mctx, &view->mctx);
 	view->name = isc_mem_strdup(mctx, name);
@@ -95,6 +104,17 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		result = ISC_R_NOMEMORY;
 		goto cleanup_view;
 	}
+
+	result = isc_file_sanitize(NULL, view->name, "nta",
+				   buffer, sizeof(buffer));
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_name;
+	view->nta_file = isc_mem_strdup(mctx, buffer);
+	if (view->nta_file == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup_name;
+	}
+
 	result = isc_mutex_init(&view->lock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_name;
@@ -275,6 +295,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
  cleanup_mutex:
 	DESTROYLOCK(&view->lock);
+
+	if (view->nta_file != NULL)
+		isc_mem_free(mctx, view->nta_file);
 
  cleanup_name:
 	isc_mem_free(mctx, view->name);
@@ -469,6 +492,7 @@ destroy(dns_view_t *view) {
 	dns_badcache_destroy(&view->failcache);
 	DESTROYLOCK(&view->lock);
 	isc_refcount_destroy(&view->references);
+	isc_mem_free(view->mctx, view->nta_file);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 }
@@ -2038,3 +2062,140 @@ dns_view_setfailttl(dns_view_t *view, isc_uint32_t fail_ttl) {
 	view->fail_ttl = fail_ttl;
 }
 
+isc_result_t
+dns_view_saventa(dns_view_t *view) {
+	isc_result_t result;
+	isc_boolean_t remove = ISC_FALSE;
+	dns_ntatable_t *ntatable = NULL;
+	FILE *fp = NULL;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->nta_lifetime == 0)
+		return (ISC_R_SUCCESS);
+
+	/* Open NTA save file for overwrite. */
+	CHECK(isc_stdio_open(view->nta_file, "w", &fp));
+
+	result = dns_view_getntatable(view, &ntatable);
+	if (result == ISC_R_NOTFOUND) {
+		remove = ISC_TRUE;
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	} else
+	        CHECK(result);
+
+	result = dns_ntatable_save(ntatable, fp);
+	if (result == ISC_R_NOTFOUND) {
+		remove = ISC_TRUE;
+		result = ISC_R_SUCCESS;
+	}
+
+ cleanup:
+	if (ntatable != NULL)
+		dns_ntatable_detach(&ntatable);
+
+	if (fp != NULL)
+		isc_stdio_close(fp);
+
+	/* Don't leave half-baked NTA save files lying around. */
+	if (result != ISC_R_SUCCESS || remove)
+		(void) isc_file_remove(view->nta_file);
+
+	return (result);
+}
+
+#define TSTR(t) ((t).value.as_textregion.base)
+#define TLEN(t) ((t).value.as_textregion.length)
+
+isc_result_t
+dns_view_loadnta(dns_view_t *view) {
+	isc_result_t result;
+	dns_ntatable_t *ntatable = NULL;
+	isc_lex_t *lex = NULL;
+	isc_token_t token;
+	isc_stdtime_t now;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->nta_lifetime == 0)
+		return (ISC_R_SUCCESS);
+
+	CHECK(isc_lex_create(view->mctx, 1025, &lex));
+	CHECK(isc_lex_openfile(lex, view->nta_file));
+	CHECK(dns_view_getntatable(view, &ntatable));
+	isc_stdtime_get(&now);
+
+	for (;;) {
+		int options = (ISC_LEXOPT_EOL | ISC_LEXOPT_EOF);
+		char *name, *type, *timestamp;
+		size_t len;
+		dns_fixedname_t fn;
+		dns_name_t *ntaname;
+		isc_buffer_t b;
+		isc_stdtime_t t;
+		isc_boolean_t forced;
+
+		CHECK(isc_lex_gettoken(lex, options, &token));
+		if (token.type == isc_tokentype_eof)
+			break;
+		else if (token.type != isc_tokentype_string)
+			CHECK(ISC_R_UNEXPECTEDTOKEN);
+		name = TSTR(token);
+		len = TLEN(token);
+
+		if (strcmp(name, ".") == 0)
+			ntaname = dns_rootname;
+		else {
+			dns_fixedname_init(&fn);
+			ntaname = dns_fixedname_name(&fn);
+
+			isc_buffer_init(&b, name, len);
+			isc_buffer_add(&b, len);
+			CHECK(dns_name_fromtext(ntaname, &b, dns_rootname,
+						0, NULL));
+		}
+
+		CHECK(isc_lex_gettoken(lex, options, &token));
+		if (token.type != isc_tokentype_string)
+			CHECK(ISC_R_UNEXPECTEDTOKEN);
+		type = TSTR(token);
+
+		if (strcmp(type, "regular") == 0)
+			forced = ISC_FALSE;
+		else if (strcmp(type, "forced") == 0)
+			forced = ISC_TRUE;
+		else
+			CHECK(ISC_R_UNEXPECTEDTOKEN);
+
+		CHECK(isc_lex_gettoken(lex, options, &token));
+		if (token.type != isc_tokentype_string)
+			CHECK(ISC_R_UNEXPECTEDTOKEN);
+		timestamp = TSTR(token);
+		CHECK(dns_time32_fromtext(timestamp, &t));
+
+		CHECK(isc_lex_gettoken(lex, options, &token));
+		if (token.type != isc_tokentype_eol &&
+		    token.type != isc_tokentype_eof)
+			CHECK(ISC_R_UNEXPECTEDTOKEN);
+
+		if (now <= t) {
+			if (t > (now + 604800))
+				t = now + 604800;
+
+			(void) dns_ntatable_add(ntatable, ntaname,
+						forced, 0, t);
+		}
+	};
+
+ cleanup:
+	if (ntatable != NULL)
+		dns_ntatable_detach(&ntatable);
+
+	if (lex != NULL) {
+		isc_lex_close(lex);
+		isc_lex_destroy(&lex);
+	}
+
+	return (result);
+}
