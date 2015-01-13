@@ -394,7 +394,7 @@
 <p>
             Sets a DNSSEC negative trust anchor (NTA)
             for <code class="option">domain</code>, with a lifetime of
-            <code class="option">lifetime</code>.  The default lifetime is
+            <code class="option">duration</code>.  The default lifetime is
             configured in <code class="filename">named.conf</code> via the
             <code class="option">nta-lifetime</code> option, and defaults to
             one hour.  The lifetime cannot exceed one week.
@@ -408,8 +408,17 @@
             configured trust anchors), <span><strong class="command">named</strong></span> will
             abort the DNSSEC validation process and treat the data as
             insecure rather than bogus.  This continues until the
-            NTA's lifetime is elapsed, or until the server is
-            restarted (NTAs do not persist across restarts).
+            NTA's lifetime is elapsed.
+          </p>
+<p>
+            NTAs persist across restarts of the named server.
+            The NTAs for a view are saved in a file called
+            <code class="filename"><em class="replaceable"><code>name</code></em>.nta</code>,
+            where <em class="replaceable"><code>name</code></em> is the
+            name of the view, or if it contains characters
+            that are incompatible with use as a file name, a
+            cryptographic hash generated from the name
+            of the view.
           </p>
 <p>
             An existing NTA can be removed by using the
@@ -602,7 +611,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542018"></a><h2>LIMITATIONS</h2>
+<a name="id2542029"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -612,7 +621,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542036"></a><h2>SEE ALSO</h2>
+<a name="id2545597"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -622,7 +631,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545573"></a><h2>AUTHOR</h2>
+<a name="id2545653"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
