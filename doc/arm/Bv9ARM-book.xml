@@ -5458,6 +5458,18 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	  </varlistentry>
 
 	  <varlistentry>
+	    <term><command>dscp</command></term>
+	    <listitem>
+	      <para>
+		The global Differentiated Services Code Point (DSCP)
+		value to classify outgoing DNS traffic on operating
+		systems that support DSCP. Valid values are 0 through 63.
+		It is not configured by default.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
 	    <term><command>random-device</command></term>
 	    <listitem>
 	      <para>
