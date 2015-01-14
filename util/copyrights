@@ -2855,8 +2855,8 @@
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
 ./doc/misc/sort-options.pl			PERL	2007,2012
-./doc/xsl/.gitignore				X	2012
-./doc/xsl/Makefile.in				MAKE	2005,2007,2012,2014
+./doc/xsl/.gitignore				X	2012,2015
+./doc/xsl/Makefile.in				MAKE	2005,2007,2012,2014,2015
 ./doc/xsl/copyright.xsl				SGML	2005,2007,2009
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005,2007,2014
 ./doc/xsl/isc-docbook-html.xsl.in		SGML	2005,2007,2014
