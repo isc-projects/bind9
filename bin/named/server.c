@@ -8581,6 +8581,16 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 				result = isc_stdio_read(buf, 1, 1024, ifp, &n);
 			}
 
+			/*
+			 * Close files before overwriting the nzfile
+			 * with the temporary file as it's necessary on
+			 * some platforms (win32).
+			 */
+			(void) isc_stdio_close(ifp);
+			ifp = NULL;
+			(void) isc_stdio_close(ofp);
+			ofp = NULL;
+
 			/* Move temporary into place */
 			CHECK(isc_file_rename(tmpname, view->new_zone_file));
 		} else {
@@ -8611,12 +8621,12 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 		putnull(text);
 	if (ifp != NULL)
 		isc_stdio_close(ifp);
-	if (ofp != NULL) {
+	if (ofp != NULL)
 		isc_stdio_close(ofp);
+	if (tmpname != NULL) {
 		isc_file_remove(tmpname);
-	}
-	if (tmpname != NULL)
 		isc_mem_free(server->mctx, tmpname);
+	}
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 

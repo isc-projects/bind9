@@ -1,3 +1,7 @@
+4035.	[bug]		Close temporary and NZF FILE pointers before moving
+			the former into the latter's place, as required on
+			Windows. [RT #38332]
+
 4032.	[bug]		Built-in "empty" zones did not correctly inherit the
 			"allow-transfer" ACL from the options or view.
 			[RT #38310]
