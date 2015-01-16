@@ -1,3 +1,7 @@
+4035.	[bug]		Close temporary and NZF FILE pointers before moving
+			the former into the latter's place, as required on
+			Windows. [RT #38332]
+
 4033.	[bug]		Missing out of memory check in request.c:req_send.
 			[RT #38311]
 
