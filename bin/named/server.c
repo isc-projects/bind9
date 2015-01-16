@@ -9274,6 +9274,16 @@ nzf_remove(const char *nzfile, const char *viewname, const char *zonename) {
 				result = isc_stdio_read(buf, 1, 1024, ifp, &n);
 			}
 
+			/*
+			 * Close files before overwriting the nzfile
+			 * with the temporary file as it's necessary on
+			 * some platforms (win32).
+			 */
+			(void) isc_stdio_close(ifp);
+			ifp = NULL;
+			(void) isc_stdio_close(ofp);
+			ofp = NULL;
+
 			/* Move temporary into place */
 			CHECK(isc_file_rename(tmp, nzfile));
 		} else {
@@ -9287,9 +9297,9 @@ nzf_remove(const char *nzfile, const char *viewname, const char *zonename) {
 
  cleanup:
 	if (ifp != NULL)
-		isc_stdio_close(ifp);
+		(void) isc_stdio_close(ifp);
 	if (ofp != NULL)
-		isc_stdio_close(ofp);
+		(void) isc_stdio_close(ofp);
 
 	return (result);
 }
