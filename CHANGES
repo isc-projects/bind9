@@ -1,3 +1,6 @@
+4036.	[bug]		Make call to open a temporary file name safe during
+			NZF creation. [RT #38331]
+
 4035.	[bug]		Close temporary and NZF FILE pointers before moving
 			the former into the latter's place, as required on
 			Windows. [RT #38332]

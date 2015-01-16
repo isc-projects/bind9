@@ -256,14 +256,13 @@ isc_file_template(const char *path, const char *templet, char *buf,
 	return (ISC_R_SUCCESS);
 }
 
-static char alphnum[] =
+static const char alphnum[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 isc_result_t
 isc_file_renameunique(const char *file, char *templet) {
 	char *x;
 	char *cp;
-	isc_uint32_t which;
 
 	REQUIRE(file != NULL);
 	REQUIRE(templet != NULL);
@@ -276,6 +275,8 @@ isc_file_renameunique(const char *file, char *templet) {
 
 	x = cp--;
 	while (cp >= templet && *cp == 'X') {
+		isc_uint32_t which;
+
 		isc_random_get(&which);
 		*cp = alphnum[which % (sizeof(alphnum) - 1)];
 		x = cp--;
@@ -321,7 +322,6 @@ isc_file_openuniquemode(char *templet, int mode, FILE **fp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	char *x;
 	char *cp;
-	isc_uint32_t which;
 
 	REQUIRE(templet != NULL);
 	REQUIRE(fp != NULL && *fp == NULL);
@@ -334,6 +334,8 @@ isc_file_openuniquemode(char *templet, int mode, FILE **fp) {
 
 	x = cp--;
 	while (cp >= templet && *cp == 'X') {
+		isc_uint32_t which;
+
 		isc_random_get(&which);
 		*cp = alphnum[which % (sizeof(alphnum) - 1)];
 		x = cp--;

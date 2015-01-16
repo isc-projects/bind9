@@ -9197,7 +9197,7 @@ nzf_remove(const char *nzfile, const char *viewname, const char *zonename) {
 
 		/* Create a temporary file */
 		CHECK(isc_file_template("", "nzf-XXXXXXXX", tmp, sizeof(tmp)));
-		CHECK(isc_stdio_open(tmp, "w", &ofp));
+		CHECK(isc_file_openunique(tmp, &ofp));
 		CHECK(add_comment(ofp, viewname));
 
 		/* Look for the entry for that zone */

@@ -33,6 +33,7 @@
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/result.h>
 #include <isc/sha2.h>
 #include <isc/stat.h>
@@ -42,6 +43,9 @@
 
 #include "errno2result.h"
 
+static const char alphnum[] =
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
 /*
  * Emulate UNIX mkstemp, which returns an open FD to the new file
  *
@@ -50,7 +54,6 @@ static int
 gettemp(char *path, isc_boolean_t binary, int *doopen) {
 	char *start, *trv;
 	struct stat sbuf;
-	int pid;
 	int flags = O_CREAT|O_EXCL|O_RDWR;
 
 	if (binary)
@@ -58,11 +61,12 @@ gettemp(char *path, isc_boolean_t binary, int *doopen) {
 
 	trv = strrchr(path, 'X');
 	trv++;
-	pid = getpid();
 	/* extra X's get set to 0's */
 	while (*--trv == 'X') {
-		*trv = (pid % 10) + '0';
-		pid /= 10;
+		isc_uint32_t which;
+
+		isc_random_get(&which);
+		*trv = alphnum[which % (sizeof(alphnum) - 1)];
 	}
 	/*
 	 * check the target directory; if you have six X's and it
