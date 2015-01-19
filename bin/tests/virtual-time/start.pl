@@ -128,6 +128,7 @@ sub start_server {
 		} else {
 			$command .= "-m record,size,mctx ";
 			$command .= "-T clienttest ";
+			$command .= "-X named.lock ";
 			$command .= "-c named.conf -d 99 -g";
 		}
 		$command .= " >named.run 2>&1 &";
