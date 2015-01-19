@@ -2136,7 +2136,7 @@
 ./bin/tests/virtual-time/slave/ns1/wrap.sh	SH	2010,2012
 ./bin/tests/virtual-time/slave/setup.sh		SH	2010,2012
 ./bin/tests/virtual-time/slave/tests.sh		SH	2010,2012
-./bin/tests/virtual-time/start.pl		PERL	2010,2012
+./bin/tests/virtual-time/start.pl		PERL	2010,2012,2015
 ./bin/tests/virtual-time/start.sh		SH	2010,2012
 ./bin/tests/virtual-time/stop.pl		PERL	2010,2012
 ./bin/tests/virtual-time/stop.sh		SH	2010,2012
