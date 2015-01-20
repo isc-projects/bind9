@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -10589,7 +10589,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 			continue;
 		}
 
-		result = notify_create(zone->mctx, flags, &notify); 
+		result = notify_create(zone->mctx, flags, &notify);
 		if (result != ISC_R_SUCCESS) {
 			if (key != NULL)
 				dns_tsigkey_detach(&key);
