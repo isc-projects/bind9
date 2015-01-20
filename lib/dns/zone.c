@@ -9563,7 +9563,7 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val) {
 
 static isc_boolean_t
 notify_isqueued(dns_zone_t *zone, unsigned int flags, dns_name_t *name,
-		isc_sockaddr_t *addr)
+		isc_sockaddr_t *addr, dns_tsigkey_t *key)
 {
 	dns_notify_t *notify;
 	dns_zonemgr_t *zmgr;
@@ -9579,7 +9579,8 @@ notify_isqueued(dns_zone_t *zone, unsigned int flags, dns_name_t *name,
 		if (name != NULL && dns_name_dynamic(&notify->ns) &&
 		    dns_name_equal(name, &notify->ns))
 			goto requeue;
-		if (addr != NULL && isc_sockaddr_equal(addr, &notify->dst))
+		if (addr != NULL && isc_sockaddr_equal(addr, &notify->dst) &&
+		    notify->key == key)
 			goto requeue;
 	}
 	return (ISC_FALSE);
@@ -9946,7 +9947,8 @@ notify_send(dns_notify_t *notify) {
 	     ai != NULL;
 	     ai = ISC_LIST_NEXT(ai, publink)) {
 		dst = ai->sockaddr;
-		if (notify_isqueued(notify->zone, notify->flags, NULL, &dst))
+		if (notify_isqueued(notify->zone, notify->flags, NULL, &dst,
+				    NULL))
 			continue;
 		if (notify_isself(notify->zone, &dst))
 			continue;
@@ -9998,7 +10000,6 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	dns_rdataset_t nsrdset;
 	dns_rdataset_t soardset;
 	isc_result_t result;
-	dns_notify_t *notify = NULL;
 	unsigned int i;
 	isc_sockaddr_t dst;
 	isc_boolean_t isqueued;
@@ -10085,27 +10086,37 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	LOCK_ZONE(zone);
 	for (i = 0; i < zone->notifycnt; i++) {
 		dns_tsigkey_t *key = NULL;
-
-		dst = zone->notify[i];
-		if (notify_isqueued(zone, flags, NULL, &dst))
-			continue;
-
-		result = notify_create(zone->mctx, flags, &notify);
-		if (result != ISC_R_SUCCESS)
-			continue;
-
-		zone_iattach(zone, &notify->zone);
-		notify->dst = dst;
+		dns_notify_t *notify = NULL;
 
 		if ((zone->notifykeynames != NULL) &&
 		    (zone->notifykeynames[i] != NULL)) {
 			dns_view_t *view = dns_zone_getview(zone);
 			dns_name_t *keyname = zone->notifykeynames[i];
-			result = dns_view_gettsig(view, keyname, &key);
-			if (result == ISC_R_SUCCESS) {
-				notify->key = key;
-				key = NULL;
-			}
+			(void)dns_view_gettsig(view, keyname, &key);
+		}
+
+		dst = zone->notify[i];
+		if (notify_isqueued(zone, flags, NULL, &dst, key)) {
+			if (key != NULL)
+				dns_tsigkey_detach(&key);
+			continue;
+		}
+
+		result = notify_create(zone->mctx, flags, &notify); 
+		if (result != ISC_R_SUCCESS) {
+			if (key != NULL)
+				dns_tsigkey_detach(&key);
+			continue;
+		}
+
+		zone_iattach(zone, &notify->zone);
+		notify->dst = dst;
+
+		INSIST(notify->key == NULL);
+
+		if (key != NULL) {
+			notify->key = key;
+			key = NULL;
 		}
 
 		ISC_LIST_APPEND(zone->notifies, notify, link);
@@ -10118,7 +10129,6 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 				   serial);
 			loggednotify = ISC_TRUE;
 		}
-		notify = NULL;
 	}
 	UNLOCK_ZONE(zone);
 
@@ -10137,6 +10147,8 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 
 	result = dns_rdataset_first(&nsrdset);
 	while (result == ISC_R_SUCCESS) {
+		dns_notify_t *notify = NULL;
+
 		dns_rdataset_current(&nsrdset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -10159,7 +10171,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		}
 
 		LOCK_ZONE(zone);
-		isqueued = notify_isqueued(zone, flags, &ns.name, NULL);
+		isqueued = notify_isqueued(zone, flags, &ns.name, NULL, NULL);
 		UNLOCK_ZONE(zone);
 		if (isqueued) {
 			result = dns_rdataset_next(&nsrdset);
@@ -10180,7 +10192,6 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		UNLOCK_ZONE(zone);
 		notify_find_address(notify);
-		notify = NULL;
 		result = dns_rdataset_next(&nsrdset);
 	}
 	dns_rdataset_disassociate(&nsrdset);

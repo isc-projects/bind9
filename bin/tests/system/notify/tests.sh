@@ -144,5 +144,35 @@ grep "test string" dig.out.ns4.test$n > /dev/null || ret=1
 [ $ret = 0 ] || echo "I:failed"
 status=`expr $ret + $status`
 
+n=`expr $n + 1`
+echo "I:checking notify to multiple views using tsig"
+ret=0
+$NSUPDATE << EOF
+server 10.53.0.5 5300
+zone x21
+key a aaaaaaaaaaaaaaaaaaaa
+update add added.x21 0 in txt "test string"
+send
+EOF
+
+for i in 1 2 3 4 5 6 7 8 9
+do
+	$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd added.x21.\
+		-y b:bbbbbbbbbbbbbbbbbbbb @10.53.0.5 \
+		txt -p 5300 > dig.out.b.ns5.test$n || ret=1
+	$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd added.x21.\
+		-y c:cccccccccccccccccccc @10.53.0.5 \
+		txt -p 5300 > dig.out.c.ns5.test$n || ret=1
+	grep "test string" dig.out.b.ns5.test$n > /dev/null &&
+	grep "test string" dig.out.c.ns5.test$n > /dev/null &&
+        break
+	sleep 1
+done
+grep "test string" dig.out.b.ns5.test$n > /dev/null || ret=1
+grep "test string" dig.out.c.ns5.test$n > /dev/null || ret=1
+
+[ $ret = 0 ] || echo "I:failed"
+status=`expr $ret + $status`
+
 echo "I:exit status: $status"
 exit $status

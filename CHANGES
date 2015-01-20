@@ -1,3 +1,7 @@
+4037.	[bug]		also-notify was ignoring the tsig key when checking
+			for duplicates resulting in some expected notify
+			messages not being sent. [RT #38369]
+
 4035.	[bug]		Close temporary and NZF FILE pointers before moving
 			the former into the latter's place, as required on
 			Windows. [RT #38332]
