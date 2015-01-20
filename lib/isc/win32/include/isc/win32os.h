@@ -29,30 +29,6 @@ ISC_LANG_BEGINDECLS
  * be determined.
  */
 
-unsigned int
-isc_win32os_majorversion(void);
-/*
- * Major Version of the O/S.
- */
-
-unsigned int
-isc_win32os_minorversion(void);
-/*
- * Minor Version of the O/S.
- */
-
-unsigned int
-isc_win32os_servicepackmajor(void);
-/*
- * Major Version of the Service Pack for O/S.
- */
-
-unsigned int
-isc_win32os_servicepackminor(void);
-/*
- * Minor Version of the Service Pack for O/S.
- */
-
 int
 isc_win32os_versioncheck(unsigned int major, unsigned int minor,
 		     unsigned int updatemajor, unsigned int updateminor);
