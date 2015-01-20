@@ -1437,7 +1437,6 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	    (ns_g_server->server_id != NULL ||
 	     ns_g_server->server_usehostname)) {
 		if (ns_g_server->server_usehostname) {
-			isc_result_t result;
 			result = ns_os_gethostname(nsid, sizeof(nsid));
 			if (result != ISC_R_SUCCESS) {
 				goto no_nsid;

@@ -388,9 +388,6 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 				 * Issue a warning and continue.
 				 */
 				if (warn) {
-					char classbuf[DNS_RDATATYPE_FORMATSIZE];
-					char namebuf[DNS_NAME_FORMATSIZE];
-
 					dns_name_format(dns_db_origin(db),
 							namebuf,
 							sizeof(namebuf));

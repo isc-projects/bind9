@@ -506,7 +506,7 @@ ATF_TC_BODY(nta, tc) {
 	isc_result_t result;
 	dst_key_t *key = NULL;
 	isc_boolean_t issecure, covered;
-	dns_view_t *view = NULL;
+	dns_view_t *myview = NULL;
 	isc_stdtime_t now;
 
 	UNUSED(tc);
@@ -514,20 +514,20 @@ ATF_TC_BODY(nta, tc) {
 	result = dns_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_test_makeview("view", &view);
+	result = dns_test_makeview("view", &myview);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = isc_task_create(taskmgr, 0, &view->task);
+	result = isc_task_create(taskmgr, 0, &myview->task);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_view_initsecroots(view, mctx);
+	result = dns_view_initsecroots(myview, mctx);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = dns_view_getsecroots(view, &keytable);
+	result = dns_view_getsecroots(myview, &keytable);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_view_initntatable(view, taskmgr, timermgr);
+	result = dns_view_initntatable(myview, taskmgr, timermgr);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = dns_view_getntatable(view, &ntatable);
+	result = dns_view_getntatable(myview, &ntatable);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	create_key(257, 3, 5, "example", keystr1, &key);
@@ -541,31 +541,31 @@ ATF_TC_BODY(nta, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* Should be secure */
-	result = dns_view_issecuredomain(view,
+	result = dns_view_issecuredomain(myview,
 					 str2name("test.secure.example"),
 					 now, ISC_TRUE, &issecure);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(issecure);
 
 	/* Should not be secure */
-	result = dns_view_issecuredomain(view,
+	result = dns_view_issecuredomain(myview,
 					 str2name("test.insecure.example"),
 					 now, ISC_TRUE, &issecure);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(!issecure);
 
 	/* NTA covered */
-	covered = dns_view_ntacovers(view, now, str2name("insecure.example"),
+	covered = dns_view_ntacovers(myview, now, str2name("insecure.example"),
 				     dns_rootname);
 	ATF_CHECK(covered);
 
 	/* Not NTA covered */
-	covered = dns_view_ntacovers(view, now, str2name("secure.example"),
+	covered = dns_view_ntacovers(myview, now, str2name("secure.example"),
 				     dns_rootname);
 	ATF_CHECK(!covered);
 
 	/* As of now + 2, the NTA should be clear */
-	result = dns_view_issecuredomain(view,
+	result = dns_view_issecuredomain(myview,
 					 str2name("test.insecure.example"),
 					 now + 2, ISC_TRUE, &issecure);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
@@ -576,7 +576,7 @@ ATF_TC_BODY(nta, tc) {
 				  ISC_FALSE, now, 3600);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_view_issecuredomain(view, str2name("test.new.example"),
+	result = dns_view_issecuredomain(myview, str2name("test.new.example"),
 					 now, ISC_TRUE, &issecure);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(!issecure);
@@ -584,7 +584,7 @@ ATF_TC_BODY(nta, tc) {
 	result = dns_ntatable_delete(ntatable, str2name("new.example"));
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_view_issecuredomain(view, str2name("test.new.example"),
+	result = dns_view_issecuredomain(myview, str2name("test.new.example"),
 					 now, ISC_TRUE, &issecure);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(issecure);
@@ -592,7 +592,7 @@ ATF_TC_BODY(nta, tc) {
 	/* Clean up */
 	dns_ntatable_detach(&ntatable);
 	dns_keytable_detach(&keytable);
-	dns_view_detach(&view);
+	dns_view_detach(&myview);
 
 	dns_test_end();
 }

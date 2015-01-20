@@ -6929,8 +6929,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * We're authoritative for an ancestor of QNAME.
 			 */
 			if (!USECACHE(client) || !RECURSIONOK(client)) {
-				dns_fixedname_t fixed;
-
 				dns_fixedname_init(&fixed);
 				dns_name_copy(fname,
 					      dns_fixedname_name(&fixed), NULL);
@@ -7076,8 +7074,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				else
 					RECURSE_ERROR(result);
 			} else {
-				dns_fixedname_t fixed;
-
 				dns_fixedname_init(&fixed);
 				dns_name_copy(fname,
 					      dns_fixedname_name(&fixed), NULL);

@@ -1539,7 +1539,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKINTEGRITY,
 					   cfg_obj_asboolean(obj));
 		} else {
-			isc_boolean_t check = ISC_FALSE;
+			check = ISC_FALSE;
 			result = ns_config_get(nodefault, "check-integrity",
 					       &obj);
 			if (result == ISC_R_SUCCESS)

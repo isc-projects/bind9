@@ -1180,10 +1180,9 @@ parse_hmac(const char *hmac) {
  */
 static isc_result_t
 read_confkey(void) {
-	isc_log_t *lctx = NULL;
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *file = NULL;
-	const cfg_obj_t *key = NULL;
+	const cfg_obj_t *keyobj = NULL;
 	const cfg_obj_t *secretobj = NULL;
 	const cfg_obj_t *algorithmobj = NULL;
 	const char *keyname;
@@ -1194,7 +1193,7 @@ read_confkey(void) {
 	if (! isc_file_exists(keyfile))
 		return (ISC_R_FILENOTFOUND);
 
-	result = cfg_parser_create(mctx, lctx, &pctx);
+	result = cfg_parser_create(mctx, NULL, &pctx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -1203,16 +1202,16 @@ read_confkey(void) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = cfg_map_get(file, "key", &key);
+	result = cfg_map_get(file, "key", &keyobj);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	(void) cfg_map_get(key, "secret", &secretobj);
-	(void) cfg_map_get(key, "algorithm", &algorithmobj);
+	(void) cfg_map_get(keyobj, "secret", &secretobj);
+	(void) cfg_map_get(keyobj, "algorithm", &algorithmobj);
 	if (secretobj == NULL || algorithmobj == NULL)
 		fatal("key must have algorithm and secret");
 
-	keyname = cfg_obj_asstring(cfg_map_getname(key));
+	keyname = cfg_obj_asstring(cfg_map_getname(keyobj));
 	secretstr = cfg_obj_asstring(secretobj);
 	algorithm = cfg_obj_asstring(algorithmobj);
 
@@ -1570,14 +1569,14 @@ save_opt(dig_lookup_t *lookup, char *code, char *value) {
  */
 static void
 add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
-	unsigned int flags, dns_ednsopt_t *ednsopts, size_t count)
+	unsigned int flags, dns_ednsopt_t *opts, size_t count)
 {
 	dns_rdataset_t *rdataset = NULL;
 	isc_result_t result;
 
 	debug("add_opt()");
 	result = dns_message_buildopt(msg, &rdataset, edns, udpsize, flags,
-				      ednsopts, count);
+				      opts, count);
 	check_result(result, "dns_message_buildopt");
 	result = dns_message_setopt(msg, rdataset);
 	check_result(result, "dns_message_setopt");
@@ -2172,10 +2171,10 @@ insert_soa(dig_lookup_t *lookup) {
 
 #ifdef ISC_PLATFORM_USESIT
 static void
-compute_cookie(unsigned char *cookie, size_t len) {
+compute_cookie(unsigned char *clientcookie, size_t len) {
 	/* XXXMPA need to fix, should be per server. */
 	INSIST(len >= 8U);
-	memmove(cookie, cookie_secret, 8);
+	memmove(clientcookie, cookie_secret, 8);
 }
 #endif
 
@@ -2372,7 +2371,6 @@ setup_lookup(dig_lookup_t *lookup) {
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg,
 						&lookup->name);
-			isc_buffer_init(&b, store, MXNAME);
 			fatal("'%s' is not a legal name "
 			      "(%s)", lookup->textname,
 			      isc_result_totext(result));
@@ -2497,7 +2495,6 @@ setup_lookup(dig_lookup_t *lookup) {
 			struct sockaddr_in *sin;
 			struct sockaddr_in6 *sin6;
 			size_t addrl;
-			isc_buffer_t b;
 
 			sa = &lookup->ecs_addr->type.sa;
 			prefixlen = lookup->ecs_addr->length;
@@ -2537,8 +2534,6 @@ setup_lookup(dig_lookup_t *lookup) {
 			INSIST(i < DNS_EDNSOPTIONS);
 			opts[i].code = DNS_OPT_SIT;
 			if (lookup->sitvalue != NULL) {
-				isc_buffer_t b;
-
 				isc_buffer_init(&b, sitbuf, sizeof(sitbuf));
 				result = isc_hex_decodestring(lookup->sitvalue,
 							      &b);
@@ -3888,7 +3883,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 #endif
 				printmessage(query, msg, ISC_TRUE);
 		} else if (l->trace) {
-			int n = 0;
+			int nl = 0;
 			int count = msg->counts[DNS_SECTION_ANSWER];
 
 			debug("in TRACE code");
@@ -3899,13 +3894,13 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			if (l->trace_root || (l->ns_search_only && count > 0)) {
 				if (!l->trace_root)
 					l->rdtype = dns_rdatatype_soa;
-				n = followup_lookup(msg, query,
-						    DNS_SECTION_ANSWER);
+				nl = followup_lookup(msg, query,
+						     DNS_SECTION_ANSWER);
 				l->trace_root = ISC_FALSE;
 			} else if (count == 0)
-				n = followup_lookup(msg, query,
-						    DNS_SECTION_AUTHORITY);
-			if (n == 0)
+				nl = followup_lookup(msg, query,
+						     DNS_SECTION_AUTHORITY);
+			if (nl == 0)
 				docancel = ISC_TRUE;
 		} else {
 			debug("in NSSEARCH code");
@@ -3914,12 +3909,12 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				/*
 				 * This is the initial NS query.
 				 */
-				int n;
+				int nl;
 
 				l->rdtype = dns_rdatatype_soa;
-				n = followup_lookup(msg, query,
-						    DNS_SECTION_ANSWER);
-				if (n == 0)
+				nl = followup_lookup(msg, query,
+						     DNS_SECTION_ANSWER);
+				if (nl == 0)
 					docancel = ISC_TRUE;
 				l->trace_root = ISC_FALSE;
 				usesearch = ISC_FALSE;
@@ -4049,12 +4044,12 @@ recv_done(isc_task_t *task, isc_event_t *event) {
  * routines, since they may be using a non-DNS system for these lookups.
  */
 isc_result_t
-get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
+get_address(char *host, in_port_t myport, isc_sockaddr_t *sockaddr) {
 	int count;
 	isc_result_t result;
 
 	isc_app_block();
-	result = bind9_getaddresses(host, port, sockaddr, 1, &count);
+	result = bind9_getaddresses(host, myport, sockaddr, 1, &count);
 	isc_app_unblock();
 	if (result != ISC_R_SUCCESS)
 		return (result);

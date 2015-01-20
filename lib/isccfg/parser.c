@@ -1543,10 +1543,10 @@ cfg_print_mapbody(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 			result = isc_symtab_lookup(obj->value.map.symtab,
 						   clause->name, 0, &symval);
 			if (result == ISC_R_SUCCESS) {
-				cfg_obj_t *obj = symval.as_pointer;
-				if (obj->type == &cfg_type_implicitlist) {
+				cfg_obj_t *symobj = symval.as_pointer;
+				if (symobj->type == &cfg_type_implicitlist) {
 					/* Multivalued. */
-					cfg_list_t *list = &obj->value.list;
+					cfg_list_t *list = &symobj->value.list;
 					cfg_listelt_t *elt;
 					for (elt = ISC_LIST_HEAD(*list);
 					     elt != NULL;
@@ -1557,7 +1557,8 @@ cfg_print_mapbody(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 					}
 				} else {
 					/* Single-valued. */
-					print_symval(pctx, clause->name, obj);
+					print_symval(pctx, clause->name,
+						     symobj);
 				}
 			} else if (result == ISC_R_NOTFOUND) {
 				; /* do nothing */

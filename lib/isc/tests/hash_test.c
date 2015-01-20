@@ -42,7 +42,6 @@ unsigned char buffer[1024];
 const char *s;
 char str[2 * ISC_SHA512_DIGESTLENGTH + 1];
 unsigned char key[20];
-int i = 0;
 
 isc_result_t
 tohexstr(unsigned char *d, unsigned int len, char *out);
@@ -95,6 +94,7 @@ ATF_TC_HEAD(isc_sha1, tc) {
 }
 ATF_TC_BODY(isc_sha1, tc) {
 	isc_sha1_t sha1;
+	int i;
 
 	UNUSED(tc);
 
@@ -217,13 +217,13 @@ ATF_TC_BODY(isc_sha1, tc) {
 	}
 }
 
-
 ATF_TC(isc_sha224);
 ATF_TC_HEAD(isc_sha224, tc) {
 	atf_tc_set_md_var(tc, "descr", "sha224 examples from RFC4634");
 }
 ATF_TC_BODY(isc_sha224, tc) {
 	isc_sha224_t sha224;
+	int i;
 
 	UNUSED(tc);
 
@@ -348,7 +348,6 @@ ATF_TC_BODY(isc_sha224, tc) {
 
 		testcase++;
 	}
-
 }
 
 ATF_TC(isc_sha256);
@@ -357,6 +356,7 @@ ATF_TC_HEAD(isc_sha256, tc) {
 }
 ATF_TC_BODY(isc_sha256, tc) {
 	isc_sha256_t sha256;
+	int i;
 
 	UNUSED(tc);
 
@@ -480,7 +480,6 @@ ATF_TC_BODY(isc_sha256, tc) {
 
 		testcase++;
 	}
-
 }
 
 ATF_TC(isc_sha384);
@@ -489,6 +488,7 @@ ATF_TC_HEAD(isc_sha384, tc) {
 }
 ATF_TC_BODY(isc_sha384, tc) {
 	isc_sha384_t sha384;
+	int i;
 
 	UNUSED(tc);
 
@@ -626,7 +626,6 @@ ATF_TC_BODY(isc_sha384, tc) {
 
 		testcase++;
 	}
-
 }
 
 ATF_TC(isc_sha512);
@@ -635,6 +634,7 @@ ATF_TC_HEAD(isc_sha512, tc) {
 }
 ATF_TC_BODY(isc_sha512, tc) {
 	isc_sha512_t sha512;
+	int i;
 
 	UNUSED(tc);
 
@@ -773,7 +773,6 @@ ATF_TC_BODY(isc_sha512, tc) {
 
 		testcase++;
 	}
-
 }
 
 ATF_TC(isc_md5);
@@ -782,6 +781,7 @@ ATF_TC_HEAD(isc_md5, tc) {
 }
 ATF_TC_BODY(isc_md5, tc) {
 	isc_md5_t md5;
+	int i;
 
 	UNUSED(tc);
 
@@ -1792,6 +1792,7 @@ ATF_TC_HEAD(isc_crc64, tc) {
 }
 ATF_TC_BODY(isc_crc64, tc) {
 	isc_uint64_t crc;
+	int i;
 
 	UNUSED(tc);
 

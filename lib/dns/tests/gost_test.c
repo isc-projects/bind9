@@ -75,10 +75,10 @@ tohexstr(unsigned char *d, unsigned int len, char *out) {
 
 	out[0]='\0';
 	char c_ret[] = "AA";
-	unsigned int i;
+	unsigned int j;
 	strcat(out, "0x");
-	for (i = 0; i < len; i++) {
-		sprintf(c_ret, "%02X", d[i]);
+	for (j = 0; j < len; j++) {
+		sprintf(c_ret, "%02X", d[j]);
 		strcat(out, c_ret);
 	}
 	strcat(out, "\0");

@@ -2053,8 +2053,6 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, dns_name_t* name,
 		    (scope >= 0 && (order > 0 ||
 				    memcmp(hash, nsec3.next, length) < 0)))
 		{
-			char namebuf[DNS_NAME_FORMATSIZE];
-
 			dns_name_format(qname, namebuf, sizeof(namebuf));
 			(*logit)(arg, ISC_LOG_DEBUG(3), "NSEC3 proves "
 				 "name does not exist: '%s'", namebuf);

@@ -140,7 +140,7 @@ totext_nsec3(ARGS_TOTEXT) {
 	unsigned int window, len;
 	unsigned char hash;
 	unsigned char flags;
-	char buf[sizeof("65535 ")];
+	char buf[sizeof("TYPE65535")];
 	isc_uint32_t iterations;
 	isc_boolean_t first;
 
@@ -224,7 +224,6 @@ totext_nsec3(ARGS_TOTEXT) {
 				if (dns_rdatatype_isknown(t)) {
 					RETERR(dns_rdatatype_totext(t, target));
 				} else {
-					char buf[sizeof("TYPE65535")];
 					sprintf(buf, "TYPE%u", t);
 					RETERR(str_totext(buf, target));
 				}

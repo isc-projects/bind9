@@ -162,7 +162,6 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		for (result = dns_rdataset_first(&privateset);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(&privateset)) {
-			unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
 			dns_rdata_t private = DNS_RDATA_INIT;
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 
