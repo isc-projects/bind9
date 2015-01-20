@@ -1636,7 +1636,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node)
 	switch (node->nsec) {
 	case DNS_RBT_NSEC_NORMAL:
 #ifdef BIND9
-		if (rbtdb->rpz_cidr != NULL) {
+		if (rbtdb->rpz_cidr != NULL && node->rpz) {
 			dns_fixedname_init(&fname);
 			name = dns_fixedname_name(&fname);
 			dns_rbt_fullnamefromnode(node, name);
@@ -1677,7 +1677,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node)
 			}
 		}
 #ifdef BIND9
-		if (rbtdb->rpz_cidr != NULL)
+		if (rbtdb->rpz_cidr != NULL && node->rpz)
 			dns_rpz_cidr_deleteip(rbtdb->rpz_cidr, name);
 #endif
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
@@ -2679,6 +2679,7 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
 				fname = dns_fixedname_name(&fnamef);
 				dns_rbt_fullnamefromnode(node, fname);
 				dns_rpz_cidr_addip(rbtdb->rpz_cidr, fname);
+				node->rpz = 1;
 			}
 #endif
 			dns_rbt_namefromnode(node, &nodename);
@@ -7099,7 +7100,6 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 				      "dns_rbt_addnode(NSEC): %s",
 				      isc_result_totext(tmpresult),
 				      isc_result_totext(noderesult));
-
 	}
 
 	/*
@@ -7109,8 +7109,10 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 
  done:
 #ifdef BIND9
-	if (noderesult == ISC_R_SUCCESS && rbtdb->rpz_cidr != NULL)
+	if (noderesult == ISC_R_SUCCESS && rbtdb->rpz_cidr != NULL) {
 		dns_rpz_cidr_addip(rbtdb->rpz_cidr, name);
+		node->rpz = 1;
+	}
 #endif
 	if (noderesult == ISC_R_SUCCESS || noderesult == ISC_R_EXISTS)
 		*nodep = node;

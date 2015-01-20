@@ -115,6 +115,9 @@ struct dns_rbtnode {
 	unsigned int oldnamelen : 8;    /*%< range is 1..255 */
 	/*@}*/
 
+	/* node needs to be cleaned from rpz */
+	unsigned int rpz : 1;
+
 #ifdef DNS_RBT_USEHASH
 	unsigned int hashval;
 #endif
