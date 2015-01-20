@@ -2063,9 +2063,6 @@ validatezonekey(dns_validator_t *val) {
 				      "the DNSKEY RRset and also matches a "
 				      "trusted key for '%s'",
 				      namebuf);
-			validator_log(val, ISC_LOG_NOTICE,
-				      "please check the 'trusted-keys' for "
-				      "'%s' in named.conf.", namebuf);
 			return (DNS_R_NOVALIDKEY);
 		}
 
