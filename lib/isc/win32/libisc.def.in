@@ -729,10 +729,6 @@ isc_timermgr_destroy
 isc_timermgr_poke
 isc_tm_timegm
 isc_tm_strptime
-isc_win32os_majorversion
-isc_win32os_minorversion
-isc_win32os_servicepackmajor
-isc_win32os_servicepackminor
 isc_win32os_versioncheck
 openlog
 @IF PKCS11
