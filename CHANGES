@@ -1,3 +1,7 @@
+4037.	[bug]		also-notify was ignoring the tsig key when checking
+			for duplicates resulting in some expected notify
+			messages not being sent. [RT #38369]
+
 4036.	[bug]		Make call to open a temporary file name safe during
 			NZF creation. [RT #38331]
 
