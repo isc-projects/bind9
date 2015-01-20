@@ -425,13 +425,12 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	puts("");
 
 	if (!short_form) {
-		isc_boolean_t headers = ISC_TRUE;
 		puts("------------");
 		/*		detailheader(query, msg);*/
-		detailsection(query, msg, headers, DNS_SECTION_QUESTION);
-		detailsection(query, msg, headers, DNS_SECTION_ANSWER);
-		detailsection(query, msg, headers, DNS_SECTION_AUTHORITY);
-		detailsection(query, msg, headers, DNS_SECTION_ADDITIONAL);
+		detailsection(query, msg, ISC_TRUE, DNS_SECTION_QUESTION);
+		detailsection(query, msg, ISC_TRUE, DNS_SECTION_ANSWER);
+		detailsection(query, msg, ISC_TRUE, DNS_SECTION_AUTHORITY);
+		detailsection(query, msg, ISC_TRUE, DNS_SECTION_ADDITIONAL);
 		puts("------------");
 	}
 

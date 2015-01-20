@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 /***
@@ -3268,7 +3266,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				ADD_STRING(target, "; NSID");
 			} else {
 				ADD_STRING(target, "; OPT=");
-				sprintf(buf, "%u", optcode);
+				snprintf(buf, sizeof(buf), "%u", optcode);
 				ADD_STRING(target, buf);
 			}
 

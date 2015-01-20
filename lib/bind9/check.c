@@ -88,7 +88,6 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 
 	obj = cfg_tuple_get(ent, "type");
 	if (cfg_obj_isstring(obj)) {
-
 		DE_CONST(cfg_obj_asstring(obj), r.base);
 		r.length = strlen(r.base);
 		tresult = dns_rdatatype_fromtext(&rdtype, &r);
@@ -283,7 +282,6 @@ disabled_algorithms(const cfg_obj_t *disabled, isc_log_t *logctx) {
 	{
 		isc_textregion_t r;
 		dns_secalg_t alg;
-		isc_result_t tresult;
 
 		DE_CONST(cfg_obj_asstring(cfg_listelt_value(element)), r.base);
 		r.length = strlen(r.base);
@@ -678,6 +676,14 @@ typedef enum {
 } optlevel_t;
 
 static isc_result_t
+check_name(const char *str) {
+	dns_fixedname_t fixed;
+
+	dns_fixedname_init(&fixed);
+	return (dns_name_fromstring(dns_fixedname_name(&fixed), str, 0, NULL));
+}
+
+static isc_result_t
 check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	      optlevel_t optlevel)
 {
@@ -691,7 +697,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	dns_fixedname_t fixed;
 	const char *str;
 	dns_name_t *name;
-	isc_buffer_t b;
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
@@ -788,7 +793,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "preferred-glue", &obj);
 	if (obj != NULL) {
-		const char *str;
 		str = cfg_obj_asstring(obj);
 		if (strcasecmp(str, "a") != 0 &&
 		    strcasecmp(str, "aaaa") != 0 &&
@@ -802,25 +806,14 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	(void)cfg_map_get(options, "root-delegation-only", &obj);
 	if (obj != NULL) {
 		if (!cfg_obj_isvoid(obj)) {
-			const cfg_listelt_t *element;
-			const cfg_obj_t *exclude;
-			const char *str;
-			dns_fixedname_t fixed;
-			dns_name_t *name;
-			isc_buffer_t b;
-
-			dns_fixedname_init(&fixed);
-			name = dns_fixedname_name(&fixed);
 			for (element = cfg_list_first(obj);
 			     element != NULL;
 			     element = cfg_list_next(element)) {
+				const cfg_obj_t *exclude;
+
 				exclude = cfg_listelt_value(element);
 				str = cfg_obj_asstring(exclude);
-				isc_buffer_constinit(&b, str, strlen(str));
-				isc_buffer_add(&b, strlen(str));
-				tresult = dns_name_fromtext(name, &b,
-							   dns_rootname,
-							   0, NULL);
+				tresult = check_name(str);
 				if (tresult != ISC_R_SUCCESS) {
 					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 						    "bad domain name '%s'",
@@ -884,10 +877,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 					continue;
 			}
 
-			isc_buffer_constinit(&b, dlv, strlen(dlv));
-			isc_buffer_add(&b, strlen(dlv));
-			tresult = dns_name_fromtext(name, &b, dns_rootname,
-						    0, NULL);
+			tresult = dns_name_fromstring(name, dlv, 0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "bad domain name '%s'", dlv);
@@ -904,6 +894,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				    result == ISC_R_SUCCESS)
 					result = tresult;
 			}
+
 			/*
 			 * XXXMPA to be removed when multiple lookaside
 			 * namespaces are supported.
@@ -918,12 +909,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 
 			if (!cfg_obj_isvoid(anchor)) {
 				dlv = cfg_obj_asstring(anchor);
-				isc_buffer_constinit(&b, dlv, strlen(dlv));
-				isc_buffer_add(&b, strlen(dlv));
-				tresult = dns_name_fromtext(name, &b,
-							    dns_rootname,
-							    DNS_NAME_DOWNCASE,
-							    NULL);
+				tresult = check_name(dlv);
 				if (tresult != ISC_R_SUCCESS) {
 					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 						    "bad domain name '%s'",
@@ -966,7 +952,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "dnssec-must-be-secure", &obj);
 	if (obj != NULL) {
-		isc_symtab_t *symtab = NULL;
 		tresult = isc_symtab_create(mctx, 100, freekey, mctx,
 					    ISC_FALSE, &symtab);
 		if (tresult != ISC_R_SUCCESS)
@@ -992,11 +977,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		(void)cfg_map_get(options, server_contact[i], &obj);
 		if (obj != NULL) {
 			str = cfg_obj_asstring(obj);
-			isc_buffer_constinit(&b, str, strlen(str));
-			isc_buffer_add(&b, strlen(str));
-			tresult = dns_name_fromtext(dns_fixedname_name(&fixed),
-						    &b, dns_rootname, 0, NULL);
-			if (tresult != ISC_R_SUCCESS) {
+			if (check_name(str) != ISC_R_SUCCESS) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "%s: invalid name '%s'",
 					    server_contact[i], str);
@@ -1016,11 +997,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	{
 		obj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(obj);
-		isc_buffer_constinit(&b, str, strlen(str));
-		isc_buffer_add(&b, strlen(str));
-		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, 0, NULL);
-		if (tresult != ISC_R_SUCCESS) {
+		if (check_name(str) != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "disable-empty-zone: invalid name '%s'",
 				    str);
@@ -1747,12 +1724,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	if (root) {
 		if (voptions != NULL)
 			(void)cfg_map_get(voptions, "forwarders", &obj);
-		if (obj == NULL) {
-			const cfg_obj_t *options = NULL;
-			(void)cfg_map_get(config, "options", &options);
-			if (options != NULL)
-				(void)cfg_map_get(options, "forwarders", &obj);
-		}
+		if (obj == NULL && goptions != NULL)
+			(void)cfg_map_get(goptions, "forwarders", &obj);
 	}
 	if (check_forward(zoptions, obj, logctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
@@ -1969,7 +1942,6 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 	}
 	if (algorithm[len] == '-') {
 		isc_uint16_t digestbits;
-		isc_result_t result;
 		result = isc_parse_uint16(&digestbits, algorithm + len + 1, 10);
 		if (result == ISC_R_SUCCESS || result == ISC_R_RANGE) {
 			if (result == ISC_R_RANGE ||
@@ -2393,7 +2365,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		isc_result_t tresult;
 		const cfg_obj_t *zone = cfg_listelt_value(element);
 
 		tresult = check_zoneconf(zone, voptions, config, symtab,
@@ -2925,10 +2896,10 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 		const cfg_obj_t *voptions = cfg_tuple_get(view, "options");
 		const cfg_obj_t *vclassobj = cfg_tuple_get(view, "class");
 		dns_rdataclass_t vclass = dns_rdataclass_in;
-		isc_result_t tresult = ISC_R_SUCCESS;
 		const char *key = cfg_obj_asstring(vname);
 		isc_symvalue_t symvalue;
 
+		tresult = ISC_R_SUCCESS;
 		if (cfg_obj_isstring(vclassobj)) {
 			isc_textregion_t r;
 

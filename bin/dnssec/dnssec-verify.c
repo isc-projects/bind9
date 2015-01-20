@@ -272,7 +272,7 @@ main(int argc, char *argv[]) {
 
 	rdclass = strtoclass(classname);
 
-	setup_logging(verbose, mctx, &log);
+	setup_logging(mctx, &log);
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;

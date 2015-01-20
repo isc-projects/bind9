@@ -959,6 +959,7 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_libbind
+enable_warn_shadow
 enable_warn_error
 enable_developer
 with_python
@@ -1647,6 +1648,7 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-libbind	  deprecated
+  --enable-warn-shadow	  turn on -Wshadow when compiling
   --enable-warn-error	  turn on -Werror when compiling
   --enable-developer      enable developer build settings
   --enable-newstats       use the new statistics
@@ -11392,6 +11394,12 @@ It is available from http://www.isc.org as a separate download." "$LINENO" 5
 		;;
 esac
 
+# Check whether --enable-warn_shadow was given.
+if test "${enable_warn_shadow+set}" = set; then :
+  enableval=$enable_warn_shadow;
+fi
+
+
 # Check whether --enable-warn_error was given.
 if test "${enable_warn_error+set}" = set; then :
   enableval=$enable_warn_error;
@@ -11421,6 +11429,7 @@ yes)
 	esac
 	test "${enable_symtable+set}" = set || enable_symtable=all
 	test "${enable_warn_error+set}" = set || enable_warn_error=yes
+	test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
 	;;
 esac
 #
@@ -15719,6 +15728,9 @@ $as_echo "no" >&6; }
 		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
 		;;
 	esac
+	if test "X$enable_warn_shadow" = Xyes; then
+		STD_CWARNINGS="$STD_CWARNINGS -Wshadow"
+	fi
 	if test "X$enable_warn_error" = Xyes; then
 		STD_CWARNINGS="$STD_CWARNINGS -Werror"
 	fi
