@@ -126,6 +126,9 @@ struct dns_rbtnode {
 	unsigned int down_is_relative : 1;
 	unsigned int data_is_relative : 1;
 
+	/* node needs to be cleaned from rpz */
+	unsigned int rpz : 1;
+
 #ifdef DNS_RBT_USEHASH
 	unsigned int hashval;
 #endif
