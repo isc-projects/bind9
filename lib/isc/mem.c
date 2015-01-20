@@ -118,7 +118,7 @@ typedef ISC_LIST(debuglink_t)	debuglist_t;
 static ISC_LIST(isc__mem_t)	contexts;
 
 static isc_once_t		once = ISC_ONCE_INIT;
-static isc_mutex_t		lock;
+static isc_mutex_t		contextslock;
 static isc_mutex_t 		createlock;
 
 /*%
@@ -874,7 +874,7 @@ default_memfree(void *arg, void *ptr) {
 static void
 initialize_action(void) {
 	RUNTIME_CHECK(isc_mutex_init(&createlock) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&contextslock) == ISC_R_SUCCESS);
 	ISC_LIST_INIT(contexts);
 	totallost = 0;
 }
@@ -1002,9 +1002,9 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 
 	ctx->memalloc_failures = 0;
 
-	LOCK(&lock);
+	LOCK(&contextslock);
 	ISC_LIST_INITANDAPPEND(contexts, ctx, link);
-	UNLOCK(&lock);
+	UNLOCK(&contextslock);
 
 	*ctxp = (isc_mem_t *)ctx;
 	return (ISC_R_SUCCESS);
@@ -1032,10 +1032,10 @@ destroy(isc__mem_t *ctx) {
 	unsigned int i;
 	isc_ondestroy_t ondest;
 
-	LOCK(&lock);
+	LOCK(&contextslock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
 	totallost += ctx->inuse;
-	UNLOCK(&lock);
+	UNLOCK(&contextslock);
 
 	ctx->common.impmagic = 0;
 	ctx->common.magic = 0;
@@ -2293,14 +2293,14 @@ isc_mem_printallactive(FILE *file) {
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
-	LOCK(&lock);
+	LOCK(&contextslock);
 	for (ctx = ISC_LIST_HEAD(contexts);
 	     ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link)) {
 		fprintf(file, "context: %p\n", ctx);
 		print_active(ctx, file);
 	}
-	UNLOCK(&lock);
+	UNLOCK(&contextslock);
 #endif
 }
 
@@ -2312,7 +2312,7 @@ isc_mem_checkdestroyed(FILE *file) {
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
-	LOCK(&lock);
+	LOCK(&contextslock);
 	if (!ISC_LIST_EMPTY(contexts))  {
 #if ISC_MEM_TRACKLINES
 		isc__mem_t *ctx;
@@ -2327,7 +2327,7 @@ isc_mem_checkdestroyed(FILE *file) {
 #endif
 		INSIST(0);
 	}
-	UNLOCK(&lock);
+	UNLOCK(&contextslock);
 }
 
 unsigned int
@@ -2464,18 +2464,18 @@ isc_mem_renderxml(xmlTextWriterPtr writer) {
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
-	LOCK(&lock);
+	LOCK(&contextslock);
 	lost = totallost;
 	for (ctx = ISC_LIST_HEAD(contexts);
 	     ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link)) {
 		xmlrc = xml_renderctx(ctx, &summary, writer);
 		if (xmlrc < 0) {
-			UNLOCK(&lock);
+			UNLOCK(&contextslock);
 			goto error;
 		}
 	}
-	UNLOCK(&lock);
+	UNLOCK(&contextslock);
 
 	TRY0(xmlTextWriterEndElement(writer)); /* contexts */
 
@@ -2631,18 +2631,18 @@ isc_mem_renderjson(json_object *memobj) {
 	ctxarray = json_object_new_array();
 	CHECKMEM(ctxarray);
 
-	LOCK(&lock);
+	LOCK(&contextslock);
 	lost = totallost;
 	for (ctx = ISC_LIST_HEAD(contexts);
 	     ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link)) {
 		result = json_renderctx(ctx, &summary, ctxarray);
 		if (result != ISC_R_SUCCESS) {
-			UNLOCK(&lock);
+			UNLOCK(&contextslock);
 			goto error;
 		}
 	}
-	UNLOCK(&lock);
+	UNLOCK(&contextslock);
 
 	obj = json_object_new_int64(summary.total);
 	CHECKMEM(obj);

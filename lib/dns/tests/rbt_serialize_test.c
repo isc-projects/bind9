@@ -193,7 +193,7 @@ fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg,
  * Load test data into the RBT.
  */
 static void
-add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt) {
+add_test_data(isc_mem_t *mymctx, dns_rbt_t *rbt) {
 	char buffer[1024];
 	isc_buffer_t b;
 	isc_result_t result;
@@ -202,7 +202,7 @@ add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt) {
 	dns_compress_t cctx;
 	rbt_testdata_t *testdatap = testdata;
 
-	dns_compress_init(&cctx, -1, mctx);
+	dns_compress_init(&cctx, -1, mymctx);
 
 	while (testdatap->name != NULL && testdatap->data.data != NULL) {
 		memmove(buffer, testdatap->name, testdatap->name_len);

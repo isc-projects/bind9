@@ -178,7 +178,6 @@ totext_rrsig(ARGS_TOTEXT) {
 	if (dns_rdatatype_isknown(covered) && covered != 0) {
 		RETERR(dns_rdatatype_totext(covered, target));
 	} else {
-		char buf[sizeof("TYPE65535")];
 		sprintf(buf, "TYPE%u", covered);
 		RETERR(str_totext(buf, target));
 	}

@@ -255,7 +255,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 	isc_result_t result, loopresult;
 	isc_region_t r;
 	dns_name_t empty_name;
-	char t[4096];
+	char tbuf[4096];
 	isc_boolean_t first;
 	isc_boolean_t no_rdata;
 
@@ -279,7 +279,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 		name = NULL;
 		dns_message_currentname(msg, sectionid, &name);
 
-		isc_buffer_init(&target, t, sizeof(t));
+		isc_buffer_init(&target, tbuf, sizeof(tbuf));
 		first = ISC_TRUE;
 		print_name = name;
 
@@ -370,13 +370,13 @@ printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
 	isc_buffer_t target;
 	isc_result_t result;
 	isc_region_t r;
-	char t[4096];
+	char tbuf[4096];
 
 	UNUSED(msg);
 	if (headers)
 		printf(";; %s SECTION:\n", set_name);
 
-	isc_buffer_init(&target, t, sizeof(t));
+	isc_buffer_init(&target, tbuf, sizeof(tbuf));
 
 	result = dns_rdataset_totext(rdataset, owner, ISC_FALSE, ISC_FALSE,
 				     &target);

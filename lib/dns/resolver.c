@@ -7638,8 +7638,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			unsigned int flags, mask;
 			unsigned int version;
 #ifdef ISC_PLATFORM_USESIT
-			unsigned char sit[64];
-
 			/*
 			 * Some servers return BADVERS to unknown
 			 * EDNS options.  This cannot be long term

@@ -1018,7 +1018,6 @@ dump_rdataset_raw(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 
 	do {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
-		isc_region_t r;
 
 		dns_rdataset_current(rdataset, &rdata);
 		dns_rdata_toregion(&rdata, &r);

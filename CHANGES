@@ -1,3 +1,5 @@
+4039.	[cleanup]	Cleaned up warnings from gcc -Wshadow. [RT #37381]
+
 4038.	[bug]		Add 'rpz' flag to node and use it to determine whether
 			to call dns_rpz_delete.  This should prevent unbalanced
 			add / delete calls. [RT #36888]

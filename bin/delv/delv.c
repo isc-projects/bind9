@@ -444,8 +444,6 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(rdataset))
 			{
-				isc_region_t r;
-
 				if ((rdataset->attributes &
 				     DNS_RDATASETATTR_NEGATIVE) != 0)
 					continue;
@@ -459,14 +457,12 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 				if (result != ISC_R_SUCCESS)
 					break;
 
-				isc_buffer_availableregion(&target, &r);
-				if (r.length < 1) {
+				if (isc_buffer_availablelength(&target) < 1) {
 					result = ISC_R_NOSPACE;
 					break;
 				}
 
-				r.base[0] = '\n';
-				isc_buffer_add(&target, 1);
+				isc_buffer_putstr(&target, "\n");
 
 				dns_rdata_reset(&rdata);
 			}

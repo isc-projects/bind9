@@ -103,18 +103,18 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 
 			if (d != NULL) {
 #ifdef ISC_PLATFORM_HAVESCOPEID
-				isc_result_t result;
+				isc_result_t iresult;
 
-				result = isc_netscope_pton(AF_INET6, d + 1,
-							   &in6, &zone);
+				iresult = isc_netscope_pton(AF_INET6, d + 1,
+							    &in6, &zone);
 
-				if (result != ISC_R_SUCCESS)
-					return (result);
+				if (iresult != ISC_R_SUCCESS)
+					return (iresult);
 #else
 				/*
 				 * The extended format is specified while the
 				 * system does not provide the ability to use
-				 * it.  Throw an explicit error instead of
+				 * it.	Throw an explicit error instead of
 				 * ignoring the specified value.
 				 */
 				return (ISC_R_BADADDRESSFORM);

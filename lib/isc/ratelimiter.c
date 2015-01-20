@@ -153,7 +153,6 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
 	LOCK(&rl->lock);
 	if (rl->state == isc_ratelimiter_ratelimited ||
 	    rl->state == isc_ratelimiter_stalled) {
-		isc_event_t *ev = *eventp;
 		ev->ev_sender = task;
 		ISC_LIST_APPEND(rl->pending, ev, ev_link);
 		*eventp = NULL;

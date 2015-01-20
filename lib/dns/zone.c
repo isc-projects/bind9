@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -1827,7 +1825,6 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	 */
 	if (strcmp(zone->db_argv[0], "dlz") == 0) {
 		dns_dlzdb_t *dlzdb;
-		dns_db_t *db = NULL;
 		dns_dlzfindzone_t findzone;
 
 		for (dlzdb = ISC_LIST_HEAD(zone->view->dlz_unsearched);
@@ -5843,7 +5840,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	unsigned int i;
 	dns_rdata_rrsig_t rrsig;
 	isc_boolean_t found;
-	isc_int64_t warn = 0, maybe = 0;
+	isc_int64_t timewarn = 0, timemaybe = 0;
 
 	dns_rdataset_init(&rdataset);
 
@@ -5949,18 +5946,20 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				{
 					isc_int64_t timeexpire =
 					   dns_time64_from32(rrsig.timeexpire);
-					if (warn != 0 && warn > timeexpire)
-						warn = timeexpire;
+					if (timewarn != 0 &&
+					    timewarn > timeexpire)
+						timewarn = timeexpire;
 					if (rdata.flags & DNS_RDATA_OFFLINE) {
-						if (maybe == 0 ||
-						    maybe > timeexpire)
-							maybe = timeexpire;
+						if (timemaybe == 0 ||
+						    timemaybe > timeexpire)
+							timemaybe = timeexpire;
 						break;
 					}
-					if (warn == 0)
-						warn = maybe;
-					if (warn == 0 || warn > timeexpire)
-						warn = timeexpire;
+					if (timewarn == 0)
+						timewarn = timemaybe;
+					if (timewarn == 0 ||
+					    timewarn > timeexpire)
+						timewarn = timeexpire;
 					result = offline(db, ver, zonediff,
 							 name, rdataset.ttl,
 							 &rdata);
@@ -5989,12 +5988,13 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdataset_disassociate(&rdataset);
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
-	if (warn > 0) {
+	if (timewarn > 0) {
 #if defined(STDTIME_ON_32BITS)
-		isc_stdtime_t stdwarn = (isc_stdtime_t)warn;
-		if (warn == stdwarn)
+		isc_stdtime_t stdwarn = (isc_stdtime_t)timewarn;
+		if (timewarn == stdwarn)
 #endif
-			set_key_expiry_warning(zone, (isc_stdtime_t)warn, now);
+			set_key_expiry_warning(zone, (isc_stdtime_t)timewarn,
+					       now);
 #if defined(STDTIME_ON_32BITS)
 		else
 			dns_zone_log(zone, ISC_LOG_ERROR,
@@ -7783,12 +7783,12 @@ zone_nsec3chain(dns_zone_t *zone) {
 
 	LOCK_ZONE(zone);
 	if (ISC_LIST_HEAD(zone->nsec3chain) != NULL) {
-		isc_interval_t i;
+		isc_interval_t interval;
 		if (zone->update_disabled || result != ISC_R_SUCCESS)
-			isc_interval_set(&i, 60, 0);		/* 1 minute */
+			isc_interval_set(&interval, 60, 0);	  /* 1 minute */
 		else
-			isc_interval_set(&i, 0, 10000000);	/* 10 ms */
-		isc_time_nowplusinterval(&zone->nsec3chaintime, &i);
+			isc_interval_set(&interval, 0, 10000000); /* 10 ms */
+		isc_time_nowplusinterval(&zone->nsec3chaintime, &interval);
 	} else
 		isc_time_settoepoch(&zone->nsec3chaintime);
 	UNLOCK_ZONE(zone);
@@ -8333,12 +8333,12 @@ zone_sign(dns_zone_t *zone) {
 		dns_db_detach(&db);
 
 	if (ISC_LIST_HEAD(zone->signing) != NULL) {
-		isc_interval_t i;
+		isc_interval_t interval;
 		if (zone->update_disabled || result != ISC_R_SUCCESS)
-			isc_interval_set(&i, 60, 0);		/* 1 minute */
+			isc_interval_set(&interval, 60, 0);	  /* 1 minute */
 		else
-			isc_interval_set(&i, 0, 10000000);	/* 10 ms */
-		isc_time_nowplusinterval(&zone->signingtime, &i);
+			isc_interval_set(&interval, 0, 10000000); /* 10 ms */
+		isc_time_nowplusinterval(&zone->signingtime, &interval);
 	} else
 		isc_time_settoepoch(&zone->signingtime);
 
@@ -11246,12 +11246,12 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 
 	serial = soa.serial;
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
-		unsigned int soacount;
-		result = zone_get_from_db(zone, zone->db, NULL, &soacount,
+		unsigned int dbsoacount;
+		result = zone_get_from_db(zone, zone->db, NULL, &dbsoacount,
 					  &oldserial, NULL, NULL, NULL, NULL,
 					  NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		RUNTIME_CHECK(soacount > 0U);
+		RUNTIME_CHECK(dbsoacount > 0U);
 		zone_debuglog(zone, me, 1, "serial: new %u, old %u",
 			      serial, oldserial);
 	} else

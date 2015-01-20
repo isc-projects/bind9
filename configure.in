@@ -77,6 +77,8 @@ It is available from http://www.isc.org as a separate download.])
 		;;
 esac
 
+AC_ARG_ENABLE(warn_shadow, [  --enable-warn-shadow	  turn on -Wshadow when compiling])
+
 AC_ARG_ENABLE(warn_error, [  --enable-warn-error	  turn on -Werror when compiling])
 
 AC_ARG_ENABLE(developer, [  --enable-developer      enable developer build settings])
@@ -90,6 +92,7 @@ yes)
 	test "${enable_symtable+set}" = set || enable_symtable=all
 	test "${enable_sit+set}" = set || enable_sit=yes
 	test "${enable_warn_error+set}" = set || enable_warn_error=yes
+	test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
 	;;
 esac
 
@@ -2286,6 +2289,9 @@ if test "X$GCC" = "Xyes"; then
 		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
 		;;
 	esac
+	if test "X$enable_warn_shadow" = Xyes; then
+		STD_CWARNINGS="$STD_CWARNINGS -Wshadow"
+	fi
 	if test "X$enable_warn_error" = Xyes; then
 		STD_CWARNINGS="$STD_CWARNINGS -Werror"
 	fi
