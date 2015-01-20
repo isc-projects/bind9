@@ -2186,6 +2186,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	node->right_is_relative = 0;
 	node->parent_is_relative = 0;
 	node->data_is_relative = 0;
+	node->rpz = 0;
 
 #ifdef DNS_RBT_USEHASH
 	HASHNEXT(node) = NULL;

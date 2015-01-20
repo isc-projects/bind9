@@ -1834,7 +1834,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node)
 
 	switch (node->nsec) {
 	case DNS_RBT_NSEC_NORMAL:
-		if (rbtdb->rpzs != NULL) {
+		if (rbtdb->rpzs != NULL && node->rpz) {
 			dns_fixedname_init(&fname);
 			name = dns_fixedname_name(&fname);
 			dns_rbt_fullnamefromnode(node, name);
@@ -1873,9 +1873,9 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node)
 					      isc_result_totext(result));
 			}
 		}
-		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
-		if (rbtdb->rpzs != NULL)
+		if (rbtdb->rpzs != NULL && node->rpz)
 			dns_rpz_delete(rbtdb->rpzs, rbtdb->rpz_num, name);
+		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
 		break;
 	case DNS_RBT_NSEC_NSEC:
 		result = dns_rbt_deletenode(rbtdb->nsec, node, ISC_FALSE);
@@ -2901,6 +2901,8 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
 		fname = dns_fixedname_name(&fnamef);
 		dns_rbt_fullnamefromnode(node, fname);
 		result = dns_rpz_add(rbtdb->rpzs, rbtdb->rpz_num, fname);
+		if (result == ISC_R_SUCCESS)
+			node->rpz = 1;
 		if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
 			/*
 			 * It is too late to give up, so merely complain.
@@ -7063,7 +7065,9 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 	if (rbtdb->rpzs != NULL && noderesult == ISC_R_SUCCESS) {
 		noderesult = dns_rpz_add(rbtdb->load_rpzs, rbtdb->rpz_num,
 					 name);
-		if (noderesult != ISC_R_SUCCESS) {
+		if (noderesult == ISC_R_SUCCESS) {
+			node->rpz = 1;
+		} else  {
 			/*
 			 * Remove the node we just added above.
 			 */
@@ -7122,6 +7126,11 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 
 	if (noderesult == ISC_R_SUCCESS) {
 		/*
+		 * Clean rpz entries added above.
+		 */
+		if (rbtdb->rpzs != NULL && node->rpz)
+			dns_rpz_delete(rbtdb->load_rpzs, rbtdb->rpz_num, name);
+		/*
 		 * Remove the node we just added above.
 		 */
 		tmpresult = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
@@ -7135,8 +7144,6 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 				      "dns_rbt_addnode(NSEC): %s",
 				      isc_result_totext(tmpresult),
 				      isc_result_totext(noderesult));
-		if (rbtdb->rpzs != NULL && noderesult == ISC_R_SUCCESS)
-			dns_rpz_delete(rbtdb->load_rpzs, rbtdb->rpz_num, name);
 	}
 
 	/*
