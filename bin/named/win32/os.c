@@ -80,9 +80,10 @@ ns_paths_init(void) {
 static void
 version_check(const char *progname) {
 
-	if(isc_win32os_majorversion() < 5)
+	if ((isc_win32os_versioncheck(4, 0, 0, 0) >= 0) &&
+	    (isc_win32os_versioncheck(5, 0, 0, 0) < 0))
 		return;	/* No problem with Version 4.0 */
-	if(isc_win32os_versioncheck(5, 0, 2, 0) < 0)
+	if (isc_win32os_versioncheck(5, 0, 2, 0) < 0)
 		if (ntservice_isservice())
 			NTReportError(progname, version_error);
 		else
