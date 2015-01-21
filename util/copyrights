@@ -1588,7 +1588,7 @@
 ./bin/tests/system/pipelined/ns3/named.args	X	2014
 ./bin/tests/system/pipelined/ns3/named.conf	CONF-C	2014
 ./bin/tests/system/pipelined/ns4/named.conf	CONF-C	2014
-./bin/tests/system/pipelined/pipequeries.c	C	2014
+./bin/tests/system/pipelined/pipequeries.c	C	2014,2015
 ./bin/tests/system/pipelined/ref		X	2014
 ./bin/tests/system/pipelined/refb		X	2014
 ./bin/tests/system/pipelined/setup.sh		SH	2014

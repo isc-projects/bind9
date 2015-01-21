@@ -383,8 +383,13 @@ dns_dispatch_starttcp(dns_dispatch_t *disp);
 isc_result_t
 dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
 		    isc_sockaddr_t *localaddr, dns_dispatch_t **dispp);
+isc_result_t
+dns_dispatch_gettcp2(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
+		     isc_sockaddr_t *localaddr, isc_boolean_t *connected,
+		     dns_dispatch_t **dispp);
 /*
- * Attempt to connect to a existing TCP connection.
+ * Attempt to connect to a existing TCP connection (connection completed
+ * for dns_dispatch_gettcp()).
  */
 
 

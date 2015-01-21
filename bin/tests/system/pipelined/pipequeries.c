@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,6 +26,7 @@
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/net.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/task.h>
@@ -61,7 +62,9 @@
 
 static isc_mem_t *mctx;
 static dns_requestmgr_t *requestmgr;
-isc_sockaddr_t address;
+static isc_boolean_t have_src = ISC_FALSE;
+static isc_sockaddr_t srcaddr;
+static isc_sockaddr_t dstaddr;
 static int onfly;
 
 static void
@@ -124,8 +127,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 }
 
 static isc_result_t
-sendquery(isc_task_t *task)
-{
+sendquery(isc_task_t *task) {
 	dns_request_t *request;
 	dns_message_t *message;
 	dns_name_t *qname;
@@ -175,18 +177,18 @@ sendquery(isc_task_t *task)
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
 
 	request = NULL;
-	result = dns_request_create(requestmgr, message, &address,
-				    DNS_REQUESTOPT_TCP, NULL,
-				    TIMEOUT, task, recvresponse,
-				    message, &request);
+	result = dns_request_createvia(requestmgr, message,
+				       have_src ? &srcaddr : NULL, &dstaddr,
+				       DNS_REQUESTOPT_TCP|DNS_REQUESTOPT_SHARE,
+				       NULL, TIMEOUT, task, recvresponse,
+				       message, &request);
 	CHECK("dns_request_create", result);
 
 	return ISC_R_SUCCESS;
 }
 
 static void
-sendqueries(isc_task_t *task, isc_event_t *event)
-{
+sendqueries(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	isc_event_free(&event);
@@ -200,41 +202,43 @@ sendqueries(isc_task_t *task, isc_event_t *event)
 	return;
 }
 
-static void
-connecting(isc_task_t *task, isc_event_t *event)
-{
-	isc_socket_t *sock = (isc_socket_t *)(event->ev_arg);
-
-	RUNCHECK(isc_socket_connect(sock, &address, task, sendqueries, NULL));
-
-	isc_event_free(&event);
-}
-
 int
-main(int argc, char *argv[])
-{
-	isc_taskmgr_t *taskmgr;
-	isc_timermgr_t *timermgr;
-	isc_socketmgr_t *socketmgr;
-	isc_socket_t *sock;
-	unsigned int attrs, attrmask;
-	isc_sockaddr_t bind_addr;
-	dns_dispatchmgr_t *dispatchmgr;
-	dns_dispatch_t *dispatchv4;
-	dns_dispatch_t *tcpdispatch;
-	dns_view_t *view;
-	isc_entropy_t *ectx;
-	isc_task_t *task;
-	isc_log_t *lctx;
-	isc_logconfig_t *lcfg;
+main(int argc, char *argv[]) {
+	isc_sockaddr_t bind_any;
 	struct in_addr inaddr;
 	isc_result_t result;
+	isc_log_t *lctx;
+	isc_logconfig_t *lcfg;
+	isc_entropy_t *ectx;
+	isc_taskmgr_t *taskmgr;
+	isc_task_t *task;
+	isc_timermgr_t *timermgr;
+	isc_socketmgr_t *socketmgr;
+	dns_dispatchmgr_t *dispatchmgr;
+	unsigned int attrs, attrmask;
+	dns_dispatch_t *dispatchv4;
+	dns_view_t *view;
 
 	UNUSED(argv);
+
+	if (argc > 1)
+		have_src = ISC_TRUE;
 
 	RUNCHECK(isc_app_start());
 
 	dns_result_register();
+
+	isc_sockaddr_any(&bind_any);
+
+	result = ISC_R_FAILURE;
+	if (inet_pton(AF_INET, "10.53.0.7", &inaddr) != 1)
+		CHECK("inet_pton", result);
+	isc_sockaddr_fromin(&srcaddr, &inaddr, 0);
+
+	result = ISC_R_FAILURE;
+	if (inet_pton(AF_INET, "10.53.0.4", &inaddr) != 1)
+		CHECK("inet_pton", result);
+	isc_sockaddr_fromin(&dstaddr, &inaddr, PORT);
 
 	mctx = NULL;
 	RUNCHECK(isc_mem_create(0, 0, &mctx));
@@ -261,14 +265,7 @@ main(int argc, char *argv[])
 	RUNCHECK(isc_socketmgr_create(mctx, &socketmgr));
 	dispatchmgr = NULL;
 	RUNCHECK(dns_dispatchmgr_create(mctx, ectx, &dispatchmgr));
-	if (argc == 1) {
-		isc_sockaddr_any(&bind_addr);
-	} else {
-		result = ISC_R_FAILURE;
-		if (inet_pton(AF_INET, "10.53.0.7", &inaddr) != 1)
-			CHECK("inet_pton", result);
-		isc_sockaddr_fromin(&bind_addr, &inaddr, 0);
-	}
+
 	attrs = DNS_DISPATCHATTR_UDP |
 		DNS_DISPATCHATTR_MAKEQUERY |
 		DNS_DISPATCHATTR_IPV4;
@@ -278,8 +275,9 @@ main(int argc, char *argv[])
 		   DNS_DISPATCHATTR_IPV6;
 	dispatchv4 = NULL;
 	RUNCHECK(dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
-					  &bind_addr, 4096, 4, 2, 3, 5,
-					  attrs, attrmask, &dispatchv4));
+				     have_src ? &srcaddr : &bind_any,
+				     4096, 4, 2, 3, 5,
+				     attrs, attrmask, &dispatchv4));
 	requestmgr = NULL;
 	RUNCHECK(dns_requestmgr_create(mctx, timermgr, socketmgr, taskmgr,
 					    dispatchmgr, dispatchv4, NULL,
@@ -288,31 +286,7 @@ main(int argc, char *argv[])
 	view = NULL;
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 
-	sock = NULL;
-	RUNCHECK(isc_socket_create(socketmgr, PF_INET, isc_sockettype_tcp,
-				   &sock));
-	RUNCHECK(isc_socket_bind(sock, &bind_addr, 0));
-
-	result = ISC_R_FAILURE;
-	if (inet_pton(AF_INET, "10.53.0.4", &inaddr) != 1)
-		CHECK("inet_pton", result);
-	isc_sockaddr_fromin(&address, &inaddr, PORT);
-
-	attrs = 0;
-	attrs |= DNS_DISPATCHATTR_TCP;
-	attrs |= DNS_DISPATCHATTR_IPV4;
-	attrs |= DNS_DISPATCHATTR_MAKEQUERY;
-	attrs |= DNS_DISPATCHATTR_CONNECTED;
-	isc_socket_dscp(sock, -1);
-	tcpdispatch = NULL;
-	RUNCHECK(dns_dispatch_createtcp2(dispatchmgr, sock, taskmgr,
-					 &bind_addr, &address,
-					 4096, 20, 10, 3, 5,
-					 attrs, &tcpdispatch));
-
-	RUNCHECK(isc_app_onrun(mctx, task, connecting, sock));
-
-	isc_socket_detach(&sock);
+	RUNCHECK(isc_app_onrun(mctx, task, sendqueries, NULL));
 
 	(void)isc_app_run();
 
@@ -322,7 +296,6 @@ main(int argc, char *argv[])
 	dns_requestmgr_detach(&requestmgr);
 
 	dns_dispatch_detach(&dispatchv4);
-	dns_dispatch_detach(&tcpdispatch);
 	dns_dispatchmgr_destroy(&dispatchmgr);
 
 	isc_socketmgr_destroy(&socketmgr);

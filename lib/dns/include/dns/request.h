@@ -49,6 +49,7 @@
 #define DNS_REQUESTOPT_TCP 0x00000001U
 #define DNS_REQUESTOPT_CASE 0x00000002U
 #define DNS_REQUESTOPT_FIXEDID 0x00000004U
+#define DNS_REQUESTOPT_SHARE 0x00000008U
 
 typedef struct dns_requestevent {
 	ISC_EVENT_COMMON(struct dns_requestevent);
@@ -174,7 +175,9 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
  * Notes:
  *
  *\li	'message' will be rendered and sent to 'address'.  If the
- *	#DNS_REQUESTOPT_TCP option is set, TCP will be used.  The request
+ *	#DNS_REQUESTOPT_TCP option is set, TCP will be used,
+ *	#DNS_REQUESTOPT_SHARE option is set too, connecting TCP
+ *	(vs. connected) will be shared too.  The request
  *	will timeout after 'timeout' seconds.
  *
  *\li	If the #DNS_REQUESTOPT_CASE option is set, use case sensitive
@@ -238,7 +241,9 @@ dns_request_createvia4(dns_requestmgr_t *requestmgr, dns_message_t *message,
  * Notes:
  *
  *\li	'message' will be rendered and sent to 'address'.  If the
- *	#DNS_REQUESTOPT_TCP option is set, TCP will be used.  The request
+ *	#DNS_REQUESTOPT_TCP option is set, TCP will be used,
+ *	#DNS_REQUESTOPT_SHARE option is set too, connecting TCP
+ *	(vs. connected) will be shared too.  The request
  *	will timeout after 'timeout' seconds.  UDP requests will be resent
  *	at 'udptimeout' intervals if non-zero or 'udpretries' is non-zero.
  *
@@ -305,7 +310,9 @@ dns_request_createraw4(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
  * Notes:
  *
  *\li	'msgbuf' will be sent to 'destaddr' after setting the id.  If the
- *	#DNS_REQUESTOPT_TCP option is set, TCP will be used.  The request
+ *	#DNS_REQUESTOPT_TCP option is set, TCP will be used,
+ *	#DNS_REQUESTOPT_SHARE option is set too, connecting TCP
+ *	(vs. connected) will be shared too.  The request
  *	will timeout after 'timeout' seconds.   UDP requests will be resent
  *	at 'udptimeout' intervals if non-zero or if 'udpretries' is not zero.
  *

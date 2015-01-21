@@ -266,7 +266,7 @@ struct isc_socket {
 	ISC_LIST(isc_socketevent_t)		send_list;
 	ISC_LIST(isc_socketevent_t)		recv_list;
 	ISC_LIST(isc_socket_newconnev_t)	accept_list;
-	isc_socket_connev_t		       *connect_ev;
+	ISC_LIST(isc_socket_connev_t)		connect_list;
 
 	isc_sockaddr_t		address;  /* remote address */
 
@@ -375,6 +375,7 @@ static void send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev);
 static void send_acceptdone_event(isc_socket_t *sock, isc_socket_newconnev_t **adev);
 static void send_connectdone_event(isc_socket_t *sock, isc_socket_connev_t **cdev);
 static void send_recvdone_abort(isc_socket_t *sock, isc_result_t result);
+static void send_connectdone_abort(isc_socket_t *sock, isc_result_t result);
 static void queue_receive_event(isc_socket_t *sock, isc_task_t *task, isc_socketevent_t *dev);
 static void queue_receive_request(isc_socket_t *sock);
 
@@ -388,6 +389,7 @@ void
 sock_dump(isc_socket_t *sock) {
 	isc_socketevent_t *ldev;
 	isc_socket_newconnev_t *ndev;
+	isc_socket_connev_t *cdev;
 
 #if 0
 	isc_sockaddr_t addr;
@@ -435,6 +437,13 @@ sock_dump(isc_socket_t *sock) {
 	while (ndev != NULL) {
 		printf("\t\tdev: %p\n", ldev);
 		ndev = ISC_LIST_NEXT(ndev, ev_link);
+	}
+
+	printf("\n\t\tSock Connect List\n");
+	cdev = ISC_LIST_HEAD(sock->connect_list);
+	while (cdev != NULL) {
+		printf("\t\tdev: %p\n", cdev);
+		cdev = ISC_LIST_NEXT(cdev, ev_link);
 	}
 }
 
@@ -1486,7 +1495,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	ISC_LIST_INIT(sock->recv_list);
 	ISC_LIST_INIT(sock->send_list);
 	ISC_LIST_INIT(sock->accept_list);
-	sock->connect_ev = NULL;
+	ISC_LIST_INIT(sock->connect_list);
 	sock->pending_accept = 0;
 	sock->pending_recv = 0;
 	sock->pending_send = 0;
@@ -1565,7 +1574,7 @@ consistent(isc_socket_t *sock) {
 	}
 	if (count > sock->pending_accept) {
 		crash = ISC_TRUE;
-		crash_reason = "send_list > sock->pending_send";
+		crash_reason = "accept_list > sock->pending_accept";
 	}
 
 	if (crash) {
@@ -1609,6 +1618,7 @@ maybe_free_socket(isc_socket_t **socketp, int lineno) {
 	    || !ISC_LIST_EMPTY(sock->recv_list)
 	    || !ISC_LIST_EMPTY(sock->send_list)
 	    || !ISC_LIST_EMPTY(sock->accept_list)
+	    || !ISC_LIST_EMPTY(sock->connect_list)
 	    || sock->fd != INVALID_SOCKET) {
 		UNLOCK(&sock->lock);
 		return;
@@ -2030,7 +2040,8 @@ send_connectdone_event(isc_socket_t *sock, isc_socket_connev_t **cdev) {
 	task = (*cdev)->ev_sender;
 	(*cdev)->ev_sender = sock;
 
-	sock->connect_ev = NULL;
+	if (ISC_LINK_LINKED(*cdev, ev_link))
+		ISC_LIST_DEQUEUE(sock->connect_list, *cdev, ev_link);
 
 	isc_task_sendanddetach(&task, (isc_event_t **)cdev);
 
@@ -2148,6 +2159,7 @@ done:
 static void
 internal_connect(isc_socket_t *sock, IoCompletionInfo *lpo, int connect_errno) {
 	isc_socket_connev_t *cdev;
+	isc_result_t result;
 	char strbuf[ISC_STRERRORSIZE];
 
 	INSIST(VALID_SOCKET(sock));
@@ -2160,7 +2172,7 @@ internal_connect(isc_socket_t *sock, IoCompletionInfo *lpo, int connect_errno) {
 	sock->pending_connect = 0;
 
 	/*
-	 * Has this event been canceled?
+	 * If the event is no longer in the list we can just close and return.
 	 */
 	cdev = lpo->cdev;
 	if (!connectdone_is_active(sock, cdev)) {
@@ -2195,7 +2207,7 @@ internal_connect(isc_socket_t *sock, IoCompletionInfo *lpo, int connect_errno) {
 		 * Translate other errors into ISC_R_* flavors.
 		 */
 		switch (connect_errno) {
-#define ERROR_MATCH(a, b) case a: cdev->result = b; break;
+#define ERROR_MATCH(a, b) case a: result = b; break;
 			ERROR_MATCH(WSAEACCES, ISC_R_NOPERM);
 			ERROR_MATCH(WSAEADDRNOTAVAIL, ISC_R_ADDRNOTAVAIL);
 			ERROR_MATCH(WSAEAFNOSUPPORT, ISC_R_ADDRNOTAVAIL);
@@ -2210,7 +2222,7 @@ internal_connect(isc_socket_t *sock, IoCompletionInfo *lpo, int connect_errno) {
 			ERROR_MATCH(WSAETIMEDOUT, ISC_R_TIMEDOUT);
 #undef ERROR_MATCH
 		default:
-			cdev->result = ISC_R_UNEXPECTED;
+			result = ISC_R_UNEXPECTED;
 			isc__strerror(connect_errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_connect: connect() %s",
@@ -2219,14 +2231,18 @@ internal_connect(isc_socket_t *sock, IoCompletionInfo *lpo, int connect_errno) {
 	} else {
 		INSIST(setsockopt(sock->fd, SOL_SOCKET,
 				  SO_UPDATE_CONNECT_CONTEXT, NULL, 0) == 0);
-		cdev->result = ISC_R_SUCCESS;
+		result = ISC_R_SUCCESS;
 		sock->connected = 1;
 		socket_log(__LINE__, sock, &sock->address, IOEVENT,
 			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTEDCXN,
 			   "internal_connect: success");
 	}
 
-	send_connectdone_event(sock, &cdev);
+	do {
+		cdev->result = result;
+		send_connectdone_event(sock, &cdev);
+		cdev = ISC_LIST_HEAD(sock->connect_list);
+	} while (cdev != NULL);
 
 	UNLOCK(&sock->lock);
 }
@@ -2242,6 +2258,20 @@ send_recvdone_abort(isc_socket_t *sock, isc_result_t result) {
 		dev = ISC_LIST_HEAD(sock->recv_list);
 		dev->result = result;
 		send_recvdone_event(sock, &dev);
+	}
+}
+
+/*
+ * Loop through the socket, returning result for each done event pending.
+ */
+static void
+send_connectdone_abort(isc_socket_t *sock, isc_result_t result) {
+	isc_socket_connev_t *dev;
+
+	while (!ISC_LIST_EMPTY(sock->connect_list)) {
+		dev = ISC_LIST_HEAD(sock->connect_list);
+		dev->result = result;
+		send_connectdone_event(sock, &dev);
 	}
 }
 
@@ -2361,9 +2391,8 @@ internal_send(isc_socket_t *sock, isc_socketevent_t *dev,
 }
 
 /*
- * These return if the done event passed in is on the list (or for connect, is
- * the one we're waiting for.  Using these ensures we will not double-send an
- * event.
+ * These return if the done event passed in is on the list.
+ * Using these ensures we will not double-send an event.
  */
 static isc_boolean_t
 senddone_is_active(isc_socket_t *sock, isc_socketevent_t *dev)
@@ -2392,7 +2421,13 @@ acceptdone_is_active(isc_socket_t *sock, isc_socket_newconnev_t *dev)
 static isc_boolean_t
 connectdone_is_active(isc_socket_t *sock, isc_socket_connev_t *dev)
 {
-	return (sock->connect_ev == dev ? ISC_TRUE : ISC_FALSE);
+	isc_socket_connev_t *cdev;
+
+	cdev = ISC_LIST_HEAD(sock->connect_list);
+	while (cdev != NULL && cdev != dev)
+		cdev = ISC_LIST_NEXT(cdev, ev_link);
+
+	return (cdev == NULL ? ISC_FALSE : ISC_TRUE);
 }
 
 //
@@ -2592,10 +2627,9 @@ SocketIoThread(LPVOID ThreadContext) {
 				INSIST(sock->pending_connect == 1);
 				sock->pending_connect = 0;
 				if (connectdone_is_active(sock, lpo->cdev)) {
-					lpo->cdev->result = isc_result;
 					socket_log(__LINE__, sock, NULL, EVENT, NULL, 0, 0,
 						"canceled_connect");
-					send_connectdone_event(sock, &lpo->cdev);
+					send_connectdone_abort(sock, isc_result);
 				}
 				break;
 			}
@@ -3535,8 +3569,6 @@ isc__socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		sock->bound = 1;
 	}
 
-	REQUIRE(!sock->pending_connect);
-
 	cdev = (isc_socket_connev_t *)isc_event_allocate(manager->mctx, sock,
 							ISC_SOCKEVENT_CONNECT,
 							action,	arg,
@@ -3547,7 +3579,7 @@ isc__socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	}
 	ISC_LINK_INIT(cdev, ev_link);
 
-	if (sock->type == isc_sockettype_tcp) {
+	if ((sock->type == isc_sockettype_tcp) && !sock->pending_connect) {
 		/*
 		 * Queue io completion for an accept().
 		 */
@@ -3573,9 +3605,17 @@ isc__socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		/*
 		 * Enqueue the request.
 		 */
-		sock->connect_ev = cdev;
+		INSIST(!ISC_LINK_LINKED(cdev, ev_link));
+		ISC_LIST_ENQUEUE(sock->connect_list, cdev, ev_link);
 		sock->pending_iocp++;
+	} else if (sock->type == isc_sockettype_tcp) {
+		INSIST(isc_sockaddr_equal(&sock->address, addr));
+		isc_task_attach(task, &ntask);
+		cdev->ev_sender = ntask;
+		INSIST(!ISC_LINK_LINKED(cdev, ev_link));
+		ISC_LIST_ENQUEUE(sock->connect_list, cdev, ev_link);
 	} else {
+		REQUIRE(!sock->pending_connect);
 		WSAConnect(sock->fd, &addr->type.sa, addr->length, NULL, NULL, NULL, NULL);
 		cdev->result = ISC_R_SUCCESS;
 		isc_task_send(task, (isc_event_t **)&cdev);
@@ -3761,28 +3801,28 @@ isc__socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 	}
 	how &= ~ISC_SOCKCANCEL_ACCEPT;
 
-	/*
-	 * Connecting is not a list.
-	 */
 	if (((how & ISC_SOCKCANCEL_CONNECT) == ISC_SOCKCANCEL_CONNECT)
-	    && sock->connect_ev != NULL) {
+	    && !ISC_LIST_EMPTY(sock->connect_list)) {
 		isc_socket_connev_t    *dev;
+		isc_socket_connev_t    *next;
 		isc_task_t	       *current_task;
 
 		INSIST(sock->pending_connect);
 
-		dev = sock->connect_ev;
-		current_task = dev->ev_sender;
+		dev = ISC_LIST_HEAD(sock->connect_list);
 
-		if ((task == NULL) || (task == current_task)) {
-			closesocket(sock->fd);
-			sock->fd = INVALID_SOCKET;
-			_set_state(sock, SOCK_CLOSED);
-
-			sock->connect_ev = NULL;
-			dev->result = ISC_R_CANCELED;
-			send_connectdone_event(sock, &dev);
+		while (dev != NULL) {
+			current_task = dev->ev_sender;
+			next = ISC_LIST_NEXT(dev, ev_link);
+			if ((task == NULL) || (task == current_task)) {
+				dev->result = ISC_R_CANCELED;
+				send_connectdone_event(sock, &dev);
+			}
+			dev = next;
 		}
+		closesocket(sock->fd);
+		sock->fd = INVALID_SOCKET;
+		_set_state(sock, SOCK_CLOSED);
 	}
 	how &= ~ISC_SOCKCANCEL_CONNECT;
 

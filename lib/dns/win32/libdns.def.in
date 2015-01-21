@@ -59,7 +59,6 @@ dns_adb_noedns
 dns_adb_plainresponse
 dns_adb_probesize
 dns_adb_probesize2
-dns_adb_probesize512
 dns_adb_setadbsize
 dns_adb_setudpsize
 dns_adb_setsit
@@ -257,6 +256,7 @@ dns_dispatch_getentrysocket
 dns_dispatch_getlocaladdress
 dns_dispatch_getsocket
 dns_dispatch_gettcp
+dns_dispatch_gettcp2
 dns_dispatch_getudp
 dns_dispatch_getudp_dup
 dns_dispatch_importrecv

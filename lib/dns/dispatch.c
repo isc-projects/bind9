@@ -2678,6 +2678,83 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
 }
 
 isc_result_t
+dns_dispatch_gettcp2(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
+		     isc_sockaddr_t *localaddr, isc_boolean_t *connected,
+		     dns_dispatch_t **dispp)
+{
+	dns_dispatch_t *disp;
+	isc_result_t result;
+	isc_sockaddr_t peeraddr;
+	isc_sockaddr_t sockname;
+	unsigned int attributes, mask;
+	isc_boolean_t match = ISC_FALSE;
+
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	REQUIRE(destaddr != NULL);
+	REQUIRE(dispp != NULL && *dispp == NULL);
+	REQUIRE(connected != NULL);
+
+	/* First pass (same than dns_dispatch_gettcp()) */
+	attributes = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_CONNECTED;
+	mask = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_PRIVATE |
+	       DNS_DISPATCHATTR_EXCLUSIVE | DNS_DISPATCHATTR_CONNECTED;
+
+	LOCK(&mgr->lock);
+	disp = ISC_LIST_HEAD(mgr->list);
+	while (disp != NULL && !match) {
+		LOCK(&disp->lock);
+		if ((disp->shutting_down == 0) &&
+		    ATTRMATCH(disp->attributes, attributes, mask) &&
+		    (localaddr == NULL ||
+		     isc_sockaddr_eqaddr(localaddr, &disp->local))) {
+			result = isc_socket_getsockname(disp->socket,
+							&sockname);
+			if (result == ISC_R_SUCCESS)
+				result = isc_socket_getpeername(disp->socket,
+								&peeraddr);
+			if (result == ISC_R_SUCCESS &&
+			    isc_sockaddr_equal(destaddr, &peeraddr) &&
+			    (localaddr == NULL ||
+			     isc_sockaddr_eqaddr(localaddr, &sockname))) {
+				/* attach */
+				disp->refcount++;
+				*dispp = disp;
+				match = ISC_TRUE;
+				*connected = ISC_TRUE;
+			}
+		}
+		UNLOCK(&disp->lock);
+		disp = ISC_LIST_NEXT(disp, link);
+	}
+	if (match) {
+		UNLOCK(&mgr->lock);
+		return (ISC_R_SUCCESS);
+	}
+
+	/* Second pass */
+	attributes = DNS_DISPATCHATTR_TCP;
+
+	disp = ISC_LIST_HEAD(mgr->list);
+	while (disp != NULL && !match) {
+		LOCK(&disp->lock);
+		if ((disp->shutting_down == 0) &&
+		    ATTRMATCH(disp->attributes, attributes, mask) &&
+		    (localaddr == NULL ||
+		     isc_sockaddr_eqaddr(localaddr, &disp->local)) &&
+		    isc_sockaddr_equal(destaddr, &disp->peer)) {
+			/* attach */
+			disp->refcount++;
+			*dispp = disp;
+			match = ISC_TRUE;
+		}
+		UNLOCK(&disp->lock);
+		disp = ISC_LIST_NEXT(disp, link);
+	}
+	UNLOCK(&mgr->lock);
+	return (match ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
+}
+
+isc_result_t
 dns_dispatch_getudp_dup(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		    isc_taskmgr_t *taskmgr, isc_sockaddr_t *localaddr,
 		    unsigned int buffersize,
@@ -3332,8 +3409,10 @@ dns_dispatch_starttcp(dns_dispatch_t *disp) {
 	dispatch_log(disp, LVL(90), "starttcp %p", disp->task[0]);
 
 	LOCK(&disp->lock);
-	disp->attributes |= DNS_DISPATCHATTR_CONNECTED;
-	(void)startrecv(disp, NULL);
+	if ((disp->attributes & DNS_DISPATCHATTR_CONNECTED) == 0) {
+		disp->attributes |= DNS_DISPATCHATTR_CONNECTED;
+		(void)startrecv(disp, NULL);
+	}
 	UNLOCK(&disp->lock);
 }
 

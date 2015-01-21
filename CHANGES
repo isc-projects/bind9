@@ -1,3 +1,7 @@
+4041.	[func]		TCP sockets can now be shared while connecting.
+			(This will be used to enable client-side support
+			of pipelined queries.) [RT #38231]
+
 4040.	[func]		Added server-side support for pipelined TCP
 			queries. TCP connections are no longer closed after
 			the first query received from a client. (The new
