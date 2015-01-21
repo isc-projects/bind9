@@ -1,3 +1,6 @@
+4042.	[bug]		zone.c:iszonesecure was being called too late.
+			[RT #38371]
+
 4039.	[cleanup]	Cleaned up warnings from gcc -Wshadow. [RT #37381]
 
 4038.	[bug]		Add 'rpz' flag to node and use it to determine whether
