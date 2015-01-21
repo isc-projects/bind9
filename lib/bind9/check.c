@@ -805,7 +805,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	dns_fixedname_t fixed;
 	const char *str;
 	dns_name_t *name;
+#ifdef ISC_PLATFORM_USESIT
 	isc_buffer_t b;
+#endif
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */

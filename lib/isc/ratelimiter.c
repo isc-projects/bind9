@@ -154,8 +154,8 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
 	if (rl->state == isc_ratelimiter_ratelimited ||
 	    rl->state == isc_ratelimiter_stalled) {
 		ev->ev_sender = task;
-		ISC_LIST_APPEND(rl->pending, ev, ev_link);
 		*eventp = NULL;
+		ISC_LIST_APPEND(rl->pending, ev, ev_link);
 	} else if (rl->state == isc_ratelimiter_idle) {
 		result = isc_timer_reset(rl->timer, isc_timertype_ticker, NULL,
 					 &rl->interval, ISC_FALSE);
@@ -181,9 +181,10 @@ isc_ratelimiter_dequeue(isc_ratelimiter_t *rl, isc_event_t *event) {
 	REQUIRE(event != NULL);
 
 	LOCK(&rl->lock);
-	if (ISC_LINK_LINKED(event, ev_link))
+	if (ISC_LINK_LINKED(event, ev_link)) {
 		ISC_LIST_UNLINK(rl->pending, event, ev_link);
-	else
+		event->ev_sender = NULL;
+	} else
 		result = ISC_R_NOTFOUND;
 	UNLOCK(&rl->lock);
 	return (result);
