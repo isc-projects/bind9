@@ -1,5 +1,5 @@
-4042.	[bug]		zone.c:iszonesecure was being called too late.
-			[RT #38371]
+4044.	[bug]		Change 3955 was not complete resulting is a assertion
+			failure is the timing was just right. [RT #38352]
 
 4039.	[cleanup]	Cleaned up warnings from gcc -Wshadow. [RT #37381]
 
