@@ -1,3 +1,6 @@
+4044.	[bug]		Change 3955 was not complete resulting is a assertion
+			failure is the timing was just right. [RT #38352]
+
 4043.	[func]		"rndc modzone" can be used to modify the 
 			configuration of an existing zone, using similar
 			syntax to "rndc addzone". [RT #37895]
