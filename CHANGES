@@ -1,3 +1,6 @@
+4042.	[bug]		zone.c:iszonesecure was being called too late.
+			[RT #38371]
+
 4041.	[func]		TCP sockets can now be shared while connecting.
 			(This will be used to enable client-side support
 			of pipelined queries.) [RT #38231]
