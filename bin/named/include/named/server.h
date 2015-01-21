@@ -52,6 +52,7 @@ struct ns_server {
 	isc_quota_t		tcpquota;
 	isc_quota_t		recursionquota;
 	dns_acl_t		*blackholeacl;
+	dns_acl_t		*keepresporder;
 	char *			statsfile;	/*%< Statistics file name */
 	char *			dumpfile;	/*%< Dump file name */
 	char *			secrootsfile;	/*%< Secroots file name */

@@ -70,6 +70,7 @@ options {\n\
 	heartbeat-interval 60;\n\
 	host-statistics no;\n\
 	interface-interval 60;\n\
+#	keep-response-order {none;};\n\
 	listen-on {any;};\n\
 	listen-on-v6 {any;};\n\
 	match-mapped-addresses no;\n\
@@ -101,7 +102,7 @@ options {\n\
 	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
 	statistics-interval 60;\n\
-	tcp-clients 100;\n\
+	tcp-clients 150;\n\
 	tcp-listen-queue 10;\n\
 #	tkey-dhkey <none>\n\
 #	tkey-gssapi-credential <none>\n\

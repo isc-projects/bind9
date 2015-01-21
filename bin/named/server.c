@@ -5594,6 +5594,10 @@ load_configuration(const char *filename, ns_server_t *server,
 		dns_dispatchmgr_setblackhole(ns_g_dispatchmgr,
 					     server->blackholeacl);
 
+	CHECK(configure_view_acl(NULL, config, "keep-response-order", NULL,
+				 ns_g_aclconfctx, ns_g_mctx,
+				 &server->keepresporder));
+
 	obj = NULL;
 	result = ns_config_get(maps, "match-mapped-addresses", &obj);
 	INSIST(result == ISC_R_SUCCESS);
@@ -6671,6 +6675,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		dns_name_free(&ns_g_sessionkeyname, server->mctx);
 	}
 
+	if (server->keepresporder != NULL)
+		dns_acl_detach(&server->keepresporder);
+
 	if (server->blackholeacl != NULL)
 		dns_acl_detach(&server->blackholeacl);
 
@@ -6722,6 +6729,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	ISC_LIST_INIT(server->viewlist);
 	server->in_roothints = NULL;
 	server->blackholeacl = NULL;
+	server->keepresporder = NULL;
 
 	/* Must be first. */
 	CHECKFATAL(dst_lib_init2(ns_g_mctx, ns_g_entropy,

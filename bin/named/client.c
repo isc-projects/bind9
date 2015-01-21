@@ -244,6 +244,8 @@ static void client_request(isc_task_t *task, isc_event_t *event);
 static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
 static isc_result_t get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 			       dns_dispatch_t *disp, isc_boolean_t tcp);
+static isc_result_t get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp,
+			       isc_socket_t *socket);
 static inline isc_boolean_t
 allowed(isc_netaddr_t *addr, dns_name_t *signer, isc_netaddr_t *ecs_addr,
 	isc_uint8_t ecs_addrlen, isc_uint8_t *ecs_scope, dns_acl_t *acl);
@@ -385,9 +387,13 @@ exit_check(ns_client_t *client) {
 		INSIST(client->recursionquota == NULL);
 
 		if (NS_CLIENTSTATE_READING == client->newstate) {
-			client_read(client);
-			client->newstate = NS_CLIENTSTATE_MAX;
-			return (ISC_TRUE); /* We're done. */
+			if (!client->pipelined) {
+				client_read(client);
+				client->newstate = NS_CLIENTSTATE_MAX;
+				return (ISC_TRUE); /* We're done. */
+			} else if (client->mortal) {
+				client->newstate = NS_CLIENTSTATE_INACTIVE;
+			}
 		}
 	}
 
@@ -423,6 +429,8 @@ exit_check(ns_client_t *client) {
 					      NULL, NULL, ISC_TRUE);
 			client->timerset = ISC_FALSE;
 		}
+
+		client->pipelined = ISC_FALSE;
 
 		client->peeraddr_valid = ISC_FALSE;
 
@@ -625,7 +633,11 @@ client_start(isc_task_t *task, isc_event_t *event) {
 		return;
 
 	if (TCP_CLIENT(client)) {
-		client_accept(client);
+		if (client->pipelined) {
+			client_read(client);
+		} else {
+			client_accept(client);
+		}
 	} else {
 		client_udprecv(client);
 	}
@@ -2151,6 +2163,24 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
+	/*
+	 * Pipeline TCP query processing.
+	 */
+	if (client->message->opcode != dns_opcode_query)
+		client->pipelined = ISC_FALSE;
+	if (TCP_CLIENT(client) && client->pipelined) {
+		result = isc_quota_reserve(&ns_g_server->tcpquota);
+		if (result == ISC_R_SUCCESS)
+			result = ns_client_replace(client);
+		if (result != ISC_R_SUCCESS) {
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
+				      "no more TCP clients(read): %s",
+				      isc_result_totext(result));
+			client->pipelined = ISC_FALSE;
+		}
+	}
+
 	dns_opcodestats_increment(ns_g_server->opcodestats,
 				  client->message->opcode);
 	switch (client->message->opcode) {
@@ -2676,6 +2706,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->signer = NULL;
 	dns_name_init(&client->signername, NULL);
 	client->mortal = ISC_FALSE;
+	client->pipelined = ISC_FALSE;
 	client->tcpquota = NULL;
 	client->recursionquota = NULL;
 	client->interface = NULL;
@@ -2866,6 +2897,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		 * telnetting to port 53 (once per CPU) will
 		 * deny service to legitimate TCP clients.
 		 */
+		client->pipelined = ISC_FALSE;
 		result = isc_quota_attach(&ns_g_server->tcpquota,
 					  &client->tcpquota);
 		if (result == ISC_R_SUCCESS)
@@ -2873,8 +2905,12 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
-				      "no more TCP clients: %s",
+				      "no more TCP clients(accept): %s",
 				      isc_result_totext(result));
+		} else if (ns_g_server->keepresporder == NULL ||
+			   !allowed(&netaddr, NULL, NULL, 0, NULL,
+				    ns_g_server->keepresporder)) {
+			client->pipelined = ISC_TRUE;
 		}
 
 		client_read(client);
@@ -2972,14 +3008,21 @@ ns_client_shuttingdown(ns_client_t *client) {
 isc_result_t
 ns_client_replace(ns_client_t *client) {
 	isc_result_t result;
+	isc_boolean_t tcp;
 
 	CTRACE("replace");
 
 	REQUIRE(client != NULL);
 	REQUIRE(client->manager != NULL);
 
-	result = get_client(client->manager, client->interface,
-			    client->dispatch, TCP_CLIENT(client));
+	tcp = TCP_CLIENT(client);
+	if (tcp && client->pipelined) {
+		result = get_worker(client->manager, client->interface,
+				    client->tcpsocket);
+	} else {
+		result = get_client(client->manager, client->interface,
+				    client->dispatch, tcp);
+	}
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -3177,6 +3220,72 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 		sock = dns_dispatch_getsocket(client->dispatch);
 		isc_socket_attach(sock, &client->udpsocket);
 	}
+
+	INSIST(client->nctls == 0);
+	client->nctls++;
+	ev = &client->ctlevent;
+	isc_task_send(client->task, &ev);
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp, isc_socket_t *socket)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_event_t *ev;
+	ns_client_t *client;
+	MTRACE("get worker");
+
+	REQUIRE(manager != NULL);
+
+	if (manager->exiting)
+		return (ISC_R_SHUTTINGDOWN);
+
+	/*
+	 * Allocate a client.  First try to get a recycled one;
+	 * if that fails, make a new one.
+	 */
+	client = NULL;
+	if (!ns_g_clienttest)
+		ISC_QUEUE_POP(manager->inactive, ilink, client);
+
+	if (client != NULL)
+		MTRACE("recycle");
+	else {
+		MTRACE("create new");
+
+		LOCK(&manager->lock);
+		result = client_create(manager, &client);
+		UNLOCK(&manager->lock);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+
+		LOCK(&manager->listlock);
+		ISC_LIST_APPEND(manager->clients, client, link);
+		UNLOCK(&manager->listlock);
+	}
+
+	client->manager = manager;
+	ns_interface_attach(ifp, &client->interface);
+	client->newstate = client->state = NS_CLIENTSTATE_WORKING;
+	INSIST(client->recursionquota == NULL);
+	client->tcpquota = &ns_g_server->tcpquota;
+
+	client->dscp = ifp->dscp;
+
+	client->attributes |= NS_CLIENTATTR_TCP;
+	client->pipelined = ISC_TRUE;
+
+	isc_socket_attach(ifp->tcpsocket, &client->tcplistener);
+	isc_socket_attach(socket, &client->tcpsocket);
+	isc_socket_setname(client->tcpsocket, "worker-tcp", NULL);
+	(void)isc_socket_getpeername(client->tcpsocket, &client->peeraddr);
+	client->peeraddr_valid = ISC_TRUE;
+
+	INSIST(client->tcpmsg_valid == ISC_FALSE);
+	dns_tcpmsg_init(client->mctx, client->tcpsocket, &client->tcpmsg);
+	client->tcpmsg_valid = ISC_TRUE;
 
 	INSIST(client->nctls == 0);
 	client->nctls++;

@@ -211,6 +211,7 @@ options {
 	host-statistics-max <replaceable>number</replaceable>; // not implemented
 	hostname ( <replaceable>quoted_string</replaceable> | none );
 	interface-interval <replaceable>integer</replaceable>;
+	keep-response-order { <replaceable>address_match_element</replaceable>; ... };
 	listen-on <optional> port <replaceable>integer</replaceable> </optional> { <replaceable>address_match_element</replaceable>; ... };
 	listen-on-v6 <optional> port <replaceable>integer</replaceable> </optional> { <replaceable>address_match_element</replaceable>; ... };
 	match-mapped-addresses <replaceable>boolean</replaceable>;

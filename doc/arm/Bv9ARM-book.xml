@@ -3052,8 +3052,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    <command>allow-query-cache-on</command>,
 	    <command>allow-transfer</command>,
 	    <command>allow-update</command>,
-	    <command>allow-update-forwarding</command>, and
-	    <command>blackhole</command> all use address match
+	    <command>allow-update-forwarding</command>,
+	    <command>blackhole</command>, and
+	    <command>keep-response-order</command> all use address match
 	    lists.  Similarly, the <command>listen-on</command> option will cause the
 	    server to refuse queries on any of the machine's
 	    addresses which do not match the list.
@@ -4852,6 +4853,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> keep-response-order { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> no-case-compress { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> use-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
     <optional> avoid-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
@@ -7445,6 +7447,19 @@ options {
 		  Specifies a list of addresses to which
 		  <command>filter-aaaa-on-v4</command>
 		  is applies.  The default is <userinput>any</userinput>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>keep-response-order</command></term>
+	      <listitem>
+		<para>
+		  Specifies a list of addresses to which the server
+		  will send responses to TCP queries in the same order
+		  in which they were received.  This disables the
+		  processing of TCP queries in parallel. The default
+		  is <userinput>none</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>

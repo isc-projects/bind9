@@ -135,6 +135,7 @@ struct ns_client {
 	dns_name_t		signername;   /*%< [T]SIG key name */
 	dns_name_t *		signer;	      /*%< NULL if not valid sig */
 	isc_boolean_t		mortal;	      /*%< Die after handling request */
+	isc_boolean_t		pipelined;   /*%< TCP queries not in sequence */
 	isc_quota_t		*tcpquota;
 	isc_quota_t		*recursionquota;
 	ns_interface_t		*interface;

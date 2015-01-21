@@ -2636,7 +2636,6 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
 	isc_result_t result;
 	isc_sockaddr_t peeraddr;
 	isc_sockaddr_t sockname;
-	isc_sockaddr_t any;
 	unsigned int attributes, mask;
 	isc_boolean_t match = ISC_FALSE;
 
@@ -2644,23 +2643,9 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
 	REQUIRE(destaddr != NULL);
 	REQUIRE(dispp != NULL && *dispp == NULL);
 
-	attributes = DNS_DISPATCHATTR_TCP;
+	attributes = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_CONNECTED;
 	mask = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_PRIVATE |
-	       DNS_DISPATCHATTR_EXCLUSIVE;
-
-	if (localaddr == NULL) {
-		switch (isc_sockaddr_pf(destaddr)) {
-		case AF_INET:
-			isc_sockaddr_any(&any);
-			break;
-		case AF_INET6:
-			isc_sockaddr_any6(&any);
-			break;
-		default:
-			return (ISC_R_NOTFOUND);
-		}
-		localaddr = &any;
-	}
+	       DNS_DISPATCHATTR_EXCLUSIVE | DNS_DISPATCHATTR_CONNECTED;
 
 	LOCK(&mgr->lock);
 	disp = ISC_LIST_HEAD(mgr->list);
@@ -2677,7 +2662,8 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
 								&peeraddr);
 			if (result == ISC_R_SUCCESS &&
 			    isc_sockaddr_equal(destaddr, &peeraddr) &&
-			    isc_sockaddr_eqaddr(localaddr, &sockname)) {
+			    (localaddr == NULL ||
+			     isc_sockaddr_eqaddr(localaddr, &sockname))) {
 				/* attach */
 				disp->refcount++;
 				*dispp = disp;

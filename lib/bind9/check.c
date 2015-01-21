@@ -465,8 +465,8 @@ check_viewacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 
 	static const char *acls[] = { "allow-query", "allow-query-on",
 		"allow-query-cache", "allow-query-cache-on",
-		"blackhole", "match-clients", "match-destinations",
-		"sortlist", "filter-aaaa", NULL };
+		"blackhole", "keep-response-order", "match-clients",
+		"match-destinations", "sortlist", "filter-aaaa", NULL };
 
 	while (acls[i] != NULL) {
 		tresult = checkacl(acls[i++], actx, NULL, voptions, config,
