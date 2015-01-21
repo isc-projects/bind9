@@ -4895,12 +4895,16 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> exempt-clients  { <replaceable>address_match_list</replaceable> } ; </optional>
 	<optional> max-table-size <replaceable>number</replaceable> ; </optional>
 	<optional> min-table-size <replaceable>number</replaceable> ; </optional>
-      } ; </optional>
-    <optional> response-policy { <replaceable>zone_name</replaceable>
-	<optional> policy given | disabled | passthru | nxdomain | nodata | cname <replaceable>domain</replaceable> </optional>
-	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional> ;
-    } <optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional>
-	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional> <optional> min-ns-dots <replaceable>number</replaceable> </optional> ; </optional>
+    } ; </optional>
+    <optional> response-policy {
+	zone <replaceable>zone_name</replaceable> ;
+	<optional> policy (<replaceable>given | disabled | passthru |
+		  nxdomain | nodata | cname domain</replaceable>) ; </optional>
+	<optional> recursive-only <replaceable>yes_or_no</replaceable> ; </optional>
+	<optional> max-policy-ttl <replaceable>number</replaceable> ; </optional>
+	<optional> break-dnssec <replaceable>yes_or_no</replaceable> ; </optional>
+	<optional> min-ns-dots <replaceable>number</replaceable>;  </optional>
+    } ; </optional>
 };
 </programlisting>
 
