@@ -205,8 +205,9 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t **text) {
 	} else if (command_compare(command, NS_COMMAND_SIGN) ||
 		   command_compare(command, NS_COMMAND_LOADKEYS)) {
 		result = ns_server_rekey(ns_g_server, command, text);
-	} else if (command_compare(command, NS_COMMAND_ADDZONE)) {
-		result = ns_server_addzone(ns_g_server, command, text);
+	} else if (command_compare(command, NS_COMMAND_ADDZONE) ||
+		   command_compare(command, NS_COMMAND_MODZONE)) {
+		result = ns_server_changezone(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_DELZONE)) {
 		result = ns_server_delzone(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_SHOWZONE)) {

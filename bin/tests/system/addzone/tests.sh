@@ -247,6 +247,18 @@ done
 n=`expr $n + 1`
 status=`expr $status + $ret`
 
+echo "I:modifying zone configuration ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone 'mod.example { type master; file "added.db"; };' 2>&1 | sed 's/^/I:ns2 /'
+$DIG +norec $DIGOPTS @10.53.0.2 mod.example ns > dig.out.ns2.1.$n || ret=1
+grep 'status: NOERROR' dig.out.ns2.1.$n > /dev/null || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 modzone 'mod.example { type master; file "added.db"; allow-query { none; }; };' 2>&1 | sed 's/^/I:ns2 /'
+$DIG +norec $DIGOPTS @10.53.0.2 mod.example ns > dig.out.ns2.2.$n || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone mod.example | grep 'allow-query { "none"; };' > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:reconfiguring server with multiple views"
 rm -f ns2/named.conf 
 cp -f ns2/named2.conf ns2/named.conf

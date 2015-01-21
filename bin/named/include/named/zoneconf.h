@@ -58,7 +58,6 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig);
  * and recreated, return ISC_FALSE.
  */
 
-
 isc_result_t
 ns_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
 				dns_rdataclass_t rdclass, dns_name_t *name);

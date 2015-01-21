@@ -383,10 +383,10 @@ isc_result_t
 ns_server_validation(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
- * Add a zone to a running process
+ * Add a zone to a running process, or modify an existing zone
  */
 isc_result_t
-ns_server_addzone(ns_server_t *server, char *args, isc_buffer_t **text);
+ns_server_changezone(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Deletes a zone from a running process

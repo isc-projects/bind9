@@ -266,6 +266,12 @@
       </listitem>
       <listitem>
 	<para>
+	  <command>rndc modzone</command> can be used to reconfigure
+	  a zone, using similar syntax to <command>rndc addzone</command>. 
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>rndc showzone</command> displays the current
 	  configuration for a specified zone.
 	</para>
