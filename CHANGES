@@ -1,7 +1,7 @@
 4044.	[bug]		Change 3955 was not complete, resulting in an assertion
 			failure if the timing was just right. [RT #38352]
 
-4043.	[func]		"rndc modzone" can be used to modify the 
+4043.	[func]		"rndc modzone" can be used to modify the
 			configuration of an existing zone, using similar
 			syntax to "rndc addzone". [RT #37895]
 
