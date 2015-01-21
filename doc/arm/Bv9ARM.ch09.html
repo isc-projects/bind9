@@ -45,7 +45,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2573802">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2611670">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
@@ -60,7 +60,7 @@
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2573802"></a>Release Notes for BIND Version 9.11.0pre-alpha</h2></div></div></div>
+<a name="id2611670"></a>Release Notes for BIND Version 9.11.0pre-alpha</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -271,6 +271,21 @@
 	  <span><strong class="command">rndc showzone</strong></span> displays the current
 	  configuration for a specified zone.
 	</p></li>
+<li>
+<p>
+	  Added server-side support for pipelined TCP queries.  Multiple
+	  queries from a single client can be received over the same TCP
+	  connection; the connection is no longer closed after the first
+	  query.  All queries received over such a connection are handled
+	  in parallel.
+	</p>
+<p>
+	  To revert to the former behavior for a particular
+	  client address or range of addresses, specify the address prefix
+	  in the "keep-response-order" option.  To revert to the former
+	  behavior for all clients, use "keep-response order { any; };".
+	</p>
+</li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">

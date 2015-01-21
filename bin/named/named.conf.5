@@ -178,6 +178,7 @@ options {
 	host\-statistics\-max \fInumber\fR; // not implemented
 	hostname ( \fIquoted_string\fR | none );
 	interface\-interval \fIinteger\fR;
+	keep\-response\-order { \fIaddress_match_element\fR; ... };
 	listen\-on [ port \fIinteger\fR ] { \fIaddress_match_element\fR; ... };
 	listen\-on\-v6 [ port \fIinteger\fR ] { \fIaddress_match_element\fR; ... };
 	match\-mapped\-addresses \fIboolean\fR;

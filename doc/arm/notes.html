@@ -232,6 +232,21 @@
 	  <span><strong class="command">rndc showzone</strong></span> displays the current
 	  configuration for a specified zone.
 	</p></li>
+<li>
+<p>
+	  Added server-side support for pipelined TCP queries.  Multiple
+	  queries from a single client can be received over the same TCP
+	  connection; the connection is no longer closed after the first
+	  query.  All queries received over such a connection are handled
+	  in parallel.
+	</p>
+<p>
+	  To revert to the former behavior for a particular
+	  client address or range of addresses, specify the address prefix
+	  in the "keep-response-order" option.  To revert to the former
+	  behavior for all clients, use "keep-response order { any; };".
+	</p>
+</li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">

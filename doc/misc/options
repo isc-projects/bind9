@@ -160,7 +160,7 @@ options {
         inline-signing <boolean>;
         interface-interval <integer>;
         ixfr-from-differences <ixfrdiff>;
-	keep-response-order { <address_match_element>; ... };
+        keep-response-order { <address_match_element>; ... };
         key-directory <quoted_string>;
         lame-ttl <ttlval>;
         listen-on [ port <integer> ] [ dscp <integer> ] {
