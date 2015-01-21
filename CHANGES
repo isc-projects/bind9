@@ -6,11 +6,11 @@
 			of pipelined queries.) [RT #38231]
 
 4040.	[func]		Added server-side support for pipelined TCP
-			queries. TCP connections are no longer closed after
-			the first query received from a client. (The new
-			"keep-response-order" option allows clients to be
-			specified for which the old behavior will still be
-			used.) [RT #37821]
+			queries. Clients may continue sending queries via
+			TCP while previous queries are being processed
+			in parallel.  (The new "keep-response-order"
+			option allows clients to be specified for which
+			the old behavior will still be used.) [RT #37821]
 
 4039.	[cleanup]	Cleaned up warnings from gcc -Wshadow. [RT #37381]
 
