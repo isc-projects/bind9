@@ -4897,13 +4897,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> min-table-size <replaceable>number</replaceable> ; </optional>
     } ; </optional>
     <optional> response-policy {
-	zone <replaceable>zone_name</replaceable> ;
-	<optional> policy (<replaceable>given | disabled | passthru |
-		  nxdomain | nodata | cname domain</replaceable>) ; </optional>
-	<optional> recursive-only <replaceable>yes_or_no</replaceable> ; </optional>
-	<optional> max-policy-ttl <replaceable>number</replaceable> ; </optional>
-	<optional> break-dnssec <replaceable>yes_or_no</replaceable> ; </optional>
-	<optional> min-ns-dots <replaceable>number</replaceable>;  </optional>
+	zone <replaceable>zone_name</replaceable>
+	<optional> policy <replaceable>(given | disabled | passthru |
+		  nxdomain | nodata | cname domain</replaceable>) </optional>
+	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional>
+	<optional> max-policy-ttl <replaceable>number</replaceable> </optional>
+	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional>
+	<optional> min-ns-dots <replaceable>number</replaceable> </optional>
+	; <optional>...</optional>
     } ; </optional>
 };
 </programlisting>
