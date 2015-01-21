@@ -288,7 +288,7 @@
 	  To revert to the former behavior for a particular
 	  client address or range of addresses, specify the address prefix
 	  in the "keep-response-order" option.  To revert to the former
-	  behavior for all clients, use "keep-response order { any; };".
+	  behavior for all clients, use "keep-response-order { any; };".
 	</para>
       </listitem>
     </itemizedlist>
