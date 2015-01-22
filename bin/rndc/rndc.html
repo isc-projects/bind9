@@ -508,6 +508,33 @@
             configuration text.)
           </p>
 </dd>
+<dt><span class="term"><strong class="userinput"><code>modzone <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>] <em class="replaceable"><code>configuration</code></em> </code></strong></span></dt>
+<dd>
+<p>
+            Modify the configuration of a zone while the server
+	    is running.  This command requires the
+            <span><strong class="command">allow-new-zones</strong></span> option to be
+	    set to <strong class="userinput"><code>yes</code></strong>.  As with
+	    <span><strong class="command">addzone</strong></span>, the
+            <em class="replaceable"><code>configuration</code></em> string
+            specified on the command line is the zone
+            configuration text that would ordinarily be
+            placed in <code class="filename">named.conf</code>.
+          </p>
+<p>
+	    If the zone was originally added via
+	    <span><strong class="command">rndc addzone</strong></span>, the configuration
+	    changes will be recorded permanently and will still be
+	    in effect after the server is restarted or reconfigured.
+	    However, if it was originally configured in
+	    <code class="filename">named.conf</code>, then that original
+	    configuration is still in place; when the server is
+	    restarted or reconfigured, the zone will revert to
+	    its original configuration.  To make the changes
+	    permanent, it must also be modified in
+	    <code class="filename">named.conf</code>
+          </p>
+</dd>
 <dt><span class="term"><strong class="userinput"><code>delzone [<span class="optional">-clean</span>] <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>] </code></strong></span></dt>
 <dd>
 <p>
@@ -611,7 +638,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2542029"></a><h2>LIMITATIONS</h2>
+<a name="id2542020"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -621,7 +648,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545597"></a><h2>SEE ALSO</h2>
+<a name="id2542038"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -631,7 +658,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545653"></a><h2>AUTHOR</h2>
+<a name="id2545712"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
