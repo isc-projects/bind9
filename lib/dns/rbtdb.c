@@ -2496,7 +2496,6 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	dns_rbtnode_t *rbtnode;
 	unsigned int refs;
 	rdatasetheader_t *header;
-	isc_boolean_t writer;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	version = (rbtdb_version_t *)*versionp;
@@ -2518,7 +2517,6 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 
 	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
 	serial = version->serial;
-	writer = version->writer;
 	if (version->writer) {
 		if (commit) {
 			unsigned cur_ref;
