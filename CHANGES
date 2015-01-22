@@ -1,4 +1,10 @@
-4043.	[func]		"rndc modzone" can be used to modify the 
+4045.	[bug]		Skip to next master on dns_request_createvia4 failure.
+			[RT #25185]
+
+4044.	[bug]		Change 3955 was not complete, resulting in an assertion
+			failure if the timing was just right. [RT #38352]
+
+4043.	[func]		"rndc modzone" can be used to modify the
 			configuration of an existing zone, using similar
 			syntax to "rndc addzone". [RT #37895]
 

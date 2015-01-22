@@ -9193,7 +9193,7 @@ do_addzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 {
 	isc_result_t result, tresult;
 	dns_zone_t *zone = NULL;
-	FILE *fp;
+	FILE *fp = NULL;
 
 	/* Zone shouldn't already exist */
 	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);

@@ -229,16 +229,20 @@
 	  when <span><strong class="command">named</strong></span> is restarted or reloaded.)
 	</p></li>
 <li><p>
+	  <span><strong class="command">rndc modzone</strong></span> can be used to reconfigure
+	  a zone, using similar syntax to <span><strong class="command">rndc addzone</strong></span>. 
+	</p></li>
+<li><p>
 	  <span><strong class="command">rndc showzone</strong></span> displays the current
 	  configuration for a specified zone.
 	</p></li>
 <li>
 <p>
-	  Added server-side support for pipelined TCP queries.  Multiple
-	  queries from a single client can be received over the same TCP
-	  connection; the connection is no longer closed after the first
-	  query.  All queries received over such a connection are handled
-	  in parallel.
+	  Added server-side support for pipelined TCP queries.  Clients
+	  may continue sending queries via TCP while previous queries are
+	  processed in parallel.  Responses are sent when they are
+	  ready, not necessarily in the order in which the queries were
+	  received.
 	</p>
 <p>
 	  To revert to the former behavior for a particular

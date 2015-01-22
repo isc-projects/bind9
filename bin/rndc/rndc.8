@@ -421,6 +421,23 @@ $\fBrndc addzone example.com '{ type master; file "example.com.db"; };'\fR
 (Note the brackets and semi\-colon around the zone configuration text.)
 .RE
 .PP
+\fBmodzone \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR\fB\fIconfiguration\fR\fR\fB \fR
+.RS 4
+Modify the configuration of a zone while the server is running. This command requires the
+\fBallow\-new\-zones\fR
+option to be set to
+\fByes\fR. As with
+\fBaddzone\fR, the
+\fIconfiguration\fR
+string specified on the command line is the zone configuration text that would ordinarily be placed in
+\fInamed.conf\fR.
+.sp
+If the zone was originally added via
+\fBrndc addzone\fR, the configuration changes will be recorded permanently and will still be in effect after the server is restarted or reconfigured. However, if it was originally configured in
+\fInamed.conf\fR, then that original configuration is still in place; when the server is restarted or reconfigured, the zone will revert to its original configuration. To make the changes permanent, it must also be modified in
+\fInamed.conf\fR
+.RE
+.PP
 \fBdelzone \fR\fB[\-clean]\fR\fB \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR
 .RS 4
 Delete a zone while the server is running.
