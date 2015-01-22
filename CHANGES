@@ -1,3 +1,6 @@
+4046.	[bug]		Accounting of "total use" in memory context
+			statistics was not correct. [RT #38370]
+
 4045.	[bug]		Skip to next master on dns_request_createvia4 failure.
 			[RT #25185]
 

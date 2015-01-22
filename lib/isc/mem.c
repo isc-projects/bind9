@@ -741,9 +741,8 @@ mem_putunlocked(isc__mem_t *ctx, void *mem, size_t size) {
 		(ctx->memfree)(ctx->arg, mem);
 		INSIST(ctx->stats[ctx->max_size].gets != 0U);
 		ctx->stats[ctx->max_size].gets--;
-		INSIST(size <= ctx->total);
+		INSIST(size <= ctx->inuse);
 		ctx->inuse -= size;
-		ctx->total -= size;
 		return;
 	}
 
