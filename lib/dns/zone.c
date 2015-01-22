@@ -11536,14 +11536,11 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
-	/*
-	 * XXX Optimisation: Create message when zone is setup and reuse.
-	 */
+ again:
 	result = create_query(zone, dns_rdatatype_soa, &message);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
- again:
 	INSIST(zone->masterscnt > 0);
 	INSIST(zone->curmaster < zone->masterscnt);
 
@@ -11661,9 +11658,9 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
 		zone_debuglog(zone, me, 1,
-			      "dns_request_createvia2() failed: %s",
+			      "dns_request_createvia4() failed: %s",
 			      dns_result_totext(result));
-		goto cleanup;
+		goto skip_master;
 	} else {
 		if (isc_sockaddr_pf(&zone->masteraddr) == PF_INET)
 			inc_stats(zone, dns_zonestatscounter_soaoutv4);
@@ -11689,6 +11686,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
  skip_master:
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
+	dns_message_destroy(&message);
 	/*
 	 * Skip to next failed / untried master.
 	 */
