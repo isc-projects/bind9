@@ -76,6 +76,7 @@
 
 #ifdef OPENSSL
 #include <openssl/opensslv.h>
+#include <openssl/crypto.h>
 #endif
 #ifdef HAVE_LIBXML2
 #include <libxml/xmlversion.h>
@@ -579,12 +580,16 @@ parse_command_line(int argc, char *argv[]) {
 			printf("compiled by Solaris Studio %x\n", __SUNPRO_C);
 #endif
 #ifdef OPENSSL
-			printf("using OpenSSL version: %s\n",
+			printf("compiled with OpenSSL version: %s\n",
 			       OPENSSL_VERSION_TEXT);
+			printf("linked to OpenSSL version: %s\n",
+			       SSLeay_version(SSLEAY_VERSION));
 #endif
 #ifdef HAVE_LIBXML2
-			printf("using libxml2 version: %s\n",
+			printf("compiled with libxml2 version: %s\n",
 			       LIBXML_DOTTED_VERSION);
+			printf("linked to libxml2 version: %s\n",
+			       xmlParserVersion);
 #endif
 			exit(0);
 		case 'F':
