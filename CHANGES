@@ -1,3 +1,7 @@
+4047.	[cleanup]	"named -V" now reports the current running versions
+			of OpenSSL and the libxml2 libraries, in addition to
+			the versions that were in use at build time.
+
 4046.	[bug]		Accounting of "total use" in memory context
 			statistics was not correct. [RT #38370]
 
