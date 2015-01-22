@@ -1,3 +1,5 @@
+	--- 9.9.7rc1 released ---
+
 4046.	[bug]		Accounting of "total use" in memory context
 			statistics was not correct. [RT #38370]
 
