@@ -271,7 +271,7 @@
 ./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007,2008,2009,2014
 ./bin/named/lwresd.html				HTML	DOCBOOK
 ./bin/named/lwsearch.c				C	2000,2001,2004,2005,2007
-./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/named/named.8				MAN	DOCBOOK
 ./bin/named/named.conf.5			MAN	DOCBOOK
 ./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
@@ -3636,7 +3636,7 @@
 ./lib/isc/task_p.h				C	2000,2001,2004,2005,2007,2009,2011,2012,2013
 ./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007,2011,2012,2013
 ./lib/isc/tests/Atffile				X	2011
-./lib/isc/tests/Makefile.in			MAKE	2011,2012,2013,2014
+./lib/isc/tests/Makefile.in			MAKE	2011,2012,2013,2014,2015
 ./lib/isc/tests/aes_test.c			C	2014
 ./lib/isc/tests/buffer_test.c			C	2014
 ./lib/isc/tests/counter_test.c			C	2014
@@ -3645,6 +3645,7 @@
 ./lib/isc/tests/isctest.c			C	2011,2012,2013,2014
 ./lib/isc/tests/isctest.h			C	2011,2012
 ./lib/isc/tests/lex_test.c			C	2013
+./lib/isc/tests/mem_test.c			C	2015
 ./lib/isc/tests/parse_test.c			C	2012,2013
 ./lib/isc/tests/pool_test.c			C	2013
 ./lib/isc/tests/print_test.c			C	2014
