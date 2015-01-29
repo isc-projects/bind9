@@ -1,3 +1,5 @@
+4048.	[bug]		adb hash table was not being grown. [RT #38470]
+
 4047.	[cleanup]	"named -V" now reports the current running versions
 			of OpenSSL and the libxml2 libraries, in addition to
 			the versions that were in use at build time.
