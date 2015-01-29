@@ -1,3 +1,5 @@
+4048.	[bug]		adb hash table was not being grown. [RT #38470]
+
 	--- 9.10.2rc1 released ---
 
 4047.	[cleanup]	"named -V" now reports the current running versions
