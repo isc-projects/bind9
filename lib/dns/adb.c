@@ -1768,12 +1768,12 @@ new_adbentry(dns_adb_t *adb) {
 	ISC_LINK_INIT(e, plink);
 	LOCK(&adb->entriescntlock);
 	adb->entriescnt++;
-	if (!adb->growentries_sent && adb->growentries_sent &&
+	if (!adb->growentries_sent && adb->excl != NULL &&
 	    adb->entriescnt > (adb->nentries * 8))
 	{
 		isc_event_t *event = &adb->growentries;
 		inc_adb_irefcnt(adb);
-		isc_task_send(adb->task, &event);
+		isc_task_send(adb->excl, &event);
 		adb->growentries_sent = ISC_TRUE;
 	}
 	UNLOCK(&adb->entriescntlock);
