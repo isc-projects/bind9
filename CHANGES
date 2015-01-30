@@ -1,3 +1,5 @@
+4049.	[bug]		CDS and CDNSKEY had the wrong attributes. [RT #38491]
+
 4048.	[bug]		adb hash table was not being grown. [RT #38470]
 
 	--- 9.10.2rc1 released ---
