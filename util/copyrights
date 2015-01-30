@@ -3082,9 +3082,9 @@
 ./lib/dns/rdata/generic/afsdb_18.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/caa_257.c		C	2014
 ./lib/dns/rdata/generic/caa_257.h		C	2014
-./lib/dns/rdata/generic/cdnskey_60.c		C	2014
+./lib/dns/rdata/generic/cdnskey_60.c		C	2014,2015
 ./lib/dns/rdata/generic/cdnskey_60.h		C	2014
-./lib/dns/rdata/generic/cds_59.c		C	2014
+./lib/dns/rdata/generic/cds_59.c		C	2014,2015
 ./lib/dns/rdata/generic/cds_59.h		C	2014
 ./lib/dns/rdata/generic/cert_37.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012
 ./lib/dns/rdata/generic/cert_37.h		C	1999,2000,2001,2004,2005,2007
