@@ -5266,6 +5266,8 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 					       DNS_RPZ_DONE_IPv4);
 				break;
 			case DNS_R_DELEGATION:
+			case DNS_R_DUPLICATE:
+			case DNS_R_DROP:
 				goto cleanup;
 			case DNS_R_EMPTYNAME:
 			case DNS_R_NXRRSET:
@@ -5284,12 +5286,13 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 			case ISC_R_FAILURE:
 				rpz_rewrite_ns_skip(client, nsname, result,
 						DNS_RPZ_DEBUG_LEVEL3,
-						" NS db_find()");
+						" NS rpz_rrset_find() ");
 				continue;
 			default:
 				rpz_rewrite_ns_skip(client, nsname, result,
 						DNS_RPZ_INFO_LEVEL,
-						" unrecognized NS db_find()");
+						" unrecognized NS"
+						" rpz_rrset_find() ");
 				continue;
 			}
 		}
