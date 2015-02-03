@@ -229,18 +229,20 @@ isc_result_t
 isc_mutex_init_errcheck(isc_mutex_t *mp)
 {
 	pthread_mutexattr_t attr;
-	int err;
+	int err, errd;
 
 	if (pthread_mutexattr_init(&attr) != 0)
 		return (ISC_R_UNEXPECTED);
 
 	if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK) != 0) {
-		pthread_mutexattr_destroy(&attr);
+		errd = pthread_mutexattr_destroy(&attr);
+		RUNTIME_CHECK(errd == 0);
 		return (ISC_R_UNEXPECTED);
 	}
 
 	err = pthread_mutex_init(mp, &attr) != 0)
-	pthread_mutexattr_destroy(&attr);
+	errd = pthread_mutexattr_destroy(&attr);
+	RUNTIME_CHECK(errd == 0);
 	if (err == ENOMEM)
 		return (ISC_R_NOMEMORY);
 	return ((err == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED);
@@ -262,14 +264,18 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 	int err;
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 	pthread_mutexattr_t attr;
+	int errd;
 
 	if (pthread_mutexattr_init(&attr) != 0)
 		return (ISC_R_UNEXPECTED);
 	if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ADAPTIVE_NP) != 0) {
-		pthread_mutexattr_destroy(&attr);
+		errd = pthread_mutexattr_destroy(&attr);
+		RUNTIME_CHECK(errd == 0);
 		return (ISC_R_UNEXPECTED);
 	}
 	err = pthread_mutex_init(mp, &attr);
+	errd = pthread_mutexattr_destroy(&attr);
+	RUNTIME_CHECK(errd == 0);
 #else /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 	err = pthread_mutex_init(mp, ISC__MUTEX_ATTRS);
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
@@ -277,7 +283,7 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 	if (err == ENOMEM)
 		return (ISC_R_NOMEMORY);
 	if (err != 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		isc__strerror(err, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(file, line, "isc_mutex_init() failed: %s",
 				 strbuf);
 		result = ISC_R_UNEXPECTED;
