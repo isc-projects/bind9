@@ -1,3 +1,5 @@
+4052.	[bug]		Fix a leak of query fetchlock. [RT #38454]
+
 4051.	[bug]		Fix a leak of pthread_mutexattr_t. [RT #38454]
 
 4049.	[bug]		CDS and CDNSKEY had the wrong attributes. [RT #38491]

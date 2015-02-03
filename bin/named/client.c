@@ -546,6 +546,17 @@ exit_check(ns_client_t *client) {
 		INSIST(client->recursionquota == NULL);
 		INSIST(!ISC_QLINK_LINKED(client, ilink));
 
+		if (manager != NULL) {
+			LOCK(&manager->listlock);
+			ISC_LIST_UNLINK(manager->clients, client, link);
+			LOCK(&manager->lock);
+			if (manager->exiting &&
+			    ISC_LIST_EMPTY(manager->clients))
+				destroy_manager = ISC_TRUE;
+			UNLOCK(&manager->lock);
+			UNLOCK(&manager->listlock);
+		}
+
 		ns_query_free(client);
 		isc_mem_put(client->mctx, client->recvbuf, RECV_BUFFER_SIZE);
 		isc_event_free((isc_event_t **)&client->sendevent);
@@ -565,16 +576,6 @@ exit_check(ns_client_t *client) {
 		}
 
 		dns_message_destroy(&client->message);
-		if (manager != NULL) {
-			LOCK(&manager->listlock);
-			ISC_LIST_UNLINK(manager->clients, client, link);
-			LOCK(&manager->lock);
-			if (manager->exiting &&
-			    ISC_LIST_EMPTY(manager->clients))
-				destroy_manager = ISC_TRUE;
-			UNLOCK(&manager->lock);
-			UNLOCK(&manager->listlock);
-		}
 
 		/*
 		 * Detaching the task must be done after unlinking from
@@ -595,6 +596,13 @@ exit_check(ns_client_t *client) {
 			isc_mem_stats(client->mctx, stderr);
 			INSIST(0);
 		}
+
+		/*
+		 * Destroy the fetchlock mutex that was created in
+		 * ns_query_init().
+		 */
+		DESTROYLOCK(&client->query.fetchlock);
+
 		isc_mem_putanddetach(&client->mctx, client, sizeof(*client));
 	}
 
