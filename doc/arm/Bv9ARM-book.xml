@@ -8805,7 +8805,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <term><command>edns-udp-size</command></term>
 	      <listitem>
 		<para>
-		  Sets the initial advertised EDNS UDP buffer size in
+		  Sets the maximum advertised EDNS UDP buffer size in
 		  bytes, to control the size of packets received from
 		  authoritative servers in response to recursive queries.
 		  Valid values are 512 to 4096 (values outside this range
@@ -10389,14 +10389,23 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 
 	  <para>
-	    The <command>edns-udp-size</command> option sets the EDNS UDP size
-	    that is advertised by <command>named</command> when querying the remote server.
-	    Valid values are 512 to 4096 bytes (values outside this range will be
-	    silently adjusted to the nearest value within it).  This option is
-	    useful when you wish to
-	    advertises a different value to this server than the value you
-	    advertise globally, for example, when there is a firewall at the
-	    remote site that is blocking large replies.
+	    The <command>edns-udp-size</command> option sets the
+	    EDNS UDP size that is advertised by <command>named</command>
+	    when querying the remote server.  Valid values are 512
+	    to 4096 bytes (values outside this range will be silently
+	    adjusted to the nearest value within it).  This option
+	    is useful when you wish to advertise a different value
+	    to this server than the value you advertise globally,
+	    for example, when there is a firewall at the remote
+	    site that is blocking large replies. (Note: Currently,
+	    this sets a single UDP size for all packets sent to the
+	    server; <command>named</command> will not deviate from
+	    this value.  This differs from the behavior of
+	    <command>edns-udp-size</command> in <command>options</command>
+	    or <command>view</command> statements, where it specifies
+	    a maximum value. The <command>server</command> statement
+	    behavior may be brought into conformance with the
+	    <command>options/view</command> behavior in future releases.)
 	  </para>
 
 	  <para>
