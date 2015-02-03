@@ -2446,7 +2446,7 @@ set_rcvbuf(void) {
 		return;
 
 	len = sizeof(min);
-	if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&min, &len) >= 0 &&
+	if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&min, &len) == 0 &&
 	    min < rcvbuf) {
  again:
 		if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&rcvbuf,
@@ -2547,7 +2547,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 #endif
 #if defined(SO_RCVBUF)
 	ISC_SOCKADDR_LEN_T optlen;
-	int size;
+	int size = 0;
 #endif
 
  again:
@@ -2843,7 +2843,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 #if defined(SO_RCVBUF)
 		optlen = sizeof(size);
 		if (getsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
-			       (void *)&size, &optlen) >= 0 && size < rcvbuf) {
+			       (void *)&size, &optlen) == 0 && size < rcvbuf) {
 			RUNTIME_CHECK(isc_once_do(&rcvbuf_once,
 						  set_rcvbuf) == ISC_R_SUCCESS);
 			if (setsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
@@ -5875,7 +5875,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 	 */
 	optlen = sizeof(cc);
 	if (getsockopt(sock->fd, SOL_SOCKET, SO_ERROR,
-		       (void *)&cc, (void *)&optlen) < 0)
+		       (void *)&cc, (void *)&optlen) != 0)
 		cc = errno;
 	else
 		errno = cc;
