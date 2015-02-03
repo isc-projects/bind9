@@ -488,6 +488,12 @@
 	  "allow-transfer" ACL from the options or view. [RT #38310]
         </para>
       </listitem>
+      <listitem>
+	<para>
+	  Two leaks were fixed that could cause <command>named</command>
+	  processes to grow to very large sizes. [RT #38454]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">
