@@ -614,6 +614,10 @@ ns_query_init(ns_client_t *client) {
 	client->query.timerset = ISC_FALSE;
 	client->query.rpz_st = NULL;
 	client->query.qname = NULL;
+	/*
+	 * This mutex is destroyed when the client is destroyed in
+	 * exit_check().
+	 */
 	result = isc_mutex_init(&client->query.fetchlock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -633,8 +637,10 @@ ns_query_init(ns_client_t *client) {
 		return (result);
 	}
 	result = query_newnamebuf(client);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		query_freefreeversions(client, ISC_TRUE);
+		DESTROYLOCK(&client->query.fetchlock);
+	}
 
 	return (result);
 }
