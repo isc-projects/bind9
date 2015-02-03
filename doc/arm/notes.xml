@@ -239,7 +239,7 @@
       </listitem>
       <listitem>
 	<para>
-	  Two leaks were fixed that could cause <command>named</command>
+	  A mutex leak was fixed that could cause <command>named</command>
 	  processes to grow to very large sizes. [RT #38454]
 	</para>
       </listitem>
