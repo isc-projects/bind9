@@ -1,4 +1,4 @@
-# Copyright (C) 2009, 2010, 2012-2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009, 2010, 2012-2015  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,27 +12,31 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.13 2010/01/07 23:48:53 tbox Exp $
+# $Id$
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
+@BIND9_VERSION@
+
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
-		${LWRES_INCLUDES} ${OMAPI_INCLUDES}
+		${LWRES_INCLUDES} ${OMAPI_INCLUDES} ${BIND9_INCLUDES}
 
-CDEFINES =
+CDEFINES =	-DVERSION=\"${VERSION}\"
 CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
+BIND9LIBS =	../../lib/bind9/libbind9.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
+BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
@@ -44,14 +48,15 @@ SUBDIRS =
 
 TARGETS =	arpaname@EXEEXT@ named-journalprint@EXEEXT@ \
 		named-rrchecker@EXEEXT@  nsec3hash@EXEEXT@ \
-		genrandom@EXEEXT@ isc-hmac-fixup@EXEEXT@
+		genrandom@EXEEXT@ isc-hmac-fixup@EXEEXT@ mdig@EXEEXT@
 SRCS =		arpaname.c named-journalprint.c named-rrchecker.c \
-		nsec3hash.c genrandom.c isc-hmac-fixup.c
+		nsec3hash.c genrandom.c isc-hmac-fixup.c mdig.c
 
 MANPAGES =	arpaname.1 named-journalprint.8 named-rrchecker.1 nsec3hash.8 \
-		genrandom.8 isc-hmac-fixup.8
+		genrandom.8 isc-hmac-fixup.8 mdig.1
 HTMLPAGES =	arpaname.html named-journalprint.html named-rrchecker.html \
-		nsec3hash.html genrandom.html isc-hmac-fixup.html
+		nsec3hash.html genrandom.html isc-hmac-fixup.html \
+		mdig.html
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
@@ -84,6 +89,11 @@ genrandom@EXEEXT@: genrandom.@O@
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} \
 		-o $@ genrandom.@O@ @GENRANDOMLIB@ ${LIBS}
 
+mdig@EXEEXT@: mdig.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS}
+	export BASEOBJS="mdig.@O@"; \
+	export LIBS0="${DNSLIBS} ${BIND9LIBS}"; \
+	${FINALBUILDCMD}
+
 doc man:: ${MANOBJS}
 
 docclean manclean maintainer-clean::
@@ -107,12 +117,15 @@ install:: ${TARGETS} installdirs
 		${DESTDIR}${sbindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} isc-hmac-fixup@EXEEXT@ \
 		${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} mdig@EXEEXT@ \
+		${DESTDIR}${sbindir}
 	${INSTALL_DATA} ${srcdir}/arpaname.1 ${DESTDIR}${mandir}/man1
 	${INSTALL_DATA} ${srcdir}/isc-hmac-fixup.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/named-journalprint.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/named-rrchecker.1 ${DESTDIR}${mandir}/man1
 	${INSTALL_DATA} ${srcdir}/nsec3hash.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/genrandom.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_DATA} ${srcdir}/mdig.1 ${DESTDIR}${mandir}/man1
 
 clean distclean::
 	rm -f ${TARGETS}

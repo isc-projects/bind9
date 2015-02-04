@@ -120,8 +120,8 @@ are HTML pages for each of the BIND 9 applications.
 INCLUDED TOOLS:
 
 The following tools have been built for Windows: dig, nslookup,
-host, nsupdate, ddns-confgen, rndc, rndc-confgen, named-checkconf,
-named-checkzone, named-compilezone, named-journalprint,
+host, nsupdate, ddns-confgen, rndc, rndc-confgen, delv, mdig,
+named-checkconf, named-checkzone, named-compilezone, named-journalprint,
 named-rrchecker, dnssec-importkey, dnssec-keygen, dnssec-signzone,
 dnssec-dsfromkey, dnssec-keyfromlabel, dnssec-revoke, dnssec-settime
 and dnssec-verify.  The latter tools are for use with DNSSEC.  All tools

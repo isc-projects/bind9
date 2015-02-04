@@ -1,3 +1,7 @@
+4054.	[func]		Added a new tool 'mdig', a light weight clone of
+			dig able to send multiple pipelined queries.
+			[RT #38261]
+
 4053.	[security]	Revoking a managed trust anchor and supplying
 			an untrusted replacement could cause named
 			to crash with an assertion failure.

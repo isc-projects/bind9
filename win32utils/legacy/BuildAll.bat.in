@@ -156,6 +156,7 @@ nmake /nologo -f nsec3hash.mak CFG="nsec3hash - @PLATFORM@ Release"  NO_EXTERNAL
 nmake /nologo -f journalprint.mak CFG="journalprint - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f ischmacfixup.mak CFG="ischmacfixup - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f rrchecker.mak CFG="rrchecker - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f mdig.mak CFG="mdig - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 @IF TESTS

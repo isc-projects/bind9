@@ -184,7 +184,7 @@ help(void) {
 "        d-opt    is of the form +keyword[=value], where keyword is:\n"
 "                 +[no]vc             (TCP mode)\n"
 "                 +[no]tcp            (TCP mode, alternate syntax)\n"
-"                 +time=###           (Set query timeout) [5]\n"
+"                 +timeout=###        (Set query timeout) [5]\n"
 "                 +tries=###          (Set number of UDP attempts) [3]\n"
 "                 +retry=###          (Set number of UDP retries) [2]\n"
 "                 +domain=###         (Set default domainname)\n"

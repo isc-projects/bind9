@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.175 2011/11/29 01:03:47 marka Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -2694,7 +2692,7 @@ dns_dispatch_gettcp2(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
 	REQUIRE(dispp != NULL && *dispp == NULL);
 	REQUIRE(connected != NULL);
 
-	/* First pass (same than dns_dispatch_gettcp()) */
+	/* First pass (same as dns_dispatch_gettcp()) */
 	attributes = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_CONNECTED;
 	mask = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_PRIVATE |
 	       DNS_DISPATCHATTR_EXCLUSIVE | DNS_DISPATCHATTR_CONNECTED;

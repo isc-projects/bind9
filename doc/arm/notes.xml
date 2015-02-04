@@ -310,6 +310,14 @@
 	  behavior for all clients, use "keep-response-order { any; };".
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The new <command>mdig</command> command is a version of
+	  <command>dig</command> that sends multiple pipelined
+	  queries and then waits for responses, instead of sending one
+	  query and waiting the response before sending the next. [RT #38261]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_changes">

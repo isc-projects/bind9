@@ -917,7 +917,7 @@
 	</varlistentry>
 
 	<varlistentry>
-	  <term><option>+time=T</option></term>
+	  <term><option>+timeout=T</option></term>
 	  <listitem>
 	    <para>
 
