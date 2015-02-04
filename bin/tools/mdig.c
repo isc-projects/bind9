@@ -295,7 +295,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 
 	if (display_comments && !display_short_form) {
 		printf(";; Got answer:\n");
-	
+
 		if (display_headers) {
 			printf(";; ->>HEADER<<- opcode: %s, status: %s, "
 			       "id: %u\n",
