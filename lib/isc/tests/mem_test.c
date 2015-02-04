@@ -75,7 +75,8 @@ ATF_TC_BODY(isc_mem_total, tc) {
 	diff = after - before;
 
 	printf("total_before=%lu, total_after=%lu, total_diff=%lu\n",
-	       before, after, diff);
+	       (unsigned long)before, (unsigned long)after,
+	       (unsigned long)diff);
 	/* 2048 +8 bytes extra for size_info */
 	ATF_CHECK_EQ(diff, (2048 + 8) * 100000);
 
@@ -94,7 +95,8 @@ ATF_TC_BODY(isc_mem_total, tc) {
 	diff = after - before;
 
 	printf("total_before=%lu, total_after=%lu, total_diff=%lu\n",
-	       before, after, diff);
+	       (unsigned long)before, (unsigned long)after,
+	       (unsigned long)diff);
 	/* 2048 +8 bytes extra for size_info */
 	ATF_CHECK_EQ(diff, (2048 + 8) * 100000);
 
@@ -135,7 +137,8 @@ ATF_TC_BODY(isc_mem_inuse, tc) {
 	diff = after - before;
 
 	printf("inuse_before=%lu, inuse_during=%lu, inuse_after=%lu\n",
-	       before, during, after);
+	       (unsigned long)before, (unsigned long)during,
+	       (unsigned long)after);
 	ATF_REQUIRE_EQ(diff, 0);
 
  out:
