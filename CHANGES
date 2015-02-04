@@ -1,3 +1,8 @@
+4053.	[security]	Revoking a managed trust anchor and supplying
+			an untrusted replacement could cause named
+			to crash with an assertion failure.
+			(CVE-2015-1349) [RT #38344]
+
 4052.	[bug]		Fix a leak of query fetchlock. [RT #38454]
 
 4051.	[bug]		Fix a leak of pthread_mutexattr_t. [RT #38454]
