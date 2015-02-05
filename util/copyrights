@@ -2224,7 +2224,10 @@
 ./bin/tools/isc-hmac-fixup.c			C	2010,2014
 ./bin/tools/isc-hmac-fixup.docbook		SGML	2010,2013,2014
 ./bin/tools/isc-hmac-fixup.html			HTML	DOCBOOK
+./bin/tools/mdig.1				MAN	DOCBOOK
 ./bin/tools/mdig.c				C	2015
+./bin/tools/mdig.docbook			SGML	2015
+./bin/tools/mdig.html				HTML	DOCBOOK
 ./bin/tools/named-journalprint.8		MAN	DOCBOOK
 ./bin/tools/named-journalprint.c		C	2000,2001,2004,2005,2006,2007,2008,2009
 ./bin/tools/named-journalprint.docbook		SGML	2009,2014
@@ -2267,6 +2270,12 @@
 ./bin/tools/win32/nsec3hash.vcxproj.filters.in	X	2013
 ./bin/tools/win32/nsec3hash.vcxproj.in		X	2013,2014
 ./bin/tools/win32/nsec3hash.vcxproj.user	X	2013
+./bin/tools/win32/mdig.dsp.in			X	2015
+./bin/tools/win32/mdig.dsw			X	2015
+./bin/tools/win32/mdig.mak.in			X	2015
+./bin/tools/win32/mdig.vcxproj.filters.in	X	2015
+./bin/tools/win32/mdig.vcxproj.in		X	2015
+./bin/tools/win32/mdig.vcxproj.user		X	2015
 ./bin/tools/win32/rrchecker.dsp.in		X	2013
 ./bin/tools/win32/rrchecker.dsw			X	2013
 ./bin/tools/win32/rrchecker.mak.in		X	2013
