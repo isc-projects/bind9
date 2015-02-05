@@ -295,7 +295,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 
 	if (display_comments && !display_short_form) {
 		printf(";; Got answer:\n");
-	
+
 		if (display_headers) {
 			printf(";; ->>HEADER<<- opcode: %s, status: %s, "
 			       "id: %u\n",
@@ -905,12 +905,12 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	}
 
 	sa = isc_mem_allocate(mctx, sizeof(*sa));
-	if (isc_net_pton(AF_INET6, value, &in6) == 1) {
+	if (inet_pton(AF_INET6, value, &in6) == 1) {
 		isc_sockaddr_fromin6(sa, &in6, 0);
 		parsed = ISC_TRUE;
 		if (netmask == 0 || netmask > 128)
 			netmask = 128;
-	} else if (isc_net_pton(AF_INET, value, &in4) == 1) {
+	} else if (inet_pton(AF_INET, value, &in4) == 1) {
 		parsed = ISC_TRUE;
 		isc_sockaddr_fromin(sa, &in4, 0);
 		if (netmask == 0 || netmask > 32)
@@ -922,7 +922,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 		strlcpy(buf, value, sizeof(buf));
 		for (i = 0; i < 3; i++) {
 			strlcat(buf, ".0", sizeof(buf));
-			if (isc_net_pton(AF_INET, buf, &in4) == 1) {
+			if (inet_pton(AF_INET, buf, &in4) == 1) {
 				parsed = ISC_TRUE;
 				isc_sockaddr_fromin(sa, &in4, 0);
 				break;
@@ -981,7 +981,7 @@ get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int)
 	isc_netaddr_t addr;
 
 	addr.family = AF_INET6;
-	r = isc_net_pton(AF_INET6, value, &addr.type.in6);
+	r = inet_pton(AF_INET6, value, &addr.type.in6);
 	if (r > 0) {
 		/* This is a valid IPv6 address. */
 		dns_fixedname_t fname;
@@ -1583,12 +1583,10 @@ dash_option(char *option, char *next, struct query *query,
 			*hash = '\0';
 		} else
 			srcport = 0;
-		if (have_ipv6 &&
-		    isc_net_pton(AF_INET6, value, &in6) == 1) {
+		if (have_ipv6 && inet_pton(AF_INET6, value, &in6) == 1) {
 			isc_sockaddr_fromin6(&srcaddr, &in6, srcport);
 			isc_net_disableipv4();
-		} else if (have_ipv4 &&
-			   isc_net_pton(AF_INET, value, &in4) == 1) {
+		} else if (have_ipv4 && inet_pton(AF_INET, value, &in4) == 1) {
 			isc_sockaddr_fromin(&srcaddr, &in4, srcport);
 			isc_net_disableipv6();
 		} else {
@@ -1965,4 +1963,3 @@ main(int argc, char *argv[])
 
 	return (0);
 }
-
