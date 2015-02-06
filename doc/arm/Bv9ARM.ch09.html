@@ -86,6 +86,25 @@
 <div class="itemizedlist"><ul type="disc">
 <li>
 <p>
+	  On servers configured to perform DNSSEC validation using
+	  managed trust anchors (i.e., keys configured explicitly
+	  via <span><strong class="command">managed-keys</strong></span>, or implicitly 
+	  via <span><strong class="command">dnssec-validation auto;</strong></span> or
+	  <span><strong class="command">dnssec-lookaside auto;</strong></span>), revoking
+	  a trust anchor and sending a new untrusted replacement
+	  could cause <span><strong class="command">named</strong></span> to crash with an
+	  assertion failure. This could occur in the event of a
+	  botched key rollover, or potentially as a result of a
+	  deliberate attack if the attacker was in position to
+	  monitor the victim's DNS traffic.
+	</p>
+<p>
+	  This flaw was discovered by Jan-Piet Mens, and is
+	  disclosed in CVE-2015-1349. [RT #38344]
+	</p>
+</li>
+<li>
+<p>
 	  A flaw in delegation handling could be exploited to put
 	  <span><strong class="command">named</strong></span> into an infinite loop, in which
 	  each lookup of a name server triggered additional lookups
@@ -290,6 +309,12 @@
 	  behavior for all clients, use "keep-response-order { any; };".
 	</p>
 </li>
+<li><p>
+	  The new <span><strong class="command">mdig</strong></span> command is a version of
+	  <span><strong class="command">dig</strong></span> that sends multiple pipelined
+	  queries and then waits for responses, instead of sending one
+	  query and waiting the response before sending the next. [RT #38261]
+	</p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
