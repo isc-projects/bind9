@@ -10734,6 +10734,7 @@ mkey_status(dns_view_t *view, isc_buffer_t **text) {
 	}
 
 	CHECK(mkey_dumpzone(view, text));
+	CHECK(putstr(text, "\n"));
 
  cleanup:
 	return (result);
