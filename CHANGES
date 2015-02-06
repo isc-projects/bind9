@@ -1,3 +1,6 @@
+4057.	[bug]		'dnssec-dsfromkey -T 0' failed to add ttl field.
+			[RT #38565]
+
 4056.	[bug]		Expanded automatic testing of trust anchor
 			management and fixed several small bugs including
 			a memory leak and a possible loss of key state
