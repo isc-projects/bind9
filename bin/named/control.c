@@ -160,7 +160,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t **text) {
 		ns_server_dumpdb(ns_g_server, command);
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_SECROOTS)) {
-		result = ns_server_dumpsecroots(ns_g_server, command);
+		result = ns_server_dumpsecroots(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_TRACE)) {
 		result = ns_server_setdebuglevel(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_NOTRACE)) {
@@ -220,6 +220,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t **text) {
 		result = ns_server_nta(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_TESTGEN)) {
 		result = ns_server_testgen(command, text);
+	} else if (command_compare(command, NS_COMMAND_MKEYS)) {
+		result = ns_server_mkeys(ns_g_server, command, text);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,

@@ -106,6 +106,9 @@
 #endif
 
 extern int isc_dscp_check_value;
+extern unsigned int dns_zone_mkey_hour;
+extern unsigned int dns_zone_mkey_day;
+extern unsigned int dns_zone_mkey_month;
 
 static isc_boolean_t	want_stats = ISC_FALSE;
 static char		program_name[ISC_DIR_NAMEMAX] = "named";
@@ -562,7 +565,38 @@ parse_command_line(int argc, char *argv[]) {
 			else if (!strncmp(isc_commandline_argument, "dscp=", 5))
 				isc_dscp_check_value =
 					   atoi(isc_commandline_argument + 5);
-			else if (!strcmp(isc_commandline_argument, "notcp"))
+			else if (!strncmp(isc_commandline_argument,
+					  "mkeytimers=", 11))
+			{
+				p = strtok(isc_commandline_argument + 11, "/");
+				if (p == NULL)
+					ns_main_earlyfatal("bad mkeytimer");
+				dns_zone_mkey_hour = atoi(p);
+				if (dns_zone_mkey_hour == 0)
+					ns_main_earlyfatal("bad mkeytimer");
+
+				p = strtok(NULL, "/");
+				if (p == NULL) {
+					dns_zone_mkey_day =
+						(24 * dns_zone_mkey_hour);
+					dns_zone_mkey_month =
+						(30 * dns_zone_mkey_day);
+					break;
+				}
+				dns_zone_mkey_day = atoi(p);
+				if (dns_zone_mkey_day < dns_zone_mkey_hour)
+					ns_main_earlyfatal("bad mkeytimer");
+
+				p = strtok(NULL, "/");
+				if (p == NULL) {
+					dns_zone_mkey_month =
+						(30 * dns_zone_mkey_day);
+					break;
+				}
+				dns_zone_mkey_month = atoi(p);
+				if (dns_zone_mkey_month < dns_zone_mkey_day)
+					ns_main_earlyfatal("bad mkeytimer");
+			} else if (!strcmp(isc_commandline_argument, "notcp"))
 				ns_g_notcp = ISC_TRUE;
 			else
 				fprintf(stderr, "unknown -T flag '%s\n",

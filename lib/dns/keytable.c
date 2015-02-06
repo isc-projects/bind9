@@ -275,16 +275,17 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey) {
 	}
 
 	knode = node->data;
-	if (knode->next == NULL &&
-	    (knode->key == NULL ||
-	     dst_key_compare(knode->key, dstkey) == ISC_TRUE)) {
+	if (knode->next == NULL && knode->key != NULL &&
+	    dst_key_compare(knode->key, dstkey) == ISC_TRUE)
+	{
 		result = dns_rbt_deletenode(keytable->table, node, ISC_FALSE);
 		goto finish;
 	}
 
 	kprev = (dns_keynode_t **) &node->data;
 	while (knode != NULL) {
-		if (dst_key_compare(knode->key, dstkey) == ISC_TRUE)
+		if (knode->key != NULL &&
+		    dst_key_compare(knode->key, dstkey) == ISC_TRUE)
 			break;
 		kprev = &knode->next;
 		knode = knode->next;
@@ -555,31 +556,80 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
 	return (result);
 }
 
+static isc_result_t
+putstr(isc_buffer_t **b, const char *str) {
+	isc_result_t result;
+
+	result = isc_buffer_reserve(b, strlen(str));
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	
+	isc_buffer_putstr(*b, str);
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
-dns_keytable_dump(dns_keytable_t *keytable, FILE *fp)
-{
+dns_keytable_dump(dns_keytable_t *keytable, FILE *fp) {
+	isc_result_t result;
+	isc_buffer_t *text = NULL;
+
+	REQUIRE(VALID_KEYTABLE(keytable));
+	REQUIRE(fp != NULL);
+
+	result = isc_buffer_allocate(keytable->mctx, &text, 4096);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = dns_keytable_totext(keytable, &text);
+
+	if (isc_buffer_usedlength(text) != 0) {
+		(void) putstr(&text, "\n");
+	} else if (result == ISC_R_SUCCESS)
+		(void) putstr(&text, "none");
+	else {
+		(void) putstr(&text, "could not dump key table: ");
+		(void) putstr(&text, isc_result_totext(result));
+	}
+
+	fprintf(fp, "%.*s", (int) isc_buffer_usedlength(text),
+		(char *) isc_buffer_base(text));
+
+	isc_buffer_free(&text);
+	return (result);
+}
+
+isc_result_t
+dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **text) {
 	isc_result_t result;
 	dns_keynode_t *knode;
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
 
 	REQUIRE(VALID_KEYTABLE(keytable));
+	REQUIRE(text != NULL && *text != NULL);
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
 	dns_rbtnodechain_init(&chain, keytable->mctx);
 	result = dns_rbtnodechain_first(&chain, keytable->table, NULL, NULL);
-	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN)
+	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+		if (result == ISC_R_NOTFOUND)
+			result = ISC_R_SUCCESS;
 		goto cleanup;
+	}
 	for (;;) {
 		char pbuf[DST_KEY_FORMATSIZE];
 
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 		for (knode = node->data; knode != NULL; knode = knode->next) {
+			char obuf[DNS_NAME_FORMATSIZE + 200];
 			if (knode->key == NULL)
 				continue;
 			dst_key_format(knode->key, pbuf, sizeof(pbuf));
-			fprintf(fp, "%s ; %s\n", pbuf,
+			snprintf(obuf, sizeof(obuf), "%s ; %s\n", pbuf,
 				knode->managed ? "managed" : "trusted");
+			result = putstr(text, obuf);
+			if (result != ISC_R_SUCCESS)
+				break;
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {

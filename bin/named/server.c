@@ -90,6 +90,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
 #include <dns/rootns.h>
+#include <dns/rriterator.h>
 #include <dns/secalg.h>
 #include <dns/soa.h>
 #include <dns/stats.h>
@@ -7857,7 +7858,7 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 }
 
 isc_result_t
-ns_server_dumpsecroots(ns_server_t *server, char *args) {
+ns_server_dumpsecroots(ns_server_t *server, char *args, isc_buffer_t **text) {
 	dns_view_t *view;
 	dns_keytable_t *secroots = NULL;
 	dns_ntatable_t *ntatable = NULL;
@@ -7872,13 +7873,25 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
+	/* "-" here means print the output instead of dumping to file */
 	ptr = next_token(&args, " \t");
+	if (ptr != NULL && strcmp(ptr, "-") == 0)
+		ptr = next_token(&args, " \t");
+	else {
+		result = isc_stdio_open(server->secrootsfile, "w", &fp);
+		if (result != ISC_R_SUCCESS) {
+			(void) putstr(text, "could not open ");
+			(void) putstr(text, server->secrootsfile);
+			CHECKMF(result, "could not open secroots dump file",
+				server->secrootsfile);
+		}
+	}
 
-	CHECKMF(isc_stdio_open(server->secrootsfile, "w", &fp),
-		"could not open secroots dump file", server->secrootsfile);
 	TIME_NOW(&now);
 	isc_time_formattimestamp(&now, tbuf, sizeof(tbuf));
-	fprintf(fp, "%s\n", tbuf);
+	CHECK(putstr(text, "secure roots as of "));
+	CHECK(putstr(text, tbuf));
+	CHECK(putstr(text, ":\n"));
 
 	do {
 		for (view = ISC_LIST_HEAD(server->viewlist);
@@ -7894,12 +7907,10 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
 				result = ISC_R_SUCCESS;
 				continue;
 			}
-			fprintf(fp, "\n Start view %s\n", view->name);
-			fprintf(fp, "   Secure roots:\n\n");
-			result = dns_keytable_dump(secroots, fp);
-			if (result != ISC_R_SUCCESS)
-				fprintf(fp, " dumpsecroots failed: %s\n",
-					isc_result_totext(result));
+			CHECK(putstr(text, "\n Start view "));
+			CHECK(putstr(text, view->name));
+			CHECK(putstr(text, "\n   Secure roots:\n\n"));
+			CHECK(dns_keytable_totext(secroots, text));
 
 			if (ntatable != NULL)
 				dns_ntatable_detach(&ntatable);
@@ -7908,23 +7919,30 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
 				result = ISC_R_SUCCESS;
 				continue;
 			}
-			fprintf(fp, "\n   Negative trust anchors:\n\n");
-			result = dns_ntatable_dump(ntatable, fp);
-			if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
-				fprintf(fp, " dumpntatable failed: %s\n",
-					isc_result_totext(result));
+			CHECK(putstr(text, "\n   Negative trust anchors:\n\n"));
+			CHECK(dns_ntatable_totext(ntatable, text));
 		}
 		if (ptr != NULL)
 			ptr = next_token(&args, " \t");
 	} while (ptr != NULL);
 
  cleanup:
+	if (isc_buffer_usedlength(*text) > 0) {
+		if (fp != NULL)
+			(void)putstr(text, "\n");
+		else
+			(void)putnull(text);
+	}
 	if (secroots != NULL)
 		dns_keytable_detach(&secroots);
 	if (ntatable != NULL)
 		dns_ntatable_detach(&ntatable);
-	if (fp != NULL)
+	if (fp != NULL) {
+		fprintf(fp, "%.*s", (int) isc_buffer_usedlength(*text),
+			(char *) isc_buffer_base(*text));
+		isc_buffer_clear(*text);
 		(void)isc_stdio_close(fp);
+	}
 	if (result == ISC_R_SUCCESS)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -8297,7 +8315,9 @@ ns_server_status(ns_server_t *server, isc_buffer_t **text) {
 	unsigned int zonecount, xferrunning, xferdeferred, soaqueries;
 	unsigned int automatic;
 	const char *ob = "", *cb = "", *alt = "";
-	char boottime[80], configtime[80], line[1024];
+	char boottime[ISC_FORMATHTTPTIMESTAMP_SIZE];
+	char configtime[ISC_FORMATHTTPTIMESTAMP_SIZE];
+	char line[1024];
 
 	if (ns_g_server->version_set) {
 		ob = " (";
@@ -10039,7 +10059,11 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t **text) {
 	const char *type, *file, *zonename = NULL;
 	isc_uint32_t serial, signed_serial, nodes;
 	char serbuf[16], sserbuf[16], nodebuf[16], resignbuf[512];
-	char lbuf[80], xbuf[80], rbuf[80], kbuf[80], rtbuf[80];
+	char lbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+	char xbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+	char rbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+	char kbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+	char rtbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 	isc_time_t loadtime, expiretime, refreshtime;
 	isc_time_t refreshkeytime, resigntime;
 	dns_zonetype_t zonetype;
@@ -10217,7 +10241,7 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t **text) {
 	}
 
 	if (! isc_time_isepoch(&refreshtime)) {
-		CHECK(putstr(text, "\nnext refresh: "));
+		CHECK(putstr(text, "\nnext managed-keys refresh: "));
 		CHECK(putstr(text, rbuf));
 	}
 
@@ -10394,6 +10418,7 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t **text) {
 			}
 			CHECK(dns_ntatable_totext(ntatable, text));
 		}
+		CHECK(putnull(text));
 
 		goto cleanup;
 	}
@@ -10554,4 +10579,276 @@ ns_server_loadnta(ns_server_t *server) {
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+mkey_refresh(dns_view_t *view, isc_buffer_t **text) {
+	isc_result_t result;
+	char msg[DNS_NAME_FORMATSIZE + 500] = "";
+
+	snprintf(msg, sizeof(msg),
+		 "refreshing managed keys for '%s'", view->name);
+	CHECK(putstr(text, msg));
+	CHECK(dns_zone_synckeyzone(view->managed_keys));
+
+ cleanup:
+	return (result);
+}
+
+static isc_result_t
+mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_dbversion_t *ver = NULL;
+	dns_rriterator_t rrit;
+	isc_stdtime_t now;
+	dns_name_t *prevname = NULL;
+
+	isc_stdtime_get(&now);
+
+	CHECK(dns_zone_getdb(view->managed_keys, &db));
+	dns_db_currentversion(db, &ver);
+	dns_rriterator_init(&rrit, db, ver, 0);
+	for (result = dns_rriterator_first(&rrit);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rriterator_nextrrset(&rrit))
+	{
+		char buf[DNS_NAME_FORMATSIZE + 500];
+		dns_name_t *name = NULL;
+		dns_rdataset_t *kdset = NULL;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_keydata_t kd;
+		isc_uint32_t ttl;
+
+		dns_rriterator_current(&rrit, &name, &ttl, &kdset, NULL);
+		if (kdset == NULL || kdset->type != dns_rdatatype_keydata ||
+		    !dns_rdataset_isassociated(kdset))
+			continue;
+
+		if (name != prevname) {
+			char nbuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(name, nbuf, sizeof(nbuf));
+			snprintf(buf, sizeof(buf), "\n\n    name: %s", nbuf);
+			CHECK(putstr(text, buf));
+		}
+			
+
+		for (result = dns_rdataset_first(kdset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(kdset))
+		{
+			char alg[DNS_SECALG_FORMATSIZE];
+			char tbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+			dns_keytag_t keyid;
+			isc_region_t r;
+			isc_time_t t;
+			isc_boolean_t revoked;
+
+			dns_rdata_reset(&rdata);
+			dns_rdataset_current(kdset, &rdata);
+			result = dns_rdata_tostruct(&rdata, &kd, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+			dns_rdata_toregion(&rdata, &r);
+			isc_region_consume(&r, 12);
+			keyid = dst_region_computeid(&r, kd.algorithm);
+
+			snprintf(buf, sizeof(buf), "\n    keyid: %u", keyid);
+			CHECK(putstr(text, buf));
+
+			dns_secalg_format(kd.algorithm, alg, sizeof(alg));
+			snprintf(buf, sizeof(buf), "\n\talgorithm: %s", alg);
+			CHECK(putstr(text, buf));
+
+			revoked = ISC_TF((kd.flags & DNS_KEYFLAG_REVOKE) != 0);
+			snprintf(buf, sizeof(buf), "\n\tflags:%s%s%s",
+				 revoked ? " REVOKE" : "",
+				 ((kd.flags & DNS_KEYFLAG_KSK) != 0)
+				   ? " SEP" : "",
+				 (kd.flags == 0) ? " (none)" : "");
+			CHECK(putstr(text, buf));
+
+			isc_time_set(&t, kd.refresh, 0);
+			isc_time_formathttptimestamp(&t, tbuf, sizeof(tbuf));
+			snprintf(buf, sizeof(buf),
+				 "\n\tnext refresh: %s", tbuf);
+			CHECK(putstr(text, buf));
+
+			if (kd.removehd != 0) {
+				isc_time_set(&t, kd.removehd, 0);
+				isc_time_formathttptimestamp(&t, tbuf,
+							     sizeof(tbuf));
+				snprintf(buf, sizeof(buf),
+					 "\n\tremove at: %s", tbuf);
+				CHECK(putstr(text, buf));
+			}
+
+			isc_time_set(&t, kd.addhd, 0);
+			isc_time_formathttptimestamp(&t, tbuf, sizeof(tbuf));
+			if (kd.addhd == 0)
+				snprintf(buf, sizeof(buf), "\n\tno trust");
+			else if (revoked)
+				snprintf(buf, sizeof(buf),
+					 "\n\ttrust revoked");
+			else if (kd.addhd < now)
+				snprintf(buf, sizeof(buf),
+					 "\n\ttrusted since: %s", tbuf);
+			else if (kd.addhd >= now)
+				snprintf(buf, sizeof(buf),
+					 "\n\ttrust pending: %s", tbuf);
+			CHECK(putstr(text, buf));
+		}
+	}
+
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+
+ cleanup:
+	if (ver != NULL) {
+		dns_rriterator_destroy(&rrit);
+		dns_db_closeversion(db, &ver, ISC_FALSE);
+	}
+	if (db != NULL)
+		dns_db_detach(&db);
+
+	return (result);
+}
+
+static isc_result_t
+mkey_status(dns_view_t *view, isc_buffer_t **text) {
+	isc_result_t result;
+	char msg[ISC_FORMATHTTPTIMESTAMP_SIZE];
+	isc_time_t t;
+
+	CHECK(putstr(text, "view: "));
+	CHECK(putstr(text, view->name));
+
+	CHECK(putstr(text, "\nnext scheduled event: "));
+
+	dns_zone_getrefreshkeytime(view->managed_keys, &t);
+	if (isc_time_isepoch(&t)) {
+		CHECK(putstr(text, "never"));
+	} else {
+		isc_time_formathttptimestamp(&t, msg, sizeof(msg));
+		CHECK(putstr(text, msg));
+	}
+
+	CHECK(mkey_dumpzone(view, text));
+
+ cleanup:
+	return (result);
+}
+
+isc_result_t
+ns_server_mkeys(ns_server_t *server, char *args, isc_buffer_t **text) {
+	char *cmd, *classtxt, *viewtxt = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_view_t *view = NULL;
+	dns_rdataclass_t rdclass;
+	char msg[DNS_NAME_FORMATSIZE + 500] = "";
+	enum { NONE, STATUS, REFRESH, SYNC } opt = NONE;
+	isc_boolean_t found = ISC_FALSE;
+
+	/* Skip rndc command name */
+	cmd = next_token(&args, " \t");
+	if (cmd == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/* Get managed-keys subcommand */
+	cmd = next_token(&args, " \t");
+	if (cmd == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	if (strcasecmp(cmd, "status") == 0)
+		opt = STATUS;
+	else if (strcasecmp(cmd, "refresh") == 0)
+		opt = REFRESH;
+	else if (strcasecmp(cmd, "sync") == 0)
+		opt = SYNC;
+	else {
+		snprintf(msg, sizeof(msg), "unknown command '%s'", cmd);
+		(void) putstr(text, msg);
+		result = ISC_R_UNEXPECTED;
+		goto cleanup;
+	}
+
+	/* Look for the optional class name. */
+	classtxt = next_token(&args, " \t");
+	if (classtxt != NULL) {
+		/* Look for the optional view name. */
+		viewtxt = next_token(&args, " \t");
+	}
+
+	if (classtxt == NULL) {
+		rdclass = dns_rdataclass_in;
+	} else {
+		isc_textregion_t r;
+		r.base = classtxt;
+		r.length = strlen(classtxt);
+		result = dns_rdataclass_fromtext(&rdclass, &r);
+		if (result != ISC_R_SUCCESS) {
+			if (viewtxt == NULL) {
+				rdclass = dns_rdataclass_in;
+				viewtxt = classtxt;
+				result = ISC_R_SUCCESS;
+			} else {
+				snprintf(msg, sizeof(msg),
+					 "unknown class '%s'", classtxt);
+				(void) putstr(text, msg);
+				goto cleanup;
+			}
+		}
+	}
+
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		isc_boolean_t first = ISC_TRUE;
+		if (viewtxt != NULL &&
+		    (rdclass != view->rdclass ||
+		     strcmp(view->name, viewtxt) != 0))
+			continue;
+
+		if (view->managed_keys == NULL) {
+			if (viewtxt != NULL) {
+				snprintf(msg, sizeof(msg),
+					 "view '%s': no managed keys", viewtxt);
+				CHECK(putstr(text, msg));
+				goto cleanup;
+			} else
+				continue;
+		}
+
+		found = ISC_TRUE;
+
+		switch (opt) {
+		case REFRESH:
+			CHECK(mkey_refresh(view, text));
+			break;
+		case STATUS:
+			if (!first)
+				CHECK(putstr(text, "\n"));
+			CHECK(mkey_status(view, text));
+			first = ISC_FALSE;
+			break;
+		case SYNC:
+			CHECK(dns_zone_flush(view->managed_keys));
+			break;
+		default:
+			INSIST(0);
+		}
+
+		if (viewtxt != NULL)
+			break;
+	}
+
+	if (!found)
+		CHECK(putstr(text, "no views with managed keys"));
+
+ cleanup:
+	if (isc_buffer_usedlength(*text) > 0)
+		(void) putnull(text);
+
+	return (result);
 }

@@ -29,7 +29,7 @@ ATF_TC_HEAD(isc_time_parsehttptimestamp, tc) {
 ATF_TC_BODY(isc_time_parsehttptimestamp, tc) {
 	isc_result_t result;
 	isc_time_t t, x;
-	char buf[100];
+	char buf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 
 	setenv("TZ", "PST8PDT", 1);
 	result = isc_time_now(&t);

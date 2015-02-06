@@ -704,6 +704,16 @@ struct dns_include {
 #define DAY (24*HOUR)
 #define MONTH (30*DAY)
 
+/*
+ * These can be overridden by the -T mkeytimers option on the command
+ * line, so that we can test with shorter periods than specified in
+ * RFC 5011.
+ */
+unsigned int dns_zone_mkey_hour = HOUR;
+unsigned int dns_zone_mkey_day = (24 * HOUR);
+unsigned int dns_zone_mkey_month = (30 * DAY);
+
+
 #define SEND_BUFFER_SIZE 2048
 
 static void zone_settimer(dns_zone_t *, isc_time_t *);
@@ -3459,7 +3469,7 @@ check_nsec3param(dns_zone_t *zone, dns_db_t *db) {
  */
 static void
 set_refreshkeytimer(dns_zone_t *zone, dns_rdata_keydata_t *key,
-		    isc_stdtime_t now)
+		    isc_stdtime_t now, isc_boolean_t force)
 {
 	const char me[] = "set_refreshkeytimer";
 	isc_stdtime_t then;
@@ -3468,6 +3478,8 @@ set_refreshkeytimer(dns_zone_t *zone, dns_rdata_keydata_t *key,
 
 	ENTER;
 	then = key->refresh;
+	if (force)
+		then = now;
 	if (key->addhd > now && key->addhd < then)
 		then = key->addhd;
 	if (key->removehd > now && key->removehd < then)
@@ -3547,8 +3559,9 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD,
 				    dst_key_name(key), 0, &rdata));
 		*changed = ISC_TRUE;
+
 		/* Refresh new keys from the zone apex as soon as possible. */
-		set_refreshkeytimer(zone, &keydata, now);
+		set_refreshkeytimer(zone, &keydata, now, ISC_TRUE);
 
  skip:
 		result = dns_keytable_nextkeynode(keytable, keynode, &nextnode);
@@ -3704,8 +3717,8 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 			continue;
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		/* Set the key refresh timer. */
-		set_refreshkeytimer(zone, &keydata, now);
+		/* Set the key refresh timer to force a fast refresh. */
+		set_refreshkeytimer(zone, &keydata, now, ISC_TRUE);
 
 		/* If the removal timer is nonzero, this key was revoked. */
 		if (keydata.removehd != 0) {
@@ -3973,7 +3986,8 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 		result = dns_keytable_find(sr, rrname, &keynode);
 		if ((result != ISC_R_SUCCESS &&
 		     result != DNS_R_PARTIALMATCH) ||
-		    dns_keynode_managed(keynode) == ISC_FALSE) {
+		    dns_keynode_managed(keynode) == ISC_FALSE)
+		{
 			CHECK(delete_keydata(db, ver, &diff,
 					     rrname, rdataset));
 			changed = ISC_TRUE;
@@ -8382,7 +8396,8 @@ zone_sign(dns_zone_t *zone) {
 
 static isc_result_t
 normalize_key(dns_rdata_t *rr, dns_rdata_t *target,
-	      unsigned char *data, int size) {
+	      unsigned char *data, int size)
+{
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_keydata_t keydata;
 	isc_buffer_t buf;
@@ -8479,11 +8494,11 @@ refresh_time(dns_keyfetch_t *kfetch, isc_boolean_t retry) {
 	if (dns_rdataset_isassociated(&kfetch->dnskeysigset))
 		rdset = &kfetch->dnskeysigset;
 	else
-		return (now + HOUR);
+		return (now + dns_zone_mkey_hour);
 
 	result = dns_rdataset_first(rdset);
 	if (result != ISC_R_SUCCESS)
-		return (now + HOUR);
+		return (now + dns_zone_mkey_hour);
 
 	dns_rdataset_current(rdset, &sigrr);
 	result = dns_rdata_tostruct(&sigrr, &sig, NULL);
@@ -8498,11 +8513,11 @@ refresh_time(dns_keyfetch_t *kfetch, isc_boolean_t retry) {
 				t = exp;
 		}
 
-		if (t > (15*DAY))
-			t = (15*DAY);
+		if (t > (15 * dns_zone_mkey_day))
+			t = (15 * dns_zone_mkey_day);
 
-		if (t < HOUR)
-			t = HOUR;
+		if (t < dns_zone_mkey_hour)
+			t = dns_zone_mkey_hour;
 	} else {
 		t = sig.originalttl / 10;
 
@@ -8512,11 +8527,11 @@ refresh_time(dns_keyfetch_t *kfetch, isc_boolean_t retry) {
 				t = exp;
 		}
 
-		if (t > DAY)
-			t = DAY;
+		if (t > dns_zone_mkey_day)
+			t = dns_zone_mkey_day;
 
-		if (t < HOUR)
-			t = HOUR;
+		if (t < dns_zone_mkey_hour)
+			t = dns_zone_mkey_hour;
 	}
 
 	return (now + t);
@@ -8559,7 +8574,7 @@ minimal_update(dns_keyfetch_t *kfetch, dns_dbversion_t *ver, dns_diff_t *diff)
 		if (result != ISC_R_SUCCESS)
 			goto failure;
 		keydata.refresh = refresh_time(kfetch, ISC_TRUE);
-		set_refreshkeytimer(zone, &keydata, now);
+		set_refreshkeytimer(zone, &keydata, now, ISC_FALSE);
 
 		dns_rdata_reset(&rdata);
 		isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
@@ -8602,8 +8617,8 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 	/* Generate a key from keydata */
 	isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
 	dns_keydata_todnskey(keydata, &dnskey, NULL);
-	dns_rdata_fromstruct(&rr, keydata->common.rdclass, dns_rdatatype_dnskey,
-				     &dnskey, &keyb);
+	dns_rdata_fromstruct(&rr, keydata->common.rdclass,
+			     dns_rdatatype_dnskey, &dnskey, &keyb);
 	result = dns_dnssec_keyfromrdata(keyname, &rr, mctx, &dstkey);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_FALSE);
@@ -8611,7 +8626,8 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 	/* See if that key generated any of the signatures */
 	for (result = dns_rdataset_first(&kfetch->dnskeysigset);
 	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&kfetch->dnskeysigset)) {
+	     result = dns_rdataset_next(&kfetch->dnskeysigset))
+	{
 		dns_fixedname_t fixed;
 		dns_fixedname_init(&fixed);
 
@@ -8621,8 +8637,8 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (dst_key_alg(dstkey) == sig.algorithm &&
-		    (dst_key_id(dstkey) == sig.keyid ||
-		     dst_key_rid(dstkey) == sig.keyid)) {
+		    dst_key_rid(dstkey) == sig.keyid)
+		{
 			result = dns_dnssec_verify2(keyname,
 					    &kfetch->dnskeyset,
 					    dstkey, ISC_FALSE, mctx, &sigrr,
@@ -8784,8 +8800,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 						dns_trust_secure;
 					kfetch->dnskeysigset.trust =
 						dns_trust_secure;
-					dns_keytable_detachkeynode(secroots,
-								   &keynode);
 					break;
 				}
 			}
@@ -8795,6 +8809,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			dns_keytable_detachkeynode(secroots, &keynode);
 			keynode = nextnode;
 		}
+
+		if (keynode != NULL)
+			dns_keytable_detachkeynode(secroots, &keynode);
 
 		if (kfetch->dnskeyset.trust == dns_trust_secure)
 			break;
@@ -8840,31 +8857,34 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			isc_boolean_t deletekey = ISC_FALSE;
 
 			if (!secure) {
-				if (now > keydata.removehd)
+				if (keydata.removehd != 0 &&
+				    keydata.removehd <= now)
 					deletekey = ISC_TRUE;
-			} else if (now < keydata.addhd) {
+			} else if (keydata.addhd == 0) {
+				deletekey = ISC_TRUE;
+			} else if (keydata.addhd > now) {
 				dns_zone_log(zone, ISC_LOG_WARNING,
 					     "Pending key unexpectedly missing "
 					     "from %s; restarting acceptance "
 					     "timer", namebuf);
-				keydata.addhd = now + MONTH;
+				if (keydata.addhd < now + dns_zone_mkey_month)
+					keydata.addhd =
+						now + dns_zone_mkey_month;
 				keydata.refresh = refresh_time(kfetch,
 							       ISC_FALSE);
-			} else if (keydata.addhd == 0) {
-				keydata.addhd = now;
 			} else if (keydata.removehd == 0) {
 				dns_zone_log(zone, ISC_LOG_WARNING,
 					     "Active key unexpectedly missing "
 					     "from %s", namebuf);
-				keydata.refresh = now + HOUR;
-			} else if (now > keydata.removehd) {
+				keydata.refresh = now + dns_zone_mkey_hour;
+			} else if (keydata.removehd <= now) {
 				deletekey = ISC_TRUE;
 			} else {
 				keydata.refresh = refresh_time(kfetch,
 							       ISC_FALSE);
 			}
 
-			if  (secure || deletekey) {
+			if (secure || deletekey) {
 				/* Delete old version */
 				CHECK(update_one_rr(kfetch->db, ver, &diff,
 						    DNS_DIFFOP_DEL, keyname, 0,
@@ -8885,7 +8905,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					    DNS_DIFFOP_ADD, keyname, 0,
 					    &keydatarr));
 
-			set_refreshkeytimer(zone, &keydata, now);
+			set_refreshkeytimer(zone, &keydata, now, ISC_FALSE);
 		}
 	}
 
@@ -8907,7 +8927,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	 */
 	for (result = dns_rdataset_first(&kfetch->dnskeyset);
 	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&kfetch->dnskeyset)) {
+	     result = dns_rdataset_next(&kfetch->dnskeyset))
+	{
 		isc_boolean_t revoked = ISC_FALSE;
 		isc_boolean_t newkey = ISC_FALSE;
 		isc_boolean_t updatekey = ISC_FALSE;
@@ -8943,34 +8964,43 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					dns_view_untrust(zone->view, keyname,
 							 &dnskey, mctx);
 
+					/* But ensure there's a null key */
+					fail_secure(zone, keyname);
+
 					/* If initializing, delete now */
 					if (keydata.addhd == 0)
 						deletekey = ISC_TRUE;
-					else
-						keydata.removehd = now + MONTH;
+					else {
+						keydata.removehd = now +
+							dns_zone_mkey_month;
+						keydata.flags |=
+							DNS_KEYFLAG_REVOKE;
+					}
 				} else if (keydata.removehd < now) {
 					/* Scheduled for removal */
 					deletekey = ISC_TRUE;
 				}
-			} else if (revoked) {
-				if (secure && keydata.removehd == 0) {
-					dns_zone_log(zone, ISC_LOG_WARNING,
-						     "Active key for zone "
-						     "'%s' is revoked but "
-						     "did not self-sign; "
-							 "ignoring.", namebuf);
-						continue;
-				}
+			} else if (revoked && keydata.removehd == 0) {
+				dns_zone_log(zone, ISC_LOG_WARNING,
+					     "Active key for zone "
+					     "'%s' is revoked but "
+					     "did not self-sign; "
+					     "ignoring.", namebuf);
+					continue;
 			} else if (secure) {
 				if (keydata.removehd != 0) {
 					/*
 					 * Key isn't revoked--but it
 					 * seems it used to be.
 					 * Remove it now and add it
-					 * back as if it were a fresh key.
+					 * back as if it were a fresh key,
+					 * with a 30 day acceptance timer.
 					 */
 					deletekey = ISC_TRUE;
 					newkey = ISC_TRUE;
+					keydata.removehd = 0;
+					keydata.addhd = 
+						now + dns_zone_mkey_month;
 				} else if (keydata.addhd > now)
 					pending++;
 				else if (keydata.addhd == 0)
@@ -8978,6 +9008,13 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 				if (keydata.addhd <= now)
 					trustkey = ISC_TRUE;
+			} else if (keydata.addhd > now) {
+				/*
+				 * Not secure, and key is pending:
+				 * reset the acceptance timer
+				 */
+				pending++;
+				keydata.addhd = now + dns_zone_mkey_month;
 			}
 
 			if (!deletekey && !newkey)
@@ -9039,7 +9076,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			dns_keydata_fromdnskey(&keydata, &dnskey, 0, 0, 0,
 					       NULL);
-			keydata.addhd = initializing ? now : now + MONTH;
+			keydata.addhd = initializing
+					 ? now : now + dns_zone_mkey_month;
 			keydata.refresh = refresh_time(kfetch, ISC_FALSE);
 			dns_rdata_reset(&keydatarr);
 			isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
@@ -9062,7 +9100,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 		if (secure && !deletekey) {
 			INSIST(newkey || updatekey);
-			set_refreshkeytimer(zone, &keydata, now);
+			set_refreshkeytimer(zone, &keydata, now, ISC_FALSE);
 		}
 	}
 
@@ -9276,7 +9314,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 		char timebuf[80];
 
 		TIME_NOW(&timenow);
-		DNS_ZONE_TIME_ADD(&timenow, HOUR, &timethen);
+		DNS_ZONE_TIME_ADD(&timenow, dns_zone_mkey_hour, &timethen);
 		zone->refreshkeytime = timethen;
 		zone_settimer(zone, &timenow);
 

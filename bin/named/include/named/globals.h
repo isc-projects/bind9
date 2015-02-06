@@ -175,7 +175,6 @@ EXTERN isc_boolean_t		ns_g_notcp		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_disable6		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_disable4		INIT(ISC_FALSE);
 
-
 #ifdef HAVE_GEOIP
 EXTERN dns_geoip_databases_t	*ns_g_geoip		INIT(NULL);
 #endif

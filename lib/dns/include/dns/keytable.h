@@ -420,6 +420,12 @@ dns_keytable_dump(dns_keytable_t *keytable, FILE *fp);
  * Dump the keytable on fp.
  */
 
+isc_result_t
+dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **buf);
+/*%<
+ * Dump the keytable to buffer at 'buf'
+ */
+
 dst_key_t *
 dns_keynode_key(dns_keynode_t *keynode);
 /*%<

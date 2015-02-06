@@ -318,6 +318,15 @@
 	  query and waiting the response before sending the next. [RT #38261]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  To enable better monitoring and troubleshooting of RFC 5011
+	  trust anchor management, the new <command>rndc managed-keys</command>
+	  can be used to check status of trust anchors or to force keys
+	  to be refreshed.  Also, the managed-keys data file now has
+	  easier-to-read comments. [RT #38458]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_changes">
@@ -519,6 +528,13 @@
 	<para>
 	  Two leaks were fixed that could cause <command>named</command>
 	  processes to grow to very large sizes. [RT #38454]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Fixed some bugs in RFC 5011 trust anchor management,
+	  including a memory leak and a possible loss of state
+	  information.[RT #38458]
 	</para>
       </listitem>
     </itemizedlist>

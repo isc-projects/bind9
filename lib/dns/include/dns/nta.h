@@ -185,6 +185,11 @@ isc_result_t
 dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf);
 /*%<
  * Dump the NTA table to buffer at 'buf'
+ * 
+ * Requires:
+ * \li   "ntatable" is a valid table.
+ *
+ * \li   "*buf" is a valid buffer.
  */
 
 isc_result_t

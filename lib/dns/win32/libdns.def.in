@@ -383,6 +383,7 @@ dns_keytable_findnextkeynode
 dns_keytable_issecuredomain
 dns_keytable_marksecure
 dns_keytable_nextkeynode
+dns_keytable_totext
 dns_lib_init
 dns_lib_initmsgcat
 dns_lib_shutdown

@@ -1,7 +1,6 @@
-#!/bin/sh -e
+#!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2009, 2011-2014  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2009-2014  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,23 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
-
-$SHELL clean.sh 
-
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
-
-cd ns1 && $SHELL sign.sh
-
-echo "a.bogus.example.	A	10.0.0.22" >>../ns3/bogus.example.db.signed
-echo "b.bogus.example.	A	10.0.0.23" >>../ns3/bogus.example.db.signed
-echo "c.bogus.example.	A	10.0.0.23" >>../ns3/bogus.example.db.signed
-
-cd ../ns3 && cp -f siginterval1.conf siginterval.conf
-cd ../ns4 && cp -f named1.conf named.conf
-cd ../ns5 && {
-    cp -f trusted.conf.bad trusted.conf
-    cp -f named1.conf named.conf
-    $SHELL sign.sh
-}
+rm -f */K* */*.signed */trusted.conf */*.jnl */*.bk
+rm -f dsset-. ns1/dsset-.
+rm -f ns*/named.lock
+rm -f */managed-keys.bind*
+rm -f */managed.conf ns1/managed.key ns1/managed.key.id
+rm -f */named.memstats */named.run
+rm -f dig.out* delv.out* rndc.out* signer.out*
+rm -f ns1/named.secroots ns1/root.db.signed*
+rm -f ns1/named.conf

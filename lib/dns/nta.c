@@ -503,6 +503,18 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 	return (answer);
 }
 
+static isc_result_t
+putstr(isc_buffer_t **b, const char *str) {
+	isc_result_t result;
+
+	result = isc_buffer_reserve(b, strlen(str));
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	
+	isc_buffer_putstr(*b, str);
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf) {
 	isc_result_t result;
@@ -518,14 +530,20 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf) {
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 	dns_rbtnodechain_init(&chain, ntatable->view->mctx);
 	result = dns_rbtnodechain_first(&chain, ntatable->table, NULL, NULL);
-	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN)
+	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+		if (result == ISC_R_NOTFOUND)
+			result = ISC_R_SUCCESS;
 		goto cleanup;
+	}
 	for (;;) {
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 		if (node->data != NULL) {
 			dns_nta_t *n = (dns_nta_t *) node->data;
-			char nbuf[DNS_NAME_FORMATSIZE], tbuf[80];
-			char obuf[DNS_NAME_FORMATSIZE + 200];
+			char nbuf[DNS_NAME_FORMATSIZE];
+		        char tbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+			char obuf[DNS_NAME_FORMATSIZE +
+				  ISC_FORMATHTTPTIMESTAMP_SIZE +
+				  sizeof("expired:  \n")];
 			dns_fixedname_t fn;
 			dns_name_t *name;
 			isc_time_t t;
@@ -542,12 +560,9 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf) {
 				 n->expiry < now ? "expired" : "expiry",
 				 tbuf);
 			first = ISC_FALSE;
-			result = isc_buffer_reserve(buf, strlen(obuf));
-			if (result != ISC_R_SUCCESS) {
-				result = ISC_R_NOSPACE;
+			result = putstr(buf, obuf);
+			if (result != ISC_R_SUCCESS)
 				goto cleanup;
-			}
-			isc_buffer_putstr(*buf, obuf);
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
@@ -557,16 +572,13 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf) {
 		}
 	}
 
-	isc_buffer_reserve(buf, 1);
-	if (isc_buffer_availablelength(*buf) != 0)
-		isc_buffer_putuint8(*buf, 0);
-
    cleanup:
 	dns_rbtnodechain_invalidate(&chain);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 	return (result);
 }
 
+#if 0
 isc_result_t
 dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp) {
 	isc_result_t result;
@@ -613,6 +625,34 @@ dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp) {
    cleanup:
 	dns_rbtnodechain_invalidate(&chain);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
+	return (result);
+}
+#endif
+
+isc_result_t
+dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp) {
+	isc_result_t result;
+	isc_buffer_t *text = NULL;
+	int len = 4096;
+
+	result = isc_buffer_allocate(ntatable->view->mctx, &text, len);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = dns_ntatable_totext(ntatable, &text);
+
+	if (isc_buffer_usedlength(text) != 0) {
+		(void) putstr(&text, "\n");
+	} else if (result == ISC_R_SUCCESS) {
+		(void) putstr(&text, "none");
+	} else {
+		(void) putstr(&text, "could not dump NTA table: ");
+		(void) putstr(&text, isc_result_totext(result));
+	}
+
+	fprintf(fp, "%.*s", (int) isc_buffer_usedlength(text),
+		(char *) isc_buffer_base(text));
+	isc_buffer_free(&text);
 	return (result);
 }
 

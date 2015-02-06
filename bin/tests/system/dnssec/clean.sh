@@ -16,7 +16,8 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed
-rm -f */trusted.conf */managed.conf */tmp* */*.jnl */*.bk */*.jbk
+rm -f */trusted.conf */managed.conf */revoked.conf
+rm -f */tmp* */*.jnl */*.bk */*.jbk
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
 rm -f ns3/unsecure.example.db ns3/bogus.example.db ns3/keyless.example.db
 rm -f ns3/dynamic.example.db ns3/dynamic.example.db.signed.jnl
@@ -51,7 +52,7 @@ rm -f signer/*.db
 rm -f signer/signer.out.*
 rm -f ns2/algroll.db
 rm -f ns3/kskonly.example.db
-rm -f ns4/named.conf
+rm -f ns4/named.conf ns5/named.conf
 rm -f ns4/managed-keys.bind*
 rm -f ns3/auto-nsec.example.db ns3/auto-nsec3.example.db
 rm -f ns3/secure.below-cname.example.db
@@ -83,3 +84,4 @@ rm -f ns3/dnskey-unknown.example.db
 rm -f ns3/dnskey-unknown.example.db.tmp
 rm -f ns*/named.lock
 rm -f ns*/*.nta
+rm -f named.secroots.test*

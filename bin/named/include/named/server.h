@@ -301,7 +301,7 @@ ns_server_dumpdb(ns_server_t *server, char *args);
  * Dump the current security roots to the secroots file.
  */
 isc_result_t
-ns_server_dumpsecroots(ns_server_t *server, char *args);
+ns_server_dumpsecroots(ns_server_t *server, char *args, isc_buffer_t **text);
 
 /*%
  * Change or increment the server debug level.
@@ -426,4 +426,11 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t **text);
  */
 isc_result_t
 ns_server_testgen(char *args, isc_buffer_t **text);
+
+/*%
+ * Force fefresh or print status for managed keys zones.
+ */
+isc_result_t
+ns_server_mkeys(ns_server_t *server, char *args, isc_buffer_t **text);
+
 #endif /* NAMED_SERVER_H */

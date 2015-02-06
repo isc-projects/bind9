@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.109 2012/02/22 23:47:34 tbox Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -1565,10 +1563,11 @@ echo "I:checking rndc secroots ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 secroots 2>&1 | sed 's/^/I:ns1 /'
 keyid=`cat ns1/managed.key.id`
-linecount=`grep "./RSAMD5/$keyid ; trusted" ns4/named.secroots | wc -l`
+cp ns4/named.secroots named.secroots.test$n
+linecount=`grep "./RSAMD5/$keyid ; trusted" named.secroots.test$n | wc -l`
 [ "$linecount" -eq 1 ] || ret=1
-linecount=`cat ns4/named.secroots | wc -l`
-[ "$linecount" -eq 9 ] || ret=1
+linecount=`cat named.secroots.test$n | wc -l`
+[ "$linecount" -eq 10 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -2784,12 +2783,11 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:check KEYDATA records are printed in human readable form in key zone ($n)"
-# force the zone to be written out
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns4
+# force the managed-keys zone to be written out
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 managed-keys sync 2>&1 | sed 's/^/I:ns4 /'
 ret=0
 grep KEYDATA ns4/managed-keys.bind > /dev/null || ret=1
-# restart the server
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns4
+grep "next refresh:" ns4/managed-keys.bind > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -3030,6 +3028,17 @@ $DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.4 dnskey-nsec3-u
 grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
 grep "status: NOERROR," dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking initialization with a revoked managed key ($n)"
+ret=0
+cp ns5/named2.conf ns5/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 reconfig 2>&1 | sed 's/^/I:ns5 /'
+sleep 3
+$DIG $DIGOPTS +dnssec -p 5300 @10.53.0.5 SOA . > dig.out.ns5.test$n
+grep "status: NOERROR" dig.out.ns5.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

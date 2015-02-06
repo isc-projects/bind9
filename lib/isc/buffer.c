@@ -471,6 +471,7 @@ isc_buffer_reallocate(isc_buffer_t **dynbuffer, unsigned int length) {
 
 	REQUIRE(dynbuffer != NULL);
 	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
+	REQUIRE((*dynbuffer)->mctx != NULL);
 
 	if ((*dynbuffer)->length > length)
 		return (ISC_R_NOSPACE);
@@ -502,11 +503,15 @@ isc_result_t
 isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 	isc_uint64_t len;
 
+	REQUIRE(dynbuffer != NULL);
 	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
 
 	len = (*dynbuffer)->length;
 	if ((len - (*dynbuffer)->used) >= size)
 		return (ISC_R_SUCCESS);
+
+	if ((*dynbuffer)->mctx == NULL)
+		return (ISC_R_NOSPACE);
 
 	/* Round to nearest buffer size increment */
 	len = size + (*dynbuffer)->used;
