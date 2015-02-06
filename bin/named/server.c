@@ -10734,7 +10734,6 @@ mkey_status(dns_view_t *view, isc_buffer_t **text) {
 	}
 
 	CHECK(mkey_dumpzone(view, text));
-	CHECK(putstr(text, "\n"));
 
  cleanup:
 	return (result);
@@ -10749,6 +10748,7 @@ ns_server_mkeys(ns_server_t *server, char *args, isc_buffer_t **text) {
 	char msg[DNS_NAME_FORMATSIZE + 500] = "";
 	enum { NONE, STATUS, REFRESH, SYNC } opt = NONE;
 	isc_boolean_t found = ISC_FALSE;
+	isc_boolean_t first = ISC_TRUE;
 
 	/* Skip rndc command name */
 	cmd = next_token(&args, " \t");
@@ -10805,7 +10805,6 @@ ns_server_mkeys(ns_server_t *server, char *args, isc_buffer_t **text) {
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		isc_boolean_t first = ISC_TRUE;
 		if (viewtxt != NULL &&
 		    (rdclass != view->rdclass ||
 		     strcmp(view->name, viewtxt) != 0))
@@ -10829,7 +10828,7 @@ ns_server_mkeys(ns_server_t *server, char *args, isc_buffer_t **text) {
 			break;
 		case STATUS:
 			if (!first)
-				CHECK(putstr(text, "\n"));
+				CHECK(putstr(text, "\n\n"));
 			CHECK(mkey_status(view, text));
 			first = ISC_FALSE;
 			break;
