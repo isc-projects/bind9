@@ -324,14 +324,14 @@ ATF_TC_BODY(deletekeynode, tc) {
 	dst_key_free(&key);
 
 	/*
-	 * The only null key node for a name can be deleted as long as the
-	 * passed key name matches.
+	 * A null key node for a name is not deleted when searched by key;
+	 * it must be deleted by dns_keytable_delete()
 	 */
 	create_key(257, 3, 5, "null.example", keystr1, &key);
 	ATF_REQUIRE_EQ(dns_keytable_deletekeynode(keytable, key),
+		       DNS_R_PARTIALMATCH);
+	ATF_REQUIRE_EQ(dns_keytable_delete(keytable, dst_key_name(key)),
 		       ISC_R_SUCCESS);
-	ATF_REQUIRE_EQ(dns_keytable_deletekeynode(keytable, key),
-		       ISC_R_NOTFOUND);
 	dst_key_free(&key);
 
 	destroy_tables();
