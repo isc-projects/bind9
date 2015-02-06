@@ -2041,7 +2041,7 @@ ts=`awk '{print $3" "$4}' < rndc.out.ns4.test$n.1`
 # rndc nta outputs localtime, so append the timezone
 ts_with_zone="$ts `date +%z`"
 # ntadiff.pl computes $ts_with_zone - ($added + 1week)
-d=`./ntadiff.pl "$ts_with_zone" "$added"`
+d=`$PERL ./ntadiff.pl "$ts_with_zone" "$added"`
 echo "ts=$ts" > rndc.out.ns4.test$n.2
 echo "ts_with_zone=$ts_with_zone" >> rndc.out.ns4.test$n.2
 echo "d=$d" >> rndc.out.ns4.test$n.2
