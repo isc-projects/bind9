@@ -10631,7 +10631,7 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
 			snprintf(buf, sizeof(buf), "\n\n    name: %s", nbuf);
 			CHECK(putstr(text, buf));
 		}
-			
+
 
 		for (result = dns_rdataset_first(kdset);
 		     result == ISC_R_SUCCESS;

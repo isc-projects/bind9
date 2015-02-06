@@ -510,7 +510,7 @@ putstr(isc_buffer_t **b, const char *str) {
 	result = isc_buffer_reserve(b, strlen(str));
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	
+
 	isc_buffer_putstr(*b, str);
 	return (ISC_R_SUCCESS);
 }
@@ -540,7 +540,7 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf) {
 		if (node->data != NULL) {
 			dns_nta_t *n = (dns_nta_t *) node->data;
 			char nbuf[DNS_NAME_FORMATSIZE];
-		        char tbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+			char tbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 			char obuf[DNS_NAME_FORMATSIZE +
 				  ISC_FORMATHTTPTIMESTAMP_SIZE +
 				  sizeof("expired:  \n")];

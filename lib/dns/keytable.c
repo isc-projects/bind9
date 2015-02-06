@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2010, 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2010, 2013-2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -564,7 +564,7 @@ putstr(isc_buffer_t **b, const char *str) {
 	result = isc_buffer_reserve(b, strlen(str));
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	
+
 	isc_buffer_putstr(*b, str);
 	return (ISC_R_SUCCESS);
 }
