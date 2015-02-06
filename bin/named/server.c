@@ -10241,7 +10241,7 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t **text) {
 	}
 
 	if (! isc_time_isepoch(&refreshtime)) {
-		CHECK(putstr(text, "\nnext managed-keys refresh: "));
+		CHECK(putstr(text, "\nnext refresh: "));
 		CHECK(putstr(text, rbuf));
 	}
 
