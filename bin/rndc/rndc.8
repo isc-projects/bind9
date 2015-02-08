@@ -219,6 +219,13 @@ when there is a large number of zones because it avoids the need to examine the 
 Displays the current status of the given zone, including the master file name and any include files from which it was loaded, when it was most recently loaded, the current serial number, the number of nodes, whether the zone supports dynamic updates, whether the zone is DNSSEC signed, whether it uses automatic DNSSEC key management or inline signing, and the scheduled refresh or expiry times for the zone.
 .RE
 .PP
+\fBmanaged\-keys \fR\fB\fI(status | refresh | sync)\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR
+.RS 4
+When run with the "status" keyword, print the current status of the managed\-keys database for the specified view, or for all views if none is specified. When run with the "refresh" keyword, force an immediate refresh of all the managed\-keys in the specified view, or all views. When run with the "sync" keyword, force an immediate dump of the managed\-keys database to disk (in the file
+\fImanaged\-keys.bind\fR
+or (\fI\fIviewname\fR\fR\fI.mkeys\fR).
+.RE
+.PP
 \fBstats\fR
 .RS 4
 Write server statistics to the statistics file.
@@ -250,9 +257,17 @@ section of
 Dump the server's caches (default) and/or zones to the dump file for the specified views. If no view is specified, all views are dumped.
 .RE
 .PP
-\fBsecroots \fR\fB[\fIview ...\fR]\fR
+\fBsecroots \fR\fB[\-]\fR\fB \fR\fB[\fIview ...\fR]\fR
 .RS 4
-Dump the server's security roots and negative trust anchors to the secroots file for the specified views. If no view is specified, all views are dumped.
+Dump the server's security roots and negative trust anchors for the specified views. If no view is specified, all views are dumped.
+.sp
+If the first argument is "\-", then the output is returned via the
+\fBrndc\fR
+response channel and printed to the standard output. Otherwise, it is written to the secroots dump file, which defaults to
+\fInamed.secroots\fR, but can be overridden via the
+\fBsecroots\-file\fR
+option in
+\fInamed.conf\fR.
 .RE
 .PP
 \fBstop \fR\fB[\-p]\fR
