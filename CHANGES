@@ -1,3 +1,5 @@
+	--- 9.10.2rc2 released ---
+
 4059.	[bug]		Addressed valgrind warnings. [RT #38549]
 
 4058.	[bug]		UDP dispatches could use the wrong psuedorandom
