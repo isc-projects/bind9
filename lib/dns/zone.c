@@ -8964,7 +8964,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					deletekey = ISC_TRUE;
 					newkey = ISC_TRUE;
 					keydata.removehd = 0;
-					keydata.addhd = 
+					keydata.addhd =
 						now + dns_zone_mkey_month;
 				} else if (keydata.addhd > now)
 					pending++;
