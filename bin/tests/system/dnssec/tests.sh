@@ -2510,7 +2510,7 @@ cp ns5/named2.conf ns5/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 reconfig 2>&1 | sed 's/^/I:ns5 /'
 sleep 3
 $DIG $DIGOPTS +dnssec -p 5300 @10.53.0.5 SOA . > dig.out.ns5.test$n
-grep "status: NOERROR" dig.out.ns5.test$n > /dev/null || ret=1
+grep "status: SERVFAIL" dig.out.ns5.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
