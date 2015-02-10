@@ -1,3 +1,6 @@
+4058.	[bug]		UDP dispatches could use the wrong psuedorandom
+			number generator context. [RT #38578]
+
 4057.	[bug]		'dnssec-dsfromkey -T 0' failed to add ttl field.
 			[RT #38565]
 
