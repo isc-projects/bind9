@@ -9858,7 +9858,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t **text) {
 	isc_boolean_t chain = ISC_FALSE;
 	isc_boolean_t setserial = ISC_FALSE;
 	isc_uint32_t serial = 0;
-	char keystr[DNS_SECALG_FORMATSIZE + 7];
+	char keystr[DNS_SECALG_FORMATSIZE + 7]; /* <5-digit keyid>/<alg> */
 	unsigned short hash = 0, flags = 0, iter = 0, saltlen = 0;
 	unsigned char salt[255];
 	const char *ptr;
@@ -9884,7 +9884,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t **text) {
 		ptr = next_token(&args, " \t");
 		if (ptr == NULL)
 			return (ISC_R_UNEXPECTEDEND);
-		memmove(keystr, ptr, sizeof(keystr));
+		strlcpy(keystr, ptr, sizeof(keystr));
 	} else if (strcasecmp(ptr, "-nsec3param") == 0) {
 		const char *hashstr, *flagstr, *iterstr;
 		char nbuf[512];

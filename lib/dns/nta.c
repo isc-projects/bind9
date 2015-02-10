@@ -688,7 +688,7 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
 				name = dns_fixedname_name(&fn);
 				dns_rbt_fullnamefromnode(node, name);
 
-				isc_buffer_init(&b, nbuf, sizeof(nbuf) - 1);
+				isc_buffer_init(&b, nbuf, sizeof(nbuf));
 				result = dns_name_totext(name, ISC_FALSE, &b);
 				if (result != ISC_R_SUCCESS)
 					goto skip;
@@ -698,6 +698,9 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
 
 				isc_buffer_init(&b, tbuf, sizeof(tbuf));
 				dns_time32_totext(n->expiry, &b);
+
+				/* Zero terminate. */
+				isc_buffer_putuint8(&b, 0);
 
 				fprintf(fp, "%s %s %s\n", nbuf,
 					n->forced ? "forced" : "regular",
