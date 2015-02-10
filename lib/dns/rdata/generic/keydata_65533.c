@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2011-2013, 2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -200,17 +200,17 @@ totext_keydata(ARGS_TOTEXT) {
 
 			isc_stdtime_get(&now);
 
-			RETERR(str_totext(tctx->linebreak, target)); 
+			RETERR(str_totext(tctx->linebreak, target));
 			RETERR(str_totext("; next refresh: ", target));
 			isc_time_set(&t, refresh, 0);
 			isc_time_formathttptimestamp(&t, rbuf, sizeof(rbuf));
 			RETERR(str_totext(rbuf, target));
 
 			if (add == 0) {
-				RETERR(str_totext(tctx->linebreak, target)); 
+				RETERR(str_totext(tctx->linebreak, target));
 				RETERR(str_totext("; no trust", target));
 			} else {
-				RETERR(str_totext(tctx->linebreak, target)); 
+				RETERR(str_totext(tctx->linebreak, target));
 				if (add < now) {
 					RETERR(str_totext("; trusted since: ",
 							  target));
@@ -225,7 +225,7 @@ totext_keydata(ARGS_TOTEXT) {
 			}
 
 			if (remove != 0) {
-				RETERR(str_totext(tctx->linebreak, target)); 
+				RETERR(str_totext(tctx->linebreak, target));
 				RETERR(str_totext("; removal pending: ",
 						  target));
 				isc_time_set(&t, remove, 0);
