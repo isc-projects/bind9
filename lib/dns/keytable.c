@@ -275,16 +275,17 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey) {
 	}
 
 	knode = node->data;
-	if (knode->next == NULL &&
-	    (knode->key == NULL ||
-	     dst_key_compare(knode->key, dstkey) == ISC_TRUE)) {
+	if (knode->next == NULL && knode->key != NULL &&
+	    dst_key_compare(knode->key, dstkey) == ISC_TRUE)
+	{
 		result = dns_rbt_deletenode(keytable->table, node, ISC_FALSE);
 		goto finish;
 	}
 
 	kprev = (dns_keynode_t **) &node->data;
 	while (knode != NULL) {
-		if (dst_key_compare(knode->key, dstkey) == ISC_TRUE)
+		if (knode->key != NULL &&
+		    dst_key_compare(knode->key, dstkey) == ISC_TRUE)
 			break;
 		kprev = &knode->next;
 		knode = knode->next;
