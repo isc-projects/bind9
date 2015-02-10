@@ -255,7 +255,7 @@
 ./bin/named/include/named/update.h		C	1999,2000,2001,2004,2005,2007
 ./bin/named/include/named/xfrout.h		C	1999,2000,2001,2004,2005,2007
 ./bin/named/include/named/zoneconf.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2010,2011
-./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
+./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
 ./bin/named/listenlist.c			C	2000,2001,2004,2005,2007,2013
 ./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2013
 ./bin/named/logconf.c				C	1999,2000,2001,2004,2005,2006,2007,2011,2013
@@ -1121,7 +1121,7 @@
 ./bin/tests/system/dns64/setup.sh		SH	2010,2012,2014
 ./bin/tests/system/dns64/tests.sh		SH	2010,2011,2012,2013,2014
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004,2011
-./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004,2007,2010,2012
 ./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001,2004,2006,2007
 ./bin/tests/system/dnssec/ns1/root.db.in	ZONE	2000,2001,2004,2007,2010,2013,2014
@@ -1178,7 +1178,7 @@
 ./bin/tests/system/dnssec/ns3/siginterval.example.db.in	ZONE	2013
 ./bin/tests/system/dnssec/ns3/siginterval1.conf	CONF-C	2013
 ./bin/tests/system/dnssec/ns3/siginterval2.conf	CONF-C	2013
-./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/dnssec/ns3/split-dnssec.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/split-smart.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/ttlpatch.example.db.in	ZONE	2011
@@ -1189,8 +1189,8 @@
 ./bin/tests/system/dnssec/ns4/named3.conf	CONF-C	2012,2013
 ./bin/tests/system/dnssec/ns4/named4.conf	CONF-C	2013
 ./bin/tests/system/dnssec/ns5/.gitignore	X	2015
-./bin/tests/system/dnssec/ns5/named1.conf	CONF-C	2000,2001,2004,2006,2007
-./bin/tests/system/dnssec/ns5/named2.conf	CONF-C	2000,2001,2004,2006,2007
+./bin/tests/system/dnssec/ns5/named1.conf	CONF-C	2000,2001,2004,2006,2007,2015
+./bin/tests/system/dnssec/ns5/named2.conf	CONF-C	2000,2001,2004,2006,2007,2015
 ./bin/tests/system/dnssec/ns5/sign.sh		SH	2015
 ./bin/tests/system/dnssec/ns5/trusted.conf.bad	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/dnssec/ns6/named.args	X	2013
@@ -1203,9 +1203,9 @@
 ./bin/tests/system/dnssec/ns7/sign.sh		SH	2014
 ./bin/tests/system/dnssec/ns7/split-rrsig.db.in	ZONE	2014
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006,2007,2009,2012,2014
-./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2009,2011,2012,2013,2014
+./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2009,2011,2012,2013,2014,2015
 ./bin/tests/system/dnssec/signer/example.db.in	ZONE	2010
-./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/dscp/clean.sh		SH	2013
 ./bin/tests/system/dscp/ns1/named.args		X	2013
 ./bin/tests/system/dscp/ns1/named.conf		CONF-C	2013
@@ -2921,7 +2921,7 @@
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005,2007,2013
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005,2007,2008,2009,2011,2013,2014,2015
-./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
+./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005,2007,2009,2010,2011,2012,2013
 ./lib/dns/dns64.c				C	2010,2011,2014
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
@@ -3042,7 +3042,7 @@
 ./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2010,2011,2013,2014
 ./lib/dns/key.c					C	2001,2004,2005,2006,2007,2011
 ./lib/dns/keydata.c				C	2009,2014
-./lib/dns/keytable.c				C	2000,2001,2004,2005,2007,2009,2010,2013,2014
+./lib/dns/keytable.c				C	2000,2001,2004,2005,2007,2009,2010,2013,2014,2015
 ./lib/dns/lib.c					C	1999,2000,2001,2004,2005,2007,2009,2013,2014
 ./lib/dns/log.c					C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2011,2012,2013,2014
 ./lib/dns/lookup.c				C	2000,2001,2003,2004,2005,2007,2013
@@ -3117,7 +3117,7 @@
 ./lib/dns/rdata/generic/isdn_20.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/key_25.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012,2013
 ./lib/dns/rdata/generic/key_25.h		C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/generic/keydata_65533.c		C	2009,2011,2012,2013
+./lib/dns/rdata/generic/keydata_65533.c		C	2009,2011,2012,2013,2015
 ./lib/dns/rdata/generic/keydata_65533.h		C	2009
 ./lib/dns/rdata/generic/l32_105.c		C	2013,2014
 ./lib/dns/rdata/generic/l32_105.h		C	2013
@@ -3390,7 +3390,7 @@
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005,2007,2008,2013,2014
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006,2007,2009,2013,2014
 ./lib/isc/hmacsha.c				C	2005,2006,2007,2009,2011,2012,2013,2014
-./lib/isc/httpd.c				C	2006,2007,2008,2010,2011,2012,2013,2014
+./lib/isc/httpd.c				C	2006,2007,2008,2010,2011,2012,2013,2014,2015
 ./lib/isc/ia64/Makefile.in			MAKE	2007,2012
 ./lib/isc/ia64/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/ia64/include/isc/Makefile.in		MAKE	2007,2012
@@ -3589,7 +3589,7 @@
 ./lib/isc/tests/symtab_test.c			C	2011,2012,2013
 ./lib/isc/tests/task_test.c			C	2011,2012
 ./lib/isc/tests/taskpool_test.c			C	2011,2012
-./lib/isc/tests/time_test.c			C	2014
+./lib/isc/tests/time_test.c			C	2014,2015
 ./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008,2009,2011,2012,2013,2014
 ./lib/isc/timer_p.h				C	2000,2001,2004,2005,2007,2009
 ./lib/isc/tm.c					C	2014
@@ -3616,13 +3616,13 @@
 ./lib/isc/unix/include/isc/stdtime.h		C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/isc/unix/include/isc/strerror.h		C	2001,2004,2005,2007,2008
 ./lib/isc/unix/include/isc/syslog.h		C	1999,2000,2001,2004,2005,2007
-./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2012,2014
+./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2012,2014,2015
 ./lib/isc/unix/include/pkcs11/Makefile.in	MAKE	2014
 ./lib/isc/unix/include/pkcs11/cryptoki.h	X	2014
 ./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2014
 ./lib/isc/unix/ipv6.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/unix/keyboard.c			C	2000,2001,2004,2007
-./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013,2014
+./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013,2014,2015
 ./lib/isc/unix/os.c				C	2000,2001,2004,2005,2007
 ./lib/isc/unix/pk11_api.c			C	2014
 ./lib/isc/unix/resource.c			C	2000,2001,2004,2007,2008,2009
@@ -3632,7 +3632,7 @@
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004,2005,2007
 ./lib/isc/unix/strerror.c			C	2001,2004,2005,2007,2009
 ./lib/isc/unix/syslog.c				C	2001,2004,2005,2007
-./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2011,2012,2014
+./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2011,2012,2014,2015
 ./lib/isc/version.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/win32/DLLMain.c			C	2001,2004,2007
 ./lib/isc/win32/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009,2012,2014
@@ -3667,7 +3667,7 @@
 ./lib/isc/win32/include/isc/strerror.h		C	2001,2004,2007
 ./lib/isc/win32/include/isc/syslog.h		C	1999,2000,2001,2004,2007
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007,2009,2013
-./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001,2004,2006,2007,2008,2009,2012,2014
+./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001,2004,2006,2007,2008,2009,2012,2014,2015
 ./lib/isc/win32/include/isc/win32os.h		C	2002,2004,2007,2009,2015
 ./lib/isc/win32/include/pkcs11/Makefile.in	MAKE	2014
 ./lib/isc/win32/include/pkcs11/cryptoki.h	X	2014
