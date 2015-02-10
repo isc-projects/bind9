@@ -404,6 +404,9 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 
 	REQUIRE(len > 0);
 
+	/*
+	 * 5 spaces, 1 comma, 3 GMT, 2 %d, 4 %Y, 8 %H:%M:%S, 3+ %a, 3+ %b (29+)
+	 */
 	now = (time_t)t->seconds;
 	flen = strftime(buf, len, "%a, %d %b %Y %H:%M:%S GMT", gmtime(&now));
 	INSIST(flen < len);

@@ -306,6 +306,13 @@
 	  processes to grow to very large sizes. [RT #38454]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Fixed some bugs in RFC 5011 trust anchor management,
+	  including a memory leak and a possible loss of state
+	  information.[RT #38458]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">

@@ -43,6 +43,13 @@ struct isc_interval {
 
 extern const isc_interval_t * const isc_interval_zero;
 
+/*
+ * ISC_FORMATHTTPTIMESTAMP_SIZE needs to be 30 in C locale and potentially
+ * more for other locales to handle longer national abbreviations when
+ * expanding strftime's %a and %b.
+ */
+#define ISC_FORMATHTTPTIMESTAMP_SIZE 50
+
 ISC_LANG_BEGINDECLS
 
 void

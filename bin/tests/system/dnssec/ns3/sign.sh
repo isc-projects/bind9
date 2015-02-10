@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.43 2011/11/04 05:36:28 each Exp $
-
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -505,5 +503,5 @@ zonefile=future.example.db
 kskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
 zskname=`$KEYGEN -q -r $RANDFILE $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
-$SIGNER -P -s +3600 -r $RANDFILE -o $zone $zonefile # > /dev/null 2>&1
+$SIGNER -P -s +3600 -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 cp -f $kskname.key trusted-future.key
