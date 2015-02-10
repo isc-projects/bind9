@@ -519,6 +519,8 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 		return (ISC_FALSE);
 	}
 
+	memset(&control, 0, sizeof(control));
+
 	iovec.iov_base = buf;
 	iovec.iov_len = sizeof(buf);
 

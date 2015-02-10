@@ -1039,7 +1039,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 				if (le->dscp != -1 && ifp->dscp == -1)
 					ifp->dscp = le->dscp;
 				else if (le->dscp != ifp->dscp) {
-					isc_sockaddr_format(&listen_addr,
+					isc_sockaddr_format(&listen_sockaddr,
 							    sabuf,
 							    sizeof(sabuf));
 					isc_log_write(IFMGR_COMMON_LOGARGS,
