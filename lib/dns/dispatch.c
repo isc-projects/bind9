@@ -2994,6 +2994,8 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	disp->socktype = isc_sockettype_udp;
+
 	if ((attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0) {
 		result = get_udpsocket(mgr, disp, sockmgr, localaddr, &sock,
 				       dup_socket);
@@ -3043,7 +3045,6 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		isc_mempool_setname(disp->portpool, "disp_portpool");
 		isc_mempool_setfreemax(disp->portpool, 128);
 	}
-	disp->socktype = isc_sockettype_udp;
 	disp->socket = sock;
 	disp->local = *localaddr;
 

@@ -1,3 +1,6 @@
+4058.	[bug]		UDP dispatches could use the wrong psuedorandom
+			number generator context. [RT #38578]
+
 4056.	[bug]		Fixed several small bugs in automatic trust anchor
 			management, including a memory leak and a possible 
 			loss of key state information. [RT #38458]
