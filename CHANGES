@@ -1,4 +1,7 @@
+
 	--- 9.9.7rc2 released ---
+
+4061.	[bug]		Handle timeout in legacy system test. [RT #38573]
 
 4060.	[bug]		dns_rdata_freestruct could be call on a uninitialised
 			structure when handling a error. [RT #38568]
