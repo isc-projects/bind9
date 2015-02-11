@@ -1,5 +1,8 @@
 	--- 9.10.2rc2 released ---
 
+4060.	[bug]		dns_rdata_freestruct could be call on a uninitialised
+			structure when handling a error. [RT #38568]
+
 4059.	[bug]		Addressed valgrind warnings. [RT #38549]
 
 4058.	[bug]		UDP dispatches could use the wrong psuedorandom
