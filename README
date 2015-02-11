@@ -56,7 +56,7 @@ BIND 9.9.7
 
 	BIND 9.9.7 is a maintenance release and addresses bugs
 	found in BIND 9.9.6 and earlier, as well as the security
-	flaw described in CVE-2014-8500.
+	flaws described in CVE-2014-8500 and CVE-2015-1349.
 
 BIND 9.9.6
 
