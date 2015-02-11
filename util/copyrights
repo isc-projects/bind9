@@ -6,7 +6,7 @@
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013,2014
 ./HISTORY					X	2010,2013
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2014
 ./aclocal.m4					X	1999,2000,2001,2012,2014
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2013,2014
@@ -1455,7 +1455,7 @@
 ./bin/tests/system/legacy/ns7/named.notcp	X	2014
 ./bin/tests/system/legacy/ns7/sign.sh		SH	2014
 ./bin/tests/system/legacy/setup.sh		SH	2014
-./bin/tests/system/legacy/tests.sh		SH	2014
+./bin/tests/system/legacy/tests.sh		SH	2014,2015
 ./bin/tests/system/limits/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/limits/knowngood.dig.out.1000	X	2000,2001
 ./bin/tests/system/limits/knowngood.dig.out.2000	X	2000,2001
@@ -3315,7 +3315,7 @@
 ./lib/dns/win32/gen.vcxproj.filters.in		X	2013
 ./lib/dns/win32/gen.vcxproj.in			X	2013
 ./lib/dns/win32/gen.vcxproj.user		X	2013
-./lib/dns/win32/libdns.def.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./lib/dns/win32/libdns.def.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/win32/libdns.dsp.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014
