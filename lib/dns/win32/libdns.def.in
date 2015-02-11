@@ -1146,6 +1146,9 @@ dns_zone_log
 dns_zone_logc
 dns_zone_maintenance
 dns_zone_markdirty
+dns_zone_mkey_hour
+dns_zone_mkey_day
+dns_zone_mkey_month
 dns_zone_name
 dns_zone_next
 dns_zone_notify
@@ -1368,7 +1371,4 @@ dst_result_totext
 EXPORTS
 
 dns_master_style_full	DATA
-dns_zone_mkey_hour	DATA
-dns_zone_mkey_day	DATA
-dns_zone_mkey_month	DATA
 @END NOLONGER
