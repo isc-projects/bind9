@@ -116,6 +116,9 @@ static in_port_t port = 53;
 static isc_dscp_t dscp = -1;
 static unsigned char cookie_secret[33];
 static int onfly = 0;
+#ifdef ISC_PLATFORM_USESIT
+static char sitvalue[256];
+#endif
 
 struct query {
 	char textname[MXNAME]; /*% Name we're going to be looking up */
@@ -1341,11 +1344,10 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 				query->edns = 0;
 			query->sit = state;
 			if (value != NULL) {
-				n = strlcpy(query->sitvalue,
-					    value,
-					    sizeof(query->sitvalue));
-				if (n >= sizeof(query->sitvalue))
+				n = strlcpy(sitvalue, value, sizeof(sitvalue));
+				if (n >= sizeof(sitvalue))
 					fatal("SIT data too large");
+				query->sitvalue = sitvalue;
 			} else
 				query->sitvalue = NULL;
 			break;
