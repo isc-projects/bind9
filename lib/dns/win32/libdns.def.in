@@ -1219,4 +1219,7 @@ dst_result_totext
 EXPORTS
 
 dns_master_style_full	DATA
+dns_zone_mkey_hour	DATA
+dns_zone_mkey_day	DATA
+dns_zone_mkey_month	DATA
 @END NOLONGER
