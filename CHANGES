@@ -100,7 +100,7 @@
 			implemented.  The prototypes for these
 			functions have been removed. [RT #38068]
 
-4023.	[bug]		win32: socket handling with explict ports and
+4023.	[bug]		win32: socket handling with explicit ports and
 			invoking named with -4 was broken for some
 			configurations. [RT #38068]
 
@@ -117,7 +117,7 @@
 			when we know the server supports EDNS. [RT #37978]
 
 4017.	[test]		Add system test to check lookups to legacy servers
-			with broken DNS behaviour. [RT #37965]
+			with broken DNS behavior. [RT #37965]
 
 4016.	[bug]		Fix a dig segfault due to bad linked list usage.
 			[RT #37591]
@@ -193,7 +193,7 @@
 3990.	[testing]	Add tests for unknown DNSSEC algorithm handling.
 			[RT #37541]
 
-3989.	[cleanup]	Remove redundent dns_db_resigned calls. [RT #35748]
+3989.	[cleanup]	Remove redundant dns_db_resigned calls. [RT #35748]
 
 3987.	[func]		Handle future Visual Studio 14 incompatible changes.
 			[RT #37380]
