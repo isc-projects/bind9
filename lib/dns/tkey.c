@@ -1397,6 +1397,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	dst_key_t *dstkey = NULL;
 	isc_result_t result;
 	unsigned char array[1024];
+	isc_boolean_t freertkey = ISC_FALSE;
 
 	REQUIRE(qmsg != NULL);
 	REQUIRE(rmsg != NULL);
@@ -1409,6 +1410,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 
 	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata, DNS_SECTION_ANSWER));
 	RETERR(dns_rdata_tostruct(&rtkeyrdata, &rtkey, NULL));
+	freertkey = ISC_TRUE;
 
 	if (win2k == ISC_TRUE)
 		RETERR(find_tkey(qmsg, &tkeyname, &qtkeyrdata,
@@ -1461,7 +1463,8 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	/*
 	 * XXXSRA This probably leaks memory from qtkey.
 	 */
-	dns_rdata_freestruct(&rtkey);
+	if (freertkey)
+		dns_rdata_freestruct(&rtkey);
 	if (dstkey != NULL)
 		dst_key_free(&dstkey);
 	return (result);
