@@ -1347,6 +1347,7 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 				n = strlcpy(sitvalue, value, sizeof(sitvalue));
 				if (n >= sizeof(sitvalue))
 					fatal("SIT data too large");
+				query->sitvalue = sitvalue;
 			} else
 				query->sitvalue = NULL;
 			break;
