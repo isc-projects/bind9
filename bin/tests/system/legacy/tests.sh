@@ -158,7 +158,7 @@ then
     n=`expr $n + 1`
     echo "I:checking recursive lookup to edns 512 + no tcp + trust anchor fails ($n)"
     ret=0
-    $DIG +tcp  @10.53.0.1 -p 5300 edns512-notcp soa > dig.out.test$n || ret=1
+    $DIG +tcp  @10.53.0.1 -p 5300 edns512-notcp soa > dig.out.test$n
     grep "status: SERVFAIL" dig.out.test$n > /dev/null ||
         grep "connection timed out;" dig.out.test$n > /dev/null || ret=1
     if [ $ret != 0 ]; then echo "I:failed"; fi
