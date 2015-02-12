@@ -49,8 +49,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*
  * This is simply a merge of Andrew Tridgell's dlz_example.c and the
  * original bdb_bdbhpt_driver.c
@@ -735,7 +733,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	if (bdbhptres != 0) {
 		db->log(ISC_LOG_ERROR,
 			"bdbhpt_dynamic: db environment could not be created. "
-			"BerkeleyDB error: %s",jdb_strerror(bdbhptres));
+			"BerkeleyDB error: %s", db_strerror(bdbhptres));
 		result = ISC_R_FAILURE;
 		goto init_cleanup;
 	}
