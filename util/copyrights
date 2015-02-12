@@ -2083,10 +2083,12 @@
 ./contrib/dlz/example/win32/dxdriver.def	X	2011
 ./contrib/dlz/example/win32/dxdriver.dsw	X	2011
 ./contrib/dlz/modules/bdbhpt/Makefile		X	2013
-./contrib/dlz/modules/bdbhpt/README.md		X	2013
+./contrib/dlz/modules/bdbhpt/README.md		X	2013,2015
 ./contrib/dlz/modules/bdbhpt/dlz_bdbhpt_dynamic.c	X	2013
+./contrib/dlz/modules/bdbhpt/testing/README	X	2015
 ./contrib/dlz/modules/bdbhpt/testing/bdbhpt-populate.pl	X	2013
-./contrib/dlz/modules/bdbhpt/testing/dns-data.txt	X	2013
+./contrib/dlz/modules/bdbhpt/testing/dns-data.txt	X	2013,2015
+./contrib/dlz/modules/bdbhpt/testing/named.conf	X	2015
 ./contrib/dlz/modules/dlz_minimal.h		X	2013
 ./contrib/idn/README.idnkit			X	2005,2009
 ./contrib/idn/idnkit-1.0-src/.gitignore		X	2014
@@ -3105,7 +3107,7 @@
 ./lib/isc/error.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005,2007,2014
 ./lib/isc/fsaccess.c				C	2000,2001,2004,2005,2007
-./lib/isc/hash.c				C	2003,2004,2005,2006,2007,2009,2013,2014
+./lib/isc/hash.c				C	2003,2004,2005,2006,2007,2009,2013,2014,2015
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2013,2014
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005,2007,2008,2013,2014
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006,2007,2009,2013,2014
