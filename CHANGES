@@ -6,7 +6,7 @@
 
 4059.	[bug]		Addressed valgrind warnings. [RT #38549]
 
-4058.	[bug]		UDP dispatches could use the wrong psuedorandom
+4058.	[bug]		UDP dispatches could use the wrong pseudorandom
 			number generator context. [RT #38578]
 
 4057.	[bug]		'dnssec-dsfromkey -T 0' failed to add ttl field.
