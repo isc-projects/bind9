@@ -1,3 +1,8 @@
+4062.	[bug]		Fix an out-of-bounds read in RPZ code. If the
+			read succeeded, it doesn't result in a bug
+			during operation. If the read failed, named
+			could segfault. [RT #38559]
+
 4061.	[bug]		Handle timeout in legacy system test. [RT #38573]
 
 4060.	[bug]		dns_rdata_freestruct could be called on a
