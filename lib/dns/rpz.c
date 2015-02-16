@@ -866,13 +866,14 @@ diff_keys(const dns_rpz_cidr_key_t *key1, dns_rpz_prefix_t prefix1,
 	dns_rpz_prefix_t maxbit, bit;
 	int i;
 
+	bit = 0;
 	maxbit = ISC_MIN(prefix1, prefix2);
 
 	/*
 	 * find the first differing words
 	 */
-	for (i = 0, bit = 0;
-	     bit <= maxbit;
+	for (i = 0;
+	     bit < maxbit;
 	     i++, bit += DNS_RPZ_CIDR_WORD_BITS) {
 		delta = key1->w[i] ^ key2->w[i];
 		if (delta != 0) {
