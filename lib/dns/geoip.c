@@ -167,10 +167,11 @@ set_state(unsigned int family, isc_uint32_t ipnum, const geoipv6_t *ipnum6,
 	  isc_uint8_t scope, dns_geoip_subtype_t subtype, GeoIPRecord *record,
 	  GeoIPRegion *region, char *name, const char *text, int id)
 {
-	isc_result_t result;
 	geoip_state_t *state = NULL;
 
 #ifdef ISC_PLATFORM_USETHREADS
+	isc_result_t result;
+
 	result = state_key_init();
 	if (result != ISC_R_SUCCESS)
 		return (result);
