@@ -26,8 +26,8 @@
 
 4052.	[bug]		Fix a leak of query fetchlock. [RT #38454]
 
-4050.	[cleanup]	Silence occasional spurious "duplicate query" log
-			messages from RPZ. [RT #38510]
+4050.	[bug]		RPZ could send spurious SERVFAILs in response
+			to duplicate queries. [RT #38510]
 
 4049.	[bug]		CDS and CDNSKEY had the wrong attributes. [RT #38491]
 
