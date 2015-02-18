@@ -2040,14 +2040,20 @@ lines=`wc -l < rndc.out.ns4.test$n.1`
 ts=`awk '{print $3" "$4}' < rndc.out.ns4.test$n.1`
 # rndc nta outputs localtime, so append the timezone
 ts_with_zone="$ts `date +%z`"
-# ntadiff.pl computes $ts_with_zone - ($added + 1week)
-d=`$PERL ./ntadiff.pl "$ts_with_zone" "$added"`
 echo "ts=$ts" > rndc.out.ns4.test$n.2
 echo "ts_with_zone=$ts_with_zone" >> rndc.out.ns4.test$n.2
-echo "d=$d" >> rndc.out.ns4.test$n.2
-# diff from $added(now) + 1week to the clamped NTA lifetime should be
-# less than a few seconds.
-[ $d -lt 10 ] || ret=1
+echo "added=$added" >> rndc.out.ns4.test$n.2
+if $PERL -e 'use Time::Piece; use Time::Seconds;' 2>/dev/null
+then
+    # ntadiff.pl computes $ts_with_zone - ($added + 1week)
+    d=`$PERL ./ntadiff.pl "$ts_with_zone" "$added"`
+    echo "d=$d" >> rndc.out.ns4.test$n.2
+    # diff from $added(now) + 1week to the clamped NTA lifetime should be
+    # less than a few seconds.
+    [ $d -lt 10 ] || ret=1
+else
+    echo "I: skipped ntadiff test; install PERL module Time::Piece"
+fi
 
 # cleanup
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -remove secure.example > rndc.out.ns4.test$n.3 2>/dev/null
