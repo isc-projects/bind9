@@ -5719,6 +5719,16 @@ isc__socket_connect(isc_socket_t *sock0, isc_sockaddr_t *addr,
 		goto queue;
 	}
 
+	if (sock->connected) {
+		INSIST(isc_sockaddr_equal(&sock->peer_address, addr));
+		dev->result = ISC_R_SUCCESS;
+		isc_task_send(task, ISC_EVENT_PTR(&dev));
+
+		UNLOCK(&sock->lock);
+
+		return (ISC_R_SUCCESS);
+	}
+
 	/*
 	 * Try to do the connect right away, as there can be only one
 	 * outstanding, and it might happen to complete.

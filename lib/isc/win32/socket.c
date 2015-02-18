@@ -3579,6 +3579,15 @@ isc__socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	}
 	ISC_LINK_INIT(cdev, ev_link);
 
+	if (sock->connected) {
+		INSIST(isc_sockaddr_equal(&sock->address, addr));
+		cdev->result = ISC_R_SUCCESS;
+		isc_task_send(task, ISC_EVENT_PTR(&cdev));
+
+		UNLOCK(&sock->lock);
+		return (ISC_R_SUCCESS);
+	}
+
 	if ((sock->type == isc_sockettype_tcp) && !sock->pending_connect) {
 		/*
 		 * Queue io completion for an accept().
@@ -3609,6 +3618,7 @@ isc__socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		ISC_LIST_ENQUEUE(sock->connect_list, cdev, ev_link);
 		sock->pending_iocp++;
 	} else if (sock->type == isc_sockettype_tcp) {
+		INSIST(sock->pending_connect);
 		INSIST(isc_sockaddr_equal(&sock->address, addr));
 		isc_task_attach(task, &ntask);
 		cdev->ev_sender = ntask;
