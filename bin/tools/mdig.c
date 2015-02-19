@@ -1794,12 +1794,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 			perror(batchname);
 			fatal("couldn't open batch file '%s'", batchname);
 		}
-	next_line:
 		while (fgets(batchline, sizeof(batchline), batchfp) != 0) {
 			bargc = 1;
 			if (batchline[0] == '\r' || batchline[0] == '\n'
 			    || batchline[0] == '#' || batchline[0] == ';')
-				goto next_line;
+				continue;
 			input = batchline;
 			bargv[bargc] = next_token(&input, " \t\r\n");
 			while ((bargv[bargc] != NULL) && (bargc < 14)) {
@@ -1809,7 +1808,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 
 			bargv[0] = argv[0];
 			parse_args(ISC_TRUE, bargc, (char **)bargv);
-			goto next_line;
 		}
 		if (batchfp != stdin)
 			fclose(batchfp);
