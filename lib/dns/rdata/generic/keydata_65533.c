@@ -206,7 +206,7 @@ totext_keydata(ARGS_TOTEXT) {
 			isc_time_formathttptimestamp(&t, rbuf, sizeof(rbuf));
 			RETERR(str_totext(rbuf, target));
 
-			if (add == 0) {
+			if (add == 0U) {
 				RETERR(str_totext(tctx->linebreak, target));
 				RETERR(str_totext("; no trust", target));
 			} else {
@@ -224,7 +224,7 @@ totext_keydata(ARGS_TOTEXT) {
 				RETERR(str_totext(abuf, target));
 			}
 
-			if (remove != 0) {
+			if (remove != 0U) {
 				RETERR(str_totext(tctx->linebreak, target));
 				RETERR(str_totext("; removal pending: ",
 						  target));
