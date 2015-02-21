@@ -617,18 +617,14 @@ parse_command_line(int argc, char *argv[]) {
 #ifdef OPENSSL
 			printf("compiled with OpenSSL version: %s\n",
 			       OPENSSL_VERSION_TEXT);
-#ifndef WIN32
 			printf("linked to OpenSSL version: %s\n",
 			       SSLeay_version(SSLEAY_VERSION));
-#endif
 #endif
 #ifdef HAVE_LIBXML2
 			printf("compiled with libxml2 version: %s\n",
 			       LIBXML_DOTTED_VERSION);
-#ifndef WIN32
 			printf("linked to libxml2 version: %s\n",
 			       xmlParserVersion);
-#endif
 #endif
 			exit(0);
 		case 'F':
