@@ -1757,7 +1757,7 @@ zone_touched(dns_zone_t *zone) {
 }
 
 static isc_result_t
-zone_load(dns_zone_t *zone, unsigned int flags) {
+zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 	isc_result_t result;
 	isc_time_t now;
 	isc_time_t loadtime;
@@ -1766,13 +1766,16 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	LOCK_ZONE(zone);
+	if (!locked)
+		LOCK_ZONE(zone);
+
 	INSIST(zone != zone->raw);
 	hasraw = inline_secure(zone);
 	if (hasraw) {
-		result = zone_load(zone->raw, flags);
+		result = zone_load(zone->raw, flags, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
-			UNLOCK_ZONE(zone);
+			if (!locked)
+				UNLOCK_ZONE(zone);
 			return(result);
 		}
 		LOCK_ZONE(zone->raw);
@@ -1981,7 +1984,8 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
  cleanup:
 	if (hasraw)
 		UNLOCK_ZONE(zone->raw);
-	UNLOCK_ZONE(zone);
+	if (!locked)
+		UNLOCK_ZONE(zone);
 	if (db != NULL)
 		dns_db_detach(&db);
 	return (result);
@@ -1989,12 +1993,12 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 
 isc_result_t
 dns_zone_load(dns_zone_t *zone) {
-	return (zone_load(zone, 0));
+	return (zone_load(zone, 0, ISC_FALSE));
 }
 
 isc_result_t
 dns_zone_loadnew(dns_zone_t *zone) {
-	return (zone_load(zone, DNS_ZONELOADFLAG_NOSTAT));
+	return (zone_load(zone, DNS_ZONELOADFLAG_NOSTAT, ISC_FALSE));
 }
 
 static void
@@ -2002,6 +2006,7 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	dns_asyncload_t *asl = event->ev_arg;
 	dns_zone_t *zone = asl->zone;
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_boolean_t load_pending;
 
 	UNUSED(task);
 
@@ -2010,13 +2015,21 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0)
 		result = ISC_R_CANCELED;
 	isc_event_free(&event);
-	if (result == ISC_R_CANCELED ||
-	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
+
+	if (result == ISC_R_CANCELED)
 		goto cleanup;
 
-	zone_load(zone, 0);
-
+	/* Make sure load is still pending */
 	LOCK_ZONE(zone);
+	load_pending = ISC_TF(DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING));
+
+	if (!load_pending) {
+		UNLOCK_ZONE(zone);
+		goto cleanup;
+	}
+
+	zone_load(zone, 0, ISC_TRUE);
+
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	UNLOCK_ZONE(zone);
 
@@ -2042,7 +2055,7 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
 
 	/* If we already have a load pending, stop now */
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
-		done(arg, zone, NULL);
+		return (ISC_R_ALREADYRUNNING);
 
 	asl = isc_mem_get(zone->mctx, sizeof (*asl));
 	if (asl == NULL)
@@ -2085,9 +2098,10 @@ dns_zone_loadandthaw(dns_zone_t *zone) {
 	isc_result_t result;
 
 	if (inline_raw(zone))
-		result = zone_load(zone->secure, DNS_ZONELOADFLAG_THAW);
+		result = zone_load(zone->secure, DNS_ZONELOADFLAG_THAW,
+				   ISC_FALSE);
 	else
-		result = zone_load(zone, DNS_ZONELOADFLAG_THAW);
+		result = zone_load(zone, DNS_ZONELOADFLAG_THAW, ISC_FALSE);
 
 	switch (result) {
 	case DNS_R_CONTINUE:
