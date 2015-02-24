@@ -445,7 +445,12 @@
 <li><p>
 	  Fixed some bugs in RFC 5011 trust anchor management,
 	  including a memory leak and a possible loss of state
-	  information.[RT #38458]
+	  information. [RT #38458]
+	</p></li>
+<li><p>
+	  Asynchronous zone loads were not handled correctly when the
+	  zone load was already in progress; this could trigger a crash
+	  in zt.c. [RT #37573]
 	</p></li>
 </ul></div>
 </div>
