@@ -667,9 +667,8 @@ struct dns_asyncload {
  * RFC 5011.
  */
 unsigned int dns_zone_mkey_hour = HOUR;
-unsigned int dns_zone_mkey_day = (24 * HOUR);
-unsigned int dns_zone_mkey_month = (30 * DAY);
-
+unsigned int dns_zone_mkey_day = DAY;
+unsigned int dns_zone_mkey_month = MONTH;
 
 #define SEND_BUFFER_SIZE 2048
 
