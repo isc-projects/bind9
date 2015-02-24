@@ -700,19 +700,17 @@ struct dns_include {
 	ISC_LINK(dns_include_t)	link;
 };
 
-#define HOUR 3600
-#define DAY (24*HOUR)
-#define MONTH (30*DAY)
-
 /*
  * These can be overridden by the -T mkeytimers option on the command
  * line, so that we can test with shorter periods than specified in
  * RFC 5011.
  */
+#define HOUR 3600
+#define DAY (24*HOUR)
+#define MONTH (30*DAY)
 unsigned int dns_zone_mkey_hour = HOUR;
-unsigned int dns_zone_mkey_day = (24 * HOUR);
-unsigned int dns_zone_mkey_month = (30 * DAY);
-
+unsigned int dns_zone_mkey_day = DAY;
+unsigned int dns_zone_mkey_month = MONTH;
 
 #define SEND_BUFFER_SIZE 2048
 

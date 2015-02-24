@@ -282,6 +282,44 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo "I: revoke standby before it is trusted ($n)"
+ret=0
+standby3=`$KEYGEN -qfk -r $RANDFILE -K ns1 .`
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
+sleep 3
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+# four keys listed
+count=`grep -c "keyid: " rndc.out.$n` 
+[ "$count" -eq 4 ] || ret=1
+# one revoked
+count=`grep -c "trust revoked" rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+# two pending
+count=`grep -c "trust pending" rndc.out.$n` 
+[ "$count" -eq 2 ] || ret=1
+$SETTIME -R now -K ns1 $standby3 > /dev/null
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
+sleep 3
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+# now three keys listed
+count=`grep -c "keyid: " rndc.out.$n` 
+[ "$count" -eq 3 ] || ret=1
+# one revoked
+count=`grep -c "trust revoked" rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+# one pending
+count=`grep -c "trust pending" rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+$SETTIME -D now -K ns1 $standby3 > /dev/null
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo "I: wait 15 seconds for key add/remove holddowns to expire ($n)"
 ret=0
 sleep 15
@@ -349,6 +387,7 @@ $SETTIME -D now -K ns1 $standby1 > /dev/null
 $SETTIME -D now -K ns1 $standby2 > /dev/null
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
 cp ns1/named2.conf ns1/named.conf
+rm ns1/root.db.signed.jnl
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reconfig
 
 echo "I: reinitialize trust anchors"
@@ -364,7 +403,6 @@ grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
-
 
 n=`expr $n + 1`
 echo "I: revoke key with bad signature, check revocation is ignored ($n)"
@@ -418,6 +456,80 @@ $SETTIME -D now -K ns1 $standby1 > /dev/null
 $SETTIME -D now -K ns1 $standby2 > /dev/null
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 flush | sed 's/^/I: ns1 /'
 sleep 1
+$SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload . | sed 's/^/I: ns1 /'
+sleep 3
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+$DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
+grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: reset the root server with no keys, check for minimal update ($n)"
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+t1=`grep 'next refresh:' rndc.out.$n`
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns1
+cp ns1/root.db ns1/root.db.signed
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
+sleep 3
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+# one key listed
+count=`grep -c "keyid: " rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+# it's the original key id
+count=`grep -c "keyid: $keyid" rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+# not revoked
+count=`grep -c "REVOKE" rndc.out.$n` 
+[ "$count" -eq 0 ] || ret=1
+# trust is still current
+count=`grep -c "trust" rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+count=`grep -c "trusted since" rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+t2=`grep 'next refresh:' rndc.out.$n`
+[ "$t1" = "$t2" ] && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: reset the root server with no signatures, check for minimal update ($n)"
+t2=$t1
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns1
+cat ns1/K*.key >> ns1/root.db.signed
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
+sleep 3
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+# one key listed
+count=`grep -c "keyid: " rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+# it's the original key id
+count=`grep -c "keyid: $keyid" rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+# not revoked
+count=`grep -c "REVOKE" rndc.out.$n` 
+[ "$count" -eq 0 ] || ret=1
+# trust is still current
+count=`grep -c "trust" rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+count=`grep -c "trusted since" rndc.out.$n` 
+[ "$count" -eq 1 ] || ret=1
+t2=`grep 'next refresh:' rndc.out.$n`
+[ "$t1" = "$t2" ] && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: restore root server, check validation succeeds again ($n)"
+rm ns1/root.db.signed.jnl
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload . | sed 's/^/I: ns1 /'
 sleep 3

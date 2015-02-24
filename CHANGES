@@ -1,3 +1,5 @@
+4065.	[test]		Additional RFC 5011 tests. [RT #38569]
+
 4064.	[contrib]	dnssec-keyset.sh: Generates a specified number
 			of DNSSEC keys with timing set to implement a
 			pre-publication key rollover strategy. Thanks
