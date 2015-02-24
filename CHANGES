@@ -1,3 +1,8 @@
+4064.	[contrib]	dnssec-keyset.sh: Generates a specified number
+			of DNSSEC keys with timing set to implement a
+			pre-publication key rollover strategy. Thanks
+			to Jeffry A. Spain. [RT #38459]
+
 4063.	[bug]		Asynchronous zone loads were not handled
 			correctly when the zone load was already in
 			progress; this could trigger a crash in zt.c.
