@@ -387,6 +387,7 @@ static struct flag_def {
 	const char *name;
 	unsigned int value;
 } mem_debug_flags[] = {
+	{ "none", 0},
 	{ "trace",  ISC_MEM_DEBUGTRACE },
 	{ "record", ISC_MEM_DEBUGRECORD },
 	{ "usage", ISC_MEM_DEBUGUSAGE },
@@ -397,6 +398,8 @@ static struct flag_def {
 
 static void
 set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
+	isc_boolean_t clear = ISC_FALSE;
+
 	for (;;) {
 		const struct flag_def *def;
 		const char *end = strchr(arg, ',');
@@ -407,16 +410,21 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 		for (def = defs; def->name != NULL; def++) {
 			if (arglen == (int)strlen(def->name) &&
 			    memcmp(arg, def->name, arglen) == 0) {
+				if (def->value == 0)
+					clear = ISC_TRUE;
 				*ret |= def->value;
 				goto found;
 			}
 		}
 		ns_main_earlyfatal("unrecognized flag '%.*s'", arglen, arg);
 	 found:
-		if (*end == '\0')
+		if (clear || (*end == '\0'))
 			break;
 		arg = end + 1;
 	}
+
+	if (clear)
+		*ret = 0;
 }
 
 static void
@@ -427,10 +435,12 @@ parse_command_line(int argc, char *argv[]) {
 
 	save_command_line(argc, argv);
 
-	/* PLEASE keep options synchronized when main is hooked! */
-#define CMDLINE_FLAGS "46c:C:d:D:E:fFgi:lL:m:n:N:p:P:sS:t:T:U:u:vVx:X:"
+	/*
+	 * NS_MAIN_ARGS is defined in main.h, so that it can be used
+	 * both by named and by ntservice hooks.
+	 */
 	isc_commandline_errprint = ISC_FALSE;
-	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, NS_MAIN_ARGS)) != -1) {
 		switch (ch) {
 		case '4':
 			if (ns_g_disable4)
@@ -487,6 +497,10 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'L':
 			ns_g_logfile = isc_commandline_argument;
+			break;
+		case 'M':
+			if (strcmp(isc_commandline_argument, "external") == 0)
+				isc_mem_defaultflags = 0;
 			break;
 		case 'm':
 			set_flags(isc_commandline_argument, mem_debug_flags,
@@ -665,7 +679,7 @@ parse_command_line(int argc, char *argv[]) {
 			usage();
 			if (isc_commandline_option == '?')
 				exit(0);
-			p = strchr(CMDLINE_FLAGS, isc_commandline_option);
+			p = strchr(NS_MAIN_ARGS, isc_commandline_option);
 			if (p == NULL || *++p != ':')
 				ns_main_earlyfatal("unknown option '-%c'",
 						   isc_commandline_option);

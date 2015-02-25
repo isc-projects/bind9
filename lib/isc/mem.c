@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -47,6 +45,7 @@
 #define ISC_MEM_DEBUGGING 0
 #endif
 LIBISC_EXTERNAL_DATA unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
+LIBISC_EXTERNAL_DATA unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
 
 /*
  * Constants.
@@ -888,7 +887,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 		 isc_mem_t **ctxp)
 {
 	return (isc_mem_createx2(init_max_size, target_size, memalloc, memfree,
-				 arg, ctxp, ISC_MEMFLAG_DEFAULT));
+				 arg, ctxp, isc_mem_defaultflags));
 
 }
 
@@ -2715,12 +2714,12 @@ isc_mem_create(size_t init_max_size, size_t target_size, isc_mem_t **mctxp) {
 	if (isc_bind9)
 		return (isc_mem_createx2(init_max_size, target_size,
 					 default_memalloc, default_memfree,
-					 NULL, mctxp, ISC_MEMFLAG_DEFAULT));
+					 NULL, mctxp, isc_mem_defaultflags));
 	LOCK(&createlock);
 
 	REQUIRE(mem_createfunc != NULL);
 	result = (*mem_createfunc)(init_max_size, target_size, mctxp,
-				   ISC_MEMFLAG_DEFAULT);
+				   isc_mem_defaultflags);
 
 	UNLOCK(&createlock);
 

@@ -67,6 +67,7 @@
       <arg><option>-f</option></arg>
       <arg><option>-g</option></arg>
       <arg><option>-L <replaceable class="parameter">logfile</replaceable></option></arg>
+      <arg><option>-M <replaceable class="parameter">option</replaceable></option></arg>
       <arg><option>-m <replaceable class="parameter">flag</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">#cpus</replaceable></option></arg>
       <arg><option>-p <replaceable class="parameter">port</replaceable></option></arg>
@@ -208,6 +209,19 @@
           <para>
             Log to the file <option>logfile</option> by default
             instead of the system log.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-M <replaceable class="parameter">option</replaceable></term>
+        <listitem>
+          <para>
+	    Sets the default memory context options.  Currently
+	    the only supported option is
+	    <replaceable class="parameter">external</replaceable>,
+	    which causes the internal memory manager to be bypassed
+	    in favor of system-provided memory allocation functions.
           </para>
         </listitem>
       </varlistentry>
