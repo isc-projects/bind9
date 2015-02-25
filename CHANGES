@@ -3,6 +3,10 @@
 			during operation. If the read failed, named
 			could segfault. [RT #38559]
 
+3937.	[func]		Added some debug logging to better indicate the
+			conditions causing SERVFAILs when resolving.
+			[RT #35538]
+
 	--- 9.10.2 released ---
 
 	--- 9.10.2rc2 released ---
