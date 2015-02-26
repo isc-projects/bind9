@@ -326,7 +326,7 @@ def vspace():
     if _firstline:
         _firstline = False
     else:
-        print
+        print()
 
 ############################################################################
 # vreset:
