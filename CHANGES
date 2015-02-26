@@ -1,3 +1,6 @@
+4072.	[func]		Add a --enable-querytrace configure switch for
+			very verbose query tracelogging. [RT #37520]
+
 4071.	[cleanup]	Initialize pthread mutex attrs just once, instead of
 			doing it per mutex creation. [RT #38547]
 

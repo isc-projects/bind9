@@ -4140,6 +4140,26 @@ case "$use_tuning" in
 esac
 
 #
+# was --enable-querytrace specified?
+#
+AC_ARG_ENABLE(querytrace,
+	[  --enable-querytrace     enable very verbose query trace logging [[default=no]]],
+	want_querytrace="$enableval", want_querytrace="no")
+
+case "$want_querytrace" in
+yes)
+	AC_MSG_RESULT(yes)
+	AC_DEFINE(WANT_QUERYTRACE, 1, [Define to enable very verbose query trace logging.])
+	;;
+no)
+	AC_MSG_RESULT(no)
+	;;
+*)
+	AC_MSG_ERROR("--enable-querytrace requires yes or no")
+	;;
+esac
+
+#
 # Substitutions
 #
 AC_SUBST(BIND9_TOP_BUILDDIR)
@@ -4747,6 +4767,8 @@ test "$want_symtable" = "minimal" && \
 test "$want_symtable" = "yes" -o "$want_symtable" = "all" && \
     echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
 test "$use_libtool" = "no" || echo "    Use GNU libtool (--with-libtool)"
+test "$want_querytrace" = "yes" && \
+    echo "    Very verbose query trace logging (--enable-querytrace)"
 test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
 
 echo "    Dynamically loadable zone (DLZ) drivers:"
@@ -4797,6 +4819,9 @@ test "$enable_seccomp" = yes || \
     echo "    Use libseccomp system call filtering (--enable-seccomp)"
 test "$want_backtrace" = "yes" || \
     echo "    Print backtrace on crash (--enable-backtrace)"
+test "$want_querytrace" = "yes" || \
+    echo "    Very verbose query trace logging (--enable-querytrace)"
+
 test "$use_libtool" = "yes" || echo "    Use GNU libtool (--with-libtool)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 
