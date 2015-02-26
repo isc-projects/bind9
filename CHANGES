@@ -1,3 +1,5 @@
+4066.	[doc]		Reorganize options in the dig man page. [RT #38516]
+
 4064.	[contrib]	dnssec-keyset.sh: Generates a specified number
 			of DNSSEC keys with timing set to implement a
 			pre-publication key rollover strategy. Thanks
