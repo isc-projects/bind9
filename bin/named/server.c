@@ -7632,7 +7632,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 
 	n = snprintf((char *)isc_buffer_used(text),
 		     isc_buffer_availablelength(text),
-		     "version: %s%s%s%s <id:%s>\n"
+		     "version: %s %s%s%s <id:%s>%s%s%s\n"
 #ifdef ISC_PLATFORM_USETHREADS
 		     "CPUs found: %u\n"
 		     "worker threads: %u\n"
@@ -7647,7 +7647,9 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "recursive clients: %d/%d/%d\n"
 		     "tcp clients: %d/%d\n"
 		     "server is up and running",
-		     ns_g_version, ob, alt, cb, ns_g_srcid,
+		     ns_g_product, ns_g_version,
+		     (*ns_g_description != '\0') ? " " : "",
+		     ns_g_description, ns_g_srcid, ob, alt, cb,
 #ifdef ISC_PLATFORM_USETHREADS
 		     ns_g_cpus_detected, ns_g_cpus, ns_g_udpdisp,
 #endif
