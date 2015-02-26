@@ -232,13 +232,6 @@ static pthread_mutexattr_t errcheck;
 static isc_once_t once_errcheck = ISC_ONCE_INIT;
 
 static void
-destroy_errcheck(void) {
-	if (errcheck_initialized) {
-		RUNTIME_CHECK(pthread_mutexattr_destroy(&errcheck) == 0);
-	}
-}
-
-static void
 initialize_errcheck(void) {
 	RUNTIME_CHECK(pthread_mutexattr_init(&errcheck) == 0);
 	RUNTIME_CHECK(pthread_mutexattr_settype
@@ -273,13 +266,6 @@ pthread_mutexattr_t isc__mutex_attrs = {
 static isc_boolean_t attr_initialized = ISC_FALSE;
 static pthread_mutexattr_t attr;
 static isc_once_t once_attr = ISC_ONCE_INIT;
-
-static void
-destroy_attr(void) {
-	if (attr_initialized) {
-		RUNTIME_CHECK(pthread_mutexattr_destroy(&attr) == 0);
-	}
-}
 
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 static void
