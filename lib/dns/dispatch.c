@@ -1128,7 +1128,7 @@ free_sevent(isc_event_t *ev) {
 }
 
 static inline isc_socketevent_t *
-allocate_sevent(dns_dispatch_t *disp, isc_socket_t *socket,
+allocate_sevent(dns_dispatch_t *disp, isc_socket_t *sock,
 		isc_eventtype_t type, isc_taskaction_t action, const void *arg)
 {
 	isc_socketevent_t *ev;
@@ -1139,7 +1139,7 @@ allocate_sevent(dns_dispatch_t *disp, isc_socket_t *socket,
 		return (NULL);
 	DE_CONST(arg, deconst_arg);
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, type,
-		       action, deconst_arg, socket,
+		       action, deconst_arg, sock,
 		       free_sevent, disp->sepool);
 	ev->result = ISC_R_UNSET;
 	ISC_LINK_INIT(ev, ev_link);
@@ -1678,7 +1678,7 @@ static isc_result_t
 startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	isc_result_t res;
 	isc_region_t region;
-	isc_socket_t *socket;
+	isc_socket_t *sock;
 
 	if (disp->shutting_down == 1)
 		return (ISC_R_SUCCESS);
@@ -1697,10 +1697,10 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		return (ISC_R_SUCCESS);
 
 	if (dispsock != NULL)
-		socket = dispsock->socket;
+		sock = dispsock->socket;
 	else
-		socket = disp->socket;
-	INSIST(socket != NULL);
+		sock = disp->socket;
+	INSIST(sock != NULL);
 
 	switch (disp->socktype) {
 		/*
@@ -1714,7 +1714,7 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		if (dispsock != NULL) {
 			isc_task_t *dt = dispsock->task;
 			isc_socketevent_t *sev =
-				allocate_sevent(disp, socket,
+				allocate_sevent(disp, sock,
 						ISC_SOCKEVENT_RECVDONE,
 						udp_exrecv, dispsock);
 			if (sev == NULL) {
@@ -1722,7 +1722,7 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 				return (ISC_R_NOMEMORY);
 			}
 
-			res = isc_socket_recv2(socket, &region, 1, dt, sev, 0);
+			res = isc_socket_recv2(sock, &region, 1, dt, sev, 0);
 			if (res != ISC_R_SUCCESS) {
 				free_buffer(disp, region.base, region.length);
 				return (res);
@@ -1730,7 +1730,7 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		} else {
 			isc_task_t *dt = disp->task[0];
 			isc_socketevent_t *sev =
-				allocate_sevent(disp, socket,
+				allocate_sevent(disp, sock,
 						ISC_SOCKEVENT_RECVDONE,
 						udp_shrecv, disp);
 			if (sev == NULL) {
@@ -1738,7 +1738,7 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 				return (ISC_R_NOMEMORY);
 			}
 
-			res = isc_socket_recv2(socket, &region, 1, dt, sev, 0);
+			res = isc_socket_recv2(sock, &region, 1, dt, sev, 0);
 			if (res != ISC_R_SUCCESS) {
 				free_buffer(disp, region.base, region.length);
 				disp->shutdown_why = res;

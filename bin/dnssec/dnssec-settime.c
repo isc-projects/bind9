@@ -115,8 +115,8 @@ printtime(dst_key_t *key, int type, const char *tag, isc_boolean_t epoch,
 	} else if (epoch) {
 		fprintf(stream, "%d\n", (int) when);
 	} else {
-		time_t time = when;
-		output = ctime(&time);
+		time_t timet = when;
+		output = ctime(&timet);
 		fprintf(stream, "%s", output);
 	}
 }
