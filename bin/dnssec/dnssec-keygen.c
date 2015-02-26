@@ -231,7 +231,7 @@ main(int argc, char **argv) {
 	int		dbits = 0;
 	dns_ttl_t	ttl = 0;
 	isc_boolean_t	use_default = ISC_FALSE, use_nsec3 = ISC_FALSE;
-	isc_stdtime_t	publish = 0, activate = 0, revoke = 0;
+	isc_stdtime_t	publish = 0, activate = 0, revokekey = 0;
 	isc_stdtime_t	inactive = 0, delete = 0;
 	isc_stdtime_t	now;
 	int		prepub = -1;
@@ -416,7 +416,7 @@ main(int argc, char **argv) {
 			if (setrev || unsetrev)
 				fatal("-R specified more than once");
 
-			revoke = strtotime(isc_commandline_argument,
+			revokekey = strtotime(isc_commandline_argument,
 					   now, now, &setrev);
 			unsetrev = !setrev;
 			break;
@@ -945,7 +945,7 @@ main(int argc, char **argv) {
 						"was used. Revoking a ZSK is "
 						"legal, but undefined.\n",
 						program);
-				dst_key_settime(key, DST_TIME_REVOKE, revoke);
+				dst_key_settime(key, DST_TIME_REVOKE, revokekey);
 			}
 
 			if (setinact)

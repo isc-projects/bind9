@@ -210,10 +210,10 @@ isc_socket_gettype(isc_socket_t *sock) {
 }
 
 void
-isc_socket_setname(isc_socket_t *socket, const char *name, void *tag) {
-	REQUIRE(ISCAPI_SOCKET_VALID(socket));
+isc_socket_setname(isc_socket_t *sock, const char *name, void *tag) {
+	REQUIRE(ISCAPI_SOCKET_VALID(sock));
 
-	UNUSED(socket);		/* in case REQUIRE() is empty */
+	UNUSED(sock);		/* in case REQUIRE() is empty */
 	UNUSED(name);
 	UNUSED(tag);
 }

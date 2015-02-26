@@ -328,12 +328,12 @@ exit_check(ns_client_t *client) {
 		 * We are trying to abort request processing.
 		 */
 		if (client->nsends > 0) {
-			isc_socket_t *socket;
+			isc_socket_t *sock;
 			if (TCP_CLIENT(client))
-				socket = client->tcpsocket;
+				sock = client->tcpsocket;
 			else
-				socket = client->udpsocket;
-			isc_socket_cancel(socket, client->task,
+				sock = client->udpsocket;
+			isc_socket_cancel(sock, client->task,
 					  ISC_SOCKCANCEL_SEND);
 		}
 
@@ -828,16 +828,16 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	isc_result_t result;
 	isc_region_t r;
 	isc_sockaddr_t *address;
-	isc_socket_t *socket;
+	isc_socket_t *sock;
 	isc_netaddr_t netaddr;
 	int match;
 	unsigned int sockflags = ISC_SOCKFLAG_IMMEDIATE;
 
 	if (TCP_CLIENT(client)) {
-		socket = client->tcpsocket;
+		sock = client->tcpsocket;
 		address = NULL;
 	} else {
-		socket = client->udpsocket;
+		sock = client->udpsocket;
 		address = &client->peeraddr;
 
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
@@ -861,7 +861,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 
 	CTRACE("sendto");
 
-	result = isc_socket_sendto2(socket, &r, client->task,
+	result = isc_socket_sendto2(sock, &r, client->task,
 				    address, pktinfo,
 				    client->sendevent, sockflags);
 	if (result == ISC_R_SUCCESS || result == ISC_R_INPROGRESS) {
