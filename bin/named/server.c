@@ -8342,8 +8342,10 @@ ns_server_status(ns_server_t *server, isc_buffer_t **text) {
 	isc_time_formathttptimestamp(&ns_g_configtime, configtime,
 				     sizeof(configtime));
 
-	snprintf(line, sizeof(line), "version: %s%s%s%s <id:%s>\n",
-		 ns_g_version, ob, alt, cb, ns_g_srcid);
+	snprintf(line, sizeof(line), "version: %s %s%s%s <id:%s>%s%s%s\n",
+		 ns_g_product, ns_g_version,
+		 (*ns_g_description != '\0') ? " " : "",
+		 ns_g_description, ns_g_srcid, ob, alt, cb);
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "boot time: %s\n", boottime);
