@@ -120,6 +120,7 @@ isc_app_ctxshutdown
 isc_app_ctxstart
 isc_app_ctxsuspend
 isc_app_finish
+isc_app_isrunning
 isc_app_onrun
 isc_app_register
 isc_app_reload
