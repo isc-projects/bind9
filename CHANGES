@@ -1,3 +1,6 @@
+4072.	[func]		Add a --enable-querytrace configure switch for
+			very verbose query tracelogging. [RT #37520]
+
 4070.	[bug]		Fix a segfault in nslookup in a query such as
 			"nslookup isc.org AMS.SNS-PB.ISC.ORG -all".
 			[RT #38548]
