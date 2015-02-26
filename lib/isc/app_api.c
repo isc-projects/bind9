@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2013-2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -214,7 +214,7 @@ isc_app_run() {
 
 isc_boolean_t
 isc_app_isrunning() {
-        return (is_running);
+	return (is_running);
 }
 
 isc_result_t
