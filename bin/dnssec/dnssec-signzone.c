@@ -1327,7 +1327,7 @@ cleanup:
  * Delete any RRSIG records at a node.
  */
 static void
-cleannode(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
+cleannode(dns_db_t *db, dns_dbversion_t *dbversion, dns_dbnode_t *node) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	dns_rdataset_t set;
 	isc_result_t result, dresult;
@@ -1336,7 +1336,7 @@ cleannode(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 		return;
 
 	dns_rdataset_init(&set);
-	result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
+	result = dns_db_allrdatasets(db, node, dbversion, 0, &rdsiter);
 	check_result(result, "dns_db_allrdatasets");
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == ISC_R_SUCCESS) {
@@ -1350,7 +1350,7 @@ cleannode(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 		dns_rdataset_disassociate(&set);
 		result = dns_rdatasetiter_next(rdsiter);
 		if (destroy) {
-			dresult = dns_db_deleterdataset(db, node, version,
+			dresult = dns_db_deleterdataset(db, node, dbversion,
 							dns_rdatatype_rrsig,
 							covers);
 			check_result(dresult, "dns_db_deleterdataset");
@@ -2783,7 +2783,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	char *filename;
 	char namestr[DNS_NAME_FORMATSIZE];
 	dns_db_t *db = NULL;
-	dns_dbversion_t *version = NULL;
+	dns_dbversion_t *dbversion = NULL;
 	dns_diff_t diff;
 	dns_difftuple_t *tuple = NULL;
 	dns_fixedname_t fixed;
@@ -2906,19 +2906,19 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 			       gclass, 0, NULL, &db);
 	check_result(result, "dns_db_create");
 
-	result = dns_db_newversion(db, &version);
+	result = dns_db_newversion(db, &dbversion);
 	check_result(result, "dns_db_newversion");
 
-	result = dns_diff_apply(&diff, db, version);
+	result = dns_diff_apply(&diff, db, dbversion);
 	check_result(result, "dns_diff_apply");
 	dns_diff_clear(&diff);
 
-	result = dns_master_dump(mctx, db, version, style, filename);
+	result = dns_master_dump(mctx, db, dbversion, style, filename);
 	check_result(result, "dns_master_dump");
 
 	isc_mem_put(mctx, filename, filenamelen + 1);
 
-	dns_db_closeversion(db, &version, ISC_FALSE);
+	dns_db_closeversion(db, &dbversion, ISC_FALSE);
 	dns_db_detach(&db);
 }
 

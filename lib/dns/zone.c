@@ -17766,7 +17766,7 @@ keydone(isc_task_t *task, isc_event_t *event) {
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_diff_t diff;
-	struct keydone *keydone = (struct keydone *)event;
+	struct keydone *kd = (struct keydone *)event;
 	dns_update_log_t log = { update_log_cb, NULL };
 	isc_boolean_t clear_pending = ISC_FALSE;
 
@@ -17818,7 +17818,7 @@ keydone(isc_task_t *task, isc_event_t *event) {
 
 		dns_rdataset_current(&rdataset, &rdata);
 
-		if (keydone->all) {
+		if (kd->all) {
 			if (rdata.length == 5 && rdata.data[0] != 0 &&
 			       rdata.data[3] == 0 && rdata.data[4] == 1)
 				found = ISC_TRUE;
@@ -17828,7 +17828,7 @@ keydone(isc_task_t *task, isc_event_t *event) {
 				clear_pending = ISC_TRUE;
 			}
 		} else if (rdata.length == 5 &&
-			   memcmp(rdata.data, keydone->data, 5) == 0)
+			   memcmp(rdata.data, kd->data, 5) == 0)
 			found = ISC_TRUE;
 
 		if (found)

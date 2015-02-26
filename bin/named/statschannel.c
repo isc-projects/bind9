@@ -574,7 +574,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 	      const char *category, const char **desc, int ncounters,
 	      int *indices, isc_uint64_t *values, int options)
 {
-	int i, index;
+	int i, idx;
 	isc_uint64_t value;
 	stats_dumparg_t dumparg;
 	FILE *fp;
@@ -611,8 +611,8 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 #endif
 
 	for (i = 0; i < ncounters; i++) {
-		index = indices[i];
-		value = values[index];
+		idx = indices[i];
+		value = values[idx];
 
 		if (value == 0 && (options & ISC_STATSDUMP_VERBOSE) == 0)
 			continue;
@@ -621,7 +621,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 		case isc_statsformat_file:
 			fp = arg;
 			fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
-				value, desc[index]);
+				value, desc[idx]);
 			break;
 		case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
@@ -639,7 +639,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 							       "name"));
 				TRY0(xmlTextWriterWriteString(writer,
 							      ISC_XMLCHAR
-							      desc[index]));
+							      desc[idx]));
 				TRY0(xmlTextWriterEndElement(writer));
 				/* </name> */
 
@@ -663,7 +663,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 								 ISC_XMLCHAR
 								 "name",
 								 ISC_XMLCHAR
-								 desc[index]));
+								 desc[idx]));
 				TRY0(xmlTextWriterWriteFormatString(writer,
 					"%" ISC_PRINT_QUADFORMAT "u", value));
 				TRY0(xmlTextWriterEndElement(writer));
@@ -677,7 +677,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 			counter = json_object_new_int64(value);
 			if (counter == NULL)
 				return (ISC_R_NOMEMORY);
-			json_object_object_add(cat, desc[index], counter);
+			json_object_object_add(cat, desc[idx], counter);
 #endif
 			break;
 		}

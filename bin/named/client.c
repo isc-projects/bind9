@@ -245,7 +245,7 @@ static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
 static isc_result_t get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 			       dns_dispatch_t *disp, isc_boolean_t tcp);
 static isc_result_t get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp,
-			       isc_socket_t *socket);
+			       isc_socket_t *sock);
 static inline isc_boolean_t
 allowed(isc_netaddr_t *addr, dns_name_t *signer, isc_netaddr_t *ecs_addr,
 	isc_uint8_t ecs_addrlen, isc_uint8_t *ecs_scope, dns_acl_t *acl);
@@ -346,12 +346,12 @@ exit_check(ns_client_t *client) {
 		 * We are trying to abort request processing.
 		 */
 		if (client->nsends > 0) {
-			isc_socket_t *socket;
+			isc_socket_t *sock;
 			if (TCP_CLIENT(client))
-				socket = client->tcpsocket;
+				sock = client->tcpsocket;
 			else
-				socket = client->udpsocket;
-			isc_socket_cancel(socket, client->task,
+				sock = client->udpsocket;
+			isc_socket_cancel(sock, client->task,
 					  ISC_SOCKCANCEL_SEND);
 		}
 
@@ -875,17 +875,17 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	isc_result_t result;
 	isc_region_t r;
 	isc_sockaddr_t *address;
-	isc_socket_t *socket;
+	isc_socket_t *sock;
 	isc_netaddr_t netaddr;
 	int match;
 	unsigned int sockflags = ISC_SOCKFLAG_IMMEDIATE;
 	isc_dscp_t dispdscp = -1;
 
 	if (TCP_CLIENT(client)) {
-		socket = client->tcpsocket;
+		sock = client->tcpsocket;
 		address = NULL;
 	} else {
-		socket = client->udpsocket;
+		sock = client->udpsocket;
 		address = &client->peeraddr;
 
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
@@ -923,7 +923,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 
 	CTRACE("sendto");
 
-	result = isc_socket_sendto2(socket, &r, client->task,
+	result = isc_socket_sendto2(sock, &r, client->task,
 				    address, pktinfo,
 				    client->sendevent, sockflags);
 	if (result == ISC_R_SUCCESS || result == ISC_R_INPROGRESS) {
@@ -3243,7 +3243,7 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 }
 
 static isc_result_t
-get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp, isc_socket_t *socket)
+get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp, isc_socket_t *sock)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_event_t *ev;
@@ -3291,7 +3291,7 @@ get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp, isc_socket_t *socket)
 	client->pipelined = ISC_TRUE;
 
 	isc_socket_attach(ifp->tcpsocket, &client->tcplistener);
-	isc_socket_attach(socket, &client->tcpsocket);
+	isc_socket_attach(sock, &client->tcpsocket);
 	isc_socket_setname(client->tcpsocket, "worker-tcp", NULL);
 	(void)isc_socket_getpeername(client->tcpsocket, &client->peeraddr);
 	client->peeraddr_valid = ISC_TRUE;

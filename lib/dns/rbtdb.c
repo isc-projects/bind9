@@ -839,7 +839,7 @@ typedef struct rbtdb_dbiterator {
 
 static void free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log,
 		       isc_event_t *event);
-static void overmem(dns_db_t *db, isc_boolean_t overmem);
+static void overmem(dns_db_t *db, isc_boolean_t over);
 static void setnsec3parameters(dns_db_t *db, rbtdb_version_t *version);
 
 /* Pad to 32 bytes */
@@ -1042,10 +1042,10 @@ resign_sooner(void *v1, void *v2) {
  * This function sets the heap index into the header.
  */
 static void
-set_index(void *what, unsigned int index) {
+set_index(void *what, unsigned int idx) {
 	rdatasetheader_t *h = what;
 
-	h->heap_index = index;
+	h->heap_index = idx;
 }
 
 /*%
@@ -5591,11 +5591,11 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 }
 
 static void
-overmem(dns_db_t *db, isc_boolean_t overmem) {
+overmem(dns_db_t *db, isc_boolean_t over) {
 	/* This is an empty callback.  See adb.c:water() */
 
 	UNUSED(db);
-	UNUSED(overmem);
+	UNUSED(over);
 
 	return;
 }

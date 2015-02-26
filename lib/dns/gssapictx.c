@@ -216,7 +216,7 @@ static void
 check_config(const char *gss_name) {
 	const char *p;
 	krb5_context krb5_ctx;
-	char *krb5_realm = NULL;
+	char *krb5_realm_name = NULL;
 
 	if (strncasecmp(gss_name, "DNS/", 4) != 0) {
 		gss_log(ISC_LOG_ERROR, "tkey-gssapi-credential (%s) "
@@ -228,7 +228,7 @@ check_config(const char *gss_name) {
 		gss_log(ISC_LOG_ERROR, "Unable to initialise krb5 context");
 		return;
 	}
-	if (krb5_get_default_realm(krb5_ctx, &krb5_realm) != 0) {
+	if (krb5_get_default_realm(krb5_ctx, &krb5_realm_name) != 0) {
 		gss_log(ISC_LOG_ERROR, "Unable to get krb5 default realm");
 		krb5_free_context(krb5_ctx);
 		return;
@@ -240,10 +240,10 @@ check_config(const char *gss_name) {
 		krb5_free_context(krb5_ctx);
 		return;
 	}
-	if (strcasecmp(p + 1, krb5_realm) != 0) {
+	if (strcasecmp(p + 1, krb5_realm_name) != 0) {
 		gss_log(ISC_LOG_ERROR, "default realm from krb5.conf (%s) "
 			"does not match tkey-gssapi-credential (%s)",
-			krb5_realm, gss_name);
+			krb5_realm_name, gss_name);
 		krb5_free_context(krb5_ctx);
 		return;
 	}

@@ -2065,7 +2065,7 @@ dns_view_setfailttl(dns_view_t *view, isc_uint32_t fail_ttl) {
 isc_result_t
 dns_view_saventa(dns_view_t *view) {
 	isc_result_t result;
-	isc_boolean_t remove = ISC_FALSE;
+	isc_boolean_t removefile = ISC_FALSE;
 	dns_ntatable_t *ntatable = NULL;
 	FILE *fp = NULL;
 
@@ -2079,7 +2079,7 @@ dns_view_saventa(dns_view_t *view) {
 
 	result = dns_view_getntatable(view, &ntatable);
 	if (result == ISC_R_NOTFOUND) {
-		remove = ISC_TRUE;
+		removefile = ISC_TRUE;
 		result = ISC_R_SUCCESS;
 		goto cleanup;
 	} else
@@ -2087,7 +2087,7 @@ dns_view_saventa(dns_view_t *view) {
 
 	result = dns_ntatable_save(ntatable, fp);
 	if (result == ISC_R_NOTFOUND) {
-		remove = ISC_TRUE;
+		removefile = ISC_TRUE;
 		result = ISC_R_SUCCESS;
 	}
 
@@ -2099,7 +2099,7 @@ dns_view_saventa(dns_view_t *view) {
 		isc_stdio_close(fp);
 
 	/* Don't leave half-baked NTA save files lying around. */
-	if (result != ISC_R_SUCCESS || remove)
+	if (result != ISC_R_SUCCESS || removefile)
 		(void) isc_file_remove(view->nta_file);
 
 	return (result);

@@ -847,7 +847,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	unsigned int factor;
 	dns_adbfind_t *find;
 	dns_adbaddrinfo_t *addrinfo;
-	isc_socket_t *socket;
+	isc_socket_t *sock;
 	isc_stdtime_t now;
 
 	query = *queryp;
@@ -1001,9 +1001,9 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 					  ISC_SOCKCANCEL_CONNECT);
 		} else if (query->dispentry != NULL) {
 			INSIST(query->exclusivesocket);
-			socket = dns_dispatch_getentrysocket(query->dispentry);
-			if (socket != NULL)
-				isc_socket_cancel(socket, NULL,
+			sock = dns_dispatch_getentrysocket(query->dispentry);
+			if (sock != NULL)
+				isc_socket_cancel(sock, NULL,
 						  ISC_SOCKCANCEL_CONNECT);
 		}
 	} else if (RESQUERY_SENDING(query)) {
@@ -1011,11 +1011,11 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		 * Cancel the pending send.
 		 */
 		if (query->exclusivesocket && query->dispentry != NULL)
-			socket = dns_dispatch_getentrysocket(query->dispentry);
+			sock = dns_dispatch_getentrysocket(query->dispentry);
 		else
-			socket = dns_dispatch_getsocket(query->dispatch);
-		if (socket != NULL)
-			isc_socket_cancel(socket, NULL, ISC_SOCKCANCEL_SEND);
+			sock = dns_dispatch_getsocket(query->dispatch);
+		if (sock != NULL)
+			isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_SEND);
 	}
 
 	if (query->dispentry != NULL)
@@ -1906,7 +1906,7 @@ resquery_send(resquery_t *query) {
 	isc_region_t r;
 	dns_resolver_t *res;
 	isc_task_t *task;
-	isc_socket_t *socket;
+	isc_socket_t *sock;
 	isc_buffer_t tcpbuffer;
 	isc_sockaddr_t *address;
 	isc_buffer_t *buffer;
@@ -2312,16 +2312,16 @@ resquery_send(resquery_t *query) {
 	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
 
 	if (query->exclusivesocket)
-		socket = dns_dispatch_getentrysocket(query->dispentry);
+		sock = dns_dispatch_getentrysocket(query->dispentry);
 	else
-		socket = dns_dispatch_getsocket(query->dispatch);
+		sock = dns_dispatch_getsocket(query->dispatch);
 	/*
 	 * Send the query!
 	 */
 	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
 		address = &query->addrinfo->sockaddr;
 		if (query->exclusivesocket) {
-			result = isc_socket_connect(socket, address, task,
+			result = isc_socket_connect(sock, address, task,
 						    resquery_udpconnected,
 						    query);
 			if (result != ISC_R_SUCCESS)
@@ -2348,10 +2348,10 @@ resquery_send(resquery_t *query) {
 		query->sendevent.attributes |= ISC_SOCKEVENTATTR_DSCP;
 		query->sendevent.dscp = query->dscp;
 		if ((query->options & DNS_FETCHOPT_TCP) != 0)
-			isc_socket_dscp(socket, query->dscp);
+			isc_socket_dscp(sock, query->dscp);
 	}
 
-	result = isc_socket_sendto2(socket, &r, task, address, NULL,
+	result = isc_socket_sendto2(sock, &r, task, address, NULL,
 				    &query->sendevent, 0);
 	if (result != ISC_R_SUCCESS) {
 		if (connecting) {
@@ -2542,7 +2542,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t want_done = ISC_FALSE;
 	isc_boolean_t bucket_empty = ISC_FALSE;
 	unsigned int bucketnum;
-	isc_boolean_t destroy = ISC_FALSE;
+	isc_boolean_t dodestroy = ISC_FALSE;
 
 	find = event->ev_sender;
 	fctx = event->ev_arg;
@@ -2583,7 +2583,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 
 		if (fctx->references == 0) {
 			bucket_empty = fctx_unlink(fctx);
-			destroy = ISC_TRUE;
+			dodestroy = ISC_TRUE;
 		}
 	}
 	UNLOCK(&res->buckets[bucketnum].lock);
@@ -2596,7 +2596,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 	} else if (want_done) {
 		FCTXTRACE("fetch failed in finddone(); return ISC_R_FAILURE");
 		fctx_done(fctx, ISC_R_FAILURE, __LINE__);
-	} else if (destroy) {
+	} else if (dodestroy) {
 		fctx_destroy(fctx);
 		if (bucket_empty)
 			empty_bucket(res);
@@ -3695,7 +3695,7 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	dns_resolver_t *res;
 	unsigned int bucketnum;
 	dns_validator_t *validator;
-	isc_boolean_t destroy = ISC_FALSE;
+	isc_boolean_t dodestroy = ISC_FALSE;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -3747,12 +3747,12 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	if (fctx->references == 0 && fctx->pending == 0 &&
 	    fctx->nqueries == 0 && ISC_LIST_EMPTY(fctx->validators)) {
 		bucket_empty = fctx_unlink(fctx);
-		destroy = ISC_TRUE;
+		dodestroy = ISC_TRUE;
 	}
 
 	UNLOCK(&res->buckets[bucketnum].lock);
 
-	if (destroy) {
+	if (dodestroy) {
 		fctx_destroy(fctx);
 		if (bucket_empty)
 			empty_bucket(res);
@@ -3765,7 +3765,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t done = ISC_FALSE, bucket_empty = ISC_FALSE;
 	dns_resolver_t *res;
 	unsigned int bucketnum;
-	isc_boolean_t destroy = ISC_FALSE;
+	isc_boolean_t dodestroy = ISC_FALSE;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -3799,7 +3799,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 			 * It's now safe to destroy this fctx.
 			 */
 			bucket_empty = fctx_unlink(fctx);
-			destroy = ISC_TRUE;
+			dodestroy = ISC_TRUE;
 		}
 		done = ISC_TRUE;
 	} else {
@@ -3821,7 +3821,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 	if (!done) {
 		isc_result_t result;
 
-		INSIST(!destroy);
+		INSIST(!dodestroy);
 
 		/*
 		 * All is well.  Start working on the fetch.
@@ -3831,7 +3831,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 			fctx_done(fctx, result, __LINE__);
 		else
 			fctx_try(fctx, ISC_FALSE, ISC_FALSE);
-	} else if (destroy) {
+	} else if (dodestroy) {
 			fctx_destroy(fctx);
 		if (bucket_empty)
 			empty_bucket(res);
@@ -4407,7 +4407,7 @@ maybe_destroy(fetchctx_t *fctx, isc_boolean_t locked) {
 	isc_boolean_t bucket_empty = ISC_FALSE;
 	dns_resolver_t *res = fctx->res;
 	dns_validator_t *validator, *next_validator;
-	isc_boolean_t destroy = ISC_FALSE;
+	isc_boolean_t dodestroy = ISC_FALSE;
 
 	REQUIRE(SHUTTINGDOWN(fctx));
 
@@ -4425,12 +4425,12 @@ maybe_destroy(fetchctx_t *fctx, isc_boolean_t locked) {
 
 	if (fctx->references == 0 && ISC_LIST_EMPTY(fctx->validators)) {
 		bucket_empty = fctx_unlink(fctx);
-		destroy = ISC_TRUE;
+		dodestroy = ISC_TRUE;
 	}
  unlock:
 	if (!locked)
 		UNLOCK(&res->buckets[bucketnum].lock);
-	if (destroy)
+	if (dodestroy)
 		fctx_destroy(fctx);
 	return (bucket_empty);
 }
@@ -8895,7 +8895,7 @@ dns_resolver_createfetch3(dns_resolver_t *res, dns_name_t *name,
 	unsigned int count = 0;
 	unsigned int spillat;
 	unsigned int spillatmin;
-	isc_boolean_t destroy = ISC_FALSE;
+	isc_boolean_t dodestroy = ISC_FALSE;
 
 	UNUSED(forwarders);
 
@@ -9000,14 +9000,14 @@ dns_resolver_createfetch3(dns_resolver_t *res, dns_name_t *name,
 			 * since we know we're not exiting.
 			 */
 			(void)fctx_unlink(fctx);
-			destroy = ISC_TRUE;
+			dodestroy = ISC_TRUE;
 		}
 	}
 
  unlock:
 	UNLOCK(&res->buckets[bucketnum].lock);
 
-	if (destroy)
+	if (dodestroy)
 		fctx_destroy(fctx);
 
 	if (result == ISC_R_SUCCESS) {
