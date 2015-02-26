@@ -189,8 +189,7 @@ dns_test_end(void) {
  * Create a view.
  */
 isc_result_t
-dns_test_makeview(const char *name, dns_view_t **viewp)
-{
+dns_test_makeview(const char *name, dns_view_t **viewp) {
 	isc_result_t result;
 	dns_view_t *view = NULL;
 
