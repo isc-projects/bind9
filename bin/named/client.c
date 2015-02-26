@@ -1293,10 +1293,15 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		isc_boolean_t wouldlog;
 		char log_buf[DNS_RRL_LOG_BUF_LEN];
 		dns_rrl_result_t rrl_result;
+		int loglevel;
 
 		INSIST(rcode != dns_rcode_noerror &&
 		       rcode != dns_rcode_nxdomain);
-		wouldlog = isc_log_wouldlog(ns_g_lctx, DNS_RRL_LOG_DROP);
+		if (ns_g_server->log_queries)
+			loglevel = DNS_RRL_LOG_DROP;
+		else
+			loglevel = ISC_LOG_DEBUG(1);
+		wouldlog = isc_log_wouldlog(ns_g_lctx, loglevel);
 		rrl_result = dns_rrl(client->view, &client->peeraddr,
 				     TCP_CLIENT(client),
 				     dns_rdataclass_in, dns_rdatatype_none,
@@ -1313,7 +1318,7 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 				ns_client_log(client,
 					      NS_LOGCATEGORY_QUERY_EERRORS,
 					      NS_LOGMODULE_CLIENT,
-					      DNS_RRL_LOG_DROP,
+					      loglevel,
 					      "%s", log_buf);
 			}
 			/*

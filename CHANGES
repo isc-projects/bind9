@@ -1,3 +1,6 @@
+4067.	[cleanup]	Reduce noise from RRL when query logging is
+			disabled. [RT #38648]
+
 4066.	[doc]		Reorganize options in the dig man page. [RT #38516]
 
 4064.	[contrib]	dnssec-keyset.sh: Generates a specified number
