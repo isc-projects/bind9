@@ -6,7 +6,7 @@
 			[RT #38548]
 
 4069.	[doc]		Reorganize options in the nsupdate man page.
-			[RT #38516]
+                        [RT #38515]
 
 4067.	[cleanup]	Reduce noise from RRL when query logging is
 			disabled. [RT #38648]
