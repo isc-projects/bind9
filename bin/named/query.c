@@ -126,24 +126,30 @@
 #define NOQNAME(r)		(((r)->attributes & \
 				  DNS_RDATASETATTR_NOQNAME) != 0)
 
-#if 0
-#define CTRACE(l,m)	  do { \
-	if (client != NULL && client->query.qname != NULL) { \
-		char qbuf[DNS_NAME_FORMATSIZE]; \
-		dns_name_format(client->query.qname, qbuf, sizeof(qbuf)); \
-		isc_log_write(ns_g_lctx, \
-			      NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY, \
-			      l, "client %p (%s): %s", client, qbuf, (m)); \
-	} else { \
-		isc_log_write(ns_g_lctx, \
-			      NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY, \
-			      l, "client %p (<unknown-name>): %s", \
-			      client, (m)); \
-	} \
+#ifdef WANT_QUERYTRACE
+#define CTRACE(l,m)	  do {						\
+	if (client != NULL && client->query.qname != NULL) {		\
+		if (isc_log_wouldlog(ns_g_lctx, l)) {			\
+			char qbuf[DNS_NAME_FORMATSIZE];			\
+			dns_name_format(client->query.qname,		\
+					qbuf, sizeof(qbuf));		\
+			isc_log_write(ns_g_lctx,			\
+				      NS_LOGCATEGORY_CLIENT,		\
+				      NS_LOGMODULE_QUERY,		\
+				      l, "client %p (%s): %s",		\
+				      client, qbuf, (m));		\
+		}							\
+	 } else {							\
+		isc_log_write(ns_g_lctx,				\
+			      NS_LOGCATEGORY_CLIENT,			\
+			      NS_LOGMODULE_QUERY,			\
+			      l, "client %p (<unknown-name>): %s",	\
+			      client, (m));				\
+	}								\
 } while(0)
 #else
 #define CTRACE(l,m) ((void)m)
-#endif
+#endif /* WANT_QUERYTRACE */
 
 
 #define DNS_GETDB_NOEXACT 0x01U
