@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.28.224.1 2011/12/22 07:48:27 marka Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -1436,7 +1434,9 @@ wrap_jsonfree(isc_buffer_t *buffer, void *arg) {
 }
 
 static json_object *
-addzone(char *name, char *class, isc_uint32_t serial) {
+addzone(char *name, char *class, isc_uint32_t serial,
+	isc_boolean_t add_serial)
+{
 	json_object *node = json_object_new_object();
 
 	if (node == NULL)
@@ -1444,7 +1444,9 @@ addzone(char *name, char *class, isc_uint32_t serial) {
 
 	json_object_object_add(node, "name", json_object_new_string(name));
 	json_object_object_add(node, "class", json_object_new_string(class));
-	json_object_object_add(node, "serial", json_object_new_int64(serial));
+	if (add_serial)
+		json_object_object_add(node, "serial",
+				       json_object_new_int64(serial));
 	return (node);
 }
 
@@ -1478,9 +1480,10 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	class_only = class;
 
 	if (dns_zone_getserial2(zone, &serial) != ISC_R_SUCCESS)
-		serial = -1;
+		zoneobj = addzone(zone_name_only, class_only, 0, ISC_FALSE);
+	else
+		zoneobj = addzone(zone_name_only, class_only, serial, ISC_TRUE);
 
-	zoneobj = addzone(zone_name_only, class_only, serial);
 	if (zoneobj == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -1568,7 +1571,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 	/*
 	 * These statistics are included no matter which URL we use.
 	 */
-	obj = json_object_new_string("1.0");
+	obj = json_object_new_string("1.1");
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "json-stats-version", obj);
 

@@ -1,3 +1,6 @@
+4068.	[bug]		Serial number was omitted from JSON zone statistics.
+			[RT #38604]
+
 4067.	[cleanup]	Reduce noise from RRL when query logging is
 			disabled. [RT #38648]
 
