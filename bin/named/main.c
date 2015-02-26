@@ -622,16 +622,16 @@ parse_command_line(int argc, char *argv[]) {
 			ns_g_username = isc_commandline_argument;
 			break;
 		case 'v':
-			printf("%s %s", ns_g_product, ns_g_version);
-			if (*ns_g_description != 0)
-				printf(" %s", ns_g_description);
-			printf("\n");
+			printf("%s %s%s%s <id:%s>\n",
+			       ns_g_product, ns_g_version,
+			       (*ns_g_description != '\0') ? " " : "",
+			       ns_g_description, ns_g_srcid);
 			exit(0);
 		case 'V':
-			printf("%s %s", ns_g_product, ns_g_version);
-			if (*ns_g_description != 0)
-				printf(" %s", ns_g_description);
-			printf(" <id:%s> built by %s with %s\n", ns_g_srcid,
+			printf("%s %s%s%s <id:%s>\n", ns_g_product, ns_g_version,
+			       (*ns_g_description != '\0') ? " " : "",
+			       ns_g_description, ns_g_srcid);
+			printf("built by %s with %s\n",
 			       ns_g_builder, ns_g_configargs);
 #ifdef __clang__
 			printf("compiled by CLANG %s\n", __VERSION__);
@@ -661,6 +661,12 @@ parse_command_line(int argc, char *argv[]) {
 			       LIBXML_DOTTED_VERSION);
 			printf("linked to libxml2 version: %s\n",
 			       xmlParserVersion);
+#endif
+#ifdef HAVE_JSON
+			printf("compiled with libjson-c version: %s\n",
+			       JSON_C_VERSION);
+			printf("linked to libjson-c version: %s\n",
+			       json_c_version());
 #endif
 			exit(0);
 		case 'F':
@@ -983,8 +989,10 @@ setup(void) {
 				   isc_result_totext(result));
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "starting %s %s%s", ns_g_product,
-		      ns_g_version, saved_command_line);
+		      ISC_LOG_NOTICE, "starting %s %s%s%s <id:%s>%s",
+		      ns_g_product, ns_g_version,
+		      *ns_g_description ? " " : "", ns_g_description,
+		      ns_g_srcid, saved_command_line);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "built with %s", ns_g_configargs);

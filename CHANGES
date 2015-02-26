@@ -1,3 +1,7 @@
+4073.	[cleanup]	Add libjson-c version number reporting to
+			"named -V"; normalize version number formatting.
+			[RT #38056]
+
 4072.	[func]		Add a --enable-querytrace configure switch for
 			very verbose query tracelogging. [RT #37520]
 
