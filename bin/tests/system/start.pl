@@ -151,7 +151,11 @@ sub start_server {
 
 	if ($server =~ /^ns/) {
 		$cleanup_files = "{*.jnl,*.bk,*.st,named.run}";
-		$command = "$NAMED ";
+		if ($ENV{'USE_VALGRIND'}) {
+			$command = "valgrind -q --gen-suppressions=all --track-origins=yes --num-callers=48 --leak-check=full --fullpath-after= --log-file=named-$server-valgrind-%p.log $NAMED -m none -M external ";
+		} else {
+			$command = "$NAMED ";
+		}
 		if ($options) {
 			$command .= "$options";
 		} elsif (-e $args_file) {
@@ -189,7 +193,11 @@ sub start_server {
 		$pid_file = "named.pid";
 	} elsif ($server =~ /^lwresd/) {
 		$cleanup_files = "{lwresd.run}";
-		$command = "$LWRESD ";
+		if ($ENV{'USE_VALGRIND'}) {
+			$command = "valgrind -q --gen-suppressions=all --track-origins=yes --num-callers=48 --leak-check=full --fullpath-after= --log-file=lwresd-valgrind-%p.log $LWRESD -m none -M external ";
+		} else {
+			$command = "$LWRESD ";
+		}
 		if ($options) {
 			$command .= "$options";
 		} else {

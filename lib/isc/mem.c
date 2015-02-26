@@ -43,6 +43,7 @@
 #define ISC_MEM_DEBUGGING 0
 #endif
 LIBISC_EXTERNAL_DATA unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
+LIBISC_EXTERNAL_DATA unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
 
 /*
  * Constants.
@@ -896,7 +897,7 @@ isc__mem_createx(size_t init_max_size, size_t target_size,
 		 isc_mem_t **ctxp)
 {
 	return (isc__mem_createx2(init_max_size, target_size, memalloc, memfree,
-				  arg, ctxp, ISC_MEMFLAG_DEFAULT));
+				  arg, ctxp, isc_mem_defaultflags));
 
 }
 
@@ -1038,7 +1039,7 @@ ISC_MEMFUNC_SCOPE isc_result_t
 isc__mem_create(size_t init_max_size, size_t target_size, isc_mem_t **ctxp) {
 	return (isc__mem_createx2(init_max_size, target_size,
 				  default_memalloc, default_memfree, NULL,
-				  ctxp, ISC_MEMFLAG_DEFAULT));
+				  ctxp, isc_mem_defaultflags));
 }
 
 ISC_MEMFUNC_SCOPE isc_result_t
