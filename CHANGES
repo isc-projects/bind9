@@ -9,7 +9,7 @@
 			[RT #38548]
 
 4069.	[doc]		Reorganize options in the nsupdate man page.
-                        [RT #38516]
+                        [RT #38515]
 
 4068.	[bug]		Omit unknown serial number from JSON zone statistics.
                         [RT #38604]
