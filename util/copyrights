@@ -282,7 +282,7 @@
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006,2007
-./bin/named/statschannel.c			C	2008,2009,2010,2011,2012,2013,2014
+./bin/named/statschannel.c			C	2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006,2007,2009,2010,2012,2014
 ./bin/named/tsigconf.c				C	1999,2000,2001,2004,2005,2006,2007,2009,2011,2012
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009,2011,2012
@@ -307,7 +307,7 @@
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008,2009,2012,2013,2014
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
 ./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
-./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014
+./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014,2015
 ./bin/nsupdate/nsupdate.html			HTML	DOCBOOK
 ./bin/nsupdate/win32/nsupdate.dsp.in		X	2001,2004,2005,2009,2013,2014
 ./bin/nsupdate/win32/nsupdate.dsw		X	2001
@@ -370,7 +370,7 @@
 ./bin/python/dnssec-coverage.8			MAN	2013,2014
 ./bin/python/dnssec-coverage.docbook		SGML	2013,2014
 ./bin/python/dnssec-coverage.html		HTML	2013,2014
-./bin/python/dnssec-coverage.py.in		PYTHON	2013,2014
+./bin/python/dnssec-coverage.py.in		PYTHON	2013,2014,2015
 ./bin/rndc/.gitignore				X	2012,2014
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007,2009,2012,2014
 ./bin/rndc/include/rndc/os.h			C	2001,2004,2005,2007,2009
@@ -2323,7 +2323,7 @@
 ./bind.keys					X	2009,2010,2011
 ./bind.keys.h					X	2009,2010,2011,2012,2014
 ./config.guess					X	1998,1999,2000,2001,2004,2009,2013
-./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./config.h.win32				C	1999,2000,2001,2004,2006,2007,2008,2009,2011,2012,2013,2014,2015
 ./config.sub					X	1998,1999,2000,2001,2004,2013
 ./config.threads.in				X	2005,2006,2010,2011,2012,2013
@@ -3344,7 +3344,7 @@
 ./lib/dns/tests/dbversion_test.c		C	2011,2012,2014,2015
 ./lib/dns/tests/dh_test.c			C	2014
 ./lib/dns/tests/dispatch_test.c			C	2012,2014
-./lib/dns/tests/dnstest.c			C	2011,2012,2013,2014
+./lib/dns/tests/dnstest.c			C	2011,2012,2013,2014,2015
 ./lib/dns/tests/dnstest.h			C	2011,2012,2014
 ./lib/dns/tests/geoip_test.c			C	2013,2014
 ./lib/dns/tests/gost_test.c			C	2014,2015
@@ -3464,7 +3464,7 @@
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007,2009
 ./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014
-./lib/isc/app_api.c				C	2009,2013,2014
+./lib/isc/app_api.c				C	2009,2013,2014,2015
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007,2008,2009
 ./lib/isc/backtrace-emptytbl.c			C	2009
 ./lib/isc/backtrace.c				C	2009,2013,2014
@@ -3494,7 +3494,7 @@
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012,2014
 ./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014
 ./lib/isc/include/isc/aes.h			C	2014
-./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2013,2014
+./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2013,2014,2015
 ./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/backtrace.h		C	2009
 ./lib/isc/include/isc/base32.h			C	2008,2014
@@ -3612,7 +3612,7 @@
 ./lib/isc/nothreads/include/Makefile.in		MAKE	2000,2001,2004,2007,2012
 ./lib/isc/nothreads/include/isc/Makefile.in	MAKE	2000,2001,2004,2007,2012
 ./lib/isc/nothreads/include/isc/condition.h	C	2000,2001,2004,2007
-./lib/isc/nothreads/include/isc/mutex.h		C	2000,2001,2004,2007
+./lib/isc/nothreads/include/isc/mutex.h		C	2000,2001,2004,2007,2015
 ./lib/isc/nothreads/include/isc/once.h		C	2000,2001,2004,2007
 ./lib/isc/nothreads/include/isc/thread.h	C	2000,2001,2004,2007,2013
 ./lib/isc/nothreads/mutex.c			C	2000,2001,2004,2006,2007
