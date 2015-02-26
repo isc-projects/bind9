@@ -1,3 +1,8 @@
+4063.	[bug]		Asynchronous zone loads were not handled
+			correctly when the zone load was already in
+			progress; this could trigger a crash in zt.c.
+			[RT #37573]
+
 4062.	[bug]		Fix an out-of-bounds read in RPZ code. If the
 			read succeeded, it doesn't result in a bug
 			during operation. If the read failed, named
