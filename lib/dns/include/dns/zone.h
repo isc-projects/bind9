@@ -331,6 +331,15 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg);
  * its first argument and 'zone' as its second.  (Normally, 'arg' is
  * expected to point to the zone table but is left undefined for testing
  * purposes.)
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *
+ * Returns:
+ *\li	#ISC_R_ALREADYRUNNING
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_FAILURE
+ *\li	#ISC_R_NOMEMORY
  */
 
 isc_boolean_t
