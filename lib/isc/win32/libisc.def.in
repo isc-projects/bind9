@@ -17,6 +17,7 @@ isc___mempool_put
 isc___socketmgr_maxudp
 isc__app_block
 isc__app_finish
+isc__app_isrunning
 isc__app_onrun
 isc__app_reload
 isc__app_run

@@ -1,3 +1,7 @@
+4070.	[bug]		Fix a segfault in nslookup in a query such as
+			"nslookup isc.org AMS.SNS-PB.ISC.ORG -all".
+			[RT #38548]
+
 4069.	[doc]		Reorganize options in the nsupdate man page.
 			[RT #38516]
 

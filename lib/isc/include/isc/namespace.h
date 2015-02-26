@@ -29,6 +29,7 @@
 #define isc_app_ctxstart isc__app_ctxstart
 #define isc_app_onrun isc__app_onrun
 #define isc_app_run isc__app_run
+#define isc_app_isrunning isc__app_isrunning
 #define isc_app_ctxrun isc__app_ctxrun
 #define isc_app_shutdown isc__app_shutdown
 #define isc_app_ctxfinish isc__app_ctxfinish

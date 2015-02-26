@@ -196,6 +196,11 @@ isc__app_run(void) {
 	return (ISC_R_SUCCESS);
 }
 
+isc_boolean_t
+isc__app_isrunning(void) {
+	return (running);
+}
+
 isc_result_t
 isc__app_shutdown(void) {
 	isc_boolean_t want_kill = ISC_TRUE;
