@@ -15724,6 +15724,8 @@ $as_echo_n "checking whether linking with OpenSSL requires -ldl... " >&6; }
 /* end confdefs.h.  */
 
 #include <openssl/err.h>
+#include <openssl/dso.h>
+
 int
 main ()
 {
@@ -15741,6 +15743,7 @@ else
 /* end confdefs.h.  */
 
 #include <openssl/err.h>
+#include <openssl/dso.h>
 
 int
 main ()
