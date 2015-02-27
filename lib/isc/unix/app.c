@@ -156,7 +156,8 @@ static struct {
 	 */
 #ifndef BIND9
 	void *run, *shutdown, *start, *onrun,
-	     *reload, *finish, *block, *unblock;
+	     *reload, *finish, *block, *unblock,
+	     *isrunning
 #endif
 } appmethods = {
 	{
@@ -176,7 +177,7 @@ static struct {
 	(void *)isc__app_run, (void *)isc__app_shutdown,
 	(void *)isc__app_start, (void *)isc__app_onrun, (void *)isc__app_reload,
 	(void *)isc__app_finish, (void *)isc__app_block,
-	(void *)isc__app_unblock
+	(void *)isc__app_unblock, (void *)isc__app_isrunning
 #endif
 };
 
