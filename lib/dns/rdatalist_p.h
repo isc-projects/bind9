@@ -59,6 +59,12 @@ isc_result_t
 isc__rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 			  dns_rdataset_t *neg, dns_rdataset_t *negsig);
 
+void
+isc__rdatalist_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name);
+
+void
+isc__rdatalist_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATALIST_P_H */

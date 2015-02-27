@@ -22,6 +22,7 @@
 #include <config.h>
 
 #include <stddef.h>
+#include <string.h>
 
 #include <isc/util.h>
 
@@ -49,7 +50,9 @@ static dns_rdatasetmethods_t methods = {
 	NULL,
 	NULL,
 	NULL,
-	NULL
+	NULL,
+	isc__rdatalist_setownercase,
+	isc__rdatalist_getownercase
 };
 
 void
@@ -67,6 +70,11 @@ dns_rdatalist_init(dns_rdatalist_t *rdatalist) {
 	rdatalist->ttl = 0;
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LINK_INIT(rdatalist, link);
+	memset(rdatalist->upper, 0xeb, sizeof(rdatalist->upper));
+	/*
+	 * Clear upper set bit.
+	 */
+	rdatalist->upper[0] &= ~0x01;
 }
 
 isc_result_t
@@ -367,4 +375,45 @@ isc__rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_rdataset_clone(tneg, neg);
 	dns_rdataset_clone(tnegsig, negsig);
 	return (ISC_R_SUCCESS);
+}
+
+void
+isc__rdatalist_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
+	dns_rdatalist_t *rdatalist;
+	unsigned int i;
+ 
+	/*
+	 * We do not need to worry about label lengths as they are all
+	 * less than or equal to 63.
+	 */
+	rdatalist = rdataset->private1;
+	memset(rdatalist->upper, 0, sizeof(rdatalist->upper));
+	for (i = 1; i < name->length; i++)
+		if (name->ndata[i] >= 0x41 && name->ndata[i] <= 0x5a)
+			rdatalist->upper[i/8] |= 1 << (i%8);
+	/*
+	 * Record that upper has been set.
+	 */
+	rdatalist->upper[0] |= 0x01;
+}
+ 
+void
+isc__rdatalist_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
+	dns_rdatalist_t *rdatalist;
+	unsigned int i;
+ 
+	rdatalist = rdataset->private1;
+	if ((rdatalist->upper[0] & 0x01) == 0)
+		return;
+	for (i = 0; i < name->length; i++) {
+		/*
+		 * Set the case bit if it does not match the recorded bit.
+		 */
+		if (name->ndata[i] >= 0x61 && name->ndata[i] <= 0x7a &&
+		    (rdatalist->upper[i/8] & (1 << (i%8))) != 0)
+			name->ndata[i] &= ~0x20; /* clear the lower case bit */
+		else if (name->ndata[i] >= 0x41 && name->ndata[i] <= 0x5a &&
+		    (rdatalist->upper[i/8] & (1 << (i%8))) == 0)
+			name->ndata[i] |= 0x20; /* set the lower case bit */
+	}
 }

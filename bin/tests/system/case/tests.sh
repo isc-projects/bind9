@@ -29,6 +29,13 @@ for i in 1 2 3 4 5 6 7 8 9
 do
 	$DIG $DIGOPTS soa example. @10.53.0.2 -p 5300 > dig.ns2.test$n
 	grep SOA dig.ns2.test$n > /dev/null && break
+	sleep 1
+done
+for i in 1 2 3 4 5 6 7 8 9
+do
+	$DIG $DIGOPTS soa dynamic. @10.53.0.2 -p 5300 > dig.ns2.test$n
+	grep SOA dig.ns2.test$n > /dev/null && break
+	sleep 1
 done
 
 n=`expr $n + 1`
@@ -57,5 +64,78 @@ grep "mail.example" dig.ns2.test$n > /dev/null || ret=1
 test $ret -eq 0 || echo "I:failed"
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:testing load of dynamic zone with various \$ORIGIN values ($n)"
+ret=0
+$DIG axfr dynamic @10.53.0.1 -p 5300 > dig.ns1.test$n
+$PERL ../digcomp.pl dig.ns1.test$n dynamic.good || ret=1
+
+test $ret -eq 0 || echo "I:failed"
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:transfer of dynamic zone with various \$ORIGIN values ($n)"
+ret=0
+$DIG axfr dynamic @10.53.0.2 -p 5300 > dig.ns2.test$n
+$PERL ../digcomp.pl dig.ns2.test$n dynamic.good || ret=1
+
+test $ret -eq 0 || echo "I:failed"
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:change SOA owner case via update ($n)"
+$NSUPDATE << EOF
+server 10.53.0.1 5300
+zone dynamic
+update add dYNAMIc 0 SOA mname1. . 2000042408 20 20 1814400 3600
+send
+EOF
+$DIG axfr dynamic @10.53.0.1 -p 5300 > dig.ns1.test$n
+$PERL ../digcomp.pl dig.ns1.test$n postupdate.good || ret=1
+
+test $ret -eq 0 || echo "I:failed"
+status=`expr $status + $ret`
+
+for i in 1 2 3 4 5 6 7 8 9
+do
+	$DIG soa dynamic @10.53.0.2 -p 5300 | grep 2000042408 > /dev/null && break
+	sleep 1
+done
+
+n=`expr $n + 1`
+echo "I:check SOA owner case is transfered to slave ($n)"
+ret=0
+$DIG axfr dynamic @10.53.0.2 -p 5300 > dig.ns2.test$n
+$PERL ../digcomp.pl dig.ns2.test$n postupdate.good || ret=1
+
+test $ret -eq 0 || echo "I:failed"
+status=`expr $status + $ret`
+
+#update delete Ns1.DyNaMIC. 300 IN A 10.53.0.1
+n=`expr $n + 1`
+echo "I:change A record owner case via update ($n)"
+$NSUPDATE << EOF
+server 10.53.0.1 5300
+zone dynamic
+update add Ns1.DyNaMIC. 300 IN A 10.53.0.1
+send
+EOF
+$DIG axfr dynamic @10.53.0.1 -p 5300 > dig.ns1.test$n
+$PERL ../digcomp.pl dig.ns1.test$n postns1.good || ret=1
+
+test $ret -eq 0 || echo "I:failed"
+status=`expr $status + $ret`
+
+for i in 1 2 3 4 5 6 7 8 9
+do
+	$DIG soa dynamic @10.53.0.2 -p 5300 | grep 2000042409 > /dev/null && break
+	sleep 1
+done
+
+n=`expr $n + 1`
+echo "I:check A owner case is transfered to slave ($n)"
+ret=0
+$DIG axfr dynamic @10.53.0.2 -p 5300 > dig.ns2.test$n
+$PERL ../digcomp.pl dig.ns2.test$n postns1.good || ret=1
 echo "I:exit status: $status"
 exit $status

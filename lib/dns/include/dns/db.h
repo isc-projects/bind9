@@ -260,6 +260,7 @@ struct dns_db {
  * Options that can be specified for dns_db_subtractrdataset().
  */
 #define DNS_DBSUB_EXACT			0x01
+#define DNS_DBSUB_WANTOLD		0x02
 
 /*@{*/
 /*%
@@ -1280,6 +1281,9 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  *	resulting new rdataset in the database, unless the rdataset has
  *	become nonexistent.  If DNS_DBSUB_EXACT is set then all elements
  *	of 'rdataset' must exist at 'node'.
+ *
+ *\li	If DNS_DBSUB_WANTOLD is set and the entire rdataset was deleted
+ *	then return the original rdatatset in newrdataset if that existed.
  *
  * Requires:
  *

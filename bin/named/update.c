@@ -224,6 +224,28 @@ struct update_event {
 	dns_message_t		*answer;
 };
 
+/*%
+ * Prepare an RR for the addition of the new RR 'ctx->update_rr',
+ * with TTL 'ctx->update_rr_ttl', to its rdataset, by deleting
+ * the RRs if it is replaced by the new RR or has a conflicting TTL.
+ * The necessary changes are appended to ctx->del_diff and ctx->add_diff;
+ * we need to do all deletions before any additions so that we don't run
+ * into transient states with conflicting TTLs.
+ */
+
+typedef struct {
+	dns_db_t *db;
+	dns_dbversion_t *ver;
+	dns_diff_t *diff;
+	dns_name_t *name;
+	dns_name_t *oldname;
+	dns_rdata_t *update_rr;
+	dns_ttl_t update_rr_ttl;
+	isc_boolean_t ignore_add;
+	dns_diff_t del_diff;
+	dns_diff_t add_diff;
+} add_rr_prepare_ctx_t;
+
 /**************************************************************************/
 /*
  * Forward declarations.
@@ -233,6 +255,7 @@ static void update_action(isc_task_t *task, isc_event_t *event);
 static void updatedone_action(isc_task_t *task, isc_event_t *event);
 static isc_result_t send_forward_event(ns_client_t *client, dns_zone_t *zone);
 static void forward_done(isc_task_t *task, isc_event_t *event);
+static isc_result_t add_rr_prepare_action(void *data, rr_t *rr);
 
 /**************************************************************************/
 
@@ -636,6 +659,7 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
 	dns_dbversion_t *oldver = NULL;
+	dns_fixedname_t fixed;
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 
@@ -672,6 +696,15 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	}
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_node;
+
+	if (rr_action == add_rr_prepare_action) {
+		add_rr_prepare_ctx_t *ctx = rr_action_data;
+
+		dns_fixedname_init(&fixed);
+		ctx->oldname = dns_fixedname_name(&fixed);
+		dns_name_copy(name, ctx->oldname, NULL);
+		dns_rdataset_getownercase(&rdataset, ctx->oldname);
+	}
 
 	for (result = dns_rdataset_first(&rdataset);
 	     result == ISC_R_SUCCESS;
@@ -1290,40 +1323,30 @@ delete_if(rr_predicate *predicate, dns_db_t *db, dns_dbversion_t *ver,
 }
 
 /**************************************************************************/
-/*%
- * Prepare an RR for the addition of the new RR 'ctx->update_rr',
- * with TTL 'ctx->update_rr_ttl', to its rdataset, by deleting
- * the RRs if it is replaced by the new RR or has a conflicting TTL.
- * The necessary changes are appended to ctx->del_diff and ctx->add_diff;
- * we need to do all deletions before any additions so that we don't run
- * into transient states with conflicting TTLs.
- */
-
-typedef struct {
-	dns_db_t *db;
-	dns_dbversion_t *ver;
-	dns_diff_t *diff;
-	dns_name_t *name;
-	dns_rdata_t *update_rr;
-	dns_ttl_t update_rr_ttl;
-	isc_boolean_t ignore_add;
-	dns_diff_t del_diff;
-	dns_diff_t add_diff;
-} add_rr_prepare_ctx_t;
 
 static isc_result_t
 add_rr_prepare_action(void *data, rr_t *rr) {
 	isc_result_t result = ISC_R_SUCCESS;
 	add_rr_prepare_ctx_t *ctx = data;
 	dns_difftuple_t *tuple = NULL;
-	isc_boolean_t equal;
+	isc_boolean_t equal, case_equal, ttl_equal;
 
 	/*
-	 * If the update RR is a "duplicate" of the update RR,
+	 * Are the new and old cases equal?
+	 */
+	case_equal = dns_name_caseequal(ctx->name, ctx->oldname);
+
+	/*
+	 * Are the ttl's equal?
+	 */
+	ttl_equal = rr->ttl == ctx->update_rr_ttl;
+
+	/*
+	 * If the update RR is a "duplicate" of a existing RR,
 	 * the update should be silently ignored.
 	 */
 	equal = ISC_TF(dns_rdata_casecompare(&rr->rdata, ctx->update_rr) == 0);
-	if (equal && rr->ttl == ctx->update_rr_ttl) {
+	if (equal && case_equal && ttl_equal) {
 		ctx->ignore_add = ISC_TRUE;
 		return (ISC_R_SUCCESS);
 	}
@@ -1334,19 +1357,19 @@ add_rr_prepare_action(void *data, rr_t *rr) {
 	 */
 	if (replaces_p(ctx->update_rr, &rr->rdata)) {
 		CHECK(dns_difftuple_create(ctx->del_diff.mctx, DNS_DIFFOP_DEL,
-					   ctx->name, rr->ttl, &rr->rdata,
+					   ctx->oldname, rr->ttl, &rr->rdata,
 					   &tuple));
 		dns_diff_append(&ctx->del_diff, &tuple);
 		return (ISC_R_SUCCESS);
 	}
 
 	/*
-	 * If this RR differs in TTL from the update RR,
-	 * its TTL must be adjusted.
+	 * If this RR differs in TTL or case from the update RR,
+	 * its TTL and case must be adjusted.
 	 */
-	if (rr->ttl != ctx->update_rr_ttl) {
+	if (!ttl_equal || !case_equal) {
 		CHECK(dns_difftuple_create(ctx->del_diff.mctx, DNS_DIFFOP_DEL,
-					   ctx->name, rr->ttl, &rr->rdata,
+					   ctx->oldname, rr->ttl, &rr->rdata,
 					   &tuple));
 		dns_diff_append(&ctx->del_diff, &tuple);
 		if (!equal) {
@@ -2931,6 +2954,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				ctx.ver = ver;
 				ctx.diff = &diff;
 				ctx.name = name;
+				ctx.oldname = name;
 				ctx.update_rr = &rdata;
 				ctx.update_rr_ttl = ttl;
 				ctx.ignore_add = ISC_FALSE;

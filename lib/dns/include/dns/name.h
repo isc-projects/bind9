@@ -811,14 +811,15 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 #define DNS_NAME_MASTERFILE	0x02U	/* escape $ and @ */
 
 isc_result_t
-dns_name_toprincipal(dns_name_t *name, isc_buffer_t *target);
+dns_name_toprincipal(const dns_name_t *name, isc_buffer_t *target);
 
 isc_result_t
-dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
+dns_name_totext(const dns_name_t *name, isc_boolean_t omit_final_dot,
 		isc_buffer_t *target);
 
 isc_result_t
-dns_name_totext2(dns_name_t *name, unsigned int options, isc_buffer_t *target);
+dns_name_totext2(const dns_name_t *name, unsigned int options,
+		 isc_buffer_t *target);
 /*%<
  * Convert 'name' into text format, storing the result in 'target'.
  *
@@ -1125,7 +1126,7 @@ dns_name_print(dns_name_t *name, FILE *stream);
  */
 
 void
-dns_name_format(dns_name_t *name, char *cp, unsigned int size);
+dns_name_format(const dns_name_t *name, char *cp, unsigned int size);
 /*%<
  * Format 'name' as text appropriate for use in log messages.
  *
@@ -1222,7 +1223,7 @@ dns_name_settotextfilter(dns_name_totextfilter_t proc);
  */
 
 isc_result_t
-dns_name_copy(dns_name_t *source, dns_name_t *dest, isc_buffer_t *target);
+dns_name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target);
 /*%<
  * Makes 'dest' refer to a copy of the name in 'source'.  The data are
  * either copied to 'target' or the dedicated buffer in 'dest'.

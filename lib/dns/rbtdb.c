@@ -149,6 +149,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define dbiterator_methods dbiterator_methods64
 #define rdataset_methods rdataset_methods64
 #define rdatasetiter_methods rdatasetiter_methods64
+#define slab_methods slab_methods64
 #define zone_methods zone_methods64
 
 #define acache_callback acache_callback64
@@ -451,6 +452,12 @@ typedef struct rdatasetheader {
 	 * Used for TTL-based cache cleaning.
 	 */
 	isc_stdtime_t                   resign;
+	/*%<
+	 * Case vector.  If the bit is set then the corresponding
+	 * character in the owner name needs to be AND'd with 0x20,
+	 * rendering that character upper case.
+	 */
+	unsigned char			upper[32];
 } rdatasetheader_t;
 
 typedef ISC_LIST(rdatasetheader_t)      rdatasetheaderlist_t;
@@ -466,6 +473,7 @@ typedef ISC_LIST(dns_rbtnode_t)         rbtnodelist_t;
 #define RDATASET_ATTR_OPTOUT            0x0080
 #define RDATASET_ATTR_NEGATIVE          0x0100
 #define RDATASET_ATTR_PREFETCH          0x0200
+#define RDATASET_ATTR_CASESET           0x0400
 
 typedef struct acache_cbarg {
 	dns_rdatasetadditional_t        type;
@@ -508,6 +516,8 @@ struct acachectl {
 	(((header)->attributes & RDATASET_ATTR_NEGATIVE) != 0)
 #define PREFETCH(header) \
 	(((header)->attributes & RDATASET_ATTR_PREFETCH) != 0)
+#define CASESET(header) \
+	(((header)->attributes & RDATASET_ATTR_CASESET) != 0)
 
 #define DEFAULT_NODE_LOCK_COUNT         7       /*%< Should be prime. */
 
@@ -746,6 +756,10 @@ static void prune_tree(isc_task_t *task, isc_event_t *event);
 static void rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
 static void rdataset_expire(dns_rdataset_t *rdataset);
 static void rdataset_clearprefetch(dns_rdataset_t *rdataset);
+static void rdataset_setownercase(dns_rdataset_t *rdataset,
+				  const dns_name_t *name);
+static void rdataset_getownercase(const dns_rdataset_t *rdataset,
+				  dns_name_t *name);
 
 static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_disassociate,
@@ -763,7 +777,30 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_putadditional,
 	rdataset_settrust,
 	rdataset_expire,
-	rdataset_clearprefetch
+	rdataset_clearprefetch,
+	rdataset_setownercase,
+	rdataset_getownercase
+};
+
+static dns_rdatasetmethods_t slab_methods = {
+	rdataset_disassociate,
+	rdataset_first,
+	rdataset_next,
+	rdataset_current,
+	rdataset_clone,
+	rdataset_count,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
@@ -841,6 +878,7 @@ static void free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log,
 		       isc_event_t *event);
 static void overmem(dns_db_t *db, isc_boolean_t over);
 static void setnsec3parameters(dns_db_t *db, rbtdb_version_t *version);
+static void setownercase(rdatasetheader_t *header, const dns_name_t *name);
 
 /* Pad to 32 bytes */
 static char FILE_VERSION[32] = "\0";
@@ -1543,6 +1581,10 @@ update_newheader(rdatasetheader_t *new, rdatasetheader_t *old) {
 		p += (uintptr_t)old->node;
 		new->node = (dns_rbtnode_t *)p;
 	}
+	if (CASESET(old)) {
+		memmove(new->upper, old->upper, sizeof(old->upper));
+		new->attributes |= RDATASET_ATTR_CASESET;
+	}
 }
 
 static inline rdatasetheader_t *
@@ -1557,6 +1599,7 @@ new_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx) {
 	if (IS_CACHE(rbtdb) && rbtdb->common.rdclass == dns_rdataclass_in)
 		fprintf(stderr, "allocated header: %p\n", h);
 #endif
+	memset(h->upper, 0xeb, sizeof(h->upper));
 	init_rdataset(rbtdb, h);
 	return (h);
 }
@@ -6619,6 +6662,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	isc_boolean_t newnsec;
 	isc_boolean_t tree_locked = ISC_FALSE;
 	isc_boolean_t cache_is_overmem = ISC_FALSE;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	INSIST(rbtversion == NULL || rbtversion->rbtdb == rbtdb);
@@ -6642,8 +6687,14 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	dns_rbt_fullnamefromnode(node, name);
+	dns_rdataset_getownercase(rdataset, name);
+
 	newheader = (rdatasetheader_t *)region.base;
 	init_rdataset(rbtdb, newheader);
+	setownercase(newheader, name);
 	set_ttl(rbtdb, newheader, rdataset->ttl + now);
 	newheader->type = RBTDB_RDATATYPE_VALUE(rdataset->type,
 						rdataset->covers);
@@ -6825,8 +6876,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			   rdataset->covers != dns_rdatatype_nsec3)));
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
-					    &region,
-					    sizeof(rdatasetheader_t));
+					    &region, sizeof(rdatasetheader_t));
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	newheader = (rdatasetheader_t *)region.base;
@@ -6972,6 +7022,10 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	if (result == ISC_R_SUCCESS && newrdataset != NULL)
 		bind_rdataset(rbtdb, rbtnode, newheader, 0, newrdataset);
+
+	if (result == DNS_R_NXRRSET && newrdataset != NULL &&
+	    (options & DNS_DBSUB_WANTOLD) != 0)
+		bind_rdataset(rbtdb, rbtnode, header, 0, newrdataset);
 
  unlock:
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
@@ -7240,6 +7294,8 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->additional_glue = NULL;
 	newheader->last_used = 0;
 	newheader->node = node;
+	setownercase(newheader, name);
+
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 		newheader->attributes |= RDATASET_ATTR_RESIGN;
 		newheader->resign = rdataset->resign;
@@ -8615,7 +8671,7 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
-	nsec->methods = &rdataset_methods;
+	nsec->methods = &slab_methods;
 	nsec->rdclass = db->rdclass;
 	nsec->type = noqname->type;
 	nsec->covers = 0;
@@ -8631,7 +8687,7 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
-	nsecsig->methods = &rdataset_methods;
+	nsecsig->methods = &slab_methods;
 	nsecsig->rdclass = db->rdclass;
 	nsecsig->type = dns_rdatatype_rrsig;
 	nsecsig->covers = noqname->type;
@@ -8661,7 +8717,7 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
-	nsec->methods = &rdataset_methods;
+	nsec->methods = &slab_methods;
 	nsec->rdclass = db->rdclass;
 	nsec->type = closest->type;
 	nsec->covers = 0;
@@ -8677,7 +8733,7 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
-	nsecsig->methods = &rdataset_methods;
+	nsecsig->methods = &slab_methods;
 	nsecsig->rdclass = db->rdclass;
 	nsecsig->type = dns_rdatatype_rrsig;
 	nsecsig->covers = closest->type;
@@ -9772,6 +9828,54 @@ rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+static void
+setownercase(rdatasetheader_t *header, const dns_name_t *name) {
+	unsigned int i;
+
+	/*
+	 * We do not need to worry about label lengths as they are all
+	 * less than or equal to 63.
+	 */
+	memset(header->upper, 0, sizeof(header->upper));
+	for (i = 0; i < name->length; i++)
+		if (name->ndata[i] >= 0x41 && name->ndata[i] <= 0x5a)
+			header->upper[i/8] |= 1 << (i%8);
+	header->attributes |= RDATASET_ATTR_CASESET;
+}
+
+static void
+rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
+	unsigned char *raw = rdataset->private3;        /* RDATASLAB */
+	rdatasetheader_t *header;
+
+	header = (struct rdatasetheader *)(raw - sizeof(*header));
+	setownercase(header, name);
+}
+
+static void
+rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
+	const unsigned char *raw = rdataset->private3;        /* RDATASLAB */
+	const rdatasetheader_t *header;
+	unsigned int i;
+
+	header = (const struct rdatasetheader *)(raw - sizeof(*header));
+
+	if (!CASESET(header))
+		return;
+
+	for (i = 0; i < name->length; i++) {
+		/* 
+		 * Set the case bit if it does not match the recorded bit.
+		 */
+		if (name->ndata[i] >= 0x61 && name->ndata[i] <= 0x7a &&
+		    (header->upper[i/8] & (1 << (i%8))) != 0)
+			name->ndata[i] &= ~0x20; /* clear the lower case bit */
+		else if (name->ndata[i] >= 0x41 && name->ndata[i] <= 0x5a &&
+			 (header->upper[i/8] & (1 << (i%8))) == 0)
+			name->ndata[i] |= 0x20; /* set the lower case bit */
+	}
 }
 
 /*%

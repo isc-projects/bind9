@@ -336,6 +336,7 @@ newrdatalist(dns_message_t *msg) {
 	rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
 	if (rdatalist != NULL) {
 		ISC_LIST_UNLINK(msg->freerdatalist, rdatalist, link);
+		dns_rdatalist_init(rdatalist);
 		return (rdatalist);
 	}
 
@@ -352,6 +353,8 @@ newrdatalist(dns_message_t *msg) {
 
 		rdatalist = msgblock_get(msgblock, dns_rdatalist_t);
 	}
+	if (rdatalist != NULL)
+		dns_rdatalist_init(rdatalist);
 
 	return (rdatalist);
 }
@@ -1127,10 +1130,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * the name.
 		 */
 		rdatalist->type = rdtype;
-		rdatalist->covers = 0;
 		rdatalist->rdclass = rdclass;
-		rdatalist->ttl = 0;
-		ISC_LIST_INIT(rdatalist->rdata);
 
 		dns_rdataset_init(rdataset);
 		result = dns_rdatalist_tordataset(rdatalist, rdataset);
@@ -1491,12 +1491,12 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			rdatalist->covers = covers;
 			rdatalist->rdclass = rdclass;
 			rdatalist->ttl = ttl;
-			ISC_LIST_INIT(rdatalist->rdata);
 
 			dns_rdataset_init(rdataset);
 			RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist,
 							       rdataset)
 				      == ISC_R_SUCCESS);
+			dns_rdataset_setownercase(rdataset, name);
 
 			if (rdtype != dns_rdatatype_opt &&
 			    rdtype != dns_rdatatype_tsig &&

@@ -29,11 +29,12 @@
 #include <isc/serial.h>
 #include <isc/util.h>
 
+#include <dns/compress.h>
+#include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/ncache.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
-#include <dns/compress.h>
 
 static const char *trustnames[] = {
 	"none",
@@ -207,6 +208,8 @@ static dns_rdatasetmethods_t question_methods = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	NULL,
 	NULL
 };
 
@@ -329,6 +332,8 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	isc_boolean_t shuffle = ISC_FALSE;
 	dns_rdata_t *shuffled = NULL, shuffled_fixed[MAX_SHUFFLE];
 	struct towire_sort *sorted = NULL, sorted_fixed[MAX_SHUFFLE];
+	dns_fixedname_t fixed;
+	dns_name_t *name;
 
 	UNUSED(state);
 
@@ -467,6 +472,11 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	i = 0;
 	added = 0;
 
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	dns_name_copy(owner_name, name, NULL);
+	dns_rdataset_getownercase(rdataset, name);
+
 	do {
 		/*
 		 * Copy out the name, type, class, ttl.
@@ -474,7 +484,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 		rrbuffer = *target;
 		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
-		result = dns_name_towire(owner_name, cctx, target);
+		result = dns_name_towire(name, cctx, target);
 		if (result != ISC_R_SUCCESS)
 			goto rollback;
 		headlen = sizeof(dns_rdataclass_t) + sizeof(dns_rdatatype_t);
@@ -782,6 +792,24 @@ dns_rdataset_clearprefetch(dns_rdataset_t *rdataset) {
 
 	if (rdataset->methods->clearprefetch != NULL)
 		(rdataset->methods->clearprefetch)(rdataset);
+}
+
+void
+dns_rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
+
+	if (rdataset->methods->setownercase != NULL)
+		(rdataset->methods->setownercase)(rdataset, name);
+}
+
+void
+dns_rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
+
+	if (rdataset->methods->getownercase != NULL)
+		(rdataset->methods->getownercase)(rdataset, name);
 }
 
 void

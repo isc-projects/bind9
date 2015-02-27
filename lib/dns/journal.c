@@ -139,9 +139,12 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	dns_dbnode_t *node;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_fixedname_t fixed;
 	dns_name_t *zonename;
 
-	zonename = dns_db_origin(db);
+	dns_fixedname_init(&fixed);
+	zonename = dns_fixedname_name(&fixed);
+	dns_name_copy(dns_db_origin(db), zonename, NULL);
 
 	node = NULL;
 	result = dns_db_findnode(db, zonename, ISC_FALSE, &node);
@@ -159,6 +162,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 		goto freenode;
 
 	dns_rdataset_current(&rdataset, &rdata);
+	dns_rdataset_getownercase(&rdataset, zonename);
 
 	result = dns_difftuple_create(mctx, op, zonename, rdataset.ttl,
 				      &rdata, tp);

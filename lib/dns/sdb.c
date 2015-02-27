@@ -1430,6 +1430,8 @@ static dns_rdatasetmethods_t methods = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	NULL,
 	NULL
 };
 

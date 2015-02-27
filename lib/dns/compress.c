@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.59 2007/06/19 23:47:16 tbox Exp $ */
-
 /*! \file */
 
 #define DNS_NAME_USEINLINE 1
@@ -71,6 +69,9 @@ dns_compress_invalidate(dns_compress_t *cctx) {
 		while (cctx->table[i] != NULL) {
 			node = cctx->table[i];
 			cctx->table[i] = cctx->table[i]->next;
+			if ((node->offset & 0x8000) != 0)
+				isc_mem_put(cctx->mctx, node->r.base,
+					    node->r.length);
 			if (node->count < DNS_COMPRESS_INITIALNODES)
 				continue;
 			isc_mem_put(cctx->mctx, node, sizeof(*node));
@@ -181,7 +182,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 	else
 		dns_name_getlabelsequence(name, 0, n, prefix);
 
-	*offset = node->offset;
+	*offset = (node->offset & 0x7fff);
 	return (ISC_TRUE);
 }
 
@@ -196,7 +197,7 @@ void
 dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		 const dns_name_t *prefix, isc_uint16_t offset)
 {
-	dns_name_t tname;
+	dns_name_t tname, xname;
 	unsigned int start;
 	unsigned int n;
 	unsigned int count;
@@ -205,22 +206,37 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	unsigned int length;
 	unsigned int tlength;
 	isc_uint16_t toffset;
+	unsigned char *tmp;
+	isc_region_t r;
 
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name));
 
+	if (offset > 0x4000)
+		return;
 	dns_name_init(&tname, NULL);
+	dns_name_init(&xname, NULL);
 
 	n = dns_name_countlabels(name);
 	count = dns_name_countlabels(prefix);
 	if (dns_name_isabsolute(prefix))
 		count--;
+	if (count == 0)
+		return;
 	start = 0;
-	length = name_length(name);
+	dns_name_toregion(name, &r);
+	length = r.length;
+	tmp = isc_mem_get(cctx->mctx, length);
+	if (tmp == NULL)
+		return;
+	memmove(tmp, r.base, r.length);
+	r.base = tmp;
+	dns_name_fromregion(&xname, &r);
+
 	while (count > 0) {
 		if (offset >= 0x4000)
 			break;
-		dns_name_getlabelsequence(name, start, n, &tname);
+		dns_name_getlabelsequence(&xname, start, n, &tname);
 		hash = dns_name_hash(&tname, ISC_FALSE) %
 		       DNS_COMPRESS_TABLESIZE;
 		tlength = name_length(&tname);
@@ -233,10 +249,16 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		else {
 			node = isc_mem_get(cctx->mctx,
 					   sizeof(dns_compressnode_t));
-			if (node == NULL)
+			if (node == NULL) {
+				if (start == 0)
+					isc_mem_put(cctx->mctx,
+						    r.base, r.length);
 				return;
+			}
 		}
 		node->count = cctx->count++;
+		if (start == 0)
+			toffset |= 0x8000;
 		node->offset = toffset;
 		dns_name_toregion(&tname, &node->r);
 		node->labels = (isc_uint8_t)dns_name_countlabels(&tname);
@@ -263,8 +285,11 @@ dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
 		 * items with the greatest offsets being at the end 
 		 * of the initialnodes[] array.
 		 */
-		while (node != NULL && node->offset >= offset) {
+		while (node != NULL && (node->offset & 0x7fff) >= offset) {
 			cctx->table[i] = node->next;
+			if ((node->offset & 0x8000) != 0)
+				isc_mem_put(cctx->mctx, node->r.base,
+					    node->r.length);
 			if (node->count >= DNS_COMPRESS_INITIALNODES)
 				isc_mem_put(cctx->mctx, node, sizeof(*node));
 			cctx->count--;

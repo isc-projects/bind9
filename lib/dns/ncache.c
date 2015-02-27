@@ -504,6 +504,8 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	NULL,
 	rdataset_settrust,
 	NULL,
+	NULL,
+	NULL,
 	NULL
 };
 

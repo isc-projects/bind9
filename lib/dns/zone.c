@@ -13763,6 +13763,8 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	isc_buffer_t b;
 	isc_result_t result;
 	unsigned char buf[DNS_SOA_BUFFERSIZE];
+	dns_fixedname_t fixed;
+	dns_name_t *name;
 
 	result = dns_rdataset_first(rdataset);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -13799,6 +13801,11 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rdataset_init(&temprdataset);
 	result = dns_rdatalist_tordataset(&temprdatalist, &temprdataset);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	dns_rbtnode_nodename(node, name);
+	dns_rdataset_getownercase(rdataset, name);
+	dns_rdataset_setownercase(&temprdataset, name);
 	return (dns_db_addrdataset(db, node, version, 0, &temprdataset,
 				   0, NULL));
 }

@@ -1368,7 +1368,7 @@ totext_filter_proc_key_init(void) {
 #endif
 
 isc_result_t
-dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
+dns_name_totext(const dns_name_t *name, isc_boolean_t omit_final_dot,
 		isc_buffer_t *target)
 {
 	unsigned int options = DNS_NAME_MASTERFILE;
@@ -1379,12 +1379,13 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 }
 
 isc_result_t
-dns_name_toprincipal(dns_name_t *name, isc_buffer_t *target) {
+dns_name_toprincipal(const dns_name_t *name, isc_buffer_t *target) {
 	return (dns_name_totext2(name, DNS_NAME_OMITFINALDOT, target));
 }
 
 isc_result_t
-dns_name_totext2(dns_name_t *name, unsigned int options, isc_buffer_t *target)
+dns_name_totext2(const dns_name_t *name, unsigned int options,
+	         isc_buffer_t *target)
 {
 	unsigned char *ndata;
 	char *tdata;
@@ -2383,7 +2384,7 @@ dns_name_settotextfilter(dns_name_totextfilter_t proc) {
 }
 
 void
-dns_name_format(dns_name_t *name, char *cp, unsigned int size) {
+dns_name_format(const dns_name_t *name, char *cp, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
@@ -2476,7 +2477,7 @@ dns_name_fromstring2(dns_name_t *target, const char *src,
 }
 
 isc_result_t
-dns_name_copy(dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) {
+dns_name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) {
 	unsigned char *ndata;
 
 	/*

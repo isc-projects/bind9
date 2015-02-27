@@ -1,3 +1,6 @@
+4079.   [func]          Preserve the case of the ownername of records to
+			the RRset level. [RT #37442]
+
 4078.	[bug]		Hand the case where CMSG_SPACE(sizeof(int)) !=
 			CMSG_SPACE(sizeof(int)). [RT #38621]
 

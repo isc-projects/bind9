@@ -587,7 +587,6 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, isc_boolean_t isdelete,
 	rdatalist->rdclass = rdataclass;
 	rdatalist->covers = rdatatype;
 	rdatalist->ttl = (dns_ttl_t)ttl;
-	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	ISC_LIST_APPEND(usedrdatalists, rdatalist, link);
 
@@ -598,6 +597,7 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, isc_boolean_t isdelete,
 	}
 	dns_rdataset_init(rdataset);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
+	dns_rdataset_setownercase(rdataset, name);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 }
@@ -700,6 +700,7 @@ make_prereq(isc_mem_t *mctx, char *cmdline, isc_boolean_t ispositive,
 	}
 	dns_rdataset_init(rdataset);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
+	dns_rdataset_setownercase(rdataset, name);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 }

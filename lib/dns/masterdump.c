@@ -449,6 +449,8 @@ rdataset_totext(dns_rdataset_t *rdataset,
 	isc_boolean_t current_ttl_valid;
 	dns_rdatatype_t type;
 	unsigned int type_start;
+	dns_fixedname_t fixed;
+	dns_name_t *name = NULL;
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
@@ -457,6 +459,13 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 	current_ttl = ctx->current_ttl;
 	current_ttl_valid = ctx->current_ttl_valid;
+
+	if (owner_name != NULL) {
+		dns_fixedname_init(&fixed);
+		name = dns_fixedname_name(&fixed);
+		dns_name_copy(owner_name, name, NULL);
+		dns_rdataset_getownercase(rdataset, name);
+	}
 
 	while (result == ISC_R_SUCCESS) {
 		column = 0;
@@ -470,14 +479,12 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		/*
 		 * Owner name.
 		 */
-		if (owner_name != NULL &&
+		if (name != NULL &&
 		    ! ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0 &&
 		       !first))
 		{
 			unsigned int name_start = target->used;
-			RETERR(dns_name_totext(owner_name,
-					       omit_final_dot,
-					       target));
+			RETERR(dns_name_totext(name, omit_final_dot, target));
 			column += target->used - name_start;
 		}
 

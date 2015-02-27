@@ -2380,6 +2380,7 @@ query_dns64(ns_client_t *client, dns_name_t **namep, dns_rdataset_t *rdataset,
 	result = dns_rdatalist_tordataset(dns64_rdatalist, dns64_rdataset);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+	dns_rdataset_setownercase(dns64_rdataset, mname);
 	client->query.attributes |= NS_QUERYATTR_NOADDITIONAL;
 	dns64_rdataset->trust = rdataset->trust;
 	query_addrdataset(client, mname, dns64_rdataset);
@@ -2514,6 +2515,7 @@ query_filter64(ns_client_t *client, dns_name_t **namep,
 	result = dns_rdatalist_tordataset(myrdatalist, myrdataset);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+	dns_rdataset_setownercase(myrdataset, name);
 	client->query.attributes |= NS_QUERYATTR_NOADDITIONAL;
 	if (mname == name) {
 		if (dbuf != NULL)
@@ -2920,11 +2922,11 @@ query_add_cname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	rdata->rdclass = client->message->rdclass;
 	rdata->type = dns_rdatatype_cname;
 
-	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset)
 		      == ISC_R_SUCCESS);
 	rdataset->trust = trust;
+	dns_rdataset_setownercase(rdataset, aname);
 
 	query_addrrset(client, &aname, &rdataset, NULL, NULL,
 		       DNS_SECTION_ANSWER);

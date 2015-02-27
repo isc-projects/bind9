@@ -175,7 +175,7 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep)
 	     ot = next_ot)
 	{
 		next_ot = ISC_LIST_NEXT(ot, link);
-		if (dns_name_equal(&ot->name, &(*tuplep)->name) &&
+		if (dns_name_caseequal(&ot->name, &(*tuplep)->name) &&
 		    dns_rdata_compare(&ot->rdata, &(*tuplep)->rdata) == 0 &&
 		    ot->ttl == (*tuplep)->ttl)
 		{
@@ -233,6 +233,18 @@ setresign(dns_rdataset_t *modified) {
 	return (when);
 }
 
+static void
+getownercase(dns_rdataset_t *rdataset, dns_name_t *name) {
+	if (dns_rdataset_isassociated(rdataset))
+		dns_rdataset_getownercase(rdataset, name);
+}
+
+static void
+setownercase(dns_rdataset_t *rdataset, dns_name_t *name) {
+	if (dns_rdataset_isassociated(rdataset))
+		dns_rdataset_setownercase(rdataset, name);
+}
+
 static isc_result_t
 diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 	   isc_boolean_t warn)
@@ -268,7 +280,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			dns_rdatalist_t rdl;
 			dns_rdataset_t rds;
 			dns_rdataset_t ardataset;
-			dns_rdataset_t *modified = NULL;
+			unsigned int options;
 
 			op = t->op;
 			type = t->rdata.type;
@@ -311,13 +323,20 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			       t->rdata.type == type &&
 			       rdata_covers(&t->rdata) == covers)
 			{
-				dns_name_format(name, namebuf, sizeof(namebuf));
-				dns_rdatatype_format(t->rdata.type, typebuf,
-						     sizeof(typebuf));
-				dns_rdataclass_format(t->rdata.rdclass,
-						      classbuf,
-						      sizeof(classbuf));
-				if (t->ttl != rdl.ttl && warn)
+				/*
+				 * Remember the add name for
+				 * dns_rdataset_setownercase.
+				 */
+				name = &t->name;
+				if (t->ttl != rdl.ttl && warn) {
+					dns_name_format(name, namebuf,
+							sizeof(namebuf));
+					dns_rdatatype_format(t->rdata.type,
+							     typebuf,
+							     sizeof(typebuf));
+					dns_rdataclass_format(t->rdata.rdclass,
+							      classbuf,
+							      sizeof(classbuf));
 					isc_log_write(DIFF_COMMON_LOGARGS,
 						ISC_LOG_WARNING,
 						"'%s/%s/%s': TTL differs in "
@@ -326,6 +345,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 						namebuf, typebuf, classbuf,
 						(unsigned long) t->ttl,
 						(unsigned long) rdl.ttl);
+				}
 				ISC_LIST_APPEND(rdl.rdata, &t->rdata, link);
 				t = ISC_LIST_NEXT(t, link);
 			}
@@ -334,17 +354,8 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			 * Convert the rdatalist into a rdataset.
 			 */
 			dns_rdataset_init(&rds);
+			dns_rdataset_init(&ardataset);
 			CHECK(dns_rdatalist_tordataset(&rdl, &rds));
-			if (rds.type == dns_rdatatype_rrsig)
-				switch (op) {
-				case DNS_DIFFOP_ADDRESIGN:
-				case DNS_DIFFOP_DELRESIGN:
-					modified = &ardataset;
-					dns_rdataset_init(modified);
-					break;
-				default:
-					break;
-				}
 			rds.trust = dns_trust_ultimate;
 
 			/*
@@ -353,31 +364,38 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			switch (op) {
 			case DNS_DIFFOP_ADD:
 			case DNS_DIFFOP_ADDRESIGN:
+				options = DNS_DBADD_MERGE | DNS_DBADD_EXACT |
+					  DNS_DBADD_EXACTTTL;
 				result = dns_db_addrdataset(db, node, ver,
-							    0, &rds,
-							    DNS_DBADD_MERGE|
-							    DNS_DBADD_EXACT|
-							    DNS_DBADD_EXACTTTL,
-							    modified);
+							    0, &rds, options,
+							    &ardataset);
 				break;
 			case DNS_DIFFOP_DEL:
 			case DNS_DIFFOP_DELRESIGN:
+				options = DNS_DBSUB_EXACT | DNS_DBSUB_WANTOLD;
 				result = dns_db_subtractrdataset(db, node, ver,
-							       &rds,
-							       DNS_DBSUB_EXACT,
-							       modified);
+							         &rds, options,
+							         &ardataset);
 				break;
 			default:
 				INSIST(0);
 			}
 
 			if (result == ISC_R_SUCCESS) {
-				if (modified != NULL) {
+				if (rds.type == dns_rdatatype_rrsig &&
+				    (op == DNS_DIFFOP_DELRESIGN ||
+				     op == DNS_DIFFOP_ADDRESIGN)) {
 					isc_stdtime_t resign;
-					resign = setresign(modified);
-					dns_db_setsigningtime(db, modified,
+					resign = setresign(&ardataset);
+					dns_db_setsigningtime(db, &ardataset,
 							      resign);
 				}
+				if (op == DNS_DIFFOP_ADD ||
+				    op == DNS_DIFFOP_ADDRESIGN)
+					setownercase(&ardataset, name);
+				if (op == DNS_DIFFOP_DEL ||
+				    op == DNS_DIFFOP_DELRESIGN)
+					getownercase(&ardataset, name);
 			} else if (result == DNS_R_UNCHANGED) {
 				/*
 				 * This will not happen when executing a
@@ -400,20 +418,29 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 						      "update with no effect",
 						      namebuf, classbuf);
 				}
+				if (op == DNS_DIFFOP_ADD ||
+				    op == DNS_DIFFOP_ADDRESIGN)
+					setownercase(&ardataset, name);
+				if (op == DNS_DIFFOP_DEL ||
+				    op == DNS_DIFFOP_DELRESIGN)
+					getownercase(&ardataset, name);
 			} else if (result == DNS_R_NXRRSET) {
 				/*
 				 * OK.
 				 */
+				if (op == DNS_DIFFOP_DEL ||
+				    op == DNS_DIFFOP_DELRESIGN)
+					getownercase(&ardataset, name);
+				if (dns_rdataset_isassociated(&ardataset))
+					dns_rdataset_disassociate(&ardataset);
 			} else {
-				if (modified != NULL &&
-				    dns_rdataset_isassociated(modified))
-					dns_rdataset_disassociate(modified);
+				if (dns_rdataset_isassociated(&ardataset))
+					dns_rdataset_disassociate(&ardataset);
 				CHECK(result);
 			}
 			dns_db_detachnode(db, &node);
-			if (modified != NULL &&
-			    dns_rdataset_isassociated(modified))
-				dns_rdataset_disassociate(modified);
+			if (dns_rdataset_isassociated(&ardataset))
+				dns_rdataset_disassociate(&ardataset);
 		}
 	}
 	return (ISC_R_SUCCESS);
