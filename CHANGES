@@ -1,3 +1,6 @@
+4077.	[test]		Add static-stub regression test for DS NXDOMAIN
+			return making the static stub disappear. [RT #38564]
+
 4076.	[bug]		Named could crash on shutdown with outstanding
 			reload / reconfig events. [RT #38622]
 
