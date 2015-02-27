@@ -47,14 +47,14 @@ n=`expr $n + 1`
 ret=0
 echo "I:Checking that default version works for rndc ($n)"
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 status > rndc.status.ns1.$n 2>&1
-grep "^version: $VERSION " rndc.status.ns1.$n > /dev/null || ret=1
+grep "^version: BIND $VERSION " rndc.status.ns1.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo I:failed; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
 ret=0
 echo "I:Checking that custom version works for rndc ($n)"
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 status > rndc.status.ns3.$n 2>&1
-grep "^version: $VERSION (this is a test of version) " rndc.status.ns3.$n > /dev/null || ret=1
+grep "^version: BIND $VERSION <id:.......> (this is a test of version)" rndc.status.ns3.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo I:failed; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
