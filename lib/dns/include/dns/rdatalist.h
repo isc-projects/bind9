@@ -15,6 +15,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id$ */
+
 #ifndef DNS_RDATALIST_H
 #define DNS_RDATALIST_H 1
 

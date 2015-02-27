@@ -9862,7 +9862,7 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 		return;
 
 	for (i = 0; i < name->length; i++) {
-		/* 
+		/*
 		 * Set the case bit if it does not match the recorded bit.
 		 */
 		if (name->ndata[i] >= 0x61 && name->ndata[i] <= 0x7a &&

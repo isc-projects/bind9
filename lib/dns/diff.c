@@ -374,8 +374,8 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			case DNS_DIFFOP_DELRESIGN:
 				options = DNS_DBSUB_EXACT | DNS_DBSUB_WANTOLD;
 				result = dns_db_subtractrdataset(db, node, ver,
-							         &rds, options,
-							         &ardataset);
+								 &rds, options,
+								 &ardataset);
 				break;
 			default:
 				INSIST(0);

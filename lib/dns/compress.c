@@ -15,6 +15,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id$ */
+
 /*! \file */
 
 #define DNS_NAME_USEINLINE 1
