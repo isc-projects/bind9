@@ -530,24 +530,30 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	msg.msg_iov = &iovec;
 	msg.msg_iovlen = 1;
 	msg.msg_control = (void*)&control;
-	msg.msg_controllen = cmsg_space(sizeof(int));
+	msg.msg_controllen = 0;
 	msg.msg_flags = 0;
 
 	cmsgp = msg.msg_control;
-	cmsgp->cmsg_level = level;
-	cmsgp->cmsg_type = type;
 
-	switch (cmsgp->cmsg_type) {
+	switch (type) {
 #ifdef IP_TOS
 	case IP_TOS:
+		memset(cmsgp, 0, cmsg_space(sizeof(char)));
+		cmsgp->cmsg_level = level;
+		cmsgp->cmsg_type = type;
 		cmsgp->cmsg_len = cmsg_len(sizeof(char));
 		*(unsigned char*)CMSG_DATA(cmsgp) = dscp;
+		msg.msg_controllen += cmsg_space(sizeof(char));
 		break;
 #endif
 #ifdef IPV6_TCLASS
 	case IPV6_TCLASS:
+		memset(cmsgp, 0, cmsg_space(sizeof(dscp)));
+		cmsgp->cmsg_level = level;
+		cmsgp->cmsg_type = type;
 		cmsgp->cmsg_len = cmsg_len(sizeof(dscp));
 		memmove(CMSG_DATA(cmsgp), &dscp, sizeof(dscp));
+		msg.msg_controllen += cmsg_space(sizeof(dscp));
 		break;
 #endif
 	default:
