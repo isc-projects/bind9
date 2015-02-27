@@ -1,4 +1,4 @@
-4078.	[bug]		Hand the case where CMSG_SPACE(sizeof(int)) !=
+4078.	[bug]		Handle the case where CMSG_SPACE(sizeof(int)) !=
 			CMSG_SPACE(sizeof(char)). [RT #38621]
 
 4077.	[test]		Add static-stub regression test for DS NXDOMAIN
