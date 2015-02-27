@@ -203,5 +203,15 @@ grep "2nd example org data" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:checking static-stub of a undelegated tld resolves after DS query ($n)"
+ret=0
+$DIG undelegated. @10.53.0.2 ds -p 5300 > dig.out.ns2.ds.test$n
+$DIG undelegated. @10.53.0.2 soa -p 5300 > dig.out.ns2.soa.test$n
+grep "status: NXDOMAIN" dig.out.ns2.ds.test$n > /dev/null || ret=1
+grep "status: NOERROR" dig.out.ns2.soa.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

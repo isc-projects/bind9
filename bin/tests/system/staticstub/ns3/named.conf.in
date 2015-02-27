@@ -57,3 +57,8 @@ zone "example.org" {
 	type master;
 	file "example.org.db";
 };
+
+zone "undelegated" {
+	type master;
+	file "undelegated.db.signed";
+};
