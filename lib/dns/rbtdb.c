@@ -6810,12 +6810,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	result = ISC_R_SUCCESS;
 	if (newnsec) {
-		dns_fixedname_t fname;
-		dns_name_t *name;
 		dns_rbtnode_t *nsecnode;
 
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
 		dns_rbt_fullnamefromnode(rbtnode, name);
 		nsecnode = NULL;
 		result = dns_rbt_addnode(rbtdb->nsec, name, &nsecnode);
