@@ -2,7 +2,7 @@
 			the RRset level. [RT #37442]
 
 4078.	[bug]		Hand the case where CMSG_SPACE(sizeof(int)) !=
-			CMSG_SPACE(sizeof(int)). [RT #38621]
+			CMSG_SPACE(sizeof(char)). [RT #38621]
 
 4077.	[test]		Add static-stub regression test for DS NXDOMAIN
 			return making the static stub disappear. [RT #38564]
