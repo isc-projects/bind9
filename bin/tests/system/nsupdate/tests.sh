@@ -532,5 +532,16 @@ if [ $ret -ne 0 ]; then
     status=1
 fi
 
+n=`expr $n + 1`
+ret=0
+echo "I:add a very large record. ($n)"
+$NSUPDATE verylarge || ret=1
+$DIG +noedns +tcp @10.53.0.1 -p 5300 txt txt.update.nil > dig.out.ns1.test$n
+grep "ANSWER: 1," dig.out.ns1.test$n > /dev/null || ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
+fi
+
 echo "I:exit status: $status"
 exit $status

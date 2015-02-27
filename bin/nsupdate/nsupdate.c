@@ -106,7 +106,7 @@ extern int h_errno;
 #endif
 #endif
 
-#define MAXCMD (4 * 1024)
+#define MAXCMD (128 * 1024)
 #define MAXWIRE (64 * 1024)
 #define PACKETSIZE ((64 * 1024) - 1)
 #define INITTEXT (2 * 1024)

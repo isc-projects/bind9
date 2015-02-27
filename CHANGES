@@ -1,3 +1,6 @@
+4075.	[bug]		Increase nsupdate's input buffer to accomodate
+			very large RRs. [RT #38689]
+
 4074.	[cleanup]	Cleaned up more warnings from gcc -Wshadow. [RT #38708]
 
 4073.	[cleanup]	Add libjson-c version number reporting to

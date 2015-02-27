@@ -2782,7 +2782,7 @@ void
 ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	       isc_logmodule_t *module, int level, const char *fmt, va_list ap)
 {
-	char msgbuf[2048];
+	char msgbuf[4096];
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	char signerbuf[DNS_NAME_FORMATSIZE], qnamebuf[DNS_NAME_FORMATSIZE];
 	const char *viewname = "";
