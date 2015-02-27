@@ -2533,7 +2533,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 			      nbuckets[11]);
 		adb->nentries = nbuckets[11];
 		adb->nnames = nbuckets[11];
-
 	}
 
 	isc_mem_attach(mem, &adb->mctx);
@@ -2733,6 +2732,8 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
  fail0c:
 	DESTROYLOCK(&adb->lock);
  fail0b:
+	if (adb->excl != NULL)
+		isc_task_detach(&adb->excl);
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 
 	return (result);

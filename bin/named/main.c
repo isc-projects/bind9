@@ -796,10 +796,6 @@ static void
 destroy_managers(void) {
 	ns_lwresd_shutdown();
 
-	isc_entropy_detach(&ns_g_entropy);
-	if (ns_g_fallbackentropy != NULL)
-		isc_entropy_detach(&ns_g_fallbackentropy);
-
 	/*
 	 * isc_taskmgr_destroy() will block until all tasks have exited,
 	 */
@@ -1127,6 +1123,10 @@ cleanup(void) {
 	destroy_managers();
 
 	ns_server_destroy(&ns_g_server);
+
+	isc_entropy_detach(&ns_g_entropy);
+	if (ns_g_fallbackentropy != NULL)
+		isc_entropy_detach(&ns_g_fallbackentropy);
 
 	ns_builtin_deinit();
 

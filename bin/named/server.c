@@ -6365,6 +6365,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (view != NULL)
 		dns_view_detach(&view);
 
+	ISC_LIST_APPENDLIST(viewlist, builtin_viewlist, link);
+
 	/*
 	 * This cleans up either the old production view list
 	 * or our temporary list depending on whether they
