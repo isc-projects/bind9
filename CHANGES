@@ -1,3 +1,6 @@
+4076.	[bug]		Named could crash on shutdown with outstanding
+			reload / reconfig events. [RT #38622]
+
 4074.	[cleanup]	Cleaned up more warnings from gcc -Wshadow. [RT #38708]
 
 4073.	[cleanup]	Add libjson-c version number reporting to
