@@ -776,12 +776,15 @@ shared library configuration (e.g., LD_LIBRARY_PATH).)],
 
 		AC_MSG_CHECKING(whether linking with OpenSSL requires -ldl)
 		AC_TRY_LINK([
-#include <openssl/err.h>],
+#include <openssl/err.h>
+#include <openssl/dso.h>
+],
 [ DSO_METHOD_dlfcn(); ],
 		[AC_MSG_RESULT(no)],
 		[LIBS="$LIBS -ldl"
 		AC_TRY_LINK([
 #include <openssl/err.h>
+#include <openssl/dso.h>
 ],[ DSO_METHOD_dlfcn(); ],
 		[AC_MSG_RESULT(yes)
 		DNS_OPENSSL_LIBS="$DNS_OPENSSL_LIBS -ldl"
