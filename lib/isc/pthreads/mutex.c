@@ -263,9 +263,11 @@ pthread_mutexattr_t isc__mutex_attrs = {
 
 #if !(ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)) && !ISC_MUTEX_PROFILE
 
+#ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 static isc_boolean_t attr_initialized = ISC_FALSE;
 static pthread_mutexattr_t attr;
 static isc_once_t once_attr = ISC_ONCE_INIT;
+#endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 static void
