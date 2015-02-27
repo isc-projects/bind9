@@ -157,7 +157,7 @@ static struct {
 #ifndef BIND9
 	void *run, *shutdown, *start, *onrun,
 	     *reload, *finish, *block, *unblock,
-	     *isrunning
+	     *isrunning;
 #endif
 } appmethods = {
 	{
