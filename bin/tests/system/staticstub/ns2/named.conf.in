@@ -66,3 +66,8 @@ zone "example.info" {
 	type static-stub;
 	server-addresses { ::1; }; #ns4
 };
+
+zone "undelegated" {
+	type static-stub;
+	server-addresses { 10.53.0.3; };
+};

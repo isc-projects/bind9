@@ -1,3 +1,28 @@
+4077.	[test]		Add static-stub regression test for DS NXDOMAIN
+			return making the static stub disappear. [RT #38564]
+
+4076.	[bug]		Named could crash on shutdown with outstanding
+			reload / reconfig events. [RT #38622]
+
+4075.	[bug]		Increase nsupdate's input buffer to accomodate
+			very large RRs. [RT #38689]
+
+4074.	[cleanup]	Cleaned up more warnings from gcc -Wshadow. [RT #38708]
+
+4073.	[cleanup]	Add libjson-c version number reporting to
+			"named -V"; normalize version number formatting.
+			[RT #38056]
+
+4072.	[func]		Add a --enable-querytrace configure switch for
+			very verbose query tracelogging. [RT #37520]
+
+4070.	[bug]		Fix a segfault in nslookup in a query such as
+			"nslookup isc.org AMS.SNS-PB.ISC.ORG -all".
+			[RT #38548]
+
+4069.	[doc]		Reorganize options in the nsupdate man page.
+			[RT #38515]
+
 4067.	[cleanup]	Reduce noise from RRL when query logging is
 			disabled. [RT #38648]
 

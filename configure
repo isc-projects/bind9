@@ -1006,6 +1006,7 @@ with_libiconv
 with_iconv
 with_idnlib
 with_atf
+enable_querytrace
 with_dlopen
 with_dlz_postgres
 with_dlz_mysql
@@ -1679,6 +1680,7 @@ Optional Features:
   --disable-rpz-nsdname	  disable rpz-nsdname rules [default=enabled]
   --enable-filter-aaaa    enable filtering of AAAA records over IPv4
 			  [default=no]
+  --enable-querytrace     enable very verbose query trace logging [default=no]
   --enable-full-report	  report values of all configure options
 
 Optional Packages:
@@ -13720,6 +13722,8 @@ $as_echo_n "checking whether linking with OpenSSL requires -ldl... " >&6; }
 /* end confdefs.h.  */
 
 #include <openssl/err.h>
+#include <openssl/dso.h>
+
 int
 main ()
 {
@@ -13737,6 +13741,7 @@ else
 /* end confdefs.h.  */
 
 #include <openssl/err.h>
+#include <openssl/dso.h>
 
 int
 main ()
@@ -19454,6 +19459,34 @@ done
 
 
 #
+# was --enable-querytrace specified?
+#
+# Check whether --enable-querytrace was given.
+if test "${enable_querytrace+set}" = set; then :
+  enableval=$enable_querytrace; want_querytrace="$enableval"
+else
+  want_querytrace="no"
+fi
+
+
+case "$want_querytrace" in
+yes)
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define WANT_QUERYTRACE 1" >>confdefs.h
+
+	;;
+no)
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	;;
+*)
+	as_fn_error $? "\"--enable-querytrace requires yes or no\"" "$LINENO" 5
+	;;
+esac
+
+#
 # Substitutions
 #
 
@@ -23139,6 +23172,8 @@ test "$want_symtable" = "minimal" && \
     echo "    Use symbol table for backtrace, named only (--enable-symtable)"
 test "$want_symtable" = "yes" -o "$want_symtable" = "all" && \
     echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
+test "$want_querytrace" = "yes" && \
+    echo "    Very verbose query trace logging (--enable-querytrace)"
 test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
 
 # these lines are only printed if run with --enable-full-report
@@ -23186,6 +23221,8 @@ test "$enable_fixed" = "yes" || \
     echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 test "$want_backtrace" = "yes" || \
     echo "    Print backtrace on crash (--enable-backtrace)"
+test "$want_querytrace" = "yes" || \
+    echo "    Very verbose query trace logging (--enable-querytrace)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 test "X$USE_OPENSSL" = "X" && \
 	echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"

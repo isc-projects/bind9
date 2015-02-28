@@ -95,16 +95,16 @@ totext_soa(ARGS_TOTEXT) {
 	isc_boolean_t sub;
 	int i;
 	isc_boolean_t multiline;
-	isc_boolean_t comment;
+	isc_boolean_t comm;
 
 	REQUIRE(rdata->type == 6);
 	REQUIRE(rdata->length != 0);
 
 	multiline = ISC_TF((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0);
 	if (multiline)
-		comment = ISC_TF((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0);
+		comm = ISC_TF((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0);
 	else
-		comment = ISC_FALSE;
+		comm = ISC_FALSE;
 
 
 	dns_name_init(&mname, NULL);
@@ -136,9 +136,9 @@ totext_soa(ARGS_TOTEXT) {
 		unsigned long num;
 		num = uint32_fromregion(&dregion);
 		isc_region_consume(&dregion, 4);
-		sprintf(buf, comment ? "%-10lu ; " : "%lu", num);
+		sprintf(buf, comm ? "%-10lu ; " : "%lu", num);
 		RETERR(str_totext(buf, target));
-		if (comment) {
+		if (comm) {
 			RETERR(str_totext(soa_fieldnames[i], target));
 			/* Print times in week/day/hour/minute/second form */
 			if (i >= 1) {

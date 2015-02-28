@@ -79,7 +79,7 @@
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005,2007,2009,2012,2013
 ./bin/dig/dig.1					MAN	DOCBOOK
 ./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014
+./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014,2015
 ./bin/dig/dig.html				HTML	DOCBOOK
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/dig/host.1				MAN	DOCBOOK
@@ -232,7 +232,7 @@
 ./bin/named/include/named/lwdclient.h		C	2000,2001,2004,2005,2007,2009
 ./bin/named/include/named/lwresd.h		C	2000,2001,2004,2005,2006,2007
 ./bin/named/include/named/lwsearch.h		C	2000,2001,2004,2005,2007
-./bin/named/include/named/main.h		C	1999,2000,2001,2002,2004,2005,2007,2009,2013
+./bin/named/include/named/main.h		C	1999,2000,2001,2002,2004,2005,2007,2009,2013,2015
 ./bin/named/include/named/notify.h		C	1999,2000,2001,2004,2005,2007,2009
 ./bin/named/include/named/ns_smf_globals.h	C	2005,2007
 ./bin/named/include/named/query.h		C	1999,2000,2001,2002,2004,2005,2007,2010,2011,2013,2014
@@ -266,7 +266,7 @@
 ./bin/named/named.conf.5			MAN	DOCBOOK
 ./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007,2008,2009,2010,2011,2013,2014
 ./bin/named/named.conf.html			HTML	DOCBOOK
-./bin/named/named.docbook			SGML	2000,2001,2003,2004,2005,2006,2007,2008,2009,2011,2013,2014
+./bin/named/named.docbook			SGML	2000,2001,2003,2004,2005,2006,2007,2008,2009,2011,2013,2014,2015
 ./bin/named/named.html				HTML	DOCBOOK
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
@@ -289,7 +289,7 @@
 ./bin/named/win32/named.vcxproj.filters.in	X	2013
 ./bin/named/win32/named.vcxproj.in		X	2013,2015
 ./bin/named/win32/named.vcxproj.user		X	2013
-./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007,2009,2011,2013,2014
+./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007,2009,2011,2013,2014,2015
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2012,2013,2014,2015
 ./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
 ./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
@@ -297,7 +297,7 @@
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008,2009,2012,2013,2014
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
 ./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
-./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014
+./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014,2015
 ./bin/nsupdate/nsupdate.html			HTML	DOCBOOK
 ./bin/nsupdate/win32/nsupdate.dsp.in		X	2001,2004,2005,2009,2013
 ./bin/nsupdate/win32/nsupdate.dsw		X	2001
@@ -357,7 +357,7 @@
 ./bin/python/dnssec-coverage.8			MAN	2013,2014
 ./bin/python/dnssec-coverage.docbook		SGML	2013,2014
 ./bin/python/dnssec-coverage.html		HTML	2013,2014
-./bin/python/dnssec-coverage.py.in		PYTHON	2013,2014
+./bin/python/dnssec-coverage.py.in		PYTHON	2013,2014,2015
 ./bin/rndc/.gitignore				X	2012,2014
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007,2009,2012
 ./bin/rndc/include/rndc/os.h			C	2001,2004,2005,2007,2009
@@ -684,7 +684,7 @@
 ./bin/tests/sym_test.c				C	1998,1999,2000,2001,2004,2005,2007
 ./bin/tests/system/.gitignore			X	2012,2014
 ./bin/tests/system/Makefile.in			MAKE	2000,2001,2004,2007,2008,2010,2011,2012,2013,2014
-./bin/tests/system/README			TXT.BRIEF	2000,2001,2004,2010,2011,2013
+./bin/tests/system/README			TXT.BRIEF	2000,2001,2004,2010,2011,2013,2015
 ./bin/tests/system/acl/clean.sh			SH	2008,2012,2014
 ./bin/tests/system/acl/ns2/named1.conf		CONF-C	2008
 ./bin/tests/system/acl/ns2/named2.conf		CONF-C	2008
@@ -1625,7 +1625,7 @@
 ./bin/tests/system/spf/ns1/named.conf		CONF-C	2013
 ./bin/tests/system/spf/ns1/spf.db		ZONE	2013
 ./bin/tests/system/spf/tests.sh			SH	2013,2014
-./bin/tests/system/start.pl			SH	2001,2004,2005,2006,2007,2008,2010,2011,2012,2013,2014
+./bin/tests/system/start.pl			SH	2001,2004,2005,2006,2007,2008,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/start.sh			SH	2000,2001,2004,2007,2012
 ./bin/tests/system/staticstub/clean.sh		SH	2010,2012,2014
 ./bin/tests/system/staticstub/conf/bad01.conf	CONF-C	2010
@@ -2346,6 +2346,7 @@
 ./contrib/queryperf/missing/getnameinfo.c	X	2004
 ./contrib/queryperf/queryperf.c			X	2001,2002,2003,2004,2005,2007,2012,2013,2014
 ./contrib/queryperf/utils/gen-data-queryperf.py	X	2003,2008
+./contrib/scripts/dnssec-keyset.sh		X	2015
 ./contrib/sdb/bdb/README			X	2002
 ./contrib/sdb/bdb/bdb.c				X	2002,2011,2014
 ./contrib/sdb/bdb/bdb.h				X	2002
@@ -2747,7 +2748,7 @@
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009
-./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2015
 ./lib/dns/include/dns/zonekey.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2011
 ./lib/dns/include/dst/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012
@@ -2933,7 +2934,7 @@
 ./lib/dns/rdatasetiter.c			C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdataslab.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/request.c				C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2011,2012,2013
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2010,2012,2013,2014,2015
 ./lib/dns/rpz.c					C	2011,2012,2013,2014,2015
@@ -3119,7 +3120,7 @@
 ./lib/isc/ia64/include/isc/atomic.h		C	2006,2007,2009,2012
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012
 ./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014
-./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2013
+./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2013,2015
 ./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/backtrace.h		C	2009
 ./lib/isc/include/isc/base32.h			C	2008,2014
@@ -3155,11 +3156,11 @@
 ./lib/isc/include/isc/log.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/magic.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/md5.h			C	2000,2001,2004,2005,2006,2007,2009,2010
-./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2011,2012
+./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2011,2012,2015
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004,2005,2007
 ./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004,2005,2006,2007
-./lib/isc/include/isc/namespace.h		C	2009,2010,2011,2012,2013
+./lib/isc/include/isc/namespace.h		C	2009,2010,2011,2012,2013,2015
 ./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/netscope.h		C	2002,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/ondestroy.h		C	2000,2001,2004,2005,2006,2007
@@ -3344,7 +3345,7 @@
 ./lib/isc/version.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/win32/DLLMain.c			C	2001,2004,2007
 ./lib/isc/win32/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009,2012
-./lib/isc/win32/app.c				C	1999,2000,2001,2004,2007,2009,2014
+./lib/isc/win32/app.c				C	1999,2000,2001,2004,2007,2009,2014,2015
 ./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004,2006,2007
 ./lib/isc/win32/dir.c				C	1999,2000,2001,2004,2007,2008,2009,2011,2012,2013
 ./lib/isc/win32/entropy.c			C	2000,2001,2002,2004,2007,2009,2013

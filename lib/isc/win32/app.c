@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2009, 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2009, 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -194,6 +194,11 @@ isc__app_run(void) {
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_boolean_t
+isc__app_isrunning(void) {
+	return (running);
 }
 
 isc_result_t

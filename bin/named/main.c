@@ -600,16 +600,16 @@ parse_command_line(int argc, char *argv[]) {
 			ns_g_username = isc_commandline_argument;
 			break;
 		case 'v':
-			printf("%s %s", ns_g_product, ns_g_version);
-			if (*ns_g_description != 0)
-				printf(" %s", ns_g_description);
-			printf("\n");
+			printf("%s %s%s%s <id:%s>\n",
+			       ns_g_product, ns_g_version,
+			       (*ns_g_description != '\0') ? " " : "",
+			       ns_g_description, ns_g_srcid);
 			exit(0);
 		case 'V':
-			printf("%s %s", ns_g_product, ns_g_version);
-			if (*ns_g_description != 0)
-				printf(" %s", ns_g_description);
-			printf(" <id:%s> built by %s with %s\n", ns_g_srcid,
+			printf("%s %s%s%s <id:%s>\n", ns_g_product, ns_g_version,
+			       (*ns_g_description != '\0') ? " " : "",
+			       ns_g_description, ns_g_srcid);
+			printf("built by %s with %s\n",
 			       ns_g_builder, ns_g_configargs);
 #ifdef __clang__
 			printf("compiled by CLANG %s\n", __VERSION__);
@@ -759,10 +759,6 @@ static void
 destroy_managers(void) {
 	ns_lwresd_shutdown();
 
-	isc_entropy_detach(&ns_g_entropy);
-	if (ns_g_fallbackentropy != NULL)
-		isc_entropy_detach(&ns_g_fallbackentropy);
-
 	/*
 	 * isc_taskmgr_destroy() will block until all tasks have exited,
 	 */
@@ -907,8 +903,10 @@ setup(void) {
 				   isc_result_totext(result));
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "starting %s %s%s", ns_g_product,
-		      ns_g_version, saved_command_line);
+		      ISC_LOG_NOTICE, "starting %s %s%s%s <id:%s>%s",
+		      ns_g_product, ns_g_version,
+		      *ns_g_description ? " " : "", ns_g_description,
+		      ns_g_srcid, saved_command_line);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "built with %s", ns_g_configargs);
@@ -1026,6 +1024,10 @@ cleanup(void) {
 	destroy_managers();
 
 	ns_server_destroy(&ns_g_server);
+
+	isc_entropy_detach(&ns_g_entropy);
+	if (ns_g_fallbackentropy != NULL)
+		isc_entropy_detach(&ns_g_fallbackentropy);
 
 	ns_builtin_deinit();
 

@@ -776,12 +776,15 @@ shared library configuration (e.g., LD_LIBRARY_PATH).)],
 
 		AC_MSG_CHECKING(whether linking with OpenSSL requires -ldl)
 		AC_TRY_LINK([
-#include <openssl/err.h>],
+#include <openssl/err.h>
+#include <openssl/dso.h>
+],
 [ DSO_METHOD_dlfcn(); ],
 		[AC_MSG_RESULT(no)],
 		[LIBS="$LIBS -ldl"
 		AC_TRY_LINK([
 #include <openssl/err.h>
+#include <openssl/dso.h>
 ],[ DSO_METHOD_dlfcn(); ],
 		[AC_MSG_RESULT(yes)
 		DNS_OPENSSL_LIBS="$DNS_OPENSSL_LIBS -ldl"
@@ -3518,6 +3521,26 @@ AC_CHECK_HEADERS(locale.h)
 AC_CHECK_FUNCS(setlocale)
 
 #
+# was --enable-querytrace specified?
+#
+AC_ARG_ENABLE(querytrace,
+	[  --enable-querytrace     enable very verbose query trace logging [[default=no]]],
+	want_querytrace="$enableval", want_querytrace="no")
+
+case "$want_querytrace" in
+yes)
+	AC_MSG_RESULT(yes)
+	AC_DEFINE(WANT_QUERYTRACE, 1, [Define to enable very verbose query trace logging.])
+	;;
+no)
+	AC_MSG_RESULT(no)
+	;;
+*)
+	AC_MSG_ERROR("--enable-querytrace requires yes or no")
+	;;
+esac
+
+#
 # Substitutions
 #
 AC_SUBST(BIND9_TOP_BUILDDIR)
@@ -4068,6 +4091,8 @@ test "$want_symtable" = "minimal" && \
     echo "    Use symbol table for backtrace, named only (--enable-symtable)"
 test "$want_symtable" = "yes" -o "$want_symtable" = "all" && \
     echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
+test "$want_querytrace" = "yes" && \
+    echo "    Very verbose query trace logging (--enable-querytrace)"
 test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
 
 # these lines are only printed if run with --enable-full-report 
@@ -4115,6 +4140,8 @@ test "$enable_fixed" = "yes" || \
     echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 test "$want_backtrace" = "yes" || \
     echo "    Print backtrace on crash (--enable-backtrace)"
+test "$want_querytrace" = "yes" || \
+    echo "    Very verbose query trace logging (--enable-querytrace)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 test "X$USE_OPENSSL" = "X" && \
 	echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
