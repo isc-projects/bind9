@@ -241,9 +241,11 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define rdataset_getadditional rdataset_getadditional64
 #define rdataset_getclosest rdataset_getclosest64
 #define rdataset_getnoqname rdataset_getnoqname64
+#define rdataset_getownercase rdataset_getownercase64
 #define rdataset_next rdataset_next64
 #define rdataset_putadditional rdataset_putadditional64
 #define rdataset_setadditional rdataset_setadditional64
+#define rdataset_setownercase rdataset_setownercase64
 #define rdataset_settrust rdataset_settrust64
 #define rdatasetiter_current rdatasetiter_current64
 #define rdatasetiter_destroy rdatasetiter_destroy64
@@ -260,6 +262,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define set_index set_index64
 #define set_ttl set_ttl64
 #define setcachestats setcachestats64
+#define setownercase setownercase64
 #define setsigningtime setsigningtime64
 #define settask settask64
 #define setup_delegation setup_delegation64
