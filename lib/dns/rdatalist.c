@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008, 2010-2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008, 2010-2012, 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -381,7 +381,7 @@ void
 isc__rdatalist_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	dns_rdatalist_t *rdatalist;
 	unsigned int i;
- 
+
 	/*
 	 * We do not need to worry about label lengths as they are all
 	 * less than or equal to 63.
@@ -396,12 +396,12 @@ isc__rdatalist_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	 */
 	rdatalist->upper[0] |= 0x01;
 }
- 
+
 void
 isc__rdatalist_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 	dns_rdatalist_t *rdatalist;
 	unsigned int i;
- 
+
 	rdatalist = rdataset->private1;
 	if ((rdatalist->upper[0] & 0x01) == 0)
 		return;

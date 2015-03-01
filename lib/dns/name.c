@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1385,7 +1385,7 @@ dns_name_toprincipal(const dns_name_t *name, isc_buffer_t *target) {
 
 isc_result_t
 dns_name_totext2(const dns_name_t *name, unsigned int options,
-	         isc_buffer_t *target)
+		 isc_buffer_t *target)
 {
 	unsigned char *ndata;
 	char *tdata;
