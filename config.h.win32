@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.28 2011/10/30 23:39:39 marka Exp $ */
-
 /*
  * win32 configuration file
  * All definitions, declarations, macros and includes are
@@ -357,6 +355,9 @@ typedef __int64 off_t;
 
 /* From enable developer */
 @ISC_LIST_CHECKINIT@
+
+/* Verbose query trace logging */
+@WANT_QUERYTRACE@
 
 /* Avoid warnings with strlen() */
 #ifdef _WIN64

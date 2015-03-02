@@ -14,7 +14,9 @@
 			[RT #38056]
 
 4072.	[func]		Add a --enable-querytrace configure switch for
-			very verbose query tracelogging. [RT #37520]
+			very verbose query tracelogging. (This option
+			has a negative performance impact and should be
+			used only for debugging.) [RT #37520]
 
 4070.	[bug]		Fix a segfault in nslookup in a query such as
 			"nslookup isc.org AMS.SNS-PB.ISC.ORG -all".
