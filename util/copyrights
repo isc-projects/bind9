@@ -979,7 +979,7 @@
 ./bin/tests/system/checkzone/zones/test2.db	ZONE	2013
 ./bin/tests/system/checkzone/zones/warn.inherit.origin.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/warn.inherited.owner.db	ZONE	2014
-./bin/tests/system/cleanall.sh			SH	2000,2001,2004,2007,2012,2014
+./bin/tests/system/cleanall.sh			SH	2000,2001,2004,2007,2012,2014,2015
 ./bin/tests/system/cleanpkcs11.sh		SH	2010,2012,2014
 ./bin/tests/system/common/controls.conf		CONF-C	2000,2001,2004,2007,2013
 ./bin/tests/system/common/rndc.conf		CONF-C	2000,2001,2004,2007,2013
@@ -3663,7 +3663,7 @@
 ./lib/isc/sparc64/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/sparc64/include/isc/Makefile.in	MAKE	2007,2012
 ./lib/isc/sparc64/include/isc/atomic.h		C	2005,2007,2013
-./lib/isc/stats.c				C	2009,2012,2013,2014
+./lib/isc/stats.c				C	2009,2012,2013,2014,2015
 ./lib/isc/string.c				C	1999,2000,2001,2003,2004,2005,2006,2007,2011,2012,2014
 ./lib/isc/strtoul.c				C	2003,2004,2005,2007,2014
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2011,2012,2013
