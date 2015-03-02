@@ -150,7 +150,13 @@ sub start_server {
 	if ($server =~ /^ns/) {
 		$cleanup_files = "{*.jnl,*.bk,*.st,named.run}";
 		if ($ENV{'USE_VALGRIND'}) {
-			$command = "valgrind -q --gen-suppressions=all --track-origins=yes --num-callers=48 --leak-check=full --fullpath-after= --log-file=named-$server-valgrind-%p.log $NAMED -m none -M external ";
+			$command = "valgrind -q --gen-suppressions=all --num-callers=48 --fullpath-after= --log-file=named-$server-valgrind-%p.log ";
+			if ($ENV{'USE_VALGRIND'} eq 'helgrind') {
+				$command .= "--tool=helgrind ";
+			} else {
+				$command .= "--tool=memcheck --track-origins=yes --leak-check=full ";
+			}
+			$command .= "$NAMED -m none -M external ";
 		} else {
 			$command = "$NAMED ";
 		}
@@ -200,7 +206,13 @@ sub start_server {
 	} elsif ($server =~ /^lwresd/) {
 		$cleanup_files = "{lwresd.run}";
 		if ($ENV{'USE_VALGRIND'}) {
-			$command = "valgrind -q --gen-suppressions=all --track-origins=yes --num-callers=48 --leak-check=full --fullpath-after= --log-file=lwresd-valgrind-%p.log $LWRESD -m none -M external ";
+			$command = "valgrind -q --gen-suppressions=all --num-callers=48 --fullpath-after= --log-file=lwresd-valgrind-%p.log ";
+			if ($ENV{'USE_VALGRIND'} eq 'helgrind') {
+				$command .= "--tool=helgrind ";
+			} else {
+				$command .= "--tool=memcheck --track-origins=yes --leak-check=full ";
+			}
+			$command .= "$LWRESD -m none -M external ";
 		} else {
 			$command = "$LWRESD ";
 		}
