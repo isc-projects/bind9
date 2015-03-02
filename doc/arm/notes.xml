@@ -49,6 +49,15 @@
       <listitem>
 	<para>None</para>
       </listitem>
+      <listitem>
+	<para>
+	  An <command>--enable-querytrace</command> configure switch is
+	  now available to enable very verbose query tracelogging. This
+	  option can only be set at compile time. This option has a
+	  negative performance impact and should be used only for
+	  debugging.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_changes">

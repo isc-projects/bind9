@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.28 2011/10/30 23:39:39 marka Exp $ */
-
 /*
  * win32 configuration file
  * All definitions, declarations, macros and includes are
@@ -395,6 +393,9 @@ typedef __int64 off_t;
 
 /* Large system tuning */
 @TUNE_LARGE@
+
+/* Verbose query trace logging */
+@WANT_QUERYTRACE@
 
 /*
  * Define to nothing if C supports flexible array members, and to 1 if it does
