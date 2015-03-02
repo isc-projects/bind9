@@ -169,19 +169,22 @@ isc_stats_detach(isc_stats_t **statsp) {
 
 	LOCK(&stats->lock);
 	stats->references--;
-	UNLOCK(&stats->lock);
 
 	if (stats->references == 0) {
 		isc_mem_put(stats->mctx, stats->copiedcounters,
 			    sizeof(isc_stat_t) * stats->ncounters);
 		isc_mem_put(stats->mctx, stats->counters,
 			    sizeof(isc_stat_t) * stats->ncounters);
+		UNLOCK(&stats->lock);
 		DESTROYLOCK(&stats->lock);
 #ifdef ISC_RWLOCK_USEATOMIC
 		isc_rwlock_destroy(&stats->counterlock);
 #endif
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
+		return;
 	}
+
+	UNLOCK(&stats->lock);
 }
 
 int

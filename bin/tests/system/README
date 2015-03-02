@@ -62,4 +62,6 @@ To run all the tests, just type "make test".
 When running system tests, named and lwresd can be run under
 Valgrind. The output from Valgrind are sent to per-process files that
 can be reviewed after the test has completed. To enable this, set the
-USE_VALGRIND environment variable.
+USE_VALGRIND environment variable to "helgrind" to run the Helgrind
+tool, or any other value to run the Memcheck tool. To use "helgrind"
+effectively, build BIND with --disable-atomic.
