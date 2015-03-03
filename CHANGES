@@ -1,3 +1,5 @@
+4081.	[cleanup]	Use dns_rdatalist_init consistently. [RT #38759]
+
 4078.	[bug]		Handle the case where CMSG_SPACE(sizeof(int)) !=
 			CMSG_SPACE(sizeof(char)). [RT #38621]
 

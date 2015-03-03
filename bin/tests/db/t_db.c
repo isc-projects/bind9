@@ -1181,14 +1181,12 @@ t_dns_db_newversion(char **av) {
 	added_rdata.rdclass = rdataclass;
 	added_rdata.type = rdatatype;
 
-	dns_rdataset_init(&added_rdataset);
+	dns_rdatalist_init(&rdatalist);
 	rdatalist.type = rdatatype;
-	rdatalist.covers = 0;
 	rdatalist.rdclass = rdataclass;
-	rdatalist.ttl = 0;
-	ISC_LIST_INIT(rdatalist.rdata);
 	ISC_LIST_APPEND(rdatalist.rdata, &added_rdata, link);
 
+	dns_rdataset_init(&added_rdataset);
 	dns_result = dns_rdatalist_tordataset(&rdatalist, &added_rdataset);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdatalist_tordataset failed %s\n",
@@ -1585,14 +1583,12 @@ t_dns_db_closeversion_1(char **av) {
 	added_rdata.rdclass = rdataclass;
 	added_rdata.type = new_rdatatype;
 
-	dns_rdataset_init(&added_rdataset);
+	dns_rdatalist_init(&rdatalist);
 	rdatalist.type = new_rdatatype;
-	rdatalist.covers = 0;
 	rdatalist.rdclass = rdataclass;
-	rdatalist.ttl = 0;
-	ISC_LIST_INIT(rdatalist.rdata);
 	ISC_LIST_APPEND(rdatalist.rdata, &added_rdata, link);
 
+	dns_rdataset_init(&added_rdataset);
 	dns_result = dns_rdatalist_tordataset(&rdatalist, &added_rdataset);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdatalist_tordataset failed %s\n",
@@ -1993,14 +1989,12 @@ t_dns_db_closeversion_2(char **av) {
 	added_rdata.rdclass = rdataclass;
 	added_rdata.type = new_rdatatype;
 
-	dns_rdataset_init(&added_rdataset);
+	dns_rdatalist_init(&rdatalist);
 	rdatalist.type = new_rdatatype;
-	rdatalist.covers = 0;
 	rdatalist.rdclass = rdataclass;
-	rdatalist.ttl = 0;
-	ISC_LIST_INIT(rdatalist.rdata);
 	ISC_LIST_APPEND(rdatalist.rdata, &added_rdata, link);
 
+	dns_rdataset_init(&added_rdataset);
 	dns_result = dns_rdatalist_tordataset(&rdatalist, &added_rdataset);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdatalist_tordataset failed %s\n",

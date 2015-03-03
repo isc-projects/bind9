@@ -2071,18 +2071,20 @@ add_soa(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	isc_result_t result;
 	unsigned char buf[DNS_SOA_BUFFERSIZE];
 
-	dns_rdataset_init(&rdataset);
-	dns_rdatalist_init(&rdatalist);
 	CHECK(dns_soa_buildrdata(origin, contact, dns_db_class(db),
 				 0, 28800, 7200, 604800, 86400, buf, &rdata));
+
+	dns_rdatalist_init(&rdatalist);
 	rdatalist.type = rdata.type;
-	rdatalist.covers = 0;
 	rdatalist.rdclass = rdata.rdclass;
 	rdatalist.ttl = 86400;
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
+
+	dns_rdataset_init(&rdataset);
 	CHECK(dns_rdatalist_tordataset(&rdatalist, &rdataset));
 	CHECK(dns_db_findnode(db, name, ISC_TRUE, &node));
 	CHECK(dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL));
+
  cleanup:
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
@@ -2104,8 +2106,6 @@ add_ns(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 
 	isc_buffer_init(&b, buf, sizeof(buf));
 
-	dns_rdataset_init(&rdataset);
-	dns_rdatalist_init(&rdatalist);
 	ns.common.rdtype = dns_rdatatype_ns;
 	ns.common.rdclass = dns_db_class(db);
 	ns.mctx = NULL;
@@ -2113,14 +2113,18 @@ add_ns(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	dns_name_clone(nsname, &ns.name);
 	CHECK(dns_rdata_fromstruct(&rdata, dns_db_class(db), dns_rdatatype_ns,
 				   &ns, &b));
+
+	dns_rdatalist_init(&rdatalist);
 	rdatalist.type = rdata.type;
-	rdatalist.covers = 0;
 	rdatalist.rdclass = rdata.rdclass;
 	rdatalist.ttl = 86400;
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
+
+	dns_rdataset_init(&rdataset);
 	CHECK(dns_rdatalist_tordataset(&rdatalist, &rdataset));
 	CHECK(dns_db_findnode(db, name, ISC_TRUE, &node));
 	CHECK(dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL));
+
  cleanup:
 	if (node != NULL)
 		dns_db_detachnode(db, &node);

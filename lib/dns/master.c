@@ -862,8 +862,6 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 		goto insist_cleanup;
 	}
 
-	ISC_LIST_INIT(rdatalist.rdata);
-	ISC_LINK_INIT(&rdatalist, link);
 	for (i = start; i <= stop; i += step) {
 		result = genname(lhs, i, lhsbuf, DNS_MASTER_LHS);
 		if (result != ISC_R_SUCCESS)
@@ -913,8 +911,8 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;
 
+		dns_rdatalist_init(&rdatalist);
 		rdatalist.type = type;
-		rdatalist.covers = 0;
 		rdatalist.rdclass = lctx->zclass;
 		rdatalist.ttl = lctx->ttl;
 		ISC_LIST_PREPEND(head, &rdatalist, link);
@@ -1958,11 +1956,11 @@ load_text(dns_loadctx_t *lctx) {
 				rdatalist_size += RDLSZ;
 			}
 			this = &rdatalist[rdlcount++];
+			dns_rdatalist_init(this);
 			this->type = type;
 			this->covers = covers;
 			this->rdclass = lctx->zclass;
 			this->ttl = lctx->ttl;
-			ISC_LIST_INIT(this->rdata);
 			if (ictx->glue != NULL)
 				ISC_LIST_INITANDPREPEND(glue_list, this, link);
 			else
@@ -2296,7 +2294,6 @@ load_raw(dns_loadctx_t *lctx) {
 
 	ISC_LIST_INIT(head);
 	ISC_LIST_INIT(dummy);
-	dns_rdatalist_init(&rdatalist);
 
 	/*
 	 * Allocate target_size of buffer space.  This is greater than twice
@@ -2387,6 +2384,7 @@ load_raw(dns_loadctx_t *lctx) {
 		isc_buffer_add(&target, (unsigned int)readlen);
 
 		/* Construct RRset headers */
+		dns_rdatalist_init(&rdatalist);
 		rdatalist.rdclass = isc_buffer_getuint16(&target);
 		rdatalist.type = isc_buffer_getuint16(&target);
 		rdatalist.covers = isc_buffer_getuint16(&target);

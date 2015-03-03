@@ -189,11 +189,10 @@ dns_nsec_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 	RETERR(dns_nsec_buildrdata(db, version, node, target, data, &rdata));
 
+	dns_rdatalist_init(&rdatalist);
 	rdatalist.rdclass = dns_db_class(db);
 	rdatalist.type = dns_rdatatype_nsec;
-	rdatalist.covers = 0;
 	rdatalist.ttl = ttl;
-	ISC_LIST_INIT(rdatalist.rdata);
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	RETERR(dns_rdatalist_tordataset(&rdatalist, &rdataset));
 	result = dns_db_addrdataset(db, node, version, 0, &rdataset,

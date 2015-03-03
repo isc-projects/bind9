@@ -332,7 +332,7 @@ newrdatalist(dns_message_t *msg) {
 	rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
 	if (rdatalist != NULL) {
 		ISC_LIST_UNLINK(msg->freerdatalist, rdatalist, link);
-		return (rdatalist);
+		goto out;
 	}
 
 	msgblock = ISC_LIST_TAIL(msg->rdatalists);
@@ -348,6 +348,9 @@ newrdatalist(dns_message_t *msg) {
 
 		rdatalist = msgblock_get(msgblock, dns_rdatalist_t);
 	}
+ out:
+	if (rdatalist != NULL)
+		dns_rdatalist_init(rdatalist);
 
 	return (rdatalist);
 }
@@ -2759,7 +2762,6 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 	dns_rdata_init(rdata);
 	dns_rdata_fromregion(rdata, dns_rdataclass_any, dns_rdatatype_tsig, &r);
 	dns_message_takebuffer(msg, &buf);
-	ISC_LIST_INIT(list->rdata);
 	ISC_LIST_APPEND(list->rdata, rdata, link);
 	result = dns_rdatalist_tordataset(list, set);
 	if (result != ISC_R_SUCCESS)
@@ -3632,7 +3634,6 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	dns_rdataset_init(rdataset);
 
 	rdatalist->type = dns_rdatatype_opt;
-	rdatalist->covers = 0;
 
 	/*
 	 * Set Maximum UDP buffer size.
@@ -3680,7 +3681,6 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	rdata->type = rdatalist->type;
 	rdata->flags = 0;
 
-	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	result = dns_rdatalist_tordataset(rdatalist, rdataset);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
