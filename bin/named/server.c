@@ -5369,6 +5369,85 @@ count_zones(const cfg_obj_t *conf) {
 }
 
 static isc_result_t
+check_lockfile(ns_server_t *server, const cfg_obj_t *config,
+	       isc_boolean_t first_time)
+{
+	isc_result_t result;
+	const char *filename = NULL;
+	const cfg_obj_t *maps[3];
+	const cfg_obj_t *options;
+	const cfg_obj_t *obj;
+	int i;
+
+	i = 0;
+	options = NULL;
+	result = cfg_map_get(config, "options", &options);
+	if (result == ISC_R_SUCCESS)
+		maps[i++] = options;
+	maps[i++] = ns_g_defaults;
+	maps[i] = NULL;
+
+	obj = NULL;
+	(void) ns_config_get(maps, "lock-file", &obj);
+
+	if (!first_time) {
+		if (obj != NULL && !cfg_obj_isstring(obj) &&
+		    server->lockfile != NULL &&
+		    strcmp(cfg_obj_asstring(obj), server->lockfile) != 0)
+			isc_log_write(ns_g_lctx,
+				      NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER,
+				      ISC_LOG_WARNING,
+				      "changing 'lock-file' "
+				      "has no effect until the "
+				      "server is restarted");
+
+		return (ISC_R_SUCCESS);
+	}
+
+	if (obj != NULL) {
+		if (cfg_obj_isvoid(obj)) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+				      "skipping lock-file check ");
+			return (ISC_R_SUCCESS);
+		} else if (ns_g_forcelock) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "'lock-file' has no effect "
+				      "because the server was run with -X");
+			server->lockfile = isc_mem_strdup(server->mctx,
+							  ns_g_defaultlockfile);
+		} else {
+			filename = cfg_obj_asstring(obj);
+			server->lockfile = isc_mem_strdup(server->mctx,
+							  filename);
+		}
+
+		if (server->lockfile == NULL)
+			return (ISC_R_NOMEMORY);
+	}
+
+	if (ns_g_forcelock && ns_g_defaultlockfile != NULL) {
+		INSIST(server->lockfile == NULL);
+		server->lockfile = isc_mem_strdup(server->mctx,
+						  ns_g_defaultlockfile);
+	}
+
+	if (server->lockfile == NULL)
+		return (ISC_R_SUCCESS);
+
+	if (ns_os_issingleton(server->lockfile))
+		return (ISC_R_SUCCESS);
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "could not lock %s; another named "
+		      "process may be running", server->lockfile);
+	return (ISC_R_FAILURE);
+}
+
+static isc_result_t
 load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
 {
@@ -5515,6 +5594,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Set process limits, which (usually) needs to be done as root.
 	 */
 	set_limits(maps);
+
+	/*
+	 * Check the process lockfile.
+	 */
+	CHECK(check_lockfile(server, config, first_time));
 
 	/*
 	 * Check if max number of open sockets that the system allows is
@@ -6870,6 +6954,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->session_keyalg = DST_ALG_UNKNOWN;
 	server->session_keybits = 0;
 
+	server->lockfile = NULL;
+
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
 }
@@ -6900,6 +6986,8 @@ ns_server_destroy(ns_server_t **serverp) {
 		isc_mem_free(server->mctx, server->hostname);
 	if (server->server_id != NULL)
 		isc_mem_free(server->mctx, server->server_id);
+	if (server->lockfile != NULL)
+		isc_mem_free(server->mctx, server->lockfile);
 
 	if (server->zonemgr != NULL)
 		dns_zonemgr_detach(&server->zonemgr);
@@ -6932,6 +7020,7 @@ fatal(const char *msg, isc_result_t result) {
 		      isc_result_totext(result));
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_CRITICAL, "exiting (due to fatal error)");
+	ns_os_shutdown();
 	exit(1);
 }
 

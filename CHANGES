@@ -1,3 +1,10 @@
+4080.	[func]		Completed change #4022, adding a "lock-file" option
+			to named.conf to override the default lock file,
+			in addition to the "named -X <filename>" command
+			line option.  Setting the lock file to "none"
+			using either method disables the check completely.
+			[RT #37908]
+
 4079.   [func]          Preserve the case of the ownername of records to
 			the RRset level. [RT #37442]
 

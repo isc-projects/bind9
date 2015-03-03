@@ -266,10 +266,13 @@
 	  other name server processes are running before starting up.
 	  This is implemented in two ways: 1) by refusing to start
 	  if the configured network interfaces all return "address
-	  in use", and 2) by acquiring a file lock on
-	  <filename>/var/run/named/named.lock</filename>, or on a different
-	  file specified via the <command>named -X</command> command
-	  line option.
+	  in use", and 2) by attempting to acquire a lock on a file
+	  specified by the <command>lock-file</option> option or
+	  the <command>-X</command> command line option.  The
+	  default lock file is
+	  <filename>/var/run/named/named.lock</filename>.
+	  Specifying <literal>none</literal> will disable the lock
+	  file check.
 	</para>
       </listitem>
       <listitem>

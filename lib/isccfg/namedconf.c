@@ -964,6 +964,7 @@ options_clauses[] = {
 	{ "keep-response-order", &cfg_type_bracketed_aml, 0 },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
+	{ "lock-file", &cfg_type_qstringornone, 0 },
 #ifdef ISC_PLATFORM_USESIT
 	{ "sit-secret", &cfg_type_sstring, 0 },
 #else

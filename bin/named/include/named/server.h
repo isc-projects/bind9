@@ -117,6 +117,8 @@ struct ns_server {
 	isc_uint16_t		session_keybits;
 	isc_boolean_t		interface_auto;
 	unsigned char		secret[32];	/*%< Source Identity Token */
+
+	char *			lockfile;
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')

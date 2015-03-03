@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.107 2011/03/02 00:02:54 marka Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -54,6 +52,7 @@
 #endif
 
 static char *pidfile = NULL;
+static char *lockfile = NULL;
 static int devnullfd = -1;
 static int singletonfd = -1;
 
@@ -675,6 +674,27 @@ cleanup_pidfile(void) {
 	pidfile = NULL;
 }
 
+static void
+cleanup_lockfile(void) {
+	if (singletonfd != -1) {
+		close(singletonfd);
+		singletonfd = -1;
+	}
+
+	if (lockfile != NULL) {
+		int n = unlink(lockfile);
+		if (n == -1 && errno != ENOENT)
+			ns_main_earlywarning("unlink '%s': failed", lockfile);
+		free(lockfile);
+		lockfile = NULL;
+	}
+}
+
+/*
+ * Ensure that a directory exists.
+ * NOTE: This function overwrites the '/' characters in 'filename' with
+ * nulls. The caller should copy the filename to a fresh buffer first.
+ */
 static int
 mkdirpath(char *filename, void (*report)(const char *, ...)) {
 	char *slash = strrchr(filename, '/');
@@ -903,10 +923,31 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 
 isc_boolean_t
 ns_os_issingleton(const char *filename) {
+	char strbuf[ISC_STRERRORSIZE];
 	struct flock lock;
 
 	if (singletonfd != -1)
 		return (ISC_TRUE);
+
+	if (strcasecmp(filename, "none") == 0)
+		return (ISC_TRUE);
+
+	/*
+	 * Make the containing directory if it doesn't exist.
+	 */
+	lockfile = strdup(filename);
+	if (lockfile == NULL) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlyfatal("couldn't allocate memory for '%s': %s",
+				   filename, strbuf);
+	} else {
+		int ret = mkdirpath(lockfile, ns_main_earlywarning);
+		if (ret == -1) {
+			ns_main_earlywarning("couldn't create '%s'", filename);
+			cleanup_lockfile();
+			return (ISC_FALSE);
+		}
+	}
 
 	/*
 	 * ns_os_openfile() uses safeopen() which removes any existing
@@ -914,8 +955,10 @@ ns_os_issingleton(const char *filename) {
 	 */
 	singletonfd = open(filename, O_WRONLY | O_CREAT,
 			   S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-	if (singletonfd == -1)
+	if (singletonfd == -1) {
+		cleanup_lockfile();
 		return (ISC_FALSE);
+	}
 
 	memset(&lock, 0, sizeof(lock));
 	lock.l_type = F_WRLCK;
@@ -937,11 +980,7 @@ void
 ns_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
-
-	if (singletonfd != -1) {
-		close(singletonfd);
-		singletonfd = -1;
-	}
+	cleanup_lockfile();
 }
 
 isc_result_t

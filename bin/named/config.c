@@ -82,6 +82,7 @@ options {\n\
 	nta-recheck 300;\n\
 	notify-rate 20;\n\
 #	pid-file \"" NS_LOCALSTATEDIR "/run/named/named.pid\"; /* or /lwresd.pid */\n\
+#	lock-file \"" NS_LOCALSTATEDIR "/run/named/named.lock\";\n\
 	port 53;\n\
 	prefetch 2 9;\n\
 	recursing-file \"named.recursing\";\n\

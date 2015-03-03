@@ -400,8 +400,11 @@
           <para>
             Acquire a lock on the specified file at runtime; this
             helps to prevent duplicate <command>named</command> instances
-            from running simultaneously. If not specified via this option,
-            the default lockfile is <filename>/var/run/named/named.lock</filename>.
+            from running simultaneously.
+            Use of this option overrides the <command>lock-file</command>
+            option in <filename>named.conf</filename>.
+            If set to <literal>none</literal>, the lock file check
+            is disabled.
           </para>
         </listitem>
       </varlistentry>

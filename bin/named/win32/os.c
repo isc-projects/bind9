@@ -47,6 +47,7 @@
 #include <named/ntservice.h>
 
 
+static char *lockfile = NULL;
 static char *pidfile = NULL;
 static int devnullfd = -1;
 static int singletonfd = -1;
@@ -67,6 +68,7 @@ ns_paths_init(void) {
 	ns_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
 	ns_g_defaultpidfile = isc_ntpaths_get(NAMED_PID_PATH);
 	lwresd_g_defaultpidfile = isc_ntpaths_get(LWRESD_PID_PATH);
+	ns_g_defaultlockfile = isc_ntpaths_get(NAMED_LOCK_PATH);
 	ns_g_keyfile = isc_ntpaths_get(RNDC_KEY_PATH);
 	ns_g_defaultsessionkeyfile = isc_ntpaths_get(SESSION_KEY_PATH);
 
@@ -208,6 +210,22 @@ cleanup_pidfile(void) {
 	pidfile = NULL;
 }
 
+static void
+cleanup_lockfile(void) {
+	if (singletonfile != -1) {
+		close(singletonfd);
+		singletonfd = -1;
+	}
+
+	if (lockfile != NULL) {
+		int n = unlink(lockfile);
+		if (n == -1 && errno != ENOENT)
+			ns_main_earlywarning("unlink '%s': failed", lockfile);
+		free(lockfile);
+		lockfile = NULL;
+	}
+}
+
 FILE *
 ns_os_openfile(const char *filename, int mode, isc_boolean_t switch_user) {
 	char strbuf[ISC_STRERRORSIZE];
@@ -291,27 +309,39 @@ ns_os_issingleton(const char *filename) {
 	if (singletonfd != -1)
 		return (ISC_TRUE);
 
+	if (strcasecmp(filename, "none") == 0)
+		return (ISC_TRUE);
+
+	lockfile = strdup(filename);
+	if (lockfile == NULL) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlyfatal("couldn't allocate memory for '%s': %s",
+				   filename, strbuf);
+	}
+
 	/*
 	 * ns_os_openfile() uses safeopen() which removes any existing
 	 * files. We can't use that here.
 	 */
 	singletonfd = open(filename, O_WRONLY | O_CREAT,
 			   S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-	if (singletonfd == -1)
+	if (singletonfd == -1) {
+		cleanup_lockfile();
 		return (ISC_FALSE);
+	}
 
 	memset(&o, 0, sizeof(o));
 	/* Expect ERROR_LOCK_VIOLATION if already locked */
 	if (!LockFileEx((HANDLE) _get_osfhandle(singletonfd),
 			LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY,
 			0, 0, 1, &o)) {
-		close(singletonfd);
-		singletonfd = -1;
+		cleanup_lockfile();
 		return (ISC_FALSE);
 	}
 
 	return (ISC_TRUE);
 }
+
 
 void
 ns_os_shutdown(void) {

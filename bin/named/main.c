@@ -676,7 +676,11 @@ parse_command_line(int argc, char *argv[]) {
 			/* Obsolete. No longer in use. Ignore. */
 			break;
 		case 'X':
-			ns_g_singletonfile = isc_commandline_argument;
+			ns_g_forcelock = ISC_TRUE;
+			if (strcasecmp(isc_commandline_argument, "none") != 0)
+				ns_g_defaultlockfile = isc_commandline_argument;
+			else
+				ns_g_defaultlockfile = NULL;
 			break;
 		case 'F':
 			/* Reserved for FIPS mode */
@@ -1285,11 +1289,6 @@ main(int argc, char *argv[]) {
 #endif
 
 	parse_command_line(argc, argv);
-
-	if (!ns_os_issingleton(ns_g_singletonfile))
-		ns_main_earlyfatal("could not lock %s; "
-				   "another named process may be running",
-				   ns_g_singletonfile);
 
 	/*
 	 * Warn about common configuration error.

@@ -41,6 +41,7 @@ static char lwresd_resolvconfFile[MAX_PATH];
 static char rndc_confFile[MAX_PATH];
 static char ns_defaultpidfile[MAX_PATH];
 static char lwresd_defaultpidfile[MAX_PATH];
+static char ns_lockfile[MAX_PATH];
 static char local_state_dir[MAX_PATH];
 static char sys_conf_dir[MAX_PATH];
 static char rndc_keyFile[MAX_PATH];
@@ -96,6 +97,9 @@ isc_ntpaths_init(void) {
 	strcpy(lwresd_defaultpidfile, namedBase);
 	strcat(lwresd_defaultpidfile, "\\etc\\lwresd.pid");
 
+	strcpy(ns_lockfile, namedBase);
+	strcat(ns_lockfile, "\\etc\\named.lock");
+
 	strcpy(local_state_dir, namedBase);
 	strcat(local_state_dir, "\\bin");
 
@@ -128,6 +132,9 @@ isc_ntpaths_get(int ind) {
 		break;
 	case LWRESD_PID_PATH:
 		return (lwresd_defaultpidfile);
+		break;
+	case NAMED_LOCK_PATH:
+		return (ns_lockfile);
 		break;
 	case LOCAL_STATE_DIR:
 		return (local_state_dir);

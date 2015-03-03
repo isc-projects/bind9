@@ -4779,6 +4779,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> cache-file <replaceable>path_name</replaceable>; </optional>
     <optional> dump-file <replaceable>path_name</replaceable>; </optional>
     <optional> bindkeys-file <replaceable>path_name</replaceable>; </optional>
+    <optional> lock-file <replaceable>path_name</replaceable>; </optional>
     <optional> secroots-file <replaceable>path_name</replaceable>; </optional>
     <optional> session-keyfile <replaceable>path_name</replaceable>; </optional>
     <optional> session-keyname <replaceable>key_name</replaceable>; </optional>
@@ -5329,6 +5330,30 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		The pathname of the file the server writes memory
 		usage statistics to on exit. If not specified,
 		the default is <filename>named.memstats</filename>.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><command>lock-file</command></term>
+	    <listitem>
+	      <para>
+		The pathname of a file on which <command>named</command> will
+		attempt to acquire a file lock when starting up for
+		the first time; if unsuccessful, the server will
+		will terminate, under the assumption that another
+		server is already running.  If not specified, the default is
+		<filename>/var/run/named/named.lock</filename>.
+	      </para>
+	      <para>
+		Specifying <command>lock-file none</command> disables the
+		use of a lock file.  <command>lock-file</command> is
+		ignored if named was run using the <option>-X</option>
+		option, which overrides it.  Changes to
+		<command>lock-file</command> are ignored if
+		<command>named</command> is being reloaded or
+		reconfigured; it is only effective when the server is
+		first started up.
 	      </para>
 	    </listitem>
 	  </varlistentry>
