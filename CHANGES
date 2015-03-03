@@ -1,3 +1,5 @@
+4081.	[cleanup]	Use dns_rdatalist_init consistently. [RT #38759]
+
 4077.	[test]		Add static-stub regression test for DS NXDOMAIN
 			return making the static stub disappear. [RT #38564]
 

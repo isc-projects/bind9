@@ -1853,11 +1853,9 @@ addnsec3param(const unsigned char *salt, size_t salt_len,
 				      dns_rdatatype_nsec3param,
 				      &nsec3param, &b);
 	check_result(result, "dns_rdata_fromstruct()");
+	dns_rdatalist_init(&rdatalist);
 	rdatalist.rdclass = rdata.rdclass;
 	rdatalist.type = rdata.type;
-	rdatalist.covers = 0;
-	rdatalist.ttl = 0;
-	ISC_LIST_INIT(rdatalist.rdata);
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
 	check_result(result, "dns_rdatalist_tordataset()");
@@ -1919,11 +1917,10 @@ addnsec3(dns_name_t *name, dns_dbnode_t *node,
 				      nexthash, ISC_SHA1_DIGESTLENGTH,
 				      nsec3buffer, &rdata);
 	check_result(result, "addnsec3: dns_nsec3_buildrdata()");
+	dns_rdatalist_init(&rdatalist);
 	rdatalist.rdclass = rdata.rdclass;
 	rdatalist.type = rdata.type;
-	rdatalist.covers = 0;
 	rdatalist.ttl = ttl;
-	ISC_LIST_INIT(rdatalist.rdata);
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
 	check_result(result, "dns_rdatalist_tordataset()");
@@ -2014,11 +2011,10 @@ nsec3clean(dns_name_t *name, dns_dbnode_t *node,
 		    nsec3.salt_length == salt_len &&
 		    !memcmp(nsec3.salt, salt, salt_len))
 			continue;
+		dns_rdatalist_init(&rdatalist);
 		rdatalist.rdclass = rdata.rdclass;
 		rdatalist.type = rdata.type;
-		rdatalist.covers = 0;
 		rdatalist.ttl = rdataset.ttl;
-		ISC_LIST_INIT(rdatalist.rdata);
 		dns_rdata_init(&delrdata);
 		dns_rdata_clone(&rdata, &delrdata);
 		ISC_LIST_APPEND(rdatalist.rdata, &delrdata, link);

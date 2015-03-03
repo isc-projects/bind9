@@ -163,9 +163,7 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	RETERR(dns_message_gettemprdatalist(msg, &newlist));
 	newlist->rdclass = newrdata->rdclass;
 	newlist->type = newrdata->type;
-	newlist->covers = 0;
 	newlist->ttl = ttl;
-	ISC_LIST_INIT(newlist->rdata);
 	ISC_LIST_APPEND(newlist->rdata, newrdata, link);
 
 	RETERR(dns_message_gettemprdataset(msg, &newset));
@@ -886,9 +884,6 @@ buildquery(dns_message_t *msg, dns_name_t *name,
 	RETERR(dns_message_gettemprdatalist(msg, &tkeylist));
 	tkeylist->rdclass = dns_rdataclass_any;
 	tkeylist->type = dns_rdatatype_tkey;
-	tkeylist->covers = 0;
-	tkeylist->ttl = 0;
-	ISC_LIST_INIT(tkeylist->rdata);
 	ISC_LIST_APPEND(tkeylist->rdata, rdata, link);
 
 	RETERR(dns_message_gettemprdataset(msg, &tkeyset));
