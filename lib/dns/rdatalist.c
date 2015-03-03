@@ -89,6 +89,9 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(! dns_rdataset_isassociated(rdataset));
 
+	/* Check if dns_rdatalist_init has was called. */
+	REQUIRE(rdatalist->upper[0] == 0xea);
+
 	rdataset->methods = &methods;
 	rdataset->rdclass = rdatalist->rdclass;
 	rdataset->type = rdatalist->type;

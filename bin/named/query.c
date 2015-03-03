@@ -2912,7 +2912,6 @@ query_add_cname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	}
 	dns_rdataset_init(rdataset);
 	rdatalist->type = dns_rdatatype_cname;
-	rdatalist->covers = 0;
 	rdatalist->rdclass = client->message->rdclass;
 	rdatalist->ttl = ttl;
 

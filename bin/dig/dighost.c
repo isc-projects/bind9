@@ -2152,9 +2152,6 @@ insert_soa(dig_lookup_t *lookup) {
 	dns_rdatalist_init(rdatalist);
 	rdatalist->type = dns_rdatatype_soa;
 	rdatalist->rdclass = lookup->rdclass;
-	rdatalist->covers = 0;
-	rdatalist->ttl = 0;
-	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 
 	dns_rdataset_init(rdataset);

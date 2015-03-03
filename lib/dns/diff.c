@@ -301,12 +301,11 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			 * of the diff itself is not affected.
 			 */
 
+			dns_rdatalist_init(&rdl);
 			rdl.type = type;
 			rdl.covers = covers;
 			rdl.rdclass = t->rdata.rdclass;
 			rdl.ttl = t->ttl;
-			ISC_LIST_INIT(rdl.rdata);
-			ISC_LINK_INIT(&rdl, link);
 
 			node = NULL;
 			if (type != dns_rdatatype_nsec3 &&
@@ -487,12 +486,11 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 			type = t->rdata.type;
 			covers = rdata_covers(&t->rdata);
 
+			dns_rdatalist_init(&rdl);
 			rdl.type = type;
 			rdl.covers = covers;
 			rdl.rdclass = t->rdata.rdclass;
 			rdl.ttl = t->ttl;
-			ISC_LIST_INIT(rdl.rdata);
-			ISC_LINK_INIT(&rdl, link);
 
 			while (t != NULL && dns_name_equal(&t->name, name) &&
 			       t->op == op && t->rdata.type == type &&
@@ -581,11 +579,10 @@ diff_tuple_tordataset(dns_difftuple_t *t, dns_rdata_t *rdata,
 	REQUIRE(rdl != NULL);
 	REQUIRE(rds != NULL);
 
+	dns_rdatalist_init(rdl);
 	rdl->type = t->rdata.type;
 	rdl->rdclass = t->rdata.rdclass;
 	rdl->ttl = t->ttl;
-	ISC_LIST_INIT(rdl->rdata);
-	ISC_LINK_INIT(rdl, link);
 	dns_rdataset_init(rds);
 	ISC_LINK_INIT(rdata, link);
 	dns_rdata_clone(&t->rdata, rdata);

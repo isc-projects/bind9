@@ -151,12 +151,10 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	/*
 	 * Initialize the list.
 	 */
+	dns_rdatalist_init(&ncrdatalist);
 	ncrdatalist.rdclass = dns_db_class(cache);
-	ncrdatalist.type = 0;
 	ncrdatalist.covers = covers;
 	ncrdatalist.ttl = maxttl;
-	ISC_LIST_INIT(ncrdatalist.rdata);
-	ISC_LINK_INIT(&ncrdatalist, link);
 
 	/*
 	 * Build an ncache rdatas into buffer.

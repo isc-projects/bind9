@@ -12520,9 +12520,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 		goto soa_cleanup;
 	temprdatalist->rdclass = rdata.rdclass;
 	temprdatalist->type = rdata.type;
-	temprdatalist->covers = 0;
 	temprdatalist->ttl = rdataset.ttl;
-	ISC_LIST_INIT(temprdatalist->rdata);
 	ISC_LIST_APPEND(temprdatalist->rdata, temprdata, link);
 
 	dns_rdataset_init(temprdataset);
@@ -13791,11 +13789,10 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	result = dns_rdata_fromstruct(&rdata, rdataset->rdclass,
 				      dns_rdatatype_soa, &soa, &b);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	dns_rdatalist_init(&temprdatalist);
 	temprdatalist.rdclass = rdata.rdclass;
 	temprdatalist.type = rdata.type;
-	temprdatalist.covers = 0;
 	temprdatalist.ttl = rdataset->ttl;
-	ISC_LIST_INIT(temprdatalist.rdata);
 	ISC_LIST_APPEND(temprdatalist.rdata, &rdata, link);
 
 	dns_rdataset_init(&temprdataset);

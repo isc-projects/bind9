@@ -1361,7 +1361,6 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	check_result(result, "dns_message_gettemprdatalist");
 	result = dns_message_gettemprdataset(updatemsg, &rdataset);
 	check_result(result, "dns_message_gettemprdataset");
-	dns_rdatalist_init(rdatalist);
 	rdatalist->type = rdatatype;
 	if (ispositive) {
 		if (isrrset && rdata->data != NULL)
@@ -1370,11 +1369,8 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 			rdatalist->rdclass = dns_rdataclass_any;
 	} else
 		rdatalist->rdclass = dns_rdataclass_none;
-	rdatalist->covers = 0;
-	rdatalist->ttl = 0;
 	rdata->rdclass = rdatalist->rdclass;
 	rdata->type = rdatatype;
-	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdataset_init(rdataset);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
@@ -1894,12 +1890,10 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	check_result(result, "dns_message_gettemprdatalist");
 	result = dns_message_gettemprdataset(updatemsg, &rdataset);
 	check_result(result, "dns_message_gettemprdataset");
-	dns_rdatalist_init(rdatalist);
 	rdatalist->type = rdatatype;
 	rdatalist->rdclass = rdataclass;
 	rdatalist->covers = rdatatype;
 	rdatalist->ttl = (dns_ttl_t)ttl;
-	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdataset_init(rdataset);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
