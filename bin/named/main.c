@@ -671,6 +671,11 @@ parse_command_line(int argc, char *argv[]) {
 			printf("linked to libjson-c version: %s\n",
 			       json_c_version());
 #endif
+#ifdef ISC_PLATFORM_USETHREADS
+			printf("threads support is enabled\n");
+#else
+			printf("threads support is disabled\n");
+#endif
 			exit(0);
 		case 'x':
 			/* Obsolete. No longer in use. Ignore. */
@@ -742,9 +747,11 @@ create_managers(void) {
 	if (ns_g_udpdisp > ns_g_cpus)
 		ns_g_udpdisp = ns_g_cpus;
 #endif
+#ifdef ISC_PLATFORM_USETHREADS
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "using %u UDP listener%s per interface",
 		      ns_g_udpdisp, ns_g_udpdisp == 1 ? "" : "s");
+#endif
 
 	result = isc_taskmgr_create(ns_g_mctx, ns_g_cpus, 0, &ns_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
