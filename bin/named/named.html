@@ -257,8 +257,11 @@
 <dd><p>
             Acquire a lock on the specified file at runtime; this
             helps to prevent duplicate <span><strong class="command">named</strong></span> instances
-            from running simultaneously. If not specified via this option,
-            the default lockfile is <code class="filename">/var/run/named/named.lock</code>.
+            from running simultaneously.
+            Use of this option overrides the <span><strong class="command">lock-file</strong></span>
+            option in <code class="filename">named.conf</code>.
+            If set to <code class="literal">none</code>, the lock file check
+            is disabled.
           </p></dd>
 <dt><span class="term">-x <em class="replaceable"><code>cache-file</code></em></span></dt>
 <dd>
@@ -278,7 +281,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544288"></a><h2>SIGNALS</h2>
+<a name="id2544295"></a><h2>SIGNALS</h2>
 <p>
       In routine operation, signals should not be used to control
       the nameserver; <span><strong class="command">rndc</strong></span> should be used
@@ -299,7 +302,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544404"></a><h2>CONFIGURATION</h2>
+<a name="id2544411"></a><h2>CONFIGURATION</h2>
 <p>
       The <span><strong class="command">named</strong></span> configuration file is too complex
       to describe in detail here.  A complete description is provided
@@ -316,7 +319,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544440"></a><h2>FILES</h2>
+<a name="id2544448"></a><h2>FILES</h2>
 <div class="variablelist"><dl>
 <dt><span class="term"><code class="filename">/etc/named.conf</code></span></dt>
 <dd><p>
@@ -329,7 +332,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544480"></a><h2>SEE ALSO</h2>
+<a name="id2544487"></a><h2>SEE ALSO</h2>
 <p><em class="citetitle">RFC 1033</em>,
       <em class="citetitle">RFC 1034</em>,
       <em class="citetitle">RFC 1035</em>,
@@ -342,7 +345,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544550"></a><h2>AUTHOR</h2>
+<a name="id2544557"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>

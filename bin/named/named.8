@@ -237,8 +237,11 @@ Report the version number and build options, and exit.
 .RS 4
 Acquire a lock on the specified file at runtime; this helps to prevent duplicate
 \fBnamed\fR
-instances from running simultaneously. If not specified via this option, the default lockfile is
-\fI/var/run/named/named.lock\fR.
+instances from running simultaneously. Use of this option overrides the
+\fBlock\-file\fR
+option in
+\fInamed.conf\fR. If set to
+none, the lock file check is disabled.
 .RE
 .PP
 \-x \fIcache\-file\fR

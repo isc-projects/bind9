@@ -167,6 +167,7 @@ options {
             <address_match_element>; ... };
         listen-on-v6 [ port <integer> ] [ dscp <integer> ] {
             <address_match_element>; ... };
+        lock-file ( <quoted_string> | none );
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys-directory <quoted_string>;
         masterfile-format ( text | raw | map );
