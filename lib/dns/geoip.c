@@ -136,7 +136,7 @@ state_key_init(void) {
 	return (result);
 }
 #else
-geoip_state_t prev_state;
+static geoip_state_t saved_state;
 #endif
 
 static void
@@ -192,7 +192,7 @@ set_state(unsigned int family, isc_uint32_t ipnum, const geoipv6_t *ipnum6,
 	} else
 		clean_state(state);
 #else
-	state = &prev_state;
+	state = &saved_state;
 	clean_state(state);
 #endif
 
@@ -229,7 +229,7 @@ get_state_for(unsigned int family, isc_uint32_t ipnum,
 	if (state == NULL)
 		return (NULL);
 #else
-	state = &prev_state;
+	state = &saved_state;
 #endif
 
 	if (state->family == family &&
