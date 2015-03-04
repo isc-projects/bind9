@@ -167,7 +167,6 @@ set_state(unsigned int family, isc_uint32_t ipnum, const geoipv6_t *ipnum6,
 	  GeoIPRegion *region, char *name, const char *text, int id)
 {
 	geoip_state_t *state = NULL;
-
 #ifdef ISC_PLATFORM_USETHREADS
 	isc_result_t result;
 
