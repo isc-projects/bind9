@@ -923,6 +923,7 @@ dns_tsigrcode_totext
 dns_ttl_fromtext
 dns_ttl_totext
 dns_update_signatures
+dns_update_signaturesinc
 dns_update_soaserial
 dns_validator_cancel
 dns_validator_create
@@ -1063,6 +1064,7 @@ dns_zone_getrequeststats
 dns_zone_getserial
 dns_zone_getserial2
 dns_zone_getserialupdatemethod
+dns_zone_getsignatures
 dns_zone_getsigresigninginterval
 dns_zone_getsigvalidityinterval
 dns_zone_getssutable
