@@ -89,3 +89,4 @@ rm -f import.key Kimport*
 rm -f checkgost checkdsa checkecdsa
 rm -f ns3/a-file
 rm -f ns*/named.lock
+rm -f dig.out.*

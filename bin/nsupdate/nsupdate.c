@@ -2276,6 +2276,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		dns_request_destroy(&request);
 		dns_message_renderreset(updatemsg);
 		dns_message_settsigkey(updatemsg, NULL);
+		/* XXX MPA fix zonename is freed already */
 		send_update(zname, &master_servers[master_inuse]);
 		isc_event_free(&event);
 		return;
@@ -2578,6 +2579,9 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_name_init(&master, NULL);
 	dns_name_clone(&soa.origin, &master);
 
+	/*
+	 * XXXMPA
+	 */
 	if (userzone != NULL)
 		zname = userzone;
 	else

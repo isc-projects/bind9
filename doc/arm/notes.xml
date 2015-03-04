@@ -450,6 +450,15 @@
 	  blocked.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Large inline-signing changes should be less disruptive.
+	  Signature generation is now done incrementally; the number
+	  of signatures to be generated in each quantum is controlled
+	  by "sig-signing-signatures <replaceable>number</replaceable>;".
+	  [RT #37927]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_bugs">

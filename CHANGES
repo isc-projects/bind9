@@ -1,3 +1,6 @@
+4082.	[bug]		Incrementally sign large inline zone deltas.
+			[RT #37927]
+
 4081.	[cleanup]	Use dns_rdatalist_init consistently. [RT #38759]
 
 4080.	[func]		Completed change #4022, adding a "lock-file" option
