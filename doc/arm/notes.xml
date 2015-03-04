@@ -336,7 +336,15 @@
 	  now available to enable very verbose query tracelogging. This
 	  option can only be set at compile time. This option has a
 	  negative performance impact and should be used only for
-	  debugging.
+	  debugging. [RT #37520]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  A new <command>tcp-only</command> option can be specified
+	  in <command>server</command> statements to force
+	  <command>named</command> to connect to the specified
+	  server via TCP. [RT #37800]
 	</para>
       </listitem>
     </itemizedlist>
