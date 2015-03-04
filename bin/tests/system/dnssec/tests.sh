@@ -2049,8 +2049,8 @@ then
     d=`$PERL ./ntadiff.pl "$ts_with_zone" "$added"`
     echo "d=$d" >> rndc.out.ns4.test$n.2
     # diff from $added(now) + 1week to the clamped NTA lifetime should be
-    # less than a few seconds.
-    [ $d -lt 10 ] || ret=1
+    # less than a few seconds (handle daylight saving changes by adding 3600).
+    [ $d -lt 3610 ] || ret=1
 else
     echo "I: skipped ntadiff test; install PERL module Time::Piece"
 fi
@@ -2075,6 +2075,7 @@ else
     echo "I:The DNSSEC update test requires the Net::DNS library." >&2
 fi
 
+n=`expr $n + 1`
 echo "I:checking managed key maintenance has not started yet ($n)"
 ret=0
 [ -f "ns4/managed-keys.bind.jnl" ] && ret=1
