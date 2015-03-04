@@ -1903,6 +1903,12 @@ dns_zone_setsignatures(dns_zone_t *zone, isc_uint32_t signatures);
  * Set the number of signatures that will be generated per quantum.
  */
 
+isc_uint32_t
+dns_zone_getsignatures(dns_zone_t *zone);
+/*%<
+ * Get the number of signatures that will be generated per quantum.
+ */
+
 isc_result_t
 dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
 		     isc_uint16_t keyid, isc_boolean_t deleteit);

@@ -59,6 +59,12 @@ dns_update_signatures(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		      dns_dbversion_t *oldver, dns_dbversion_t *newver,
 		      dns_diff_t *diff, isc_uint32_t sigvalidityinterval);
 
+isc_result_t
+dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
+		         dns_dbversion_t *oldver, dns_dbversion_t *newver,
+		         dns_diff_t *diff, isc_uint32_t sigvalidityinterval,
+			 dns_update_state_t **state);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_UPDATE_H */
