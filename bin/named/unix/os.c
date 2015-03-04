@@ -872,7 +872,7 @@ ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 
 void
 ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
-	FILE *lockfile;
+	FILE *fh;
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
 	void (*report)(const char *, ...);
@@ -895,9 +895,9 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		return;
 	}
 
-	lockfile = ns_os_openfile(filename, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
+	fh = ns_os_openfile(filename, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
 				  first_time);
-	if (lockfile == NULL) {
+	if (fh == NULL) {
 		cleanup_pidfile();
 		return;
 	}
@@ -906,19 +906,19 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 #else
 	pid = getpid();
 #endif
-	if (fprintf(lockfile, "%ld\n", (long)pid) < 0) {
+	if (fprintf(fh, "%ld\n", (long)pid) < 0) {
 		(*report)("fprintf() to pid file '%s' failed", filename);
-		(void)fclose(lockfile);
+		(void)fclose(fh);
 		cleanup_pidfile();
 		return;
 	}
-	if (fflush(lockfile) == EOF) {
+	if (fflush(fh) == EOF) {
 		(*report)("fflush() to pid file '%s' failed", filename);
-		(void)fclose(lockfile);
+		(void)fclose(fh);
 		cleanup_pidfile();
 		return;
 	}
-	(void)fclose(lockfile);
+	(void)fclose(fh);
 }
 
 isc_boolean_t
