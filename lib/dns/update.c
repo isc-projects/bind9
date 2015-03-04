@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2013, 2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -1603,7 +1603,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 * predecessor because the NSECs have not yet been
 			 * updated to reflect the delegation change.  This
 			 * should not matter because in this case, the correct
-			 * predecessor is either the delegation node or a 
+			 * predecessor is either the delegation node or a
 			 * newly unobscured node, and those nodes are on the
 			 * "affected" list in any case.
 			 */
@@ -1984,7 +1984,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			dns_diff_appendminimal(diff, &t);
 		}
 		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) != NULL)
-	        {
+		{
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			dns_diff_appendminimal(diff, &t);
 		}
