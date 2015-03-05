@@ -1,7 +1,7 @@
-4083.	[cleanup]	Print of the number of CPUs and UDP listeners
-			in the log and in "rndc status" output; indicate
-			whether threads are supported in "named -V" output.
-			[RT #38811]
+4083.	[cleanup]	Print the number of CPUs and UDP listeners
+			consistently in the log and in "rndc status"
+			output; indicate whether threads are supported
+			in "named -V" output. [RT #38811]
 
 4082.	[bug]		Incrementally sign large inline zone deltas.
 			[RT #37927]
