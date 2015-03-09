@@ -1,3 +1,6 @@
+4094.	[bug]		Fix a possible race in updating stats counters.
+			[RT #38826]
+
 4083.	[cleanup]	Print the number of CPUs and UDP listeners
 			consistently in the log and in "rndc status"
 			output; indicate whether threads are supported
