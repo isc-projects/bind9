@@ -1,3 +1,6 @@
+4095.	[bug]		ISC_PLATFORM_HAVEXADDQ could be inconsistently set.
+			[RT #38828]
+
 4094.	[bug]		Fix a possible race in updating stats counters.
 			[RT #38826]
 
