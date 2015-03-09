@@ -19381,6 +19381,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 esac
 
 ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
+ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
+ISC_PLATFORM_USESTDASM="#undef ISC_PLATFORM_USESTDASM"
+ISC_PLATFORM_USEMACASM="#undef ISC_PLATFORM_USEMACASM"
 if test "$use_atomic" = "yes"; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking architecture type for atomic operations" >&5
 $as_echo_n "checking architecture type for atomic operations... " >&6; }
@@ -19616,15 +19619,15 @@ if test "$have_atomic" = "yes"; then
 	ISC_PLATFORM_HAVEXADD="#define ISC_PLATFORM_HAVEXADD 1"
 	ISC_PLATFORM_HAVECMPXCHG="#define ISC_PLATFORM_HAVECMPXCHG 1"
 	ISC_PLATFORM_HAVEATOMICSTORE="#define ISC_PLATFORM_HAVEATOMICSTORE 1"
+	if test "$have_xaddq" = "yes"; then
+		ISC_PLATFORM_HAVEXADDQ="#define ISC_PLATFORM_HAVEXADDQ 1"
+	else
+		ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
+	fi
 else
 	ISC_PLATFORM_HAVEXADD="#undef ISC_PLATFORM_HAVEXADD"
 	ISC_PLATFORM_HAVECMPXCHG="#undef ISC_PLATFORM_HAVECMPXCHG"
 	ISC_PLATFORM_HAVEATOMICSTORE="#undef ISC_PLATFORM_HAVEATOMICSTORE"
-fi
-
-if test "$have_xaddq" = "yes"; then
-	ISC_PLATFORM_HAVEXADDQ="#define ISC_PLATFORM_HAVEXADDQ 1"
-else
 	ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
 fi
 
