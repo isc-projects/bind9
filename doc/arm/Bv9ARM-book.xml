@@ -4239,8 +4239,9 @@ category notify { null; };
 		      class and type.  Next it reports whether the
 		      Recursion Desired flag was set (+ if set, -
 		      if not set), if the query was signed (S),
-		      EDNS was in use (E), if TCP was used (T), if
-		      DO (DNSSEC Ok) was set (D), or if CD (Checking
+		      EDNS was in used along with the EDNS version
+		      number (E(#)), if TCP was used (T), if DO
+		      (DNSSEC Ok) was set (D), or if CD (Checking
 		      Disabled) was set (C).  After this the
 		      destination address the query was sent to is
 		      reported.
