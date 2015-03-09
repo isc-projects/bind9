@@ -1,3 +1,6 @@
+4094.	[bug]		Fix a possible race in updating stats counters.
+			[RT #38826]
+
 4082.	[bug]		Incrementally sign large inline zone deltas.
 			[RT #37927]
 
