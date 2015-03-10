@@ -12779,6 +12779,13 @@ view external {
 	      the zone object itself.)
 	    </para>
 	    <para>
+	      Zone level acls (e.g. allow-query, allow-transfer) and
+	      other configuration details of the zone are all set
+	      in the view the referenced zone is defined in.  Care
+	      need to be taken to ensure that acls are wide enough
+	      for all views referencing the zone.
+	    </para>
+	    <para>
 	      An <command>in-view</command> zone cannot be used as a
 	      response policy zone.
 	    </para>
