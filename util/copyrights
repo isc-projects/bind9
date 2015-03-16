@@ -316,7 +316,7 @@
 ./bin/nsupdate/win32/nsupdate.vcxproj.in	X	2013,2014
 ./bin/nsupdate/win32/nsupdate.vcxproj.user	X	2013
 ./bin/pkcs11/.gitignore				X	2014
-./bin/pkcs11/Makefile.in			MAKE	2009,2012,2014
+./bin/pkcs11/Makefile.in			MAKE	2009,2012,2014,2015
 ./bin/pkcs11/OLD-PKCS11-NOTES			X	2009
 ./bin/pkcs11/openssl-0.9.8ze-patch		X	2015
 ./bin/pkcs11/openssl-1.0.0q-patch		X	2015
