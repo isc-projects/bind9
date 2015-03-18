@@ -9744,9 +9744,6 @@ static void
 notify_destroy(dns_notify_t *notify, isc_boolean_t locked) {
 	isc_mem_t *mctx;
 
-	/*
-	 * Caller holds zone lock.
-	 */
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 
 	if (notify->zone != NULL) {

@@ -1,3 +1,6 @@
+4087.	[bug]		Fix a crash due to use-after-free due to sequencing
+			of tasks actions. [RT #38495]
+
 4085.	[bug]		ISC_PLATFORM_HAVEXADDQ could be inconsistently set.
 			[RT #38828]
 
