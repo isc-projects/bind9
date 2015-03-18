@@ -1,3 +1,6 @@
+4087.	[bug]		Fix a crash due to use-after-free due to sequencing
+			of tasks actions. [RT #38495]
+
 4086.	[bug]		Fix out-of-srcdir build with native pkcs11. [RT #38831]
 
 4085.	[bug]		ISC_PLATFORM_HAVEXADDQ could be inconsistently set.
