@@ -1519,6 +1519,7 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			   ev, task, find);
 
 			isc_task_sendanddetach(&task, (isc_event_t **)&ev);
+			find->flags |= FIND_EVENT_SENT;
 		} else {
 			DP(DEF_LEVEL, "cfan: skipping find %p", find);
 		}
