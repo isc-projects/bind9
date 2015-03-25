@@ -1,3 +1,6 @@
+4089.	[bug]		Send notifies immediately for slave zones during
+			startup. [RT #38843]
+
 4088.	[port]		Fixed errors when building with libressl. [RT #38899]
 
 4087.	[bug]		Fix a crash due to use-after-free due to sequencing
