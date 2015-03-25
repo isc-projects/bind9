@@ -2256,7 +2256,7 @@
 ./conftools/perllib/dnsconf/Makefile.PL		PERL	2000,2001,2004,2007,2012
 ./conftools/perllib/dnsconf/named1.conf		CONF-C	2000,2001,2004,2007
 ./conftools/perllib/dnsconf/test.pl		PERL	2000,2001,2004,2007,2012
-./contrib/README				X	2014
+./contrib/README				X	2014,2015
 ./contrib/dane/mkdane.sh			X	2012
 ./contrib/dane/tlsa6698.pem			X	2012
 ./contrib/dlz/.gitignore			X	2014
