@@ -12343,7 +12343,8 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 
 	case dns_zone_slave:
 	treat_as_slave:
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
+		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY))
 			next = zone->notifytime;
 		/* FALLTHROUGH */
 
