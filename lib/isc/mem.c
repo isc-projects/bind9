@@ -649,7 +649,7 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 	size_t new_size = quantize(size);
 	void *ret;
 
-	if (size >= ctx->max_size || new_size >= ctx->max_size) {
+	if (new_size >= ctx->max_size) {
 		/*
 		 * memget() was called on something beyond our upper limit.
 		 */
@@ -730,7 +730,7 @@ static inline void
 mem_putunlocked(isc__mem_t *ctx, void *mem, size_t size) {
 	size_t new_size = quantize(size);
 
-	if (size == ctx->max_size || new_size >= ctx->max_size) {
+	if (new_size >= ctx->max_size) {
 		/*
 		 * memput() called on something beyond our upper limit.
 		 */
@@ -1067,11 +1067,17 @@ destroy(isc__mem_t *ctx) {
 
 	if (ctx->checkfree) {
 		for (i = 0; i <= ctx->max_size; i++) {
+			if (ctx->stats[i].gets != 0U) {
+				fprintf(stderr,
+					"Failing assertion due to probable "
+					"leaked memory in context %p (\"%s\") "
+					"(stats[%u].gets == %lu).\n",
+					ctx, ctx->name, i, ctx->stats[i].gets);
 #if ISC_MEM_TRACKLINES
-			if (ctx->stats[i].gets != 0U)
 				print_active(ctx, stderr);
 #endif
-			INSIST(ctx->stats[i].gets == 0U);
+				INSIST(ctx->stats[i].gets == 0U);
+			}
 		}
 	}
 
