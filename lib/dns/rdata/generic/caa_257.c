@@ -68,7 +68,7 @@ fromtext_caa(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 	tr = token.value.as_textregion;
 	for (i = 0; i < tr.length; i++)
-		if (!alphanumeric[(unsigned int) tr.base[i]])
+		if (!alphanumeric[(unsigned char) tr.base[i]])
 			RETTOK(DNS_R_SYNTAX);
 	RETERR(uint8_tobuffer(tr.length, target));
 	RETERR(mem_tobuffer(target, tr.base, tr.length));
