@@ -1,3 +1,9 @@
+4090.	[bug]		Fix a crash while parsing malformed CAA RRs in
+			presentation format, i.e., from text such as
+			from master files. Thanks to John Van de
+			Meulebrouck Brendgard for discovering and
+			reporting this problem. [RT #39003]
+
 4089.	[bug]		Send notifies immediately for slave zones during
 			startup. [RT #38843]
 
