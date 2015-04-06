@@ -3576,8 +3576,8 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	<title><command>key</command> Statement Grammar</title>
 
 <programlisting><command>key</command> <replaceable>key_id</replaceable> {
-    algorithm <replaceable>string</replaceable>;
-    secret <replaceable>string</replaceable>;
+    algorithm <replaceable>algorithm_id</replaceable>;
+    secret <replaceable>secret_string</replaceable>;
 };
 </programlisting>
 
