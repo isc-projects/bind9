@@ -12789,6 +12789,10 @@ view external {
 	      An <command>in-view</command> zone cannot be used as a
 	      response policy zone.
 	    </para>
+	    <para>
+	      An <command>in-view</command> zone is not intended to reference
+	      a <command>forward</command> zone.
+	    </para>
 	  </sect3>
 
 	</sect2>

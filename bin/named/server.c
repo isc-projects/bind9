@@ -2186,8 +2186,8 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "type", &obj);
-		INSIST(obj != NULL);
-		if (strcasecmp(cfg_obj_asstring(obj), "forward") == 0) {
+		if (obj != NULL &&
+		    strcasecmp(cfg_obj_asstring(obj), "forward") == 0) {
 			obj = NULL;
 			(void)cfg_map_get(zoptions, "forward", &obj);
 			if (obj == NULL)
