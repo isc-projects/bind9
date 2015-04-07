@@ -75,6 +75,14 @@
 	  [RT #37927]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  When retrying a query via TCP due to the first answer being
+	  truncated, <command>dig</command> will now correctly send
+	  the SIT (server identity token) value returned by the server
+	  in the prior response. [RT #39047]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_bugs">

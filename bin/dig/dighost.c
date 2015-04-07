@@ -150,6 +150,10 @@ int ndots = -1;
 int tries = 3;
 int lookup_counter = 0;
 
+#ifdef ISC_PLATFORM_USESIT
+static char sitvalue[256];
+#endif
+
 #ifdef WITH_IDN
 static void		initialize_idn(void);
 static isc_result_t	output_filter(isc_buffer_t *buffer,
@@ -3313,6 +3317,7 @@ process_sit(dig_lookup_t *l, dns_message_t *msg,
 	isc_buffer_t hexbuf;
 	size_t len;
 	const unsigned char *sit;
+	isc_boolean_t copysit;
 	isc_result_t result;
 
 	if (l->sitvalue != NULL) {
@@ -3321,9 +3326,11 @@ process_sit(dig_lookup_t *l, dns_message_t *msg,
 		check_result(result, "isc_hex_decodestring");
 		sit = isc_buffer_base(&hexbuf);
 		len = isc_buffer_usedlength(&hexbuf);
+		copysit = ISC_FALSE;
 	} else {
 		sit = cookie;
 		len = sizeof(cookie);
+		copysit = ISC_TRUE;
 	}
 
 	INSIST(msg->sitok == 0 && msg->sitbad == 0);
@@ -3333,10 +3340,25 @@ process_sit(dig_lookup_t *l, dns_message_t *msg,
 		} else {
 			printf(";; Warning: SIT client cookie mismatch\n");
 			msg->sitbad = 1;
+			copysit = ISC_FALSE;
 		}
 	} else {
 		printf(";; Warning: SIT bad token (too short)\n");
 		msg->sitbad = 1;
+		copysit = ISC_FALSE;
+	}
+	if (copysit) {
+		isc_region_t r;
+
+		r.base = isc_buffer_current(optbuf);
+		r.length = (unsigned int)optlen;
+		isc_buffer_init(&hexbuf, sitvalue, sizeof(sitvalue));
+		result = isc_hex_totext(&r, 2, "", &hexbuf);
+		check_result(result, "isc_hex_totext");
+		if (isc_buffer_availablelength(&hexbuf) > 0) {
+			isc_buffer_putuint8(&hexbuf, 0);
+			l->sitvalue = sitvalue;
+		}
 	}
 	isc_buffer_forward(optbuf, (unsigned int)optlen);
 }
@@ -3633,6 +3655,10 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	}
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0 &&
 	    !l->ignore && !l->tcp_mode) {
+#ifdef ISC_PLATFORM_USESIT
+		if (l->sitvalue == NULL && l->sit && msg->opt != NULL)
+			process_opt(l, msg);
+#endif
 		if (l->comments)
 			printf(";; Truncated, retrying in TCP mode.\n");
 		n = requeue_lookup(l, ISC_TRUE);
