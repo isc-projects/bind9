@@ -1,3 +1,6 @@
+4093.	[func]		Dig now learns the SIT value from truncated
+			responses when it retries over TCP. [RT #39047]
+
 4092.	[bug]		'in-view' didn't work for zones beneath a empty zone.
 			[RT #39173]
 
