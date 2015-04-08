@@ -87,6 +87,12 @@
 	  in zt.c. [RT #37573]
  	</para>
        </listitem>
+      <listitem>
+	<para>
+	  A race during shutdown or reconfiguration could
+	  cause an assertion failure in mem.c. [RT #38979]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">
