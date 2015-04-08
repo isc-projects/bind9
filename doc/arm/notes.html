@@ -72,6 +72,12 @@
 	  by "sig-signing-signatures <em class="replaceable"><code>number</code></em>;".
 	  [RT #37927]
 	</p></li>
+<li><p>
+	  When retrying a query via TCP due to the first answer being
+	  truncated, <span><strong class="command">dig</strong></span> will now correctly send
+	  the SIT (server identity token) value returned by the server
+	  in the prior response. [RT #39047]
+	</p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
