@@ -543,6 +543,8 @@ static void add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 static inline isc_result_t findnoqname(fetchctx_t *fctx, dns_name_t *name,
 				       dns_rdatatype_t type,
 				       dns_name_t **noqname);
+static void fctx_increference(fetchctx_t *fctx);
+static isc_boolean_t fctx_decreference(fetchctx_t *fctx);
 
 /*%
  * Increment resolver-related statistics counters.
@@ -825,10 +827,12 @@ fctx_startidletimer(fetchctx_t *fctx, isc_interval_t *interval) {
  */
 #define fctx_stopidletimer      fctx_starttimer
 
-
 static inline void
 resquery_destroy(resquery_t **queryp) {
+	dns_resolver_t *res;
+	isc_boolean_t empty;
 	resquery_t *query;
+	fetchctx_t *fctx;
 
 	REQUIRE(queryp != NULL);
 	query = *queryp;
@@ -836,15 +840,21 @@ resquery_destroy(resquery_t **queryp) {
 
 	INSIST(query->tcpsocket == NULL);
 
-	query->fctx->nqueries--;
-	if (SHUTTINGDOWN(query->fctx)) {
-		dns_resolver_t *res = query->fctx->res;
-		if (maybe_destroy(query->fctx, ISC_FALSE))
-			empty_bucket(res);
-	}
+	fctx = query->fctx;
+	res = fctx->res;
+
+	fctx->nqueries--;
+
+	LOCK(&res->buckets[fctx->bucketnum].lock);
+	empty = fctx_decreference(query->fctx);
+	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+
 	query->magic = 0;
 	isc_mem_put(query->mctx, query, sizeof(*query));
 	*queryp = NULL;
+
+	if (empty)
+		empty_bucket(res);
 }
 
 static void
@@ -1628,6 +1638,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	}
 
 	query->dispentry = NULL;
+	fctx_increference(fctx);
 	query->fctx = fctx;
 	query->tsig = NULL;
 	query->tsigkey = NULL;
@@ -6909,9 +6920,20 @@ answer_response(fetchctx_t *fctx) {
 	return (result);
 }
 
+static void
+fctx_increference(fetchctx_t *fctx) {
+	REQUIRE(VALID_FCTX(fctx));
+
+	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+	fctx->references++;
+	UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+}
+
 static isc_boolean_t
 fctx_decreference(fetchctx_t *fctx) {
 	isc_boolean_t bucket_empty = ISC_FALSE;
+
+	REQUIRE(VALID_FCTX(fctx));
 
 	INSIST(fctx->references > 0);
 	fctx->references--;
@@ -8148,9 +8170,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result, __LINE__);
 		else {
-			LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
-			fctx->references++;
-			UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+			fctx_increference(fctx);
 			result = fctx_stopidletimer(fctx);
 			if (result != ISC_R_SUCCESS)
 				fctx_done(fctx, result, __LINE__);
