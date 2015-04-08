@@ -1,3 +1,6 @@
+4094.	[bug]		A race during shutdown or reconfiguration could
+			cause an assertion in mem.c. [RT #38979]
+
 4093.	[func]		Dig now learns the SIT value from truncated
 			responses when it retries over TCP. [RT #39047]
 
