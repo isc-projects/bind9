@@ -1,3 +1,6 @@
+4095.	[bug]		zone->options2 was not being properly initalized.
+			[RT #39228]
+
 4094.	[bug]		A race during shutdown or reconfiguration could
 			cause an assertion in mem.c. [RT #38979]
 

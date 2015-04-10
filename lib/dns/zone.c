@@ -936,6 +936,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->type = dns_zone_none;
 	zone->flags = 0;
 	zone->options = 0;
+	zone->options2 = 0;
 	zone->keyopts = 0;
 	zone->db_argc = 0;
 	zone->db_argv = NULL;
