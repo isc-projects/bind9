@@ -503,7 +503,7 @@
 	  <listitem>
 	    <para>
 	      Use GSS-TSIG to sign the updated.  This is equivalent to
-	      specifying <option>-g</option> on the commandline.
+	      specifying <option>-g</option> on the command line.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -516,7 +516,7 @@
 	    <para>
 	      Use the Windows 2000 version of GSS-TSIG to sign the updated.
 	      This is equivalent to specifying <option>-o</option> on the
-	      commandline.
+	      command line.
 	    </para>
 	  </listitem>
 	</varlistentry>
