@@ -1,3 +1,6 @@
+4096.	[bug]		Fix a use after free of query->sendevent.
+			[RT #39132]
+
 4094.	[bug]		A race during shutdown or reconfiguration could
 			cause an assertion in mem.c. [RT #38979]
 
