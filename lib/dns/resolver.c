@@ -1276,6 +1276,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 static void
 process_sendevent(resquery_t *query, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
+	isc_boolean_t destroy_query = ISC_FALSE;
 	isc_boolean_t retry = ISC_FALSE;
 	isc_result_t result;
 	fetchctx_t *fctx;
@@ -1290,7 +1291,7 @@ process_sendevent(resquery_t *query, isc_event_t *event) {
 			 */
 			if (query->tcpsocket != NULL)
 				isc_socket_detach(&query->tcpsocket);
-			resquery_destroy(&query);
+			destroy_query = ISC_TRUE;
 		}
 	} else {
 		switch (sevent->result) {
@@ -1340,6 +1341,9 @@ process_sendevent(resquery_t *query, isc_event_t *event) {
 		else
 			fctx_try(fctx, ISC_TRUE, ISC_FALSE);
 	}
+
+	if (destroy_query)
+		resquery_destroy(&query);
 }
 
 static void
