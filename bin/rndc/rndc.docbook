@@ -368,7 +368,7 @@
 	<listitem>
 	  <para>
 	    Sync changes in the journal file for a dynamic zone
-	    to the master file.  If the "-clean" option is
+	    to the master file.  If the <option>-clean</option> option is
 	    specified, the journal file is also removed.  If
 	    no zone is specified, then all zones are synced.
 	  </para>
