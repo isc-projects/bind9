@@ -27,7 +27,7 @@
     written for any other.
   </para>
   <para>
-    Historically, DLZ drivers had to be statically linked with the named
+    Historically, DLZ drivers had to be statically linked with the <command>named</command>
     binary and were turned on via a configure option at compile time (for
     example, <userinput>"configure --with-dlz-ldap"</userinput>).
     Currently, the drivers provided in the BIND 9 tarball in
@@ -38,15 +38,15 @@
     In BIND 9.8 and higher, it is possible to link some DLZ modules
     dynamically at runtime, via the DLZ "dlopen" driver, which acts as a
     generic wrapper around a shared object implementing the DLZ API.  The
-    "dlopen" driver is linked into named by default, so configure options
+    "dlopen" driver is linked into <command>named</command> by default, so configure options
     are no longer necessary when using these dynamically linkable drivers,
     but are still needed for the older drivers in
     <filename>contrib/dlz/drivers</filename>.
   </para>
 
   <para>
-    When the DLZ module provides data to named, it does so in text format.
-    The response is converted to DNS wire format by named.  This
+    When the DLZ module provides data to <command>named</command>, it does so in text format.
+    The response is converted to DNS wire format by <command>named</command>.  This
     conversion, and the lack of any internal caching, places significant
     limits on the query performance of DLZ modules.  Consequently, DLZ is
     not recommended for use on high-volume servers.  However, it can be

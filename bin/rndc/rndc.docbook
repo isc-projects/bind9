@@ -193,7 +193,7 @@
 	    from the configuration file.
 	    <replaceable class="parameter">key_id</replaceable>
 	    must be
-	    known by named with the same algorithm and secret string
+	    known by <command>named</command> with the same algorithm and secret string
 	    in order for control message validation to succeed.
 	    If no <replaceable class="parameter">key_id</replaceable>
 	    is specified, <command>rndc</command> will first look
@@ -649,7 +649,7 @@
 	    NTA's lifetime is elapsed.
 	  </para>
 	  <para>
-	    NTAs persist across restarts of the named server.
+	    NTAs persist across restarts of the <command>named</command> server.
 	    The NTAs for a view are saved in a file called
 	    <filename><replaceable>name</replaceable>.nta</filename>,
 	    where <replaceable>name</replaceable> is the

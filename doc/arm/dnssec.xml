@@ -273,7 +273,7 @@
   <sect2>
     <title>Periodic re-signing</title>
   </sect2>
-  <para>In any secure zone which supports dynamic updates, named
+  <para>In any secure zone which supports dynamic updates, <command>named</command>
   will periodically re-sign RRsets which have not been re-signed as
   a result of some update action. The signature lifetimes will be
   adjusted so as to spread the re-sign load over time rather than

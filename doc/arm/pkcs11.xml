@@ -604,7 +604,7 @@ $ <userinput>dnssec-signzone -E '' -S example.net</userinput>
     <para>
       If you want <command>named</command> to dynamically re-sign zones
       using HSM keys, and/or to to sign new records inserted via nsupdate,
-      then named must have access to the HSM PIN. In OpenSSL-based PKCS#11,
+      then <command>named</command> must have access to the HSM PIN. In OpenSSL-based PKCS#11,
       this is accomplished by placing the PIN into the openssl.cnf file
       (in the above examples, 
       <filename>/opt/pkcs11/usr/ssl/openssl.cnf</filename>).
@@ -612,7 +612,7 @@ $ <userinput>dnssec-signzone -E '' -S example.net</userinput>
     <para>
       The location of the openssl.cnf file can be overridden by
       setting the OPENSSL_CONF environment variable before running
-      named.
+      <command>named</command>.
     </para>
     <para>Sample openssl.cnf:</para>
     <programlisting>

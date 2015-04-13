@@ -5349,7 +5349,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	      <para>
 		Specifying <command>lock-file none</command> disables the
 		use of a lock file.  <command>lock-file</command> is
-		ignored if named was run using the <option>-X</option>
+		ignored if <command>named</command> was run using the <option>-X</option>
 		option, which overrides it.  Changes to
 		<command>lock-file</command> are ignored if
 		<command>named</command> is being reloaded or

@@ -30,7 +30,7 @@
 
   <refnamediv>
     <refname><filename>named.conf</filename></refname>
-    <refpurpose>configuration file for named</refpurpose>
+    <refpurpose>configuration file for <command>named</command></refpurpose>
   </refnamediv>
 
   <docinfo>

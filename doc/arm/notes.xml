@@ -135,7 +135,7 @@
 	  can be changed by setting the <option>nta-lifetime</option> in
 	  <filename>named.conf</filename>. When added, NTAs are stored in a
 	  file (<filename><replaceable>viewname</replaceable>.nta</filename>)
-	  in order to persist across restarts of the named server.
+	  in order to persist across restarts of the <command>named</command> server.
 	</para>
       </listitem>
       <listitem>
@@ -224,7 +224,7 @@
       <listitem>
 	<para>
 	  <command>named -L <replaceable>filename</replaceable></command>
-	  causes named to send log messages to the specified file by
+	  causes <command>named</command> to send log messages to the specified file by
 	  default instead of to the system log.
 	</para>
       </listitem>
@@ -443,7 +443,7 @@
       </listitem>
       <listitem>
 	<para>
-	  If named is not configured to validate the answer then
+	  If <command>named</command> is not configured to validate the answer then
 	  allow fallback to plain DNS on timeout even when we know
 	  the server supports EDNS.  This will allow the server to
 	  potentially resolve signed queries when TCP is being

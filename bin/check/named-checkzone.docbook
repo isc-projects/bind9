@@ -431,7 +431,7 @@
             Chroot to <filename>directory</filename> so that
             include
             directives in the configuration file are processed as if
-            run by a similarly chrooted named.
+            run by a similarly chrooted <command>named</command>.
           </para>
         </listitem>
       </varlistentry>
