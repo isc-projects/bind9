@@ -1,3 +1,6 @@
+4097.	[func]		Add additional logging about xfrin transfer status.
+			[RT #39170]
+
 4096.	[bug]		Fix a use after free of query->sendevent.
 			[RT #39132]
 
