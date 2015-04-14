@@ -31,7 +31,7 @@ while true; do
         exit 1
     fi
 
-    if grep "example.nil/IN.*Transfer completed" ns2/named.run > /dev/null
+    if grep "example.nil/IN.*Transfer status" ns2/named.run > /dev/null
     then
         break
     else
