@@ -112,7 +112,9 @@ Use the key
 \fIkey_id\fR
 from the configuration file.
 \fIkey_id\fR
-must be known by named with the same algorithm and secret string in order for control message validation to succeed. If no
+must be known by
+\fBnamed\fR
+with the same algorithm and secret string in order for control message validation to succeed. If no
 \fIkey_id\fR
 is specified,
 \fBrndc\fR
@@ -199,7 +201,9 @@ timer.
 .PP
 \fBsync \fR\fB[\-clean]\fR\fB \fR\fB[\fIzone\fR [\fIclass\fR [\fIview\fR]]]\fR
 .RS 4
-Sync changes in the journal file for a dynamic zone to the master file. If the "\-clean" option is specified, the journal file is also removed. If no zone is specified, then all zones are synced.
+Sync changes in the journal file for a dynamic zone to the master file. If the
+\fB\-clean\fR
+option is specified, the journal file is also removed. If no zone is specified, then all zones are synced.
 .RE
 .PP
 \fBnotify \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR
@@ -361,7 +365,9 @@ A negative trust anchor selectively disables DNSSEC validation for zones that ar
 \fBnamed\fR
 will abort the DNSSEC validation process and treat the data as insecure rather than bogus. This continues until the NTA's lifetime is elapsed.
 .sp
-NTAs persist across restarts of the named server. The NTAs for a view are saved in a file called
+NTAs persist across restarts of the
+\fBnamed\fR
+server. The NTAs for a view are saved in a file called
 \fI\fIname\fR\fR\fI.nta\fR, where
 \fIname\fR
 is the name of the view, or if it contains characters that are incompatible with use as a file name, a cryptographic hash generated from the name of the view.
