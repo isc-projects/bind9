@@ -78,7 +78,7 @@
 ./bin/dig/.gitignore				X	2012,2014
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005,2007,2009,2012,2013
 ./bin/dig/dig.1					MAN	DOCBOOK
-./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014,2015
 ./bin/dig/dig.html				HTML	DOCBOOK
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
@@ -1348,6 +1348,7 @@
 ./bin/tests/system/masterfile/tests.sh		SH	2001,2004,2007,2010,2012,2015
 ./bin/tests/system/masterfile/zone/inheritownerafterinclude.db	ZONE	2015
 ./bin/tests/system/masterfile/zone/inheritownerafterinclude.good	X	2015
+./bin/tests/system/masterfile/zone/nameservers.db	ZONE	2015
 ./bin/tests/system/masterformat/clean.sh	SH	2005,2007,2011,2012,2014
 ./bin/tests/system/masterformat/ns1/compile.sh	SH	2005,2006,2007,2011,2012
 ./bin/tests/system/masterformat/ns1/example.db	ZONE	2005,2007,2014
