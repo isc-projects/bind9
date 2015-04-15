@@ -1,3 +1,7 @@
+4099.	[port]		clang: make unknown commandline options hard errors
+			when determining what options are supported.
+			[RT #39273]
+
 4098.	[bug]		Address use-after-free issue when using a
 			predecessor key with dnssec-settime. [RT #39272]
 
