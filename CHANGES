@@ -1,10 +1,13 @@
+4098.	[bug]		Address use-after-free issue when using a
+			predecessor key with dnssec-settime. [RT #39272]
+
 4097.	[func]		Add additional logging about xfrin transfer status.
 			[RT #39170]
 
 4096.	[bug]		Fix a use after free of query->sendevent.
 			[RT #39132]
 
-4095.	[bug]		zone->options2 was not being properly initalized.
+4095.	[bug]		zone->options2 was not being properly initialized.
 			[RT #39228]
 
 4094.	[bug]		A race during shutdown or reconfiguration could
@@ -109,7 +112,7 @@
 4061.	[bug]		Handle timeout in legacy system test. [RT #38573]
 
 4060.	[bug]		dns_rdata_freestruct could be called on a
-			uninitialised structure when handling a error.
+			uninitialized structure when handling a error.
 			[RT #38568]
 
 4059.	[bug]		Addressed valgrind warnings. [RT #38549]
