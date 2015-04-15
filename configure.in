@@ -1574,7 +1574,7 @@ if test "X$GCC" = "Xyes"; then
 	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"
 	AC_MSG_CHECKING(if "$CC" supports -fno-strict-aliasing)
 	SAVE_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS -fno-strict-aliasing"
+	CFLAGS="$CFLAGS -Werror -fno-strict-aliasing"
 	AC_TRY_COMPILE(,, [FNOSTRICTALIASING=yes],[FNOSTRICTALIASING=no])
 	CFLAGS="$SAVE_CFLAGS"
 	if test "$FNOSTRICTALIASING" = "yes"; then
@@ -1588,7 +1588,7 @@ if test "X$GCC" = "Xyes"; then
 	#
 	AC_MSG_CHECKING(if "$CC" supports -fno-delete-null-pointer-checks)
 	SAVE_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS -fno-delete-null-pointer-checks"
+	CFLAGS="$CFLAGS -Werror -fno-delete-null-pointer-checks"
 	AC_TRY_COMPILE(,, [FNODELETENULLPOINTERCHECKS=yes],
 			  [FNODELETENULLPOINTERCHECKS=no])
 	CFLAGS="$SAVE_CFLAGS"

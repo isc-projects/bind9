@@ -15668,7 +15668,7 @@ if test "X$GCC" = "Xyes"; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if \"$CC\" supports -fno-strict-aliasing" >&5
 $as_echo_n "checking if \"$CC\" supports -fno-strict-aliasing... " >&6; }
 	SAVE_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS -fno-strict-aliasing"
+	CFLAGS="$CFLAGS -Werror -fno-strict-aliasing"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -15701,7 +15701,7 @@ $as_echo "no" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if \"$CC\" supports -fno-delete-null-pointer-checks" >&5
 $as_echo_n "checking if \"$CC\" supports -fno-delete-null-pointer-checks... " >&6; }
 	SAVE_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS -fno-delete-null-pointer-checks"
+	CFLAGS="$CFLAGS -Werror -fno-delete-null-pointer-checks"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
