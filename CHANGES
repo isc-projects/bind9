@@ -1,3 +1,6 @@
+4102.	[bug]		Fix a use after free bug introduced in change
+			#4094.  [RT #39281]
+
 4101.	[bug]		dig: the +split and +rrcomments options didn't
 			work with +short. [RT #39291]
 

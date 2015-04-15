@@ -833,6 +833,7 @@ resquery_destroy(resquery_t **queryp) {
 	isc_boolean_t empty;
 	resquery_t *query;
 	fetchctx_t *fctx;
+	unsigned int bucket;
 
 	REQUIRE(queryp != NULL);
 	query = *queryp;
@@ -842,12 +843,13 @@ resquery_destroy(resquery_t **queryp) {
 
 	fctx = query->fctx;
 	res = fctx->res;
+	bucket = fctx->bucketnum;
 
 	fctx->nqueries--;
 
-	LOCK(&res->buckets[fctx->bucketnum].lock);
+	LOCK(&res->buckets[bucket].lock);
 	empty = fctx_decreference(query->fctx);
-	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+	UNLOCK(&res->buckets[bucket].lock);
 
 	query->magic = 0;
 	isc_mem_put(query->mctx, query, sizeof(*query));
