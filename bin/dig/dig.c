@@ -306,6 +306,7 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	isc_result_t result;
 	isc_uint64_t diff;
 	char store[sizeof("12345678901234567890")];
+	unsigned int styleflags = 0;
 
 	if (query->lookup->trace || query->lookup->ns_search_only) {
 		result = dns_rdatatype_totext(rdata->type, buf);
@@ -313,7 +314,11 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 			return (result);
 		ADD_STRING(buf, " ");
 	}
-	result = dns_rdata_totext(rdata, NULL, buf);
+
+	if (rrcomments)
+		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
+	result = dns_rdata_tofmttext(rdata, NULL, styleflags, 0,
+				     splitwidth, " ", buf);
 	if (result == ISC_R_NOSPACE)
 		return (result);
 	check_result(result, "dns_rdata_totext");

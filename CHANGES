@@ -1,3 +1,6 @@
+4101.	[bug]		dig: the +split option didn't work with +short.
+			[RT #39291]
+
 4100.	[bug]		Inherited owernames on the line immediately following
 			a $INCLUDE were not working.  [RT #39268]
 

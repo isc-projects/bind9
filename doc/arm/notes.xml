@@ -93,6 +93,12 @@
 	  cause an assertion failure in mem.c. [RT #38979]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Some answer formatting options didn't work correctly with
+	  <command>dig +short</command>. [RT #39291]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">
