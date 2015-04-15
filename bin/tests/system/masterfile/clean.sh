@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2010, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2010, 2012, 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -20,3 +20,4 @@
 rm -f dig.out.*
 rm -f */named.memstats
 rm -f ns*/named.lock
+rm -f checkzone.out*

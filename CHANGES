@@ -1,3 +1,6 @@
+4100.	[bug]		Inherited owernames on the line immediately following
+			a $INCLUDE were not working.  [RT #39268]
+
 4099.	[port]		clang: make unknown commandline options hard errors
 			when determining what options are supported.
 			[RT #39273]
