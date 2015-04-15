@@ -1491,7 +1491,7 @@
 ./bin/tests/system/lwresd/ns1/root.db		ZONE	2000,2001,2004,2007
 ./bin/tests/system/lwresd/resolv.conf		CONF-SH	2000,2001,2004,2007,2012
 ./bin/tests/system/lwresd/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013
-./bin/tests/system/masterfile/clean.sh		SH	2001,2004,2007,2010,2012
+./bin/tests/system/masterfile/clean.sh		SH	2001,2004,2007,2010,2012,2015
 ./bin/tests/system/masterfile/knowngood.dig.out	X	2001,2004,2012
 ./bin/tests/system/masterfile/ns1/include.db	ZONE	2001,2004,2007,2012
 ./bin/tests/system/masterfile/ns1/named.conf	CONF-C	2001,2004,2007
@@ -1500,7 +1500,10 @@
 ./bin/tests/system/masterfile/ns1/ttl2.db	ZONE	2001,2004,2007
 ./bin/tests/system/masterfile/ns2/example.db	ZONE	2010
 ./bin/tests/system/masterfile/ns2/named.conf	CONF-C	2010
-./bin/tests/system/masterfile/tests.sh		SH	2001,2004,2007,2010,2012
+./bin/tests/system/masterfile/tests.sh		SH	2001,2004,2007,2010,2012,2015
+./bin/tests/system/masterfile/zone/inheritownerafterinclude.db	ZONE	2015
+./bin/tests/system/masterfile/zone/inheritownerafterinclude.good	X	2015
+./bin/tests/system/masterfile/zone/nameservers.db	ZONE	2015
 ./bin/tests/system/masterformat/clean.sh	SH	2005,2007,2011,2012,2013,2014
 ./bin/tests/system/masterformat/ns1/compile.sh	SH	2005,2006,2007,2011,2012,2013,2014
 ./bin/tests/system/masterformat/ns1/example.db	ZONE	2005,2007,2014
@@ -3498,7 +3501,7 @@
 ./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2009
 ./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2007,2013,2014
 ./lib/isc/iterated_hash.c			C	2006,2008,2009
-./lib/isc/lex.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2013,2014
+./lib/isc/lex.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2013,2014,2015
 ./lib/isc/lfsr.c				C	1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/lib.c					C	1999,2000,2001,2004,2005,2007,2009,2013,2014
 ./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2011,2012,2013,2014
