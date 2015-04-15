@@ -338,9 +338,12 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		ADD_STRING(buf, " ");
 	}
 
+	if (rrcomments)
+		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	if (nocrypto)
 		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
-	result = dns_rdata_tofmttext(rdata, NULL, styleflags, 0, 60, " ", buf);
+	result = dns_rdata_tofmttext(rdata, NULL, styleflags, 0,
+				     splitwidth, " ", buf);
 	if (result == ISC_R_NOSPACE)
 		return (result);
 	check_result(result, "dns_rdata_totext");
