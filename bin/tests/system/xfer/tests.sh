@@ -248,7 +248,7 @@ EOF
 
 $RNDCCMD reload | sed 's/^/I:ns4 /'
 
-cur=`wc -l < ns4/named.run`
+cur=`awk 'BEGIN {l=0} // {l++} END { print l }' ns4/named.run`
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
@@ -261,7 +261,7 @@ tail -n +"$cur" < ns4/named.run | grep "Transfer status: success" > /dev/null ||
     echo "I: failed: expected status was not logged"
     status=1
 }
-cur=`wc -l < ns4/named.run`
+cur=`awk 'BEGIN {l=0} // {l++} END { print l }' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'initial AXFR' >/dev/null || {
     echo "I:failed"
@@ -281,7 +281,7 @@ tail -n +"$cur" < ns4/named.run | grep "Transfer status: expected a TSIG or SIG(
     echo "I: failed: expected status was not logged"
     status=1
 }
-cur=`wc -l < ns4/named.run`
+cur=`awk 'BEGIN {l=0} // {l++} END { print l }' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'unsigned AXFR' >/dev/null && {
     echo "I:failed"
@@ -301,7 +301,7 @@ tail -n +"$cur" < ns4/named.run | grep "Transfer status: tsig verify failure" > 
     echo "I: failed: expected status was not logged"
     status=1
 }
-cur=`wc -l < ns4/named.run`
+cur=`awk 'BEGIN {l=0} // {l++} END { print l }' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'bad keydata AXFR' >/dev/null && {
     echo "I:failed"
@@ -321,7 +321,7 @@ tail -n +"$cur" < ns4/named.run | grep "Transfer status: expected a TSIG or SIG(
     echo "I: failed: expected status was not logged"
     status=1
 }
-cur=`wc -l < ns4/named.run`
+cur=`awk 'BEGIN {l=0} // {l++} END { print l }' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'partially signed AXFR' >/dev/null && {
     echo "I:failed"
@@ -341,7 +341,7 @@ tail -n +"$cur" < ns4/named.run | grep "tsig key 'tsig_key': key name and algori
     echo "I: failed: expected status was not logged"
     status=1
 }
-cur=`wc -l < ns4/named.run`
+cur=`awk 'BEGIN {l=0} // {l++} END { print l }' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'unknown key AXFR' >/dev/null && {
     echo "I:failed"
@@ -361,7 +361,7 @@ tail -n +"$cur" < ns4/named.run | grep "tsig key 'tsig_key': key name and algori
     echo "I: failed: expected status was not logged"
     status=1
 }
-cur=`wc -l < ns4/named.run`
+cur=`awk 'BEGIN {l=0} // {l++} END { print l }' ns4/named.run`
 
 $DIGCMD nil. TXT | grep 'incorrect key AXFR' >/dev/null && {
     echo "I:failed"
