@@ -1729,7 +1729,7 @@ Optional Packages:
   --with-purify=PATH      use Rational purify
   --with-gperftools-profiler  use gperftools CPU profiler
   --with-kame=PATH	  use Kame IPv6 default path /usr/local/v6
-  --with-readline=LIBSPEC    specify readline library default -lreadline
+  --with-readline=LIBSPEC    specify readline library default auto
 
   --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
   --with-idn=MPREFIX      enable IDN support using idnkit default PREFIX
@@ -18515,18 +18515,69 @@ fi
 if test "${with_readline+set}" = set; then :
   withval=$with_readline; readline="$withval"
 else
-  readline="-lreadline"
+  readline="auto"
 fi
 
 case "$readline" in
 no)	;;
+yes|auto)
+	saved_LIBS="$LIBS"
+	for readline in -ledit -lreadline
+	do
+		LIBS="$readline"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $readline" >&5
+$as_echo "$as_me: checking for readline with $readline" >&6;}
+		for ac_func in readline
+do :
+  ac_fn_c_check_func "$LINENO" "readline" "ac_cv_func_readline"
+if test "x$ac_cv_func_readline" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_READLINE 1
+_ACEOF
+
+fi
+done
+
+		if test "$ac_cv_func_readline" = "yes"
+		then
+			READLINE_LIB="$readline"
+			break
+		fi
+		if test "X$readline" = "X"
+		then
+			continue
+		fi
+		for lib in -lterminfo -ltermcap -lncurses -lcurses
+		do
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $readline $lib" >&5
+$as_echo "$as_me: checking for readline with $readline $lib" >&6;}
+			unset ac_cv_func_readline
+			LIBS="$readline $lib"
+			for ac_func in readline
+do :
+  ac_fn_c_check_func "$LINENO" "readline" "ac_cv_func_readline"
+if test "x$ac_cv_func_readline" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_READLINE 1
+_ACEOF
+
+fi
+done
+
+			if test "$ac_cv_func_readline" = "yes"
+			then
+				READLINE_LIB="$readline $lib"
+				break
+			fi
+		done
+	done
+	LIBS="$saved_LIBS"
+	;;
 *)
-	if test "x$readline" = "xyes"
-	then
-		readline=-lreadline
-	fi
 	saved_LIBS="$LIBS"
 	LIBS="$readline"
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $readline" >&5
+$as_echo "$as_me: checking for readline with $readline" >&6;}
 	for ac_func in readline
 do :
   ac_fn_c_check_func "$LINENO" "readline" "ac_cv_func_readline"
@@ -18541,11 +18592,34 @@ done
 	if test "$ac_cv_func_readline" = "yes"
 	then
 		READLINE_LIB="$readline"
+	else
+		for lib in -lterminfo -ltermcap -lncurses -lcurses
+		do
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $readline $lib" >&5
+$as_echo "$as_me: checking for readline with $readline $lib" >&6;}
+			unset ac_cv_func_readline
+			LIBS="$readline $lib"
+			for ac_func in readline
+do :
+  ac_fn_c_check_func "$LINENO" "readline" "ac_cv_func_readline"
+if test "x$ac_cv_func_readline" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_READLINE 1
+_ACEOF
+
+fi
+done
+
+			if test "$ac_cv_func_readline" = "yes"
+			then
+				READLINE_LIB="$readline $lib"
+				break
+			fi
+		done
 	fi
 	LIBS="$saved_LIBS"
 	;;
 esac
-
 
 ISC_PRINT_OBJS=
 ISC_PRINT_SRCS=
