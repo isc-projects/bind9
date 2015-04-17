@@ -11843,7 +11843,7 @@ fi
   test -n "$PYTHON" && break
 done
 
-				if test "X$PYTHON" == "X"; then
+				if test "X$PYTHON" = "X"; then
 					continue;
 				fi
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
@@ -11858,7 +11858,7 @@ $as_echo "not found" >&6; }
 				unset ac_cv_path_PYTHON
 				unset PYTHON
 			done
-			if test "X$PYTHON" == "X"
+			if test "X$PYTHON" = "X"
 			then
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for python support" >&5
 $as_echo_n "checking for python support... " >&6; }
