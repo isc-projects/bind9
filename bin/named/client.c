@@ -1875,7 +1875,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	client->ecs_scope = 0;
 	client->attributes |= NS_CLIENTATTR_HAVEECS;
 
-	isc_buffer_forward(buf, optlen);
+	isc_buffer_forward(buf, (unsigned int)optlen);
 	return (ISC_R_SUCCESS);
 }
 

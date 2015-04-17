@@ -10122,11 +10122,11 @@ static isc_result_t
 putmem(isc_buffer_t **b, const char *str, size_t len) {
 	isc_result_t result;
 
-	result = isc_buffer_reserve(b, len);
+	result = isc_buffer_reserve(b, (unsigned int)len);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOSPACE);
 
-	isc_buffer_putmem(*b, (const unsigned char *)str, len);
+	isc_buffer_putmem(*b, (const unsigned char *)str, (unsigned int)len);
 	return (ISC_R_SUCCESS);
 }
 

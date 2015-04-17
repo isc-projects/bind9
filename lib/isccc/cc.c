@@ -207,7 +207,7 @@ table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer) {
 	isccc_sexpr_t *kv, *elt, *k, *v;
 	char *ks;
 	isc_result_t result;
-	size_t len;
+	unsigned int len;
 
 	for (elt = isccc_alist_first(alist);
 	     elt != NULL;
@@ -216,7 +216,7 @@ table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer) {
 		k = ISCCC_SEXPR_CAR(kv);
 		ks = isccc_sexpr_tostring(k);
 		v = ISCCC_SEXPR_CDR(kv);
-		len = strlen(ks);
+		len = (unsigned int)strlen(ks);
 		INSIST(len <= 255U);
 		/*
 		 * Emit the key name.

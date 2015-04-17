@@ -1,3 +1,6 @@
+4105.	[port]		Misc fixes for Microsoft Visual Studio
+			2015 CTP6 in 64 bit mode. [RT #39308]
+
 4104.	[bug]		Address uninitialized elements. [RT #39252]
 
 4103.	[port]		Misc fixes for Microsoft Visual Studio

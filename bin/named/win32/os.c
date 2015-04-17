@@ -50,7 +50,7 @@
 static char *lockfile = NULL;
 static char *pidfile = NULL;
 static int devnullfd = -1;
-static int singletonfd = -1;
+static int lockfilefd = -1;
 
 static BOOL Initialized = FALSE;
 
@@ -212,9 +212,9 @@ cleanup_pidfile(void) {
 
 static void
 cleanup_lockfile(void) {
-	if (singletonfd != -1) {
-		close(singletonfd);
-		singletonfd = -1;
+	if (lockfilefd != -1) {
+		close(lockfilefd);
+		lockfilefd = -1;
 	}
 
 	if (lockfile != NULL) {
@@ -307,7 +307,7 @@ ns_os_issingleton(const char *filename) {
 	char strbuf[ISC_STRERRORSIZE];
 	OVERLAPPED o;
 
-	if (singletonfd != -1)
+	if (lockfilefd != -1)
 		return (ISC_TRUE);
 
 	if (strcasecmp(filename, "none") == 0)
@@ -324,16 +324,16 @@ ns_os_issingleton(const char *filename) {
 	 * ns_os_openfile() uses safeopen() which removes any existing
 	 * files. We can't use that here.
 	 */
-	singletonfd = open(filename, O_WRONLY | O_CREAT,
-			   S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-	if (singletonfd == -1) {
+	lockfilefd = open(filename, O_WRONLY | O_CREAT,
+			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+	if (lockfilefd == -1) {
 		cleanup_lockfile();
 		return (ISC_FALSE);
 	}
 
 	memset(&o, 0, sizeof(o));
 	/* Expect ERROR_LOCK_VIOLATION if already locked */
-	if (!LockFileEx((HANDLE) _get_osfhandle(singletonfd),
+	if (!LockFileEx((HANDLE) _get_osfhandle(lockfilefd),
 			LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY,
 			0, 0, 1, &o)) {
 		cleanup_lockfile();
@@ -349,11 +349,11 @@ ns_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
 
-	if (singletonfd != -1) {
-		(void) UnlockFile((HANDLE) _get_osfhandle(singletonfd),
+	if (lockfilefd != -1) {
+		(void) UnlockFile((HANDLE) _get_osfhandle(lockfilefd),
 				  0, 0, 0, 1);
-		close(singletonfd);
-		singletonfd = -1;
+		close(lockfilefd);
+		lockfilefd = -1;
 	}
 	ntservice_shutdown();	/* This MUST be the last thing done */
 }

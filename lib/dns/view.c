@@ -2150,8 +2150,8 @@ dns_view_loadnta(dns_view_t *view) {
 			dns_fixedname_init(&fn);
 			ntaname = dns_fixedname_name(&fn);
 
-			isc_buffer_init(&b, name, len);
-			isc_buffer_add(&b, len);
+			isc_buffer_init(&b, name, (unsigned int)len);
+			isc_buffer_add(&b, (unsigned int)len);
 			CHECK(dns_name_fromtext(ntaname, &b, dns_rootname,
 						0, NULL));
 		}
