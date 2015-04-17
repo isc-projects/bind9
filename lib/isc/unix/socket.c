@@ -2266,6 +2266,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->dscp = 0;		/* TOS/TCLASS is zero until set. */
 	sock->dupped = 0;
 	sock->statsindex = NULL;
+	sock->active = 0;
 
 	ISC_LINK_INIT(sock, link);
 
@@ -2941,7 +2942,6 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		INSIST(0);
 	}
 
-	sock->active = 0;
 	sock->pf = pf;
 
 	result = opensocket(manager, sock, (isc__socket_t *)dup_socket);
