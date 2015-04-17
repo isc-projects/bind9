@@ -1,3 +1,5 @@
+4106.	[port]		Improve readline support. [RT #38938]
+
 4105.	[port]		Misc fixes for Microsoft Visual Studio
 			2015 CTP6 in 64 bit mode. [RT #39308]
 
