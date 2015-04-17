@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.286 2012/01/31 23:47:30 tbox Exp $ */
-
 #include <config.h>
 
 #include <isc/formatcheck.h>
