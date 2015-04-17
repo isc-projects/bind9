@@ -236,7 +236,7 @@ case "$use_python" in
 			for p in $python
 			do
 				AC_PATH_PROGS(PYTHON, $p)
-				if test "X$PYTHON" == "X"; then
+				if test "X$PYTHON" = "X"; then
 					continue;
 				fi
 				AC_MSG_CHECKING([python module 'argparse'])
@@ -248,7 +248,7 @@ case "$use_python" in
 				unset ac_cv_path_PYTHON
 				unset PYTHON
 			done
-			if test "X$PYTHON" == "X"
+			if test "X$PYTHON" = "X"
 			then
 				AC_MSG_CHECKING([for python support])
 				case "$use_python" in
