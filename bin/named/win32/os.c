@@ -212,7 +212,7 @@ cleanup_pidfile(void) {
 
 static void
 cleanup_lockfile(void) {
-	if (singletonfile != -1) {
+	if (singletonfd != -1) {
 		close(singletonfd);
 		singletonfd = -1;
 	}
@@ -254,7 +254,7 @@ ns_os_openfile(const char *filename, int mode, isc_boolean_t switch_user) {
 
 void
 ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
-	FILE *lockfile;
+	FILE *pidlockfile;
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
 	void (*report)(const char *, ...);
@@ -277,9 +277,9 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		return;
 	}
 
-	lockfile = ns_os_openfile(filename, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
-				  ISC_FALSE);
-	if (lockfile == NULL) {
+	pidlockfile = ns_os_openfile(filename, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
+				     ISC_FALSE);
+	if (pidlockfile == NULL) {
 		free(pidfile);
 		pidfile = NULL;
 		return;
@@ -287,23 +287,24 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 
 	pid = getpid();
 
-	if (fprintf(lockfile, "%ld\n", (long)pid) < 0) {
+	if (fprintf(pidlockfile, "%ld\n", (long)pid) < 0) {
 		(*report)("fprintf() to pid file '%s' failed", filename);
-		(void)fclose(lockfile);
+		(void)fclose(pidlockfile);
 		cleanup_pidfile();
 		return;
 	}
-	if (fflush(lockfile) == EOF) {
+	if (fflush(pidlockfile) == EOF) {
 		(*report)("fflush() to pid file '%s' failed", filename);
-		(void)fclose(lockfile);
+		(void)fclose(pidlockfile);
 		cleanup_pidfile();
 		return;
 	}
-	(void)fclose(lockfile);
+	(void)fclose(pidlockfile);
 }
 
 isc_boolean_t
 ns_os_issingleton(const char *filename) {
+	char strbuf[ISC_STRERRORSIZE];
 	OVERLAPPED o;
 
 	if (singletonfd != -1)

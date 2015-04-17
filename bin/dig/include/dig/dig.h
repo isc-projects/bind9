@@ -305,7 +305,7 @@ extern int idnoptions;
  * Routines in dighost.c.
  */
 isc_result_t
-get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
+get_address(char *host, in_port_t myport, isc_sockaddr_t *sockaddr);
 
 int
 getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp);

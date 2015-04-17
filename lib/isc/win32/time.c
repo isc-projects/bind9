@@ -83,14 +83,14 @@ isc_interval_iszero(const isc_interval_t *i) {
 
 void
 isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
-	SYSTEMTIME epoch = { 1970, 1, 4, 1, 0, 0, 0, 0 };
+	SYSTEMTIME epoch1970 = { 1970, 1, 4, 1, 0, 0, 0, 0 };
 	FILETIME temp;
 	ULARGE_INTEGER i1;
 
 	REQUIRE(t != NULL);
 	REQUIRE(nanoseconds < NS_PER_S);
 
-	SystemTimeToFileTime(&epoch, &temp);
+	SystemTimeToFileTime(&epoch1970, &temp);
 
 	i1.LowPart = temp.dwLowDateTime;
 	i1.HighPart = temp.dwHighDateTime;
@@ -227,12 +227,12 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 
 isc_uint32_t
 isc_time_seconds(const isc_time_t *t) {
-	SYSTEMTIME epoch = { 1970, 1, 4, 1, 0, 0, 0, 0 };
+	SYSTEMTIME epoch1970 = { 1970, 1, 4, 1, 0, 0, 0, 0 };
 	FILETIME temp;
 	ULARGE_INTEGER i1, i2;
 	LONGLONG i3;
 
-	SystemTimeToFileTime(&epoch, &temp);
+	SystemTimeToFileTime(&epoch1970, &temp);
 
 	i1.LowPart  = t->absolute.dwLowDateTime;
 	i1.HighPart = t->absolute.dwHighDateTime;

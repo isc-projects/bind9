@@ -1402,7 +1402,7 @@ startio_send(isc_socket_t *sock, isc_socketevent_t *dev, int *nbytes,
 	char strbuf[ISC_STRERRORSIZE];
 	IoCompletionInfo *lpo;
 	int status;
-	struct msghdr *msghdr;
+	struct msghdr *mh;
 
 	lpo = (IoCompletionInfo *)HeapAlloc(hHeapHandle,
 					    HEAP_ZERO_MEMORY,
@@ -1410,13 +1410,13 @@ startio_send(isc_socket_t *sock, isc_socketevent_t *dev, int *nbytes,
 	RUNTIME_CHECK(lpo != NULL);
 	lpo->request_type = SOCKET_SEND;
 	lpo->dev = dev;
-	msghdr = &lpo->messagehdr;
-	memset(msghdr, 0, sizeof(struct msghdr));
+	mh = &lpo->messagehdr;
+	memset(mh, 0, sizeof(struct msghdr));
 	ISC_LIST_INIT(lpo->bufferlist);
 
-	build_msghdr_send(sock, dev, msghdr, cmsg, sock->iov, lpo);
+	build_msghdr_send(sock, dev, mh, cmsg, sock->iov, lpo);
 
-	*nbytes = internal_sendmsg(sock, lpo, msghdr, 0, send_errno);
+	*nbytes = internal_sendmsg(sock, lpo, mh, 0, send_errno);
 
 	if (*nbytes <= 0) {
 		/*

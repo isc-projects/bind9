@@ -1305,11 +1305,11 @@ dns_zone_getmaxxfrout(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setjournal(dns_zone_t *zone, const char *journal);
+dns_zone_setjournal(dns_zone_t *zone, const char *myjournal);
 /*%<
  * Sets the filename used for journaling updates / IXFR transfers.
  * The default journal name is set by dns_zone_setfile() to be
- * "file.jnl".  If 'journal' is NULL, the zone will have no
+ * "file.jnl".  If 'myjournal' is NULL, the zone will have no
  * journal name.
  *
  * Requires:

@@ -1472,7 +1472,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 
 		INSIST(count < DNS_EDNSOPTIONS);
 		ednsopts[count].code = DNS_OPT_NSID;
-		ednsopts[count].length = strlen(nsidp);
+		ednsopts[count].length = (isc_uint16_t)strlen(nsidp);
 		ednsopts[count].value = (unsigned char *)nsidp;
 		count++;
 	}

@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2007, 2012-2014  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2007, 2012-2015  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -224,7 +224,7 @@ table_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer) {
 		result = isc_buffer_reserve(buffer, 1 + len);
 		if (result != ISC_R_SUCCESS)
 			return (ISC_R_NOSPACE);
-		isc_buffer_putuint8(*buffer, len);
+		isc_buffer_putuint8(*buffer, (isc_uint8_t)len);
 		isc_buffer_putmem(*buffer, (const unsigned char *) ks, len);
 		/*
 		 * Emit the value.
