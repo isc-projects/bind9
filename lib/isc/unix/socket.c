@@ -2080,7 +2080,6 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->fd = -1;
 	sock->dupped = 0;
 	sock->statsindex = NULL;
-	sock->active = 0;
 
 	ISC_LINK_INIT(sock, link);
 
