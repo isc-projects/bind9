@@ -289,30 +289,30 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /
 sleep 3
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.a.$n 2>&1
 # four keys listed
-count=`grep -c "keyid: " rndc.out.$n` 
+count=`grep -c "keyid: " rndc.out.a.$n` 
 [ "$count" -eq 4 ] || ret=1
 # one revoked
-count=`grep -c "trust revoked" rndc.out.$n` 
+count=`grep -c "trust revoked" rndc.out.a.$n` 
 [ "$count" -eq 1 ] || ret=1
 # two pending
-count=`grep -c "trust pending" rndc.out.$n` 
+count=`grep -c "trust pending" rndc.out.a.$n` 
 [ "$count" -eq 2 ] || ret=1
 $SETTIME -R now -K ns1 $standby3 > /dev/null
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
 sleep 3
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.b.$n 2>&1
 # now three keys listed
-count=`grep -c "keyid: " rndc.out.$n` 
+count=`grep -c "keyid: " rndc.out.b.$n` 
 [ "$count" -eq 3 ] || ret=1
 # one revoked
-count=`grep -c "trust revoked" rndc.out.$n` 
+count=`grep -c "trust revoked" rndc.out.b.$n` 
 [ "$count" -eq 1 ] || ret=1
 # one pending
-count=`grep -c "trust pending" rndc.out.$n` 
+count=`grep -c "trust pending" rndc.out.b.$n` 
 [ "$count" -eq 1 ] || ret=1
 $SETTIME -D now -K ns1 $standby3 > /dev/null
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
@@ -424,18 +424,18 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # one key listed
 count=`grep -c "keyid: " rndc.out.$n` 
-[ "$count" -eq 1 ] || ret=1
+[ "$count" -eq 1 ] || { echo "'keyid:' count != 1"; ret=1; }
 # it's the original key id
 count=`grep -c "keyid: $keyid" rndc.out.$n` 
-[ "$count" -eq 1 ] || ret=1
+[ "$count" -eq 1 ] || { echo "'keyid: $keyid' count != 1"; ret=1; }
 # not revoked
 count=`grep -c "REVOKE" rndc.out.$n` 
-[ "$count" -eq 0 ] || ret=1
+[ "$count" -eq 0 ] || { echo "'REVOKE' count != 0"; ret=1; }
 # trust is still current
 count=`grep -c "trust" rndc.out.$n` 
-[ "$count" -eq 1 ] || ret=1
+[ "$count" -eq 1 ] || { echo "'trust' count != 1"; ret=1; }
 count=`grep -c "trusted since" rndc.out.$n` 
-[ "$count" -eq 1 ] || ret=1
+[ "$count" -eq 1 ] || { echo "'trusted since' count != 1"; ret=1; }
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

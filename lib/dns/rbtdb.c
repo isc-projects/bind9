@@ -1555,6 +1555,7 @@ static inline void
 init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h) {
 	ISC_LINK_INIT(h, link);
 	h->heap_index = 0;
+	h->rdh_ttl = 0;
 	h->is_mmapped = 0;
 	h->next_is_relative = 0;
 	h->node_is_relative = 0;
