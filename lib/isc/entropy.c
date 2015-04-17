@@ -316,7 +316,12 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 	unsigned long addr;
 	isc_uint8_t *buf;
 
+	/* Silly MSVC in 64 bit mode complains here... */
+#ifdef _WIN64
+	addr = (unsigned long)((unsigned long long)p);
+#else
 	addr = (unsigned long)p;
+#endif
 	buf = p;
 
 	if ((addr & 0x03U) != 0U) {

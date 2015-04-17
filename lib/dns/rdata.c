@@ -1398,7 +1398,7 @@ multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 		if (escape)
 			return (DNS_R_SYNTAX);
 
-		isc_buffer_add(target, t - t0);
+		isc_buffer_add(target, (unsigned int)(t - t0));
 	} while (n != 0);
 	return (ISC_R_SUCCESS);
 }
