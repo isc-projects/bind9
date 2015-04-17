@@ -3811,8 +3811,6 @@ update_soa_serial(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	isc_uint32_t serial;
 	isc_result_t result;
 
-	INSIST(method != dns_updatemethod_none);
-
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_DEL, &deltuple));
 	CHECK(dns_difftuple_copy(deltuple, &addtuple));
 	addtuple->op = DNS_DIFFOP_ADD;
