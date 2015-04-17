@@ -745,7 +745,10 @@ parse_serverid(cfg_parser_t *pctx, const cfg_type_t *type,
 		return (cfg_create_obj(pctx, &cfg_type_none, ret));
 	if (pctx->token.type == isc_tokentype_string &&
 	    strcasecmp(TOKEN_STRING(pctx), "hostname") == 0) {
-		return (cfg_create_obj(pctx, &cfg_type_hostname, ret));
+		result = cfg_create_obj(pctx, &cfg_type_hostname, ret);
+		if (result == ISC_R_SUCCESS)
+			(*ret)->value.boolean = ISC_TRUE;
+		return (result);
 	}
 	cfg_ungettoken(pctx);
 	return (cfg_parse_qstring(pctx, type, ret));

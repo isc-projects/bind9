@@ -1362,6 +1362,7 @@ init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h)
 {
 	ISC_LINK_INIT(h, link);
 	h->heap_index = 0;
+	h->rdh_ttl = 0;
 
 #if TRACE_HEADER
 	if (IS_CACHE(rbtdb) && rbtdb->common.rdclass == dns_rdataclass_in)
