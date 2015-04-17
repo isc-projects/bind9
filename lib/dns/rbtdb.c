@@ -990,11 +990,14 @@ set_ttl(dns_rbtdb_t *rbtdb, rdatasetheader_t *header, dns_ttl_t newttl) {
 	isc_heap_t *heap;
 	dns_ttl_t oldttl;
 
+
+	if (!IS_CACHE(rbtdb)) {
+		header->rdh_ttl = newttl;
+		return;
+	}
+
 	oldttl = header->rdh_ttl;
 	header->rdh_ttl = newttl;
-
-	if (!IS_CACHE(rbtdb))
-		return;
 
 	/*
 	 * It's possible the rbtdb is not a cache.  If this is the case,
@@ -1514,7 +1517,6 @@ static inline void
 init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h) {
 	ISC_LINK_INIT(h, link);
 	h->heap_index = 0;
-	h->rdh_ttl = 0;
 	h->is_mmapped = 0;
 	h->next_is_relative = 0;
 	h->node_is_relative = 0;
@@ -1559,6 +1561,7 @@ new_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx) {
 		fprintf(stderr, "allocated header: %p\n", h);
 #endif
 	init_rdataset(rbtdb, h);
+	h->rdh_ttl = 0;
 	return (h);
 }
 
