@@ -1,3 +1,6 @@
+4107.	[bug]		Address potential deadlock when updating zone content.
+			[RT #39269]
+
 4106.	[port]		Improve readline support. [RT #38938]
 
 4105.	[port]		Misc fixes for Microsoft Visual Studio
