@@ -742,7 +742,7 @@
 ./bin/tests/system/additional/ns1/rt2.db	ZONE	2013
 ./bin/tests/system/additional/setup.sh		SH	2013
 ./bin/tests/system/additional/tests.sh		SH	2013
-./bin/tests/system/addzone/clean.sh		SH	2010,2012,2013,2014
+./bin/tests/system/addzone/clean.sh		SH	2010,2012,2013,2014,2015
 ./bin/tests/system/addzone/ns1/inlineslave.db	ZONE	2013
 ./bin/tests/system/addzone/ns1/named.conf	CONF-C	2013
 ./bin/tests/system/addzone/ns2/added.db		ZONE	2010,2013
@@ -1082,7 +1082,7 @@
 ./bin/tests/system/dlz/prereq.sh.in		SH	2011,2012
 ./bin/tests/system/dlz/tests.sh			SH	2010,2011,2012,2013
 ./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011,2012,2014
-./bin/tests/system/dlzexternal/clean.sh		SH	2010,2012,2014
+./bin/tests/system/dlzexternal/clean.sh		SH	2010,2012,2014,2015
 ./bin/tests/system/dlzexternal/dlopen.c		C	2011
 ./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013,2014
 ./bin/tests/system/dlzexternal/driver.h		C	2011
@@ -1474,7 +1474,7 @@
 ./bin/tests/system/limits/ns1/named.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/limits/ns1/root.db		ZONE	2000,2001,2004,2007
 ./bin/tests/system/limits/tests.sh		SH	2000,2001,2004,2007,2011,2012
-./bin/tests/system/logfileconfig/clean.sh	SH	2011,2012,2014
+./bin/tests/system/logfileconfig/clean.sh	SH	2011,2012,2014,2015
 ./bin/tests/system/logfileconfig/ns1/named.dirconf	CONF-C	2011,2013
 ./bin/tests/system/logfileconfig/ns1/named.pipeconf	CONF-C	2011,2013
 ./bin/tests/system/logfileconfig/ns1/named.plain	CONF-C	2011,2013,2014
@@ -1563,7 +1563,7 @@
 ./bin/tests/system/nslookup/ns1/named.conf	CONF-C	2014
 ./bin/tests/system/nslookup/setup.sh		SH	2014
 ./bin/tests/system/nslookup/tests.sh		SH	2014
-./bin/tests/system/nsupdate/clean.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2014
+./bin/tests/system/nsupdate/clean.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2014,2015
 ./bin/tests/system/nsupdate/commandlist		X	2012
 ./bin/tests/system/nsupdate/knowngood.ns1.after	X	2000,2001,2003,2004,2009
 ./bin/tests/system/nsupdate/knowngood.ns1.afterstop	X	2001,2004
@@ -1602,6 +1602,7 @@
 ./bin/tests/system/pending/prereq.sh		SH	2009,2012,2014
 ./bin/tests/system/pending/setup.sh		SH	2009,2012,2014
 ./bin/tests/system/pending/tests.sh		SH	2009,2010,2012
+./bin/tests/system/pipelined/.gitignore		X	2015
 ./bin/tests/system/pipelined/Makefile.in	MAKE	2014,2015
 ./bin/tests/system/pipelined/clean.sh		SH	2014,2015
 ./bin/tests/system/pipelined/input		X	2014,2015
@@ -1709,7 +1710,7 @@
 ./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013,2014
 ./bin/tests/system/rndc/.gitignore		X	2014
 ./bin/tests/system/rndc/Makefile.in		MAKE	2014
-./bin/tests/system/rndc/clean.sh		SH	2011,2012,2013,2014
+./bin/tests/system/rndc/clean.sh		SH	2011,2012,2013,2014,2015
 ./bin/tests/system/rndc/gencheck.c		C	2014
 ./bin/tests/system/rndc/ns2/incl.db		ZONE	2013
 ./bin/tests/system/rndc/ns2/named.conf		CONF-C	2011,2012,2013
@@ -2011,7 +2012,7 @@
 ./bin/tests/system/unknown/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013
 ./bin/tests/system/unknown/zones/nan.bad	ZONE	2013
 ./bin/tests/system/upforwd/ans4/ans.pl		PERL	2011,2012
-./bin/tests/system/upforwd/clean.sh		SH	2000,2001,2004,2007,2011,2012,2014
+./bin/tests/system/upforwd/clean.sh		SH	2000,2001,2004,2007,2011,2012,2014,2015
 ./bin/tests/system/upforwd/knowngood.after1	X	2000,2001
 ./bin/tests/system/upforwd/knowngood.after2	X	2000,2001
 ./bin/tests/system/upforwd/knowngood.before	X	2000,2001
@@ -2154,7 +2155,7 @@
 ./bin/tests/timers/win32/t_timers.vcxproj.user	X	2013
 ./bin/tests/virtual-time/Makefile.in		MAKE	2010,2012
 ./bin/tests/virtual-time/README			TXT.BRIEF	2010
-./bin/tests/virtual-time/autosign-ksk/clean.sh	SH	2010,2012
+./bin/tests/virtual-time/autosign-ksk/clean.sh	SH	2010,2012,2015
 ./bin/tests/virtual-time/autosign-ksk/ns1/example.db.in	ZONE	2010
 ./bin/tests/virtual-time/autosign-ksk/ns1/named.conf	CONF-C	2010
 ./bin/tests/virtual-time/autosign-ksk/ns1/root.db	ZONE	2010
@@ -2162,7 +2163,7 @@
 ./bin/tests/virtual-time/autosign-ksk/ns1/wrap.sh	SH	2010,2012
 ./bin/tests/virtual-time/autosign-ksk/setup.sh	SH	2010,2012
 ./bin/tests/virtual-time/autosign-ksk/tests.sh	SH	2010,2012
-./bin/tests/virtual-time/autosign-zsk/clean.sh	SH	2010,2012
+./bin/tests/virtual-time/autosign-zsk/clean.sh	SH	2010,2012,2015
 ./bin/tests/virtual-time/autosign-zsk/ns1/example.db.in	ZONE	2010
 ./bin/tests/virtual-time/autosign-zsk/ns1/named.conf	CONF-C	2010
 ./bin/tests/virtual-time/autosign-zsk/ns1/root.db	ZONE	2010
@@ -2178,7 +2179,7 @@
 ./bin/tests/virtual-time/run.sh			SH	2010,2012
 ./bin/tests/virtual-time/runall.sh		SH	2010,2012
 ./bin/tests/virtual-time/setup.sh		SH	2010,2012
-./bin/tests/virtual-time/slave/clean.sh		SH	2010,2012
+./bin/tests/virtual-time/slave/clean.sh		SH	2010,2012,2015
 ./bin/tests/virtual-time/slave/ns1/example.db.in	ZONE	2010
 ./bin/tests/virtual-time/slave/ns1/named.conf	CONF-C	2010
 ./bin/tests/virtual-time/slave/ns1/root.db	ZONE	2010
@@ -2239,7 +2240,7 @@
 ./bin/tests/wire_test.data3			X	1999,2000,2001
 ./bin/tests/wire_test.data4			X	1999,2000,2001
 ./bin/tests/zone_test.c				C	1999,2000,2001,2002,2004,2005,2007,2009,2012,2014
-./bin/tools/.gitignore				X	2012,2014
+./bin/tools/.gitignore				X	2012,2014,2015
 ./bin/tools/Makefile.in				MAKE	2009,2010,2012,2013,2014,2015
 ./bin/tools/arpaname.1				MAN	DOCBOOK
 ./bin/tools/arpaname.c				C	2009
