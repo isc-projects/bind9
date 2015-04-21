@@ -24,3 +24,4 @@ rm -f */named.memstats
 rm -f */*vtwrapper.*
 rm -f ns1/example.db
 rm -f ns1/keyname
+rm -f ns*/named.lock

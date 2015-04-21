@@ -21,3 +21,4 @@ rm -f dig.out.*
 rm -f ns1/named.memstats
 rm -f ns1/vtwrapper.*
 rm -f ns1/example.db
+rm -f ns*/named.lock
