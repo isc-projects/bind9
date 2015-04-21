@@ -24,3 +24,4 @@ rm -f ns4/*.conf
 rm -f rndc.status
 rm -f rndc.output
 rm -f ns*/named.lock
+rm -f ns4/_default.nta

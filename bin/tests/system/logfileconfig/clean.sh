@@ -26,3 +26,4 @@ rm -f ns1/named.conf
 rm -rf ns1/named_dir
 rm -f ns1/named_deflog
 rm -f ns*/named.lock
+rm -f ns1/query_log

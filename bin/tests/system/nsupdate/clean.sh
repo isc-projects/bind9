@@ -27,7 +27,7 @@ rm -f nsupdate.out
 rm -f ns2/example.bk
 rm -f ns2/update.bk ns2/update.alt.bk
 rm -f */named.memstats
-rm -f nsupdate.out
+rm -f nsupdate.out*
 rm -f ns3/example.db.jnl ns3/example.db
 rm -f ns3/nsec3param.test.db.signed.jnl ns3/nsec3param.test.db ns3/nsec3param.test.db.signed ns3/dsset-nsec3param.test.
 rm -f ns3/dnskey.test.db.signed.jnl ns3/dnskey.test.db ns3/dnskey.test.db.signed ns3/dsset-dnskey.test.
