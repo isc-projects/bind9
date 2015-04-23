@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2011-2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,16 +14,29 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-SYSTEMTESTTOP=..
+# $Id: sign.sh,v 1.3 2011/03/01 23:48:06 tbox Exp $
+
+SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL clean.sh
+zone=signed
+infile=example.db
+zonefile=signed.db
 
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+key1=`$KEYGEN -q -r $RANDFILE $zone`
+key2=`$KEYGEN -q -r $RANDFILE -fk $zone`
 
-cp ns2/redirect.db.in ns2/redirect.db
-cp ns2/example.db.in ns2/example.db
-( cd ns1 && $SHELL sign.sh )
+cat $infile $key1.key $key2.key > $zonefile
 
-cp ns4/example.db.in ns4/example.db
-( cd ns3 && $SHELL sign.sh )
+$SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
+
+zone=nsec3
+infile=example.db
+zonefile=nsec3.db
+
+key1=`$KEYGEN -q -r $RANDFILE -3 $zone`
+key2=`$KEYGEN -q -r $RANDFILE -3 -fk $zone`
+
+cat $infile $key1.key $key2.key > $zonefile
+
+$SIGNER -P -3 - -g -r $RANDFILE -o $zone $zonefile > /dev/null

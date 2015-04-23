@@ -1530,6 +1530,7 @@ view_clauses[] = {
 	{ "minimal-responses", &cfg_type_boolean, 0 },
 	{ "nta-recheck", &cfg_type_ttlval, 0 },
 	{ "nta-lifetime", &cfg_type_ttlval, 0 },
+	{ "nxdomain-redirect", &cfg_type_astring, 0 },
 	{ "prefetch", &cfg_type_prefetch, 0 },
 	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "no-case-compress", &cfg_type_bracketed_aml, 0 },

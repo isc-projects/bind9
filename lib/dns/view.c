@@ -230,6 +230,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
 	view->redirect = NULL;
+	view->redirectzone = NULL;
+	dns_fixedname_init(&view->redirectfixed);
 	view->requestnsid = ISC_FALSE;
 	view->requestsit = ISC_TRUE;
 	view->new_zone_file = NULL;

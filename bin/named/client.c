@@ -3599,6 +3599,7 @@ ns_client_qnamereplace(ns_client_t *client, dns_name_t *name) {
 					&client->query.qname);
 	}
 	client->query.qname = name;
+	client->query.attributes &= ~NS_QUERYATTR_REDIRECT;
 	UNLOCK(&client->query.fetchlock);
 }
 

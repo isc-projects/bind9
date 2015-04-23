@@ -3816,6 +3816,20 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		fail_ttl = 300;
 	dns_view_setfailttl(view, fail_ttl);
 
+	/*
+	 * Name space to look up redirect information in.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "nxdomain-redirect", &obj);
+	if (result == ISC_R_SUCCESS) {
+		dns_name_t *name = dns_fixedname_name(&view->redirectfixed);
+		CHECK(dns_name_fromstring(name, cfg_obj_asstring(obj), 0,
+					  NULL));
+		view->redirectzone = name;
+	} else
+		view->redirectzone = NULL;
+
+
 	result = ISC_R_SUCCESS;
 
  cleanup:

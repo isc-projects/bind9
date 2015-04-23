@@ -1,3 +1,6 @@
+4108.	[func]		A additional nxdomain redirect (nxdomain-redirect)
+			is now supported. [RT #37989]
+
 4107.	[bug]		Address potential deadlock when updating zone content.
 			[RT #39269]
 

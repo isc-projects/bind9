@@ -46,7 +46,7 @@ do
         status=`expr $status + $ret`
 done
 
-echo "I:checking A redirect works for nonexist ($n)"
+echo "I:checking A zone redirect works for nonexist ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.2 a > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
@@ -55,7 +55,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking AAAA redirect works for nonexist ($n)"
+echo "I:checking AAAA zone redirect works for nonexist ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.2 aaaa > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
@@ -64,7 +64,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking ANY redirect works for nonexist ($n)"
+echo "I:checking ANY zone redirect works for nonexist ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.2 any > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
@@ -74,7 +74,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking A redirect doesn't work for acl miss ($n)"
+echo "I:checking A zone redirect doesn't work for acl miss ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.4 a > dig.out.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
@@ -83,7 +83,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking AAAA redirect doesn't work for acl miss ($n)"
+echo "I:checking AAAA zone redirect doesn't work for acl miss ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.4 aaaa > dig.out.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
@@ -92,7 +92,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking ANY redirect doesn't work for acl miss ($n)"
+echo "I:checking ANY zone redirect doesn't work for acl miss ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.4 any > dig.out.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
@@ -102,7 +102,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking A redirect works for signed nonexist, DO=0 ($n)"
+echo "I:checking A zone redirect works for signed nonexist, DO=0 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. @10.53.0.2 -b 10.53.0.2 a > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
@@ -111,7 +111,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking AAAA redirect works for signed nonexist, DO=0 ($n)"
+echo "I:checking AAAA zone redirect works for signed nonexist, DO=0 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. @10.53.0.2 -b 10.53.0.2 aaaa > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
@@ -120,7 +120,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking ANY redirect works for signed nonexist, DO=0 ($n)"
+echo "I:checking ANY zone redirect works for signed nonexist, DO=0 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. @10.53.0.2 -b 10.53.0.2 any > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
@@ -130,7 +130,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking A redirect fails for signed nonexist, DO=1 ($n)"
+echo "I:checking A zone redirect fails for signed nonexist, DO=1 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. +dnssec @10.53.0.2 -b 10.53.0.2 a > dig.out.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
@@ -139,7 +139,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking AAAA redirect fails for signed nonexist, DO=1 ($n)"
+echo "I:checking AAAA zone redirect fails for signed nonexist, DO=1 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. +dnssec @10.53.0.2 -b 10.53.0.2 aaaa > dig.out.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
@@ -148,7 +148,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking ANY redirect fails for signed nonexist, DO=1 ($n)"
+echo "I:checking ANY zone redirect fails for signed nonexist, DO=1 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. +dnssec @10.53.0.2 -b 10.53.0.2 any > dig.out.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
@@ -158,7 +158,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking A redirect fails for nsec3 signed nonexist, DO=1 ($n)"
+echo "I:checking A zone redirect fails for nsec3 signed nonexist, DO=1 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.nsec3. +dnssec @10.53.0.2 -b 10.53.0.2 a > dig.out.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
@@ -168,7 +168,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking AAAA redirect fails for nsec3 signed nonexist, DO=1 ($n)"
+echo "I:checking AAAA zone redirect fails for nsec3 signed nonexist, DO=1 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.nsec3. +dnssec @10.53.0.2 -b 10.53.0.2 aaaa > dig.out.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
@@ -178,7 +178,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking ANY redirect fails for nsec3 signed nonexist, DO=1 ($n)"
+echo "I:checking ANY zone redirect fails for nsec3 signed nonexist, DO=1 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.nsec3. +dnssec @10.53.0.2 -b 10.53.0.2 any > dig.out.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
@@ -189,7 +189,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking A redirect works for nonexist authoritative ($n)"
+echo "I:checking A zone redirect works for nonexist authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.1 -b 10.53.0.1 a > dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
@@ -198,7 +198,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking AAAA redirect works for nonexist authoritative ($n)"
+echo "I:checking AAAA zone redirect works for nonexist authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.1 -b 10.53.0.1 aaaa > dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
@@ -207,7 +207,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking ANY redirect works for nonexist authoritative ($n)"
+echo "I:checking ANY zone redirect works for nonexist authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.1 -b 10.53.0.1 any > dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
@@ -217,7 +217,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking A redirect doesn't work for acl miss authoritative ($n)"
+echo "I:checking A zone redirect doesn't work for acl miss authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.1 -b 10.53.0.4 a > dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
@@ -226,7 +226,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking AAAA redirect doesn't work for acl miss authoritative ($n)"
+echo "I:checking AAAA zone redirect doesn't work for acl miss authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.1 -b 10.53.0.4 aaaa > dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
@@ -235,7 +235,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking ANY redirect doesn't work for acl miss authoritative ($n)"
+echo "I:checking ANY zone redirect doesn't work for acl miss authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.1 -b 10.53.0.4 any > dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
@@ -245,7 +245,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking A redirect works for signed nonexist, DO=0 authoritative ($n)"
+echo "I:checking A zone redirect works for signed nonexist, DO=0 authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. @10.53.0.1 -b 10.53.0.1 a > dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
@@ -254,7 +254,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking AAAA redirect works for signed nonexist, DO=0 authoritative ($n)"
+echo "I:checking AAAA zone redirect works for signed nonexist, DO=0 authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. @10.53.0.1 -b 10.53.0.1 aaaa > dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
@@ -263,7 +263,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking ANY redirect works for signed nonexist, DO=0 authoritative ($n)"
+echo "I:checking ANY zone redirect works for signed nonexist, DO=0 authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. @10.53.0.1 -b 10.53.0.1 any > dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
@@ -273,7 +273,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking A redirect fails for signed nonexist, DO=1 authoritative ($n)"
+echo "I:checking A zone redirect fails for signed nonexist, DO=1 authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. +dnssec @10.53.0.1 -b 10.53.0.1 a > dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
@@ -282,7 +282,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking AAAA redirect fails for signed nonexist, DO=1 authoritative ($n)"
+echo "I:checking AAAA zone redirect fails for signed nonexist, DO=1 authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. +dnssec @10.53.0.1 -b 10.53.0.1 aaaa > dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
@@ -291,7 +291,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking ANY redirect fails for signed nonexist, DO=1 authoritative ($n)"
+echo "I:checking ANY zone redirect fails for signed nonexist, DO=1 authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. +dnssec @10.53.0.1 -b 10.53.0.1 any > dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
@@ -301,7 +301,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking A redirect fails for nsec3 signed nonexist, DO=1 authoritative ($n)"
+echo "I:checking A zone redirect fails for nsec3 signed nonexist, DO=1 authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.nsec3. +dnssec @10.53.0.1 -b 10.53.0.1 a > dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
@@ -311,7 +311,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking AAAA redirect fails for nsec3 signed nonexist, DO=1 authoritative ($n)"
+echo "I:checking AAAA zone redirect fails for nsec3 signed nonexist, DO=1 authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.nsec3. +dnssec @10.53.0.1 -b 10.53.0.1 aaaa > dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
@@ -321,7 +321,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking ANY redirect fails for nsec3 signed nonexist, DO=1 authoritative ($n)"
+echo "I:checking ANY zone redirect fails for nsec3 signed nonexist, DO=1 authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.nsec3. +dnssec @10.53.0.1 -b 10.53.0.1 any > dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
@@ -332,7 +332,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking redirect works (with noerror) when qtype is not found ($n)"
+echo "I:checking zone redirect works (with noerror) when qtype is not found ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
@@ -359,6 +359,129 @@ for i in 1 2 3 4 5 6 7 8 9; do
     sleep 1
 done
 [ $tmp -eq 1 ] && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking A nxdomain-redirect works for nonexist ($n)"
+ret=0
+$DIG $DIGOPTS nonexist. @10.53.0.4 -b 10.53.0.2 a > dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "nonexist.	.*100.100.100.1" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking AAAA nxdomain-redirect works for nonexist ($n)"
+ret=0
+$DIG $DIGOPTS nonexist. @10.53.0.4 -b 10.53.0.2 aaaa > dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "nonexist.	.*2001:ffff:ffff::6464:6401" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking ANY nxdomain-redirect works for nonexist ($n)"
+ret=0
+$DIG $DIGOPTS nonexist. @10.53.0.4 -b 10.53.0.2 any > dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "100.100.100.1" dig.out.ns4.test$n > /dev/null || ret=1
+grep "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking A nxdomain-redirect works for signed nonexist, DO=0 ($n)"
+ret=0
+$DIG $DIGOPTS nonexist.signed. @10.53.0.4 -b 10.53.0.2 a > dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "100.100.100.1" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking AAAA nxdomain-redirect works for signed nonexist, DO=0 ($n)"
+ret=0
+$DIG $DIGOPTS nonexist.signed. @10.53.0.4 -b 10.53.0.2 aaaa > dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking ANY nxdomain-redirect works for signed nonexist, DO=0 ($n)"
+ret=0
+$DIG $DIGOPTS nonexist.signed. @10.53.0.4 -b 10.53.0.2 any > dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "100.100.100.1" dig.out.ns4.test$n > /dev/null || ret=1
+grep "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking A nxdomain-redirect fails for signed nonexist, DO=1 ($n)"
+ret=0
+$DIG $DIGOPTS nonexist.signed. +dnssec @10.53.0.4 -b 10.53.0.2 a > dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+grep "100.100.100.1" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking AAAA nxdomain-redirect fails for signed nonexist, DO=1 ($n)"
+ret=0
+$DIG $DIGOPTS nonexist.signed. +dnssec @10.53.0.4 -b 10.53.0.2 aaaa > dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+grep "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking ANY nxdomain-redirect fails for signed nonexist, DO=1 ($n)"
+ret=0
+$DIG $DIGOPTS nonexist.signed. +dnssec @10.53.0.4 -b 10.53.0.2 any > dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+grep "100.100.100.1" dig.out.ns4.test$n > /dev/null && ret=1
+grep "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking A nxdomain-redirect fails for nsec3 signed nonexist, DO=1 ($n)"
+ret=0
+$DIG $DIGOPTS nonexist.nsec3. +dnssec @10.53.0.4 -b 10.53.0.2 a > dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+grep "100.100.100.1" dig.out.ns4.test$n > /dev/null && ret=1
+grep "IN.NSEC3" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking AAAA nxdomain-redirect fails for nsec3 signed nonexist, DO=1 ($n)"
+ret=0
+$DIG $DIGOPTS nonexist.nsec3. +dnssec @10.53.0.4 -b 10.53.0.2 aaaa > dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+grep "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n > /dev/null && ret=1
+grep "IN.NSEC3" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking ANY nxdomain-redirect fails for nsec3 signed nonexist, DO=1 ($n)"
+ret=0
+$DIG $DIGOPTS nonexist.nsec3. +dnssec @10.53.0.4 -b 10.53.0.2 any > dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+grep "100.100.100.1" dig.out.ns4.test$n > /dev/null && ret=1
+grep "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n > /dev/null && ret=1
+grep "IN.NSEC3" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking nxdomain-redirect works (with noerror) when qtype is not found ($n)"
+ret=0
+$DIG $DIGOPTS nonexist. @10.53.0.4 -b 10.53.0.2 txt > dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

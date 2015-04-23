@@ -10521,6 +10521,42 @@ example.com                 CNAME   rpz-tcp-only.
 	    <command>RateSlipped</command> and <command>RespTruncated</command>.
 	  </para>
 	</sect3>
+
+	<sect3 title="NXDOMAIN Redirection">
+	  <para>
+	    Named supports NXDOMAIN redirection via two methods:
+	    <itemizedlist>
+	      <listitem>Redirect zone <xref linkend="zone_statement_grammar"/></listitem>
+	      <listitem>Redirect namespace</listitem>
+	    </itemizedlist>
+	  </para>
+	  <para>
+	    With both methods when named gets a NXDOMAIN response
+	    it examines a seperate namespace to see if the NXDOMAIN
+	    response should be replaced with a alternative response.
+	  </para>
+	  <para>
+	    With a redirect zone (<command>zone "." { type redirect; };</command>), the
+	    data used to replace the NXDOMAIN is held in a single
+	    zone which is not part of the normal namespace.  All the
+	    redirect information is contained in the zone; there are
+	    no delegations.
+	  </para>
+	  <para>
+	    With a redirect namespace (<command>option { nxdomain-redirect
+	    &lt;suffix&gt; };</command>) the data used to replace the
+	    NXDOMAIN is part of the normal namespace and is looked up by
+	    appending the specified suffix to the original query name.
+	    This roughly doubles the cache required to process NXDOMAIN
+	    responses as you have the original NXDOMAIN response and
+	    the replacement data or a NXDOMAIN indicating that there
+	    is no replacement.
+	  </para>
+	  <para>
+	    If both a redirect zone and a redirect namespace are configured,
+	    the redirect zone is tried first.
+	  </para>
+	</sect3>
       </sect2>
 
       <sect2 id="server_statement_grammar">
