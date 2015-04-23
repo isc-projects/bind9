@@ -347,6 +347,19 @@
 	  server via TCP. [RT #37800]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The <command>nxdomain-redirect</command> option specifies
+	  a DNS namespace to use for NXDOMAIN redirection. When a 
+	  recursive lookup returns NXDOMAIN, a second lookup is
+	  initiated with the specified name appended to the query
+	  name. This allows NXDOMAIN redirection data to be supplied
+	  by multiple zones configured on the server or by recursive
+	  queries to other servers. (The older method, using
+	  a single <command>type redirect</command> zone, has
+	  better average performance but is less flexible.) [RT #37989]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_changes">

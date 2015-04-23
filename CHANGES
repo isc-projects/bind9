@@ -1,5 +1,7 @@
-4108.	[func]		A additional nxdomain redirect (nxdomain-redirect)
-			is now supported. [RT #37989]
+4108.	[func]		An additional NXDOMAIN redirect method (option
+			"nxdomain-redirect") has been added, allowing
+			redirection to a specified DNS namespace instead
+			of a single redirect zone. [RT #37989]
 
 4107.	[bug]		Address potential deadlock when updating zone content.
 			[RT #39269]
