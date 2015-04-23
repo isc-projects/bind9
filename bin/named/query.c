@@ -6302,7 +6302,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	 */
 	result = dns_name_concatenate(found, dns_rootname, found, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	
+
 	dns_name_copy(found, name, NULL);
 	if (dns_rdataset_isassociated(rdataset))
 		dns_rdataset_disassociate(rdataset);
@@ -7568,7 +7568,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				goto ncache_nxrrset;
 			}
 			tresult = redirect2(client, fname, rdataset, &node,
-                                            &db, &version, type);
+					    &db, &version, type);
 			if (tresult == DNS_R_CONTINUE) {
 				client->query.redirect.qtype = qtype;
 				client->query.redirect.rdataset = rdataset;
