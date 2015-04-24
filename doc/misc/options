@@ -213,6 +213,7 @@ options {
         nsec3-test-zone <boolean>; // test only
         nta-lifetime <ttlval>;
         nta-recheck <ttlval>;
+        nxdomain-redirect <string>;
         pid-file ( <quoted_string> | none );
         port <integer>;
         preferred-glue <string>;
@@ -480,6 +481,7 @@ view <string> <optional_class> {
         nsec3-test-zone <boolean>; // test only
         nta-lifetime <ttlval>;
         nta-recheck <ttlval>;
+        nxdomain-redirect <string>;
         preferred-glue <string>;
         prefetch <integer> [ <integer> ];
         provide-ixfr <boolean>;

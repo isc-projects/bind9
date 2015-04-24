@@ -299,6 +299,17 @@
 	  <span><strong class="command">named</strong></span> to connect to the specified
 	  server via TCP. [RT #37800]
 	</p></li>
+<li><p>
+	  The <span><strong class="command">nxdomain-redirect</strong></span> option specifies
+	  a DNS namespace to use for NXDOMAIN redirection. When a 
+	  recursive lookup returns NXDOMAIN, a second lookup is
+	  initiated with the specified name appended to the query
+	  name. This allows NXDOMAIN redirection data to be supplied
+	  by multiple zones configured on the server or by recursive
+	  queries to other servers. (The older method, using
+	  a single <span><strong class="command">type redirect</strong></span> zone, has
+	  better average performance but is less flexible.) [RT #37989]
+	</p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
@@ -393,6 +404,12 @@
 	  truncated, <span><strong class="command">dig</strong></span> will now correctly send
 	  the SIT (server identity token) value returned by the server
 	  in the prior response. [RT #39047]
+	</p></li>
+<li><p>
+	  A alternative NXDOMAIN redirect method (nxdomain-redirect)
+	  which allows the redirect information to be looked up from
+	  a namespace on the Internet rather than requiring a zone
+	  to be configured on the server is now available.
 	</p></li>
 </ul></div>
 </div>
