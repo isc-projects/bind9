@@ -488,6 +488,12 @@
 	  to be configured on the server is now available.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Retrieving the local port range from net.ipv4.ip_local_port_range
+	  on Linux is now supported.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_bugs">
