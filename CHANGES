@@ -1,3 +1,6 @@
+4109.	[port]		linux: support reading the local port range from
+			net.ipv4.ip_local_port_range. [RT # 39379]
+
 4107.	[bug]		Address potential deadlock when updating zone content.
 			[RT #39269]
 
