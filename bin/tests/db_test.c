@@ -266,8 +266,10 @@ load(const char *filename, const char *origintext, isc_boolean_t cache) {
 	dns_fixedname_init(&forigin);
 	origin = dns_fixedname_name(&forigin);
 	result = dns_name_fromtext(origin, &source, dns_rootname, 0, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, dbi, sizeof(*dbi));
 		return (result);
+	}
 
 	result = dns_db_create(mctx, dbtype, origin,
 			       cache ? dns_dbtype_cache : dns_dbtype_zone,

@@ -166,6 +166,7 @@ test_context_setup(void) {
 	size_t i;
 
 	ctx = isc_mem_get(mctx, sizeof(*ctx));
+	ATF_REQUIRE(ctx != NULL);
 
 	ctx->rbt = NULL;
 	result = dns_rbt_create(mctx, delete_data, NULL, &ctx->rbt);
@@ -1134,6 +1135,8 @@ insert_nodes(dns_rbt_t *mytree, char **names,
 		char namebuf[34];
 
 		n = isc_mem_get(mctx, sizeof(size_t));
+		ATF_REQUIRE(n != NULL);
+
 		*n = i; /* Unused value */
 
 		while (1) {

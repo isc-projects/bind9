@@ -1166,6 +1166,7 @@ dns_name_tostring(dns_name_t *source, char **target, isc_mem_t *mctx);
  * Returns:
  *
  *\li	ISC_R_SUCCESS
+ *\li	ISC_R_NOMEMORY
  *
  *\li	Any error that dns_name_totext() can return.
  */

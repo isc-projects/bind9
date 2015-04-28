@@ -920,6 +920,8 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	if (lookold->ecs_addr != NULL) {
 		size_t len = sizeof(isc_sockaddr_t);
 		looknew->ecs_addr = isc_mem_allocate(mctx, len);
+		if (looknew->ecs_addr == NULL)
+			fatal("out of memory");
 		memmove(looknew->ecs_addr, lookold->ecs_addr, len);
 	}
 
@@ -1061,6 +1063,8 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	}
 
 	sa = isc_mem_allocate(mctx, sizeof(*sa));
+	if (sa == NULL)
+		fatal("out of memory");
 	if (inet_pton(AF_INET6, value, &in6) == 1) {
 		isc_sockaddr_fromin6(sa, &in6, 0);
 		parsed = ISC_TRUE;
