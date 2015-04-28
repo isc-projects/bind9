@@ -465,10 +465,6 @@ ns_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 	}
 
 	if (dscpsp != NULL) {
-		dscps = isc_mem_get(mctx, count * sizeof(isc_dscp_t));
-		if (dscps == NULL)
-			return (ISC_R_NOMEMORY);
-
 		dscpobj = cfg_tuple_get(list, "dscp");
 		if (dscpobj != NULL && cfg_obj_isuint32(dscpobj)) {
 			if (cfg_obj_asuint32(dscpobj) > 63) {
@@ -479,11 +475,18 @@ ns_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 			}
 			dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 		}
+
+		dscps = isc_mem_get(mctx, count * sizeof(isc_dscp_t));
+		if (dscps == NULL)
+			return (ISC_R_NOMEMORY);
 	}
 
 	addrs = isc_mem_get(mctx, count * sizeof(isc_sockaddr_t));
-	if (addrs == NULL)
+	if (addrs == NULL) {
+		if (dscps != NULL)
+			isc_mem_put(mctx, dscps, count * sizeof(isc_dscp_t));
 		return (ISC_R_NOMEMORY);
+	}
 
 	for (element = cfg_list_first(addrlist);
 	     element != NULL;
@@ -622,7 +625,8 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			cfg_obj_log(dscpobj, ns_g_lctx, ISC_LOG_ERROR,
 				    "dscp value '%u' is out of range",
 				    cfg_obj_asuint32(dscpobj));
-			return (ISC_R_RANGE);
+			result = ISC_R_RANGE;
+			goto cleanup;
 		}
 		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 	}

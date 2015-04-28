@@ -371,7 +371,7 @@ monobit(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	/* Debug message, not displayed when running via atf-run */
 	printf("numbits=%u, scount=%d\n", numbits, scount);
 
-	s_obs = fabs(scount) / sqrt(numbits);
+	s_obs = abs(scount) / sqrt(numbits);
 	p_value = erfc(s_obs / sqrt(2.0));
 
 	return (p_value);
@@ -484,6 +484,7 @@ blockfrequency(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	ATF_REQUIRE(numbits >= (mbits * numblocks));
 
 	pi = isc_mem_get(mctx, numblocks * sizeof(double));
+	ATF_REQUIRE(pi != NULL);
 
 	cur_word = 0;
 	for (i = 0; i < numblocks; i++) {

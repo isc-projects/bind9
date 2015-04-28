@@ -908,6 +908,8 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	}
 
 	sa = isc_mem_allocate(mctx, sizeof(*sa));
+	if (sa == NULL)
+		fatal("out of memory");
 	if (inet_pton(AF_INET6, value, &in6) == 1) {
 		isc_sockaddr_fromin6(sa, &in6, 0);
 		parsed = ISC_TRUE;

@@ -1476,10 +1476,11 @@ parse_any_named_map(cfg_parser_t *pctx, cfg_type_t *nametype, const cfg_type_t *
 	CHECK(cfg_parse_obj(pctx, nametype, &idobj));
 	CHECK(cfg_parse_map(pctx, type, &mapobj));
 	mapobj->value.map.id = idobj;
-	idobj = NULL;
 	*ret = mapobj;
+	return (result);
  cleanup:
 	CLEANUP_OBJ(idobj);
+	CLEANUP_OBJ(mapobj);
 	return (result);
 }
 
