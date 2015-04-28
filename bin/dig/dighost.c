@@ -1011,7 +1011,6 @@ parse_bits(char *arg, const char *desc, isc_uint32_t max) {
 	return (tmp);
 }
 
-
 /*
  * Parse HMAC algorithm specification
  */
