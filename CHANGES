@@ -1,3 +1,7 @@
+4112.	[bug]		Named failed to load when "root-delegation-only"
+			was used without a list of domains to exclude.
+			[RT #39380]
+
 4111.	[doc]		Alphabetize rndc man page. [RT #39360]
 
 4110.	[bug]		Address memory leaks / null pointer dereferences
