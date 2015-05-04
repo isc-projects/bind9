@@ -519,9 +519,9 @@
 	    (See "Dynamic Update Policies" in the Administrator
 	    Reference Manual for more details.)
 	  </para>
-          <para>
-            See also <command>rndc loadkeys</command>.
-          </para>
+	  <para>
+	    See also <command>rndc loadkeys</command>.
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -594,8 +594,8 @@
 	<listitem>
 	  <para>
 	    Write server statistics to the statistics file.
-            (See the <command>statistics-file</command> option in
-            the BIND 9 Administrator Reference Manual.)
+	    (See the <command>statistics-file</command> option in
+	    the BIND 9 Administrator Reference Manual.)
 	  </para>
 	</listitem>
       </varlistentry>
