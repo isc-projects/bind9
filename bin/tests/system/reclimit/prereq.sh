@@ -1,7 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -18,26 +17,10 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-status=0
-
-(
-$SHELL -c "while true
-           do $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload 2>&1 |
-	       sed 's/^/I:ns3 /';
-	   sleep 1
-       done" & echo $! >reload.pid
-) &
-
-for i in 0 1 2 3 4
-do
-       $PERL update.pl -s 10.53.0.2 -p 5300 zone00000$i.example. &
-done
-
-echo "I:waiting for background processes to finish"
-wait
-
-echo "I:killing reload loop"
-kill `cat reload.pid`
-
-echo "I:exit status: $status"
-exit $status
+if $PERL -e 'use Net::DNS::Nameserver;' 2>/dev/null
+then
+    :
+else
+    echo "I:This test requires the Net::DNS::Nameserver library." >&2
+    exit 1
+fi

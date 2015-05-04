@@ -1,3 +1,6 @@
+4113.	[test]		Check for Net::DNS is some system test
+			prerequisites. [RT #39369]
+
 4112.	[bug]		Named failed to load when "root-delegation-only"
 			was used without a list of domains to exclude.
 			[RT #39380]
