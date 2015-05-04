@@ -937,7 +937,7 @@
 	    refresh or expiry times for the zone.
 	  </para>
 	  <para>
-	    See also <coomand>rndc showzone</coomand>.
+	    See also <command>rndc showzone</command>.
 	  </para>
 	</listitem>
       </varlistentry>
