@@ -380,7 +380,7 @@
 ./bin/rndc/rndc.conf.5				MAN	DOCBOOK
 ./bin/rndc/rndc.conf.docbook			SGML	2000,2001,2004,2005,2007,2013,2014
 ./bin/rndc/rndc.conf.html			HTML	DOCBOOK
-./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007,2013,2014
+./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007,2013,2014,2015
 ./bin/rndc/rndc.html				HTML	DOCBOOK
 ./bin/rndc/util.c				C	2000,2001,2004,2005,2007
 ./bin/rndc/util.h				C	2000,2001,2004,2005,2007,2009
@@ -1609,6 +1609,7 @@
 ./bin/tests/system/reclimit/ns3/named2.conf	CONF-C	2014
 ./bin/tests/system/reclimit/ns3/named3.conf	CONF-C	2014
 ./bin/tests/system/reclimit/ns3/named4.conf	CONF-C	2014
+./bin/tests/system/reclimit/prereq.sh		SH	2015
 ./bin/tests/system/reclimit/setup.sh		SH	2014
 ./bin/tests/system/reclimit/tests.sh		SH	2014,2015
 ./bin/tests/system/redirect/clean.sh		SH	2011,2012,2013,2014
@@ -1638,7 +1639,7 @@
 ./bin/tests/system/resolver/ns4/broken.db	ZONE	2012
 ./bin/tests/system/resolver/ns4/child.server.db	ZONE	2011
 ./bin/tests/system/resolver/ns4/moves.db	ZONE	2011
-./bin/tests/system/resolver/ns4/named.conf	CONF-C	2010,2011,2012,2013
+./bin/tests/system/resolver/ns4/named.conf	CONF-C	2010,2011,2012,2013,2015
 ./bin/tests/system/resolver/ns4/named.noaa	TXT.BRIEF	2010
 ./bin/tests/system/resolver/ns4/root.db		ZONE	2010,2014
 ./bin/tests/system/resolver/ns4/tld1.db		ZONE	2012,2014
@@ -1651,7 +1652,7 @@
 ./bin/tests/system/resolver/ns6/example.net.db.in	ZONE	2010,2014
 ./bin/tests/system/resolver/ns6/keygen.sh	SH	2010,2012,2014
 ./bin/tests/system/resolver/ns6/moves.db	ZONE	2011
-./bin/tests/system/resolver/ns6/named.conf	CONF-C	2010,2012,2013,2014
+./bin/tests/system/resolver/ns6/named.conf	CONF-C	2010,2012,2013,2014,2015
 ./bin/tests/system/resolver/ns6/root.db		ZONE	2010,2011
 ./bin/tests/system/resolver/ns6/to-be-removed.tld.db.in	ZONE	2012
 ./bin/tests/system/resolver/ns7/all-cnames.db	ZONE	2014
@@ -1872,9 +1873,10 @@
 ./bin/tests/system/stress/ns2/named.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/stress/ns3/named.conf	CONF-C	2000,2001,2004,2007,2013
 ./bin/tests/system/stress/ns4/named.conf	CONF-C	2000,2001,2004,2007
+./bin/tests/system/stress/prereq.sh		SH	2015
 ./bin/tests/system/stress/setup.pl		PERL	2000,2001,2004,2007,2012
 ./bin/tests/system/stress/setup.sh		SH	2000,2001,2004,2007,2012
-./bin/tests/system/stress/tests.sh		SH	2000,2001,2004,2007,2012,2014
+./bin/tests/system/stress/tests.sh		SH	2000,2001,2004,2007,2012,2014,2015
 ./bin/tests/system/stress/update.pl		PERL	2000,2001,2004,2007,2012
 ./bin/tests/system/stub/clean.sh		SH	2000,2001,2004,2007,2012
 ./bin/tests/system/stub/knowngood.dig.out.norec	X	2000,2001
