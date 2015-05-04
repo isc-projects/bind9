@@ -684,7 +684,7 @@
 	    Print the configuration of a running zone.
 	  </para>
 	  <para>
-	    See also <coomand>rndc zonestatus</coomand>.
+	    See also <command>rndc zonestatus</command>.
 	  </para>
 	</listitem>
       </varlistentry>
