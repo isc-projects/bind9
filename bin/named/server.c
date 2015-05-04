@@ -3641,18 +3641,19 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 	obj = NULL;
 	result = ns_config_get(maps, "root-delegation-only", &obj);
-	if (result == ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS)
+		dns_view_setrootdelonly(view, ISC_TRUE);
+	if (result == ISC_R_SUCCESS && ! cfg_obj_isvoid(obj)) {
+		const cfg_obj_t *exclude;
 		dns_fixedname_t fixed;
 		dns_name_t *name;
-		const cfg_obj_t *exclude;
-
-		dns_view_setrootdelonly(view, ISC_TRUE);
 
 		dns_fixedname_init(&fixed);
 		name = dns_fixedname_name(&fixed);
 		for (element = cfg_list_first(obj);
 		     element != NULL;
-		     element = cfg_list_next(element)) {
+		     element = cfg_list_next(element))
+		{
 			exclude = cfg_listelt_value(element);
 			CHECK(dns_name_fromstring(name,
 						  cfg_obj_asstring(exclude),
