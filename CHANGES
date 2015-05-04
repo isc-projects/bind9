@@ -1,3 +1,5 @@
+4111.	[doc]		Alphabetize rndc man page. [RT #39360]
+
 4110.	[bug]		Address memory leaks / null pointer dereferences
 			on out of memory. [RT #39310]
 
