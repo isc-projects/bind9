@@ -912,6 +912,7 @@
 ./bin/tests/system/checkconf/dnssec.1		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.2		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.3		CONF-C	2011
+./bin/tests/system/checkconf/good-nested.conf	CONF-C	2015
 ./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/checkconf/hint-nofile.conf	CONF-C	2013
 ./bin/tests/system/checkconf/inline-bad.conf	CONF-C	2013
@@ -1206,7 +1207,7 @@
 ./bin/tests/system/dnssec/ns7/sign.sh		SH	2014
 ./bin/tests/system/dnssec/ns7/split-rrsig.db.in	ZONE	2014
 ./bin/tests/system/dnssec/ntadiff.pl		PERL	2015
-./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006,2007,2009,2012,2014
+./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006,2007,2009,2012,2014,2015
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2009,2011,2012,2013,2014,2015
 ./bin/tests/system/dnssec/signer/example.db.in	ZONE	2010
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
@@ -1578,7 +1579,7 @@
 ./bin/tests/system/nsupdate/ns3/named.conf	CONF-C	2010,2011,2013,2014
 ./bin/tests/system/nsupdate/ns3/nsec3param.test.db.in	ZONE	2010
 ./bin/tests/system/nsupdate/ns3/sign.sh		SH	2010,2011,2012,2014
-./bin/tests/system/nsupdate/prereq.sh		SH	2014
+./bin/tests/system/nsupdate/prereq.sh		SH	2014,2015
 ./bin/tests/system/nsupdate/setup.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2014
 ./bin/tests/system/nsupdate/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/nsupdate/update_test.pl	PERL	2000,2001,2004,2007,2012
@@ -2999,7 +3000,7 @@
 ./lib/Atffile					X	2011,2014
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007,2012,2013,2014
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2009,2012,2014
-./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012,2013,2014
+./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007,2014,2015
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004,2007,2012
@@ -3023,7 +3024,7 @@
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008,2012,2013
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2013,2014
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
-./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014
+./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/badcache.c				C	2014
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007,2009,2013
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
@@ -3447,7 +3448,7 @@
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2013,2014
 ./lib/irs/Makefile.in				MAKE	2009,2012,2014
-./lib/irs/api					X	2009,2010,2011,2012,2013,2014
+./lib/irs/api					X	2009,2010,2011,2012,2013,2014,2015
 ./lib/irs/context.c				C	2009,2014
 ./lib/irs/dnsconf.c				C	2009,2012
 ./lib/irs/gai_strerror.c			C	2009,2014
@@ -3487,7 +3488,7 @@
 ./lib/isc/alpha/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007,2012
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007,2009
-./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014
+./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/isc/app_api.c				C	2009,2013,2014,2015
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007,2008,2009
 ./lib/isc/backtrace-emptytbl.c			C	2009
@@ -3663,7 +3664,7 @@
 ./lib/isc/pthreads/mutex.c			C	2000,2001,2002,2004,2005,2007,2008,2011,2012,2014,2015
 ./lib/isc/pthreads/thread.c			C	2000,2001,2003,2004,2005,2007,2013
 ./lib/isc/quota.c				C	2000,2001,2004,2005,2007
-./lib/isc/radix.c				C	2007,2008,2009,2011,2012,2013,2014
+./lib/isc/radix.c				C	2007,2008,2009,2011,2012,2013,2014,2015
 ./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2013,2014
 ./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005,2007,2012,2014,2015
 ./lib/isc/refcount.c				C	2005,2007
@@ -3836,7 +3837,7 @@
 ./lib/isc/x86_64/include/isc/atomic.h		C	2005,2007,2008
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2009,2011,2012,2014,2015
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/api					X	2001,2006,2008,2009,2010,2011,2012,2013,2014
+./lib/isccc/api					X	2001,2006,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007,2013
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007,2012,2013,2014,2015
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005,2007
@@ -3871,7 +3872,7 @@
 ./lib/isccc/win32/version.c			C	2001,2004,2007
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009,2011,2012,2013,2014
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012,2013,2014
+./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/isccfg/dnsconf.c				C	2009
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004,2007,2012
 ./lib/isccfg/include/isccfg/Makefile.in		MAKE	2001,2002,2004,2005,2007,2012,2014
@@ -3897,7 +3898,7 @@
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/lwres/Atffile				X	2014
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007,2012,2014
-./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011,2012,2013,2014
+./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007,2011,2012
 ./lib/lwres/compat.c				C	2003,2004,2005,2007,2014
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008,2009,2012,2013,2014
