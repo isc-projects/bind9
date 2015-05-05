@@ -42,12 +42,21 @@ grep 'secret "????????????????"' good.conf.out > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-for bad in bad*.conf
+for bad in bad-*.conf
 do
 	ret=0
 	echo "I: checking that named-checkconf detects error in $bad"
 	$CHECKCONF $bad > /dev/null 2>&1
 	if [ $? != 1 ]; then echo "I:failed"; ret=1; fi
+	status=`expr $status + $ret`
+done
+
+for good in good-*.conf
+do
+	ret=0
+	echo "I: checking that named-checkconf detects no error in $good"
+	$CHECKCONF $good > /dev/null 2>&1
+	if [ $? != 0 ]; then echo "I:failed"; ret=1; fi
 	status=`expr $status + $ret`
 done
 

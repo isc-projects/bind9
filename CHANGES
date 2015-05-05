@@ -1,3 +1,8 @@
+4114.	[bug]		Fix a regression in radix tree implementation
+			introduced by ECS code. This bug was never
+			released, but it was reported by a user testing
+			master. [RT #38983]
+
 4113.	[test]		Check for Net::DNS is some system test
 			prerequisites. [RT #39369]
 
