@@ -121,6 +121,12 @@ command is one of the following:\n\
 		process id.\n\
   loadkeys zone [class [view]]\n\
 		Update keys without signing immediately.\n\
+  managed-keys refresh [class [view]]\n\
+		Check trust anchor for RFC 5011 key changes\n\
+  managed-keys status [class [view]]\n\
+		Display RFC 5011 managed keys information\n\
+  managed-keys sync [class [view]]\n\
+		Write RFC 5011 managed keys to disk\n\
   notify zone [class [view]]\n\
 		Resend NOTIFY messages for the zone.\n\
   notrace	Set debugging level to 0.\n\
