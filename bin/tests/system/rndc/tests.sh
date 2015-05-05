@@ -404,4 +404,11 @@ do
 	status=`expr $status + $ret`
 done
 
+echo "I:testing rndc -r (show result)"
+ret=0
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf -r testgen 0 2>&1 > rndc.output || ret=1
+grep "ISC_R_SUCCESS 0" rndc.output > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 exit $status

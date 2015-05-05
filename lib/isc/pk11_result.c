@@ -35,6 +35,14 @@ static const char *text[PK11_R_NRESULTS] = {
 	"PKCS#11 provider has no AES service",		/*%< 4 */
 };
 
+static const char *ids[PK11_R_NRESULTS] = {
+	"PK11_R_INITFAILED",
+	"PK11_R_NOPROVIDER",
+	"PK11_R_NORANDOMSERVICE",
+	"PK11_R_NODIGESTSERVICE",
+	"PK11_R_NOAESSERVICE",
+};
+
 #define PK11_RESULT_RESULTSET			2
 
 static isc_once_t		once = ISC_ONCE_INIT;
@@ -64,6 +72,13 @@ initialize_action(void) {
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_register() failed: %u", result);
+
+	result = isc_result_registerids(ISC_RESULTCLASS_PK11, PK11_R_NRESULTS,
+					ids, pk11_msgcat,
+					PK11_RESULT_RESULTSET);
+	if (result != ISC_R_SUCCESS)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_result_registerids() failed: %u", result);
 }
 
 static void

@@ -518,6 +518,8 @@ isc_resource_getcurlimit
 isc_resource_getlimit
 isc_resource_setlimit
 isc_result_register
+isc_result_registerids
+isc_result_toid
 isc_result_totext
 isc_rng_attach
 isc_rng_create

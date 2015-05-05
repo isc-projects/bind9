@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.63 2011/12/22 08:07:48 marka Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -341,6 +339,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	isccc_time_t sent;
 	isccc_time_t exp;
 	isc_uint32_t nonce;
+	isccc_sexpr_t *data;
 
 	REQUIRE(event->ev_type == ISCCC_EVENT_CCMSG);
 
@@ -465,10 +464,14 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	result = isccc_cc_createresponse(request, now, now + 60, &response);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_request;
-	if (eresult != ISC_R_SUCCESS) {
-		isccc_sexpr_t *data;
 
-		data = isccc_alist_lookup(response, "_data");
+	data = isccc_alist_lookup(response, "_data");
+	if (data != NULL) {
+		if (isccc_cc_defineuint32(data, "result", eresult) == NULL)
+			goto cleanup_response;
+	}
+
+	if (eresult != ISC_R_SUCCESS) {
 		if (data != NULL) {
 			const char *estr = isc_result_totext(eresult);
 			if (isccc_cc_definestring(data, "err", estr) == NULL)
@@ -477,9 +480,6 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (isc_buffer_usedlength(text) > 0) {
-		isccc_sexpr_t *data;
-
-		data = isccc_alist_lookup(response, "_data");
 		if (data != NULL) {
 			char *str = (char *)isc_buffer_base(text);
 			if (isccc_cc_definestring(data, "text", str) == NULL)

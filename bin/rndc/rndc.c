@@ -87,6 +87,7 @@ static char program[256];
 static isc_socket_t *sock = NULL;
 static isc_uint32_t serial;
 static isc_boolean_t quiet = ISC_FALSE;
+static isc_boolean_t showresult = ISC_FALSE;
 
 static void rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task);
 
@@ -97,7 +98,7 @@ static void
 usage(int status) {
 	fprintf(stderr, "\
 Usage: %s [-b address] [-c config] [-s server] [-p port]\n\
-	[-k key-file ] [-y key] [-V] command\n\
+	[-k key-file ] [-y key] [-r] [-V] command\n\
 \n\
 command is one of the following:\n\
 \n\
@@ -291,6 +292,16 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	} else if (result != ISC_R_NOTFOUND)
 		fprintf(stderr, "%s: parsing response failed: %s\n",
 			progname, isc_result_totext(result));
+
+	if (showresult) {
+		isc_result_t eresult;
+
+		result = isccc_cc_lookupuint32(data, "result", &eresult);
+		if (result == ISC_R_SUCCESS)
+			printf("%s %u\n", isc_result_toid(eresult), eresult);
+		else
+			printf("NONE -1\n");
+	}
 
 	isc_event_free(&event);
 	isccc_sexpr_free(&response);
@@ -780,7 +791,7 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((ch = isc_commandline_parse(argc, argv, "b:c:hk:Mmp:qs:Vy:"))
+	while ((ch = isc_commandline_parse(argc, argv, "b:c:hk:Mmp:qrs:Vy:"))
 	       != -1) {
 		switch (ch) {
 		case 'b':
@@ -821,6 +832,10 @@ main(int argc, char **argv) {
 
 		case 'q':
 			quiet = ISC_TRUE;
+			break;
+
+		case 'r':
+			showresult = ISC_TRUE;
 			break;
 
 		case 's':

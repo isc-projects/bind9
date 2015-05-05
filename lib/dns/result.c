@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -167,8 +165,126 @@ static const char *text[DNS_R_NRESULTS] = {
 	"covered by negative trust anchor"     /*%< 110 DNS_R_NTACOVERED */
 };
 
+static const char *ids[DNS_R_NRESULTS] = {
+	"DNS_R_LABELTOOLONG",
+	"DNS_R_BADESCAPE",
+	/*!
+	 * Note that DNS_R_BADBITSTRING and DNS_R_BITSTRINGTOOLONG are
+	 * deprecated.
+	 */
+	"DNS_R_BADBITSTRING",
+	"DNS_R_BITSTRINGTOOLONG",
+	"DNS_R_EMPTYLABEL",
+	"DNS_R_BADDOTTEDQUAD",
+	"DNS_R_INVALIDNS",
+	"DNS_R_UNKNOWN",
+	"DNS_R_BADLABELTYPE",
+	"DNS_R_BADPOINTER",
+	"DNS_R_TOOMANYHOPS",
+	"DNS_R_DISALLOWED",
+	"DNS_R_EXTRATOKEN",
+	"DNS_R_EXTRADATA",
+	"DNS_R_TEXTTOOLONG",
+	"DNS_R_NOTZONETOP",
+	"DNS_R_SYNTAX",
+	"DNS_R_BADCKSUM",
+	"DNS_R_BADAAAA",
+	"DNS_R_NOOWNER",
+	"DNS_R_NOTTL",
+	"DNS_R_BADCLASS",
+	"DNS_R_NAMETOOLONG",
+	"DNS_R_PARTIALMATCH",
+	"DNS_R_NEWORIGIN",
+	"DNS_R_UNCHANGED",
+	"DNS_R_BADTTL",
+	"DNS_R_NOREDATA",
+	"DNS_R_CONTINUE",
+	"DNS_R_DELEGATION",
+	"DNS_R_GLUE",
+	"DNS_R_DNAME",
+	"DNS_R_CNAME",
+	"DNS_R_BADDB",
+	"DNS_R_ZONECUT",
+	"DNS_R_BADZONE",
+	"DNS_R_MOREDATA",
+	"DNS_R_UPTODATE",
+	"DNS_R_TSIGVERIFYFAILURE",
+	"DNS_R_TSIGERRORSET",
+	"DNS_R_SIGINVALID",
+	"DNS_R_SIGEXPIRED",
+	"DNS_R_SIGFUTURE",
+	"DNS_R_KEYUNAUTHORIZED",
+	"DNS_R_INVALIDTIME",
+	"DNS_R_EXPECTEDTSIG",
+	"DNS_R_UNEXPECTEDTSIG",
+	"DNS_R_INVALIDTKEY",
+	"DNS_R_HINT",
+	"DNS_R_DROP",
+	"DNS_R_NOTLOADED",
+	"DNS_R_NCACHENXDOMAIN",
+	"DNS_R_NCACHENXRRSET",
+	"DNS_R_WAIT",
+	"DNS_R_NOTVERIFIEDYET",
+	"DNS_R_NOIDENTITY",
+	"DNS_R_NOJOURNAL",
+	"DNS_R_ALIAS",
+	"DNS_R_USETCP",
+	"DNS_R_NOVALIDSIG",
+	"DNS_R_NOVALIDNSEC",
+	"DNS_R_NOTINSECURE",
+	"DNS_R_UNKNOWNSERVICE",
+	"DNS_R_RECOVERABLE",
+	"DNS_R_UNKNOWNOPT",
+	"DNS_R_UNEXPECTEDID",
+	"DNS_R_SEENINCLUDE",
+	"DNS_R_NOTEXACT",
+	"DNS_R_BLACKHOLED",
+	"DNS_R_BADALG",
+	"DNS_R_METATYPE",
+	"DNS_R_CNAMEANDOTHER",
+	"DNS_R_SINGLETON",
+	"DNS_R_HINTNXRRSET",
+	"DNS_R_NOMASTERFILE",
+	"DNS_R_UNKNOWNPROTO",
+	"DNS_R_CLOCKSKEW",
+	"DNS_R_BADIXFR",
+	"DNS_R_NOTAUTHORITATIVE",
+	"DNS_R_NOVALIDKEY",
+	"DNS_R_OBSOLETE",
+	"DNS_R_FROZEN",
+	"DNS_R_UNKNOWNFLAG",
+	"DNS_R_EXPECTEDRESPONSE",
+	"DNS_R_NOVALIDDS",
+	"DNS_R_NSISADDRESS",
+	"DNS_R_REMOTEFORMERR",
+	"DNS_R_TRUNCATEDTCP",
+	"DNS_R_LAME",
+	"DNS_R_UNEXPECTEDRCODE",
+	"DNS_R_UNEXPECTEDOPCODE",
+	"DNS_R_CHASEDSSERVERS",
+	"DNS_R_EMPTYNAME",
+	"DNS_R_EMPTYWILD",
+	"DNS_R_BADBITMAP",
+	"DNS_R_FROMWILDCARD",
+	"DNS_R_BADOWNERNAME",
+	"DNS_R_BADNAME",
+	"DNS_R_DYNAMIC",
+	"DNS_R_UNKNOWNCOMMAND",
+	"DNS_R_MUSTBESECURE",
+	"DNS_R_COVERINGNSEC",
+	"DNS_R_MXISADDRESS",
+	"DNS_R_DUPLICATE",
+	"DNS_R_INVALIDNSEC3",
+	"DNS_R_NOTMASTER",
+	"DNS_R_BROKENCHAIN",
+	"DNS_R_EXPIRED",
+	"DNS_R_NOTDYNAMIC",
+	"DNS_R_BADEUI",
+	"DNS_R_NTACOVERED",
+};
+
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
-	"NOERROR",				/*%< 0 DNS_R_NOEROR */
+	"NOERROR",				/*%< 0 DNS_R_NOERROR */
 	"FORMERR",				/*%< 1 DNS_R_FORMERR */
 	"SERVFAIL",				/*%< 2 DNS_R_SERVFAIL */
 	"NXDOMAIN",				/*%< 3 DNS_R_NXDOMAIN */
@@ -181,13 +297,33 @@ static const char *rcode_text[DNS_R_NRCODERESULTS] = {
 	"NOTAUTH",				/*%< 9 DNS_R_NOTAUTH */
 
 	"NOTZONE",				/*%< 10 DNS_R_NOTZONE */
-	"<rcode 11>",				/*%< 11 has no macro */
-	"<rcode 12>",				/*%< 12 has no macro */
-	"<rcode 13>",				/*%< 13 has no macro */
-	"<rcode 14>",				/*%< 14 has no macro */
+	"<rcode 11>",				/*%< 11 DNS_R_RCODE11 */
+	"<rcode 12>",				/*%< 12 DNS_R_RCODE12 */
+	"<rcode 13>",				/*%< 13 DNS_R_RCODE13 */
+	"<rcode 14>",				/*%< 14 DNS_R_RCODE14 */
 
-	"<rcode 15>",				/*%< 15 has no macro */
+	"<rcode 15>",				/*%< 15 DNS_R_RCODE15 */
 	"BADVERS",				/*%< 16 DNS_R_BADVERS */
+};
+
+static const char *rcode_ids[DNS_R_NRCODERESULTS] = {
+	"DNS_R_NOERROR",
+	"DNS_R_FORMERR",
+	"DNS_R_SERVFAIL",
+	"DNS_R_NXDOMAIN",
+	"DNS_R_NOTIMP",
+	"DNS_R_REFUSED",
+	"DNS_R_YXDOMAIN",
+	"DNS_R_YXRRSET",
+	"DNS_R_NXRRSET",
+	"DNS_R_NOTAUTH",
+	"DNS_R_NOTZONE",
+	"DNS_R_RCODE11",
+	"RNS_R_RCODE12",
+	"DNS_R_RCODE13",
+	"DNS_R_RCODE14",
+	"DNS_R_RCODE15",
+	"DNS_R_BADVERS",
 };
 
 #define DNS_RESULT_RESULTSET			2
@@ -209,6 +345,17 @@ initialize_action(void) {
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_register() failed: %u", result);
+
+	result = isc_result_registerids(ISC_RESULTCLASS_DNS, DNS_R_NRESULTS,
+					ids, dns_msgcat, DNS_RESULT_RESULTSET);
+	if (result == ISC_R_SUCCESS)
+		result = isc_result_registerids(ISC_RESULTCLASS_DNSRCODE,
+						DNS_R_NRCODERESULTS,
+						rcode_ids, dns_msgcat,
+						DNS_RESULT_RCODERESULTSET);
+	if (result != ISC_R_SUCCESS)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_result_registerids() failed: %u", result);
 }
 
 static void

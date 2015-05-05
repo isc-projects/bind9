@@ -1,3 +1,7 @@
+4115.	[func]		"rndc -r" now prints the result code (e.g.,
+			ISC_R_SUCCESS, ISC_R_TIMEOUT, etc) after
+			running the requested command. [RT #38913]
+
 4114.	[bug]		Fix a regression in radix tree implementation
 			introduced by ECS code. This bug was never
 			released, but it was reported by a user testing

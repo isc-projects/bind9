@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -39,6 +37,8 @@ typedef struct resulttable {
 	int					set;
 	ISC_LINK(struct resulttable)		link;
 } resulttable;
+
+typedef ISC_LIST(resulttable) resulttable_list_t;
 
 static const char *description[ISC_R_NRESULTS] = {
 	"success",				/*%< 0 */
@@ -106,15 +106,83 @@ static const char *description[ISC_R_NRESULTS] = {
 	"multiple",				/*%< 62 */
 };
 
+static const char *identifier[ISC_R_NRESULTS] = {
+	"ISC_R_SUCCESS",
+	"ISC_R_NOMEMORY",
+	"ISC_R_TIMEDOUT",
+	"ISC_R_NOTHREADS",
+	"ISC_R_ADDRNOTAVAIL",
+	"ISC_R_ADDRINUSE",
+	"ISC_R_NOPERM",
+	"ISC_R_NOCONN",
+	"ISC_R_NETUNREACH",
+	"ISC_R_HOSTUNREACH",
+	"ISC_R_NETDOWN",
+	"ISC_R_HOSTDOWN",
+	"ISC_R_CONNREFUSED",
+	"ISC_R_NORESOURCES",
+	"ISC_R_EOF",
+	"ISC_R_BOUND",
+	"ISC_R_RELOAD",
+	"ISC_R_LOCKBUSY",
+	"ISC_R_EXISTS",
+	"ISC_R_NOSPACE",
+	"ISC_R_CANCELED",
+	"ISC_R_NOTBOUND",
+	"ISC_R_SHUTTINGDOWN",
+	"ISC_R_NOTFOUND",
+	"ISC_R_UNEXPECTEDEND",
+	"ISC_R_FAILURE",
+	"ISC_R_IOERROR",
+	"ISC_R_NOTIMPLEMENTED",
+	"ISC_R_UNBALANCED",
+	"ISC_R_NOMORE",
+	"ISC_R_INVALIDFILE",
+	"ISC_R_BADBASE64",
+	"ISC_R_UNEXPECTEDTOKEN",
+	"ISC_R_QUOTA",
+	"ISC_R_UNEXPECTED",
+	"ISC_R_ALREADYRUNNING",
+	"ISC_R_IGNORE",
+	"ISC_R_MASKNONCONTIG",
+	"ISC_R_FILENOTFOUND",
+	"ISC_R_FILEEXISTS",
+	"ISC_R_NOTCONNECTED",
+	"ISC_R_RANGE",
+	"ISC_R_NOENTROPY",
+	"ISC_R_MULTICAST",
+	"ISC_R_NOTFILE",
+	"ISC_R_NOTDIRECTORY",
+	"ISC_R_QUEUEFULL",
+	"ISC_R_FAMILYMISMATCH",
+	"ISC_R_FAMILYNOSUPPORT",
+	"ISC_R_BADHEX",
+	"ISC_R_TOOMANYOPENFILES",
+	"ISC_R_NOTBLOCKING",
+	"ISC_R_UNBALANCEDQUOTES",
+	"ISC_R_INPROGRESS",
+	"ISC_R_CONNECTIONRESET",
+	"ISC_R_SOFTQUOTA",
+	"ISC_R_BADNUMBER",
+	"ISC_R_DISABLED",
+	"ISC_R_MAXSIZE",
+	"ISC_R_BADADDRESSFORM",
+	"ISC_R_BADBASE32",
+	"ISC_R_UNSET",
+	"ISC_R_MULTIPLE",
+};
+
 #define ISC_RESULT_RESULTSET			2
 #define ISC_RESULT_UNAVAILABLESET		3
 
-static isc_once_t 				once = ISC_ONCE_INIT;
-static ISC_LIST(resulttable)			tables;
-static isc_mutex_t				lock;
+static isc_once_t		once = ISC_ONCE_INIT;
+static resulttable_list_t	description_tables;
+static resulttable_list_t	identifier_tables;
+static isc_mutex_t		lock;
 
 static isc_result_t
-register_table(unsigned int base, unsigned int nresults, const char **text,
+register_table(resulttable_list_t *tables, unsigned int base,
+	       unsigned int nresults, const char **text,
 	       isc_msgcat_t *msgcat, int set)
 {
 	resulttable *table;
@@ -139,7 +207,7 @@ register_table(unsigned int base, unsigned int nresults, const char **text,
 
 	LOCK(&lock);
 
-	ISC_LIST_APPEND(tables, table, link);
+	ISC_LIST_APPEND(*tables, table, link);
 
 	UNLOCK(&lock);
 
@@ -151,10 +219,22 @@ initialize_action(void) {
 	isc_result_t result;
 
 	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
-	ISC_LIST_INIT(tables);
+	ISC_LIST_INIT(description_tables);
+	ISC_LIST_INIT(identifier_tables);
 
-	result = register_table(ISC_RESULTCLASS_ISC, ISC_R_NRESULTS,
+	result = register_table(&description_tables,
+				ISC_RESULTCLASS_ISC, ISC_R_NRESULTS,
 				description, isc_msgcat, ISC_RESULT_RESULTSET);
+	if (result != ISC_R_SUCCESS)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "register_table() %s: %u",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"),
+				 result);
+
+	result = register_table(&identifier_tables,
+				ISC_RESULTCLASS_ISC, ISC_R_NRESULTS,
+				identifier, isc_msgcat, ISC_RESULT_RESULTSET);
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "register_table() %s: %u",
@@ -169,8 +249,8 @@ initialize(void) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 }
 
-const char *
-isc_result_totext(isc_result_t result) {
+static const char *
+isc_result_tomany_helper(resulttable_list_t *tables, isc_result_t result) {
 	resulttable *table;
 	const char *text, *default_text;
 	int index;
@@ -180,7 +260,7 @@ isc_result_totext(isc_result_t result) {
 	LOCK(&lock);
 
 	text = NULL;
-	for (table = ISC_LIST_HEAD(tables);
+	for (table = ISC_LIST_HEAD(*tables);
 	     table != NULL;
 	     table = ISC_LIST_NEXT(table, link)) {
 		if (result >= table->base && result <= table->last) {
@@ -205,11 +285,32 @@ isc_result_totext(isc_result_t result) {
 	return (text);
 }
 
+const char *
+isc_result_totext(isc_result_t result) {
+	return (isc_result_tomany_helper(&description_tables, result));
+}
+
+const char *
+isc_result_toid(isc_result_t result) {
+	return (isc_result_tomany_helper(&identifier_tables, result));
+}
+
 isc_result_t
 isc_result_register(unsigned int base, unsigned int nresults,
 		    const char **text, isc_msgcat_t *msgcat, int set)
 {
 	initialize();
 
-	return (register_table(base, nresults, text, msgcat, set));
+	return (register_table(&description_tables, base, nresults, text,
+			       msgcat, set));
+}
+
+isc_result_t
+isc_result_registerids(unsigned int base, unsigned int nresults,
+		       const char **ids, isc_msgcat_t *msgcat, int set)
+{
+	initialize();
+
+	return (register_table(&identifier_tables, base, nresults, ids,
+			       msgcat, set));
 }

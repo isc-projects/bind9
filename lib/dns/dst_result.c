@@ -54,6 +54,32 @@ static const char *text[DST_R_NRESULTS] = {
 	"illegal operation for an external key",/*%< 22 */
 };
 
+static const char *ids[DST_R_NRESULTS] = {
+	"DST_R_UNSUPPORTEDALG",
+	"DST_R_CRYPTOFAILURE",
+	"DST_R_NOCRYPTO",
+	"DST_R_NULLKEY",
+	"DST_R_INVALIDPUBLICKEY",
+	"DST_R_INVALIDPRIVATEKEY",
+	"UNUSED",
+	"DST_R_WRITEERROR",
+	"DST_R_INVALIDPARAM",
+	"UNUSED",
+	"UNUSED",
+	"DST_R_SIGNFAILURE",
+	"UNUSED",
+	"UNUSED",
+	"DST_R_VERIFYFAILURE",
+	"DST_R_NOTPUBLICKEY",
+	"DST_R_NOTPRIVATEKEY",
+	"DST_R_KEYCANNOTCOMPUTESECRET",
+	"DST_R_COMPUTESECRETFAILURE",
+	"DST_R_NORANDOMNESS",
+	"DST_R_BADKEYTYPE",
+	"DST_R_NOENGINE",
+	"DST_R_EXTERNALKEY",
+};
+
 #define DST_RESULT_RESULTSET			2
 
 static isc_once_t		once = ISC_ONCE_INIT;
@@ -67,6 +93,11 @@ initialize_action(void) {
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_register() failed: %u", result);
+	result = isc_result_registerids(ISC_RESULTCLASS_DST, DST_R_NRESULTS,
+					ids, dst_msgcat, DST_RESULT_RESULTSET);
+	if (result != ISC_R_SUCCESS)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_result_registerids() failed: %u", result);
 }
 
 static void

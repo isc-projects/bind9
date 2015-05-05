@@ -29,8 +29,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.10 2007/08/28 07:20:43 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -50,6 +48,15 @@ static const char *text[ISCCC_R_NRESULTS] = {
 	"duplicate"				/* 6 */
 };
 
+static const char *ids[ISCCC_R_NRESULTS] = {
+	"ISCCC_R_UNKNOWNVERSION",
+	"ISCCC_R_SYNTAX",
+	"ISCCC_R_BADAUTH",
+	"ISCCC_R_EXPIRED",
+	"ISCCC_R_CLOCKSKEW",
+	"ISCCC_R_DUPLICATE",
+};
+
 #define ISCCC_RESULT_RESULTSET			2
 
 static isc_once_t		once = ISC_ONCE_INIT;
@@ -64,6 +71,13 @@ initialize_action(void) {
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_register() failed: %u", result);
+
+	result = isc_result_registerids(ISC_RESULTCLASS_ISCCC, ISCCC_R_NRESULTS,
+					ids, isccc_msgcat,
+					ISCCC_RESULT_RESULTSET);
+	if (result != ISC_R_SUCCESS)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_result_registerids() failed: %u", result);
 }
 
 static void
