@@ -33,7 +33,7 @@
 rndc \- name server control utility
 .SH "SYNOPSIS"
 .HP 5
-\fBrndc\fR [\fB\-b\ \fR\fB\fIsource\-address\fR\fR] [\fB\-c\ \fR\fB\fIconfig\-file\fR\fR] [\fB\-k\ \fR\fB\fIkey\-file\fR\fR] [\fB\-s\ \fR\fB\fIserver\fR\fR] [\fB\-p\ \fR\fB\fIport\fR\fR] [\fB\-q\fR] [\fB\-V\fR] [\fB\-y\ \fR\fB\fIkey_id\fR\fR] {command}
+\fBrndc\fR [\fB\-b\ \fR\fB\fIsource\-address\fR\fR] [\fB\-c\ \fR\fB\fIconfig\-file\fR\fR] [\fB\-k\ \fR\fB\fIkey\-file\fR\fR] [\fB\-s\ \fR\fB\fIserver\fR\fR] [\fB\-p\ \fR\fB\fIport\fR\fR] [\fB\-q\fR] [\fB\-r\fR] [\fB\-V\fR] [\fB\-y\ \fR\fB\fIkey_id\fR\fR] {command}
 .SH "DESCRIPTION"
 .PP
 \fBrndc\fR
@@ -99,6 +99,15 @@ instead of BIND 9's default control channel port, 953.
 \-q
 .RS 4
 Quiet mode: Message text returned by the server will not be printed except when there is an error.
+.RE
+.PP
+\-r
+.RS 4
+Instructs
+\fBrndc\fR
+to print the result code returned by
+\fBnamed\fR
+after executing the requested command (e.g., ISC_R_SUCCESS, ISC_R_FAILURE, etc).
 .RE
 .PP
 \-V
@@ -169,7 +178,7 @@ Delete a zone while the server is running.
 .sp
 If the
 \fB\-clean\fR
-is specified, the zone's master file (and journal file, if any) will be deleted along with the zone. Without the
+argument is specified, the zone's master file (and journal file, if any) will be deleted along with the zone. Without the
 \fB\-clean\fR
 option, zone files must be cleaned up by hand. (If the zone is of type "slave" or "stub", the files needing to be cleaned up will be reported in the output of the
 \fBrndc delzone\fR

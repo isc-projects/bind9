@@ -47,10 +47,10 @@
 </div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">rndc</code>  [<code class="option">-b <em class="replaceable"><code>source-address</code></em></code>] [<code class="option">-c <em class="replaceable"><code>config-file</code></em></code>] [<code class="option">-k <em class="replaceable"><code>key-file</code></em></code>] [<code class="option">-s <em class="replaceable"><code>server</code></em></code>] [<code class="option">-p <em class="replaceable"><code>port</code></em></code>] [<code class="option">-q</code>] [<code class="option">-V</code>] [<code class="option">-y <em class="replaceable"><code>key_id</code></em></code>] {command}</p></div>
+<div class="cmdsynopsis"><p><code class="command">rndc</code>  [<code class="option">-b <em class="replaceable"><code>source-address</code></em></code>] [<code class="option">-c <em class="replaceable"><code>config-file</code></em></code>] [<code class="option">-k <em class="replaceable"><code>key-file</code></em></code>] [<code class="option">-s <em class="replaceable"><code>server</code></em></code>] [<code class="option">-p <em class="replaceable"><code>port</code></em></code>] [<code class="option">-q</code>] [<code class="option">-r</code>] [<code class="option">-V</code>] [<code class="option">-y <em class="replaceable"><code>key_id</code></em></code>] {command}</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2661177"></a><h2>DESCRIPTION</h2>
+<a name="id2661219"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">rndc</strong></span>
       controls the operation of a name
       server.  It supersedes the <span><strong class="command">ndc</strong></span> utility
@@ -81,7 +81,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2661227"></a><h2>OPTIONS</h2>
+<a name="id2661269"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-b <em class="replaceable"><code>source-address</code></em></span></dt>
 <dd><p>
@@ -127,6 +127,12 @@
 	    Quiet mode: Message text returned by the server
 	    will not be printed except when there is an error.
 	  </p></dd>
+<dt><span class="term">-r</span></dt>
+<dd><p>
+	    Instructs <span><strong class="command">rndc</strong></span> to print the result code
+	    returned by <span><strong class="command">named</strong></span> after executing the
+	    requested command (e.g., ISC_R_SUCCESS, ISC_R_FAILURE, etc).
+	  </p></dd>
 <dt><span class="term">-V</span></dt>
 <dd><p>
 	    Enable verbose logging.
@@ -152,7 +158,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2661592"></a><h2>COMMANDS</h2>
+<a name="id2662341"></a><h2>COMMANDS</h2>
 <p>
       A list of commands supported by <span><strong class="command">rndc</strong></span> can
       be seen by running <span><strong class="command">rndc</strong></span> without arguments.
@@ -208,7 +214,7 @@
 	    Delete a zone while the server is running.
 	  </p>
 <p>
-	    If the <code class="option">-clean</code> is specified,
+	    If the <code class="option">-clean</code> argument is specified,
 	    the zone's master file (and journal file, if any)
 	    will be deleted along with the zone.  Without the
 	    <code class="option">-clean</code> option, zone files must
@@ -734,7 +740,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2690758"></a><h2>LIMITATIONS</h2>
+<a name="id2690824"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -744,7 +750,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2690776"></a><h2>SEE ALSO</h2>
+<a name="id2690842"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -754,7 +760,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2690900"></a><h2>AUTHOR</h2>
+<a name="id2690966"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
