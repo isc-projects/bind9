@@ -222,7 +222,7 @@
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015
-./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013,2014
+./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013,2014,2015
 ./bin/named/convertxsl.pl			PERL	2006,2007,2008,2012,2014
 ./bin/named/geoip.c				C	2013,2014
 ./bin/named/include/.gitignore			X	2012,2014
@@ -1728,7 +1728,7 @@
 ./bin/tests/system/rndc/ns3/named.conf		CONF-C	2012,2013
 ./bin/tests/system/rndc/ns4/named.conf.in	CONF-C	2013,2014
 ./bin/tests/system/rndc/setup.sh		SH	2011,2012,2013,2014
-./bin/tests/system/rndc/tests.sh		SH	2011,2012,2013,2014
+./bin/tests/system/rndc/tests.sh		SH	2011,2012,2013,2014,2015
 ./bin/tests/system/rpz/.gitignore		X	2012
 ./bin/tests/system/rpz/Makefile.in		MAKE	2011,2012,2013
 ./bin/tests/system/rpz/clean.sh			SH	2011,2012,2013,2014
@@ -3049,7 +3049,7 @@
 ./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2012,2014
 ./lib/dns/dst_pkcs11.h				C	2014
-./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008,2012,2013,2014
+./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008,2012,2013,2014,2015
 ./lib/dns/ecdb.c				C	2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/forward.c				C	2000,2001,2004,2005,2007,2009,2013
 ./lib/dns/gen-unix.h				C	1999,2000,2001,2004,2005,2007,2009
@@ -3123,7 +3123,7 @@
 ./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/request.h			C	2000,2001,2002,2004,2005,2006,2007,2009,2010,2013,2014,2015
 ./lib/dns/include/dns/resolver.h		C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/rpz.h			C	2011,2012,2013
 ./lib/dns/include/dns/rriterator.h		C	2009,2011
@@ -3343,7 +3343,7 @@
 ./lib/dns/rdataslab.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/request.c				C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
-./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2011,2012,2013,2014
+./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2010,2012,2013,2014,2015
 ./lib/dns/rpz.c					C	2011,2012,2013,2014,2015
 ./lib/dns/rriterator.c				C	2009,2011,2012,2015
@@ -3578,7 +3578,7 @@
 ./lib/isc/include/isc/regex.h			C	2013
 ./lib/isc/include/isc/region.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2013
 ./lib/isc/include/isc/resource.h		C	2000,2001,2004,2005,2006,2007,2008
-./lib/isc/include/isc/result.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012,2014
+./lib/isc/include/isc/result.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012,2014,2015
 ./lib/isc/include/isc/resultclass.h		C	1999,2000,2001,2004,2005,2006,2007,2009,2014
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/safe.h			C	2013
@@ -3645,7 +3645,7 @@
 ./lib/isc/ondestroy.c				C	2000,2001,2004,2005,2007
 ./lib/isc/parseint.c				C	2001,2002,2003,2004,2005,2007,2012
 ./lib/isc/pk11.c				C	2014
-./lib/isc/pk11_result.c				C	2014
+./lib/isc/pk11_result.c				C	2014,2015
 ./lib/isc/pool.c				C	2013,2015
 ./lib/isc/portset.c				C	2008
 ./lib/isc/powerpc/Makefile.in			MAKE	2007,2012
@@ -3707,6 +3707,7 @@
 ./lib/isc/tests/radix_test.c			C	2014
 ./lib/isc/tests/random_test.c			C	2014,2015
 ./lib/isc/tests/regex_test.c			C	2013
+./lib/isc/tests/result_test.c			C	2015
 ./lib/isc/tests/safe_test.c			C	2013
 ./lib/isc/tests/sockaddr_test.c			C	2012
 ./lib/isc/tests/socket_test.c			C	2011,2012,2013,2014
@@ -3857,7 +3858,7 @@
 ./lib/isccc/include/isccc/util.h		C.NOM	2001,2004,2005,2006,2007,2014
 ./lib/isccc/include/isccc/version.h		C	2001,2004,2005,2006,2007
 ./lib/isccc/lib.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/result.c				C.NOM	2001,2003,2004,2005,2007
+./lib/isccc/result.c				C.NOM	2001,2003,2004,2005,2007,2015
 ./lib/isccc/sexpr.c				C.NOM	2001,2004,2005,2007,2014
 ./lib/isccc/symtab.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/version.c				C	1998,1999,2000,2001,2004,2005,2007
