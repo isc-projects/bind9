@@ -6529,6 +6529,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			isc_event_free(ISC_EVENT_PTR(&event));
 		} else if (REDIRECT(client)) {
 			result = client->query.redirect.result;
+			is_zone = ISC_TF(result == DNS_R_NXDOMAIN);
 		} else {
 			result = event->result;
 		}
