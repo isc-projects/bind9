@@ -55,7 +55,7 @@
  *
  * Each leaf indicates that an IP address is listed in the IP address or the
  * name server IP address policy sub-zone (or both) of the corresponding
- * response response zone.  The policy data such as a CNAME or an A record
+ * response policy zone.  The policy data such as a CNAME or an A record
  * is kept in the policy zone.  After an IP address has been found in a radix
  * tree, the node in the policy zone's database is found by converting
  * the IP address to a domain name in a canonical form.
@@ -134,11 +134,6 @@ struct dns_rpz_cidr_node {
 };
 
 /*
- * The data in a RBT node has two pairs of bits for policy zones.
- * One pair is for the corresponding name of the node such as example.com
- * and the other pair is for a wildcard child such as *.example.com.
- */
-/*
  * A pair of arrays of bits flagging the existence of
  * QNAME and NSDNAME policy triggers.
  */
@@ -148,6 +143,11 @@ struct dns_rpz_nm_zbits {
 	dns_rpz_zbits_t		ns;
 };
 
+/*
+ * The data in a RBT node has two pairs of bits for policy zones.
+ * One pair is for the corresponding name of the node such as example.com
+ * and the other pair is for a wildcard child such as *.example.com.
+ */
 typedef struct dns_rpz_nm_data dns_rpz_nm_data_t;
 struct dns_rpz_nm_data {
 	dns_rpz_nm_zbits_t	set;
@@ -259,11 +259,15 @@ dns_rpz_policy2str(dns_rpz_policy_t policy) {
 	return (str);
 }
 
+/*
+ * Return the bit number of the highest set bit in 'zbit'.
+ * (for example, 0x01 returns 0, 0xFF returns 7, etc.)
+ */
 static int
 zbit_to_num(dns_rpz_zbits_t zbit) {
 	dns_rpz_num_t rpz_num;
 
-	INSIST(zbit != 0);
+	REQUIRE(zbit != 0);
 	rpz_num = 0;
 #if DNS_RPZ_MAX_ZONES > 32
 	if ((zbit & 0xffffffff00000000L) != 0) {
@@ -376,30 +380,172 @@ set_sum_pair(dns_rpz_cidr_node_t *cnode) {
 
 static void
 fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
-	dns_rpz_zbits_t zbits;
+	dns_rpz_zbits_t mask;
+
+	/* qname_wait_recurse and qname_skip_recurse are used to
+	 * implement the "qname-wait-recurse" config option.
+	 *
+	 * By default, "qname-wait-recurse" is yes, so no
+	 * processing happens without recursion. In this case,
+	 * qname_wait_recurse is true, and qname_skip_recurse
+	 * (a bit field indicating which policy zones can be
+	 * processed without recursion) is set to all 0's by
+	 * fix_qname_skip_recurse().
+	 *
+	 * When "qname-wait-recurse" is no, qname_skip_recurse may be
+	 * set to a non-zero value by fix_qname_skip_recurse(). The mask
+	 * has to have bits set for for the policy zones for which
+	 * processing may continue without recursion, and bits cleared
+	 * for the rest.
+	 *
+	 * (1) The ARM says:
+	 *
+	 *   The "qname-wait-recurse no" option overrides that default
+	 *   behavior when recursion cannot change a non-error
+	 *   response. The option does not affect QNAME or client-IP
+	 *   triggers in policy zones listed after other zones
+	 *   containing IP, NSIP and NSDNAME triggers, because those may
+	 *   depend on the A, AAAA, and NS records that would be found
+	 *   during recursive resolution.
+	 *
+	 * Let's consider the following:
+	 *
+	 *     zbits_req = (rpzs->have.ipv4 | rpzs->have.ipv6 |
+	 *		    rpzs->have.nsdname |
+	 *		    rpzs->have.nsipv4 | rpzs->have.nsipv6);
+	 *
+	 * zbits_req now contains bits set for zones which require
+	 * recursion.
+	 *
+	 * But going by the description in the ARM, if the first policy
+	 * zone requires recursion, then all zones after that (higher
+	 * order bits) have to wait as well.  If the Nth zone requires
+	 * recursion, then (N+1)th zone onwards all need to wait.
+	 *
+	 * So mapping this, examples:
+	 *
+	 * zbits_req = 0b000  mask = 0xffffffff (no zones have to wait for
+	 *					 recursion)
+	 * zbits_req = 0b001  mask = 0x00000000 (all zones have to wait)
+	 * zbits_req = 0b010  mask = 0x00000001 (the first zone doesn't have to
+	 *					 wait, second zone onwards need
+	 *					 to wait)
+	 * zbits_req = 0b011  mask = 0x00000000 (all zones have to wait)
+	 * zbits_req = 0b100  mask = 0x00000011 (the 1st and 2nd zones don't
+	 *					 have to wait, third zone
+	 *					 onwards need to wait)
+	 *
+	 * More generally, we have to count the number of trailing 0
+	 * bits in zbits_req and only these can be processed without
+	 * recursion. All the rest need to wait.
+	 *
+	 * (2) The ARM says that "qname-wait-recurse no" option
+	 * overrides the default behavior when recursion cannot change a
+	 * non-error response. So, in the order of listing of policy
+	 * zones, within the first policy zone where recursion may be
+	 * required, we should first allow CLIENT-IP and QNAME policy
+	 * records to be attempted without recursion.
+	 */
 
 	/*
 	 * Get a mask covering all policy zones that are not subordinate to
 	 * other policy zones containing triggers that require that the
 	 * qname be resolved before they can be checked.
 	 */
-	if (rpzs->p.qname_wait_recurse) {
-		zbits = 0;
-	} else {
-		zbits = (rpzs->have.ipv4 || rpzs->have.ipv6 ||
-			 rpzs->have.nsdname ||
-			 rpzs->have.nsipv4 || rpzs->have.nsipv6);
-		if (zbits == 0) {
-			zbits = DNS_RPZ_ALL_ZBITS;
-		} else {
-			zbits = DNS_RPZ_ZMASK(zbit_to_num(zbits));
-		}
-	}
-	rpzs->have.qname_skip_recurse = zbits;
-
 	rpzs->have.client_ip = rpzs->have.client_ipv4 | rpzs->have.client_ipv6;
 	rpzs->have.ip = rpzs->have.ipv4 | rpzs->have.ipv6;
 	rpzs->have.nsip = rpzs->have.nsipv4 | rpzs->have.nsipv6;
+
+	if (rpzs->p.qname_wait_recurse) {
+		mask = 0;
+	} else {
+		dns_rpz_zbits_t zbits_req;
+		dns_rpz_zbits_t zbits_notreq;
+		dns_rpz_zbits_t mask2;
+		dns_rpz_zbits_t req_mask;
+
+		/*
+		 * Get the masks of zones with policies that
+		 * do/don't require recursion
+		 */
+
+		zbits_req = (rpzs->have.ipv4 | rpzs->have.ipv6 |
+			     rpzs->have.nsdname |
+			     rpzs->have.nsipv4 | rpzs->have.nsipv6);
+		zbits_notreq = (rpzs->have.client_ip | rpzs->have.qname);
+
+		if (zbits_req == 0) {
+			mask = DNS_RPZ_ALL_ZBITS;
+			goto set;
+		}
+
+		/*
+		 * req_mask is a mask covering used bits in
+		 * zbits_req. (For instance, 0b1 => 0b1, 0b101 => 0b111,
+		 * 0b11010101 => 0b11111111).
+		 */
+		req_mask = zbits_req;
+		req_mask |= req_mask >> 1;
+		req_mask |= req_mask >> 2;
+		req_mask |= req_mask >> 4;
+		req_mask |= req_mask >> 8;
+		req_mask |= req_mask >> 16;
+#if DNS_RPZ_MAX_ZONES > 32
+		req_mask |= req_mask >> 32;
+#endif
+
+		/*
+		 * There's no point in skipping recursion for a later
+		 * zone if it is required in a previous zone.
+		 */
+		if ((zbits_notreq & req_mask) == 0) {
+			mask = 0;
+			goto set;
+		}
+
+		/*
+		 * This bit arithmetic creates a mask of zones in which
+		 * it is okay to skip recursion. After the first zone
+		 * that has to wait for recursion, all the others have
+		 * to wait as well, so we want to create a mask in which
+		 * all the trailing zeroes in zbits_req are are 1, and
+		 * more significant bits are 0. (For instance,
+		 * 0x0700 => 0x00ff, 0x0007 => 0x0000)
+		 */
+		mask = ~(zbits_req | -zbits_req);
+
+		/*
+		 * As mentioned in (2) above, the zone corresponding to
+		 * the least significant zero could have its CLIENT-IP
+		 * and QNAME policies checked before recursion, if it
+		 * has any of those policies.  So if it does, we
+		 * can set its 0 to 1.
+		 *
+		 * Locate the least significant 0 bit in the mask (for
+		 * instance, 0xff => 0x100)...
+		 */
+		mask2 = (mask << 1) & ~mask;
+
+		/*
+		 * Also set the bit for zone 0, because if it's in
+		 * zbits_notreq then it's definitely okay to attempt to
+		 * skip recursion for zone 0...
+		 */
+		mask2 |= 1;
+
+		/* Clear any bits *not* in zbits_notreq... */
+		mask2 &= zbits_notreq;
+
+		/* And merge the result into the skip-recursion mask */
+		mask |= mask2;
+	}
+
+ set:
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+		      DNS_RPZ_DEBUG_QUIET,
+		      "computed RPZ qname_skip_recurse mask=0x%llx",
+		      (isc_uint64_t) mask);
+	rpzs->have.qname_skip_recurse = mask;
 }
 
 static void

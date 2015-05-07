@@ -1,3 +1,9 @@
+4116.	[bug]		Fix a bug in RPZ that could cause some policy
+			zones that did not specifically require
+			recursion to be treated as if they did;
+			consequently, setting qname-wait-recurse no; was
+			sometimes ineffective. [RT #39229]
+
 4115.	[func]		"rndc -r" now prints the result code (e.g.,
 			ISC_R_SUCCESS, ISC_R_TIMEOUT, etc) after
 			running the requested command. [RT #38913]
