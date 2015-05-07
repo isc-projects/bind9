@@ -9722,7 +9722,7 @@ deny-answer-aliases { "example.net"; };
 	    <command>DISABLED</command> actions) must be chosen.
 	    Triggers or the records that encode them are chosen for the
 	    rewriting in the following order:
-	    <itemizedlist>
+	    <orderedlist>
 	      <listitem>Choose the triggered record in the zone that appears
 		first in the <command>response-policy</command> option.
 	      </listitem>
@@ -9739,7 +9739,7 @@ deny-answer-aliases { "example.net"; };
 		prefer the IP or NSIP trigger that matches
 		the smallest IP address.
 	      </listitem>
-	    </itemizedlist>
+	    </orderedlist>
 	  </para>
 
 	  <para>

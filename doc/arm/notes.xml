@@ -113,6 +113,17 @@
 	  <command>dig +short</command>. [RT #39291]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  A bug in the RPZ implementation could cause some policy
+	  zones that did not specifically require recursion to be
+	  treated as if they did; consequently, setting
+	  <command>qname-wait-recurse no;</command> was
+	  sometimes ineffective.  This has been corrected.
+	  In most configurations, behavioral changes due to this
+	  fix will not be noticeable.  [RT #39229]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">

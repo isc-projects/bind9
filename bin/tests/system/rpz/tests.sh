@@ -635,7 +635,7 @@ for i in 1 2 3 4 5; do
     nsd $ns5 delete '*.example.com.policy1.' example.com.policy1.
 done
 
-echo "I:checking checking that going from a empty policy zone works"
+echo "I:checking that going from a empty policy zone works"
 nsd $ns5 add '*.x.servfail.policy2.' x.servfail.policy2.
 sleep 1
 $RNDCCMD $ns7 reload policy2
