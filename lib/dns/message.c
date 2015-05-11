@@ -2543,7 +2543,7 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
 
 isc_result_t
 dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
-	unsigned int clear_after;
+	unsigned int clear_from;
 	isc_result_t result;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -2555,15 +2555,15 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 	    msg->opcode != dns_opcode_notify)
 		want_question_section = ISC_FALSE;
 	if (msg->opcode == dns_opcode_update)
-		clear_after = DNS_SECTION_PREREQUISITE;
+		clear_from = DNS_SECTION_PREREQUISITE;
 	else if (want_question_section) {
 		if (!msg->question_ok)
 			return (DNS_R_FORMERR);
-		clear_after = DNS_SECTION_ANSWER;
+		clear_from = DNS_SECTION_ANSWER;
 	} else
-		clear_after = DNS_SECTION_QUESTION;
+		clear_from = DNS_SECTION_QUESTION;
 	msg->from_to_wire = DNS_MESSAGE_INTENTRENDER;
-	msgresetnames(msg, clear_after);
+	msgresetnames(msg, clear_from);
 	msgresetopt(msg);
 	msgresetsigs(msg, ISC_TRUE);
 	msginitprivate(msg);
