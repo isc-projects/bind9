@@ -197,7 +197,7 @@ struct dns_message {
 	dns_messageid_t			id;
 	unsigned int			flags;
 	dns_rcode_t			rcode;
-	unsigned int			opcode;
+	dns_opcode_t			opcode;
 	dns_rdataclass_t		rdclass;
 
 	/* 4 real, 1 pseudo */
