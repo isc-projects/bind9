@@ -18,6 +18,8 @@
 
 #include <atf-c.h>
 
+#include <string.h>
+
 #include <isc/result.h>
 
 ATF_TC(isc_result_toid);
