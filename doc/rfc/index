@@ -159,3 +159,5 @@
 6844:	DNS Certification Authority Authorization (CAA) Resource Record
 6891:	Extension Mechanisms for DNS (EDNS(0))
 7314:	Extension Mechanisms for DNS (EDNS) EXPIRE Option
+7534:	AS112 Nameserver Operations
+7535:	AS112 Redirection Using DNAME
