@@ -1,3 +1,5 @@
+4117.	[protocol]	Add EMPTY.AS112.ARPA as per RFC 7534.
+
 4116.	[bug]		Fix a bug in RPZ that could cause some policy
 			zones that did not specifically require
 			recursion to be treated as if they did;
