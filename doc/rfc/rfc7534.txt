@@ -1,0 +1,1347 @@
+
+
+
+
+
+
+Internet Engineering Task Force (IETF)                          J. Abley
+Request for Comments: 7534                                     Dyn, Inc.
+Obsoletes: 6304                                             W. Sotomayor
+Category: Informational                                            OttIX
+ISSN: 2070-1721                                                 May 2015
+
+
+                      AS112 Nameserver Operations
+
+Abstract
+
+   Many sites connected to the Internet make use of IPv4 addresses that
+   are not globally unique.  Examples are the addresses designated in
+   RFC 1918 for private use within individual sites.
+
+   Devices in such environments may occasionally originate Domain Name
+   System (DNS) queries (so-called "reverse lookups") corresponding to
+   those private-use addresses.  Since the addresses concerned have only
+   local significance, it is good practice for site administrators to
+   ensure that such queries are answered locally.  However, it is not
+   uncommon for such queries to follow the normal delegation path in the
+   public DNS instead of being answered within the site.
+
+   It is not possible for public DNS servers to give useful answers to
+   such queries.  In addition, due to the wide deployment of private-use
+   addresses and the continuing growth of the Internet, the volume of
+   such queries is large and growing.  The AS112 project aims to provide
+   a distributed sink for such queries in order to reduce the load on
+   the corresponding authoritative servers.  The AS112 project is named
+   after the Autonomous System Number (ASN) that was assigned to it.
+
+   This document describes the steps required to install a new AS112
+   node and offers advice relating to such a node's operation.
+
+   This document obsoletes RFC 6304.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                     [Page 1]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+Status of This Memo
+
+   This document is not an Internet Standards Track specification; it is
+   published for informational purposes.
+
+   This document is a product of the Internet Engineering Task Force
+   (IETF).  It represents the consensus of the IETF community.  It has
+   received public review and has been approved for publication by the
+   Internet Engineering Steering Group (IESG).  Not all documents
+   approved by the IESG are a candidate for any level of Internet
+   Standard; see Section 2 of RFC 5741.
+
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   http://www.rfc-editor.org/info/rfc7534.
+
+Copyright Notice
+
+   Copyright (c) 2015 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                     [Page 2]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+Table of Contents
+
+   1. Introduction ....................................................4
+   2. AS112 DNS Service ...............................................4
+      2.1. Approach ...................................................4
+           2.1.1. Direct Delegation ...................................4
+           2.1.2. DNAME Redirection ...................................5
+      2.2. Zones ......................................................5
+      2.3. Nameservers ................................................6
+   3. Installation of a New Node ......................................6
+      3.1. Useful Background Knowledge ................................6
+      3.2. Topological Location .......................................6
+      3.3. Operating System and Host Considerations ...................7
+      3.4. Routing Software ...........................................7
+      3.5. DNS Software ..............................................10
+      3.6. Testing a Newly Installed Node ............................15
+   4. Operations .....................................................16
+      4.1. Monitoring ................................................16
+      4.2. Downtime ..................................................16
+      4.3. Statistics and Measurement ................................16
+   5. Communications .................................................17
+   6. On the Future of AS112 Nodes ...................................17
+   7. IANA Considerations ............................................18
+      7.1. General ...................................................18
+      7.2. IANA Actions ..............................................18
+           7.2.1. IPv6 Transport for Direct Delegation AS112
+                  Servers ............................................18
+           7.2.2. Registration in the Special-Purpose AS
+                  Numbers Registry ...................................19
+           7.2.3. Registration in the IANA IPv4
+                  Special-Purpose Address Registry ...................19
+           7.2.4. Registration in the IANA IPv6
+                  Special-Purpose Address Registry ...................19
+   8. Security Considerations ........................................20
+   9. References .....................................................21
+      9.1. Normative References ......................................21
+      9.2. Informative References ....................................22
+   Appendix A. A Brief History of AS112 ..............................23
+   Appendix B. Changes since RFC 6304 ................................23
+   Acknowledgements ..................................................24
+   Authors' Addresses ................................................24
+
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                     [Page 3]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+1.  Introduction
+
+   Many sites connected to the Internet make use of IPv4 addresses that
+   are not globally unique.  Examples are the addresses designated in
+   [RFC1918] for private use within individual sites.
+
+   Devices in such environments may occasionally originate Domain Name
+   System (DNS) [RFC1034] queries (so-called "reverse lookups")
+   corresponding to those private-use addresses.  Since the addresses
+   concerned have only local significance, it is good practice for site
+   administrators to ensure that such queries are answered locally
+   [RFC6303].  However, it is not uncommon for such queries to follow
+   the normal delegation path in the public DNS instead of being
+   answered within the site.
+
+   It is not possible for public DNS servers to give useful answers to
+   such queries.  In addition, due to the wide deployment of private-use
+   addresses and the continuing growth of the Internet, the volume of
+   such queries is large and growing.  The AS112 project aims to provide
+   a distributed sink for such queries in order to reduce the load on
+   the IN-ADDR.ARPA authoritative servers [RFC5855].
+
+   The AS112 project encompasses a loosely coordinated collection of
+   independently operated nameservers.  Each nameserver functions as a
+   single node in an AS112 anycast cloud [RFC4786] and is configured to
+   answer authoritatively for a particular set of nominated zones.
+
+   The AS112 project is named after the Autonomous System Number (ASN)
+   that was assigned to it (see Appendix A).
+
+2.  AS112 DNS Service
+
+2.1.  Approach
+
+2.1.1.  Direct Delegation
+
+   The AS112 project currently uses an approach whereby zones whose
+   traffic should be directed towards an AS112 sink should be directly
+   delegated to AS112 nameservers.  Correspondingly, each AS112 node is
+   manually configured to answer appropriately for those zones.
+
+   The guidance in this document describes this capability for the zones
+   that were originally delegated in this fashion.  AS112 nodes that
+   were implemented in accordance with the guidance found here will
+   continue to provide service for those zones.
+
+
+
+
+
+
+Abley & Sotomayor             Informational                     [Page 4]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+2.1.2.  DNAME Redirection
+
+   [RFC7535] describes a different approach whereby queries towards
+   specific zones are redirected to an empty zone also hosted on AS112
+   servers, using DNAME [RFC6672].
+
+   The guidance in this document introduces this capability, allowing
+   any zone administrator to sink query traffic in AS112 infrastructure
+   without requiring changes to any AS112 node.
+
+2.2.  Zones
+
+   To support Direct Delegation AS112 service, AS112 nameservers answer
+   authoritatively for the following zones, corresponding to [RFC1918]
+   private-use netblocks:
+
+   o  10.IN-ADDR.ARPA
+
+   o  16.172.IN-ADDR.ARPA, 17.172.IN-ADDR.ARPA, ..., 31.172.IN-ADDR.ARPA
+
+   o  168.192.IN-ADDR.ARPA
+
+   and the following zone, corresponding to the "link local" netblock
+   169.254.0.0/16 listed in [RFC6890]:
+
+   o  254.169.IN-ADDR.ARPA
+
+   To support DNAME redirection AS112 service, AS112 nameservers answer
+   authoritatively for the following zone, as specified in [RFC7535]:
+
+   o  EMPTY.AS112.ARPA
+
+   To aid identification of AS112 anycast nodes, each node also answers
+   authoritatively for the following zones:
+
+   o  HOSTNAME.AS112.NET
+
+   o  HOSTNAME.AS112.ARPA
+
+   See Section 3.5 for the recommended contents of all these zones.
+
+
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                     [Page 5]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+2.3.  Nameservers
+
+   To support Direct Delegation AS112 service, the relevant zones listed
+   in Section 2.2 are delegated to the two nameservers
+   BLACKHOLE-1.IANA.ORG (192.175.48.6, 2620:4f:8000::6) and
+   BLACKHOLE-2.IANA.ORG (192.175.48.42, 2620:4f:8000::42).
+
+   Additionally, the server PRISONER.IANA.ORG (192.175.48.1,
+   2620:4f:8000::1) is listed in the MNAME field of the SOA records of
+   the IN-ADDR.ARPA zones served by AS112 nameservers.
+   PRISONER.IANA.ORG receives mainly dynamic update queries.
+
+   The addresses of all these nameservers are covered by the single IPv4
+   prefix 192.175.48.0/24 and the IPv6 prefix 2620:4f:8000::/48.  To
+   date, IPv6 transport for these nameservers has only been available
+   for pre-production testing.  IANA has added AAAA RRSets for the owner
+   names of these nameservers; see Section 7.
+
+   To support DNAME redirection AS112 service, the single zone
+   EMPTY.AS112.ARPA is delegated to the single nameserver
+   BLACKHOLE.AS112.ARPA (192.31.196.1, 2001:4:112::1).  The addresses of
+   that nameserver are covered by the single IPv4 prefix 192.31.196.0/24
+   and the single IPv6 prefix 2001:4:112::/48.
+
+3.  Installation of a New Node
+
+3.1.  Useful Background Knowledge
+
+   Installation of an AS112 node is relatively straightforward.
+   However, experience in the following general areas may prove useful:
+
+   o  inter-domain routing with BGP [RFC4271];
+
+   o  DNS authoritative server operations; and
+
+   o  anycast [RFC4786] distribution of DNS services.
+
+3.2.  Topological Location
+
+   AS112 nodes may be located anywhere on the Internet.  For nodes that
+   are intended to provide a public service to the Internet community
+   (as opposed to private use), it may well be advantageous to choose a
+   location that is easily (and cheaply) reachable by multiple
+   providers, such as an Internet Exchange Point.
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                     [Page 6]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+   AS112 nodes may advertise their service prefix to BGP peers for local
+   use (analogous to a conventional peering relationship between two
+   providers) or for global use (analogous to a customer relationship
+   with one or more providers).
+
+   It is good operational practice to notify the community of users that
+   may fall within the reach of a new AS112 node before it is installed.
+   At an Internet Exchange, local mailing lists usually exist to
+   facilitate such announcements.  For nodes that are intended to be
+   globally reachable, coordination with other AS112 operators is highly
+   recommended.  See also Section 5.
+
+3.3.  Operating System and Host Considerations
+
+   Examples in this document are based on UNIX and UNIX-like operating
+   systems, but other operating systems exist that are suitable for use
+   in construction of an AS112 node.
+
+   The chosen platform should include either support for cloned loopback
+   interfaces or the capability to bind multiple addresses to a single
+   loopback interface.  The addresses of the nameservers listed in
+   Section 2.3 will be configured on these interfaces in order that the
+   DNS software can respond to queries properly.
+
+   A host that is configured to act as an AS112 anycast node should be
+   dedicated to that purpose and should not be used to simultaneously
+   provide other services.  This guidance is provided due to the
+   unpredictable (and occasionally high) traffic levels that AS112 nodes
+   have been seen to attract.
+
+   System startup scripts should be arranged such that the various
+   AS112-related components start automatically following a system
+   reboot.  The order in which interfaces are configured and software
+   components started should be arranged such that routing software
+   startup follows DNS software startup, and DNS software startup
+   follows loopback interface configuration.
+
+   Wrapper scripts or other arrangements should be employed to ensure
+   that the anycast service prefix for AS112 is not advertised while
+   either the anycast addresses are not configured or the DNS software
+   is not running.
+
+3.4.  Routing Software
+
+   AS112 nodes signal the availability of AS112 nameservers to the
+   Internet using BGP [RFC4271]: each AS112 node is a BGP speaker and
+   announces the prefixes 192.175.48.0/24 and 2620:4f:8000::/48 to the
+   Internet with origin AS 112 (see also Section 2.3).
+
+
+
+Abley & Sotomayor             Informational                     [Page 7]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+   The examples in this document are based on the Quagga Routing Suite
+   <http://www.quagga.net> running on Linux, but other software packages
+   exist that also provide suitable BGP support for AS112 nodes.
+
+   The "bgpd.conf" file is used by Quagga's bgpd daemon, which provides
+   BGP support.  The router ID in this example is 203.0.113.1; the AS112
+   node peers with external peers 192.0.2.1, 192.0.2.2, 2001:db8::1, and
+   2001:db8::2.  Note that the local AS number is 112, and the service
+   prefixes originated from the AS112 node to support Direct Delegation
+   service are 192.175.48.0/24 and 2620:4f:8000::/48; the IPv4 prefix
+   192.31.196.0/24 and the IPv6 prefix 2001:4:112::/48 support DNAME
+   redirection.
+
+   For clarity, an IPv4-only AS112 node need not configure any of the
+   IPv6 elements that follow; similarly, an IPv6-only AS112 node need
+   not configure any of the IPv4 elements.  Such single-stack hosts can
+   still contribute usefully to IPv4 and IPv6 AS112 services, however,
+   and single-stack operation is not discouraged.
+
+   ! bgpd.conf
+   !
+   hostname as112-bgpd
+   password <something>
+   enable password <supersomething>
+   !
+   ! Note that all AS112 nodes use the local Autonomous System Number
+   ! 112, and originate the IPv4 prefixes 192.175.48.0/24 and
+   ! 192.31.196.0/24 and the IPv6 prefixes 2620:4f:8000::/48 and
+   ! 2001:4:112::/48.
+   !
+   ! All other addresses shown below are illustrative, and
+   ! actual numbers will depend on local circumstances.
+   !
+   ! IPv4-only or IPv6-only AS112 nodes should omit advertisements
+   ! for address families they do not support.
+   !
+   router bgp 112
+    bgp router-id 203.0.113.1
+    neighbor 192.0.2.1 remote-as 64496
+    neighbor 192.0.2.1 next-hop-self
+    neighbor 192.0.2.1 prefix-list AS112-v4 out
+    neighbor 192.0.2.1 filter-list 1 out
+   !
+    neighbor 192.0.2.2 remote-as 64497
+    neighbor 192.0.2.2 next-hop-self
+    neighbor 192.0.2.2 prefix-list AS112-v4 out
+    neighbor 192.0.2.2 filter-list 1 out
+   !
+
+
+
+Abley & Sotomayor             Informational                     [Page 8]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+    neighbor 2001:db8::1 remote-as 64498
+    neighbor 2001:db8::1 next-hop-self
+    neighbor 2001:db8::1 prefix-list AS112-v6 out
+    neighbor 2001:db8::1 filter-list 1 out
+   !
+    neighbor 2001:db8::2 remote-as 64499
+    neighbor 2001:db8::2 next-hop-self
+    neighbor 2001:db8::2 prefix-list AS112-v6 out
+    neighbor 2001:db8::2 filter-list 1 out
+   !
+    network 192.175.48.0/24
+    network 192.31.196.0/24
+   !
+    address-family ipv6 unicast
+     network 2620:4f:8000::/48
+     network 2001:4:112::/48
+    exit-address-family
+   !
+   ip prefix-list AS112-v4 permit 192.175.48.0/24
+   ip prefix-list AS112-v4 permit 192.31.196.0/24
+   !
+   ipv6 prefix-list AS112-v6 permit 2620:4f:8000::/48
+   ipv6 prefix-list AS112-v6 permit 2001:4:112::/48
+   !
+   ip as-path access-list 1 permit ^$
+
+   The configuration above includes two restrictions on what the AS112
+   should advertise to its BGP neighbours: a prefix filter that permits
+   only the service prefixes, and an AS_PATH filter that matches only
+   locally originated routes.  Together, these measures prevent the node
+   from becoming a transit point for its adjacent ASes.
+
+   The "zebra.conf" file is required to provide integration between
+   protocol daemons (bgpd, in this case) and the kernel.
+
+   ! zebra.conf
+   !
+   hostname as112
+   password <something>
+   enable password <supersomething>
+   !
+   interface lo
+   !
+   interface eth0
+   !
+
+
+
+
+
+
+Abley & Sotomayor             Informational                     [Page 9]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+3.5.  DNS Software
+
+   Although the queries received by AS112 nodes are definitively
+   misdirected, it is important that they be answered in a manner that
+   is accurate and consistent.  For this reason, AS112 nodes operate as
+   fully functional and standards-compliant DNS authoritative servers
+   [RFC1034], and hence require appropriate DNS software.
+
+   Examples in this document are based on ISC BIND9
+   <http://www.isc.org/software/BIND/>, but other DNS software exists
+   that is suitable for use in construction of an AS112 node.
+
+   The following is a sample BIND9 "named.conf" file for a dedicated
+   AS112 server.  Note that the nameserver is configured to act as an
+   authoritative-only server (i.e., recursion is disabled).  The
+   nameserver is also configured to listen on the various AS112 anycast
+   nameserver addresses, as well as its local addresses.
+
+   A basic logging example is included in the sample as well.  AS112
+   operators may exercise discretion at the amount of logging detail
+   they desire or the type of logging they may use in the maintenance of
+   their node.  The detail of information can then be used to single out
+   bad implementors or badly managed nameservers, or it can be used for
+   simple measurement analysis.
+
+   // named.conf
+
+   // Global options
+
+   options {
+     listen-on {
+       127.0.0.1;         // localhost
+
+     // The following address is node-dependent and should be set to
+     // something appropriate for the new AS112 node.
+
+       203.0.113.1;       // local address (globally unique, unicast)
+
+     // The following addresses are used to support Direct Delegation
+     // AS112 service and are the same for all AS112 nodes.
+
+       192.175.48.1;      // prisoner.iana.org (anycast)
+       192.175.48.6;      // blackhole-1.iana.org (anycast)
+       192.175.48.42;     // blackhole-2.iana.org (anycast)
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 10]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+     // The following address is used to support DNAME redirection
+     // AS112 service and is the same for all AS112 nodes.
+
+       192.31.196.1;      // blackhole.as112.arpa (anycast)
+     };
+
+     listen-on-v6 {
+       ::1;               // localhost
+
+     // The following addresses are used to support Direct Delegation
+     // AS112 service and are the same for all AS112 nodes.
+
+       2620:4f:8000::1;   // prisoner.iana.org (anycast)
+       2620:4f:8000::6;   // blackhole-1.iana.org (anycast)
+       2620:4f:8000::42;  // blackhole-2.iana.org (anycast)
+
+     // The following address is used to support DNAME redirection
+     // AS112 service and is the same for all AS112 nodes.
+
+       2001:4:112::1;    // blackhole.as112.arpa (anycast)
+     };
+
+     directory "/var/named";
+     recursion no;        // authoritative-only server
+   };
+
+   // Log queries, so that when people call us about unexpected
+   // answers to queries they didn't realise they had sent, we
+   // have something to talk about.  Note that activating this
+   // naively has the potential to create high CPU load and consume
+   // enormous amounts of disk space.  This example retains 2 old
+   // versions at a maximum of 500 MB each before rotating out the
+   // oldest one.
+
+   logging {
+     channel "querylog" {
+       file "/var/log/query.log" versions 2 size 500m;
+       print-time yes;
+     };
+     category queries { querylog; };
+   };
+
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 11]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+   // Direct Delegation AS112 Service
+
+   // RFC 1918
+
+   zone "10.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "16.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "17.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "18.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "19.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "20.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "21.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "22.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "23.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "24.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "25.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "26.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "27.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "28.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "29.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "30.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "31.172.in-addr.arpa" { type master; file "db.dd-empty"; };
+   zone "168.192.in-addr.arpa" { type master; file "db.dd-empty"; };
+
+   // RFC 6890
+
+   zone "254.169.in-addr.arpa" { type master; file "db.dd-empty"; };
+
+   // DNAME redirection AS112 Service
+
+   zone "empty.as112.arpa" { type master; file "db.dr-empty"; };
+
+   // Also answer authoritatively for the HOSTNAME.AS112.NET and
+   // HOSTNAME.AS112.ARPA zones, which contain data of operational
+   // relevance.
+
+   zone "hostname.as112.net" {
+     type master;
+     file "db.hostname.as112.net";
+   };
+
+   zone "hostname.as112.arpa" {
+     type master;
+     file "db.hostname.as112.arpa";
+   };
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 12]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+   The "db.dd-empty" file follows, below.  This is the source data used
+   to populate all the IN-ADDR.ARPA zones listed in Section 2.2 that
+   support Direct Delegation AS112 service.  Note that the RNAME
+   specified in the SOA record corresponds to
+   hostmaster@root-servers.org, a suitable email address for receiving
+   technical queries about these zones.
+
+   ; db.dd-empty
+   ;
+   ; Empty zone for Direct Delegation AS112 service.
+   ;
+   $TTL    1W
+   @  IN  SOA  prisoner.iana.org. hostmaster.root-servers.org. (
+                                  1       ; serial number
+                                  1W      ; refresh
+                                  1M      ; retry
+                                  1W      ; expire
+                                  1W )    ; negative caching TTL
+   ;
+          NS     blackhole-1.iana.org.
+          NS     blackhole-2.iana.org.
+   ;
+   ; There should be no other resource records included in this zone.
+   ;
+   ; Records that relate to RFC 1918-numbered resources within the
+   ; site hosting this AS112 node should not be hosted on this
+   ; nameserver.
+
+   The "db.dr-empty" file follows, below.  This is the source data used
+   to populate the EMPTY.AS112.ARPA zone that supports DNAME redirection
+   AS112 service.  Note that the RNAME specified in the SOA record
+   corresponds to noc@dns.icann.org, a suitable email address for
+   technical queries about this zone.
+
+   ; db.dr-empty
+   ;
+   ; Empty zone for DNAME redirection AS112 service.
+   ;
+   $TTL    1W
+   @  IN  SOA  blackhole.as112.arpa. noc.dns.icann.org. (
+                                  1       ; serial number
+                                  1W      ; refresh
+                                  1M      ; retry
+                                  1W      ; expire
+                                  1W )    ; negative caching TTL
+   ;
+          NS     blackhole.as112.arpa.
+   ;
+
+
+
+Abley & Sotomayor             Informational                    [Page 13]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+   ; There should be no other resource records included in this zone.
+   ;
+   ; Records that relate to RFC 1918-numbered resources within the
+   ; site hosting this AS112 node should not be hosted on this
+   ; nameserver.
+
+   The "db.hostname.as112.net" and "db.hostname.as112.arpa" files
+   follow, below.  These zones contain various resource records that
+   provide operational data to users for troubleshooting or measurement
+   purposes; the data should be edited to suit local circumstances.
+   Note that the responses to the queries "HOSTNAME.AS112.NET IN TXT"
+   and "HOSTNAME.AS112.ARPA IN TXT" should fit within a 512-octet DNS/
+   UDP datagram: i.e., it should be available over UDP transport without
+   requiring EDNS0 support by the client.
+
+   The optional LOC record [RFC1876] included in each zone apex provides
+   information about the geospatial location of the node.
+
+   Where software implementations support it, operational data should
+   also be carried using NSID [RFC5001].
+
+   ; db.hostname.as112.net
+   ;
+   $TTL    1W
+   @       SOA     server.example.net. admin.example.net. (
+                           1               ; serial number
+                           1W              ; refresh
+                           1M              ; retry
+                           1W              ; expire
+                           1W )            ; negative caching TTL
+   ;
+           NS      blackhole-1.iana.org.
+           NS      blackhole-2.iana.org.
+   ;
+           TXT     "Name of Facility or similar" "City, Country"
+           TXT     "See http://www.as112.net/ for more information."
+           TXT     "Unique IP: 203.0.113.1."
+   ;
+           LOC     45 25 0.000 N 75 42 0.000 W 80.00m 1m 10000m 10m
+
+
+
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 14]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+   ; db.hostname.as112.arpa
+   ;
+   $TTL    1W
+   @       SOA     server.example.net. admin.example.net. (
+                           1               ; serial number
+                           1W              ; refresh
+                           1M              ; retry
+                           1W              ; expire
+                           1W )            ; negative caching TTL
+   ;
+           NS      blackhole.as112.arpa.
+   ;
+           TXT     "Name of Facility or similar" "City, Country"
+           TXT     "See http://www.as112.net/ for more information."
+   ;
+           LOC     45 25 0.000 N 75 42 0.000 W 80.00m 1m 10000m 10m
+
+3.6.  Testing a Newly Installed Node
+
+   The BIND9 tool "dig" can be used to retrieve the TXT resource records
+   associated with the names "HOSTNAME.AS112.NET" and
+   "HOSTNAME.AS112.ARPA", directed at one of the AS112 anycast
+   nameserver addresses.  Continuing the example from above, the
+   response received should indicate the identity of the AS112 node that
+   responded to the query.  See Section 3.5 for more details about the
+   resource records associated with "HOSTNAME.AS112.NET".
+
+       % dig @prisoner.iana.org hostname.as112.net txt +short +norec
+       "Name of Facility or similar" "City, Country"
+       "See http://www.as112.net/ for more information."
+       %
+
+   If the response received indicates that a different node is being
+   used, then there is probably a routing problem to solve.  If there is
+   no response received at all, there might be a host or nameserver
+   problem.  Judicious use of tools such as traceroute and consultation
+   of BGP looking glasses might be useful in troubleshooting.
+
+   Note that an appropriate set of tests for a new server will include
+   queries sent from many different places within the expected service
+   area of the node, using both UDP and TCP transport, and exercising
+   all three AS112 anycast nameserver addresses.
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 15]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+4.  Operations
+
+4.1.  Monitoring
+
+   AS112 nodes should be monitored to ensure that they are functioning
+   correctly, just as with any other production service.  An AS112 node
+   that stops answering queries correctly can cause failures and
+   timeouts in unexpected places and can lead to failures in dependent
+   systems that can be difficult to troubleshoot.
+
+4.2.  Downtime
+
+   An AS112 node that needs to go off-line (e.g., for planned
+   maintenance or as part of the diagnosis of some problem) should stop
+   advertising the AS112 service prefixes to its BGP peers.  This can be
+   done by shutting down the routing software on the node altogether or
+   by causing the routing system to withdraw the route.
+
+   Withdrawing the service prefixes is important in order to avoid
+   blackholing query traffic in the event that the DNS software on the
+   node is not functioning normally.
+
+4.3.  Statistics and Measurement
+
+   Use of the AS112 node should be measured in order to track long-term
+   trends, identify anomalous conditions, and ensure that the
+   configuration of the AS112 node is sufficient to handle the query
+   load.
+
+   Examples of free monitoring tools that might be useful to operators
+   of AS112 nodes include:
+
+   o  bindgraph <http://www.linux.it/~md/software/>
+
+   o  dnstop <http://dns.measurement-factory.com/tools/dnstop/>
+
+   o  DSC <https://www.dns-oarc.net/tools/dsc/>
+
+   Operators of AS112 nodes should also consider participating in
+   collection events as part of a larger, coordinated effort to gather
+   important baselines.  One example of such an effort is Day in the
+   Life <https://www.dns-oarc.net/oarc/data/ditl/>, coordinated by the
+   DNS-OARC <https://www.dns-oarc.net/>.
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 16]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+5.  Communications
+
+   It is good operational practice to notify the community of users that
+   may fall within the reach of a new AS112 node before it is installed.
+   At Internet Exchanges, local mailing lists usually exist to
+   facilitate such announcements.
+
+   For nodes that are intended to be globally reachable, coordination
+   with other AS112 operators is especially recommended.  The mailing
+   list <as112-ops@lists.dns-oarc.net> is operated for this purpose.
+
+   Information pertinent to AS112 operations is maintained at
+   <http://www.as112.net/>.
+
+   Information about an AS112 node should also be published within the
+   DNS, within the "HOSTNAME.AS112.NET" and "HOSTNAME.AS112.ARPA" zones.
+   See Section 3.5 for more details.
+
+   AS112 operators should also be aware of the measures described in
+   [RFC6305] and direct site administrators appropriately.
+
+6.  On the Future of AS112 Nodes
+
+   It is recommended practice for the operators of recursive nameservers
+   to answer queries for zones served by AS112 nodes locally, such that
+   queries never have an opportunity to reach AS112 servers [RFC6303].
+   Operational experience with AS112 nodes does not currently indicate
+   an observable trend towards compliance with those recommendations,
+   however.
+
+   It is expected that some DNS software vendors will include default
+   configuration that will implement measures such as those described in
+   [RFC6303].  If such software is widely deployed, it is reasonable to
+   assume that the query load received by AS112 nodes will decrease;
+   however, it is safe to assume that the query load will not decrease
+   to zero, and consequently that AS112 nodes will continue to provide a
+   useful service for the foreseeable future.
+
+   The use of DNAME redirection to provide AS112 service is new and
+   hence is informed by minimal operational experience.  The use of
+   DNAME means that queries for many source zones could be redirected to
+   AS112 infrastructure with no real opportunity for coordination.
+
+   If the DNAME redirection approach is successful, and in the absence
+   of any operational concerns, the community might well recommend the
+   retirement of the original Direct Delegation AS112 service.  This
+   document makes no such recommendation, however.
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 17]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+7.  IANA Considerations
+
+7.1.  General
+
+   The nameservers associated with Direct Delegation AS112 service are
+   all named under the domain IANA.ORG (see Section 2.3).  However, the
+   anycast infrastructure itself is operated by a loosely coordinated,
+   diverse mix of organisations across the Internet and is not an IANA
+   function.
+
+   The autonomous system number 112, the IPv4 prefix 192.175.48.0/24,
+   and the IPv6 prefix 2620:4f:8000::/48 were assigned by ARIN.
+
+   The IPv4 prefix 192.31.196.0/24 and the IPv6 prefix 2001:4:112::/48,
+   used for DNAME redirection AS112 service, were assigned by the IANA
+   [RFC7535].
+
+   The three nameservers BLACKHOLE-1.IANA.ORG, BLACKHOLE-2.IANA.ORG, and
+   PRISONER.IANA.ORG are also reachable over IPv6, as described in
+   Section 2.3.  Following a substantial period of pre-production
+   testing by AS112 operators, the IANA has added AAAA RRSets to those
+   owner names in Section 7.2.1, to allow the servers to receive queries
+   and generate responses over IPv6 transport.
+
+7.2.  IANA Actions
+
+7.2.1.  IPv6 Transport for Direct Delegation AS112 Servers
+
+   The IANA has added the following AAAA resource records for the three
+   Direct Delegation AS112 nameservers named under IANA.ORG:
+
+                +----------------------+------------------+
+                | Owner Name           | AAAA RDATA       |
+                +----------------------+------------------+
+                | PRISONER.IANA.ORG    | 2620:4f:8000::1  |
+                |                      |                  |
+                | BLACKHOLE-1.IANA.ORG | 2620:4f:8000::6  |
+                |                      |                  |
+                | BLACKHOLE-2.IANA.ORG | 2620:4f:8000::42 |
+                +----------------------+------------------+
+
+
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 18]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+7.2.2.  Registration in the Special-Purpose AS Numbers Registry
+
+   The IANA has added AS112 to the "Special-Purpose AS Numbers" registry
+   specified in [RFC7249] as follows:
+
+   AS Numbers:  112
+
+   Reason for Reservation:  Used by the AS112 project to sink
+      misdirected DNS queries; see RFC 7534.
+
+7.2.3.  Registration in the IANA IPv4 Special-Purpose Address Registry
+
+   The IANA has added 192.175.48.0/24 to the "IANA IPv4 Special-Purpose
+   Address Registry" specified in [RFC6890] as follows:
+
+   Address Block:  192.175.48.0/24
+
+   Name:  Direct Delegation AS112 Service
+
+   RFC:  RFC 7534
+
+   Allocation Date:  1996-01
+
+   Termination Date:  N/A
+
+   Source:  True
+
+   Destination:  True
+
+   Forwardable:  True
+
+   Global:  True
+
+   Reserved-by-Protocol:  False
+
+7.2.4.  Registration in the IANA IPv6 Special-Purpose Address Registry
+
+   The IANA has added 2620:4f:8000::/48 to the "IANA IPv6 Special-
+   Purpose Address Registry" specified in [RFC6890] as follows:
+
+   Address Block:  2620:4f:8000::/48
+
+   Name:  Direct Delegation AS112 Service
+
+   RFC:  RFC 7534
+
+   Allocation Date:  2011-05
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 19]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+   Termination Date:  N/A
+
+   Source:  True
+
+   Destination:  True
+
+   Forwardable:  True
+
+   Global:  True
+
+   Reserved-by-Protocol:  False
+
+8.  Security Considerations
+
+   Hosts should never normally send queries to AS112 servers; queries
+   relating to private-use addresses should be answered locally within a
+   site.  Hosts that send queries to AS112 servers may well leak
+   information relating to private infrastructure to the public network,
+   and this could present a security risk.  Additionally, AS112
+   operators may log this information, making it further subject to
+   whatever security and privacy risks that might entail.  These risks
+   are orthogonal to the presence or absence of authoritative servers
+   for these zones in the public DNS infrastructure, however.
+
+   Queries that are answered by AS112 servers are usually unintentional;
+   it follows that the responses from AS112 servers are usually
+   unexpected.  Unexpected inbound traffic can trigger intrusion
+   detection systems or alerts by firewalls.  Operators of AS112 servers
+   should be prepared to be contacted by operators of remote
+   infrastructure who believe their security has been violated.  Advice
+   to those who mistakenly believe that responses from AS112 nodes
+   constitute an attack on their infrastructure can be found in
+   [RFC6305].
+
+   The deployment of AS112 nodes is very loosely coordinated compared to
+   other services distributed using anycast.  The malicious compromise
+   of an AS112 node and subversion of the data served by the node are
+   hence more difficult to detect due to the lack of central management.
+   Since it is conceivable that changing the responses to queries
+   received by AS112 nodes might influence the behaviour of the hosts
+   sending the queries, such a compromise might be used as an attack
+   vector against private infrastructure.
+
+   Operators of AS112 should take appropriate measures to ensure that
+   AS112 nodes are appropriately protected from compromise, such as
+   would normally be employed for production nameserver or network
+   infrastructure.  The guidance provided for root nameservers in
+   [RFC2870] may be instructive.
+
+
+
+Abley & Sotomayor             Informational                    [Page 20]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+   The zones hosted by AS112 servers are not signed with DNSSEC
+   [RFC4033].  Given the distributed and loosely coordinated structure
+   of the AS112 service, the zones concerned could only be signed if the
+   private key material used was effectively public, obviating any
+   security benefit resulting from the use of those keys.
+
+9.  References
+
+9.1.  Normative References
+
+   [RFC1034]  Mockapetris, P., "Domain names - concepts and facilities",
+              STD 13, RFC 1034, DOI 10.17487/RFC1034, November 1987,
+              <http://www.rfc-editor.org/info/rfc1034>.
+
+   [RFC1918]  Rekhter, Y., Moskowitz, B., Karrenberg, D., de Groot, G.,
+              and E. Lear, "Address Allocation for Private Internets",
+              BCP 5, RFC 1918, DOI 10.17487/RFC1918, February 1996,
+              <http://www.rfc-editor.org/info/rfc1918>.
+
+   [RFC2870]  Bush, R., Karrenberg, D., Kosters, M., and R. Plzak, "Root
+              Name Server Operational Requirements", BCP 40, RFC 2870,
+              DOI 10.17487/RFC2870, June 2000,
+              <http://www.rfc-editor.org/info/rfc2870>.
+
+   [RFC4033]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
+              Rose, "DNS Security Introduction and Requirements",
+              RFC 4033, DOI 10.17487/RFC4033, March 2005,
+              <http://www.rfc-editor.org/info/rfc4033>.
+
+   [RFC4271]  Rekhter, Y., Ed., Li, T., Ed., and S. Hares, Ed., "A
+              Border Gateway Protocol 4 (BGP-4)", RFC 4271,
+              DOI 10.17487/RFC4271, January 2006,
+              <http://www.rfc-editor.org/info/rfc4271>.
+
+   [RFC4786]  Abley, J. and K. Lindqvist, "Operation of Anycast
+              Services", BCP 126, RFC 4786, DOI 10.17487/RFC4786,
+              December 2006, <http://www.rfc-editor.org/info/rfc4786>.
+
+   [RFC7535]  Abley, J., Dickson, B., Kumari, W., and G. Michaelson,
+              "AS112 Redirection Using DNAME", RFC 7535,
+              DOI 10.17487/RFC7535, May 2015,
+              <http://www.rfc-editor.org/info/rfc7535>.
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 21]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+9.2.  Informative References
+
+   [RFC1876]  Davis, C., Vixie, P., Goodwin, T., and I. Dickinson, "A
+              Means for Expressing Location Information in the Domain
+              Name System", RFC 1876, DOI 10.17487/RFC1876, January
+              1996, <http://www.rfc-editor.org/info/rfc1876>.
+
+   [RFC5001]  Austein, R., "DNS Name Server Identifier (NSID) Option",
+              RFC 5001, DOI 10.17487/RFC5001, August 2007,
+              <http://www.rfc-editor.org/info/rfc5001>.
+
+   [RFC5855]  Abley, J. and T. Manderson, "Nameservers for IPv4 and IPv6
+              Reverse Zones", BCP 155, RFC 5855, DOI 10.17487/RFC5855,
+              May 2010, <http://www.rfc-editor.org/info/rfc5855>.
+
+   [RFC6303]  Andrews, M., "Locally Served DNS Zones", BCP 163,
+              RFC 6303, DOI 10.17487/RFC6303, July 2011,
+              <http://www.rfc-editor.org/info/rfc6303>.
+
+   [RFC6304]  Abley, J. and W. Maton, "AS112 Nameserver Operations",
+              RFC 6304, DOI 10.17487/RFC6304, July 2011,
+              <http://www.rfc-editor.org/info/rfc6304>.
+
+   [RFC6305]  Abley, J. and W. Maton, "I'm Being Attacked by
+              PRISONER.IANA.ORG!", RFC 6305, DOI 10.17487/RFC6305,
+              July 2011, <http://www.rfc-editor.org/info/rfc6305>.
+
+   [RFC6672]  Rose, S. and W. Wijngaards, "DNAME Redirection in the
+              DNS", RFC 6672, DOI 10.17487/RFC6672, June 2012,
+              <http://www.rfc-editor.org/info/rfc6672>.
+
+   [RFC6890]  Cotton, M., Vegoda, L., Bonica, R., Ed., and B. Haberman,
+              "Special-Purpose IP Address Registries", BCP 153,
+              RFC 6890, DOI 10.17487/RFC6890, April 2013,
+              <http://www.rfc-editor.org/info/rfc6890>.
+
+   [RFC7249]  Housley, R., "Internet Numbers Registries", RFC 7249,
+              DOI 10.17487/RFC7249, May 2014,
+              <http://www.rfc-editor.org/info/rfc7249>.
+
+
+
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 22]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+Appendix A.  A Brief History of AS112
+
+   Widespread use of the private address blocks listed in [RFC1918]
+   followed that document's publication in 1996.  At that time, the
+   IN-ADDR.ARPA zone was served by root servers.
+
+   The idea of offloading IN-ADDR.ARPA queries relating to [RFC1918]
+   addresses from the root nameservers was first proposed by Bill
+   Manning and John Brown.
+
+   The use of anycast for distributing authoritative DNS service for
+   [RFC1918] IN-ADDR.ARPA zones was subsequently proposed at a private
+   meeting of root server operators.
+
+   ARIN provided an IPv4 prefix for the anycast service and also the
+   autonomous system number 112 for use in originating that prefix.
+   This assignment gave the project its name.
+
+   In 2002, the first AS112 anycast nodes were deployed.
+
+   In 2011, the IN-ADDR.ARPA zone was redelegated from the root servers
+   to a new set of servers operated independently by AfriNIC, APNIC,
+   ARIN, ICANN, LACNIC, and the RIPE NCC and named according to
+   [RFC5855].
+
+   [RFC6304], the precursor to this document, was published in
+   July 2011.
+
+   The use of anycast nameservers in the AS112 project contributed to
+   the operational experience of anycast DNS services, and it can be
+   seen as a precursor to the anycast distribution of other
+   authoritative DNS servers in subsequent years (e.g., various root
+   servers).
+
+Appendix B.  Changes since RFC 6304
+
+   A number of changes and enhancements to the AS112 service has been
+   introduced since the publication of [RFC6304].
+
+   o  The addition of IPv6 transport.
+
+   o  The extension of the AS112 service to include the ability to have
+      additional zones delegated for sinking or removed using the DNAME
+      resource record.
+
+   o  Requisite changes to the guidance regarding the configuration of
+      current and future AS112 nodes.
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 23]
+
+RFC 7534               AS112 Nameserver Operations              May 2015
+
+
+   o  Further clarification about the leakage of information in the
+      Security Considerations section.
+
+   o  A direction to the IANA to register the AS112 project's prefixes
+      in the IANA Special-Purpose Address registries.
+
+Acknowledgements
+
+   This document benefited from review and suggestions from Leo Vegoda
+   and Pearl Liang.
+
+   The authors wish to acknowledge the assistance of Bill Manning, John
+   Brown, Marco D'Itri, Daniele Arena, Stephane Bortzmeyer, Frank
+   Habicht, Chris Thompson, Peter Losher, Peter Koch, Alfred Hoenes, S.
+   Moonesamy, Mehmet Akcin, and Aleksi Suhonen in the preparation of
+   [RFC6304], which this document supersedes.
+
+Authors' Addresses
+
+   Joe Abley
+   Dyn, Inc.
+   103-186 Albert Street
+   London, ON  N6A 1M1
+   Canada
+
+   Phone: +1 519 670 9327
+   EMail: jabley@dyn.com
+
+
+   William F. Maton Sotomayor
+   Ottawa Internet Exchange
+   Constitution Square
+   1400-340 Albert Street
+   Ottawa, ON  K1R 0A5
+   Canada
+
+   EMail: wfms@ottix.net
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Abley & Sotomayor             Informational                    [Page 24]
+

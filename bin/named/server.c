@@ -352,6 +352,9 @@ const char *empty_zones[] = {
 	/* Example Prefix, RFC 3849. */
 	"8.B.D.0.1.0.0.2.IP6.ARPA",
 
+	/* RFC 7534 */
+	"EMPTY.AS112.ARPA",
+
 	NULL
 };
 

@@ -1,3 +1,5 @@
+4117.	[protocol]	Add EMPTY.AS112.ARPA as per RFC 7534.
+
 4113.	[test]		Check for Net::DNS is some system test
 			prerequisites. [RT #39369]
 
