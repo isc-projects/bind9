@@ -1,0 +1,5 @@
+$TTL 3600
+@ IN SOA root.example. example. 1 3600 3600 3600 3600
+@ IN NS ns.example.
+www IN CNAME cname
+cname IN A 10.53.0.1

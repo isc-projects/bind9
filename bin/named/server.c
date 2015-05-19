@@ -1894,6 +1894,11 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	if (*old_rpz_okp) {
 		dns_rpz_detach_rpzs(&view->rpzs);
 		dns_rpz_attach_rpzs(pview->rpzs, &view->rpzs);
+	} else if (old != NULL && pview != NULL) {
+		view->rpzs->rpz_ver = pview->rpzs->rpz_ver + 1;
+		cfg_obj_log(rpz_obj, ns_g_lctx, ISC_LOG_DEBUG(1),
+			    "updated RPZ policy: version %d",
+			    view->rpzs->rpz_ver);
 	}
 	if (pview != NULL)
 		dns_view_detach(&pview);

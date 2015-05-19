@@ -14,9 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
-
 /*! \file */
 
 #include <config.h>
@@ -378,6 +375,7 @@ set_sum_pair(dns_rpz_cidr_node_t *cnode) {
 	} while (cnode != NULL);
 }
 
+/* Caller must hold rpzs->maint_lock */
 static void
 fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
 	dns_rpz_zbits_t mask;
@@ -2078,7 +2076,12 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 	dns_rpz_cidr_node_t *found;
 	isc_result_t result;
 	dns_rpz_num_t rpz_num;
+	dns_rpz_have_t have;
 	int i;
+
+	LOCK(&rpzs->maint_lock);
+	have = rpzs->have;
+	UNLOCK(&rpzs->maint_lock);
 
 	/*
 	 * Convert IP address to CIDR tree key.
@@ -2090,13 +2093,13 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		tgt_ip.w[3] = ntohl(netaddr->type.in.s_addr);
 		switch (rpz_type) {
 		case DNS_RPZ_TYPE_CLIENT_IP:
-			zbits &= rpzs->have.client_ipv4;
+			zbits &= have.client_ipv4;
 			break;
 		case DNS_RPZ_TYPE_IP:
-			zbits &= rpzs->have.ipv4;
+			zbits &= have.ipv4;
 			break;
 		case DNS_RPZ_TYPE_NSIP:
-			zbits &= rpzs->have.nsipv4;
+			zbits &= have.nsipv4;
 			break;
 		default:
 			INSIST(0);
@@ -2116,13 +2119,13 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		}
 		switch (rpz_type) {
 		case DNS_RPZ_TYPE_CLIENT_IP:
-			zbits &= rpzs->have.client_ipv6;
+			zbits &= have.client_ipv6;
 			break;
 		case DNS_RPZ_TYPE_IP:
-			zbits &= rpzs->have.ipv6;
+			zbits &= have.ipv6;
 			break;
 		case DNS_RPZ_TYPE_NSIP:
-			zbits &= rpzs->have.nsipv6;
+			zbits &= have.nsipv6;
 			break;
 		default:
 			INSIST(0);

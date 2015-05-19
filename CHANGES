@@ -1,3 +1,8 @@
+4120.	[bug]		A bug in RPZ could cause the server to crash if
+			policy zones were updated while recursion was
+			pending for RPZ processing of an active query.
+			[RT #39415]
+
 4119.	[test]		Allow dig to set the message opcode. [RT #39550]
 
 4118.	[bug]		Teach isc-config.sh about irs. [RT #39213]
