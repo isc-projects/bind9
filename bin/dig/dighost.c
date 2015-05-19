@@ -788,6 +788,7 @@ make_empty_lookup(void) {
 	looknew->besteffort = ISC_TRUE;
 	looknew->dnssec = ISC_FALSE;
 	looknew->ednsflags = 0;
+	looknew->opcode = dns_opcode_query;
 	looknew->expire = ISC_FALSE;
 	looknew->nsid = ISC_FALSE;
 	looknew->header_only = ISC_FALSE;
@@ -886,6 +887,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->besteffort = lookold->besteffort;
 	looknew->dnssec = lookold->dnssec;
 	looknew->ednsflags = lookold->ednsflags;
+	looknew->opcode = lookold->opcode;
 	looknew->expire = lookold->expire;
 	looknew->nsid = lookold->nsid;
 	looknew->header_only = lookold->header_only;
@@ -2387,7 +2389,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	isc_random_get(&id);
 	lookup->sendmsg->id = (unsigned short)id & 0xFFFF;
-	lookup->sendmsg->opcode = dns_opcode_query;
+	lookup->sendmsg->opcode = lookup->opcode;
 	lookup->msgcounter = 0;
 	/*
 	 * If this is a trace request, completely disallow recursion, since

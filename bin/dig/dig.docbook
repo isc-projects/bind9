@@ -823,6 +823,16 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]opcode=value</option></term>
+	  <listitem>
+	    <para>
+	      Set [restore] the DNS message opcode to the specified
+	      value.  The default value is QUERY (0).
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]qr</option></term>
 	  <listitem>
 	    <para>
