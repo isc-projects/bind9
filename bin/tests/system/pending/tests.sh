@@ -33,7 +33,7 @@ replace_data()
 	_newdata=$4
 
 	_ret=0
-	$NSUPDATE -d <<END>> nsupdate.out.test 2>&1 || _ret=1
+	$NSUPDATE -d <<END >> nsupdate.out.test 2>&1 || _ret=1
 server 10.53.0.2 5300
 update delete ${_dname} 30 ${_rr} ${_olddata}
 update add ${_dname} 30 ${_rr} ${_newdata}

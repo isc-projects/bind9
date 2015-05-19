@@ -88,7 +88,7 @@ n=`expr $n + 1`
 echo "I: check that updates to 'check-names fail;' are rejected ($n)"
 ret=0
 not=1
-$NSUPDATE -d <<END> nsupdate.out.test$n 2>&1 || not=0
+$NSUPDATE -d <<END > nsupdate.out.test$n 2>&1 || not=0
 check-names off
 server 10.53.0.1 5300
 update add xxx_xxx.fail.update. 600 A 10.10.10.1
@@ -104,7 +104,7 @@ n=`expr $n + 1`
 
 echo "I: check that updates to 'check-names warn;' succeed and are logged ($n)"
 ret=0
-$NSUPDATE -d <<END> nsupdate.out.test$n  2>&1|| ret=1
+$NSUPDATE -d <<END > nsupdate.out.test$n  2>&1|| ret=1
 check-names off
 server 10.53.0.1 5300
 update add xxx_xxx.warn.update. 600 A 10.10.10.1
@@ -120,7 +120,7 @@ n=`expr $n + 1`
 echo "I: check that updates to 'check-names ignore;' succeed and are not logged ($n)"
 ret=0
 not=1
-$NSUPDATE -d <<END> nsupdate.out.test$n 2>&1 || ret=1
+$NSUPDATE -d <<END > nsupdate.out.test$n 2>&1 || ret=1
 check-names off
 server 10.53.0.1 5300
 update add xxx_xxx.ignore.update. 600 A 10.10.10.1
@@ -137,7 +137,7 @@ n=`expr $n + 1`
 echo "I: check that updates to 'check-names master ignore;' succeed and are not logged ($n)"
 ret=0
 not=1
-$NSUPDATE -d <<END> nsupdate.out.test$n 2>&1 || ret=1
+$NSUPDATE -d <<END > nsupdate.out.test$n 2>&1 || ret=1
 check-names off
 server 10.53.0.4 5300
 update add xxx_xxx.master-ignore.update. 600 A 10.10.10.1
