@@ -1,4 +1,4 @@
-4119.	[func]		Allow dig to set the message opcode. [RT #39550]
+4119.	[test]		Allow dig to set the message opcode. [RT #39550]
 
 4118.	[bug]		Teach isc-config.sh about irs. [RT #39213]
 
