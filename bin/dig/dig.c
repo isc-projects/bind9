@@ -242,6 +242,7 @@ help(void) {
 "                 +[no]multiline      (Print records in an expanded format)\n"
 "                 +[no]onesoa         (AXFR prints only one soa record)\n"
 "                 +[no]keepopen       (Keep the TCP socket open between queries)\n"
+"                 +[no]opcode[###]    (Set the opcode of the request)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
 "        local d-opts and servers (after host name) affect only that lookup.\n"
 "        -h                           (print help and exit)\n"
@@ -1014,8 +1015,37 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'o':
-		FULLCHECK("onesoa");
-		onesoa = state;
+		switch (cmd[1]) {
+		case 'n':
+			FULLCHECK("onesoa");
+			onesoa = state;
+			break;
+		case 'p':
+			FULLCHECK("opcode");
+			if (!state) {
+				lookup->opcode = 0;	/* default - query */
+				break;
+			}
+			if (value == NULL)
+				goto need_value;
+			for (num = 0;
+			     num < sizeof(opcodetext)/sizeof(opcodetext[0]);
+			     num++) {
+				if (strcasecmp(opcodetext[num], value) == 0)
+					break;
+			}
+			if (num < 16) {
+				lookup->opcode = (dns_opcode_t)num;
+				break;
+			}
+			result = parse_uint(&num, value, 15, "opcode");
+			if (result != ISC_R_SUCCESS)
+				fatal("Couldn't parse opcode");
+			lookup->opcode = (dns_opcode_t)num;
+			break;
+		default:
+			goto invalid_option;
+		}
 		break;
 	case 'q':
 		switch (cmd[1]) {

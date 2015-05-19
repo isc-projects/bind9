@@ -191,6 +191,7 @@ isc_boolean_t	sigchase;
 #ifdef ISC_PLATFORM_USESIT
 	char *sitvalue;
 #endif
+	dns_opcode_t opcode;
 };
 
 /*% The dig_query structure */
