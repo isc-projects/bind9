@@ -18,4 +18,4 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 perl testgen.pl
-cp -f ns2/named.conf.default ns2/named.conf
+cp -f ns2/named.default.conf ns2/named.conf

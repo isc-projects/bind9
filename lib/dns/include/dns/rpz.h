@@ -141,19 +141,51 @@ struct dns_rpz_zone {
 typedef struct dns_rpz_cidr_node dns_rpz_cidr_node_t;
 
 /*
+ * Bitfields indicating which policy zones have policies of
+ * which type.
+ */
+typedef struct dns_rpz_have dns_rpz_have_t;
+struct dns_rpz_have {
+	dns_rpz_zbits_t	    client_ipv4;
+	dns_rpz_zbits_t	    client_ipv6;
+	dns_rpz_zbits_t	    client_ip;
+	dns_rpz_zbits_t	    qname;
+	dns_rpz_zbits_t	    ipv4;
+	dns_rpz_zbits_t	    ipv6;
+	dns_rpz_zbits_t	    ip;
+	dns_rpz_zbits_t	    nsdname;
+	dns_rpz_zbits_t	    nsipv4;
+	dns_rpz_zbits_t	    nsipv6;
+	dns_rpz_zbits_t	    nsip;
+	dns_rpz_zbits_t	    qname_skip_recurse;
+};
+
+/*
+ * Policy options
+ */
+typedef struct dns_rpz_popt dns_rpz_popt_t;
+struct dns_rpz_popt {
+	dns_rpz_zbits_t	    no_rd_ok;
+	isc_boolean_t	    break_dnssec;
+	isc_boolean_t	    qname_wait_recurse;
+	unsigned int	    min_ns_labels;
+	dns_rpz_num_t	    num_zones;
+};
+
+/*
  * Response policy zones known to a view.
  */
 typedef struct dns_rpz_zones dns_rpz_zones_t;
 struct dns_rpz_zones {
-	struct {
-		dns_rpz_zbits_t	    no_rd_ok;
-		isc_boolean_t	    break_dnssec;
-		isc_boolean_t	    qname_wait_recurse;
-		unsigned int	    min_ns_labels;
-		dns_rpz_num_t	    num_zones;
-	} p;
+	dns_rpz_popt_t		p;
 	dns_rpz_zone_t		*zones[DNS_RPZ_MAX_ZONES];
 	dns_rpz_triggers_t	triggers[DNS_RPZ_MAX_ZONES];
+
+	/*
+	 * RPZ policy version number (initially 0, increases whenever
+	 * the server is reconfigured with new zones or policy)
+	 */
+	int			rpz_ver;
 
 	dns_rpz_zbits_t		defined;
 
@@ -171,20 +203,7 @@ struct dns_rpz_zones {
 	 *		load rpzs	    load_begun=1  have=0
 	 */
 	dns_rpz_zbits_t		load_begun;
-	struct {
-		dns_rpz_zbits_t	    client_ipv4;
-		dns_rpz_zbits_t	    client_ipv6;
-		dns_rpz_zbits_t	    client_ip;
-		dns_rpz_zbits_t	    qname;
-		dns_rpz_zbits_t	    ipv4;
-		dns_rpz_zbits_t	    ipv6;
-		dns_rpz_zbits_t	    ip;
-		dns_rpz_zbits_t	    nsdname;
-		dns_rpz_zbits_t	    nsipv4;
-		dns_rpz_zbits_t	    nsipv6;
-		dns_rpz_zbits_t	    nsip;
-		dns_rpz_zbits_t	    qname_skip_recurse;
-	} have;
+	dns_rpz_have_t		have;
 	dns_rpz_triggers_t	total_triggers;
 
 	isc_mem_t		*mctx;
@@ -242,6 +261,7 @@ typedef struct {
 		isc_result_t		r_result;
 		dns_rdataset_t		*r_rdataset;
 	} r;
+
 	/*
 	 * State of real query while recursing for NSIP or NSDNAME.
 	 */
@@ -256,6 +276,17 @@ typedef struct {
 		dns_rdataset_t		*sigrdataset;
 		dns_rdatatype_t		qtype;
 	} q;
+
+	/*
+	 * A copy of the 'have' and 'p' structures and the RPZ
+	 * policy version as of the beginning of RPZ processing,
+	 * used to avoid problems when policy is updated while
+	 * RPZ recursion is ongoing.
+	 */
+	dns_rpz_have_t		have;
+	dns_rpz_popt_t		popt;
+	int			rpz_ver;
+
 	/*
 	 * p_name: current policy owner name
 	 * r_name: recursing for this name to possible policy triggers

@@ -69,7 +69,7 @@ expect_recurse() {
     t=`expr $t + 1`
     echo "I:testing $NAME recurses (${t})"
     run_query $TESTNAME $LINE && {
-        echo "I:test $t failed"
+        echo "I:test ${t} failed"
         status=1
     }
 }
@@ -78,7 +78,7 @@ t=`expr $t + 1`
 echo "I:testing that l1.l0 exists without RPZ (${t})"
 $DIG $DIGOPTS l1.l0 ns @10.53.0.2 -p 5300 > dig.out.${t}
 grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
-    echo "I:test $t failed"
+    echo "I:test ${t} failed"
     status=1
 }
 
@@ -86,7 +86,7 @@ t=`expr $t + 1`
 echo "I:testing that l2.l1.l0 returns SERVFAIL without RPZ (${t})"
 $DIG $DIGOPTS l2.l1.l0 ns @10.53.0.2 -p 5300 > dig.out.${t}
 grep "status: SERVFAIL" dig.out.${t} > /dev/null 2>&1 || {
-    echo "I:test $t failed"
+    echo "I:test ${t} failed"
     status=1
 }
 
@@ -164,5 +164,71 @@ expect_recurse 5a 4
 expect_recurse 5a 5
 expect_recurse 5a 6
 
-echo "I:exit status: $status"
+# Group 6
+echo "I:check recursive behavior consistency during policy update races"
+run_server 6a
+sleep 1
+t=`expr $t + 1`
+echo "I:running dig to cache CNAME record (${t})"
+$DIG $DIGOPTS @10.53.0.2 -p 5300 www.test.example.org CNAME > dig.out.${t}
+sleep 1
+echo "I:suspending authority server"
+kill -TSTP `cat ns1/named.pid`
+echo "I:adding an NSDNAME policy"
+cp ns2/db.6a.00.policy.local ns2/saved.policy.local
+cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+sleep 1
+t=`expr $t + 1`
+echo "I:running dig to follow CNAME (blocks, so runs in the background) (${t})"
+$DIG $DIGOPTS @10.53.0.2 -p 5300 www.test.example.org A > dig.out.${t} &
+sleep 1
+echo "I:removing the NSDNAME policy"
+cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+sleep 1
+echo "I:resuming authority server"
+kill -CONT `cat ns1/named.pid`
+for n in 1 2 3 4 5 6 7 8 9; do
+    sleep 1
+    [ -s dig.out.${t} ] || continue
+    grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
+        echo "I:test ${t} failed"
+        status=1
+    }
+done
+
+echo "I:check recursive behavior consistency during policy removal races"
+cp ns2/saved.policy.local ns2/db.6a.00.policy.local
+run_server 6a
+sleep 1
+t=`expr $t + 1`
+echo "I:running dig to cache CNAME record (${t})"
+$DIG $DIGOPTS @10.53.0.2 -p 5300 www.test.example.org CNAME > dig.out.${t}
+sleep 1
+echo "I:suspending authority server"
+kill -TSTP `cat ns1/named.pid`
+echo "I:adding an NSDNAME policy"
+cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+sleep 1
+t=`expr $t + 1`
+echo "I:running dig to follow CNAME (blocks, so runs in the background) (${t})"
+$DIG $DIGOPTS @10.53.0.2 -p 5300 www.test.example.org A > dig.out.${t} &
+sleep 1
+echo "I:removing the policy zone"
+cp ns2/named.default.conf ns2/db.6a.00.policy.local
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+sleep 1
+echo "I:resuming authority server"
+kill -CONT `cat ns1/named.pid`
+for n in 1 2 3 4 5 6 7 8 9; do
+    sleep 1
+    [ -s dig.out.${t} ] || continue
+    grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
+        echo "I:test ${t} failed"
+        status=1
+    }
+done
+
 exit $status

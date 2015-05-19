@@ -26,7 +26,7 @@ first query of each test is q01.l2.l1.l0).
 For all the tests the triggers are constructed as follows:
 client-ip - match 127.0.0.1/32
 ip - match 255.255.255.255/32 (does not matter due to SERVFAIL)
-nsdname - match does.not.matter (and it doesn't)
+nsdname - match ns.example.org (also does not matter)
 nsip - match 255.255.255.255/32 (also does not matter)
 qname - match qXX.l2.l1.l0, where XX is the query sequence number that
 is intended to be matched by this qname rule.

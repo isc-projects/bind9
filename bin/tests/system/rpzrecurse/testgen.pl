@@ -31,7 +31,13 @@ view "recursive" {
     response-policy {
 EOB
 
-my $boilerplate_middle = <<'EOB';
+my $no_option = <<'EOB';
+    };
+
+    # policy zones to be tested
+EOB
+
+my $qname_wait_recurse = <<'EOB';
     } qname-wait-recurse no;
 
     # policy zones to be tested
@@ -41,9 +47,12 @@ my $boilerplate_end = <<'EOB';
 };
 EOB
 
+my $policy_option = $qname_wait_recurse;
+
+my $serialnum = "1";
 my $policy_zone_header = <<'EOH';
 $TTL 60
-@ IN SOA root.ns ns 1996072700 3600 1800 86400 60
+@ IN SOA root.ns ns SERIAL 3600 1800 86400 60
      NS ns
 ns A 127.0.0.1
 EOH
@@ -62,7 +71,7 @@ sub policy_ip {
 }
 
 sub policy_nsdname {
-    return "does.not.matter.rpz-nsdname CNAME .\n";
+    return "ns.example.org.rpz-nsdname CNAME .\n";
 }
 
 sub policy_nsip {
@@ -113,7 +122,7 @@ sub mkconf {
 
         print $conf_fh map { qq{        zone "$_->[0]";\n} } @zones;
 
-        print $conf_fh $boilerplate_middle;
+        print $conf_fh $policy_option;
 
         print $conf_fh map { qq{    zone "$_->[0]" { type master; file "db.$_->[0]"; };\n} } @zones;
 
@@ -130,7 +139,9 @@ sub mkconf {
 
         open $policy_zone_fh, ">$policy_zone_filename" or die;
 
-        print $policy_zone_fh $policy_zone_header;
+        my $header = $policy_zone_header;
+        $header =~ s/SERIAL/$serialnum/;
+        print $policy_zone_fh $header;
 
         foreach my $trigger( @$policy_zone_contents ) {
             if( exists $static_triggers{$trigger} ) {
@@ -234,6 +245,28 @@ mkconf(
     [ 6 ],
 );
 
+$policy_option = $no_option;
+
+mkconf(
+    '6a',
+    0,
+    [ ],
+);
+
+$serialnum = "2";
+mkconf(
+    '6b',
+    0,
+    [ 'nsdname' ],
+);
+
+$serialnum = "3";
+mkconf(
+    '6c',
+    0,
+    [ ],
+);
+
 __END__
 
 0x01 - has client-ip
@@ -243,7 +276,7 @@ __END__
 0x10 - has ip
     32.255.255.255.255.rpz-ip CNAME .
 0x20 - has nsdname
-    does.not.matter.rpz-nsdname CNAME .
+    ns.example.org.rpz-nsdname CNAME .
 0x40 - has nsip
     32.255.255.255.255.rpz-nsip CNAME .
 
