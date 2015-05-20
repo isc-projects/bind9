@@ -1878,18 +1878,25 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	isc_result_t result = ISC_R_UNEXPECTED;
+	unsigned int node_has_rpz;
 
 	INSIST(!ISC_LINK_LINKED(node, deadlink));
 
 	switch (node->nsec) {
 	case DNS_RBT_NSEC_NORMAL:
-		if (rbtdb->rpzs != NULL && node->rpz) {
-			dns_fixedname_init(&fname);
-			name = dns_fixedname_name(&fname);
-			dns_rbt_fullnamefromnode(node, name);
-			dns_rpz_delete(rbtdb->rpzs, rbtdb->rpz_num, name);
-		}
+		/*
+		 * Though this may be wasteful, it has to be done before
+		 * node is deleted.
+		 */
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+		dns_rbt_fullnamefromnode(node, name);
+
+		node_has_rpz = node->rpz;
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
+		if (result == ISC_R_SUCCESS &&
+		    rbtdb->rpzs != NULL && node_has_rpz)
+			dns_rpz_delete(rbtdb->rpzs, rbtdb->rpz_num, name);
 		break;
 	case DNS_RBT_NSEC_HAS_NSEC:
 		dns_fixedname_init(&fname);
@@ -1922,9 +1929,11 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 					      isc_result_totext(result));
 			}
 		}
-		if (rbtdb->rpzs != NULL && node->rpz)
-			dns_rpz_delete(rbtdb->rpzs, rbtdb->rpz_num, name);
+		node_has_rpz = node->rpz;
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
+		if (result == ISC_R_SUCCESS &&
+		    rbtdb->rpzs != NULL && node_has_rpz)
+			dns_rpz_delete(rbtdb->rpzs, rbtdb->rpz_num, name);
 		break;
 	case DNS_RBT_NSEC_NSEC:
 		result = dns_rbt_deletenode(rbtdb->nsec, node, ISC_FALSE);
@@ -7178,16 +7187,21 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 	}
 
 	if (noderesult == ISC_R_SUCCESS) {
-		/*
-		 * Clean rpz entries added above.
-		 */
-		if (rbtdb->rpzs != NULL && node->rpz)
-			dns_rpz_delete(rbtdb->load_rpzs, rbtdb->rpz_num, name);
+		unsigned int node_has_rpz;
+
 		/*
 		 * Remove the node we just added above.
 		 */
+		node_has_rpz = node->rpz;
 		tmpresult = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
-		if (tmpresult != ISC_R_SUCCESS)
+		if (tmpresult == ISC_R_SUCCESS) {
+			/*
+			 * Clean rpz entries added above.
+			 */
+			if (rbtdb->rpzs != NULL && node_has_rpz)
+				dns_rpz_delete(rbtdb->load_rpzs,
+					       rbtdb->rpz_num, name);
+		} else {
 			isc_log_write(dns_lctx,
 				      DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE,
@@ -7197,6 +7211,7 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 				      "dns_rbt_addnode(NSEC): %s",
 				      isc_result_totext(tmpresult),
 				      isc_result_totext(noderesult));
+		}
 	}
 
 	/*
