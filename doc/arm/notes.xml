@@ -115,23 +115,37 @@
       </listitem>
       <listitem>
 	<para>
-	  A bug in the RPZ implementation could cause some policy
-	  zones that did not specifically require recursion to be
-	  treated as if they did; consequently, setting
-	  <command>qname-wait-recurse no;</command> was
-	  sometimes ineffective.  This has been corrected.
-	  In most configurations, behavioral changes due to this
-	  fix will not be noticeable.  [RT #39229]
+	  Several bugs have been fixed in the RPZ implementation:
 	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  A bug in RPZ could cause the server to crash if policy
-	  zones were updated (e.g. via <command>rndc reload</command>
-	  or an incoming zone transfer) while RPZ processing was still
-	  ongoing for an active query. [RT #39415]
-	</para>
-      </listitem>
+	<itemizedlist>
+	  <para>
+	    Policy zones that did not specifically require recursion
+	    could be treated as if they did; consequently, setting
+	    <command>qname-wait-recurse no;</command> was
+	    sometimes ineffective.  This has been corrected.
+	    In most configurations, behavioral changes due to this
+	    fix will not be noticeable. [RT #39229]
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    The server could crash if policy zones were updated (e.g.
+	    via <command>rndc reload</command> or an incoming zone
+	    transfer) while RPZ processing was still ongoing for an
+	    active query. [RT #39415]
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    On servers with more than one policy zone configured,
+	    if one policy zone was updated via AXFR (especially when
+	    the zone was very large) a race condition could allow the
+	    RPZ summary data to fall out of sync with the policy zones,
+	    potentially leading to an assertion failure in rpz.c.
+	    [RT #39567]
+	  </para>
+	</listitem>
+      </itemizedlist>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">
