@@ -447,6 +447,11 @@ attempts to find the authoritative name servers for the zone containing the name
 Print only one (starting) SOA record when performing an AXFR. The default is to print both the starting and ending SOA records.
 .RE
 .PP
+\fB+[no]opcode=value\fR
+.RS 4
+Set [restore] the DNS message opcode to the specified value. The default value is QUERY (0).
+.RE
+.PP
 \fB+[no]qr\fR
 .RS 4
 Print [do not print] the query as it is sent. By default, the query is not printed.
