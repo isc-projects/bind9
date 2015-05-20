@@ -6274,9 +6274,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	is_zone = ISC_FALSE;
 	is_staticstub_zone = ISC_FALSE;
 
-	if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
-		type = dns_rdatatype_any;
-
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client);
 
@@ -6334,6 +6331,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			sigrdataset = event->sigrdataset;
 		}
 
+		if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
+			type = dns_rdatatype_any;
+		else
+			type = qtype;
+
 		if (DNS64(client)) {
 			client->query.attributes &= ~NS_QUERYATTR_DNS64;
 			dns64 = ISC_TRUE;
@@ -6388,6 +6390,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	/*
 	 * Not returning from recursion.
 	 */
+
+	/*
+	 * If it's a SIG query, we'll iterate the node.
+	 */
+	if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
+		type = dns_rdatatype_any;
+	else
+		type = qtype;
 
  restart:
 	CTRACE(ISC_LOG_DEBUG(3), "query_find: restart");
