@@ -558,6 +558,12 @@
 	  In most configurations, behavioral changes due to this
 	  fix will not be noticeable.  [RT #39229]
 	</p></li>
+<li><p>
+	  A bug in RPZ could cause the server to crash if policy
+	  zones were updated (e.g. via <span><strong class="command">rndc reload</strong></span>
+	  or an incoming zone transfer) while RPZ processing was still
+	  ongoing for an active query. [RT #39415]
+	</p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
