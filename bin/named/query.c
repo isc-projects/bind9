@@ -6206,15 +6206,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 {
 	dns_db_t *db, *zdb;
 	dns_dbnode_t *node;
-	dns_rdatatype_t type;
+	dns_rdatatype_t type = qtype;
 	dns_name_t *fname, *zfname, *tname, *prefix;
 	dns_rdataset_t *rdataset, *trdataset;
 	dns_rdataset_t *sigrdataset, *zrdataset, *zsigrdataset;
 	dns_rdataset_t **sigrdatasetp;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdatasetiter_t *rdsiter;
-	isc_boolean_t want_restart, authoritative, is_zone, need_wildcardproof;
+	isc_boolean_t want_restart, is_zone, need_wildcardproof;
 	isc_boolean_t is_staticstub_zone;
+	isc_boolean_t authoritative = ISC_FALSE;
 	unsigned int n, nlabels;
 	dns_namereln_t namereln;
 	int order;
@@ -6273,6 +6274,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	is_zone = ISC_FALSE;
 	is_staticstub_zone = ISC_FALSE;
 
+	if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
+		type = dns_rdatatype_any;
+
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client);
 
@@ -6330,11 +6334,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			sigrdataset = event->sigrdataset;
 		}
 
-		if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
-			type = dns_rdatatype_any;
-		else
-			type = qtype;
-
 		if (DNS64(client)) {
 			client->query.attributes &= ~NS_QUERYATTR_DNS64;
 			dns64 = ISC_TRUE;
@@ -6389,14 +6388,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	/*
 	 * Not returning from recursion.
 	 */
-
-	/*
-	 * If it's a SIG query, we'll iterate the node.
-	 */
-	if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
-		type = dns_rdatatype_any;
-	else
-		type = qtype;
 
  restart:
 	CTRACE(ISC_LOG_DEBUG(3), "query_find: restart");
