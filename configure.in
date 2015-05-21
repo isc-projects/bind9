@@ -3301,6 +3301,30 @@ main() {
 AC_SUBST(ISC_PLATFORM_QUADFORMAT)
 AC_SUBST(LWRES_PLATFORM_QUADFORMAT)
 
+AC_MSG_CHECKING([printf for %z support])
+AC_TRY_RUN([
+#include <stdio.h>
+main() {
+	/* Assume sprintf matches printf/fprintf. */
+        size_t j = 0;
+        char buf[100];
+        buf[0] = 0;
+        sprintf(buf, "%zu", j);
+        exit(strcmp(buf, "0") != 0);
+}
+],
+        [AC_MSG_RESULT(yes)
+        ISC_PLATFORM_NEEDPRINTF='#undef ISC_PLATFORM_NEEDPRINTF'
+        ISC_PLATFORM_NEEDFPRINTF='#undef ISC_PLATFORM_NEEDFPRINTF'],
+        [AC_MSG_RESULT(no)
+        ISC_PLATFORM_NEEDPRINTF='#define ISC_PLATFORM_NEEDPRINTF 1'
+        ISC_PLATFORM_NEEDFPRINTF='#define ISC_PLATFORM_NEEDFPRINTF 1'],
+        [AC_MSG_RESULT([assuming target platform supports %z])
+        ISC_PLATFORM_NEEDPRINTF='#undef ISC_PLATFORM_NEEDPRINTF'
+        ISC_PLATFORM_NEEDFPRINTF='#undef ISC_PLATFORM_NEEDFPRINTF'])
+AC_SUBST(ISC_PLATFORM_NEEDPRINTF)
+AC_SUBST(ISC_PLATFORM_NEEDFPRINTF)
+
 #
 # Security Stuff
 #
