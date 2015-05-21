@@ -552,7 +552,7 @@ adj_trigger_cnt(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 		const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 		isc_boolean_t inc)
 {
-	int *cnt;
+	dns_rpz_trigger_counter_t *cnt;
 	dns_rpz_zbits_t *have;
 
 	switch (rpz_type) {
@@ -1558,8 +1558,10 @@ dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp,
 	 *    reload the new zone data into a new blank summary database
 	 *    if the reload fails, discard the new summary database
 	 *    if the new zone data is acceptable, copy the records for the
-	 *	other zones into the new summary database and replace the
-	 *	old summary database with the new.
+	 *	other zones into the new summary CIDR and RBT databases
+	 *	and replace the old summary databases with the new, and
+	 *	correct the triggers and have values for the updated
+	 *	zone.
 	 *
 	 * At the first attempt to load a zone, there is no summary data
 	 * for the zone and so no records that need to be deleted.
@@ -1578,30 +1580,33 @@ dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp,
 		 */
 		rpzs->load_begun |= tgt;
 		dns_rpz_attach_rpzs(rpzs, load_rpzsp);
-		UNLOCK(&rpzs->search_lock);
-		UNLOCK(&rpzs->maint_lock);
-
 	} else {
-		UNLOCK(&rpzs->search_lock);
-		UNLOCK(&rpzs->maint_lock);
-
+		/*
+		 * Setup the new RPZ struct with empty summary trees.
+		 */
 		result = dns_rpz_new_zones(load_rpzsp, rpzs->mctx);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		load_rpzs = *load_rpzsp;
+		/*
+		 * Initialize some members so that dns_rpz_add() works.
+		 */
 		load_rpzs->p.num_zones = rpzs->p.num_zones;
-		load_rpzs->total_triggers = rpzs->total_triggers;
-		memmove(load_rpzs->triggers, rpzs->triggers,
-			sizeof(load_rpzs->triggers));
-		memset(&load_rpzs->triggers[rpz_num], 0,
-		       sizeof(load_rpzs->triggers[rpz_num]));
+		memset(&load_rpzs->triggers, 0, sizeof(load_rpzs->triggers));
 		load_rpzs->zones[rpz_num] = rpz;
 		isc_refcount_increment(&rpz->refs, NULL);
 	}
 
+	UNLOCK(&rpzs->search_lock);
+	UNLOCK(&rpzs->maint_lock);
+
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * This function updates "have" bits and also the qname_skip_recurse
+ * mask. It must be called when holding rpzs->search_lock.
+ */
 static void
 fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 	dns_rpz_num_t n;
@@ -1609,7 +1614,14 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 	dns_rpz_zbits_t zbit;
 	char namebuf[DNS_NAME_FORMATSIZE];
 
-#	define SET_TRIG(n, zbit, type)					\
+	/*
+	 * rpzs->total_triggers is only used to log a message below.
+	 */
+
+	memmove(&old_totals, &rpzs->total_triggers, sizeof(old_totals));
+	memset(&rpzs->total_triggers, 0, sizeof(rpzs->total_triggers));
+
+#define SET_TRIG(n, zbit, type)						\
 	if (rpzs->triggers[n].type == 0) {				\
 		rpzs->have.type &= ~zbit;				\
 	} else {							\
@@ -1617,8 +1629,6 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 		rpzs->have.type |= zbit;				\
 	}
 
-	memmove(&old_totals, &rpzs->total_triggers, sizeof(old_totals));
-	memset(&rpzs->total_triggers, 0, sizeof(rpzs->total_triggers));
 	for (n = 0; n < rpzs->p.num_zones; ++n) {
 		zbit = DNS_RPZ_ZBIT(n);
 		SET_TRIG(n, zbit, client_ipv4);
@@ -1631,6 +1641,8 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 		SET_TRIG(n, zbit, nsipv6);
 	}
 
+#undef SET_TRIG
+
 	fix_qname_skip_recurse(rpzs);
 
 	dns_name_format(&rpzs->zones[rpz_num]->origin,
@@ -1638,8 +1650,8 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
 		      DNS_LOGMODULE_RBTDB, DNS_RPZ_INFO_LEVEL,
 		      "(re)loading policy zone '%s' changed from"
-		      " %d to %d qname, %d to %d nsdname,"
-		      " %d to %d IP, %d to %d NSIP entries",
+		      " %ld to %ld qname, %ld to %ld nsdname,"
+		      " %ld to %ld IP, %ld to %ld NSIP entries",
 		      namebuf,
 		      old_totals.qname, rpzs->total_triggers.qname,
 		      old_totals.nsdname, rpzs->total_triggers.nsdname,
@@ -1647,13 +1659,48 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 		      rpzs->total_triggers.ipv4 + rpzs->total_triggers.ipv6,
 		      old_totals.nsipv4 + old_totals.nsipv6,
 		      rpzs->total_triggers.nsipv4 + rpzs->total_triggers.nsipv6);
-
-#	undef SET_TRIG
 }
 
 /*
- * Finish loading one zone.
- * The RBTDB write tree lock must be held.
+ * Finish loading one zone. This function is called during a commit when
+ * a RPZ zone loading is complete.  The RBTDB write tree lock must be
+ * held.
+ *
+ * Here, rpzs is a pointer to the view's common rpzs
+ * structure. *load_rpzsp is a rpzs structure that is local to the
+ * RBTDB, which is used during a single zone's load.
+ *
+ * During the zone load, i.e., between dns_rpz_beginload() and
+ * dns_rpz_ready(), only the zone that is being loaded updates
+ * *load_rpzsp. These updates in the summary databases inside load_rpzsp
+ * are made only for the rpz_num (and corresponding bit) of that
+ * zone. Nothing else reads or writes *load_rpzsp. The view's common
+ * rpzs is used during this time for queries.
+ *
+ * When zone loading is complete and we arrive here, the parts of the
+ * summary databases (CIDR and nsdname+qname RBT trees) from the view's
+ * common rpzs struct have to be merged into the summary databases of
+ * *load_rpzsp, as the summary databases of the view's common rpzs
+ * struct may have changed during the time the zone was being loaded.
+ *
+ * The function below carries out the merge. During the merge, it holds
+ * the maint_lock of the view's common rpzs struct so that it is not
+ * updated while the merging is taking place.
+ *
+ * After the merging is carried out, *load_rpzsp contains the most
+ * current state of the rpzs structure, i.e., the summary trees contain
+ * data for the new zone that was just loaded, as well as all other
+ * zones.
+ *
+ * Pointers to the summary databases of *load_rpzsp (CIDR and
+ * nsdname+qname RBT trees) are then swapped into the view's common rpz
+ * struct, so that the query path can continue using it. During the
+ * swap, the search_lock of the view's common rpz struct is acquired so
+ * that queries are paused while this swap occurs.
+ *
+ * The trigger counts for the new zone are also copied into the view's
+ * common rpz struct, and some other summary counts and masks are
+ * updated.
  */
 isc_result_t
 dns_rpz_ready(dns_rpz_zones_t *rpzs,
@@ -1679,10 +1726,12 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 
 	if (load_rpzs == rpzs) {
 		/*
-		 * This is a successful initial zone loading,
-		 * perhaps for a new instance of a view.
+		 * This is a successful initial zone loading, perhaps
+		 * for a new instance of a view.
 		 */
+		LOCK(&rpzs->search_lock);
 		fix_triggers(rpzs, rpz_num);
+		UNLOCK(&rpzs->search_lock);
 		UNLOCK(&rpzs->maint_lock);
 		dns_rpz_detach_rpzs(load_rpzsp);
 		return (ISC_R_SUCCESS);
@@ -1785,12 +1834,13 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 		}
 	}
 
-	fix_triggers(load_rpzs, rpz_num);
-
 	/*
 	 * Exchange the summary databases.
 	 */
 	LOCK(&rpzs->search_lock);
+
+	rpzs->triggers[rpz_num] = load_rpzs->triggers[rpz_num];
+	fix_triggers(rpzs, rpz_num);
 
 	found = rpzs->cidr;
 	rpzs->cidr = load_rpzs->cidr;
@@ -1799,9 +1849,6 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 	rbt = rpzs->rbt;
 	rpzs->rbt = load_rpzs->rbt;
 	load_rpzs->rbt = rbt;
-
-	rpzs->total_triggers = load_rpzs->total_triggers;
-	rpzs->have = load_rpzs->have;
 
 	UNLOCK(&rpzs->search_lock);
 

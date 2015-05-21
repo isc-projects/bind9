@@ -102,19 +102,25 @@ typedef isc_uint32_t	    dns_rpz_zbits_t;
 						0 : (1<<((n)+1))) -1))
 
 /*
+ * The trigger counter type.
+ */
+typedef ssize_t dns_rpz_trigger_counter_t;
+
+/*
  * The number of triggers of each type in a response policy zone.
  */
 typedef struct dns_rpz_triggers dns_rpz_triggers_t;
 struct dns_rpz_triggers {
-	int		client_ipv4;
-	int		client_ipv6;
-	int		qname;
-	int		ipv4;
-	int		ipv6;
-	int		nsdname;
-	int		nsipv4;
-	int		nsipv6;
+	dns_rpz_trigger_counter_t	client_ipv4;
+	dns_rpz_trigger_counter_t	client_ipv6;
+	dns_rpz_trigger_counter_t	qname;
+	dns_rpz_trigger_counter_t	ipv4;
+	dns_rpz_trigger_counter_t	ipv6;
+	dns_rpz_trigger_counter_t	nsdname;
+	dns_rpz_trigger_counter_t	nsipv4;
+	dns_rpz_trigger_counter_t	nsipv6;
 };
+
 /*
  * A single response policy zone.
  */
@@ -204,6 +210,13 @@ struct dns_rpz_zones {
 	 */
 	dns_rpz_zbits_t		load_begun;
 	dns_rpz_have_t		have;
+
+	/*
+	 * total_triggers maintains the total number of triggers in all
+	 * policy zones in the view. It is only used to print summary
+	 * statistics after a zone load of how the trigger counts
+	 * changed.
+	 */
 	dns_rpz_triggers_t	total_triggers;
 
 	isc_mem_t		*mctx;

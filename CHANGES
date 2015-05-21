@@ -1,3 +1,8 @@
+4121.	[bug]		When updating a response-policy zone via AXFR,
+			summary data about other policy zones could fall
+			out of sync. Ultimately this could trigger an
+			assertion failure in rpz.c. [RT #39567]
+
 4120.	[bug]		A bug in RPZ could cause the server to crash if
 			policy zones were updated while recursion was
 			pending for RPZ processing of an active query.
