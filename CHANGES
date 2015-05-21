@@ -461,7 +461,10 @@
 			header flag bit (dig +zflag). [RT #37421]
 
 3993.	[func]		Dig now supports EDNS negotiation by default.
-			(dig +[no]ednsnegotiation). [RT #37604]
+			(dig +[no]ednsnegotiation).
+
+			Note:  This is disabled by default in BIND 9.10
+			and enabled by default in BIND 9.11.  [RT #37604]
 
 3992.	[func]		DiG can now send queries without questions
 			(dig +header-only). [RT #37599]
