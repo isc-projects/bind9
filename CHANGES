@@ -3,10 +3,15 @@
 			unexpected action could be taken. This has been
 			corrected. [RT #39481]
 
-4121.	[bug]		When updating a response-policy zone via AXFR,
-			summary data about other policy zones could fall
-			out of sync. Ultimately this could trigger an
-			assertion failure in rpz.c. [RT #39567]
+4121.	[bug]		On servers with one or more policy zones
+			configured as slaves, if a policy zone updated
+			during regular operation (rather than at
+			startup) using a full zone reload, such as via
+			AXFR, a bug could allow the RPZ summary data to
+			fall out of sync, potentially leading to an
+			assertion failure in rpz.c when further
+			incremental updates were made to the zone, such
+			as via IXFR. [RT #39567]
 
 4120.	[bug]		A bug in RPZ could cause the server to crash if
 			policy zones were updated while recursion was
