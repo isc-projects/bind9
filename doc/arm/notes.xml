@@ -337,12 +337,13 @@
 	</listitem>
 	<listitem>
 	  <para>
-	    On servers with more than one policy zone configured,
-	    if one policy zone was updated via AXFR (especially when
-	    the zone was very large) a race condition could allow the
-	    RPZ summary data to fall out of sync with the policy zones,
-	    potentially leading to an assertion failure in rpz.c.
-	    [RT #39567]
+	    On servers with one or more policy zones configured as
+	    slaves, if a policy zone updated during regular operation
+	    (rather than at startup) using a full zone reload, such as
+	    via AXFR, a bug could allow the RPZ summary data to fall out
+	    of sync, potentially leading to an assertion failure in
+	    rpz.c when further incremental updates were made to the
+	    zone, such as via IXFR. [RT #39567]
 	  </para>
 	</listitem>
 	<listitem>
