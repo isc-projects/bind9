@@ -39,6 +39,8 @@ isc_mempool_setname
 isc_print_vsnprintf
 isc_print_snprintf
 isc_print_sprintf
+isc_print_fprintf
+isc_print_printf
 isc_socket_fdwatchcreate
 isc_socket_fdwatchpoke
 isc_socket_create
