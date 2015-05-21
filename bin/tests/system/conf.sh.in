@@ -71,8 +71,8 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 filter-aaaa formerr forward geoip glue gost ixfr inline
 	 legacy limits logfileconfig lwresd masterfile masterformat
 	 metadata notify nslookup nsupdate pending @PKCS11_TEST@
-	 reclimit redirect resolver rndc rpz rrl rrchecker rrsetorder
-	 rsabigexponent sit smartsign sortlist spf staticstub
+	 reclimit redirect resolver rndc rpz rpzrecurse rrl rrchecker
+	 rrsetorder rsabigexponent sit smartsign sortlist spf staticstub
 	 statistics stub tkey tsig tsiggss unknown upforwd verify
 	 views wildcard xfer xferquota zero zonechecks"
 
