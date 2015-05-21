@@ -162,7 +162,10 @@
 			could segfault. [RT #38559]
 
 3993.	[func]		Dig now supports EDNS negotiation by default.
-			(dig +[no]ednsnegotiation). [RT #37604]
+			(dig +[no]ednsnegotiation).
+
+			Note:  This is disabled by default in BIND 9.10
+			and enabled by default in BIND 9.11.  [RT #37604]
 
 3951.	[func]		Add the ability to set yet-to-be-defined EDNS flags
 			to dig (+ednsflags=#). [RT #37142]

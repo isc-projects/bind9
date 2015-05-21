@@ -837,7 +837,7 @@ make_empty_lookup(void) {
 #endif
 	looknew->ednsopts = NULL;
 	looknew->ednsoptscnt = 0;
-	looknew->ednsneg = ISC_TRUE;
+	looknew->ednsneg = ISC_FALSE;
 	dns_fixedname_init(&looknew->fdomain);
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
