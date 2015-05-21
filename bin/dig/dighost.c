@@ -788,6 +788,7 @@ make_empty_lookup(void) {
 	looknew->servfail_stops = ISC_TRUE;
 	looknew->besteffort = ISC_TRUE;
 	looknew->dnssec = ISC_FALSE;
+	looknew->ednsflags = 0;
 	looknew->opcode = dns_opcode_query;
 	looknew->expire = ISC_FALSE;
 	looknew->nsid = ISC_FALSE;
@@ -834,6 +835,9 @@ make_empty_lookup(void) {
 #ifdef ISC_PLATFORM_USESIT
 	looknew->sitvalue = NULL;
 #endif
+	looknew->ednsopts = NULL;
+	looknew->ednsoptscnt = 0;
+	looknew->ednsneg = ISC_FALSE;
 	dns_fixedname_init(&looknew->fdomain);
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
@@ -880,6 +884,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->servfail_stops = lookold->servfail_stops;
 	looknew->besteffort = lookold->besteffort;
 	looknew->dnssec = lookold->dnssec;
+	looknew->ednsflags = lookold->ednsflags;
 	looknew->opcode = lookold->opcode;
 	looknew->expire = lookold->expire;
 	looknew->nsid = lookold->nsid;
@@ -887,6 +892,9 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->sit = lookold->sit;
 	looknew->sitvalue = lookold->sitvalue;
 #endif
+	looknew->ednsopts = lookold->ednsopts;
+	looknew->ednsoptscnt = lookold->ednsoptscnt;
+	looknew->ednsneg = lookold->ednsneg;
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = lookold->sigchase;
 #if DIG_SIGCHASE_TD
@@ -1016,11 +1024,11 @@ setup_text_key(void) {
 	isc_buffer_free(&namebuf);
 }
 
-isc_result_t
-parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
-	   const char *desc) {
+static isc_result_t
+parse_uint_helper(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+		  const char *desc, int base) {
 	isc_uint32_t n;
-	isc_result_t result = isc_parse_uint32(&n, value, 10);
+	isc_result_t result = isc_parse_uint32(&n, value, base);
 	if (result == ISC_R_SUCCESS && n > max)
 		result = ISC_R_RANGE;
 	if (result != ISC_R_SUCCESS) {
@@ -1030,6 +1038,18 @@ parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
 	}
 	*uip = n;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+	   const char *desc) {
+	return (parse_uint_helper(uip, value, max, desc, 10));
+}
+
+isc_result_t
+parse_xint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+	   const char *desc) {
+	return (parse_uint_helper(uip, value, max, desc, 0));
 }
 
 static isc_uint32_t
@@ -1494,6 +1514,45 @@ setup_libs(void) {
 	check_result(result, "isc_mutex_init");
 }
 
+#define EDNSOPTS 100U
+static dns_ednsopt_t ednsopts[EDNSOPTS];
+static unsigned char ednsoptscnt = 0;
+
+void
+save_opt(dig_lookup_t *lookup, char *code, char *value) {
+        isc_uint32_t num;
+        isc_buffer_t b;
+        isc_result_t result;
+
+        if (ednsoptscnt == EDNSOPTS)
+                fatal("too many ednsopts");
+
+        result = parse_uint(&num, code, 65535, "ednsopt");
+	if (result != ISC_R_SUCCESS)
+		fatal("bad edns code point: %s", code);
+
+        ednsopts[ednsoptscnt].code = num;
+        ednsopts[ednsoptscnt].length = 0;
+        ednsopts[ednsoptscnt].value = NULL;
+
+        if (value != NULL) {
+                char *buf;
+                buf = isc_mem_allocate(mctx, strlen(value)/2 + 1);
+                if (buf == NULL)
+                        fatal("out of memory");
+                isc_buffer_init(&b, buf, strlen(value)/2 + 1);
+                result = isc_hex_decodestring(value, &b);
+                check_result(result, "isc_hex_decodestring");
+                ednsopts[ednsoptscnt].value = isc_buffer_base(&b);
+                ednsopts[ednsoptscnt].length = isc_buffer_usedlength(&b);
+        }
+
+        if (lookup->ednsoptscnt == 0)
+                lookup->ednsopts = &ednsopts[ednsoptscnt];
+        lookup->ednsoptscnt++;
+        ednsoptscnt++;
+}
+
 /*%
  * Add EDNS0 option record to a message.  Currently, the only supported
  * options are UDP buffer size, the DO bit, and EDNS options
@@ -1501,15 +1560,12 @@ setup_libs(void) {
  */
 static void
 add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
-	isc_boolean_t dnssec, dns_ednsopt_t *opts, size_t count)
+	unsigned int flags, dns_ednsopt_t *opts, size_t count)
 {
 	dns_rdataset_t *rdataset = NULL;
 	isc_result_t result;
-	unsigned int flags = 0;
 
 	debug("add_opt()");
-	if (dnssec)
-		flags |= DNS_MESSAGEEXTFLAG_DO;
 	result = dns_message_buildopt(msg, &rdataset, edns, udpsize, flags,
 				      opts, count);
 	check_result(result, "dns_message_buildopt");
@@ -2398,7 +2454,8 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->udpsize > 0 || lookup->dnssec ||
 	    lookup->edns > -1 || lookup->ecs_addr != NULL)
 	{
-		dns_ednsopt_t opts[DNS_EDNSOPTIONS];
+		dns_ednsopt_t opts[EDNSOPTS + DNS_EDNSOPTIONS];
+		unsigned int flags;
 		int i = 0;
 
 		if (lookup->udpsize == 0)
@@ -2482,8 +2539,18 @@ setup_lookup(dig_lookup_t *lookup) {
 			i++;
 		}
 
+		if (lookup->ednsoptscnt != 0) {
+			memmove(&opts[i], lookup->ednsopts,
+			        sizeof(dns_ednsopt_t) * lookup->ednsoptscnt);
+			i += lookup->ednsoptscnt;
+		}
+
+		flags = lookup->ednsflags;
+		flags &= ~DNS_MESSAGEEXTFLAG_DO;
+		if (lookup->dnssec)
+			flags |= DNS_MESSAGEEXTFLAG_DO;
 		add_opt(lookup->sendmsg, lookup->udpsize,
-			lookup->edns, lookup->dnssec, opts, i);
+			lookup->edns, flags, opts, i);
 	}
 
 	result = dns_message_rendersection(lookup->sendmsg,
@@ -3399,6 +3466,10 @@ process_opt(dig_lookup_t *l, dns_message_t *msg) {
 }
 #endif
 
+static int
+ednsvers(dns_rdataset_t *opt) {
+	return ((opt->ttl >> 16) & 0xff);
+}
 
 /*%
  * Event handler for recv complete.  Perform whatever actions are necessary,
@@ -3428,6 +3499,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	isc_region_t r;
 	isc_buffer_t *buf = NULL;
 #endif
+	int newedns;
 
 	UNUSED(task);
 	INSIST(!free_now);
@@ -3658,6 +3730,25 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			} else
 				goto udp_mismatch;
 		}
+	}
+	if (msg->rcode == dns_rcode_badvers && msg->opt != NULL &&
+	    (newedns = ednsvers(msg->opt)) < l->edns && l->ednsneg) {
+		/*
+		 * Add minimum EDNS version required checks here if needed.
+		 */
+		if (l->comments)
+			printf(";; BADVERS, retrying with EDNS version %u.\n",
+			       newedns);
+		l->edns = newedns;
+		n = requeue_lookup(l, ISC_TRUE);
+		n->origin = query->lookup->origin;
+		dns_message_destroy(&msg);
+		isc_event_free(&event);
+		clear_query(query);
+		cancel_lookup(l);
+		check_next_lookup(l);
+		UNLOCK_LOOKUP;
+		return;
 	}
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0 &&
 	    !l->ignore && !l->tcp_mode) {
@@ -4212,6 +4303,12 @@ destroy_libs(void) {
 #endif
 	debug("Removing log context");
 	isc_log_destroy(&lctx);
+
+	while (ednsoptscnt > 0U) {
+		ednsoptscnt--;
+		if (ednsopts[ednsoptscnt].value != NULL)
+			isc_mem_free(mctx, ednsopts[ednsoptscnt].value);
+	}
 
 	debug("Destroy memory");
 	if (memdebugging != 0)

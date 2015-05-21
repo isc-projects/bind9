@@ -47,7 +47,22 @@
     <title>New Features</title>
     <itemizedlist>
       <listitem>
-	<para>None</para>
+	<para>
+          <command>dig +ednsopt</command> can now be used to set
+          arbitrary EDNS options in DNS requests.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+          <command>dig +ednsflags</command> can now be used to set
+          yet-to-be-defined EDNS flags in DNS requests.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>dig +[no]ednsnegotiation</command> can now be used enable /
+	  disable EDNS version negotiation.
+	</para>
       </listitem>
       <listitem>
 	<para>

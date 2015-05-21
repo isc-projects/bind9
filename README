@@ -51,6 +51,11 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.10.3
+
+	- Dig now supports sending of arbitary EDNS options by specifying
+	  them on the command line.
+
 BIND 9.10.2
 
 	BIND 9.10.2 is a maintenance release and addresses bugs
