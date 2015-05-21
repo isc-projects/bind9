@@ -718,6 +718,8 @@ LWRES_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_RLIMITTYPE
 ISC_PLATFORM_HAVESYSUNH
+ISC_PLATFORM_NEEDFPRINTF
+ISC_PLATFORM_NEEDPRINTF
 LWRES_PLATFORM_QUADFORMAT
 ISC_PLATFORM_QUADFORMAT
 DST_EXTRA_SRCS
@@ -17683,6 +17685,46 @@ else
 $as_echo "l" >&6; }
 	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "l"'
 	LWRES_PLATFORM_QUADFORMAT='#define LWRES_PLATFORM_QUADFORMAT "l"'
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking printf for %z support" >&5
+$as_echo_n "checking printf for %z support... " >&6; }
+if test "$cross_compiling" = yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming target platform supports %z" >&5
+$as_echo "assuming target platform supports %z" >&6; }
+        ISC_PLATFORM_NEEDPRINTF='#undef ISC_PLATFORM_NEEDPRINTF'
+        ISC_PLATFORM_NEEDFPRINTF='#undef ISC_PLATFORM_NEEDFPRINTF'
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+main() {
+	/* Assume sprintf matches printf/fprintf. */
+        size_t j = 0;
+        char buf[100];
+        buf[0] = 0;
+        sprintf(buf, "%zu", j);
+        exit(strcmp(buf, "0") != 0);
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+        ISC_PLATFORM_NEEDPRINTF='#undef ISC_PLATFORM_NEEDPRINTF'
+        ISC_PLATFORM_NEEDFPRINTF='#undef ISC_PLATFORM_NEEDFPRINTF'
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        ISC_PLATFORM_NEEDPRINTF='#define ISC_PLATFORM_NEEDPRINTF 1'
+        ISC_PLATFORM_NEEDFPRINTF='#define ISC_PLATFORM_NEEDFPRINTF 1'
 fi
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
   conftest.$ac_objext conftest.beam conftest.$ac_ext

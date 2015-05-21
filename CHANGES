@@ -1,3 +1,6 @@
+4123.	[port]		Added %z (size_t) format options to the portable
+			internal printf/sprintf implementation. [RT #39586]
+
 4118.	[bug]		Teach isc-config.sh about irs. [RT #39213]
 
 4117.	[protocol]	Add EMPTY.AS112.ARPA as per RFC 7534.
