@@ -1,3 +1,8 @@
+4062.	[bug]		Fix an out-of-bounds read in RPZ code. If the
+			read succeeded, it doesn't result in a bug
+			during operation. If the read failed, named
+			could segfault. [RT #38559]
+
 	--- 9.10.2 released ---
 
 	--- 9.10.2rc2 released ---
