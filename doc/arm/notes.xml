@@ -324,6 +324,14 @@
 	  fix will not be noticeable.  [RT #39229]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  A bug in RPZ could cause the server to crash if policy
+	  zones were updated (e.g. via <command>rndc reload</command>
+	  or an incoming zone transfer) while RPZ processing was still
+	  ongoing for an active query. [RT #39415]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">

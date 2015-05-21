@@ -1,3 +1,8 @@
+4120.	[bug]		A bug in RPZ could cause the server to crash if
+			policy zones were updated while recursion was
+			pending for RPZ processing of an active query.
+			[RT #39415]
+
 4116.	[bug]		Fix a bug in RPZ that could cause some policy
 			zones that did not specifically require
 			recursion to be treated as if they did;
