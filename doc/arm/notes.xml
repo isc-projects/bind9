@@ -133,43 +133,45 @@
 	  Several bugs have been fixed in the RPZ implementation:
 	</para>
 	<itemizedlist>
-	  <para>
-	    Policy zones that did not specifically require recursion
-	    could be treated as if they did; consequently, setting
-	    <command>qname-wait-recurse no;</command> was
-	    sometimes ineffective.  This has been corrected.
-	    In most configurations, behavioral changes due to this
-	    fix will not be noticeable. [RT #39229]
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    The server could crash if policy zones were updated (e.g.
-	    via <command>rndc reload</command> or an incoming zone
-	    transfer) while RPZ processing was still ongoing for an
-	    active query. [RT #39415]
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    On servers with one or more policy zones configured as
-	    slaves, if a policy zone updated during regular operation
-	    (rather than at startup) using a full zone reload, such as
-	    via AXFR, a bug could allow the RPZ summary data to fall out
-	    of sync, potentially leading to an assertion failure in
-	    rpz.c when further incremental updates were made to the
-	    zone, such as via IXFR. [RT #39567]
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    The server could match a shorter prefix than what was
-	    available in CLIENT-IP policy triggers, and so, an
-	    unexpected action could be taken. This has been
-	    corrected. [RT #39481]
-	  </para>
-	</listitem>
-      </itemizedlist>
+          <listitem>
+	    <para>
+	      Policy zones that did not specifically require recursion
+	      could be treated as if they did; consequently, setting
+	      <command>qname-wait-recurse no;</command> was
+	      sometimes ineffective.  This has been corrected.
+	      In most configurations, behavioral changes due to this
+	      fix will not be noticeable. [RT #39229]
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The server could crash if policy zones were updated (e.g.
+	      via <command>rndc reload</command> or an incoming zone
+	      transfer) while RPZ processing was still ongoing for an
+	      active query. [RT #39415]
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      On servers with one or more policy zones configured as
+	      slaves, if a policy zone updated during regular operation
+	      (rather than at startup) using a full zone reload, such as
+	      via AXFR, a bug could allow the RPZ summary data to fall out
+	      of sync, potentially leading to an assertion failure in
+	      rpz.c when further incremental updates were made to the
+	      zone, such as via IXFR. [RT #39567]
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The server could match a shorter prefix than what was
+	      available in CLIENT-IP policy triggers, and so, an
+	      unexpected action could be taken. This has been
+	      corrected. [RT #39481]
+	    </para>
+	  </listitem>
+	</itemizedlist>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="end_of_life">
