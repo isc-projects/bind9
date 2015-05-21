@@ -37,3 +37,5 @@ isc_socket_register
 isc_print_vsnprintf
 isc_print_snprintf
 isc_print_sprintf
+isc_print_fprintf
+isc_print_printf
