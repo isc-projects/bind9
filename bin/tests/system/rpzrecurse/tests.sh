@@ -231,4 +231,18 @@ for n in 1 2 3 4 5 6 7 8 9; do
     }
 done
 
+# Check CLIENT-IP behavior
+t=`expr $t + 1`
+echo "I:testing CLIENT-IP behavior (${t})"
+run_server clientip
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p 5300 -b 10.53.0.4 > dig.out.${t}
+grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
+    echo "I:test $t failed: query failed"
+    status=1
+}
+grep "^l2.l1.l0.[[:space:]]*[0-9]*[[:space:]]*IN[[:space:]]*A[[:space:]]*10.53.0.2" dig.out.${t} > /dev/null 2>&1 || {
+    echo "I:test $t failed: didn't get expected answer"
+    status=1
+}
+
 exit $status

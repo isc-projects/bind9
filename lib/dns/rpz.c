@@ -827,7 +827,7 @@ name2ipkey(int log_level,
 	if (--ip_labels == 4 && !strchr(cp, 'z')) {
 		/*
 		 * Convert an IPv4 address
-		 * from the form "prefix.w.z.y.x"
+		 * from the form "prefix.z.y.x.w"
 		 */
 		if (prefix_num > 32U) {
 			badname(log_level, src_name,
@@ -910,6 +910,12 @@ name2ipkey(int log_level,
 		prefix -= i;
 		prefix += DNS_RPZ_CIDR_WORD_BITS;
 	}
+
+	/*
+	 * XXXMUKS: Should the following check be enabled in a
+	 * production build?  It can be expensive for large IP zones
+	 * from 3rd parties.
+	 */
 
 	/*
 	 * Convert the address back to a canonical domain name
@@ -1093,7 +1099,7 @@ search(dns_rpz_zones_t *rpzs,
 			child->set.ip |= tgt_set->ip;
 			child->set.nsip |= tgt_set->nsip;
 			set_sum_pair(child);
-			*found = cur;
+			*found = child;
 			return (ISC_R_SUCCESS);
 		}
 
@@ -1186,8 +1192,8 @@ search(dns_rpz_zones_t *rpzs,
 				 */
 				find_result = DNS_R_PARTIALMATCH;
 				*found = cur;
-				set.client_ip = trim_zbits(set.ip,
-							cur->set.client_ip);
+				set.client_ip = trim_zbits(set.client_ip,
+							   cur->set.client_ip);
 				set.ip = trim_zbits(set.ip,
 						    cur->set.ip);
 				set.nsip = trim_zbits(set.nsip,

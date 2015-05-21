@@ -5068,6 +5068,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 		st->m.type = DNS_RPZ_TYPE_BAD;
 		st->m.policy = DNS_RPZ_POLICY_MISS;
 		st->m.ttl = ~0;
+		st->m.prefix = 0;
 		memset(&st->r, 0, sizeof(st->r));
 		memset(&st->q, 0, sizeof(st->q));
 		dns_fixedname_init(&st->_p_namef);
