@@ -1656,8 +1656,8 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
 		      DNS_LOGMODULE_RBTDB, DNS_RPZ_INFO_LEVEL,
 		      "(re)loading policy zone '%s' changed from"
-		      " %ld to %ld qname, %ld to %ld nsdname,"
-		      " %ld to %ld IP, %ld to %ld NSIP entries",
+		      " %zd to %zd qname, %zd to %zd nsdname,"
+		      " %zd to %zd IP, %zd to %zd NSIP entries",
 		      namebuf,
 		      old_totals.qname, rpzs->total_triggers.qname,
 		      old_totals.nsdname, rpzs->total_triggers.nsdname,

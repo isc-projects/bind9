@@ -1,3 +1,6 @@
+4123.	[port]		Added %z (size_t) format options to the portable
+			internal printf/sprintf implementation. [RT #39586]
+
 4122.	[bug]		The server could match a shorter prefix than what was
 			available in CLIENT-IP policy triggers, and so, an
 			unexpected action could be taken. This has been
