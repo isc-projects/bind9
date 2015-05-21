@@ -1,3 +1,8 @@
+4122.	[bug]		The server could match a shorter prefix than what was
+			available in CLIENT-IP policy triggers, and so, an
+			unexpected action could be taken. This has been
+			corrected. [RT #39481]
+
 4121.	[bug]		When updating a response-policy zone via AXFR,
 			summary data about other policy zones could fall
 			out of sync. Ultimately this could trigger an
