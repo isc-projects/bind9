@@ -3895,7 +3895,7 @@
 ./lib/lwres/man/lwres_resutil.docbook		SGML	2000,2001,2004,2005,2007,2014
 ./lib/lwres/man/lwres_resutil.html		HTML	DOCBOOK
 ./lib/lwres/man/resolver.5			MAN	2000,2001,2004,2007
-./lib/lwres/print.c				C	1999,2000,2001,2003,2004,2005,2007,2011,2012,2014
+./lib/lwres/print.c				C	1999,2000,2001,2003,2004,2005,2007,2011,2012,2014,2015
 ./lib/lwres/print_p.h				C	1999,2000,2001,2003,2004,2007,2010
 ./lib/lwres/tests/Atffile			X	2014
 ./lib/lwres/tests/Makefile.in			MAKE	2014
