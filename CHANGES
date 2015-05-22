@@ -1,3 +1,5 @@
+4125.	[test]		Added tests for dig, renamed delv test to digdelv.
+			[RT #39490]
 4124.	[func]		Log errors or warnings encountered when parsing the
 			internal default configuration.  Clarify the logging
 			of errors and warnings encountered in rndc
