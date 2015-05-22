@@ -9255,7 +9255,7 @@ newzone_parse(ns_server_t *server, char *args, dns_view_t **viewp,
 		bn = "addzone";
 	else if (strncasecmp(args, "mod", 3) == 0)
 		bn = "modzone";
-	else 
+	else
 		INSIST(0);
 
 	/*
