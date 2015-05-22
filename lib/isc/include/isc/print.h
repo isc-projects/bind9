@@ -68,10 +68,8 @@
 #include <stdarg.h>
 #include <stddef.h>
 #endif
-#ifdef ISC_PLATFORM_NEEDSPRINTF
-#include <stdio.h>
-#endif
 
+#include <stdio.h>
 
 ISC_LANG_BEGINDECLS
 
