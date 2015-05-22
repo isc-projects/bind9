@@ -62,13 +62,13 @@ options {\n\
 "#	session-keyfile \"" NS_LOCALSTATEDIR "/run/named/session.key\";\n\
 	session-keyname local-ddns;\n\
 	session-keyalg hmac-sha256;\n\
-	deallocate-on-exit true;\n\
+#	deallocate-on-exit <obsolete>;\n\
 #	directory <none>\n\
 	dump-file \"named_dump.db\";\n\
-	fake-iquery no;\n\
-	has-old-clients false;\n\
+#	fake-iquery <obsolete>;\n\
+#	has-old-clients <obsolete>;\n\
 	heartbeat-interval 60;\n\
-	host-statistics no;\n\
+#	host-statistics <obsolete>;\n\
 	interface-interval 60;\n\
 #	keep-response-order {none;};\n\
 	listen-on {any;};\n\
@@ -76,7 +76,7 @@ options {\n\
 	match-mapped-addresses no;\n\
 	max-rsa-exponent-size 0; /* no limit */\n\
 	memstatistics-file \"named.memstats\";\n\
-	multiple-cnames no;\n\
+#	multiple-cnames <obsolete>;\n\
 #	named-xfer <obsolete>;\n\
 	nta-lifetime 3600;\n\
 	nta-recheck 300;\n\
@@ -97,12 +97,12 @@ options {\n\
 	recursive-clients 1000;\n\
 	resolver-query-timeout 10;\n\
 	rrset-order { order random; };\n\
-	serial-queries 20;\n\
+#	serial-queries <obsolete>;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
 	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
-	statistics-interval 60;\n\
+#	statistics-interval <obsolete>;\n\
 	tcp-clients 150;\n\
 	tcp-listen-queue 10;\n\
 #	tkey-dhkey <none>\n\
@@ -111,8 +111,8 @@ options {\n\
 	transfers-per-ns 2;\n\
 	transfers-in 10;\n\
 	transfers-out 10;\n\
-	treat-cr-as-space true;\n\
-	use-id-pool true;\n\
+#	treat-cr-as-space <obsolete>;\n\
+#	use-id-pool <obsolete>;\n\
 	use-ixfr true;\n\
 	edns-udp-size 4096;\n\
 	max-udp-size 4096;\n\
@@ -146,8 +146,8 @@ options {\n\
 	provide-ixfr true;\n\
 	request-ixfr true;\n\
 	request-expire true;\n\
-	fetch-glue no;\n\
-	rfc2308-type1 no;\n\
+#	fetch-glue <obsolete>;\n\
+#	rfc2308-type1 <obsolete>;\n\
 	additional-from-auth true;\n\
 	additional-from-cache true;\n\
 	query-source address *;\n\
@@ -155,7 +155,7 @@ options {\n\
 	notify-source *;\n\
 	notify-source-v6 *;\n\
 	cleaning-interval 0;  /* now meaningless */\n\
-	min-roots 2;\n\
+#	min-roots <obsolete>;\n\
 	lame-ttl 600;\n\
 	servfail-ttl 10;\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
@@ -205,7 +205,7 @@ options {\n\
 	dialup no;\n\
 #	forward <none>\n\
 #	forwarders <none>\n\
-	maintain-ixfr-base no;\n\
+#	maintain-ixfr-base <obsolete>;\n\
 #	max-ixfr-log-size <obsolete>\n\
 	transfer-source *;\n\
 	transfer-source-v6 *;\n\
@@ -299,7 +299,8 @@ ns_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
 
 	isc_buffer_init(&b, defaultconf, sizeof(defaultconf) - 1);
 	isc_buffer_add(&b, sizeof(defaultconf) - 1);
-	return (cfg_parse_buffer(parser, &b, &cfg_type_namedconf, conf));
+	return (cfg_parse_buffer2(parser, &b, __FILE__,
+				  &cfg_type_namedconf, conf));
 }
 
 isc_result_t

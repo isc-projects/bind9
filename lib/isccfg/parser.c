@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -427,6 +425,7 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	pctx->callbackarg = NULL;
 	pctx->token.type = isc_tokentype_unknown;
 	pctx->flags = 0;
+	pctx->buf_name = NULL;
 
 	memset(specials, 0, sizeof(specials));
 	specials['{'] = 1;
@@ -544,11 +543,20 @@ cfg_parse_file(cfg_parser_t *pctx, const char *filename,
 	       const cfg_type_t *type, cfg_obj_t **ret)
 {
 	isc_result_t result;
+	cfg_listelt_t *elt;
 
 	REQUIRE(filename != NULL);
 
 	CHECK(parser_openfile(pctx, filename));
-	CHECK(parse2(pctx, type, ret));
+
+	result = parse2(pctx, type, ret);
+
+	/* Clean up the opened file */
+	elt = ISC_LIST_TAIL(pctx->open_files->value.list);
+	INSIST(elt != NULL);
+	ISC_LIST_UNLINK(pctx->open_files->value.list, elt, link);
+	ISC_LIST_APPEND(pctx->closed_files->value.list, elt, link);
+
  cleanup:
 	return (result);
 }
@@ -558,12 +566,22 @@ isc_result_t
 cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
 	const cfg_type_t *type, cfg_obj_t **ret)
 {
+	return (cfg_parse_buffer2(pctx, buffer, NULL, type, ret));
+}
+
+isc_result_t
+cfg_parse_buffer2(cfg_parser_t *pctx, isc_buffer_t *buffer,
+		  const char *bufname, const cfg_type_t *type,
+		  cfg_obj_t **ret)
+{
 	isc_result_t result;
 
 	REQUIRE(buffer != NULL);
 
 	CHECK(isc_lex_openbuffer(pctx->lexer, buffer));
+	pctx->buf_name = bufname;
 	CHECK(parse2(pctx, type, ret));
+	pctx->buf_name = NULL;
 
  cleanup:
 	return (result);
@@ -2449,6 +2467,8 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 	if (have_current_file(pctx))
 		snprintf(where, sizeof(where), "%s:%u: ",
 			 current_file(pctx), pctx->line);
+	else if (pctx->buf_name != NULL)
+		snprintf(where, sizeof(where), "%s: ", pctx->buf_name);
 
 	len = vsnprintf(message, sizeof(message), format, args);
 	if (len >= sizeof(message))

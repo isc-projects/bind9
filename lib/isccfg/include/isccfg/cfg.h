@@ -120,6 +120,10 @@ cfg_parse_file(cfg_parser_t *pctx, const char *filename,
 isc_result_t
 cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
 		 const cfg_type_t *type, cfg_obj_t **ret);
+isc_result_t
+cfg_parse_buffer2(cfg_parser_t *pctx, isc_buffer_t *buffer,
+		  const char *bufname, const cfg_type_t *type,
+		  cfg_obj_t **ret);
 /*%<
  * Read a configuration containing data of type 'type'
  * and make '*ret' point to its parse tree.
@@ -127,6 +131,9 @@ cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
  * The configuration is read from the file 'filename'
  * (isc_parse_file()) or the buffer 'buffer'
  * (isc_parse_buffer()).
+ *
+ * If 'bufname' is not NULL, it is a name for the buffer that
+ * can be reported when logging errors.
  *
  * Returns an error if the file does not parse correctly.
  *

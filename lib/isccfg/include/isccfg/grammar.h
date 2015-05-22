@@ -212,6 +212,12 @@ struct cfg_parser {
 	cfg_obj_t *	closed_files;
 
 	/*%
+	 * Name of a buffer being parsed; used only for
+	 * logging.
+	 */
+	char const *	buf_name;
+
+	/*%
 	 * Current line number.  We maintain our own
 	 * copy of this so that it is available even
 	 * when a file has just been closed.

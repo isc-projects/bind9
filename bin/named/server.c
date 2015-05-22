@@ -5523,7 +5523,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Parse the global default pseudo-config file.
 	 */
 	if (first_time) {
-		CHECK(ns_config_parsedefaults(ns_g_parser, &ns_g_config));
+		result = ns_config_parsedefaults(ns_g_parser, &ns_g_config);
+		if (result != ISC_R_SUCCESS)
+			ns_main_earlyfatal("unable to load "
+					   "internal defaults: %s",
+					   isc_result_totext(result));
 		RUNTIME_CHECK(cfg_map_get(ns_g_config, "options",
 					  &ns_g_defaults) == ISC_R_SUCCESS);
 	}
@@ -6701,10 +6705,10 @@ run_server(isc_task_t *task, isc_event_t *event) {
 				    server, &server->pps_timer),
 		   "creating pps timer");
 
-	CHECKFATAL(cfg_parser_create(ns_g_mctx, NULL, &ns_g_parser),
+	CHECKFATAL(cfg_parser_create(ns_g_mctx, ns_g_lctx, &ns_g_parser),
 		   "creating default configuration parser");
 
-	CHECKFATAL(cfg_parser_create(ns_g_mctx, NULL, &ns_g_addparser),
+	CHECKFATAL(cfg_parser_create(ns_g_mctx, ns_g_lctx, &ns_g_addparser),
 		   "creating additional configuration parser");
 
 	if (ns_g_lwresdonly)
@@ -9239,12 +9243,20 @@ newzone_parse(ns_server_t *server, char *args, dns_view_t **viewp,
 	const char *viewname = NULL;
 	dns_rdataclass_t rdclass;
 	dns_view_t *view = NULL;
+	const char *bn;
 
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
 	/* Try to parse the argument string */
 	isc_buffer_init(&argbuf, args, (unsigned int) strlen(args));
 	isc_buffer_add(&argbuf, strlen(args));
+
+	if (strncasecmp(args, "add", 3) == 0)
+		bn = "addzone";
+	else if (strncasecmp(args, "mod", 3) == 0)
+		bn = "modzone";
+	else 
+		INSIST(0);
 
 	/*
 	 * Convert the "addzone" or "modzone" to just "zone", for
@@ -9253,7 +9265,7 @@ newzone_parse(ns_server_t *server, char *args, dns_view_t **viewp,
 	isc_buffer_forward(&argbuf, 3);
 
 	cfg_parser_reset(ns_g_addparser);
-	CHECK(cfg_parse_buffer(ns_g_addparser, &argbuf,
+	CHECK(cfg_parse_buffer2(ns_g_addparser, &argbuf, bn,
 			       &cfg_type_addzoneconf, &zoneconf));
 	CHECK(cfg_map_get(zoneconf, "zone", &zlist));
 	if (! cfg_obj_islist(zlist))

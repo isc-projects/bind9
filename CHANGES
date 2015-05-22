@@ -1,3 +1,8 @@
+4124.	[func]		Log errors or warnings encountered when parsing the
+			internal default configuration.  Clarify the logging
+			of errors and warnings encountered in rndc
+			addzone or modzone parameters. [RT #39440]
+
 4123.	[port]		Added %z (size_t) format options to the portable
 			internal printf/sprintf implementation. [RT #39586]
 
