@@ -17,6 +17,47 @@ SYSTEMTESTTOP=..
 
 status=0
 n=0
+# using dig insecure mode as not testing dnssec here
+DIGOPTS="-i -p 5300"
+
+if [ -x ${DIG} ] ; then
+  n=`expr $n + 1`
+  echo "I:checking dig short form works ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 +short a a.example > dig.out.test$n || ret=1
+  if test `wc -l < dig.out.test$n` != 1 ; then ret=1 ; fi
+  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig split width works ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 +split=4 -t sshfp foo.example > dig.out.test$n || ret=1
+  grep " 9ABC DEF6 7890 " < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig with reverse lookup works ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 -x 127.0.0.1 > dig.out.test$n 2>&1 || ret=1
+  # doesn't matter if has answer
+  grep -i "127\.in-addr\.arpa\." < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig over TCP works ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.3 a a.example > dig.out.test$n || ret=1
+  grep "10\.0\.0\.1$" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+else
+  echo "$DIG is needed, so skipping these dig tests"
+fi
+
 # using delv insecure mode as not testing dnssec here
 DELVOPTS="-i -p 5300"
 
