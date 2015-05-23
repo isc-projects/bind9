@@ -23,6 +23,7 @@
 #include <isc/app.h>
 #include <isc/commandline.h>
 #include <isc/log.h>
+#include <isc/print.h>
 
 #include <named/globals.h>
 #include <named/ntservice.h>

@@ -21,6 +21,7 @@
 #include <config.h>
 #include <atf-c.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/string.h>
 #include <fcntl.h>

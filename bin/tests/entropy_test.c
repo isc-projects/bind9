@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -26,8 +26,9 @@
 
 #include <isc/entropy.h>
 #include <isc/mem.h>
-#include <isc/util.h>
+#include <isc/print.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 static void
 hex_dump(const char *msg, void *data, unsigned int length) {
