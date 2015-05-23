@@ -45,7 +45,7 @@ notify(const char *fmt, ...) {
 	}
 }
 
-void            
+void
 fatal(const char *format, ...) {
 	va_list args;
 
@@ -55,4 +55,4 @@ fatal(const char *format, ...) {
 	va_end(args);
 	fprintf(stderr, "\n");
 	exit(1);
-}               
+}

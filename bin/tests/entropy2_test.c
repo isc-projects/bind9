@@ -34,20 +34,20 @@
 
 static void
 hex_dump(const char *msg, void *data, unsigned int length) {
-        unsigned int len;
+	unsigned int len;
 	unsigned char *base;
 	isc_boolean_t first = ISC_TRUE;
 
 	base = data;
 
-        printf("DUMP of %d bytes:  %s\n\t", length, msg);
-        for (len = 0; len < length; len++) {
-                if (len % 16 == 0 && !first)
+	printf("DUMP of %d bytes:  %s\n\t", length, msg);
+	for (len = 0; len < length; len++) {
+		if (len % 16 == 0 && !first)
 			printf("\n\t");
-                printf("%02x ", base[len]);
+		printf("%02x ", base[len]);
 		first = ISC_FALSE;
-        }
-        printf("\n");
+	}
+	printf("\n");
 }
 
 static void
