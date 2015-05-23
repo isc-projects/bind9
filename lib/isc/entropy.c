@@ -40,6 +40,7 @@
 #include <isc/msgs.h>
 #include <isc/mutex.h>
 #include <isc/platform.h>
+#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/sha1.h>
 #include <isc/string.h>
