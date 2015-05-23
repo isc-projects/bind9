@@ -167,7 +167,7 @@ main(int argc, char *argv[]) {
 		unsigned char *p = b;
 		while (p < bp) {
 			unsigned int len;
-			
+
 			if (p + 2 > bp) {
 				printf("premature end of packet\n");
 				exit(1);
@@ -228,10 +228,10 @@ process_message(isc_buffer_t *source) {
 		 * XXXMLG
 		 * Changing this here is a hack, and should not be done in
 		 * reasonable application code, ever.
-	 	*/
+		*/
 		message->from_to_wire = DNS_MESSAGE_INTENTRENDER;
 
- 		for (i = 0; i < DNS_SECTION_MAX; i++)
+		for (i = 0; i < DNS_SECTION_MAX; i++)
 			message->counts[i] = 0;  /* Another hack XXX */
 
 		result = dns_compress_init(&cctx, -1, mctx);
