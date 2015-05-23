@@ -22,6 +22,7 @@
 #else
 #include <stdio.h>
 #endif
+#include <isc/print.h>
 
 int
 isc_win32os_versioncheck(unsigned int major, unsigned int minor,

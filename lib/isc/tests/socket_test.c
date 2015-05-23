@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,6 +26,7 @@
 #include <time.h>
 
 #include <isc/socket.h>
+#include <isc/print.h>
 
 #include "../task_p.h"
 #include "../unix/socket_p.h"
