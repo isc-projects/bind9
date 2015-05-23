@@ -51,7 +51,7 @@
 #define ALIST_TAG		"*alist*"
 #define MAX_INDENT		64
 
-static char spaces[MAX_INDENT + 1] = 
+static char spaces[MAX_INDENT + 1] =
 	"                                                                ";
 
 isccc_sexpr_t *
