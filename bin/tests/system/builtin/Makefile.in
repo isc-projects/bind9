@@ -29,7 +29,7 @@ CDEFINES =
 CWARNINGS =
 
 DNSLIBS =
-ISCLIBS =
+ISCLIBS = ../../../../lib/isc/libisc.@A@
 
 DNSDEPLIBS =
 ISCDEPLIBS =
