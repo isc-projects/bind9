@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include <isc/util.h>
+#include <isc/print.h>
 #include <isc/string.h>
 
 #include "dnstest.h"
