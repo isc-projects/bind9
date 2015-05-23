@@ -574,7 +574,7 @@
 ./bin/tests/master/win32/t_master.vcxproj.filters.in	X	2013
 ./bin/tests/master/win32/t_master.vcxproj.in	X	2013
 ./bin/tests/master/win32/t_master.vcxproj.user	X	2013
-./bin/tests/master_test.c			C	1999,2000,2001,2004,2007,2009
+./bin/tests/master_test.c			C	1999,2000,2001,2004,2007,2009,2015
 ./bin/tests/mem/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004,2005,2007,2009,2012,2014
 ./bin/tests/mem/t_mem.c				C	1999,2000,2001,2004,2007,2009,2013
 ./bin/tests/mem/win32/t_mem.dsp.in		X	2013
@@ -854,7 +854,7 @@
 ./bin/tests/system/autosign/setup.sh		SH	2009,2010,2012,2014
 ./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011,2012,2013,2014
 ./bin/tests/system/builtin/.gitignore		X	2014
-./bin/tests/system/builtin/Makefile.in		MAKE	2014
+./bin/tests/system/builtin/Makefile.in		MAKE	2014,2015
 ./bin/tests/system/builtin/clean.sh		SH	2014
 ./bin/tests/system/builtin/gethostname.c	C	2014,2015
 ./bin/tests/system/builtin/ns1/named.conf	CONF-C	2011
@@ -2181,7 +2181,7 @@
 ./bin/tests/tasks/win32/t_tasks.vcxproj.filters.in	X	2013
 ./bin/tests/tasks/win32/t_tasks.vcxproj.in	X	2013
 ./bin/tests/tasks/win32/t_tasks.vcxproj.user	X	2013,2015
-./bin/tests/timer_test.c			C	1998,1999,2000,2001,2004,2007,2013,2014
+./bin/tests/timer_test.c			C	1998,1999,2000,2001,2004,2007,2013,2014,2015
 ./bin/tests/timers/Makefile.in			MAKE	1999,2000,2001,2002,2004,2007,2009,2012,2014
 ./bin/tests/timers/t_timers.c			C	1999,2000,2001,2004,2007,2008,2009,2011,2013
 ./bin/tests/timers/win32/t_timers.dsp.in	X	2013
@@ -3385,7 +3385,7 @@
 ./lib/dns/ssu.c					C	2000,2001,2003,2004,2005,2006,2007,2008,2010,2011,2013,2014
 ./lib/dns/ssu_external.c			C	2011,2012,2013
 ./lib/dns/stats.c				C	2000,2001,2004,2005,2007,2008,2009,2012
-./lib/dns/tcpmsg.c				C	1999,2000,2001,2004,2005,2006,2007
+./lib/dns/tcpmsg.c				C	1999,2000,2001,2004,2005,2006,2007,2015
 ./lib/dns/tests/Atffile				X	2011
 ./lib/dns/tests/Kdh.+002+18602.key		X	2014
 ./lib/dns/tests/Makefile.in			MAKE	2011,2012,2013,2014
@@ -3694,7 +3694,7 @@
 ./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2013,2014
 ./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005,2007,2012,2014,2015
 ./lib/isc/refcount.c				C	2005,2007
-./lib/isc/regex.c				C	2013,2014.2015
+./lib/isc/regex.c				C	2013,2014.2015,2015
 ./lib/isc/region.c				C	2002,2004,2005,2007
 ./lib/isc/result.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2008,2012,2014,2015
 ./lib/isc/rwlock.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2011,2012,2015
