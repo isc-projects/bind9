@@ -104,7 +104,7 @@ static void
 string_emit(char c, void *arg) {
 	struct { char *str; size_t size; } *p = arg;
 
-	if (p->size > 0) {
+	if (p->size > 0U) {
 		*(p->str)++ = c;
 		(p->size)--;
 	}
@@ -122,7 +122,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 	arg.size = size;
 
 	n = isc__print_printf(string_emit, &arg, format, ap);
-	if (arg.size > 0)
+	if (arg.size > 0U)
 		*arg.str = '\0';
 	return (n);
 }
@@ -268,7 +268,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 		case 'x':
 		case 'X':
 		doint:
-			if (precision != 0)
+			if (precision != 0U)
 				zero = 0;
 			switch (*format) {
 			case 'n':
@@ -327,7 +327,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpui /= 1000000000;
 					mid = tmpui % 1000000000;
 					hi = tmpui / 1000000000;
-					if (hi != 0)
+					if (hi != 0U)
 						sprintf(buf, "%lu", hi);
 					else
 						buf[0] = '\0';
@@ -355,7 +355,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpui /= 010000000000;
 					mid = tmpui % 010000000000;
 					hi = tmpui / 010000000000;
-					if (hi != 0) {
+					if (hi != 0U) {
 						sprintf(buf,
 							alt ?  "%#lo" : "%lo",
 							hi);
@@ -388,7 +388,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpui /= 1000000000;
 					mid = tmpui % 1000000000;
 					hi = tmpui / 1000000000;
-					if (hi != 0)
+					if (hi != 0U)
 						sprintf(buf, "%lu", hi);
 					else
 						buf[0] = '\0';
@@ -407,7 +407,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpui = va_arg(ap, unsigned int);
 				if (alt) {
 					head = "0x";
-					if (precision > 2)
+					if (precision > 2U)
 						precision -= 2;
 				}
 				if (tmpui <= 0xffffffffU)
@@ -431,7 +431,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpui = va_arg(ap, unsigned int);
 				if (alt) {
 					head = "0X";
-					if (precision > 2)
+					if (precision > 2U)
 						precision -= 2;
 				}
 				if (tmpui <= 0xffffffffU)
@@ -445,13 +445,13 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				}
 				goto printint;
 			printint:
-				if (precision != 0 || width != 0) {
+				if (precision != 0U || width != 0U) {
 					length = strlen(buf);
 					if (length < precision)
 						zeropad = precision - length;
 					else if (length < width && zero)
 						zeropad = width - length;
-					if (width != 0) {
+					if (width != 0U) {
 						pad = width - length -
 						      zeropad - strlen(head);
 						if (pad < 0)
@@ -489,7 +489,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			cp = va_arg(ap, char *);
 			REQUIRE(cp != NULL);
 
-			if (precision != 0) {
+			if (precision != 0U) {
 				/*
 				 * cp need not be NULL terminated.
 				 */
@@ -498,13 +498,13 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 
 				n = precision;
 				tp = cp;
-				while (n != 0 && *tp != '\0')
+				while (n != 0U && *tp != '\0')
 					n--, tp++;
 				length = precision - n;
 			} else {
 				length = strlen(cp);
 			}
-			if (width != 0) {
+			if (width != 0U) {
 				pad = width - length;
 				if (pad < 0)
 					pad = 0;
@@ -515,8 +515,8 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					emit(' ', arg);
 					pad--;
 				}
-			if (precision != 0)
-				while (precision > 0 && *cp != '\0') {
+			if (precision != 0U)
+				while (precision > 0U && *cp != '\0') {
 					emit(*cp++, arg);
 					precision--;
 				}
@@ -530,12 +530,12 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			break;
 		case 'c':
 			c = va_arg(ap, int);
-			if (width > 0) {
+			if (width > 0U) {
 				count += width;
 				width--;
 				if (left)
 					emit(c, arg);
-				while (width-- > 0)
+				while (width-- > 0U)
 					emit(' ', arg);
 				if (!left)
 					emit(c, arg);
@@ -550,7 +550,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			length = strlen(buf);
 			if (precision > length)
 				zeropad = precision - length;
-			if (width > 0) {
+			if (width > 0U) {
 				pad = width - length - zeropad;
 				if (pad < 0)
 					pad = 0;
@@ -609,7 +609,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			 * if we cap the precision at 512 we will not
 			 * overflow buf.
 			 */
-			if (precision > 512)
+			if (precision > 512U)
 				precision = 512;
 			sprintf(fmt, "%%%s%s.%lu%s%c", alt ? "#" : "",
 				plus ? "+" : space ? " " : "",
@@ -631,7 +631,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					sprintf(buf, fmt, dbl);
 				}
 				length = strlen(buf);
-				if (width > 0) {
+				if (width > 0U) {
 					pad = width - length;
 					if (pad < 0)
 						pad = 0;
