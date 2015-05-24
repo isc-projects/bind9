@@ -102,7 +102,7 @@ n=`expr $n + 1`
 
 echo "I:DiG's EDNS negotiation ($n)"
 ret=0 reason=
-$DIG -p 5300 @10.53.0.1 +norec +edns=100 soa $zone > dig.out$n
+$DIG -p 5300 @10.53.0.1 +norec +edns=100 +ednsneg soa $zone > dig.out$n
 grep "status: NOERROR," dig.out$n > /dev/null || { ret=1; reason="status"; }
 grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
 grep "IN.SOA." dig.out$n > /dev/null || { ret=1; reason="soa"; }
