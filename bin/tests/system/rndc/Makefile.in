@@ -29,10 +29,10 @@ CDEFINES =
 CWARNINGS =
 
 DNSLIBS =
-ISCLIBS =	.
+ISCLIBS =	../../../../lib/isc/libisc.@A@
 
 DNSDEPLIBS =
-ISCDEPLIBS =
+ISCDEPLIBS =	../../../../lib/isc/libisc.@A@
 
 DEPLIBS =
 
@@ -48,8 +48,8 @@ SRCS =		gencheck.c
 
 all: gencheck@EXEEXT@
 
-gencheck@EXEEXT@: ${GENCHECKOBJS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${GENCHECKOBJS} ${LIBS}
+gencheck@EXEEXT@: ${GENCHECKOBJS} ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${GENCHECKOBJS} ${ISCLIBS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
