@@ -26,7 +26,6 @@
 #include <stdarg.h>
 
 #include <isc/log.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/types.h>
