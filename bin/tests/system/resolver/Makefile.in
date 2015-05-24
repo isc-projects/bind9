@@ -26,10 +26,10 @@ CDEFINES =
 CWARNINGS =
 
 DNSLIBS =
-ISCLIBS =
+ISCLIBS = ../../../../lib/isc/libisc.@A@
 
 DNSDEPLIBS =
-ISCDEPLIBS =
+ISCDEPLIBS = ../../../../lib/isc/libisc.@A@
 
 DEPLIBS =
 
@@ -45,8 +45,8 @@ SRCS =		edns-version.c
 
 all: edns-version@EXEEXT@
 
-edns-version@EXEEXT@: ${EDNSVERSIONOBJS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${EDNSVERSIONOBJS} ${LIBS}
+edns-version@EXEEXT@: ${EDNSVERSIONOBJS} ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${EDNSVERSIONOBJS} ${ISCLIBS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
