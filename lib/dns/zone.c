@@ -16975,7 +16975,7 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	dns_rdataset_init(&cds);
 	dns_rdataset_init(&dnskey);
 	dns_rdataset_init(&cdnskey);
-	
+
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_cds,
 				     dns_rdatatype_none, 0, &cds, NULL);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
@@ -17087,7 +17087,7 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 		}
 	}
 	result = ISC_R_SUCCESS;
-	
+
  failure:
 	if (dns_rdataset_isassociated(&cds))
 		dns_rdataset_disassociate(&cds);
