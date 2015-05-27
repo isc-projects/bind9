@@ -171,7 +171,6 @@ sendquery(isc_task_t *task) {
 
 	dns_name_init(qname, NULL);
 	dns_name_clone(dns_fixedname_name(&queryname), qname);
-	dns_rdataset_init(qrdataset);
 	dns_rdataset_makequestion(qrdataset, dns_rdataclass_in,
 				  dns_rdatatype_a);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
