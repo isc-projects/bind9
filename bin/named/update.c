@@ -3109,7 +3109,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		}
 		if (result != ISC_R_SUCCESS)
 			goto failure;
-		
+
 	}
 
 	/*
