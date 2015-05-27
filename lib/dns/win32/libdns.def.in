@@ -1050,6 +1050,7 @@ dns_xfrin_shutdown
 dns_zone_addnsec3chain
 dns_zone_asyncload
 dns_zone_attach
+dns_zone_cdscheck
 dns_zone_checknames
 dns_zone_clearforwardacl
 dns_zone_clearnotifyacl
