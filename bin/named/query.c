@@ -4553,8 +4553,7 @@ rpz_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		 * originally calculated
 		 */
 		if (rpz_num >= rpzs->p.num_zones) {
-			CTRACE(ISC_LOG_ERROR,
-			       "rpz_rewrite_ip: rpz_num is higher than "
+			CTRACE("rpz_rewrite_ip: rpz_num is higher than "
 			       "number of zones");
 			rpz_clean(&p_zone, &p_db, &p_node, p_rdatasetp);
 			st->m.policy = DNS_RPZ_POLICY_ERROR;
@@ -4882,8 +4881,7 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 		 * originally calculated
 		 */
 		if (rpz_num >= rpzs->p.num_zones) {
-			CTRACE(ISC_LOG_ERROR,
-			       "rpz_rewrite_name: rpz_num is higher than "
+			CTRACE("rpz_rewrite_name: rpz_num is higher than "
 			       "number of zones");
 			rpz_clean(&p_zone, &p_db, &p_node, rdatasetp);
 			st->m.policy = DNS_RPZ_POLICY_ERROR;
@@ -6296,8 +6294,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Has response policy changed out from under us?
 			 */
 			if (rpz_st->rpz_ver != client->view->rpzs->rpz_ver) {
-				CTRACE(ISC_LOG_ERROR,
-				       "query_find: RPZ settings out of date");
+				CTRACE("query_find: RPZ settings out of date");
 				QUERY_ERROR(DNS_R_SERVFAIL);
 				goto cleanup;
 			}
