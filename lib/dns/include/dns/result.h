@@ -154,8 +154,10 @@
 #define DNS_R_NOTDYNAMIC 		(ISC_RESULTCLASS_DNS + 108)
 #define DNS_R_BADEUI	 		(ISC_RESULTCLASS_DNS + 109)
 #define DNS_R_NTACOVERED		(ISC_RESULTCLASS_DNS + 110)
+#define DNS_R_BADCDS			(ISC_RESULTCLASS_DNS + 111)
+#define DNS_R_BADCDNSKEY		(ISC_RESULTCLASS_DNS + 112)
 
-#define DNS_R_NRESULTS			111	/*%< Number of results */
+#define DNS_R_NRESULTS			113	/*%< Number of results */
 
 /*
  * DNS wire format rcodes.

@@ -162,7 +162,9 @@ static const char *text[DNS_R_NRESULTS] = {
 	"not dynamic",			       /*%< 108 DNS_R_NOTDYNAMIC */
 	"bad EUI",			       /*%< 109 DNS_R_BADEUI */
 
-	"covered by negative trust anchor"     /*%< 110 DNS_R_NTACOVERED */
+	"covered by negative trust anchor",     /*%< 110 DNS_R_NTACOVERED */
+	"bad CDS",			       /*%< 111 DNS_R_BADCSD */
+	"bad CDNSKEY"			       /*%< 112 DNS_R_BADCDNSKEY */
 };
 
 static const char *ids[DNS_R_NRESULTS] = {

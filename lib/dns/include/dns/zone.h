@@ -2160,6 +2160,23 @@ dns_zone_nscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
  * 	ISC_R_SUCCESS if there were no errors examining the zone contents.
  */
 
+isc_result_t
+dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version);
+/*%
+ * Check if CSD, CDNSKEY and DNSKEY are consistent.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ * \li	'db' to be valid.
+ * \li	'version' to be valid or NULL.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	#DNS_R_BADCDS
+ *\li	#DNS_R_BADCDNSKEY
+ *	Others
+ */
+
 void
 dns_zone_setadded(dns_zone_t *zone, isc_boolean_t added);
 /*%
