@@ -1138,7 +1138,6 @@ dns_tsig_sign(dns_message_t *msg) {
 	datalist->ttl = 0;
 	ISC_LIST_INIT(datalist->rdata);
 	ISC_LIST_APPEND(datalist->rdata, rdata, link);
-	dns_rdataset_init(dataset);
 	RUNTIME_CHECK(dns_rdatalist_tordataset(datalist, dataset)
 		      == ISC_R_SUCCESS);
 	msg->tsig = dataset;

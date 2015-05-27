@@ -1925,7 +1925,6 @@ resquery_send(resquery_t *query) {
 	 */
 	dns_name_init(qname, NULL);
 	dns_name_clone(&fctx->name, qname);
-	dns_rdataset_init(qrdataset);
 	dns_rdataset_makequestion(qrdataset, res->rdclass, fctx->type);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(fctx->qmessage, qname, DNS_SECTION_QUESTION);

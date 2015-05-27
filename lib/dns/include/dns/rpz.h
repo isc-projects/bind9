@@ -104,7 +104,7 @@ typedef isc_uint32_t	    dns_rpz_zbits_t;
 /*
  * The trigger counter type.
  */
-typedef ssize_t dns_rpz_trigger_counter_t;
+typedef size_t dns_rpz_trigger_counter_t;
 
 /*
  * The number of triggers of each type in a response policy zone.

@@ -148,7 +148,6 @@ buildquery(void) {
 
 	result = dns_message_gettemprdataset(query, &question);
 	CHECK("dns_message_gettemprdataset", result);
-	dns_rdataset_init(question);
 	dns_rdataset_makequestion(question, dns_rdataclass_in,
 				  dns_rdatatype_a);
 	result = dns_message_gettempname(query, &qname);

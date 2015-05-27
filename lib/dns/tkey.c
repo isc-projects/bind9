@@ -175,7 +175,6 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	ISC_LIST_APPEND(newlist->rdata, newrdata, link);
 
 	RETERR(dns_message_gettemprdataset(msg, &newset));
-	dns_rdataset_init(newset);
 	RETERR(dns_rdatalist_tordataset(newlist, newset));
 
 	ISC_LIST_INIT(newname->list);
@@ -876,7 +875,6 @@ buildquery(dns_message_t *msg, dns_name_t *name,
 	RETERR(dns_message_gettempname(msg, &aname));
 
 	RETERR(dns_message_gettemprdataset(msg, &question));
-	dns_rdataset_init(question);
 	dns_rdataset_makequestion(question, dns_rdataclass_any,
 				  dns_rdatatype_tkey);
 
@@ -898,7 +896,6 @@ buildquery(dns_message_t *msg, dns_name_t *name,
 	ISC_LIST_APPEND(tkeylist->rdata, rdata, link);
 
 	RETERR(dns_message_gettemprdataset(msg, &tkeyset));
-	dns_rdataset_init(tkeyset);
 	RETERR(dns_rdatalist_tordataset(tkeylist, tkeyset));
 
 	dns_name_init(qname, NULL);

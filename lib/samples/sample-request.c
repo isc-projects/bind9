@@ -110,7 +110,6 @@ make_querymessage(dns_message_t *message, const char *namestr,
 
 	dns_name_init(qname, NULL);
 	dns_name_clone(qname0, qname);
-	dns_rdataset_init(qrdataset);
 	dns_rdataset_makequestion(qrdataset, message->rdclass, rdtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);

@@ -3629,7 +3629,6 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	result = dns_message_gettemprdataset(message, &rdataset);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	dns_rdataset_init(rdataset);
 
 	rdatalist->type = dns_rdatatype_opt;
 	rdatalist->covers = 0;

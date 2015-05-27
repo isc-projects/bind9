@@ -1032,7 +1032,6 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target)
 	ISC_LIST_APPEND(rdl->rdata, rdata, link);
 
 	CHECK(dns_message_gettemprdataset(msg, &rds));
-	dns_rdataset_init(rds);
 	CHECK(dns_rdatalist_tordataset(rdl, rds));
 
 	CHECK(dns_message_gettempname(msg, &name));
@@ -1085,7 +1084,6 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 
 	/* Formulate the question and attach it to the question name. */
 	CHECK(dns_message_gettemprdataset(msg, &qrdataset));
-	dns_rdataset_init(qrdataset);
 	dns_rdataset_makequestion(qrdataset, xfr->rdclass, xfr->reqtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	qrdataset = NULL;
