@@ -1505,7 +1505,6 @@ dns_acache_getentry(dns_acacheentry_t *entry, dns_zone_t **zonep,
 			 * trick to get the latest counter from the original
 			 * header.
 			 */
-			dns_rdataset_init(ardataset);
 			dns_rdataset_clone(erdataset, ardataset);
 			ISC_LIST_APPEND(fname->list, ardataset, link);
 		}

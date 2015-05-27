@@ -1351,7 +1351,6 @@ sendstream(xfrout_ctx_t *xfr) {
 			result = dns_message_gettemprdataset(msg, &qrdataset);
 			if (result != ISC_R_SUCCESS)
 				goto failure;
-			dns_rdataset_init(qrdataset);
 			dns_rdataset_makequestion(qrdataset,
 					xfr->client->message->rdclass,
 					xfr->qtype);
@@ -1466,7 +1465,6 @@ sendstream(xfrout_ctx_t *xfr) {
 		result = dns_message_gettemprdataset(msg, &msgrds);
 		if (result != ISC_R_SUCCESS)
 			goto failure;
-		dns_rdataset_init(msgrds);
 		result = dns_rdatalist_tordataset(msgrdl, msgrds);
 		INSIST(result == ISC_R_SUCCESS);
 

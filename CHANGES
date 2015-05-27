@@ -1,3 +1,6 @@
+4126.	[bug]		Addressed a regression introduced in change #4121.
+			[RT #39611]
+
 4123.	[port]		Added %z (size_t) format options to the portable
 			internal printf/sprintf implementation. [RT #39586]
 

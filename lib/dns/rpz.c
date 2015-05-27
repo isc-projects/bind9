@@ -604,7 +604,7 @@ adj_trigger_cnt(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 			fix_qname_skip_recurse(rpzs);
 		}
 	} else {
-		REQUIRE(*cnt > 0);
+		REQUIRE(*cnt != 0);
 		if (--*cnt == 0) {
 			*have &= ~DNS_RPZ_ZBIT(rpz_num);
 			fix_qname_skip_recurse(rpzs);
@@ -1656,15 +1656,19 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
 		      DNS_LOGMODULE_RBTDB, DNS_RPZ_INFO_LEVEL,
 		      "(re)loading policy zone '%s' changed from"
-		      " %zd to %zd qname, %zd to %zd nsdname,"
-		      " %zd to %zd IP, %zd to %zd NSIP entries",
+		      " %lu to %lu qname, %lu to %lu nsdname,"
+		      " %lu to %lu IP, %lu to %lu NSIP entries",
 		      namebuf,
-		      old_totals.qname, rpzs->total_triggers.qname,
-		      old_totals.nsdname, rpzs->total_triggers.nsdname,
-		      old_totals.ipv4 + old_totals.ipv6,
-		      rpzs->total_triggers.ipv4 + rpzs->total_triggers.ipv6,
-		      old_totals.nsipv4 + old_totals.nsipv6,
-		      rpzs->total_triggers.nsipv4 + rpzs->total_triggers.nsipv6);
+		      (unsigned long) old_totals.qname,
+		      (unsigned long) rpzs->total_triggers.qname,
+		      (unsigned long) old_totals.nsdname,
+		      (unsigned long) rpzs->total_triggers.nsdname,
+		      (unsigned long) old_totals.ipv4 + old_totals.ipv6,
+		      (unsigned long) (rpzs->total_triggers.ipv4 +
+				       rpzs->total_triggers.ipv6),
+		      (unsigned long) old_totals.nsipv4 + old_totals.nsipv6,
+		      (unsigned long) (rpzs->total_triggers.nsipv4 +
+				       rpzs->total_triggers.nsipv6));
 }
 
 /*

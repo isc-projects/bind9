@@ -1588,7 +1588,6 @@ add_question(dns_message_t *message, dns_name_t *name,
 	rdataset = NULL;
 	result = dns_message_gettemprdataset(message, &rdataset);
 	check_result(result, "dns_message_gettemprdataset()");
-	dns_rdataset_init(rdataset);
 	dns_rdataset_makequestion(rdataset, rdclass, rdtype);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 }
@@ -2145,7 +2144,6 @@ insert_soa(dig_lookup_t *lookup) {
 	rdatalist->rdclass = lookup->rdclass;
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 
-	dns_rdataset_init(rdataset);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
 
 	result = dns_message_gettempname(lookup->sendmsg, &soaname);

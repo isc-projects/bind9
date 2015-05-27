@@ -575,7 +575,6 @@ query_newrdataset(ns_client_t *client) {
 		 "dns_message_gettemprdataset failed: done");
 		return (NULL);
 	}
-	dns_rdataset_init(rdataset);
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_newrdataset: done");
 	return (rdataset);
@@ -2309,7 +2308,6 @@ query_dns64(ns_client_t *client, dns_name_t **namep, dns_rdataset_t *rdataset,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	dns_rdataset_init(dns64_rdataset);
 	dns_rdatalist_init(dns64_rdatalist);
 	dns64_rdatalist->rdclass = dns_rdataclass_in;
 	dns64_rdatalist->type = dns_rdatatype_aaaa;
@@ -2472,7 +2470,6 @@ query_filter64(ns_client_t *client, dns_name_t **namep,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	dns_rdataset_init(myrdataset);
 	dns_rdatalist_init(myrdatalist);
 	myrdatalist->rdclass = dns_rdataclass_in;
 	myrdatalist->type = dns_rdatatype_aaaa;
@@ -2899,7 +2896,6 @@ query_add_cname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 		dns_message_puttemprdata(client->message, &rdata);
 		return (result);
 	}
-	dns_rdataset_init(rdataset);
 	rdatalist->type = dns_rdatatype_cname;
 	rdatalist->rdclass = client->message->rdclass;
 	rdatalist->ttl = ttl;
@@ -4602,8 +4598,14 @@ rpz_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		 * In case num_zones has changed since zbits was
 		 * originally calculated
 		 */
-		if (rpz_num >= rpzs->p.num_zones)
-			break;
+		if (rpz_num >= rpzs->p.num_zones) {
+			CTRACE(ISC_LOG_ERROR,
+			       "rpz_rewrite_ip: rpz_num is higher than "
+			       "number of zones");
+			rpz_clean(&p_zone, &p_db, &p_node, p_rdatasetp);
+			st->m.policy = DNS_RPZ_POLICY_ERROR;
+			return (DNS_R_SERVFAIL);
+		}
 
 		/*
 		 * Do not try applying policy zones that cannot replace a
@@ -4929,8 +4931,14 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 		 * In case num_zones has changed since the 'have'
 		 * originally calculated
 		 */
-		if (rpz_num >= rpzs->p.num_zones)
-			break;
+		if (rpz_num >= rpzs->p.num_zones) {
+			CTRACE(ISC_LOG_ERROR,
+			       "rpz_rewrite_name: rpz_num is higher than "
+			       "number of zones");
+			rpz_clean(&p_zone, &p_db, &p_node, rdatasetp);
+			st->m.policy = DNS_RPZ_POLICY_ERROR;
+			return (DNS_R_SERVFAIL);
+		}
 
 		/*
 		 * Do not check policy zones that cannot replace a previously
@@ -5101,7 +5109,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 	LOCK(&rpzs->maint_lock);
 	if (rpzs->p.num_zones == 0 ||
 	    (!RECURSIONOK(client) && rpzs->p.no_rd_ok == 0) ||
-	    !rpz_ck_dnssec(client, result, ordataset, osigset))
+	    !rpz_ck_dnssec(client, qresult, ordataset, osigset))
 	{
 		UNLOCK(&rpzs->maint_lock);
 		return (DNS_R_DISALLOWED);
@@ -5120,7 +5128,6 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 		st->m.type = DNS_RPZ_TYPE_BAD;
 		st->m.policy = DNS_RPZ_POLICY_MISS;
 		st->m.ttl = ~0;
-		st->m.prefix = 0;
 		memset(&st->r, 0, sizeof(st->r));
 		memset(&st->q, 0, sizeof(st->q));
 		dns_fixedname_init(&st->_p_namef);
@@ -6291,15 +6298,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		{
 			CTRACE(ISC_LOG_DEBUG(3), "resume from RPZ recursion");
 
-			/*
-			 * Has response policy changed out from under us?
-			 */
-			if (rpz_st->rpz_ver != client->view->rpzs->rpz_ver) {
-				CTRACE(ISC_LOG_ERROR,
-				       "query_find: RPZ settings out of date");
-				QUERY_ERROR(DNS_R_SERVFAIL);
-				goto cleanup;
-			}
 			is_zone = rpz_st->q.is_zone;
 			authoritative = rpz_st->q.authoritative;
 			zone = rpz_st->q.zone;
@@ -6344,6 +6342,20 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (DNS64EXCLUDE(client)) {
 			client->query.attributes &= ~NS_QUERYATTR_DNS64EXCLUDE;
 			dns64_exclude = ISC_TRUE;
+		}
+
+		if (rpz_st != NULL &&
+		    (rpz_st->state & DNS_RPZ_RECURSING) != 0)
+		{
+			/*
+			 * Has response policy changed out from under us?
+			 */
+			if (rpz_st->rpz_ver != client->view->rpzs->rpz_ver) {
+				CTRACE(ISC_LOG_ERROR,
+				       "query_find: RPZ settings out of date");
+				QUERY_ERROR(DNS_R_SERVFAIL);
+				goto cleanup;
+			}
 		}
 
 		/*

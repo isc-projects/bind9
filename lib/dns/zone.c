@@ -11541,7 +11541,6 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype,
 	 */
 	dns_name_init(qname, NULL);
 	dns_name_clone(&zone->origin, qname);
-	dns_rdataset_init(qrdataset);
 	dns_rdataset_makequestion(qrdataset, zone->rdclass, rdtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
@@ -12338,7 +12337,6 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	 */
 	dns_name_init(tempname, NULL);
 	dns_name_clone(&zone->origin, tempname);
-	dns_rdataset_init(temprdataset);
 	dns_rdataset_makequestion(temprdataset, zone->rdclass,
 				  dns_rdatatype_soa);
 	ISC_LIST_APPEND(tempname->list, temprdataset, link);
@@ -12403,7 +12401,6 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	temprdatalist->ttl = rdataset.ttl;
 	ISC_LIST_APPEND(temprdatalist->rdata, temprdata, link);
 
-	dns_rdataset_init(temprdataset);
 	result = dns_rdatalist_tordataset(temprdatalist, temprdataset);
 	if (result != ISC_R_SUCCESS)
 		goto soa_cleanup;
