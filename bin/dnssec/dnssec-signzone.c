@@ -681,7 +681,9 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 			    (iszsk(key) && !keyset_kskonly))
 				signwithkey(name, set, key->key, ttl, add,
 					    "signing with dnskey");
-		} else if (iszsk(key)) {
+		} else if (set->type == dns_rdatatype_cds ||
+			   set->type == dns_rdatatype_cdnskey ||
+			   iszsk(key)) {
 			signwithkey(name, set, key->key, ttl, add,
 				    "signing with dnskey");
 		}

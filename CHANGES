@@ -1,3 +1,6 @@
+4127.	[protocol]	CDS and CDNSKEY need to be signed by the key signing
+			key as per RFC 7344, Section 4.1. [RT #37215]
+
 4123.	[port]		Added %z (size_t) format options to the portable
 			internal printf/sprintf implementation. [RT #39586]
 

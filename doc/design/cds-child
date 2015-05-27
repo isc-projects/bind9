@@ -1,0 +1,51 @@
+
+	  CDS / CDNSKEY Child side processing.
+
+* We need a mechanism to say that key should have a cds publish
+  start/end dates.
+
+* We need a mechanism to say that key should have a cdnskey publish
+  start/end dates
+
+  - update dnssec-settime, dnssec-keygen, dnssec-keyfromlabel
+  - update K* files
+
+* dnssec-signzone should add cds and/or cdnskey to zone apex iff the
+  DNSKEY is published and is signing the DNSKEY RRset.  CDS and CDNSKEY
+  records are only removed if there is a deletion date set (implicit on
+  matching DNSKEY going inactive / unpublished or explict).
+
+  Non-matching CDS and CDNSKEY are removed.
+
+* auto-dnssec maintain should cds and/or cdnskey to zone apex iff the 
+  DNSKEY is published and is signing the DNSKEY RRset.   CDS and CDNSKEY
+  records are only removed if there is a deletion date set (implicit on
+  matching DNSKEY going inactive / unpublished or explict).
+
+* UPDATE should check that CDS and CDNSKEY match a active DNSKEY that
+  is signing the DNSKEY RRset and ignore otherwise.  This should be
+  done after all the update section records have been processed.
+
+  ? how will this tie in with CDS/CDNSKEY sanity checks?  Only on fail?
+
+* UPDATE should remove CDS and CDNSKEY records that match a DNSKEY
+  that is being removed. This should be done after all the update
+  section records have been processed.
+
+  ? how will this tie in with CDS/CDNSKEY sanity checks?  Only on fail?
+
+* Zone loading should perform sanity checks on CDS and CDNSKEY
+  records against the DNSKEY records.  This will flow through into
+  dnssec-checkzone and "dnssec-checkconf -z".  ignore/warn/fail
+
+* rndc add the ability to say generate CDS / CDNSKEY along with a key list /
+  all / all SEP
+
+* rndc add the ability to say remove CDS / CDNSKEY.
+
+* inline zones need to check CDS and CDNSKEY records in the raw zone and
+  filter non matching.
+
+* CDS and CDNSKEY must be signed by a DNSKEY which matches parent DS record.
+  This is is different to how non DNSKEY RRsets are usually signed
+  RFC 7344, 4.1.
