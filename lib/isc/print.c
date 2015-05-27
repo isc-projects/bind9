@@ -15,6 +15,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: print.c,v 1.37 2010/10/18 23:47:08 tbox Exp $ */
+
 /*! \file */
 
 #include <config.h>
@@ -31,44 +33,6 @@
 #include <isc/print.h>
 #include <isc/stdlib.h>
 #include <isc/util.h>
-
-static int
-isc__print_printf(void (*emit)(char, void *), void *arg, const char *format, va_list ap);
-
-static void
-file_emit(char c, void *arg) {
-	fputc(c, arg);
-}
-
-static int
-isc_print_vfprintf(FILE *fp, const char *format, va_list ap) {
-	INSIST(fp != NULL);
-	INSIST(format != NULL);
-
-	return (isc__print_printf(file_emit, fp, format, ap));
-}
-
-int
-isc_print_printf(const char *format, ...) {
-	va_list ap;
-	int n;
-
-	va_start(ap, format);
-	n = isc_print_vfprintf(stdout, format, ap);
-	va_end(ap);
-	return (n);
-}
-
-int
-isc_print_fprintf(FILE *fp, const char *format, ...) {
-	va_list ap;
-	int n;
-
-	va_start(ap, format);
-	n = isc_print_vfprintf(fp, format, ap);
-	va_end(ap);
-	return (n);
-}
 
 int
 isc_print_sprintf(char *str, const char *format, ...) {
@@ -100,40 +64,10 @@ isc_print_snprintf(char *str, size_t size, const char *format, ...) {
  * Return length of string that would have been written if not truncated.
  */
 
-static void
-string_emit(char c, void *arg) {
-	struct { char *str; size_t size; } *p = arg;
-
-	if (p->size > 0) {
-		*(p->str)++ = c;
-		(p->size)--;
-	}
-}
-
 int
 isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
-	struct { char *str; size_t size; } arg;
-	int n;
-
-	INSIST(str != NULL);
-	INSIST(format != NULL);
-
-	arg.str = str;
-	arg.size = size;
-
-	n = isc__print_printf(string_emit, &arg, format, ap);
-	if (arg.size > 0)
-		*arg.str = '\0';
-	return (n);
-}
-
-static int
-isc__print_printf(void (*emit)(char, void *), void *arg,
-		  const char *format, va_list ap)
-{
 	int h;
 	int l;
-	int z;
 	int q;
 	int alt;
 	int zero;
@@ -149,6 +83,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 	char buf[1024];
 	char c;
 	void *v;
+	char *save = str;
 	const char *cp;
 	const char *head;
 	int count = 0;
@@ -161,14 +96,17 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 #endif
 	char fmt[32];
 
-	INSIST(emit != NULL);
-	INSIST(arg != NULL);
+	INSIST(str != NULL);
 	INSIST(format != NULL);
 
 	while (*format != '\0') {
 		if (*format != '%') {
-			emit(*format++, arg);
+			if (size > 1) {
+				*str++ = *format;
+				size--;
+			}
 			count++;
+			format++;
 			continue;
 		}
 		format++;
@@ -176,7 +114,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 		/*
 		 * Reset flags.
 		 */
-		dot = neg = space = plus = left = zero = alt = h = l = q = z = 0;
+		dot = neg = space = plus = left = zero = alt = h = l = q = 0;
 		width = precision = 0;
 		head = "";
 		pad = zeropad = 0;
@@ -237,7 +175,10 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 		case '\0':
 			continue;
 		case '%':
-			emit(*format, arg);
+			if (size > 1) {
+				*str++ = *format;
+				size--;
+			}
 			count++;
 			break;
 		case 'q':
@@ -256,10 +197,6 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				format++;
 			}
 			goto doint;
-		case 'z':
-			z = 1;
-			format++;
-			goto doint;
 		case 'n':
 		case 'i':
 		case 'd':
@@ -276,22 +213,17 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					short int *p;
 					p = va_arg(ap, short *);
 					REQUIRE(p != NULL);
-					*p = count;
+					*p = str - save;
 				} else if (l) {
 					long int *p;
 					p = va_arg(ap, long *);
 					REQUIRE(p != NULL);
-					*p = count;
-				} else if (z) {
-					size_t *p;
-					p = va_arg(ap, size_t *);
-					REQUIRE(p != NULL);
-					*p = count;
+					*p = str - save;
 				} else {
 					int *p;
 					p = va_arg(ap, int *);
 					REQUIRE(p != NULL);
-					*p = count;
+					*p = str - save;
 				}
 				break;
 			case 'i':
@@ -300,8 +232,6 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpi = va_arg(ap, isc_int64_t);
 				else if (l)
 					tmpi = va_arg(ap, long int);
-				else if (z)
-					tmpi = va_arg(ap, ssize_t);
 				else
 					tmpi = va_arg(ap, int);
 				if (tmpi < 0) {
@@ -340,8 +270,6 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpui = va_arg(ap, isc_uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, long int);
-				else if (z)
-					tmpui = va_arg(ap, size_t);
 				else
 					tmpui = va_arg(ap, int);
 				if (tmpui <= 0xffffffffU)
@@ -373,8 +301,6 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpui = va_arg(ap, isc_uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
-				else if (z)
-					tmpui = va_arg(ap, size_t);
 				else
 					tmpui = va_arg(ap, unsigned int);
 				if (tmpui <= 0xffffffffU)
@@ -401,8 +327,6 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpui = va_arg(ap, isc_uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
-				else if (z)
-					tmpui = va_arg(ap, size_t);
 				else
 					tmpui = va_arg(ap, unsigned int);
 				if (alt) {
@@ -425,8 +349,6 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpui = va_arg(ap, isc_uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
-				else if (z)
-					tmpui = va_arg(ap, size_t);
 				else
 					tmpui = va_arg(ap, unsigned int);
 				if (alt) {
@@ -461,23 +383,30 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				count += strlen(head) + strlen(buf) + pad +
 					 zeropad;
 				if (!left) {
-					while (pad > 0) {
-						emit(' ', arg);
+					while (pad > 0 && size > 1) {
+						*str++ = ' ';
+						size--;
 						pad--;
 					}
 				}
 				cp = head;
-				while (*cp != '\0')
-					emit(*cp++, arg);
-				while (zeropad > 0) {
-					emit('0', arg);
+				while (*cp != '\0' && size > 1) {
+					*str++ = *cp++;
+					size--;
+				}
+				while (zeropad > 0 && size > 1) {
+					*str++ = '0';
+					size--;
 					zeropad--;
 				}
 				cp = buf;
-				while (*cp != '\0')
-					emit(*cp++, arg);
-				while (pad > 0) {
-					emit(' ', arg);
+				while (*cp != '\0' && size > 1) {
+					*str++ = *cp++;
+					size--;
+				}
+				while (pad > 0 && size > 1) {
+					*str++ = ' ';
+					size--;
 					pad--;
 				}
 				break;
@@ -511,20 +440,26 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			}
 			count += pad + length;
 			if (!left)
-				while (pad > 0) {
-					emit(' ', arg);
+				while (pad > 0 && size > 1) {
+					*str++ = ' ';
+					size--;
 					pad--;
 				}
 			if (precision != 0)
-				while (precision > 0 && *cp != '\0') {
-					emit(*cp++, arg);
+				while (precision > 0 && *cp != '\0' &&
+				       size > 1) {
+					*str++ = *cp++;
+					size--;
 					precision--;
 				}
 			else
-				while (*cp != '\0')
-					emit(*cp++, arg);
-			while (pad > 0) {
-				emit(' ', arg);
+				while (*cp != '\0' && size > 1) {
+					*str++ = *cp++;
+					size--;
+				}
+			while (pad > 0 && size > 1) {
+				*str++ = ' ';
+				size--;
 				pad--;
 			}
 			break;
@@ -533,15 +468,24 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			if (width > 0) {
 				count += width;
 				width--;
-				if (left)
-					emit(c, arg);
-				while (width-- > 0)
-					emit(' ', arg);
-				if (!left)
-					emit(c, arg);
+				if (left && size > 1) {
+					*str++ = c;
+					size--;
+				}
+				while (width-- > 0 && size > 1) {
+					*str++ = ' ';
+					size--;
+				}
+				if (!left && size > 1) {
+					*str++ = c;
+					size--;
+				}
 			} else {
 				count++;
-				emit(c, arg);
+				if (size > 1) {
+					*str++ = c;
+					size--;
+				}
 			}
 			break;
 		case 'p':
@@ -557,24 +501,35 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			}
 			count += length + pad + zeropad;
 			if (!left)
-				while (pad > 0) {
-					emit(' ', arg);
+				while (pad > 0 && size > 1) {
+					*str++ = ' ';
+					size--;
 					pad--;
 				}
 			cp = buf;
 			if (zeropad > 0 && buf[0] == '0' &&
 			    (buf[1] == 'x' || buf[1] == 'X')) {
-				emit(*cp++, arg);
-				emit(*cp++, arg);
-				while (zeropad > 0) {
-					emit('0', arg);
+				if (size > 1) {
+					*str++ = *cp++;
+					size--;
+				}
+				if (size > 1) {
+					*str++ = *cp++;
+					size--;
+				}
+				while (zeropad > 0 && size > 1) {
+					*str++ = '0';
+					size--;
 					zeropad--;
 				}
 			}
-			while (*cp != '\0')
-				emit(*cp++, arg);
-			while (pad > 0) {
-				emit(' ', arg);
+			while (*cp != '\0' && size > 1) {
+				*str++ = *cp++;
+				size--;
+			}
+			while (pad > 0 && size > 1) {
+				*str++ = ' ';
+				size--;
 				pad--;
 			}
 			break;
@@ -638,15 +593,19 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				}
 				count += length + pad;
 				if (!left)
-					while (pad > 0) {
-						emit(' ', arg);
+					while (pad > 0 && size > 1) {
+						*str++ = ' ';
+						size--;
 						pad--;
 					}
 				cp = buf;
-				while (*cp != ' ')
-					emit(*cp++, arg);
-				while (pad > 0) {
-					emit(' ', arg);
+				while (*cp != ' ' && size > 1) {
+					*str++ = *cp++;
+					size--;
+				}
+				while (pad > 0 && size > 1) {
+					*str++ = ' ';
+					size--;
 					pad--;
 				}
 				break;
@@ -659,5 +618,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 		}
 		format++;
 	}
+	if (size > 0)
+		*str = '\0';
 	return (count);
 }

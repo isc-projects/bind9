@@ -15,6 +15,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: print.h,v 1.26 2007/06/19 23:47:18 tbox Exp $ */
+
 #ifndef ISC_PRINT_H
 #define ISC_PRINT_H 1
 
@@ -43,16 +45,6 @@
 #if !defined(ISC_PLATFORM_NEEDSPRINTF) && defined(ISC__PRINT_SOURCE)
 #define ISC_PLATFORM_NEEDSPRINTF
 #undef sprintf
-#endif
-
-#if !defined(ISC_PLATFORM_NEEDFPRINTF) && defined(ISC__PRINT_SOURCE)
-#define ISC_PLATFORM_NEEDFPRINTF
-#undef fprintf
-#endif
-
-#if !defined(ISC_PLATFORM_NEEDPRINTF) && defined(ISC__PRINT_SOURCE)
-#define ISC_PLATFORM_NEEDPRINTF
-#undef printf
 #endif
 
 /***
@@ -91,18 +83,6 @@ isc_print_snprintf(char *str, size_t size, const char *format, ...)
 int
 isc_print_sprintf(char *str, const char *format, ...) ISC_FORMAT_PRINTF(2, 3);
 #define sprintf isc_print_sprintf
-#endif
-
-#ifdef ISC_PLATFORM_NEEDPRINTF
-int
-isc_print_printf(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
-#define printf isc_print_printf
-#endif
-
-#ifdef ISC_PLATFORM_NEEDFPRINTF
-int
-isc_print_fprintf(FILE * fp, const char *format, ...) ISC_FORMAT_PRINTF(2, 3);
-#define fprintf isc_print_fprintf
 #endif
 
 ISC_LANG_ENDDECLS
