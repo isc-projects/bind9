@@ -1020,7 +1020,7 @@ pre_parse_args(int argc, char **argv) {
 					argv[0], isc_commandline_option);
 			fprintf(stderr, "usage: nsupdate [-dD] [-L level] [-l]"
 				"[-g | -o | -y keyname:secret | -k keyfile] "
-				"[-v] [-V] [filename]\n");
+				"[-v] [-V] [-P] [-T] [filename]\n");
 			exit(1);
 
 		case 'P':
