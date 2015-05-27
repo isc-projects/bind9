@@ -1139,8 +1139,15 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			if (type == dns_rdatatype_dnskey) {
 				if (!KSK(keys[i]) && keyset_kskonly)
 					continue;
-			} else if (KSK(keys[i]))
-				continue;
+			} else if (KSK(keys[i])) {
+				/*
+				 * CDS and CDNSKEY are signed with KSK
+				 * (RFC 7344, 4.1).
+				*/
+				if (type != dns_rdatatype_cds &&
+				    type != dns_rdatatype_cdnskey)
+					continue;
+			}
 		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey)
 			continue;
 
