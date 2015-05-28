@@ -362,7 +362,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					if (hi != 0U) {
 						sprintf(buf, "%lu", hi);
 						sprintf(buf + strlen(buf),
-						        "%09lu", mid);
+							"%09lu", mid);
 					} else
 						sprintf(buf, "%lu", mid);
 					sprintf(buf + strlen(buf), "%09lu",
