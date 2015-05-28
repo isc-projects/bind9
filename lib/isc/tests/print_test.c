@@ -53,6 +53,8 @@ ATF_TC_HEAD(snprintf, tc) {
 ATF_TC_BODY(snprintf, tc) {
 	char buf[10000];
 	isc_uint64_t ll = 8589934592ULL;
+	isc_uint64_t nn = 20000000000000ULL;
+	isc_uint64_t zz = 10000000000000000000LLU;
 	int n;
 	size_t size;
 
@@ -72,6 +74,31 @@ ATF_TC_BODY(snprintf, tc) {
 	n = isc_print_snprintf(buf, sizeof(buf), "%llu", ll);
 	ATF_CHECK_EQ(n, 10);
 	ATF_CHECK_STREQ(buf, "8589934592");
+
+	memset(buf, 0xff, sizeof(buf));
+	n = isc_print_snprintf(buf, sizeof(buf), "%qu", nn);
+	ATF_CHECK_EQ(n, 14);
+	ATF_CHECK_STREQ(buf, "20000000000000");
+
+	memset(buf, 0xff, sizeof(buf));
+	n = isc_print_snprintf(buf, sizeof(buf), "%llu", nn);
+	ATF_CHECK_EQ(n, 14);
+	ATF_CHECK_STREQ(buf, "20000000000000");
+
+	memset(buf, 0xff, sizeof(buf));
+	n = isc_print_snprintf(buf, sizeof(buf), "%qu", zz);
+	ATF_CHECK_EQ(n, 20);
+	ATF_CHECK_STREQ(buf, "10000000000000000000");
+
+	memset(buf, 0xff, sizeof(buf));
+	n = isc_print_snprintf(buf, sizeof(buf), "%llu", zz);
+	ATF_CHECK_EQ(n, 20);
+	ATF_CHECK_STREQ(buf, "10000000000000000000");
+
+	memset(buf, 0xff, sizeof(buf));
+	n = isc_print_snprintf(buf, sizeof(buf), "%lld", nn);
+	ATF_CHECK_EQ(n, 14);
+	ATF_CHECK_STREQ(buf, "20000000000000");
 
 	size = 1000;
 	memset(buf, 0xff, sizeof(buf));

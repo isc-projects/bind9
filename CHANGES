@@ -1,3 +1,6 @@
+4130.	[bug]		The compatability shim for *printf() misprinted some
+			large numbers. [RT #39586]
+
 4129.	[port]		Address API changes in OpenSSL 1.1.0. [RT #39532]
 
 4128.	[bug]		Address issues raised by Coverity 7.6. [RT #39537]
