@@ -292,7 +292,7 @@ loadctx_destroy(dns_loadctx_t *lctx);
 				SETRESULT(lctx, result); \
 				LOGIT(result); \
 				read_till_eol = ISC_TRUE; \
-				continue; \
+				break; \
 			} else if (result != ISC_R_SUCCESS) \
 				goto log_and_cleanup; \
 		} \

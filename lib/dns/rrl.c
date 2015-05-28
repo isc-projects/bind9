@@ -1161,22 +1161,17 @@ dns_rrl(dns_view_t *view,
 						 client_addr, now,
 						 log_buf, log_buf_len);
 		if (rrl_all_result != DNS_RRL_RESULT_OK) {
-			int level;
-
 			e = e_all;
 			rrl_result = rrl_all_result;
-			if (rrl_result == DNS_RRL_RESULT_OK)
-				level = DNS_RRL_LOG_DEBUG2;
-			else
-				level = DNS_RRL_LOG_DEBUG1;
-			if (isc_log_wouldlog(dns_lctx, level)) {
+			if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG1)) {
 				make_log_buf(rrl, e,
 					     "prefer all-per-second limiting ",
 					     NULL, ISC_TRUE, qname, ISC_FALSE,
 					     DNS_RRL_RESULT_OK, resp_result,
 					     log_buf, log_buf_len);
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-					      DNS_LOGMODULE_REQUEST, level,
+					      DNS_LOGMODULE_REQUEST,
+					      DNS_RRL_LOG_DEBUG1,
 					      "%s", log_buf);
 			}
 		}

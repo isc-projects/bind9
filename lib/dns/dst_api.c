@@ -1083,9 +1083,6 @@ comparekeys(const dst_key_t *key1, const dst_key_t *key2,
 	if (key1 == key2)
 		return (ISC_TRUE);
 
-	if (key1 == NULL || key2 == NULL)
-		return (ISC_FALSE);
-
 	if (key1->key_alg != key2->key_alg)
 		return (ISC_FALSE);
 
@@ -1175,8 +1172,6 @@ dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 
 	if (key1 == key2)
 		return (ISC_TRUE);
-	if (key1 == NULL || key2 == NULL)
-		return (ISC_FALSE);
 	if (key1->key_alg == key2->key_alg &&
 	    key1->func->paramcompare != NULL &&
 	    key1->func->paramcompare(key1, key2) == ISC_TRUE)
