@@ -380,7 +380,8 @@ static void
 fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
 	dns_rpz_zbits_t mask;
 
-	/* qname_wait_recurse and qname_skip_recurse are used to
+	/*
+	 * qname_wait_recurse and qname_skip_recurse are used to
 	 * implement the "qname-wait-recurse" config option.
 	 *
 	 * By default, "qname-wait-recurse" is yes, so no
@@ -392,7 +393,7 @@ fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
 	 *
 	 * When "qname-wait-recurse" is no, qname_skip_recurse may be
 	 * set to a non-zero value by fix_qname_skip_recurse(). The mask
-	 * has to have bits set for for the policy zones for which
+	 * has to have bits set for the policy zones for which
 	 * processing may continue without recursion, and bits cleared
 	 * for the rest.
 	 *
