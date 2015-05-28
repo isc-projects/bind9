@@ -129,7 +129,7 @@
 ./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005,2007,2008,2009,2012,2013,2014
 ./bin/dnssec/dnssec-dsfromkey.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-dsfromkey.c			C	2008,2009,2010,2011,2012,2014,2015
-./bin/dnssec/dnssec-dsfromkey.docbook		SGML	2008,2009,2010,2011,2012,2014
+./bin/dnssec/dnssec-dsfromkey.docbook		SGML	2008,2009,2010,2011,2012,2014,2015
 ./bin/dnssec/dnssec-dsfromkey.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-importkey.8			MAN	2013,2014
 ./bin/dnssec/dnssec-importkey.c			C	2013,2014,2015
@@ -508,7 +508,7 @@
 ./bin/tests/dst/Makefile.in			MAKE	1999,2000,2001,2002,2004,2006,2007,2008,2009,2010,2012,2013,2014
 ./bin/tests/dst/dst_2_data.in			X	1999,2000,2001,2013
 ./bin/tests/dst/dst_test.c			C	1999,2000,2001,2004,2005,2007,2009,2012,2014,2015
-./bin/tests/dst/gsstest.c			C	2006,2007,2009,2010,2011,2013,2014
+./bin/tests/dst/gsstest.c			C	2006,2007,2009,2010,2011,2013,2014,2015
 ./bin/tests/dst/t2_data_1.in			X	1999,2000,2001,2013
 ./bin/tests/dst/t2_data_2.in			X	1999,2000,2001,2013
 ./bin/tests/dst/t2_dsasig.in			X	1999,2000,2001,2013
@@ -678,7 +678,7 @@
 ./bin/tests/rbt/dns_rbtnodechain_next_data	X	1999,2000,2001
 ./bin/tests/rbt/dns_rbtnodechain_prev.data	X	1999,2000,2001
 ./bin/tests/rbt/dns_rbtnodechain_prev_data	X	1999,2000,2001
-./bin/tests/rbt/t_rbt.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2011,2012,2013
+./bin/tests/rbt/t_rbt.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2011,2012,2013,2015
 ./bin/tests/rbt/win32/t_rbt.dsp.in		X	2013
 ./bin/tests/rbt/win32/t_rbt.dsw			X	2013
 ./bin/tests/rbt/win32/t_rbt.mak.in		X	2013
@@ -1132,6 +1132,12 @@
 ./bin/tests/system/dnssec/ns1/sign.sh		SH	2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/tests/system/dnssec/ns2/algroll.db.in	ZONE	2010
 ./bin/tests/system/dnssec/ns2/badparam.db.in	ZONE	2010
+./bin/tests/system/dnssec/ns2/cdnskey-auto.secure.db.in	ZONE	2015
+./bin/tests/system/dnssec/ns2/cdnskey-update.secure.db.in	ZONE	2015
+./bin/tests/system/dnssec/ns2/cdnskey.secure.db.in	ZONE	2015
+./bin/tests/system/dnssec/ns2/cds-auto.secure.db.in	ZONE	2015
+./bin/tests/system/dnssec/ns2/cds-update.secure.db.in	ZONE	2015
+./bin/tests/system/dnssec/ns2/cds.secure.db.in	ZONE	2015
 ./bin/tests/system/dnssec/ns2/child.nsec3.example.db	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns2/child.optout.example.db	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns2/dlv.db.in		ZONE	2004,2007
@@ -1139,10 +1145,10 @@
 ./bin/tests/system/dnssec/ns2/example.db.in	ZONE	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014
 ./bin/tests/system/dnssec/ns2/in-addr.arpa.db.in	ZONE	2014
 ./bin/tests/system/dnssec/ns2/insecure.secure.example.db	ZONE	2000,2001,2004,2007,2013
-./bin/tests/system/dnssec/ns2/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2010,2011,2014
+./bin/tests/system/dnssec/ns2/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2010,2011,2014,2015
 ./bin/tests/system/dnssec/ns2/private.secure.example.db.in	ZONE	2000,2001,2004,2007
 ./bin/tests/system/dnssec/ns2/rfc2335.example.db	X	2004
-./bin/tests/system/dnssec/ns2/sign.sh		SH	2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012,2014
+./bin/tests/system/dnssec/ns2/sign.sh		SH	2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012,2014,2015
 ./bin/tests/system/dnssec/ns2/single-nsec3.db.in	ZONE	2010
 ./bin/tests/system/dnssec/ns3/auto-nsec.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/auto-nsec3.example.db.in	ZONE	2011
@@ -1838,7 +1844,7 @@
 ./bin/tests/system/rrsetorder/ns3/named.conf	CONF-C	2006,2007
 ./bin/tests/system/rrsetorder/tests.sh		SH	2006,2007,2008,2011,2012,2014
 ./bin/tests/system/rsabigexponent/.gitignore	X	2013
-./bin/tests/system/rsabigexponent/Makefile.in	MAKE	2012,2014
+./bin/tests/system/rsabigexponent/Makefile.in	MAKE	2012,2014,2015
 ./bin/tests/system/rsabigexponent/bigkey.c	C	2012,2014,2015
 ./bin/tests/system/rsabigexponent/clean.sh	SH	2012,2014
 ./bin/tests/system/rsabigexponent/conf/bad01.conf	CONF-C	2012
@@ -1996,7 +2002,7 @@
 ./bin/tests/system/testcrypto.sh		SH	2014
 ./bin/tests/system/testsock.pl			PERL	2000,2001,2004,2007,2010,2011,2012,2013
 ./bin/tests/system/testsock6.pl			PERL	2010,2012,2014
-./bin/tests/system/tkey/Makefile.in		MAKE	2001,2002,2004,2007,2009,2012,2014
+./bin/tests/system/tkey/Makefile.in		MAKE	2001,2002,2004,2007,2009,2012,2014,2015
 ./bin/tests/system/tkey/clean.sh		SH	2001,2004,2007,2011,2012,2013,2014
 ./bin/tests/system/tkey/keycreate.c		C	2001,2004,2005,2007,2009,2011,2012,2014,2015
 ./bin/tests/system/tkey/keydelete.c		C	2001,2004,2005,2007,2009,2010,2011,2014,2015
@@ -2167,7 +2173,7 @@
 ./bin/tests/t_api.pl				PERL	1999,2000,2001,2004,2007,2012
 ./bin/tests/task_test.c				C	1998,1999,2000,2001,2004,2007,2013,2014,2015
 ./bin/tests/tasks/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004,2007,2009,2012,2014
-./bin/tests/tasks/t_tasks.c			C	1998,1999,2000,2001,2004,2005,2007,2009,2011,2013,2014
+./bin/tests/tasks/t_tasks.c			C	1998,1999,2000,2001,2004,2005,2007,2009,2011,2013,2014,2015
 ./bin/tests/tasks/win32/t_tasks.dsp.in		X	2013
 ./bin/tests/tasks/win32/t_tasks.dsw		X	2013
 ./bin/tests/tasks/win32/t_tasks.mak.in		X	2013
@@ -2940,6 +2946,7 @@
 ./doc/arm/notes.xml				SGML	2014,2015
 ./doc/arm/pkcs11.xml				SGML	2010,2012,2013,2014,2015
 ./doc/design/addressdb				TXT.BRIEF	2000,2001,2004
+./doc/design/cds-child				TXT.BRIEF	2015
 ./doc/design/compression			TXT.BRIEF	1999,2000,2001,2004
 ./doc/design/database				TXT.BRIEF	1999,2000,2001,2004
 ./doc/design/db_rules				TXT.BRIEF	1999,2000,2001,2004
@@ -3040,7 +3047,7 @@
 ./lib/dns/.gitignore				X	2012,2013
 ./lib/dns/Atffile				X	2011
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./lib/dns/acache.c				C	2004,2005,2006,2007,2008,2012,2013
+./lib/dns/acache.c				C	2004,2005,2006,2007,2008,2012,2013,2015
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2013,2014
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014,2015
@@ -3048,7 +3055,7 @@
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007,2009,2013
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007,2011,2012,2015
-./lib/dns/client.c				C	2009,2010,2011,2012,2013,2014
+./lib/dns/client.c				C	2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/clientinfo.c				C	2011,2014
 ./lib/dns/compress.c				C	1999,2000,2001,2004,2005,2006,2007,2015
 ./lib/dns/db.c					C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011,2012,2013
@@ -3056,11 +3063,11 @@
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005,2007,2013
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005,2007,2008,2009,2011,2013,2014,2015
 ./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
-./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005,2007,2009,2010,2011,2012,2013
+./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005,2007,2009,2010,2011,2012,2013,2015
 ./lib/dns/dns64.c				C	2010,2011,2014
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006,2007,2010,2012,2014
-./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/dst_gost.h				C	2014
 ./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/dst_lib.c				C	1999,2000,2001,2004,2005,2007
@@ -3193,7 +3200,7 @@
 ./lib/dns/nsec3.c				C	2006,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/nta.c					C	2014,2015
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014
-./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
+./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
 ./lib/dns/opensslecdsa_link.c			C	2012,2013,2014
 ./lib/dns/opensslgost_link.c			C	2010,2011,2012,2013,2014
@@ -3366,7 +3373,7 @@
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2010,2012,2013,2014,2015
 ./lib/dns/rpz.c					C	2011,2012,2013,2014,2015
 ./lib/dns/rriterator.c				C	2009,2011,2012,2015
-./lib/dns/rrl.c					C	2012,2013,2014
+./lib/dns/rrl.c					C	2012,2013,2014,2015
 ./lib/dns/sdb.c					C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/sdlz.c				C.PORTION	1999,2000,2001,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/soa.c					C	2000,2001,2004,2005,2007,2009
