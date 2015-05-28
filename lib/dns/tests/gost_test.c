@@ -37,6 +37,7 @@
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
 #include <openssl/engine.h>
+#include <openssl/bn.h>
 #endif
 
 #ifdef HAVE_PKCS11_GOST
