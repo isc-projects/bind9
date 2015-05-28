@@ -239,7 +239,7 @@ dns_dlzdestroy(dns_dlzdb_t **dbp) {
 
 #ifdef BIND9
 	if (db->ssutable != NULL)
-		dns_ssutable_detach(&(*dbp)->ssutable);
+		dns_ssutable_detach(&dp->ssutable);
 #endif
 
 	/* call the drivers destroy method */
