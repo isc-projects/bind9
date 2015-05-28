@@ -26,7 +26,7 @@ CDEFINES =
 CWARNINGS =
 
 DNSLIBS =	../../../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
-ISCLIBS =	../../../../lib/isc/libisc.@A@
+ISCLIBS =	../../../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 
 DNSDEPLIBS =	../../../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../../../lib/isc/libisc.@A@
