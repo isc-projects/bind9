@@ -999,6 +999,12 @@ t_tasks4(void) {
 				   NULL, sizeof(*event));
 	if (event == NULL) {
 		t_info("isc_event_allocate failed\n");
+		isc_result = isc_mutex_unlock(&T4_mx);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_mutex_unlock failed %s\n",
+			       isc_result_totext(isc_result));
+			++T4_nprobs;
+		}
 		DESTROYLOCK(&T4_mx);
 		isc_task_destroy(&task);
 		(void) isc_condition_destroy(&T4_cv);

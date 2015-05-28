@@ -1375,12 +1375,20 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	isc_result_t ret;
 	EVP_PKEY *pkey = NULL;
 	RSA *rsa = NULL, *pubrsa = NULL;
-	char *colon;
+	char *colon, *tmpengine = NULL;
 
 	UNUSED(pin);
 
-	if (engine == NULL)
-		DST_RET(DST_R_NOENGINE);
+	if (engine == NULL) {
+		colon = strchr(label, ':');
+		if (colon == NULL)
+			DST_RET(DST_R_NOENGINE);
+		tmpengine = isc_mem_strdup(key->mctx, label);
+		if (tmpengine == NULL)
+			DST_RET(ISC_R_NOMEMORY);
+		colon = strchr(tmpengine, ':');
+		*colon = '\0';
+	}
 	e = dst__openssl_getengine(engine);
 	if (e == NULL)
 		DST_RET(DST_R_NOENGINE);
@@ -1395,17 +1403,13 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	if (pkey == NULL)
 		DST_RET(dst__openssl_toresult2("ENGINE_load_private_key",
 					       ISC_R_NOTFOUND));
-	if (engine != NULL) {
+	if (tmpengine != NULL) {
+		key->engine = tmpengine;
+		tmpengine = NULL;
+	} else {
 		key->engine = isc_mem_strdup(key->mctx, engine);
 		if (key->engine == NULL)
 			DST_RET(ISC_R_NOMEMORY);
-	} else {
-		key->engine = isc_mem_strdup(key->mctx, label);
-		if (key->engine == NULL)
-			DST_RET(ISC_R_NOMEMORY);
-		colon = strchr(key->engine, ':');
-		if (colon != NULL)
-			*colon = '\0';
 	}
 	key->label = isc_mem_strdup(key->mctx, label);
 	if (key->label == NULL)
@@ -1430,6 +1434,8 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	return (ISC_R_SUCCESS);
 
  err:
+	if (tmpengine != NULL)
+		isc_mem_free(key->mctx, tmpengine);
 	if (rsa != NULL)
 		RSA_free(rsa);
 	if (pubrsa != NULL)

@@ -2112,6 +2112,8 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	char backup[1024];
 	isc_boolean_t is_backup = ISC_FALSE;
 
+	REQUIRE(filename != NULL);
+
 	namelen = strlen(filename);
 	if (namelen > 4U && strcmp(filename + namelen - 4, ".jnl") == 0)
 		namelen -= 4;

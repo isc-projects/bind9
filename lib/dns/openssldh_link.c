@@ -224,12 +224,12 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 #else
 		dh = DH_generate_parameters(key->key_size, generator,
 					    NULL, NULL);
+		if (dh == NULL)
+			return (dst__openssl_toresult2(
+				        "DH_generate_parameters",
+					DST_R_OPENSSLFAILURE));
 #endif
 	}
-
-	if (dh == NULL)
-		return (dst__openssl_toresult2("DH_generate_parameters",
-					       DST_R_OPENSSLFAILURE));
 
 	if (DH_generate_key(dh) == 0) {
 		DH_free(dh);

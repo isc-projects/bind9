@@ -704,7 +704,7 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 			return (ISC_R_UNEXPECTED);
 		}
 #endif
-		result = sigsuspend(&sset);
+		(void)sigsuspend(&sset);
 #endif /* HAVE_SIGWAIT */
 
 		if (ctx->want_reload) {
