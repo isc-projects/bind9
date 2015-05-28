@@ -753,7 +753,7 @@ progress_cb(int p, int n, BN_GENCB *cb)
 
 	UNUSED(n);
 
-	u.dptr = cb->arg;
+	u.dptr = BN_GENCB_get_arg(cb);
 	if (u.fptr != NULL)
 		u.fptr(p);
 	return (1);
@@ -764,18 +764,21 @@ static isc_result_t
 opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
 	isc_result_t ret = DST_R_OPENSSLFAILURE;
-	BN_GENCB cb;
 	union {
 		void *dptr;
 		void (*fptr)(int);
 	} u;
 	RSA *rsa = RSA_new();
 	BIGNUM *e = BN_new();
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	BN_GENCB _cb;
+#endif
+	BN_GENCB *cb = BN_GENCB_new();
 #if USE_EVP
 	EVP_PKEY *pkey = EVP_PKEY_new();
 #endif
 
-	if (rsa == NULL || e == NULL)
+	if (rsa == NULL || e == NULL || cb == NULL)
 		goto err;
 #if USE_EVP
 	if (pkey == NULL)
@@ -795,14 +798,15 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	}
 
 	if (callback == NULL) {
-		BN_GENCB_set_old(&cb, NULL, NULL);
+		BN_GENCB_set_old(cb, NULL, NULL);
 	} else {
 		u.fptr = callback;
-		BN_GENCB_set(&cb, &progress_cb, u.dptr);
+		BN_GENCB_set(cb, &progress_cb, u.dptr);
 	}
 
-	if (RSA_generate_key_ex(rsa, key->key_size, e, &cb)) {
+	if (RSA_generate_key_ex(rsa, key->key_size, e, cb)) {
 		BN_free(e);
+		BN_GENCB_free(cb);
 		SET_FLAGS(rsa);
 #if USE_EVP
 		key->keydata.pkey = pkey;
@@ -813,6 +817,7 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 #endif
 		return (ISC_R_SUCCESS);
 	}
+	BN_GENCB_free(cb);
 	ret = dst__openssl_toresult2("RSA_generate_key_ex",
 				     DST_R_OPENSSLFAILURE);
 
@@ -825,6 +830,8 @@ err:
 		BN_free(e);
 	if (rsa != NULL)
 		RSA_free(rsa);
+	if (cb != NULL)
+		BN_GENCB_free(cb);
 	return (dst__openssl_toresult(ret));
 #else
 	RSA *rsa;
