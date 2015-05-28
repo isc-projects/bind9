@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2009, 2011-2014  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2009, 2011-2015  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -236,7 +236,7 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 					    NULL, NULL);
 		if (dh == NULL)
 			return (dst__openssl_toresult2(
-				        "DH_generate_parameters",
+					"DH_generate_parameters",
 					DST_R_OPENSSLFAILURE));
 #endif
 	}
