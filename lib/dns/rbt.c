@@ -2353,8 +2353,7 @@ rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 		PARENT(LEFT(child)) = node;
 	LEFT(child) = node;
 
-	if (child != NULL)
-		PARENT(child) = PARENT(node);
+	PARENT(child) = PARENT(node);
 
 	if (IS_ROOT(node)) {
 		*rootp = child;
@@ -2386,8 +2385,7 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 		PARENT(RIGHT(child)) = node;
 	RIGHT(child) = node;
 
-	if (child != NULL)
-		PARENT(child) = PARENT(node);
+	PARENT(child) = PARENT(node);
 
 	if (IS_ROOT(node)) {
 		*rootp = child;

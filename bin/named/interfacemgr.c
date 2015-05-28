@@ -471,7 +471,7 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 	return (ISC_R_SUCCESS);
 
  addtodispatch_failure:
-	for (i = disp - 1; i <= 0; i--) {
+	for (i = disp - 1; i >= 0; i--) {
 		dns_dispatch_changeattributes(ifp->udpdispatch[i], 0,
 					      DNS_DISPATCHATTR_NOLISTEN);
 		dns_dispatch_detach(&(ifp->udpdispatch[i]));

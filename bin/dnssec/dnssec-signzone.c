@@ -3585,7 +3585,10 @@ main(int argc, char *argv[]) {
 	 * of keys rather early.
 	 */
 	ISC_LIST_INIT(keylist);
-	isc_rwlock_init(&keylist_lock, 0, 0);
+	result = isc_rwlock_init(&keylist_lock, 0, 0);
+	if (result != ISC_R_SUCCESS)
+		fatal("could not initialize keylist_lock: %s",
+		      isc_result_totext(result));
 
 	/*
 	 * Fill keylist with:
