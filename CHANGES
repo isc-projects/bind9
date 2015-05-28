@@ -1,3 +1,5 @@
+4129.	[port]		Address API changes in OpenSSL 1.1.0. [RT #39532]
+
 4128.	[bug]		Address issues raised by Coverity 7.6. [RT #39537]
 
 4127.	[protocol]	CDS and CDNSKEY need to be signed by the key signing
