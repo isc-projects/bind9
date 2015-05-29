@@ -600,13 +600,13 @@ adj_trigger_cnt(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	}
 
 	if (inc) {
-		if (++*cnt == 1) {
+		if (++*cnt == 1U) {
 			*have |= DNS_RPZ_ZBIT(rpz_num);
 			fix_qname_skip_recurse(rpzs);
 		}
 	} else {
-		REQUIRE(*cnt != 0);
-		if (--*cnt == 0) {
+		REQUIRE(*cnt != 0U);
+		if (--*cnt == 0U) {
 			*have &= ~DNS_RPZ_ZBIT(rpz_num);
 			fix_qname_skip_recurse(rpzs);
 		}
@@ -1629,7 +1629,7 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 	memset(&rpzs->total_triggers, 0, sizeof(rpzs->total_triggers));
 
 #define SET_TRIG(n, zbit, type)						\
-	if (rpzs->triggers[n].type == 0) {				\
+	if (rpzs->triggers[n].type == 0U) {				\
 		rpzs->have.type &= ~zbit;				\
 	} else {							\
 		rpzs->total_triggers.type += rpzs->triggers[n].type;	\
