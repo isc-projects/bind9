@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2011, 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011, 2013-2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -999,6 +999,12 @@ t_tasks4(void) {
 				   NULL, sizeof(*event));
 	if (event == NULL) {
 		t_info("isc_event_allocate failed\n");
+		isc_result = isc_mutex_unlock(&T4_mx);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_mutex_unlock failed %s\n",
+			       isc_result_totext(isc_result));
+			++T4_nprobs;
+		}
 		DESTROYLOCK(&T4_mx);
 		isc_task_destroy(&task);
 		(void) isc_condition_destroy(&T4_cv);

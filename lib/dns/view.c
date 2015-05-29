@@ -1320,10 +1320,16 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 		result = dns_db_findzonecut(db, name, options, now, NULL,
 					    fname, rdataset, sigrdataset);
 		if (result == ISC_R_SUCCESS) {
+#ifdef BIND9
 			if (zfname != NULL &&
 			    (!dns_name_issubdomain(fname, zfname) ||
-			     (dns_zone_staticstub &&
-			      dns_name_equal(fname, zfname)))) {
+			     (dns_zone_gettype(zone) == dns_zone_staticstub &&
+			      dns_name_equal(fname, zfname))))
+#else
+			if (zfname != NULL &&
+			    !dns_name_issubdomain(fname, zfname))
+#endif
+			{
 				/*
 				 * We found a zonecut in the cache, but our
 				 * zone delegation is better.

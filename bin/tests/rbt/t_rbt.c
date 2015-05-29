@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2011-2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011-2013, 2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -297,6 +297,7 @@ rbt_init(char *filename, dns_rbt_t **rbt, isc_mem_t *mctx) {
 		if ((rval != 0) || (dns_result != ISC_R_SUCCESS)) {
 			t_info("add of %s failed\n", p);
 			dns_rbt_destroy(rbt);
+			(void) free(p);
 			fclose(fp);
 			return(1);
 		}
@@ -704,7 +705,7 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 			if (order >= 0) {
 			    t_info("unexpected order %s %s %s\n",
 			       dnsname_totext(dns_fixedname_name(&fullname1)),
-			       order == -1 ? "<" : (order == 0 ? "==" : ">"),
+			       order == 0 ? "==" : ">",
 			       dnsname_totext(dns_fixedname_name(&fullname2)));
 				++nprobs;
 			}

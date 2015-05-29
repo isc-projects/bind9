@@ -12160,10 +12160,10 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		return (ISC_R_SUCCESS);
 	}
 	zone->notifyfrom = *from;
-	local = zone->masteraddr;
-	remote = zone->sourceaddr;
+	remote = zone->masteraddr;
+	local = zone->sourceaddr;
 	UNLOCK_ZONE(zone);
-	dns_zonemgr_unreachabledel(zone->zmgr, &local, &remote);
+	dns_zonemgr_unreachabledel(zone->zmgr, &remote, &local);
 	dns_zone_refresh(zone);
 	return (ISC_R_SUCCESS);
 }
