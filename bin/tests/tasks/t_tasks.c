@@ -985,6 +985,12 @@ t_tasks4(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 		       isc_result_totext(isc_result));
+		isc_result = isc_mutex_unlock(&T4_mx);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_mutex_unlock failed %s\n",
+			       isc_result_totext(isc_result));
+			++T4_nprobs;
+		}
 		DESTROYLOCK(&T4_mx);
 		(void) isc_condition_destroy(&T4_cv);
 		isc_taskmgr_destroy(&tmgr);
