@@ -377,12 +377,12 @@ openssldsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	if (dsa == NULL)
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	cb = BN_GENCB_new();
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	if (cb == NULL) {
 		DSA_free(dsa);
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
-
-
+#endif
 	if (callback == NULL) {
 		BN_GENCB_set_old(cb, NULL, NULL);
 	} else {

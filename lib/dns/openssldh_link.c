@@ -210,11 +210,12 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 		if (dh == NULL)
 			return (dst__openssl_toresult(ISC_R_NOMEMORY));
 		cb = BN_GENCB_new();
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 		if (cb == NULL) {
 			DH_free(dh);
 			return (dst__openssl_toresult(ISC_R_NOMEMORY));
 		}
-
+#endif
 		if (callback == NULL) {
 			BN_GENCB_set_old(cb, NULL, NULL);
 		} else {
