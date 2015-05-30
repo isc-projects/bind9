@@ -38,7 +38,7 @@ run_query() {
     TESTNAME=$1
     LINE=$2
 
-    NAME=`tail -n +"$LINE" ns2/$TESTNAME.queries | head -n 1`
+    NAME=`sed -n -e "$LINE,"'$p' ns2/$TESTNAME.queries | head -n 1`
     $DIG $DIGOPTS $NAME a @10.53.0.2 -p 5300 -b 127.0.0.1 > dig.out.${t}
     grep "status: SERVFAIL" dig.out.${t} > /dev/null 2>&1 && return 1
     return 0
@@ -50,7 +50,7 @@ expect_norecurse() {
     TESTNAME=$1
     LINE=$2
 
-    NAME=`tail -n +"$LINE" ns2/$TESTNAME.queries | head -n 1`
+    NAME=`sed -n -e "$LINE,"'$p' ns2/$TESTNAME.queries | head -n 1`
     t=`expr $t + 1`
     echo "I:testing $NAME doesn't recurse (${t})"
     run_query $TESTNAME $LINE || {
@@ -65,7 +65,7 @@ expect_recurse() {
     TESTNAME=$1
     LINE=$2
 
-    NAME=`tail -n +"$LINE" ns2/$TESTNAME.queries | head -n 1`
+    NAME=`sed -n -e "$LINE,"'$p' ns2/$TESTNAME.queries | head -n 1`
     t=`expr $t + 1`
     echo "I:testing $NAME recurses (${t})"
     run_query $TESTNAME $LINE && {
