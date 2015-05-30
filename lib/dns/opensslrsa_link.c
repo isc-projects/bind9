@@ -1401,6 +1401,7 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		if (tmpengine == NULL)
 			DST_RET(ISC_R_NOMEMORY);
 		colon = strchr(tmpengine, ':');
+		INSIST(colon != NULL);
 		*colon = '\0';
 	}
 	e = dst__openssl_getengine(engine);
