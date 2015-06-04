@@ -24,6 +24,7 @@
 #include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/rwlock.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/util.h>
@@ -4595,19 +4596,6 @@ rpz_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		zbits &= (DNS_RPZ_ZMASK(rpz_num) >> 1);
 
 		/*
-		 * In case num_zones has changed since zbits was
-		 * originally calculated
-		 */
-		if (rpz_num >= rpzs->p.num_zones) {
-			CTRACE(ISC_LOG_ERROR,
-			       "rpz_rewrite_ip: rpz_num is higher than "
-			       "number of zones");
-			rpz_clean(&p_zone, &p_db, &p_node, p_rdatasetp);
-			st->m.policy = DNS_RPZ_POLICY_ERROR;
-			return (DNS_R_SERVFAIL);
-		}
-
-		/*
 		 * Do not try applying policy zones that cannot replace a
 		 * previously found policy zone.
 		 * Stop looking if the next best choice cannot
@@ -4928,19 +4916,6 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 			continue;
 
 		/*
-		 * In case num_zones has changed since the 'have'
-		 * originally calculated
-		 */
-		if (rpz_num >= rpzs->p.num_zones) {
-			CTRACE(ISC_LOG_ERROR,
-			       "rpz_rewrite_name: rpz_num is higher than "
-			       "number of zones");
-			rpz_clean(&p_zone, &p_db, &p_node, rdatasetp);
-			st->m.policy = DNS_RPZ_POLICY_ERROR;
-			return (DNS_R_SERVFAIL);
-		}
-
-		/*
 		 * Do not check policy zones that cannot replace a previously
 		 * found policy.
 		 */
@@ -5106,24 +5081,27 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 	    (st != NULL && (st->state & DNS_RPZ_REWRITTEN) != 0))
 		return (DNS_R_DISALLOWED);
 
-	LOCK(&rpzs->maint_lock);
+	RWLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 	if (rpzs->p.num_zones == 0 ||
 	    (!RECURSIONOK(client) && rpzs->p.no_rd_ok == 0) ||
 	    !rpz_ck_dnssec(client, qresult, ordataset, osigset))
 	{
-		UNLOCK(&rpzs->maint_lock);
+		RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 		return (DNS_R_DISALLOWED);
 	}
 	have = rpzs->have;
 	popt = rpzs->p;
 	rpz_ver = rpzs->rpz_ver;
-	UNLOCK(&rpzs->maint_lock);
+	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 
 	if (st == NULL) {
 		st = isc_mem_get(client->mctx, sizeof(*st));
 		if (st == NULL)
 			return (ISC_R_NOMEMORY);
 		st->state = 0;
+	}
+	if (st->state == 0) {
+		st->state |= DNS_RPZ_ACTIVE;
 		memset(&st->m, 0, sizeof(st->m));
 		st->m.type = DNS_RPZ_TYPE_BAD;
 		st->m.policy = DNS_RPZ_POLICY_MISS;

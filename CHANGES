@@ -1,3 +1,6 @@
+4131.	[bug]		Addressed further problems with reloading RPZ
+			zones. [RT #39649]
+
 4130.	[bug]		The compatability shim for *printf() misprinted some
 			large numbers. [RT #39586]
 
