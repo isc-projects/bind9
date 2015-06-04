@@ -1,3 +1,7 @@
+4132.	[cleanup]	dig: added +rd as a synonym for +recurse,
+			added +class as an unabbreviated alternative
+			to +cl. [RT #39686]
+
 4130.	[bug]		The compatability shim for *printf() misprinted some
 			large numbers. [RT #39586]
 
