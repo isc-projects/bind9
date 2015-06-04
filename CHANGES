@@ -1,3 +1,7 @@
+4132.	[cleanup]	dig: added +rd as a synonym for +recurse,
+			added +class as an unabbreviated alternative
+			to +cl. [RT #39686]
+
 4131.	[bug]		Addressed further problems with reloading RPZ
 			zones. [RT #39649]
 
