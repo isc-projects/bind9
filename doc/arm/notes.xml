@@ -662,6 +662,13 @@
 	      corrected. [RT #39481]
 	    </para>
 	  </listitem>
+	  <listitem>
+	    <para>
+	      The server could crash if a reload of an RPZ zone was
+	      initiated while another reload of the same zone was
+	      already in progress. [RT #39649]
+	    </para>
+	  </listitem>
 	</itemizedlist>
       </listitem>
     </itemizedlist>

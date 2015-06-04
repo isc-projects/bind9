@@ -1653,8 +1653,8 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 isc_result_t
 dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr);
 /*%<
- * Force zone maintenance of all zones managed by 'zmgr' at its
- * earliest convenience.
+ * Force zone maintenance of all loaded zones managed by 'zmgr'
+ * to take place at the system's earliest convenience.
  */
 
 void

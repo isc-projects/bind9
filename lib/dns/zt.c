@@ -314,12 +314,15 @@ asyncload(dns_zone_t *zone, void *callback) {
 	zt = dns_zone_getview(zone)->zonetable;
 	INSIST(VALID_ZT(zt));
 
+	INSIST(zt->references > 0);
+	zt->references++;
+	zt->loads_pending++;
+
 	result = dns_zone_asyncload(zone, *loaded, zt);
-	if (result == ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
+		zt->references--;
+		zt->loads_pending--;
 		INSIST(zt->references > 0);
-		zt->references++;
-		INSIST(zt->references != 0);
-		zt->loads_pending++;
 	}
 	return (ISC_R_SUCCESS);
 }

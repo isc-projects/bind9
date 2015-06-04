@@ -5752,7 +5752,6 @@ dns_zone_setdb(dns_zone_t *zone, dns_db_t *db) {
 /*
  * Co-ordinates the starting of routine jobs.
  */
-
 void
 dns_zone_maintenance(dns_zone_t *zone) {
 	const char me[] = "dns_zone_maintenance";
@@ -12296,8 +12295,9 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	isc_time_t next;
 	isc_result_t result;
 
-	ENTER;
 	REQUIRE(DNS_ZONE_VALID(zone));
+	ENTER;
+
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
 		return;
 
@@ -12361,12 +12361,12 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOMASTERS) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOREFRESH) &&
-		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADING)) {
-			INSIST(!isc_time_isepoch(&zone->refreshtime));
-			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->refreshtime, &next) < 0)
-				next = zone->refreshtime;
-		}
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADING) &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING) &&
+		    !isc_time_isepoch(&zone->refreshtime) &&
+		    (isc_time_isepoch(&next) ||
+		     isc_time_compare(&zone->refreshtime, &next) < 0))
+			next = zone->refreshtime;
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 		    !isc_time_isepoch(&zone->expiretime)) {
 			if (isc_time_isepoch(&next) ||
