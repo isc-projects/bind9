@@ -23,6 +23,7 @@
 #include <isc/net.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
+#include <isc/rwlock.h>
 #include <isc/stdlib.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -1390,7 +1391,7 @@ dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, isc_mem_t *mctx) {
 		return (ISC_R_NOMEMORY);
 	memset(new, 0, sizeof(*new));
 
-	result = isc_mutex_init(&new->search_lock);
+	result = isc_rwlock_init(&new->search_lock, 0, 0);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, new, sizeof(*new));
 		return (result);
@@ -1398,7 +1399,7 @@ dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, isc_mem_t *mctx) {
 
 	result = isc_mutex_init(&new->maint_lock);
 	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&new->search_lock);
+		isc_rwlock_destroy(&new->search_lock);
 		isc_mem_put(mctx, new, sizeof(*new));
 		return (result);
 	}
@@ -1406,7 +1407,7 @@ dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, isc_mem_t *mctx) {
 	result = isc_refcount_init(&new->refs, 1);
 	if (result != ISC_R_SUCCESS) {
 		DESTROYLOCK(&new->maint_lock);
-		DESTROYLOCK(&new->search_lock);
+		isc_rwlock_destroy(&new->search_lock);
 		isc_mem_put(mctx, new, sizeof(*new));
 		return (result);
 	}
@@ -1416,7 +1417,7 @@ dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, isc_mem_t *mctx) {
 		isc_refcount_decrement(&new->refs, NULL);
 		isc_refcount_destroy(&new->refs);
 		DESTROYLOCK(&new->maint_lock);
-		DESTROYLOCK(&new->search_lock);
+		isc_rwlock_destroy(&new->search_lock);
 		isc_mem_put(mctx, new, sizeof(*new));
 		return (result);
 	}
@@ -1535,7 +1536,7 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 		cidr_free(rpzs);
 		dns_rbt_destroy(&rpzs->rbt);
 		DESTROYLOCK(&rpzs->maint_lock);
-		DESTROYLOCK(&rpzs->search_lock);
+		isc_rwlock_destroy(&rpzs->search_lock);
 		isc_refcount_destroy(&rpzs->refs);
 		isc_mem_putanddetach(&rpzs->mctx, rpzs, sizeof(*rpzs));
 	}
@@ -1580,7 +1581,7 @@ dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp,
 	 */
 	tgt = DNS_RPZ_ZBIT(rpz_num);
 	LOCK(&rpzs->maint_lock);
-	LOCK(&rpzs->search_lock);
+	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 	if ((rpzs->load_begun & tgt) == 0) {
 		/*
 		 * There is no existing version of the target zone.
@@ -1604,7 +1605,7 @@ dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp,
 		isc_refcount_increment(&rpz->refs, NULL);
 	}
 
-	UNLOCK(&rpzs->search_lock);
+	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 	UNLOCK(&rpzs->maint_lock);
 
 	return (ISC_R_SUCCESS);
@@ -1612,7 +1613,7 @@ dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp,
 
 /*
  * This function updates "have" bits and also the qname_skip_recurse
- * mask. It must be called when holding rpzs->search_lock.
+ * mask. It must be called when holding a write lock on rpzs->search_lock.
  */
 static void
 fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
@@ -1740,16 +1741,16 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 		 * This is a successful initial zone loading, perhaps
 		 * for a new instance of a view.
 		 */
-		LOCK(&rpzs->search_lock);
+		RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 		fix_triggers(rpzs, rpz_num);
-		UNLOCK(&rpzs->search_lock);
+		RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 		UNLOCK(&rpzs->maint_lock);
 		dns_rpz_detach_rpzs(load_rpzsp);
 		return (ISC_R_SUCCESS);
 	}
 
 	LOCK(&load_rpzs->maint_lock);
-	LOCK(&load_rpzs->search_lock);
+	RWLOCK(&load_rpzs->search_lock, isc_rwlocktype_write);
 
 	/*
 	 * Unless there is only one policy zone, copy the other policy zones
@@ -1848,7 +1849,7 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 	/*
 	 * Exchange the summary databases.
 	 */
-	LOCK(&rpzs->search_lock);
+	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 
 	rpzs->triggers[rpz_num] = load_rpzs->triggers[rpz_num];
 	fix_triggers(rpzs, rpz_num);
@@ -1861,13 +1862,13 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 	rpzs->rbt = load_rpzs->rbt;
 	load_rpzs->rbt = rbt;
 
-	UNLOCK(&rpzs->search_lock);
+	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 
 	result = ISC_R_SUCCESS;
 
  unlock_and_detach:
 	UNLOCK(&rpzs->maint_lock);
-	UNLOCK(&load_rpzs->search_lock);
+	RWUNLOCK(&load_rpzs->search_lock, isc_rwlocktype_write);
 	UNLOCK(&load_rpzs->maint_lock);
 	dns_rpz_detach_rpzs(load_rpzsp);
 	return (result);
@@ -1890,7 +1891,7 @@ dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num, dns_name_t *src_name)
 	rpz_type = type_from_name(rpz, src_name);
 
 	LOCK(&rpzs->maint_lock);
-	LOCK(&rpzs->search_lock);
+	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_QNAME:
@@ -1906,7 +1907,7 @@ dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num, dns_name_t *src_name)
 		break;
 	}
 
-	UNLOCK(&rpzs->search_lock);
+	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 	UNLOCK(&rpzs->maint_lock);
 	return (result);
 }
@@ -2096,7 +2097,7 @@ dns_rpz_delete(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	rpz_type = type_from_name(rpz, src_name);
 
 	LOCK(&rpzs->maint_lock);
-	LOCK(&rpzs->search_lock);
+	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_QNAME:
@@ -2112,7 +2113,7 @@ dns_rpz_delete(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 		break;
 	}
 
-	UNLOCK(&rpzs->search_lock);
+	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 	UNLOCK(&rpzs->maint_lock);
 }
 
@@ -2197,13 +2198,13 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		return (DNS_RPZ_INVALID_NUM);
 	make_addr_set(&tgt_set, zbits, rpz_type);
 
-	LOCK(&rpzs->search_lock);
+	RWLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 	result = search(rpzs, &tgt_ip, 128, &tgt_set, ISC_FALSE, &found);
 	if (result == ISC_R_NOTFOUND) {
 		/*
 		 * There are no eligible zones for this IP address.
 		 */
-		UNLOCK(&rpzs->search_lock);
+		RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 		return (DNS_RPZ_INVALID_NUM);
 	}
 
@@ -2227,7 +2228,7 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		break;
 	}
 	result = ip2name(&found->ip, found->prefix, dns_rootname, ip_name);
-	UNLOCK(&rpzs->search_lock);
+	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * bin/tests/system/rpz/tests.sh looks for "rpz.*failed".
@@ -2260,7 +2261,7 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 
 	found_zbits = 0;
 
-	LOCK(&rpzs->search_lock);
+	RWLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 
 	nmnode = NULL;
 	result = dns_rbt_findnode(rpzs->rbt, trig_name, NULL, &nmnode, NULL,
@@ -2304,7 +2305,7 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		break;
 	}
 
-	UNLOCK(&rpzs->search_lock);
+	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 	return (zbits & found_zbits);
 }
 

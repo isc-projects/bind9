@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -25,6 +23,8 @@
 
 #include <isc/hex.h>
 #include <isc/mem.h>
+#include <isc/print.h>
+#include <isc/rwlock.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/util.h>
@@ -4167,7 +4167,11 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
 
+<<<<<<< HEAD
 	CTRACE("rpz_rrset_find");
+=======
+	CTRACE(ISC_LOG_DEBUG(3), "rpz_rrset_find");
+>>>>>>> 8c9fba4... [master] further RPZ fixes
 
 	st = client->query.rpz_st;
 	if ((st->state & DNS_RPZ_RECURSING) != 0) {
@@ -4549,6 +4553,7 @@ rpz_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		zbits &= (DNS_RPZ_ZMASK(rpz_num) >> 1);
 
 		/*
+<<<<<<< HEAD
 		 * In case num_zones has changed since zbits was
 		 * originally calculated
 		 */
@@ -4561,6 +4566,8 @@ rpz_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		}
 
 		/*
+=======
+>>>>>>> 8c9fba4... [master] further RPZ fixes
 		 * Do not try applying policy zones that cannot replace a
 		 * previously found policy zone.
 		 * Stop looking if the next best choice cannot
@@ -4877,6 +4884,7 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 			continue;
 
 		/*
+<<<<<<< HEAD
 		 * In case num_zones has changed since the 'have'
 		 * originally calculated
 		 */
@@ -4889,6 +4897,8 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 		}
 
 		/*
+=======
+>>>>>>> 8c9fba4... [master] further RPZ fixes
 		 * Do not check policy zones that cannot replace a previously
 		 * found policy.
 		 */
@@ -5052,24 +5062,27 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 	    (st != NULL && (st->state & DNS_RPZ_REWRITTEN) != 0))
 		return (DNS_R_DISALLOWED);
 
-	LOCK(&rpzs->maint_lock);
+	RWLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 	if (rpzs->p.num_zones == 0 ||
 	    (!RECURSIONOK(client) && rpzs->p.no_rd_ok == 0) ||
 	    !rpz_ck_dnssec(client, qresult, ordataset, osigset))
 	{
-		UNLOCK(&rpzs->maint_lock);
+		RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 		return (DNS_R_DISALLOWED);
 	}
 	have = rpzs->have;
 	popt = rpzs->p;
 	rpz_ver = rpzs->rpz_ver;
-	UNLOCK(&rpzs->maint_lock);
+	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 
 	if (st == NULL) {
 		st = isc_mem_get(client->mctx, sizeof(*st));
 		if (st == NULL)
 			return (ISC_R_NOMEMORY);
 		st->state = 0;
+	}
+	if (st->state == 0) {
+		st->state |= DNS_RPZ_ACTIVE;
 		memset(&st->m, 0, sizeof(st->m));
 		st->m.type = DNS_RPZ_TYPE_BAD;
 		st->m.policy = DNS_RPZ_POLICY_MISS;

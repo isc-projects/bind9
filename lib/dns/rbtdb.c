@@ -1090,8 +1090,10 @@ adjust_quantum(unsigned int old, isc_time_t *start) {
 	/* Smooth */
 	new = (new + old * 3) / 4;
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_DEBUG(1), "adjust_quantum -> %d", new);
+	if (new != old)
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
+			      "adjust_quantum: old=%d, new=%d", old, new);
 
 	return (new);
 }

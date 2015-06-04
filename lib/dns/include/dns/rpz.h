@@ -21,11 +21,12 @@
 #define DNS_RPZ_H 1
 
 #include <isc/lang.h>
+#include <isc/refcount.h>
+#include <isc/rwlock.h>
 
 #include <dns/fixedname.h>
 #include <dns/rdata.h>
 #include <dns/types.h>
-#include <isc/refcount.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -227,7 +228,7 @@ struct dns_rpz_zones {
 	 * A second lock for maintenance that guarantees no other thread
 	 * is adding or deleting nodes.
 	 */
-	isc_mutex_t		search_lock;
+	isc_rwlock_t		search_lock;
 	isc_mutex_t		maint_lock;
 
 	dns_rpz_cidr_node_t	*cidr;
@@ -247,6 +248,7 @@ typedef struct {
 # define DNS_RPZ_DONE_NSDNAME	0x0010	/* NS name missed; checking addresses */
 # define DNS_RPZ_DONE_IPv4	0x0020
 # define DNS_RPZ_RECURSING	0x0040
+# define DNS_RPZ_ACTIVE		0x0080
 	/*
 	 * Best match so far.
 	 */
