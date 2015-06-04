@@ -51,6 +51,14 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.10.2-P1
+
+        BIND 9.10.2-P1 is a patch release addressing several
+        bugs recently found in the response-policy zones (PRZ)
+        implementation in BIND 9.10.  These mostly affect servers
+        that have multiple frequently-updated response-policy
+        zones. Operators who are not using RPZ need not upgrade.
+
 BIND 9.10.2
 
 	BIND 9.10.2 is a maintenance release and addresses bugs
