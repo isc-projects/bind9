@@ -81,6 +81,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Asynchronous zone loads were not handled correctly when the
+	  zone load was already in progress; this could trigger a crash
+	  in zt.c. [RT #37573]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Several bugs have been fixed in the RPZ implementation:
 	</para>
 	<itemizedlist>
