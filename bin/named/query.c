@@ -4167,11 +4167,7 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
 
-<<<<<<< HEAD
 	CTRACE("rpz_rrset_find");
-=======
-	CTRACE(ISC_LOG_DEBUG(3), "rpz_rrset_find");
->>>>>>> 8c9fba4... [master] further RPZ fixes
 
 	st = client->query.rpz_st;
 	if ((st->state & DNS_RPZ_RECURSING) != 0) {
@@ -4553,21 +4549,6 @@ rpz_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		zbits &= (DNS_RPZ_ZMASK(rpz_num) >> 1);
 
 		/*
-<<<<<<< HEAD
-		 * In case num_zones has changed since zbits was
-		 * originally calculated
-		 */
-		if (rpz_num >= rpzs->p.num_zones) {
-			CTRACE("rpz_rewrite_ip: rpz_num is higher than "
-			       "number of zones");
-			rpz_clean(&p_zone, &p_db, &p_node, p_rdatasetp);
-			st->m.policy = DNS_RPZ_POLICY_ERROR;
-			return (DNS_R_SERVFAIL);
-		}
-
-		/*
-=======
->>>>>>> 8c9fba4... [master] further RPZ fixes
 		 * Do not try applying policy zones that cannot replace a
 		 * previously found policy zone.
 		 * Stop looking if the next best choice cannot
@@ -4884,21 +4865,6 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 			continue;
 
 		/*
-<<<<<<< HEAD
-		 * In case num_zones has changed since the 'have'
-		 * originally calculated
-		 */
-		if (rpz_num >= rpzs->p.num_zones) {
-			CTRACE("rpz_rewrite_name: rpz_num is higher than "
-			       "number of zones");
-			rpz_clean(&p_zone, &p_db, &p_node, rdatasetp);
-			st->m.policy = DNS_RPZ_POLICY_ERROR;
-			return (DNS_R_SERVFAIL);
-		}
-
-		/*
-=======
->>>>>>> 8c9fba4... [master] further RPZ fixes
 		 * Do not check policy zones that cannot replace a previously
 		 * found policy.
 		 */
