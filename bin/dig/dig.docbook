@@ -436,6 +436,9 @@
       that keyword.  Other
       keywords assign values to options like the timeout interval.  They
       have the form <option>+keyword=value</option>.
+      Keywords may be abbreviated, provided the abbreviation is
+      unambiguous; for example, <literal>+cd</literal> is equivalent
+      to <literal>+cdflag</literal>.
       The query options are:
 
       <variablelist>
@@ -551,7 +554,7 @@
 	</varlistentry>
 
 	<varlistentry>
-	  <term><option>+[no]cl</option></term>
+	  <term><option>+[no]class</option></term>
 	  <listitem>
 	    <para>
 	      Display [do not display] the CLASS when printing the
@@ -849,6 +852,15 @@
 	      Print [do not print] the question section of a query
 	      when an answer is returned.  The default is to print
 	      the question section as a comment.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><option>+[no]rdflag</option></term>
+	  <listitem>
+	    <para>
+	      A synonym for <parameter>+[no]recurse</parameter>.
 	    </para>
 	  </listitem>
 	</varlistentry>
