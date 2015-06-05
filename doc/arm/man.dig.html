@@ -52,7 +52,7 @@
 <div class="cmdsynopsis"><p><code class="command">dig</code>  [global-queryopt...] [query...]</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2616120"></a><h2>DESCRIPTION</h2>
+<a name="id2616429"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dig</strong></span>
       (domain information groper) is a flexible tool
       for interrogating DNS name servers.  It performs DNS lookups and
@@ -99,7 +99,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2616222"></a><h2>SIMPLE USAGE</h2>
+<a name="id2616532"></a><h2>SIMPLE USAGE</h2>
 <p>
       A typical invocation of <span><strong class="command">dig</strong></span> looks like:
       </p>
@@ -152,7 +152,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2616417"></a><h2>OPTIONS</h2>
+<a name="id2616931"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-4</span></dt>
 <dd><p>
@@ -280,7 +280,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2667654"></a><h2>QUERY OPTIONS</h2>
+<a name="id2667690"></a><h2>QUERY OPTIONS</h2>
 <p><span><strong class="command">dig</strong></span>
       provides a number of query options which affect
       the way in which lookups are made and the results displayed.  Some of
@@ -296,6 +296,9 @@
       that keyword.  Other
       keywords assign values to options like the timeout interval.  They
       have the form <code class="option">+keyword=value</code>.
+      Keywords may be abbreviated, provided the abbreviation is
+      unambiguous; for example, <code class="literal">+cd</code> is equivalent
+      to <code class="literal">+cdflag</code>.
       The query options are:
 
       </p>
@@ -360,7 +363,7 @@
 	      the query.  This requests the server to not perform
 	      DNSSEC validation of responses.
 	    </p></dd>
-<dt><span class="term"><code class="option">+[no]cl</code></span></dt>
+<dt><span class="term"><code class="option">+[no]class</code></span></dt>
 <dd><p>
 	      Display [do not display] the CLASS when printing the
 	      record.
@@ -533,6 +536,10 @@
 	      Print [do not print] the question section of a query
 	      when an answer is returned.  The default is to print
 	      the question section as a comment.
+	    </p></dd>
+<dt><span class="term"><code class="option">+[no]rdflag</code></span></dt>
+<dd><p>
+	      A synonym for <em class="parameter"><code>+[no]recurse</code></em>.
 	    </p></dd>
 <dt><span class="term"><code class="option">+[no]recurse</code></span></dt>
 <dd><p>
@@ -713,7 +720,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2668955"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2669021"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -759,7 +766,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2669041"></a><h2>IDN SUPPORT</h2>
+<a name="id2669107"></a><h2>IDN SUPPORT</h2>
 <p>
       If <span><strong class="command">dig</strong></span> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -773,14 +780,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2669069"></a><h2>FILES</h2>
+<a name="id2669136"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2669159"></a><h2>SEE ALSO</h2>
+<a name="id2669157"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -788,7 +795,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2669196"></a><h2>BUGS</h2>
+<a name="id2669262"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>
