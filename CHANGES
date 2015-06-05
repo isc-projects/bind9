@@ -1,3 +1,6 @@
+4133.	[port]		Update how various json libraries are handled.
+			[RT #39646]
+
 4132.	[cleanup]	dig: added +rd as a synonym for +recurse,
 			added +class as an unabbreviated alternative
 			to +cl. [RT #39686]
