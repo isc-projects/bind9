@@ -271,7 +271,10 @@ provides a number of query options which affect the way in which lookups are mad
 Each query option is identified by a keyword preceded by a plus sign (+). Some keywords set or reset an option. These may be preceded by the string
 no
 to negate the meaning of that keyword. Other keywords assign values to options like the timeout interval. They have the form
-\fB+keyword=value\fR. The query options are:
+\fB+keyword=value\fR. Keywords may be abbreviated, provided the abbreviation is unambiguous; for example,
++cd
+is equivalent to
++cdflag. The query options are:
 .PP
 \fB+[no]aaflag\fR
 .RS 4
@@ -326,7 +329,7 @@ bytes. The maximum and minimum sizes of this buffer are 65535 and 0 respectively
 Set [do not set] the CD (checking disabled) bit in the query. This requests the server to not perform DNSSEC validation of responses.
 .RE
 .PP
-\fB+[no]cl\fR
+\fB+[no]class\fR
 .RS 4
 Display [do not display] the CLASS when printing the record.
 .RE
@@ -445,6 +448,12 @@ Print [do not print] the query as it is sent. By default, the query is not print
 \fB+[no]question\fR
 .RS 4
 Print [do not print] the question section of a query when an answer is returned. The default is to print the question section as a comment.
+.RE
+.PP
+\fB+[no]rdflag\fR
+.RS 4
+A synonym for
+\fI+[no]recurse\fR.
 .RE
 .PP
 \fB+[no]recurse\fR
