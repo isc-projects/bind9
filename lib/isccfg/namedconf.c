@@ -1032,7 +1032,7 @@ static cfg_type_t cfg_type_masterformat = {
  *	zone <string> [ policy (given|disabled|passthru|
  *					nxdomain|nodata|cname <domain> ) ]
  *		      [ recursive-only yes|no ] [ max-policy-ttl number ] ;
- *  } [ recursive-only yes|no ] [ max-policy-ttl number ] ;
+ *  } [ recursive-only yes|no ] [ max-policy-ttl number ]
  *	 [ break-dnssec yes|no ] [ min-ns-dots number ] ;
  */
 
