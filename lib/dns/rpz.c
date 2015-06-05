@@ -1659,7 +1659,8 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 		      DNS_LOGMODULE_RBTDB, DNS_RPZ_INFO_LEVEL,
 		      "(re)loading policy zone '%s' changed from"
 		      " %lu to %lu qname, %lu to %lu nsdname,"
-		      " %lu to %lu IP, %lu to %lu NSIP entries",
+		      " %lu to %lu IP, %lu to %lu NSIP,"
+		      " %lu to %lu CLIENTIP entries",
 		      namebuf,
 		      (unsigned long) old_totals.qname,
 		      (unsigned long) rpzs->total_triggers.qname,
@@ -1670,7 +1671,11 @@ fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
 				       rpzs->total_triggers.ipv6),
 		      (unsigned long) old_totals.nsipv4 + old_totals.nsipv6,
 		      (unsigned long) (rpzs->total_triggers.nsipv4 +
-				       rpzs->total_triggers.nsipv6));
+				       rpzs->total_triggers.nsipv6),
+		      (unsigned long) old_totals.client_ipv4 +
+				      old_totals.client_ipv6,
+		      (unsigned long) (rpzs->total_triggers.client_ipv4 +
+				       rpzs->total_triggers.client_ipv6));
 }
 
 /*
