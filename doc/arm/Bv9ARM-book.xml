@@ -5016,11 +5016,13 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		  tcp-only | nxdomain | nodata | cname domain</replaceable>) </optional>
 	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional>
 	<optional> max-policy-ttl <replaceable>number</replaceable> </optional>
-	<optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional>
-	<optional> min-ns-dots <replaceable>number</replaceable> </optional>
-	<optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> </optional>
 	; <optional>...</optional>
-    } ; </optional>
+    } <optional> recursive-only <replaceable>yes_or_no</replaceable> </optional>
+      <optional> max-policy-ttl <replaceable>number</replaceable> </optional>
+      <optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional>
+      <optional> min-ns-dots <replaceable>number</replaceable> </optional>
+      <optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> </optional>
+    ; </optional>
 };
 </programlisting>
 
