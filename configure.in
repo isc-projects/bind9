@@ -2150,6 +2150,7 @@ AC_ARG_WITH(libjson,
     use_libjson="$withval", use_libjson="auto")
 
 have_libjson=""
+have_libjson_c=""
 case "$use_libjson" in
 	no)
 		libjson_libs=""
@@ -2159,34 +2160,36 @@ case "$use_libjson" in
 		do
 			if test -f "${d}/include/json/json.h"
 			then
-				libjson_cflags="-I ${d}/include/json"
 				if test ${d} != /usr
 				then
+					libjson_cflags="-I ${d}/include"
 					LIBS="$LIBS -L${d}/lib"
 				fi
 				have_libjson="yes"
 			elif test -f "${d}/include/json-c/json.h"
 			then
-				libjson_cflags="-I ${d}/include/json-c"
 				if test ${d} != /usr
 				then
+					libjson_cflags="-I ${d}/include"
 					LIBS="$LIBS -L${d}/lib"
 				fi
 				have_libjson="yes"
+				have_libjson_c="yes"
 			fi
 		done
 		;;
 	*)
 		if test -f "${use_libjson}/include/json/json.h"
 		then
-			libjson_cflags="-I${use_libjson}/include/json"
+			libjson_cflags="-I${use_libjson}/include"
 			LIBS="$LIBS -L${use_libjson}/lib"
 			have_libjson="yes"
 		elif test -f "${use_libjson}/include/json-c/json.h"
 		then
-			libjson_cflags="-I${use_libjson}/include/json-c"
+			libjson_cflags="-I${use_libjson}/include"
 			LIBS="$LIBS -L${use_libjson}/lib"
 			have_libjson="yes"
+			have_libjson_c="yes"
 		else
 			AC_MSG_ERROR([$use_libjson/include/json{,-c}/json.h not found.])
 		fi
@@ -2210,6 +2213,10 @@ if test "X${have_libjson}" != "X"
 then
 	CFLAGS="$CFLAGS $libjson_cflags"
 	AC_DEFINE(HAVE_JSON, 1, [Define if libjson was found])
+	if test "X${have_libjson_c}" = Xyes
+	then
+		AC_DEFINE(HAVE_JSON_C, 1, [Define if json-c was found])
+	fi
 fi
 
 #

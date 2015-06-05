@@ -20,6 +20,7 @@
 
 #include <isc/buffer.h>
 #include <isc/httpd.h>
+#include <isc/json.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/print.h>
@@ -41,10 +42,6 @@
 #include <named/log.h>
 #include <named/server.h>
 #include <named/statschannel.h>
-
-#ifdef HAVE_JSON_H
-#include <json/json.h>
-#endif
 
 #include "bind9.xsl.h"
 

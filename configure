@@ -16599,6 +16599,7 @@ fi
 
 
 have_libjson=""
+have_libjson_c=""
 case "$use_libjson" in
 	no)
 		libjson_libs=""
@@ -16608,34 +16609,36 @@ case "$use_libjson" in
 		do
 			if test -f "${d}/include/json/json.h"
 			then
-				libjson_cflags="-I ${d}/include/json"
 				if test ${d} != /usr
 				then
+					libjson_cflags="-I ${d}/include"
 					LIBS="$LIBS -L${d}/lib"
 				fi
 				have_libjson="yes"
 			elif test -f "${d}/include/json-c/json.h"
 			then
-				libjson_cflags="-I ${d}/include/json-c"
 				if test ${d} != /usr
 				then
+					libjson_cflags="-I ${d}/include"
 					LIBS="$LIBS -L${d}/lib"
 				fi
 				have_libjson="yes"
+				have_libjson_c="yes"
 			fi
 		done
 		;;
 	*)
 		if test -f "${use_libjson}/include/json/json.h"
 		then
-			libjson_cflags="-I${use_libjson}/include/json"
+			libjson_cflags="-I${use_libjson}/include"
 			LIBS="$LIBS -L${use_libjson}/lib"
 			have_libjson="yes"
 		elif test -f "${use_libjson}/include/json-c/json.h"
 		then
-			libjson_cflags="-I${use_libjson}/include/json-c"
+			libjson_cflags="-I${use_libjson}/include"
 			LIBS="$LIBS -L${use_libjson}/lib"
 			have_libjson="yes"
+			have_libjson_c="yes"
 		else
 			as_fn_error $? "$use_libjson/include/json{,-c}/json.h not found." "$LINENO" 5
 		fi
@@ -16719,6 +16722,12 @@ then
 
 $as_echo "#define HAVE_JSON 1" >>confdefs.h
 
+	if test "X${have_libjson_c}" = Xyes
+	then
+
+$as_echo "#define HAVE_JSON_C 1" >>confdefs.h
+
+	fi
 fi
 
 #
