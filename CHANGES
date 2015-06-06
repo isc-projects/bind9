@@ -1,3 +1,6 @@
+4134.	[cleanup]	Include client-ip rules when logging the number
+			of RPZ rules of each type. [RT #39670]
+
 4133.	[port]		Update how various json libraries are handled.
 			[RT #39646]
 
