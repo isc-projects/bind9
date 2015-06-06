@@ -92,7 +92,7 @@
             Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592987"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2596674">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2596605">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2598768">Discussion of MX Records</a></span></dt>
@@ -2377,12 +2377,12 @@ badresp:1,adberr:0,findfail:0,valfail:0]
         zone <em class="replaceable"><code>zone_name</code></em>
         [<span class="optional"> policy <em class="replaceable"><code>(given | disabled | passthru |
                   nxdomain | nodata | cname domain</code></em>) </span>]
-        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> </span>]
-        [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> </span>]
-        [<span class="optional"> break-dnssec <em class="replaceable"><code>yes_or_no</code></em> </span>]
-        [<span class="optional"> min-ns-dots <em class="replaceable"><code>number</code></em> </span>]
         ; [<span class="optional">...</span>]
-    } ; </span>]
+    } [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> </span>]
+      [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> </span>]
+      [<span class="optional"> break-dnssec <em class="replaceable"><code>yes_or_no</code></em> </span>]
+      [<span class="optional"> min-ns-dots <em class="replaceable"><code>number</code></em> </span>]
+    ; </span>]
 };
 </pre>
 </div>
@@ -6222,7 +6222,7 @@ ns.domain.com.rpz-nsdname   CNAME   .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2589195"></a>Response Rate Limiting</h4></div></div></div>
+<a name="id2589264"></a>Response Rate Limiting</h4></div></div></div>
 <p>
             This feature is only available when <acronym class="acronym">BIND</acronym> 9
             is compiled with the <strong class="userinput"><code>--enable-rrl</code></strong>
@@ -8498,7 +8498,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2596674"></a>Zone File</h2></div></div></div>
+<a name="id2596605"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -8511,7 +8511,7 @@ example.com. NS ns2.example.net.
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596692"></a>Resource Records</h4></div></div></div>
+<a name="id2596624"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -10898,7 +10898,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602442"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2602510"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -11052,7 +11052,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602893"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2602962"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -11435,7 +11435,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2603984"></a>Socket I/O Statistics Counters</h4></div></div></div>
+<a name="id2604052"></a>Socket I/O Statistics Counters</h4></div></div></div>
 <p>
               Socket I/O statistics counters are defined per socket
               types, which are
@@ -11590,7 +11590,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2604357"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2604425"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
