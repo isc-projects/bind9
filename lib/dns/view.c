@@ -2187,6 +2187,12 @@ dns_view_loadnta(dns_view_t *view) {
 
 			(void) dns_ntatable_add(ntatable, ntaname,
 						forced, 0, t);
+		} else {
+			char nb[DNS_NAME_FORMATSIZE];
+			dns_name_format(ntaname, nb, sizeof(nb));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				      DNS_LOGMODULE_NTA, ISC_LOG_INFO,
+				      "ignoring expired NTA at %s", nb);
 		}
 	};
 

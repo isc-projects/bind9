@@ -1864,7 +1864,8 @@ sleep 4
 #
 # ns4 should be back up now. The NTA for bogus.example should still be
 # valid, whereas badds.example should not have been added during named
-# startup (as it had already expired).
+# startup (as it had already expired), the fact that it's ignored should
+# be logged.
 #
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.3
 lines=`wc -l < rndc.out.ns4.test$n.3`
@@ -1875,6 +1876,7 @@ grep "status: SERVFAIL" dig.out.ns4.test$n.4 > /dev/null && ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.4 > /dev/null && ret=1
 $DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.5 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.5 > /dev/null || ret=1
+grep "ignoring expired NTA at badds.example" ns4/named.run > /dev/null || ret=1
 
 # cleanup
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -remove bogus.example > rndc.out.ns4.test$n.6
