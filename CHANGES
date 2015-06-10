@@ -1,3 +1,7 @@
+4136.	[bug]		Stale statistics counters with the leading
+			'#' prefix (such as #NXDOMAIN) were not being
+			updated correctly. This	has been fixed. [RT #39141]
+
 4134.	[cleanup]	Include client-ip rules when logging the number
 			of RPZ rules of each type. [RT #39670]
 

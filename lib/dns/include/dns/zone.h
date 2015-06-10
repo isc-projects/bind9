@@ -896,7 +896,7 @@ dns_zone_getnotifysrc4(dns_zone_t *zone);
 isc_dscp_t
 dns_zone_getnotifysrc4dscp(dns_zone_t *zone);
 /*%/
- * Get the DCSP value associated with the notify source.
+ * Get the DSCP value associated with the notify source.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -912,15 +912,6 @@ dns_zone_setnotifysrc4dscp(dns_zone_t *zone, isc_dscp_t dscp);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- */
-
-isc_dscp_t
-dns_zone_getnotifysrc4dscp(dns_zone_t *zone);
-/*%/
- * Get the DSCP value associated with the notify source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
  */
 
 isc_result_t
@@ -949,7 +940,7 @@ dns_zone_getnotifysrc6(dns_zone_t *zone);
 isc_dscp_t
 dns_zone_getnotifysrc6dscp(dns_zone_t *zone);
 /*%/
- * Get the DCSP value associated with the notify source.
+ * Get the DSCP value associated with the notify source.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -965,15 +956,6 @@ dns_zone_setnotifysrc6dscp(dns_zone_t *zone, isc_dscp_t dscp);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- */
-
-isc_dscp_t
-dns_zone_getnotifysrc6dscp(dns_zone_t *zone);
-/*%/
- * Get the DSCP value associated with the notify source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
  */
 
 void
