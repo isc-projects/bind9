@@ -6273,15 +6273,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Has response policy changed out from under us?
 			 */
 			if (rpz_st->rpz_ver != client->view->rpzs->rpz_ver) {
-#ifdef WANT_QUERYTRACE
-				char txt[80];
-				sprintf(txt,
-					"query_find: RPZ settings out of date "
-					"(rpz_ver %d, expected %d)",
-					client->view->rpzs->rpz_ver,
-					rpz_st->rpz_ver);
-				CTRACE(ISC_LOG_ERROR, txt);
-#endif
+				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+					      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+					      "query_find: RPZ settings "
+					      "out of date "
+					      "(rpz_ver %d, expected %d)",
+					      client->view->rpzs->rpz_ver,
+					      rpz_st->rpz_ver);
 				QUERY_ERROR(DNS_R_SERVFAIL);
 				goto cleanup;
 			}
