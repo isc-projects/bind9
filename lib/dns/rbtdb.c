@@ -4499,6 +4499,11 @@ check_stale_rdataset(dns_rbtnode_t *node, rdatasetheader_t *header,
 		     isc_rwlocktype_t *locktype, nodelock_t *lock,
 		     rbtdb_search_t *search, rdatasetheader_t **header_prev)
 {
+
+#if !defined(ISC_RWLOCK_USEATOMIC) || !defined(DNS_RBT_USEISCREFCOUNT)
+	UNUSED(lock);
+#endif
+
 	if (header->rdh_ttl < search->now) {
 		/*
 		 * This rdataset is stale.  If no one else is using the
