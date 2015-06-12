@@ -170,6 +170,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define cache_findrdataset cache_findrdataset64
 #define cache_findzonecut cache_findzonecut64
 #define cache_zonecut_callback cache_zonecut_callback64
+#define check_stale_rdataset check_stale_rdataset64
 #define cleanup_dead_nodes cleanup_dead_nodes64
 #define cleanup_dead_nodes_callback cleanup_dead_nodes_callback64
 #define closeversion closeversion64
