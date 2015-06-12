@@ -1,3 +1,6 @@
+4137.	[bug]		rndc reconfig reports configuration errors the same
+			way rndc reload does [RT #39635]
+
 4132.	[cleanup]	dig: added +rd as a synonym for +recurse,
 			added +class as an unabbreviated alternative
 			to +cl. [RT #39686]

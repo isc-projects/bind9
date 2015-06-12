@@ -6474,25 +6474,6 @@ reload(ns_server_t *server) {
 	return (result);
 }
 
-static void
-reconfig(ns_server_t *server) {
-	isc_result_t result;
-	CHECK(loadconfig(server));
-
-	result = load_new_zones(server, ISC_FALSE);
-	if (result == ISC_R_SUCCESS)
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "any newly configured zones are now loaded");
-	else
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "loading new zones failed: %s",
-			      isc_result_totext(result));
-
- cleanup: ;
-}
-
 /*
  * Handle a reload event (from SIGHUP).
  */
@@ -6730,11 +6711,23 @@ ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
  * Act on a "reconfig" command from the command channel.
  */
 isc_result_t
-ns_server_reconfigcommand(ns_server_t *server, char *args) {
-	UNUSED(args);
+ns_server_reconfigcommand(ns_server_t *server) {
+	isc_result_t result;
 
-	reconfig(server);
-	return (ISC_R_SUCCESS);
+	CHECK(loadconfig(server));
+
+	result = load_new_zones(server, ISC_FALSE);
+	if (result == ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "any newly configured zones are now loaded");
+	else
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "loading new zones failed: %s",
+			      isc_result_totext(result));
+cleanup:
+	return (result);
 }
 
 /*
