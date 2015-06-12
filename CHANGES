@@ -1,3 +1,6 @@
+4137.	[cleanup]	rndc reconfig reports configuration errors the same
+			way rndc reload does [RT #39635]
+
 4136.	[bug]		Stale statistics counters with the leading
 			'#' prefix (such as #NXDOMAIN) were not being
 			updated correctly. This	has been fixed. [RT #39141]

@@ -411,4 +411,19 @@ grep "ISC_R_SUCCESS 0" rndc.output > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:test 'rndc reconfig' with a broken config"
+ret=0
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf reconfig > /dev/null || ret=1
+sleep 1
+mv ns4/named.conf ns4/named.conf.save
+echo "error error error" >> ns4/named.conf
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf reconfig > rndc.output 2>&1 && ret=1
+grep "rndc: 'reconfig' failed: unexpected token" rndc.output > /dev/null || ret=1
+mv ns4/named.conf.save ns4/named.conf
+sleep 1
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf reconfig > /dev/null || ret=1
+sleep 1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 exit $status

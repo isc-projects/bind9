@@ -244,7 +244,7 @@ ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t **text);
  */
 
 isc_result_t
-ns_server_reconfigcommand(ns_server_t *server, char *args);
+ns_server_reconfigcommand(ns_server_t *server);
 /*%<
  * Act on a "reconfig" command from the command channel.
  */

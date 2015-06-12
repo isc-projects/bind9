@@ -101,7 +101,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t **text) {
 	if (command_compare(command, NS_COMMAND_RELOAD)) {
 		result = ns_server_reloadcommand(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_RECONFIG)) {
-		result = ns_server_reconfigcommand(ns_g_server, command);
+		result = ns_server_reconfigcommand(ns_g_server);
 	} else if (command_compare(command, NS_COMMAND_REFRESH)) {
 		result = ns_server_refreshcommand(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_RETRANSFER)) {
