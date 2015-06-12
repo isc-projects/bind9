@@ -1,4 +1,4 @@
-4137.	[cleanup]	rndc reconfig reports configuration errors the same
+4137.	[bug]		rndc reconfig reports configuration errors the same
 			way rndc reload does [RT #39635]
 
 4136.	[bug]		Stale statistics counters with the leading
