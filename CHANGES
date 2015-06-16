@@ -1,3 +1,6 @@
+4138.	[bug]		A uninitialized value in validator.c could result
+			in a assertion failure. (CVE-2015-4620) [RT #39795]
+
 	--- 9.10.2-P1 released ---
 
 4134.	[cleanup]	Include client-ip rules when logging the number
@@ -9027,7 +9030,7 @@
 			on the responses. [RT #2454]
 
 1208.	[bug]		dns_master_load*() failed to log a error message if
-			an error was detected when parsing the ownername of
+			an error was detected when parsing the owner name of
 			a record.  [RT #2448]
 
 1207.	[bug]		libbind: getaddrinfo() could call freeaddrinfo() with
