@@ -1,3 +1,6 @@
+4138.	[bug]		A uninitialized value in validator.c could result
+			in a assertion failure. (CVE-2015-4620) [RT #39795]
+
 4137.	[bug]		rndc reconfig reports configuration errors the same
 			way rndc reload does [RT #39635]
 
@@ -18,7 +21,7 @@
 4131.	[bug]		Addressed further problems with reloading RPZ
 			zones. [RT #39649]
 
-4130.	[bug]		The compatability shim for *printf() misprinted some
+4130.	[bug]		The compatibility shim for *printf() misprinted some
 			large numbers. [RT #39586]
 
 4129.	[port]		Address API changes in OpenSSL 1.1.0. [RT #39532]
@@ -170,7 +173,7 @@
 			[RT #38056]
 
 4072.	[func]		Add a --enable-querytrace configure switch for
-			very verbose query tracelogging. (This option
+			very verbose query trace logging. (This option
 			has a negative performance impact and should be
 			used only for debugging.) [RT #37520]
 
@@ -9205,7 +9208,7 @@
 			on the responses. [RT #2454]
 
 1208.	[bug]		dns_master_load*() failed to log a error message if
-			an error was detected when parsing the ownername of
+			an error was detected when parsing the owner name of
 			a record.  [RT #2448]
 
 1207.	[bug]		libbind: getaddrinfo() could call freeaddrinfo() with
