@@ -1,3 +1,5 @@
+	--- 9.10.2-P2 released ---
+
 4138.	[bug]		A uninitialized value in validator.c could result
 			in a assertion failure. (CVE-2015-4620) [RT #39795]
 
