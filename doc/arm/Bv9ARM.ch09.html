@@ -65,10 +65,14 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
 <p>
-      This document summarizes changes since BIND 9.10.2.
+      This document summarizes changes since BIND 9.10.2:
     </p>
 <p>
-      BIND 9.10.2-P1 addresses several bugs that have been identified
+      BIND 9.10.2-P2 addresses a security issue described in
+      CVE-2015-4620.
+    </p>
+<p>
+      BIND 9.10.2-P1 addressed several bugs that have been identified
       in the BIND 9.10 implementation of response-policy zones (RPZ).
       The bugs are in code which optimizes searching through multiple
       policy zones. In some cases, they can cause RPZ to behave
@@ -77,14 +81,6 @@
       by failing to search a policy zone that should have been
       searched.  In the worst case, they can lead to assertion
       failures, terminating <span><strong class="command">named</strong></span>.
-    </p>
-<p>
-      If you are using RPZ in BIND 9.10 in a production environment,
-      and particularly if you have multiple policy zones, you should
-      upgrade to BIND 9.10.2-P1.  Otherwise, this upgrade is not urgent.
-    </p>
-<p>
-      BIND 9.10.2-P2 address a security issue described in CVE-2015-4620.
     </p>
 </div>
 <div class="sect2" lang="en">
