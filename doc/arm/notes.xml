@@ -20,11 +20,10 @@
   <sect2 id="relnotes_intro">
     <title>Introduction</title>
     <para>
-      This document summarizes changes since the last production release
-      of BIND on the corresponding major release branch.
+      This document summarizes changes since BIND 9.9.7.
     </para>
     <para>
-      BIND 9.9.7-P1 address a security issue described in CVE-2015-4620.
+      BIND 9.9.7-P1 addresses a security issue described in CVE-2015-4620.
     </para>
   </sect2>
   <sect2 id="relnotes_download">
