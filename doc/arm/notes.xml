@@ -23,6 +23,9 @@
       This document summarizes changes since the last production release
       of BIND on the corresponding major release branch.
     </para>
+    <para>
+      BIND 9.9.7-P1 address a security issue described in CVE-2015-4620.
+    </para>
   </sect2>
   <sect2 id="relnotes_download">
     <title>Download</title>
