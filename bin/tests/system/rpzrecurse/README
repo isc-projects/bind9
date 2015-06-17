@@ -1,3 +1,6 @@
+Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
 These tests check RPZ recursion behavior (including skipping
 recursion when appropriate).
 

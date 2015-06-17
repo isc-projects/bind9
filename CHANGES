@@ -6,7 +6,7 @@
 	--- 9.10.2-P1 released ---
 
 4134.	[cleanup]	Include client-ip rules when logging the number
-                        of RPZ rules of each type. [RT #39670]
+			of RPZ rules of each type. [RT #39670]
 
 4131.	[bug]		Addressed further problems with reloading RPZ
 			zones. [RT #39649]
