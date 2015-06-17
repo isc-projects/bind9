@@ -55,9 +55,15 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None
+	  On servers configured to perform DNSSEC validation an
+	  assertion failure could be triggered on answers from
+	  a specially configured server.
 	</para>
-      </listitem>
+        <para>
+	  This flaw was discovered by Breno Silveira Soares, and is
+	  disclosed in CVE-2015-4620. [RT #39795]
+        </para>
+      </listitem> 
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_features">
