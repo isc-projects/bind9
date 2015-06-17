@@ -40,7 +40,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  On servers configured to perform DNSSEC validation an
+	  On servers configured to perform DNSSEC validation, an
 	  assertion failure could be triggered on answers from
 	  a specially configured server.
 	</para>
