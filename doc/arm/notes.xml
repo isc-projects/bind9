@@ -20,10 +20,14 @@
   <sect2 id="relnotes_intro">
     <title>Introduction</title>
     <para>
-      This document summarizes changes since BIND 9.10.2.
+      This document summarizes changes since BIND 9.10.2:
     </para>
     <para>
-      BIND 9.10.2-P1 addresses several bugs that have been identified
+      BIND 9.10.2-P2 addresses a security issue described in
+      CVE-2015-4620.
+    </para>
+    <para>
+      BIND 9.10.2-P1 addressed several bugs that have been identified
       in the BIND 9.10 implementation of response-policy zones (RPZ).
       The bugs are in code which optimizes searching through multiple
       policy zones. In some cases, they can cause RPZ to behave
@@ -32,14 +36,6 @@
       by failing to search a policy zone that should have been
       searched.  In the worst case, they can lead to assertion
       failures, terminating <command>named</command>.
-    </para>
-    <para>
-      If you are using RPZ in BIND 9.10 in a production environment,
-      and particularly if you have multiple policy zones, you should
-      upgrade to BIND 9.10.2-P1.  Otherwise, this upgrade is not urgent.
-    </para>
-    <para>
-      BIND 9.10.2-P2 address a security issue described in CVE-2015-4620.
     </para>
   </sect2>
   <sect2 id="relnotes_download">
