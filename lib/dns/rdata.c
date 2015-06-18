@@ -313,15 +313,15 @@ name_duporclone(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
 static inline void *
 mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
-	void *new;
+	void *copy;
 
 	if (mctx == NULL)
 		return (source);
-	new = isc_mem_allocate(mctx, length);
-	if (new != NULL)
-		memmove(new, source, length);
+	copy = isc_mem_allocate(mctx, length);
+	if (copy != NULL)
+		memmove(copy, source, length);
 
-	return (new);
+	return (copy);
 }
 
 static const char hexdigits[] = "0123456789abcdef";
@@ -1579,7 +1579,7 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 
 static int
 hexvalue(char value) {
-	char *s;
+	const char *s;
 	unsigned char c;
 
 	c = (unsigned char)value;
@@ -1595,7 +1595,7 @@ hexvalue(char value) {
 
 static int
 decvalue(char value) {
-	char *s;
+	const char *s;
 
 	/*
 	 * isascii() is valid for full range of int values, no need to
@@ -1653,7 +1653,7 @@ static isc_result_t	byte_btoa(int c, isc_buffer_t *, struct state *state);
  */
 static isc_result_t
 byte_atob(int c, isc_buffer_t *target, struct state *state) {
-	char *s;
+	const char *s;
 	if (c == 'z') {
 		if (bcount != 0)
 			return(DNS_R_SYNTAX);
