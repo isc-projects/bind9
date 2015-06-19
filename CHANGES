@@ -1,3 +1,5 @@
+4139.	[doc]		fix rpz-client-ip documentation [RT #39783]
+
 4138.	[bug]		An uninitialized value in validator.c could result
 			in an assertion failure. (CVE-2015-4620) [RT #39795]
 
