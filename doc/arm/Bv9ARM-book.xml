@@ -9634,7 +9634,7 @@ deny-answer-aliases { "example.net"; };
 		    policy zone origin name
 		    and encode an address or address block.
 		    IPv4 addresses are represented as
-		    <userinput>prefixlength.B4.B3.B2.B1.rpz-ip</userinput>.
+		    <userinput>prefixlength.B4.B3.B2.B1.rpz-client-ip</userinput>.
 		    The IPv4 prefix length must be between 1 and 32.
 		    All four bytes, B4, B3, B2, and B1, must be present.
 		    B4 is the decimal value of the least significant byte of the
@@ -9644,16 +9644,18 @@ deny-answer-aliases { "example.net"; };
 		  <para>
 		    IPv6 addresses are encoded in a format similar
 		    to the standard IPv6 text representation,
-		    <userinput>prefixlength.W8.W7.W6.W5.W4.W3.W2.W1.rpz-ip</userinput>.
+		    <userinput>prefixlength.W8.W7.W6.W5.W4.W3.W2.W1.rpz-client-ip</userinput>.
 		    Each of W8,...,W1 is a one to four digit hexadecimal number
 		    representing 16 bits of the IPv6 address as in the standard 
-		    text representation of IPv6 addresses,
-		    but reversed as in IN-ADDR.ARPA.
+		    text representation of IPv6 addresses, but reversed as in
+		    IP6.ARPA. (Note that this representation of IPv6
+		    address is different from IP6.ARPA where each hex
+		    digit occupies a label.)
 		    All 8 words must be present except when one set of consecutive
 		    zero words is replaced with <userinput>.zz.</userinput>
 		    analogous to double colons (::) in standard IPv6 text
 		    encodings.
-		    The IPv6 prefix length must be between 64 and 128.
+		    The IPv6 prefix length must be between 1 and 128.
 		  </para>
 		</listitem>
 	      </varlistentry>
