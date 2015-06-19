@@ -47,6 +47,17 @@
 <div class="itemizedlist"><ul type="disc">
 <li>
 <p>
+	  On servers configured to perform DNSSEC validation, an
+	  assertion failure could be triggered on answers from
+	  a specially configured server.
+	</p>
+<p>
+	  This flaw was discovered by Breno Silveira Soares, and is
+	  disclosed in CVE-2015-4620. [RT #39795]
+        </p>
+</li>
+<li>
+<p>
 	  On servers configured to perform DNSSEC validation using
 	  managed trust anchors (i.e., keys configured explicitly
 	  via <span><strong class="command">managed-keys</strong></span>, or implicitly 
