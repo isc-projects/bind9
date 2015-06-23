@@ -23,6 +23,7 @@ test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 
 $SHELL ../genzone.sh 1 > ns1/master.db
 $SHELL ../genzone.sh 1 > ns1/duplicate.db
+cp bigserial.db ns1/
 cd ns1
 touch master.db.signed
 echo '$INCLUDE "master.db.signed"' >> master.db

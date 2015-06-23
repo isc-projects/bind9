@@ -9598,15 +9598,15 @@ ns_server_zonestatus(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 	/* Serial number */
 	serial = dns_zone_getserial(hasraw ? raw : zone);
-	snprintf(serbuf, sizeof(serbuf), "%d", serial);
+	snprintf(serbuf, sizeof(serbuf), "%u", serial);
 	if (hasraw) {
 		signed_serial = dns_zone_getserial(zone);
-		snprintf(sserbuf, sizeof(sserbuf), "%d", signed_serial);
+		snprintf(sserbuf, sizeof(sserbuf), "%u", signed_serial);
 	}
 
 	/* Database node count */
 	nodes = dns_db_nodecount(hasraw ? rawdb : db);
-	snprintf(nodebuf, sizeof(nodebuf), "%d", nodes);
+	snprintf(nodebuf, sizeof(nodebuf), "%u", nodes);
 
 	/* Security */
 	secure = dns_db_issecure(db);

@@ -171,7 +171,7 @@ done
 checkfor() {
 	grep "$1" $2 > /dev/null || {
 		ret=1;
-		echo "I: missing '$1' from '$2'"
+		echo "I: missing string '$1' from '$2'"
 	}
 }
 checkfor "name: master.example" rndc.out.master
@@ -243,6 +243,13 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus duplicate.example i
 checkfor "name: duplicate.example" rndc.out.duplicate
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus nosuchzone.example > rndc.out.duplicate 2>&1
 checkfor "no matching zone 'nosuchzone.example' in any view" rndc.out.duplicate
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I: checking 'rdnc zonestatus' with big serial value"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus bigserial.example > rndc.out.bigserial 2>&1
+checkfor "serial: 3003113544" rndc.out.bigserial
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

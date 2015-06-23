@@ -1,3 +1,7 @@
+4141.	[bug]		A formatting bug caused rndc zonestatus to print
+			negative numbers for large serial values. This has
+			now been fixed. [RT #39854]
+
 4139.	[doc]		Fix rpz-client-ip documentation. [RT #39783]
 
 4138.	[bug]		An uninitialized value in validator.c could result
