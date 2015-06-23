@@ -1,4 +1,4 @@
-4140.	[bug]		A formatting bug caused rndc showzone to print
+4141.	[bug]		A formatting bug caused rndc showzone to print
 			negative numbers for large serial values. This has
 			now been fixed. [RT #39854]
 
