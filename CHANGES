@@ -1,8 +1,8 @@
 4138.	[bug]		An uninitialized value in validator.c could result
 			in an assertion failure. (CVE-2015-4620) [RT #39795]
 
-4137.	[bug]		rndc reconfig reports configuration errors the same
-			way rndc reload does [RT #39635]
+4137.	[bug]		Make rndc reconfig report configuration errors the
+			same way rndc reload does. [RT #39635]
 
 4132.	[cleanup]	dig: added +rd as a synonym for +recurse,
 			added +class as an unabbreviated alternative
