@@ -9729,11 +9729,6 @@ ns_server_delzone(ns_server_t *server, char *args, isc_buffer_t **text) {
 		dns_zone_unload(zone);
 	}
 
-	/* Remove the zone from the new_zone_file if applicable */
-	added = dns_zone_getadded(zone);
-	if (added && view->new_zone_file != NULL)
-		CHECK(nzf_remove(view->new_zone_file, view->name, zonename));
-
 	/* Clean up stub / slave zone files */
 	dns_zone_getraw(zone, &raw);
 	mayberaw = (raw != NULL) ? raw : zone;

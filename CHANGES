@@ -1,3 +1,6 @@
+4140.	[cleanup]	Remove redundant nzf_remove() call during delzone.
+			[RT #39844]
+
 4139.	[doc]		fix rpz-client-ip documentation [RT #39783]
 
 4138.	[bug]		An uninitialized value in validator.c could result
