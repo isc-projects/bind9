@@ -1938,14 +1938,6 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_addzoneconf = {
 	&cfg_rep_map, addzoneconf_clausesets
 };
 
-/*
- * XXXMPA Remove in 9.11.  Backwards API compat only.
- */
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_newzones = {
-	"newzones", cfg_parse_mapbody, cfg_print_mapbody, cfg_doc_mapbody,
-	&cfg_rep_map, addzoneconf_clausesets
-};
-
 static isc_result_t
 parse_unitstring(char *str, isc_resourcevalue_t *valuep) {
 	char *endp;
