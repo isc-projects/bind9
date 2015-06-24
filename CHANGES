@@ -1,3 +1,6 @@
+4143.	[bug]		serial-query-rate was not effective for notify.
+			[RT #39858]
+
 4142.	[bug]		rndc addzone with view specified saved NZF config
 			that could not be read back by named. This has now
 			been fixed. [RT #39845]

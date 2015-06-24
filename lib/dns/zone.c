@@ -15575,8 +15575,8 @@ dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
 	setrl(zmgr->refreshrl, &zmgr->serialqueryrate, value);
 
 	/* Seperately controlled in BIND 9.11.x */
-	setrl(zmgr->notifyrl, &zmgr->notifyrate, 20);
-	setrl(zmgr->startupnotifyrl, &zmgr->startupnotifyrate, 20);
+	setrl(zmgr->notifyrl, &zmgr->notifyrate, value);
+	setrl(zmgr->startupnotifyrl, &zmgr->startupnotifyrate, value);
 
 	/* XXXMPA seperate out once we have the code to support this. */
 	setrl(zmgr->startuprefreshrl, &zmgr->startupserialqueryrate, value);

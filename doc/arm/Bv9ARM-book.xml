@@ -7522,7 +7522,7 @@ avoid-v6-udp-ports {};
 		</para>
 		<para>
 		  In addition to controlling the rate SOA refresh
-		  queries are issued at
+		  queries are issued at,
 		  <command>serial-query-rate</command> also controls
 		  the rate at which NOTIFY messages are sent from
 		  both master and slave zones.
