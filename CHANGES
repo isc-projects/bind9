@@ -1,3 +1,6 @@
+4144.	[func]		Add statistics counters for nxdomain redirections.
+			[RT #39790]
+
 4143.	[placeholder]
 
 4142.	[bug]		rndc addzone with view specified saved NZF config

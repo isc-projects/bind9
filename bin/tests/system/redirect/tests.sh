@@ -55,6 +55,20 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking A zone redirect updates statistics ($n)"
+ret=0
+rm ns2/named.stats 2>/dev/null
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stats || ret=1
+PRE=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p"  ns2/named.stats`
+$DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.2 a > dig.out.ns2.test$n || ret=1
+rm ns2/named.stats 2>/dev/null
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stats || ret=1
+POST=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p"  ns2/named.stats`
+if [ `expr $POST - $PRE` != 1 ]; then ret=1; fi
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking AAAA zone redirect works for nonexist ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.2 aaaa > dig.out.ns2.test$n || ret=1
@@ -374,9 +388,25 @@ status=`expr $status + $ret`
 
 echo "I:checking AAAA nxdomain-redirect works for nonexist ($n)"
 ret=0
+rm ns4/named.stats 2>/dev/null
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 stats || ret=1
+PRE_RED=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p"  ns4/named.stats`
+PRE_SUC=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected and resulted in a successful remote lookup$/\1/p"  ns4/named.stats`
 $DIG $DIGOPTS nonexist. @10.53.0.4 -b 10.53.0.2 aaaa > dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "nonexist.	.*2001:ffff:ffff::6464:6401" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking AAAA nxdomain-redirect updates statistics ($n)"
+ret=0
+rm ns4/named.stats 2>/dev/null
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 stats || ret=1
+POST_RED=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p"  ns4/named.stats`
+POST_SUC=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected and resulted in a successful remote lookup$/\1/p"  ns4/named.stats`
+if [ `expr $POST_RED - $PRE_RED` != 1 ]; then ret=1; fi
+if [ `expr $POST_SUC - $PRE_SUC` != 1 ]; then ret=1; fi
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

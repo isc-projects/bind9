@@ -7646,8 +7646,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (!empty_wild) {
 			tresult = redirect(client, fname, rdataset, &node,
 					   &db, &version, type);
-			if (tresult == ISC_R_SUCCESS)
+			if (tresult == ISC_R_SUCCESS) {
+				inc_stats(client,
+					dns_nsstatscounter_nxdomainredirect);
 				break;
+			}
 			if (tresult == DNS_R_NXRRSET) {
 				redirected = ISC_TRUE;
 				goto iszone_nxrrset;
@@ -7660,6 +7663,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			tresult = redirect2(client, fname, rdataset, &node,
 					    &db, &version, type);
 			if (tresult == DNS_R_CONTINUE) {
+				inc_stats(client,
+				          dns_nsstatscounter_nxdomainredirect_rlookup);
 				client->query.redirect.qtype = qtype;
 				client->query.redirect.rdataset = rdataset;
 				client->query.redirect.sigrdataset =
@@ -7680,8 +7685,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				sigrdataset = NULL;
 				goto cleanup;
 			}
-			if (tresult == ISC_R_SUCCESS)
+			if (tresult == ISC_R_SUCCESS) {
+				inc_stats(client,
+					  dns_nsstatscounter_nxdomainredirect);
 				break;
+			}
 			if (tresult == DNS_R_NXRRSET) {
 				redirected = ISC_TRUE;
 				goto iszone_nxrrset;
@@ -7756,8 +7764,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	case DNS_R_NCACHENXDOMAIN:
 		tresult = redirect(client, fname, rdataset, &node,
 				   &db, &version, type);
-		if (tresult == ISC_R_SUCCESS)
+		if (tresult == ISC_R_SUCCESS) {
+			inc_stats(client,
+				  dns_nsstatscounter_nxdomainredirect);
 			break;
+		}
 		if (tresult == DNS_R_NXRRSET) {
 			redirected = ISC_TRUE;
 			is_zone = ISC_TRUE;
@@ -7771,6 +7782,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		tresult = redirect2(client, fname, rdataset, &node,
 				    &db, &version, type);
 		if (tresult == DNS_R_CONTINUE) {
+			inc_stats(client,
+			          dns_nsstatscounter_nxdomainredirect_rlookup);
 			client->query.redirect.db = db;
 			client->query.redirect.node = node;
 			client->query.redirect.zone = zone;
@@ -7787,8 +7800,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			sigrdataset = NULL;
 			goto cleanup;
 		}
-		if (tresult == ISC_R_SUCCESS)
+		if (tresult == ISC_R_SUCCESS) {
+			inc_stats(client,
+				  dns_nsstatscounter_nxdomainredirect);
 			break;
+		}
 		if (tresult == DNS_R_NXRRSET) {
 			redirected = ISC_TRUE;
 			is_zone = ISC_TRUE;

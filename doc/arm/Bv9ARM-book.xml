@@ -15448,6 +15448,33 @@ HOST-127.EXAMPLE. MX 0 .
 		  </row>
 		  <row rowsep="0">
 		    <entry colname="1">
+		      <para><command>QryNXRedir</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries resulted in NXDOMAIN that were redirected.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryNXRedirRLookup</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries resulted in NXDOMAIN that were redirected
+			and resulted in a successful remote lookup.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
 		      <para><command>XfrReqDone</command></para>
 		    </entry>
 		    <entry colname="2">
