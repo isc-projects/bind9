@@ -7664,7 +7664,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					    &db, &version, type);
 			if (tresult == DNS_R_CONTINUE) {
 				inc_stats(client,
-				          dns_nsstatscounter_nxdomainredirect_rlookup);
+					  dns_nsstatscounter_nxdomainredirect_rlookup);
 				client->query.redirect.qtype = qtype;
 				client->query.redirect.rdataset = rdataset;
 				client->query.redirect.sigrdataset =
@@ -7783,7 +7783,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				    &db, &version, type);
 		if (tresult == DNS_R_CONTINUE) {
 			inc_stats(client,
-			          dns_nsstatscounter_nxdomainredirect_rlookup);
+				  dns_nsstatscounter_nxdomainredirect_rlookup);
 			client->query.redirect.db = db;
 			client->query.redirect.node = node;
 			client->query.redirect.zone = zone;

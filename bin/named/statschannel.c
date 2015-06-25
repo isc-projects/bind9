@@ -239,12 +239,12 @@ init_desc(void) {
 #endif
 	SET_NSSTATDESC(ecsopt, "EDNS client subnet option recieved", "ECSOpt");
 	SET_NSSTATDESC(nxdomainredirect,
-	        "queries resulted in NXDOMAIN that were redirected",
-                "QryNXRedir");
+		"queries resulted in NXDOMAIN that were redirected",
+		"QryNXRedir");
 	SET_NSSTATDESC(nxdomainredirect_rlookup,
-	        "queries resulted in NXDOMAIN that were redirected and "
-	        "resulted in a successful remote lookup",
-	        "QryNXRedirRLookup");
+		"queries resulted in NXDOMAIN that were redirected and "
+		"resulted in a successful remote lookup",
+		"QryNXRedirRLookup");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */
