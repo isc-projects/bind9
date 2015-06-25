@@ -1,3 +1,6 @@
+4146.	[bug]		Address reference leak that could prevent a clean
+			shutdown. [RT #37125]
+
 4145.	[bug]		Not all unassociated adb entries where being printed.
 			[RT #37125]
 
