@@ -1693,6 +1693,11 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	if (query->dispatch != NULL)
 		dns_dispatch_detach(&query->dispatch);
 
+	LOCK(&res->buckets[fctx->bucketnum].lock);
+	INSIST(fctx->references > 1);
+	fctx->references--;
+	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+
  cleanup_query:
 	if (query->connects == 0) {
 		query->magic = 0;
