@@ -1,3 +1,6 @@
+4145.	[bug]		Not all unassociated adb entries where being printed.
+			[RT #37125]
+
 4144.	[func]		Add statistics counters for nxdomain redirections.
 			[RT #39790]
 

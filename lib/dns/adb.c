@@ -239,6 +239,7 @@ struct dns_adbentry {
 
 	int                             lock_bucket;
 	unsigned int                    refcnt;
+	unsigned int                    nh;
 
 	unsigned int                    flags;
 	unsigned int                    srtt;
@@ -926,6 +927,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 			entry->sockaddr = sockaddr;
 			entry->refcnt = 1;
+			entry->nh = 1;
 
 			nh->entry = entry;
 
@@ -938,6 +940,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 					break;
 			if (anh == NULL) {
 				foundentry->refcnt++;
+				foundentry->nh++;
 				nh->entry = foundentry;
 			} else
 				free_adbnamehook(adb, &nh);
@@ -1334,6 +1337,7 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
 				LOCK(&adb->entrylocks[addr_bucket]);
 			}
 
+			entry->nh--;
 			result = dec_entry_refcnt(adb, overmem, entry,
 						  ISC_FALSE);
 		}
@@ -1803,6 +1807,7 @@ new_adbentry(dns_adb_t *adb) {
 	e->magic = DNS_ADBENTRY_MAGIC;
 	e->lock_bucket = DNS_ADB_INVALIDBUCKET;
 	e->refcnt = 0;
+	e->nh = 0;
 	e->flags = 0;
 	e->udpsize = 0;
 	e->edns = 0;
@@ -3433,7 +3438,6 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug, isc_stdtime_t now) {
 				print_fetch_list(f, name);
 			if (debug)
 				print_find_list(f, name);
-
 		}
 	}
 
@@ -3442,7 +3446,7 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug, isc_stdtime_t now) {
 	for (i = 0; i < adb->nentries; i++) {
 		entry = ISC_LIST_HEAD(adb->entries[i]);
 		while (entry != NULL) {
-			if (entry->refcnt == 0)
+			if (entry->nh == 0)
 				dump_entry(f, entry, debug, now);
 			entry = ISC_LIST_NEXT(entry, plink);
 		}
