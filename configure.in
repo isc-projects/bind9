@@ -4025,6 +4025,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/filter-aaaa/Makefile
 	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/lwresd/Makefile
+	bin/tests/system/statistics/Makefile
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/rrl/Makefile
 	bin/tests/system/rsabigexponent/Makefile
