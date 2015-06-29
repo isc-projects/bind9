@@ -1303,7 +1303,7 @@
 ./bin/tests/system/filter-aaaa/ns4/unsigned.db	ZONE	2010,2012
 ./bin/tests/system/filter-aaaa/prereq.sh	SH	2010,2012,2014
 ./bin/tests/system/filter-aaaa/setup.sh		SH	2010,2012,2014
-./bin/tests/system/filter-aaaa/tests.sh		SH	2010,2012
+./bin/tests/system/filter-aaaa/tests.sh		SH	2010,2012,2015
 ./bin/tests/system/formerr/clean.sh		SH	2013
 ./bin/tests/system/formerr/formerr.pl		PERL	2013,2014
 ./bin/tests/system/formerr/nametoolong		X	2013
@@ -1881,9 +1881,10 @@
 ./bin/tests/system/staticstub/setup.sh		SH	2010,2012,2014
 ./bin/tests/system/staticstub/tests.sh		SH	2010,2011,2012,2013,2015
 ./bin/tests/system/statistics/ans4/ans.pl	PERL	2012
-./bin/tests/system/statistics/clean.sh		SH	2012
-./bin/tests/system/statistics/ns1/named.conf	CONF-C	2012
+./bin/tests/system/statistics/clean.sh		SH	2012,2015
+./bin/tests/system/statistics/ns1/named.conf	CONF-C	2012,2015
 ./bin/tests/system/statistics/ns1/root.db	ZONE	2012
+./bin/tests/system/statistics/ns1/zone.db	ZONE	2015
 ./bin/tests/system/statistics/ns2/example.db	ZONE	2012
 ./bin/tests/system/statistics/ns2/internal.db	ZONE	2012
 ./bin/tests/system/statistics/ns2/named.conf	CONF-C	2012
@@ -1891,7 +1892,7 @@
 ./bin/tests/system/statistics/ns3/named.conf	CONF-C	2012,2013
 ./bin/tests/system/statistics/ns3/root.hint	ZONE	2012
 ./bin/tests/system/statistics/prereq.sh		SH	2012,2014
-./bin/tests/system/statistics/tests.sh		SH	2012
+./bin/tests/system/statistics/tests.sh		SH	2012,2015
 ./bin/tests/system/stop.pl			SH	2001,2004,2005,2006,2007,2012
 ./bin/tests/system/stop.sh			SH	2000,2001,2004,2007,2012
 ./bin/tests/system/stress/clean.sh		SH	2000,2001,2004,2007,2012
@@ -3371,7 +3372,7 @@
 ./lib/irs/context.c				C	2009,2014
 ./lib/irs/dnsconf.c				C	2009,2012
 ./lib/irs/gai_strerror.c			C	2009,2014
-./lib/irs/getaddrinfo.c				C	2009,2012,2013,2014
+./lib/irs/getaddrinfo.c				C	2009,2012,2013,2014,2015
 ./lib/irs/getnameinfo.c				C	2009,2011,2012,2013,2014
 ./lib/irs/include/Makefile.in			MAKE	2009,2012
 ./lib/irs/include/irs/Makefile.in		MAKE	2009,2012,2014
