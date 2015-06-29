@@ -1836,9 +1836,19 @@ wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
  * Decide whether to not answer with an AAAA record and its RRSIG
  */
 static inline isc_boolean_t
-norender_rdataset(const dns_rdataset_t *rdataset, unsigned int options)
+norender_rdataset(const dns_rdataset_t *rdataset, unsigned int options,
+		  dns_section_t sectionid)
 {
+	if (sectionid == DNS_SECTION_QUESTION)
+		return (ISC_FALSE);
+
 	switch (rdataset->type) {
+	case dns_rdatatype_ns:
+		if ((options & DNS_MESSAGERENDER_FILTER_AAAA) == 0 ||
+		    sectionid != DNS_SECTION_AUTHORITY)
+			return (ISC_FALSE);
+		break;
+
 	case dns_rdatatype_aaaa:
 		if ((options & DNS_MESSAGERENDER_FILTER_AAAA) == 0)
 			return (ISC_FALSE);
@@ -1846,7 +1856,11 @@ norender_rdataset(const dns_rdataset_t *rdataset, unsigned int options)
 
 	case dns_rdatatype_rrsig:
 		if ((options & DNS_MESSAGERENDER_FILTER_AAAA) == 0 ||
-		    rdataset->covers != dns_rdatatype_aaaa)
+		    (rdataset->covers != dns_rdatatype_ns &&
+		     rdataset->covers != dns_rdatatype_aaaa))
+			return (ISC_FALSE);
+		if ((rdataset->covers == dns_rdatatype_ns) &&
+		    (sectionid != DNS_SECTION_AUTHORITY))
 			return (ISC_FALSE);
 		break;
 
@@ -1994,8 +2008,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				 * not doing DNSSEC or are breaking DNSSEC.
 				 * Say so in the AD bit if we break DNSSEC.
 				 */
-				if (norender_rdataset(rdataset, options) &&
-				    sectionid != DNS_SECTION_QUESTION) {
+				if (norender_rdataset(rdataset, options, sectionid)) {
 					if (sectionid == DNS_SECTION_ANSWER ||
 					    sectionid == DNS_SECTION_AUTHORITY)
 					    msg->flags &= ~DNS_MESSAGEFLAG_AD;
