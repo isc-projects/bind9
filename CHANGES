@@ -1,3 +1,6 @@
+4149.	[bug]		Fixed a race condition in the getaddrinfo()
+			implementation in libirs. [RT #39899]
+
 4147.	[bug]		Filter-aaaa / filter-aaaa-on-v4 / filter-aaaa-on-v6
 			was returning referrals rather than nodata responses
 			when the AAAA records were filtered.  [RT #39843]
