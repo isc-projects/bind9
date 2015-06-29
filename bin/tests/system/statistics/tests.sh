@@ -24,6 +24,8 @@ DIGCMD="$DIG $DIGOPTS -p 5300"
 RNDCCMD="$RNDC -p 9953 -c ../common/rndc.conf"
 
 status=0
+t=0
+
 ret=0
 echo "I:fetching a.example from ns2's initial configuration"
 $DIGCMD +noauth a.example. @10.53.0.2 any > dig.out.ns2.1 || ret=1
@@ -100,6 +102,18 @@ ret=0
 echo "I: verifying bucket size output"
 grep "bucket size" ns3/named.stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+ret=0
+t=`expr $t + 1`
+echo "I:checking that zones with slash are properly shown in XML output (${t})"
+if [ -x ${CURL} -a -x ${XMLLINT} ] ; then
+    ${CURL} http://10.53.0.1:8053/xml/v3/zones > curl.out.${t} 2>/dev/null || ret=1
+    ${XMLLINT} --xpath '//statistics/views/view/zones/zone[@name="32/1.0.0.127-in-addr.example"]' curl.out.${t} > /dev/null 2>&1 || ret=1
+else
+  echo "I:skipping test as curl and/or xmllint were not found"
+fi
+if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:exit status: $status"

@@ -3981,6 +3981,13 @@ AC_PATH_PROG(DOXYGEN, doxygen, doxygen)
 AC_SUBST(DOXYGEN)
 
 #
+# Look for curl
+#
+
+AC_PATH_PROG(CURL, curl, curl)
+AC_SUBST(CURL)
+
+#
 # Subroutine for searching for an ordinary file (e.g., a stylesheet)
 # in a number of directories:
 #

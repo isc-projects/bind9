@@ -1,3 +1,6 @@
+4148.	[bug]		Fix a bug when printing zone names with '/' character
+			in XML and JSON statistics output. [RT #39873]
+
 4147.	[bug]		Filter-aaaa / filter-aaaa-on-v4 / filter-aaaa-on-v6
 			was returning referrals rather than nodata responses
 			when the AAAA records were filtered.  [RT #39843]
