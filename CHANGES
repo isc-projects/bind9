@@ -1,3 +1,9 @@
+4149.	[bug]		Fixed a race condition in the getaddrinfo()
+			implementation in libirs, which caused the delv
+			utility to crash with an assertion failure when using
+			the '@server' syntax with a hostname argument.
+			[RT #39899]
+
 4148.	[bug]		Fix a bug when printing zone names with '/' character
 			in XML and JSON statistics output. [RT #39873]
 
