@@ -12998,6 +12998,13 @@ dns_zone_name(dns_zone_t *zone, char *buf, size_t length) {
 	zone_namerd_tostr(zone, buf, length);
 }
 
+void
+dns_zone_nameonly(dns_zone_t *zone, char *buf, size_t length) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(buf != NULL);
+	zone_name_tostr(zone, buf, length);
+}
+
 static void
 notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 	va_list ap;

@@ -1099,6 +1099,7 @@ dns_zone_mkey_hour
 dns_zone_mkey_day
 dns_zone_mkey_month
 dns_zone_name
+dns_zone_nameonly
 dns_zone_next
 dns_zone_notify
 dns_zone_notifyreceive

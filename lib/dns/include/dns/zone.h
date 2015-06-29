@@ -1936,6 +1936,16 @@ dns_zone_name(dns_zone_t *zone, char *buf, size_t len);
  *\li	'buf' to be non NULL.
  */
 
+void
+dns_zone_nameonly(dns_zone_t *zone, char *buf, size_t len);
+/*%<
+ * Return the name of the zone only.
+ *
+ * Requires:
+ *\li	'zone' to be valid.
+ *\li	'buf' to be non NULL.
+ */
+
 isc_result_t
 dns_zone_checknames(dns_zone_t *zone, dns_name_t *name, dns_rdata_t *rdata);
 /*%<

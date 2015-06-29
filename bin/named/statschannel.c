@@ -907,7 +907,6 @@ static isc_result_t
 zone_xmlrender(dns_zone_t *zone, void *arg) {
 	isc_result_t result;
 	char buf[1024 + 32];	/* sufficiently large for zone name and class */
-	char *zone_name_only = NULL;
 	dns_rdataclass_t rdclass;
 	isc_uint32_t serial;
 	xmlTextWriterPtr writer = arg;
@@ -926,13 +925,11 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	dumparg.arg = writer;
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "zone"));
-	dns_zone_name(zone, buf, sizeof(buf));
-	zone_name_only = strtok(buf, "/");
-	if(zone_name_only == NULL)
-		zone_name_only = buf;
 
+	dns_zone_nameonly(zone, buf, sizeof(buf));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "name",
-					 ISC_XMLCHAR zone_name_only));
+					 ISC_XMLCHAR buf));
+
 	rdclass = dns_zone_getclass(zone);
 	dns_rdataclass_format(rdclass, buf, sizeof(buf));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "rdataclass",
@@ -1467,10 +1464,8 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	if (statlevel == dns_zonestat_none)
 		return (ISC_R_SUCCESS);
 
-	dns_zone_name(zone, buf, sizeof(buf));
-	zone_name_only = strtok(buf, "/");
-	if(zone_name_only == NULL)
-		zone_name_only = buf;
+	dns_zone_nameonly(zone, buf, sizeof(buf));
+	zone_name_only = buf;
 
 	rdclass = dns_zone_getclass(zone);
 	dns_rdataclass_format(rdclass, class, sizeof(class));

@@ -80,6 +80,12 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 # Use the CONFIG_SHELL detected by configure for tests
 SHELL=@SHELL@
 
+# CURL will be empty if no program was found by configure
+CURL=@CURL@
+
+# XMLLINT will be empty if no program was found by configure
+XMLLINT=@XMLLINT@
+
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
 if test -n "$PERL"
