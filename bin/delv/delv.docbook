@@ -84,7 +84,7 @@
     <title>DESCRIPTION</title>
     <para><command>delv</command>
       (Domain Entity Lookup &amp; Validation) is a tool for sending
-      DNS queries and validating the results, using the the same internal
+      DNS queries and validating the results, using the same internal
       resolver and validator logic as <command>named</command>.
     </para>
     <para>
@@ -478,7 +478,7 @@
 	    </para>
 	    <para>
 	      This is equivalent to setting the debug level to 10
-	      for the the "packets" module of the "resolver" logging
+	      for the "packets" module of the "resolver" logging
 	      category. Setting the systemwide debug level to 10 using
 	      the <option>-d</option> option will produce the same output
 	      (but will affect other logging categories as well).
@@ -496,7 +496,7 @@
 	    </para>
 	    <para>
 	      This is equivalent to setting the debug level to 3
-	      for the the "validator" module of the "dnssec" logging
+	      for the "validator" module of the "dnssec" logging
 	      category. Setting the systemwide debug level to 3 using
 	      the <option>-d</option> option will produce the same output
 	      (but will affect other logging categories as well).
