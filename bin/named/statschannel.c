@@ -545,7 +545,7 @@ dump_counters(isc_stats_t *stats, statsformat_t type, void *arg,
 						       "name"));
 			TRY0(xmlTextWriterWriteString(writer,
 						      ISC_XMLCHAR
-						      desc[index]));
+						      desc[i]));
 			TRY0(xmlTextWriterEndElement(writer));
 			/* </name> */
 
@@ -569,7 +569,7 @@ dump_counters(isc_stats_t *stats, statsformat_t type, void *arg,
 							 ISC_XMLCHAR
 							 "name",
 							 ISC_XMLCHAR
-							 desc[index]));
+							 desc[i]));
 			TRY0(xmlTextWriterWriteFormatString(writer,
 				"%" ISC_PRINT_QUADFORMAT "u", value));
 			TRY0(xmlTextWriterEndElement(writer));
