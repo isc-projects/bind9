@@ -76,10 +76,10 @@
 ./bin/confgen/win32/rndcconfgen.vcxproj.user	X	2013
 ./bin/delv/.gitignore				X	2014
 ./bin/delv/Makefile.in				MAKE	2014
-./bin/delv/delv.1				MAN	2014
+./bin/delv/delv.1				MAN	2014,2015
 ./bin/delv/delv.c				C	2014,2015
 ./bin/delv/delv.docbook				SGML	2014,2015
-./bin/delv/delv.html				HTML	2014
+./bin/delv/delv.html				HTML	2014,2015
 ./bin/delv/win32/delv.dsp.in			X	2014
 ./bin/delv/win32/delv.dsw			X	2014
 ./bin/delv/win32/delv.mak.in			X	2014
