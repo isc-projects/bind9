@@ -30,8 +30,14 @@ ret=0
 t=`expr $t + 1`
 echo "I:checking that zones with slash are properly shown in XML output (${t})"
 if [ -x ${CURL} -a -x ${XMLLINT} ] ; then
-    ${CURL} http://10.53.0.1:8053/xml/v3 > curl.out.${t} 2>/dev/null || ret=1
-    ${XMLLINT} --xpath '//statistics/views/view/zones/zone[@name="32/1.0.0.127-in-addr.example"]' curl.out.${t} > /dev/null 2>&1 || ret=1
+    if ./newstats
+    then
+        ${CURL} http://10.53.0.1:8053/xml/v3 > curl.out.${t} 2>/dev/null || ret=1
+        ${XMLLINT} --xpath '//statistics/views/view/zones/zone[@name="32/1.0.0.127-in-addr.example"]' curl.out.${t} > /dev/null 2>&1 || ret=1
+    else
+        ${CURL} http://10.53.0.1:8053/xml > curl.out.${t} 2>/dev/null || ret=1
+        ${XMLLINT} --xpath '//statistics/views/view/zones/zone/name="32/1.0.0.127-in-addr.example"' curl.out.${t} > /dev/null 2>&1 || ret=1
+    fi
 else
   echo "I:skipping test as curl and/or xmllint were not found"
 fi
