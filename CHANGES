@@ -1,3 +1,6 @@
+4150.	[bug]		win32: listen-on-v6 { any; }; was not working.  Apply
+			minimal fix.  [RT #39667]
+
 4149.	[bug]		Fixed a race condition in the getaddrinfo()
 			implementation in libirs. [RT #39899]
 
