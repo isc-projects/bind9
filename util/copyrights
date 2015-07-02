@@ -1680,7 +1680,6 @@
 ./bin/tests/system/statistics/newstats.c	C	2015
 ./bin/tests/system/statistics/ns1/named.conf	CONF-C	2015
 ./bin/tests/system/statistics/ns1/zone.db	ZONE	2015
-./bin/tests/system/statistics/prereq.sh		SH	2015
 ./bin/tests/system/statistics/tests.sh		SH	2015
 ./bin/tests/system/stop.pl			SH	2001,2004,2005,2006,2007,2012
 ./bin/tests/system/stop.sh			SH	2000,2001,2004,2007,2012
