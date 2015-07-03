@@ -1,3 +1,5 @@
+4151.	[bug]		'rndc flush' could cause a deadlock. [RT #39835]
+
 4150.	[bug]		win32: listen-on-v6 { any; }; was not working.  Apply
 			minimal fix.  [RT #39667]
 
