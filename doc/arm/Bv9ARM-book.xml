@@ -3705,7 +3705,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 };
 </programlisting>
 
-        <para>
+	<para>
 	  If <command>named</command> is started with the
 	  <option>-L</option> option, it logs to the specified file
 	  at startup, instead of using syslog. In this case the logging
@@ -4024,7 +4024,7 @@ channel default_logfile {
 <programlisting>category default { default_syslog; default_debug; };
 </programlisting>
 
-          <para>
+	  <para>
 	    If you start <command>named</command> with the
 	    <option>-L</option> option then the default category is:
 	  </para>
