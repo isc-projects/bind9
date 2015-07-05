@@ -150,8 +150,8 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
-/* Use AES for Source Identity Token generation */
-#undef AES_SIT
+/* Use AES for Client Cookie generation */
+#undef AES_CC
 
 /* Define to enable the "filter-aaaa-on-v4" and "filter-aaaa-on-v6" options.
    */
@@ -458,11 +458,11 @@ int sigwait(const unsigned int *set, int *sig);
 /* HMAC_*() return ints */
 #undef HMAC_RETURN_INT
 
-/* Use HMAC-SHA1 for Source Identity Token generation */
-#undef HMAC_SHA1_SIT
+/* Use HMAC-SHA1 for Client Cookie generation */
+#undef HMAC_SHA1_CC
 
-/* Use HMAC-SHA256 for Source Identity Token generation */
-#undef HMAC_SHA256_SIT
+/* Use HMAC-SHA256 for Client Cookie generation */
+#undef HMAC_SHA256_CC
 
 /* return type of gai_strerror */
 #undef IRS_GAISTRERROR_RETURN_T

@@ -541,6 +541,7 @@ echo "I:check that unexpected opcodes are handled correctly (${n})"
 ret=0
 $DIG soa all-cnames @10.53.0.5 -p 5300 +opcode=status > dig.out.ns5.test${n} || ret=1
 grep "status: NOTIMP" dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:exit status: $status"

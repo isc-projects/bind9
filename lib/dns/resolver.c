@@ -32,7 +32,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#ifdef AES_SIT
+#ifdef AES_CC
 #include <isc/aes.h>
 #else
 #include <isc/hmacsha.h>
@@ -488,11 +488,12 @@ struct dns_resolver {
  * Private addrinfo flags.  These must not conflict with DNS_FETCHOPT_NOEDNS0
  * (0x008) which we also use as an addrinfo flag.
  */
-#define FCTX_ADDRINFO_MARK              0x0001
-#define FCTX_ADDRINFO_FORWARDER         0x1000
-#define FCTX_ADDRINFO_TRIED             0x2000
-#define FCTX_ADDRINFO_EDNSOK            0x4000
-#define FCTX_ADDRINFO_NOSIT             0x8000
+#define FCTX_ADDRINFO_MARK              0x00001
+#define FCTX_ADDRINFO_FORWARDER         0x01000
+#define FCTX_ADDRINFO_TRIED             0x02000
+#define FCTX_ADDRINFO_EDNSOK            0x04000
+#define FCTX_ADDRINFO_NOCOOKIE          0x08000
+#define FCTX_ADDRINFO_BADCOOKIE         0x10000
 
 #define UNMARKED(a)                     (((a)->flags & FCTX_ADDRINFO_MARK) \
 					 == 0)
@@ -500,10 +501,12 @@ struct dns_resolver {
 					 FCTX_ADDRINFO_FORWARDER) != 0)
 #define TRIED(a)                        (((a)->flags & \
 					 FCTX_ADDRINFO_TRIED) != 0)
-#define NOSIT(a)                        (((a)->flags & \
-					 FCTX_ADDRINFO_NOSIT) != 0)
+#define NOCOOKIE(a)                        (((a)->flags & \
+					 FCTX_ADDRINFO_NOCOOKIE) != 0)
 #define EDNSOK(a)                       (((a)->flags & \
 					 FCTX_ADDRINFO_EDNSOK) != 0)
+#define BADCOOKIE(a)                    (((a)->flags & \
+					 FCTX_ADDRINFO_BADCOOKIE) != 0)
 
 
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
@@ -1798,10 +1801,9 @@ add_triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	ISC_LIST_INITANDAPPEND(fctx->edns512, tried, link);
 }
 
-#ifdef ISC_PLATFORM_USESIT
 static void
-compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
-#ifdef AES_SIT
+compute_cc(resquery_t *query, unsigned char *cookie, size_t len) {
+#ifdef AES_CC
 	unsigned char digest[ISC_AES_BLOCK_LENGTH];
 	unsigned char input[16];
 	isc_netaddr_t netaddr;
@@ -1822,9 +1824,9 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 	isc_aes128_crypt(query->fctx->res->view->secret, input, digest);
 	for (i = 0; i < 8; i++)
 		digest[i] ^= digest[i + 8];
-	memmove(sit, digest, 8);
+	memmove(cookie, digest, 8);
 #endif
-#ifdef HMAC_SHA1_SIT
+#ifdef HMAC_SHA1_CC
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
 	isc_netaddr_t netaddr;
 	isc_hmacsha1_t hmacsha1;
@@ -1845,10 +1847,10 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 		break;
 	}
 	isc_hmacsha1_sign(&hmacsha1, digest, sizeof(digest));
-	memmove(sit, digest, 8);
+	memmove(cookie, digest, 8);
 	isc_hmacsha1_invalidate(&hmacsha1);
 #endif
-#ifdef HMAC_SHA256_SIT
+#ifdef HMAC_SHA256_CC
 	unsigned char digest[ISC_SHA256_DIGESTLENGTH];
 	isc_netaddr_t netaddr;
 	isc_hmacsha256_t hmacsha256;
@@ -1869,11 +1871,10 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 		break;
 	}
 	isc_hmacsha256_sign(&hmacsha256, digest, sizeof(digest));
-	memmove(sit, digest, 8);
+	memmove(cookie, digest, 8);
 	isc_hmacsha256_invalidate(&hmacsha256);
 #endif
 }
-#endif
 
 static isc_result_t
 issecuredomain(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
@@ -2119,10 +2120,8 @@ resquery_send(resquery_t *query) {
 			unsigned int version = DNS_EDNS_VERSION;
 			unsigned int flags = query->addrinfo->flags;
 			isc_boolean_t reqnsid = res->view->requestnsid;
-#ifdef ISC_PLATFORM_USESIT
-			isc_boolean_t reqsit = res->view->requestsit;
-			unsigned char sit[64];
-#endif
+			isc_boolean_t sendcookie = res->view->sendcookie;
+			unsigned char cookie[64];
 
 			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
 			    (query->options & DNS_FETCHOPT_EDNS512) == 0) {
@@ -2163,23 +2162,20 @@ resquery_send(resquery_t *query) {
 				version >>= DNS_FETCHOPT_EDNSVERSIONSHIFT;
 			}
 
-			/* Request NSID/SIT/VERSION for current peer? */
+			/* Request NSID/COOKIE/VERSION for current peer? */
 			if (peer != NULL) {
 				isc_uint8_t ednsversion;
 				(void) dns_peer_getrequestnsid(peer, &reqnsid);
-#ifdef ISC_PLATFORM_USESIT
-				(void) dns_peer_getrequestsit(peer, &reqsit);
-#endif
+				(void) dns_peer_getsendcookie(peer,
+							      &sendcookie);
 				result = dns_peer_getednsversion(peer,
 								 &ednsversion);
 				if (result == ISC_R_SUCCESS &&
 				    ednsversion < version)
 					version = ednsversion;
 			}
-#ifdef ISC_PLATFORM_USESIT
-			if (NOSIT(query->addrinfo))
-				reqsit = ISC_FALSE;
-#endif
+			if (NOCOOKIE(query->addrinfo))
+				sendcookie = ISC_FALSE;
 			if (reqnsid) {
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_NSID;
@@ -2187,37 +2183,36 @@ resquery_send(resquery_t *query) {
 				ednsopts[ednsopt].value = NULL;
 				ednsopt++;
 			}
-#ifdef ISC_PLATFORM_USESIT
 #if DNS_EDNS_VERSION > 0
 			/*
 			 * Some EDNS(0) servers don't ignore unknown options
 			 * as it was not a explict requirement of RFC 2671.
-			 * Only send SIT to EDNS(1) servers.
+			 * Only send COOKIE to EDNS(1) servers.
 			 */
 			if (version < 1)
-				reqsit = ISC_FALSE;
+				sendcookie = ISC_FALSE;
 #endif
-			if (reqsit) {
+			if (sendcookie) {
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
-				ednsopts[ednsopt].code = DNS_OPT_SIT;
+				ednsopts[ednsopt].code = DNS_OPT_COOKIE;
 				ednsopts[ednsopt].length = (isc_uint16_t)
-					dns_adb_getsit(fctx->adb,
-						       query->addrinfo,
-						       sit, sizeof(sit));
+					dns_adb_getcookie(fctx->adb,
+							  query->addrinfo,
+							  cookie,
+							  sizeof(cookie));
 				if (ednsopts[ednsopt].length != 0) {
-					ednsopts[ednsopt].value = sit;
+					ednsopts[ednsopt].value = cookie;
 					inc_stats(fctx->res,
-						  dns_resstatscounter_sitout);
+						dns_resstatscounter_cookieout);
 				} else {
-					compute_cc(query, sit, sizeof(sit));
-					ednsopts[ednsopt].value = sit;
+					compute_cc(query, cookie, 8);
+					ednsopts[ednsopt].value = cookie;
 					ednsopts[ednsopt].length = 8;
 					inc_stats(fctx->res,
-						  dns_resstatscounter_sitcc);
+						dns_resstatscounter_cookienew);
 				}
 				ednsopt++;
 			}
-#endif
 			query->ednsversion = version;
 			result = fctx_addopt(fctx->qmessage, version,
 					     udpsize, ednsopts, ednsopt);
@@ -7282,11 +7277,9 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 	isc_result_t result;
 	isc_uint16_t optcode;
 	isc_uint16_t optlen;
-#ifdef ISC_PLATFORM_USESIT
-	unsigned char *sit;
+	unsigned char *optvalue;
 	dns_adbaddrinfo_t *addrinfo;
 	unsigned char cookie[8];
-#endif
 
 	result = dns_rdataset_first(opt);
 	if (result == ISC_R_SUCCESS) {
@@ -7306,27 +7299,26 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 						 query->fctx->res->mctx);
 				isc_buffer_forward(&optbuf, optlen);
 				break;
-#ifdef ISC_PLATFORM_USESIT
-			case DNS_OPT_SIT:
-				sit = isc_buffer_current(&optbuf);
+			case DNS_OPT_COOKIE:
+				optvalue = isc_buffer_current(&optbuf);
 				compute_cc(query, cookie, sizeof(cookie));
-				INSIST(query->fctx->rmessage->sitbad == 0 &&
-				       query->fctx->rmessage->sitok == 0);
+				INSIST(query->fctx->rmessage->cc_bad == 0 &&
+				       query->fctx->rmessage->cc_ok == 0);
 				if (optlen >= 8U &&
-				    memcmp(cookie, sit, 8) == 0) {
-					query->fctx->rmessage->sitok = 1;
+				    memcmp(cookie, optvalue, 8) == 0) {
+					query->fctx->rmessage->cc_ok = 1;
 					inc_stats(query->fctx->res,
-						  dns_resstatscounter_sitok);
+						  dns_resstatscounter_cookieok);
 					addrinfo = query->addrinfo;
-					dns_adb_setsit(query->fctx->adb,
-						       addrinfo, sit, optlen);
+					dns_adb_setcookie(query->fctx->adb,
+						          addrinfo, optvalue,
+							  optlen);
 				} else
-					query->fctx->rmessage->sitbad = 1;
+					query->fctx->rmessage->cc_bad = 1;
 				isc_buffer_forward(&optbuf, optlen);
 				inc_stats(query->fctx->res,
-					  dns_resstatscounter_sitin);
+					  dns_resstatscounter_cookiein);
 				break;
-#endif
 			default:
 				isc_buffer_forward(&optbuf, optlen);
 				break;
@@ -7551,17 +7543,15 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		process_opt(query, opt);
 
 #ifdef notyet
-#ifdef ISC_PLATFORM_USESIT
-	if (message->sitbad) {
+	if (message->cc_bad) {
 		/*
-		 * If the SIT is bad assume it is a attack and retry.
+		 * If the COOKIE is bad assume it is a attack and retry.
 		 */
 		resend = ISC_TRUE;
 		/* XXXMPA log it */
-		FCTXTRACE("bad sit");
+		FCTXTRACE("bad cookie");
 		goto done;
 	}
-#endif
 #endif
 
 	/*
@@ -7700,6 +7690,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		case dns_rcode_badvers:
 			inc_stats(fctx->res, dns_resstatscounter_badvers);
 			break;
+		case dns_rcode_badcookie:
+			inc_stats(fctx->res, dns_resstatscounter_badcookie);
+			break;
 		default:
 			inc_stats(fctx->res, dns_resstatscounter_othererror);
 			break;
@@ -7713,29 +7706,26 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	    message->rcode != dns_rcode_nxdomain) {
 		isc_buffer_t b;
 		char code[64];
-#ifdef ISC_PLATFORM_USESIT
-		unsigned char sit[64];
+		unsigned char cookie[64];
 
 		/*
 		 * Some servers do not ignore unknown EDNS options.
 		 */
-		if (!NOSIT(query->addrinfo) &&
+		if (!NOCOOKIE(query->addrinfo) &&
 		    (message->rcode == dns_rcode_formerr ||
 		     message->rcode == dns_rcode_notimp ||
 		     message->rcode == dns_rcode_refused) &&
-		     dns_adb_getsit(fctx->adb, query->addrinfo,
-				   sit, sizeof(sit)) == 0U) {
+		     dns_adb_getcookie(fctx->adb, query->addrinfo,
+				       cookie, sizeof(cookie)) == 0U) {
 			dns_adb_changeflags(fctx->adb, query->addrinfo,
-					    FCTX_ADDRINFO_NOSIT,
-					    FCTX_ADDRINFO_NOSIT);
+					    FCTX_ADDRINFO_NOCOOKIE,
+					    FCTX_ADDRINFO_NOCOOKIE);
 			resend = ISC_TRUE;
-		} else
-#endif
-		if (((message->rcode == dns_rcode_formerr ||
-		      message->rcode == dns_rcode_notimp) ||
-		     (message->rcode == dns_rcode_servfail &&
-		      dns_message_getopt(message) == NULL)) &&
-		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+		} else if ((message->rcode == dns_rcode_formerr ||
+		            message->rcode == dns_rcode_notimp ||
+		            (message->rcode == dns_rcode_servfail &&
+		             dns_message_getopt(message) == NULL)) &&
+		           (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 			/*
 			 * It's very likely they don't like EDNS0.
 			 * If the response code is SERVFAIL, also check if the
@@ -7784,21 +7774,20 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		} else if (message->rcode == dns_rcode_badvers) {
 			unsigned int flags, mask;
 			unsigned int version;
-#if defined(ISC_PLATFORM_USESIT) && DNS_EDNS_VERSION == 0
+
 			/*
 			 * Some servers return BADVERS to unknown
 			 * EDNS options.  This cannot be long term
-			 * strategy.  Do not disable SIT if we have
-			 * already have received a SIT from this
+			 * strategy.  Do not disable COOKIE if we have
+			 * already have received a COOKIE from this
 			 * server.
 			 */
-			if (dns_adb_getsit(fctx->adb, query->addrinfo,
-					   sit, sizeof(sit)) == 0U) {
+			if (dns_adb_getcookie(fctx->adb, query->addrinfo,
+					      cookie, sizeof(cookie)) == 0U) {
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
-						    FCTX_ADDRINFO_NOSIT,
-						    FCTX_ADDRINFO_NOSIT);
+						    FCTX_ADDRINFO_NOCOOKIE,
+						    FCTX_ADDRINFO_NOCOOKIE);
 			}
-#endif
 
 			resend = ISC_TRUE;
 			INSIST(opt != NULL);
@@ -7824,7 +7813,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * RFC 6891 is clear that that they should be ignored.
 			 * If we are supporting EDNS > 0 then perform strict
 			 * version checking of badvers responses.  We won't
-			 * be sending SIT etc. in that case.
+			 * be sending COOKIE etc. in that case.
 			 */
 #if DNS_EDNS_VERSION == 0
 			 /* Avoids a compiler warning with < 0 */
@@ -7839,6 +7828,15 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				broken_server = DNS_R_BADVERS;
 				keep_trying = ISC_TRUE;
 			}
+		} else if (message->rcode == dns_rcode_badcookie &&
+			   message->cc_ok) {
+			/*
+			 * We have recorded the new cookie.
+			 */
+			if (BADCOOKIE(query->addrinfo))
+				query->options |= DNS_FETCHOPT_TCP;
+			query->addrinfo->flags |= FCTX_ADDRINFO_BADCOOKIE;
+			resend = ISC_TRUE;
 		} else {
 			/*
 			 * XXXRTH log.

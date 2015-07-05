@@ -116,11 +116,6 @@
 @ISC_PLATFORM_NEEDSTRCASESTR@
 
 /*
- * Defined if we are enabling SIT (Source Identity Token).
- */
-@ISC_PLATFORM_USESIT@
-
-/*
  * Set up a macro for importing and exporting from the DLL
  */
 

@@ -93,20 +93,20 @@
 /*% Want Recursion? */
 #define WANTRECURSION(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_WANTRECURSION) != 0)
+/*% Is TCP? */
+#define TCP(c)			(((c)->attributes & NS_CLIENTATTR_TCP) != 0)
 /*% Want DNSSEC? */
 #define WANTDNSSEC(c)		(((c)->attributes & \
 				  NS_CLIENTATTR_WANTDNSSEC) != 0)
 /*% Want WANTAD? */
 #define WANTAD(c)		(((c)->attributes & \
 				  NS_CLIENTATTR_WANTAD) != 0)
-#ifdef ISC_PLATFORM_USESIT
-/*% Client presented a valid Source Identity Token. */
-#define HAVESIT(c)		(((c)->attributes & \
-				  NS_CLIENTATTR_HAVESIT) != 0)
-#else
-#define HAVESIT(c)		(0)
-#endif
-
+/*% Client presented a valid COOKIE. */
+#define HAVECOOKIE(c)		(((c)->attributes & \
+				  NS_CLIENTATTR_HAVECOOKIE) != 0)
+/*% Client presented a COOKIE. */
+#define WANTCOOKIE(c)		(((c)->attributes & \
+				  NS_CLIENTATTR_WANTCOOKIE) != 0)
 /*% No authority? */
 #define NOAUTHORITY(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_NOAUTHORITY) != 0)
@@ -251,8 +251,10 @@ query_send(ns_client_t *client) {
 				counter = dns_nsstatscounter_nxrrset;
 		} else
 			counter = dns_nsstatscounter_success;
-	} else if (client->message->rcode == dns_rcode_nxdomain)
+	} else if (client->message->rcode == dns_rcode_nxdomain) 
 		counter = dns_nsstatscounter_nxdomain;
+	else if (client->message->rcode == dns_rcode_badcookie)
+		counter = dns_nsstatscounter_badcookie;
 	else /* We end up here in case of YXDOMAIN, and maybe others */
 		counter = dns_nsstatscounter_failure;
 
@@ -3937,7 +3939,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	tmprdataset = query_newrdataset(client);
 	if (tmprdataset == NULL)
 		return;
-	if ((client->attributes & NS_CLIENTATTR_TCP) == 0)
+	if (!TCP(client))
 		peeraddr = &client->peeraddr;
 	else
 		peeraddr = NULL;
@@ -4023,7 +4025,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 			ns_client_killoldestquery(client);
 		}
 		if (result == ISC_R_SUCCESS && !client->mortal &&
-		    (client->attributes & NS_CLIENTATTR_TCP) == 0) {
+		    !TCP(client)) {
 			result = ns_client_replace(client);
 			if (result != ISC_R_SUCCESS) {
 				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
@@ -4061,7 +4063,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 
 	if (client->query.timerset == ISC_FALSE)
 		ns_client_settimeout(client, 60);
-	if ((client->attributes & NS_CLIENTATTR_TCP) == 0)
+	if (!TCP(client))
 		peeraddr = &client->peeraddr;
 	else
 		peeraddr = NULL;
@@ -6779,7 +6781,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		client->query.authdbset = ISC_TRUE;
 
 		/* Track TCP vs UDP stats per zone */
-		if ((client->attributes & NS_CLIENTATTR_TCP) != 0)
+		if (TCP(client))
 			inc_stats(client, dns_nsstatscounter_tcp);
 		else
 			inc_stats(client, dns_nsstatscounter_udp);
@@ -6838,7 +6840,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	 * Don't mess with responses rewritten by RPZ
 	 * Count each response at most once.
 	 */
-	if (client->view->rrl != NULL && !HAVESIT(client) &&
+	if (client->view->rrl != NULL && !HAVECOOKIE(client) &&
 	    ((fname != NULL && dns_name_isabsolute(fname)) ||
 	     (result == ISC_R_NOTFOUND && !RECURSIONOK(client))) &&
 	    !(result == DNS_R_DELEGATION && !is_zone && RECURSIONOK(client)) &&
@@ -6904,10 +6906,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			resp_result = ISC_R_SUCCESS;
 		}
 		rrl_result = dns_rrl(client->view, &client->peeraddr,
-				     ISC_TF((client->attributes
-					     & NS_CLIENTATTR_TCP) != 0),
-				     client->message->rdclass, qtype, tname,
-				     resp_result, client->now,
+				     TCP(client), client->message->rdclass,
+				     qtype, tname, resp_result, client->now,
 				     wouldlog, log_buf, sizeof(log_buf));
 		if (rrl_result != DNS_RRL_RESULT_OK) {
 			/*
@@ -6942,11 +6942,19 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					 */
 					inc_stats(client,
 						dns_nsstatscounter_rateslipped);
-					client->message->flags |=
-						DNS_MESSAGEFLAG_TC;
-					if (resp_result == DNS_R_NXDOMAIN)
+					if (WANTCOOKIE(client)) {
+						client->message->flags &=
+							~DNS_MESSAGEFLAG_AD;
 						client->message->rcode =
-							dns_rcode_nxdomain;
+							   dns_rcode_badcookie;
+					} else {
+						client->message->flags |=
+							DNS_MESSAGEFLAG_TC;
+						if (resp_result ==
+						    DNS_R_NXDOMAIN)
+							client->message->rcode =
+							     dns_rcode_nxdomain;
+					}
 				}
 				goto cleanup;
 			}
@@ -6998,7 +7006,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (rpz_st->m.policy != DNS_RPZ_POLICY_MISS &&
 		    rpz_st->m.policy != DNS_RPZ_POLICY_PASSTHRU &&
 		    (rpz_st->m.policy != DNS_RPZ_POLICY_TCP_ONLY ||
-		     (client->attributes & NS_CLIENTATTR_TCP) == 0) &&
+		     !TCP(client)) &&
 		    rpz_st->m.policy != DNS_RPZ_POLICY_ERROR)
 		{
 			/*
@@ -8723,13 +8731,13 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 			 client->ednsversion);
 
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY,
-		      level, "query: %s %s %s %s%s%s%s%s%s (%s)", namebuf,
+		      level, "query: %s %s %s %s%s%s%s%s%s%s (%s)", namebuf,
 		      classname, typename, WANTRECURSION(client) ? "+" : "-",
 		      (client->signer != NULL) ? "S" : "", ednsbuf,
-		      ((client->attributes & NS_CLIENTATTR_TCP) != 0) ?
-				 "T" : "",
+		      TCP(client) ?  "T" : "",
 		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
 		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "",
+		      HAVECOOKIE(client) ? "V" : WANTCOOKIE(client) ? "K" : "",
 		      onbuf);
 }
 
@@ -8790,7 +8798,7 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Test only.
 	 */
-	if (ns_g_clienttest && (client->attributes & NS_CLIENTATTR_TCP) == 0)
+	if (ns_g_clienttest && !TCP(client))
 		RUNTIME_CHECK(ns_client_replace(client) == ISC_R_SUCCESS);
 
 	/*
@@ -8917,8 +8925,7 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Turn on minimal responses for EDNS/UDP bufsize 512 queries.
 	 */
-	if (client->ednsversion >= 0 && client->udpsize <= 512U &&
-	    (client->attributes & NS_CLIENTATTR_TCP) == 0)
+	if (client->ednsversion >= 0 && client->udpsize <= 512U && !TCP(client))
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
 

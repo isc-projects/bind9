@@ -45,4 +45,11 @@ typedef struct ns_dispatch		ns_dispatch_t;
 typedef ISC_LIST(ns_dispatch_t)		ns_dispatchlist_t;
 typedef struct ns_statschannel		ns_statschannel_t;
 typedef ISC_LIST(ns_statschannel_t)	ns_statschannellist_t;
+
+typedef enum {
+	ns_cookiealg_aes,
+	ns_cookiealg_sha1,
+	ns_cookiealg_sha256
+} ns_cookiealg_t;
+
 #endif /* NAMED_TYPES_H */

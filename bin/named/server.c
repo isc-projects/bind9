@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <isc/aes.h>
 #include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/dir.h>
@@ -33,6 +34,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
+#include <isc/hmacsha.h>
 #include <isc/httpd.h>
 #include <isc/lex.h>
 #include <isc/parseint.h>
@@ -51,12 +53,6 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 #include <isc/xml.h>
-
-#ifdef AES_SIT
-#include <isc/aes.h>
-#else
-#include <isc/hmacsha.h>
-#endif
 
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
@@ -1215,12 +1211,10 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	if (obj != NULL)
 		CHECK(dns_peer_setrequestnsid(peer, cfg_obj_asboolean(obj)));
 
-#ifdef ISC_PLATFORM_USESIT
 	obj = NULL;
-	(void)cfg_map_get(cpeer, "request-sit", &obj);
+	(void)cfg_map_get(cpeer, "send-cookie", &obj);
 	if (obj != NULL)
-		CHECK(dns_peer_setrequestsit(peer, cfg_obj_asboolean(obj)));
-#endif
+		CHECK(dns_peer_setsendcookie(peer, cfg_obj_asboolean(obj)));
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "edns", &obj);
@@ -3092,20 +3086,18 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		udpsize = 4096;
 	view->maxudp = udpsize;
 
-#ifdef ISC_PLATFORM_USESIT
 	/*
-	 * Set the maximum UDP when a SIT is not provided.
+	 * Set the maximum UDP when a COOKIE is not provided.
 	 */
 	obj = NULL;
-	result = ns_config_get(maps, "nosit-udp-size", &obj);
+	result = ns_config_get(maps, "nocookie-udp-size", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	udpsize = cfg_obj_asuint32(obj);
 	if (udpsize < 128)
 		udpsize = 128;
 	if (udpsize > view->maxudp)
 		udpsize = view->maxudp;
-	view->situdp = udpsize;
-#endif
+	view->nocookieudp = udpsize;
 
 	/*
 	 * Set the maximum rsa exponent bits.
@@ -3477,12 +3469,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	INSIST(result == ISC_R_SUCCESS);
 	view->requestnsid = cfg_obj_asboolean(obj);
 
-#ifdef ISC_PLATFORM_USESIT
 	obj = NULL;
-	result = ns_config_get(maps, "request-sit", &obj);
+	result = ns_config_get(maps, "send-cookie", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->requestsit = cfg_obj_asboolean(obj);
-#endif
+	view->sendcookie = cfg_obj_asboolean(obj);
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-clients-per-query", &obj);
@@ -6417,32 +6407,48 @@ load_configuration(const char *filename, ns_server_t *server,
 		server->flushonshutdown = ISC_FALSE;
 	}
 
-#ifdef ISC_PLATFORM_USESIT
 	obj = NULL;
-	result = ns_config_get(maps, "sit-secret", &obj);
+	result = ns_config_get(maps, "cookie-algorithm", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	if (strcasecmp(cfg_obj_asstring(obj), "aes") == 0)
+		server->cookiealg = ns_cookiealg_aes;
+	else if (strcasecmp(cfg_obj_asstring(obj), "sha1") == 0)
+		server->cookiealg = ns_cookiealg_sha1;
+	else if (strcasecmp(cfg_obj_asstring(obj), "sha256") == 0)
+		server->cookiealg = ns_cookiealg_sha256;
+	else
+		INSIST(0);
+
+	obj = NULL;
+	result = ns_config_get(maps, "cookie-secret", &obj);
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_t b;
+		unsigned int usedlength;
 
 		memset(server->secret, 0, sizeof(server->secret));
 		isc_buffer_init(&b, server->secret, sizeof(server->secret));
 		result = isc_hex_decodestring(cfg_obj_asstring(obj), &b);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
 			goto cleanup;
-#ifdef AES_SIT
-		if (isc_buffer_usedlength(&b) != ISC_AES128_KEYLENGTH)
-			CHECKM(ISC_R_RANGE,
-			       "AES sit-secret must be on 128 bits");
-#endif
-#ifdef HMAC_SHA1_SIT
-		if (isc_buffer_usedlength(&b) != ISC_SHA1_DIGESTLENGTH)
-			CHECKM(ISC_R_RANGE,
-			       "SHA1 sit-secret must be on 160 bits");
-#endif
-#ifdef HMAC_SHA256_SIT
-		if (isc_buffer_usedlength(&b) != ISC_SHA256_DIGESTLENGTH)
-			CHECKM(ISC_R_RANGE,
-			       "SHA256 sit-secret must be on 256 bits");
-#endif
+		
+		usedlength = isc_buffer_usedlength(&b);
+		switch (server->cookiealg) {
+		case ns_cookiealg_aes:
+			if (usedlength != ISC_AES128_KEYLENGTH)
+				CHECKM(ISC_R_RANGE,
+				       "AES cookie-secret must be 128 bits");
+			break;
+		case ns_cookiealg_sha1:
+			if (usedlength != ISC_SHA1_DIGESTLENGTH)
+				CHECKM(ISC_R_RANGE,
+				       "SHA1 cookie-secret must be 160 bits");
+			break;
+		case ns_cookiealg_sha256:
+			if (usedlength != ISC_SHA256_DIGESTLENGTH)
+				CHECKM(ISC_R_RANGE,
+				       "SHA256 cookie-secret must be 256 bits");
+			break;
+		}
 	} else {
 		result = isc_entropy_getdata(ns_g_entropy,
 					     server->secret,
@@ -6452,7 +6458,6 @@ load_configuration(const char *filename, ns_server_t *server,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	}
-#endif
 
 	result = ISC_R_SUCCESS;
 

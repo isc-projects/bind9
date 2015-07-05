@@ -17,7 +17,9 @@
 
 #include <config.h>
 
+#include <isc/aes.h>
 #include <isc/formatcheck.h>
+#include <isc/hmacsha.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/platform.h>
@@ -31,12 +33,6 @@
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
-
-#ifdef AES_SIT
-#include <isc/aes.h>
-#else
-#include <isc/hmacsha.h>
-#endif
 
 #include <dns/badcache.h>
 #include <dns/db.h>
@@ -121,7 +117,7 @@
  */
 #endif
 
-#define SIT_SIZE 24U /* 8 + 4 + 4 + 8 */
+#define COOKIE_SIZE 24U /* 8 + 4 + 4 + 8 */
 #define ECS_SIZE 20U /* 2 + 1 + 1 + [0..16] */
 
 /*% nameserver client manager structure */
@@ -249,10 +245,8 @@ static isc_result_t get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp,
 static inline isc_boolean_t
 allowed(isc_netaddr_t *addr, dns_name_t *signer, isc_netaddr_t *ecs_addr,
 	isc_uint8_t ecs_addrlen, isc_uint8_t *ecs_scope, dns_acl_t *acl);
-#ifdef ISC_PLATFORM_USESIT
-static void compute_sit(ns_client_t *client, isc_uint32_t when,
-			isc_uint32_t nonce, isc_buffer_t *buf);
-#endif
+static void compute_cookie(ns_client_t *client, isc_uint32_t when,
+			   isc_uint32_t nonce, isc_buffer_t *buf);
 
 void
 ns_client_recursing(ns_client_t *client) {
@@ -838,10 +832,9 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 		}
 	} else {
 		data = sendbuf;
-#ifdef ISC_PLATFORM_USESIT
-		if ((client->attributes & NS_CLIENTATTR_HAVESIT) == 0) {
+		if ((client->attributes & NS_CLIENTATTR_HAVECOOKIE) == 0) {
 			if (client->view != NULL)
-				bufsize = client->view->situdp;
+				bufsize = client->view->nocookieudp;
 			else
 				bufsize = 512;
 		} else
@@ -850,12 +843,6 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 			bufsize = client->udpsize;
 		if (bufsize > SEND_BUFFER_SIZE)
 			bufsize = SEND_BUFFER_SIZE;
-#else
-		if (client->udpsize < SEND_BUFFER_SIZE)
-			bufsize = client->udpsize;
-		else
-			bufsize = SEND_BUFFER_SIZE;
-#endif
 		if (length > bufsize) {
 			result = ISC_R_NOSPACE;
 			goto done;
@@ -1432,9 +1419,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 {
 	unsigned char ecs[ECS_SIZE];
 	char nsid[BUFSIZ], *nsidp;
-#ifdef ISC_PLATFORM_USESIT
-	unsigned char sit[SIT_SIZE];
-#endif
+	unsigned char cookie[COOKIE_SIZE];
 	isc_result_t result;
 	dns_view_t *view;
 	dns_resolver_t *resolver;
@@ -1477,25 +1462,23 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		count++;
 	}
  no_nsid:
-#ifdef ISC_PLATFORM_USESIT
-	if ((client->attributes & NS_CLIENTATTR_WANTSIT) != 0) {
+	if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0) {
 		isc_buffer_t buf;
 		isc_stdtime_t now;
 		isc_uint32_t nonce;
 
-		isc_buffer_init(&buf, sit, sizeof(sit));
+		isc_buffer_init(&buf, cookie, sizeof(cookie));
 		isc_stdtime_get(&now);
 		isc_random_get(&nonce);
 
-		compute_sit(client, now, nonce, &buf);
+		compute_cookie(client, now, nonce, &buf);
 
 		INSIST(count < DNS_EDNSOPTIONS);
-		ednsopts[count].code = DNS_OPT_SIT;
-		ednsopts[count].length = SIT_SIZE;
-		ednsopts[count].value = sit;
+		ednsopts[count].code = DNS_OPT_COOKIE;
+		ednsopts[count].length = COOKIE_SIZE;
+		ednsopts[count].value = cookie;
 		count++;
 	}
-#endif
 	if ((client->attributes & NS_CLIENTATTR_HAVEEXPIRE) != 0) {
 		isc_buffer_t buf;
 
@@ -1629,141 +1612,166 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 	return (ISC_TF(view == myview));
 }
 
-#ifdef ISC_PLATFORM_USESIT
 static void
-compute_sit(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
-	    isc_buffer_t *buf)
+compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
+	       isc_buffer_t *buf)
 {
-#ifdef AES_SIT
-	unsigned char digest[ISC_AES_BLOCK_LENGTH];
-	unsigned char input[4 + 4 + 16];
-	isc_netaddr_t netaddr;
-	unsigned char *cp;
-	unsigned int i;
+	switch (ns_g_server->cookiealg) {
+	case ns_cookiealg_aes: {
+		unsigned char digest[ISC_AES_BLOCK_LENGTH];
+		unsigned char input[4 + 4 + 16];
+		isc_netaddr_t netaddr;
+		unsigned char *cp;
+		unsigned int i;
 
-	memset(input, 0, sizeof(input));
-	cp = isc_buffer_used(buf);
-	isc_buffer_putmem(buf, client->cookie, 8);
-	isc_buffer_putuint32(buf, nonce);
-	isc_buffer_putuint32(buf, when);
-	memmove(input, cp, 16);
-	isc_aes128_crypt(ns_g_server->secret, input, digest);
-	for (i = 0; i < 8; i++)
-		input[i] = digest[i] ^ digest[i + 8];
-	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-	switch (netaddr.family) {
-	case AF_INET:
-		memmove(input + 8, (unsigned char *)&netaddr.type.in, 4);
-		memset(input + 12, 0, 4);
-		isc_aes128_crypt(ns_g_server->secret, input, digest);
-		break;
-	case AF_INET6:
-		memmove(input + 8, (unsigned char *)&netaddr.type.in6, 16);
+		memset(input, 0, sizeof(input));
+		cp = isc_buffer_used(buf);
+		isc_buffer_putmem(buf, client->cookie, 8);
+		isc_buffer_putuint32(buf, nonce);
+		isc_buffer_putuint32(buf, when);
+		memmove(input, cp, 16);
 		isc_aes128_crypt(ns_g_server->secret, input, digest);
 		for (i = 0; i < 8; i++)
-			input[i + 8] = digest[i] ^ digest[i + 8];
-		isc_aes128_crypt(ns_g_server->secret, input + 8, digest);
+			input[i] = digest[i] ^ digest[i + 8];
+		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+		switch (netaddr.family) {
+		case AF_INET:
+			cp = (unsigned char *)&netaddr.type.in;
+			memmove(input + 8, cp, 4);
+			memset(input + 12, 0, 4);
+			isc_aes128_crypt(ns_g_server->secret, input, digest);
+			break;
+		case AF_INET6:
+			cp = (unsigned char *)&netaddr.type.in6;
+			memmove(input + 8, cp, 16);
+			isc_aes128_crypt(ns_g_server->secret, input, digest);
+			for (i = 0; i < 8; i++)
+				input[i + 8] = digest[i] ^ digest[i + 8];
+			isc_aes128_crypt(ns_g_server->secret, input + 8,
+					 digest);
+			break;
+		}
+		for (i = 0; i < 8; i++)
+			digest[i] ^= digest[i + 8];
+		isc_buffer_putmem(buf, digest, 8);
 		break;
 	}
-	for (i = 0; i < 8; i++)
-		digest[i] ^= digest[i + 8];
-	isc_buffer_putmem(buf, digest, 8);
-#endif
-#ifdef HMAC_SHA1_SIT
-	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
-	isc_netaddr_t netaddr;
-	unsigned char *cp;
-	isc_hmacsha1_t hmacsha1;
 
-	cp = isc_buffer_used(buf);
-	isc_buffer_putmem(buf, client->cookie, 8);
-	isc_buffer_putuint32(buf, nonce);
-	isc_buffer_putuint32(buf, when);
+	case ns_cookiealg_sha1: {
+		unsigned char digest[ISC_SHA1_DIGESTLENGTH];
+		isc_netaddr_t netaddr;
+		unsigned char *cp;
+		isc_hmacsha1_t hmacsha1;
+		size_t length;
 
-	isc_hmacsha1_init(&hmacsha1,
-			  ns_g_server->secret,
-			  ISC_SHA1_DIGESTLENGTH);
-	isc_hmacsha1_update(&hmacsha1, cp, 16);
-	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-	switch (netaddr.family) {
-	case AF_INET:
-		isc_hmacsha1_update(&hmacsha1,
-				    (unsigned char *)&netaddr.type.in, 4);
-		break;
-	case AF_INET6:
-		isc_hmacsha1_update(&hmacsha1,
-				    (unsigned char *)&netaddr.type.in6, 16);
-		break;
-	}
-	isc_hmacsha1_update(&hmacsha1, client->cookie, sizeof(client->cookie));
-	isc_hmacsha1_sign(&hmacsha1, digest, sizeof(digest));
-	isc_buffer_putmem(buf, digest, 8);
-	isc_hmacsha1_invalidate(&hmacsha1);
-#endif
-#ifdef HMAC_SHA256_SIT
-	unsigned char digest[ISC_SHA256_DIGESTLENGTH];
-	isc_netaddr_t netaddr;
-	unsigned char *cp;
-	isc_hmacsha256_t hmacsha256;
+		cp = isc_buffer_used(buf);
+		isc_buffer_putmem(buf, client->cookie, 8);
+		isc_buffer_putuint32(buf, nonce);
+		isc_buffer_putuint32(buf, when);
 
-	cp = isc_buffer_used(buf);
-	isc_buffer_putmem(buf, client->cookie, 8);
-	isc_buffer_putuint32(buf, nonce);
-	isc_buffer_putuint32(buf, when);
-
-	isc_hmacsha256_init(&hmacsha256,
-			    ns_g_server->secret,
-			    ISC_SHA256_DIGESTLENGTH);
-	isc_hmacsha256_update(&hmacsha256, cp, 16);
-	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-	switch (netaddr.family) {
-	case AF_INET:
-		isc_hmacsha256_update(&hmacsha256,
-				      (unsigned char *)&netaddr.type.in, 4);
-		break;
-	case AF_INET6:
-		isc_hmacsha256_update(&hmacsha256,
-				      (unsigned char *)&netaddr.type.in6, 16);
+		isc_hmacsha1_init(&hmacsha1,
+				  ns_g_server->secret,
+				  ISC_SHA1_DIGESTLENGTH);
+		isc_hmacsha1_update(&hmacsha1, cp, 16);
+		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+		switch (netaddr.family) {
+		case AF_INET:
+			cp = (unsigned char *)&netaddr.type.in;
+			length = 4;
+			break;
+		case AF_INET6:
+			cp = (unsigned char *)&netaddr.type.in6;
+			length = 4;
+			break;
+		default:
+			INSIST(0);
+		}
+		isc_hmacsha1_update(&hmacsha1, cp, length);
+		isc_hmacsha1_update(&hmacsha1, client->cookie,
+				    sizeof(client->cookie));
+		isc_hmacsha1_sign(&hmacsha1, digest, sizeof(digest));
+		isc_buffer_putmem(buf, digest, 8);
+		isc_hmacsha1_invalidate(&hmacsha1);
 		break;
 	}
-	isc_hmacsha256_update(&hmacsha256, client->cookie,
-			      sizeof(client->cookie));
-	isc_hmacsha256_sign(&hmacsha256, digest, sizeof(digest));
-	isc_buffer_putmem(buf, digest, 8);
-	isc_hmacsha256_invalidate(&hmacsha256);
-#endif
+
+	case ns_cookiealg_sha256: {
+		unsigned char digest[ISC_SHA256_DIGESTLENGTH];
+		isc_netaddr_t netaddr;
+		unsigned char *cp;
+		isc_hmacsha256_t hmacsha256;
+		size_t length;
+
+		cp = isc_buffer_used(buf);
+		isc_buffer_putmem(buf, client->cookie, 8);
+		isc_buffer_putuint32(buf, nonce);
+		isc_buffer_putuint32(buf, when);
+
+		isc_hmacsha256_init(&hmacsha256,
+				    ns_g_server->secret,
+				    ISC_SHA256_DIGESTLENGTH);
+		isc_hmacsha256_update(&hmacsha256, cp, 16);
+		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+		switch (netaddr.family) {
+		case AF_INET:
+			cp = (unsigned char *)&netaddr.type.in;
+			length = 4;
+			break;
+		case AF_INET6:
+			cp = (unsigned char *)&netaddr.type.in6;
+			length = 4;
+			break;
+		default:
+			INSIST(0);
+		}
+		isc_hmacsha256_update(&hmacsha256, cp, length);
+		isc_hmacsha256_update(&hmacsha256, client->cookie,
+				      sizeof(client->cookie));
+		isc_hmacsha256_sign(&hmacsha256, digest, sizeof(digest));
+		isc_buffer_putmem(buf, digest, 8);
+		isc_hmacsha256_invalidate(&hmacsha256);
+		break;
+	}
+	default:
+		INSIST(0);
+	}
 }
 
 static void
-process_sit(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
-	unsigned char dbuf[SIT_SIZE];
+process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
+	unsigned char dbuf[COOKIE_SIZE];
 	unsigned char *old;
 	isc_stdtime_t now;
 	isc_uint32_t when;
 	isc_uint32_t nonce;
 	isc_buffer_t db;
 
-	client->attributes |= NS_CLIENTATTR_WANTSIT;
+	/*
+	 * If we have already seen a cookie option skip this cookie option.
+	 */
+	if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0) {
+		isc_buffer_forward(buf, (unsigned int)optlen);
+		return;
+	}
 
-	isc_stats_increment(ns_g_server->nsstats,
-			    dns_nsstatscounter_sitopt);
+	client->attributes |= NS_CLIENTATTR_WANTCOOKIE;
 
-	if (optlen != SIT_SIZE) {
+	isc_stats_increment(ns_g_server->nsstats, dns_nsstatscounter_cookiein);
+
+	if (optlen != COOKIE_SIZE) {
 		/*
 		 * Not our token.
 		 */
-		if (optlen >= 8U)
-			memmove(client->cookie, isc_buffer_current(buf), 8);
-		else
-			memset(client->cookie, 0, 8);
+		INSIST(optlen >= 8U);
+		memmove(client->cookie, isc_buffer_current(buf), 8);
 		isc_buffer_forward(buf, (unsigned int)optlen);
 
 		if (optlen == 8U)
 			isc_stats_increment(ns_g_server->nsstats,
-					    dns_nsstatscounter_sitnew);
+					    dns_nsstatscounter_cookienew);
 		else
 			isc_stats_increment(ns_g_server->nsstats,
-					    dns_nsstatscounter_sitbadsize);
+					    dns_nsstatscounter_cookiebadsize);
 		return;
 	}
 
@@ -1779,30 +1787,29 @@ process_sit(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 
 	/*
 	 * Allow for a 5 minute clock skew between servers sharing a secret.
-	 * Only accept SIT if we have talked to the client in the last hour.
+	 * Only accept COOKIE if we have talked to the client in the last hour.
 	 */
 	isc_stdtime_get(&now);
 	if (isc_serial_gt(when, (now + 300)) ||		/* In the future. */
 	    isc_serial_lt(when, (now - 3600))) {	/* In the past. */
 		isc_stats_increment(ns_g_server->nsstats,
-				    dns_nsstatscounter_sitbadtime);
+				    dns_nsstatscounter_cookiebadtime);
 		return;
 	}
 
 	isc_buffer_init(&db, dbuf, sizeof(dbuf));
-	compute_sit(client, when, nonce, &db);
+	compute_cookie(client, when, nonce, &db);
 
-	if (memcmp(old, dbuf, SIT_SIZE) != 0) {
+	if (memcmp(old, dbuf, COOKIE_SIZE) != 0) {
 		isc_stats_increment(ns_g_server->nsstats,
-				    dns_nsstatscounter_sitnomatch);
+				    dns_nsstatscounter_cookienomatch);
 		return;
 	}
-	isc_stats_increment(ns_g_server->nsstats,
-			    dns_nsstatscounter_sitmatch);
 
-	client->attributes |= NS_CLIENTATTR_HAVESIT;
+	isc_stats_increment(ns_g_server->nsstats,
+			    dns_nsstatscounter_cookiematch);
+	client->attributes |= NS_CLIENTATTR_HAVECOOKIE;
 }
-#endif
 
 static isc_result_t
 process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
@@ -1938,11 +1945,9 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 				client->attributes |= NS_CLIENTATTR_WANTNSID;
 				isc_buffer_forward(&optbuf, optlen);
 				break;
-#ifdef ISC_PLATFORM_USESIT
-			case DNS_OPT_SIT:
-				process_sit(client, &optbuf, optlen);
+			case DNS_OPT_COOKIE:
+				process_cookie(client, &optbuf, optlen);
 				break;
-#endif
 			case DNS_OPT_EXPIRE:
 				isc_stats_increment(ns_g_server->nsstats,
 						  dns_nsstatscounter_expireopt);
@@ -2172,6 +2177,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 * Parsing the request failed.  Send a response
 		 * (typically FORMERR or SERVFAIL).
 		 */
+		if (result == DNS_R_OPTERR)
+			(void)ns_client_addopt(client, client->message,
+					       &client->opt);
 		ns_client_error(client, result);
 		goto cleanup;
 	}
@@ -2239,6 +2247,17 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (client->message->rdclass == 0) {
+		if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0 ||
+		    (client->message->opcode == dns_opcode_query &&
+		     client->message->counts[DNS_SECTION_QUESTION] == 0U)) {
+			result = dns_message_reply(client->message, ISC_TRUE);
+			if (result != ISC_R_SUCCESS) {
+				ns_client_error(client, result);
+				return;
+			}
+			ns_client_send(client);
+			return;
+		}
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "message class could not be determined");

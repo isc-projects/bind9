@@ -43,7 +43,7 @@
 #define SERVER_UDPSIZE_BIT		 6
 #define SERVER_MAXUDP_BIT		 7
 #define REQUEST_NSID_BIT                 8
-#define REQUEST_SIT_BIT                  9
+#define SEND_COOKIE_BIT                  9
 #define NOTIFY_DSCP_BIT                 10
 #define TRANSFER_DSCP_BIT               11
 #define QUERY_DSCP_BIT                 	12
@@ -455,26 +455,26 @@ dns_peer_getrequestnsid(dns_peer_t *peer, isc_boolean_t *retval) {
 }
 
 isc_result_t
-dns_peer_setrequestsit(dns_peer_t *peer, isc_boolean_t newval) {
+dns_peer_setsendcookie(dns_peer_t *peer, isc_boolean_t newval) {
 	isc_boolean_t existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
-	existed = DNS_BIT_CHECK(REQUEST_SIT_BIT, &peer->bitflags);
+	existed = DNS_BIT_CHECK(SEND_COOKIE_BIT, &peer->bitflags);
 
-	peer->request_sit = newval;
-	DNS_BIT_SET(REQUEST_SIT_BIT, &peer->bitflags);
+	peer->send_cookie = newval;
+	DNS_BIT_SET(SEND_COOKIE_BIT, &peer->bitflags);
 
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
 isc_result_t
-dns_peer_getrequestsit(dns_peer_t *peer, isc_boolean_t *retval) {
+dns_peer_getsendcookie(dns_peer_t *peer, isc_boolean_t *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
-	if (DNS_BIT_CHECK(REQUEST_SIT_BIT, &peer->bitflags)) {
-		*retval = peer->request_sit;
+	if (DNS_BIT_CHECK(SEND_COOKIE_BIT, &peer->bitflags)) {
+		*retval = peer->send_cookie;
 		return (ISC_R_SUCCESS);
 	} else
 		return (ISC_R_NOTFOUND);

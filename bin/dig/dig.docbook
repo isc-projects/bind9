@@ -219,49 +219,49 @@
 
     <variablelist>
       <varlistentry>
-        <term>-4</term>
-        <listitem>
+	<term>-4</term>
+	<listitem>
 	  <para>
 	    Use IPv4 only.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-6</term>
-        <listitem>
+	<term>-6</term>
+	<listitem>
 	  <para>
 	    Use IPv6 only.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-b <replaceable class="parameter">address<optional>#port</optional></replaceable></term>
-        <listitem>
+	<term>-b <replaceable class="parameter">address<optional>#port</optional></replaceable></term>
+	<listitem>
 	  <para>
 	    Set the source IP address of the query.
 	    The <parameter>address</parameter> must be a valid address on
 	    one of the host's network interfaces, or "0.0.0.0" or "::". An
 	    optional port may be specified by appending "#&lt;port&gt;"
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-c <replaceable class="parameter">class</replaceable></term>
-        <listitem>
+	<term>-c <replaceable class="parameter">class</replaceable></term>
+	<listitem>
 	  <para>
 	    Set the query class. The
 	    default <parameter>class</parameter> is IN; other classes
 	    are HS for Hesiod records or CH for Chaosnet records.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-f <replaceable class="parameter">file</replaceable></term>
-        <listitem>
+	<term>-f <replaceable class="parameter">file</replaceable></term>
+	<listitem>
 	  <para>
 	    Batch mode: <command>dig</command> reads a list of lookup
 	    requests to process from the
@@ -270,23 +270,23 @@
 	    presented as queries to
 	    <command>dig</command> using the command-line interface.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-i</term>
-        <listitem>
+	<term>-i</term>
+	<listitem>
 	  <para>
 	    Do reverse IPv6 lookups using the obsolete RFC1886 IP6.INT
 	    domain, which is no longer in use. Obsolete bit string
 	    label queries (RFC2874) are not attempted.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-k <replaceable class="parameter">keyfile</replaceable></term>
-        <listitem>
+	<term>-k <replaceable class="parameter">keyfile</replaceable></term>
+	<listitem>
 	  <para>
 	    Sign queries using TSIG using a key read from the given file.
 	    Key files can be generated using
@@ -300,45 +300,45 @@
 	    and <command>server</command> statements in
 	    <filename>named.conf</filename>.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-m</term>
-        <listitem>
+	<term>-m</term>
+	<listitem>
 	  <para>
 	    Enable memory usage debugging.
 	    <!-- It enables ISC_MEM_DEBUGTRACE and ISC_MEM_DEBUGRECORD
 		 documented in include/isc/mem.h -->
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-p <replaceable class="parameter">port</replaceable></term>
-        <listitem>
+	<term>-p <replaceable class="parameter">port</replaceable></term>
+	<listitem>
 	  <para>
 	    Send the query to a non-standard port on the server,
 	    instead of the defaut port 53. This option would be used
 	    to test a name server that has been configured to listen
 	    for queries on a non-standard port number.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-q <replaceable class="parameter">name</replaceable></term>
-        <listitem>
+	<term>-q <replaceable class="parameter">name</replaceable></term>
+	<listitem>
 	  <para>
 	    The domain name to query. This is useful to distinguish
 	    the <parameter>name</parameter> from other arguments.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-t <replaceable class="parameter">type</replaceable></term>
-        <listitem>
+	<term>-t <replaceable class="parameter">type</replaceable></term>
+	<listitem>
 	  <para>
 	    The resource record type to query. It can be any valid query type
 	    which is
@@ -352,21 +352,21 @@
 	    record was
 	    <parameter>N</parameter>.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-v</term>
-        <listitem>
+	<term>-v</term>
+	<listitem>
 	  <para>
 	    Print the version number and exit.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-x <replaceable class="parameter">addr</replaceable></term>
-        <listitem>
+	<term>-x <replaceable class="parameter">addr</replaceable></term>
+	<listitem>
 	  <para>
 	    Simplified reverse lookups, for mapping addresses to
 	    names. The <parameter>addr</parameter> is an IPv4 address
@@ -383,12 +383,12 @@
 	    IP6.ARPA domain (but see also the <option>-i</option>
 	    option).
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-y <replaceable class="parameter"><optional>hmac:</optional>keyname:secret</replaceable></term>
-        <listitem>
+	<term>-y <replaceable class="parameter"><optional>hmac:</optional>keyname:secret</replaceable></term>
+	<listitem>
 	  <para>
 	    Sign queries using TSIG with the given authentication key.
 	    <parameter>keyname</parameter> is the name of the key, and
@@ -407,11 +407,11 @@
 	    a command line argument in clear text. This may be visible
 	    in the output from
 	    <citerefentry>
-              <refentrytitle>ps</refentrytitle><manvolnum>1</manvolnum>
+	      <refentrytitle>ps</refentrytitle><manvolnum>1</manvolnum>
 	    </citerefentry>
 	    or in a history file maintained by the user's shell.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
     </variablelist>
@@ -518,6 +518,16 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]badcookie</option></term>
+	  <listitem>
+	    <para>
+	      Retry lookup with the new server cookie if a
+	      BADCOOKIE response is received.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]besteffort</option></term>
 	  <listitem>
 	    <para>
@@ -581,6 +591,23 @@
 	    <para>
 	      Toggle the display of comment lines in the output.
 	      The default is to print comments.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><option>+[no]cookie<optional>=####</optional></option></term>
+	  <listitem>
+	    <para>
+	      Send a COOKIE EDNS option, with optional
+	      value.  Replaying a COOKIE from a previous response will
+	      allow the server to identify a previous client.  The
+	      default is <option>+cookie</option>.
+	    </para>
+	    <para>
+	      <command>+cookie</command> is also set when +trace
+	      is set to better emulate the default queries from a
+	      nameserver.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -948,19 +975,6 @@
 	    <para>
 	      Chase DNSSEC signature chains.  Requires dig be
 	      compiled with -DDIG_SIGCHASE.
-	    </para>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>+[no]sit<optional>=####</optional></option></term>
-	  <listitem>
-	    <para>
-	      Send a Source Identity Token EDNS option, with optional
-	      value.  Replaying a SIT from a previous response will
-	      allow the server to identify a previous client.  The
-	      default is <option>+nosit</option>.  Currently using
-	      experimental value 65001 for the option code.
 	    </para>
 	  </listitem>
 	</varlistentry>

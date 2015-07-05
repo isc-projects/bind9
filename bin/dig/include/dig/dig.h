@@ -131,9 +131,9 @@ struct dig_lookup {
 		besteffort,
 		dnssec,
 		expire,
-#ifdef ISC_PLATFORM_USESIT
-		sit,
-#endif
+		sendcookie,
+		seenbadcookie,
+		badcookie,
 		nsid,   /*% Name Server ID (RFC 5001) */
 		header_only,
 		ednsneg;
@@ -191,9 +191,7 @@ isc_boolean_t	sigchase;
 	isc_uint32_t msgcounter;
 	dns_fixedname_t fdomain;
 	isc_sockaddr_t *ecs_addr;
-#ifdef ISC_PLATFORM_USESIT
-	char *sitvalue;
-#endif
+	char *cookie;
 	dns_ednsopt_t *ednsopts;
 	unsigned int ednsoptscnt;
 	isc_dscp_t dscp;

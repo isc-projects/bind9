@@ -244,8 +244,11 @@ enum {
 	/*
 	 * Extended rcodes.
 	 */
-	dns_rcode_badvers = 16
+	dns_rcode_badvers = 16,
 #define dns_rcode_badvers		((dns_rcode_t)dns_rcode_badvers)
+	/* Private space [3841..4095] */
+	dns_rcode_badcookie = 3860 
+#define dns_rcode_badcookie		((dns_rcode_t)dns_rcode_badcookie)
 };
 
 /*%

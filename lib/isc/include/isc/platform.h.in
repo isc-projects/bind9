@@ -335,11 +335,6 @@
 @ISC_PLATFORM_NORETURN_PRE@
 @ISC_PLATFORM_NORETURN_POST@
 
-/*
- * Defined if we are enabling SIT (Source Identity Token).
- */
-@ISC_PLATFORM_USESIT@
-
 /***
  ***	Windows dll support.
  ***/

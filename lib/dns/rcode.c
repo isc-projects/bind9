@@ -68,6 +68,7 @@
 #define ERCODENAMES \
 	/* extended rcodes */ \
 	{ dns_rcode_badvers, "BADVERS", 0}, \
+	{ dns_rcode_badcookie, "BADCOOKIE", 0}, \
 	{ 0, NULL, 0 }
 
 #define TSIGRCODENAMES \

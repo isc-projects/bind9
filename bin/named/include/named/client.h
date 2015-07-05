@@ -190,8 +190,8 @@ typedef ISC_LIST(ns_client_t) client_list_t;
 #define NS_CLIENTATTR_FILTER_AAAA_RC	0x0080 /*%< recursing for A against AAAA */
 #endif
 #define NS_CLIENTATTR_WANTAD		0x0100 /*%< want AD in response if possible */
-#define NS_CLIENTATTR_WANTSIT		0x0200 /*%< include SIT */
-#define NS_CLIENTATTR_HAVESIT		0x0400 /*%< has a valid SIT */
+#define NS_CLIENTATTR_WANTCOOKIE	0x0200 /*%< return a COOKIE */
+#define NS_CLIENTATTR_HAVECOOKIE	0x0400 /*%< has a valid COOKIE */
 #define NS_CLIENTATTR_WANTEXPIRE	0x0800 /*%< return seconds to expire */
 #define NS_CLIENTATTR_HAVEEXPIRE	0x1000 /*%< return seconds to expire */
 #define NS_CLIENTATTR_WANTOPT		0x2000 /*%< add opt to reply */

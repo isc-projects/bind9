@@ -35,6 +35,7 @@
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
@@ -61,9 +62,7 @@ static char *argv0;
 static int addresscount = 0;
 
 static char domainopt[DNS_NAME_MAXTEXT];
-#ifdef ISC_PLATFORM_USESIT
-static char sitvalue[256];
-#endif
+static char hexcookie[81];
 
 static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
@@ -92,43 +91,21 @@ static const char * const opcodetext[] = {
 	"RESERVED15"
 };
 
-/*% return code text */
-static const char * const rcodetext[] = {
-	"NOERROR",
-	"FORMERR",
-	"SERVFAIL",
-	"NXDOMAIN",
-	"NOTIMP",
-	"REFUSED",
-	"YXDOMAIN",
-	"YXRRSET",
-	"NXRRSET",
-	"NOTAUTH",
-	"NOTZONE",
-	"RESERVED11",
-	"RESERVED12",
-	"RESERVED13",
-	"RESERVED14",
-	"RESERVED15",
-	"BADVERS"
-};
+static const char *
+rcode_totext(dns_rcode_t rcode) {
+	static char buf[64];
+	isc_buffer_t b;
+	isc_result_t result;
 
-/*% safe rcodetext[] */
-static char *
-rcode_totext(dns_rcode_t rcode)
-{
-	static char buf[sizeof("?65535")];
-	union {
-		const char *consttext;
-		char *deconsttext;
-	} totext;
-
-	if (rcode >= (sizeof(rcodetext)/sizeof(rcodetext[0]))) {
-		snprintf(buf, sizeof(buf), "?%u", rcode);
-		totext.deconsttext = buf;
-	} else
-		totext.consttext = rcodetext[rcode];
-	return totext.deconsttext;
+	memset(buf, 0, sizeof(buf));
+	isc_buffer_init(&b, buf + 1, sizeof(buf) - 2);
+	result = dns_rcode_totext(rcode, &b);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	if (strspn(buf + 1, "0123456789") == strlen(buf + 1)) {
+		buf[0] = '?';
+		return(buf);
+	}
+	return (buf + 1);
 }
 
 /*% print usage */
@@ -233,9 +210,8 @@ help(void) {
 "                 +[no]expire         (Request time to expire)\n"
 "                 +[no]nsid           (Request Name Server ID)\n"
 "                 +[no]header-only    (Send query without a question section)\n"
-#ifdef ISC_PLATFORM_USESIT
-"                 +[no]sit            (Request a Source Identity Token)\n"
-#endif
+"                 +[no]badcookie      (Retry BADCOOKIE responses)\n"
+"                 +[no]cookie         (Add a COOKIE option to the request)\n"
 #ifdef DIG_SIGCHASE
 "                 +[no]sigchase       (Chase DNSSEC signatures)\n"
 "                 +trusted-key=####   (Trusted Key when chasing DNSSEC sigs)\n"
@@ -767,9 +743,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	char *cmd, *value, *ptr, *code;
 	isc_uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
-#if defined(DIG_SIGCHASE) || defined(ISC_PLATFORM_USESIT)
 	size_t n;
-#endif
 
 	strncpy(option_store, option, sizeof(option_store));
 	option_store[sizeof(option_store)-1]=0;
@@ -846,6 +820,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		break;
 	case 'b':
 		switch (cmd[1]) {
+		case 'a':/* badcookie */
+			FULLCHECK("badcookie");
+			lookup->besteffort = state;
+			break;
 		case 'e':/* besteffort */
 			FULLCHECK("besteffort");
 			lookup->besteffort = state;
@@ -889,10 +867,30 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			printcmd = state;
 			break;
 		case 'o': /* comments */
-			FULLCHECK("comments");
-			lookup->comments = state;
-			if (lookup == default_lookup)
-				pluscomm = state;
+			switch (cmd[2]) {
+			case 'm':
+				FULLCHECK("comments");
+				lookup->comments = state;
+				if (lookup == default_lookup)
+					pluscomm = state;
+				break;
+			case 'o': /* cookie */
+				FULLCHECK("cookie");
+				if (state && lookup->edns == -1)
+					lookup->edns = 0;
+				lookup->sendcookie = state;
+				if (value != NULL) {
+					n = strlcpy(hexcookie, value,
+						    sizeof(hexcookie));
+					if (n >= sizeof(hexcookie))
+						fatal("COOKIE data too large");
+					lookup->cookie = hexcookie;
+				} else
+					lookup->cookie = NULL;
+				break;
+			default:
+				goto invalid_option;
+			}
 			break;
 		case 'r':
 			FULLCHECK("crypto");
@@ -1222,36 +1220,12 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			}
 			break;
-#if defined(DIG_SIGCHASE) || defined(ISC_PLATFORM_USESIT)
-		case 'i':
-			switch (cmd[2]) {
 #ifdef DIG_SIGCHASE
-			case 'g': /* sigchase */
-				FULLCHECK("sigchase");
-				lookup->sigchase = state;
-				if (lookup->sigchase)
-					lookup->dnssec = ISC_TRUE;
-				break;
-#endif
-#ifdef ISC_PLATFORM_USESIT
-			case 't': /* sit */
-				FULLCHECK("sit");
-				if (state && lookup->edns == -1)
-					lookup->edns = 0;
-				lookup->sit = state;
-				if (value != NULL) {
-					n = strlcpy(sitvalue, value,
-						    sizeof(sitvalue));
-					if (n >= sizeof(sitvalue))
-						fatal("SIT data too large");
-					lookup->sitvalue = sitvalue;
-				} else
-					lookup->sitvalue = NULL;
-				break;
-#endif
-			default:
-				goto invalid_option;
-			}
+		case 'i': /* sigchase */
+			FULLCHECK("sigchase");
+			lookup->sigchase = state;
+			if (lookup->sigchase)
+				lookup->dnssec = ISC_TRUE;
 			break;
 #endif
 		case 'p': /* split */
@@ -1353,6 +1327,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					lookup->section_authority = ISC_TRUE;
 					lookup->section_question = ISC_FALSE;
 					lookup->dnssec = ISC_TRUE;
+					lookup->sendcookie = ISC_TRUE;
 					usesearch = ISC_FALSE;
 				}
 				break;
@@ -1789,6 +1764,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		default_lookup = make_empty_lookup();
 		default_lookup->adflag = ISC_TRUE;
 		default_lookup->edns = 0;
+		default_lookup->sendcookie = ISC_TRUE;
 
 #ifndef NOPOSIX
 		/*

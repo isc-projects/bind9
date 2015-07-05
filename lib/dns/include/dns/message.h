@@ -107,9 +107,9 @@
 #define DNS_OPT_NSID		0x0003		/*%< NSID opt code */
 #define DNS_OPT_CLIENT_SUBNET	0x0008		/*%< client subnet opt code */
 #define DNS_OPT_EXPIRE		0x0009		/*%< EXPIRE opt code */
+#define DNS_OPT_COOKIE		0x000a		/*%< COOKIE opt code */
 
 /*%< Experimental options [65001...65534] as per RFC6891 */
-#define DNS_OPT_SIT		65001		/*%< SIT opt code */
 
 /*%< The number of EDNS options we know about. */
 #define DNS_EDNSOPTIONS	5
@@ -219,8 +219,8 @@ struct dns_message {
 	unsigned int			verify_attempted : 1;
 	unsigned int			free_query : 1;
 	unsigned int			free_saved : 1;
-	unsigned int			sitok : 1;
-	unsigned int			sitbad : 1;
+	unsigned int			cc_ok : 1;
+	unsigned int			cc_bad : 1;
 
 	unsigned int			opt_reserved;
 	unsigned int			sig_reserved;

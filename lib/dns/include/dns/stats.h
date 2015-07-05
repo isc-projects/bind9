@@ -66,18 +66,13 @@ enum {
 	dns_resstatscounter_dispreqtcp = 32,
 	dns_resstatscounter_buckets = 33,
 	dns_resstatscounter_refused = 34,
-#ifdef ISC_PLATFORM_USESIT
-	dns_resstatscounter_sitcc = 35,
-	dns_resstatscounter_sitout = 36,
-	dns_resstatscounter_sitin = 37,
-	dns_resstatscounter_sitok = 38,
-
+	dns_resstatscounter_cookienew = 35,
+	dns_resstatscounter_cookieout = 36,
+	dns_resstatscounter_cookiein = 37,
+	dns_resstatscounter_cookieok = 38,
 	dns_resstatscounter_badvers = 39,
-	dns_resstatscounter_max = 40,
-#else
-	dns_resstatscounter_badvers = 35,
-	dns_resstatscounter_max = 36,
-#endif
+	dns_resstatscounter_badcookie = 40,
+	dns_resstatscounter_max = 41,
 
 	/*
 	 * DNSSEC stats.

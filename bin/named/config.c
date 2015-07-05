@@ -53,6 +53,11 @@ options {\n\
 	automatic-interface-scan yes;\n\
 	bindkeys-file \"" NS_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n"
+#if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
+"	cookie-algorithm aes;\n"
+#else
+"	cookie-algorithm sha256;\n"
+#endif
 #ifndef WIN32
 "	coresize default;\n\
 	datasize default;\n\
@@ -116,14 +121,8 @@ options {\n\
 	use-ixfr true;\n\
 	edns-udp-size 4096;\n\
 	max-udp-size 4096;\n\
-"
-#ifdef ISC_PLATFORM_USESIT
-"\
-	nosit-udp-size 4096;\n\
-	request-sit true;\n\
-"
-#endif
-"\
+	nocookie-udp-size 4096;\n\
+	send-cookie true;\n\
 	request-nsid false;\n\
 	reserved-sockets 512;\n\
 \n\

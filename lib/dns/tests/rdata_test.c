@@ -96,7 +96,7 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 			  0x00, 0x08, 0x00, 0x04,
 			  0x00, 0x00, 0x00, 0x00
 			},
-			8, ISC_TRUE
+			8, ISC_FALSE
 		},
 		{
 			/* Option code family 1 (ipv4), source 0, scope 0 */

@@ -256,8 +256,8 @@ struct dns_adbentry {
 	unsigned char			to1232;		/* IPv6 nofrag */
 	unsigned char			to512;		/* plain DNS */
 	isc_sockaddr_t                  sockaddr;
-	unsigned char *			sit;
-	isc_uint16_t			sitlen;
+	unsigned char *			cookie;
+	isc_uint16_t			cookielen;
 
 	isc_stdtime_t                   expires;
 	isc_stdtime_t			lastage;
@@ -1817,8 +1817,8 @@ new_adbentry(dns_adb_t *adb) {
 	e->to1432 = 0;
 	e->to1232 = 0;
 	e->to512 = 0;
-	e->sit = NULL;
-	e->sitlen = 0;
+	e->cookie = NULL;
+	e->cookielen = 0;
 	isc_random_get(&r);
 	e->srtt = (r & 0x1f) + 1;
 	e->lastage = 0;
@@ -1856,8 +1856,8 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry) {
 
 	e->magic = 0;
 
-	if (e->sit != NULL)
-		isc_mem_put(adb->mctx, e->sit, e->sitlen);
+	if (e->cookie != NULL)
+		isc_mem_put(adb->mctx, e->cookie, e->cookielen);
 
 	li = ISC_LIST_HEAD(e->lameinfo);
 	while (li != NULL) {
@@ -3482,16 +3482,13 @@ dump_entry(FILE *f, dns_adbentry_t *entry, isc_boolean_t debug,
 		entry->to512, entry->plain, entry->plainto);
 	if (entry->udpsize != 0U)
 		fprintf(f, " [udpsize %u]", entry->udpsize);
-#ifdef ISC_PLATFORM_USESIT
-	if (entry->sit != NULL) {
+	if (entry->cookie != NULL) {
 		unsigned int i;
-		fprintf(f, " [sit=");
-		for (i = 0; i < entry->sitlen; i++)
-			fprintf(f, "%02x", entry->sit[i]);
+		fprintf(f, " [cookie=");
+		for (i = 0; i < entry->cookielen; i++)
+			fprintf(f, "%02x", entry->cookie[i]);
 		fprintf(f, "]");
 	}
-#endif
-
 	if (entry->expires != 0)
 		fprintf(f, " [ttl %d]", entry->expires - now);
 	fprintf(f, "\n");
@@ -4359,8 +4356,8 @@ dns_adb_probesize2(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups) {
 }
 
 void
-dns_adb_setsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-	       const unsigned char *sit, size_t len)
+dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+	          const unsigned char *cookie, size_t len)
 {
 	int bucket;
 
@@ -4370,27 +4367,28 @@ dns_adb_setsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 
-	if (addr->entry->sit != NULL &&
-	    (sit == NULL || len != addr->entry->sitlen)) {
-		isc_mem_put(adb->mctx, addr->entry->sit, addr->entry->sitlen);
-		addr->entry->sit = NULL;
-		addr->entry->sitlen = 0;
+	if (addr->entry->cookie != NULL &&
+	    (cookie == NULL || len != addr->entry->cookielen)) {
+		isc_mem_put(adb->mctx, addr->entry->cookie,
+			    addr->entry->cookielen);
+		addr->entry->cookie = NULL;
+		addr->entry->cookielen = 0;
 	}
 
-	if (addr->entry->sit == NULL && sit != NULL && len != 0U) {
-		addr->entry->sit = isc_mem_get(adb->mctx, len);
-		if (addr->entry->sit != NULL)
-			addr->entry->sitlen = (isc_uint16_t)len;
+	if (addr->entry->cookie == NULL && cookie != NULL && len != 0U) {
+		addr->entry->cookie = isc_mem_get(adb->mctx, len);
+		if (addr->entry->cookie != NULL)
+			addr->entry->cookielen = (isc_uint16_t)len;
 	}
 
-	if (addr->entry->sit != NULL)
-		memmove(addr->entry->sit, sit, len);
+	if (addr->entry->cookie != NULL)
+		memmove(addr->entry->cookie, cookie, len);
 	UNLOCK(&adb->entrylocks[bucket]);
 }
 
 size_t
-dns_adb_getsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-	       unsigned char *sit, size_t len)
+dns_adb_getcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+	          unsigned char *cookie, size_t len)
 {
 	int bucket;
 
@@ -4399,11 +4397,11 @@ dns_adb_getsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
-	if (sit != NULL && addr->entry->sit != NULL &&
-	    len >= addr->entry->sitlen)
+	if (cookie != NULL && addr->entry->cookie != NULL &&
+	    len >= addr->entry->cookielen)
 	{
-		memmove(sit, addr->entry->sit, addr->entry->sitlen);
-		len = addr->entry->sitlen;
+		memmove(cookie, addr->entry->cookie, addr->entry->cookielen);
+		len = addr->entry->cookielen;
 	} else
 		len = 0;
 	UNLOCK(&adb->entrylocks[bucket]);

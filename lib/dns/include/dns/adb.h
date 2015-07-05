@@ -750,11 +750,11 @@ dns_adb_flushnames(dns_adb_t *adb, dns_name_t *name);
  */
 
 void
-dns_adb_setsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-	       const unsigned char *sit, size_t len);
+dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+	          const unsigned char *cookie, size_t len);
 /*%<
- * Record the Source Identity Token (SIT) associated with this addresss.  If
- * sit is NULL or len is zero. The recorded SIT is cleared.
+ * Record the COOKIE associated with this addresss.  If
+ * cookie is NULL or len is zero the recorded COOKIE is cleared.
  *
  * Requires:
  *\li	'adb' is valid.
@@ -762,17 +762,18 @@ dns_adb_setsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  */
 
 size_t
-dns_adb_getsit(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-	       unsigned char *sit, size_t len);
+dns_adb_getcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+	          unsigned char *cookie, size_t len);
 /*
- * Retieve the saved SIT value and store it in 'sit' which has size 'len'.
+ * Retieve the saved COOKIE value and store it in 'cookie' which has
+ * size 'len'.
  *
  * Requires:
  *\li	'adb' is valid.
  *\li	'addr' is valid.
  *
  * Returns:
- *	The size of the sit token or zero if it doesn't fit in the buffer
+ *	The size of the cookie or zero if it doesn't fit in the buffer
  *	or it doesn't exist.
  */
 

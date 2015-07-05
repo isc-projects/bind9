@@ -321,7 +321,7 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 		result = PK11_R_NODIGESTSERVICE;
 		goto unlock;
 	}
-#if defined(ISC_PLATFORM_USESIT) && defined(AES_SIT)
+#if defined(AES_SIT)
 	if (aes_token == NULL) {
 		result = PK11_R_NOAESSERVICE;
 		goto unlock;

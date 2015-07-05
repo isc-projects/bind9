@@ -74,7 +74,7 @@ struct dns_peer {
 	isc_boolean_t		request_ixfr;
 	isc_boolean_t		support_edns;
 	isc_boolean_t		request_nsid;
-	isc_boolean_t		request_sit;
+	isc_boolean_t		send_cookie;
 	isc_boolean_t		request_expire;
 	isc_boolean_t		force_tcp;
 	dns_name_t	       *key;
@@ -164,10 +164,10 @@ isc_result_t
 dns_peer_getrequestnsid(dns_peer_t *peer, isc_boolean_t *retval);
 
 isc_result_t
-dns_peer_setrequestsit(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setsendcookie(dns_peer_t *peer, isc_boolean_t newval);
 
 isc_result_t
-dns_peer_getrequestsit(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getsendcookie(dns_peer_t *peer, isc_boolean_t *retval);
 
 isc_result_t
 dns_peer_setrequestexpire(dns_peer_t *peer, isc_boolean_t newval);

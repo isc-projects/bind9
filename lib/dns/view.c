@@ -221,7 +221,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->flush = ISC_FALSE;
 	view->dlv = NULL;
 	view->maxudp = 0;
-	view->situdp = 0;
+	view->nocookieudp = 0;
 	view->maxbits = 0;
 	view->v4_aaaa = dns_aaaa_ok;
 	view->v6_aaaa = dns_aaaa_ok;
@@ -233,7 +233,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->redirectzone = NULL;
 	dns_fixedname_init(&view->redirectfixed);
 	view->requestnsid = ISC_FALSE;
-	view->requestsit = ISC_TRUE;
+	view->sendcookie = ISC_TRUE;
 	view->new_zone_file = NULL;
 	view->new_zone_config = NULL;
 	view->cfg_destroy = NULL;

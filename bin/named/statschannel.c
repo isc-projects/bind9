@@ -224,19 +224,12 @@ init_desc(void) {
 	SET_NSSTATDESC(nsidopt, "NSID option received", "NSIDOpt");
 	SET_NSSTATDESC(expireopt, "Expire option received", "ExpireOpt");
 	SET_NSSTATDESC(otheropt, "Other EDNS option received", "OtherOpt");
-#ifdef ISC_PLATFORM_USESIT
-	SET_NSSTATDESC(sitopt, "source identity token option received",
-		       "SitOpt");
-	SET_NSSTATDESC(sitnew, "new source identity token requested",
-		       "SitNew");
-	SET_NSSTATDESC(sitbadsize, "source identity token - bad size",
-		       "SitBadSize");
-	SET_NSSTATDESC(sitbadtime, "source identity token - bad time",
-		       "SitBadTime");
-	SET_NSSTATDESC(sitnomatch, "source identity token - no match",
-		       "SitNoMatch");
-	SET_NSSTATDESC(sitmatch, "source identity token - match", "SitMatch");
-#endif
+	SET_NSSTATDESC(cookiein, "COOKIE option received", "CookieIn");
+	SET_NSSTATDESC(cookienew, "COOKIE - client only", "CookieNew");
+	SET_NSSTATDESC(cookiebadsize, "COOKIE - bad size", "CookieBadSize");
+	SET_NSSTATDESC(cookiebadtime, "COOKIE - bad time", "CookieBadTime");
+	SET_NSSTATDESC(cookienomatch, "COOKIE - no match", "CookieNoMatch");
+	SET_NSSTATDESC(cookiematch, "COOKIE - match", "CookieMatch");
 	SET_NSSTATDESC(ecsopt, "EDNS client subnet option recieved", "ECSOpt");
 	SET_NSSTATDESC(nxdomainredirect,
 		"queries resulted in NXDOMAIN that were redirected",
@@ -245,6 +238,7 @@ init_desc(void) {
 		"queries resulted in NXDOMAIN that were redirected and "
 		"resulted in a successful remote lookup",
 		"QryNXRedirRLookup");
+	SET_NSSTATDESC(badcookie, "sent badcookie response", "QryBADCOOKIE");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */
@@ -320,15 +314,14 @@ init_desc(void) {
 	SET_RESSTATDESC(nfetch, "active fetches", "NumFetch");
 	SET_RESSTATDESC(buckets, "bucket size", "BucketSize");
 	SET_RESSTATDESC(refused, "REFUSED received", "REFUSED");
-#ifdef ISC_PLATFORM_USESIT
-	SET_RESSTATDESC(sitcc, "SIT sent client cookie only",
-			"SitClientOut");
-	SET_RESSTATDESC(sitout, "SIT sent with client and server cookie",
-			"SitOut");
-	SET_RESSTATDESC(sitin, "SIT replies received", "SitIn");
-	SET_RESSTATDESC(sitok, "SIT client cookie ok", "SitClientOk");
-#endif
+	SET_RESSTATDESC(cookienew, "COOKIE send with client cookie only",
+			"ClientCookieOut");
+	SET_RESSTATDESC(cookieout, "COOKIE sent with client and server cookie",
+			"ServerCookieOut");
+	SET_RESSTATDESC(cookiein, "COOKIE replies received", "CookieIn");
+	SET_RESSTATDESC(cookieok, "COOKIE client ok", "CookieClientOk");
 	SET_RESSTATDESC(badvers, "bad EDNS version", "BadEDNSVersion");
+	SET_RESSTATDESC(badcookie, "bad cookie rcode", "BadCookieRcode");
 
 	INSIST(i == dns_resstatscounter_max);
 

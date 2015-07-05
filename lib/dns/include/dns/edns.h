@@ -24,7 +24,7 @@
 #ifdef DRAFT_ANDREWS_EDNS1
 #undef DNS_EDNS_VERSION
 /*
- * Warning: this currently disables sending SIT requests in resolver.c
+ * Warning: this currently disables sending COOKIE requests in resolver.c
  */
 #define DNS_EDNS_VERSION 1 /* draft-andrews-edns1 */
 #endif

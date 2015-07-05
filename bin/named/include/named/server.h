@@ -116,7 +116,8 @@ struct ns_server {
 	unsigned int		session_keyalg;
 	isc_uint16_t		session_keybits;
 	isc_boolean_t		interface_auto;
-	unsigned char		secret[32];	/*%< Source Identity Token */
+	unsigned char		secret[32];	/*%< Server Cookie Secret */
+	ns_cookiealg_t		cookiealg;
 
 	char *			lockfile;
 };
@@ -190,18 +191,15 @@ enum {
 	dns_nsstatscounter_nxdomainredirect = 47,
 	dns_nsstatscounter_nxdomainredirect_rlookup = 48,
 
-#ifdef ISC_PLATFORM_USESIT
-	dns_nsstatscounter_sitopt = 49,
-	dns_nsstatscounter_sitbadsize = 50,
-	dns_nsstatscounter_sitbadtime = 51,
-	dns_nsstatscounter_sitnomatch = 52,
-	dns_nsstatscounter_sitmatch = 53,
-	dns_nsstatscounter_sitnew = 54,
+	dns_nsstatscounter_cookiein = 49,
+	dns_nsstatscounter_cookiebadsize = 50,
+	dns_nsstatscounter_cookiebadtime = 51,
+	dns_nsstatscounter_cookienomatch = 52,
+	dns_nsstatscounter_cookiematch = 53,
+	dns_nsstatscounter_cookienew = 54,
+	dns_nsstatscounter_badcookie = 55,
 
-	dns_nsstatscounter_max = 55
-#else
-	dns_nsstatscounter_max = 49
-#endif
+	dns_nsstatscounter_max = 56
 };
 
 void

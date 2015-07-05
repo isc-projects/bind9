@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 
+#include <isc/aes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/file.h>
@@ -32,22 +33,12 @@
 #include <isc/platform.h>
 #include <isc/region.h>
 #include <isc/result.h>
+#include <isc/sha1.h>
+#include <isc/sha2.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/symtab.h>
 #include <isc/util.h>
-
-#ifdef ISC_PLATFORM_USESIT
-#ifdef AES_SIT
-#include <isc/aes.h>
-#endif
-#ifdef HMAC_SHA1_SIT
-#include <isc/sha1.h>
-#endif
-#ifdef HMAC_SHA256_SIT
-#include <isc/sha2.h>
-#endif
-#endif
 
 #include <dns/acl.h>
 #include <dns/fixedname.h>
@@ -805,10 +796,13 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	dns_fixedname_t fixed;
 	const char *str;
 	dns_name_t *name;
-#ifdef ISC_PLATFORM_USESIT
 	isc_buffer_t b;
-#endif
 	isc_uint32_t lifetime = 3600;
+#if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
+	const char *ccalg = "aes";
+#else
+	const char *ccalg = "sha256";
+#endif
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
@@ -1183,9 +1177,18 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				    "(%d seconds)", recheck, lifetime);
 	}
 
-#ifdef ISC_PLATFORM_USESIT
 	obj = NULL;
-	(void) cfg_map_get(options, "sit-secret", &obj);
+	(void) cfg_map_get(options, "cookie-algorithm,", &obj);
+	if (obj != NULL)
+		ccalg = cfg_obj_asstring(obj);
+#if !defined(HAVE_OPENSSL_AES) && !defined(HAVE_OPENSSL_EVP_AES)
+	if (strcasecmp(ccalg, "aes") == 0)
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "cookie-algorithm: '%s' not supported", ccalg);
+#endif
+
+	obj = NULL;
+	(void) cfg_map_get(options, "cookie-secret", &obj);
 	if (obj != NULL) {
 		unsigned char secret[32];
 
@@ -1194,39 +1197,36 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		tresult = isc_hex_decodestring(cfg_obj_asstring(obj), &b);
 		if (tresult == ISC_R_NOSPACE) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "sit-secret: too long");
+				    "cookie-secret: too long");
 		} else if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "sit-secret: invalid hex string");
+				    "cookie-secret: invalid hex string");
 		}
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
-#ifdef AES_SIT
+		
 		if (tresult == ISC_R_SUCCESS &&
+		    strcasecmp(ccalg, "aes") != 0 &&
 		    isc_buffer_usedlength(&b) != ISC_AES128_KEYLENGTH) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "AES sit-secret must be on 128 bits");
+				    "AES cookie-secret must be on 128 bits");
 			result = ISC_R_RANGE;
 		}
-#endif
-#ifdef HMAC_SHA1_SIT
 		if (tresult == ISC_R_SUCCESS &&
+		    strcasecmp(ccalg, "sha1") != 0 &&
 		    isc_buffer_usedlength(&b) != ISC_SHA1_DIGESTLENGTH) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "SHA1 sit-secret must be on 160 bits");
+				    "SHA1 cookie-secret must be on 160 bits");
 			result = ISC_R_RANGE;
 		}
-#endif
-#ifdef HMAC_SHA256_SIT
 		if (tresult == ISC_R_SUCCESS &&
+		    strcasecmp(ccalg, "sha256") != 0 &&
 		    isc_buffer_usedlength(&b) != ISC_SHA256_DIGESTLENGTH) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "SHA256 sit-secret must be on 256 bits");
+				    "SHA256 cookie-secret must be on 256 bits");
 			result = ISC_R_RANGE;
 		}
-#endif
 	}
-#endif
 
 	return (result);
 }
@@ -3142,7 +3142,7 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 			result = ISC_R_FAILURE;
 
 	/*
-	 * Use case insensitve comparision as not all file systems are
+	 * Use case insensitive comparision as not all file systems are
 	 * case sensitive. This will prevent people using FOO.DB and foo.db
 	 * on case sensitive file systems but that shouldn't be a major issue.
 	 */

@@ -485,6 +485,18 @@
         </varlistentry>
 
         <varlistentry>
+          <term><option>+[no]cookie<optional>=####</optional></option></term>
+	  <listitem>
+	    <para>
+	      Send a COOKIE EDNS option, with optional value.
+	      Replaying a COOKIE from a previous response will allow
+	      the server to identify a previous client.  The default
+	      is <option>+nocookie</option>.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+        <varlistentry>
           <term><option>+[no]dnssec</option></term>
           <listitem>
             <para>
@@ -571,19 +583,6 @@
               server to <parameter>T</parameter> instead of the
               default, 2.  Unlike <parameter>+tries</parameter>,
               this does not include the initial query.
-            </para>
-          </listitem>
-        </varlistentry>
-
-        <varlistentry>
-          <term><option>+[no]sit<optional>=####</optional></option></term>
-          <listitem>
-            <para>
-              Send a Source Identity Token EDNS option, with optional
-              value.  Replaying a SIT from a previous response will
-              allow the server to identify a previous client.  The
-              default is <option>+nosit</option>.  Currently using
-              experimental value 65001 for the option code.
             </para>
           </listitem>
         </varlistentry>

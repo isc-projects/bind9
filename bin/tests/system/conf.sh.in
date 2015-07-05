@@ -66,17 +66,16 @@ RANDFILE=$TOP/bin/tests/system/random.data
 # v6synth
 SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case checkconf @CHECKDS@ checknames checkzone
-	 @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal dname
-	 dns64 dnssec dsdigest dscp ecdsa ednscompliance emptyzones
-	 filter-aaaa formerr forward geoip glue gost ixfr inline
-	 legacy limits logfileconfig lwresd
-	 masterfile masterformat metadata mkeys
-	 notify nslookup nsupdate pending pipelined @PKCS11_TEST@
-	 reclimit redirect resolver rndc rpz rpzrecurse
-         rrl rrchecker rrsetorder rsabigexponent runtime
-         sit sfcache smartsign sortlist spf
-	 staticstub statistics stub tcp tkey tsig tsiggss unknown
-	 upforwd verify views wildcard xfer xferquota zero zonechecks"
+	 cookie @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal
+	 dname dns64 dnssec dsdigest dscp ecdsa ednscompliance
+	 emptyzones filter-aaaa formerr forward geoip glue gost
+	 ixfr inline legacy limits logfileconfig lwresd masterfile
+	 masterformat metadata mkeys notify nslookup nsupdate pending
+	 pipelined @PKCS11_TEST@ reclimit redirect resolver rndc
+	 rpz rpzrecurse rrl rrchecker rrsetorder rsabigexponent
+	 runtime sfcache smartsign sortlist spf staticstub statistics
+	 stub tcp tkey tsig tsiggss unknown upforwd verify views
+	 wildcard xfer xferquota zero zonechecks"
 
 # Use the CONFIG_SHELL detected by configure for tests
 SHELL=@SHELL@

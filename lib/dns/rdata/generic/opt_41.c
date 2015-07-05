@@ -128,7 +128,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 			isc_uint8_t addrbytes;
 
 			if (length < 4)
-				return (DNS_R_FORMERR);
+				return (DNS_R_OPTERR);
 			family = uint16_fromregion(&sregion);
 			isc_region_consume(&sregion, 2);
 			addrlen = uint8_fromregion(&sregion);
@@ -138,16 +138,18 @@ fromwire_opt(ARGS_FROMWIRE) {
 			switch (family) {
 			case 1:
 				if (addrlen > 32U || scope > 32U)
-					return (DNS_R_FORMERR);
+					return (DNS_R_OPTERR);
 				break;
 			case 2:
 				if (addrlen > 128U || scope > 128U)
-					return (DNS_R_FORMERR);
+					return (DNS_R_OPTERR);
 				break;
+			default:
+				return (DNS_R_OPTERR);
 			}
 			addrbytes = (addrlen + 7) / 8;
 			if (addrbytes + 4 != length)
-				return (DNS_R_FORMERR);
+				return (DNS_R_OPTERR);
 			isc_region_consume(&sregion, addrbytes);
 			break;
 		}
@@ -156,6 +158,11 @@ fromwire_opt(ARGS_FROMWIRE) {
 			 * Request has zero length.  Response is 32 bits.
 			 */
 			if (length != 0 && length != 4)
+				return (DNS_R_OPTERR);
+			isc_region_consume(&sregion, length);
+			break;
+		case DNS_OPT_COOKIE:
+			if (length != 8 && (length < 16 || length > 40))
 				return (DNS_R_FORMERR);
 			isc_region_consume(&sregion, length);
 			break;
