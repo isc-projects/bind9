@@ -7311,7 +7311,7 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 						  dns_resstatscounter_cookieok);
 					addrinfo = query->addrinfo;
 					dns_adb_setcookie(query->fctx->adb,
-						          addrinfo, optvalue,
+							  addrinfo, optvalue,
 							  optlen);
 				} else
 					query->fctx->rmessage->cc_bad = 1;
@@ -7722,10 +7722,10 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 					    FCTX_ADDRINFO_NOCOOKIE);
 			resend = ISC_TRUE;
 		} else if ((message->rcode == dns_rcode_formerr ||
-		            message->rcode == dns_rcode_notimp ||
-		            (message->rcode == dns_rcode_servfail &&
-		             dns_message_getopt(message) == NULL)) &&
-		           (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+			    message->rcode == dns_rcode_notimp ||
+			    (message->rcode == dns_rcode_servfail &&
+			     dns_message_getopt(message) == NULL)) &&
+			   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 			/*
 			 * It's very likely they don't like EDNS0.
 			 * If the response code is SERVFAIL, also check if the

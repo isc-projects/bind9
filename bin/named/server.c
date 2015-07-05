@@ -6430,7 +6430,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		result = isc_hex_decodestring(cfg_obj_asstring(obj), &b);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
 			goto cleanup;
-		
+
 		usedlength = isc_buffer_usedlength(&b);
 		switch (server->cookiealg) {
 		case ns_cookiealg_aes:

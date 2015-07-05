@@ -4357,7 +4357,7 @@ dns_adb_probesize2(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups) {
 
 void
 dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-	          const unsigned char *cookie, size_t len)
+		  const unsigned char *cookie, size_t len)
 {
 	int bucket;
 
@@ -4388,7 +4388,7 @@ dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 size_t
 dns_adb_getcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-	          unsigned char *cookie, size_t len)
+		  unsigned char *cookie, size_t len)
 {
 	int bucket;
 

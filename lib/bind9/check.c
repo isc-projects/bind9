@@ -1204,7 +1204,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		}
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
-		
+
 		if (tresult == ISC_R_SUCCESS &&
 		    strcasecmp(ccalg, "aes") != 0 &&
 		    isc_buffer_usedlength(&b) != ISC_AES128_KEYLENGTH) {

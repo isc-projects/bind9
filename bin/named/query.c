@@ -251,7 +251,7 @@ query_send(ns_client_t *client) {
 				counter = dns_nsstatscounter_nxrrset;
 		} else
 			counter = dns_nsstatscounter_success;
-	} else if (client->message->rcode == dns_rcode_nxdomain) 
+	} else if (client->message->rcode == dns_rcode_nxdomain)
 		counter = dns_nsstatscounter_nxdomain;
 	else if (client->message->rcode == dns_rcode_badcookie)
 		counter = dns_nsstatscounter_badcookie;
