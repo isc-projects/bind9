@@ -3229,14 +3229,17 @@ render_ecs(isc_buffer_t *optbuf, isc_buffer_t *target) {
 	isc_uint16_t family;
 	isc_uint8_t addrlen, addrbytes, scopelen;
 
-	INSIST(isc_buffer_remaininglength(optbuf) >= 4);
+	if (isc_buffer_remaininglength(optbuf) < 4)
+		return (DNS_R_OPTERR);
 	family = isc_buffer_getuint16(optbuf);
 	addrlen = isc_buffer_getuint8(optbuf);
 	scopelen = isc_buffer_getuint8(optbuf);
 
 	addrbytes = (addrlen + 7) / 8;
-	INSIST(isc_buffer_remaininglength(optbuf) >= addrbytes);
+	if (isc_buffer_remaininglength(optbuf) < addrbytes)
+		return (DNS_R_OPTERR);
 
+	ADD_STRING(target, ": ");
 	memset(addr, 0, sizeof(addr));
 	for (i = 0; i < addrbytes; i ++)
 		addr[i] = isc_buffer_getuint8(optbuf);
@@ -3326,10 +3329,12 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			} else if (optcode == DNS_OPT_COOKIE) {
 				ADD_STRING(target, "; COOKIE");
 			} else if (optcode == DNS_OPT_CLIENT_SUBNET) {
-				ADD_STRING(target, "; CLIENT-SUBNET: ");
-				render_ecs(&optbuf, target);
-				ADD_STRING(target, "\n");
-				continue;
+				ADD_STRING(target, "; CLIENT-SUBNET");
+				result = render_ecs(&optbuf, target);
+				if (result == ISC_R_SUCCESS) {
+					ADD_STRING(target, "\n");
+					continue;
+				}
 			} else if (optcode == DNS_OPT_EXPIRE) {
 				if (optlen == 4) {
 					isc_uint32_t secs;
@@ -3376,6 +3381,11 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 						ADD_STRING(target, " (good)");
 					if (msg->cc_bad)
 						ADD_STRING(target, " (bad)");
+					ADD_STRING(target, "\n");
+					continue;
+				}
+
+				if (optcode == DNS_OPT_CLIENT_SUBNET) {
 					ADD_STRING(target, "\n");
 					continue;
 				}
