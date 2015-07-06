@@ -277,6 +277,12 @@ bytes. The maximum and minimum sizes of this buffer are 65535 and 0 respectively
 Set [do not set] the CD (checking disabled) bit in the query. This requests the server to not perform DNSSEC validation of responses.
 .RE
 .PP
+\fB+[no]cookie\fR\fB[=####]\fR
+.RS 4
+Send a COOKIE EDNS option, with optional value. Replaying a COOKIE from a previous response will allow the server to identify a previous client. The default is
+\fB+nocookie\fR.
+.RE
+.PP
 \fB+[no]dnssec\fR
 .RS 4
 Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO) in the OPT record in the additional section of the query.
@@ -328,12 +334,6 @@ Sets the number of times to retry UDP queries to server to
 \fIT\fR
 instead of the default, 2. Unlike
 \fI+tries\fR, this does not include the initial query.
-.RE
-.PP
-\fB+[no]sit\fR\fB[=####]\fR
-.RS 4
-Send a Source Identity Token EDNS option, with optional value. Replaying a SIT from a previous response will allow the server to identify a previous client. The default is
-\fB+nosit\fR. Currently using experimental value 65001 for the option code.
 .RE
 .PP
 \fB+[no]subnet=addr/prefix\fR

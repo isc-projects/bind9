@@ -45,7 +45,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2573604">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2573795">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
@@ -60,7 +60,7 @@
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2573604"></a>Release Notes for BIND Version 9.11.0pre-alpha</h2></div></div></div>
+<a name="id2573795"></a>Release Notes for BIND Version 9.11.0pre-alpha</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -449,11 +449,23 @@
 	  by "sig-signing-signatures <em class="replaceable"><code>number</code></em>;".
 	  [RT #37927]
 	</p></li>
+<li>
+<p>
+	  The experimental SIT option (code point 65001) of BIND
+	  9.10.0 through BIND 9.10.2 has be replace the COOKIE
+	  option (code point 10) and is no longer experimental and
+	  is sent by default.
+	</p>
+<p>
+	  The SIT related named.conf options have been marked as
+	  obsolete and are otherwise ignored.
+	</p>
+</li>
 <li><p>
-	  When retrying a query via TCP due to the first answer being
-	  truncated, <span><strong class="command">dig</strong></span> will now correctly send
-	  the SIT (server identity token) value returned by the server
-	  in the prior response. [RT #39047]
+	  When retrying a query via TCP due to the first answer
+	  being truncated, <span><strong class="command">dig</strong></span> will now correctly
+	  send the Server COOKIE returned by the server in the prior
+	  response. [RT #39047]
 	</p></li>
 <li><p>
 	  A alternative NXDOMAIN redirect method (nxdomain-redirect)

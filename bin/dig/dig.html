@@ -324,6 +324,11 @@
 	      Display [do not display] the authority section of a
 	      reply.  The default is to display it.
 	    </p></dd>
+<dt><span class="term"><code class="option">+[no]badcookie</code></span></dt>
+<dd><p>
+	      Retry lookup with the new server cookie if a
+	      BADCOOKIE response is received.
+	    </p></dd>
 <dt><span class="term"><code class="option">+[no]besteffort</code></span></dt>
 <dd><p>
 	      Attempt to display the contents of messages which are
@@ -362,6 +367,20 @@
 	      Toggle the display of comment lines in the output.
 	      The default is to print comments.
 	    </p></dd>
+<dt><span class="term"><code class="option">+[no]cookie[<span class="optional">=####</span>]</code></span></dt>
+<dd>
+<p>
+	      Send a COOKIE EDNS option, with optional
+	      value.  Replaying a COOKIE from a previous response will
+	      allow the server to identify a previous client.  The
+	      default is <code class="option">+cookie</code>.
+	    </p>
+<p>
+	      <span><strong class="command">+cookie</strong></span> is also set when +trace
+	      is set to better emulate the default queries from a
+	      nameserver.
+	    </p>
+</dd>
 <dt><span class="term"><code class="option">+[no]crypto</code></span></dt>
 <dd><p>
 	      Toggle the display of cryptographic fields in DNSSEC
@@ -577,14 +596,6 @@
 	      Chase DNSSEC signature chains.  Requires dig be
 	      compiled with -DDIG_SIGCHASE.
 	    </p></dd>
-<dt><span class="term"><code class="option">+[no]sit[<span class="optional">=####</span>]</code></span></dt>
-<dd><p>
-	      Send a Source Identity Token EDNS option, with optional
-	      value.  Replaying a SIT from a previous response will
-	      allow the server to identify a previous client.  The
-	      default is <code class="option">+nosit</code>.  Currently using
-	      experimental value 65001 for the option code.
-	    </p></dd>
 <dt><span class="term"><code class="option">+split=W</code></span></dt>
 <dd><p>
 	      Split long hex- or base64-formatted fields in resource
@@ -702,7 +713,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545760"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2545575"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -748,7 +759,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545821"></a><h2>IDN SUPPORT</h2>
+<a name="id2545637"></a><h2>IDN SUPPORT</h2>
 <p>
       If <span><strong class="command">dig</strong></span> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -762,14 +773,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545844"></a><h2>FILES</h2>
+<a name="id2545659"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545861"></a><h2>SEE ALSO</h2>
+<a name="id2545745"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -777,7 +788,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545966"></a><h2>BUGS</h2>
+<a name="id2545782"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>

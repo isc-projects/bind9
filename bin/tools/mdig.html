@@ -314,6 +314,13 @@
               the query.  This requests the server to not perform
               DNSSEC validation of responses.
             </p></dd>
+<dt><span class="term"><code class="option">+[no]cookie[<span class="optional">=####</span>]</code></span></dt>
+<dd><p>
+	      Send a COOKIE EDNS option, with optional value.
+	      Replaying a COOKIE from a previous response will allow
+	      the server to identify a previous client.  The default
+	      is <code class="option">+nocookie</code>.
+	    </p></dd>
 <dt><span class="term"><code class="option">+[no]dnssec</code></span></dt>
 <dd><p>
               Requests DNSSEC records be sent by setting the DNSSEC
@@ -364,14 +371,6 @@
               server to <em class="parameter"><code>T</code></em> instead of the
               default, 2.  Unlike <em class="parameter"><code>+tries</code></em>,
               this does not include the initial query.
-            </p></dd>
-<dt><span class="term"><code class="option">+[no]sit[<span class="optional">=####</span>]</code></span></dt>
-<dd><p>
-              Send a Source Identity Token EDNS option, with optional
-              value.  Replaying a SIT from a previous response will
-              allow the server to identify a previous client.  The
-              default is <code class="option">+nosit</code>.  Currently using
-              experimental value 65001 for the option code.
             </p></dd>
 <dt><span class="term"><code class="option">+[no]subnet=addr/prefix</code></span></dt>
 <dd><p>
