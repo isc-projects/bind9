@@ -1113,7 +1113,8 @@ static cfg_type_t cfg_type_masterstyle = {
  *  response-policy {
  *	zone <string> [ policy (given|disabled|passthru|drop|tcp-only|
  *					nxdomain|nodata|cname <domain> ) ]
- *		      [ recursive-only yes|no ] [ max-policy-ttl number ] ;
+ *		      [ recursive-only yes|no ] [ log yes|no ]
+ *		      [ max-policy-ttl number ] ;
  *  } [ recursive-only yes|no ] [ max-policy-ttl number ]
  *	 [ break-dnssec yes|no ] [ min-ns-dots number ]
  *	 [ qname-wait-recurse yes|no ] ;
@@ -1303,6 +1304,7 @@ static cfg_tuplefielddef_t rpz_zone_fields[] = {
 	{ "zone name", &cfg_type_rpz_zone, 0 },
 	{ "policy", &cfg_type_rpz_policy, 0 },
 	{ "recursive-only", &cfg_type_boolean, 0 },
+	{ "log", &cfg_type_boolean, 0 },
 	{ "max-policy-ttl", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };

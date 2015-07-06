@@ -1,3 +1,7 @@
+4155.	[func]		Allow RPZ rewrite logging to be configured on a
+			per-zone basis using a newly introduced log clause in
+			the response-policy option. [RT #39754]
+
 4154.	[bug]		A OPT record should be included with the FORMERR
 			response when there is a malformed EDNS option.
 			[RT #39647]

@@ -5018,6 +5018,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> policy <replaceable>(given | disabled | passthru | drop |
 		  tcp-only | nxdomain | nodata | cname domain</replaceable>) </optional>
 	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional>
+	<optional> log <replaceable>yes_or_no</replaceable> </optional>
 	<optional> max-policy-ttl <replaceable>number</replaceable> </optional>
 	; <optional>...</optional>
     } <optional> recursive-only <replaceable>yes_or_no</replaceable> </optional>
@@ -10295,6 +10296,12 @@ example.com                 CNAME   rpz-tcp-only.
 	  <para>
 	    Responses rewritten by RPZ are counted in the
 	    <command>RPZRewrites</command> statistics.
+	  </para>
+
+	  <para>
+	    The <command>log<command> clause can be used to optionally
+	    turn off rewrite logging for a particular response policy
+	    zone. By default, all rewrites are logged.
 	  </para>
 	</sect3>
 

@@ -257,6 +257,7 @@ options {
         response-policy { zone <quoted_string> [ policy ( given | disabled
             | passthru | no-op | drop | tcp-only | nxdomain | nodata |
             cname <quoted_string> ) ] [ recursive-only <boolean> ] [
+            log <boolean> ] [
             max-policy-ttl <integer> ]; ... } [ recursive-only <boolean> ]
             [ break-dnssec <boolean> ] [ max-policy-ttl <integer> ] [
             min-ns-dots <integer> ] [ qname-wait-recurse <boolean> ];

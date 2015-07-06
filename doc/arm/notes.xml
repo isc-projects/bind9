@@ -517,6 +517,13 @@
 	  on Linux is now supported.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Within the <option>response-policy</option> option, it is now
+	  possible to configure RPZ rewrite logging on a per-zone basis
+	  using the <option>log</option> clause.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_bugs">

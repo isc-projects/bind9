@@ -1740,6 +1740,13 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 		view->rpzs->p.no_rd_ok |= DNS_RPZ_ZBIT(new->num);
 	}
 
+	obj = cfg_tuple_get(rpz_obj, "log");
+	if (!cfg_obj_isvoid(obj) && !cfg_obj_asboolean(obj)) {
+		view->rpzs->p.no_log |= DNS_RPZ_ZBIT(new->num);
+	} else {
+		view->rpzs->p.no_log &= ~DNS_RPZ_ZBIT(new->num);
+	}
+
 	obj = cfg_tuple_get(rpz_obj, "max-policy-ttl");
 	if (cfg_obj_isuint32(obj)) {
 		new->max_policy_ttl = cfg_obj_asuint32(obj);
