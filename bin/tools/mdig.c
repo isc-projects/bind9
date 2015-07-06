@@ -588,7 +588,9 @@ sendquery(struct query *query, isc_task_t *task)
 			struct sockaddr *sa;
 			struct sockaddr_in *sin;
 			struct sockaddr_in6 *sin6;
+			const isc_uint8_t *addr;
 			size_t addrl;
+			isc_uint8_t mask;
 			isc_buffer_t b;
 
 			sa = &query->ecs_addr->type.sa;
@@ -596,6 +598,10 @@ sendquery(struct query *query, isc_task_t *task)
 
 			/* Round up prefix len to a multiple of 8 */
 			addrl = (prefixlen + 7) / 8;
+			if (prefixlen % 8 == 0)
+				mask = 0xff;
+			else
+				mask = 0xffU << (8 - (prefixlen % 8));
 
 			INSIST(i < DNS_EDNSOPTIONS);
 			opts[i].code = DNS_OPT_CLIENT_SUBNET;
@@ -604,20 +610,36 @@ sendquery(struct query *query, isc_task_t *task)
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
 			if (sa->sa_family == AF_INET) {
 				sin = (struct sockaddr_in *) sa;
+				addr = (isc_uint8_t *) &sin->sin_addr;
+				/* family */
 				isc_buffer_putuint16(&b, 1);
+				/* source prefix-length */
 				isc_buffer_putuint8(&b, prefixlen);
+				/* scope prefix-length */
 				isc_buffer_putuint8(&b, 0);
-				isc_buffer_putmem(&b,
-					  (isc_uint8_t *) &sin->sin_addr,
-					  (unsigned int) addrl);
+				/* address */
+				if (addrl > 0) {
+					isc_buffer_putmem(&b, addr, addrl - 1);
+					isc_buffer_putuint8(&b,
+							    (addr[addrl - 1] &
+							     mask));
+				}
 			} else {
 				sin6 = (struct sockaddr_in6 *) sa;
+				addr = (isc_uint8_t *) &sin6->sin6_addr;
+				/* family */
 				isc_buffer_putuint16(&b, 2);
+				/* source prefix-length */
 				isc_buffer_putuint8(&b, prefixlen);
+				/* scope prefix-length */
 				isc_buffer_putuint8(&b, 0);
-				isc_buffer_putmem(&b,
-					  (isc_uint8_t *) &sin6->sin6_addr,
-					  (unsigned int) addrl);
+				/* address */
+				if (addrl > 0) {
+					isc_buffer_putmem(&b, addr, addrl - 1);
+					isc_buffer_putuint8(&b,
+							    (addr[addrl - 1] &
+							     mask));
+				}
 			}
 
 			opts[i].value = (isc_uint8_t *) ecsbuf;

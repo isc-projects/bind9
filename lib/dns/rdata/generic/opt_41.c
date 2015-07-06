@@ -150,6 +150,13 @@ fromwire_opt(ARGS_FROMWIRE) {
 			addrbytes = (addrlen + 7) / 8;
 			if (addrbytes + 4 != length)
 				return (DNS_R_OPTERR);
+
+			if (addrbytes != 0U && (addrlen % 8) != 0) {
+				isc_uint8_t bits = ~0 << (8 - (addrlen % 8));
+				bits &= sregion.base[addrbytes - 1];
+				if (bits != sregion.base[addrbytes - 1])
+					return (DNS_R_OPTERR);
+			}
 			isc_region_consume(&sregion, addrbytes);
 			break;
 		}
@@ -163,7 +170,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 			break;
 		case DNS_OPT_COOKIE:
 			if (length != 8 && (length < 16 || length > 40))
-				return (DNS_R_FORMERR);
+				return (DNS_R_OPTERR);
 			isc_region_consume(&sregion, length);
 			break;
 		default:

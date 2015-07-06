@@ -1514,7 +1514,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 			uc = paddr[i];
 			if (i == addrbytes - 1 &&
 			    ((client->ecs_addrlen % 8) != 0))
-				uc &= (1U << (8 - (client->ecs_addrlen % 8)));
+				uc &= (0xffU << (8 - (client->ecs_addrlen % 8)));
 			isc_buffer_putuint8(&buf, uc);
 		}
 
@@ -1818,10 +1818,16 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	isc_netaddr_t caddr;
 	int i;
 
+	/*
+	 * XXXMUKS: Is there any need to repeat these checks here
+	 * (except query's scope length) when they are done in the OPT
+	 * RDATA fromwire code?
+	 */
+
 	if (optlen < 4U) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
-			      "EDNS client subnet option too short");
+			      "EDNS client-subnet option too short");
 		return (DNS_R_FORMERR);
 	}
 
@@ -1833,8 +1839,8 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	if (scope != 0U) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
-			      "EDNS client subnet option: invalid scope");
-		return (DNS_R_FORMERR);
+			      "EDNS client-subnet option: invalid scope");
+		return (DNS_R_OPTERR);
 	}
 
 	memset(&caddr, 0, sizeof(caddr));
@@ -1849,32 +1855,39 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	invalid_length:
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
-				      "EDNS client subnet option: invalid "
+				      "EDNS client-subnet option: invalid "
 				      "address length (%u) for %s",
 				      addrlen, family == 1 ? "IPv4" : "IPv6");
-			return (DNS_R_FORMERR);
+			return (DNS_R_OPTERR);
 		}
 		caddr.family = AF_INET6;
 		break;
 	default:
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
-			      "EDNS client subnet option: invalid family");
-		return (DNS_R_FORMERR);
+			      "EDNS client-subnet option: invalid family");
+		return (DNS_R_OPTERR);
 	}
 
 	addrbytes = (addrlen + 7) / 8;
 	if (isc_buffer_remaininglength(buf) < addrbytes) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
-			      "EDNS client subnet option: address too short");
-		return (DNS_R_FORMERR);
+			      "EDNS client-subnet option: address too short");
+		return (DNS_R_OPTERR);
 	}
 
 	paddr = (isc_uint8_t *) &caddr.type;
 	for (i = 0; i < addrbytes; i++) {
 		paddr[i] = isc_buffer_getuint8(buf);
 		optlen--;
+	}
+
+	if (addrbytes != 0U && (addrlen % 8) != 0) {
+		isc_uint8_t bits = ~0 << (8 - (addrlen % 8));
+		bits &= paddr[addrbytes - 1];
+		if (bits != paddr[addrbytes - 1])
+			return (DNS_R_OPTERR);
 	}
 
 	memmove(&client->ecs_addr, &caddr, sizeof(caddr));
