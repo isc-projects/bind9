@@ -2012,6 +2012,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 * Parsing the request failed.  Send a response
 		 * (typically FORMERR or SERVFAIL).
 		 */
+		if (result == DNS_R_OPTERR)
+			(void)ns_client_addopt(client, client->message,
+					       &client->opt);
 		ns_client_error(client, result);
 		goto cleanup;
 	}

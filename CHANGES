@@ -1,3 +1,11 @@
+4154.	[bug]		A OPT record should be included with the FORMERR
+			response when there is a malformed EDNS option.
+			[RT #39647]
+
+4153.	[bug]		Dig should zero non significant +subnet bits.  Check
+			that non significant ECS bits are zero on receipt.
+			[RT #39647]
+
 4151.	[bug]		'rndc flush' could cause a deadlock. [RT #39835]
 
 4150.	[bug]		win32: listen-on-v6 { any; }; was not working.  Apply

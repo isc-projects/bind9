@@ -164,9 +164,10 @@ static const char *text[DNS_R_NRESULTS] = {
 	"not dynamic",			       /*%< 108 DNS_R_NOTDYNAMIC */
 	"bad EUI",			       /*%< 109 DNS_R_BADEUI */
 
-	"covered by negative trust anchor",     /*%< 110 DNS_R_NTACOVERED */
+	"covered by negative trust anchor",    /*%< 110 DNS_R_NTACOVERED */
 	"bad CDS",			       /*%< 111 DNS_R_BADCSD */
-	"bad CDNSKEY"			       /*%< 112 DNS_R_BADCDNSKEY */
+	"bad CDNSKEY",			       /*%< 112 DNS_R_BADCDNSKEY */
+	"malformed OPT option"		       /*%< 113 DNS_R_OPTERR */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
@@ -242,6 +243,7 @@ dns_result_torcode(isc_result_t result) {
 		 */
 		return ((dns_rcode_t)((result) & 0xFFF));
 	}
+
 	/*
 	 * Try to supply an appropriate rcode.
 	 */
@@ -271,6 +273,7 @@ dns_result_torcode(isc_result_t result) {
 	case DNS_R_TSIGERRORSET:
 	case DNS_R_UNKNOWN:
 	case DNS_R_NAMETOOLONG:
+	case DNS_R_OPTERR:
 		rcode = dns_rcode_formerr;
 		break;
 	case DNS_R_DISALLOWED:

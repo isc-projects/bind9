@@ -516,5 +516,24 @@ $DIG soa all-cnames @10.53.0.5 -p 5300 +opcode=status > dig.out.ns5.test${n} || 
 grep "status: NOTIMP" dig.out.ns5.test${n} > /dev/null || ret=1
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:check that EDNS client subnet with non-zeroed bits is handled correctly (${n})"
+ret=0
+# 0001 (IPv4) 1f (31 significant bits) 00 (0) ffffffff (255.255.255.255)
+$DIG soa . @10.53.0.5 -p 5300 +ednsopt=8:00011f00ffffffff > dig.out.ns5.test${n} || ret=1
+grep "status: FORMERR" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "; EDNS: version:" dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check that dig +subnet zeros address bits correctly (${n})"
+ret=0
+$DIG +qr soa . @10.53.0.5 -p 5300 +subnet=255.255.255.255/23 > dig.out.ns5.test${n} || ret=1
+grep "status: NOERROR" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "CLIENT-SUBNET: 255.255.254.0/23/0" dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
