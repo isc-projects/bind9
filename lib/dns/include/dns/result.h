@@ -156,8 +156,9 @@
 #define DNS_R_NTACOVERED		(ISC_RESULTCLASS_DNS + 110)
 #define DNS_R_BADCDS			(ISC_RESULTCLASS_DNS + 111)
 #define DNS_R_BADCDNSKEY		(ISC_RESULTCLASS_DNS + 112)
+#define DNS_R_OPTERR			(ISC_RESULTCLASS_DNS + 113)
 
-#define DNS_R_NRESULTS			113	/*%< Number of results */
+#define DNS_R_NRESULTS			114	/*%< Number of results */
 
 /*
  * DNS wire format rcodes.

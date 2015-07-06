@@ -44,6 +44,14 @@ then
 	echo "I:failed"; status=`expr $status + 1`;
 fi
 
+echo "I:bad OPT option"
+$PERL formerr.pl -a 10.53.0.1 -p 5300 badoptoption > badoptoption.out
+ans=`grep got: badoptoption.out`
+if [ "${ans}" != "got: 00008001000100000000000100000100020000291000000000000000" ];
+then
+	echo "I:failed"; status=`expr $status + 1`;
+fi
+
 echo "I:exit status: $status"
 
 exit $status
