@@ -3229,6 +3229,10 @@ render_ecs(isc_buffer_t *optbuf, isc_buffer_t *target) {
 	isc_uint16_t family;
 	isc_uint8_t addrlen, addrbytes, scopelen;
 
+	/*
+	 * Note: This routine needs to handle malformed ECS options.
+	 */
+
 	if (isc_buffer_remaininglength(optbuf) < 4)
 		return (DNS_R_OPTERR);
 	family = isc_buffer_getuint16(optbuf);
@@ -3312,7 +3316,13 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		if (result != ISC_R_SUCCESS)
 			return (ISC_R_SUCCESS);
 
-		/* Print EDNS info, if any */
+		/*
+		 * Print EDNS info, if any.
+		 *
+		 * WARNING: The option contents may be malformed as
+		 * dig +ednsopt=value:<content> does not validity
+		 * checking.
+		 */
 		dns_rdata_init(&rdata);
 		dns_rdataset_current(ps, &rdata);
 
