@@ -3332,16 +3332,17 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				 * For non-COOKIE options, add a printable
 				 * version
 				 */
-				ADD_STRING(target, "(\"");
-				if (isc_buffer_availablelength(target) < optlen)
-					return (ISC_R_NOSPACE);
 				for (i = 0; i < optlen; i++) {
+					ADD_STRING(target, " (");
+					if (!isc_buffer_availablelength(target))
+						return (ISC_R_NOSPACE);
 					if (isprint(optdata[i]))
 						isc_buffer_putmem(target,
 								  &optdata[i],
 								  1);
 					else
 						isc_buffer_putstr(target, ".");
+					ADD_STRING(target, ")");
 				}
 				ADD_STRING(target, "\")");
 			}
