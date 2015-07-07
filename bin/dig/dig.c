@@ -116,21 +116,18 @@ static const char * const rcodetext[] = {
 };
 
 /*% safe rcodetext[] */
-static char *
+static const char *
 rcode_totext(dns_rcode_t rcode)
 {
 	static char buf[sizeof("?65535")];
-	union {
-		const char *consttext;
-		char *deconsttext;
-	} totext;
 
 	if (rcode >= (sizeof(rcodetext)/sizeof(rcodetext[0]))) {
 		snprintf(buf, sizeof(buf), "?%u", rcode);
-		totext.deconsttext = buf;
-	} else
-		totext.consttext = rcodetext[rcode];
-	return totext.deconsttext;
+		return (buf);
+	} else if (rcode == dns_rcode_badcookie)
+		return ("BADCOOKIE");
+	else
+		return (rcodetext[rcode]);
 }
 
 /*% print usage */

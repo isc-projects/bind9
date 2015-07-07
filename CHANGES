@@ -1,3 +1,7 @@
+4157.	[protocol]	Update experimental SIT code to use the EDNS COOKIE
+			option code point (10).  This is the minimal change
+			required to use the new code point. [RT #39928]
+
 4154.	[bug]		A OPT record should be included with the FORMERR
 			response when there is a malformed EDNS option.
 			[RT #39647]

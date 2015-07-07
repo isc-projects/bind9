@@ -2534,7 +2534,7 @@ setup_lookup(dig_lookup_t *lookup) {
 #ifdef ISC_PLATFORM_USESIT
 		if (lookup->sit) {
 			INSIST(i < DNS_EDNSOPTIONS);
-			opts[i].code = DNS_OPT_SIT;
+			opts[i].code = DNS_OPT_COOKIE;
 			if (lookup->sitvalue != NULL) {
 				isc_buffer_init(&b, sitbuf, sizeof(sitbuf));
 				result = isc_hex_decodestring(lookup->sitvalue,
@@ -3474,7 +3474,7 @@ process_opt(dig_lookup_t *l, dns_message_t *msg) {
 			optcode = isc_buffer_getuint16(&optbuf);
 			optlen = isc_buffer_getuint16(&optbuf);
 			switch (optcode) {
-			case DNS_OPT_SIT:
+			case DNS_OPT_COOKIE:
 				process_sit(l, msg, &optbuf, optlen);
 				break;
 			default:

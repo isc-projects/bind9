@@ -3335,8 +3335,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 
 			if (optcode == DNS_OPT_NSID) {
 				ADD_STRING(target, "; NSID");
-			} else if (optcode == DNS_OPT_SIT) {
-				ADD_STRING(target, "; SIT");
+			} else if (optcode == DNS_OPT_COOKIE) {
+				ADD_STRING(target, "; COOKIE");
 			} else if (optcode == DNS_OPT_CLIENT_SUBNET) {
 				ADD_STRING(target, "; CLIENT-SUBNET");
 				result = render_ecs(&optbuf, target);
@@ -3371,7 +3371,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				for (i = 0; i < optlen; i++) {
 					const char *sep;
 					switch (optcode) {
-					case DNS_OPT_SIT:
+					case DNS_OPT_COOKIE:
 						sep = "";
 						break;
 					default:
@@ -3385,7 +3385,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 
 				isc_buffer_forward(&optbuf, optlen);
 
-				if (optcode == DNS_OPT_SIT) {
+				if (optcode == DNS_OPT_COOKIE) {
 					if (msg->sitok)
 						ADD_STRING(target, " (good)");
 					if (msg->sitbad)

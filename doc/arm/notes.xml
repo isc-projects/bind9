@@ -100,10 +100,22 @@
       </listitem>
       <listitem>
 	<para>
+	  The experimental SIT extension now uses the EDNS COOKIE
+	  option code point (10) and is displayed as "COOKIE:
+	  &lt;value&gt;".  The existing named.conf directives;
+	  "request-sit", "sit-secret" and "nosit-udp-size", are
+	  still valid and will be replaced by "send-cookie",
+	  "cookie-secret" and "nocookie-udp-size" in BIND 9.11.
+	  The existing dig directive "+sit" is still valid and will
+	  be replaced with "+cookie" in BIND 9.11.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  When retrying a query via TCP due to the first answer being
 	  truncated, <command>dig</command> will now correctly send
-	  the SIT (server identity token) value returned by the server
-	  in the prior response. [RT #39047]
+	  the COOKIE value returned by the server in the prior
+	  response. [RT #39047]
 	</para>
       </listitem>
       <listitem>

@@ -503,6 +503,7 @@ struct dns_resolver {
 #define FCTX_ADDRINFO_TRIED             0x2000
 #define FCTX_ADDRINFO_EDNSOK            0x4000
 #define FCTX_ADDRINFO_NOSIT             0x8000
+#define FCTX_ADDRINFO_BADCOOKIE         0x10000
 
 #define UNMARKED(a)                     (((a)->flags & FCTX_ADDRINFO_MARK) \
 					 == 0)
@@ -514,6 +515,8 @@ struct dns_resolver {
 					 FCTX_ADDRINFO_NOSIT) != 0)
 #define EDNSOK(a)                       (((a)->flags & \
 					 FCTX_ADDRINFO_EDNSOK) != 0)
+#define BADCOOKIE(a)                       (((a)->flags & \
+					 FCTX_ADDRINFO_BADCOOKIE) != 0)
 
 
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
@@ -2161,7 +2164,7 @@ resquery_send(resquery_t *query) {
 #ifdef ISC_PLATFORM_USESIT
 			if (reqsit) {
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
-				ednsopts[ednsopt].code = DNS_OPT_SIT;
+				ednsopts[ednsopt].code = DNS_OPT_COOKIE;
 				ednsopts[ednsopt].length = (isc_uint16_t)
 					dns_adb_getsit(fctx->adb,
 						       query->addrinfo,
@@ -7246,7 +7249,7 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 				isc_buffer_forward(&optbuf, optlen);
 				break;
 #ifdef ISC_PLATFORM_USESIT
-			case DNS_OPT_SIT:
+			case DNS_OPT_COOKIE:
 				sit = isc_buffer_current(&optbuf);
 				compute_cc(query, cookie, sizeof(cookie));
 				INSIST(query->fctx->rmessage->sitbad == 0 &&
@@ -7778,6 +7781,15 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				keep_trying = ISC_TRUE;
 				break;
 			}
+		} else if (message->rcode == dns_rcode_badcookie &&
+			   message->sitok) {
+			/*
+			 * We have recorded the new cookie.
+			 */
+			if (BADCOOKIE(query->addrinfo))
+				query->options |= DNS_FETCHOPT_TCP;
+			query->addrinfo->flags |= FCTX_ADDRINFO_BADCOOKIE;
+			resend = ISC_TRUE;
 		} else {
 			/*
 			 * XXXRTH log.

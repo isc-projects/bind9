@@ -1451,7 +1451,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		compute_sit(client, now, nonce, &buf);
 
 		INSIST(count < DNS_EDNSOPTIONS);
-		ednsopts[count].code = DNS_OPT_SIT;
+		ednsopts[count].code = DNS_OPT_COOKIE;
 		ednsopts[count].length = SIT_SIZE;
 		ednsopts[count].value = sit;
 		count++;
@@ -1788,7 +1788,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 				isc_buffer_forward(&optbuf, optlen);
 				break;
 #ifdef ISC_PLATFORM_USESIT
-			case DNS_OPT_SIT:
+			case DNS_OPT_COOKIE:
 				process_sit(client, &optbuf, optlen);
 				break;
 #endif
