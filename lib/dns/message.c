@@ -3344,7 +3344,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 						isc_buffer_putstr(target, ".");
 					ADD_STRING(target, ")");
 				}
-				ADD_STRING(target, "\")");
 			}
 			ADD_STRING(target, "\n");
 		}
