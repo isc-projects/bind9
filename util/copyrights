@@ -997,7 +997,6 @@
 ./bin/tests/system/cookie/ns1/root.hint		ZONE	2014,2015
 ./bin/tests/system/cookie/ns2/named.conf	CONF-C	2014,2015
 ./bin/tests/system/cookie/ns2/root.db		ZONE	2014,2015
-./bin/tests/system/cookie/prereq.sh.in		SH	2014
 ./bin/tests/system/cookie/tests.sh		SH	2014,2015
 ./bin/tests/system/coverage/01-ksk-inactive/README	X	2013
 ./bin/tests/system/coverage/01-ksk-inactive/expect	X	2013
