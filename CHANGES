@@ -1,3 +1,5 @@
+4159.	[cleanup]	Alphabetize dig's help output. [RT #39966]
+
 4158.	[placeholder]
 
 4157.	[placeholder]
@@ -21,7 +23,7 @@
 
 4152.	[func]		Implement DNS COOKIE option.  This replaces the
 			experimental SIT option of BIND 9.10.  The following
-			named.conf directives are avaliable: send-cookie,
+			named.conf directives are available: send-cookie,
 			cookie-secret, cookie-algorithm and nocookie-udp-size.
 			The following dig options are available:
 			+[no]cookie[=value] and +[no]badcookie.  [RT #39928]
