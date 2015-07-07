@@ -42,6 +42,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/result.h>
 #include <dns/tsig.h>
+#include <dns/ttl.h>
 #include <dns/view.h>
 
 #ifdef SKAN_MSG_DEBUG
@@ -3279,6 +3280,21 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 
 			if (optcode == DNS_OPT_NSID) {
 				ADD_STRING(target, "; NSID");
+			} else if (optcode == DNS_OPT_COOKIE) {
+				ADD_STRING(target, "; COOKIE");
+			} else if (optcode == DNS_OPT_EXPIRE) {
+				if (optlen == 4) {
+					isc_uint32_t secs;
+					secs = isc_buffer_getuint32(&optbuf);
+					ADD_STRING(target, "; EXPIRE: ");
+					snprintf(buf, sizeof(buf), "%u", secs);
+					ADD_STRING(target, buf);
+					ADD_STRING(target, " (");
+					dns_ttl_totext(secs, ISC_TRUE, target);
+					ADD_STRING(target, ")\n");
+					continue;
+				}
+				ADD_STRING(target, "; EXPIRE");
 			} else {
 				ADD_STRING(target, "; OPT=");
 				snprintf(buf, sizeof(buf), "%u", optcode);
@@ -3291,23 +3307,43 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 
 				optdata = isc_buffer_current(&optbuf);
 				for (i = 0; i < optlen; i++) {
-					sprintf(buf, "%02x ", optdata[i]);
+					const char *sep;
+					switch (optcode) {
+					case DNS_OPT_COOKIE:
+						sep = "";
+						break;
+					default:
+						sep = " ";
+						break;
+					}
+					snprintf(buf, sizeof(buf), "%02x%s",
+						 optdata[i], sep);
 					ADD_STRING(target, buf);
 				}
 
+				isc_buffer_forward(&optbuf, optlen);
+
+				if (optcode == DNS_OPT_COOKIE) {
+					ADD_STRING(target, "\n");
+					continue;
+				}
+
+				/*
+				 * For non-COOKIE options, add a printable
+				 * version
+				 */
+				ADD_STRING(target, "(\"");
+				if (isc_buffer_availablelength(target) < optlen)
+					return (ISC_R_NOSPACE);
 				for (i = 0; i < optlen; i++) {
-					ADD_STRING(target, " (");
-					if (!isc_buffer_availablelength(target))
-						return (ISC_R_NOSPACE);
 					if (isprint(optdata[i]))
 						isc_buffer_putmem(target,
 								  &optdata[i],
 								  1);
 					else
 						isc_buffer_putstr(target, ".");
-					ADD_STRING(target, ")");
 				}
-				isc_buffer_forward(&optbuf, optlen);
+				ADD_STRING(target, "\")");
 			}
 			ADD_STRING(target, "\n");
 		}

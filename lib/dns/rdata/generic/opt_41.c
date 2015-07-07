@@ -144,6 +144,8 @@ fromwire_opt(ARGS_FROMWIRE) {
 				if (addrlen > 128U || scope > 128U)
 					return (DNS_R_OPTERR);
 				break;
+			default:
+				return (DNS_R_OPTERR);
 			}
 			addrbytes = (addrlen + 7) / 8;
 			if (addrbytes + 4 != length)
@@ -163,6 +165,11 @@ fromwire_opt(ARGS_FROMWIRE) {
 			 * Request has zero length.  Response is 32 bits.
 			 */
 			if (length != 0 && length != 4)
+				return (DNS_R_OPTERR);
+			isc_region_consume(&sregion, length);
+			break;
+		case DNS_OPT_COOKIE:
+			if (length != 8 && (length < 16 || length > 40))
 				return (DNS_R_OPTERR);
 			isc_region_consume(&sregion, length);
 			break;

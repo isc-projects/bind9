@@ -44,10 +44,10 @@
 	  assertion failure could be triggered on answers from
 	  a specially configured server.
 	</para>
-        <para>
+	<para>
 	  This flaw was discovered by Breno Silveira Soares, and is
 	  disclosed in CVE-2015-4620. [RT #39795]
-        </para>
+	</para>
       </listitem> 
     </itemizedlist>
   </sect2>
@@ -64,6 +64,12 @@
 	  option can only be set at compile time. This option has a
 	  negative performance impact and should be used only for
 	  debugging.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  EDNS COOKIE options content is now displayed as
+	  "COOKIE: &lt;hexvalue&gt;".
 	</para>
       </listitem>
     </itemizedlist>
@@ -99,7 +105,7 @@
 	  Asynchronous zone loads were not handled correctly when the
 	  zone load was already in progress; this could trigger a crash
 	  in zt.c. [RT #37573]
- 	</para>
+	</para>
        </listitem>
       <listitem>
 	<para>
@@ -120,7 +126,7 @@
     <para>
       The BIND 9.9 (Extended Support Version) will be supported until June, 2017.
       <ulink url="https://www.isc.org/downloads/software-support-policy/"
-        >https://www.isc.org/downloads/software-support-policy/</ulink>
+	>https://www.isc.org/downloads/software-support-policy/</ulink>
     </para>
   </sect2>
   <sect2 id="relnotes_thanks">
