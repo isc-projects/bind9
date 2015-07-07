@@ -10299,7 +10299,7 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 
 	  <para>
-	    The <command>log<command> clause can be used to optionally
+	    The <command>log</command> clause can be used to optionally
 	    turn off rewrite logging for a particular response policy
 	    zone. By default, all rewrites are logged.
 	  </para>
@@ -11009,7 +11009,10 @@ example.com                 CNAME   rpz-tcp-only.
 	  (memory manager statistics),
 	  <ulink url="http://127.0.0.1:8888/xml/v3/tasks"
 		  >http://127.0.0.1:8888/xml/v3/tasks</ulink>
-	  (task manager statistics).
+	  (task manager statistics), and
+	  <ulink url="http://127.0.0.1:8888/xml/v3/traffic"
+		  >http://127.0.0.1:8888/xml/v3/traffic</ulink>
+	  (traffic sizes).
 	</para>
 
 	<para>
@@ -11034,7 +11037,10 @@ example.com                 CNAME   rpz-tcp-only.
 	  (memory manager statistics),
 	  <ulink url="http://127.0.0.1:8888/json/v1/tasks"
 		  >http://127.0.0.1:8888/json/v1/tasks</ulink>
-	  (task manager statistics).
+	  (task manager statistics), and
+	  <ulink url="http://127.0.0.1:8888/json/v1/traffic"
+	          >http://127.0.0.1:8888/json/v1/traffic</ulink>
+	  (traffic sizes).
 	</para>
       </sect2>
 

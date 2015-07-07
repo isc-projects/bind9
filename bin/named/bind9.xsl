@@ -15,12 +15,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id$ -->
-
-<!-- %Id: bind9.xsl,v 1.21 2009/01/27 23:47:54 tbox Exp % -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml" version="1.0">
   <xsl:output method="html" indent="yes" version="4.0"/>
-  <xsl:template match="statistics[@version=&quot;3.5&quot;]">
+  <xsl:template match="statistics[@version=&quot;3.6&quot;]">
     <html>
       <head>
         <xsl:if test="system-property('xsl:vendor')!='Transformiix'">
@@ -276,8 +273,9 @@
 	<a href="/xml/v3/server">Server</a>,
 	<a href="/xml/v3/zones">Zones</a>,
 	<a href="/xml/v3/net">Network</a>,
-	<a href="/xml/v3/tasks">Tasks</a> and
-	<a href="/xml/v3/mem">Memory</a></p>
+	<a href="/xml/v3/tasks">Tasks</a>,
+	<a href="/xml/v3/mem">Memory</a> and
+	<a href="/xml/v3/traffic">Traffic Size</a></p>
         <hr/>
         <h2>Server Status</h2>
         <table class="info">
@@ -596,336 +594,431 @@
           </xsl:if>
         </xsl:for-each>
 
-        <xsl:if test="server/counters[@type=&quot;sockstat&quot;]/counter[.&gt;0]">
-          <h2>Socket I/O Statistics</h2>
-          <table class="counters">
-            <xsl:for-each select="server/counters[@type=&quot;sockstat&quot;]/counter[.&gt;0]">
-              <xsl:variable name="css-class7">
-                <xsl:choose>
-                  <xsl:when test="position() mod 2 = 0">even</xsl:when>
-                  <xsl:otherwise>odd</xsl:otherwise>
-                </xsl:choose>
-              </xsl:variable>
-              <tr class="{$css-class7}">
-                <th>
-                  <xsl:value-of select="@name"/>
-                </th>
-                <td>
-                  <xsl:value-of select="."/>
-                </td>
-              </tr>
-            </xsl:for-each>
-          </table>
-          <br/>
+        <xsl:if test="traffic/udp/counters[@type=&quot;request-size&quot;]/counter[.&gt;0] or traffic/udp/counters[@type=&quot;response-size&quot;]/counter[.&gt;0] or traffic/tcp/counters[@type=&quot;request-size&quot;]/counter[.&gt;0] or traffic/tcp/counters[@type=&quot;response-size&quot;]/counter[.&gt;0]">
+          <h2>Traffic Size Statistics</h2>
         </xsl:if>
-        <xsl:if test="views/view[zones/zone/counters[@type=&quot;qtype&quot;]/counter &gt;0]">
-          <h2>Received QTYPES per view/zone</h2>
-          <xsl:for-each select="views/view[zones/zone/counters[@type=&quot;qtype&quot;]/counter &gt;0]">
-            <h3>View <xsl:value-of select="@name"/></h3>
-            <xsl:variable name="thisview">
-              <xsl:value-of select="@name"/>
-            </xsl:variable>
-            <xsl:for-each select="zones/zone">
-              <xsl:if test="counters[@type=&quot;qtype&quot;]/counter[count(.) &gt; 0]">
-                <h4>Zone <xsl:value-of select="@name"/></h4>
-                <xsl:if test="system-property('xsl:vendor')!='Transformiix'">
-                  <!-- Non Mozilla specific markup -->
-                <script type="text/javascript">
-                        graphs.push({
-                                      'title': "Query types for zone <xsl:value-of select="@name"/>",
-                                      'target': 'chart_qtype_<xsl:value-of select="../../@name"/>_<xsl:value-of select="@name"/>',
-                                      'style': 'barchart',
-                                      'data': [['Type','Counter'],<xsl:for-each select="counters[@type=&quot;qtype&quot;]/counter[.&gt;0 and @name != &quot;QryAuthAns&quot;]">['<xsl:value-of select="@name"/>',<xsl:value-of select="."/>],</xsl:for-each>]
-                                      });
+	<xsl:if test="traffic/udp/counters[@type=&quot;request-size&quot;]/counter[.&gt;0]">
+	  <h4>UDP Requests Received</h4>
+	  <table class="counters">
+	    <xsl:for-each select="traffic/udp/counters[@type=&quot;request-size&quot;]/counter[.&gt;0]">
+	      <xsl:variable name="css-class7">
+		<xsl:choose>
+		  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+		  <xsl:otherwise>odd</xsl:otherwise>
+		</xsl:choose>
+	      </xsl:variable>
+	      <tr class="{$css-class7}">
+		<th>
+		  <xsl:value-of select="@name"/>
+		</th>
+		<td>
+		  <xsl:value-of select="."/>
+		</td>
+	      </tr>
+	    </xsl:for-each>
+	  </table>
+	  <br/>
+	</xsl:if>
 
-                    </script>
-                <xsl:variable name="target">
-                  <xsl:value-of select="@name"/>
-                </xsl:variable>
-                  <div class="pie" id="chart_qtype_{$thisview}_{$target}">[no data to display]</div>
-                </xsl:if>
-                <table class="counters">
-                  <xsl:for-each select="counters[@type=&quot;qtype&quot;]/counter">
-                    <xsl:sort select="."/>
-                    <xsl:variable name="css-class10">
-                      <xsl:choose>
-                        <xsl:when test="position() mod 2 = 0">even</xsl:when>
-                        <xsl:otherwise>odd</xsl:otherwise>
-                      </xsl:choose>
-                    </xsl:variable>
-                    <tr class="{$css-class10}">
-                      <th>
-                        <xsl:value-of select="@name"/>
-                      </th>
-                      <td>
-                        <xsl:value-of select="."/>
-                      </td>
-                    </tr>
-                  </xsl:for-each>
-                </table>
-              </xsl:if>
-            </xsl:for-each>
-          </xsl:for-each>
-        </xsl:if>
-        <xsl:if test="views/view[zones/zone/counters[@type=&quot;rcode&quot;]/counter &gt;0]">
-          <h2>Response Codes per view/zone</h2>
-          <xsl:for-each select="views/view[zones/zone/counters[@type=&quot;rcode&quot;]/counter &gt;0]">
-            <h3>View <xsl:value-of select="@name"/></h3>
-            <xsl:variable name="thisview2">
-              <xsl:value-of select="@name"/>
-            </xsl:variable>
-            <xsl:for-each select="zones/zone">
-              <xsl:if test="counters[@type=&quot;rcode&quot;]/counter[. &gt; 0]">
-                <h4>Zone <xsl:value-of select="@name"/></h4>
-                <xsl:if test="system-property('xsl:vendor')!='Transformiix'">
-                  <!-- Non Mozilla specific markup -->
-                <script type="text/javascript">
-                        graphs.push({
-                                      'title': "Response codes for zone <xsl:value-of select="@name"/>",
-                                      'target': 'chart_rescode_<xsl:value-of select="../../@name"/>_<xsl:value-of select="@name"/>',
-                                      'style': 'barchart',
-                                      'data': [['Type','Counter'],<xsl:for-each select="counters[@type=&quot;rcode&quot;]/counter[.&gt;0 and @name != &quot;QryAuthAns&quot;]">['<xsl:value-of select="@name"/>',<xsl:value-of select="."/>],</xsl:for-each>]
-                                      });
+	<xsl:if test="traffic/udp/counters[@type=&quot;response-size&quot;]/counter[.&gt;0]">
+	  <h4>UDP Responses Sent</h4>
+	  <table class="counters">
+		  <xsl:for-each select="traffic/udp/counters[@type=&quot;response-size&quot;]/counter[.&gt;0]">
+	      <xsl:variable name="css-class7">
+		<xsl:choose>
+		  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+		  <xsl:otherwise>odd</xsl:otherwise>
+		</xsl:choose>
+	      </xsl:variable>
+	      <tr class="{$css-class7}">
+		<th>
+		  <xsl:value-of select="@name"/>
+		</th>
+		<td>
+		  <xsl:value-of select="."/>
+		</td>
+	      </tr>
+	    </xsl:for-each>
+	  </table>
+	  <br/>
+	</xsl:if>
 
-                </script>
-                <xsl:variable name="target">
-                  <xsl:value-of select="@name"/>
-                </xsl:variable>
-                  <div class="pie" id="chart_rescode_{$thisview2}_{$target}">[no data to display]</div>
-                </xsl:if>
-                <table class="counters">
-                  <xsl:for-each select="counters[@type=&quot;rcode&quot;]/counter[.&gt;0 and @name != &quot;QryAuthAns&quot;]">
-                    <xsl:sort select="."/>
-                    <xsl:variable name="css-class11">
-                      <xsl:choose>
-                        <xsl:when test="position() mod 2 = 0">even</xsl:when>
-                        <xsl:otherwise>odd</xsl:otherwise>
-                      </xsl:choose>
-                    </xsl:variable>
-                    <tr class="{$css-class11}">
-                      <th>
-                        <xsl:value-of select="@name"/>
-                      </th>
-                      <td>
-                        <xsl:value-of select="."/>
-                      </td>
-                    </tr>
-                  </xsl:for-each>
-                </table>
-              </xsl:if>
-            </xsl:for-each>
-          </xsl:for-each>
-        </xsl:if>
-        <xsl:if test="socketmgr/sockets/socket">
-          <h2>Network Status</h2>
-          <table class="netstat">
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Type</th>
-              <th>References</th>
-              <th>LocalAddress</th>
-              <th>PeerAddress</th>
-              <th>State</th>
-            </tr>
-            <xsl:for-each select="socketmgr/sockets/socket">
-              <xsl:sort select="id"/>
-              <xsl:variable name="css-class12">
-                <xsl:choose>
-                  <xsl:when test="position() mod 2 = 0">even</xsl:when>
-                  <xsl:otherwise>odd</xsl:otherwise>
-                </xsl:choose>
-              </xsl:variable>
-              <tr class="{$css-class12}">
-                <td>
-                  <xsl:value-of select="id"/>
-                </td>
-                <td>
-                  <xsl:value-of select="name"/>
-                </td>
-                <td>
-                  <xsl:value-of select="type"/>
-                </td>
-                <td>
-                  <xsl:value-of select="references"/>
-                </td>
-                <td>
-                  <xsl:value-of select="local-address"/>
-                </td>
-                <td>
-                  <xsl:value-of select="peer-address"/>
-                </td>
-                <td>
-                  <xsl:for-each select="states">
-                    <xsl:value-of select="."/>
-                  </xsl:for-each>
-                </td>
-              </tr>
-            </xsl:for-each>
-          </table>
-          <br/>
-        </xsl:if>
-        <xsl:if test="taskmgr/thread-model/type">
-          <h2>Task Manager Configuration</h2>
-          <table class="counters">
-            <tr>
-              <th class="even">Thread-Model</th>
-              <td>
-                <xsl:value-of select="taskmgr/thread-model/type"/>
-              </td>
-            </tr>
-            <tr class="odd">
-              <th>Worker Threads</th>
-              <td>
-                <xsl:value-of select="taskmgr/thread-model/worker-threads"/>
-              </td>
-            </tr>
-            <tr class="even">
-              <th>Default Quantum</th>
-              <td>
-                <xsl:value-of select="taskmgr/thread-model/default-quantum"/>
-              </td>
-            </tr>
-            <tr class="odd">
-              <th>Tasks Running</th>
-              <td>
-                <xsl:value-of select="taskmgr/thread-model/tasks-running"/>
-              </td>
-            </tr>
-            <tr class="even">
-              <th>Tasks Ready</th>
-              <td>
-                <xsl:value-of select="taskmgr/thread-model/tasks-ready"/>
-              </td>
-            </tr>
-          </table>
-          <br/>
-        </xsl:if>
-        <xsl:if test="taskmgr/tasks/task">
-          <h2>Tasks</h2>
-          <table class="tasks">
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>References</th>
-              <th>State</th>
-              <th>Quantum</th>
-              <th>Events</th>
-            </tr>
-            <xsl:for-each select="taskmgr/tasks/task">
-              <xsl:sort select="name"/>
-              <xsl:variable name="css-class14">
-                <xsl:choose>
-                  <xsl:when test="position() mod 2 = 0">even</xsl:when>
-                  <xsl:otherwise>odd</xsl:otherwise>
-                </xsl:choose>
-              </xsl:variable>
-              <tr class="{$css-class14}">
-                <td>
-                  <xsl:value-of select="id"/>
-                </td>
-                <td>
-                  <xsl:value-of select="name"/>
-                </td>
-                <td>
-                  <xsl:value-of select="references"/>
-                </td>
-                <td>
-                  <xsl:value-of select="state"/>
-                </td>
-                <td>
-                  <xsl:value-of select="quantum"/>
-                </td>
-                <td>
-                  <xsl:value-of select="events"/>
-                </td>
-              </tr>
-            </xsl:for-each>
-          </table>
-          <br/>
-        </xsl:if>
-        <xsl:if test="memory/summary">
-          <h2>Memory Usage Summary</h2>
-          <table class="counters">
-            <xsl:for-each select="memory/summary/*">
-              <xsl:variable name="css-class13">
-                <xsl:choose>
-                  <xsl:when test="position() mod 2 = 0">even</xsl:when>
-                  <xsl:otherwise>odd</xsl:otherwise>
-                </xsl:choose>
-              </xsl:variable>
-              <tr class="{$css-class13}">
-                <th>
-                  <xsl:value-of select="name()"/>
-                </th>
-                <td>
-                  <xsl:value-of select="."/>
-                </td>
-              </tr>
-            </xsl:for-each>
-          </table>
-          <br/>
-        </xsl:if>
-        <xsl:if test="memory/contexts/context">
-          <h2>Memory Contexts</h2>
-          <table class="mctx">
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>References</th>
-              <th>TotalUse</th>
-              <th>InUse</th>
-              <th>MaxUse</th>
-              <th>BlockSize</th>
-              <th>Pools</th>
-              <th>HiWater</th>
-              <th>LoWater</th>
-            </tr>
-            <xsl:for-each select="memory/contexts/context">
-              <xsl:sort select="total" data-type="number" order="descending"/>
-              <xsl:variable name="css-class14">
-                <xsl:choose>
-                  <xsl:when test="position() mod 2 = 0">even</xsl:when>
-                  <xsl:otherwise>odd</xsl:otherwise>
-                </xsl:choose>
-              </xsl:variable>
-              <tr class="{$css-class14}">
-                <td>
-                  <xsl:value-of select="id"/>
-                </td>
-                <td>
-                  <xsl:value-of select="name"/>
-                </td>
-                <td>
-                  <xsl:value-of select="references"/>
-                </td>
-                <td>
-                  <xsl:value-of select="total"/>
-                </td>
-                <td>
-                  <xsl:value-of select="inuse"/>
-                </td>
-                <td>
-                  <xsl:value-of select="maxinuse"/>
-                </td>
-                <td>
-                  <xsl:value-of select="blocksize"/>
-                </td>
-                <td>
-                  <xsl:value-of select="pools"/>
-                </td>
-                <td>
-                  <xsl:value-of select="hiwater"/>
-                </td>
-                <td>
-                  <xsl:value-of select="lowater"/>
-                </td>
-              </tr>
-            </xsl:for-each>
-          </table>
-        </xsl:if>
-        <hr/>
-        <p class="footer">Internet Systems Consortium Inc.<br/><a href="http://www.isc.org">http://www.isc.org</a></p>
+	<xsl:if test="traffic/tcp/counters[@type=&quot;request-size&quot;]/counter[.&gt;0]">
+	  <h4>TCP Requests Received</h4>
+	  <table class="counters">
+	    <xsl:for-each select="traffic/tcp/counters[@type=&quot;request-size&quot;]/counter[.&gt;0]">
+	      <xsl:variable name="css-class7">
+		<xsl:choose>
+		  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+		  <xsl:otherwise>odd</xsl:otherwise>
+		</xsl:choose>
+	      </xsl:variable>
+	      <tr class="{$css-class7}">
+		<th>
+		  <xsl:value-of select="@name"/>
+		</th>
+		<td>
+		  <xsl:value-of select="."/>
+		</td>
+	      </tr>
+	    </xsl:for-each>
+	  </table>
+	  <br/>
+	</xsl:if>
+
+	<xsl:if test="traffic/tcp/counters[@type=&quot;response-size&quot;]/counter[.&gt;0]">
+	  <h4>TCP Responses Sent</h4>
+	  <table class="counters">
+		  <xsl:for-each select="traffic/tcp/counters[@type=&quot;response-size&quot;]/counter[.&gt;0]">
+	      <xsl:variable name="css-class7">
+		<xsl:choose>
+		  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+		  <xsl:otherwise>odd</xsl:otherwise>
+		</xsl:choose>
+	      </xsl:variable>
+	      <tr class="{$css-class7}">
+		<th>
+		  <xsl:value-of select="@name"/>
+		</th>
+		<td>
+		  <xsl:value-of select="."/>
+		</td>
+	      </tr>
+	    </xsl:for-each>
+	  </table>
+	  <br/>
+	</xsl:if>
+
+	<xsl:if test="server/counters[@type=&quot;sockstat&quot;]/counter[.&gt;0]">
+	  <h2>Socket I/O Statistics</h2>
+	  <table class="counters">
+	    <xsl:for-each select="server/counters[@type=&quot;sockstat&quot;]/counter[.&gt;0]">
+	      <xsl:variable name="css-class7">
+		<xsl:choose>
+		  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+		  <xsl:otherwise>odd</xsl:otherwise>
+		</xsl:choose>
+	      </xsl:variable>
+	      <tr class="{$css-class7}">
+		<th>
+		  <xsl:value-of select="@name"/>
+		</th>
+		<td>
+		  <xsl:value-of select="."/>
+		</td>
+	      </tr>
+	    </xsl:for-each>
+	  </table>
+	  <br/>
+	</xsl:if>
+	<xsl:if test="views/view[zones/zone/counters[@type=&quot;qtype&quot;]/counter &gt;0]">
+	  <h2>Received QTYPES per view/zone</h2>
+	  <xsl:for-each select="views/view[zones/zone/counters[@type=&quot;qtype&quot;]/counter &gt;0]">
+	    <h3>View <xsl:value-of select="@name"/></h3>
+	    <xsl:variable name="thisview">
+	      <xsl:value-of select="@name"/>
+	    </xsl:variable>
+	    <xsl:for-each select="zones/zone">
+	      <xsl:if test="counters[@type=&quot;qtype&quot;]/counter[count(.) &gt; 0]">
+		<h4>Zone <xsl:value-of select="@name"/></h4>
+		<xsl:if test="system-property('xsl:vendor')!='Transformiix'">
+		  <!-- Non Mozilla specific markup -->
+		<script type="text/javascript">
+			graphs.push({
+				      'title': "Query types for zone <xsl:value-of select="@name"/>",
+				      'target': 'chart_qtype_<xsl:value-of select="../../@name"/>_<xsl:value-of select="@name"/>',
+				      'style': 'barchart',
+				      'data': [['Type','Counter'],<xsl:for-each select="counters[@type=&quot;qtype&quot;]/counter[.&gt;0 and @name != &quot;QryAuthAns&quot;]">['<xsl:value-of select="@name"/>',<xsl:value-of select="."/>],</xsl:for-each>]
+				      });
+
+		    </script>
+		<xsl:variable name="target">
+		  <xsl:value-of select="@name"/>
+		</xsl:variable>
+		  <div class="pie" id="chart_qtype_{$thisview}_{$target}">[no data to display]</div>
+		</xsl:if>
+		<table class="counters">
+		  <xsl:for-each select="counters[@type=&quot;qtype&quot;]/counter">
+		    <xsl:sort select="."/>
+		    <xsl:variable name="css-class10">
+		      <xsl:choose>
+			<xsl:when test="position() mod 2 = 0">even</xsl:when>
+			<xsl:otherwise>odd</xsl:otherwise>
+		      </xsl:choose>
+		    </xsl:variable>
+		    <tr class="{$css-class10}">
+		      <th>
+			<xsl:value-of select="@name"/>
+		      </th>
+		      <td>
+			<xsl:value-of select="."/>
+		      </td>
+		    </tr>
+		  </xsl:for-each>
+		</table>
+	      </xsl:if>
+	    </xsl:for-each>
+	  </xsl:for-each>
+	</xsl:if>
+	<xsl:if test="views/view[zones/zone/counters[@type=&quot;rcode&quot;]/counter &gt;0]">
+	  <h2>Response Codes per view/zone</h2>
+	  <xsl:for-each select="views/view[zones/zone/counters[@type=&quot;rcode&quot;]/counter &gt;0]">
+	    <h3>View <xsl:value-of select="@name"/></h3>
+	    <xsl:variable name="thisview2">
+	      <xsl:value-of select="@name"/>
+	    </xsl:variable>
+	    <xsl:for-each select="zones/zone">
+	      <xsl:if test="counters[@type=&quot;rcode&quot;]/counter[. &gt; 0]">
+		<h4>Zone <xsl:value-of select="@name"/></h4>
+		<xsl:if test="system-property('xsl:vendor')!='Transformiix'">
+		  <!-- Non Mozilla specific markup -->
+		<script type="text/javascript">
+			graphs.push({
+				      'title': "Response codes for zone <xsl:value-of select="@name"/>",
+				      'target': 'chart_rescode_<xsl:value-of select="../../@name"/>_<xsl:value-of select="@name"/>',
+				      'style': 'barchart',
+				      'data': [['Type','Counter'],<xsl:for-each select="counters[@type=&quot;rcode&quot;]/counter[.&gt;0 and @name != &quot;QryAuthAns&quot;]">['<xsl:value-of select="@name"/>',<xsl:value-of select="."/>],</xsl:for-each>]
+				      });
+
+		</script>
+		<xsl:variable name="target">
+		  <xsl:value-of select="@name"/>
+		</xsl:variable>
+		  <div class="pie" id="chart_rescode_{$thisview2}_{$target}">[no data to display]</div>
+		</xsl:if>
+		<table class="counters">
+		  <xsl:for-each select="counters[@type=&quot;rcode&quot;]/counter[.&gt;0 and @name != &quot;QryAuthAns&quot;]">
+		    <xsl:sort select="."/>
+		    <xsl:variable name="css-class11">
+		      <xsl:choose>
+			<xsl:when test="position() mod 2 = 0">even</xsl:when>
+			<xsl:otherwise>odd</xsl:otherwise>
+		      </xsl:choose>
+		    </xsl:variable>
+		    <tr class="{$css-class11}">
+		      <th>
+			<xsl:value-of select="@name"/>
+		      </th>
+		      <td>
+			<xsl:value-of select="."/>
+		      </td>
+		    </tr>
+		  </xsl:for-each>
+		</table>
+	      </xsl:if>
+	    </xsl:for-each>
+	  </xsl:for-each>
+	</xsl:if>
+	<xsl:if test="socketmgr/sockets/socket">
+	  <h2>Network Status</h2>
+	  <table class="netstat">
+	    <tr>
+	      <th>ID</th>
+	      <th>Name</th>
+	      <th>Type</th>
+	      <th>References</th>
+	      <th>LocalAddress</th>
+	      <th>PeerAddress</th>
+	      <th>State</th>
+	    </tr>
+	    <xsl:for-each select="socketmgr/sockets/socket">
+	      <xsl:sort select="id"/>
+	      <xsl:variable name="css-class12">
+		<xsl:choose>
+		  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+		  <xsl:otherwise>odd</xsl:otherwise>
+		</xsl:choose>
+	      </xsl:variable>
+	      <tr class="{$css-class12}">
+		<td>
+		  <xsl:value-of select="id"/>
+		</td>
+		<td>
+		  <xsl:value-of select="name"/>
+		</td>
+		<td>
+		  <xsl:value-of select="type"/>
+		</td>
+		<td>
+		  <xsl:value-of select="references"/>
+		</td>
+		<td>
+		  <xsl:value-of select="local-address"/>
+		</td>
+		<td>
+		  <xsl:value-of select="peer-address"/>
+		</td>
+		<td>
+		  <xsl:for-each select="states">
+		    <xsl:value-of select="."/>
+		  </xsl:for-each>
+		</td>
+	      </tr>
+	    </xsl:for-each>
+	  </table>
+	  <br/>
+	</xsl:if>
+	<xsl:if test="taskmgr/thread-model/type">
+	  <h2>Task Manager Configuration</h2>
+	  <table class="counters">
+	    <tr>
+	      <th class="even">Thread-Model</th>
+	      <td>
+		<xsl:value-of select="taskmgr/thread-model/type"/>
+	      </td>
+	    </tr>
+	    <tr class="odd">
+	      <th>Worker Threads</th>
+	      <td>
+		<xsl:value-of select="taskmgr/thread-model/worker-threads"/>
+	      </td>
+	    </tr>
+	    <tr class="even">
+	      <th>Default Quantum</th>
+	      <td>
+		<xsl:value-of select="taskmgr/thread-model/default-quantum"/>
+	      </td>
+	    </tr>
+	    <tr class="odd">
+	      <th>Tasks Running</th>
+	      <td>
+		<xsl:value-of select="taskmgr/thread-model/tasks-running"/>
+	      </td>
+	    </tr>
+	    <tr class="even">
+	      <th>Tasks Ready</th>
+	      <td>
+		<xsl:value-of select="taskmgr/thread-model/tasks-ready"/>
+	      </td>
+	    </tr>
+	  </table>
+	  <br/>
+	</xsl:if>
+	<xsl:if test="taskmgr/tasks/task">
+	  <h2>Tasks</h2>
+	  <table class="tasks">
+	    <tr>
+	      <th>ID</th>
+	      <th>Name</th>
+	      <th>References</th>
+	      <th>State</th>
+	      <th>Quantum</th>
+	      <th>Events</th>
+	    </tr>
+	    <xsl:for-each select="taskmgr/tasks/task">
+	      <xsl:sort select="name"/>
+	      <xsl:variable name="css-class14">
+		<xsl:choose>
+		  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+		  <xsl:otherwise>odd</xsl:otherwise>
+		</xsl:choose>
+	      </xsl:variable>
+	      <tr class="{$css-class14}">
+		<td>
+		  <xsl:value-of select="id"/>
+		</td>
+		<td>
+		  <xsl:value-of select="name"/>
+		</td>
+		<td>
+		  <xsl:value-of select="references"/>
+		</td>
+		<td>
+		  <xsl:value-of select="state"/>
+		</td>
+		<td>
+		  <xsl:value-of select="quantum"/>
+		</td>
+		<td>
+		  <xsl:value-of select="events"/>
+		</td>
+	      </tr>
+	    </xsl:for-each>
+	  </table>
+	  <br/>
+	</xsl:if>
+	<xsl:if test="memory/summary">
+	  <h2>Memory Usage Summary</h2>
+	  <table class="counters">
+	    <xsl:for-each select="memory/summary/*">
+	      <xsl:variable name="css-class13">
+		<xsl:choose>
+		  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+		  <xsl:otherwise>odd</xsl:otherwise>
+		</xsl:choose>
+	      </xsl:variable>
+	      <tr class="{$css-class13}">
+		<th>
+		  <xsl:value-of select="name()"/>
+		</th>
+		<td>
+		  <xsl:value-of select="."/>
+		</td>
+	      </tr>
+	    </xsl:for-each>
+	  </table>
+	  <br/>
+	</xsl:if>
+	<xsl:if test="memory/contexts/context">
+	  <h2>Memory Contexts</h2>
+	  <table class="mctx">
+	    <tr>
+	      <th>ID</th>
+	      <th>Name</th>
+	      <th>References</th>
+	      <th>TotalUse</th>
+	      <th>InUse</th>
+	      <th>MaxUse</th>
+	      <th>BlockSize</th>
+	      <th>Pools</th>
+	      <th>HiWater</th>
+	      <th>LoWater</th>
+	    </tr>
+	    <xsl:for-each select="memory/contexts/context">
+	      <xsl:sort select="total" data-type="number" order="descending"/>
+	      <xsl:variable name="css-class14">
+		<xsl:choose>
+		  <xsl:when test="position() mod 2 = 0">even</xsl:when>
+		  <xsl:otherwise>odd</xsl:otherwise>
+		</xsl:choose>
+	      </xsl:variable>
+	      <tr class="{$css-class14}">
+		<td>
+		  <xsl:value-of select="id"/>
+		</td>
+		<td>
+		  <xsl:value-of select="name"/>
+		</td>
+		<td>
+		  <xsl:value-of select="references"/>
+		</td>
+		<td>
+		  <xsl:value-of select="total"/>
+		</td>
+		<td>
+		  <xsl:value-of select="inuse"/>
+		</td>
+		<td>
+		  <xsl:value-of select="maxinuse"/>
+		</td>
+		<td>
+		  <xsl:value-of select="blocksize"/>
+		</td>
+		<td>
+		  <xsl:value-of select="pools"/>
+		</td>
+		<td>
+		  <xsl:value-of select="hiwater"/>
+		</td>
+		<td>
+		  <xsl:value-of select="lowater"/>
+		</td>
+	      </tr>
+	    </xsl:for-each>
+	  </table>
+	</xsl:if>
+	<hr/>
+	<p class="footer">Internet Systems Consortium Inc.<br/><a href="http://www.isc.org">http://www.isc.org</a></p>
       </body>
     </html>
   </xsl:template>

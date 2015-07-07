@@ -982,6 +982,7 @@ client_send(ns_client_t *client) {
 	unsigned int render_opts;
 	unsigned int preferred_glue;
 	isc_boolean_t opt_included = ISC_FALSE;
+	size_t respsize;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -1123,12 +1124,23 @@ client_send(ns_client_t *client) {
 		isc_buffer_usedregion(&buffer, &r);
 		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t) r.length);
 		isc_buffer_add(&tcpbuffer, r.length);
+
+		respsize = isc_buffer_usedlength(&tcpbuffer);
 		result = client_sendpkg(client, &tcpbuffer);
-	} else
+
+		isc_stats_increment(ns_g_server->tcpoutstats,
+				    ISC_MIN(respsize / 16, 256));
+	} else {
+		respsize = isc_buffer_usedlength(&buffer);
 		result = client_sendpkg(client, &buffer);
+
+		isc_stats_increment(ns_g_server->udpoutstats,
+				    ISC_MIN(respsize / 16, 256));
+	}
 
 	/* update statistics (XXXJT: is it okay to access message->xxxkey?) */
 	isc_stats_increment(ns_g_server->nsstats, dns_nsstatscounter_response);
+
 	if (opt_included) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_edns0out);
@@ -2013,6 +2025,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_messageid_t id;
 	unsigned int flags;
 	isc_boolean_t notimp;
+	size_t reqsize;
 
 	REQUIRE(event != NULL);
 	client = event->ev_arg;
@@ -2065,6 +2078,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 */
 		client->nreads--;
 	}
+
+	reqsize = isc_buffer_usedlength(buffer);
 
 	if (exit_check(client))
 		goto cleanup;
@@ -2177,9 +2192,15 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_requestv6);
 	}
-	if (TCP_CLIENT(client))
+	if (TCP_CLIENT(client)) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_requesttcp);
+		isc_stats_increment(ns_g_server->tcpinstats,
+				    ISC_MIN(reqsize / 16, 18));
+	} else {
+		isc_stats_increment(ns_g_server->udpinstats,
+				    ISC_MIN(reqsize / 16, 18));
+	}
 
 	/*
 	 * It's a request.  Parse it.

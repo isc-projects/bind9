@@ -113,6 +113,22 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  New statistics counters have been added to track traffic
+	  sizes, as specified in RSSAC002.  Query and response
+	  message sizes are broken up into ranges of histogram buckets:
+	  TCP and UDP queries of size 0-15, 16-31, ..., 272-288, and 288+,
+	  and TCP and UDP responses of size 0-15, 16-31, ..., 4080-4095,
+	  and 4096+.  These values can be accessed via the XML and JSON
+	  statistics channels at, for example,
+	  <ulink url="http://localhost:8888/xml/v3/traffic"
+		  >http://localhost:8888/xml/v3/traffic</ulink>
+	  or
+	  <ulink url="http://localhost:8888/json/v1/traffic"
+	          >http://localhost:8888/json/v1/traffic</ulink>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  The serial number of a dynamically updatable zone can
 	  now be set using
 	  <command>rndc signing -serial <replaceable>number</replaceable> <replaceable>zonename</replaceable></command>.

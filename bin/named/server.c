@@ -6930,6 +6930,10 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->zonestats = NULL;
 	server->resolverstats = NULL;
 	server->sockstats = NULL;
+	server->udpinstats = NULL;
+	server->udpoutstats = NULL;
+	server->tcpinstats = NULL;
+	server->tcpoutstats = NULL;
 	CHECKFATAL(isc_stats_create(server->mctx, &server->sockstats,
 				    isc_sockstatscounter_max),
 		   "isc_stats_create");
@@ -6979,6 +6983,22 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 				    dns_resstatscounter_max),
 		   "dns_stats_create (resolver)");
 
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->udpinstats,
+				    dns_sizecounter_in_max),
+		   "dns_stats_create (inbound UDP traffic size)");
+
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->udpoutstats,
+				    dns_sizecounter_out_max),
+		   "dns_stats_create (outbound UDP traffic size)");
+
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->tcpinstats,
+				    dns_sizecounter_in_max),
+		   "dns_stats_create (inbound TCP traffic size)");
+
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->tcpoutstats,
+				    dns_sizecounter_out_max),
+		   "dns_stats_create (outbound TCP traffic size)");
+
 	server->flushonshutdown = ISC_FALSE;
 	server->log_queries = ISC_FALSE;
 
@@ -7017,6 +7037,10 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_stats_detach(&server->zonestats);
 	isc_stats_detach(&server->resolverstats);
 	isc_stats_detach(&server->sockstats);
+	isc_stats_detach(&server->udpinstats);
+	isc_stats_detach(&server->udpoutstats);
+	isc_stats_detach(&server->tcpinstats);
+	isc_stats_detach(&server->tcpoutstats);
 
 	isc_mem_free(server->mctx, server->statsfile);
 	isc_mem_free(server->mctx, server->bindkeysfile);

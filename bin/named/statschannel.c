@@ -91,6 +91,10 @@ static const char *adbstats_desc[dns_adbstats_max];
 static const char *zonestats_desc[dns_zonestatscounter_max];
 static const char *sockstats_desc[isc_sockstatscounter_max];
 static const char *dnssecstats_desc[dns_dnssecstats_max];
+static const char *udpinsizestats_desc[dns_sizecounter_in_max];
+static const char *udpoutsizestats_desc[dns_sizecounter_out_max];
+static const char *tcpinsizestats_desc[dns_sizecounter_in_max];
+static const char *tcpoutsizestats_desc[dns_sizecounter_out_max];
 #if defined(EXTENDED_STATS)
 static const char *nsstats_xmldesc[dns_nsstatscounter_max];
 static const char *resstats_xmldesc[dns_resstatscounter_max];
@@ -98,6 +102,10 @@ static const char *adbstats_xmldesc[dns_adbstats_max];
 static const char *zonestats_xmldesc[dns_zonestatscounter_max];
 static const char *sockstats_xmldesc[isc_sockstatscounter_max];
 static const char *dnssecstats_xmldesc[dns_dnssecstats_max];
+static const char *udpinsizestats_xmldesc[dns_sizecounter_in_max];
+static const char *udpoutsizestats_xmldesc[dns_sizecounter_out_max];
+static const char *tcpinsizestats_xmldesc[dns_sizecounter_in_max];
+static const char *tcpoutsizestats_xmldesc[dns_sizecounter_out_max];
 #else
 #define nsstats_xmldesc NULL
 #define resstats_xmldesc NULL
@@ -105,6 +113,10 @@ static const char *dnssecstats_xmldesc[dns_dnssecstats_max];
 #define zonestats_xmldesc NULL
 #define sockstats_xmldesc NULL
 #define dnssecstats_xmldesc NULL
+#define udpinsizestats_xmldesc NULL
+#define udpoutsizestats_xmldesc NULL
+#define tcpinsizestats_xmldesc NULL
+#define tcpoutsizestats_xmldesc NULL
 #endif	/* EXTENDED_STATS */
 
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
@@ -120,6 +132,10 @@ static int adbstats_index[dns_adbstats_max];
 static int zonestats_index[dns_zonestatscounter_max];
 static int sockstats_index[isc_sockstatscounter_max];
 static int dnssecstats_index[dns_dnssecstats_max];
+static int udpinsizestats_index[dns_sizecounter_in_max];
+static int udpoutsizestats_index[dns_sizecounter_out_max];
+static int tcpinsizestats_index[dns_sizecounter_in_max];
+static int tcpoutsizestats_index[dns_sizecounter_out_max];
 
 static inline void
 set_desc(int counter, int maxcounter, const char *fdesc, const char **fdescs,
@@ -553,6 +569,365 @@ init_desc(void) {
 	for (i = 0; i < dns_dnssecstats_max; i++)
 		INSIST(dnssecstats_xmldesc[i] != NULL);
 #endif
+
+	/* Initialize traffic size statistics */
+	for (i = 0; i < dns_sizecounter_in_max; i++) {
+		udpinsizestats_desc[i] = NULL;
+		tcpinsizestats_desc[i] = NULL;
+#if defined(EXTENDED_STATS)
+		udpinsizestats_xmldesc[i] = NULL;
+		tcpinsizestats_xmldesc[i] = NULL;
+#endif
+	}
+	for (i = 0; i < dns_sizecounter_out_max; i++) {
+		udpoutsizestats_desc[i] = NULL;
+		tcpoutsizestats_desc[i] = NULL;
+#if defined(EXTENDED_STATS)
+		udpoutsizestats_xmldesc[i] = NULL;
+		tcpoutsizestats_xmldesc[i] = NULL;
+#endif
+	}
+
+#define SET_SIZESTATDESC(counterid, desc, xmldesc, inout) \
+	do { \
+		set_desc(dns_sizecounter_ ## inout ## _ ## counterid, \
+			 dns_sizecounter_ ## inout ## _max, \
+			 desc, udp ## inout ## sizestats_desc, \
+			 xmldesc, udp ## inout ## sizestats_xmldesc); \
+		set_desc(dns_sizecounter_ ## inout ##  _ ## counterid, \
+			 dns_sizecounter_ ## inout ## _max, \
+			 desc, tcp ## inout ## sizestats_desc, \
+			 xmldesc, tcp ## inout ## sizestats_xmldesc); \
+		udp ## inout ## sizestats_index[i] = dns_sizecounter_ ## inout ## _ ## counterid; \
+		tcp ## inout ## sizestats_index[i] = dns_sizecounter_ ## inout ## _ ## counterid; \
+		i++; \
+	} while (0)
+
+	i = 0;
+	SET_SIZESTATDESC(0, "requests received 0-15 bytes", "0-15", in);
+	SET_SIZESTATDESC(16, "requests received 16-31 bytes", "16-31", in);
+	SET_SIZESTATDESC(32, "requests received 32-47 bytes", "32-47", in);
+	SET_SIZESTATDESC(48, "requests received 48-63 bytes", "48-63", in);
+	SET_SIZESTATDESC(64, "requests received 64-79 bytes", "64-79", in);
+	SET_SIZESTATDESC(80, "requests received 80-95 bytes", "80-95", in);
+	SET_SIZESTATDESC(96, "requests received 96-111 bytes", "96-111", in);
+	SET_SIZESTATDESC(112, "requests received 112-127 bytes", "112-127", in);
+	SET_SIZESTATDESC(128, "requests received 128-143 bytes", "128-143", in);
+	SET_SIZESTATDESC(144, "requests received 144-159 bytes", "144-159", in);
+	SET_SIZESTATDESC(160, "requests received 160-175 bytes", "160-175", in);
+	SET_SIZESTATDESC(176, "requests received 176-191 bytes", "176-191", in);
+	SET_SIZESTATDESC(192, "requests received 192-207 bytes", "192-207", in);
+	SET_SIZESTATDESC(208, "requests received 208-223 bytes", "208-223", in);
+	SET_SIZESTATDESC(224, "requests received 224-239 bytes", "224-239", in);
+	SET_SIZESTATDESC(240, "requests received 240-255 bytes", "240-255", in);
+	SET_SIZESTATDESC(256, "requests received 256-271 bytes", "256-271", in);
+	SET_SIZESTATDESC(272, "requests received 272-287 bytes", "272-287", in);
+	SET_SIZESTATDESC(288, "requests received 288+ bytes", "288+", in);
+	INSIST(i == dns_sizecounter_in_max);
+
+	i = 0;
+	SET_SIZESTATDESC(0, "responses sent 0-15 bytes", "0-15", out);
+	SET_SIZESTATDESC(16, "responses sent 16-31 bytes", "16-31", out);
+	SET_SIZESTATDESC(32, "responses sent 32-47 bytes", "32-47", out);
+	SET_SIZESTATDESC(48, "responses sent 48-63 bytes", "48-63", out);
+	SET_SIZESTATDESC(64, "responses sent 64-79 bytes", "64-79", out);
+	SET_SIZESTATDESC(80, "responses sent 80-95 bytes", "80-95", out);
+	SET_SIZESTATDESC(96, "responses sent 96-111 bytes", "96-111", out);
+	SET_SIZESTATDESC(112, "responses sent 112-127 bytes", "112-127", out);
+	SET_SIZESTATDESC(128, "responses sent 128-143 bytes", "128-143", out);
+	SET_SIZESTATDESC(144, "responses sent 144-159 bytes", "144-159", out);
+	SET_SIZESTATDESC(160, "responses sent 160-175 bytes", "160-175", out);
+	SET_SIZESTATDESC(176, "responses sent 176-191 bytes", "176-191", out);
+	SET_SIZESTATDESC(192, "responses sent 192-207 bytes", "192-207", out);
+	SET_SIZESTATDESC(208, "responses sent 208-223 bytes", "208-223", out);
+	SET_SIZESTATDESC(224, "responses sent 224-239 bytes", "224-239", out);
+	SET_SIZESTATDESC(240, "responses sent 240-255 bytes", "240-255", out);
+	SET_SIZESTATDESC(256, "responses sent 256-271 bytes", "256-271", out);
+	SET_SIZESTATDESC(272, "responses sent 272-287 bytes", "272-287", out);
+	SET_SIZESTATDESC(288, "responses sent 288-303 bytes", "288-303", out);
+	SET_SIZESTATDESC(304, "responses sent 304-319 bytes", "304-319", out);
+	SET_SIZESTATDESC(320, "responses sent 320-335 bytes", "320-335", out);
+	SET_SIZESTATDESC(336, "responses sent 336-351 bytes", "336-351", out);
+	SET_SIZESTATDESC(352, "responses sent 352-367 bytes", "352-367", out);
+	SET_SIZESTATDESC(368, "responses sent 368-383 bytes", "368-383", out);
+	SET_SIZESTATDESC(384, "responses sent 384-399 bytes", "384-399", out);
+	SET_SIZESTATDESC(400, "responses sent 400-415 bytes", "400-415", out);
+	SET_SIZESTATDESC(416, "responses sent 416-431 bytes", "416-431", out);
+	SET_SIZESTATDESC(432, "responses sent 432-447 bytes", "432-447", out);
+	SET_SIZESTATDESC(448, "responses sent 448-463 bytes", "448-463", out);
+	SET_SIZESTATDESC(464, "responses sent 464-479 bytes", "464-479", out);
+	SET_SIZESTATDESC(480, "responses sent 480-495 bytes", "480-495", out);
+	SET_SIZESTATDESC(496, "responses sent 496-511 bytes", "496-511", out);
+	SET_SIZESTATDESC(512, "responses sent 512-527 bytes", "512-527", out);
+	SET_SIZESTATDESC(528, "responses sent 528-543 bytes", "528-543", out);
+	SET_SIZESTATDESC(544, "responses sent 544-559 bytes", "544-559", out);
+	SET_SIZESTATDESC(560, "responses sent 560-575 bytes", "560-575", out);
+	SET_SIZESTATDESC(576, "responses sent 576-591 bytes", "576-591", out);
+	SET_SIZESTATDESC(592, "responses sent 592-607 bytes", "592-607", out);
+	SET_SIZESTATDESC(608, "responses sent 608-623 bytes", "608-623", out);
+	SET_SIZESTATDESC(624, "responses sent 624-639 bytes", "624-639", out);
+	SET_SIZESTATDESC(640, "responses sent 640-655 bytes", "640-655", out);
+	SET_SIZESTATDESC(656, "responses sent 656-671 bytes", "656-671", out);
+	SET_SIZESTATDESC(672, "responses sent 672-687 bytes", "672-687", out);
+	SET_SIZESTATDESC(688, "responses sent 688-703 bytes", "688-703", out);
+	SET_SIZESTATDESC(704, "responses sent 704-719 bytes", "704-719", out);
+	SET_SIZESTATDESC(720, "responses sent 720-735 bytes", "720-735", out);
+	SET_SIZESTATDESC(736, "responses sent 736-751 bytes", "736-751", out);
+	SET_SIZESTATDESC(752, "responses sent 752-767 bytes", "752-767", out);
+	SET_SIZESTATDESC(768, "responses sent 768-783 bytes", "768-783", out);
+	SET_SIZESTATDESC(784, "responses sent 784-799 bytes", "784-799", out);
+	SET_SIZESTATDESC(800, "responses sent 800-815 bytes", "800-815", out);
+	SET_SIZESTATDESC(816, "responses sent 816-831 bytes", "816-831", out);
+	SET_SIZESTATDESC(832, "responses sent 832-847 bytes", "832-847", out);
+	SET_SIZESTATDESC(848, "responses sent 848-863 bytes", "848-863", out);
+	SET_SIZESTATDESC(864, "responses sent 864-879 bytes", "864-879", out);
+	SET_SIZESTATDESC(880, "responses sent 880-895 bytes", "880-895", out);
+	SET_SIZESTATDESC(896, "responses sent 896-911 bytes", "896-911", out);
+	SET_SIZESTATDESC(912, "responses sent 912-927 bytes", "912-927", out);
+	SET_SIZESTATDESC(928, "responses sent 928-943 bytes", "928-943", out);
+	SET_SIZESTATDESC(944, "responses sent 944-959 bytes", "944-959", out);
+	SET_SIZESTATDESC(960, "responses sent 960-975 bytes", "960-975", out);
+	SET_SIZESTATDESC(976, "responses sent 976-991 bytes", "976-991", out);
+	SET_SIZESTATDESC(992, "responses sent 992-1007 bytes", "992-1007", out);
+	SET_SIZESTATDESC(1008, "responses sent 1008-1023 bytes", "1008-1023", out);
+	SET_SIZESTATDESC(1024, "responses sent 1024-1039 bytes", "1024-1039", out);
+	SET_SIZESTATDESC(1040, "responses sent 1040-1055 bytes", "1040-1055", out);
+	SET_SIZESTATDESC(1056, "responses sent 1056-1071 bytes", "1056-1071", out);
+	SET_SIZESTATDESC(1072, "responses sent 1072-1087 bytes", "1072-1087", out);
+	SET_SIZESTATDESC(1088, "responses sent 1088-1103 bytes", "1088-1103", out);
+	SET_SIZESTATDESC(1104, "responses sent 1104-1119 bytes", "1104-1119", out);
+	SET_SIZESTATDESC(1120, "responses sent 1120-1135 bytes", "1120-1135", out);
+	SET_SIZESTATDESC(1136, "responses sent 1136-1151 bytes", "1136-1151", out);
+	SET_SIZESTATDESC(1152, "responses sent 1152-1167 bytes", "1152-1167", out);
+	SET_SIZESTATDESC(1168, "responses sent 1168-1183 bytes", "1168-1183", out);
+	SET_SIZESTATDESC(1184, "responses sent 1184-1199 bytes", "1184-1199", out);
+	SET_SIZESTATDESC(1200, "responses sent 1200-1215 bytes", "1200-1215", out);
+	SET_SIZESTATDESC(1216, "responses sent 1216-1231 bytes", "1216-1231", out);
+	SET_SIZESTATDESC(1232, "responses sent 1232-1247 bytes", "1232-1247", out);
+	SET_SIZESTATDESC(1248, "responses sent 1248-1263 bytes", "1248-1263", out);
+	SET_SIZESTATDESC(1264, "responses sent 1264-1279 bytes", "1264-1279", out);
+	SET_SIZESTATDESC(1280, "responses sent 1280-1295 bytes", "1280-1295", out);
+	SET_SIZESTATDESC(1296, "responses sent 1296-1311 bytes", "1296-1311", out);
+	SET_SIZESTATDESC(1312, "responses sent 1312-1327 bytes", "1312-1327", out);
+	SET_SIZESTATDESC(1328, "responses sent 1328-1343 bytes", "1328-1343", out);
+	SET_SIZESTATDESC(1344, "responses sent 1344-1359 bytes", "1344-1359", out);
+	SET_SIZESTATDESC(1360, "responses sent 1360-1375 bytes", "1360-1375", out);
+	SET_SIZESTATDESC(1376, "responses sent 1376-1391 bytes", "1376-1391", out);
+	SET_SIZESTATDESC(1392, "responses sent 1392-1407 bytes", "1392-1407", out);
+	SET_SIZESTATDESC(1408, "responses sent 1408-1423 bytes", "1408-1423", out);
+	SET_SIZESTATDESC(1424, "responses sent 1424-1439 bytes", "1424-1439", out);
+	SET_SIZESTATDESC(1440, "responses sent 1440-1455 bytes", "1440-1455", out);
+	SET_SIZESTATDESC(1456, "responses sent 1456-1471 bytes", "1456-1471", out);
+	SET_SIZESTATDESC(1472, "responses sent 1472-1487 bytes", "1472-1487", out);
+	SET_SIZESTATDESC(1488, "responses sent 1488-1503 bytes", "1488-1503", out);
+	SET_SIZESTATDESC(1504, "responses sent 1504-1519 bytes", "1504-1519", out);
+	SET_SIZESTATDESC(1520, "responses sent 1520-1535 bytes", "1520-1535", out);
+	SET_SIZESTATDESC(1536, "responses sent 1536-1551 bytes", "1536-1551", out);
+	SET_SIZESTATDESC(1552, "responses sent 1552-1567 bytes", "1552-1567", out);
+	SET_SIZESTATDESC(1568, "responses sent 1568-1583 bytes", "1568-1583", out);
+	SET_SIZESTATDESC(1584, "responses sent 1584-1599 bytes", "1584-1599", out);
+	SET_SIZESTATDESC(1600, "responses sent 1600-1615 bytes", "1600-1615", out);
+	SET_SIZESTATDESC(1616, "responses sent 1616-1631 bytes", "1616-1631", out);
+	SET_SIZESTATDESC(1632, "responses sent 1632-1647 bytes", "1632-1647", out);
+	SET_SIZESTATDESC(1648, "responses sent 1648-1663 bytes", "1648-1663", out);
+	SET_SIZESTATDESC(1664, "responses sent 1664-1679 bytes", "1664-1679", out);
+	SET_SIZESTATDESC(1680, "responses sent 1680-1695 bytes", "1680-1695", out);
+	SET_SIZESTATDESC(1696, "responses sent 1696-1711 bytes", "1696-1711", out);
+	SET_SIZESTATDESC(1712, "responses sent 1712-1727 bytes", "1712-1727", out);
+	SET_SIZESTATDESC(1728, "responses sent 1728-1743 bytes", "1728-1743", out);
+	SET_SIZESTATDESC(1744, "responses sent 1744-1759 bytes", "1744-1759", out);
+	SET_SIZESTATDESC(1760, "responses sent 1760-1775 bytes", "1760-1775", out);
+	SET_SIZESTATDESC(1776, "responses sent 1776-1791 bytes", "1776-1791", out);
+	SET_SIZESTATDESC(1792, "responses sent 1792-1807 bytes", "1792-1807", out);
+	SET_SIZESTATDESC(1808, "responses sent 1808-1823 bytes", "1808-1823", out);
+	SET_SIZESTATDESC(1824, "responses sent 1824-1839 bytes", "1824-1839", out);
+	SET_SIZESTATDESC(1840, "responses sent 1840-1855 bytes", "1840-1855", out);
+	SET_SIZESTATDESC(1856, "responses sent 1856-1871 bytes", "1856-1871", out);
+	SET_SIZESTATDESC(1872, "responses sent 1872-1887 bytes", "1872-1887", out);
+	SET_SIZESTATDESC(1888, "responses sent 1888-1903 bytes", "1888-1903", out);
+	SET_SIZESTATDESC(1904, "responses sent 1904-1919 bytes", "1904-1919", out);
+	SET_SIZESTATDESC(1920, "responses sent 1920-1935 bytes", "1920-1935", out);
+	SET_SIZESTATDESC(1936, "responses sent 1936-1951 bytes", "1936-1951", out);
+	SET_SIZESTATDESC(1952, "responses sent 1952-1967 bytes", "1952-1967", out);
+	SET_SIZESTATDESC(1968, "responses sent 1968-1983 bytes", "1968-1983", out);
+	SET_SIZESTATDESC(1984, "responses sent 1984-1999 bytes", "1984-1999", out);
+	SET_SIZESTATDESC(2000, "responses sent 2000-2015 bytes", "2000-2015", out);
+	SET_SIZESTATDESC(2016, "responses sent 2016-2031 bytes", "2016-2031", out);
+	SET_SIZESTATDESC(2032, "responses sent 2032-2047 bytes", "2032-2047", out);
+	SET_SIZESTATDESC(2048, "responses sent 2048-2063 bytes", "2048-2063", out);
+	SET_SIZESTATDESC(2064, "responses sent 2064-2079 bytes", "2064-2079", out);
+	SET_SIZESTATDESC(2080, "responses sent 2080-2095 bytes", "2080-2095", out);
+	SET_SIZESTATDESC(2096, "responses sent 2096-2111 bytes", "2096-2111", out);
+	SET_SIZESTATDESC(2112, "responses sent 2112-2127 bytes", "2112-2127", out);
+	SET_SIZESTATDESC(2128, "responses sent 2128-2143 bytes", "2128-2143", out);
+	SET_SIZESTATDESC(2144, "responses sent 2144-2159 bytes", "2144-2159", out);
+	SET_SIZESTATDESC(2160, "responses sent 2160-2175 bytes", "2160-2175", out);
+	SET_SIZESTATDESC(2176, "responses sent 2176-2191 bytes", "2176-2191", out);
+	SET_SIZESTATDESC(2192, "responses sent 2192-2207 bytes", "2192-2207", out);
+	SET_SIZESTATDESC(2208, "responses sent 2208-2223 bytes", "2208-2223", out);
+	SET_SIZESTATDESC(2224, "responses sent 2224-2239 bytes", "2224-2239", out);
+	SET_SIZESTATDESC(2240, "responses sent 2240-2255 bytes", "2240-2255", out);
+	SET_SIZESTATDESC(2256, "responses sent 2256-2271 bytes", "2256-2271", out);
+	SET_SIZESTATDESC(2272, "responses sent 2272-2287 bytes", "2272-2287", out);
+	SET_SIZESTATDESC(2288, "responses sent 2288-2303 bytes", "2288-2303", out);
+	SET_SIZESTATDESC(2304, "responses sent 2304-2319 bytes", "2304-2319", out);
+	SET_SIZESTATDESC(2320, "responses sent 2320-2335 bytes", "2320-2335", out);
+	SET_SIZESTATDESC(2336, "responses sent 2336-2351 bytes", "2336-2351", out);
+	SET_SIZESTATDESC(2352, "responses sent 2352-2367 bytes", "2352-2367", out);
+	SET_SIZESTATDESC(2368, "responses sent 2368-2383 bytes", "2368-2383", out);
+	SET_SIZESTATDESC(2384, "responses sent 2384-2399 bytes", "2384-2399", out);
+	SET_SIZESTATDESC(2400, "responses sent 2400-2415 bytes", "2400-2415", out);
+	SET_SIZESTATDESC(2416, "responses sent 2416-2431 bytes", "2416-2431", out);
+	SET_SIZESTATDESC(2432, "responses sent 2432-2447 bytes", "2432-2447", out);
+	SET_SIZESTATDESC(2448, "responses sent 2448-2463 bytes", "2448-2463", out);
+	SET_SIZESTATDESC(2464, "responses sent 2464-2479 bytes", "2464-2479", out);
+	SET_SIZESTATDESC(2480, "responses sent 2480-2495 bytes", "2480-2495", out);
+	SET_SIZESTATDESC(2496, "responses sent 2496-2511 bytes", "2496-2511", out);
+	SET_SIZESTATDESC(2512, "responses sent 2512-2527 bytes", "2512-2527", out);
+	SET_SIZESTATDESC(2528, "responses sent 2528-2543 bytes", "2528-2543", out);
+	SET_SIZESTATDESC(2544, "responses sent 2544-2559 bytes", "2544-2559", out);
+	SET_SIZESTATDESC(2560, "responses sent 2560-2575 bytes", "2560-2575", out);
+	SET_SIZESTATDESC(2576, "responses sent 2576-2591 bytes", "2576-2591", out);
+	SET_SIZESTATDESC(2592, "responses sent 2592-2607 bytes", "2592-2607", out);
+	SET_SIZESTATDESC(2608, "responses sent 2608-2623 bytes", "2608-2623", out);
+	SET_SIZESTATDESC(2624, "responses sent 2624-2639 bytes", "2624-2639", out);
+	SET_SIZESTATDESC(2640, "responses sent 2640-2655 bytes", "2640-2655", out);
+	SET_SIZESTATDESC(2656, "responses sent 2656-2671 bytes", "2656-2671", out);
+	SET_SIZESTATDESC(2672, "responses sent 2672-2687 bytes", "2672-2687", out);
+	SET_SIZESTATDESC(2688, "responses sent 2688-2703 bytes", "2688-2703", out);
+	SET_SIZESTATDESC(2704, "responses sent 2704-2719 bytes", "2704-2719", out);
+	SET_SIZESTATDESC(2720, "responses sent 2720-2735 bytes", "2720-2735", out);
+	SET_SIZESTATDESC(2736, "responses sent 2736-2751 bytes", "2736-2751", out);
+	SET_SIZESTATDESC(2752, "responses sent 2752-2767 bytes", "2752-2767", out);
+	SET_SIZESTATDESC(2768, "responses sent 2768-2783 bytes", "2768-2783", out);
+	SET_SIZESTATDESC(2784, "responses sent 2784-2799 bytes", "2784-2799", out);
+	SET_SIZESTATDESC(2800, "responses sent 2800-2815 bytes", "2800-2815", out);
+	SET_SIZESTATDESC(2816, "responses sent 2816-2831 bytes", "2816-2831", out);
+	SET_SIZESTATDESC(2832, "responses sent 2832-2847 bytes", "2832-2847", out);
+	SET_SIZESTATDESC(2848, "responses sent 2848-2863 bytes", "2848-2863", out);
+	SET_SIZESTATDESC(2864, "responses sent 2864-2879 bytes", "2864-2879", out);
+	SET_SIZESTATDESC(2880, "responses sent 2880-2895 bytes", "2880-2895", out);
+	SET_SIZESTATDESC(2896, "responses sent 2896-2911 bytes", "2896-2911", out);
+	SET_SIZESTATDESC(2912, "responses sent 2912-2927 bytes", "2912-2927", out);
+	SET_SIZESTATDESC(2928, "responses sent 2928-2943 bytes", "2928-2943", out);
+	SET_SIZESTATDESC(2944, "responses sent 2944-2959 bytes", "2944-2959", out);
+	SET_SIZESTATDESC(2960, "responses sent 2960-2975 bytes", "2960-2975", out);
+	SET_SIZESTATDESC(2976, "responses sent 2976-2991 bytes", "2976-2991", out);
+	SET_SIZESTATDESC(2992, "responses sent 2992-3007 bytes", "2992-3007", out);
+	SET_SIZESTATDESC(3008, "responses sent 3008-3023 bytes", "3008-3023", out);
+	SET_SIZESTATDESC(3024, "responses sent 3024-3039 bytes", "3024-3039", out);
+	SET_SIZESTATDESC(3040, "responses sent 3040-3055 bytes", "3040-3055", out);
+	SET_SIZESTATDESC(3056, "responses sent 3056-3071 bytes", "3056-3071", out);
+	SET_SIZESTATDESC(3072, "responses sent 3072-3087 bytes", "3072-3087", out);
+	SET_SIZESTATDESC(3088, "responses sent 3088-3103 bytes", "3088-3103", out);
+	SET_SIZESTATDESC(3104, "responses sent 3104-3119 bytes", "3104-3119", out);
+	SET_SIZESTATDESC(3120, "responses sent 3120-3135 bytes", "3120-3135", out);
+	SET_SIZESTATDESC(3136, "responses sent 3136-3151 bytes", "3136-3151", out);
+	SET_SIZESTATDESC(3152, "responses sent 3152-3167 bytes", "3152-3167", out);
+	SET_SIZESTATDESC(3168, "responses sent 3168-3183 bytes", "3168-3183", out);
+	SET_SIZESTATDESC(3184, "responses sent 3184-3199 bytes", "3184-3199", out);
+	SET_SIZESTATDESC(3200, "responses sent 3200-3215 bytes", "3200-3215", out);
+	SET_SIZESTATDESC(3216, "responses sent 3216-3231 bytes", "3216-3231", out);
+	SET_SIZESTATDESC(3232, "responses sent 3232-3247 bytes", "3232-3247", out);
+	SET_SIZESTATDESC(3248, "responses sent 3248-3263 bytes", "3248-3263", out);
+	SET_SIZESTATDESC(3264, "responses sent 3264-3279 bytes", "3264-3279", out);
+	SET_SIZESTATDESC(3280, "responses sent 3280-3295 bytes", "3280-3295", out);
+	SET_SIZESTATDESC(3296, "responses sent 3296-3311 bytes", "3296-3311", out);
+	SET_SIZESTATDESC(3312, "responses sent 3312-3327 bytes", "3312-3327", out);
+	SET_SIZESTATDESC(3328, "responses sent 3328-3343 bytes", "3328-3343", out);
+	SET_SIZESTATDESC(3344, "responses sent 3344-3359 bytes", "3344-3359", out);
+	SET_SIZESTATDESC(3360, "responses sent 3360-3375 bytes", "3360-3375", out);
+	SET_SIZESTATDESC(3376, "responses sent 3376-3391 bytes", "3376-3391", out);
+	SET_SIZESTATDESC(3392, "responses sent 3392-3407 bytes", "3392-3407", out);
+	SET_SIZESTATDESC(3408, "responses sent 3408-3423 bytes", "3408-3423", out);
+	SET_SIZESTATDESC(3424, "responses sent 3424-3439 bytes", "3424-3439", out);
+	SET_SIZESTATDESC(3440, "responses sent 3440-3455 bytes", "3440-3455", out);
+	SET_SIZESTATDESC(3456, "responses sent 3456-3471 bytes", "3456-3471", out);
+	SET_SIZESTATDESC(3472, "responses sent 3472-3487 bytes", "3472-3487", out);
+	SET_SIZESTATDESC(3488, "responses sent 3488-3503 bytes", "3488-3503", out);
+	SET_SIZESTATDESC(3504, "responses sent 3504-3519 bytes", "3504-3519", out);
+	SET_SIZESTATDESC(3520, "responses sent 3520-3535 bytes", "3520-3535", out);
+	SET_SIZESTATDESC(3536, "responses sent 3536-3551 bytes", "3536-3551", out);
+	SET_SIZESTATDESC(3552, "responses sent 3552-3567 bytes", "3552-3567", out);
+	SET_SIZESTATDESC(3568, "responses sent 3568-3583 bytes", "3568-3583", out);
+	SET_SIZESTATDESC(3584, "responses sent 3584-3599 bytes", "3584-3599", out);
+	SET_SIZESTATDESC(3600, "responses sent 3600-3615 bytes", "3600-3615", out);
+	SET_SIZESTATDESC(3616, "responses sent 3616-3631 bytes", "3616-3631", out);
+	SET_SIZESTATDESC(3632, "responses sent 3632-3647 bytes", "3632-3647", out);
+	SET_SIZESTATDESC(3648, "responses sent 3648-3663 bytes", "3648-3663", out);
+	SET_SIZESTATDESC(3664, "responses sent 3664-3679 bytes", "3664-3679", out);
+	SET_SIZESTATDESC(3680, "responses sent 3680-3695 bytes", "3680-3695", out);
+	SET_SIZESTATDESC(3696, "responses sent 3696-3711 bytes", "3696-3711", out);
+	SET_SIZESTATDESC(3712, "responses sent 3712-3727 bytes", "3712-3727", out);
+	SET_SIZESTATDESC(3728, "responses sent 3728-3743 bytes", "3728-3743", out);
+	SET_SIZESTATDESC(3744, "responses sent 3744-3759 bytes", "3744-3759", out);
+	SET_SIZESTATDESC(3760, "responses sent 3760-3775 bytes", "3760-3775", out);
+	SET_SIZESTATDESC(3776, "responses sent 3776-3791 bytes", "3776-3791", out);
+	SET_SIZESTATDESC(3792, "responses sent 3792-3807 bytes", "3792-3807", out);
+	SET_SIZESTATDESC(3808, "responses sent 3808-3823 bytes", "3808-3823", out);
+	SET_SIZESTATDESC(3824, "responses sent 3824-3839 bytes", "3824-3839", out);
+	SET_SIZESTATDESC(3840, "responses sent 3840-3855 bytes", "3840-3855", out);
+	SET_SIZESTATDESC(3856, "responses sent 3856-3871 bytes", "3856-3871", out);
+	SET_SIZESTATDESC(3872, "responses sent 3872-3887 bytes", "3872-3887", out);
+	SET_SIZESTATDESC(3888, "responses sent 3888-3903 bytes", "3888-3903", out);
+	SET_SIZESTATDESC(3904, "responses sent 3904-3919 bytes", "3904-3919", out);
+	SET_SIZESTATDESC(3920, "responses sent 3920-3935 bytes", "3920-3935", out);
+	SET_SIZESTATDESC(3936, "responses sent 3936-3951 bytes", "3936-3951", out);
+	SET_SIZESTATDESC(3952, "responses sent 3952-3967 bytes", "3952-3967", out);
+	SET_SIZESTATDESC(3968, "responses sent 3968-3983 bytes", "3968-3983", out);
+	SET_SIZESTATDESC(3984, "responses sent 3984-3999 bytes", "3984-3999", out);
+	SET_SIZESTATDESC(4000, "responses sent 4000-4015 bytes", "4000-4015", out);
+	SET_SIZESTATDESC(4016, "responses sent 4016-4031 bytes", "4016-4031", out);
+	SET_SIZESTATDESC(4032, "responses sent 4032-4047 bytes", "4032-4047", out);
+	SET_SIZESTATDESC(4048, "responses sent 4048-4063 bytes", "4048-4063", out);
+	SET_SIZESTATDESC(4064, "responses sent 4064-4079 bytes", "4064-4079", out);
+	SET_SIZESTATDESC(4080, "responses sent 4080-4095 bytes", "4080-4095", out);
+	SET_SIZESTATDESC(4096, "responses sent 4096+ bytes", "4096+", out);
+	INSIST(i == dns_sizecounter_out_max);
+
+	/* Sanity check */
+	for (i = 0; i < dns_nsstatscounter_max; i++)
+		INSIST(nsstats_desc[i] != NULL);
+	for (i = 0; i < dns_resstatscounter_max; i++)
+		INSIST(resstats_desc[i] != NULL);
+	for (i = 0; i < dns_adbstats_max; i++)
+		INSIST(adbstats_desc[i] != NULL);
+	for (i = 0; i < dns_zonestatscounter_max; i++)
+		INSIST(zonestats_desc[i] != NULL);
+	for (i = 0; i < isc_sockstatscounter_max; i++)
+		INSIST(sockstats_desc[i] != NULL);
+	for (i = 0; i < dns_dnssecstats_max; i++)
+		INSIST(dnssecstats_desc[i] != NULL);
+	for (i = 0; i < dns_sizecounter_in_max; i++) {
+		INSIST(udpinsizestats_desc[i] != NULL);
+		INSIST(tcpinsizestats_desc[i] != NULL);
+	}
+	for (i = 0; i < dns_sizecounter_out_max; i++) {
+		INSIST(udpoutsizestats_desc[i] != NULL);
+		INSIST(tcpoutsizestats_desc[i] != NULL);
+	}
+#if defined(EXTENDED_STATS)
+	for (i = 0; i < dns_nsstatscounter_max; i++)
+		INSIST(nsstats_xmldesc[i] != NULL);
+	for (i = 0; i < dns_resstatscounter_max; i++)
+		INSIST(resstats_xmldesc[i] != NULL);
+	for (i = 0; i < dns_adbstats_max; i++)
+		INSIST(adbstats_xmldesc[i] != NULL);
+	for (i = 0; i < dns_zonestatscounter_max; i++)
+		INSIST(zonestats_xmldesc[i] != NULL);
+	for (i = 0; i < isc_sockstatscounter_max; i++)
+		INSIST(sockstats_xmldesc[i] != NULL);
+	for (i = 0; i < dns_dnssecstats_max; i++)
+		INSIST(dnssecstats_xmldesc[i] != NULL);
+	for (i = 0; i < dns_sizecounter_in_max; i++) {
+		INSIST(udpinsizestats_xmldesc[i] != NULL);
+		INSIST(tcpinsizestats_xmldesc[i] != NULL);
+	}
+	for (i = 0; i < dns_sizecounter_out_max; i++) {
+		INSIST(udpoutsizestats_xmldesc[i] != NULL);
+		INSIST(tcpoutsizestats_xmldesc[i] != NULL);
+	}
+#endif
 }
 
 /*%
@@ -902,6 +1277,7 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 #define STATS_XML_TASKS		0x04
 #define STATS_XML_NET		0x08
 #define STATS_XML_MEM		0x10
+#define STATS_XML_TRAFFIC	0x20
 #define STATS_XML_ALL		0xff
 
 static isc_result_t
@@ -1003,6 +1379,10 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 	isc_uint64_t adbstat_values[dns_adbstats_max];
 	isc_uint64_t zonestat_values[dns_zonestatscounter_max];
 	isc_uint64_t sockstat_values[isc_sockstatscounter_max];
+	isc_uint64_t udpinsizestat_values[dns_sizecounter_in_max];
+	isc_uint64_t udpoutsizestat_values[dns_sizecounter_out_max];
+	isc_uint64_t tcpinsizestat_values[dns_sizecounter_in_max];
+	isc_uint64_t tcpoutsizestat_values[dns_sizecounter_out_max];
 	isc_result_t result;
 
 	isc_time_now(&now);
@@ -1018,7 +1398,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 			ISC_XMLCHAR "type=\"text/xsl\" href=\"/bind9.xsl\""));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "3.5"));
+					 ISC_XMLCHAR "3.6"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = isc_statsformat_xml;
@@ -1122,6 +1502,75 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterEndElement(writer)); /* /sockstat */
 	}
 	TRY0(xmlTextWriterEndElement(writer)); /* /server */
+
+	if ((flags & STATS_XML_TRAFFIC) != 0) {
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "traffic"));
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "udp"));
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "request-size"));
+
+		result = dump_counters(server->udpinstats,
+				       isc_statsformat_xml, writer,
+				       NULL, udpinsizestats_xmldesc,
+				       dns_sizecounter_in_max,
+				       udpinsizestats_index,
+				       udpinsizestat_values, 0);
+		if (result != ISC_R_SUCCESS)
+			goto error;
+
+		TRY0(xmlTextWriterEndElement(writer)); /* </counters> */
+
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "response-size"));
+
+		result = dump_counters(server->udpoutstats,
+				       isc_statsformat_xml, writer,
+				       NULL, udpoutsizestats_xmldesc,
+				       dns_sizecounter_out_max,
+				       udpoutsizestats_index,
+				       udpoutsizestat_values, 0);
+		if (result != ISC_R_SUCCESS)
+			goto error;
+
+		TRY0(xmlTextWriterEndElement(writer)); /* </counters> */
+		TRY0(xmlTextWriterEndElement(writer)); /* </udp> */
+
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "tcp"));
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "request-size"));
+
+		result = dump_counters(server->tcpinstats,
+				       isc_statsformat_xml, writer,
+				       NULL, tcpinsizestats_xmldesc,
+				       dns_sizecounter_in_max,
+				       tcpinsizestats_index,
+				       tcpinsizestat_values, 0);
+		if (result != ISC_R_SUCCESS)
+			goto error;
+
+		TRY0(xmlTextWriterEndElement(writer)); /* </counters> */
+
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "response-size"));
+
+		result = dump_counters(server->tcpoutstats,
+				       isc_statsformat_xml, writer,
+				       NULL, tcpoutsizestats_xmldesc,
+				       dns_sizecounter_out_max,
+				       tcpoutsizestats_index,
+				       tcpoutsizestat_values, 0);
+		if (result != ISC_R_SUCCESS)
+			goto error;
+
+		TRY0(xmlTextWriterEndElement(writer)); /* </counters> */
+		TRY0(xmlTextWriterEndElement(writer)); /* </tcp> */
+		TRY0(xmlTextWriterEndElement(writer)); /* </traffic> */
+	}
+
 
 	/*
 	 * Render views.  For each view we know of, call its
@@ -1245,6 +1694,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(isc_mem_renderxml(writer));
 		TRY0(xmlTextWriterEndElement(writer)); /* /memory */
 	}
+
 
 	TRY0(xmlTextWriterEndElement(writer)); /* /statistics */
 	TRY0(xmlTextWriterEndDocument(writer));
@@ -1400,6 +1850,19 @@ render_xml_mem(const char *url, isc_httpdurl_t *urlinfo,
 			   freecb, freecb_args));
 }
 
+static isc_result_t
+render_xml_traffic(const char *url, isc_httpdurl_t *urlinfo,
+		   const char *querystring, const char *headers, void *arg,
+		   unsigned int *retcode, const char **retmsg,
+		   const char **mimetype, isc_buffer_t *b,
+		   isc_httpdfree_t **freecb, void **freecb_args)
+{
+	return (render_xml(STATS_XML_TRAFFIC, url, urlinfo,
+			   querystring, headers, arg,
+			   retcode, retmsg, mimetype, b,
+			   freecb, freecb_args));
+}
+
 #endif	/* HAVE_LIBXML2 */
 
 #ifdef HAVE_JSON
@@ -1412,6 +1875,7 @@ render_xml_mem(const char *url, isc_httpdurl_t *urlinfo,
 #define STATS_JSON_TASKS	0x04
 #define STATS_JSON_NET		0x08
 #define STATS_JSON_MEM		0x10
+#define STATS_JSON_TRAFFIC	0x20
 #define STATS_JSON_ALL		0xff
 
 #define CHECKMEM(m) do { \
@@ -1547,6 +2011,10 @@ generatejson(ns_server_t *server, size_t *msglen,
 	isc_uint64_t adbstat_values[dns_adbstats_max];
 	isc_uint64_t zonestat_values[dns_zonestatscounter_max];
 	isc_uint64_t sockstat_values[isc_sockstatscounter_max];
+	isc_uint64_t udpinsizestat_values[dns_sizecounter_in_max];
+	isc_uint64_t udpoutsizestat_values[dns_sizecounter_out_max];
+	isc_uint64_t tcpinsizestat_values[dns_sizecounter_in_max];
+	isc_uint64_t tcpoutsizestat_values[dns_sizecounter_out_max];
 	stats_dumparg_t dumparg;
 	char boottime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
 	char configtime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
@@ -1564,7 +2032,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 	/*
 	 * These statistics are included no matter which URL we use.
 	 */
-	obj = json_object_new_string("1.1");
+	obj = json_object_new_string("1.2");
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "json-stats-version", obj);
 
@@ -1892,6 +2360,79 @@ generatejson(ns_server_t *server, size_t *msglen,
 		json_object_object_add(bindstats, "memory", memory);
 	}
 
+	if ((flags & STATS_JSON_TRAFFIC) != 0) {
+		json_object *traffic, *udpreq, *udpresp, *tcpreq, *tcpresp;
+
+		traffic = json_object_new_object();
+		CHECKMEM(traffic);
+
+		udpreq = json_object_new_object();
+		CHECKMEM(udpreq);
+
+		udpresp = json_object_new_object();
+		CHECKMEM(udpresp);
+
+		tcpreq = json_object_new_object();
+		CHECKMEM(tcpreq);
+
+		tcpresp = json_object_new_object();
+		CHECKMEM(tcpresp);
+
+		result = dump_counters(server->udpinstats,
+				       isc_statsformat_json, udpreq, NULL,
+				       udpinsizestats_xmldesc,
+				       dns_sizecounter_in_max,
+				       udpinsizestats_index,
+				       udpinsizestat_values, 0);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(traffic);
+			goto error;
+		}
+
+		result = dump_counters(server->udpoutstats,
+				       isc_statsformat_json, udpresp, NULL,
+				       udpoutsizestats_xmldesc,
+				       dns_sizecounter_out_max,
+				       udpoutsizestats_index,
+				       udpoutsizestat_values, 0);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(traffic);
+			goto error;
+		}
+
+		result = dump_counters(server->tcpinstats,
+				       isc_statsformat_json, tcpreq, NULL,
+				       tcpinsizestats_xmldesc,
+				       dns_sizecounter_in_max,
+				       tcpinsizestats_index,
+				       tcpinsizestat_values, 0);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(traffic);
+			goto error;
+		}
+
+		result = dump_counters(server->tcpoutstats,
+				       isc_statsformat_json, tcpresp, NULL,
+				       tcpoutsizestats_xmldesc,
+				       dns_sizecounter_out_max,
+				       tcpoutsizestats_index,
+				       tcpoutsizestat_values, 0);
+		if (result != ISC_R_SUCCESS) {
+			json_object_put(traffic);
+			goto error;
+		}
+
+		json_object_object_add(traffic,
+				       "udp-requests-received", udpreq);
+		json_object_object_add(traffic,
+				       "udp-responses-sent", udpresp);
+		json_object_object_add(traffic,
+				       "tcp-requests-received", tcpreq);
+		json_object_object_add(traffic,
+				       "tcp-responses-sent", tcpresp);
+		json_object_object_add(bindstats, "traffic", traffic);
+	}
+
 	*msg = json_object_to_json_string_ext(bindstats,
 					      JSON_C_TO_STRING_PRETTY);
 	*msglen = strlen(*msg);
@@ -1999,6 +2540,7 @@ render_json_zones(const char *url, isc_httpdurl_t *urlinfo,
 			    retcode, retmsg, mimetype, b,
 			    freecb, freecb_args));
 }
+
 static isc_result_t
 render_json_mem(const char *url, isc_httpdurl_t *urlinfo,
 		const char *querystring, const char *headers, void *arg,
@@ -2037,6 +2579,20 @@ render_json_net(const char *url, isc_httpdurl_t *urlinfo,
 			    retcode, retmsg, mimetype, b,
 			    freecb, freecb_args));
 }
+
+static isc_result_t
+render_json_traffic(const char *url, isc_httpdurl_t *urlinfo,
+		    const char *querystring, const char *headers, void *arg,
+		    unsigned int *retcode, const char **retmsg,
+		    const char **mimetype, isc_buffer_t *b,
+		    isc_httpdfree_t **freecb, void **freecb_args)
+{
+	return (render_json(STATS_JSON_TRAFFIC, url, urlinfo,
+			    querystring, headers, arg,
+			    retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
+}
+
 #endif /* HAVE_JSON */
 
 static isc_result_t
@@ -2233,6 +2789,8 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 			    render_xml_tasks, server);
 	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3/mem",
 			    render_xml_mem, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3/traffic",
+			    render_xml_traffic, server);
 #endif
 #ifdef HAVE_JSON
 	isc_httpdmgr_addurl(listener->httpdmgr, "/json",
@@ -2251,6 +2809,8 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 			    render_json_net, server);
 	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1/mem",
 			    render_json_mem, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1/traffic",
+			    render_json_traffic, server);
 #endif
 	isc_httpdmgr_addurl2(listener->httpdmgr, "/bind9.xsl", ISC_TRUE,
 			     render_xsl, server);

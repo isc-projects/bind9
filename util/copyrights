@@ -216,8 +216,8 @@
 ./bin/dnssec/win32/verify.vcxproj.user		X	2013
 ./bin/named/.gitignore				X	2012,2014
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
-./bin/named/bind9.xsl				SGML	2006,2007,2008,2009,2012,2013,2014
-./bin/named/bind9.xsl.h				X	2007,2008,2009,2011,2012,2013,2014
+./bin/named/bind9.xsl				SGML	2006,2007,2008,2009,2012,2013,2014,2015
+./bin/named/bind9.xsl.h				X	2007,2008,2009,2011,2012,2013,2014,2015
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005,2007,2009,2010,2011,2012,2013,2014
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
@@ -1973,6 +1973,16 @@
 ./bin/tests/system/statistics/ns3/root.hint	ZONE	2012
 ./bin/tests/system/statistics/prereq.sh		SH	2012,2014
 ./bin/tests/system/statistics/tests.sh		SH	2012,2015
+./bin/tests/system/statschannel/clean.sh	SH	2015
+./bin/tests/system/statschannel/ns2/example.db	ZONE	2015
+./bin/tests/system/statschannel/ns2/named.conf	CONF-C	2015
+./bin/tests/system/statschannel/prereq.sh	SH	2015
+./bin/tests/system/statschannel/tests.sh	SH	2015
+./bin/tests/system/statschannel/traffic.expect.1	X	2015
+./bin/tests/system/statschannel/traffic.expect.2	X	2015
+./bin/tests/system/statschannel/traffic.expect.4	X	2015
+./bin/tests/system/statschannel/traffic.expect.5	X	2015
+./bin/tests/system/statschannel/traffic.expect.6	X	2015
 ./bin/tests/system/stop.pl			SH	2001,2004,2005,2006,2007,2012
 ./bin/tests/system/stop.sh			SH	2000,2001,2004,2007,2012
 ./bin/tests/system/stress/clean.sh		SH	2000,2001,2004,2007,2012,2014
