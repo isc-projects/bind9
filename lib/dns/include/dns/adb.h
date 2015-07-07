@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008, 2011, 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2011, 2013-2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -751,7 +751,7 @@ dns_adb_flushnames(dns_adb_t *adb, dns_name_t *name);
 
 void
 dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-	          const unsigned char *cookie, size_t len);
+		  const unsigned char *cookie, size_t len);
 /*%<
  * Record the COOKIE associated with this addresss.  If
  * cookie is NULL or len is zero the recorded COOKIE is cleared.
@@ -763,7 +763,7 @@ dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 size_t
 dns_adb_getcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-	          unsigned char *cookie, size_t len);
+		  unsigned char *cookie, size_t len);
 /*
  * Retieve the saved COOKIE value and store it in 'cookie' which has
  * size 'len'.
