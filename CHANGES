@@ -1,3 +1,5 @@
+4159.	[cleanup]	Alphabetize dig's help output. [RT #39966]
+
 4158.	[protocol]	Support the printing of EDNS COOKIE and EXPIRE options.
 			[RT #39928]
 
