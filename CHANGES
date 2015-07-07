@@ -1,3 +1,5 @@
+4159.	[cleanup]	Alphabetize dig's help output. [RT #39966]
+
 4157.	[protocol]	Update experimental SIT code to use the EDNS COOKIE
 			option code point (10).  This is the minimal change
 			required to use the new code point. [RT #39928]
