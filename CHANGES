@@ -1,4 +1,4 @@
-4158.	[protocol]	Support the printing of EDNS COOKIE options.
+4158.	[protocol]	Support the printing of EDNS COOKIE and EXPIRE options.
 			[RT #39928]
 
 4154.	[bug]		A OPT record should be included with the FORMERR
