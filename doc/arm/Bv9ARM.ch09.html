@@ -92,7 +92,7 @@
 <p>
 	  This flaw was discovered by Breno Silveira Soares, and is
 	  disclosed in CVE-2015-4620. [RT #39795]
-        </p>
+	</p>
 </li></ul></div>
 </div>
 <div class="sect2" lang="en">
@@ -106,6 +106,10 @@
 	  option can only be set at compile time. This option has a
 	  negative performance impact and should be used only for
 	  debugging.
+	</p></li>
+<li><p>
+	  EDNS COOKIE options content is now displayed as
+	  "COOKIE: &lt;hexvalue&gt;".
 	</p></li>
 </ul></div>
 </div>
@@ -135,7 +139,7 @@
 	  Asynchronous zone loads were not handled correctly when the
 	  zone load was already in progress; this could trigger a crash
 	  in zt.c. [RT #37573]
- 	</p></li>
+	</p></li>
 <li><p>
 	  A race during shutdown or reconfiguration could
 	  cause an assertion failure in mem.c. [RT #38979]
