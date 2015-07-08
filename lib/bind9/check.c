@@ -1178,13 +1178,15 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	}
 
 	obj = NULL;
-	(void) cfg_map_get(options, "cookie-algorithm,", &obj);
+	(void) cfg_map_get(options, "cookie-algorithm", &obj);
 	if (obj != NULL)
 		ccalg = cfg_obj_asstring(obj);
 #if !defined(HAVE_OPENSSL_AES) && !defined(HAVE_OPENSSL_EVP_AES)
-	if (strcasecmp(ccalg, "aes") == 0)
+	if (strcasecmp(ccalg, "aes") == 0) {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "cookie-algorithm: '%s' not supported", ccalg);
+		result = ISC_R_NOTIMPLEMENTED;
+	}
 #endif
 
 	obj = NULL;
