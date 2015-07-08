@@ -6973,6 +6973,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				goto cleanup;
 			}
 		}
+#ifdef __notyet__
+	/*
+	 * XXXMPA Wait until BADCOOKIE is officially allocated.
+	 * Policy knob?
+	 */
+	} else if (WANTCOOKIE(client) && !HAVECOOKIE(client)) {
+		client->message->rcode = dns_rcode_badcookie;
+		goto cleanup;
+#endif
 	}
 
 	if (!RECURSING(client) &&
