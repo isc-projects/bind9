@@ -45,7 +45,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2573795">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2573678">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
@@ -60,7 +60,7 @@
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2573795"></a>Release Notes for BIND Version 9.11.0pre-alpha</h2></div></div></div>
+<a name="id2573678"></a>Release Notes for BIND Version 9.11.0pre-alpha</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -158,6 +158,18 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_features"></a>New Features</h3></div></div></div>
 <div class="itemizedlist"><ul type="disc">
+<li><p>
+	  New statistics counters have been added to track traffic
+	  sizes, as specified in RSSAC002.  Query and response
+	  message sizes are broken up into ranges of histogram buckets:
+	  TCP and UDP queries of size 0-15, 16-31, ..., 272-288, and 288+,
+	  and TCP and UDP responses of size 0-15, 16-31, ..., 4080-4095,
+	  and 4096+.  These values can be accessed via the XML and JSON
+	  statistics channels at, for example,
+	  <a href="http://localhost:8888/xml/v3/traffic" target="_top">http://localhost:8888/xml/v3/traffic</a>
+	  or
+	  <a href="http://localhost:8888/json/v1/traffic" target="_top">http://localhost:8888/json/v1/traffic</a>.
+	</p></li>
 <li><p>
 	  The serial number of a dynamically updatable zone can
 	  now be set using
@@ -476,6 +488,11 @@
 <li><p>
 	  Retrieving the local port range from net.ipv4.ip_local_port_range
 	  on Linux is now supported.
+	</p></li>
+<li><p>
+	  Within the <code class="option">response-policy</code> option, it is now
+	  possible to configure RPZ rewrite logging on a per-zone basis
+	  using the <code class="option">log</code> clause.
 	</p></li>
 </ul></div>
 </div>
