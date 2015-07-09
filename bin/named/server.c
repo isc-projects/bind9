@@ -3083,7 +3083,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		freq = cfg_obj_asuint32(obj2);
 
 		obj2 = cfg_tuple_get(obj, "low");
-		low = (double) cfg_obj_asfixedpoint(obj2) / 100.0; 
+		low = (double) cfg_obj_asfixedpoint(obj2) / 100.0;
 
 		obj2 = cfg_tuple_get(obj, "high");
 		high = (double) cfg_obj_asfixedpoint(obj2) / 100.0;
@@ -5780,7 +5780,7 @@ load_configuration(const char *filename, ns_server_t *server,
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "'recursive-clients %d' too low when "
-				      "running with %d worker threads", 
+				      "running with %d worker threads",
 				      server->recursionquota.max, ns_g_cpus);
 			CHECK(ISC_R_RANGE);
 		}
