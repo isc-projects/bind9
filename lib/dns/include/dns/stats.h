@@ -61,8 +61,10 @@ enum {
 	dns_resstatscounter_queryrtt3 = 27,
 	dns_resstatscounter_queryrtt4 = 28,
 	dns_resstatscounter_queryrtt5 = 29,
+	dns_resstatscounter_zonequota = 30,
+	dns_resstatscounter_serverquota = 31,
 
-	dns_resstatscounter_max = 30,
+	dns_resstatscounter_max = 32,
 
 	/*
 	 * DNSSEC stats.

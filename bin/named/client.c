@@ -23,6 +23,7 @@
 #include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/queue.h>
+#include <isc/random.h>
 #include <isc/stats.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -110,6 +111,7 @@
  * a separate context in this case would simply waste memory.
  */
 #endif
+
 
 /*% nameserver client manager structure */
 struct ns_clientmgr {
@@ -1649,7 +1651,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 	if (TCP_CLIENT(client))
 		isc_stats_increment(ns_g_server->nsstats,
-				    dns_nsstatscounter_tcp);
+				    dns_nsstatscounter_requesttcp);
 
 	/*
 	 * It's a request.  Parse it.
@@ -1662,6 +1664,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 */
 		if (result == DNS_R_OPTERR)
 			(void)client_addopt(client);
+
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
+			      "message parsing failed: %s",
+			      isc_result_totext(result));
 		ns_client_error(client, result);
 		goto cleanup;
 	}

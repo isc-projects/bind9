@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.28 2011/03/12 04:59:46 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -123,6 +121,8 @@ set_desc(int counter, int maxcounter, const char *fdesc, const char **fdescs,
 	 const char *xdesc, const char **xdescs)
 {
 	REQUIRE(counter < maxcounter);
+if (fdescs[counter] != NULL)
+fprintf(stderr, "fdescs[%d] == %s\n", counter, fdescs[counter]);
 	REQUIRE(fdescs[counter] == NULL);
 #ifdef HAVE_LIBXML2
 	REQUIRE(xdescs[counter] == NULL);
@@ -168,7 +168,7 @@ init_desc(void) {
 	SET_NSSTATDESC(sig0in, "requests with SIG(0) received", "ReqSIG0");
 	SET_NSSTATDESC(invalidsig, "requests with invalid signature",
 		       "ReqBadSIG");
-	SET_NSSTATDESC(tcp, "TCP requests received", "ReqTCP");
+	SET_NSSTATDESC(requesttcp, "TCP requests received", "ReqTCP");
 	SET_NSSTATDESC(authrej, "auth queries rejected", "AuthQryRej");
 	SET_NSSTATDESC(recurserej, "recursive queries rejected", "RecQryRej");
 	SET_NSSTATDESC(xfrrej, "transfer requests rejected", "XfrRej");
@@ -207,14 +207,32 @@ init_desc(void) {
 	SET_NSSTATDESC(updatebadprereq,
 		       "updates rejected due to prerequisite failure",
 		       "UpdateBadPrereq");
-	SET_NSSTATDESC(rpz_rewrites, "response policy zone rewrites",
-		       "RPZRewrites");
-#ifdef USE_RRL
+	SET_NSSTATDESC(recursclients, "recursing clients",
+			"RecursClients");
+	SET_NSSTATDESC(dns64, "queries answered by DNS64", "DNS64");
 	SET_NSSTATDESC(ratedropped, "responses dropped for rate limits",
 		       "RateDropped");
 	SET_NSSTATDESC(rateslipped, "responses truncated for rate limits",
 		       "RateSlipped");
-#endif /* USE_RRL */
+	SET_NSSTATDESC(rpz_rewrites, "response policy zone rewrites",
+		       "RPZRewrites");
+	SET_NSSTATDESC(udp, "UDP queries received", "QryUDP");
+	SET_NSSTATDESC(tcp, "TCP queries received", "QryTCP");
+	SET_NSSTATDESC(nsidopt, "NSID option received", "NSIDOpt");
+	SET_NSSTATDESC(expireopt, "Expire option received", "ExpireOpt");
+	SET_NSSTATDESC(otheropt, "Other EDNS option received", "OtherOpt");
+	SET_NSSTATDESC(sitopt, "source identity token option received",
+		       "SitOpt");
+	SET_NSSTATDESC(sitnew, "new source identity token requested",
+		       "SitNew");
+	SET_NSSTATDESC(sitbadsize, "source identity token - bad size",
+		       "SitBadSize");
+	SET_NSSTATDESC(sitbadtime, "source identity token - bad time",
+		       "SitBadTime");
+	SET_NSSTATDESC(sitnomatch, "source identity token - no match",
+		       "SitNoMatch");
+	SET_NSSTATDESC(sitmatch, "source identity token - match", "SitMatch");
+	SET_NSSTATDESC(ecsopt, "EDNS client subnet option recieved", "ECSOpt");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */
@@ -285,6 +303,10 @@ init_desc(void) {
 	SET_RESSTATDESC(queryrtt5, "queries with RTT > "
 			DNS_RESOLVER_QRYRTTCLASS4STR "ms",
 			"QryRTT" DNS_RESOLVER_QRYRTTCLASS4STR "+");
+	SET_RESSTATDESC(zonequota, "spilled due to zone quota", "ZoneQuota");
+	SET_RESSTATDESC(serverquota, "spilled due to server quota",
+			"ServerQuota");
+
 	INSIST(i == dns_resstatscounter_max);
 
 	/* Initialize zone statistics */
@@ -1055,7 +1077,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 			ISC_XMLCHAR "type=\"text/xsl\" href=\"/bind9.ver3.xsl\""));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "3.3"));
+					 ISC_XMLCHAR "3.6"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = statsformat_xml;

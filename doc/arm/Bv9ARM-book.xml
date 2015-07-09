@@ -4784,9 +4784,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> max-transfer-time-out <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-idle-in <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-idle-out <replaceable>number</replaceable>; </optional>
-    <optional> tcp-clients <replaceable>number</replaceable>; </optional>
     <optional> reserved-sockets <replaceable>number</replaceable>; </optional>
     <optional> recursive-clients <replaceable>number</replaceable>; </optional>
+    <optional> tcp-clients <replaceable>number</replaceable>; </optional>
+    <optional> clients-per-query <replaceable>number</replaceable> ; </optional>
+    <optional> max-clients-per-query <replaceable>number</replaceable> ; </optional>
+    <optional> fetches-per-server <replaceable>number</replaceable> <optional><replaceable>(drop | fail)</replaceable></optional>; </optional>
+    <optional> fetch-quota-params <replaceable>number fixedpoint fixedpoint fixedpoint</replaceable> ; </optional>
+    <optional> fetches-per-zone<replaceable>number</replaceable> <optional><replaceable>(drop | fail)</replaceable></optional>; </optional>
     <optional> serial-query-rate <replaceable>number</replaceable>; </optional>
     <optional> serial-queries <replaceable>number</replaceable>; </optional>
     <optional> tcp-listen-queue <replaceable>number</replaceable>; </optional>
@@ -4865,8 +4870,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> acache-enable <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> acache-cleaning-interval <replaceable>number</replaceable>; </optional>
     <optional> max-acache-size <replaceable>size_spec</replaceable> ; </optional>
-    <optional> clients-per-query <replaceable>number</replaceable> ; </optional>
-    <optional> max-clients-per-query <replaceable>number</replaceable> ; </optional>
     <optional> max-recursion-depth <replaceable>number</replaceable> ; </optional>
     <optional> max-recursion-queries <replaceable>number</replaceable> ; </optional>
     <optional> masterfile-format (<constant>text</constant>|<constant>raw</constant>) ; </optional>
@@ -7933,17 +7936,33 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <term><command>recursive-clients</command></term>
 	      <listitem>
 		<para>
-		  The maximum number of simultaneous recursive lookups
-		  the server will perform on behalf of clients.  The default
-		  is
+		  The maximum number ("hard quota") of simultaneous
+		  recursive lookups the server will perform on behalf
+		  of clients.  The default is
 		  <literal>1000</literal>.  Because each recursing
 		  client uses a fair
-		  bit of memory, on the order of 20 kilobytes, the value of
-		  the
+		  bit of memory (on the order of 20 kilobytes), the
+		  value of the
 		  <command>recursive-clients</command> option may
-		  have to be decreased
-		  on hosts with limited memory.
+		  have to be decreased on hosts with limited memory.
 		</para>
+		<para>
+		  <option>recursive-clients</option> defines a "hard
+		  quota" limit for pending recursive clients: when more
+		  clients than this are pending, new incoming requests
+		  will not be accepted, and for each incoming request
+		  a previous pending request will also be dropped.
+		</para>
+                <para>
+                  A "soft quota" is also set.  When this lower
+		  quota is exceeded, incoming requests are accepted, but
+		  for each one, a pending request will be dropped. 
+                  If <option>recursive-clients</option> is greater than
+                  1000, the soft quota is set to
+                  <option>recursive-clients</option> minus 100;
+                  otherwise it is set to 90% of
+                  <option>recursive-clients</option>.
+                </para>
 	      </listitem>
 	    </varlistentry>
 
@@ -7954,6 +7973,187 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  The maximum number of simultaneous client TCP
 		  connections that the server will accept.
 		  The default is <literal>100</literal>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry id="clients-per-query">
+	      <term><command>clients-per-query</command></term>
+	      <term><command>max-clients-per-query</command></term>
+	      <listitem>
+		<para>These set the
+		  initial value (minimum) and maximum number of recursive
+		  simultaneous clients for any given query
+		  (&lt;qname,qtype,qclass&gt;) that the server will accept
+		  before dropping additional clients.  <command>named</command> will attempt to
+		  self tune this value and changes will be logged.  The
+		  default values are 10 and 100.
+		</para>
+		<para>
+		  This value should reflect how many queries come in for
+		  a given name in the time it takes to resolve that name.
+		  If the number of queries exceed this value, <command>named</command> will
+		  assume that it is dealing with a non-responsive zone
+		  and will drop additional queries.  If it gets a response
+		  after dropping queries, it will raise the estimate.  The
+		  estimate will then be lowered in 20 minutes if it has
+		  remained unchanged.
+		</para>
+		<para>
+		  If <command>clients-per-query</command> is set to zero,
+		  then there is no limit on the number of clients per query
+		  and no queries will be dropped.
+		</para>
+		<para>
+		  If <command>max-clients-per-query</command> is set to zero,
+		  then there is no upper bound other than imposed by
+		  <command>recursive-clients</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry id="fetches-per-zone">
+	      <term><command>fetches-per-zone</command></term>
+	      <listitem>
+		<para>
+		  The maximum number of simultaneous iterative
+		  queries to any one domain that the server will
+		  permit before blocking new queries for data
+		  in or beneath that zone.
+		  This value should reflect how many fetches would
+		  normally be sent to any one zone in the time it
+		  would take to resolve them.  It should be smaller
+		  than <option>recursive-clients</option>.
+		</para>
+		<para>
+		  When many clients simultaneously query for the
+		  same name and type, the clients will all be attached
+		  to the same fetch, up to the
+		  <option>max-clients-per-query</option> limit,
+		  and only one iterative query will be sent.
+		  However, when clients are simultaneously
+		  querying for <emphasis>different</emphasis> names
+		  or types, multiple queries will be sent and
+		  <option>max-clients-per-query</option> is not
+		  effective as a limit.
+		</para>
+		<para>
+		  Optionally, this value may be followed by the keyword
+		  <literal>drop</literal> or <literal>fail</literal>,
+		  indicating whether queries which exceed the fetch
+		  quota for a zone will be dropped with no response,
+		  or answered with SERVFAIL.  The default is
+		  <literal>drop</literal>.
+		</para>
+		<para>
+		  If <command>fetches-per-zone</command> is set to zero,
+		  then there is no limit on the number of fetches per query
+		  and no queries will be dropped.  The default is zero.
+		</para>
+		<para>
+		  The current list of active fetches can be dumped by
+		  running <command>rndc recursing</command>.  The list
+		  includes the number of active fetches for each
+		  domain and the number of queries that have been
+		  passed or dropped as a result of the
+		  <option>fetches-per-zone</option> limit.  (Note:
+		  these counters are not cumulative over time; whenever
+		  the number of active fetches for a domain drops to
+		  zero, the counter for that domain is deleted, and the
+		  next time a fetch is sent to that domain, it is
+		  recreated with the counters set to zero.)
+		</para>
+		<para>
+		  (Note: This option is only available when BIND is
+		  built with <command>configure --enable-fetchlimit</command>.)
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry id="fetches-per-server">
+	      <term><command>fetches-per-server</command></term>
+	      <listitem>
+		<para>
+		  The maximum number of simultaneous iterative
+                  queries that the server will allow to be sent to
+                  a single upstream name server before blocking
+                  additional queries.
+		  This value should reflect how many fetches would
+		  normally be sent to any one server in the time it
+		  would take to resolve them.  It should be smaller
+                  than <option>recursive-clients</option>.
+		</para>
+		<para>
+		  Optionally, this value may be followed by the keyword
+		  <literal>drop</literal> or <literal>fail</literal>,
+		  indicating whether queries will be dropped with no
+		  response, or answered with SERVFAIL, when all of the
+		  servers authoritative for a zone are found to have
+		  exceeded the per-server quota.  The default is
+		  <literal>fail</literal>.
+		</para>
+		<para>
+		  If <command>fetches-per-server</command> is set to zero,
+		  then there is no limit on the number of fetches per query
+		  and no queries will be dropped.  The default is zero.
+		</para>
+		<para>
+		  The <command>fetches-per-server</command> quota is
+		  dynamically adjusted in response to detected
+		  congestion. As queries are sent to a server
+		  and are either answered or time out, an
+		  exponentially weighted moving average is calculated
+		  of the ratio of timeouts to responses.  If the
+		  current average timeout ratio rises above a "high"
+		  threshold, then <command>fetches-per-server</command>
+		  is reduced for that server.  If the timeout ratio
+		  drops below a "low" threshold, then
+		  <command>fetches-per-server</command> is increased.
+		  The <command>fetch-quota-params</command> options
+		  can be used to adjust the parameters for this
+		  calculation.
+		</para>
+		<para>
+		  (Note: This option is only available when BIND is
+		  built with <command>configure --enable-fetchlimit</command>.)
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>fetch-quota-params</command></term>
+	      <listitem>
+		<para>
+		  Sets the parameters to use for dynamic resizing of
+		  the <option>fetches-per-server</option> quota in
+		  response to detected congestion.
+		</para>
+		<para>
+		  The first argument is an integer value indicating
+		  how frequently to recalculate the moving average
+		  of the ratio of timeouts to responses for each
+		  server.  The default is 100, meaning we recalculate
+		  the average ratio after every 100 queries have either
+		  been answered or timed out.
+		</para>
+		<para>
+		  The remaining three arguments represent the "low"
+		  threshold (defaulting to a timeout ratio of 0.1),
+		  the "high" threshold (defaulting to a timeout
+		  ratio of 0.3), and the discount rate for
+		  the moving average (defaulting to 0.7).
+		  A higher discount rate causes recent events to
+		  weigh more heavily when calculating the moving
+		  average; a lower discount rate causes past
+		  events to weigh more heavily, smoothing out
+		  short-term blips in the timeout ratio.
+		  These arguments are all fixed-point numbers with
+		  precision of 1/100: at most two places after
+		  the decimal point are significant.
+		</para>
+		<para>
+		  (Note: This option is only available when BIND is
+		  built with <command>configure --enable-fetchlimit</command>.)
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8654,72 +8854,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  statement within the <command>zone</command> or
 		  <command>view</command> block in the configuration
 		  file.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry id="clients-per-query">
-	      <term><command>clients-per-query</command></term>
-	      <term><command>max-clients-per-query</command></term>
-	      <listitem>
-		<para>These set the
-		  initial value (minimum) and maximum number of recursive
-		  simultaneous clients for any given query
-		  (&lt;qname,qtype,qclass&gt;) that the server will accept
-		  before dropping additional clients.  <command>named</command> will attempt to
-		  self tune this value and changes will be logged.  The
-		  default values are 10 and 100.
-		</para>
-		<para>
-		  This value should reflect how many queries come in for
-		  a given name in the time it takes to resolve that name.
-		  If the number of queries exceed this value, <command>named</command> will
-		  assume that it is dealing with a non-responsive zone
-		  and will drop additional queries.  If it gets a response
-		  after dropping queries, it will raise the estimate.  The
-		  estimate will then be lowered in 20 minutes if it has
-		  remained unchanged.
-		</para>
-		<para>
-		  If <command>clients-per-query</command> is set to zero,
-		  then there is no limit on the number of clients per query
-		  and no queries will be dropped.
-		</para>
-		<para>
-		  If <command>max-clients-per-query</command> is set to zero,
-		  then there is no upper bound other than imposed by
-		  <command>recursive-clients</command>.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry id="max-recursion-depth">
-	      <term><command>max-recursion-depth</command></term>
-	      <listitem>
-		<para>
-		  Sets the maximum number of levels of recursion
-		  that are permitted at any one time while servicing
-		  a recursive query. Resolving a name may require
-		  looking up a name server address, which in turn
-		  requires resolving another name, etc; if the number
-		  of indirections exceeds this value, the recursive
-		  query is terminated and returns SERVFAIL.  The
-		  default is 7.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry id="max-recursion-queries">
-	      <term><command>max-recursion-queries</command></term>
-	      <listitem>
-		<para>
-		  Sets the maximum number of iterative queries that
-		  may be sent while servicing a recursive query.
-		  If more queries are sent, the recursive query
-		  is terminated and returns SERVFAIL. Queries to
-		  look up top level comains such as "com" and "net"
-		  and the DNS root zone are exempt from this limitation.
-		  The default is 50.
 		</para>
 	      </listitem>
 	    </varlistentry>

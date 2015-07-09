@@ -267,7 +267,7 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>dumpdb <optional>-all|-cache|-zone</optional> <optional><replaceable>view ...</replaceable></optional></userinput></term>
+	<term><userinput>dumpdb <optional>-all|-cache|-zone|-adb|-bad</optional> <optional><replaceable>view ...</replaceable></optional></userinput></term>
 	<listitem>
 	  <para>
 	    Dump the server's caches (default) and/or zones to
@@ -432,13 +432,17 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>recursing</userinput></term>
-	<listitem>
-	  <para>
-	    Dump the list of queries <command>named</command> is currently
-	    recursing on.
-	  </para>
-	</listitem>
+        <term><userinput>recursing</userinput></term>
+        <listitem>
+          <para>
+            Dump the list of queries <command>named</command> is currently
+            recursing on, and the list of domains to which iterative
+            queries are currently being sent.  (The second list includes
+            the number of fetches currently active for the given domain,
+            and how many have been passed or dropped because of the
+            <option>fetches-per-zone</option> option.)
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>

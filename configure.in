@@ -86,6 +86,7 @@ yes)
 		;;
 	esac
 	test "${enable_symtable+set}" = set || enable_symtable=all
+	test "${enable_fetchlimit+set}" = set || enable_fetchlimit=yes
 	test "${enable_warn_error+set}" = set || enable_warn_error=yes
 	test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
 	;;
@@ -3282,7 +3283,25 @@ case "$enable_nsdname" in
 esac
 
 #
-# Activate "filter-aaaa-on-v4" or not?
+# Activate recursive fetch limits
+#
+AC_ARG_ENABLE(fetchlimit,
+	[  --enable-fetchlimit     enable recursive fetch limits [[default=no]]],
+			enable_fetchlimit="$enableval",
+			enable_fetchlimit="no")
+case "$enable_fetchlimit" in
+	yes)
+		AC_DEFINE(ENABLE_FETCHLIMIT, 1,
+			  [Define to enable the "fetches-per-server" and "fetches-per-zone" options.])
+		;;
+	no)
+		;;
+	*)
+		;;
+esac
+
+#
+# Activate "filter-aaaa" or not?
 #
 AC_ARG_ENABLE(filter-aaaa,
 	[  --enable-filter-aaaa    enable filtering of AAAA records over IPv4
@@ -4022,6 +4041,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/dlz/prereq.sh
 	bin/tests/system/dlzexternal/Makefile
 	bin/tests/system/dlzexternal/ns1/named.conf
+	bin/tests/system/fetchlimit/Makefile
 	bin/tests/system/filter-aaaa/Makefile
 	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/lwresd/Makefile
@@ -4156,6 +4176,8 @@ $use_threads && echo "    Multiprocessing support (--enable-threads)"
 
 test "$enable_rrl" = "yes" && \
     echo "    Response Rate Limiting (--enable-rrl)"
+test "$enable_fetchlimit" = "yes" && \
+    echo "    Recursive fetch limits for DoS attack mitigation (--enable-fetchlimit)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
 test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 test "$enable_newstats" = "yes" && \
@@ -4212,6 +4234,8 @@ test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
 	echo "    IPv6 support (--enable-ipv6)"
 test "$enable_rrl" = "yes" || \
     echo "    Response Rate Limiting (--enable-rrl)"
+test "$enable_fetchlimit" = "no" && \
+        echo "    Recursive fetch limits for DoS attack mitigation (--enable-fetchlimit)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
 test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 test "X$enable_newstats" = "X" && echo "    New statistics (--enable-newstats)"

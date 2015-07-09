@@ -247,6 +247,18 @@ cfg_obj_asuint64(const cfg_obj_t *obj);
  * \li     A 64-bit unsigned integer.
  */
 
+isc_uint32_t
+cfg_obj_asfixedpoint(const cfg_obj_t *obj);
+/*%<
+ * Returns the value of a configuration object of fixed point number.
+ *
+ * Requires:
+ * \li     'obj' points to a valid configuration object of fixed point type.
+ *
+ * Returns:
+ * \li     A 32-bit unsigned integer.
+ */
+
 isc_boolean_t
 cfg_obj_isstring(const cfg_obj_t *obj);
 /*%<

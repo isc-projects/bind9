@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -63,7 +61,7 @@ if [ -x ${SAMPLE} ] ; then
     echo "I:checking handling of bogus referrals using dns_client"
     ret=0
     ${SAMPLE} -p 5300 -t a 10.53.0.1 www.example.com 2> sample.out || ret=1
-    grep "resolution failed: failure" sample.out > /dev/null || ret=1
+    egrep "resolution failed: (failure|SERVFAIL)" sample.out > /dev/null || ret=1
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
 fi
@@ -387,7 +385,6 @@ grep "not subdomain of zone" ns1/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-#HERE <<<
 cp ns7/named2.conf ns7/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.7 -p 9953 reconfig 2>&1 | sed 's/^/I:ns7 /'
 

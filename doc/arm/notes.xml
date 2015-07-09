@@ -55,7 +55,45 @@
     <title>New Features</title>
     <itemizedlist>
       <listitem>
-	<para>None</para>
+	<para>
+	  New quotas have been added to limit the queries that are
+	  sent by recursive resolvers to authoritative servers
+	  experiencing denial-of-service attacks. When configured,
+	  these options can both reduce the harm done to authoritative
+	  servers and also avoid the resource exhaustion that can be
+	  experienced by recursives when they are being used as a
+	  vehicle for such an attack.
+	</para>
+	<para>
+	  NOTE: These options are not available by default; use
+	  <command>configure --enable-fetchlimit</command> to include
+	  them in the build.
+	</para>
+	<itemizedlist>
+          <listitem>
+	    <para>
+	      <option>fetches-per-server</option> limits the number of
+	      simultaneous queries that can be sent to any single
+	      authoritative server.  The configured value is a starting
+	      point; it is automatically adjusted downward if the server is
+	      partially or completely non-responsive. The algorithm used to
+	      adjust the quota can be configured via the
+	      <option>fetch-quota-params</option> option.
+	    </para>
+	  </listitem>
+          <listitem>
+	    <para>
+	      <option>fetches-per-zone</option> limits the number of
+	      simultaneous queries that can be sent for names within a
+	      single domain.  (Note: Unlike "fetches-per-server", this
+	      value is not self-tuning.)
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	  Statistics counters have also been added to track the number
+	  of queries affected by these quotas.
+	</para>
       </listitem>
       <listitem>
 	<para>
