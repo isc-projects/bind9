@@ -270,6 +270,33 @@
 3951.	[func]		Add the ability to set yet-to-be-defined EDNS flags
 			to dig (+ednsflags=#). [RT #37142]
 
+3938.	[func]		Added quotas to be used in recursive resolvers
+			that are under high query load for names in zones
+			whose authoritative servers are nonresponsive or
+			are experiencing a denial of service attack.
+
+			- "fetches-per-server" limits the number of
+			  simultaneous queries that can be sent to any
+			  single authoritative server.  The configured
+			  value is a starting point; it is automatically
+			  adjusted downward if the server is partially or
+			  completely non-responsive. The algorithm used to
+			  adjust the quota can be configured via the
+			  "fetch-quota-params" option.
+			- "fetches-per-zone" limits the number of
+			  simultaneous queries that can be sent for names
+			  within a single domain.  (Note: Unlike
+			  "fetches-per-server", this value is not
+			  self-tuning.)
+			- New stats counters have been added to count
+			  queries spilled due to these quotas.
+
+			These options are not available by default;
+			use "configure --enable-fetchlimit" (or
+			--enable-developer) to include them in the build.
+
+			See the ARM for details of these options. [RT #37125]
+
 3937.	[func]		Added some debug logging to better indicate the
 			conditions causing SERVFAILs when resolving.
 			[RT #35538]

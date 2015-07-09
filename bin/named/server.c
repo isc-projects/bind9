@@ -216,6 +216,8 @@ struct dumpcontext {
 	isc_mem_t			*mctx;
 	isc_boolean_t			dumpcache;
 	isc_boolean_t			dumpzones;
+	isc_boolean_t			dumpadb;
+	isc_boolean_t			dumpbad;
 	FILE				*fp;
 	ISC_LIST(struct viewlistentry)	viewlist;
 	struct viewlistentry		*view;
@@ -2344,6 +2346,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	char **dlzargv;
 	const cfg_obj_t *disabled;
 	const cfg_obj_t *obj;
+#ifdef ENABLE_FETCHLIMIT
+	const cfg_obj_t *obj2;
+#endif /* ENABLE_FETCHLIMIT */
 	const cfg_listelt_t *element;
 	in_port_t port;
 	dns_cache_t *cache = NULL;
@@ -3001,6 +3006,55 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 	dns_adb_setadbsize(view->adb, max_adb_size);
 
+#ifdef ENABLE_FETCHLIMIT
+	/*
+	 * Set up ADB quotas
+	 */
+	{
+		isc_uint32_t fps, freq;
+		double low, high, discount;
+
+		obj = NULL;
+		result = ns_config_get(maps, "fetches-per-server", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		obj2 = cfg_tuple_get(obj, "fetches");
+		fps = cfg_obj_asuint32(obj2);
+		obj2 = cfg_tuple_get(obj, "response");
+		if (!cfg_obj_isvoid(obj2)) {
+			const char *resp = cfg_obj_asstring(obj2);
+			isc_result_t r;
+
+			if (strcasecmp(resp, "drop") == 0)
+				r = DNS_R_DROP;
+			else if (strcasecmp(resp, "fail") == 0)
+				r = DNS_R_SERVFAIL;
+			else
+				INSIST(0);
+
+			dns_resolver_setquotaresponse(view->resolver,
+						      dns_quotatype_server, r);
+		}
+
+		obj = NULL;
+		result = ns_config_get(maps, "fetch-quota-params", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+
+		obj2 = cfg_tuple_get(obj, "frequency");
+		freq = cfg_obj_asuint32(obj2);
+
+		obj2 = cfg_tuple_get(obj, "low");
+		low = (double) cfg_obj_asfixedpoint(obj2) / 100.0; 
+
+		obj2 = cfg_tuple_get(obj, "high");
+		high = (double) cfg_obj_asfixedpoint(obj2) / 100.0;
+
+		obj2 = cfg_tuple_get(obj, "discount");
+		discount = (double) cfg_obj_asfixedpoint(obj2) / 100.0;
+
+		dns_adb_setquota(view->adb, fps, freq, low, high, discount);
+	}
+#endif /* ENABLE_FETCHLIMIT */
+
 	/*
 	 * Set resolver's lame-ttl.
 	 */
@@ -3463,6 +3517,29 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	result = ns_config_get(maps, "max-recursion-queries", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	dns_resolver_setmaxqueries(view->resolver, cfg_obj_asuint32(obj));
+
+#ifdef ENABLE_FETCHLIMIT
+	obj = NULL;
+	result = ns_config_get(maps, "fetches-per-zone", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	obj2 = cfg_tuple_get(obj, "fetches");
+	dns_resolver_setfetchesperzone(view->resolver, cfg_obj_asuint32(obj2));
+	obj2 = cfg_tuple_get(obj, "response");
+	if (!cfg_obj_isvoid(obj2)) {
+		const char *resp = cfg_obj_asstring(obj2);
+		isc_result_t r;
+
+		if (strcasecmp(resp, "drop") == 0)
+			r = DNS_R_DROP;
+		else if (strcasecmp(resp, "fail") == 0)
+			r = DNS_R_SERVFAIL;
+		else
+			INSIST(0);
+
+		dns_resolver_setquotaresponse(view->resolver,
+					      dns_quotatype_zone, r);
+	}
+#endif /* ENABLE_FETCHLIMIT */
 
 #ifdef ALLOW_FILTER_AAAA
 	obj = NULL;
@@ -5353,6 +5430,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	ns_cachelist_t cachelist, tmpcachelist;
 	struct cfg_context *nzctx;
 	unsigned int maxsocks;
+#ifdef ENABLE_FETCHLIMIT
+	isc_uint32_t softquota = 0;
+#endif /* ENABLE_FETCHLIMIT */
 
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
@@ -5533,11 +5613,30 @@ load_configuration(const char *filename, ns_server_t *server,
 	configure_server_quota(maps, "tcp-clients", &server->tcpquota);
 	configure_server_quota(maps, "recursive-clients",
 			       &server->recursionquota);
-	if (server->recursionquota.max > 1000)
+
+#ifdef ENABLE_FETCHLIMIT
+	if (server->recursionquota.max > 1000) {
+		int margin = ISC_MAX(100, ns_g_cpus + 1);
+		if (margin > server->recursionquota.max - 100) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "'recursive-clients %d' too low when "
+				      "running with %d worker threads", 
+				      server->recursionquota.max, ns_g_cpus);
+			CHECK(ISC_R_RANGE);
+		}
+		softquota = server->recursionquota.max - margin;
+	} else
+		softquota = (server->recursionquota.max * 90) / 100;
+
+	isc_quota_soft(&server->recursionquota, softquota);
+#else
+	if (server->recursionquota.max > 1000) {
 		isc_quota_soft(&server->recursionquota,
 			       server->recursionquota.max - 100);
-	else
+	} else
 		isc_quota_soft(&server->recursionquota, 0);
+#endif /* !ENABLE_FETCHLIMIT */
 
 	CHECK(configure_view_acl(NULL, config, "blackhole", NULL,
 				 ns_g_aclconfctx, ns_g_mctx,
@@ -6629,7 +6728,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	result = isc_quota_init(&server->recursionquota, 100);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-
 	result = dns_aclenv_init(mctx, &server->aclenv);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
@@ -7608,10 +7706,17 @@ dumpdone(void *arg, isc_result_t result) {
 				goto cleanup;
 		}
 	}
+
+	if ((dctx->dumpadb || dctx->dumpbad) &&
+	    dctx->cache == NULL && dctx->view->view->cachedb != NULL)
+		dns_db_attach(dctx->view->view->cachedb, &dctx->cache);
+
 	if (dctx->cache != NULL) {
-		dns_adb_dump(dctx->view->view->adb, dctx->fp);
-		dns_resolver_printbadcache(dctx->view->view->resolver,
-					   dctx->fp);
+		if (dctx->dumpadb)
+			dns_adb_dump(dctx->view->view->adb, dctx->fp);
+		if (dctx->dumpbad)
+			dns_resolver_printbadcache(dctx->view->view->resolver,
+						   dctx->fp);
 		dns_db_detach(&dctx->cache);
 	}
 	if (dctx->dumpzones) {
@@ -7695,6 +7800,8 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 
 	dctx->mctx = server->mctx;
 	dctx->dumpcache = ISC_TRUE;
+	dctx->dumpadb = ISC_TRUE;
+	dctx->dumpbad = ISC_TRUE;
 	dctx->dumpzones = ISC_FALSE;
 	dctx->fp = NULL;
 	ISC_LIST_INIT(dctx->viewlist);
@@ -7718,17 +7825,31 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 
 	ptr = next_token(&args, " \t");
 	if (ptr != NULL && strcmp(ptr, "-all") == 0) {
+		/* also dump zones */
 		dctx->dumpzones = ISC_TRUE;
-		dctx->dumpcache = ISC_TRUE;
 		ptr = next_token(&args, " \t");
 	} else if (ptr != NULL && strcmp(ptr, "-cache") == 0) {
-		dctx->dumpzones = ISC_FALSE;
-		dctx->dumpcache = ISC_TRUE;
+		/* this is the default */
 		ptr = next_token(&args, " \t");
 	} else if (ptr != NULL && strcmp(ptr, "-zones") == 0) {
+		/* only dump zones, suppress caches */
+		dctx->dumpadb = ISC_FALSE;
+		dctx->dumpbad = ISC_FALSE;
+		dctx->dumpcache = ISC_FALSE;
 		dctx->dumpzones = ISC_TRUE;
+		ptr = next_token(&args, " \t");
+#ifdef ENABLE_FETCHLIMIT
+	} else if (ptr != NULL && strcmp(ptr, "-adb") == 0) {
+		/* only dump adb, suppress other caches */
+		dctx->dumpbad = ISC_FALSE;
 		dctx->dumpcache = ISC_FALSE;
 		ptr = next_token(&args, " \t");
+	} else if (ptr != NULL && strcmp(ptr, "-bad") == 0) {
+		/* only dump badcache, suppress other caches */
+		dctx->dumpadb = ISC_FALSE;
+		dctx->dumpcache = ISC_FALSE;
+		ptr = next_token(&args, " \t");
+#endif /* ENABLE_FETCHLIMIT */
 	}
 
  nextview:
@@ -7822,11 +7943,27 @@ isc_result_t
 ns_server_dumprecursing(ns_server_t *server) {
 	FILE *fp = NULL;
 	isc_result_t result;
+#ifdef ENABLE_FETCHLIMIT
+	dns_view_t *view;
+#endif /* ENABLE_FETCHLIMIT */
 
 	CHECKMF(isc_stdio_open(server->recfile, "w", &fp),
 		"could not open dump file", server->recfile);
-	fprintf(fp,";\n; Recursing Queries\n;\n");
+	fprintf(fp, ";\n; Recursing Queries\n;\n");
 	ns_interfacemgr_dumprecursing(fp, server->interfacemgr);
+
+#ifdef ENABLE_FETCHLIMIT
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		fprintf(fp, ";\n; Active fetch domains [view: %s]\n;\n",
+			view->name);
+		dns_resolver_dumpfetches(view->resolver,
+					 isc_statsformat_file, fp);
+	}
+#endif /* ENABLE_FETCHLIMIT */
+
 	fprintf(fp, "; Dump complete\n");
 
  cleanup:

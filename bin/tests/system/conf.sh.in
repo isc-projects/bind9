@@ -67,10 +67,12 @@ RANDFILE=$TOP/bin/tests/system/random.data
 SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case checkconf @CHECKDS@ checknames checkzone
 	 @COVERAGE@ database delv dlv dlvauto dlz dlzexternal
-	 dlzredir dname dns64 dnssec dsdigest dscp ecdsa ednscompliance
-	 emptyzones filter-aaaa formerr forward geoip glue gost
-	 ixfr inline legacy limits logfileconfig lwresd masterfile
-	 masterformat metadata notify nslookup nsupdate pending
+	 dlzredir dname dns64 dnssec dsdigest dscp
+	 ecdsa ednscompliance emptyzones
+	 fetchlimit filter-aaaa formerr forward
+         geoip glue gost ixfr inline
+         legacy limits logfileconfig lwresd
+	 masterfile masterformat metadata notify nslookup nsupdate pending
 	 @PKCS11_TEST@ reclimit redirect resolver rndc rpz rpzrecurse
 	 rrl rrchecker rrsetorder rsabigexponent sit smartsign
 	 sortlist spf staticstub statistics stub tkey tsig tsiggss

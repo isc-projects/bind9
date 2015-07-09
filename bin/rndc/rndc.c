@@ -106,7 +106,7 @@ command is one of the following:\n\
 		Add zone to given view. Requires new-zone-file option.\n\
   delzone [-clean] zone [class [view]]\n\
 		Removes zone from given view. Requires new-zone-file option.\n\
-  dumpdb [-all|-cache|-zones] [view ...]\n\
+  dumpdb [-all|-cache|-zones|-adb|-bad|-fail] [view ...]\n\
 		Dump cache(s) to the dump file (named_dump.db).\n\
   flush 	Flushes all of the server's caches.\n\
   flush [view]	Flushes the server's cache for a view.\n\

@@ -51,6 +51,7 @@ struct ns_server {
 	isc_quota_t		xfroutquota;
 	isc_quota_t		tcpquota;
 	isc_quota_t		recursionquota;
+
 	dns_acl_t		*blackholeacl;
 	char *			statsfile;	/*%< Statistics file name */
 	char *			dumpfile;	/*%< Dump file name */
@@ -183,7 +184,6 @@ enum {
 	dns_nsstatscounter_expireopt = 44,
 	dns_nsstatscounter_otheropt = 45,
 
-#ifdef ISC_PLATFORM_USESIT
 	dns_nsstatscounter_sitopt = 46,
 	dns_nsstatscounter_sitbadsize = 47,
 	dns_nsstatscounter_sitbadtime = 48,
@@ -192,9 +192,6 @@ enum {
 	dns_nsstatscounter_sitnew = 51,
 
 	dns_nsstatscounter_max = 52
-#else
-	dns_nsstatscounter_max = 46
-#endif
 };
 
 void

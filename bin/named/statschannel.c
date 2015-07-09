@@ -224,7 +224,6 @@ init_desc(void) {
 	SET_NSSTATDESC(nsidopt, "NSID option received", "NSIDOpt");
 	SET_NSSTATDESC(expireopt, "Expire option received", "ExpireOpt");
 	SET_NSSTATDESC(otheropt, "Other EDNS option received", "OtherOpt");
-#ifdef ISC_PLATFORM_USESIT
 	SET_NSSTATDESC(sitopt, "source identity token option received",
 		       "SitOpt");
 	SET_NSSTATDESC(sitnew, "new source identity token requested",
@@ -236,7 +235,6 @@ init_desc(void) {
 	SET_NSSTATDESC(sitnomatch, "source identity token - no match",
 		       "SitNoMatch");
 	SET_NSSTATDESC(sitmatch, "source identity token - match", "SitMatch");
-#endif
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */
@@ -312,15 +310,16 @@ init_desc(void) {
 	SET_RESSTATDESC(nfetch, "active fetches", "NumFetch");
 	SET_RESSTATDESC(buckets, "bucket size", "BucketSize");
 	SET_RESSTATDESC(refused, "REFUSED received", "REFUSED");
-#ifdef ISC_PLATFORM_USESIT
 	SET_RESSTATDESC(sitcc, "SIT sent client cookie only",
 			"SitClientOut");
 	SET_RESSTATDESC(sitout, "SIT sent with client and server cookie",
 			"SitOut");
 	SET_RESSTATDESC(sitin, "SIT replies received", "SitIn");
 	SET_RESSTATDESC(sitok, "SIT client cookie ok", "SitClientOk");
-#endif
 	SET_RESSTATDESC(badvers, "bad EDNS version", "BadEDNSVersion");
+	SET_RESSTATDESC(zonequota, "spilled due to zone quota", "ZoneQuota");
+	SET_RESSTATDESC(serverquota, "spilled due to server quota",
+			"ServerQuota");
 
 	INSIST(i == dns_resstatscounter_max);
 
@@ -1017,7 +1016,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 			ISC_XMLCHAR "type=\"text/xsl\" href=\"/bind9.xsl\""));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "3.5"));
+					 ISC_XMLCHAR "3.6"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = isc_statsformat_xml;
@@ -1563,7 +1562,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 	/*
 	 * These statistics are included no matter which URL we use.
 	 */
-	obj = json_object_new_string("1.1");
+	obj = json_object_new_string("1.2");
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "json-stats-version", obj);
 

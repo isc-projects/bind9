@@ -122,6 +122,7 @@ static cfg_type_t cfg_type_optional_facility;
 static cfg_type_t cfg_type_optional_keyref;
 static cfg_type_t cfg_type_optional_port;
 static cfg_type_t cfg_type_optional_dscp;
+static cfg_type_t cfg_type_optional_uint32;
 static cfg_type_t cfg_type_options;
 static cfg_type_t cfg_type_portiplist;
 static cfg_type_t cfg_type_querysource4;
@@ -882,6 +883,58 @@ static cfg_type_t cfg_type_bracketed_portlist = {
 	&cfg_rep_list, &cfg_type_portrange
 };
 
+#ifdef ENABLE_FETCHLIMIT
+/*%
+ * fetch-quota-params
+ */
+static cfg_tuplefielddef_t fetchquota_fields[] = {
+	{ "frequency", &cfg_type_uint32, 0 },
+	{ "low", &cfg_type_fixedpoint, 0 },
+	{ "high", &cfg_type_fixedpoint, 0 },
+	{ "discount", &cfg_type_fixedpoint, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_fetchquota = {
+	"fetchquota", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, fetchquota_fields
+};
+
+/*%
+ * fetches-per-server or fetches-per-zone
+ */
+static const char *response_enums[] = { "drop", "fail", NULL };
+
+static isc_result_t
+parse_optional_response(cfg_parser_t *pctx, const cfg_type_t *type,
+			cfg_obj_t **ret)
+{
+	return (parse_enum_or_other(pctx, type, &cfg_type_void, ret));
+}
+
+static void
+doc_optional_response(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "[ ( drop | fail ) ]");
+}
+
+static cfg_type_t cfg_type_responsetype = {
+	"responsetype", parse_optional_response, cfg_print_ustring,
+	doc_optional_response, &cfg_rep_string, response_enums
+};
+
+static cfg_tuplefielddef_t fetchesper_fields[] = {
+	{ "fetches", &cfg_type_uint32, 0 },
+	{ "response", &cfg_type_responsetype, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_fetchesper = {
+	"fetchesper", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, fetchesper_fields
+};
+#endif /* ENABLE_FETCHLIMIT */
+
 /*%
  * Clauses that can be found within the top level of the named.conf
  * file only.
@@ -1157,7 +1210,7 @@ cleanup:
 }
 
 /*
- * Parse a tuple consisting of any kind of  required field followed
+ * Parse a tuple consisting of any kind of required field followed
  * by 2 or more optional keyvalues that can be in any order.
  */
 static isc_result_t
@@ -1347,15 +1400,12 @@ static cfg_type_t cfg_type_rrl = {
 	&cfg_rep_map, rrl_clausesets
 };
 
-
-
 /*%
  * dnssec-lookaside
  */
 
 static void
-print_lookaside(cfg_printer_t *pctx, const cfg_obj_t *obj)
-{
+print_lookaside(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	const cfg_obj_t *domain = obj->value.tuple[0];
 
 	if (domain->value.string.length == 4 &&
@@ -1497,6 +1547,11 @@ view_clauses[] = {
 	{ "empty-server", &cfg_type_astring, 0 },
 	{ "empty-zones-enable", &cfg_type_boolean, 0 },
 	{ "fetch-glue", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+#ifdef ENABLE_FETCHLIMIT
+	{ "fetch-quota-params", &cfg_type_fetchquota, 0 },
+	{ "fetches-per-server", &cfg_type_fetchesper, 0 },
+	{ "fetches-per-zone", &cfg_type_fetchesper, 0 },
+#endif /* ENABLE_FETCHLIMIT */
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_uint32, 0 },
 #ifdef ISC_PLATFORM_USESIT
