@@ -1067,6 +1067,9 @@
 	      referrals from the root servers, showing the answer
 	      from each server that was used to resolve the lookup.
 	    </para> <para>
+	      If @server is also specified, it affects only the
+	      initial query for the root zone name servers.
+	    </para> <para>
 	      <command>+dnssec</command> is also set when +trace
 	      is set to better emulate the default queries from a
 	      nameserver.
