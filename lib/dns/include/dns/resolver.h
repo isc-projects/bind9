@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -683,7 +683,7 @@ dns_resolver_getquotaresponse(dns_resolver_t *resolver, dns_quotatype_t which);
  * are exceeded. If 'which' is set to quotatype "zone", then the
  * result specified in 'resp' will be used when the fetches-per-zone
  * quota is exceeded by a fetch.  If 'which' is set to quotatype "server",
- * then the reuslt specified in 'resp' will be used when the 
+ * then the reuslt specified in 'resp' will be used when the
  * fetches-per-server quota has been exceeded for all the
  * authoritative servers for a zone.  Valid choices are
  * DNS_R_DROP or DNS_R_SERVFAIL.
