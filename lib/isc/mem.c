@@ -219,6 +219,8 @@ struct isc__mempool {
 static void
 print_active(isc__mem_t *ctx, FILE *out);
 
+#endif /* ISC_MEM_TRACKLINES */
+
 /*%
  * The following are intended for internal use (indicated by "isc__"
  * prefix) but are not declared as static, allowing direct access
@@ -311,7 +313,6 @@ void
 isc__mem_printallactive(FILE *file);
 unsigned int
 isc__mem_references(isc_mem_t *ctx0);
-#endif /* ISC_MEM_TRACKLINES */
 
 static struct isc__memmethods {
 	isc_memmethods_t methods;
