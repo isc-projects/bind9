@@ -51,9 +51,11 @@ dns_adb_flush
 dns_adb_flushname
 dns_adb_freeaddrinfo
 dns_adb_marklame
+dns_adb_plainresponse
 dns_adb_setadbsize
 dns_adb_setquota
 dns_adb_shutdown
+dns_adb_timeout
 dns_adb_whenshutdown
 dns_adbentry_overquota
 dns_byaddr_cancel
@@ -726,6 +728,7 @@ dns_resolver_disable_algorithm
 dns_resolver_dispatchmgr
 dns_resolver_dispatchv4
 dns_resolver_dispatchv6
+dns_resolver_dumpfetches
 dns_resolver_flushbadcache
 dns_resolver_freeze
 dns_resolver_getbadcache
@@ -735,6 +738,7 @@ dns_resolver_getmaxdepth
 dns_resolver_getmaxqueries
 dns_resolver_getmustbesecure
 dns_resolver_getoptions
+dns_resolver_getquotaresponse
 dns_resolver_gettimeout
 dns_resolver_getudpsize
 dns_resolver_getzeronosoattl
