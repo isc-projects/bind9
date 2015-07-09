@@ -216,6 +216,8 @@ struct isc__mempool {
 static void
 print_active(isc__mem_t *ctx, FILE *out);
 
+#endif /* ISC_MEM_TRACKLINES */
+
 /*%
  * The following can be either static or public, depending on build environment.
  */
@@ -322,7 +324,6 @@ isc__mem_checkdestroyed(FILE *file);
 ISC_MEMFUNC_SCOPE unsigned int
 isc__mem_references(isc_mem_t *ctx0);
 #endif
-#endif /* ISC_MEM_TRACKLINES */
 
 static struct isc__memmethods {
 	isc_memmethods_t methods;
