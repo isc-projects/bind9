@@ -56,6 +56,8 @@
 #define ISC_MAX(a, b)  ((a) > (b) ? (a) : (b))
 #define ISC_MIN(a, b)  ((a) < (b) ? (a) : (b))
 
+#define ISC_CLAMP(v, x, y) ((v) < (x) ? (x) : ((v) > (y) ? (y) : (v)))
+
 /*%
  * Use this to remove the const qualifier of a variable to assign it to
  * a non-const variable or pass it as a non-const function argument ...

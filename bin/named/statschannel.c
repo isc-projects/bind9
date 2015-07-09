@@ -338,6 +338,9 @@ init_desc(void) {
 	SET_RESSTATDESC(cookieok, "COOKIE client ok", "CookieClientOk");
 	SET_RESSTATDESC(badvers, "bad EDNS version", "BadEDNSVersion");
 	SET_RESSTATDESC(badcookie, "bad cookie rcode", "BadCookieRcode");
+	SET_RESSTATDESC(zonequota, "spilled due to zone quota", "ZoneQuota");
+	SET_RESSTATDESC(serverquota, "spilled due to server quota",
+			"ServerQuota");
 
 	INSIST(i == dns_resstatscounter_max);
 

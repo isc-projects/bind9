@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.22 2012/02/09 23:47:18 tbox Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -43,7 +41,7 @@ if [ -x ${RESOLVE} ] ; then
 echo "I:checking that local bound address can be set (Can't query from a denied address)"
    ret=0
    ${RESOLVE} -b 10.53.0.8 -p 5300 -t a -s 10.53.0.1 www.example.org 2> resolve.out || ret=1
-   grep "resolution failed: failure" resolve.out > /dev/null || ret=1
+   grep "resolution failed: SERVFAIL" resolve.out > /dev/null || ret=1
    if [ $ret != 0 ]; then echo "I:failed"; fi
    status=`expr $status + $ret`
 
@@ -79,7 +77,7 @@ if [ -x ${RESOLVE} ] ; then
     echo "I:checking handling of bogus referrals using dns_client"
     ret=0
     ${RESOLVE} -p 5300 -t a -s 10.53.0.1 www.example.com 2> resolve.out || ret=1
-    grep "resolution failed: failure" resolve.out > /dev/null || ret=1
+    grep "resolution failed: SERVFAIL" resolve.out > /dev/null || ret=1
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
 fi

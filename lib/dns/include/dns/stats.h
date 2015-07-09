@@ -72,7 +72,9 @@ enum {
 	dns_resstatscounter_cookieok = 38,
 	dns_resstatscounter_badvers = 39,
 	dns_resstatscounter_badcookie = 40,
-	dns_resstatscounter_max = 41,
+	dns_resstatscounter_zonequota = 41,
+	dns_resstatscounter_serverquota = 42,
+	dns_resstatscounter_max = 43,
 
 	/*
 	 * DNSSEC stats.

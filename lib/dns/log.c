@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.49 2011/10/13 22:48:24 tbox Exp $ */
-
 /*! \file */
 
 /* Principal Authors: DCL */
@@ -47,6 +45,7 @@ LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
 	{ "rpz",	0 },
 	{ "rate-limit",	0 },
 	{ "cname",	0 },
+	{ "spill",	0 },
 	{ NULL, 	0 }
 };
 

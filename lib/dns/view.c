@@ -731,7 +731,8 @@ dns_view_createzonetable(dns_view_t *view) {
 isc_result_t
 dns_view_createresolver(dns_view_t *view,
 			isc_taskmgr_t *taskmgr,
-			unsigned int ntasks, unsigned int ndisp,
+			unsigned int ntasks,
+			unsigned int ndisp,
 			isc_socketmgr_t *socketmgr,
 			isc_timermgr_t *timermgr,
 			unsigned int options,

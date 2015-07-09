@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.118 2012/01/31 23:47:31 tbox Exp $ */
-
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
 
@@ -51,6 +49,7 @@ struct ns_server {
 	isc_quota_t		xfroutquota;
 	isc_quota_t		tcpquota;
 	isc_quota_t		recursionquota;
+
 	dns_acl_t		*blackholeacl;
 	dns_acl_t		*keepresporder;
 	char *			statsfile;	/*%< Statistics file name */

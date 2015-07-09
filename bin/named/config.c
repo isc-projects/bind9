@@ -173,6 +173,8 @@ options {\n\
 	dnssec-enable yes;\n\
 	dnssec-validation yes; \n\
 	dnssec-accept-expired no;\n\
+	fetches-per-zone 0;\n\
+	fetch-quota-params 100 0.1 0.3 0.7;\n\
 	clients-per-query 10;\n\
 	max-clients-per-query 100;\n\
 	max-recursion-depth 7;\n\
@@ -180,6 +182,7 @@ options {\n\
 	zero-no-soa-ttl-cache no;\n\
 	nsec3-test-zone no;\n\
 	allow-new-zones no;\n\
+	fetches-per-server 0;\n\
 "
 #ifdef HAVE_GEOIP
 "\

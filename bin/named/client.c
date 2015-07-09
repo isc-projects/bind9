@@ -2216,6 +2216,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (result == DNS_R_OPTERR)
 			(void)ns_client_addopt(client, client->message,
 					       &client->opt);
+
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
+			      "message parsing failed: %s",
+			      isc_result_totext(result));
 		ns_client_error(client, result);
 		goto cleanup;
 	}
