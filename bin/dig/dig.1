@@ -600,6 +600,8 @@ Toggle tracing of the delegation path from the root name servers for the name be
 \fBdig\fR
 makes iterative queries to resolve the name being looked up. It will follow referrals from the root servers, showing the answer from each server that was used to resolve the lookup.
 .sp
+If @server is also specified, it affects only the initial query for the root zone name servers.
+.sp
 \fB+dnssec\fR
 is also set when +trace is set to better emulate the default queries from a nameserver.
 .RE

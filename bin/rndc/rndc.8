@@ -183,7 +183,7 @@ and
 \fBrndc modzone\fR.
 .RE
 .PP
-\fBdumpdb \fR\fB[\-all|\-cache|\-zone]\fR\fB \fR\fB[\fIview ...\fR]\fR
+\fBdumpdb \fR\fB[\-all|\-cache|\-zone|\-adb|\-bad]\fR\fB \fR\fB[\fIview ...\fR]\fR
 .RS 4
 Dump the server's caches (default) and/or zones to the dump file for the specified views. If no view is specified, all views are dumped. (See the
 \fBdump\-file\fR
@@ -285,7 +285,9 @@ when there is a large number of zones because it avoids the need to examine the 
 .RS 4
 Dump the list of queries
 \fBnamed\fR
-is currently recursing on.
+is currently recursing on, and the list of domains to which iterative queries are currently being sent. (The second list includes the number of fetches currently active for the given domain, and how many have been passed or dropped because of the
+\fBfetches\-per\-zone\fR
+option.)
 .RE
 .PP
 \fBrefresh \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR

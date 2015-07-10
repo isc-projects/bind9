@@ -50,7 +50,7 @@
 <div class="cmdsynopsis"><p><code class="command">rndc</code>  [<code class="option">-b <em class="replaceable"><code>source-address</code></em></code>] [<code class="option">-c <em class="replaceable"><code>config-file</code></em></code>] [<code class="option">-k <em class="replaceable"><code>key-file</code></em></code>] [<code class="option">-s <em class="replaceable"><code>server</code></em></code>] [<code class="option">-p <em class="replaceable"><code>port</code></em></code>] [<code class="option">-q</code>] [<code class="option">-V</code>] [<code class="option">-y <em class="replaceable"><code>key_id</code></em></code>] {command}</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2654580"></a><h2>DESCRIPTION</h2>
+<a name="id2660620"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">rndc</strong></span>
       controls the operation of a name
       server.  It supersedes the <span><strong class="command">ndc</strong></span> utility
@@ -81,7 +81,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2654630"></a><h2>OPTIONS</h2>
+<a name="id2660670"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-b <em class="replaceable"><code>source-address</code></em></span></dt>
 <dd><p>
@@ -152,7 +152,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2656360"></a><h2>COMMANDS</h2>
+<a name="id2661308"></a><h2>COMMANDS</h2>
 <p>
       A list of commands supported by <span><strong class="command">rndc</strong></span> can
       be seen by running <span><strong class="command">rndc</strong></span> without arguments.
@@ -221,7 +221,7 @@
 	    See also <span><strong class="command">rndc addzone</strong></span> and <span><strong class="command">rndc modzone</strong></span>.
 	  </p>
 </dd>
-<dt><span class="term"><strong class="userinput"><code>dumpdb [<span class="optional">-all|-cache|-zone</span>] [<span class="optional"><em class="replaceable"><code>view ...</code></em></span>]</code></strong></span></dt>
+<dt><span class="term"><strong class="userinput"><code>dumpdb [<span class="optional">-all|-cache|-zone|-adb|-bad</span>] [<span class="optional"><em class="replaceable"><code>view ...</code></em></span>]</code></strong></span></dt>
 <dd><p>
 	    Dump the server's caches (default) and/or zones to
 	    the
@@ -345,9 +345,13 @@
 	  </p></dd>
 <dt><span class="term"><strong class="userinput"><code>recursing</code></strong></span></dt>
 <dd><p>
-	    Dump the list of queries <span><strong class="command">named</strong></span> is currently recursing
-	    on.
-	  </p></dd>
+            Dump the list of queries <span><strong class="command">named</strong></span> is currently
+            recursing on, and the list of domains to which iterative
+            queries are currently being sent.  (The second list includes
+            the number of fetches currently active for the given domain,
+            and how many have been passed or dropped because of the
+            <code class="option">fetches-per-zone</code> option.)
+          </p></dd>
 <dt><span class="term"><strong class="userinput"><code>refresh <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
 <dd><p>
 	    Schedule zone maintenance for the given zone.
@@ -579,7 +583,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2688166"></a><h2>LIMITATIONS</h2>
+<a name="id2688817"></a><h2>LIMITATIONS</h2>
 <p>
       There is currently no way to provide the shared secret for a
       <code class="option">key_id</code> without using the configuration file.
@@ -589,7 +593,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2688184"></a><h2>SEE ALSO</h2>
+<a name="id2688903"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">rndc.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc-confgen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -599,7 +603,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2688240"></a><h2>AUTHOR</h2>
+<a name="id2688958"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
