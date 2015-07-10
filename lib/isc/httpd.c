@@ -237,39 +237,40 @@ isc_result_t
 isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		    isc_httpdclientok_t *client_ok,
 		    isc_httpdondestroy_t *ondestroy, void *cb_arg,
-		    isc_timermgr_t *tmgr, isc_httpdmgr_t **httpdp)
+		    isc_timermgr_t *tmgr, isc_httpdmgr_t **httpdmgrp)
 {
 	isc_result_t result;
-	isc_httpdmgr_t *httpd;
+	isc_httpdmgr_t *httpdmgr;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(sock != NULL);
 	REQUIRE(task != NULL);
 	REQUIRE(tmgr != NULL);
-	REQUIRE(httpdp != NULL && *httpdp == NULL);
+	REQUIRE(httpdmgrp != NULL && *httpdmgrp == NULL);
 
-	httpd = isc_mem_get(mctx, sizeof(isc_httpdmgr_t));
-	if (httpd == NULL)
+	httpdmgr = isc_mem_get(mctx, sizeof(isc_httpdmgr_t));
+	if (httpdmgr == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&httpd->lock);
+	result = isc_mutex_init(&httpdmgr->lock);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, httpd, sizeof(isc_httpdmgr_t));
+		isc_mem_put(mctx, httpdmgr, sizeof(isc_httpdmgr_t));
 		return (result);
 	}
-	httpd->mctx = NULL;
-	isc_mem_attach(mctx, &httpd->mctx);
-	httpd->sock = NULL;
-	isc_socket_attach(sock, &httpd->sock);
-	httpd->task = NULL;
-	isc_task_attach(task, &httpd->task);
-	httpd->timermgr = tmgr; /* XXXMLG no attach function? */
-	httpd->client_ok = client_ok;
-	httpd->ondestroy = ondestroy;
-	httpd->cb_arg = cb_arg;
+	httpdmgr->mctx = NULL;
+	isc_mem_attach(mctx, &httpdmgr->mctx);
+	httpdmgr->sock = NULL;
+	isc_socket_attach(sock, &httpdmgr->sock);
+	httpdmgr->task = NULL;
+	isc_task_attach(task, &httpdmgr->task);
+	httpdmgr->timermgr = tmgr; /* XXXMLG no attach function? */
+	httpdmgr->client_ok = client_ok;
+	httpdmgr->ondestroy = ondestroy;
+	httpdmgr->cb_arg = cb_arg;
+	httpdmgr->flags = 0;
 
-	ISC_LIST_INIT(httpd->running);
-	ISC_LIST_INIT(httpd->urls);
+	ISC_LIST_INIT(httpdmgr->running);
+	ISC_LIST_INIT(httpdmgr->urls);
 
 	/* XXXMLG ignore errors on isc_socket_listen() */
 	result = isc_socket_listen(sock, SOMAXCONN);
@@ -282,22 +283,22 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 
 	(void)isc_socket_filter(sock, "httpready");
 
-	result = isc_socket_accept(sock, task, isc_httpd_accept, httpd);
+	result = isc_socket_accept(sock, task, isc_httpd_accept, httpdmgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	httpd->render_404 = render_404;
-	httpd->render_500 = render_500;
+	httpdmgr->render_404 = render_404;
+	httpdmgr->render_500 = render_500;
 
-	*httpdp = httpd;
+	*httpdmgrp = httpdmgr;
 	return (ISC_R_SUCCESS);
 
   cleanup:
-	isc_task_detach(&httpd->task);
-	isc_socket_detach(&httpd->sock);
-	isc_mem_detach(&httpd->mctx);
-	(void)isc_mutex_destroy(&httpd->lock);
-	isc_mem_put(mctx, httpd, sizeof(isc_httpdmgr_t));
+	isc_task_detach(&httpdmgr->task);
+	isc_socket_detach(&httpdmgr->sock);
+	isc_mem_detach(&httpdmgr->mctx);
+	(void)isc_mutex_destroy(&httpdmgr->lock);
+	isc_mem_put(mctx, httpdmgr, sizeof(isc_httpdmgr_t));
 	return (result);
 }
 
