@@ -138,7 +138,7 @@ command is one of the following:\n\
 		Set a negative trust anchor, disabling DNSSEC validation\n\
 		for the given domain.\n\
 		Using -lifetime specifies the duration of the NTA, up\n\
-		to one day.\n\
+		to one week.\n\
 		Using -force prevents the NTA from expiring before its\n\
 		full lifetime, even if the domain can validate sooner.\n\
   nta -remove domain [view]\n\
