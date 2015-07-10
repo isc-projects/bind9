@@ -939,7 +939,7 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>zonestatus <optional><replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></optional></userinput></term>
+	<term><userinput>zonestatus <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></term>
 	<listitem>
 	  <para>
 	    Displays the current status of the given zone,
