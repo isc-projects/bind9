@@ -1,3 +1,5 @@
+4162.	[bug]		httpdmgr->flags was not being initialized. [RT #40017]
+
 4161.	[test]		Add JSON test for traffic size stats; also test
 			for consistency between "rndc stats" and the XML
 			and JSON statistics channel contents. [RT #38700]
