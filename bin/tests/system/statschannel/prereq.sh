@@ -24,12 +24,4 @@ else
     fail=1
 fi
 
-if $PERL -e 'use XML::Simple;' 2>/dev/null
-then
-        :
-else
-    echo "I:This test requires the XML::Simple library." >&2
-    fail=1
-fi
-
 exit $fail

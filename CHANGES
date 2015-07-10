@@ -1,3 +1,7 @@
+4161.	[test]		Add JSON test for traffic size stats; also test
+			for consistency between "rndc stats" and the XML
+			and JSON statistics channel contents. [RT #38700]
+
 4160.	[placeholder]
 
 4159.	[cleanup]	Alphabetize dig's help output. [RT #39966]

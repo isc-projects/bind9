@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/perl
 #
 # Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
 #
@@ -14,10 +14,33 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-rm -f traffic traffic.out.*
-rm -f dig.out*
-rm -f */named.memstats
-rm -f */named.run
-rm -f ns*/named.lock
-rm -f ns*/named.stats
-rm -f xml.*stats json.*stats
+# fetch.pl:
+# Simple script to fetch HTTP content from the statistics channel
+# of a BIND server. Fetches the full XML stats from 10.53.0.2 port
+# 8853 by default; these can be overridden by command line arguments.
+
+use File::Fetch;
+use Getopt::Std;
+
+sub usage {
+    print ("Usage: fetch.pl [-s address] [-p port] [path]\n");
+    exit 1;
+}
+
+my %options={};
+getopts("s:p:", \%options);
+
+my $addr = "10.53.0.2";
+$addr = $options{a} if defined $options{a};
+
+my $path = 'xml/v3';
+if (@ARGV >= 1) {
+    $path = shift @ARGV;
+}
+
+my $port = 8853;
+$port = $options{p} if defined $options{p};
+
+my $ff = File::Fetch->new(uri => "http://$addr:$port/$path");
+my $file = $ff->fetch() or die $ff->error;
+print ("$file\n");

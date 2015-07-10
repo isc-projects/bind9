@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/usr/bin/perl
 #
-# Copyright (C) 2012, 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,18 +14,22 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
+# server-json.pl:
+# Parses the JSON version of the server stats into a normalized format.
 
-#
-# Clean up after zone transfer tests.
-#
+use JSON;
 
-rm -f ns3/example.bk
-rm -f ns3/internal.bk
-rm -f */named.memstats
-rm -f */named.run
-rm -f */named.stats
-rm -f dig.out*
-rm -f curl.out.*
-rm -f ns*/named.lock
-rm -f stats*out
+open(INPUT, "<json.stats");
+my $text = do{local$/;<INPUT>};
+close(INPUT);
+
+my $ref = decode_json($text);
+foreach $key (keys $ref->{opcodes}) {
+    print "opcode " . $key . ": " . $ref->{opcodes}->{$key} . "\n";
+}
+foreach $key (keys $ref->{qtypes}) {
+    print "qtype " . $key . ": " . $ref->{qtypes}->{$key} . "\n";
+}
+foreach $key (keys $ref->{nsstats}) {
+    print "nsstat " . $key . ": " . $ref->{nsstats}->{$key} . "\n";
+}

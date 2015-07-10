@@ -19,46 +19,54 @@ SYSTEMTESTTOP=..
 
 DIGCMD="$DIG @10.53.0.2 -p 5300"
 
+if $PERL -e 'use JSON;' 2>/dev/null
+then
+    PERL_JSON=1
+else
+    unset PERL_JSON
+    echo "I:JSON tests require JSON library; skipping" >&2
+fi
+
+if $PERL -e 'XML::Simple;' 2>/dev/null
+then
+    PERL_XML=1
+else
+    unset PERL_XML
+    echo "I:XML tests require XML::Simple; skipping" >&2
+fi
+
+if [ ! $PERL_JSON -a ! $PERL_XML ]; then
+    echo "I:skipping all tests"
+    exit 0
+fi
+
+
 gettraffic() {
-    $PERL -e 'use File::Fetch;
-              use XML::Simple;
-              use Data::Dumper;
-              my $ff = File::Fetch->new(uri => "http://10.53.0.2:8853/xml/v3/traffic");
-              my $file = $ff->fetch() or die $ff->error;
-              my $ref = XMLin($file);
-
-              my $udp = $ref->{traffic}->{udp}->{counters};
-              foreach $group (@$udp) {
-                  my $type = "udp " . $group->{type} . " ";
-                  if (exists $group->{counter}->{name}) {
-                      print $type . $group->{counter}->{name} . ": " . $group->{counter}->{content} . "\n";
-                  } else {
-                      foreach $key (keys $group->{counter}) {
-                          print $type . $key . ": ". $group->{counter}->{$key}->{content} ."\n";
-                      }
-                 }
-              }
-
-              my $tcp = $ref->{traffic}->{tcp}->{counters};
-              foreach $group (@$tcp) {
-                  my $type = "tcp " . $group->{type} . " ";
-                  if (exists $group->{counter}->{name}) {
-                      print $type . $group->{counter}->{name} . ": " . $group->{counter}->{content} . "\n";
-                  } else {
-                      foreach $key (keys $group->{counter}) {
-                          print $type . $key . ": ". $group->{counter}->{$key}->{content} ."\n";
-                      }
-                 }
-              }' | sort > traffic.out.$1
-    return $?
+    echo "I:... using $1"
+    case $1 in
+        xml) path='xml/v3/traffic' ;;
+        json) path='json/v1/traffic' ;;
+        *) return 1 ;;
+    esac
+    file=`$PERL fetch.pl $path`
+    $PERL traffic-${1}.pl $file | sort > traffic.out.$2
+    result=$?
+    rm -f $file
+    return $result
 }
 
 status=0
 n=1
 ret=0
 echo "I:fetching traffic size data ($n)"
-gettraffic $n || ret=1
-cmp traffic.out.$n traffic.expect.$n || ret=1
+if [ $PERL_XML ]; then
+    gettraffic xml x$n || ret=1
+    cmp traffic.out.x$n traffic.expect.$n || ret=1
+fi
+if [ $PERL_JSON ]; then
+    gettraffic json j$n || ret=1
+    cmp traffic.out.j$n traffic.expect.$n || ret=1
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
@@ -66,8 +74,14 @@ n=`expr $n + 1`
 ret=0
 echo "I:fetching traffic size data after small UDP query ($n)"
 $DIGCMD short.example txt > dig.out.$n || ret=1
-gettraffic $n || ret=1
-cmp traffic.out.$n traffic.expect.$n || ret=1
+if [ $PERL_XML ]; then
+    gettraffic xml x$n || ret=1
+    cmp traffic.out.x$n traffic.expect.$n || ret=1
+fi
+if [ $PERL_JSON ]; then
+    gettraffic json j$n || ret=1
+    cmp traffic.out.j$n traffic.expect.$n || ret=1
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
@@ -76,8 +90,14 @@ ret=0
 n=`expr $n + 1`
 echo "I:fetching traffic size data after large UDP query ($n)"
 $DIGCMD long.example txt > dig.out.$n || ret=1
-gettraffic $n || ret=1
-cmp traffic.out.$n traffic.expect.$n || ret=1
+if [ $PERL_XML ]; then
+    gettraffic xml x$n || ret=1
+    cmp traffic.out.x$n traffic.expect.$n || ret=1
+fi
+if [ $PERL_JSON ]; then
+    gettraffic json j$n || ret=1
+    cmp traffic.out.j$n traffic.expect.$n || ret=1
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
@@ -85,8 +105,14 @@ n=`expr $n + 1`
 ret=0
 echo "I:fetching traffic size data after small TCP query ($n)"
 $DIGCMD +tcp short.example txt > dig.out.$n || ret=1
-gettraffic $n || ret=1
-cmp traffic.out.$n traffic.expect.$n || ret=1
+if [ $PERL_XML ]; then
+    gettraffic xml x$n || ret=1
+    cmp traffic.out.x$n traffic.expect.$n || ret=1
+fi
+if [ $PERL_JSON ]; then
+    gettraffic json j$n || ret=1
+    cmp traffic.out.j$n traffic.expect.$n || ret=1
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
@@ -94,8 +120,43 @@ n=`expr $n + 1`
 ret=0
 echo "I:fetching traffic size data after large TCP query ($n)"
 $DIGCMD +tcp long.example txt > dig.out.$n || ret=1
-gettraffic $n || ret=1
-cmp traffic.out.$n traffic.expect.$n || ret=1
+if [ $PERL_XML ]; then
+    gettraffic xml x$n || ret=1
+    cmp traffic.out.x$n traffic.expect.$n || ret=1
+fi
+if [ $PERL_JSON ]; then
+    gettraffic json j$n || ret=1
+    cmp traffic.out.j$n traffic.expect.$n || ret=1
+fi
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+ret=0
+echo "I:checking consistency between named.stats and xml/json ($n)"
+rm -f ns2/named.stats
+$DIGCMD +tcp example ns > dig.out.$n || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stats 2>&1 | sed 's/^/I:ns1 /'
+query_count=`awk '/QUERY/ {print $1}' ns2/named.stats`
+txt_count=`awk '/TXT/ {print $1}' ns2/named.stats`
+if [ $PERL_XML ]; then
+    file=`$PERL fetch.pl xml/v3/server`
+    mv $file xml.stats
+    $PERL server-xml.pl > xml.fmtstats 2> /dev/null
+    xml_query_count=`awk '/opcode QUERY/ { print $NF }' xml.fmtstats` 
+    [ "$query_count" -eq "$xml_query_count" ] || ret=1
+    xml_txt_count=`awk '/qtype TXT/ { print $NF }' xml.fmtstats` 
+    [ "$txt_count" -eq "$xml_txt_count" ] || ret=1
+fi
+if [ $PERL_JSON ]; then
+    file=`$PERL fetch.pl json/v1/server`
+    mv $file json.stats
+    $PERL server-xml.pl > json.fmtstats 2> /dev/null
+    json_query_count=`awk '/opcode QUERY/ { print $NF }' json.fmtstats` 
+    [ "$query_count" -eq "$json_query_count" ] || ret=1
+    json_txt_count=`awk '/qtype TXT/ { print $NF }' json.fmtstats` 
+    [ "$txt_count" -eq "$json_txt_count" ] || ret=1
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
