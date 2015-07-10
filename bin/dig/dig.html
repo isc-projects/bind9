@@ -654,6 +654,10 @@
 	      from each server that was used to resolve the lookup.
 	    </p>
 <p>
+	      If @server is also specified, it affects only the
+	      initial query for the root zone name servers.
+	    </p>
+<p>
 	      <span><strong class="command">+dnssec</strong></span> is also set when +trace
 	      is set to better emulate the default queries from a
 	      nameserver.
@@ -713,7 +717,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545575"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2545578"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -759,7 +763,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545637"></a><h2>IDN SUPPORT</h2>
+<a name="id2545640"></a><h2>IDN SUPPORT</h2>
 <p>
       If <span><strong class="command">dig</strong></span> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -773,14 +777,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545659"></a><h2>FILES</h2>
+<a name="id2545662"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545745"></a><h2>SEE ALSO</h2>
+<a name="id2545748"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -788,7 +792,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545782"></a><h2>BUGS</h2>
+<a name="id2545785"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>

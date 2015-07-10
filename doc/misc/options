@@ -144,6 +144,9 @@ options {
         empty-zones-enable <boolean>;
         fake-iquery <boolean>; // obsolete
         fetch-glue <boolean>; // obsolete
+        fetch-quota-params <integer> <fixedpoint> <fixedpoint> <fixedpoint>;
+        fetches-per-server <integer> [ ( drop | fail ) ];
+        fetches-per-zone <integer> [ ( drop | fail ) ];
         files <size>;
         filter-aaaa { <address_match_element>; ... }; // not configured
         filter-aaaa-on-v4 <filter_aaaa>; // not configured
@@ -431,6 +434,9 @@ view <string> <optional_class> {
         empty-server <string>;
         empty-zones-enable <boolean>;
         fetch-glue <boolean>; // obsolete
+        fetch-quota-params <integer> <fixedpoint> <fixedpoint> <fixedpoint>;
+        fetches-per-server <integer> [ ( drop | fail ) ];
+        fetches-per-zone <integer> [ ( drop | fail ) ];
         filter-aaaa { <address_match_element>; ... }; // not configured
         filter-aaaa-on-v4 <filter_aaaa>; // not configured
         filter-aaaa-on-v6 <filter_aaaa>; // not configured
