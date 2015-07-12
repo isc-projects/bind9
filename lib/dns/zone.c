@@ -4370,10 +4370,14 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	    zone->type == dns_zone_stub ||
 	    zone->type == dns_zone_key ||
 	    (zone->type == dns_zone_redirect && zone->masters != NULL)) {
-		if (zone->journal != NULL)
-			zone_saveunique(zone, zone->journal, "jn-XXXXXXXX");
-		if (zone->masterfile != NULL)
-			zone_saveunique(zone, zone->masterfile, "db-XXXXXXXX");
+		if (result != ISC_R_NOMEMORY) {
+			if (zone->journal != NULL)
+				zone_saveunique(zone, zone->journal,
+						"jn-XXXXXXXX");
+			if (zone->masterfile != NULL)
+				zone_saveunique(zone, zone->masterfile,
+						"db-XXXXXXXX");
+		}
 
 		/* Mark the zone for immediate refresh. */
 		zone->refreshtime = now;

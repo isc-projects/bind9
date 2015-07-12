@@ -1,3 +1,8 @@
+4164.	[bug]		Don't rename slave files and journals on out of memory.
+			[RT #40033]
+
+4163.	[bug]		Address compiler warnings. [RT #40024]
+
 4162.	[bug]		httpdmgr->flags was not being initialized. [RT #40017]
 
 4159.	[cleanup]	Alphabetize dig's help output. [RT #39966]

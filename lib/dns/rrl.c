@@ -376,7 +376,7 @@ hash_key(const dns_rrl_key_t *key) {
 	int i;
 
 	hval = key->w[0];
-	for (i = sizeof(*key) / sizeof(key->w[0]) - 1; i >= 0; --i) {
+	for (i = sizeof(key->w) / sizeof(key->w[0]) - 1; i >= 0; --i) {
 		hval = key->w[i] + (hval<<1);
 	}
 	return (hval);
