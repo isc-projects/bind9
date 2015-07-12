@@ -570,7 +570,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	const cfg_obj_t *portobj;
 	const cfg_obj_t *dscpobj;
 	in_port_t port;
-	isc_dscp_t dscp;
+	isc_dscp_t dscp = -1;
 	dns_fixedname_t fname;
 	isc_sockaddr_t *addrs = NULL;
 	isc_dscp_t *dscps = NULL;

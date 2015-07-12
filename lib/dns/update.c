@@ -568,6 +568,7 @@ rrset_visible(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		result = ISC_R_SUCCESS;
 		break;
 	default:
+		*visible = ISC_FALSE;	 /* silence false compiler warning */
 		break;
 	}
 	return (result);
