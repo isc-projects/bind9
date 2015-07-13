@@ -3187,7 +3187,7 @@
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/rpz.h			C	2011,2012,2013,2015
 ./lib/dns/include/dns/rriterator.h		C	2009,2011
-./lib/dns/include/dns/rrl.h			C	2013
+./lib/dns/include/dns/rrl.h			C	2013,2015
 ./lib/dns/include/dns/sdb.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012
 ./lib/dns/include/dns/sdlz.h			C.PORTION	1999,2000,2001,2005,2006,2007,2009,2010,2011,2012
 ./lib/dns/include/dns/secalg.h			C	1999,2000,2001,2004,2005,2006,2007,2009
