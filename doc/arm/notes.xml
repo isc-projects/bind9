@@ -40,14 +40,24 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  A specially crafted query could trigger an assertion failure
+	  in message.c.
+	</para>
+	<para>
+	  This flaw was discovered by Jonathan Foote, and is disclosed
+	  in CVE-2015-5477. [RT #39795]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  On servers configured to perform DNSSEC validation, an
 	  assertion failure could be triggered on answers from
 	  a specially configured server.
 	</para>
-        <para>
+	<para>
 	  This flaw was discovered by Breno Silveira Soares, and is
 	  disclosed in CVE-2015-4620. [RT #39795]
-        </para>
+	</para>
       </listitem> 
     </itemizedlist>
   </sect2>
@@ -70,7 +80,7 @@
 	  them in the build.
 	</para>
 	<itemizedlist>
-          <listitem>
+	  <listitem>
 	    <para>
 	      <option>fetches-per-server</option> limits the number of
 	      simultaneous queries that can be sent to any single
@@ -81,7 +91,7 @@
 	      <option>fetch-quota-params</option> option.
 	    </para>
 	  </listitem>
-          <listitem>
+	  <listitem>
 	    <para>
 	      <option>fetches-per-zone</option> limits the number of
 	      simultaneous queries that can be sent for names within a
@@ -188,7 +198,7 @@
 	  Several bugs have been fixed in the RPZ implementation:
 	</para>
 	<itemizedlist>
-          <listitem>
+	  <listitem>
 	    <para>
 	      Policy zones that did not specifically require recursion
 	      could be treated as if they did; consequently, setting

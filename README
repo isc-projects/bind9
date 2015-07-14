@@ -56,6 +56,9 @@ BIND 9.10.3
 	- Dig now supports sending of arbitary EDNS options by specifying
 	  them on the command line.
 
+	This release addresses the security flaws described in
+	CVE-2015-4620 and CVE-2015-5477.
+
 BIND 9.10.2
 
 	BIND 9.10.2 is a maintenance release and addresses bugs
