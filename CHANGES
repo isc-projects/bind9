@@ -1,4 +1,4 @@
-4165.	[bug]		A failure to reset a value to NULL in tkey.c could
+4165.	[security]	A failure to reset a value to NULL in tkey.c could
 			result in an assertion failure. (CVE-2015-5477)
 			[RT #40046]
 
