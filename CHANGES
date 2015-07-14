@@ -1,3 +1,5 @@
+	--- 9.9.7-P2 released ---
+
 4165.	[bug]		An failure to reset a value to NULL in tkey.c could
 			result in an assertion failure. (CVE-2015-5477)
 			[RT #40046]
