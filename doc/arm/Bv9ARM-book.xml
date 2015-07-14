@@ -6466,7 +6466,7 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-              <term><command>request-nsid</command></term>
+              <term><command>request-sit</command></term>
 	      <para>
 		This experimental option is obsolete.
 	      </para>
