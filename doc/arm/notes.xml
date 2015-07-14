@@ -58,8 +58,8 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  A specially crafted query could trigger a assertion failure
-	  message.c.
+	  A specially crafted query could trigger an assertion failure
+	  in message.c.
 	</para>
 	<para>
 	  This flaw was discovered by Jonathan Foote, and is disclosed
@@ -68,7 +68,7 @@
       </listitem>
       <listitem>
 	<para>
-	  On servers configured to perform DNSSEC validation an
+	  On servers configured to perform DNSSEC validation, an
 	  assertion failure could be triggered on answers from
 	  a specially configured server.
 	</para>
