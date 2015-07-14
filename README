@@ -103,8 +103,8 @@ BIND 9.11.0
 	  to be added.  This can be disabled with "check-names no".
 
 	This release addresses the security flaws described in
-	CVE-2014-3214, CVE-2014-3859, CVE-2014-8500, CVE-2014-8680 and
-	CVE-2015-1349.
+	CVE-2014-3214, CVE-2014-3859, CVE-2014-8500, CVE-2014-8680,
+	CVE-2015-1349 and CVE-2015-5477.
 
 BIND 9.10.0
 
