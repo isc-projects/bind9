@@ -86,6 +86,16 @@
 <div class="itemizedlist"><ul type="disc">
 <li>
 <p>
+	  A specially crafted query could trigger an assertion failure
+	  in message.c.
+	</p>
+<p>
+	  This flaw was discovered by Jonathan Foote, and is disclosed
+	  in CVE-2015-5477. [RT #39795]
+	</p>
+</li>
+<li>
+<p>
 	  On servers configured to perform DNSSEC validation, an
 	  assertion failure could be triggered on answers from
 	  a specially configured server.
@@ -93,7 +103,7 @@
 <p>
 	  This flaw was discovered by Breno Silveira Soares, and is
 	  disclosed in CVE-2015-4620. [RT #39795]
-        </p>
+	</p>
 </li>
 <li>
 <p>
@@ -598,7 +608,7 @@
 <li><p>
 	  Built-in "empty" zones did not correctly inherit the
 	  "allow-transfer" ACL from the options or view. [RT #38310]
-        </p></li>
+	</p></li>
 <li><p>
 	  Two leaks were fixed that could cause <span><strong class="command">named</strong></span>
 	  processes to grow to very large sizes. [RT #38454]
