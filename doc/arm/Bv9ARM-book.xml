@@ -8858,6 +8858,37 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      </listitem>
 	    </varlistentry>
 
+	    <varlistentry id="max-recursion-depth">
+	      <term><command>max-recursion-depth</command></term>
+	      <listitem>
+		<para>
+		  Sets the maximum number of levels of recursion
+		  that are permitted at any one time while servicing
+		  a recursive query. Resolving a name may require
+		  looking up a name server address, which in turn
+		  requires resolving another name, etc; if the number
+		  of indirections exceeds this value, the recursive
+		  query is terminated and returns SERVFAIL.  The
+		  default is 7.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry id="max-recursion-queries">
+	      <term><command>max-recursion-queries</command></term>
+	      <listitem>
+		<para>
+		  Sets the maximum number of iterative queries that
+		  may be sent while servicing a recursive query.
+		  If more queries are sent, the recursive query
+		  is terminated and returns SERVFAIL. Queries to
+		  look up top level comains such as "com" and "net"
+		  and the DNS root zone are exempt from this limitation.
+		  The default is 75.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
 	    <varlistentry>
 	      <term><command>notify-delay</command></term>
 	      <listitem>
