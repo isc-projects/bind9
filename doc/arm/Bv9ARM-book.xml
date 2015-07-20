@@ -9129,42 +9129,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      </listitem>
 	    </varlistentry>
 
-	    <varlistentry id="clients-per-query">
-	      <term><command>clients-per-query</command></term>
-	      <term><command>max-clients-per-query</command></term>
-	      <listitem>
-		<para>These set the
-		  initial value (minimum) and maximum number of recursive
-		  simultaneous clients for any given query
-		  (&lt;qname,qtype,qclass&gt;) that the server will accept
-		  before dropping additional clients.
-		  <command>named</command> will attempt to
-		  self tune this value and changes will be logged.  The
-		  default values are 10 and 100.
-		</para>
-		<para>
-		  This value should reflect how many queries come in for
-		  a given name in the time it takes to resolve that name.
-		  If the number of queries exceed this value, <command>named</command> will
-		  assume that it is dealing with a non-responsive zone
-		  and will drop additional queries.  If it gets a response
-		  after dropping queries, it will raise the estimate.  The
-		  estimate will then be lowered in 20 minutes if it has
-		  remained unchanged.
-		</para>
-		<para>
-		  If <command>clients-per-query</command> is set to zero,
-		  then there is no limit on the number of clients per query
-		  and no queries will be dropped.
-		</para>
-		<para>
-		  If <command>max-clients-per-query</command> is set to zero,
-		  then there is no upper bound other than imposed by
-		  <command>recursive-clients</command>.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
 	    <varlistentry id="max-recursion-depth">
 	      <term><command>max-recursion-depth</command></term>
 	      <listitem>
