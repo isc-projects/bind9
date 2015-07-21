@@ -35,7 +35,7 @@ else
     echo "I:XML tests require XML::Simple; skipping" >&2
 fi
 
-if [ ! $PERL_JSON -a ! $PERL_XML ]; then
+if [ ! "$PERL_JSON" -a ! "$PERL_XML" ]; then
     echo "I:skipping all tests"
     exit 0
 fi
@@ -144,8 +144,10 @@ if [ $PERL_XML ]; then
     mv $file xml.stats
     $PERL server-xml.pl > xml.fmtstats 2> /dev/null
     xml_query_count=`awk '/opcode QUERY/ { print $NF }' xml.fmtstats` 
+    xml_query_count=${xml_query_count:-0}
     [ "$query_count" -eq "$xml_query_count" ] || ret=1
     xml_txt_count=`awk '/qtype TXT/ { print $NF }' xml.fmtstats` 
+    xml_txt_count=${xml_txt_count:-0}
     [ "$txt_count" -eq "$xml_txt_count" ] || ret=1
 fi
 if [ $PERL_JSON ]; then
@@ -153,8 +155,10 @@ if [ $PERL_JSON ]; then
     mv $file json.stats
     $PERL server-xml.pl > json.fmtstats 2> /dev/null
     json_query_count=`awk '/opcode QUERY/ { print $NF }' json.fmtstats` 
+    json_query_count=${json_query_count:-0}
     [ "$query_count" -eq "$json_query_count" ] || ret=1
     json_txt_count=`awk '/qtype TXT/ { print $NF }' json.fmtstats` 
+    json_txt_count=${json_txt_count:-0}
     [ "$txt_count" -eq "$json_txt_count" ] || ret=1
 fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
