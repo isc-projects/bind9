@@ -153,7 +153,7 @@ fi
 if [ $PERL_JSON ]; then
     file=`$PERL fetch.pl json/v1/server`
     mv $file json.stats
-    $PERL server-xml.pl > json.fmtstats 2> /dev/null
+    $PERL server-json.pl > json.fmtstats 2> /dev/null
     json_query_count=`awk '/opcode QUERY/ { print $NF }' json.fmtstats` 
     json_query_count=${json_query_count:-0}
     [ "$query_count" -eq "$json_query_count" ] || ret=1
