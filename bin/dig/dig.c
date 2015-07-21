@@ -825,7 +825,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		switch (cmd[1]) {
 		case 'a':/* badcookie */
 			FULLCHECK("badcookie");
-			lookup->besteffort = state;
+			lookup->badcookie = state;
 			break;
 		case 'e':/* besteffort */
 			FULLCHECK("besteffort");
