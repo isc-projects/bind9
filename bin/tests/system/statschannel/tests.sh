@@ -27,7 +27,7 @@ else
     echo "I:JSON tests require JSON library; skipping" >&2
 fi
 
-if $PERL -e 'XML::Simple;' 2>/dev/null
+if $PERL -e 'use XML::Simple;' 2>/dev/null
 then
     PERL_XML=1
 else
