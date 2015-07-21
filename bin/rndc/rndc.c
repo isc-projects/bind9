@@ -104,9 +104,9 @@ Usage: %s [-b address] [-c config] [-s server] [-p port]\n\
 command is one of the following:\n\
 \n\
   addzone zone [class [view]] { zone-options }\n\
-		Add zone to given view. Requires new-zone-file option.\n\
+		Add zone to given view. Requires allow-new-zones option.\n\
   delzone [-clean] zone [class [view]]\n\
-		Removes zone from given view. Requires new-zone-file option.\n\
+		Removes zone from given view.\n\
   dumpdb [-all|-cache|-zones|-adb|-bad|-fail] [view ...]\n\
 		Dump cache(s) to the dump file (named_dump.db).\n\
   flush 	Flushes all of the server's caches.\n\
@@ -129,6 +129,9 @@ command is one of the following:\n\
 		Display RFC 5011 managed keys information\n\
   managed-keys sync [class [view]]\n\
 		Write RFC 5011 managed keys to disk\n\
+  modzone zone [class [view]] { zone-options }\n\
+		Modify a zone's configuration.\n\
+		Requires allow-new-zones option.\n\
   notify zone [class [view]]\n\
 		Resend NOTIFY messages for the zone.\n\
   notrace	Set debugging level to 0.\n\
@@ -158,6 +161,8 @@ command is one of the following:\n\
   scan		Scan available network interfaces for changes.\n\
   secroots [view ...]\n\
 		Write security roots to the secroots file.\n\
+  showzone zone [class [view]]\n\
+		Print a zone's configuration.\n\
   sign zone [class [view]]\n\
 		Update zone keys, and sign as needed.\n\
   signing -clear all zone [class [view]]\n\

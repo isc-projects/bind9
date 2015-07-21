@@ -1,3 +1,7 @@
+4157.	[func]		Update rndc's usage output to include recently added
+			commands. Thanks to Tony Finch for submitting a
+			patch. [RT #40010]
+
 4156.	[func]		Print informative output from rndc showzone when
 			allow-new-zones is not enabled for a view. Thanks to
 			Tony Finch for submitting a patch. [RT #40009]
