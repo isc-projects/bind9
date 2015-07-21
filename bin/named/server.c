@@ -9392,7 +9392,8 @@ nzf_append(FILE *fp, const char *viewname, const cfg_obj_t *zconfig) {
 
 static isc_result_t
 newzone_parse(ns_server_t *server, char *args, dns_view_t **viewp,
-	      cfg_obj_t **zoneconfp, const cfg_obj_t **zoneobjp)
+	      cfg_obj_t **zoneconfp, const cfg_obj_t **zoneobjp,
+	      isc_buffer_t **text)
 {
 	isc_result_t result;
 	isc_buffer_t argbuf;
@@ -9444,7 +9445,16 @@ newzone_parse(ns_server_t *server, char *args, dns_view_t **viewp,
 		viewname = cfg_obj_asstring(obj);
 	if (viewname == NULL || *viewname == '\0')
 		viewname = "_default";
-	CHECK(dns_viewlist_find(&server->viewlist, viewname, rdclass, &view));
+	result = dns_viewlist_find(&server->viewlist, viewname, rdclass,
+				   &view);
+	if (result == ISC_R_NOTFOUND) {
+		(void) putstr(text, "no matching view found for '");
+		(void) putstr(text, viewname);
+		(void) putstr(text, "'");
+		goto cleanup;
+	} else if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
 
 	*viewp = view;
 	*zoneobjp = zoneobj;
@@ -9750,13 +9760,18 @@ ns_server_changezone(ns_server_t *server, char *args, isc_buffer_t **text) {
 
 	if (strncasecmp(args, "add", 3) == 0)
 		addzone = ISC_TRUE;
-	else
+	else {
+		INSIST(strncasecmp(args, "mod", 3) == 0);
 		addzone = ISC_FALSE;
+	}
 
-	CHECK(newzone_parse(server, args, &view, &zoneconf, &zoneobj));
+	CHECK(newzone_parse(server, args, &view, &zoneconf, &zoneobj, text));
 
 	/* Are we accepting new zones in this view? */
 	if (view->new_zone_file == NULL) {
+		(void) putstr(text, "Not allowing new zones in view '");
+		(void) putstr(text, view->name);
+		(void) putstr(text, "'");
 		result = ISC_R_NOPERM;
 		goto cleanup;
 	}
@@ -9930,7 +9945,7 @@ ns_server_delzone(ns_server_t *server, char *args, isc_buffer_t **text) {
 
 		TCHECK(putstr(text, "zone '"));
 		TCHECK(putstr(text, zonename));
-		TCHECK(putstr(text, "' was deleted.\n"));
+		TCHECK(putstr(text, "' was deleted."));
 
 		file = dns_zone_getfile(mayberaw);
 		first = inuse(file, ISC_TRUE, text);
