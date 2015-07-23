@@ -646,7 +646,7 @@
       <para>
 	ISC <acronym>BIND</acronym> 9 compiles and runs on a large
 	number
-	of Unix-like operating systems and on 
+	of Unix-like operating systems and on
 	Microsoft Windows Server 2003 and 2008, and Windows XP and Vista.
 	For an up-to-date
 	list of supported systems, see the README file in the top level
@@ -1396,7 +1396,7 @@ controls {
 	<command>allow-update</command> or an <command>update-policy</command>
 	clause in the <command>zone</command> statement.
       </para>
-      
+
       <para>
 	If the zone's <command>update-policy</command> is set to
 	<userinput>local</userinput>, updates to the zone
@@ -2240,10 +2240,10 @@ allow-update { key host1-host2. ;};
 	  To enable <command>named</command> to validate answers from
 	  other servers, the <command>dnssec-enable</command> option
 	  must be set to <userinput>yes</userinput>, and the
-	  <command>dnssec-validation</command> options must be set to 
+	  <command>dnssec-validation</command> options must be set to
 	  <userinput>yes</userinput> or <userinput>auto</userinput>.
 	</para>
-	  
+
 	<para>
 	  If <command>dnssec-validation</command> is set to
 	  <userinput>auto</userinput>, then a default
@@ -2256,7 +2256,7 @@ allow-update { key host1-host2. ;};
 	  will not occur.  The default setting is
 	  <userinput>yes</userinput>.
 	</para>
-	  
+
 	<para>
 	  <command>trusted-keys</command> are copies of DNSKEY RRs
 	  for zones that are used to form the first link in the
@@ -2365,7 +2365,7 @@ options {
 	  including missing, expired, or invalid signatures, a key which
 	  does not match the DS RRset in the parent zone, or an insecure
 	  response from a zone which, according to its parent, should have
-	  been secure.  
+	  been secure.
 	</para>
 
 	<note>
@@ -2427,7 +2427,7 @@ options {
 	the traditional "nibble" format used in the
 	<emphasis>ip6.arpa</emphasis> domain, as well as the older, deprecated
 	<emphasis>ip6.int</emphasis> domain.
-	Older versions of <acronym>BIND</acronym> 9 
+	Older versions of <acronym>BIND</acronym> 9
 	supported the "binary label" (also known as "bitstring") format,
 	but support of binary labels has been completely removed per
 	RFC 3363.
@@ -2900,7 +2900,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		  "as big as possible", depending on the context.
 		  See the explanations of particular parameters
 		  that use <varname>size_spec</varname>
-		  for details on how they interpret its use. 
+		  for details on how they interpret its use.
 		</para>
 		<para>
 		  Numeric values can optionally be followed by a
@@ -2919,7 +2919,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		  way to safely set a very large number.
 		</para>
 		<para>
-		  <varname>default</varname> 
+		  <varname>default</varname>
 		  uses the limit that was in force when the server was started.
 		</para>
 	      </entry>
@@ -3257,7 +3257,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		<para>
 		  defines a named masters list for
 		  inclusion in stub and slave zones'
-		  <command>masters</command> or 
+		  <command>masters</command> or
 		  <command>also-notify</command> lists.
 		</para>
 	      </entry>
@@ -4723,7 +4723,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<title><command>masters</command> Statement Grammar</title>
 
 <programlisting>
-<command>masters</command> <replaceable>name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional> { ( <replaceable>masters_list</replaceable> | 
+<command>masters</command> <replaceable>name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional> { ( <replaceable>masters_list</replaceable> |
       <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> };
 </programlisting>
 
@@ -4804,7 +4804,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional> ; ... </optional> }; </optional>
     <optional> dual-stack-servers <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional> {
 	( <replaceable>domain_name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional> |
-	  <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional>) ; 
+	  <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional>) ;
 	... }; </optional>
     <optional> check-names ( <replaceable>master</replaceable> | <replaceable>slave</replaceable> | <replaceable>response</replaceable> )
 	( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
@@ -4852,7 +4852,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> query-source-v6 ( ( <replaceable>ip6_addr</replaceable> | <replaceable>*</replaceable> )
 	<optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>
 	<optional> dscp <replaceable>ip_dscp</replaceable></optional> |
-	<optional> address ( <replaceable>ip6_addr</replaceable> | <replaceable>*</replaceable> ) </optional> 
+	<optional> address ( <replaceable>ip6_addr</replaceable> | <replaceable>*</replaceable> ) </optional>
 	<optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> )
 	<optional> dscp <replaceable>ip_dscp</replaceable></optional> ; </optional>
     <optional> use-queryport-pool <replaceable>yes_or_no</replaceable>; </optional>
@@ -5356,7 +5356,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		The pathname of a file to override the built-in trusted
 		keys provided by <command>named</command>.
 		See the discussion of <command>dnssec-lookaside</command>
-		and <command>dnssec-validation</command> for details. 
+		and <command>dnssec-validation</command> for details.
 		If not specified, the default is
 		<filename>/etc/bind.keys</filename>.
 	      </para>
@@ -5671,7 +5671,7 @@ options {
 	      <para>
 		Each <command>dns64</command> supports an optional
 		<command>mapped</command> ACL that selects which
-		IPv4 addresses are to be mapped in the corresponding	
+		IPv4 addresses are to be mapped in the corresponding
 		A RRset.  If not defined it defaults to
 		<userinput>any;</userinput>.
 	      </para>
@@ -5813,7 +5813,7 @@ options {
 		option can also accept <userinput>yes</userinput>
 		or <userinput>no</userinput>; <userinput>yes</userinput>
 		has the same meaning as <userinput>full</userinput>.
-		As of <acronym>BIND</acronym> 9.10, 
+		As of <acronym>BIND</acronym> 9.10,
 		<userinput>no</userinput> has the same meaning
 		as <userinput>none</userinput>; previously, it
 		was the same as <userinput>terse</userinput>.
@@ -6310,7 +6310,7 @@ options {
 	      <listitem>
 		<para>
 		  If <userinput>yes</userinput>, then an empty EDNS(0)
-		  NSID (Name Server Identifier) option is sent with all 
+		  NSID (Name Server Identifier) option is sent with all
 		  queries to authoritative name servers during iterative
 		  resolution. If the authoritative server returns an NSID
 		  option in its response, then its contents are logged in
@@ -6571,7 +6571,7 @@ options {
 		<para>
 		  If <userinput>yes</userinput>,
 		  the DNS client is at an IPv4 address, in <command>filter-aaaa</command>,
-		  and if the response does not include DNSSEC signatures, 
+		  and if the response does not include DNSSEC signatures,
 		  then all AAAA records are deleted from the response.
 		  This filtering applies to all responses and not only
 		  authoritative responses.
@@ -6583,8 +6583,8 @@ options {
 		  because the DNSSEC protocol is designed detect deletions.
 		</para>
 		<para>
-		  This mechanism can erroneously cause other servers to 
-		  not give AAAA records to their clients.  
+		  This mechanism can erroneously cause other servers to
+		  not give AAAA records to their clients.
 		  A recursing server with both IPv6 and IPv4 network connections
 		  that queries an authoritative server using this mechanism
 		  via IPv4 will be denied AAAA records even if its client is
@@ -7582,7 +7582,7 @@ avoid-v6-udp-ports {};
 
 	  <para>
 	    Note: BIND 9.5.0 introduced
-	    the <command>use-queryport-pool</command> 
+	    the <command>use-queryport-pool</command>
 	    option to support a pool of such random ports, but this
 	    option is now obsolete because reusing the same ports in
 	    the pool may not be sufficiently secure.
@@ -7620,7 +7620,7 @@ avoid-v6-udp-ports {};
 		</para>
 	      </listitem>
 	    </varlistentry>
-	    
+
 	  </variablelist>
 	  <note>
 	    <para>
@@ -8189,7 +8189,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                 <para>
                   A "soft quota" is also set.  When this lower
 		  quota is exceeded, incoming requests are accepted, but
-		  for each one, a pending request will be dropped. 
+		  for each one, a pending request will be dropped.
                   If <option>recursive-clients</option> is greater than
                   1000, the soft quota is set to
                   <option>recursive-clients</option> minus 100;
@@ -8424,7 +8424,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  or the value 0, will place no limit on cache size;
 		  records will be purged from the cache only when their
 		  TTLs expire.
-		  Any positive values less than 2MB will be ignored 
+		  Any positive values less than 2MB will be ignored
 		  and reset to 2MB.
 		  In a server with multiple views, the limit applies
 		  separately to the cache of each view.
@@ -8444,7 +8444,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  waiting for
 		  some data before being passed to accept.  Nonzero values
 		  less than 10 will be silently raised. A value of 0 may also
-		  be used; on most platforms this sets the listen queue 
+		  be used; on most platforms this sets the listen queue
 		  length to a system-defined default value.
 		</para>
 	      </listitem>
@@ -9468,7 +9468,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		</para>
 	       </listitem>
 	    </varlistentry>
-	      
+
 	    <varlistentry>
 	      <term><command>empty-contact</command></term>
 	      <listitem>
@@ -9479,7 +9479,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		</para>
 	      </listitem>
 	    </varlistentry>
-  
+
 	    <varlistentry>
 	      <term><command>empty-zones-enable</command></term>
 	      <listitem>
@@ -9489,7 +9489,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		</para>
 	      </listitem>
 	    </varlistentry>
-  
+
 	    <varlistentry>
 	    <term><command>disable-empty-zone</command></term>
 	      <listitem>
@@ -9812,7 +9812,7 @@ deny-answer-aliases { "example.net"; };
 		    to the standard IPv6 text representation,
 		    <userinput>prefixlength.W8.W7.W6.W5.W4.W3.W2.W1.rpz-client-ip</userinput>.
 		    Each of W8,...,W1 is a one to four digit hexadecimal number
-		    representing 16 bits of the IPv6 address as in the standard 
+		    representing 16 bits of the IPv6 address as in the standard
 		    text representation of IPv6 addresses, but reversed as in
 		    IP6.ARPA. (Note that this representation of IPv6
 		    address is different from IP6.ARPA where each hex
@@ -10680,7 +10680,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    whether the local server will add a NSID EDNS option
 	    to requests sent to the server.  This overrides
 	    <command>request-nsid</command> set at the view or
-	    option level. 
+	    option level.
 	  </para>
 
 	  <para>
@@ -10772,18 +10772,18 @@ example.com                 CNAME   rpz-tcp-only.
 		  >http://127.0.0.1:8888/</ulink> or
 	  <ulink url="http://127.0.0.1:8888/xml"
 		  >http://127.0.0.1:8888/xml</ulink>. A CSS file is
-	  included which can format the XML statistics into tables 
-	  when viewed with a stylesheet-capable browser, and into 
+	  included which can format the XML statistics into tables
+	  when viewed with a stylesheet-capable browser, and into
 	  charts and graphs using the Google Charts API when using a
 	  javascript-capable browser.
 	</para>
 
 	<para>
 	  Applications that depend on a particular XML schema
-	  can request 
+	  can request
 	  <ulink url="http://127.0.0.1:8888/xml/v2"
 		  >http://127.0.0.1:8888/xml/v2</ulink> for version 2
-	  of the statistics XML schema or 
+	  of the statistics XML schema or
 	  <ulink url="http://127.0.0.1:8888/xml/v3"
 		  >http://127.0.0.1:8888/xml/v3</ulink> for version 3.
 	  If the requested schema is supported by the server, then
@@ -10904,7 +10904,7 @@ example.com                 CNAME   rpz-tcp-only.
 	  <title><command>managed-keys</command> Statement Definition
 	    and Usage</title>
 	  <para>
-	    The <command>managed-keys</command> statement, like 
+	    The <command>managed-keys</command> statement, like
 	    <command>trusted-keys</command>, defines DNSSEC
 	    security roots.  The difference is that
 	    <command>managed-keys</command> can be kept up to date
@@ -10950,7 +10950,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    <literal>initial-key</literal>.  The difference is, whereas the
 	    keys listed in a <command>trusted-keys</command> continue to be
 	    trusted until they are removed from
-	    <filename>named.conf</filename>, an initializing key listed 
+	    <filename>named.conf</filename>, an initializing key listed
 	    in a <command>managed-keys</command> statement is only trusted
 	    <emphasis>once</emphasis>: for as long as it takes to load the
 	    managed key database and start the RFC 5011 key maintenance
@@ -11331,7 +11331,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     type static-stub;
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> server-addresses { <optional> <replaceable>ip_addr</replaceable> ; ... </optional> }; </optional>
-    <optional> server-names { <optional> <replaceable>namelist</replaceable> </optional> }; </optional>  
+    <optional> server-names { <optional> <replaceable>namelist</replaceable> </optional> }; </optional>
     <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
 };
 
@@ -11536,7 +11536,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 		      <para>
 			Each static-stub zone is configured with
 			internally generated NS and (if necessary)
-			glue A or AAAA RRs 
+			glue A or AAAA RRs
 		      </para>
 		    </entry>
 		  </row>
@@ -11620,7 +11620,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 			2001:ffff:ffff::100.100.100.2, one would
 			configure a type redirect zone named ".",
 			with the zone file containing wildcard records
-			that point to the desired addresses: 
+			that point to the desired addresses:
 			<literal>"*. IN A 100.100.100.2"</literal>
 			and
 			<literal>"*. IN AAAA 2001:ffff:ffff::100.100.100.2"</literal>.
@@ -11628,7 +11628,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 		      <para>
 			To redirect all Spanish names (under .ES) one
 			would use similar entries but with the names
-			"*.ES." instead of "*.".  To redirect all 
+			"*.ES." instead of "*.".  To redirect all
 			commercial Spanish names (under COM.ES) one
 			would use wildcard entries called "*.COM.ES.".
 		      </para>
@@ -12397,7 +12397,7 @@ example.com. NS ns2.example.net.
 		    <replaceable>zonename</replaceable></command> causes
 		    <command>named</command> to load keys from the key
 		    repository and sign the zone with all keys that are
-		    active. 
+		    active.
 		    <command>rndc loadkeys
 		    <replaceable>zonename</replaceable></command> causes
 		    <command>named</command> to load keys from the key
@@ -12431,7 +12431,7 @@ example.com. NS ns2.example.net.
 		    the zone is updated.
 		  </para>
 		  <para>
-		    When set to 
+		    When set to
 		    <command>serial-update-method unixtime;</command>, the
 		    SOA serial number will be set to the number of seconds
 		    since the UNIX epoch, unless the serial number is
@@ -12464,7 +12464,7 @@ example.com. NS ns2.example.net.
 		  </para>
 		</listitem>
 	      </varlistentry>
-	
+
 	      <varlistentry>
 		<term><command>masterfile-format</command></term>
 		<listitem>
@@ -12750,7 +12750,7 @@ example.com. NS ns2.example.net.
 		      <para>
 			This rule takes a Windows machine principal
 			(machine$@REALM) for machine in REALM and
-			and converts it machine.realm allowing the machine 
+			and converts it machine.realm allowing the machine
 			to update machine.realm.  The REALM to be matched
 			is specified in the <replaceable>identity</replaceable>
 			field.
@@ -12764,7 +12764,7 @@ example.com. NS ns2.example.net.
 		      </para>
 		    </entry> <entry colname="2">
 		      <para>
-			This rule takes a Windows machine principal 
+			This rule takes a Windows machine principal
 			(machine$@REALM) for machine in REALM and
 			converts it to machine.realm allowing the machine
 			to update subdomains of machine.realm.  The REALM
@@ -12782,7 +12782,7 @@ example.com. NS ns2.example.net.
 		      <para>
 			This rule takes a Kerberos machine principal
 			(host/machine@REALM) for machine in REALM and
-			and converts it machine.realm allowing the machine 
+			and converts it machine.realm allowing the machine
 			to update machine.realm.  The REALM to be matched
 			is specified in the <replaceable>identity</replaceable>
 			field.
@@ -12796,7 +12796,7 @@ example.com. NS ns2.example.net.
 		      </para>
 		    </entry> <entry colname="2">
 		      <para>
-			This rule takes a Kerberos machine principal 
+			This rule takes a Kerberos machine principal
 			(host/machine@REALM) for machine in REALM and
 			converts it to machine.realm allowing the machine
 			to update subdomains of machine.realm.  The REALM
@@ -14253,7 +14253,7 @@ view external {
 	    <para>
 	      When used in the label (or name) field, the asperand or
 	      at-sign (@) symbol represents the current origin.
-	      At the start of the zone file, it is the 
+	      At the start of the zone file, it is the
 	      &lt;<varname>zone_name</varname>&gt; (followed by
 	      trailing dot).
 	    </para>
@@ -14548,7 +14548,7 @@ HOST-127.EXAMPLE. MX 0 .
 	  <para>
 	    In addition to the standard textual format, BIND 9
 	    supports the ability to read or dump to zone files in
-	    other formats. 
+	    other formats.
 	  </para>
 	  <para>
 	    The <constant>raw</constant> format is
@@ -14568,7 +14568,7 @@ HOST-127.EXAMPLE. MX 0 .
 	    For a primary server, a zone file in
 	    <constant>raw</constant> or <constant>map</constant>
 	    format is expected to be generated from a textual zone
-	    file by the <command>named-compilezone</command> command. 
+	    file by the <command>named-compilezone</command> command.
 	    For a secondary server or for a dynamic zone, it is automatically
 	    generated (if this format is specified by the
 	    <command>masterfile-format</command> option) when
@@ -14590,7 +14590,7 @@ HOST-127.EXAMPLE. MX 0 .
 	    with different pointer size, endianness or data alignment
 	    than the system on which it was generated, and should in
 	    general be used only inside a single system.
-	    While <constant>raw</constant> format uses 
+	    While <constant>raw</constant> format uses
 	    network byte order and avoids architecture-dependent
 	    data alignment so that it is as portable as
 	    possible, it is also primarily expected to be used
