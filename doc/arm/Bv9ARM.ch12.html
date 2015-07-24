@@ -50,9 +50,9 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2612637">Prerequisite</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2612647">Compilation</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2612672">Installation</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2612771">Known Defects/Restrictions</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2612848">The dns.conf File</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2612874">Sample Applications</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2612907">Known Defects/Restrictions</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2612984">The dns.conf File</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2613011">Sample Applications</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2614052">Library References</a></span></dt>
 </dl></dd>
 </dl>
@@ -135,7 +135,7 @@ $ <strong class="userinput"><code>make install</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2612771"></a>Known Defects/Restrictions</h3></div></div></div>
+<a name="id2612907"></a>Known Defects/Restrictions</h3></div></div></div>
 <div class="itemizedlist"><ul type="disc">
 <li><p>Currently, win32 is not supported for the export
       library. (Normal BIND 9 application can be built as
@@ -175,7 +175,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2612848"></a>The dns.conf File</h3></div></div></div>
+<a name="id2612984"></a>The dns.conf File</h3></div></div></div>
 <p>The IRS library supports an "advanced" configuration file
   related to the DNS library for configuration parameters that
   would be beyond the capability of the
@@ -193,14 +193,14 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2612874"></a>Sample Applications</h3></div></div></div>
+<a name="id2613011"></a>Sample Applications</h3></div></div></div>
 <p>Some sample application programs using this API are
   provided for reference. The following is a brief description of
   these applications.
   </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2612883"></a>sample: a simple stub resolver utility</h4></div></div></div>
+<a name="id2613019"></a>sample: a simple stub resolver utility</h4></div></div></div>
 <p>
   It sends a query of a given name (of a given optional RR type) to a
   specified recursive server, and prints the result as a list of
@@ -264,7 +264,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2612973"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
+<a name="id2613178"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
 <p>
   Similar to "sample", but accepts a list
   of (query) domain names as a separate file and resolves the names
@@ -305,7 +305,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613095"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
+<a name="id2613232"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
 <p>
   It sends a query to a specified server, and
   prints the response with minimal processing. It doesn't act as a
@@ -346,7 +346,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613159"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
+<a name="id2613296"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
 <p>
   This is a test program
   to check getaddrinfo() and getnameinfo() behavior. It takes a
@@ -363,7 +363,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2613174"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
+<a name="id2613310"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
 <p>
   It accepts a single update command as a
   command-line argument, sends an update request message to the
