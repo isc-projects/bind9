@@ -2296,6 +2296,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 				ns_client_error(client, result);
 				return;
 			}
+			if (notimp)
+				client->message->rcode = dns_rcode_notimp;
 			ns_client_send(client);
 			return;
 		}
