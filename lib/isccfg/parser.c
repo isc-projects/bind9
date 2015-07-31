@@ -611,7 +611,6 @@ cfg_parse_fixedpoint(cfg_parser_t *pctx, const cfg_type_t *type,
 {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
-	UNUSED(type);
 	size_t n1, n2, n3, l;
 	const char *p;
 
