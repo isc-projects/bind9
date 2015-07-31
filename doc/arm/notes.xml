@@ -41,7 +41,7 @@
       <listitem>
 	<para>
 	  A specially crafted query could trigger an assertion failure
-	  in message.c.
+	  in name.c.
 	</para>
 	<para>
 	  This flaw was discovered by Jonathan Foote, and is disclosed
