@@ -92,9 +92,9 @@ test -f $verdir/version || {
 rm $verdir/version
 rmdir $verdir
 
-shorthash=`git ls-remote $repo refs/heads/$tag | cut -c1-8`
+shorthash=`git ls-remote $repo refs/heads/$tag | cut -c1-7`
 if [ -z "$shorthash" ]; then
-        shorthash=`git ls-remote $repo refs/tags/$tag | cut -c1-8`
+        shorthash=`git ls-remote $repo refs/tags/$tag | cut -c1-7`
 fi
 if [ -z "$shorthash" ]; then
         echo "Unable to determine hash for $tag, aborting."
