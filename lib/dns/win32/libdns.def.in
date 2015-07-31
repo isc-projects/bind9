@@ -754,8 +754,6 @@ dns_resolver_setlamettl
 dns_resolver_setmustbesecure
 dns_resolver_setmaxdepth
 dns_resolver_setmaxqueries
-dns_resolver_setquerydscp4
-dns_resolver_setquerydscp6
 dns_resolver_setquotaresponse
 dns_resolver_settimeout
 dns_resolver_setudpsize
