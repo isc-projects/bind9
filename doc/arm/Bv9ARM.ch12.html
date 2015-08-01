@@ -47,13 +47,13 @@
 <dl>
 <dt><span class="sect1"><a href="Bv9ARM.ch12.html#bind9.library">BIND 9 DNS Library Support</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2616167">Prerequisite</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2616177">Compilation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2616235">Prerequisite</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2616245">Compilation</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2613266">Installation</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2613297">Known Defects/Restrictions</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2614670">The dns.conf File</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2614697">Sample Applications</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2616284">Library References</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch12.html#id2616353">Library References</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -89,7 +89,7 @@
 </ul></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2616167"></a>Prerequisite</h3></div></div></div>
+<a name="id2616235"></a>Prerequisite</h3></div></div></div>
 <p>GNU make is required to build the export libraries (other
   part of BIND 9 can still be built with other types of make). In
   the reminder of this document, "make" means GNU make. Note that
@@ -98,7 +98,7 @@
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2616177"></a>Compilation</h3></div></div></div>
+<a name="id2616245"></a>Compilation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>./configure --enable-exportlib <em class="replaceable"><code>[other flags]</code></em></code></strong>
 $ <strong class="userinput"><code>make</code></strong>
@@ -458,7 +458,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2616220"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
+<a name="id2616289"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
 <p>
   It checks a set
   of domains to see the name servers of the domains behave
@@ -515,7 +515,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2616284"></a>Library References</h3></div></div></div>
+<a name="id2616353"></a>Library References</h3></div></div></div>
 <p>As of this writing, there is no formal "manual" of the
   libraries, except this document, header files (some of them
   provide pretty detailed explanations), and sample application
