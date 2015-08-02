@@ -22,7 +22,7 @@ SYSTEMTESTTOP=..
 status=0
 n=0
 
-DIGOPTS="@10.53.0.1 -p 5300"
+DIGOPTS="@10.53.0.1 -p 5300 +nocookie"
 
 newtest() {
 	n=`expr $n + 1`
