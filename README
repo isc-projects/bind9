@@ -56,6 +56,21 @@ BIND 9.11.0
 	BIND 9.11.0 includes a number of changes from BIND 9.10 and earlier
 	releases.  New features include:
 
+	- New "fetchlimit" quotas are now available for the use of
+	  recursive resolvers that are are under high query load for
+	  domains whose authoritative servers are nonresponsive or are
+	  experiencing a denial of service attack:
+	  + "fetches-per-server" limits the number of simultaneous queries
+	    that can be sent to any single authoritative server.  The
+	    configured value is a starting point; it is automatically
+	    adjusted downward if the server is partially or completely
+	    non-responsive. The algorithm used to adjust the quota can be
+	    configured via the "fetch-quota-params" option.
+	  + "fetches-per-zone" limits the number of simultaneous queries
+	    that can be sent for names within a single domain.  (Note:
+	    Unlike "fetches-per-server", this value is not self-tuning.)
+          + New stats counters have been added to count
+	    queries spilled due to these quotas.
 	- The zone serial number of a dynamically updatable zone
 	  can now be set via "rndc signing -serial <number> <zonename>".
           This allows inline-signing zones to be set to a specific
