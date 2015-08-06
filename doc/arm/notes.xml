@@ -132,9 +132,6 @@
     <title>Feature Changes</title>
     <itemizedlist>
       <listitem>
-	<para>None</para>
-      </listitem>
-      <listitem>
 	<para>
 	  Large inline-signing changes should be less disruptive.
 	  Signature generation is now done incrementally; the number
