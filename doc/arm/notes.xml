@@ -58,6 +58,16 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  A buffer accounting error could trigger an assertion failure
+	  when parsing certain malformed DNSSEC keys.
+	</para>
+	<para>
+	  This flaw was discovered by Hanno B&ouml;ck of the Fuzzing
+	  Project, and is disclosed in CVE-2015-5722. [RT #40212]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  A specially crafted query could trigger an assertion failure
 	  in message.c.
 	</para>
