@@ -1,3 +1,7 @@
+4168.	[security]	A buffer accounting error could trigger an
+			assertion failure when parsing certain malformed 
+			DNSSEC keys. (CVE-2015-5722) [RT #40212]
+
 4167.	[func]		Update rndc's usage output to include recently added
 			commands. Thanks to Tony Finch for submitting a
 			patch. [RT #40010]

@@ -119,7 +119,7 @@ BIND 9.11.0
 
 	This release addresses the security flaws described in
 	CVE-2014-3214, CVE-2014-3859, CVE-2014-8500, CVE-2014-8680,
-	CVE-2015-1349 and CVE-2015-5477.
+	CVE-2015-1349, CVE-2015-5477 and CVE-2015-5722.
 
 BIND 9.10.0
 
