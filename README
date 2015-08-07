@@ -55,7 +55,9 @@ BIND 9.10.3
 
 	BIND 9.10.3 is a maintenance release and addresses bugs
 	found in BIND 9.10.2 and earlier, as well as the security
-	flaws described in CVE-2015-4620 and CVE-2015-5477.
+	flaws described in CVE-2015-4620, CVE-2015-5477,
+	and CVE-2015-5722.
+
 	It also makes the following new features available:
 
 	- New "fetchlimit" quotas are now available for the use of
