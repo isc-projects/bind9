@@ -1,5 +1,5 @@
 4168.	[security]	A buffer accounting error could trigger an
-			assertion failure when parsing certain malformed 
+			assertion failure when parsing certain malformed
 			DNSSEC keys. (CVE-2015-5722) [RT #40212]
 
 	--- 9.10.3b1 released ---
