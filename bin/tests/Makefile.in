@@ -50,7 +50,7 @@ SUBDIRS =	atomic db dst master mem hashes names net rbt resolver \
 # makejournal is needed by system tests
 
 # Alphabetically
-TARGETS =	cfg_test@EXEEXT@ makejournal@EXEEXT@
+TARGETS =	cfg_test@EXEEXT@ makejournal@EXEEXT@ wire_test@EXEEXT@
 
 # All the other tests are optional and not built by default.
 
@@ -94,7 +94,7 @@ XTARGETS =	adb_test@EXEEXT@ \
 		zone_test@EXEEXT@
 
 # Alphabetically
-SRCS =		cfg_test.c makejournal.c ${XSRCS}
+SRCS =		cfg_test.c makejournal.c wire_test.c ${XSRCS}
 
 XSRCS =		adb_test.c \
 		byaddr_test.c \

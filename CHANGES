@@ -1,3 +1,7 @@
+4169.	[test]		Added a 'wire_test -d' option to read input as
+			raw binary data, for use as a fuzzing harness.
+			[RT #40312]
+
 4168.	[security]	A buffer accounting error could trigger an
 			assertion failure when parsing certain malformed
 			DNSSEC keys. (CVE-2015-5722) [RT #40212]
