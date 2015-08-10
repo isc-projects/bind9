@@ -58,18 +58,19 @@ fromhex(char c) {
 	else if (c >= 'A' && c <= 'F')
 		return (c - 'A' + 10);
 
-	printf("bad input format: %02x\n", c);
+	fprintf(stderr, "bad input format: %02x\n", c);
 	exit(3);
 	/* NOTREACHED */
 }
 
 static void
 usage(void) {
-	fprintf(stderr, "wire_test [-p] [-b] [-s] [-r]\n");
-	fprintf(stderr, "\t-p\tPreserve order of the records in messages\n");
+	fprintf(stderr, "wire_test [-b] [-d] [-p] [-r] [-s] [filename]\n");
 	fprintf(stderr, "\t-b\tBest-effort parsing (ignore some errors)\n");
-	fprintf(stderr, "\t-s\tPrint memory statistics\n");
+	fprintf(stderr, "\t-d\tRead input as raw binary data\n");
+	fprintf(stderr, "\t-p\tPreserve order of the records in messages\n");
 	fprintf(stderr, "\t-r\tAfter parsing, re-render the message\n");
+	fprintf(stderr, "\t-s\tPrint memory statistics\n");
 	fprintf(stderr, "\t-t\tTCP mode - ignore the first 2 bytes\n");
 }
 
@@ -85,24 +86,28 @@ main(int argc, char *argv[]) {
 	unsigned char b[64 * 1024];
 	char s[4000];
 	isc_boolean_t tcp = ISC_FALSE;
+	isc_boolean_t rawdata = ISC_FALSE;
 	int ch;
 
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	while ((ch = isc_commandline_parse(argc, argv, "pbsrt")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "bdprst")) != -1) {
 		switch (ch) {
-			case 'p':
-				parseflags |= DNS_MESSAGEPARSE_PRESERVEORDER;
-				break;
 			case 'b':
 				parseflags |= DNS_MESSAGEPARSE_BESTEFFORT;
 				break;
-			case 's':
-				printmemstats = ISC_TRUE;
+			case 'd':
+				rawdata = ISC_TRUE;
+				break;
+			case 'p':
+				parseflags |= DNS_MESSAGEPARSE_PRESERVEORDER;
 				break;
 			case 'r':
 				dorender = ISC_TRUE;
+				break;
+			case 's':
+				printmemstats = ISC_TRUE;
 				break;
 			case 't':
 				tcp = ISC_TRUE;
@@ -116,10 +121,10 @@ main(int argc, char *argv[]) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	if (argc > 1) {
-		f = fopen(argv[1], "r");
+	if (argc >= 1) {
+		f = fopen(argv[0], "r");
 		if (f == NULL) {
-			printf("fopen failed\n");
+			fprintf(stderr, "%s: fopen failed\n", argv[0]);
 			exit(1);
 		}
 		need_close = ISC_TRUE;
@@ -127,36 +132,42 @@ main(int argc, char *argv[]) {
 		f = stdin;
 
 	bp = b;
-	while (fgets(s, sizeof(s), f) != NULL) {
-		rp = s;
-		wp = s;
-		len = 0;
-		while (*rp != '\0') {
-			if (*rp == '#')
-				break;
-			if (*rp != ' ' && *rp != '\t' &&
-			    *rp != '\r' && *rp != '\n') {
-				*wp++ = *rp;
-				len++;
+	if (rawdata) {
+		while (fread(bp, 1, 1, f) != 0)
+			bp++;
+	} else {
+		while (fgets(s, sizeof(s), f) != NULL) {
+			rp = s;
+			wp = s;
+			len = 0;
+			while (*rp != '\0') {
+				if (*rp == '#')
+					break;
+				if (*rp != ' ' && *rp != '\t' &&
+				    *rp != '\r' && *rp != '\n') {
+					*wp++ = *rp;
+					len++;
+				}
+				rp++;
 			}
-			rp++;
-		}
-		if (len == 0U)
-			break;
-		if (len % 2 != 0U) {
-			printf("bad input format: %lu\n", (unsigned long)len);
-			exit(1);
-		}
-		if (len > sizeof(b) * 2) {
-			printf("input too long\n");
-			exit(2);
-		}
-		rp = s;
-		for (i = 0; i < len; i += 2) {
-			n = fromhex(*rp++);
-			n *= 16;
-			n += fromhex(*rp++);
-			*bp++ = n;
+			if (len == 0U)
+				break;
+			if (len % 2 != 0U) {
+				fprintf(stderr, "bad input format: %lu\n",
+				       (unsigned long)len);
+				exit(1);
+			}
+			if (len > sizeof(b) * 2) {
+				fprintf(stderr, "input too long\n");
+				exit(2);
+			}
+			rp = s;
+			for (i = 0; i < len; i += 2) {
+				n = fromhex(*rp++);
+				n *= 16;
+				n += fromhex(*rp++);
+				*bp++ = n;
+			}
 		}
 	}
 
@@ -169,13 +180,13 @@ main(int argc, char *argv[]) {
 			unsigned int len;
 
 			if (p + 2 > bp) {
-				printf("premature end of packet\n");
+				fprintf(stderr, "premature end of packet\n");
 				exit(1);
 			}
 			len = p[0] << 8 | p[1];
 
 			if (p + 2 + len > bp) {
-				printf("premature end of packet\n");
+				fprintf(stderr, "premature end of packet\n");
 				exit(1);
 			}
 			isc_buffer_init(&source, p + 2, len);
