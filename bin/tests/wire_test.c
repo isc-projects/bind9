@@ -177,22 +177,22 @@ main(int argc, char *argv[]) {
 	if (tcp) {
 		unsigned char *p = b;
 		while (p < bp) {
-			unsigned int len;
+			unsigned int tcplen;
 
 			if (p + 2 > bp) {
 				fprintf(stderr, "premature end of packet\n");
 				exit(1);
 			}
-			len = p[0] << 8 | p[1];
+			tcplen = p[0] << 8 | p[1];
 
-			if (p + 2 + len > bp) {
+			if (p + 2 + tcplen > bp) {
 				fprintf(stderr, "premature end of packet\n");
 				exit(1);
 			}
-			isc_buffer_init(&source, p + 2, len);
-			isc_buffer_add(&source, len);
+			isc_buffer_init(&source, p + 2, tcplen);
+			isc_buffer_add(&source, tcplen);
 			process_message(&source);
-			p += 2 + len;
+			p += 2 + tcplen;
 		}
 	} else {
 		isc_buffer_init(&source, b, sizeof(b));
