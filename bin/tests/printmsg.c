@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: printmsg.c,v 1.31 2011/08/25 23:46:42 tbox Exp $ */
-
 #include <config.h>
 
 #include <isc/buffer.h>
@@ -24,48 +22,11 @@
 #include <isc/util.h>
 
 #include <dns/name.h>
+#include <dns/opcode.h>
+#include <dns/rcode.h>
 #include <dns/rdataset.h>
 
 #include "printmsg.h"
-
-static const char *opcodetext[] = {
-	"QUERY",
-	"IQUERY",
-	"STATUS",
-	"RESERVED3",
-	"NOTIFY",
-	"UPDATE",
-	"RESERVED6",
-	"RESERVED7",
-	"RESERVED8",
-	"RESERVED9",
-	"RESERVED10",
-	"RESERVED11",
-	"RESERVED12",
-	"RESERVED13",
-	"RESERVED14",
-	"RESERVED15"
-};
-
-static const char *rcodetext[] = {
-	"NOERROR",
-	"FORMERR",
-	"SERVFAIL",
-	"NXDOMAIN",
-	"NOTIMP",
-	"REFUSED",
-	"YXDOMAIN",
-	"YXRRSET",
-	"NXRRSET",
-	"NOTAUTH",
-	"NOTZONE",
-	"RESERVED11",
-	"RESERVED12",
-	"RESERVED13",
-	"RESERVED14",
-	"RESERVED15",
-	"BADVERS"
-};
 
 static isc_result_t
 printsection(dns_message_t *msg, dns_section_t sectionid,
@@ -167,11 +128,21 @@ printmessage(dns_message_t *msg) {
 	isc_result_t result;
 	dns_rdataset_t *opt, *tsig;
 	dns_name_t *tsigname;
+	char opcode[64], rcode[64];
+	isc_buffer_t b;
 
 	result = ISC_R_SUCCESS;
 
+	isc_buffer_init(&b, opcode, sizeof(opcode));
+	dns_opcode_totext(msg->opcode, &b);
+	isc_buffer_putuint8(&b, 0);
+
+	isc_buffer_init(&b, rcode, sizeof(rcode));
+	dns_rcode_totext(msg->rcode, &b);
+	isc_buffer_putuint8(&b, 0);
+
 	printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
-	       opcodetext[msg->opcode], rcodetext[msg->rcode], msg->id);
+	       opcode, rcode, msg->id);
 
 	printf(";; flags:");
 	if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0)
