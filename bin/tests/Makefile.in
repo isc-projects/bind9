@@ -118,7 +118,6 @@ XSRCS =		adb_test.c \
 		mempool_test.c \
 		name_test.c \
 		nsecify.c \
-		printmsg.c \
 		ratelimiter_test.c \
 		rbt_test.c \
 		rdata_test.c \
@@ -247,8 +246,8 @@ rwlock_test@EXEEXT@: rwlock_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rwlock_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-wire_test@EXEEXT@: wire_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ wire_test.@O@ printmsg.@O@ \
+wire_test@EXEEXT@: wire_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ wire_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 master_test@EXEEXT@: master_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
