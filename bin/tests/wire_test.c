@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.67 2007/06/19 23:46:59 tbox Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -28,9 +26,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/message.h>
 #include <dns/result.h>
-
-#include "printmsg.h"
 
 int parseflags = 0;
 isc_mem_t *mctx;
@@ -39,6 +36,9 @@ isc_boolean_t dorender = ISC_FALSE;
 
 static void
 process_message(isc_buffer_t *source);
+
+static isc_result_t
+printmessage(dns_message_t *msg);
 
 static inline void
 CHECKRESULT(isc_result_t result, const char *msg) {
@@ -72,6 +72,36 @@ usage(void) {
 	fprintf(stderr, "\t-r\tAfter parsing, re-render the message\n");
 	fprintf(stderr, "\t-s\tPrint memory statistics\n");
 	fprintf(stderr, "\t-t\tTCP mode - ignore the first 2 bytes\n");
+}
+
+static isc_result_t
+printmessage(dns_message_t *msg) {
+	isc_buffer_t b;
+	char *buf = NULL;
+	int len = 1024;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	do {
+		buf = isc_mem_get(mctx, len);
+		if (buf == NULL) {
+			result = ISC_R_NOMEMORY;
+			break;
+		}
+
+		isc_buffer_init(&b, buf, len);
+		result = dns_message_totext(msg, &dns_master_style_debug,
+					    0, &b);
+		if (result == ISC_R_NOSPACE) {
+			isc_mem_put(mctx, buf, len);
+			len *= 2;
+		} else if (result == ISC_R_SUCCESS)
+			printf("%.*s\n", (int) isc_buffer_usedlength(&b), buf);
+	} while (result == ISC_R_NOSPACE);
+
+	if (buf != NULL)
+		isc_mem_put(mctx, buf, len);
+
+	return (result);
 }
 
 int
