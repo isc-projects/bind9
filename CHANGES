@@ -1,3 +1,6 @@
+4171.	[bug]		Fixed incorrect class checks in TSIG RR
+			implementation. [RT #40287]
+
 4170.	[security]	An incorrect boundary check in the OPENPGPKEY
 			rdatatype could trigger an assertion failure.
 			[RT #40286]
