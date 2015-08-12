@@ -68,7 +68,8 @@ static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
 	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE,
 	onesoa = ISC_FALSE, rrcomments = ISC_FALSE, use_usec = ISC_FALSE,
-	nocrypto = ISC_FALSE, ttlunits = ISC_FALSE;
+	nocrypto = ISC_FALSE, ttlunits = ISC_FALSE, ipv4only = ISC_FALSE,
+	ipv6only = ISC_FALSE;
 static isc_uint32_t splitwidth = 0xffffffff;
 
 /*% opcode text */
@@ -1715,11 +1716,22 @@ preparse_args(int argc, char **argv) {
 			continue;
 		option = &rv[0][1];
 		while (strpbrk(option, single_dash_opts) == &option[0]) {
-			if (option[0] == 'm') {
+			switch (option[0]) {
+			case 'm':
 				memdebugging = ISC_TRUE;
 				isc_mem_debugging = ISC_MEM_DEBUGTRACE |
 					ISC_MEM_DEBUGRECORD;
-				return;
+				break;
+			case '4':
+				if (ipv6only)
+					fatal("only one of -4 and -6 allowed");
+				ipv4only = ISC_TRUE;
+				break;
+			case '6':
+				if (ipv4only)
+					fatal("only one of -4 and -6 allowed");
+				ipv6only = ISC_TRUE;
+				break;
 			}
 			option = &option[1];
 		}
@@ -2081,12 +2093,12 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(search_list);
 
 	debug("main()");
-	preparse_args(argc, argv);
 	progname = argv[0];
+	preparse_args(argc, argv);
 	result = isc_app_start();
 	check_result(result, "isc_app_start");
 	setup_libs();
-	setup_system();
+	setup_system(ipv4only, ipv6only);
 	parse_args(ISC_FALSE, ISC_FALSE, argc, argv);
 	if (keyfile[0] != 0)
 		setup_file_key();

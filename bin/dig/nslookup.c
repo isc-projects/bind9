@@ -908,7 +908,7 @@ main(int argc, char **argv) {
 	setup_libs();
 	progname = argv[0];
 
-	setup_system();
+	setup_system(ISC_FALSE, ISC_FALSE);
 	parse_args(argc, argv);
 	if (keyfile[0] != 0)
 		setup_file_key();
