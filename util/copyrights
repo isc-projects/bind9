@@ -860,6 +860,7 @@
 ./bin/tests/system/checkconf/dnssec.1		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.2		CONF-C	2011
 ./bin/tests/system/checkconf/dnssec.3		CONF-C	2011
+./bin/tests/system/checkconf/good-class.conf	CONF-C	2015
 ./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007,2010,2011,2012,2013,2014
 ./bin/tests/system/checkconf/hint-nofile.conf	CONF-C	2013
 ./bin/tests/system/checkconf/inline-bad.conf	CONF-C	2013
@@ -2841,7 +2842,7 @@
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rcode.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
 ./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
-./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012
+./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012,2015
 ./lib/dns/rdata/any_255/tsig_250.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/ch_3/a_1.c			C	2005,2007,2009,2014
 ./lib/dns/rdata/ch_3/a_1.h			C	2005,2007
@@ -2921,7 +2922,7 @@
 ./lib/dns/rdata/generic/null_10.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/nxt_30.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009
 ./lib/dns/rdata/generic/nxt_30.h		C	1999,2000,2001,2002,2004,2005,2007
-./lib/dns/rdata/generic/openpgpkey_61.c		C	2014
+./lib/dns/rdata/generic/openpgpkey_61.c		C	2014,2015
 ./lib/dns/rdata/generic/openpgpkey_61.h		C	2014
 ./lib/dns/rdata/generic/opt_41.c		C	1998,1999,2000,2001,2002,2004,2005,2007,2009,2011,2012,2013,2014,2015
 ./lib/dns/rdata/generic/opt_41.h		C	1998,1999,2000,2001,2004,2005,2007
