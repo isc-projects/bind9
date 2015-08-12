@@ -3532,6 +3532,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	view->sendcookie = cfg_obj_asboolean(obj);
 
 	obj = NULL;
+	result = ns_config_get(maps, "require-server-cookie", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->requireservercookie = cfg_obj_asboolean(obj);
+
+	obj = NULL;
 	result = ns_config_get(maps, "max-clients-per-query", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	max_clients_per_query = cfg_obj_asuint32(obj);

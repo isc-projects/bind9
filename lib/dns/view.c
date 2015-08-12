@@ -234,6 +234,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	dns_fixedname_init(&view->redirectfixed);
 	view->requestnsid = ISC_FALSE;
 	view->sendcookie = ISC_TRUE;
+	view->requireservercookie = ISC_FALSE;
 	view->new_zone_file = NULL;
 	view->new_zone_config = NULL;
 	view->cfg_destroy = NULL;

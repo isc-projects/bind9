@@ -183,6 +183,7 @@ options {\n\
 	nsec3-test-zone no;\n\
 	allow-new-zones no;\n\
 	fetches-per-server 0;\n\
+	require-server-cookie no;\n\
 "
 #ifdef HAVE_GEOIP
 "\

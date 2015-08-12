@@ -50,7 +50,7 @@
 	  when parsing certain malformed DNSSEC keys.
 	</para>
 	<para>
-	  This flaw was discovered by Hanno B&ouml;ck of the Fuzzing
+	  This flaw was discovered by Hanno B&#x96;ck of the Fuzzing
 	  Project, and is disclosed in CVE-2015-5722. [RT #40212]
 	</para>
       </listitem>
@@ -564,21 +564,23 @@
       <listitem>
 	<para>
 	  The experimental SIT option (code point 65001) of BIND
-	  9.10.0 through BIND 9.10.2 has be replace the COOKIE
-	  option (code point 10) and is no longer experimental and
-	  is sent by default.
+	  9.10.0 through BIND 9.10.2 has been replaced with the COOKIE
+	  option (code point 10). It is no longer experimental, and
+	  is sent by default, by both <command>named</command> and
+	  <command>dig</command>.
 	</para>
 	<para>
-	  The SIT related named.conf options have been marked as
-	  obsolete and are otherwise ignored.
+	  The SIT-related named.conf options have been marked as
+	  obsolete, and are otherwise ignored.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  When retrying a query via TCP due to the first answer
-	  being truncated, <command>dig</command> will now correctly
-	  send the Server COOKIE returned by the server in the prior
-	  response. [RT #39047]
+	  When <command>dig</command> receives a truncated (TC=1)
+	  response or a BADCOOKIE response code from a server, it
+	  will automatically retry the query using the server COOKIE
+	  that was returned by the server in its initial response.
+	  [RT #39047]
 	</para>
       </listitem>
       <listitem>

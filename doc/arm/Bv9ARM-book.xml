@@ -4807,6 +4807,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable>; </optional>
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
     <optional> send-cookie <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> require-server-cookie <replaceable>yes_or_no</replaceable>; </optional>
     <optional> cookie-algorithm <replaceable>secret_string</replaceable>; </optional>
     <optional> cookie-secret <replaceable>secret_string</replaceable>; </optional>
     <optional> request-nsid <replaceable>yes_or_no</replaceable>; </optional>
@@ -6464,9 +6465,19 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-              <term><command>request-sit</command></term>
+	      <term><command>request-sit</command></term>
 	      <para>
 		This experimental option is obsolete.
+	      </para>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>require-server-cookie</command></term>
+	      <para>
+		Require a valid server cookie before sending a full
+		response to a UDP request from a cookie aware client.
+		BADCOOKIE is sent if there is a bad or no existent
+		server cookie.
 	      </para>
 	    </varlistentry>
 
@@ -6498,7 +6509,7 @@ options {
 	      <listitem>
 		<para>
 		  This experimental option is obsolete.
-	    	</para>
+		</para>
 	      </listitem>
 	    </varlistentry>
 
@@ -8402,16 +8413,16 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  will not be accepted, and for each incoming request
 		  a previous pending request will also be dropped.
 		</para>
-                <para>
-                  A "soft quota" is also set.  When this lower
+		<para>
+		  A "soft quota" is also set.  When this lower
 		  quota is exceeded, incoming requests are accepted, but
 		  for each one, a pending request will be dropped.
-                  If <option>recursive-clients</option> is greater than
-                  1000, the soft quota is set to
-                  <option>recursive-clients</option> minus 100;
-                  otherwise it is set to 90% of
-                  <option>recursive-clients</option>.
-                </para>
+		  If <option>recursive-clients</option> is greater than
+		  1000, the soft quota is set to
+		  <option>recursive-clients</option> minus 100;
+		  otherwise it is set to 90% of
+		  <option>recursive-clients</option>.
+		</para>
 	      </listitem>
 	    </varlistentry>
 
@@ -8520,13 +8531,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  The maximum number of simultaneous iterative
-                  queries that the server will allow to be sent to
-                  a single upstream name server before blocking
-                  additional queries.
+		  queries that the server will allow to be sent to
+		  a single upstream name server before blocking
+		  additional queries.
 		  This value should reflect how many fetches would
 		  normally be sent to any one server in the time it
 		  would take to resolve them.  It should be smaller
-                  than <option>recursive-clients</option>.
+		  than <option>recursive-clients</option>.
 		</para>
 		<para>
 		  Optionally, this value may be followed by the keyword
@@ -11191,7 +11202,7 @@ example.com                 CNAME   rpz-tcp-only.
 		  >http://127.0.0.1:8888/json/v1/tasks</ulink>
 	  (task manager statistics), and
 	  <ulink url="http://127.0.0.1:8888/json/v1/traffic"
-	          >http://127.0.0.1:8888/json/v1/traffic</ulink>
+		  >http://127.0.0.1:8888/json/v1/traffic</ulink>
 	  (traffic sizes).
 	</para>
       </sect2>

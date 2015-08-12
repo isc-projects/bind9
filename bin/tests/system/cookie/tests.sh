@@ -113,5 +113,26 @@ grep "10.53.0.2.*\[cookie=" ns1/named_dump.db > /dev/null|| ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:checking require-server-cookie default (no) ($n)"
+ret=0
+$DIG +qr +cookie +nobadcookie soa @10.53.0.1 -p 5300 > dig.out.test$n
+grep BADCOOKIE dig.out.test$n > /dev/null && ret=1
+linecount=`getcookie dig.out.test$n | wc -l`
+if [ $linecount != 2 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking require-server-cookie yes ($n)"
+ret=0
+$DIG +qr +cookie +nobadcookie soa @10.53.0.3 -p 5300 > dig.out.test$n
+grep BADCOOKIE dig.out.test$n > /dev/null || ret=1
+linecount=`getcookie dig.out.test$n | wc -l`
+if [ $linecount != 2 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+
 echo "I:exit status: $status"
 exit $status

@@ -6973,7 +6973,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				goto cleanup;
 			}
 		}
-	} else if (!TCP(client) && WANTCOOKIE(client) && !HAVECOOKIE(client)) {
+	} else if (!TCP(client) && client->view->requireservercookie &&
+		   WANTCOOKIE(client) && !HAVECOOKIE(client)) {
 		client->message->rcode = dns_rcode_badcookie;
 		goto cleanup;
 	}

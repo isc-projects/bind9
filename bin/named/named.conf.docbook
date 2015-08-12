@@ -1,5 +1,5 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
-               "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
+	       "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
  - Copyright (C) 2004-2015  Internet Systems Consortium, Inc. ("ISC")
@@ -133,7 +133,7 @@ server ( <replaceable>ipv4_address<optional>/prefixlen</optional></replaceable> 
     <title>TRUSTED-KEYS</title>
     <literallayout>
 trusted-keys {
-	<replaceable>domain_name</replaceable> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key</replaceable>; ... 
+	<replaceable>domain_name</replaceable> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key</replaceable>; ...
 };
 </literallayout>
   </refsect1>
@@ -142,7 +142,7 @@ trusted-keys {
     <title>MANAGED-KEYS</title>
     <literallayout>
 managed-keys {
-	<replaceable>domain_name</replaceable> <constant>initial-key</constant> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key</replaceable>; ... 
+	<replaceable>domain_name</replaceable> <constant>initial-key</constant> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key</replaceable>; ...
 };
 </literallayout>
   </refsect1>
@@ -300,9 +300,9 @@ options {
 	dns64-server <replaceable>string</replaceable>;
 	dns64-contact <replaceable>string</replaceable>;
 	dns64 <replaceable>prefix</replaceable> {
-		clients { <replacable>acl</replacable>; };
-		exclude { <replacable>acl</replacable>; };
-		mapped { <replacable>acl</replacable>; };
+		clients { <replaceable>acl</replaceable>; };
+		exclude { <replaceable>acl</replaceable>; };
+		mapped { <replaceable>acl</replaceable>; };
 		break-dnssec <replaceable>boolean</replaceable>;
 		recursive-only <replaceable>boolean</replaceable>;
 		suffix <replaceable>ipv6_address</replaceable>;
@@ -378,6 +378,13 @@ options {
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl-cache <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
+
+	cookie-algorithm ( <replaceable>aes</replaceable> | <replaceable>sha1</replaceable> | <replaceable>sha256</replaceable> );
+	cookie-secret <replaceable>string</replaceable>;
+	require-server-cookie <replaceable>boolean</replaceable>;
+	send-cookie <replaceable>boolean</replaceable>;
+	nocookie-udp-size <replaceable>integer</replaceable>;
+
 	deny-answer-addresses {
 		<replaceable>address_match_list</replaceable>
 	} <optional> except-from { <replaceable>namelist</replaceable> } </optional>;
@@ -489,9 +496,9 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	dns64-server <replaceable>string</replaceable>;
 	dns64-contact <replaceable>string</replaceable>;
 	dns64 <replaceable>prefix</replaceable> {
-		clients { <replacable>acl</replacable>; };
-		exclude { <replacable>acl</replacable>; };
-		mapped { <replacable>acl</replacable>; };
+		clients { <replaceable>acl</replaceable>; };
+		exclude { <replaceable>acl</replaceable>; };
+		mapped { <replaceable>acl</replaceable>; };
 		break-dnssec <replaceable>boolean</replaceable>;
 		recursive-only <replaceable>boolean</replaceable>;
 		suffix <replaceable>ipv6_address</replaceable>;
@@ -561,6 +568,10 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	zero-no-soa-ttl-cache <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 
+	require-server-cookie <replaceable>boolean</replaceable>;
+	send-cookie <replaceable>boolean</replaceable>;
+	nocookie-udp-size <replaceable>integer</replaceable>;
+
 	allow-v6-synthesis { <replaceable>address_match_element</replaceable>; ... }; // obsolete
 	fetch-glue <replaceable>boolean</replaceable>; // obsolete
 	maintain-ixfr-base <replaceable>boolean</replaceable>; // obsolete
@@ -604,7 +615,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	update-policy <replaceable>local</replaceable> | <replaceable> {
 		( grant | deny ) <replaceable>string</replaceable>
 		( name | subdomain | wildcard | self | selfsub | selfwild |
-                  krb5-self | ms-self | krb5-subdomain | ms-subdomain |
+		  krb5-self | ms-self | krb5-subdomain | ms-subdomain |
 		  tcp-self | zonesub | 6to4-self ) <replaceable>string</replaceable>
 		<replaceable>rrtypelist</replaceable>;
 		<optional>...</optional>
@@ -676,13 +687,13 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
   <refsect1>
     <title>SEE ALSO</title>
     <para><citerefentry>
-        <refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
+	<refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citerefentry>
-        <refentrytitle>named-checkconf</refentrytitle><manvolnum>8</manvolnum>
+	<refentrytitle>named-checkconf</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citerefentry>
-        <refentrytitle>rndc</refentrytitle><manvolnum>8</manvolnum>
+	<refentrytitle>rndc</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>.
     </para>
