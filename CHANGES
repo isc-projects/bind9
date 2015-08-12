@@ -1,3 +1,6 @@
+4172.	[bug]		Named / named-checkconf didn't handle a view of CLASS0.
+			[RT #40265]
+
 4171.	[bug]		Fixed incorrect class checks in TSIG RR
 			implementation. [RT #40287]
 
