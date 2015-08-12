@@ -1269,7 +1269,7 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length == 0)
-		return(ISC_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	n = *sregion.base + 1;
 	if (n > sregion.length)
 		return (ISC_R_UNEXPECTEDEND);

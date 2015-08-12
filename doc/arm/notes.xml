@@ -45,6 +45,12 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  An incorrect boundary check in the OPENPGPKEY rdatatype
+	  could trigger an assertion failure. [RT #40286]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  A buffer accounting error could trigger an assertion failure
 	  when parsing certain malformed DNSSEC keys.
 	</para>
