@@ -1,3 +1,6 @@
+4173.	[bug]		dig +sigchase was not properly matching the trusted
+			key. [RT #40188]
+
 4172.	[bug]		Named / named-checkconf didn't handle a view of CLASS0.
 			[RT #40265]
 
