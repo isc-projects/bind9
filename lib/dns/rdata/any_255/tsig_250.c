@@ -529,8 +529,8 @@ freestruct_any_tsig(ARGS_FREESTRUCT) {
 	dns_rdata_any_tsig_t *tsig = (dns_rdata_any_tsig_t *) source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(tsig->common.rdclass == 255);
 	REQUIRE(tsig->common.rdtype == 250);
+	REQUIRE(tsig->common.rdclass == 255);
 
 	if (tsig->mctx == NULL)
 		return;
@@ -586,7 +586,7 @@ static inline isc_boolean_t
 checknames_any_tsig(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == 250);
-	REQUIRE(rdata->rdclass == 250);
+	REQUIRE(rdata->rdclass == 255);
 
 	UNUSED(rdata);
 	UNUSED(owner);
