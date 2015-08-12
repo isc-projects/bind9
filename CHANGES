@@ -1,3 +1,7 @@
+4170.	[security]	An incorrect boundary check in the OPENPGPKEY
+			rdatatype could trigger an assertion failure.
+			[RT #40286]
+
 4168.	[security]	A buffer accounting error could trigger an
 			assertion failure when parsing certain malformed 
 			DNSSEC keys. (CVE-2015-5722) [RT #40212]
