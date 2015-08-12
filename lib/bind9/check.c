@@ -2922,7 +2922,7 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 				const char *file;
 				unsigned int line;
 				RUNTIME_CHECK(isc_symtab_lookup(symtab, key,
-				         symtype, &symvalue) == ISC_R_SUCCESS);
+					 symtype, &symvalue) == ISC_R_SUCCESS);
 				file = cfg_obj_file(symvalue.as_cpointer);
 				line = cfg_obj_line(symvalue.as_cpointer);
 				cfg_obj_log(view, logctx, ISC_LOG_ERROR,
