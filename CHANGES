@@ -1,3 +1,6 @@
+4174.	[bug]		"dnssec-coverage -r" didn't handle time unit
+			suffixes correctly. [RT #38444]
+
 4173.	[bug]		dig +sigchase was not properly matching the trusted
 			key. [RT #40188]
 
