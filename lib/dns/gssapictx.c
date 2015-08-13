@@ -633,7 +633,6 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 	if (gouttoken.length != 0U) {
 		GBUFFER_TO_REGION(gouttoken, r);
 		RETERR(isc_buffer_copyregion(outtoken, &r));
-		(void)gss_release_buffer(&minor, &gouttoken);
 	}
 
 	if (gret == GSS_S_COMPLETE)
@@ -642,6 +641,8 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 		result = DNS_R_CONTINUE;
 
  out:
+	if (gouttoken.length != 0U)
+		(void)gss_release_buffer(&minor, &gouttoken);
 	(void)gss_release_name(&minor, &gname);
 	return (result);
 #else

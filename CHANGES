@@ -1,3 +1,6 @@
+4175.	[bug]		TKEY with GSS-API keys needed bigger buffers.
+			[RT #40333]
+
 4174.	[bug]		"dnssec-coverage -r" didn't handle time unit
 			suffixes correctly. [RT #38444]
 
