@@ -2358,7 +2358,20 @@ ns_statschannels_configure(ns_server_t *server, const cfg_obj_t *config,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "statistics-channels specified but not effective "
 			      "due to missing XML and/or JSON library");
-#endif
+#else /* EXTENDED_STATS */
+#ifndef HAVE_LIBXML2
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "statistics-channels: XML library missing, "
+			      "only JSON stats will be available");
+#endif /* !HAVE_LIBXML2 */
+#ifndef HAVE_JSON
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "statistics-channels: JSON library missing, "
+			      "only XML stats will be available");
+#endif /* !HAVE_JSON */
+#endif /* EXTENDED_STATS */
 
 		for (element = cfg_list_first(statschannellist);
 		     element != NULL;
