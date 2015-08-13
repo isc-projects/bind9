@@ -512,7 +512,7 @@ fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
 		 * more significant bits are 0. (For instance,
 		 * 0x0700 => 0x00ff, 0x0007 => 0x0000)
 		 */
-		mask = ~(zbits_req | -zbits_req);
+		mask = ~(zbits_req | ((~zbits_req) + 1));
 
 		/*
 		 * As mentioned in (2) above, the zone corresponding to
