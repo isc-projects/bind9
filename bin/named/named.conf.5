@@ -99,7 +99,7 @@ server ( \fIipv4_address\fR\fI[/prefixlen]\fR | \fIipv6_address\fR\fI[/prefixlen
 .RS 4
 .nf
 trusted\-keys {
-	\fIdomain_name\fR \fIflags\fR \fIprotocol\fR \fIalgorithm\fR \fIkey\fR; ... 
+	\fIdomain_name\fR \fIflags\fR \fIprotocol\fR \fIalgorithm\fR \fIkey\fR; ...
 };
 .fi
 .RE
@@ -108,7 +108,7 @@ trusted\-keys {
 .RS 4
 .nf
 managed\-keys {
-	\fIdomain_name\fR \fBinitial\-key\fR \fIflags\fR \fIprotocol\fR \fIalgorithm\fR \fIkey\fR; ... 
+	\fIdomain_name\fR \fBinitial\-key\fR \fIflags\fR \fIprotocol\fR \fIalgorithm\fR \fIkey\fR; ...
 };
 .fi
 .RE
@@ -265,9 +265,9 @@ options {
 	dns64\-server \fIstring\fR;
 	dns64\-contact \fIstring\fR;
 	dns64 \fIprefix\fR {
-		clients { <replacable>acl</replacable>; };
-		exclude { <replacable>acl</replacable>; };
-		mapped { <replacable>acl</replacable>; };
+		clients { \fIacl\fR; };
+		exclude { \fIacl\fR; };
+		mapped { \fIacl\fR; };
 		break\-dnssec \fIboolean\fR;
 		recursive\-only \fIboolean\fR;
 		suffix \fIipv6_address\fR;
@@ -333,6 +333,11 @@ options {
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
+	cookie\-algorithm ( \fIaes\fR | \fIsha1\fR | \fIsha256\fR );
+	cookie\-secret \fIstring\fR;
+	require\-server\-cookie \fIboolean\fR;
+	send\-cookie \fIboolean\fR;
+	nocookie\-udp\-size \fIinteger\fR;
 	deny\-answer\-addresses {
 		\fIaddress_match_list\fR
 	} [ except\-from { \fInamelist\fR } ];
@@ -436,9 +441,9 @@ view \fIstring\fR \fIoptional_class\fR {
 	dns64\-server \fIstring\fR;
 	dns64\-contact \fIstring\fR;
 	dns64 \fIprefix\fR {
-		clients { <replacable>acl</replacable>; };
-		exclude { <replacable>acl</replacable>; };
-		mapped { <replacable>acl</replacable>; };
+		clients { \fIacl\fR; };
+		exclude { \fIacl\fR; };
+		mapped { \fIacl\fR; };
 		break\-dnssec \fIboolean\fR;
 		recursive\-only \fIboolean\fR;
 		suffix \fIipv6_address\fR;
@@ -498,6 +503,9 @@ view \fIstring\fR \fIoptional_class\fR {
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
+	require\-server\-cookie \fIboolean\fR;
+	send\-cookie \fIboolean\fR;
+	nocookie\-udp\-size \fIinteger\fR;
 	allow\-v6\-synthesis { \fIaddress_match_element\fR; ... }; // obsolete
 	fetch\-glue \fIboolean\fR; // obsolete
 	maintain\-ixfr\-base \fIboolean\fR; // obsolete
@@ -538,7 +546,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 	update\-policy \fIlocal\fR | \fI {
 		( grant | deny ) \fR\fI\fIstring\fR\fR\fI
 		( name | subdomain | wildcard | self | selfsub | selfwild |
-                  krb5\-self | ms\-self | krb5\-subdomain | ms\-subdomain |
+		  krb5\-self | ms\-self | krb5\-subdomain | ms\-subdomain |
 		  tcp\-self | zonesub | 6to4\-self ) \fR\fI\fIstring\fR\fR\fI
 		\fR\fI\fIrrtypelist\fR\fR\fI;
 		\fR\fI[...]\fR\fI

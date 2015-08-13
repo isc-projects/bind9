@@ -101,7 +101,7 @@ server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/pref
 <a name="id2543556"></a><h2>TRUSTED-KEYS</h2>
 <div class="literallayout"><p><br>
 trusted-keys {<br>
-	<em class="replaceable"><code>domain_name</code></em> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ... <br>
+	<em class="replaceable"><code>domain_name</code></em> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ...<br>
 };<br>
 </p></div>
 </div>
@@ -109,7 +109,7 @@ trusted-keys {<br>
 <a name="id2543581"></a><h2>MANAGED-KEYS</h2>
 <div class="literallayout"><p><br>
 managed-keys {<br>
-	<em class="replaceable"><code>domain_name</code></em> <code class="constant">initial-key</code> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ... <br>
+	<em class="replaceable"><code>domain_name</code></em> <code class="constant">initial-key</code> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ...<br>
 };<br>
 </p></div>
 </div>
@@ -263,9 +263,9 @@ options {<br>
 	dns64-server <em class="replaceable"><code>string</code></em>;<br>
 	dns64-contact <em class="replaceable"><code>string</code></em>;<br>
 	dns64 <em class="replaceable"><code>prefix</code></em> {<br>
-		clients { <font color="red">&lt;replacable&gt;acl&lt;/replacable&gt;</font>; };<br>
-		exclude { <font color="red">&lt;replacable&gt;acl&lt;/replacable&gt;</font>; };<br>
-		mapped { <font color="red">&lt;replacable&gt;acl&lt;/replacable&gt;</font>; };<br>
+		clients { <em class="replaceable"><code>acl</code></em>; };<br>
+		exclude { <em class="replaceable"><code>acl</code></em>; };<br>
+		mapped { <em class="replaceable"><code>acl</code></em>; };<br>
 		break-dnssec <em class="replaceable"><code>boolean</code></em>;<br>
 		recursive-only <em class="replaceable"><code>boolean</code></em>;<br>
 		suffix <em class="replaceable"><code>ipv6_address</code></em>;<br>
@@ -341,6 +341,13 @@ options {<br>
 	zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
 	zero-no-soa-ttl-cache <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
+<br>
+	cookie-algorithm ( <em class="replaceable"><code>aes</code></em> | <em class="replaceable"><code>sha1</code></em> | <em class="replaceable"><code>sha256</code></em> );<br>
+	cookie-secret <em class="replaceable"><code>string</code></em>;<br>
+	require-server-cookie <em class="replaceable"><code>boolean</code></em>;<br>
+	send-cookie <em class="replaceable"><code>boolean</code></em>;<br>
+	nocookie-udp-size <em class="replaceable"><code>integer</code></em>;<br>
+<br>
 	deny-answer-addresses {<br>
 		<em class="replaceable"><code>address_match_list</code></em><br>
 	} [<span class="optional"> except-from { <em class="replaceable"><code>namelist</code></em> } </span>];<br>
@@ -366,7 +373,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544620"></a><h2>VIEW</h2>
+<a name="id2544711"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -451,9 +458,9 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	dns64-server <em class="replaceable"><code>string</code></em>;<br>
 	dns64-contact <em class="replaceable"><code>string</code></em>;<br>
 	dns64 <em class="replaceable"><code>prefix</code></em> {<br>
-		clients { <font color="red">&lt;replacable&gt;acl&lt;/replacable&gt;</font>; };<br>
-		exclude { <font color="red">&lt;replacable&gt;acl&lt;/replacable&gt;</font>; };<br>
-		mapped { <font color="red">&lt;replacable&gt;acl&lt;/replacable&gt;</font>; };<br>
+		clients { <em class="replaceable"><code>acl</code></em>; };<br>
+		exclude { <em class="replaceable"><code>acl</code></em>; };<br>
+		mapped { <em class="replaceable"><code>acl</code></em>; };<br>
 		break-dnssec <em class="replaceable"><code>boolean</code></em>;<br>
 		recursive-only <em class="replaceable"><code>boolean</code></em>;<br>
 		suffix <em class="replaceable"><code>ipv6_address</code></em>;<br>
@@ -523,6 +530,10 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	zero-no-soa-ttl-cache <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
+	require-server-cookie <em class="replaceable"><code>boolean</code></em>;<br>
+	send-cookie <em class="replaceable"><code>boolean</code></em>;<br>
+	nocookie-udp-size <em class="replaceable"><code>integer</code></em>;<br>
+<br>
 	allow-v6-synthesis { <em class="replaceable"><code>address_match_element</code></em>; ... }; // obsolete<br>
 	fetch-glue <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
 	maintain-ixfr-base <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
@@ -531,7 +542,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545342"></a><h2>ZONE</h2>
+<a name="id2545374"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint | redirect |<br>
@@ -565,7 +576,7 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	update-policy <em class="replaceable"><code>local</code></em> | <em class="replaceable"><code> {<br>
 		( grant | deny ) <em class="replaceable"><code>string</code></em><br>
 		( name | subdomain | wildcard | self | selfsub | selfwild |<br>
-                  krb5-self | ms-self | krb5-subdomain | ms-subdomain |<br>
+		  krb5-self | ms-self | krb5-subdomain | ms-subdomain |<br>
 		  tcp-self | zonesub | 6to4-self ) <em class="replaceable"><code>string</code></em><br>
 		<em class="replaceable"><code>rrtypelist</code></em>;<br>
 		[<span class="optional">...</span>]<br>
@@ -628,12 +639,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545732"></a><h2>FILES</h2>
+<a name="id2545764"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545744"></a><h2>SEE ALSO</h2>
+<a name="id2545776"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named-checkconf</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,

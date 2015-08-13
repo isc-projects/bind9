@@ -255,6 +255,7 @@ options {
         request-ixfr <boolean>;
         request-nsid <boolean>;
         request-sit <boolean>; // obsolete
+        require-server-cookie <boolean>;
         reserved-sockets <integer>;
         resolver-query-timeout <integer>;
         response-policy { zone <quoted_string> [ policy ( given | disabled
@@ -524,6 +525,7 @@ view <string> <optional_class> {
         request-ixfr <boolean>;
         request-nsid <boolean>;
         request-sit <boolean>; // obsolete
+        require-server-cookie <boolean>;
         resolver-query-timeout <integer>;
         response-policy { zone <quoted_string> [ policy ( given | disabled
             | passthru | no-op | drop | tcp-only | nxdomain | nodata |
