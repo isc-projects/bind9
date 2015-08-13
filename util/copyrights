@@ -2948,7 +2948,7 @@
 ./doc/arm/dnssec.xml				SGML	2010,2011,2015
 ./doc/arm/isc-logo.eps				X	2005,2010
 ./doc/arm/isc-logo.pdf				X	2005,2010
-./doc/arm/latex-fixup.pl			PERL	2005,2007,2012
+./doc/arm/latex-fixup.pl			PERL	2005,2007,2012,2015
 ./doc/arm/libdns.xml				SGML	2010,2014
 ./doc/arm/man.arpaname.html			X	2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/man.ddns-confgen.html			X	2009,2010,2011,2012,2013,2014,2015
