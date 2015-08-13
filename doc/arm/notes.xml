@@ -68,7 +68,7 @@
 	  when parsing certain malformed DNSSEC keys.
 	</para>
 	<para>
-	  This flaw was discovered by Hanno B&ouml;ck of the Fuzzing
+	  This flaw was discovered by Hanno Boeck of the Fuzzing
 	  Project, and is disclosed in CVE-2015-5722. [RT #40212]
 	</para>
       </listitem>
