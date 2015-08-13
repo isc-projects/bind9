@@ -43,6 +43,7 @@ while (<>) {
     s/{\\texttt{{\.\\dbz{}}}}/\\mbox{{\\texttt{{\.\\dbz{}}}}}/;
 
     # Add any further tweaking here.
+    s/&#50102;/{\\"o}/;
 
     # Write out whatever we have now.
     print;
