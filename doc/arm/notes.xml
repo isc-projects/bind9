@@ -41,7 +41,8 @@
       <listitem>
 	<para>
 	  An incorrect boundary check in the OPENPGPKEY rdatatype
-	  could trigger an assertion failure. [RT #40286]
+	  could trigger an assertion failure. This flaw is disclosed
+	  in CVE-2015-5986. [RT #40286]
 	</para>
       </listitem>
       <listitem>
