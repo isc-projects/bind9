@@ -1,3 +1,5 @@
+4176.	[bug]		Address race issues with lwresd. [RT #40284]
+
 4175.	[bug]		TKEY with GSS-API keys needed bigger buffers.
 			[RT #40333]
 
