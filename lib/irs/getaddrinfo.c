@@ -1138,10 +1138,8 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 	UNUSED(flags);
 
 	ai = ai_clone(*aip, AF_INET); /* don't use ai_clone() */
-	if (ai == NULL) {
-		_freeaddrinfo(*aip);
+	if (ai == NULL)
 		return (EAI_MEMORY);
-	}
 
 	*aip = ai;
 	ai->ai_socktype = socktype;
@@ -1261,11 +1259,8 @@ ai_clone(struct addrinfo *oai, int family) {
 	ai = ai_alloc(family, ((family == AF_INET6) ?
 	    sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in)));
 
-	if (ai == NULL) {
-		if (oai != NULL)
-			freeaddrinfo(oai);
+	if (ai == NULL)
 		return (NULL);
-	}
 	if (oai == NULL)
 		return (ai);
 
