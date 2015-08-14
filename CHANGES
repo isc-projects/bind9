@@ -1,3 +1,6 @@
+4177.	[bug]		Fix assertion failure in parsing NSAP records from
+			text. [RT #40285]
+
 4176.	[bug]		Address race issues with lwresd. [RT #40284]
 
 4175.	[bug]		TKEY with GSS-API keys needed bigger buffers.
