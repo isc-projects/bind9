@@ -387,7 +387,8 @@ exit_check(ns_client_t *client) {
 				return (ISC_TRUE); /* We're done. */
 			} else if (client->mortal) {
 				client->newstate = NS_CLIENTSTATE_INACTIVE;
-			}
+			} else
+				return (ISC_FALSE);
 		}
 	}
 

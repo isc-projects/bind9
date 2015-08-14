@@ -1,3 +1,6 @@
+4180.	[bug]		Error responses in pipelined queries could
+			cause a crash in client.c. [RT #40289]
+
 4179.	[bug]		Fix double frees in getaddrinfo() in libirs.
 			[RT #40209]
 
