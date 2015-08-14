@@ -653,8 +653,6 @@
 ./bin/tests/pkcs11/benchmarks/verify.c		C	2014,2015
 ./bin/tests/pkcs11/pkcs11-hmacmd5.c		C	2014,2015
 ./bin/tests/pkcs11/pkcs11-md5sum.c		C	2014,2015
-./bin/tests/printmsg.c				C	1998,1999,2000,2001,2004,2007,2011,2015
-./bin/tests/printmsg.h				C	1998,1999,2000,2001,2004,2007
 ./bin/tests/ratelimiter_test.c			C	1999,2000,2001,2004,2007,2015
 ./bin/tests/rbt/Makefile.in			MAKE	1999,2000,2001,2002,2004,2007,2009,2012,2014
 ./bin/tests/rbt/dns_rbt.data			X	1999,2000,2001
