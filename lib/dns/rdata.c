@@ -1749,8 +1749,12 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
-	if ((token.value.as_ulong % 4) != 0U)
-		isc_buffer_subtract(target,  4 - (token.value.as_ulong % 4));
+	if ((token.value.as_ulong % 4) != 0U) {
+		unsigned long padding = 4 - (token.value.as_ulong % 4);
+		if (isc_buffer_usedlength(target) < padding)
+			return (DNS_R_SYNTAX);
+		isc_buffer_subtract(target, padding);
+	}
 
 	/*
 	 * Checksum.
