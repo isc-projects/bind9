@@ -31,7 +31,8 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 	isc_token_t token;
 	isc_textregion_t *sr;
 	int n;
-	int digits;
+	isc_boolean_t valid = ISC_FALSE;
+	int digits = 0;
 	unsigned char c = 0;
 
 	REQUIRE(type == 22);
@@ -52,7 +53,6 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 	if (sr->base[0] != '0' || (sr->base[1] != 'x' && sr->base[1] != 'X'))
 		RETTOK(DNS_R_SYNTAX);
 	isc_textregion_consume(sr, 2);
-	digits = 0;
 	while (sr->length > 0) {
 		if (sr->base[0] == '.') {
 			isc_textregion_consume(sr, 1);
@@ -64,11 +64,13 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 		c += n;
 		if (++digits == 2) {
 			RETERR(mem_tobuffer(target, &c, 1));
+			valid = ISC_TRUE;
 			digits = 0;
+			c = 0;
 		}
 		isc_textregion_consume(sr, 1);
 	}
-	if (digits)
+	if (digits != 0 || !valid)
 		RETTOK(ISC_R_UNEXPECTEDEND);
 	return (ISC_R_SUCCESS);
 }
