@@ -229,7 +229,7 @@
 ./bin/named/include/named/log.h			C	1999,2000,2001,2002,2004,2005,2007,2009
 ./bin/named/include/named/logconf.h		C	1999,2000,2001,2004,2005,2006,2007
 ./bin/named/include/named/lwaddr.h		C	2000,2001,2004,2005,2007
-./bin/named/include/named/lwdclient.h		C	2000,2001,2004,2005,2007,2009
+./bin/named/include/named/lwdclient.h		C	2000,2001,2004,2005,2007,2009,2015
 ./bin/named/include/named/lwresd.h		C	2000,2001,2004,2005,2006,2007
 ./bin/named/include/named/lwsearch.h		C	2000,2001,2004,2005,2007
 ./bin/named/include/named/main.h		C	1999,2000,2001,2002,2004,2005,2007,2009,2013,2015
@@ -250,7 +250,7 @@
 ./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2013
 ./bin/named/logconf.c				C	1999,2000,2001,2004,2005,2006,2007,2011,2013,2015
 ./bin/named/lwaddr.c				C	2000,2001,2004,2005,2007,2008,2014
-./bin/named/lwdclient.c				C	2000,2001,2004,2005,2007
+./bin/named/lwdclient.c				C	2000,2001,2004,2005,2007,2015
 ./bin/named/lwderror.c				C	2000,2001,2004,2005,2007
 ./bin/named/lwdgabn.c				C	2000,2001,2004,2005,2006,2007,2009
 ./bin/named/lwdgnba.c				C	2000,2001,2002,2004,2005,2007,2008,2014
@@ -905,13 +905,17 @@
 ./bin/tests/system/checkzone/clean.sh		SH	2011,2012
 ./bin/tests/system/checkzone/tests.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/checkzone/zones/bad-caa-rr.db	ZONE	2015
+./bin/tests/system/checkzone/zones/bad-nsap-empty.db	ZONE	2015
+./bin/tests/system/checkzone/zones/bad-nsap-odd-nibble.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/bad-nsec3-padded.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/bad-nsec3owner-padded.db	ZONE	2014
+./bin/tests/system/checkzone/zones/bad-unspec.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/bad1.db	ZONE	2013
 ./bin/tests/system/checkzone/zones/bad2.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/bad3.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/bad4.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/badttl.db	ZONE	2014
+./bin/tests/system/checkzone/zones/good-nsap.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/good-nsec3-nopadhash.db	ZONE	2014
 ./bin/tests/system/checkzone/zones/good1.db	ZONE	2011
 ./bin/tests/system/checkzone/zones/inherit.db	ZONE	2014
@@ -2970,7 +2974,7 @@
 ./lib/dns/rdata/in_1/kx_36.h			C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/in_1/nsap-ptr_23.c		C	1999,2000,2001,2004,2005,2007,2009
 ./lib/dns/rdata/in_1/nsap-ptr_23.h		C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/in_1/nsap_22.c			C	1999,2000,2001,2002,2004,2005,2007,2009,2013
+./lib/dns/rdata/in_1/nsap_22.c			C	1999,2000,2001,2002,2004,2005,2007,2009,2013,2015
 ./lib/dns/rdata/in_1/nsap_22.h			C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/in_1/px_26.c			C	1999,2000,2001,2003,2004,2005,2007,2009
 ./lib/dns/rdata/in_1/px_26.h			C	1999,2000,2001,2004,2005,2007
