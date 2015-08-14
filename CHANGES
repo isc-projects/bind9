@@ -1,3 +1,6 @@
+4178.	[bug]		Fix assertion failure in parsing UNSPEC(103) RR from
+			text. [RT #40274]
+
 4177.	[bug]		Fix assertion failure in parsing NSAP records from
 			text. [RT #40285]
 
