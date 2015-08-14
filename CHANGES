@@ -1,3 +1,6 @@
+4179.	[bug]		Fix double frees in getaddrinfo() in libirs.
+			[RT #40209]
+
 4178.	[bug]		Fix assertion failure in parsing UNSPEC(103) RR from
 			text. [RT #40274]
 
