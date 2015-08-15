@@ -2948,6 +2948,7 @@
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/dlz.xml				SGML	2012,2013,2014,2015
 ./doc/arm/dnssec.xml				SGML	2010,2011,2015
+./doc/arm/html-fixup.pl				PERL	2015
 ./doc/arm/isc-logo.eps				X	2005,2010
 ./doc/arm/isc-logo.pdf				X	2005,2010
 ./doc/arm/latex-fixup.pl			PERL	2005,2007,2012,2015
@@ -2982,7 +2983,7 @@
 ./doc/arm/managed-keys.xml			SGML	2010,2014
 ./doc/arm/notes-wrapper.xml			SGML	2014,2015
 ./doc/arm/notes.html				X	2014,2015
-./doc/arm/notes.pdf				X	2014
+./doc/arm/notes.pdf				X	2014,2015
 ./doc/arm/notes.xml				SGML	2014,2015
 ./doc/arm/pkcs11.xml				SGML	2010,2012,2013,2014,2015
 ./doc/design/addressdb				TXT.BRIEF	2000,2001,2004
