@@ -23,6 +23,10 @@
       This document summarizes changes since BIND 9.9.7.
     </para>
     <para>
+      BIND 9.9.7-P2 addresses security issues described in
+      CVE-2015-5722 and CVE-2015-5986.
+    </para>
+    <para>
       BIND 9.9.7-P2 addresses a security issue described in CVE-2015-5477.
     </para>
     <para>
