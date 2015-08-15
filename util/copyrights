@@ -2552,6 +2552,7 @@
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007,2009,2012,2014,2015
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/dnssec.xml				SGML	2010,2011,2015
+./doc/arm/html-fixup.pl				PERL	2015
 ./doc/arm/isc-logo.eps				X	2005,2010
 ./doc/arm/isc-logo.pdf				X	2005,2010
 ./doc/arm/latex-fixup.pl			PERL	2005,2007,2012,2015
