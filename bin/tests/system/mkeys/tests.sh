@@ -307,7 +307,7 @@ sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.b.$n 2>&1
 # now three keys listed
 count=`grep -c "keyid: " rndc.out.b.$n` 
-[ "$count" -eq 3 ] || { "keyid: count ($count) != 3"; ret=1; }
+[ "$count" -eq 3 ] || { echo "keyid: count ($count) != 3"; ret=1; }
 # one revoked
 count=`grep -c "trust revoked" rndc.out.b.$n` 
 [ "$count" -eq 1 ] || { echo "trust revoked count ($count) != 1"; ret=1; }
