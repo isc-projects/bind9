@@ -35,8 +35,8 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 	int digits = 0;
 	unsigned char c = 0;
 
-	REQUIRE(type == 22);
-	REQUIRE(rdclass == 1);
+	REQUIRE(type == dns_rdatatype_nsap);
+	REQUIRE(rdclass == dns_rdataclass_in);
 
 	UNUSED(type);
 	UNUSED(origin);
@@ -80,8 +80,8 @@ totext_in_nsap(ARGS_TOTEXT) {
 	isc_region_t region;
 	char buf[sizeof("xx")];
 
-	REQUIRE(rdata->type == 22);
-	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->type == dns_rdatatype_nsap);
+	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
 
 	UNUSED(tctx);
@@ -100,8 +100,8 @@ static inline isc_result_t
 fromwire_in_nsap(ARGS_FROMWIRE) {
 	isc_region_t region;
 
-	REQUIRE(type == 22);
-	REQUIRE(rdclass == 1);
+	REQUIRE(type == dns_rdatatype_nsap);
+	REQUIRE(rdclass == dns_rdataclass_in);
 
 	UNUSED(type);
 	UNUSED(dctx);
@@ -119,8 +119,8 @@ fromwire_in_nsap(ARGS_FROMWIRE) {
 
 static inline isc_result_t
 towire_in_nsap(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == 22);
-	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->type == dns_rdatatype_nsap);
+	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
 
 	UNUSED(cctx);
@@ -135,8 +135,8 @@ compare_in_nsap(ARGS_COMPARE) {
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == 22);
-	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->type == dns_rdatatype_nsap);
+	REQUIRE(rdata1->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
@@ -149,8 +149,8 @@ static inline isc_result_t
 fromstruct_in_nsap(ARGS_FROMSTRUCT) {
 	dns_rdata_in_nsap_t *nsap = source;
 
-	REQUIRE(type == 22);
-	REQUIRE(rdclass == 1);
+	REQUIRE(type == dns_rdatatype_nsap);
+	REQUIRE(rdclass == dns_rdataclass_in);
 	REQUIRE(source != NULL);
 	REQUIRE(nsap->common.rdtype == type);
 	REQUIRE(nsap->common.rdclass == rdclass);
@@ -167,8 +167,8 @@ tostruct_in_nsap(ARGS_TOSTRUCT) {
 	dns_rdata_in_nsap_t *nsap = target;
 	isc_region_t r;
 
-	REQUIRE(rdata->type == 22);
-	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->type == dns_rdatatype_nsap);
+	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(target != NULL);
 	REQUIRE(rdata->length != 0);
 
@@ -191,8 +191,8 @@ freestruct_in_nsap(ARGS_FREESTRUCT) {
 	dns_rdata_in_nsap_t *nsap = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(nsap->common.rdclass == 1);
-	REQUIRE(nsap->common.rdtype == 22);
+	REQUIRE(nsap->common.rdclass == dns_rdataclass_in);
+	REQUIRE(nsap->common.rdtype == dns_rdatatype_nsap);
 
 	if (nsap->mctx == NULL)
 		return;
@@ -204,8 +204,8 @@ freestruct_in_nsap(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_in_nsap(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == 22);
-	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->type == dns_rdatatype_nsap);
+	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -218,8 +218,8 @@ static inline isc_result_t
 digest_in_nsap(ARGS_DIGEST) {
 	isc_region_t r;
 
-	REQUIRE(rdata->type == 22);
-	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->type == dns_rdatatype_nsap);
+	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
 	dns_rdata_toregion(rdata, &r);
 
@@ -229,8 +229,8 @@ digest_in_nsap(ARGS_DIGEST) {
 static inline isc_boolean_t
 checkowner_in_nsap(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == 22);
-	REQUIRE(rdclass == 1);
+	REQUIRE(type == dns_rdatatype_nsap);
+	REQUIRE(rdclass == dns_rdataclass_in);
 
 	UNUSED(name);
 	UNUSED(type);
@@ -243,8 +243,8 @@ checkowner_in_nsap(ARGS_CHECKOWNER) {
 static inline isc_boolean_t
 checknames_in_nsap(ARGS_CHECKNAMES) {
 
-	REQUIRE(rdata->type == 22);
-	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->type == dns_rdatatype_nsap);
+	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
 	UNUSED(rdata);
 	UNUSED(owner);
