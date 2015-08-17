@@ -9674,8 +9674,6 @@ notify_isqueued(dns_zone_t *zone, unsigned int flags, dns_name_t *name,
 	     notify = ISC_LIST_NEXT(notify, link)) {
 		if (notify->request != NULL)
 			continue;
-		if ((flags & DNS_NOTIFY_STARTUP) == 0)
-			notify->flags &= ~DNS_NOTIFY_STARTUP;
 		if (name != NULL && dns_name_dynamic(&notify->ns) &&
 		    dns_name_equal(name, &notify->ns))
 			goto requeue;
@@ -9691,12 +9689,15 @@ requeue:
 	 * not a startup notify, re-enqueue on the normal notify
 	 * ratelimiter.
 	 */
-	if (notify->event != NULL && (flags & DNS_NOTIFY_STARTUP) == 0) {
+	if (notify->event != NULL && (flags & DNS_NOTIFY_STARTUP) == 0 &&
+	    (notify->flags & DNS_NOTIFY_STARTUP) != 0) {
 		zmgr = notify->zone->zmgr;
 		result = isc_ratelimiter_dequeue(zmgr->startupnotifyrl,
 						 notify->event);
 		if (result != ISC_R_SUCCESS)
 			return (ISC_TRUE);
+
+		notify->flags &= ~DNS_NOTIFY_STARTUP;
 		result = isc_ratelimiter_enqueue(notify->zone->zmgr->notifyrl,
 						 notify->zone->task,
 						 &notify->event);

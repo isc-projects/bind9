@@ -1,3 +1,6 @@
+4181.	[bug]		Queued notify messages could be dequeued from the
+			wrong rate limiter queue. [RT #40350]
+
 4179.	[bug]		Fix double frees in getaddrinfo() in libirs.
 			[RT #40209]
 
