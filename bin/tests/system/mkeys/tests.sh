@@ -410,7 +410,7 @@ ret=0
 orig=`cat ns1/managed.key`
 keyid=`cat ns1/managed.key.id`
 revoked=`$REVOKE -K ns1 $orig`
-rkeyid=`expr $revoked : 'ns1/K\.+00.+\([0-9]*\)'`
+rkeyid=`expr $revoked : 'ns1/K\.+00.+0*\([1-9]*[0-9]*[0-9]\)'`
 $SETTIME -R none -D none -K ns1 $standby1 > /dev/null
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -O full -o . -f signer.out.$n ns1/root.db > /dev/null 2>&-
 cp -f ns1/root.db.signed ns1/root.db.tmp
@@ -424,13 +424,13 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # one key listed
 count=`grep -c "keyid: " rndc.out.$n` 
-[ "$count" -eq 1 ] || { echo "'keyid:' count != 1"; ret=1; }
+[ "$count" -eq 1 ] || { echo "'keyid:' count ($count) != 1"; ret=1; }
 # it's the original key id
 count=`grep -c "keyid: $keyid" rndc.out.$n` 
-[ "$count" -eq 1 ] || { echo "'keyid: $keyid' count != 1"; ret=1; }
+[ "$count" -eq 1 ] || { echo "'keyid: $keyid' count ($count) != 1"; ret=1; }
 # not revoked
 count=`grep -c "REVOKE" rndc.out.$n` 
-[ "$count" -eq 0 ] || { echo "'REVOKE' count != 0"; ret=1; }
+[ "$count" -eq 0 ] || { echo "'REVOKE' count ($count) != 0"; ret=1; }
 # trust is still current
 count=`grep -c "trust" rndc.out.$n` 
 [ "$count" -eq 1 ] || { echo "'trust' count != 1"; ret=1; }
