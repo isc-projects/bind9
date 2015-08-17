@@ -1,3 +1,6 @@
+4181.	[bug]		Queued notify messages could be dequeued from the
+			wrong rate limiter queue. [RT #40350]
+
 4180.	[bug]		Error responses in pipelined queries could
 			cause a crash in client.c. [RT #40289]
 
