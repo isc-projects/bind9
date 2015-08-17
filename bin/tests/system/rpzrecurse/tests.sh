@@ -253,15 +253,15 @@ cur=`awk 'BEGIN {l=0} // {l++} END { print l }' ns2/named.run`
 $DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p 5300 -b 10.53.0.4 > dig.out.${t}
 $DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p 5300 -b 10.53.0.3 >> dig.out.${t}
 $DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p 5300 -b 10.53.0.2 >> dig.out.${t}
-tail -n +"$cur" < ns2/named.run | grep "view recursive: rpz CLIENT-IP Local-Data rewrite l2.l1.l0 via 32.4.0.53.10.rpz-client-ip.log1" > /dev/null && {
+sed -n "$cur,"'$p' < ns2/named.run | grep "view recursive: rpz CLIENT-IP Local-Data rewrite l2.l1.l0 via 32.4.0.53.10.rpz-client-ip.log1" > /dev/null && {
     echo "I: failed: unexpected rewrite message for policy zone log1 was logged"
     status=1
 }
-tail -n +"$cur" < ns2/named.run | grep "view recursive: rpz CLIENT-IP Local-Data rewrite l2.l1.l0 via 32.3.0.53.10.rpz-client-ip.log2" > /dev/null || {
+sed -n "$cur,"'$p' < ns2/named.run | grep "view recursive: rpz CLIENT-IP Local-Data rewrite l2.l1.l0 via 32.3.0.53.10.rpz-client-ip.log2" > /dev/null || {
     echo "I: failed: expected rewrite message for policy zone log2 was not logged"
     status=1
 }
-tail -n +"$cur" < ns2/named.run | grep "view recursive: rpz CLIENT-IP Local-Data rewrite l2.l1.l0 via 32.2.0.53.10.rpz-client-ip.log3" > /dev/null || {
+sed -n "$cur,"'$p' < ns2/named.run | grep "view recursive: rpz CLIENT-IP Local-Data rewrite l2.l1.l0 via 32.2.0.53.10.rpz-client-ip.log3" > /dev/null || {
     echo "I: failed: expected rewrite message for policy zone log3 was not logged"
     status=1
 }
