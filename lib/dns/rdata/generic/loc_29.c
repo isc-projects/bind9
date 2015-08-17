@@ -50,7 +50,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	unsigned long longitude;
 	unsigned long altitude;
 
-	REQUIRE(type == 29);
+	REQUIRE(type == dns_rdatatype_loc);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -475,7 +475,7 @@ totext_loc(ARGS_TOTEXT) {
 
 	UNUSED(tctx);
 
-	REQUIRE(rdata->type == 29);
+	REQUIRE(rdata->type == dns_rdatatype_loc);
 	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
@@ -563,7 +563,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 	unsigned long latitude;
 	unsigned long longitude;
 
-	REQUIRE(type == 29);
+	REQUIRE(type == dns_rdatatype_loc);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -634,7 +634,7 @@ static inline isc_result_t
 towire_loc(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
-	REQUIRE(rdata->type == 29);
+	REQUIRE(rdata->type == dns_rdatatype_loc);
 	REQUIRE(rdata->length != 0);
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
@@ -647,7 +647,7 @@ compare_loc(ARGS_COMPARE) {
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == 29);
+	REQUIRE(rdata1->type == dns_rdatatype_loc);
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
@@ -661,7 +661,7 @@ fromstruct_loc(ARGS_FROMSTRUCT) {
 	dns_rdata_loc_t *loc = source;
 	isc_uint8_t c;
 
-	REQUIRE(type == 29);
+	REQUIRE(type == dns_rdatatype_loc);
 	REQUIRE(source != NULL);
 	REQUIRE(loc->common.rdtype == type);
 	REQUIRE(loc->common.rdclass == rdclass);
@@ -706,7 +706,7 @@ tostruct_loc(ARGS_TOSTRUCT) {
 	isc_region_t r;
 	isc_uint8_t version;
 
-	REQUIRE(rdata->type == 29);
+	REQUIRE(rdata->type == dns_rdatatype_loc);
 	REQUIRE(target != NULL);
 	REQUIRE(rdata->length != 0);
 
@@ -743,7 +743,7 @@ freestruct_loc(ARGS_FREESTRUCT) {
 	dns_rdata_loc_t *loc = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(loc->common.rdtype == 29);
+	REQUIRE(loc->common.rdtype == dns_rdatatype_loc);
 
 	UNUSED(source);
 	UNUSED(loc);
@@ -751,7 +751,7 @@ freestruct_loc(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_loc(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == 29);
+	REQUIRE(rdata->type == dns_rdatatype_loc);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -764,7 +764,7 @@ static inline isc_result_t
 digest_loc(ARGS_DIGEST) {
 	isc_region_t r;
 
-	REQUIRE(rdata->type == 29);
+	REQUIRE(rdata->type == dns_rdatatype_loc);
 
 	dns_rdata_toregion(rdata, &r);
 
@@ -774,7 +774,7 @@ digest_loc(ARGS_DIGEST) {
 static inline isc_boolean_t
 checkowner_loc(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == 29);
+	REQUIRE(type == dns_rdatatype_loc);
 
 	UNUSED(name);
 	UNUSED(type);
@@ -787,7 +787,7 @@ checkowner_loc(ARGS_CHECKOWNER) {
 static inline isc_boolean_t
 checknames_loc(ARGS_CHECKNAMES) {
 
-	REQUIRE(rdata->type == 29);
+	REQUIRE(rdata->type == dns_rdatatype_loc);
 
 	UNUSED(rdata);
 	UNUSED(owner);

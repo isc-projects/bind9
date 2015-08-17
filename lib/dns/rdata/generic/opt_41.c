@@ -34,7 +34,7 @@ fromtext_opt(ARGS_FROMTEXT) {
 	 * OPT records do not have a text format.
 	 */
 
-	REQUIRE(type == 41);
+	REQUIRE(type == dns_rdatatype_opt);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -59,7 +59,7 @@ totext_opt(ARGS_TOTEXT) {
 	 * OPT records do not have a text format.
 	 */
 
-	REQUIRE(rdata->type == 41);
+	REQUIRE(rdata->type == dns_rdatatype_opt);
 
 	dns_rdata_toregion(rdata, &r);
 	while (r.length > 0) {
@@ -101,7 +101,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 	isc_uint16_t length;
 	unsigned int total;
 
-	REQUIRE(type == 41);
+	REQUIRE(type == dns_rdatatype_opt);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -194,7 +194,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_opt(ARGS_TOWIRE) {
 
-	REQUIRE(rdata->type == 41);
+	REQUIRE(rdata->type == dns_rdatatype_opt);
 
 	UNUSED(cctx);
 
@@ -208,7 +208,7 @@ compare_opt(ARGS_COMPARE) {
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == 41);
+	REQUIRE(rdata1->type == dns_rdatatype_opt);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -221,7 +221,7 @@ fromstruct_opt(ARGS_FROMSTRUCT) {
 	isc_region_t region;
 	isc_uint16_t length;
 
-	REQUIRE(type == 41);
+	REQUIRE(type == dns_rdatatype_opt);
 	REQUIRE(source != NULL);
 	REQUIRE(opt->common.rdtype == type);
 	REQUIRE(opt->common.rdclass == rdclass);
@@ -251,7 +251,7 @@ tostruct_opt(ARGS_TOSTRUCT) {
 	dns_rdata_opt_t *opt = target;
 	isc_region_t r;
 
-	REQUIRE(rdata->type == 41);
+	REQUIRE(rdata->type == dns_rdatatype_opt);
 	REQUIRE(target != NULL);
 
 	opt->common.rdclass = rdata->rdclass;
@@ -274,7 +274,7 @@ freestruct_opt(ARGS_FREESTRUCT) {
 	dns_rdata_opt_t *opt = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(opt->common.rdtype == 41);
+	REQUIRE(opt->common.rdtype == dns_rdatatype_opt);
 
 	if (opt->mctx == NULL)
 		return;
@@ -286,7 +286,7 @@ freestruct_opt(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_opt(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == 41);
+	REQUIRE(rdata->type == dns_rdatatype_opt);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -302,7 +302,7 @@ digest_opt(ARGS_DIGEST) {
 	 * OPT records are not digested.
 	 */
 
-	REQUIRE(rdata->type == 41);
+	REQUIRE(rdata->type == dns_rdatatype_opt);
 
 	UNUSED(rdata);
 	UNUSED(digest);
@@ -314,7 +314,7 @@ digest_opt(ARGS_DIGEST) {
 static inline isc_boolean_t
 checkowner_opt(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == 41);
+	REQUIRE(type == dns_rdatatype_opt);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -326,7 +326,7 @@ checkowner_opt(ARGS_CHECKOWNER) {
 static inline isc_boolean_t
 checknames_opt(ARGS_CHECKNAMES) {
 
-	REQUIRE(rdata->type == 41);
+	REQUIRE(rdata->type == dns_rdatatype_opt);
 
 	UNUSED(rdata);
 	UNUSED(owner);
@@ -344,7 +344,7 @@ isc_result_t
 dns_rdata_opt_first(dns_rdata_opt_t *opt) {
 
 	REQUIRE(opt != NULL);
-	REQUIRE(opt->common.rdtype == 41);
+	REQUIRE(opt->common.rdtype == dns_rdatatype_opt);
 	REQUIRE(opt->options != NULL || opt->length == 0);
 
 	if (opt->length == 0)
@@ -360,7 +360,7 @@ dns_rdata_opt_next(dns_rdata_opt_t *opt) {
 	isc_uint16_t length;
 
 	REQUIRE(opt != NULL);
-	REQUIRE(opt->common.rdtype == 41);
+	REQUIRE(opt->common.rdtype == dns_rdatatype_opt);
 	REQUIRE(opt->options != NULL && opt->length != 0);
 	REQUIRE(opt->offset < opt->length);
 
@@ -381,7 +381,7 @@ dns_rdata_opt_current(dns_rdata_opt_t *opt, dns_rdata_opt_opcode_t *opcode) {
 
 	REQUIRE(opt != NULL);
 	REQUIRE(opcode != NULL);
-	REQUIRE(opt->common.rdtype == 41);
+	REQUIRE(opt->common.rdtype == dns_rdatatype_opt);
 	REQUIRE(opt->options != NULL);
 	REQUIRE(opt->offset < opt->length);
 

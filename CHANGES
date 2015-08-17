@@ -1,3 +1,6 @@
+4182.	[cleanup]	Use mnemonics for RR class and type comparisons.
+			[RT #40297]
+
 4181.	[bug]		Queued notify messages could be dequeued from the
 			wrong rate limiter queue. [RT #40350]
 

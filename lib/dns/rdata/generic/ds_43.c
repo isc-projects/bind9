@@ -38,7 +38,7 @@ fromtext_ds(ARGS_FROMTEXT) {
 	unsigned char c;
 	int length;
 
-	REQUIRE(type == 43);
+	REQUIRE(type == dns_rdatatype_ds);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -102,7 +102,7 @@ totext_ds(ARGS_TOTEXT) {
 	char buf[sizeof("64000 ")];
 	unsigned int n;
 
-	REQUIRE(rdata->type == 43);
+	REQUIRE(rdata->type == dns_rdatatype_ds);
 	REQUIRE(rdata->length != 0);
 
 	UNUSED(tctx);
@@ -156,7 +156,7 @@ static inline isc_result_t
 fromwire_ds(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
-	REQUIRE(type == 43);
+	REQUIRE(type == dns_rdatatype_ds);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -205,7 +205,7 @@ static inline isc_result_t
 towire_ds(ARGS_TOWIRE) {
 	isc_region_t sr;
 
-	REQUIRE(rdata->type == 43);
+	REQUIRE(rdata->type == dns_rdatatype_ds);
 	REQUIRE(rdata->length != 0);
 
 	UNUSED(cctx);
@@ -221,7 +221,7 @@ compare_ds(ARGS_COMPARE) {
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == 43);
+	REQUIRE(rdata1->type == dns_rdatatype_ds);
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
@@ -234,7 +234,7 @@ static inline isc_result_t
 fromstruct_ds(ARGS_FROMSTRUCT) {
 	dns_rdata_ds_t *ds = source;
 
-	REQUIRE(type == 43);
+	REQUIRE(type == dns_rdatatype_ds);
 	REQUIRE(source != NULL);
 	REQUIRE(ds->common.rdtype == type);
 	REQUIRE(ds->common.rdclass == rdclass);
@@ -270,7 +270,7 @@ tostruct_ds(ARGS_TOSTRUCT) {
 	dns_rdata_ds_t *ds = target;
 	isc_region_t region;
 
-	REQUIRE(rdata->type == 43);
+	REQUIRE(rdata->type == dns_rdatatype_ds);
 	REQUIRE(target != NULL);
 	REQUIRE(rdata->length != 0);
 
@@ -301,7 +301,7 @@ freestruct_ds(ARGS_FREESTRUCT) {
 	dns_rdata_ds_t *ds = source;
 
 	REQUIRE(ds != NULL);
-	REQUIRE(ds->common.rdtype == 43);
+	REQUIRE(ds->common.rdtype == dns_rdatatype_ds);
 
 	if (ds->mctx == NULL)
 		return;
@@ -313,7 +313,7 @@ freestruct_ds(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_ds(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == 43);
+	REQUIRE(rdata->type == dns_rdatatype_ds);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -326,7 +326,7 @@ static inline isc_result_t
 digest_ds(ARGS_DIGEST) {
 	isc_region_t r;
 
-	REQUIRE(rdata->type == 43);
+	REQUIRE(rdata->type == dns_rdatatype_ds);
 
 	dns_rdata_toregion(rdata, &r);
 
@@ -336,7 +336,7 @@ digest_ds(ARGS_DIGEST) {
 static inline isc_boolean_t
 checkowner_ds(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == 43);
+	REQUIRE(type == dns_rdatatype_ds);
 
 	UNUSED(name);
 	UNUSED(type);
@@ -349,7 +349,7 @@ checkowner_ds(ARGS_CHECKOWNER) {
 static inline isc_boolean_t
 checknames_ds(ARGS_CHECKNAMES) {
 
-	REQUIRE(rdata->type == 43);
+	REQUIRE(rdata->type == dns_rdatatype_ds);
 
 	UNUSED(rdata);
 	UNUSED(owner);
