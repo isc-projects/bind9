@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-SUBDIRS =	builtin dlzexternal fetchlimit filter-aaaa geoip lwresd rpz rsabigexponent tkey tsiggss
+SUBDIRS =	builtin dlzexternal fetchlimit filter-aaaa geoip lwresd rpz rsabigexponent statistics tkey tsiggss
 TARGETS =
 
 @BIND9_MAKE_RULES@
