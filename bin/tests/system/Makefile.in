@@ -22,7 +22,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 SUBDIRS =	builtin dlzexternal filter-aaaa geoip lwresd pipelined \
-		resolver rndc rpz rsabigexponent tkey tsiggss
+		resolver rndc rpz rsabigexponent statistics tkey tsiggss
 TARGETS =
 
 @BIND9_MAKE_RULES@
