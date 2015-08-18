@@ -85,6 +85,7 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
+#include <isc/safe.h>
 #include <isc/serial.h>
 #include <isc/string.h>
 #include <isc/task.h>

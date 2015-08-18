@@ -14,14 +14,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opensslgost_link.c,v 1.5 2011/01/19 23:47:12 tbox Exp $ */
-
 #include <config.h>
 
 #ifdef HAVE_OPENSSL_GOST
 
 #include <isc/entropy.h>
 #include <isc/mem.h>
+#include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -253,7 +252,7 @@ opensslgost_todns(const dst_key_t *key, isc_buffer_t *data) {
 	p = der;
 	len = i2d_PUBKEY(pkey, &p);
 	INSIST(len == sizeof(der));
-	INSIST(memcmp(gost_prefix, der, 37) == 0);
+	INSIST(isc_safe_memequal(gost_prefix, der, 37));
 	memmove(r.base, der + 37, 64);
 	isc_buffer_add(data, 64);
 
