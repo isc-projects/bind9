@@ -1,3 +1,19 @@
+4186.	[bug]		Fixed an RPZ bug where a QNAME would be matched
+			against a policy RR with wildcard owner name
+			(trigger) where the QNAME was the wildcard owner
+			name's parent. For example, the bug caused a query
+			with QNAME "example.com" to match a policy RR with
+			"*.example.com" as trigger. [RT #40357]
+
+4185.	[bug]		Fixed an RPZ bug where a policy RR with wildcard
+			owner name (trigger) would prevent another policy RR
+			with its parent owner name from being
+			loaded. For example, the bug caused a policy RR
+			with trigger "example.com" to not have any
+			effect when a previous policy RR with trigger
+			"*.example.com" existed in that RPZ zone.
+			[RT #40357]
+
 4184.	[bug]		Fixed a possible memory leak in name compression
 			when rendering long messages. (Also, improved
 			wire_test for testing such messages.) [RT #40375]
