@@ -29,7 +29,7 @@ t=0
 ret=0
 t=`expr $t + 1`
 echo "I:checking that zones with slash are properly shown in XML output (${t})"
-if [ -x ${CURL} ] ; then
+if ./xmlstats && [ -x ${CURL} ] ; then
     if ./newstats
     then
         ${CURL} http://10.53.0.1:8053/xml/v3 > curl.out.${t} 2>/dev/null || ret=1
@@ -43,7 +43,7 @@ awk '/<zone>/ { count=1 ; next }
      END { if (good) exit (0); exit (1) }' curl.out.${t} || ret=1
     fi
 else
-  echo "I:skipping test as curl was not found"
+  echo "I:skipping test as libxml2 and/or curl was not found"
 fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

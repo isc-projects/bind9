@@ -37,18 +37,22 @@ DEPLIBS =
 
 LIBS =		@LIBS@
 
-TARGETS =	newstats@EXEEXT@
+TARGETS =	newstats@EXEEXT@ xmlstats@EXEEXT@
 
 FILTEROBJS =	newstats.@O@
+XMLOBJS =	xmlstats.@O@
 
-SRCS =		newstats.c
+SRCS =		newstats.c xmlstats.c
 
 @BIND9_MAKE_RULES@
 
-all: newstats@EXEEXT@
+all: newstats@EXEEXT@ xmlstats.c
 
 newstats@EXEEXT@: ${FILTEROBJS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${FILTEROBJS} ${LIBS}
+
+xmlstats@EXEEXT@: ${XMLOBJS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${XMLOBJS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
