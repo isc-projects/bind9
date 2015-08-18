@@ -113,7 +113,6 @@ main(int argc, char *argv[]) {
 	isc_boolean_t need_close = ISC_FALSE;
 	isc_boolean_t tcp = ISC_FALSE;
 	isc_boolean_t rawdata = ISC_FALSE;
-	isc_result_t result;
 	isc_uint8_t c;
 	FILE *f;
 	int ch;
@@ -189,8 +188,7 @@ main(int argc, char *argv[]) {
 
 	if (rawdata) {
 		while (fread(&c, 1, 1, f) != 0) {
-			result = isc_buffer_reserve(&input, 1);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			RUNTIME_CHECK(isc_buffer_availablelength(input) > 0);
 			isc_buffer_putuint8(input, (isc_uint8_t) c);
 		}
 	} else {
@@ -223,8 +221,7 @@ main(int argc, char *argv[]) {
 				c = fromhex(*rp++);
 				c *= 16;
 				c += fromhex(*rp++);
-				result = isc_buffer_reserve(&input, 1);
-				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				RUNTIME_CHECK(isc_buffer_availablelength(input) > 0);
 				isc_buffer_putuint8(input, (isc_uint8_t) c);
 			}
 		}
