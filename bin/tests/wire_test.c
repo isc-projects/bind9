@@ -21,6 +21,7 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -30,7 +31,7 @@
 #include <dns/result.h>
 
 int parseflags = 0;
-isc_mem_t *mctx;
+isc_mem_t *mctx = NULL;
 isc_boolean_t printmemstats = ISC_FALSE;
 isc_boolean_t dorender = ISC_FALSE;
 
@@ -65,7 +66,9 @@ fromhex(char c) {
 
 static void
 usage(void) {
-	fprintf(stderr, "wire_test [-b] [-d] [-p] [-r] [-s] [filename]\n");
+	fprintf(stderr, "wire_test [-b] [-d] [-p] [-r] [-s]\n");
+	fprintf(stderr, "          [-m {usage|trace|record|size|mctx}]\n");
+	fprintf(stderr, "          [filename]\n\n");
 	fprintf(stderr, "\t-b\tBest-effort parsing (ignore some errors)\n");
 	fprintf(stderr, "\t-d\tRead input as raw binary data\n");
 	fprintf(stderr, "\t-p\tPreserve order of the records in messages\n");
@@ -106,29 +109,50 @@ printmessage(dns_message_t *msg) {
 
 int
 main(int argc, char *argv[]) {
-	char *rp, *wp;
-	unsigned char *bp;
-	isc_buffer_t source;
-	size_t len, i;
-	int n;
-	FILE *f;
+	isc_buffer_t *input = NULL;
 	isc_boolean_t need_close = ISC_FALSE;
-	unsigned char b[64 * 1024];
-	char s[4000];
 	isc_boolean_t tcp = ISC_FALSE;
 	isc_boolean_t rawdata = ISC_FALSE;
+	isc_result_t result;
+	isc_uint8_t c;
+	FILE *f;
 	int ch;
 
-	mctx = NULL;
+#define CMDLINE_FLAGS "bdm:prst"
+	/*
+	 * Process memory debugging argument first.
+	 */
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
+		switch (ch) {
+		case 'm':
+			if (strcasecmp(isc_commandline_argument, "record") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+			if (strcasecmp(isc_commandline_argument, "trace") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+			if (strcasecmp(isc_commandline_argument, "usage") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+			if (strcasecmp(isc_commandline_argument, "size") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGSIZE;
+			if (strcasecmp(isc_commandline_argument, "mctx") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGCTX;
+			break;
+		default:
+			break;
+		}
+	}
+	isc_commandline_reset = ISC_TRUE;
+
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	while ((ch = isc_commandline_parse(argc, argv, "bdprst")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 			case 'b':
 				parseflags |= DNS_MESSAGEPARSE_BESTEFFORT;
 				break;
 			case 'd':
 				rawdata = ISC_TRUE;
+				break;
+			case 'm':
 				break;
 			case 'p':
 				parseflags |= DNS_MESSAGEPARSE_PRESERVEORDER;
@@ -161,15 +185,21 @@ main(int argc, char *argv[]) {
 	} else
 		f = stdin;
 
-	bp = b;
+	isc_buffer_allocate(mctx, &input, 64 * 1024);
+
 	if (rawdata) {
-		while (fread(bp, 1, 1, f) != 0)
-			bp++;
+		while (fread(&c, 1, 1, f) != 0) {
+			result = isc_buffer_reserve(&input, 1);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			isc_buffer_putuint8(input, (isc_uint8_t) c);
+		}
 	} else {
+		char s[BUFSIZ];
+
 		while (fgets(s, sizeof(s), f) != NULL) {
-			rp = s;
-			wp = s;
-			len = 0;
+			char *rp = s, *wp = s;
+			size_t i, len = 0;
+
 			while (*rp != '\0') {
 				if (*rp == '#')
 					break;
@@ -187,16 +217,15 @@ main(int argc, char *argv[]) {
 				       (unsigned long)len);
 				exit(1);
 			}
-			if (len > sizeof(b) * 2) {
-				fprintf(stderr, "input too long\n");
-				exit(2);
-			}
+
 			rp = s;
 			for (i = 0; i < len; i += 2) {
-				n = fromhex(*rp++);
-				n *= 16;
-				n += fromhex(*rp++);
-				*bp++ = n;
+				c = fromhex(*rp++);
+				c *= 16;
+				c += fromhex(*rp++);
+				result = isc_buffer_reserve(&input, 1);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				isc_buffer_putuint8(input, (isc_uint8_t) c);
 			}
 		}
 	}
@@ -205,30 +234,26 @@ main(int argc, char *argv[]) {
 		fclose(f);
 
 	if (tcp) {
-		unsigned char *p = b;
-		while (p < bp) {
+		while (isc_buffer_remaininglength(input) != 0) {
 			unsigned int tcplen;
 
-			if (p + 2 > bp) {
+			if (isc_buffer_remaininglength(input) < 2) {
 				fprintf(stderr, "premature end of packet\n");
 				exit(1);
 			}
-			tcplen = p[0] << 8 | p[1];
+			tcplen = isc_buffer_getuint16(input);
 
-			if (p + 2 + tcplen > bp) {
+			if (isc_buffer_remaininglength(input) < tcplen) {
 				fprintf(stderr, "premature end of packet\n");
 				exit(1);
 			}
-			isc_buffer_init(&source, p + 2, tcplen);
-			isc_buffer_add(&source, tcplen);
-			process_message(&source);
-			p += 2 + tcplen;
+			process_message(input);
 		}
-	} else {
-		isc_buffer_init(&source, b, sizeof(b));
-		isc_buffer_add(&source, bp - b);
-		process_message(&source);
-	}
+	} else
+		process_message(input);
+
+	if (input != NULL)
+		isc_buffer_free(&input);
 
 	if (printmemstats)
 		isc_mem_stats(mctx, stdout);
