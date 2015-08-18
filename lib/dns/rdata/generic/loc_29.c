@@ -480,7 +480,11 @@ totext_loc(ARGS_TOTEXT) {
 
 	dns_rdata_toregion(rdata, &sr);
 
-	/* version = sr.base[0]; */
+	if (sr.base[0] != 0)
+		return (ISC_R_NOTIMPLEMENTED);
+
+	REQUIRE(rdata->length == 16);
+
 	size = sr.base[1];
 	INSIST((size&0x0f) < 10 && (size>>4) < 10);
 	if ((size&0x0f)> 1)
@@ -573,8 +577,11 @@ fromwire_loc(ARGS_FROMWIRE) {
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 1)
 		return (ISC_R_UNEXPECTEDEND);
-	if (sr.base[0] != 0)
-		return (ISC_R_NOTIMPLEMENTED);
+	if (sr.base[0] != 0) {
+		/* Treat as unknown. */
+		isc_buffer_forward(source, sr.length);
+		return (mem_tobuffer(target, sr.base, sr.length));
+	}
 	if (sr.length < 16)
 		return (ISC_R_UNEXPECTEDEND);
 

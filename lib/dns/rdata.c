@@ -836,6 +836,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
+	unsigned int cur;
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(tctx->origin == NULL ||
@@ -849,10 +850,17 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		return (ISC_R_SUCCESS);
 	}
 
+	cur = isc_buffer_usedlength(target);
+
 	TOTEXTSWITCH
 
-	if (use_default)
+	if (use_default || (result == ISC_R_NOTIMPLEMENTED)) {
+		unsigned int u = isc_buffer_usedlength(target);
+
+		INSIST(u >= cur);
+		isc_buffer_subtract(target, u - cur);
 		result = unknown_totext(rdata, tctx, target);
+	}
 
 	return (result);
 }

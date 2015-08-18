@@ -1,3 +1,10 @@
+4187.	[func]		When any RR type implementation doesn't
+			implement totext() for the RDATA's wire
+			representation and returns ISC_R_NOTIMPLEMENTED,
+			such RDATA is now printed in unknown
+			presentation format (RFC 3597). RR types affected
+			include LOC(29) and APL(42). [RT #40317].
+
 4183.	[cleanup]	Use timing-safe memory comparisons in cryptographic
 			code. Also, the timing-safe comparison functions have
 			been renamed to avoid possible confusion with
