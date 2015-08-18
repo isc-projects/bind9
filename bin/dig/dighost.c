@@ -82,6 +82,7 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
+#include <isc/safe.h>
 #include <isc/serial.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
@@ -3460,7 +3461,7 @@ process_cookie(dig_lookup_t *l, dns_message_t *msg,
 
 	INSIST(msg->cc_ok == 0 && msg->cc_bad == 0);
 	if (optlen >= len && optlen >= 8U) {
-		if (memcmp(isc_buffer_current(optbuf), sent, 8) == 0) {
+		if (isc_safe_memequal(isc_buffer_current(optbuf), sent, 8)) {
 			msg->cc_ok = 1;
 		} else {
 			printf(";; Warning: Client COOKIE mismatch\n");

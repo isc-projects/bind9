@@ -26,6 +26,7 @@
 #include <isc/print.h>
 #include <isc/queue.h>
 #include <isc/random.h>
+#include <isc/safe.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/stdio.h>
@@ -1815,7 +1816,7 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	isc_buffer_init(&db, dbuf, sizeof(dbuf));
 	compute_cookie(client, when, nonce, &db);
 
-	if (memcmp(old, dbuf, COOKIE_SIZE) != 0) {
+	if (!isc_safe_memequal(old, dbuf, COOKIE_SIZE)) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_cookienomatch);
 		return;

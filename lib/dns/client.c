@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.14 2011/03/12 04:59:47 tbox Exp $ */
-
 #include <config.h>
 
 #include <stddef.h>
@@ -24,6 +22,7 @@
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
+#include <isc/safe.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/task.h>

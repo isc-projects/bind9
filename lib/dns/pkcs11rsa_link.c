@@ -506,7 +506,8 @@ pkcs11rsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_TRUE);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
-		 memcmp(attr1->pValue, attr2->pValue, attr1->ulValueLen))
+		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
+				    attr1->ulValueLen))
 		return (ISC_FALSE);
 
 	attr1 = pk11_attribute_bytype(rsa1, CKA_PUBLIC_EXPONENT);
@@ -515,7 +516,8 @@ pkcs11rsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_TRUE);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
-		 memcmp(attr1->pValue, attr2->pValue, attr1->ulValueLen))
+		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
+				    attr1->ulValueLen))
 		return (ISC_FALSE);
 
 	attr1 = pk11_attribute_bytype(rsa1, CKA_PRIVATE_EXPONENT);
@@ -523,7 +525,8 @@ pkcs11rsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	if (((attr1 != NULL) || (attr2 != NULL)) &&
 	    ((attr1 == NULL) || (attr2 == NULL) ||
 	     (attr1->ulValueLen != attr2->ulValueLen) ||
-	     memcmp(attr1->pValue, attr2->pValue, attr1->ulValueLen)))
+	     !isc_safe_memequal(attr1->pValue, attr2->pValue,
+				attr1->ulValueLen)))
 		return (ISC_FALSE);
 
 	if (!rsa1->ontoken && !rsa2->ontoken)
@@ -1179,7 +1182,7 @@ rsa_check(pk11_object_t *rsa, pk11_object_t *pubrsa) {
 	if (priv_exp != NULL) {
 		if (priv_explen != pub_explen)
 			return (DST_R_INVALIDPRIVATEKEY);
-		if (memcmp(priv_exp, pub_exp, pub_explen) != 0)
+		if (!isc_safe_memequal(priv_exp, pub_exp, pub_explen))
 			return (DST_R_INVALIDPRIVATEKEY);
 	} else {
 		privattr->pValue = pub_exp;
@@ -1204,7 +1207,7 @@ rsa_check(pk11_object_t *rsa, pk11_object_t *pubrsa) {
 	if (priv_mod != NULL) {
 		if (priv_modlen != pub_modlen)
 			return (DST_R_INVALIDPRIVATEKEY);
-		if (memcmp(priv_mod, pub_mod, pub_modlen) != 0)
+		if (!isc_safe_memequal(priv_mod, pub_mod, pub_modlen))
 			return (DST_R_INVALIDPRIVATEKEY);
 	} else {
 		privattr->pValue = pub_mod;

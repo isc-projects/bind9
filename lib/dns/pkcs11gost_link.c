@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #include <config.h>
 
 #if defined(PKCS11CRYPTO) && defined(HAVE_PKCS11_GOST)
@@ -444,7 +442,8 @@ pkcs11gost_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_TRUE);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
-		 memcmp(attr1->pValue, attr2->pValue, attr1->ulValueLen))
+		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
+				    attr1->ulValueLen))
 		return (ISC_FALSE);
 
 	attr1 = pk11_attribute_bytype(gost1, CKA_VALUE2);
@@ -452,7 +451,8 @@ pkcs11gost_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	if (((attr1 != NULL) || (attr2 != NULL)) &&
 	    ((attr1 == NULL) || (attr2 == NULL) ||
 	     (attr1->ulValueLen != attr2->ulValueLen) ||
-	     memcmp(attr1->pValue, attr2->pValue, attr1->ulValueLen)))
+	     !isc_safe_memequal(attr1->pValue, attr2->pValue,
+				attr1->ulValueLen)))
 		return (ISC_FALSE);
 
 	if (!gost1->ontoken && !gost2->ontoken)
@@ -856,7 +856,7 @@ pkcs11gost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			buf[36] += adj;
 			buf[38] += adj;
 		}
-		if (memcmp(priv.elements[0].data, buf, 39) != 0)
+		if (!isc_safe_memequal(priv.elements[0].data, buf, 39))
 			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		priv.elements[0].tag = TAG_GOST_PRIVRAW;
 		priv.elements[0].length -= 39;

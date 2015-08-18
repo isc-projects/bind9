@@ -650,9 +650,10 @@ opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 						DST_R_VERIFYFAILURE));
 			if (status != (int)(prefixlen + digestlen))
 				return (DST_R_VERIFYFAILURE);
-			if (memcmp(original, prefix, prefixlen))
+			if (!isc_safe_memequal(original, prefix, prefixlen))
 				return (DST_R_VERIFYFAILURE);
-			if (memcmp(original + prefixlen, digest, digestlen))
+			if (!isc_safe_memequal(original + prefixlen,
+					    digest, digestlen))
 				return (DST_R_VERIFYFAILURE);
 			status = 1;
 		}
