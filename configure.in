@@ -4718,9 +4718,10 @@ AC_CONFIG_FILES([
 	bin/tests/system/geoip/Makefile
 	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/lwresd/Makefile
-	bin/tests/system/sit/prereq.sh
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/rsabigexponent/Makefile
+	bin/tests/system/sit/prereq.sh
+	bin/tests/system/statistics/Makefile
 	bin/tests/system/tkey/Makefile
 	bin/tests/system/tsiggss/Makefile
 	bin/tests/tasks/Makefile
