@@ -487,7 +487,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		unsigned char *value;
 
 		value = (unsigned char *) isccc_sexpr_tostring(hmac);
-		if (!isc_safe_memcmp(value, digestb64, HMD5_LENGTH))
+		if (!isc_safe_memequal(value, digestb64, HMD5_LENGTH))
 			return (ISCCC_R_BADAUTH);
 	} else {
 		unsigned char *value;
@@ -496,7 +496,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		value = (unsigned char *) isccc_sexpr_tostring(hmac);
 		GET8(valalg, value);
 		if ((valalg != algorithm) ||
-		    (!isc_safe_memcmp(value, digestb64, HSHA_LENGTH)))
+		    !isc_safe_memequal(value, digestb64, HSHA_LENGTH))
 			return (ISCCC_R_BADAUTH);
 	}
 

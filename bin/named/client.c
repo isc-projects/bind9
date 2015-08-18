@@ -24,6 +24,7 @@
 #include <isc/print.h>
 #include <isc/queue.h>
 #include <isc/random.h>
+#include <isc/safe.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/stdio.h>
@@ -1716,7 +1717,7 @@ process_sit(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	isc_buffer_init(&db, dbuf, sizeof(dbuf));
 	compute_sit(client, when, nonce, &db);
 
-	if (memcmp(old, dbuf, SIT_SIZE) != 0) {
+	if (!isc_safe_memequal(old, dbuf, SIT_SIZE)) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_sitnomatch);
 		return;

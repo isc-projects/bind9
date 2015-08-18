@@ -84,6 +84,7 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
+#include <isc/safe.h>
 #include <isc/serial.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
@@ -3422,7 +3423,7 @@ process_sit(dig_lookup_t *l, dns_message_t *msg,
 
 	INSIST(msg->sitok == 0 && msg->sitbad == 0);
 	if (optlen >= len && optlen >= 8U) {
-		if (memcmp(isc_buffer_current(optbuf), sit, 8) == 0) {
+		if (isc_safe_memequal(isc_buffer_current(optbuf), sit, 8)) {
 			msg->sitok = 1;
 		} else {
 			printf(";; Warning: SIT client cookie mismatch\n");

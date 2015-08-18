@@ -326,5 +326,5 @@ isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len) {
 
 	REQUIRE(len <= ISC_MD5_DIGESTLENGTH);
 	isc_hmacmd5_sign(ctx, newdigest);
-	return (isc_safe_memcmp(digest, newdigest, len));
+	return (isc_safe_memequal(digest, newdigest, len));
 }

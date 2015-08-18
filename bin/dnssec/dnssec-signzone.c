@@ -52,6 +52,7 @@
 #include <isc/random.h>
 #include <isc/rwlock.h>
 #include <isc/serial.h>
+#include <isc/safe.h>
 #include <isc/stdio.h>
 #include <isc/stdlib.h>
 #include <isc/string.h>
@@ -765,7 +766,7 @@ hashlist_add_dns_name(hashlist_t *l, /*const*/ dns_name_t *name,
 
 static int
 hashlist_comp(const void *a, const void *b) {
-	return (memcmp(a, b, hash_length + 1));
+	return (isc_safe_memcompare(a, b, hash_length + 1));
 }
 
 static void
@@ -792,7 +793,7 @@ hashlist_hasdup(hashlist_t *l) {
 		next += l->length;
 		if (next[l->length-1] != 0)
 			continue;
-		if (memcmp(current, next, l->length - 1) == 0)
+		if (isc_safe_memequal(current, next, l->length - 1))
 			return (ISC_TRUE);
 		current = next;
 	}
@@ -2020,7 +2021,7 @@ nsec3clean(dns_name_t *name, dns_dbnode_t *node,
 		if (exists && nsec3.hash == hashalg &&
 		    nsec3.iterations == iterations &&
 		    nsec3.salt_length == salt_len &&
-		    !memcmp(nsec3.salt, salt, salt_len))
+		    isc_safe_memequal(nsec3.salt, salt, salt_len))
 			continue;
 		dns_rdatalist_init(&rdatalist);
 		rdatalist.rdclass = rdata.rdclass;
@@ -2708,7 +2709,7 @@ set_nsec3params(isc_boolean_t update, isc_boolean_t set_salt,
 
 	if (!update && set_salt) {
 		if (salt_length != orig_saltlen ||
-		    memcmp(saltbuf, orig_salt, salt_length) != 0)
+		    !isc_safe_memequal(saltbuf, orig_salt, salt_length))
 			fatal("An NSEC3 chain exists with a different salt. "
 			      "Use -u to update it.");
 	} else if (!set_salt) {
