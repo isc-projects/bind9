@@ -1,7 +1,8 @@
 4183.	[cleanup]	Use timing-safe memory comparisons in cryptographic
 			code. Also, the timing-safe comparison functions have
 			been renamed to avoid possible confusion with
-			memcmp(). [RT #40148]
+			memcmp(). Thanks to Loganaden Velvindron of
+                        AFRINIC. [RT #40148]
 
 4182.	[cleanup]	Use mnemonics for RR class and type comparisons.
 			[RT #40297]
