@@ -1,3 +1,7 @@
+4184.	[bug]		Fixed a possible memory leak in name compression
+			when rendering long messages. (Also, improved
+			wire_test for testing such messages.) [RT #40375]
+
 4183.	[cleanup]	Use timing-safe memory comparisons in cryptographic
 			code. Also, the timing-safe comparison functions have
 			been renamed to avoid possible confusion with

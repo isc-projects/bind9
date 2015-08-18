@@ -214,7 +214,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name));
 
-	if (offset > 0x4000)
+	if (offset >= 0x4000)
 		return;
 	dns_name_init(&tname, NULL);
 	dns_name_init(&xname, NULL);
@@ -231,18 +231,21 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	tmp = isc_mem_get(cctx->mctx, length);
 	if (tmp == NULL)
 		return;
+	/*
+	 * Copy name data to 'tmp' and make 'r' use 'tmp'.
+	 */
 	memmove(tmp, r.base, r.length);
 	r.base = tmp;
 	dns_name_fromregion(&xname, &r);
 
 	while (count > 0) {
-		if (offset >= 0x4000)
-			break;
 		dns_name_getlabelsequence(&xname, start, n, &tname);
 		hash = dns_name_hash(&tname, ISC_FALSE) %
 		       DNS_COMPRESS_TABLESIZE;
 		tlength = name_length(&tname);
 		toffset = (isc_uint16_t)(offset + (length - tlength));
+		if (toffset >= 0x4000)
+			break;
 		/*
 		 * Create a new node and add it.
 		 */
@@ -251,14 +254,14 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		else {
 			node = isc_mem_get(cctx->mctx,
 					   sizeof(dns_compressnode_t));
-			if (node == NULL) {
-				if (start == 0)
-					isc_mem_put(cctx->mctx,
-						    r.base, r.length);
-				return;
-			}
+			if (node == NULL)
+				break;
 		}
 		node->count = cctx->count++;
+		/*
+		 * 'node->r.base' becomes 'tmp' when start == 0.
+		 * Record this by setting 0x8000 so it can be freed later.
+		 */
 		if (start == 0)
 			toffset |= 0x8000;
 		node->offset = toffset;
@@ -270,6 +273,9 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		n--;
 		count--;
 	}
+
+	if (start == 0)
+		isc_mem_put(cctx->mctx, tmp, length);
 }
 
 void
