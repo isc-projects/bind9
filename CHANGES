@@ -1,3 +1,10 @@
+4187.	[func]		When any RR type implementation doesn't
+			implement totext() for the RDATA's wire
+			representation and returns ISC_R_NOTIMPLEMENTED,
+			such RDATA is now printed in unknown
+			presentation format (RFC 3597). RR types affected
+			include LOC(29) and APL(42). [RT #40317].
+
 4186.	[bug]		Fixed an RPZ bug where a QNAME would be matched
 			against a policy RR with wildcard owner name
 			(trigger) where the QNAME was the wildcard owner
