@@ -1342,12 +1342,9 @@ add_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	isc_result_t result;
 
 	/*
-	 * No need for a summary database of names with only 1 policy zone.
+	 * We need a summary database of names even with 1 policy zone,
+	 * because wildcard triggers are handled differently.
 	 */
-	if (rpzs->p.num_zones <= 1) {
-		adj_trigger_cnt(rpzs, rpz_num, rpz_type, NULL, 0, ISC_TRUE);
-		return (ISC_R_SUCCESS);
-	}
 
 	dns_fixedname_init(&trig_namef);
 	trig_name = dns_fixedname_name(&trig_namef);
@@ -2019,12 +2016,9 @@ del_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	isc_result_t result;
 
 	/*
-	 * No need for a summary database of names with only 1 policy zone.
+	 * We need a summary database of names even with 1 policy zone,
+	 * because wildcard triggers are handled differently.
 	 */
-	if (rpzs->p.num_zones <= 1) {
-		adj_trigger_cnt(rpzs, rpz_num, rpz_type, NULL, 0, ISC_FALSE);
-		return;
-	}
 
 	dns_fixedname_init(&trig_namef);
 	trig_name = dns_fixedname_name(&trig_namef);

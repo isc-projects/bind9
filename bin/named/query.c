@@ -4883,16 +4883,14 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 	rpzs = client->view->rpzs;
 
 	/*
-	 * If there is only one eligible policy zone, just check it.
-	 * If more than one, then use the summary database to find
-	 * the bit mask of policy zones with policies for this trigger name.
-	 *	x&(~x+1) is the least significant bit set in x
+	 * Use the summary database to find the bit mask of policy zones
+	 * with policies for this trigger name. We do this even if there
+	 * is only one eligible policy zone so that wildcard triggers
+	 * are matched correctly, and not into their parent.
 	 */
-	if (zbits != (zbits & (~zbits + 1))) {
-		zbits = dns_rpz_find_name(rpzs, rpz_type, zbits, trig_name);
-		if (zbits == 0)
-			return (ISC_R_SUCCESS);
-	}
+	zbits = dns_rpz_find_name(rpzs, rpz_type, zbits, trig_name);
+	if (zbits == 0)
+		return (ISC_R_SUCCESS);
 
 	dns_fixedname_init(&p_namef);
 	p_name = dns_fixedname_name(&p_namef);

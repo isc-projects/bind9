@@ -6949,16 +6949,17 @@ static isc_result_t
 loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 	 isc_boolean_t hasnsec)
 {
-	isc_result_t noderesult, nsecresult, tmpresult;
+	isc_result_t noderesult, rpzresult, nsecresult, tmpresult;
 	dns_rbtnode_t *nsecnode = NULL, *node = NULL;
 
 	noderesult = dns_rbt_addnode(rbtdb->tree, name, &node);
-	if (rbtdb->rpzs != NULL && noderesult == ISC_R_SUCCESS) {
-		noderesult = dns_rpz_add(rbtdb->load_rpzs, rbtdb->rpz_num,
-					 name);
-		if (noderesult == ISC_R_SUCCESS) {
+	if (rbtdb->rpzs != NULL &&
+	    (noderesult == ISC_R_SUCCESS || noderesult == ISC_R_EXISTS)) {
+		rpzresult = dns_rpz_add(rbtdb->load_rpzs, rbtdb->rpz_num,
+					name);
+		if (rpzresult == ISC_R_SUCCESS) {
 			node->rpz = 1;
-		} else  {
+		} else if (noderesult != ISC_R_EXISTS) {
 			/*
 			 * Remove the node we just added above.
 			 */

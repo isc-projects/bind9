@@ -245,4 +245,48 @@ grep "^l2.l1.l0.[[:space:]]*[0-9]*[[:space:]]*IN[[:space:]]*A[[:space:]]*10.53.0
     status=1
 }
 
+# Check wildcard behavior
+
+t=`expr $t + 1`
+echo "I:testing wildcard behavior with 1 RPZ zone (${t})"
+run_server wildcard1
+$DIG $DIGOPTS www.test1.example.net a @10.53.0.2 -p 5300 > dig.out.${t}.1
+grep "status: NXDOMAIN" dig.out.${t}.1 > /dev/null || {
+    echo "I:test ${t} failed"
+    status=1
+}
+$DIG $DIGOPTS test1.example.net a @10.53.0.2 -p 5300 > dig.out.${t}.2
+grep "status: NXDOMAIN" dig.out.${t}.2 > /dev/null || {
+    echo "I:test ${t} failed"
+    status=1
+}
+
+t=`expr $t + 1`
+echo "I:testing wildcard behavior with 2 RPZ zones (${t})"
+run_server wildcard2
+$DIG $DIGOPTS www.test1.example.net a @10.53.0.2 -p 5300 > dig.out.${t}.1
+grep "status: NXDOMAIN" dig.out.${t}.1 > /dev/null || {
+    echo "I:test ${t} failed"
+    status=1
+}
+$DIG $DIGOPTS test1.example.net a @10.53.0.2 -p 5300 > dig.out.${t}.2
+grep "status: NXDOMAIN" dig.out.${t}.2 > /dev/null || {
+    echo "I:test ${t} failed"
+    status=1
+}
+
+t=`expr $t + 1`
+echo "I:testing wildcard behavior with 1 RPZ zone and no non-wildcard triggers (${t})"
+run_server wildcard3
+$DIG $DIGOPTS www.test1.example.net a @10.53.0.2 -p 5300 > dig.out.${t}.1
+grep "status: NXDOMAIN" dig.out.${t}.1 > /dev/null || {
+    echo "I:test ${t} failed"
+    status=1
+}
+$DIG $DIGOPTS test1.example.net a @10.53.0.2 -p 5300 > dig.out.${t}.2
+grep "status: NOERROR" dig.out.${t}.2 > /dev/null || {
+    echo "I:test ${t} failed"
+    status=1
+}
+
 exit $status
