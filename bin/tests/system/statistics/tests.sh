@@ -29,17 +29,21 @@ t=0
 ret=0
 t=`expr $t + 1`
 echo "I:checking that zones with slash are properly shown in XML output (${t})"
-if [ -x ${CURL} -a -x ${XMLLINT} ] ; then
+if [ -x ${CURL} ] ; then
     if ./newstats
     then
         ${CURL} http://10.53.0.1:8053/xml/v3 > curl.out.${t} 2>/dev/null || ret=1
-        ${XMLLINT} --xpath '//statistics/views/view/zones/zone[@name="32/1.0.0.127-in-addr.example"]' curl.out.${t} > /dev/null 2>&1 || ret=1
+        grep '<zone name="32/1.0.0.127-in-addr.example" rdataclass="IN">' curl.out.${t} > /dev/null || ret=1
     else
         ${CURL} http://10.53.0.1:8053/xml > curl.out.${t} 2>/dev/null || ret=1
-        ${XMLLINT} --xpath '//statistics/views/view/zones/zone/name="32/1.0.0.127-in-addr.example"' curl.out.${t} > /dev/null 2>&1 || ret=1
+awk '/<zone>/ { count=1 ; next }
+     /<name>32\/1.0.0.127-in-addr.example<\/name>/ && count == 1 { count = 2 ; next}
+     /<rdataclass>IN<\/rdataclass>/ && count == 2 { good = 1 }
+     {count=0}
+     END { if (good) exit (0); exit (1) }' curl.out.${t} || ret=1
     fi
 else
-  echo "I:skipping test as curl and/or xmllint were not found"
+  echo "I:skipping test as curl was not found"
 fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
