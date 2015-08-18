@@ -4660,6 +4660,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/rndc/Makefile
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/rsabigexponent/Makefile
+	bin/tests/system/statistics/Makefile
 	bin/tests/system/tkey/Makefile
 	bin/tests/system/tsiggss/Makefile
 	bin/tests/tasks/Makefile
