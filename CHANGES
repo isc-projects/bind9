@@ -1,3 +1,6 @@
+4188.	[bug]		Support HTTP/1.0 client properly on the statistics
+			channel. [RT #40261]
+
 4187.	[func]		When any RR type implementation doesn't
 			implement totext() for the RDATA's wire
 			representation and returns ISC_R_NOTIMPLEMENTED,
