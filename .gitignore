@@ -13,6 +13,7 @@ autom4te.cache/
 *.a
 *.la
 *_test
+*-symtbl.c
 timestamp
 ans.run
 lwresd.run
