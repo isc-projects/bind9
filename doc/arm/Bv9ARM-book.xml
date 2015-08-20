@@ -7595,11 +7595,13 @@ options {
 	      <term><command>resolver-query-timeout</command></term>
 	      <listitem>
 		<para>
-		  The amount of time the resolver will spend attempting
-		  to resolve a recursive query before failing.  The default
-		  and minimum is <literal>10</literal> and the maximum is
-		  <literal>30</literal>.  Setting it to <literal>0</literal>
-		  will result in the default being used.
+		  The amount of time in seconds that the resolver
+		  will spend attempting to resolve a recursive
+		  query before failing.  The default and minimum
+		  is <literal>10</literal> and the maximum is
+		  <literal>30</literal>.  Setting it to
+		  <literal>0</literal> will result in the default
+		  being used.
 		</para>
 	      </listitem>
 	    </varlistentry>
