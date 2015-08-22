@@ -224,6 +224,21 @@ unknown_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 /*% IPv6 Address Size */
 #define NS_LOCATORSZ	8
 
+/*
+ * Active Diretory gc._msdcs.<forest> prefix.
+ */
+static unsigned char gc_msdcs_data[]  = "\002gc\006_msdcs";
+static unsigned char gc_msdcs_offset [] = { 0, 3 };
+
+static const dns_name_t gc_msdcs = {
+	DNS_NAME_MAGIC,
+	gc_msdcs_data, 10, 2,
+	DNS_NAMEATTR_READONLY,
+	gc_msdcs_offset, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
+};
+
 /*%
  *	convert presentation level address to network order binary form.
  * \return
