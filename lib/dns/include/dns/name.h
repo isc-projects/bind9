@@ -989,10 +989,6 @@ dns_name_split(dns_name_t *name, unsigned int suffixlabels,
  *
  *\li	'suffix' is a valid name or NULL, and cannot be read-only.
  *
- *\li	If non-NULL, 'prefix' and 'suffix' must have dedicated buffers.
- *
- *\li	'prefix' and 'suffix' cannot point to the same buffer.
- *
  * Ensures:
  *
  *\li	On success:

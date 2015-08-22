@@ -24,7 +24,14 @@ for db in zones/good*.db
 do
 	echo "I:checking $db ($n)"
 	ret=0
-	$CHECKZONE -i local example $db > test.out.$n 2>&1 || ret=1
+	case $db in
+	zones/good-gc-msdcs.db)
+		$CHECKZONE -k fail -i local example $db > test.out.$n 2>&1 || ret=1
+		;;
+	*)
+		$CHECKZONE -i local example $db > test.out.$n 2>&1 || ret=1
+		;;
+	esac
 	n=`expr $n + 1`
 	if [ $ret != 0 ]; then echo "I:failed"; fi
 	status=`expr $status + $ret`
