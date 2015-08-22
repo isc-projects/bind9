@@ -1,3 +1,7 @@
+4190.	[protocol]	Accept Active Diretory gc._msdcs.<forest> name as
+			valid with check-names.  <forest> still needs to be
+			LDH. [RT #40399]
+
 4189.	[cleanup]	Don't exit on overly long tokens in named.conf.
 			[RT #40418]
 

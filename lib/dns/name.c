@@ -2155,11 +2155,9 @@ dns_name_split(dns_name_t *name, unsigned int suffixlabels,
 	REQUIRE(prefix != NULL || suffix != NULL);
 	REQUIRE(prefix == NULL ||
 		(VALID_NAME(prefix) &&
-		 prefix->buffer != NULL &&
 		 BINDABLE(prefix)));
 	REQUIRE(suffix == NULL ||
 		(VALID_NAME(suffix) &&
-		 suffix->buffer != NULL &&
 		 BINDABLE(suffix)));
 
 	splitlabel = name->labels - suffixlabels;
