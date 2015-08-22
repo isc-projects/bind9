@@ -1,3 +1,6 @@
+4189.	[cleanup]	Don't exit on overly long tokens in named.conf.
+			[RT #40418]
+
 4188.	[bug]		Support HTTP/1.0 client properly on the statistics
 			channel. [RT #40261]
 

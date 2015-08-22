@@ -2482,9 +2482,10 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 			 current_file(pctx), pctx->line);
 
 	len = vsnprintf(message, sizeof(message), format, args);
+#define ELIPSIS " ... "
 	if (len >= sizeof(message))
-		FATAL_ERROR(__FILE__, __LINE__,
-			    "error message would overflow");
+		strcpy(message + sizeof(message) - sizeof(ELIPSIS) - 1,
+		       ELIPSIS);
 
 	if ((flags & (CFG_LOG_NEAR|CFG_LOG_BEFORE|CFG_LOG_NOPREP)) != 0) {
 		isc_region_t r;
