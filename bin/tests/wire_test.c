@@ -185,7 +185,8 @@ main(int argc, char *argv[]) {
 	} else
 		f = stdin;
 
-	isc_buffer_allocate(mctx, &input, 64 * 1024);
+	result = isc_buffer_allocate(mctx, &input, 64 * 1024);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (rawdata) {
 		while (fread(&c, 1, 1, f) != 0) {
