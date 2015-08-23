@@ -113,6 +113,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t need_close = ISC_FALSE;
 	isc_boolean_t tcp = ISC_FALSE;
 	isc_boolean_t rawdata = ISC_FALSE;
+	isc_result_t result;
 	isc_uint8_t c;
 	FILE *f;
 	int ch;
@@ -184,7 +185,8 @@ main(int argc, char *argv[]) {
 	} else
 		f = stdin;
 
-	isc_buffer_allocate(mctx, &input, 64 * 1024);
+	result = isc_buffer_allocate(mctx, &input, 64 * 1024);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (rawdata) {
 		while (fread(&c, 1, 1, f) != 0) {
