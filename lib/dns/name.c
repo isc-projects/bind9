@@ -2501,3 +2501,76 @@ dns_name_destroy(void) {
 
 #endif
 }
+
+/*
+ * Service Discovery Prefixes RFC 6763.
+ */
+static unsigned char b_dns_sd_udp_data[]  = "\001b\007_dns-sd\004_udp";
+static unsigned char b_dns_sd_udp_offsets[] = { 0, 2, 10 };
+static unsigned char db_dns_sd_udp_data[]  = "\002db\007_dns-sd\004_udp";
+static unsigned char db_dns_sd_udp_offsets[] = { 0, 3, 11 };
+static unsigned char r_dns_sd_udp_data[]  = "\001r\007_dns-sd\004_udp";
+static unsigned char r_dns_sd_udp_offsets[] = { 0, 2, 10 };
+static unsigned char dr_dns_sd_udp_data[]  = "\002dr\007_dns-sd\004_udp";
+static unsigned char dr_dns_sd_udp_offsets[] = { 0, 3, 11 };
+static unsigned char lb_dns_sd_udp_data[]  = "\002lb\007_dns-sd\004_udp";
+static unsigned char lb_dns_sd_udp_offsets[] = { 0, 3, 11 };
+
+static const dns_name_t dns_sd[] = {
+	{
+		DNS_NAME_MAGIC,
+		b_dns_sd_udp_data, 15, 3,
+		DNS_NAMEATTR_READONLY,
+		b_dns_sd_udp_offsets, NULL,
+		{(void *)-1, (void *)-1},
+		{NULL, NULL}
+	},
+	{
+		DNS_NAME_MAGIC,
+		db_dns_sd_udp_data, 16, 3,
+		DNS_NAMEATTR_READONLY,
+		db_dns_sd_udp_offsets, NULL,
+		{(void *)-1, (void *)-1},
+		{NULL, NULL}
+	},
+	{
+		DNS_NAME_MAGIC,
+		r_dns_sd_udp_data, 15, 3,
+		DNS_NAMEATTR_READONLY,
+		r_dns_sd_udp_offsets, NULL,
+		{(void *)-1, (void *)-1},
+		{NULL, NULL}
+	},
+	{
+		DNS_NAME_MAGIC,
+		dr_dns_sd_udp_data, 16, 3,
+		DNS_NAMEATTR_READONLY,
+		dr_dns_sd_udp_offsets, NULL,
+		{(void *)-1, (void *)-1},
+		{NULL, NULL}
+	},
+	{
+		DNS_NAME_MAGIC,
+		lb_dns_sd_udp_data, 16, 3,
+		DNS_NAMEATTR_READONLY,
+		lb_dns_sd_udp_offsets, NULL,
+		{(void *)-1, (void *)-1},
+		{NULL, NULL}
+	}
+};
+
+isc_boolean_t
+dns_name_isdnssd(const dns_name_t *name) {
+	size_t i;
+	dns_name_t prefix;
+
+	if (dns_name_countlabels(name) > 3U) {
+		dns_name_init(&prefix, NULL);
+		dns_name_getlabelsequence(name, 0, 3, &prefix);
+		for (i = 0; i < (sizeof(dns_sd)/sizeof(dns_sd[0])); i++)
+			if (dns_name_equal(&prefix, &dns_sd[i]))
+				return (ISC_TRUE);
+	}
+
+	return (ISC_FALSE);
+}

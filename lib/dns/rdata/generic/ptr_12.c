@@ -273,6 +273,9 @@ checknames_ptr(ARGS_CHECKNAMES) {
 	if (rdata->rdclass != dns_rdataclass_in)
 	    return (ISC_TRUE);
 
+	if (dns_name_isdnssd(owner))
+		return (ISC_TRUE);
+
 	if (dns_name_issubdomain(owner, &in_addr_arpa) ||
 	    dns_name_issubdomain(owner, &ip6_arpa) ||
 	    dns_name_issubdomain(owner, &ip6_int)) {

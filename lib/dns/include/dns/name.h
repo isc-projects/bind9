@@ -1280,6 +1280,12 @@ dns_name_destroy(void);
  * non-NULL argument prior to calling dns_name_destroy();
  */
 
+isc_boolean_t
+dns_name_isdnssd(const dns_name_t *owner);
+/*%<
+ * Determine if the 'owner' is a DNS-SD prefix.
+ */
+
 ISC_LANG_ENDDECLS
 
 /*
