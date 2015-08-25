@@ -8012,6 +8012,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			unsigned int flags, mask;
 			unsigned int version;
 #ifdef ISC_PLATFORM_USESIT
+			isc_boolean_t nosit = ISC_FALSE;
+
 			/*
 			 * Some servers return BADVERS to unknown
 			 * EDNS options.  This cannot be long term
@@ -8021,19 +8023,21 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 */
 			if (dns_adb_getsit(fctx->adb, query->addrinfo,
 					   sit, sizeof(sit)) == 0U) {
+				if (!NOSIT(query->addrinfo))
+					nosit = ISC_TRUE;
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
 						    FCTX_ADDRINFO_NOSIT,
 						    FCTX_ADDRINFO_NOSIT);
 			}
 #endif
 
-			resend = ISC_TRUE;
 			INSIST(opt != NULL);
 			version = (opt->ttl >> 16) & 0xff;
 			flags = (version << DNS_FETCHOPT_EDNSVERSIONSHIFT) |
 				DNS_FETCHOPT_EDNSVERSIONSET;
 			mask = DNS_FETCHOPT_EDNSVERSIONMASK |
 			       DNS_FETCHOPT_EDNSVERSIONSET;
+
 			/*
 			 * Record that we got a good EDNS response.
 			 */
@@ -8043,6 +8047,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 						    FCTX_ADDRINFO_EDNSOK,
 						    FCTX_ADDRINFO_EDNSOK);
 			}
+
 			/*
 			 * Record the supported EDNS version.
 			 */
@@ -8050,7 +8055,13 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			case 0:
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
 						    flags, mask);
-				break;
+#ifdef ISC_PLATFORM_USESIT
+				if (nosit) {
+					resend = ISC_TRUE;
+					break;
+				}
+#endif
+				/* FALLTHROUGH */
 			default:
 				broken_server = DNS_R_BADVERS;
 				keep_trying = ISC_TRUE;
