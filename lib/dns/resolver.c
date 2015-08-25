@@ -7636,38 +7636,13 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 */
 			result = DNS_R_YXDOMAIN;
 		} else if (message->rcode == dns_rcode_badvers) {
-			unsigned int flags, mask;
-			unsigned int version;
-
-			resend = ISC_TRUE;
-			INSIST(opt != NULL);
-			version = (opt->ttl >> 16) & 0xff;
-			flags = (version << DNS_FETCHOPT_EDNSVERSIONSHIFT) |
-				DNS_FETCHOPT_EDNSVERSIONSET;
-			mask = DNS_FETCHOPT_EDNSVERSIONMASK |
-			       DNS_FETCHOPT_EDNSVERSIONSET;
 			/*
-			 * Record that we got a good EDNS response.
+			 * This should be impossible as we only send EDNS
+			 * version 0 requests and to return BADVERS you
+			 * need to support EDNS as it is a extended rcode.
 			 */
-			if (query->ednsversion > (int)version &&
-			    !EDNSOK(query->addrinfo)) {
-				dns_adb_changeflags(fctx->adb, query->addrinfo,
-						    FCTX_ADDRINFO_EDNSOK,
-						    FCTX_ADDRINFO_EDNSOK);
-			}
-			/*
-			 * Record the supported EDNS version.
-			 */
-			switch (version) {
-			case 0:
-				dns_adb_changeflags(fctx->adb, query->addrinfo,
-						    flags, mask);
-				break;
-			default:
-				broken_server = DNS_R_BADVERS;
-				keep_trying = ISC_TRUE;
-				break;
-			}
+			broken_server = DNS_R_BADVERS;
+			keep_trying = ISC_TRUE;
 		} else {
 			/*
 			 * XXXRTH log.
