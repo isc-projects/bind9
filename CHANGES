@@ -1,3 +1,6 @@
+4193.	[bug]		Handle broken servers that return BADVERS incorrectly.
+			[RT #40427]
+
 4192.	[bug]		The default rrset-order of random was not always being
 			applied. [RT #40456]
 

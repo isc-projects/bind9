@@ -7986,8 +7986,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 */
 			result = DNS_R_YXDOMAIN;
 		} else if (message->rcode == dns_rcode_badvers) {
-			unsigned int flags, mask;
 			unsigned int version;
+			isc_boolean_t setnocookie = ISC_FALSE;
+#if DNS_EDNS_VERSION > 0
+			unsigned int flags, mask;
+#endif
 
 			/*
 			 * Some servers return BADVERS to unknown
@@ -7998,18 +8001,22 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 */
 			if (dns_adb_getcookie(fctx->adb, query->addrinfo,
 					      cookie, sizeof(cookie)) == 0U) {
+				if (!NOCOOKIE(query->addrinfo))
+					setnocookie = ISC_TRUE;
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
 						    FCTX_ADDRINFO_NOCOOKIE,
 						    FCTX_ADDRINFO_NOCOOKIE);
 			}
 
-			resend = ISC_TRUE;
 			INSIST(opt != NULL);
 			version = (opt->ttl >> 16) & 0xff;
+#if DNS_EDNS_VERSION > 0
 			flags = (version << DNS_FETCHOPT_EDNSVERSIONSHIFT) |
 				DNS_FETCHOPT_EDNSVERSIONSET;
 			mask = DNS_FETCHOPT_EDNSVERSIONMASK |
 			       DNS_FETCHOPT_EDNSVERSIONSET;
+#endif
+
 			/*
 			 * Record that we got a good EDNS response.
 			 */
@@ -8019,29 +8026,32 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 						    FCTX_ADDRINFO_EDNSOK,
 						    FCTX_ADDRINFO_EDNSOK);
 			}
+
 			/*
-			 * XXXMPA we should really test against the version of
-			 * EDNS we sent in the request.  Some servers return
-			 * BADVERS for unknown EDNS options.
-			 * RFC 2671 was not clear that they should be ignored.
-			 * RFC 6891 is clear that that they should be ignored.
-			 * If we are supporting EDNS > 0 then perform strict
+			 * RFC 2671 was not clear that unknown options should
+			 * be ignored.  RFC 6891 is clear that that they
+			 * should be ignored. If we are supporting the
+			 * experimental EDNS > 0 then perform strict
 			 * version checking of badvers responses.  We won't
 			 * be sending COOKIE etc. in that case.
 			 */
-#if DNS_EDNS_VERSION == 0
-			 /* Avoids a compiler warning with < 0 */
-			if (version <= DNS_EDNS_VERSION)
-#else
-			if (version < DNS_EDNS_VERSION)
-#endif
-			{
+#if DNS_EDNS_VERSION > 0
+			if ((int)version < query->ednsversion) {
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
 						    flags, mask);
+				resend = ISC_TRUE;
 			} else {
 				broken_server = DNS_R_BADVERS;
 				keep_trying = ISC_TRUE;
 			}
+#else
+			if (version == 0U && setnocookie) {
+				resend = ISC_TRUE;
+			} else {
+				broken_server = DNS_R_BADVERS;
+				keep_trying = ISC_TRUE;
+			}
+#endif
 		} else if (message->rcode == dns_rcode_badcookie &&
 			   message->cc_ok) {
 			/*
