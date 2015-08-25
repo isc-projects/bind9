@@ -1,3 +1,6 @@
+4191.	[protocol]	Accept DNS-SD non LDH PTR records in reverse zones
+			as per RFC 6763. [RT #37889]
+
 4190.	[protocol]	Accept Active Diretory gc._msdcs.<forest> name as
 			valid with check-names.  <forest> still needs to be
 			LDH. [RT #40399]

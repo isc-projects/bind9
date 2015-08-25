@@ -1,0 +1,12 @@
+$TTL 	60
+@	IN	SOA	. . 0 0 0 0 0
+@	IN	NS	.
+;
+; The following are Service Discovery Prefixes from RFC 6763 and the
+; PTR check-names rules for IN-ADDR.ARPA and IP6.ARPA do not apply.
+;
+b._dns-sd._udp	IN	PTR	!@#3.
+db._dns-sd._udp	IN	PTR	!@#3.
+r._dns-sd._udp	IN	PTR	!@#3.
+dr._dns-sd._udp	IN      PTR     !@#3.
+lb._dns-sd._udp	IN      PTR     !@#3.

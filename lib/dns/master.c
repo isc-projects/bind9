@@ -364,7 +364,6 @@ static const dns_name_t ip6_arpa =
 	{NULL, NULL}
 };
 
-
 static inline isc_result_t
 gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 	 isc_boolean_t eol, dns_rdatacallbacks_t *callbacks)
@@ -1799,6 +1798,7 @@ load_text(dns_loadctx_t *lctx) {
 				}
 			}
 			if (type == dns_rdatatype_ptr &&
+			    !dns_name_isdnssd(name) &&
 			    (dns_name_issubdomain(name, &in_addr_arpa) ||
 			     dns_name_issubdomain(name, &ip6_arpa) ||
 			     dns_name_issubdomain(name, &ip6_int)))

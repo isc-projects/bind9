@@ -26,6 +26,9 @@ do
 	zones/good-gc-msdcs.db)
 		$CHECKZONE -k fail -i local example $db > test.out.$n 2>&1 || ret=1
 		;;
+	zones/good-dns-sd-reverse.db)
+		$CHECKZONE -k fail -i local 0.0.0.0.in-addr.arpa $db > test.out.$n 2>&1 || ret=1
+		;;
 	*)
 		$CHECKZONE -i local example $db > test.out.$n 2>&1 || ret=1
 		;;
@@ -39,7 +42,14 @@ for db in zones/bad*.db
 do
 	echo "I:checking $db ($n)"
 	ret=0
-	$CHECKZONE -i local example $db > test.out.$n 2>&1 && ret=1
+	case $db in
+	zones/bad-dns-sd-reverse.db)
+		$CHECKZONE -k fail -i local 0.0.0.0.in-addr.arpa $db > test.out.$n 2>&1 && ret=1
+		;;
+	*)
+                $CHECKZONE -i local example $db > test.out.$n 2>&1 && ret=1
+		;;
+	esac
 	n=`expr $n + 1`
 	if [ $ret != 0 ]; then echo "I:failed"; fi
 	status=`expr $status + $ret`
