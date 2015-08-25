@@ -45,7 +45,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2611259">Release Notes for BIND Version 9.10.3b1</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2611259">Release Notes for BIND Version 9.10.3rc1</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
@@ -60,7 +60,7 @@
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2611259"></a>Release Notes for BIND Version 9.10.3b1</h2></div></div></div>
+<a name="id2611259"></a>Release Notes for BIND Version 9.10.3rc1</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -211,6 +211,17 @@
 	  Retrieving the local port range from net.ipv4.ip_local_port_range
 	  on Linux is now supported.
 	</p></li>
+<li><p>
+	  Active Directory names of the form gc._msdcs.&lt;forest&gt; are
+	  now accepted as valid hostnames when using the
+	  <code class="option">check-names</code> option. &lt;forest&gt; is still
+	  restricted to letters, digits and hyphens.
+	</p></li>
+<li><p>
+	  Names containing rich text are now accepted as valid
+	  hostnames in PTR records in DNS-SD reverse lookup zones,
+	  as specified in RFC 6763. [RT #37889]
+	</p></li>
 </ul></div>
 </div>
 <div class="sect2" lang="en">
@@ -229,6 +240,24 @@
 <li><p>
 	  Some answer formatting options didn't work correctly with
 	  <span><strong class="command">dig +short</strong></span>. [RT #39291]
+	</p></li>
+<li><p>
+	  Malformed records of some types, including NSAP and UNSPEC,
+	  could trigger assertion failures when loading text zone files.
+	  [RT #40274] [RT #40285]
+	</p></li>
+<li><p>
+	  Fixed a possible crash in ratelimiter.c caused by NOTIFY
+	  messages being removed from the wrong rate limiter queue.
+	  [RT #40350]
+	</p></li>
+<li><p>
+	  The default <code class="option">rrset-order</code> of <code class="literal">random</code>
+	  was inconsistently applied. [RT #40456]
+	</p></li>
+<li><p>
+	  BADVERS responses from broken authoritative name servers were
+	  not handled correctly. [RT #40427]
 	</p></li>
 <li>
 <p>
@@ -268,6 +297,10 @@
 	      The server could crash if a reload of an RPZ zone was
 	      initiated while another reload of the same zone was
 	      already in progress. [RT #39649]
+	    </p></li>
+<li><p>
+	      Query names could match against the wrong policy zone
+	      if wildcard records were present. [RT #40357]
 	    </p></li>
 </ul></div>
 </li>
@@ -312,6 +345,6 @@
 </tr>
 </table>
 </div>
-<p style="text-align: center;">BIND 9.10.3b1</p>
+<p style="text-align: center;">BIND 9.10.3rc1</p>
 </body>
 </html>
