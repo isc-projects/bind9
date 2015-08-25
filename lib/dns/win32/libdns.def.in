@@ -506,6 +506,7 @@ dns_name_init
 dns_name_internalwildcard
 dns_name_invalidate
 dns_name_isabsolute
+dns_name_isdnssd
 dns_name_ishostname
 dns_name_ismailbox
 dns_name_issubdomain
