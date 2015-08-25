@@ -1,3 +1,6 @@
+4192.	[bug]		The default rrset-order of random was not always being
+			applied. [RT #40456]
+
 4191.	[protocol]	Accept DNS-SD non LDH PTR records in reverse zones
 			as per RFC 6763. [RT #37889]
 
