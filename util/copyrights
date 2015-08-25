@@ -954,6 +954,7 @@
 ./bin/tests/system/checkzone/setup.sh		SH	2014
 ./bin/tests/system/checkzone/tests.sh		SH	2011,2012,2013,2014,2015
 ./bin/tests/system/checkzone/zones/bad-caa-rr.db	ZONE	2015
+./bin/tests/system/checkzone/zones/bad-dns-sd-reverse.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/bad-nsap-empty.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/bad-nsap-odd-nibble.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/bad-nsec3-padded.db	ZONE	2014
@@ -964,6 +965,7 @@
 ./bin/tests/system/checkzone/zones/bad3.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/bad4.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/badttl.db	ZONE	2014
+./bin/tests/system/checkzone/zones/good-dns-sd-reverse.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/good-gc-msdcs.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/good-nsap.db	ZONE	2015
 ./bin/tests/system/checkzone/zones/good-nsec3-nopadhash.db	ZONE	2014
@@ -1817,6 +1819,7 @@
 ./bin/tests/system/rrsetorder/ns1/root.db	ZONE	2006,2007,2012
 ./bin/tests/system/rrsetorder/ns2/named.conf	CONF-C	2006,2007
 ./bin/tests/system/rrsetorder/ns3/named.conf	CONF-C	2006,2007
+./bin/tests/system/rrsetorder/ns4/named.conf	CONF-C	2015
 ./bin/tests/system/rrsetorder/tests.sh		SH	2006,2007,2008,2011,2012,2014,2015
 ./bin/tests/system/rsabigexponent/.gitignore	X	2013
 ./bin/tests/system/rsabigexponent/Makefile.in	MAKE	2012,2014,2015
@@ -3143,7 +3146,7 @@
 ./lib/dns/opensslecdsa_link.c			C	2012,2013,2014,2015
 ./lib/dns/opensslgost_link.c			C	2010,2011,2012,2013,2014,2015
 ./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
-./lib/dns/order.c				C	2002,2004,2005,2007
+./lib/dns/order.c				C	2002,2004,2005,2007,2015
 ./lib/dns/peer.c				C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014
 ./lib/dns/pkcs11.c				C	2014
 ./lib/dns/pkcs11dh_link.c			C	2014,2015
