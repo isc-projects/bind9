@@ -132,7 +132,7 @@ dns_order_find(dns_order_t *order, dns_name_t *name,
 		if (match(name, dns_fixedname_name(&ent->name)))
 			return (ent->mode);
 	}
-	return (0);
+	return (DNS_RDATASETATTR_RANDOMIZE);
 }
 
 void
