@@ -183,6 +183,21 @@
 	  on Linux is now supported.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Active Directory names of the form gc._msdcs.&lt;forest&gt; are
+	  now accepted as valid hostnames when using the
+	  <option>check-names</option> option. &lt;forest&gt; is still
+	  restricted to letters, digits and hyphens.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Names containing rich text are now accepted as valid
+	  hostnames in PTR records in DNS-SD reverse lookup zones,
+	  as specified in RFC 6763. [RT #37889]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_bugs">
@@ -205,6 +220,32 @@
 	<para>
 	  Some answer formatting options didn't work correctly with
 	  <command>dig +short</command>. [RT #39291]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Malformed records of some types, including NSAP and UNSPEC,
+	  could trigger assertion failures when loading text zone files.
+	  [RT #40274] [RT #40285]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Fixed a possible crash in ratelimiter.c caused by NOTIFY
+	  messages being removed from the wrong rate limiter queue.
+	  [RT #40350]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The default <option>rrset-order</option> of <literal>random</literal>
+	  was inconsistently applied. [RT #40456]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  BADVERS responses from broken authoritative name servers were
+	  not handled correctly. [RT #40427]
 	</para>
       </listitem>
       <listitem>
@@ -254,6 +295,12 @@
 	      The server could crash if a reload of an RPZ zone was
 	      initiated while another reload of the same zone was
 	      already in progress. [RT #39649]
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Query names could match against the wrong policy zone
+	      if wildcard records were present. [RT #40357]
 	    </para>
 	  </listitem>
 	</itemizedlist>
