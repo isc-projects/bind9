@@ -2686,7 +2686,7 @@
 ./lib/bind9/win32/libbind9.dsw			X	2001
 ./lib/bind9/win32/libbind9.mak.in		X	2001,2002,2004,2005,2006,2009,2011,2013
 ./lib/bind9/win32/libbind9.vcxproj.filters.in	X	2013
-./lib/bind9/win32/libbind9.vcxproj.in		X	2013
+./lib/bind9/win32/libbind9.vcxproj.in		X	2013,2015
 ./lib/bind9/win32/libbind9.vcxproj.user		X	2013
 ./lib/bind9/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/dns/.gitignore				X	2012,2013
@@ -3087,7 +3087,7 @@
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013
 ./lib/dns/win32/libdns.vcxproj.filters.in	X	2013
-./lib/dns/win32/libdns.vcxproj.in		X	2013
+./lib/dns/win32/libdns.vcxproj.in		X	2013,2015
 ./lib/dns/win32/libdns.vcxproj.user		X	2013
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004,2007,2013
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013,2015
@@ -3510,7 +3510,7 @@
 ./lib/isccc/win32/libisccc.dsw			X	2001
 ./lib/isccc/win32/libisccc.mak.in		X	2001,2002,2004,2005,2006,2009,2011,2013
 ./lib/isccc/win32/libisccc.vcxproj.filters.in	X	2013
-./lib/isccc/win32/libisccc.vcxproj.in		X	2013
+./lib/isccc/win32/libisccc.vcxproj.in		X	2013,2015
 ./lib/isccc/win32/libisccc.vcxproj.user		X	2013
 ./lib/isccc/win32/version.c			C	2001,2004,2007
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009,2011,2012,2014
@@ -3536,7 +3536,7 @@
 ./lib/isccfg/win32/libisccfg.dsw		X	2001
 ./lib/isccfg/win32/libisccfg.mak.in		X	2001,2002,2004,2005,2006,2009,2011,2013
 ./lib/isccfg/win32/libisccfg.vcxproj.filters.in	X	2013
-./lib/isccfg/win32/libisccfg.vcxproj.in		X	2013
+./lib/isccfg/win32/libisccfg.vcxproj.in		X	2013,2015
 ./lib/isccfg/win32/libisccfg.vcxproj.user	X	2013
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/lwres/Atffile				X	2014
@@ -3658,7 +3658,7 @@
 ./lib/lwres/win32/liblwres.dsw			X	2001
 ./lib/lwres/win32/liblwres.mak.in		X	2001,2002,2004,2005,2006,2007,2011,2013,2014
 ./lib/lwres/win32/liblwres.vcxproj.filters.in	X	2013,2014
-./lib/lwres/win32/liblwres.vcxproj.in		X	2013,2014
+./lib/lwres/win32/liblwres.vcxproj.in		X	2013,2014,2015
 ./lib/lwres/win32/liblwres.vcxproj.user		X	2013
 ./lib/lwres/win32/lwconfig.c			C	2002,2004,2006,2007,2013
 ./lib/lwres/win32/socket.c			C	2007,2015
@@ -3683,7 +3683,7 @@
 ./lib/win32/bindevt/bindevt.mak.in		X	2001,2006,2013
 ./lib/win32/bindevt/bindevt.mc			MC	2001,2004,2007
 ./lib/win32/bindevt/bindevt.vcxproj.filters.in	X	2013
-./lib/win32/bindevt/bindevt.vcxproj.in		X	2013
+./lib/win32/bindevt/bindevt.vcxproj.in		X	2013,2015
 ./lib/win32/bindevt/bindevt.vcxproj.user	X	2013
 ./libtool.m4/libtool.m4				X	2012
 ./libtool.m4/ltoptions.m4			X	2012
@@ -4041,7 +4041,7 @@
 ./win32utils/GeoIP.diff				X	2013
 ./win32utils/bind9.sln.in			X	2013,2014
 ./win32utils/build.txt				TXT.BRIEF	2013,2014
-./win32utils/index.html				HTML	2006,2007,2008,2012,2013
+./win32utils/index.html				HTML	2006,2007,2008,2012,2013,2015
 ./win32utils/legacy/BINDBuild.dsw.in		X	2001,2005,2006,2008,2009,2010,2013,2015
 ./win32utils/legacy/BuildAll.bat.in		BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2013
 ./win32utils/legacy/BuildPost.bat.in		BAT	2005,2006,2013
