@@ -129,7 +129,7 @@
 			that could not be read back by named. This has now
 			been fixed. [RT #39845]
 
-4138.	[bug]		An uninitialized value in validator.c could result
+4138.	[security]	An uninitialized value in validator.c could result
 			in an assertion failure. (CVE-2015-4620) [RT #39795]
 
 4137.	[bug]		Make rndc reconfig report configuration errors the
