@@ -340,7 +340,7 @@ rndc_recvnonce(isc_task_t *task, isc_event_t *event) {
 		      " the command protocol,\n"
 		      "* this host is not authorized to connect,\n"
 		      "* the clocks are not synchronized,\n"
-		      "* the the key signing algorithm is incorrect, or\n"
+		      "* the key signing algorithm is incorrect, or\n"
 		      "* the key is invalid.");
 
 	if (ccmsg.result != ISC_R_SUCCESS)
