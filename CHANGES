@@ -159,7 +159,7 @@
 
 4139.	[doc]		Fix rpz-client-ip documentation. [RT #39783]
 
-4138.	[bug]		An uninitialized value in validator.c could result
+4138.	[security]	An uninitialized value in validator.c could result
 			in an assertion failure. (CVE-2015-4620) [RT #39795]
 
 4137.	[bug]		Make rndc reconfig report configuration errors the
