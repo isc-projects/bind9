@@ -158,6 +158,7 @@
 6840:	Clarifications and Implementation Notes for DNS Security (DNSSEC)
 6844:	DNS Certification Authority Authorization (CAA) Resource Record
 6891:	Extension Mechanisms for DNS (EDNS(0))
+7043:	Resource Records for EUI-48 and EUI-64 Addresses in the DNS
 7314:	Extension Mechanisms for DNS (EDNS) EXPIRE Option
 7534:	AS112 Nameserver Operations
 7535:	AS112 Redirection Using DNAME
