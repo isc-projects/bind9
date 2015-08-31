@@ -13549,7 +13549,7 @@ view external {
 		    </entry>
 		    <entry colname="2">
 		      <para>
-			Identifies which Certificate Authorities can issues
+			Identifies which Certificate Authorities can issue
 			certificates for this domain and what rules they
 			need to follow when doing so. Defined in RFC 6844.
 		      </para>
