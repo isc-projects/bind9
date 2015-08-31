@@ -13149,6 +13149,58 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			ATMA
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			ATM Address.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			CAA
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Identifies which Certificate Authorities can issues
+			certificates for this domain and what rules they
+			need to follow when doing so. Defined in RFC 6844.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			CDNSKEY
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Identifies which DNSKEY records should be published
+			as DS records in the parent zone.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			CDS
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Contains the set of DS records that should be published
+			by the parent zone.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			CERT
 		      </para>
 		    </entry>
@@ -13182,6 +13234,20 @@ view external {
 		      <para>
 			Is used for identifying which DHCP client is
 			associated with this name.  Described in RFC 4701.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			DLV
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			A DNS Look-aside Validation record which contains
+			the records that are used as trust anchors for
+			zones in a DLV namespace.  Described in RFC 4431.
 		      </para>
 		    </entry>
 		  </row>
@@ -13232,6 +13298,54 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			EID
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			End Point Identifier.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			EUI48
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			A 48-bit EUI address. Described in RFC 7043.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			EUI64
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			A 64-bit EUI address. Described in RFC 7043.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			GID
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Reserved.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			GPOS
 		      </para>
 		    </entry>
@@ -13251,6 +13365,19 @@ view external {
 		      <para>
 			Identifies the CPU and OS used by a host.
 			Described in RFC 1035.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			HIP
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Host Identity Protocol Address.
+			Described in RFC 5205.
 		      </para>
 		    </entry>
 		  </row>
@@ -13311,6 +13438,34 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			L32
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Holds 32-bit Locator values for
+			Identifier-Locator Network Protocol. Described
+			in RFC 6742.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			L64
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Holds 64-bit Locator values for
+			Identifier-Locator Network Protocol. Described
+			in RFC 6742.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			LOC
 		      </para>
 		    </entry>
@@ -13318,6 +13473,91 @@ view external {
 		      <para>
 			For storing GPS info.  Described in RFC 1876.
 			Experimental.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			LP
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Identifier-Locator Network Protocol.
+			Described in RFC 6742.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			MB
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Mail Box.  Historical.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			MD
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Mail Destination.  Historical.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			MF
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Mail Forwarder.  Historical.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			MG
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Mail Group.  Historical.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			MINFO
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Mail Information.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			MR
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Mail Rename. Historical.
 		      </para>
 		    </entry>
 		  </row>
@@ -13351,6 +13591,32 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			NID
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Holds values for Node Identifiers in
+			Identifier-Locator Network Protocol. Described
+			in RFC 6742.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			NIMLOC
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Nimrod Locator.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			NSAP
 		      </para>
 		    </entry>
@@ -13358,6 +13624,18 @@ view external {
 		      <para>
 			A network service access point.
 			Described in RFC 1706.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			NSAP-PTR
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Historical.
 		      </para>
 		    </entry>
 		  </row>
@@ -13428,6 +13706,18 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			NULL
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			This is an opaque container.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			NXT
 		      </para>
 		    </entry>
@@ -13441,6 +13731,18 @@ view external {
 			Used in original DNSSEC; replaced by NSEC in
 			DNSSECbis.
 			Described in RFC 2535.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			OPENPGPKEY
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Used to hold an OPENPGPKEY.
 		      </para>
 		    </entry>
 		  </row>
@@ -13581,12 +13883,73 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			TLSA
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Transport Layer Security Certificate Association.
+			Described in RFC 6698.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			TXT
 		      </para>
 		    </entry>
 		    <entry colname="2">
 		      <para>
 			Text records.  Described in RFC 1035.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			UID
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Reserved.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			UINFO
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Reserved.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			UNSPEC
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Reserved. Historical.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			URI
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Holds a URI. Described in RFC 7553.
 		      </para>
 		    </entry>
 		  </row>
