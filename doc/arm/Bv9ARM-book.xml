@@ -5902,9 +5902,9 @@ options {
 		This is useful in DNSSEC-signed zones because when
 		rolling to a new DNSKEY, the old key needs to remain
 		available until RRSIG records have expired from
-		caches.  The<option>max-zone-ttl</option> option guarantees
+		caches.  The <option>max-zone-ttl</option> option guarantees
 		that the largest TTL in the zone will be no higher
-		the set value.
+		than the set value.
 	      </para>
 	      <para>
 		(NOTE: Because <constant>map</constant>-format files
