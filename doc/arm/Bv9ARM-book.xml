@@ -5890,7 +5890,9 @@ options {
 	    <term><command>max-zone-ttl</command></term>
 	    <listitem>
 	      <para>
-		Specifies a maximum permissible TTL value.
+		Specifies a maximum permissible TTL value in seconds.
+		For convenience, TTL-style time unit suffixes may be
+		used to specify the maximum value.
 		When loading a zone file using a
 		<option>masterfile-format</option> of
 		<constant>text</constant> or <constant>raw</constant>,
@@ -9087,8 +9089,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  Sets the maximum time for which the server will
-		  cache ordinary (positive) answers. The default is
-		  one week (7 days).
+		  cache ordinary (positive) answers in seconds.
+		  The default is 604800 (one week).
 		  A value of zero may cause all queries to return
 		  SERVFAIL, because of lost caches of intermediate
 		  RRsets (such as NS and glue AAAA/A records) in the
@@ -9219,9 +9221,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		</para>
 		<para>
 		  These options allow the administrator to set a minimum and
-		  maximum
-		  refresh and retry time either per-zone, per-view, or
-		  globally.
+		  maximum refresh and retry time in seconds per-zone,
+		  per-view, or globally.
 		  These options are valid for slave and stub zones,
 		  and clamp the SOA refresh and retry times to the specified
 		  values.
@@ -10388,8 +10389,8 @@ deny-answer-aliases { "example.net"; };
 	    The TTL of a record modified by RPZ policies is set from the
 	    TTL of the relevant record in policy zone.  It is then limited
 	    to a maximum value.
-	    The <command>max-policy-ttl</command> clause changes that
-	    maximum from its default of 5.
+	    The <command>max-policy-ttl</command> clause changes the
+	    maximum seconds from its default of 5.
 	  </para>
 
 	  <para>
