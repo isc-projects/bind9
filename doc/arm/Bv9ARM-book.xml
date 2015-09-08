@@ -6867,8 +6867,11 @@ options {
 	      <term><command>dnssec-enable</command></term>
 	      <listitem>
 		<para>
-		  Enable DNSSEC support in <command>named</command>.  Unless set to <userinput>yes</userinput>,
-		  <command>named</command> behaves as if it does not support DNSSEC.
+		  This indicates whether DNSSEC-related resource
+		  records are to be returned by <command>named</command>.
+		  If set to <userinput>no</userinput>,
+		  <command>named</command> will not return DNSSEC-related
+		  resource records unless specifically queried for.
 		  The default is <userinput>yes</userinput>.
 		</para>
 	      </listitem>
@@ -6891,6 +6894,14 @@ options {
 		  <command>managed-keys</command> statement.  The default
 		  is <userinput>yes</userinput>.
 		</para>
+		<note>
+		  <para>
+		    Whenever the resolver sends out queries to an
+		    EDNS-compliant server, it always sets the DO bit
+		    indicating it can support DNSSEC responses even if
+		    <command>dnssec-validation</command> is off.
+		  </para>
+		</note>
 	      </listitem>
 	    </varlistentry>
 
