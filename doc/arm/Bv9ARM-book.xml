@@ -10796,7 +10796,7 @@ example.com                 CNAME   rpz-tcp-only.
     <optional> tcp-only <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> transfers <replaceable>number</replaceable> ; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable> ; ]</optional>
-    <optional> keys <replaceable>{ string ; <optional> string ; <optional>...</optional></optional> }</replaceable> ; </optional>
+    <optional> keys { <replaceable>key_id</replaceable> }; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional> ; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional> ; </optional>
@@ -11007,11 +11007,7 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 
 	  <para>
-	    Although the grammar of the <command>keys</command>
-	    clause
-	    allows for multiple keys, only a single key per server is
-	    currently
-	    supported.
+	    Only a single key per server is currently supported.
 	  </para>
 
 	  <para>
