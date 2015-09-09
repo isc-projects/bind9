@@ -1,3 +1,6 @@
+4197.	[bug]		'named-checkconf -z' didn't handle 'in-view' clauses.
+			[RT #40603]
+
 4196.	[doc]		Improve how "enum + other" types are documented.
 			[RT #40608]
 
