@@ -4905,7 +4905,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> lame-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-ncache-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-cache-ttl <replaceable>number</replaceable>; </optional>
-    <optional> max-zone-ttl <replaceable>number</replaceable> ; </optional>
+    <optional> max-zone-ttl ( <constant>unlimited</constant> | <replaceable>number</replaceable> ; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> <optional><replaceable>number</replaceable></optional> ; </optional>
     <optional> sig-signing-nodes <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-signatures <replaceable>number</replaceable> ; </optional>
@@ -5778,6 +5778,11 @@ options {
 		(NOTE: Because <constant>map</constant>-format files
 		load directly into memory, this option cannot be
 		used with them.)
+	      </para>
+	      <para>
+		The default value is <constant>unlimited</constant>.
+		A <option>max-zone-ttl</option> of zero is treated as
+		<constant>unlimited</constant>.
 	      </para>
 	    </listitem>
 	  </varlistentry>
