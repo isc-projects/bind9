@@ -240,5 +240,12 @@ grep "zone check-mx-cname/IN: loaded serial" < checkconf.out6 > /dev/null && ret
 if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
+echo "I: check that named-checkconf -p properly print a port range"
+ret=0
+$CHECKCONF -p portrange-good.conf > checkconf.out7 2>&1 || ret=1
+grep "range 8610 8614;" checkconf.out7 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
