@@ -1,3 +1,6 @@
+4198.	[doc]		Add fetch-quota-params, fetches-per-server, and
+			fetches-per-zone to doc/misc/options. [RT #40601]
+
 4197.	[bug]		'named-checkconf -z' didn't handle 'in-view' clauses.
 			[RT #40603]
 
