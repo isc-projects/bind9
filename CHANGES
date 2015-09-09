@@ -1,3 +1,6 @@
+4194.	[bug]		named-checkconf -p failed to properly print a port
+			range.  [RT #40634]
+
 4193.	[bug]		Handle broken servers that return BADVERS incorrectly.
 			[RT #40427]
 

@@ -809,13 +809,18 @@ static cfg_type_t cfg_type_serverid = {
 /*%
  * Port list.
  */
+static void
+print_porttuple(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	cfg_print_cstr(pctx, "range ");
+	cfg_print_tuple(pctx, obj);
+}
 static cfg_tuplefielddef_t porttuple_fields[] = {
 	{ "loport", &cfg_type_uint32, 0 },
 	{ "hiport", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_porttuple = {
-	"porttuple", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	"porttuple", cfg_parse_tuple, print_porttuple, cfg_doc_tuple,
 	&cfg_rep_tuple, porttuple_fields
 };
 
