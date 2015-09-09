@@ -1,3 +1,8 @@
+4196.	[doc]		Improve how "enum + other" types are documented.
+			[RT #40608]
+
+4195.	[bug]		'max-zone-ttl unlimited;' was broken. [RT #40608]
+
 4194.	[bug]		named-checkconf -p failed to properly print a port
 			range.  [RT #40634]
 
