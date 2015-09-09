@@ -180,6 +180,7 @@ configure_zone(const char *vclass, const char *view,
 	const char *zfile = NULL;
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *mastersobj = NULL;
+	const cfg_obj_t *inviewobj = NULL;
 	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *classobj = NULL;
 	const cfg_obj_t *typeobj = NULL;
@@ -210,6 +211,10 @@ configure_zone(const char *vclass, const char *view,
 			maps[i++] = obj;
 	}
 	maps[i] = NULL;
+
+	cfg_map_get(zoptions, "in-view", &inviewobj);
+	if (inviewobj != NULL)
+		return (ISC_R_SUCCESS);
 
 	cfg_map_get(zoptions, "type", &typeobj);
 	if (typeobj == NULL)
