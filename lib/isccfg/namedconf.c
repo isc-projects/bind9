@@ -53,7 +53,8 @@ parse_enum_or_other(cfg_parser_t *pctx, const cfg_type_t *enumtype,
 		    const cfg_type_t *othertype, cfg_obj_t **ret);
 
 static void
-doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *type);
+doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *enumtype,
+		  const cfg_type_t *othertype);
 
 static isc_result_t
 parse_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
@@ -553,8 +554,12 @@ static isc_result_t
 parse_zonestat(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
 }
+static void
+doc_zonestat(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc_enum_or_other(pctx, type, &cfg_type_boolean);
+}
 static cfg_type_t cfg_type_zonestat = {
-	"zonestat", parse_zonestat, cfg_print_ustring, doc_enum_or_other,
+	"zonestat", parse_zonestat, cfg_print_ustring, doc_zonestat,
 	&cfg_rep_string, zonestat_enums
 };
 
@@ -881,8 +886,7 @@ parse_optional_response(cfg_parser_t *pctx, const cfg_type_t *type,
 
 static void
 doc_optional_response(cfg_printer_t *pctx, const cfg_type_t *type) {
-	UNUSED(type);
-	cfg_print_cstr(pctx, "[ ( drop | fail ) ]");
+	doc_enum_or_other(pctx, type, &cfg_type_void);
 }
 
 static cfg_type_t cfg_type_responsetype = {
@@ -1969,9 +1973,14 @@ parse_size(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_sizeval, ret));
 }
 
+static void
+doc_size(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc_enum_or_other(pctx, type, &cfg_type_sizeval);
+}
+
 static const char *size_enums[] = { "unlimited", "default", NULL };
 static cfg_type_t cfg_type_size = {
-	"size", parse_size, cfg_print_ustring, cfg_doc_terminal,
+	"size", parse_size, cfg_print_ustring, doc_size,
 	&cfg_rep_string, size_enums
 };
 
@@ -2033,12 +2042,34 @@ parse_enum_or_other(cfg_parser_t *pctx, const cfg_type_t *enumtype,
 }
 
 static void
-doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *type) {
-	cfg_doc_terminal(pctx, type);
-#if 0 /* XXX */
-	cfg_print_chars(pctx, "( ", 2);...
-#endif
+doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *enumtype,
+		  const cfg_type_t *othertype)
+{
+	const char * const *p;
+	isc_boolean_t first = ISC_TRUE;
 
+	/*
+	 * If othertype is cfg_type_void, it means that enumtype is
+	 * optional.
+	 */
+
+	if (othertype == &cfg_type_void)
+		cfg_print_cstr(pctx, "[ ");
+	cfg_print_cstr(pctx, "( ");
+	for (p = enumtype->of; *p != NULL; p++) {
+		if (!first)
+			cfg_print_cstr(pctx, " | ");
+		first = ISC_FALSE;
+		cfg_print_cstr(pctx, *p);
+	}
+	if (othertype != &cfg_type_void) {
+		if (!first)
+			cfg_print_cstr(pctx, " | ");
+		cfg_doc_terminal(pctx, othertype);
+	}
+	cfg_print_cstr(pctx, " )");
+	if (othertype == &cfg_type_void)
+		cfg_print_cstr(pctx, " ]");
 }
 
 static isc_result_t
@@ -2083,8 +2114,12 @@ static isc_result_t
 parse_dialup_type(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
 }
+static void
+doc_dialup_type(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc_enum_or_other(pctx, type, &cfg_type_boolean);
+}
 static cfg_type_t cfg_type_dialuptype = {
-	"dialuptype", parse_dialup_type, cfg_print_ustring, doc_enum_or_other,
+	"dialuptype", parse_dialup_type, cfg_print_ustring, doc_dialup_type,
 	&cfg_rep_string, dialup_enums
 };
 
@@ -2093,18 +2128,28 @@ static isc_result_t
 parse_notify_type(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
 }
+static void
+doc_notify_type(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc_enum_or_other(pctx, type, &cfg_type_boolean);
+}
 static cfg_type_t cfg_type_notifytype = {
-	"notifytype", parse_notify_type, cfg_print_ustring, doc_enum_or_other,
+	"notifytype", parse_notify_type, cfg_print_ustring, doc_notify_type,
 	&cfg_rep_string, notify_enums,
 };
 
 static const char *ixfrdiff_enums[] = { "master", "slave", NULL };
 static isc_result_t
-parse_ixfrdiff_type(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+parse_ixfrdiff_type(cfg_parser_t *pctx, const cfg_type_t *type,
+		    cfg_obj_t **ret)
+{
 	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
 }
+static void
+doc_ixfrdiff_type(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc_enum_or_other(pctx, type, &cfg_type_boolean);
+}
 static cfg_type_t cfg_type_ixfrdifftype = {
-	"ixfrdiff", parse_ixfrdiff_type, cfg_print_ustring, doc_enum_or_other,
+	"ixfrdiff", parse_ixfrdiff_type, cfg_print_ustring, doc_ixfrdiff_type,
 	&cfg_rep_string, ixfrdiff_enums,
 };
 
@@ -2114,9 +2159,13 @@ parse_v4_aaaa(cfg_parser_t *pctx, const cfg_type_t *type,
 		     cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
 }
+static void
+doc_v4_aaaa(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc_enum_or_other(pctx, type, &cfg_type_boolean);
+}
 static cfg_type_t cfg_type_v4_aaaa = {
 	"v4_aaaa", parse_v4_aaaa, cfg_print_ustring,
-	doc_enum_or_other, &cfg_rep_string, v4_aaaa_enums,
+	doc_v4_aaaa, &cfg_rep_string, v4_aaaa_enums,
 };
 
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
@@ -2597,8 +2646,13 @@ parse_logversions(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_uint32, ret));
 }
 
+static void
+doc_logversions(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc_enum_or_other(pctx, type, &cfg_type_uint32);
+}
+
 static cfg_type_t cfg_type_logversions = {
-	"logversions", parse_logversions, cfg_print_ustring, cfg_doc_terminal,
+	"logversions", parse_logversions, cfg_print_ustring, doc_logversions,
 	&cfg_rep_string, logversions_enums
 };
 
