@@ -1,3 +1,6 @@
+4198.	[doc]		Add fetch-quota-params, fetches-per-server, and
+			fetches-per-zone to doc/misc/options. [RT #40601]
+
 4196.	[doc]		Improve how "enum + other" types are documented.
 			[RT #40608]
 

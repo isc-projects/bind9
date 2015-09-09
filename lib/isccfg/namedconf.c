@@ -855,7 +855,6 @@ static cfg_type_t cfg_type_bracketed_portlist = {
 	&cfg_rep_list, &cfg_type_portrange
 };
 
-#ifdef ENABLE_FETCHLIMIT
 /*%
  * fetch-quota-params
  */
@@ -904,7 +903,6 @@ static cfg_type_t cfg_type_fetchesper = {
 	"fetchesper", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
 	&cfg_rep_tuple, fetchesper_fields
 };
-#endif /* ENABLE_FETCHLIMIT */
 
 /*%
  * Clauses that can be found within the top level of the named.conf
@@ -1452,6 +1450,10 @@ view_clauses[] = {
 	{ "fetch-quota-params", &cfg_type_fetchquota, 0 },
 	{ "fetches-per-server", &cfg_type_fetchesper, 0 },
 	{ "fetches-per-zone", &cfg_type_fetchesper, 0 },
+#else
+	{ "fetch-quota-params", &cfg_type_fetchquota, CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fetches-per-server", &cfg_type_fetchesper, CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fetches-per-zone", &cfg_type_fetchesper, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* ENABLE_FETCHLIMIT */
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_uint32, 0 },
