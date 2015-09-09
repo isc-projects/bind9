@@ -246,9 +246,9 @@ zone "nil" {
 };
 EOF
 
-$RNDCCMD reload | sed 's/^/I:ns4 /'
-
 cur=`awk 'END {print NR}' ns4/named.run`
+
+$RNDCCMD reload | sed 's/^/I:ns4 /'
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
