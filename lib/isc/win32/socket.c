@@ -1361,22 +1361,6 @@ completeio_send(isc_socket_t *sock, isc_socketevent_t *dev,
 
 		return (map_socket_error(sock, send_errno, &dev->result,
 			strbuf, sizeof(strbuf)));
-
-		/*
-		 * The other error types depend on whether or not the
-		 * socket is UDP or TCP.  If it is UDP, some errors
-		 * that we expect to be fatal under TCP are merely
-		 * annoying, and are really soft errors.
-		 *
-		 * However, these soft errors are still returned as
-		 * a status.
-		 */
-		isc_sockaddr_format(&dev->address, addrbuf, sizeof(addrbuf));
-		isc__strerror(send_errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "completeio_send: %s: %s",
-				 addrbuf, strbuf);
-		dev->result = isc__errno2result(send_errno);
-		return (DOIO_HARD);
 	}
 
 	/*
