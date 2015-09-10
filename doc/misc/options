@@ -132,6 +132,10 @@ options {
         empty-zones-enable <boolean>;
         fake-iquery <boolean>; // obsolete
         fetch-glue <boolean>; // obsolete
+        fetch-quota-params <integer> <fixedpoint>
+            <fixedpoint> <fixedpoint>; // not configured
+        fetches-per-server <integer> [ ( drop | fail ) ]; // not configured
+        fetches-per-zone <integer> [ ( drop | fail ) ]; // not configured
         files ( unlimited | default | <sizeval> );
         filter-aaaa { <address_match_element>; ... }; // not configured
         filter-aaaa-on-v4 ( break-dnssec | <boolean> ); // not configured
@@ -360,6 +364,10 @@ view <string> <optional_class> {
         empty-server <string>;
         empty-zones-enable <boolean>;
         fetch-glue <boolean>; // obsolete
+        fetch-quota-params <integer> <fixedpoint>
+            <fixedpoint> <fixedpoint>; // not configured
+        fetches-per-server <integer> [ ( drop | fail ) ]; // not configured
+        fetches-per-zone <integer> [ ( drop | fail ) ]; // not configured
         filter-aaaa { <address_match_element>; ... }; // not configured
         filter-aaaa-on-v4 ( break-dnssec | <boolean> ); // not configured
         forward ( first | only );
