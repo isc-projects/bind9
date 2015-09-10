@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -24,13 +24,13 @@
  * \brief Per RFC2535 */
 
 typedef struct dns_rdata_key {
-        dns_rdatacommon_t	common;
-        isc_mem_t *		mctx;
-        isc_uint16_t		flags;
-        isc_uint8_t		protocol;
-        isc_uint8_t		algorithm;
-        isc_uint16_t		datalen;
-        unsigned char *		data;
+	dns_rdatacommon_t	common;
+	isc_mem_t *		mctx;
+	isc_uint16_t		flags;
+	isc_uint8_t		protocol;
+	isc_uint8_t		algorithm;
+	isc_uint16_t		datalen;
+	unsigned char *		data;
 } dns_rdata_key_t;
 
 

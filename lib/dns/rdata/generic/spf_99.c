@@ -36,7 +36,7 @@ fromtext_spf(ARGS_FROMTEXT) {
 	UNUSED(callbacks);
 
 	return (generic_fromtext_txt(rdclass, type, lexer, origin, options,
-                                     target, callbacks));
+				     target, callbacks));
 }
 
 static inline isc_result_t
@@ -60,7 +60,7 @@ fromwire_spf(ARGS_FROMWIRE) {
 	UNUSED(options);
 
 	return (generic_fromwire_txt(rdclass, type, source, dctx, options,
-                                     target));
+				     target));
 }
 
 static inline isc_result_t
