@@ -1,3 +1,19 @@
+4199.	[protocol]	Add support for NINFO, RKEY, TA.
+			[RT #40545] [RT #40547] [RT #40563]
+
+4198.	[placeholder]
+
+4197.	[bug]		'named-checkconf -z' didn't handle 'in-view' clauses.
+			[RT #40603]
+
+4196.	[doc]		Improve how "enum + other" types are documented.
+			[RT #40608]
+
+4195.	[bug]		'max-zone-ttl unlimited;' was broken. [RT #40608]
+
+4194.	[bug]		named-checkconf -p failed to properly print a port
+			range.  [RT #40634]
+
 4193.	[bug]		Handle broken servers that return BADVERS incorrectly.
 			[RT #40427]
 

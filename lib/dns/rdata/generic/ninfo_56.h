@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2003  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,13 +15,26 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef GENERIC_DNSKEY_48_H
-#define GENERIC_DNSKEY_48_H 1
+/* */
+#ifndef GENERIC_NINFO_56_H
+#define GENERIC_NINFO_56_H 1
 
-/*!
- *  \brief per RFC2535
+typedef struct dns_rdata_txt_string dns_rdata_ninfo_string_t;
+
+typedef struct dns_rdata_txt dns_rdata_ninfo_t;
+
+/*
+ * ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS are already done
+ * via rdatastructpre.h and rdatastructsuf.h.
  */
 
-typedef struct dns_rdata_key dns_rdata_dnskey_t;
+isc_result_t
+dns_rdata_ninfo_first(dns_rdata_ninfo_t *);
 
-#endif /* GENERIC_DNSKEY_48_H */
+isc_result_t
+dns_rdata_ninfo_next(dns_rdata_ninfo_t *);
+
+isc_result_t
+dns_rdata_ninfo_current(dns_rdata_ninfo_t *, dns_rdata_ninfo_string_t *);
+
+#endif /* GENERIC_NINFO_16_H */

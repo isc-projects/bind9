@@ -18,14 +18,6 @@
 #define GENERIC_CDS_59_H 1
 
 /* CDS records have the same RDATA fields as DS records. */
-typedef struct dns_rdata_cds {
-	dns_rdatacommon_t	common;
-	isc_mem_t		*mctx;
-	isc_uint16_t		key_tag;
-	isc_uint8_t		algorithm;
-	isc_uint8_t		digest_type;
-	isc_uint16_t		length;
-	unsigned char		*digest;
-} dns_rdata_cds_t;
+typedef struct dns_rdata_ds dns_rdata_cds_t;
 
 #endif /* GENERIC_CDS_59_H */

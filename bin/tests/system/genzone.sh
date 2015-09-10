@@ -241,6 +241,29 @@ dnskey01		DNSKEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
 				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
 				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )
 
+; type 56
+ninfo01			NINFO	"foo"
+ninfo02			NINFO	"foo" "bar"
+ninfo03			NINFO	foo
+ninfo04			NINFO	foo bar
+ninfo05			NINFO	"foo bar"
+ninfo06			NINFO	"foo\032bar"
+ninfo07			NINFO	foo\032bar
+ninfo08			NINFO	"foo\010bar"
+ninfo09			NINFO	foo\010bar
+ninfo10			NINFO	foo\ bar
+ninfo11			NINFO	"\"foo\""
+ninfo12			NINFO	\"foo\"
+ninfo13			NINFO	"foo;"
+ninfo14			NINFO	"foo\;"
+ninfo15			NINFO	"bar\\;"
+
+; type 57
+rkey01			RKEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
+				9UGRuniJDBzC7w0aRyzWZriO6i2odGWWQVucZqKV
+				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
+				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )
+
 ; type 59
 cds01			CDS	30795 1 1 (
 					310D27F4D82C1FC2400704EA9939FE6E1CEA
@@ -316,9 +339,19 @@ uri02			URI	30 40 "https://www.isc.org/HolyCowThisSureIsAVeryLongURIRecordIDontE
 uri03			URI	30 40 ""
 
 ; type 257
-caa01                   CAA     0 issue "ca.example.net; policy=ev"
-caa02                   CAA     128 tbs "Unknown"
-caa03                   CAA     128 tbs ""
+caa01			CAA	0 issue "ca.example.net; policy=ev"
+caa02			CAA	128 tbs "Unknown"
+caa03			CAA	128 tbs ""
+
+; type 32768
+ta			TA	30795 1 1 (
+					310D27F4D82C1FC2400704EA9939FE6E1CEA
+					A3B9 )
+
+; type 32769
+dlv			DLV	30795 1 1 (
+					310D27F4D82C1FC2400704EA9939FE6E1CEA
+					A3B9 )
 
 ; keydata (internal type used for managed-keys)
 keydata			TYPE65533	\# 0

@@ -916,6 +916,7 @@
 ./bin/tests/system/checkconf/good-nested.conf	CONF-C	2015
 ./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/checkconf/hint-nofile.conf	CONF-C	2013
+./bin/tests/system/checkconf/in-view-good.conf	CONF-C	2015
 ./bin/tests/system/checkconf/inline-bad.conf	CONF-C	2013
 ./bin/tests/system/checkconf/inline-good.conf	CONF-C	2013
 ./bin/tests/system/checkconf/inline-no.conf	CONF-C	2013
@@ -924,7 +925,9 @@
 ./bin/tests/system/checkconf/maxttl-bad.db	ZONE	2014
 ./bin/tests/system/checkconf/maxttl.db		ZONE	2014
 ./bin/tests/system/checkconf/notify.conf	CONF-C	2014
+./bin/tests/system/checkconf/portrange-good.conf	CONF-C	2015
 ./bin/tests/system/checkconf/range.conf		CONF-C	2013
+./bin/tests/system/checkconf/shared.example.db	ZONE	2015
 ./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/checkconf/warn-keydir.conf	CONF-C	2013
 ./bin/tests/system/checkds/clean.sh		SH	2012,2013,2014
@@ -1726,7 +1729,7 @@
 ./bin/tests/system/resolver/ans3/ans.pl		PERL	2000,2001,2004,2007,2009,2012
 ./bin/tests/system/resolver/clean.sh		SH	2008,2009,2010,2011,2012,2013,2014
 ./bin/tests/system/resolver/edns-version.c	C	2014,2015
-./bin/tests/system/resolver/ns1/named.conf	CONF-C	2000,2001,2004,2007,2009,2013,2014
+./bin/tests/system/resolver/ns1/named.conf	CONF-C	2000,2001,2004,2007,2009,2013,2014,2015
 ./bin/tests/system/resolver/ns1/root.hint	ZONE	2000,2001,2004,2007
 ./bin/tests/system/resolver/ns4/broken.db	ZONE	2012
 ./bin/tests/system/resolver/ns4/child.server.db	ZONE	2011
