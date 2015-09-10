@@ -1,4 +1,4 @@
-4199.	[protocol]	Add support for RKEY. [RT #40563]
+4199.	[protocol]	Add support for NINFO, RKEY. [RT #40547] [RT #40563]
 
 4198.	[placeholder]
 

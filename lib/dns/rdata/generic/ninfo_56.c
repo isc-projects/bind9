@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1998-2002  Internet Software Consortium.
+ * Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,19 +14,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spf_99.c,v 1.6 2009/12/04 22:06:37 tbox Exp $ */
+#ifndef RDATA_GENERIC_NINFO_56_C
+#define RDATA_GENERIC_NINFO_56_C
 
-/* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
-
-#ifndef RDATA_GENERIC_SPF_99_C
-#define RDATA_GENERIC_SPF_99_C
-
-#define RRTYPE_SPF_ATTRIBUTES (0)
+#define RRTYPE_NINFO_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_spf(ARGS_FROMTEXT) {
+fromtext_ninfo(ARGS_FROMTEXT) {
 
-	REQUIRE(type == dns_rdatatype_spf);
+	REQUIRE(type == dns_rdatatype_ninfo);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -36,23 +31,23 @@ fromtext_spf(ARGS_FROMTEXT) {
 	UNUSED(callbacks);
 
 	return (generic_fromtext_txt(rdclass, type, lexer, origin, options,
-                                     target, callbacks));
+				     target, callbacks));
 }
 
 static inline isc_result_t
-totext_spf(ARGS_TOTEXT) {
+totext_ninfo(ARGS_TOTEXT) {
 
 	UNUSED(tctx);
 
-	REQUIRE(rdata->type == dns_rdatatype_spf);
+	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	return (generic_totext_txt(rdata, tctx, target));
 }
 
 static inline isc_result_t
-fromwire_spf(ARGS_FROMWIRE) {
+fromwire_ninfo(ARGS_FROMWIRE) {
 
-	REQUIRE(type == dns_rdatatype_spf);
+	REQUIRE(type == dns_rdatatype_ninfo);
 
 	UNUSED(type);
 	UNUSED(dctx);
@@ -60,13 +55,13 @@ fromwire_spf(ARGS_FROMWIRE) {
 	UNUSED(options);
 
 	return (generic_fromwire_txt(rdclass, type, source, dctx, options,
-                                     target));
+				     target));
 }
 
 static inline isc_result_t
-towire_spf(ARGS_TOWIRE) {
+towire_ninfo(ARGS_TOWIRE) {
 
-	REQUIRE(rdata->type == dns_rdatatype_spf);
+	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	UNUSED(cctx);
 
@@ -74,13 +69,13 @@ towire_spf(ARGS_TOWIRE) {
 }
 
 static inline int
-compare_spf(ARGS_COMPARE) {
+compare_ninfo(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == dns_rdatatype_spf);
+	REQUIRE(rdata1->type == dns_rdatatype_ninfo);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -88,40 +83,39 @@ compare_spf(ARGS_COMPARE) {
 }
 
 static inline isc_result_t
-fromstruct_spf(ARGS_FROMSTRUCT) {
+fromstruct_ninfo(ARGS_FROMSTRUCT) {
 
-	REQUIRE(type == dns_rdatatype_spf);
+	REQUIRE(type == dns_rdatatype_ninfo);
 
 	return (generic_fromstruct_txt(rdclass, type, source, target));
 }
 
 static inline isc_result_t
-tostruct_spf(ARGS_TOSTRUCT) {
-	dns_rdata_spf_t *spf = target;
+tostruct_ninfo(ARGS_TOSTRUCT) {
+	dns_rdata_ninfo_t *txt = target;
 
-	REQUIRE(rdata->type == dns_rdatatype_spf);
-	REQUIRE(target != NULL);
+	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
-	spf->common.rdclass = rdata->rdclass;
-	spf->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&spf->common, link);
+	txt->common.rdclass = rdata->rdclass;
+	txt->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&txt->common, link);
 
 	return (generic_tostruct_txt(rdata, target, mctx));
 }
 
 static inline void
-freestruct_spf(ARGS_FREESTRUCT) {
-	dns_rdata_spf_t *txt = source;
+freestruct_ninfo(ARGS_FREESTRUCT) {
+	dns_rdata_ninfo_t *ninfo = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(txt->common.rdtype == dns_rdatatype_spf);
+	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
 
 	generic_freestruct_txt(source);
 }
 
 static inline isc_result_t
-additionaldata_spf(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == dns_rdatatype_spf);
+additionaldata_ninfo(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -131,10 +125,10 @@ additionaldata_spf(ARGS_ADDLDATA) {
 }
 
 static inline isc_result_t
-digest_spf(ARGS_DIGEST) {
+digest_ninfo(ARGS_DIGEST) {
 	isc_region_t r;
 
-	REQUIRE(rdata->type == dns_rdatatype_spf);
+	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	dns_rdata_toregion(rdata, &r);
 
@@ -142,9 +136,9 @@ digest_spf(ARGS_DIGEST) {
 }
 
 static inline isc_boolean_t
-checkowner_spf(ARGS_CHECKOWNER) {
+checkowner_ninfo(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == dns_rdatatype_spf);
+	REQUIRE(type == dns_rdatatype_ninfo);
 
 	UNUSED(name);
 	UNUSED(type);
@@ -155,9 +149,9 @@ checkowner_spf(ARGS_CHECKOWNER) {
 }
 
 static inline isc_boolean_t
-checknames_spf(ARGS_CHECKNAMES) {
+checknames_ninfo(ARGS_CHECKNAMES) {
 
-	REQUIRE(rdata->type == dns_rdatatype_spf);
+	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	UNUSED(rdata);
 	UNUSED(owner);
@@ -166,8 +160,37 @@ checknames_spf(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
-static inline int
-casecompare_spf(ARGS_COMPARE) {
-	return (compare_spf(rdata1, rdata2));
+static inline isc_result_t
+casecompare_ninfo(ARGS_COMPARE) {
+	return (compare_ninfo(rdata1, rdata2));
 }
-#endif	/* RDATA_GENERIC_SPF_99_C */
+
+isc_result_t
+dns_rdata_ninfo_first(dns_rdata_ninfo_t *ninfo) {
+
+	REQUIRE(ninfo != NULL);
+	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
+
+	return (generic_txt_first(ninfo));
+}
+
+isc_result_t
+dns_rdata_ninfo_next(dns_rdata_ninfo_t *ninfo) {
+
+	REQUIRE(ninfo != NULL);
+	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
+
+	return (generic_txt_next(ninfo));
+}
+
+isc_result_t
+dns_rdata_ninfo_current(dns_rdata_ninfo_t *ninfo,
+			dns_rdata_ninfo_string_t *string)
+{
+
+	REQUIRE(ninfo != NULL);
+	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
+
+	return (generic_txt_current(ninfo, string));
+}
+#endif	/* RDATA_GENERIC_NINFO_56_C */

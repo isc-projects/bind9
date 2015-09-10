@@ -241,6 +241,23 @@ dnskey01		DNSKEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
 				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
 				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )
 
+; type 56
+ninfo01			NINFO	"foo"
+ninfo02			NINFO	"foo" "bar"
+ninfo03			NINFO	foo
+ninfo04			NINFO	foo bar
+ninfo05			NINFO	"foo bar"
+ninfo06			NINFO	"foo\032bar"
+ninfo07			NINFO	foo\032bar
+ninfo08			NINFO	"foo\010bar"
+ninfo09			NINFO	foo\010bar
+ninfo10			NINFO	foo\ bar
+ninfo11			NINFO	"\"foo\""
+ninfo12			NINFO	\"foo\"
+ninfo13			NINFO	"foo;"
+ninfo14			NINFO	"foo\;"
+ninfo15			NINFO	"bar\\;"
+
 ; type 57
 rkey01			RKEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
 				9UGRuniJDBzC7w0aRyzWZriO6i2odGWWQVucZqKV
