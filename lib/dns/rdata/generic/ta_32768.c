@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007, 2009-2013, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,52 +14,44 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
+/* http://www.watson.org/~weiler/INI1999-19.pdf */
 
-/* draft-ietf-dnsext-delegation-signer-05.txt */
+#ifndef RDATA_GENERIC_TA_32768_C
+#define RDATA_GENERIC_TA_32768_C
 
-#ifndef RDATA_GENERIC_DLV_32769_C
-#define RDATA_GENERIC_DLV_32769_C
-
-#define RRTYPE_DLV_ATTRIBUTES 0
-
-#include <isc/sha1.h>
-#include <isc/sha2.h>
-
-#include <dns/ds.h>
-
+#define RRTYPE_TA_ATTRIBUTES 0
 
 static inline isc_result_t
-fromtext_dlv(ARGS_FROMTEXT) {
+fromtext_ta(ARGS_FROMTEXT) {
 
-	REQUIRE(type == dns_rdatatype_dlv);
+	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromtext_ds(rdclass, type, lexer, origin, options,
 				    target, callbacks));
 }
 
 static inline isc_result_t
-totext_dlv(ARGS_TOTEXT) {
+totext_ta(ARGS_TOTEXT) {
 
-	REQUIRE(rdata->type == dns_rdatatype_dlv);
+	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	return (generic_totext_ds(rdata, tctx, target));
 }
 
 static inline isc_result_t
-fromwire_dlv(ARGS_FROMWIRE) {
+fromwire_ta(ARGS_FROMWIRE) {
 
-	REQUIRE(type == dns_rdatatype_dlv);
+	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromwire_ds(rdclass, type, source, dctx, options,
 				    target));
 }
 
 static inline isc_result_t
-towire_dlv(ARGS_TOWIRE) {
+towire_ta(ARGS_TOWIRE) {
 	isc_region_t sr;
 
-	REQUIRE(rdata->type == dns_rdatatype_dlv);
+	REQUIRE(rdata->type == dns_rdatatype_ta);
 	REQUIRE(rdata->length != 0);
 
 	UNUSED(cctx);
@@ -69,13 +61,13 @@ towire_dlv(ARGS_TOWIRE) {
 }
 
 static inline int
-compare_dlv(ARGS_COMPARE) {
+compare_ta(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == dns_rdatatype_dlv);
+	REQUIRE(rdata1->type == dns_rdatatype_ta);
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
@@ -85,44 +77,47 @@ compare_dlv(ARGS_COMPARE) {
 }
 
 static inline isc_result_t
-fromstruct_dlv(ARGS_FROMSTRUCT) {
+fromstruct_ta(ARGS_FROMSTRUCT) {
 
-	REQUIRE(type == dns_rdatatype_dlv);
+	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromstruct_ds(rdclass, type, source, target));
 }
 
 static inline isc_result_t
-tostruct_dlv(ARGS_TOSTRUCT) {
-	dns_rdata_dlv_t *dlv = target;
+tostruct_ta(ARGS_TOSTRUCT) {
+	dns_rdata_ds_t *ds = target;
 
-	REQUIRE(rdata->type == dns_rdatatype_dlv);
+	REQUIRE(rdata->type == dns_rdatatype_ta);
 
-	dlv->common.rdclass = rdata->rdclass;
-	dlv->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&dlv->common, link);
+	/*
+	 * Checked by generic_tostruct_ds().
+	 */
+	ds->common.rdclass = rdata->rdclass;
+	ds->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&ds->common, link);
 
 	return (generic_tostruct_ds(rdata, target, mctx));
 }
 
 static inline void
-freestruct_dlv(ARGS_FREESTRUCT) {
-	dns_rdata_dlv_t *dlv = source;
+freestruct_ta(ARGS_FREESTRUCT) {
+	dns_rdata_ta_t *ds = source;
 
-	REQUIRE(dlv != NULL);
-	REQUIRE(dlv->common.rdtype == dns_rdatatype_dlv);
+	REQUIRE(ds != NULL);
+	REQUIRE(ds->common.rdtype == dns_rdatatype_ta);
 
-	if (dlv->mctx == NULL)
+	if (ds->mctx == NULL)
 		return;
 
-	if (dlv->digest != NULL)
-		isc_mem_free(dlv->mctx, dlv->digest);
-	dlv->mctx = NULL;
+	if (ds->digest != NULL)
+		isc_mem_free(ds->mctx, ds->digest);
+	ds->mctx = NULL;
 }
 
 static inline isc_result_t
-additionaldata_dlv(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == dns_rdatatype_dlv);
+additionaldata_ta(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -132,10 +127,10 @@ additionaldata_dlv(ARGS_ADDLDATA) {
 }
 
 static inline isc_result_t
-digest_dlv(ARGS_DIGEST) {
+digest_ta(ARGS_DIGEST) {
 	isc_region_t r;
 
-	REQUIRE(rdata->type == dns_rdatatype_dlv);
+	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	dns_rdata_toregion(rdata, &r);
 
@@ -143,9 +138,9 @@ digest_dlv(ARGS_DIGEST) {
 }
 
 static inline isc_boolean_t
-checkowner_dlv(ARGS_CHECKOWNER) {
+checkowner_ta(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == dns_rdatatype_dlv);
+	REQUIRE(type == dns_rdatatype_ta);
 
 	UNUSED(name);
 	UNUSED(type);
@@ -156,9 +151,9 @@ checkowner_dlv(ARGS_CHECKOWNER) {
 }
 
 static inline isc_boolean_t
-checknames_dlv(ARGS_CHECKNAMES) {
+checknames_ta(ARGS_CHECKNAMES) {
 
-	REQUIRE(rdata->type == dns_rdatatype_dlv);
+	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	UNUSED(rdata);
 	UNUSED(owner);
@@ -168,8 +163,8 @@ checknames_dlv(ARGS_CHECKNAMES) {
 }
 
 static inline int
-casecompare_dlv(ARGS_COMPARE) {
-	return (compare_dlv(rdata1, rdata2));
+casecompare_ta(ARGS_COMPARE) {
+	return (compare_ta(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_DLV_32769_C */
+#endif	/* RDATA_GENERIC_TA_32768_C */

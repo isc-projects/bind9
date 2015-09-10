@@ -20,14 +20,6 @@
 #ifndef GENERIC_DLV_32769_H
 #define GENERIC_DLV_32769_H 1
 
-typedef struct dns_rdata_dlv {
-	dns_rdatacommon_t	common;
-	isc_mem_t		*mctx;
-	isc_uint16_t		key_tag;
-	isc_uint8_t		algorithm;
-	isc_uint8_t		digest_type;
-	isc_uint16_t		length;
-	unsigned char		*digest;
-} dns_rdata_dlv_t;
+typedef struct dns_rdata_ds dns_rdata_dlv_t;
 
 #endif /* GENERIC_DLV_32769_H */
