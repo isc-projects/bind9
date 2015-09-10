@@ -4791,7 +4791,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> max-clients-per-query <replaceable>number</replaceable> ; </optional>
     <optional> fetches-per-server <replaceable>number</replaceable> <optional><replaceable>(drop | fail)</replaceable></optional>; </optional>
     <optional> fetch-quota-params <replaceable>number fixedpoint fixedpoint fixedpoint</replaceable> ; </optional>
-    <optional> fetches-per-zone<replaceable>number</replaceable> <optional><replaceable>(drop | fail)</replaceable></optional>; </optional>
+    <optional> fetches-per-zone <replaceable>number</replaceable> <optional><replaceable>(drop | fail)</replaceable></optional>; </optional>
     <optional> serial-query-rate <replaceable>number</replaceable>; </optional>
     <optional> serial-queries <replaceable>number</replaceable>; </optional>
     <optional> tcp-listen-queue <replaceable>number</replaceable>; </optional>
