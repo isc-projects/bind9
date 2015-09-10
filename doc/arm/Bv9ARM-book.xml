@@ -13893,6 +13893,18 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			TA
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Trust Anchor. Experimental.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			TLSA
 		      </para>
 		    </entry>
