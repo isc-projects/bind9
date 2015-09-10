@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,53 +14,44 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
+#ifndef RDATA_GENERIC_RKEY_57_C
+#define RDATA_GENERIC_RKEY_57_C
 
-/*
- * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
- */
-
-/* RFC2535 */
-
-#ifndef RDATA_GENERIC_CDNSKEY_60_C
-#define RDATA_GENERIC_CDNSKEY_60_C
-
-#include <dst/dst.h>
-
-#define RRTYPE_CDNSKEY_ATTRIBUTES 0
+#define RRTYPE_RKEY_ATTRIBUTES 0
 
 static inline isc_result_t
-fromtext_cdnskey(ARGS_FROMTEXT) {
+fromtext_rkey(ARGS_FROMTEXT) {
 
-	REQUIRE(type == dns_rdatatype_cdnskey);
+	REQUIRE(type == dns_rdatatype_rkey);
 
 	return (generic_fromtext_key(rdclass, type, lexer, origin,
 				     options, target, callbacks));
 }
 
 static inline isc_result_t
-totext_cdnskey(ARGS_TOTEXT) {
+totext_rkey(ARGS_TOTEXT) {
 
 	REQUIRE(rdata != NULL);
-	REQUIRE(rdata->type == dns_rdatatype_cdnskey);
+	REQUIRE(rdata->type == dns_rdatatype_rkey);
 
 	return (generic_totext_key(rdata, tctx, target));
 }
 
 static inline isc_result_t
-fromwire_cdnskey(ARGS_FROMWIRE) {
+fromwire_rkey(ARGS_FROMWIRE) {
 
-	REQUIRE(type == dns_rdatatype_cdnskey);
+	REQUIRE(type == dns_rdatatype_rkey);
 
 	return (generic_fromwire_key(rdclass, type, source, dctx,
 				     options, target));
 }
 
 static inline isc_result_t
-towire_cdnskey(ARGS_TOWIRE) {
+towire_rkey(ARGS_TOWIRE) {
 	isc_region_t sr;
 
-	REQUIRE(rdata->type == dns_rdatatype_cdnskey);
+	REQUIRE(rdata != NULL);
+	REQUIRE(rdata->type == dns_rdatatype_rkey);
 	REQUIRE(rdata->length != 0);
 
 	UNUSED(cctx);
@@ -70,7 +61,7 @@ towire_cdnskey(ARGS_TOWIRE) {
 }
 
 static inline int
-compare_cdnskey(ARGS_COMPARE) {
+compare_rkey(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -78,7 +69,7 @@ compare_cdnskey(ARGS_COMPARE) {
 	REQUIRE(rdata2 != NULL);
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == dns_rdatatype_cdnskey);
+	REQUIRE(rdata1->type == dns_rdatatype_rkey);
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
@@ -88,41 +79,42 @@ compare_cdnskey(ARGS_COMPARE) {
 }
 
 static inline isc_result_t
-fromstruct_cdnskey(ARGS_FROMSTRUCT) {
+fromstruct_rkey(ARGS_FROMSTRUCT) {
 
-	REQUIRE(type == dns_rdatatype_cdnskey);
+	REQUIRE(type == dns_rdatatype_rkey);
 
 	return (generic_fromstruct_key(rdclass, type, source, target));
 }
 
 static inline isc_result_t
-tostruct_cdnskey(ARGS_TOSTRUCT) {
-	dns_rdata_cdnskey_t *dnskey = target;
+tostruct_rkey(ARGS_TOSTRUCT) {
+	dns_rdata_rkey_t *rkey = target;
 
-	REQUIRE(dnskey != NULL);
+	REQUIRE(rkey != NULL);
 	REQUIRE(rdata != NULL);
-	REQUIRE(rdata->type == dns_rdatatype_cdnskey);
+	REQUIRE(rdata->type == dns_rdatatype_rkey);
 
-	dnskey->common.rdclass = rdata->rdclass;
-	dnskey->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&dnskey->common, link);
+	rkey->common.rdclass = rdata->rdclass;
+	rkey->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&rkey->common, link);
 
 	return (generic_tostruct_key(rdata, target, mctx));
 }
 
 static inline void
-freestruct_cdnskey(ARGS_FREESTRUCT) {
-	dns_rdata_cdnskey_t *dnskey = (dns_rdata_cdnskey_t *) source;
+freestruct_rkey(ARGS_FREESTRUCT) {
+	dns_rdata_rkey_t *rkey = (dns_rdata_rkey_t *) source;
 
-	REQUIRE(dnskey != NULL);
-	REQUIRE(dnskey->common.rdtype == dns_rdatatype_cdnskey);
+	REQUIRE(rkey != NULL);
+	REQUIRE(rkey->common.rdtype == dns_rdatatype_rkey);
 
 	generic_freestruct_key(source);
 }
 
 static inline isc_result_t
-additionaldata_cdnskey(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == dns_rdatatype_cdnskey);
+additionaldata_rkey(ARGS_ADDLDATA) {
+
+	REQUIRE(rdata->type == dns_rdatatype_rkey);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -132,11 +124,11 @@ additionaldata_cdnskey(ARGS_ADDLDATA) {
 }
 
 static inline isc_result_t
-digest_cdnskey(ARGS_DIGEST) {
+digest_rkey(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata != NULL);
-	REQUIRE(rdata->type == dns_rdatatype_cdnskey);
+	REQUIRE(rdata->type == dns_rdatatype_rkey);
 
 	dns_rdata_toregion(rdata, &r);
 
@@ -144,9 +136,9 @@ digest_cdnskey(ARGS_DIGEST) {
 }
 
 static inline isc_boolean_t
-checkowner_cdnskey(ARGS_CHECKOWNER) {
+checkowner_rkey(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == dns_rdatatype_cdnskey);
+	REQUIRE(type == dns_rdatatype_rkey);
 
 	UNUSED(name);
 	UNUSED(type);
@@ -157,10 +149,10 @@ checkowner_cdnskey(ARGS_CHECKOWNER) {
 }
 
 static inline isc_boolean_t
-checknames_cdnskey(ARGS_CHECKNAMES) {
+checknames_rkey(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata != NULL);
-	REQUIRE(rdata->type == dns_rdatatype_cdnskey);
+	REQUIRE(rdata->type == dns_rdatatype_rkey);
 
 	UNUSED(rdata);
 	UNUSED(owner);
@@ -170,12 +162,12 @@ checknames_cdnskey(ARGS_CHECKNAMES) {
 }
 
 static inline int
-casecompare_cdnskey(ARGS_COMPARE) {
+casecompare_rkey(ARGS_COMPARE) {
 
 	/*
 	 * Treat ALG 253 (private DNS) subtype name case sensistively.
 	 */
-	return (compare_cdnskey(rdata1, rdata2));
+	return (compare_rkey(rdata1, rdata2));
 }
 
-#endif	/* RDATA_GENERIC_CDNSKEY_60_C */
+#endif	/* RDATA_GENERIC_RKEY_57_C */

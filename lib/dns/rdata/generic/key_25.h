@@ -23,7 +23,7 @@
 /*!
  * \brief Per RFC2535 */
 
-typedef struct dns_rdata_key_t {
+typedef struct dns_rdata_key {
         dns_rdatacommon_t	common;
         isc_mem_t *		mctx;
         isc_uint16_t		flags;

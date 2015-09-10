@@ -218,6 +218,24 @@ static isc_result_t
 unknown_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	       isc_buffer_t *target);
 
+static inline isc_result_t
+generic_fromtext_key(ARGS_FROMTEXT);
+
+static inline isc_result_t
+generic_totext_key(ARGS_TOTEXT);
+
+static inline isc_result_t
+generic_fromwire_key(ARGS_FROMWIRE);
+
+static inline isc_result_t
+generic_fromstruct_key(ARGS_FROMSTRUCT);
+
+static inline isc_result_t
+generic_tostruct_key(ARGS_TOSTRUCT);
+
+static inline void
+generic_freestruct_key(ARGS_FREESTRUCT);
+
 /*% INT16 Size */
 #define NS_INT16SZ	2
 /*% IPv6 Address Size */
