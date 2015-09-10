@@ -57,6 +57,21 @@ mx01.example.		3600	IN	MX	10 mail.example.
 mx02.example.		3600	IN	MX	10 .
 naptr01.example.	3600	IN	NAPTR	0 0 "" "" "" .
 naptr02.example.	3600	IN	NAPTR	65535 65535 "blurgh" "blorf" "blllbb" foo.
+ninfo01.example.	3600	IN	NINFO	"foo"
+ninfo02.example.	3600	IN	NINFO	"foo" "bar"
+ninfo03.example.	3600	IN	NINFO	"foo"
+ninfo04.example.	3600	IN	NINFO	"foo" "bar"
+ninfo05.example.	3600	IN	NINFO	"foo bar"
+ninfo06.example.	3600	IN	NINFO	"foo bar"
+ninfo07.example.	3600	IN	NINFO	"foo bar"
+ninfo08.example.	3600	IN	NINFO	"foo\010bar"
+ninfo09.example.	3600	IN	NINFO	"foo\010bar"
+ninfo10.example.	3600	IN	NINFO	"foo bar"
+ninfo11.example.	3600	IN	NINFO	"\"foo\""
+ninfo12.example.	3600	IN	NINFO	"\"foo\""
+ninfo13.example.	3600	IN	NINFO	"foo;"
+ninfo14.example.	3600	IN	NINFO	"foo;"
+ninfo15.example.	3600	IN	NINFO	"bar\\;"
 ns2.example.		3600	IN	A	10.53.0.2
 ns3.example.		3600	IN	A	10.53.0.3
 nsap-ptr01.example.	3600	IN	NSAP-PTR .
