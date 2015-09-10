@@ -75,12 +75,12 @@
 	  This flaw was discovered by Breno Silveira Soares, and is
 	  disclosed in CVE-2015-4620. [RT #39795]
 	</para>
-      </listitem> 
+      </listitem>
       <listitem>
 	<para>
 	  On servers configured to perform DNSSEC validation using
 	  managed trust anchors (i.e., keys configured explicitly
-	  via <command>managed-keys</command>, or implicitly 
+	  via <command>managed-keys</command>, or implicitly
 	  via <command>dnssec-validation auto;</command> or
 	  <command>dnssec-lookaside auto;</command>), revoking
 	  a trust anchor and sending a new untrusted replacement
@@ -379,7 +379,7 @@
       <listitem>
 	<para>
 	  <command>rndc modzone</command> can be used to reconfigure
-	  a zone, using similar syntax to <command>rndc addzone</command>. 
+	  a zone, using similar syntax to <command>rndc addzone</command>.
 	</para>
       </listitem>
       <listitem>
@@ -440,7 +440,7 @@
       <listitem>
 	<para>
 	  The <command>nxdomain-redirect</command> option specifies
-	  a DNS namespace to use for NXDOMAIN redirection. When a 
+	  a DNS namespace to use for NXDOMAIN redirection. When a
 	  recursive lookup returns NXDOMAIN, a second lookup is
 	  initiated with the specified name appended to the query
 	  name. This allows NXDOMAIN redirection data to be supplied
@@ -448,6 +448,11 @@
 	  queries to other servers. (The older method, using
 	  a single <command>type redirect</command> zone, has
 	  better average performance but is less flexible.) [RT #37989]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The following types have been implemented: RKEY.
 	</para>
       </listitem>
     </itemizedlist>
