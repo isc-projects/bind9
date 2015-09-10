@@ -236,6 +236,33 @@ generic_tostruct_key(ARGS_TOSTRUCT);
 static inline void
 generic_freestruct_key(ARGS_FREESTRUCT);
 
+static isc_result_t
+generic_fromtext_txt(ARGS_FROMTEXT);
+
+static isc_result_t
+generic_totext_txt(ARGS_TOTEXT);
+
+static isc_result_t
+generic_fromwire_txt(ARGS_FROMWIRE);
+
+static isc_result_t
+generic_fromstruct_txt(ARGS_FROMSTRUCT);
+
+static isc_result_t
+generic_tostruct_txt(ARGS_TOSTRUCT);
+
+static void
+generic_freestruct_txt(ARGS_FREESTRUCT);
+
+static isc_result_t
+generic_txt_first(dns_rdata_txt_t *txt);
+
+static isc_result_t
+generic_txt_next(dns_rdata_txt_t *txt);
+
+static isc_result_t
+generic_txt_current(dns_rdata_txt_t *txt, dns_rdata_txt_string_t *string);
+
 /*% INT16 Size */
 #define NS_INT16SZ	2
 /*% IPv6 Address Size */
