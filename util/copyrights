@@ -10,6 +10,7 @@
 ./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2014
 ./aclocal.m4					X	1999,2000,2001,2012,2014
+./autogen.sh					SH	2015
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2013,2014
 ./bin/check/.gitignore				X	2012
 ./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006,2007,2009,2012,2014
@@ -1370,7 +1371,7 @@
 ./bin/tests/system/forward/ns5/named.conf	CONF-C	2011
 ./bin/tests/system/forward/ns5/root.db		ZONE	2011
 ./bin/tests/system/forward/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014
-./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013,2014
+./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013,2014,2015
 ./bin/tests/system/geoip/.gitignore		X	2013
 ./bin/tests/system/geoip/Makefile.in		MAKE	2013
 ./bin/tests/system/geoip/clean.sh		SH	2013,2014
@@ -1849,7 +1850,7 @@
 ./bin/tests/system/rrchecker/clean.sh		SH	2013,2014
 ./bin/tests/system/rrchecker/privatelist.good	X	2013
 ./bin/tests/system/rrchecker/tests.sh		SH	2013,2014
-./bin/tests/system/rrchecker/typelist.good	X	2013,2014
+./bin/tests/system/rrchecker/typelist.good	X	2013,2014,2015
 ./bin/tests/system/rrl/.gitignore		X	2013,2014
 ./bin/tests/system/rrl/clean.sh			SH	2012,2013,2014
 ./bin/tests/system/rrl/ns1/named.conf		CONF-C	2012,2013
@@ -2184,8 +2185,8 @@
 ./bin/tests/system/xfer/ans5/unsigned		X	2011
 ./bin/tests/system/xfer/ans5/wrongkey		X	2011
 ./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014
-./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014
-./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014
+./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014,2015
+./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014,2015
 ./bin/tests/system/xfer/ns1/named.conf		CONF-C	2000,2001,2004,2007,2011,2014
 ./bin/tests/system/xfer/ns1/root.db		ZONE	2000,2001,2004,2007
 ./bin/tests/system/xfer/ns2/named.conf		CONF-C	2000,2001,2004,2005,2007,2013
@@ -3292,19 +3293,19 @@
 ./lib/dns/rdata/generic/caa_257.c		C	2014,2015
 ./lib/dns/rdata/generic/caa_257.h		C	2014
 ./lib/dns/rdata/generic/cdnskey_60.c		C	2014,2015
-./lib/dns/rdata/generic/cdnskey_60.h		C	2014
+./lib/dns/rdata/generic/cdnskey_60.h		C	2014,2015
 ./lib/dns/rdata/generic/cds_59.c		C	2014,2015
-./lib/dns/rdata/generic/cds_59.h		C	2014
+./lib/dns/rdata/generic/cds_59.h		C	2014,2015
 ./lib/dns/rdata/generic/cert_37.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012,2015
 ./lib/dns/rdata/generic/cert_37.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/cname_5.c		C	1998,1999,2000,2001,2004,2007,2009,2015
 ./lib/dns/rdata/generic/cname_5.h		C	1998,1999,2000,2001,2004,2007
 ./lib/dns/rdata/generic/dlv_32769.c		C	2004,2006,2007,2009,2010,2011,2012,2013,2014,2015
-./lib/dns/rdata/generic/dlv_32769.h		C	2004,2006,2007
+./lib/dns/rdata/generic/dlv_32769.h		C	2004,2006,2007,2015
 ./lib/dns/rdata/generic/dname_39.c		C	1999,2000,2001,2004,2007,2009,2015
 ./lib/dns/rdata/generic/dname_39.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/dnskey_48.c		C	2003,2004,2005,2007,2009,2011,2012,2013,2015
-./lib/dns/rdata/generic/dnskey_48.h		C	2003,2004,2005,2007
+./lib/dns/rdata/generic/dnskey_48.h		C	2003,2004,2005,2007,2015
 ./lib/dns/rdata/generic/ds_43.c			C	2002,2004,2005,2007,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/rdata/generic/ds_43.h			C	2002,2004,2005,2007
 ./lib/dns/rdata/generic/eui48_108.c		C	2013,2014,2015
@@ -3322,7 +3323,7 @@
 ./lib/dns/rdata/generic/isdn_20.c		C	1999,2000,2001,2002,2004,2005,2007,2009,2013,2014,2015
 ./lib/dns/rdata/generic/isdn_20.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/key_25.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012,2013,2015
-./lib/dns/rdata/generic/key_25.h		C	1999,2000,2001,2004,2005,2007
+./lib/dns/rdata/generic/key_25.h		C	1999,2000,2001,2004,2005,2007,2015
 ./lib/dns/rdata/generic/keydata_65533.c		C	2009,2011,2012,2013,2015
 ./lib/dns/rdata/generic/keydata_65533.h		C	2009
 ./lib/dns/rdata/generic/l32_105.c		C	2013,2014,2015
@@ -3351,6 +3352,8 @@
 ./lib/dns/rdata/generic/naptr_35.h		C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/dns/rdata/generic/nid_104.c		C	2013,2014,2015
 ./lib/dns/rdata/generic/nid_104.h		C	2013
+./lib/dns/rdata/generic/ninfo_56.c		C	2015
+./lib/dns/rdata/generic/ninfo_56.h		C	2015
 ./lib/dns/rdata/generic/ns_2.c			C	1998,1999,2000,2001,2004,2007,2009,2015
 ./lib/dns/rdata/generic/ns_2.h			C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/nsec3_50.c		C	2008,2009,2011,2012,2014,2015
@@ -3371,6 +3374,8 @@
 ./lib/dns/rdata/generic/proforma.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/ptr_12.c		C	1998,1999,2000,2001,2004,2007,2009,2015
 ./lib/dns/rdata/generic/ptr_12.h		C	1998,1999,2000,2001,2004,2005,2007
+./lib/dns/rdata/generic/rkey_57.c		C	2015
+./lib/dns/rdata/generic/rkey_57.h		C	2015
 ./lib/dns/rdata/generic/rp_17.c			C	1999,2000,2001,2004,2005,2007,2009,2015
 ./lib/dns/rdata/generic/rp_17.h			C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/rrsig_46.c		C	2003,2004,2005,2007,2009,2011,2012,2013,2014,2015
@@ -3385,6 +3390,8 @@
 ./lib/dns/rdata/generic/spf_99.h		C	1998,1999,2000,2001,2004,2005,2007,2014
 ./lib/dns/rdata/generic/sshfp_44.c		C	2003,2004,2006,2007,2009,2011,2012,2013,2015
 ./lib/dns/rdata/generic/sshfp_44.h		C	2003,2004,2005,2006,2007
+./lib/dns/rdata/generic/ta_32768.c		C	2015
+./lib/dns/rdata/generic/ta_32768.h		C	2015
 ./lib/dns/rdata/generic/tkey_249.c		C	1999,2000,2001,2002,2003,2004,2007,2009,2011,2012,2014,2015
 ./lib/dns/rdata/generic/tkey_249.h		C	1999,2000,2001,2003,2004,2005,2007
 ./lib/dns/rdata/generic/tlsa_52.c		C	2012,2014,2015
