@@ -14,10 +14,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef GENERIC_CDS_59_H
-#define GENERIC_CDS_59_H 1
+#ifndef GENERIC_TA_32768_H
+#define GENERIC_TA_32768_H 1
 
-/* CDS records have the same RDATA fields as DS records. */
-typedef struct dns_rdata_ds dns_rdata_cds_t;
+/*
+ * TA records are identical to DS records.
+ */
+typedef struct dns_rdata_ds dns_rdata_ta_t;
 
-#endif /* GENERIC_CDS_59_H */
+#endif /* GENERIC_TA_32768_H */

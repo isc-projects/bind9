@@ -452,7 +452,7 @@
       </listitem>
       <listitem>
 	<para>
-	  The following types have been implemented: NINFO, RKEY.
+	  The following types have been implemented: NINFO, RKEY, TA.
 	</para>
       </listitem>
     </itemizedlist>

@@ -339,9 +339,19 @@ uri02			URI	30 40 "https://www.isc.org/HolyCowThisSureIsAVeryLongURIRecordIDontE
 uri03			URI	30 40 ""
 
 ; type 257
-caa01                   CAA     0 issue "ca.example.net; policy=ev"
-caa02                   CAA     128 tbs "Unknown"
-caa03                   CAA     128 tbs ""
+caa01			CAA	0 issue "ca.example.net; policy=ev"
+caa02			CAA	128 tbs "Unknown"
+caa03			CAA	128 tbs ""
+
+; type 32768
+ta			TA	30795 1 1 (
+					310D27F4D82C1FC2400704EA9939FE6E1CEA
+					A3B9 )
+
+; type 32769
+dlv			DLV	30795 1 1 (
+					310D27F4D82C1FC2400704EA9939FE6E1CEA
+					A3B9 )
 
 ; keydata (internal type used for managed-keys)
 keydata			TYPE65533	\# 0
