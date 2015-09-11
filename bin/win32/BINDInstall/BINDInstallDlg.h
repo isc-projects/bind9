@@ -69,6 +69,9 @@ protected:
 	void CreateDirs();
 	void RemoveDirs(BOOL uninstall);
 
+	void ReadInstallFlags();
+	void ReadInstallFileList();
+
 	void CopyFiles();
 	void DeleteFiles(BOOL uninstall);
 

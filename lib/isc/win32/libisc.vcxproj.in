@@ -125,6 +125,11 @@ echo Copying Visual C x86 Redistributable Installer.
 
 copy /Y @VCREDIST_PATH@	..\Build\Debug\
 
+echo Copying install files (flags and file list).
+
+copy InstallFlags ..\Build\Debug\
+copy InstallFiles ..\Build\Debug\
+
 </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -260,6 +265,11 @@ copy @ICONV_DLL@ ..\Build\Release\
 echo Copying Visual C x86 Redistributable Installer.
 
 copy /Y @VCREDIST_PATH@ ..\Build\Release\
+
+echo Copying install files (flags and file list).
+
+copy InstallFlags ..\Build\Release\
+copy InstallFiles ..\Build\Release\
 
 </Command>
     </PreBuildEvent>
