@@ -17595,6 +17595,7 @@ zone "example.com" {
       <xi:include href="../../bin/python/dnssec-checkds.docbook"/>
       <xi:include href="../../bin/python/dnssec-coverage.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-dsfromkey.docbook"/>
+      <xi:include href="../../bin/dnssec/dnssec-importkey.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-keyfromlabel.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-keygen.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-revoke.docbook"/>
