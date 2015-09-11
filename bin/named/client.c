@@ -953,6 +953,12 @@ ns_client_send(ns_client_t *client) {
 		else if (client->view->preferred_glue == dns_rdatatype_aaaa)
 			preferred_glue = DNS_MESSAGERENDER_PREFER_AAAA;
 	}
+	if (preferred_glue == 0) {
+		if (isc_sockaddr_pf(&client->peeraddr) == AF_INET)
+			preferred_glue = DNS_MESSAGERENDER_PREFER_A;
+		else
+			preferred_glue = DNS_MESSAGERENDER_PREFER_AAAA;
+	}
 
 #ifdef ALLOW_FILTER_AAAA_ON_V4
 	/*

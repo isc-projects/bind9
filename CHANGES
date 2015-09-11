@@ -1,3 +1,7 @@
+4201.	[func]		The default preferred-glue is now the address record
+			type of the transport the query was received
+			over.  [RT #40468]
+
 4200.	[cleanup]	win32: update BINDinstall to be BIND release
 			independent. [RT #38915]
 
