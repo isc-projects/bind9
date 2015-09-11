@@ -1,3 +1,6 @@
+4202.	[bug]		isccc_cc_fromwire() could return an incorrect
+			result. [RT #40614]
+
 4201.	[func]		The default preferred-glue is now the address record
 			type of the transport the query was received
 			over.  [RT #40468]
