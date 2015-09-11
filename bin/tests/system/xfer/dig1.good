@@ -93,6 +93,8 @@ rp02.example.		3600	IN	RP	. .
 rt01.example.		3600	IN	RT	0 intermediate-host.example.
 rt02.example.		3600	IN	RT	65535 .
 rrsig01.example.		3600	IN	RRSIG	NSEC 1 3 3600 20000102030405 19961211100908 2143 foo.nil. MxFcby9k/yvedMfQgKzhH5er0Mu/vILz45IkskceFGgiWCn/GxHhai6V AuHAoNUz4YoU1tVfSCSqQYn6//11U6Nld80jEeC8aTrO+KKmCaY=
+sink01.example.		3600	IN	SINK	1 0 0
+sink02.example.		3600	IN	SINK	8 0 2 l4ik
 srv01.example.		3600	IN	SRV	0 0 0 .
 srv02.example.		3600	IN	SRV	65535 65535 65535 old-slow-box.example.
 ta.example.		3600	IN	TA	30795 1 1 310D27F4D82C1FC2400704EA9939FE6E1CEAA3B9

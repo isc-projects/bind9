@@ -8,8 +8,8 @@
 4200.	[cleanup]	win32: update BINDinstall to be BIND release
 			independent. [RT #38915]
 
-4199.	[protocol]	Add support for NINFO, RKEY, TA.
-			[RT #40545] [RT #40547] [RT #40563]
+4199.	[protocol]	Add support for NINFO, RKEY, SINK, TA.
+			[RT #40545] [RT #40547] [RT #40561] [RT #40563]
 
 4198.	[doc]		Add fetch-quota-params, fetches-per-server, and
 			fetches-per-zone to doc/misc/options. [RT #40601]

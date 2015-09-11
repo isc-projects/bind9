@@ -219,6 +219,10 @@ dname01			DNAME	dname-target.
 dname02			DNAME	dname-target
 dname03			DNAME	.
 
+; type 40
+sink01			SINK	1 0 0
+sink02			SINK	8 0 2 l4ik
+
 ; type 41
 ; OPT is a meta-type and should never occur in master files.
 
