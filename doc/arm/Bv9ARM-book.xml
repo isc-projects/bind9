@@ -12968,6 +12968,18 @@ example.com. NS ns2.example.net.
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			NINFO
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Contains zone status information.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			NIMLOC
 		      </para>
 		    </entry>
@@ -13132,6 +13144,18 @@ example.com. NS ns2.example.net.
 		      <para>
 			Provides mappings between RFC 822 and X.400
 			addresses.  Described in RFC 2163.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			RKEY
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Resource key.
 		      </para>
 		    </entry>
 		  </row>
