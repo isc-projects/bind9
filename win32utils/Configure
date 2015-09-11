@@ -2517,7 +2517,6 @@ sub makeinstallfile {
     print LOUT "libisccc.dll-BCFT\n";
     print LOUT "libdns.dll-BCFT\n";
     print LOUT "liblwres.dll-BCFT\n";
-    print LOUT "libirs.dll-BCFT\n";
     if ($use_openssl eq "yes") {
         print LOUT "libeay32.dll-BCFT\n";
     }
@@ -2549,13 +2548,11 @@ sub makeinstallfile {
     print LOUT "dig.exe-BNFT\n";
     print LOUT "host.exe-BNFT\n";
     print LOUT "nslookup.exe-BNFT\n";
-    print LOUT "delv.exe-BNFT\n";
     print LOUT "arpaname.exe-BNFT\n";
     print LOUT "nsec3hash.exe-BNFF\n";
     print LOUT "genrandom.exe-BNFF\n";
     print LOUT "rndc-confgen.exe-BNFF\n";
     print LOUT "ddns-confgen.exe-BNFF\n";
-    print LOUT "tsig-keygen.exe-BNFF\n";
     print LOUT "dnssec-keygen.exe-BNFF\n";
     print LOUT "dnssec-signzone.exe-BNFF\n";
     print LOUT "dnssec-dsfromkey.exe-BNFF\n";
@@ -2568,7 +2565,6 @@ sub makeinstallfile {
     print LOUT "named-checkzone.exe-BNFF\n";
     print LOUT "named-compilezone.exe-BNFF\n";
     print LOUT "named-journalprint.exe-BNFF\n";
-    print LOUT "named-rrchecker.exe-BNFF\n";
     print LOUT "isc-hmax-fixup.exe-BNFF\n";
     if ($use_pkcs11 eq "yes") {
         print LOUT "pkcs11-destroy.exe-BNFF\n";
