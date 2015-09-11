@@ -612,6 +612,23 @@
       </listitem>
     </itemizedlist>
   </sect2>
+  <sect2 id="relnotes_port">
+    <title>Porting Changes</title>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  The Microsoft Windows install tool
+	  <command>BINDInstall.exe</command> which requires a
+	  non-free version of Visual Studio to be built, now uses two
+	  files (lists of flags and files) created by the Configure
+	  perl script with all the needed information which were
+	  previously compiled in the binary. Read
+	  <filename>win32utils/build.txt</filename> for more details.
+	  [RT #38915]
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
   <sect2 id="relnotes_bugs">
     <title>Bug Fixes</title>
     <itemizedlist>

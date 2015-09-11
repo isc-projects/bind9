@@ -148,6 +148,13 @@ rem
 copy /Y @VCREDIST_PATH@ ..\..\Build\Release\
 copy /Y @VCREDIST_PATH@ ..\..\Build\Debug\
 
+echo Copying install files (flags and file list).
+
+copy ..\InstallFlags ..\..\Build\Release\
+copy ..\InstallFlags ..\..\Build\Debug\
+copy ..\InstallFiles ..\..\Build\Release\
+copy ..\InstallFiles ..\..\Build\Debug\
+
 @IF TESTS
 cd ..\..\bin\tests\dst
 copy "Kdh.+002+18602.key.in" "Kdh.+002+18602.key"
