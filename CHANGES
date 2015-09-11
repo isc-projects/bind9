@@ -1,3 +1,6 @@
+4200.	[cleanup]	win32: update BINDinstall to be BIND release
+			independent. [RT #38915]
+
 4199.	[protocol]	Add support for NINFO, RKEY, TA.
 			[RT #40545] [RT #40547] [RT #40563]
 
