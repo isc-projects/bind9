@@ -4794,6 +4794,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> statistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> zone-statistics <replaceable>full</replaceable> | <replaceable>terse</replaceable> | <replaceable>none</replaceable>; </optional>
     <optional> auth-nxdomain <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> nxdomain-redirect <replaceable>string</replaceable>; </optional>
     <optional> deallocate-on-exit <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable>; </optional>
     <optional> fake-iquery <replaceable>yes_or_no</replaceable>; </optional>
