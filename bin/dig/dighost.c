@@ -3794,6 +3794,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		l->edns = newedns;
 		n = requeue_lookup(l, ISC_TRUE);
 		n->origin = query->lookup->origin;
+		if (l->trace && l->trace_root)
+			n->rdtype = l->qrdtype;
 		dns_message_destroy(&msg);
 		isc_event_free(&event);
 		clear_query(query);
@@ -3811,6 +3813,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		n = requeue_lookup(l, ISC_TRUE);
 		n->tcp_mode = ISC_TRUE;
 		n->origin = query->lookup->origin;
+		if (l->trace && l->trace_root)
+			n->rdtype = l->qrdtype;
 		dns_message_destroy(&msg);
 		isc_event_free(&event);
 		clear_query(query);
@@ -3831,6 +3835,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				n->tcp_mode = ISC_TRUE;
 			n->seenbadcookie = ISC_TRUE;
 			n->origin = query->lookup->origin;
+			if (l->trace && l->trace_root)
+				n->rdtype = l->qrdtype;
 			dns_message_destroy(&msg);
 			isc_event_free(&event);
 			clear_query(query);
