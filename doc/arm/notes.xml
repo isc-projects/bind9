@@ -203,6 +203,12 @@
 	  as specified in RFC 6763. [RT #37889]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The default preferred glue is now the address type of the
+	   transport the query was received over.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_port">

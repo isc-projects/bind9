@@ -5471,7 +5471,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		If specified, the listed type (A or AAAA) will be emitted
 		before other glue
 		in the additional section of a query response.
-		The default is not to prefer any type (NONE).
+		The default is to prefer A records when responding
+		to queries that arrived via IPv4 and AAAA when
+		responding to queries that arrived via IPv6.
 	      </para>
 	    </listitem>
 	  </varlistentry>
