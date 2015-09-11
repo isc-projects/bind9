@@ -1,3 +1,6 @@
+4203.	[test]		The rrchecker system test now tests conversion
+			to and from unkonwn-type format. [RT #40584]
+
 4202.	[bug]		isccc_cc_fromwire() could return an incorrect
 			result. [RT #40614]
 

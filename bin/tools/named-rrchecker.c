@@ -40,13 +40,14 @@ static isc_lexspecials_t specials;
 
 static void
 usage(void) {
-	fprintf(stderr, "usage: named-rrchecker [-o origin] [-hpCPT]\n");
+	fprintf(stderr, "usage: named-rrchecker [-o origin] [-hpCPTu]\n");
 	fprintf(stderr, "\t-h: print this help message\n");
 	fprintf(stderr, "\t-o origin: set origin to be used when interpeting the record\n");
 	fprintf(stderr, "\t-p: print the record in cannonical format\n");
 	fprintf(stderr, "\t-C: list the supported class names\n");
-	fprintf(stderr, "\t-T: list the supported standard type names\n");
 	fprintf(stderr, "\t-P: list the supported private type names\n");
+	fprintf(stderr, "\t-T: list the supported standard type names\n");
+	fprintf(stderr, "\t-u: print the record in unknown record format\n");
 }
 
 int
