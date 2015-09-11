@@ -4933,7 +4933,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> clients { <replaceable>address_match_list</replaceable> }; </optional>
 	<optional> mapped { <replaceable>address_match_list</replaceable> }; </optional>
 	<optional> exclude { <replaceable>address_match_list</replaceable> }; </optional>
-	<optional> suffix IPv6-address; </optional>
+	<optional> suffix <replaceable>IPv6-address</replaceable>; </optional>
 	<optional> recursive-only <replaceable>yes_or_no</replaceable>; </optional>
 	<optional> break-dnssec <replaceable>yes_or_no</replaceable>; </optional>
     }; </optional>;
