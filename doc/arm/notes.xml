@@ -610,6 +610,12 @@
 	  using the <option>log</option> clause.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The default preferred glue is now the address type of the
+	   transport the query was received over.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_port">
