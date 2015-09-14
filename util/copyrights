@@ -2536,7 +2536,7 @@
 ./contrib/dlz/modules/sqlite3/testing/named.conf	X	2014
 ./contrib/dlz/modules/wildcard/Makefile		X	2013
 ./contrib/dlz/modules/wildcard/README		X	2013
-./contrib/dlz/modules/wildcard/dlz_wildcard_dynamic.c	X	2013
+./contrib/dlz/modules/wildcard/dlz_wildcard_dynamic.c	X	2013,2015
 ./contrib/dlz/modules/wildcard/testing/named.conf	X	2013
 ./contrib/idn/README.idnkit			X	2005,2009
 ./contrib/idn/idnkit-1.0-src/.gitignore		X	2014
