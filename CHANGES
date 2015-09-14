@@ -1,5 +1,5 @@
 4206.   [bug]           contrib: fixed a possible NULL dereference in
-                        DLZ wildcard module. [RT #40745]
+			DLZ wildcard module. [RT #40745]
 
 4205.	[bug]		'named-checkconf -p' could include unwanted spaces
 			when printing tuples with unset optional fields.
