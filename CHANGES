@@ -1,3 +1,7 @@
+4205.	[bug]		'named-checkconf -p' could include unwanted spaces
+			when printing tuples with unset optional fields.
+			[RT #40731]
+
 4204.	[bug]		'dig +trace' failed to lookup the correct type if
 			the initial root ns query was retried. [RT #40296]
 
