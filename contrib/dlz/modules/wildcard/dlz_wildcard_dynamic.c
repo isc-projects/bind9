@@ -260,6 +260,8 @@ dlz_lookup(const char *zone, const char *name,
 	{
 		size_t len = p - zone;
 		namebuf = malloc(len);
+		if (namebuf == NULL)
+			return (ISC_R_NOMEMORY);
 		strncpy(namebuf, zone, len - 1);
 		namebuf[len - 1] = '\0';
 		cd->record = namebuf;
