@@ -17,6 +17,8 @@
 /*
  * Provide a simple memory management model for lib/isc/mem.c
  * which hides all the internal storage and memory filling.
+ *
+ * See https://scan.coverity.com/models
  */
 
 #define FLARG , const char * file, unsigned int line
