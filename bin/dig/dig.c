@@ -197,7 +197,7 @@ help(void) {
 "                 +[no]nsid           (Request Name Server ID)\n"
 "                 +[no]nssearch       (Search all authoritative nameservers)\n"
 "                 +[no]onesoa         (AXFR prints only one soa record)\n"
-"                 +[no]opcode=[###]   (Set the opcode of the request)\n"
+"                 +[no]opcode=###     (Set the opcode of the request)\n"
 "                 +[no]qr             (Print question before sending)\n"
 "                 +[no]question       (Control display of question section)\n"
 "                 +[no]rdflag         (Recursive mode (+[no]recurse))\n"
