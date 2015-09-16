@@ -1,3 +1,6 @@
+4207.	[bug]		Handle class mismatches with raw zone files.
+			[RT #40746]
+
 4206.   [bug]           contrib: fixed a possible NULL dereference in
 			DLZ wildcard module. [RT #40745]
 
