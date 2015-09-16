@@ -1,3 +1,6 @@
+4208.	[bug]		Address null pointer dereferences on out of memory.
+			[RT #40764]
+
 4207.	[bug]		Handle class mismatches with raw zone files.
 			[RT #40746]
 
