@@ -4811,6 +4811,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> require-server-cookie <replaceable>yes_or_no</replaceable>; </optional>
     <optional> cookie-algorithm <replaceable>secret_string</replaceable>; </optional>
     <optional> cookie-secret <replaceable>secret_string</replaceable>; </optional>
+    <optional> nocookie-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> request-nsid <replaceable>yes_or_no</replaceable>; </optional>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
@@ -6510,6 +6511,19 @@ options {
 		  do not send a correct COOKIE option may be limited
 		  to receiving smaller responses via the
 		  <command>nocookie-udp-size</command> option.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>nocookie-udp-size</command></term>
+	      <listitem>
+		</para>
+		  The <command>nocookie-udp-size</command> option sets the
+		  maximum size of UDP responses that will be sent to
+		  queries without a valid server COOKIE.  The command
+		  <command>max-udp-size</command> option may further limit
+		  the response size.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -10799,7 +10813,6 @@ example.com                 CNAME   rpz-tcp-only.
     <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> edns-version <replaceable>number</replaceable> ; </optional>
-    <optional> nocookie-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> max-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> tcp-only <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> transfers <replaceable>number</replaceable> ; </optional>
@@ -10962,14 +10975,6 @@ example.com                 CNAME   rpz-tcp-only.
 	    outside this range will be silently adjusted).  This
 	    option is useful when you know that there is a firewall
 	    that is blocking large replies from <command>named</command>.
-	  </para>
-
-	  <para>
-	    The <command>nocookie-udp-size</command> option sets the
-	    maximum size of UDP responses that will be sent to
-	    queries without a valid server COOKIE.  The command
-	    <command>max-udp-size</command> option may further limit
-	    the response size.
 	  </para>
 
 	  <para>
