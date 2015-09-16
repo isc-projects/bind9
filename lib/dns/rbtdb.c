@@ -7130,12 +7130,13 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	isc_region_t region;
 	rdatasetheader_t *newheader;
 
+	REQUIRE(rdataset->rdclass == rbtdb->common.rdclass);
+
 	/*
 	 * This routine does no node locking.  See comments in
 	 * 'load' below for more information on loading and
 	 * locking.
 	 */
-
 
 	/*
 	 * SOA records are only allowed at top of zone.

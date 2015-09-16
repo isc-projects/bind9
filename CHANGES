@@ -1,3 +1,6 @@
+4207.	[bug]		Handle class mismatches with raw zone files.
+			[RT #40746]
+
 4205.	[bug]		'named-checkconf -p' could include unwanted spaces
 			when printing tuples with unset optional fields.
 			[RT #40731]
