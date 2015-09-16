@@ -2385,6 +2385,10 @@ load_raw(dns_loadctx_t *lctx) {
 		/* Construct RRset headers */
 		dns_rdatalist_init(&rdatalist);
 		rdatalist.rdclass = isc_buffer_getuint16(&target);
+		if (lctx->zclass != rdatalist.rdclass) {
+			result = DNS_R_BADCLASS;
+			goto cleanup;
+		}
 		rdatalist.type = isc_buffer_getuint16(&target);
 		rdatalist.covers = isc_buffer_getuint16(&target);
 		rdatalist.ttl =  isc_buffer_getuint32(&target);
