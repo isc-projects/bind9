@@ -6519,11 +6519,11 @@ options {
 	      <term><command>nocookie-udp-size</command></term>
 	      <listitem>
 		</para>
-		  The <command>nocookie-udp-size</command> option sets the
-		  maximum size of UDP responses that will be sent to
-		  queries without a valid server COOKIE.  The command
-		  <command>max-udp-size</command> option may further limit
-		  the response size.
+		  Sets the maximum size of UDP responses that will be
+		  sent to queries without a valid server COOKIE. A value
+		  below 128 will be silently raised to 128. The default
+		  value is 4096, but the <command>max-udp-size</command>
+		  option may further limit the response size.
 		</para>
 	      </listitem>
 	    </varlistentry>
