@@ -17398,8 +17398,7 @@ allow-query { !{ !10/8; any; }; key example; };
 
     <appendix id="Bv9ARM.ch10">
       <title>A Brief History of the <acronym>DNS</acronym> and <acronym>BIND</acronym></title>
-      <sect1 id="historical_dns_information">
-	  <para>
+	  <para id="historical_dns_information">
 	    Although the "official" beginning of the Domain Name
 	    System occurred in 1984 with the publication of RFC 920, the
 	    core of the new system was described in 1983 in RFCs 882 and
@@ -17494,7 +17493,6 @@ allow-query { !{ !10/8; any; }; key example; };
 	    of several corporations, and by the tireless work efforts of
 	    numerous individuals.
 	  </para>
-      </sect1>
     </appendix>
 
     <appendix id="Bv9ARM.ch11">
