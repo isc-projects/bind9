@@ -219,6 +219,8 @@ typedef struct nsu_gssinfo {
 } nsu_gssinfo_t;
 
 static void
+failed_gssrequest();
+static void
 start_gssrequest(dns_name_t *master);
 static void
 send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
@@ -2656,6 +2658,15 @@ get_ticket_realm(isc_mem_t *mctx) {
 		fprintf(stderr, "Found realm from ticket: %s\n", realm+1);
 }
 
+static void
+failed_gssrequest() {
+	seenerror = ISC_TRUE;
+
+	dns_name_free(&tmpzonename, gmctx);
+	dns_name_free(&restart_master, gmctx);
+
+	done_update();
+}
 
 static void
 start_gssrequest(dns_name_t *master) {
@@ -2663,7 +2674,7 @@ start_gssrequest(dns_name_t *master) {
 	isc_buffer_t buf;
 	isc_result_t result;
 	isc_uint32_t val = 0;
-	dns_message_t *rmsg;
+	dns_message_t *rmsg = NULL;
 	dns_request_t *request = NULL;
 	dns_name_t *servname;
 	dns_fixedname_t fname;
@@ -2743,14 +2754,24 @@ start_gssrequest(dns_name_t *master) {
 	result = dns_tkey_buildgssquery(rmsg, keyname, servname, NULL, 0,
 					&context, use_win2k_gsstsig,
 					gmctx, &err_message);
-	if (result == ISC_R_FAILURE)
-		fatal("tkey query failed: %s",
-		      err_message != NULL ? err_message : "unknown error");
+	if (result == ISC_R_FAILURE) {
+		fprintf(stderr, "tkey query failed: %s\n",
+			err_message != NULL ? err_message : "unknown error");
+		goto failure;
+	}
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_tkey_buildgssquery failed: %s",
 		      isc_result_totext(result));
 
 	send_gssrequest(kserver, rmsg, &request, context);
+	return;
+
+failure:
+	if (rmsg != NULL)
+		dns_message_destroy(&rmsg);
+	if (err_message != NULL)
+		isc_mem_free(gmctx, err_message);
+	failed_gssrequest();
 }
 
 static void
