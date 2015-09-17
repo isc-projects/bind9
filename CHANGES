@@ -1,3 +1,6 @@
+4215.	[bug]		nsupdate: skip to next request on GSSTKEY create
+			failure. [RT #40685]
+
 4214.	[protocol]	Add support for TALINK.  [RT #40544]
 
 4213.	[bug]		Don't reuse a cache across multiple classes.
