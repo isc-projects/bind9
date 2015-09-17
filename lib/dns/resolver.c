@@ -7756,8 +7756,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	if (opt != NULL)
 		process_opt(query, opt);
 
-#ifdef notyet
-	if (message->cc_bad) {
+	if (message->cc_bad && (options & DNS_FETCHOPT_TCP) == 0) {
 		/*
 		 * If the COOKIE is bad assume it is a attack and retry.
 		 */
@@ -7766,7 +7765,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		FCTXTRACE("bad cookie");
 		goto done;
 	}
-#endif
 
 	/*
 	 * If the message is signed, check the signature.  If not, this
