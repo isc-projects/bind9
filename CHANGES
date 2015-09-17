@@ -1,3 +1,6 @@
+4211.	[bug]		Ensure that lwresd gets at least one task to work
+			with if enabled. [RT #40652]
+
 4210.	[cleanup]	Silence use after free false positive. [RT #40743]
 
 4209.	[bug]		Address resource leaks in dlz modules. [RT #40654]

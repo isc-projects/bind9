@@ -398,6 +398,9 @@ ns_lwdmanager_create(isc_mem_t *mctx, const cfg_obj_t *lwres,
 	else
 		lwresd->ntasks = ns_g_cpus;
 
+	if (lwresd->ntasks == 0)
+		lwresd->ntasks = 1;
+
 	obj = NULL;
 	(void)cfg_map_get(lwres, "lwres-clients", &obj);
 	if (obj != NULL) {
@@ -638,7 +641,8 @@ listener_startclients(ns_lwreslistener_t *listener) {
 	}
 
 	/*
-	 * Ensure that we have created at least one.
+	 * If the list is empty return now with the previous
+	 * ns_lwdclientmgr_create() result.
 	 */
 	if (ISC_LIST_EMPTY(listener->cmgrs))
 		return (result);
