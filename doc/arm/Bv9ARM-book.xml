@@ -4720,6 +4720,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
     <optional> ixfr-from-differences (<replaceable>yes_or_no</replaceable> | <constant>master</constant> | <constant>slave</constant>); </optional>
+    <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
     <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-validation (<replaceable>yes_or_no</replaceable> | <constant>auto</constant>); </optional>
     <optional> dnssec-lookaside ( <replaceable>auto</replaceable> |
@@ -4828,6 +4829,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> lame-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-ncache-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-cache-ttl <replaceable>number</replaceable>; </optional>
+    <optional> serial-update-method <constant>increment</constant>|<constant>unixtime</constant>|<constant>date</constant>; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> <optional><replaceable>number</replaceable></optional> ; </optional>
     <optional> sig-signing-nodes <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-signatures <replaceable>number</replaceable> ; </optional>
@@ -5583,6 +5585,26 @@ options {
 	  </varlistentry>
 
 	  <varlistentry>
+	    <term><command>dnssec-loadkeys-interval</command></term>
+	    <listitem>
+		<para>
+		  When a zone is configured with <command>auto-dnssec
+		  maintain;</command> its key repository must be checked
+		  periodically to see if any new keys have been added
+		  or any existing keys' timing metadata has been updated
+		  (see <xref linkend="man.dnssec-keygen"/> and
+		  <xref linkend="man.dnssec-settime"/>).  The
+		  <command>dnssec-loadkeys-interval</command> option
+		  sets the frequency of automatic repository checks, in
+		  minutes.  The default is <literal>60</literal> (1 hour),
+		  the minimum is <literal>1</literal> (1 minute), and the
+		  maximum is <literal>1440</literal> (24 hours); any higher
+		  value is silently reduced.
+		</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
 	    <term><command>dnssec-update-mode</command></term>
 	    <listitem>
 		<para>
@@ -5613,6 +5635,31 @@ options {
 		  signing and allow DNSSEC data to be submitted into a zone
 		  via dynamic update; this is not yet implemented.)
 		</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><command>serial-update-method</command></term>
+	    <listitem>
+	      <para>
+		Zones configured for dynamic DNS may use this
+		option to set the update method that will be used for
+		the zone serial number in the SOA record.
+	      </para>
+	      <para>
+		With the default setting of
+		<command>serial-update-method increment;</command>, the
+		SOA serial number will be incremented by one each time
+		the zone is updated.
+	      </para>
+	      <para>
+		When set to
+		<command>serial-update-method unixtime;</command>, the
+		SOA serial number will be set to the number of seconds
+		since the UNIX epoch, unless the serial number is
+		already greater than or equal to that value, in which
+		case it is simply incremented by one.
+	      </para>
 	    </listitem>
 	  </varlistentry>
 
@@ -6432,6 +6479,49 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>auto-dnssec</command></term>
+	      <listitem>
+	        <para>
+		  Zones configured for dynamic DNS may use this
+		  option to allow varying levels of automatic DNSSEC key
+		  management. There are three possible settings:
+		</para>
+		<para>
+		  <command>auto-dnssec allow;</command> permits
+		  keys to be updated and the zone fully re-signed
+		  whenever the user issues the command <command>rndc sign
+		  <replaceable>zonename</replaceable></command>.
+		</para>
+		<para>
+		  <command>auto-dnssec maintain;</command> includes the
+		  above, but also automatically adjusts the zone's DNSSEC
+		  keys on schedule, according to the keys' timing metadata
+		  (see <xref linkend="man.dnssec-keygen"/> and
+		  <xref linkend="man.dnssec-settime"/>).  The command
+		  <command>rndc sign
+		  <replaceable>zonename</replaceable></command> causes
+		  <command>named</command> to load keys from the key
+		  repository and sign the zone with all keys that are
+		  active.
+		  <command>rndc loadkeys
+		  <replaceable>zonename</replaceable></command> causes
+		  <command>named</command> to load keys from the key
+		  repository and schedule key maintenance events to occur
+		  in the future, but it does not sign the full zone
+		  immediately.  Note: once keys have been loaded for a
+		  zone the first time, the repository will be searched
+		  for changes periodically, regardless of whether
+		  <command>rndc loadkeys</command> is used.  The recheck
+		  interval is defined by
+		  <command>dnssec-loadkeys-interval</command>.)
+		</para>
+		<para>
+		  The default setting is <command>auto-dnssec off</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>dnssec-enable</command></term>
 	      <listitem>
 		<para>
@@ -6714,26 +6804,6 @@ options {
 		  The default is <command>no</command>.  If
 		  <command>update-check-ksk</command> is set to
 		  <literal>no</literal>, this option is ignored.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>dnssec-loadkeys-interval</command></term>
-	      <listitem>
-		<para>
-		  When a zone is configured with <command>auto-dnssec
-		  maintain;</command> its key repository must be checked
-		  periodically to see if any new keys have been added
-		  or any existing keys' timing metadata has been updated
-		  (see <xref linkend="man.dnssec-keygen"/> and
-		  <xref linkend="man.dnssec-settime"/>).  The
-		  <command>dnssec-loadkeys-interval</command> option
-		  sets the frequency of automatic repository checks, in
-		  minutes.  The default is <literal>60</literal> (1 hour),
-		  the minimum is <literal>1</literal> (1 minute), and the
-		  maximum is <literal>1440</literal> (24 hours); any higher
-		  value is silently reduced.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11341,6 +11411,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 	      </varlistentry>
 
 	      <varlistentry>
+		<term><command>dnssec-loadkeys-interval</command></term>
+		<listitem>
+		  <para>
+		    See the description of
+		    <command>dnssec-loadkeys-interval</command> in <xref linkend="options"/>.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term><command>dnssec-update-mode</command></term>
 		<listitem>
 		  <para>
@@ -11824,41 +11904,9 @@ example.com. NS ns2.example.net.
 		<term><command>auto-dnssec</command></term>
 		<listitem>
 		  <para>
-		    Zones configured for dynamic DNS may also use this
-		    option to allow varying levels of automatic DNSSEC key
-		    management. There are three possible settings:
-		  </para>
-		  <para>
-		    <command>auto-dnssec allow;</command> permits
-		    keys to be updated and the zone fully re-signed
-		    whenever the user issues the command <command>rndc sign
-		    <replaceable>zonename</replaceable></command>.
-		  </para>
-		  <para>
-		    <command>auto-dnssec maintain;</command> includes the
-		    above, but also automatically adjusts the zone's DNSSEC
-		    keys on schedule, according to the keys' timing metadata
-		    (see <xref linkend="man.dnssec-keygen"/> and
-		    <xref linkend="man.dnssec-settime"/>).  The command
-		    <command>rndc sign
-		    <replaceable>zonename</replaceable></command> causes
-		    <command>named</command> to load keys from the key
-		    repository and sign the zone with all keys that are
-		    active.
-		    <command>rndc loadkeys
-		    <replaceable>zonename</replaceable></command> causes
-		    <command>named</command> to load keys from the key
-		    repository and schedule key maintenance events to occur
-		    in the future, but it does not sign the full zone
-		    immediately.  Note: once keys have been loaded for a
-		    zone the first time, the repository will be searched
-		    for changes periodically, regardless of whether
-		    <command>rndc loadkeys</command> is used.  The recheck
-		    interval is defined by
-		    <command>dnssec-loadkeys-interval</command>.)
-		  </para>
-		  <para>
-		    The default setting is <command>auto-dnssec off</command>.
+		    See the description of
+		    <command>auto-dnssec</command> in
+		    <xref linkend="options"/>.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -11867,23 +11915,9 @@ example.com. NS ns2.example.net.
 		<term><command>serial-update-method</command></term>
 		<listitem>
 		  <para>
-		    Zones configured for dynamic DNS may use this
-		    option to set the update method that will be used for
-		    the zone serial number in the SOA record.
-		  </para>
-		  <para>
-		    With the default setting of
-		    <command>serial-update-method increment;</command>, the
-		    SOA serial number will be incremented by one each time
-		    the zone is updated.
-		  </para>
-		  <para>
-		    When set to
-		    <command>serial-update-method unixtime;</command>, the
-		    SOA serial number will be set to the number of seconds
-		    since the UNIX epoch, unless the serial number is
-		    already greater than or equal to that value, in which
-		    case it is simply incremented by one.
+		    See the description of
+		    <command>serial-update-method</command> in
+		    <xref linkend="options"/>.
 		  </para>
 		</listitem>
 	      </varlistentry>
