@@ -188,6 +188,7 @@ struct ns_cache {
 	dns_view_t			*primaryview;
 	isc_boolean_t			needflush;
 	isc_boolean_t			adbsizeadjusted;
+	dns_rdataclass_t		rdclass;
 	ISC_LINK(ns_cache_t)		link;
 };
 
@@ -1388,13 +1389,16 @@ setquerystats(dns_zone_t *zone, isc_mem_t *mctx, dns_zonestat_level_t level) {
 }
 
 static ns_cache_t *
-cachelist_find(ns_cachelist_t *cachelist, const char *cachename) {
+cachelist_find(ns_cachelist_t *cachelist, const char *cachename,
+	       dns_rdataclass_t rdclass)
+{
 	ns_cache_t *nsc;
 
 	for (nsc = ISC_LIST_HEAD(*cachelist);
 	     nsc != NULL;
 	     nsc = ISC_LIST_NEXT(nsc, link)) {
-		if (strcmp(dns_cache_getname(nsc->cache), cachename) == 0)
+		if (nsc->rdclass == rdclass &&
+		    strcmp(dns_cache_getname(nsc->cache), cachename) == 0)
 			return (nsc);
 	}
 
@@ -1405,7 +1409,8 @@ static isc_boolean_t
 cache_reusable(dns_view_t *originview, dns_view_t *view,
 	       isc_boolean_t new_zero_no_soattl)
 {
-	if (originview->checknames != view->checknames ||
+	if (originview->rdclass != view->rdclass ||
+	    originview->checknames != view->checknames ||
 	    dns_resolver_getzeronosoattl(originview->resolver) !=
 	    new_zero_no_soattl ||
 	    originview->acceptexpired != view->acceptexpired ||
@@ -2595,7 +2600,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	else
 		cachename = view->name;
 	cache = NULL;
-	nsc = cachelist_find(cachelist, cachename);
+	nsc = cachelist_find(cachelist, cachename, view->rdclass);
 	if (nsc != NULL) {
 		if (!cache_sharable(nsc->primaryview, view, zero_no_soattl,
 				    cleaning_interval, max_cache_size)) {
@@ -2677,6 +2682,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		nsc->primaryview = view;
 		nsc->needflush = ISC_FALSE;
 		nsc->adbsizeadjusted = ISC_FALSE;
+		nsc->rdclass = view->rdclass;
 		ISC_LINK_INIT(nsc, link);
 		ISC_LIST_APPEND(*cachelist, nsc, link);
 	}
