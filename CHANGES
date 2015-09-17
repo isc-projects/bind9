@@ -1,3 +1,6 @@
+4213.	[bug]		Don't reuse a cache across multiple classes.
+			[RT #40205]
+
 4212.	[func]		Re-query if we get a bad client cookie returned over
 			UDP. [RT #40748]
 
