@@ -1,3 +1,6 @@
+4213.	[bug]		Don't reuse a cache across multiple classes.
+			[RT #40205]
+
 4210.	[cleanup]	Silence use after free false positive. [RT #40743]
 
 4209.	[bug]		Address resource leaks in dlz modules. [RT #40654]
