@@ -1284,7 +1284,7 @@
 ./bin/tests/system/ecdsa/ns2/named.conf		CONF-C	2012
 ./bin/tests/system/ecdsa/prereq.sh		SH	2012,2014
 ./bin/tests/system/ecdsa/setup.sh		SH	2012,2014
-./bin/tests/system/ecdsa/tests.sh		SH	2012,2013
+./bin/tests/system/ecdsa/tests.sh		SH	2012,2013,2015
 ./bin/tests/system/ednscompliance/clean.sh	SH	2014
 ./bin/tests/system/ednscompliance/ns1/named.conf	CONF-C	2014
 ./bin/tests/system/ednscompliance/ns1/root.db	ZONE	2014
@@ -2497,7 +2497,7 @@
 ./contrib/dlz/modules/filesystem/Makefile	X	2013
 ./contrib/dlz/modules/filesystem/dir.c		X	2013
 ./contrib/dlz/modules/filesystem/dir.h		X	2013
-./contrib/dlz/modules/filesystem/dlz_filesystem_dynamic.c	X	2013
+./contrib/dlz/modules/filesystem/dlz_filesystem_dynamic.c	X	2013,2015
 ./contrib/dlz/modules/include/dlz_dbi.h		X	2013
 ./contrib/dlz/modules/include/dlz_list.h	X	2013
 ./contrib/dlz/modules/include/dlz_minimal.h	X	2013,2014
@@ -2526,7 +2526,7 @@
 ./contrib/dlz/modules/perl/README		X	2013
 ./contrib/dlz/modules/perl/dlz_perl_callback.xs	X	2013
 ./contrib/dlz/modules/perl/dlz_perl_callback_clientinfo.xs	X	2013
-./contrib/dlz/modules/perl/dlz_perl_driver.c	X	2013
+./contrib/dlz/modules/perl/dlz_perl_driver.c	X	2013,2015
 ./contrib/dlz/modules/perl/dlz_perl_driver.h	X	2013
 ./contrib/dlz/modules/perl/testing/dlz_perl_example.pm	X	2013
 ./contrib/dlz/modules/perl/testing/named.conf	X	2013
@@ -3070,7 +3070,7 @@
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005,2007,2014
 ./doc/xsl/isc-docbook-html.xsl.in		SGML	2005,2007,2014
 ./doc/xsl/isc-docbook-latex-mappings.xml	SGML	2005,2007
-./doc/xsl/isc-docbook-latex.xsl.in		SGML	2005,2007,2010,2014
+./doc/xsl/isc-docbook-latex.xsl.in		SGML	2005,2007,2010,2014,2015
 ./doc/xsl/isc-docbook-text.xsl			SGML	2005,2007
 ./doc/xsl/isc-manpage.xsl.in			SGML	2005,2007
 ./doc/xsl/isc-notes-html.xsl.in			SGML	2015
@@ -3396,6 +3396,8 @@
 ./lib/dns/rdata/generic/sshfp_44.h		C	2003,2004,2005,2006,2007
 ./lib/dns/rdata/generic/ta_32768.c		C	2015
 ./lib/dns/rdata/generic/ta_32768.h		C	2015
+./lib/dns/rdata/generic/talink_58.c		C	2015
+./lib/dns/rdata/generic/talink_58.h		C	2015
 ./lib/dns/rdata/generic/tkey_249.c		C	1999,2000,2001,2002,2003,2004,2007,2009,2011,2012,2014,2015
 ./lib/dns/rdata/generic/tkey_249.h		C	1999,2000,2001,2003,2004,2005,2007
 ./lib/dns/rdata/generic/tlsa_52.c		C	2012,2014,2015
