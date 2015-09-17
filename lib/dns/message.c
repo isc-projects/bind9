@@ -1282,6 +1282,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * it must be the first OPT we've seen.
 			 */
 			if (!dns_name_equal(dns_rootname, name) ||
+			    sectionid != DNS_SECTION_ADDITIONAL ||
 			    msg->opt != NULL)
 				DO_FORMERR;
 			skip_name_search = ISC_TRUE;
@@ -1519,9 +1520,12 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 
 		/*
-		 * If this is an OPT record, remember it.  Also, set
-		 * the extended rcode.  Note that msg->opt will only be set
-		 * if best-effort parsing is enabled.
+		 * If this is an OPT, SIG(0) or TSIG record, remember it.
+		 * Also, set the extended rcode for TSIG.
+		 *
+		 * Note msg->opt, msg->sig0 and msg->tsig will only be
+		 * already set if best-effort parsing is enabled otherwise
+		 * there will only be at most one of each.
 		 */
 		if (rdtype == dns_rdatatype_opt && msg->opt == NULL) {
 			dns_rcode_t ercode;
@@ -1535,14 +1539,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			msg->rcode |= ercode;
 			isc_mempool_put(msg->namepool, name);
 			free_name = ISC_FALSE;
-		}
-
-		/*
-		 * If this is an SIG(0) or TSIG record, remember it.  Note
-		 * that msg->sig0 or msg->tsig will only be set if best-effort
-		 * parsing is enabled.
-		 */
-		if (issigzero && msg->sig0 == NULL) {
+		} else if (issigzero && msg->sig0 == NULL) {
 			msg->sig0 = rdataset;
 			msg->sig0name = name;
 			rdataset = NULL;
