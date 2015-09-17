@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: genzone.sh,v 1.13 2011/03/03 23:47:31 tbox Exp $
-
 #
 # Set up a test zone
 #
@@ -267,6 +265,11 @@ rkey01			RKEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
 				9UGRuniJDBzC7w0aRyzWZriO6i2odGWWQVucZqKV
 				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
 				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )
+
+; type 58
+talink0			TALINK	. talink1
+talink1			TALINK	talink0 talink2
+talink2			TALINK	talink2 .
 
 ; type 59
 cds01			CDS	30795 1 1 (

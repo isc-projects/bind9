@@ -133,7 +133,8 @@
       </listitem>
       <listitem>
 	<para>
-	  The following types have been implemented: NINFO, RKEY, SINK, TA.
+	  The following types have been implemented: NINFO, RKEY, SINK, TA,
+	  TALINK.
 	</para>
       </listitem>
       <listitem>

@@ -1,3 +1,5 @@
+4214.	[protocol]	Add support for TALINK.  [RT #40544]
+
 4213.	[bug]		Don't reuse a cache across multiple classes.
 			[RT #40205]
 
