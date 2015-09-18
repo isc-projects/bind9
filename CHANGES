@@ -1,4 +1,5 @@
-4218.	[bug]		Potential null pointer dereference on out of memory				if mmap is not supported. [RT #40777]
+4218.	[bug]		Potential null pointer dereference on out of memory
+			if mmap is not supported. [RT #40777]
 
 4217.	[protocol]	Add support for CSYNC. [RT #40532]
 
