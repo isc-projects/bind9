@@ -2833,9 +2833,15 @@ parse_optional_facility(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **
 	return (result);
 }
 
+static void
+doc_optional_facility(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "[ <syslog_facility> ]");
+}
+
 static cfg_type_t cfg_type_optional_facility = {
-	"optional_facility", parse_optional_facility, NULL, cfg_doc_terminal,
-	NULL, NULL };
+	"optional_facility", parse_optional_facility, NULL,
+	doc_optional_facility, NULL, NULL };
 
 
 /*%
