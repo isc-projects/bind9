@@ -678,6 +678,9 @@ isc_file_mmap(void *addr, size_t len, int prot,
 		len = end - offset;
 
 	buf = malloc(len);
+	if (buf == NULL)
+		return (NULL);
+
 	ret = read(fd, buf, len);
 	if (ret != (ssize_t) len) {
 		free(buf);
