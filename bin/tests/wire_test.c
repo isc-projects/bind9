@@ -212,7 +212,7 @@ main(int argc, char *argv[]) {
 				rp++;
 			}
 			if (len == 0U)
-				break;
+				continue;
 			if (len % 2 != 0U) {
 				fprintf(stderr, "bad input format: %lu\n",
 				       (unsigned long)len);
