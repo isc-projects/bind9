@@ -13672,6 +13672,19 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			CSYNC
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Child-to-Parent Synchronization in DNS as described
+			in RFC 7477.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			DHCID
 		      </para>
 		    </entry>

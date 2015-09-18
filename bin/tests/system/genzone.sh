@@ -288,6 +288,10 @@ openpgpkey		OPENPGPKEY	( AQMFD5raczCJHViKtLYhWGz8hMY
 				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
 				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )
 
+;type	62
+csync01			CSYNC	0 0 A NS AAAA
+csync02			CSYNC	0 0
+
 ; type 249
 ; TKEY is a meta-type and should never occur in master files.
 ; The text representation is not specified in the draft.
