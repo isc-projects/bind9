@@ -161,4 +161,5 @@
 7043:	Resource Records for EUI-48 and EUI-64 Addresses in the DNS
 7314:	Extension Mechanisms for DNS (EDNS) EXPIRE Option
 7534:	AS112 Nameserver Operations
+7477:	Child-to-Parent Synchronization in DNS
 7535:	AS112 Redirection Using DNAME

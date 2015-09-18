@@ -399,6 +399,138 @@ mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
 	return (copy);
 }
 
+static inline isc_result_t
+typemap_fromtext(isc_lex_t *lexer, isc_buffer_t *target,
+		 isc_boolean_t allow_empty)
+{
+	isc_token_t token;
+	unsigned char bm[8*1024]; /* 64k bits */
+	dns_rdatatype_t covered;
+	int octet;
+	int window;
+	isc_boolean_t first = ISC_TRUE;
+
+	memset(bm, 0, sizeof(bm));
+	do {
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_string, ISC_TRUE));
+		if (token.type != isc_tokentype_string)
+			break;
+		RETTOK(dns_rdatatype_fromtext(&covered,
+					      &token.value.as_textregion));
+		bm[covered/8] |= (0x80>>(covered%8));
+		first = ISC_FALSE;
+	} while (1);
+	isc_lex_ungettoken(lexer, &token);
+	if (!allow_empty && first)
+		return (DNS_R_FORMERR);
+
+	for (window = 0; window < 256 ; window++) {
+		/*
+		 * Find if we have a type in this window.
+		 */
+		for (octet = 31; octet >= 0; octet--)
+			if (bm[window * 32 + octet] != 0)
+				break;
+		if (octet < 0)
+			continue;
+		RETERR(uint8_tobuffer(window, target));
+		RETERR(uint8_tobuffer(octet + 1, target));
+		RETERR(mem_tobuffer(target, &bm[window * 32], octet + 1));
+	}
+	return (ISC_R_SUCCESS);
+}
+
+static inline isc_result_t
+typemap_totext(isc_region_t *sr, dns_rdata_textctx_t *tctx,
+	       isc_buffer_t *target)
+{
+	unsigned int i, j, k;
+	unsigned int window, len;
+	isc_boolean_t first = ISC_FALSE;
+
+	for (i = 0; i < sr->length; i += len) {
+                if (tctx != NULL &&
+		    (tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
+                        RETERR(str_totext(tctx->linebreak, target));
+                        first = ISC_TRUE;
+                }
+		INSIST(i + 2 <= sr->length);
+		window = sr->base[i];
+		len = sr->base[i + 1];
+		INSIST(len > 0 && len <= 32);
+		i += 2;
+		INSIST(i + len <= sr->length);
+		for (j = 0; j < len; j++) {
+			dns_rdatatype_t t;
+			if (sr->base[i + j] == 0)
+				continue;
+			for (k = 0; k < 8; k++) {
+				if ((sr->base[i + j] & (0x80 >> k)) == 0)
+					continue;
+				t = window * 256 + j * 8 + k;
+				if (!first)
+					RETERR(str_totext(" ", target));
+				first = ISC_FALSE;
+				if (dns_rdatatype_isknown(t)) {
+					RETERR(dns_rdatatype_totext(t, target));
+				} else {
+					char buf[sizeof("TYPE65535")];
+					sprintf(buf, "TYPE%u", t);
+					RETERR(str_totext(buf, target));
+				}
+			}
+		}
+	}
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+typemap_test(isc_region_t *sr, isc_boolean_t allow_empty) {
+	unsigned int window, lastwindow = 0;
+	unsigned int len;
+	isc_boolean_t first = ISC_TRUE;
+	unsigned int i;
+
+	for (i = 0; i < sr->length; i += len) {
+		/*
+		 * Check for overflow.
+		 */
+		if (i + 2 > sr->length)
+			RETERR(DNS_R_FORMERR);
+		window = sr->base[i];
+		len = sr->base[i + 1];
+		i += 2;
+		/*
+		 * Check that bitmap windows are in the correct order.
+		 */
+		if (!first && window <= lastwindow)
+			RETERR(DNS_R_FORMERR);
+		/*
+		 * Check for legal lengths.
+		 */
+		if (len < 1 || len > 32)
+			RETERR(DNS_R_FORMERR);
+		/*
+		 * Check for overflow.
+		 */
+		if (i + len > sr->length)
+			RETERR(DNS_R_FORMERR);
+		/*
+		 * The last octet of the bitmap must be non zero.
+		 */
+		if (sr->base[i + len - 1] == 0)
+			RETERR(DNS_R_FORMERR);
+		lastwindow = window;
+		first = ISC_FALSE;
+	}
+	if (i != sr->length)
+		return (DNS_R_EXTRADATA);
+	if (!allow_empty && first)
+		RETERR(DNS_R_FORMERR);
+	return (ISC_R_SUCCESS);
+}
+
 static const char hexdigits[] = "0123456789abcdef";
 static const char decdigits[] = "0123456789";
 
