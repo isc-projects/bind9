@@ -838,7 +838,7 @@ isc_httpd_response(isc_httpd_t *httpd) {
 			return (result);
 	}
 
-	sprintf(isc_buffer_used(&httpd->headerbuffer), "%s %03d %s\r\n",
+	sprintf(isc_buffer_used(&httpd->headerbuffer), "%s %03u %s\r\n",
 		httpd->protocol, httpd->retcode, httpd->retmsg);
 	isc_buffer_add(&httpd->headerbuffer, needlen);
 

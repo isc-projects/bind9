@@ -1553,15 +1553,19 @@ build_msghdr_recv(isc__socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_iovlen = iovcount;
 
 #ifdef ISC_NET_BSD44MSGHDR
-	msg->msg_control = NULL;
-	msg->msg_controllen = 0;
-	msg->msg_flags = 0;
 #if defined(USE_CMSG)
 	if (sock->type == isc_sockettype_udp) {
 		msg->msg_control = sock->recvcmsgbuf;
 		msg->msg_controllen = sock->recvcmsgbuflen;
+	} else {
+		msg->msg_control = NULL;
+		msg->msg_controllen = 0;
 	}
+#else
+	msg->msg_control = NULL;
+	msg->msg_controllen = 0;
 #endif /* USE_CMSG */
+	msg->msg_flags = 0;
 #else /* ISC_NET_BSD44MSGHDR */
 	msg->msg_accrights = NULL;
 	msg->msg_accrightslen = 0;
@@ -2192,8 +2196,8 @@ static void
 free_socket(isc__socket_t **socketp) {
 	isc__socket_t *sock = *socketp;
 
-	INSIST(sock->references == 0);
 	INSIST(VALID_SOCKET(sock));
+	INSIST(sock->references == 0);
 	INSIST(!sock->connecting);
 	INSIST(!sock->pending_recv);
 	INSIST(!sock->pending_send);

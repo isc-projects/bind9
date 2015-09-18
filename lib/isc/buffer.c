@@ -462,6 +462,8 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 			length);
 	dbuf->mctx = mctx;
 
+	ENSURE(ISC_BUFFER_VALID(dbuf));
+
 	*dynbuffer = dbuf;
 
 	return (ISC_R_SUCCESS);
