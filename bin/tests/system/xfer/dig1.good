@@ -18,6 +18,8 @@ cert01.example.		3600	IN	CERT	65534 65535 PRIVATEOID MxFcby9k/yvedMfQgKzhH5er0Mu
 cname01.example.	3600	IN	CNAME	cname-target.
 cname02.example.	3600	IN	CNAME	cname-target.example.
 cname03.example.	3600	IN	CNAME	.
+csync01.example.	3600	IN	CSYNC	0 0 A NS AAAA
+csync02.example.	3600	IN	CSYNC	0 0
 dlv.example.		3600	IN	DLV	30795 1 1 310D27F4D82C1FC2400704EA9939FE6E1CEAA3B9
 dname01.example.	3600	IN	DNAME	dname-target.
 dname02.example.	3600	IN	DNAME	dname-target.example.
