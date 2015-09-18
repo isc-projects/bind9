@@ -818,7 +818,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	isc_textregion_t r;
 	int i, n, start, stop, step = 0;
 	dns_incctx_t *ictx;
-	char dummy;
+	char dummy[2];
 
 	ictx = lctx->inc;
 	callbacks = lctx->callbacks;
@@ -835,7 +835,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	}
 	isc_buffer_init(&target, target_mem, target_size);
 
-	n = sscanf(range, "%d-%d%[/]%d", &start, &stop, &dummy, &step);
+	n = sscanf(range, "%d-%d%1[/]%d", &start, &stop, dummy, &step);
 	if ((n != 2 && n != 4) || (start < 0) || (stop < 0) ||
 	     (n == 4 && step < 1) || (stop < start))
 	{
@@ -2282,7 +2282,6 @@ load_raw(dns_loadctx_t *lctx) {
 	unsigned char *target_mem = NULL;
 	dns_decompress_t dctx;
 
-	REQUIRE(DNS_LCTX_VALID(lctx));
 	callbacks = lctx->callbacks;
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
 
