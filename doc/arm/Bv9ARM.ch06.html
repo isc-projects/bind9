@@ -78,28 +78,28 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and
             Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#statschannels"><span><strong class="command">statistics-channels</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592192"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592524"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#trusted-keys"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592677"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592805"><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592724"><span><strong class="command">managed-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592852"><span><strong class="command">managed-keys</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#managed-keys"><span><strong class="command">managed-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593159"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593287"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2595035"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2595300"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2598982">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2599004">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2601858">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2601972">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2602541">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2602668">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2602941"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2602724">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2602851">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2603056"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch06.html#statistics">BIND9 Statistics</a></span></dt>
@@ -2261,6 +2261,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     [<span class="optional"> use-id-pool <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> maintain-ixfr-base <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> ixfr-from-differences (<em class="replaceable"><code>yes_or_no</code></em> | <code class="constant">master</code> | <code class="constant">slave</code>); </span>]
+    [<span class="optional"> auto-dnssec <code class="constant">allow</code>|<code class="constant">maintain</code>|<code class="constant">off</code>; </span>]
     [<span class="optional"> dnssec-enable <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> dnssec-validation (<em class="replaceable"><code>yes_or_no</code></em> | <code class="constant">auto</code>); </span>]
     [<span class="optional"> dnssec-lookaside ( <em class="replaceable"><code>auto</code></em> |
@@ -2374,6 +2375,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     [<span class="optional"> max-ncache-ttl <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-cache-ttl <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-zone-ttl ( <code class="constant">unlimited</code> | <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> serial-update-method <code class="constant">increment</code>|<code class="constant">unixtime</code>|<code class="constant">date</code>; </span>]
     [<span class="optional"> sig-validity-interval <em class="replaceable"><code>number</code></em> [<span class="optional"><em class="replaceable"><code>number</code></em></span>] ; </span>]
     [<span class="optional"> sig-signing-nodes <em class="replaceable"><code>number</code></em> ; </span>]
     [<span class="optional"> sig-signing-signatures <em class="replaceable"><code>number</code></em> ; </span>]
@@ -3038,6 +3040,21 @@ options {
         };
 </pre>
 </dd>
+<dt><span class="term"><span><strong class="command">dnssec-loadkeys-interval</strong></span></span></dt>
+<dd><p>
+                  When a zone is configured with <span><strong class="command">auto-dnssec
+                  maintain;</strong></span> its key repository must be checked
+                  periodically to see if any new keys have been added
+                  or any existing keys' timing metadata has been updated
+                  (see <a href="man.dnssec-keygen.html" title="dnssec-keygen"><span class="refentrytitle"><span class="application">dnssec-keygen</span></span>(8)</a> and
+                  <a href="man.dnssec-settime.html" title="dnssec-settime"><span class="refentrytitle"><span class="application">dnssec-settime</span></span>(8)</a>).  The
+                  <span><strong class="command">dnssec-loadkeys-interval</strong></span> option
+                  sets the frequency of automatic repository checks, in
+                  minutes.  The default is <code class="literal">60</code> (1 hour),
+                  the minimum is <code class="literal">1</code> (1 minute), and the
+                  maximum is <code class="literal">1440</code> (24 hours); any higher
+                  value is silently reduced.
+                </p></dd>
 <dt><span class="term"><span><strong class="command">dnssec-update-mode</strong></span></span></dt>
 <dd>
 <p>
@@ -3097,6 +3114,28 @@ options {
                 The default value is <code class="constant">unlimited</code>.
                 A <code class="option">max-zone-ttl</code> of zero is treated as
                 <code class="constant">unlimited</code>.
+              </p>
+</dd>
+<dt><span class="term"><span><strong class="command">serial-update-method</strong></span></span></dt>
+<dd>
+<p>
+                Zones configured for dynamic DNS may use this
+                option to set the update method that will be used for
+                the zone serial number in the SOA record.
+              </p>
+<p>
+                With the default setting of
+                <span><strong class="command">serial-update-method increment;</strong></span>, the
+                SOA serial number will be incremented by one each time
+                the zone is updated.
+              </p>
+<p>
+                When set to
+                <span><strong class="command">serial-update-method unixtime;</strong></span>, the
+                SOA serial number will be set to the number of seconds
+                since the UNIX epoch, unless the serial number is
+                already greater than or equal to that value, in which
+                case it is simply incremented by one.
               </p>
 </dd>
 <dt><span class="term"><span><strong class="command">zone-statistics</strong></span></span></dt>
@@ -3834,6 +3873,46 @@ options {
                   currently
                   has.  The default is <strong class="userinput"><code>no</code></strong>.
                 </p></dd>
+<dt><span class="term"><span><strong class="command">auto-dnssec</strong></span></span></dt>
+<dd>
+<p>
+                  Zones configured for dynamic DNS may use this
+                  option to allow varying levels of automatic DNSSEC key
+                  management. There are three possible settings:
+                </p>
+<p>
+                  <span><strong class="command">auto-dnssec allow;</strong></span> permits
+                  keys to be updated and the zone fully re-signed
+                  whenever the user issues the command <span><strong class="command">rndc sign
+                  <em class="replaceable"><code>zonename</code></em></strong></span>.
+                </p>
+<p>
+                  <span><strong class="command">auto-dnssec maintain;</strong></span> includes the
+                  above, but also automatically adjusts the zone's DNSSEC
+                  keys on schedule, according to the keys' timing metadata
+                  (see <a href="man.dnssec-keygen.html" title="dnssec-keygen"><span class="refentrytitle"><span class="application">dnssec-keygen</span></span>(8)</a> and
+                  <a href="man.dnssec-settime.html" title="dnssec-settime"><span class="refentrytitle"><span class="application">dnssec-settime</span></span>(8)</a>).  The command
+                  <span><strong class="command">rndc sign
+                  <em class="replaceable"><code>zonename</code></em></strong></span> causes
+                  <span><strong class="command">named</strong></span> to load keys from the key
+                  repository and sign the zone with all keys that are
+                  active.
+                  <span><strong class="command">rndc loadkeys
+                  <em class="replaceable"><code>zonename</code></em></strong></span> causes
+                  <span><strong class="command">named</strong></span> to load keys from the key
+                  repository and schedule key maintenance events to occur
+                  in the future, but it does not sign the full zone
+                  immediately.  Note: once keys have been loaded for a
+                  zone the first time, the repository will be searched
+                  for changes periodically, regardless of whether
+                  <span><strong class="command">rndc loadkeys</strong></span> is used.  The recheck
+                  interval is defined by
+                  <span><strong class="command">dnssec-loadkeys-interval</strong></span>.)
+                </p>
+<p>
+                  The default setting is <span><strong class="command">auto-dnssec off</strong></span>.
+                </p>
+</dd>
 <dt><span class="term"><span><strong class="command">dnssec-enable</strong></span></span></dt>
 <dd><p>
                   This indicates whether DNSSEC-related resource
@@ -4047,21 +4126,6 @@ options {
                   <code class="literal">no</code>, this option is ignored.
                 </p>
 </dd>
-<dt><span class="term"><span><strong class="command">dnssec-loadkeys-interval</strong></span></span></dt>
-<dd><p>
-                  When a zone is configured with <span><strong class="command">auto-dnssec
-                  maintain;</strong></span> its key repository must be checked
-                  periodically to see if any new keys have been added
-                  or any existing keys' timing metadata has been updated
-                  (see <a href="man.dnssec-keygen.html" title="dnssec-keygen"><span class="refentrytitle"><span class="application">dnssec-keygen</span></span>(8)</a> and
-                  <a href="man.dnssec-settime.html" title="dnssec-settime"><span class="refentrytitle"><span class="application">dnssec-settime</span></span>(8)</a>).  The
-                  <span><strong class="command">dnssec-loadkeys-interval</strong></span> option
-                  sets the frequency of automatic repository checks, in
-                  minutes.  The default is <code class="literal">60</code> (1 hour),
-                  the minimum is <code class="literal">1</code> (1 minute), and the
-                  maximum is <code class="literal">1440</code> (24 hours); any higher
-                  value is silently reduced.
-                </p></dd>
 <dt><span class="term"><span><strong class="command">try-tcp-refresh</strong></span></span></dt>
 <dd><p>
                   Try to refresh the zone using TCP if UDP queries fail.
@@ -4097,7 +4161,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2584066"></a>Forwarding</h4></div></div></div>
+<a name="id2584467"></a>Forwarding</h4></div></div></div>
 <p>
             The forwarding facility can be used to create a large site-wide
             cache on a few servers, reducing traffic over links to external
@@ -4141,7 +4205,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2584124"></a>Dual-stack Servers</h4></div></div></div>
+<a name="id2584525"></a>Dual-stack Servers</h4></div></div></div>
 <p>
             Dual-stack servers are used as servers of last resort to work
             around
@@ -4409,7 +4473,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2584798"></a>Interfaces</h4></div></div></div>
+<a name="id2585200"></a>Interfaces</h4></div></div></div>
 <p>
             The interfaces and ports that the server will answer queries
             from may be specified using the <span><strong class="command">listen-on</strong></span> option. <span><strong class="command">listen-on</strong></span> takes
@@ -4876,7 +4940,7 @@ avoid-v6-udp-ports {};
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2586274"></a>UDP Port Lists</h4></div></div></div>
+<a name="id2586470"></a>UDP Port Lists</h4></div></div></div>
 <p>
             <span><strong class="command">use-v4-udp-ports</strong></span>,
             <span><strong class="command">avoid-v4-udp-ports</strong></span>,
@@ -4918,7 +4982,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2586333"></a>Operating System Resource Limits</h4></div></div></div>
+<a name="id2586530"></a>Operating System Resource Limits</h4></div></div></div>
 <p>
             The server's usage of many system resources can be limited.
             Scaled values are allowed when specifying resource limits.  For
@@ -5271,7 +5335,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2587324"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2587521"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -6279,7 +6343,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2589796"></a>Content Filtering</h4></div></div></div>
+<a name="id2589992"></a>Content Filtering</h4></div></div></div>
 <p>
             <acronym class="acronym">BIND</acronym> 9 provides the ability to filter
             out DNS responses from external DNS servers containing
@@ -6402,7 +6466,7 @@ deny-answer-aliases { "example.net"; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2589922"></a>Response Policy Zone (RPZ) Rewriting</h4></div></div></div>
+<a name="id2590254"></a>Response Policy Zone (RPZ) Rewriting</h4></div></div></div>
 <p>
             <acronym class="acronym">BIND</acronym> 9 includes a limited
             mechanism to modify DNS responses for requests
@@ -6775,7 +6839,7 @@ example.com                 CNAME   rpz-tcp-only.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2590836"></a>Response Rate Limiting</h4></div></div></div>
+<a name="id2591032"></a>Response Rate Limiting</h4></div></div></div>
 <p>
             Excessive almost identical UDP <span class="emphasis"><em>responses</em></span>
             can be controlled by configuring a
@@ -7236,7 +7300,7 @@ example.com                 CNAME   rpz-tcp-only.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592192"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+<a name="id2592524"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</h3></div></div></div>
 <p>
           The <span><strong class="command">statistics-channels</strong></span> statement
@@ -7352,7 +7416,7 @@ example.com                 CNAME   rpz-tcp-only.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592677"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2592805"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -7392,7 +7456,7 @@ example.com                 CNAME   rpz-tcp-only.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592724"></a><span><strong class="command">managed-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2592852"></a><span><strong class="command">managed-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">managed-keys</strong></span> {
     <em class="replaceable"><code>name</code></em> initial-key <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key-data</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>name</code></em> initial-key <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key-data</code></em> ; [<span class="optional">...</span>]</span>]
@@ -7530,7 +7594,7 @@ example.com                 CNAME   rpz-tcp-only.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2593159"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2593287"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">view</strong></span> statement is a powerful
             feature
@@ -7852,10 +7916,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2595035"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2595300"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2595043"></a>Zone Types</h4></div></div></div>
+<a name="id2595307"></a>Zone Types</h4></div></div></div>
 <p>
               The <span><strong class="command">type</strong></span> keyword is required
               for the <span><strong class="command">zone</strong></span> configuration unless
@@ -8183,7 +8247,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2595829"></a>Class</h4></div></div></div>
+<a name="id2595889"></a>Class</h4></div></div></div>
 <p>
               The zone's name may optionally be followed by a class. If
               a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
@@ -8205,7 +8269,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2595862"></a>Zone Options</h4></div></div></div>
+<a name="id2595990"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>
@@ -8309,6 +8373,13 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <dd><p>
                     See the description of
                     <span><strong class="command">update-check-ksk</strong></span> in <a href="Bv9ARM.ch06.html#boolean_options" title="Boolean Options">the section called &#8220;Boolean Options&#8221;</a>.
+                  </p></dd>
+<dt><span class="term"><span><strong class="command">dnssec-loadkeys-interval</strong></span></span></dt>
+<dd><p>
+                    See the description of
+                    <span><strong class="command">dnssec-loadkeys-interval</strong></span> in <a href="Bv9ARM.ch06.html#options" title="options Statement Definition and
+          Usage">the section called &#8220;<span><strong class="command">options</strong></span> Statement Definition and
+          Usage&#8221;</a>.
                   </p></dd>
 <dt><span class="term"><span><strong class="command">dnssec-update-mode</strong></span></span></dt>
 <dd><p>
@@ -8616,67 +8687,21 @@ example.com. NS ns2.example.net.
           Usage&#8221;</a>.
                   </p></dd>
 <dt><span class="term"><span><strong class="command">auto-dnssec</strong></span></span></dt>
-<dd>
-<p>
-                    Zones configured for dynamic DNS may also use this
-                    option to allow varying levels of automatic DNSSEC key
-                    management. There are three possible settings:
-                  </p>
-<p>
-                    <span><strong class="command">auto-dnssec allow;</strong></span> permits
-                    keys to be updated and the zone fully re-signed
-                    whenever the user issues the command <span><strong class="command">rndc sign
-                    <em class="replaceable"><code>zonename</code></em></strong></span>.
-                  </p>
-<p>
-                    <span><strong class="command">auto-dnssec maintain;</strong></span> includes the
-                    above, but also automatically adjusts the zone's DNSSEC
-                    keys on schedule, according to the keys' timing metadata
-                    (see <a href="man.dnssec-keygen.html" title="dnssec-keygen"><span class="refentrytitle"><span class="application">dnssec-keygen</span></span>(8)</a> and
-                    <a href="man.dnssec-settime.html" title="dnssec-settime"><span class="refentrytitle"><span class="application">dnssec-settime</span></span>(8)</a>).  The command
-                    <span><strong class="command">rndc sign
-                    <em class="replaceable"><code>zonename</code></em></strong></span> causes
-                    <span><strong class="command">named</strong></span> to load keys from the key
-                    repository and sign the zone with all keys that are
-                    active.
-                    <span><strong class="command">rndc loadkeys
-                    <em class="replaceable"><code>zonename</code></em></strong></span> causes
-                    <span><strong class="command">named</strong></span> to load keys from the key
-                    repository and schedule key maintenance events to occur
-                    in the future, but it does not sign the full zone
-                    immediately.  Note: once keys have been loaded for a
-                    zone the first time, the repository will be searched
-                    for changes periodically, regardless of whether
-                    <span><strong class="command">rndc loadkeys</strong></span> is used.  The recheck
-                    interval is defined by
-                    <span><strong class="command">dnssec-loadkeys-interval</strong></span>.)
-                  </p>
-<p>
-                    The default setting is <span><strong class="command">auto-dnssec off</strong></span>.
-                  </p>
-</dd>
+<dd><p>
+                    See the description of
+                    <span><strong class="command">auto-dnssec</strong></span> in
+                    <a href="Bv9ARM.ch06.html#options" title="options Statement Definition and
+          Usage">the section called &#8220;<span><strong class="command">options</strong></span> Statement Definition and
+          Usage&#8221;</a>.
+                  </p></dd>
 <dt><span class="term"><span><strong class="command">serial-update-method</strong></span></span></dt>
-<dd>
-<p>
-                    Zones configured for dynamic DNS may use this
-                    option to set the update method that will be used for
-                    the zone serial number in the SOA record.
-                  </p>
-<p>
-                    With the default setting of
-                    <span><strong class="command">serial-update-method increment;</strong></span>, the
-                    SOA serial number will be incremented by one each time
-                    the zone is updated.
-                  </p>
-<p>
-                    When set to
-                    <span><strong class="command">serial-update-method unixtime;</strong></span>, the
-                    SOA serial number will be set to the number of seconds
-                    since the UNIX epoch, unless the serial number is
-                    already greater than or equal to that value, in which
-                    case it is simply incremented by one.
-                  </p>
-</dd>
+<dd><p>
+                    See the description of
+                    <span><strong class="command">serial-update-method</strong></span> in
+                    <a href="Bv9ARM.ch06.html#options" title="options Statement Definition and
+          Usage">the section called &#8220;<span><strong class="command">options</strong></span> Statement Definition and
+          Usage&#8221;</a>.
+                  </p></dd>
 <dt><span class="term"><span><strong class="command">inline-signing</strong></span></span></dt>
 <dd><p>
                     If <code class="literal">yes</code>, this enables
@@ -9127,7 +9152,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2598784"></a>Multiple views</h4></div></div></div>
+<a name="id2598806"></a>Multiple views</h4></div></div></div>
 <p>
               When multiple views are in use, a zone may be
               referenced by more than one of them. Often, the views
@@ -9189,7 +9214,7 @@ view external {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2598982"></a>Zone File</h2></div></div></div>
+<a name="id2599004"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -9202,7 +9227,7 @@ view external {
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2599000"></a>Resource Records</h4></div></div></div>
+<a name="id2599022"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -10153,6 +10178,18 @@ view external {
 <tr>
 <td>
                       <p>
+                        TALINK
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        Trust Anchor Link.  Experimental.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
                         TLSA
                       </p>
                     </td>
@@ -10350,7 +10387,7 @@ view external {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2601269"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2601451"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -10553,7 +10590,7 @@ view external {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2601858"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2601972"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -10808,7 +10845,7 @@ view external {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2602541"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2602724"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -10869,7 +10906,7 @@ view external {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2602668"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2602851"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -10884,7 +10921,7 @@ view external {
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602691"></a>The <span><strong class="command">@</strong></span> (at-sign)</h4></div></div></div>
+<a name="id2602873"></a>The <span><strong class="command">@</strong></span> (at-sign)</h4></div></div></div>
 <p>
               When used in the label (or name) field, the asperand or
               at-sign (@) symbol represents the current origin.
@@ -10895,7 +10932,7 @@ view external {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602707"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2602889"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -10924,7 +10961,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602836"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2602950"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -10960,7 +10997,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602905"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2603019"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -10979,7 +11016,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2602941"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2603056"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>
@@ -11422,7 +11459,7 @@ HOST-127.EXAMPLE. MX 0 .
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2604140"></a>Name Server Statistics Counters</h4></div></div></div>
+<a name="id2604186"></a>Name Server Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -12018,7 +12055,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2605641"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2605755"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -12172,7 +12209,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2606024"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2606138"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -12555,7 +12592,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2607114"></a>Socket I/O Statistics Counters</h4></div></div></div>
+<a name="id2607228"></a>Socket I/O Statistics Counters</h4></div></div></div>
 <p>
               Socket I/O statistics counters are defined per socket
               types, which are
@@ -12710,7 +12747,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2607624"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2607670"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
