@@ -451,11 +451,11 @@ typemap_totext(isc_region_t *sr, dns_rdata_textctx_t *tctx,
 	isc_boolean_t first = ISC_FALSE;
 
 	for (i = 0; i < sr->length; i += len) {
-                if (tctx != NULL &&
+		if (tctx != NULL &&
 		    (tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
-                        RETERR(str_totext(tctx->linebreak, target));
-                        first = ISC_TRUE;
-                }
+			RETERR(str_totext(tctx->linebreak, target));
+			first = ISC_TRUE;
+		}
 		INSIST(i + 2 <= sr->length);
 		window = sr->base[i];
 		len = sr->base[i + 1];
