@@ -2539,8 +2539,14 @@ parse_optional_class(cfg_parser_t *pctx, const cfg_type_t *type,
 	return (result);
 }
 
+static void
+doc_optional_class(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "[ <class> ]");
+}
+
 static cfg_type_t cfg_type_optional_class = {
-	"optional_class", parse_optional_class, NULL, cfg_doc_terminal,
+	"optional_class", parse_optional_class, NULL, doc_optional_class,
 	NULL, NULL
 };
 
