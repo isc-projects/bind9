@@ -32,7 +32,7 @@ logging {
                 print-time <boolean>;
                 severity <log_severity>;
                 stderr;
-                syslog <optional_facility>;
+                syslog [ <syslog_facility> ];
         };
 };
 
@@ -41,7 +41,7 @@ lwres {
             [ port <integer> ]; ... };
         ndots <integer>;
         search { <string>; ... };
-        view <string> <optional_class>;
+        view <string> [ <class> ];
 };
 
 managed-keys { <string> <string> <integer> <integer> <integer>
@@ -289,7 +289,7 @@ statistics-channels {
 
 trusted-keys { <string> <integer> <integer> <integer> <quoted_string>; ... };
 
-view <string> <optional_class> {
+view <string> [ <class> ] {
         acache-cleaning-interval <integer>;
         acache-enable <boolean>;
         additional-from-auth <boolean>;
@@ -476,7 +476,7 @@ view <string> <optional_class> {
         use-queryport-pool <boolean>; // obsolete
         zero-no-soa-ttl <boolean>;
         zero-no-soa-ttl-cache <boolean>;
-        zone <string> <optional_class> {
+        zone <string> [ <class> ] {
                 allow-notify { <address_match_element>; ... };
                 allow-query { <address_match_element>; ... };
                 allow-query-on { <address_match_element>; ... };
@@ -574,7 +574,7 @@ view <string> <optional_class> {
         zone-statistics ( full | terse | none | <boolean> );
 };
 
-zone <string> <optional_class> {
+zone <string> [ <class> ] {
         allow-notify { <address_match_element>; ... };
         allow-query { <address_match_element>; ... };
         allow-query-on { <address_match_element>; ... };
