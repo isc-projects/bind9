@@ -104,6 +104,7 @@ static const char *description[ISC_R_NRESULTS] = {
 	"bad base32 encoding",			/*%< 60 */
 	"unset",				/*%< 61 */
 	"multiple",				/*%< 62 */
+	"would block",				/*%< 63 */
 };
 
 static const char *identifier[ISC_R_NRESULTS] = {
@@ -170,6 +171,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	"ISC_R_BADBASE32",
 	"ISC_R_UNSET",
 	"ISC_R_MULTIPLE",
+	"ISC_R_WOULDBLOCK",
 };
 
 #define ISC_RESULT_RESULTSET			2
