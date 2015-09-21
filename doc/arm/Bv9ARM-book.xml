@@ -4788,6 +4788,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable>; </optional>
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
     <optional> request-sit <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> nosit-udp-size <replaceable>number</replaceable> ; </optional>
+    <optional> sit-secret <replaceable>secret_string</replaceable> ; </optional>
     <optional> request-nsid <replaceable>yes_or_no</replaceable>; </optional>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
@@ -6392,6 +6394,20 @@ options {
 		  Resolvers which do not send a correct SIT option
 		  may be limited to receiving smaller responses via
 		  the <command>nosit-udp-size</command> option.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>nosit-udp-size</command></term>
+	      <listitem>
+		<para>
+		  Sets the maximum size of UDP responses that will
+		  be sent to queries without a valid source identity
+		  token.  A value below 128 will be silently raised
+		  to 128. The default value is 4096, but the
+		  <command>max-udp-size</command> option may further
+		  limit the response size.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -10538,7 +10554,6 @@ example.com                 CNAME   rpz-tcp-only.
     <optional> request-sit <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns-udp-size <replaceable>number</replaceable> ; </optional>
-    <optional> nosit-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> max-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> transfers <replaceable>number</replaceable> ; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable> ; ]</optional>
@@ -10671,14 +10686,6 @@ example.com                 CNAME   rpz-tcp-only.
 	    be silently adjusted).  This option is useful when you
 	    know that there is a firewall that is blocking large
 	    replies from <command>named</command>.
-	  </para>
-
-	  <para>
-	    The <command>nosit-udp-size</command> option sets the
-	    maximum size of UDP responses that will be sent to
-	    queries without a valid source identity token.  The command
-	    <command>max-udp-size</command> option may further limit
-	    the response size.
 	  </para>
 
 	  <para>
