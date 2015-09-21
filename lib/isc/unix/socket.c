@@ -2053,8 +2053,11 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 		if (send_errno == EINTR && ++attempts < NRETRIES)
 			goto resend;
 
-		if (SOFT_ERROR(send_errno))
+		if (SOFT_ERROR(send_errno)) {
+			if (errno == EWOULDBLOCK || errno == EAGAIN)
+				dev->result = ISC_R_WOULDBLOCK;
 			return (DOIO_SOFT);
+		}
 
 #define SOFT_OR_HARD(_system, _isc) \
 	if (send_errno == _system) { \
