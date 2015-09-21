@@ -18913,7 +18913,6 @@ allow-query { !{ !10/8; any; }; key example; };
       <xi:include href="../../bin/named/lwresd.docbook"/>
       <xi:include href="../../bin/tools/named-journalprint.docbook"/>
       <xi:include href="../../bin/tools/named-rrchecker.docbook"/>
-      <!-- named.conf.docbook and others? -->
       <xi:include href="../../bin/nsupdate/nsupdate.docbook"/>
       <xi:include href="../../bin/rndc/rndc.docbook"/>
       <xi:include href="../../bin/rndc/rndc.conf.docbook"/>
