@@ -1,4 +1,4 @@
-4220.	[doc]		Improve documentaion for zone-statistics.
+4220.	[doc]		Improve documentation for zone-statistics.
 			[RT #36955]
 
 4219.	[bug]		Set event->result to ISC_R_WOULDBLOCK on EWOULDBLOCK,
