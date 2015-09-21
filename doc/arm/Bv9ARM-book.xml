@@ -18364,6 +18364,8 @@ zone "example.com" {
       <xi:include href="../../bin/check/named-checkconf.docbook"/>
       <xi:include href="../../bin/check/named-checkzone.docbook"/>
       <xi:include href="../../bin/named/named.docbook"/>
+      <xi:include href="../../bin/named/named.conf.docbook"/>
+      <xi:include href="../../bin/named/lwresd.docbook"/>
       <xi:include href="../../bin/tools/named-journalprint.docbook"/>
       <xi:include href="../../bin/tools/named-rrchecker.docbook"/>
       <!-- named.conf.docbook and others? -->
