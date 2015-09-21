@@ -1,3 +1,7 @@
+4219.	[bug]		Set event->result to ISC_R_WOULDBLOCK on EWOULDBLOCK,
+			EGAIN when these soft error are not retried for
+			isc_socket_send*().
+
 4217.	[protocol]	Add support for CSYNC. [RT #40532]
 
 4216.	[cleanup]	Silence static analysis warnings. [RT #40649]
