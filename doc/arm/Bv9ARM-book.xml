@@ -10829,7 +10829,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> alt-transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>)
 			    <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> use-alt-transfer-source <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> zone-statistics <replaceable>full</replaceable> | <replaceable>terse</replaceable> | <replaceable>none</replaceable>; </optional>
     <optional> database <replaceable>string</replaceable> ; </optional>
     <optional> min-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
@@ -10843,7 +10843,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> server-addresses { <optional> <replaceable>ip_addr</replaceable> ; ... </optional> }; </optional>
     <optional> server-names { <optional> <replaceable>namelist</replaceable> </optional> }; </optional>
-    <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> zone-statistics <replaceable>full</replaceable> | <replaceable>terse</replaceable> | <replaceable>none</replaceable>; </optional>
 };
 
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
@@ -11666,11 +11666,9 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 		<term><command>zone-statistics</command></term>
 		<listitem>
 		  <para>
-		    If <userinput>yes</userinput>, the server will keep
-		    statistical
-		    information for this zone, which can be dumped to the
-		    <command>statistics-file</command> defined in
-		    the server options.
+		    See the description of
+		    <command>zone-statistics</command> in
+		    <xref linkend="options"/>.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -14562,11 +14560,16 @@ HOST-127.EXAMPLE. MX 0 .
 	  A subset of Name Server Statistics is collected and shown
 	  per zone for which the server has the authority when
 	  <command>zone-statistics</command> is set to
-	  <userinput>yes</userinput>.
-	  These statistics counters are shown with their zone and view
-	  names.
-	  In some cases the view names are omitted for the default view.
+	  <userinput>full</userinput> (or <userinput>yes</userinput>
+	  for backward compatibility. See the description of
+	  <command>zone-statistics</command> in <xref linkend="options"/>
+	  for further details.
 	</para>
+
+	<para>
+	  These statistics counters are shown with their zone and
+	  view names. The view name is omitted when the server is
+	  not configured with explicit views.</para>
 
 	<para>
 	  There are currently two user interfaces to get access to the

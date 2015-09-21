@@ -1,3 +1,6 @@
+4220.	[doc]		Improve documentaion for zone-statistics.
+			[RT #36955]
+
 4219.	[bug]		Set event->result to ISC_R_WOULDBLOCK on EWOULDBLOCK,
 			EGAIN when these soft error are not retried for
 			isc_socket_send*().
