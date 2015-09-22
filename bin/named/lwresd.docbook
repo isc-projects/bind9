@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<refentry>
+<refentry id="man.lwresd">
   <refentryinfo>
     <date>January 20, 2009</date>
   </refentryinfo>
