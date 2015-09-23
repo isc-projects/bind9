@@ -1043,7 +1043,7 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 				break;
 			case 'n':
 				FULLCHECK("idnout");
-#ifndef WITH_IDN
+#ifndef WITH_IDN_SUPPORT
 				fprintf(stderr, ";; IDN support not enabled\n");
 #else
 				lookup->idnout = state;
