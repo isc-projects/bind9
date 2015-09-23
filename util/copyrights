@@ -4512,7 +4512,7 @@
 ./unit/atf-src/test-programs/result_test.sh	X	2011,2013
 ./unit/atf-src/test-programs/sh_helpers.sh	X	2011,2013
 ./unit/atf-src/test-programs/srcdir_test.sh	X	2011,2013
-./unit/unittest.sh.in				X	2011,2012
+./unit/unittest.sh.in				X	2011,2012,2015
 ./util/COPYRIGHT				X	1996,1997,1998,1999,2000,2001,2004,2007
 ./util/COPYRIGHT.BRIEF				X	1996,1997,1998,1999,2000,2001,2004
 ./util/COPYRIGHT.BSDI				X	2000,2001,2004,2007
