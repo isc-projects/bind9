@@ -4817,8 +4817,8 @@ NOM_PATH_FILE(XSLT_DBLATEX_FASTBOOK, xsl/latex_book_fast.xsl, $dblatex_xsl_trees
 # IDN support using idnkit
 #
 AC_ARG_WITH(idnkit,
-	    AS_HELP_STRING([--with-idn[=PREFIX]],
-			   [enable IDN support using idnkit [default PREFIX]]),
+	    AS_HELP_STRING([--with-idn[=PATH]],
+			   [enable IDN support using idnkit idnkit yes|no|path]),
 	use_idnkit="$withval", use_idnkit="no")
 case "$use_idnkit" in
 yes)
@@ -4893,7 +4893,7 @@ AC_SUBST(IDNKIT_LIBS)
 # IDN support using libidn
 #
 AC_ARG_WITH(libidn,
-	[  --with-libidn[=MPREFIX]   enable IDN support using GNU libidn [default PREFIX]],
+	[  --with-libidn[=PATH]   enable IDN support using GNU libidn yes|no|path],
 	use_libidn="$withval", use_libidn="no")
 case "$use_libidn" in
 yes)
@@ -4919,16 +4919,52 @@ fi
 AC_SUBST(LIBIDN_LIBS)
 
 #
+# IDN support using libidn2
+#
+
+AC_ARG_WITH(libidn2,
+	[  --with-libidn2[=PATH]  enable IDN support using GNU libidn2 yes|no|path],
+	use_libidn2="$withval", use_libidn2="no")
+case "$use_libidn2" in
+yes)
+	if test X$prefix = XNONE ; then
+		libidn2_path=/usr/local
+	else
+		libidn2_path=$prefix
+	fi
+	;;
+no)
+	;;
+*)
+	libidn2_path="$use_libidn2"
+	;;
+esac
+
+LIBIDN2_LIBS=
+if test "$use_libidn2" != no; then
+	AC_DEFINE(WITH_LIBIDN2, 1, [define if libidn2 support is to be included.])
+	STD_CINCLUDES="$STD_CINCLUDES -I$libidn2_path/include"
+	LIBIDN_LIBS="-lidn2"
+fi
+AC_SUBST(LIBIDN2_LIBS)
+
+#
 # IDN support in general
 #
 
-# check if idnkit and libidn are not used at the same time
+# check if idnkit, libidn and libidn2 are not used at the same time
 if test "$use_idnkit" != no && test "$use_libidn" != no; then
     AC_MSG_ERROR([idnkit and libidn cannot be used at the same time.])
 fi
+if test "$use_idnkit" != no && test "$use_libidn2" != no; then
+    AC_MSG_ERROR([idnkit and libidn2 cannot be used at the same time.])
+fi
+if test "$use_libidn" != no && test "$use_libidn2" != no; then
+    AC_MSG_ERROR([libidn and libidn2 cannot be used at the same time.])
+fi
 
 # the IDN support is on
-if test "$use_idnkit" != no || test "$use_libidn" != no; then
+if test "$use_idnkit" != no || test "$use_libidn" != no || test "$use_libidn2" != no; then
 	AC_DEFINE(WITH_IDN_SUPPORT, 1, [define if IDN support is to be included.])
 fi
 
