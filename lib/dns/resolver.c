@@ -4272,13 +4272,12 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS)
-				goto cleanup_name;
+				goto cleanup_nameservers;
 
 			result = dns_name_dup(domain, mctx, &fctx->domain);
-			if (result != ISC_R_SUCCESS) {
-				dns_rdataset_disassociate(&fctx->nameservers);
-				goto cleanup_name;
-			}
+			if (result != ISC_R_SUCCESS)
+				goto cleanup_nameservers;
+
 			fctx->ns_ttl = fctx->nameservers.ttl;
 			fctx->ns_ttl_ok = ISC_TRUE;
 		} else {
@@ -4408,6 +4407,8 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
  cleanup_domain:
 	if (dns_name_countlabels(&fctx->domain) > 0)
 		dns_name_free(&fctx->domain, mctx);
+
+ cleanup_nameservers:
 	if (dns_rdataset_isassociated(&fctx->nameservers))
 		dns_rdataset_disassociate(&fctx->nameservers);
 
