@@ -1,3 +1,6 @@
+4221.	[bug]		Resource leak on DNS_R_NXDOMAIN in fctx_create.
+			[RT #40583]
+
 4220.	[doc]		Improve documentation for zone-statistics.
 			[RT #36955]
 
