@@ -18,7 +18,9 @@
 
 #include <isc/meminfo.h>
 #include <unistd.h>
+#ifdef HAVE_SYS_SYSCTL_H
 #include <sys/sysctl.h>
+#endif
 
 isc_uint64_t
 isc_meminfo_totalphys(void) {
