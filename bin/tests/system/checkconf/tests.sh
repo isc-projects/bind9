@@ -261,5 +261,12 @@ grep "zone shared.example/IN: loaded serial" < checkconf.out7 > /dev/null || ret
 if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
+echo "I: check that named-checkconf prints max-cache-size <percentage> correctly"
+ret=0
+$CHECKCONF -p max-cache-size-good.conf > checkconf.out8 2>&1 || ret=1
+grep "max-cache-size 60%;" checkconf.out8 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

@@ -37,6 +37,7 @@
 #include <isc/hmacsha.h>
 #include <isc/httpd.h>
 #include <isc/lex.h>
+#include <isc/meminfo.h>
 #include <isc/parseint.h>
 #include <isc/portset.h>
 #include <isc/print.h>
@@ -129,6 +130,10 @@
 
 #ifndef SIZE_MAX
 #define SIZE_MAX ((size_t)-1)
+#endif
+
+#ifndef SIZE_AS_PERCENT
+#define SIZE_AS_PERCENT ((size_t)-2)
 #endif
 
 #ifdef TUNE_LARGE
@@ -2400,6 +2405,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	isc_result_t result;
 	unsigned int cleaning_interval;
 	size_t max_cache_size;
+	isc_uint32_t max_cache_size_percent = 0;
 	size_t max_acache_size;
 	size_t max_adb_size;
 	isc_uint32_t lame_ttl, fail_ttl;
@@ -2685,6 +2691,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		str = cfg_obj_asstring(obj);
 		INSIST(strcasecmp(str, "unlimited") == 0);
 		max_cache_size = 0;
+	} else if (cfg_obj_ispercentage(obj)) {
+		max_cache_size = SIZE_AS_PERCENT;
+		max_cache_size_percent = cfg_obj_aspercentage(obj);
 	} else {
 		isc_resourcevalue_t value;
 		value = cfg_obj_asuint64(obj);
@@ -2699,6 +2708,26 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			value = SIZE_MAX;
 		}
 		max_cache_size = (size_t) value;
+	}
+
+	if (max_cache_size == SIZE_AS_PERCENT) {
+		isc_uint64_t totalphys = isc_meminfo_totalphys();
+		max_cache_size = totalphys * max_cache_size_percent/100;
+		if (totalphys == 0) {
+			cfg_obj_log(obj, ns_g_lctx,
+				ISC_LOG_WARNING,
+				"Unable to determine amount of physical "
+				"memory, setting 'max-cache-size' to "
+				"unlimited");
+		} else {
+			cfg_obj_log(obj, ns_g_lctx,
+				ISC_LOG_INFO,
+				"'max-cache-size %d%%' "
+				"- setting to %luMB (out of %luMB)",
+				max_cache_size_percent,
+			        max_cache_size / (1024*1024),
+				(unsigned long) totalphys / (1024*1024));
+		}
 	}
 
 	/* Check-names. */

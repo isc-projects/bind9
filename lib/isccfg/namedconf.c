@@ -133,6 +133,7 @@ static cfg_type_t cfg_type_server;
 static cfg_type_t cfg_type_server_key_kludge;
 static cfg_type_t cfg_type_size;
 static cfg_type_t cfg_type_sizenodefault;
+static cfg_type_t cfg_type_sizeorpercent;
 static cfg_type_t cfg_type_sockaddr4wild;
 static cfg_type_t cfg_type_sockaddr6wild;
 static cfg_type_t cfg_type_statschannels;
@@ -1595,7 +1596,7 @@ view_clauses[] = {
 	{ "nocookie-udp-size", &cfg_type_uint32, 0 },
 	{ "nosit-udp-size", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-acache-size", &cfg_type_sizenodefault, 0 },
-	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
+	{ "max-cache-size", &cfg_type_sizeorpercent, 0 },
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
 	{ "max-clients-per-query", &cfg_type_uint32, 0 },
 	{ "max-ncache-ttl", &cfg_type_uint32, 0 },
@@ -2065,6 +2066,56 @@ parse_sizeval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (result);
 }
 
+static isc_result_t
+parse_sizeval_percent(cfg_parser_t *pctx, const cfg_type_t *type,
+		      cfg_obj_t **ret)
+{
+	char *endp;
+	isc_result_t  result;
+	cfg_obj_t *obj = NULL;
+	isc_uint64_t val;
+	isc_uint32_t percent;
+
+	UNUSED(type);
+
+	CHECK(cfg_gettoken(pctx, 0));
+	if (pctx->token.type != isc_tokentype_string) {
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
+	}
+
+	percent = isc_string_touint64(TOKEN_STRING(pctx), &endp, 10);
+
+	if (*endp == '%' && *(endp+1) == 0) {
+		CHECK(cfg_create_obj(pctx, &cfg_type_percentage, &obj));
+		obj->value.uint32 = percent;
+		*ret = obj;
+		return (ISC_R_SUCCESS);
+	} else {
+		CHECK(parse_unitstring(TOKEN_STRING(pctx), &val));
+		CHECK(cfg_create_obj(pctx, &cfg_type_uint64, &obj));
+		obj->value.uint64 = val;
+		*ret = obj;
+		return (ISC_R_SUCCESS);
+	}
+
+ cleanup:
+	cfg_parser_error(pctx, CFG_LOG_NEAR, "expected integer and optional unit or percent");
+	return (result);
+}
+
+static void
+doc_sizeval_percent(cfg_printer_t *pctx, const cfg_type_t *type) {
+
+	UNUSED(type);
+
+	cfg_print_cstr(pctx, "( ");
+	cfg_doc_terminal(pctx, &cfg_type_size);
+	cfg_print_cstr(pctx, " | ");
+	cfg_doc_terminal(pctx, &cfg_type_percentage);
+	cfg_print_cstr(pctx, " )");
+}
+
 /*%
  * A size value (number + optional unit).
  */
@@ -2097,8 +2148,40 @@ static cfg_type_t cfg_type_size = {
  */
 static const char *sizenodefault_enums[] = { "unlimited", NULL };
 static cfg_type_t cfg_type_sizenodefault = {
-	"size_no_default", parse_size, cfg_print_ustring, cfg_doc_terminal,
+	"size_no_default", parse_size, cfg_print_ustring, doc_size,
 	&cfg_rep_string, sizenodefault_enums
+};
+
+/*%
+ * A size in absolute values or percents.
+ */
+
+static cfg_type_t cfg_type_sizeval_percent = {
+	"sizeval_percent", parse_sizeval_percent, cfg_print_ustring,
+	doc_sizeval_percent, &cfg_rep_string, NULL
+};
+
+/*%
+ * A size in absolute values or percents, or "unlimited", or "default"
+ */
+
+static isc_result_t
+parse_size_or_percent(cfg_parser_t *pctx, const cfg_type_t *type,
+		      cfg_obj_t **ret)
+{
+	return (parse_enum_or_other(pctx, type, &cfg_type_sizeval_percent,
+				    ret));
+}
+
+static void
+doc_parse_size_or_percent(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc_enum_or_other(pctx, type, &cfg_type_sizeval_percent);
+}
+
+static const char *sizeorpercent_enums[] = { "unlimited", "default", NULL };
+static cfg_type_t cfg_type_sizeorpercent = {
+	"size_or_percent", parse_size_or_percent, cfg_print_ustring,
+	doc_parse_size_or_percent, &cfg_rep_string, sizeorpercent_enums
 };
 
 /*%
@@ -2170,7 +2253,13 @@ doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *enumtype,
 		first = ISC_FALSE;
 		cfg_print_cstr(pctx, *p);
 	}
-	if (othertype != &cfg_type_void) {
+	if (othertype == &cfg_type_sizeval_percent) {
+		if (!first)
+			cfg_print_cstr(pctx, " | ");
+		cfg_doc_terminal(pctx, &cfg_type_sizeval);
+		cfg_print_cstr(pctx, " | ");
+		cfg_doc_terminal(pctx, &cfg_type_percentage);
+	} else if (othertype != &cfg_type_void) {
 		if (!first)
 			cfg_print_cstr(pctx, " | ");
 		cfg_doc_terminal(pctx, othertype);

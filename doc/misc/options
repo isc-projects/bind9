@@ -178,12 +178,12 @@ options {
         masterfile-format ( text | raw | map );
         masterfile-style ( full | relative );
         match-mapped-addresses <boolean>;
-        max-acache-size <size_no_default>;
-        max-cache-size <size_no_default>;
+        max-acache-size ( unlimited | <sizeval> );
+        max-cache-size ( unlimited | default | <sizeval> | <percentage> );
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
         max-ixfr-log-size ( unlimited | default | <sizeval> ); // obsolete
-        max-journal-size <size_no_default>;
+        max-journal-size ( unlimited | <sizeval> );
         max-ncache-ttl <integer>;
         max-recursion-depth <integer>;
         max-recursion-queries <integer>;
@@ -461,12 +461,12 @@ view <string> [ <class> ] {
         match-clients { <address_match_element>; ... };
         match-destinations { <address_match_element>; ... };
         match-recursive-only <boolean>;
-        max-acache-size <size_no_default>;
-        max-cache-size <size_no_default>;
+        max-acache-size ( unlimited | <sizeval> );
+        max-cache-size ( unlimited | default | <sizeval> | <percentage> );
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
         max-ixfr-log-size ( unlimited | default | <sizeval> ); // obsolete
-        max-journal-size <size_no_default>;
+        max-journal-size ( unlimited | <sizeval> );
         max-ncache-ttl <integer>;
         max-recursion-depth <integer>;
         max-recursion-queries <integer>;
@@ -645,7 +645,7 @@ view <string> [ <class> ] {
                     port <integer> ] ) [ key <string> ]; ... };
                 max-ixfr-log-size ( unlimited | default |
                     <sizeval> ); // obsolete
-                max-journal-size <size_no_default>;
+                max-journal-size ( unlimited | <sizeval> );
                 max-refresh-time <integer>;
                 max-retry-time <integer>;
                 max-transfer-idle-in <integer>;
@@ -746,7 +746,7 @@ zone <string> [ <class> ] {
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
         max-ixfr-log-size ( unlimited | default | <sizeval> ); // obsolete
-        max-journal-size <size_no_default>;
+        max-journal-size ( unlimited | <sizeval> );
         max-refresh-time <integer>;
         max-retry-time <integer>;
         max-transfer-idle-in <integer>;

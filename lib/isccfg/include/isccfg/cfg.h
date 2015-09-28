@@ -190,6 +190,18 @@ cfg_obj_ismap(const cfg_obj_t *obj);
  * Return true iff 'obj' is of a map type.
  */
 
+isc_boolean_t
+cfg_obj_isfixedpoint(const cfg_obj_t *obj);
+/*%<
+ * Return true iff 'obj' is of a fixedpoint type.
+ */
+
+isc_boolean_t
+cfg_obj_ispercentage(const cfg_obj_t *obj);
+/*%<
+ * Return true iff 'obj' is of a percentage type.
+ */
+
 isc_result_t
 cfg_map_get(const cfg_obj_t *mapobj, const char* name, const cfg_obj_t **obj);
 /*%<
@@ -292,6 +304,18 @@ cfg_obj_asfixedpoint(const cfg_obj_t *obj);
  *
  * Requires:
  * \li     'obj' points to a valid configuration object of fixed point type.
+ *
+ * Returns:
+ * \li     A 32-bit unsigned integer.
+ */
+
+isc_uint32_t
+cfg_obj_aspercentage(const cfg_obj_t *obj);
+/*%<
+ * Returns the value of a configuration object of percentage
+ *
+ * Requires:
+ * \li     'obj' points to a valid configuration object of percentage type.
  *
  * Returns:
  * \li     A 32-bit unsigned integer.

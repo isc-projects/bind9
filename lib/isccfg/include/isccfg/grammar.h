@@ -267,6 +267,7 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_sockaddr;
 LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_netprefix;
 LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_void;
 LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_fixedpoint;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_percentage;
 /*@}*/
 
 /*@{*/
@@ -292,6 +293,7 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_void;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_token;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_unsupported;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_fixedpoint;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_percentage;
 /*@}*/
 
 isc_result_t
@@ -455,10 +457,18 @@ void
 cfg_doc_void(cfg_printer_t *pctx, const cfg_type_t *type);
 
 isc_result_t
-cfg_parse_fixedpoint(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
+cfg_parse_fixedpoint(cfg_parser_t *pctx, const cfg_type_t *type,
+		     cfg_obj_t **ret);
 
 void
 cfg_print_fixedpoint(cfg_printer_t *pctx, const cfg_obj_t *obj);
+
+isc_result_t
+cfg_parse_percentage(cfg_parser_t *pctx, const cfg_type_t *type,
+		     cfg_obj_t **ret);
+
+void
+cfg_print_percentage(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
 isc_result_t
 cfg_parse_obj(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);

@@ -54,3 +54,4 @@ unit/atf-src/test-programs/cpp_helpers
 unit/atf-src/test-programs/sh_helpers
 # ccc-analyzer store its results in .plist directories
 *.plist/
+*~

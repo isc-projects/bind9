@@ -2933,6 +2933,25 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    <row rowsep="0">
 	      <entry colname="1">
 		<para>
+		  <varname>size_or_percent</varname>
+		</para>
+	      </entry>
+	      <entry colname="2">
+		<para>
+		  <varname>size_spec</varname> or integer value
+		  followed by '%' to represent percents.
+		</para>
+		<para>
+		  The behaviour is exactly the same as
+		  <varname>size_spec</varname>, but
+		  <varname>size_or_percent</varname> allows also
+		  to specify a positive integer value followed by
+		  '%' sign to represent percents.
+	      </entry>
+	    </row>
+	    <row rowsep="0">
+	      <entry colname="1">
+		<para>
 		  <varname>yes_or_no</varname>
 		</para>
 	      </entry>
@@ -4959,7 +4978,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> additional-from-auth <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> additional-from-cache <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> random-device <replaceable>path_name</replaceable> ; </optional>
-    <optional> max-cache-size <replaceable>size_spec</replaceable> ; </optional>
+    <optional> max-cache-size <replaceable>size_or_percent</replaceable> ; </optional>
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> filter-aaaa-on-v4 ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
     <optional> filter-aaaa-on-v6 ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
@@ -8747,7 +8766,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  The maximum amount of memory to use for the
-		  server's cache, in bytes.
+		  server's cache, in bytes or % of total physical memory.
 		  When the amount of data in the cache
 		  reaches this limit, the server will cause records to
 		  expire prematurely based on an LRU based strategy so
@@ -8760,7 +8779,14 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  and reset to 2MB.
 		  In a server with multiple views, the limit applies
 		  separately to the cache of each view.
-		  The default is <userinput>unlimited</userinput>.
+		  The default is <userinput>90%</userinput>.
+		  On systems where detection of amount of physical
+		  memory is not supported values represented as %
+		  fall back to unlimited.
+		  Note that the detection of physical memory is done only
+		  once at startup, so <command>named</command> will not
+		  adjust the cache size if the amount of physical memory
+		  is changed during runtime.
 		</para>
 	      </listitem>
 	    </varlistentry>

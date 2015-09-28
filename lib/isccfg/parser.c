@@ -123,6 +123,7 @@ cfg_rep_t cfg_rep_sockaddr = { "sockaddr", free_noop };
 cfg_rep_t cfg_rep_netprefix = { "netprefix", free_noop };
 cfg_rep_t cfg_rep_void = { "void", free_noop };
 cfg_rep_t cfg_rep_fixedpoint = { "fixedpoint", free_noop };
+cfg_rep_t cfg_rep_percentage = { "percentage", free_noop };
 
 /*
  * Configuration type definitions.
@@ -651,6 +652,69 @@ cfg_type_t cfg_type_void = {
 	NULL };
 
 /*
+ * percentage
+ */
+isc_result_t
+cfg_parse_percentage(cfg_parser_t *pctx, const cfg_type_t *type,
+		     cfg_obj_t **ret)
+{
+	char *endp;
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	isc_uint32_t percent;
+
+	UNUSED(type);
+
+	CHECK(cfg_gettoken(pctx, 0));
+	if (pctx->token.type != isc_tokentype_string) {
+		cfg_parser_error(pctx, CFG_LOG_NEAR,
+				 "expected percentage");
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+
+	percent = isc_string_touint64(TOKEN_STRING(pctx), &endp, 10);
+	if (*endp != '%' || *(endp+1) != 0) {
+		cfg_parser_error(pctx, CFG_LOG_NEAR,
+				 "expected percentage");
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+
+	CHECK(cfg_create_obj(pctx, &cfg_type_percentage, &obj));
+	obj->value.uint32 = percent;
+	*ret = obj;
+
+ cleanup:
+	return (result);
+}
+
+void
+cfg_print_percentage(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	char buf[64];
+	int n;
+
+	n = snprintf(buf, sizeof(buf), "%u%%", obj->value.uint32);
+	INSIST(n > 0 && (size_t)n < sizeof(buf));
+	cfg_print_chars(pctx, buf, strlen(buf));
+}
+
+isc_uint32_t
+cfg_obj_aspercentage(const cfg_obj_t *obj) {
+	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_percentage);
+	return (obj->value.uint32);
+}
+
+cfg_type_t cfg_type_percentage = {
+	"percentage", cfg_parse_percentage, cfg_print_percentage,
+	cfg_doc_terminal, &cfg_rep_percentage, NULL
+};
+
+isc_boolean_t
+cfg_obj_ispercentage(const cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_percentage));
+}
+
+/*
  * Fixed point
  */
 isc_result_t
@@ -723,6 +787,12 @@ cfg_type_t cfg_type_fixedpoint = {
 	"fixedpoint", cfg_parse_fixedpoint, cfg_print_fixedpoint,
 	cfg_doc_terminal, &cfg_rep_fixedpoint, NULL
 };
+
+isc_boolean_t
+cfg_obj_isfixedpoint(const cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_fixedpoint));
+}
 
 /*
  * uint32

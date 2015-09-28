@@ -368,6 +368,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 		"Bob Halley",
 		"Evan Hunt",
 		"JINMEI Tatuya",
+		"Witold Krecicki",
 		"David Lawrence",
 		"Scott Mann",
 		"Danny Mayer",
