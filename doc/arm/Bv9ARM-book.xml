@@ -2947,6 +2947,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		  <varname>size_or_percent</varname> allows also
 		  to specify a positive integer value followed by
 		  '%' sign to represent percents.
+		</para>
 	      </entry>
 	    </row>
 	    <row rowsep="0">
