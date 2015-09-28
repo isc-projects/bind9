@@ -145,6 +145,10 @@ SOURCE=.\keyboard.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\meminfo.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\net.c
 # End Source File
 # Begin Source File
@@ -404,6 +408,10 @@ SOURCE=..\include\isc\md5.h
 # Begin Source File
 
 SOURCE=..\include\isc\mem.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\isc\meminfo.h
 # End Source File
 # Begin Source File
 

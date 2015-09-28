@@ -309,6 +309,9 @@
     <ClInclude Include="include\isc\keyboard.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\isc\meminfo.h">
+      <Filter>Win32 Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\isc\mutex.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
@@ -414,6 +417,9 @@
       <Filter>Win32 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="keyboard.c">
+      <Filter>Win32 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="meminfo.c">
       <Filter>Win32 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="net.c">

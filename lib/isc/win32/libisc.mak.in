@@ -159,6 +159,7 @@ CLEAN :
 	-@erase "$(INTDIR)\mem.obj"
 	-@erase "$(INTDIR)\msgcat.obj"
 	-@erase "$(INTDIR)\mutexblock.obj"
+	-@erase "$(INTDIR)\meminfo.obj"
 	-@erase "$(INTDIR)\net.obj"
 	-@erase "$(INTDIR)\netaddr.obj"
 	-@erase "$(INTDIR)\netscope.obj"
@@ -241,6 +242,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\ipv6.obj" \
 	"$(INTDIR)\iterated_hash.obj" \
 	"$(INTDIR)\keyboard.obj" \
+	"$(INTDIR)\meminfo.obj" \
 	"$(INTDIR)\net.obj" \
 	"$(INTDIR)\ntpaths.obj" \
 	"$(INTDIR)\once.obj" \
@@ -429,6 +431,8 @@ CLEAN :
 	-@erase "$(INTDIR)\msgcat.sbr"
 	-@erase "$(INTDIR)\mutexblock.obj"
 	-@erase "$(INTDIR)\mutexblock.sbr"
+	-@erase "$(INTDIR)\meminfo.obj"
+	-@erase "$(INTDIR)\meminfo.sbr"
 	-@erase "$(INTDIR)\net.obj"
 	-@erase "$(INTDIR)\net.sbr"
 	-@erase "$(INTDIR)\netaddr.obj"
@@ -551,6 +555,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\ipv6.sbr" \
 	"$(INTDIR)\iterated_hash.sbr" \
 	"$(INTDIR)\keyboard.sbr" \
+	"$(INTDIR)\meminfo.sbr" \
 	"$(INTDIR)\net.sbr" \
 	"$(INTDIR)\ntpaths.sbr" \
 	"$(INTDIR)\once.sbr" \
@@ -655,6 +660,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\ipv6.obj" \
 	"$(INTDIR)\iterated_hash.obj" \
 	"$(INTDIR)\keyboard.obj" \
+	"$(INTDIR)\meminfo.obj" \
 	"$(INTDIR)\net.obj" \
 	"$(INTDIR)\ntpaths.obj" \
 	"$(INTDIR)\once.obj" \
@@ -959,6 +965,22 @@ SOURCE=.\keyboard.c
 
 
 "$(INTDIR)\keyboard.obj"	"$(INTDIR)\keyboard.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+
+SOURCE=.\meminfo.c
+
+!IF  "$(CFG)" == "libisc - @PLATFORM@ Release"
+
+
+"$(INTDIR)\meminfo.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "libisc - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\meminfo.obj"	"$(INTDIR)\meminfo.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 
