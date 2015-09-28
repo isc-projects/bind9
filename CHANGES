@@ -1,3 +1,6 @@
+4222.	[func]		Bias IPv6 servers when selecting the next server to
+			query. [RT #40836]
+
 4221.	[bug]		Resource leak on DNS_R_NXDOMAIN in fctx_create.
 			[RT #40583]
 

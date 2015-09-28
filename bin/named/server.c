@@ -3543,6 +3543,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	view->requireservercookie = cfg_obj_asboolean(obj);
 
 	obj = NULL;
+	result = ns_config_get(maps, "v6-bias", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->v6bias = cfg_obj_asuint32(obj) * 1000;
+
+	obj = NULL;
 	result = ns_config_get(maps, "max-clients-per-query", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	max_clients_per_query = cfg_obj_asuint32(obj);

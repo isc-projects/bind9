@@ -240,6 +240,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->cfg_destroy = NULL;
 	view->fail_ttl = 0;
 	view->failcache = NULL;
+	view->v6bias = 0;
 	dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE, &view->failcache);
 
 	if (isc_bind9) {

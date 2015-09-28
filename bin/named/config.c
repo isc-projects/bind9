@@ -184,6 +184,7 @@ options {\n\
 	allow-new-zones no;\n\
 	fetches-per-server 0;\n\
 	require-server-cookie no;\n\
+	v6-bias 50;\n\
 "
 #ifdef HAVE_GEOIP
 "\

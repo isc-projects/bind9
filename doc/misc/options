@@ -314,6 +314,7 @@ options {
         use-queryport-pool <boolean>; // obsolete
         use-v4-udp-ports { <portrange>; ... };
         use-v6-udp-ports { <portrange>; ... };
+        v6-bias <integer>;
         version ( <quoted_string> | none );
         zero-no-soa-ttl <boolean>;
         zero-no-soa-ttl-cache <boolean>;
@@ -587,6 +588,7 @@ view <string> [ <class> ] {
         update-check-ksk <boolean>;
         use-alt-transfer-source <boolean>;
         use-queryport-pool <boolean>; // obsolete
+        v6-bias <integer>;
         zero-no-soa-ttl <boolean>;
         zero-no-soa-ttl-cache <boolean>;
         zone <string> [ <class> ] {

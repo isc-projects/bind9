@@ -5035,6 +5035,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       <optional> min-ns-dots <replaceable>number</replaceable> </optional>
       <optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> </optional>
     ; </optional>
+    <optional>v6-bias <replaceable>number</replaceable> ; </optional>
 };
 </programlisting>
 
@@ -9587,6 +9588,17 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  if it isn't, <command>named</command> will silently
 		  adjust it upward.
 		  The default eligibility TTL is <literal>9</literal>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>v6-bias</command></term>
+	      <listitem>
+		<para>
+		  When determining the next nameserver to try
+		  preference IPv6 nameservers by this many milliseconds.
+		  The default is <literal>50</literal> milliseconds.
 		</para>
 	      </listitem>
 	    </varlistentry>

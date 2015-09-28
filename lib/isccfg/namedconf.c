@@ -1578,6 +1578,18 @@ view_clauses[] = {
 	{ "fetch-quota-params", &cfg_type_fetchquota, 0 },
 	{ "fetches-per-server", &cfg_type_fetchesper, 0 },
 	{ "fetches-per-zone", &cfg_type_fetchesper, 0 },
+#ifdef ALLOW_FILTER_AAAA
+	{ "filter-aaaa", &cfg_type_bracketed_aml, 0 },
+	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa, 0 },
+	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa, 0 },
+#else
+	{ "filter-aaaa", &cfg_type_bracketed_aml,
+	   CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa,
+	   CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa,
+	   CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_ttlval, 0 },
 	{ "nocookie-udp-size", &cfg_type_uint32, 0 },
@@ -1608,11 +1620,13 @@ view_clauses[] = {
 	{ "queryport-pool-ports", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "queryport-pool-updateinterval", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_OBSOLETE },
+	{ "rate-limit", &cfg_type_rrl, 0 },
 	{ "recursion", &cfg_type_boolean, 0 },
 	{ "request-sit", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "require-server-cookie", &cfg_type_boolean, 0 },
 	{ "resolver-query-timeout", &cfg_type_uint32, 0 },
+	{ "response-policy", &cfg_type_rpz, 0 },
 	{ "rfc2308-type1", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
@@ -1623,21 +1637,8 @@ view_clauses[] = {
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_NOTIMP },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "v6-bias", &cfg_type_uint32, 0 },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
-#ifdef ALLOW_FILTER_AAAA
-	{ "filter-aaaa", &cfg_type_bracketed_aml, 0 },
-	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa, 0 },
-	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa, 0 },
-#else
-	{ "filter-aaaa", &cfg_type_bracketed_aml,
-	   CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa,
-	   CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa,
-	   CFG_CLAUSEFLAG_NOTCONFIGURED },
-#endif
-	{ "response-policy", &cfg_type_rpz, 0 },
-	{ "rate-limit", &cfg_type_rrl, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -1815,8 +1816,11 @@ view_clausesets[] = {
 	zone_clauses,
 	NULL
 };
+
 static cfg_type_t cfg_type_viewopts = {
-	"view", cfg_parse_map, cfg_print_map, cfg_doc_map, &cfg_rep_map, view_clausesets };
+	"view", cfg_parse_map, cfg_print_map, cfg_doc_map, &cfg_rep_map,
+	view_clausesets
+};
 
 /*% The "zone" statement syntax. */
 

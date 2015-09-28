@@ -2933,18 +2933,32 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
  * Sort addrinfo list by RTT.
  */
 static void
-sort_adbfind(dns_adbfind_t *find) {
+sort_adbfind(dns_adbfind_t *find, unsigned int bias) {
 	dns_adbaddrinfo_t *best, *curr;
 	dns_adbaddrinfolist_t sorted;
+	int family;
 
 	/* Lame N^2 bubble sort. */
 	ISC_LIST_INIT(sorted);
 	while (!ISC_LIST_EMPTY(find->list)) {
 		best = ISC_LIST_HEAD(find->list);
+		family = isc_sockaddr_pf(&best->sockaddr);
 		curr = ISC_LIST_NEXT(best, publink);
 		while (curr != NULL) {
-			if (curr->srtt < best->srtt)
-				best = curr;
+			if (isc_sockaddr_pf(&curr->sockaddr) == family) {
+				if (curr->srtt < best->srtt)
+					best = curr;
+			} else if (family == AF_INET6) {
+				if (curr->srtt + bias < best->srtt) {
+					best = curr;
+					family = AF_INET;
+				}
+			} else {
+				if (curr->srtt < best->srtt + bias) {
+					best = curr;
+					family = AF_INET6;
+				}
+			}
 			curr = ISC_LIST_NEXT(curr, publink);
 		}
 		ISC_LIST_UNLINK(find->list, best, publink);
@@ -2957,16 +2971,17 @@ sort_adbfind(dns_adbfind_t *find) {
  * Sort a list of finds by server RTT.
  */
 static void
-sort_finds(dns_adbfindlist_t *findlist) {
+sort_finds(dns_adbfindlist_t *findlist, unsigned int bias) {
 	dns_adbfind_t *best, *curr;
 	dns_adbfindlist_t sorted;
 	dns_adbaddrinfo_t *addrinfo, *bestaddrinfo;
+	int family;
 
 	/* Sort each find's addrinfo list by SRTT. */
 	for (curr = ISC_LIST_HEAD(*findlist);
 	     curr != NULL;
 	     curr = ISC_LIST_NEXT(curr, publink))
-		sort_adbfind(curr);
+		sort_adbfind(curr, bias);
 
 	/* Lame N^2 bubble sort. */
 	ISC_LIST_INIT(sorted);
@@ -2974,13 +2989,30 @@ sort_finds(dns_adbfindlist_t *findlist) {
 		best = ISC_LIST_HEAD(*findlist);
 		bestaddrinfo = ISC_LIST_HEAD(best->list);
 		INSIST(bestaddrinfo != NULL);
+		family = isc_sockaddr_pf(&bestaddrinfo->sockaddr);
 		curr = ISC_LIST_NEXT(best, publink);
 		while (curr != NULL) {
 			addrinfo = ISC_LIST_HEAD(curr->list);
 			INSIST(addrinfo != NULL);
-			if (addrinfo->srtt < bestaddrinfo->srtt) {
-				best = curr;
-				bestaddrinfo = addrinfo;
+			if (isc_sockaddr_pf(&addrinfo->sockaddr) == family) {
+				if (addrinfo->srtt < bestaddrinfo->srtt) {
+					best = curr;
+					bestaddrinfo = addrinfo;
+				}
+			} else if (family == AF_INET6) {
+				if (addrinfo->srtt + bias <
+				    bestaddrinfo->srtt) {
+					best = curr;
+					bestaddrinfo = addrinfo;
+					family = AF_INET;
+				}
+			} else {
+				if (addrinfo->srtt <
+				     bestaddrinfo->srtt + bias) {
+					best = curr;
+					bestaddrinfo = addrinfo;
+					family = AF_INET6;
+				}
 			}
 			curr = ISC_LIST_NEXT(curr, publink);
 		}
@@ -3394,8 +3426,8 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 		 * We've found some addresses.  We might still be looking
 		 * for more addresses.
 		 */
-		sort_finds(&fctx->finds);
-		sort_finds(&fctx->altfinds);
+		sort_finds(&fctx->finds, res->view->v6bias);
+		sort_finds(&fctx->altfinds, 0);
 		result = ISC_R_SUCCESS;
 	}
 
