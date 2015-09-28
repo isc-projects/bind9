@@ -2723,7 +2723,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			cfg_obj_log(obj, ns_g_lctx,
 				ISC_LOG_INFO,
 				"'max-cache-size %d%%' "
-				"- setting to %luMB (out of %luMB)",
+				"- setting to %zuMB (out of %luMB)",
 				max_cache_size_percent,
 			        max_cache_size / (1024*1024),
 				(unsigned long) totalphys / (1024*1024));
