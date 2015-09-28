@@ -2725,7 +2725,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 				"'max-cache-size %d%%' "
 				"- setting to %zuMB (out of %luMB)",
 				max_cache_size_percent,
-			        max_cache_size / (1024*1024),
+				max_cache_size / (1024*1024),
 				(unsigned long) totalphys / (1024*1024));
 		}
 	}
