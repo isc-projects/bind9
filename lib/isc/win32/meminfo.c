@@ -14,6 +14,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <config.h>
+
 #include <windows.h>
 
 #include <isc/meminfo.h>

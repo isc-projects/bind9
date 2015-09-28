@@ -14,6 +14,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <config.h>
+
 #include <isc/meminfo.h>
 #include <unistd.h>
 #include <sys/sysctl.h>
