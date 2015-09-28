@@ -23,7 +23,8 @@
 isc_uint64_t
 isc_meminfo_totalphys(void) {
 	MEMORYSTATUSEX statex;
-	status.dwLength = sizeof(statex);
+
+	statex.dwLength = sizeof(statex);
 	GlobalMemoryStatusEx(&statex);
 	return ((isc_uint64_t)statex.ullTotalPhys);
 }
