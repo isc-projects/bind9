@@ -2936,28 +2936,23 @@ static void
 sort_adbfind(dns_adbfind_t *find, unsigned int bias) {
 	dns_adbaddrinfo_t *best, *curr;
 	dns_adbaddrinfolist_t sorted;
-	int family;
+	unsigned int best_srtt, curr_srtt;
 
 	/* Lame N^2 bubble sort. */
 	ISC_LIST_INIT(sorted);
 	while (!ISC_LIST_EMPTY(find->list)) {
 		best = ISC_LIST_HEAD(find->list);
-		family = isc_sockaddr_pf(&best->sockaddr);
+		best_srtt = best->srtt;
+		if (isc_sockaddr_pf(&best->sockaddr) != AF_INET6)
+			best_srtt += bias;
 		curr = ISC_LIST_NEXT(best, publink);
 		while (curr != NULL) {
-			if (isc_sockaddr_pf(&curr->sockaddr) == family) {
-				if (curr->srtt < best->srtt)
-					best = curr;
-			} else if (family == AF_INET6) {
-				if (curr->srtt + bias < best->srtt) {
-					best = curr;
-					family = AF_INET;
-				}
-			} else {
-				if (curr->srtt < best->srtt + bias) {
-					best = curr;
-					family = AF_INET6;
-				}
+			curr_srtt = best->srtt;
+			if (isc_sockaddr_pf(&curr->sockaddr) != AF_INET6)
+				curr_srtt += bias;
+			if (curr->srtt < best->srtt) {
+				best = curr;
+				best_srtt = curr_srtt;
 			}
 			curr = ISC_LIST_NEXT(curr, publink);
 		}
@@ -2975,7 +2970,7 @@ sort_finds(dns_adbfindlist_t *findlist, unsigned int bias) {
 	dns_adbfind_t *best, *curr;
 	dns_adbfindlist_t sorted;
 	dns_adbaddrinfo_t *addrinfo, *bestaddrinfo;
-	int family;
+	unsigned int best_srtt, curr_srtt;
 
 	/* Sort each find's addrinfo list by SRTT. */
 	for (curr = ISC_LIST_HEAD(*findlist);
@@ -2989,30 +2984,19 @@ sort_finds(dns_adbfindlist_t *findlist, unsigned int bias) {
 		best = ISC_LIST_HEAD(*findlist);
 		bestaddrinfo = ISC_LIST_HEAD(best->list);
 		INSIST(bestaddrinfo != NULL);
-		family = isc_sockaddr_pf(&bestaddrinfo->sockaddr);
+		best_srtt = bestaddrinfo->srtt;
+		if (isc_sockaddr_pf(&bestaddrinfo->sockaddr) != AF_INET6)
+			best_srtt += bias;
 		curr = ISC_LIST_NEXT(best, publink);
 		while (curr != NULL) {
 			addrinfo = ISC_LIST_HEAD(curr->list);
 			INSIST(addrinfo != NULL);
-			if (isc_sockaddr_pf(&addrinfo->sockaddr) == family) {
-				if (addrinfo->srtt < bestaddrinfo->srtt) {
-					best = curr;
-					bestaddrinfo = addrinfo;
-				}
-			} else if (family == AF_INET6) {
-				if (addrinfo->srtt + bias <
-				    bestaddrinfo->srtt) {
-					best = curr;
-					bestaddrinfo = addrinfo;
-					family = AF_INET;
-				}
-			} else {
-				if (addrinfo->srtt <
-				     bestaddrinfo->srtt + bias) {
-					best = curr;
-					bestaddrinfo = addrinfo;
-					family = AF_INET6;
-				}
+			curr_srtt = addrinfo->srtt;
+			if (isc_sockaddr_pf(&addrinfo->sockaddr) != AF_INET6)
+				curr_srtt += bias;
+			if (curr_srtt < best_srtt) {
+				best = curr;
+				best_srtt = curr_srtt;
 			}
 			curr = ISC_LIST_NEXT(curr, publink);
 		}
