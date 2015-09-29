@@ -15,6 +15,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id$ */
+
 #ifndef ISC_COMMANDLINE_H
 #define ISC_COMMANDLINE_H 1
 

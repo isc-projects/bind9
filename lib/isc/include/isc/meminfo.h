@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,7 +26,7 @@ ISC_LANG_BEGINDECLS
 isc_uint64_t
 isc_meminfo_totalphys(void);
 /*%<
- * Return total available physical memory in bytes, or 0 if this cannot 
+ * Return total available physical memory in bytes, or 0 if this cannot
  * be determined
 */
 

@@ -1370,9 +1370,9 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 
 	if (result != ISC_R_SUCCESS)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		              NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		              "dynamic database '%s' configuration failed: %s",
-		              name, isc_result_totext(result));
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "dynamic database '%s' configuration failed: %s",
+			      name, isc_result_totext(result));
 	return (result);
 }
 
