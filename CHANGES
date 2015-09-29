@@ -1,3 +1,6 @@
+4225.	[port]		freebsd/openbsd:  Use '${CC} -shared' for building
+			shared libraries. [RT #39557]
+
 4224.	[func]		Added support for "dyndb", a new interface for loading
 			zone data from an external database, developed by
 			Red Hat for the FreeIPA project.
