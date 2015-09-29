@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.16 2009/09/01 00:22:28 jinmei Exp $ */
-
 /*! \file
  * Some portion of this code was derived from universal hash function
  * libraries of Rice University.
@@ -101,7 +99,8 @@ struct isc_hash {
 
 static isc_mutex_t createlock;
 static isc_once_t once = ISC_ONCE_INIT;
-static isc_hash_t *hash = NULL;
+
+LIBISC_EXTERNAL_DATA isc_hash_t *isc_hashctx = NULL;
 
 static unsigned char maptolower[] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -220,14 +219,15 @@ isc_hash_create(isc_mem_t *mctx, isc_entropy_t *entropy, size_t limit) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(mctx != NULL);
-	INSIST(hash == NULL);
+	INSIST(isc_hashctx == NULL);
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_lock) == ISC_R_SUCCESS);
 
 	LOCK(&createlock);
 
-	if (hash == NULL)
-		result = isc_hash_ctxcreate(mctx, entropy, limit, &hash);
+	if (isc_hashctx == NULL)
+		result = isc_hash_ctxcreate(mctx, entropy, limit,
+					    &isc_hashctx);
 
 	UNLOCK(&createlock);
 
@@ -276,9 +276,9 @@ isc_hash_ctxinit(isc_hash_t *hctx) {
 
 void
 isc_hash_init(void) {
-	INSIST(hash != NULL && VALID_HASH(hash));
+	INSIST(isc_hashctx != NULL && VALID_HASH(isc_hashctx));
 
-	isc_hash_ctxinit(hash);
+	isc_hash_ctxinit(isc_hashctx);
 }
 
 void
@@ -337,12 +337,12 @@ void
 isc_hash_destroy(void) {
 	unsigned int refs;
 
-	INSIST(hash != NULL && VALID_HASH(hash));
+	INSIST(isc_hashctx != NULL && VALID_HASH(isc_hashctx));
 
-	isc_refcount_decrement(&hash->refcnt, &refs);
+	isc_refcount_decrement(&isc_hashctx->refcnt, &refs);
 	INSIST(refs == 0);
 
-	destroy(&hash);
+	destroy(&isc_hashctx);
 }
 
 static inline unsigned int
@@ -384,10 +384,10 @@ unsigned int
 isc_hash_calc(const unsigned char *key, unsigned int keylen,
 	      isc_boolean_t case_sensitive)
 {
-	INSIST(hash != NULL && VALID_HASH(hash));
-	REQUIRE(keylen <= hash->limit);
+	INSIST(isc_hashctx != NULL && VALID_HASH(isc_hashctx));
+	REQUIRE(keylen <= isc_hashctx->limit);
 
-	return (hash_calc(hash, key, keylen, case_sensitive));
+	return (hash_calc(isc_hashctx, key, keylen, case_sensitive));
 }
 
 void
@@ -395,10 +395,10 @@ isc__hash_setvec(const isc_uint16_t *vec) {
 	int i;
 	hash_random_t *p;
 
-	if (hash == NULL)
+	if (isc_hashctx == NULL)
 		return;
 
-	p = hash->rndvector;
+	p = isc_hashctx->rndvector;
 	for (i = 0; i < 256; i++) {
 		p[i] = vec[i];
 	}

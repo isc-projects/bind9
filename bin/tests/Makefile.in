@@ -13,8 +13,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.145 2011/02/03 05:41:53 marka Exp $
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -42,8 +40,9 @@ LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS =	atomic db dst master mem hashes names net rbt resolver \
-		sockaddr tasks timers system @PKCS11_TOOLS@
+SUBDIRS =	atomic db dst master mem hashes names \
+		net rbt resolver sockaddr tasks timers system \
+		@PKCS11_TOOLS@
 
 # Test programs that are built by default:
 # cfg_test is needed for regenerating doc/misc/options

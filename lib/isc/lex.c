@@ -63,6 +63,7 @@ struct isc_lex {
 	unsigned int			comments;
 	isc_boolean_t			comment_ok;
 	isc_boolean_t			last_was_eol;
+	unsigned int			brace_count;
 	unsigned int			paren_count;
 	unsigned int			saved_paren_count;
 	isc_lexspecials_t		specials;
@@ -111,6 +112,7 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	lex->comments = 0;
 	lex->comment_ok = ISC_TRUE;
 	lex->last_was_eol = ISC_TRUE;
+	lex->brace_count = 0;
 	lex->paren_count = 0;
 	lex->saved_paren_count = 0;
 	memset(lex->specials, 0, 256);
@@ -312,7 +314,8 @@ typedef enum {
 	lexstate_ccomment,
 	lexstate_ccommentend,
 	lexstate_eatline,
-	lexstate_qstring
+	lexstate_qstring,
+	lexstate_btext
 } lexstate;
 
 #define IWSEOL (ISC_LEXOPT_INITIALWS | ISC_LEXOPT_EOL)
@@ -395,8 +398,15 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	    source->at_eof)
 	{
 		if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 &&
-		    lex->paren_count != 0) {
+		    lex->paren_count != 0)
+		{
 			lex->paren_count = 0;
+			return (ISC_R_UNBALANCED);
+		}
+		if ((options & ISC_LEXOPT_BTEXT) != 0 &&
+		    lex->brace_count != 0)
+		{
+			lex->brace_count = 0;
 			return (ISC_R_UNBALANCED);
 		}
 		if ((options & ISC_LEXOPT_EOF) != 0) {
@@ -513,6 +523,12 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					result = ISC_R_UNBALANCED;
 					goto done;
 				}
+				if ((options & ISC_LEXOPT_BTEXT) != 0 &&
+				    lex->brace_count != 0) {
+					lex->brace_count = 0;
+					result = ISC_R_UNBALANCED;
+					goto done;
+				}
 				if ((options & ISC_LEXOPT_EOF) == 0) {
 					result = ISC_R_EOF;
 					goto done;
@@ -545,21 +561,34 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			} else if (lex->specials[c]) {
 				lex->last_was_eol = ISC_FALSE;
 				if ((c == '(' || c == ')') &&
-				    (options & ISC_LEXOPT_DNSMULTILINE) != 0) {
+				    (options & ISC_LEXOPT_DNSMULTILINE) != 0)
+				{
 					if (c == '(') {
 						if (lex->paren_count == 0)
 							options &= ~IWSEOL;
 						lex->paren_count++;
 					} else {
 						if (lex->paren_count == 0) {
-						    result = ISC_R_UNBALANCED;
-						    goto done;
+							result =
+							      ISC_R_UNBALANCED;
+							goto done;
 						}
 						lex->paren_count--;
 						if (lex->paren_count == 0)
-							options =
-								saved_options;
+							options = saved_options;
 					}
+					continue;
+				} else if (c == '{' &&
+					   (options & ISC_LEXOPT_BTEXT) != 0)
+				{
+					if (lex->brace_count != 0) {
+						result = ISC_R_UNBALANCED;
+						goto done;
+					}
+					lex->brace_count++;
+					options &= ~IWSEOL;
+					state = lexstate_btext;
+					no_comments = ISC_TRUE;
 					continue;
 				}
 				tokenp->type = isc_tokentype_special;
@@ -761,6 +790,57 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					result = ISC_R_UNBALANCEDQUOTES;
 					goto done;
 				}
+				if (c == '\\' && !escaped)
+					escaped = ISC_TRUE;
+				else
+					escaped = ISC_FALSE;
+				if (remaining == 0U) {
+					result = grow_data(lex, &remaining,
+							   &curr, &prev);
+					if (result != ISC_R_SUCCESS)
+						goto done;
+				}
+				INSIST(remaining > 0U);
+				prev = curr;
+				*curr++ = c;
+				*curr = '\0';
+				remaining--;
+			}
+			break;
+		case lexstate_btext:
+			if (c == EOF) {
+				result = ISC_R_UNEXPECTEDEND;
+				goto done;
+			}
+			if (c == '{') {
+				if (escaped) {
+					escaped = ISC_FALSE;
+					INSIST(prev != NULL);
+					*prev = '{';
+				} else {
+					lex->brace_count++;
+				}
+			} else if (c == '}') {
+				if (escaped) {
+					escaped = ISC_FALSE;
+					INSIST(prev != NULL);
+					*prev = '}';
+					break;
+				}
+
+				INSIST(lex->brace_count > 0);
+				lex->brace_count--;
+				if (lex->brace_count > 0)
+					break;
+
+				tokenp->type = isc_tokentype_btext;
+				tokenp->value.as_textregion.base = lex->data;
+				tokenp->value.as_textregion.length =
+					(unsigned int) (lex->max_token -
+							remaining);
+				no_comments = ISC_FALSE;
+				done = ISC_TRUE;
+			} else {
 				if (c == '\\' && !escaped)
 					escaped = ISC_TRUE;
 				else

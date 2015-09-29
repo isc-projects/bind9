@@ -62,6 +62,7 @@ typedef void					dns_dbversion_t;
 typedef struct dns_dlzimplementation		dns_dlzimplementation_t;
 typedef struct dns_dlzdb			dns_dlzdb_t;
 typedef ISC_LIST(dns_dlzdb_t)			dns_dlzdblist_t;
+typedef struct dns_dyndbctx			dns_dyndbctx_t;
 typedef struct dns_sdlzimplementation		dns_sdlzimplementation_t;
 typedef struct dns_decompress			dns_decompress_t;
 typedef struct dns_dispatch			dns_dispatch_t;

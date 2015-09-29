@@ -140,6 +140,29 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Added support for DynDB, a new interface for loading zone data
+	  from an external database, developed by Red Hat for the FreeIPA
+	  project.  (Thanks in particular to Adam Tkac and Petr
+	  &Scaron;pa&ccaron;ek of Red Hat for the contribution.)
+	</para>
+	<para>
+	  Unlike the existing DLZ and SDB interfaces, which provide a
+	  limited subset of database functionality within BIND &mdash;
+	  translating DNS queries into real-time database lookups with
+	  relatively poor performance and with no ability to handle
+	  DNSSEC-signed data &mdash; DynDB is able to fully implement
+	  and extend the database API used natively by BIND.
+	</para>
+	<para>
+	  A DynDB module could pre-load data from an external data
+	  source, then serve it with the same performance and
+	  functionality as conventional BIND zones, and with the
+	  ability to take advantage of database features not
+	  available in BIND, such as multi-master replication.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  New quotas have been added to limit the queries that are
 	  sent by recursive resolvers to authoritative servers
 	  experiencing denial-of-service attacks. When configured,

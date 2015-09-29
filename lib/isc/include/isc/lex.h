@@ -90,6 +90,7 @@ ISC_LANG_BEGINDECLS
 #define ISC_LEXOPT_ESCAPE		0x100	/*%< Recognize escapes. */
 #define ISC_LEXOPT_QSTRINGMULTILINE	0x200	/*%< Allow multiline "" strings */
 #define ISC_LEXOPT_OCTAL		0x400	/*%< Expect a octal number. */
+#define ISC_LEXOPT_BTEXT		0x800	/*%< Bracketed text. */
 /*@}*/
 /*@{*/
 /*!
@@ -122,7 +123,8 @@ typedef enum {
 	isc_tokentype_eof = 5,
 	isc_tokentype_initialws = 6,
 	isc_tokentype_special = 7,
-	isc_tokentype_nomore = 8
+	isc_tokentype_nomore = 8,
+	isc_tokentype_btext = 8
 } isc_tokentype_t;
 
 typedef union {

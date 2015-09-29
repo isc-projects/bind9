@@ -978,6 +978,42 @@ cfg_parse_sstring(cfg_parser_t *pctx, const cfg_type_t *type,
 	return (result);
 }
 
+static isc_result_t
+parse_btext(cfg_parser_t *pctx, const cfg_type_t *type,
+	    cfg_obj_t **ret)
+{
+	isc_result_t result;
+	UNUSED(type);
+
+	CHECK(cfg_gettoken(pctx, ISC_LEXOPT_BTEXT));
+	if (pctx->token.type != isc_tokentype_btext) {
+		cfg_parser_error(pctx, CFG_LOG_NEAR,
+				 "expected bracketed text");
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+	return (create_string(pctx,
+			      TOKEN_STRING(pctx),
+			      &cfg_type_bracketed_text,
+			      ret));
+ cleanup:
+	return (result);
+}
+
+static void
+print_btext(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	cfg_print_cstr(pctx, "{");
+	cfg_print_chars(pctx, obj->value.string.base, obj->value.string.length);
+	print_close(pctx);
+}
+
+static void
+doc_btext(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+
+	cfg_print_cstr(pctx, "{ <unspecified text> }");
+}
+
+
 isc_boolean_t
 cfg_is_enum(const char *s, const char *const *enums) {
 	const char * const *p;
@@ -1088,6 +1124,16 @@ cfg_type_t cfg_type_astring = {
  */
 cfg_type_t cfg_type_sstring = {
 	"string", cfg_parse_sstring, print_sstring, cfg_doc_terminal,
+	&cfg_rep_string, NULL
+};
+
+/*
+ * Text enclosed in brackets. Used to pass a block of configuration
+ * text to dynamic library or external application. Checked for
+ * bracket balance, but not otherwise parsed.
+ */
+cfg_type_t cfg_type_bracketed_text = {
+	"bracketed_text", parse_btext, print_btext, doc_btext,
 	&cfg_rep_string, NULL
 };
 

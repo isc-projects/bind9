@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.h,v 1.12 2009/01/17 23:47:43 tbox Exp $ */
-
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
 
@@ -82,6 +80,8 @@
  *** Functions
  ***/
 ISC_LANG_BEGINDECLS
+
+LIBDNS_EXTERNAL_DATA extern isc_hash_t *isc_hashctx;
 
 isc_result_t
 isc_hash_ctxcreate(isc_mem_t *mctx, isc_entropy_t *entropy, size_t limit,

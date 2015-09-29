@@ -29,6 +29,7 @@
 #include <isc/aes.h>
 #include <isc/app.h>
 #include <isc/base64.h>
+#include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/entropy.h>
 #include <isc/file.h>
@@ -68,6 +69,7 @@
 #include <dns/dispatch.h>
 #include <dns/dlz.h>
 #include <dns/dns64.h>
+#include <dns/dyndb.h>
 #include <dns/forward.h>
 #include <dns/journal.h>
 #include <dns/keytable.h>
@@ -1350,6 +1352,32 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 }
 
 static isc_result_t
+configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
+		const dns_dyndbctx_t *dctx)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	const cfg_obj_t *obj;
+	const char *name, *library;
+
+	/* Get the name of the dyndb instance and the library path . */
+	name = cfg_obj_asstring(cfg_tuple_get(dyndb, "name"));
+	library = cfg_obj_asstring(cfg_tuple_get(dyndb, "library"));
+
+	obj = cfg_tuple_get(dyndb, "parameters");
+	if (obj != NULL)
+		result = dns_dyndb_load(library, name,
+					cfg_obj_asstring(obj), mctx, dctx);
+
+	if (result != ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		              NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		              "dynamic database '%s' configuration failed: %s",
+		              name, isc_result_totext(result));
+	return (result);
+}
+
+
+static isc_result_t
 disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	isc_result_t result;
 	const cfg_obj_t *algorithms;
@@ -2397,6 +2425,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	const cfg_obj_t *dlz;
 	unsigned int dlzargc;
 	char **dlzargv;
+	const cfg_obj_t *dyndb_list;
 	const cfg_obj_t *disabled;
 	const cfg_obj_t *obj, *obj2;
 	const cfg_listelt_t *element;
@@ -2438,6 +2467,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	ns_cfgctx_t *nzctx;
 	isc_boolean_t old_rpz_ok = ISC_FALSE;
 	isc_dscp_t dscp4 = -1, dscp6 = -1;
+	dns_dyndbctx_t *dctx = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2636,7 +2666,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 				goto cleanup;
 			}
 
-			result = dns_dlzstrtoargv(mctx, s, &dlzargc, &dlzargv);
+			result = isc_commandline_strtoargv(mctx, s, &dlzargc,
+							   &dlzargv, 0);
 			if (result != ISC_R_SUCCESS) {
 				isc_mem_free(mctx, s);
 				goto cleanup;
@@ -3786,6 +3817,31 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		dns_view_setrootdelonly(view, ISC_FALSE);
 
 	/*
+	 * Load DynDB modules.
+	 */
+	dyndb_list = NULL;
+	if (voptions != NULL)
+		(void)cfg_map_get(voptions, "dyndb", &dyndb_list);
+	else
+		(void)cfg_map_get(config, "dyndb", &dyndb_list);
+
+	for (element = cfg_list_first(dyndb_list);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		const cfg_obj_t *dyndb = cfg_listelt_value(element);
+
+		if (dctx == NULL)
+			CHECK(dns_dyndb_createctx(mctx, isc_hashctx,
+						  ns_g_lctx, view,
+						  ns_g_server->zonemgr,
+						  ns_g_server->task,
+						  ns_g_timermgr, &dctx));
+
+		CHECK(configure_dyndb(dyndb, mctx, dctx));
+	}
+
+	/*
 	 * Setup automatic empty zones.  If recursion is off then
 	 * they are disabled by default.
 	 */
@@ -3983,6 +4039,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 	if (cache != NULL)
 		dns_cache_detach(&cache);
+	if (dctx != NULL)
+		dns_dyndb_destroyctx(&dctx);
 
 	return (result);
 }
@@ -5635,6 +5693,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	CHECK(cfg_aclconfctx_create(ns_g_mctx, &ns_g_aclconfctx));
 
 	/*
+	 * Shut down all dyndb instances.
+	 */
+	dns_dyndb_cleanup(ISC_FALSE);
+
+	/*
 	 * Parse the global default pseudo-config file.
 	 */
 	if (first_time) {
@@ -6921,6 +6984,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		else
 			dns_view_detach(&view);
 	}
+
+	dns_dyndb_cleanup(ISC_TRUE);
 
 	while ((nsc = ISC_LIST_HEAD(server->cachelist)) != NULL) {
 		ISC_LIST_UNLINK(server->cachelist, nsc, link);

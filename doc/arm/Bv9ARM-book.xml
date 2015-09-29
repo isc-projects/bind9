@@ -2401,6 +2401,8 @@ options {
 
     <xi:include href="dlz.xml"/>
 
+    <xi:include href="dyndb.xml"/>
+
     <sect1>
       <title>IPv6 Support in <acronym>BIND</acronym> 9</title>
 

@@ -79,6 +79,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_CRYPTO		(&dns_modules[28])
 #define DNS_LOGMODULE_PACKETS		(&dns_modules[29])
 #define DNS_LOGMODULE_NTA		(&dns_modules[30])
+#define DNS_LOGMODULE_DYNDB		(&dns_modules[31])
 
 ISC_LANG_BEGINDECLS
 

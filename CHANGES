@@ -1,3 +1,17 @@
+4224.	[func]		Added support for "dyndb", a new interface for loading
+			zone data from an external database, developed by
+			Red Hat for the FreeIPA project.
+
+			DynDB drivers fully implement the BIND database
+			API, and are capable of significantly better
+			performance and functionality than DLZ drivers,
+			while taking advantage of advanced database
+			features not available in BIND such as multi-master
+			replication.
+
+			Thanks to Adam Tkac and Petr Spacek of Red Hat.
+			[RT #35271]
+
 4223.	[func]		Add support for setting max-cache-size to percentage
 			of available physical memory, set default to 90%.
 			[RT #38442]

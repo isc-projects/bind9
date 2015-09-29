@@ -168,6 +168,7 @@ isc_buffer_reserve
 isc_bufferlist_availablecount
 isc_bufferlist_usedcount
 isc_commandline_parse
+isc_commandline_strtoargv
 isc_condition_broadcast
 isc_condition_destroy
 isc_condition_init
@@ -261,6 +262,7 @@ isc_hash_ctxdetach
 isc_hash_ctxinit
 isc_hash_destroy
 isc_hash_init
+isc_hashctx
 isc_heap_create
 isc_heap_decreased
 isc_heap_delete

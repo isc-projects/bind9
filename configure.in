@@ -4414,6 +4414,7 @@ if test "$dlopen" = "yes"; then
 			  [Define to allow building of objects for dlopen().])
 	fi
 fi
+CFLAGS="$CFLAGS $SO_CFLAGS"
 
 AC_SUBST(SO)
 AC_SUBST(SO_CFLAGS)
@@ -4651,6 +4652,8 @@ AC_CONFIG_FILES([
 	bin/tests/system/dlz/prereq.sh
 	bin/tests/system/dlzexternal/Makefile
 	bin/tests/system/dlzexternal/ns1/named.conf
+	bin/tests/system/dyndb/Makefile
+	bin/tests/system/dyndb/driver/Makefile
 	bin/tests/system/filter-aaaa/Makefile
 	bin/tests/system/geoip/Makefile
 	bin/tests/system/inline/checkdsa.sh

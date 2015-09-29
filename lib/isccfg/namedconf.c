@@ -144,6 +144,7 @@ static cfg_type_t cfg_type_zone;
 static cfg_type_t cfg_type_zoneopts;
 static cfg_type_t cfg_type_filter_aaaa;
 static cfg_type_t cfg_type_dlz;
+static cfg_type_t cfg_type_dyndb;
 
 /*% tkey-dhkey */
 
@@ -979,6 +980,7 @@ namedconf_or_view_clauses[] = {
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
 	{ "dlz", &cfg_type_dlz, CFG_CLAUSEFLAG_MULTI },
+	{ "dyndb", &cfg_type_dyndb, CFG_CLAUSEFLAG_MULTI },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
 	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
@@ -1851,6 +1853,22 @@ dlz_clausesets[] = {
 static cfg_type_t cfg_type_dlz = {
 	"dlz", cfg_parse_named_map, cfg_print_map, cfg_doc_map,
 	 &cfg_rep_map, dlz_clausesets
+};
+
+/*%
+ * The "dyndb" statement syntax.
+ */
+
+static cfg_tuplefielddef_t dyndb_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "library", &cfg_type_qstring, 0 },
+	{ "parameters", &cfg_type_bracketed_text, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_dyndb = {
+	"dyndb", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	 &cfg_rep_tuple, dyndb_fields
 };
 
 /*%

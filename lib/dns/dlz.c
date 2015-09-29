@@ -70,6 +70,7 @@
 
 
 #include <isc/buffer.h>
+#include <isc/commandline.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -358,67 +359,6 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 }
 
 /*%
- * Helper function for dns_dlzstrtoargv().
- * Pardon the gratuitous recursion.
- */
-static isc_result_t
-dns_dlzstrtoargvsub(isc_mem_t *mctx, char *s, unsigned int *argcp,
-		    char ***argvp, unsigned int n)
-{
-	isc_result_t result;
-
- restart:
-	/* Discard leading whitespace. */
-	while (*s == ' ' || *s == '\t')
-		s++;
-
-	if (*s == '\0') {
-		/* We have reached the end of the string. */
-		*argcp = n;
-		*argvp = isc_mem_get(mctx, n * sizeof(char *));
-		if (*argvp == NULL)
-			return (ISC_R_NOMEMORY);
-	} else {
-		char *p = s;
-		while (*p != ' ' && *p != '\t' && *p != '\0' && *p != '{') {
-			if (*p == '\n') {
-				*p = ' ';
-				goto restart;
-			}
-			p++;
-		}
-
-		/* do "grouping", items between { and } are one arg */
-		if (*p == '{') {
-			char *t = p;
-			/*
-			 * shift all characters to left by 1 to get rid of '{'
-			 */
-			while (*t != '\0') {
-				t++;
-				*(t-1) = *t;
-			}
-			while (*p != '\0' && *p != '}') {
-				p++;
-			}
-			/* get rid of '}' character */
-			if (*p == '}') {
-				*p = '\0';
-				p++;
-			}
-			/* normal case, no "grouping" */
-		} else if (*p != '\0')
-			*p++ = '\0';
-
-		result = dns_dlzstrtoargvsub(mctx, p, argcp, argvp, n + 1);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		(*argvp)[n] = s;
-	}
-	return (ISC_R_SUCCESS);
-}
-
-/*%
  * Tokenize the string "s" into whitespace-separated words,
  * return the number of words in '*argcp' and an array
  * of pointers to the words in '*argvp'.  The caller
@@ -429,7 +369,7 @@ isc_result_t
 dns_dlzstrtoargv(isc_mem_t *mctx, char *s,
 		 unsigned int *argcp, char ***argvp)
 {
-	return(dns_dlzstrtoargvsub(mctx, s, argcp, argvp, 0));
+	return(isc_commandline_strtoargv(mctx, s, argcp, argvp, 0));
 }
 
 /*%

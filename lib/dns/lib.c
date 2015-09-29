@@ -156,7 +156,9 @@ dns_lib_shutdown(void) {
 		return;
 
 	dst_lib_destroy();
-	isc_hash_destroy();
+
+	if (isc_hashctx != NULL)
+		isc_hash_destroy();
 	if (dbimp != NULL)
 		dns_ecdb_unregister(&dbimp);
 	if (dns_g_mctx != NULL)

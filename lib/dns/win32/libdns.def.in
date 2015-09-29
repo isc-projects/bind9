@@ -321,6 +321,10 @@ dns_dumpctx_cancel
 dns_dumpctx_db
 dns_dumpctx_detach
 dns_dumpctx_version
+dns_dyndb_load
+dns_dyndb_cleanup
+dns_dyndb_createctx
+dns_dyndb_destroyctx
 dns_ecdb_register
 dns_ecdb_unregister
 dns_fwdtable_add

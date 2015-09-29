@@ -64,6 +64,7 @@
 #include <stdio.h>
 
 #include <isc/commandline.h>
+#include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -219,4 +220,63 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 	}
 
 	return (isc_commandline_option);
+}
+
+isc_result_t
+isc_commandline_strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp,
+			  char ***argvp, unsigned int n)
+{
+	isc_result_t result;
+
+ restart:
+	/* Discard leading whitespace. */
+	while (*s == ' ' || *s == '\t')
+		s++;
+
+	if (*s == '\0') {
+		/* We have reached the end of the string. */
+		*argcp = n;
+		*argvp = isc_mem_get(mctx, n * sizeof(char *));
+		if (*argvp == NULL)
+			return (ISC_R_NOMEMORY);
+	} else {
+		char *p = s;
+		while (*p != ' ' && *p != '\t' && *p != '\0' && *p != '{') {
+			if (*p == '\n') {
+				*p = ' ';
+				goto restart;
+			}
+			p++;
+		}
+
+		/* do "grouping", items between { and } are one arg */
+		if (*p == '{') {
+			char *t = p;
+			/*
+			 * shift all characters to left by 1 to get rid of '{'
+			 */
+			while (*t != '\0') {
+				t++;
+				*(t-1) = *t;
+			}
+			while (*p != '\0' && *p != '}') {
+				p++;
+			}
+			/* get rid of '}' character */
+			if (*p == '}') {
+				*p = '\0';
+				p++;
+			}
+			/* normal case, no "grouping" */
+		} else if (*p != '\0')
+			*p++ = '\0';
+
+		result = isc_commandline_strtoargv(mctx, p,
+						   argcp, argvp, n + 1);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		(*argvp)[n] = s;
+	}
+
+	return (ISC_R_SUCCESS);
 }
