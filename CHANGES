@@ -1,3 +1,6 @@
+4226.	[bug]		Address a theoretical shutdown race in
+			zone.c:notify_send_queue(). [RT #38958]
+
 4225.	[port]		freebsd/openbsd:  Use '${CC} -shared' for building
 			shared libraries. [RT #39557]
 
