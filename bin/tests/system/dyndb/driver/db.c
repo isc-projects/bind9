@@ -12,6 +12,8 @@
  */
 #include <config.h>
 
+#include <isc/string.h>
+
 #include <dns/db.h>
 #include <dns/diff.h>
 #include <dns/enumclass.h>
