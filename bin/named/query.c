@@ -951,7 +951,7 @@ rpz_log_fail(ns_client_t *client, int level,
 	 */
 	dns_name_format(client->query.qname, namebuf1, sizeof(namebuf1));
 	dns_name_format(name, namebuf2, sizeof(namebuf2));
-	ns_client_log(client, NS_LOGCATEGORY_QUERY_EERRORS,
+	ns_client_log(client, NS_LOGCATEGORY_QUERY_ERRORS,
 		      NS_LOGMODULE_QUERY, level,
 		      "rpz %s rewrite %s via %s %sfailed: %s",
 		      dns_rpz_type2str(rpz_type),
@@ -3731,7 +3731,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
 	isc_boolean_t fetch_canceled, client_shuttingdown;
 	isc_result_t result;
-	isc_logcategory_t *logcategory = NS_LOGCATEGORY_QUERY_EERRORS;
+	isc_logcategory_t *logcategory = NS_LOGCATEGORY_QUERY_ERRORS;
 	int errorloglevel;
 
 	/*
@@ -7736,7 +7736,7 @@ log_queryerror(ns_client_t *client, isc_result_t result, int line, int level) {
 		}
 	}
 
-	ns_client_log(client, NS_LOGCATEGORY_QUERY_EERRORS, NS_LOGMODULE_QUERY,
+	ns_client_log(client, NS_LOGCATEGORY_QUERY_ERRORS, NS_LOGMODULE_QUERY,
 		      level, "query failed (%s)%s%s%s%s%s%s at %s:%d",
 		      isc_result_totext(result), sep1, namep, sep2,
 		      classp, sep2, typep, __FILE__, line);

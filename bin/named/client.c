@@ -1200,7 +1200,7 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 			 */
 			if (wouldlog) {
 				ns_client_log(client,
-					      NS_LOGCATEGORY_QUERY_EERRORS,
+					      NS_LOGCATEGORY_QUERY_ERRORS,
 					      NS_LOGMODULE_CLIENT,
 					      loglevel,
 					      "%s", log_buf);
