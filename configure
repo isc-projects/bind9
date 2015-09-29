@@ -19908,7 +19908,12 @@ if test "$dlopen" = "yes"; then
 				SO_LD="ld"
 			fi
 			;;
-		*-freebsd*|*-openbsd*|*-netbsd*)
+		*-freebsd*|*-openbsd*)
+			SO_CFLAGS="-fpic"
+			SO_LDFLAGS="-shared"
+			SO_LD="${CC}"
+			;;
+		*-netbsd*)
 			SO_CFLAGS="-fpic"
 			SO_LDFLAGS="-Bshareable -x"
 			SO_LD="ld"
