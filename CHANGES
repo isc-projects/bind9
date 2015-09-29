@@ -1,3 +1,6 @@
+4225.	[port]		freebsd/openbsd:  Use '${CC} -shared' for building
+			shared libraries. [RT #39557]
+
 4221.	[bug]		Resource leak on DNS_R_NXDOMAIN in fctx_create.
 			[RT #40583]
 
