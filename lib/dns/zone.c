@@ -10477,6 +10477,9 @@ notify_send(dns_notify_t *notify) {
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 	REQUIRE(LOCKED_ZONE(notify->zone));
 
+	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_EXITING))
+		return;
+
 	for (ai = ISC_LIST_HEAD(notify->find->list);
 	     ai != NULL;
 	     ai = ISC_LIST_NEXT(ai, publink)) {
@@ -10552,7 +10555,8 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	DNS_ZONE_TIME_ADD(now, zone->notifydelay, &zone->notifytime);
 	UNLOCK_ZONE(zone);
 
-	if (! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) ||
+	    ! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
 		return;
 
 	if (notifytype == dns_notifytype_no)
