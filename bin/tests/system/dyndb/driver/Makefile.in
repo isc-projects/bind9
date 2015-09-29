@@ -49,7 +49,7 @@ SO_LDFLAGS =	@LDFLAGS@ @SO_LDFLAGS@
 
 sample.@SO@: ${OBJS}
 	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} -o $@ ${OBJS} \
-		${DNSLIBS} ${ISCLIBS}
+		${DNSLIBS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ ${LIBS}
 
 clean distclean::
 	rm -f ${OBJS} sample.so
