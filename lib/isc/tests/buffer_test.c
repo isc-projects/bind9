@@ -49,8 +49,8 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 	 */
 	result = isc_buffer_reserve(&b, 1024);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-
 	ATF_CHECK(ISC_BUFFER_VALID(b));
+	ATF_REQUIRE(b != NULL);
 	ATF_CHECK_EQ(b->length, 1024);
 
 	/*
@@ -59,8 +59,8 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 	 */
 	result = isc_buffer_reserve(&b, 1025);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-
 	ATF_CHECK(ISC_BUFFER_VALID(b));
+	ATF_REQUIRE(b != NULL);
 	ATF_CHECK_EQ(b->length, 2048);
 
 	/*
@@ -69,8 +69,8 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 	 */
 	result = isc_buffer_reserve(&b, 2000);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-
 	ATF_CHECK(ISC_BUFFER_VALID(b));
+	ATF_REQUIRE(b != NULL);
 	ATF_CHECK_EQ(b->length, 2048);
 
 	/*
@@ -79,8 +79,8 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 	 */
 	result = isc_buffer_reserve(&b, 3000);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-
 	ATF_CHECK(ISC_BUFFER_VALID(b));
+	ATF_REQUIRE(b != NULL);
 	ATF_CHECK_EQ(b->length, 4096);
 
 	/* Consume some of the buffer so we can run the next test. */
@@ -91,8 +91,8 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 	 */
 	result = isc_buffer_reserve(&b, UINT_MAX);
 	ATF_CHECK_EQ(result, ISC_R_NOMEMORY);
-
 	ATF_CHECK(ISC_BUFFER_VALID(b));
+	ATF_REQUIRE(b != NULL);
 	ATF_CHECK_EQ(b->length, 4096);
 
 	isc_buffer_free(&b);
@@ -115,18 +115,19 @@ ATF_TC_BODY(isc_buffer_reallocate, tc) {
 	b = NULL;
 	result = isc_buffer_allocate(mctx, &b, 1024);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+	ATF_REQUIRE(b != NULL);
 	ATF_CHECK_EQ(b->length, 1024);
 
 	result = isc_buffer_reallocate(&b, 512);
 	ATF_CHECK_EQ(result, ISC_R_NOSPACE);
-
 	ATF_CHECK(ISC_BUFFER_VALID(b));
+	ATF_REQUIRE(b != NULL);
 	ATF_CHECK_EQ(b->length, 1024);
 
 	result = isc_buffer_reallocate(&b, 1536);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-
 	ATF_CHECK(ISC_BUFFER_VALID(b));
+	ATF_REQUIRE(b != NULL);
 	ATF_CHECK_EQ(b->length, 1536);
 
 	isc_buffer_free(&b);

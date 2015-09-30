@@ -342,7 +342,7 @@ isc_result_t
 isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 		isc_uint32_t algorithm, isccc_region_t *secret)
 {
-	unsigned int hmac_size, signed_size;
+	unsigned int hmac_base, signed_base;
 	isc_result_t result;
 
 	result = isc_buffer_reserve(buffer,
@@ -364,13 +364,13 @@ isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 		 * we know what it is.
 		 */
 		if (algorithm == ISCCC_ALG_HMACMD5) {
-			hmac_size = (*buffer)->used + HMD5_OFFSET;
+			hmac_base = (*buffer)->used + HMD5_OFFSET;
 			isc_buffer_putmem(*buffer,
 					  auth_hmd5, sizeof(auth_hmd5));
 		} else {
 			unsigned char *hmac_alg;
 
-			hmac_size = (*buffer)->used + HSHA_OFFSET;
+			hmac_base = (*buffer)->used + HSHA_OFFSET;
 			hmac_alg = (unsigned char *) isc_buffer_used(*buffer) +
 				HSHA_OFFSET - 1;
 			isc_buffer_putmem(*buffer,
@@ -378,8 +378,8 @@ isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 			*hmac_alg = algorithm;
 		}
 	} else
-		hmac_size = 0;
-	signed_size = (*buffer)->used;
+		hmac_base = 0;
+	signed_base = (*buffer)->used;
 	/*
 	 * Delete any existing _auth section so that we don't try
 	 * to encode it.
@@ -392,10 +392,9 @@ isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (secret != NULL)
-		return (sign((unsigned char *) (*buffer)->base + signed_size,
-			     (*buffer)->used - signed_size,
-			     (hmac_size == 0 ? NULL :
-			      (unsigned char *) (*buffer)->base + hmac_size),
+		return (sign((unsigned char *) (*buffer)->base + signed_base,
+			     (*buffer)->used - signed_base,
+			     (unsigned char *) (*buffer)->base + hmac_base,
 			     algorithm, secret));
 	return (ISC_R_SUCCESS);
 }

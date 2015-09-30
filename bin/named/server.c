@@ -5546,8 +5546,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	cfg_parser_reset(ns_g_addparser);
 	result = cfg_parse_file(ns_g_addparser, view->new_zone_file,
 				&cfg_type_addzoneconf, &nzcfg->nzconfig);
-
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 static int
@@ -10827,10 +10826,8 @@ ns_server_nta(ns_server_t *server, char *args, isc_buffer_t **text) {
 			if (ntatable != NULL)
 				dns_ntatable_detach(&ntatable);
 			result = dns_view_getntatable(view, &ntatable);
-			if (result == ISC_R_NOTFOUND) {
-				result = ISC_R_SUCCESS;
+			if (result == ISC_R_NOTFOUND)
 				continue;
-			}
 			CHECK(dns_ntatable_totext(ntatable, text));
 		}
 		CHECK(putnull(text));
