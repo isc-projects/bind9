@@ -3801,8 +3801,14 @@ if test "$dlopen" = "yes"; then
 			;;
 		*-freebsd*|*-openbsd*)
 			SO_CFLAGS="-fpic"
-			SO_LDFLAGS="-shared"
-			SO_LD="${CC}"
+			elf=`${CC} -dM -E - < /dev/null | grep __ELF__`
+			if test "$use_libtool" = "yes"; then
+				SO_LDFLAGS="-Xcompiler -shared"
+				SO_LD="${CC}"
+			else
+				SO_LDFLAGS="-shared"
+				SO_LD="${CC}"
+			fi
 			;;
 		*-netbsd*)
 			SO_CFLAGS="-fpic"
