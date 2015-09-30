@@ -1,3 +1,6 @@
+4231.	[contrib]	Address unchecked memory allocation calls in
+			query-loc and zone2ldap. [RT #40789]
+
 4231.	[contrib]	Address unchecked calloc call in dlz_mysqldyn_mod.c.
 			[RT #40840]
 
