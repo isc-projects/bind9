@@ -1,3 +1,6 @@
+4228.	[bug]		Address race condition in dns_client_destroyrestrans.
+			[RT #40605]
+
 4227.	[bug]		Silence static analysis warnings. [RT #40828]
 
 4226.	[bug]		Address a theoretical shutdown race in
