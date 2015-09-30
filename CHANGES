@@ -1,3 +1,6 @@
+4231.	[contrib]	Address unchecked calloc call in dlz_mysqldyn_mod.c.
+			[RT #40840]
+
 4230.	[contrib]	dlz_wildcard_dynamic.c:dlz_create could return a
 			uninitalised result. [RT #40839]
 

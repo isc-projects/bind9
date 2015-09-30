@@ -377,7 +377,7 @@ build_query(mysql_data_t *state, mysql_instance_t *dbi,
 	isc_boolean_t localdbi = ISC_FALSE;
 	mysql_arglist_t arglist;
 	mysql_arg_t *item;
-	char *p, *q, *tmp, *querystr;
+	char *p, *q, *tmp, *querystr = NULL;
 	char *query = NULL;
 	size_t len = 0;
 	const char *arg;
@@ -923,11 +923,11 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	UNUSED(dlzname);
 
 	state = calloc(1, sizeof(mysql_data_t));
-	dlz_mutex_init(&state->tx_mutex, NULL);
-	state->transactions=NULL;
-
 	if (state == NULL)
 		return (ISC_R_NOMEMORY);
+
+	dlz_mutex_init(&state->tx_mutex, NULL);
+	state->transactions = NULL;
 
 	/* Fill in the helper functions */
 	va_start(ap, dbdata);
