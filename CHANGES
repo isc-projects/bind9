@@ -1,3 +1,6 @@
+4229.	[bug]		A variable could be used uninitalised in
+			dns_update_signaturesinc. [RT #40784]
+
 4228.	[bug]		Address race condition in dns_client_destroyrestrans.
 			[RT #40605]
 
