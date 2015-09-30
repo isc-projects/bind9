@@ -1,3 +1,6 @@
+4232.	[test]		Add tests for CDS and CDNSKEY with delegation-only.
+			[RT #40597]
+
 4231.	[contrib]	Address unchecked memory allocation calls in
 			query-loc and zone2ldap. [RT #40789]
 

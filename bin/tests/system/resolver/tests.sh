@@ -561,5 +561,101 @@ grep "CLIENT-SUBNET: 255.255.254.0/23/0" dig.out.ns5.test${n} > /dev/null || ret
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:check that SOA query returns data for delegation-only apex (${n})"
+ret=0
+$DIG soa delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NOERROR" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+n=`expr $n + 1`
+echo "I:check that NS query returns data for delegation-only apex (${n})"
+ret=0
+$DIG ns delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NOERROR" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check that A query returns data for delegation-only A apex (${n})"
+ret=0
+$DIG a delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NOERROR" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check that CDS query returns data for delegation-only apex (${n})"
+ret=0
+$DIG cds delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NOERROR" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check that AAAA query returns data for delegation-only AAAA apex (${n})"
+ret=0
+$DIG a delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NOERROR" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+echo "I:check that DNSKEY query returns data for delegation-only apex (${n})"
+ret=0
+$DIG dnskey delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NOERROR" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check that CDNSKEY query returns data for delegation-only apex (${n})"
+ret=0
+$DIG cdnskey delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NOERROR" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check that NXDOMAIN is returned for delegation-only non-apex A data (${n})"
+ret=0
+$DIG a a.delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NXDOMAIN" dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check that NXDOMAIN is returned for delegation-only non-apex CDS data (${n})"
+ret=0
+$DIG cds cds.delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NXDOMAIN" dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check that NXDOMAIN is returned for delegation-only non-apex AAAA data (${n})"
+ret=0
+$DIG aaaa aaaa.delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NXDOMAIN" dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+echo "I:check that NXDOMAIN is returned for delegation-only non-apex CDNSKEY data (${n})"
+ret=0
+$DIG cdnskey cdnskey.delegation-only @10.53.0.5 -p 5300 > dig.out.ns5.test${n} || ret=1
+grep "status: NXDOMAIN" dig.out.ns5.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
