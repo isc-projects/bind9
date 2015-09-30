@@ -40,16 +40,20 @@ SRCS =		db.c driver.c instance.c \
 OBJS =		db.@O@ driver.@O@ instance.@O@ \
 		lock.@O@ log.@O@ syncptr.@O@ zone.@O@
 
-TARGETS =	sample.@SO@
+TARGETS =	lib/sample.@SO@
 
 @BIND9_MAKE_RULES@
 
 CFLAGS =	@CFLAGS@ @SO_CFLAGS@
 SO_LDFLAGS =	@LDFLAGS@ @SO_LDFLAGS@
 
+lib/sample.@SO@: sample.@SO@
+	$(SHELL) ${top_srcdir}/mkinstalldirs `pwd`/lib
+	${LIBTOOL_MODE_INSTALL} ${INSTALL} sample.@SO@ `pwd`/lib
+
 sample.@SO@: ${OBJS}
 	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} -o $@ ${OBJS} \
 		${DNSLIBS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ ${LIBS}
 
 clean distclean::
-	rm -f ${OBJS} sample.so
+	rm -f ${OBJS} sample.so lib/sample.so
