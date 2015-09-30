@@ -1122,6 +1122,7 @@ load_text(dns_loadctx_t *lctx) {
 				incctx_destroy(lctx->mctx, ictx);
 				RUNTIME_CHECK(isc_lex_close(lctx->lex) == ISC_R_SUCCESS);
 				line = isc_lex_getsourceline(lctx->lex);
+				POST(line);
 				source = isc_lex_getsourcename(lctx->lex);
 				ictx = lctx->inc;
 				continue;

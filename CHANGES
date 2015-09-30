@@ -1,3 +1,5 @@
+4227.	[bug]		Silence static analysis warnings. [RT #40828]
+
 4226.	[bug]		Address a theoretical shutdown race in
 			zone.c:notify_send_queue(). [RT #38958]
 
