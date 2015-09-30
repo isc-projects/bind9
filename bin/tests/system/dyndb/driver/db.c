@@ -756,7 +756,7 @@ create_db(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 	sampledb_t *sampledb = NULL;
 	isc_result_t result;
 	dns_dbversion_t *version = NULL;
-	struct in_addr a_addr = { 0x0100007f };
+	struct in_addr a_addr;
 
 	REQUIRE(type == dns_dbtype_zone);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -766,6 +766,8 @@ create_db(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
 	UNUSED(driverarg); /* no driver-specific configuration */
+
+	a_addr.s_addr = 0x0100007fU;
 
 	CHECKED_MEM_GET_PTR(mctx, sampledb);
 	ZERO_PTR(sampledb);
