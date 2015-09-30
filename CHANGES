@@ -1,3 +1,6 @@
+4231.	[contrib]	Address unchecked memory allocation calls in
+			query-loc and zone2ldap. [RT #40789]
+
 4230.	[contrib]	dlz_wildcard_dynamic.c:dlz_create could return a
 			uninitalised result. [RT #40839]
 
