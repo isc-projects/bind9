@@ -367,6 +367,10 @@ int responseLen;		/* buffer length */
 
   result = (char *) malloc (256);
   message = (char *) malloc (256);
+  if (result == NULL || message == NULL)
+    {
+      panic ("Malloc failed");
+    }
   /* 
    * Look up the records for the given domain name.
    * We expect the domain to be a fully qualified name, so
@@ -569,6 +573,10 @@ findA (domain)
 	  if (end == NULL)
 	    {
 	      result = (void *) malloc (sizeof (struct list_in_addr));
+	      if (result == NULL)
+		{
+		  panic ("Malloc failed");
+		}
 	      result->addr = addr;
 	      result->next = NULL;
 	      end = result;
@@ -576,6 +584,10 @@ findA (domain)
 	  else
 	    {
 	      end->next = (void *) malloc (sizeof (struct list_in_addr));
+	      if (end->next == NULL)
+		{
+		  panic ("Malloc failed");
+		}
 	      end = end->next;
 	      end->addr = addr;
 	      end->next = NULL;
