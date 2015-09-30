@@ -289,6 +289,18 @@
       </row>
       <row rowsep="0">
 	<entry colname="1">
+	  <para><command>spill</command></para>
+	</entry>
+	<entry colname="2">
+	  <para>
+	    Logs queries that have been terminated, either by dropping
+	    or responding with SERVFAIL, as a result of a fetchlimit
+	    quota being exceeded.
+	  </para>
+	</entry>
+      </row>
+      <row rowsep="0">
+	<entry colname="1">
 	  <para><command>unmatched</command></para>
 	</entry>
 	<entry colname="2">
