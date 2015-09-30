@@ -1,3 +1,6 @@
+4230.	[contrib]	dlz_wildcard_dynamic.c:dlz_create could return a
+			uninitalised result. [RT #40839]
+
 4229.	[bug]		A variable could be used uninitalised in
 			dns_update_signaturesinc. [RT #40784]
 
