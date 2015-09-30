@@ -8,9 +8,9 @@
 			[RT #40840]
 
 4230.	[contrib]	dlz_wildcard_dynamic.c:dlz_create could return a
-			uninitalised result. [RT #40839]
+			uninitialized result. [RT #40839]
 
-4229.	[bug]		A variable could be used uninitalised in
+4229.	[bug]		A variable could be used uninitialized in
 			dns_update_signaturesinc. [RT #40784]
 
 4228.	[bug]		Address race condition in dns_client_destroyrestrans.
@@ -134,7 +134,7 @@
 4191.	[protocol]	Accept DNS-SD non LDH PTR records in reverse zones
 			as per RFC 6763. [RT #37889]
 
-4190.	[protocol]	Accept Active Diretory gc._msdcs.<forest> name as
+4190.	[protocol]	Accept Active Directory gc._msdcs.<forest> name as
 			valid with check-names.  <forest> still needs to be
 			LDH. [RT #40399]
 
