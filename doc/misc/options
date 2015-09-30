@@ -17,6 +17,8 @@ dlz <string> {
         search <boolean>;
 };
 
+dyndb <string> <quoted_string> { <unspecified text> };
+
 key <string> {
         algorithm <string>;
         secret <string>;
@@ -431,6 +433,7 @@ view <string> [ <class> ] {
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
             <integer> ] [ dscp <integer> ] | <ipv6_address> [ port
             <integer> ] [ dscp <integer> ] ); ... };
+        dyndb <string> <quoted_string> { <unspecified text> };
         edns-udp-size <integer>;
         empty-contact <string>;
         empty-server <string>;
