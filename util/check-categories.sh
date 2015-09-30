@@ -1,0 +1,36 @@
+list1=`grep LOGCATEGORY lib/*/include/*/*.h bin/named/include/named/*.h |
+grep "#define.*(&" |
+sed -e 's/.*LOGCATEGORY_\([A-Z_]*\).*/\1/' -e 's/^RRL$/rate-limit/' |
+tr '[A-Z]' '[a-z]' |
+tr _ - | sort -u`
+list2=`sed -n 's;.*<para><command>\(.*\)</command></para>;\1;p' doc/arm/logging-categories.xml | tr '[A-Z]' '[a-z]' | sort -u`
+for i in $list1
+do
+	ok=no
+	for j in $list2
+	do
+		if test $i = $j
+		then
+			ok=yes
+		fi
+	done
+	if test $ok = no
+	then
+		echo "$i missing from documentation."
+	fi
+done
+for i in $list2
+do
+	ok=no
+	for j in $list1
+	do
+		if test $i = $j
+		then
+			ok=yes
+		fi
+	done
+	if test $ok = no
+	then
+		echo "$i not in code."
+	fi
+done
