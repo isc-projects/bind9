@@ -348,8 +348,7 @@ dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp) {
 	REQUIRE(dctxp != NULL && DNS_DYNDBCTX_VALID(*dctxp));
 
 	dctx = *dctxp;
-	if (dctxp == NULL)
-		return;
+	*dctxp = NULL;
 
 	dctx->magic = 0;
 
@@ -363,6 +362,4 @@ dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp) {
 	dctx->lctx = NULL;
 
 	isc_mem_putanddetach(&dctx->mctx, dctx, sizeof(*dctx));
-
-	*dctxp = NULL;
 }
