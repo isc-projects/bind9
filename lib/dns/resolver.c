@@ -2950,7 +2950,7 @@ sort_adbfind(dns_adbfind_t *find, unsigned int bias) {
 			curr_srtt = best->srtt;
 			if (isc_sockaddr_pf(&curr->sockaddr) != AF_INET6)
 				curr_srtt += bias;
-			if (curr->srtt < best->srtt) {
+			if (curr_srtt < best_srtt) {
 				best = curr;
 				best_srtt = curr_srtt;
 			}
