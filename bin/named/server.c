@@ -5546,6 +5546,8 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	cfg_parser_reset(ns_g_addparser);
 	result = cfg_parse_file(ns_g_addparser, view->new_zone_file,
 				&cfg_type_addzoneconf, &nzcfg->nzconfig);
+	if (result == ISC_R_FILENOTFOUND)
+		result = ISC_R_SUCCESS;
 	return (result);
 }
 
