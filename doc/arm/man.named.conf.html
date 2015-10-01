@@ -50,7 +50,7 @@
 <div class="cmdsynopsis"><p><code class="command">named.conf</code> </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2646776"></a><h2>DESCRIPTION</h2>
+<a name="id2618129"></a><h2>DESCRIPTION</h2>
 <p><code class="filename">named.conf</code> is the configuration file
       for
       <span><strong class="command">named</strong></span>.  Statements are enclosed
@@ -69,14 +69,14 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2646808"></a><h2>ACL</h2>
+<a name="id2618161"></a><h2>ACL</h2>
 <div class="literallayout"><p><br>
 acl <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 <br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2646828"></a><h2>KEY</h2>
+<a name="id2645078"></a><h2>KEY</h2>
 <div class="literallayout"><p><br>
 key <em class="replaceable"><code>domain_name</code></em> {<br>
 	algorithm <em class="replaceable"><code>string</code></em>;<br>
@@ -85,7 +85,7 @@ key <em class="replaceable"><code>domain_name</code></em> {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2646852"></a><h2>MASTERS</h2>
+<a name="id2645101"></a><h2>MASTERS</h2>
 <div class="literallayout"><p><br>
 masters <em class="replaceable"><code>string</code></em> [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
 	( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
@@ -94,7 +94,7 @@ masters <em class="replaceable"><code>string</code></em> [<span class="optional"
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2646902"></a><h2>SERVER</h2>
+<a name="id2645152"></a><h2>SERVER</h2>
 <div class="literallayout"><p><br>
 server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/prefixlen</span>]</code></em> | <em class="replaceable"><code>ipv6_address[<span class="optional">/prefixlen</span>]</code></em> ) {<br>
 	bogus <em class="replaceable"><code>boolean</code></em>;<br>
@@ -116,7 +116,7 @@ server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/pref
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2646974"></a><h2>TRUSTED-KEYS</h2>
+<a name="id2645224"></a><h2>TRUSTED-KEYS</h2>
 <div class="literallayout"><p><br>
 trusted-keys {<br>
 	<em class="replaceable"><code>domain_name</code></em> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ... <br>
@@ -124,7 +124,7 @@ trusted-keys {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2647004"></a><h2>MANAGED-KEYS</h2>
+<a name="id2645254"></a><h2>MANAGED-KEYS</h2>
 <div class="literallayout"><p><br>
 managed-keys {<br>
 	<em class="replaceable"><code>domain_name</code></em> <code class="constant">initial-key</code> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ... <br>
@@ -132,7 +132,7 @@ managed-keys {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2647037"></a><h2>CONTROLS</h2>
+<a name="id2645287"></a><h2>CONTROLS</h2>
 <div class="literallayout"><p><br>
 controls {<br>
 	inet ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
@@ -144,7 +144,7 @@ controls {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2649808"></a><h2>LOGGING</h2>
+<a name="id2645326"></a><h2>LOGGING</h2>
 <div class="literallayout"><p><br>
 logging {<br>
 	channel <em class="replaceable"><code>string</code></em> {<br>
@@ -162,7 +162,7 @@ logging {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2649850"></a><h2>LWRES</h2>
+<a name="id2645437"></a><h2>LWRES</h2>
 <div class="literallayout"><p><br>
 lwres {<br>
 	listen-on [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
@@ -175,7 +175,7 @@ lwres {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2649896"></a><h2>OPTIONS</h2>
+<a name="id2645552"></a><h2>OPTIONS</h2>
 <div class="literallayout"><p><br>
 options {<br>
 	avoid-v4-udp-ports { <em class="replaceable"><code>port</code></em>; ... };<br>
@@ -380,7 +380,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2685937"></a><h2>VIEW</h2>
+<a name="id2681592"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -544,7 +544,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2686588"></a><h2>ZONE</h2>
+<a name="id2682244"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint | redirect |<br>
@@ -641,12 +641,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2686914"></a><h2>FILES</h2>
+<a name="id2682569"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2686928"></a><h2>SEE ALSO</h2>
+<a name="id2682583"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named-checkconf</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
