@@ -325,6 +325,21 @@ dns_dyndb_load
 dns_dyndb_cleanup
 dns_dyndb_createctx
 dns_dyndb_destroyctx
+@IF DNSTAP
+dns_dt_create
+dns_dt_setidentity
+dns_dt_setversion
+dns_dt_attach
+dns_dt_detach
+dns_dt_shutdown
+dns_dt_send
+dns_dt_parse
+dns_dt_datatotext
+dns_dtdata_free
+dns_dt_open
+dns_dt_getframe
+dns_dt_close
+@END DNSTAP
 dns_ecdb_register
 dns_ecdb_unregister
 dns_fwdtable_add

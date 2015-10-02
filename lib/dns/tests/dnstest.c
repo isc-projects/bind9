@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -30,6 +28,7 @@
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/os.h>
+#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/socket.h>
 #include <isc/stdio.h>

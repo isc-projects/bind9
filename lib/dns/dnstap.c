@@ -58,6 +58,7 @@
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/print.h>
 #include <isc/sockaddr.h>
 #include <isc/thread.h>
 #include <isc/time.h>
