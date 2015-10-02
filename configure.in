@@ -2180,6 +2180,65 @@ then
 fi
 
 #
+# was --with-zlib specified?
+#
+AC_MSG_CHECKING(for zlib library)
+AC_ARG_WITH(zlib,
+[  --with-zlib[=PATH]        build with zlib for HTTP compression [[default=yes]] ],
+    use_zlib="$withval", use_zlib="yes")
+
+have_zlib=""
+case "$use_zlib" in
+	no)
+		zlib_libs=""
+		;;
+	auto|yes)
+		for d in /usr /usr/local /opt/local
+		do
+			if test -f "${d}/include/zlib.h"
+			then
+				if test ${d} != /usr
+				then
+					zlib_cflags="-I ${d}/include"
+					LIBS="$LIBS -L${d}/lib"
+				fi
+				have_zlib="yes"
+			fi
+		done
+		;;
+	*)
+		if test -f "${use_zlib}/zlib.h"
+		then
+			zlib_cflags="-I${use_zlib}/include"
+			LIBS="$LIBS -L${use_zlib}/lib"
+			have_zlib="yes"
+		else
+			AC_MSG_ERROR([$use_zlib/include/zlib.h not found.])
+		fi
+		;;
+esac
+
+if test "X${have_zlib}" != "X"
+then
+	AC_MSG_RESULT(yes)
+	AC_SEARCH_LIBS([deflate], [z], [],
+		       [AC_MSG_ERROR([found zlib include but not library.])
+			have_zlib=""])
+elif test "X$use_zlib" = Xyes
+then
+	AC_MSG_ERROR([include/zlib.h not found.])
+else
+	AC_MSG_RESULT(no)
+fi
+
+if test "X${have_zlib}" != "X"
+then
+	CFLAGS="$CFLAGS $zlib_cflags"
+	AC_DEFINE(HAVE_ZLIB, 1, [Define if zlib was found])
+fi
+
+
+#
 # In solaris 10, SMF can manage named service
 #
 AC_CHECK_LIB(scf, smf_enable_instance)
@@ -4802,6 +4861,7 @@ if test "$enable_full_report" = "yes"; then
     test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
     test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
     test "X$have_libjson" = "X" || echo "    JSON statistics (--with-libjson)"
+    test "X$have_zlib" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 fi
 
 if test "$use_pkcs11" != "no"; then

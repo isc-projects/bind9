@@ -165,5 +165,32 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
+ret=0
+echo "I:checking consistency between regular and compressed output ($n)"
+$CURL -D regular.headers \
+	http://10.53.0.2:8853/xml/v3/server 2>/dev/null | \
+	sed -e "s#<current-time>.*</current-time>##g" > regular.out
+$CURL -D compressed.headers --compressed \
+	http://10.53.0.2:8853/xml/v3/server 2>/dev/null | \
+	sed -e "s#<current-time>.*</current-time>##g" > compressed.out
+diff regular.out compressed.out >/dev/null || ret=1
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+ret=0
+echo "I:checking if comprssed output is really compressed ($n)"
+REGSIZE=`cat regular.headers | \
+	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
+COMPSIZE=`cat compressed.headers | \
+	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
+if [ ! `expr $REGSIZE / $COMPSIZE` -gt 2 ]; then
+	ret=1
+fi
+
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
 echo "I:exit status: $status"
 exit $status

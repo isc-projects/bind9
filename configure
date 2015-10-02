@@ -1002,6 +1002,7 @@ with_cc_alg
 enable_openssl_version_check
 with_libxml2
 with_libjson
+with_zlib
 enable_largefile
 with_purify
 with_gperftools_profiler
@@ -1725,6 +1726,7 @@ Optional Packages:
   --with-cc-alg=ALG      choose the algorithm for Client Cookie [aes|sha1|sha256]
   --with-libxml2=PATH     build with libxml2 library yes|no|path
   --with-libjson=PATH     build with libjson0 library yes|no|path
+  --with-zlib=PATH        build with zlib for HTTP compression [default=yes]
   --with-purify=PATH      use Rational purify
   --with-gperftools-profiler  use gperftools CPU profiler
   --with-kame=PATH	  use Kame IPv6 default path /usr/local/v6
@@ -16682,6 +16684,131 @@ $as_echo "#define HAVE_JSON_C 1" >>confdefs.h
 fi
 
 #
+# was --with-zlib specified?
+#
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for zlib library" >&5
+$as_echo_n "checking for zlib library... " >&6; }
+
+# Check whether --with-zlib was given.
+if test "${with_zlib+set}" = set; then :
+  withval=$with_zlib; use_zlib="$withval"
+else
+  use_zlib="yes"
+fi
+
+
+have_zlib=""
+case "$use_zlib" in
+	no)
+		zlib_libs=""
+		;;
+	auto|yes)
+		for d in /usr /usr/local /opt/local
+		do
+			if test -f "${d}/include/zlib.h"
+			then
+				if test ${d} != /usr
+				then
+					zlib_cflags="-I ${d}/include"
+					LIBS="$LIBS -L${d}/lib"
+				fi
+				have_zlib="yes"
+			fi
+		done
+		;;
+	*)
+		if test -f "${use_zlib}/zlib.h"
+		then
+			zlib_cflags="-I${use_zlib}/include"
+			LIBS="$LIBS -L${use_zlib}/lib"
+			have_zlib="yes"
+		else
+			as_fn_error $? "$use_zlib/include/zlib.h not found." "$LINENO" 5
+		fi
+		;;
+esac
+
+if test "X${have_zlib}" != "X"
+then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing deflate" >&5
+$as_echo_n "checking for library containing deflate... " >&6; }
+if ${ac_cv_search_deflate+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char deflate ();
+int
+main ()
+{
+return deflate ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' z; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_deflate=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_deflate+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_deflate+:} false; then :
+
+else
+  ac_cv_search_deflate=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_deflate" >&5
+$as_echo "$ac_cv_search_deflate" >&6; }
+ac_res=$ac_cv_search_deflate
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  as_fn_error $? "found zlib include but not library." "$LINENO" 5
+			have_zlib=""
+fi
+
+elif test "X$use_zlib" = Xyes
+then
+	as_fn_error $? "include/zlib.h not found." "$LINENO" 5
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+if test "X${have_zlib}" != "X"
+then
+	CFLAGS="$CFLAGS $zlib_cflags"
+
+$as_echo "#define HAVE_ZLIB 1" >>confdefs.h
+
+fi
+
+
+#
 # In solaris 10, SMF can manage named service
 #
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for smf_enable_instance in -lscf" >&5
@@ -24491,6 +24618,7 @@ if test "$enable_full_report" = "yes"; then
     test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
     test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
     test "X$have_libjson" = "X" || echo "    JSON statistics (--with-libjson)"
+    test "X$have_zlib" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 fi
 
 if test "$use_pkcs11" != "no"; then

@@ -455,6 +455,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
 
+/* Define if zlib was found */
+#undef HAVE_ZLIB
+
 /* HMAC_*() return ints */
 #undef HMAC_RETURN_INT
 

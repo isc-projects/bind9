@@ -21,3 +21,4 @@ rm -f */named.run
 rm -f ns*/named.lock
 rm -f ns*/named.stats
 rm -f xml.*stats json.*stats
+rm -f compressed.headers regular.headers compressed.out regular.out

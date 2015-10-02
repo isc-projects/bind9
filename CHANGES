@@ -1,3 +1,6 @@
+4234.	[func]		Add deflate compression in statistics channel HTTP 
+			server. [RT #40861]
+
 4233.	[test]		Add tests for CDS and CDNSKEY with delegation-only.
 			[RT #40597]
 
