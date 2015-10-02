@@ -3049,6 +3049,7 @@ exit 0;
 
 # Notes: Unix configure.in options
 #  --enable-developer partially supported
+#  --enable-dnstap not supported (requires libfstrm support on win32)
 #  --enable-newstats (9.9/9.9sub only)
 #  --enable-native-pkcs11 supported
 #  --enable-openssl-version-check included without a way to disable it
@@ -3086,6 +3087,8 @@ exit 0;
 #  --with-idn support
 #  --with-[lib]iconv (part of IDN)
 #  --with-atf not supported on WIN32 (package not available on WIN32)
+#  --with-libfrtrm not supported (not yet available on WIN32)
+#  --with-protobuf-c not supported (no reason to until libfstrm is ready)
 #  --with-tuning supported
 #  --with-dlopen included without a way to disable it
 #  --with-dlz-* ?

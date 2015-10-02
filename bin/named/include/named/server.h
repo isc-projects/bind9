@@ -28,6 +28,7 @@
 #include <isc/xml.h>
 
 #include <dns/acl.h>
+#include <dns/dnstap.h>
 #include <dns/types.h>
 
 #include <named/types.h>
@@ -121,6 +122,8 @@ struct ns_server {
 	isc_boolean_t		interface_auto;
 	unsigned char		secret[32];	/*%< Server Cookie Secret */
 	ns_cookiealg_t		cookiealg;
+
+	dns_dtenv_t		*dtenv;		/*%< Dnstap environment */
 
 	char *			lockfile;
 };

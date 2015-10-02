@@ -165,7 +165,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"covered by negative trust anchor",    /*%< 110 DNS_R_NTACOVERED */
 	"bad CDS",			       /*%< 111 DNS_R_BADCSD */
 	"bad CDNSKEY",			       /*%< 112 DNS_R_BADCDNSKEY */
-	"malformed OPT option"		       /*%< 113 DNS_R_OPTERR */
+	"malformed OPT option",		       /*%< 113 DNS_R_OPTERR */
+	"malformed DNSTAP data",	       /*%< 114 DNS_R_BADDNSTAP*/
 };
 
 static const char *ids[DNS_R_NRESULTS] = {
@@ -284,6 +285,10 @@ static const char *ids[DNS_R_NRESULTS] = {
 	"DNS_R_NOTDYNAMIC",
 	"DNS_R_BADEUI",
 	"DNS_R_NTACOVERED",
+	"DNS_R_BADCSD",
+	"DNS_R_BADCDNSKEY",
+	"DNS_R_OPTERR",
+	"DNS_R_BADDNSTAP",
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

@@ -44,6 +44,7 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
+#include <dns/dnstap.h>
 #include <dns/ds.h>
 #include <dns/edns.h>
 #include <dns/events.h>
@@ -2096,6 +2097,12 @@ resquery_send(resquery_t *query) {
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	unsigned ednsopt = 0;
 	isc_uint16_t hint = 0, udpsize = 0;	/* No EDNS */
+#ifdef HAVE_DNSTAP
+	unsigned char zone[DNS_NAME_MAXWIRE];
+	dns_dtmsgtype_t dtmsgtype;
+	isc_region_t zr;
+	isc_buffer_t zb;
+#endif /* HAVE_DNSTAP */
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -2440,6 +2447,15 @@ resquery_send(resquery_t *query) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
 
+#ifdef HAVE_DNSTAP
+	memset(&zr, 0, sizeof(zr));
+	isc_buffer_init(&zb, zone, sizeof(zone));
+	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
+	result = dns_name_towire(&fctx->domain, &cctx, &zb);
+	if (result == ISC_R_SUCCESS)
+		isc_buffer_usedregion(&zb, &zr);
+#endif /* HAVE_DNSTAP */
+
 	dns_compress_invalidate(&cctx);
 	cleanup_cctx = ISC_FALSE;
 
@@ -2538,6 +2554,20 @@ resquery_send(resquery_t *query) {
 	query->sends++;
 
 	QTRACE("sent");
+
+#ifdef HAVE_DNSTAP
+	/*
+	 * Log the outgoing query via dnstap.
+	 */
+	if ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0)
+		dtmsgtype = DNS_DTTYPE_FQ;
+	else
+		dtmsgtype = DNS_DTTYPE_RQ;
+
+	dns_dt_send(fctx->res->view, dtmsgtype, &query->addrinfo->sockaddr,
+		    ISC_TF((query->options & DNS_FETCHOPT_TCP) != 0),
+		    &zr, &query->start, NULL, &query->buffer);
+#endif /* HAVE_DNSTAP */
 
 	return (ISC_R_SUCCESS);
 
@@ -7579,6 +7609,13 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t broken_server;
 	badnstype_t broken_type = badns_response;
 	isc_boolean_t no_response;
+#ifdef HAVE_DNSTAP
+	unsigned char zone[DNS_NAME_MAXWIRE];
+	dns_dtmsgtype_t dtmsgtype;
+	dns_compress_t cctx;
+	isc_region_t zr;
+	isc_buffer_t zb;
+#endif /* HAVE_DNSTAP */
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -7766,6 +7803,33 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				  &dns_master_style_comment,
 				  ISC_LOG_DEBUG(10),
 				  fctx->res->mctx);
+
+#ifdef HAVE_DNSTAP
+	/*
+	 * Log the response via dnstap.
+	 */
+	memset(&zr, 0, sizeof(zr));
+	result = dns_compress_init(&cctx, -1, fctx->res->mctx);
+	if (result == ISC_R_SUCCESS) {
+		isc_buffer_init(&zb, zone, sizeof(zone));
+		dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
+		result = dns_name_towire(&fctx->domain, &cctx, &zb);
+		if (result == ISC_R_SUCCESS)
+			isc_buffer_usedregion(&zb, &zr);
+		dns_compress_invalidate(&cctx);
+	}
+
+	if ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0)
+		dtmsgtype = DNS_DTTYPE_FR;
+	else
+		dtmsgtype = DNS_DTTYPE_RR;
+
+	dns_dt_send(fctx->res->view, dtmsgtype,
+		    &query->addrinfo->sockaddr,
+		    ISC_TF((query->options & DNS_FETCHOPT_TCP) != 0),
+		    &zr, &query->start, NULL, &devent->buffer);
+#endif /* HAVE_DNSTAP */
+
 	/*
 	 * Process receive opt record.
 	 */

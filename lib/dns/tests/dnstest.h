@@ -82,3 +82,7 @@ dns_test_nap(isc_uint32_t usec);
 isc_result_t
 dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 		const char *testfile);
+
+isc_result_t
+dns_test_getdata(const char *file, unsigned char *buf,
+		 size_t bufsiz, size_t *sizep);

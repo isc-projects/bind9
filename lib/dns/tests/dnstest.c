@@ -26,11 +26,13 @@
 #include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/entropy.h>
+#include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/string.h>
 #include <isc/socket.h>
+#include <isc/stdio.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -341,3 +343,71 @@ dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 	result = dns_db_load(*db, testfile);
 	return (result);
 }
+
+static int
+fromhex(char c) {
+	if (c >= '0' && c <= '9')
+		return (c - '0');
+	else if (c >= 'a' && c <= 'f')
+		return (c - 'a' + 10);
+	else if (c >= 'A' && c <= 'F')
+		return (c - 'A' + 10);
+
+	printf("bad input format: %02x\n", c);
+	exit(3);
+	/* NOTREACHED */
+}
+
+isc_result_t
+dns_test_getdata(const char *file, unsigned char *buf,
+		 size_t bufsiz, size_t *sizep)
+{
+	isc_result_t result;
+	unsigned char *bp;
+	char *rp, *wp;
+	char s[BUFSIZ];
+	size_t len, i;
+	FILE *f;
+	int n;
+
+	result = isc_stdio_open(file, "r", &f);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	bp = buf;
+	while (fgets(s, sizeof(s), f) != NULL) {
+		rp = s;
+		wp = s;
+		len = 0;
+		while (*rp != '\0') {
+			if (*rp == '#')
+				break;
+			if (*rp != ' ' && *rp != '\t' &&
+			    *rp != '\r' && *rp != '\n') {
+				*wp++ = *rp;
+				len++;
+			}
+			rp++;
+		}
+		if (len == 0U)
+			continue;
+		if (len % 2 != 0U)
+			return (ISC_R_UNEXPECTEDEND);
+		if (len > bufsiz * 2)
+			return (ISC_R_NOSPACE);
+		rp = s;
+		for (i = 0; i < len; i += 2) {
+			n = fromhex(*rp++);
+			n *= 16;
+			n += fromhex(*rp++);
+			*bp++ = n;
+		}
+	}
+
+	isc_stdio_close(f);
+
+	*sizep = bp - buf;
+
+	return (ISC_R_SUCCESS);
+}
+

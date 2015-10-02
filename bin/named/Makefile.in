@@ -139,6 +139,11 @@ config.@O@: config.c
 		-DNS_SYSCONFDIR=\"${sysconfdir}\" \
 		-c ${srcdir}/config.c
 
+server.@O@: server.c
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
+		-DPRODUCT=\"${PRODUCT}\" \
+		-DVERSION=\"${VERSION}\" -c ${srcdir}/server.c
+
 named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
 	export MAKE_SYMTABLE="yes"; \
 	export BASEOBJS="${OBJS} ${UOBJS}"; \

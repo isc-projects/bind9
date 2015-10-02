@@ -129,7 +129,7 @@ struct ns_client {
 	void			(*shutdown)(void *arg, isc_result_t result);
 	void 			*shutdown_arg;
 	ns_query_t		query;
-	isc_stdtime_t		requesttime;
+	isc_time_t		requesttime;
 	isc_stdtime_t		now;
 	isc_time_t		tnow;
 	dns_name_t		signername;   /*%< [T]SIG key name */

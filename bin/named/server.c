@@ -2398,6 +2398,122 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 	return (result);
 }
 
+#ifdef HAVE_DNSTAP
+static isc_result_t
+configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
+	isc_result_t result;
+	const cfg_obj_t *obj, *obj2;
+	const cfg_listelt_t *element;
+	const char *dpath = ns_g_defaultdnstap;
+	const cfg_obj_t *dlist = NULL;
+	dns_dtmsgtype_t dttypes = 0;
+	dns_dtmode_t dmode;
+
+	result = ns_config_get(maps, "dnstap", &dlist);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_R_SUCCESS);
+
+	for (element = cfg_list_first(dlist);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		const char *str;
+		dns_dtmsgtype_t dt = 0;
+
+		obj = cfg_listelt_value(element);
+		obj2 = cfg_tuple_get(obj, "type");
+		str = cfg_obj_asstring(obj2);
+		if (strcasecmp(str, "client") == 0) {
+			dt |= DNS_DTTYPE_CQ|DNS_DTTYPE_CR;
+		} else if (strcasecmp(str, "auth") == 0) {
+			dt |= DNS_DTTYPE_AQ|DNS_DTTYPE_AR;
+		} else if (strcasecmp(str, "resolver") == 0) {
+			dt |= DNS_DTTYPE_RQ|DNS_DTTYPE_RR;
+		} else if (strcasecmp(str, "forwarder") == 0) {
+			dt |= DNS_DTTYPE_FQ|DNS_DTTYPE_FR;
+		} else if (strcasecmp(str, "all") == 0) {
+			dt |= DNS_DTTYPE_CQ|DNS_DTTYPE_CR|
+			      DNS_DTTYPE_AQ|DNS_DTTYPE_AR|
+			      DNS_DTTYPE_RQ|DNS_DTTYPE_RR|
+			      DNS_DTTYPE_FQ|DNS_DTTYPE_FR;
+		}
+
+		obj2 = cfg_tuple_get(obj, "mode");
+		if (obj2 == NULL || cfg_obj_isvoid(obj2)) {
+			dttypes |= dt;
+			continue;
+		}
+
+		str = cfg_obj_asstring(obj2);
+		if (strcasecmp(str, "query")) {
+			dt &= ~DNS_DTTYPE_RESPONSE;
+		} else if (strcasecmp(str, "response")) {
+			dt &= ~DNS_DTTYPE_QUERY;
+		}
+
+		dttypes |= dt;
+	}
+
+	if (ns_g_server->dtenv == NULL && dttypes != 0) {
+		obj = NULL;
+		CHECKM(ns_config_get(maps, "dnstap-output", &obj),
+		       "'dnstap-output' must be set if 'dnstap' is set");
+
+		obj2 = cfg_tuple_get(obj, "mode");
+		if (obj2 == NULL)
+			CHECKM(ISC_R_FAILURE, "dnstap-output mode not found");
+		if (strcasecmp(cfg_obj_asstring(obj2), "file") == 0)
+			dmode = dns_dtmode_file;
+		else
+			dmode = dns_dtmode_unix;
+
+		obj2 = cfg_tuple_get(obj, "path");
+		if (obj2 == NULL)
+			CHECKM(ISC_R_FAILURE, "dnstap-output path not found");
+
+		dpath = cfg_obj_asstring(obj2);
+
+		CHECKM(dns_dt_create(ns_g_mctx, dmode, dpath, ns_g_cpus,
+				     &ns_g_server->dtenv),
+		       "unable to create dnstap environment");
+	}
+
+	if (ns_g_server->dtenv == NULL)
+		return (ISC_R_SUCCESS);
+
+	obj = NULL;
+	result = ns_config_get(maps, "dnstap-version", &obj);
+	if (result != ISC_R_SUCCESS) {
+		/* not specified; use the product and version */
+		dns_dt_setversion(ns_g_server->dtenv, PRODUCT " " VERSION);
+	} else if (result == ISC_R_SUCCESS && !cfg_obj_isvoid(obj)) {
+		/* Quoted string */
+		dns_dt_setversion(ns_g_server->dtenv, cfg_obj_asstring(obj));
+	}
+
+	obj = NULL;
+	result = ns_config_get(maps, "dnstap-identity", &obj);
+	if (result == ISC_R_SUCCESS && cfg_obj_isboolean(obj)) {
+		/* "hostname" is interpreted as boolean ISC_TRUE */
+		char buf[256];
+		result = ns_os_gethostname(buf, sizeof(buf));
+		if (result == ISC_R_SUCCESS)
+			dns_dt_setidentity(ns_g_server->dtenv, buf);
+	} else if (result == ISC_R_SUCCESS && !cfg_obj_isvoid(obj)) {
+		/* Quoted string */
+		dns_dt_setidentity(ns_g_server->dtenv, cfg_obj_asstring(obj));
+	}
+
+	dns_dt_attach(ns_g_server->dtenv, &view->dtenv);
+	view->dttypes = dttypes;
+
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	return (result);
+}
+#endif /* HAVE_DNSTAP */
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -4008,6 +4124,13 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	} else
 		view->redirectzone = NULL;
 
+#ifdef HAVE_DNSTAP
+	/*
+	 * Set up the dnstap environment and configure message
+	 * types to log.
+	 */
+	CHECK(configure_dnstap(maps, view));
+#endif /* HAVE_DNSTAP */
 
 	result = ISC_R_SUCCESS;
 
@@ -7016,6 +7139,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	if (server->blackholeacl != NULL)
 		dns_acl_detach(&server->blackholeacl);
 
+#ifdef HAVE_DNSTAP
+	dns_dt_shutdown();
+#endif
 #ifdef HAVE_GEOIP
 	dns_geoip_shutdown();
 #endif
@@ -7217,6 +7343,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	server->lockfile = NULL;
 
+	server->dtenv = NULL;
+
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
 }
@@ -7225,6 +7353,11 @@ void
 ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
+
+#ifdef HAVE_DNSTAP
+	if (server->dtenv != NULL)
+		dns_dt_detach(&server->dtenv);
+#endif /* HAVE_DNSTAP */
 
 	ns_controls_destroy(&server->controls);
 

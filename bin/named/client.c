@@ -38,6 +38,7 @@
 #include <dns/badcache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
+#include <dns/dnstap.h>
 #include <dns/edns.h>
 #include <dns/events.h>
 #include <dns/message.h>
@@ -985,6 +986,11 @@ client_send(ns_client_t *client) {
 	unsigned int preferred_glue;
 	isc_boolean_t opt_included = ISC_FALSE;
 	size_t respsize;
+#ifdef HAVE_DNSTAP
+	unsigned char zone[DNS_NAME_MAXWIRE];
+	dns_dtmsgtype_t dtmsgtype;
+	isc_region_t zr;
+#endif /* HAVE_DNSTAP */
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -1123,6 +1129,28 @@ client_send(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 
+#ifdef HAVE_DNSTAP
+	memset(&zr, 0, sizeof(zr));
+	if (((client->message->flags & DNS_MESSAGEFLAG_AA) != 0) &&
+	    (client->query.authzone != NULL))
+	{
+		isc_buffer_t b;
+		dns_name_t *zo =
+			dns_zone_getorigin(client->query.authzone);
+
+		isc_buffer_init(&b, zone, sizeof(zone));
+		dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
+		result = dns_name_towire(zo, &cctx, &b);
+		if (result == ISC_R_SUCCESS)
+			isc_buffer_usedregion(&b, &zr);
+	}
+
+	if ((client->message->flags & DNS_MESSAGEFLAG_RD) != 0)
+		dtmsgtype = DNS_DTTYPE_CR;
+	else
+		dtmsgtype = DNS_DTTYPE_AR;
+#endif /* HAVE_DNSTAP */
+
 	if (cleanup_cctx) {
 		dns_compress_invalidate(&cctx);
 		cleanup_cctx = ISC_FALSE;
@@ -1136,11 +1164,27 @@ client_send(ns_client_t *client) {
 		respsize = isc_buffer_usedlength(&tcpbuffer);
 		result = client_sendpkg(client, &tcpbuffer);
 
+#ifdef HAVE_DNSTAP
+		if (client->view != NULL) {
+			dns_dt_send(client->view, dtmsgtype,
+				    &client->peeraddr, ISC_TRUE, &zr,
+				    &client->requesttime, NULL, &buffer);
+		}
+#endif /* HAVE_DNSTAP */
+
 		isc_stats_increment(ns_g_server->tcpoutstats,
 				    ISC_MIN(respsize / 16, 256));
 	} else {
 		respsize = isc_buffer_usedlength(&buffer);
 		result = client_sendpkg(client, &buffer);
+
+#ifdef HAVE_DNSTAP
+		if (client->view != NULL) {
+			dns_dt_send(client->view, dtmsgtype,
+				    &client->peeraddr, ISC_FALSE, &zr,
+				    &client->requesttime, NULL, &buffer);
+		}
+#endif /* HAVE_DNSTAP */
 
 		isc_stats_increment(ns_g_server->udpoutstats,
 				    ISC_MIN(respsize / 16, 256));
@@ -1396,7 +1440,9 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		if (isc_sockaddr_equal(&client->peeraddr,
 				       &client->formerrcache.addr) &&
 		    message->id == client->formerrcache.id &&
-		    client->requesttime - client->formerrcache.time < 2) {
+		    (isc_time_seconds(&client->requesttime) -
+		     client->formerrcache.time) < 2)
+		{
 			/* Drop packet. */
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
@@ -1406,7 +1452,8 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 			return;
 		}
 		client->formerrcache.addr = client->peeraddr;
-		client->formerrcache.time = client->requesttime;
+		client->formerrcache.time =
+			isc_time_seconds(&client->requesttime);
 		client->formerrcache.id = message->id;
 	} else if (rcode == dns_rcode_servfail && client->query.qname != NULL &&
 		   client->view != NULL && client->view->fail_ttl != 0 &&
@@ -2036,6 +2083,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	unsigned int flags;
 	isc_boolean_t notimp;
 	size_t reqsize;
+#ifdef HAVE_DNSTAP
+	dns_dtmsgtype_t dtmsgtype;
+#endif
 
 	REQUIRE(event != NULL);
 	client = event->ev_arg;
@@ -2095,9 +2145,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	client->state = client->newstate = NS_CLIENTSTATE_WORKING;
 
-	isc_task_getcurrenttime(task, &client->requesttime);
-	client->now = client->requesttime;
-	isc_time_set(&client->tnow, client->now, 0);
+	isc_task_getcurrenttimex(task, &client->requesttime);
+	client->tnow = client->requesttime;
+	client->now = isc_time_seconds(&client->tnow);
 
 	if (result != ISC_R_SUCCESS) {
 		if (TCP_CLIENT(client)) {
@@ -2588,6 +2638,17 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	switch (client->message->opcode) {
 	case dns_opcode_query:
 		CTRACE("query");
+#ifdef HAVE_DNSTAP
+		if ((client->message->flags & DNS_MESSAGEFLAG_RD) != 0)
+			dtmsgtype = DNS_DTTYPE_CQ;
+		else
+			dtmsgtype = DNS_DTTYPE_AQ;
+
+		dns_dt_send(view, dtmsgtype, &client->peeraddr,
+			    TCP_CLIENT(client), NULL,
+			    &client->requesttime, NULL, buffer);
+#endif /* HAVE_DNSTAP */
+
 		ns_query_start(client);
 		break;
 	case dns_opcode_update:
@@ -3652,7 +3713,8 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 		fprintf(f, "; client %s%s%s: id %u '%s/%s/%s'%s%s "
 			"requesttime %d\n", peerbuf, sep, name,
 			client->message->id, namebuf, typebuf, classbuf,
-			origfor, original, client->requesttime);
+			origfor, original,
+			isc_time_seconds(&client->requesttime));
 		client = ISC_LIST_NEXT(client, rlink);
 	}
 	UNLOCK(&manager->reclock);

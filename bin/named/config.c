@@ -186,6 +186,11 @@ options {\n\
 	require-server-cookie no;\n\
 	v6-bias 50;\n\
 "
+#ifdef HAVE_DNSTAP
+"\
+	dnstap-identity hostname;\n\
+"
+#endif
 #ifdef HAVE_GEOIP
 "\
 	geoip-use-ecs yes;\n\

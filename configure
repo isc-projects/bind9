@@ -703,6 +703,13 @@ XSLTPROC
 W3M
 PDFLATEX
 LATEX
+DNSTAPHTML
+DNSTAPMAN
+DNSTAPTARGETS
+DNSTAPOBJS
+DNSTAPSRCS
+DNSTAP
+PROTOC_C
 ISC_ARCH_DIR
 ISC_PLATFORM_USEMACASM
 ISC_PLATFORM_USESTDASM
@@ -1021,6 +1028,9 @@ enable_fixed_rrset
 enable_rpz_nsip
 enable_rpz_nsdname
 enable_filter_aaaa
+enable_dnstap
+with_protobuf_c
+with_libfstrm
 with_docbook_xsl
 with_idn
 with_libiconv
@@ -1699,6 +1709,7 @@ Optional Features:
   --disable-rpz-nsip	  disable rpz-nsip rules [default=enabled]
   --disable-rpz-nsdname	  disable rpz-nsdname rules [default=enabled]
   --enable-filter-aaaa    enable filtering of AAAA records [default=no]
+  --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)
   --enable-querytrace     enable very verbose query trace logging [default=no]
   --enable-full-report	  report values of all configure options
 
@@ -1732,6 +1743,8 @@ Optional Packages:
   --with-kame=PATH	  use Kame IPv6 default path /usr/local/v6
   --with-readline=LIBSPEC    specify readline library default auto
 
+  --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
+  --with-libfstrm=path    Path where libfstrm is installed, for dnstap
   --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
   --with-idn=MPREFIX      enable IDN support using idnkit default PREFIX
   --with-libiconv=IPREFIX GNU libiconv are in IPREFIX default PREFIX
@@ -19941,6 +19954,246 @@ $as_echo "#define ALLOW_FILTER_AAAA 1" >>confdefs.h
 esac
 
 #
+# Activate dnstap?
+#
+# Check whether --enable-dnstap was given.
+if test "${enable_dnstap+set}" = set; then :
+  enableval=$enable_dnstap; use_dnstap=$enableval
+else
+  use_dnstap=no
+fi
+
+
+DNSTAP=
+DNSTAPSRCS=
+DNSTAPOBJS=
+DNSTAPTARGETS=
+DNSTAPMAN=
+DNSTAPHTML=
+if test "x$use_dnstap" != "xno"; then
+        if ! $use_threads; then
+                as_fn_error $? "Dnstap requires threads." "$LINENO" 5
+        fi
+        # Extract the first word of "protoc-c", so it can be a program name with args.
+set dummy protoc-c; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PROTOC_C+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PROTOC_C in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PROTOC_C="$PROTOC_C" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PROTOC_C="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PROTOC_C=$ac_cv_path_PROTOC_C
+if test -n "$PROTOC_C"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PROTOC_C" >&5
+$as_echo "$PROTOC_C" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+        if test -z "$PROTOC_C"; then
+                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: The protoc-c program was not found." >&5
+$as_echo "$as_me: WARNING: The protoc-c program was not found." >&2;}
+        fi
+
+# Check whether --with-protobuf-c was given.
+if test "${with_protobuf_c+set}" = set; then :
+  withval=$with_protobuf_c;
+            # workaround for protobuf-c includes at old dir
+            # before protobuf-c-1.0.0
+            if test -f $withval/include/google/protobuf-c/protobuf-c.h
+            then
+                CFLAGS="$CFLAGS -I$withval/include/google"
+            else
+                CFLAGS="$CFLAGS -I$withval/include"
+            fi
+            LDFLAGS="$LDFLAGS -L$withval/lib"
+
+else
+
+            # workaround for protobuf-c includes at old dir
+            # before protobuf-c-1.0.0
+            if test -f /usr/include/google/protobuf-c/protobuf-c.h
+            then
+                CFLAGS="$CFLAGS -I/usr/include/google"
+            else
+                if test -f /usr/local/include/google/protobuf-c/protobuf-c.h
+                then
+                    CFLAGS="$CFLAGS -I/usr/local/include/google"
+                    LDFLAGS="$LDFLAGS -L/usr/local/lib"
+                fi
+            fi
+
+fi
+
+
+# Check whether --with-libfstrm was given.
+if test "${with_libfstrm+set}" = set; then :
+  withval=$with_libfstrm;
+            CFLAGS="$CFLAGS -I$withval/include"
+            LDFLAGS="$LDFLAGS -L$withval/lib"
+
+fi
+
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing fstrm_iothr_init" >&5
+$as_echo_n "checking for library containing fstrm_iothr_init... " >&6; }
+if ${ac_cv_search_fstrm_iothr_init+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fstrm_iothr_init ();
+int
+main ()
+{
+return fstrm_iothr_init ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' fstrm; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_fstrm_iothr_init=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_fstrm_iothr_init+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_fstrm_iothr_init+:} false; then :
+
+else
+  ac_cv_search_fstrm_iothr_init=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_fstrm_iothr_init" >&5
+$as_echo "$ac_cv_search_fstrm_iothr_init" >&6; }
+ac_res=$ac_cv_search_fstrm_iothr_init
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  as_fn_error $? "The fstrm library was not found. Please install fstrm!" "$LINENO" 5
+fi
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing protobuf_c_message_pack" >&5
+$as_echo_n "checking for library containing protobuf_c_message_pack... " >&6; }
+if ${ac_cv_search_protobuf_c_message_pack+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char protobuf_c_message_pack ();
+int
+main ()
+{
+return protobuf_c_message_pack ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' protobuf-c; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_protobuf_c_message_pack=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_protobuf_c_message_pack+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_protobuf_c_message_pack+:} false; then :
+
+else
+  ac_cv_search_protobuf_c_message_pack=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_protobuf_c_message_pack" >&5
+$as_echo "$ac_cv_search_protobuf_c_message_pack" >&6; }
+ac_res=$ac_cv_search_protobuf_c_message_pack
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  as_fn_error $? "The protobuf-c library was not found. Please install protobuf-c!" "$LINENO" 5
+fi
+
+
+
+$as_echo "#define HAVE_DNSTAP 1" >>confdefs.h
+
+        DNSTAP=dnstap
+        DNSTAPSRCS='${DNSTAPSRCS}'
+        DNSTAPOBJS='${DNSTAPOBJS}'
+        DNSTAPTARGETS='${DNSTAPTARGETS}'
+        DNSTAPMAN='${DNSTAPMAN}'
+        DNSTAPHTML='${DNSTAPHTML}'
+fi
+
+
+
+
+
+
+
+#
 #  The following sets up how non-blocking i/o is established.
 #  Sunos, cygwin and solaris 2.x (x<5) require special handling.
 #
@@ -24603,6 +24856,8 @@ if $use_threads; then
     fi
 fi
 test "$use_tuning" = "large" && echo "    Large-system tuning (--with-tuning)"
+test "$use_dnstap" = "no" || \
+        echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
 test "$use_geoip" = "no" || echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
 if test "$enable_full_report" = "yes" -o "$with_cc_alg" != "aes"; then
@@ -24675,6 +24930,8 @@ test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
 	echo "    IPv6 support (--enable-ipv6)"
 test "$use_tuning" = "large" || echo "    Large-system tuning (--with-tuning)"
 
+test "$use_dnstap" = "no" && \
+        echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
 test "$use_geoip" = "no" && echo "    GeoIP access control (--with-geoip)"
 test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
 

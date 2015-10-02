@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.92 2011/11/09 18:44:04 each Exp $ */
-
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
 
@@ -152,6 +150,14 @@ EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
 EXTERN const char *		lwresd_g_defaultpidfile INIT(NS_LOCALSTATEDIR
 							     "/run/lwresd.pid");
 #endif
+
+#ifdef HAVE_DNSTAP
+EXTERN const char *		ns_g_defaultdnstap
+					INIT(NS_LOCALSTATEDIR "/run/named/"
+							      "dnstap.sock");
+#else
+EXTERN const char *		ns_g_defaultdnstap	INIT(NULL);
+#endif /* HAVE_DNSTAP */
 
 EXTERN const char *		ns_g_username		INIT(NULL);
 

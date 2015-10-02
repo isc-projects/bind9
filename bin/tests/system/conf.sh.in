@@ -58,6 +58,7 @@ RESOLVE=$TOP/lib/samples/resolve
 RRCHECKER=$TOP/bin/tools/named-rrchecker
 GENRANDOM=$TOP/bin/tools/genrandom
 NSLOOKUP=$TOP/bin/dig/nslookup
+DNSTAPREAD="$TOP/bin/tools/dnstap-read"
 
 RANDFILE=$TOP/bin/tests/system/random.data
 
@@ -67,7 +68,7 @@ RANDFILE=$TOP/bin/tests/system/random.data
 SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case checkconf @CHECKDS@ checknames checkzone
 	 cookie @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal
-	 dname dns64 dnssec dsdigest dscp ecdsa ednscompliance
+	 dname dns64 dnssec dsdigest dscp @DNSTAP@ ecdsa ednscompliance
 	 emptyzones fetchlimit filter-aaaa formerr forward geoip glue gost
 	 ixfr inline legacy limits logfileconfig lwresd masterfile
 	 masterformat metadata mkeys notify nslookup nsupdate pending

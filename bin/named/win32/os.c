@@ -71,6 +71,7 @@ ns_paths_init(void) {
 	ns_g_defaultlockfile = isc_ntpaths_get(NAMED_LOCK_PATH);
 	ns_g_keyfile = isc_ntpaths_get(RNDC_KEY_PATH);
 	ns_g_defaultsessionkeyfile = isc_ntpaths_get(SESSION_KEY_PATH);
+	ns_g_defaultdnstap = NULL;
 
 	Initialized = TRUE;
 }

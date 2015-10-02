@@ -1,3 +1,13 @@
+4235.	[func]		Added support in named for "dnstap", a fast method of
+			capturing and logging DNS traffic, and a new command
+			"dnstap-read" to read a dnstap log file.  Use
+			"configure --enable-dnstap" to enable this
+			feature (note that this requires libprotobuf-c
+			and libfstrm). See the ARM for configuration details.
+
+			Thanks to Robert Edmonds of Farsight Security.
+			[RT #40211]
+
 4234.	[func]		Add deflate compression in statistics channel HTTP 
 			server. [RT #40861]
 

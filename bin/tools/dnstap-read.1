@@ -1,0 +1,97 @@
+.\" Copyright (C) 2015 Internet Systems Consortium, Inc. ("ISC")
+.\" 
+.\" Permission to use, copy, modify, and/or distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\" 
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+.\" REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+.\" AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+.\" INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+.\" LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+.\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+.\" PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" $Id$
+.\"
+.hy 0
+.ad l
+'\" t
+.\"     Title: dnstap-read
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: September 13, 2015
+.\"    Manual: BIND9
+.\"    Source: BIND9
+.\"  Language: English
+.\"
+.TH "DNSTAP\-READ" "1" "September 13, 2015" "BIND9" "BIND9"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+dnstap-read \- print dnstap data in human\-readable form
+.SH "SYNOPSIS"
+.HP 12
+\fBdnstap\-read\fR [\fB\-m\fR] [\fB\-p\fR] [\fB\-y\fR] {\fIfile\fR}
+.SH "DESCRIPTION"
+.PP
+\fBdnstap\-read\fR
+reads
+\fBdnstap\fR
+data from a specified file and prints it in a human\-readable format\&. By default,
+\fBdnstap\fR
+data is printed in a short summary format, but if the
+\fB\-y\fR
+option is specified, then a longer and more detailed YAML format is used instead\&.
+.SH "OPTIONS"
+.PP
+\-m
+.RS 4
+Trace memory allocations; used for debugging memory leaks\&.
+.RE
+.PP
+\-p
+.RS 4
+After printing the
+\fBdnstap\fR
+data, print the text form of the DNS message that was encapsulated in the
+\fBdnstap\fR
+frame\&.
+.RE
+.PP
+\-y
+.RS 4
+Print
+\fBdnstap\fR
+data in a detailed YAML format\&. Implies
+\fB\-p\fR\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBnamed\fR(8),
+\fBnsupdate\fR(8),
+BIND 9 Administrator Reference Manual\&.
+.SH "AUTHOR"
+.PP
+Internet Systems Consortium
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2015 Internet Systems Consortium, Inc. ("ISC")
+.br

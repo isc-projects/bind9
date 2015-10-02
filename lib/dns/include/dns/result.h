@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.123 2011/03/21 07:22:14 each Exp $ */
-
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
 
@@ -157,8 +155,9 @@
 #define DNS_R_BADCDS			(ISC_RESULTCLASS_DNS + 111)
 #define DNS_R_BADCDNSKEY		(ISC_RESULTCLASS_DNS + 112)
 #define DNS_R_OPTERR			(ISC_RESULTCLASS_DNS + 113)
+#define DNS_R_BADDNSTAP			(ISC_RESULTCLASS_DNS + 114)
 
-#define DNS_R_NRESULTS			114	/*%< Number of results */
+#define DNS_R_NRESULTS			115	/*%< Number of results */
 
 /*
  * DNS wire format rcodes.

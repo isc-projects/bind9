@@ -61,6 +61,8 @@ DSTOBJS =	@DST_EXTRA_OBJS@ @OPENSSLLINKOBJS@ @PKCS11LINKOBJS@ \
 
 GEOIPLINKOBJS = geoip.@O@
 
+DNSTAPOBJS = dnstap.@O@ dnstap.pb-c.@O@
+
 # Alphabetically
 DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ badcache.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ clientinfo.@O@ compress.@O@ \
@@ -82,7 +84,7 @@ DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ badcache.@O@ byaddr.@O@ \
 PORTDNSOBJS =	client.@O@ ecdb.@O@
 
 OBJS=		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} ${PORTDNSOBJS} \
-		@GEOIPLINKOBJS@
+		@DNSTAPOBJS@ @GEOIPLINKOBJS@
 
 
 # Alphabetically
@@ -99,6 +101,8 @@ DSTSRCS =	@DST_EXTRA_SRCS@ @OPENSSLLINKSRCS@ @PKCS11LINKSRCS@ \
 		hmac_link.c key.c
 
 GEOIPLINKSRCS = geoip.c
+
+DNSTAPSRCS = dnstap.c dnstap.pb-c.c
 
 DNSSRCS =	acache.c acl.c adb.c badcache. byaddr.c \
 		cache.c callbacks.c clientinfo.c compress.c \
@@ -117,7 +121,7 @@ DNSSRCS =	acache.c acl.c adb.c badcache. byaddr.c \
 		version.c view.c xfrin.c zone.c zonekey.c zt.c ${OTHERSRCS}
 PORTDNSSRCS =	client.c ecdb.c
 
-SRCS = ${DSTSRCS} ${DNSSRCS} ${PORTDNSSRCS} @GEOIPLINKSRCS@
+SRCS = ${DSTSRCS} ${DNSSRCS} ${PORTDNSSRCS} @DNSTAPSRCS@ @GEOIPLINKSRCS@
 
 SUBDIRS =	include
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
@@ -128,6 +132,8 @@ DEPENDEXTRA =	./gen -F include/dns/rdatastruct.h \
 		-s ${srcdir} -d >> Makefile ;
 
 @BIND9_MAKE_RULES@
+
+PROTOC_C = @PROTOC_C@
 
 version.@O@: version.c
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
@@ -200,5 +206,14 @@ subdirs: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h code.h
 ${OBJS}: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h
+
+# dnstap
+dnstap.@O@: dnstap.c dnstap.pb-c.c
+
+dnstap.pb-c.c dnstap.pb-c.h include/dns/dnstap.pb-c.h: dnstap.proto
+	$(PROTOC_C) --c_out=. dnstap.proto
+	cp -f dnstap.pb-c.h include/dns
+
+dnstap.pb-c.@O@: dnstap.pb-c.c
 
 spnego.@O@: spnego_asn1.c spnego.h

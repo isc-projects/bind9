@@ -209,6 +209,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `dlsym' function. */
 #undef HAVE_DLSYM
 
+/* Define to 1 to enable dnstap support */
+#undef HAVE_DNSTAP
+
 /* Define to 1 if you have the `EVP_sha256' function. */
 #undef HAVE_EVP_SHA256
 

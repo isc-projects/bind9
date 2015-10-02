@@ -636,6 +636,7 @@ isc_task_detach
 isc_task_endexclusive
 isc_task_exiting
 isc_task_getcurrenttime
+isc_task_getcurrenttimex
 isc_task_onshutdown
 isc_task_privilege
 isc_task_purge

@@ -603,9 +603,14 @@ isc_task_endexclusive(isc_task_t *task);
 
 void
 isc_task_getcurrenttime(isc_task_t *task, isc_stdtime_t *t);
+void
+isc_task_getcurrenttimex(isc_task_t *task, isc_time_t *t);
 /*%<
  * Provide the most recent timestamp on the task.  The timestamp is considered
- * as the "current time" in the second-order granularity.
+ * as the "current time".
+ *
+ * isc_task_getcurrentime() returns the time in one-second granularity;
+ * isc_task_getcurrentimex() returns it in nanosecond granularity.
  *
  * Requires:
  *\li	'task' is a valid task.

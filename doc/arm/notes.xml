@@ -199,6 +199,29 @@
       </listitem>
       <listitem>
 	<para>
+	  Added support for <command>dnstap</command>, a fast,
+	  flexible method for capturing and logging DNS traffic,
+	  developed by Robert Edmonds at Farsight Security, Inc.,
+	  whose assistance is gratefully acknowledged.
+	</para>
+	<para>
+	  To enable <command>dnstap</command> at compile time, 
+	  the <command>fstrm</command> and <command>protobuf-c</command>
+	  libraries must be available, and BIND must be configured with
+	  <option>--enable-dnstap</option>.
+	</para>
+	<para>
+	  A new utility <command>dnstap-read</command> has been added
+	  to allow <command>dnstap</command> data to be presented in
+	  a human-readable format.
+	</para>
+	<para>
+	  For more information on <command>dnstap</command>, see
+	  <ulink url="http://dnstap.info">http://dnstap.info</ulink>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  New statistics counters have been added to track traffic
 	  sizes, as specified in RSSAC002.  Query and response
 	  message sizes are broken up into ranges of histogram buckets:

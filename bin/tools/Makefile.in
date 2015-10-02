@@ -46,17 +46,24 @@ NOSYMLIBS =	${ISCNOSYMLIBS} @LIBS@
 
 SUBDIRS = 
 
+DNSTAPTARGETS =	dnstap-read@EXEEXT@
 TARGETS =	arpaname@EXEEXT@ named-journalprint@EXEEXT@ \
 		named-rrchecker@EXEEXT@  nsec3hash@EXEEXT@ \
-		genrandom@EXEEXT@ isc-hmac-fixup@EXEEXT@ mdig@EXEEXT@
-SRCS =		arpaname.c named-journalprint.c named-rrchecker.c \
-		nsec3hash.c genrandom.c isc-hmac-fixup.c mdig.c
+		genrandom@EXEEXT@ isc-hmac-fixup@EXEEXT@ mdig@EXEEXT@ \
+		@DNSTAPTARGETS@
 
+DNSTAPSRCS  =	dnstap-read.c
+SRCS =		arpaname.c named-journalprint.c named-rrchecker.c \
+		nsec3hash.c genrandom.c isc-hmac-fixup.c mdig.c \
+		@DNSTAPSRCS@
+
+DNSTAPMAN =	dnstap-read.1
 MANPAGES =	arpaname.1 named-journalprint.8 named-rrchecker.1 nsec3hash.8 \
-		genrandom.8 isc-hmac-fixup.8 mdig.1
+		genrandom.8 isc-hmac-fixup.8 mdig.1 @DNSTAPMAN@
+DNSTAPHTML =	dnstap-read.html
 HTMLPAGES =	arpaname.html named-journalprint.html named-rrchecker.html \
 		nsec3hash.html genrandom.html isc-hmac-fixup.html \
-		mdig.html
+		mdig.html @DNSTAPHTML@
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
@@ -94,6 +101,11 @@ mdig@EXEEXT@: mdig.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS}
 	export LIBS0="${DNSLIBS} ${BIND9LIBS}"; \
 	${FINALBUILDCMD}
 
+dnstap-read@EXEEXT@: dnstap-read.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	export BASEOBJS="dnstap-read.@O@"; \
+	export LIBS0="${DNSLIBS}"; \
+	${FINALBUILDCMD}
+
 doc man:: ${MANOBJS}
 
 docclean manclean maintainer-clean::
@@ -104,7 +116,11 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
-install:: ${TARGETS} installdirs
+dnstap:
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} dnstap-read@EXEEXT@ \
+		${DESTDIR}${sbindir}
+
+install:: ${TARGETS} @DNSTAP@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} arpaname@EXEEXT@ \
 		${DESTDIR}${sbindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-journalprint@EXEEXT@ \
@@ -126,6 +142,7 @@ install:: ${TARGETS} installdirs
 	${INSTALL_DATA} ${srcdir}/nsec3hash.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/genrandom.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/mdig.1 ${DESTDIR}${mandir}/man1
+	${INSTALL_DATA} ${srcdir}/dnstap-read.1 ${DESTDIR}${mandir}/man1
 
 clean distclean::
 	rm -f ${TARGETS}

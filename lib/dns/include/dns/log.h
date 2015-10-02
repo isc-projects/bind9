@@ -44,6 +44,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodule_t dns_modules[];
 #define DNS_LOGCATEGORY_RRL		(&dns_categories[13])
 #define DNS_LOGCATEGORY_CNAME		(&dns_categories[14])
 #define DNS_LOGCATEGORY_SPILL		(&dns_categories[15])
+#define DNS_LOGCATEGORY_DNSTAP		(&dns_categories[16])
 
 /* Backwards compatibility. */
 #define DNS_LOGCATEGORY_GENERAL		ISC_LOGCATEGORY_GENERAL
@@ -80,6 +81,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_PACKETS		(&dns_modules[29])
 #define DNS_LOGMODULE_NTA		(&dns_modules[30])
 #define DNS_LOGMODULE_DYNDB		(&dns_modules[31])
+#define DNS_LOGMODULE_DNSTAP		(&dns_modules[32])
 
 ISC_LANG_BEGINDECLS
 

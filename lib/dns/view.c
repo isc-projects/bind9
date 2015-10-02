@@ -242,6 +242,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->failcache = NULL;
 	view->v6bias = 0;
 	dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE, &view->failcache);
+	view->dtenv = NULL;
+	view->dttypes = 0;
 
 	if (isc_bind9) {
 		result = dns_order_create(view->mctx, &view->order);
@@ -490,6 +492,10 @@ destroy(dns_view_t *view) {
 		dns_zone_detach(&view->managed_keys);
 	if (view->redirect != NULL)
 		dns_zone_detach(&view->redirect);
+#ifdef HAVE_DNSTAP
+	if (view->dtenv != NULL)
+		dns_dt_detach(&view->dtenv);
+#endif /* HAVE_DNSTAP */
 	dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
 	dns_fwdtable_destroy(&view->fwdtable);
 	dns_aclenv_destroy(&view->aclenv);
