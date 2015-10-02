@@ -332,9 +332,9 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 
 		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0) {
 			size_t ilen = strlen(dns_master_indentstr);
- 			isc_buffer_availableregion(&buf, &r);
+			isc_buffer_availableregion(&buf, &r);
 			if (r.length < ilen)
- 				return (DNS_R_TEXTTOOLONG);
+				return (DNS_R_TEXTTOOLONG);
 			isc_buffer_putmem(&buf,
 				(const isc_uint8_t *) dns_master_indentstr,
 				ilen);

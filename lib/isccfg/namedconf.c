@@ -1193,7 +1193,7 @@ static cfg_type_t cfg_type_masterstyle = {
  *      <message type> [query | response] ;
  *      ...
  *  }
- *  
+ *
  *  ... where message type is one of: client, resolver, auth, forwarder, all
  */
 static const char *dnstap_types[] = { "client", "resolver",
