@@ -1,3 +1,6 @@
+4236.	[func]		Set the default value for the number of UDP listeners
+			to the number of detected processors (CPU). [RT #40761]
+
 4235.	[func]		Added support in named for "dnstap", a fast method of
 			capturing and logging DNS traffic, and a new command
 			"dnstap-read" to read a dnstap log file.  Use
