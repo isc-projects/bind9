@@ -1245,6 +1245,13 @@
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2009,2011,2012,2013,2014,2015
 ./bin/tests/system/dnssec/signer/example.db.in	ZONE	2010
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./bin/tests/system/dnstap/clean.sh		SH	2015
+./bin/tests/system/dnstap/ns1/named.conf	CONF-C	2015
+./bin/tests/system/dnstap/ns1/root.db		ZONE	2015
+./bin/tests/system/dnstap/ns2/example.db	ZONE	2015
+./bin/tests/system/dnstap/ns2/named.conf	CONF-C	2015
+./bin/tests/system/dnstap/ns3/named.conf	CONF-C	2015
+./bin/tests/system/dnstap/tests.sh		SH	2015
 ./bin/tests/system/dscp/clean.sh		SH	2013,2014
 ./bin/tests/system/dscp/ns1/named.args		X	2013,2014
 ./bin/tests/system/dscp/ns1/named.conf		CONF-C	2013
@@ -2371,6 +2378,10 @@
 ./bin/tools/arpaname.c				C	2009,2015
 ./bin/tools/arpaname.docbook			SGML	2009,2014
 ./bin/tools/arpaname.html			HTML	DOCBOOK
+./bin/tools/dnstap-read.1			MAN	2015
+./bin/tools/dnstap-read.c			C	2015
+./bin/tools/dnstap-read.docbook			SGML	2015
+./bin/tools/dnstap-read.html			HTML	2015
 ./bin/tools/genrandom.8				MAN	DOCBOOK
 ./bin/tools/genrandom.c				C	2000,2001,2002,2003,2004,2005,2007,2009,2010,2012,2014
 ./bin/tools/genrandom.docbook			SGML	2009,2010,2011,2014
@@ -3018,6 +3029,7 @@
 ./doc/arm/man.dnssec-settime.html		X	2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/man.dnssec-signzone.html		X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/man.dnssec-verify.html		X	2012,2013,2014,2015
+./doc/arm/man.dnstap-read.html			X	2015
 ./doc/arm/man.genrandom.html			X	2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/man.host.html				X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/man.isc-hmac-fixup.html		X	2010,2011,2012,2013,2014,2015
@@ -3160,6 +3172,10 @@
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005,2007,2009,2010,2011,2012,2013,2015
 ./lib/dns/dns64.c				C	2010,2011,2014
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./lib/dns/dnstap.c				C	2015
+./lib/dns/dnstap.pb-c.c				C	2015
+./lib/dns/dnstap.pb-c.h				C	2015
+./lib/dns/dnstap.proto				X	2015
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006,2007,2010,2012,2014
 ./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/dst_gost.h				C	2014
@@ -3203,6 +3219,8 @@
 ./lib/dns/include/dns/dlz_dlopen.h		C	2011,2012,2013
 ./lib/dns/include/dns/dns64.h			C	2010,2014
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014
+./lib/dns/include/dns/dnstap.h			C	2015
+./lib/dns/include/dns/dnstap.pb-c.h		C	2015
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006,2007,2010,2012,2014
 ./lib/dns/include/dns/dsdigest.h		C	2012
 ./lib/dns/include/dns/dyndb.h			C	2015
@@ -3222,7 +3240,7 @@
 ./lib/dns/include/dns/log.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2011,2012,2013,2014,2015
 ./lib/dns/include/dns/lookup.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/master.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
-./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2011,2013,2014
+./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2011,2013,2014,2015
 ./lib/dns/include/dns/message.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014,2015
 ./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2015
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2013
@@ -3503,8 +3521,9 @@
 ./lib/dns/tests/dbversion_test.c		C	2011,2012,2014,2015
 ./lib/dns/tests/dh_test.c			C	2014
 ./lib/dns/tests/dispatch_test.c			C	2012,2014
+./lib/dns/tests/dnstap_test.c			C	2015
 ./lib/dns/tests/dnstest.c			C	2011,2012,2013,2014,2015
-./lib/dns/tests/dnstest.h			C	2011,2012,2014
+./lib/dns/tests/dnstest.h			C	2011,2012,2014,2015
 ./lib/dns/tests/geoip_test.c			C	2013,2014,2015
 ./lib/dns/tests/gost_test.c			C	2014,2015
 ./lib/dns/tests/keytable_test.c			C	2014,2015
@@ -3524,6 +3543,12 @@
 ./lib/dns/tests/testdata/diff/zone1.data	ZONE	2011,2012
 ./lib/dns/tests/testdata/diff/zone2.data	ZONE	2011,2012
 ./lib/dns/tests/testdata/diff/zone3.data	ZONE	2011,2012
+./lib/dns/tests/testdata/dnstap/dnstap.saved	X	2015
+./lib/dns/tests/testdata/dnstap/dnstap.text	X	2015
+./lib/dns/tests/testdata/dnstap/query.auth	X	2015
+./lib/dns/tests/testdata/dnstap/query.recursive	X	2015
+./lib/dns/tests/testdata/dnstap/response.auth	X	2015
+./lib/dns/tests/testdata/dnstap/response.recursive	X	2015
 ./lib/dns/tests/testdata/master/.gitignore	X	2012
 ./lib/dns/tests/testdata/master/master1.data	X	2011
 ./lib/dns/tests/testdata/master/master10.data	X	2011
@@ -3727,7 +3752,7 @@
 ./lib/isc/include/isc/stdlib.h			C	2003,2004,2005,2006,2007
 ./lib/isc/include/isc/string.h			C	2000,2001,2003,2004,2005,2006,2007,2014
 ./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2011,2012,2013
-./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014
+./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015
 ./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004,2005,2006,2007,2011,2012
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012,2013,2014
 ./lib/isc/include/isc/tm.h			C	2014
