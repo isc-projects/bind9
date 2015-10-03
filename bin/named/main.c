@@ -677,6 +677,8 @@ create_managers(void) {
 	isc_result_t result;
 	unsigned int socks;
 
+	INSIST(ns_g_cpus_detected > 0);
+
 #ifdef ISC_PLATFORM_USETHREADS
 	if (ns_g_cpus == 0)
 		ns_g_cpus = ns_g_cpus_detected;
@@ -693,10 +695,8 @@ create_managers(void) {
 	if (ns_g_udpdisp == 0) {
 		if (ns_g_cpus_detected == 1)
 			ns_g_udpdisp = 1;
-		else if (ns_g_cpus_detected < 4)
-			ns_g_udpdisp = 2;
 		else
-			ns_g_udpdisp = ns_g_cpus_detected / 2;
+			ns_g_udpdisp = ns_g_cpus_detected - 1;
 	}
 	if (ns_g_udpdisp > ns_g_cpus)
 		ns_g_udpdisp = ns_g_cpus;

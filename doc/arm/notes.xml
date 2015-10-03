@@ -184,6 +184,13 @@
 	   transport the query was received over.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  On machines with 4 or more processors (CPU), the default value
+	  for the number of UDP listeners has been changed to the number
+	  of detected processors minus one.
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_port">
