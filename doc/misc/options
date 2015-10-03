@@ -134,6 +134,12 @@ options {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
+        dnstap { ( client | resolver | auth | forwarder |
+            all ) [ ( query | response ) ]; ... }; // not configured
+        dnstap-identity ( <quoted_string> | none |
+            hostname ); // not configured
+        dnstap-output ( file | unix ) <quoted_string>; // not configured
+        dnstap-version ( <quoted_string> | none ); // not configured
         dscp <integer>;
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
@@ -429,6 +435,8 @@ view <string> [ <class> ] {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
+        dnstap { ( client | resolver | auth | forwarder |
+            all ) [ ( query | response ) ]; ... }; // not configured
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
             <integer> ] [ dscp <integer> ] | <ipv6_address> [ port

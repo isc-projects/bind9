@@ -19,8 +19,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>dnstap-read</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
-<link rel="home" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.1">
+<link rel="start" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.ch13.html" title="Manual pages">
 <link rel="prev" href="man.arpaname.html" title="arpaname">
 <link rel="next" href="man.genrandom.html" title="genrandom">
@@ -39,7 +39,7 @@
 </table>
 <hr>
 </div>
-<div class="refentry">
+<div class="refentry" lang="en">
 <a name="man.dnstap-read"></a><div class="titlepage"></div>
 <div class="refnamediv">
 <h2>Name</h2>
@@ -49,47 +49,47 @@
 <h2>Synopsis</h2>
 <div class="cmdsynopsis"><p><code class="command">dnstap-read</code>  [<code class="option">-m</code>] [<code class="option">-p</code>] [<code class="option">-y</code>] {<em class="replaceable"><code>file</code></em>}</p></div>
 </div>
-<div class="refsect1">
-<a name="idp63136656"></a><h2>DESCRIPTION</h2>
+<div class="refsect1" lang="en">
+<a name="id2719777"></a><h2>DESCRIPTION</h2>
 <p>
-      <span class="command"><strong>dnstap-read</strong></span>
-      reads <span class="command"><strong>dnstap</strong></span> data from a specified file
+      <span><strong class="command">dnstap-read</strong></span>
+      reads <span><strong class="command">dnstap</strong></span> data from a specified file
       and prints it in a human-readable format.  By default,
-      <span class="command"><strong>dnstap</strong></span> data is printed in a short summary
+      <span><strong class="command">dnstap</strong></span> data is printed in a short summary
       format, but if the <code class="option">-y</code> option is specified,
       then a longer and more detailed YAML format is used instead.
     </p>
 </div>
-<div class="refsect1">
-<a name="idp55841376"></a><h2>OPTIONS</h2>
-<div class="variablelist"><dl class="variablelist">
+<div class="refsect1" lang="en">
+<a name="id2719806"></a><h2>OPTIONS</h2>
+<div class="variablelist"><dl>
 <dt><span class="term">-m</span></dt>
 <dd><p>
             Trace memory allocations; used for debugging memory leaks.
           </p></dd>
 <dt><span class="term">-p</span></dt>
 <dd><p>
-            After printing the <span class="command"><strong>dnstap</strong></span> data, print
+            After printing the <span><strong class="command">dnstap</strong></span> data, print
             the text form of the DNS message that was encapsulated in the
-            <span class="command"><strong>dnstap</strong></span> frame.
+            <span><strong class="command">dnstap</strong></span> frame.
           </p></dd>
 <dt><span class="term">-y</span></dt>
 <dd><p>
-            Print <span class="command"><strong>dnstap</strong></span> data in a detailed YAML
+            Print <span><strong class="command">dnstap</strong></span> data in a detailed YAML
             format. Implies <code class="option">-p</code>.
           </p></dd>
 </dl></div>
 </div>
-<div class="refsect1">
-<a name="idp61840128"></a><h2>SEE ALSO</h2>
+<div class="refsect1" lang="en">
+<a name="id2746090"></a><h2>SEE ALSO</h2>
 <p>
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">nsupdate</span>(8)</span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>.
     </p>
 </div>
-<div class="refsect1">
-<a name="idp64567456"></a><h2>AUTHOR</h2>
+<div class="refsect1" lang="en">
+<a name="id2746121"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
