@@ -1,3 +1,8 @@
+4236.	[func]		On machines with 4 or more processors (CPU), the
+			default value for the number of UDP listeners
+			has been changed to the number of detected
+			processors minus one. [RT #40761]
+
 4233.	[test]		Add tests for CDS and CDNSKEY with delegation-only.
 			[RT #40597]
 
