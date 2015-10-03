@@ -141,7 +141,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
  *
  * Notes:
  *
- *\li	'path' refers to a UNIX domain socket by default. It may 
+ *\li	'path' refers to a UNIX domain socket by default. It may
  *	optionally be prepended with "socket:" or "file:". If prepended
  *	with "file:", then dnstap logs are sent to a file instead of a
  *	socket.
@@ -235,7 +235,7 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
  *
  * Requires:
  *
- *\li	'view' is a valid view, and 'view->dtenv' is NULL or is a 
+ *\li	'view' is a valid view, and 'view->dtenv' is NULL or is a
  *	valid dnstap environment.
  */
 
@@ -261,7 +261,7 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest);
 /*%<
  * Converts a parsed dnstap data structure 'd' to text, storing
  * the result in the buffer 'dest'.  If 'dest' points to a dynamically
- * allocated buffer, then it may be reallocated as needed. 
+ * allocated buffer, then it may be reallocated as needed.
  *
  * (XXX: add a 'long_form' option to generate a detailed listing of
  * dnstap data instead * of a one-line summary.)
@@ -324,7 +324,7 @@ dns_dt_getframe(dns_dthandle_t *handle, isc_uint8_t **bufp, size_t *sizep);
  *\li	'bufp' is not NULL
  *\li	'sizep' is not NULL
  *
- * Ensures: 
+ * Ensures:
  * \li	if returning ISC_R_SUCCESS then '*bufp' is not NULL
  *
  * Returns:

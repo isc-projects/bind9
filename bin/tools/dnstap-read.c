@@ -13,6 +13,7 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+
 /*
  * Portions of this code were adapted from dnstap-ldns:
  *
@@ -60,7 +61,7 @@ const char *program = "dnstap-read";
 	do { result = (op);					  \
 	       if (result != ISC_R_SUCCESS) {			  \
 			fprintf(stderr, 			  \
-			        "%s: %s: %s\n", program, msg,	  \
+				"%s: %s: %s\n", program, msg,	  \
 				      isc_result_totext(result)); \
 			goto cleanup;				  \
 		}						  \

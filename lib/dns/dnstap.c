@@ -819,7 +819,7 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 	}
 
 	/* Query? */
-	if ((d->type & DNS_DTTYPE_QUERY) != 0) 
+	if ((d->type & DNS_DTTYPE_QUERY) != 0)
 		d->query = ISC_TRUE;
 	else
 		d->query = ISC_FALSE;
@@ -871,10 +871,10 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 			protobuf_c_enum_descriptor_get_value(
 				&dnstap__socket_protocol__descriptor,
 				m->socket_protocol);
-		if (type != NULL && 
+		if (type != NULL &&
 		    type->value == DNSTAP__SOCKET_PROTOCOL__TCP)
 			d->tcp = ISC_TRUE;
-		else 
+		else
 			d->tcp = ISC_FALSE;
 	}
 
@@ -1019,7 +1019,7 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest) {
 
 	if (d->typebuf[0] == '\0')
 		CHECK(putstr(dest, "?"));
-	else 
+	else
 		CHECK(putstr(dest, d->typebuf));
 
 	CHECK(isc_buffer_reserve(dest, 1));
