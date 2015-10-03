@@ -112,6 +112,16 @@
       </row>
       <row rowsep="0">
 	<entry colname="1">
+	  <para><command>dnssec</command></para>
+	</entry>
+	<entry colname="2">
+	  <para>
+	    The "dnstap" DNS traffic capture system.
+	  </para>
+	</entry>
+      </row>
+      <row rowsep="0">
+	<entry colname="1">
 	  <para><command>edns-disabled</command></para>
 	</entry>
 	<entry colname="2">
