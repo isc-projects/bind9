@@ -730,14 +730,14 @@ alloc_compspace(isc_httpd_t *httpd, unsigned int size) {
  *\li	httpd a valid isc_httpd_t object
  *
  * Returns:
- *\li	#ISC_R_SUCCESS		-- all is well.
- *\li	#ISC_R_NOMEMORY		-- not enough memory to compress data
- *\li	#ISC_R_FAILURE		-- error during compression or compressed
- *\li						   data would be larger than input data
+ *\li	#ISC_R_SUCCESS	  -- all is well.
+ *\li	#ISC_R_NOMEMORY	  -- not enough memory to compress data
+ *\li	#ISC_R_FAILURE	  -- error during compression or compressed
+ *			     data would be larger than input data
  */
 static isc_result_t
 isc_httpd_compress(isc_httpd_t *httpd) {
-	z_stream zstr = {0};
+	z_stream zstr;
 	isc_region_t r;
 	isc_result_t result;
 	int ret;
@@ -750,9 +750,11 @@ isc_httpd_compress(isc_httpd_t *httpd) {
 	}
 	isc_buffer_region(&httpd->compbuffer, &r);
 
-	/* We're setting output buffer size to input size so it fails if the
+	/*
+	 * We're setting output buffer size to input size so it fails if the
 	 * compressed data size would be bigger than the input size.
 	 */
+	memset(&zstr, 0, sizeof(zstr));
 	zstr.total_in = zstr.avail_in =
 			zstr.total_out = zstr.avail_out = inputlen;
 
