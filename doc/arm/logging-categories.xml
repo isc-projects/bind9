@@ -112,7 +112,7 @@
       </row>
       <row rowsep="0">
 	<entry colname="1">
-	  <para><command>dnssec</command></para>
+	  <para><command>dnstap</command></para>
 	</entry>
 	<entry colname="2">
 	  <para>
