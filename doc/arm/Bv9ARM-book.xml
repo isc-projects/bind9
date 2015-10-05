@@ -6334,19 +6334,23 @@ options {
 
 	    <varlistentry>
 	      <term><command>request-sit</command></term>
-	      <para>
-		This experimental option is obsolete.
-	      </para>
+	      <listitem>
+		<para>
+		  This experimental option is obsolete.
+		</para>
+	      </listitem>
 	    </varlistentry>
 
 	    <varlistentry>
 	      <term><command>require-server-cookie</command></term>
-	      <para>
-		Require a valid server cookie before sending a full
-		response to a UDP request from a cookie aware client.
-		BADCOOKIE is sent if there is a bad or no existent
-		server cookie.
-	      </para>
+	      <listitem>
+		<para>
+		  Require a valid server cookie before sending a full
+		  response to a UDP request from a cookie aware client.
+		  BADCOOKIE is sent if there is a bad or no existent
+		  server cookie.
+		</para>
+	      </listitem>
 	    </varlistentry>
 
 	    <varlistentry>
