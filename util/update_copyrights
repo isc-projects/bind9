@@ -314,7 +314,7 @@ foreach $file (keys %file_types) {
                 }
         } elsif ($sgml_comment) {
 		$before_copyright = "";
-                while (/^<!DOCTYPE/ || /^<\?xml-stylesheet/ || /^<\?xml /) {
+                while (/^<!DOCTYPE/ || /^<!ENTITY/ || /^<\?xml-stylesheet/ || /^<\?xml /) {
 			# print "SGML: $_";
 			$before_copyright = "$before_copyright$_";
 			if (/>$/ ) {
@@ -332,7 +332,7 @@ foreach $file (keys %file_types) {
 				next;
 			}
                 }
-                if (/^<!/) {
+                if (/^<!--/) {
                         $_ = <SOURCE> if $_ eq "<!--\n";
                         if ($_ !~ /[Cc]opyright/) {
                                 print "$file: non-copyright comment\n";
