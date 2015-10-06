@@ -46,13 +46,13 @@
 <dl>
 <dt><span class="section"><a href="Bv9ARM.ch12.html#bind9.library">BIND 9 DNS Library Support</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76586960">Prerequisite</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76592592">Compilation</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76595792">Installation</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76599504">Known Defects/Restrictions</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76613200">The dns.conf File</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76616528">Sample Applications</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76697040">Library References</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76583248">Prerequisite</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76584784">Compilation</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76587984">Installation</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76591824">Known Defects/Restrictions</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76605392">The dns.conf File</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76608720">Sample Applications</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp76689232">Library References</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -98,7 +98,7 @@
 </ul></div>
   <div class="section" title="Prerequisite">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="idp76586960"></a>Prerequisite</h3></div></div></div>
+<a name="idp76583248"></a>Prerequisite</h3></div></div></div>
     
   <p>GNU make is required to build the export libraries (other
   part of BIND 9 can still be built with other types of make). In
@@ -108,7 +108,7 @@
   </div>
   <div class="section" title="Compilation">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="idp76592592"></a>Compilation</h3></div></div></div>
+<a name="idp76584784"></a>Compilation</h3></div></div></div>
     
   <pre class="screen">
 $ <strong class="userinput"><code>./configure --enable-exportlib <em class="replaceable"><code>[other flags]</code></em></code></strong>
@@ -124,7 +124,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </div>
   <div class="section" title="Installation">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="idp76595792"></a>Installation</h3></div></div></div>
+<a name="idp76587984"></a>Installation</h3></div></div></div>
     
   <pre class="screen">
 $ <strong class="userinput"><code>cd lib/export</code></strong>
@@ -147,7 +147,7 @@ $ <strong class="userinput"><code>make install</code></strong>
   </div>
   <div class="section" title="Known Defects/Restrictions">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="idp76599504"></a>Known Defects/Restrictions</h3></div></div></div>
+<a name="idp76591824"></a>Known Defects/Restrictions</h3></div></div></div>
     
   <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
@@ -197,7 +197,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </div>
   <div class="section" title="The dns.conf File">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="idp76613200"></a>The dns.conf File</h3></div></div></div>
+<a name="idp76605392"></a>The dns.conf File</h3></div></div></div>
     
   <p>The IRS library supports an "advanced" configuration file
   related to the DNS library for configuration parameters that
@@ -216,7 +216,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </div>
   <div class="section" title="Sample Applications">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="idp76616528"></a>Sample Applications</h3></div></div></div>
+<a name="idp76608720"></a>Sample Applications</h3></div></div></div>
     
   <p>Some sample application programs using this API are
   provided for reference. The following is a brief description of
@@ -224,7 +224,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </p>
   <div class="section" title="sample: a simple stub resolver utility">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="idp76617808"></a>sample: a simple stub resolver utility</h4></div></div></div>
+<a name="idp76610000"></a>sample: a simple stub resolver utility</h4></div></div></div>
     
   <p>
   It sends a query of a given name (of a given optional RR type) to a
@@ -289,7 +289,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </div>
   <div class="section" title="sample-async: a simple stub resolver, working asynchronously">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="idp76636496"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
+<a name="idp76628816"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
     
   <p>
   Similar to "sample", but accepts a list
@@ -331,7 +331,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </div>
   <div class="section" title="sample-request: a simple DNS transaction client">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="idp76643024"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
+<a name="idp76635216"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
     
   <p>
   It sends a query to a specified server, and
@@ -379,7 +379,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </div>
   <div class="section" title="sample-gai: getaddrinfo() and getnameinfo() test code">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="idp76650704"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
+<a name="idp76642896"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
     
   <p>
   This is a test program
@@ -397,7 +397,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </div>
   <div class="section" title="sample-update: a simple dynamic update client program">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="idp76652496"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
+<a name="idp76644688"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
     
   <p>
   It accepts a single update command as a
@@ -495,7 +495,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
   </div>
   <div class="section" title="nsprobe: domain/name server checker in terms of RFC 4074">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="idp76689104"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
+<a name="idp76681296"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
     
   <p>
   It checks a set
@@ -554,7 +554,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
   </div>
   <div class="section" title="Library References">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="idp76697040"></a>Library References</h3></div></div></div>
+<a name="idp76689232"></a>Library References</h3></div></div></div>
     
   <p>As of this writing, there is no formal "manual" of the
   libraries, except this document, header files (some of them
