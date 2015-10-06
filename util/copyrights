@@ -2860,10 +2860,8 @@
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/dlz.xml				SGML	2012,2013,2014
 ./doc/arm/dnssec.xml				SGML	2010,2011,2015
-./doc/arm/html-fixup.pl				PERL	2015
 ./doc/arm/isc-logo.eps				X	2005,2010
 ./doc/arm/isc-logo.pdf				X	2005,2010
-./doc/arm/latex-fixup.pl			PERL	2005,2007,2012,2015
 ./doc/arm/libdns.xml				SGML	2010,2014
 ./doc/arm/logging-categories.xml		SGML	2015
 ./doc/arm/man.arpaname.html			X	2009,2010,2011,2012,2013,2014,2015
@@ -2961,12 +2959,9 @@
 ./doc/xsl/copyright.xsl				SGML	2005,2007,2009
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005,2007,2014
 ./doc/xsl/isc-docbook-html.xsl.in		SGML	2005,2007,2014
-./doc/xsl/isc-docbook-latex-mappings.xml	SGML	2005,2007
-./doc/xsl/isc-docbook-latex.xsl.in		SGML	2005,2007,2010,2014,2015
 ./doc/xsl/isc-docbook-text.xsl			SGML	2005,2007
 ./doc/xsl/isc-manpage.xsl.in			SGML	2005,2007
 ./doc/xsl/isc-notes-html.xsl.in			SGML	2015
-./doc/xsl/isc-notes-latex.xsl.in		SGML	2014,2015
 ./doc/xsl/pre-latex.xsl				SGML	2005,2007
 ./docutil/HTML_COPYRIGHT			X	2001,2004
 ./docutil/MAN_COPYRIGHT				X	2001,2004
