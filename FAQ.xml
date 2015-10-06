@@ -41,7 +41,7 @@
   </info>
   <qandaset defaultlabel="qanda">
 	  
-    <qandadiv>	  
+    <qandadiv><title>Compilation and Installation Questions</title>	  
     
     <qandaentry>
       <question>
@@ -93,7 +93,7 @@
     
     </qandadiv> <!-- Compilation and Installation Questions -->
 	    
-    <qandadiv>
+    <qandadiv><title>Configuration and Setup Questions</title>
 
     <qandaentry>
       <!-- configuration, log -->
@@ -694,7 +694,7 @@ server ::/0 { bogus yes; };
     
     </qandadiv> <!-- Configuration and Setup Questions -->
     
-    <qandadiv>
+    <qandadiv><title>Operations Questions</title>
 
     <qandaentry>
       <question>
@@ -764,7 +764,7 @@ server ::/0 { bogus yes; };
 
     </qandadiv> <!-- Operations Questions -->
 
-    <qandadiv>
+    <qandadiv><title>General Questions</title>
 	    
     <qandaentry>
       <question>
@@ -1080,9 +1080,9 @@ empty:
 
     </qandadiv> <!-- General Questions -->
     
-    <qandadiv>
-	    
-    <qandadiv>
+    <qandadiv><title>Operating-System Specific Questions</title>
+
+    <qandadiv><title>HPUX</title>
 
     <qandaentry>
       <question>
@@ -1108,7 +1108,7 @@ configure: error: need either working unistd.h or sys/select.h</programlisting>
 
     </qandadiv> <!-- HPUX -->
 
-    <qandadiv>
+    <qandadiv><title>Linux</title>
 	    
     <qandaentry>
       <question> 
@@ -1436,7 +1436,7 @@ proc /var/named/proc proc defaults 0 0</programlisting>
     
     </qandadiv> <!-- Linux -->
     
-    <qandadiv>
+    <qandadiv><title>Windows</title>
 	    
     <qandaentry>
       <question>
@@ -1487,7 +1487,7 @@ options {
 	    
     </qandadiv> <!-- Windows -->
     
-    <qandadiv>
+    <qandadiv><title>FreeBSD</title>
 	    
     <qandaentry>
       <question>
@@ -1516,7 +1516,7 @@ rand_irqs="3 14 15"</programlisting>
     
     </qandadiv> <!-- FreeBSD -->
     
-    <qandadiv>
+    <qandadiv><title>Solaris</title>
 	    
     <qandaentry>
       <question>
@@ -1536,9 +1536,9 @@ rand_irqs="3 14 15"</programlisting>
       </answer>
     </qandaentry>
     
-    </qandadiv>
+    </qandadiv> <!-- Solaris -->
 
-    <qandadiv>
+    <qandadiv><title>Apple Mac OS X</title>
 
     <qandaentry>
       <question>
@@ -1600,7 +1600,7 @@ key "rndc-key" {
       </answer>
     </qandaentry>
 
-    </qandadiv>
+    </qandadiv> <!-- Apple Mac OS X -->
     
     </qandadiv> <!-- Operating-System Specific Questions -->
 
