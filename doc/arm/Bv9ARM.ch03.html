@@ -18,7 +18,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Chapter 3. Name Server Configuration</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
 <link rel="home" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="prev" href="Bv9ARM.ch02.html" title="Chapter 2. BIND Resource Requirements">
@@ -38,22 +38,22 @@
 </table>
 <hr>
 </div>
-<div class="chapter">
-<div class="titlepage"><div><div><h1 class="title">
-<a name="Bv9ARM.ch03"></a>Chapter 3. Name Server Configuration</h1></div></div></div>
+<div class="chapter" title="Chapter 3. Name Server Configuration">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="Bv9ARM.ch03"></a>Chapter 3. Name Server Configuration</h2></div></div></div>
 <div class="toc">
 <p><b>Table of Contents</b></p>
-<dl class="toc">
+<dl>
 <dt><span class="section"><a href="Bv9ARM.ch03.html#sample_configuration">Sample Configurations</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch03.html#id-1.4.4.3">A Caching-only Name Server</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch03.html#id-1.4.4.4">An Authoritative-only Name Server</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch03.html#idp71672528">A Caching-only Name Server</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch03.html#idp71674704">An Authoritative-only Name Server</a></span></dt>
 </dl></dd>
-<dt><span class="section"><a href="Bv9ARM.ch03.html#id-1.4.5">Load Balancing</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch03.html#id-1.4.6">Name Server Operations</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch03.html#idp71677648">Load Balancing</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch03.html#idp71713488">Name Server Operations</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch03.html#id-1.4.6.3">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch03.html#id-1.4.6.4">Signals</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch03.html#idp71714384">Tools for Use With the Name Server Daemon</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch03.html#idp71840976">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -64,13 +64,13 @@
       certain option settings.
     </p>
 
-    <div class="section">
+    <div class="section" title="Sample Configurations">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="sample_configuration"></a>Sample Configurations</h2></div></div></div>
       
-      <div class="section">
+      <div class="section" title="A Caching-only Name Server">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.4.4.3"></a>A Caching-only Name Server</h3></div></div></div>
+<a name="idp71672528"></a>A Caching-only Name Server</h3></div></div></div>
         
         <p>
           The following sample configuration is appropriate for a caching-only
@@ -102,9 +102,9 @@ zone "0.0.127.in-addr.arpa" {
 
       </div>
 
-      <div class="section">
+      <div class="section" title="An Authoritative-only Name Server">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.4.4.4"></a>An Authoritative-only Name Server</h3></div></div></div>
+<a name="idp71674704"></a>An Authoritative-only Name Server</h3></div></div></div>
         
         <p>
           This sample configuration is for an authoritative-only server
@@ -154,9 +154,9 @@ zone "eng.example.com" {
       </div>
     </div>
 
-    <div class="section">
+    <div class="section" title="Load Balancing">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.4.5"></a>Load Balancing</h2></div></div></div>
+<a name="idp71677648"></a>Load Balancing</h2></div></div></div>
       
       
 
@@ -306,14 +306,14 @@ zone "eng.example.com" {
 
     </div>
 
-    <div class="section">
+    <div class="section" title="Name Server Operations">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.4.6"></a>Name Server Operations</h2></div></div></div>
+<a name="idp71713488"></a>Name Server Operations</h2></div></div></div>
       
 
-      <div class="section">
+      <div class="section" title="Tools for Use With the Name Server Daemon">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.4.6.3"></a>Tools for Use With the Name Server Daemon</h3></div></div></div>
+<a name="idp71714384"></a>Tools for Use With the Name Server Daemon</h3></div></div></div>
         
         <p>
           This section describes several indispensable diagnostic,
@@ -321,7 +321,7 @@ zone "eng.example.com" {
           administrator for controlling and debugging the name server
           daemon.
         </p>
-        <div class="section">
+        <div class="section" title="Diagnostic Tools">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="diagnostic_tools"></a>Diagnostic Tools</h4></div></div></div>
           
@@ -333,7 +333,7 @@ zone "eng.example.com" {
             output format.
           </p>
 
-          <div class="variablelist"><dl class="variablelist">
+          <div class="variablelist"><dl>
 <dt><span class="term"><a name="dig"></a><span class="command"><strong>dig</strong></span></span></dt>
 <dd>
                 <p>
@@ -442,7 +442,7 @@ zone "eng.example.com" {
 </dl></div>
         </div>
 
-        <div class="section">
+        <div class="section" title="Administrative Tools">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="admin_tools"></a>Administrative Tools</h4></div></div></div>
           
@@ -450,7 +450,7 @@ zone "eng.example.com" {
             Administrative tools play an integral part in the management
             of a server.
           </p>
-          <div class="variablelist"><dl class="variablelist">
+          <div class="variablelist"><dl>
 <dt>
 <a name="named-checkconf"></a><span class="term"><span class="command"><strong>named-checkconf</strong></span></span>
 </dt>
@@ -701,9 +701,9 @@ controls {
 
         </div>
       </div>
-      <div class="section">
+      <div class="section" title="Signals">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.4.6.4"></a>Signals</h3></div></div></div>
+<a name="idp71840976"></a>Signals</h3></div></div></div>
 
         
         <p>

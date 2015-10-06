@@ -14,6 +14,8 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
+<!-- $Id$ -->
+
 <!-- Generate ISC copyright comments from Docbook copyright metadata. -->
 
 <xsl:stylesheet version="1.0"
