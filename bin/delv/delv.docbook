@@ -1,7 +1,7 @@
 <!DOCTYPE book [
 <!ENTITY mdash "&#8212;">]>
 <!--
- - Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -15,6 +15,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
+
 <!-- Converted by db4-upgrade version 1.0 -->
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="man.delv">
   <info>
@@ -39,6 +40,7 @@
   <docinfo>
     <copyright>
       <year>2014</year>
+      <year>2015</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
   </docinfo>
