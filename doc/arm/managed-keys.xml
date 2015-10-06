@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
  - Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
  -
@@ -14,29 +13,27 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<!-- $Id: managed-keys.xml,v 1.3 2010/02/03 23:49:07 tbox Exp $ -->
-
-<sect1 id="rfc5011.support">
-  <title>Dynamic Trust Anchor Management</title>
+<!-- Converted by db4-upgrade version 1.0 -->
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="rfc5011.support"><info><title>Dynamic Trust Anchor Management</title></info>
+  
   <para>BIND 9.7.0 introduces support for RFC 5011, dynamic trust
   anchor management. Using this feature allows 
   <command>named</command> to keep track of changes to critical
   DNSSEC keys without any need for the operator to make changes to
   configuration files.</para>
-  <sect2>
-    <title>Validating Resolver</title>
+  <section><info><title>Validating Resolver</title></info>
+    
     <!-- TODO: command tag is overloaded for configuration and executables -->
     <para>To configure a validating resolver to use RFC 5011 to
     maintain a trust anchor, configure the trust anchor using a 
     <command>managed-keys</command> statement. Information about
     this can be found in 
-    <xref linkend="managed-keys" />.</para>
+    <xref linkend="managed-keys"/>.</para>
     <!-- TODO: managed-keys examples
 also in DNSSEC section above here in ARM -->
-  </sect2>
-  <sect2>
-    <title>Authoritative Server</title>
+  </section>
+  <section><info><title>Authoritative Server</title></info>
+    
     <para>To set up an authoritative zone for RFC 5011 trust anchor
     maintenance, generate two (or more) key signing keys (KSKs) for
     the zone. Sign the zone with one of them; this is the "active"
@@ -96,5 +93,5 @@ $ <userinput>dnssec-signzone -S -K keys example.net</userinput>
     <para>It is expected that a future release of BIND 9 will
     address this problem in a different way, by storing revoked
     keys with their original unrevoked key ID's.</para>
-  </sect2>
-</sect1>
+  </section>
+</section>

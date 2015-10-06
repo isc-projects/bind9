@@ -1,6 +1,3 @@
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
-	       "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
-	       [<!ENTITY mdash "&#8212;">]>
 <!--
  - Copyright (C) 2004, 2005, 2007, 2013-2015  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000, 2001  Internet Software Consortium.
@@ -17,10 +14,14 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<refentry id="man.rndc">
+<!-- Converted by db4-upgrade version 1.0 -->
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="man.rndc">
+  <info>
+    <date>2013-12-04</date>
+  </info>
   <refentryinfo>
-    <date>December 04, 2013</date>
+    <corpname>ISC</corpname>
+    <corpauthor>Internet Systems Consortium, Inc.</corpauthor>
   </refentryinfo>
 
   <refmeta>
@@ -52,21 +53,21 @@
   </docinfo>
 
   <refsynopsisdiv>
-    <cmdsynopsis>
+    <cmdsynopsis sepchar=" ">
       <command>rndc</command>
-      <arg><option>-b <replaceable class="parameter">source-address</replaceable></option></arg>
-      <arg><option>-c <replaceable class="parameter">config-file</replaceable></option></arg>
-      <arg><option>-k <replaceable class="parameter">key-file</replaceable></option></arg>
-      <arg><option>-s <replaceable class="parameter">server</replaceable></option></arg>
-      <arg><option>-p <replaceable class="parameter">port</replaceable></option></arg>
-      <arg><option>-V</option></arg>
-      <arg><option>-y <replaceable class="parameter">key_id</replaceable></option></arg>
-      <arg choice="req">command</arg>
+      <arg choice="opt" rep="norepeat"><option>-b <replaceable class="parameter">source-address</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-c <replaceable class="parameter">config-file</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-k <replaceable class="parameter">key-file</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-s <replaceable class="parameter">server</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-p <replaceable class="parameter">port</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-V</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-y <replaceable class="parameter">key_id</replaceable></option></arg>
+      <arg choice="req" rep="norepeat">command</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
 
-  <refsect1>
-    <title>DESCRIPTION</title>
+  <refsection><info><title>DESCRIPTION</title></info>
+    
     <para><command>rndc</command>
       controls the operation of a name
       server.  It supersedes the <command>ndc</command> utility
@@ -93,10 +94,10 @@
       determine how to contact the name server and decide what
       algorithm and key it should use.
     </para>
-  </refsect1>
+  </refsection>
 
-  <refsect1>
-    <title>OPTIONS</title>
+  <refsection><info><title>OPTIONS</title></info>
+    
 
     <variablelist>
       <varlistentry>
@@ -196,10 +197,10 @@
       </varlistentry>
 
     </variablelist>
-  </refsect1>
+  </refsection>
 
-  <refsect1>
-    <title>COMMANDS</title>
+  <refsection><info><title>COMMANDS</title></info>
+    
     <para>
       A list of commands supported by <command>rndc</command> can
       be seen by running <command>rndc</command> without arguments.
@@ -726,10 +727,10 @@
       </varlistentry>
 
     </variablelist>
-  </refsect1>
+  </refsection>
 
-  <refsect1>
-    <title>LIMITATIONS</title>
+  <refsection><info><title>LIMITATIONS</title></info>
+    
     <para>
       There is currently no way to provide the shared secret for a
       <option>key_id</option> without using the configuration file.
@@ -737,10 +738,10 @@
     <para>
       Several error messages could be clearer.
     </para>
-  </refsect1>
+  </refsection>
 
-  <refsect1>
-    <title>SEE ALSO</title>
+  <refsection><info><title>SEE ALSO</title></info>
+    
     <para><citerefentry>
 	<refentrytitle>rndc.conf</refentrytitle><manvolnum>5</manvolnum>
       </citerefentry>,
@@ -758,16 +759,6 @@
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>.
     </para>
-  </refsect1>
+  </refsection>
 
-  <refsect1>
-    <title>AUTHOR</title>
-    <para><corpauthor>Internet Systems Consortium</corpauthor>
-    </para>
-  </refsect1>
-
-</refentry><!--
- - Local variables:
- - mode: sgml
- - End:
--->
+</refentry>

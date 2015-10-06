@@ -314,6 +314,7 @@ XSLTPROC =		@XSLTPROC@ --novalid --xinclude --nonet
 PERL =			@PERL@
 LATEX =			@LATEX@
 PDFLATEX =		@PDFLATEX@
+DBLATEX =		@DBLATEX@
 W3M =			@W3M@
 
 ###

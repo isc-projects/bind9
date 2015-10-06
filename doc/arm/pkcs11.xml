@@ -1,6 +1,3 @@
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
-               "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
-               [<!ENTITY mdash "&#8212;">]>
 <!--
  - Copyright (C) 2010, 2012-2014  Internet Systems Consortium, Inc. ("ISC")
  -
@@ -16,11 +13,9 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<!-- $Id: pkcs11.xml,v 1.7 2012/01/16 22:50:12 each Exp $ -->
-
-<sect1 id="pkcs11">
-  <title>PKCS #11 (Cryptoki) support</title>
+<!-- Converted by db4-upgrade version 1.0 -->
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pkcs11"><info><title>PKCS #11 (Cryptoki) support</title></info>
+  
   <para>PKCS #11 (Public Key Cryptography Standard #11) defines a
   platform- independent API for the control of hardware security
   modules (HSMs) and other cryptographic support devices.</para>
@@ -28,8 +23,8 @@
   cryptographic acceleration board, tested under Solaris x86, and
   the AEP Keyper network-attached key storage device, tested with
   Debian Linux, Solaris x86 and Windows Server 2003.</para>
-  <sect2>
-    <title>Prerequisites</title>
+  <section><info><title>Prerequisites</title></info>
+    
     <para>See the HSM vendor documentation for information about
     installing, initializing, testing and troubleshooting the
     HSM.</para>
@@ -60,7 +55,7 @@
         function primarily as secure key storage devices, but lack
         hardware acceleration. These devices are highly secure, but
         are not necessarily any faster at cryptography than the
-        system CPU &mdash; often, they are slower. It is therefore
+        system CPU — often, they are slower. It is therefore
         most efficient to use them only for those cryptographic
         functions that require access to the secured private key,
         such as zone signing, and to use the system CPU for all
@@ -89,7 +84,7 @@
     library.</para>
     <para>Obtain OpenSSL 0.9.8s:</para>
     <screen>
-$ <userinput>wget <ulink>http://www.openssl.org/source/openssl-0.9.8s.tar.gz</ulink></userinput>
+$ <userinput>wget <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="">http://www.openssl.org/source/openssl-0.9.8s.tar.gz</link></userinput>
 </screen>
     <para>Extract the tarball:</para>
     <screen>
@@ -108,9 +103,9 @@ $ <userinput>patch -p1 -d openssl-0.9.8s \
     elsewhere on the system. In the following examples, we choose
     to install into "/opt/pkcs11/usr". We will use this location
     when we configure BIND 9.</para>
-    <sect3>
+    <section><info><title>Building OpenSSL for the AEP Keyper on Linux</title></info>
       <!-- Example 1 -->
-      <title>Building OpenSSL for the AEP Keyper on Linux</title>
+      
       <para>The AEP Keyper is a highly secure key storage device,
       but does not provide hardware cryptographic acceleration. It
       can carry out cryptographic operations, but it is probably
@@ -139,10 +134,10 @@ $ <userinput>./Configure linux-generic32 -m32 -pthread \
       and "<command>make test</command>". If "<command>make
       test</command>" fails with "pthread_atfork() not found", you forgot to
       add the -pthread above.</para>
-    </sect3>
-    <sect3>
+    </section>
+    <section><info><title>Building OpenSSL for the SCA 6000 on Solaris</title></info>
       <!-- Example 2 -->
-      <title>Building OpenSSL for the SCA 6000 on Solaris</title>
+      
       <para>The SCA-6000 PKCS #11 provider is installed as a system
       library, libpkcs11. It is a true crypto accelerator, up to 4
       times faster than any CPU, so the flavor shall be
@@ -161,10 +156,10 @@ $ <userinput>./Configure solaris64-x86_64-cc \
       <para>After configuring, run 
       <command>make</command> and 
       <command>make test</command>.</para>
-    </sect3>
-    <sect3>
+    </section>
+    <section><info><title>Building OpenSSL for SoftHSM</title></info>
       <!-- Example 3 -->
-      <title>Building OpenSSL for SoftHSM</title>
+      
       <para>SoftHSM is a software library provided by the OpenDNSSEC
       project (http://www.opendnssec.org) which provides a PKCS#11
       interface to a virtual HSM, implemented in the form of encrypted
@@ -183,7 +178,7 @@ $ <userinput> configure --prefix=/opt/pkcs11/usr </userinput>
 $ <userinput> make </userinput>
 $ <userinput> make install </userinput>
 $ <userinput> export SOFTHSM_CONF=/opt/pkcs11/softhsm.conf </userinput>
-$ <userinput> echo "0:/opt/pkcs11/softhsm.db" > $SOFTHSM_CONF </userinput>
+$ <userinput> echo "0:/opt/pkcs11/softhsm.db" &gt; $SOFTHSM_CONF </userinput>
 $ <userinput> /opt/pkcs11/usr/bin/softhsm --init-token 0 --slot 0 --label softhsm </userinput>
 </screen>
       <para>SoftHSM can perform all cryptographic operations, but
@@ -199,7 +194,7 @@ $ <userinput>./Configure linux-x86_64 -pthread \
 </screen>
       <para>After configuring, run "<command>make</command>"
       and "<command>make test</command>".</para>
-    </sect3>
+    </section>
     <para>Once you have built OpenSSL, run
     "<command>apps/openssl engine pkcs11</command>" to confirm
     that PKCS #11 support was compiled in correctly. The output
@@ -221,14 +216,14 @@ $ <userinput>./Configure linux-x86_64 -pthread \
     "<command>make install</command>" which will install the
     modified OpenSSL suite to 
     <filename>/opt/pkcs11/usr</filename>.</para>
-  </sect2>
-  <sect2>
-    <title>Building BIND 9 with PKCS#11</title>
+  </section>
+  <section><info><title>Building BIND 9 with PKCS#11</title></info>
+    
     <para>When building BIND 9, the location of the custom-built
     OpenSSL library must be specified via configure.</para>
-    <sect3>
+    <section><info><title>Configuring BIND 9 for Linux with the AEP Keyper</title></info>
       <!-- Example 4 -->
-      <title>Configuring BIND 9 for Linux with the AEP Keyper</title>
+      
       <para>To link with the PKCS #11 provider, threads must be
       enabled in the BIND 9 build.</para>
       <para>The PKCS #11 library for the AEP Keyper is currently
@@ -241,10 +236,10 @@ $ <userinput>./configure CC="gcc -m32" --enable-threads \
            --with-openssl=/opt/pkcs11/usr \
            --with-pkcs11=/opt/pkcs11/usr/lib/libpkcs11.so</userinput>
 </screen>
-    </sect3>
-    <sect3>
+    </section>
+    <section><info><title>Configuring BIND 9 for Solaris with the SCA 6000</title></info>
       <!-- Example 5 -->
-      <title>Configuring BIND 9 for Solaris with the SCA 6000</title>
+      
       <para>To link with the PKCS #11 provider, threads must be
       enabled in the BIND 9 build.</para>
       <screen>
@@ -259,26 +254,26 @@ $ <userinput>./configure CC="cc -xarch=amd64" --enable-threads \
       incorrectly specified the path to OpenSSL (it should be the
       same as the --prefix argument to the OpenSSL
       Configure).</para>
-    </sect3>
-    <sect3>
+    </section>
+    <section><info><title>Configuring BIND 9 for SoftHSM</title></info>
       <!-- Example 6 -->
-      <title>Configuring BIND 9 for SoftHSM</title>
+      
       <screen>
 $ <userinput>cd ../bind9</userinput>
 $ <userinput>./configure --enable-threads \
            --with-openssl=/opt/pkcs11/usr \
            --with-pkcs11=/opt/pkcs11/usr/lib/libpkcs11.so</userinput>
 </screen>
-    </sect3>
+    </section>
     <para>After configuring, run
     "<command>make</command>",
     "<command>make test</command>" and
     "<command>make install</command>".</para>
     <para>(Note: If "make test" fails in the "pkcs11" system test, you may
     have forgotten to set the SOFTHSM_CONF environment variable.)</para>
-  </sect2>
-  <sect2>
-    <title>PKCS #11 Tools</title>
+  </section>
+  <section><info><title>PKCS #11 Tools</title></info>
+    
     <para>BIND 9 includes a minimal set of tools to operate the
     HSM, including 
     <command>pkcs11-keygen</command> to generate a new key pair
@@ -293,9 +288,9 @@ $ <userinput>./configure --enable-threads \
     provider will be left undefined. Use the -m option or the
     PKCS11_PROVIDER environment variable to specify the path to the
     provider.)</para>
-  </sect2>
-  <sect2>
-    <title>Using the HSM</title>
+  </section>
+  <section><info><title>Using the HSM</title></info>
+    
     <para>First, we must set up the runtime environment so the
     OpenSSL and PKCS #11 libraries can be loaded:</para>
     <screen>
@@ -381,9 +376,9 @@ Zone signing complete:
 Algorithm: NSEC3RSASHA1: ZSKs: 1, KSKs: 1 active, 0 revoked, 0 stand-by
 example.net.signed
 </screen>
-  </sect2>
-  <sect2>
-    <title>Specifying the engine on the command line</title>
+  </section>
+  <section><info><title>Specifying the engine on the command line</title></info>
+    
     <para>The OpenSSL engine can be specified in 
     <command>named</command> and all of the BIND 
     <command>dnssec-*</command> tools by using the "-E
@@ -392,18 +387,18 @@ example.net.signed
     Specifying the engine will generally not be necessary unless
     for some reason you wish to use a different OpenSSL
     engine.</para>
-    <para>If you wish to disable use of the "pkcs11" engine &mdash;
+    <para>If you wish to disable use of the "pkcs11" engine —
     for troubleshooting purposes, or because the HSM is unavailable
-    &mdash; set the engine to the empty string. For example:</para>
+    — set the engine to the empty string. For example:</para>
     <screen>
 $ <userinput>dnssec-signzone -E '' -S example.net</userinput>
 </screen>
     <para>This causes 
     <command>dnssec-signzone</command> to run as if it were compiled
     without the --with-pkcs11 option.</para>
-  </sect2>
-  <sect2>
-    <title>Running named with automatic zone re-signing</title>
+  </section>
+  <section><info><title>Running named with automatic zone re-signing</title></info>
+    
     <para>If you want 
     <command>named</command> to dynamically re-sign zones using HSM
     keys, and/or to to sign new records inserted via nsupdate, then
@@ -439,7 +434,7 @@ a problem because it probably won't be running on a terminal
       HSM. Be sure this is what you want to do before configuring
       OpenSSL in this way.</para>
     </warning>
-  </sect2>
+  </section>
   <!-- TODO: what is alternative then for named dynamic re-signing? -->
   <!-- TODO: what happens if PIN is not known? named will log about it? -->
-</sect1>
+</section>

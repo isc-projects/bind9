@@ -21,7 +21,9 @@
   - There's probably a better way to do this, but this will work for now.
   --> 
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:stylesheet version="1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:db="http://docbook.org/ns/docbook">
 
   <xsl:variable name="mdash" select="'&#8212;'"/>
 

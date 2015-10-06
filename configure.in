@@ -3366,6 +3366,9 @@ AC_SUBST(LATEX)
 AC_PATH_PROGS(PDFLATEX, pdflatex, pdflatex)
 AC_SUBST(PDFLATEX)
 
+AC_PATH_PROGS(DBLATEX, dblatex, dblatex)
+AC_SUBST(DBLATEX)
+
 #
 # Look for w3m
 #
@@ -3471,41 +3474,11 @@ NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_HTML, html/maketoc.xsl, $docbook_xsl_trees)
 NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_XHTML, xhtml/maketoc.xsl, $docbook_xsl_trees)
 
 #
-# Same dance for db2latex
+# Same dance for dblatex
 #
-# No idea where this lives except on FreeBSD.
-#
-
-db2latex_xsl_trees="/usr/local/share"
-
-#
-# Look for stylesheets we need.
-#
-
-NOM_PATH_FILE(XSLT_DB2LATEX_STYLE, db2latex/xsl/docbook.xsl, $db2latex_xsl_trees)
-
-#
-# Look for "admonition" image directory.  Can't use NOM_PATH_FILE()
-# because it's a directory, so just do the same things, inline.
-#
-
-AC_MSG_CHECKING(for db2latex/xsl/figures)
-for d in $db2latex_xsl_trees
-do
-	dd=$d/db2latex/xsl/figures
-	if test -d $dd
-	then
-		XSLT_DB2LATEX_ADMONITIONS=$dd
-		AC_MSG_RESULT($dd)
-		break
-	fi
-done
-if test "X$XSLT_DB2LATEX_ADMONITIONS" = "X"
-then
-	AC_MSG_RESULT(not found)
-	XSLT_DB2LATEX_ADMONITIONS=db2latex/xsl/figures
-fi
-AC_SUBST(XSLT_DB2LATEX_ADMONITIONS)
+dblatex_xsl_trees="/usr/local/share/xml/docbook/stylesheet/dblatex /usr/pkg/share/xml/docbook/stylesheet/dblatex /usr/share/xml/docbook/stylesheet/dblatex"
+NOM_PATH_FILE(XSLT_DBLATEX_STYLE, xsl/docbook.xsl, $dblatex_xsl_trees)
+NOM_PATH_FILE(XSLT_DBLATEX_FASTBOOK, xsl/latex_book_fast.xsl, $dblatex_xsl_trees)
 
 #
 # IDN support
@@ -3687,6 +3660,8 @@ BIND9_MAJOR="MAJOR=${MAJORVER}.${MINORVER}"
 AC_SUBST(BIND9_MAJOR)
 BIND9_VERSIONSTRING="${PRODUCT} ${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}${DESCRIPTION:+ }${DESCRIPTION}"
 AC_SUBST(BIND9_VERSIONSTRING)
+BIND9_VERSIONSHORT="${PRODUCT} ${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}"
+AC_SUBST(BIND9_VERSIONSHORT)
 
 BIND9_SRCID="SRCID=unset"
 if test -f "${srcdir}/srcid"; then
@@ -4080,13 +4055,13 @@ AC_CONFIG_FILES([
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-input-filter
 	doc/misc/Makefile
+        doc/tex/Makefile
+        doc/tex/armstyle.sty
 	doc/xsl/Makefile
 	doc/xsl/isc-docbook-chunk.xsl
 	doc/xsl/isc-docbook-html.xsl
-	doc/xsl/isc-docbook-latex.xsl
 	doc/xsl/isc-manpage.xsl
 	doc/xsl/isc-notes-html.xsl
-	doc/xsl/isc-notes-latex.xsl
 	isc-config.sh
 	lib/Makefile
 	lib/bind9/Makefile
