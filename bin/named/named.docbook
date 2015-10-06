@@ -313,6 +313,8 @@
             If <option>-n</option> has been set to a higher value than
             the number of detected CPUs, then <option>-U</option> may
             be increased as high as that value, but no higher.
+            On Windows, the number of UDP listeners is hardwired to 1
+            and this option has no effect.
           </para>
         </listitem>
       </varlistentry>
