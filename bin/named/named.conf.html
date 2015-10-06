@@ -13,70 +13,92 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id$ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>named.conf</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.71.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
 </head>
-<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" title="named.conf">
 <a name="man.named.conf"></a><div class="titlepage"></div>
-<div class="refnamediv">
+  
+  
+
+  
+
+  <div class="refnamediv">
 <h2>Name</h2>
-<p><code class="filename">named.conf</code> &#8212; configuration file for <span><strong class="command">named</strong></span></p>
+<p>
+    <code class="filename">named.conf</code>
+     &#8212; configuration file for <span class="command"><strong>named</strong></span>
+  </p>
 </div>
-<div class="refsynopsisdiv">
+
+  
+
+  <div class="refsynopsisdiv" title="Synopsis">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">named.conf</code> </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543379"></a><h2>DESCRIPTION</h2>
-<p><code class="filename">named.conf</code> is the configuration file
+    <div class="cmdsynopsis"><p>
+      <code class="command">named.conf</code> 
+    </p></div>
+  </div>
+
+  <div class="refsection" title="DESCRIPTION">
+<a name="idp61083728"></a><h2>DESCRIPTION</h2>
+    
+    <p><code class="filename">named.conf</code> is the configuration file
       for
-      <span><strong class="command">named</strong></span>.  Statements are enclosed
+      <span class="command"><strong>named</strong></span>.  Statements are enclosed
       in braces and terminated with a semi-colon.  Clauses in
       the statements are also semi-colon terminated.  The usual
       comment styles are supported:
     </p>
-<p>
+    <p>
       C style: /* */
     </p>
-<p>
+    <p>
       C++ style: // to end of line
     </p>
-<p>
+    <p>
       Unix style: # to end of line
     </p>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543406"></a><h2>ACL</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="ACL">
+<a name="idp61091152"></a><h2>ACL</h2>
+    
+    <div class="literallayout"><p><br>
 acl <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 <br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543422"></a><h2>KEY</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="KEY">
+<a name="idp61093456"></a><h2>KEY</h2>
+    
+    <div class="literallayout"><p><br>
 key <em class="replaceable"><code>domain_name</code></em> {<br>
 	algorithm <em class="replaceable"><code>string</code></em>;<br>
 	secret <em class="replaceable"><code>string</code></em>;<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543442"></a><h2>MASTERS</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="MASTERS">
+<a name="idp61096144"></a><h2>MASTERS</h2>
+    
+    <div class="literallayout"><p><br>
 masters <em class="replaceable"><code>string</code></em> [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
 	( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
 	<em class="replaceable"><code>ipv6_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] ) [<span class="optional"> key <em class="replaceable"><code>string</code></em> </span>]; ...<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543488"></a><h2>SERVER</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="SERVER">
+<a name="idp61102160"></a><h2>SERVER</h2>
+    
+    <div class="literallayout"><p><br>
 server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/prefixlen</span>]</code></em> | <em class="replaceable"><code>ipv6_address[<span class="optional">/prefixlen</span>]</code></em> ) {<br>
 	bogus <em class="replaceable"><code>boolean</code></em>;<br>
 	edns <em class="replaceable"><code>boolean</code></em>;<br>
@@ -96,26 +118,32 @@ server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/pref
 	support-ixfr <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543559"></a><h2>TRUSTED-KEYS</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="TRUSTED-KEYS">
+<a name="idp61115344"></a><h2>TRUSTED-KEYS</h2>
+    
+    <div class="literallayout"><p><br>
 trusted-keys {<br>
 	<em class="replaceable"><code>domain_name</code></em> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ...<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543585"></a><h2>MANAGED-KEYS</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="MANAGED-KEYS">
+<a name="idp61123024"></a><h2>MANAGED-KEYS</h2>
+    
+    <div class="literallayout"><p><br>
 managed-keys {<br>
 	<em class="replaceable"><code>domain_name</code></em> <code class="constant">initial-key</code> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ...<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543613"></a><h2>CONTROLS</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="CONTROLS">
+<a name="idp61126864"></a><h2>CONTROLS</h2>
+    
+    <div class="literallayout"><p><br>
 controls {<br>
 	inet ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
 		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>]<br>
@@ -124,10 +152,12 @@ controls {<br>
 	unix <em class="replaceable"><code>unsupported</code></em>; // not implemented<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543649"></a><h2>LOGGING</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="LOGGING">
+<a name="idp61131600"></a><h2>LOGGING</h2>
+    
+    <div class="literallayout"><p><br>
 logging {<br>
 	channel <em class="replaceable"><code>string</code></em> {<br>
 		file <em class="replaceable"><code>log_file</code></em>;<br>
@@ -142,10 +172,12 @@ logging {<br>
 	category <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543687"></a><h2>LWRES</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="LWRES">
+<a name="idp61136592"></a><h2>LWRES</h2>
+    
+    <div class="literallayout"><p><br>
 lwres {<br>
 	listen-on [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
 		( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>]; ...<br>
@@ -157,10 +189,12 @@ lwres {<br>
 	lwres-clients <em class="replaceable"><code>integer</code></em>;<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543735"></a><h2>OPTIONS</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="OPTIONS">
+<a name="idp61142864"></a><h2>OPTIONS</h2>
+    
+    <div class="literallayout"><p><br>
 options {<br>
 	avoid-v4-udp-ports { <em class="replaceable"><code>port</code></em>; ... };<br>
 	avoid-v6-udp-ports { <em class="replaceable"><code>port</code></em>; ... };<br>
@@ -371,10 +405,12 @@ options {<br>
 	use-id-pool <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2544714"></a><h2>VIEW</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="VIEW">
+<a name="idp61247312"></a><h2>VIEW</h2>
+    
+    <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	match-destinations { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -540,10 +576,12 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	max-ixfr-log-size <em class="replaceable"><code>size</code></em>; // obsolete<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2545378"></a><h2>ZONE</h2>
-<div class="literallayout"><p><br>
+  </div>
+
+  <div class="refsection" title="ZONE">
+<a name="idp61310416"></a><h2>ZONE</h2>
+    
+    <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint | redirect |<br>
 		forward | delegation-only );<br>
@@ -637,19 +675,30 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	pubkey <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; // obsolete<br>
 };<br>
 </p></div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2545767"></a><h2>FILES</h2>
-<p><code class="filename">/etc/named.conf</code>
+  </div>
+
+  <div class="refsection" title="FILES">
+<a name="idp61357520"></a><h2>FILES</h2>
+    
+    <p><code class="filename">/etc/named.conf</code>
     </p>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2545779"></a><h2>SEE ALSO</h2>
-<p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
-      <span class="citerefentry"><span class="refentrytitle">named-checkconf</span>(8)</span>,
-      <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
+  </div>
+
+  <div class="refsection" title="SEE ALSO">
+<a name="idp61359184"></a><h2>SEE ALSO</h2>
+    
+    <p><span class="citerefentry">
+	<span class="refentrytitle">named</span>(8)
+      </span>,
+      <span class="citerefentry">
+	<span class="refentrytitle">named-checkconf</span>(8)
+      </span>,
+      <span class="citerefentry">
+	<span class="refentrytitle">rndc</span>(8)
+      </span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>.
     </p>
-</div>
+  </div>
+
 </div></body>
 </html>

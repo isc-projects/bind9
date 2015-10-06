@@ -14,56 +14,61 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id$ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>lwres_inetntop</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.71.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
 </head>
-<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
-<a name="id2476282"></a><div class="titlepage"></div>
-<div class="refnamediv">
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" title="lwres_inetntop">
+<a name="idp60802896"></a><div class="titlepage"></div>
+  
+  
+
+  
+
+  
+
+  <div class="refnamediv">
 <h2>Name</h2>
-<p>lwres_net_ntop &#8212; lightweight resolver IP address presentation</p>
+<p>
+    lwres_net_ntop
+     &#8212; lightweight resolver IP address presentation
+  </p>
 </div>
-<div class="refsynopsisdiv">
+  <div class="refsynopsisdiv" title="Synopsis">
 <h2>Synopsis</h2>
-<div class="funcsynopsis">
+    <div class="funcsynopsis">
 <pre class="funcsynopsisinfo">#include &lt;lwres/net.h&gt;</pre>
-<table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0">
+<table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table">
 <tr>
 <td><code class="funcdef">
 const char *
 <b class="fsfunc">lwres_net_ntop</b>(</code></td>
-<td>int  </td>
-<td>
-<var class="pdparam">af</var>, </td>
+<td>int <var class="pdparam">af</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>const void * </td>
-<td>
-<var class="pdparam">src</var>, </td>
+<td>const void *<var class="pdparam">src</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>char * </td>
-<td>
-<var class="pdparam">dst</var>, </td>
+<td>char *<var class="pdparam">dst</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>size_t  </td>
-<td>
-<var class="pdparam">size</var><code>)</code>;</td>
+<td>size_t <var class="pdparam">size</var><code>)</code>;</td>
 </tr>
 </table>
+<div class="funcprototype-spacer"> </div>
 </div>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543390"></a><h2>DESCRIPTION</h2>
-<p><code class="function">lwres_net_ntop()</code>
+  </div>
+
+  <div class="refsection" title="DESCRIPTION">
+<a name="idp60845648"></a><h2>DESCRIPTION</h2>
+    
+
+    <p><code class="function">lwres_net_ntop()</code>
       converts an IP address of protocol family
       <em class="parameter"><code>af</code></em> &#8212; IPv4 or IPv6 &#8212; at
       location <em class="parameter"><code>src</code></em> from network format to its
@@ -71,17 +76,21 @@ const char *
       that string would be a dotted-decimal.  An IPv6 address would be
       represented in colon notation as described in RFC1884.
     </p>
-<p>
+
+    <p>
       The generated string is copied to <em class="parameter"><code>dst</code></em>
       provided
       <em class="parameter"><code>size</code></em> indicates it is long enough to
       store the
       ASCII representation of the address.
     </p>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543422"></a><h2>RETURN VALUES</h2>
-<p>
+
+  </div>
+  <div class="refsection" title="RETURN VALUES">
+<a name="idp60853456"></a><h2>RETURN VALUES</h2>
+    
+
+    <p>
       If successful, the function returns <em class="parameter"><code>dst</code></em>:
       a pointer to a string containing the presentation format of the
       address.  <code class="function">lwres_net_ntop()</code> returns
@@ -91,13 +100,21 @@ const char *
       not
       supported.
     </p>
-</div>
-<div class="refsect1" lang="en">
-<a name="id2543456"></a><h2>SEE ALSO</h2>
-<p><span class="citerefentry"><span class="refentrytitle">RFC1884</span></span>,
-      <span class="citerefentry"><span class="refentrytitle">inet_ntop</span>(3)</span>,
-      <span class="citerefentry"><span class="refentrytitle">errno</span>(3)</span>.
+
+  </div>
+  <div class="refsection" title="SEE ALSO">
+<a name="idp60857168"></a><h2>SEE ALSO</h2>
+    
+    <p><span class="citerefentry">
+        <span class="refentrytitle">RFC1884</span>
+      </span>,
+      <span class="citerefentry">
+        <span class="refentrytitle">inet_ntop</span>(3)
+      </span>,
+      <span class="citerefentry">
+        <span class="refentrytitle">errno</span>(3)
+      </span>.
     </p>
-</div>
+  </div>
 </div></body>
 </html>

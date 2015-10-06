@@ -18,7 +18,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Appendix D. BIND 9 DNS Library Support</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
 <link rel="home" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="prev" href="Bv9ARM.ch11.html" title="Appendix C. General DNS Reference Information">
@@ -38,26 +38,26 @@
 </table>
 <hr>
 </div>
-<div class="appendix">
-<div class="titlepage"><div><div><h1 class="title">
-<a name="Bv9ARM.ch12"></a>Appendix D. BIND 9 DNS Library Support</h1></div></div></div>
+<div class="appendix" title="Appendix D. BIND 9 DNS Library Support">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="Bv9ARM.ch12"></a>Appendix D. BIND 9 DNS Library Support</h2></div></div></div>
 <div class="toc">
 <p><b>Table of Contents</b></p>
-<dl class="toc">
+<dl>
 <dt><span class="section"><a href="Bv9ARM.ch12.html#bind9.library">BIND 9 DNS Library Support</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.3.5">Prerequisite</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.3.6">Compilation</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.3.7">Installation</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.3.8">Known Defects/Restrictions</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.3.9">The dns.conf File</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.3.10">Sample Applications</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.3.11">Library References</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp77002448">Prerequisite</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp77003856">Compilation</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp77007056">Installation</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp77010896">Known Defects/Restrictions</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp77032656">The dns.conf File</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp77035984">Sample Applications</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#idp77096144">Library References</a></span></dt>
 </dl></dd>
 </dl>
 </div>
       
-      <div class="section">
+      <div class="section" title="BIND 9 DNS Library Support">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="bind9.library"></a>BIND 9 DNS Library Support</h2></div></div></div>
   
@@ -66,7 +66,7 @@
   call them "export" libraries in this document). In addition to
   all major DNS-related APIs BIND 9 is currently using, the export
   libraries provide the following features:</p>
-  <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+  <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
       <p>The newly created "DNS client" module. This is a higher
       level API that provides an interface to name resolution,
@@ -96,9 +96,9 @@
       libraries than BIND 9's internal event task system.</p>
     </li>
 </ul></div>
-  <div class="section">
+  <div class="section" title="Prerequisite">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.3.5"></a>Prerequisite</h3></div></div></div>
+<a name="idp77002448"></a>Prerequisite</h3></div></div></div>
     
   <p>GNU make is required to build the export libraries (other
   part of BIND 9 can still be built with other types of make). In
@@ -106,9 +106,9 @@
   in some platforms you may need to invoke a different command name
   than "make" (e.g. "gmake") to indicate it's GNU make.</p>
   </div>
-  <div class="section">
+  <div class="section" title="Compilation">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.3.6"></a>Compilation</h3></div></div></div>
+<a name="idp77003856"></a>Compilation</h3></div></div></div>
     
   <pre class="screen">
 $ <strong class="userinput"><code>./configure --enable-exportlib <em class="replaceable"><code>[other flags]</code></em></code></strong>
@@ -122,9 +122,9 @@ $ <strong class="userinput"><code>make</code></strong>
   programs using the libraries will also be built under the
   lib/export/samples directory (see below).</p>
   </div>
-  <div class="section">
+  <div class="section" title="Installation">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.3.7"></a>Installation</h3></div></div></div>
+<a name="idp77007056"></a>Installation</h3></div></div></div>
     
   <pre class="screen">
 $ <strong class="userinput"><code>cd lib/export</code></strong>
@@ -145,11 +145,11 @@ $ <strong class="userinput"><code>make install</code></strong>
   application after the installation, see
   <code class="filename">lib/export/samples/Makefile-postinstall.in</code>.</p>
   </div>
-  <div class="section">
+  <div class="section" title="Known Defects/Restrictions">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.3.8"></a>Known Defects/Restrictions</h3></div></div></div>
+<a name="idp77010896"></a>Known Defects/Restrictions</h3></div></div></div>
     
-  <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+  <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
 
       <p>Currently, win32 is not supported for the export
@@ -195,9 +195,9 @@ $ <strong class="userinput"><code>make</code></strong>
     </li>
 </ul></div>
   </div>
-  <div class="section">
+  <div class="section" title="The dns.conf File">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.3.9"></a>The dns.conf File</h3></div></div></div>
+<a name="idp77032656"></a>The dns.conf File</h3></div></div></div>
     
   <p>The IRS library supports an "advanced" configuration file
   related to the DNS library for configuration parameters that
@@ -214,17 +214,17 @@ $ <strong class="userinput"><code>make</code></strong>
   of statement for <code class="filename">named.conf</code>. (See
   <a class="xref" href="Bv9ARM.ch06.html#trusted-keys" title="trusted-keys Statement Grammar">the section called &#8220;<span class="command"><strong>trusted-keys</strong></span> Statement Grammar&#8221;</a> for details.)</p>
   </div>
-  <div class="section">
+  <div class="section" title="Sample Applications">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.3.10"></a>Sample Applications</h3></div></div></div>
+<a name="idp77035984"></a>Sample Applications</h3></div></div></div>
     
   <p>Some sample application programs using this API are
   provided for reference. The following is a brief description of
   these applications.
   </p>
-  <div class="section">
+  <div class="section" title="sample: a simple stub resolver utility">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.3.10.4"></a>sample: a simple stub resolver utility</h4></div></div></div>
+<a name="idp77037264"></a>sample: a simple stub resolver utility</h4></div></div></div>
     
   <p>
   It sends a query of a given name (of a given optional RR type) to a
@@ -237,7 +237,7 @@ $ <strong class="userinput"><code>make</code></strong>
   <p>
   Options and Arguments:
   </p>
-  <div class="variablelist"><dl class="variablelist">
+  <div class="variablelist"><dl>
 <dt><span class="term">
   -t RRtype
   </span></dt>
@@ -287,9 +287,9 @@ $ <strong class="userinput"><code>make</code></strong>
   </p></dd>
 </dl></div>
   </div>
-  <div class="section">
+  <div class="section" title="sample-async: a simple stub resolver, working asynchronously">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.3.10.5"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
+<a name="idp77047888"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
     
   <p>
   Similar to "sample", but accepts a list
@@ -300,7 +300,7 @@ $ <strong class="userinput"><code>make</code></strong>
   <p>
  Options and Arguments:
   </p>
-  <div class="variablelist"><dl class="variablelist">
+  <div class="variablelist"><dl>
 <dt><span class="term">
    -s server_address
    </span></dt>
@@ -329,9 +329,9 @@ $ <strong class="userinput"><code>make</code></strong>
   </dd>
 </dl></div>
   </div>
-  <div class="section">
+  <div class="section" title="sample-request: a simple DNS transaction client">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.3.10.6"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
+<a name="idp77054288"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
     
   <p>
   It sends a query to a specified server, and
@@ -348,7 +348,7 @@ $ <strong class="userinput"><code>make</code></strong>
   <p>
     Options and Arguments:
   </p>
-  <div class="variablelist"><dl class="variablelist">
+  <div class="variablelist"><dl>
 <dt><span class="term">
    -t RRtype
   </span></dt>
@@ -377,9 +377,9 @@ $ <strong class="userinput"><code>make</code></strong>
   </dd>
 </dl></div>
   </div>
-  <div class="section">
+  <div class="section" title="sample-gai: getaddrinfo() and getnameinfo() test code">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.3.10.7"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
+<a name="idp77066064"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
     
   <p>
   This is a test program
@@ -395,9 +395,9 @@ $ <strong class="userinput"><code>make</code></strong>
   Usage: sample-gai hostname
   </p>
   </div>
-  <div class="section">
+  <div class="section" title="sample-update: a simple dynamic update client program">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.3.10.8"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
+<a name="idp77072080"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
     
   <p>
   It accepts a single update command as a
@@ -411,7 +411,7 @@ $ <strong class="userinput"><code>make</code></strong>
   <p>
   Options and Arguments:
   </p>
-  <div class="variablelist"><dl class="variablelist">
+  <div class="variablelist"><dl>
 <dt><span class="term">
   -a auth_server
    </span></dt>
@@ -468,7 +468,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </p></dd>
 </dl></div>
 
-   <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+   <div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>In practice, either -a or -r must be specified.  Others can
    be optional; the underlying library routine tries to identify the
    appropriate server and the zone name for the update.</div>
@@ -493,9 +493,9 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
      removes all RRs for foo.dynamic.example.com using the given key.
    </p>
   </div>
-  <div class="section">
+  <div class="section" title="nsprobe: domain/name server checker in terms of RFC 4074">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.3.10.9"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
+<a name="idp77088208"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
     
   <p>
   It checks a set
@@ -511,7 +511,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
    Options
   </p>
 
-  <div class="variablelist"><dl class="variablelist">
+  <div class="variablelist"><dl>
 <dt><span class="term">
   -d
   </span></dt>
@@ -552,9 +552,9 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </dl></div>
   </div>
   </div>
-  <div class="section">
+  <div class="section" title="Library References">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.3.11"></a>Library References</h3></div></div></div>
+<a name="idp77096144"></a>Library References</h3></div></div></div>
     
   <p>As of this writing, there is no formal "manual" of the
   libraries, except this document, header files (some of them
