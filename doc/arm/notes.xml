@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE book [
+<!ENTITY mdash "&#8212;">
+<!ENTITY ouml "&#xf6;">]>
 <!--
  - Copyright (C) 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
  -
@@ -14,29 +16,28 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<sect1 xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="noteversion.xml"/>
-  <sect2 id="relnotes_intro">
-    <title>Introduction</title>
+<!-- Converted by db4-upgrade version 1.0 -->
+<section xmlns="http://docbook.org/ns/docbook" version="5.0"><info/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
+  <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
+    
     <para>
       This document summarizes changes since the last production release
       of BIND on the corresponding major release branch.
     </para>
-  </sect2>
-  <sect2 id="relnotes_download">
-    <title>Download</title>
+  </section>
+  <section xml:id="relnotes_download"><info><title>Download</title></info>
+    
     <para>
       The latest versions of BIND 9 software can always be found at
-      <ulink url="http://www.isc.org/downloads/"
-	>http://www.isc.org/downloads/</ulink>.
+      <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.isc.org/downloads/">http://www.isc.org/downloads/</link>.
       There you will find additional information about each release,
       source code, and pre-compiled versions for Microsoft Windows
       operating systems.
     </para>
-  </sect2>
-  <sect2 id="relnotes_security">
-    <title>Security Fixes</title>
+  </section>
+  <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
+    
     <itemizedlist>
       <listitem>
 	<para>
@@ -51,7 +52,7 @@
 	  when parsing certain malformed DNSSEC keys.
 	</para>
 	<para>
-	  This flaw was discovered by Hanno B&#xc3b6;ck of the Fuzzing
+	  This flaw was discovered by Hanno B&ouml;ck of the Fuzzing
 	  Project, and is disclosed in CVE-2015-5722. [RT #40212]
 	</para>
       </listitem>
@@ -77,9 +78,9 @@
 	</para>
       </listitem> 
     </itemizedlist>
-  </sect2>
-  <sect2 id="relnotes_features">
-    <title>New Features</title>
+  </section>
+  <section xml:id="relnotes_features"><info><title>New Features</title></info>
+    
     <itemizedlist>
       <listitem>
 	<para>
@@ -150,9 +151,9 @@
 	</para>
       </listitem>
     </itemizedlist>
-  </sect2>
-  <sect2 id="relnotes_changes">
-    <title>Feature Changes</title>
+  </section>
+  <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
+    
     <itemizedlist>
       <listitem>
 	<para>
@@ -218,9 +219,9 @@
 	</para>
       </listitem>
     </itemizedlist>
-  </sect2>
-  <sect2 id="relnotes_port">
-    <title>Porting Changes</title>
+  </section>
+  <section xml:id="relnotes_port"><info><title>Porting Changes</title></info>
+    
     <itemizedlist>
       <listitem>
 	<para>
@@ -235,9 +236,9 @@
 	</para>
       </listitem>
     </itemizedlist>
-  </sect2>
-  <sect2 id="relnotes_bugs">
-    <title>Bug Fixes</title>
+  </section>
+  <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
+    
     <itemizedlist>
       <listitem>
 	<para>
@@ -342,24 +343,22 @@
 	</itemizedlist>
       </listitem>
     </itemizedlist>
-  </sect2>
-  <sect2 id="end_of_life">
-    <title>End of Life</title>
+  </section>
+  <section xml:id="end_of_life"><info><title>End of Life</title></info>
+    
     <para>
       The end of life for BIND 9.10 is yet to be determined but
       will not be before BIND 9.12.0 has been released for 6 months.
-      <ulink url="https://www.isc.org/downloads/software-support-policy/"
-        >https://www.isc.org/downloads/software-support-policy/</ulink>
+      <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/downloads/software-support-policy/">https://www.isc.org/downloads/software-support-policy/</link>
     </para>
-  </sect2>
-  <sect2 id="relnotes_thanks">
-    <title>Thank You</title>
+  </section>
+  <section xml:id="relnotes_thanks"><info><title>Thank You</title></info>
+    
     <para>
       Thank you to everyone who assisted us in making this release possible.
       If you would like to contribute to ISC to assist us in continuing to
       make quality open source software, please visit our donations page at
-      <ulink url="http://www.isc.org/donate/"
-	>http://www.isc.org/donate/</ulink>.
+      <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.isc.org/donate/">http://www.isc.org/donate/</link>.
     </para>
-  </sect2>
-</sect1>
+  </section>
+</section>
