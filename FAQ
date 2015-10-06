@@ -1,13 +1,9 @@
-Frequently Asked Questions about BIND 9
-
-Copyright © 2004-2010, 2013, 2014 Internet Systems Consortium, Inc.
+Copyright ? 2004-2010, 2013, 2014 Internet Systems Consortium, Inc.
 ("ISC")
 
-Copyright © 2000-2003 Internet Software Consortium.
+Copyright ? 2000-2003 Internet Software Consortium.
 
 -----------------------------------------------------------------------
-
-1. Compilation and Installation Questions
 
 Q: I'm trying to compile BIND 9, and "make" is failing due to files not
    being found. Why?
@@ -34,8 +30,6 @@ A: Short Answer: No.
    Internet? Are you on a private network? Are you on a NAT'd network? The
    answers to all these questions change how you configure even a caching
    name server.
-
-2. Configuration and Setup Questions
 
 Q: Why does named log the warning message "no TTL specified - using SOA
    MINTTL instead"?
@@ -392,8 +386,6 @@ A: You can use server clauses to stop named making external lookups over
    server fd81:ec6c:bd62::/48 { bogus no; }; // site ULA prefix
    server ::/0 { bogus yes; };
 
-3. Operations Questions
-
 Q: How to change the nameservers for a zone?
 
 A: Step 1: Ensure all nameservers, new and old, are serving the same zone
@@ -435,8 +427,6 @@ A: Step 1: Ensure all nameservers, new and old, are serving the same zone
 
    Note: while it is possible to run the addition and removal stages
    together it is not recommended.
-
-4. General Questions
 
 Q: I keep getting log messages like the following. Why?
 
@@ -609,10 +599,6 @@ A: NSEC3 records are strictly meta data and can only be returned in the
    records does not bring names into existence that do not exist in the
    unsigned version of the zone.
 
-5. Operating-System Specific Questions
-
-5.1. HPUX
-
 Q: I get the following error trying to configure BIND:
 
    checking if unistd.h or sys/types.h defines fd_set... no
@@ -626,8 +612,6 @@ A: You have attempted to configure BIND with the bundled C compiler. This
    compiler via CC.
 
    ./configure CC=<compiler> ...
-
-5.2. Linux
 
 Q: Why do I get the following errors:
 
@@ -813,8 +797,6 @@ A: This is usually due to "/proc/net/if_inet6" not being available in the
    proc /proc           proc defaults 0 0
    proc /var/named/proc proc defaults 0 0
 
-5.3. Windows
-
 Q: Zone transfers from my BIND 9 master to my Windows 2000 slave fail.
    Why?
 
@@ -839,8 +821,6 @@ A: This is the service manager saying that named exited. You need to
            Directory "C:\windows\dns\etc";
    };
 
-5.4. FreeBSD
-
 Q: I have FreeBSD 4.x and "rndc-confgen -a" just sits there.
 
 A: /dev/random is not configured. Use rndcontrol(8) to tell the kernel to
@@ -851,15 +831,11 @@ A: /dev/random is not configured. Use rndcontrol(8) to tell the kernel to
 
    See also <http://people.freebsd.org/~dougb/randomness.html>.
 
-5.5. Solaris
-
 Q: How do I integrate BIND 9 and Solaris SMF
 
 A: Sun has a blog entry describing how to do this.
 
    <http://blogs.sun.com/roller/page/anay/Weblog?catname=%2FSolaris>
-
-5.6. Apple Mac OS X
 
 Q: How do I run BIND 9 on Apple Mac OS X?
 

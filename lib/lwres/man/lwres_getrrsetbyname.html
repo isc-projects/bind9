@@ -18,10 +18,10 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>lwres_getrrsetbyname</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
 </head>
-<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry">
-<a name="id-1"></a><div class="titlepage"></div>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" title="lwres_getrrsetbyname">
+<a name="idp60978512"></a><div class="titlepage"></div>
   
   
 
@@ -37,11 +37,11 @@
      &#8212; retrieve DNS records
   </p>
 </div>
-  <div class="refsynopsisdiv">
+  <div class="refsynopsisdiv" title="Synopsis">
 <h2>Synopsis</h2>
     <div class="funcsynopsis">
 <pre class="funcsynopsisinfo">#include &lt;lwres/netdb.h&gt;</pre>
-<table border="0" class="funcprototype-table" summary="Function synopsis" style="cellspacing: 0; cellpadding: 0;">
+<table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table">
 <tr>
 <td><code class="funcdef">
 int
@@ -66,7 +66,7 @@ int
 </tr>
 </table>
 <div class="funcprototype-spacer"> </div>
-<table border="0" class="funcprototype-table" summary="Function synopsis" style="cellspacing: 0; cellpadding: 0;"><tr>
+<table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr>
 <td><code class="funcdef">
 void
 <b class="fsfunc">lwres_freerrset</b>(</code></td>
@@ -103,8 +103,8 @@ struct  rrsetinfo {
     </p>
   </div>
 
-  <div class="refsection">
-<a name="id-1.7"></a><h2>DESCRIPTION</h2>
+  <div class="refsection" title="DESCRIPTION">
+<a name="idp60841424"></a><h2>DESCRIPTION</h2>
     
     <p><code class="function">lwres_getrrsetbyname()</code>
       gets a set of resource records associated with a
@@ -152,14 +152,14 @@ struct  rrsetinfo {
     </p>
     <p></p>
   </div>
-  <div class="refsection">
-<a name="id-1.8"></a><h2>RETURN VALUES</h2>
+  <div class="refsection" title="RETURN VALUES">
+<a name="idp60858704"></a><h2>RETURN VALUES</h2>
     
     <p><code class="function">lwres_getrrsetbyname()</code>
       returns zero on success, and one of the following error codes if
       an error occurred:
       </p>
-<div class="variablelist"><dl class="variablelist">
+<div class="variablelist"><dl>
 <dt><span class="term"><code class="constant">ERRSET_NONAME</code></span></dt>
 <dd>
             <p>
@@ -199,8 +199,8 @@ struct  rrsetinfo {
 
     </p>
   </div>
-  <div class="refsection">
-<a name="id-1.9"></a><h2>SEE ALSO</h2>
+  <div class="refsection" title="SEE ALSO">
+<a name="idp60870608"></a><h2>SEE ALSO</h2>
     
     <p><span class="citerefentry">
         <span class="refentrytitle">lwres</span>(3)

@@ -18,7 +18,7 @@
 '\" t
 .\"     Title: nsupdate
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: 2014-04-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -267,7 +267,8 @@ will clear the default ttl\&.
 \fBkey\fR [hmac:] {keyname} {secret}
 .RS 4
 Specifies that all updates are to be TSIG\-signed using the
-\fIkeyname\fR\fIsecret\fR
+\fIkeyname\fR
+\fIsecret\fR
 pair\&. If
 \fIhmac\fR
 is specified, then it sets the signing algorithm in use; the default is
