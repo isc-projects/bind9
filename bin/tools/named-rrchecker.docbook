@@ -1,6 +1,3 @@
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
-               "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
-	       [<!ENTITY mdash "&#8212;">]>
 <!--
  - Copyright (C) 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
  -
@@ -16,10 +13,14 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<refentry id="man.named-rrchecker">
+<!-- Converted by db4-upgrade version 1.0 -->
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named-rrchecker">
+  <info>
+    <date>2013-11-12</date>
+  </info>
   <refentryinfo>
-    <date>November 12, 2013</date>
+    <corpname>ISC</corpname>
+    <corpauthor>Internet Systems Consortium, Inc.</corpauthor>
   </refentryinfo>
   <refmeta>
     <refentrytitle><application>named-rrchecker</application></refentrytitle>
@@ -40,20 +41,20 @@
   </docinfo>
 
   <refsynopsisdiv>
-    <cmdsynopsis>
+    <cmdsynopsis sepchar=" ">
       <command>named-rrchecker</command>
-      <arg><option>-h</option></arg>
-      <arg><option>-o <replaceable class="parameter">origin</replaceable></option></arg>
-      <arg><option>-p</option></arg>
-      <arg><option>-u</option></arg>
-      <arg><option>-C</option></arg>
-      <arg><option>-T</option></arg>
-      <arg><option>-P</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-h</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-o <replaceable class="parameter">origin</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-p</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-u</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-C</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-T</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-P</option></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
 
-  <refsect1>
-    <title>DESCRIPTION</title>
+  <refsection><info><title>DESCRIPTION</title></info>
+    
     <para><command>named-rrchecker</command>
      read a individual DNS resource record from standard input and checks if it
      is syntactically correct.
@@ -79,10 +80,10 @@
       print out the known class, standard type and private type mnemonics
       respectively.
     </para>
-  </refsect1>
+  </refsection>
 
-  <refsect1>
-    <title>SEE ALSO</title>
+  <refsection><info><title>SEE ALSO</title></info>
+    
     <para>
       <citetitle>RFC 1034</citetitle>,
       <citetitle>RFC 1035</citetitle>,
@@ -90,10 +91,6 @@
         <refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>
     </para>
-  </refsect1>
+  </refsection>
 
-</refentry><!--
- - Local variables:
- - mode: sgml
- - End:
--->
+</refentry>

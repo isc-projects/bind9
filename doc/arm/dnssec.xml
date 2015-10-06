@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
  - Copyright (C) 2010, 2011, 2015  Internet Systems Consortium, Inc. ("ISC")
  -
@@ -14,15 +13,15 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<sect1 id="dnssec.dynamic.zones">
-  <title>DNSSEC, Dynamic Zones, and Automatic Signing</title>
+<!-- Converted by db4-upgrade version 1.0 -->
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="dnssec.dynamic.zones"><info><title>DNSSEC, Dynamic Zones, and Automatic Signing</title></info>
+  
   <para>As of BIND 9.7.0 it is possible to change a dynamic zone
   from insecure to signed and back again. A secure zone can use
   either NSEC or NSEC3 chains.</para>
-  <sect2>
-    <title>Converting from insecure to secure</title>
-  </sect2>
+  <section><info><title>Converting from insecure to secure</title></info>
+    
+  </section>
   <para>Changing a zone from insecure to secure can be done in two
   ways: using a dynamic DNS update, or the 
   <command>auto-dnssec</command> zone option.</para>
@@ -35,28 +34,28 @@
   in the key-directory, as specified in 
   <filename>named.conf</filename>:</para>
   <programlisting>
-        zone example.net {
-                type master;
-                update-policy local;
-                file "dynamic/example.net/example.net";
-                key-directory "dynamic/example.net";
-        };
+	zone example.net {
+		type master;
+		update-policy local;
+		file "dynamic/example.net/example.net";
+		key-directory "dynamic/example.net";
+	};
 </programlisting>
   <para>If one KSK and one ZSK DNSKEY key have been generated, this
   configuration will cause all records in the zone to be signed
   with the ZSK, and the DNSKEY RRset to be signed with the KSK as
   well. An NSEC chain will be generated as part of the initial
   signing process.</para>
-  <sect2>
-    <title>Dynamic DNS update method</title>
-  </sect2>
+  <section><info><title>Dynamic DNS update method</title></info>
+    
+  </section>
   <para>To insert the keys via dynamic update:</para>
   <screen>
-        % nsupdate
-        &gt; ttl 3600
-        &gt; update add example.net DNSKEY 256 3 7 AwEAAZn17pUF0KpbPA2c7Gz76Vb18v0teKT3EyAGfBfL8eQ8al35zz3Y I1m/SAQBxIqMfLtIwqWPdgthsu36azGQAX8=
-        &gt; update add example.net DNSKEY 257 3 7 AwEAAd/7odU/64o2LGsifbLtQmtO8dFDtTAZXSX2+X3e/UNlq9IHq3Y0 XtC0Iuawl/qkaKVxXe2lo8Ct+dM6UehyCqk=
-        &gt; send
+	% nsupdate
+	&gt; ttl 3600
+	&gt; update add example.net DNSKEY 256 3 7 AwEAAZn17pUF0KpbPA2c7Gz76Vb18v0teKT3EyAGfBfL8eQ8al35zz3Y I1m/SAQBxIqMfLtIwqWPdgthsu36azGQAX8=
+	&gt; update add example.net DNSKEY 257 3 7 AwEAAd/7odU/64o2LGsifbLtQmtO8dFDtTAZXSX2+X3e/UNlq9IHq3Y0 XtC0Iuawl/qkaKVxXe2lo8Ct+dM6UehyCqk=
+	&gt; send
 </screen>
   <para>While the update request will complete almost immediately,
   the zone will not be completely signed until 
@@ -69,12 +68,12 @@
   wish the NSEC3 chain to have the OPTOUT bit set, set it in the
   flags field of the NSEC3PARAM record.</para>
   <screen>
-        % nsupdate
-        &gt; ttl 3600
-        &gt; update add example.net DNSKEY 256 3 7 AwEAAZn17pUF0KpbPA2c7Gz76Vb18v0teKT3EyAGfBfL8eQ8al35zz3Y I1m/SAQBxIqMfLtIwqWPdgthsu36azGQAX8=
-        &gt; update add example.net DNSKEY 257 3 7 AwEAAd/7odU/64o2LGsifbLtQmtO8dFDtTAZXSX2+X3e/UNlq9IHq3Y0 XtC0Iuawl/qkaKVxXe2lo8Ct+dM6UehyCqk=
-        &gt; update add example.net NSEC3PARAM 1 1 100 1234567890
-        &gt; send
+	% nsupdate
+	&gt; ttl 3600
+	&gt; update add example.net DNSKEY 256 3 7 AwEAAZn17pUF0KpbPA2c7Gz76Vb18v0teKT3EyAGfBfL8eQ8al35zz3Y I1m/SAQBxIqMfLtIwqWPdgthsu36azGQAX8=
+	&gt; update add example.net DNSKEY 257 3 7 AwEAAd/7odU/64o2LGsifbLtQmtO8dFDtTAZXSX2+X3e/UNlq9IHq3Y0 XtC0Iuawl/qkaKVxXe2lo8Ct+dM6UehyCqk=
+	&gt; update add example.net NSEC3PARAM 1 1 100 1234567890
+	&gt; send
 </screen>
   <para>Again, this update request will complete almost
   immediately; however, the record won't show up until 
@@ -84,9 +83,9 @@
   be removed once the operation completes.</para>
   <para>While the initial signing and NSEC/NSEC3 chain generation
   is happening, other updates are possible as well.</para>
-  <sect2>
-    <title>Fully automatic zone signing</title>
-  </sect2>
+  <section><info><title>Fully automatic zone signing</title></info>
+    
+  </section>
   <para>To enable automatic signing, add the 
   <command>auto-dnssec</command> option to the zone statement in 
   <filename>named.conf</filename>. 
@@ -148,9 +147,9 @@
   <command>update-policy</command> statement to the zone
   configuration. If this has not been done, the configuration will
   fail.</para>
-  <sect2>
-    <title>Private-type records</title>
-  </sect2>
+  <section><info><title>Private-type records</title></info>
+    
+  </section>
   <para>The state of the signing process is signaled by
   private-type records (with a default type value of 65534). When
   signing is complete, these records will have a nonzero value for
@@ -186,15 +185,15 @@
   0x20 NONSEC
 </literallayout>
   </para>
-  <sect2>
-    <title>DNSKEY rollovers</title>
-  </sect2>
+  <section><info><title>DNSKEY rollovers</title></info>
+    
+  </section>
   <para>As with insecure-to-secure conversions, rolling DNSSEC
   keys can be done in two ways: using a dynamic DNS update, or the 
   <command>auto-dnssec</command> zone option.</para>
-  <sect2>
-    <title>Dynamic DNS update method</title>
-  </sect2>
+  <section><info><title>Dynamic DNS update method</title></info>
+    
+  </section>
   <para> To perform key rollovers via dynamic update, you need to add
   the <filename>K*</filename> files for the new keys so that 
   <command>named</command> can find them. You can then add the new
@@ -215,9 +214,9 @@
   specify the correct key. 
   <command>named</command> will clean out any signatures generated
   by the old key after the update completes.</para>
-  <sect2>
-    <title>Automatic key rollovers</title>
-  </sect2>
+  <section><info><title>Automatic key rollovers</title></info>
+    
+  </section>
   <para>When a new key reaches its activation date (as set by
   <command>dnssec-keygen</command> or <command>dnssec-settime</command>),
   if the <command>auto-dnssec</command> zone option is set to 
@@ -231,32 +230,32 @@
   signature validity periods expire.  By default, this rollover
   completes in 30 days, after which it will be safe to remove the
   old key from the DNSKEY RRset.</para>
-  <sect2>
-    <title>NSEC3PARAM rollovers via UPDATE</title>
-  </sect2>
+  <section><info><title>NSEC3PARAM rollovers via UPDATE</title></info>
+    
+  </section>
   <para>Add the new NSEC3PARAM record via dynamic update. When the
   new NSEC3 chain has been generated, the NSEC3PARAM flag field
   will be zero. At this point you can remove the old NSEC3PARAM
   record. The old chain will be removed after the update request
   completes.</para>
-  <sect2>
-    <title>Converting from NSEC to NSEC3</title>
-  </sect2>
+  <section><info><title>Converting from NSEC to NSEC3</title></info>
+    
+  </section>
   <para>To do this, you just need to add an NSEC3PARAM record. When
   the conversion is complete, the NSEC chain will have been removed
   and the NSEC3PARAM record will have a zero flag field. The NSEC3
   chain will be generated before the NSEC chain is
   destroyed.</para>
-  <sect2>
-    <title>Converting from NSEC3 to NSEC</title>
-  </sect2>
+  <section><info><title>Converting from NSEC3 to NSEC</title></info>
+    
+  </section>
   <para>To do this, use <command>nsupdate</command> to
   remove all NSEC3PARAM records with a zero flag
   field. The NSEC chain will be generated before the NSEC3 chain is
   removed.</para>
-  <sect2>
-    <title>Converting from secure to insecure</title>
-  </sect2>
+  <section><info><title>Converting from secure to insecure</title></info>
+    
+  </section>
   <para>To convert a signed zone to unsigned using dynamic DNS,
   delete all the DNSKEY records from the zone apex using
   <command>nsupdate</command>. All signatures, NSEC or NSEC3 chains,
@@ -270,17 +269,17 @@
   zone statement is used, it should be removed or changed to
   <command>allow</command> instead (or it will re-sign).
   </para>
-  <sect2>
-    <title>Periodic re-signing</title>
-  </sect2>
+  <section><info><title>Periodic re-signing</title></info>
+    
+  </section>
   <para>In any secure zone which supports dynamic updates, <command>named</command>
   will periodically re-sign RRsets which have not been re-signed as
   a result of some update action. The signature lifetimes will be
   adjusted so as to spread the re-sign load over time rather than
   all at once.</para>
-  <sect2>
-    <title>NSEC3 and OPTOUT</title>
-  </sect2>
+  <section><info><title>NSEC3 and OPTOUT</title></info>
+    
+  </section>
   <para>
   <command>named</command> only supports creating new NSEC3 chains
   where all the NSEC3 records in the zone have the same OPTOUT
@@ -291,4 +290,4 @@
   state of an individual NSEC3 record, the entire chain needs to be
   changed if the OPTOUT state of an individual NSEC3 needs to be
   changed.</para>
-</sect1>
+</section>

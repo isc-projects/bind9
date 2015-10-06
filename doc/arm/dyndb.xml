@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
  - Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
  -
@@ -14,9 +13,9 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<sect1 id="dyndb-info">
-  <title>DynDB (Dynamic Database)</title>
+<!-- Converted by db4-upgrade version 1.0 -->
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="dyndb-info"><info><title>DynDB (Dynamic Database)</title></info>
+  
   <para>
     DynDB is an extension to BIND 9 which, like DLZ
     (see <xref linkend="dlz-info"/>), allows zone data to be
@@ -32,8 +31,7 @@
   <para>
     A DynDB module supporting LDAP has been created by Red Hat
     and is available from
-    <ulink url="https://fedorahosted.org/bind-dyndb-ldap/"
-      >https://fedorahosted.org/bind-dyndb-ldap/</ulink>.
+    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://fedorahosted.org/bind-dyndb-ldap/">https://fedorahosted.org/bind-dyndb-ldap/</link>.
   </para>
   <para>
     A sample DynDB module for testing and developer guidance
@@ -41,8 +39,8 @@
     <filename>bin/tests/system/dyndb/driver</filename>.
   </para>
 
-  <sect2>
-    <title>Configuring DynDB</title>
+  <section><info><title>Configuring DynDB</title></info>
+    
     <para>
       A DynDB database is configured with a <command>dyndb</command>
       statement in <filename>named.conf</filename>:
@@ -67,9 +65,9 @@
       string to the DynDB module's initialization routine. Configuration
       syntax will differ depending on the driver.
     </para>
-  </sect2>
-  <sect2>
-    <title>Sample DynDB Module</title>
+  </section>
+  <section><info><title>Sample DynDB Module</title></info>
+    
     <para>
       For guidance in implementation of DynDB modules, the directory
       <filename>bin/tests/system/dyndb/driver</filename>.
@@ -101,5 +99,5 @@
       reverse zone.  (Updates are not stored permanently; all updates are
       lost when the server is restarted.)
     </para>
-  </sect2>
-</sect1>
+  </section>
+</section>

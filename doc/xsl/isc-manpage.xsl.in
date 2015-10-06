@@ -14,23 +14,24 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: isc-manpage.xsl.in,v 1.9 2007/06/18 23:47:34 tbox Exp $ -->
-
 <!-- ISC customizations for Docbook-XSL manual page generator. -->
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:stylesheet version="1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:db="http://docbook.org/ns/docbook">
 
   <!-- Import the Docbook manpages stuff -->
-  <xsl:import href="@XSLT_DOCBOOK_STYLE_MAN@"/>
-  
+  <xsl:include href="@XSLT_DOCBOOK_STYLE_MAN@"/>
+
   <!-- Include our copyright generator -->
   <xsl:include href="copyright.xsl"/>
 
   <!-- Set comment string for this output format -->
   <xsl:param name="isc.copyright.leader">.\" </xsl:param>
+  <xsl:param name="isc.copyright.breakline"/>
 
   <!-- We're not writing any kind of SGML, thanks -->
-  <xsl:output method="text" encoding="us-ascii"/>
+  <xsl:output method="text" encoding="us-ascii" indent="no"/>
 
   <!-- ANSI C function prototypes, please -->
   <xsl:param name="funcsynopsis.style">ansi</xsl:param>
@@ -40,8 +41,6 @@
 
   <!-- Stuff we want in our nroff preamble. -->
   <xsl:variable name="isc.nroff.preamble">
-    <xsl:text>.\"&#10;</xsl:text>
-    <xsl:text>.\" &#36;Id&#36;&#10;</xsl:text>
     <xsl:text>.\"&#10;</xsl:text>
     <xsl:text>.hy 0&#10;</xsl:text>
     <xsl:text>.ad l&#10;</xsl:text>

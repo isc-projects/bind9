@@ -1,3 +1,6 @@
+4237.	[doc]		Upgraded documentation toolchain to use DocBook 5
+			and dblatex. [RT #40766]
+
 4236.	[func]		On machines with 2 or more processors (CPU), the
 			default value for the number of UDP listeners
 			has been changed to the number of detected
