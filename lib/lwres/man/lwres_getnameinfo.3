@@ -18,7 +18,7 @@
 '\" t
 .\"     Title: lwres_getnameinfo
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -47,9 +47,12 @@
 .SH "NAME"
 lwres_getnameinfo \- lightweight resolver socket address structure to hostname and service name
 .SH "SYNOPSIS"
+.sp
+.ft B
 .nf
 #include <lwres/netdb\&.h>
 .fi
+.ft
 .HP \w'int\ lwres_getnameinfo('u
 .BI "int lwres_getnameinfo(const\ struct\ sockaddr\ *" "sa" ", size_t\ " "salen" ", char\ *" "host" ", size_t\ " "hostlen" ", char\ *" "serv" ", size_t\ " "servlen" ", int\ " "flags" ");"
 .SH "DESCRIPTION"
@@ -59,8 +62,7 @@ This function is equivalent to the
 function defined in RFC2133\&.
 \fBlwres_getnameinfo()\fR
 returns the hostname for the
-\fBstruct sockaddr\fR
-\fIsa\fR
+\fBstruct sockaddr\fR\fIsa\fR
 which is
 \fIsalen\fR
 bytes long\&. The hostname is of length

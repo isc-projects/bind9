@@ -17,87 +17,77 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title></title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 </head>
-<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article">
-  
-  <div class="section" title="Release Notes for BIND Version 9.9.8">
-<div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="idp60800464"></a>Release Notes for BIND Version 9.9.8</h2></div></div></div>
-  
-  <div class="section" title="Introduction">
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article"><div class="section">
+<div class="titlepage"></div>
+<span style="color: red">&lt;title&gt;Release Notes for BIND Version 9.9.8&lt;/title&gt;</span><div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
-    
-    <p>
+<p>
       This document summarizes changes since the last production release
       of BIND on the corresponding major release branch.
     </p>
-  </div>
-  <div class="section" title="Download">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_download"></a>Download</h3></div></div></div>
-    
-    <p>
+<p>
       The latest versions of BIND 9 software can always be found at
-      <a class="ulink" href="http://www.isc.org/downloads/" target="_top">http://www.isc.org/downloads/</a>.
+      <a class="link" href="http://www.isc.org/downloads/" target="_top">http://www.isc.org/downloads/</a>.
       There you will find additional information about each release,
       source code, and pre-compiled versions for Microsoft Windows
       operating systems.
     </p>
-  </div>
-  <div class="section" title="Security Fixes">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-    
-    <div class="itemizedlist"><ul class="itemizedlist" type="disc">
-<li class="listitem">
-	<p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
 	  An incorrect boundary check in the OPENPGPKEY rdatatype
 	  could trigger an assertion failure. This flaw is disclosed
 	  in CVE-2015-5986. [RT #40286]
-	</p>
-      </li>
+	</p></li>
 <li class="listitem">
-	<p>
+<p>
 	  A buffer accounting error could trigger an assertion failure
 	  when parsing certain malformed DNSSEC keys.
 	</p>
-	<p>
+<p>
 	  This flaw was discovered by Hanno Böck of the Fuzzing
 	  Project, and is disclosed in CVE-2015-5722. [RT #40212]
 	</p>
-      </li>
+</li>
 <li class="listitem">
-	<p>
+<p>
 	  A specially crafted query could trigger an assertion failure
 	  in message.c.
 	</p>
-	<p>
+<p>
 	  This flaw was discovered by Jonathan Foote, and is disclosed
 	  in CVE-2015-5477. [RT #40046]
 	</p>
-      </li>
+</li>
 <li class="listitem">
-	<p>
+<p>
 	  On servers configured to perform DNSSEC validation, an
 	  assertion failure could be triggered on answers from
 	  a specially configured server.
 	</p>
-	<p>
+<p>
 	  This flaw was discovered by Breno Silveira Soares, and is
 	  disclosed in CVE-2015-4620. [RT #39795]
 	</p>
-      </li>
+</li>
 </ul></div>
-  </div>
-  <div class="section" title="New Features">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_features"></a>New Features</h3></div></div></div>
-    
-    <div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
-	<p>
+<p>
 	  New quotas have been added to limit the queries that are
 	  sent by recursive resolvers to authoritative servers
 	  experiencing denial-of-service attacks. When configured,
@@ -106,14 +96,13 @@
 	  experienced by recursives when they are being used as a
 	  vehicle for such an attack.
 	</p>
-	<p>
+<p>
 	  NOTE: These options are not available by default; use
 	  <span class="command"><strong>configure --enable-fetchlimit</strong></span> to include
 	  them in the build.
 	</p>
-	<div class="itemizedlist"><ul class="itemizedlist" type="circle">
-<li class="listitem">
-	    <p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem"><p>
 	      <code class="option">fetches-per-server</code> limits the number of
 	      simultaneous queries that can be sent to any single
 	      authoritative server.  The configured value is a starting
@@ -121,101 +110,77 @@
 	      partially or completely non-responsive. The algorithm used to
 	      adjust the quota can be configured via the
 	      <code class="option">fetch-quota-params</code> option.
-	    </p>
-	  </li>
-<li class="listitem">
-	    <p>
+	    </p></li>
+<li class="listitem"><p>
 	      <code class="option">fetches-per-zone</code> limits the number of
 	      simultaneous queries that can be sent for names within a
 	      single domain.  (Note: Unlike "fetches-per-server", this
 	      value is not self-tuning.)
-	    </p>
-	  </li>
+	    </p></li>
 </ul></div>
-	<p>
+<p>
 	  Statistics counters have also been added to track the number
 	  of queries affected by these quotas.
 	</p>
-      </li>
-<li class="listitem">
-	<p>
+</li>
+<li class="listitem"><p>
 	  An <span class="command"><strong>--enable-querytrace</strong></span> configure switch is
 	  now available to enable very verbose query tracelogging. This
 	  option can only be set at compile time. This option has a
 	  negative performance impact and should be used only for
 	  debugging. [RT #37520]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  The following types have been implemented: CSYNC, NINFO, RKEY,
 	  SINK, TA, TALINK.
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  EDNS COOKIE options content is now displayed as
 	  "COOKIE: &lt;hexvalue&gt;".
-	</p>
-      </li>
+	</p></li>
 </ul></div>
-  </div>
-  <div class="section" title="Feature Changes">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
-    
-    <div class="itemizedlist"><ul class="itemizedlist" type="disc">
-<li class="listitem">
-	<p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
 	  Large inline-signing changes should be less disruptive.
 	  Signature generation is now done incrementally; the number
 	  of signatures to be generated in each quantum is controlled
 	  by "sig-signing-signatures <em class="replaceable"><code>number</code></em>;".
 	  [RT #37927]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Retrieving the local port range from net.ipv4.ip_local_port_range
 	  on Linux is now supported.
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Active Directory names of the form gc._msdcs.&lt;forest&gt; are
 	  now accepted as valid hostnames when using the
 	  <code class="option">check-names</code> option. &lt;forest&gt; is still
 	  restricted to letters, digits and hyphens.
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Names containing rich text are now accepted as valid
 	  hostnames in PTR records in DNS-SD reverse lookup zones,
 	  as specified in RFC 6763. [RT #37889]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  The default preferred glue is now the address type of the
 	   transport the query was received over.
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  On machines with 2 or more processors (CPU), the default value
 	  for the number of UDP listeners has been changed to the number
 	  of detected processors minus one.
-	</p>
-      </li>
+	</p></li>
 </ul></div>
-  </div>
-  <div class="section" title="Porting Changes">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_port"></a>Porting Changes</h3></div></div></div>
-    
-    <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-	<p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
 	  The Microsoft Windows install tool
 	  <span class="command"><strong>BINDInstall.exe</strong></span> which requires a
 	  non-free version of Visual Studio to be built, now uses two
@@ -224,81 +189,62 @@
 	  previously compiled in the binary. Read
 	  <code class="filename">win32utils/build.txt</code> for more details.
 	  [RT #38915]
-	</p>
-      </li></ul></div>
-  </div>
-  <div class="section" title="Bug Fixes">
+	</p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    
-    <div class="itemizedlist"><ul class="itemizedlist" type="disc">
-<li class="listitem">
-	<p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
 	  Asynchronous zone loads were not handled correctly when the
 	  zone load was already in progress; this could trigger a crash
 	  in zt.c. [RT #37573]
-	</p>
-       </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  A race during shutdown or reconfiguration could
 	  cause an assertion failure in mem.c. [RT #38979]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Some answer formatting options didn't work correctly with
 	  <span class="command"><strong>dig +short</strong></span>. [RT #39291]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Malformed records of some types, including NSAP and UNSPEC,
 	  could trigger assertion failures when loading text zone files.
 	  [RT #40274] [RT #40285]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Fixed a possible crash in ratelimiter.c caused by NOTIFY
 	  messages being removed from the wrong rate limiter queue.
 	  [RT #40350]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  The default <code class="option">rrset-order</code> of <code class="literal">random</code>
 	  was inconsistently applied. [RT #40456]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  BADVERS responses from broken authoritative name servers were
 	  not handled correctly. [RT #40427]
-	</p>
-      </li>
+	</p></li>
 </ul></div>
-  </div>
-  <div class="section" title="End of Life">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="end_of_life"></a>End of Life</h3></div></div></div>
-    
-    <p>
+<p>
       The BIND 9.9 (Extended Support Version) will be supported until June, 2017.
-      <a class="ulink" href="https://www.isc.org/downloads/software-support-policy/" target="_top">https://www.isc.org/downloads/software-support-policy/</a>
+      <a class="link" href="https://www.isc.org/downloads/software-support-policy/" target="_top">https://www.isc.org/downloads/software-support-policy/</a>
     </p>
-  </div>
-  <div class="section" title="Thank You">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_thanks"></a>Thank You</h3></div></div></div>
-    
-    <p>
+<p>
       Thank you to everyone who assisted us in making this release possible.
       If you would like to contribute to ISC to assist us in continuing to
       make quality open source software, please visit our donations page at
-      <a class="ulink" href="http://www.isc.org/donate/" target="_top">http://www.isc.org/donate/</a>.
+      <a class="link" href="http://www.isc.org/donate/" target="_top">http://www.isc.org/donate/</a>.
     </p>
-  </div>
 </div>
-</div></body>
+</div></div></body>
 </html>

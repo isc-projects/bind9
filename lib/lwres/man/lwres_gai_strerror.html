@@ -18,30 +18,19 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>lwres_gai_strerror</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 </head>
-<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" title="lwres_gai_strerror">
-<a name="idp60816720"></a><div class="titlepage"></div>
-  
-  
-
-  
-
-  
-
-  <div class="refnamediv">
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry">
+<a name="id-1"></a><div class="titlepage"></div>
+<div class="refnamediv">
 <h2>Name</h2>
-<p>
-    lwres_gai_strerror
-     &#8212; print suitable error string
-  </p>
+<p>lwres_gai_strerror &#8212; print suitable error string</p>
 </div>
-
-  <div class="refsynopsisdiv" title="Synopsis">
+<div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-    <div class="funcsynopsis">
+<div class="funcsynopsis">
 <pre class="funcsynopsisinfo">#include &lt;lwres/netdb.h&gt;</pre>
-<table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr>
+<table border="0" class="funcprototype-table" summary="Function synopsis" style="cellspacing: 0; cellpadding: 0;"><tr>
 <td><code class="funcdef">
 char *
 <b class="fsfunc">gai_strerror</b>(</code></td>
@@ -49,91 +38,66 @@ char *
 </tr></table>
 <div class="funcprototype-spacer"> </div>
 </div>
-  </div>
-
-  <div class="refsection" title="DESCRIPTION">
-<a name="idp60857936"></a><h2>DESCRIPTION</h2>
-    
-
-    <p><code class="function">lwres_gai_strerror()</code>
+</div>
+<div class="refsection">
+<a name="id-1.7"></a><h2>DESCRIPTION</h2>
+<p><code class="function">lwres_gai_strerror()</code>
       returns an error message corresponding to an error code returned by
       <code class="function">getaddrinfo()</code>.
       The following error codes and their meaning are defined in
       <code class="filename">include/lwres/netdb.h</code>.
       </p>
-<div class="variablelist"><dl>
+<div class="variablelist"><dl class="variablelist">
 <dt><span class="term"><span class="errorcode">EAI_ADDRFAMILY</span></span></dt>
-<dd>
-            <p>
+<dd><p>
               address family for hostname not supported
-            </p>
-          </dd>
+            </p></dd>
 <dt><span class="term"><span class="errorcode">EAI_AGAIN</span></span></dt>
-<dd>
-            <p>
+<dd><p>
               temporary failure in name resolution
-            </p>
-          </dd>
+            </p></dd>
 <dt><span class="term"><span class="errorcode">EAI_BADFLAGS</span></span></dt>
-<dd>
-            <p>
+<dd><p>
               invalid value for
               <code class="constant">ai_flags</code>
-            </p>
-          </dd>
+            </p></dd>
 <dt><span class="term"><span class="errorcode">EAI_FAIL</span></span></dt>
-<dd>
-            <p>
+<dd><p>
               non-recoverable failure in name resolution
-            </p>
-          </dd>
+            </p></dd>
 <dt><span class="term"><span class="errorcode">EAI_FAMILY</span></span></dt>
-<dd>
-            <p><code class="constant">ai_family</code> not supported
-            </p>
-          </dd>
+<dd><p><code class="constant">ai_family</code> not supported
+            </p></dd>
 <dt><span class="term"><span class="errorcode">EAI_MEMORY</span></span></dt>
-<dd>
-            <p>
+<dd><p>
               memory allocation failure
-            </p>
-          </dd>
+            </p></dd>
 <dt><span class="term"><span class="errorcode">EAI_NODATA</span></span></dt>
-<dd>
-            <p>
+<dd><p>
               no address associated with hostname
-            </p>
-          </dd>
+            </p></dd>
 <dt><span class="term"><span class="errorcode">EAI_NONAME</span></span></dt>
-<dd>
-            <p>
+<dd><p>
               hostname or servname not provided, or not known
-            </p>
-          </dd>
+            </p></dd>
 <dt><span class="term"><span class="errorcode">EAI_SERVICE</span></span></dt>
-<dd>
-            <p>
+<dd><p>
               servname not supported for <code class="constant">ai_socktype</code>
-            </p>
-          </dd>
+            </p></dd>
 <dt><span class="term"><span class="errorcode">EAI_SOCKTYPE</span></span></dt>
-<dd>
-            <p><code class="constant">ai_socktype</code> not supported
-            </p>
-          </dd>
+<dd><p><code class="constant">ai_socktype</code> not supported
+            </p></dd>
 <dt><span class="term"><span class="errorcode">EAI_SYSTEM</span></span></dt>
-<dd>
-            <p>
+<dd><p>
               system error returned in errno
-            </p>
-          </dd>
+            </p></dd>
 </dl></div>
 <p>
       The message <span class="errorname">invalid error code</span> is returned if
       <em class="parameter"><code>ecode</code></em>
       is out of range.
     </p>
-    <p><code class="constant">ai_flags</code>,
+<p><code class="constant">ai_flags</code>,
       <code class="constant">ai_family</code>
       and
       <code class="constant">ai_socktype</code>
@@ -142,27 +106,17 @@ char *
       used by
       <code class="function">lwres_getaddrinfo()</code>.
     </p>
-  </div>
+</div>
+<div class="refsection">
+<a name="id-1.8"></a><h2>SEE ALSO</h2>
+<p><span class="citerefentry"><span class="refentrytitle">strerror</span>(3)</span>,
 
-  <div class="refsection" title="SEE ALSO">
-<a name="idp60891984"></a><h2>SEE ALSO</h2>
-    
-    <p><span class="citerefentry">
-        <span class="refentrytitle">strerror</span>(3)
-      </span>,
+      <span class="citerefentry"><span class="refentrytitle">lwres_getaddrinfo</span>(3)</span>,
 
-      <span class="citerefentry">
-        <span class="refentrytitle">lwres_getaddrinfo</span>(3)
-      </span>,
+      <span class="citerefentry"><span class="refentrytitle">getaddrinfo</span>(3)</span>,
 
-      <span class="citerefentry">
-        <span class="refentrytitle">getaddrinfo</span>(3)
-      </span>,
-
-      <span class="citerefentry">
-        <span class="refentrytitle">RFC2133</span>
-      </span>.
+      <span class="citerefentry"><span class="refentrytitle">RFC2133</span></span>.
     </p>
-  </div>
+</div>
 </div></body>
 </html>

@@ -18,7 +18,7 @@
 '\" t
 .\"     Title: lwres_context
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -47,9 +47,12 @@
 .SH "NAME"
 lwres_context_create, lwres_context_destroy, lwres_context_nextserial, lwres_context_initserial, lwres_context_freemem, lwres_context_allocmem, lwres_context_sendrecv \- lightweight resolver context management
 .SH "SYNOPSIS"
+.sp
+.ft B
 .nf
 #include <lwres/lwres\&.h>
 .fi
+.ft
 .HP \w'lwres_result_t\ lwres_context_create('u
 .BI "lwres_result_t lwres_context_create(lwres_context_t\ **" "contextp" ", void\ *" "arg" ", lwres_malloc_t\ " "malloc_function" ", lwres_free_t\ " "free_function" ");"
 .HP \w'lwres_result_t\ lwres_context_destroy('u

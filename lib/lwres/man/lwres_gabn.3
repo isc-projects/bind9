@@ -18,7 +18,7 @@
 '\" t
 .\"     Title: lwres_gabn
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -47,9 +47,12 @@
 .SH "NAME"
 lwres_gabnrequest_render, lwres_gabnresponse_render, lwres_gabnrequest_parse, lwres_gabnresponse_parse, lwres_gabnresponse_free, lwres_gabnrequest_free \- lightweight resolver getaddrbyname message handling
 .SH "SYNOPSIS"
+.sp
+.ft B
 .nf
 #include <lwres/lwres\&.h>
 .fi
+.ft
 .HP \w'lwres_result_t\ lwres_gabnrequest_render('u
 .BI "lwres_result_t lwres_gabnrequest_render(lwres_context_t\ *" "ctx" ", lwres_gabnrequest_t\ *" "req" ", lwres_lwpacket_t\ *" "pkt" ", lwres_buffer_t\ *" "b" ");"
 .HP \w'lwres_result_t\ lwres_gabnresponse_render('u
@@ -183,8 +186,7 @@ structures referenced via
 .PP
 The getaddrbyname opcode functions
 \fBlwres_gabnrequest_render()\fR,
-\fBlwres_gabnresponse_render()\fR
-\fBlwres_gabnrequest_parse()\fR
+\fBlwres_gabnresponse_render()\fR\fBlwres_gabnrequest_parse()\fR
 and
 \fBlwres_gabnresponse_parse()\fR
 all return
