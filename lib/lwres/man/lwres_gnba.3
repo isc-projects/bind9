@@ -18,7 +18,7 @@
 '\" t
 .\"     Title: lwres_gnba
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -47,9 +47,12 @@
 .SH "NAME"
 lwres_gnbarequest_render, lwres_gnbaresponse_render, lwres_gnbarequest_parse, lwres_gnbaresponse_parse, lwres_gnbaresponse_free, lwres_gnbarequest_free \- lightweight resolver getnamebyaddress message handling
 .SH "SYNOPSIS"
+.sp
+.ft B
 .nf
 #include <lwres/lwres\&.h>
 .fi
+.ft
 .HP \w'lwres_result_t\ lwres_gnbarequest_render('u
 .BI "lwres_result_t lwres_gnbarequest_render(lwres_context_t\ *" "ctx" ", lwres_gnbarequest_t\ *" "req" ", lwres_lwpacket_t\ *" "pkt" ", lwres_buffer_t\ *" "b" ");"
 .HP \w'lwres_result_t\ lwres_gnbaresponse_render('u
@@ -168,8 +171,7 @@ structures referenced via
 .PP
 The getnamebyaddr opcode functions
 \fBlwres_gnbarequest_render()\fR,
-\fBlwres_gnbaresponse_render()\fR
-\fBlwres_gnbarequest_parse()\fR
+\fBlwres_gnbaresponse_render()\fR\fBlwres_gnbarequest_parse()\fR
 and
 \fBlwres_gnbaresponse_parse()\fR
 all return

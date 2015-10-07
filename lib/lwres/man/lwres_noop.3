@@ -18,7 +18,7 @@
 '\" t
 .\"     Title: lwres_noop
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -47,9 +47,12 @@
 .SH "NAME"
 lwres_nooprequest_render, lwres_noopresponse_render, lwres_nooprequest_parse, lwres_noopresponse_parse, lwres_noopresponse_free, lwres_nooprequest_free \- lightweight resolver no\-op message handling
 .SH "SYNOPSIS"
+.sp
+.ft B
 .nf
 #include <lwres/lwres\&.h>
 .fi
+.ft
 .HP \w'lwres_result_t\ lwres_nooprequest_render('u
 .BI "lwres_result_t lwres_nooprequest_render(lwres_context_t\ *" "ctx" ", lwres_nooprequest_t\ *" "req" ", lwres_lwpacket_t\ *" "pkt" ", lwres_buffer_t\ *" "b" ");"
 .HP \w'lwres_result_t\ lwres_noopresponse_render('u
@@ -168,8 +171,7 @@ structures referenced via
 .PP
 The no\-op opcode functions
 \fBlwres_nooprequest_render()\fR,
-\fBlwres_noopresponse_render()\fR
-\fBlwres_nooprequest_parse()\fR
+\fBlwres_noopresponse_render()\fR\fBlwres_nooprequest_parse()\fR
 and
 \fBlwres_noopresponse_parse()\fR
 all return

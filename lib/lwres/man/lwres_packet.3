@@ -18,7 +18,7 @@
 '\" t
 .\"     Title: lwres_packet
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -47,9 +47,12 @@
 .SH "NAME"
 lwres_lwpacket_renderheader, lwres_lwpacket_parseheader \- lightweight resolver packet handling functions
 .SH "SYNOPSIS"
+.sp
+.ft B
 .nf
 #include <lwres/lwpacket\&.h>
 .fi
+.ft
 .HP \w'lwres_result_t\ lwres_lwpacket_renderheader('u
 .BI "lwres_result_t lwres_lwpacket_renderheader(lwres_buffer_t\ *" "b" ", lwres_lwpacket_t\ *" "pkt" ");"
 .HP \w'lwres_result_t\ lwres_lwpacket_parseheader('u
@@ -158,8 +161,7 @@ return the hostname for the given address\&. The lwres_gnba_*() functions should
 .PP
 \fBlwres_lwpacket_renderheader()\fR
 transfers the contents of lightweight resolver packet structure
-\fBlwres_lwpacket_t\fR
-\fI*pkt\fR
+\fBlwres_lwpacket_t\fR\fI*pkt\fR
 in network byte order to the lightweight resolver buffer,
 \fI*b\fR\&.
 .PP

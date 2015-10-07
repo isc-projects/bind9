@@ -18,29 +18,19 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>lwres_inetntop</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 </head>
-<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" title="lwres_inetntop">
-<a name="idp60770640"></a><div class="titlepage"></div>
-  
-  
-
-  
-
-  
-
-  <div class="refnamediv">
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry">
+<a name="id-1"></a><div class="titlepage"></div>
+<div class="refnamediv">
 <h2>Name</h2>
-<p>
-    lwres_net_ntop
-     &#8212; lightweight resolver IP address presentation
-  </p>
+<p>lwres_net_ntop &#8212; lightweight resolver IP address presentation</p>
 </div>
-  <div class="refsynopsisdiv" title="Synopsis">
+<div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-    <div class="funcsynopsis">
+<div class="funcsynopsis">
 <pre class="funcsynopsisinfo">#include &lt;lwres/net.h&gt;</pre>
-<table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table">
+<table border="0" class="funcprototype-table" summary="Function synopsis" style="cellspacing: 0; cellpadding: 0;">
 <tr>
 <td><code class="funcdef">
 const char *
@@ -62,13 +52,10 @@ const char *
 </table>
 <div class="funcprototype-spacer"> </div>
 </div>
-  </div>
-
-  <div class="refsection" title="DESCRIPTION">
-<a name="idp60822096"></a><h2>DESCRIPTION</h2>
-    
-
-    <p><code class="function">lwres_net_ntop()</code>
+</div>
+<div class="refsection">
+<a name="id-1.7"></a><h2>DESCRIPTION</h2>
+<p><code class="function">lwres_net_ntop()</code>
       converts an IP address of protocol family
       <em class="parameter"><code>af</code></em> &#8212; IPv4 or IPv6 &#8212; at
       location <em class="parameter"><code>src</code></em> from network format to its
@@ -76,21 +63,17 @@ const char *
       that string would be a dotted-decimal.  An IPv6 address would be
       represented in colon notation as described in RFC1884.
     </p>
-
-    <p>
+<p>
       The generated string is copied to <em class="parameter"><code>dst</code></em>
       provided
       <em class="parameter"><code>size</code></em> indicates it is long enough to
       store the
       ASCII representation of the address.
     </p>
-
-  </div>
-  <div class="refsection" title="RETURN VALUES">
-<a name="idp60825680"></a><h2>RETURN VALUES</h2>
-    
-
-    <p>
+</div>
+<div class="refsection">
+<a name="id-1.8"></a><h2>RETURN VALUES</h2>
+<p>
       If successful, the function returns <em class="parameter"><code>dst</code></em>:
       a pointer to a string containing the presentation format of the
       address.  <code class="function">lwres_net_ntop()</code> returns
@@ -100,21 +83,13 @@ const char *
       not
       supported.
     </p>
-
-  </div>
-  <div class="refsection" title="SEE ALSO">
-<a name="idp60829392"></a><h2>SEE ALSO</h2>
-    
-    <p><span class="citerefentry">
-        <span class="refentrytitle">RFC1884</span>
-      </span>,
-      <span class="citerefentry">
-        <span class="refentrytitle">inet_ntop</span>(3)
-      </span>,
-      <span class="citerefentry">
-        <span class="refentrytitle">errno</span>(3)
-      </span>.
+</div>
+<div class="refsection">
+<a name="id-1.9"></a><h2>SEE ALSO</h2>
+<p><span class="citerefentry"><span class="refentrytitle">RFC1884</span></span>,
+      <span class="citerefentry"><span class="refentrytitle">inet_ntop</span>(3)</span>,
+      <span class="citerefentry"><span class="refentrytitle">errno</span>(3)</span>.
     </p>
-  </div>
+</div>
 </div></body>
 </html>

@@ -18,7 +18,7 @@
 '\" t
 .\"     Title: lwres_config
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -47,9 +47,12 @@
 .SH "NAME"
 lwres_conf_init, lwres_conf_clear, lwres_conf_parse, lwres_conf_print, lwres_conf_get \- lightweight resolver configuration
 .SH "SYNOPSIS"
+.sp
+.ft B
 .nf
 #include <lwres/lwres\&.h>
 .fi
+.ft
 .HP \w'void\ lwres_conf_init('u
 .BI "void lwres_conf_init(lwres_context_t\ *" "ctx" ");"
 .HP \w'void\ lwres_conf_clear('u
@@ -88,8 +91,7 @@ prints the
 structure for resolver context
 \fIctx\fR
 to the
-\fBFILE\fR
-\fIfp\fR\&.
+\fBFILE\fR\fIfp\fR\&.
 .SH "RETURN VALUES"
 .PP
 \fBlwres_conf_parse()\fR
