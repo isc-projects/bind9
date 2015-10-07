@@ -18,7 +18,7 @@
 '\" t
 .\"     Title: lwres_getipnode
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2007-06-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -47,9 +47,12 @@
 .SH "NAME"
 lwres_getipnodebyname, lwres_getipnodebyaddr, lwres_freehostent \- lightweight resolver nodename / address translation API
 .SH "SYNOPSIS"
+.sp
+.ft B
 .nf
 #include <lwres/netdb\&.h>
 .fi
+.ft
 .HP \w'struct\ hostent\ *\ lwres_getipnodebyname('u
 .BI "struct hostent * lwres_getipnodebyname(const\ char\ *" "name" ", int\ " "af" ", int\ " "flags" ", int\ *" "error_num" ");"
 .HP \w'struct\ hostent\ *\ lwres_getipnodebyaddr('u

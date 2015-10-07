@@ -18,7 +18,7 @@
 '\" t
 .\"     Title: nsupdate
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2014-04-18
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -47,7 +47,7 @@
 .SH "NAME"
 nsupdate \- Dynamic DNS update utility
 .SH "SYNOPSIS"
-.HP 9
+.HP \w'\fBnsupdate\fR\ 'u
 \fBnsupdate\fR [\fB\-d\fR] [\fB\-D\fR] [\fB\-L\ \fR\fB\fIlevel\fR\fR] [[\fB\-g\fR] | [\fB\-o\fR] | [\fB\-l\fR] | [\fB\-y\ \fR\fB\fI[hmac:]\fR\fIkeyname:secret\fR\fR] | [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-R\ \fR\fB\fIrandomdev\fR\fR] [\fB\-v\fR] [\fB\-T\fR] [\fB\-P\fR] [\fB\-V\fR] [filename]
 .SH "DESCRIPTION"
 .PP
@@ -289,8 +289,7 @@ will clear the default ttl\&.
 \fBkey\fR [hmac:] {keyname} {secret}
 .RS 4
 Specifies that all updates are to be TSIG\-signed using the
-\fIkeyname\fR
-\fIsecret\fR
+\fIkeyname\fR\fIsecret\fR
 pair\&. If
 \fIhmac\fR
 is specified, then it sets the signing algorithm in use; the default is
