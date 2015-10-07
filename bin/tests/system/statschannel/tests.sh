@@ -179,7 +179,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 
 ret=0
-echo "I:checking if comprssed output is really compressed ($n)"
+echo "I:checking if compressed output is really compressed ($n)"
 REGSIZE=`cat regular.headers | \
 	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
 COMPSIZE=`cat compressed.headers | \
