@@ -367,7 +367,7 @@ dns_test_getdata(const char *file, unsigned char *buf,
 	char *rp, *wp;
 	char s[BUFSIZ];
 	size_t len, i;
-	FILE *f;
+	FILE *f = NULL;
 	int n;
 
 	result = isc_stdio_open(file, "r", &f);
@@ -392,9 +392,9 @@ dns_test_getdata(const char *file, unsigned char *buf,
 		if (len == 0U)
 			continue;
 		if (len % 2 != 0U)
-			return (ISC_R_UNEXPECTEDEND);
+			CHECK(ISC_R_UNEXPECTEDEND);
 		if (len > bufsiz * 2)
-			return (ISC_R_NOSPACE);
+			CHECK(ISC_R_NOSPACE);
 		rp = s;
 		for (i = 0; i < len; i += 2) {
 			n = fromhex(*rp++);
@@ -404,10 +404,14 @@ dns_test_getdata(const char *file, unsigned char *buf,
 		}
 	}
 
-	isc_stdio_close(f);
 
 	*sizep = bp - buf;
 
-	return (ISC_R_SUCCESS);
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	if (f != NULL)
+		isc_stdio_close(f);
+	return (result);
 }
 
