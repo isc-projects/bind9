@@ -45,7 +45,7 @@
   </info>
 
   <chapter xml:id="Bv9ARM.ch01"><info><title>Introduction</title></info>
-    
+
     <para>
       The Internet Domain Name System (<acronym>DNS</acronym>)
       consists of the syntax
@@ -57,8 +57,7 @@
       hierarchical databases.
     </para>
 
-    <section><info><title>Scope of Document</title></info>
-      
+    <section xml:id="doc_scope"><info><title>Scope of Document</title></info>
 
       <para>
 	The Berkeley Internet Name Domain
@@ -72,8 +71,8 @@
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pkgversion.xml"/>
     </section>
 
-    <section><info><title>Organization of This Document</title></info>
-      
+    <section xml:id="organization"><info><title>Organization of This Document</title></info>
+
       <para>
 	In this document, <emphasis>Chapter 1</emphasis> introduces
 	the basic <acronym>DNS</acronym> and <acronym>BIND</acronym> concepts. <emphasis>Chapter 2</emphasis>
@@ -100,8 +99,7 @@
 	System.
       </para>
     </section>
-    <section><info><title>Conventions Used in This Document</title></info>
-      
+    <section xml:id="conventions"><info><title>Conventions Used in This Document</title></info>
 
       <para>
 	In this document, we use the following general typographic
@@ -227,8 +225,8 @@
 	</informaltable>
       </para>
     </section>
-    <section><info><title>The Domain Name System (<acronym>DNS</acronym>)</title></info>
-      
+    <section xml:id="dns_overview"><info><title>The Domain Name System (<acronym>DNS</acronym>)</title></info>
+
       <para>
 	The purpose of this document is to explain the installation
 	and upkeep of the <acronym>BIND</acronym> (Berkeley Internet
@@ -237,8 +235,7 @@
 	(<acronym>DNS</acronym>) as they relate to <acronym>BIND</acronym>.
       </para>
 
-      <section><info><title>DNS Fundamentals</title></info>
-	
+      <section xml:id="dns_fundamentals"><info><title>DNS Fundamentals</title></info>
 
 	<para>
 	  The Domain Name System (DNS) is a hierarchical, distributed
@@ -260,8 +257,8 @@
 	  from ISC as a separate download.
 	</para>
 
-	</section><section><info><title>Domains and Domain Names</title></info>
-	
+	</section>
+	<section xml:id="domain_names"><info><title>Domains and Domain Names</title></info>
 
 	<para>
 	  The data stored in the DNS is identified by <emphasis>domain names</emphasis> that are organized as a tree according to
@@ -311,8 +308,8 @@
 	</para>
       </section>
 
-      <section><info><title>Zones</title></info>
-	
+      <section xml:id="zones"><info><title>Zones</title></info>
+
 	<para>
 	  To properly operate a name server, it is important to understand
 	  the difference between a <emphasis>zone</emphasis>
@@ -367,8 +364,7 @@
 	</para>
       </section>
 
-      <section><info><title>Authoritative Name Servers</title></info>
-	
+      <section xml:id="auth_servers"><info><title>Authoritative Name Servers</title></info>
 
 	<para>
 	  Each zone is served by at least
@@ -386,8 +382,7 @@
 	  <command>dig</command> (<xref linkend="diagnostic_tools"/>).
 	</para>
 
-	<section><info><title>The Primary Master</title></info>
-	  
+	<section xml:id="primary_master"><info><title>The Primary Master</title></info>
 
 	  <para>
 	    The authoritative server where the master copy of the zone
@@ -408,8 +403,8 @@
 	  </para>
 	</section>
 
-	<section><info><title>Slave Servers</title></info>
-	  
+	<section xml:id="slave_server"><info><title>Slave Servers</title></info>
+
 	  <para>
 	    The other authoritative servers, the <emphasis>slave</emphasis>
 	    servers (also known as <emphasis>secondary</emphasis> servers)
@@ -424,8 +419,7 @@
 	  </para>
 	</section>
 
-	<section><info><title>Stealth Servers</title></info>
-	  
+	<section xml:id="stealth_server"><info><title>Stealth Servers</title></info>
 
 	  <para>
 	    Usually all of the zone's authoritative servers are listed in
@@ -463,9 +457,7 @@
 	</section>
 
       </section>
-      <section><info><title>Caching Name Servers</title></info>
-
-	
+      <section xml:id="cache_servers"><info><title>Caching Name Servers</title></info>
 
 	<!--
 	  - Terminology here is inconsistent.  Probably ought to
@@ -500,8 +492,7 @@
 	  Time To Live (TTL) field associated with each resource record.
 	</para>
 
-	<section><info><title>Forwarding</title></info>
-	  
+	<section xml:id="forwarder"><info><title>Forwarding</title></info>
 
 	  <para>
 	    Even a caching name server does not necessarily perform
@@ -530,8 +521,7 @@
 
       </section>
 
-      <section><info><title>Name Servers in Multiple Roles</title></info>
-	
+      <section xml:id="multi_role"><info><title>Name Servers in Multiple Roles</title></info>
 
 	<para>
 	  The <acronym>BIND</acronym> name server can
@@ -562,11 +552,8 @@
   </chapter>
 
   <chapter xml:id="Bv9ARM.ch02"><info><title><acronym>BIND</acronym> Resource Requirements</title></info>
-    
 
-    <section><info><title>Hardware requirements</title></info>
-      
-
+    <section xml:id="hw_req"><info><title>Hardware requirements</title></info>
       <para>
 	<acronym>DNS</acronym> hardware requirements have
 	traditionally been quite modest.
@@ -583,8 +570,7 @@
 	multiprocessor systems for installations that need it.
       </para>
     </section>
-    <section><info><title>CPU Requirements</title></info>
-      
+    <section xml:id="cpu_req"><info><title>CPU Requirements</title></info>
       <para>
 	CPU requirements for <acronym>BIND</acronym> 9 range from
 	i486-class machines
@@ -593,9 +579,7 @@
 	signed zones, serving many thousands of queries per second.
       </para>
     </section>
-
-    <section><info><title>Memory Requirements</title></info>
-      
+    <section xml:id="mem_req"><info><title>Memory Requirements</title></info>
       <para>
 	The memory of the server has to be large enough to fit the
 	cache and zones loaded off disk.  The <command>max-cache-size</command>
@@ -621,8 +605,8 @@
 	-->
     </section>
 
-    <section><info><title>Name Server Intensive Environment Issues</title></info>
-      
+    <section xml:id="intensive_env"><info><title>Name Server Intensive Environment Issues</title></info>
+
       <para>
 	For name server intensive environments, there are two alternative
 	configurations that may be used. The first is where clients and
@@ -638,8 +622,8 @@
       </para>
     </section>
 
-    <section><info><title>Supported Operating Systems</title></info>
-      
+    <section xml:id="supported_os"><info><title>Supported Operating Systems</title></info>
+
       <para>
 	ISC <acronym>BIND</acronym> 9 compiles and runs on a large
 	number
@@ -654,7 +638,7 @@
   </chapter>
 
   <chapter xml:id="Bv9ARM.ch03"><info><title>Name Server Configuration</title></info>
-    
+
     <para>
       In this chapter we provide some suggested configurations along
       with guidelines for their use.  We suggest reasonable values for
@@ -662,9 +646,9 @@
     </para>
 
     <section xml:id="sample_configuration"><info><title>Sample Configurations</title></info>
-      
-      <section><info><title>A Caching-only Name Server</title></info>
-	
+
+      <section xml:id="cache_only_sample"><info><title>A Caching-only Name Server</title></info>
+
 	<para>
 	  The following sample configuration is appropriate for a caching-only
 	  name server for use by clients internal to a corporation.  All
@@ -695,8 +679,8 @@ zone "0.0.127.in-addr.arpa" {
 
       </section>
 
-      <section><info><title>An Authoritative-only Name Server</title></info>
-	
+      <section xml:id="auth_only_sample"><info><title>An Authoritative-only Name Server</title></info>
+
 	<para>
 	  This sample configuration is for an authoritative-only server
 	  that is the master server for "<filename>example.com</filename>"
@@ -745,8 +729,8 @@ zone "eng.example.com" {
       </section>
     </section>
 
-    <section><info><title>Load Balancing</title></info>
-      
+    <section xml:id="load_balancing"><info><title>Load Balancing</title></info>
+
       <!--
 	- Add explanation of why load balancing is fragile at best
 	- and completely pointless in the general case.
@@ -896,11 +880,9 @@ zone "eng.example.com" {
 
     </section>
 
-    <section><info><title>Name Server Operations</title></info>
-      
+    <section xml:id="ns_operations"><info><title>Name Server Operations</title></info>
 
-      <section><info><title>Tools for Use With the Name Server Daemon</title></info>
-	
+      <section xml:id="tools"><info><title>Tools for Use With the Name Server Daemon</title></info>
 	<para>
 	  This section describes several indispensable diagnostic,
 	  administrative and monitoring tools available to the system
@@ -908,7 +890,6 @@ zone "eng.example.com" {
 	  daemon.
 	</para>
 	<section xml:id="diagnostic_tools"><info><title>Diagnostic Tools</title></info>
-	  
 	  <para>
 	    The <command>dig</command>, <command>host</command>, and
 	    <command>nslookup</command> programs are all command
@@ -1036,7 +1017,6 @@ zone "eng.example.com" {
 	</section>
 
 	<section xml:id="admin_tools"><info><title>Administrative Tools</title></info>
-	  
 	  <para>
 	    Administrative tools play an integral part in the management
 	    of a server.
@@ -1294,9 +1274,8 @@ controls {
 
 	</section>
       </section>
-      <section><info><title>Signals</title></info>
 
-	
+      <section xml:id="signals"><info><title>Signals</title></info>
 	<para>
 	  Certain UNIX signals cause the name server to take specific
 	  actions, as described in the following table.  These signals can
@@ -1346,11 +1325,8 @@ controls {
   </chapter>
 
   <chapter xml:id="Bv9ARM.ch04"><info><title>Advanced DNS Features</title></info>
-    
 
     <section xml:id="notify"><info><title>Notify</title></info>
-
-      
       <para>
 	<acronym>DNS</acronym> NOTIFY is a mechanism that allows master
 	servers to notify their slave servers of changes to a zone's data. In
@@ -1379,7 +1355,6 @@ controls {
     </section>
 
     <section xml:id="dynamic_update"><info><title>Dynamic Update</title></info>
-      
 
       <para>
 	Dynamic Update is a method for adding, replacing or deleting
@@ -1422,7 +1397,6 @@ controls {
       </para>
 
       <section xml:id="journal"><info><title>The journal file</title></info>
-	
 
 	<para>
 	  All changes made to a zone using dynamic update are stored
@@ -1496,7 +1470,6 @@ controls {
     </section>
 
     <section xml:id="incremental_zone_transfers"><info><title>Incremental Zone Transfers (IXFR)</title></info>
-      
 
       <para>
 	The incremental zone transfer (IXFR) protocol is a way for
@@ -1526,8 +1499,8 @@ controls {
       </para>
     </section>
 
-    <section><info><title>Split DNS</title></info>
-      
+    <section xml:id="split_dns"><info><title>Split DNS</title></info>
+
       <para>
 	Setting up different views, or visibility, of the DNS space to
 	internal and external resolvers is usually referred to as a
@@ -1555,139 +1528,138 @@ controls {
 	on the Internet. Split DNS can also be used to allow mail from outside
 	back in to the internal network.
       </para>
-     <section><info><title>Example split DNS setup</title></info>
-      
-      <para>
-	Let's say a company named <emphasis>Example, Inc.</emphasis>
-	(<literal>example.com</literal>)
-	has several corporate sites that have an internal network with
-	reserved
-	Internet Protocol (IP) space and an external demilitarized zone (DMZ),
-	or "outside" section of a network, that is available to the public.
-      </para>
-      <para>
-	<emphasis>Example, Inc.</emphasis> wants its internal clients
-	to be able to resolve external hostnames and to exchange mail with
-	people on the outside. The company also wants its internal resolvers
-	to have access to certain internal-only zones that are not available
-	at all outside of the internal network.
-      </para>
-      <para>
-	In order to accomplish this, the company will set up two sets
-	of name servers. One set will be on the inside network (in the
-	reserved
-	IP space) and the other set will be on bastion hosts, which are
-	"proxy"
-	hosts that can talk to both sides of its network, in the DMZ.
-      </para>
-      <para>
-	The internal servers will be configured to forward all queries,
-	except queries for <filename>site1.internal</filename>, <filename>site2.internal</filename>, <filename>site1.example.com</filename>,
-	and <filename>site2.example.com</filename>, to the servers
-	in the
-	DMZ. These internal servers will have complete sets of information
-	for <filename>site1.example.com</filename>, <filename>site2.example.com</filename>, <filename>site1.internal</filename>,
-	and <filename>site2.internal</filename>.
-      </para>
-      <para>
-	To protect the <filename>site1.internal</filename> and <filename>site2.internal</filename> domains,
-	the internal name servers must be configured to disallow all queries
-	to these domains from any external hosts, including the bastion
-	hosts.
-      </para>
-      <para>
-	The external servers, which are on the bastion hosts, will
-	be configured to serve the "public" version of the <filename>site1</filename> and <filename>site2.example.com</filename> zones.
-	This could include things such as the host records for public servers
-	(<filename>www.example.com</filename> and <filename>ftp.example.com</filename>),
-	and mail exchange (MX)  records (<filename>a.mx.example.com</filename> and <filename>b.mx.example.com</filename>).
-      </para>
-      <para>
-	In addition, the public <filename>site1</filename> and <filename>site2.example.com</filename> zones
-	should have special MX records that contain wildcard (`*') records
-	pointing to the bastion hosts. This is needed because external mail
-	servers do not have any other way of looking up how to deliver mail
-	to those internal hosts. With the wildcard records, the mail will
-	be delivered to the bastion host, which can then forward it on to
-	internal hosts.
-      </para>
-      <para>
-	Here's an example of a wildcard MX record:
-      </para>
-      <programlisting>*   IN MX 10 external1.example.com.</programlisting>
-      <para>
-	Now that they accept mail on behalf of anything in the internal
-	network, the bastion hosts will need to know how to deliver mail
-	to internal hosts. In order for this to work properly, the resolvers
-	on
-	the bastion hosts will need to be configured to point to the internal
-	name servers for DNS resolution.
-      </para>
-      <para>
-	Queries for internal hostnames will be answered by the internal
-	servers, and queries for external hostnames will be forwarded back
-	out to the DNS servers on the bastion hosts.
-      </para>
-      <para>
-	In order for all this to work properly, internal clients will
-	need to be configured to query <emphasis>only</emphasis> the internal
-	name servers for DNS queries. This could also be enforced via
-	selective
-	filtering on the network.
-      </para>
-      <para>
-	If everything has been set properly, <emphasis>Example, Inc.</emphasis>'s
-	internal clients will now be able to:
-      </para>
-      <itemizedlist>
-	<listitem>
-	  <simpara>
-	    Look up any hostnames in the <literal>site1</literal>
-	    and
-	    <literal>site2.example.com</literal> zones.
-	  </simpara>
-	</listitem>
-	<listitem>
-	  <simpara>
-	    Look up any hostnames in the <literal>site1.internal</literal> and
-	    <literal>site2.internal</literal> domains.
-	  </simpara>
-	</listitem>
-	<listitem>
-	  <simpara>Look up any hostnames on the Internet.</simpara>
-	</listitem>
-	<listitem>
-	  <simpara>Exchange mail with both internal and external people.</simpara>
-	</listitem>
-      </itemizedlist>
-      <para>
-	Hosts on the Internet will be able to:
-      </para>
-      <itemizedlist>
-	<listitem>
-	  <simpara>
-	    Look up any hostnames in the <literal>site1</literal>
-	    and
-	    <literal>site2.example.com</literal> zones.
-	  </simpara>
-	</listitem>
-	<listitem>
-	  <simpara>
-	    Exchange mail with anyone in the <literal>site1</literal> and
-	    <literal>site2.example.com</literal> zones.
-	  </simpara>
-	</listitem>
-      </itemizedlist>
+      <section xml:id="split_dns_sample"><info><title>Example split DNS setup</title></info>
+	<para>
+	  Let's say a company named <emphasis>Example, Inc.</emphasis>
+	  (<literal>example.com</literal>)
+	  has several corporate sites that have an internal network with
+	  reserved
+	  Internet Protocol (IP) space and an external demilitarized zone (DMZ),
+	  or "outside" section of a network, that is available to the public.
+	</para>
+	<para>
+	  <emphasis>Example, Inc.</emphasis> wants its internal clients
+	  to be able to resolve external hostnames and to exchange mail with
+	  people on the outside. The company also wants its internal resolvers
+	  to have access to certain internal-only zones that are not available
+	  at all outside of the internal network.
+	</para>
+	<para>
+	  In order to accomplish this, the company will set up two sets
+	  of name servers. One set will be on the inside network (in the
+	  reserved
+	  IP space) and the other set will be on bastion hosts, which are
+	  "proxy"
+	  hosts that can talk to both sides of its network, in the DMZ.
+	</para>
+	<para>
+	  The internal servers will be configured to forward all queries,
+	  except queries for <filename>site1.internal</filename>, <filename>site2.internal</filename>, <filename>site1.example.com</filename>,
+	  and <filename>site2.example.com</filename>, to the servers
+	  in the
+	  DMZ. These internal servers will have complete sets of information
+	  for <filename>site1.example.com</filename>, <filename>site2.example.com</filename>, <filename>site1.internal</filename>,
+	  and <filename>site2.internal</filename>.
+	</para>
+	<para>
+	  To protect the <filename>site1.internal</filename> and <filename>site2.internal</filename> domains,
+	  the internal name servers must be configured to disallow all queries
+	  to these domains from any external hosts, including the bastion
+	  hosts.
+	</para>
+	<para>
+	  The external servers, which are on the bastion hosts, will
+	  be configured to serve the "public" version of the <filename>site1</filename> and <filename>site2.example.com</filename> zones.
+	  This could include things such as the host records for public servers
+	  (<filename>www.example.com</filename> and <filename>ftp.example.com</filename>),
+	  and mail exchange (MX)  records (<filename>a.mx.example.com</filename> and <filename>b.mx.example.com</filename>).
+	</para>
+	<para>
+	  In addition, the public <filename>site1</filename> and <filename>site2.example.com</filename> zones
+	  should have special MX records that contain wildcard (`*') records
+	  pointing to the bastion hosts. This is needed because external mail
+	  servers do not have any other way of looking up how to deliver mail
+	  to those internal hosts. With the wildcard records, the mail will
+	  be delivered to the bastion host, which can then forward it on to
+	  internal hosts.
+	</para>
+	<para>
+	  Here's an example of a wildcard MX record:
+	</para>
+	<programlisting>*   IN MX 10 external1.example.com.</programlisting>
+	<para>
+	  Now that they accept mail on behalf of anything in the internal
+	  network, the bastion hosts will need to know how to deliver mail
+	  to internal hosts. In order for this to work properly, the resolvers
+	  on
+	  the bastion hosts will need to be configured to point to the internal
+	  name servers for DNS resolution.
+	</para>
+	<para>
+	  Queries for internal hostnames will be answered by the internal
+	  servers, and queries for external hostnames will be forwarded back
+	  out to the DNS servers on the bastion hosts.
+	</para>
+	<para>
+	  In order for all this to work properly, internal clients will
+	  need to be configured to query <emphasis>only</emphasis> the internal
+	  name servers for DNS queries. This could also be enforced via
+	  selective
+	  filtering on the network.
+	</para>
+	<para>
+	  If everything has been set properly, <emphasis>Example, Inc.</emphasis>'s
+	  internal clients will now be able to:
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <simpara>
+	      Look up any hostnames in the <literal>site1</literal>
+	      and
+	      <literal>site2.example.com</literal> zones.
+	    </simpara>
+	  </listitem>
+	  <listitem>
+	    <simpara>
+	      Look up any hostnames in the <literal>site1.internal</literal> and
+	      <literal>site2.internal</literal> domains.
+	    </simpara>
+	  </listitem>
+	  <listitem>
+	    <simpara>Look up any hostnames on the Internet.</simpara>
+	  </listitem>
+	  <listitem>
+	    <simpara>Exchange mail with both internal and external people.</simpara>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	  Hosts on the Internet will be able to:
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <simpara>
+	      Look up any hostnames in the <literal>site1</literal>
+	      and
+	      <literal>site2.example.com</literal> zones.
+	    </simpara>
+	  </listitem>
+	  <listitem>
+	    <simpara>
+	      Exchange mail with anyone in the <literal>site1</literal> and
+	      <literal>site2.example.com</literal> zones.
+	    </simpara>
+	  </listitem>
+	</itemizedlist>
 
-      <para>
-	Here is an example configuration for the setup we just
-	described above. Note that this is only configuration information;
-	for information on how to configure your zone files, see <xref linkend="sample_configuration"/>.
-      </para>
+	<para>
+	  Here is an example configuration for the setup we just
+	  described above. Note that this is only configuration information;
+	  for information on how to configure your zone files, see <xref linkend="sample_configuration"/>.
+	</para>
 
-      <para>
-	Internal DNS server config:
-      </para>
+	<para>
+	  Internal DNS server config:
+	</para>
 
 <programlisting>
 
@@ -1751,9 +1723,9 @@ zone "site2.internal" {
 };
 </programlisting>
 
-      <para>
-	External (bastion host) DNS server config:
-      </para>
+	<para>
+	  External (bastion host) DNS server config:
+	</para>
 
 <programlisting>
 acl internals { 172.16.72.0/24; 192.168.1.0/24; };
@@ -1790,10 +1762,10 @@ zone "site2.example.com" {
 };
 </programlisting>
 
-      <para>
-	In the <filename>resolv.conf</filename> (or equivalent) on
-	the bastion host(s):
-      </para>
+	<para>
+	  In the <filename>resolv.conf</filename> (or equivalent) on
+	  the bastion host(s):
+	</para>
 
 <programlisting>
 search ...
@@ -1802,10 +1774,10 @@ nameserver 172.16.72.3
 nameserver 172.16.72.4
 </programlisting>
 
-     </section>
+      </section>
     </section>
     <section xml:id="tsig"><info><title>TSIG</title></info>
-      
+
       <para>
 	This is a short guide to setting up Transaction SIGnatures
 	(TSIG) based transaction security in <acronym>BIND</acronym>. It describes changes
@@ -1833,14 +1805,14 @@ nameserver 172.16.72.4
       </para>
 
       <section><info><title>Generate Shared Keys for Each Pair of Hosts</title></info>
-	
+
 	<para>
 	  A shared secret is generated to be shared between <emphasis>host1</emphasis> and <emphasis>host2</emphasis>.
 	  An arbitrary key name is chosen: "host1-host2.". The key name must
 	  be the same on both hosts.
 	</para>
 	<section><info><title>Automatic Generation</title></info>
-	  
+
 	  <para>
 	    The following command will generate a 128-bit (16 byte) HMAC-SHA256
 	    key as described above. Longer keys are better, but shorter keys
@@ -1863,7 +1835,7 @@ nameserver 172.16.72.4
 	  </para>
 	</section>
 	<section><info><title>Manual Generation</title></info>
-	  
+
 	  <para>
 	    The shared secret is simply a random sequence of bits, encoded
 	    in base-64. Most ASCII strings are valid base-64 strings (assuming
@@ -1877,14 +1849,14 @@ nameserver 172.16.72.4
 	</section>
       </section>
       <section><info><title>Copying the Shared Secret to Both Machines</title></info>
-	
+
 	<para>
 	  This is beyond the scope of DNS. A secure transport mechanism
 	  should be used. This could be secure FTP, ssh, telephone, etc.
 	</para>
       </section>
       <section><info><title>Informing the Servers of the Key's Existence</title></info>
-	
+
 	<para>
 	  Imagine <emphasis>host1</emphasis> and <emphasis>host 2</emphasis>
 	  are
@@ -1913,7 +1885,7 @@ key host1-host2. {
       </section>
 
       <section><info><title>Instructing the Server to Use the Key</title></info>
-	
+
 	<para>
 	  Since keys are shared between two hosts only, the server must
 	  be told when keys are to be used. The following is added to the <filename>named.conf</filename> file
@@ -1946,7 +1918,7 @@ server 10.1.2.3 {
 	</para>
       </section>
       <section><info><title>TSIG Key Based Access Control</title></info>
-	
+
 	<para>
 	  <acronym>BIND</acronym> allows IP addresses and ranges
 	  to be specified in ACL
@@ -1976,7 +1948,6 @@ allow-update { key host1-host2. ;};
 
       </section>
       <section><info><title>Errors</title></info>
-	
 
 	<para>
 	  The processing of TSIG signed messages can result in
@@ -2003,8 +1974,7 @@ allow-update { key host1-host2. ;};
 
       </section>
     </section>
-    <section><info><title>TKEY</title></info>
-      
+    <section xml:id="tkey"><info><title>TKEY</title></info>
 
       <para><command>TKEY</command>
 	is a mechanism for automatically generating a shared secret
@@ -2041,8 +2011,7 @@ allow-update { key host1-host2. ;};
       </para>
 
     </section>
-    <section><info><title>SIG(0)</title></info>
-      
+    <section xml:id="sig0"><info><title>SIG(0)</title></info>
 
       <para>
 	<acronym>BIND</acronym> 9 partially supports DNSSEC SIG(0)
@@ -2071,7 +2040,6 @@ allow-update { key host1-host2. ;};
 
     </section>
     <section xml:id="DNSSEC"><info><title>DNSSEC</title></info>
-      
 
       <para>
 	Cryptographic authentication of DNS information is possible
@@ -2110,8 +2078,7 @@ allow-update { key host1-host2. ;};
 	zone key of another zone above this one in the DNS tree.
       </para>
 
-      <section><info><title>Generating Keys</title></info>
-	
+      <section xml:id="dnssec_keys"><info><title>Generating Keys</title></info>
 
 	<para>
 	  The <command>dnssec-keygen</command> program is used to
@@ -2174,8 +2141,7 @@ allow-update { key host1-host2. ;};
 	</para>
 
       </section>
-      <section><info><title>Signing the Zone</title></info>
-	
+      <section xml:id="dnssec_signing"><info><title>Signing the Zone</title></info>
 
 	<para>
 	  The <command>dnssec-signzone</command> program is used
@@ -2223,8 +2189,7 @@ allow-update { key host1-host2. ;};
 
       </section>
 
-      <section><info><title>Configuring Servers</title></info>
-	
+      <section xml:id="dnssec_config"><info><title>Configuring Servers</title></info>
 
 	<para>
 	  To enable <command>named</command> to respond appropriately
@@ -2399,7 +2364,7 @@ options {
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="dyndb.xml"/>
 
-    <section><info><title>IPv6 Support in <acronym>BIND</acronym> 9</title></info>
+    <section xml:id="ipv6"><info><title>IPv6 Support in <acronym>BIND</acronym> 9</title></info>
       <para>
 	<acronym>BIND</acronym> 9 fully supports all currently
 	defined forms of IPv6 name to address and address to name
@@ -2440,7 +2405,6 @@ options {
       </para>
 
       <section><info><title>Address Lookups Using AAAA Records</title></info>
-	
 
 	<para>
 	  The IPv6 AAAA record is a parallel to the IPv4 A record,
@@ -2461,7 +2425,6 @@ host            3600    IN      AAAA    2001:db8::1
 	</para>
       </section>
       <section><info><title>Address to Name Lookups Using Nibble Format</title></info>
-	
 
 	<para>
 	  When looking up an address in nibble format, the address
@@ -2484,9 +2447,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
   </chapter>
 
   <chapter xml:id="Bv9ARM.ch05"><info><title>The <acronym>BIND</acronym> 9 Lightweight Resolver</title></info>
-    
-    <section><info><title>The Lightweight Resolver Library</title></info>
-      
+
+    <section xml:id="lightweight_resolver"><info><title>The Lightweight Resolver Library</title></info>
+
       <para>
 	Traditionally applications have been linked with a stub resolver
 	library that sends recursive DNS queries to a local caching name
@@ -2509,7 +2472,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
       </para>
     </section>
     <section xml:id="lwresd"><info><title>Running a Resolver Daemon</title></info>
-      
 
       <para>
 	To use the lightweight resolver interface, the system must
@@ -2568,7 +2530,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
   </chapter>
 
   <chapter xml:id="Bv9ARM.ch06"><info><title><acronym>BIND</acronym> 9 Configuration Reference</title></info>
-    
 
     <para>
       <acronym>BIND</acronym> 9 configuration is broadly similar
@@ -2588,7 +2549,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
       <filename>contrib/named-bootconf/named-bootconf.sh</filename>.
     </para>
     <section xml:id="configuration_file_elements"><info><title>Configuration File Elements</title></info>
-      
+
       <para>
 	Following is a list of elements used throughout the <acronym>BIND</acronym> configuration
 	file documentation:
@@ -2983,9 +2944,8 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	</tgroup>
       </informaltable>
       <section xml:id="address_match_lists"><info><title>Address Match Lists</title></info>
-	
+
 	<section><info><title>Syntax</title></info>
-	  
 
 <programlisting><varname>address_match_list</varname> = address_match_list_element ;
   <optional> address_match_list_element; ... </optional>
@@ -2995,7 +2955,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 
 	</section>
 	<section><info><title>Definition and Usage</title></info>
-	  
+
 	  <para>
 	    Address match lists are primarily used to determine access
 	    control for various server operations. They are also used in
@@ -3095,8 +3055,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	</section>
       </section>
 
-      <section><info><title>Comment Syntax</title></info>
-	
+      <section xml:id="comment_syntax"><info><title>Comment Syntax</title></info>
 
 	<para>
 	  The <acronym>BIND</acronym> 9 comment syntax allows for
@@ -3107,7 +3066,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	</para>
 
 	<section><info><title>Syntax</title></info>
-	  
 
 	  <para>
 	    <programlisting>/* This is a <acronym>BIND</acronym> comment as in C */</programlisting>
@@ -3117,7 +3075,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	  </para>
 	</section>
 	<section><info><title>Definition and Usage</title></info>
-	  
+
 	  <para>
 	    Comments may appear anywhere that whitespace may appear in
 	    a <acronym>BIND</acronym> configuration file.
@@ -3187,7 +3145,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
     </section>
 
     <section xml:id="Configuration_File_Grammar"><info><title>Configuration File Grammar</title></info>
-      
 
       <para>
 	A <acronym>BIND</acronym> 9 configuration consists of
@@ -3370,8 +3327,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	configuration.
       </para>
 
-      <section><info><title><command>acl</command> Statement Grammar</title></info>
-	
+      <section xml:id="acl_grammar"><info><title><command>acl</command> Statement Grammar</title></info>
 
 <programlisting><command>acl</command> acl-name {
     address_match_list
@@ -3381,7 +3337,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
       </section>
       <section xml:id="acl"><info><title><command>acl</command> Statement Definition and
 	  Usage</title></info>
-	
 
 	<para>
 	  The <command>acl</command> statement assigns a symbolic
@@ -3455,8 +3410,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	  </tgroup>
 	</informaltable>
       </section>
-      <section><info><title><command>controls</command> Statement Grammar</title></info>
-	
+      <section xml:id="controls_grammar"><info><title><command>controls</command> Statement Grammar</title></info>
 
 <programlisting><command>controls</command> {
    [ inet ( ip_addr | * ) [ port ip_port ]
@@ -3473,7 +3427,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 
       <section xml:id="controls_statement_definition_and_usage"><info><title><command>controls</command> Statement Definition and
 	  Usage</title></info>
-	
 
 	<para>
 	  The <command>controls</command> statement declares control
@@ -3591,13 +3544,11 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	</para>
 
       </section>
-      <section><info><title><command>include</command> Statement Grammar</title></info>
-	
+      <section xml:id="include_grammar"><info><title><command>include</command> Statement Grammar</title></info>
+
 	<programlisting><command>include</command> <replaceable>filename</replaceable>;</programlisting>
       </section>
-      <section><info><title><command>include</command> Statement Definition and
-	  Usage</title></info>
-	
+      <section xml:id="include_statement"><info><title><command>include</command> Statement Definition and Usage</title></info>
 
 	<para>
 	  The <command>include</command> statement inserts the
@@ -3611,8 +3562,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	</para>
 
       </section>
-      <section><info><title><command>key</command> Statement Grammar</title></info>
-	
+      <section xml:id="key_grammar"><info><title><command>key</command> Statement Grammar</title></info>
 
 <programlisting><command>key</command> <replaceable>key_id</replaceable> {
     algorithm <replaceable>algorithm_id</replaceable>;
@@ -3622,8 +3572,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 
       </section>
 
-      <section><info><title><command>key</command> Statement Definition and Usage</title></info>
-	
+      <section xml:id="key_statement"><info><title><command>key</command> Statement Definition and Usage</title></info>
 
 	<para>
 	  The <command>key</command> statement defines a shared
@@ -3669,8 +3618,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	</para>
 
       </section>
-      <section><info><title><command>logging</command> Statement Grammar</title></info>
-	
+      <section xml:id="logging_grammar"><info><title><command>logging</command> Statement Grammar</title></info>
 
 <programlisting><command>logging</command> {
    [ <command>channel</command> <replaceable>channel_name</replaceable> {
@@ -3696,9 +3644,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 
       </section>
 
-      <section><info><title><command>logging</command> Statement Definition and
-	  Usage</title></info>
-	
+      <section xml:id="logging_statement"><info><title><command>logging</command> Statement Definition and Usage</title></info>
 
 	<para>
 	  The <command>logging</command> statement configures a
@@ -3746,8 +3692,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	  was specified.
 	</para>
 
-	<section><info><title>The <command>channel</command> Phrase</title></info>
-	  
+	<section xml:id="channel"><info><title>The <command>channel</command> Phrase</title></info>
 
 	  <para>
 	    All log output goes to one or more <emphasis>channels</emphasis>;
@@ -4025,7 +3970,6 @@ channel default_logfile {
 	</section>
 
 	<section xml:id="the_category_phrase"><info><title>The <command>category</command> Phrase</title></info>
-	  
 
 	  <para>
 	    There are many categories, so you can send the logs you want
@@ -4079,7 +4023,7 @@ category notify { null; };
 	  </para>
 	  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="logging-categories.xml"/>
 	</section>
-	<section><info><title>The <command>query-errors</command> Category</title></info>
+	<section xml:id="query_errors"><info><title>The <command>query-errors</command> Category</title></info>
 	  <para>
 	    The <command>query-errors</command> category is
 	    specifically intended for debugging purposes: To identify
@@ -4306,8 +4250,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	</section>
       </section>
 
-      <section><info><title><command>lwres</command> Statement Grammar</title></info>
-	
+      <section xml:id="lwres_grammar"><info><title><command>lwres</command> Statement Grammar</title></info>
 
 	<para>
 	   This is the grammar of the <command>lwres</command>
@@ -4326,8 +4269,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 </programlisting>
 
       </section>
-      <section><info><title><command>lwres</command> Statement Definition and Usage</title></info>
-	
+      <section xml:id="lwres_statement"><info><title><command>lwres</command> Statement Definition and Usage</title></info>
 
 	<para>
 	  The <command>lwres</command> statement configures the
@@ -4406,8 +4348,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	  <option>lwres-tasks</option> times <option>lwres-clients</option>.
 	</para>
       </section>
-      <section><info><title><command>masters</command> Statement Grammar</title></info>
-	
+      <section xml:id="masters_grammar"><info><title><command>masters</command> Statement Grammar</title></info>
 
 <programlisting>
 <command>masters</command> <replaceable>name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>dscp <replaceable>ip_dscp</replaceable></optional> { ( <replaceable>masters_list</replaceable> |
@@ -4416,9 +4357,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 
       </section>
 
-      <section><info><title><command>masters</command> Statement Definition and
+      <section xml:id="masters_statement"><info><title><command>masters</command> Statement Definition and
 	  Usage</title></info>
-	
+
 	<para><command>masters</command>
 	  lists allow for a common set of masters to be easily used by
 	  multiple stub and slave zones in their <command>masters</command>
@@ -4426,8 +4367,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	</para>
       </section>
 
-      <section><info><title><command>options</command> Statement Grammar</title></info>
-	
+      <section xml:id="options_grammar"><info><title><command>options</command> Statement Grammar</title></info>
 
 	<para>
 	  This is the grammar of the <command>options</command>
@@ -4716,7 +4656,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 
       <section xml:id="options"><info><title><command>options</command> Statement Definition and
 	  Usage</title></info>
-	
 
 	<para>
 	  The <command>options</command> statement sets up global
@@ -5810,7 +5749,6 @@ options {
 	</variablelist>
 
 	<section xml:id="boolean_options"><info><title>Boolean Options</title></info>
-	  
 
 	  <variablelist>
 
@@ -7108,8 +7046,8 @@ options {
 
 	</section>
 
-	<section><info><title>Forwarding</title></info>
-	  
+	<section xml:id="forwarding"><info><title>Forwarding</title></info>
+
 	  <para>
 	    The forwarding facility can be used to create a large site-wide
 	    cache on a few servers, reducing traffic over links to external
@@ -7162,8 +7100,8 @@ options {
 	  </para>
 	</section>
 
-	<section><info><title>Dual-stack Servers</title></info>
-	  
+	<section xml:id="dual_stack"><info><title>Dual-stack Servers</title></info>
+
 	  <para>
 	    Dual-stack servers are used as servers of last resort to work
 	    around
@@ -7192,7 +7130,7 @@ options {
 	</section>
 
 	<section xml:id="access_control"><info><title>Access Control</title></info>
-	  
+
 
 	  <para>
 	    Access to the server can be restricted based on the IP address
@@ -7517,8 +7455,8 @@ options {
 
 	</section>
 
-	<section><info><title>Interfaces</title></info>
-	  
+	<section xml:id="interfaces"><info><title>Interfaces</title></info>
+
 	  <para>
 	    The interfaces and ports that the server will answer queries
 	    from may be specified using the <command>listen-on</command> option. <command>listen-on</command> takes
@@ -7607,7 +7545,7 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
 	</section>
 
 	<section xml:id="query_address"><info><title>Query Address</title></info>
-	  
+
 	  <para>
 	    If the server doesn't know the answer to a question, it will
 	    query other name servers. <command>query-source</command> specifies
@@ -7760,7 +7698,7 @@ avoid-v6-udp-ports {};
 	</section>
 
 	<section xml:id="zone_transfers"><info><title>Zone Transfers</title></info>
-	  
+
 	  <para>
 	    <acronym>BIND</acronym> has mechanisms in place to
 	    facilitate zone transfers
@@ -8121,8 +8059,8 @@ avoid-v6-udp-ports {};
 
 	</section>
 
-	<section><info><title>UDP Port Lists</title></info>
-	  
+	<section xml:id="port_lists"><info><title>UDP Port Lists</title></info>
+
 	  <para>
 	    <command>use-v4-udp-ports</command>,
 	    <command>avoid-v4-udp-ports</command>,
@@ -8166,8 +8104,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	   </para>
 	</section>
 
-	<section><info><title>Operating System Resource Limits</title></info>
-	  
+	<section xml:id="resource_limits"><info><title>Operating System Resource Limits</title></info>
 
 	  <para>
 	    The server's usage of many system resources can be limited.
@@ -8251,7 +8188,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	</section>
 
 	<section xml:id="server_resource_limits"><info><title>Server  Resource Limits</title></info>
-	  
 
 	  <para>
 	    The following options set limits on the server's
@@ -8586,8 +8522,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 
 	</section>
 
-	<section><info><title>Periodic Task Intervals</title></info>
-	  
+	<section xml:id="intervals"><info><title>Periodic Task Intervals</title></info>
 
 	  <variablelist>
 
@@ -8665,7 +8600,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	</section>
 
 	<section xml:id="topology"><info><title>Topology</title></info>
-	  
 
 	  <para>
 	    All other things being equal, when the server chooses a name
@@ -8713,8 +8647,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	</section>
 
 	<section xml:id="the_sortlist_statement"><info><title>The <command>sortlist</command> Statement</title></info>
-
-	  
 
 	  <para>
 	    The response to a DNS query may consist of multiple resource
@@ -8828,7 +8760,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 
 	</section>
 	<section xml:id="rrset_ordering"><info><title xml:id="rrset_ordering_title">RRset Ordering</title></info>
-	  
+
 	  <para>
 	    When multiple records are returned in an answer it may be
 	    useful to configure the order of the records placed into the
@@ -8939,7 +8871,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	</section>
 
 	<section xml:id="tuning"><info><title>Tuning</title></info>
-	  
 
 	  <variablelist>
 
@@ -9406,7 +9337,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	</section>
 
 	<section xml:id="builtin"><info><title>Built-in server information zones</title></info>
-	  
 
 	  <para>
 	    The server provides some helpful diagnostic information
@@ -9493,7 +9423,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	</section>
 
 	<section xml:id="empty"><info><title>Built-in Empty Zones</title></info>
-	  
+
 	  <para>
 	    The <command>named</command> server has some built-in
 	    empty zones (SOA and NS records only).
@@ -9686,7 +9616,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	</section>
 
 	<section xml:id="acache"><info><title>Additional Section Caching</title></info>
-	  
+
 
 	  <para>
 	    The additional section cache, also called <command>acache</command>,
@@ -9800,8 +9730,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 
 	</section>
 
-	<section><info><title>Content Filtering</title></info>
-	  
+	<section xml:id="content_filtering"><info><title>Content Filtering</title></info>
+
 	  <para>
 	    <acronym>BIND</acronym> 9 provides the ability to filter
 	    out DNS responses from external DNS servers containing
@@ -9937,8 +9867,8 @@ deny-answer-aliases { "example.net"; };
 	  </para>
 	</section>
 
-	<section><info><title>Response Policy Zone (RPZ) Rewriting</title></info>
-	  
+	<section xml:id="rpz"><info><title>Response Policy Zone (RPZ) Rewriting</title></info>
+
 	  <para>
 	    <acronym>BIND</acronym> 9 includes a limited
 	    mechanism to modify DNS responses for requests
@@ -10394,8 +10324,8 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 	</section>
 
-	<section><info><title>Response Rate Limiting</title></info>
-	  
+	<section xml:id="rrl"><info><title>Response Rate Limiting</title></info>
+
 	  <para>
 	    Excessive almost identical UDP <emphasis>responses</emphasis>
 	    can be controlled by configuring a
@@ -10691,7 +10621,6 @@ example.com                 CNAME   rpz-tcp-only.
       </section>
 
       <section xml:id="server_statement_grammar"><info><title><command>server</command> Statement Grammar</title></info>
-	
 
 <programlisting><command>server</command> <replaceable>ip_addr[/prefixlen]</replaceable> {
     <optional> bogus <replaceable>yes_or_no</replaceable> ; </optional>
@@ -10726,7 +10655,6 @@ example.com                 CNAME   rpz-tcp-only.
 
 	<section xml:id="server_statement_definition_and_usage"><info><title><command>server</command> Statement Definition and
 	    Usage</title></info>
-	  
 
 	  <para>
 	    The <command>server</command> statement defines
@@ -10970,7 +10898,6 @@ example.com                 CNAME   rpz-tcp-only.
 	</section>
 
       <section xml:id="statschannels"><info><title><command>statistics-channels</command> Statement Grammar</title></info>
-	
 
 <programlisting><command>statistics-channels</command> {
    [ inet ( ip_addr | * ) [ port ip_port ]
@@ -10980,9 +10907,8 @@ example.com                 CNAME   rpz-tcp-only.
 </programlisting>
       </section>
 
-      <section><info><title><command>statistics-channels</command> Statement Definition and
+      <section xml:id="statistics_channels"><info><title><command>statistics-channels</command> Statement Definition and
 	    Usage</title></info>
-	  
 
 	<para>
 	  The <command>statistics-channels</command> statement
@@ -11102,7 +11028,6 @@ example.com                 CNAME   rpz-tcp-only.
       </section>
 
 	<section xml:id="trusted-keys"><info><title><command>trusted-keys</command> Statement Grammar</title></info>
-	  
 
 <programlisting><command>trusted-keys</command> {
     <replaceable>string</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ;
@@ -11111,9 +11036,9 @@ example.com                 CNAME   rpz-tcp-only.
 </programlisting>
 
 	</section>
-	<section><info><title><command>trusted-keys</command> Statement Definition
+	<section xml:id="trusted_keys"><info><title><command>trusted-keys</command> Statement Definition
 	    and Usage</title></info>
-	  
+
 	  <para>
 	    The <command>trusted-keys</command> statement defines
 	    DNSSEC security roots. DNSSEC is described in <xref linkend="DNSSEC"/>. A security root is defined when the
@@ -11155,8 +11080,7 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 	</section>
 
-	<section><info><title><command>managed-keys</command> Statement Grammar</title></info>
-	  
+	<section xml:id="managed_keys"><info><title><command>managed-keys</command> Statement Grammar</title></info>
 
 <programlisting><command>managed-keys</command> {
     <replaceable>name</replaceable> initial-key <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key-data</replaceable> ;
@@ -11167,7 +11091,7 @@ example.com                 CNAME   rpz-tcp-only.
 	</section>
 	<section xml:id="managed-keys"><info><title><command>managed-keys</command> Statement Definition
 	    and Usage</title></info>
-	  
+
 	  <para>
 	    The <command>managed-keys</command> statement, like
 	    <command>trusted-keys</command>, defines DNSSEC
@@ -11282,7 +11206,6 @@ example.com                 CNAME   rpz-tcp-only.
 	</section>
 
 	<section xml:id="view_statement_grammar"><info><title><command>view</command> Statement Grammar</title></info>
-	  
 
 <programlisting><command>view</command> <replaceable>view_name</replaceable>
       <optional><replaceable>class</replaceable></optional> {
@@ -11295,8 +11218,7 @@ example.com                 CNAME   rpz-tcp-only.
 </programlisting>
 
 	</section>
-	<section><info><title><command>view</command> Statement Definition and Usage</title></info>
-	  
+	<section xml:id="view_statement"><info><title><command>view</command> Statement Definition and Usage</title></info>
 
 	  <para>
 	    The <command>view</command> statement is a powerful
@@ -11425,7 +11347,6 @@ view "external" {
 	</section>
 	<section xml:id="zone_statement_grammar"><info><title><command>zone</command>
 	    Statement Grammar</title></info>
-	  
 
 <programlisting><command>zone</command> <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
     type master;
@@ -11626,9 +11547,9 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 </programlisting>
 
 	</section>
-	<section><info><title><command>zone</command> Statement Definition and Usage</title></info>
-	  
-	  <section><info><title>Zone Types</title></info>
+	<section xml:id="zone_statement"><info><title><command>zone</command> Statement Definition and Usage</title></info>
+
+	  <section xml:id="zone_types"><info><title>Zone Types</title></info>
 	    <para>
 	      The <command>type</command> keyword is required
 	      for the <command>zone</command> configuration unless
@@ -11639,7 +11560,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 	      <varname>slave</varname>, <varname>static-stub</varname>,
 	      and <varname>stub</varname>.
 	    </para>
-	    
+
 	    <informaltable colsep="0" rowsep="0">
 	      <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="3Level-table">
 		<!--colspec colname="1" colnum="1" colsep="0" colwidth="1.108in"/-->
@@ -11958,8 +11879,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 	    </informaltable>
 	  </section>
 
-	  <section><info><title>Class</title></info>
-	    
+	  <section xml:id="class"><info><title>Class</title></info>
+
 	    <para>
 	      The zone's name may optionally be followed by a class. If
 	      a class is not specified, class <literal>IN</literal> (for <varname>Internet</varname>),
@@ -11980,8 +11901,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 	    </para>
 	  </section>
 
-	  <section><info><title>Zone Options</title></info>
-	    
+	  <section xml:id="zone_options"><info><title>Zone Options</title></info>
 
 	    <variablelist>
 
@@ -12736,7 +12656,7 @@ example.com. NS ns2.example.net.
 
 	  </section>
 	  <section xml:id="dynamic_update_policies"><info><title>Dynamic Update Policies</title></info>
-	    
+
 	    <para><acronym>BIND</acronym> 9 supports two alternative
 	      methods of granting clients the right to perform
 	      dynamic updates to a zone, configured by the
@@ -13142,8 +13062,8 @@ example.com. NS ns2.example.net.
 	    </para>
 	  </section>
 
-	  <section><info><title>Multiple views</title></info>
-	    
+	  <section xml:id="multiple_views"><info><title>Multiple views</title></info>
+
 	    <para>
 	      When multiple views are in use, a zone may be
 	      referenced by more than one of them. Often, the views
@@ -13204,10 +13124,10 @@ view external {
 
 	</section>
       </section>
-      <section><info><title>Zone File</title></info>
-	
+      <section xml:id="zone_file"><info><title>Zone File</title></info>
+
 	<section xml:id="types_of_resource_records_and_when_to_use_them"><info><title>Types of Resource Records and When to Use Them</title></info>
-	  
+
 	  <para>
 	    This section, largely borrowed from RFC 1034, describes the
 	    concept of a Resource Record (RR) and explains when each is used.
@@ -13216,7 +13136,6 @@ view external {
 	    and implemented in the DNS. These are also included.
 	  </para>
 	  <section><info><title>Resource Records</title></info>
-	    
 
 	    <para>
 	      A domain name identifies a node.  Each node has a set of
@@ -14393,8 +14312,8 @@ view external {
 	      used as "pointers" to other data in the DNS.
 	    </para>
 	  </section>
-	  <section><info><title>Textual expression of RRs</title></info>
-	    
+	  <section xml:id="rr_text"><info><title>Textual expression of RRs</title></info>
+
 	    <para>
 	      RRs are represented in binary form in the packets of the DNS
 	      protocol, and are usually represented in highly encoded form
@@ -14594,8 +14513,7 @@ view external {
 	  </section>
 	</section>
 
-	<section><info><title>Discussion of MX Records</title></info>
-	  
+	<section xml:id="mx_records"><info><title>Discussion of MX Records</title></info>
 
 	  <para>
 	    As described above, domain servers store information as a
@@ -14778,7 +14696,7 @@ view external {
 	  </para>
 	</section>
 	<section xml:id="Setting_TTLs"><info><title>Setting TTLs</title></info>
-	  
+
 	  <para>
 	    The time-to-live of the RR field is a 32-bit integer represented
 	    in units of seconds, and is primarily used by resolvers when they
@@ -14848,8 +14766,8 @@ view external {
 	    can be explicitly specified, for example, <literal>1h30m</literal>.
 	  </para>
 	</section>
-	<section><info><title>Inverse Mapping in IPv4</title></info>
-	  
+	<section xml:id="ipv4_reverse"><info><title>Inverse Mapping in IPv4</title></info>
+
 	  <para>
 	    Reverse name resolution (that is, translation from IP address
 	    to name) is achieved by means of the <emphasis>in-addr.arpa</emphasis> domain
@@ -14907,8 +14825,8 @@ view external {
 	    </para>
 	  </note>
 	</section>
-	<section><info><title>Other Zone File Directives</title></info>
-	  
+	<section xml:id="zone_directives"><info><title>Other Zone File Directives</title></info>
+
 	  <para>
 	    The Master File Format was initially defined in RFC 1035 and
 	    has subsequently been extended. While the Master File Format
@@ -14921,8 +14839,8 @@ view external {
 	    Master File Directives include <command>$ORIGIN</command>, <command>$INCLUDE</command>,
 	    and <command>$TTL.</command>
 	  </para>
-	  <section><info><title>The <command>@</command> (at-sign)</title></info>
-	    
+	  <section xml:id="atsign"><info><title>The <command>@</command> (at-sign)</title></info>
+
 	    <para>
 	      When used in the label (or name) field, the asperand or
 	      at-sign (@) symbol represents the current origin.
@@ -14931,8 +14849,8 @@ view external {
 	      trailing dot).
 	    </para>
 	  </section>
-	  <section><info><title>The <command>$ORIGIN</command> Directive</title></info>
-	    
+	  <section xml:id="origin_directive"><info><title>The <command>$ORIGIN</command> Directive</title></info>
+
 	    <para>
 	      Syntax: <command>$ORIGIN</command>
 	      <replaceable>domain-name</replaceable>
@@ -14963,8 +14881,8 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </programlisting>
 
 	  </section>
-	  <section><info><title>The <command>$INCLUDE</command> Directive</title></info>
-	    
+	  <section xml:id="include_directive"><info><title>The <command>$INCLUDE</command> Directive</title></info>
+
 	    <para>
 	      Syntax: <command>$INCLUDE</command>
 	      <replaceable>filename</replaceable>
@@ -14997,8 +14915,8 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 	      </para>
 	    </note>
 	  </section>
-	  <section><info><title>The <command>$TTL</command> Directive</title></info>
-	    
+	  <section xml:id="ttl_directive"><info><title>The <command>$TTL</command> Directive</title></info>
+
 	    <para>
 	      Syntax: <command>$TTL</command>
 	      <replaceable>default-ttl</replaceable>
@@ -15015,8 +14933,8 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 	    </para>
 	  </section>
 	</section>
-	<section><info><title><acronym>BIND</acronym> Master File Extension: the  <command>$GENERATE</command> Directive</title></info>
-	  
+	<section xml:id="generate_directive"><info><title><acronym>BIND</acronym> Master File Extension: the  <command>$GENERATE</command> Directive</title></info>
+
 	  <para>
 	    Syntax: <command>$GENERATE</command>
 	    <replaceable>range</replaceable>
@@ -15217,7 +15135,7 @@ HOST-127.EXAMPLE. MX 0 .
 	</section>
 
 	<section xml:id="zonefile_format"><info><title>Additional File Formats</title></info>
-	  
+
 	  <para>
 	    In addition to the standard textual format, BIND 9
 	    supports the ability to read or dump to zone files in
@@ -15277,7 +15195,7 @@ HOST-127.EXAMPLE. MX 0 .
       </section>
 
       <section xml:id="statistics"><info><title>BIND9 Statistics</title></info>
-	
+
 	<para>
 	  <acronym>BIND</acronym> 9 maintains lots of statistics
 	  information and provides several interfaces for users to
@@ -15430,7 +15348,7 @@ HOST-127.EXAMPLE. MX 0 .
 	</para>
 
 	<section xml:id="statsfile"><info><title>The Statistics File</title></info>
-	  
+
 	  <para>
 	    The text format statistics dump begins with a line, like:
 	  </para>
@@ -15469,7 +15387,7 @@ HOST-127.EXAMPLE. MX 0 .
 	</section>
 
 	<section xml:id="statistics_counters"><info><title>Statistics Counters</title></info>
-	  
+
 	  <para>
 	    The following tables summarize statistics counters that
 	    <acronym>BIND</acronym> 9 provides.
@@ -15487,8 +15405,7 @@ HOST-127.EXAMPLE. MX 0 .
 	    <acronym>BIND</acronym> 8 statistics, if applicable.
 	  </para>
 
-	  <section><info><title>Name Server Statistics Counters</title></info>
-	    
+	  <section xml:id="stats_counters"><info><title>Name Server Statistics Counters</title></info>
 
 	    <informaltable colsep="0" rowsep="0">
 	      <tgroup cols="3" colsep="0" rowsep="0" tgroupstyle="4Level-table">
@@ -16112,8 +16029,7 @@ HOST-127.EXAMPLE. MX 0 .
 	    </informaltable>
 	  </section>
 
-	  <section><info><title>Zone Maintenance Statistics Counters</title></info>
-	    
+	  <section xml:id="zone_stats"><info><title>Zone Maintenance Statistics Counters</title></info>
 
 	    <informaltable colsep="0" rowsep="0">
 	      <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="4Level-table">
@@ -16268,8 +16184,7 @@ HOST-127.EXAMPLE. MX 0 .
 	    </informaltable>
 	  </section>
 
-	  <section><info><title>Resolver Statistics Counters</title></info>
-	    
+	  <section xml:id="resolver_stats"><info><title>Resolver Statistics Counters</title></info>
 
 	    <informaltable colsep="0" rowsep="0">
 	      <tgroup cols="3" colsep="0" rowsep="0" tgroupstyle="4Level-table">
@@ -16654,8 +16569,7 @@ HOST-127.EXAMPLE. MX 0 .
 
 	  </section>
 
-	  <section><info><title>Socket I/O Statistics Counters</title></info>
-	    
+	  <section xml:id="socket_stats"><info><title>Socket I/O Statistics Counters</title></info>
 
 	    <para>
 	      Socket I/O statistics counters are defined per socket
@@ -16811,8 +16725,9 @@ HOST-127.EXAMPLE. MX 0 .
 	      </tgroup>
 	    </informaltable>
 	  </section>
-	  <section><info><title>Compatibility with <emphasis>BIND</emphasis> 8 Counters</title></info>
-	    
+
+	  <section xml:id="bind8_compatibility"><info><title>Compatibility with <emphasis>BIND</emphasis> 8 Counters</title></info>
+
 	    <para>
 	      Most statistics counters that were available
 	      in <command>BIND</command> 8 are also supported in
@@ -16869,9 +16784,9 @@ HOST-127.EXAMPLE. MX 0 .
 
     </chapter>
     <chapter xml:id="Bv9ARM.ch07"><info><title><acronym>BIND</acronym> 9 Security Considerations</title></info>
-      
+
       <section xml:id="Access_Control_Lists"><info><title>Access Control Lists</title></info>
-	
+
 	<para>
 	  Access Control Lists (ACLs) are address match lists that
 	  you can set up and nickname for future use in
@@ -17062,8 +16977,8 @@ allow-query { !{ !10/8; any; }; key example; };
 	</para>
       </section>
 
-      <section><info><title><command>Chroot</command> and <command>Setuid</command></title></info>
-	
+      <section xml:id="chroot_and_setuid"><info><title><command>Chroot</command> and <command>Setuid</command></title></info>
+
 	<para>
 	  On UNIX servers, it is possible to run <acronym>BIND</acronym>
 	  in a <emphasis>chrooted</emphasis> environment (using
@@ -17087,8 +17002,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	  <userinput>/usr/local/sbin/named -u 202 -t /var/named</userinput>
 	</para>
 
-	<section><info><title>The <command>chroot</command> Environment</title></info>
-	  
+	<section xml:id="chroot"><info><title>The <command>chroot</command> Environment</title></info>
 
 	  <para>
 	    In order for a <command>chroot</command> environment
@@ -17116,8 +17030,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	  </para>
 	</section>
 
-	<section><info><title>Using the <command>setuid</command> Function</title></info>
-	  
+	<section xml:id="setuid"><info><title>Using the <command>setuid</command> Function</title></info>
 
 	  <para>
 	    Prior to running the <command>named</command> daemon,
@@ -17139,7 +17052,6 @@ allow-query { !{ !10/8; any; }; key example; };
       </section>
 
       <section xml:id="dynamic_update_security"><info><title>Dynamic Update Security</title></info>
-	
 
 	<para>
 	  Access to the dynamic
@@ -17185,11 +17097,10 @@ allow-query { !{ !10/8; any; }; key example; };
     </chapter>
 
     <chapter xml:id="Bv9ARM.ch08"><info><title>Troubleshooting</title></info>
-      
-      <section><info><title>Common Problems</title></info>
-	
+
+      <section xml:id="common_problems"><info><title>Common Problems</title></info>
+
 	<section><info><title>It's not working; how can I figure out what's wrong?</title></info>
-	  
 
 	  <para>
 	    The best solution to solving installation and
@@ -17202,7 +17113,6 @@ allow-query { !{ !10/8; any; }; key example; };
 	</section>
       </section>
       <section><info><title>Incrementing and Changing the Serial Number</title></info>
-	
 
 	<para>
 	  Zone serial numbers are just numbers — they aren't
@@ -17231,8 +17141,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	</para>
 
       </section>
-      <section><info><title>Where Can I Get Help?</title></info>
-	
+      <section xml:id="more_help"><info><title>Where Can I Get Help?</title></info>
 
 	<para>
 	  The Internet Systems Consortium
@@ -17259,118 +17168,111 @@ allow-query { !{ !10/8; any; }; key example; };
     </chapter>
 
     <appendix xml:id="Bv9ARM.ch09"><info><title>Release Notes</title></info>
-      
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes.xml"/>
     </appendix>
 
     <appendix xml:id="Bv9ARM.ch10"><info><title>A Brief History of the <acronym>DNS</acronym> and <acronym>BIND</acronym></title></info>
-      
-      <section xml:id="dns_history"><info><title>DNS</title></info>
-	  <para>
-	    Although the "official" beginning of the Domain Name
-	    System occurred in 1984 with the publication of RFC 920, the
-	    core of the new system was described in 1983 in RFCs 882 and
-	    883. From 1984 to 1987, the ARPAnet (the precursor to today's
-	    Internet) became a testbed of experimentation for developing the
-	    new naming/addressing scheme in a rapidly expanding,
-	    operational network environment.  New RFCs were written and
-	    published in 1987 that modified the original documents to
-	    incorporate improvements based on the working model. RFC 1034,
-	    "Domain Names-Concepts and Facilities", and RFC 1035, "Domain
-	    Names-Implementation and Specification" were published and
-	    became the standards upon which all <acronym>DNS</acronym> implementations are
-	    built.
-	  </para>
+      <para xml:id="historical_dns_information">
+	Although the "official" beginning of the Domain Name
+	System occurred in 1984 with the publication of RFC 920, the
+	core of the new system was described in 1983 in RFCs 882 and
+	883. From 1984 to 1987, the ARPAnet (the precursor to today's
+	Internet) became a testbed of experimentation for developing the
+	new naming/addressing scheme in a rapidly expanding,
+	operational network environment.  New RFCs were written and
+	published in 1987 that modified the original documents to
+	incorporate improvements based on the working model. RFC 1034,
+	"Domain Names-Concepts and Facilities", and RFC 1035, "Domain
+	Names-Implementation and Specification" were published and
+	became the standards upon which all <acronym>DNS</acronym> implementations are
+	built.
+      </para>
 
-	  <para>
-	    The first working domain name server, called "Jeeves", was
-	    written in 1983-84 by Paul Mockapetris for operation on DEC
-	    Tops-20
-	    machines located at the University of Southern California's
-	    Information
-	    Sciences Institute (USC-ISI) and SRI International's Network
-	    Information
-	    Center (SRI-NIC). A <acronym>DNS</acronym> server for
-	    Unix machines, the Berkeley Internet
-	    Name Domain (<acronym>BIND</acronym>) package, was
-	    written soon after by a group of
-	    graduate students at the University of California at Berkeley
-	    under
-	    a grant from the US Defense Advanced Research Projects
-	    Administration
-	    (DARPA).
-	  </para>
-      </section>
-
-      <section xml:id="bind_history"><info><title>BIND</title></info>
-	  <para>
-	    Versions of <acronym>BIND</acronym> through
-	    4.8.3 were maintained by the Computer
-	    Systems Research Group (CSRG) at UC Berkeley. Douglas Terry, Mark
-	    Painter, David Riggle and Songnian Zhou made up the initial <acronym>BIND</acronym>
-	    project team. After that, additional work on the software package
-	    was done by Ralph Campbell. Kevin Dunlap, a Digital Equipment
-	    Corporation
-	    employee on loan to the CSRG, worked on <acronym>BIND</acronym> for 2 years, from 1985
-	    to 1987. Many other people also contributed to <acronym>BIND</acronym> development
-	    during that time: Doug Kingston, Craig Partridge, Smoot
-	    Carl-Mitchell,
-	    Mike Muuss, Jim Bloom and Mike Schwartz. <acronym>BIND</acronym> maintenance was subsequently
-	    handled by Mike Karels and Øivind Kure.
-	  </para>
-	  <para>
-	    <acronym>BIND</acronym> versions 4.9 and 4.9.1 were
-	    released by Digital Equipment
-	    Corporation (now Compaq Computer Corporation). Paul Vixie, then
-	    a DEC employee, became <acronym>BIND</acronym>'s
-	    primary caretaker. He was assisted
-	    by Phil Almquist, Robert Elz, Alan Barrett, Paul Albitz, Bryan
-	    Beecher, Andrew
-	    Partan, Andy Cherenson, Tom Limoncelli, Berthold Paffrath, Fuat
-	    Baran, Anant Kumar, Art Harkin, Win Treese, Don Lewis, Christophe
-	    Wolfhugel, and others.
-	  </para>
-	  <para>
-	    In 1994, <acronym>BIND</acronym> version 4.9.2 was sponsored by
-	    Vixie Enterprises. Paul
-	    Vixie became <acronym>BIND</acronym>'s principal
-	    architect/programmer.
-	  </para>
-	  <para>
-	    <acronym>BIND</acronym> versions from 4.9.3 onward
-	    have been developed and maintained
-	    by the Internet Systems Consortium and its predecessor,
-	    the Internet Software Consortium,  with support being provided
-	    by ISC's sponsors.
-	  </para>
-	  <para>
-	    As co-architects/programmers, Bob Halley and
-	    Paul Vixie released the first production-ready version of
-	    <acronym>BIND</acronym> version 8 in May 1997.
-	  </para>
-	  <para>
-	    BIND version 9 was released in September 2000 and is a
-	    major rewrite of nearly all aspects of the underlying
-	    BIND architecture.
-	  </para>
-	  <para>
-	    BIND versions 4 and 8 are officially deprecated.
-	    No additional development is done
-	    on BIND version 4 or BIND version 8.
-	  </para>
-	  <para>
-	    <acronym>BIND</acronym> development work is made
-	    possible today by the sponsorship
-	    of several corporations, and by the tireless work efforts of
-	    numerous individuals.
-	  </para>
-      </section>
+      <para>
+	The first working domain name server, called "Jeeves", was
+	written in 1983-84 by Paul Mockapetris for operation on DEC
+	Tops-20
+	machines located at the University of Southern California's
+	Information
+	Sciences Institute (USC-ISI) and SRI International's Network
+	Information
+	Center (SRI-NIC). A <acronym>DNS</acronym> server for
+	Unix machines, the Berkeley Internet
+	Name Domain (<acronym>BIND</acronym>) package, was
+	written soon after by a group of
+	graduate students at the University of California at Berkeley
+	under
+	a grant from the US Defense Advanced Research Projects
+	Administration
+	(DARPA).
+      </para>
+      <para>
+	Versions of <acronym>BIND</acronym> through
+	4.8.3 were maintained by the Computer
+	Systems Research Group (CSRG) at UC Berkeley. Douglas Terry, Mark
+	Painter, David Riggle and Songnian Zhou made up the initial <acronym>BIND</acronym>
+	project team. After that, additional work on the software package
+	was done by Ralph Campbell. Kevin Dunlap, a Digital Equipment
+	Corporation
+	employee on loan to the CSRG, worked on <acronym>BIND</acronym> for 2 years, from 1985
+	to 1987. Many other people also contributed to <acronym>BIND</acronym> development
+	during that time: Doug Kingston, Craig Partridge, Smoot
+	Carl-Mitchell,
+	Mike Muuss, Jim Bloom and Mike Schwartz. <acronym>BIND</acronym> maintenance was subsequently
+	handled by Mike Karels and Øivind Kure.
+      </para>
+      <para>
+	<acronym>BIND</acronym> versions 4.9 and 4.9.1 were
+	released by Digital Equipment
+	Corporation (now Compaq Computer Corporation). Paul Vixie, then
+	a DEC employee, became <acronym>BIND</acronym>'s
+	primary caretaker. He was assisted
+	by Phil Almquist, Robert Elz, Alan Barrett, Paul Albitz, Bryan
+	Beecher, Andrew
+	Partan, Andy Cherenson, Tom Limoncelli, Berthold Paffrath, Fuat
+	Baran, Anant Kumar, Art Harkin, Win Treese, Don Lewis, Christophe
+	Wolfhugel, and others.
+      </para>
+      <para>
+	In 1994, <acronym>BIND</acronym> version 4.9.2 was sponsored by
+	Vixie Enterprises. Paul
+	Vixie became <acronym>BIND</acronym>'s principal
+	architect/programmer.
+      </para>
+      <para>
+	<acronym>BIND</acronym> versions from 4.9.3 onward
+	have been developed and maintained
+	by the Internet Systems Consortium and its predecessor,
+	the Internet Software Consortium,  with support being provided
+	by ISC's sponsors.
+      </para>
+      <para>
+	As co-architects/programmers, Bob Halley and
+	Paul Vixie released the first production-ready version of
+	<acronym>BIND</acronym> version 8 in May 1997.
+      </para>
+      <para>
+	BIND version 9 was released in September 2000 and is a
+	major rewrite of nearly all aspects of the underlying
+	BIND architecture.
+      </para>
+      <para>
+	BIND versions 4 and 8 are officially deprecated.
+	No additional development is done
+	on BIND version 4 or BIND version 8.
+      </para>
+      <para>
+	<acronym>BIND</acronym> development work is made
+	possible today by the sponsorship
+	of several corporations, and by the tireless work efforts of
+	numerous individuals.
+      </para>
     </appendix>
 
     <appendix xml:id="Bv9ARM.ch11"><info><title>General <acronym>DNS</acronym> Reference Information</title></info>
-      
+
       <section xml:id="ipv6addresses"><info><title>IPv6 addresses (AAAA)</title></info>
-	  
+
 	  <para>
 	    IPv6 addresses are 128-bit identifiers for interfaces and
 	    sets of interfaces which were introduced in the <acronym>DNS</acronym> to facilitate
@@ -17427,9 +17329,9 @@ allow-query { !{ !10/8; any; }; key example; };
 	  </para>
       </section>
       <section xml:id="bibliography"><info><title>Bibliography (and Suggested Reading)</title></info>
-	
+
 	<section xml:id="rfcs"><info><title>Request for Comments (RFCs)</title></info>
-	  
+
 	  <para>
 	    Specification documents for the Internet protocol suite, including
 	    the <acronym>DNS</acronym>, are published as part of
@@ -17453,7 +17355,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	  <bibliography>
 	    <bibliodiv><info><title>Standards</title></info>
 	      <!-- one of (BIBLIOENTRY BIBLIOMIXED) -->
-	      
+
 	      <biblioentry>
 		<abbrev>RFC974</abbrev>
 		<author><personname><surname>Partridge</surname><firstname>C.</firstname></personname></author>
@@ -17475,7 +17377,6 @@ allow-query { !{ !10/8; any; }; key example; };
 	    </bibliodiv>
 	    <bibliodiv xml:id="proposed_standards" xreflabel="Proposed Standards"><info><title>Proposed Standards</title></info>
 
-	      
 	      <!-- one of (BIBLIOENTRY BIBLIOMIXED) -->
 	      <biblioentry>
 		<abbrev>RFC2181</abbrev>
@@ -17582,7 +17483,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	      </biblioentry>
 	    </bibliodiv>
 	    <bibliodiv><info><title><acronym>DNS</acronym> Security Proposed Standards</title></info>
-	      
+
 	      <biblioentry>
 		<abbrev>RFC3225</abbrev>
 		<authorgroup>
@@ -17640,7 +17541,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	    </bibliodiv>
 	    <bibliodiv><info><title>Other Important RFCs About <acronym>DNS</acronym>
 		Implementation</title></info>
-	      
+
 	      <biblioentry>
 		<abbrev>RFC1535</abbrev>
 		<author><personname><surname>Gavron</surname><firstname>E.</firstname></personname></author>
@@ -17682,7 +17583,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	      </biblioentry>
 	    </bibliodiv>
 	    <bibliodiv><info><title>Resource Record Types</title></info>
-	      
+
 	      <biblioentry>
 		<abbrev>RFC1183</abbrev>
 		<authorgroup>
@@ -17835,7 +17736,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	      </biblioentry>
 	    </bibliodiv>
 	    <bibliodiv><info><title><acronym>DNS</acronym> and the Internet</title></info>
-	      
+
 	      <biblioentry>
 		<abbrev>RFC1101</abbrev>
 		<author><personname><surname>Mockapetris</surname><firstname>P. V.</firstname></personname></author>
@@ -17886,7 +17787,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	      </biblioentry>
 	    </bibliodiv>
 	    <bibliodiv><info><title><acronym>DNS</acronym> Operations</title></info>
-	      
+
 	      <biblioentry>
 		<abbrev>RFC1033</abbrev>
 		<author><personname><surname>Lottor</surname><firstname>M.</firstname></personname></author>
@@ -17928,7 +17829,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	      </biblioentry>
 	    </bibliodiv>
 	    <bibliodiv><info><title>Internationalized Domain Names</title></info>
-	      
+
 	      <biblioentry>
 		<abbrev>RFC2825</abbrev>
 		<authorgroup>
@@ -17970,7 +17871,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	      </biblioentry>
 	    </bibliodiv>
 	    <bibliodiv><info><title>Other <acronym>DNS</acronym>-related RFCs</title></info>
-	      
+
 	      <note>
 		<para>
 		  Note: the following list of RFCs, although
@@ -18048,7 +17949,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	      </biblioentry>
 	    </bibliodiv>
 	    <bibliodiv><info><title>Obsolete and Unimplemented Experimental RFC</title></info>
-	      
+
 	      <biblioentry>
 		<abbrev>RFC1712</abbrev>
 		<authorgroup>
@@ -18081,7 +17982,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	      </biblioentry>
 	    </bibliodiv>
 	    <bibliodiv><info><title>Obsoleted DNS Security RFCs</title></info>
-	      
+
 	      <note>
 		<para>
 		  Most of these have been consolidated into RFC4033,
@@ -18185,7 +18086,7 @@ allow-query { !{ !10/8; any; }; key example; };
 	  </bibliography>
 	</section>
 	<section xml:id="internet_drafts"><info><title>Internet Drafts</title></info>
-	  
+
 	  <para>
 	    Internet Drafts (IDs) are rough-draft working documents of
 	    the Internet Engineering Task Force. They are, in essence, RFCs
@@ -18197,8 +18098,8 @@ allow-query { !{ !10/8; any; }; key example; };
 	    after which they are deleted unless updated by their authors.
 	  </para>
 	</section>
-	<section><info><title>Other Documents About <acronym>BIND</acronym></title></info>
-	  
+	<section xml:id="more_about_bind"><info><title>Other Documents About <acronym>BIND</acronym></title></info>
+
 	  <para/>
 	  <bibliography>
 	    <biblioentry>
@@ -18218,12 +18119,10 @@ allow-query { !{ !10/8; any; }; key example; };
     </appendix>
 
     <appendix xml:id="Bv9ARM.ch12"><info><title>BIND 9 DNS Library Support</title></info>
-      
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="libdns.xml"/>
     </appendix>
 
     <reference xml:id="Bv9ARM.ch13"><info><title>Manual pages</title></info>
-      
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/dig.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/host.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/delv/delv.docbook"/>
