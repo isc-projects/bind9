@@ -45,10 +45,10 @@
 <p><b>Table of Contents</b></p>
 <dl class="toc">
 <dt><span class="section"><a href="Bv9ARM.ch07.html#Access_Control_Lists">Access Control Lists</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch07.html#id-1.8.3"><span class="command"><strong>Chroot</strong></span> and <span class="command"><strong>Setuid</strong></span></a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch07.html#chroot_and_setuid"><span class="command"><strong>Chroot</strong></span> and <span class="command"><strong>Setuid</strong></span></a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch07.html#id-1.8.3.6">The <span class="command"><strong>chroot</strong></span> Environment</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch07.html#id-1.8.3.7">Using the <span class="command"><strong>setuid</strong></span> Function</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch07.html#chroot">The <span class="command"><strong>chroot</strong></span> Environment</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch07.html#setuid">Using the <span class="command"><strong>setuid</strong></span> Function</a></span></dt>
 </dl></dd>
 <dt><span class="section"><a href="Bv9ARM.ch07.html#dynamic_update_security">Dynamic Update Security</a></span></dt>
 </dl>
@@ -113,7 +113,7 @@ zone "example.com" {
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.8.3"></a><span class="command"><strong>Chroot</strong></span> and <span class="command"><strong>Setuid</strong></span>
+<a name="chroot_and_setuid"></a><span class="command"><strong>Chroot</strong></span> and <span class="command"><strong>Setuid</strong></span>
 </h2></div></div></div>
 <p>
           On UNIX servers, it is possible to run <acronym class="acronym">BIND</acronym>
@@ -139,7 +139,7 @@ zone "example.com" {
         </p>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.8.3.6"></a>The <span class="command"><strong>chroot</strong></span> Environment</h3></div></div></div>
+<a name="chroot"></a>The <span class="command"><strong>chroot</strong></span> Environment</h3></div></div></div>
 <p>
             In order for a <span class="command"><strong>chroot</strong></span> environment
             to
@@ -167,7 +167,7 @@ zone "example.com" {
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.8.3.7"></a>Using the <span class="command"><strong>setuid</strong></span> Function</h3></div></div></div>
+<a name="setuid"></a>Using the <span class="command"><strong>setuid</strong></span> Function</h3></div></div></div>
 <p>
             Prior to running the <span class="command"><strong>named</strong></span> daemon,
             use

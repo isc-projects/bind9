@@ -48,8 +48,8 @@
 <dt><span class="section"><a href="Bv9ARM.ch04.html#dynamic_update">Dynamic Update</a></span></dt>
 <dd><dl><dt><span class="section"><a href="Bv9ARM.ch04.html#journal">The journal file</a></span></dt></dl></dd>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#incremental_zone_transfers">Incremental Zone Transfers (IXFR)</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.5">Split DNS</a></span></dt>
-<dd><dl><dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.5.5">Example split DNS setup</a></span></dt></dl></dd>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#split_dns">Split DNS</a></span></dt>
+<dd><dl><dt><span class="section"><a href="Bv9ARM.ch04.html#split_dns_sample">Example split DNS setup</a></span></dt></dl></dd>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#tsig">TSIG</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.5">Generate Shared Keys for Each Pair of Hosts</a></span></dt>
@@ -59,13 +59,13 @@
 <dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.9">TSIG Key Based Access Control</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.10">Errors</a></span></dt>
 </dl></dd>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.7">TKEY</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.8">SIG(0)</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#tkey">TKEY</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#sig0">SIG(0)</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#DNSSEC">DNSSEC</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.9.6">Generating Keys</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.9.7">Signing the Zone</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.9.8">Configuring Servers</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#dnssec_keys">Generating Keys</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#dnssec_signing">Signing the Zone</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#dnssec_config">Configuring Servers</a></span></dt>
 </dl></dd>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#dnssec.dynamic.zones">DNSSEC, Dynamic Zones, and Automatic Signing</a></span></dt>
 <dd><dl>
@@ -97,7 +97,7 @@
 <dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.12.8">Specifying the engine on the command line</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.12.9">Running named with automatic zone re-signing</a></span></dt>
 </dl></dd>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.13">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#ipv6">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.13.6">Address Lookups Using AAAA Records</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.13.7">Address to Name Lookups Using Nibble Format</a></span></dt>
@@ -264,7 +264,7 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.5.5"></a>Split DNS</h2></div></div></div>
+<a name="split_dns"></a>Split DNS</h2></div></div></div>
 <p>
         Setting up different views, or visibility, of the DNS space to
         internal and external resolvers is usually referred to as a
@@ -294,124 +294,124 @@
       </p>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.5.5.5"></a>Example split DNS setup</h3></div></div></div>
+<a name="split_dns_sample"></a>Example split DNS setup</h3></div></div></div>
 <p>
-        Let's say a company named <span class="emphasis"><em>Example, Inc.</em></span>
-        (<code class="literal">example.com</code>)
-        has several corporate sites that have an internal network with
-        reserved
-        Internet Protocol (IP) space and an external demilitarized zone (DMZ),
-        or "outside" section of a network, that is available to the public.
-      </p>
+          Let's say a company named <span class="emphasis"><em>Example, Inc.</em></span>
+          (<code class="literal">example.com</code>)
+          has several corporate sites that have an internal network with
+          reserved
+          Internet Protocol (IP) space and an external demilitarized zone (DMZ),
+          or "outside" section of a network, that is available to the public.
+        </p>
 <p>
-        <span class="emphasis"><em>Example, Inc.</em></span> wants its internal clients
-        to be able to resolve external hostnames and to exchange mail with
-        people on the outside. The company also wants its internal resolvers
-        to have access to certain internal-only zones that are not available
-        at all outside of the internal network.
-      </p>
+          <span class="emphasis"><em>Example, Inc.</em></span> wants its internal clients
+          to be able to resolve external hostnames and to exchange mail with
+          people on the outside. The company also wants its internal resolvers
+          to have access to certain internal-only zones that are not available
+          at all outside of the internal network.
+        </p>
 <p>
-        In order to accomplish this, the company will set up two sets
-        of name servers. One set will be on the inside network (in the
-        reserved
-        IP space) and the other set will be on bastion hosts, which are
-        "proxy"
-        hosts that can talk to both sides of its network, in the DMZ.
-      </p>
+          In order to accomplish this, the company will set up two sets
+          of name servers. One set will be on the inside network (in the
+          reserved
+          IP space) and the other set will be on bastion hosts, which are
+          "proxy"
+          hosts that can talk to both sides of its network, in the DMZ.
+        </p>
 <p>
-        The internal servers will be configured to forward all queries,
-        except queries for <code class="filename">site1.internal</code>, <code class="filename">site2.internal</code>, <code class="filename">site1.example.com</code>,
-        and <code class="filename">site2.example.com</code>, to the servers
-        in the
-        DMZ. These internal servers will have complete sets of information
-        for <code class="filename">site1.example.com</code>, <code class="filename">site2.example.com</code>, <code class="filename">site1.internal</code>,
-        and <code class="filename">site2.internal</code>.
-      </p>
+          The internal servers will be configured to forward all queries,
+          except queries for <code class="filename">site1.internal</code>, <code class="filename">site2.internal</code>, <code class="filename">site1.example.com</code>,
+          and <code class="filename">site2.example.com</code>, to the servers
+          in the
+          DMZ. These internal servers will have complete sets of information
+          for <code class="filename">site1.example.com</code>, <code class="filename">site2.example.com</code>, <code class="filename">site1.internal</code>,
+          and <code class="filename">site2.internal</code>.
+        </p>
 <p>
-        To protect the <code class="filename">site1.internal</code> and <code class="filename">site2.internal</code> domains,
-        the internal name servers must be configured to disallow all queries
-        to these domains from any external hosts, including the bastion
-        hosts.
-      </p>
+          To protect the <code class="filename">site1.internal</code> and <code class="filename">site2.internal</code> domains,
+          the internal name servers must be configured to disallow all queries
+          to these domains from any external hosts, including the bastion
+          hosts.
+        </p>
 <p>
-        The external servers, which are on the bastion hosts, will
-        be configured to serve the "public" version of the <code class="filename">site1</code> and <code class="filename">site2.example.com</code> zones.
-        This could include things such as the host records for public servers
-        (<code class="filename">www.example.com</code> and <code class="filename">ftp.example.com</code>),
-        and mail exchange (MX)  records (<code class="filename">a.mx.example.com</code> and <code class="filename">b.mx.example.com</code>).
-      </p>
+          The external servers, which are on the bastion hosts, will
+          be configured to serve the "public" version of the <code class="filename">site1</code> and <code class="filename">site2.example.com</code> zones.
+          This could include things such as the host records for public servers
+          (<code class="filename">www.example.com</code> and <code class="filename">ftp.example.com</code>),
+          and mail exchange (MX)  records (<code class="filename">a.mx.example.com</code> and <code class="filename">b.mx.example.com</code>).
+        </p>
 <p>
-        In addition, the public <code class="filename">site1</code> and <code class="filename">site2.example.com</code> zones
-        should have special MX records that contain wildcard (`*') records
-        pointing to the bastion hosts. This is needed because external mail
-        servers do not have any other way of looking up how to deliver mail
-        to those internal hosts. With the wildcard records, the mail will
-        be delivered to the bastion host, which can then forward it on to
-        internal hosts.
-      </p>
+          In addition, the public <code class="filename">site1</code> and <code class="filename">site2.example.com</code> zones
+          should have special MX records that contain wildcard (`*') records
+          pointing to the bastion hosts. This is needed because external mail
+          servers do not have any other way of looking up how to deliver mail
+          to those internal hosts. With the wildcard records, the mail will
+          be delivered to the bastion host, which can then forward it on to
+          internal hosts.
+        </p>
 <p>
-        Here's an example of a wildcard MX record:
-      </p>
+          Here's an example of a wildcard MX record:
+        </p>
 <pre class="programlisting">*   IN MX 10 external1.example.com.</pre>
 <p>
-        Now that they accept mail on behalf of anything in the internal
-        network, the bastion hosts will need to know how to deliver mail
-        to internal hosts. In order for this to work properly, the resolvers
-        on
-        the bastion hosts will need to be configured to point to the internal
-        name servers for DNS resolution.
-      </p>
+          Now that they accept mail on behalf of anything in the internal
+          network, the bastion hosts will need to know how to deliver mail
+          to internal hosts. In order for this to work properly, the resolvers
+          on
+          the bastion hosts will need to be configured to point to the internal
+          name servers for DNS resolution.
+        </p>
 <p>
-        Queries for internal hostnames will be answered by the internal
-        servers, and queries for external hostnames will be forwarded back
-        out to the DNS servers on the bastion hosts.
-      </p>
+          Queries for internal hostnames will be answered by the internal
+          servers, and queries for external hostnames will be forwarded back
+          out to the DNS servers on the bastion hosts.
+        </p>
 <p>
-        In order for all this to work properly, internal clients will
-        need to be configured to query <span class="emphasis"><em>only</em></span> the internal
-        name servers for DNS queries. This could also be enforced via
-        selective
-        filtering on the network.
-      </p>
+          In order for all this to work properly, internal clients will
+          need to be configured to query <span class="emphasis"><em>only</em></span> the internal
+          name servers for DNS queries. This could also be enforced via
+          selective
+          filtering on the network.
+        </p>
 <p>
-        If everything has been set properly, <span class="emphasis"><em>Example, Inc.</em></span>'s
-        internal clients will now be able to:
-      </p>
+          If everything has been set properly, <span class="emphasis"><em>Example, Inc.</em></span>'s
+          internal clients will now be able to:
+        </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
-            Look up any hostnames in the <code class="literal">site1</code>
-            and
-            <code class="literal">site2.example.com</code> zones.
-          </li>
+              Look up any hostnames in the <code class="literal">site1</code>
+              and
+              <code class="literal">site2.example.com</code> zones.
+            </li>
 <li class="listitem">
-            Look up any hostnames in the <code class="literal">site1.internal</code> and
-            <code class="literal">site2.internal</code> domains.
-          </li>
+              Look up any hostnames in the <code class="literal">site1.internal</code> and
+              <code class="literal">site2.internal</code> domains.
+            </li>
 <li class="listitem">Look up any hostnames on the Internet.</li>
 <li class="listitem">Exchange mail with both internal and external people.</li>
 </ul></div>
 <p>
-        Hosts on the Internet will be able to:
-      </p>
+          Hosts on the Internet will be able to:
+        </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
-            Look up any hostnames in the <code class="literal">site1</code>
-            and
-            <code class="literal">site2.example.com</code> zones.
-          </li>
+              Look up any hostnames in the <code class="literal">site1</code>
+              and
+              <code class="literal">site2.example.com</code> zones.
+            </li>
 <li class="listitem">
-            Exchange mail with anyone in the <code class="literal">site1</code> and
-            <code class="literal">site2.example.com</code> zones.
-          </li>
+              Exchange mail with anyone in the <code class="literal">site1</code> and
+              <code class="literal">site2.example.com</code> zones.
+            </li>
 </ul></div>
 <p>
-        Here is an example configuration for the setup we just
-        described above. Note that this is only configuration information;
-        for information on how to configure your zone files, see <a class="xref" href="Bv9ARM.ch03.html#sample_configuration" title="Sample Configurations">the section called &#8220;Sample Configurations&#8221;</a>.
-      </p>
+          Here is an example configuration for the setup we just
+          described above. Note that this is only configuration information;
+          for information on how to configure your zone files, see <a class="xref" href="Bv9ARM.ch03.html#sample_configuration" title="Sample Configurations">the section called &#8220;Sample Configurations&#8221;</a>.
+        </p>
 <p>
-        Internal DNS server config:
-      </p>
+          Internal DNS server config:
+        </p>
 <pre class="programlisting">
 
 acl internals { 172.16.72.0/24; 192.168.1.0/24; };
@@ -474,8 +474,8 @@ zone "site2.internal" {
 };
 </pre>
 <p>
-        External (bastion host) DNS server config:
-      </p>
+          External (bastion host) DNS server config:
+        </p>
 <pre class="programlisting">
 acl internals { 172.16.72.0/24; 192.168.1.0/24; };
 
@@ -511,9 +511,9 @@ zone "site2.example.com" {
 };
 </pre>
 <p>
-        In the <code class="filename">resolv.conf</code> (or equivalent) on
-        the bastion host(s):
-      </p>
+          In the <code class="filename">resolv.conf</code> (or equivalent) on
+          the bastion host(s):
+        </p>
 <pre class="programlisting">
 search ...
 nameserver 172.16.72.2
@@ -718,7 +718,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.5.7"></a>TKEY</h2></div></div></div>
+<a name="tkey"></a>TKEY</h2></div></div></div>
 <p><span class="command"><strong>TKEY</strong></span>
         is a mechanism for automatically generating a shared secret
         between two hosts.  There are several "modes" of
@@ -754,7 +754,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.5.8"></a>SIG(0)</h2></div></div></div>
+<a name="sig0"></a>SIG(0)</h2></div></div></div>
 <p>
         <acronym class="acronym">BIND</acronym> 9 partially supports DNSSEC SIG(0)
             transaction signatures as specified in RFC 2535 and RFC 2931.
@@ -815,7 +815,7 @@ allow-update { key host1-host2. ;};
       </p>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.5.9.6"></a>Generating Keys</h3></div></div></div>
+<a name="dnssec_keys"></a>Generating Keys</h3></div></div></div>
 <p>
           The <span class="command"><strong>dnssec-keygen</strong></span> program is used to
           generate keys.
@@ -871,7 +871,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.5.9.7"></a>Signing the Zone</h3></div></div></div>
+<a name="dnssec_signing"></a>Signing the Zone</h3></div></div></div>
 <p>
           The <span class="command"><strong>dnssec-signzone</strong></span> program is used
           to sign a zone.
@@ -913,7 +913,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.5.9.8"></a>Configuring Servers</h3></div></div></div>
+<a name="dnssec_config"></a>Configuring Servers</h3></div></div></div>
 <p>
           To enable <span class="command"><strong>named</strong></span> to respond appropriately
           to DNS requests from DNSSEC aware clients,
@@ -1841,7 +1841,7 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.5.13"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
+<a name="ipv6"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
 <p>
         <acronym class="acronym">BIND</acronym> 9 fully supports all currently
         defined forms of IPv6 name to address and address to name
