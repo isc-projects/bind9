@@ -75,7 +75,8 @@
   <!-- the blue boxes won't show up in print, but change to black and the boxes
   disappeared -->
   <!-- urlcolor=black is for email addresses etc -->
-  <xsl:param name="latex.class.options">nohyperlink,colorlinks,linkcolor=black,urlcolor=black</xsl:param>
+  <!-- this is for a black-and-white PDF, no hyperlinks or URL colors -->
+  <!-- xsl:param name="latex.class.options">nohyperlink,colorlinks,linkcolor=black,urlcolor=black</xsl:param> -->
 
   <!-- Variable list terms on line by themselves -->
   <xsl:param name="term.breakline">1</xsl:param>
@@ -85,19 +86,6 @@
 
   <!-- set latex secnumdepth, choose level of subsections to number -->
   <xsl:param name="doc.section.depth">1</xsl:param>
-
-  <!-- custom for menu labels -->
-  <!-- I don't use guisubmenu -->
-  <!-- TODO: guimenu and guimenuitem not doing anything here -->
-  <xsl:template match="guimenu|guimenuitem">
-   <xsl:call-template name="inline.sansserifseq"/>
-  </xsl:template>
-  <xsl:template match="guibutton">
-   <xsl:call-template name="inline.sansserifseq"/>
-  </xsl:template>
-  <xsl:template match="guilabel">
-   <xsl:call-template name="inline.sansserifseq"/>
-  </xsl:template>
 
   <xsl:template name="inline.sansserifseq">
     <xsl:param name="content">
