@@ -7643,7 +7643,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    </varlistentry>
 
 	    <varlistentry xml:id="clients-per-query">
-	      <term><command>clients-per-query</command></term>
+	      <term xml:id="cpq_term"><command>clients-per-query</command></term>
 	      <term><command>max-clients-per-query</command></term>
 	      <listitem>
 		<para>These set the
@@ -14626,7 +14626,7 @@ HOST-127.EXAMPLE. MX 0 .
 			<command>max-clients-per-query</command>
 			options
 			(see the description about
-			<xref linkend="clients-per-query"/>.)
+			<xref endterm="cpq_term" linkend="clients-per-query"/>.)
 			This corresponds to the
 			<command>dropped</command> counter
 			of previous versions of
