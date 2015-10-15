@@ -1,3 +1,6 @@
+4238.	[bug]		Don't send to servers on net zero (0.0.0.0/8).
+			[RT #40947]
+
 4237.	[doc]		Upgraded documentation toolchain to use DocBook 5
 			and dblatex. [RT #40766]
 
