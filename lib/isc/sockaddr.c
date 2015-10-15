@@ -483,6 +483,17 @@ isc_sockaddr_islinklocal(const isc_sockaddr_t *sockaddr) {
 	return (ISC_FALSE);
 }
 
+isc_boolean_t
+isc_sockaddr_isnetzero(const isc_sockaddr_t *sockaddr) {
+	isc_netaddr_t netaddr;
+
+	if (sockaddr->type.sa.sa_family == AF_INET) {
+		isc_netaddr_fromsockaddr(&netaddr, sockaddr);
+		return (isc_netaddr_isnetzero(&netaddr));
+	}
+	return (ISC_FALSE);
+}
+
 isc_result_t
 isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path) {
 #ifdef ISC_PLATFORM_HAVESYSUNH

@@ -378,8 +378,10 @@ static isc_result_t
 process_request(isc_httpd_t *httpd, int length) {
 	char *s;
 	char *p;
+#ifdef HAVE_ZLIB
 	char *e;
 	char *v;
+#endif
 	int delim;
 
 	ENTER("request");

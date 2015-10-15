@@ -419,6 +419,22 @@ isc_netaddr_issitelocal(isc_netaddr_t *na) {
 	}
 }
 
+#ifndef IN_ZERONET
+#define IN_ZERONET(x) (((x) & htonl(0xff000000U)) == 0)
+#endif
+
+isc_boolean_t
+isc_netaddr_isnetzero(isc_netaddr_t *na) {
+	switch (na->family) {
+	case AF_INET:
+		return (ISC_TF(IN_ZERONET(na->type.in.s_addr)));
+	case AF_INET6:
+		return (ISC_FALSE);
+	default:
+		return (ISC_FALSE);
+	}
+}
+
 void
 isc_netaddr_fromv4mapped(isc_netaddr_t *t, const isc_netaddr_t *s) {
 	isc_netaddr_t *src;

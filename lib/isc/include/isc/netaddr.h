@@ -155,6 +155,12 @@ isc_netaddr_issitelocal(isc_netaddr_t *na);
  * Returns #ISC_TRUE if the address is a site local address.
  */
 
+isc_boolean_t
+isc_netaddr_isnetzero(isc_netaddr_t *na);
+/*%<
+ * Returns #ISC_TRUE if the address is in net zero.
+ */
+
 void
 isc_netaddr_fromv4mapped(isc_netaddr_t *t, const isc_netaddr_t *s);
 /*%<

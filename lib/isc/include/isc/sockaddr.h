@@ -220,6 +220,12 @@ isc_sockaddr_issitelocal(const isc_sockaddr_t *sa);
  * Returns ISC_TRUE if the address is a sitelocal address.
  */
 
+isc_boolean_t
+isc_sockaddr_isnetzero(const isc_sockaddr_t *sa);
+/*%<
+ * Returns ISC_TRUE if the address is in net zero.
+ */
+
 isc_result_t
 isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path);
 /*
