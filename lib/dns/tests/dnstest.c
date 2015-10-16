@@ -374,8 +374,6 @@ dns_test_getdata(const char *file, unsigned char *buf,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	INSIST(f != NULL);
-
 	bp = buf;
 	while (fgets(s, sizeof(s), f) != NULL) {
 		rp = s;
@@ -412,8 +410,7 @@ dns_test_getdata(const char *file, unsigned char *buf,
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	if (f != NULL)
-		isc_stdio_close(f);
+	isc_stdio_close(f);
 	return (result);
 }
 
