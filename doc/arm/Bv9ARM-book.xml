@@ -8903,10 +8903,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  without waiting for the SERVFAIL TTL to expire.
 		</para>
 		<para>
-		  The maximum value is <literal>300</literal>
-		  (5 minutes); any higher value will be silently
-		  reduced.  The default is <literal>10</literal>
-		  seconds.
+		  The maximum value is <literal>30</literal>
+		  seconds; any higher value will be silently
+		  reduced. The default is <literal>1</literal>
+		  second.
 		</para>
 	      </listitem>
 	    </varlistentry>

@@ -4107,8 +4107,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	result = ns_config_get(maps, "servfail-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	fail_ttl  = cfg_obj_asuint32(obj);
-	if (fail_ttl > 300)
-		fail_ttl = 300;
+	if (fail_ttl > 30)
+		fail_ttl = 30;
 	dns_view_setfailttl(view, fail_ttl);
 
 	/*

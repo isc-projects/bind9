@@ -156,7 +156,7 @@ options {\n\
 	cleaning-interval 0;  /* now meaningless */\n\
 #	min-roots <obsolete>;\n\
 	lame-ttl 600;\n\
-	servfail-ttl 10;\n\
+	servfail-ttl 1;\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
 	max-cache-ttl 604800; /* 1 week */\n\
 	transfer-format many-answers;\n\
