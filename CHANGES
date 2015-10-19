@@ -1,3 +1,6 @@
+4241.	[doc]		Improved the TSIG, TKEY, and SIG(0) sections in 
+			the ARM. [RT #40955]
+
 4240.	[port]		Fix LibreSSL compatibility. [RT #40977]
 
 4238.	[bug]		Don't send to servers on net zero (0.0.0.0/8).
