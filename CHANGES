@@ -1,4 +1,4 @@
-4340.	[port]		Fix LibreSSL compatibility. [RT #40977]
+4240.	[port]		Fix LibreSSL compatibility. [RT #40977]
 
 4239.	[func]		Changed default servfail-ttl value to 1 second from 10.
 			Also, the maximum value is now 30 instead of 300.
