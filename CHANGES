@@ -1,3 +1,6 @@
+4241.	[doc]		Improved the TSIG, TKEY, and SIG(0) sections in 
+			the ARM. [RT #40955]
+
 4240.	[port]		Fix LibreSSL compatibility. [RT #40977]
 
 4239.	[func]		Changed default servfail-ttl value to 1 second from 10.
