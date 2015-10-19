@@ -1,4 +1,4 @@
-4340.	[port]		Fix LibreSSL compatibility. [RT #40977]
+4240.	[port]		Fix LibreSSL compatibility. [RT #40977]
 
 4238.	[bug]		Don't send to servers on net zero (0.0.0.0/8).
 			[RT #40947]
