@@ -52,12 +52,11 @@
 <dd><dl><dt><span class="section"><a href="Bv9ARM.ch04.html#split_dns_sample">Example split DNS setup</a></span></dt></dl></dd>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#tsig">TSIG</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.5">Generate Shared Keys for Each Pair of Hosts</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.6">Copying the Shared Secret to Both Machines</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.7">Informing the Servers of the Key's Existence</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.8">Instructing the Server to Use the Key</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.9">TSIG Key Based Access Control</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.10">Errors</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.5">Generating a Shared Key</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.6">Loading A New Key</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.7">Instructing the Server to Use a Key</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.8">TSIG-Based Access Control</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#id-1.5.6.9">Errors</a></span></dt>
 </dl></dd>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#tkey">TKEY</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#sig0">SIG(0)</a></span></dt>
@@ -526,164 +525,183 @@ nameserver 172.16.72.4
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="tsig"></a>TSIG</h2></div></div></div>
 <p>
-        This is a short guide to setting up Transaction SIGnatures
-        (TSIG) based transaction security in <acronym class="acronym">BIND</acronym>. It describes changes
-        to the configuration file as well as what changes are required for
-        different features, including the process of creating transaction
-        keys and using transaction signatures with <acronym class="acronym">BIND</acronym>.
+        TSIG (Transaction SIGnatures) is a mechanism for authenticating DNS
+        messages, originally specified in RFC 2845. It allows DNS messages
+        to be cryptographically signed using a shared secret.  TSIG can
+        be used in any DNS transaction, as a way to restrict access to
+        certain server functions (e.g., recursive queries) to authorized
+        clients when IP-based access control is insufficient or needs to
+        be overridden, or as a way to ensure message authenticity when it
+        is critical to the integrity of the server, such as with dynamic
+        UPDATE messages or zone transfers from a master to a slave server.
       </p>
 <p>
-        <acronym class="acronym">BIND</acronym> primarily supports TSIG for server
-        to server communication.
-        This includes zone transfer, notify, and recursive query messages.
-        Resolvers based on newer versions of <acronym class="acronym">BIND</acronym> 8 have limited support
-        for TSIG.
+        This is a guide to setting up TSIG in <acronym class="acronym">BIND</acronym>.
+        It describes the configuration syntax and the process of creating
+        TSIG keys.
       </p>
 <p>
-        TSIG can also be useful for dynamic update. A primary
-        server for a dynamic zone should control access to the dynamic
-        update service, but IP-based access control is insufficient.
-        The cryptographic access control provided by TSIG
-        is far superior. The <span class="command"><strong>nsupdate</strong></span>
-        program supports TSIG via the <code class="option">-k</code> and
-        <code class="option">-y</code> command line options or inline by use
-        of the <span class="command"><strong>key</strong></span>.
-      </p>
-<div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.5.6.5"></a>Generate Shared Keys for Each Pair of Hosts</h3></div></div></div>
-<p>
-          A shared secret is generated to be shared between <span class="emphasis"><em>host1</em></span> and <span class="emphasis"><em>host2</em></span>.
-          An arbitrary key name is chosen: "host1-host2.". The key name must
-          be the same on both hosts.
+        <span class="command"><strong>named</strong></span> supports TSIG for server-to-server
+        communication, and some of the tools included with
+        <acronym class="acronym">BIND</acronym> support it for sending messages to
+        <span class="command"><strong>named</strong></span>:
         </p>
-<div class="section">
-<div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.5.6.5.3"></a>Automatic Generation</h4></div></div></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+<a class="xref" href="man.nsupdate.html" title="nsupdate"><span class="refentrytitle"><span class="application">nsupdate</span></span>(1)</a> supports TSIG via the
+            <code class="option">-k</code>, <code class="option">-l</code> and
+            <code class="option">-y</code> command line options, or via
+            the <span class="command"><strong>key</strong></span> command when running
+            interactively.
+          </li>
+<li class="listitem">
+<a class="xref" href="man.dig.html" title="dig"><span class="refentrytitle">dig</span>(1)</a> supports TSIG via the
+            <code class="option">-k</code> and <code class="option">-y</code> command
+            line options.
+          </li>
+</ul></div>
 <p>
-            The following command will generate a 128-bit (16 byte) HMAC-SHA256
-            key as described above. Longer keys are better, but shorter keys
-            are easier to read. Note that the maximum key length is the digest
-            length, here 256 bits.
-          </p>
-<p>
-            <strong class="userinput"><code>dnssec-keygen -a hmac-sha256 -b 128 -n HOST host1-host2.</code></strong>
-          </p>
-<p>
-            The key is in the file <code class="filename">Khost1-host2.+163+00000.private</code>.
-            Nothing directly uses this file, but the base-64 encoded string
-            following "<code class="literal">Key:</code>"
-            can be extracted from the file and used as a shared secret:
-          </p>
-<pre class="programlisting">Key: La/E5CjG9O+os1jq0a2jdA==</pre>
-<p>
-            The string "<code class="literal">La/E5CjG9O+os1jq0a2jdA==</code>" can
-            be used as the shared secret.
-          </p>
-</div>
-<div class="section">
-<div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.5.6.5.4"></a>Manual Generation</h4></div></div></div>
-<p>
-            The shared secret is simply a random sequence of bits, encoded
-            in base-64. Most ASCII strings are valid base-64 strings (assuming
-            the length is a multiple of 4 and only valid characters are used),
-            so the shared secret can be manually generated.
-          </p>
-<p>
-            Also, a known string can be run through <span class="command"><strong>mmencode</strong></span> or
-            a similar program to generate base-64 encoded data.
-          </p>
-</div>
-</div>
+      </p>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.5.6.6"></a>Copying the Shared Secret to Both Machines</h3></div></div></div>
+<a name="id-1.5.6.5"></a>Generating a Shared Key</h3></div></div></div>
 <p>
-          This is beyond the scope of DNS. A secure transport mechanism
-          should be used. This could be secure FTP, ssh, telephone, etc.
+          TSIG keys can be generated using the <span class="command"><strong>ddns-confgen</strong></span>
+          command; the output of the command is a <span class="command"><strong>key</strong></span> directive
+          suitable for inclusion in <code class="filename">named.conf</code>.  The 
+          key name and algorithm can be specified by command line parameters;
+          the defaults are "ddns-key" and HMAC-SHA256, respectively. By
+          default, the output of <span class="command"><strong>ddns-confgen</strong></span> also includes
+          additional configuration text for setting up dynamic DNS in
+          <span class="command"><strong>named</strong></span>; the <code class="option">-q</code> suppresses
+          this.  See <a class="xref" href="man.ddns-confgen.html" title="ddns-confgen"><span class="refentrytitle"><span class="application">ddns-confgen</span></span>(8)</a> for further details.
         </p>
-</div>
-<div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.5.6.7"></a>Informing the Servers of the Key's Existence</h3></div></div></div>
 <p>
-          Imagine <span class="emphasis"><em>host1</em></span> and <span class="emphasis"><em>host 2</em></span>
-          are
-          both servers. The following is added to each server's <code class="filename">named.conf</code> file:
+          Any string which is a valid DNS name can be used as a key name.
+          For example, a key to be shared between servers called
+          <span class="emphasis"><em>host1</em></span> and <span class="emphasis"><em>host2</em></span> could
+          be called "host1-host2.", and this key could be generated using:
         </p>
 <pre class="programlisting">
-key host1-host2. {
-  algorithm hmac-sha256;
-  secret "La/E5CjG9O+os1jq0a2jdA==";
+  $ ddns-confgen -q -k host1-host2. &gt; host1-host2.key
+</pre>
+<p>
+          This key may then be copied to both hosts.  The key name and secret
+          must be identical on both hosts.
+          (Note: copying a shared secret from one server to another is beyond
+          the scope of the DNS. A secure transport mechanism should be used:
+          secure FTP, SSL, ssh, telephone, encrypted email, etc.)
+        </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="id-1.5.6.6"></a>Loading A New Key</h3></div></div></div>
+<p>
+          For a key shared between servers called
+          <span class="emphasis"><em>host1</em></span> and <span class="emphasis"><em>host2</em></span>,
+          the following could be added to each server's
+          <code class="filename">named.conf</code> file:
+        </p>
+<pre class="programlisting">
+key "host1-host2." {
+        algorithm hmac-sha256;
+        secret "DAopyf1mhCbFVZw7pgmNPBoLUq8wEUT7UuPoLENP2HY=";
 };
 </pre>
 <p>
-          The secret is the one generated above. Since this is a secret, it
-          is recommended that either <code class="filename">named.conf</code> be
-          non-world readable, or the key directive be added to a non-world
-          readable file that is included by <code class="filename">named.conf</code>.
+          (This is the same key generated above using
+          <span class="command"><strong>ddns-confgen</strong></span>.)
         </p>
 <p>
-          At this point, the key is recognized. This means that if the
-          server receives a message signed by this key, it can verify the
-          signature. If the signature is successfully verified, the
-          response is signed by the same key.
+          Since this text contains a secret, it
+          is recommended that either <code class="filename">named.conf</code> not be
+          world-readable, or that the <span class="command"><strong>key</strong></span> directive
+          be stored in a file which is not world-readable, and which is
+          included in <code class="filename">named.conf</code> via the
+          <span class="command"><strong>include</strong></span> directive.
+        </p>
+<p>
+          Once a key has been added to <code class="filename">named.conf</code> and the
+          server has been restarted or reconfigured, the server can recognize
+          the key.  If the server receives a message signed by the
+          key, it will be able to verify the signature.  If the signature
+          is valid, the response will be signed using the same key.
+        </p>
+<p>
+          TSIG keys that are known to a server can be listed using the
+          command <span class="command"><strong>rndc tsig-list</strong></span>.
         </p>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.5.6.8"></a>Instructing the Server to Use the Key</h3></div></div></div>
+<a name="id-1.5.6.7"></a>Instructing the Server to Use a Key</h3></div></div></div>
 <p>
-          Since keys are shared between two hosts only, the server must
-          be told when keys are to be used. The following is added to the <code class="filename">named.conf</code> file
-          for <span class="emphasis"><em>host1</em></span>, if the IP address of <span class="emphasis"><em>host2</em></span> is
-          10.1.2.3:
+          A server sending a request to another server must be told whether
+          to use a key, and if so, which key to use.
+        </p>
+<p>
+          For example, a key may be specified for each server in the
+          <span class="command"><strong>masters</strong></span> statement in the definition of a
+          slave zone; in this case, all SOA QUERY messages, NOTIFY
+          messages, and zone transfer requests (AXFR or IXFR) will be
+          signed using the specified key.  Keys may also be specified
+          in the <span class="command"><strong>also-notify</strong></span> statement of a master
+          or slave zone, causing NOTIFY messages to be signed using
+          the specified key.  
+        </p>
+<p>
+          Keys can also be specified in a <span class="command"><strong>server</strong></span>
+          directive. Adding the following on <span class="emphasis"><em>host1</em></span>,
+          if the IP address of <span class="emphasis"><em>host2</em></span> is 10.1.2.3, would
+          cause <span class="emphasis"><em>all</em></span> requests from <span class="emphasis"><em>host1</em></span>
+          to <span class="emphasis"><em>host2</em></span>, including normal DNS queries, to be
+          signed using the <span class="command"><strong>host1-host2.</strong></span> key:
         </p>
 <pre class="programlisting">
 server 10.1.2.3 {
-  keys { host1-host2. ;};
+        keys { host1-host2. ;};
 };
 </pre>
 <p>
-          Multiple keys may be present, but only the first is used.
-          This directive does not contain any secrets, so it may be in a
-          world-readable
-          file.
+          Multiple keys may be present in the <span class="command"><strong>keys</strong></span>
+          statement, but only the first one is used.  As this directive does
+          not contain secrets, it can be used in a world-readable file.
         </p>
 <p>
-          If <span class="emphasis"><em>host1</em></span> sends a message that is a request
-          to that address, the message will be signed with the specified key. <span class="emphasis"><em>host1</em></span> will
-          expect any responses to signed messages to be signed with the same
-          key.
+          Requests sent by <span class="emphasis"><em>host2</em></span> to <span class="emphasis"><em>host1</em></span>
+          would <span class="emphasis"><em>not</em></span> be signed, unless a similar
+          <span class="command"><strong>server</strong></span> directive were in <span class="emphasis"><em>host2</em></span>'s
+          configuration file.
         </p>
 <p>
-          A similar statement must be present in <span class="emphasis"><em>host2</em></span>'s
-          configuration file (with <span class="emphasis"><em>host1</em></span>'s address) for <span class="emphasis"><em>host2</em></span> to
-          sign request messages to <span class="emphasis"><em>host1</em></span>.
+          Whenever any server sends a TSIG-signed DNS request, it will expect
+          the response to be signed with the same key. If a response is not
+          signed, or if the signature is not valid, the response will be
+          rejected.
         </p>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.5.6.9"></a>TSIG Key Based Access Control</h3></div></div></div>
+<a name="id-1.5.6.8"></a>TSIG-Based Access Control</h3></div></div></div>
 <p>
-          <acronym class="acronym">BIND</acronym> allows IP addresses and ranges
-          to be specified in ACL
-          definitions and
-          <span class="command"><strong>allow-{ query | transfer | update }</strong></span>
-          directives.
-          This has been extended to allow TSIG keys also. The above key would
-          be denoted <span class="command"><strong>key host1-host2.</strong></span>
+          TSIG keys may be specified in ACL definitions and ACL directives
+          such as <span class="command"><strong>allow-query</strong></span>, <span class="command"><strong>allow-transfer</strong></span>
+          and <span class="command"><strong>allow-update</strong></span>.
+          The above key would be denoted in an ACL element as
+          <span class="command"><strong>key host1-host2.</strong></span>
         </p>
 <p>
-          An example of an <span class="command"><strong>allow-update</strong></span> directive would be:
+          An example of an <span class="command"><strong>allow-update</strong></span> directive using
+          a TSIG key:
         </p>
 <pre class="programlisting">
-allow-update { key host1-host2. ;};
+allow-update { !{ !localnets; any; }; key host1-host2. ;};
 </pre>
 <p>
-          This allows dynamic updates to succeed only if the request
-          was signed by a key named "<span class="command"><strong>host1-host2.</strong></span>".
+          This allows dynamic updates to succeed only if the UPDATE
+          request comes from an address in <span class="command"><strong>localnets</strong></span>,
+          <span class="emphasis"><em>and</em></span> if it is signed using the
+          <span class="command"><strong>host1-host2.</strong></span> key.
         </p>
 <p>
           See <a class="xref" href="Bv9ARM.ch06.html#dynamic_update_policies" title="Dynamic Update Policies">the section called &#8220;Dynamic Update Policies&#8221;</a> for a discussion of
@@ -692,85 +710,90 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.5.6.10"></a>Errors</h3></div></div></div>
+<a name="id-1.5.6.9"></a>Errors</h3></div></div></div>
 <p>
-          The processing of TSIG signed messages can result in
-          several errors. If a signed message is sent to a non-TSIG aware
-          server, a FORMERR (format error) will be returned, since the server will not
-          understand the record. This is a result of misconfiguration,
-          since the server must be explicitly configured to send a TSIG
-          signed message to a specific server.
-        </p>
+          Processing of TSIG-signed messages can result in several errors:
+          </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+              If a TSIG-aware server receives a message signed by an
+              unknown key, the response will be unsigned, with the TSIG
+              extended error code set to BADKEY.
+            </li>
+<li class="listitem">
+              If a TSIG-aware server receives a message from a known key
+              but with an invalid signature, the response will be unsigned,
+              with the TSIG extended error code set to BADSIG.
+            </li>
+<li class="listitem">
+              If a TSIG-aware server receives a message with a time
+              outside of the allowed range, the response will be signed, with
+              the TSIG extended error code set to BADTIME, and the time values
+              will be adjusted so that the response can be successfully
+              verified.
+            </li>
+</ul></div>
 <p>
-          If a TSIG aware server receives a message signed by an
-          unknown key, the response will be unsigned with the TSIG
-          extended error code set to BADKEY. If a TSIG aware server
-          receives a message with a signature that does not validate, the
-          response will be unsigned with the TSIG extended error code set
-          to BADSIG. If a TSIG aware server receives a message with a time
-          outside of the allowed range, the response will be signed with
-          the TSIG extended error code set to BADTIME, and the time values
-          will be adjusted so that the response can be successfully
-          verified. In any of these cases, the message's rcode (response code) is set to
-          NOTAUTH (not authenticated).
+          In all of the above cases, the server will return a response code
+          of NOTAUTH (not authenticated).
         </p>
 </div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="tkey"></a>TKEY</h2></div></div></div>
-<p><span class="command"><strong>TKEY</strong></span>
-        is a mechanism for automatically generating a shared secret
-        between two hosts.  There are several "modes" of
-        <span class="command"><strong>TKEY</strong></span> that specify how the key is generated
-        or assigned.  <acronym class="acronym">BIND</acronym> 9 implements only one of
-        these modes, the Diffie-Hellman key exchange.  Both hosts are
-        required to have a Diffie-Hellman KEY record (although this
-        record is not required to be present in a zone).  The
-        <span class="command"><strong>TKEY</strong></span> process must use signed messages,
-        signed either by TSIG or SIG(0).  The result of
-        <span class="command"><strong>TKEY</strong></span> is a shared secret that can be used to
-        sign messages with TSIG.  <span class="command"><strong>TKEY</strong></span> can also be
-        used to delete shared secrets that it had previously
-        generated.
+<p>
+        TKEY (Transaction KEY) is a mechanism for automatically negotiating
+        a shared secret between two hosts, originally specified in RFC 2930.
       </p>
 <p>
-        The <span class="command"><strong>TKEY</strong></span> process is initiated by a
-        client
-        or server by sending a signed <span class="command"><strong>TKEY</strong></span>
-        query
-        (including any appropriate KEYs) to a TKEY-aware server.  The
-        server response, if it indicates success, will contain a
-        <span class="command"><strong>TKEY</strong></span> record and any appropriate keys.
-        After
-        this exchange, both participants have enough information to
-        determine the shared secret; the exact process depends on the
-        <span class="command"><strong>TKEY</strong></span> mode.  When using the
-        Diffie-Hellman
-        <span class="command"><strong>TKEY</strong></span> mode, Diffie-Hellman keys are
-        exchanged,
-        and the shared secret is derived by both participants.
+        There are several TKEY "modes" that specify how a key is to be
+        generated or assigned.  <acronym class="acronym">BIND</acronym> 9 implements only
+        one of these modes: Diffie-Hellman key exchange.  Both hosts are
+        required to have a KEY record with algorithm DH (though this
+        record is not required to be present in a zone).
+      </p>
+<p>
+        The TKEY process is initiated by a client or server by sending
+        a query of type TKEY to a TKEY-aware server.  The query must include
+        an appropriate KEY record in the additional section, and 
+        must be signed using either TSIG or SIG(0) with a previously
+        established key.  The server's response, if successful, will
+        contain a TKEY record in its answer section.  After this transaction,
+        both participants will have enough information to calculate a
+        shared secret using Diffie-Hellman key exchange.  The shared secret
+        can then be used by to sign subsequent transactions between the
+        two servers.
+      </p>
+<p>
+        TSIG keys known by the server, including TKEY-negotiated keys, can
+        be listed using <span class="command"><strong>rndc tsig-list</strong></span>.
+      </p>
+<p>
+        TKEY-negotiated keys can be deleted from a server using
+        <span class="command"><strong>rndc tsig-delete</strong></span>.  This can also be done via
+        the TKEY protocol itself, by sending an authenticated TKEY query
+        specifying the "key deletion" mode.
       </p>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="sig0"></a>SIG(0)</h2></div></div></div>
 <p>
-        <acronym class="acronym">BIND</acronym> 9 partially supports DNSSEC SIG(0)
-            transaction signatures as specified in RFC 2535 and RFC 2931.
-        SIG(0)
-        uses public/private keys to authenticate messages.  Access control
+        <acronym class="acronym">BIND</acronym> partially supports DNSSEC SIG(0)
+        transaction signatures as specified in RFC 2535 and RFC 2931.
+        SIG(0) uses public/private keys to authenticate messages.  Access control
         is performed in the same manner as TSIG keys; privileges can be
-        granted or denied based on the key name.
+        granted or denied in ACL directives based on the key name.
       </p>
 <p>
         When a SIG(0) signed message is received, it will only be
-        verified if the key is known and trusted by the server; the server
-        will not attempt to locate and/or validate the key.
+        verified if the key is known and trusted by the server. The
+        server will not attempt to recursively fetch or validate the
+        key.
       </p>
 <p>
-        SIG(0) signing of multiple-message TCP streams is not
-        supported.
+        SIG(0) signing of multiple-message TCP streams is not supported.
       </p>
 <p>
         The only tool shipped with <acronym class="acronym">BIND</acronym> 9 that
