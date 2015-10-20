@@ -5749,7 +5749,6 @@ options {
 		  queries.
 		  Caching may still occur as an effect the server's internal
 		  operation, such as NOTIFY address lookups.
-		  See also <command>fetch-glue</command> above.
 		</para>
 	      </listitem>
 	    </varlistentry>
