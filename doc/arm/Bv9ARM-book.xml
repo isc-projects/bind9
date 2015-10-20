@@ -12852,7 +12852,7 @@ example.com. NS ns2.example.net.
 			The <replaceable>name</replaceable> field
 			is subject to DNS wildcard expansion, and
 			this rule matches when the name being updated
-			name is a valid expansion of the wildcard.
+			is a valid expansion of the wildcard.
 		      </para>
 		    </entry>
 		  </row>
