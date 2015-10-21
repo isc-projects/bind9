@@ -174,13 +174,13 @@ $ <userinput> /opt/pkcs11/usr/bin/softhsm-util --init-token 0 --slot 0 --label s
       we use OpenSSL 0.9.8, but the same methods work with OpenSSL
       1.0.0 and 1.0.1.
     </para>
-    <note>
+    <note><simpara>
       The latest OpenSSL versions as of this writing (January 2015)
       are 0.9.8zc, 1.0.0o, and 1.0.1j.
       ISC will provide updated patches as new versions of OpenSSL
       are released. The version number in the following examples
       is expected to change.
-    </note>
+    </simpara></note>
     <para>
       Before building BIND 9 with PKCS#11 support, it will be
       necessary to build OpenSSL with the patch in place, and configure
@@ -200,11 +200,11 @@ $ <userinput>tar zxf openssl-0.9.8zc.tar.gz</userinput>
 $ <userinput>patch -p1 -d openssl-0.9.8zc \
 	      &lt; bind9/bin/pkcs11/openssl-0.9.8zc-patch</userinput>
 </screen>
-      <note>
-	Note that the patch file may not be compatible with the
+      <note><simpara>
+	The patch file may not be compatible with the
 	"patch" utility on all operating systems. You may need to
 	install GNU patch.
-      </note>
+      </simpara></note>
       <para>
 	When building OpenSSL, place it in a non-standard
 	location so that it does not interfere with OpenSSL libraries

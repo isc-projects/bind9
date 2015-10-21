@@ -430,9 +430,11 @@ $ <userinput>make</userinput>
   </varlistentry>
   </variablelist>
 
-   <note>In practice, either -a or -r must be specified.  Others can
-   be optional; the underlying library routine tries to identify the
-   appropriate server and the zone name for the update.</note>
+   <note><simpara>
+	In practice, either -a or -r must be specified.  Others can
+	be optional; the underlying library routine tries to identify the
+	appropriate server and the zone name for the update.
+   </simpara></note>
 
    <para>
    Examples: assuming the primary authoritative server of the
