@@ -96,7 +96,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>dnssec-keygen</command>
       generates keys for DNSSEC (Secure DNS), as defined in RFC 2535
       and RFC 4034.  It can also generate keys for use with
@@ -111,7 +111,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -436,7 +436,7 @@
   </refsection>
 
   <refsection><info><title>TIMING OPTIONS</title></info>
-    
+
 
     <para>
       Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
@@ -524,7 +524,7 @@
           </para>
           <para>
             If the key is being created as an explicit successor to another
-            key, then the default prepublication interval is 30 days; 
+            key, then the default prepublication interval is 30 days;
             otherwise it is zero.
           </para>
           <para>
@@ -542,7 +542,7 @@
 
 
   <refsection><info><title>GENERATED KEYS</title></info>
-    
+
     <para>
       When <command>dnssec-keygen</command> completes
       successfully,
@@ -567,7 +567,7 @@
         </para>
       </listitem>
     </itemizedlist>
-    <para><command>dnssec-keygen</command> 
+    <para><command>dnssec-keygen</command>
       creates two files, with names based
       on the printed string.  <filename>Knnnn.+aaa+iiiii.key</filename>
       contains the public key, and
@@ -595,7 +595,7 @@
   </refsection>
 
   <refsection><info><title>EXAMPLE</title></info>
-    
+
     <para>
       To generate a 768-bit DSA key for the domain
       <userinput>example.com</userinput>, the following command would be
@@ -617,7 +617,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>dnssec-signzone</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

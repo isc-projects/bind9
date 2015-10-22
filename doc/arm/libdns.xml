@@ -16,7 +16,7 @@
 
 <!-- Converted by db4-upgrade version 1.0 -->
 <section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="bind9.library"><info><title>BIND 9 DNS Library Support</title></info>
-  
+
   <para>This version of BIND 9 "exports" its internal libraries so
   that they can be used by third-party applications more easily (we
   call them "export" libraries in this document). In addition to
@@ -53,7 +53,7 @@
     </listitem>
   </itemizedlist>
   <section><info><title>Prerequisite</title></info>
-    
+
   <para>GNU make is required to build the export libraries (other
   part of BIND 9 can still be built with other types of make). In
   the reminder of this document, "make" means GNU make. Note that
@@ -61,7 +61,7 @@
   than "make" (e.g. "gmake") to indicate it's GNU make.</para>
   </section>
   <section><info><title>Compilation</title></info>
-    
+
   <screen>
 $ <userinput>./configure --enable-exportlib <replaceable>[other flags]</replaceable></userinput>
 $ <userinput>make</userinput>
@@ -75,7 +75,7 @@ $ <userinput>make</userinput>
   lib/export/samples directory (see below).</para>
   </section>
   <section><info><title>Installation</title></info>
-    
+
   <screen>
 $ <userinput>cd lib/export</userinput>
 $ <userinput>make install</userinput>
@@ -96,7 +96,7 @@ $ <userinput>make install</userinput>
   <filename>lib/export/samples/Makefile-postinstall.in</filename>.</para>
   </section>
   <section><info><title>Known Defects/Restrictions</title></info>
-    
+
   <itemizedlist>
     <listitem>
 <!-- TODO: what about AIX? -->
@@ -142,7 +142,7 @@ $ <userinput>make</userinput>
   </itemizedlist>
   </section>
   <section><info><title>The dns.conf File</title></info>
-    
+
   <para>The IRS library supports an "advanced" configuration file
   related to the DNS library for configuration parameters that
   would be beyond the capability of the
@@ -159,13 +159,13 @@ $ <userinput>make</userinput>
   <xref linkend="trusted-keys"/> for details.)</para>
   </section>
   <section><info><title>Sample Applications</title></info>
-    
+
   <para>Some sample application programs using this API are
   provided for reference. The following is a brief description of
   these applications.
   </para>
   <section><info><title>sample: a simple stub resolver utility</title></info>
-    
+
   <para>
   It sends a query of a given name (of a given optional RR type) to a
   specified recursive server, and prints the result as a list of
@@ -232,7 +232,7 @@ $ <userinput>make</userinput>
   </variablelist>
   </section>
   <section><info><title>sample-async: a simple stub resolver, working asynchronously</title></info>
-    
+
   <para>
   Similar to "sample", but accepts a list
   of (query) domain names as a separate file and resolves the names
@@ -278,7 +278,7 @@ $ <userinput>make</userinput>
     </variablelist>
   </section>
   <section><info><title>sample-request: a simple DNS transaction client</title></info>
-    
+
   <para>
   It sends a query to a specified server, and
   prints the response with minimal processing. It doesn't act as a
@@ -330,7 +330,7 @@ $ <userinput>make</userinput>
   </variablelist>
   </section>
   <section><info><title>sample-gai: getaddrinfo() and getnameinfo() test code</title></info>
-    
+
   <para>
   This is a test program
   to check getaddrinfo() and getnameinfo() behavior. It takes a
@@ -346,7 +346,7 @@ $ <userinput>make</userinput>
   </para>
   </section>
   <section><info><title>sample-update: a simple dynamic update client program</title></info>
-    
+
   <para>
   It accepts a single update command as a
   command-line argument, sends an update request message to the
@@ -448,14 +448,14 @@ $ <userinput>sample-update -a sample-update -k Kxxx.+nnn+mmmm.key delete "foo.dy
    <para>
      removes all A RRs for foo.dynamic.example.com using the given key.
    </para>
-   <screen>   
+   <screen>
 $ <userinput>sample-update -a sample-update -k Kxxx.+nnn+mmmm.key delete "foo.dynamic.example.com"</userinput></screen>
    <para>
      removes all RRs for foo.dynamic.example.com using the given key.
    </para>
   </section>
   <section><info><title>nsprobe: domain/name server checker in terms of RFC 4074</title></info>
-    
+
   <para>
   It checks a set
   of domains to see the name servers of the domains behave
@@ -520,7 +520,7 @@ $ <userinput>sample-update -a sample-update -k Kxxx.+nnn+mmmm.key delete "foo.dy
   </section>
   </section>
   <section><info><title>Library References</title></info>
-    
+
   <para>As of this writing, there is no formal "manual" of the
   libraries, except this document, header files (some of them
   provide pretty detailed explanations), and sample application

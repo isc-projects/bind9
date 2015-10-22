@@ -59,7 +59,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       <command>pkcs11-keygen</command> causes a PKCS#11 device to generate
       a new RSA key pair with the specified <option>label</option> and
@@ -68,7 +68,7 @@
   </refsection>
 
   <refsection><info><title>ARGUMENTS</title></info>
-    
+
     <variablelist>
       <varlistentry>
         <term>-P</term>
@@ -155,7 +155,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citerefentry>
         <refentrytitle>pkcs11-list</refentrytitle><manvolnum>3</manvolnum>
@@ -170,7 +170,7 @@
   </refsection>
 
   <refsection><info><title>CAVEAT</title></info>
-    
+
     <para>Some PKCS#11 providers crash with big public exponent.</para>
   </refsection>
 

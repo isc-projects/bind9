@@ -71,7 +71,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>named-checkconf</command>
       checks the syntax, but not the semantics, of a
       <command>named</command> configuration file.  The file is parsed
@@ -92,7 +92,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -184,7 +184,7 @@
   </refsection>
 
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
     <para><command>named-checkconf</command>
       returns an exit status of 1 if
       errors were detected and 0 otherwise.
@@ -192,7 +192,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

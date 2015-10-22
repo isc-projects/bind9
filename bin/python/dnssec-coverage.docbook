@@ -58,7 +58,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>dnssec-coverage</command>
       verifies that the DNSSEC keys for a given zone or a set of zones
       have timing metadata set properly to ensure no future lapses in DNSSEC
@@ -87,7 +87,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -202,7 +202,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citerefentry>
         <refentrytitle>dnssec-checkds</refentrytitle><manvolnum>8</manvolnum>

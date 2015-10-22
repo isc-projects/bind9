@@ -114,7 +114,7 @@ void
 </funcsynopsis>
   </refsynopsisdiv>
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       These are low-level routines for creating and parsing
       lightweight resolver name-to-address lookup request and
@@ -213,7 +213,7 @@ typedef struct {
     </para>
   </refsection>
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
     <para>
       The getaddrbyname opcode functions
       <function>lwres_gabnrequest_render()</function>,
@@ -251,7 +251,7 @@ typedef struct {
     </para>
   </refsection>
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>lwres_packet</refentrytitle><manvolnum>3</manvolnum>
       </citerefentry>

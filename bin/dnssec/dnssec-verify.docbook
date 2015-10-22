@@ -60,7 +60,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>dnssec-verify</command>
       verifies that a zone is fully signed for each algorithm found
       in the DNSKEY RRset for the zone, and that the NSEC / NSEC3
@@ -69,7 +69,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -175,7 +175,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citerefentry>
         <refentrytitle>dnssec-signzone</refentrytitle><manvolnum>8</manvolnum>

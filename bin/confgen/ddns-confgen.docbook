@@ -61,7 +61,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>ddns-confgen</command>
       generates a key for use by <command>nsupdate</command>
       and <command>named</command>.  It simplifies configuration
@@ -84,14 +84,14 @@
     <para>
       Note that <command>named</command> itself can configure a
       local DDNS key for use with <command>nsupdate -l</command>.
-      <command>ddns-confgen</command> is only needed when a 
+      <command>ddns-confgen</command> is only needed when a
       more elaborate configuration is required: for instance, if
       <command>nsupdate</command> is to be used from a remote system.
     </para>
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -194,7 +194,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
 	<refentrytitle>nsupdate</refentrytitle><manvolnum>1</manvolnum>
       </citerefentry>,

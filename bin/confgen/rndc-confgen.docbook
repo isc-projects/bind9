@@ -70,7 +70,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>rndc-confgen</command>
       generates configuration files
       for <command>rndc</command>.  It can be used as a
@@ -88,7 +88,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -245,7 +245,7 @@
   </refsection>
 
   <refsection><info><title>EXAMPLES</title></info>
-    
+
     <para>
       To allow <command>rndc</command> to be used with
       no manual configuration, run
@@ -263,7 +263,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>rndc</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

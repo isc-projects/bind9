@@ -84,7 +84,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>named</command>
       is a Domain Name System (DNS) server,
       part of the BIND 9 distribution from ISC.  For more
@@ -100,7 +100,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -387,7 +387,7 @@
   </refsection>
 
   <refsection><info><title>SIGNALS</title></info>
-    
+
     <para>
       In routine operation, signals should not be used to control
       the nameserver; <command>rndc</command> should be used
@@ -423,7 +423,7 @@
   </refsection>
 
   <refsection><info><title>CONFIGURATION</title></info>
-    
+
     <para>
       The <command>named</command> configuration file is too complex
       to describe in detail here.  A complete description is provided
@@ -443,7 +443,7 @@
   </refsection>
 
   <refsection><info><title>FILES</title></info>
-    
+
 
     <variablelist>
 
@@ -470,7 +470,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citetitle>RFC 1033</citetitle>,
       <citetitle>RFC 1034</citetitle>,
       <citetitle>RFC 1035</citetitle>,

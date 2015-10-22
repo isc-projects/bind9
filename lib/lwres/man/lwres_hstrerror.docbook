@@ -71,7 +71,7 @@ const char *
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
 
     <para><function>lwres_herror()</function>
       prints the string <parameter>s</parameter> on
@@ -126,7 +126,7 @@ const char *
   </refsection>
 
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
     <para>
       The string <errorname>Unknown resolver error</errorname> is returned by
       <function>lwres_hstrerror()</function>
@@ -136,7 +136,7 @@ const char *
     </para>
   </refsection>
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>herror</refentrytitle><manvolnum>3</manvolnum>
       </citerefentry>,

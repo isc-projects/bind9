@@ -68,7 +68,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>rndc</command>
       controls the operation of a name
       server.  It supersedes the <command>ndc</command> utility
@@ -98,7 +98,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -201,7 +201,7 @@
   </refsection>
 
   <refsection><info><title>COMMANDS</title></info>
-    
+
     <para>
       A list of commands supported by <command>rndc</command> can
       be seen by running <command>rndc</command> without arguments.
@@ -260,7 +260,7 @@
 	    Delete a zone while the server is running.
 	    Only zones that were originally added via
 	    <command>rndc addzone</command> can be deleted
-	    in this manner. 
+	    in this manner.
 	  </para>
 	  <para>
 	    See also <command>rndc addzone</command>
@@ -508,7 +508,7 @@
 	<listitem>
 	  <para>
 	    Fetch all DNSSEC keys for the given zone
-	    from the key directory (see the 
+	    from the key directory (see the
 	    <command>key-directory</command> option in
 	    the BIND 9 Administrator Reference Manual).  If they are within
 	    their publication period, merge them into the
@@ -541,7 +541,7 @@
 	    operations (such as signing or generating
 	    NSEC3 chains) is stored in the zone in the form
 	    of DNS resource records of type
-	    <command>sig-signing-type</command>. 
+	    <command>sig-signing-type</command>.
 	    <command>rndc signing -list</command> converts
 	    these records into a human-readable form,
 	    indicating which keys are currently signing
@@ -567,7 +567,7 @@
 	    flags, iterations, and salt, in that order.
 	  </para>
 	  <para>
-	    Currently, the only defined value for hash algorithm 
+	    Currently, the only defined value for hash algorithm
 	    is <literal>1</literal>, representing SHA-1.
 	    The <option>flags</option> may be set to
 	    <literal>0</literal> or <literal>1</literal>,
@@ -731,7 +731,7 @@
   </refsection>
 
   <refsection><info><title>LIMITATIONS</title></info>
-    
+
     <para>
       There is currently no way to provide the shared secret for a
       <option>key_id</option> without using the configuration file.
@@ -742,7 +742,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
 	<refentrytitle>rndc.conf</refentrytitle><manvolnum>5</manvolnum>
       </citerefentry>,

@@ -204,7 +204,7 @@ void
 
   <refsection><info><title>DESCRIPTION</title></info>
 
-    
+
     <para>
       These functions provide bounds checked access to a region of memory
       where data is being read or written.

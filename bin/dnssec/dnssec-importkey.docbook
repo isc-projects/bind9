@@ -71,7 +71,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>dnssec-importkey</command>
       reads a public DNSKEY record and generates a pair of
       .key/.private files.  The DNSKEY record may be read from an
@@ -92,7 +92,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -110,7 +110,7 @@
           </para>
         </listitem>
       </varlistentry>
-  
+
       <varlistentry>
         <term>-K <replaceable class="parameter">directory</replaceable></term>
         <listitem>
@@ -142,7 +142,7 @@
 	  </para>
         </listitem>
       </varlistentry>
-  
+
       <varlistentry>
         <term>-v <replaceable class="parameter">level</replaceable></term>
         <listitem>
@@ -165,7 +165,7 @@
   </refsection>
 
   <refsection><info><title>TIMING OPTIONS</title></info>
-    
+
     <para>
       Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
       If the argument begins with a '+' or '-', it is interpreted as
@@ -205,7 +205,7 @@
   </refsection>
 
   <refsection><info><title>FILES</title></info>
-    
+
     <para>
       A keyfile can be designed by the key identification
       <filename>Knnnn.+aaa+iiiii</filename> or the full file name
@@ -215,7 +215,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>dnssec-keygen</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
