@@ -95,7 +95,7 @@ lwres_conf_t *
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
 
     <para><function>lwres_conf_init()</function>
       creates an empty
@@ -133,7 +133,7 @@ lwres_conf_t *
   </refsection>
   <refsection><info><title>RETURN VALUES</title></info>
 
-    
+
 
     <para><function>lwres_conf_parse()</function>
       returns <errorcode>LWRES_R_SUCCESS</errorcode>
@@ -154,7 +154,7 @@ lwres_conf_t *
     </para>
   </refsection>
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>stdio</refentrytitle><manvolnum>3</manvolnum>
       </citerefentry>,
@@ -164,7 +164,7 @@ lwres_conf_t *
     </para>
   </refsection>
   <refsection><info><title>FILES</title></info>
-    
+
     <para><filename>/etc/resolv.conf</filename>
     </para>
   </refsection>

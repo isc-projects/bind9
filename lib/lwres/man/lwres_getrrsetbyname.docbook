@@ -100,7 +100,7 @@ struct  rrsetinfo {
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><function>lwres_getrrsetbyname()</function>
       gets a set of resource records associated with a
       <parameter>hostname</parameter>, <parameter>class</parameter>,
@@ -148,7 +148,7 @@ struct  rrsetinfo {
     <para/>
   </refsection>
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
     <para><function>lwres_getrrsetbyname()</function>
       returns zero on success, and one of the following error codes if
       an error occurred:
@@ -211,7 +211,7 @@ struct  rrsetinfo {
     </para>
   </refsection>
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>lwres</refentrytitle><manvolnum>3</manvolnum>
       </citerefentry>.

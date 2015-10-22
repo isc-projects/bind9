@@ -65,7 +65,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>dnssec-checkds</command>
       verifies the correctness of Delegation Signer (DS) or DNSSEC
       Lookaside Validation (DLV) resource records for keys in a specified
@@ -74,7 +74,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -92,7 +92,7 @@
         <term>-l <replaceable class="parameter">domain</replaceable></term>
         <listitem>
           <para>
-            Check for a DLV record in the specified lookaside domain, 
+            Check for a DLV record in the specified lookaside domain,
             instead of checking for a DS record in the zone's parent.
             For example, to check for DLV records for "example.com"
             in ISC's DLV zone, use:
@@ -124,7 +124,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>dnssec-dsfromkey</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

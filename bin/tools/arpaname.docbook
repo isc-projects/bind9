@@ -51,7 +51,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       <command>arpaname</command> translates IP addresses (IPv4 and
       IPv6) to the corresponding IN-ADDR.ARPA or IP6.ARPA names.
@@ -59,7 +59,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>.
     </para>

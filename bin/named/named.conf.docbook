@@ -60,7 +60,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><filename>named.conf</filename> is the configuration file
       for
       <command>named</command>.  Statements are enclosed
@@ -80,7 +80,7 @@
   </refsection>
 
   <refsection><info><title>ACL</title></info>
-    
+
     <literallayout class="normal">
 acl <replaceable>string</replaceable> { <replaceable>address_match_element</replaceable>; ... };
 
@@ -88,7 +88,7 @@ acl <replaceable>string</replaceable> { <replaceable>address_match_element</repl
   </refsection>
 
   <refsection><info><title>KEY</title></info>
-    
+
     <literallayout class="normal">
 key <replaceable>domain_name</replaceable> {
 	algorithm <replaceable>string</replaceable>;
@@ -98,7 +98,7 @@ key <replaceable>domain_name</replaceable> {
   </refsection>
 
   <refsection><info><title>MASTERS</title></info>
-    
+
     <literallayout class="normal">
 masters <replaceable>string</replaceable> <optional> port <replaceable>integer</replaceable> </optional> {
 	( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> |
@@ -108,7 +108,7 @@ masters <replaceable>string</replaceable> <optional> port <replaceable>integer</
   </refsection>
 
   <refsection><info><title>SERVER</title></info>
-    
+
     <literallayout class="normal">
 server ( <replaceable>ipv4_address<optional>/prefixlen</optional></replaceable> | <replaceable>ipv6_address<optional>/prefixlen</optional></replaceable> ) {
 	bogus <replaceable>boolean</replaceable>;
@@ -132,7 +132,7 @@ server ( <replaceable>ipv4_address<optional>/prefixlen</optional></replaceable> 
   </refsection>
 
   <refsection><info><title>TRUSTED-KEYS</title></info>
-    
+
     <literallayout class="normal">
 trusted-keys {
 	<replaceable>domain_name</replaceable> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key</replaceable>; ...
@@ -141,7 +141,7 @@ trusted-keys {
   </refsection>
 
   <refsection><info><title>MANAGED-KEYS</title></info>
-    
+
     <literallayout class="normal">
 managed-keys {
 	<replaceable>domain_name</replaceable> <constant>initial-key</constant> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key</replaceable>; ...
@@ -150,7 +150,7 @@ managed-keys {
   </refsection>
 
   <refsection><info><title>CONTROLS</title></info>
-    
+
     <literallayout class="normal">
 controls {
 	inet ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> | * )
@@ -163,7 +163,7 @@ controls {
   </refsection>
 
   <refsection><info><title>LOGGING</title></info>
-    
+
     <literallayout class="normal">
 logging {
 	channel <replaceable>string</replaceable> {
@@ -182,7 +182,7 @@ logging {
   </refsection>
 
   <refsection><info><title>LWRES</title></info>
-    
+
     <literallayout class="normal">
 lwres {
 	listen-on <optional> port <replaceable>integer</replaceable> </optional> {
@@ -198,7 +198,7 @@ lwres {
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
     <literallayout class="normal">
 options {
 	avoid-v4-udp-ports { <replaceable>port</replaceable>; ... };
@@ -413,7 +413,7 @@ options {
   </refsection>
 
   <refsection><info><title>VIEW</title></info>
-    
+
     <literallayout class="normal">
 view <replaceable>string</replaceable> <replaceable>optional_class</replaceable> {
 	match-clients { <replaceable>address_match_element</replaceable>; ... };
@@ -583,7 +583,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
   </refsection>
 
   <refsection><info><title>ZONE</title></info>
-    
+
     <literallayout class="normal">
 zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable> {
 	type ( master | slave | stub | hint | redirect |
@@ -681,13 +681,13 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
   </refsection>
 
   <refsection><info><title>FILES</title></info>
-    
+
     <para><filename>/etc/named.conf</filename>
     </para>
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
 	<refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

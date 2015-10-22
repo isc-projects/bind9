@@ -16,7 +16,7 @@
 
 <!-- Converted by db4-upgrade version 1.0 -->
 <section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="dlz-info"><info><title>DLZ (Dynamically Loadable Zones)</title></info>
-  
+
   <para>
     DLZ (Dynamically Loadable Zones) is an extension to BIND 9 that allows
     zone data to be retrieved directly from an external database.  There is
@@ -55,7 +55,7 @@
   </para>
 
   <section><info><title>Configuring DLZ</title></info>
-    
+
     <para>
       A DLZ database is configured with a <command>dlz</command>
       statement in <filename>named.conf</filename>:
@@ -103,7 +103,7 @@
     </screen>
   </section>
   <section><info><title>Sample DLZ Driver</title></info>
-    
+
     <para>
       For guidance in implementation of DLZ modules, the directory
       <filename>contrib/dlz/example</filename> contains a basic

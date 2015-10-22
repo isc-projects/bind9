@@ -77,7 +77,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
 
     <para><command>lwresd</command>
       is the daemon providing name lookup
@@ -87,7 +87,7 @@
       resolver protocol rather than the DNS protocol.
     </para>
 
-    <para><command>lwresd</command> 
+    <para><command>lwresd</command>
       listens for resolver queries on a
       UDP port on the IPv4 loopback interface, 127.0.0.1.  This
       means that <command>lwresd</command> can only be used by
@@ -115,7 +115,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
 
@@ -217,7 +217,7 @@
             <replaceable class="parameter">trace</replaceable>,
             <replaceable class="parameter">record</replaceable>,
             <replaceable class="parameter">size</replaceable>, and
-            <replaceable class="parameter">mctx</replaceable>.  
+            <replaceable class="parameter">mctx</replaceable>.
             These correspond to the ISC_MEM_DEBUGXXXX flags described in
             <filename>&lt;isc/mem.h&gt;</filename>.
           </para>
@@ -324,7 +324,7 @@
   </refsection>
 
   <refsection><info><title>FILES</title></info>
-    
+
 
     <variablelist>
 
@@ -351,7 +351,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

@@ -95,7 +95,7 @@ lwres_result_t
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
 
     <para><function>lwres_string_parse()</function>
       retrieves a DNS-encoded string starting the current pointer of
@@ -181,7 +181,7 @@ typedef struct {
   </refsection>
 
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
     <para>
       Successful calls to
       <function>lwres_string_parse()</function>
@@ -222,7 +222,7 @@ typedef struct {
 
   </refsection>
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>lwres_buffer</refentrytitle><manvolnum>3</manvolnum>
       </citerefentry>,

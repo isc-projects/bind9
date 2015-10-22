@@ -65,7 +65,7 @@ char *
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
 
     <para><function>lwres_gai_strerror()</function>
       returns an error message corresponding to an error code returned by
@@ -177,7 +177,7 @@ char *
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>strerror</refentrytitle><manvolnum>3</manvolnum>
       </citerefentry>,

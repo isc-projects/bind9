@@ -61,7 +61,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>dnssec-coverage</command>
       verifies that the DNSSEC keys for a given zone or a set of zones
       have timing metadata set properly to ensure no future lapses in DNSSEC
@@ -90,7 +90,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -122,7 +122,7 @@
           <para>
             The length of time to check for DNSSEC coverage.  Key events
             scheduled further into the future than <option>duration</option>
-            will be ignored, and assumed to be correct.  
+            will be ignored, and assumed to be correct.
           </para>
           <para>
             The value of <option>duration</option> can be set in seconds,
@@ -243,7 +243,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citerefentry>
         <refentrytitle>dnssec-checkds</refentrytitle><manvolnum>8</manvolnum>

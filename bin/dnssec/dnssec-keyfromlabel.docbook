@@ -79,7 +79,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>dnssec-keyfromlabel</command>
       generates a key pair of files that referencing a key object stored
       in a cryptographic hardware service module (HSM).  The private key
@@ -96,7 +96,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -364,7 +364,7 @@
   </refsection>
 
   <refsection><info><title>TIMING OPTIONS</title></info>
-    
+
 
     <para>
       Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
@@ -450,7 +450,7 @@
           </para>
           <para>
             If the key is being created as an explicit successor to another
-            key, then the default prepublication interval is 30 days; 
+            key, then the default prepublication interval is 30 days;
             otherwise it is zero.
           </para>
           <para>
@@ -467,7 +467,7 @@
   </refsection>
 
   <refsection><info><title>GENERATED KEY FILES</title></info>
-    
+
     <para>
       When <command>dnssec-keyfromlabel</command> completes
       successfully,
@@ -491,7 +491,7 @@
         </para>
       </listitem>
     </itemizedlist>
-    <para><command>dnssec-keyfromlabel</command> 
+    <para><command>dnssec-keyfromlabel</command>
       creates two files, with names based
       on the printed string.  <filename>Knnnn.+aaa+iiiii.key</filename>
       contains the public key, and
@@ -513,7 +513,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>dnssec-keygen</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

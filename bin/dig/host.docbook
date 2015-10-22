@@ -77,7 +77,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
 
     <para><command>host</command>
       is a simple utility for performing DNS lookups.
@@ -240,7 +240,7 @@
     </para>
 
     <para>
-      The <option>-s</option> option tells <command>host</command> 
+      The <option>-s</option> option tells <command>host</command>
       <emphasis>not</emphasis> to send the query to the next nameserver
       if any server responds with a SERVFAIL response, which is the
       reverse of normal stub resolver behavior.
@@ -260,10 +260,10 @@
   </refsection>
 
   <refsection><info><title>IDN SUPPORT</title></info>
-    
+
     <para>
       If <command>host</command> has been built with IDN (internationalized
-      domain name) support, it can accept and display non-ASCII domain names. 
+      domain name) support, it can accept and display non-ASCII domain names.
       <command>host</command> appropriately converts character encoding of
       domain name before sending a request to DNS server or displaying a
       reply from the server.

@@ -559,6 +559,14 @@ foreach $file (keys %file_types) {
 				$body = "$body$_";
 			}
 			$_ = $body;
+		} elsif ($type eq "SGML" && $sysyears =~ /$this_year/) {
+			my $body = "";
+			while (<SOURCE>) {
+			# Remove trailing white space.
+			s/[ \t]*$//;
+				$body = "$body$_";
+			}
+			$_ = $body;
 		} else {
 			undef $/;
 			$_ = <SOURCE>;

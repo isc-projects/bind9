@@ -77,7 +77,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>mdig</command>
       is a multiple/pipelined query version of <command>dig</command>:
       instead of waiting for a response after sending each query,
@@ -126,7 +126,7 @@
   </refsection>
 
   <refsection><info><title>ANYWHERE OPTIONS</title></info>
-    
+
 
     <para>
       The <option>-f</option> option makes <command>mdig</command>
@@ -149,7 +149,7 @@
   </refsection>
 
   <refsection><info><title>GLOBAL OPTIONS</title></info>
-    
+
 
     <para>
       The <option>-4</option> option forces <command>mdig</command> to
@@ -390,7 +390,7 @@
   </refsection>
 
   <refsection><info><title>LOCAL OPTIONS</title></info>
-    
+
 
     <para>
       The <option>-c</option> option sets the query class to
@@ -653,7 +653,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>dig</refentrytitle><manvolnum>1</manvolnum>
       </citerefentry>,

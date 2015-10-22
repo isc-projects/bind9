@@ -21,7 +21,7 @@
   xmlns:db="http://docbook.org/ns/docbook">
 </xsl:stylesheet>
 
-<!-- 
+<!--
   - Local variables:
   - mode: sgml
   - End:
