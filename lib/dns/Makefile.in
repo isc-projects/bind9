@@ -57,7 +57,7 @@ PKCS11LINKOBJS	= pkcs11dh_link.@O@ pkcs11dsa_link.@O@ pkcs11rsa_link.@O@ \
 
 DSTOBJS =	@DST_EXTRA_OBJS@ @OPENSSLLINKOBJS@ @PKCS11LINKOBJS@ \
 		dst_api.@O@ dst_lib.@O@ dst_parse.@O@ dst_result.@O@ \
-		gssapi_link.@O@ gssapictx.@O@ hmac_link.@O@ key.@O@ 
+		gssapi_link.@O@ gssapictx.@O@ hmac_link.@O@ key.@O@
 
 GEOIPLINKOBJS = geoip.@O@
 
@@ -98,7 +98,7 @@ DSTSRCS =	@DST_EXTRA_SRCS@ @OPENSSLLINKSRCS@ @PKCS11LINKSRCS@ \
 		dst_result.c gssapi_link.c gssapictx.c \
 		hmac_link.c key.c
 
-GEOIOLINKSRCS = geoip.c 
+GEOIOLINKSRCS = geoip.c
 
 DNSSRCS =	acache.c acl.c adb.c byaddr.c \
 		cache.c callbacks.c clientinfo.c compress.c \

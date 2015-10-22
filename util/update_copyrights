@@ -559,7 +559,9 @@ foreach $file (keys %file_types) {
 				$body = "$body$_";
 			}
 			$_ = $body;
-		} elsif ($type eq "SGML" && $sysyears =~ /$this_year/) {
+		} elsif (($type eq "SGML" || $type eq "HTML" ||
+			  $type eq "MAKE") &&
+		         $sysyears =~ /$this_year/) {
 			my $body = "";
 			while (<SOURCE>) {
 			# Remove trailing white space.
