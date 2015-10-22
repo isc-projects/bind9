@@ -61,7 +61,7 @@ SRCS =		db_test.c \
 		time_test.c \
 		update_test.c \
 		zonemgr_test.c \
-		zt_test.c 
+		zt_test.c
 
 SUBDIRS =
 TARGETS =	db_test@EXEEXT@ \
@@ -227,5 +227,5 @@ clean distclean::
 	rm -f ${TARGETS}
 	rm -f atf.out
 	rm -f testdata/master/master12.data testdata/master/master13.data \
-		testdata/master/master14.data 
+		testdata/master/master14.data
 	rm -f zone.bin

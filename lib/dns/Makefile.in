@@ -57,7 +57,7 @@ PKCS11LINKOBJS	= pkcs11dh_link.@O@ pkcs11dsa_link.@O@ pkcs11rsa_link.@O@ \
 
 DSTOBJS =	@DST_EXTRA_OBJS@ @OPENSSLLINKOBJS@ @PKCS11LINKOBJS@ \
 		dst_api.@O@ dst_lib.@O@ dst_parse.@O@ dst_result.@O@ \
-		gssapi_link.@O@ gssapictx.@O@ hmac_link.@O@ key.@O@ 
+		gssapi_link.@O@ gssapictx.@O@ hmac_link.@O@ key.@O@
 
 GEOIPLINKOBJS = geoip.@O@
 

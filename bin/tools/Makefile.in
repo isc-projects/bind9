@@ -44,7 +44,7 @@ LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 LIBS =		${ISCLIBS} @LIBS@
 NOSYMLIBS =	${ISCNOSYMLIBS} @LIBS@
 
-SUBDIRS = 
+SUBDIRS =
 
 DNSTAPTARGETS =	dnstap-read@EXEEXT@
 TARGETS =	arpaname@EXEEXT@ named-journalprint@EXEEXT@ \
