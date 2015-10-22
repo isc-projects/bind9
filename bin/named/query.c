@@ -92,6 +92,9 @@
 /*% Want Recursion? */
 #define WANTRECURSION(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_WANTRECURSION) != 0)
+/*% Is TCP? */
+#define TCP(c)                  (((c)->attributes & NS_CLIENTATTR_TCP) != 0)
+
 /*% Want DNSSEC? */
 #define WANTDNSSEC(c)		(((c)->attributes & \
 				  NS_CLIENTATTR_WANTDNSSEC) != 0)
