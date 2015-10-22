@@ -72,7 +72,7 @@ int
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
 
     <para>
        This function is equivalent to the
@@ -163,13 +163,13 @@ int
   </refsection>
 
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
     <para><function>lwres_getnameinfo()</function>
       returns 0 on success or a non-zero error code if an error occurs.
     </para>
   </refsection>
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>RFC2133</refentrytitle>
       </citerefentry>,
@@ -191,7 +191,7 @@ int
     </para>
   </refsection>
   <refsection><info><title>BUGS</title></info>
-    
+
     <para>
       RFC2133 fails to define what the nonzero return values of
       <citerefentry>

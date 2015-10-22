@@ -21,14 +21,14 @@
 <section xmlns="http://docbook.org/ns/docbook" version="5.0"><info/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
-    
+
     <para>
       This document summarizes changes since the last production release
       of BIND on the corresponding major release branch.
     </para>
   </section>
   <section xml:id="relnotes_download"><info><title>Download</title></info>
-    
+
     <para>
       The latest versions of BIND 9 software can always be found at
       <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.isc.org/downloads/">http://www.isc.org/downloads/</link>.
@@ -38,7 +38,7 @@
     </para>
   </section>
   <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
-    
+
     <itemizedlist>
       <listitem>
 	<para>
@@ -77,11 +77,11 @@
 	  This flaw was discovered by Breno Silveira Soares, and is
 	  disclosed in CVE-2015-4620. [RT #39795]
 	</para>
-      </listitem> 
+      </listitem>
     </itemizedlist>
   </section>
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
-    
+
     <itemizedlist>
       <listitem>
 	<para>
@@ -154,7 +154,7 @@
     </itemizedlist>
   </section>
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
-    
+
     <itemizedlist>
       <listitem>
 	<para>
@@ -222,7 +222,7 @@
     </itemizedlist>
   </section>
   <section xml:id="relnotes_port"><info><title>Porting Changes</title></info>
-    
+
     <itemizedlist>
       <listitem>
 	<para>
@@ -239,7 +239,7 @@
     </itemizedlist>
   </section>
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
-    
+
     <itemizedlist>
       <listitem>
 	<para>
@@ -346,7 +346,7 @@
     </itemizedlist>
   </section>
   <section xml:id="end_of_life"><info><title>End of Life</title></info>
-    
+
     <para>
       The end of life for BIND 9.10 is yet to be determined but
       will not be before BIND 9.12.0 has been released for 6 months.
@@ -354,7 +354,7 @@
     </para>
   </section>
   <section xml:id="relnotes_thanks"><info><title>Thank You</title></info>
-    
+
     <para>
       Thank you to everyone who assisted us in making this release possible.
       If you would like to contribute to ISC to assist us in continuing to

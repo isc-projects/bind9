@@ -55,7 +55,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       <command>nsec3hash</command> generates an NSEC3 hash based on
       a set of NSEC3 parameters.  This can be used to check the validity
@@ -64,7 +64,7 @@
   </refsection>
 
   <refsection><info><title>ARGUMENTS</title></info>
-    
+
     <variablelist>
       <varlistentry>
         <term>salt</term>
@@ -108,7 +108,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
       <citetitle>RFC 5155</citetitle>.

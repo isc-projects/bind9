@@ -84,7 +84,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>nsupdate</command>
       is used to submit Dynamic DNS Update requests as defined in RFC 2136
       to a name server.
@@ -143,7 +143,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -352,7 +352,7 @@
   </refsection>
 
   <refsection><info><title>INPUT FORMAT</title></info>
-    
+
     <para><command>nsupdate</command>
       reads input from
       <parameter>filename</parameter>
@@ -768,7 +768,7 @@
   </refsection>
 
   <refsection><info><title>EXAMPLES</title></info>
-    
+
     <para>
       The examples below show how
       <command>nsupdate</command>
@@ -819,7 +819,7 @@
   </refsection>
 
   <refsection><info><title>FILES</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -868,7 +868,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citetitle>RFC 2136</citetitle>,
       <citetitle>RFC 3007</citetitle>,
@@ -890,7 +890,7 @@
   </refsection>
 
   <refsection><info><title>BUGS</title></info>
-    
+
     <para>
       The TSIG key is redundantly stored in two separate files.
       This is a consequence of nsupdate using the DST library

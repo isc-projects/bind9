@@ -62,7 +62,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       <command>pkcs11-keygen</command> causes a PKCS#11 device to generate
       a new key pair with the given <option>label</option> (which must be
@@ -71,7 +71,7 @@
   </refsection>
 
   <refsection><info><title>ARGUMENTS</title></info>
-    
+
     <variablelist>
       <varlistentry>
         <term>-a <replaceable class="parameter">algorithm</replaceable></term>
@@ -185,7 +185,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citerefentry>
         <refentrytitle>pkcs11-destroy</refentrytitle><manvolnum>8</manvolnum>

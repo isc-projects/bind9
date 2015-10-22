@@ -51,7 +51,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       <command>pkcs11-tokens</command>
       lists the PKCS#11 available tokens with defaults from the slot/token
@@ -60,7 +60,7 @@
   </refsection>
 
   <refsection><info><title>ARGUMENTS</title></info>
-    
+
     <variablelist>
       <varlistentry>
         <term>-m <replaceable class="parameter">module</replaceable></term>
@@ -76,7 +76,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citerefentry>
         <refentrytitle>pkcs11-destroy</refentrytitle><manvolnum>8</manvolnum>

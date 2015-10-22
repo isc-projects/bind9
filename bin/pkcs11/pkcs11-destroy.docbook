@@ -59,7 +59,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       <command>pkcs11-destroy</command> destroys keys stored in a
       PKCS#11 device, identified by their <option>ID</option> or
@@ -73,7 +73,7 @@
   </refsection>
 
   <refsection><info><title>ARGUMENTS</title></info>
-    
+
     <variablelist>
       <varlistentry>
         <term>-m <replaceable class="parameter">module</replaceable></term>
@@ -138,7 +138,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citerefentry>
         <refentrytitle>pkcs11-keygen</refentrytitle><manvolnum>8</manvolnum>

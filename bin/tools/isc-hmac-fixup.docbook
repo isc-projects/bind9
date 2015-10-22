@@ -54,7 +54,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       Versions of BIND 9 up to and including BIND 9.6 had a bug causing
       HMAC-SHA* TSIG keys which were longer than the digest length of the
@@ -81,7 +81,7 @@
   </refsection>
 
   <refsection><info><title>SECURITY CONSIDERATIONS</title></info>
-    
+
     <para>
       Secrets that have been converted by <command>isc-hmac-fixup</command>
       are shortened, but as this is how the HMAC protocol works in
@@ -93,7 +93,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
       <citetitle>RFC 2104</citetitle>.

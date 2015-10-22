@@ -48,7 +48,7 @@
     <xsl:text>.ad l&#10;</xsl:text>
   </xsl:variable>
 
-  <!-- 
+  <!--
     - Override Docbook template to insert our copyright,
     - disable chunking, and suppress output of .so files.
    -->
@@ -88,7 +88,7 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- 
+  <!--
     - Override Docbook template to change formatting.
     - We just want the element name in boldface, no subsection header.
    -->
@@ -139,7 +139,7 @@
 
 </xsl:stylesheet>
 
-<!-- 
+<!--
   - Local variables:
   - mode: sgml
   - End:

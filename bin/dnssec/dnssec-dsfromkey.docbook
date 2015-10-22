@@ -84,7 +84,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>dnssec-dsfromkey</command>
       outputs the Delegation Signer (DS) resource record (RR), as defined in
       RFC 3658 and RFC 4509, for the given key(s).
@@ -92,7 +92,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -183,7 +183,7 @@
           <para>
             Include ZSK's when generating DS records.  Without this option,
             only keys which have the KSK flag set will be converted to DS
-            records and printed.  Useful only in zone file mode. 
+            records and printed.  Useful only in zone file mode.
           </para>
         </listitem>
       </varlistentry>
@@ -252,7 +252,7 @@
   </refsection>
 
   <refsection><info><title>EXAMPLE</title></info>
-    
+
     <para>
       To build the SHA-256 DS RR from the
       <userinput>Kexample.com.+003+26160</userinput>
@@ -268,7 +268,7 @@
   </refsection>
 
   <refsection><info><title>FILES</title></info>
-    
+
     <para>
       The keyfile can be designed by the key identification
       <filename>Knnnn.+aaa+iiiii</filename> or the full file name
@@ -283,14 +283,14 @@
   </refsection>
 
   <refsection><info><title>CAVEAT</title></info>
-    
+
     <para>
       A keyfile error can give a "file not found" even if the file exists.
     </para>
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>dnssec-keygen</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

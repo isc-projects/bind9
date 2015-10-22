@@ -98,7 +98,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>dig</command>
       (domain information groper) is a flexible tool
       for interrogating DNS name servers.  It performs DNS lookups and
@@ -144,7 +144,7 @@
     <para>
       The IN and CH class names overlap with the IN and CH top level
       domain names.  Either use the <option>-t</option> and
-      <option>-c</option> options to specify the type and class, 
+      <option>-c</option> options to specify the type and class,
       use the <option>-q</option> the specify the domain name, or
       use "IN." and "CH." when looking up these top level domains.
     </para>
@@ -152,7 +152,7 @@
   </refsection>
 
   <refsection><info><title>SIMPLE USAGE</title></info>
-    
+
 
     <para>
       A typical invocation of <command>dig</command> looks like:
@@ -218,7 +218,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -421,7 +421,7 @@
   </refsection>
 
   <refsection><info><title>QUERY OPTIONS</title></info>
-    
+
 
     <para><command>dig</command>
       provides a number of query options which affect
@@ -1104,7 +1104,7 @@
   </refsection>
 
   <refsection><info><title>MULTIPLE QUERIES</title></info>
-    
+
 
     <para>
       The BIND 9 implementation of <command>dig </command>
@@ -1153,7 +1153,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
   </refsection>
 
   <refsection><info><title>IDN SUPPORT</title></info>
-    
+
     <para>
       If <command>dig</command> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -1162,13 +1162,13 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
       reply from the server.
       If you'd like to turn off the IDN support for some reason, defines
       the <envar>IDN_DISABLE</envar> environment variable.
-      The IDN support is disabled if the variable is set when 
+      The IDN support is disabled if the variable is set when
       <command>dig</command> runs.
     </para>
   </refsection>
 
   <refsection><info><title>FILES</title></info>
-    
+
     <para><filename>/etc/resolv.conf</filename>
     </para>
     <para><filename>${HOME}/.digrc</filename>
@@ -1176,7 +1176,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
 	<refentrytitle>host</refentrytitle><manvolnum>1</manvolnum>
       </citerefentry>,
@@ -1191,7 +1191,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
   </refsection>
 
   <refsection><info><title>BUGS</title></info>
-    
+
     <para>
       There are probably too many query options.
     </para>

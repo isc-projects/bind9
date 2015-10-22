@@ -115,7 +115,7 @@ void
 </funcsynopsis>
   </refsynopsisdiv>
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       These are low-level routines for creating and parsing
       lightweight resolver no-op request and response messages.
@@ -207,7 +207,7 @@ typedef struct {
 
   </refsection>
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
     <para>
       The no-op opcode functions
       <function>lwres_nooprequest_render()</function>,
@@ -246,7 +246,7 @@ typedef struct {
     </para>
   </refsection>
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>lwres_packet</refentrytitle><manvolnum>3</manvolnum>
       </citerefentry>

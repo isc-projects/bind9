@@ -52,14 +52,14 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       <command>named-journalprint</command>
       prints the contents of a zone journal file in a human-readable
-      form. 
+      form.
     </para>
     <para>
-      Journal files are automatically created by <command>named</command> 
+      Journal files are automatically created by <command>named</command>
       when changes are made to dynamic zones (e.g., by
       <command>nsupdate</command>).  They record each addition
       or deletion of a resource record, in binary format, allowing the
@@ -79,7 +79,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citerefentry>
         <refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>

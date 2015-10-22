@@ -71,7 +71,7 @@
   </xsl:variable>
 </xsl:stylesheet>
 
-<!-- 
+<!--
   - Local variables:
   - mode: sgml
   - End:

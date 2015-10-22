@@ -57,7 +57,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       <command>pkcs11-list</command>
       lists the PKCS#11 objects with <option>ID</option> or
@@ -66,7 +66,7 @@
   </refsection>
 
   <refsection><info><title>ARGUMENTS</title></info>
-    
+
     <variablelist>
       <varlistentry>
         <term>-P</term>
@@ -130,7 +130,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citerefentry>
         <refentrytitle>pkcs11-destroy</refentrytitle><manvolnum>8</manvolnum>

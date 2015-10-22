@@ -57,7 +57,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>isc-config.sh</command>
 	prints information related to the installed version of ISC BIND,
 	such as the compiler and linker flags required to compile
@@ -80,7 +80,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
 
@@ -142,7 +142,7 @@
   </refsection>
 
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
     <para><command>isc-config.sh</command>
       returns an exit status of 1 if
       invoked with invalid arguments or no arguments at all.
