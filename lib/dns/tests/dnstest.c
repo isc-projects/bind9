@@ -413,4 +413,3 @@ dns_test_getdata(const char *file, unsigned char *buf,
 	isc_stdio_close(f);
 	return (result);
 }
-
