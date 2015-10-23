@@ -322,7 +322,7 @@
 	<listitem>
 	  <para>
 	    Send the query to a non-standard port on the server,
-	    instead of the defaut port 53. This option would be used
+	    instead of the default port 53. This option would be used
 	    to test a name server that has been configured to listen
 	    for queries on a non-standard port number.
 	  </para>

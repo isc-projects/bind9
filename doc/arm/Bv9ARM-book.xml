@@ -2908,7 +2908,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		  followed by '%' to represent percents.
 		</para>
 		<para>
-		  The behaviour is exactly the same as
+		  The behavior is exactly the same as
 		  <varname>size_spec</varname>, but
 		  <varname>size_or_percent</varname> allows also
 		  to specify a positive integer value followed by
@@ -9262,7 +9262,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  may be sent while servicing a recursive query.
 		  If more queries are sent, the recursive query
 		  is terminated and returns SERVFAIL. Queries to
-		  look up top level comains such as "com" and "net"
+		  look up top level domains such as "com" and "net"
 		  and the DNS root zone are exempt from this limitation.
 		  The default is 75.
 		</para>
@@ -10123,7 +10123,7 @@ deny-answer-aliases { "example.net"; };
 		  <para>
 		    A special form of local data is a CNAME whose target is a
 		    wildcard such as *.example.com.
-		    It is used as if were an ordinary CNAME after the astrisk (*)
+		    It is used as if were an ordinary CNAME after the asterisk (*)
 		    has been replaced with the query name.
 		    The purpose for this special form is query logging in the
 		    walled garden's authority DNS server.
@@ -12615,7 +12615,7 @@ example.com. NS ns2.example.net.
 		    unsigned zone is transferred in or loaded from
 		    disk and a signed version of the zone is served,
 		    with possibly, a different serial number.  This
-		    behaviour is disabled by default.
+		    behavior is disabled by default.
 		  </para>
 		</listitem>
 	      </varlistentry>
