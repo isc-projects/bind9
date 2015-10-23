@@ -56,7 +56,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>named-rrchecker</command>
      read a individual DNS resource record from standard input and checks if it
      is syntactically correct.
@@ -85,7 +85,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para>
       <citetitle>RFC 1034</citetitle>,
       <citetitle>RFC 1035</citetitle>,

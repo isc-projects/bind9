@@ -1819,7 +1819,7 @@ nameserver 172.16.72.4
 	<para>
 	  TSIG keys can be generated using the <command>tsig-keygen</command>
 	  command; the output of the command is a <command>key</command> directive
-	  suitable for inclusion in <filename>named.conf</filename>.  The 
+	  suitable for inclusion in <filename>named.conf</filename>.  The
 	  key name, algorithm and size can be specified by command line parameters;
 	  the defaults are "tsig-key", HMAC-SHA256, and 256 bits, respectively.
 	</para>
@@ -1899,7 +1899,7 @@ key "host1-host2." {
 	  signed using the specified key.  Keys may also be specified
 	  in the <command>also-notify</command> statement of a master
 	  or slave zone, causing NOTIFY messages to be signed using
-	  the specified key.  
+	  the specified key.
 	</para>
 	<para>
 	  Keys can also be specified in a <command>server</command>
@@ -2004,7 +2004,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
       <para>
 	The TKEY process is initiated by a client or server by sending
 	a query of type TKEY to a TKEY-aware server.  The query must include
-	an appropriate KEY record in the additional section, and 
+	an appropriate KEY record in the additional section, and
 	must be signed using either TSIG or SIG(0) with a previously
 	established key.  The server's response, if successful, will
 	contain a TKEY record in its answer section.  After this transaction,
@@ -4809,11 +4809,11 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		event payloads which are encoded using Protocol Buffers
 		(<command>libprotobuf-c</command>, a mechanism for
 		serializing structured data developed
-		by Google, Inc.; see 
+		by Google, Inc.; see
 		<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://developers.google.com/protocol-buffers/">https://developers.google.com/protocol-buffers</link>).
 	      </para>
 	      <para>
-		To enable <command>dnstap</command> at compile time, 
+		To enable <command>dnstap</command> at compile time,
 		the <command>fstrm</command> and <command>protobuf-c</command>
 		libraries must be available, and BIND must be configured with
 		<option>--enable-dnstap</option>.

@@ -17,7 +17,7 @@
 
 <!-- Converted by db4-upgrade version 1.0 -->
 <article xmlns="http://docbook.org/ns/docbook" version="5.0" class="faq">
-  
+
   <info>
     <copyright>
       <year>2004</year>
@@ -40,9 +40,9 @@
     </copyright>
   </info>
   <qandaset defaultlabel="qanda">
-	  
-    <qandadiv><title>Compilation and Installation Questions</title>	  
-    
+
+    <qandadiv><title>Compilation and Installation Questions</title>
+
     <qandaentry>
       <question>
 	<para>
@@ -58,7 +58,7 @@
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -67,7 +67,7 @@
       </question>
       <answer>
 	<para>
-	  Short Answer: No. 
+	  Short Answer: No.
 	</para>
 	<para>
 	  Long Answer: There really isn't a default configuration which fits
@@ -90,9 +90,9 @@
 	</para>
       </answer>
     </qandaentry>
-    
+
     </qandadiv> <!-- Compilation and Installation Questions -->
-	    
+
     <qandadiv><title>Configuration and Setup Questions</title>
 
     <qandaentry>
@@ -122,7 +122,7 @@ example.com. 86400 IN SOA ns hostmaster ( 1 3600 1800 1814400 3600 )</programlis
 	</informalexample>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <!-- configuration -->
       <question>
@@ -248,7 +248,7 @@ view "chaos" chaos {
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -263,7 +263,7 @@ view "chaos" chaos {
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -356,7 +356,7 @@ Slave 10.0.1.2:
 	</informalexample>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -389,7 +389,7 @@ named-checkzone example.com tmp</programlisting>
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -413,7 +413,7 @@ named-checkzone example.com tmp</programlisting>
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -508,7 +508,7 @@ Master 10.0.1.1:
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -548,7 +548,7 @@ Master 10.0.1.1:
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -600,7 +600,7 @@ zone "example.net" {
 	</informalexample>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -691,9 +691,9 @@ server ::/0 { bogus yes; };
 </programlisting>
       </answer>
     </qandaentry>
-    
+
     </qandadiv> <!-- Configuration and Setup Questions -->
-    
+
     <qandadiv><title>Operations Questions</title>
 
     <qandaentry>
@@ -765,7 +765,7 @@ server ::/0 { bogus yes; };
     </qandadiv> <!-- Operations Questions -->
 
     <qandadiv><title>General Questions</title>
-	    
+
     <qandaentry>
       <question>
 	<para>
@@ -810,7 +810,7 @@ server ::/0 { bogus yes; };
 	</para>
       </answer>
     </qandaentry>
-	    
+
     <qandaentry>
       <question>
 	<para>
@@ -845,7 +845,7 @@ server ::/0 { bogus yes; };
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -863,7 +863,7 @@ server ::/0 { bogus yes; };
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -879,7 +879,7 @@ server ::/0 { bogus yes; };
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -906,7 +906,7 @@ serial-query-rate 5; // default 20</programlisting>
       </answer>
     </qandaentry>
 
-    <qandaentry>	    
+    <qandaentry>
       <question>
 	<para>
 	  I don't get RRSIG's returned when I use "dig +dnssec".
@@ -918,7 +918,7 @@ serial-query-rate 5; // default 20</programlisting>
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -1002,7 +1002,7 @@ empty:
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -1079,7 +1079,7 @@ empty:
     </qandaentry>
 
     </qandadiv> <!-- General Questions -->
-    
+
     <qandadiv><title>Operating-System Specific Questions</title>
 
     <qandadiv><title>HPUX</title>
@@ -1109,9 +1109,9 @@ configure: error: need either working unistd.h or sys/select.h</programlisting>
     </qandadiv> <!-- HPUX -->
 
     <qandadiv><title>Linux</title>
-	    
+
     <qandaentry>
-      <question> 
+      <question>
 	<para>
 	  Why do I get the following errors:
 <programlisting>general: errno2result.c:109: unexpected error:
@@ -1174,7 +1174,7 @@ echo "1" &gt; proc/sys/net/core/xfrm_larval_drop</programlisting>
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -1193,7 +1193,7 @@ echo "1" &gt; proc/sys/net/core/xfrm_larval_drop</programlisting>
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -1214,7 +1214,7 @@ modprobe capability</programlisting>
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -1274,7 +1274,7 @@ $ROOTDIR/var/tmp
 	  able to write or create files except in the directories
 	  above, with SELinux in Enforcing mode.
 	</para>
-  
+
 	<para>
 	  So, to allow named to update slave or DDNS zone files,
 	  it is best to locate them in $ROOTDIR/var/named/slaves,
@@ -1285,7 +1285,7 @@ zone "slave.zone." IN {
 	type slave;
 	file "slaves/slave.zone.db";
 	...
-};   
+};
 zone "ddns.zone." IN  {
 	type master;
 	allow-updates {...};
@@ -1318,13 +1318,13 @@ options {
 	  system-config-securitylevel GUI, using the 'setsebool'
 	  command, or in /etc/selinux/targeted/booleans.
 	</para>
-  
+
 	<para>
 	  You can disable SELinux protection for named entirely by
 	  setting the 'named_disable_trans=1' SELinux tunable boolean
 	  parameter.
 	</para>
-    
+
 	<para>
 	  The SELinux named policy defines these SELinux contexts for named:
 	  <informalexample>
@@ -1335,7 +1335,7 @@ named_cache_t: for files modifiable by named - $ROOTDIR/var/{tmp,named/{slaves,d
 	    </programlisting>
 	  </informalexample>
 	</para>
-   
+
 	<para>
 	  If you want to retain use of the SELinux policy for named,
 	  and put named files in different locations, you can do
@@ -1353,7 +1353,7 @@ named_cache_t: for files modifiable by named - $ROOTDIR/var/{tmp,named/{slaves,d
 	    </programlisting>
 	  </informalexample>
 	</para>
-  
+
 	<para>
 	  To create a custom modifiable named data location, e.g.
 	  '/var/log/named' for a log file, do:
@@ -1363,7 +1363,7 @@ named_cache_t: for files modifiable by named - $ROOTDIR/var/{tmp,named/{slaves,d
 	    </programlisting>
 	  </informalexample>
 	</para>
-   
+
 	<para>
    To create a custom zone file location, e.g. /root/zones/, do:
 	  <informalexample>
@@ -1372,7 +1372,7 @@ named_cache_t: for files modifiable by named - $ROOTDIR/var/{tmp,named/{slaves,d
 	    </programlisting>
 	  </informalexample>
 	</para>
-  
+
 	<para>
 	  See these man-pages for more information : selinux(8),
 	  named_selinux(8), chcon(1), setsebool(8)
@@ -1433,11 +1433,11 @@ proc /var/named/proc proc defaults 0 0</programlisting>
 	</para>
       </answer>
     </qandaentry>
-    
+
     </qandadiv> <!-- Linux -->
-    
+
     <qandadiv><title>Windows</title>
-	    
+
     <qandaentry>
       <question>
 	<para>
@@ -1458,7 +1458,7 @@ proc /var/named/proc proc defaults 0 0</programlisting>
 	</para>
       </answer>
     </qandaentry>
-    
+
     <qandaentry>
       <question>
 	<para>
@@ -1484,11 +1484,11 @@ options {
 	</informalexample>
       </answer>
     </qandaentry>
-	    
+
     </qandadiv> <!-- Windows -->
-    
+
     <qandadiv><title>FreeBSD</title>
-	    
+
     <qandaentry>
       <question>
 	<para>
@@ -1513,11 +1513,11 @@ rand_irqs="3 14 15"</programlisting>
 	</para>
       </answer>
     </qandaentry>
-    
+
     </qandadiv> <!-- FreeBSD -->
-    
+
     <qandadiv><title>Solaris</title>
-	    
+
     <qandaentry>
       <question>
 	<para>
@@ -1535,7 +1535,7 @@ rand_irqs="3 14 15"</programlisting>
 	</para>
       </answer>
     </qandaentry>
-    
+
     </qandadiv> <!-- Solaris -->
 
     <qandadiv><title>Apple Mac OS X</title>
@@ -1601,7 +1601,7 @@ key "rndc-key" {
     </qandaentry>
 
     </qandadiv> <!-- Apple Mac OS X -->
-    
+
     </qandadiv> <!-- Operating-System Specific Questions -->
 
   </qandaset>

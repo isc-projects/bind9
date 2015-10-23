@@ -49,7 +49,7 @@
 
             function loadGraphs(){
               var g;
-    
+
               while(g = graphs.shift()){
                 // alert("going for: " + g.target);
                 if(g.data.length > 1){
@@ -59,7 +59,7 @@
             }
 
             <xsl:if test="server/counters[@type=&quot;qtype&quot;]/counter">
-              // Server Incoming Query Types         
+              // Server Incoming Query Types
               graphs.push({
                            'title' : "Server Incoming Query Types",
                            'target': 'chart_incoming_qtypes',
@@ -67,7 +67,7 @@
                            'data': [['Type','Counter'],<xsl:for-each select="server/counters[@type=&quot;qtype&quot;]/counter">['<xsl:value-of select="@name"/>',<xsl:value-of select="."/>],</xsl:for-each>]
                            });
             </xsl:if>
-  
+
             <xsl:if test="server/counters[@type=&quot;opcode&quot;]/counter">
               // Server Incoming Requests by opcode
               graphs.push({

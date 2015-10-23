@@ -66,7 +66,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>dnssec-settime</command>
       reads a DNSSEC private key file and sets the key timing metadata
       as specified by the <option>-P</option>, <option>-A</option>,
@@ -93,7 +93,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -105,13 +105,13 @@
             fail when attempting to update a legacy key.  With this option,
             the key will be recreated in the new format, but with the
             original key data retained.  The key's creation date will be
-            set to the present time.  If no other values are specified, 
-            then the key's publication and activation dates will also 
+            set to the present time.  If no other values are specified,
+            then the key's publication and activation dates will also
             be set to the present time.
 	  </para>
         </listitem>
       </varlistentry>
-  
+
       <varlistentry>
         <term>-K <replaceable class="parameter">directory</replaceable></term>
         <listitem>
@@ -145,7 +145,7 @@
 	  </para>
         </listitem>
       </varlistentry>
-  
+
       <varlistentry>
 	<term>-V</term>
         <listitem>
@@ -184,7 +184,7 @@
   </refsection>
 
   <refsection><info><title>TIMING OPTIONS</title></info>
-    
+
     <para>
       Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
       If the argument begins with a '+' or '-', it is interpreted as
@@ -281,7 +281,7 @@
           </para>
           <para>
             If the key is being set to be an explicit successor to another
-            key, then the default prepublication interval is 30 days; 
+            key, then the default prepublication interval is 30 days;
             otherwise it is zero.
           </para>
           <para>
@@ -297,7 +297,7 @@
   </refsection>
 
   <refsection><info><title>PRINTING OPTIONS</title></info>
-    
+
     <para>
       <command>dnssec-settime</command> can also be used to print the
       timing metadata associated with a key.
@@ -335,7 +335,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>dnssec-keygen</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

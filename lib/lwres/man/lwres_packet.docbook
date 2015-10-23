@@ -72,7 +72,7 @@ lwres_result_t
 </funcsynopsis>
   </refsynopsisdiv>
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       These functions rely on a
       <type>struct lwres_lwpacket</type>
@@ -273,7 +273,7 @@ struct lwres_lwpacket {
   </refsection>
 
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
     <para>
       Successful calls to
       <function>lwres_lwpacket_renderheader()</function> and

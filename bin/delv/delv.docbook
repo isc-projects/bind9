@@ -85,7 +85,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><command>delv</command>
       (Domain Entity Lookup &amp; Validation) is a tool for sending
       DNS queries and validating the results, using the same internal
@@ -129,7 +129,7 @@
   </refsection>
 
   <refsection><info><title>SIMPLE USAGE</title></info>
-    
+
 
     <para>
       A typical invocation of <command>delv</command> looks like:
@@ -196,7 +196,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
     <variablelist>
 
       <varlistentry>
@@ -398,7 +398,7 @@
   </refsection>
 
   <refsection><info><title>QUERY OPTIONS</title></info>
-    
+
 
     <para><command>delv</command>
       provides a number of query options which affect the way results are
@@ -585,7 +585,7 @@
 	  <listitem>
 	    <para>
 	      Set or clear the display options
-	      <option>+[no]comments</option>, 
+	      <option>+[no]comments</option>,
 	      <option>+[no]rrcomments</option>, and
 	      <option>+[no]trust</option> as a group.
 	    </para>
@@ -668,13 +668,13 @@
   </refsection>
 
   <refsection><info><title>FILES</title></info>
-    
+
     <para><filename>/etc/bind.keys</filename></para>
     <para><filename>/etc/resolv.conf</filename></para>
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
 	<refentrytitle>dig</refentrytitle><manvolnum>1</manvolnum>
       </citerefentry>,

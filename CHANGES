@@ -1,3 +1,6 @@
+4242.	[bug]		Replace the client if not already replaced when
+			prefetching. [RT #41001]
+
 4241.	[doc]		Improved the TSIG, TKEY, and SIG(0) sections in
 			the ARM. [RT #40955]
 

@@ -67,7 +67,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       <command>tsig-keygen</command> and <command>ddns-confgen</command>
       are invocation methods for a utility that generates keys for use
@@ -99,7 +99,7 @@
       local DDNS key for use with <command>nsupdate -l</command>:
       it does this when a zone is configured with
       <command>update-policy local;</command>.
-      <command>ddns-confgen</command> is only needed when a 
+      <command>ddns-confgen</command> is only needed when a
       more elaborate configuration is required: for instance,
       if <command>nsupdate</command> is to be used from a remote
       system.
@@ -107,7 +107,7 @@
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-    
+
 
     <variablelist>
       <varlistentry>
@@ -215,7 +215,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
 	<refentrytitle>nsupdate</refentrytitle><manvolnum>1</manvolnum>
       </citerefentry>,

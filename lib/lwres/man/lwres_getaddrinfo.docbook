@@ -97,7 +97,7 @@ struct  addrinfo {
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
 
     <para><function>lwres_getaddrinfo()</function>
       is used to get a list of IP addresses and port numbers for host
@@ -323,7 +323,7 @@ struct  addrinfo {
   </refsection>
 
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
 
     <para><function>lwres_getaddrinfo()</function>
       returns zero on success or one of the error codes listed in
@@ -337,7 +337,7 @@ struct  addrinfo {
     </para>
   </refsection>
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>lwres</refentrytitle><manvolnum>3</manvolnum>
       </citerefentry>,

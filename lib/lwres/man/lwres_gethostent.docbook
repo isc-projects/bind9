@@ -151,7 +151,7 @@ void
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para>
       These functions provide hostname-to-address and
       address-to-hostname lookups by means of the lightweight resolver.
@@ -313,7 +313,7 @@ struct  hostent {
   </refsection>
 
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
     <para>
       The functions
       <function>lwres_gethostbyname()</function>,
@@ -397,7 +397,7 @@ struct  hostent {
 
   </refsection>
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>gethostent</refentrytitle><manvolnum>3</manvolnum>
       </citerefentry>,
@@ -413,7 +413,7 @@ struct  hostent {
   </refsection>
 
   <refsection><info><title>BUGS</title></info>
-    
+
     <para><function>lwres_gethostbyname()</function>,
       <function>lwres_gethostbyname2()</function>,
       <function>lwres_gethostbyaddr()</function>

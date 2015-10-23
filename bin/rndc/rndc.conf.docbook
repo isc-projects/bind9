@@ -60,7 +60,7 @@
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
     <para><filename>rndc.conf</filename> is the configuration file
       for <command>rndc</command>, the BIND 9 name server control
       utility.  This file has a similar structure and syntax to
@@ -147,7 +147,7 @@
   </refsection>
 
   <refsection><info><title>EXAMPLE</title></info>
-    
+
 
     <para><programlisting>
       options {
@@ -219,7 +219,7 @@
   </refsection>
 
   <refsection><info><title>NAME SERVER CONFIGURATION</title></info>
-    
+
     <para>
       The name server must be configured to accept rndc connections and
       to recognize the key specified in the <filename>rndc.conf</filename>
@@ -230,7 +230,7 @@
   </refsection>
 
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>rndc</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

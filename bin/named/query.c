@@ -95,6 +95,7 @@
 				  NS_QUERYATTR_WANTRECURSION) != 0)
 /*% Is TCP? */
 #define TCP(c)			(((c)->attributes & NS_CLIENTATTR_TCP) != 0)
+
 /*% Want DNSSEC? */
 #define WANTDNSSEC(c)		(((c)->attributes & \
 				  NS_CLIENTATTR_WANTDNSSEC) != 0)
@@ -3945,6 +3946,8 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&ns_g_server->recursionquota,
 					  &client->recursionquota);
+		if (result == ISC_R_SUCCESS && !client->mortal && !TCP(client))
+			result = ns_client_replace(client);
 		if (result != ISC_R_SUCCESS)
 			return;
 		isc_stats_increment(ns_g_server->nsstats,

@@ -74,7 +74,7 @@
 	    (<code class="option">-S</code>) is used, DNSKEY records are also
 	    included. The resulting file can be included in the original
 	    zone file with <span class="command"><strong>$INCLUDE</strong></span>. This option
-	    cannot be combined with <code class="option">-O raw</code>, 
+	    cannot be combined with <code class="option">-O raw</code>,
             <code class="option">-O map</code>, or serial number updating.
           </p></dd>
 <dt><span class="term">-E <em class="replaceable"><code>engine</code></em></span></dt>
@@ -328,7 +328,7 @@
 <p>
             Normally, when a previously-signed zone is passed as input
             to the signer, and a DNSKEY record has been removed and
-            replaced with a new one, signatures from the old key 
+            replaced with a new one, signatures from the old key
             that are still within their validity period are retained.
 	    This allows the zone to continue to validate with cached
 	    copies of the old DNSKEY RRset.  The <code class="option">-Q</code>
@@ -391,7 +391,7 @@
 <dd><p>
                   If the key's activation date is set and in the past, the
                   key is published (regardless of publication date) and
-                  used to sign the zone.  
+                  used to sign the zone.
                 </p></dd>
 <dt></dt>
 <dd><p>

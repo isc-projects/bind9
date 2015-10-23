@@ -120,7 +120,7 @@ void *
 </funcsynopsis>
   </refsynopsisdiv>
   <refsection><info><title>DESCRIPTION</title></info>
-    
+
 
     <para><function>lwres_context_create()</function>
       creates a <type>lwres_context_t</type> structure for use in
@@ -219,7 +219,7 @@ void *
   </refsection>
 
   <refsection><info><title>RETURN VALUES</title></info>
-    
+
 
     <para><function>lwres_context_create()</function>
       returns <errorcode>LWRES_R_NOMEMORY</errorcode> if memory for
@@ -245,7 +245,7 @@ void *
     </para>
   </refsection>
   <refsection><info><title>SEE ALSO</title></info>
-    
+
     <para><citerefentry>
         <refentrytitle>lwres_conf_init</refentrytitle><manvolnum>3</manvolnum>
       </citerefentry>,

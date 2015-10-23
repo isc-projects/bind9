@@ -16,7 +16,7 @@
 
 <!-- Converted by db4-upgrade version 1.0 -->
 <section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="dyndb-info"><info><title>DynDB (Dynamic Database)</title></info>
-  
+
   <para>
     DynDB is an extension to BIND 9 which, like DLZ
     (see <xref linkend="dlz-info"/>), allows zone data to be
@@ -41,7 +41,7 @@
   </para>
 
   <section><info><title>Configuring DynDB</title></info>
-    
+
     <para>
       A DynDB database is configured with a <command>dyndb</command>
       statement in <filename>named.conf</filename>:
@@ -68,7 +68,7 @@
     </para>
   </section>
   <section><info><title>Sample DynDB Module</title></info>
-    
+
     <para>
       For guidance in implementation of DynDB modules, the directory
       <filename>bin/tests/system/dyndb/driver</filename>.
