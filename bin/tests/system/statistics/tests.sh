@@ -130,5 +130,17 @@ fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+ret=0
+n=`expr $n + 1`
+echo "I:checking that zones return their type ($n)"
+if ./xmlstats && [ -x ${CURL} ] ; then
+    ${CURL} http://10.53.0.1:8053/xml/v3/zones > curl.out.${t} 2>/dev/null || ret=1
+    grep '<zone name="32/1.0.0.127-in-addr.example" rdataclass="IN"><type>master</type>' curl.out.${t} > /dev/null || ret=1
+else
+    echo "I:skipping test as libxml2 and/or curl was not found"
+fi
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

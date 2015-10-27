@@ -1,3 +1,5 @@
+4243.	[func]		Improved stats reporting from Timothe Litt. [RT #38941]
+
 4242.	[bug]		Replace the client if not already replaced when
 			prefetching. [RT #41001]
 

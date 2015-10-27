@@ -93,7 +93,8 @@ typedef enum {
  * The following zone options are shifted left into the
  * higher-order 32 bits of the options.
  */
-#define DNS_ZONEOPT2_CHECKTTL	  0x00000001	/*%< check max-zone-ttl */
+#define DNS_ZONEOPT2_CHECKTTL	  0x00000001U	/*%< check max-zone-ttl */
+#define DNS_ZONEOPT2_AUTOEMPTY	  0x00000002U	/*%< automatic empty zone */
 
 #ifndef NOMINUM_PUBLIC
 /*
