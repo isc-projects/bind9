@@ -1,3 +1,6 @@
+4246.	[test]		Ensure the statschannel system test runs when BIND
+			is not built with libjson. [RT #40944]
+
 4245.	[placeholder]
 
 4244.	[bug]		The parser was not reporting that use-ixfr is obsolete.

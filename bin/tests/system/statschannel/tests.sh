@@ -19,7 +19,11 @@ SYSTEMTESTTOP=..
 
 DIGCMD="$DIG @10.53.0.2 -p 5300"
 
-if $PERL -e 'use JSON;' 2>/dev/null
+if [ ! "$JSONSTATS" ]
+then
+    unset PERL_JSON
+    echo "I:JSON was not configured; skipping" >&2
+elif $PERL -e 'use JSON;' 2>/dev/null
 then
     PERL_JSON=1
 else
@@ -27,7 +31,11 @@ else
     echo "I:JSON tests require JSON library; skipping" >&2
 fi
 
-if $PERL -e 'use XML::Simple;' 2>/dev/null
+if [ ! "$XMLSTATS" ]
+then
+    unset PERL_XML
+    echo "I:XML was not configured; skipping" >&2
+elif $PERL -e 'use XML::Simple;' 2>/dev/null
 then
     PERL_XML=1
 else
@@ -143,10 +151,10 @@ if [ $PERL_XML ]; then
     file=`$PERL fetch.pl xml/v3/server`
     mv $file xml.stats
     $PERL server-xml.pl > xml.fmtstats 2> /dev/null
-    xml_query_count=`awk '/opcode QUERY/ { print $NF }' xml.fmtstats` 
+    xml_query_count=`awk '/opcode QUERY/ { print $NF }' xml.fmtstats`
     xml_query_count=${xml_query_count:-0}
     [ "$query_count" -eq "$xml_query_count" ] || ret=1
-    xml_txt_count=`awk '/qtype TXT/ { print $NF }' xml.fmtstats` 
+    xml_txt_count=`awk '/qtype TXT/ { print $NF }' xml.fmtstats`
     xml_txt_count=${xml_txt_count:-0}
     [ "$txt_count" -eq "$xml_txt_count" ] || ret=1
 fi
@@ -154,10 +162,10 @@ if [ $PERL_JSON ]; then
     file=`$PERL fetch.pl json/v1/server`
     mv $file json.stats
     $PERL server-json.pl > json.fmtstats 2> /dev/null
-    json_query_count=`awk '/opcode QUERY/ { print $NF }' json.fmtstats` 
+    json_query_count=`awk '/opcode QUERY/ { print $NF }' json.fmtstats`
     json_query_count=${json_query_count:-0}
     [ "$query_count" -eq "$json_query_count" ] || ret=1
-    json_txt_count=`awk '/qtype TXT/ { print $NF }' json.fmtstats` 
+    json_txt_count=`awk '/qtype TXT/ { print $NF }' json.fmtstats`
     json_txt_count=${json_txt_count:-0}
     [ "$txt_count" -eq "$json_txt_count" ] || ret=1
 fi
@@ -165,13 +173,18 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
+
 ret=0
 echo "I:checking consistency between regular and compressed output ($n)"
-$CURL -D regular.headers \
-	http://10.53.0.2:8853/xml/v3/server 2>/dev/null | \
+if [ "$XMLSTATS" ];
+then
+	URL=http://10.53.0.2:8853/xml/v3/server
+else
+	URL=http://10.53.0.2:8853/json/v1/server
+fi
+$CURL -D regular.headers $URL 2>/dev/null | \
 	sed -e "s#<current-time>.*</current-time>##g" > regular.out
-$CURL -D compressed.headers --compressed \
-	http://10.53.0.2:8853/xml/v3/server 2>/dev/null | \
+$CURL -D compressed.headers --compressed $URL 2>/dev/null | \
 	sed -e "s#<current-time>.*</current-time>##g" > compressed.out
 diff regular.out compressed.out >/dev/null || ret=1
 if [ $ret != 0 ]; then echo "I: failed"; fi
@@ -180,14 +193,18 @@ n=`expr $n + 1`
 
 ret=0
 echo "I:checking if compressed output is really compressed ($n)"
-REGSIZE=`cat regular.headers | \
+if [ "$ZLIB" ];
+then
+    REGSIZE=`cat regular.headers | \
 	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
-COMPSIZE=`cat compressed.headers | \
+    COMPSIZE=`cat compressed.headers | \
 	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
-if [ ! `expr $REGSIZE / $COMPSIZE` -gt 2 ]; then
+    if [ ! `expr $REGSIZE / $COMPSIZE` -gt 2 ]; then
 	ret=1
+    fi
+else
+    echo "I:skipped"
 fi
-
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`

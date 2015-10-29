@@ -814,6 +814,9 @@ IRIX_DNSSEC_WARNINGS_HACK
 MKDEPPROG
 MKDEPCFLAGS
 MKDEPCC
+ZLIB
+JSONSTATS
+XMLSTATS
 PKCS11_TEST
 PKCS11_GOST
 PKCS11_ECDSA
@@ -16547,10 +16550,12 @@ rm -f core conftest.err conftest.$ac_objext \
 
 $as_echo "#define HAVE_LIBXML2 1" >>confdefs.h
 
+	XMLSTATS=1
 else
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
+
 
 #
 # was --with-libjson specified?
@@ -16696,7 +16701,9 @@ $as_echo "#define HAVE_JSON 1" >>confdefs.h
 $as_echo "#define HAVE_JSON_C 1" >>confdefs.h
 
 	fi
+	JSONSTATS=1
 fi
+
 
 #
 # was --with-zlib specified?
@@ -16814,13 +16821,16 @@ else
 $as_echo "no" >&6; }
 fi
 
+ZLIB=
 if test "X${have_zlib}" != "X"
 then
 	CFLAGS="$CFLAGS $zlib_cflags"
 
 $as_echo "#define HAVE_ZLIB 1" >>confdefs.h
 
+	ZLIB=1
 fi
+
 
 
 #
@@ -24915,9 +24925,9 @@ if test "$enable_full_report" = "yes"; then
     test "X$CRYPTO" = "X" -o "$want_native_pkcs11" = "yes" || \
 	    echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
     test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
-    test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
-    test "X$have_libjson" = "X" || echo "    JSON statistics (--with-libjson)"
-    test "X$have_zlib" = "X" || echo "    HTTP zlib compression (--with-zlib)"
+    test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
+    test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
+    test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 fi
 
 if test "$use_pkcs11" != "no"; then
@@ -25006,8 +25016,9 @@ test "$use_libtool" = "yes" || echo "    Use GNU libtool (--with-libtool)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 
 test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
-test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
-test "X$have_libjson" = "X" && echo "    JSON statistics (--with-libjson)"
+test "X$XMLSTATS" = "X" && echo "    XML statistics (--with-libxml2)"
+test "X$JSONSTATS" = "X" && echo "    JSON statistics (--with-libjson)"
+test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
 
 if test "X$ac_unrecognized_opts" != "X"; then
     echo
