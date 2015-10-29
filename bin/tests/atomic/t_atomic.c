@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_atomic.c,v 1.2 2011/01/11 23:47:12 tbox Exp $ */
-
 #include <config.h>
 
 #include <ctype.h>
@@ -38,7 +36,9 @@ char *progname;
 isc_mem_t *mctx = NULL;
 isc_taskmgr_t *task_manager = NULL;
 
-#if defined(ISC_PLATFORM_HAVEXADD) || defined(ISC_PLATFORM_HAVEXADDQ)
+#if defined(ISC_PLATFORM_HAVEXADD) || defined(ISC_PLATFORM_HAVEXADDQ) || \
+    defined(ISC_PLATFORM_HAVEATOMICSTORE) || \
+    defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
 static void
 setup(void) {
 	/* 1 */ CHECK(isc_mem_create(0, 0, &mctx));
@@ -182,6 +182,7 @@ test_atomic_xaddq() {
 }
 #endif
 
+#ifdef ISC_PLATFORM_HAVEATOMICSTORE
 static isc_int32_t store_32;
 
 static void
@@ -249,6 +250,7 @@ test_atomic_store() {
 
 	store_32 = 0;
 }
+#endif
 
 #if defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
 static isc_int64_t store_64;
@@ -326,7 +328,6 @@ test_atomic_storeq() {
 }
 #endif /* ISC_PLATFORM_HAVEATOMICSTOREQ */
 
-
 testspec_t T_testlist[] = {
 #if defined(ISC_PLATFORM_HAVEXADD)
 	{ (PFV) test_atomic_xadd,	"test_atomic_xadd"		},
@@ -334,7 +335,9 @@ testspec_t T_testlist[] = {
 #if defined(ISC_PLATFORM_HAVEXADDQ)
 	{ (PFV) test_atomic_xaddq,	"test_atomic_xaddq"		},
 #endif
+#ifdef ISC_PLATFORM_HAVEATOMICSTORE
 	{ (PFV) test_atomic_store,	"test_atomic_store"		},
+#endif
 #if defined(ISC_PLATFORM_HAVEXADDQ)
 	{ (PFV) test_atomic_storeq,	"test_atomic_storeq"		},
 #endif
