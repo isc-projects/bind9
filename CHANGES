@@ -1,3 +1,6 @@
+4249.	[func]		Improve error reporting of TSIG / SIG(0) records in
+			the wrong location. [RT #40953]
+
 4248.	[func]		Add an isc_atomic_storeq() function, use it in
 			stats counters to improve performance.
 			[RT #39972] [RT #39979]

@@ -166,7 +166,10 @@ static const char *text[DNS_R_NRESULTS] = {
 	"bad CDS",			       /*%< 111 DNS_R_BADCSD */
 	"bad CDNSKEY",			       /*%< 112 DNS_R_BADCDNSKEY */
 	"malformed OPT option",		       /*%< 113 DNS_R_OPTERR */
-	"malformed DNSTAP data",	       /*%< 114 DNS_R_BADDNSTAP*/
+	"malformed DNSTAP data",	       /*%< 114 DNS_R_BADDNSTAP */
+
+	"TSIG in wrong location",	       /*%< 115 DNS_R_BADTSIG */
+	"SIG(0) in wrong location",	       /*%< 116 DNS_R_BADSIG0 */
 };
 
 static const char *ids[DNS_R_NRESULTS] = {
@@ -289,6 +292,8 @@ static const char *ids[DNS_R_NRESULTS] = {
 	"DNS_R_BADCDNSKEY",
 	"DNS_R_OPTERR",
 	"DNS_R_BADDNSTAP",
+	"DNS_R_BADTSIG",
+	"DNS_R_BADSIG0",
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
