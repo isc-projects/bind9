@@ -235,7 +235,6 @@ options {
 	transfers-per-ns <replaceable>integer</replaceable>;
 	transfers-in <replaceable>integer</replaceable>;
 	transfers-out <replaceable>integer</replaceable>;
-	use-ixfr <replaceable>boolean</replaceable>;
 	version ( <replaceable>quoted_string</replaceable> | none );
 	allow-recursion { <replaceable>address_match_element</replaceable>; ... };
 	allow-recursion-on { <replaceable>address_match_element</replaceable>; ... };
@@ -395,6 +394,7 @@ options {
 	serial-queries <replaceable>integer</replaceable>; // obsolete
 	treat-cr-as-space <replaceable>boolean</replaceable>; // obsolete
 	use-id-pool <replaceable>boolean</replaceable>; // obsolete
+	use-ixfr <replaceable>boolean</replaceable>; // obsolete
 };
 </literallayout>
   </refsection>
