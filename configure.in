@@ -2143,9 +2143,11 @@ then
 		    AC_MSG_RESULT(yes),
 		    AC_MSG_ERROR(xml2-config returns badness))
 	AC_DEFINE(HAVE_LIBXML2, 1, [Define if libxml2 was found])
+	XMLSTATS=1
 else
 	AC_MSG_RESULT(no)
 fi
+AC_SUBST(XMLSTATS)
 
 #
 # was --with-libjson specified?
@@ -2223,7 +2225,9 @@ then
 	then
 		AC_DEFINE(HAVE_JSON_C, 1, [Define if json-c was found])
 	fi
+	JSONSTATS=1
 fi
+AC_SUBST(JSONSTATS)
 
 #
 # In solaris 10, SMF can manage named service
@@ -4841,8 +4845,8 @@ if test "$enable_full_report" = "yes"; then
     test "X$CRYPTO" = "X" -o "$want_native_pkcs11" = "yes" || \
 	    echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
     test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
-    test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
-    test "X$have_libjson" = "X" || echo "    JSON statistics (--with-libjson)"
+    test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
+    test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
 fi
 
 if test "$use_pkcs11" != "no"; then
@@ -4932,8 +4936,8 @@ test "$use_libtool" = "yes" || echo "    Use GNU libtool (--with-libtool)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 
 test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
-test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
-test "X$have_libjson" = "X" && echo "    JSON statistics (--with-libjson)"
+test "X$XMLSTATS" = "X" && echo "    XML statistics (--with-libxml2)"
+test "X$JSONSTATS" = "X" && echo "    JSON statistics (--with-libjson)"
 
 if test "X$ac_unrecognized_opts" != "X"; then
     echo

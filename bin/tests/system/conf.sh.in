@@ -103,6 +103,14 @@ else
 	TESTSOCK6=false
 fi
 
+#
+# Determine if we support various optional features.
+#
+CHECK_DSA=@CHECK_DSA@
+XMLSTATS=@XMLSTATS@
+JSONSTATS=@JSONSTATS@
+ZLIB=@ZLIB@
+
 . ${TOP}/version
 
 export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \
