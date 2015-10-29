@@ -1,3 +1,7 @@
+4248.	[func]		Add an isc_atomic_storeq() function, use it in
+			stats counters to improve performance.
+			[RT #39972] [RT #39979]
+
 4247.	[port]		Require both HAVE_JSON and JSON_C_VERSION to be
 			defined to report json library version. [RT #41045]
 
