@@ -403,7 +403,7 @@
 ./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/tests/adb_test.c				C	1999,2000,2001,2004,2005,2007,2009,2011,2012,2013,2015
 ./bin/tests/atomic/Makefile.in			MAKE	2011,2012,2014
-./bin/tests/atomic/t_atomic.c			C	2011,2013
+./bin/tests/atomic/t_atomic.c			C	2011,2013,2015
 ./bin/tests/atomic/win32/t_atomic.dsp.in	X	2013
 ./bin/tests/atomic/win32/t_atomic.dsw		X	2013
 ./bin/tests/atomic/win32/t_atomic.mak.in	X	2013
@@ -2056,6 +2056,7 @@
 ./bin/tests/system/statschannel/prereq.sh	SH	2015
 ./bin/tests/system/statschannel/server-json.pl	PERL	2015
 ./bin/tests/system/statschannel/server-xml.pl	PERL	2015
+./bin/tests/system/statschannel/tests.sh	SH	2015
 ./bin/tests/system/statschannel/tests.sh.in	SH	2015
 ./bin/tests/system/statschannel/traffic-json.pl	PERL	2015
 ./bin/tests/system/statschannel/traffic-xml.pl	PERL	2015
@@ -3007,7 +3008,7 @@
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/Bv9ARM.pdf				X	2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007,2009,2012,2014,2015
-./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
+./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004,2015
 ./doc/arm/dlz.xml				SGML	2012,2013,2014,2015
 ./doc/arm/dnssec.xml				SGML	2010,2011,2015
 ./doc/arm/dyndb.xml				SGML	2015
@@ -3947,7 +3948,7 @@
 ./lib/isc/win32/fsaccess.c			C	2000,2001,2002,2004,2007,2013
 ./lib/isc/win32/include/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012,2014
 ./lib/isc/win32/include/isc/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012,2013,2014
-./lib/isc/win32/include/isc/atomic.h		C	2013
+./lib/isc/win32/include/isc/atomic.h		C	2013,2015
 ./lib/isc/win32/include/isc/bind_registry.h	C	2001,2004,2007
 ./lib/isc/win32/include/isc/bindevt.h		C	2001,2004,2007
 ./lib/isc/win32/include/isc/condition.h		C	1998,1999,2000,2001,2004,2007
@@ -4007,11 +4008,11 @@
 ./lib/isc/x86_32/Makefile.in			MAKE	2007,2012
 ./lib/isc/x86_32/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/x86_32/include/isc/Makefile.in	MAKE	2007,2012
-./lib/isc/x86_32/include/isc/atomic.h		C	2005,2007,2008
+./lib/isc/x86_32/include/isc/atomic.h		C	2005,2007,2008,2015
 ./lib/isc/x86_64/Makefile.in			MAKE	2007,2012
 ./lib/isc/x86_64/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/x86_64/include/isc/Makefile.in	MAKE	2007,2012
-./lib/isc/x86_64/include/isc/atomic.h		C	2005,2007,2008
+./lib/isc/x86_64/include/isc/atomic.h		C	2005,2007,2008,2015
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2009,2011,2012,2014,2015
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007,2015
 ./lib/isccc/api					X	2001,2006,2008,2009,2010,2011,2012,2013,2014,2015
