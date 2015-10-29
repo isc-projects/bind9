@@ -423,7 +423,7 @@ subtract(isc_assertioncallback_t callback) {
 	result = dns_db_subtractrdataset(db1, node, VERSION(callback),
 					 &rdataset, 0, NULL);
 	if (callback != NULL)
-		atf_tc_fail("dns_db_dns_db_subtractrdataset did not assert");
+		atf_tc_fail("dns_db_subtractrdataset did not assert");
 	ATF_REQUIRE_EQ(result, DNS_R_UNCHANGED);
 
 	dns_db_detachnode(db1, &node);
