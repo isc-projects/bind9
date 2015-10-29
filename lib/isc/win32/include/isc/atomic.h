@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013, 2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -43,12 +43,22 @@ isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
 #endif
 
 /*
- * This routine atomically stores the value 'val' in 'p'.
+ * This routine atomically stores the value 'val' in 'p' (32-bit version).
  */
 #ifdef ISC_PLATFORM_HAVEATOMICSTORE
 static __inline void
 isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 	(void) _InterlockedExchange((long *)p, (long)val);
+}
+#endif
+
+/*
+ * This routine atomically stores the value 'val' in 'p' (64-bit version).
+ */
+#ifdef ISC_PLATFORM_HAVEATOMICSTOREQ
+static __inline void
+isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
+	(void) _InterlockedExchange64((__int64 *)p, (__int64)val);
 }
 #endif
 

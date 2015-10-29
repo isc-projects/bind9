@@ -100,6 +100,9 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 	UNUSED(val);
 
 	__asm (
+		/*
+		 * p is %rdi, cmpval is %esi, val is %edx.
+		 */
 		"movl %edx, %ecx\n"
 		"movl %esi, %eax\n"
 		"movq %rdi, %rdx\n"
@@ -108,8 +111,12 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 		"lock;"
 #endif
 		/*
-		 * If (%rdi) == %eax then (%rdi) := %edx.
-		 * %eax is set to old (%ecx), which will be the return value.
+		 * If [%rdi] == %eax then [%rdi] := %ecx (equal to %edx
+		 * from above), and %eax is untouched (equal to %esi)
+		 * from above.
+		 *
+		 * Else if [%rdi] != %eax then [%rdi] := [%rdi]
+		 * (rewritten in write cycle) and %eax := [%rdi].
 		 */
 		"cmpxchgl %ecx, (%rdx)"
 		);
