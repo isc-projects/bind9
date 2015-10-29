@@ -1,3 +1,6 @@
+4245.	[bug]		Fix statistics version to match against in bind9.xsl.
+			[RT #41039]
+
 4244.	[bug]		The parser was not reporting that use-ixfr is obsolete.
 			[RT #41010]
 
