@@ -662,7 +662,7 @@ parse_command_line(int argc, char *argv[]) {
 			printf("linked to libxml2 version: %s\n",
 			       xmlParserVersion);
 #endif
-#ifdef HAVE_JSON
+#if defined(HAVE_JSON) && defined(JSON_C_VERSION)
 			printf("compiled with libjson-c version: %s\n",
 			       JSON_C_VERSION);
 			printf("linked to libjson-c version: %s\n",

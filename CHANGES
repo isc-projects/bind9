@@ -1,3 +1,6 @@
+4247.	[port]		Require both HAVE_JSON and JSON_C_VERSION to be
+			defined to report json library version. [RT #41045]
+
 4246.	[test]		Ensure the statschannel system test runs when BIND
 			is not built with libjson. [RT #40944]
 
