@@ -1090,7 +1090,7 @@ options_clauses[] = {
 	{ "transfers-out", &cfg_type_uint32, 0 },
 	{ "treat-cr-as-space", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "use-id-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "use-ixfr", &cfg_type_boolean, 0 },
+	{ "use-ixfr", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "use-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "use-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "version", &cfg_type_qstringornone, 0 },

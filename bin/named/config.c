@@ -118,7 +118,7 @@ options {\n\
 	transfers-out 10;\n\
 #	treat-cr-as-space <obsolete>;\n\
 #	use-id-pool <obsolete>;\n\
-	use-ixfr true;\n\
+#	use-ixfr <obsolete>;\n\
 	edns-udp-size 4096;\n\
 	max-udp-size 4096;\n\
 	nocookie-udp-size 4096;\n\
