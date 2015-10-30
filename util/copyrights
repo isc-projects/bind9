@@ -2057,7 +2057,6 @@
 ./bin/tests/system/statschannel/server-json.pl	PERL	2015
 ./bin/tests/system/statschannel/server-xml.pl	PERL	2015
 ./bin/tests/system/statschannel/tests.sh	SH	2015
-./bin/tests/system/statschannel/tests.sh.in	SH	2015
 ./bin/tests/system/statschannel/traffic-json.pl	PERL	2015
 ./bin/tests/system/statschannel/traffic-xml.pl	PERL	2015
 ./bin/tests/system/statschannel/traffic.expect.1	X	2015
