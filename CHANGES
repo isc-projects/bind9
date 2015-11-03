@@ -1,3 +1,6 @@
+4250.	[func]		Log the TSIG key in use during inbound zone
+			transfers. [RT #41075]
+
 4249.	[func]		Improve error reporting of TSIG / SIG(0) records in
 			the wrong location. [RT #41030]
 

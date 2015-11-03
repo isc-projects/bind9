@@ -970,6 +970,8 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->ev_arg;
 	isc_result_t result = cev->result;
 	char sourcetext[ISC_SOCKADDR_FORMATSIZE];
+	char signerbuf[DNS_NAME_FORMATSIZE];
+	const char *signer = "", *sep = "";
 	isc_sockaddr_t sockaddr;
 	dns_zonemgr_t * zmgr;
 	isc_time_t now;
@@ -1004,7 +1006,16 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 		isc_sockaddr_format(&sockaddr, sourcetext, sizeof(sourcetext));
 	} else
 		strcpy(sourcetext, "<UNKNOWN>");
-	xfrin_log(xfr, ISC_LOG_INFO, "connected using %s", sourcetext);
+
+	if (xfr->tsigkey != NULL && xfr->tsigkey->key != NULL) {
+		dns_name_format(dst_key_name(xfr->tsigkey->key),
+				signerbuf, sizeof(signerbuf));
+		sep = " TSIG ";
+		signer = signerbuf;
+	}
+
+	xfrin_log(xfr, ISC_LOG_INFO, "connected using %s%s%s",
+		  sourcetext, sep, signer);
 
 	dns_tcpmsg_init(xfr->mctx, xfr->socket, &xfr->tcpmsg);
 	xfr->tcpmsg_valid = ISC_TRUE;
