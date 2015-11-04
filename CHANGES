@@ -1,3 +1,6 @@
+4251.	[bug]		NTAs were deleted when the server was reconfigured
+			or reloaded. [RT #41058]
+
 4250.	[func]		Log the TSIG key in use during inbound zone
 			transfers. [RT #41075]
 

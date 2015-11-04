@@ -6786,6 +6786,8 @@ load_configuration(const char *filename, ns_server_t *server,
 			goto cleanup;
 	}
 
+	(void) ns_server_loadnta(server);
+
 	result = ISC_R_SUCCESS;
 
  cleanup:
@@ -7055,8 +7057,6 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	isc_hash_init();
 
 	CHECKFATAL(load_zones(server, ISC_TRUE), "loading zones");
-
-	(void) ns_server_loadnta(server);
 }
 
 void

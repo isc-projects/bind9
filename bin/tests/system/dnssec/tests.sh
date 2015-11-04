@@ -1674,11 +1674,13 @@ ret=0
 #
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -f -l 20s bogus.example 2>&1 | sed 's/^/I:ns4 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta badds.example 2>&1 | sed 's/^/I:ns4 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 reconfig # reconfig should maintain NTAs
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.1
 lines=`wc -l < rndc.out.ns4.test$n.1`
 [ "$lines" -eq 2 ] || ret=1
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta secure.example 2>&1 | sed 's/^/I:ns4 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta fakenode.secure.example 2>&1 | sed 's/^/I:ns4 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 reload # reload should maintain NTAs
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.2
 lines=`wc -l < rndc.out.ns4.test$n.2`
 [ "$lines" -eq 4 ] || ret=1

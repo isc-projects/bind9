@@ -692,7 +692,6 @@
     </itemizedlist>
   </section>
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
-
     <itemizedlist>
       <listitem>
 	<para>
@@ -862,6 +861,12 @@
 	      The server could crash if a reload of an RPZ zone was
 	      initiated while another reload of the same zone was
 	      already in progress. [RT #39649]
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Negative trust anchors (NTAs) were incorrectly deleted
+	      when the server was reloaded or reconfigured. [RT #41058]
 	    </para>
 	  </listitem>
 	</itemizedlist>
