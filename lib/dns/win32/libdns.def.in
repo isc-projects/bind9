@@ -138,6 +138,7 @@ dns_client_updaterec
 dns_clientinfo_init
 dns_clientinfomethods_init
 dns_compress_add
+dns_compress_disable
 dns_compress_findglobal
 dns_compress_getedns
 dns_compress_getmethods
