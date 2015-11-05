@@ -44,7 +44,7 @@ dns_dyndb_version_t dyndb_version;
  * @code
  * dyndb example-name "sample.so" { param1 param2 };
  * @endcode
- * 
+ *
  * @param[in] name User-defined string from dyndb "name" {}; definition
  *                 in named.conf.
  *                 The example above will have name = "example-name".

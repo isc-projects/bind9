@@ -20,7 +20,7 @@ SYSTEMTESTTOP=../..
 # Have the child generate subdomain keys and pass DS sets to us.
 ( cd ../ns3 && $SHELL keygen.sh )
 
-for subdomain in secure nsec3 autonsec3 optout rsasha256 rsasha512 nsec3-to-nsec oldsigs
+for subdomain in secure nsec3 autonsec3 optout rsasha256 rsasha512 nsec3-to-nsec oldsigs sync
 do
 	cp ../ns3/dsset-$subdomain.example. .
 done

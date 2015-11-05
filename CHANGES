@@ -1,3 +1,7 @@
+4252.	[func]		Add support for automating the generation CDS and
+			CDNSKEY rrsets to named and dnssec-signzone.
+			[RT #40424]
+
 4251.	[bug]		NTAs were deleted when the server was reconfigured
 			or reloaded. [RT #41058]
 

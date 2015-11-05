@@ -67,7 +67,9 @@ static const char *timetags[TIMING_NTAGS] = {
 	"Revoke:",
 	"Inactive:",
 	"Delete:",
-	"DSPublish:"
+	"DSPublish:",
+	"SyncPublish:",
+	"SyncDelete:"
 };
 
 #define NUMERIC_NTAGS (DST_MAX_NUMERIC + 1)
@@ -163,7 +165,7 @@ find_metadata(const char *s, const char *tags[], int ntags) {
 	int i;
 
 	for (i = 0; i < ntags; i++) {
-		if (strcasecmp(s, tags[i]) == 0)
+		if (tags[i] != NULL && strcasecmp(s, tags[i]) == 0)
 			return (i);
 	}
 

@@ -5787,7 +5787,7 @@ was_dumping(dns_zone_t *zone) {
 
 static isc_result_t
 find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	       isc_mem_t *mctx, unsigned int maxkeys,
+	       isc_stdtime_t now, isc_mem_t *mctx, unsigned int maxkeys,
 	       dst_key_t **keys, unsigned int *nkeys)
 {
 	isc_result_t result;
@@ -5796,8 +5796,8 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
 	memset(keys, 0, sizeof(*keys) * maxkeys);
-	result = dns_dnssec_findzonekeys2(db, ver, node, dns_db_origin(db),
-					  directory, mctx, maxkeys, keys,
+	result = dns_dnssec_findzonekeys3(db, ver, node, dns_db_origin(db),
+					  directory, now, mctx, maxkeys, keys,
 					  nkeys);
 	if (result == ISC_R_NOTFOUND)
 		result = ISC_R_SUCCESS;
@@ -6240,8 +6240,10 @@ zone_resigninc(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = find_zone_keys(zone, db, version, zone->mctx, DNS_MAXZONEKEYS,
-				zone_keys, &nkeys);
+	isc_stdtime_get(&now);
+
+	result = find_zone_keys(zone, db, version, now, zone->mctx,
+				DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_resigninc:find_zone_keys -> %s",
@@ -6249,7 +6251,6 @@ zone_resigninc(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	isc_stdtime_get(&now);
 	inception = now - 3600;	/* Allow for clock skew. */
 	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
 	/*
@@ -7173,7 +7174,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = find_zone_keys(zone, db, version, zone->mctx,
+	isc_stdtime_get(&now);
+
+	result = find_zone_keys(zone, db, version, now, zone->mctx,
 				DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
@@ -7182,7 +7185,6 @@ zone_nsec3chain(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	isc_stdtime_get(&now);
 	inception = now - 3600;	/* Allow for clock skew. */
 	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
 
@@ -8026,7 +8028,9 @@ zone_sign(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = find_zone_keys(zone, db, version, zone->mctx,
+	isc_stdtime_get(&now);
+
+	result = find_zone_keys(zone, db, version, now, zone->mctx,
 				DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
@@ -8035,7 +8039,6 @@ zone_sign(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	isc_stdtime_get(&now);
 	inception = now - 3600;	/* Allow for clock skew. */
 	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
 
@@ -17070,17 +17073,17 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 
 static isc_result_t
 sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	  dns_diff_t *diff, zonediff_t *zonediff)
+	  isc_stdtime_t now, dns_diff_t *diff, zonediff_t *zonediff)
 {
 	isc_result_t result;
-	isc_stdtime_t now, inception, soaexpire;
+	isc_stdtime_t inception, soaexpire;
 	isc_boolean_t check_ksk, keyset_kskonly;
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	unsigned int nkeys = 0, i;
 	dns_difftuple_t *tuple;
 
-	result = find_zone_keys(zone, db, ver, zone->mctx, DNS_MAXZONEKEYS,
-				zone_keys, &nkeys);
+	result = find_zone_keys(zone, db, ver, now, zone->mctx,
+				DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "sign_apex:find_zone_keys -> %s",
@@ -17088,7 +17091,6 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		return (result);
 	}
 
-	isc_stdtime_get(&now);
 	inception = now - 3600;	/* Allow for clock skew. */
 	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
 
@@ -17286,7 +17288,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *ver = NULL;
-	dns_rdataset_t soaset, soasigs, keyset, keysigs;
+	dns_rdataset_t cdsset, soaset, soasigs, keyset, keysigs, cdnskeyset;
 	dns_dnsseckeylist_t dnskeys, keys, rmkeys;
 	dns_dnsseckey_t *key;
 	dns_diff_t diff, _sig_diff;
@@ -17311,6 +17313,8 @@ zone_rekey(dns_zone_t *zone) {
 	dns_rdataset_init(&soasigs);
 	dns_rdataset_init(&keyset);
 	dns_rdataset_init(&keysigs);
+	dns_rdataset_init(&cdsset);
+	dns_rdataset_init(&cdnskeyset);
 	dir = dns_zone_getkeydirectory(zone);
 	mctx = zone->mctx;
 	dns_diff_init(mctx, &diff);
@@ -17345,13 +17349,27 @@ zone_rekey(dns_zone_t *zone) {
 	} else if (result != ISC_R_NOTFOUND)
 		goto failure;
 
+
+	/* Get the CDS rdataset */
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_cds,
+				     dns_rdatatype_none, 0, &cdsset, NULL);
+	if (result != ISC_R_SUCCESS && dns_rdataset_isassociated(&cdsset))
+		dns_rdataset_disassociate(&cdsset);
+
+	/* Get the CDNSKEY rdataset */
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_cdnskey,
+				     dns_rdatatype_none, 0, &cdnskeyset, NULL);
+	if (result != ISC_R_SUCCESS && dns_rdataset_isassociated(&cdnskeyset))
+		dns_rdataset_disassociate(&cdnskeyset);
+
 	/*
 	 * True when called from "rndc sign".  Indicates the zone should be
 	 * fully signed now.
 	 */
 	fullsign = ISC_TF(DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_FULLSIGN) != 0);
 
-	result = dns_dnssec_findmatchingkeys(&zone->origin, dir, mctx, &keys);
+	result = dns_dnssec_findmatchingkeys2(&zone->origin, dir, now, mctx,
+					      &keys);
 	if (result == ISC_R_SUCCESS) {
 		isc_boolean_t check_ksk;
 		check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
@@ -17360,12 +17378,26 @@ zone_rekey(dns_zone_t *zone) {
 					       &zone->origin, ttl, &diff,
 					       ISC_TF(!check_ksk),
 					       mctx, logmsg);
-
-		/* Keys couldn't be updated for some reason;
-		 * try again later. */
+		/*
+		 * Keys couldn't be updated for some reason;
+		 * try again later.
+		 */
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_rekey:"
 				     "couldn't update zone keys: %s",
+				     isc_result_totext(result));
+			goto failure;
+		}
+
+		/*
+		 * Update CDS / CDNSKEY records.
+		 */
+		result = dns_dnssec_syncupdate(&dnskeys, &rmkeys, &cdsset,
+					       &cdnskeyset, now, ttl,
+					       &diff, mctx);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR, "zone_rekey:"
+				     "couldn't update CDS/CDNSKEY: %s",
 				     isc_result_totext(result));
 			goto failure;
 		}
@@ -17413,7 +17445,7 @@ zone_rekey(dns_zone_t *zone) {
 			CHECK(update_soa_serial(db, ver, &diff, mctx,
 						zone->updatemethod));
 			CHECK(add_chains(zone, db, ver, &diff));
-			CHECK(sign_apex(zone, db, ver, &diff, &zonediff));
+			CHECK(sign_apex(zone, db, ver, now, &diff, &zonediff));
 			CHECK(zone_journal(zone, zonediff.diff, NULL,
 					   "zone_rekey"));
 			commit = ISC_TRUE;
@@ -17596,12 +17628,16 @@ zone_rekey(dns_zone_t *zone) {
 
 	if (ver != NULL)
 		dns_db_closeversion(db, &ver, ISC_FALSE);
+	if (dns_rdataset_isassociated(&cdsset))
+		dns_rdataset_disassociate(&cdsset);
 	if (dns_rdataset_isassociated(&keyset))
 		dns_rdataset_disassociate(&keyset);
 	if (dns_rdataset_isassociated(&keysigs))
 		dns_rdataset_disassociate(&keysigs);
 	if (dns_rdataset_isassociated(&soasigs))
 		dns_rdataset_disassociate(&soasigs);
+	if (dns_rdataset_isassociated(&cdnskeyset))
+		dns_rdataset_disassociate(&cdnskeyset);
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
 	if (db != NULL)

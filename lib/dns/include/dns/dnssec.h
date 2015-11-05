@@ -181,6 +181,14 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 			 const char *directory, isc_mem_t *mctx,
 			 unsigned int maxkeys, dst_key_t **keys,
 			 unsigned int *nkeys);
+
+isc_result_t
+dns_dnssec_findzonekeys3(dns_db_t *db, dns_dbversion_t *ver,
+			 dns_dbnode_t *node, dns_name_t *name,
+			 const char *directory, isc_stdtime_t now,
+			 isc_mem_t *mctx, unsigned int maxkeys,
+			 dst_key_t **keys, unsigned int *nkeys);
+
 /*%<
  * 	Finds a set of zone keys.
  * 	XXX temporary - this should be handled in dns_zone_t.
@@ -290,6 +298,11 @@ dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp);
 isc_result_t
 dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 			    isc_mem_t *mctx, dns_dnsseckeylist_t *keylist);
+
+isc_result_t
+dns_dnssec_findmatchingkeys2(dns_name_t *origin, const char *directory,
+			     isc_stdtime_t now, isc_mem_t *mctx,
+			     dns_dnsseckeylist_t *keylist);
 /*%<
  * Search 'directory' for K* key files matching the name in 'origin'.
  * Append all such keys, along with use hints gleaned from their
@@ -360,6 +373,16 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
  *
  * On completion, any remaining keys in 'newkeys' are freed.
  */
+
+isc_boolean_t
+dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
+		      dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
+		      isc_stdtime_t now, dns_ttl_t hint_ttl, dns_diff_t *diff,
+		      isc_mem_t *mctx);
+/*%<
+ * Update the CDS and CDNSKEY RRsets, adding and removing keys as needed.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DNSSEC_H */

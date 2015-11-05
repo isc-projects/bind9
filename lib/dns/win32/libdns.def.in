@@ -296,8 +296,10 @@ dns_dns64_destroy
 dns_dns64_next
 dns_dns64_unlink
 dns_dnssec_findmatchingkeys
+dns_dnssec_findmatchingkeys2
 dns_dnssec_findzonekeys
 dns_dnssec_findzonekeys2
+dns_dnssec_findzonekeys3
 dns_dnssec_keyactive
 dns_dnssec_keyfromrdata
 dns_dnssec_keylistfromrdataset
@@ -305,6 +307,8 @@ dns_dnssec_selfsigns
 dns_dnssec_sign
 dns_dnssec_signmessage
 dns_dnssec_signs
+dns_dnssec_syncupdate
+dns_dnssec_syncupdate
 dns_dnssec_updatekeys
 dns_dnssec_verify
 dns_dnssec_verify2

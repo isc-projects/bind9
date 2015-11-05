@@ -78,6 +78,8 @@ usage(void) {
 	fprintf(stderr, "Timing options:\n");
 	fprintf(stderr, "    -P date/[+-]offset/none: set/unset key "
 						     "publication date\n");
+	fprintf(stderr, "    -P sync date/[+-]offset/none: set/unset "
+					"CDS and CDNSKEY publication date\n");
 	fprintf(stderr, "    -A date/[+-]offset/none: set/unset key "
 						     "activation date\n");
 	fprintf(stderr, "    -R date/[+-]offset/none: set/unset key "
@@ -86,9 +88,11 @@ usage(void) {
 						     "inactivation date\n");
 	fprintf(stderr, "    -D date/[+-]offset/none: set/unset key "
 						     "deletion date\n");
+	fprintf(stderr, "    -D sync date/[+-]offset/none: set/unset "
+					"CDS and CDNSKEY deletion date\n");
 	fprintf(stderr, "Printing options:\n");
-	fprintf(stderr, "    -p C/P/A/R/I/D/all: print a particular time "
-						"value or values\n");
+	fprintf(stderr, "    -p C/P/Psync/A/R/I/D/Dsync/all: print a "
+					"particular time value or values\n");
 	fprintf(stderr, "    -u:                 print times in unix epoch "
 						"format\n");
 	fprintf(stderr, "Output:\n");
@@ -161,6 +165,10 @@ main(int argc, char **argv) {
 	isc_boolean_t   epoch = ISC_FALSE;
 	isc_boolean_t   changed = ISC_FALSE;
 	isc_log_t       *log = NULL;
+	isc_stdtime_t	syncadd = 0, syncdel = 0;
+	isc_boolean_t	unsetsyncadd = ISC_FALSE, setsyncadd = ISC_FALSE;
+	isc_boolean_t	unsetsyncdel = ISC_FALSE, setsyncdel = ISC_FALSE;
+	isc_boolean_t	printsyncadd = ISC_FALSE, printsyncdel = ISC_FALSE;
 
 	if (argc == 1)
 		usage();
@@ -198,6 +206,8 @@ main(int argc, char **argv) {
 				printrev = ISC_TRUE;
 				printinact = ISC_TRUE;
 				printdel = ISC_TRUE;
+				printsyncadd = ISC_TRUE;
+				printsyncdel = ISC_TRUE;
 				break;
 			}
 
@@ -207,6 +217,11 @@ main(int argc, char **argv) {
 					printcreate = ISC_TRUE;
 					break;
 				case 'P':
+					if (!strncmp(p, "sync", 3)) {
+						p += 3;
+						printsyncadd = ISC_TRUE;
+						break;
+					}
 					printpub = ISC_TRUE;
 					break;
 				case 'A':
@@ -219,6 +234,11 @@ main(int argc, char **argv) {
 					printinact = ISC_TRUE;
 					break;
 				case 'D':
+					if (!strncmp(p, "sync", 3)) {
+						p += 3;
+						printsyncdel = ISC_TRUE;
+						break;
+					}
 					printdel = ISC_TRUE;
 					break;
 				case ' ':
@@ -254,6 +274,19 @@ main(int argc, char **argv) {
 				fatal("-v must be followed by a number");
 			break;
 		case 'P':
+			/* -Psync ? */
+			if (isoptarg("sync", argv, usage)) {
+				if (unsetsyncadd || setsyncadd)
+					fatal("-P sync specified more than "
+					      "once");
+
+				changed = ISC_TRUE;
+				syncadd = strtotime(isc_commandline_argument,
+						   now, now, &setsyncadd);
+				unsetsyncadd = !setsyncadd;
+				break;
+			}
+			(void)isoptarg("dnskey", argv, usage);
 			if (setpub || unsetpub)
 				fatal("-P specified more than once");
 
@@ -290,6 +323,20 @@ main(int argc, char **argv) {
 			unsetinact = !setinact;
 			break;
 		case 'D':
+			/* -Dsync ? */
+			if (isoptarg("sync", argv, usage)) {
+				if (unsetsyncdel || setsyncdel)
+					fatal("-D sync specified more than "
+					      "once");
+
+				changed = ISC_TRUE;
+				syncdel = strtotime(isc_commandline_argument,
+						   now, now, &setsyncdel);
+				unsetsyncdel = !setsyncdel;
+				break;
+			}
+			/* -Ddnskey ? */
+			(void)isoptarg("dnskey", argv, usage);
 			if (setdel || unsetdel)
 				fatal("-D specified more than once");
 
@@ -533,6 +580,16 @@ main(int argc, char **argv) {
 	else if (unsetdel)
 		dst_key_unsettime(key, DST_TIME_DELETE);
 
+	if (setsyncadd)
+		dst_key_settime(key, DST_TIME_SYNCPUBLISH, syncadd);
+	else if (unsetsyncadd)
+		dst_key_unsettime(key, DST_TIME_SYNCPUBLISH);
+
+	if (setsyncdel)
+		dst_key_settime(key, DST_TIME_SYNCDELETE, syncdel);
+	else if (unsetsyncdel)
+		dst_key_unsettime(key, DST_TIME_SYNCDELETE);
+
 	if (setttl)
 		dst_key_setttl(key, ttl);
 
@@ -569,6 +626,14 @@ main(int argc, char **argv) {
 
 	if (printdel)
 		printtime(key, DST_TIME_DELETE, "Delete", epoch, stdout);
+
+	if (printsyncadd)
+		printtime(key, DST_TIME_SYNCPUBLISH, "SYNC Publish",
+			  epoch, stdout);
+
+	if (printsyncdel)
+		printtime(key, DST_TIME_SYNCDELETE, "SYNC Delete",
+			  epoch, stdout);
 
 	if (changed) {
 		isc_buffer_init(&buf, newname, sizeof(newname));

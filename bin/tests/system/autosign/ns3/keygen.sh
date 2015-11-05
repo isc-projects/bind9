@@ -262,3 +262,13 @@ setup reconf.example
 cp secure.example.db.in $zonefile
 $KEYGEN -q -3 -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+
+#
+# A zone which generates a CDS and CDNSEY RRsets automatically
+#
+setup sync.example
+cp $infile $zonefile
+ksk=`$KEYGEN -3 -q -r $RANDFILE -fk -P sync now $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+$DSFROMKEY $ksk.key > dsset-${zone}.
+echo ns3/$ksk > ../sync.key
