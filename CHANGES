@@ -1,3 +1,6 @@
+4253.	[bug]		Address fetch context reference count handling error
+			on socket error.  [RT#40945]
+
 4248.	[func]		Add an isc_atomic_storeq() function, use it in
 			stats counters to improve performance.
 			[RT #39972] [RT #39979]
