@@ -4486,6 +4486,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> keep-response-order { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> no-case-compress { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> message-compression <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> use-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
     <optional> avoid-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
     <optional> use-v6-udp-ports { <replaceable>port_list</replaceable> }; </optional>
@@ -6146,6 +6147,19 @@ options {
 		  log whenever possible.  If you need to disable outgoing
 		  incremental zone
 		  transfers, use <command>provide-ixfr</command> <userinput>no</userinput>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>message-compression</command></term> <listitem>
+		<para>
+		  If <userinput>yes</userinput>, DNS name compression will
+		  be used for responses to regular queries (not including
+		  AXFR or IXFR, which always uses compression).  Setting
+		  this option to <userinput>no</userinput> can result in
+		  larger responses, but will reduce CPU usage on servers.
+		  The default is <userinput>yes</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>

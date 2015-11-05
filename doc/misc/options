@@ -206,6 +206,7 @@ options {
         max-zone-ttl ( unlimited | <ttlval> );
         memstatistics <boolean>;
         memstatistics-file <quoted_string>;
+        message-compression <boolean>;
         min-refresh-time <integer>;
         min-retry-time <integer>;
         min-roots <integer>; // not implemented
@@ -489,6 +490,7 @@ view <string> [ <class> ] {
         max-transfer-time-out <integer>;
         max-udp-size <integer>;
         max-zone-ttl ( unlimited | <ttlval> );
+        message-compression <boolean>;
         min-refresh-time <integer>;
         min-retry-time <integer>;
         min-roots <integer>; // not implemented

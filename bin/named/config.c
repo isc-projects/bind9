@@ -185,6 +185,7 @@ options {\n\
 	fetches-per-server 0;\n\
 	require-server-cookie no;\n\
 	v6-bias 50;\n\
+	message-compression yes;\n\
 "
 #ifdef HAVE_DNSTAP
 "\

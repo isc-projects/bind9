@@ -3653,6 +3653,16 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 				 actx, ns_g_mctx, &view->nocasecompress));
 
 	/*
+	 * Disable name compression completely, this is a tradeoff
+	 * between CPU and network usage.
+	 */
+
+	obj = NULL;
+	result = ns_config_get(maps, "message-compression", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->msgcompression = cfg_obj_asboolean(obj);
+
+	/*
 	 * Filter setting on addresses in the answer section.
 	 */
 	CHECK(configure_view_acl(vconfig, config, "deny-answer-addresses",

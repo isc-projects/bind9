@@ -71,8 +71,8 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 dname dns64 dnssec dsdigest dscp @DNSTAP@ ecdsa ednscompliance
 	 emptyzones fetchlimit filter-aaaa formerr forward geoip glue gost
 	 ixfr inline legacy limits logfileconfig lwresd masterfile
-	 masterformat metadata mkeys notify nslookup nsupdate pending
-	 pipelined @PKCS11_TEST@ reclimit redirect resolver rndc
+	 masterformat metadata mkeys names notify nslookup nsupdate
+	 pending pipelined @PKCS11_TEST@ reclimit redirect resolver rndc
 	 rpz rpzrecurse rrl rrchecker rrsetorder rsabigexponent
 	 runtime sfcache smartsign sortlist spf staticstub statistics
 	 stub tcp tkey tsig tsiggss unknown upforwd verify views

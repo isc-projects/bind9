@@ -205,6 +205,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->upfwdacl = NULL;
 	view->denyansweracl = NULL;
 	view->nocasecompress = NULL;
+	view->msgcompression = ISC_TRUE;
 	view->answeracl_exclude = NULL;
 	view->denyanswernames = NULL;
 	view->answernames_exclude = NULL;

@@ -1,0 +1,54 @@
+; Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
+;
+; Permission to use, copy, modify, and/or distribute this software for any
+; purpose with or without fee is hereby granted, provided that the above
+; copyright notice and this permission notice appear in all copies.
+;
+; THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+; REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+; AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+; INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+; LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+; PERFORMANCE OF THIS SOFTWARE.
+
+
+$TTL 300	; 5 minutes
+@			IN SOA	mname1. . (
+				2000042407 ; serial
+				20         ; refresh (20 seconds)
+				20         ; retry (20 seconds)
+				1814400    ; expire (3 weeks)
+				3600       ; minimum (1 hour)
+				)
+			NS	ns1
+ns1			A	10.53.0.1
+@			MX	0 m1.mail-servers.example.
+@			MX	0 m2.mail-servers.example.
+@			MX	0 m3.mail-servers.example.
+@			MX	0 m4.mail-servers.example.
+@			MX	0 m5.mail-servers.example.
+@			MX	0 m6.mail-servers.example.
+@			MX	0 m7.mail-servers.example.
+@			MX	0 m8.mail-servers.example.
+@			MX	0 m9.mail-servers.example.
+@			MX	0 m10.mail-servers.example.
+@			MX	0 m11.mail-servers.example.
+@			MX	0 m12.mail-servers.example.
+@			MX	0 m13.mail-servers.example.
+@			MX	0 m14.mail-servers.example.
+@			MX	0 m15.mail-servers.example.
+@			MX	0 m16.mail-servers.example.
+@			MX	0 m17.mail-servers.example.
+@			MX	0 m18.mail-servers.example.
+@			MX	0 m19.mail-servers.example.
+@			MX	0 m20.mail-servers.example.
+@			MX	0 m21.mail-servers.example.
+@			MX	0 m22.mail-servers.example.
+@			MX	0 m23.mail-servers.example.
+@			MX	0 m24.mail-servers.example.
+@			MX	0 m25.mail-servers.example.
+@			MX	0 m26.mail-servers.example.
+@			MX	0 m27.mail-servers.example.
+@			MX	0 m28.mail-servers.example.
+@			MX	0 m29.mail-servers.example.

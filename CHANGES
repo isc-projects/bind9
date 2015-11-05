@@ -1,3 +1,6 @@
+4255.	[func]		Add 'message-compression' option to disable DNS
+			compression in responses. [RT #40726]
+
 4254.	[bug]		Address missing lock when getting zone's serial.
 			[RT #41072]
 

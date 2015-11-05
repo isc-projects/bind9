@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #define DNS_NAME_USEINLINE 1
@@ -56,6 +54,7 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 	cctx->mctx = mctx;
 	cctx->count = 0;
 	cctx->magic = CCTX_MAGIC;
+	cctx->enabled = ISC_TRUE;
 	return (ISC_R_SUCCESS);
 }
 
@@ -95,6 +94,12 @@ unsigned int
 dns_compress_getmethods(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
 	return (cctx->allowed & DNS_COMPRESS_ALL);
+}
+
+void
+dns_compress_disable(dns_compress_t *cctx) {
+	REQUIRE(VALID_CCTX(cctx));
+	cctx->enabled = ISC_FALSE;
 }
 
 void
@@ -144,6 +149,9 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name) == ISC_TRUE);
 	REQUIRE(offset != NULL);
+
+	if (cctx->enabled == ISC_FALSE)
+		return (ISC_FALSE);
 
 	if (cctx->count == 0)
 		return (ISC_FALSE);
@@ -213,6 +221,9 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name));
+
+	if (cctx->enabled == ISC_FALSE)
+		return;
 
 	if (offset >= 0x4000)
 		return;
