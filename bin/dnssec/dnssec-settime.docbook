@@ -32,7 +32,7 @@
 
   <refnamediv>
     <refname><application>dnssec-settime</application></refname>
-    <refpurpose>Set the key timing metadata for a DNSSEC key</refpurpose>
+    <refpurpose>set the key timing metadata for a DNSSEC key</refpurpose>
   </refnamediv>
 
   <docinfo>

@@ -32,7 +32,7 @@
 
   <refnamediv>
     <refname><application>dnssec-checkds</application></refname>
-    <refpurpose>A DNSSEC delegation consistency checking tool.</refpurpose>
+    <refpurpose>DNSSEC delegation consistency checking tool</refpurpose>
   </refnamediv>
 
   <docinfo>

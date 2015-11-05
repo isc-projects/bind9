@@ -30,7 +30,7 @@
   </refmeta>
   <refnamediv>
     <refname><application>named-rrchecker</application></refname>
-    <refpurpose>A syntax checker for individual DNS resource records</refpurpose>
+    <refpurpose>syntax checker for individual DNS resource records</refpurpose>
   </refnamediv>
 
   <docinfo>
