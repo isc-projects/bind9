@@ -32,7 +32,7 @@
 
   <refnamediv>
     <refname><application>dnssec-importkey</application></refname>
-    <refpurpose>Import DNSKEY records from external systems so they can be managed.</refpurpose>
+    <refpurpose>import DNSKEY records from external systems so they can be managed</refpurpose>
   </refnamediv>
 
   <docinfo>

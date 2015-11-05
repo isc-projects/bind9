@@ -32,7 +32,7 @@
 
   <refnamediv>
     <refname><application>dnssec-revoke</application></refname>
-    <refpurpose>Set the REVOKED bit on a DNSSEC key</refpurpose>
+    <refpurpose>set the REVOKED bit on a DNSSEC key</refpurpose>
   </refnamediv>
 
   <docinfo>
