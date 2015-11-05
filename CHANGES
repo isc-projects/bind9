@@ -1,3 +1,6 @@
+4254.	[bug]		Address missing lock when getting zone's serial.
+			[RT #41072]
+
 4253.	[bug]		Address fetch context reference count handling error
 			on socket error.  [RT#40945]
 
