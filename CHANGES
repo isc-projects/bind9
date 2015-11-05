@@ -8,6 +8,9 @@
 			triggering a REQUIRE failure when those records
 			were subsequently cached. (CVE-2015-8000) [RT #40987]
 
+4253.	[security]	Address fetch context reference count handling error
+			on socket error. (CVE-2015-8461) [RT#40945]
+
 	--- 9.10.3 released ---
 
 	--- 9.10.3rc1 released ---
