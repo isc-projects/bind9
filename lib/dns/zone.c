@@ -9730,6 +9730,7 @@ static void
 dump_done(void *arg, isc_result_t result) {
 	const char me[] = "dump_done";
 	dns_zone_t *zone = arg;
+	dns_zone_t *secure = NULL;
 	dns_db_t *db;
 	dns_dbversion_t *version;
 	isc_boolean_t again = ISC_FALSE;
@@ -9743,30 +9744,54 @@ dump_done(void *arg, isc_result_t result) {
 
 	if (result == ISC_R_SUCCESS && zone->journal != NULL &&
 	    zone->journalsize != -1) {
-
 		/*
 		 * We don't own these, zone->dctx must stay valid.
 		 */
 		db = dns_dumpctx_db(zone->dctx);
 		version = dns_dumpctx_version(zone->dctx);
-
 		tresult = dns_db_getsoaserial(db, version, &serial);
+
+		/*
+		 * Handle lock order inversion.
+		 */
+ again:
+		LOCK_ZONE(zone);
+		if (inline_raw(zone)) {
+			secure = zone->secure;
+			INSIST(secure != zone);
+			TRYLOCK_ZONE(result, secure);
+			if (result != ISC_R_SUCCESS) {
+				UNLOCK_ZONE(zone);
+				secure = NULL;
+#if ISC_PLATFORM_USETHREADS
+				isc_thread_yield();
+#endif
+				goto again;
+			}
+		}
+
 		/*
 		 * If there is a secure version of this zone
 		 * use its serial if it is less than ours.
 		 */
-		if (tresult == ISC_R_SUCCESS && inline_raw(zone) &&
-		    zone->secure->db != NULL)
-		{
+		if (tresult == ISC_R_SUCCESS && secure != NULL) {
 			isc_uint32_t sserial;
 			isc_result_t mresult;
 
-			mresult = dns_db_getsoaserial(zone->secure->db,
-						      NULL, &sserial);
-			if (mresult == ISC_R_SUCCESS &&
-			    isc_serial_lt(sserial, serial))
-				serial = sserial;
+			ZONEDB_LOCK(&secure->dblock, isc_rwlocktype_read);
+			if (secure->db != NULL) {
+				mresult = dns_db_getsoaserial(zone->secure->db,
+							      NULL, &sserial);
+				if (mresult == ISC_R_SUCCESS &&
+				    isc_serial_lt(sserial, serial))
+					serial = sserial;
+			}
+			ZONEDB_UNLOCK(&secure->dblock, isc_rwlocktype_read);
 		}
+		if (secure != NULL)
+			UNLOCK_ZONE(secure);
+		UNLOCK_ZONE(zone);
+
 		/*
 		 * Note: we are task locked here so we can test
 		 * zone->xfr safely.
