@@ -1,3 +1,6 @@
+4253.	[bug]		Address fetch context reference count handling error
+			on socket error.  [RT#40945]
+
 4252.	[func]		Add support for automating the generation CDS and
 			CDNSKEY rrsets to named and dnssec-signzone.
 			[RT #40424]
