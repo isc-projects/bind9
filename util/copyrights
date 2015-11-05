@@ -804,7 +804,7 @@
 ./bin/tests/system/allow_query/setup.sh		SH	2010,2012
 ./bin/tests/system/allow_query/tests.sh		SH	2010,2012,2013
 ./bin/tests/system/ans.pl			PERL	2011,2012,2014
-./bin/tests/system/autosign/clean.sh		SH	2009,2010,2011,2012,2013,2014
+./bin/tests/system/autosign/clean.sh		SH	2009,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/autosign/ns1/keygen.sh	SH	2009,2010,2011,2012,2014
 ./bin/tests/system/autosign/ns1/named.conf	CONF-C	2009,2013
 ./bin/tests/system/autosign/ns1/root.db.in	ZONE	2009,2010
@@ -818,7 +818,7 @@
 ./bin/tests/system/autosign/ns2/dst.example.db.in	ZONE	2009
 ./bin/tests/system/autosign/ns2/example.db.in	ZONE	2009,2010
 ./bin/tests/system/autosign/ns2/insecure.secure.example.db	ZONE	2009
-./bin/tests/system/autosign/ns2/keygen.sh	SH	2009,2010,2011,2012,2014
+./bin/tests/system/autosign/ns2/keygen.sh	SH	2009,2010,2011,2012,2014,2015
 ./bin/tests/system/autosign/ns2/named.conf	CONF-C	2009,2010,2011,2013
 ./bin/tests/system/autosign/ns2/private.secure.example.db.in	ZONE	2009
 ./bin/tests/system/autosign/ns3/.gitignore	X	2012
@@ -826,8 +826,8 @@
 ./bin/tests/system/autosign/ns3/delay.example.db	ZONE	2011
 ./bin/tests/system/autosign/ns3/inaczsk.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/insecure.example.db	ZONE	2009
-./bin/tests/system/autosign/ns3/keygen.sh	SH	2009,2010,2011,2012,2014
-./bin/tests/system/autosign/ns3/named.conf	CONF-C	2009,2010,2011,2012,2013
+./bin/tests/system/autosign/ns3/keygen.sh	SH	2009,2010,2011,2012,2014,2015
+./bin/tests/system/autosign/ns3/named.conf	CONF-C	2009,2010,2011,2012,2013,2015
 ./bin/tests/system/autosign/ns3/nozsk.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/nsec.example.db.in	ZONE	2010
 ./bin/tests/system/autosign/ns3/nsec3-to-nsec.example.db.in	ZONE	2010
@@ -845,6 +845,7 @@
 ./bin/tests/system/autosign/ns3/secure.example.db.in	ZONE	2009
 ./bin/tests/system/autosign/ns3/secure.nsec3.example.db.in	ZONE	2009
 ./bin/tests/system/autosign/ns3/secure.optout.example.db.in	ZONE	2009
+./bin/tests/system/autosign/ns3/sync.example.db.in	ZONE	2015
 ./bin/tests/system/autosign/ns3/ttl1.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/ttl2.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/ttl3.example.db.in	ZONE	2011
@@ -853,7 +854,7 @@
 ./bin/tests/system/autosign/ns5/named.conf	CONF-C	2009
 ./bin/tests/system/autosign/prereq.sh		SH	2009,2010,2012,2014
 ./bin/tests/system/autosign/setup.sh		SH	2009,2010,2012,2014
-./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011,2012,2013,2014
+./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011,2012,2013,2014,2015
 ./bin/tests/system/builtin/.gitignore		X	2014
 ./bin/tests/system/builtin/Makefile.in		MAKE	2014,2015
 ./bin/tests/system/builtin/clean.sh		SH	2014
@@ -1622,6 +1623,11 @@
 ./bin/tests/system/mkeys/prereq.sh		SH	2015
 ./bin/tests/system/mkeys/setup.sh		SH	2015
 ./bin/tests/system/mkeys/tests.sh		SH	2015
+./bin/tests/system/names/clean.sh		SH	2015
+./bin/tests/system/names/ns1/example.db		ZONE	2015
+./bin/tests/system/names/ns1/named.conf		CONF-C	2015
+./bin/tests/system/names/setup.sh		SH	2015
+./bin/tests/system/names/tests.sh		SH	2015
 ./bin/tests/system/notify/clean.sh		SH	2000,2001,2004,2007,2011,2012,2014,2015
 ./bin/tests/system/notify/ns1/named.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/notify/ns1/root.db		ZONE	2000,2001,2004,2007
@@ -3223,7 +3229,7 @@
 ./lib/dns/include/dns/cert.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/client.h			C	2009,2013,2014
 ./lib/dns/include/dns/clientinfo.h		C	2011,2014
-./lib/dns/include/dns/compress.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2009
+./lib/dns/include/dns/compress.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2015
 ./lib/dns/include/dns/db.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
 ./lib/dns/include/dns/dbiterator.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/dbtable.h			C	1999,2000,2001,2004,2005,2006,2007
@@ -3232,7 +3238,7 @@
 ./lib/dns/include/dns/dlz.h			C.PORTION	1999,2000,2001,2005,2006,2007,2009,2010,2011,2012,2013
 ./lib/dns/include/dns/dlz_dlopen.h		C	2011,2012,2013
 ./lib/dns/include/dns/dns64.h			C	2010,2014
-./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014
+./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/include/dns/dnstap.h			C	2015
 ./lib/dns/include/dns/dnstap.pb-c.h		X	2015
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006,2007,2010,2012,2014
@@ -3543,7 +3549,7 @@
 ./lib/dns/tests/keytable_test.c			C	2014,2015
 ./lib/dns/tests/master_test.c			C	2011,2012,2013,2015
 ./lib/dns/tests/mkraw.pl			PERL	2011,2012
-./lib/dns/tests/name_test.c			C	2014
+./lib/dns/tests/name_test.c			C	2014,2015
 ./lib/dns/tests/nsec3_test.c			C	2012,2014
 ./lib/dns/tests/peer_test.c			C	2014
 ./lib/dns/tests/private_test.c			C	2011,2012
