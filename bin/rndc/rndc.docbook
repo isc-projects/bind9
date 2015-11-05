@@ -261,7 +261,7 @@
 	    configuration text.)
 	  </para>
 	  <para>
-	    See also <command>rndc delzone</command> and <command>rndc modzone</command>.
+	    See also <command>rndc delzone</command>.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -286,7 +286,7 @@
 	    of the <command>rndc delzone</command> command.)
 	  </para>
 	  <para>
-	    See also <command>rndc addzone</command> and <command>rndc modzone</command>.
+	    See also <command>rndc addzone</command>.
 	  </para>
 	</listitem>
       </varlistentry>
