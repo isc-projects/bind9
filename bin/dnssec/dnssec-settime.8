@@ -18,12 +18,12 @@
 .\"     Title: dnssec-settime
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2014-02-06
+.\"      Date: 2015-08-21
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "DNSSEC\-SETTIME" "8" "2014\-02\-06" "ISC" "BIND9"
+.TH "DNSSEC\-SETTIME" "8" "2015\-08\-21" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -47,7 +47,7 @@
 dnssec-settime \- Set the key timing metadata for a DNSSEC key
 .SH "SYNOPSIS"
 .HP \w'\fBdnssec\-settime\fR\ 'u
-\fBdnssec\-settime\fR [\fB\-f\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-L\ \fR\fB\fIttl\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-h\fR] [\fB\-V\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] {keyfile}
+\fBdnssec\-settime\fR [\fB\-f\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-L\ \fR\fB\fIttl\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-P\ sync\ \fR\fB\fIdate/offset\fR\fR] [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-D\ sync\ \fR\fB\fIdate/offset\fR\fR] [\fB\-D\ sync\ \fR\fB\fIdate/offset\fR\fR] [\fB\-h\fR] [\fB\-V\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] {keyfile}
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-settime\fR
@@ -121,6 +121,11 @@ Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS\&. If the argume
 Sets the date on which a key is to be published to the zone\&. After that date, the key will be included in the zone but will not be used to sign it\&.
 .RE
 .PP
+\-P sync \fIdate/offset\fR
+.RS 4
+Sets the date on which CDS and CDNSKEY records that match this key are to be published to the zone\&.
+.RE
+.PP
 \-A \fIdate/offset\fR
 .RS 4
 Sets the date on which the key is to be activated\&. After that date, the key will be included in the zone and used to sign it\&.
@@ -139,6 +144,11 @@ Sets the date on which the key is to be retired\&. After that date, the key will
 \-D \fIdate/offset\fR
 .RS 4
 Sets the date on which the key is to be deleted\&. After that date, the key will no longer be included in the zone\&. (It may remain in the key repository, however\&.)
+.RE
+.PP
+\-D sync \fIdate/offset\fR
+.RS 4
+Sets the date on which the CDS and CDNSKEY records that match this key are to be deleted\&.
 .RE
 .PP
 \-S \fIpredecessor key\fR
@@ -164,23 +174,27 @@ can also be used to print the timing metadata associated with a key\&.
 Print times in UNIX epoch format\&.
 .RE
 .PP
-\-p \fIC/P/A/R/I/D/all\fR
+\-p \fIC/P/Psync/A/R/I/D/Dsync/all\fR
 .RS 4
 Print a specific metadata value or set of metadata values\&. The
 \fB\-p\fR
-option may be followed by one or more of the following letters to indicate which value or values to print:
+option may be followed by one or more of the following letters or strings to indicate which value or values to print:
 \fBC\fR
 for the creation date,
 \fBP\fR
 for the publication date,
+\fBPsync\fR
+for the CDS and CDNSKEY publication date,
 \fBA\fR
 for the activation date,
 \fBR\fR
 for the revocation date,
 \fBI\fR
-for the inactivation date, or
+for the inactivation date,
 \fBD\fR
-for the deletion date\&. To print all of the metadata, use
+for the deletion date, and
+\fBDsync\fR
+for the CDS and CDNSKEY deletion date To print all of the metadata, use
 \fB\-p all\fR\&.
 .RE
 .SH "SEE ALSO"
