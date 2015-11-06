@@ -344,7 +344,7 @@ status=`expr $status + $ret`
 echo "I:testing automatic zones are reported"
 ret=0
 $RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf status > rndc.status || ret=1
-grep "number of zones: 99 (98 automatic)" rndc.status > /dev/null || ret=1
+grep "number of zones: 198 (196 automatic)" rndc.status > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -408,6 +408,13 @@ echo "I:testing rndc -r (show result)"
 ret=0
 $RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf -r testgen 0 2>&1 > rndc.output || ret=1
 grep "ISC_R_SUCCESS 0" rndc.output > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:testing rndc with a token containing a space"
+ret=0
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf -r flush '"view with a space"' 2>&1 > rndc.output || ret=1
+grep "not found" rndc.output > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

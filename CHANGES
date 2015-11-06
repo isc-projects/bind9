@@ -1,3 +1,6 @@
+4256.	[bug]		Allow rndc command arguments to be quoted so as
+			to allow spaces. [RT #36665]
+
 4255.	[func]		Add 'message-compression' option to disable DNS
 			compression in responses. [RT #40726]
 
