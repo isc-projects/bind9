@@ -6609,28 +6609,61 @@ ns_server_reloadwanted(ns_server_t *server) {
 }
 
 static char *
-next_token(char **stringp, const char *delim) {
-	char *res;
+next_token(isc_lex_t *lex, isc_buffer_t *text) {
+	isc_result_t result;
+	isc_token_t token;
 
-	do {
-		res = strsep(stringp, delim);
-		if (res == NULL)
-			break;
-	} while (*res == '\0');
-	return (res);
+	token.type = isc_tokentype_unknown;
+	result = isc_lex_gettoken(lex, ISC_LEXOPT_EOF|ISC_LEXOPT_QSTRING,
+				  &token);
+
+	switch (result) {
+	case ISC_R_NOMORE:
+		(void) isc_lex_close(lex);
+		break;
+	case ISC_R_SUCCESS:
+		if (token.type == isc_tokentype_eof)
+			(void) isc_lex_close(lex);
+		break;
+	case ISC_R_NOSPACE:
+		if (text != NULL) {
+			(void) putstr(text, "token too large");
+			(void) putnull(text);
+		}
+		return (NULL);
+	default:
+		if (text != NULL) {
+			(void) putstr(text, isc_result_totext(result));
+			(void) putnull(text);
+		}
+		return (NULL);
+	}
+
+	if (token.type == isc_tokentype_string ||
+	    token.type == isc_tokentype_qstring)
+		return (token.value.as_textregion.base);
+
+	return (NULL);
 }
 
 /*
- * Find the zone specified in the control channel command 'args',
- * if any.  If a zone is specified, point '*zonep' at it, otherwise
- * set '*zonep' to NULL.
+ * Find the zone specified in the control channel command, if any.
+ * If a zone is specified, point '*zonep' at it, otherwise
+ * set '*zonep' to NULL, and f 'zonename' is not NULL, copy
+ * the zone name into it (N.B. 'zonename' must have space to hold
+ * a full DNS name).
+ *
+ * If 'zonetxt' is set, the caller has already pulled a token
+ * off the command line that is to be used as the zone name. (This
+ * is sometimes done when it's necessary to check for an optional
+ * argument before the zone name, as in "rndc sync [-clean] zone".)
  */
 static isc_result_t
-zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
-	       dns_zone_t **zonep, const char **zonename,
+zone_from_args(ns_server_t *server, isc_lex_t *lex, const char *zonetxt,
+	       dns_zone_t **zonep, char *zonename,
 	       isc_buffer_t *text, isc_boolean_t skip)
 {
-	char *input, *ptr;
+	char *ptr;
 	char *classtxt;
 	const char *viewtxt = NULL;
 	dns_fixedname_t fname;
@@ -6639,43 +6672,42 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 	dns_view_t *view = NULL;
 	dns_rdataclass_t rdclass;
 	char problem[DNS_NAME_FORMATSIZE + 500] = "";
+	char zonebuf[DNS_NAME_FORMATSIZE];
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
-	REQUIRE(zonename == NULL || *zonename == NULL);
-
-	input = args;
 
 	if (skip) {
 		/* Skip the command name. */
-		ptr = next_token(&input, " \t");
+		ptr = next_token(lex, text);
 		if (ptr == NULL)
 			return (ISC_R_UNEXPECTEDEND);
 	}
 
 	/* Look for the zone name. */
 	if (zonetxt == NULL)
-		zonetxt = next_token(&input, " \t");
+		zonetxt = next_token(lex, text);
 	if (zonetxt == NULL)
 		return (ISC_R_SUCCESS);
-	if (zonename != NULL)
-		*zonename = zonetxt;
 
-	/* Look for the optional class name. */
-	classtxt = next_token(&input, " \t");
-	if (classtxt != NULL) {
-		/* Look for the optional view name. */
-		viewtxt = next_token(&input, " \t");
-	}
+	/* Copy zonetxt because it'll be overwritten by next_token() */
+	strlcpy(zonebuf, zonetxt, DNS_NAME_FORMATSIZE);
+	if (zonename != NULL)
+		strlcpy(zonename, zonetxt, DNS_NAME_FORMATSIZE);
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
-	CHECK(dns_name_fromstring(name, zonetxt, 0, NULL));
+	CHECK(dns_name_fromstring(name, zonebuf, 0, NULL));
 
+	/* Look for the optional class name. */
+	classtxt = next_token(lex, text);
 	if (classtxt != NULL) {
 		isc_textregion_t r;
 		r.base = classtxt;
 		r.length = strlen(classtxt);
 		CHECK(dns_rdataclass_fromtext(&rdclass, &r));
+
+		/* Look for the optional view name. */
+		viewtxt = next_token(lex, text);
 	} else
 		rdclass = dns_rdataclass_in;
 
@@ -6686,11 +6718,11 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 		if (result == ISC_R_NOTFOUND)
 			snprintf(problem, sizeof(problem),
 				 "no matching zone '%s' in any view",
-				 zonetxt);
+				 zonebuf);
 		else if (result == ISC_R_MULTIPLE)
 			snprintf(problem, sizeof(problem),
 				 "zone '%s' was found in multiple views",
-				 zonetxt);
+				 zonebuf);
 	} else {
 		result = dns_viewlist_find(&server->viewlist, viewtxt,
 					   rdclass, &view);
@@ -6704,7 +6736,7 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
 		if (result != ISC_R_SUCCESS)
 			snprintf(problem, sizeof(problem),
 				 "no matching zone '%s' in view '%s'",
-				 zonetxt, viewtxt);
+				 zonebuf, viewtxt);
 	}
 
 	/* Partial match? */
@@ -6732,7 +6764,7 @@ zone_from_args(ns_server_t *server, char *args, const char *zonetxt,
  * Act on a "retransfer" command from the command channel.
  */
 isc_result_t
-ns_server_retransfercommand(ns_server_t *server, char *args,
+ns_server_retransfercommand(ns_server_t *server, isc_lex_t *lex,
 			    isc_buffer_t *text)
 {
 	isc_result_t result;
@@ -6740,7 +6772,7 @@ ns_server_retransfercommand(ns_server_t *server, char *args,
 	dns_zone_t *raw = NULL;
 	dns_zonetype_t type;
 
-	result = zone_from_args(server, args, NULL, &zone, NULL,
+	result = zone_from_args(server, lex, NULL, &zone, NULL,
 				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -6765,13 +6797,15 @@ ns_server_retransfercommand(ns_server_t *server, char *args,
  * Act on a "reload" command from the command channel.
  */
 isc_result_t
-ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_reloadcommand(ns_server_t *server, isc_lex_t *lex,
+			isc_buffer_t *text)
+{
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
 	const char *msg = NULL;
 
-	result = zone_from_args(server, args, NULL, &zone, NULL,
+	result = zone_from_args(server, lex, NULL, &zone, NULL,
 				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -6839,12 +6873,14 @@ cleanup:
  * Act on a "notify" command from the command channel.
  */
 isc_result_t
-ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_notifycommand(ns_server_t *server, isc_lex_t *lex,
+			isc_buffer_t *text)
+{
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	const unsigned char msg[] = "zone notify queued";
 
-	result = zone_from_args(server, args, NULL, &zone, NULL,
+	result = zone_from_args(server, lex, NULL, &zone, NULL,
 				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -6863,14 +6899,16 @@ ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text) {
  * Act on a "refresh" command from the command channel.
  */
 isc_result_t
-ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_refreshcommand(ns_server_t *server, isc_lex_t *lex,
+			 isc_buffer_t *text)
+{
 	isc_result_t result;
 	dns_zone_t *zone = NULL, *raw = NULL;
 	const unsigned char msg1[] = "zone refresh queued";
 	const unsigned char msg2[] = "not a slave or stub zone";
 	dns_zonetype_t type;
 
-	result = zone_from_args(server, args, NULL, &zone, NULL,
+	result = zone_from_args(server, lex, NULL, &zone, NULL,
 				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -6900,16 +6938,16 @@ ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 }
 
 isc_result_t
-ns_server_togglequerylog(ns_server_t *server, char *args) {
+ns_server_togglequerylog(ns_server_t *server, isc_lex_t *lex) {
 	isc_boolean_t value;
 	char *ptr;
 
 	/* Skip the command name. */
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 	if (ptr == NULL)
 		value = server->log_queries ? ISC_FALSE : ISC_TRUE;
 	else if (strcasecmp(ptr, "yes") == 0 || strcasecmp(ptr, "on") == 0)
@@ -7245,7 +7283,7 @@ dumpdone(void *arg, isc_result_t result) {
 }
 
 isc_result_t
-ns_server_dumpdb(ns_server_t *server, char *args) {
+ns_server_dumpdb(ns_server_t *server, isc_lex_t *lex) {
 	struct dumpcontext *dctx = NULL;
 	dns_view_t *view;
 	isc_result_t result;
@@ -7253,7 +7291,7 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 	const char *sep;
 
 	/* Skip the command name. */
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
@@ -7281,37 +7319,37 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 	CHECKMF(isc_stdio_open(server->dumpfile, "w", &dctx->fp),
 		"could not open dump file", server->dumpfile);
 
-	sep = (args == NULL) ? "" : ": ";
+	ptr = next_token(lex, NULL);
+	sep = (ptr == NULL) ? "" : ": ";
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "dumpdb started%s%s", sep, (args != NULL) ? args : "");
+		      "dumpdb started%s%s", sep, (ptr != NULL) ? ptr : "");
 
-	ptr = next_token(&args, " \t");
 	if (ptr != NULL && strcmp(ptr, "-all") == 0) {
 		/* also dump zones */
 		dctx->dumpzones = ISC_TRUE;
-		ptr = next_token(&args, " \t");
+		ptr = next_token(lex, NULL);
 	} else if (ptr != NULL && strcmp(ptr, "-cache") == 0) {
 		/* this is the default */
-		ptr = next_token(&args, " \t");
+		ptr = next_token(lex, NULL);
 	} else if (ptr != NULL && strcmp(ptr, "-zones") == 0) {
 		/* only dump zones, suppress caches */
 		dctx->dumpadb = ISC_FALSE;
 		dctx->dumpbad = ISC_FALSE;
 		dctx->dumpcache = ISC_FALSE;
 		dctx->dumpzones = ISC_TRUE;
-		ptr = next_token(&args, " \t");
+		ptr = next_token(lex, NULL);
 #ifdef ENABLE_FETCHLIMIT
 	} else if (ptr != NULL && strcmp(ptr, "-adb") == 0) {
 		/* only dump adb, suppress other caches */
 		dctx->dumpbad = ISC_FALSE;
 		dctx->dumpcache = ISC_FALSE;
-		ptr = next_token(&args, " \t");
+		ptr = next_token(lex, NULL);
 	} else if (ptr != NULL && strcmp(ptr, "-bad") == 0) {
 		/* only dump badcache, suppress other caches */
 		dctx->dumpadb = ISC_FALSE;
 		dctx->dumpcache = ISC_FALSE;
-		ptr = next_token(&args, " \t");
+		ptr = next_token(lex, NULL);
 #endif /* ENABLE_FETCHLIMIT */
 	}
 
@@ -7325,7 +7363,7 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 		CHECK(add_view_tolist(dctx, view));
 	}
 	if (ptr != NULL) {
-		ptr = next_token(&args, " \t");
+		ptr = next_token(lex, NULL);
 		if (ptr != NULL)
 			goto nextview;
 	}
@@ -7339,7 +7377,7 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 }
 
 isc_result_t
-ns_server_dumpsecroots(ns_server_t *server, char *args) {
+ns_server_dumpsecroots(ns_server_t *server, isc_lex_t *lex) {
 	dns_view_t *view;
 	dns_keytable_t *secroots = NULL;
 	isc_result_t result;
@@ -7349,11 +7387,11 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
 	char tbuf[64];
 
 	/* Skip the command name. */
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 
 	CHECKMF(isc_stdio_open(server->secrootsfile, "w", &fp),
 		"could not open secroots dump file", server->secrootsfile);
@@ -7382,7 +7420,7 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
 					isc_result_totext(result));
 		}
 		if (ptr != NULL)
-			ptr = next_token(&args, " \t");
+			ptr = next_token(lex, NULL);
 	} while (ptr != NULL);
 
  cleanup:
@@ -7444,26 +7482,25 @@ ns_server_dumprecursing(ns_server_t *server) {
 }
 
 isc_result_t
-ns_server_setdebuglevel(ns_server_t *server, char *args) {
+ns_server_setdebuglevel(ns_server_t *server, isc_lex_t *lex) {
 	char *ptr;
-	char *levelstr;
 	char *endp;
 	long newlevel;
 
 	UNUSED(server);
 
 	/* Skip the command name. */
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
 	/* Look for the new level name. */
-	levelstr = next_token(&args, " \t");
-	if (levelstr == NULL) {
+	ptr = next_token(lex, NULL);
+	if (ptr == NULL) {
 		if (ns_g_debuglevel < 99)
 			ns_g_debuglevel++;
 	} else {
-		newlevel = strtol(levelstr, &endp, 10);
+		newlevel = strtol(ptr, &endp, 10);
 		if (*endp != '\0' || newlevel < 0 || newlevel > 99)
 			return (ISC_R_RANGE);
 		ns_g_debuglevel = (unsigned int)newlevel;
@@ -7476,20 +7513,20 @@ ns_server_setdebuglevel(ns_server_t *server, char *args) {
 }
 
 isc_result_t
-ns_server_validation(ns_server_t *server, char *args) {
-	char *ptr, *viewname;
+ns_server_validation(ns_server_t *server, isc_lex_t *lex) {
+	char *ptr;
 	dns_view_t *view;
 	isc_boolean_t changed = ISC_FALSE;
 	isc_result_t result;
 	isc_boolean_t enable;
 
 	/* Skip the command name. */
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
 	/* Find out what we are to do. */
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
@@ -7503,7 +7540,7 @@ ns_server_validation(ns_server_t *server, char *args) {
 		return (DNS_R_SYNTAX);
 
 	/* Look for the view name. */
-	viewname = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -7511,7 +7548,7 @@ ns_server_validation(ns_server_t *server, char *args) {
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
+		if (ptr != NULL && strcasecmp(ptr, view->name) != 0)
 			continue;
 		result = dns_view_flushcache(view);
 		if (result != ISC_R_SUCCESS)
@@ -7529,8 +7566,8 @@ ns_server_validation(ns_server_t *server, char *args) {
 }
 
 isc_result_t
-ns_server_flushcache(ns_server_t *server, char *args) {
-	char *ptr, *viewname;
+ns_server_flushcache(ns_server_t *server, isc_lex_t *lex) {
+	char *ptr;
 	dns_view_t *view;
 	isc_boolean_t flushed;
 	isc_boolean_t found;
@@ -7538,12 +7575,12 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 	ns_cache_t *nsc;
 
 	/* Skip the command name. */
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
 	/* Look for the view name. */
-	viewname = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -7556,7 +7593,7 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 	 * list, flush these caches, and then update other views that refer to
 	 * the flushed cache DB.
 	 */
-	if (viewname != NULL) {
+	if (ptr != NULL) {
 		/*
 		 * Mark caches that need to be flushed.  This is an O(#view^2)
 		 * operation in the very worst case, but should be normally
@@ -7567,7 +7604,7 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 		     view != NULL;
 		     view = ISC_LIST_NEXT(view, link))
 		{
-			if (strcasecmp(viewname, view->name) != 0)
+			if (strcasecmp(ptr, view->name) != 0)
 				continue;
 			found = ISC_TRUE;
 			for (nsc = ISC_LIST_HEAD(server->cachelist);
@@ -7586,7 +7623,7 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 	for (nsc = ISC_LIST_HEAD(server->cachelist);
 	     nsc != NULL;
 	     nsc = ISC_LIST_NEXT(nsc, link)) {
-		if (viewname != NULL && !nsc->needflush)
+		if (ptr != NULL && !nsc->needflush)
 			continue;
 		nsc->needflush = ISC_TRUE;
 		result = dns_view_flushcache2(nsc->primaryview, ISC_FALSE);
@@ -7640,11 +7677,11 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 	}
 
 	if (flushed && found) {
-		if (viewname != NULL)
+		if (ptr != NULL)
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 				      "flushing cache in view '%s' succeeded",
-				      viewname);
+				      ptr);
 		else
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -7655,7 +7692,7 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "flushing cache in view '%s' failed: "
-				      "view not found", viewname);
+				      "view not found", ptr);
 			result = ISC_R_NOTFOUND;
 		} else
 			result = ISC_R_FAILURE;
@@ -7665,8 +7702,9 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 }
 
 isc_result_t
-ns_server_flushnode(ns_server_t *server, char *args, isc_boolean_t tree) {
-	char *ptr, *target, *viewname;
+ns_server_flushnode(ns_server_t *server, isc_lex_t *lex, isc_boolean_t tree) {
+	char *ptr, *viewname;
+	char target[DNS_NAME_FORMATSIZE];
 	dns_view_t *view;
 	isc_boolean_t flushed;
 	isc_boolean_t found;
@@ -7676,15 +7714,16 @@ ns_server_flushnode(ns_server_t *server, char *args, isc_boolean_t tree) {
 	dns_name_t *name;
 
 	/* Skip the command name. */
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, NULL);
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
 	/* Find the domain name to flush. */
-	target = next_token(&args, " \t");
-	if (target == NULL)
+	ptr = next_token(lex, NULL);
+	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
+	strlcpy(target, ptr, DNS_NAME_FORMATSIZE);
 	isc_buffer_constinit(&b, target, strlen(target));
 	isc_buffer_add(&b, strlen(target));
 	dns_fixedname_init(&fixed);
@@ -7694,7 +7733,7 @@ ns_server_flushnode(ns_server_t *server, char *args, isc_boolean_t tree) {
 		return (result);
 
 	/* Look for the view name. */
-	viewname = next_token(&args, " \t");
+	viewname = next_token(lex, NULL);
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -7874,19 +7913,22 @@ delete_keynames(dns_tsig_keyring_t *ring, char *target,
 }
 
 isc_result_t
-ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t *text) {
+ns_server_tsigdelete(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	isc_result_t result;
 	unsigned int n;
 	dns_view_t *view;
 	unsigned int foundkeys = 0;
-	char *target;
-	char *viewname;
+	char *ptr, *viewname;
+	char target[DNS_NAME_FORMATSIZE];
 
-	(void)next_token(&command, " \t");  /* skip command name */
-	target = next_token(&command, " \t");
-	if (target == NULL)
+	(void)next_token(lex, text);  /* skip command name */
+
+	ptr = next_token(lex, text);
+	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
-	viewname = next_token(&command, " \t");
+	strlcpy(target, ptr, DNS_NAME_FORMATSIZE);
+
+	viewname = next_token(lex, text);
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -8045,18 +8087,20 @@ ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text) {
  * Act on a "sign" or "loadkeys" command from the command channel.
  */
 isc_result_t
-ns_server_rekey(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_rekey(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
 	isc_uint16_t keyopts;
 	isc_boolean_t fullsign = ISC_FALSE;
+	char *ptr;
 
-	if (strncasecmp(args, NS_COMMAND_SIGN, strlen(NS_COMMAND_SIGN)) == 0)
-	    fullsign = ISC_TRUE;
+	ptr = next_token(lex, text);
+	if (strcasecmp(ptr, NS_COMMAND_SIGN) == 0)
+		fullsign = ISC_TRUE;
 
-	result = zone_from_args(server, args, NULL, &zone, NULL,
-				text, ISC_TRUE);
+	result = zone_from_args(server, lex, NULL, &zone, NULL,
+				text, ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -8111,7 +8155,7 @@ synczone(dns_zone_t *zone, void *uap) {
 }
 
 isc_result_t
-ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_sync(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	isc_result_t result, tresult;
 	dns_view_t *view;
 	dns_zone_t *zone = NULL;
@@ -8120,16 +8164,16 @@ ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text) {
 	const char *vname, *sep, *msg = NULL, *arg;
 	isc_boolean_t cleanup = ISC_FALSE;
 
-	(void) next_token(&args, " \t");
+	(void) next_token(lex, text);
 
-	arg = next_token(&args, " \t");
+	arg = next_token(lex, text);
 	if (arg != NULL &&
 	    (strcmp(arg, "-clean") == 0 || strcmp(arg, "-clear") == 0)) {
 		cleanup = ISC_TRUE;
-		arg = next_token(&args, " \t");
+		arg = next_token(lex, text);
 	}
 
-	result = zone_from_args(server, args, arg, &zone, NULL,
+	result = zone_from_args(server, lex, arg, &zone, NULL,
 				text, ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -8193,8 +8237,8 @@ ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text) {
  * Act on a "freeze" or "thaw" command from the command channel.
  */
 isc_result_t
-ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
-		 isc_buffer_t *text)
+ns_server_freeze(ns_server_t *server, isc_boolean_t freeze,
+		 isc_lex_t *lex, isc_buffer_t *text)
 {
 	isc_result_t result, tresult;
 	dns_zone_t *zone = NULL, *raw = NULL;
@@ -8206,7 +8250,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 	isc_boolean_t frozen;
 	const char *msg = NULL;
 
-	result = zone_from_args(server, args, NULL, &zone, NULL,
+	result = zone_from_args(server, lex, NULL, &zone, NULL,
 				text, ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -8568,7 +8612,7 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
  * Act on a "delzone" command from the command channel.
  */
 isc_result_t
-ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_del_zone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_view_t *view = NULL;
@@ -8576,13 +8620,13 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	const char *filename = NULL;
 	char *tmpname = NULL;
 	char buf[1024];
-	const char *zonename = NULL;
+	char zonename[DNS_NAME_FORMATSIZE];
 	size_t znamelen = 0;
 	FILE *ifp = NULL, *ofp = NULL;
 	isc_boolean_t inheader = ISC_TRUE;
 
 	/* Parse parameters */
-	CHECK(zone_from_args(server, args, NULL, &zone, &zonename,
+	CHECK(zone_from_args(server, lex, NULL, &zone, zonename,
 			     text, ISC_TRUE));
 
 	if (zone == NULL) {
@@ -8599,7 +8643,6 @@ ns_server_del_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 		goto cleanup;
 	}
 
-	INSIST(zonename != NULL);
 	znamelen = strlen(zonename);
 
 	/* Dig out configuration for this zone */
@@ -8780,7 +8823,7 @@ newzone_cfgctx_destroy(void **cfgp) {
 }
 
 isc_result_t
-ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
+ns_server_signing(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_zone_t *zone = NULL;
 	dns_name_t *origin;
@@ -8801,43 +8844,51 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_rdataset_init(&privset);
 
 	/* Skip the command name. */
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, text);
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
 	/* Find out what we are to do. */
-	ptr = next_token(&args, " \t");
+	ptr = next_token(lex, text);
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
 	if (strcasecmp(ptr, "-list") == 0)
 		list = ISC_TRUE;
 	else if ((strcasecmp(ptr, "-clear") == 0)  ||
-		 (strcasecmp(ptr, "-clean") == 0)) {
+		 (strcasecmp(ptr, "-clean") == 0))
+	{
 		clear = ISC_TRUE;
-		ptr = next_token(&args, " \t");
+		ptr = next_token(lex, text);
 		if (ptr == NULL)
 			return (ISC_R_UNEXPECTEDEND);
 		strlcpy(keystr, ptr, sizeof(keystr));
 	} else if (strcasecmp(ptr, "-nsec3param") == 0) {
-		const char *hashstr, *flagstr, *iterstr;
-		char nbuf[512];
+		char hashbuf[64], flagbuf[64], iterbuf[64];
+		char nbuf[256];
 
 		chain = ISC_TRUE;
-		hashstr = next_token(&args, " \t");
-		if (hashstr == NULL)
+		ptr = next_token(lex, text);
+		if (ptr == NULL)
 			return (ISC_R_UNEXPECTEDEND);
 
-		if (strcasecmp(hashstr, "none") == 0)
+		if (strcasecmp(ptr, "none") == 0)
 			hash = 0;
 		else {
-			flagstr = next_token(&args, " \t");
-			iterstr = next_token(&args, " \t");
-			if (flagstr == NULL || iterstr == NULL)
+			strlcpy(hashbuf, ptr, sizeof(hashbuf));
+
+			ptr = next_token(lex, text);
+			if (ptr == NULL)
 				return (ISC_R_UNEXPECTEDEND);
+			strlcpy(flagbuf, ptr, sizeof(flagbuf));
+
+			ptr = next_token(lex, text);
+			if (ptr == NULL)
+				return (ISC_R_UNEXPECTEDEND);
+			strlcpy(iterbuf, ptr, sizeof(iterbuf));
 
 			n = snprintf(nbuf, sizeof(nbuf), "%s %s %s",
-				     hashstr, flagstr, iterstr);
+				     hashbuf, flagbuf, iterbuf);
 			if (n == sizeof(nbuf))
 				return (ISC_R_NOSPACE);
 			n = sscanf(nbuf, "%hu %hu %hu", &hash, &flags, &iter);
@@ -8847,7 +8898,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 			if (hash > 0xffU || flags > 0xffU)
 				return (ISC_R_RANGE);
 
-			ptr = next_token(&args, " \t");
+			ptr = next_token(lex, text);
 			if (ptr == NULL)
 				return (ISC_R_UNEXPECTEDEND);
 			if (strcmp(ptr, "-") != 0) {
@@ -8861,7 +8912,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 	} else
 		CHECK(DNS_R_SYNTAX);
 
-	CHECK(zone_from_args(server, args, NULL, &zone, NULL,
+	CHECK(zone_from_args(server, lex, NULL, &zone, NULL,
 			     text, ISC_FALSE));
 	if (zone == NULL)
 		CHECK(ISC_R_UNEXPECTEDEND);

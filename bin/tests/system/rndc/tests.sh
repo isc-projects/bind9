@@ -275,6 +275,13 @@ grep "query: foo9876.bind CH TXT" ns3/named.run > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:testing rndc with a token containing a space"
+ret=0
+$RNDC -s 10.53.0.4 -p 9953 -c ../common/rndc.conf flush '"view with a space"' 2>&1 > rndc.output || ret=1
+grep "not found" rndc.output > /dev/null && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:test 'rndc reconfig' with a broken config"
 ret=0
 $RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf reconfig > /dev/null || ret=1
