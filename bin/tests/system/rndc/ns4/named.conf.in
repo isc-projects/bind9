@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 controls { /* empty */ };
 
 options {
@@ -26,3 +24,10 @@ options {
 	recursion no;
 };
 
+view normal {
+	match-clients { any; };
+};
+
+view "view with a space" {
+	match-clients { none; };
+};

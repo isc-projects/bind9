@@ -1,3 +1,6 @@
+4256.	[bug]		Allow rndc command arguments to be quoted so as
+			to allow spaces. [RT #36665]
+
 4254.	[bug]		Address missing lock when getting zone's serial.
 			[RT #41072]
 
