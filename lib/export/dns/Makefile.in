@@ -1,4 +1,4 @@
-# Copyright (C) 2009-2013  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009-2013, 2015  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -79,7 +79,7 @@ OPENSSLLINKSRCS = openssl_link.c openssldh_link.c openssldsa_link.c \
 DSTSRCS =	@OPENSSLLINKSRCS@ \
 		dst_api.c dst_lib.c dst_parse.c \
 		dst_result.c gssapi_link.c gssapictx.c \
-		hmac_link.c key.c 
+		hmac_link.c key.c
 
 DNSSRCS =	acl.c adb.c byaddr.c \
 		cache.c callbacks.c client.c compress.c \
