@@ -23,7 +23,7 @@ TARGETS =
 
 @BIND9_MAKE_RULES@
 
-@BIND9_VERSION@
+VERSION=@BIND9_VERSION@
 
 # Until and unless we decide to ship all umptyzillion Doxygen output
 # files, distclean for this directory implies docclean.

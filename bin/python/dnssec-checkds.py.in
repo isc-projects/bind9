@@ -303,7 +303,8 @@ def parse_args():
                         default=os.path.join(prefix(sbindir),
                                              'dnssec-dsfromkey'),
                         type=str, help='path to \'dig\'')
-    parser.add_argument('-v', '--version', action='version', version='9.9.1')
+    parser.add_argument('-v', '--version', action='version',
+                        version='@BIND9_VERSION@')
     args = parser.parse_args()
 
     args.zone = args.zone.strip('.')

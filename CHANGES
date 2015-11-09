@@ -1,3 +1,5 @@
+4257.	[cleanup]	Python scripts reported incorrect version. [RT #41080]
+
 4256.	[bug]		Allow rndc command arguments to be quoted so as
 			to allow spaces. [RT #36665]
 
