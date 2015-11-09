@@ -20,6 +20,7 @@
     <date>2014-02-20</date>
   </info>
   <refentryinfo>
+    <date>August 21, 2015</date>
     <corpname>ISC</corpname>
     <corpauthor>Internet Systems Consortium, Inc.</corpauthor>
   </refentryinfo>
@@ -50,7 +51,9 @@
       <arg choice="opt" rep="norepeat"><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-L <replaceable class="parameter">ttl</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-P <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-P sync <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-D sync <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-h</option></arg>
       <arg choice="opt" rep="norepeat"><option>-v <replaceable class="parameter">level</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-V</option></arg>
@@ -62,7 +65,9 @@
       <arg choice="opt" rep="norepeat"><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-L <replaceable class="parameter">ttl</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-P <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-P sync <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-D sync <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-h</option></arg>
       <arg choice="opt" rep="norepeat"><option>-v <replaceable class="parameter">level</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-V</option></arg>
@@ -97,68 +102,68 @@
     <variablelist>
       <varlistentry>
 	<term>-f <replaceable class="parameter">filename</replaceable></term>
-        <listitem>
-          <para>
-            Zone file mode: instead of a public keyfile name, the argument
+	<listitem>
+	  <para>
+	    Zone file mode: instead of a public keyfile name, the argument
 	    is the DNS domain name of a zone master file, which can be read
-            from <option>file</option>.  If the domain name is the same as
-            <option>file</option>, then it may be omitted.
-          </para>
-          <para>
-            If <option>file</option> is set to <literal>"-"</literal>, then
-            the zone data is read from the standard input.
-          </para>
-        </listitem>
+	    from <option>file</option>.  If the domain name is the same as
+	    <option>file</option>, then it may be omitted.
+	  </para>
+	  <para>
+	    If <option>file</option> is set to <literal>"-"</literal>, then
+	    the zone data is read from the standard input.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-K <replaceable class="parameter">directory</replaceable></term>
-        <listitem>
-          <para>
-            Sets the directory in which the key files are to reside.
-          </para>
-        </listitem>
+	<term>-K <replaceable class="parameter">directory</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the directory in which the key files are to reside.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-L <replaceable class="parameter">ttl</replaceable></term>
-        <listitem>
-          <para>
-            Sets the default TTL to use for this key when it is converted
-            into a DNSKEY RR.  If the key is imported into a zone,
-            this is the TTL that will be used for it, unless there was
-            already a DNSKEY RRset in place, in which case the existing TTL
-            would take precedence.  Setting the default TTL to
-            <literal>0</literal> or <literal>none</literal> removes it.
-          </para>
-        </listitem>
+	<term>-L <replaceable class="parameter">ttl</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the default TTL to use for this key when it is converted
+	    into a DNSKEY RR.  If the key is imported into a zone,
+	    this is the TTL that will be used for it, unless there was
+	    already a DNSKEY RRset in place, in which case the existing TTL
+	    would take precedence.  Setting the default TTL to
+	    <literal>0</literal> or <literal>none</literal> removes it.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
 	<term>-h</term>
-        <listitem>
+	<listitem>
 	  <para>
 	    Emit usage message and exit.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-v <replaceable class="parameter">level</replaceable></term>
-        <listitem>
-          <para>
-            Sets the debugging level.
-          </para>
-        </listitem>
+	<term>-v <replaceable class="parameter">level</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the debugging level.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
 	<term>-V</term>
-        <listitem>
+	<listitem>
 	  <para>
 	    Prints version information.
 	  </para>
-        </listitem>
+	</listitem>
       </varlistentry>
 
     </variablelist>
@@ -180,25 +185,45 @@
 
     <variablelist>
       <varlistentry>
-        <term>-P <replaceable class="parameter">date/offset</replaceable></term>
-        <listitem>
-          <para>
-            Sets the date on which a key is to be published to the zone.
-            After that date, the key will be included in the zone but will
-            not be used to sign it.
-          </para>
-        </listitem>
+	<term>-P <replaceable class="parameter">date/offset</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the date on which a key is to be published to the zone.
+	    After that date, the key will be included in the zone but will
+	    not be used to sign it.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-D <replaceable class="parameter">date/offset</replaceable></term>
-        <listitem>
-          <para>
-            Sets the date on which the key is to be deleted.  After that
-            date, the key will no longer be included in the zone.  (It
-            may remain in the key repository, however.)
-          </para>
-        </listitem>
+	<term>-P sync <replaceable class="parameter">date/offset</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the date on which CDS and CDNSKEY records that match this
+	    key are to be published to the zone.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-D <replaceable class="parameter">date/offset</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the date on which the key is to be deleted.  After that
+	    date, the key will no longer be included in the zone.  (It
+	    may remain in the key repository, however.)
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-D sync <replaceable class="parameter">date/offset</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the date on which the CDS and CDNSKEY records that match
+	    this key are to be deleted.
+	  </para>
+	</listitem>
       </varlistentry>
 
     </variablelist>
@@ -217,10 +242,10 @@
   <refsection><info><title>SEE ALSO</title></info>
 
     <para><citerefentry>
-        <refentrytitle>dnssec-keygen</refentrytitle><manvolnum>8</manvolnum>
+	<refentrytitle>dnssec-keygen</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citerefentry>
-        <refentrytitle>dnssec-signzone</refentrytitle><manvolnum>8</manvolnum>
+	<refentrytitle>dnssec-signzone</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
       <citetitle>RFC 5011</citetitle>.

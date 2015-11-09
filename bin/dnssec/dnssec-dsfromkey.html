@@ -43,52 +43,52 @@
 <div class="variablelist"><dl class="variablelist">
 <dt><span class="term">-1</span></dt>
 <dd><p>
-            Use SHA-1 as the digest algorithm (the default is to use
-            both SHA-1 and SHA-256).
-          </p></dd>
+	    Use SHA-1 as the digest algorithm (the default is to use
+	    both SHA-1 and SHA-256).
+	  </p></dd>
 <dt><span class="term">-2</span></dt>
 <dd><p>
-            Use SHA-256 as the digest algorithm.
-          </p></dd>
+	    Use SHA-256 as the digest algorithm.
+	  </p></dd>
 <dt><span class="term">-a <em class="replaceable"><code>algorithm</code></em></span></dt>
 <dd><p>
-            Select the digest algorithm. The value of
-            <code class="option">algorithm</code> must be one of SHA-1 (SHA1),
-            SHA-256 (SHA256), GOST or SHA-384 (SHA384).
-            These values are case insensitive.
-          </p></dd>
+	    Select the digest algorithm. The value of
+	    <code class="option">algorithm</code> must be one of SHA-1 (SHA1),
+	    SHA-256 (SHA256), GOST or SHA-384 (SHA384).
+	    These values are case insensitive.
+	  </p></dd>
 <dt><span class="term">-C</span></dt>
 <dd><p>
-            Generate CDS records rather than DS records.  This is mutually
+	    Generate CDS records rather than DS records.  This is mutually
 	    exclusive with generating lookaside records.
-          </p></dd>
+	  </p></dd>
 <dt><span class="term">-T <em class="replaceable"><code>TTL</code></em></span></dt>
 <dd><p>
-            Specifies the TTL of the DS records.
-          </p></dd>
+	    Specifies the TTL of the DS records.
+	  </p></dd>
 <dt><span class="term">-K <em class="replaceable"><code>directory</code></em></span></dt>
 <dd><p>
-            Look for key files (or, in keyset mode,
-            <code class="filename">keyset-</code> files) in
-            <code class="option">directory</code>.
-          </p></dd>
+	    Look for key files (or, in keyset mode,
+	    <code class="filename">keyset-</code> files) in
+	    <code class="option">directory</code>.
+	  </p></dd>
 <dt><span class="term">-f <em class="replaceable"><code>file</code></em></span></dt>
 <dd>
 <p>
-            Zone file mode: in place of the keyfile name, the argument is
-            the DNS domain name of a zone master file, which can be read
-            from <code class="option">file</code>.  If the zone name is the same as
-            <code class="option">file</code>, then it may be omitted.
-          </p>
+	    Zone file mode: in place of the keyfile name, the argument is
+	    the DNS domain name of a zone master file, which can be read
+	    from <code class="option">file</code>.  If the zone name is the same as
+	    <code class="option">file</code>, then it may be omitted.
+	  </p>
 <p>
-            If <code class="option">file</code> is set to <code class="literal">"-"</code>, then
-            the zone data is read from the standard input.  This makes it
-            possible to use the output of the <span class="command"><strong>dig</strong></span>
-            command as input, as in:
-          </p>
+	    If <code class="option">file</code> is set to <code class="literal">"-"</code>, then
+	    the zone data is read from the standard input.  This makes it
+	    possible to use the output of the <span class="command"><strong>dig</strong></span>
+	    command as input, as in:
+	  </p>
 <p>
-            <strong class="userinput"><code>dig dnskey example.com | dnssec-dsfromkey -f - example.com</code></strong>
-          </p>
+	    <strong class="userinput"><code>dig dnskey example.com | dnssec-dsfromkey -f - example.com</code></strong>
+	  </p>
 </dd>
 <dt><span class="term">-A</span></dt>
 <dd><p>
@@ -98,35 +98,35 @@
           </p></dd>
 <dt><span class="term">-l <em class="replaceable"><code>domain</code></em></span></dt>
 <dd><p>
-            Generate a DLV set instead of a DS set.  The specified
-            <code class="option">domain</code> is appended to the name for each
-            record in the set.
-            The DNSSEC Lookaside Validation (DLV) RR is described
-            in RFC 4431.  This is mutually exclusive with generating
+	    Generate a DLV set instead of a DS set.  The specified
+	    <code class="option">domain</code> is appended to the name for each
+	    record in the set.
+	    The DNSSEC Lookaside Validation (DLV) RR is described
+	    in RFC 4431.  This is mutually exclusive with generating
 	    CDS records.
-          </p></dd>
+	  </p></dd>
 <dt><span class="term">-s</span></dt>
 <dd><p>
-            Keyset mode: in place of the keyfile name, the argument is
-            the DNS domain name of a keyset file.
-          </p></dd>
+	    Keyset mode: in place of the keyfile name, the argument is
+	    the DNS domain name of a keyset file.
+	  </p></dd>
 <dt><span class="term">-c <em class="replaceable"><code>class</code></em></span></dt>
 <dd><p>
-            Specifies the DNS class (default is IN).  Useful only
-            in keyset or zone file mode.
-          </p></dd>
+	    Specifies the DNS class (default is IN).  Useful only
+	    in keyset or zone file mode.
+	  </p></dd>
 <dt><span class="term">-v <em class="replaceable"><code>level</code></em></span></dt>
 <dd><p>
-            Sets the debugging level.
-          </p></dd>
+	    Sets the debugging level.
+	  </p></dd>
 <dt><span class="term">-h</span></dt>
 <dd><p>
-            Prints usage information.
-          </p></dd>
+	    Prints usage information.
+	  </p></dd>
 <dt><span class="term">-V</span></dt>
 <dd><p>
-            Prints version information.
-          </p></dd>
+	    Prints version information.
+	  </p></dd>
 </dl></div>
 </div>
 <div class="refsection">

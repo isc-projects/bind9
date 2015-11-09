@@ -27,15 +27,16 @@
 
 #include <isc/base32.h>
 #include <isc/buffer.h>
+#include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/entropy.h>
 #include <isc/heap.h>
 #include <isc/list.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
-#include <isc/print.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
@@ -1833,4 +1834,21 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 			}
 		}
 	}
+}
+
+isc_boolean_t
+isoptarg(const char *arg, char **argv, void(*usage)(void)) {
+	if (!strcasecmp(isc_commandline_argument, arg)) {
+		if (argv[isc_commandline_index] == NULL) {
+			fprintf(stderr, "%s: missing argument -%c %s\n",
+				program, isc_commandline_option,
+				isc_commandline_argument);
+			usage();
+		}
+		isc_commandline_argument = argv[isc_commandline_index];
+		/* skip to next arguement */
+		isc_commandline_index++;
+		return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
 }

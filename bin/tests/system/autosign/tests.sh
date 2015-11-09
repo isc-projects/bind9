@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2009-2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009-2015  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -1165,6 +1165,34 @@ for i in 0 1 2 3 4 5 6 7 8 9; do
     echo "I:waiting ... ($i)"
     sleep 1
 done
+n=`expr $n + 1`
+if [ "$lret" != 0 ]; then ret=$lret; fi
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:test CDS and CDNSKEY auto generation ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 sync.example cds > dig.out.ns3.cdstest$n
+$DIG $DIGOPTS @10.53.0.3 sync.example cdnskey > dig.out.ns3.cdnskeytest$n
+grep -i "sync.example.*in.cds.*[1-9][0-9]* " dig.out.ns3.cdstest$n > /dev/null || ret=1
+grep -i "sync.example.*in.cdnskey.*257 " dig.out.ns3.cdnskeytest$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ "$lret" != 0 ]; then ret=$lret; fi
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:setting CDS and CDNSKEY deletion times and calling 'rndc loadkeys'"
+$SETTIME -D sync now+2 `cat sync.key`
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 loadkeys sync.example
+echo "I:waiting for deletion to occur"
+sleep 3
+
+echo "I:checking that the CDS and CDNSKEY are deleted ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 sync.example cds > dig.out.ns3.cdstest$n
+$DIG $DIGOPTS @10.53.0.3 sync.example cdnskey > dig.out.ns3.cdnskeytest$n
+grep -i "sync.example.*in.cds.*[1-9][0-9]* " dig.out.ns3.cdstest$n > /dev/null && ret=1
+grep -i "sync.example.*in.cdnskey.*257 " dig.out.ns3.cdnskeytest$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ "$lret" != 0 ]; then ret=$lret; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi

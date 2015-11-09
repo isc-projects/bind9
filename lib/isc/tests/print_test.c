@@ -117,6 +117,12 @@ ATF_TC_BODY(snprintf, tc) {
 	n = isc_print_snprintf(buf, sizeof(buf), "%zo", size);
 	ATF_CHECK_EQ(n, 4);
 	ATF_CHECK_STREQ(buf, "1750");
+
+	zz = 0xf5f5f5f5f5f5f5f5LLU;
+	memset(buf, 0xff, sizeof(buf));
+	n = isc_print_snprintf(buf, sizeof(buf), "0x%"ISC_PRINT_QUADFORMAT"x", zz);
+	ATF_CHECK_EQ(n, 18);
+	ATF_CHECK_STREQ(buf, "0xf5f5f5f5f5f5f5f5");
 }
 
 ATF_TC(fprintf);

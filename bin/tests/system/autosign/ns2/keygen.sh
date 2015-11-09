@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2009-2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009-2012, 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -20,7 +20,7 @@ SYSTEMTESTTOP=../..
 # Have the child generate subdomain keys and pass DS sets to us.
 ( cd ../ns3 && $SHELL keygen.sh )
 
-for subdomain in secure nsec3 autonsec3 optout rsasha256 rsasha512 nsec3-to-nsec oldsigs
+for subdomain in secure nsec3 autonsec3 optout rsasha256 rsasha512 nsec3-to-nsec oldsigs sync
 do
 	cp ../ns3/dsset-$subdomain.example. .
 done

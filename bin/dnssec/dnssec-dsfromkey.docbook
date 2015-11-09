@@ -96,85 +96,85 @@
 
     <variablelist>
       <varlistentry>
-        <term>-1</term>
-        <listitem>
-          <para>
-            Use SHA-1 as the digest algorithm (the default is to use
-            both SHA-1 and SHA-256).
-          </para>
-        </listitem>
+	<term>-1</term>
+	<listitem>
+	  <para>
+	    Use SHA-1 as the digest algorithm (the default is to use
+	    both SHA-1 and SHA-256).
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-2</term>
-        <listitem>
-          <para>
-            Use SHA-256 as the digest algorithm.
-          </para>
-        </listitem>
+	<term>-2</term>
+	<listitem>
+	  <para>
+	    Use SHA-256 as the digest algorithm.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-a <replaceable class="parameter">algorithm</replaceable></term>
-        <listitem>
-          <para>
-            Select the digest algorithm. The value of
-            <option>algorithm</option> must be one of SHA-1 (SHA1),
-            SHA-256 (SHA256), GOST or SHA-384 (SHA384).
-            These values are case insensitive.
-          </para>
-        </listitem>
+	<term>-a <replaceable class="parameter">algorithm</replaceable></term>
+	<listitem>
+	  <para>
+	    Select the digest algorithm. The value of
+	    <option>algorithm</option> must be one of SHA-1 (SHA1),
+	    SHA-256 (SHA256), GOST or SHA-384 (SHA384).
+	    These values are case insensitive.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-C</term>
-        <listitem>
-          <para>
-            Generate CDS records rather than DS records.  This is mutually
+	<term>-C</term>
+	<listitem>
+	  <para>
+	    Generate CDS records rather than DS records.  This is mutually
 	    exclusive with generating lookaside records.
-          </para>
-        </listitem>
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-T <replaceable class="parameter">TTL</replaceable></term>
-        <listitem>
-          <para>
-            Specifies the TTL of the DS records.
-          </para>
+	<term>-T <replaceable class="parameter">TTL</replaceable></term>
+	<listitem>
+	  <para>
+	    Specifies the TTL of the DS records.
+	  </para>
 	  </listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-K <replaceable class="parameter">directory</replaceable></term>
-        <listitem>
-          <para>
-            Look for key files (or, in keyset mode,
-            <filename>keyset-</filename> files) in
-            <option>directory</option>.
-          </para>
-        </listitem>
+	<term>-K <replaceable class="parameter">directory</replaceable></term>
+	<listitem>
+	  <para>
+	    Look for key files (or, in keyset mode,
+	    <filename>keyset-</filename> files) in
+	    <option>directory</option>.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-f <replaceable class="parameter">file</replaceable></term>
-        <listitem>
-          <para>
-            Zone file mode: in place of the keyfile name, the argument is
-            the DNS domain name of a zone master file, which can be read
-            from <option>file</option>.  If the zone name is the same as
-            <option>file</option>, then it may be omitted.
-          </para>
-          <para>
-            If <option>file</option> is set to <literal>"-"</literal>, then
-            the zone data is read from the standard input.  This makes it
-            possible to use the output of the <command>dig</command>
-            command as input, as in:
-          </para>
-          <para>
-            <userinput>dig dnskey example.com | dnssec-dsfromkey -f - example.com</userinput>
-          </para>
-        </listitem>
+	<term>-f <replaceable class="parameter">file</replaceable></term>
+	<listitem>
+	  <para>
+	    Zone file mode: in place of the keyfile name, the argument is
+	    the DNS domain name of a zone master file, which can be read
+	    from <option>file</option>.  If the zone name is the same as
+	    <option>file</option>, then it may be omitted.
+	  </para>
+	  <para>
+	    If <option>file</option> is set to <literal>"-"</literal>, then
+	    the zone data is read from the standard input.  This makes it
+	    possible to use the output of the <command>dig</command>
+	    command as input, as in:
+	  </para>
+	  <para>
+	    <userinput>dig dnskey example.com | dnssec-dsfromkey -f - example.com</userinput>
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
@@ -189,64 +189,64 @@
       </varlistentry>
 
       <varlistentry>
-        <term>-l <replaceable class="parameter">domain</replaceable></term>
-        <listitem>
-          <para>
-            Generate a DLV set instead of a DS set.  The specified
-            <option>domain</option> is appended to the name for each
-            record in the set.
-            The DNSSEC Lookaside Validation (DLV) RR is described
-            in RFC 4431.  This is mutually exclusive with generating
+	<term>-l <replaceable class="parameter">domain</replaceable></term>
+	<listitem>
+	  <para>
+	    Generate a DLV set instead of a DS set.  The specified
+	    <option>domain</option> is appended to the name for each
+	    record in the set.
+	    The DNSSEC Lookaside Validation (DLV) RR is described
+	    in RFC 4431.  This is mutually exclusive with generating
 	    CDS records.
-          </para>
-        </listitem>
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-s</term>
-        <listitem>
-          <para>
-            Keyset mode: in place of the keyfile name, the argument is
-            the DNS domain name of a keyset file.
-          </para>
-        </listitem>
+	<term>-s</term>
+	<listitem>
+	  <para>
+	    Keyset mode: in place of the keyfile name, the argument is
+	    the DNS domain name of a keyset file.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-c <replaceable class="parameter">class</replaceable></term>
-        <listitem>
-          <para>
-            Specifies the DNS class (default is IN).  Useful only
-            in keyset or zone file mode.
-          </para>
+	<term>-c <replaceable class="parameter">class</replaceable></term>
+	<listitem>
+	  <para>
+	    Specifies the DNS class (default is IN).  Useful only
+	    in keyset or zone file mode.
+	  </para>
 	  </listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-v <replaceable class="parameter">level</replaceable></term>
-        <listitem>
-          <para>
-            Sets the debugging level.
-          </para>
-        </listitem>
+	<term>-v <replaceable class="parameter">level</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the debugging level.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-h</term>
-        <listitem>
-          <para>
-            Prints usage information.
-          </para>
-        </listitem>
+	<term>-h</term>
+	<listitem>
+	  <para>
+	    Prints usage information.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-V</term>
-        <listitem>
-          <para>
-            Prints version information.
-          </para>
-        </listitem>
+	<term>-V</term>
+	<listitem>
+	  <para>
+	    Prints version information.
+	  </para>
+	</listitem>
       </varlistentry>
     </variablelist>
   </refsection>
@@ -292,10 +292,10 @@
   <refsection><info><title>SEE ALSO</title></info>
 
     <para><citerefentry>
-        <refentrytitle>dnssec-keygen</refentrytitle><manvolnum>8</manvolnum>
+	<refentrytitle>dnssec-keygen</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citerefentry>
-        <refentrytitle>dnssec-signzone</refentrytitle><manvolnum>8</manvolnum>
+	<refentrytitle>dnssec-signzone</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
       <citetitle>RFC 3658</citetitle>,

@@ -96,7 +96,9 @@ typedef struct dst_context 	dst_context_t;
 #define DST_TIME_INACTIVE	4
 #define DST_TIME_DELETE 	5
 #define DST_TIME_DSPUBLISH 	6
-#define DST_MAX_TIMES		6
+#define DST_TIME_SYNCPUBLISH 	7
+#define DST_TIME_SYNCDELETE 	8
+#define DST_MAX_TIMES		8
 
 /* Numeric metadata definitions */
 #define DST_NUM_PREDECESSOR	0

@@ -2366,6 +2366,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     [<span class="optional"> blackhole { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
     [<span class="optional"> keep-response-order { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
     [<span class="optional"> no-case-compress { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
+    [<span class="optional"> message-compression <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> use-v4-udp-ports { <em class="replaceable"><code>port_list</code></em> }; </span>]
     [<span class="optional"> avoid-v4-udp-ports { <em class="replaceable"><code>port_list</code></em> }; </span>]
     [<span class="optional"> use-v6-udp-ports { <em class="replaceable"><code>port_list</code></em> }; </span>]
@@ -3773,6 +3774,18 @@ options {
                   log whenever possible.  If you need to disable outgoing
                   incremental zone
                   transfers, use <span class="command"><strong>provide-ixfr</strong></span> <strong class="userinput"><code>no</code></strong>.
+                </p></dd>
+<dt><span class="term"><span class="command"><strong>message-compression</strong></span></span></dt>
+<dd><p>
+                  If <strong class="userinput"><code>yes</code></strong>, DNS name compression is
+                  used in responses to regular queries (not including
+                  AXFR or IXFR, which always uses compression).  Setting
+                  this option to <strong class="userinput"><code>no</code></strong> reduces CPU
+                  usage on servers and may improve throughput.  However,
+                  it increases response size, which may cause more queries
+                  to be processed using TCP; a server with compression
+                  disabled is out of compiance with RFC 1123 Section
+                  6.1.3.2. The default is <strong class="userinput"><code>yes</code></strong>.
                 </p></dd>
 <dt><span class="term"><span class="command"><strong>minimal-responses</strong></span></span></dt>
 <dd><p>

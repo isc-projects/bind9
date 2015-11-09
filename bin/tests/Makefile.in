@@ -59,7 +59,6 @@ XTARGETS =	adb_test@EXEEXT@ \
 		backtrace_test@EXEEXT@ \
 		backtrace_test_nosymtbl@EXEEXT@ \
 		byname_test@EXEEXT@ \
-		compress_test@EXEEXT@ \
 		db_test@EXEEXT@ \
 		entropy_test@EXEEXT@ \
 		entropy2_test@EXEEXT@ \
@@ -99,7 +98,6 @@ XSRCS =		adb_test.c \
 		byaddr_test.c \
 		backtrace_test.c \
 		byname_test.c \
-		compress_test.c \
 		db_test.c \
 		entropy_test.c \
 		entropy2_test.c \
@@ -256,10 +254,6 @@ master_test@EXEEXT@: master_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 db_test@EXEEXT@: db_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ db_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-compress_test@EXEEXT@: compress_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ compress_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 mempool_test@EXEEXT@: mempool_test.@O@ ${ISCDEPLIBS}

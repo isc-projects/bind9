@@ -439,6 +439,13 @@
 	  The following types have been implemented: CSYNC, NINFO, RKEY,
 	  SINK, TA, TALINK.
 	</p></li>
+<li class="listitem"><p>
+	  A new <span class="command"><strong>message-compression</strong></span> option can be
+	  used to specify whether or not to use name compression when
+	  answering queries. Setting this to <strong class="userinput"><code>no</code></strong>
+	  results in larger responses, but reduces CPU consumption and
+	  may improve throughput.  The default is <strong class="userinput"><code>yes</code></strong>.
+	</p></li>
 </ul></div>
 </div>
 <div class="section">
@@ -719,6 +726,10 @@
 	      The server could crash if a reload of an RPZ zone was
 	      initiated while another reload of the same zone was
 	      already in progress. [RT #39649]
+	    </p></li>
+<li class="listitem"><p>
+	      Negative trust anchors (NTAs) were incorrectly deleted
+	      when the server was reloaded or reconfigured. [RT #41058]
 	    </p></li>
 </ul></div>
 </li>

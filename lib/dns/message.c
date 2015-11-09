@@ -993,12 +993,12 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	}
 }
 
-#define DO_FORMERR					\
+#define DO_ERROR(r)					\
 	do {						\
 		if (best_effort)			\
 			seen_problem = ISC_TRUE;	\
 		else {					\
-			result = DNS_R_FORMERR;		\
+			result = r;			\
 			goto cleanup;			\
 		}					\
 	} while (0)
@@ -1073,7 +1073,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 */
 		if (result != ISC_R_SUCCESS) {
 			if (!ISC_LIST_EMPTY(*section))
-				DO_FORMERR;
+				DO_ERROR(DNS_R_FORMERR);
 			ISC_LIST_APPEND(*section, name, link);
 			free_name = ISC_FALSE;
 		} else {
@@ -1102,14 +1102,14 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			msg->state = DNS_SECTION_QUESTION;
 			msg->rdclass = rdclass;
 		} else if (msg->rdclass != rdclass)
-			DO_FORMERR;
+			DO_ERROR(DNS_R_FORMERR);
 
 		/*
 		 * Can't ask the same question twice.
 		 */
 		result = dns_message_find(name, rdclass, rdtype, 0, NULL);
 		if (result == ISC_R_SUCCESS)
-			DO_FORMERR;
+			DO_ERROR(DNS_R_FORMERR);
 
 		/*
 		 * Allocate a new rdatalist.
@@ -1265,7 +1265,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		    && rdtype != dns_rdatatype_tkey /* Win2000 TKEY */
 		    && msg->rdclass != dns_rdataclass_any
 		    && msg->rdclass != rdclass)
-			DO_FORMERR;
+			DO_ERROR(DNS_R_FORMERR);
 
 		/*
 		 * Special type handling for TSIG, OPT, and TKEY.
@@ -1278,7 +1278,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			if (sectionid != DNS_SECTION_ADDITIONAL ||
 			    rdclass != dns_rdataclass_any ||
 			    count != msg->counts[sectionid]  - 1)
-				DO_FORMERR;
+				DO_ERROR(DNS_R_BADTSIG);
 			msg->sigstart = recstart;
 			skip_name_search = ISC_TRUE;
 			skip_type_search = ISC_TRUE;
@@ -1291,7 +1291,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			if (!dns_name_equal(dns_rootname, name) ||
 			    sectionid != DNS_SECTION_ADDITIONAL ||
 			    msg->opt != NULL)
-				DO_FORMERR;
+				DO_ERROR(DNS_R_FORMERR);
 			skip_name_search = ISC_TRUE;
 			skip_type_search = ISC_TRUE;
 		} else if (rdtype == dns_rdatatype_tkey) {
@@ -1310,7 +1310,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				tkeysection = DNS_SECTION_ANSWER;
 			if (sectionid != tkeysection &&
 			    sectionid != DNS_SECTION_ANSWER)
-				DO_FORMERR;
+				DO_ERROR(DNS_R_FORMERR);
 		}
 
 		/*
@@ -1370,14 +1370,14 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		    rdata->flags == 0) {
 			covers = dns_rdata_covers(rdata);
 			if (covers == 0)
-				DO_FORMERR;
+				DO_ERROR(DNS_R_FORMERR);
 		} else if (rdtype == dns_rdatatype_sig /* SIG(0) */ &&
 			   rdata->flags == 0) {
 			covers = dns_rdata_covers(rdata);
 			if (covers == 0) {
 				if (sectionid != DNS_SECTION_ADDITIONAL ||
 				    count != msg->counts[sectionid]  - 1)
-					DO_FORMERR;
+					DO_ERROR(DNS_R_BADSIG0);
 				msg->sigstart = recstart;
 				skip_name_search = ISC_TRUE;
 				skip_type_search = ISC_TRUE;
@@ -1444,7 +1444,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * the question section, fail.
 			 */
 			if (dns_rdatatype_questiononly(rdtype))
-				DO_FORMERR;
+				DO_ERROR(DNS_R_FORMERR);
 
 			rdataset = NULL;
 			result = dns_message_find(name, rdclass, rdtype,
@@ -1470,7 +1470,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				first = ISC_LIST_HEAD(rdatalist->rdata);
 				INSIST(first != NULL);
 				if (dns_rdata_compare(rdata, first) != 0)
-					DO_FORMERR;
+					DO_ERROR(DNS_R_FORMERR);
 			}
 		}
 

@@ -1,3 +1,47 @@
+4257.	[cleanup]	Python scripts reported incorrect version. [RT #41080]
+
+4256.	[bug]		Allow rndc command arguments to be quoted so as
+			to allow spaces. [RT #36665]
+
+4255.	[func]		Add 'message-compression' option to disable DNS
+			compression in responses. [RT #40726]
+
+4254.	[bug]		Address missing lock when getting zone's serial.
+			[RT #41072]
+
+4253.	[bug]		Address fetch context reference count handling error
+			on socket error.  [RT#40945]
+
+4252.	[func]		Add support for automating the generation CDS and
+			CDNSKEY rrsets to named and dnssec-signzone.
+			[RT #40424]
+
+4251.	[bug]		NTAs were deleted when the server was reconfigured
+			or reloaded. [RT #41058]
+
+4250.	[func]		Log the TSIG key in use during inbound zone
+			transfers. [RT #41075]
+
+4249.	[func]		Improve error reporting of TSIG / SIG(0) records in
+			the wrong location. [RT #41030]
+
+4248.	[func]		Add an isc_atomic_storeq() function, use it in
+			stats counters to improve performance.
+			[RT #39972] [RT #39979]
+
+4247.	[port]		Require both HAVE_JSON and JSON_C_VERSION to be
+			defined to report json library version. [RT #41045]
+
+4246.	[test]		Ensure the statschannel system test runs when BIND
+			is not built with libjson. [RT #40944]
+
+4245.	[placeholder]
+
+4244.	[bug]		The parser was not reporting that use-ixfr is obsolete.
+			[RT #41010]
+
+4243.	[func]		Improved stats reporting from Timothe Litt. [RT #38941]
+
 4242.	[bug]		Replace the client if not already replaced when
 			prefetching. [RT #41001]
 

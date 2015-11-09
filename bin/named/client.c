@@ -1065,11 +1065,16 @@ client_send(ns_client_t *client) {
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 		if (client->message->tsigkey != NULL)
 			name = &client->message->tsigkey->name;
+
 		if (client->view->nocasecompress == NULL ||
 		    !allowed(&netaddr, name, NULL, 0, NULL,
 			     client->view->nocasecompress))
 		{
 			dns_compress_setsensitive(&cctx, ISC_TRUE);
+		}
+
+		if (client->view->msgcompression == ISC_FALSE) {
+			dns_compress_disable(&cctx);
 		}
 	}
 	cleanup_cctx = ISC_TRUE;

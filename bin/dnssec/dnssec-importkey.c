@@ -68,6 +68,9 @@ static isc_boolean_t	setpub = ISC_FALSE, setdel = ISC_FALSE;
 static isc_boolean_t	setttl = ISC_FALSE;
 static isc_stdtime_t	pub = 0, del = 0;
 static dns_ttl_t	ttl = 0;
+static isc_stdtime_t	syncadd = 0, syncdel = 0;
+static isc_boolean_t	setsyncadd = ISC_FALSE;
+static isc_boolean_t	setsyncdel = ISC_FALSE;
 
 static isc_result_t
 initname(char *setname) {
@@ -236,6 +239,11 @@ emit(const char *dir, dns_rdata_t *rdata) {
 		dst_key_settime(key, DST_TIME_PUBLISH, pub);
 	if (setdel)
 		dst_key_settime(key, DST_TIME_DELETE, del);
+	if (setsyncadd)
+		dst_key_settime(key, DST_TIME_SYNCPUBLISH, syncadd);
+	if (setsyncdel)
+		dst_key_settime(key, DST_TIME_SYNCDELETE, syncdel);
+
 	if (setttl)
 		dst_key_setttl(key, ttl);
 
@@ -278,8 +286,12 @@ usage(void) {
 	fprintf(stderr, "Timing options:\n");
 	fprintf(stderr, "    -P date/[+-]offset/none: set/unset key "
 						     "publication date\n");
+	fprintf(stderr, "    -P sync date/[+-]offset/none: set/unset "
+				"CDS and CDNSKEY publication date\n");
 	fprintf(stderr, "    -D date/[+-]offset/none: set/unset key "
 						     "deletion date\n");
+	fprintf(stderr, "    -D sync date/[+-]offset/none: set/unset "
+				"CDS and CDNSKEY deletion date\n");
 
 	exit (-1);
 }
@@ -318,6 +330,18 @@ main(int argc, char **argv) {
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case 'D':
+			/* -Dsync ? */
+			if (isoptarg("sync", argv, usage)) {
+				if (setsyncdel)
+					fatal("-D sync specified more than "
+					      "once");
+
+				syncdel = strtotime(isc_commandline_argument,
+						   now, now, &setsyncdel);
+				break;
+			}
+			/* -Ddnskey ? */
+			(void)isoptarg("dnskey", argv, usage);
 			if (setdel)
 				fatal("-D specified more than once");
 
@@ -334,6 +358,18 @@ main(int argc, char **argv) {
 			setttl = ISC_TRUE;
 			break;
 		case 'P':
+			/* -Psync ? */
+			if (isoptarg("sync", argv, usage)) {
+				if (setsyncadd)
+					fatal("-P sync specified more than "
+					      "once");
+
+				syncadd = strtotime(isc_commandline_argument,
+						   now, now, &setsyncadd);
+				break;
+			}
+			/* -Pdnskey ? */
+			(void)isoptarg("dnskey", argv, usage);
 			if (setpub)
 				fatal("-P specified more than once");
 

@@ -2097,9 +2097,11 @@ then
 		    AC_MSG_RESULT(yes),
 		    AC_MSG_ERROR(xml2-config returns badness))
 	AC_DEFINE(HAVE_LIBXML2, 1, [Define if libxml2 was found])
+	XMLSTATS=1
 else
 	AC_MSG_RESULT(no)
 fi
+AC_SUBST(XMLSTATS)
 
 #
 # was --with-libjson specified?
@@ -2177,7 +2179,9 @@ then
 	then
 		AC_DEFINE(HAVE_JSON_C, 1, [Define if json-c was found])
 	fi
+	JSONSTATS=1
 fi
+AC_SUBST(JSONSTATS)
 
 #
 # was --with-zlib specified?
@@ -2231,11 +2235,14 @@ else
 	AC_MSG_RESULT(no)
 fi
 
+ZLIB=
 if test "X${have_zlib}" != "X"
 then
 	CFLAGS="$CFLAGS $zlib_cflags"
 	AC_DEFINE(HAVE_ZLIB, 1, [Define if zlib was found])
+	ZLIB=1
 fi
+AC_SUBST(ZLIB)
 
 
 #
@@ -3834,20 +3841,24 @@ if test "$have_atomic" = "yes"; then
 	ISC_PLATFORM_HAVEATOMICSTORE="#define ISC_PLATFORM_HAVEATOMICSTORE 1"
 	if test "$have_xaddq" = "yes"; then
 		ISC_PLATFORM_HAVEXADDQ="#define ISC_PLATFORM_HAVEXADDQ 1"
+		ISC_PLATFORM_HAVEATOMICSTOREQ="#define ISC_PLATFORM_HAVEATOMICSTOREQ 1"
 	else
 		ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
+		ISC_PLATFORM_HAVEATOMICSTOREQ="#undef ISC_PLATFORM_HAVEATOMICSTOREQ"
 	fi
 else
 	ISC_PLATFORM_HAVEXADD="#undef ISC_PLATFORM_HAVEXADD"
 	ISC_PLATFORM_HAVECMPXCHG="#undef ISC_PLATFORM_HAVECMPXCHG"
 	ISC_PLATFORM_HAVEATOMICSTORE="#undef ISC_PLATFORM_HAVEATOMICSTORE"
 	ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
+	ISC_PLATFORM_HAVEATOMICSTOREQ="#undef ISC_PLATFORM_HAVEATOMICSTOREQ"
 fi
 
 AC_SUBST(ISC_PLATFORM_HAVEXADD)
 AC_SUBST(ISC_PLATFORM_HAVEXADDQ)
 AC_SUBST(ISC_PLATFORM_HAVECMPXCHG)
 AC_SUBST(ISC_PLATFORM_HAVEATOMICSTORE)
+AC_SUBST(ISC_PLATFORM_HAVEATOMICSTOREQ)
 
 AC_SUBST(ISC_PLATFORM_USEGCCASM)
 AC_SUBST(ISC_PLATFORM_USEOSFASM)
@@ -4360,7 +4371,7 @@ BIND9_PRODUCT="PRODUCT=\"${PRODUCT}\""
 AC_SUBST(BIND9_PRODUCT)
 BIND9_DESCRIPTION="DESCRIPTION=\"${DESCRIPTION}\""
 AC_SUBST(BIND9_DESCRIPTION)
-BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}"
+BIND9_VERSION="${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}"
 AC_SUBST(BIND9_VERSION)
 BIND9_MAJOR="MAJOR=${MAJORVER}.${MINORVER}"
 AC_SUBST(BIND9_MAJOR)
@@ -4797,6 +4808,9 @@ AC_CONFIG_FILES([
 	contrib/scripts/zone-edit.sh
 	doc/Makefile
 	doc/arm/Makefile
+        doc/arm/noteversion.xml
+        doc/arm/pkgversion.xml
+        doc/arm/releaseinfo.xml
 	doc/doxygen/Doxyfile
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-input-filter
@@ -4913,9 +4927,9 @@ if test "$enable_full_report" = "yes"; then
     test "X$CRYPTO" = "X" -o "$want_native_pkcs11" = "yes" || \
 	    echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
     test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
-    test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
-    test "X$have_libjson" = "X" || echo "    JSON statistics (--with-libjson)"
-    test "X$have_zlib" = "X" || echo "    HTTP zlib compression (--with-zlib)"
+    test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
+    test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
+    test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 fi
 
 if test "$use_pkcs11" != "no"; then
@@ -5004,8 +5018,9 @@ test "$use_libtool" = "yes" || echo "    Use GNU libtool (--with-libtool)"
 test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
 
 test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
-test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
-test "X$have_libjson" = "X" && echo "    JSON statistics (--with-libjson)"
+test "X$XMLSTATS" = "X" && echo "    XML statistics (--with-libxml2)"
+test "X$JSONSTATS" = "X" && echo "    JSON statistics (--with-libjson)"
+test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
 
 if test "X$ac_unrecognized_opts" != "X"; then
     echo

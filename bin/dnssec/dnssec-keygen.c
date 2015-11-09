@@ -153,13 +153,18 @@ usage(void) {
 	fprintf(stderr, "Timing options:\n");
 	fprintf(stderr, "    -P date/[+-]offset/none: set key publication date "
 						"(default: now)\n");
+	fprintf(stderr, "    -P sync date/[+-]offset/none: set CDS and CDNSKEY "
+						"publication date\n");
 	fprintf(stderr, "    -A date/[+-]offset/none: set key activation date "
 						"(default: now)\n");
 	fprintf(stderr, "    -R date/[+-]offset/none: set key "
-						     "revocation date\n");
+						"revocation date\n");
 	fprintf(stderr, "    -I date/[+-]offset/none: set key "
-						     "inactivation date\n");
+						"inactivation date\n");
 	fprintf(stderr, "    -D date/[+-]offset/none: set key deletion date\n");
+	fprintf(stderr, "    -D sync date/[+-]offset/none: set CDS and CDNSKEY "
+						"deletion date\n");
+
 	fprintf(stderr, "    -G: generate key only; do not set -P or -A\n");
 	fprintf(stderr, "    -C: generate a backward-compatible key, omitting "
 			"all dates\n");
@@ -254,6 +259,9 @@ main(int argc, char **argv) {
 	isc_boolean_t	quiet = ISC_FALSE;
 	isc_boolean_t	show_progress = ISC_FALSE;
 	unsigned char	c;
+	isc_stdtime_t	syncadd = 0, syncdel = 0;
+	isc_boolean_t	setsyncadd = ISC_FALSE;
+	isc_boolean_t	setsyncdel = ISC_FALSE;
 
 	if (argc == 1)
 		usage();
@@ -409,6 +417,17 @@ main(int argc, char **argv) {
 			genonly = ISC_TRUE;
 			break;
 		case 'P':
+			/* -Psync ? */
+			if (isoptarg("sync", argv, usage)) {
+				if (setsyncadd)
+					fatal("-P sync specified more than "
+					      "once");
+
+				syncadd = strtotime(isc_commandline_argument,
+						   now, now, &setsyncadd);
+				break;
+			}
+			(void)isoptarg("dnskey", argv, usage);
 			if (setpub || unsetpub)
 				fatal("-P specified more than once");
 
@@ -441,6 +460,17 @@ main(int argc, char **argv) {
 			unsetinact = !setinact;
 			break;
 		case 'D':
+			/* -Dsync ? */
+			if (isoptarg("sync", argv, usage)) {
+				if (setsyncdel)
+					fatal("-D sync specified more than "
+					      "once");
+
+				syncdel = strtotime(isc_commandline_argument,
+						   now, now, &setsyncdel);
+				break;
+			}
+			(void)isoptarg("dnskey", argv, usage);
 			if (setdel || unsetdel)
 				fatal("-D specified more than once");
 
@@ -973,10 +1003,20 @@ main(int argc, char **argv) {
 						program);
 				dst_key_settime(key, DST_TIME_DELETE, delete);
 			}
+
+			if (setsyncadd)
+				dst_key_settime(key, DST_TIME_SYNCPUBLISH,
+						syncadd);
+
+			if (setsyncdel)
+				dst_key_settime(key, DST_TIME_SYNCDELETE,
+						syncdel);
+
 		} else {
 			if (setpub || setact || setrev || setinact ||
 			    setdel || unsetpub || unsetact ||
-			    unsetrev || unsetinact || unsetdel || genonly)
+			    unsetrev || unsetinact || unsetdel || genonly ||
+			    setsyncadd || setsyncdel)
 				fatal("cannot use -C together with "
 				      "-P, -A, -R, -I, -D, or -G options");
 			/*

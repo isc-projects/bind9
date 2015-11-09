@@ -18,12 +18,12 @@
 .\"     Title: dnssec-keyfromlabel
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2014-02-27
+.\"      Date: August 27, 2015
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "DNSSEC\-KEYFROMLABEL" "8" "2014\-02\-27" "ISC" "BIND9"
+.TH "DNSSEC\-KEYFROMLABEL" "8" "August 27, 2015" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -47,7 +47,7 @@
 dnssec-keyfromlabel \- DNSSEC key generation tool
 .SH "SYNOPSIS"
 .HP \w'\fBdnssec\-keyfromlabel\fR\ 'u
-\fBdnssec\-keyfromlabel\fR {\-l\ \fIlabel\fR} [\fB\-3\fR] [\fB\-a\ \fR\fB\fIalgorithm\fR\fR] [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-G\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-i\ \fR\fB\fIinterval\fR\fR] [\fB\-k\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-L\ \fR\fB\fIttl\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-S\ \fR\fB\fIkey\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-V\fR] [\fB\-y\fR] {name}
+\fBdnssec\-keyfromlabel\fR {\-l\ \fIlabel\fR} [\fB\-3\fR] [\fB\-a\ \fR\fB\fIalgorithm\fR\fR] [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-D\ sync\ \fR\fB\fIdate/offset\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-G\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-i\ \fR\fB\fIinterval\fR\fR] [\fB\-k\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-L\ \fR\fB\fIttl\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-P\ sync\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-S\ \fR\fB\fIkey\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-V\fR] [\fB\-y\fR] {name}
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-keyfromlabel\fR
@@ -201,6 +201,11 @@ Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS\&. If the argume
 Sets the date on which a key is to be published to the zone\&. After that date, the key will be included in the zone but will not be used to sign it\&. If not set, and if the \-G option has not been used, the default is "now"\&.
 .RE
 .PP
+\-P sync \fIdate/offset\fR
+.RS 4
+Sets the date on which the CDS and CDNSKEY records which match this key are to be published to the zone\&.
+.RE
+.PP
 \-A \fIdate/offset\fR
 .RS 4
 Sets the date on which the key is to be activated\&. After that date, the key will be included in the zone and used to sign it\&. If not set, and if the \-G option has not been used, the default is "now"\&.
@@ -219,6 +224,11 @@ Sets the date on which the key is to be retired\&. After that date, the key will
 \-D \fIdate/offset\fR
 .RS 4
 Sets the date on which the key is to be deleted\&. After that date, the key will no longer be included in the zone\&. (It may remain in the key repository, however\&.)
+.RE
+.PP
+\-D sync \fIdate/offset\fR
+.RS 4
+Sets the date on which the CDS and CDNSKEY records which match this key are to be deleted\&.
 .RE
 .PP
 \-i \fIinterval\fR

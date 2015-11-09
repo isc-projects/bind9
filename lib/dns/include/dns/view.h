@@ -143,6 +143,7 @@ struct dns_view {
 	dns_acl_t *			upfwdacl;
 	dns_acl_t *			denyansweracl;
 	dns_acl_t *			nocasecompress;
+	isc_boolean_t			msgcompression;
 	dns_rbt_t *			answeracl_exclude;
 	dns_rbt_t *			denyanswernames;
 	dns_rbt_t *			answernames_exclude;

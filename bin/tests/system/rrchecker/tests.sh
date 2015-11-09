@@ -21,15 +21,15 @@ status=0
 t=0
 
 echo "I:class list"
-$RRCHECKER -C > classlist.out 
+$RRCHECKER -C > classlist.out
 diff classlist.out classlist.good || { echo "I:failed"; status=`expr $status + 1`; }
 
 echo "I:type list"
-$RRCHECKER -T > typelist.out 
+$RRCHECKER -T > typelist.out
 diff typelist.out typelist.good || { echo "I:failed"; status=`expr $status + 1`; }
 
 echo "I:private type list"
-$RRCHECKER -P > privatelist.out 
+$RRCHECKER -P > privatelist.out
 diff privatelist.out privatelist.good || { echo "I:failed"; status=`expr $status + 1`; }
 
 myecho() {
@@ -44,7 +44,7 @@ $SHELL ../genzone.sh 0 > tempzone
 $CHECKZONE -Dq . tempzone | sed '/^;/d' |
 while read -r n tt cl ty rest
 do
- 	myecho "$cl $ty $rest" | $RRCHECKER -p > checker.out || {
+	myecho "$cl $ty $rest" | $RRCHECKER -p > checker.out || {
 		ret=1
 		echo "I: '$cl $ty $rest' not handled."
 	}
@@ -61,12 +61,12 @@ ret=0
 $CHECKZONE -Dq . tempzone | sed '/^;/d' |
 while read -r n tt cl ty rest
 do
- 	myecho "$cl $ty $rest" | $RRCHECKER -u > checker.out || {
+	myecho "$cl $ty $rest" | $RRCHECKER -u > checker.out || {
 		ret=1
 		echo "I: '$cl $ty $rest' not converted to unknown record format"
 	}
 	read -r clu tyu restu < checker.out
- 	myecho "$clu $tyu $restu" | $RRCHECKER -p > checker.out || {
+	myecho "$clu $tyu $restu" | $RRCHECKER -p > checker.out || {
 		ret=1
 		echo "I: '$cl $ty $rest' not converted back to canonical format"
 	}

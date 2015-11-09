@@ -80,6 +80,41 @@ static isc_once_t once = ISC_ONCE_INIT;
 #undef EXTENDED_STATS
 #endif
 
+#ifdef EXTENDED_STATS
+static const char *
+user_zonetype( dns_zone_t *zone ) {
+	dns_zonetype_t ztype;
+	dns_view_t *view;
+	static const struct zt {
+		const dns_zonetype_t type;
+		const char *const string;
+	} typemap[] = {
+		{ dns_zone_none, "none" },
+		{ dns_zone_master, "master" },
+		{ dns_zone_slave, "slave" },
+		{ dns_zone_stub, "stub" },
+		{ dns_zone_staticstub, "static-stub" },
+		{ dns_zone_key, "key" },
+		{ dns_zone_dlz, "dlz" },
+		{ dns_zone_redirect, "redirect" },
+		{ 0, NULL }
+	};
+	const struct zt *tp;
+
+	if ((dns_zone_getoptions2(zone) & DNS_ZONEOPT2_AUTOEMPTY) != 0)
+		return ("builtin");
+
+	view = dns_zone_getview(zone);
+	if (view != NULL && strcmp(view->name, "_bind") == 0)
+		return ("builtin");
+
+	ztype = dns_zone_gettype(zone);
+	for  (tp = typemap; tp->string != NULL && tp->type != ztype; tp++)
+		/* empty */;
+	return (tp->string);
+}
+#endif
+
 /*%
  * Statistics descriptions.  These could be statistically initialized at
  * compile time, but we configure them run time in the init_desc() function
@@ -1296,6 +1331,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
 	int xmlrc;
 	stats_dumparg_t dumparg;
+	const char *ztype;
 
 	statlevel = dns_zone_getstatlevel(zone);
 	if (statlevel == dns_zonestat_none)
@@ -1314,6 +1350,14 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	dns_rdataclass_format(rdclass, buf, sizeof(buf));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "rdataclass",
 					 ISC_XMLCHAR buf));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "type"));
+	ztype = user_zonetype(zone);
+	if (ztype != NULL)
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR ztype));
+	else
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "unknown"));
+	TRY0(xmlTextWriterEndElement(writer)); /* type */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "serial"));
 	if (dns_zone_getserial2(zone, &serial) == ISC_R_SUCCESS)
@@ -1418,6 +1462,9 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "current-time"));
 	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR nowstr));
 	TRY0(xmlTextWriterEndElement(writer));  /* current-time */
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "version"));
+	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR ns_g_version));
+	TRY0(xmlTextWriterEndElement(writer));  /* version */
 
 	if ((flags & STATS_XML_SERVER) != 0) {
 		dumparg.result = ISC_R_SUCCESS;
@@ -1896,8 +1943,8 @@ wrap_jsonfree(isc_buffer_t *buffer, void *arg) {
 }
 
 static json_object *
-addzone(char *name, char *class, isc_uint32_t serial,
-	isc_boolean_t add_serial)
+addzone(char *name, char *class, const char *ztype,
+	isc_uint32_t serial, isc_boolean_t add_serial)
 {
 	json_object *node = json_object_new_object();
 
@@ -1909,6 +1956,9 @@ addzone(char *name, char *class, isc_uint32_t serial,
 	if (add_serial)
 		json_object_object_add(node, "serial",
 				       json_object_new_int64(serial));
+	if (ztype != NULL)
+		json_object_object_add(node, "type",
+				       json_object_new_string(ztype));
 	return (node);
 }
 
@@ -1940,9 +1990,11 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	class_only = class;
 
 	if (dns_zone_getserial2(zone, &serial) != ISC_R_SUCCESS)
-		zoneobj = addzone(zone_name_only, class_only, 0, ISC_FALSE);
+		zoneobj = addzone(zone_name_only, class_only,
+				  user_zonetype(zone), 0, ISC_FALSE);
 	else
-		zoneobj = addzone(zone_name_only, class_only, serial, ISC_TRUE);
+		zoneobj = addzone(zone_name_only, class_only,
+				  user_zonetype(zone), serial, ISC_TRUE);
 
 	if (zoneobj == NULL)
 		return (ISC_R_NOMEMORY);
@@ -2057,6 +2109,9 @@ generatejson(ns_server_t *server, size_t *msglen,
 	obj = json_object_new_string(nowstr);
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "current-time", obj);
+	obj = json_object_new_string(ns_g_version);
+	CHECKMEM(obj);
+	json_object_object_add(bindstats, "version", obj);
 
 	if ((flags & STATS_JSON_SERVER) != 0) {
 		/* OPCODE counters */
@@ -2466,7 +2521,7 @@ render_json(isc_uint32_t flags,
 	json_object *bindstats = NULL;
 	ns_server_t *server = arg;
 	const char *msg = NULL;
-	size_t msglen;
+	size_t msglen = 0;
 	char *p;
 
 	UNUSED(url);

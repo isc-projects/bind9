@@ -17,7 +17,7 @@
 <!-- Converted by db4-upgrade version 1.0 -->
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="man.dnssec-settime">
   <info>
-    <date>2014-02-06</date>
+    <date>2015-08-21</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -53,10 +53,13 @@
       <arg choice="opt" rep="norepeat"><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-L <replaceable class="parameter">ttl</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-P <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-P sync <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-A <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-R <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-I <replaceable class="parameter">date/offset</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-D sync <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg><option>-D sync <replaceable class="parameter">date/offset</replaceable></option></arg>
+
       <arg choice="opt" rep="norepeat"><option>-h</option></arg>
       <arg choice="opt" rep="norepeat"><option>-V</option></arg>
       <arg choice="opt" rep="norepeat"><option>-v <replaceable class="parameter">level</replaceable></option></arg>
@@ -97,10 +100,10 @@
 
     <variablelist>
       <varlistentry>
-	<term>-f</term>
+        <term>-f</term>
         <listitem>
-	  <para>
-	    Force an update of an old-format key with no metadata fields.
+          <para>
+            Force an update of an old-format key with no metadata fields.
             Without this option, <command>dnssec-settime</command> will
             fail when attempting to update a legacy key.  With this option,
             the key will be recreated in the new format, but with the
@@ -108,7 +111,7 @@
             set to the present time.  If no other values are specified,
             then the key's publication and activation dates will also
             be set to the present time.
-	  </para>
+          </para>
         </listitem>
       </varlistentry>
 
@@ -138,20 +141,20 @@
       </varlistentry>
 
       <varlistentry>
-	<term>-h</term>
+        <term>-h</term>
         <listitem>
-	  <para>
-	    Emit usage message and exit.
-	  </para>
+          <para>
+            Emit usage message and exit.
+          </para>
         </listitem>
       </varlistentry>
 
       <varlistentry>
-	<term>-V</term>
+        <term>-V</term>
         <listitem>
-	  <para>
-	    Prints version information.
-	  </para>
+          <para>
+            Prints version information.
+          </para>
         </listitem>
       </varlistentry>
 
@@ -209,6 +212,16 @@
       </varlistentry>
 
       <varlistentry>
+        <term>-P sync <replaceable class="parameter">date/offset</replaceable></term>
+        <listitem>
+          <para>
+            Sets the date on which CDS and CDNSKEY records that match this
+            key are to be published to the zone.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>-A <replaceable class="parameter">date/offset</replaceable></term>
         <listitem>
           <para>
@@ -248,6 +261,16 @@
             Sets the date on which the key is to be deleted.  After that
             date, the key will no longer be included in the zone.  (It
             may remain in the key repository, however.)
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-D sync <replaceable class="parameter">date/offset</replaceable></term>
+        <listitem>
+          <para>
+            Sets the date on which the CDS and CDNSKEY records that match this
+            key are to be deleted.
           </para>
         </listitem>
       </varlistentry>
@@ -305,29 +328,32 @@
 
     <variablelist>
       <varlistentry>
-	<term>-u</term>
+        <term>-u</term>
         <listitem>
-	  <para>
-	    Print times in UNIX epoch format.
-	  </para>
+          <para>
+            Print times in UNIX epoch format.
+          </para>
         </listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-p <replaceable class="parameter">C/P/A/R/I/D/all</replaceable></term>
+        <term>-p <replaceable class="parameter">C/P/Psync/A/R/I/D/Dsync/all</replaceable></term>
         <listitem>
-	  <para>
-	    Print a specific metadata value or set of metadata values.
+          <para>
+            Print a specific metadata value or set of metadata values.
             The <option>-p</option> option may be followed by one or more
-            of the following letters to indicate which value or values to print:
+            of the following letters or strings to indicate which value
+            or values to print:
             <option>C</option> for the creation date,
             <option>P</option> for the publication date,
+            <option>Psync</option> for the CDS and CDNSKEY publication date,
             <option>A</option> for the activation date,
             <option>R</option> for the revocation date,
-            <option>I</option> for the inactivation date, or
-            <option>D</option> for the deletion date.
+            <option>I</option> for the inactivation date,
+            <option>D</option> for the deletion date, and
+            <option>Dsync</option> for the CDS and CDNSKEY deletion date
             To print all of the metadata, use <option>-p all</option>.
-	  </para>
+          </para>
         </listitem>
       </varlistentry>
 
