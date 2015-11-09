@@ -3658,7 +3658,7 @@ BIND9_PRODUCT="PRODUCT=\"${PRODUCT}\""
 AC_SUBST(BIND9_PRODUCT)
 BIND9_DESCRIPTION="DESCRIPTION=\"${DESCRIPTION}\""
 AC_SUBST(BIND9_DESCRIPTION)
-BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}"
+BIND9_VERSION="${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}"
 AC_SUBST(BIND9_VERSION)
 BIND9_MAJOR="MAJOR=${MAJORVER}.${MINORVER}"
 AC_SUBST(BIND9_MAJOR)
@@ -4055,6 +4055,9 @@ AC_CONFIG_FILES([
 	contrib/zone-edit.sh
 	doc/Makefile
 	doc/arm/Makefile
+        doc/arm/noteversion.xml
+        doc/arm/pkgversion.xml
+        doc/arm/releaseinfo.xml
 	doc/doxygen/Doxyfile
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-input-filter

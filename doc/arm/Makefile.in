@@ -19,10 +19,6 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_RULES@
 
-@BIND9_VERSION@
-
-PKGVERSION = @PACKAGE_VERSION@
-
 MANOBJS = Bv9ARM.html notes.html
 
 PDFOBJS = Bv9ARM.pdf notes.pdf
@@ -64,14 +60,3 @@ Bv9ARM.pdf: Bv9ARM-book.xml releaseinfo.xml pkgversion.xml noteversion.xml
 	expand Bv9ARM-book.xml | \
 	${XSLTPROC} ${top_srcdir}/doc/xsl/pre-latex.xsl - | \
 	${DBLATEX} -c Bv9ARM.conf -o Bv9ARM.pdf -
-
-FORCE:
-
-releaseinfo.xml: FORCE
-	echo >$@ '<releaseinfo>BIND Version ${VERSION}</releaseinfo>'
-
-noteversion.xml: FORCE
-	echo >$@ '<title>Release Notes for BIND Version ${VERSION}</title>'
-
-pkgversion.xml: FORCE
-	echo >$@ '      <para>This version of the manual corresponds to BIND version ${PKGVERSION}.</para>'

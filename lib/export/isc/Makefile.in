@@ -18,7 +18,7 @@ top_srcdir =	@top_srcdir@
 srcdir =	@top_srcdir@/lib/isc
 export_srcdir =	@top_srcdir@/lib/export
 
-@BIND9_VERSION@
+VERSION=@BIND9_VERSION@
 
 @LIBISC_API@
 

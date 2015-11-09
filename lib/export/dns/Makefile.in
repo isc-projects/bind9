@@ -22,7 +22,7 @@ export_srcdir =	@top_srcdir@/lib/export
 .NOTPARALLEL:
 .NO_PARALLEL:
 
-@BIND9_VERSION@
+VERSION=@BIND9_VERSION@
 
 @LIBDNS_API@
 
