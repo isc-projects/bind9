@@ -1344,13 +1344,13 @@ controls {
 	protocol is specified in RFC 1996.
       </para>
 
-      <note>
+      <note><simpara>
 	As a slave zone can also be a master to other slaves, <command>named</command>,
 	by default, sends <command>NOTIFY</command> messages for every zone
 	it loads.  Specifying <command>notify master-only;</command> will
 	cause <command>named</command> to only send <command>NOTIFY</command> for master
 	zones that it loads.
-      </note>
+      </simpara></note>
 
     </section>
 
@@ -2320,10 +2320,10 @@ options {
 };
 </programlisting>
 
-	<note>
+	<note><simpara>
 	  None of the keys listed in this example are valid.  In particular,
 	  the root key is not valid.
-	</note>
+	</simpara></note>
 
 	<para>
 	  When DNSSEC validation is enabled and properly configured,
@@ -7607,14 +7607,14 @@ avoid-v6-udp-ports {};
 		  <command>use-alt-transfer-source</command> is
 		  set.
 		</para>
-		<note>
+		<note><simpara>
 		  If you do not wish the alternate transfer source
 		  to be used, you should set
 		  <command>use-alt-transfer-source</command>
 		  appropriately and you should not depend upon
 		  getting an answer back to the first refresh
 		  query.
-		</note>
+		</simpara></note>
 	      </listitem>
 	    </varlistentry>
 
@@ -9141,12 +9141,12 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    to be deployed to channel the query load away from the
 	    infrastructure servers.
 	  </para>
-	  <note>
+	  <note><simpara>
 	    The real parent servers for these zones should disable all
 	    empty zone under the parent zone they serve.  For the real
 	    root servers, this is all built-in empty zones.  This will
 	    enable them to return referrals to deeper in the tree.
-	  </note>
+	  </simpara></note>
 	  <variablelist>
 	    <varlistentry>
 	      <term><command>empty-server</command></term>
@@ -16348,11 +16348,11 @@ zone "example.com" {
 	    to which you want <acronym>BIND</acronym>
 	    to write.
 	  </para>
-	  <note>
-	    Note that if the <command>named</command> daemon is running as an
+	  <note><simpara>
+	    If the <command>named</command> daemon is running as an
 	    unprivileged user, it will not be able to bind to new restricted
 	    ports if the server is reloaded.
-	  </note>
+	  </simpara></note>
 	</section>
       </section>
 
