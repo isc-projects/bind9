@@ -34,7 +34,7 @@ clean::
 docclean manclean maintainer-clean:: clean
 	rm -f *.html ${PDFOBJS}
 
-docclean manclean maintainer-clean distclean::
+maintainer-clean distclean::
 	rm -f releaseinfo.xml
 	rm -f pkgversion.xml
 	rm -f noteversion.xml
