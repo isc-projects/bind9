@@ -102,6 +102,7 @@ struct controllistener {
 	isc_uint32_t			perm;
 	isc_uint32_t			owner;
 	isc_uint32_t			group;
+	isc_boolean_t			readonly;
 	ISC_LINK(controllistener_t)	link;
 };
 
@@ -459,7 +460,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 			isc_random_get(&conn->nonce);
 		eresult = ISC_R_SUCCESS;
 	} else
-		eresult = ns_control_docommand(request, &text);
+		eresult = ns_control_docommand(request, listener->readonly, &text);
 
 	result = isccc_cc_createresponse(request, now, now + 60, &response);
 	if (result != ISC_R_SUCCESS)
@@ -1054,6 +1055,14 @@ update_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		result = dns_acl_any(listener->mctx, &new_acl);
 	}
 
+	if (control != NULL) {
+		const cfg_obj_t *readonly;
+
+		readonly = cfg_tuple_get(control, "read-only");
+		if (!cfg_obj_isvoid(readonly))
+			listener->readonly = cfg_obj_asboolean(readonly);
+	}
+
 	if (result == ISC_R_SUCCESS) {
 		dns_acl_detach(&listener->acl);
 		dns_acl_attach(new_acl, &listener->acl);
@@ -1126,6 +1135,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		listener->perm = 0;
 		listener->owner = 0;
 		listener->group = 0;
+		listener->readonly = ISC_FALSE;
 		ISC_LINK_INIT(listener, link);
 		ISC_LIST_INIT(listener->keys);
 		ISC_LIST_INIT(listener->connections);
@@ -1141,6 +1151,14 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		} else {
 			result = dns_acl_any(mctx, &new_acl);
 		}
+	}
+
+	if ((result == ISC_R_SUCCESS) && (control != NULL)) {
+		const cfg_obj_t *readonly;
+
+		readonly = cfg_tuple_get(control, "read-only");
+		if (!cfg_obj_isvoid(readonly))
+			listener->readonly = cfg_obj_asboolean(readonly);
 	}
 
 	if (result == ISC_R_SUCCESS) {

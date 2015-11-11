@@ -1,3 +1,9 @@
+4259.	[func]		Add an option for non-destructive control channel
+			access using a "read-only" clause. In such
+			cases, a restricted set of rndc commands are
+			allowed for querying information from named.
+			[RT #40498]
+
 4258.	[bug]		Limit rndc query message sizes to 32 KiB. This should
 			not break any legitimate rndc commands, but will
 			prevent a rogue rndc query from allocating too

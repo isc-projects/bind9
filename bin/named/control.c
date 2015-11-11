@@ -76,7 +76,9 @@ command_compare(const char *str, const char *command) {
  * when a control channel message is received.
  */
 isc_result_t
-ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t **text) {
+ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
+		     isc_buffer_t **text)
+{
 	isccc_sexpr_t *data;
 	char *cmdline = NULL;
 	char *command = NULL;
@@ -122,10 +124,32 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t **text) {
 	 * Compare the 'command' parameter against all known control commands.
 	 */
 	if (command_compare(command, NS_COMMAND_NULL) ||
-	    command_compare(command, NS_COMMAND_STATUS)) {
+	    command_compare(command, NS_COMMAND_STATUS))
+	{
 		log_level = ISC_LOG_DEBUG(1);
 	} else {
 		log_level = ISC_LOG_INFO;
+	}
+
+	/*
+	 * If this listener should have read-only access, reject
+	 * restricted commands here. rndc nta is handled specially
+	 * below.
+	 */
+	if (readonly &&
+	    !command_compare(command, NS_COMMAND_NTA) &&
+	    !command_compare(command, NS_COMMAND_NULL) &&
+	    !command_compare(command, NS_COMMAND_STATUS) &&
+	    !command_compare(command, NS_COMMAND_SHOWZONE) &&
+	    !command_compare(command, NS_COMMAND_TESTGEN) &&
+	    !command_compare(command, NS_COMMAND_ZONESTATUS))
+	{
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_CONTROL, log_level,
+			      "rejecting restricted control channel "
+			      "command '%s'", command);
+		result = ISC_R_FAILURE;
+		goto cleanup;
 	}
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
@@ -252,7 +276,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t **text) {
 	} else if (command_compare(command, NS_COMMAND_ZONESTATUS)) {
 		result = ns_server_zonestatus(ns_g_server, lex, text);
 	} else if (command_compare(command, NS_COMMAND_NTA)) {
-		result = ns_server_nta(ns_g_server, lex, text);
+		result = ns_server_nta(ns_g_server, lex, readonly, text);
 	} else if (command_compare(command, NS_COMMAND_TESTGEN)) {
 		result = ns_server_testgen(lex, text);
 	} else if (command_compare(command, NS_COMMAND_MKEYS)) {

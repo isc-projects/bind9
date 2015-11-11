@@ -10957,7 +10957,9 @@ argcheck(char *cmd, const char *full) {
 }
 
 isc_result_t
-ns_server_nta(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
+ns_server_nta(ns_server_t *server, isc_lex_t *lex, isc_boolean_t readonly,
+	      isc_buffer_t **text)
+{
 	dns_view_t *view;
 	dns_ntatable_t *ntatable = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -11045,6 +11047,14 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		CHECK(putnull(text));
 
 		goto cleanup;
+	}
+
+	if (readonly) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_CONTROL, ISC_LOG_INFO,
+			      "rejecting restricted control channel "
+			      "NTA command");
+		CHECK(ISC_R_FAILURE);
 	}
 
 	/* Get the NTA name. */
