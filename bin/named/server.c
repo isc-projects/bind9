@@ -8672,6 +8672,9 @@ ns_server_rekey(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	char *ptr;
 
 	ptr = next_token(lex, text);
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
 	if (strcasecmp(ptr, NS_COMMAND_SIGN) == 0)
 		fullsign = ISC_TRUE;
 
