@@ -513,6 +513,14 @@
 	  may improve throughput.  The default is <userinput>yes</userinput>.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  A "read-only" clause is now available for non-destructive
+	  control channel access. In such cases, a restricted set of
+	  rndc commands are allowed for querying information from named.
+	  By default, control channel access is read-write.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
