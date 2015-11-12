@@ -983,10 +983,12 @@
 <pre class="programlisting"><span class="command"><strong>controls</strong></span> {
    [ inet ( ip_addr | * ) [ port ip_port ]
                 allow { <em class="replaceable"><code> address_match_list </code></em> }
-                keys { <em class="replaceable"><code>key_list</code></em> }; ]
+                [ keys { <em class="replaceable"><code>key_list</code></em> } ]
+                [ read-only <em class="replaceable"><code>yes_or_no</code></em> ] ; ]
    [ inet ...; ]
    [ unix <em class="replaceable"><code>path</code></em> perm <em class="replaceable"><code>number</code></em> owner <em class="replaceable"><code>number</code></em> group <em class="replaceable"><code>number</code></em>
-     keys { <em class="replaceable"><code>key_list</code></em> }; ]
+                [ keys { <em class="replaceable"><code>key_list</code></em> } ]
+                [ read-only <em class="replaceable"><code>yes_or_no</code></em> ] ; ]
    [ unix ...; ]
 };
 </pre>
@@ -1046,6 +1048,16 @@
           is authorized to execute commands over the control channel.
           See <a class="xref" href="Bv9ARM.ch03.html#rndc">Remote Name Daemon Control application</a> in <a class="xref" href="Bv9ARM.ch03.html#admin_tools" title="Administrative Tools">the section called &#8220;Administrative Tools&#8221;</a>)
           for information about configuring keys in <span class="command"><strong>rndc</strong></span>.
+        </p>
+<p>
+          If the <span class="command"><strong>read-only</strong></span> clause is enabled, the
+          control channel is limited to the following set of read-only
+          commands: <span class="command"><strong>nta -dump</strong></span>,
+          <span class="command"><strong>null</strong></span>, <span class="command"><strong>status</strong></span>,
+          <span class="command"><strong>showzone</strong></span>, <span class="command"><strong>testgen</strong></span>, and
+          <span class="command"><strong>zonestatus</strong></span>. By default,
+          <span class="command"><strong>read-only</strong></span> is not enabled and the control
+          channel allows read-write access.
         </p>
 <p>
           If no <span class="command"><strong>controls</strong></span> statement is present,
