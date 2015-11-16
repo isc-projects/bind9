@@ -184,7 +184,7 @@ iterate_node(lwres_grbnresponse_t *grbn, dns_db_t *db, dns_dbnode_t *node,
 	if (oldlens != NULL)
 		isc_mem_put(mctx, oldlens, oldsize * sizeof(*oldlens));
 	if (newrdatas != NULL)
-		isc_mem_put(mctx, newrdatas, used * sizeof(*oldrdatas));
+		isc_mem_put(mctx, newrdatas, used * sizeof(*newrdatas));
 	return (result);
 }
 
