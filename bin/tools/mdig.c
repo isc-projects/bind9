@@ -619,7 +619,8 @@ sendquery(struct query *query, isc_task_t *task)
 				isc_buffer_putuint8(&b, 0);
 				/* address */
 				if (addrl > 0) {
-					isc_buffer_putmem(&b, addr, addrl - 1);
+					isc_buffer_putmem(&b, addr,
+							  (unsigned)addrl - 1);
 					isc_buffer_putuint8(&b,
 							    (addr[addrl - 1] &
 							     mask));
@@ -635,7 +636,8 @@ sendquery(struct query *query, isc_task_t *task)
 				isc_buffer_putuint8(&b, 0);
 				/* address */
 				if (addrl > 0) {
-					isc_buffer_putmem(&b, addr, addrl - 1);
+					isc_buffer_putmem(&b, addr,
+							  (unsigned)addrl - 1);
 					isc_buffer_putuint8(&b,
 							    (addr[addrl - 1] &
 							     mask));

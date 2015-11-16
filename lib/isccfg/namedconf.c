@@ -2170,7 +2170,7 @@ parse_sizeval_percent(cfg_parser_t *pctx, const cfg_type_t *type,
 	isc_result_t  result;
 	cfg_obj_t *obj = NULL;
 	isc_uint64_t val;
-	isc_uint32_t percent;
+	isc_uint64_t percent;
 
 	UNUSED(type);
 
@@ -2184,7 +2184,7 @@ parse_sizeval_percent(cfg_parser_t *pctx, const cfg_type_t *type,
 
 	if (*endp == '%' && *(endp+1) == 0) {
 		CHECK(cfg_create_obj(pctx, &cfg_type_percentage, &obj));
-		obj->value.uint32 = percent;
+		obj->value.uint32 = (isc_uint32_t)percent;
 		*ret = obj;
 		return (ISC_R_SUCCESS);
 	} else {
@@ -2603,10 +2603,21 @@ static cfg_type_t cfg_type_controls_keys = {
 	&cfg_rep_list, &controls_keys_kw
 };
 
+static keyword_type_t controls_readonly_kw = {
+	"read-only", &cfg_type_boolean
+};
+
+static cfg_type_t cfg_type_controls_readonly = {
+	"controls_readonly", parse_optional_keyvalue,
+	print_keyvalue, doc_optional_keyvalue,
+	&cfg_rep_boolean, &controls_readonly_kw
+};
+
 static cfg_tuplefielddef_t inetcontrol_fields[] = {
 	{ "address", &cfg_type_controls_sockaddr, 0 },
 	{ "allow", &cfg_type_controls_allow, 0 },
 	{ "keys", &cfg_type_controls_keys, 0 },
+	{ "read-only", &cfg_type_controls_readonly, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -2648,6 +2659,7 @@ static cfg_tuplefielddef_t unixcontrol_fields[] = {
 	{ "owner", &cfg_type_controls_owner, 0 },
 	{ "group", &cfg_type_controls_group, 0 },
 	{ "keys", &cfg_type_controls_keys, 0 },
+	{ "read-only", &cfg_type_controls_readonly, 0 },
 	{ NULL, NULL, 0 }
 };
 

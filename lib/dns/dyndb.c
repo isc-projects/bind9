@@ -225,7 +225,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DYNDB,
 		      ISC_LOG_ERROR,
-		      "dynamic database support is not implemented")
+		      "dynamic database support is not implemented");
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -233,18 +233,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 static void
 unload_library(dyndb_implementation_t **impp)
 {
-	dyndb_implementation_t *imp;
-
-	REQUIRE(impp != NULL && *impp != NULL);
-
-	imp = *impp;
-
-	if (imp->handle != NULL)
-		dlclose(imp->handle);
-
-	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dyndb_implementation_t));
-
-	*impp = NULL;
+	UNUSED(impp);
 }
 #endif	/* HAVE_DLFCN_H */
 

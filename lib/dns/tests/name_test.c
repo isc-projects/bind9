@@ -182,7 +182,7 @@ ATF_TC_BODY(compression, tc) {
 	unsigned char plain[] = "\003yyy\003foo\0\003bar\003yyy\003foo\0\003"
 				"bar\003yyy\003foo\0\003xxx\003bar\003foo";
 
-	dns_test_begin(NULL, ISC_FALSE);
+	ATF_REQUIRE_EQ(dns_test_begin(NULL, ISC_FALSE), ISC_R_SUCCESS);;
 
 	dns_name_init(&name1, NULL);
 	r.base = plain1;

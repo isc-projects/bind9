@@ -262,7 +262,6 @@ isc_hash_ctxdetach
 isc_hash_ctxinit
 isc_hash_destroy
 isc_hash_init
-isc_hashctx
 isc_heap_create
 isc_heap_decreased
 isc_heap_delete
@@ -779,5 +778,6 @@ isc_commandline_index		DATA
 isc_commandline_option		DATA
 isc_commandline_progname	DATA
 isc_commandline_reset		DATA
+isc_hashctx			DATA
 isc_mem_debugging		DATA
 @END NOLONGER

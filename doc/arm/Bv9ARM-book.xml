@@ -3424,10 +3424,12 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 <programlisting><command>controls</command> {
    [ inet ( ip_addr | * ) [ port ip_port ]
 		allow { <replaceable> address_match_list </replaceable> }
-		keys { <replaceable>key_list</replaceable> }; ]
+		[ keys { <replaceable>key_list</replaceable> } ]
+		[ read-only <replaceable>yes_or_no</replaceable> ] ; ]
    [ inet ...; ]
    [ unix <replaceable>path</replaceable> perm <replaceable>number</replaceable> owner <replaceable>number</replaceable> group <replaceable>number</replaceable>
-     keys { <replaceable>key_list</replaceable> }; ]
+		[ keys { <replaceable>key_list</replaceable> } ]
+		[ read-only <replaceable>yes_or_no</replaceable> ] ; ]
    [ unix ...; ]
 };
 </programlisting>
@@ -3493,6 +3495,17 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	  is authorized to execute commands over the control channel.
 	  See <xref linkend="rndc"/> in <xref linkend="admin_tools"/>)
 	  for information about configuring keys in <command>rndc</command>.
+	</para>
+
+	<para>
+	  If the <command>read-only</command> clause is enabled, the
+	  control channel is limited to the following set of read-only
+	  commands: <command>nta -dump</command>,
+	  <command>null</command>, <command>status</command>,
+	  <command>showzone</command>, <command>testgen</command>, and
+	  <command>zonestatus</command>. By default,
+	  <command>read-only</command> is not enabled and the control
+	  channel allows read-write access.
 	</para>
 
 	<para>

@@ -446,6 +446,8 @@ msginit(dns_message_t *m) {
 	m->free_saved = 0;
 	m->cc_ok = 0;
 	m->cc_bad = 0;
+	m->tkey = 0;
+	m->rdclass_set = 0;
 	m->querytsig = NULL;
 }
 
@@ -1098,11 +1100,17 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * If this class is different than the one we already read,
 		 * this is an error.
 		 */
-		if (msg->state == DNS_SECTION_ANY) {
-			msg->state = DNS_SECTION_QUESTION;
+		if (msg->rdclass_set == 0) {
 			msg->rdclass = rdclass;
+			msg->rdclass_set = 1;
 		} else if (msg->rdclass != rdclass)
 			DO_ERROR(DNS_R_FORMERR);
+
+		/*
+		 * Is this a TKEY query?
+		 */
+		if (rdtype == dns_rdatatype_tkey)
+			msg->tkey = 1;
 
 		/*
 		 * Can't ask the same question twice.
@@ -1245,12 +1253,12 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * If there was no question section, we may not yet have
 		 * established a class.  Do so now.
 		 */
-		if (msg->state == DNS_SECTION_ANY &&
+		if (msg->rdclass_set == 0 &&
 		    rdtype != dns_rdatatype_opt &&	/* class is UDP SIZE */
 		    rdtype != dns_rdatatype_tsig &&	/* class is ANY */
 		    rdtype != dns_rdatatype_tkey) {	/* class is undefined */
 			msg->rdclass = rdclass;
-			msg->state = DNS_SECTION_QUESTION;
+			msg->rdclass_set = 1;
 		}
 
 		/*
@@ -1260,11 +1268,21 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (msg->opcode != dns_opcode_update
 		    && rdtype != dns_rdatatype_tsig
 		    && rdtype != dns_rdatatype_opt
-		    && rdtype != dns_rdatatype_dnskey /* in a TKEY query */
+		    && rdtype != dns_rdatatype_key /* in a TKEY query */
 		    && rdtype != dns_rdatatype_sig /* SIG(0) */
 		    && rdtype != dns_rdatatype_tkey /* Win2000 TKEY */
 		    && msg->rdclass != dns_rdataclass_any
 		    && msg->rdclass != rdclass)
+			DO_ERROR(DNS_R_FORMERR);
+
+		/*
+		 * If this is not a TKEY query/response then the KEY
+		 * record's class needs to match.
+		 */
+		if (msg->opcode != dns_opcode_update && !msg->tkey &&
+		    rdtype == dns_rdatatype_key &&
+		    msg->rdclass != dns_rdataclass_any &&
+		    msg->rdclass != rdclass)
 			DO_ERROR(DNS_R_FORMERR);
 
 		/*
@@ -1382,6 +1400,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				skip_name_search = ISC_TRUE;
 				skip_type_search = ISC_TRUE;
 				issigzero = ISC_TRUE;
+			} else {
+				if (msg->rdclass != dns_rdataclass_any &&
+				    msg->rdclass != rdclass)
+					DO_ERROR(DNS_R_FORMERR);
 			}
 		} else
 			covers = 0;
@@ -1626,6 +1648,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	msg->counts[DNS_SECTION_ADDITIONAL] = isc_buffer_getuint16(source);
 
 	msg->header_ok = 1;
+	msg->state = DNS_SECTION_QUESTION;
 
 	/*
 	 * -1 means no EDNS.
@@ -3806,4 +3829,16 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	if (rdatalist != NULL)
 		dns_message_puttemprdatalist(message, &rdatalist);
 	return (result);
+}
+
+void
+dns_message_setclass(dns_message_t *msg, dns_rdataclass_t rdclass) {
+
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTPARSE);
+	REQUIRE(msg->state == DNS_SECTION_ANY);
+	REQUIRE(msg->rdclass_set == 0);
+
+	msg->rdclass = rdclass;
+	msg->rdclass_set = 1;
 }

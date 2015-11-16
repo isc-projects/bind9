@@ -433,4 +433,12 @@ sleep 1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:test read-only control channel access"
+ret=0
+$RNDC -s 10.53.0.5 -p 9953 -c ../common/rndc.conf status > /dev/null 2>&1 || ret=1
+$RNDC -s 10.53.0.5 -p 9953 -c ../common/rndc.conf nta -dump > /dev/null 2>&1 || ret=1
+$RNDC -s 10.53.0.5 -p 9953 -c ../common/rndc.conf reconfig > /dev/null 2>&1 && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 exit $status

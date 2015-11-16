@@ -331,7 +331,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 		isc_buffer_add(&buf, 1);
 
 		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0) {
-			size_t ilen = strlen(dns_master_indentstr);
+			unsigned int ilen = strlen(dns_master_indentstr);
 			isc_buffer_availableregion(&buf, &r);
 			if (r.length < ilen)
 				return (DNS_R_TEXTTOOLONG);

@@ -718,11 +718,12 @@ isc_result_t
 ns_server_zonestatus(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text);
 
 /*%
- * Adds a Negative Trust Anchor (NTA) for a specified name and
+ * Adds/updates a Negative Trust Anchor (NTA) for a specified name and
  * duration, in a particular view if specified, or in all views.
  */
 isc_result_t
-ns_server_nta(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text);
+ns_server_nta(ns_server_t *server, isc_lex_t *lex, isc_boolean_t readonly,
+	      isc_buffer_t **text);
 
 /*%
  * Generates a test sequence that is only for use in system tests. The

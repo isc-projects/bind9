@@ -44,6 +44,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Insufficient testing when parsing a message allowed
+	  records with an incorrect class to be be accepted,
+	  triggering a REQUIRE failure when those records
+	  were subsequently cached.  This flaw is disclosed
+	  in CVE-2015-8000. [RT #4098]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  An incorrect boundary check in the OPENPGPKEY rdatatype
 	  could trigger an assertion failure. This flaw is disclosed
 	  in CVE-2015-5986. [RT #40286]
@@ -511,6 +520,14 @@
 	  answering queries. Setting this to <userinput>no</userinput>
 	  results in larger responses, but reduces CPU consumption and
 	  may improve throughput.  The default is <userinput>yes</userinput>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  A "read-only" clause is now available for non-destructive
+	  control channel access. In such cases, a restricted set of
+	  rndc commands are allowed for querying information from named.
+	  By default, control channel access is read-write.
 	</para>
       </listitem>
     </itemizedlist>
