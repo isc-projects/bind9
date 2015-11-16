@@ -466,6 +466,7 @@ dns_message_reply
 dns_message_reset
 dns_message_resetsig
 dns_message_sectiontotext
+dns_message_setclass
 dns_message_setopt
 dns_message_setquerytsig
 dns_message_setsig0key
