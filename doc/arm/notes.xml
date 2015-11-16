@@ -42,6 +42,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Insufficient testing when parsing a message allowed
+	  records with an incorrect class to be be accepted,
+	  triggering a REQUIRE failure when those records
+	  were subsequently cached.  This flaw is disclosed
+	  in CVE-2015-8000. [RT #4098]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  An incorrect boundary check in the OPENPGPKEY rdatatype
 	  could trigger an assertion failure. This flaw is disclosed
 	  in CVE-2015-5986. [RT #40286]

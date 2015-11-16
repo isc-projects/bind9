@@ -7403,8 +7403,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
+	dns_message_setclass(message, res->rdclass);
+
 	if ((options & DNS_FETCHOPT_TCP) == 0)
 		dns_adb_plainresponse(fctx->adb, query->addrinfo);
+
 	result = dns_message_parse(message, &devent->buffer, 0);
 	if (result != ISC_R_SUCCESS) {
 		FCTXTRACE3("message failed to parse", result);
@@ -7476,6 +7479,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 * Log the incoming packet.
 	 */
 	log_packet(message, ISC_LOG_DEBUG(10), res->mctx);
+
+	if (message->rdclass != res->rdclass) {
+		resend = ISC_TRUE;
+		FCTXTRACE("bad class");
+		goto done;
+	}
 
 	/*
 	 * Process receive opt record.
