@@ -68,6 +68,7 @@ my $NAMED = $ENV{'NAMED'};
 my $LWRESD = $ENV{'LWRESD'};
 my $DIG = $ENV{'DIG'};
 my $PERL = $ENV{'PERL'};
+my $PYTHON = $ENV{'PYTHON'};
 
 # Start the server(s)
 
@@ -233,7 +234,9 @@ sub start_server {
 		$pid_file = "lwresd.pid";
 	} elsif ($server =~ /^ans/) {
 		$cleanup_files = "{ans.run}";
-                if (-e "$testdir/$server/ans.pl") {
+                if (-e "$testdir/$server/ans.py") {
+                        $command = "$PYTHON ans.py 10.53.0.$' 5300";
+                } elsif (-e "$testdir/$server/ans.pl") {
                         $command = "$PERL ans.pl";
                 } else {
                         $command = "$PERL $topdir/ans.pl 10.53.0.$'";

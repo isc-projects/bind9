@@ -7687,6 +7687,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
+	dns_message_setclass(message, res->rdclass);
+
 	if ((options & DNS_FETCHOPT_TCP) == 0) {
 		if ((options & DNS_FETCHOPT_NOEDNS0) == 0)
 			dns_adb_setudpsize(fctx->adb, query->addrinfo,
@@ -7769,6 +7771,13 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 &dns_master_style_comment,
 				 ISC_LOG_DEBUG(10),
 				 res->mctx);
+
+	if (message->rdclass != res->rdclass) {
+		resend = ISC_TRUE;
+		FCTXTRACE("bad class");
+		goto done;
+	}
+
 	/*
 	 * Process receive opt record.
 	 */
