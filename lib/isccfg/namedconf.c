@@ -2170,7 +2170,7 @@ parse_sizeval_percent(cfg_parser_t *pctx, const cfg_type_t *type,
 	isc_result_t  result;
 	cfg_obj_t *obj = NULL;
 	isc_uint64_t val;
-	isc_uint32_t percent;
+	isc_uint64_t percent;
 
 	UNUSED(type);
 
@@ -2184,7 +2184,7 @@ parse_sizeval_percent(cfg_parser_t *pctx, const cfg_type_t *type,
 
 	if (*endp == '%' && *(endp+1) == 0) {
 		CHECK(cfg_create_obj(pctx, &cfg_type_percentage, &obj));
-		obj->value.uint32 = percent;
+		obj->value.uint32 = (isc_uint32_t)percent;
 		*ret = obj;
 		return (ISC_R_SUCCESS);
 	} else {

@@ -2860,7 +2860,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 	if (max_cache_size == SIZE_AS_PERCENT) {
 		isc_uint64_t totalphys = isc_meminfo_totalphys();
-		max_cache_size = totalphys * max_cache_size_percent/100;
+
+		max_cache_size =
+			(size_t) (totalphys * max_cache_size_percent/100);
 		if (totalphys == 0) {
 			cfg_obj_log(obj, ns_g_lctx,
 				ISC_LOG_WARNING,
@@ -2871,10 +2873,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			cfg_obj_log(obj, ns_g_lctx,
 				ISC_LOG_INFO,
 				"'max-cache-size %d%%' "
-				"- setting to %zuMB (out of %luMB)",
+				"- setting to %zuMB (out of %zuMB)",
 				max_cache_size_percent,
 				max_cache_size / (1024*1024),
-				(unsigned long) totalphys / (1024*1024));
+				(size_t) (totalphys / (1024*1024)));
 		}
 	}
 

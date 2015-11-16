@@ -1178,7 +1178,7 @@ client_send(ns_client_t *client) {
 #endif /* HAVE_DNSTAP */
 
 		isc_stats_increment(ns_g_server->tcpoutstats,
-				    ISC_MIN(respsize / 16, 256));
+				    ISC_MIN((int)respsize / 16, 256));
 	} else {
 		respsize = isc_buffer_usedlength(&buffer);
 		result = client_sendpkg(client, &buffer);
@@ -1192,7 +1192,7 @@ client_send(ns_client_t *client) {
 #endif /* HAVE_DNSTAP */
 
 		isc_stats_increment(ns_g_server->udpoutstats,
-				    ISC_MIN(respsize / 16, 256));
+				    ISC_MIN((int)respsize / 16, 256));
 	}
 
 	/* update statistics (XXXJT: is it okay to access message->xxxkey?) */
@@ -1736,7 +1736,7 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 		isc_netaddr_t netaddr;
 		unsigned char *cp;
 		isc_hmacsha1_t hmacsha1;
-		size_t length;
+		unsigned int length;
 
 		cp = isc_buffer_used(buf);
 		isc_buffer_putmem(buf, client->cookie, 8);
@@ -1774,7 +1774,7 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 		isc_netaddr_t netaddr;
 		unsigned char *cp;
 		isc_hmacsha256_t hmacsha256;
-		size_t length;
+		unsigned int length;
 
 		cp = isc_buffer_used(buf);
 		isc_buffer_putmem(buf, client->cookie, 8);
@@ -2261,10 +2261,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_requesttcp);
 		isc_stats_increment(ns_g_server->tcpinstats,
-				    ISC_MIN(reqsize / 16, 18));
+				    ISC_MIN((int)reqsize / 16, 18));
 	} else {
 		isc_stats_increment(ns_g_server->udpinstats,
-				    ISC_MIN(reqsize / 16, 18));
+				    ISC_MIN((int)reqsize / 16, 18));
 	}
 
 	/*
