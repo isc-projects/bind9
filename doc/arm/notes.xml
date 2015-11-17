@@ -48,7 +48,7 @@
 	  records with an incorrect class to be be accepted,
 	  triggering a REQUIRE failure when those records
 	  were subsequently cached.  This flaw is disclosed
-	  in CVE-2015-8000. [RT #4098]
+	  in CVE-2015-8000. [RT #40987]
 	</para>
       </listitem>
       <listitem>

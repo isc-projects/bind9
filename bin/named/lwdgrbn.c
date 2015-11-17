@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009, 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2013-2015  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -184,7 +184,7 @@ iterate_node(lwres_grbnresponse_t *grbn, dns_db_t *db, dns_dbnode_t *node,
 	if (oldlens != NULL)
 		isc_mem_put(mctx, oldlens, oldsize * sizeof(*oldlens));
 	if (newrdatas != NULL)
-		isc_mem_put(mctx, newrdatas, used * sizeof(*oldrdatas));
+		isc_mem_put(mctx, newrdatas, used * sizeof(*newrdatas));
 	return (result);
 }
 
