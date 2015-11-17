@@ -1,4 +1,4 @@
-4261.	[maint]         H.ROOT-SERVERS.NET is 198.97.190.53 and 2001:500:1::53.
+4261.	[maint]		H.ROOT-SERVERS.NET is 198.97.190.53 and 2001:500:1::53.
 			[RT #40556]
 
 4260.	[security]	Insufficient testing when parsing a message allowed
