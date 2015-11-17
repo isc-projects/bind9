@@ -51,6 +51,12 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.10.4
+
+	BIND 9.10.4 is a maintenance release and addresses bugs
+	found in BIND 9.10.3 and earlier, as well as the security
+	flaw described in CVE-2015-8000.
+
 BIND 9.10.3
 
 	BIND 9.10.3 is a maintenance release and addresses bugs
