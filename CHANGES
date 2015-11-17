@@ -1,3 +1,5 @@
+	--- 9.10.3-P1 released ---
+
 4260.	[security]	Insufficient testing when parsing a message allowed
 			records with an incorrect class to be be accepted,
 			triggering a REQUIRE failure when those records
