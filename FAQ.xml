@@ -220,7 +220,7 @@ view "chaos" chaos {
       <answer>
 	<para>
 	  This may be a clock skew problem.  Check that the the clocks
-	  on the client and server are properly synchronised (e.g.,
+	  on the client and server are properly synchronized (e.g.,
 	  using ntp).
 	</para>
       </answer>
