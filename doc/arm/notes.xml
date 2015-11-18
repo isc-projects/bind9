@@ -166,6 +166,11 @@
 
     <itemizedlist>
       <listitem>
+        <para>
+	  Updated the complied in addresses for H.ROOT-SERVERS.NET.
+	</para>
+      </listitem>
+      <listitem>
 	<para>
 	  Large inline-signing changes should be less disruptive.
 	  Signature generation is now done incrementally; the number
