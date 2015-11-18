@@ -475,7 +475,7 @@
                   followed by '%' to represent percents.
                 </p>
                 <p>
-                  The behaviour is exactly the same as
+                  The behavior is exactly the same as
                   <code class="varname">size_spec</code>, but
                   <code class="varname">size_or_percent</code> allows also
                   to specify a positive integer value followed by
@@ -3876,7 +3876,6 @@ options {
                   queries.
                   Caching may still occur as an effect the server's internal
                   operation, such as NOTIFY address lookups.
-                  See also <span class="command"><strong>fetch-glue</strong></span> above.
                 </p></dd>
 <dt><span class="term"><span class="command"><strong>request-nsid</strong></span></span></dt>
 <dd><p>
@@ -5242,13 +5241,15 @@ avoid-v6-udp-ports {};
                 </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
+<p>
                   If you do not wish the alternate transfer source
                   to be used, you should set
                   <span class="command"><strong>use-alt-transfer-source</strong></span>
                   appropriately and you should not depend upon
                   getting an answer back to the first refresh
                   query.
-                </div>
+                </p>
+</div>
 </dd>
 <dt><span class="term"><span class="command"><strong>alt-transfer-source-v6</strong></span></span></dt>
 <dd><p>
@@ -6334,7 +6335,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   may be sent while servicing a recursive query.
                   If more queries are sent, the recursive query
                   is terminated and returns SERVFAIL. Queries to
-                  look up top level comains such as "com" and "net"
+                  look up top level domains such as "com" and "net"
                   and the DNS root zone are exempt from this limitation.
                   The default is 75.
                 </p></dd>
@@ -6613,11 +6614,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
           </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
+<p>
             The real parent servers for these zones should disable all
             empty zone under the parent zone they serve.  For the real
             root servers, this is all built-in empty zones.  This will
             enable them to return referrals to deeper in the tree.
-          </div>
+          </p>
+</div>
 <div class="variablelist"><dl class="variablelist">
 <dt><span class="term"><span class="command"><strong>empty-server</strong></span></span></dt>
 <dd><p>
@@ -7055,7 +7058,7 @@ deny-answer-aliases { "example.net"; };
 <p>
                     A special form of local data is a CNAME whose target is a
                     wildcard such as *.example.com.
-                    It is used as if were an ordinary CNAME after the astrisk (*)
+                    It is used as if were an ordinary CNAME after the asterisk (*)
                     has been replaced with the query name.
                     The purpose for this special form is query logging in the
                     walled garden's authority DNS server.
@@ -9198,7 +9201,7 @@ example.com. NS ns2.example.net.
                     unsigned zone is transferred in or loaded from
                     disk and a signed version of the zone is served,
                     with possibly, a different serial number.  This
-                    behaviour is disabled by default.
+                    behavior is disabled by default.
                   </p></dd>
 <dt><span class="term"><span class="command"><strong>multi-master</strong></span></span></dt>
 <dd><p>
@@ -9413,7 +9416,7 @@ example.com. NS ns2.example.net.
                         The <em class="replaceable"><code>name</code></em> field
                         is subject to DNS wildcard expansion, and
                         this rule matches when the name being updated
-                        name is a valid expansion of the wildcard.
+                        is a valid expansion of the wildcard.
                       </p>
                     </td>
 </tr>

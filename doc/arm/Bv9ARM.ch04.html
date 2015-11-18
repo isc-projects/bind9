@@ -134,12 +134,14 @@
       </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
+<p>
         As a slave zone can also be a master to other slaves, <span class="command"><strong>named</strong></span>,
         by default, sends <span class="command"><strong>NOTIFY</strong></span> messages for every zone
         it loads.  Specifying <span class="command"><strong>notify master-only;</strong></span> will
         cause <span class="command"><strong>named</strong></span> to only send <span class="command"><strong>NOTIFY</strong></span> for master
         zones that it loads.
-      </div>
+      </p>
+</div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
@@ -1064,9 +1066,11 @@ options {
 </pre>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
+<p>
           None of the keys listed in this example are valid.  In particular,
           the root key is not valid.
-        </div>
+        </p>
+</div>
 <p>
           When DNSSEC validation is enabled and properly configured,
           the resolver will reject any answers from signed, secure zones
@@ -1614,12 +1618,14 @@ $ <strong class="userinput"><code> /opt/pkcs11/usr/bin/softhsm-util --init-token
     </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
+<p>
       The latest OpenSSL versions as of this writing (January 2015)
       are 0.9.8zc, 1.0.0o, and 1.0.1j.
       ISC will provide updated patches as new versions of OpenSSL
       are released. The version number in the following examples
       is expected to change.
-    </div>
+    </p>
+</div>
 <p>
       Before building BIND 9 with PKCS#11 support, it will be
       necessary to build OpenSSL with the patch in place, and configure
@@ -1642,10 +1648,12 @@ $ <strong class="userinput"><code>patch -p1 -d openssl-0.9.8zc \
 </pre>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
-	Note that the patch file may not be compatible with the
+<p>
+	The patch file may not be compatible with the
 	"patch" utility on all operating systems. You may need to
 	install GNU patch.
-      </div>
+      </p>
+</div>
 <p>
 	When building OpenSSL, place it in a non-standard
 	location so that it does not interfere with OpenSSL libraries
