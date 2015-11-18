@@ -3580,7 +3580,6 @@ options {
                   queries.
                   Caching may still occur as an effect the server's internal
                   operation, such as NOTIFY address lookups.
-                  See also <span class="command"><strong>fetch-glue</strong></span> above.
                 </p></dd>
 <dt><span class="term"><span class="command"><strong>request-nsid</strong></span></span></dt>
 <dd><p>
@@ -4898,13 +4897,15 @@ avoid-v6-udp-ports {};
                 </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
+<p>
                   If you do not wish the alternate transfer source
                   to be used, you should set
                   <span class="command"><strong>use-alt-transfer-source</strong></span>
                   appropriately and you should not depend upon
                   getting an answer back to the first refresh
                   query.
-                </div>
+                </p>
+</div>
 </dd>
 <dt><span class="term"><span class="command"><strong>alt-transfer-source-v6</strong></span></span></dt>
 <dd><p>
@@ -6234,11 +6235,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
           </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
+<p>
             The real parent servers for these zones should disable all
             empty zone under the parent zone they serve.  For the real
             root servers, this is all built-in empty zones.  This will
             enable them to return referrals to deeper in the tree.
-          </div>
+          </p>
+</div>
 <div class="variablelist"><dl class="variablelist">
 <dt><span class="term"><span class="command"><strong>empty-server</strong></span></span></dt>
 <dd><p>
@@ -8924,7 +8927,7 @@ example.com. NS ns2.example.net.
                         The <em class="replaceable"><code>name</code></em> field
                         is subject to DNS wildcard expansion, and
                         this rule matches when the name being updated
-                        name is a valid expansion of the wildcard.
+                        is a valid expansion of the wildcard.
                       </p>
                     </td>
 </tr>
