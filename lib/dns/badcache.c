@@ -122,7 +122,7 @@ dns_badcache_destroy(dns_badcache_t **bcp) {
 
 static isc_result_t
 badcache_resize(dns_badcache_t *bc, isc_time_t *now, isc_boolean_t grow) {
-	dns_bcentry_t **new, *bad, *next;
+	dns_bcentry_t **newtable, *bad, *next;
 	unsigned int newsize, i;
 
 	if (grow)
@@ -130,10 +130,10 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, isc_boolean_t grow) {
 	else
 		newsize = (bc->size - 1) / 2;
 
-	new = isc_mem_get(bc->mctx, sizeof(dns_bcentry_t *) * newsize);
-	if (new == NULL)
+	newtable = isc_mem_get(bc->mctx, sizeof(dns_bcentry_t *) * newsize);
+	if (newtable == NULL)
 		return (ISC_R_NOMEMORY);
-	memset(new, 0, sizeof(dns_bcentry_t *) * newsize);
+	memset(newtable, 0, sizeof(dns_bcentry_t *) * newsize);
 
 	for (i = 0; bc->count > 0 && i < bc->size; i++) {
 		for (bad = bc->table[i]; bad != NULL; bad = next) {
@@ -143,8 +143,8 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, isc_boolean_t grow) {
 					    sizeof(*bad) + bad->name.length);
 				bc->count--;
 			} else {
-				bad->next = new[bad->hashval % newsize];
-				new[bad->hashval % newsize] = bad;
+				bad->next = newtable[bad->hashval % newsize];
+				newtable[bad->hashval % newsize] = bad;
 			}
 		}
 		bc->table[i] = NULL;
@@ -152,7 +152,7 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, isc_boolean_t grow) {
 
 	isc_mem_put(bc->mctx, bc->table, sizeof(*bc->table) * bc->size);
 	bc->size = newsize;
-	bc->table = new;
+	bc->table = newtable;
 
 	return (ISC_R_SUCCESS);
 }
