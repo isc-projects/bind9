@@ -1,3 +1,10 @@
+4262.	[bug]		Fixed a bug in epoll socket code that caused
+			sockets to not be registered for ready
+			notification in some cases, causing named to not
+			read from or write to them, resulting in what
+			appear to the user as blocked connections.
+			[RT #41067]
+
 4261.	[maint]		H.ROOT-SERVERS.NET is 198.97.190.53 and 2001:500:1::53.
 			[RT #40556]
 
