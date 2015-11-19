@@ -424,6 +424,9 @@ struct isc__socketmgr {
 	/* Locked by fdlock. */
 	isc__socket_t	       **fds;
 	int			*fdstate;
+#if defined(USE_EPOLL)
+	uint32_t		*epoll_events;
+#endif
 #ifdef USE_DEVPOLL
 	pollinfo_t		*fdpollinfo;
 #endif
@@ -915,15 +918,27 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	return (result);
 #elif defined(USE_EPOLL)
 	struct epoll_event event;
+	uint32_t oldevents;
+	int ret;
+	int op;
 
+	oldevents = manager->epoll_events[fd];
 	if (msg == SELECT_POKE_READ)
-		event.events = EPOLLIN;
+		manager->epoll_events[fd] |= EPOLLIN;
 	else
-		event.events = EPOLLOUT;
+		manager->epoll_events[fd] |= EPOLLOUT;
+
+	event.events = manager->epoll_events[fd];
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
-	if (epoll_ctl(manager->epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1 &&
-	    errno != EEXIST) {
+
+	op = (oldevents == 0U) ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+	ret = epoll_ctl(manager->epoll_fd, op, fd, &event);
+	if (ret == -1) {
+		if (errno == EEXIST)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "epoll_ctl(ADD/MOD) returned "
+					 "EEXIST for fd %d", fd);
 		result = isc__errno2result(errno);
 	}
 
@@ -983,15 +998,21 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	return (result);
 #elif defined(USE_EPOLL)
 	struct epoll_event event;
+	int ret;
+	int op;
 
 	if (msg == SELECT_POKE_READ)
-		event.events = EPOLLIN;
+		manager->epoll_events[fd] &= ~(EPOLLIN);
 	else
-		event.events = EPOLLOUT;
+		manager->epoll_events[fd] &= ~(EPOLLOUT);
+
+	event.events = manager->epoll_events[fd];
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
-	if (epoll_ctl(manager->epoll_fd, EPOLL_CTL_DEL, fd, &event) == -1 &&
-	    errno != ENOENT) {
+
+	op = (event.events == 0U) ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
+	ret = epoll_ctl(manager->epoll_fd, op, fd, &event);
+	if (ret == -1 && errno != ENOENT) {
 		char strbuf[ISC_STRERRORSIZE];
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -2969,6 +2990,9 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	LOCK(&manager->fdlock[lockid]);
 	manager->fds[sock->fd] = sock;
 	manager->fdstate[sock->fd] = MANAGED;
+#if defined(USE_EPOLL)
+	manager->epoll_events[sock->fd] = 0;
+#endif
 #ifdef USE_DEVPOLL
 	INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
 	       sock->manager->fdpollinfo[sock->fd].want_write == 0);
@@ -3045,6 +3069,9 @@ isc__socket_open(isc_socket_t *sock0) {
 		LOCK(&sock->manager->fdlock[lockid]);
 		sock->manager->fds[sock->fd] = sock;
 		sock->manager->fdstate[sock->fd] = MANAGED;
+#if defined(USE_EPOLL)
+		sock->manager->epoll_events[sock->fd] = 0;
+#endif
 #ifdef USE_DEVPOLL
 		INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
 		       sock->manager->fdpollinfo[sock->fd].want_write == 0);
@@ -3105,6 +3132,9 @@ isc__socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 	LOCK(&manager->fdlock[lockid]);
 	manager->fds[sock->fd] = sock;
 	manager->fdstate[sock->fd] = MANAGED;
+#if defined(USE_EPOLL)
+	manager->epoll_events[sock->fd] = 0;
+#endif
 	UNLOCK(&manager->fdlock[lockid]);
 
 	LOCK(&manager->lock);
@@ -3667,6 +3697,9 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		LOCK(&manager->fdlock[lockid]);
 		manager->fds[fd] = NEWCONNSOCK(dev);
 		manager->fdstate[fd] = MANAGED;
+#if defined(USE_EPOLL)
+		manager->epoll_events[fd] = 0;
+#endif
 		UNLOCK(&manager->fdlock[lockid]);
 
 		LOCK(&manager->lock);
@@ -4616,6 +4649,15 @@ isc__socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		result = ISC_R_NOMEMORY;
 		goto free_manager;
 	}
+#if defined(USE_EPOLL)
+	manager->epoll_events = isc_mem_get(mctx, (manager->maxsocks *
+						   sizeof(uint32_t)));
+	if (manager->epoll_events == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto free_manager;
+	}
+	memset(manager->epoll_events, 0, manager->maxsocks * sizeof(uint32_t));
+#endif
 	manager->stats = NULL;
 
 	manager->common.methods = &socketmgrmethods;
@@ -4685,7 +4727,9 @@ isc__socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	result = setup_watcher(mctx, manager);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+
 	memset(manager->fdstate, 0, manager->maxsocks * sizeof(int));
+
 #ifdef USE_WATCHER_THREAD
 	/*
 	 * Start up the select/poll thread.
@@ -4734,6 +4778,12 @@ free_manager:
 		isc_mem_put(mctx, manager->fdlock,
 			    FDLOCK_COUNT * sizeof(isc_mutex_t));
 	}
+#if defined(USE_EPOLL)
+	if (manager->epoll_events != NULL) {
+		isc_mem_put(mctx, manager->epoll_events,
+			    manager->maxsocks * sizeof(uint32_t));
+	}
+#endif
 	if (manager->fdstate != NULL) {
 		isc_mem_put(mctx, manager->fdstate,
 			    manager->maxsocks * sizeof(int));
@@ -4847,6 +4897,10 @@ isc__socketmgr_destroy(isc_socketmgr_t **managerp) {
 		if (manager->fdstate[i] == CLOSE_PENDING) /* no need to lock */
 			(void)close(i);
 
+#if defined(USE_EPOLL)
+	isc_mem_put(manager->mctx, manager->epoll_events,
+		    manager->maxsocks * sizeof(uint32_t));
+#endif
 	isc_mem_put(manager->mctx, manager->fds,
 		    manager->maxsocks * sizeof(isc__socket_t *));
 	isc_mem_put(manager->mctx, manager->fdstate,
