@@ -466,7 +466,7 @@ append(const char *text, int len, char **p, char *end) {
 
 static isc_result_t
 reverse_octets(const char *in, char **p, char *end) {
-	char *dot = strchr(in, '.');
+	const char *dot = strchr(in, '.');
 	int len;
 	if (dot != NULL) {
 		isc_result_t result;
@@ -1068,13 +1068,17 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	isc_uint32_t netmask = 0;
 	char *slash = NULL;
 	isc_boolean_t parsed = ISC_FALSE;
+	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX/128")];
 
-	if ((slash = strchr(value, '/'))) {
+	if (strlcpy(buf, value, sizeof(buf)) >= sizeof(buf))
+		fatal("invalid prefix '%s'\n", value);
+
+	slash = strchr(buf, '/');
+	if (slash != NULL) {
 		*slash = '\0';
 		result = isc_parse_uint32(&netmask, slash + 1, 10);
 		if (result != ISC_R_SUCCESS) {
-			*slash = '/';
-			fatal("invalid prefix length '%s': %s\n",
+			fatal("invalid prefix length in '%s': %s\n",
 			      value, isc_result_totext(result));
 		}
 	}
@@ -1082,21 +1086,19 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	sa = isc_mem_allocate(mctx, sizeof(*sa));
 	if (sa == NULL)
 		fatal("out of memory");
-	if (inet_pton(AF_INET6, value, &in6) == 1) {
-		isc_sockaddr_fromin6(sa, &in6, 0);
+	if (inet_pton(AF_INET6, buf, &in6) == 1) {
 		parsed = ISC_TRUE;
+		isc_sockaddr_fromin6(sa, &in6, 0);
 		if (netmask == 0 || netmask > 128)
 			netmask = 128;
-	} else if (inet_pton(AF_INET, value, &in4) == 1) {
+	} else if (inet_pton(AF_INET, buf, &in4) == 1) {
 		parsed = ISC_TRUE;
 		isc_sockaddr_fromin(sa, &in4, 0);
 		if (netmask == 0 || netmask > 32)
 			netmask = 32;
 	} else if (netmask != 0) {
-		char buf[64];
 		int i;
 
-		strlcpy(buf, value, sizeof(buf));
 		for (i = 0; i < 3; i++) {
 			strlcat(buf, ".0", sizeof(buf));
 			if (inet_pton(AF_INET, buf, &in4) == 1) {
@@ -1105,11 +1107,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 				break;
 			}
 		}
-
 	}
-
-	if (slash != NULL)
-		*slash = '/';
 
 	if (!parsed)
 		fatal("invalid address '%s'", value);
@@ -1119,7 +1117,6 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 
 	return (ISC_R_SUCCESS);
 }
-
 
 /*
  * Parse HMAC algorithm specification

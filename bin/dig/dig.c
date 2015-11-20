@@ -754,7 +754,7 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
  */
 
 static void
-plus_option(char *option, isc_boolean_t is_batchfile,
+plus_option(const char *option, isc_boolean_t is_batchfile,
 	    dig_lookup_t *lookup)
 {
 	isc_result_t result;
@@ -769,7 +769,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	strncpy(option_store, option, sizeof(option_store));
 	option_store[sizeof(option_store)-1]=0;
 	ptr = option_store;
-	cmd = next_token(&ptr,"=");
+	cmd = next_token(&ptr, "=");
 	if (cmd == NULL) {
 		printf(";; Invalid option %s\n", option_store);
 		return;
@@ -1383,7 +1383,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	invalid_option:
 	need_value:
 		fprintf(stderr, "Invalid option: +%s\n",
-			 option);
+			option);
 		usage();
 	}
 	return;
@@ -1613,14 +1613,14 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				 value);
 		return (value_from_next);
 	case 'y':
-		ptr = next_token(&value,":");	/* hmac type or name */
+		ptr = next_token(&value, ":");	/* hmac type or name */
 		if (ptr == NULL) {
 			usage();
 		}
 		ptr2 = next_token(&value, ":");	/* name or secret */
 		if (ptr2 == NULL)
 			usage();
-		ptr3 = next_token(&value,":"); /* secret or NULL */
+		ptr3 = next_token(&value, ":"); /* secret or NULL */
 		if (ptr3 != NULL) {
 			parse_hmac(ptr);
 			ptr = ptr2;

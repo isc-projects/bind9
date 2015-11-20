@@ -56,14 +56,14 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-static char digits[] = "0123456789abcdefghijklmnoprstuvwxyz";
+static const char digits[] = "0123456789abcdefghijklmnoprstuvwxyz";
 
 isc_uint64_t
 isc_string_touint64(char *source, char **end, int base) {
 	isc_uint64_t tmp;
 	isc_uint64_t overflow;
 	char *s = source;
-	char *o;
+	const char *o;
 	char c;
 
 	if ((base < 0) || (base == 1) || (base > 36)) {

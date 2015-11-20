@@ -170,7 +170,7 @@ base32_decode_init(base32_decode_ctx_t *ctx, int length, const char base[],
 
 static inline isc_result_t
 base32_decode_char(base32_decode_ctx_t *ctx, int c) {
-	char *s;
+	const char *s;
 	unsigned int last;
 
 	if (ctx->seen_end)
