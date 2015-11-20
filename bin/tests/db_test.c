@@ -367,7 +367,7 @@ main(int argc, char *argv[]) {
 	dns_name_t *fname;
 	unsigned int options = 0, zcoptions;
 	isc_time_t start, finish;
-	char *origintext;
+	const char *origintext;
 	dbinfo *dbi;
 	dns_dbversion_t *version;
 	dns_name_t *origin;

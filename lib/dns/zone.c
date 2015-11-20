@@ -18209,7 +18209,7 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 		kd->all = ISC_TRUE;
 	else {
 		isc_textregion_t r;
-		char *algstr;
+		const char *algstr;
 		dns_keytag_t keyid;
 		dns_secalg_t alg;
 		size_t n;

@@ -88,7 +88,7 @@
 
 static isc_mem_t *mctx;
 static dns_requestmgr_t *requestmgr;
-static char *batchname;
+static const char *batchname;
 static FILE *batchfp;
 static isc_boolean_t have_ipv4 = ISC_FALSE;
 static isc_boolean_t have_ipv6 = ISC_FALSE;
@@ -906,13 +906,16 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	isc_uint32_t netmask = 0;
 	char *slash = NULL;
 	isc_boolean_t parsed = ISC_FALSE;
+	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX/128")];
 
-	if ((slash = strchr(value, '/'))) {
-		*slash = '\0';
+	if (strlcpy(buf, value, sizeof(buf)) >= sizeof(buf))
+		fatal("invalid prefix '%s'\n", value);
+
+	slash = strchr(buf, '/');
+	if (slash != NULL) {
 		result = isc_parse_uint32(&netmask, slash + 1, 10);
 		if (result != ISC_R_SUCCESS) {
-			*slash = '/';
-			fatal("invalid prefix length '%s': %s\n",
+			fatal("invalid prefix length in '%s': %s\n",
 			      value, isc_result_totext(result));
 		}
 	}
@@ -920,21 +923,19 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	sa = isc_mem_allocate(mctx, sizeof(*sa));
 	if (sa == NULL)
 		fatal("out of memory");
-	if (inet_pton(AF_INET6, value, &in6) == 1) {
-		isc_sockaddr_fromin6(sa, &in6, 0);
+	if (inet_pton(AF_INET6, buf, &in6) == 1) {
 		parsed = ISC_TRUE;
+		isc_sockaddr_fromin6(sa, &in6, 0);
 		if (netmask == 0 || netmask > 128)
 			netmask = 128;
-	} else if (inet_pton(AF_INET, value, &in4) == 1) {
+	} else if (inet_pton(AF_INET, buf, &in4) == 1) {
 		parsed = ISC_TRUE;
 		isc_sockaddr_fromin(sa, &in4, 0);
 		if (netmask == 0 || netmask > 32)
 			netmask = 32;
 	} else if (netmask != 0) {
-		char buf[64];
 		int i;
 
-		strlcpy(buf, value, sizeof(buf));
 		for (i = 0; i < 3; i++) {
 			strlcat(buf, ".0", sizeof(buf));
 			if (inet_pton(AF_INET, buf, &in4) == 1) {
@@ -945,9 +946,6 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 		}
 
 	}
-
-	if (slash != NULL)
-		*slash = '/';
 
 	if (!parsed)
 		fatal("invalid address '%s'", value);
@@ -973,7 +971,7 @@ append(const char *text, int len, char **p, char *end) {
 
 static isc_result_t
 reverse_octets(const char *in, char **p, char *end) {
-	char *dot = strchr(in, '.');
+	const char *dot = strchr(in, '.');
 	int len;
 	if (dot != NULL) {
 		isc_result_t result;
@@ -989,7 +987,8 @@ reverse_octets(const char *in, char **p, char *end) {
 }
 
 static void
-get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int)
+get_reverse(char *reverse, size_t len, const char *value,
+	    isc_boolean_t ip6_int)
 {
 	int r;
 	isc_result_t result;
@@ -1515,13 +1514,14 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 static const char *single_dash_opts = "46hiv";
 /*static const char *dash_opts = "46bcfhiptvx";*/
 static isc_boolean_t
-dash_option(char *option, char *next, struct query *query,
+dash_option(const char *option, char *next, struct query *query,
 	    isc_boolean_t global, isc_boolean_t *setname)
 {
-	char opt, *value;
+	char opt;
+	const char *value;
 	isc_result_t result;
 	isc_boolean_t value_from_next;
-	isc_textregion_t tr;
+	isc_consttextregion_t tr;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
 	char textname[MXNAME];

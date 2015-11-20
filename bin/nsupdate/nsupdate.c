@@ -2701,7 +2701,8 @@ get_ticket_realm(isc_mem_t *mctx) {
 	krb5_error_code rc;
 	krb5_ccache ccache;
 	krb5_principal princ;
-	char *name, *ticket_realm;
+	char *name;
+	const char * ticket_realm;
 
 	rc = krb5_init_context(&ctx);
 	if (rc != 0)

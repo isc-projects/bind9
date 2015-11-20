@@ -1,3 +1,6 @@
+4264.	[bug]		Check const of strchr/strrchr assignments match
+			argument's const status. [RT #41150]
+
 4263.	[contrib]	Address compiler warnings in mysqldyn module.
 			[RT #41130]
 
