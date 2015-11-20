@@ -63,7 +63,9 @@
     <title>Feature Changes</title>
     <itemizedlist>
       <listitem>
-	<para>Updated the complied in addresses for H.ROOT-SERVERS.NET.</para>
+        <para>
+	  Updated the compiled in addresses for H.ROOT-SERVERS.NET.
+	</para>
       </listitem>
     </itemizedlist>
   </sect2>
