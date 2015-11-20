@@ -1,3 +1,6 @@
+4263.	[contrib]	Address compiler warnings in mysqldyn module.
+			[RT #41130]
+
 4262.	[bug]		Fixed a bug in epoll socket code that caused
 			sockets to not be registered for ready
 			notification in some cases, causing named to not

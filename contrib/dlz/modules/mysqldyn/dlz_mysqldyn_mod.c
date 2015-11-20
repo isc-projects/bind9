@@ -343,7 +343,7 @@ sanitize(mysql_instance_t *dbi, const char *original) {
  * and add the string length to the running total pointed to by 'len'.
  */
 static isc_result_t
-additem(mysql_data_t *state, mysql_arglist_t *arglist, char **s, size_t *len) {
+additem(mysql_arglist_t *arglist, char **s, size_t *len) {
 	mysql_arg_t *item;
 
 	item = malloc(sizeof(*item));
@@ -351,7 +351,7 @@ additem(mysql_data_t *state, mysql_arglist_t *arglist, char **s, size_t *len) {
 		return (ISC_R_NOMEMORY);
 
 	DLZ_LINK_INIT(item, link);
-	DE_CONST(*s, item->arg);
+	item->arg = *s;
 	*len += strlen(*s);
 	DLZ_LIST_APPEND(*arglist, item, link);
 	*s = NULL;
@@ -377,10 +377,9 @@ build_query(mysql_data_t *state, mysql_instance_t *dbi,
 	isc_boolean_t localdbi = ISC_FALSE;
 	mysql_arglist_t arglist;
 	mysql_arg_t *item;
-	char *p, *q, *tmp, *querystr = NULL;
+	char *p, *q, *tmp = NULL, *querystr = NULL;
 	char *query = NULL;
 	size_t len = 0;
-	const char *arg;
 	va_list ap1;
 
 	/* Get a DB instance if needed */
@@ -402,8 +401,6 @@ build_query(mysql_data_t *state, mysql_instance_t *dbi,
 		goto fail;
 
 	for (;;) {
-		mysql_arg_t *item;
-
 		if (*q == '\0')
 			break;
 
@@ -414,7 +411,7 @@ build_query(mysql_data_t *state, mysql_instance_t *dbi,
 			if (tmp == NULL)
 				goto fail;
 
-			result = additem(state, &arglist, &tmp, &len);
+			result = additem(&arglist, &tmp, &len);
 			if (result != ISC_R_SUCCESS)
 				goto fail;
 
@@ -422,7 +419,7 @@ build_query(mysql_data_t *state, mysql_instance_t *dbi,
 			if (tmp == NULL)
 				goto fail;
 
-			result = additem(state, &arglist, &tmp, &len);
+			result = additem(&arglist, &tmp, &len);
 			if (result != ISC_R_SUCCESS)
 				goto fail;
 
@@ -432,7 +429,7 @@ build_query(mysql_data_t *state, mysql_instance_t *dbi,
 			if (tmp == NULL)
 				goto fail;
 
-			result = additem(state, &arglist, &tmp, &len);
+			result = additem(&arglist, &tmp, &len);
 			if (result != ISC_R_SUCCESS)
 				goto fail;
 
@@ -571,7 +568,7 @@ validate_txn(mysql_data_t *state, mysql_transaction_t *txn) {
 }
 
 static isc_result_t
-db_execute(mysql_data_t *state, mysql_instance_t *dbi, char *query) {
+db_execute(mysql_data_t *state, mysql_instance_t *dbi, const char *query) {
 	int ret;
 
 	/* Make sure this instance is connected.  */
@@ -595,7 +592,7 @@ db_execute(mysql_data_t *state, mysql_instance_t *dbi, char *query) {
 }
 
 static MYSQL_RES *
-db_query(mysql_data_t *state, mysql_instance_t *dbi, char *query) {
+db_query(mysql_data_t *state, mysql_instance_t *dbi, const char *query) {
 	isc_result_t result;
 	isc_boolean_t localdbi = ISC_FALSE;
 	MYSQL_RES *res = NULL;
@@ -756,7 +753,6 @@ notify(mysql_data_t *state, const char *zone, int sn) {
 		isc_boolean_t local = ISC_FALSE;
 		struct hostent *h;
 		struct sockaddr_in addr, *sin;
-		int rs;
 
 		/*
 		 * Put nameserver rdata through gethostbyname as it
@@ -811,7 +807,6 @@ static mysql_record_t *
 makerecord(mysql_data_t *state, const char *name, const char *rdatastr) {
 	mysql_record_t *new_record;
 	char *real_name, *dclass, *type, *data, *ttlstr, *buf;
-	char *saveptr = NULL;
 	dns_ttl_t ttlvalue;
 
 	new_record = (mysql_record_t *)
@@ -915,9 +910,6 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	mysql_data_t *state;
 	const char *helper_name;
 	va_list ap;
-	char soa_data[200];
-	const char *extra;
-	isc_result_t result;
 	int n;
 
 	UNUSED(dlzname);
@@ -973,7 +965,6 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	 * Assign the 'state' to dbdata so we get it in our callbacks
 	 */
 
-	*dbdata = state;
 
 	dlz_mutex_lock(&state->tx_mutex);
 
@@ -996,18 +987,18 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 			dlz_mutex_unlock(&state->db[n].mutex);
 		}
 
+		*dbdata = state;
 		dlz_mutex_unlock(&state->tx_mutex);
 		return (ISC_R_SUCCESS);
 	}
 
- failure:
 	free(state->db_name);
 	free(state->db_host);
 	free(state->db_user);
 	free(state->db_pass);
 	dlz_mutex_destroy(&state->tx_mutex);
 	free(state);
-	return (result);
+	return (ISC_R_FAILURE);
 }
 
 /*
@@ -1047,7 +1038,6 @@ dlz_findzonedb(void *dbdata, const char *name,
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	MYSQL_RES *res;
 	char *query;
-	int rs;
 
 	/* Query the Zones table to see if this zone is present */
 	query = build_query(state, NULL, Q_FINDZONE, name);
@@ -1083,7 +1073,6 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	char *query;
 	mysql_transaction_t *txn = NULL;
 	mysql_instance_t *dbi = NULL;
-	int rs;
 
 	if (state->putrr == NULL) {
 		if (state->log != NULL)
@@ -1224,7 +1213,6 @@ isc_result_t
 dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	isc_result_t result = ISC_R_SUCCESS;
 	mysql_data_t *state = (mysql_data_t *)dbdata;
-	int i;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 	char *query;
@@ -1468,7 +1456,6 @@ dlz_closeversion(const char *zone, isc_boolean_t commit,
 				   modname, txn, zone);
 	}
 
- cleanup:
 	/*
 	 * Unlock the mutex for this txn
 	 */
@@ -1497,7 +1484,6 @@ dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata)
 	isc_result_t result;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
-	char *query;
 	int count;
 
 	/*
@@ -1583,7 +1569,6 @@ dlz_addrdataset(const char *name, const char *rdatastr,
 	char *new_name, *query;
 	mysql_record_t *record;
 	isc_result_t result;
-	size_t len;
 
 	if (txn == NULL)
 		return (ISC_R_FAILURE);
@@ -1645,7 +1630,6 @@ dlz_subrdataset(const char *name, const char *rdatastr,
 	char *new_name, *query;
 	mysql_record_t *record;
 	isc_result_t result;
-	size_t len;
 
 	if (txn == NULL)
 		return (ISC_R_FAILURE);
@@ -1694,7 +1678,6 @@ dlz_delrdataset(const char *name, const char *type,
 	mysql_transaction_t *txn = (mysql_transaction_t *)version;
 	char *new_name, *query;
 	isc_result_t result;
-	size_t len;
 
 	if (txn == NULL)
 		return (ISC_R_FAILURE);

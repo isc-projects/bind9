@@ -22,6 +22,7 @@
 #endif
 
 #ifdef PTHREADS
+#include <pthread.h>
 #define dlz_mutex_t pthread_mutex_t
 #define dlz_mutex_init pthread_mutex_init
 #define dlz_mutex_destroy pthread_mutex_destroy
