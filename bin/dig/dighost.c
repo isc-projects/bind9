@@ -456,7 +456,7 @@ append(const char *text, int len, char **p, char *end) {
 
 static isc_result_t
 reverse_octets(const char *in, char **p, char *end) {
-	char *dot = strchr(in, '.');
+	const char *dot = strchr(in, '.');
 	int len;
 	if (dot != NULL) {
 		isc_result_t result;

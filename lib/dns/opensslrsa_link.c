@@ -1391,8 +1391,7 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	UNUSED(pin);
 
 	if (engine == NULL) {
-		colon = strchr(label, ':');
-		if (colon == NULL)
+		if (strchr(label, ':') == NULL)
 			DST_RET(DST_R_NOENGINE);
 		tmpengine = isc_mem_strdup(key->mctx, label);
 		if (tmpengine == NULL)

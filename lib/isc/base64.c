@@ -118,7 +118,7 @@ base64_decode_init(base64_decode_ctx_t *ctx, int length, isc_buffer_t *target)
 
 static inline isc_result_t
 base64_decode_char(base64_decode_ctx_t *ctx, int c) {
-	char *s;
+	const char *s;
 
 	if (ctx->seen_end)
 		return (ISC_R_BADBASE64);

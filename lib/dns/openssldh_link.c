@@ -617,7 +617,7 @@ BN_fromhex(BIGNUM *b, const char *str) {
 
 	RUNTIME_CHECK(strlen(str) < 1024U && strlen(str) % 2 == 0U);
 	for (i = 0; i < strlen(str); i += 2) {
-		char *s;
+		const char *s;
 		unsigned int high, low;
 
 		s = strchr(hexdigits, tolower((unsigned char)str[i]));

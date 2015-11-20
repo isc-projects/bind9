@@ -118,7 +118,7 @@ nsecify(char *filename) {
 	dns_db_t *db;
 	dns_dbversion_t *wversion;
 	dns_dbnode_t *node, *nextnode;
-	char *origintext;
+	const char *origintext;
 	dns_fixedname_t fname, fnextname;
 	dns_name_t *name, *nextname, *target;
 	isc_buffer_t b;
