@@ -137,7 +137,7 @@ nsecify(char *filename) {
 	else
 		origintext++;	/* Skip '/'. */
 	len = strlen(origintext);
-	isc_buffer_init(&b, origintext, len);
+	isc_buffer_constinit(&b, origintext, len);
 	isc_buffer_add(&b, len);
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext()");
