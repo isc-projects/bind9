@@ -2496,7 +2496,8 @@ setup_lookup(dig_lookup_t *lookup) {
 				isc_buffer_putuint8(&b, 0);
 				/* address */
 				if (addrl > 0) {
-					isc_buffer_putmem(&b, addr, addrl - 1);
+					isc_buffer_putmem(&b, addr,
+							  (unsigned)addrl - 1);
 					isc_buffer_putuint8(&b,
 							    (addr[addrl - 1] &
 							     mask));
@@ -2512,7 +2513,8 @@ setup_lookup(dig_lookup_t *lookup) {
 				isc_buffer_putuint8(&b, 0);
 				/* address */
 				if (addrl > 0) {
-					isc_buffer_putmem(&b, addr, addrl - 1);
+					isc_buffer_putmem(&b, addr,
+							  (unsigned)addrl - 1);
 					isc_buffer_putuint8(&b,
 							    (addr[addrl - 1] &
 							     mask));

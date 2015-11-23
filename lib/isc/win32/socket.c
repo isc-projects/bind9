@@ -407,7 +407,7 @@ sock_dump(isc_socket_t *sock) {
 #endif
 
 	printf("\n\t\tSock Dump\n");
-	printf("\t\tfd: %u\n", sock->fd);
+	printf("\t\tfd: %Iu\n", sock->fd);
 	printf("\t\treferences: %d\n", sock->references);
 	printf("\t\tpending_accept: %d\n", sock->pending_accept);
 	printf("\t\tconnecting: %d\n", sock->pending_connect);
@@ -1105,7 +1105,7 @@ static void
 dump_msg(struct msghdr *msg, isc_socket_t *sock) {
 	unsigned int i;
 
-	printf("MSGHDR %p, Socket #: %u\n", msg, sock->fd);
+	printf("MSGHDR %p, Socket #: %Iu\n", msg, sock->fd);
 	printf("\tname %p, namelen %d\n", msg->msg_name, msg->msg_namelen);
 	printf("\tiov %p, iovlen %d\n", msg->msg_iov, msg->msg_iovlen);
 	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++)
