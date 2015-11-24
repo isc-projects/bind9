@@ -61,12 +61,19 @@ practices.  Third, the contribution is checked for correctness and
 completness.
 
 Obvious bottlenecks and places where performance or reliability may suffer
-are noted as part of the review. Tricky code needs to be commented well
-enough.  A patch is much more likely to be accepted quickly if it includes
+are noted as part of the review.
+
+New functions must be adequately commented. Public API functions are
+documented in the corresponding header file, static functions in the C
+file, above the function header.  Particularly complex code should be
+commented throughout the function body as well.
+
+A patch is much more likely to be accepted quickly if it includes
 tests providing good coverage of the new code.  Tests for bugfix code
 should fail when run against the unmodified code; tests for new feature
 code should have good code coverage and address corner cases and error
-cases.  (See [testing](#testing).)
+cases.  Newly added API functions should have unit tests if possible.
+(See [testing](#testing).)
 
 Documentation is also reviewed. This includes all user-facing text,
 including log messages, manual pages, user manuals and sometimes even
@@ -248,6 +255,9 @@ redirected:
 
 Information on writing ATF tests can be found at the
 [NetBSD site](http://wiki.netbsd.org/tutorials/atf/).
+
+New unit tests should be added whenever significant new API
+functionality is added to libdns or libisc.
 
 Each unit test file contains at least one unit test case, and
 a list of test cases to execute when the test is run.  These
