@@ -3101,7 +3101,7 @@
 ./doc/doxygen/mainpage				X	2006
 ./doc/markdown/.gitignore			X	2014
 ./doc/markdown/Makefile				MAKE	2014
-./doc/markdown/dev.mkd				MKD	2014
+./doc/markdown/dev.mkd				MKD	2014,2015
 ./doc/markdown/howto.mkd			MKD	2014
 ./doc/markdown/style.mkd			MKD	2014
 ./doc/misc/Makefile.in				MAKE	2001,2004,2007,2009,2012
