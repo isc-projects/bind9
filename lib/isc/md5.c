@@ -62,6 +62,8 @@ isc_md5_invalidate(isc_md5_t *ctx) {
 
 void
 isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len) {
+	if (len == 0U)
+		return;
 	RUNTIME_CHECK(EVP_DigestUpdate(ctx,
 				       (const void *) buf,
 				       (size_t) len) == 1);
