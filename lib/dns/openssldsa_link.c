@@ -78,6 +78,8 @@ openssldsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	UNUSED(key);
 
 	sha1ctx = isc_mem_get(dctx->mctx, sizeof(isc_sha1_t));
+	if (sha1ctx == NULL)
+		return (ISC_R_NOMEMORY);
 	isc_sha1_init(sha1ctx);
 	dctx->ctxdata.sha1ctx = sha1ctx;
 	return (ISC_R_SUCCESS);

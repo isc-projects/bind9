@@ -1783,6 +1783,9 @@ static isc_result_t
 mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	isc_region_t tr;
 
+	if (length == 0U)
+		return (ISC_R_SUCCESS);
+
 	isc_buffer_availableregion(target, &tr);
 	if (length > tr.length)
 		return (ISC_R_NOSPACE);

@@ -1,3 +1,5 @@
+4265.	[bug]		Address unchecked isc_mem_get calls. [RT #41187]
+
 4264.	[bug]		Check const of strchr/strrchr assignments match
 			argument's const status. [RT #41150]
 
