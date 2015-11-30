@@ -34,7 +34,7 @@
 4253.	[bug]		Address fetch context reference count handling error
 			on socket error.  [RT#40945]
 
-4248.	[func]		Add an isc_atomic_storeq() function, use it in
+4248.	[performance]	Add an isc_atomic_storeq() function, use it in
 			stats counters to improve performance.
 			[RT #39972] [RT #39979]
 
@@ -64,7 +64,7 @@
 4237.	[doc]		Upgraded documentation toolchain to use DocBook 5
 			and dblatex. [RT #40766]
 
-4236.	[func]		On machines with 2 or more processors (CPU), the
+4236.	[performance]	On machines with 2 or more processors (CPU), the
 			default value for the number of UDP listeners
 			has been changed to the number of detected
 			processors minus one. [RT #40761]
