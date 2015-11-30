@@ -37,7 +37,7 @@
 4256.	[bug]		Allow rndc command arguments to be quoted so as
 			to allow spaces. [RT #36665]
 
-4255.	[func]		Add 'message-compression' option to disable DNS
+4255.	[performance]	Add 'message-compression' option to disable DNS
 			compression in responses. [RT #40726]
 
 4254.	[bug]		Address missing lock when getting zone's serial.
@@ -59,7 +59,7 @@
 4249.	[func]		Improve error reporting of TSIG / SIG(0) records in
 			the wrong location. [RT #41030]
 
-4248.	[func]		Add an isc_atomic_storeq() function, use it in
+4248.	[performance]	Add an isc_atomic_storeq() function, use it in
 			stats counters to improve performance.
 			[RT #39972] [RT #39979]
 
@@ -94,7 +94,7 @@
 4237.	[doc]		Upgraded documentation toolchain to use DocBook 5
 			and dblatex. [RT #40766]
 
-4236.	[func]		On machines with 2 or more processors (CPU), the
+4236.	[performance]	On machines with 2 or more processors (CPU), the
 			default value for the number of UDP listeners
 			has been changed to the number of detected
 			processors minus one. [RT #40761]
