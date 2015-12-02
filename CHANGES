@@ -1,7 +1,5 @@
 4267.	[test]		Check sdlz error handling. [RT #41142]
 
-4266.	[placeholder]
-
 4265.	[bug]		Address unchecked isc_mem_get calls. [RT #41187]
 
 4264.	[bug]		Check const of strchr/strrchr assignments match
