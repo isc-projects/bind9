@@ -4258,6 +4258,10 @@ if test "X$ac_unrecognized_opts" != "X"; then
     echo "Unrecognized options:"
     echo "    $ac_unrecognized_opts"
 fi
+if test "$enable_full_report" != "yes"; then
+    echo "------------------------------------------------------------------------"
+    echo "For more detail, use --enable-full-report."
+fi
 echo "========================================================================"
 
 if test "X$USE_OPENSSL" = "X"; then
