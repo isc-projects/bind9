@@ -70,5 +70,13 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking DLZ with a malformed SOA record"
+ret=0
+$DIG $DIGOPTS broken.com type600 @10.53.0.1 > dig.out.ns1.test$n
+grep status: dig.out.ns1.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
