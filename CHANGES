@@ -36,8 +36,8 @@
 4254.	[bug]		Address missing lock when getting zone's serial.
 			[RT #41072]
 
-4253.	[bug]		Address fetch context reference count handling error
-			on socket error.  [RT#40945]
+4253.	[security]	Address fetch context reference count handling error
+			on socket error. (CVE-2015-8461)  [RT#40945]
 
 4248.	[performance]	Add an isc_atomic_storeq() function, use it in
 			stats counters to improve performance.
