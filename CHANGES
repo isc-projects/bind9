@@ -1,7 +1,7 @@
 4267.	[test]		Check sdlz error handling. [RT #41142]
 
-4266.	[bug]		The sdlz driver failed pass some errors back to the
-			caller. [RT #41142]
+4266.	[bug]		The sdlz driver failed to pass some errors back to
+			the caller. [RT #41142]
 
 4265.	[bug]		Address unchecked isc_mem_get calls. [RT #41187]
 
