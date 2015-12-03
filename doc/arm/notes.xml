@@ -362,6 +362,17 @@
 	      if wildcard records were present. [RT #40357]
 	    </para>
 	  </listitem>
+	  <listitem>
+	    <para>
+	      Zones configured to use <command>map</command> format
+	      master files can't be used as policy zones because RPZ
+	      summary data isn't compiled when such zones are mapped into
+	      memory.  This limitation may be fixed in a future release,
+	      but in the meantime it has been documented, and attempting
+	      to use such zones in <command>response-policy</command>
+	      statements is now a configuration error.  [RT #38321]
+	    </para>
+	  </listitem>
 	</itemizedlist>
       </listitem>
     </itemizedlist>
