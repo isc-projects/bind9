@@ -51,9 +51,9 @@
       </listitem>
       <listitem>
 	<para>
-	  Incorrect reference counting could result in a INSIST
-	  failure on a socket error.  This flaw is disclosed in
-	  CVE-2015-8461. [RT#40945]
+	  Incorrect reference counting could result in an INSIST
+	  failure if a socket error occurred while performing a
+	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
 	</para>
       </listitem>
       <listitem>
