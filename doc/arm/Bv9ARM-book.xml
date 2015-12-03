@@ -9924,6 +9924,8 @@ deny-answer-aliases { "example.net"; };
 	    that can be queried normally if allowed.
 	    It is usually best to restrict those queries with something like
 	    <command>allow-query { localhost; };</command>.
+	    Note that zones using <command>masterfile-format map</command>
+	    cannot be used as policy zones.
 	  </para>
 
 	  <para>

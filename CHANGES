@@ -1,3 +1,9 @@
+4269.	[bug]		Zones using "map" format master files currently
+			don't work as policy zones.  This limitation has
+			now been documented; attempting to use such zones
+			in "response-policy" statements is now a
+			configuration error.  [RT #38321]
+
 4268.	[func]		"rndc status" now reports the path to the
 			configuration file. [RT #36470]
 
