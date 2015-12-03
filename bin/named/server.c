@@ -8939,6 +8939,9 @@ ns_server_status(ns_server_t *server, isc_buffer_t **text) {
 	snprintf(line, sizeof(line), "last configured: %s\n", configtime);
 	CHECK(putstr(text, line));
 
+	snprintf(line, sizeof(line), "configuration file: %s\n", ns_g_conffile);
+	CHECK(putstr(text, line));
+
 #ifdef ISC_PLATFORM_USETHREADS
 	snprintf(line, sizeof(line), "CPUs found: %u\n", ns_g_cpus_detected);
 	CHECK(putstr(text, line));

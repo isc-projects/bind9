@@ -1,3 +1,6 @@
+4268.	[func]		"rndc status" now reports the path to the
+			configuration file. [RT #36470]
+
 4267.	[test]		Check sdlz error handling. [RT #41142]
 
 4266.	[placeholder]
