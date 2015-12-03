@@ -1,3 +1,6 @@
+4270.	[security]	Update allowed OpenSSL versions as named is
+			potentially vulnerable to CVE-2015-3193.
+
 4269.	[bug]		Zones using "map" format master files currently
 			don't work as policy zones.  This limitation has
 			now been documented; attempting to use such zones
