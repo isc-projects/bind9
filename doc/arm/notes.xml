@@ -53,6 +53,13 @@
       </listitem>
       <listitem>
 	<para>
+	  Incorrect reference counting could result in a INSIST
+	  failure on a socket error.  This flaw is disclosed in
+	  CVE-2015-8461. [RT#40945]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  An incorrect boundary check in the OPENPGPKEY rdatatype
 	  could trigger an assertion failure. This flaw is disclosed
 	  in CVE-2015-5986. [RT #40286]
