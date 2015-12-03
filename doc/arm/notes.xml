@@ -49,6 +49,13 @@
 	  in CVE-2015-8000. [RT #40987]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Incorrect reference counting could result in a INSIST
+	  failure on a socket error.  This flaw is disclosed in
+	  CVE-2015-8461. [RT#40945]
+	</para>
+      </listitem>
     </itemizedlist>
   </sect2>
   <sect2 id="relnotes_features">
