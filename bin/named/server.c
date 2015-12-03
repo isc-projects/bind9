@@ -8939,7 +8939,13 @@ ns_server_status(ns_server_t *server, isc_buffer_t **text) {
 	snprintf(line, sizeof(line), "last configured: %s\n", configtime);
 	CHECK(putstr(text, line));
 
-	snprintf(line, sizeof(line), "configuration file: %s\n", ns_g_conffile);
+	if (ns_g_chrootdir != NULL) {
+		snprintf(line, sizeof(line), "configuration file: %s (%s%s)\n",
+			 ns_g_conffile, ns_g_chrootdir, ns_g_conffile);
+	} else {
+		snprintf(line, sizeof(line), "configuration file: %s\n",
+			 ns_g_conffile);
+	}
 	CHECK(putstr(text, line));
 
 #ifdef ISC_PLATFORM_USETHREADS
