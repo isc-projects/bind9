@@ -1,3 +1,6 @@
+4270.	[security]	Update allowed OpenSSL versions as named is
+			potentially vulnerable to CVE-2015-3193.
+
 4267.	[test]		Check sdlz error handling. [RT #41142]
 
 4266.	[bug]		The sdlz driver failed to pass some errors back to
