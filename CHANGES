@@ -1,3 +1,6 @@
+4271.	[test]		Unit tests could deadlock in isc__taskmgr_pause().
+			[RT #41235]
+
 4270.	[security]	Update allowed OpenSSL versions as named is
 			potentially vulnerable to CVE-2015-3193.
 
