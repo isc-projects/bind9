@@ -54,12 +54,13 @@ BIND 9
 BIND 9.10.3-P2
 
 	BIND 9.10.3-P2 is a security release addressing the flaws
-	described in CVE-2015-3193 (OpenSSL) and CVE-2015-8461.
+	described in CVE-2015-3193 (OpenSSL), CVE-2015-8000 and
+	CVE-2015-8461.
 
 BIND 9.10.3-P1
 
-	BIND 9.10.3-P1 is a security release addressing the flaw
-	described in CVE-2015-8000.
+	BIND 9.10.3-P1 was incomplete and was withdrawn prior to
+	publication.
 
 BIND 9.10.3
 
