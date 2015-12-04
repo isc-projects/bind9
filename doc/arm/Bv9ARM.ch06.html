@@ -6500,6 +6500,8 @@ deny-answer-aliases { "example.net"; };
             that can be queried normally if allowed.
             It is usually best to restrict those queries with something like
             <span class="command"><strong>allow-query { localhost; };</strong></span>.
+            Note that zones using <span class="command"><strong>masterfile-format map</strong></span>
+            cannot be used as policy zones.
           </p>
 <p>
             A <span class="command"><strong>response-policy</strong></span> option can support

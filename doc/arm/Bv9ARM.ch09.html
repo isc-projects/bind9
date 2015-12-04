@@ -91,6 +91,11 @@
 	  in CVE-2015-8000. [RT #40987]
 	</p></li>
 <li class="listitem"><p>
+	  Incorrect reference counting could result in an INSIST
+	  failure if a socket error occurred while performing a
+	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
+	</p></li>
+<li class="listitem"><p>
 	  An incorrect boundary check in the OPENPGPKEY rdatatype
 	  could trigger an assertion failure. This flaw is disclosed
 	  in CVE-2015-5986. [RT #40286]
@@ -337,6 +342,15 @@
 <li class="listitem"><p>
 	      Query names could match against the wrong policy zone
 	      if wildcard records were present. [RT #40357]
+	    </p></li>
+<li class="listitem"><p>
+	      Zones configured to use <span class="command"><strong>map</strong></span> format
+	      master files can't be used as policy zones because RPZ
+	      summary data isn't compiled when such zones are mapped into
+	      memory.  This limitation may be fixed in a future release,
+	      but in the meantime it has been documented, and attempting
+	      to use such zones in <span class="command"><strong>response-policy</strong></span>
+	      statements is now a configuration error.  [RT #38321]
 	    </p></li>
 </ul></div>
 </li>
