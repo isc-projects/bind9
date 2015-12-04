@@ -23,8 +23,8 @@
       This document summarizes changes since BIND 9.10.3:
     </para>
     <para>
-      BIND 9.10.3-P2 addresses a security issue described in CVE-2015-3193
-      (OpenSSL), CVE-2015-8000 and CVE-2015-8461.
+      BIND 9.10.3-P2 addresses the security issues described in
+      CVE-2015-3193 (OpenSSL), CVE-2015-8000 and CVE-2015-8461.
     </para>
     <para>
       BIND 9.10.3-P1 was incomplete and was withdrawn prior to publication.
@@ -83,7 +83,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  Updated the complied in addresses for H.ROOT-SERVERS.NET.
+	  Updated the compiled in addresses for H.ROOT-SERVERS.NET.
 	</para>
       </listitem>
     </itemizedlist>
