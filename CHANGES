@@ -3,9 +3,6 @@
 4270.	[security]	Update allowed OpenSSL versions as named is
 			potentially vulnerable to CVE-2015-3193.
 
-4253.	[security]	Address fetch context reference count handling error
-			on socket error. (CVE-2015-8461) [RT#40945]
-
 4261.	[maint]		H.ROOT-SERVERS.NET is 198.97.190.53 and 2001:500:1::53.
 			[RT #40556]
 
@@ -13,6 +10,9 @@
 			records with an incorrect class to be be accepted,
 			triggering a REQUIRE failure when those records
 			were subsequently cached. (CVE-2015-8000) [RT #40987]
+
+4253.	[security]	Address fetch context reference count handling error
+			on socket error. (CVE-2015-8461) [RT#40945]
 
 	--- 9.10.3-P1 (withdrawn) ---
 
