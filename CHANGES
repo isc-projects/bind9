@@ -1,3 +1,6 @@
+4272.	[bug]		dig: the +norrcomments option didn't work with +multi.
+			[RT #41234]
+
 4271.	[test]		Unit tests could deadlock in isc__taskmgr_pause().
 			[RT #41235]
 

@@ -70,9 +70,11 @@ static char sitvalue[256];
 static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
 	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE,
-	onesoa = ISC_FALSE, rrcomments = ISC_FALSE, use_usec = ISC_FALSE,
-	nocrypto = ISC_FALSE;
+	onesoa = ISC_FALSE, use_usec = ISC_FALSE, nocrypto = ISC_FALSE;
 static isc_uint32_t splitwidth = 0xffffffff;
+
+/*% rrcomments are neither explicitly enabled nor disabled by default */
+static int rrcomments = 0;
 
 /*% opcode text */
 static const char * const opcodetext[] = {
@@ -344,7 +346,8 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		ADD_STRING(buf, " ");
 	}
 
-	if (rrcomments)
+	/* Turn on rrcomments if explicitly enabled */
+	if (rrcomments > 0)
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	if (nocrypto)
 		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
@@ -434,10 +437,11 @@ printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
 		styleflags |= DNS_STYLEFLAG_NO_TTL;
 	if (noclass)
 		styleflags |= DNS_STYLEFLAG_NO_CLASS;
-	if (rrcomments)
-		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	if (nocrypto)
 		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
+	/* Turn on rrcomments if explicitly enabled */
+	if (rrcomments > 0)
+		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	if (multiline) {
 		styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
 		styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
@@ -446,7 +450,9 @@ printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
 		styleflags |= DNS_STYLEFLAG_TTL;
 		styleflags |= DNS_STYLEFLAG_MULTILINE;
 		styleflags |= DNS_STYLEFLAG_COMMENT;
-		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
+		/* Turn on rrcomments if not explicitly disabled */
+		if (rrcomments >= 0)
+			styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	}
 
 	if (multiline || (nottl && noclass))
@@ -487,7 +493,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
 	if (query->lookup->comments)
 		styleflags |= DNS_STYLEFLAG_COMMENT;
-	if (rrcomments)
+	/* Turn on rrcomments if explicitly enabled */
+	if (rrcomments > 0)
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	if (nottl)
 		styleflags |= DNS_STYLEFLAG_NO_TTL;
@@ -502,7 +509,9 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		styleflags |= DNS_STYLEFLAG_OMIT_TTL;
 		styleflags |= DNS_STYLEFLAG_TTL;
 		styleflags |= DNS_STYLEFLAG_MULTILINE;
-		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
+		/* Turn on rrcomments unless explicitly disabled */
+		if (rrcomments >= 0)
+			styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	}
 	if (multiline || (nottl && noclass))
 		result = dns_master_stylecreate2(&style, styleflags,
@@ -823,7 +832,6 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			lookup->section_answer = state;
 			lookup->section_additional = state;
 			lookup->comments = state;
-			rrcomments = state;
 			lookup->stats = state;
 			printcmd = state;
 			break;
@@ -1061,13 +1069,13 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					lookup->identify = ISC_TRUE;
 					lookup->stats = ISC_FALSE;
 					lookup->comments = ISC_FALSE;
-					rrcomments = ISC_FALSE;
 					lookup->section_additional = ISC_FALSE;
 					lookup->section_authority = ISC_FALSE;
 					lookup->section_question = ISC_FALSE;
 					lookup->rdtype = dns_rdatatype_ns;
 					lookup->rdtypeset = ISC_TRUE;
 					short_form = ISC_TRUE;
+					rrcomments = 0;
 				}
 				break;
 			default:
@@ -1157,7 +1165,7 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			break;
 		case 'r': /* rrcomments */
 			FULLCHECK("rrcomments");
-			rrcomments = state;
+			rrcomments = state ? 1 : -1;
 			break;
 		default:
 			goto invalid_option;
@@ -1185,8 +1193,8 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					lookup->section_authority = ISC_FALSE;
 					lookup->section_question = ISC_FALSE;
 					lookup->comments = ISC_FALSE;
-					rrcomments = ISC_FALSE;
 					lookup->stats = ISC_FALSE;
+					rrcomments = -1;
 				}
 				break;
 			case 'w': /* showsearch */
@@ -1325,7 +1333,7 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					lookup->recurse = ISC_FALSE;
 					lookup->identify = ISC_TRUE;
 					lookup->comments = ISC_FALSE;
-					rrcomments = ISC_FALSE;
+					rrcomments = 0;
 					lookup->stats = ISC_FALSE;
 					lookup->section_additional = ISC_FALSE;
 					lookup->section_authority = ISC_TRUE;
