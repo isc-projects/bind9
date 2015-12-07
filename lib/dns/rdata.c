@@ -406,12 +406,16 @@ typemap_fromtext(isc_lex_t *lexer, isc_buffer_t *target,
 {
 	isc_token_t token;
 	unsigned char bm[8*1024]; /* 64k bits */
-	dns_rdatatype_t covered;
+	dns_rdatatype_t covered, max_used;
 	int octet;
+	unsigned int max_octet, newend, end;
 	int window;
 	isc_boolean_t first = ISC_TRUE;
 
-	memset(bm, 0, sizeof(bm));
+	max_used = 0;
+	bm[0] = 0;
+	end = 0;
+
 	do {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, ISC_TRUE));
@@ -419,6 +423,14 @@ typemap_fromtext(isc_lex_t *lexer, isc_buffer_t *target,
 			break;
 		RETTOK(dns_rdatatype_fromtext(&covered,
 					      &token.value.as_textregion));
+		if (covered > max_used) {
+			newend = covered / 8;
+			if (newend > end) {
+				memset(&bm[end + 1], 0, newend - end);
+				end = newend;
+			}
+			max_used = covered;
+		}
 		bm[covered/8] |= (0x80>>(covered%8));
 		first = ISC_FALSE;
 	} while (1);
@@ -427,12 +439,22 @@ typemap_fromtext(isc_lex_t *lexer, isc_buffer_t *target,
 		return (DNS_R_FORMERR);
 
 	for (window = 0; window < 256 ; window++) {
+		if (max_used < window * 256)
+			break;
+
+		max_octet = max_used - (window * 256);
+		if (max_octet >= 256)
+			max_octet = 31;
+		else
+			max_octet /= 8;
+
 		/*
 		 * Find if we have a type in this window.
 		 */
-		for (octet = 31; octet >= 0; octet--)
+		for (octet = max_octet; octet >= 0; octet--) {
 			if (bm[window * 32 + octet] != 0)
 				break;
+		}
 		if (octet < 0)
 			continue;
 		RETERR(uint8_tobuffer(window, target));
