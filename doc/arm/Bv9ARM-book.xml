@@ -12851,6 +12851,18 @@ example.com. NS ns2.example.net.
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			SMIMEA
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			The S/MIME Security Certificate Association.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			SOA
 		      </para>
 		    </entry>

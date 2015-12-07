@@ -278,6 +278,24 @@ generic_fromwire_ds(ARGS_FROMWIRE);
 static isc_result_t
 generic_fromstruct_ds(ARGS_FROMSTRUCT);
 
+static isc_result_t
+generic_fromtext_tlsa(ARGS_FROMTEXT);
+
+static isc_result_t
+generic_totext_tlsa(ARGS_TOTEXT);
+
+static isc_result_t
+generic_fromwire_tlsa(ARGS_FROMWIRE);
+
+static isc_result_t
+generic_fromstruct_tlsa(ARGS_FROMSTRUCT);
+
+static isc_result_t
+generic_tostruct_tlsa(ARGS_TOSTRUCT);
+
+static void
+generic_freestruct_tlsa(ARGS_FREESTRUCT);
+
 /*% INT16 Size */
 #define NS_INT16SZ	2
 /*% IPv6 Address Size */

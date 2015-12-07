@@ -1,3 +1,5 @@
+4276.	[protocol]	Add support for SMIMEA. [RT #40513]
+
 4274.	[performance]	Speed up typemap processing from text. [RT #41196]
 
 4272.	[bug]		dig: the +norrcomments option didn't work with +multi.
