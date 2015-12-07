@@ -1,3 +1,7 @@
+4273.	[bug]		Only call dns_test_begin() and dns_test_end() once each
+			in nsec3_test as it fails with GOST if called multiple
+			times. 
+
 4272.	[bug]		dig: the +norrcomments option didn't work with +multi.
 			[RT #41234]
 
