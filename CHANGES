@@ -1,3 +1,5 @@
+4276.	[protocol]	Add support for SMIMEA. [RT #40513]
+
 4275.	[performance]	Lazily initialize dns_compress->table only when
 			compression is enabled. [RT #41189]
 
