@@ -44,6 +44,9 @@ ISC_LANG_BEGINDECLS
 #define DNS_COMPRESS_GLOBAL14		0x01	/*%< "normal" compression. */
 #define DNS_COMPRESS_ALL		0x01	/*%< all compression. */
 #define DNS_COMPRESS_CASESENSITIVE	0x02	/*%< case sensitive compression. */
+#define DNS_COMPRESS_ENABLED		0x04
+
+#define DNS_COMPRESS_READY		0x80000000
 
 #define DNS_COMPRESS_TABLESIZE 64
 #define DNS_COMPRESS_INITIALNODES 16
@@ -61,7 +64,6 @@ struct dns_compressnode {
 struct dns_compress {
 	unsigned int		magic;		/*%< Magic number. */
 	unsigned int		allowed;	/*%< Allowed methods. */
-	isc_boolean_t		enabled;	/*%< If the compression is enabled at all. */
 	int			edns;		/*%< Edns version or -1. */
 	/*% Global compression table. */
 	dns_compressnode_t	*table[DNS_COMPRESS_TABLESIZE];
