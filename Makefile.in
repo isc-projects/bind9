@@ -32,6 +32,9 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
+newrr:
+	cd lib/dns; ${MAKE} newrr
+
 distclean::
 	rm -f config.cache config.h config.log config.status TAGS
 	rm -f libtool isc-config.sh configure.lineno
