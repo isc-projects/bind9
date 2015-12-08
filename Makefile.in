@@ -33,6 +33,9 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
+newrr:
+	cd lib/dns; ${MAKE} newrr
+
 bind.keys.h: ${top_srcdir}/bind.keys ${srcdir}/util/bindkeys.pl
 	${PERL} ${srcdir}/util/bindkeys.pl < ${top_srcdir}/bind.keys > $@
 
