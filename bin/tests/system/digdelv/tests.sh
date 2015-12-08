@@ -58,7 +58,7 @@ if [ -x ${DIG} ] ; then
   echo "I:checking dig +multi +norrcomments works for dnskey (when default is rrcomments)($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
-  grep -v "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null || ret=1
+  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
@@ -66,7 +66,7 @@ if [ -x ${DIG} ] ; then
   echo "I:checking dig +multi +norrcomments works for soa (when default is rrcomments)($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments SOA example > dig.out.test$n || ret=1
-  grep -v "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null || ret=1
+  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
@@ -99,6 +99,39 @@ if [ -x ${DIG} ] ; then
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
   grep "S8M=  ; ZSK; alg = RSAMD5 ; key id = 30795$" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +noheader-only works ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.3 +noheader-only A example > dig.out.test$n || ret=1
+  grep "Got answer:" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +short +rrcomments works($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
+  grep "S8M=  ; ZSK; alg = RSAMD5 ; key id = 30795$" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  echo "I:checking dig +header-only works ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.3 +header-only example > dig.out.test$n || ret=1
+  grep "^;; flags: qr rd; QUERY: 0, ANSWER: 0," < dig.out.test$n > /dev/null || ret=1
+  grep "^;; QUESTION SECTION:" < dig.out.test$n > /dev/null && ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +header-only works (with class and type set) ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.3 +header-only -c IN -t A example > dig.out.test$n || ret=1
+  grep "^;; flags: qr rd; QUERY: 0, ANSWER: 0," < dig.out.test$n > /dev/null || ret=1
+  grep "^;; QUESTION SECTION:" < dig.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
@@ -167,7 +200,7 @@ if [ -x ${DELV} ] ; then
   echo "I:checking delv +multi +norrcomments works for dnskey (when default is rrcomments)($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +multi +norrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep -v "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null || ret=1
+  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
@@ -175,7 +208,7 @@ if [ -x ${DELV} ] ; then
   echo "I:checking delv +multi +norrcomments works for soa (when default is rrcomments)($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +multi +norrcomments SOA example > delv.out.test$n || ret=1
-  grep -v "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null || ret=1
+  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
