@@ -1308,6 +1308,13 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 	dns_test_end();
 }
 
+#if 0
+
+/*
+ * XXXMUKS: Don't delete this code. It is useful in benchmarking the
+ * RBT, but we don't require it as part of the unit test runs.
+ */
+
 ATF_TC(benchmark);
 ATF_TC_HEAD(benchmark, tc) {
 	atf_tc_set_md_var(tc, "descr", "Benchmark RBT implementation");
@@ -1433,6 +1440,8 @@ ATF_TC_BODY(benchmark, tc) {
 	dns_test_end();
 }
 
+#endif /* benchmark test */
+
 /*
  * Main
  */
@@ -1446,7 +1455,9 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, rbt_remove);
 	ATF_TP_ADD_TC(tp, rbt_remove_empty);
 	ATF_TP_ADD_TC(tp, rbt_insert_and_remove);
+#if 0
 	ATF_TP_ADD_TC(tp, benchmark);
+#endif
 
 	return (atf_no_error());
 }
