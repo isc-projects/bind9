@@ -595,6 +595,7 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 		else
 			count = count2;
 
+		/* Loop unrolled for performance */
 		while (count > 3) {
 			chdiff = (int)maptolower[label1[0]] -
 				 (int)maptolower[label2[0]];
@@ -625,7 +626,8 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 			label2 += 4;
 		}
 		while (count-- > 0) {
-			chdiff = (int)maptolower[*label1++] - (int)maptolower[*label2++];
+			chdiff = (int)maptolower[*label1++] -
+				 (int)maptolower[*label2++];
 			if (chdiff != 0) {
 				*orderp = chdiff;
 				goto done;
@@ -719,6 +721,7 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 
 		INSIST(count <= 63); /* no bitstring support */
 
+		/* Loop unrolled for performance */
 		while (count > 3) {
 		        c = maptolower[label1[0]];
 			if (c != maptolower[label2[0]])

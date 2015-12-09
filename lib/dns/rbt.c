@@ -181,7 +181,8 @@ Name(dns_rbtnode_t *node) {
 
 #ifdef DNS_RBT_USEHASH
 
-/* Upper node is the parent of the root of the passed node's
+/*
+ * Upper node is the parent of the root of the passed node's
  * subtree. The passed node must not be NULL.
  */
 static inline dns_rbtnode_t *
