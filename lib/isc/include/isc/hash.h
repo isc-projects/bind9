@@ -218,7 +218,8 @@ isc_hash_function_reverse(const void *data, size_t length,
  * isc_hash_function() calculates the hash from start to end over the
  * input data. isc_hash_function_reverse() calculates the hash from the
  * end to the start over the input data. The difference in order is
- * useful in incremental hashing.
+ * useful in incremental hashing; for example, a previously hashed
+ * value for 'com' can be used as input when hashing 'example.com'.
  *
  * This is a new variant of isc_hash_calc() and will supercede
  * isc_hash_calc() eventually.
