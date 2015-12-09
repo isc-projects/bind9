@@ -568,7 +568,7 @@ setcachestats(dns_db_t *db, isc_stats_t *stats) {
 	return (dns_db_setcachestats(sampledb->rbtdb, stats));
 }
 
-static unsigned int
+static size_t
 hashsize(dns_db_t *db) {
 	sampledb_t *sampledb = (sampledb_t *) db;
 

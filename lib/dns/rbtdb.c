@@ -7729,20 +7729,20 @@ nodecount(dns_db_t *db) {
 	return (count);
 }
 
-static unsigned int
+static size_t
 hashsize(dns_db_t *db) {
 	dns_rbtdb_t *rbtdb;
-	unsigned int count;
+	size_t size;
 
 	rbtdb = (dns_rbtdb_t *)db;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-	count = dns_rbt_hashsize(rbtdb->tree);
+	size = dns_rbt_hashsize(rbtdb->tree);
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 
-	return (count);
+	return (size);
 }
 
 static void

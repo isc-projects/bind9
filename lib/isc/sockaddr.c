@@ -205,7 +205,6 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 	unsigned int length = 0;
 	const unsigned char *s = NULL;
 	unsigned int h = 0;
-	unsigned int g;
 	unsigned int p = 0;
 	const struct in6_addr *in6;
 
@@ -239,12 +238,9 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 		p = 0;
 	}
 
-	h = isc_hash_calc(s, length, ISC_TRUE);
-	if (!address_only) {
-		g = isc_hash_calc((const unsigned char *)&p, sizeof(p),
-				  ISC_TRUE);
-		h = h ^ g; /* XXX: we should concatenate h and p first */
-	}
+	h = isc_hash_function(s, length, ISC_TRUE, NULL);
+	if (!address_only)
+		h = isc_hash_function(&p, sizeof(p), ISC_TRUE, &h);
 
 	return (h);
 }

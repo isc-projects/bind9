@@ -50,6 +50,7 @@ extern isc_socketmgr_t *socketmgr;
 extern dns_zonemgr_t *zonemgr;
 extern isc_boolean_t app_running;
 extern int ncpus;
+extern isc_boolean_t debug_mem_record;
 
 isc_result_t
 dns_test_begin(FILE *logfile, isc_boolean_t create_managers);

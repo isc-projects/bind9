@@ -1,3 +1,10 @@
+4277.	[performance]	Improve performance of the RBT, the central zone
+			datastructure: The aux hashtable was improved,
+			hash function was updated to perform more
+			uniform mapping, uppernode was added to
+			dns_rbtnode, and other cleanups and performance
+			improvements were made. [RT #41165]
+
 4276.	[protocol]	Add support for SMIMEA. [RT #40513]
 
 4275.	[performance]	Lazily initialize dns_compress->table only when

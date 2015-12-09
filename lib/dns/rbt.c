@@ -78,15 +78,15 @@
 #endif
 
 struct dns_rbt {
-	unsigned int            magic;
-	isc_mem_t *             mctx;
-	dns_rbtnode_t *         root;
-	void                    (*data_deleter)(void *, void *);
-	void *                  deleter_arg;
-	unsigned int            nodecount;
-	unsigned int            hashsize;
-	dns_rbtnode_t **        hashtable;
-	void *                  mmap_location;
+	unsigned int		magic;
+	isc_mem_t *		mctx;
+	dns_rbtnode_t *		root;
+	void			(*data_deleter)(void *, void *);
+	void *			deleter_arg;
+	unsigned int		nodecount;
+	size_t			hashsize;
+	dns_rbtnode_t **	hashtable;
+	void *			mmap_location;
 };
 
 #define RED 0
@@ -208,6 +208,9 @@ getdata(dns_rbtnode_t *node, file_header_t *header) {
 #define LEFT(node)              ((node)->left)
 #define RIGHT(node)             ((node)->right)
 #define DOWN(node)              ((node)->down)
+#ifdef DNS_RBT_USEHASH
+#define UPPERNODE(node)         ((node)->uppernode)
+#endif /* DNS_RBT_USEHASH */
 #define DATA(node)              ((node)->data)
 #define IS_EMPTY(node)          ((node)->data == NULL)
 #define HASHNEXT(node)          ((node)->hashnext)
@@ -345,6 +348,39 @@ hexdump(const char *desc, unsigned char *data, size_t size) {
 }
 #endif /* DEBUG */
 
+#ifdef DNS_RBT_USEHASH
+
+/* Upper node is the parent of the root of the passed node's
+ * subtree. The passed node must not be NULL.
+ */
+static inline dns_rbtnode_t *
+get_upper_node(dns_rbtnode_t *node) {
+	return (UPPERNODE(node));
+}
+
+static void
+fixup_uppernodes_helper(dns_rbtnode_t *node, dns_rbtnode_t *uppernode) {
+	if (node == NULL)
+		return;
+
+	UPPERNODE(node) = uppernode;
+
+	fixup_uppernodes_helper(LEFT(node), uppernode);
+	fixup_uppernodes_helper(RIGHT(node), uppernode);
+	fixup_uppernodes_helper(DOWN(node), node);
+}
+
+/*
+ * This function is used to fixup uppernode members of all dns_rbtnodes
+ * after deserialization.
+ */
+static void
+fixup_uppernodes(dns_rbt_t *rbt) {
+	fixup_uppernodes_helper(rbt->root, NULL);
+}
+
+#else
+
 /* The passed node must not be NULL. */
 static inline dns_rbtnode_t *
 get_subtree_root(dns_rbtnode_t *node) {
@@ -369,6 +405,8 @@ get_upper_node(dns_rbtnode_t *node) {
 	 */
 	return (PARENT(root));
 }
+
+#endif /* DNS_RBT_USEHASH */
 
 size_t
 dns__rbtnode_getdistance(dns_rbtnode_t *node) {
@@ -421,11 +459,9 @@ treefix(dns_rbt_t *rbt, void *base, size_t size,
 	dns_rbtdatafixer_t datafixer, void *fixer_arg,
 	isc_uint64_t *crc);
 
-static isc_result_t
-deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
-
 static void
-deletetreeflat(dns_rbt_t *rbt, unsigned int quantum, dns_rbtnode_t **nodep);
+deletetreeflat(dns_rbt_t *rbt, unsigned int quantum, isc_boolean_t unhash,
+	       dns_rbtnode_t **nodep);
 
 static void
 printnodename(dns_rbtnode_t *node, isc_boolean_t quoted, FILE *f);
@@ -898,12 +934,18 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 		goto cleanup;
 	}
 
+	if (header->nodecount != rbt->nodecount) {
+		result = ISC_R_INVALIDFILE;
+		goto cleanup;
+	}
+
+#ifdef DNS_RBT_USEHASH
+	fixup_uppernodes(rbt);
+#endif /* DNS_RBT_USEHASH */
+
 	*rbtp = rbt;
 	if (originp != NULL)
 		*originp = rbt->root;
-
-	if (header->nodecount != rbt->nodecount)
-		result = ISC_R_INVALIDFILE;
 
  cleanup:
 	if (result != ISC_R_SUCCESS && rbt != NULL) {
@@ -976,7 +1018,7 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum) {
 
 	rbt = *rbtp;
 
-	deletetreeflat(rbt, quantum, &rbt->root);
+	deletetreeflat(rbt, quantum, ISC_FALSE, &rbt->root);
 	if (rbt->root != NULL)
 		return (ISC_R_QUOTA);
 
@@ -1003,7 +1045,7 @@ dns_rbt_nodecount(dns_rbt_t *rbt) {
 	return (rbt->nodecount);
 }
 
-unsigned int
+size_t
 dns_rbt_hashsize(dns_rbt_t *rbt) {
 
 	REQUIRE(VALID_RBT(rbt));
@@ -1098,6 +1140,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 		if (result == ISC_R_SUCCESS) {
 			rbt->nodecount++;
 			new_current->is_root = 1;
+#ifdef DNS_RBT_USEHASH
+			UPPERNODE(new_current) = NULL;
+#endif /* DNS_RBT_USEHASH */
 			rbt->root = new_current;
 			*nodep = new_current;
 			hash_node(rbt, new_current, name);
@@ -1277,7 +1322,10 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				PARENT(current) = new_current;
 				DOWN(new_current) = current;
 				root = &DOWN(new_current);
-
+#ifdef DNS_RBT_USEHASH
+				UPPERNODE(new_current) = UPPERNODE(current);
+				UPPERNODE(current) = new_current;
+#endif /* DNS_RBT_USEHASH */
 				ADD_LEVEL(&chain, new_current);
 
 				LEFT(current) = NULL;
@@ -1334,6 +1382,12 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 		result = create_node(rbt->mctx, add_name, &new_current);
 
 	if (result == ISC_R_SUCCESS) {
+#ifdef DNS_RBT_USEHASH
+	        if (*root == NULL)
+		        UPPERNODE(new_current) = current;
+		else
+		        UPPERNODE(new_current) = PARENT(*root);
+#endif /* DNS_RBT_USEHASH */
 		addonlevel(new_current, current, order, root);
 		rbt->nodecount++;
 		*nodep = new_current;
@@ -1476,12 +1530,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			unsigned int hash;
 
 			/*
-			 * If there is no hash table, hashing can't be done.
-			 */
-			if (rbt->hashtable == NULL)
-				goto nohash;
-
-			/*
 			 * The case of current != current_root, that
 			 * means a left or right pointer was followed,
 			 * only happens when the algorithm fell through to
@@ -1495,7 +1543,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 
 			/*
 			 * current_root is the root of the current level, so
-			 * it's parent is the same as it's "up" pointer.
+			 * its parent is the same as its "up" pointer.
 			 */
 			up_current = PARENT(current_root);
 			dns_name_init(&hash_name, NULL);
@@ -1579,8 +1627,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			current = NULL;
 			continue;
 
-		nohash:
-#endif /* DNS_RBT_USEHASH */
+#else /* DNS_RBT_USEHASH */
+
 			/*
 			 * Standard binary search tree movement.
 			 */
@@ -1588,6 +1636,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				current = LEFT(current);
 			else
 				current = RIGHT(current);
+
+#endif /* DNS_RBT_USEHASH */
 
 		} else {
 			/*
@@ -2019,10 +2069,10 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 	INSIST(rbt->nodecount != 0);
 
 	if (DOWN(node) != NULL) {
-		if (recurse)
-			RUNTIME_CHECK(deletetree(rbt, DOWN(node))
-				      == ISC_R_SUCCESS);
-		else {
+		if (recurse) {
+			PARENT(DOWN(node)) = NULL;
+			deletetreeflat(rbt, 0, ISC_TRUE, &DOWN(node));
+		} else {
 			if (DATA(node) != NULL && rbt->data_deleter != NULL)
 				rbt->data_deleter(DATA(node), rbt->deleter_arg);
 			DATA(node) = NULL;
@@ -2034,6 +2084,7 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 			 * by itself on a single level, so join_nodes() could
 			 * be used to collapse the tree (with all the caveats
 			 * of the comment at the start of this function).
+			 * But join_nodes() function has now been removed.
 			 */
 			return (ISC_R_SUCCESS);
 		}
@@ -2269,12 +2320,14 @@ rehash(dns_rbt_t *rbt, unsigned int newcount) {
 	unsigned int oldsize;
 	dns_rbtnode_t **oldtable;
 	dns_rbtnode_t *node;
+	dns_rbtnode_t *nextnode;
 	unsigned int hash;
 	unsigned int i;
 
 	oldsize = rbt->hashsize;
 	oldtable = rbt->hashtable;
 	do {
+		INSIST((rbt->hashsize * 2 + 1) > rbt->hashsize);
 		rbt->hashsize = rbt->hashsize * 2 + 1;
 	} while (newcount >= (rbt->hashsize * 3));
 	rbt->hashtable = isc_mem_get(rbt->mctx,
@@ -2285,19 +2338,15 @@ rehash(dns_rbt_t *rbt, unsigned int newcount) {
 		return;
 	}
 
-	INSIST(rbt->hashsize > 0);
-
 	for (i = 0; i < rbt->hashsize; i++)
 		rbt->hashtable[i] = NULL;
 
 	for (i = 0; i < oldsize; i++) {
-		node = oldtable[i];
-		while (node != NULL) {
+		for (node = oldtable[i]; node != NULL; node = nextnode) {
 			hash = HASHVAL(node) % rbt->hashsize;
-			oldtable[i] = HASHNEXT(node);
+			nextnode = HASHNEXT(node);
 			HASHNEXT(node) = rbt->hashtable[hash];
 			rbt->hashtable[hash] = node;
-			node = oldtable[i];
 		}
 	}
 
@@ -2321,19 +2370,17 @@ unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 
 	REQUIRE(DNS_RBTNODE_VALID(node));
 
-	if (rbt->hashtable != NULL) {
-		bucket = HASHVAL(node) % rbt->hashsize;
-		bucket_node = rbt->hashtable[bucket];
+	bucket = HASHVAL(node) % rbt->hashsize;
+	bucket_node = rbt->hashtable[bucket];
 
-		if (bucket_node == node)
-			rbt->hashtable[bucket] = HASHNEXT(node);
-		else {
-			while (HASHNEXT(bucket_node) != node) {
-				INSIST(HASHNEXT(bucket_node) != NULL);
-				bucket_node = HASHNEXT(bucket_node);
-			}
-			HASHNEXT(bucket_node) = HASHNEXT(node);
+	if (bucket_node == node) {
+		rbt->hashtable[bucket] = HASHNEXT(node);
+	} else {
+		while (HASHNEXT(bucket_node) != node) {
+			INSIST(HASHNEXT(bucket_node) != NULL);
+			bucket_node = HASHNEXT(bucket_node);
 		}
+		HASHNEXT(bucket_node) = HASHNEXT(node);
 	}
 }
 #endif /* DNS_RBT_USEHASH */
@@ -2747,64 +2794,6 @@ deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 	}
 }
 
-/*
- * This should only be used on the root of a tree, because no color fixup
- * is done at all.
- *
- * NOTE: No root pointer maintenance is done, because the function is only
- * used for two cases:
- * + deleting everything DOWN from a node that is itself being deleted, and
- * + deleting the entire tree of trees from dns_rbt_destroy.
- * In each case, the root pointer is no longer relevant, so there
- * is no need for a root parameter to this function.
- *
- * If the function is ever intended to be used to delete something where
- * a pointer needs to be told that this tree no longer exists,
- * this function would need to adjusted accordingly.
- */
-static isc_result_t
-deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
-	isc_result_t result = ISC_R_SUCCESS;
-
-	REQUIRE(VALID_RBT(rbt));
-
-	if (node == NULL)
-		return (result);
-
-	if (LEFT(node) != NULL) {
-		result = deletetree(rbt, LEFT(node));
-		if (result != ISC_R_SUCCESS)
-			goto done;
-		LEFT(node) = NULL;
-	}
-	if (RIGHT(node) != NULL) {
-		result = deletetree(rbt, RIGHT(node));
-		if (result != ISC_R_SUCCESS)
-			goto done;
-		RIGHT(node) = NULL;
-	}
-	if (DOWN(node) != NULL) {
-		result = deletetree(rbt, DOWN(node));
-		if (result != ISC_R_SUCCESS)
-			goto done;
-		DOWN(node) = NULL;
-	}
- done:
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	if (DATA(node) != NULL && rbt->data_deleter != NULL)
-		rbt->data_deleter(DATA(node), rbt->deleter_arg);
-
-	unhash_node(rbt, node);
-#if DNS_RBT_USEMAGIC
-	node->magic = 0;
-#endif
-
-	freenode(rbt, &node);
-	return (result);
-}
-
 static void
 freenode(dns_rbt_t *rbt, dns_rbtnode_t **nodep) {
 	dns_rbtnode_t *node = *nodep;
@@ -2818,57 +2807,55 @@ freenode(dns_rbt_t *rbt, dns_rbtnode_t **nodep) {
 }
 
 static void
-deletetreeflat(dns_rbt_t *rbt, unsigned int quantum, dns_rbtnode_t **nodep) {
-	dns_rbtnode_t *parent;
-	dns_rbtnode_t *node = *nodep;
+deletetreeflat(dns_rbt_t *rbt, unsigned int quantum, isc_boolean_t unhash,
+	       dns_rbtnode_t **nodep)
+{
+	dns_rbtnode_t *root = *nodep;
 
-	REQUIRE(VALID_RBT(rbt));
+	while (root != NULL) {
+		/*
+		 * If there is a left, right or down node, walk into it
+		 * and iterate.
+		 */
+		if (LEFT(root) != NULL) {
+			dns_rbtnode_t *node = root;
+			root = LEFT(root);
+			LEFT(node) = NULL;
+		} else if (RIGHT(root) != NULL) {
+			dns_rbtnode_t *node = root;
+			root = RIGHT(root);
+			RIGHT(node) = NULL;
+		} else if (DOWN(root) != NULL) {
+			dns_rbtnode_t *node = root;
+			root = DOWN(root);
+			DOWN(node) = NULL;
+		} else {
+			/*
+			 * There are no left, right or down nodes, so we
+			 * can free this one and go back to its parent.
+			 */
+			dns_rbtnode_t *node = root;
+			root = PARENT(root);
 
- again:
-	if (node == NULL) {
-		*nodep = NULL;
-		return;
-	}
-
- traverse:
-	if (LEFT(node) != NULL) {
-		node = LEFT(node);
-		goto traverse;
-	}
-	if (DOWN(node) != NULL) {
-		node = DOWN(node);
-		goto traverse;
-	}
-
-	if (DATA(node) != NULL && rbt->data_deleter != NULL)
-		rbt->data_deleter(DATA(node), rbt->deleter_arg);
-
-	/*
-	 * Note: we don't call unhash_node() here as we are destroying
-	 * the complete rbt tree.
-	 */
+			if (DATA(node) != NULL && rbt->data_deleter != NULL)
+				rbt->data_deleter(DATA(node),
+						  rbt->deleter_arg);
+			if (unhash)
+				unhash_node(rbt, node);
+			/*
+			 * Note: we don't call unhash_node() here as we
+			 * are destroying the complete RBT tree.
+			 */
 #if DNS_RBT_USEMAGIC
-	node->magic = 0;
+			node->magic = 0;
 #endif
-	parent = PARENT(node);
-	if (RIGHT(node) != NULL)
-		PARENT(RIGHT(node)) = parent;
-	if (parent != NULL) {
-		if (LEFT(parent) == node)
-			LEFT(parent) = RIGHT(node);
-		else if (DOWN(parent) == node)
-			DOWN(parent) = RIGHT(node);
-	} else
-		parent = RIGHT(node);
-
-	freenode(rbt, &node);
-
-	node = parent;
-	if (quantum != 0 && --quantum == 0) {
-		*nodep = node;
-		return;
+			freenode(rbt, &node);
+			if (quantum != 0 && --quantum == 0)
+				break;
+		}
 	}
-	goto again;
+
+	*nodep = root;
 }
 
 static size_t

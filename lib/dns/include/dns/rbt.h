@@ -88,6 +88,7 @@ struct dns_rbtnode {
 	dns_rbtnode_t *right;
 	dns_rbtnode_t *down;
 #ifdef DNS_RBT_USEHASH
+	dns_rbtnode_t *uppernode;
 	dns_rbtnode_t *hashnext;
 #endif
 
@@ -657,7 +658,7 @@ dns_rbt_nodecount(dns_rbt_t *rbt);
  * \li  rbt is a valid rbt manager.
  */
 
-unsigned int
+size_t
 dns_rbt_hashsize(dns_rbt_t *rbt);
 /*%<
  * Obtain the current number of buckets in the 'rbt' hash table.
