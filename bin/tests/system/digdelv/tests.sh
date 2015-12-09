@@ -135,6 +135,15 @@ if [ -x ${DIG} ] ; then
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
+  n=`expr $n + 1`
+  echo "I:checking dig +zflag works, and that BIND properly ignores it ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.3 +zflag +qr A example > dig.out.test$n || ret=1
+  sed -n '/Sending:/,/Got answer:/p' dig.out.test$n | grep "^;; flags: rd ad; MBZ: 0x4;" > /dev/null || ret=1
+  sed -n '/Got answer:/,/AUTHORITY SECTION:/p' dig.out.test$n | grep "^;; flags: qr rd ra; QUERY: 1" > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
 else
   echo "$DIG is needed, so skipping these dig tests"
 fi
