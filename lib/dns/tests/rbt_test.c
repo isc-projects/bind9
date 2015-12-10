@@ -1380,7 +1380,7 @@ ATF_TC_BODY(benchmark, tc) {
 	values = (int *) malloc(4000000 * sizeof(int));
 
 	for (i = 0; i < 4000000; i++) {
-	          r = ((unsigned long) random()) % maxvalue;
+		  r = ((unsigned long) random()) % maxvalue;
 		  snprintf(namestr, sizeof(namestr), "name%u.example.org.", r);
 		  build_name_from_str(namestr, &fnames[i]);
 		  names[i] = dns_fixedname_name(&fnames[i]);

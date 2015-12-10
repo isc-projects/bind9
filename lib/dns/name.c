@@ -763,16 +763,16 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 
 		/* Loop unrolled for performance */
 		while (count > 3) {
-		        c = maptolower[label1[0]];
+			c = maptolower[label1[0]];
 			if (c != maptolower[label2[0]])
 				return (ISC_FALSE);
-		        c = maptolower[label1[1]];
+			c = maptolower[label1[1]];
 			if (c != maptolower[label2[1]])
 				return (ISC_FALSE);
-		        c = maptolower[label1[2]];
+			c = maptolower[label1[2]];
 			if (c != maptolower[label2[2]])
 				return (ISC_FALSE);
-		        c = maptolower[label1[3]];
+			c = maptolower[label1[3]];
 			if (c != maptolower[label2[3]])
 				return (ISC_FALSE);
 			count -= 4;
