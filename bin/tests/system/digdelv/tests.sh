@@ -128,33 +128,6 @@ if [ -x ${DIG} ] ; then
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
-  echo "I:checking dig +ttlunits works ($n)"
-  ret=0
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A weeks.example > dig.out.test$n || ret=1
-  grep "^weeks.example.		3w" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A days.example > dig.out.test$n || ret=1
-  grep "^days.example.		3d" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A hours.example > dig.out.test$n || ret=1
-  grep "^hours.example.		3h" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A minutes.example > dig.out.test$n || ret=1
-  grep "^minutes.example.	45m" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A seconds.example > dig.out.test$n || ret=1
-  grep "^seconds.example.	45s" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking dig respects precedence of options with +ttlunits ($n)"
-  ret=0
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits +nottlid A weeks.example > dig.out.test$n || ret=1
-  grep "^weeks.example.		IN" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +nottlid +ttlunits A weeks.example > dig.out.test$n || ret=1
-  grep "^weeks.example.		3w" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +nottlid +nottlunits A weeks.example > dig.out.test$n || ret=1
-  grep "^weeks.example.		1814400" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
-
 else
   echo "$DIG is needed, so skipping these dig tests"
 fi
