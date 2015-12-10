@@ -1,3 +1,6 @@
+4278.	[bug]		'delv +short +[no]split[=##]' didn't work as expected.
+			[RT #41238]
+
 4276.	[protocol]	Add support for SMIMEA. [RT #40513]
 
 4274.	[performance]	Speed up typemap processing from text. [RT #41196]
