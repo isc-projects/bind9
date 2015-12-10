@@ -50,6 +50,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 #include <isc/print.h>
+#include <isc/time.h>
 
 #include <dns/log.h>
 #include <dns/name.h>
@@ -58,6 +59,8 @@
 #include <dst/dst.h>
 
 #include <ctype.h>
+#include <stdlib.h>
+#include <time.h>
 
 typedef struct {
 	dns_rbt_t *rbt;
@@ -1305,6 +1308,131 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 	dns_test_end();
 }
 
+ATF_TC(benchmark);
+ATF_TC_HEAD(benchmark, tc) {
+	atf_tc_set_md_var(tc, "descr", "Benchmark RBT implementation");
+}
+
+static dns_fixedname_t *fnames;
+static dns_name_t **names;
+static int *values;
+
+static void *
+find_thread(void *arg) {
+	dns_rbt_t *mytree;
+	isc_result_t result;
+	dns_rbtnode_t *node;
+	unsigned int j, i;
+	unsigned int start = 0;
+
+	mytree = (dns_rbt_t *) arg;
+	while (start == 0)
+		start = random() % 4000000;
+
+	/* Query 32 million random names from it in each thread */
+	for (j = 0; j < 8; j++) {
+		for (i = start; i != start - 1; i = (i + 1) % 4000000) {
+			node = NULL;
+			result = dns_rbt_findnode(mytree, names[i], NULL,
+						  &node, NULL,
+						  DNS_RBTFIND_EMPTYDATA,
+						  NULL, NULL);
+			ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+			ATF_REQUIRE(node != NULL);
+			ATF_CHECK_EQ(values[i], (intptr_t) node->data);
+		}
+	}
+
+	return (NULL);
+}
+
+ATF_TC_BODY(benchmark, tc) {
+	isc_result_t result;
+	char namestr[sizeof("name18446744073709551616.example.org.")];
+	unsigned int r;
+	dns_rbt_t *mytree;
+	dns_rbtnode_t *node;
+	unsigned int i;
+	unsigned int maxvalue = 1000000;
+	isc_time_t ts1, ts2;
+	double t;
+	unsigned int nthreads;
+	pthread_t threads[32];
+
+	UNUSED(tc);
+
+	srandom(time(NULL));
+
+	debug_mem_record = ISC_FALSE;
+
+	result = dns_test_begin(NULL, ISC_TRUE);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	fnames = (dns_fixedname_t *) malloc(4000000 * sizeof(dns_fixedname_t));
+	names = (dns_name_t **) malloc(4000000 * sizeof(dns_name_t *));
+	values = (int *) malloc(4000000 * sizeof(int));
+
+	for (i = 0; i < 4000000; i++) {
+	          r = ((unsigned long) random()) % maxvalue;
+		  snprintf(namestr, sizeof(namestr), "name%u.example.org.", r);
+		  build_name_from_str(namestr, &fnames[i]);
+		  names[i] = dns_fixedname_name(&fnames[i]);
+		  values[i] = r;
+	}
+
+	/* Create a tree. */
+	mytree = NULL;
+	result = dns_rbt_create(mctx, NULL, NULL, &mytree);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	/* Insert test data into the tree. */
+	for (i = 0; i < maxvalue; i++) {
+		snprintf(namestr, sizeof(namestr), "name%u.example.org.", i);
+		node = NULL;
+		result = insert_helper(mytree, namestr, &node);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		node->data = (void *) (intptr_t) i;
+	}
+
+	result = isc_time_now(&ts1);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	nthreads = ISC_MIN(isc_os_ncpus(), 32);
+	nthreads = ISC_MAX(nthreads, 1);
+	for (i = 0; i < nthreads; i++) {
+		int s;
+
+		s = pthread_create(&threads[i], NULL, find_thread, mytree);
+
+		ATF_REQUIRE(s == 0);
+	}
+
+	for (i = 0; i < nthreads; i++) {
+		int s;
+
+		s = pthread_join(threads[i], NULL);
+
+		ATF_REQUIRE(s == 0);
+	}
+
+	result = isc_time_now(&ts2);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	t = isc_time_microdiff(&ts2, &ts1);
+
+	printf("%u findnode calls, %f seconds, %f calls/second\n",
+	       nthreads * 8 * 4000000, t / 1000000.0,
+	       (nthreads * 8 * 4000000) / (t / 1000000.0));
+
+	free(values);
+	free(names);
+	free(fnames);
+
+	dns_rbt_destroy(&mytree);
+
+	dns_test_end();
+}
+
 /*
  * Main
  */
@@ -1318,6 +1446,7 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, rbt_remove);
 	ATF_TP_ADD_TC(tp, rbt_remove_empty);
 	ATF_TP_ADD_TC(tp, rbt_insert_and_remove);
+	ATF_TP_ADD_TC(tp, benchmark);
 
 	return (atf_no_error());
 }

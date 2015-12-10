@@ -29,6 +29,7 @@
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/string.h>
 #include <isc/thread.h>
 #include <isc/util.h>
@@ -478,42 +479,10 @@ dns_name_internalwildcard(const dns_name_t *name) {
 	return (ISC_FALSE);
 }
 
-static inline unsigned int
-name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
-	unsigned int length;
-	const unsigned char *s;
-	unsigned int h = 0;
-	unsigned char c;
-
-	length = name->length;
-	if (length > 16)
-		length = 16;
-
-	/*
-	 * This hash function is similar to the one Ousterhout
-	 * uses in Tcl.
-	 */
-	s = name->ndata;
-	if (case_sensitive) {
-		while (length > 0) {
-			h += ( h << 3 ) + *s;
-			s++;
-			length--;
-		}
-	} else {
-		while (length > 0) {
-			c = maptolower[*s];
-			h += ( h << 3 ) + c;
-			s++;
-			length--;
-		}
-	}
-
-	return (h);
-}
-
 unsigned int
 dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
+	unsigned int length;
+
 	/*
 	 * Provide a hash value for 'name'.
 	 */
@@ -522,7 +491,12 @@ dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	if (name->labels == 0)
 		return (0);
 
-	return (name_hash(name, case_sensitive));
+	length = name->length;
+	if (length > 16)
+		length = 16;
+
+	return (isc_hash_function_reverse(name->ndata, length,
+					  case_sensitive, NULL));
 }
 
 unsigned int
@@ -535,19 +509,17 @@ dns_name_fullhash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	if (name->labels == 0)
 		return (0);
 
-	return (isc_hash_calc((const unsigned char *)name->ndata,
-			      name->length, case_sensitive));
+	return (isc_hash_function_reverse(name->ndata, name->length,
+					  case_sensitive, NULL));
 }
 
 unsigned int
 dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	/*
 	 * This function was deprecated due to the breakage of the name space
-	 * convention.  We only keep this internally to provide binary backward
+	 * convention.	We only keep this internally to provide binary backward
 	 * compatibility.
 	 */
-	REQUIRE(VALID_NAME(name));
-
 	return (dns_name_fullhash(name, case_sensitive));
 }
 
@@ -567,7 +539,8 @@ dns_name_hashbylabel(dns_name_t *name, isc_boolean_t case_sensitive) {
 	if (name->labels == 0)
 		return (0);
 	else if (name->labels == 1)
-		return (name_hash(name, case_sensitive));
+		return (isc_hash_function_reverse(name->ndata, name->length,
+						  case_sensitive, NULL));
 
 	SETUP_OFFSETS(name, offsets, odata);
 	DNS_NAME_INIT(&tname, NULL);
@@ -579,7 +552,8 @@ dns_name_hashbylabel(dns_name_t *name, isc_boolean_t case_sensitive) {
 			tname.length = name->length - offsets[i];
 		else
 			tname.length = offsets[i + 1] - offsets[i];
-		h += name_hash(&tname, case_sensitive);
+		h += isc_hash_function_reverse(tname.ndata, tname.length,
+					       case_sensitive, NULL);
 	}
 
 	return (h);
@@ -637,12 +611,15 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 		ldiff = l1 - l2;
 	}
 
+	offsets1 += l1;
+	offsets2 += l2;
+
 	while (l > 0) {
 		l--;
-		l1--;
-		l2--;
-		label1 = &name1->ndata[offsets1[l1]];
-		label2 = &name2->ndata[offsets2[l2]];
+		offsets1--;
+		offsets2--;
+		label1 = &name1->ndata[*offsets1];
+		label2 = &name2->ndata[*offsets2];
 		count1 = *label1++;
 		count2 = *label2++;
 
@@ -658,16 +635,41 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 		else
 			count = count2;
 
-		while (count > 0) {
-			chdiff = (int)maptolower[*label1] -
-			    (int)maptolower[*label2];
+		while (count > 3) {
+			chdiff = (int)maptolower[label1[0]] -
+				 (int)maptolower[label2[0]];
 			if (chdiff != 0) {
 				*orderp = chdiff;
 				goto done;
 			}
-			count--;
-			label1++;
-			label2++;
+			chdiff = (int)maptolower[label1[1]] -
+				 (int)maptolower[label2[1]];
+			if (chdiff != 0) {
+				*orderp = chdiff;
+				goto done;
+			}
+			chdiff = (int)maptolower[label1[2]] -
+				 (int)maptolower[label2[2]];
+			if (chdiff != 0) {
+				*orderp = chdiff;
+				goto done;
+			}
+			chdiff = (int)maptolower[label1[3]] -
+				 (int)maptolower[label2[3]];
+			if (chdiff != 0) {
+				*orderp = chdiff;
+				goto done;
+			}
+			count -= 4;
+			label1 += 4;
+			label2 += 4;
+		}
+		while (count-- > 0) {
+			chdiff = (int)maptolower[*label1++] - (int)maptolower[*label2++];
+			if (chdiff != 0) {
+				*orderp = chdiff;
+				goto done;
+			}
 		}
 		if (cdiff != 0) {
 			*orderp = cdiff;
@@ -683,11 +685,12 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 		namereln = dns_namereln_subdomain;
 	else
 		namereln = dns_namereln_equal;
+	*nlabelsp = nlabels;
+	return (namereln);
 
  done:
 	*nlabelsp = nlabels;
-
-	if (nlabels > 0 && namereln == dns_namereln_none)
+	if (nlabels > 0)
 		namereln = dns_namereln_commonancestor;
 
 	return (namereln);
@@ -749,16 +752,31 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 
 	label1 = name1->ndata;
 	label2 = name2->ndata;
-	while (l > 0) {
-		l--;
+	while (l-- > 0) {
 		count = *label1++;
 		if (count != *label2++)
 			return (ISC_FALSE);
 
 		INSIST(count <= 63); /* no bitstring support */
 
-		while (count > 0) {
-			count--;
+		while (count > 3) {
+		        c = maptolower[label1[0]];
+			if (c != maptolower[label2[0]])
+				return (ISC_FALSE);
+		        c = maptolower[label1[1]];
+			if (c != maptolower[label2[1]])
+				return (ISC_FALSE);
+		        c = maptolower[label1[2]];
+			if (c != maptolower[label2[2]])
+				return (ISC_FALSE);
+		        c = maptolower[label1[3]];
+			if (c != maptolower[label2[3]])
+				return (ISC_FALSE);
+			count -= 4;
+			label1 += 4;
+			label2 += 4;
+		}
+		while (count-- > 0) {
 			c = maptolower[*label1++];
 			if (c != maptolower[*label2++])
 				return (ISC_FALSE);
