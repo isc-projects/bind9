@@ -48,3 +48,13 @@ dnskey                  300     DNSKEY  256 3 1 (
                                         b9VIE5x7KNHAYTvTO5d4S8M=
                                         )
 
+; TTL of 3 weeks
+weeks		1814400	A	10.53.0.2
+; TTL of 3 days
+days		259200	A	10.53.0.2
+; TTL of 3 hours
+hours		10800	A	10.53.0.2
+;TTL of 45 minutes
+minutes		2700	A	10.53.0.2
+;TTL of 45 seconds
+seconds		45	A	10.53.0.2
