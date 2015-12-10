@@ -247,10 +247,32 @@ if [ -x ${DELV} ] ; then
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking delv +short +rrcomments works($n)"
+  echo "I:checking delv +short +rrcomments works ($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
   grep "S8M=  ; ZSK; alg = RSAMD5 ; key id = 30795$" < delv.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking delv +short +nosplit works ($n)"
+  ret=0
+  $DELV $DELVOPTS +tcp @10.53.0.3 +short +nosplit DNSKEY dnskey.example > delv.out.test$n || ret=1
+  grep "Z8plc4Rb9VIE5x7KNHAYTvTO5d4S8M=" < delv.out.test$n > /dev/null || ret=1
+  if test `wc -l < delv.out.test$n` != 1 ; then ret=1 ; fi
+  f=`awk '{print NF}' < delv.out.test$n`
+  test "${f:-0}" -eq 14 || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking delv +short +nosplit +norrcomments works ($n)"
+  ret=0
+  $DELV $DELVOPTS +tcp @10.53.0.3 +short +nosplit +norrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
+  grep "Z8plc4Rb9VIE5x7KNHAYTvTO5d4S8M=$" < delv.out.test$n > /dev/null || ret=1
+  if test `wc -l < delv.out.test$n` != 1 ; then ret=1 ; fi
+  f=`awk '{print NF}' < delv.out.test$n`
+  test "${f:-0}" -eq 4 || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
