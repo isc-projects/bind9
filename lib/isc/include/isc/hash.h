@@ -180,6 +180,44 @@ isc_hash_calc(const unsigned char *key, unsigned int keylen,
  */
 /*@}*/
 
+unsigned int
+isc_hash_function(const void *data, size_t length,
+		  isc_boolean_t case_sensitive,
+		  unsigned int *previous_hashp);
+unsigned int
+isc_hash_function_reverse(const void *data, size_t length,
+			  isc_boolean_t case_sensitive,
+			  unsigned int *previous_hashp);
+/*!<
+ * \brief Calculate a hash over data.
+ *
+ * This hash function is useful for hashtables. The hash function is
+ * opaque and not important to the caller. The returned hash values are
+ * non-deterministic and will have different mapping every time a
+ * process using this library is run, but will have uniform
+ * distribution.
+ *
+ * isc_hash_function() calculates the hash from start to end over the
+ * input data. isc_hash_function_reverse() calculates the hash from the
+ * end to the start over the input data. The difference in order is
+ * useful in incremental hashing.
+ *
+ * This is a new variant of isc_hash_calc() and will supercede
+ * isc_hash_calc() eventually.
+ *
+ * 'data' is the data to be hashed.
+ *
+ * 'length' is the size of the data to be hashed.
+ *
+ * 'case_sensitive' specifies whether the hash key should be treated as
+ * case_sensitive values.  It should typically be ISC_FALSE if the hash key
+ * is a DNS name.
+ *
+ * 'previous_hashp' is a pointer to a previous hash value returned by
+ * this function. It can be used to perform incremental hashing. NULL
+ * must be passed during first calls.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_HASH_H */

@@ -85,6 +85,7 @@ struct dns_rbtnode {
 	dns_rbtnode_t *right;
 	dns_rbtnode_t *down;
 #ifdef DNS_RBT_USEHASH
+	dns_rbtnode_t *uppernode;
 	dns_rbtnode_t *hashnext;
 #endif
 

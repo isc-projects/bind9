@@ -274,6 +274,8 @@ isc_hash_ctxcreate
 isc_hash_ctxdetach
 isc_hash_ctxinit
 isc_hash_destroy
+isc_hash_function
+isc_hash_function_reverse
 isc_hash_init
 isc_heap_create
 isc_heap_decreased
