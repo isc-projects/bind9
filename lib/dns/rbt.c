@@ -662,10 +662,10 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 	if (result == ISC_R_SUCCESS) {
 #ifdef DNS_RBT_USEHASH
-	        if (*root == NULL)
-		        UPPERNODE(new_current) = current;
+		if (*root == NULL)
+			UPPERNODE(new_current) = current;
 		else
-		        UPPERNODE(new_current) = PARENT(*root);
+			UPPERNODE(new_current) = PARENT(*root);
 #endif /* DNS_RBT_USEHASH */
 		dns_rbt_addonlevel(new_current, current, order, root);
 		rbt->nodecount++;

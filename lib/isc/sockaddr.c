@@ -364,7 +364,7 @@ isc_sockaddr_pf(const isc_sockaddr_t *sockaddr) {
 
 void
 isc_sockaddr_fromnetaddr(isc_sockaddr_t *sockaddr, const isc_netaddr_t *na,
-		         in_port_t port)
+			 in_port_t port)
 {
 	memset(sockaddr, 0, sizeof(*sockaddr));
 	sockaddr->type.sin.sin_family = na->family;
