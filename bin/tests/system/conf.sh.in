@@ -64,7 +64,7 @@ RANDFILE=$TOP/bin/tests/system/random.data
 # v6synth
 SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case checkconf @CHECKDS@ checknames checkzone
-	 @COVERAGE@ database dlv dlvauto dlz dlzexternal dname dns64
+	 @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal dname dns64
 	 dnssec ecdsa emptyzones
          fetchlimit filter-aaaa formerr forward glue gost ixfr inline
          legacy limits logfileconfig lwresd masterfile
