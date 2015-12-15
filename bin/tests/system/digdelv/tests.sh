@@ -179,6 +179,65 @@ if [ -x ${DIG} ] ; then
   grep "^weeks.example.		1814400" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
+  
+  n=`expr $n + 1`
+  echo "I:checking dig -6 -4 ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.2 -4 -6 A a.example > dig.out.test$n 2>&1 && ret=1
+  grep "only one of -4 and -6 allowed" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+  
+  n=`expr $n + 1`
+  echo "I:checking dig @IPv6addr -4 A a.example ($n)"
+  if $TESTSOCK6 fd92:7065:b8e:ffff::2
+  then
+    ret=0
+    $DIG $DIGOPTS +tcp @fd92:7065:b8e:ffff::2 -4 A a.example > dig.out.test$n 2>&1 && ret=1
+    grep "address family not supported" < dig.out.test$n > /dev/null || ret=1
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+  else
+    echo "I:IPv6 unavailable; skipping"
+  fi
+  
+  n=`expr $n + 1`
+  echo "I:checking dig @IPv4addr -6 A a.example ($n)"
+  if $TESTSOCK6 fd92:7065:b8e:ffff::2
+  then
+    ret=0
+    ret=0
+    $DIG $DIGOPTS +tcp @10.53.0.2 -6 A a.example > dig.out.test$n 2>&1 || ret=1
+    grep "SERVER: ::ffff:10.53.0.2#5300" < dig.out.test$n > /dev/null || ret=1
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+  else
+    echo "I:IPv6 unavailable; skipping"
+  fi
+  
+  n=`expr $n + 1`
+  echo "I:checking dig +subnet ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=127.0.0.1 A a.example > dig.out.test$n 2>&1 || ret=1
+  grep "CLIENT-SUBNET: 127.0.0.1/32/0" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+  
+  n=`expr $n + 1`
+  echo "I:checking dig +sp works as an abbriviated form of split ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 +sp=4 -t sshfp foo.example > dig.out.test$n || ret=1
+  grep " 9ABC DEF6 7890 " < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig -c works ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 -c CHAOS -t txt version.bind > dig.out.test$n || ret=1
+  grep "version.bind.		0	CH	TXT" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  status=`expr $status + $ret`
 
 else
   echo "$DIG is needed, so skipping these dig tests"
@@ -301,6 +360,38 @@ if [ -x ${DELV} ] ; then
   f=`awk '{print NF}' < delv.out.test$n`
   test "${f:-0}" -eq 4 || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+  
+  n=`expr $n + 1`
+  echo "I:checking delv +sp works as an abbriviated form of split ($n)"
+  ret=0
+  $DELV $DELVOPTS @10.53.0.3 +sp=4 -t sshfp foo.example > delv.out.test$n || ret=1
+  grep " 9ABC DEF6 7890 " < delv.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  status=`expr $status + $ret`
+  
+  n=`expr $n + 1`
+  echo "I:checking delv +sh works as an abbriviated form of short ($n)"
+  ret=0
+  $DELV $DELVOPTS @10.53.0.3 +sh a a.example > delv.out.test$n || ret=1
+  if test `wc -l < delv.out.test$n` != 1 ; then ret=1 ; fi
+  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking delv -c IN works ($n)"
+  ret=0
+  $DELV $DELVOPTS @10.53.0.3 -c IN -t a a.example > delv.out.test$n || ret=1
+  grep "a.example." < delv.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking delv -c CH is ignored, and treated like IN ($n)"
+  ret=0
+  $DELV $DELVOPTS @10.53.0.3 -c CH -t a a.example > delv.out.test$n || ret=1
+  grep "a.example." < delv.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi 
   status=`expr $status + $ret`
 
   exit $status
