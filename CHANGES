@@ -1,5 +1,8 @@
 4281.	[bug]		Teach dns_message_totext about BADCOOKIE. [RT #41257]
 
+4280.	[performance]	Use optimal message sizes to improve compression
+			in AXFRs. This reduces network traffic. [RT #40996]
+
 4277.	[performance]	Improve performance of the RBT, the central zone
 			datastructure: The aux hashtable was improved,
 			hash function was updated to perform more
