@@ -6073,7 +6073,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					inc_stats(client,
 						dns_nsstatscounter_rateslipped);
 					client->message->flags |=
-						DNS_MESSAGEFLAG_TC;
+							DNS_MESSAGEFLAG_TC;
 					if (resp_result == DNS_R_NXDOMAIN)
 						client->message->rcode =
 							dns_rcode_nxdomain;
