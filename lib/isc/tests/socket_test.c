@@ -166,23 +166,27 @@ ATF_TC_BODY(udp_sendto, tc) {
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	/*
-	 * Create two sockets: 127.0.0.1/5444 and 127.0.0.1/5445, talking to
-	 * each other.
-	 */
 	in.s_addr = inet_addr("127.0.0.1");
-	isc_sockaddr_fromin(&addr1, &in, 5444);
-	isc_sockaddr_fromin(&addr2, &in, 5445);
+	isc_sockaddr_fromin(&addr1, &in, 0);
+	isc_sockaddr_fromin(&addr2, &in, 0);
 
 	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s1);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = isc_socket_bind(s1, &addr1, ISC_SOCKET_REUSEADDRESS);
+	result = isc_socket_bind(s1, &addr1, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = isc_socket_getsockname(s1, &addr1);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr1) != 0);
 
 	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = isc_socket_bind(s2, &addr2, ISC_SOCKET_REUSEADDRESS);
+	result = isc_socket_bind(s2, &addr2, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = isc_socket_getsockname(s2, &addr2);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr2) != 0);
 
 	result = isc_task_create(taskmgr, 0, &task);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -237,23 +241,27 @@ ATF_TC_BODY(udp_dup, tc) {
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	/*
-	 * Create two sockets: 127.0.0.1/5444 and 127.0.0.1/5445, talking to
-	 * each other.
-	 */
 	in.s_addr = inet_addr("127.0.0.1");
-	isc_sockaddr_fromin(&addr1, &in, 5444);
-	isc_sockaddr_fromin(&addr2, &in, 5445);
+	isc_sockaddr_fromin(&addr1, &in, 0);
+	isc_sockaddr_fromin(&addr2, &in, 0);
 
 	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s1);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = isc_socket_bind(s1, &addr1, ISC_SOCKET_REUSEADDRESS);
+	result = isc_socket_bind(s1, &addr1, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = isc_socket_getsockname(s1, &addr1);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr1) != 0);
 
 	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = isc_socket_bind(s2, &addr2, ISC_SOCKET_REUSEADDRESS);
+	result = isc_socket_bind(s2, &addr2, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = isc_socket_getsockname(s2, &addr2);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr2) != 0);
 
 	result = isc_socket_dup(s2, &s3);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -335,13 +343,9 @@ ATF_TC_BODY(udp_dscp_v4, tc) {
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	/*
-	 * Create two sockets: 127.0.0.1/5444 and 127.0.0.1/5445, talking to
-	 * each other.
-	 */
 	in.s_addr = inet_addr("127.0.0.1");
-	isc_sockaddr_fromin(&addr1, &in, 5444);
-	isc_sockaddr_fromin(&addr2, &in, 5445);
+	isc_sockaddr_fromin(&addr1, &in, 0);
+	isc_sockaddr_fromin(&addr2, &in, 0);
 
 	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s1);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
@@ -349,6 +353,10 @@ ATF_TC_BODY(udp_dscp_v4, tc) {
 	result = isc_socket_bind(s1, &addr1, ISC_SOCKET_REUSEADDRESS);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
 			   isc_result_totext(result));
+	result = isc_socket_getsockname(s1, &addr1);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr1) != 0);
 
 	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s2);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
@@ -356,6 +364,10 @@ ATF_TC_BODY(udp_dscp_v4, tc) {
 	result = isc_socket_bind(s2, &addr2, ISC_SOCKET_REUSEADDRESS);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
 			   isc_result_totext(result));
+	result = isc_socket_getsockname(s2, &addr2);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr2) != 0);
 
 	result = isc_task_create(taskmgr, 0, &task);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
@@ -435,30 +447,34 @@ ATF_TC_BODY(udp_dscp_v6, tc) {
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	/*
-	 * Create two sockets: ::1/5444 and ::1/5445, talking to
-	 * each other.
-	 */
 	n = inet_pton(AF_INET6, "::1", &in6.s6_addr);
 	ATF_REQUIRE(n == 1);
-	isc_sockaddr_fromin6(&addr1, &in6, 5444);
-	isc_sockaddr_fromin6(&addr2, &in6, 5445);
+	isc_sockaddr_fromin6(&addr1, &in6, 0);
+	isc_sockaddr_fromin6(&addr2, &in6, 0);
 
 	result = isc_socket_create(socketmgr, PF_INET6, isc_sockettype_udp,
 				   &s1);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
 			 isc_result_totext(result));
-	result = isc_socket_bind(s1, &addr1, ISC_SOCKET_REUSEADDRESS);
+	result = isc_socket_bind(s1, &addr1, 0);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
 			 isc_result_totext(result));
+	result = isc_socket_getsockname(s1, &addr1);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr1) != 0);
 
 	result = isc_socket_create(socketmgr, PF_INET6, isc_sockettype_udp,
 				   &s2);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
 			 isc_result_totext(result));
-	result = isc_socket_bind(s2, &addr2, ISC_SOCKET_REUSEADDRESS);
+	result = isc_socket_bind(s2, &addr2, 0);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
 			 isc_result_totext(result));
+	result = isc_socket_getsockname(s2, &addr2);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr2) != 0);
 
 	result = isc_task_create(taskmgr, 0, &task);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
@@ -532,17 +548,18 @@ ATF_TC_BODY(tcp_dscp_v4, tc) {
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	/*
-	 * Create two sockets: 127.0.0.1/5444, talking to each other.
-	 */
 	in.s_addr = inet_addr("127.0.0.1");
-	isc_sockaddr_fromin(&addr1, &in, 5444);
+	isc_sockaddr_fromin(&addr1, &in, 0);
 
 	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_tcp, &s1);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = isc_socket_bind(s1, &addr1, ISC_SOCKET_REUSEADDRESS);
+	result = isc_socket_bind(s1, &addr1, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = isc_socket_getsockname(s1, &addr1);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr1) != 0);
 
 	result = isc_socket_listen(s1, 3);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -630,19 +647,20 @@ ATF_TC_BODY(tcp_dscp_v6, tc) {
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	/*
-	 * Create two sockets: ::1/5444, talking to each other.
-	 */
 	n = inet_pton(AF_INET6, "::1", &in6.s6_addr);
 	ATF_REQUIRE(n == 1);
-	isc_sockaddr_fromin6(&addr1, &in6, 5444);
+	isc_sockaddr_fromin6(&addr1, &in6, 0);
 
 	result = isc_socket_create(socketmgr, PF_INET6, isc_sockettype_tcp,
 				   &s1);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = isc_socket_bind(s1, &addr1, ISC_SOCKET_REUSEADDRESS);
+	result = isc_socket_bind(s1, &addr1, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = isc_socket_getsockname(s1, &addr1);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr1) != 0);
 
 	result = isc_socket_listen(s1, 3);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);

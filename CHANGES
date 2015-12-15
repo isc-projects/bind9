@@ -1,3 +1,5 @@
+4279.	[test]		Don't use fixed ports when unit testing. [RT #41194]
+
 4278.	[bug]		'delv +short +[no]split[=##]' didn't work as expected.
 			[RT #41238]
 
