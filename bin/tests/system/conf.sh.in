@@ -97,6 +97,12 @@ else
 	TESTSOCK6=false
 fi
 
+if grep "^#define WANT_IPV6 1" $TOP/config.h > /dev/null 2>&1 ; then
+	TESTSOCK6="$TESTSOCK6"
+else
+	TESTSOCK6=false
+fi
+
 . ${TOP}/version
 
 export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \

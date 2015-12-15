@@ -31,7 +31,12 @@ $DIG $DIGOPTS @10.53.0.3 indirect1.example.org > dig.out.1.test$n || ret=1
 grep "status: SERVFAIL" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
-[ $count -eq 26 ] || ret=1
+if [ "$TESTSOCK6" != "false" ]
+then
+  [ $count -eq 26 ] || { ret=1; echo "I: count ($count) != 26"; }
+else
+  [ $count -eq 14 ] || { ret=1; echo "I: count ($count) != 14"; }
+fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -45,7 +50,12 @@ $DIG $DIGOPTS @10.53.0.3 indirect2.example.org > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
-[ $count -eq 49 ] || ret=1
+if [ "$TESTSOCK6" != "false" ]
+then
+  [ $count -eq 49 ] || { ret=1; echo "I: count ($count) != 49"; }
+else
+  [ $count -eq 26 ] || { ret=1; echo "I: count ($count) != 26"; }
+fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -64,7 +74,12 @@ $DIG $DIGOPTS @10.53.0.3 indirect3.example.org > dig.out.1.test$n || ret=1
 grep "status: SERVFAIL" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
-[ $count -eq 12 ] || ret=1
+if [ "$TESTSOCK6" != "false" ]
+then
+  [ $count -eq 12 ] || { ret=1; echo "I: count ($count) != 12"; }
+else
+  [ $count -eq 7 ] || { ret=1; echo "I: count ($count) != 7"; }
+fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -78,7 +93,12 @@ $DIG $DIGOPTS @10.53.0.3 indirect4.example.org > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
-[ $count -eq 21 ] || ret=1
+if [ "$TESTSOCK6" != "false" ]
+then
+  [ $count -eq 21 ] || { ret=1; echo "I: count ($count) != 21"; }
+else
+  [ $count -eq 12 ] || { ret=1; echo "I: count ($count) != 12"; }
+fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -94,7 +114,10 @@ echo "13" > ans2/ans.limit
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 flush 2>&1 | sed 's/^/I:ns1 /'
 $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.3 indirect5.example.org > dig.out.1.test$n || ret=1
-grep "status: SERVFAIL" dig.out.1.test$n > /dev/null || ret=1
+if [ "$TESTSOCK6" != "false" ]
+then
+  grep "status: SERVFAIL" dig.out.1.test$n > /dev/null || ret=1
+fi
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
 [ $count -le 50 ] || ret=1
@@ -127,7 +150,10 @@ echo "10" > ans2/ans.limit
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 flush 2>&1 | sed 's/^/I:ns1 /'
 $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.3 indirect7.example.org > dig.out.1.test$n || ret=1
-grep "status: SERVFAIL" dig.out.1.test$n > /dev/null || ret=1
+if [ "$TESTSOCK6" != "false" ]
+then
+  grep "status: SERVFAIL" dig.out.1.test$n > /dev/null || ret=1
+fi
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
 [ $count -le 40 ] || ret=1
