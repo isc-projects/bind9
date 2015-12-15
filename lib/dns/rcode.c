@@ -51,6 +51,8 @@
 
 #define NUMBERSIZE sizeof("037777777777") /* 2^32-1 octal + NUL */
 
+#define TOTEXTONLY 0x01
+
 #define RCODENAMES \
 	/* standard rcodes */ \
 	{ dns_rcode_noerror, "NOERROR", 0}, \
@@ -63,7 +65,12 @@
 	{ dns_rcode_yxrrset, "YXRRSET", 0}, \
 	{ dns_rcode_nxrrset, "NXRRSET", 0}, \
 	{ dns_rcode_notauth, "NOTAUTH", 0}, \
-	{ dns_rcode_notzone, "NOTZONE", 0},
+	{ dns_rcode_notzone, "NOTZONE", 0}, \
+	{ 11, "RESERVED11", TOTEXTONLY}, \
+	{ 12, "RESERVED12", TOTEXTONLY}, \
+	{ 13, "RESERVED13", TOTEXTONLY}, \
+	{ 14, "RESERVED14", TOTEXTONLY}, \
+	{ 15, "RESERVED15", TOTEXTONLY},
 
 #define ERCODENAMES \
 	/* extended rcodes */ \
@@ -260,6 +267,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 		unsigned int n;
 		n = strlen(table[i].name);
 		if (n == source->length &&
+		    (table[i].flags & TOTEXTONLY) == 0 &&
 		    strncasecmp(source->base, table[i].name, n) == 0) {
 			*valuep = table[i].value;
 			return (ISC_R_SUCCESS);

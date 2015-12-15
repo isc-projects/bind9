@@ -6961,6 +6961,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 						dns_nsstatscounter_rateslipped);
 					if (WANTCOOKIE(client)) {
 						client->message->flags &=
+							~DNS_MESSAGEFLAG_AA;
+						client->message->flags &=
 							~DNS_MESSAGEFLAG_AD;
 						client->message->rcode =
 							   dns_rcode_badcookie;
@@ -6978,6 +6980,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		}
 	} else if (!TCP(client) && client->view->requireservercookie &&
 		   WANTCOOKIE(client) && !HAVECOOKIE(client)) {
+		client->message->flags &= ~DNS_MESSAGEFLAG_AA;
+		client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		client->message->rcode = dns_rcode_badcookie;
 		goto cleanup;
 	}

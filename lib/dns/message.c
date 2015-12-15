@@ -36,6 +36,7 @@
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/opcode.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -144,27 +145,6 @@ static const char *opcodetext[] = {
 	"RESERVED14",
 	"RESERVED15"
 };
-
-static const char *rcodetext[] = {
-	"NOERROR",
-	"FORMERR",
-	"SERVFAIL",
-	"NXDOMAIN",
-	"NOTIMP",
-	"REFUSED",
-	"YXDOMAIN",
-	"YXRRSET",
-	"NXRRSET",
-	"NOTAUTH",
-	"NOTZONE",
-	"RESERVED11",
-	"RESERVED12",
-	"RESERVED13",
-	"RESERVED14",
-	"RESERVED15",
-	"BADVERS"
-};
-
 
 /*%
  * "helper" type, which consists of a block of some type, and is linkable.
@@ -3491,7 +3471,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 
 isc_result_t
 dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
-		   dns_messagetextflag_t flags, isc_buffer_t *target) {
+		   dns_messagetextflag_t flags, isc_buffer_t *target)
+{
 	unsigned int sflags = dns_master_styleflags(style);
 	char buf[sizeof("1234567890")];
 	isc_result_t result;
@@ -3505,12 +3486,9 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 		ADD_STRING(target, ";; ->>HEADER<<- opcode: ");
 		ADD_STRING(target, opcodetext[msg->opcode]);
 		ADD_STRING(target, ", status: ");
-		if (msg->rcode < (sizeof(rcodetext)/sizeof(rcodetext[0]))) {
-			ADD_STRING(target, rcodetext[msg->rcode]);
-		} else {
-			snprintf(buf, sizeof(buf), "%4u", msg->rcode);
-			ADD_STRING(target, buf);
-		}
+		result = dns_rcode_totext(msg->rcode, target);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 		ADD_STRING(target, ", id: ");
 		snprintf(buf, sizeof(buf), "%6u", msg->id);
 		ADD_STRING(target, buf);
