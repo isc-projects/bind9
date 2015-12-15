@@ -214,6 +214,12 @@
 	  of detected processors minus one.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Zone transfers now use smaller message sizes to improve
+	  message compression. This results in reduced network usage.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
   <section xml:id="relnotes_port"><info><title>Porting Changes</title></info>
