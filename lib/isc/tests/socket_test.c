@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -25,6 +23,7 @@
 #include <unistd.h>
 #include <time.h>
 
+#include <isc/platform.h>
 #include <isc/socket.h>
 #include <isc/print.h>
 
@@ -431,6 +430,7 @@ ATF_TC_HEAD(udp_dscp_v6, tc) {
 	atf_tc_set_md_var(tc, "descr", "udp dscp ipv6");
 }
 ATF_TC_BODY(udp_dscp_v6, tc) {
+#if defined(ISC_PLATFORM_HAVEIPV6) && defined(WANT_IPV6)
 	isc_result_t result;
 	isc_sockaddr_t addr1, addr2;
 	struct in6_addr in6;
@@ -526,6 +526,10 @@ ATF_TC_BODY(udp_dscp_v6, tc) {
 	isc_socket_detach(&s2);
 
 	isc_test_end();
+#else
+	UNUSED(tc);
+	atf_tc_skip("IPv6 not available");
+#endif
 }
 
 /* Test TCP sendto/recv (IPv4) */
@@ -632,6 +636,7 @@ ATF_TC_HEAD(tcp_dscp_v6, tc) {
 	atf_tc_set_md_var(tc, "descr", "tcp dscp ipv6");
 }
 ATF_TC_BODY(tcp_dscp_v6, tc) {
+#ifdef ISC_PLATFORM_HAVEIPV6
 	isc_result_t result;
 	isc_sockaddr_t addr1;
 	struct in6_addr in6;
@@ -730,6 +735,10 @@ ATF_TC_BODY(tcp_dscp_v6, tc) {
 	isc_socket_detach(&s3);
 
 	isc_test_end();
+#else
+	UNUSED(tc);
+	atf_tc_skip("IPv6 not available");
+#endif
 }
 
 ATF_TC(net_probedscp);
