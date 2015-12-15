@@ -24,6 +24,7 @@
 rm -f dig.out.ns1 dig.out.ns2 dig.out.ns3 dig.out.ns4
 rm -f dig.out.ns5 dig.out.ns6 dig.out.ns7
 rm -f dig.out.soa.ns3
+rm -f dig.out.msgsize
 rm -f axfr.out
 rm -f ns1/slave.db ns2/slave.db
 rm -f ns1/edns-expire.db
@@ -33,6 +34,7 @@ rm -f ns3/master.bk ns3/master.bk.jnl
 rm -f ns4/named.conf ns4/nil.db ns4/root.db
 rm -f ns6/*.db ns6/*.bk ns6/*.jnl
 rm -f ns7/*.db ns7/*.bk ns7/*.jnl
+rm -f ns8/large.db ns8/small.db
 
 rm -f */named.memstats
 rm -f */named.run

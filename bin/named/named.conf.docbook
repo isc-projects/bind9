@@ -237,6 +237,7 @@ options {
 	tkey-gssapi-credential <replaceable>quoted_string</replaceable>;
 	tkey-gssapi-keytab <replaceable>quoted_string</replaceable>;
 	tkey-domain <replaceable>quoted_string</replaceable>;
+	transfer-message-size <replaceable>integer</replaceable>;
 	transfers-per-ns <replaceable>integer</replaceable>;
 	transfers-in <replaceable>integer</replaceable>;
 	transfers-out <replaceable>integer</replaceable>;

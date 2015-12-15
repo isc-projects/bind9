@@ -126,6 +126,8 @@ struct ns_server {
 	dns_dtenv_t		*dtenv;		/*%< Dnstap environment */
 
 	char *			lockfile;
+
+	isc_uint16_t		transfer_tcp_message_size;
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')

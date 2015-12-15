@@ -380,5 +380,21 @@ test ${expire:-0} -gt 0 -a ${expire:-0} -lt 1814400 || {
     status=1
 }
 
+echo "I:test smaller transfer TCP message size"
+$DIG $DIGOPTS example. @10.53.0.8 axfr -p 5300 \
+	-y key1.:1234abcd8765 > dig.out.msgsize || status=1
+
+bytes=`wc -c < dig.out.msgsize`
+if [ $bytes -ne 459357 ]; then
+	echo "I:failed axfr size check"
+	status=1
+fi
+
+num_messages=`cat ns8/named.run | grep "sending TCP message of" | wc -l`
+if [ $num_messages -le 300 ]; then
+	echo "I:failed transfer message count check"
+	status=1
+fi
+
 echo "I:exit status: $status"
 exit $status

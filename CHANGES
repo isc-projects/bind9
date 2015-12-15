@@ -1,3 +1,6 @@
+4280.	[performance]	Use optimal message sizes to improve compression
+			in AXFRs. This reduces network traffic. [RT #40996]
+
 4279.	[test]		Don't use fixed ports when unit testing. [RT #41194]
 
 4278.	[bug]		'delv +short +[no]split[=##]' didn't work as expected.

@@ -311,6 +311,7 @@ options {
             dscp <integer> ];
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
+        transfer-message-size <integer>;
         transfers-in <integer>;
         transfers-out <integer>;
         transfers-per-ns <integer>;

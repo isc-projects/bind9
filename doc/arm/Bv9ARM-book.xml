@@ -4540,6 +4540,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> serial-queries <replaceable>number</replaceable>; </optional>
     <optional> tcp-listen-queue <replaceable>number</replaceable>; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable>; </optional>
+    <optional> transfer-message-size  <replaceable>number</replaceable>; </optional>
     <optional> transfers-in  <replaceable>number</replaceable>; </optional>
     <optional> transfers-out <replaceable>number</replaceable>; </optional>
     <optional> transfers-per-ns <replaceable>number</replaceable>; </optional>
@@ -7921,6 +7922,37 @@ avoid-v6-udp-ports {};
 		  statement.
 		</para>
 
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>transfer-message-size</command></term>
+	      <listitem>
+		<para>
+		  This is an upper bound on the uncompressed size of DNS
+		  messages used in zone transfers over TCP.  If a message
+		  grows larger than this size, additional messages will be
+		  used to complete the zone transfer.  (Note, however,
+		  that this is a hint, not a hard limit; if a message
+		  contains a single resource record whose RDATA does not
+		  fit within the size limit, a larger message will be
+		  permitted so the record can be transferred.)
+		</para>
+		<para>
+		  Valid values are between 512 and 65535 octets, and any
+		  values outside that range will be adjusted to the nearest
+		  value within it.  The default is <literal>20480</literal>,
+		  which was selected to improve message compression:
+		  most DNS messages of this size will compress to less
+		  than 16536 bytes.  Larger messages cannot be compressed
+		  as effectively, because 16536 is the largest permissible
+		  compression offset pointer in a DNS message.
+		</para>
+		<para>
+		  This option is mainly intended for server testing;
+		  there is rarely any benefit in setting a value other
+		  than the default.
+		</para>
 	      </listitem>
 	    </varlistentry>
 

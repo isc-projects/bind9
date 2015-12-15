@@ -5814,6 +5814,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_uint32_t interface_interval;
 	isc_uint32_t reserved;
 	isc_uint32_t udpsize;
+	isc_uint32_t transfer_message_size;
 	ns_cache_t *nsc;
 	ns_cachelist_t cachelist, tmpcachelist;
 	ns_cfgctx_t *nzctx;
@@ -6127,6 +6128,17 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (udpsize > 4096)
 		udpsize = 4096;
 	ns_g_udpsize = (isc_uint16_t)udpsize;
+
+	/* Set the transfer message size for TCP */
+	obj = NULL;
+	result = ns_config_get(maps, "transfer-message-size", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	transfer_message_size = cfg_obj_asuint32(obj);
+	if (transfer_message_size < 512)
+		transfer_message_size = 512;
+	else if (transfer_message_size > 65535)
+		transfer_message_size = 65535;
+	server->transfer_tcp_message_size = (isc_uint16_t) transfer_message_size;
 
 	/*
 	 * Configure the zone manager.
