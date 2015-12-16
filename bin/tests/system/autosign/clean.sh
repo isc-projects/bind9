@@ -24,6 +24,7 @@ rm -f nsupdate.out
 rm -f */core
 rm -f */example.bk
 rm -f */named.memstats
+rm -f */named.run
 rm -f dig.out.*
 rm -f ns1/root.db
 rm -f ns2/example.db

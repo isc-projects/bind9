@@ -1805,7 +1805,7 @@
 ./bin/tests/system/rrl/ns3/named.conf		CONF-C	2012,2013
 ./bin/tests/system/rrl/ns3/tld3.db		ZONE	2012,2013
 ./bin/tests/system/rrl/setup.sh			SH	2012,2013
-./bin/tests/system/rrl/tests.sh			SH	2012,2013
+./bin/tests/system/rrl/tests.sh			SH	2012,2013,2015
 ./bin/tests/system/rrsetorder/clean.sh		SH	2006,2007,2008,2011,2012
 ./bin/tests/system/rrsetorder/dig.out.fixed.good	X	2006
 ./bin/tests/system/rrsetorder/dig.out.random.good1	X	2006
