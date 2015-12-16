@@ -25,4 +25,3 @@ rm -f ns1/ddns.key
 rm -f dig.out*
 rm -f ns*/named.lock
 rm -f ns1/session.key
-rm -f ns1/named.conf
