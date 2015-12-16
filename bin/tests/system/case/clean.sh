@@ -15,4 +15,6 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f dig.ns*.test*
+rm -f ns*/named.memstats
+rm -f ns*/named.run
 rm -f ns2/example.bk

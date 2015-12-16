@@ -1,7 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2011, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,18 +14,18 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.11 2011/10/30 23:46:15 tbox Exp $
-
 #
-# Clean up after zone transfer tests.
+# Clean up after a specified system test.
 #
 
-rm -f dig.out.ns1* dig.out.ns2 dig.out.ns1 dig.out.ns3 dig.out.ns1.after
-rm -f ns1/*.jnl ns2/*.jnl ns3/*.jnl ns1/example.db ns2/*.bk ns3/*.bk
-rm -f ns3/nomaster1.db
-rm -f */named.memstats
-rm -f */named.run
-rm -f */ans.run
-rm -f Ksig0.example2.*
-rm -f keyname
-rm -f ns1/example2.db
+SYSTEMTESTTOP=.
+. $SYSTEMTESTTOP/conf.sh
+
+test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
+
+test=$1
+shift
+
+if test -f $test/clean.sh; then
+    ( cd $test && $SHELL clean.sh "$@" )
+fi

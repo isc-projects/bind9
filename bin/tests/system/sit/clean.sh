@@ -14,3 +14,5 @@
 
 rm -f dig.out.*
 rm -f ns1/named_dump.db
+rm -f ns*/named.memstats
+rm -f ns*/named.run

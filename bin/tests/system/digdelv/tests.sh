@@ -128,32 +128,32 @@ if [ -x ${DIG} ] ; then
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
-  echo "I:checking dig +ttlunits works ($n)"
-  ret=0
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A weeks.example > dig.out.test$n || ret=1
-  grep "^weeks.example.		3w" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A days.example > dig.out.test$n || ret=1
-  grep "^days.example.		3d" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A hours.example > dig.out.test$n || ret=1
-  grep "^hours.example.		3h" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A minutes.example > dig.out.test$n || ret=1
-  grep "^minutes.example.	45m" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A seconds.example > dig.out.test$n || ret=1
-  grep "^seconds.example.	45s" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
+# echo "I:checking dig +ttlunits works ($n)"
+# ret=0
+# $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A weeks.example > dig.out.test$n || ret=1
+# grep "^weeks.example.		3w" < dig.out.test$n > /dev/null || ret=1
+# $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A days.example > dig.out.test$n || ret=1
+# grep "^days.example.		3d" < dig.out.test$n > /dev/null || ret=1
+# $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A hours.example > dig.out.test$n || ret=1
+# grep "^hours.example.		3h" < dig.out.test$n > /dev/null || ret=1
+# $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A minutes.example > dig.out.test$n || ret=1
+# grep "^minutes.example.	45m" < dig.out.test$n > /dev/null || ret=1
+# $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A seconds.example > dig.out.test$n || ret=1
+# grep "^seconds.example.	45s" < dig.out.test$n > /dev/null || ret=1
+# if [ $ret != 0 ]; then echo "I:failed"; fi
+# status=`expr $status + $ret`
 
-  n=`expr $n + 1`
-  echo "I:checking dig respects precedence of options with +ttlunits ($n)"
-  ret=0
-  $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits +nottlid A weeks.example > dig.out.test$n || ret=1
-  grep "^weeks.example.		IN" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +nottlid +ttlunits A weeks.example > dig.out.test$n || ret=1
-  grep "^weeks.example.		3w" < dig.out.test$n > /dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.2 +nottlid +nottlunits A weeks.example > dig.out.test$n || ret=1
-  grep "^weeks.example.		1814400" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
+# n=`expr $n + 1`
+# echo "I:checking dig respects precedence of options with +ttlunits ($n)"
+# ret=0
+# $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits +nottlid A weeks.example > dig.out.test$n || ret=1
+# grep "^weeks.example.		IN" < dig.out.test$n > /dev/null || ret=1
+# $DIG $DIGOPTS +tcp @10.53.0.2 +nottlid +ttlunits A weeks.example > dig.out.test$n || ret=1
+# grep "^weeks.example.		3w" < dig.out.test$n > /dev/null || ret=1
+# $DIG $DIGOPTS +tcp @10.53.0.2 +nottlid +nottlunits A weeks.example > dig.out.test$n || ret=1
+# grep "^weeks.example.		1814400" < dig.out.test$n > /dev/null || ret=1
+# if [ $ret != 0 ]; then echo "I:failed"; fi
+# status=`expr $status + $ret`
   
   n=`expr $n + 1`
   echo "I:checking dig -6 -4 ($n)"
@@ -181,7 +181,6 @@ if [ -x ${DIG} ] ; then
   if $TESTSOCK6 fd92:7065:b8e:ffff::2
   then
     ret=0
-    ret=0
     $DIG $DIGOPTS +tcp @10.53.0.2 -6 A a.example > dig.out.test$n 2>&1 || ret=1
     grep "SERVER: ::ffff:10.53.0.2#5300" < dig.out.test$n > /dev/null || ret=1
     if [ $ret != 0 ]; then echo "I:failed"; fi
@@ -190,13 +189,13 @@ if [ -x ${DIG} ] ; then
     echo "I:IPv6 unavailable; skipping"
   fi
   
-  n=`expr $n + 1`
-  echo "I:checking dig +subnet ($n)"
-  ret=0
-  $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=127.0.0.1 A a.example > dig.out.test$n 2>&1 || ret=1
-  grep "CLIENT-SUBNET: 127.0.0.1/32/0" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
+# n=`expr $n + 1`
+# echo "I:checking dig +subnet ($n)"
+# ret=0
+# $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=127.0.0.1 A a.example > dig.out.test$n 2>&1 || ret=1
+# grep "CLIENT-SUBNET: 127.0.0.1/32/0" < dig.out.test$n > /dev/null || ret=1
+# if [ $ret != 0 ]; then echo "I:failed"; fi
+# status=`expr $status + $ret`
   
   n=`expr $n + 1`
   echo "I:checking dig +sp works as an abbriviated form of split ($n)"
