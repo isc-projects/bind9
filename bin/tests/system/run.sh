@@ -120,8 +120,14 @@ else
 		rm -f $SYSTEMTESTTOP/random.data
 		if test -f $test/clean.sh
 		then
-		   ( cd $test && $SHELL clean.sh "$@" )
+			( cd $test && $SHELL clean.sh "$@" )
 		fi
+		if test -d ../../../.git
+		then
+			git status -su $test |
+			sed -n 's/^?? \(.*\)/I:file \1 not removed/p'
+		fi
+
 	fi
 fi
 
