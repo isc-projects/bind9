@@ -20,5 +20,6 @@
 # Clean up after resolver tests.
 #
 rm -f */named.memstats
+rm -f */named.run
 rm -f dig.out.*
 rm -f ns*/named.lock

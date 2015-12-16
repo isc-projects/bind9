@@ -25,6 +25,8 @@ rm -f dig.out.ns1* dig.out.ns2 dig.out.ns1 dig.out.ns3 dig.out.ns1.after
 rm -f ns1/*.jnl ns2/*.jnl ns3/*.jnl ns1/example.db ns2/*.bk ns3/*.bk
 rm -f ns3/nomaster1.db
 rm -f */named.memstats
+rm -f */named.run
+rm -f */ans.run
 rm -f Ksig0.example2.*
 rm -f keyname
 rm -f ns*/named.lock

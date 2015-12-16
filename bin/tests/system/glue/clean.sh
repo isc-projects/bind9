@@ -23,4 +23,5 @@
 
 rm -f dig.out ns1/cache
 rm -f */named.memstats
+rm -f */named.run
 rm -f ns*/named.lock

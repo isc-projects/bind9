@@ -16,6 +16,7 @@
 
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.stats
 rm -f dig.out.*
 rm -f ns*/named.lock
 rm -f ns1/K*

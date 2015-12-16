@@ -19,4 +19,5 @@
 
 rm -f *.dig *.good *.out
 rm -f */named.memstats
+rm -f */named.run
 rm -f ns*/named.lock

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,15 +14,18 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.6 2007/09/26 03:22:43 marka Exp $
+#
+# Clean up after a specified system test.
+#
 
-rm -f dig.out.ns?.test*
-rm -f nsupdate.out.test*
-rm -f ns1/*.example.db
-rm -f ns1/*.update.db
-rm -f ns1/*.update.db.jnl
-rm -f ns4/*.update.db
-rm -f ns4/*.update.db.jnl
-rm -f */named.memstats
-rm -f */named.run
-rm -f ns*/named.lock
+SYSTEMTESTTOP=.
+. $SYSTEMTESTTOP/conf.sh
+
+test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
+
+test=$1
+shift
+
+if test -f $test/clean.sh; then
+    ( cd $test && $SHELL clean.sh "$@" )
+fi

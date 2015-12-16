@@ -13,6 +13,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f */named.run
+rm -f */named.memstats
 rm -f ns2/example.db
 rm -f ns4/example.bk
 rm -f dig.out*

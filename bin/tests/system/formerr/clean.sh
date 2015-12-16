@@ -16,3 +16,5 @@ rm -f nametoolong.out
 rm -f twoquestions.out 
 rm -f noquestions.out 
 rm -f ns*/named.lock
+rm -f ns*/named.run
+rm -f ns*/named.memstats

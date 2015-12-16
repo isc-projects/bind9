@@ -18,7 +18,9 @@
 # Clean up after lwresd tests.
 #
 rm -f */named.memstats
+rm -f */named.run
 rm -f dig.out
 rm -f lwresd1/lwresd.run.resolv
 rm -f ns*/named.lock
 rm -f lwresd*/lwresd.lock
+rm -f lwresd*/lwresd.run

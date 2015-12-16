@@ -18,5 +18,6 @@
 rm -f dig.out.* rndc.out.* ns1/named.conf
 rm -f K* ns1/K*
 rm -f */named.memstats
+rm -f */named.run
 rm -f ns1/_default.tsigkeys
 rm -f ns*/named.lock

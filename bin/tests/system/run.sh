@@ -23,12 +23,14 @@ SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
 stopservers=true
+clean=true
 
 case $1 in
-   --keep) stopservers=false; shift ;;
+   --keep|-k) stopservers=false; shift ;;
+   --noclean|-n) clean=false; shift ;;
 esac
 
-test $# -gt 0 || { echo "usage: $0 [--keep] test-directory" >&2; exit 1; }
+test $# -gt 0 || { echo "usage: $0 [--keep|--noclean] test-directory" >&2; exit 1; }
 
 test=$1
 shift
@@ -113,11 +115,13 @@ if [ $status != 0 ]; then
 else
 	echo "R:PASS"
 
-	# Clean up.
-        rm -f $SYSTEMTESTTOP/random.data
-	if test -f $test/clean.sh
+	if $clean
 	then
-	   ( cd $test && $SHELL clean.sh "$@" )
+		rm -f $SYSTEMTESTTOP/random.data
+		if test -f $test/clean.sh
+		then
+		   ( cd $test && $SHELL clean.sh "$@" )
+		fi
 	fi
 fi
 

@@ -26,4 +26,5 @@ rm -f ns2/inline.db.jbk
 rm -f ns2/inline.db.signed
 rm -f ns2/inlineslave.bk*
 rm -f ns*/named.lock
+rm -f ns*/named.run
 rm -f ns2/nzf-*

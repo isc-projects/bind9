@@ -18,6 +18,8 @@
 # Clean up after resolver tests.
 #
 rm -f */named.memstats
+rm -f */named.run
+rm -f */ans.run
 rm -f */*.jdb
 rm -f dig.out dig.out.*
 rm -f dig.*.out.*
