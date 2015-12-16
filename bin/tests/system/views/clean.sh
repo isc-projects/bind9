@@ -24,6 +24,7 @@
 rm -f ns3/example.bk dig.out.ns?.?
 rm -f ns2/named.conf ns2/example.db ns3/named.conf ns3/internal.bk
 rm -f */named.memstats
+rm -f */named.run
 rm -f ns2/external/K*
 rm -f ns2/external/inline.db.jbk
 rm -f ns2/external/inline.db.signed

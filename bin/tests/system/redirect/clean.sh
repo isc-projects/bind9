@@ -21,6 +21,7 @@ rm -f ns1/dsset-signed.
 rm -f ns1/dsset-nsec3.
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.stats
 rm -f dig.out.*
 rm -f ns2/*.db
 rm -f rndc.out

@@ -22,6 +22,7 @@ rm -f ns1/large.db ns1/large.db.raw
 rm -f dig.out.*
 rm -f dig.out
 rm -f */named.memstats
+rm -f */named.run
 rm -f ns2/example.db
 rm -f ns2/transfer.db.*
 rm -f ns2/formerly-text.db

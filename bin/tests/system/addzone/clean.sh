@@ -25,3 +25,4 @@ rm -f ns2/core*
 rm -f ns2/inline.db.jbk
 rm -f ns2/inline.db.signed
 rm -f ns2/inlineslave.bk*
+rm -f ns*/named.run

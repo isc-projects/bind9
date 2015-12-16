@@ -14,7 +14,8 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 rm -f *.out
 rm -f */named.memstats
+rm -f */named.run
+rm -f */*.db */*.db.signed */K*.key */K*.private */*.jnl */dsset-*
+rm -f rndc.out.*

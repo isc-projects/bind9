@@ -34,6 +34,7 @@ rm -f ns*/*.nta
 rm -f ns*/named.lock
 rm -f ns1/managed.key.id
 rm -f ns1/resolve.key
+rm -f ns1/sample.key
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
 rm -f ns2/algroll.db
 rm -f ns2/badparam.db ns2/badparam.db.bad

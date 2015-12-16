@@ -24,3 +24,4 @@ rm -f ns1/*.update.db.jnl
 rm -f ns4/*.update.db
 rm -f ns4/*.update.db.jnl
 rm -f */named.memstats
+rm -f */named.run
