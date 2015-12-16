@@ -762,7 +762,7 @@ ATF_TC_BODY(net_probedscp, tc) {
 			      (n & ISC_NET_DSCPRECVV4) ? " receive" : "");
 
 	/* ISC_NET_DSCPSETV6 MUST be set if any is set. */
-	if (n & (ISC_NET_DSCPSETV6|ISC_NET_DSCPPKTV4|ISC_NET_DSCPRECVV4))
+	if (n & (ISC_NET_DSCPSETV6|ISC_NET_DSCPPKTV6|ISC_NET_DSCPRECVV6))
 		ATF_CHECK_MSG((n & ISC_NET_DSCPSETV6) != 0,
 			      "IPv6:%s%s%s\n",
 			      (n & ISC_NET_DSCPSETV6) ? " set" : " none",
