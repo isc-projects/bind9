@@ -169,7 +169,7 @@
 4207.	[bug]		Handle class mismatches with raw zone files.
 			[RT #40746]
 
-4206.   [bug]           contrib: fixed a possible NULL dereference in
+4206.   [bug]		contrib: fixed a possible NULL dereference in
 			DLZ wildcard module. [RT #40745]
 
 4205.	[bug]		'named-checkconf -p' could include unwanted spaces
@@ -177,10 +177,10 @@
 			[RT #40731]
 
 4204.	[bug]		'dig +trace' failed to lookup the correct type if
-			the initial root ns query was retried. [RT #40296]
+			the initial root NS query was retried. [RT #40296]
 
 4203.	[test]		The rrchecker system test now tests conversion
-			to and from unkonwn-type format. [RT #40584]
+			to and from unknown-type format. [RT #40584]
 
 4202.	[bug]		isccc_cc_fromwire() could return an incorrect
 			result. [RT #40614]
