@@ -142,7 +142,7 @@
 			[RT #40731]
 
 4204.	[bug]		'dig +trace' failed to lookup the correct type if
-			the initial root ns query was retried. [RT #40296]
+			the initial root NS query was retried. [RT #40296]
 
 4202.	[bug]		isccc_cc_fromwire() could return an incorrect
 			result. [RT #40614]
