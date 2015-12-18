@@ -202,13 +202,41 @@ if [ -x ${DIG} ] ; then
   fi
   
   n=`expr $n + 1`
-  echo "I:checking dig @IPv4addr -6 A a.example ($n)"
+  echo "I:checking dig @IPv4addr -6 +mapped A a.example ($n)"
   if $TESTSOCK6 fd92:7065:b8e:ffff::2
   then
     ret=0
     ret=0
-    $DIG $DIGOPTS +tcp @10.53.0.2 -6 A a.example > dig.out.test$n 2>&1 || ret=1
+    $DIG $DIGOPTS +tcp @10.53.0.2 -6 +mapped A a.example > dig.out.test$n 2>&1 || ret=1
     grep "SERVER: ::ffff:10.53.0.2#5300" < dig.out.test$n > /dev/null || ret=1
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+  else
+    echo "I:IPv6 unavailable; skipping"
+  fi
+
+  n=`expr $n + 1`
+  echo "I:checking dig +tcp @IPv4addr -6 +nomapped A a.example ($n)"
+  if $TESTSOCK6 fd92:7065:b8e:ffff::2
+  then
+    ret=0
+    ret=0
+    $DIG $DIGOPTS +tcp @10.53.0.2 -6 +nomapped A a.example > dig.out.test$n 2>&1 || ret=1
+    grep "SERVER: ::ffff:10.53.0.2#5300" < dig.out.test$n > /dev/null && ret=1
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+  else
+    echo "I:IPv6 unavailable; skipping"
+  fi
+  n=`expr $n + 1`
+
+  echo "I:checking dig +notcp @IPv4addr -6 +nomapped A a.example ($n)"
+  if $TESTSOCK6 fd92:7065:b8e:ffff::2
+  then
+    ret=0
+    ret=0
+    $DIG $DIGOPTS +notcp @10.53.0.2 -6 +nomapped A a.example > dig.out.test$n 2>&1 || ret=1
+    grep "SERVER: ::ffff:10.53.0.2#5300" < dig.out.test$n > /dev/null && ret=1
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
   else

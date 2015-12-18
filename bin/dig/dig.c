@@ -195,6 +195,7 @@ help(void) {
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)\n"
 "                 +[no]keepopen       (Keep the TCP socket open between queries)\n"
+"                 +[no]mapped         (Allow mapped IPv4 over IPv6)\n"
 "                 +[no]multiline      (Print records in an expanded format)\n"
 "                 +ndots=###          (Set search NDOTS value)\n"
 "                 +[no]nsid           (Request Name Server ID)\n"
@@ -1061,8 +1062,18 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		keep_open = state;
 		break;
 	case 'm': /* multiline */
-		FULLCHECK("multiline");
-		multiline = state;
+		switch (cmd[1]) {
+		case 'a':
+			FULLCHECK("mapped");
+			lookup->mapped = state;
+			break;
+		case 'u':
+			FULLCHECK("multiline");
+			multiline = state;
+			break;
+		default:
+			goto invalid_option;
+		}
 		break;
 	case 'n':
 		switch (cmd[1]) {
@@ -1849,7 +1860,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (is_batchfile && !config_only) {
 				addresscount = getaddresses(lookup, &rv[0][1],
 							     &result);
-				if (result != ISC_R_SUCCESS) {
+				if (addresscount == 0) {
 					fprintf(stderr, "couldn't get address "
 						"for '%s': %s: skipping "
 						"lookup\n", &rv[0][1],
@@ -1860,9 +1871,13 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 					destroy_lookup(lookup);
 					return;
 				}
-			} else
+			} else {
 				addresscount = getaddresses(lookup, &rv[0][1],
 							    NULL);
+				if (addresscount == 0)
+					fatal("no valid addresses for '%s'\n",
+					      &rv[0][1]);
+			}
 		} else if (rv[0][0] == '+') {
 			plus_option(&rv[0][1], is_batchfile,
 				    lookup);

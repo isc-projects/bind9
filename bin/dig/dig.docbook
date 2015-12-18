@@ -790,6 +790,16 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]mapped</option></term>
+	  <listitem>
+	    <para>
+	      Allow mapped IPv4 over IPv6 addresses to be used.  The
+	      default is <option>+mapped</option>.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]multiline</option></term>
 	  <listitem>
 	    <para>

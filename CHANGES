@@ -1,3 +1,7 @@
+4282.	[func]		'dig +[no]mapped' determine whether the use of mapped
+			IPv4 addresses over IPv6 is permitted or not.  The
+			default is +mapped.  [RT #41307]
+
 4281.	[bug]		Teach dns_message_totext about BADCOOKIE. [RT #41257]
 
 4280.	[performance]	Use optimal message sizes to improve compression

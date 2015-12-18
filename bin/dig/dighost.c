@@ -830,6 +830,7 @@ make_empty_lookup(void) {
 	looknew->ednsopts = NULL;
 	looknew->ednsoptscnt = 0;
 	looknew->ednsneg = ISC_TRUE;
+	looknew->mapped = ISC_TRUE;
 	looknew->dscp = -1;
 	dns_fixedname_init(&looknew->fdomain);
 	ISC_LINK_INIT(looknew, link);
@@ -889,6 +890,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->ednsopts = lookold->ednsopts;
 	looknew->ednsoptscnt = lookold->ednsoptscnt;
 	looknew->ednsneg = lookold->ednsneg;
+	looknew->mapped = lookold->mapped;
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = lookold->sigchase;
 #if DIG_SIGCHASE_TD
@@ -2840,6 +2842,28 @@ send_tcp_connect(dig_query_t *query) {
 		return;
 	}
 
+	if (!l->mapped && isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
+	    IN6_IS_ADDR_V4MAPPED(&query->sockaddr.type.sin6.sin6_addr)) {
+		isc_netaddr_t netaddr;
+		char buf[ISC_NETADDR_FORMATSIZE];
+
+		isc_netaddr_fromsockaddr(&netaddr, &query->sockaddr);
+		isc_netaddr_format(&netaddr, buf, sizeof(buf));
+		printf(";; Skipping mapped address '%s'\n", buf);
+
+		query->waiting_connect = ISC_FALSE;
+		next = ISC_LIST_NEXT(query, link);
+		l = query->lookup;
+		clear_query(query);
+		if (next == NULL) {
+			printf(";; No acceptable nameservers\n");
+			check_next_lookup(l);
+			return;
+		}
+		send_tcp_connect(next);
+		return;
+	}
+
 	if (specified_source &&
 	    (isc_sockaddr_pf(&query->sockaddr) !=
 	     isc_sockaddr_pf(&bind_address))) {
@@ -2876,6 +2900,7 @@ send_tcp_connect(dig_query_t *query) {
 	debug("sockcount=%d", sockcount);
 	if (query->lookup->dscp != -1)
 		isc_socket_dscp(query->sock, query->lookup->dscp);
+	isc_socket_ipv6only(query->sock, ISC_TF(!query->lookup->mapped));
 	if (specified_source)
 		result = isc_socket_bind(query->sock, &bind_address,
 					 ISC_SOCKET_REUSEADDRESS);
@@ -2929,6 +2954,7 @@ send_udp(dig_query_t *query) {
 	dig_lookup_t *l = NULL;
 	isc_result_t result;
 	isc_buffer_t *sendbuf;
+	dig_query_t *next;
 
 	debug("send_udp(%p)", query);
 
@@ -2946,6 +2972,25 @@ send_udp(dig_query_t *query) {
 			return;
 		}
 
+		if (!l->mapped &&
+		    isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
+		    IN6_IS_ADDR_V4MAPPED(&query->sockaddr.type.sin6.sin6_addr)) {
+			isc_netaddr_t netaddr;
+			char buf[ISC_NETADDR_FORMATSIZE];
+
+			isc_netaddr_fromsockaddr(&netaddr, &query->sockaddr);
+			isc_netaddr_format(&netaddr, buf, sizeof(buf));
+			printf(";; Skipping mapped address '%s'\n", buf);
+
+			next = ISC_LIST_NEXT(query, link);
+			l = query->lookup;
+			clear_query(query);
+			if (next == NULL)
+				printf(";; No acceptable nameservers\n");
+			check_next_lookup(l);
+			return;
+		}
+
 		result = isc_socket_create(socketmgr,
 					   isc_sockaddr_pf(&query->sockaddr),
 					   isc_sockettype_udp, &query->sock);
@@ -2954,6 +2999,8 @@ send_udp(dig_query_t *query) {
 		debug("sockcount=%d", sockcount);
 		if (query->lookup->dscp != -1)
 			isc_socket_dscp(query->sock, query->lookup->dscp);
+		isc_socket_ipv6only(query->sock,
+				    ISC_TF(!query->lookup->mapped));
 		if (specified_source) {
 			result = isc_socket_bind(query->sock, &bind_address,
 						 ISC_SOCKET_REUSEADDRESS);
