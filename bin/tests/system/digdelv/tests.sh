@@ -267,6 +267,17 @@ if [ -x ${DIG} ] ; then
   if [ $ret != 0 ]; then echo "I:failed"; fi 
   status=`expr $status + $ret`
 
+  n=`expr $n + 1`
+  echo "I:checking dig +dscp ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 +dscp=32 a a.example > /dev/null 2>&1 || ret=1
+  $DIG $DIGOPTS @10.53.0.3 +dscp=-1 a a.example > /dev/null 2>&1 && ret=1
+  $DIG $DIGOPTS @10.53.0.3 +dscp=64 a a.example > /dev/null 2>&1 && ret=1
+  #TODO add a check to make sure dig is actually setting the dscp on the query
+  #we might have to add better logging to named for this
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
 else
   echo "$DIG is needed, so skipping these dig tests"
 fi
