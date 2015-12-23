@@ -1,3 +1,5 @@
+4383.	[bug]		OPENSSL_config is no longer re-callable. [RT #41348]
+
 4282.	[func]		'dig +[no]mapped' determine whether the use of mapped
 			IPv4 addresses over IPv6 is permitted or not.  The
 			default is +mapped.  [RT #41307]
