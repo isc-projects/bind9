@@ -320,9 +320,9 @@
 ./bin/pkcs11/.gitignore				X	2014
 ./bin/pkcs11/Makefile.in			MAKE	2009,2012,2014,2015
 ./bin/pkcs11/OLD-PKCS11-NOTES			X	2009
-./bin/pkcs11/openssl-0.9.8ze-patch		X	2015
-./bin/pkcs11/openssl-1.0.0q-patch		X	2015
-./bin/pkcs11/openssl-1.0.1l-patch		X	2015
+./bin/pkcs11/openssl-0.9.8zh-patch		X	2015
+./bin/pkcs11/openssl-1.0.0t-patch		X	2015
+./bin/pkcs11/openssl-1.0.1q-patch		X	2015
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-destroy.c			X	2009,2010,2014,2015
 ./bin/pkcs11/pkcs11-destroy.docbook		SGML	2009,2014,2015
