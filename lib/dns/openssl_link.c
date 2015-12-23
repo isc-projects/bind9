@@ -206,7 +206,16 @@ dst__openssl_init(const char *engine) {
 	rm->status = entropy_status;
 
 #ifdef USE_ENGINE
-	OPENSSL_config(NULL);
+	/*
+	 * OPENSSL_config() can only be called a single time as of
+	 * 1.0.2e so do the steps individually.
+	 */
+	OPENSSL_load_builtin_modules();
+	ENGINE_load_builtin_engines();
+	ERR_clear_error();
+	CONF_modules_load_file(NULL, NULL,
+			       CONF_MFLAGS_DEFAULT_SECTION |
+			       CONF_MFLAGS_IGNORE_MISSING_FILE);
 
 	if (engine != NULL && *engine == '\0')
 		engine = NULL;
