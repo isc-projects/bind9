@@ -135,9 +135,9 @@ diff -u openssl/Configure:1.9.2.1.2.1.4.1.2.1 openssl/Configure:1.11.2.2
  	s/^SHLIB_VERSION_HISTORY=.*/SHLIB_VERSION_HISTORY=$shlib_version_history/;
  	s/^SHLIB_MAJOR=.*/SHLIB_MAJOR=$shlib_major/;
 Index: openssl/Makefile.org
-diff -u openssl/Makefile.org:1.5.2.1.2.1 openssl/Makefile.org:1.6
---- openssl/Makefile.org:1.5.2.1.2.1	Tue Jun 19 14:46:04 2012
-+++ openssl/Makefile.org	Tue Jun 19 14:49:21 2012
+diff -u openssl/Makefile.org:1.5.2.1.2.1.14.1 openssl/Makefile.org:1.6.2.1
+--- openssl/Makefile.org:1.5.2.1.2.1.14.1	Wed Dec 23 17:25:07 2015
++++ openssl/Makefile.org	Wed Dec 23 17:43:50 2015
 @@ -26,6 +26,9 @@
  INSTALL_PREFIX=
  INSTALLTOP=/usr/local/ssl
@@ -150,7 +150,7 @@ diff -u openssl/Makefile.org:1.5.2.1.2.1 openssl/Makefile.org:1.6
  
 Index: openssl/README.pkcs11
 diff -u /dev/null openssl/README.pkcs11:1.7.4.1
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:10 2015
 +++ openssl/README.pkcs11	Fri Oct  4 14:33:56 2013
 @@ -0,0 +1,266 @@
 +ISC modified
@@ -420,9 +420,9 @@ diff -u /dev/null openssl/README.pkcs11:1.7.4.1
 +Latest version should be always available on http://blogs.sun.com/janp.
 +
 Index: openssl/crypto/opensslconf.h
-diff -u openssl/crypto/opensslconf.h:1.6.2.1 openssl/crypto/opensslconf.h:1.6
---- openssl/crypto/opensslconf.h:1.6.2.1	Sun Jan 15 16:09:43 2012
-+++ openssl/crypto/opensslconf.h	Mon Jun 13 17:13:28 2011
+diff -u openssl/crypto/opensslconf.h:1.6.2.1.16.1 openssl/crypto/opensslconf.h:1.6.4.1
+--- openssl/crypto/opensslconf.h:1.6.2.1.16.1	Wed Dec 23 17:25:17 2015
++++ openssl/crypto/opensslconf.h	Wed Dec 23 17:44:01 2015
 @@ -29,6 +29,9 @@
  
  #endif /* OPENSSL_DOING_MAKEDEPEND */
@@ -491,22 +491,22 @@ diff -u openssl/crypto/opensslconf.h:1.6.2.1 openssl/crypto/opensslconf.h:1.6
  
  /* These default values were supplied by
 Index: openssl/crypto/bio/bss_file.c
-diff -u openssl/crypto/bio/bss_file.c:1.6.2.1 openssl/crypto/bio/bss_file.c:1.6
---- openssl/crypto/bio/bss_file.c:1.6.2.1	Sun Jan 15 16:09:44 2012
-+++ openssl/crypto/bio/bss_file.c	Mon Jun 13 17:13:31 2011
-@@ -168,7 +168,7 @@
- 		{
- 		SYSerr(SYS_F_FOPEN,get_last_sys_error());
- 		ERR_add_error_data(5,"fopen('",filename,"','",mode,"')");
--		if (errno == ENOENT)
-+		if ((errno == ENOENT) || ((*mode == 'r') && (errno == EACCES)))
- 			BIOerr(BIO_F_BIO_NEW_FILE,BIO_R_NO_SUCH_FILE);
- 		else
- 			BIOerr(BIO_F_BIO_NEW_FILE,ERR_R_SYS_LIB);
+diff -u openssl/crypto/bio/bss_file.c:1.6.2.1.30.1 openssl/crypto/bio/bss_file.c:1.6.4.1
+--- openssl/crypto/bio/bss_file.c:1.6.2.1.30.1	Wed Dec 23 17:25:30 2015
++++ openssl/crypto/bio/bss_file.c	Wed Dec 23 17:44:14 2015
+@@ -167,7 +167,7 @@
+     if (file == NULL) {
+         SYSerr(SYS_F_FOPEN, get_last_sys_error());
+         ERR_add_error_data(5, "fopen('", filename, "','", mode, "')");
+-        if (errno == ENOENT)
++        if ((errno == ENOENT) || ((*mode == 'r') && (errno == EACCES)))
+             BIOerr(BIO_F_BIO_NEW_FILE, BIO_R_NO_SUCH_FILE);
+         else
+             BIOerr(BIO_F_BIO_NEW_FILE, ERR_R_SYS_LIB);
 Index: openssl/crypto/engine/Makefile
-diff -u openssl/crypto/engine/Makefile:1.8.2.1 openssl/crypto/engine/Makefile:1.8
---- openssl/crypto/engine/Makefile:1.8.2.1	Sun Jan 15 16:09:46 2012
-+++ openssl/crypto/engine/Makefile	Tue Jun 14 21:51:32 2011
+diff -u openssl/crypto/engine/Makefile:1.8.2.1.16.1 openssl/crypto/engine/Makefile:1.8.4.1
+--- openssl/crypto/engine/Makefile:1.8.2.1.16.1	Wed Dec 23 17:25:54 2015
++++ openssl/crypto/engine/Makefile	Wed Dec 23 17:44:39 2015
 @@ -21,12 +21,14 @@
  	eng_table.c eng_pkey.c eng_fat.c eng_all.c \
  	tb_rsa.c tb_dsa.c tb_ecdsa.c tb_dh.c tb_ecdh.c tb_rand.c tb_store.c \
@@ -524,7 +524,7 @@ diff -u openssl/crypto/engine/Makefile:1.8.2.1 openssl/crypto/engine/Makefile:1.
  
  SRC= $(LIBSRC)
  
-@@ -264,6 +266,83 @@
+@@ -266,6 +268,83 @@
  eng_table.o: ../../include/openssl/symhacks.h ../../include/openssl/x509.h
  eng_table.o: ../../include/openssl/x509_vfy.h ../cryptlib.h eng_int.h
  eng_table.o: eng_table.c
@@ -610,7 +610,7 @@ diff -u openssl/crypto/engine/Makefile:1.8.2.1 openssl/crypto/engine/Makefile:1.
  tb_asnmth.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
 Index: openssl/crypto/engine/cryptoki.h
 diff -u /dev/null openssl/crypto/engine/cryptoki.h:1.4
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/cryptoki.h	Thu Dec 18 00:14:12 2008
 @@ -0,0 +1,103 @@
 +/*
@@ -717,44 +717,44 @@ diff -u /dev/null openssl/crypto/engine/cryptoki.h:1.4
 +
 +#endif	/* _CRYPTOKI_H */
 Index: openssl/crypto/engine/eng_all.c
-diff -u openssl/crypto/engine/eng_all.c:1.5.2.1 openssl/crypto/engine/eng_all.c:1.5
---- openssl/crypto/engine/eng_all.c:1.5.2.1	Sun Jan 15 16:09:46 2012
-+++ openssl/crypto/engine/eng_all.c	Mon Jun 13 17:13:35 2011
-@@ -111,6 +111,14 @@
- #if defined(OPENSSL_SYS_WIN32) && !defined(OPENSSL_NO_CAPIENG)
- 	ENGINE_load_capi();
+diff -u openssl/crypto/engine/eng_all.c:1.5.2.1.16.1 openssl/crypto/engine/eng_all.c:1.5.4.1
+--- openssl/crypto/engine/eng_all.c:1.5.2.1.16.1	Wed Dec 23 17:25:54 2015
++++ openssl/crypto/engine/eng_all.c	Wed Dec 23 17:44:39 2015
+@@ -114,6 +114,14 @@
+ # if defined(OPENSSL_SYS_WIN32) && !defined(OPENSSL_NO_CAPIENG)
+     ENGINE_load_capi();
+ # endif
++# ifndef OPENSSL_NO_HW_PKCS11
++#  ifndef OPENSSL_NO_HW_PKCS11CA
++    ENGINE_load_pk11ca();
++#  endif
++#  ifndef OPENSSL_NO_HW_PKCS11SO
++    ENGINE_load_pk11so();
++#  endif
++# endif
  #endif
-+#ifndef OPENSSL_NO_HW_PKCS11
-+#ifndef OPENSSL_NO_HW_PKCS11CA
-+	ENGINE_load_pk11ca();
-+#endif
-+#ifndef OPENSSL_NO_HW_PKCS11SO
-+	ENGINE_load_pk11so();
-+#endif
-+#endif
- #endif
- 	}
+ }
  
 Index: openssl/crypto/engine/engine.h
-diff -u openssl/crypto/engine/engine.h:1.5.2.1 openssl/crypto/engine/engine.h:1.5
---- openssl/crypto/engine/engine.h:1.5.2.1	Sun Jan 15 16:09:46 2012
-+++ openssl/crypto/engine/engine.h	Mon Jun 13 17:13:36 2011
-@@ -336,6 +336,12 @@
- void ENGINE_load_ubsec(void);
- void ENGINE_load_padlock(void);
- void ENGINE_load_capi(void);
-+#ifndef OPENSSL_NO_HW_PKCS11CA
+diff -u openssl/crypto/engine/engine.h:1.5.2.1.16.1 openssl/crypto/engine/engine.h:1.5.4.1
+--- openssl/crypto/engine/engine.h:1.5.2.1.16.1	Wed Dec 23 17:25:55 2015
++++ openssl/crypto/engine/engine.h	Wed Dec 23 17:44:40 2015
+@@ -406,6 +406,12 @@
+ # endif
+ void ENGINE_load_cryptodev(void);
+ void ENGINE_load_builtin_engines(void);
++# ifndef OPENSSL_NO_HW_PKCS11CA
 +void ENGINE_load_pk11ca(void);
-+#endif
-+#ifndef OPENSSL_NO_HW_PKCS11SO
++# endif
++# ifndef OPENSSL_NO_HW_PKCS11SO
 +void ENGINE_load_pk11so(void);
-+#endif
- #ifndef OPENSSL_NO_GMP
- void ENGINE_load_gmp(void);
- #endif
++# endif
+ 
+ /*
+  * Get and set global flags (ENGINE_TABLE_FLAG_***) for the implementation
 Index: openssl/crypto/engine/hw_pk11.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.30.4.2
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/hw_pk11.c	Fri Oct  4 14:33:56 2013
 @@ -0,0 +1,4116 @@
 +/*
@@ -4875,7 +4875,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.30.4.2
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11_err.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11_err.c:1.5
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/hw_pk11_err.c	Tue Jun 14 00:43:26 2011
 @@ -0,0 +1,288 @@
 +/*
@@ -5168,7 +5168,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_err.c:1.5
 +}
 Index: openssl/crypto/engine/hw_pk11_err.h
 diff -u /dev/null openssl/crypto/engine/hw_pk11_err.h:1.12.4.1
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/hw_pk11_err.h	Fri Oct  4 14:33:56 2013
 @@ -0,0 +1,440 @@
 +/*
@@ -5613,7 +5613,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_err.h:1.12.4.1
 +#endif /* HW_PK11_ERR_H */
 Index: openssl/crypto/engine/hw_pk11_pub.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.38.2.3
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/hw_pk11_pub.c	Fri Oct  4 14:33:56 2013
 @@ -0,0 +1,3556 @@
 +/*
@@ -9174,7 +9174,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.38.2.3
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11ca.h
 diff -u /dev/null openssl/crypto/engine/hw_pk11ca.h:1.4
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/hw_pk11ca.h	Wed Jun 15 21:12:20 2011
 @@ -0,0 +1,32 @@
 +/* Redefine all pk11/PK11 external symbols to pk11ca/PK11CA */
@@ -9211,7 +9211,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11ca.h:1.4
 +#define ENGINE_load_pk11		ENGINE_load_pk11ca
 Index: openssl/crypto/engine/hw_pk11so.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.7.4.1
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/hw_pk11so.c	Fri Oct  4 14:33:56 2013
 @@ -0,0 +1,1775 @@
 +/*
@@ -10991,7 +10991,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.7.4.1
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11so.h
 diff -u /dev/null openssl/crypto/engine/hw_pk11so.h:1.4
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/hw_pk11so.h	Wed Jun 15 21:12:20 2011
 @@ -0,0 +1,32 @@
 +/* Redefine all pk11/PK11 external symbols to pk11so/PK11SO */
@@ -11028,7 +11028,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so.h:1.4
 +#define ENGINE_load_pk11		ENGINE_load_pk11so
 Index: openssl/crypto/engine/hw_pk11so_pub.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.8.2.2
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/hw_pk11so_pub.c	Fri Oct  4 14:33:56 2013
 @@ -0,0 +1,1642 @@
 +/*
@@ -12675,7 +12675,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.8.2.2
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/pkcs11.h
 diff -u /dev/null openssl/crypto/engine/pkcs11.h:1.1.1.1
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/pkcs11.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,299 @@
 +/* pkcs11.h include file for PKCS #11. */
@@ -12979,7 +12979,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11.h:1.1.1.1
 +#endif
 Index: openssl/crypto/engine/pkcs11f.h
 diff -u /dev/null openssl/crypto/engine/pkcs11f.h:1.1.1.1
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/pkcs11f.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,912 @@
 +/* pkcs11f.h include file for PKCS #11. */
@@ -13896,7 +13896,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11f.h:1.1.1.1
 +#endif
 Index: openssl/crypto/engine/pkcs11t.h
 diff -u /dev/null openssl/crypto/engine/pkcs11t.h:1.2
---- /dev/null	Wed Mar  4 14:05:03 2015
+--- /dev/null	Wed Dec 23 17:47:11 2015
 +++ openssl/crypto/engine/pkcs11t.h	Sat Aug 30 11:58:07 2008
 @@ -0,0 +1,1885 @@
 +/* pkcs11t.h include file for PKCS #11. */
@@ -15784,11 +15784,81 @@ diff -u /dev/null openssl/crypto/engine/pkcs11t.h:1.2
 +typedef CK_ARIA_CBC_ENCRYPT_DATA_PARAMS CK_PTR CK_ARIA_CBC_ENCRYPT_DATA_PARAMS_PTR;
 +
 +#endif
+Index: openssl/demos/easy_tls/easy-tls.c
+diff -u openssl/demos/easy_tls/easy-tls.c:1.1.1.1.74.1 openssl/demos/easy_tls/easy-tls.c:1.1.1.1.30.1
+--- openssl/demos/easy_tls/easy-tls.c:1.1.1.1.74.1	Wed Dec 23 17:26:40 2015
++++ openssl/demos/easy_tls/easy-tls.c	Wed Dec 23 17:41:47 2015
+@@ -1,7 +1,7 @@
+ /* -*- Mode: C; c-file-style: "bsd" -*- */
+ /*-
+  * easy-tls.c -- generic TLS proxy.
+- * $Id: easy-tls.c,v 1.1.1.1.74.1 2015-12-23 17:26:40 fdupont Exp $
++ * $Id: easy-tls.c,v 1.1.1.1.30.1 2015-12-23 17:41:47 fdupont Exp $
+  */
+ /*-
+  (c) Copyright 1999 Bodo Moeller.  All rights reserved.
+@@ -73,7 +73,7 @@
+  */
+ 
+ static char const rcsid[] =
+-    "$Id: easy-tls.c,v 1.1.1.1.74.1 2015-12-23 17:26:40 fdupont Exp $";
++    "$Id: easy-tls.c,v 1.1.1.1.30.1 2015-12-23 17:41:47 fdupont Exp $";
+ 
+ #include <assert.h>
+ #include <errno.h>
+Index: openssl/demos/easy_tls/easy-tls.h
+diff -u openssl/demos/easy_tls/easy-tls.h:1.1.1.1.74.1 openssl/demos/easy_tls/easy-tls.h:1.1.1.1.30.1
+--- openssl/demos/easy_tls/easy-tls.h:1.1.1.1.74.1	Wed Dec 23 17:26:40 2015
++++ openssl/demos/easy_tls/easy-tls.h	Wed Dec 23 17:41:47 2015
+@@ -1,7 +1,7 @@
+ /* -*- Mode: C; c-file-style: "bsd" -*- */
+ /*-
+  * easy-tls.h -- generic TLS proxy.
+- * $Id: easy-tls.h,v 1.1.1.1.74.1 2015-12-23 17:26:40 fdupont Exp $
++ * $Id: easy-tls.h,v 1.1.1.1.30.1 2015-12-23 17:41:47 fdupont Exp $
+  */
+ /*
+  * (c) Copyright 1999 Bodo Moeller.  All rights reserved.
+Index: openssl/demos/easy_tls/test.c
+diff -u openssl/demos/easy_tls/test.c:1.1.1.1.74.1 openssl/demos/easy_tls/test.c:1.1.1.1.30.1
+--- openssl/demos/easy_tls/test.c:1.1.1.1.74.1	Wed Dec 23 17:26:40 2015
++++ openssl/demos/easy_tls/test.c	Wed Dec 23 17:41:47 2015
+@@ -1,5 +1,5 @@
+ /* test.c */
+-/* $Id: test.c,v 1.1.1.1.74.1 2015-12-23 17:26:40 fdupont Exp $ */
++/* $Id: test.c,v 1.1.1.1.30.1 2015-12-23 17:41:47 fdupont Exp $ */
+ 
+ #define L_PORT 9999
+ #define C_PORT 443
+Index: openssl/demos/easy_tls/test.h
+diff -u openssl/demos/easy_tls/test.h:1.1.1.1.74.1 openssl/demos/easy_tls/test.h:1.1.1.1.30.1
+--- openssl/demos/easy_tls/test.h:1.1.1.1.74.1	Wed Dec 23 17:26:40 2015
++++ openssl/demos/easy_tls/test.h	Wed Dec 23 17:41:48 2015
+@@ -1,5 +1,5 @@
+ /* test.h */
+-/* $Id: test.h,v 1.1.1.1.74.1 2015-12-23 17:26:40 fdupont Exp $ */
++/* $Id: test.h,v 1.1.1.1.30.1 2015-12-23 17:41:48 fdupont Exp $ */
+ 
+ void test_process_init(int fd, int client_p, void *apparg);
+ #define TLS_APP_PROCESS_INIT test_process_init
+Index: openssl/engines/vendor_defns/hwcryptohook.h
+diff -u openssl/engines/vendor_defns/hwcryptohook.h:1.1.1.1.74.1 openssl/engines/vendor_defns/hwcryptohook.h:1.1.1.1.30.1
+--- openssl/engines/vendor_defns/hwcryptohook.h:1.1.1.1.74.1	Wed Dec 23 17:26:51 2015
++++ openssl/engines/vendor_defns/hwcryptohook.h	Wed Dec 23 17:45:37 2015
+@@ -65,7 +65,7 @@
+  * please contact nCipher.
+  *
+  *
+- * $Id: hwcryptohook.h,v 1.1.1.1.74.1 2015-12-23 17:26:51 fdupont Exp $
++ * $Id: hwcryptohook.h,v 1.1.1.1.30.1 2015-12-23 17:45:37 fdupont Exp $
+  */
+ 
+ #ifndef HWCRYPTOHOOK_H
 Index: openssl/util/libeay.num
-diff -u openssl/util/libeay.num:1.8.2.1.6.1.4.1.4.1 openssl/util/libeay.num:1.9.2.3
---- openssl/util/libeay.num:1.8.2.1.6.1.4.1.4.1	Wed Mar  4 14:03:24 2015
-+++ openssl/util/libeay.num	Wed Mar  4 14:04:40 2015
-@@ -4197,3 +4197,5 @@
+diff -u openssl/util/libeay.num:1.8.2.1.6.1.4.1.4.1.2.1 openssl/util/libeay.num:1.9.2.4
+--- openssl/util/libeay.num:1.8.2.1.6.1.4.1.4.1.2.1	Wed Dec 23 17:27:04 2015
++++ openssl/util/libeay.num	Wed Dec 23 17:45:51 2015
+@@ -4198,3 +4198,5 @@
  OPENSSL_strncasecmp                     4566	EXIST::FUNCTION:
  OPENSSL_gmtime                          4567	EXIST::FUNCTION:
  OPENSSL_gmtime_adj                      4568	EXIST::FUNCTION:
@@ -15875,9 +15945,9 @@ diff -u openssl/util/mkdef.pl:1.7.2.1 openssl/util/mkdef.pl:1.8
  			if ($keyword eq "STATIC_ENGINE" && $no_static_engine) { return 0; }
  			if ($keyword eq "GMP" && $no_gmp) { return 0; }
 Index: openssl/util/pl/VC-32.pl
-diff -u openssl/util/pl/VC-32.pl:1.7.2.1 openssl/util/pl/VC-32.pl:1.7
---- openssl/util/pl/VC-32.pl:1.7.2.1	Sun Jan 15 16:09:52 2012
-+++ openssl/util/pl/VC-32.pl	Mon Jun 13 17:13:57 2011
+diff -u openssl/util/pl/VC-32.pl:1.7.2.1.16.1 openssl/util/pl/VC-32.pl:1.7.4.1
+--- openssl/util/pl/VC-32.pl:1.7.2.1.16.1	Wed Dec 23 17:27:05 2015
++++ openssl/util/pl/VC-32.pl	Wed Dec 23 17:45:51 2015
 @@ -36,7 +36,7 @@
      my $f = $shlib?' /MD':' /MT';
      $lib_cflag='/Zl' if (!$shlib);	# remove /DEFAULTLIBs from static lib
