@@ -1,4 +1,4 @@
-4383.	[bug]		OPENSSL_config is no longer re-callable. [RT #41348]
+4283.	[bug]		OPENSSL_config is no longer re-callable. [RT #41348]
 
 4281.	[bug]		Teach dns_message_totext about BADCOOKIE. [RT #41257]
 
