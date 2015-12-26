@@ -477,5 +477,12 @@ fi
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:checking other GeoIP options are parsed correctly ($n)"
+ret=0
+$CHECKCONF options.conf || ret=1
+[ $ret -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

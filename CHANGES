@@ -1,3 +1,8 @@
+4284.	[bug]		Some GeoIP options were incorrectly documented
+			using abbreviated forms which were not accepted by
+			named.  The code has been updated to allow both
+			long and abbreviated forms. [RT #41381]
+
 4283.	[bug]		OPENSSL_config is no longer re-callable. [RT #41348]
 
 4282.	[func]		'dig +[no]mapped' determine whether the use of mapped
