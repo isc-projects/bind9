@@ -532,21 +532,32 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 		subtype = dns_geoip_city_name;
 		strlcpy(de.geoip_elem.as_string, search,
 			sizeof(de.geoip_elem.as_string));
-	} else if (strcasecmp(stype, "postal") == 0 && len < 7) {
-		subtype = dns_geoip_city_postalcode;
-		strlcpy(de.geoip_elem.as_string, search,
-			sizeof(de.geoip_elem.as_string));
-	} else if (strcasecmp(stype, "postal") == 0) {
-		cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
-			    "geoiop postal code (%s) too long", search);
-		return (ISC_R_FAILURE);
-	} else if (strcasecmp(stype, "metro") == 0) {
+	} else if (strcasecmp(stype, "postal") == 0 ||
+		   strcasecmp(stype, "postalcode") == 0)
+	{
+		if (len < 7) {
+			subtype = dns_geoip_city_postalcode;
+			strlcpy(de.geoip_elem.as_string, search,
+				sizeof(de.geoip_elem.as_string));
+		} else {
+			cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
+				    "geoiop postal code (%s) too long",
+				    search);
+			return (ISC_R_FAILURE);
+		}
+	} else if (strcasecmp(stype, "metro") == 0 ||
+		   strcasecmp(stype, "metrocode") == 0)
+	{
 		subtype = dns_geoip_city_metrocode;
 		de.geoip_elem.as_int = atoi(search);
-	} else if (strcasecmp(stype, "area") == 0) {
+	} else if (strcasecmp(stype, "area") == 0 ||
+		   strcasecmp(stype, "areacode") == 0)
+	{
 		subtype = dns_geoip_city_areacode;
 		de.geoip_elem.as_int = atoi(search);
-	} else if (strcasecmp(stype, "tz") == 0) {
+	} else if (strcasecmp(stype, "tz") == 0 ||
+		   strcasecmp(stype, "timezone") == 0)
+	{
 		subtype = dns_geoip_city_timezonecode;
 		strlcpy(de.geoip_elem.as_string, search,
 			sizeof(de.geoip_elem.as_string));

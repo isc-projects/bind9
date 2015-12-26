@@ -2294,8 +2294,9 @@ static cfg_type_t cfg_type_optional_keyref = {
  */
 static const char *geoiptype_enums[] = {
 	"country", "country3", "countryname", "region", "regionname",
-	"city", "postal", "metrocode", "areacode", "timezone", "continent",
-	"isp", "domain", "asnum", "org", "netspeed", NULL
+	"city", "postalcode", "postal", "metrocode", "metro",
+	"areacode", "area", "timezone", "tz", "continent", "isp",
+	"domain", "asnum", "org", "netspeed", NULL
 };
 static cfg_type_t cfg_type_geoiptype = {
 	"geoiptype", cfg_parse_enum, cfg_print_ustring,

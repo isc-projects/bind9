@@ -277,6 +277,14 @@
        </listitem>
       <listitem>
 	<para>
+	  Some of the options for GeoIP ACLs, including "areacode",
+	  "metrocode", and "timezone", were incorrectly documented
+	  as "area", "metro" and "tz".  Both the long and abbreviated
+	  versions are now accepted.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  A race during shutdown or reconfiguration could
 	  cause an assertion failure in mem.c. [RT #38979]
 	</para>
