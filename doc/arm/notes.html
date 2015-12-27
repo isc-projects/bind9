@@ -629,6 +629,12 @@
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
+	  Some of the options for GeoIP ACLs, including "areacode",
+	  "metrocode", and "timezone", were incorrectly documented
+	  as "area", "metro" and "tz".  Both the long and abbreviated
+	  versions are now accepted.
+	</p></li>
+<li class="listitem"><p>
 	  <span class="command"><strong>dig</strong></span>, <span class="command"><strong>host</strong></span> and
 	  <span class="command"><strong>nslookup</strong></span> aborted when encountering
 	  a name which, after appending search list elements,
