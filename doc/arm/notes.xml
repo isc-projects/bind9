@@ -153,6 +153,12 @@
 	  <command>named</command> to allow access to unintended clients.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Specfic APL data could trigger a INSIST.  This flaw was discovered
+	  by Brian Mitchell and is disclosed in CVE-2015-8704. [RT #41396].
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
