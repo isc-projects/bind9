@@ -24,7 +24,8 @@
     </para>
     <para>
       BIND 9.10.3-P2 addresses the security issues described in
-      CVE-2015-3193 (OpenSSL), CVE-2015-8000 and CVE-2015-8461.
+      CVE-2015-3193 (OpenSSL), CVE-2015-8000, CVE-2015-8461 and
+      CVE-2015-8704.
     </para>
     <para>
       BIND 9.10.3-P1 was incomplete and was withdrawn prior to publication.
@@ -64,6 +65,12 @@
 	  triggering a REQUIRE failure when those records
 	  were subsequently cached.  This flaw is disclosed
 	  in CVE-2015-8000. [RT #40987]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Specfic APL data could trigger a INSIST.  This flaw was discovered
+	  by Brian Mitchell and is disclosed in CVE-2015-8704. [RT #41396]
 	</para>
       </listitem>
     </itemizedlist>

@@ -1,3 +1,6 @@
+4285.	[security]	Specific APL data could trigger a INSIST.
+			(CVE-2015-8704) [RT #41396]
+
 	--- 9.10.3-P2 released ---
 
 4270.	[security]	Update allowed OpenSSL versions as named is
