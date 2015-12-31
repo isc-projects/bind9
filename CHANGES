@@ -1,3 +1,6 @@
+4285.	[security]	Specific APL data could trigger a INSIST.
+			(CVE-2015-8704) [RT #41396]
+
 4284.	[bug]		Some GeoIP options were incorrectly documented
 			using abbreviated forms which were not accepted by
 			named.  The code has been updated to allow both
