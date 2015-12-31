@@ -1,3 +1,7 @@
+4286.	[security]	render_ecs errors were mishandled when printing out
+			a OPT record resulting in a assertion failure.
+			(CVE-2015-8705) [RT #41397]
+
 4285.	[security]	Specific APL data could trigger a INSIST.
 			(CVE-2015-8704) [RT #41396]
 
