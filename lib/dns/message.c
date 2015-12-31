@@ -3343,7 +3343,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				ADD_STRING(target, "; CLIENT-SUBNET");
 				isc_buffer_init(&ecsbuf,
 						isc_buffer_current(&optbuf),
-					        optlen);
+						optlen);
 				isc_buffer_add(&ecsbuf, optlen);
 				result = render_ecs(&ecsbuf, target);
 				if (result == ISC_R_NOSPACE)
