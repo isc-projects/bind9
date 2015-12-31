@@ -156,7 +156,7 @@
       <listitem>
 	<para>
 	  Specfic APL data could trigger a INSIST.  This flaw was discovered
-	  by Brian Mitchell and is disclosed in CVE-2015-8704. [RT #41396].
+	  by Brian Mitchell and is disclosed in CVE-2015-8704. [RT #41396]
 	</para>
       </listitem>
     </itemizedlist>
