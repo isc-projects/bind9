@@ -304,6 +304,9 @@
     <ClInclude Include="..\rbtdb64.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\rdatalist_p.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\dns\acache.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -362,6 +365,9 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\dsdigest.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dns\edns.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\enumclass.h">

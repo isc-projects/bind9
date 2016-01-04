@@ -294,6 +294,10 @@ SOURCE=..\include\named\query.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\named\seccomp.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\named\server.h
 # End Source File
 # Begin Source File
