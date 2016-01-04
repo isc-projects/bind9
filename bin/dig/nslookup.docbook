@@ -479,6 +479,13 @@ nslookup -query=hinfo  -timeout=10
     </variablelist>
   </refsection>
 
+  <refsection><info><title>RETURN VALUES</title></info>
+    <para>
+      <command>nslookup</command> returns with an exit status of 1
+      if any query failed, and 0 otherwise.
+    </para>
+  </refsection>
+
   <refsection><info><title>FILES</title></info>
 
     <para><filename>/etc/resolv.conf</filename>
