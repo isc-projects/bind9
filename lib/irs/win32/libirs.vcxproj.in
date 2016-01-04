@@ -123,6 +123,7 @@
     <ClInclude Include="..\include\irs\platform.h" />
     <ClInclude Include="..\include\irs\resconf.h" />
     <ClInclude Include="..\include\irs\types.h" />
+    <ClInclude Include="..\include\irs\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

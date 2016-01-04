@@ -348,7 +348,7 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
 
 my %configdefh;
 
-my @substdefh = ("AES_SIT",
+my @substdefh = ("AES_CC",
                  "ALLOW_FILTER_AAAA",
                  "CONFIGARGS",
                  "DNS_RDATASET_FIXED",
@@ -369,9 +369,10 @@ my @substdefh = ("AES_SIT",
                  "HAVE_PKCS11_ECDSA",
                  "HAVE_PKCS11_GOST",
                  "HAVE_READLINE",
+                 "HAVE_ZLIB",
                  "HMAC_RETURN_INT",
-                 "HMAC_SHA1_SIT",
-                 "HMAC_SHA256_SIT",
+                 "HMAC_SHA1_CC",
+                 "HMAC_SHA256_CC",
                  "ISC_LIST_CHECKINIT",
                  "PREFER_GOSTASN1",
                  "TUNE_LARGE",
@@ -389,7 +390,6 @@ my @substdefp = ("ISC_PLATFORM_HAVEATOMICSTORE",
                  "ISC_PLATFORM_HAVEXADDQ",
                  "ISC_PLATFORM_NEEDSTRCASESTR",
                  "ISC_PLATFORM_USEBACKTRACE",
-                 "ISC_PLATFORM_USESIT",
                  "ISC_PLATFORM_WANTAES");
 
 # includes
@@ -401,7 +401,8 @@ my @substinc = ("GSSAPI_INC",
                 "IDN_INC",
                 "LIBXML2_INC",
                 "OPENSSL_INC",
-                "READLINE_INC");
+                "READLINE_INC",
+                "ZLIB_INC");
 
 # libraries
 
@@ -414,7 +415,8 @@ my @substlib = ("GSSAPI_LIB",
                 "LIBXML2_LIB",
                 "OPENSSL_LIB",
                 "READLINE_LIB",
-                "READLINE_LIBD");
+                "READLINE_LIBD",
+                "ZLIB_LIB");
 
 # DLLs
 
@@ -429,7 +431,8 @@ my @substdll = ("COMERR_DLL",
                 "K5SPRT_DLL",
                 "LIBXML2_DLL",
                 "OPENSSL_DLL",
-                "WSHELP_DLL");
+                "WSHELP_DLL",
+                "ZLIB_DLL");
 
 # variables
 
@@ -477,7 +480,10 @@ my @substcond = ("AES",
                  "PYTHON",
                  "SAMPLES",
                  "TESTS",
-                 "XTESTS");
+                 "XTESTS",
+                 "ZLIB");
+
+my @allcond = (@substcond, "NOTYET", "NOLONGER");
 
 # arguments
 
@@ -492,8 +498,7 @@ my @enablelist = ("developer",
                   "filter-aaaa",
                   "querytrace",
                   "rpz-nsdname",
-                  "rpz-nsip",
-                  "sit");
+                  "rpz-nsip");
 
 # with-xxx/without-xxx
 
@@ -512,10 +517,11 @@ my @withlist = ("aes",
                 "python",
                 "readline",
                 "samples",
-                "sit-alg",
+                "cc-alg",
                 "tests",
                 "tuning",
-                "vcredist");
+                "vcredist",
+                "zlib");
 
 # general arguments
 
@@ -551,7 +557,6 @@ my @help = (
 "  enable-querytrace     enable very verbose query trace [default=no]\n",
 "  enable-rpz-nsip       enable rpz-nsip rules [default=yes]\n",
 "  enable-rpz-nsdname    enable rpz-nsdname rules [default=yes]\n",
-"  enable-sit            enable source identity token [default=yes]\n",
 "\nOptional Packages:\n",
 "  with-tests            build with test suite\n",
 "  with-extra-tests      build with extra test suite\n",
@@ -561,7 +566,7 @@ my @help = (
 "  with-ecdsa            crypto ECDSA\n",
 "  with-gost[=ENC]       crypto GOST yes|no|raw|ans1\n",
 "  with-aes              crypto AES\n",
-"  with-sit-alg          choose the algorithm for SIT aes|sha1|sha256\n",
+"  with-cc-alg           choose the algorithm for cookies aes|sha1|sha256\n",
 "  with-gssapi[=PATH]    build with MIT KfW GSSAPI yes|no|path\n",
 "  with-libxml2[=PATH]   build with libxml2 library yes|no|path\n",
 "  with-geoip[=PATH]     build with GeoIP support yes|no|path\n",
@@ -569,6 +574,7 @@ my @help = (
 "  with-readline[=PATH]  build with readline library support yes|no|path\n",
 "  with-idn[=PATH]       build with IDN kit support yes|no|path\n",
 "  with-iconv[=PATH]     path of the iconv DLL [default=same than idn]\n",
+"  with-zlib[=PATH]      build with zlib library yes|no|path\n",
 "  with-vcredist[=PATH]  visual C++ redistributable package yes|path\n",
 "  with-tuning=OPTION    tune for plaform size (large|default)\n",
 "  with-cross-compile    32 / 64 bit build / host plaforms\n");
@@ -593,7 +599,6 @@ my $enable_developer = "no";
 my $enable_querytrace = "no";
 my $enable_rpz_nsip = "yes";
 my $enable_rpz_nsdname = "yes";
-my $enable_sit = "yes";
 my $use_tests = "no";
 my $use_xtests = "no";
 my $use_samples = "no";
@@ -605,7 +610,7 @@ my $use_ecdsa = "auto";
 my $use_gost = "auto";
 my $gost_encoding = "raw";
 my $use_aes = "auto";
-my $sit_algorithm = "aes";
+my $cookie_algorithm = "aes";
 my $use_gssapi = "no";
 my $gssapi_path = "C:\\Program\ Files\\MIT\\Kerberos\\";
 my $use_geoip = "no";
@@ -619,6 +624,8 @@ my $readline_path = "..\\..\\";
 my $use_idn = "no";
 my $idn_path = "..\\..\\";
 my $iconv_path = " --idn-- ";
+my $use_zlib = "no";
+my $zlib_path = "..\\..\\";
 my $use_vcredist = "yes";
 my $vcredist_path = " --infer-- ";
 my $cross_compile = "no";
@@ -761,10 +768,6 @@ sub myenable {
         if ($val =~ /^no$/i) {
             $enable_rpz_nsdname = "no";
         }
-    } elsif ($key =~ /^sit$/i) {
-        if ($val =~ /^no$/i) {
-            $enable_sit = "no";
-        }
     } else {
         $want_unknown = "yes";
         if ($val eq "no") {
@@ -786,7 +789,6 @@ if ($enable_developer eq "yes") {
     # TODO: dlz filesystem
     $use_tests = "yes";
     $use_samples = "yes";
-    $enable_sit = "yes";
 }
 
 # parse with/without
@@ -842,8 +844,8 @@ sub mywith {
         } elsif ($val =~ /^yes$/i) {
             $use_aes = "yes";
         }
-    } elsif ($key =~ /^sit-alg$/i) {
-        $sit_algorithm = $val;
+    } elsif ($key =~ /^cc-alg$/i) {
+        $cookie_algorithm = $val;
     } elsif ($key =~ /^gssapi$/i) {
         if ($val !~ /^no$/i) {
             $use_gssapi = "yes";
@@ -885,6 +887,13 @@ sub mywith {
             $unknown_value = "without-iconv doesn't make sense)";
         } elsif ($val !~ /^yes$/i) {
             $iconv_path = $val;
+        }
+    } elsif ($key =~ /^zlib$/i) {
+        if ($val !~ /^no$/i) {
+            $use_zlib = "yes";
+            if ($val !~ /^yes$/i) {
+                $zlib_path = $val;
+            }
         }
     } elsif ($key =~ /^python$/i) {
         if ($val =~ /^no$/i) {
@@ -1026,12 +1035,7 @@ if ($verbose) {
     } else {
         print "rpz-nsdname: disabled\n";
     }
-    if ($enable_sit eq "yes") {
-        print "sit: enabled\n";
-        print "sit algorithm: $sit_algorithm\n";
-    } else {
-        print "sit: disabled\n";
-    }
+    print "cookie algorithm: $cookie_algorithm\n";
     if ($use_openssl eq "no") {
         print "openssl: disabled\n";
     } else {
@@ -1094,6 +1098,11 @@ if ($verbose) {
         if ($iconv_path ne " --idn-- ") {
             print "iconv-path: $iconv_path\n";
         }
+    }
+    if ($use_zlib eq "no") {
+        print "zlib: disabled\n";
+    } else {
+        print "zlib-path: $zlib_path\n";
     }
     if ($use_python eq "no") {
         print "python: disabled\n";
@@ -1389,11 +1398,6 @@ if ($enable_querytrace eq "yes") {
 # enable-rpz-nsdname
 if ($enable_rpz_nsdname ne "no") {
     $configdefh{"ENABLE_RPZ_NSDNAME"} = 1;
-}
-
-# enable-sit
-if ($enable_sit ne "no") {
-    $configdefp{"ISC_PLATFORM_USESIT"} = 1;
 }
 
 # with-tests
@@ -1878,22 +1882,20 @@ if ($use_aes eq "yes") {
     $configcond{"AES"} = 1;
 }
 
-# with-sit-alg
-if ($enable_sit ne "no") {
-    if ($sit_algorithm eq "aes") {
-        if ($use_aes ne "yes") {
-            $sit_algorithm = "sha256";
-        } else {
-            $configdefh{"AES_SIT"} = 1;
-        }
+# with-cc-alg
+if ($cookie_algorithm eq "aes") {
+    if ($use_aes ne "yes") {
+        $cookie_algorithm = "sha256";
+    } else {
+        $configdefh{"AES_CC"} = 1;
     }
-    if ($sit_algorithm eq "sha1") {
-        $configdefh{"HMAC_SHA1_SIT"} = 1;
-    } elsif ($sit_algorithm eq "sha256") {
-        $configdefh{"HMAC_SHA256_SIT"} = 1;
-    } elsif ($sit_algorithm ne "aes") {
-        die "Unrecognized SIT algorithm: $sit_algorithm\n";
-    }
+}
+if ($cookie_algorithm eq "sha1") {
+    $configdefh{"HMAC_SHA1_CC"} = 1;
+} elsif ($cookie_algorithm eq "sha256") {
+    $configdefh{"HMAC_SHA256_CC"} = 1;
+} elsif ($cookie_algorithm ne "aes") {
+    die "Unrecognized cookie algorithm: $cookie_algorithm\n";
 }
 
 # enable-openssl-hash
@@ -2287,6 +2289,34 @@ if ($use_libxml2 eq "yes") {
     $configdll{"LIBXML2_DLL"} = "$libxml2_dll";
 }
 
+# with-zlib
+if ($use_zlib eq "no") {
+    if ($verbose) {
+        print "zlib library is disabled\n";
+    }
+} else {
+    $configcond{"ZLIB"} = 1;
+    $zlib_path = File::Spec->rel2abs($zlib_path);
+    if ($verbose) {
+        print "checking for zlib directory at \"$zlib_path\"\n";
+    }
+    if (!-f File::Spec->catfile($zlib_path, "zlib.h")) {
+        die "can't find zlib.h include\n";
+    }
+    if (!-f File::Spec->catfile($zlib_path, "zdll.lib")) {
+        die "can't find zdll.lib library\n";
+    }
+    if (!-f File::Spec->catfile($zlib_path, "zlib1.dll")) {
+        die "can't find zlib1.dll DLL\n";
+    }
+    $configdefh{"HAVE_ZLIB"} = 1;
+    $configinc{"ZLIB_INC"} = "$zlib_path";
+    my $zlib_lib = File::Spec->catfile($zlib_path, "zdll.lib");
+    $configlib{"ZLIB_LIB"} = "$zlib_lib";
+    my $zlib_dll = File::Spec->catfile($zlib_path, "zlib1.dll");
+    $configdll{"ZLIB_DLL"} = "$zlib_dll";
+}
+
 # with-python
 if ($use_python eq "no") {
     if ($verbose) {
@@ -2426,11 +2456,15 @@ sub setupfile {
                 unshift(@conds, $cond);
                 unshift(@passes, $pass);
             }
-            $cond = $1;
-            if (defined($configcond{$cond})) {
-                # do nothing
+            if ($1 ~~ @allcond) {
+                $cond = $1;
+                if (defined($configcond{$cond})) {
+                    # do nothing
+                } else {
+                    $pass = 0;
+                }
             } else {
-                $pass = 0;
+                die "unknown condition \@IF $1 in $filename\n";
             }
             next;
         } elsif ($line =~ /^\@ELSE (.*)$/) {
@@ -2541,11 +2575,15 @@ sub setupproject {
                 unshift(@conds, $cond);
                 unshift(@passes, $pass);
             }
-            $cond = $1;
-            if (defined($configcond{$cond})) {
-                # do nothing
+            if ($1 ~~ @allcond) {
+                $cond = $1;
+                if (defined($configcond{$cond})) {
+                    # do nothing
+                } else {
+                    $pass = 0;
+                }
             } else {
-                $pass = 0;
+                die "unknown condition \@IF $1 in $projectname\n";
             }
             next;
         } elsif ($line =~ /^\@ELSE (.*)$/) {
@@ -3051,7 +3089,6 @@ exit 0;
 
 # Notes: Unix configure.in options
 #  --enable-developer partially supported
-#  --enable-dnstap not supported (requires libfstrm support on win32)
 #  --enable-newstats (9.9/9.9sub only)
 #  --enable-native-pkcs11 supported
 #  --enable-openssl-version-check included without a way to disable it
@@ -3059,38 +3096,40 @@ exit 0;
 #  --enable-threads included without a way to disable it
 #  --enable-backtrace backtrace included without a way to disable it
 #  --enable-symtable incompatible with DLLs (or libtool)
-#  --enable-exportlib TODO (obsolete)
 #  --enable-ipv6 included without a way to disable it
 #  --enable-atomic supported (renamed to intrinsic)
-#  --enable-spnego support (part of GSSAPI)
+#  --enable-isc-spnego supported (part of GSSAPI)
 #  --enable-fixed-rrset supported
 #  --enable-querytrace supported
 #  --disable-rpz-nsip supported
 #  --disable-rpz-nsdname supported
 #  --enable-filter-aaaa supported
-#  --enable-sit supported
 #  --enable-full-report supported by verbose
+#  --enable-dnstap not supported (requires libfstrm support on WIN32)
+#  --enable-seccomp not supported (Linux specific)
 #  --with-python supported
 #  --with-openssl supported
 #  --with-pkcs11 supported
 #  --with-ecdsa supported
 #  --with-gost supported
 #  --with-aes supported
-#  --with-sit-alg supported
+#  --with-cc-alg supported
 #  --with-geoip supported
 #  --with-gssapi supported with MIT (K)erberos (f)or (W)indows
 #  --with-libxml2 supported
 #  --with-libjson not supported on WIN32 (package not available on WIN32)
-#  --with-purify ? (package available on WIN32 but for free?)
-#  --with-gperftools-profiler (package not available on WIN32)
+#  --with-zlib supported
+#  --with-purify not supported (package available on WIN32 but for free?)
+#  --with-gperftools-profiler not supported (package not available on WIN32)
 #  --with-libtool not supported on WIN32 (never)
 #  --with-locktype not supported on WIN32 (not yet available on WIN32)
 #  --with-readline supported
-#  --with-idn support
-#  --with-[lib]iconv (part of IDN)
-#  --with-atf not supported on WIN32 (package not available on WIN32)
-#  --with-libfrtrm not supported (not yet available on WIN32)
 #  --with-protobuf-c not supported (no reason to until libfstrm is ready)
+#  --with-libfrtrm not supported (not yet available on WIN32)
+#  --with-docbook-xsl not supported (?)
+#  --with-idn[lib] supported
+#  --with-[lib]iconv supported (part of IDN)
+#  --with-atf not supported on WIN32 (package not available on WIN32)
 #  --with-tuning supported
 #  --with-dlopen included without a way to disable it
 #  --with-dlz-* ?

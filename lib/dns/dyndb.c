@@ -17,6 +17,12 @@
 
 #include <config.h>
 
+#if HAVE_DLFCN_H
+#include <dlfcn.h>
+#elif _WIN32
+#include <windows.h>
+#endif
+
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -34,10 +40,6 @@
 #include <dns/zone.h>
 
 #include <string.h>
-
-#if HAVE_DLFCN_H
-#include <dlfcn.h>
-#endif
 
 #define CHECK(op)						\
 	do { result = (op);					\
@@ -213,7 +215,122 @@ unload_library(dyndb_implementation_t **impp) {
 
 	*impp = NULL;
 }
-#else	/* HAVE_DLFCN_H */
+#elif _WIN32
+static isc_result_t
+load_symbol(HMODULE handle, const char *filename,
+	    const char *symbol_name, void **symbolp)
+{
+	void *symbol;
+
+	REQUIRE(handle != NULL);
+	REQUIRE(symbolp != NULL && *symbolp == NULL);
+
+	symbol = GetProcAddress(handle, symbol_name);
+	if (symbol == NULL) {
+		int errstatus = GetLastError();
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_DYNDB, ISC_LOG_ERROR,
+			      "failed to lookup symbol %s in "
+			      "dyndb module '%s': %d",
+			      symbol_name, filename, errstatus);
+		return (ISC_R_FAILURE);
+	}
+
+	*symbolp = symbol;
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+load_library(isc_mem_t *mctx, const char *filename, const char *instname,
+	     dyndb_implementation_t **impp)
+{
+	isc_result_t result;
+	HMODULE handle;
+	dyndb_implementation_t *imp = NULL;
+	dns_dyndb_register_t *register_func = NULL;
+	dns_dyndb_destroy_t *destroy_func = NULL;
+	dns_dyndb_version_t *version_func = NULL;
+	int version;
+
+	REQUIRE(impp != NULL && *impp == NULL);
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+		      DNS_LOGMODULE_DYNDB, ISC_LOG_INFO,
+		      "loading DynDB instance '%s' driver '%s'",
+		      instname, filename);
+
+	handle = LoadLibraryA(filename);
+	if (handle == NULL)
+		CHECK(ISC_R_FAILURE);
+
+	CHECK(load_symbol(handle, filename, "dyndb_version",
+			  (void **)&version_func));
+
+	version = version_func(NULL);
+	if (version < (DNS_DYNDB_VERSION - DNS_DYNDB_AGE) ||
+	    version > DNS_DYNDB_VERSION)
+	{
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_DYNDB, ISC_LOG_ERROR,
+			      "driver API version mismatch: %d/%d",
+			      version, DNS_DYNDB_VERSION);
+		CHECK(ISC_R_FAILURE);
+	}
+
+	CHECK(load_symbol(handle, filename, "dyndb_init",
+			  (void **)&register_func));
+	CHECK(load_symbol(handle, filename, "dyndb_destroy",
+			  (void **)&destroy_func));
+
+	imp = isc_mem_get(mctx, sizeof(dyndb_implementation_t));
+	if (imp == NULL)
+		CHECK(ISC_R_NOMEMORY);
+
+	imp->mctx = NULL;
+	isc_mem_attach(mctx, &imp->mctx);
+	imp->handle = handle;
+	imp->register_func = register_func;
+	imp->destroy_func = destroy_func;
+	imp->name = isc_mem_strdup(mctx, instname);
+	if (imp->name == NULL)
+		CHECK(ISC_R_NOMEMORY);
+
+	imp->inst = NULL;
+	INIT_LINK(imp, link);
+
+	*impp = imp;
+	imp = NULL;
+
+cleanup:
+	if (result != ISC_R_SUCCESS)
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_DYNDB, ISC_LOG_ERROR,
+			      "failed to dynamically load instance '%s' "
+			      "driver '%s': %d (%s)", instname, filename,
+			      GetLastError(), isc_result_totext(result));
+	if (imp != NULL)
+		isc_mem_putanddetach(&imp->mctx, imp, sizeof(dyndb_implementation_t));
+	if (result != ISC_R_SUCCESS && handle != NULL)
+		FreeLibrary(handle);
+
+	return (result);
+}
+
+static void
+unload_library(dyndb_implementation_t **impp) {
+	dyndb_implementation_t *imp;
+
+	REQUIRE(impp != NULL && *impp != NULL);
+
+	imp = *impp;
+
+	isc_mem_free(imp->mctx, imp->name);
+	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dyndb_implementation_t));
+
+	*impp = NULL;
+}
+#else	/* HAVE_DLFCN_H || _WIN32 */
 static isc_result_t
 load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 	     dyndb_implementation_t **impp)

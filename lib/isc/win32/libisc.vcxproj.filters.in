@@ -142,6 +142,9 @@
     <ClInclude Include="..\include\isc\mem.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\meminfo.h">
+      <Filter>Win32 Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\msgcat.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -229,6 +232,9 @@
     <ClInclude Include="..\include\isc\socket.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\stats.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\stdio.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -307,9 +313,6 @@
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\isc\keyboard.h">
-      <Filter>Win32 Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\isc\meminfo.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\isc\mutex.h">

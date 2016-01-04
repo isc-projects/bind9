@@ -99,9 +99,9 @@ dns_cache_getcleaninginterval
 dns_cache_getname
 dns_cache_getstats
 dns_cache_load
-@IF JSON
+@IF NOTYET
 dns_cache_renderjson
-@END JSON
+@END NOTYET
 @IF LIBXML2
 dns_cache_renderxml
 @END LIBXML2
@@ -330,7 +330,7 @@ dns_dyndb_load
 dns_dyndb_cleanup
 dns_dyndb_createctx
 dns_dyndb_destroyctx
-@IF DNSTAP
+@IF NOTYET
 dns_dt_create
 dns_dt_setidentity
 dns_dt_setversion
@@ -344,7 +344,7 @@ dns_dtdata_free
 dns_dt_open
 dns_dt_getframe
 dns_dt_close
-@END DNSTAP
+@END NOTYET
 dns_ecdb_register
 dns_ecdb_unregister
 dns_fwdtable_add

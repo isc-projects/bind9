@@ -139,6 +139,13 @@ copy @ICONV_DLL@ ..\Build\Release\
 copy @ICONV_DLL@ ..\Build\Debug\
 @END IDNKIT
 
+@IF ZLIB
+echo Copying the zlib DLL.
+
+copy @ZLIB_DLL@ ..\Build\Release\
+copy @ZLIB_DLL@	..\Build\Debug\
+@END ZLIB
+
 echo Copying the redistributable runtime object.
 
 rem

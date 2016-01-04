@@ -107,7 +107,7 @@ dns_dyndb_load(const char *libname, const char *name, const char *parameters,
 /*%
  * Load a dyndb module.
  *
- * This loads a dyndb module using dlopen(), calls its register
+ * This loads a dyndb module using dlopen() or equivalent, calls its register
  * function (see dns_dyndb_register_t above), and if successful, adds
  * the instance handle to a list of dyndb instances so it can be cleaned
  * up later.

@@ -23,6 +23,10 @@ If you wish to use IP geolocation, GeoIP API and database must be
 downloaded, patched and built on the system on which you are building
 BIND.
 
+If you wish to use zlib/deflate on the statistics channel, zlib
+must be downloaded and built on the system on which you are building
+BIND.
+
 If you wish to use readline, the readline library must be downloaded
 and built on the system on which you are building BIND.
 
@@ -82,7 +86,7 @@ Step 1: Download and build OpenSSL
 Step 2: Download and build LibXML2
 
   LibXML2 is required to use the statistics channel. If you wish to
-  build BIND 9 without support for this feature, skip to step 3.
+  build BIND 9 without support for this feature, skip to step 4.
 
   Download and untar the libxml2 sources from ftp://xmlsoft.org/libxml2.
   Extract them in the same directory in which you extracted the BIND 9
@@ -102,10 +106,22 @@ Step 2: Download and build LibXML2
   (in the libxml2-2.9.2 directory) when the correct file is configure.ac
   so raises a 'not found' error.
 
-Step 3: Download and build GeoIP
+Step 3: Download and build zlib
+
+  The statistics channel (aka internal HTTP server) can support
+  zlib "deflate" compression method. If you don't want to this
+  feature, skip to step 4.
+
+  Download and untar the zlib sources from http://www.zlib.net,
+  extract them, read the win32\Makefile.msc for the Usage comment
+  at the beginning of this file, then build the zlib1.dll DLL for
+  the intended processor (i.e., win32 aka x86, or x64), e.g.,
+  running 'nmake /f win32\Makefile.msc'.
+
+Step 4: Download and build GeoIP
 
   Geographic ("geoip") ACLs require libGeoIP. If you wish to build BIND 9
-  without support for this feature, skip to step 4.
+  without support for this feature, skip to step 5.
 
   The libGeoIP source code is available from:
 
@@ -118,14 +134,14 @@ Step 3: Download and build GeoIP
   This patch has been submitted upstream, and will be included in
   future versions of libGeoIP.
 
-Step 4: Download and build Readline
+Step 5: Download and build Readline
 
   The readline library adds command-line editing in nslookup and nsupdate.
   If you wish to build BIND 9 without support for this feature, skip to
-  step 5.
+  step 6.
 
   Because the original GNU source for the readline library has no WIN32
-  support, it will be necessary to download  a version of the static
+  support, it will be necessary to download a version of the static
   readline library source that is ready to be built by Visual Studio.  One
   such version is available at:
 
@@ -134,7 +150,7 @@ Step 4: Download and build Readline
   Note: Windows command (cmd.exe) provides an integrated line edition
   feature so it is not recommended to configure bind with readline.
 
-Step 5: Make the redistributable runtime object available
+Step 6: Make the redistributable runtime object available
 
   Check that the Microsoft redistributable object (vcredist_x86.exe or
   vcredist_x64.exe) is available to the build.  The file may be placed
@@ -143,10 +159,10 @@ Step 5: Make the redistributable runtime object available
   may be placed in \build\vcredist_x86.exe).  Or, the path to the file
   can be specified via the VCREDIST_PATH environment variable, or via
   the "with-vcredist=PATH" option to the configuration script (see
-  step 4). If none of these options is used, Configure will attempt to
+  step 7). If none of these options is used, Configure will attempt to
   find the redistributable based on clues in the build environment.
 
-Step 6: Configuring the BIND build
+Step 7: Configuring the BIND build
 
   From the command prompt, cd to the win32utils directory under
   the BIND 9 root:
@@ -170,7 +186,7 @@ Step 6: Configuring the BIND build
 
     perl Configure clean
 
-Step 7: Building BIND
+Step 8: Building BIND
 
   To build using 'nmake' or older versions of Visual Studio (e.g.
   VS 2005 or VS 2008), go to the legacy subdirectory:
@@ -194,7 +210,7 @@ Step 7: Building BIND
 
   Note: This mode does not support building for Windows XP.
 
-Step 8: Install
+Step 9: Install
 
   Installation is accomplished by running the BINDInstall program. All
   DLL's are copied to the Program Files area and all applications
