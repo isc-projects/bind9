@@ -1,3 +1,5 @@
+	--- 9.10.3-P3 released ---
+
 4286.	[security]	render_ecs errors were mishandled when printing out
 			a OPT record resulting in a assertion failure.
 			(CVE-2015-8705) [RT #41397]
