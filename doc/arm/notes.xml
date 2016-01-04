@@ -23,8 +23,11 @@
       This document summarizes changes since BIND 9.9.8:
     </para>
     <para>
+      BIND 9.9.8-P3 addresses the security issue described in CVE-2015-8704.
+    </para>
+    <para>
       BIND 9.9.8-P2 addresses security issues described in CVE-2015-3193
-      (OpenSSL), CVE-2015-8000, CVE-2015-8461 and CVE-2015-8704.
+      (OpenSSL), CVE-2015-8000 and CVE-2015-8461.
     </para>
     <para>
       BIND 9.9.8-P1 was incomplete and was withdrawn prior to publication.
@@ -46,15 +49,15 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  Named is potentially vulnerable to the OpenSSL vulnerabilty
-	  described in CVE-2015-3193.
+	  Specific APL data could trigger an INSIST.  This flaw
+	  was discovered by Brian Mitchell and is disclosed in
+	  CVE-2015-8704. [RT #41396]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Incorrect reference counting could result in an INSIST
-	  failure if a socket error occurred while performing a
-	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
+	  Named is potentially vulnerable to the OpenSSL vulnerabilty
+	  described in CVE-2015-3193.
 	</para>
       </listitem>
       <listitem>
@@ -68,8 +71,9 @@
       </listitem>
       <listitem>
 	<para>
-	  Specfic APL data could trigger a INSIST.  This flaw was discovered
-	  by Brian Mitchell and is disclosed in CVE-2015-8704. [RT #41396]
+	  Incorrect reference counting could result in an INSIST
+	  failure if a socket error occurred while performing a
+	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
 	</para>
       </listitem>
     </itemizedlist>
