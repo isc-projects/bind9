@@ -1445,7 +1445,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 			ISC_XMLCHAR "type=\"text/xsl\" href=\"/bind9.xsl\""));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "3.6"));
+					 ISC_XMLCHAR "3.7"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = isc_statsformat_xml;
