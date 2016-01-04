@@ -424,6 +424,8 @@ my @substcond = ("ATOMIC",
                  "TESTS",
                  "XTESTS");
 
+my @allcond = (@substcond, "NOTYET", "NOLONGER");
+
 # arguments
 
 # enable-xxx/disable-xxx
@@ -2068,11 +2070,15 @@ sub setupfile {
                 unshift(@conds, $cond);
                 unshift(@passes, $pass);
             }
-            $cond = $1;
-            if (defined($configcond{$cond})) {
-                # do nothing
+            if ($1 ~~ @allcond) {
+                $cond = $1;
+                if (defined($configcond{$cond})) {
+                    # do nothing
+                } else {
+                    $pass = 0;
+                }
             } else {
-                $pass = 0;
+                die "unknown condition \@IF $1 in $filename\n";
             }
             next;
         } elsif ($line =~ /^\@ELSE (.*)$/) {
@@ -2181,11 +2187,15 @@ sub setupproject {
                 unshift(@conds, $cond);
                 unshift(@passes, $pass);
             }
-            $cond = $1;
-            if (defined($configcond{$cond})) {
-                # do nothing
+            if ($1 ~~ @allcond) {
+                $cond = $1;
+                if (defined($configcond{$cond})) {
+                    # do nothing
+                } else {
+                    $pass = 0;
+                }
             } else {
-                $pass = 0;
+                die "unknown condition \@IF $1 in $projectname\n";
             }
             next;
         } elsif ($line =~ /^\@ELSE (.*)$/) {
@@ -2695,27 +2705,29 @@ exit 0;
 #  --enable-exportlib TODO (obsolete)
 #  --enable-ipv6 included without a way to disable it
 #  --enable-atomic supported (renamed intrinsic)
-#  --enable-spnego support (part of GSSAPI)
+#  --enable-isc-spnego support (part of GSSAPI)
 #  --enable-fixed-rrset supported
 #  --enable-querytrace supported
 #  --disable-rpz-nsip supported
 #  --disable-rpz-nsdname supported
 #  --enable-filter-aaaa supported
+#  --enable-full-report supported by verbose
 #  --with-python supported
 #  --with-openssl supported
+#  --with-pkcs11 supported
 #  --with-ecdsa supported
 #  --with-gost supported
-#  --with-pkcs11 supported
 #  --with-geoip supported
 #  --with-gssapi supported with MIT (K)erberos (f)or (W)indows
 #  --with-libxml2 supported
 #  --with-libjson not supported on WIN32 (package not available on WIN32)
-#  --with-purify ? (package available on WIN32 but for free?)
-#  --with-gperftools-profiler (package not available on WIN32)
+#  --with-purify not supported (package available on WIN32 but for free?)
+#  --with-gperftools-profiler not supported (package not available on WIN32)
 #  --with-libtool not supported on WIN32 (never)
 #  --with-readline supported
-#  --with-idn support
-#  --with-[lib]iconv (part of IDN)
+#  --with-docbook-xsl not supported (?)
+#  --with-idn[lib] supported
+#  --with-[lib]iconv supported (part of IDN)
 #  --with-atf not supported on WIN32 (package not available on WIN32)
 #  --with-tuning supported
 #  --with-dlopen included without a way to disable it

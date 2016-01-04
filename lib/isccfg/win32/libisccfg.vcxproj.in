@@ -120,6 +120,7 @@
     <ClInclude Include="..\include\isccfg\grammar.h" />
     <ClInclude Include="..\include\isccfg\log.h" />
     <ClInclude Include="..\include\isccfg\namedconf.h" />
+    <ClInclude Include="..\include\isccfg\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

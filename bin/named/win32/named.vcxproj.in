@@ -156,7 +156,6 @@
     <ClInclude Include="..\include\named\main.h" />
     <ClInclude Include="..\include\named\notify.h" />
     <ClInclude Include="..\include\named\query.h" />
-    <ClInclude Include="..\include\named\seccomp.h" />
     <ClInclude Include="..\include\named\server.h" />
     <ClInclude Include="..\include\named\sortlist.h" />
     <ClInclude Include="..\include\named\statschannel.h" />

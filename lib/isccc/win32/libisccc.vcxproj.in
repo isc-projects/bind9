@@ -131,6 +131,7 @@
     <ClInclude Include="..\include\isccc\symtype.h" />
     <ClInclude Include="..\include\isccc\types.h" />
     <ClInclude Include="..\include\isccc\util.h" />
+    <ClInclude Include="..\include\isccc\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
