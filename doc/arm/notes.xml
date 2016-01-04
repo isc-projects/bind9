@@ -96,16 +96,18 @@
       </listitem>
       <listitem>
 	<para>
-	  Specfic APL data could trigger a INSIST.  This flaw was discovered
-	  by Brian Mitchell and is disclosed in CVE-2015-8704. [RT #41396]
+	  Specific APL data could trigger an INSIST.  This flaw
+	  was discovered by Brian Mitchell and is disclosed in
+	  CVE-2015-8704. [RT #41396]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  render_ecs errors when printing out a OPT record were
-	  mishandled resulting in a assertion failure. This flaw
-	  was discovered by Brian Mitchell and is disclosed in
-	  CVE-2015-8705. [RT #41396]
+	  Certain errors that could be encountered when printing out
+	  or logging an OPT record containing a CLIENT-SUBNET option
+	  could be mishandled, resulting in an assertion failure.
+	  This flaw was discovered by Brian Mitchell and is disclosed
+	  in CVE-2015-8705. [RT #41396]
 	</para>
       </listitem>
     </itemizedlist>
