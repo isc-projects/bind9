@@ -1,4 +1,4 @@
-Copyright (C) 2013-2015  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2013-2016  Internet Systems Consortium, Inc. ("ISC")
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
        BIND 9.10 for Win32 Source Build Instructions.  17-Apr-2015
@@ -125,7 +125,7 @@ Step 4: Download and build Readline
   step 5.
 
   Because the original GNU source for the readline library has no WIN32
-  support, it will be necessary to download  a version of the static
+  support, it will be necessary to download a version of the static
   readline library source that is ready to be built by Visual Studio.  One
   such version is available at:
 

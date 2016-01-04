@@ -89,9 +89,9 @@ dns_cache_getcleaninginterval
 dns_cache_getname
 dns_cache_getstats
 dns_cache_load
-@IF JSON
+@IF NOTYET
 dns_cache_renderjson
-@END JSON
+@END NOTYET
 @IF LIBXML2
 dns_cache_renderxml
 @END LIBXML2

@@ -245,6 +245,7 @@
     <ClInclude Include="..\include\dns\ds.h" />
     <ClInclude Include="..\include\dns\dsdigest.h" />
     <ClInclude Include="..\include\dns\ecdb.h" />
+    <ClInclude Include="..\include\dns\edns.h" />
     <ClInclude Include="..\include\dns\enumclass.h" />
     <ClInclude Include="..\include\dns\enumtype.h" />
     <ClInclude Include="..\include\dns\events.h" />
@@ -320,6 +321,7 @@
     <ClInclude Include="..\include\dst\result.h" />
     <ClInclude Include="..\rbtdb.h" />
     <ClInclude Include="..\rbtdb64.h" />
+    <ClInclude Include="..\rdatalist_p.h" />
     <ClInclude Include="..\spnego.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
