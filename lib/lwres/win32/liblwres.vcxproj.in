@@ -140,6 +140,7 @@
     <ClInclude Include="..\include\lwres\result.h" />
     <ClInclude Include="..\include\lwres\stdlib.h" />
     <ClInclude Include="..\include\lwres\string.h" />
+    <ClInclude Include="..\include\lwres\version.h" />
     <ClInclude Include="include\lwres\int.h" />
     <ClInclude Include="include\lwres\net.h" />
     <ClInclude Include="include\lwres\netdb.h" />

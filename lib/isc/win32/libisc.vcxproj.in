@@ -348,6 +348,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\sha2.h" />
     <ClInclude Include="..\include\isc\sockaddr.h" />
     <ClInclude Include="..\include\isc\socket.h" />
+    <ClInclude Include="..\include\isc\stats.h" />
     <ClInclude Include="..\include\isc\stdio.h" />
     <ClInclude Include="..\include\isc\stdlib.h" />
     <ClInclude Include="..\include\isc\string.h" />
