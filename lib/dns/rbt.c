@@ -2305,7 +2305,7 @@ inithash(dns_rbt_t *rbt) {
 	unsigned int bytes;
 
 	rbt->hashsize = RBT_HASH_SIZE;
-	bytes = rbt->hashsize * sizeof(dns_rbtnode_t *);
+	bytes = (unsigned int)rbt->hashsize * sizeof(dns_rbtnode_t *);
 	rbt->hashtable = isc_mem_get(rbt->mctx, bytes);
 
 	if (rbt->hashtable == NULL)
@@ -2325,7 +2325,7 @@ rehash(dns_rbt_t *rbt, unsigned int newcount) {
 	unsigned int hash;
 	unsigned int i;
 
-	oldsize = rbt->hashsize;
+	oldsize = (unsigned int)rbt->hashsize;
 	oldtable = rbt->hashtable;
 	do {
 		INSIST((rbt->hashsize * 2 + 1) > rbt->hashsize);
