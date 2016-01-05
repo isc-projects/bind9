@@ -3260,11 +3260,15 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	for (i = 0; i < addrbytes; i ++)
 		addr[i] = isc_buffer_getuint8(ecsbuf);
 
-	if (family == 1)
+	if (family == 1) {
+		if (addrlen > 32 || scopelen > 32)
+			return (DNS_R_OPTERR);
 		inet_ntop(AF_INET, addr, addr_text, sizeof(addr_text));
-	else if (family == 2)
+	} else if (family == 2) {
+		if (addrlen > 128 || scopelen > 128)
+			return (DNS_R_OPTERR);
 		inet_ntop(AF_INET6, addr, addr_text, sizeof(addr_text));
-	else {
+	} else {
 		snprintf(addr_text, sizeof(addr_text),
 			 "Unsupported family %u", family);
 		ADD_STRING(target, addr_text);
