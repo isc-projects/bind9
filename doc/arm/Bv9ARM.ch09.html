@@ -51,7 +51,6 @@
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_security">Security Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_features">New Features</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_changes">Feature Changes</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_port">Porting Changes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_bugs">Bug Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#end_of_life">End of Life</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_thanks">Thank You</a></span></dt>
@@ -96,114 +95,26 @@
 	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
 	</p></li>
 <li class="listitem"><p>
-	  An incorrect boundary check in the OPENPGPKEY rdatatype
-	  could trigger an assertion failure. This flaw is disclosed
-	  in CVE-2015-5986. [RT #40286]
-	</p></li>
-<li class="listitem">
-<p>
-	  A buffer accounting error could trigger an assertion failure
-	  when parsing certain malformed DNSSEC keys.
-	</p>
-<p>
-	  This flaw was discovered by Hanno Böck of the Fuzzing
-	  Project, and is disclosed in CVE-2015-5722. [RT #40212]
-	</p>
-</li>
-<li class="listitem">
-<p>
-	  A specially crafted query could trigger an assertion failure
-	  in message.c.
-	</p>
-<p>
-	  This flaw was discovered by Jonathan Foote, and is disclosed
-	  in CVE-2015-5477. [RT #40046]
-	</p>
-</li>
-<li class="listitem">
-<p>
-	  On servers configured to perform DNSSEC validation, an
-	  assertion failure could be triggered on answers from
-	  a specially configured server.
-	</p>
-<p>
-	  This flaw was discovered by Breno Silveira Soares, and is
-	  disclosed in CVE-2015-4620. [RT #39795]
-	</p>
-</li>
-<li class="listitem"><p>
-	  Specfic APL data could trigger a INSIST.  This flaw was discovered
-	  by Brian Mitchell and is disclosed in CVE-2015-8704. [RT #41396]
-	</p></li>
-<li class="listitem"><p>
-	  render_ecs errors when printing out a OPT record were
-	  mishandled resulting in a assertion failure. This flaw
+	  Specific APL data could trigger an INSIST.  This flaw
 	  was discovered by Brian Mitchell and is disclosed in
-	  CVE-2015-8705. [RT #41396]
+	  CVE-2015-8704. [RT #41396]
+	</p></li>
+<li class="listitem"><p>
+	  Certain errors that could be encountered when printing out
+	  or logging an OPT record containing a CLIENT-SUBNET option
+	  could be mishandled, resulting in an assertion failure.
+	  This flaw was discovered by Brian Mitchell and is disclosed
+	  in CVE-2015-8705. [RT #41396]
 	</p></li>
 </ul></div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_features"></a>New Features</h3></div></div></div>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-<p>
-	  New quotas have been added to limit the queries that are
-	  sent by recursive resolvers to authoritative servers
-	  experiencing denial-of-service attacks. When configured,
-	  these options can both reduce the harm done to authoritative
-	  servers and also avoid the resource exhaustion that can be
-	  experienced by recursives when they are being used as a
-	  vehicle for such an attack.
-	</p>
-<p>
-	  NOTE: These options are not available by default; use
-	  <span class="command"><strong>configure --enable-fetchlimit</strong></span> to include
-	  them in the build.
-	</p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
-<li class="listitem"><p>
-	      <code class="option">fetches-per-server</code> limits the number of
-	      simultaneous queries that can be sent to any single
-	      authoritative server.  The configured value is a starting
-	      point; it is automatically adjusted downward if the server is
-	      partially or completely non-responsive. The algorithm used to
-	      adjust the quota can be configured via the
-	      <code class="option">fetch-quota-params</code> option.
-	    </p></li>
-<li class="listitem"><p>
-	      <code class="option">fetches-per-zone</code> limits the number of
-	      simultaneous queries that can be sent for names within a
-	      single domain.  (Note: Unlike "fetches-per-server", this
-	      value is not self-tuning.)
-	    </p></li>
-</ul></div>
-<p>
-	  Statistics counters have also been added to track the number
-	  of queries affected by these quotas.
-	</p>
-</li>
-<li class="listitem"><p>
-          <span class="command"><strong>dig +ednsflags</strong></span> can now be used to set
-          yet-to-be-defined EDNS flags in DNS requests.
-	</p></li>
-<li class="listitem"><p>
-	  <span class="command"><strong>dig +[no]ednsnegotiation</strong></span> can now be used enable /
-	  disable EDNS version negotiation.
-	</p></li>
-<li class="listitem"><p>
-	  An <span class="command"><strong>--enable-querytrace</strong></span> configure switch is
-	  now available to enable very verbose query tracelogging. This
-	  option can only be set at compile time. This option has a
-	  negative performance impact and should be used only for
-	  debugging. [RT #37520]
-	</p></li>
-<li class="listitem"><p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
 	  The following types have been implemented: CSYNC, NINFO, RKEY,
 	  SINK, TA, TALINK.
-	</p></li>
-</ul></div>
+ 	</p></li></ul></div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -213,46 +124,8 @@
 	  Updated the compiled in addresses for H.ROOT-SERVERS.NET.
 	</p></li>
 <li class="listitem"><p>
-	  Large inline-signing changes should be less disruptive.
-	  Signature generation is now done incrementally; the number
-	  of signatures to be generated in each quantum is controlled
-	  by "sig-signing-signatures <em class="replaceable"><code>number</code></em>;".
-	  [RT #37927]
-	</p></li>
-<li class="listitem"><p>
-	  The experimental SIT extension now uses the EDNS COOKIE
-	  option code point (10) and is displayed as "COOKIE:
-	  &lt;value&gt;".  The existing named.conf directives;
-	  "request-sit", "sit-secret" and "nosit-udp-size", are
-	  still valid and will be replaced by "send-cookie",
-	  "cookie-secret" and "nocookie-udp-size" in BIND 9.11.
-	  The existing dig directive "+sit" is still valid and will
-	  be replaced with "+cookie" in BIND 9.11.
-	</p></li>
-<li class="listitem"><p>
-	  When retrying a query via TCP due to the first answer being
-	  truncated, <span class="command"><strong>dig</strong></span> will now correctly send
-	  the COOKIE value returned by the server in the prior
-	  response. [RT #39047]
-	</p></li>
-<li class="listitem"><p>
-	  Retrieving the local port range from net.ipv4.ip_local_port_range
-	  on Linux is now supported.
-	</p></li>
-<li class="listitem"><p>
-	  Active Directory names of the form gc._msdcs.&lt;forest&gt; are
-	  now accepted as valid hostnames when using the
-	  <code class="option">check-names</code> option. &lt;forest&gt; is still
-	  restricted to letters, digits and hyphens.
-	</p></li>
-<li class="listitem"><p>
-	  Names containing rich text are now accepted as valid
-	  hostnames in PTR records in DNS-SD reverse lookup zones,
-	  as specified in RFC 6763. [RT #37889]
-	</p></li>
-<li class="listitem"><p>
 	  The default preferred glue is now the address type of the
-	   transport the query was received over.
+	  transport the query was received over.
 	</p></li>
 <li class="listitem"><p>
 	  On machines with 2 or more processors (CPU), the default value
@@ -267,27 +140,13 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_port"></a>Porting Changes</h3></div></div></div>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
-	  The Microsoft Windows install tool
-	  <span class="command"><strong>BINDInstall.exe</strong></span> which requires a
-	  non-free version of Visual Studio to be built, now uses two
-	  files (lists of flags and files) created by the Configure
-	  perl script with all the needed information which were
-	  previously compiled in the binary. Read
-	  <code class="filename">win32utils/build.txt</code> for more details.
-	  [RT #38915]
-	</p></li></ul></div>
-</div>
-<div class="section">
-<div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
-	  Asynchronous zone loads were not handled correctly when the
-	  zone load was already in progress; this could trigger a crash
-	  in zt.c. [RT #37573]
- 	</p></li>
+	  Authoritative servers that were marked as bogus (e.g. blackholed
+	  in configuration or with invalid addresses) were being queried
+	  anyway. [RT #41321]
+	</p></li>
 <li class="listitem"><p>
 	  Some of the options for GeoIP ACLs, including "areacode",
 	  "metrocode", and "timezone", were incorrectly documented
@@ -295,85 +154,14 @@
 	  versions are now accepted.
 	</p></li>
 <li class="listitem"><p>
-	  A race during shutdown or reconfiguration could
-	  cause an assertion failure in mem.c. [RT #38979]
+	  Zones configured to use <span class="command"><strong>map</strong></span> format
+	  master files can't be used as policy zones because RPZ
+	  summary data isn't compiled when such zones are mapped into
+	  memory.  This limitation may be fixed in a future release,
+	  but in the meantime it has been documented, and attempting
+	  to use such zones in <span class="command"><strong>response-policy</strong></span>
+	  statements is now a configuration error.  [RT #38321]
 	</p></li>
-<li class="listitem"><p>
-	  Some answer formatting options didn't work correctly with
-	  <span class="command"><strong>dig +short</strong></span>. [RT #39291]
-	</p></li>
-<li class="listitem"><p>
-	  Malformed records of some types, including NSAP and UNSPEC,
-	  could trigger assertion failures when loading text zone files.
-	  [RT #40274] [RT #40285]
-	</p></li>
-<li class="listitem"><p>
-	  Fixed a possible crash in ratelimiter.c caused by NOTIFY
-	  messages being removed from the wrong rate limiter queue.
-	  [RT #40350]
-	</p></li>
-<li class="listitem"><p>
-	  The default <code class="option">rrset-order</code> of <code class="literal">random</code>
-	  was inconsistently applied. [RT #40456]
-	</p></li>
-<li class="listitem"><p>
-	  BADVERS responses from broken authoritative name servers were
-	  not handled correctly. [RT #40427]
-	</p></li>
-<li class="listitem">
-<p>
-	  Several bugs have been fixed in the RPZ implementation:
-	</p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
-<li class="listitem"><p>
-	      Policy zones that did not specifically require recursion
-	      could be treated as if they did; consequently, setting
-	      <span class="command"><strong>qname-wait-recurse no;</strong></span> was
-	      sometimes ineffective.  This has been corrected.
-	      In most configurations, behavioral changes due to this
-	      fix will not be noticeable. [RT #39229]
-	    </p></li>
-<li class="listitem"><p>
-	      The server could crash if policy zones were updated (e.g.
-	      via <span class="command"><strong>rndc reload</strong></span> or an incoming zone
-	      transfer) while RPZ processing was still ongoing for an
-	      active query. [RT #39415]
-	    </p></li>
-<li class="listitem"><p>
-	      On servers with one or more policy zones configured as
-	      slaves, if a policy zone updated during regular operation
-	      (rather than at startup) using a full zone reload, such as
-	      via AXFR, a bug could allow the RPZ summary data to fall out
-	      of sync, potentially leading to an assertion failure in
-	      rpz.c when further incremental updates were made to the
-	      zone, such as via IXFR. [RT #39567]
-	    </p></li>
-<li class="listitem"><p>
-	      The server could match a shorter prefix than what was
-	      available in CLIENT-IP policy triggers, and so, an
-	      unexpected action could be taken. This has been
-	      corrected. [RT #39481]
-	    </p></li>
-<li class="listitem"><p>
-	      The server could crash if a reload of an RPZ zone was
-	      initiated while another reload of the same zone was
-	      already in progress. [RT #39649]
-	    </p></li>
-<li class="listitem"><p>
-	      Query names could match against the wrong policy zone
-	      if wildcard records were present. [RT #40357]
-	    </p></li>
-<li class="listitem"><p>
-	      Zones configured to use <span class="command"><strong>map</strong></span> format
-	      master files can't be used as policy zones because RPZ
-	      summary data isn't compiled when such zones are mapped into
-	      memory.  This limitation may be fixed in a future release,
-	      but in the meantime it has been documented, and attempting
-	      to use such zones in <span class="command"><strong>response-policy</strong></span>
-	      statements is now a configuration error.  [RT #38321]
-	    </p></li>
-</ul></div>
-</li>
 </ul></div>
 </div>
 <div class="section">
