@@ -419,13 +419,14 @@ my @substcond = ("ATOMIC",
                  "GEOIP",
                  "IDNKIT",
                  "LIBXML2",
+                 "NEWSTATS",
                  "OPENSSL",
                  "PKCS11",
                  "PYTHON",
                  "TESTS",
                  "XTESTS");
 
-my @allcond = (@substcond, "NOTYET", "NOLONGER");
+my @allcond = (@substcond, "NOTYET", "NOLONGER", "UNIXONLY");
 
 # arguments
 
@@ -2715,7 +2716,7 @@ exit 0;
 
 # Notes: Unix configure.in options
 #  --enable-developer partially supported
-#  --enable-newstats (9.9/9.9sub only)
+#  --enable-newstats (TODO)
 #  --enable-openssl-version-check included without a way to disable it
 #  --enable-openssl-hash supported
 #  --enable-threads included without a way to disable it
