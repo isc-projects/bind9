@@ -346,8 +346,9 @@ dst_context_create4(dst_key_t *key, isc_mem_t *mctx,
 	dctx = isc_mem_get(mctx, sizeof(dst_context_t));
 	if (dctx == NULL)
 		return (ISC_R_NOMEMORY);
-	dctx->key = key;
-	dctx->mctx = mctx;
+	memset(dctx, 0, sizeof(*dctx));
+	dst_key_attach(key, &dctx->key);
+	isc_mem_attach(mctx, &dctx->mctx);
 	dctx->category = category;
 	if (useforsigning)
 		dctx->use = DO_SIGN;
@@ -358,7 +359,9 @@ dst_context_create4(dst_key_t *key, isc_mem_t *mctx,
 	else
 		result = key->func->createctx(key, dctx);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, dctx, sizeof(dst_context_t));
+		if (dctx->key != NULL)
+			dst_key_free(&dctx->key);
+		isc_mem_putanddetach(&dctx->mctx, dctx, sizeof(dst_context_t));
 		return (result);
 	}
 	dctx->magic = CTX_MAGIC;
@@ -375,8 +378,10 @@ dst_context_destroy(dst_context_t **dctxp) {
 	dctx = *dctxp;
 	INSIST(dctx->key->func->destroyctx != NULL);
 	dctx->key->func->destroyctx(dctx);
+	if (dctx->key != NULL)
+		dst_key_free(&dctx->key);
 	dctx->magic = 0;
-	isc_mem_put(dctx->mctx, dctx, sizeof(dst_context_t));
+	isc_mem_putanddetach(&dctx->mctx, dctx, sizeof(dst_context_t));
 	*dctxp = NULL;
 }
 

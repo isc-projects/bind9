@@ -1,3 +1,7 @@
+4289.	[bug]		The server could crash due to memory being used
+			after it was freed if a zone transfer timed out.
+			[RT #41297]
+
 4288.	[bug]		Fixed a regression in resolver.c:possibly_mark()
 			which caused known-bogus servers to be queried
 			anyway. [RT #41321]
