@@ -1334,7 +1334,6 @@ static int
 completeio_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		struct msghdr *messagehdr, int cc, int send_errno)
 {
-	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	char strbuf[ISC_STRERRORSIZE];
 
 	if (send_errno != 0) {
