@@ -1,5 +1,9 @@
 	--- 9.10.3-P3 released ---
 
+4288.	[bug]		Fixed a regression in resolver.c:possibly_mark()
+			which caused known-bogus servers to be queried
+			anyway. [RT #41321]
+
 4286.	[security]	render_ecs errors were mishandled when printing out
 			a OPT record resulting in a assertion failure.
 			(CVE-2015-8705) [RT #41397]
