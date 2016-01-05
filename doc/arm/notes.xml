@@ -93,7 +93,6 @@
 	  Updated the compiled in addresses for H.ROOT-SERVERS.NET.
 	</para>
       </listitem>
-    </itemizedlist>
       <listitem>
 	<para>
 	  The default preferred glue is now the address type of the
@@ -113,6 +112,7 @@
 	  message compression. This results in reduced network usage.
 	</para>
       </listitem>
+    </itemizedlist>
   </section>
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
 
