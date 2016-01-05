@@ -3242,6 +3242,9 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	if (isc_buffer_remaininglength(ecsbuf) < addrbytes)
 		return (DNS_R_OPTERR);
 
+	if (addrbytes > sizeof(addr))
+		return (DNS_R_OPTERR);
+
 	ADD_STRING(target, ": ");
 	memset(addr, 0, sizeof(addr));
 	for (i = 0; i < addrbytes; i ++)
