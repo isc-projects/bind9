@@ -110,6 +110,12 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  The server could crash due to a use-after-free if a
+	  zone transfer timed out. [RT #41297]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Authoritative servers that were marked as bogus (e.g. blackholed
 	  in configuration or with invalid addresses) were being queried
 	  anyway. [RT #41321]
