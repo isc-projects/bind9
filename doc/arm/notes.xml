@@ -109,10 +109,12 @@
 
     <itemizedlist>
       <listitem>
- 	<para>
-	  None.
+	<para>
+	  Authoritative servers that were marked as bogus (e.g. blackholed
+	  in configuration or with invalid addresses) were being queried
+	  anyway. [RT #41321]
 	</para>
-       </listitem>
+      </listitem>
     </itemizedlist>
   </section>
   <section xml:id="end_of_life"><info><title>End of Life</title></info>
