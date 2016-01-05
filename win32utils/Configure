@@ -430,7 +430,8 @@ my @substdll = ("COMERR_DLL",
 
 my %configvar;
 
-my @substvar = ("BUILD_MACHINE",
+my @substvar = ("BIND9_VERSION",
+                "BUILD_MACHINE",
                 "BUILD_PLATFORM",
                 "COPTI",
                 "COPTML",
@@ -685,6 +686,45 @@ if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
     $configvar{"MACHINE"} = "/machine:X64";
     $configvar{"BUILD_MACHINE"} = "/machine:X64";
 }
+
+# get the version information
+
+my %Versions;
+
+sub getversion {
+    my $data;
+    my $name;
+    my $value;
+    my $version;
+
+    open V, "..\\version" || die $!;
+    while (<V>) {
+        chomp;
+        ($data) = split(/\#/);
+        if ($data) {
+            ($name, $value) = split(/=/, $data);
+            ($name) = split(/\s+/, $name);
+            if ($name eq 'PRODUCT' || $name eq 'DESCRIPTION') {
+                ($value) =~ s/^["\s]+//;
+                ($value) =~ s/["\s]+$//;
+            } else {
+                ($value) = split(/\s+/, $value);
+            }
+            $Versions{$name} = $value;
+        }
+    }
+    close V;
+
+    $version = "$Versions{'MAJORVER'}.$Versions{'MINORVER'}";
+    if ($Versions{'PATCHVER'} ne "") {
+        $version = "$version.$Versions{'PATCHVER'}";
+    }
+    $version = "$version$Versions{'RELEASETYPE'}$Versions{'RELEASEVER'}";
+    $version = "$version$Versions{'EXTENSIONS'}";
+    $configvar{"BIND9_VERSION"} = "$version";
+}
+
+getversion();
 
 # append seen args to CONFIGARGS define
 
@@ -2630,7 +2670,6 @@ sub makeversion {
         "isccfg"  => "LIBISCCFG_EXPORTS",
         "lwres"   => "LIBLWRES_EXPORTS");
     my @VersionNames = ("LIBINTERFACE", "LIBREVISION", "LIBAGE");
-    my %Versions;
     my $Version;
     my %ApiVersions;
     my $Mapapi;
@@ -2640,26 +2679,6 @@ sub makeversion {
     my $data;
     my $name;
     my $value;
-
-    # First get the version information
-
-    open V, "..\\version" || die $!;
-    while (<V>) {
-        chomp;
-        ($data) = split(/\#/);
-        if ($data) {
-            ($name, $value) = split(/=/, $data);
-            ($name) = split(/\s+/, $name);
-            if ($name eq 'PRODUCT' || $name eq 'DESCRIPTION') {
-                ($value) =~ s/^["\s]+//;
-                ($value) =~ s/["\s]+$//;
-            } else {
-                ($value) = split(/\s+/, $value);
-            }
-            $Versions{$name} = $value;
-        }
-    }
-    close V;
 
     # And the mapapi one
 
@@ -2721,7 +2740,7 @@ sub makeversion {
 ';
 
     $Version = "$Versions{'MAJORVER'}.$Versions{'MINORVER'}";
-    if ($Versions{'PATCHVER'} != "") {
+    if ($Versions{'PATCHVER'} ne "") {
         $Version = "$Version.$Versions{'PATCHVER'}";
     }
     $Version = "$Version$Versions{'RELEASETYPE'}$Versions{'RELEASEVER'}";
