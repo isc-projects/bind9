@@ -104,7 +104,7 @@
 	  or logging an OPT record containing a CLIENT-SUBNET option
 	  could be mishandled, resulting in an assertion failure.
 	  This flaw was discovered by Brian Mitchell and is disclosed
-	  in CVE-2015-8705. [RT #41396]
+	  in CVE-2015-8705. [RT #41397]
 	</p></li>
 </ul></div>
 </div>
@@ -142,6 +142,10 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
+	  The server could crash due to a use-after-free if a
+	  zone transfer timed out. [RT #41297]
+	</p></li>
 <li class="listitem"><p>
 	  Authoritative servers that were marked as bogus (e.g. blackholed
 	  in configuration or with invalid addresses) were being queried
