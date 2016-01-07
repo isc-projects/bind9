@@ -566,6 +566,13 @@
     <itemizedlist>
       <listitem>
         <para>
+	  The timers returned by the statistics channel (indicating current
+	  time, server boot time, and most recent reconfiguration time) are
+	  now reported with millisecond accuracy. [RT #40082]
+	</para>
+      </listitem>
+      <listitem>
+        <para>
 	  Updated the compiled in addresses for H.ROOT-SERVERS.NET.
 	</para>
       </listitem>

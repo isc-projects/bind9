@@ -1,3 +1,8 @@
+4290.	[func]		The timers returned by the statistics channel
+			(indicating current time, server boot time, and
+			most recent reconfiguration time) are now reported
+			with millisecond accuracy. [RT #40082]
+
 4289.	[bug]		The server could crash due to memory being used
 			after it was freed if a zone transfer timed out.
 			[RT #41297]

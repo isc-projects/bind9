@@ -343,7 +343,7 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	char DateBuf[50];
 	char TimeBuf[50];
 
-/* strtime() format: "%Y-%m-%dT%H:%M:%SZ" */
+	/* strtime() format: "%Y-%m-%dT%H:%M:%SZ" */
 
 	REQUIRE(len > 0);
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
@@ -353,6 +353,28 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
 			      &st, "hh':'mm':'ss", TimeBuf, 50);
 		snprintf(buf, len, "%sT%sZ", DateBuf, TimeBuf);
+	} else {
+		buf[0] = 0;
+	}
+}
+
+void
+isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
+	SYSTEMTIME st;
+	char DateBuf[50];
+	char TimeBuf[50];
+
+	/* strtime() format: "%Y-%m-%dT%H:%M:%S.SSSZ" */
+
+	REQUIRE(len > 0);
+	if (FileTimeToSystemTime(&t->absolute, &st)) {
+		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyy-MM-dd",
+			      DateBuf, 50);
+		GetTimeFormat(LOCALE_NEUTRAL,
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
+			      &st, "hh':'mm':'ss", TimeBuf, 50);
+		snprintf(buf, len, "%sT%s.%03uZ", DateBuf, TimeBuf,
+			 st.wMilliseconds);
 	} else {
 		buf[0] = 0;
 	}

@@ -39,6 +39,7 @@
 
 #define NS_PER_S	1000000000	/*%< Nanoseconds per second. */
 #define NS_PER_US	1000		/*%< Nanoseconds per microsecond. */
+#define NS_PER_MS	1000000		/*%< Nanoseconds per millisecond. */
 #define US_PER_S	1000000		/*%< Microseconds per second. */
 
 /*
@@ -392,7 +393,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	INSIST(flen < len);
 	if (flen != 0)
 		snprintf(buf + flen, len - flen,
-			 ".%03u", t->nanoseconds / 1000000);
+			 ".%03u", t->nanoseconds / NS_PER_MS);
 	else {
 		strncpy(buf, "99-Bad-9999 99:99:99.999", len);
 		buf[len - 1] = 0;
@@ -442,4 +443,21 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	now = (time_t)t->seconds;
 	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));
 	INSIST(flen < len);
+}
+
+void
+isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
+	time_t now;
+	unsigned int flen;
+
+	REQUIRE(len > 0);
+
+	now = (time_t)t->seconds;
+	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));
+	INSIST(flen < len);
+	if (flen == len - 5) {
+		flen -= 1; /* rewind one character */
+		snprintf(buf + flen, len - flen, ".%03uZ",
+			 t->nanoseconds / NS_PER_MS);
+	}
 }

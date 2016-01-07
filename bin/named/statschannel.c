@@ -1411,9 +1411,9 @@ static isc_result_t
 generatexml(ns_server_t *server, isc_uint32_t flags,
 	    int *buflen, xmlChar **buf)
 {
-	char boottime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
-	char configtime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
-	char nowstr[sizeof "yyyy-mm-ddThh:mm:ssZ"];
+	char boottime[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
+	char configtime[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
+	char nowstr[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
 	isc_time_t now;
 	xmlTextWriterPtr writer = NULL;
 	xmlDocPtr doc = NULL;
@@ -1433,9 +1433,9 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 	isc_result_t result;
 
 	isc_time_now(&now);
-	isc_time_formatISO8601(&ns_g_boottime, boottime, sizeof boottime);
-	isc_time_formatISO8601(&ns_g_configtime, configtime, sizeof configtime);
-	isc_time_formatISO8601(&now, nowstr, sizeof nowstr);
+	isc_time_formatISO8601ms(&ns_g_boottime, boottime, sizeof boottime);
+	isc_time_formatISO8601ms(&ns_g_configtime, configtime, sizeof configtime);
+	isc_time_formatISO8601ms(&now, nowstr, sizeof nowstr);
 
 	writer = xmlNewTextWriterDoc(&doc, 0);
 	if (writer == NULL)
@@ -1445,7 +1445,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 			ISC_XMLCHAR "type=\"text/xsl\" href=\"/bind9.xsl\""));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "3.7"));
+					 ISC_XMLCHAR "3.8"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = isc_statsformat_xml;
@@ -2071,9 +2071,9 @@ generatejson(ns_server_t *server, size_t *msglen,
 	isc_uint64_t tcpinsizestat_values[dns_sizecounter_in_max];
 	isc_uint64_t tcpoutsizestat_values[dns_sizecounter_out_max];
 	stats_dumparg_t dumparg;
-	char boottime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
-	char configtime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
-	char nowstr[sizeof "yyyy-mm-ddThh:mm:ssZ"];
+	char boottime[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
+	char configtime[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
+	char nowstr[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
 	isc_time_t now;
 
 	REQUIRE(msglen != NULL);
@@ -2092,11 +2092,11 @@ generatejson(ns_server_t *server, size_t *msglen,
 	json_object_object_add(bindstats, "json-stats-version", obj);
 
 	isc_time_now(&now);
-	isc_time_formatISO8601(&ns_g_boottime,
+	isc_time_formatISO8601ms(&ns_g_boottime,
 			       boottime, sizeof(boottime));
-	isc_time_formatISO8601(&ns_g_configtime,
+	isc_time_formatISO8601ms(&ns_g_configtime,
 			       configtime, sizeof configtime);
-	isc_time_formatISO8601(&now, nowstr, sizeof(nowstr));
+	isc_time_formatISO8601ms(&now, nowstr, sizeof(nowstr));
 
 	obj = json_object_new_string(boottime);
 	CHECKMEM(obj);
