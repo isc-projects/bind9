@@ -133,17 +133,17 @@ copy @GEOIP_DLL@ ..\..\Build\Debug\
 @IF IDNKIT
 echo Copying the IDN kit DLL.
 
-copy @IDN_DLL@ ..\Build\Release\
-copy @IDN_DLL@ ..\Build\Debug\
-copy @ICONV_DLL@ ..\Build\Release\
-copy @ICONV_DLL@ ..\Build\Debug\
+copy @IDN_DLL@ ..\..\Build\Release\
+copy @IDN_DLL@ ..\..\Build\Debug\
+copy @ICONV_DLL@ ..\..\Build\Release\
+copy @ICONV_DLL@ ..\..\Build\Debug\
 @END IDNKIT
 
 @IF ZLIB
 echo Copying the zlib DLL.
 
-copy @ZLIB_DLL@ ..\Build\Release\
-copy @ZLIB_DLL@	..\Build\Debug\
+copy @ZLIB_DLL@ ..\..\Build\Release\
+copy @ZLIB_DLL@ ..\..\Build\Debug\
 @END ZLIB
 
 echo Copying the redistributable runtime object.
