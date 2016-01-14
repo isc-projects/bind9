@@ -1,3 +1,5 @@
+4291.	[cleanup]	Added a required include to dns/forward.h. [RT #41474]
+
 4290.	[func]		The timers returned by the statistics channel
 			(indicating current time, server boot time, and
 			most recent reconfiguration time) are now reported

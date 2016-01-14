@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: forward.h,v 1.13 2009/09/02 23:48:02 tbox Exp $ */
-
 #ifndef DNS_FORWARD_H
 #define DNS_FORWARD_H 1
 
@@ -24,6 +22,7 @@
 
 #include <isc/lang.h>
 #include <isc/result.h>
+#include <isc/sockaddr.h>
 
 #include <dns/types.h>
 
