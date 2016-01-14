@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: forward.c,v 1.14 2009/09/02 23:48:02 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -24,7 +22,6 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/rwlock.h>
-#include <isc/sockaddr.h>
 #include <isc/util.h>
 
 #include <dns/forward.h>

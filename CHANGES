@@ -1,3 +1,5 @@
+4291.	[cleanup]	Added a required include to dns/forward.h. [RT #41474]
+
 4289.	[bug]		The server could crash due to memory being used
 			after it was freed if a zone transfer timed out.
 			[RT #41297]
