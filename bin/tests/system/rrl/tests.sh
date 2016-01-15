@@ -105,7 +105,7 @@ burst () {
 
 # compare integers $1 and $2; ensure the difference is no more than $3
 range () {
-    $PERL -E 'if (abs(int($ARGV[0]) - int($ARGV[1])) > int($ARGV[2])) { exit(1) }' $1 $2 $3
+    $PERL -e 'if (abs(int($ARGV[0]) - int($ARGV[1])) > int($ARGV[2])) { exit(1) }' $1 $2 $3
 }
 
 #   $1=domain  $2=IP address  $3=# of IP addresses  $4=TC  $5=drop
