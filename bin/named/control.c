@@ -191,7 +191,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 #endif
 		/* Do not flush master files */
 		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
-		ns_os_shutdownmsg(command, *text);
+		ns_os_shutdownmsg(cmdline, *text);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_STOP)) {
@@ -208,7 +208,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 			ns_smf_want_disable = 1;
 #endif
 		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
-		ns_os_shutdownmsg(command, *text);
+		ns_os_shutdownmsg(cmdline, *text);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_DUMPSTATS)) {
