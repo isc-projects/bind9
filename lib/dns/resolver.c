@@ -9033,6 +9033,7 @@ dns_resolver_prime(dns_resolver_t *res) {
 						  &res->primefetch);
 		UNLOCK(&res->primelock);
 		if (result != ISC_R_SUCCESS) {
+			isc_mem_put(res->mctx, rdataset, sizeof(*rdataset));
 			LOCK(&res->lock);
 			INSIST(res->priming);
 			res->priming = ISC_FALSE;
