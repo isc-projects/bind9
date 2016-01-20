@@ -1,3 +1,6 @@
+4293.	[bug]		Address memory leak on priming query creation failure.
+			[RT #41512]
+
 4292.	[placeholder]
 
 4291.	[cleanup]	Added a required include to dns/forward.h. [RT #41474]
