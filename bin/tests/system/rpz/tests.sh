@@ -548,5 +548,9 @@ $DIG +noall +answer -p 5300 @$ns3 any a3-2.tld2 > dig.out.any
 ttl=`awk '/a3-2 tld2 text/ {print $2}' dig.out.any`
 if test ${ttl:=0} -eq 0; then setret I:failed; fi
 
+echo "I:checking rpz with delegation fails correctly"
+$DIG -p 5300 @$ns3 ns example.com > dig.out.delegation
+grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
+
 echo "I:exit status: $status"
 exit $status

@@ -4420,8 +4420,6 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 		policy = DNS_RPZ_POLICY_MISS;
 		break;
 	default:
-		dns_db_detach(dbp);
-		dns_zone_detach(zonep);
 		rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, rpz_type, qnamef,
 			     "", result);
 		CTRACE(ISC_LOG_ERROR,

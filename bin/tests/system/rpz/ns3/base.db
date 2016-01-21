@@ -41,6 +41,7 @@ ns	A	10.53.0.3
 redirect	A       127.0.0.1
 *.redirect	A       127.0.0.1
 *.credirect	CNAME   google.com.
+example.com     NS	example.org.
 
 
 ; names in the RPZ TLDs that some say should not be rewritten.
