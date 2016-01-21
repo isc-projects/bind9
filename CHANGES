@@ -1,3 +1,6 @@
+4297.	[bug]		RPZ zones with errors could cause a crash when a
+			pointer was cleaned up twice. [RT #41518]
+
 4295.	[bug]		An unchecked result in dns_message_pseudosectiontotext()
 			could allow incorrect text formatting of EDNS EXPIRE
 			options. [RT #41437]
