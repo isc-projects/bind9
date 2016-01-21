@@ -7028,6 +7028,7 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 					      "dns_rbt_addnode(NSEC): %s",
 					      isc_result_totext(tmpresult),
 					      isc_result_totext(ISC_R_SUCCESS));
+			noderesult = rpzresult;
 		}
 	}
 	if (!hasnsec)
