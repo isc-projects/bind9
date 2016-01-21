@@ -1,3 +1,6 @@
+4297.	[test]		Ensure delegations in RPZ zones fail robustly.
+			[RT #41518]
+
 4295.	[bug]		An unchecked result in dns_message_pseudosectiontotext()
 			could allow incorrect text formatting of EDNS EXPIRE
 			options. [RT #41437]
