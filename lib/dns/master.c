@@ -2113,11 +2113,17 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	return (result);
 }
 
+/*
+ * Fill/check exists buffer with 'len' bytes.  Track remaining bytes to be
+ * read when incrementally filling the buffer.
+ */
 static inline isc_result_t
 read_and_check(isc_boolean_t do_read, isc_buffer_t *buffer,
-	       size_t len, FILE *f)
+	       size_t len, FILE *f, isc_uint32_t *totallen)
 {
 	isc_result_t result;
+
+	REQUIRE(totallen != NULL);
 
 	if (do_read) {
 		INSIST(isc_buffer_availablelength(buffer) >= len);
@@ -2126,6 +2132,9 @@ read_and_check(isc_boolean_t do_read, isc_buffer_t *buffer,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		isc_buffer_add(buffer, (unsigned int)len);
+		if (*totallen < len)
+			return (ISC_R_RANGE);
+		*totallen -= len;
 	} else if (isc_buffer_remaininglength(buffer) < len)
 		return (ISC_R_RANGE);
 
@@ -2341,6 +2350,7 @@ load_raw(dns_loadctx_t *lctx) {
 			goto cleanup;
 		isc_buffer_add(&target, sizeof(totallen));
 		totallen = isc_buffer_getuint32(&target);
+
 		/*
 		 * Validation: the input data must at least contain the common
 		 * header.
@@ -2382,6 +2392,7 @@ load_raw(dns_loadctx_t *lctx) {
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		isc_buffer_add(&target, (unsigned int)readlen);
+		totallen -= readlen;
 
 		/* Construct RRset headers */
 		dns_rdatalist_init(&rdatalist);
@@ -2402,7 +2413,7 @@ load_raw(dns_loadctx_t *lctx) {
 
 		/* Owner name: length followed by name */
 		result = read_and_check(sequential_read, &target,
-					sizeof(namelen), lctx->f);
+					sizeof(namelen), lctx->f, &totallen);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		namelen = isc_buffer_getuint16(&target);
@@ -2412,7 +2423,7 @@ load_raw(dns_loadctx_t *lctx) {
 		}
 
 		result = read_and_check(sequential_read, &target, namelen,
-					lctx->f);
+					lctx->f, &totallen);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 
@@ -2482,14 +2493,15 @@ load_raw(dns_loadctx_t *lctx) {
 
 			/* rdata length */
 			result = read_and_check(sequential_read, &target,
-						sizeof(rdlen), lctx->f);
+						sizeof(rdlen), lctx->f,
+						&totallen);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 			rdlen = isc_buffer_getuint16(&target);
 
 			/* rdata */
 			result = read_and_check(sequential_read, &target,
-						rdlen, lctx->f);
+						rdlen, lctx->f, &totallen);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 			isc_buffer_setactive(&target, (unsigned int)rdlen);
@@ -2515,7 +2527,7 @@ load_raw(dns_loadctx_t *lctx) {
 		 * necessarily critical, but it very likely indicates broken
 		 * or malformed data.
 		 */
-		if (isc_buffer_remaininglength(&target) != 0) {
+		if (isc_buffer_remaininglength(&target) != 0 || totallen != 0) {
 			result = ISC_R_RANGE;
 			goto cleanup;
 		}
