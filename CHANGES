@@ -1,3 +1,7 @@
+4296.	[bug]		TCP packet sizes were calculated incorrectly in the
+			stats channel; they could be counted in the wrong
+			histogram bucket. [RT #40587]
+
 4295.	[bug]		An unchecked result in dns_message_pseudosectiontotext()
 			could allow incorrect text formatting of EDNS EXPIRE
 			options. [RT #41437]

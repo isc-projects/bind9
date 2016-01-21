@@ -1166,7 +1166,8 @@ client_send(ns_client_t *client) {
 		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t) r.length);
 		isc_buffer_add(&tcpbuffer, r.length);
 
-		respsize = isc_buffer_usedlength(&tcpbuffer);
+		/* don't count the 2-octet length header */
+		respsize = isc_buffer_usedlength(&tcpbuffer) - 2;
 		result = client_sendpkg(client, &tcpbuffer);
 
 #ifdef HAVE_DNSTAP
@@ -2145,6 +2146,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	reqsize = isc_buffer_usedlength(buffer);
+	/* don't count the length header */
+	if (TCP_CLIENT(client))
+		reqsize -= 2;
 
 	if (exit_check(client))
 		goto cleanup;
