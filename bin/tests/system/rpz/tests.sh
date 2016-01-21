@@ -642,5 +642,9 @@ $RNDCCMD $ns7 reload policy2
 $DIG z.x.servfail -p 5300 @$ns7 > dig.out.ns7
 grep NXDOMAIN dig.out.ns7 > /dev/null || setret I:failed;
 
+echo "I:checking rpz with delegation fails correctly"
+$DIG -p 5300 @$ns3 ns example.com > dig.out.delegation
+grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
+
 echo "I:exit status: $status"
 exit $status
