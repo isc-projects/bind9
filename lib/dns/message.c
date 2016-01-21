@@ -3388,7 +3388,11 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					snprintf(buf, sizeof(buf), "%u", secs);
 					ADD_STRING(target, buf);
 					ADD_STRING(target, " (");
-					dns_ttl_totext(secs, ISC_TRUE, target);
+					result = dns_ttl_totext(secs,
+								ISC_TRUE,
+								target);
+					if (result != ISC_R_SUCCESS)
+						return (result);
 					ADD_STRING(target, ")\n");
 					continue;
 				}

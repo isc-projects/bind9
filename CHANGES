@@ -1,3 +1,7 @@
+4295.	[bug]		An unchecked result in dns_message_pseudosectiontotext()
+			could allow incorrect text formatting of EDNS EXPIRE
+			options. [RT #41437]
+
 4294.	[bug]		Fixed a regression in which "rndc stop -p" failed
 			to print the PID. [RT #41513]
 
