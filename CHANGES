@@ -1,3 +1,7 @@
+4299.	[bug]		Check that exactly totallen bytes are read when
+			reading a RRset from raw files in both single read
+			and incremental modes. [RT #41402]
+
 4297.	[bug]		RPZ zones with errors could cause a crash when a
 			pointer was cleaned up twice. [RT #41518]
 
