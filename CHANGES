@@ -1,3 +1,6 @@
+4298.	[bug]		dns_rpz_add errors in loadzone were not being
+			propogated up the call stack. [RT #41425]
+
 4297.	[test]		Ensure delegations in RPZ zones fail robustly.
 			[RT #41518]
 
