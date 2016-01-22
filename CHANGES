@@ -1,3 +1,5 @@
+4300.	[cleanup]	Added new querytrace logging. [RT #41155]
+
 4299.	[bug]		Check that exactly totallen bytes are read when
 			reading a RRset from raw files in both single read
 			and incremental modes. [RT #41402]
