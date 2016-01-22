@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -6587,7 +6587,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Restore saved state.
 			 */
 			CTRACE(ISC_LOG_DEBUG(3),
- 			       "resume from redirect recursion");
+			       "resume from redirect recursion");
 #ifdef WANT_QUERYTRACE
 			dns_name_format(client->query.redirect.fname,
 					qbuf, sizeof(qbuf));
