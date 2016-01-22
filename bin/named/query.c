@@ -27,6 +27,7 @@
 #include <isc/rwlock.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
 #include <dns/adb.h>
@@ -137,20 +138,29 @@ client_trace(ns_client_t *client, int level, const char *message) {
 	if (client != NULL && client->query.qname != NULL) {
 		if (isc_log_wouldlog(ns_g_lctx, level)) {
 			char qbuf[DNS_NAME_FORMATSIZE];
+			char tbuf[DNS_RDATATYPE_FORMATSIZE];
 			dns_name_format(client->query.qname,
 					qbuf, sizeof(qbuf));
+			dns_rdatatype_format(client->query.qtype,
+					     tbuf, sizeof(tbuf));
 			isc_log_write(ns_g_lctx,
 				      NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_QUERY,
-				      level, "client %p (%s): %s",
-				      client, qbuf, message);
+				      NS_LOGMODULE_QUERY, level,
+				      "query client=%p thread=0x%lx "
+				      "(%s/%s): %s",
+				      client,
+				      (unsigned long) isc_thread_self(),
+				      qbuf, tbuf, message);
 		}
 	 } else {
 		isc_log_write(ns_g_lctx,
 			      NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_QUERY,
-			      level, "client %p (<unknown-name>): %s",
-			      client, message);
+			      NS_LOGMODULE_QUERY, level,
+			      "query client=%p thread=0x%lx "
+			      "(<unknown-query>): %s",
+			      client,
+			      (unsigned long) isc_thread_self(),
+			      message);
 	}
 }
 #define CTRACE(l,m)	  client_trace(client, l, m)
@@ -352,6 +362,8 @@ static inline void
 query_reset(ns_client_t *client, isc_boolean_t everything) {
 	isc_buffer_t *dbuf, *dbuf_next;
 	ns_dbversion_t *dbversion, *dbversion_next;
+
+	CTRACE(ISC_LOG_DEBUG(3), "query_reset");
 
 	/*%
 	 * Reset the query state of a client to its default state.
@@ -6456,6 +6468,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	dns_ttl_t ttl;
 	isc_boolean_t failcache;
 	isc_uint32_t flags;
+#ifdef WANT_QUERYTRACE
+	char mbuf[BUFSIZ];
+	char qbuf[DNS_NAME_FORMATSIZE];
+	char tbuf[DNS_RDATATYPE_FORMATSIZE];
+#endif
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_find");
 
@@ -6490,6 +6507,25 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
 
+#ifdef WANT_QUERYTRACE
+	if (client->query.origqname != NULL)
+		dns_name_format(client->query.origqname, qbuf,
+				sizeof(qbuf));
+	else
+		snprintf(qbuf, sizeof(qbuf), "<unset>");
+
+	snprintf(mbuf, sizeof(mbuf) - 1,
+		 "client attr:0x%x, query attr:0x%X, restarts:%d, "
+		 "origqname:%s, timer:%d, authdb:%d, referral:%d",
+		 client->attributes,
+		 client->query.attributes,
+		 client->query.restarts, qbuf,
+		 (int) client->query.timerset,
+		 (int) client->query.authdbset,
+		 (int) client->query.isreferral);
+	CTRACE(ISC_LOG_DEBUG(3), mbuf);
+#endif
+
 	if (event != NULL) {
 		/*
 		 * We're returning from recursion.  Restore the query context
@@ -6502,6 +6538,29 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		    (rpz_st->state & DNS_RPZ_RECURSING) != 0)
 		{
 			CTRACE(ISC_LOG_DEBUG(3), "resume from RPZ recursion");
+#ifdef WANT_QUERYTRACE
+			{
+				char pbuf[DNS_NAME_FORMATSIZE] = "<unset>";
+				char fbuf[DNS_NAME_FORMATSIZE] = "<unset>";
+				if (rpz_st->r_name != NULL)
+					dns_name_format(rpz_st->r_name,
+							qbuf, sizeof(qbuf));
+				else
+					snprintf(qbuf, sizeof(qbuf),
+						 "<unset>");
+				if (rpz_st->p_name != NULL)
+					dns_name_format(rpz_st->p_name,
+							pbuf, sizeof(pbuf));
+				if (rpz_st->fname != NULL)
+					dns_name_format(rpz_st->fname,
+							fbuf, sizeof(fbuf));
+
+				snprintf(mbuf, sizeof(mbuf) - 1,
+					 "rpz rname:%s, pname:%s, fname:%s",
+					 qbuf, pbuf, fbuf);
+				CTRACE(ISC_LOG_DEBUG(3), mbuf);
+			}
+#endif
 
 			is_zone = rpz_st->q.is_zone;
 			authoritative = rpz_st->q.authoritative;
@@ -6528,8 +6587,20 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Restore saved state.
 			 */
 			CTRACE(ISC_LOG_DEBUG(3),
-			       "resume from redirect recursion");
+ 			       "resume from redirect recursion");
+#ifdef WANT_QUERYTRACE
+			dns_name_format(client->query.redirect.fname,
+					qbuf, sizeof(qbuf));
+			dns_rdatatype_format(client->query.redirect.qtype,
+					     tbuf, sizeof(tbuf));
+			snprintf(mbuf, sizeof(mbuf) - 1,
+				 "redirect fname:%s, qtype:%s, auth:%d",
+				 qbuf, tbuf,
+				 client->query.redirect.authoritative);
+			CTRACE(ISC_LOG_DEBUG(3), mbuf);
+#endif
 			qtype = client->query.redirect.qtype;
+			INSIST(client->query.redirect.rdataset != NULL);
 			rdataset = client->query.redirect.rdataset;
 			client->query.redirect.rdataset = NULL;
 			sigrdataset = client->query.redirect.sigrdataset;
@@ -6562,6 +6633,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			rdataset = event->rdataset;
 			sigrdataset = event->sigrdataset;
 		}
+		INSIST(rdataset != NULL);
 
 		if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
 			type = dns_rdatatype_any;
@@ -7211,6 +7283,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * recurse anyway.
 			 */
 			if (RECURSIONOK(client)) {
+				INSIST(!REDIRECT(client));
 				result = query_recurse(client, qtype,
 						       client->query.qname,
 						       NULL, NULL, resuming);
@@ -7402,6 +7475,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				/*
 				 * Recurse!
 				 */
+				INSIST(!REDIRECT(client));
 				if (dns_rdatatype_atparent(type))
 					result = query_recurse(client, qtype,
 							 client->query.qname,
@@ -7701,6 +7775,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				inc_stats(client,
 					  dns_nsstatscounter_nxdomainredirect_rlookup);
 				client->query.redirect.qtype = qtype;
+				INSIST(rdataset != NULL);
 				client->query.redirect.rdataset = rdataset;
 				client->query.redirect.sigrdataset =
 								 sigrdataset;
@@ -7823,6 +7898,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			client->query.redirect.node = node;
 			client->query.redirect.zone = zone;
 			client->query.redirect.qtype = qtype;
+			INSIST(rdataset != NULL);
 			client->query.redirect.rdataset = rdataset;
 			client->query.redirect.sigrdataset = sigrdataset;
 			client->query.redirect.result = DNS_R_NCACHENXDOMAIN;
@@ -8434,6 +8510,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					 * We'll make a note to not render it
 					 * if the recursion for the A succeeds.
 					 */
+					INSIST(!REDIRECT(client));
 					result = query_recurse(client,
 							dns_rdatatype_a,
 							client->query.qname,
@@ -8859,7 +8936,7 @@ ns_query_start(ns_client_t *client) {
 		 */
 		client->query.attributes &=
 			~(NS_QUERYATTR_RECURSIONOK|NS_QUERYATTR_CACHEOK);
-		client->query.attributes |= NS_CLIENTATTR_NOSETFC;
+		client->attributes |= NS_CLIENTATTR_NOSETFC;
 	} else if ((client->attributes & NS_CLIENTATTR_RA) == 0 ||
 		   (message->flags & DNS_MESSAGEFLAG_RD) == 0) {
 		/*
@@ -8869,7 +8946,7 @@ ns_query_start(ns_client_t *client) {
 		 * doesn't want recursion, turn recursion off.
 		 */
 		client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
-		client->query.attributes |= NS_CLIENTATTR_NOSETFC;
+		client->attributes |= NS_CLIENTATTR_NOSETFC;
 	}
 
 	/*

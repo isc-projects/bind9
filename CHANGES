@@ -1,3 +1,9 @@
+4300.	[bug]		A flag could be set in the wrong field when setting
+			up nonrecursive queries; this could cause the
+			SERVFAIL cache to cache responses it shouldn't.
+			New querytrace logging has been added which
+			identified this error. [RT #41155]
+
 4299.	[bug]		Check that exactly totallen bytes are read when
 			reading a RRset from raw files in both single read
 			and incremental modes. [RT #41402]
