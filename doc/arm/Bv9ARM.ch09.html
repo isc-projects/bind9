@@ -685,6 +685,12 @@
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
+	  A flag could be set in the wrong field when setting up
+	  nonrecursive queries; this could cause the SERVFAIL cache to
+	  cache responses it shouldn't.  New querytrace logging has been
+	  added which identified this error. [RT #41155]
+	</p></li>
+<li class="listitem"><p>
 	  The server could crash due to a use-after-free if a
 	  zone transfer timed out. [RT #41297]
 	</p></li>
