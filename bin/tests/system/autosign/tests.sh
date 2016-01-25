@@ -1198,5 +1198,23 @@ if [ "$lret" != 0 ]; then ret=$lret; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check that dnssec-settime -p Dsync works ($n)"
+ret=0
+$SETTIME -p Dsync `cat sync.key` > settime.out.$n|| ret=0
+grep "SYNC Delete:" settime.out.$n >/dev/null || ret=0
+n=`expr $n + 1`
+if [ "$lret" != 0 ]; then ret=$lret; fi
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that dnssec-settime -p Psync works ($n)"
+ret=0
+$SETTIME -p Psync `cat sync.key` > settime.out.$n|| ret=0
+grep "SYNC Publish:" settime.out.$n >/dev/null || ret=0
+n=`expr $n + 1`
+if [ "$lret" != 0 ]; then ret=$lret; fi
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
