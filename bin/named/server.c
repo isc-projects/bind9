@@ -8441,7 +8441,7 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 	dns_fixedname_init(&fname);
 	dnsname = dns_fixedname_name(&fname);
-	CHECK(dns_name_fromtext(dnsname, &buf, dns_rootname, ISC_FALSE, NULL));
+	CHECK(dns_name_fromtext(dnsname, &buf, dns_rootname, 0, NULL));
 
 	/* Make sense of optional class argument */
 	obj = cfg_tuple_get(parms, "class");
