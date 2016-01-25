@@ -1746,6 +1746,8 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 		printtime(key, DST_TIME_REVOKE, "; Revoke", fp);
 		printtime(key, DST_TIME_INACTIVE, "; Inactive", fp);
 		printtime(key, DST_TIME_DELETE, "; Delete", fp);
+		printtime(key, DST_TIME_SYNCPUBLISH , "; SyncPublish", fp);
+		printtime(key, DST_TIME_SYNCDELETE , "; SyncDelete", fp);
 	}
 
 	/* Now print the actual key */
