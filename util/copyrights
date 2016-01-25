@@ -150,7 +150,7 @@
 ./bin/dnssec/dnssec-revoke.docbook		SGML	2009,2011,2014,2015
 ./bin/dnssec/dnssec-revoke.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-settime.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-settime.c			C	2009,2010,2011,2012,2013,2014,2015
+./bin/dnssec/dnssec-settime.c			C	2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/dnssec/dnssec-settime.docbook		SGML	2009,2010,2011,2014,2015
 ./bin/dnssec/dnssec-settime.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
@@ -282,7 +282,7 @@
 ./bin/named/named.html				HTML	DOCBOOK
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
-./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006,2007
 ./bin/named/statschannel.c			C	2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006,2007,2009,2010,2012,2014
@@ -803,7 +803,7 @@
 ./bin/tests/system/allow_query/setup.sh		SH	2010,2012
 ./bin/tests/system/allow_query/tests.sh		SH	2010,2012,2013
 ./bin/tests/system/ans.pl			PERL	2011,2012,2014
-./bin/tests/system/autosign/clean.sh		SH	2009,2010,2011,2012,2013,2014,2015
+./bin/tests/system/autosign/clean.sh		SH	2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/autosign/ns1/keygen.sh	SH	2009,2010,2011,2012,2014
 ./bin/tests/system/autosign/ns1/named.conf	CONF-C	2009,2013
 ./bin/tests/system/autosign/ns1/root.db.in	ZONE	2009,2010
@@ -853,7 +853,7 @@
 ./bin/tests/system/autosign/ns5/named.conf	CONF-C	2009
 ./bin/tests/system/autosign/prereq.sh		SH	2009,2010,2012,2014
 ./bin/tests/system/autosign/setup.sh		SH	2009,2010,2012,2014
-./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011,2012,2013,2014,2015
+./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/builtin/.gitignore		X	2014
 ./bin/tests/system/builtin/Makefile.in		MAKE	2014,2015
 ./bin/tests/system/builtin/clean.sh		SH	2014
