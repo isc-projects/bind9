@@ -10123,7 +10123,7 @@ ns_server_changezone(ns_server_t *server, char *command, isc_buffer_t **text) {
 
 	dns_fixedname_init(&fname);
 	dnsname = dns_fixedname_name(&fname);
-	CHECK(dns_name_fromtext(dnsname, &buf, dns_rootname, ISC_FALSE, NULL));
+	CHECK(dns_name_fromtext(dnsname, &buf, dns_rootname, 0, NULL));
 
 	if (addzone)
 		CHECK(do_addzone(server, cfg, view, dnsname, zoneconf,
