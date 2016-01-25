@@ -1,3 +1,5 @@
+4301.	[bug]		dnssec-settime -p [DP]sync was not working. [RT #41534]
+
 4300.	[bug]		A flag could be set in the wrong field when setting
 			up nonrecursive queries; this could cause the
 			SERVFAIL cache to cache responses it shouldn't.

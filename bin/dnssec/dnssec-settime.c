@@ -218,8 +218,8 @@ main(int argc, char **argv) {
 					printcreate = ISC_TRUE;
 					break;
 				case 'P':
-					if (!strncmp(p, "sync", 3)) {
-						p += 3;
+					if (!strncmp(p, "sync", 4)) {
+						p += 4;
 						printsyncadd = ISC_TRUE;
 						break;
 					}
@@ -235,8 +235,8 @@ main(int argc, char **argv) {
 					printinact = ISC_TRUE;
 					break;
 				case 'D':
-					if (!strncmp(p, "sync", 3)) {
-						p += 3;
+					if (!strncmp(p, "sync", 4)) {
+						p += 4;
 						printsyncdel = ISC_TRUE;
 						break;
 					}
