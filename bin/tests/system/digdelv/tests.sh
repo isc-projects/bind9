@@ -135,6 +135,30 @@ if [ -x ${DIG} ] ; then
   grep "CLIENT-SUBNET: 127.0.0.1/32/0" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +subnet=0/0 ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=0/0 A a.example > dig.out.test$n 2>&1 || ret=1
+  grep "CLIENT-SUBNET: 0.0.0.0/0/0" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +subnet=0 ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=0 A a.example > dig.out.test$n 2>&1 || ret=1
+  grep "CLIENT-SUBNET: 0.0.0.0/0/0" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +subnet=::/0 ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=::/0 A a.example > dig.out.test$n 2>&1 || ret=1
+  grep "CLIENT-SUBNET: ::/0/0" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
   
   n=`expr $n + 1`
   echo "I:checking dig +sp works as an abbriviated form of split ($n)"
