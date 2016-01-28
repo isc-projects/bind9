@@ -91,10 +91,10 @@
 ./bin/dig/.gitignore				X	2012,2014
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005,2007,2009,2012,2013,2014,2015
 ./bin/dig/dig.1					MAN	DOCBOOK
-./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
-./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014,2015
+./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014,2015,2016
 ./bin/dig/dig.html				HTML	DOCBOOK
-./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/dig/host.1				MAN	DOCBOOK
 ./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015
 ./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007,2008,2009,2014,2015
@@ -154,7 +154,7 @@
 ./bin/dnssec/dnssec-settime.docbook		SGML	2009,2010,2011,2014,2015
 ./bin/dnssec/dnssec-settime.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
 ./bin/dnssec/dnssec-signzone.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-verify.8			MAN	2012,2014,2015
@@ -323,6 +323,7 @@
 ./bin/pkcs11/openssl-0.9.8zh-patch		X	2015
 ./bin/pkcs11/openssl-1.0.0t-patch		X	2015
 ./bin/pkcs11/openssl-1.0.1q-patch		X	2015
+./bin/pkcs11/openssl-1.0.2f-patch		X	2016
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-destroy.c			X	2009,2010,2014,2015
 ./bin/pkcs11/pkcs11-destroy.docbook		SGML	2009,2014,2015
@@ -1063,7 +1064,7 @@
 ./bin/tests/system/digdelv/ns2/example.db	ZONE	2015
 ./bin/tests/system/digdelv/ns2/named.conf	CONF-C	2015
 ./bin/tests/system/digdelv/ns3/named.conf	CONF-C	2015
-./bin/tests/system/digdelv/tests.sh		SH	2015
+./bin/tests/system/digdelv/tests.sh		SH	2015,2016
 ./bin/tests/system/ditch.pl			PERL	2015
 ./bin/tests/system/dlv/clean.sh			SH	2004,2007,2010,2011,2012,2014
 ./bin/tests/system/dlv/ns1/named.conf		CONF-C	2004,2007,2011
@@ -1157,7 +1158,7 @@
 ./bin/tests/system/dns64/setup.sh		SH	2010,2012,2014
 ./bin/tests/system/dns64/tests.sh		SH	2010,2011,2012,2013,2014
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004,2011
-./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004,2007,2010,2012
 ./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001,2004,2006,2007
 ./bin/tests/system/dnssec/ns1/root.db.in	ZONE	2000,2001,2004,2007,2010,2013,2014
@@ -1248,7 +1249,9 @@
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006,2007,2009,2012,2014,2015
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2009,2011,2012,2013,2014,2015
 ./bin/tests/system/dnssec/signer/example.db.in	ZONE	2010
-./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./bin/tests/system/dnssec/signer/remove.db.in	ZONE	2016
+./bin/tests/system/dnssec/signer/remove2.db.in	ZONE	2016
+./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/dnstap/clean.sh		SH	2015
 ./bin/tests/system/dnstap/ns1/named.conf	CONF-C	2015
 ./bin/tests/system/dnstap/ns1/root.db		ZONE	2015
@@ -2251,7 +2254,7 @@
 ./bin/tests/system/xfer/ns8/named.conf		CONF-C	2015
 ./bin/tests/system/xfer/prereq.sh		SH	2011,2012,2014
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004,2007,2011,2012,2013,2014,2015
-./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012,2013,2014,2015
+./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2007,2012,2014,2015
 ./bin/tests/system/xferquota/ns1/changing1.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/xferquota/ns1/changing2.db	ZONE	2000,2001,2004,2007
@@ -2409,8 +2412,8 @@
 ./bin/tools/isc-hmac-fixup.docbook		SGML	2010,2013,2014,2015
 ./bin/tools/isc-hmac-fixup.html			HTML	DOCBOOK
 ./bin/tools/mdig.1				MAN	DOCBOOK
-./bin/tools/mdig.c				C	2015
-./bin/tools/mdig.docbook			SGML	2015
+./bin/tools/mdig.c				C	2015,2016
+./bin/tools/mdig.docbook			SGML	2015,2016
 ./bin/tools/mdig.html				HTML	DOCBOOK
 ./bin/tools/named-journalprint.8		MAN	DOCBOOK
 ./bin/tools/named-journalprint.c		C	2000,2001,2004,2005,2006,2007,2008,2009,2015
@@ -3007,7 +3010,7 @@
 ./contrib/zkt-1.1.3/zone.h			X	2014
 ./doc/Makefile.in				MAKE	2000,2001,2004,2005,2006,2007,2012,2015
 ./doc/arm/.gitignore				X	2015
-./doc/arm/Bv9ARM-book.xml			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./doc/arm/Bv9ARM-book.xml			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./doc/arm/Bv9ARM.ch01.html			X	2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/Bv9ARM.ch02.html			X	2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./doc/arm/Bv9ARM.ch03.html			X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
@@ -3070,7 +3073,7 @@
 ./doc/arm/notes.pdf				X	2014,2015
 ./doc/arm/notes.xml				SGML	2014,2015,2016
 ./doc/arm/noteversion.xml.in			SGML	2015
-./doc/arm/pkcs11.xml				SGML	2010,2012,2013,2014,2015
+./doc/arm/pkcs11.xml				SGML	2010,2012,2013,2014,2015,2016
 ./doc/arm/pkgversion.xml.in			SGML	2015
 ./doc/arm/releaseinfo.xml.in			SGML	2015
 ./doc/design/addressdb				TXT.BRIEF	2000,2001,2004
