@@ -257,7 +257,7 @@ do
 	sleep 1
 done
 
-tail -n +"$cur" < ns4/named.run | grep "Transfer status: success" > /dev/null || {
+sed -n "$cur,\$p" < ns4/named.run | grep "Transfer status: success" > /dev/null || {
     echo "I: failed: expected status was not logged"
     status=1
 }
@@ -277,7 +277,7 @@ $RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
 
 sleep 2
 
-tail -n +"$cur" < ns4/named.run | grep "Transfer status: expected a TSIG or SIG(0)" > /dev/null || {
+sed -n "$cur,\$p" < ns4/named.run | grep "Transfer status: expected a TSIG or SIG(0)" > /dev/null || {
     echo "I: failed: expected status was not logged"
     status=1
 }
@@ -297,7 +297,7 @@ $RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
 
 sleep 2
 
-tail -n +"$cur" < ns4/named.run | grep "Transfer status: tsig verify failure" > /dev/null || {
+sed -n "$cur,\$p" < ns4/named.run | grep "Transfer status: tsig verify failure" > /dev/null || {
     echo "I: failed: expected status was not logged"
     status=1
 }
@@ -317,7 +317,7 @@ $RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
 
 sleep 2
 
-tail -n +"$cur" < ns4/named.run | grep "Transfer status: expected a TSIG or SIG(0)" > /dev/null || {
+sed -n "$cur,\$p" < ns4/named.run | grep "Transfer status: expected a TSIG or SIG(0)" > /dev/null || {
     echo "I: failed: expected status was not logged"
     status=1
 }
@@ -337,7 +337,7 @@ $RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
 
 sleep 2
 
-tail -n +"$cur" < ns4/named.run | grep "tsig key 'tsig_key': key name and algorithm do not match" > /dev/null || {
+sed -n "$cur,\$p" < ns4/named.run | grep "tsig key 'tsig_key': key name and algorithm do not match" > /dev/null || {
     echo "I: failed: expected status was not logged"
     status=1
 }
@@ -357,7 +357,7 @@ $RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
 
 sleep 2
 
-tail -n +"$cur" < ns4/named.run | grep "tsig key 'tsig_key': key name and algorithm do not match" > /dev/null || {
+sed -n "$cur,\$p" < ns4/named.run | grep "tsig key 'tsig_key': key name and algorithm do not match" > /dev/null || {
     echo "I: failed: expected status was not logged"
     status=1
 }

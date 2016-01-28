@@ -1,3 +1,6 @@
+4304.	[port]		xfer system test failed as 'tail -n +value' is not
+			portable. [RT #41315]
+
 4303.	[bug]		"dig +subnet" was unable to send a prefix length of
 			zero, as it was incorrectly changed to 32 for v4
 			prefixes or 128 for v6 prefixes. In addition to
