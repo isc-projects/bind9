@@ -1,3 +1,6 @@
+4304.	[port]		xfer system test failed as 'tail -n +value' is not
+			portable. [RT #41315]
+
 4302.	[port]		win32: fixed a build error in VS 2015. [RT #41426]
 
 4300.	[cleanup]	Added new querytrace logging. [RT #41155]
