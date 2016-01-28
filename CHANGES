@@ -1,3 +1,6 @@
+4306.	[maint]		Added a PKCS#11 openssl patch supporting
+			version 1.0.2f [RT #38312]
+
 4305.	[bug]		dnssec-signzone was not removing unnecessary rrsigs
 			from the zone's apex. [RT #41483]
 
