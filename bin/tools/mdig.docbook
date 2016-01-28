@@ -592,12 +592,20 @@
         </varlistentry>
 
         <varlistentry>
-          <term><option>+[no]subnet=addr/prefix</option></term>
+          <term><option>+[no]subnet=addr[/netmask]</option></term>
           <listitem>
-            <para>
-              Send an EDNS Client Subnet option with the specified
-              IP address or network prefix.
-            </para>
+	    <para>
+	      Send (don't send) an EDNS Client Subnet option with the
+              specified IP address or network prefix.
+	    </para>
+	    <para>
+              <command>mdig +subnet=0.0.0.0/0</command>, or simply
+              <command>mdig +subnet=0</command> for short, sends a
+              Client Subnet option with an empty address and a
+              source prefix length of zero, which signals a resolver
+              that the EDNS Client Subnet option should not be used
+              when resolving this query.
+	    </para>
           </listitem>
         </varlistentry>
 

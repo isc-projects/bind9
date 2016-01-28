@@ -1068,7 +1068,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	isc_sockaddr_t *sa = NULL;
 	struct in_addr in4;
 	struct in6_addr in6;
-	isc_uint32_t netmask = 0;
+	isc_uint32_t netmask = 0xffffffff;
 	char *slash = NULL;
 	isc_boolean_t parsed = ISC_FALSE;
 	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX/128")];
@@ -1084,6 +1084,8 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 			fatal("invalid prefix length in '%s': %s\n",
 			      value, isc_result_totext(result));
 		}
+	} else if (strcmp(value, "0") == 0) {
+		netmask = 0;
 	}
 
 	sa = isc_mem_allocate(mctx, sizeof(*sa));
@@ -1092,14 +1094,14 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	if (inet_pton(AF_INET6, buf, &in6) == 1) {
 		parsed = ISC_TRUE;
 		isc_sockaddr_fromin6(sa, &in6, 0);
-		if (netmask == 0 || netmask > 128)
+		if (netmask > 128)
 			netmask = 128;
 	} else if (inet_pton(AF_INET, buf, &in4) == 1) {
 		parsed = ISC_TRUE;
 		isc_sockaddr_fromin(sa, &in4, 0);
-		if (netmask == 0 || netmask > 32)
+		if (netmask > 32)
 			netmask = 32;
-	} else if (netmask != 0) {
+	} else if (netmask != 0xffffffff) {
 		int i;
 
 		for (i = 0; i < 3; i++) {
@@ -1110,6 +1112,9 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 				break;
 			}
 		}
+
+		if (netmask > 32)
+			netmask = 32;
 	}
 
 	if (!parsed)
