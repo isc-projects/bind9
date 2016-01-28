@@ -1,3 +1,6 @@
+4305.	[bug]		dnssec-signzone was not removing unnecessary rrsigs
+			from the zone's apex. [RT #41483]
+
 4304.	[port]		xfer system test failed as 'tail -n +value' is not
 			portable. [RT #41315]
 
