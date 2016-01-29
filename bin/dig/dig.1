@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2011, 2013-2015 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2011, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000-2003 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
@@ -587,9 +587,13 @@ causes fields not to be split at all\&. The default is 56 characters, or 44 char
 This query option toggles the printing of statistics: when the query was made, the size of the reply and so on\&. The default behavior is to print the query statistics\&.
 .RE
 .PP
-\fB+[no]subnet=addr/prefix\fR
+\fB+[no]subnet=addr[/netmask]\fR
 .RS 4
-Send an EDNS Client Subnet option with the specified IP address or network prefix\&.
+Send (don\*(Aqt send) an EDNS Client Subnet option with the specified IP address or network prefix\&.
+.sp
+\fBdig +subnet=0\&.0\&.0\&.0/0\fR, or simply
+\fBdig +subnet=0\fR
+for short, sends a Client Subnet option with an empty address and a source prefix length of zero, which signals a resolver that the EDNS Client Subnet option should not be used when resolving this query\&.
 .RE
 .PP
 \fB+[no]tcp\fR
@@ -731,7 +735,7 @@ There are probably too many query options\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2004-2011, 2013-2015 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004-2011, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
 .br
 Copyright \(co 2000-2003 Internet Software Consortium.
 .br
