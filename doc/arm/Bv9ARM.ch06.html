@@ -2432,9 +2432,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     [<span class="optional"> notify-source (<em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code>) [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; </span>]
     [<span class="optional"> notify-source-v6 (<em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code>) [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; </span>]
     [<span class="optional"> notify-to-soa <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> also-notify { <em class="replaceable"><code>ip_addr</code></em>
-                    [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] [<span class="optional">key <em class="replaceable"><code>keyname</code></em></span>] ;
-                    [<span class="optional"> <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] [<span class="optional">key <em class="replaceable"><code>keyname</code></em></span>] ; ... </span>] }; </span>]
+    [<span class="optional"> also-notify [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ip_addr</code></em>
+                    [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] ) [<span class="optional">key <em class="replaceable"><code>keyname</code></em></span>] ; ... }; </span>]
     [<span class="optional"> max-ixfr-log-size <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-journal-size <em class="replaceable"><code>size_spec</code></em>; </span>]
     [<span class="optional"> coresize <em class="replaceable"><code>size_spec</code></em> ; </span>]
@@ -8255,8 +8254,9 @@ view "external" {
     [<span class="optional"> dnssec-dnskey-kskonly <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> dnssec-loadkeys-interval <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> update-policy <em class="replaceable"><code>local</code></em> | { <em class="replaceable"><code>update_policy_rule</code></em> [<span class="optional">...</span>] }; </span>]
-    [<span class="optional"> also-notify { <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ;
-                  [<span class="optional"> <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; ... </span>] }; </span>]
+    [<span class="optional"> also-notify [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] { ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em>
+                              [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>]
+                              [<span class="optional">key <em class="replaceable"><code>key</code></em></span>] ) ; [<span class="optional">...</span>] }; </span>]
     [<span class="optional"> check-names (<code class="constant">warn</code>|<code class="constant">fail</code>|<code class="constant">ignore</code>) ; </span>]
     [<span class="optional"> check-mx (<code class="constant">warn</code>|<code class="constant">fail</code>|<code class="constant">ignore</code>) ; </span>]
     [<span class="optional"> check-wildcard <em class="replaceable"><code>yes_or_no</code></em>; </span>]
@@ -8316,7 +8316,6 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
     [<span class="optional"> try-tcp-refresh <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> also-notify [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] { ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em>
                               [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>]
-                              [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>]
                               [<span class="optional">key <em class="replaceable"><code>key</code></em></span>] ) ; [<span class="optional">...</span>] }; </span>]
     [<span class="optional"> check-names (<code class="constant">warn</code>|<code class="constant">fail</code>|<code class="constant">ignore</code>) ; </span>]
     [<span class="optional"> dialup <em class="replaceable"><code>dialup_option</code></em> ; </span>]

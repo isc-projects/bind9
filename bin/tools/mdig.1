@@ -1,4 +1,4 @@
-.\" Copyright (C) 2015 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2015, 2016 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -351,9 +351,13 @@ instead of the default, 2\&. Unlike
 \fI+tries\fR, this does not include the initial query\&.
 .RE
 .PP
-\fB+[no]subnet=addr/prefix\fR
+\fB+[no]subnet=addr[/netmask]\fR
 .RS 4
-Send an EDNS Client Subnet option with the specified IP address or network prefix\&.
+Send (don\*(Aqt send) an EDNS Client Subnet option with the specified IP address or network prefix\&.
+.sp
+\fBmdig +subnet=0\&.0\&.0\&.0/0\fR, or simply
+\fBmdig +subnet=0\fR
+for short, sends a Client Subnet option with an empty address and a source prefix length of zero, which signals a resolver that the EDNS Client Subnet option should not be used when resolving this query\&.
 .RE
 .PP
 \fB+timeout=T\fR
@@ -392,5 +396,5 @@ RFC1035\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2015 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2015, 2016 Internet Systems Consortium, Inc. ("ISC")
 .br
