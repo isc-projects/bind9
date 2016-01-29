@@ -53,8 +53,7 @@
       <listitem>
 	<para>
 	  Specific APL data could trigger an INSIST.  This flaw
-	  was discovered by Brian Mitchell and is disclosed in
-	  CVE-2015-8704. [RT #41396]
+	  is disclosed in CVE-2015-8704. [RT #41396]
 	</para>
       </listitem>
       <listitem>
@@ -62,8 +61,7 @@
 	  Certain errors that could be encountered when printing out
 	  or logging an OPT record containing a CLIENT-SUBNET option
 	  could be mishandled, resulting in an assertion failure.
-	  This flaw was discovered by Brian Mitchell and is disclosed
-	  in CVE-2015-8705. [RT #41397]
+	  This flaw is disclosed in CVE-2015-8705. [RT #41397]
 	</para>
       </listitem>
       <listitem>
