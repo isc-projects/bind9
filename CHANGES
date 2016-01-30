@@ -1,3 +1,6 @@
+4308.	[func]		Added operating system details to "named -V"
+			output. [RT #41452]
+
 4306.	[maint]		Added a PKCS#11 openssl patch supporting
 			version 1.0.2f [RT #38312]
 

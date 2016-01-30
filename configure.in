@@ -1,4 +1,4 @@
-# Copyright (C) 2004-2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2016  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -463,6 +463,25 @@ AC_TRY_COMPILE([],[long long i = 0; return (0);],
 	[AC_MSG_RESULT(no)
 		ISC_PLATFORM_HAVELONGLONG="#undef ISC_PLATFORM_HAVELONGLONG"])
 AC_SUBST(ISC_PLATFORM_HAVELONGLONG)
+
+#
+# check for uname library routine
+#
+AC_MSG_CHECKING(for uname)
+AC_TRY_COMPILE([
+#include <sys/utsname.h>
+#include <stdio.h>
+],
+[
+struct utsname uts;
+uname(&uts);
+printf("running on %s %s %s for %s\n",
+       uts.sysname, uts.release, uts.version, uts.machine);
+],
+	[AC_MSG_RESULT(yes)
+         AC_DEFINE(HAVE_UNAME)],
+        [AC_MSG_RESULT(no)
+         AC_MSG_WARN([uname is not correctly supported])])
 
 #
 # check for GCC noreturn attribute

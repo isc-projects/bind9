@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.107 2011/03/02 00:02:54 marka Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -24,6 +22,9 @@
 
 #include <sys/types.h>	/* dev_t FreeBSD 2.1 */
 #include <sys/stat.h>
+#ifdef HAVE_UNAME
+#include <sys/utsname.h>
+#endif
 
 #include <ctype.h>
 #include <errno.h>
@@ -965,4 +966,34 @@ ns_os_tzset(void) {
 #ifdef HAVE_TZSET
 	tzset();
 #endif
+}
+
+static char unamebuf[BUFSIZ];
+static char *unamep = NULL;
+
+static void
+getuname(void) {
+#ifdef HAVE_UNAME
+	struct utsname uts;
+
+	memset(&uts, 0, sizeof(uts));
+	if (uname(&uts) < 0) {
+		strcpy(unamebuf, "unknown architecture");
+		return;
+	}
+
+	snprintf(unamebuf, sizeof(unamebuf),
+		 "%s %s %s %s",
+		 uts.sysname, uts.machine, uts.release, uts.version);
+#else
+	strcpy(unamebuf, "unknown architecture");
+#endif
+	unamep = unamebuf;
+}
+
+char *
+ns_os_uname(void) {
+	if (unamep == NULL)
+		getuname();
+	return (unamep);
 }
