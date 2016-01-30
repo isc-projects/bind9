@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -631,6 +631,7 @@ parse_command_line(int argc, char *argv[]) {
 			printf("%s %s%s%s <id:%s>\n", ns_g_product, ns_g_version,
 			       (*ns_g_description != '\0') ? " " : "",
 			       ns_g_description, ns_g_srcid);
+			printf("running on %s\n", ns_os_uname());
 			printf("built by %s with %s\n",
 			       ns_g_builder, ns_g_configargs);
 #ifdef __clang__
@@ -989,6 +990,9 @@ setup(void) {
 		      ns_g_product, ns_g_version,
 		      *ns_g_description ? " " : "", ns_g_description,
 		      ns_g_srcid, saved_command_line);
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "running on %s", ns_os_uname());
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "built with %s", ns_g_configargs);
