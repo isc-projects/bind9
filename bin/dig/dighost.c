@@ -1104,7 +1104,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	} else if (netmask != 0xffffffff) {
 		int i;
 
-		for (i = 0; i < 3; i++) {
+		for (i = 0; i < 3 && strlen(buf) < sizeof(buf) - 2; i++) {
 			strlcat(buf, ".0", sizeof(buf));
 			if (inet_pton(AF_INET, buf, &in4) == 1) {
 				parsed = ISC_TRUE;
@@ -2504,23 +2504,18 @@ setup_lookup(dig_lookup_t *lookup) {
 		}
 
 		if (lookup->ecs_addr != NULL) {
-			isc_uint32_t prefixlen;
+			isc_uint8_t addr[16], family;
+			isc_uint32_t plen;
 			struct sockaddr *sa;
 			struct sockaddr_in *sin;
 			struct sockaddr_in6 *sin6;
-			const isc_uint8_t *addr;
 			size_t addrl;
-			isc_uint8_t mask;
 
 			sa = &lookup->ecs_addr->type.sa;
-			prefixlen = lookup->ecs_addr->length;
+			plen = lookup->ecs_addr->length;
 
 			/* Round up prefix len to a multiple of 8 */
-			addrl = (prefixlen + 7) / 8;
-			if (prefixlen % 8 == 0)
-				mask = 0xff;
-			else
-				mask = 0xffU << (8 - (prefixlen % 8));
+			addrl = (plen + 7) / 8;
 
 			INSIST(i < DNS_EDNSOPTIONS);
 			opts[i].code = DNS_OPT_CLIENT_SUBNET;
@@ -2528,40 +2523,32 @@ setup_lookup(dig_lookup_t *lookup) {
 			check_result(result, "isc_buffer_allocate");
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
 			if (sa->sa_family == AF_INET) {
+				family = 1;
 				sin = (struct sockaddr_in *) sa;
-				addr = (isc_uint8_t *) &sin->sin_addr;
-				/* family */
-				isc_buffer_putuint16(&b, 1);
-				/* source prefix-length */
-				isc_buffer_putuint8(&b, prefixlen);
-				/* scope prefix-length */
-				isc_buffer_putuint8(&b, 0);
-				/* address */
-				if (addrl > 0) {
-					isc_buffer_putmem(&b, addr,
-							  (unsigned)addrl - 1);
-					isc_buffer_putuint8(&b,
-							    (addr[addrl - 1] &
-							     mask));
-				}
+				memcpy(addr, &sin->sin_addr, 4);
+				if ((plen % 8) != 0)
+					addr[addrl-1] &=
+						~0 << (8 - (plen % 8));
 			} else {
+				family = 2;
 				sin6 = (struct sockaddr_in6 *) sa;
-				addr = (isc_uint8_t *) &sin6->sin6_addr;
-				/* family */
-				isc_buffer_putuint16(&b, 2);
-				/* source prefix-length */
-				isc_buffer_putuint8(&b, prefixlen);
-				/* scope prefix-length */
-				isc_buffer_putuint8(&b, 0);
-				/* address */
-				if (addrl > 0) {
-					isc_buffer_putmem(&b, addr,
-							  (unsigned)addrl - 1);
-					isc_buffer_putuint8(&b,
-							    (addr[addrl - 1] &
-							     mask));
-				}
+				memcpy(addr, &sin6->sin6_addr, 16);
 			}
+
+			/* Mask off last address byte */
+			if (addrl > 0 && (plen % 8) != 0)
+				addr[addrl - 1] &= ~0 << (8 - (plen % 8));
+
+			/* family */
+			isc_buffer_putuint16(&b, family);
+			/* source prefix-length */
+			isc_buffer_putuint8(&b, plen);
+			/* scope prefix-length */
+			isc_buffer_putuint8(&b, 0);
+			/* address */
+			if (addrl > 0)
+				isc_buffer_putmem(&b, addr,
+						  (unsigned)addrl);
 
 			opts[i].value = (isc_uint8_t *) ecsbuf;
 			i++;

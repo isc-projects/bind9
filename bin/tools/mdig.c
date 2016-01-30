@@ -584,24 +584,19 @@ sendquery(struct query *query, isc_task_t *task)
 		}
 
 		if (query->ecs_addr != NULL) {
-			isc_uint32_t prefixlen;
+			isc_uint8_t addr[16], family;
+			isc_uint32_t plen;
 			struct sockaddr *sa;
 			struct sockaddr_in *sin;
 			struct sockaddr_in6 *sin6;
-			const isc_uint8_t *addr;
 			size_t addrl;
-			isc_uint8_t mask;
 			isc_buffer_t b;
 
 			sa = &query->ecs_addr->type.sa;
-			prefixlen = query->ecs_addr->length;
+			plen = query->ecs_addr->length;
 
 			/* Round up prefix len to a multiple of 8 */
-			addrl = (prefixlen + 7) / 8;
-			if (prefixlen % 8 == 0)
-				mask = 0xff;
-			else
-				mask = 0xffU << (8 - (prefixlen % 8));
+			addrl = (plen + 7) / 8;
 
 			INSIST(i < DNS_EDNSOPTIONS);
 			opts[i].code = DNS_OPT_CLIENT_SUBNET;
@@ -609,40 +604,32 @@ sendquery(struct query *query, isc_task_t *task)
 			CHECK("isc_buffer_allocate", result);
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
 			if (sa->sa_family == AF_INET) {
+				family = 1;
 				sin = (struct sockaddr_in *) sa;
-				addr = (isc_uint8_t *) &sin->sin_addr;
-				/* family */
-				isc_buffer_putuint16(&b, 1);
-				/* source prefix-length */
-				isc_buffer_putuint8(&b, prefixlen);
-				/* scope prefix-length */
-				isc_buffer_putuint8(&b, 0);
-				/* address */
-				if (addrl > 0) {
-					isc_buffer_putmem(&b, addr,
-							  (unsigned)addrl - 1);
-					isc_buffer_putuint8(&b,
-							    (addr[addrl - 1] &
-							     mask));
-				}
+				memcpy(addr, &sin->sin_addr, 4);
+				if ((plen % 8) != 0)
+					addr[addrl-1] &=
+						~0 << (8 - (plen % 8));
 			} else {
+				family = 2;
 				sin6 = (struct sockaddr_in6 *) sa;
-				addr = (isc_uint8_t *) &sin6->sin6_addr;
-				/* family */
-				isc_buffer_putuint16(&b, 2);
-				/* source prefix-length */
-				isc_buffer_putuint8(&b, prefixlen);
-				/* scope prefix-length */
-				isc_buffer_putuint8(&b, 0);
-				/* address */
-				if (addrl > 0) {
-					isc_buffer_putmem(&b, addr,
-							  (unsigned)addrl - 1);
-					isc_buffer_putuint8(&b,
-							    (addr[addrl - 1] &
-							     mask));
-				}
+				memcpy(addr, &sin6->sin6_addr, 16);
 			}
+
+			/* Mask off last address byte */
+			if (addrl > 0 && (plen % 8) != 0)
+				addr[addrl - 1] &= ~0 << (8 - (plen % 8));
+
+			/* family */
+			isc_buffer_putuint16(&b, family);
+			/* source prefix-length */
+			isc_buffer_putuint8(&b, plen);
+			/* scope prefix-length */
+			isc_buffer_putuint8(&b, 0);
+			/* address */
+			if (addrl > 0)
+				isc_buffer_putmem(&b, addr,
+						  (unsigned)addrl);
 
 			opts[i].value = (isc_uint8_t *) ecsbuf;
 			i++;
@@ -913,6 +900,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 
 	slash = strchr(buf, '/');
 	if (slash != NULL) {
+		*slash = '\0';
 		result = isc_parse_uint32(&netmask, slash + 1, 10);
 		if (result != ISC_R_SUCCESS) {
 			fatal("invalid prefix length in '%s': %s\n",
@@ -938,7 +926,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	} else if (netmask != 0xffffffff) {
 		int i;
 
-		for (i = 0; i < 3; i++) {
+		for (i = 0; i < 3 && strlen(buf) < sizeof(buf) - 2; i++) {
 			strlcat(buf, ".0", sizeof(buf));
 			if (inet_pton(AF_INET, buf, &in4) == 1) {
 				parsed = ISC_TRUE;
@@ -1838,8 +1826,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 
 /*% Main processing routine for mdig */
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	struct query *query;
 	isc_sockaddr_t bind_any;
 	isc_log_t *lctx;
@@ -1867,6 +1854,7 @@ main(int argc, char *argv[])
 		fatal("could not find either IPv4 or IPv6");
 
 	mctx = NULL;
+isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	RUNCHECK(isc_mem_create(0, 0, &mctx));
 
 	lctx = NULL;
@@ -1947,11 +1935,16 @@ main(int argc, char *argv[])
 	while (query != NULL) {
 		struct query *next = ISC_LIST_NEXT(query, link);
 
-		if (query->ecs_addr != NULL)
+		if (query->ecs_addr != NULL) {
 			isc_mem_free(mctx, query->ecs_addr);
+			query->ecs_addr = NULL;
+		}
 		isc_mem_free(mctx, query);
 		query = next;
 	}
+
+	if (default_query.ecs_addr != NULL)
+		isc_mem_free(mctx, default_query.ecs_addr);
 
 	dns_view_detach(&view);
 

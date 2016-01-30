@@ -274,6 +274,17 @@ if [ -x ${DIG} ] ; then
   grep "CLIENT-SUBNET: ::/0/0" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +subnet with prefix lengths between byte boundaries ($n)"
+  ret=0
+  for p in 9 10 11 12 13 14 15; do
+    $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=10.53/$p A a.example > dig.out.test.$p.$n 2>&1 || ret=1
+    grep "FORMERR" < dig.out.test.$p.$n > /dev/null && ret=1
+    grep "CLIENT-SUBNET.*/$p/0" < dig.out.test.$p.$n > /dev/null || ret=1
+  done
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
   
   n=`expr $n + 1`
   echo "I:checking dig +sp works as an abbriviated form of split ($n)"
