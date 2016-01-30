@@ -2,8 +2,8 @@
 			output. [RT #41452]
 
 4307.	[bug]		"dig +subnet" could send incorrectly-formatted
-                        Client Subnet options if the prefix length was
-                        not divisble by 8. [RT #45178]
+			Client Subnet options if the prefix length was
+			not divisble by 8. [RT #45178]
 
 4306.	[maint]		Added a PKCS#11 openssl patch supporting
 			version 1.0.2f [RT #38312]
