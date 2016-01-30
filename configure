@@ -1,5 +1,5 @@
 #! /bin/sh
-# Copyright (C) 2004-2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2016  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1996-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -13240,6 +13240,43 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
+
+#
+# check for uname library routine
+#
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for uname" >&5
+$as_echo_n "checking for uname... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <sys/utsname.h>
+#include <stdio.h>
+
+int
+main ()
+{
+
+struct utsname uts;
+uname(&uts);
+printf("running on %s %s %s for %s\n",
+       uts.sysname, uts.release, uts.version, uts.machine);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+         $as_echo "#define HAVE_UNAME 1" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: uname is not correctly supported" >&5
+$as_echo "$as_me: WARNING: uname is not correctly supported" >&2;}
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 #
 # check for GCC noreturn attribute
