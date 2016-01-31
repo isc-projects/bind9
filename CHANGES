@@ -1,3 +1,6 @@
+4309.	[cleanup]	Remove the spurious "none" filename from log messages
+			when processing built-in configuration. [RT #41594]
+
 4308.	[func]		Added operating system details to "named -V"
 			output. [RT #41452]
 

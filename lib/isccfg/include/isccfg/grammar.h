@@ -167,6 +167,7 @@ struct cfg_obj {
 	isc_refcount_t  references;     /*%< reference counter */
 	const char *	file;
 	unsigned int    line;
+	cfg_parser_t *	pctx;
 };
 
 
