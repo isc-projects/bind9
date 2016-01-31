@@ -2283,7 +2283,7 @@
 ./bin/tools/named-journalprint.docbook		SGML	2009,2014,2015
 ./bin/tools/named-journalprint.html		HTML	DOCBOOK
 ./bin/tools/named-rrchecker.1			MAN	2013,2014,2015
-./bin/tools/named-rrchecker.c			C	2013,2015
+./bin/tools/named-rrchecker.c			C	2013,2015,2016
 ./bin/tools/named-rrchecker.docbook		SGML	2013,2014,2015
 ./bin/tools/named-rrchecker.html		HTML	2013,2014,2015
 ./bin/tools/nsec3hash.8				MAN	DOCBOOK
