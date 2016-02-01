@@ -591,7 +591,7 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 	REQUIRE((name1->attributes & DNS_NAMEATTR_ABSOLUTE) ==
 		(name2->attributes & DNS_NAMEATTR_ABSOLUTE));
 
-	if (name1 == name2) {
+	if (ISC_UNLIKELY(name1 == name2)) {
 		*orderp = 0;
 		*nlabelsp = name1->labels;
 		return (dns_namereln_equal);
@@ -614,7 +614,7 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 	offsets1 += l1;
 	offsets2 += l2;
 
-	while (l > 0) {
+	while (ISC_LIKELY(l > 0)) {
 		l--;
 		offsets1--;
 		offsets2--;
@@ -636,7 +636,7 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 			count = count2;
 
 		/* Loop unrolled for performance */
-		while (count > 3) {
+		while (ISC_LIKELY(count > 3)) {
 			chdiff = (int)maptolower[label1[0]] -
 				 (int)maptolower[label2[0]];
 			if (chdiff != 0) {
@@ -665,7 +665,7 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 			label1 += 4;
 			label2 += 4;
 		}
-		while (count-- > 0) {
+		while (ISC_LIKELY(count-- > 0)) {
 			chdiff = (int)maptolower[*label1++] -
 				 (int)maptolower[*label2++];
 			if (chdiff != 0) {
@@ -741,7 +741,7 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 	REQUIRE((name1->attributes & DNS_NAMEATTR_ABSOLUTE) ==
 		(name2->attributes & DNS_NAMEATTR_ABSOLUTE));
 
-	if (name1 == name2)
+	if (ISC_UNLIKELY(name1 == name2))
 		return (ISC_TRUE);
 
 	if (name1->length != name2->length)
@@ -754,7 +754,7 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 
 	label1 = name1->ndata;
 	label2 = name2->ndata;
-	while (l-- > 0) {
+	while (ISC_LIKELY(l-- > 0)) {
 		count = *label1++;
 		if (count != *label2++)
 			return (ISC_FALSE);
@@ -762,7 +762,7 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 		INSIST(count <= 63); /* no bitstring support */
 
 		/* Loop unrolled for performance */
-		while (count > 3) {
+		while (ISC_LIKELY(count > 3)) {
 			c = maptolower[label1[0]];
 			if (c != maptolower[label2[0]])
 				return (ISC_FALSE);
@@ -779,7 +779,7 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 			label1 += 4;
 			label2 += 4;
 		}
-		while (count-- > 0) {
+		while (ISC_LIKELY(count-- > 0)) {
 			c = maptolower[*label1++];
 			if (c != maptolower[*label2++])
 				return (ISC_FALSE);

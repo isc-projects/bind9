@@ -206,6 +206,17 @@
 #define INSERTAFTER(li, a, e, ln)	ISC_LIST_INSERTAFTER(li, a, e, ln)
 #define APPENDLIST(list1, list2, link)	ISC_LIST_APPENDLIST(list1, list2, link)
 
+/*%
+ * Performance
+ */
+#ifdef HAVE_BUILTIN_EXPECT
+#define ISC_LIKELY(x)            __builtin_expect(!!(x), 1)
+#define ISC_UNLIKELY(x)          __builtin_expect(!!(x), 0)
+#else
+#define ISC_LIKELY(x)            (x)
+#define ISC_UNLIKELY(x)          (x)
+#endif
+
 /*
  * Assertions
  */

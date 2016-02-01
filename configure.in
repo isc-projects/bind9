@@ -3893,6 +3893,23 @@ ISC_ARCH_DIR=$arch
 AC_SUBST(ISC_ARCH_DIR)
 
 #
+# Check for __builtin_expect
+#
+AC_MSG_CHECKING([compiler support for __builtin_expect])
+AC_TRY_LINK(, [
+        return (__builtin_expect(1, 1) ? 1 : 0);
+], [
+        have_builtin_expect=yes
+        AC_MSG_RESULT(yes)
+], [
+        have_builtin_expect=no
+        AC_MSG_RESULT(no)
+])
+if test "$have_builtin_expect" = "yes"; then
+        AC_DEFINE(HAVE_BUILTIN_EXPECT, 1, [Define to 1 if the compiler supports __builtin_expect.])
+fi
+
+#
 # Activate "rrset-order fixed" or not?
 #
 AC_ARG_ENABLE(fixed-rrset,

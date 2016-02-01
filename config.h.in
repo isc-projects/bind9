@@ -191,6 +191,9 @@ int sigwait(const unsigned int *set, int *sig);
    MSVC and with C++ compilers. */
 #undef FLEXIBLE_ARRAY_MEMBER
 
+/* Define to 1 if the compiler supports __builtin_expect. */
+#undef HAVE_BUILTIN_EXPECT
+
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
 
