@@ -523,6 +523,8 @@ Change Log
 	   [tuning]       Changes to built-in configuration defaults
 			  and constants to improve performance
 
+	   [performance]  Other changes to improve server performance
+
 	   [protocol]     Updates to the DNS protocol such as new
 			  RR types
 
