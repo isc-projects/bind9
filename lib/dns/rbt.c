@@ -414,7 +414,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	add_name = dns_fixedname_name(&fixedcopy);
 	dns_name_clone(name, add_name);
 
-	if (rbt->root == NULL) {
+	if (ISC_UNLIKELY(rbt->root == NULL)) {
 		result = create_node(rbt->mctx, add_name, &new_current);
 		if (result == ISC_R_SUCCESS) {
 			rbt->nodecount++;
@@ -655,12 +655,12 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 		}
 
-	} while (child != NULL);
+	} while (ISC_LIKELY(child != NULL));
 
-	if (result == ISC_R_SUCCESS)
+	if (ISC_LIKELY(result == ISC_R_SUCCESS))
 		result = create_node(rbt->mctx, add_name, &new_current);
 
-	if (result == ISC_R_SUCCESS) {
+	if (ISC_LIKELY(result == ISC_R_SUCCESS)) {
 #ifdef DNS_RBT_USEHASH
 		if (*root == NULL)
 			UPPERNODE(new_current) = current;
@@ -743,7 +743,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	} else
 		dns_rbtnodechain_reset(chain);
 
-	if (rbt->root == NULL)
+	if (ISC_UNLIKELY(rbt->root == NULL))
 		return (ISC_R_NOTFOUND);
 	else {
 		/*
@@ -775,7 +775,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	current = rbt->root;
 	current_root = rbt->root;
 
-	while (current != NULL) {
+	while (ISC_LIKELY(current != NULL)) {
 		NODENAME(current, &current_name);
 		compared = dns_name_fullcompare(search_name, &current_name,
 						&order, &common_labels);
@@ -831,13 +831,20 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			{
 				dns_name_t hnode_name;
 
-				if (hash != HASHVAL(hnode))
+				if (ISC_LIKELY(hash != HASHVAL(hnode)))
 					continue;
-				if (get_upper_node(hnode) != up_current)
+				/*
+				 * This checks that the hashed label
+				 * sequence being looked up is at the
+				 * same tree level, so that we don't
+				 * match a labelsequence from some other
+				 * subdomain.
+				 */
+				if (ISC_LIKELY(get_upper_node(hnode) != up_current))
 					continue;
 				dns_name_init(&hnode_name, NULL);
 				NODENAME(hnode, &hnode_name);
-				if (dns_name_equal(&hnode_name, &hash_name))
+				if (ISC_LIKELY(dns_name_equal(&hnode_name, &hash_name)))
 					break;
 			}
 

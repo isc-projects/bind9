@@ -18753,6 +18753,45 @@ ISC_ARCH_DIR=$arch
 
 
 #
+# Check for __builtin_expect
+#
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking compiler support for __builtin_expect" >&5
+$as_echo_n "checking compiler support for __builtin_expect... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+        return (__builtin_expect(1, 1) ? 1 : 0);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+
+        have_builtin_expect=yes
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+        have_builtin_expect=no
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+if test "$have_builtin_expect" = "yes"; then
+
+$as_echo "#define HAVE_BUILTIN_EXPECT 1" >>confdefs.h
+
+fi
+
+#
 # Activate "rrset-order fixed" or not?
 #
 # Check whether --enable-fixed-rrset was given.

@@ -488,7 +488,7 @@ isc_hash_function_reverse(const void *data, size_t length,
 
 	RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
 
-	hval = previous_hashp != NULL ? *previous_hashp : fnv_offset_basis;
+	hval = ISC_UNLIKELY(previous_hashp != NULL) ? *previous_hashp : fnv_offset_basis;
 
 	bp = (const unsigned char *) data;
 	be = bp + length;
