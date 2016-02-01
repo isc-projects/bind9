@@ -7,7 +7,7 @@
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013,2014,2015
 ./HISTORY					X	2010,2013
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2014,2016
 ./aclocal.m4					X	1999,2000,2001,2012,2014
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2013,2014
@@ -748,11 +748,11 @@
 ./bin/tests/system/addzone/ns2/default.nzf.in	X	2010
 ./bin/tests/system/addzone/ns2/inline.db	ZONE	2013
 ./bin/tests/system/addzone/ns2/named1.conf	CONF-C	2010
-./bin/tests/system/addzone/ns2/named2.conf	CONF-C	2010,2011
+./bin/tests/system/addzone/ns2/named2.conf	CONF-C	2010,2011,2016
 ./bin/tests/system/addzone/ns2/normal.db	ZONE	2010
 ./bin/tests/system/addzone/ns2/previous.db	ZONE	2010
 ./bin/tests/system/addzone/setup.sh		SH	2010,2012,2013,2014
-./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013,2015
+./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013,2015,2016
 ./bin/tests/system/allow_query/clean.sh		SH	2010,2012,2015
 ./bin/tests/system/allow_query/ns2/aclallow.db	ZONE	2010
 ./bin/tests/system/allow_query/ns2/acldisallow.db	ZONE	2010
@@ -3182,7 +3182,7 @@
 ./lib/dns/master.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
 ./lib/dns/masterdump.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
 ./lib/dns/message.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
-./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2010,2011,2012,2013,2014,2015
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011,2012,2013,2014,2015
 ./lib/dns/nsec3.c				C	2006,2008,2009,2010,2011,2012,2013,2014,2015
@@ -3531,7 +3531,7 @@
 ./lib/isc/error.c				C	1998,1999,2000,2001,2004,2005,2007,2015
 ./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005,2007,2014
 ./lib/isc/fsaccess.c				C	2000,2001,2004,2005,2007
-./lib/isc/hash.c				C	2003,2004,2005,2006,2007,2009,2013,2014,2015
+./lib/isc/hash.c				C	2003,2004,2005,2006,2007,2009,2013,2014,2015,2016
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2013,2014,2015
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005,2007,2008,2013,2014,2015
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006,2007,2009,2013,2014,2015
@@ -3545,7 +3545,7 @@
 ./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014,2015
 ./lib/isc/include/isc/aes.h			C	2014
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2013,2014,2015
-./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009
+./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2016
 ./lib/isc/include/isc/backtrace.h		C	2009
 ./lib/isc/include/isc/base32.h			C	2008,2014
 ./lib/isc/include/isc/base64.h			C	1999,2000,2001,2004,2005,2006,2007
@@ -3557,7 +3557,7 @@
 ./lib/isc/include/isc/counter.h			C	2014
 ./lib/isc/include/isc/crc64.h			C	2013
 ./lib/isc/include/isc/entropy.h			C	2000,2001,2004,2005,2006,2007,2009
-./lib/isc/include/isc/error.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2009
+./lib/isc/include/isc/error.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2009,2016
 ./lib/isc/include/isc/event.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2014
 ./lib/isc/include/isc/eventclass.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/include/isc/file.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012,2014,2015
@@ -3579,7 +3579,7 @@
 ./lib/isc/include/isc/lib.h			C	1999,2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/list.h			C	1997,1998,1999,2000,2001,2002,2004,2006,2007,2011,2012,2013
 ./lib/isc/include/isc/log.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2014
-./lib/isc/include/isc/magic.h			C	1999,2000,2001,2004,2005,2006,2007
+./lib/isc/include/isc/magic.h			C	1999,2000,2001,2004,2005,2006,2007,2016
 ./lib/isc/include/isc/md5.h			C	2000,2001,2004,2005,2006,2007,2009,2010,2014
 ./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2015
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004,2005,2007
@@ -3622,7 +3622,7 @@
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012,2013,2014
 ./lib/isc/include/isc/tm.h			C	2014
 ./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014
-./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2015
+./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2015,2016
 ./lib/isc/include/isc/version.h			C	2001,2004,2005,2006,2007
 ./lib/isc/include/isc/xml.h			C	2006,2007
 ./lib/isc/include/pk11/Makefile.in		MAKE	2014,2015
