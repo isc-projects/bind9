@@ -8616,7 +8616,7 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
  */
 isc_result_t
 ns_server_del_zone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
-	isc_result_t result;
+	isc_result_t result, tresult;
 	dns_zone_t *zone = NULL;
 	dns_view_t *view = NULL;
 	dns_db_t *dbp = NULL;
@@ -8643,6 +8643,16 @@ ns_server_del_zone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	 */
 	if (!dns_zone_getadded(zone)) {
 		result = ISC_R_NOPERM;
+		goto cleanup;
+	}
+
+	/* Is this a policy zone? */
+	if (dns_zone_get_rpz(zone)) {
+		TCHECK(putstr(text, "zone '"));
+		TCHECK(putstr(text, zonename));
+		TCHECK(putstr(text,
+			      "' cannot be deleted: response-policy zone."));
+		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
 
