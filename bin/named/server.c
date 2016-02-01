@@ -10211,6 +10211,16 @@ ns_server_delzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 
 	INSIST(zonename != NULL);
 
+	/* Is this a policy zone? */
+	if (dns_zone_get_rpz_num(zone) != DNS_RPZ_INVALID_NUM) {
+		TCHECK(putstr(text, "zone '"));
+		TCHECK(putstr(text, zonename));
+		TCHECK(putstr(text,
+			      "' cannot be deleted: response-policy zone."));
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	exclusive = ISC_TRUE;
