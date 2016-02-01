@@ -9214,7 +9214,7 @@ inuse(const char* file, isc_boolean_t first, isc_buffer_t *text) {
  */
 isc_result_t
 ns_server_del_zone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
-	isc_result_t result;
+	isc_result_t result, tresult;
 	dns_zone_t *zone = NULL;
 	dns_zone_t *raw = NULL;
 	dns_zone_t *mayberaw;
@@ -9247,10 +9247,6 @@ ns_server_del_zone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 		goto cleanup;
 	}
 
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	exclusive = ISC_TRUE;
-
 	/*
 	 * Was this zone originally added at runtime?
 	 * If not, we can't delete it now.
@@ -9260,7 +9256,21 @@ ns_server_del_zone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 		goto cleanup;
 	}
 
+	/* Is this a policy zone? */
+	if (dns_zone_get_rpz_num(zone) != DNS_RPZ_INVALID_NUM) {
+		TCHECK(putstr(text, "zone '"));
+		TCHECK(putstr(text, zonename));
+		TCHECK(putstr(text,
+			      "' cannot be deleted: response-policy zone."));
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+
 	znamelen = strlen(zonename);
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	exclusive = ISC_TRUE;
 
 	/* Dig out configuration for this zone */
 	view = dns_zone_getview(zone);
@@ -9392,8 +9402,6 @@ ns_server_del_zone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	dns_zone_getraw(zone, &raw);
 	mayberaw = (raw != NULL) ? raw : zone;
 	if (cleanup) {
-		isc_result_t tresult;
-
 		file = dns_zone_getfile(mayberaw);
 		if (isc_file_exists(file))
 			isc_file_remove(file);
