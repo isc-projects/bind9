@@ -83,7 +83,7 @@ isc_assertion_typetotext(isc_assertiontype_t type);
 
 #if ISC_CHECK_REQUIRE != 0
 #define ISC_REQUIRE(cond) \
-	((void) ((cond) || \
+	((void) (ISC_LIKELY(cond) || \
 		 ((isc_assertion_failed)(__FILE__, __LINE__, \
 					 isc_assertiontype_require, \
 					 #cond), 0)))
@@ -93,7 +93,7 @@ isc_assertion_typetotext(isc_assertiontype_t type);
 
 #if ISC_CHECK_ENSURE != 0
 #define ISC_ENSURE(cond) \
-	((void) ((cond) || \
+	((void) (ISC_LIKELY(cond) || \
 		 ((isc_assertion_failed)(__FILE__, __LINE__, \
 					 isc_assertiontype_ensure, \
 					 #cond), 0)))
@@ -103,7 +103,7 @@ isc_assertion_typetotext(isc_assertiontype_t type);
 
 #if ISC_CHECK_INSIST != 0
 #define ISC_INSIST(cond) \
-	((void) ((cond) || \
+	((void) (ISC_LIKELY(cond) || \
 		 ((isc_assertion_failed)(__FILE__, __LINE__, \
 					 isc_assertiontype_insist, \
 					 #cond), 0)))
@@ -113,7 +113,7 @@ isc_assertion_typetotext(isc_assertiontype_t type);
 
 #if ISC_CHECK_INVARIANT != 0
 #define ISC_INVARIANT(cond) \
-	((void) ((cond) || \
+	((void) (ISC_LIKELY(cond) || \
 		 ((isc_assertion_failed)(__FILE__, __LINE__, \
 					 isc_assertiontype_invariant, \
 					 #cond), 0)))

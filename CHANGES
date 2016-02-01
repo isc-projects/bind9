@@ -1,3 +1,6 @@
+4310.	[performance]	Use __builtin_expect() where available to annotate
+			conditions with known behavior. [RT #41411]
+
 4308.	[func]		Added operating system details to "named -V"
 			output. [RT #41452]
 
