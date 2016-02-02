@@ -38,10 +38,10 @@ if [ $ret != 0 ]; then echo "I:failed $reason"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I:check +ednsflags=0x80 sets flags to 0080 ($n)"
+echo "I:check +ednsflags=0x80 sets flags to 0x0080 ($n)"
 ret=0 reason=
 $DIG -p 5300 @10.53.0.1 +qr +norec +ednsflags=0x80 soa $zone > dig.out$n
-grep "MBZ: 0080" dig.out$n > /dev/null || { ret=1; reason="flags"; }
+grep "MBZ: 0x0080," dig.out$n > /dev/null || { ret=1; reason="flags"; }
 if [ $ret != 0 ]; then echo "I:failed $reason"; fi
 status=`expr $status + $ret`
 
