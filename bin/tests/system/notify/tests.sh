@@ -67,12 +67,18 @@ awk '$1 > 5 { exit(1) }' log.out || ret=1
 [ $ret = 0 ] || echo "I:failed"
 status=`expr $ret + $status`
 
-echo "I:reloading with example2 using HUP and waiting 45 seconds"
+echo "I:reloading with example2 using HUP and waiting up to 45 seconds"
 sleep 1 # make sure filesystem time stamp is newer for reload.
 rm -f ns2/example.db
 cp -f ns2/example2.db ns2/example.db
 kill -HUP `cat ns2/named.pid`
-sleep 45
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    grep 'notify from 10.53.0.2#[0-9][0-9]*: serial 2$' ns3/named.run > /dev/null && break
+    try=`expr $try + 1`
+done
 
 n=`expr $n + 1`
 echo "I:checking notify message was logged ($n)"
@@ -107,7 +113,7 @@ $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 [ $ret = 0 ] || echo "I:failed"
 status=`expr $ret + $status`
 
-echo "I:stopping master and restarting with example4 then waiting 45 seconds"
+echo "I:stopping master and restarting with example4 then waiting up to 45 seconds"
 $PERL $SYSTEMTESTTOP/stop.pl . ns2
 
 rm -f ns2/example.db
@@ -115,7 +121,13 @@ cp -f ns2/example4.db ns2/example.db
 
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
 
-sleep 45
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    grep 'notify from 10.53.0.2#[0-9][0-9]*: serial 4$' ns3/named.run > /dev/null && break
+    try=`expr $try + 1`
+done
 
 n=`expr $n + 1`
 echo "I:checking notify message was logged ($n)"
