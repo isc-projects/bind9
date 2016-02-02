@@ -1,3 +1,6 @@
+4312.	[bug]		dig's unknown dns and edns flags (MBZ value) logging
+			was not consistent. [RT #41600]
+
 4311.	[bug]		Prevent "rndc delzone" from being used on
 			response-policy zones. [RT #41593]
 

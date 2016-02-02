@@ -3310,7 +3310,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		mbz &= ~DNS_MESSAGEEXTFLAG_DO;		/* Known Flags. */
 		if (mbz != 0) {
 			ADD_STRING(target, "; MBZ: ");
-			snprintf(buf, sizeof(buf), "%.4x ", mbz);
+			snprintf(buf, sizeof(buf), "0x%.4x", mbz);
 			ADD_STRING(target, buf);
 			ADD_STRING(target, ", udp: ");
 		} else
