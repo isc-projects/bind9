@@ -252,7 +252,8 @@ status=`expr $status + $ret`
 echo "I:attempting to delete a policy zone ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone 'policy in internal' 2> rndc.out.ns2.$n >&1
-grep 'cannot be deleted' rndc.out.ns2.$n > /dev/null || ret=1
+grep 'cannot be deleted' rndc.out.ns2.$n > /dev/null ||
+grep 'permission denied' rndc.out.ns2.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
