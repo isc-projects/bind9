@@ -1,3 +1,6 @@
+4314.	[contrib]	Added 'dnsperf-2.1.0.0-1', a set of performance
+			testing tools provided by Nominum, Inc.
+
 4313.	[bug]		Handle ns_client_replace failures in test mode.
 			[RT #41190]
 
