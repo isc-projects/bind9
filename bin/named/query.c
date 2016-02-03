@@ -8489,8 +8489,16 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Test only.
 	 */
-	if (ns_g_clienttest && (client->attributes & NS_CLIENTATTR_TCP) == 0)
-		RUNTIME_CHECK(ns_client_replace(client) == ISC_R_SUCCESS);
+	if (ns_g_clienttest && !TCP(client)) {
+		result = ns_client_replace(client);
+		if (result == ISC_R_SHUTTINGDOWN) {
+			ns_client_next(client, result);
+			return;
+		} else if (result != ISC_R_SUCCESS) {
+			query_error(client, result, __LINE__);
+			return;
+		}
+	}
 
 	/*
 	 * Ensure that appropriate cleanups occur.
