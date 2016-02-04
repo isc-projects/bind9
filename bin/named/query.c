@@ -3247,7 +3247,8 @@ query_addbestns(ns_client_t *client) {
 		goto cleanup;
 
 	/*
-	 * If the answer is secure only add NS records if they are secure		 * when the client may be looking for AD in the response.
+	 * If the answer is secure only add NS records if they are secure
+	 * when the client may be looking for AD in the response.
 	 */
 	if (SECURE(client) && (WANTDNSSEC(client) || WANTAD(client)) &&
 	    ((rdataset->trust != dns_trust_secure) ||
