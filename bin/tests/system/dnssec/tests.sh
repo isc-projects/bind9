@@ -3227,18 +3227,22 @@ $KEYGEN -q -3 remove > /dev/null
 echo > remove.db.signed
 $SIGNER -S -o remove -D -f remove.db.signed remove.db.in > signer.out.1.$n 2>&1
 )
-grep -w MX signer/remove.db.signed > /dev/null || { ret=1 ; cp signer/remove.db.signed.pre$n; }
+grep -w MX signer/remove.db.signed > /dev/null || {
+	ret=1 ; cp signer/remove.db.signed signer/remove.db.signed.pre$n;
+}
 # re-generate signed zone without MX and AAAA records at apex.
 (
 cd signer
 $SIGNER -S -o remove -D -f remove.db.signed remove2.db.in > signer.out.2.$n 2>&1
 )
-grep -w MX signer/remove.db.signed > /dev/null &&  { ret=1 ; cp signer/remove.db.signed.post$n; }
+grep -w MX signer/remove.db.signed > /dev/null &&  {
+	ret=1 ; cp signer/remove.db.signed signer/remove.db.signed.post$n;
+}
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check that RRSIGs are correctly removed from apex when RRset is removed  NSEC3k ($n)"
+echo "I:check that RRSIGs are correctly removed from apex when RRset is removed  NSEC3 ($n)"
 ret=0
 # generate signed zone with MX and AAAA records at apex.
 (
@@ -3246,13 +3250,17 @@ cd signer
 echo > remove.db.signed
 $SIGNER -3 - -S -o remove -D -f remove.db.signed remove.db.in > signer.out.1.$n 2>&1
 )
-grep -w MX signer/remove.db.signed > /dev/null || { ret=1 ; cp signer/remove.db.signed.pre$n; }
+grep -w MX signer/remove.db.signed > /dev/null || {
+	ret=1 ; cp signer/remove.db.signed signer/remove.db.signed.pre$n;
+}
 # re-generate signed zone without MX and AAAA records at apex.
 (
 cd signer
 $SIGNER -3 - -S -o remove -D -f remove.db.signed remove2.db.in > signer.out.2.$n 2>&1
 )
-grep -w MX signer/remove.db.signed > /dev/null &&  { ret=1 ; cp signer/remove.db.signed.post$n; }
+grep -w MX signer/remove.db.signed > /dev/null &&  {
+	ret=1 ; cp signer/remove.db.signed signer/remove.db.signed.post$n;
+}
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
