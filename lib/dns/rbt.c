@@ -1129,6 +1129,37 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	/*
+	 * Dear future BIND developer,
+	 *
+	 * After you have tried attempting to optimize this routine by
+	 * using the hashtable and have realized your folly, please
+	 * append another cross ("X") below as a warning to the next
+	 * future BIND developer:
+	 *
+	 * Number of victim developers: X
+	 *
+	 * I wish the past developer had included such a notice.
+	 *
+	 * Long form: Unlike dns_rbt_findnode(), this function does not
+	 * lend itself to be optimized using the hashtable:
+	 *
+	 * 1. In the subtree where the insertion occurs, this function
+	 * needs to have the insertion point and the order where the
+	 * lookup terminated (i.e., at the insertion point where left or
+	 * right child is NULL). This cannot be determined from the
+	 * hashtable, so at least in that subtree, a BST O(log N) lookup
+	 * is necessary.
+	 *
+	 * 2. Our RBT nodes contain not only single labels but label
+	 * sequences to optimize space usage. So at every level, we have
+	 * to look for a match in the hashtable for all superdomains in
+	 * the rest of the name we're searching. This is an O(N)
+	 * operation at least, here N being the label size of name, each
+	 * of which is a hashtable lookup involving dns_name_equal()
+	 * comparisons.
+	 */
+
+	/*
 	 * Create a copy of the name so the original name structure is
 	 * not modified.
 	 */
@@ -1437,7 +1468,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		 unsigned int options, dns_rbtfindcallback_t callback,
 		 void *callback_arg)
 {
-	dns_rbtnode_t *current, *last_compared, *current_root;
+	dns_rbtnode_t *current, *last_compared;
 	dns_rbtnodechain_t localchain;
 	dns_name_t *search_name, current_name, *callback_name;
 	dns_fixedname_t fixedcallbackname, fixedsearchname;
@@ -1494,7 +1525,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 
 	saved_result = ISC_R_SUCCESS;
 	current = rbt->root;
-	current_root = rbt->root;
 
 	while (ISC_LIKELY(current != NULL)) {
 		NODENAME(current, &current_name);
@@ -1531,22 +1561,23 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			unsigned int hash;
 
 			/*
-			 * The case of current != current_root, that
-			 * means a left or right pointer was followed,
-			 * only happens when the algorithm fell through to
-			 * the traditional binary search because of a
-			 * bitstring label.  Since we dropped the bitstring
-			 * support, this should not happen.
+			 * The case of current not being a subtree root,
+			 * that means a left or right pointer was
+			 * followed, only happens when the algorithm
+			 * fell through to the traditional binary search
+			 * because of a bitstring label.  Since we
+			 * dropped the bitstring support, this should
+			 * not happen.
 			 */
-			INSIST(current == current_root);
+			INSIST(IS_ROOT(current));
 
 			nlabels = dns_name_countlabels(search_name);
 
 			/*
-			 * current_root is the root of the current level, so
+			 * current is the root of the current level, so
 			 * its parent is the same as its "up" pointer.
 			 */
-			up_current = PARENT(current_root);
+			up_current = PARENT(current);
 			dns_name_init(&hash_name, NULL);
 
 		hashagain:
@@ -1714,8 +1745,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * Finally, head to the next tree level.
 				 */
 				current = DOWN(current);
-				current_root = current;
-
 			} else {
 				/*
 				 * Though there are labels in common, the
