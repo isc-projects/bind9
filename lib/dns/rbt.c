@@ -1119,7 +1119,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_offsets_t current_offsets;
 	dns_namereln_t compared;
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_rbtnodechain_t chain;
+	unsigned int level_count;
 	unsigned int common_labels;
 	unsigned int nlabels, hlabels;
 	int order;
@@ -1182,7 +1182,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 		return (result);
 	}
 
-	dns_rbtnodechain_init(&chain, rbt->mctx);
+	level_count = 0;
 
 	dns_fixedname_init(&fixedprefix);
 	dns_fixedname_init(&fixedsuffix);
@@ -1261,8 +1261,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 				parent = NULL;
 				child = DOWN(current);
-				ADD_LEVEL(&chain, current);
 
+				INSIST(level_count < DNS_RBT_LEVELBLOCK);
+				level_count++;
 			} else {
 				/*
 				 * The number of labels in common is fewer
@@ -1281,17 +1282,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * levels allowed by DNSSEC.
 				 *
 				 * XXXDCL need a better error result?
-				 *
-				 * XXXDCL Since chain ancestors were removed,
-				 * no longer used by addonlevel(),
-				 * this is the only real use of chains in the
-				 * function.  It could be done instead with
-				 * a simple integer variable, but I am pressed
-				 * for time.
 				 */
-				if (chain.level_count ==
-				    (sizeof(chain.levels) /
-				     sizeof(*chain.levels))) {
+				if (level_count >= DNS_RBT_LEVELBLOCK) {
 					result = ISC_R_NOSPACE;
 					break;
 				}
@@ -1358,7 +1350,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				UPPERNODE(new_current) = UPPERNODE(current);
 				UPPERNODE(current) = new_current;
 #endif /* DNS_RBT_USEHASH */
-				ADD_LEVEL(&chain, new_current);
+
+				INSIST(level_count < DNS_RBT_LEVELBLOCK);
+				level_count++;
 
 				LEFT(current) = NULL;
 				RIGHT(current) = NULL;
