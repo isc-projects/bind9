@@ -4419,8 +4419,15 @@ get_viewinfo(const cfg_obj_t *vconfig, const char **namep,
 
 		viewname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
 		classobj = cfg_tuple_get(vconfig, "class");
-		result = ns_config_getclass(classobj, dns_rdataclass_in,
-					    &viewclass);
+		CHECK(ns_config_getclass(classobj, dns_rdataclass_in,
+					 &viewclass));
+		if (dns_rdataclass_ismeta(viewclass)) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "view '%s': class must not be meta",
+				      viewname);
+			CHECK(ISC_R_FAILURE);
+		}
 	} else {
 		viewname = "_default";
 		viewclass = dns_rdataclass_in;
@@ -4429,6 +4436,7 @@ get_viewinfo(const cfg_obj_t *vconfig, const char **namep,
 	*namep = viewname;
 	*classp = viewclass;
 
+cleanup:
 	return (result);
 }
 

@@ -199,6 +199,30 @@ $CHECKCONF -z altdlz.conf > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
+echo "I: checking that named-checkconf -z fails on view with ANY class"
+ret=0
+$CHECKCONF -z view-class-any1.conf > /dev/null 2>&1 && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo "I: checking that named-checkconf -z fails on view with CLASS255 class"
+ret=0
+$CHECKCONF -z view-class-any2.conf > /dev/null 2>&1 && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo "I: checking that named-checkconf -z passes on view with IN class"
+ret=0
+$CHECKCONF -z view-class-in1.conf > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo "I: checking that named-checkconf -z passes on view with CLASS1 class"
+ret=0
+$CHECKCONF -z view-class-in2.conf > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
 echo "I: check that check-names fails as configured"
 ret=0
 $CHECKCONF -z check-names-fail.conf > checkconf.out1 2>&1 && ret=1
