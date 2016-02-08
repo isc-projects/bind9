@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <isc/hash.h>
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
 #include <isc/md5.h>
@@ -1783,10 +1784,111 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 	}
 }
 
+ATF_TC(isc_hash_function);
+ATF_TC_HEAD(isc_hash_function, tc) {
+	atf_tc_set_md_var(tc, "descr", "Hash function test");
+}
+ATF_TC_BODY(isc_hash_function, tc) {
+	unsigned int h1;
+	unsigned int h2;
+
+	UNUSED(tc);
+
+	/* Incremental hashing */
+
+	h1 = isc_hash_function(NULL, 0, ISC_TRUE, NULL);
+	h1 = isc_hash_function("This ", 5, ISC_TRUE, &h1);
+	h1 = isc_hash_function("is ", 3, ISC_TRUE, &h1);
+	h1 = isc_hash_function("a long test", 12, ISC_TRUE, &h1);
+
+	h2 = isc_hash_function("This is a long test", 20,
+			       ISC_TRUE, NULL);
+
+	ATF_CHECK_EQ(h1, h2);
+
+	/* Immutability of hash function */
+	h1 = isc_hash_function(NULL, 0, ISC_TRUE, NULL);
+	h2 = isc_hash_function(NULL, 0, ISC_TRUE, NULL);
+
+	ATF_CHECK_EQ(h1, h2);
+
+	/* Hash function characteristics */
+	h1 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
+	h2 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
+
+	ATF_CHECK_EQ(h1, h2);
+
+	/* Case */
+	h1 = isc_hash_function("Hello world", 12, ISC_FALSE, NULL);
+	h2 = isc_hash_function("heLLo WorLd", 12, ISC_FALSE, NULL);
+
+	ATF_CHECK_EQ(h1, h2);
+
+	/* Unequal */
+	h1 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
+	h2 = isc_hash_function("heLLo WorLd", 12, ISC_TRUE, NULL);
+
+	ATF_CHECK(h1 != h2);
+}
+
+
+ATF_TC(isc_hash_function_reverse);
+ATF_TC_HEAD(isc_hash_function_reverse, tc) {
+	atf_tc_set_md_var(tc, "descr", "Reverse hash function test");
+}
+ATF_TC_BODY(isc_hash_function_reverse, tc) {
+	unsigned int h1;
+	unsigned int h2;
+
+	UNUSED(tc);
+
+	/* Incremental hashing */
+
+	h1 = isc_hash_function_reverse(NULL, 0, ISC_TRUE, NULL);
+	h1 = isc_hash_function_reverse("\000", 1, ISC_TRUE, &h1);
+	h1 = isc_hash_function_reverse("\003org", 4, ISC_TRUE, &h1);
+	h1 = isc_hash_function_reverse("\007example", 8, ISC_TRUE, &h1);
+
+	h2 = isc_hash_function_reverse("\007example\003org\000", 13,
+				       ISC_TRUE, NULL);
+
+	ATF_CHECK_EQ(h1, h2);
+
+	/* Immutability of hash function */
+	h1 = isc_hash_function_reverse(NULL, 0, ISC_TRUE, NULL);
+	h2 = isc_hash_function_reverse(NULL, 0, ISC_TRUE, NULL);
+
+	ATF_CHECK_EQ(h1, h2);
+
+	/* Hash function characteristics */
+	h1 = isc_hash_function_reverse("Hello world", 12, ISC_TRUE, NULL);
+	h2 = isc_hash_function_reverse("Hello world", 12, ISC_TRUE, NULL);
+
+	ATF_CHECK_EQ(h1, h2);
+
+	/* Case */
+	h1 = isc_hash_function_reverse("Hello world", 12, ISC_FALSE, NULL);
+	h2 = isc_hash_function_reverse("heLLo WorLd", 12, ISC_FALSE, NULL);
+
+	ATF_CHECK_EQ(h1, h2);
+
+	/* Unequal */
+	h1 = isc_hash_function_reverse("Hello world", 12, ISC_TRUE, NULL);
+	h2 = isc_hash_function_reverse("heLLo WorLd", 12, ISC_TRUE, NULL);
+
+	ATF_CHECK(h1 != h2);
+}
+
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
+	/*
+	 * Tests of hash functions, including isc_hash and the
+	 * various cryptographic hashes.
+	 */
+	ATF_TP_ADD_TC(tp, isc_hash_function);
+	ATF_TP_ADD_TC(tp, isc_hash_function_reverse);
 	ATF_TP_ADD_TC(tp, isc_hmacmd5);
 	ATF_TP_ADD_TC(tp, isc_hmacsha1);
 	ATF_TP_ADD_TC(tp, isc_hmacsha224);
@@ -1801,4 +1903,3 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_sha512);
 	return (atf_no_error());
 }
-
