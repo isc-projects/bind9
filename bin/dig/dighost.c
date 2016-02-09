@@ -806,6 +806,7 @@ make_empty_lookup(void) {
 	looknew->aaonly = ISC_FALSE;
 	looknew->adflag = ISC_FALSE;
 	looknew->cdflag = ISC_FALSE;
+	looknew->print_unknown_format = ISC_FALSE;
 	looknew->zflag = ISC_FALSE;
 	looknew->ns_search_only = ISC_FALSE;
 	looknew->origin = NULL;
@@ -909,6 +910,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->aaonly = lookold->aaonly;
 	looknew->adflag = lookold->adflag;
 	looknew->cdflag = lookold->cdflag;
+	looknew->print_unknown_format = lookold->print_unknown_format;
 	looknew->zflag = lookold->zflag;
 	looknew->ns_search_only = lookold->ns_search_only;
 	looknew->tcp_mode = lookold->tcp_mode;

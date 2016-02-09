@@ -231,6 +231,7 @@ help(void) {
 "                 +tries=###          (Set number of UDP attempts) [3]\n"
 "                 +[no]ttlid          (Control display of ttls in records)\n"
 "                 +[no]ttlunits       (Display TTLs in human-readable units)\n"
+"                 +[no]unknownformat  (Print RDATA in RFC 3597 \"unknown\" format)\n"
 "                 +[no]vc             (TCP mode (+[no]tcp))\n"
 "                 +[no]zflag          (Set Z flag in query)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
@@ -334,6 +335,8 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	if (nocrypto)
 		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
+	if (query->lookup->print_unknown_format)
+		styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
 	result = dns_rdata_tofmttext(rdata, NULL, styleflags, 0,
 				     splitwidth, " ", buf);
 	if (result == ISC_R_NOSPACE)
@@ -478,6 +481,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
 	if (query->lookup->comments)
 		styleflags |= DNS_STYLEFLAG_COMMENT;
+	if (query->lookup->print_unknown_format)
+		styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
 	/* Turn on rrcomments if explicitly enabled */
 	if (rrcomments > 0)
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
@@ -1411,6 +1416,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		default:
 			goto invalid_option;
 		}
+		break;
+	case 'u':
+		FULLCHECK("unknownformat");
+		lookup->print_unknown_format = state;
 		break;
 	case 'v':
 		FULLCHECK("vc");

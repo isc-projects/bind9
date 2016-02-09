@@ -755,6 +755,7 @@ dns_rdataclass_format
 dns_rdataclass_fromtext
 dns_rdataclass_ismeta
 dns_rdataclass_totext
+dns_rdataclass_tounknowntext
 dns_rdatalist_fromrdataset
 dns_rdatalist_init
 dns_rdatalist_tordataset
@@ -813,6 +814,7 @@ dns_rdatatype_iszonecutauth
 dns_rdatatype_notquestion
 dns_rdatatype_questiononly
 dns_rdatatype_totext
+dns_rdatatype_tounknowntext
 dns_rdatatypestats_create
 dns_rdatatypestats_dump
 dns_rdatatypestats_increment

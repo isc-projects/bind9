@@ -114,7 +114,8 @@ static isc_boolean_t
 	nocrypto = ISC_FALSE,
 	nottl = ISC_FALSE,
 	multiline = ISC_FALSE,
-	short_form = ISC_FALSE;
+	short_form = ISC_FALSE,
+	print_unknown_format = ISC_FALSE;
 
 static isc_boolean_t
 	resolve_trace = ISC_FALSE,
@@ -184,6 +185,7 @@ usage(void) {
 "                 +[no]comments       (Control display of comment lines)\n"
 "                 +[no]rrcomments     (Control display of per-record "
 				       "comments)\n"
+"                 +[no]unknownformat  (Print RDATA in RFC 3597 \"unknown\" format)\n"
 "                 +[no]short          (Short form answer)\n"
 "                 +[no]split=##       (Split hex/base64 fields into chunks)\n"
 "                 +[no]tcp            (TCP mode)\n"
@@ -508,6 +510,8 @@ setup_style(dns_master_style_t **stylep) {
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
 	if (showcomments)
 		styleflags |= DNS_STYLEFLAG_COMMENT;
+	if (print_unknown_format)
+		styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
 	if (rrcomments)
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	if (nottl)
@@ -1131,6 +1135,10 @@ plus_option(char *option) {
 		default:
 			goto invalid_option;
 		}
+		break;
+	case 'u':
+		FULLCHECK("unknownformat");
+		print_unknown_format = state;
 		break;
 	case 't':
 		switch (cmd[1]) {

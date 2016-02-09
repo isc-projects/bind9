@@ -34,6 +34,14 @@ if [ -x ${DIG} ] ; then
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +split=4 -t sshfp foo.example > dig.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +unknownformat works ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 +unknownformat a a.example > dig.out.test$n || ret=1
+  grep "CLASS1[[:space:]][[:space:]]*TYPE1[[:space:]][[:space:]]*\\\\# 4 0A000001" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi 
   status=`expr $status + $ret`
 
@@ -335,6 +343,14 @@ if [ -x ${DELV} ] ; then
   $DELV $DELVOPTS @10.53.0.3 +split=4 -t sshfp foo.example > delv.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < delv.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi 
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking delv +unknownformat works ($n)"
+  ret=0
+  $DELV $DELVOPTS @10.53.0.3 +unknownformat a a.example > delv.out.test$n || ret=1
+  grep "CLASS1[[:space:]][[:space:]]*TYPE1[[:space:]][[:space:]]*\\\\# 4 0A000001" < delv.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`

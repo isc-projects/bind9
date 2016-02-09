@@ -49,6 +49,19 @@ usage(void) {
 	fprintf(stderr, "\t-P: list the supported private type names\n");
 	fprintf(stderr, "\t-T: list the supported standard type names\n");
 	fprintf(stderr, "\t-u: print the record in unknown record format\n");
+	exit(0);
+}
+
+static void
+fatal(const char *format, ...) {
+	va_list args;
+
+	fprintf(stderr, "named-rrchecker: ");
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+	fputc('\n', stderr);
+	exit(1);
 }
 
 int
@@ -75,15 +88,6 @@ main(int argc, char *argv[]) {
 
 	while ((c = isc_commandline_parse(argc, argv, "ho:puCPT")) != -1) {
 		switch (c) {
-		case '?':
-		case 'h':
-			if (isc_commandline_option != '?' &&
-			    isc_commandline_option != 'h')
-				fprintf(stderr, "%s: invalid argument -%c\n",
-					argv[0], isc_commandline_option);
-			usage();
-			exit(1);
-
 		case 'o':
 			origin = isc_commandline_argument;
 			break;
@@ -127,6 +131,16 @@ main(int argc, char *argv[]) {
 			}
 			doexit = ISC_TRUE;
 			break;
+
+		case '?':
+		case 'h':
+			/* Does not return. */
+			usage();
+
+		default:
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				argv[0], isc_commandline_option);
+			exit(1);
 		}
 	}
 	if (doexit)
@@ -153,10 +167,8 @@ main(int argc, char *argv[]) {
 		name = dns_fixedname_name(&fixed);
 		result = dns_name_fromstring(name, origin, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "dns_name_fromstring: %s\n",
-				dns_result_totext(result));
-			fflush(stderr);
-			exit(1);
+			fatal("dns_name_fromstring: %s",
+			      dns_result_totext(result));
 		}
 	}
 
@@ -167,8 +179,7 @@ main(int argc, char *argv[]) {
 		if (token.type == isc_tokentype_eol)
 			continue;
 		if (once) {
-			fprintf(stderr, "extra data\n");
-			exit(1);
+			fatal("extra data");
 		}
 		/*
 		 * Get class.
@@ -176,37 +187,27 @@ main(int argc, char *argv[]) {
 		if (token.type == isc_tokentype_number) {
 			rdclass = (dns_rdataclass_t) token.value.as_ulong;
 			if (token.value.as_ulong > 0xffffu) {
-				fprintf(stderr, "class value too big %lu\n",
-					token.value.as_ulong);
-				fflush(stderr);
-				exit(1);
+				fatal("class value too big %lu",
+				      token.value.as_ulong);
 			}
 			if (dns_rdataclass_ismeta(rdclass)) {
-				fprintf(stderr, "class %lu is a meta value\n",
-					token.value.as_ulong);
-				fflush(stderr);
-				exit(1);
+				fatal("class %lu is a meta value",
+				      token.value.as_ulong);
 			}
 		} else if (token.type == isc_tokentype_string) {
 			result = dns_rdataclass_fromtext(&rdclass,
 					&token.value.as_textregion);
 			if (result != ISC_R_SUCCESS) {
-				fprintf(stderr, "dns_rdataclass_fromtext: %s\n",
-					dns_result_totext(result));
-				fflush(stderr);
-				exit(1);
+				fatal("dns_rdataclass_fromtext: %s",
+				      dns_result_totext(result));
 			}
 			if (dns_rdataclass_ismeta(rdclass)) {
-				fprintf(stderr,
-					"class %.*s(%d) is a meta value\n",
-					(int)token.value.as_textregion.length,
-					token.value.as_textregion.base, rdclass);
-				fflush(stderr);
-				exit(1);
+				fatal("class %.*s(%d) is a meta value",
+				      (int)token.value.as_textregion.length,
+				      token.value.as_textregion.base, rdclass);
 			}
 		} else {
-			fprintf(stderr, "unexpected token %u\n", token.type);
-			exit(1);
+			fatal("unexpected token %u", token.type);
 		}
 
 		result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
@@ -224,96 +225,93 @@ main(int argc, char *argv[]) {
 		if (token.type == isc_tokentype_number) {
 			rdtype = (dns_rdatatype_t) token.value.as_ulong;
 			if (token.value.as_ulong > 0xffffu) {
-				fprintf(stderr, "type value too big %lu\n",
-					token.value.as_ulong);
-				exit(1);
+				fatal("type value too big %lu",
+				      token.value.as_ulong);
 			}
 			if (dns_rdatatype_ismeta(rdtype)) {
-				fprintf(stderr, "type %lu is a meta value\n",
-					token.value.as_ulong);
-				fflush(stderr);
-				exit(1);
+				fatal("type %lu is a meta value",
+				      token.value.as_ulong);
 			}
 		} else if (token.type == isc_tokentype_string) {
 			result = dns_rdatatype_fromtext(&rdtype,
 					&token.value.as_textregion);
 			if (result != ISC_R_SUCCESS) {
-				fprintf(stdout, "dns_rdatatype_fromtext: %s\n",
-					dns_result_totext(result));
-				fflush(stdout);
-				exit(1);
+				fatal("dns_rdatatype_fromtext: %s",
+				      dns_result_totext(result));
 			}
 			if (dns_rdatatype_ismeta(rdtype)) {
-				fprintf(stderr,
-					"type %.*s(%d) is a meta value\n",
-					(int)token.value.as_textregion.length,
-					token.value.as_textregion.base, rdtype);
-				fflush(stderr);
-				exit(1);
+				fatal("type %.*s(%d) is a meta value",
+				      (int)token.value.as_textregion.length,
+				      token.value.as_textregion.base, rdtype);
 			}
 		} else {
-			fprintf(stderr, "unexpected token %u\n", token.type);
-			exit(1);
+			fatal("unexpected token %u", token.type);
 		}
 
 		isc_buffer_init(&dbuf, data, sizeof(data));
 		result = dns_rdata_fromtext(&rdata, rdclass, rdtype, lex,
 					    name, 0, mctx, &dbuf, NULL);
 		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "dns_rdata_fromtext:  %s\n",
-				dns_result_totext(result));
-			fflush(stderr);
-			exit(1);
+			fatal("dns_rdata_fromtext: %s",
+			      dns_result_totext(result));
 		}
 		once = ISC_TRUE;
 	}
 	if (result != ISC_R_EOF) {
-		fprintf(stderr, "eof not found\n");
-		exit(1);
+		fatal("eof not found");
 	}
 	if (!once) {
-		fprintf(stderr, "no records found\n");
-		exit(1);
+		fatal("no records found");
 	}
 
 	if (print) {
 		isc_buffer_init(&tbuf, text, sizeof(text));
 		result = dns_rdataclass_totext(rdclass, &tbuf);
 		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "dns_rdataclass_totext: %s\n",
-				dns_result_totext(result));
-			fflush(stderr);
-			exit(1);
+			fatal("dns_rdataclass_totext: %s",
+			      dns_result_totext(result));
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdatatype_totext(rdtype, &tbuf);
 		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "dns_rdatatype_totext: %s\n",
-				dns_result_totext(result));
-			fflush(stderr);
-			exit(1);
+			fatal("dns_rdatatype_totext: %s",
+			      dns_result_totext(result));
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdata_totext(&rdata, NULL, &tbuf);
-		if (result != ISC_R_SUCCESS)
-			fprintf(stderr, "dns_rdata_totext: %s\n",
-				dns_result_totext(result));
-		else
-			fprintf(stdout, "%.*s\n", (int)tbuf.used,
-				(char*)tbuf.base);
+		if (result != ISC_R_SUCCESS) {
+			fatal("dns_rdata_totext: %s",
+			      dns_result_totext(result));
+		}
+
+		printf("%.*s\n", (int)tbuf.used, (char*)tbuf.base);
 		fflush(stdout);
 	}
 
 	if (unknown) {
-		fprintf(stdout, "CLASS%u\tTYPE%u\t\\# %u", rdclass, rdtype,
-			rdata.length);
-		if (rdata.length != 0) {
-			unsigned int i;
-			fprintf(stdout, " ");
-			for (i = 0; i < rdata.length; i++)
-				fprintf(stdout, "%02x", rdata.data[i]);
+		isc_buffer_init(&tbuf, text, sizeof(text));
+		result = dns_rdataclass_tounknowntext(rdclass, &tbuf);
+		if (result != ISC_R_SUCCESS) {
+			fatal("dns_rdataclass_tounknowntext: %s",
+			      dns_result_totext(result));
 		}
-		fprintf(stdout, "\n");
+		isc_buffer_putstr(&tbuf, "\t");
+		result = dns_rdatatype_tounknowntext(rdtype, &tbuf);
+		if (result != ISC_R_SUCCESS) {
+			fatal("dns_rdatatype_tounknowntext: %s",
+			      dns_result_totext(result));
+		}
+		isc_buffer_putstr(&tbuf, "\t");
+		result = dns_rdata_tofmttext(&rdata, NULL,
+					     DNS_STYLEFLAG_UNKNOWNFORMAT,
+					     0, 0, "", &tbuf);
+		if (result != ISC_R_SUCCESS) {
+			fatal("dns_rdata_tofmttext: %sn",
+			      dns_result_totext(result));
+		}
+
+		printf("%.*s\n", (int)tbuf.used, (char*)tbuf.base);
+		fflush(stdout);
 	}
 
 	isc_lex_close(lex);

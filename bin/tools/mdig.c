@@ -103,11 +103,12 @@ static isc_boolean_t display_ttlunits = ISC_TRUE;
 static isc_boolean_t display_ttl = ISC_TRUE;
 static isc_boolean_t display_class = ISC_TRUE;
 static isc_boolean_t display_crypto = ISC_TRUE;
-static isc_boolean_t display_multiline = ISC_TRUE;
+static isc_boolean_t display_multiline = ISC_FALSE;
 static isc_boolean_t display_question = ISC_TRUE;
 static isc_boolean_t display_answer  = ISC_TRUE;
 static isc_boolean_t display_authority = ISC_TRUE;
 static isc_boolean_t display_additional = ISC_TRUE;
+static isc_boolean_t display_unknown_format = ISC_FALSE;
 static isc_uint32_t display_splitwidth = 0xffffffff;
 static isc_sockaddr_t srcaddr;
 static char *server;
@@ -247,6 +248,8 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
 	if (display_comments)
 		styleflags |= DNS_STYLEFLAG_COMMENT;
+	if (display_unknown_format)
+		styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
 	if (display_rrcomments)
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	if (display_ttlunits)
@@ -378,6 +381,8 @@ buftoosmall:
 
 		if (!display_crypto)
 			answerstyleflags |= DNS_STYLEFLAG_NOCRYPTO;
+		if (display_unknown_format)
+			answerstyleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
 
 		dns_name_init(&empty_name, NULL);
 		result = dns_message_firstname(response, DNS_SECTION_ANSWER);
@@ -759,6 +764,7 @@ help(void) {
 "                                      form of answer)\n"
 "                 +[no]ttlid          (Control display of ttls in records)\n"
 "                 +[no]ttlunits       (Display TTLs in human-readable units)\n"
+"                 +[no]unknownformat  (Print RDATA in RFC 3597 \"unknown\" format)\n"
 "                 +[no]all            (Set or clear all display flags)\n"
 "                 +[no]multiline      (Print records in an expanded format)\n"
 "                 +[no]split=##       (Split hex/base64 fields into chunks)\n"
@@ -1470,14 +1476,24 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 		}
 		break;
 	case 'u':
-		FULLCHECK("udptimeout");
-		if (value == NULL)
-			goto need_value;
-		if (!state)
+		switch (cmd[1]) {
+		case 'd':
+			FULLCHECK("udptimeout");
+			if (value == NULL)
+				goto need_value;
+			if (!state)
+				goto invalid_option;
+			result = parse_uint(&query->udptimeout, value,
+					    MAXTIMEOUT, "udptimeout");
+			CHECK("parse_uint(udptimeout)", result);
+			break;
+		case 'n':
+			FULLCHECK("unknownformat");
+			display_unknown_format = state;
+			break;
+		default:
 			goto invalid_option;
-		result = parse_uint(&query->udptimeout, value,
-				    MAXTIMEOUT, "udptimeout");
-		CHECK("parse_uint(udptimeout)", result);
+		}
 		break;
 	case 'v':
 		FULLCHECK("vc");

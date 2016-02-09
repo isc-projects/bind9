@@ -1098,6 +1098,9 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		return (ISC_R_SUCCESS);
 	}
 
+	if ((tctx->flags & DNS_STYLEFLAG_UNKNOWNFORMAT) != 0)
+		return (unknown_totext(rdata, tctx, target));
+
 	cur = isc_buffer_usedlength(target);
 
 	TOTEXTSWITCH
@@ -1342,9 +1345,15 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 
 isc_result_t
 dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
+	RDATATYPE_TOTEXT_SW
+
+	return (dns_rdatatype_tounknowntext(type, target));
+}
+
+isc_result_t
+dns_rdatatype_tounknowntext(dns_rdatatype_t type, isc_buffer_t *target) {
 	char buf[sizeof("TYPE65535")];
 
-	RDATATYPE_TOTEXT_SW
 	snprintf(buf, sizeof(buf), "TYPE%u", type);
 	return (str_totext(buf, target));
 }

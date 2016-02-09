@@ -1,3 +1,6 @@
+4316.	[func]		Add option to tools to print RRs in unknown
+			presentation format [RT #41595].
+
 4315.	[bug]		Check that configured view class isn't a meta class.
 			[RT #41572].
 

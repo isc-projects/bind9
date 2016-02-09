@@ -1152,6 +1152,17 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]unknownformat</option></term>
+	  <listitem>
+	    <para>
+	      Print all RDATA in unknown RR type presentation format
+	      (RFC 3597). The default is to print RDATA for known types
+	      in the type's presentation format.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]vc</option></term>
 	  <listitem>
 	    <para>

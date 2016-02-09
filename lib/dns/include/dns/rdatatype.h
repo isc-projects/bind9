@@ -62,6 +62,26 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target);
  *\li	#ISC_R_NOSPACE			target buffer is too small
  */
 
+isc_result_t
+dns_rdatatype_tounknowntext(dns_rdatatype_t type, isc_buffer_t *target);
+/*%<
+ * Put textual RFC3597 TYPEXXXX representation of type 'type' into
+ * 'target'.
+ *
+ * Requires:
+ *\li	'type' is a valid type.
+ *
+ *\li	'target' is a valid text buffer.
+ *
+ * Ensures,
+ *	if the result is success:
+ *\li		The used space in 'target' is updated.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS			on success
+ *\li	#ISC_R_NOSPACE			target buffer is too small
+ */
+
 void
 dns_rdatatype_format(dns_rdatatype_t rdtype,
 		     char *array, unsigned int size);

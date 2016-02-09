@@ -570,8 +570,12 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			unsigned int class_start;
 			INDENT_TO(class_column);
 			class_start = target->used;
-			result = dns_rdataclass_totext(rdataset->rdclass,
-						       target);
+			if ((ctx->style.flags & DNS_STYLEFLAG_UNKNOWNFORMAT) != 0)
+				result = dns_rdataclass_tounknowntext
+					(rdataset->rdclass, target);
+			else
+				result = dns_rdataclass_totext
+					(rdataset->rdclass, target);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			column += (target->used - class_start);
@@ -603,7 +607,10 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			}
 			/* FALLTHROUGH */
 		default:
-			result = dns_rdatatype_totext(type, target);
+			if ((ctx->style.flags & DNS_STYLEFLAG_UNKNOWNFORMAT) != 0)
+				result = dns_rdatatype_tounknowntext(type, target);
+			else
+				result = dns_rdatatype_totext(type, target);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
@@ -707,7 +714,12 @@ question_totext(dns_rdataset_t *rdataset,
 		unsigned int class_start;
 		INDENT_TO(class_column);
 		class_start = target->used;
-		result = dns_rdataclass_totext(rdataset->rdclass, target);
+		if ((ctx->style.flags & DNS_STYLEFLAG_UNKNOWNFORMAT) != 0)
+			result = dns_rdataclass_tounknowntext(rdataset->rdclass,
+							      target);
+		else
+			result = dns_rdataclass_totext(rdataset->rdclass,
+						       target);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		column += (target->used - class_start);
@@ -718,7 +730,12 @@ question_totext(dns_rdataset_t *rdataset,
 		unsigned int type_start;
 		INDENT_TO(type_column);
 		type_start = target->used;
-		result = dns_rdatatype_totext(rdataset->type, target);
+		if ((ctx->style.flags & DNS_STYLEFLAG_UNKNOWNFORMAT) != 0)
+			result = dns_rdatatype_tounknowntext(rdataset->type,
+							     target);
+		else
+			result = dns_rdatatype_totext(rdataset->type,
+						      target);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		column += (target->used - type_start);

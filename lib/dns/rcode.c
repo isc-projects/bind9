@@ -519,8 +519,6 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 
 isc_result_t
 dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
-	char buf[sizeof("CLASS65535")];
-
 	switch (rdclass) {
 	case dns_rdataclass_any:
 		return (str_totext("ANY", target));
@@ -535,9 +533,16 @@ dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 	case dns_rdataclass_reserved0:
 		return (str_totext("RESERVED0", target));
 	default:
-		snprintf(buf, sizeof(buf), "CLASS%u", rdclass);
-		return (str_totext(buf, target));
+		return (dns_rdataclass_tounknowntext(rdclass, target));
 	}
+}
+
+isc_result_t
+dns_rdataclass_tounknowntext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
+	char buf[sizeof("CLASS65535")];
+
+	snprintf(buf, sizeof(buf), "CLASS%u", rdclass);
+	return (str_totext(buf, target));
 }
 
 void

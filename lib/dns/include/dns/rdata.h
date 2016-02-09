@@ -174,6 +174,9 @@ struct dns_rdata {
 /*% Output KEYDATA in human readable format. */
 #define DNS_STYLEFLAG_KEYDATA		0x00000008U
 
+/*% Output textual RR type and RDATA in RFC 3597 unknown format */
+#define DNS_STYLEFLAG_UNKNOWNFORMAT	0x00000010U
+
 #define DNS_RDATA_DOWNCASE		DNS_NAME_DOWNCASE
 #define DNS_RDATA_CHECKNAMES		DNS_NAME_CHECKNAMES
 #define DNS_RDATA_CHECKNAMESFAIL	DNS_NAME_CHECKNAMESFAIL

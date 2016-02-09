@@ -62,6 +62,26 @@ dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target);
  *\li	#ISC_R_NOSPACE			target buffer is too small
  */
 
+isc_result_t
+dns_rdataclass_tounknowntext(dns_rdataclass_t rdclass, isc_buffer_t *target);
+/*%<
+ * Put textual RFC3597 CLASSXXXX representation of class 'rdclass' into
+ * 'target'.
+ *
+ * Requires:
+ *\li	'rdclass' is a valid class.
+ *
+ *\li	'target' is a valid text buffer.
+ *
+ * Ensures,
+ *	if the result is success:
+ *\li		The used space in 'target' is updated.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS			on success
+ *\li	#ISC_R_NOSPACE			target buffer is too small
+ */
+
 void
 dns_rdataclass_format(dns_rdataclass_t rdclass,
 		      char *array, unsigned int size);
