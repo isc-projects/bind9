@@ -17,7 +17,7 @@
 ./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/check/check-tool.h			C	2000,2001,2002,2004,2005,2007,2010,2011,2013,2014
 ./bin/check/named-checkconf.8			MAN	DOCBOOK
-./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015
+./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/check/named-checkconf.docbook		SGML	2000,2001,2002,2004,2005,2007,2009,2014,2015
 ./bin/check/named-checkconf.html		HTML	DOCBOOK
 ./bin/check/named-checkzone.8			MAN	DOCBOOK
@@ -79,8 +79,8 @@
 ./bin/delv/.gitignore				X	2014
 ./bin/delv/Makefile.in				MAKE	2014,2015
 ./bin/delv/delv.1				MAN	2014,2015
-./bin/delv/delv.c				C	2014,2015
-./bin/delv/delv.docbook				SGML	2014,2015
+./bin/delv/delv.c				C	2014,2015,2016
+./bin/delv/delv.docbook				SGML	2014,2015,2016
 ./bin/delv/delv.html				HTML	2014,2015
 ./bin/delv/win32/delv.dsp.in			X	2014
 ./bin/delv/win32/delv.dsw			X	2014
@@ -99,7 +99,7 @@
 ./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015
 ./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007,2008,2009,2014,2015
 ./bin/dig/host.html				HTML	DOCBOOK
-./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
+./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
 ./bin/dig/nslookup.1				MAN	DOCBOOK
 ./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./bin/dig/nslookup.docbook			SGML	2004,2005,2006,2007,2010,2013,2014,2015,2016
@@ -931,7 +931,11 @@
 ./bin/tests/system/checkconf/portrange-good.conf	CONF-C	2015
 ./bin/tests/system/checkconf/range.conf		CONF-C	2013
 ./bin/tests/system/checkconf/shared.example.db	ZONE	2015
-./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012,2013,2014,2015
+./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012,2013,2014,2015,2016
+./bin/tests/system/checkconf/view-class-any1.conf	CONF-C	2016
+./bin/tests/system/checkconf/view-class-any2.conf	CONF-C	2016
+./bin/tests/system/checkconf/view-class-in1.conf	CONF-C	2016
+./bin/tests/system/checkconf/view-class-in2.conf	CONF-C	2016
 ./bin/tests/system/checkconf/warn-keydir.conf	CONF-C	2013
 ./bin/tests/system/checkds/clean.sh		SH	2012,2013,2014
 ./bin/tests/system/checkds/dig.pl		PERL	2014
@@ -3328,13 +3332,13 @@
 ./lib/dns/include/dns/private.h			C	2009,2011,2012
 ./lib/dns/include/dns/rbt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2012,2013,2014,2015
 ./lib/dns/include/dns/rcode.h			C	1999,2000,2001,2004,2005,2006,2007,2008
-./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013
-./lib/dns/include/dns/rdataclass.h		C	1998,1999,2000,2001,2004,2005,2006,2007
+./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2016
+./lib/dns/include/dns/rdataclass.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2016
 ./lib/dns/include/dns/rdatalist.h		C	1999,2000,2001,2004,2005,2006,2007,2008,2015
 ./lib/dns/include/dns/rdataset.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014,2015
 ./lib/dns/include/dns/rdatasetiter.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/rdataslab.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008
-./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008
+./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008,2016
 ./lib/dns/include/dns/request.h			C	2000,2001,2002,2004,2005,2006,2007,2009,2010,2013,2014,2015
 ./lib/dns/include/dns/resolver.h		C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
 ./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
@@ -3380,7 +3384,7 @@
 ./lib/dns/lookup.c				C	2000,2001,2003,2004,2005,2007,2013
 ./lib/dns/mapapi				X	2013
 ./lib/dns/master.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
-./lib/dns/masterdump.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
+./lib/dns/masterdump.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
 ./lib/dns/message.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2010,2011,2012,2013,2014,2015
@@ -3408,8 +3412,8 @@
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004,2005,2007
-./lib/dns/rcode.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
-./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./lib/dns/rcode.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2011,2012,2015
 ./lib/dns/rdata/any_255/tsig_250.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/ch_3/a_1.c			C	2005,2007,2009,2014,2015
@@ -3931,7 +3935,7 @@
 ./lib/isc/tests/buffer_test.c			C	2014,2015
 ./lib/isc/tests/counter_test.c			C	2014
 ./lib/isc/tests/file_test.c			C	2014
-./lib/isc/tests/hash_test.c			C	2011,2012,2013,2014,2015
+./lib/isc/tests/hash_test.c			C	2011,2012,2013,2014,2015,2016
 ./lib/isc/tests/isctest.c			C	2011,2012,2013,2014
 ./lib/isc/tests/isctest.h			C	2011,2012
 ./lib/isc/tests/lex_test.c			C	2013
