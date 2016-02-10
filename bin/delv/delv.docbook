@@ -662,7 +662,6 @@
 	    </para>
 	  </listitem>
 	</varlistentry>
-      </variablelist>
 
 	<varlistentry>
 	  <term><option>+[no]unknownformat</option></term>
@@ -674,6 +673,7 @@
 	    </para>
 	  </listitem>
 	</varlistentry>
+      </variablelist>
 
     </para>
   </refsection>
