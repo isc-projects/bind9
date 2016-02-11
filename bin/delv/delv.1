@@ -421,6 +421,11 @@ must be used to specify a file containing the DLV key\&.
 .RS 4
 Controls whether to use TCP when sending queries\&. The default is to use UDP unless a truncated response has been received\&.
 .RE
+.PP
+\fB+[no]unknownformat\fR
+.RS 4
+Print all RDATA in unknown RR type presentation format (RFC 3597)\&. The default is to print RDATA for known types in the type\*(Aqs presentation format\&.
+.RE
 .SH "FILES"
 .PP
 /etc/bind\&.keys
@@ -440,5 +445,5 @@ RFC5155\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2014, 2015 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2014-2016 Internet Systems Consortium, Inc. ("ISC")
 .br
