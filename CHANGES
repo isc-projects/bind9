@@ -1,3 +1,5 @@
+4317.	[bug]		Age all unused servers on fetch timeout. [RT #41597]
+
 4316.	[func]		Add option to tools to print RRs in unknown
 			presentation format [RT #41595].
 
