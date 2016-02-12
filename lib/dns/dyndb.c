@@ -415,10 +415,10 @@ dns_dyndb_cleanup(isc_boolean_t exiting) {
 }
 
 isc_result_t
-dns_dyndb_createctx(isc_mem_t *mctx, isc_hash_t *hctx, isc_log_t *lctx,
-		    dns_view_t *view, dns_zonemgr_t *zmgr,
-		    isc_task_t *task, isc_timermgr_t *tmgr,
-		    dns_dyndbctx_t **dctxp) {
+dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
+		    dns_view_t *view, dns_zonemgr_t *zmgr, isc_task_t *task,
+		    isc_timermgr_t *tmgr, dns_dyndbctx_t **dctxp)
+{
 	dns_dyndbctx_t *dctx;
 
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
@@ -435,7 +435,7 @@ dns_dyndb_createctx(isc_mem_t *mctx, isc_hash_t *hctx, isc_log_t *lctx,
 	if (task != NULL)
 		isc_task_attach(task, &dctx->task);
 	dctx->timermgr = tmgr;
-	dctx->hctx = hctx;
+	dctx->hashinit = hashinit;
 	dctx->lctx = lctx;
 	dctx->refvar = &isc_bind9;
 

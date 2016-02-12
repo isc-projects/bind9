@@ -198,6 +198,12 @@ isc__hash_setvec(const isc_uint16_t *vec);
  * doing before using this function.
  */
 
+const void *
+isc_hash_get_initializer(void);
+
+void
+isc_hash_set_initializer(const void *initializer);
+
 unsigned int
 isc_hash_function(const void *data, size_t length,
 		  isc_boolean_t case_sensitive,

@@ -27,17 +27,17 @@ ISC_LANG_BEGINDECLS
  * \brief
  * Context for intializing a dyndb module.
  *
- * This structure passes pointers to globals to which a dyndb
+ * This structure passes global server data to which a dyndb
  * module will need access -- the server memory context, hash
- * context, log context, etc.  The structure doesn't persist
+ * initializer, log context, etc.  The structure doesn't persist
  * beyond configuring the dyndb module. The module's register function
  * should attach to all reference-counted variables and its destroy
  * function should detach from them.
  */
 struct dns_dyndbctx {
 	unsigned int	magic;
+	const void	*hashinit;
 	isc_mem_t	*mctx;
-	isc_hash_t	*hctx;
 	isc_log_t	*lctx;
 	dns_view_t	*view;
 	dns_zonemgr_t	*zmgr;
@@ -128,14 +128,13 @@ dns_dyndb_cleanup(isc_boolean_t exiting);
  */
 
 isc_result_t
-dns_dyndb_createctx(isc_mem_t *mctx, isc_hash_t *hctx, isc_log_t *lctx,
-		    dns_view_t *view, dns_zonemgr_t *zmgr,
-		    isc_task_t *task, isc_timermgr_t *tmgr,
-		    dns_dyndbctx_t **dctxp);
+dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
+		    dns_view_t *view, dns_zonemgr_t *zmgr, isc_task_t *task,
+		    isc_timermgr_t *tmgr, dns_dyndbctx_t **dctxp);
 /*%
  * Create a dyndb initialization context structure, with
  * pointers to structures in the server that the dyndb module will
- * need to access (view, zone manager, memory context, hash context,
+ * need to access (view, zone manager, memory context, hash initializer,
  * etc). This structure is expected to last only until all dyndb
  * modules have been loaded and initialized; after that it will be
  * destroyed with dns_dyndb_destroyctx().

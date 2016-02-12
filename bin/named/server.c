@@ -3960,12 +3960,14 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	{
 		const cfg_obj_t *dyndb = cfg_listelt_value(element);
 
-		if (dctx == NULL)
-			CHECK(dns_dyndb_createctx(mctx, isc_hashctx,
+		if (dctx == NULL) {
+			const void *hashinit = isc_hash_get_initializer();
+			CHECK(dns_dyndb_createctx(mctx, hashinit,
 						  ns_g_lctx, view,
 						  ns_g_server->zonemgr,
 						  ns_g_server->task,
 						  ns_g_timermgr, &dctx));
+		}
 
 		CHECK(configure_dyndb(dyndb, mctx, dctx));
 	}

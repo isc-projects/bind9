@@ -81,9 +81,7 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
 		dns_log_setcontext(dctx->lctx);
 	}
 
-	if (isc_hashctx != NULL && isc_hashctx != dctx->hctx)
-		isc_hash_ctxdetach(&isc_hashctx);
-	isc_hashctx = dctx->hctx;
+	isc_hash_set_initializer(dctx->hashinit);
 
 	s = isc_mem_strdup(mctx, parameters);
 	if (s == NULL) {

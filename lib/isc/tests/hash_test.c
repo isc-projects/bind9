@@ -1895,7 +1895,6 @@ ATF_TC_BODY(isc_hash_function, tc) {
 	ATF_CHECK(h1 != h2);
 }
 
-
 ATF_TC(isc_hash_function_reverse);
 ATF_TC_HEAD(isc_hash_function_reverse, tc) {
 	atf_tc_set_md_var(tc, "descr", "Reverse hash function test");
@@ -1943,6 +1942,29 @@ ATF_TC_BODY(isc_hash_function_reverse, tc) {
 	ATF_CHECK(h1 != h2);
 }
 
+ATF_TC(isc_hash_initializer);
+ATF_TC_HEAD(isc_hash_initializer, tc) {
+	atf_tc_set_md_var(tc, "descr", "Hash function initializer test");
+}
+ATF_TC_BODY(isc_hash_initializer, tc) {
+	unsigned int h1;
+	unsigned int h2;
+
+	UNUSED(tc);
+
+	h1 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
+	h2 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
+
+	ATF_CHECK_EQ(h1, h2);
+
+	isc_hash_set_initializer(isc_hash_get_initializer());
+
+	/* Hash value must not change */
+	h2 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
+
+	ATF_CHECK_EQ(h1, h2);
+}
+
 /*
  * Main
  */
@@ -1953,6 +1975,7 @@ ATF_TP_ADD_TCS(tp) {
 	 */
 	ATF_TP_ADD_TC(tp, isc_hash_function);
 	ATF_TP_ADD_TC(tp, isc_hash_function_reverse);
+	ATF_TP_ADD_TC(tp, isc_hash_initializer);
 	ATF_TP_ADD_TC(tp, isc_hmacmd5);
 	ATF_TP_ADD_TC(tp, isc_hmacsha1);
 	ATF_TP_ADD_TC(tp, isc_hmacsha224);

@@ -68,7 +68,7 @@ RANDFILE=$TOP/bin/tests/system/random.data
 SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case checkconf @CHECKDS@ checknames checkzone
 	 cookie @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal
-	 dname dns64 dnssec dsdigest dscp @DNSTAP@ ecdsa ednscompliance
+	 dname dns64 dnssec dsdigest dscp @DNSTAP@ dyndb ecdsa ednscompliance
 	 emptyzones fetchlimit filter-aaaa formerr forward geoip glue gost
 	 ixfr inline legacy limits logfileconfig lwresd masterfile
 	 masterformat metadata mkeys names notify nslookup nsupdate
