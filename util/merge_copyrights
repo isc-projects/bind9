@@ -137,7 +137,7 @@ while (<CHANGES>) {
 	}
 	my $m_year = int(`sh util/file_year.sh $_`);
 	if (($file_types{$_} eq "MAN" || $file_types{$_} eq "HTML") &&
-	    -e $base) {
+	    $base =~ /\.docbook$/ && -e $base) {
 	   $file_years{$_} = "DOCBOOK";
 	} elsif ($m_year != $year) {
 	    print "$_: must set copyright year(s) manually\n";
