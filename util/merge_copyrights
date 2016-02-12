@@ -92,8 +92,12 @@ while (<CHANGES>) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.html$/) {
 	    $file_types{$_} = "HTML";
+	    $base =~ s/\.html$//;
+	    $base = $base . ".docbook";
 	} elsif ($base =~ /\.(man|[0-9])$/) {
 	    $file_types{$_} = "MAN";
+	    $base =~ s/\.[0-9]$//;
+	    $base = $base . ".docbook";
 	} elsif ($base =~ /\/Makefile$/) {
 	    $file_types{$_} = "MAKE";
 	} elsif ($base =~ /\/(named|rndc|good|bad).{0,2}\.conf$/) {
@@ -132,7 +136,10 @@ while (<CHANGES>) {
 	    $file_types{$_} = "?";
 	}
 	my $m_year = int(`sh util/file_year.sh $_`);
-	if ($m_year != $year) {
+	if (($file_types{$_} eq "MAN" || $file_types{$_} eq "HTML") &&
+	    -e $base) {
+	   $file_years{$_} = "DOCBOOK";
+	} elsif ($m_year != $year) {
 	    print "$_: must set copyright year(s) manually\n";
 	    $file_years{$_} = "????";
 	} else {
