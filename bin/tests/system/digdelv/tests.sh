@@ -41,7 +41,7 @@ if [ -x ${DIG} ] ; then
   echo "I:checking dig +unknownformat works ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +unknownformat a a.example > dig.out.test$n || ret=1
-  grep "CLASS1[[:space:]][[:space:]]*TYPE1[[:space:]][[:space:]]*\\\\# 4 0A000001" < dig.out.test$n > /dev/null || ret=1
+  grep "CLASS1[ 	][ 	]*TYPE1[ 	][ 	]*\\\\# 4 0A000001" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi 
   status=`expr $status + $ret`
 
@@ -198,7 +198,7 @@ if [ -x ${DIG} ] ; then
   
   n=`expr $n + 1`
   echo "I:checking dig @IPv6addr -4 A a.example ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::2
+  if $TESTSOCK6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
     $DIG $DIGOPTS +tcp @fd92:7065:b8e:ffff::2 -4 A a.example > dig.out.test$n 2>&1 && ret=1
@@ -211,7 +211,7 @@ if [ -x ${DIG} ] ; then
   
   n=`expr $n + 1`
   echo "I:checking dig @IPv4addr -6 +mapped A a.example ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::2
+  if $TESTSOCK6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
     ret=0
@@ -225,7 +225,7 @@ if [ -x ${DIG} ] ; then
 
   n=`expr $n + 1`
   echo "I:checking dig +tcp @IPv4addr -6 +nomapped A a.example ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::2
+  if $TESTSOCK6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
     ret=0
@@ -239,7 +239,7 @@ if [ -x ${DIG} ] ; then
   n=`expr $n + 1`
 
   echo "I:checking dig +notcp @IPv4addr -6 +nomapped A a.example ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::2
+  if $TESTSOCK6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
     ret=0
@@ -349,13 +349,13 @@ if [ -x ${DELV} ] ; then
   echo "I:checking delv +unknownformat works ($n)"
   ret=0
   $DELV $DELVOPTS @10.53.0.3 +unknownformat a a.example > delv.out.test$n || ret=1
-  grep "CLASS1[[:space:]][[:space:]]*TYPE1[[:space:]][[:space:]]*\\\\# 4 0A000001" < delv.out.test$n > /dev/null || ret=1
+  grep "CLASS1[ 	][ 	]*TYPE1[ 	][ 	]*\\\\# 4 0A000001" < delv.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
   echo "I:checking delv with IPv6 on IPv4 does not work ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::3
+  if $TESTSOCK6 fd92:7065:b8e:ffff::3 2>/dev/null
   then
     ret=0
     # following should fail because @IPv4 overrides earlier @IPv6 above

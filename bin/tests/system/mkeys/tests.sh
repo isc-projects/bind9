@@ -28,8 +28,8 @@ DELVOPTS="-a ns1/trusted.conf -p 5300"
 echo "I: check for signed record ($n)"
 ret=0
 $DIG $DIGOPTS +norec example.  @10.53.0.1 TXT > dig.out.ns1.test$n || ret=1
-grep "^example\.[[:space:]]*[0-9].*[[:space:]]*IN[[:space:]]*TXT[[:space:]]*\"This is a test\.\"" dig.out.ns1.test$n > /dev/null || ret=1
-grep "^example\.[[:space:]]*[0-9].*[[:space:]]*IN[[:space:]]*RRSIG[[:space:]]*TXT[[:space:]]" dig.out.ns1.test$n > /dev/null || ret=1
+grep "^example\.[ 	]*[0-9].*[ 	]*IN[ 	]*TXT[ 	]*\"This is a test\.\"" dig.out.ns1.test$n > /dev/null || ret=1
+grep "^example\.[ 	]*[0-9].*[ 	]*IN[ 	]*RRSIG[ 	]*TXT[ 	]" dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

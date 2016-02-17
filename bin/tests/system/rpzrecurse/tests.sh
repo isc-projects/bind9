@@ -240,7 +240,7 @@ grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
     echo "I:test $t failed: query failed"
     status=1
 }
-grep "^l2.l1.l0.[[:space:]]*[0-9]*[[:space:]]*IN[[:space:]]*A[[:space:]]*10.53.0.2" dig.out.${t} > /dev/null 2>&1 || {
+grep "^l2.l1.l0.[ 	]*[0-9]*[ 	]*IN[ 	]*A[ 	]*10.53.0.2" dig.out.${t} > /dev/null 2>&1 || {
     echo "I:test $t failed: didn't get expected answer"
     status=1
 }
