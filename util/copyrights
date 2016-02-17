@@ -1633,7 +1633,7 @@
 ./bin/tests/system/mkeys/ns3/named.conf		CONF-C	2015
 ./bin/tests/system/mkeys/prereq.sh		SH	2015
 ./bin/tests/system/mkeys/setup.sh		SH	2015
-./bin/tests/system/mkeys/tests.sh		SH	2015
+./bin/tests/system/mkeys/tests.sh		SH	2015,2016
 ./bin/tests/system/names/clean.sh		SH	2015
 ./bin/tests/system/names/ns1/example.db		ZONE	2015
 ./bin/tests/system/names/ns1/named.conf		CONF-C	2015
@@ -1898,7 +1898,7 @@
 ./bin/tests/system/rpzrecurse/prereq.sh		SH	2015
 ./bin/tests/system/rpzrecurse/setup.sh		SH	2015
 ./bin/tests/system/rpzrecurse/testgen.pl	PERL	2015
-./bin/tests/system/rpzrecurse/tests.sh		SH	2015
+./bin/tests/system/rpzrecurse/tests.sh		SH	2015,2016
 ./bin/tests/system/rrchecker/classlist.good	X	2013
 ./bin/tests/system/rrchecker/clean.sh		SH	2013,2014
 ./bin/tests/system/rrchecker/privatelist.good	X	2013
