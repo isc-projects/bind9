@@ -290,7 +290,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	if (!isccc_alist_alistp(_auth))
 		return (ISC_R_FAILURE);
 	hmd5 = isccc_alist_lookup(_auth, "hmd5");
-	if (!isccc_sexpr_binaryp(hmac))
+	if (!isccc_sexpr_binaryp(hmd5))
 		return (ISC_R_FAILURE);
 	/*
 	 * Compute digest.
