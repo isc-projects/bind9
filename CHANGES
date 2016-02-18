@@ -1,3 +1,6 @@
+4318.	[security]	Malformed control messages can trigger assertions
+			in named and rndc. (CVE-2016-1285) [RT #41666]
+
 	--- 9.10.3-P3 released ---
 
 4288.	[bug]		Fixed a regression in resolver.c:possibly_mark()
