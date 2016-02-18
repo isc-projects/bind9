@@ -422,13 +422,13 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	 * Extract digest.
 	 */
 	_auth = isccc_alist_lookup(alist, "_auth");
-	if (_auth == NULL)
+	if (!isccc_alist_alistp(_auth))
 		return (ISC_R_FAILURE);
 	if (algorithm == ISCCC_ALG_HMACMD5)
 		hmac = isccc_alist_lookup(_auth, "hmd5");
 	else
 		hmac = isccc_alist_lookup(_auth, "hsha");
-	if (hmac == NULL)
+	if (!isccc_sexpr_binaryp(hmac))
 		return (ISC_R_FAILURE);
 	/*
 	 * Compute digest.
@@ -745,7 +745,7 @@ isccc_cc_createack(isccc_sexpr_t *message, isc_boolean_t ok,
 	REQUIRE(ackp != NULL && *ackp == NULL);
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
-	if (_ctrl == NULL ||
+	if (!isccc_alist_alistp(_ctrl) ||
 	    isccc_cc_lookupuint32(_ctrl, "_ser", &serial) != ISC_R_SUCCESS ||
 	    isccc_cc_lookupuint32(_ctrl, "_tim", &t) != ISC_R_SUCCESS)
 		return (ISC_R_FAILURE);
@@ -789,7 +789,7 @@ isccc_cc_isack(isccc_sexpr_t *message) {
 	isccc_sexpr_t *_ctrl;
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
-	if (_ctrl == NULL)
+	if (!isccc_alist_alistp(_ctrl))
 		return (ISC_FALSE);
 	if (isccc_cc_lookupstring(_ctrl, "_ack", NULL) == ISC_R_SUCCESS)
 		return (ISC_TRUE);
@@ -801,7 +801,7 @@ isccc_cc_isreply(isccc_sexpr_t *message) {
 	isccc_sexpr_t *_ctrl;
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
-	if (_ctrl == NULL)
+	if (!isccc_alist_alistp(_ctrl))
 		return (ISC_FALSE);
 	if (isccc_cc_lookupstring(_ctrl, "_rpl", NULL) == ISC_R_SUCCESS)
 		return (ISC_TRUE);
@@ -821,7 +821,7 @@ isccc_cc_createresponse(isccc_sexpr_t *message, isccc_time_t now,
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
 	_data = isccc_alist_lookup(message, "_data");
-	if (_ctrl == NULL || _data == NULL ||
+	if (!isccc_alist_alistp(_ctrl) || !isccc_alist_alistp(_data) ||
 	    isccc_cc_lookupuint32(_ctrl, "_ser", &serial) != ISC_R_SUCCESS ||
 	    isccc_cc_lookupstring(_data, "type", &type) != ISC_R_SUCCESS)
 		return (ISC_R_FAILURE);
@@ -1002,7 +1002,7 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 	isccc_sexpr_t *_ctrl;
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
-	if (_ctrl == NULL ||
+	if (!isccc_alist_alistp(_ctrl) ||
 	    isccc_cc_lookupstring(_ctrl, "_ser", &_ser) != ISC_R_SUCCESS ||
 	    isccc_cc_lookupstring(_ctrl, "_tim", &_tim) != ISC_R_SUCCESS)
 		return (ISC_R_FAILURE);

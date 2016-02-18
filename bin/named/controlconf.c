@@ -405,7 +405,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	 * Limit exposure to replay attacks.
 	 */
 	_ctrl = isccc_alist_lookup(request, "_ctrl");
-	if (_ctrl == NULL) {
+	if (!isccc_alist_alistp(_ctrl)) {
 		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
 		goto cleanup_request;
 	}
