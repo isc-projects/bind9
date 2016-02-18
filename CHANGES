@@ -1,3 +1,6 @@
+4318.	[security]	Malformed control messages can trigger assertions
+			in named and rndc. (CVE-2016-1285) [RT #41666]
+
 4317.	[bug]		Age all unused servers on fetch timeout. [RT #41597]
 
 4315.	[bug]		Check that configured view class isn't a meta class.

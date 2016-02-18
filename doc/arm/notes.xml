@@ -70,7 +70,15 @@
 	  This flaw is disclosed in CVE-2015-8705. [RT #41397]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Malformed control messages can trigger assertions in named
+	  and rndc. This flaw is disclosed in CVE-2016-1285. [RT
+	  #41666]
+	</para>
+      </listitem>
     </itemizedlist>
+
   </section>
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
 
