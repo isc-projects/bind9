@@ -44,7 +44,7 @@ echo "I:checking GeoIP country database by code (using client subnet) ($n)"
 ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
-    $DIG $DIGOPTS txt example -b 127.0.0.1 +subnet="10.53.0.$i/0" > dig.out.ns2.test$n.$i || lret=1
+    $DIG $DIGOPTS txt example -b 127.0.0.1 +subnet="10.53.0.$i/32" > dig.out.ns2.test$n.$i || lret=1
     j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
