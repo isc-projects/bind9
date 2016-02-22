@@ -115,6 +115,11 @@
 	  described in CVE-2015-3193.
 	</p></li>
 <li><p>
+	  The resolver could abort with an assertion failure due to
+	  improper DNAME handling when parsing fetch reply
+	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
+	</p></li>
+<li><p>
 	  Insufficient testing when parsing a message allowed
 	  records with an incorrect class to be be accepted,
 	  triggering a REQUIRE failure when those records
