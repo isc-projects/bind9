@@ -6981,21 +6981,26 @@ answer_response(fetchctx_t *fctx) {
 				isc_boolean_t found_dname = ISC_FALSE;
 				dns_name_t *dname_name;
 
+				/*
+				 * Only pass DNAME or RRSIG(DNAME).
+				 */
+				if (rdataset->type != dns_rdatatype_dname &&
+				    (rdataset->type != dns_rdatatype_rrsig ||
+				     rdataset->covers != dns_rdatatype_dname))
+					continue;
+
+				/*
+				 * If we're not chaining, then the DNAME and
+				 * its signature should not be external.
+				 */
+				if (!chaining && external) {
+					log_formerr(fctx, "external DNAME");
+					return (DNS_R_FORMERR);
+				}
+
 				found = ISC_FALSE;
 				aflag = 0;
 				if (rdataset->type == dns_rdatatype_dname) {
-					/*
-					 * We're looking for something else,
-					 * but we found a DNAME.
-					 *
-					 * If we're not chaining, then the
-					 * DNAME should not be external.
-					 */
-					if (!chaining && external) {
-						log_formerr(fctx,
-							    "external DNAME");
-						return (DNS_R_FORMERR);
-					}
 					found = ISC_TRUE;
 					want_chaining = ISC_TRUE;
 					POST(want_chaining);
@@ -7024,9 +7029,7 @@ answer_response(fetchctx_t *fctx) {
 							&fctx->domain)) {
 						return (DNS_R_SERVFAIL);
 					}
-				} else if (rdataset->type == dns_rdatatype_rrsig
-					   && rdataset->covers ==
-					   dns_rdatatype_dname) {
+				} else {
 					/*
 					 * We've found a signature that
 					 * covers the DNAME.
