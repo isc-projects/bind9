@@ -23,8 +23,8 @@
       This document summarizes changes since BIND 9.10.3:
     </para>
     <para>
-      BIND 9.10.3-P4 addresses the security issue described in
-      CVE-2016-1285.
+      BIND 9.10.3-P4 addresses the security issues described in
+      CVE-2016-1285 and CVE-2016-1286.
     </para>
     <para>
       BIND 9.10.3-P3 addresses the security issues described in
@@ -70,15 +70,8 @@
       </listitem>
       <listitem>
 	<para>
-	  Named is potentially vulnerable to the OpenSSL vulnerabilty
+	  Named is potentially vulnerable to the OpenSSL vulnerability
 	  described in CVE-2015-3193.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The resolver could abort with an assertion failure due to
-	  improper DNAME handling when parsing fetch reply
-	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
 	</para>
       </listitem>
       <listitem>
@@ -102,6 +95,13 @@
 	  Malformed control messages can trigger assertions in named
 	  and rndc. This flaw is disclosed in CVE-2016-1285. [RT
 	  #41666]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The resolver could abort with an assertion failure due to
+	  improper DNAME handling when parsing fetch reply
+	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
 	</para>
       </listitem>
     </itemizedlist>
