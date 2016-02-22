@@ -29,8 +29,8 @@
       This document summarizes changes since BIND 9.10.3:
     </p>
 <p>
-      BIND 9.10.3-P4 addresses the security issue described in
-      CVE-2016-1285.
+      BIND 9.10.3-P4 addresses the security issues described in
+      CVE-2016-1285 and CVE-2016-1286.
     </p>
 <p>
       BIND 9.10.3-P3 addresses the security issues described in
@@ -62,6 +62,16 @@
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul type="disc">
 <li><p>
+	  The resolver could abort with an assertion failure due to
+	  improper DNAME handling when parsing fetch reply
+	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
+	</p></li>
+<li><p>
+	  Malformed control messages can trigger assertions in named
+	  and rndc. This flaw is disclosed in CVE-2016-1285. [RT
+	  #41666]
+	</p></li>
+<li><p>
 	  Specific APL data could trigger an INSIST.  This flaw
 	  is disclosed in CVE-2015-8704. [RT #41396]
 	</p></li>
@@ -72,13 +82,8 @@
 	  This flaw is disclosed in CVE-2015-8705. [RT #41397]
 	</p></li>
 <li><p>
-	  Named is potentially vulnerable to the OpenSSL vulnerabilty
+	  Named is potentially vulnerable to the OpenSSL vulnerability
 	  described in CVE-2015-3193.
-	</p></li>
-<li><p>
-	  The resolver could abort with an assertion failure due to
-	  improper DNAME handling when parsing fetch reply
-	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
 	</p></li>
 <li><p>
 	  Insufficient testing when parsing a message allowed
@@ -91,11 +96,6 @@
 	  Incorrect reference counting could result in an INSIST
 	  failure if a socket error occurred while performing a
 	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
-	</p></li>
-<li><p>
-	  Malformed control messages can trigger assertions in named
-	  and rndc. This flaw is disclosed in CVE-2016-1285. [RT
-	  #41666]
 	</p></li>
 </ul></div>
 </div>
