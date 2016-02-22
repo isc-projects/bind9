@@ -76,6 +76,13 @@
       </listitem>
       <listitem>
 	<para>
+	  The resolver could abort with an assertion failure due to
+	  improper DNAME handling when parsing fetch reply
+	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Insufficient testing when parsing a message allowed
 	  records with an incorrect class to be be accepted,
 	  triggering a REQUIRE failure when those records
