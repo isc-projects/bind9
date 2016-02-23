@@ -298,11 +298,13 @@ static void
 lwresd_usage(void) {
 	fprintf(stderr,
 		"usage: lwresd [-4|-6] [-c conffile | -C resolvconffile] "
-		"[-d debuglevel]\n"
-		"              [-f|-g] [-n number_of_cpus] [-p port] "
-		"[-P listen-port] [-s]\n"
-		"              [-t chrootdir] [-u username] [-i pidfile]\n"
-		"              [-m {usage|trace|record|size|mctx}]\n");
+		"[-d debuglevel] [-f|-g]\n"
+		"              [-i pidfile] [-n number_of_cpus] "
+	        "[-p port] [-P listen-port]\n"
+		"              [-s] [-S sockets] [-t chrootdir] [-u username] "
+		"[-U listeners]\n"
+		"              [-m {usage|trace|record|size|mctx}]\n"
+		"usage: lwresd [-v|-V]\n");
 }
 
 static void
@@ -315,8 +317,10 @@ usage(void) {
 		"usage: named [-4|-6] [-c conffile] [-d debuglevel] "
 		"[-E engine] [-f|-g]\n"
 		"             [-n number_of_cpus] [-p port] [-s] "
-		"[-t chrootdir] [-u username]\n"
-		"             [-m {usage|trace|record|size|mctx}]\n");
+		"[-S sockets] [-t chrootdir]\n"
+		"             [-u username] [-U listeners] "
+		"[-m {usage|trace|record|size|mctx}]\n"
+		"usage: named [-v|-V]\n");
 }
 
 static void
