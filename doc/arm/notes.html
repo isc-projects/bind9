@@ -79,16 +79,16 @@
 	  described in CVE-2015-3193.
 	</p></li>
 <li><p>
+	  Incorrect reference counting could result in an INSIST
+	  failure if a socket error occurred while performing a
+	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
+	</p></li>
+<li><p>
 	  Insufficient testing when parsing a message allowed
 	  records with an incorrect class to be be accepted,
 	  triggering a REQUIRE failure when those records
 	  were subsequently cached.  This flaw is disclosed
 	  in CVE-2015-8000. [RT #40987]
-	</p></li>
-<li><p>
-	  Incorrect reference counting could result in an INSIST
-	  failure if a socket error occurred while performing a
-	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
 	</p></li>
 </ul></div>
 </div>
@@ -117,7 +117,8 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="end_of_life"></a>End of Life</h3></div></div></div>
 <p>
-      The BIND 9.9 (Extended Support Version) will be supported until June, 2017.
+      The BIND 9.9 (Extended Support Version) will be supported until
+      December, 2017.
       <a href="https://www.isc.org/downloads/software-support-policy/" target="_top">https://www.isc.org/downloads/software-support-policy/</a>
     </p>
 </div>
