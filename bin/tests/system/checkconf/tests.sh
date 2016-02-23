@@ -53,6 +53,15 @@ do
 	status=`expr $status + $ret`
 done
 
+for good in good-*.conf
+do
+	ret=0
+	echo "I: checking that named-checkconf detects no error in $good"
+	$CHECKCONF $good > /dev/null 2>&1
+	if [ $? != 0 ]; then echo "I:failed"; ret=1; fi
+	status=`expr $status + $ret`
+done
+
 echo "I: checking that named-checkconf -z catches missing hint file"
 ret=0
 $CHECKCONF -z hint-nofile.conf > hint-nofile.out 2>&1 && ret=1
