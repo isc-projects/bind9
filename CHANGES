@@ -1,3 +1,7 @@
+4320.	[bug]		Insufficient memory allocation when handling
+			"none" ACL could cause an assertion failure in
+			named when parsing ACL configuration. [RT #41745]
+
 4319.	[security]	Fix resolver assertion failure due to improper
 			DNAME handling when parsing fetch reply messages.
 			(CVE-2016-1286) [RT #41753]

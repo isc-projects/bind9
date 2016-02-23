@@ -273,10 +273,11 @@ count_acl_elements(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 		} else if (cfg_obj_isstring(ce)) {
 			const char *name = cfg_obj_asstring(ce);
 			if (strcasecmp(name, "localhost") == 0 ||
-			    strcasecmp(name, "localnets") == 0) {
+			    strcasecmp(name, "localnets") == 0 ||
+			    strcasecmp(name, "none") == 0)
+			{
 				n++;
-			} else if (strcasecmp(name, "any") != 0 &&
-				   strcasecmp(name, "none") != 0) {
+			} else if (strcasecmp(name, "any") != 0) {
 				dns_acl_t *inneracl = NULL;
 				/*
 				 * Convert any named acls we reference now if
