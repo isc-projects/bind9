@@ -306,7 +306,7 @@ lwresd_usage(void) {
 		"usage: lwresd [-4|-6] [-c conffile | -C resolvconffile] "
 		"[-d debuglevel] [-f|-g]\n"
 		"              [-i pidfile] [-n number_of_cpus] "
-	        "[-p port] [-P listen-port]\n"
+		"[-p port] [-P listen-port]\n"
 		"              [-s] [-S sockets] [-t chrootdir] [-u username] "
 		"[-U listeners]\n"
 		"              [-m {usage|trace|record|size|mctx}]\n"
