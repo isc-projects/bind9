@@ -111,18 +111,23 @@
 	  #41666]
 	</p></li>
 <li><p>
-	  Specific APL data could trigger an INSIST.  This flaw
-	  is disclosed in CVE-2015-8704. [RT #41396]
-	</p></li>
-<li><p>
 	  Certain errors that could be encountered when printing out
 	  or logging an OPT record containing a CLIENT-SUBNET option
 	  could be mishandled, resulting in an assertion failure.
 	  This flaw is disclosed in CVE-2015-8705. [RT #41397]
 	</p></li>
 <li><p>
+	  Specific APL data could trigger an INSIST.  This flaw
+	  is disclosed in CVE-2015-8704. [RT #41396]
+	</p></li>
+<li><p>
 	  Named is potentially vulnerable to the OpenSSL vulnerability
 	  described in CVE-2015-3193.
+	</p></li>
+<li><p>
+	  Incorrect reference counting could result in an INSIST
+	  failure if a socket error occurred while performing a
+	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
 	</p></li>
 <li><p>
 	  Insufficient testing when parsing a message allowed
@@ -130,11 +135,6 @@
 	  triggering a REQUIRE failure when those records
 	  were subsequently cached.  This flaw is disclosed
 	  in CVE-2015-8000. [RT #40987]
-	</p></li>
-<li><p>
-	  Incorrect reference counting could result in an INSIST
-	  failure if a socket error occurred while performing a
-	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
 	</p></li>
 </ul></div>
 </div>
