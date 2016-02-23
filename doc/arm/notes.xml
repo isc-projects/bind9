@@ -130,7 +130,8 @@
   <sect2 id="end_of_life">
     <title>End of Life</title>
     <para>
-      The BIND 9.9 (Extended Support Version) will be supported until June, 2017.
+      The BIND 9.9 (Extended Support Version) will be supported until
+      December, 2017.
       <ulink url="https://www.isc.org/downloads/software-support-policy/"
 	>https://www.isc.org/downloads/software-support-policy/</ulink>
     </para>
