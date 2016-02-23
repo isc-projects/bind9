@@ -81,18 +81,18 @@
       </listitem>
       <listitem>
 	<para>
+	  Incorrect reference counting could result in an INSIST
+	  failure if a socket error occurred while performing a
+	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Insufficient testing when parsing a message allowed
 	  records with an incorrect class to be be accepted,
 	  triggering a REQUIRE failure when those records
 	  were subsequently cached.  This flaw is disclosed
 	  in CVE-2015-8000. [RT #40987]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Incorrect reference counting could result in an INSIST
-	  failure if a socket error occurred while performing a
-	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
 	</para>
       </listitem>
     </itemizedlist>
