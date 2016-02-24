@@ -7282,8 +7282,9 @@ deserialize32(void *arg, FILE *f, off_t offset) {
 	int fd;
 	off_t filesize = 0;
 	char *base;
-	dns_rbt_t *temporary_rbt = NULL;
+	dns_rbt_t *tree = NULL, *nsec = NULL, *nsec3 = NULL;
 	int protect, flags;
+	dns_rbtnode_t *origin_node = NULL;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -7308,28 +7309,21 @@ deserialize32(void *arg, FILE *f, off_t offset) {
 
 	header = (rbtdb_file_header_t *)(base + offset);
 
-	rbtdb->mmap_location = base;
-	rbtdb->mmap_size = (size_t) filesize;
-	rbtdb->origin_node = NULL;
-
 	if (header->tree != 0) {
 		result = dns_rbt_deserialize_tree(base, filesize,
 						  (off_t) header->tree,
 						  rbtdb->common.mctx,
 						  delete_callback, rbtdb,
 						  rbt_datafixer, rbtdb,
-						  &rbtdb->origin_node,
-						  &temporary_rbt);
-		if (temporary_rbt != NULL) {
-			dns_rbt_destroy(&rbtdb->tree);
-			rbtdb->tree = temporary_rbt;
-			temporary_rbt = NULL;
-
-			rbtdb->origin_node =
-				(dns_rbtnode_t *)(header->tree + base + 1024);
-		}
+						  NULL, &tree);
 		if (result != ISC_R_SUCCESS)
-			return (result);
+			goto cleanup;
+
+		result = dns_rbt_findnode(tree, &rbtdb->common.origin, NULL,
+					  &origin_node, NULL,
+					  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 	}
 
 	if (header->nsec != 0) {
@@ -7338,14 +7332,9 @@ deserialize32(void *arg, FILE *f, off_t offset) {
 						  rbtdb->common.mctx,
 						  delete_callback, rbtdb,
 						  rbt_datafixer, rbtdb,
-						  NULL, &temporary_rbt);
-		if (temporary_rbt != NULL) {
-			dns_rbt_destroy(&rbtdb->nsec);
-			rbtdb->nsec = temporary_rbt;
-			temporary_rbt = NULL;
-		}
+						  NULL, &nsec);
 		if (result != ISC_R_SUCCESS)
-			return (result);
+			goto cleanup;
 	}
 
 	if (header->nsec3 != 0) {
@@ -7354,17 +7343,46 @@ deserialize32(void *arg, FILE *f, off_t offset) {
 						  rbtdb->common.mctx,
 						  delete_callback, rbtdb,
 						  rbt_datafixer, rbtdb,
-						  NULL, &temporary_rbt);
-		if (temporary_rbt != NULL) {
-			dns_rbt_destroy(&rbtdb->nsec3);
-			rbtdb->nsec3 = temporary_rbt;
-			temporary_rbt = NULL;
-		}
+						  NULL, &nsec3);
 		if (result != ISC_R_SUCCESS)
-			return (result);
+			goto cleanup;
+	}
+
+	/*
+	 * We have a successfully loaded all the rbt trees now update
+	 * rbtdb to use them.
+	 */
+
+	rbtdb->mmap_location = base;
+	rbtdb->mmap_size = (size_t) filesize;
+
+	if (tree != NULL) {
+		dns_rbt_destroy(&rbtdb->tree);
+		rbtdb->tree = tree;
+		rbtdb->origin_node = origin_node;
+	}
+
+	if (nsec != NULL) {
+		dns_rbt_destroy(&rbtdb->nsec);
+		rbtdb->nsec = nsec;
+	}
+
+	if (nsec3 != NULL) {
+		dns_rbt_destroy(&rbtdb->nsec3);
+		rbtdb->nsec3 = nsec3;
 	}
 
 	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (tree != NULL)
+		dns_rbt_destroy(&tree);
+	if (nsec != NULL)
+		dns_rbt_destroy(&nsec);
+	if (nsec3 != NULL)
+		dns_rbt_destroy(&nsec3);
+	isc_file_munmap(base, (size_t) filesize);
+	return (result);
 }
 
 static isc_result_t

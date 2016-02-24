@@ -40,3 +40,6 @@ rm -f */named.memstats
 rm -f */named.run
 rm -f */ans.run
 rm -f ns*/named.lock
+rm -f ns2/mapped.db
+rm -f ns3/mapped.bk
+rm -f dig.out.?.*

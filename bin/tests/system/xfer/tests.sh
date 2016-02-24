@@ -23,7 +23,9 @@ SYSTEMTESTTOP=..
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
 
 status=0
+n=0
 
+n=`expr $n + 1`
 echo "I:testing basic zone transfer functionality"
 $DIG $DIGOPTS example. \
 	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
@@ -49,6 +51,7 @@ $PERL ../digcomp.pl dig1.good dig.out.ns2 || status=1
 
 $PERL ../digcomp.pl dig1.good dig.out.ns3 || status=1
 
+n=`expr $n + 1`
 echo "I:testing TSIG signed zone transfers"
 $DIG $DIGOPTS tsigzone. \
     	@10.53.0.2 axfr -y tsigzone.:1234abcd8765 -p 5300 \
@@ -124,6 +127,7 @@ grep "1397051952 ; serial" ns2/slave.db > /dev/null 2>&1 || tmp=1
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
 
+n=`expr $n + 1`
 echo "I:testing ixfr-from-differences yes;"
 tmp=0
 for i in 0 1 2 3 4 5 6 7 8 9
@@ -146,6 +150,7 @@ test -f ns3/example.bk.jnl || tmp=1
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
 
+n=`expr $n + 1`
 echo "I:testing ixfr-from-differences master; (master zone)"
 tmp=0
 
@@ -166,6 +171,7 @@ test -f ns3/master.bk.jnl || tmp=1
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
 
+n=`expr $n + 1`
 echo "I:testing ixfr-from-differences master; (slave zone)"
 tmp=0
 
@@ -186,6 +192,7 @@ test -f ns6/slave.bk.jnl && tmp=1
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
 
+n=`expr $n + 1`
 echo "I:testing ixfr-from-differences slave; (master zone)"
 tmp=0
 
@@ -195,6 +202,8 @@ test -f ns7/master2.db.jnl && tmp=1
 
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
+
+n=`expr $n + 1`
 echo "I:testing ixfr-from-differences slave; (slave zone)"
 tmp=0
 
@@ -368,7 +377,8 @@ $DIGCMD nil. TXT | grep 'incorrect key AXFR' >/dev/null && {
     status=1
 }
 
-echo "I:check that we ask for and get a EDNS EXPIRE response"
+n=`expr $n + 1`
+echo "I:check that we ask for and get a EDNS EXPIRE response ($n)"
 # force a refresh query
 $RNDC -s 10.53.0.7 -p 9953 -c ../common/rndc.conf refresh edns-expire 2>&1 | sed 's/^/I:ns7 /'
 sleep 10
@@ -380,7 +390,8 @@ test ${expire:-0} -gt 0 -a ${expire:-0} -lt 1814400 || {
     status=1
 }
 
-echo "I:test smaller transfer TCP message size"
+n=`expr $n + 1`
+echo "I:test smaller transfer TCP message size ($n)"
 $DIG $DIGOPTS example. @10.53.0.8 axfr -p 5300 \
 	-y key1.:1234abcd8765 > dig.out.msgsize || status=1
 
@@ -395,6 +406,20 @@ if [ $num_messages -le 300 ]; then
 	echo "I:failed transfer message count check"
 	status=1
 fi
+
+n=`expr $n + 1`
+echo "I:test mapped zone with out of zone data ($n)"
+tmp=0
+$DIG -p 5300 txt mapped @10.53.0.3 > dig.out.1.$n
+grep "status: NOERROR," dig.out.1.$n > /dev/null || tmp=1
+$PERL $SYSTEMTESTTOP/stop.pl . ns3
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns3
+$DIG -p 5300 txt mapped @10.53.0.3 > dig.out.2.$n
+grep "status: NOERROR," dig.out.2.$n > /dev/null || tmp=1
+$DIG -p 5300 axfr mapped @10.53.0.3 > dig.out.3.$n
+$PERL ../digcomp.pl knowngood.mapped dig.out.3.$n || tmp=1
+if test $tmp != 0 ; then echo "I:failed"; fi
+status=`expr $status + $tmp`
 
 echo "I:exit status: $status"
 exit $status
