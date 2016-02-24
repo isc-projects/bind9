@@ -55,7 +55,7 @@ BIND 9
 BIND 9.10.3-P4
 
 	BIND 9.10.3-P4 is a security release addressing the flaws
-	described in CVE-2016-1285.
+	described in CVE-2016-1285 and CVE-2016-1286.
 
 BIND 9.10.3-P3
 
