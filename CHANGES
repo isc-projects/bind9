@@ -1,3 +1,7 @@
+4321.	[bug]		Zones using mapped files containing out-of-zone data
+			could return SERVFAIL instead of the expected NODATA
+			or NXDOMAIN results. [RT #41596]
+
 4320.	[bug]		Insufficient memory allocation when handling
 			"none" ACL could cause an assertion failure in
 			named when parsing ACL configuration. [RT #41745]
