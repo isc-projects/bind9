@@ -56,7 +56,7 @@ BIND 9.10.4
 	BIND 9.10.4 is a maintenance release and addresses bugs
 	found in BIND 9.10.3 and earlier, as well as the security
 	flaws described in CVE-2015-8000, CVE-2015-8461, CVE-2016-1285,
-	CVE-2016-1286, CVE-2015-8704, and CVE-2015-8705.
+	CVE-2016-1286, CVE-2015-8704, CVE-2015-8705 and CVE-2016-2088.
 
 BIND 9.10.3
 
