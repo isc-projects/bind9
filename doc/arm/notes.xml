@@ -24,7 +24,7 @@
     </para>
     <para>
       BIND 9.10.3-P4 addresses the security issues described in
-      CVE-2016-1285 and CVE-2016-1286.
+      CVE-2016-1285, CVE-2016-1286 and CVE-2016-2088.
     </para>
     <para>
       BIND 9.10.3-P3 addresses the security issues described in
