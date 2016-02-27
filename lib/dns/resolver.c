@@ -7508,7 +7508,9 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 	unsigned char *sit;
 	dns_adbaddrinfo_t *addrinfo;
 	unsigned char cookie[8];
+	isc_boolean_t seen_cookie = ISC_FALSE;
 #endif
+	isc_boolean_t seen_nsid = ISC_FALSE;
 
 	result = dns_rdataset_first(opt);
 	if (result == ISC_R_SUCCESS) {
@@ -7522,14 +7524,23 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 			INSIST(optlen <= isc_buffer_remaininglength(&optbuf));
 			switch (optcode) {
 			case DNS_OPT_NSID:
-				if (query->options & DNS_FETCHOPT_WANTNSID)
+				if (!seen_nsid &&
+				    query->options & DNS_FETCHOPT_WANTNSID)
 					log_nsid(&optbuf, optlen, query,
 						 ISC_LOG_DEBUG(3),
 						 query->fctx->res->mctx);
 				isc_buffer_forward(&optbuf, optlen);
+				seen_nsid = ISC_TRUE;
 				break;
 #ifdef ISC_PLATFORM_USESIT
 			case DNS_OPT_COOKIE:
+				/*
+				 * Only process the first cookie option.
+				 */
+				if (seen_cookie) {
+					isc_buffer_forward(&optbuf, optlen);
+					break;
+				}
 				sit = isc_buffer_current(&optbuf);
 				compute_cc(query, cookie, sizeof(cookie));
 				INSIST(query->fctx->rmessage->sitbad == 0 &&
@@ -7547,6 +7558,7 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 				isc_buffer_forward(&optbuf, optlen);
 				inc_stats(query->fctx->res,
 					  dns_resstatscounter_sitin);
+				seen_cookie = ISC_TRUE;
 				break;
 #endif
 			default:

@@ -1,4 +1,9 @@
+
 	--- 9.10.3-P4 released ---
+
+4322.	[security]	Duplicate EDNS COOKIE options in a response could
+			trigger an assertion failure. (CVE-2016-2088)
+			[RT #41809]
 
 4319.	[security]	Fix resolver assertion failure due to improper
 			DNAME handling when parsing fetch reply messages.
