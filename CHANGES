@@ -1,3 +1,7 @@
+4322.	[security]	Duplicate EDNS COOKIE options in a response could
+			trigger an assertion failure. (CVE-2016-2088)
+			[RT #41809]
+
 4321.	[bug]		Zones using mapped files containing out-of-zone data
 			could return SERVFAIL instead of the expected NODATA
 			or NXDOMAIN results. [RT #41596]

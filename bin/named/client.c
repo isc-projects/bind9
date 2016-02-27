@@ -122,6 +122,9 @@
 #define COOKIE_SIZE 24U /* 8 + 4 + 4 + 8 */
 #define ECS_SIZE 20U /* 2 + 1 + 1 + [0..16] */
 
+#define WANTNSID(x) (((x)->attributes & NS_CLIENTATTR_WANTNSID) != 0)
+#define WANTEXPIRE(x) (((x)->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0)
+
 /*% nameserver client manager structure */
 struct ns_clientmgr {
 	/* Unlocked. */
@@ -1516,7 +1519,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	flags = client->extflags & DNS_MESSAGEEXTFLAG_REPLYPRESERVE;
 
 	/* Set EDNS options if applicable */
-	if ((client->attributes & NS_CLIENTATTR_WANTNSID) != 0 &&
+	if (WANTNSID(client) &&
 	    (ns_g_server->server_id != NULL ||
 	     ns_g_server->server_usehostname)) {
 		if (ns_g_server->server_usehostname) {
@@ -1894,6 +1897,14 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	int i;
 
 	/*
+	 * If we have already seen a ECS option skip this ECS option.
+	 */
+	if ((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) {
+		isc_buffer_forward(buf, optlen);
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
 	 * XXXMUKS: Is there any need to repeat these checks here
 	 * (except query's scope length) when they are done in the OPT
 	 * RDATA fromwire code?
@@ -2028,7 +2039,9 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 			optlen = isc_buffer_getuint16(&optbuf);
 			switch (optcode) {
 			case DNS_OPT_NSID:
-				isc_stats_increment(ns_g_server->nsstats,
+				if (!WANTNSID(client))
+					isc_stats_increment(
+						    ns_g_server->nsstats,
 						    dns_nsstatscounter_nsidopt);
 				client->attributes |= NS_CLIENTATTR_WANTNSID;
 				isc_buffer_forward(&optbuf, optlen);
@@ -2037,7 +2050,9 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 				process_cookie(client, &optbuf, optlen);
 				break;
 			case DNS_OPT_EXPIRE:
-				isc_stats_increment(ns_g_server->nsstats,
+				if (!WANTEXPIRE(client))
+					isc_stats_increment(
+						  ns_g_server->nsstats,
 						  dns_nsstatscounter_expireopt);
 				client->attributes |= NS_CLIENTATTR_WANTEXPIRE;
 				isc_buffer_forward(&optbuf, optlen);

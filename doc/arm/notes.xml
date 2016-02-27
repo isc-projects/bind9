@@ -44,6 +44,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Duplicate EDNS COOKIE options in a response could trigger
+	  an assertion failure. This flaw is disclosed in CVE-2016-2088.
+	  [RT #41809]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Insufficient testing when parsing a message allowed
 	  records with an incorrect class to be be accepted,
 	  triggering a REQUIRE failure when those records
