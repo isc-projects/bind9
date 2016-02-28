@@ -248,7 +248,7 @@ static isc_result_t get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 static inline isc_boolean_t
 allowed(isc_netaddr_t *addr, dns_name_t *signer, dns_acl_t *acl);
 #ifdef ISC_PLATFORM_USESIT
-static void compute_sit(ns_client_t *client, isc_uint32_t when,
+static void compute_cookie(ns_client_t *client, isc_uint32_t when,
 			isc_uint32_t nonce, isc_buffer_t *buf);
 #endif
 
@@ -1458,7 +1458,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		isc_stdtime_get(&now);
 		isc_random_get(&nonce);
 
-		compute_sit(client, now, nonce, &buf);
+		compute_cookie(client, now, nonce, &buf);
 
 		INSIST(count < DNS_EDNSOPTIONS);
 		ednsopts[count].code = DNS_OPT_COOKIE;
@@ -1565,8 +1565,8 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 
 #ifdef ISC_PLATFORM_USESIT
 static void
-compute_sit(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
-	    isc_buffer_t *buf)
+compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
+	       isc_buffer_t *buf)
 {
 #ifdef AES_SIT
 	unsigned char digest[ISC_AES_BLOCK_LENGTH];
@@ -1669,7 +1669,7 @@ compute_sit(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 }
 
 static void
-process_sit(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
+process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	unsigned char dbuf[COOKIE_SIZE];
 	unsigned char *old;
 	isc_stdtime_t now;
@@ -1731,7 +1731,7 @@ process_sit(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	}
 
 	isc_buffer_init(&db, dbuf, sizeof(dbuf));
-	compute_sit(client, when, nonce, &db);
+	compute_cookie(client, when, nonce, &db);
 
 	if (!isc_safe_memequal(old, dbuf, COOKIE_SIZE)) {
 		isc_stats_increment(ns_g_server->nsstats,
@@ -1807,7 +1807,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 				break;
 #ifdef ISC_PLATFORM_USESIT
 			case DNS_OPT_COOKIE:
-				process_sit(client, &optbuf, optlen);
+				process_cookie(client, &optbuf, optlen);
 				break;
 #endif
 			case DNS_OPT_EXPIRE:
