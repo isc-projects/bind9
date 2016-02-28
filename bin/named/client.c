@@ -1404,7 +1404,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 {
 	char nsid[BUFSIZ], *nsidp;
 #ifdef ISC_PLATFORM_USESIT
-	unsigned char sit[COOKIE_SIZE];
+	unsigned char cookie[COOKIE_SIZE];
 #endif
 	isc_result_t result;
 	dns_view_t *view;
@@ -1454,7 +1454,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		isc_stdtime_t now;
 		isc_uint32_t nonce;
 
-		isc_buffer_init(&buf, sit, sizeof(sit));
+		isc_buffer_init(&buf, cookie, sizeof(cookie));
 		isc_stdtime_get(&now);
 		isc_random_get(&nonce);
 
@@ -1463,7 +1463,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		INSIST(count < DNS_EDNSOPTIONS);
 		ednsopts[count].code = DNS_OPT_COOKIE;
 		ednsopts[count].length = COOKIE_SIZE;
-		ednsopts[count].value = sit;
+		ednsopts[count].value = cookie;
 		count++;
 	}
 #endif
@@ -1720,7 +1720,7 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 
 	/*
 	 * Allow for a 5 minute clock skew between servers sharing a secret.
-	 * Only accept SIT if we have talked to the client in the last hour.
+	 * Only accept COOKIE if we have talked to the client in the last hour.
 	 */
 	isc_stdtime_get(&now);
 	if (isc_serial_gt(when, (now + 300)) ||		/* In the future. */
