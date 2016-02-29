@@ -20,7 +20,7 @@
 4313.	[bug]		Handle ns_client_replace failures in test mode.
 			[RT #41190]
 
-4312.	[bug]		dig's unknown dns and edns flags (MBZ value) logging
+4312.	[bug]		dig's unknown DNS and EDNS flags (MBZ value) logging
 			was not consistent. [RT #41600]
 
 4311.	[bug]		Prevent "rndc delzone" from being used on
