@@ -1976,7 +1976,7 @@ add_triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
 
 #ifdef ISC_PLATFORM_USESIT
 static void
-compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
+compute_cc(resquery_t *query, unsigned char *cookie, size_t len) {
 #ifdef AES_SIT
 	unsigned char digest[ISC_AES_BLOCK_LENGTH];
 	unsigned char input[16];
@@ -1998,7 +1998,7 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 	isc_aes128_crypt(query->fctx->res->view->secret, input, digest);
 	for (i = 0; i < 8; i++)
 		digest[i] ^= digest[i + 8];
-	memmove(sit, digest, 8);
+	memmove(cookie, digest, 8);
 #endif
 #ifdef HMAC_SHA1_SIT
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
@@ -2021,7 +2021,7 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 		break;
 	}
 	isc_hmacsha1_sign(&hmacsha1, digest, sizeof(digest));
-	memmove(sit, digest, 8);
+	memmove(cookie, digest, 8);
 	isc_hmacsha1_invalidate(&hmacsha1);
 #endif
 #ifdef HMAC_SHA256_SIT
@@ -2045,7 +2045,7 @@ compute_cc(resquery_t *query, unsigned char *sit, size_t len) {
 		break;
 	}
 	isc_hmacsha256_sign(&hmacsha256, digest, sizeof(digest));
-	memmove(sit, digest, 8);
+	memmove(cookie, digest, 8);
 	isc_hmacsha256_invalidate(&hmacsha256);
 #endif
 }
@@ -2267,7 +2267,7 @@ resquery_send(resquery_t *query) {
 			isc_boolean_t reqnsid = res->view->requestnsid;
 #ifdef ISC_PLATFORM_USESIT
 			isc_boolean_t reqsit = res->view->requestsit;
-			unsigned char sit[64];
+			unsigned char cookie[64];
 #endif
 
 			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
@@ -2309,7 +2309,7 @@ resquery_send(resquery_t *query) {
 				version >>= DNS_FETCHOPT_EDNSVERSIONSHIFT;
 			}
 
-			/* Request NSID/SIT for current view or peer? */
+			/* Request NSID/COOKIE for current view or peer? */
 			if (peer != NULL) {
 				(void) dns_peer_getrequestnsid(peer, &reqnsid);
 #ifdef ISC_PLATFORM_USESIT
@@ -2334,14 +2334,14 @@ resquery_send(resquery_t *query) {
 				ednsopts[ednsopt].length = (isc_uint16_t)
 					dns_adb_getsit(fctx->adb,
 						       query->addrinfo,
-						       sit, sizeof(sit));
+						       cookie, sizeof(cookie));
 				if (ednsopts[ednsopt].length != 0) {
-					ednsopts[ednsopt].value = sit;
+					ednsopts[ednsopt].value = cookie;
 					inc_stats(fctx->res,
 						  dns_resstatscounter_sitout);
 				} else {
-					compute_cc(query, sit, sizeof(sit));
-					ednsopts[ednsopt].value = sit;
+					compute_cc(query, cookie, 8);
+					ednsopts[ednsopt].value = cookie;
 					ednsopts[ednsopt].length = 8;
 					inc_stats(fctx->res,
 						  dns_resstatscounter_sitcc);
@@ -7513,7 +7513,7 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 	isc_uint16_t optcode;
 	isc_uint16_t optlen;
 #ifdef ISC_PLATFORM_USESIT
-	unsigned char *sit;
+	unsigned char *optvalue;
 	dns_adbaddrinfo_t *addrinfo;
 	unsigned char cookie[8];
 	isc_boolean_t seen_cookie = ISC_FALSE;
@@ -7549,18 +7549,19 @@ process_opt(resquery_t *query, dns_rdataset_t *opt) {
 					isc_buffer_forward(&optbuf, optlen);
 					break;
 				}
-				sit = isc_buffer_current(&optbuf);
+				optvalue = isc_buffer_current(&optbuf);
 				compute_cc(query, cookie, sizeof(cookie));
 				INSIST(query->fctx->rmessage->sitbad == 0 &&
 				       query->fctx->rmessage->sitok == 0);
 				if (optlen >= 8U &&
-				    memcmp(cookie, sit, 8) == 0) {
+				    memcmp(cookie, optvalue, 8) == 0) {
 					query->fctx->rmessage->sitok = 1;
 					inc_stats(query->fctx->res,
 						  dns_resstatscounter_sitok);
 					addrinfo = query->addrinfo;
 					dns_adb_setsit(query->fctx->adb,
-						       addrinfo, sit, optlen);
+						       addrinfo, optvalue,
+						       optlen);
 				} else
 					query->fctx->rmessage->sitbad = 1;
 				isc_buffer_forward(&optbuf, optlen);
@@ -7807,11 +7808,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 #ifdef ISC_PLATFORM_USESIT
 	if (message->sitbad) {
 		/*
-		 * If the SIT is bad assume it is a attack and retry.
+		 * If the COOKIE is bad assume it is a attack and retry.
 		 */
 		resend = ISC_TRUE;
 		/* XXXMPA log it */
-		FCTXTRACE("bad sit");
+		FCTXTRACE("bad cookie");
 		goto done;
 	}
 #endif
@@ -7978,7 +7979,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_t b;
 		char code[64];
 #ifdef ISC_PLATFORM_USESIT
-		unsigned char sit[64];
+		unsigned char cookie[64];
 
 		/*
 		 * Some servers do not ignore unknown EDNS options.
@@ -7988,7 +7989,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		     message->rcode == dns_rcode_notimp ||
 		     message->rcode == dns_rcode_refused) &&
 		     dns_adb_getsit(fctx->adb, query->addrinfo,
-				   sit, sizeof(sit)) == 0U) {
+				    cookie, sizeof(cookie)) == 0U) {
 			dns_adb_changeflags(fctx->adb, query->addrinfo,
 					    FCTX_ADDRINFO_NOSIT,
 					    FCTX_ADDRINFO_NOSIT);
@@ -8054,12 +8055,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			/*
 			 * Some servers return BADVERS to unknown
 			 * EDNS options.  This cannot be long term
-			 * strategy.  Do not disable SIT if we have
-			 * already have received a SIT from this
+			 * strategy.  Do not disable COOKIE if we have
+			 * already have received a COOKIE from this
 			 * server.
 			 */
 			if (dns_adb_getsit(fctx->adb, query->addrinfo,
-					   sit, sizeof(sit)) == 0U) {
+					   cookie, sizeof(cookie)) == 0U) {
 				if (!NOSIT(query->addrinfo))
 					nosit = ISC_TRUE;
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
