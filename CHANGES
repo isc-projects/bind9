@@ -31,7 +31,7 @@
 4313.	[bug]		Handle ns_client_replace failures in test mode.
 			[RT #41190]
 
-4312.	[bug]		dig's unknown dns and edns flags (MBZ value) logging
+4312.	[bug]		dig's unknown DNS and EDNS flags (MBZ value) logging
 			was not consistent. [RT #41600]
 
 4311.	[bug]		Prevent "rndc delzone" from being used on
@@ -48,7 +48,7 @@
 
 4307.	[bug]		"dig +subnet" and "mdig +subnet" could send
 			incorrectly-formatted Client Subnet options
-			if the prefix length was not divisble by 8.
+			if the prefix length was not divisible by 8.
 			Also fixed a memory leak in "mdig". [RT #45178]
 
 4306.	[maint]		Added a PKCS#11 openssl patch supporting
@@ -72,7 +72,7 @@
 4301.	[bug]		dnssec-settime -p [DP]sync was not working. [RT #41534]
 
 4300.	[bug]		A flag could be set in the wrong field when setting
-			up nonrecursive queries; this could cause the
+			up non-recursive queries; this could cause the
 			SERVFAIL cache to cache responses it shouldn't.
 			New querytrace logging has been added which
 			identified this error. [RT #41155]
@@ -82,7 +82,7 @@
 			and incremental modes. [RT #41402]
 
 4298.	[bug]		dns_rpz_add errors in loadzone were not being
-			propogated up the call stack. [RT #41425]
+			propagated up the call stack. [RT #41425]
 
 4297.	[test]		Ensure delegations in RPZ zones fail robustly.
 			[RT #41518]
