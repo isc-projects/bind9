@@ -49,24 +49,16 @@
       </listitem>
       <listitem>
 	<para>
-	  Insufficient testing when parsing a message allowed
-	  records with an incorrect class to be be accepted,
-	  triggering a REQUIRE failure when those records
-	  were subsequently cached.  This flaw is disclosed
-	  in CVE-2015-8000. [RT #40987]
+	  The resolver could abort with an assertion failure due to
+	  improper DNAME handling when parsing fetch reply
+	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Incorrect reference counting could result in an INSIST
-	  failure if a socket error occurred while performing a
-	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Specific APL data could trigger an INSIST.  This flaw
-	  is disclosed in CVE-2015-8704. [RT #41396]
+	  Malformed control messages can trigger assertions in named
+	  and rndc. This flaw is disclosed in CVE-2016-1285. [RT
+	  #41666]
 	</para>
       </listitem>
       <listitem>
@@ -79,16 +71,24 @@
       </listitem>
       <listitem>
 	<para>
-	  Malformed control messages can trigger assertions in named
-	  and rndc. This flaw is disclosed in CVE-2016-1285. [RT
-	  #41666]
+	  Specific APL data could trigger an INSIST.  This flaw
+	  is disclosed in CVE-2015-8704. [RT #41396]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  The resolver could abort with an assertion failure due to
-	  improper DNAME handling when parsing fetch reply
-	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
+	  Incorrect reference counting could result in an INSIST
+	  failure if a socket error occurred while performing a
+	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Insufficient testing when parsing a message allowed
+	  records with an incorrect class to be be accepted,
+	  triggering a REQUIRE failure when those records
+	  were subsequently cached.  This flaw is disclosed
+	  in CVE-2015-8000. [RT #40987]
 	</para>
       </listitem>
     </itemizedlist>
