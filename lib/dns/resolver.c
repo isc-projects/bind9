@@ -6732,7 +6732,7 @@ static isc_result_t
 answer_response(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_message_t *message;
-	dns_name_t *name, *dname, *qname, tname, *ns_name;
+	dns_name_t *name, *dname = NULL, *qname, tname, *ns_name;
 	dns_rdataset_t *rdataset, *ns_rdataset;
 	isc_boolean_t done, external, chaining, aa, found, want_chaining;
 	isc_boolean_t have_answer, found_cname, found_type, wanted_chaining;
