@@ -83,20 +83,9 @@
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
-	  Insufficient testing when parsing a message allowed
-	  records with an incorrect class to be be accepted,
-	  triggering a REQUIRE failure when those records
-	  were subsequently cached.  This flaw is disclosed
-	  in CVE-2015-8000. [RT #40987]
-	</p></li>
-<li class="listitem"><p>
-	  Incorrect reference counting could result in an INSIST
-	  failure if a socket error occurred while performing a
-	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
-	</p></li>
-<li class="listitem"><p>
-	  Specific APL data could trigger an INSIST.  This flaw
-	  is disclosed in CVE-2015-8704. [RT #41396]
+	  The resolver could abort with an assertion failure due to
+	  improper DNAME handling when parsing fetch reply
+	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
 	</p></li>
 <li class="listitem"><p>
 	  Malformed control messages can trigger assertions in named
@@ -104,9 +93,20 @@
 	  #41666]
 	</p></li>
 <li class="listitem"><p>
-	  The resolver could abort with an assertion failure due to
-	  improper DNAME handling when parsing fetch reply
-	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
+	  Specific APL data could trigger an INSIST.  This flaw
+	  is disclosed in CVE-2015-8704. [RT #41396]
+	</p></li>
+<li class="listitem"><p>
+	  Incorrect reference counting could result in an INSIST
+	  failure if a socket error occurred while performing a
+	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
+	</p></li>
+<li class="listitem"><p>
+	  Insufficient testing when parsing a message allowed
+	  records with an incorrect class to be be accepted,
+	  triggering a REQUIRE failure when those records
+	  were subsequently cached.  This flaw is disclosed
+	  in CVE-2015-8000. [RT #40987]
 	</p></li>
 </ul></div>
 </div>
