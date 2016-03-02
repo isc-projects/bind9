@@ -11463,6 +11463,7 @@ yes)
 	test "${enable_symtable+set}" = set || enable_symtable=all
 	test "${enable_warn_error+set}" = set || enable_warn_error=yes
 	test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
+	test "${with_zlib+set}" = set || with_zlib=yes
 	;;
 esac
 
@@ -16758,7 +16759,7 @@ $as_echo_n "checking for zlib library... " >&6; }
 if test "${with_zlib+set}" = set; then :
   withval=$with_zlib; use_zlib="$withval"
 else
-  use_zlib="yes"
+  use_zlib="auto"
 fi
 
 

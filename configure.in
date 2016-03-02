@@ -93,6 +93,7 @@ yes)
 	test "${enable_symtable+set}" = set || enable_symtable=all
 	test "${enable_warn_error+set}" = set || enable_warn_error=yes
 	test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
+	test "${with_zlib+set}" = set || with_zlib=yes
 	;;
 esac
 
@@ -2213,7 +2214,7 @@ AC_SUBST(JSONSTATS)
 AC_MSG_CHECKING(for zlib library)
 AC_ARG_WITH(zlib,
 [  --with-zlib[=PATH]        build with zlib for HTTP compression [[default=yes]] ],
-    use_zlib="$withval", use_zlib="yes")
+    use_zlib="$withval", use_zlib="auto")
 
 have_zlib=""
 case "$use_zlib" in
