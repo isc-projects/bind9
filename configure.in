@@ -2214,10 +2214,10 @@ AC_SUBST(JSONSTATS)
 AC_MSG_CHECKING(for zlib library)
 AC_ARG_WITH(zlib,
 [  --with-zlib[=PATH]        build with zlib for HTTP compression [[default=yes]] ],
-    use_zlib="$withval", use_zlib="auto")
+    with_zlib="$withval", with_zlib="auto")
 
 have_zlib=""
-case "$use_zlib" in
+case "$with_zlib" in
 	no)
 		zlib_libs=""
 		;;
@@ -2236,13 +2236,13 @@ case "$use_zlib" in
 		done
 		;;
 	*)
-		if test -f "${use_zlib}/zlib.h"
+		if test -f "${with_zlib}/zlib.h"
 		then
-			zlib_cflags="-I${use_zlib}/include"
-			LIBS="$LIBS -L${use_zlib}/lib"
+			zlib_cflags="-I${with_zlib}/include"
+			LIBS="$LIBS -L${with_zlib}/lib"
 			have_zlib="yes"
 		else
-			AC_MSG_ERROR([$use_zlib/include/zlib.h not found.])
+			AC_MSG_ERROR([$with_zlib/include/zlib.h not found.])
 		fi
 		;;
 esac
@@ -2253,7 +2253,7 @@ then
 	AC_SEARCH_LIBS([deflate], [z], [],
 		       [AC_MSG_ERROR([found zlib include but not library.])
 			have_zlib=""])
-elif test "X$use_zlib" = Xyes
+elif test "X$with_zlib" = Xyes
 then
 	AC_MSG_ERROR([include/zlib.h not found.])
 else
