@@ -3275,7 +3275,7 @@
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005,2007,2008,2013,2014,2015
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006,2007,2009,2013,2014,2015
 ./lib/isc/hmacsha.c				C	2005,2006,2007,2009,2011,2012,2013,2014,2015
-./lib/isc/httpd.c				C	2006,2007,2008,2010,2011,2012,2014,2015
+./lib/isc/httpd.c				C	2006,2007,2008,2010,2011,2012,2014,2015,2016
 ./lib/isc/ia64/Makefile.in			MAKE	2007,2012
 ./lib/isc/ia64/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/ia64/include/isc/Makefile.in		MAKE	2007,2012,2015
