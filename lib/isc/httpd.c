@@ -374,14 +374,76 @@ httpdmgr_destroy(isc_httpdmgr_t *httpdmgr) {
 #define LENGTHOK(s) (httpd->recvbuf - (s) < (int)httpd->recvlen)
 #define BUFLENOK(s) (httpd->recvbuf - (s) < HTTP_RECVLEN)
 
+/*
+ * Look for the given header in headers.
+ * If value is specified look for it terminated with a character in eov.
+ */
+static isc_boolean_t
+have_header(isc_httpd_t *httpd, const char *header, const char *value,
+	    const char *eov)
+{
+	char *cr, *nl, *h;
+	size_t hlen, vlen;
+
+	h = httpd->headers;
+	hlen = strlen(header);
+	if (value != NULL) {
+		INSIST(eov != NULL);
+		vlen = strlen(value);
+	}
+
+	for (;;) {
+		if (strncasecmp(h, header, hlen) != 0) {
+			/*
+			 * Skip to next line;
+			 */
+			cr = strchr(h, '\r');
+			if (cr != NULL && cr[1] == '\n')
+				cr++;
+			nl = strchr(h, '\n');
+			/* last header? */
+			if (cr == NULL && nl == NULL)
+				return(ISC_FALSE);
+			h = cr;
+			if (h == NULL || nl < h)
+				h = nl;
+			h++;
+			continue;
+		}
+
+		if (value == NULL)
+			return (ISC_TRUE);
+
+		/*
+		 * Skip optional leading white space.
+		 */
+		h += hlen;
+		while (*h == ' ' || *h == '\t')
+			h++;
+		/*
+		 * Terminate token search on NULL or EOL.
+		 */
+		while (*h != 0 && *h != '\r' && *h != '\n') {
+			if (strncasecmp(h, value, vlen) == 0)
+				if (strchr(eov, h[vlen]) != NULL)
+					return (ISC_TRUE);
+			/*
+			 * Skip to next token.
+			 */
+			h += strcspn(h, eov);
+			if (h[0] == '\r' && h[1] == '\n')
+				h++;
+			if (h[0] != 0)
+				h++;
+		}
+		return (ISC_FALSE);
+	}
+}
+
 static isc_result_t
 process_request(isc_httpd_t *httpd, int length) {
 	char *s;
 	char *p;
-#ifdef HAVE_ZLIB
-	char *e;
-	char *v;
-#endif
 	int delim;
 
 	ENTER("request");
@@ -396,13 +458,18 @@ process_request(isc_httpd_t *httpd, int length) {
 	 * more data.
 	 */
 	s = strstr(httpd->recvbuf, "\r\n\r\n");
-	delim = 1;
+	delim = 2;
 	if (s == NULL) {
 		s = strstr(httpd->recvbuf, "\n\n");
-		delim = 2;
+		delim = 1;
 	}
 	if (s == NULL)
 		return (ISC_R_NOTFOUND);
+
+	/*
+	 * NUL terminate request at the blank line.
+	 */
+	s[delim] = 0;
 
 	/*
 	 * Determine if this is a POST or GET method.  Any other values will
@@ -462,7 +529,7 @@ process_request(isc_httpd_t *httpd, int length) {
 	}
 
 	httpd->url = p;
-	p = s + delim;
+	p = s + 1;
 	s = p;
 
 	/*
@@ -477,7 +544,7 @@ process_request(isc_httpd_t *httpd, int length) {
 
 	/*
 	 * Extract the HTTP/1.X protocol.  We will bounce on anything but
-	 * HTTP/1.1 for now.
+	 * HTTP/1.0 or HTTP/1.1 for now.
 	 */
 	while (LENGTHOK(s) && BUFLENOK(s) &&
 	       (*s != '\n' && *s != '\r' && *s != '\0'))
@@ -486,24 +553,30 @@ process_request(isc_httpd_t *httpd, int length) {
 		return (ISC_R_NOTFOUND);
 	if (!BUFLENOK(s))
 		return (ISC_R_NOMEMORY);
+	/*
+	 * Check that we have the expected eol delimiter.
+	 */
+	if (strncmp(s, delim == 1 ? "\n" : "\r\n", delim) != 0)
+		return (ISC_R_RANGE);
 	*s = 0;
 	if ((strncmp(p, "HTTP/1.0", 8) != 0)
 	    && (strncmp(p, "HTTP/1.1", 8) != 0))
 		return (ISC_R_RANGE);
 	httpd->protocol = p;
-	p = s + 1;
+	p = s + delim;	/* skip past eol */
 	s = p;
 
 	httpd->headers = s;
 
-	if (strstr(s, "Connection: close") != NULL)
+	if (have_header(httpd, "Connection:", "close", ", \t\r\n"))
 		httpd->flags |= HTTPD_CLOSE;
 
-	if (strstr(s, "Host: ") != NULL)
+	if (have_header(httpd, "Host:", NULL, NULL))
 		httpd->flags |= HTTPD_FOUNDHOST;
 
 	if (strncmp(httpd->protocol, "HTTP/1.0", 8) == 0) {
-		if (strcasestr(s, "Connection: Keep-Alive") != NULL)
+		if (have_header(httpd, "Connection:", "Keep-Alive",
+				", \t\r\n"))
 			httpd->flags |= HTTPD_KEEPALIVE;
 		else
 			httpd->flags |= HTTPD_CLOSE;
@@ -513,22 +586,8 @@ process_request(isc_httpd_t *httpd, int length) {
 	 * Check for Accept-Encoding:
 	 */
 #ifdef HAVE_ZLIB
-	p = strcasestr(s, "Accept-Encoding:");
-	if (p != NULL) {
-		const int l = strlen("deflate");
-		p += strlen("Accept-Encoding:");
-		v = strstr(p, "deflate");
-		e = strstr(p, "\n");            /* this is never NULL */
-		INSIST(e != NULL);
-		if (v != NULL && v < e &&
-			(v[-1] == ' ' || v[-1] == ',' || v == p) &&
-			((v[l] == '\r' && v[l+1] == '\n') ||  /* last on line */
-			  v[l] == ';'  ||                     /* with a 'q=...' */
-			  v[l] == ',')) {                     /* another follows */
-			httpd->flags |= HTTPD_ACCEPT_DEFLATE;
-		}
-
-	}
+	if (have_header(httpd, "Accept-Encoding:", "deflate", ";, \t\r\n"))
+		httpd->flags |= HTTPD_ACCEPT_DEFLATE;
 #endif
 
 	/*

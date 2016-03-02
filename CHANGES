@@ -1,3 +1,6 @@
+4223.	[bug]		Improve HTTP header processing on statschannel.
+			[RT #41674]
+
 4322.	[security]	Duplicate EDNS COOKIE options in a response could
 			trigger an assertion failure. (CVE-2016-2088)
 			[RT #41809]

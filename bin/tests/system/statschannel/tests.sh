@@ -57,7 +57,7 @@ gettraffic() {
         *) return 1 ;;
     esac
     file=`$PERL fetch.pl $path`
-    $PERL traffic-${1}.pl $file | sort > traffic.out.$2
+    $PERL traffic-${1}.pl $file 2>/dev/null | sort > traffic.out.$2
     result=$?
     rm -f $file
     return $result
