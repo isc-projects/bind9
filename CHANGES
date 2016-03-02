@@ -1,4 +1,4 @@
-4223.	[bug]		Improve HTTP header processing on statschannel.
+4323.	[bug]		Improve HTTP header processing on statschannel.
 			[RT #41674]
 
 4320.	[bug]		Insufficient memory allocation when handling
