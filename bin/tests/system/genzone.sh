@@ -359,6 +359,9 @@ caa01			CAA	0 issue "ca.example.net; policy=ev"
 caa02			CAA	128 tbs "Unknown"
 caa03			CAA	128 tbs ""
 
+; type 258
+avc			AVC	foo:bar
+
 ; type 32768
 ta			TA	30795 1 1 (
 					310D27F4D82C1FC2400704EA9939FE6E1CEA
