@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include <isc/os.h>
+#include <isc/thread.h>
 
 #include <dns/name.h>
 #include <dns/fixedname.h>
@@ -177,7 +178,7 @@ ATF_TC_BODY(benchmark, tc) {
 	isc_time_t ts1, ts2;
 	double t;
 	unsigned int nthreads;
-	pthread_t threads[32];
+	isc_thread_t threads[32];
 
 	UNUSED(tc);
 
@@ -192,19 +193,13 @@ ATF_TC_BODY(benchmark, tc) {
 	nthreads = ISC_MIN(isc_os_ncpus(), 32);
 	nthreads = ISC_MAX(nthreads, 1);
 	for (i = 0; i < nthreads; i++) {
-		int s;
-
-		s = pthread_create(&threads[i], NULL, fromwire_thread, NULL);
-
-		ATF_REQUIRE(s == 0);
+		result = isc_thread_create(fromwire_thread, NULL, &threads[i]);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	}
 
 	for (i = 0; i < nthreads; i++) {
-		int s;
-
-		s = pthread_join(threads[i], NULL);
-
-		ATF_REQUIRE(s == 0);
+		result = isc_thread_join(threads[i], NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	}
 
 	result = isc_time_now(&ts2);
