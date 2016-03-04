@@ -180,14 +180,14 @@ isc_hash_calc(const unsigned char *key, unsigned int keylen,
  */
 /*@}*/
 
-unsigned int
+isc_uint32_t
 isc_hash_function(const void *data, size_t length,
 		  isc_boolean_t case_sensitive,
-		  unsigned int *previous_hashp);
-unsigned int
+		  const isc_uint32_t *previous_hashp);
+isc_uint32_t
 isc_hash_function_reverse(const void *data, size_t length,
 			  isc_boolean_t case_sensitive,
-			  unsigned int *previous_hashp);
+			  const isc_uint32_t *previous_hashp);
 /*!<
  * \brief Calculate a hash over data.
  *

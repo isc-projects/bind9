@@ -830,9 +830,8 @@ dns_message_find(dns_name_t *name, dns_rdataclass_t rdclass,
 {
 	dns_rdataset_t *curr;
 
-	if (rdataset != NULL) {
-		REQUIRE(*rdataset == NULL);
-	}
+	REQUIRE(name != NULL);
+	REQUIRE(rdataset == NULL || *rdataset == NULL);
 
 	for (curr = ISC_LIST_TAIL(name->list);
 	     curr != NULL;
@@ -855,15 +854,13 @@ dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
 	dns_rdataset_t *curr;
 
 	REQUIRE(name != NULL);
-	if (rdataset != NULL) {
-		REQUIRE(*rdataset == NULL);
-	}
+	REQUIRE(rdataset == NULL || *rdataset == NULL);
 
 	for (curr = ISC_LIST_TAIL(name->list);
 	     curr != NULL;
 	     curr = ISC_LIST_PREV(curr, link)) {
 		if (curr->type == type && curr->covers == covers) {
-			if (rdataset != NULL)
+			if (ISC_UNLIKELY(rdataset != NULL))
 				*rdataset = curr;
 			return (ISC_R_SUCCESS);
 		}
@@ -2341,13 +2338,12 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	REQUIRE(msg != NULL);
 	REQUIRE(VALID_SECTION(section));
 	REQUIRE(target != NULL);
-	if (name != NULL)
-		REQUIRE(*name == NULL);
+	REQUIRE(name == NULL || *name == NULL);
+
 	if (type == dns_rdatatype_any) {
 		REQUIRE(rdataset == NULL);
 	} else {
-		if (rdataset != NULL)
-			REQUIRE(*rdataset == NULL);
+		REQUIRE(rdataset == NULL || *rdataset == NULL);
 	}
 
 	result = findname(&foundname, target,
@@ -2364,7 +2360,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	/*
 	 * And now look for the type.
 	 */
-	if (type == dns_rdatatype_any)
+	if (ISC_UNLIKELY(type == dns_rdatatype_any))
 		return (ISC_R_SUCCESS);
 
 	result = dns_message_findtype(foundname, type, covers, rdataset);

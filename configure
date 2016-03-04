@@ -18489,8 +18489,6 @@ ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
 ISC_PLATFORM_USESTDASM="#undef ISC_PLATFORM_USESTDASM"
 ISC_PLATFORM_USEMACASM="#undef ISC_PLATFORM_USEMACASM"
 if test "$use_atomic" = "yes"; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking architecture type for atomic operations" >&5
-$as_echo_n "checking architecture type for atomic operations... " >&6; }
 	have_atomic=yes		# set default
 	case "$host" in
 	i[3456]86-*)
@@ -18594,6 +18592,8 @@ _ACEOF
 		arch=noatomic
 	;;
 	esac
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking architecture type for atomic operations" >&5
+$as_echo_n "checking architecture type for atomic operations... " >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $arch" >&5
 $as_echo "$arch" >&6; }
 fi
@@ -19800,6 +19800,8 @@ else
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable query trace logging" >&5
+$as_echo_n "checking whether to enable query trace logging... " >&6; }
 case "$want_querytrace" in
 yes)
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
