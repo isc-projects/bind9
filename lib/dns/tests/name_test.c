@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include <isc/os.h>
+#include <isc/print.h>
 #include <isc/thread.h>
 
 #include <dns/name.h>
