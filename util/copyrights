@@ -1278,7 +1278,7 @@
 ./bin/tests/system/forward/ns5/named.conf	CONF-C	2011
 ./bin/tests/system/forward/ns5/root.db		ZONE	2011
 ./bin/tests/system/forward/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014
-./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013,2014,2015
+./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/glue/clean.sh		SH	2000,2001,2004,2007,2012,2015
 ./bin/tests/system/glue/fi.good			X	2000,2001
 ./bin/tests/system/glue/noglue.good		X	2000,2001
@@ -1892,8 +1892,8 @@
 ./bin/tests/system/xfer/ans5/unsigned		X	2011
 ./bin/tests/system/xfer/ans5/wrongkey		X	2011
 ./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004,2007,2011,2012,2013
-./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014,2015
-./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014,2015
+./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014,2015,2016
+./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/xfer/ns1/named.conf		CONF-C	2000,2001,2004,2007,2011
 ./bin/tests/system/xfer/ns1/root.db		ZONE	2000,2001,2004,2007
 ./bin/tests/system/xfer/ns2/named.conf		CONF-C	2000,2001,2004,2005,2007,2013
@@ -2930,7 +2930,7 @@
 ./lib/dns/portlist.c				C	2003,2004,2005,2006,2007,2014
 ./lib/dns/private.c				C	2009,2011,2012,2015
 ./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2011,2012,2013,2014,2015,2016
-./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004,2005,2007
@@ -2942,6 +2942,8 @@
 ./lib/dns/rdata/ch_3/a_1.h			C	2005,2007
 ./lib/dns/rdata/generic/afsdb_18.c		C	1999,2000,2001,2003,2004,2005,2007,2009,2014,2015
 ./lib/dns/rdata/generic/afsdb_18.h		C	1999,2000,2001,2004,2005,2007
+./lib/dns/rdata/generic/avc_258.c		C	2016
+./lib/dns/rdata/generic/avc_258.h		C	2016
 ./lib/dns/rdata/generic/caa_257.c		C	2014,2015,2016
 ./lib/dns/rdata/generic/caa_257.h		C	2014
 ./lib/dns/rdata/generic/cdnskey_60.c		C	2014,2015
@@ -3127,7 +3129,7 @@
 ./lib/dns/tests/dnstest.h			C	2011,2012,2015
 ./lib/dns/tests/master_test.c			C	2011,2012,2013,2015
 ./lib/dns/tests/mkraw.pl			PERL	2011,2012
-./lib/dns/tests/name_test.c			C	2014
+./lib/dns/tests/name_test.c			C	2014,2016
 ./lib/dns/tests/nsec3_test.c			C	2012,2014
 ./lib/dns/tests/private_test.c			C	2011,2012
 ./lib/dns/tests/rdata_test.c			C	2012,2013,2015
@@ -3301,7 +3303,7 @@
 ./lib/isc/include/isc/file.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012,2013,2014,2015
 ./lib/isc/include/isc/formatcheck.h		C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/fsaccess.h		C	2000,2001,2004,2005,2006,2007,2009
-./lib/isc/include/isc/hash.h			C	2003,2004,2005,2006,2007,2009,2013,2015
+./lib/isc/include/isc/hash.h			C	2003,2004,2005,2006,2007,2009,2013,2015,2016
 ./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2012
 ./lib/isc/include/isc/hex.h			C	2000,2001,2004,2005,2006,2007,2008
 ./lib/isc/include/isc/hmacmd5.h			C	2000,2001,2004,2005,2006,2007,2009
@@ -3372,7 +3374,7 @@
 ./lib/isc/lib.c					C	1999,2000,2001,2004,2005,2007,2009,2014,2015
 ./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2011,2012,2013,2014
 ./lib/isc/md5.c					C	2000,2001,2004,2005,2007,2009,2014,2015
-./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014,2015
+./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014,2015,2016
 ./lib/isc/mem_api.c				C	2009,2010
 ./lib/isc/mips/Makefile.in			MAKE	2007,2012
 ./lib/isc/mips/include/Makefile.in		MAKE	2007,2012
