@@ -132,6 +132,11 @@
 	  message compression. This results in reduced network usage.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Added support for the type AVC.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
