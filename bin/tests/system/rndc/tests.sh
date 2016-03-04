@@ -441,4 +441,11 @@ $RNDC -s 10.53.0.5 -p 9953 -c ../common/rndc.conf reconfig > /dev/null 2>&1 && r
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:test rndc status shows running on"
+ret=0
+$RNDC -s 10.53.0.5 -p 9953 -c ../common/rndc.conf status > rndc.output /dev/null 2>&1 || ret=1
+grep "^running on " rndc.output > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 exit $status

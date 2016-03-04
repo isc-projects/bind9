@@ -1,3 +1,6 @@
+4325.	[func]		Add a line to "rndc status" indicating the
+			hostname and operating system details. [RT #41610]
+
 4324.	[bug]		When deleting records from a zone database, interior
 			nodes could be left empty but not deleted, damaging
 			search performance afterward. [RT #40997]

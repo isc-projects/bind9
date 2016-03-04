@@ -8924,7 +8924,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t **text) {
 	const char *ob = "", *cb = "", *alt = "";
 	char boottime[ISC_FORMATHTTPTIMESTAMP_SIZE];
 	char configtime[ISC_FORMATHTTPTIMESTAMP_SIZE];
-	char line[1024];
+	char line[1024], hostname[256];
 
 	if (ns_g_server->version_set) {
 		ob = " (";
@@ -8953,6 +8953,13 @@ ns_server_status(ns_server_t *server, isc_buffer_t **text) {
 		 ns_g_product, ns_g_version,
 		 (*ns_g_description != '\0') ? " " : "",
 		 ns_g_description, ns_g_srcid, ob, alt, cb);
+	CHECK(putstr(text, line));
+
+	result = ns_os_gethostname(hostname, sizeof(hostname));
+	if (result != ISC_R_SUCCESS)
+		strlcpy(hostname, "localhost", sizeof(hostname));
+	snprintf(line, sizeof(line), "running on %s: %s\n",
+		 hostname, ns_os_uname());
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "boot time: %s\n", boottime);
