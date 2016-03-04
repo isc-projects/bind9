@@ -497,7 +497,7 @@ query_getnamebuf(ns_client_t *client) {
 	dbuf = ISC_LIST_TAIL(client->query.namebufs);
 	INSIST(dbuf != NULL);
 	isc_buffer_availableregion(dbuf, &r);
-	if (r.length < 255) {
+	if (r.length < DNS_NAME_MAXWIRE) {
 		result = query_newnamebuf(client);
 		if (result != ISC_R_SUCCESS) {
 		    CTRACE(ISC_LOG_DEBUG(3),
@@ -1133,11 +1133,8 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	unsigned int namelabels;
 	unsigned int zonelabels;
 	dns_zone_t *zone = NULL;
-	dns_db_t *tdbp;
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
-
-	tdbp = NULL;
 
 	/* Calculate how many labels are in name. */
 	namelabels = dns_name_countlabels(name);
@@ -1155,15 +1152,17 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	 * If # zone labels < # name labels, try to find an even better match
 	 * Only try if DLZ drivers are loaded for this view
 	 */
-	if (zonelabels < namelabels &&
-	    !ISC_LIST_EMPTY(client->view->dlz_searched))
+	if (ISC_UNLIKELY(zonelabels < namelabels &&
+			 !ISC_LIST_EMPTY(client->view->dlz_searched)))
 	{
 		dns_clientinfomethods_t cm;
 		dns_clientinfo_t ci;
+		dns_db_t *tdbp;
 
 		dns_clientinfomethods_init(&cm, ns_client_sourceip);
 		dns_clientinfo_init(&ci, client);
 
+		tdbp = NULL;
 		tresult = dns_view_searchdlz(client->view, name,
 					     zonelabels, &cm, &ci, &tdbp);
 		 /* If we successful, we found a better match. */
@@ -6496,11 +6495,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		options |= DNS_GETDB_NOEXACT;
 	result = query_getdb(client, client->query.qname, qtype, options,
 			     &zone, &db, &version, &is_zone);
-	if ((result != ISC_R_SUCCESS || !is_zone) && !RECURSIONOK(client) &&
-	    (options & DNS_GETDB_NOEXACT) != 0 && qtype == dns_rdatatype_ds) {
+	if (ISC_UNLIKELY((result != ISC_R_SUCCESS || !is_zone) &&
+			 qtype == dns_rdatatype_ds &&
+			 !RECURSIONOK(client) &&
+			 (options & DNS_GETDB_NOEXACT) != 0))
+	{
 		/*
-		 * Look to see if we are authoritative for the
-		 * child zone if the query type is DS.
+		 * If the query type is DS, look to see if we are
+		 * authoritative for the child zone.
 		 */
 		dns_db_t *tdb = NULL;
 		dns_zone_t *tzone = NULL;
@@ -6579,7 +6581,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	 * We'll need some resources...
 	 */
 	dbuf = query_getnamebuf(client);
-	if (dbuf == NULL) {
+	if (ISC_UNLIKELY(dbuf == NULL)) {
 		CTRACE(ISC_LOG_ERROR,
 		       "query_find: query_getnamebuf failed (2)");
 		QUERY_ERROR(DNS_R_SERVFAIL);
@@ -6587,7 +6589,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	}
 	fname = query_newname(client, dbuf, &b);
 	rdataset = query_newrdataset(client);
-	if (fname == NULL || rdataset == NULL) {
+	if (ISC_UNLIKELY(fname == NULL || rdataset == NULL)) {
 		CTRACE(ISC_LOG_ERROR,
 		       "query_find: query_newname failed (2)");
 		QUERY_ERROR(DNS_R_SERVFAIL);
@@ -6610,7 +6612,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				client->query.dboptions, client->now,
 				&node, fname, &cm, &ci, rdataset, sigrdataset);
 
-	if (db == client->view->cachedb)
+	if (!is_zone)
 		dns_cache_updatestats(client->view->cache, result);
 
  resume:
@@ -8544,6 +8546,14 @@ ns_query_start(ns_client_t *client) {
 	}
 
 	/*
+	 * Check for multiple question queries, since edns1 is dead.
+	 */
+	if (message->counts[DNS_SECTION_QUESTION] > 1) {
+		query_error(client, DNS_R_FORMERR, __LINE__);
+		return;
+	}
+
+	/*
 	 * Get the question name.
 	 */
 	result = dns_message_firstname(message, DNS_SECTION_QUESTION);
@@ -8569,14 +8579,6 @@ ns_query_start(ns_client_t *client) {
 
 	if (ns_g_server->log_queries)
 		log_query(client, saved_flags, saved_extflags);
-
-	/*
-	 * Check for multiple question queries, since edns1 is dead.
-	 */
-	if (message->counts[DNS_SECTION_QUESTION] > 1) {
-		query_error(client, DNS_R_FORMERR, __LINE__);
-		return;
-	}
 
 	/*
 	 * Check for meta-queries like IXFR and AXFR.
