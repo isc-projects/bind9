@@ -2114,53 +2114,91 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 		}
 	}
 
-	/*
-	 * Note the node that points to the level of the node that is being
-	 * deleted.  If the deleted node is the top level, parent will be set
-	 * to NULL.
-	 */
-	parent = get_upper_node(node);
+	for (;;) {
+		/*
+		 * Note the node that points to the level of the node
+		 * that is being deleted.  If the deleted node is the
+		 * top level, parent will be set to NULL.
+		 */
+		parent = get_upper_node(node);
 
-	/*
-	 * This node now has no down pointer (either because it didn't
-	 * have one to start, or because it was recursively removed).
-	 * So now the node needs to be removed from this level.
-	 */
-	deletefromlevel(node, parent == NULL ? &rbt->root : &DOWN(parent));
+		/*
+		 * This node now has no down pointer (either because it didn't
+		 * have one to start, or because it was recursively removed).
+		 * So now the node needs to be removed from this level.
+		 */
+		deletefromlevel(node,
+				parent == NULL ? &rbt->root : &DOWN(parent));
 
-	if (DATA(node) != NULL && rbt->data_deleter != NULL)
-		rbt->data_deleter(DATA(node), rbt->deleter_arg);
+		if (DATA(node) != NULL && rbt->data_deleter != NULL)
+			rbt->data_deleter(DATA(node), rbt->deleter_arg);
 
-	unhash_node(rbt, node);
+		unhash_node(rbt, node);
 #if DNS_RBT_USEMAGIC
-	node->magic = 0;
+		node->magic = 0;
 #endif
-	dns_rbtnode_refdestroy(node);
+		dns_rbtnode_refdestroy(node);
 
-	freenode(rbt, &node);
+		freenode(rbt, &node);
 
-	/*
-	 * There are now two special cases that can exist that would
-	 * not have existed if the tree had been created using only
-	 * the names that now exist in it.  (This is all related to
-	 * join_nodes() as described in this function's introductory comment.)
-	 * Both cases exist when the deleted node's parent (the node
-	 * that pointed to the deleted node's level) is not null but
-	 * it has no data:  parent != NULL && DATA(parent) == NULL.
-	 *
-	 * The first case is that the deleted node was the last on its level:
-	 * DOWN(parent) == NULL.  This case can only exist if the parent was
-	 * previously deleted -- and so now, apparently, the parent should go
-	 * away.  That can't be done though because there might be external
-	 * references to it, such as through a nodechain.
-	 *
-	 * The other case also involves a parent with no data, but with the
-	 * deleted node being the next-to-last node instead of the last:
-	 * LEFT(DOWN(parent)) == NULL && RIGHT(DOWN(parent)) == NULL.
-	 * Presumably now the remaining node on the level should be joined
-	 * with the parent, but it's already been described why that can't be
-	 * done.
-	 */
+		/*
+		 * There are now two special cases that can exist that
+		 * would not have existed if the tree had been created
+		 * using only the names that now exist in it.  (This is
+		 * all related to join_nodes() as described in this
+		 * function's introductory comment.)  Both cases exist
+		 * when the deleted node's parent (the node that pointed
+		 * to the deleted node's level) is not null but it has
+		 * no data: parent != NULL && DATA(parent) == NULL.
+		 *
+		 * The first case is that the deleted node was the last
+		 * on its level: DOWN(parent) == NULL.	This case can
+		 * only exist if the parent was previously deleted --
+		 * and so now, apparently, the parent should go away.
+		 * That can't be done though because there might be
+		 * external references to it, such as through a
+		 * nodechain. XXXMUKS: We don't care about this.
+		 *
+		 * The other case also involves a parent with no data,
+		 * but with the deleted node being the next-to-last node
+		 * instead of the last: LEFT(DOWN(parent)) == NULL &&
+		 * RIGHT(DOWN(parent)) == NULL.	 Presumably now the
+		 * remaining node on the level should be joined with the
+		 * parent, but it's already been described why that
+		 * can't be done.
+		 */
+
+		/*
+		 * Is this the root?.
+		 */
+		if (parent == NULL)
+			break;
+
+		/*
+		 * If the node deletion did not cause the subtree to disappear
+		 * completely, return early.
+		 */
+		if (DOWN(parent) != NULL)
+			break;
+
+		/*
+		 * If the upper node is not empty, it cannot be deleted.
+		 */
+		if (DATA(parent) != NULL)
+			break;
+
+		/*
+		 * If upper node is the root node (.), don't attempt to
+		 * delete it. The root node must always exist.
+		 */
+		if (parent == rbt->root)
+			break;
+
+		/*
+		 * Ascend up the tree and delete the upper node.
+		 */
+		node = parent;
+	}
 
 	/*
 	 * This function never fails.
