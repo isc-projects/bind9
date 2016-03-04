@@ -1,3 +1,5 @@
+4328.	[performance]	Add dns_name_fromwire() benchmark test. [RT #41694]
+
 4327.	[func]		Log query and depth counters during fetches when
 			querytrace is enabled (helps in diagnosing).
 			[RT #41787]
