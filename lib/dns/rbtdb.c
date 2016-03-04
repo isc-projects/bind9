@@ -442,7 +442,7 @@ struct acachectl {
 #define NEGATIVE(header) \
 	(((header)->attributes & RDATASET_ATTR_NEGATIVE) != 0)
 
-#define DEFAULT_NODE_LOCK_COUNT         523       /*%< Should be prime. */
+#define DEFAULT_NODE_LOCK_COUNT         7       /*%< Should be prime. */
 
 /*%
  * Number of buckets for cache DB entries (locks, LRU lists, TTL heaps).
