@@ -139,6 +139,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  When deleting records from a zone database, interior nodes
+	  could be left empty but not deleted, damaging search
+	  performance afterward. [RT #40997]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  The server could crash due to a use-after-free if a
 	  zone transfer timed out. [RT #41297]
 	</para>

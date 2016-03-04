@@ -512,7 +512,7 @@ struct acachectl {
 #define PREFETCH(header) \
 	(((header)->attributes & RDATASET_ATTR_PREFETCH) != 0)
 
-#define DEFAULT_NODE_LOCK_COUNT         7       /*%< Should be prime. */
+#define DEFAULT_NODE_LOCK_COUNT         523       /*%< Should be prime. */
 
 /*%
  * Number of buckets for cache DB entries (locks, LRU lists, TTL heaps).
@@ -1844,6 +1844,19 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 
 	INSIST(!ISC_LINK_LINKED(node, deadlink));
 
+	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+		char printname[DNS_NAME_FORMATSIZE];
+		isc_log_write(dns_lctx,
+			      DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_CACHE,
+			      ISC_LOG_DEBUG(1),
+			      "delete_node(): %p %s (bucket %d)",
+			      node,
+			      dns_rbt_formatnodename(node,
+					printname, sizeof(printname)),
+			      node->locknum);
+	}
+
 	switch (node->nsec) {
 	case DNS_RBT_NSEC_NORMAL:
 		/*
@@ -2180,21 +2193,6 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 						deadlink);
 			}
 		} else {
-			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
-				char printname[DNS_NAME_FORMATSIZE];
-
-				isc_log_write(dns_lctx,
-					      DNS_LOGCATEGORY_DATABASE,
-					      DNS_LOGMODULE_CACHE,
-					      ISC_LOG_DEBUG(1),
-					      "decrement_reference: "
-					      "delete from rbt: %p %s",
-					      node,
-					      dns_rbt_formatnodename(node,
-							printname,
-							sizeof(printname)));
-			}
-
 			delete_node(rbtdb, node);
 		}
 	} else {
