@@ -113,6 +113,13 @@
 				      "fctx %p(%s): [result: %s] %s %s", \
 				      fctx, fctx->info, \
 				      isc_result_totext(res), (m1), (m2))
+#define FCTXTRACE5(m1, m2, v) \
+			isc_log_write(dns_lctx, \
+				      DNS_LOGCATEGORY_RESOLVER, \
+				      DNS_LOGMODULE_RESOLVER, \
+				      ISC_LOG_DEBUG(3), \
+				      "fctx %p(%s): %s %s%u", \
+				      fctx, fctx->info, (m1), (m2), (v))
 #define FTRACE(m)       isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
 				      DNS_LOGMODULE_RESOLVER, \
@@ -135,6 +142,8 @@
 #define FCTXTRACE3(m1, res) do { UNUSED(m1); UNUSED(res); } while (0)
 #define FCTXTRACE4(m1, m2, res) \
 	do { UNUSED(m1); UNUSED(m2); UNUSED(res); } while (0)
+#define FCTXTRACE5(m1, m2, v) \
+	do { UNUSED(m1); UNUSED(m2); UNUSED(v); } while (0)
 #define FTRACE(m) do { UNUSED(m); } while (0)
 #define QTRACE(m) do { UNUSED(m); } while (0)
 #endif /* WANT_QUERYTRACE */
@@ -3185,7 +3194,7 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 	isc_boolean_t need_alternate = ISC_FALSE;
 	isc_boolean_t all_spilled = ISC_TRUE;
 
-	FCTXTRACE("getaddresses");
+	FCTXTRACE5("getaddresses", "fctx->depth=", fctx->depth);
 
 	/*
 	 * Don't pound on remote servers.  (Failsafe!)
@@ -3201,8 +3210,9 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 	if (fctx->depth > res->maxdepth) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-			      "too much NS indirection resolving '%s'",
-			      fctx->info);
+			      "too much NS indirection resolving '%s' "
+			      "(depth=%u, maxdepth=%u)",
+			      fctx->info, fctx->depth, res->maxdepth);
 		return (DNS_R_SERVFAIL);
 	}
 
@@ -3668,7 +3678,7 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 	unsigned int bucketnum;
 	isc_boolean_t bucket_empty;
 
-	FCTXTRACE("try");
+	FCTXTRACE5("try", "fctx->qc=", isc_counter_used(fctx->qc));
 
 	REQUIRE(!ADDRWAIT(fctx));
 
@@ -3678,8 +3688,10 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 	if (isc_counter_used(fctx->qc) > res->maxqueries) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-			      "exceeded max queries resolving '%s'",
-			      fctx->info);
+			      "exceeded max queries resolving '%s' "
+			      "(querycount=%u, maxqueries=%u)",
+			      fctx->info,
+			      isc_counter_used(fctx->qc), res->maxqueries);
 		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 		return;
 	}

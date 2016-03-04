@@ -1,3 +1,7 @@
+4327.	[func]		Log query and depth counters during fetches when
+			querytrace is enabled (helps in diagnosing).
+			[RT #41787]
+
 4326.	[protocol]	Add support for AVC. [RT #41819]
 
 4325.	[func]		Add a line to "rndc status" indicating the
