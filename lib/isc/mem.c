@@ -2002,8 +2002,8 @@ isc___mempool_get(isc_mempool_t *mpctx0 FLARG) {
 
 	if (ISC_UNLIKELY(mpctx->items == NULL)) {
 		/*
-		 * We need to dip into the well.  Lock the memory context here and
-		 * fill up our free list.
+		 * We need to dip into the well.  Lock the memory context
+		 * here and fill up our free list.
 		 */
 		MCTXLOCK(mctx, &mctx->lock);
 		for (i = 0; i < mpctx->fillcount; i++) {
