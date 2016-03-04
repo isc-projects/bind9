@@ -1308,7 +1308,7 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 	dns_test_end();
 }
 
-#if 0
+#ifdef DNS_BENCHMARK_TESTS
 
 /*
  * XXXMUKS: Don't delete this code. It is useful in benchmarking the
@@ -1440,7 +1440,7 @@ ATF_TC_BODY(benchmark, tc) {
 	dns_test_end();
 }
 
-#endif /* benchmark test */
+#endif /* DNS_BENCHMARK_TESTS */
 
 /*
  * Main
@@ -1455,9 +1455,9 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, rbt_remove);
 	ATF_TP_ADD_TC(tp, rbt_remove_empty);
 	ATF_TP_ADD_TC(tp, rbt_insert_and_remove);
-#if 0
+#ifdef DNS_BENCHMARK_TESTS
 	ATF_TP_ADD_TC(tp, benchmark);
-#endif
+#endif /* DNS_BENCHMARK_TESTS */
 
 	return (atf_no_error());
 }
