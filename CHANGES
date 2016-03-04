@@ -1,3 +1,5 @@
+4326.	[protocol]	Add support for AVC. [RT #41819]
+
 4324.	[bug]		When deleting records from a zone database, interior
 			nodes could be left empty but not deleted, damaging
 			search performance afterward. [RT #40997]
