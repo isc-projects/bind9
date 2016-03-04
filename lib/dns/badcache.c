@@ -242,6 +242,18 @@ dns_badcache_find(dns_badcache_t *bc, dns_name_t *name,
 
 	LOCK(&bc->lock);
 
+	/*
+	 * XXXMUKS: dns_name_equal() is expensive as it does a
+	 * octet-by-octet comparison, and it can be made better in two
+	 * ways here. First, lowercase the names (use
+	 * dns_name_downcase() instead of dns_name_copy() in
+	 * dns_badcache_add()) so that dns_name_caseequal() can be used
+	 * which the compiler will emit as SIMD instructions. Second,
+	 * don't put multiple copies of the same name in the chain (or
+	 * multiple names will have to be matched for equality), but use
+	 * name->link to store the type specific part.
+	 */
+
 	if (bc->count == 0)
 		goto skip;
 
