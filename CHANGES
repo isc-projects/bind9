@@ -1,3 +1,7 @@
+4324.	[bug]		When deleting records from a zone database, interior
+			nodes could be left empty but not deleted, damaging
+			search performance afterward. [RT #40997]
+
 4323.	[bug]		Improve HTTP header processing on statschannel.
 			[RT #41674]
 
