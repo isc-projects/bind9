@@ -1,3 +1,5 @@
+4326.	[protocol]	Add support for AVC. [RT #41819]
+
 4325.	[func]		Add a line to "rndc status" indicating the
 			hostname and operating system details. [RT #41610]
 
