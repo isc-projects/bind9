@@ -47,6 +47,7 @@
 #include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/task.h>
+#include <isc/thread.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 #include <isc/print.h>
@@ -1364,7 +1365,7 @@ ATF_TC_BODY(benchmark, tc) {
 	isc_time_t ts1, ts2;
 	double t;
 	unsigned int nthreads;
-	pthread_t threads[32];
+	isc_thread_t threads[32];
 
 	UNUSED(tc);
 
@@ -1407,19 +1408,13 @@ ATF_TC_BODY(benchmark, tc) {
 	nthreads = ISC_MIN(isc_os_ncpus(), 32);
 	nthreads = ISC_MAX(nthreads, 1);
 	for (i = 0; i < nthreads; i++) {
-		int s;
-
-		s = pthread_create(&threads[i], NULL, find_thread, mytree);
-
-		ATF_REQUIRE(s == 0);
+		result = isc_thread_create(find_thread, mytree, &threads[i]);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	}
 
 	for (i = 0; i < nthreads; i++) {
-		int s;
-
-		s = pthread_join(threads[i], NULL);
-
-		ATF_REQUIRE(s == 0);
+		result = isc_thread_join(threads[i], NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	}
 
 	result = isc_time_now(&ts2);
