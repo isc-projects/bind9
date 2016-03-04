@@ -525,7 +525,7 @@ struct acachectl {
 #define CASESET(header) \
 	(((header)->attributes & RDATASET_ATTR_CASESET) != 0)
 
-#define DEFAULT_NODE_LOCK_COUNT         523       /*%< Should be prime. */
+#define DEFAULT_NODE_LOCK_COUNT         7       /*%< Should be prime. */
 
 /*%
  * Number of buckets for cache DB entries (locks, LRU lists, TTL heaps).
