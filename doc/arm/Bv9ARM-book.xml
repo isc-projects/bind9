@@ -13388,6 +13388,18 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			AVC
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Application Visibility and Control record.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			CAA
 		      </para>
 		    </entry>
