@@ -149,12 +149,20 @@
 	  Zone transfers now use smaller message sizes to improve
 	  message compression. This results in reduced network usage.
 	</p></li>
+<li class="listitem"><p>
+	  Added support for the type AVC.
+	</p></li>
 </ul></div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
+	  When deleting records from a zone database, interior nodes
+	  could be left empty but not deleted, damaging search
+	  performance afterward. [RT #40997]
+	</p></li>
 <li class="listitem"><p>
 	  The server could crash due to a use-after-free if a
 	  zone transfer timed out. [RT #41297]
