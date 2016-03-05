@@ -1049,7 +1049,7 @@ ATF_TC_BODY(rbt_remove_empty, tc) {
 			name_i = dns_fixedname_name(&fname_i);
 
 			if (dns_name_equal(name_j, ntmp1) &&
-			    dns_name_equal(name_j, ntmp2))
+			    dns_name_equal(name_i, ntmp2))
 			{
 				/*
 				 * The only special case in the
