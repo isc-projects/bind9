@@ -401,12 +401,13 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 			if (cr != NULL && cr[1] == '\n')
 				cr++;
 			nl = strchr(h, '\n');
+
 			/* last header? */
-			if (cr == NULL && nl == NULL)
-				return(ISC_FALSE);
 			h = cr;
-			if (h == NULL || nl < h)
+			if (h == NULL || (nl != NULL && nl < h))
 				h = nl;
+			if (h == NULL)
+				return (ISC_FALSE);
 			h++;
 			continue;
 		}
