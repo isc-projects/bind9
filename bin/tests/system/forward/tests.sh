@@ -123,5 +123,19 @@ grep "status: NOERROR" dig.out.q4 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking that rfc1918 inherited 'forward first;' zones are warned about"
+ret=0
+$CHECKCONF rfc1918-inherited.conf | grep "forward first;" >/dev/null || ret=1
+$CHECKCONF rfc1918-notinherited.conf | grep "forward first;" >/dev/null && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that ULA inherited 'forward first;' zones are warned about"
+ret=0
+$CHECKCONF ula-inherited.conf | grep "forward first;" >/dev/null || ret=1
+$CHECKCONF ula-notinherited.conf | grep "forward first;" >/dev/null && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

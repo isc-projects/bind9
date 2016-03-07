@@ -2595,3 +2595,87 @@ dns_name_isdnssd(const dns_name_t *name) {
 
 	return (ISC_FALSE);
 }
+
+#define NS_NAME_INIT(A,B) \
+         { \
+                DNS_NAME_MAGIC, \
+                A, sizeof(A), sizeof(B), \
+                DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
+                B, NULL, { (void *)-1, (void *)-1}, \
+                {NULL, NULL} \
+        }
+
+static unsigned char inaddr10_offsets[] = { 0, 3, 11, 16 };
+static unsigned char inaddr172_offsets[] = { 0, 3, 7, 15, 20 };
+static unsigned char inaddr192_offsets[] = { 0, 4, 8, 16, 21 };
+
+static unsigned char inaddr10[] = "\00210\007IN-ADDR\004ARPA";
+
+static unsigned char inaddr16172[] = "\00216\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr17172[] = "\00217\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr18172[] = "\00218\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr19172[] = "\00219\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr20172[] = "\00220\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr21172[] = "\00221\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr22172[] = "\00222\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr23172[] = "\00223\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr24172[] = "\00224\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr25172[] = "\00225\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr26172[] = "\00226\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr27172[] = "\00227\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr28172[] = "\00228\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr29172[] = "\00229\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr30172[] = "\00230\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr31172[] = "\00231\003172\007IN-ADDR\004ARPA";
+
+static unsigned char inaddr168192[] = "\003168\003192\007IN-ADDR\004ARPA";
+
+static dns_name_t const rfc1918names[] = {
+	NS_NAME_INIT(inaddr10, inaddr10_offsets),
+	NS_NAME_INIT(inaddr16172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr17172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr18172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr19172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr20172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr21172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr22172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr23172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr24172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr25172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr26172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr27172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr28172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr29172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr30172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr31172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr168192, inaddr192_offsets)
+};
+
+isc_boolean_t
+dns_name_isrfc1918(const dns_name_t *name) {
+	size_t i;
+
+	for (i = 0; i < (sizeof(rfc1918names)/sizeof(*rfc1918names)); i++)
+		if (dns_name_issubdomain(name, &rfc1918names[i]))
+			return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
+static unsigned char ulaoffsets[] = { 0, 2, 4, 8, 13 };
+static unsigned char ip6fc[] = "\001c\001f\003ip6\004ARPA";
+static unsigned char ip6fd[] = "\001d\001f\003ip6\004ARPA";
+
+static dns_name_t const ulanames[] = {
+	NS_NAME_INIT(ip6fc, ulaoffsets),
+	NS_NAME_INIT(ip6fd, ulaoffsets),
+};
+
+isc_boolean_t
+dns_name_isula(const dns_name_t *name) {
+	size_t i;
+
+	for (i = 0; i < (sizeof(ulanames)/sizeof(*ulanames)); i++)
+		if (dns_name_issubdomain(name, &ulanames[i]))
+			return (ISC_TRUE);
+	return (ISC_FALSE);
+}
