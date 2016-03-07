@@ -2637,13 +2637,13 @@ dns_name_isdnssd(const dns_name_t *name) {
 }
 
 #define NS_NAME_INIT(A,B) \
-         { \
-                DNS_NAME_MAGIC, \
-                A, sizeof(A), sizeof(B), \
-                DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
-                B, NULL, { (void *)-1, (void *)-1}, \
-                {NULL, NULL} \
-        }
+	 { \
+		DNS_NAME_MAGIC, \
+		A, sizeof(A), sizeof(B), \
+		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
+		B, NULL, { (void *)-1, (void *)-1}, \
+		{NULL, NULL} \
+	}
 
 static unsigned char inaddr10_offsets[] = { 0, 3, 11, 16 };
 static unsigned char inaddr172_offsets[] = { 0, 3, 7, 15, 20 };
