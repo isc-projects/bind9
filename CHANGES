@@ -1,3 +1,6 @@
+4329.	[func]		Warn about a common misconfiguration when forwarding
+			RFC 1918 zones. [RT #41441]
+
 4328.	[performance]	Add dns_name_fromwire() benchmark test. [RT #41694]
 
 4327.	[func]		Log query and depth counters during fetches when
