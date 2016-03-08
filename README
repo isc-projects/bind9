@@ -87,7 +87,7 @@ BIND 9.10.3
 	  NOTE: These features are NOT built in by default; use
 	  "configure --enable-fetchlimit" to enable them.
 
-	- Dig now supports sending of arbitary EDNS options by specifying
+	- Dig now supports sending of arbitrary EDNS options by specifying
 	  them on the command line.
 
 BIND 9.10.2
