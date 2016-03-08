@@ -4600,6 +4600,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       <optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional>
       <optional> min-ns-dots <replaceable>number</replaceable> </optional>
       <optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> </optional>
+      <optional> automatic-interface-scan <replaceable>yes_or_no</replaceable> </optional>
     ; </optional>
 };
 </programlisting>
