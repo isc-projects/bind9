@@ -298,7 +298,7 @@ Building
 	a nonstandard prefix, you can tell configure where to
 	look for it using "--with-openssl=/prefix".
 
-	On some platforms it is necessary to explictly request large
+	On some platforms it is necessary to explicitly request large
 	file support to handle files bigger than 2GB.  This can be
 	done by "--enable-largefile" on the configure command line.
 
@@ -410,7 +410,7 @@ Change Log
 			  server addresses and keys
 
 	   [tuning]	  Changes to built-in configuration defaults
-			  and constants to improve performanceo
+			  and constants to improve performance
 
 	   [performance]  Other changes to improve server performance
 
