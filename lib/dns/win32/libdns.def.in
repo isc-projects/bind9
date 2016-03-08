@@ -480,7 +480,9 @@ dns_name_isabsolute
 dns_name_isdnssd
 dns_name_ishostname
 dns_name_ismailbox
+dns_name_isrfc1918
 dns_name_issubdomain
+dns_name_isula
 dns_name_iswildcard
 dns_name_matcheswildcard
 dns_name_print
