@@ -380,6 +380,7 @@ options {
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl-cache <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
+	automatic-interface-scan <replaceable>boolean</replaceable>;
 
 	cookie-algorithm ( <replaceable>aes</replaceable> | <replaceable>sha1</replaceable> | <replaceable>sha256</replaceable> );
 	cookie-secret <replaceable>string</replaceable>;
