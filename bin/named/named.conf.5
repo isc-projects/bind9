@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2015 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2016 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -381,6 +381,7 @@ options {
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
+	automatic\-interface\-scan \fIboolean\fR;
 	deny\-answer\-addresses {
 		\fIaddress_match_list\fR
 	} [ except\-from { \fInamelist\fR } ];
@@ -665,5 +666,5 @@ BIND 9 Administrator Reference Manual\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2004-2015 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004-2016 Internet Systems Consortium, Inc. ("ISC")
 .br
