@@ -59,7 +59,7 @@
 </div>
 <div class="section">
 <div class="titlepage"></div>
-<span style="color: red">&lt;title&gt;Release Notes for BIND Version 9.10.3&lt;/title&gt;</span><div class="section">
+<span style="color: red">&lt;title&gt;Release Notes for BIND Version 9.10.4b1&lt;/title&gt;</span><div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
 <p>
@@ -124,10 +124,16 @@
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_features"></a>New Features</h3></div></div></div>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
-	  The following types have been implemented: CSYNC, NINFO, RKEY,
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
+	  The following types have been implemented: AVC, CSYNC, NINFO, RKEY,
 	  SINK, TA, TALINK.
- 	</p></li></ul></div>
+ 	</p></li>
+<li class="listitem"><p>
+	  Added a warning for a commom misconfiguration involving forwarded
+	  RFC 1918 and ULA zones.
+	</p></li>
+</ul></div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -148,9 +154,6 @@
 <li class="listitem"><p>
 	  Zone transfers now use smaller message sizes to improve
 	  message compression. This results in reduced network usage.
-	</p></li>
-<li class="listitem"><p>
-	  Added support for the type AVC.
 	</p></li>
 </ul></div>
 </div>
@@ -228,6 +231,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.10.3</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.10.4b1</p>
 </body>
 </html>
