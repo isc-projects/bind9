@@ -84,10 +84,16 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  The following types have been implemented: CSYNC, NINFO, RKEY,
+	  The following types have been implemented: AVC, CSYNC, NINFO, RKEY,
 	  SINK, TA, TALINK.
  	</para>
-       </listitem>
+      </listitem>
+      <listitem>
+        <para>
+	  Added a warning for a commom misconfiguration involving forwarded
+	  RFC 1918 and ULA zones.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
@@ -115,11 +121,6 @@
 	<para>
 	  Zone transfers now use smaller message sizes to improve
 	  message compression. This results in reduced network usage.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Added support for the type AVC.
 	</para>
       </listitem>
     </itemizedlist>
