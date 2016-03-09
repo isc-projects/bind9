@@ -2134,7 +2134,7 @@ read_and_check(isc_boolean_t do_read, isc_buffer_t *buffer,
 		isc_buffer_add(buffer, (unsigned int)len);
 		if (*totallen < len)
 			return (ISC_R_RANGE);
-		*totallen -= len;
+		*totallen -= (isc_uint32_t)len;
 	} else if (isc_buffer_remaininglength(buffer) < len)
 		return (ISC_R_RANGE);
 
@@ -2392,7 +2392,7 @@ load_raw(dns_loadctx_t *lctx) {
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		isc_buffer_add(&target, (unsigned int)readlen);
-		totallen -= readlen;
+		totallen -= (isc_uint32_t)readlen;
 
 		/* Construct RRset headers */
 		dns_rdatalist_init(&rdatalist);
