@@ -337,7 +337,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 				return (DNS_R_TEXTTOOLONG);
 			isc_buffer_putmem(&buf,
 				(const isc_uint8_t *) dns_master_indentstr,
-				ilen);
+				(unsigned int)ilen);
 		}
 
 		if ((ctx->style.flags & DNS_STYLEFLAG_COMMENTDATA) != 0) {
