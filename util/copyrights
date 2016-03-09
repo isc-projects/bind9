@@ -3429,7 +3429,7 @@
 ./lib/dns/rdata/generic/afsdb_18.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/avc_258.c		C	2016
 ./lib/dns/rdata/generic/avc_258.h		C	2016
-./lib/dns/rdata/generic/caa_257.c		C	2014,2015
+./lib/dns/rdata/generic/caa_257.c		C	2014,2015,2016
 ./lib/dns/rdata/generic/caa_257.h		C	2014
 ./lib/dns/rdata/generic/cdnskey_60.c		C	2014,2015
 ./lib/dns/rdata/generic/cdnskey_60.h		C	2014,2015
