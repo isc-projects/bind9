@@ -383,7 +383,7 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 	    const char *eov)
 {
 	char *cr, *nl, *h;
-	size_t hlen, vlen;
+	size_t hlen, vlen = 0;
 
 	h = httpd->headers;
 	hlen = strlen(header);
