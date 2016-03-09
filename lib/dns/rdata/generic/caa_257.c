@@ -58,7 +58,7 @@ fromtext_caa(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 	if (token.value.as_ulong > 255U)
 		RETTOK(ISC_R_RANGE);
-	flags = token.value.as_ulong & 255U;
+	flags = (isc_uint8_t)(token.value.as_ulong & 255U);
 	RETERR(uint8_tobuffer(flags, target));
 
 	/*
