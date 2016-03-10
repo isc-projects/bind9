@@ -520,3 +520,14 @@ zskname=`$KEYGEN -q -r $RANDFILE $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -s +3600 -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 cp -f $kskname.key trusted-future.key
+
+#
+# A zone with future signatures.
+#
+zone=managed-future.example
+infile=managed-future.example.db.in
+zonefile=managed-future.example.db
+kskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+zskname=`$KEYGEN -q -r $RANDFILE $zone`
+cat $infile $kskname.key $zskname.key >$zonefile
+$SIGNER -P -s +3600 -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1

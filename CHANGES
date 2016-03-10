@@ -1,3 +1,7 @@
+4331.	[func]		When loading managed signed zones detect if the
+			RRSIG's inception time is in the future and regenerate
+			the RRSIG immediately. [RT #41808]
+
 4330.	[protocol]	Identify the PAD option as "PAD" when printing out
 			a message.
 

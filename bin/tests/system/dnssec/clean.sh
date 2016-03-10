@@ -77,6 +77,7 @@ rm -f ns3/split-smart.example.db
 rm -f ns3/ttlpatch.example.db ns3/ttlpatch.example.db.signed
 rm -f ns3/ttlpatch.example.db.patched
 rm -f ns3/unsecure.example.db ns3/bogus.example.db ns3/keyless.example.db
+rm -f ns3/managed-future.example.db
 rm -f ns4/managed-keys.bind*
 rm -f ns4/named.conf
 rm -f ns4/named.conf ns5/named.conf
