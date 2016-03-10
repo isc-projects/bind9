@@ -1,3 +1,6 @@
+4330.	[protocol]	Identify the PAD option as "PAD" when printing out
+			a message.
+
 	--- 9.9.9b1 released ---
 
 4329.	[func]		Warn about a common misconfiguration when forwarding
