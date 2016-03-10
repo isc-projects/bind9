@@ -579,6 +579,14 @@
 	  By default, control channel access is read-write.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  When loading managed signed zones detect if the RRSIG's
+	  inception time is in the future and regenerate the RRSIG
+	  immediately. This helps when the system's clock needs to
+	  be reset backwards.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
