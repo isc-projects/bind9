@@ -156,3 +156,6 @@ ns.expiring              A       10.53.0.3
 
 future			NS	ns.future
 ns.future		A	10.53.0.3
+
+managed-future		NS	ns.managed-future
+ns.managed-future	A	10.53.0.3
