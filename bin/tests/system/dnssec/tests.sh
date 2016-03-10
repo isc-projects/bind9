@@ -112,6 +112,7 @@ grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
 echo "I:checking for AD in authoritative answer ($n)"
 ret=0
 $DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
@@ -2722,6 +2723,15 @@ $SIGNER -3 - -S -o remove -D -f remove.db.signed remove2.db.in > signer.out.2.$n
 grep -w MX signer/remove.db.signed > /dev/null &&  {
 	ret=1 ; cp signer/remove.db.signed signer/remove.db.signed.post$n;
 }
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that a named managed zone that was signed 'in-the-future' is re-signed when loaded"
+ret=0
+$DIG $DIGOPTS managed-future.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
