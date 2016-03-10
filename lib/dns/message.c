@@ -3393,6 +3393,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					continue;
 				}
 				ADD_STRING(target, "; EXPIRE");
+			} else if (optcode == DNS_OPT_PAD) {
+				ADD_STRING(target, "; PAD");
 			} else {
 				ADD_STRING(target, "; OPT=");
 				snprintf(buf, sizeof(buf), "%u", optcode);
