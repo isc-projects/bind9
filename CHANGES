@@ -1,3 +1,6 @@
+4333.	[maint]		L.ROOT-SERVERS.NET is now 199.7.83.42 and 
+			2001:500:9f::42.
+
 4331.	[func]		When loading managed signed zones detect if the
 			RRSIG's inception time is in the future and regenerate
 			the RRSIG immediately. [RT #41808]
