@@ -1171,13 +1171,13 @@
 ./bin/tests/system/dnssec/ns2/child.optout.example.db	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns2/dlv.db.in		ZONE	2004,2007
 ./bin/tests/system/dnssec/ns2/dst.example.db.in	ZONE	2004,2007
-./bin/tests/system/dnssec/ns2/example.db.in	ZONE	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/tests/system/dnssec/ns2/example.db.in	ZONE	2000,2001,2002,2004,2007,2008,2009,2010,2011,2012,2013,2014,2016
 ./bin/tests/system/dnssec/ns2/in-addr.arpa.db.in	ZONE	2014
 ./bin/tests/system/dnssec/ns2/insecure.secure.example.db	ZONE	2000,2001,2004,2007,2013
 ./bin/tests/system/dnssec/ns2/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2010,2011,2014,2015
 ./bin/tests/system/dnssec/ns2/private.secure.example.db.in	ZONE	2000,2001,2004,2007
 ./bin/tests/system/dnssec/ns2/rfc2335.example.db	X	2004
-./bin/tests/system/dnssec/ns2/sign.sh		SH	2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012,2014,2015
+./bin/tests/system/dnssec/ns2/sign.sh		SH	2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012,2014,2015,2016
 ./bin/tests/system/dnssec/ns2/single-nsec3.db.in	ZONE	2010
 ./bin/tests/system/dnssec/ns3/auto-nsec.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/auto-nsec3.example.db.in	ZONE	2011
@@ -1196,8 +1196,9 @@
 ./bin/tests/system/dnssec/ns3/keyless.example.db.in	ZONE	2001,2002,2004,2007
 ./bin/tests/system/dnssec/ns3/kskonly.example.db.in	ZONE	2010
 ./bin/tests/system/dnssec/ns3/lower.example.db.in	ZONE	2012
+./bin/tests/system/dnssec/ns3/managed-future.example.db.in	ZONE	2016
 ./bin/tests/system/dnssec/ns3/multiple.example.db.in	ZONE	2006,2008
-./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012,2013,2014
+./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012,2013,2014,2016
 ./bin/tests/system/dnssec/ns3/nosign.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/nsec3-unknown.example.db.in	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns3/nsec3.example.db.in	ZONE	2006,2008
@@ -1217,7 +1218,7 @@
 ./bin/tests/system/dnssec/ns3/siginterval.example.db.in	ZONE	2013
 ./bin/tests/system/dnssec/ns3/siginterval1.conf	CONF-C	2013
 ./bin/tests/system/dnssec/ns3/siginterval2.conf	CONF-C	2013
-./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/dnssec/ns3/split-dnssec.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/split-smart.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/ttlpatch.example.db.in	ZONE	2011

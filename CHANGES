@@ -1,3 +1,5 @@
+	--- 9.10.4b2 released ---
+
 4332.	[bug]		Windows SIT -> COOKIE configuration support was
 			accidentally back ported to 9.10 breaking existing
 			configurations. [RT #41905]
