@@ -21,7 +21,7 @@
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article"><div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.10.4b1</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.10.4b2</h2></div></div></div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -105,6 +105,12 @@
 	  gnuplot graphs, and queryparse to extract DNS queries from
 	  pcap capture files. This software is not installed by default
 	  with BIND.
+	</p></li>
+<li class="listitem"><p>
+	  When loading managed signed zones detect if the RRSIG's
+	  inception time is in the future and regenerate the RRSIG
+	  immediately. This helps when the system's clock needs to
+	  be reset backwards.
 	</p></li>
 </ul></div>
 </div>
