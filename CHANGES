@@ -1,3 +1,7 @@
+4332.	[bug]		Windows SIT -> COOKIE configuration support was
+			accidentally back ported to 9.10 breaking existing
+			configurations. [RT #41905]
+
 4330.	[protocol]	Identify the PAD option as "PAD" when printing out
 			a message.
 

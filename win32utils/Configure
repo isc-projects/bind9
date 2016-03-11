@@ -344,7 +344,7 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
 
 my %configdefh;
 
-my @substdefh = ("AES_CC",
+my @substdefh = ("AES_SIT",
                  "ALLOW_FILTER_AAAA",
                  "CONFIGARGS",
                  "DNS_RDATASET_FIXED",
@@ -366,8 +366,8 @@ my @substdefh = ("AES_CC",
                  "HAVE_PKCS11_GOST",
                  "HAVE_READLINE",
                  "HMAC_RETURN_INT",
-                 "HMAC_SHA1_CC",
-                 "HMAC_SHA256_CC",
+                 "HMAC_SHA1_SIT",
+                 "HMAC_SHA256_SIT",
                  "ISC_LIST_CHECKINIT",
                  "PREFER_GOSTASN1",
                  "TUNE_LARGE",
@@ -385,6 +385,7 @@ my @substdefp = ("ISC_PLATFORM_HAVEATOMICSTORE",
                  "ISC_PLATFORM_HAVEXADDQ",
                  "ISC_PLATFORM_NEEDSTRCASESTR",
                  "ISC_PLATFORM_USEBACKTRACE",
+                 "ISC_PLATFORM_USESIT",
                  "ISC_PLATFORM_WANTAES");
 
 # includes
@@ -490,7 +491,8 @@ my @enablelist = ("developer",
                   "filter-aaaa",
                   "querytrace",
                   "rpz-nsdname",
-                  "rpz-nsip");
+                  "rpz-nsip",
+                  "sit");
 
 # with-xxx/without-xxx
 
@@ -548,6 +550,7 @@ my @help = (
 "  enable-querytrace     enable very verbose query trace [default=no]\n",
 "  enable-rpz-nsip       enable rpz-nsip rules [default=yes]\n",
 "  enable-rpz-nsdname    enable rpz-nsdname rules [default=yes]\n",
+"  enable-sit            enable source identity token [default=yes]\n",
 "\nOptional Packages:\n",
 "  with-tests            build with test suite\n",
 "  with-extra-tests      build with extra test suite\n",
@@ -557,7 +560,7 @@ my @help = (
 "  with-ecdsa            crypto ECDSA\n",
 "  with-gost[=ENC]       crypto GOST yes|no|raw|ans1\n",
 "  with-aes              crypto AES\n",
-"  with-cc-alg           choose the algorithm for cookies aes|sha1|sha256\n",
+"  with-sit-alg          choose the algorithm for SIT aes|sha1|sha256\n",
 "  with-gssapi[=PATH]    build with MIT KfW GSSAPI yes|no|path\n",
 "  with-libxml2[=PATH]   build with libxml2 library yes|no|path\n",
 "  with-geoip[=PATH]     build with GeoIP support yes|no|path\n",
@@ -589,6 +592,7 @@ my $enable_developer = "no";
 my $enable_querytrace = "no";
 my $enable_rpz_nsip = "yes";
 my $enable_rpz_nsdname = "yes";
+my $enable_sit = "yes";
 my $use_tests = "no";
 my $use_xtests = "no";
 my $use_samples = "no";
@@ -600,7 +604,7 @@ my $use_ecdsa = "auto";
 my $use_gost = "auto";
 my $gost_encoding = "raw";
 my $use_aes = "auto";
-my $cookie_algorithm = "aes";
+my $sit_algorithm = "aes";
 my $use_gssapi = "no";
 my $gssapi_path = "C:\\Program\ Files\\MIT\\Kerberos\\";
 my $use_geoip = "no";
@@ -795,6 +799,10 @@ sub myenable {
         if ($val =~ /^no$/i) {
             $enable_rpz_nsdname = "no";
         }
+    } elsif ($key =~ /^sit$/i) {
+        if ($val =~ /^no$/i) {
+            $enable_sit = "no";
+        }
     } else {
         $want_unknown = "yes";
         if ($val eq "no") {
@@ -816,6 +824,7 @@ if ($enable_developer eq "yes") {
     # TODO: dlz filesystem
     $use_tests = "yes";
     $use_samples = "yes";
+    $enable_sit = "yes";
 }
 
 # parse with/without
@@ -871,8 +880,8 @@ sub mywith {
         } elsif ($val =~ /^yes$/i) {
             $use_aes = "yes";
         }
-    } elsif ($key =~ /^cc-alg$/i) {
-        $cookie_algorithm = $val;
+    } elsif ($key =~ /^sit-alg$/i) {
+        $sit_algorithm = $val;
     } elsif ($key =~ /^gssapi$/i) {
         if ($val !~ /^no$/i) {
             $use_gssapi = "yes";
@@ -1055,7 +1064,12 @@ if ($verbose) {
     } else {
         print "rpz-nsdname: disabled\n";
     }
-    print "cookie algorithm: $cookie_algorithm\n";
+    if ($enable_sit eq "yes") {
+        print "sit: enabled\n";
+        print "sit algorithm: $sit_algorithm\n";
+    } else {
+        print "sit: disabled\n";
+    }
     if ($use_openssl eq "no") {
         print "openssl: disabled\n";
     } else {
@@ -1413,6 +1427,11 @@ if ($enable_querytrace eq "yes") {
 # enable-rpz-nsdname
 if ($enable_rpz_nsdname ne "no") {
     $configdefh{"ENABLE_RPZ_NSDNAME"} = 1;
+}
+
+# enable-sit
+if ($enable_sit ne "no") {
+    $configdefp{"ISC_PLATFORM_USESIT"} = 1;
 }
 
 # with-tests
@@ -1897,20 +1916,22 @@ if ($use_aes eq "yes") {
     $configcond{"AES"} = 1;
 }
 
-# with-cc-alg
-if ($cookie_algorithm eq "aes") {
-    if ($use_aes ne "yes") {
-        $cookie_algorithm = "sha256";
-    } else {
-        $configdefh{"AES_CC"} = 1;
+# with-sit-alg
+if ($enable_sit ne "no") {
+    if ($sit_algorithm eq "aes") {
+        if ($use_aes ne "yes") {
+            $sit_algorithm = "sha256";
+        } else {
+            $configdefh{"AES_SIT"} = 1;
+        }
     }
-}
-if ($cookie_algorithm eq "sha1") {
-    $configdefh{"HMAC_SHA1_CC"} = 1;
-} elsif ($cookie_algorithm eq "sha256") {
-    $configdefh{"HMAC_SHA256_CC"} = 1;
-} elsif ($cookie_algorithm ne "aes") {
-    die "Unrecognized cookie algorithm: $cookie_algorithm\n";
+    if ($sit_algorithm eq "sha1") {
+        $configdefh{"HMAC_SHA1_SIT"} = 1;
+    } elsif ($sit_algorithm eq "sha256") {
+        $configdefh{"HMAC_SHA256_SIT"} = 1;
+    } elsif ($sit_algorithm ne "aes") {
+        die "Unrecognized SIT algorithm: $sit_algorithm\n";
+    }
 }
 
 # enable-openssl-hash
@@ -3070,6 +3091,7 @@ exit 0;
 #  --disable-rpz-nsip supported
 #  --disable-rpz-nsdname supported
 #  --enable-filter-aaaa supported
+#  --enable-sit supported
 #  --enable-full-report supported by verbose
 #  --enable-seccomp not supported (Linux specific)
 #  --with-python supported
@@ -3078,7 +3100,7 @@ exit 0;
 #  --with-ecdsa supported
 #  --with-gost supported
 #  --with-aes supported
-#  --with-cc-alg supported
+#  --with-sit-alg supported
 #  --with-geoip supported
 #  --with-gssapi supported with MIT (K)erberos (f)or (W)indows
 #  --with-libxml2 supported
