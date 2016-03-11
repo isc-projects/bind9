@@ -2684,8 +2684,8 @@ ret=0
 # generate signed zone with MX and AAAA records at apex.
 (
 cd signer
-$KEYGEN -q -3 -fK remove > /dev/null
-$KEYGEN -q -3 remove > /dev/null
+$KEYGEN -q -r $RANDFILE -3 -fK remove > /dev/null
+$KEYGEN -q -r $RANDFILE -3 remove > /dev/null
 echo > remove.db.signed
 $SIGNER -S -o remove -D -f remove.db.signed remove.db.in > signer.out.1.$n 2>&1
 )
