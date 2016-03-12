@@ -87,6 +87,9 @@
 #ifdef HAVE_LIBXML2
 #include <libxml/xmlversion.h>
 #endif
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
 /*
  * Include header files for database drivers here.
  */
@@ -676,6 +679,12 @@ parse_command_line(int argc, char *argv[]) {
 			       JSON_C_VERSION);
 			printf("linked to libjson-c version: %s\n",
 			       json_c_version());
+#endif
+#if defined(HAVE_ZLIB) && defined(ZLIB_VERSION)
+			printf("compiled with zlib version: %s\n",
+			       ZLIB_VERSION);
+			printf("linked to zlib version: %s\n",
+			       zlibVersion());
 #endif
 #ifdef ISC_PLATFORM_USETHREADS
 			printf("threads support is enabled\n");

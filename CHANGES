@@ -1,3 +1,5 @@
+4334.	[func]		'named -V' now reports zlib version. [RT #41913]
+
 4333.	[maint]		L.ROOT-SERVERS.NET is now 199.7.83.42 and
 			2001:500:9f::42.
 
