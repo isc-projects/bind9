@@ -133,6 +133,12 @@
 	  pcap capture files. This software is not installed by default
 	  with BIND.
 	</p></li>
+<li class="listitem"><p>
+	  When loading managed signed zones detect if the RRSIG's
+	  inception time is in the future and regenerate the RRSIG
+	  immediately. This helps when the system's clock needs to
+	  be reset backwards.
+	</p></li>
 </ul></div>
 </div>
 <div class="section">
