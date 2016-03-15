@@ -86,7 +86,7 @@ BIND 9.11.0
 	  (defaulting to 1 second, with an upper limit of 30).
 	  This can reduce the frequency of retries when a query is
 	  persistently failing.
-	- The "controls" block in named.conf can now grand read-only
+	- The "controls" block in named.conf can now grant read-only
 	  "rndc" access to specified clients or keys. Read-only clients
 	  could, for example, check "rndc status" but could not
 	  reconfigure or shut down the server.
