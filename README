@@ -163,7 +163,7 @@ BIND 9.11.0
 	- New counters have been added to the statistics channel
 	  to track the sizes of incoming queries and outgoing responses in
 	  histogram buckets, as specified in RSSAC002.
-	- An new NXDOMAIN redirect method (option "nxdomain-redirect")
+	- A new NXDOMAIN redirect method (option "nxdomain-redirect")
 	  has been added, allowing redirection to a specified DNS
 	  namespace instead of a single redirect zone.
 	- When starting up, named now ensures that no other named
