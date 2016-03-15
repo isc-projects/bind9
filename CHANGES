@@ -944,7 +944,7 @@
 			Also, the managed keys data file has easier-to-read
 			comments.  [RT #38458]
 
-4054.	[func]		Added a new tool 'mdig', a light weight clone of
+4054.	[func]		Added a new tool 'mdig', a lightweight clone of
 			dig able to send multiple pipelined queries.
 			[RT #38261]
 
@@ -1204,7 +1204,7 @@
 			zone to be updated via "rndc signing -serial".
 			[RT #37404]
 
-3987.	[func]		Handle future Visual Studio 14 incompatible changes.
+3987.	[port]		Handle future Visual Studio 14 incompatible changes.
 			[RT #37380]
 
 3986.	[doc]		Add the BIND version number to page footers
