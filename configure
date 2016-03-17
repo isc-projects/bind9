@@ -1734,13 +1734,13 @@ Optional Packages:
 			       (Required to use MySQL with DLZ)
   --with-dlz-bdb=PATH   Build with Berkeley DB DLZ driver yes|no|path.
 			       (Required to use Berkeley DB with DLZ)
-  --with-dlz-filesystem=PATH   Build with filesystem DLZ driver yes|no.
+  --with-dlz-filesystem=ARG    Build with filesystem DLZ driver yes|no.
 			       (Required to use file system driver with DLZ)
   --with-dlz-ldap=PATH   Build with LDAP DLZ driver yes|no|path.
 			       (Required to use LDAP with DLZ)
   --with-dlz-odbc=PATH   Build with ODBC DLZ driver yes|no|path.
 			       (Required to use ODBC with DLZ)
-  --with-dlz-stub=PATH   Build with stub DLZ driver yes|no.
+  --with-dlz-stub=ARG    Build with stub DLZ driver yes|no.
 			       (Required to use stub driver with DLZ)
   --with-make-clean      Run "make clean" at end of configure [yes|no].
 
@@ -23491,7 +23491,10 @@ fi
 
 case "$make_clean" in
 yes)
-	make clean
+	if test "$no_create" != "yes"
+	then
+		make clean
+	fi
 	;;
 esac
 

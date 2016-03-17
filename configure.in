@@ -4201,7 +4201,10 @@ AC_ARG_WITH(make-clean,
     make_clean="$withval", make_clean="yes")
 case "$make_clean" in
 yes)
-	make clean
+	if test "$no_create" != "yes"
+	then
+		make clean
+	fi
 	;;
 esac
 
