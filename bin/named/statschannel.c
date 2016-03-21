@@ -3238,10 +3238,12 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 		if (zonestats != NULL) {
 			char zonename[DNS_NAME_FORMATSIZE];
 
+			view = dns_zone_getview(zone);
+			if (view == NULL)
+				continue;
+
 			dns_name_format(dns_zone_getorigin(zone),
 					zonename, sizeof(zonename));
-			view = dns_zone_getview(zone);
-
 			fprintf(fp, "[%s", zonename);
 			if (strcmp(view->name, "_default") != 0)
 				fprintf(fp, " (view: %s)", view->name);
