@@ -1052,6 +1052,8 @@ zone_free(dns_zone_t *zone) {
 		isc_task_detach(&zone->task);
 	if (zone->loadtask != NULL)
 		isc_task_detach(&zone->loadtask);
+	if (zone->view != NULL)
+		dns_view_weakdetach(&zone->view);
 
 	/* Unmanaged objects */
 	for (signing = ISC_LIST_HEAD(zone->signing);
@@ -11672,9 +11674,6 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 		INSIST(zone->irefs > 0);
 		zone->irefs--;
 	}
-
-	if (zone->view != NULL)
-		dns_view_weakdetach(&zone->view);
 
 	/*
 	 * We have now canceled everything set the flag to allow exit_check()
