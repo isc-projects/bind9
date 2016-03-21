@@ -401,6 +401,9 @@ typedef ISC_LIST(dns_rbtnode_t)         rbtnodelist_t;
 #define RDATASET_ATTR_STATCOUNT         0x0040
 #define RDATASET_ATTR_OPTOUT		0x0080
 #define RDATASET_ATTR_NEGATIVE          0x0100
+#define RDATASET_ATTR_PREFETCH          0x0200
+#define RDATASET_ATTR_CASESET           0x0400
+#define RDATASET_ATTR_ZEROTTL           0x0800
 
 typedef struct acache_cbarg {
 	dns_rdatasetadditional_t        type;
@@ -441,6 +444,12 @@ struct acachectl {
 	(((header)->attributes & RDATASET_ATTR_OPTOUT) != 0)
 #define NEGATIVE(header) \
 	(((header)->attributes & RDATASET_ATTR_NEGATIVE) != 0)
+#define PREFETCH(header) \
+	(((header)->attributes & RDATASET_ATTR_PREFETCH) != 0)
+#define CASESET(header) \
+	(((header)->attributes & RDATASET_ATTR_CASESET) != 0)
+#define ZEROTTL(header) \
+	(((header)->attributes & RDATASET_ATTR_ZEROTTL) != 0)
 
 #define DEFAULT_NODE_LOCK_COUNT         7       /*%< Should be prime. */
 
@@ -4303,7 +4312,8 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	header_prev = NULL;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
-		if (header->rdh_ttl <  search->now) {
+		if (header->rdh_ttl < search->now ||
+		    (header->rdh_ttl == search->now && !ZEROTTL(header))) {
 			/*
 			 * This rdataset is stale.  If no one else is
 			 * using the node, we can clean it up right
@@ -4311,7 +4321,7 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 			 * the node as dirty, so it will get cleaned
 			 * up later.
 			 */
-			if ((header->rdh_ttl <  search->now - RBTDB_VIRTUAL) &&
+			if ((header->rdh_ttl < search->now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
@@ -4427,7 +4437,8 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 		     header != NULL;
 		     header = header_next) {
 			header_next = header->next;
-			if (header->rdh_ttl <  search->now) {
+			if (header->rdh_ttl < search->now ||
+			    (header->rdh_ttl == search->now && !ZEROTTL(header))) {
 				/*
 				 * This rdataset is stale.  If no one else is
 				 * using the node, we can clean it up right
@@ -4435,7 +4446,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 				 * the node as dirty, so it will get cleaned
 				 * up later.
 				 */
-				if ((header->rdh_ttl <  search->now -
+				if ((header->rdh_ttl < search->now -
 						    RBTDB_VIRTUAL) &&
 				    (locktype == isc_rwlocktype_write ||
 				     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
@@ -4604,7 +4615,8 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		     header != NULL;
 		     header = header_next) {
 			header_next = header->next;
-			if (header->rdh_ttl <  now) {
+			if (header->rdh_ttl < now ||
+			    (header->rdh_ttl == now && !ZEROTTL(header))) {
 				/*
 				 * This rdataset is stale.  If no one else is
 				 * using the node, we can clean it up right
@@ -4612,7 +4624,7 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 * node as dirty, so it will get cleaned up
 				 * later.
 				 */
-				if ((header->rdh_ttl <  now - RBTDB_VIRTUAL) &&
+				if ((header->rdh_ttl < now - RBTDB_VIRTUAL) &&
 				    (locktype == isc_rwlocktype_write ||
 				     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 					/*
@@ -5011,14 +5023,15 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	header_prev = NULL;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
-		if (header->rdh_ttl <  now) {
+		if (header->rdh_ttl < now ||
+		    (header->rdh_ttl == now && !ZEROTTL(header))) {
 			/*
 			 * This rdataset is stale.  If no one else is using the
 			 * node, we can clean it up right now, otherwise we
 			 * mark it as stale, and the node as dirty, so it will
 			 * get cleaned up later.
 			 */
-			if ((header->rdh_ttl <  now - RBTDB_VIRTUAL) &&
+			if ((header->rdh_ttl < now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
@@ -5318,7 +5331,8 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 	header_prev = NULL;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
-		if (header->rdh_ttl <  now) {
+		if (header->rdh_ttl < now ||
+		    (header->rdh_ttl == now && !ZEROTTL(header))) {
 			/*
 			 * This rdataset is stale.  If no one else is using the
 			 * node, we can clean it up right now, otherwise we
@@ -5807,7 +5821,8 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	for (header = rbtnode->data; header != NULL; header = header_next) {
 		header_next = header->next;
-		if (header->rdh_ttl < now) {
+		if (header->rdh_ttl < now ||
+		    (header->rdh_ttl == now && !ZEROTTL(header))) {
 			if ((header->rdh_ttl < now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
@@ -6644,6 +6659,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->type = RBTDB_RDATATYPE_VALUE(rdataset->type,
 						rdataset->covers);
 	newheader->attributes = 0;
+	if (rdataset->ttl == 0U)
+		newheader->attributes |= RDATASET_ATTR_ZEROTTL;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
 	newheader->count = init_count++;

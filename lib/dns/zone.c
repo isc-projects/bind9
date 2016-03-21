@@ -3410,7 +3410,8 @@ compute_tag(dns_name_t *name, dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx,
  */
 static void
 trust_key(dns_zone_t *zone, dns_name_t *keyname,
-	  dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx) {
+	  dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx)
+{
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned char data[4096];
