@@ -1,3 +1,7 @@
+4337.	[bug]		The previous change exposed a latent flaw in
+			key refresh queries for managed-keys when
+			a cached DNSKEY had TTL 0. [RT #41986]
+
 4336.	[bug]		Don't emit records with zero ttl unless the records
 			were learnt with a zero ttl. [RT #41687]
 

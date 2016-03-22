@@ -8543,12 +8543,11 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					 */
 					deletekey = ISC_TRUE;
 				} else if (keydata.removehd == 0) {
-					/* Remove from secroots */
+					/*
+					 * Remove key from secroots.
+					 */
 					dns_view_untrust(zone->view, keyname,
 							 &dnskey, mctx);
-
-					/* But ensure there's a null key */
-					fail_secure(zone, keyname);
 
 					/* If initializing, delete now */
 					if (keydata.addhd == 0)
@@ -8858,7 +8857,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 		result = dns_resolver_createfetch(zone->view->resolver,
 						  kname, dns_rdatatype_dnskey,
 						  NULL, NULL, NULL,
-						  DNS_FETCHOPT_NOVALIDATE,
+						  DNS_FETCHOPT_NOVALIDATE|
+						  DNS_FETCHOPT_UNSHARED,
 						  zone->task,
 						  keyfetch_done, kfetch,
 						  &kfetch->dnskeyset,
