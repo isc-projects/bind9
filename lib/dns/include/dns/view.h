@@ -1199,6 +1199,12 @@ dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
  * Remove keys that match 'keyname' and 'dnskey' from the views trust
  * anchors.
  *
+ * (NOTE: If the configuration specifies that there should be a
+ * trust anchor at 'keyname', but no keys are left after this
+ * operation, that is an error.  We fail closed, inserting a NULL
+ * key so as to prevent validation until a legimitate key has been
+ * provided.)
+ *
  * Requires:
  * \li	'view' is valid.
  * \li	'keyname' is valid.

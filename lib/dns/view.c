@@ -1937,6 +1937,7 @@ dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
 	result = dns_view_getsecroots(view, &sr);
 	if (result == ISC_R_SUCCESS) {
 		dns_keytable_deletekeynode(sr, key);
+		dns_keytable_marksecure(sr, keyname);
 		dns_keytable_detach(&sr);
 	}
 	dst_key_free(&key);
