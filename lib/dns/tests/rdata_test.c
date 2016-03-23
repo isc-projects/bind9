@@ -97,7 +97,7 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 			  0x00, 0x08, 0x00, 0x04,
 			  0x00, 0x00, 0x00, 0x00
 			},
-			8, ISC_FALSE
+			8, ISC_TRUE
 		},
 		{
 			/* Option code family 1 (ipv4), source 0, scope 0 */
@@ -105,7 +105,7 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 			  0x00, 0x08, 0x00, 0x04,
 			  0x00, 0x01, 0x00, 0x00
 			},
-			8, ISC_TRUE
+			8, ISC_FALSE
 		},
 		{
 			/* Option code family 2 (ipv6) , source 0, scope 0 */
@@ -113,7 +113,7 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 			  0x00, 0x08, 0x00, 0x04,
 			  0x00, 0x02, 0x00, 0x00
 			},
-			8, ISC_TRUE
+			8, ISC_FALSE
 		},
 		{
 			/* extra octet */
@@ -222,9 +222,9 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 					    &dctx, 0, &target1);
 		dns_decompress_invalidate(&dctx);
 		if (test_data[i].ok)
-			ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+			ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 		else
-			ATF_REQUIRE(result != ISC_R_SUCCESS);
+			ATF_CHECK(result != ISC_R_SUCCESS);
 	}
 }
 

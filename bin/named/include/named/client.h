@@ -195,7 +195,7 @@ typedef ISC_LIST(ns_client_t) client_list_t;
 #define NS_CLIENTATTR_WANTEXPIRE	0x0800 /*%< return seconds to expire */
 #define NS_CLIENTATTR_HAVEEXPIRE	0x1000 /*%< return seconds to expire */
 #define NS_CLIENTATTR_WANTOPT		0x2000 /*%< add opt to reply */
-#define NS_CLIENTATTR_HAVEECS		0x4000 /*%< sent an ECS option */
+#define NS_CLIENTATTR_HAVEECS		0x4000 /*%< received an ECS option */
 
 #define NS_CLIENTATTR_NOSETFC		0x8000 /*%< don't set servfail cache */
 
