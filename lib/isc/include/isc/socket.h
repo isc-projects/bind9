@@ -370,7 +370,8 @@ isc_socket_fdwatchcreate(isc_socketmgr_t *manager,
  *
  * Note:
  *
- *\li   'fd' is the already-opened file descriptor.
+ *\li   'fd' is the already-opened file descriptor (must be less
+ * 	than maxsockets).
  *\li	This function is not available on Windows.
  *\li	The callback function is called "in-line" - this means the function
  *	needs to return as fast as possible, as all other I/O will be suspended
@@ -394,6 +395,7 @@ isc_socket_fdwatchcreate(isc_socketmgr_t *manager,
  *\li	#ISC_R_NOMEMORY
  *\li	#ISC_R_NORESOURCES
  *\li	#ISC_R_UNEXPECTED
+ *\li	#ISC_R_RANGE
  */
 
 isc_result_t

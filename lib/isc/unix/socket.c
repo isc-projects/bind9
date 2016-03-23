@@ -2063,7 +2063,7 @@ destroy(isc__socket_t **sockp) {
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 	INSIST(sock->connect_ev == NULL);
-	REQUIRE(sock->fd == -1 || sock->fd < (int)manager->maxsocks);
+	INSIST(sock->fd >= -1 && sock->fd < (int)manager->maxsocks);
 
 	if (sock->fd >= 0) {
 		fd = sock->fd;
@@ -2780,6 +2780,9 @@ isc__socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
+
+	if (fd < 0 || (unsigned int)fd >= manager->maxsocks)
+		return (ISC_R_RANGE);
 
 	result = allocate_socket(manager, isc_sockettype_fdwatch, &sock);
 	if (result != ISC_R_SUCCESS)
