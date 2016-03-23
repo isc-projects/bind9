@@ -19,18 +19,19 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- Converted by db4-upgrade version 1.0 -->
 <section xmlns="http://docbook.org/ns/docbook" version="5.0"><info/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
-
     <para>
-      This document summarizes changes since the last production release
-      of BIND on the corresponding major release branch.
+      BIND 9.11.0 is a new feature release of BIND, still under development.
+      This document summarizes new features and functional changes that
+      have been introduced on this branch.  With each development 
+      release leading up to the final BIND 9.11.0 release, this document
+      will be updated with additional features added and bugs fixed.
     </para>
   </section>
-  <section xml:id="relnotes_download"><info><title>Download</title></info>
 
+  <section xml:id="relnotes_download"><info><title>Download</title></info>
     <para>
       The latest versions of BIND 9 software can always be found at
       <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.isc.org/downloads/">http://www.isc.org/downloads/</link>.
@@ -39,8 +40,8 @@
       operating systems.
     </para>
   </section>
-  <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
 
+  <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
     <itemizedlist>
       <listitem>
 	<para>
@@ -189,10 +190,9 @@
 	</para>
       </listitem>
     </itemizedlist>
-
   </section>
-  <section xml:id="relnotes_features"><info><title>New Features</title></info>
 
+  <section xml:id="relnotes_features"><info><title>New Features</title></info>
     <itemizedlist>
       <listitem>
 	<para>
@@ -589,8 +589,8 @@
       </listitem>
     </itemizedlist>
   </section>
-  <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
 
+  <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
         <para>
@@ -695,9 +695,9 @@
       </listitem>
       <listitem>
 	<para>
-	  If <command>named</command> is not configured to validate the answer then
-	  allow fallback to plain DNS on timeout even when we know
-	  the server supports EDNS.  This will allow the server to
+	  If <command>named</command> is not configured to validate 
+	  answers, then allow fallback to plain DNS on timeout even when
+	  we know the server supports EDNS.  This will allow the server to
 	  potentially resolve signed queries when TCP is being
 	  blocked.
 	</para>
@@ -780,249 +780,23 @@
       </listitem>
     </itemizedlist>
   </section>
-  <section xml:id="relnotes_port"><info><title>Porting Changes</title></info>
 
+  <section xml:id="relnotes_port"><info><title>Porting Changes</title></info>
     <itemizedlist>
       <listitem>
 	<para>
-	  The Microsoft Windows install tool
-	  <command>BINDInstall.exe</command> which requires a
-	  non-free version of Visual Studio to be built, now uses two
-	  files (lists of flags and files) created by the Configure
-	  perl script with all the needed information which were
-	  previously compiled in the binary. Read
-	  <filename>win32utils/build.txt</filename> for more details.
-	  [RT #38915]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
   </section>
+
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
 	<para>
-	  When deleting records from a zone database, interior nodes
-	  could be left empty but not deleted, damaging search
-	  performance afterward. [RT #40997]
-	</para>
-      </listitem>
-      <listitem>
+	  None.
 	<para>
-	  A flag could be set in the wrong field when setting up
-	  nonrecursive queries; this could cause the SERVFAIL cache to
-	  cache responses it shouldn't.  New querytrace logging has been
-	  added which identified this error. [RT #41155]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The server could crash due to a use-after-free if a
-	  zone transfer timed out. [RT #41297]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Authoritative servers that were marked as bogus (e.g. blackholed
-	  in configuration or with invalid addresses) were being queried
-	  anyway. [RT #41321]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Some of the options for GeoIP ACLs, including "areacode",
-	  "metrocode", and "timezone", were incorrectly documented
-	  as "area", "metro" and "tz".  Both the long and abbreviated
-	  versions are now accepted.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>dig</command>, <command>host</command> and
-	  <command>nslookup</command> aborted when encountering
-	  a name which, after appending search list elements,
-	  exceeded 255 bytes. Such names are now skipped, but
-	  processing of other names will continue. [RT #36892]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The error message generated when
-	  <command>named-checkzone</command> or
-	  <command>named-checkconf -z</command> encounters a
-	  <option>$TTL</option> directive without a value has
-	  been clarified. [RT #37138]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Semicolon characters (;) included in TXT records were
-	  incorrectly escaped with a backslash when the record was
-	  displayed as text. This is actually only necessary when there
-	  are no quotation marks. [RT #37159]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When files opened for writing by <command>named</command>,
-	  such as zone journal files, were referenced more than once
-	  in <filename>named.conf</filename>, it could lead to file
-	  corruption as multiple threads wrote to the same file. This
-	  is now detected when loading <filename>named.conf</filename>
-	  and reported as an error. [RT #37172]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When checking for updates to trust anchors listed in
-	  <option>managed-keys</option>, <command>named</command>
-	  now revalidates keys based on the current set of
-	  active trust anchors, without relying on any cached
-	  record of previous validation. [RT #37506]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Large-system tuning
-	  (<command>configure --with-tuning=large</command>) caused
-	  problems on some platforms by setting a socket receive
-	  buffer size that was too large.  This is now detected and
-	  corrected at run time. [RT #37187]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When NXDOMAIN redirection is in use, queries for a name
-	  that is present in the redirection zone but a type that
-	  is not present will now return NOERROR instead of NXDOMAIN.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Due to an inadvertent removal of code in the previous
-	  release, when <command>named</command> encountered an
-	  authoritative name server which dropped all EDNS queries,
-	  it did not always try plain DNS. This has been corrected.
-	  [RT #37965]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  A regression caused nsupdate to use the default recursive servers
-	  rather than the SOA MNAME server when sending the UPDATE.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Adjusted max-recursion-queries to accommodate the smaller
-	  initial packet sizes used in BIND 9.10 and higher when
-	  contacting authoritative servers for the first time.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Built-in "empty" zones did not correctly inherit the
-	  "allow-transfer" ACL from the options or view. [RT #38310]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Two leaks were fixed that could cause <command>named</command>
-	  processes to grow to very large sizes. [RT #38454]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Fixed some bugs in RFC 5011 trust anchor management,
-	  including a memory leak and a possible loss of state
-	  information. [RT #38458]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Asynchronous zone loads were not handled correctly when the
-	  zone load was already in progress; this could trigger a crash
-	  in zt.c. [RT #37573]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  A race during shutdown or reconfiguration could
-	  cause an assertion failure in mem.c. [RT #38979]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Some answer formatting options didn't work correctly with
-	  <command>dig +short</command>. [RT #39291]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Several bugs have been fixed in the RPZ implementation:
-	</para>
-	<itemizedlist>
-	  <listitem>
-	    <para>
-	      Policy zones that did not specifically require recursion
-	      could be treated as if they did; consequently, setting
-	      <command>qname-wait-recurse no;</command> was
-	      sometimes ineffective.  This has been corrected.
-	      In most configurations, behavioral changes due to this
-	      fix will not be noticeable. [RT #39229]
-	    </para>
-	  </listitem>
-	  <listitem>
-	    <para>
-	      The server could crash if policy zones were updated (e.g.
-	      via <command>rndc reload</command> or an incoming zone
-	      transfer) while RPZ processing was still ongoing for an
-	      active query. [RT #39415]
-	    </para>
-	  </listitem>
-	  <listitem>
-	    <para>
-	      On servers with one or more policy zones configured as
-	      slaves, if a policy zone updated during regular operation
-	      (rather than at startup) using a full zone reload, such as
-	      via AXFR, a bug could allow the RPZ summary data to fall out
-	      of sync, potentially leading to an assertion failure in
-	      rpz.c when further incremental updates were made to the
-	      zone, such as via IXFR. [RT #39567]
-	    </para>
-	  </listitem>
-	  <listitem>
-	    <para>
-	      The server could match a shorter prefix than what was
-	      available in CLIENT-IP policy triggers, and so, an
-	      unexpected action could be taken. This has been
-	      corrected. [RT #39481]
-	    </para>
-	  </listitem>
-	  <listitem>
-	    <para>
-	      The server could crash if a reload of an RPZ zone was
-	      initiated while another reload of the same zone was
-	      already in progress. [RT #39649]
-	    </para>
-	  </listitem>
-	  <listitem>
-	    <para>
-	      Negative trust anchors (NTAs) were incorrectly deleted
-	      when the server was reloaded or reconfigured. [RT #41058]
-	    </para>
-	  </listitem>
-	  <listitem>
-	    <para>
-	      Zones configured to use <command>map</command> format
-	      master files can't be used as policy zones because RPZ
-	      summary data isn't compiled when such zones are mapped into
-	      memory.  This limitation may be fixed in a future release,
-	      but in the meantime it has been documented, and attempting
-	      to use such zones in <command>response-policy</command>
-	      statements is now a configuration error.  [RT #38321]
-	    </para>
-	  </listitem>
-	</itemizedlist>
       </listitem>
     </itemizedlist>
   </section>
