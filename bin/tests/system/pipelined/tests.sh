@@ -29,11 +29,33 @@ diff ref output > /dev/null && { ret=1 ; echo "I: diff out of order failed"; }
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check keep response order"
+# flush resolver so queries will be from others again
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 flush
+sleep 1
+
+echo "I:check pipelined TCP queries using mdig"
+ret=0
+$MDIG +noall +answer +vc -f input -p 5300 -b 10.53.0.4 @10.53.0.4 > raw.mdig
+awk '{ print $1 " " $5 }' < raw.mdig > output.mdig
+sort < output.mdig > output-sorted.mdig
+diff ref output-sorted.mdig || { ret=1 ; echo "I: diff sorted failed"; }
+diff ref output.mdig > /dev/null && { ret=1 ; echo "I: diff out of order failed"; }
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check keep-response-order"
 ret=0
 ./pipequeries ++ < inputb > rawb || ret=1
 awk '{ print $1 " " $5 }' < rawb > outputb
 diff refb outputb || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check keep-response-order using mdig"
+ret=0
+$MDIG +noall +answer +vc -f inputb -p 5300 -b 10.53.0.7 @10.53.0.4 > rawb.mdig
+awk '{ print $1 " " $5 }' < rawb.mdig > outputb.mdig
+diff refb outputb.mdig || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
