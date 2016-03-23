@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
 /* RFC2671 */
@@ -135,7 +133,24 @@ fromwire_opt(ARGS_FROMWIRE) {
 			isc_region_consume(&sregion, 1);
 			scope = uint8_fromregion(&sregion);
 			isc_region_consume(&sregion, 1);
+
+			if (addrlen == 0U && family != 0U)
+				return (DNS_R_OPTERR);
+
 			switch (family) {
+			case 0:
+				/*
+				 * XXXMUKS: In queries and replies, if
+				 * FAMILY is set to 0, SOURCE
+				 * PREFIX-LENGTH and SCOPE PREFIX-LENGTH
+				 * must be 0 and ADDRESS should not be
+				 * present as the address and prefix
+				 * lengths don't make sense because the
+				 * family is unknown.
+				 */
+				if (addrlen != 0U || scope != 0U)
+					return (DNS_R_OPTERR);
+				break;
 			case 1:
 				if (addrlen > 32U || scope > 32U)
 					return (DNS_R_OPTERR);

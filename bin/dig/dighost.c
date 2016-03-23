@@ -2527,14 +2527,14 @@ setup_lookup(dig_lookup_t *lookup) {
 			if (sa->sa_family == AF_INET) {
 				family = 1;
 				sin = (struct sockaddr_in *) sa;
-				memcpy(addr, &sin->sin_addr, 4);
+				memmove(addr, &sin->sin_addr, 4);
 				if ((plen % 8) != 0)
 					addr[addrl-1] &=
 						~0 << (8 - (plen % 8));
 			} else {
 				family = 2;
 				sin6 = (struct sockaddr_in6 *) sa;
-				memcpy(addr, &sin6->sin6_addr, 16);
+				memmove(addr, &sin6->sin6_addr, 16);
 			}
 
 			/* Mask off last address byte */

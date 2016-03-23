@@ -1,5 +1,8 @@
 	--- 9.11.0a1 released ---
 
+4341.	[bug]		Correct the handling of ECS options with
+			address family 0. [RT #41377]
+
 4340.	[performance]	Implement adaptive read-write locks, reducing the
 			overhead of locks that are only held briefly.
 			[RT #37329]

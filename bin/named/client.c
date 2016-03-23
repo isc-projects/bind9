@@ -1894,7 +1894,6 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	isc_uint16_t family;
 	isc_uint8_t addrlen, addrbytes, scope, *paddr;
 	isc_netaddr_t caddr;
-	int i;
 
 	/*
 	 * If we have already seen a ECS option skip this ECS option.
@@ -1929,21 +1928,51 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		return (DNS_R_OPTERR);
 	}
 
+	if (addrlen == 0 && family != 0) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+			      "EDNS client-subnet option: "
+			      "source == 0 but family != 0");
+		return (DNS_R_OPTERR);
+	}
+
 	memset(&caddr, 0, sizeof(caddr));
 	switch (family) {
+	case 0:
+		/*
+		 * XXXMUKS: In queries, if FAMILY is set to 0, SOURCE
+		 * PREFIX-LENGTH must be 0 and ADDRESS should not be
+		 * present as the address and prefix lengths don't make
+		 * sense because the family is unknown.
+		 */
+		if (addrlen != 0U) {
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+				      "EDNS client-subnet option: invalid "
+				      "address length (%u) for FAMILY=0",
+				      addrlen);
+			return (DNS_R_OPTERR);
+		}
+		caddr.family = AF_UNSPEC;
+		break;
 	case 1:
-		if (addrlen > 32U)
-			goto invalid_length;
+		if (addrlen > 32U) {
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+				      "EDNS client-subnet option: invalid "
+				      "address length (%u) for IPv4",
+				      addrlen);
+			return (DNS_R_OPTERR);
+		}
 		caddr.family = AF_INET;
 		break;
 	case 2:
 		if (addrlen > 128U) {
-	invalid_length:
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
 				      "EDNS client-subnet option: invalid "
-				      "address length (%u) for %s",
-				      addrlen, family == 1 ? "IPv4" : "IPv6");
+				      "address length (%u) for IPv6",
+				      addrlen);
 			return (DNS_R_OPTERR);
 		}
 		caddr.family = AF_INET6;
@@ -1964,16 +1993,17 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	}
 
 	paddr = (isc_uint8_t *) &caddr.type;
-	for (i = 0; i < addrbytes; i++) {
-		paddr[i] = isc_buffer_getuint8(buf);
-		optlen--;
-	}
+	if (addrbytes != 0U) {
+		memmove(paddr, isc_buffer_current(buf), addrbytes);
+		isc_buffer_forward(buf, addrbytes);
+		optlen -= addrbytes;
 
-	if (addrbytes != 0U && (addrlen % 8) != 0) {
-		isc_uint8_t bits = ~0 << (8 - (addrlen % 8));
-		bits &= paddr[addrbytes - 1];
-		if (bits != paddr[addrbytes - 1])
-			return (DNS_R_OPTERR);
+		if ((addrlen % 8) != 0) {
+			isc_uint8_t bits = ~0 << (8 - (addrlen % 8));
+			bits &= paddr[addrbytes - 1];
+			if (bits != paddr[addrbytes - 1])
+				return (DNS_R_OPTERR);
+		}
 	}
 
 	memmove(&client->ecs_addr, &caddr, sizeof(caddr));
