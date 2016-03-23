@@ -16056,6 +16056,8 @@ $as_echo_n "checking for OpenSSL AES support... " >&6; }
 	if test "$cross_compiling" = yes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-aes" >&5
 $as_echo "using --with-aes" >&6; }
+         # Expect cross-compiling with a modern OpenSSL
+	 have_aes="evp"
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
