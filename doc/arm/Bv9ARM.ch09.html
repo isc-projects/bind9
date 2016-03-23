@@ -44,7 +44,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.0pre-alpha</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.0a1</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
@@ -60,13 +60,16 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.0pre-alpha</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.0a1</h2></div></div></div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
 <p>
-      This document summarizes changes since the last production release
-      of BIND on the corresponding major release branch.
+      BIND 9.11.0 is a new feature release of BIND, still under development.
+      This document summarizes new features and functional changes that
+      have been introduced on this branch.  With each development 
+      release leading up to the final BIND 9.11.0 release, this document
+      will be updated with additional features added and bugs fixed.
     </p>
 </div>
 <div class="section">
@@ -623,9 +626,9 @@
 	  the newly-created "cname" log category.
 	</p></li>
 <li class="listitem"><p>
-	  If <span class="command"><strong>named</strong></span> is not configured to validate the answer then
-	  allow fallback to plain DNS on timeout even when we know
-	  the server supports EDNS.  This will allow the server to
+	  If <span class="command"><strong>named</strong></span> is not configured to validate 
+	  answers, then allow fallback to plain DNS on timeout even when
+	  we know the server supports EDNS.  This will allow the server to
 	  potentially resolve signed queries when TCP is being
 	  blocked.
 	</p></li>
@@ -693,190 +696,15 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_port"></a>Porting Changes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
-	  The Microsoft Windows install tool
-	  <span class="command"><strong>BINDInstall.exe</strong></span> which requires a
-	  non-free version of Visual Studio to be built, now uses two
-	  files (lists of flags and files) created by the Configure
-	  perl script with all the needed information which were
-	  previously compiled in the binary. Read
-	  <code class="filename">win32utils/build.txt</code> for more details.
-	  [RT #38915]
+	  None.
 	</p></li></ul></div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem"><p>
-	  When deleting records from a zone database, interior nodes
-	  could be left empty but not deleted, damaging search
-	  performance afterward. [RT #40997]
-	</p></li>
-<li class="listitem"><p>
-	  A flag could be set in the wrong field when setting up
-	  nonrecursive queries; this could cause the SERVFAIL cache to
-	  cache responses it shouldn't.  New querytrace logging has been
-	  added which identified this error. [RT #41155]
-	</p></li>
-<li class="listitem"><p>
-	  The server could crash due to a use-after-free if a
-	  zone transfer timed out. [RT #41297]
-	</p></li>
-<li class="listitem"><p>
-	  Authoritative servers that were marked as bogus (e.g. blackholed
-	  in configuration or with invalid addresses) were being queried
-	  anyway. [RT #41321]
-	</p></li>
-<li class="listitem"><p>
-	  Some of the options for GeoIP ACLs, including "areacode",
-	  "metrocode", and "timezone", were incorrectly documented
-	  as "area", "metro" and "tz".  Both the long and abbreviated
-	  versions are now accepted.
-	</p></li>
-<li class="listitem"><p>
-	  <span class="command"><strong>dig</strong></span>, <span class="command"><strong>host</strong></span> and
-	  <span class="command"><strong>nslookup</strong></span> aborted when encountering
-	  a name which, after appending search list elements,
-	  exceeded 255 bytes. Such names are now skipped, but
-	  processing of other names will continue. [RT #36892]
-	</p></li>
-<li class="listitem"><p>
-	  The error message generated when
-	  <span class="command"><strong>named-checkzone</strong></span> or
-	  <span class="command"><strong>named-checkconf -z</strong></span> encounters a
-	  <code class="option">$TTL</code> directive without a value has
-	  been clarified. [RT #37138]
-	</p></li>
-<li class="listitem"><p>
-	  Semicolon characters (;) included in TXT records were
-	  incorrectly escaped with a backslash when the record was
-	  displayed as text. This is actually only necessary when there
-	  are no quotation marks. [RT #37159]
-	</p></li>
-<li class="listitem"><p>
-	  When files opened for writing by <span class="command"><strong>named</strong></span>,
-	  such as zone journal files, were referenced more than once
-	  in <code class="filename">named.conf</code>, it could lead to file
-	  corruption as multiple threads wrote to the same file. This
-	  is now detected when loading <code class="filename">named.conf</code>
-	  and reported as an error. [RT #37172]
-	</p></li>
-<li class="listitem"><p>
-	  When checking for updates to trust anchors listed in
-	  <code class="option">managed-keys</code>, <span class="command"><strong>named</strong></span>
-	  now revalidates keys based on the current set of
-	  active trust anchors, without relying on any cached
-	  record of previous validation. [RT #37506]
-	</p></li>
-<li class="listitem"><p>
-	  Large-system tuning
-	  (<span class="command"><strong>configure --with-tuning=large</strong></span>) caused
-	  problems on some platforms by setting a socket receive
-	  buffer size that was too large.  This is now detected and
-	  corrected at run time. [RT #37187]
-	</p></li>
-<li class="listitem"><p>
-	  When NXDOMAIN redirection is in use, queries for a name
-	  that is present in the redirection zone but a type that
-	  is not present will now return NOERROR instead of NXDOMAIN.
-	</p></li>
-<li class="listitem"><p>
-	  Due to an inadvertent removal of code in the previous
-	  release, when <span class="command"><strong>named</strong></span> encountered an
-	  authoritative name server which dropped all EDNS queries,
-	  it did not always try plain DNS. This has been corrected.
-	  [RT #37965]
-	</p></li>
-<li class="listitem"><p>
-	  A regression caused nsupdate to use the default recursive servers
-	  rather than the SOA MNAME server when sending the UPDATE.
-	</p></li>
-<li class="listitem"><p>
-	  Adjusted max-recursion-queries to accommodate the smaller
-	  initial packet sizes used in BIND 9.10 and higher when
-	  contacting authoritative servers for the first time.
-	</p></li>
-<li class="listitem"><p>
-	  Built-in "empty" zones did not correctly inherit the
-	  "allow-transfer" ACL from the options or view. [RT #38310]
-	</p></li>
-<li class="listitem"><p>
-	  Two leaks were fixed that could cause <span class="command"><strong>named</strong></span>
-	  processes to grow to very large sizes. [RT #38454]
-	</p></li>
-<li class="listitem"><p>
-	  Fixed some bugs in RFC 5011 trust anchor management,
-	  including a memory leak and a possible loss of state
-	  information. [RT #38458]
-	</p></li>
-<li class="listitem"><p>
-	  Asynchronous zone loads were not handled correctly when the
-	  zone load was already in progress; this could trigger a crash
-	  in zt.c. [RT #37573]
-	</p></li>
-<li class="listitem"><p>
-	  A race during shutdown or reconfiguration could
-	  cause an assertion failure in mem.c. [RT #38979]
-	</p></li>
-<li class="listitem"><p>
-	  Some answer formatting options didn't work correctly with
-	  <span class="command"><strong>dig +short</strong></span>. [RT #39291]
-	</p></li>
-<li class="listitem">
-<p>
-	  Several bugs have been fixed in the RPZ implementation:
-	</p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
-<li class="listitem"><p>
-	      Policy zones that did not specifically require recursion
-	      could be treated as if they did; consequently, setting
-	      <span class="command"><strong>qname-wait-recurse no;</strong></span> was
-	      sometimes ineffective.  This has been corrected.
-	      In most configurations, behavioral changes due to this
-	      fix will not be noticeable. [RT #39229]
-	    </p></li>
-<li class="listitem"><p>
-	      The server could crash if policy zones were updated (e.g.
-	      via <span class="command"><strong>rndc reload</strong></span> or an incoming zone
-	      transfer) while RPZ processing was still ongoing for an
-	      active query. [RT #39415]
-	    </p></li>
-<li class="listitem"><p>
-	      On servers with one or more policy zones configured as
-	      slaves, if a policy zone updated during regular operation
-	      (rather than at startup) using a full zone reload, such as
-	      via AXFR, a bug could allow the RPZ summary data to fall out
-	      of sync, potentially leading to an assertion failure in
-	      rpz.c when further incremental updates were made to the
-	      zone, such as via IXFR. [RT #39567]
-	    </p></li>
-<li class="listitem"><p>
-	      The server could match a shorter prefix than what was
-	      available in CLIENT-IP policy triggers, and so, an
-	      unexpected action could be taken. This has been
-	      corrected. [RT #39481]
-	    </p></li>
-<li class="listitem"><p>
-	      The server could crash if a reload of an RPZ zone was
-	      initiated while another reload of the same zone was
-	      already in progress. [RT #39649]
-	    </p></li>
-<li class="listitem"><p>
-	      Negative trust anchors (NTAs) were incorrectly deleted
-	      when the server was reloaded or reconfigured. [RT #41058]
-	    </p></li>
-<li class="listitem"><p>
-	      Zones configured to use <span class="command"><strong>map</strong></span> format
-	      master files can't be used as policy zones because RPZ
-	      summary data isn't compiled when such zones are mapped into
-	      memory.  This limitation may be fixed in a future release,
-	      but in the meantime it has been documented, and attempting
-	      to use such zones in <span class="command"><strong>response-policy</strong></span>
-	      statements is now a configuration error.  [RT #38321]
-	    </p></li>
-</ul></div>
-</li>
-</ul></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+	  None.
+	</p></li></ul></div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -917,6 +745,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0pre-alpha</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0a1</p>
 </body>
 </html>
