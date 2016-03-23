@@ -1,3 +1,7 @@
+3440.	[performance]	Implement adaptive read-write locks, reducing the
+			overhead of locks that are only held briefly.
+			[RT #37329]
+
 4339.	[test]		Use "mdig" to test pipelined queries. [RT #41929]
 
 4338.	[bug]		Reimplement change 4324 as it wasn't properly doing

@@ -383,7 +383,8 @@ my @substdefh = ("AES_CC",
 
 my %configdefp;
 
-my @substdefp = ("ISC_PLATFORM_HAVEATOMICSTORE",
+my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
+                 "ISC_PLATFORM_HAVEATOMICSTORE",
                  "ISC_PLATFORM_HAVEATOMICSTOREQ",
                  "ISC_PLATFORM_HAVECMPXCHG",
                  "ISC_PLATFORM_HAVEXADD",
@@ -693,11 +694,13 @@ if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
     $configvar{"BUILD_PLATFORM"} = "Win32";
     $configvar{"MACHINE"} = "/machine:X86";
     $configvar{"BUILD_MACHINE"} = "/machine:X86";
+    $configdefp{"ISC_PLATFORM_BUSYWAITNOP"} = "__asm { rep nop }";
 } elsif ($want_x64 eq "yes") {
     $configvar{"PLATFORM"} = "x64";
     $configvar{"BUILD_PLATFORM"} = "x64";
     $configvar{"MACHINE"} = "/machine:X64";
     $configvar{"BUILD_MACHINE"} = "/machine:X64";
+    $configdefp{"ISC_PLATFORM_BUSYWAITNOP"} = "__asm { rep nop }";
 }
 
 # get the version information

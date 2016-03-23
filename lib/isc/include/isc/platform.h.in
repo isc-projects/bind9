@@ -321,6 +321,11 @@
 @ISC_PLATFORM_USESTDASM@
 
 /*
+ * Define with the busy wait nop asm or function call.
+ */
+@ISC_PLATFORM_BUSYWAITNOP@
+
+/*
  * Define if the platform has <strings.h>.
  */
 @ISC_PLATFORM_HAVESTRINGSH@

@@ -44,6 +44,15 @@
 #define RWLOCK_DEFAULT_WRITE_QUOTA 4
 #endif
 
+#ifndef RWLOCK_MAX_ADAPTIVE_COUNT
+#define RWLOCK_MAX_ADAPTIVE_COUNT 100
+#endif
+
+#if defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG)
+static isc_result_t
+isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
+#endif
+
 #ifdef ISC_RWLOCK_TRACE
 #include <stdio.h>		/* Required for fprintf/stderr. */
 #include <isc/thread.h>		/* Required for isc_thread_self(). */
@@ -85,6 +94,7 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 	 */
 	rwl->magic = 0;
 
+	rwl->spins = 0;
 #if defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG)
 	rwl->write_requests = 0;
 	rwl->write_completions = 0;
@@ -238,8 +248,8 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 #define WRITER_ACTIVE	0x1
 #define READER_INCR	0x2
 
-isc_result_t
-isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+static isc_result_t
+isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	isc_int32_t cntflag;
 
 	REQUIRE(VALID_RWLOCK(rwl));
@@ -346,6 +356,30 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 #endif
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	isc_int32_t cnt = 0;
+	isc_int32_t max_cnt = rwl->spins * 2 + 10;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	if (max_cnt > RWLOCK_MAX_ADAPTIVE_COUNT)
+		max_cnt = RWLOCK_MAX_ADAPTIVE_COUNT;
+
+	do {
+		if (cnt++ >= max_cnt) {
+			result = isc__rwlock_lock(rwl, type);
+			break;
+		}
+#ifdef ISC_PLATFORM_BUSYWAITNOP
+		ISC_PLATFORM_BUSYWAITNOP;
+#endif
+	} while (isc_rwlock_trylock(rwl, type) != ISC_R_SUCCESS);
+
+	rwl->spins += (cnt - rwl->spins) / 8;
+
+	return (result);
 }
 
 isc_result_t
@@ -606,7 +640,26 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 
 isc_result_t
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	return (doit(rwl, type, ISC_FALSE));
+	isc_int32_t cnt = 0;
+	isc_int32_t max_cnt = rwl->spins * 2 + 10;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	if (max_cnt > RWLOCK_MAX_ADAPTIVE_COUNT)
+		max_cnt = RWLOCK_MAX_ADAPTIVE_COUNT;
+
+	do {
+		if (cnt++ >= max_cnt) {
+			result = doit(rwl, type, ISC_FALSE);
+			break;
+		}
+#ifdef ISC_PLATFORM_BUSYWAITNOP
+		ISC_PLATFORM_BUSYWAITNOP;
+#endif
+	} while (doit(rwl, type, ISC_TRUE) != ISC_R_SUCCESS);
+
+	rwl->spins += (cnt - rwl->spins) / 8;
+
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
