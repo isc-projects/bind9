@@ -1734,7 +1734,9 @@ int main() {
 	[AC_MSG_RESULT(yes)
 	 have_aes="yes"],
 	[AC_MSG_RESULT(no)])],
-	[AC_MSG_RESULT(using --with-aes)])
+	[AC_MSG_RESULT(using --with-aes)
+         # Expect cross-compiling with a modern OpenSSL
+	 have_aes="evp"])
 
 	ISC_OPENSSL_INC=""
 	ISC_OPENSSL_LIBS=""
