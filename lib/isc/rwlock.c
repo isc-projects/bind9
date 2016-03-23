@@ -659,7 +659,7 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 	rwl->spins += (cnt - rwl->spins) / 8;
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 isc_result_t
