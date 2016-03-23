@@ -1569,7 +1569,8 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	}
 	if (((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) &&
 	    (client->ecs_addr.family == AF_INET ||
-	     client->ecs_addr.family == AF_INET6))
+	     client->ecs_addr.family == AF_INET6 ||
+	     client->ecs_addr.family == AF_UNSPEC))
 	{
 		int i, addrbytes = (client->ecs_addrlen + 7) / 8;
 		isc_uint8_t *paddr;
@@ -1577,7 +1578,10 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 
 		/* Add client subnet option. */
 		isc_buffer_init(&buf, ecs, sizeof(ecs));
-		if (client->ecs_addr.family == AF_INET)
+		if (client->ecs_addr.family == AF_UNSPEC ||
+		    client->ecs_addrlen == 0)
+			isc_buffer_putuint16(&buf, 0);
+		else if (client->ecs_addr.family == AF_INET)
 			isc_buffer_putuint16(&buf, 1);
 		else
 			isc_buffer_putuint16(&buf, 2);
@@ -1590,7 +1594,8 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 			uc = paddr[i];
 			if (i == addrbytes - 1 &&
 			    ((client->ecs_addrlen % 8) != 0))
-				uc &= (0xffU << (8 - (client->ecs_addrlen % 8)));
+				uc &= (0xffU << (8 -
+						 (client->ecs_addrlen % 8)));
 			isc_buffer_putuint8(&buf, uc);
 		}
 
@@ -1928,7 +1933,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		return (DNS_R_OPTERR);
 	}
 
-	if (addrlen == 0 && family != 0) {
+	if (addrlen == 0U && family != 0U) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
 			      "EDNS client-subnet option: "

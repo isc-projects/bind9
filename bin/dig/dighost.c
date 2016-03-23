@@ -1086,7 +1086,9 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 			fatal("invalid prefix length in '%s': %s\n",
 			      value, isc_result_totext(result));
 		}
-	} else if (strcmp(value, "0") == 0) {
+	}
+
+	if (strcmp(buf, "0") == 0) {
 		parsed = ISC_TRUE;
 		prefix_length = 0;
 	}
@@ -2510,7 +2512,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		}
 
 		if (lookup->ecs_addr != NULL) {
-			isc_uint8_t addr[16], family;
+			isc_uint8_t addr[16], family, proto;
 			isc_uint32_t plen;
 			struct sockaddr *sa;
 			struct sockaddr_in *sin;
@@ -2528,7 +2530,13 @@ setup_lookup(dig_lookup_t *lookup) {
 			opts[i].length = (isc_uint16_t) addrl + 4;
 			check_result(result, "isc_buffer_allocate");
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
-			switch (sa->sa_family) {
+
+			/* If prefix length is zero, don't set family */
+			proto = sa->sa_family;
+			if (plen == 0)
+				proto = AF_UNSPEC;
+
+			switch (proto) {
 			case AF_UNSPEC:
 				INSIST(plen == 0);
 				family = 0;
