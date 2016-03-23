@@ -700,7 +700,8 @@ if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
     $configvar{"BUILD_PLATFORM"} = "x64";
     $configvar{"MACHINE"} = "/machine:X64";
     $configvar{"BUILD_MACHINE"} = "/machine:X64";
-    $configdefp{"ISC_PLATFORM_BUSYWAITNOP"} = "__asm { rep nop }";
+    # inline assembly not supported in x64 builds
+    #$configdefp{"ISC_PLATFORM_BUSYWAITNOP"} = "__asm { rep nop }";
 }
 
 # get the version information
