@@ -77,21 +77,6 @@ cd $tmpdir || {
 	exit 1
 }
 
-verdir=bind9-kit.$$
-mkdir $verdir || {
-    echo "$0: could not create directory $tmpdir/$verdir" >&2
-    exit 1
-}
-git archive --format=tar $remote $tag version | ( cd $verdir ;tar xf - )
-test -f $verdir/version || {
-    echo "$0: could not get 'version' file" >&2
-    exit 1
-}
-. $verdir/version
-
-rm $verdir/version
-rmdir $verdir
-
 shorthash=`git ls-remote $repo refs/heads/$tag | cut -c1-7`
 if [ -z "$shorthash" ]; then
         shorthash=`git ls-remote $repo refs/tags/$tag | cut -c1-7`
@@ -100,6 +85,21 @@ if [ -z "$shorthash" ]; then
         echo "Unable to determine hash for $tag, aborting."
         exit 1
 fi
+
+verdir=bind9-kit.$$
+mkdir $verdir || {
+    echo "$0: could not create directory $tmpdir/$verdir" >&2
+    exit 1
+}
+git archive --format=tar $remote $shorthash version | ( cd $verdir ;tar xf - )
+test -f $verdir/version || {
+    echo "$0: could not get 'version' file" >&2
+    exit 1
+}
+. $verdir/version
+
+rm $verdir/version
+rmdir $verdir
 
 if $snapshot
 then
@@ -120,7 +120,7 @@ test ! -d $topdir || {
 
 mkdir $topdir || exit 1
 
-git archive --format=tar $remote $tag | ( cd $topdir; tar xf -)
+git archive --format=tar $remote $shorthash | ( cd $topdir; tar xf -)
 
 cd $topdir || exit 1
 
