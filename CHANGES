@@ -1,3 +1,6 @@
+4341.	[bug]		'rndc flushtree' could fail to clean the tree if there
+			wasn't a node at the specified name. [RT #41846]
+
 4338.	[bug]		Reimplement change 4324 as it wasn't properly doing
 			all the required book keeping. [RT #41941]
 
