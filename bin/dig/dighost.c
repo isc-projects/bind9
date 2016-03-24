@@ -1065,7 +1065,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	isc_sockaddr_t *sa = NULL;
 	struct in_addr in4;
 	struct in6_addr in6;
-	isc_uint32_t netmask = 0xffffffff;
+	isc_uint32_t prefix_length = 0xffffffff;
 	char *slash = NULL;
 	isc_boolean_t parsed = ISC_FALSE;
 	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX/128")];
@@ -1076,13 +1076,16 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	slash = strchr(buf, '/');
 	if (slash != NULL) {
 		*slash = '\0';
-		result = isc_parse_uint32(&netmask, slash + 1, 10);
+		result = isc_parse_uint32(&prefix_length, slash + 1, 10);
 		if (result != ISC_R_SUCCESS) {
 			fatal("invalid prefix length in '%s': %s\n",
 			      value, isc_result_totext(result));
 		}
-	} else if (strcmp(value, "0") == 0) {
-		netmask = 0;
+	}
+
+	if (strcmp(buf, "0") == 0) {
+		parsed = ISC_TRUE;
+		prefix_length = 0;
 	}
 
 	sa = isc_mem_allocate(mctx, sizeof(*sa));
@@ -1091,14 +1094,14 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	if (inet_pton(AF_INET6, buf, &in6) == 1) {
 		parsed = ISC_TRUE;
 		isc_sockaddr_fromin6(sa, &in6, 0);
-		if (netmask > 128)
-			netmask = 128;
+		if (prefix_length > 128)
+			prefix_length = 128;
 	} else if (inet_pton(AF_INET, buf, &in4) == 1) {
 		parsed = ISC_TRUE;
 		isc_sockaddr_fromin(sa, &in4, 0);
-		if (netmask > 32)
-			netmask = 32;
-	} else if (netmask != 0xffffffff) {
+		if (prefix_length > 32)
+			prefix_length = 32;
+	} else if (prefix_length != 0xffffffff && prefix_length != 0) {
 		int i;
 
 		for (i = 0; i < 3 && strlen(buf) < sizeof(buf) - 2; i++) {
@@ -1110,14 +1113,17 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 			}
 		}
 
-		if (netmask > 32)
-			netmask = 32;
+		if (prefix_length > 32)
+			prefix_length = 32;
 	}
 
 	if (!parsed)
 		fatal("invalid address '%s'", value);
 
-	sa->length = netmask;
+	sa->length = prefix_length;
+	if (prefix_length == 0)
+		sa->type.sa.sa_family = AF_UNSPEC;
+
 	*sap = sa;
 
 	return (ISC_R_SUCCESS);
@@ -2467,7 +2473,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		}
 
 		if (lookup->ecs_addr != NULL) {
-			isc_uint8_t addr[16], family;
+			isc_uint8_t addr[16], family, proto;
 			isc_uint32_t plen;
 			struct sockaddr *sa;
 			struct sockaddr_in *sin;
@@ -2485,17 +2491,29 @@ setup_lookup(dig_lookup_t *lookup) {
 			opts[i].length = (isc_uint16_t) addrl + 4;
 			check_result(result, "isc_buffer_allocate");
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
-			if (sa->sa_family == AF_INET) {
+
+			/* If prefix length is zero, don't set family */
+			proto = sa->sa_family;
+			if (plen == 0)
+				proto = AF_UNSPEC;
+
+			switch (proto) {
+			case AF_UNSPEC:
+				INSIST(plen == 0);
+				family = 0;
+				break;
+			case AF_INET:
 				family = 1;
 				sin = (struct sockaddr_in *) sa;
-				memcpy(addr, &sin->sin_addr, 4);
-				if ((plen % 8) != 0)
-					addr[addrl-1] &=
-						~0 << (8 - (plen % 8));
-			} else {
+				memmove(addr, &sin->sin_addr, 4);
+				break;
+			case AF_INET6:
 				family = 2;
 				sin6 = (struct sockaddr_in6 *) sa;
-				memcpy(addr, &sin6->sin6_addr, 16);
+				memmove(addr, &sin6->sin6_addr, 16);
+				break;
+			default:
+				INSIST(0);
 			}
 
 			/* Mask off last address byte */

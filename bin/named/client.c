@@ -1678,7 +1678,7 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	isc_buffer_t db;
 
 	/*
-	 * If we have already seen a ECS option skip this ECS option.
+	 * If we have already seen a SIT option skip this SIT option.
 	 */
 	if ((client->attributes & NS_CLIENTATTR_WANTSIT) != 0) {
 		isc_buffer_forward(buf, (isc_uint32_t)optlen);

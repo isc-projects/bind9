@@ -3234,6 +3234,9 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	addrlen = isc_buffer_getuint8(ecsbuf);
 	scopelen = isc_buffer_getuint8(ecsbuf);
 
+	if (addrlen == 0 && family != 0)
+		return (DNS_R_OPTERR);
+
 	addrbytes = (addrlen + 7) / 8;
 	if (isc_buffer_remaininglength(ecsbuf) < addrbytes)
 		return (DNS_R_OPTERR);
@@ -3246,15 +3249,23 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	for (i = 0; i < addrbytes; i ++)
 		addr[i] = isc_buffer_getuint8(ecsbuf);
 
-	if (family == 1) {
+	switch (family) {
+	case 0:
+		if (addrlen != 0U || scopelen != 0U)
+			return (DNS_R_OPTERR);
+		strlcpy(addr_text, "0", sizeof(addr_text));
+		break;
+	case 1:
 		if (addrlen > 32 || scopelen > 32)
 			return (DNS_R_OPTERR);
 		inet_ntop(AF_INET, addr, addr_text, sizeof(addr_text));
-	} else if (family == 2) {
+		break;
+	case 2:
 		if (addrlen > 128 || scopelen > 128)
 			return (DNS_R_OPTERR);
 		inet_ntop(AF_INET6, addr, addr_text, sizeof(addr_text));
-	} else {
+		break;
+	default:
 		snprintf(addr_text, sizeof(addr_text),
 			 "Unsupported family %u", family);
 		ADD_STRING(target, addr_text);

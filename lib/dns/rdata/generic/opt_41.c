@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2011-2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011-2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -14,8 +14,6 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-
-/* $Id$ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -135,7 +133,24 @@ fromwire_opt(ARGS_FROMWIRE) {
 			isc_region_consume(&sregion, 1);
 			scope = uint8_fromregion(&sregion);
 			isc_region_consume(&sregion, 1);
+
+			if (addrlen == 0U && family != 0U)
+				return (DNS_R_OPTERR);
+
 			switch (family) {
+			case 0:
+				/*
+				 * XXXMUKS: In queries and replies, if
+				 * FAMILY is set to 0, SOURCE
+				 * PREFIX-LENGTH and SCOPE PREFIX-LENGTH
+				 * must be 0 and ADDRESS should not be
+				 * present as the address and prefix
+				 * lengths don't make sense because the
+				 * family is unknown.
+				 */
+				if (addrlen != 0U || scope != 0U)
+					return (DNS_R_OPTERR);
+				break;
 			case 1:
 				if (addrlen > 32U || scope > 32U)
 					return (DNS_R_OPTERR);
@@ -144,6 +159,8 @@ fromwire_opt(ARGS_FROMWIRE) {
 				if (addrlen > 128U || scope > 128U)
 					return (DNS_R_OPTERR);
 				break;
+			default:
+				return (DNS_R_OPTERR);
 			}
 			addrbytes = (addrlen + 7) / 8;
 			if (addrbytes + 4 != length)
@@ -163,6 +180,11 @@ fromwire_opt(ARGS_FROMWIRE) {
 			 * Request has zero length.  Response is 32 bits.
 			 */
 			if (length != 0 && length != 4)
+				return (DNS_R_OPTERR);
+			isc_region_consume(&sregion, length);
+			break;
+		case DNS_OPT_COOKIE:
+			if (length != 8 && (length < 16 || length > 40))
 				return (DNS_R_OPTERR);
 			isc_region_consume(&sregion, length);
 			break;

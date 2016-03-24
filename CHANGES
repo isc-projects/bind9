@@ -1,6 +1,9 @@
 4342.	[bug]		'rndc flushtree' could fail to clean the tree if there
 			wasn't a node at the specified name. [RT #41846]
 
+4341.	[bug]		Correct the handling of ECS options with
+			address family 0. [RT #41377]
+
 4338.	[bug]		Reimplement change 4324 as it wasn't properly doing
 			all the required book keeping. [RT #41941]
 
