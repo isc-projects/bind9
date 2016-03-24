@@ -318,7 +318,7 @@ static void test_seek_empty(const atf_tc_t *tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_dbiterator_seek(iter, seekname);
-	ATF_CHECK_EQ(result, ISC_R_NOTFOUND);
+	ATF_CHECK_EQ(result, DNS_R_PARTIALMATCH);
 
 	dns_dbiterator_destroy(&iter);
 	dns_db_detach(&db);
@@ -372,6 +372,12 @@ static void test_seek_nx(const atf_tc_t *tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = make_name("nonexistent." TEST_ORIGIN, seekname);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = dns_dbiterator_seek(iter, seekname);
+	ATF_CHECK_EQ(result, DNS_R_PARTIALMATCH);
+
+	result = make_name("nonexistent.", seekname);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_dbiterator_seek(iter, seekname);

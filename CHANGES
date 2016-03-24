@@ -1,3 +1,6 @@
+4341.	[bug]		'rndc flushtree' could fail to clean the tree if there
+			wasn't a node at the specified name. [RT #41846]
+
 	--- 9.11.0a1 released ---
 
 4341.	[bug]		Correct the handling of ECS options with

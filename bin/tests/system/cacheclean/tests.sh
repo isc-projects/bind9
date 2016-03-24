@@ -190,6 +190,22 @@ nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | egrep '(TXT|
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check the check that flushname of a partial match works."
+ret=0
+in_cache txt second2.top1.flushtest.example || ret=1
+$RNDC $RNDCOPTS flushtree example
+in_cache txt second2.top1.flushtest.example && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check the number of cached records remaining"
+ret=0
+dump_cache
+nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | egrep '(TXT|ANY)' |  wc -l`
+[ $nrecords -eq 1 ] || { ret=1; echo "I: found $nrecords records expected 1"; }
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:check flushtree clears adb correctly"
 ret=0
 load_cache

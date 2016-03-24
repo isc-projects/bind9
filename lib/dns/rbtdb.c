@@ -9204,23 +9204,7 @@ dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 		}
 	}
 
-#if 1
-	if (result == ISC_R_SUCCESS) {
-		result = dns_rbtnodechain_current(rbtdbiter->current, iname,
-						  origin, NULL);
-		if (result == ISC_R_SUCCESS) {
-			rbtdbiter->new_origin = ISC_TRUE;
-			reference_iter_node(rbtdbiter);
-		}
-	} else if (result == DNS_R_PARTIALMATCH) {
-		result = ISC_R_NOTFOUND;
-		rbtdbiter->node = NULL;
-	}
-
-	rbtdbiter->result = result;
-#else
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		isc_result_t tresult;
 		tresult = dns_rbtnodechain_current(rbtdbiter->current, iname,
 						   origin, NULL);
 		if (tresult == ISC_R_SUCCESS) {
@@ -9235,7 +9219,6 @@ dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 
 	rbtdbiter->result = (result == DNS_R_PARTIALMATCH) ?
 			    ISC_R_SUCCESS : result;
-#endif
 
 	return (result);
 }
