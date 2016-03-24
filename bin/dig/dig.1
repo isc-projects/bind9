@@ -611,13 +611,15 @@ causes fields not to be split at all\&. The default is 56 characters, or 44 char
 This query option toggles the printing of statistics: when the query was made, the size of the reply and so on\&. The default behavior is to print the query statistics\&.
 .RE
 .PP
-\fB+[no]subnet=addr[/netmask]\fR
+\fB+[no]subnet=addr[/prefix\-length]\fR
 .RS 4
 Send (don\*(Aqt send) an EDNS Client Subnet option with the specified IP address or network prefix\&.
 .sp
 \fBdig +subnet=0\&.0\&.0\&.0/0\fR, or simply
 \fBdig +subnet=0\fR
-for short, sends a Client Subnet option with an empty address and a source prefix length of zero, which signals a resolver that the EDNS Client Subnet option should not be used when resolving this query\&.
+for short, sends an EDNS client\-subnet option with an empty address and a source prefix\-length of zero, which signals a resolver that the client\*(Aqs address information must
+\fInot\fR
+be used when resolving this query\&.
 .RE
 .PP
 \fB+[no]tcp\fR
