@@ -166,6 +166,8 @@ dns_dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name);
  * Returns:
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOTFOUND
+ *\li	#DNS_R_PARTIALMATCH
+ *	(node is at name above requested named when name has children)
  *
  *\li	Other results are possible, depending on the DB implementation.
  */

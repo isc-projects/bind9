@@ -1211,6 +1211,8 @@ cleartree(dns_db_t *db, dns_name_t *name) {
 		goto cleanup;
 
 	result = dns_dbiterator_seek(iter, name);
+	if (result == DNS_R_PARTIALMATCH)
+		result = dns_dbiterator_next(iter);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -1262,7 +1264,7 @@ dns_cache_flushnode(dns_cache_t *cache, dns_name_t *name,
 	dns_dbnode_t *node = NULL;
 	dns_db_t *db = NULL;
 
-	if (dns_name_equal(name, dns_rootname))
+	if (tree && dns_name_equal(name, dns_rootname))
 		return (dns_cache_flush(cache));
 
 	LOCK(&cache->lock);
