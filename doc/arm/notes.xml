@@ -17,18 +17,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- Converted by db4-upgrade version 1.0 -->
 <section xmlns="http://docbook.org/ns/docbook" version="5.0"><info/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
-
     <para>
       This document summarizes changes since the last production release
       of BIND on the corresponding major release branch.
     </para>
   </section>
-  <section xml:id="relnotes_download"><info><title>Download</title></info>
 
+  <section xml:id="relnotes_download"><info><title>Download</title></info>
     <para>
       The latest versions of BIND 9 software can always be found at
       <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.isc.org/downloads/">http://www.isc.org/downloads/</link>.
@@ -37,8 +35,8 @@
       operating systems.
     </para>
   </section>
-  <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
 
+  <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
     <itemizedlist>
       <listitem>
 	<para>
@@ -94,8 +92,8 @@
     </itemizedlist>
 
   </section>
-  <section xml:id="relnotes_features"><info><title>New Features</title></info>
 
+  <section xml:id="relnotes_features"><info><title>New Features</title></info>
     <itemizedlist>
       <listitem>
 	<para>
@@ -106,7 +104,7 @@
       <listitem>
         <para>
 	  Added a warning for a common misconfiguration involving forwarded
-	  RFC 1918 and ULA zones.
+	  RFC 1918 and IPv6 ULA (Universal Local Address) zones.
 	</para>
       </listitem>
       <listitem>
@@ -123,16 +121,16 @@
       </listitem>
       <listitem>
 	<para>
-	  When loading managed signed zones detect if the RRSIG's
-	  inception time is in the future and regenerate the RRSIG
-	  immediately. This helps when the system's clock needs to
-	  be reset backwards.
+	  When loading a signed zone, <command>named</command> will
+	  now check whether an RRSIG's inception time is in the future,
+	  and if so, it will regenerate the RRSIG immediately. This helps
+	  when a system's clock needs to be reset backwards.
 	</para>
       </listitem>
     </itemizedlist>
   </section>
-  <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
 
+  <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
         <para>
@@ -166,8 +164,25 @@
       </listitem>
     </itemizedlist>
   </section>
-  <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
 
+  <section xml:id="relnotes_port"><info><title>Porting Changes</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  The Microsoft Windows install tool
+	  <command>BINDInstall.exe</command> which requires a
+	  non-free version of Visual Studio to be built, now uses two
+	  files (lists of flags and files) created by the Configure
+	  perl script with all the needed information which were
+	  previously compiled in the binary. Read
+	  <filename>win32utils/build.txt</filename> for more details.
+	  [RT #38915]
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
 	<para>
@@ -210,16 +225,16 @@
       </listitem>
     </itemizedlist>
   </section>
-  <section xml:id="end_of_life"><info><title>End of Life</title></info>
 
+  <section xml:id="end_of_life"><info><title>End of Life</title></info>
     <para>
       The end of life for BIND 9.10 is yet to be determined but
       will not be before BIND 9.12.0 has been released for 6 months.
       <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/downloads/software-support-policy/">https://www.isc.org/downloads/software-support-policy/</link>
     </para>
   </section>
-  <section xml:id="relnotes_thanks"><info><title>Thank You</title></info>
 
+  <section xml:id="relnotes_thanks"><info><title>Thank You</title></info>
     <para>
       Thank you to everyone who assisted us in making this release possible.
       If you would like to contribute to ISC to assist us in continuing to
