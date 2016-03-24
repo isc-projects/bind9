@@ -279,8 +279,8 @@
       <listitem>
 	<para>
 	  <command>named -L <replaceable>filename</replaceable></command>
-	  causes <command>named</command> to send log messages to the specified file by
-	  default instead of to the system log.
+	  causes <command>named</command> to send log messages to the
+	  specified file by default instead of to the system log.
 	</para>
       </listitem>
       <listitem>
@@ -432,18 +432,22 @@
       </listitem>
       <listitem>
 	<para>
-	  A "read-only" clause is now available for non-destructive
+	  A <command>read-only</command> option is now available in the
+	  <command>controls</command> statement to grant non-destructive
 	  control channel access. In such cases, a restricted set of
-	  rndc commands are allowed for querying information from named.
-	  By default, control channel access is read-write.
+	  <command>rndc</command> commands are allowed, which can
+	  report information from <command>named</command>, but cannot
+	  reconfigure or stop the server. By default, the control channel
+	  access is <emphasis>not</emphasis> restricted to these
+	  read-only operations. [RT #40498]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  When loading managed signed zones detect if the RRSIG's
-	  inception time is in the future and regenerate the RRSIG
-	  immediately. This helps when the system's clock needs to
-	  be reset backwards.
+	  When loading a signed zone, <command>named</command> will
+	  now check whether an RRSIG's inception time is in the future,
+	  and if so, it will regenerate the RRSIG immediately. This helps
+	  when a system's clock needs to be reset backwards.
 	</para>
       </listitem>
     </itemizedlist>
