@@ -192,7 +192,7 @@
 	  The EDNS Client Subnet (ECS) option is now supported for
 	  authoritative servers; if a query contains an ECS option then
 	  ACLs containing <option>geoip</option> or <option>ecs</option>
-	  elements can match against the the address encoded in the option.
+	  elements can match against the address encoded in the option.
 	  This can be used to select a view for a query, so that different
 	  answers can be provided depending on the client network.
 	</para>
@@ -247,7 +247,7 @@
       <listitem>
 	<para>
 	  <command>dig +zflag</command> can be used to set the last
-	  unassigned DNS header flag bit.  This bit in normally zero.
+	  unassigned DNS header flag bit.  This bit is normally zero.
 	</para>
       </listitem>
       <listitem>
@@ -460,7 +460,8 @@
       </listitem>
       <listitem>
         <para>
-	  Updated the compiled in addresses for H.ROOT-SERVERS.NET.
+	  Updated the compiled-in addresses for H.ROOT-SERVERS.NET
+	  and L.ROOT-SERVERS.NET.
 	</para>
       </listitem>
       <listitem>
@@ -634,7 +635,8 @@
       </listitem>
       <listitem>
 	<para>
-	  Added support for the type AVC.
+	  Added support for the AVC resource record type (Application
+	  Visibility and Control).
 	</para>
       </listitem>
     </itemizedlist>
