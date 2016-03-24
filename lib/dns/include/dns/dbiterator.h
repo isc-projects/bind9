@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -288,7 +288,7 @@ dns_dbiterator_setcleanmode(dns_dbiterator_t *iterator, isc_boolean_t mode);
  * Indicate that the given iterator is/is not cleaning the DB.
  *
  * Notes:
- *\li	When 'mode' is ISC_TRUE, 
+ *\li	When 'mode' is ISC_TRUE,
  *
  * Requires:
  *\li	'iterator' is a valid iterator.
