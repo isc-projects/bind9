@@ -1,3 +1,5 @@
+	--- 9.9.9b2 released ---
+
 4342.	[bug]		'rndc flushtree' could fail to clean the tree if there
 			wasn't a node at the specified name. [RT #41846]
 
