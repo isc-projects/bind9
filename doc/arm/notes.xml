@@ -121,7 +121,8 @@
     <itemizedlist>
       <listitem>
         <para>
-	  Updated the compiled in addresses for H.ROOT-SERVERS.NET.
+	  Updated the compiled-in addresses for H.ROOT-SERVERS.NET
+	  and L.ROOT-SERVERS.NET.
 	</para>
       </listitem>
       <listitem>
