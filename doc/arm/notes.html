@@ -47,138 +47,9 @@
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem"><p>
-	  Duplicate EDNS COOKIE options in a response could trigger
-	  an assertion failure. This flaw is disclosed in CVE-2016-2088.
-	  [RT #41809]
-	</p></li>
-<li class="listitem"><p>
-	  Insufficient testing when parsing a message allowed
-	  records with an incorrect class to be be accepted,
-	  triggering a REQUIRE failure when those records
-	  were subsequently cached.  This flaw is disclosed
-	  in CVE-2015-8000. [RT #40987]
-	</p></li>
-<li class="listitem"><p>
-	  Incorrect reference counting could result in an INSIST
-	  failure if a socket error occurred while performing a
-	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
-	</p></li>
-<li class="listitem"><p>
-	  An incorrect boundary check in the OPENPGPKEY rdatatype
-	  could trigger an assertion failure. This flaw is disclosed
-	  in CVE-2015-5986. [RT #40286]
-	</p></li>
-<li class="listitem">
-<p>
-	  A buffer accounting error could trigger an assertion failure
-	  when parsing certain malformed DNSSEC keys.
-	</p>
-<p>
-	  This flaw was discovered by Hanno Böck of the Fuzzing
-	  Project, and is disclosed in CVE-2015-5722. [RT #40212]
-	</p>
-</li>
-<li class="listitem">
-<p>
-	  A specially crafted query could trigger an assertion failure
-	  in message.c.
-	</p>
-<p>
-	  This flaw was discovered by Jonathan Foote, and is disclosed
-	  in CVE-2015-5477. [RT #40046]
-	</p>
-</li>
-<li class="listitem">
-<p>
-	  On servers configured to perform DNSSEC validation, an
-	  assertion failure could be triggered on answers from
-	  a specially configured server.
-	</p>
-<p>
-	  This flaw was discovered by Breno Silveira Soares, and is
-	  disclosed in CVE-2015-4620. [RT #39795]
-	</p>
-</li>
-<li class="listitem">
-<p>
-	  On servers configured to perform DNSSEC validation using
-	  managed trust anchors (i.e., keys configured explicitly
-	  via <span class="command"><strong>managed-keys</strong></span>, or implicitly
-	  via <span class="command"><strong>dnssec-validation auto;</strong></span> or
-	  <span class="command"><strong>dnssec-lookaside auto;</strong></span>), revoking
-	  a trust anchor and sending a new untrusted replacement
-	  could cause <span class="command"><strong>named</strong></span> to crash with an
-	  assertion failure. This could occur in the event of a
-	  botched key rollover, or potentially as a result of a
-	  deliberate attack if the attacker was in position to
-	  monitor the victim's DNS traffic.
-	</p>
-<p>
-	  This flaw was discovered by Jan-Piet Mens, and is
-	  disclosed in CVE-2015-1349. [RT #38344]
-	</p>
-</li>
-<li class="listitem">
-<p>
-	  A flaw in delegation handling could be exploited to put
-	  <span class="command"><strong>named</strong></span> into an infinite loop, in which
-	  each lookup of a name server triggered additional lookups
-	  of more name servers.  This has been addressed by placing
-	  limits on the number of levels of recursion
-	  <span class="command"><strong>named</strong></span> will allow (default 7), and
-	  on the number of queries that it will send before
-	  terminating a recursive query (default 50).
-	</p>
-<p>
-	  The recursion depth limit is configured via the
-	  <code class="option">max-recursion-depth</code> option, and the query limit
-	  via the <code class="option">max-recursion-queries</code> option.
-	</p>
-<p>
-	  The flaw was discovered by Florian Maury of ANSSI, and is
-	  disclosed in CVE-2014-8500. [RT #37580]
-	</p>
-</li>
-<li class="listitem">
-<p>
-	  Two separate problems were identified in BIND's GeoIP code that
-	  could lead to an assertion failure. One was triggered by use of
-	  both IPv4 and IPv6 address families, the other by referencing
-	  a GeoIP database in <code class="filename">named.conf</code> which was
-	  not installed. Both are covered by CVE-2014-8680. [RT #37672]
-	  [RT #37679]
-	</p>
-<p>
-	  A less serious security flaw was also found in GeoIP: changes
-	  to the <span class="command"><strong>geoip-directory</strong></span> option in
-	  <code class="filename">named.conf</code> were ignored when running
-	  <span class="command"><strong>rndc reconfig</strong></span>. In theory, this could allow
-	  <span class="command"><strong>named</strong></span> to allow access to unintended clients.
-	</p>
-</li>
-<li class="listitem"><p>
-	  Specific APL data could trigger an INSIST.  This flaw
-	  is disclosed in CVE-2015-8704. [RT #41396]
-	</p></li>
-<li class="listitem"><p>
-	  Certain errors that could be encountered when printing out
-	  or logging an OPT record containing a CLIENT-SUBNET option
-	  could be mishandled, resulting in an assertion failure.
-	  This flaw is disclosed in CVE-2015-8705. [RT #41397]
-	</p></li>
-<li class="listitem"><p>
-	  Malformed control messages can trigger assertions in named
-	  and rndc. This flaw is disclosed in CVE-2016-1285. [RT
-	  #41666]
-	</p></li>
-<li class="listitem"><p>
-	  The resolver could abort with an assertion failure due to
-	  improper DNAME handling when parsing fetch reply
-	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
-	</p></li>
-</ul></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+	  None.
+	</p></li></ul></div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -310,7 +181,7 @@
 	  The EDNS Client Subnet (ECS) option is now supported for
 	  authoritative servers; if a query contains an ECS option then
 	  ACLs containing <code class="option">geoip</code> or <code class="option">ecs</code>
-	  elements can match against the the address encoded in the option.
+	  elements can match against the address encoded in the option.
 	  This can be used to select a view for a query, so that different
 	  answers can be provided depending on the client network.
 	</p></li>
@@ -349,7 +220,7 @@
 	</p></li>
 <li class="listitem"><p>
 	  <span class="command"><strong>dig +zflag</strong></span> can be used to set the last
-	  unassigned DNS header flag bit.  This bit in normally zero.
+	  unassigned DNS header flag bit.  This bit is normally zero.
 	</p></li>
 <li class="listitem"><p>
 	  <span class="command"><strong>dig +dscp=<em class="replaceable"><code>value</code></em></strong></span>
@@ -371,8 +242,8 @@
 	</p></li>
 <li class="listitem"><p>
 	  <span class="command"><strong>named -L <em class="replaceable"><code>filename</code></em></strong></span>
-	  causes <span class="command"><strong>named</strong></span> to send log messages to the specified file by
-	  default instead of to the system log.
+	  causes <span class="command"><strong>named</strong></span> to send log messages to the
+	  specified file by default instead of to the system log.
 	</p></li>
 <li class="listitem"><p>
 	  The rate limiter configured by the
@@ -492,16 +363,20 @@
 	  may improve throughput.  The default is <strong class="userinput"><code>yes</code></strong>.
 	</p></li>
 <li class="listitem"><p>
-	  A "read-only" clause is now available for non-destructive
+	  A <span class="command"><strong>read-only</strong></span> option is now available in the
+	  <span class="command"><strong>controls</strong></span> statement to grant non-destructive
 	  control channel access. In such cases, a restricted set of
-	  rndc commands are allowed for querying information from named.
-	  By default, control channel access is read-write.
+	  <span class="command"><strong>rndc</strong></span> commands are allowed, which can
+	  report information from <span class="command"><strong>named</strong></span>, but cannot
+	  reconfigure or stop the server. By default, the control channel
+	  access is <span class="emphasis"><em>not</em></span> restricted to these
+	  read-only operations. [RT #40498]
 	</p></li>
 <li class="listitem"><p>
-	  When loading managed signed zones detect if the RRSIG's
-	  inception time is in the future and regenerate the RRSIG
-	  immediately. This helps when the system's clock needs to
-	  be reset backwards.
+	  When loading a signed zone, <span class="command"><strong>named</strong></span> will
+	  now check whether an RRSIG's inception time is in the future,
+	  and if so, it will regenerate the RRSIG immediately. This helps
+	  when a system's clock needs to be reset backwards.
 	</p></li>
 </ul></div>
 </div>
@@ -515,7 +390,8 @@
 	  now reported with millisecond accuracy. [RT #40082]
 	</p></li>
 <li class="listitem"><p>
-	  Updated the compiled in addresses for H.ROOT-SERVERS.NET.
+	  Updated the compiled-in addresses for H.ROOT-SERVERS.NET
+	  and L.ROOT-SERVERS.NET.
 	</p></li>
 <li class="listitem"><p>
 	  ACLs containing <span class="command"><strong>geoip asnum</strong></span> elements were
@@ -649,7 +525,8 @@
 	  message compression. This results in reduced network usage.
 	</p></li>
 <li class="listitem"><p>
-	  Added support for the type AVC.
+	  Added support for the AVC resource record type (Application
+	  Visibility and Control).
 	</p></li>
 </ul></div>
 </div>
