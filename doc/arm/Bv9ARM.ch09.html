@@ -44,13 +44,14 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.10.4b2</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.10.4b3</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_security">Security Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_features">New Features</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_changes">Feature Changes</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_port">Porting Changes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_bugs">Bug Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#end_of_life">End of Life</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_thanks">Thank You</a></span></dt>
@@ -59,7 +60,7 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.10.4b2</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.10.4b3</h2></div></div></div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -132,7 +133,7 @@
  	</p></li>
 <li class="listitem"><p>
 	  Added a warning for a common misconfiguration involving forwarded
-	  RFC 1918 and ULA zones.
+	  RFC 1918 and IPv6 ULA (Universal Local Address) zones.
 	</p></li>
 <li class="listitem"><p>
 	  Contributed software from Nominum is included in the source at
@@ -145,10 +146,10 @@
 	  with BIND.
 	</p></li>
 <li class="listitem"><p>
-	  When loading managed signed zones detect if the RRSIG's
-	  inception time is in the future and regenerate the RRSIG
-	  immediately. This helps when the system's clock needs to
-	  be reset backwards.
+	  When loading a signed zone, <span class="command"><strong>named</strong></span> will
+	  now check whether an RRSIG's inception time is in the future,
+	  and if so, it will regenerate the RRSIG immediately. This helps
+	  when a system's clock needs to be reset backwards.
 	</p></li>
 </ul></div>
 </div>
@@ -157,7 +158,8 @@
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
-	  Updated the compiled-in addresses for H.ROOT-SERVERS.NET.
+	  Updated the compiled-in addresses for H.ROOT-SERVERS.NET
+	  and L.ROOT-SERVERS.NET.
 	</p></li>
 <li class="listitem"><p>
 	  The default preferred glue is now the address type of the
@@ -176,6 +178,20 @@
 	  named -V output now also includes operating system details.
 	</p></li>
 </ul></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_port"></a>Porting Changes</h3></div></div></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+	  The Microsoft Windows install tool
+	  <span class="command"><strong>BINDInstall.exe</strong></span> which requires a
+	  non-free version of Visual Studio to be built, now uses two
+	  files (lists of flags and files) created by the Configure
+	  perl script with all the needed information which were
+	  previously compiled in the binary. Read
+	  <code class="filename">win32utils/build.txt</code> for more details.
+	  [RT #38915]
+	</p></li></ul></div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -251,6 +267,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.10.4b2</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.10.4b3</p>
 </body>
 </html>

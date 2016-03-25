@@ -608,19 +608,20 @@
 	      so on.  The default behavior is to print the query
 	      statistics.
 	    </p></dd>
-<dt><span class="term"><code class="option">+[no]subnet=addr[/netmask]</code></span></dt>
+<dt><span class="term"><code class="option">+[no]subnet=addr[/prefix-length]</code></span></dt>
 <dd>
 <p>
 	      Send (don't send) an EDNS Client Subnet option with the
-              specified IP address or network prefix.
+	      specified IP address or network prefix.
 	    </p>
 <p>
               <span class="command"><strong>dig +subnet=0.0.0.0/0</strong></span>, or simply
-              <span class="command"><strong>dig +subnet=0</strong></span> for short, sends a
-              Client Subnet option with an empty address and a
-              source prefix length of zero, which signals a resolver
-              that the EDNS Client Subnet option should not be used
-              when resolving this query.
+              <span class="command"><strong>dig +subnet=0</strong></span> for short, sends an EDNS
+              client-subnet option with an empty address and a source
+              prefix-length of zero, which signals a resolver that
+              the client's address information must
+              <span class="emphasis"><em>not</em></span> be used when resolving
+              this query.
 	    </p>
 </dd>
 <dt><span class="term"><code class="option">+[no]tcp</code></span></dt>
@@ -808,6 +809,6 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.10.4b2</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.10.4b3</p>
 </body>
 </html>
