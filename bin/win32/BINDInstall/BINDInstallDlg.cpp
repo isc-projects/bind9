@@ -189,7 +189,7 @@ const FileData installFiles[] =
 	{"named-checkzone.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"named-compilezone.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"named-journalprint.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
-	{"isc-hmax-fixup.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
+	{"isc-hmac-fixup.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-destroy.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-keygen.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-list.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
