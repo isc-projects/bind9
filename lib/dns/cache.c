@@ -1199,9 +1199,15 @@ static isc_result_t
 cleartree(dns_db_t *db, dns_name_t *name) {
 	isc_result_t result, answer = ISC_R_SUCCESS;
 	dns_dbiterator_t *iter = NULL;
-	dns_dbnode_t *node = NULL;
+	dns_dbnode_t *node = NULL, *top = NULL;
 	dns_fixedname_t fnodename;
 	dns_name_t *nodename;
+
+	/*
+	 * Create the node if it doesn't exist so dns_dbiterator_seek()
+	 * can find it.  We will continue even if this fails.
+	 */
+	(void)dns_db_findnode(db, name, ISC_TRUE, &top);
 
 	dns_fixedname_init(&fnodename);
 	nodename = dns_fixedname_name(&fnodename);
@@ -1247,6 +1253,8 @@ cleartree(dns_db_t *db, dns_name_t *name) {
 		dns_db_detachnode(db, &node);
 	if (iter != NULL)
 		dns_dbiterator_destroy(&iter);
+	if (top != NULL)
+		dns_db_detachnode(db, &top);
 
 	return (answer);
 }
