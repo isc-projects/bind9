@@ -175,7 +175,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  rndc flushtree now works even if there wasn't a cached node at the 
+	  rndc flushtree now works even if there wasn't a cached node at the
 	  specified name. [RT #41846]
 	</para>
       </listitem>
