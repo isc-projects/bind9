@@ -21,8 +21,11 @@
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
     <para>
-      This document summarizes changes since the last production release
-      of BIND on the corresponding major release branch.
+      This document summarizes significant changes since the last
+      production release of BIND on the corresponding major release
+      branch.
+      Please see the CHANGES file for a further list of bug fixes and
+      other changes.
     </para>
   </section>
 
@@ -186,9 +189,29 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  rndc flushtree now works even if there wasn't a cached node
+	  at the specified name. [RT #41846]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Don't emit records with zero TTL unless the records were
+	  received with a zero TTL. After being returned to waiting
+	  clients, the answer will be discarded from the cache. [RT #41687]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  For Windows platforms, the SIT (Source Identity Token) support
+	  was restored. (It was mistakenly partially replaced in a
+	  previous beta with new 9.11 COOKIE support.) [RT #41905]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  When deleting records from a zone database, interior nodes
 	  could be left empty but not deleted, damaging search
-	  performance afterward. [RT #40997]
+	  performance afterward. [RT #40997] [RT #41941]
 	</para>
       </listitem>
       <listitem>
