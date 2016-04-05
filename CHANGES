@@ -1,3 +1,5 @@
+4344.	[port]		Address openssl version differences. [RT #42059]
+
 	--- 9.10.4b3 released ---
 
 4342.	[bug]		'rndc flushtree' could fail to clean the tree if there
