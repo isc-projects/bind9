@@ -374,7 +374,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
  * On completion, any remaining keys in 'newkeys' are freed.
  */
 
-isc_boolean_t
+isc_result_t
 dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		      dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 		      isc_stdtime_t now, dns_ttl_t hint_ttl, dns_diff_t *diff,

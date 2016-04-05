@@ -1,3 +1,6 @@
+4343.	[bug]		dns_dnssec_syncupdate misdeclared in <dns/dnssec.h>.
+			[RT #42090]
+
 4342.	[bug]		'rndc flushtree' could fail to clean the tree if there
 			wasn't a node at the specified name. [RT #41846]
 
