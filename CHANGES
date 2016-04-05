@@ -1,3 +1,5 @@
+4344.	[port]		Address openssl version differences. [RT #42059]
+
 4343.	[bug]		dns_dnssec_syncupdate misdeclared in <dns/dnssec.h>.
 			[RT #42090]
 
