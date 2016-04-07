@@ -263,7 +263,7 @@ printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
-	return (dns_db_printnode(sampledb->rbtdb, node, out));
+	dns_db_printnode(sampledb->rbtdb, node, out);
 }
 
 static isc_result_t
