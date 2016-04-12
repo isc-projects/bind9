@@ -1354,10 +1354,11 @@ connecting(void *dummy)
 		} else {
 			/* wait until */
 			ret = clock_nanosleep(CLOCK_REALTIME, 0, &ts, NULL);
-			if (ret < 0) {
-				if (errno == EINTR)
+			if (ret != 0) {
+				if (ret == EINTR)
 					continue;
-				perror("clock_nanosleep");
+				fprintf(stderr, "clock_nanosleep: %s\n",
+					strerror(ret));
 				fatal = 1;
 				(void) pthread_kill(master, SIGTERM);
 				break;
