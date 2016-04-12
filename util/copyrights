@@ -2445,7 +2445,7 @@
 ./contrib/perftcpdns/Makefile.in		MAKE	2014
 ./contrib/perftcpdns/configure			X	2014
 ./contrib/perftcpdns/configure.in		SH	2014
-./contrib/perftcpdns/perftcpdns.c		C	2013,2014
+./contrib/perftcpdns/perftcpdns.c		C	2013,2014,2016
 ./contrib/pkcs11-keygen/README			X	2008,2009
 ./contrib/query-loc-0.4.0/ADDRESSES		X	2008
 ./contrib/query-loc-0.4.0/ALGO			X	2008
