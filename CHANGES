@@ -1,3 +1,6 @@
+4345.	[contrib]	perftcpdns mishandled the return values from
+			clock_nanosleep. [RT #42131]
+
 4344.	[port]		Address openssl version differences. [RT #42059]
 
 	--- 9.10.4b3 released ---
