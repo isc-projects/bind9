@@ -1,3 +1,5 @@
+	--- 9.9.9rc1 released ---
+
 4345.	[contrib]	perftcpdns mishandled the return values from
 			clock_nanosleep. [RT #42131]
 
