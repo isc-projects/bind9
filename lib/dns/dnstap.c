@@ -71,6 +71,7 @@
 #include <dns/message.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
+#include <dns/types.h>
 #include <dns/view.h>
 
 #include <dns/dnstap.pb-c.h>
@@ -82,12 +83,12 @@
 #define DNSTAP_CONTENT_TYPE	"protobuf:dnstap.Dnstap"
 #define DNSTAP_INITIAL_BUF_SIZE 256
 
-typedef struct dns_dtmsg {
+struct dns_dtmsg {
 	void *buf;
 	size_t len;
 	Dnstap__Dnstap d;
 	Dnstap__Message m;
-} dns_dtmsg_t;
+};
 
 #define CHECK(x) do { \
 	result = (x); \
