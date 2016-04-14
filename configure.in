@@ -3261,10 +3261,6 @@ yes|auto)
 			READLINE_LIB="$readline"
 			break
 		fi
-		if test "X$readline" = "X"
-		then
-			continue
-		fi
 		for lib in -lterminfo -ltermcap -lncurses -lcurses
 		do
 			AC_MSG_NOTICE(checking for readline with $readline $lib)
@@ -3277,6 +3273,10 @@ yes|auto)
 				break
 			fi
 		done
+		if test "$ac_cv_func_readline" = "yes"
+		then
+			break
+		fi
 	done
 	LIBS="$saved_LIBS"
 	;;
