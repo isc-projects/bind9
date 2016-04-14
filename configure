@@ -17527,10 +17527,6 @@ done
 			READLINE_LIB="$readline"
 			break
 		fi
-		if test "X$readline" = "X"
-		then
-			continue
-		fi
 		for lib in -lterminfo -ltermcap -lncurses -lcurses
 		do
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $readline $lib" >&5
@@ -17554,6 +17550,10 @@ done
 				break
 			fi
 		done
+		if test "$ac_cv_func_readline" = "yes"
+		then
+			break
+		fi
 	done
 	LIBS="$saved_LIBS"
 	;;
