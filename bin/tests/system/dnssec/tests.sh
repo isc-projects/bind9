@@ -868,16 +868,6 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-if [ -x ${DELV} ] ; then
-   ret=0
-   echo "I:checking that validation succeeds when a revoked key is encountered using dns_client ($n)"
-   $DELV $DELVOPTS +cd @10.53.0.4 soa revkey.example > delv.out$n 2>&1 || ret=1
-   grep "fully validated" delv.out$n > /dev/null || ret=1
-   n=`expr $n + 1`
-   if [ $ret != 0 ]; then echo "I:failed"; fi
-   status=`expr $status + $ret`
-fi
-
 echo "I:Checking that a bad CNAME signature is caught after a +CD query ($n)"
 ret=0
 #prime
