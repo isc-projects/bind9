@@ -163,3 +163,6 @@ ns.future		A	10.53.0.3
 
 managed-future		NS	ns.managed-future
 ns.managed-future	A	10.53.0.3
+
+revkey			NS	ns.revkey
+ns.revkey		A	10.53.0.3
