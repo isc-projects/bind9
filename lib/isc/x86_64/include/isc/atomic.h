@@ -87,11 +87,25 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 		"lock;"
 #endif
 		"xchgl (%rax), %edx\n"
-		/*
-		 * XXX: assume %rax will be used as the return value.
-		 */
 		);
 }
+
+#ifdef ISC_PLATFORM_HAVEATOMICSTOREQ
+static void
+isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
+	UNUSED(p);
+	UNUSED(val);
+
+	__asm (
+		"movq %rdi, %rax\n"
+		"movq %rsi, %rdx\n"
+#ifdef ISC_PLATFORM_USETHREADS
+		"lock;"
+#endif
+		"xchgq (%rax), %rdx\n"
+		);
+}
+#endif
 
 static isc_int32_t
 isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
