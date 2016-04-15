@@ -52,7 +52,7 @@ cat $infile $keyname1.key $keyname2.key >$zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
 zone=keyless.example.
-infile=keyless.example.db.in
+infile=generic.example.db.in
 zonefile=keyless.example.db
 
 keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
@@ -516,3 +516,19 @@ kskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
 zskname=`$KEYGEN -q -r $RANDFILE $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -s +3600 -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+#
+# A zone with a revoked key
+#
+zone=revkey.example.
+infile=generic.example.db.in
+zonefile=revkey.example.db
+
+ksk1=`$KEYGEN -q -r $RANDFILE -3fk $zone`
+ksk1=`$REVOKE $ksk1`
+ksk2=`$KEYGEN -q -r $RANDFILE -3fk $zone`
+zsk1=`$KEYGEN -q -r $RANDFILE -3 $zone`
+
+cat $infile ${ksk1}.key ${ksk2}.key ${zsk1}.key >$zonefile
+
+$SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
