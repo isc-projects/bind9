@@ -1846,15 +1846,29 @@ dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
 	isc_buffer_init(&buffer, data, sizeof(data));
 	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
 			     dns_rdatatype_dnskey, dnskey, &buffer);
+
 	result = dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &key);
 	if (result != ISC_R_SUCCESS)
 		return;
+
 	result = dns_view_getsecroots(view, &sr);
 	if (result == ISC_R_SUCCESS) {
-		dns_keytable_deletekeynode(sr, key);
-		dns_keytable_marksecure(sr, keyname);
+		result = dns_keytable_deletekeynode(sr, key);
+
+		/*
+		 * If key was found in secroots, then it was a
+		 * configured trust anchor, and we want to fail
+		 * secure. If there are no other configured keys,
+		 * then leave a null key so that we can't validate
+		 * anymore.
+		 */
+
+		if (result == ISC_R_SUCCESS)
+			dns_keytable_marksecure(sr, keyname);
+
 		dns_keytable_detach(&sr);
 	}
+
 	dst_key_free(&key);
 }
 
