@@ -1,8 +1,8 @@
 	--- 9.9.9rc1 released ---
 
-4437.	[port]		Corrected a build error on x86_64 Solaris. [RT #42150]
+4347.	[port]		Corrected a build error on x86_64 Solaris. [RT #42150]
 
-4436.	[bug]		Fixed a regression introduced in change #4337 which
+4346.	[bug]		Fixed a regression introduced in change #4337 which
 			caused signed domains with revoked KSKs to fail
 			validation. [RT #42147]
 
