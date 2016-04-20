@@ -1,3 +1,5 @@
+	--- 9.10.4 released ---
+
 	--- 9.10.4rc1 released ---
 
 4347.	[port]		Corrected a build error on x86_64 Solaris. [RT #42150]
