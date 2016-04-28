@@ -46,6 +46,7 @@ DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey
 IMPORTKEY=$TOP/bin/dnssec/dnssec-importkey
 CHECKDS=$TOP/bin/python/dnssec-checkds
 COVERAGE=$TOP/bin/python/dnssec-coverage
+KEYMGR=$TOP/bin/python/dnssec-keymgr
 CHECKZONE=$TOP/bin/check/named-checkzone
 CHECKCONF=$TOP/bin/check/named-checkconf
 PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
@@ -71,7 +72,7 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cookie @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal
 	 dname dns64 dnssec dsdigest dscp @DNSTAP@ dyndb ecdsa ednscompliance
 	 emptyzones fetchlimit filter-aaaa formerr forward geoip glue gost
-	 ixfr inline legacy limits logfileconfig lwresd masterfile
+	 ixfr inline @KEYMGR@ legacy limits logfileconfig lwresd masterfile
 	 masterformat metadata mkeys names notify nslookup nsupdate
 	 pending pipelined @PKCS11_TEST@ reclimit redirect resolver rndc
 	 rpz rpzrecurse rrl rrchecker rrsetorder rsabigexponent

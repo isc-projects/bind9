@@ -1,0 +1,3 @@
+This set includes one KSK rollover.  The first KSK is deleted
+and its successor published prior to the first KSK being deactivated
+and its successor activated.

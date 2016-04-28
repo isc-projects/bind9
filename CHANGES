@@ -1,3 +1,13 @@
+4349.   [contrib]       kasp2policy: A python script to create a DNSSEC
+                        policy file from an OpenDNSSEC KASP XML file.
+
+4348.	[func]		dnssec-keymgr: A new python-based DNSSEC key
+			management utility, which reads a policy definition
+			file and can create or update DNSSEC keys as needed
+			to ensure that a zone's keys match policy, roll over
+			correctly on schedule, etc.  Thanks to Sebastian
+                        Castro for assistance in development. [RT #39211]
+
 4347.	[port]		Corrected a build error on x86_64 Solaris. [RT #42150]
 
 4346.	[bug]		Fixed a regression introduced in change #4337 which

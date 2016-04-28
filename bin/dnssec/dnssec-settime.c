@@ -519,11 +519,12 @@ main(int argc, char **argv) {
 	if ((setdel && setinact && del < inact) ||
 	    (dst_key_gettime(key, DST_TIME_INACTIVE,
 			     &previnact) == ISC_R_SUCCESS &&
-	     setdel && !setinact && del < previnact) ||
+	     setdel && !setinact && !unsetinact && del < previnact) ||
 	    (dst_key_gettime(key, DST_TIME_DELETE,
 			     &prevdel) == ISC_R_SUCCESS &&
-	     setinact && !setdel && prevdel < inact) ||
-	    (!setdel && !setinact && prevdel < previnact))
+	     setinact && !setdel && !unsetdel && prevdel < inact) ||
+	    (!setdel && !unsetdel && !setinact && !unsetinact &&
+	     prevdel < previnact))
 		fprintf(stderr, "%s: warning: Key is scheduled to "
 				"be deleted before it is\n\t"
 				"scheduled to be inactive.\n",

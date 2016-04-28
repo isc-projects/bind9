@@ -1,0 +1,3 @@
+This directory has a key set which is valid, but has a ZSK rollover period
+of only three months. It will be updated to have a ZSK rollover period of
+one year.

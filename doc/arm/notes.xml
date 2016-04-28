@@ -1,6 +1,7 @@
 <!DOCTYPE book [
 <!ENTITY Scaron "&#x160;">
 <!ENTITY ccaron "&#x10D;">
+<!ENTITY aacute "&#x0E1;">
 <!ENTITY mdash "&#8212;">
 <!ENTITY ouml "&#xf6;">]>
 <!--
@@ -147,6 +148,34 @@
 	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8888/xml/v3/traffic">http://localhost:8888/xml/v3/traffic</link>
 	  or
 	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8888/json/v1/traffic">http://localhost:8888/json/v1/traffic</link>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  A new DNSSEC key management utility,
+	  <command>dnssec-keymgr</command>, has been added. This tool
+	  is meant to run unattended (e.g., under <command>cron</command>).
+	  It reads a policy definition file
+	  (default: <filename>/etc/dnssec.policy</command>)
+	  and creates or updates DNSSEC keys as necessary to ensure that a
+	  zone's keys match the defined policy for that zone.  New keys are
+	  created whenever necessary to ensure rollovers occur correctly.
+	  Existing keys' timing metadata is adjusted as needed to set the
+	  correct rollover period, prepublication interval, etc.  If
+	  the configured policy changes, keys are corrected automatically.
+	  See the <command>dnssec-keymgr</command> man page for full details.
+	</para>
+	<para>
+	  Note: <command>dnssec-keymgr</command> depends on Python and on
+	  the Python lex/yacc module, PLY. The other Python-based tools,
+	  <command>dnssec-coverage</command> and
+	  <command>dnssec-checkds</command>, have been
+	  refactored and updated as part of this work.
+	</para>
+	<para>
+	  (Many thanks to Sebasti&aacute;n
+	  Castro for his assistance in developing this tool at the IETF
+	  95 Hackathon in Buenos Aires, April 2016.)
 	</para>
       </listitem>
       <listitem>
