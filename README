@@ -76,6 +76,9 @@ BIND 9.11.0
 	    Unlike "fetches-per-server", this value is not self-tuning.)
 	  + New stats counters have been added to count
 	    queries spilled due to these quotas.
+	- Added a new "dnssec-keymgr" key mainenance utility, which can
+	  generate or update keys as needed to ensure that a zone's
+	  keys match a defined DNSSEC policy.
 	- The experimental "SIT" feature in BIND 9.10 has been renamed
 	  "COOKIE" and is no longer optional. EDNS COOKIE is a mechanism
 	  enabling clients to detect off-path spoofed responses, and
