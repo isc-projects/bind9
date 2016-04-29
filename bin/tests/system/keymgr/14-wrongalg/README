@@ -1,2 +1,5 @@
+Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
 This set includes a KSK rollover, with insufficient delay between
 prepublication and rollover.
