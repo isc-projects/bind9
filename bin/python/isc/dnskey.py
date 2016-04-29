@@ -48,8 +48,7 @@ class dnskey:
             self.fromtuple(name, alg, keyid, keyttl)
 
         self._dir = directory or os.path.dirname(key) or '.'
-        key = os.path.basename(key)
-
+        key = os.path.basename(key).decode('ascii')
         (name, alg, keyid) = key.split('+')
         name = name[1:-1]
         alg = int(alg)

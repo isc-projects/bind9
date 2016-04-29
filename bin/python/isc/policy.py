@@ -102,7 +102,7 @@ class PolicyLex:
 
     def __init__(self, **kwargs):
         for r in self.reserved:
-            self.reserved_map[r.lower().translate(maketrans('_', '-'))] = r
+            self.reserved_map[r.lower().translate(str.maketrans('_', '-'))] = r
         self.lexer = lex.lex(object=self, **kwargs)
 
     def test(self, text):
