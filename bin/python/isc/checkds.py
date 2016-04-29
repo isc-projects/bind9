@@ -42,7 +42,7 @@ class SECRR:
         if not rrtext:
             raise Exception
 
-        fields = rrtext.split()
+        fields = rrtext.decode('ascii').split()
         if len(fields) < 7:
             raise Exception
 
@@ -75,7 +75,8 @@ class SECRR:
             fields = fields[2:]
 
         if fields[0].upper() != self.rrtype:
-            raise Exception
+            raise Exception('%s does not match %s' %
+                            (fields[0].upper(), self.rrtype))
 
         self.keyid, self.keyalg, self.hashalg = map(int, fields[1:4])
         self.digest = ''.join(fields[4:]).upper()

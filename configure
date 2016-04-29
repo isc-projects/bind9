@@ -11721,11 +11721,6 @@ $as_echo "not found" >&6; }
                                         unset PYTHON
                                         continue
 				fi
-
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
-$as_echo "not found" >&6; }
-				unset ac_cv_path_PYTHON
-				unset PYTHON
 			done
 			if test "X$PYTHON" = "X"
 			then

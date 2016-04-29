@@ -27,9 +27,7 @@ from collections import defaultdict
 
 prog = 'dnssec-coverage'
 
-from isc import *
-from isc.utils import prefix
-
+from isc import dnskey, eventlist, keydict, keyevent, keyzone, utils
 
 ############################################################################
 # print a fatal error and exit
@@ -139,7 +137,8 @@ def set_path(command, default=None):
 def parse_args():
     """Read command line arguments, set global 'args' structure"""
     compilezone = set_path('named-compilezone',
-                           os.path.join(prefix('sbin'), 'named-compilezone'))
+                           os.path.join(utils.prefix('sbin'),
+                           'named-compilezone'))
 
     parser = argparse.ArgumentParser(description=prog + ': checks future ' +
                                      'DNSKEY coverage for a zone')

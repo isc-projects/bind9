@@ -24,36 +24,17 @@ PYTHON	=	@PYTHON@
 
 PYSRCS =	__init__.py dnskey.py eventlist.py keydict.py \
 		keyevent.py keyzone.py
-		__init__.pyc dnskey.pyc eventlist.py keydict.py \
-		keyevent.pyc keyzone.pyc
 
 @BIND9_MAKE_RULES@
 
-.SUFFIXES: .py .pyc
-.py.pyc:
+all:
 	$(PYTHON) -m compileall .
-
-installdirs:
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}/isc
-
-install:: ${PYSRCS} installdirs
-	${INSTALL_SCRIPT} __init__.py ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} __init__.pyc ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} dnskey.py ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} dnskey.pyc ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} eventlist.py ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} eventlist.pyc ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} keydict.py ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} keydict.pyc ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} keyevent.py ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} keyevent.pyc ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} keyzone.py ${DESTDIR}${libdir}
-	${INSTALL_SCRIPT} keyzone.pyc ${DESTDIR}${libdir}
 
 check test: subdirs
 
 clean distclean::
 	rm -f *.pyc
+	rm -rf __pycache__ build
 
 distclean::
 	rm -Rf utils.py

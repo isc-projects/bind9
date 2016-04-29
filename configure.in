@@ -182,10 +182,6 @@ case "$use_python" in
                                         unset PYTHON
                                         continue
 				fi
-
-				AC_MSG_RESULT([not found])
-				unset ac_cv_path_PYTHON
-				unset PYTHON
 			done
 			if test "X$PYTHON" = "X"
 			then

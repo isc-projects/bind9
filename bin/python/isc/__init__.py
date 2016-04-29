@@ -14,8 +14,9 @@
 # PERFORMANCE OF THIS SOFTWARE.
 ############################################################################
 
-__all__ = ['dnskey', 'eventlist', 'keydict', 'keyevent',
-           'keyzone', 'utils']
+__all__ = ['checkds', 'coverage', 'dnskey', 'eventlist',
+           'keydict', 'keyevent', 'keyzone', 'utils']
+
 from isc.dnskey import *
 from isc.eventlist import *
 from isc.keydict import *
