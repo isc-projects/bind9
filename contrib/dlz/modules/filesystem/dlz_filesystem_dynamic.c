@@ -825,6 +825,7 @@ isc_result_t
 dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	   void **dbdata, ...)
 {
+	isc_result_t result = ISC_R_NOMEMORY;
 	config_data_t *cd;
 	char *endp;
 	int len;
@@ -933,7 +934,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		dlz_destroy(cd);
 
 	/* return error */
-	return (ISC_R_NOMEMORY);
+	return (result);
 }
 
 void
