@@ -30,7 +30,8 @@ TARGETS =	parsetab.py parsetab.pyc \
 
 @BIND9_MAKE_RULES@
 
-%.pyc: %.py
+.SUFFIXES: .py .pyc
+.py.pyc:
 	$(PYTHON) -m compileall .
 
 parsetab.py parsetab.pyc: policy.py
