@@ -1,3 +1,5 @@
+4351.	[bug]		'dig +noignore' didn't work. [RT #42273]
+
 4350.	[contrib]	Declare result in  dlz_filesystem_dynamic.c.
 
 4349.	[contrib]	kasp2policy: A python script to create a DNSSEC

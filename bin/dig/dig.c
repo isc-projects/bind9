@@ -1057,9 +1057,11 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			lookup->identify = state;
 			break;
 		case 'g': /* ignore */
-		default: /* Inherits default for compatibility */
+		default: /*
+			  * Inherits default for compatibility (+[no]i*).
+			  */
 			FULLCHECK("ignore");
-			lookup->ignore = ISC_TRUE;
+			lookup->ignore = state;
 		}
 		break;
 	case 'k':
