@@ -53,7 +53,9 @@
       <arg choice="opt" rep="norepeat"><option>-m <replaceable class="parameter">max TTL</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-r <replaceable class="parameter">interval</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-c <replaceable class="parameter">compilezone path</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat">zone</arg>
+      <arg choice="opt" rep="norepeat"><option>-k</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-z</option></arg>
+      <arg choice="opt" rep="repeat">zone</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
 
@@ -131,10 +133,15 @@
             'd' for days, 'w' for weeks, 'mo' for months, 'y' for years.
           </para>
           <para>
-            This option is mandatory unless the <option>-f</option> has
-            been used to specify a zone file.  (If <option>-f</option> has
+            This option is not necessary if the <option>-f</option> has
+            been used to specify a zone file.  If <option>-f</option> has
             been specified, this option may still be used; it will override
-            the value found in the file.)
+            the value found in the file.
+          </para>
+          <para>
+            If this option is not used and the maximum TTL cannot be retrieved
+            from a zone file, a warning is generated and a default value of
+            1 week is used.
           </para>
         </listitem>
       </varlistentry>
@@ -146,11 +153,10 @@
             Sets the value to be used as the DNSKEY TTL for the zone or
             zones being analyzed when determining whether there is a
             possibility of validation failure.  When a key is rolled (that
-            is, replaced with a new key), there must be enough time
-            for the old DNSKEY RRset to have expired from resolver caches
-            before the new key is activated and begins generating
-            signatures.  If that condition does not apply, a warning
-            will be generated.
+            is, replaced with a new key), there must be enough time for the
+            old DNSKEY RRset to have expired from resolver caches before
+            the new key is activated and begins generating signatures.  If
+            that condition does not apply, a warning will be generated.
           </para>
           <para>
             The length of the TTL can be set in seconds, or in larger units
@@ -158,12 +164,18 @@
             'd' for days, 'w' for weeks, 'mo' for months, 'y' for years.
           </para>
           <para>
-            This option is mandatory unless the <option>-f</option> has
-            been used to specify a zone file, or a default key TTL was
-            set with the <option>-L</option> to
-            <command>dnssec-keygen</command>.  (If either of those is true,
-            this option may still be used; it will override the value found
-            in the zone or key file.)
+            This option is not necessary if <option>-f</option> has
+            been used to specify a zone file from which the TTL
+            of the DNSKEY RRset can be read, or if a default key TTL was
+            set using ith the <option>-L</option> to
+            <command>dnssec-keygen</command>.  If either of those is true,
+            this option may still be used; it will override the values
+            found in the zone file or the key file.
+          </para>
+          <para>
+            If this option is not used and the key TTL cannot be retrieved
+            from the zone file or the key file, then a warning is generated
+            and a default value of 1 day is used.
           </para>
         </listitem>
       </varlistentry>

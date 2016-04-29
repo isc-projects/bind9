@@ -1,5 +1,8 @@
 4351.	[bug]		'dig +noignore' didn't work. [RT #42273]
 
+4348.	[cleanup]	Refactor dnssec-coverage and dnssec-checkds
+			functionality into an "isc" python module. [RT #39211]
+
 	--- 9.9.9 released ---
 
 	--- 9.9.9rc1 released ---

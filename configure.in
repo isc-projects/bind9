@@ -155,8 +155,10 @@ AC_ARG_WITH(python,
     use_python="$withval", use_python="unspec")
 
 python="python python3 python3.4 python3.3 python3.2 python3.1 python3.0 python2 python2.7 python2.6 python2.5 python2.4"
-testscript='try: import argparse
+
+testargparse='try: import argparse
 except: exit(1)'
+
 case "$use_python" in
 	no)
 		AC_MSG_CHECKING([for python support])
@@ -172,10 +174,15 @@ case "$use_python" in
 					continue;
 				fi
 				AC_MSG_CHECKING([python module 'argparse'])
-				if ${PYTHON:-false} -c "$testscript"; then
-					AC_MSG_RESULT([found, using $PYTHON])
-					break
+				if ${PYTHON:-false} -c "$testargparse"; then
+					AC_MSG_RESULT([found])
+                                else
+                                        AC_MSG_RESULT([not found])
+                                        unset ac_cv_path_PYTHON
+                                        unset PYTHON
+                                        continue
 				fi
+
 				AC_MSG_RESULT([not found])
 				unset ac_cv_path_PYTHON
 				unset PYTHON
@@ -203,7 +210,7 @@ case "$use_python" in
 				;;
 			esac
 			AC_MSG_CHECKING([python module 'argparse'])
-			if ${PYTHON:-false} -c "$testscript"; then
+			if ${PYTHON:-false} -c "$testargparse"; then
 				AC_MSG_RESULT([found, using $PYTHON])
 				break
 			else
@@ -260,6 +267,8 @@ case "$prefix" in
 		esac
 		;;
 esac
+expanded_sysconfdir=`eval echo $sysconfdir`
+AC_SUBST(expanded_sysconfdir)
 
 #
 # Make sure INSTALL uses an absolute path, else it will be wrong in all
@@ -4041,6 +4050,9 @@ AC_CONFIG_FILES([
 	bin/nsupdate/Makefile
 	bin/pkcs11/Makefile
 	bin/python/Makefile
+	bin/python/isc/Makefile
+	bin/python/isc/utils.py
+	bin/python/isc/tests/Makefile
 	bin/python/dnssec-checkds.py
 	bin/python/dnssec-coverage.py
 	bin/rndc/Makefile
