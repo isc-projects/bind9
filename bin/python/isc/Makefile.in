@@ -29,7 +29,8 @@ PYSRCS =	__init__.py dnskey.py eventlist.py keydict.py \
 
 @BIND9_MAKE_RULES@
 
-%.pyc: %.py
+.SUFFIXES: .py .pyc
+.py.pyc:
 	$(PYTHON) -m compileall .
 
 installdirs:
