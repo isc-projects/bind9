@@ -372,7 +372,7 @@
 ./bin/python/dnssec-coverage.8			MAN	DOCBOOK
 ./bin/python/dnssec-coverage.docbook		SGML	2013,2014,2015
 ./bin/python/dnssec-coverage.html		HTML	DOCBOOK
-./bin/python/dnssec-coverage.py.in		PYTHON	2013,2014,2015
+./bin/python/dnssec-coverage.py.in		PYTHON-BIN	2013,2014,2015
 ./bin/python/isc/.gitignore			X	2016
 ./bin/python/isc/Makefile.in			MAKE	2016
 ./bin/python/isc/__init__.py			PYTHON	2016
