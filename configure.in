@@ -258,10 +258,11 @@ case "$use_python" in
 				if ${PYTHON:-false} -c "$testply"; then
 					AC_MSG_RESULT([found])
 					break
+                                else
+                                        AC_MSG_RESULT([not found])
+                                        unset ac_cv_path_PYTHON
+                                        unset PYTHON
 				fi
-				AC_MSG_RESULT([not found])
-				unset ac_cv_path_PYTHON
-				unset PYTHON
 			done
 			if test "X$PYTHON" = "X"
 			then

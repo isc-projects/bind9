@@ -48,7 +48,7 @@ class dnskey:
             self.fromtuple(name, alg, keyid, keyttl)
 
         self._dir = directory or os.path.dirname(key) or '.'
-        key = os.path.basename(key).decode('ascii')
+        key = os.path.basename(key)
         (name, alg, keyid) = key.split('+')
         name = name[1:-1]
         alg = int(alg)
@@ -204,11 +204,11 @@ class dnskey:
             raise Exception('unable to generate key: ' + str(stderr))
 
         try:
-            keystr = stdout.splitlines()[0]
+            keystr = stdout.splitlines()[0].decode('ascii')
             newkey = dnskey(keystr, keys_dir, ttl)
             return newkey
         except Exception as e:
-            raise Exception('unable to generate key: %s' % str(e))
+            raise Exception('unable to parse generated key: %s' % str(e))
 
     def generate_successor(self, keygen_bin, **kwargs):
         quiet = kwargs.get('quiet', False)

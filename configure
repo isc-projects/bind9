@@ -11893,11 +11893,12 @@ $as_echo_n "checking python module 'ply'... " >&6; }
 					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
 					break
-				fi
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+                                else
+                                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-				unset ac_cv_path_PYTHON
-				unset PYTHON
+                                        unset ac_cv_path_PYTHON
+                                        unset PYTHON
+				fi
 			done
 			if test "X$PYTHON" = "X"
 			then

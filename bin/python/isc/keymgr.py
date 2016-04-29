@@ -20,8 +20,7 @@ from collections import defaultdict
 
 prog='dnssec-keymgr'
 
-from isc import *
-from isc.utils import prefix
+from isc import dnskey, keydict, keyseries, policy, parsetab, utils
 
 ############################################################################
 # print a fatal error and exit
@@ -63,9 +62,9 @@ def parse_args():
     """
 
     keygen = set_path('dnssec-keygen',
-                      os.path.join(prefix('sbin'), 'dnssec-keygen'))
+                      os.path.join(utils.prefix('sbin'), 'dnssec-keygen'))
     settime = set_path('dnssec-settime',
-                       os.path.join(prefix('sbin'), 'dnssec-settime'))
+                       os.path.join(utils.prefix('sbin'), 'dnssec-settime'))
 
     parser = argparse.ArgumentParser(description=prog + ': schedule '
                                      'DNSSEC key rollovers according to a '

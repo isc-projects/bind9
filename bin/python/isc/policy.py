@@ -101,8 +101,12 @@ class PolicyLex:
         t.lexer.skip(1)
 
     def __init__(self, **kwargs):
+        if 'maketrans' in dir(str):
+            trans = str.maketrans('_', '-')
+        else:
+            trans = maketrans('_', '-')
         for r in self.reserved:
-            self.reserved_map[r.lower().translate(str.maketrans('_', '-'))] = r
+            self.reserved_map[r.lower().translate(trans)] = r
         self.lexer = lex.lex(object=self, **kwargs)
 
     def test(self, text):

@@ -59,9 +59,11 @@ install:: ${TARGETS} installdirs
 	${INSTALL_DATA} ${srcdir}/dnssec-checkds.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/dnssec-coverage.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/dnssec-keymgr.8 ${DESTDIR}${mandir}/man8
+	test -z "${PYTHON}" || ${PYTHON} setup.py install --prefix=${DESTDIR}${prefix}
 
 clean distclean::
 	rm -f ${TARGETS}
+	rm -rf build
 
 distclean::
 	rm -f dnssec-checkds.py dnssec-coverage.py dnssec-keymgr.py
