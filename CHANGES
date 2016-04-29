@@ -1,3 +1,5 @@
+4351.	[bug]		'dig +noignore' didn't work. [RT #42273]
+
 	--- 9.9.9 released ---
 
 	--- 9.9.9rc1 released ---
