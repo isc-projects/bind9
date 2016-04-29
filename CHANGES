@@ -2,6 +2,9 @@
 
 4350.	[contrib]	Declare result in  dlz_filesystem_dynamic.c.
 
+4348.	[cleanup]	Refactor dnssec-coverage and dnssec-checkds
+			functionality into an "isc" python module. [RT #39211]
+
 	--- 9.10.4 released ---
 
 	--- 9.10.4rc1 released ---
