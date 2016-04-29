@@ -182,6 +182,7 @@ foreach $file (keys %file_types) {
         $zone_comment = 0;
         $man_comment = 0;
         $python_comment = 0;
+        $python_bin_comment = 0;
         $start_comment = "";
         $end_comment = "";
         $first = "";
@@ -193,6 +194,11 @@ foreach $file (keys %file_types) {
         } elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH|RNC)$/) {
                 $shell_comment = 1;
 		$prefix = "# ";
+        } elsif ($type =~ /^PYTHON-BIN$/) {
+                $python_bin_comment = 1;
+                $start_comment = "############################################################################\n";
+                $prefix = "# ";
+		$end_comment = "############################################################################\n"
         } elsif ($type =~ /^PYTHON$/) {
                 $python_comment = 1;
                 $start_comment = "############################################################################\n";
@@ -271,10 +277,13 @@ foreach $file (keys %file_types) {
                 } else {
                         $first = $_;
                 }
-        } elsif ($python_comment) {
-                if (/^\#\!/) {
+        } elsif ($python_comment || $python_bin_comment) {
+                if ($python_bin_comment && /^\#\!/) {
                         $before_copyright = "$_";
                         $_ = <SOURCE>;
+                        $_ = <SOURCE> if $_ eq "#\n";
+                        $_ = <SOURCE> if $_ eq "############################################################################\n";
+                } elsif ($python_comment && /^\#/) {
                         $_ = <SOURCE> if $_ eq "#\n";
                         $_ = <SOURCE> if $_ eq "############################################################################\n";
                 }
@@ -593,7 +602,7 @@ foreach $file (keys %file_types) {
 		}
 
                 my ($start, $end);
-		if ($type =~ /^PYTHON$/) {
+		if ($type =~ /^PYTHON(|-BIN)$/) {
                         ($start = $prefix) =~ s/\s*\n//;
 			$end = "\n";
                 } elsif ($start_comment ne "") {
