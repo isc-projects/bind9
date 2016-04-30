@@ -184,6 +184,34 @@
 	  or
 	  <a class="link" href="http://localhost:8888/json/v1/traffic" target="_top">http://localhost:8888/json/v1/traffic</a>.
 	</p></li>
+<li class="listitem">
+<p>
+	  A new DNSSEC key management utility,
+	  <span class="command"><strong>dnssec-keymgr</strong></span>, has been added. This tool
+	  is meant to run unattended (e.g., under <span class="command"><strong>cron</strong></span>).
+	  It reads a policy definition file
+	  (default: <code class="filename">/etc/dnssec.policy</code>)
+	  and creates or updates DNSSEC keys as necessary to ensure that a
+	  zone's keys match the defined policy for that zone.  New keys are
+	  created whenever necessary to ensure rollovers occur correctly.
+	  Existing keys' timing metadata is adjusted as needed to set the
+	  correct rollover period, prepublication interval, etc.  If
+	  the configured policy changes, keys are corrected automatically.
+	  See the <span class="command"><strong>dnssec-keymgr</strong></span> man page for full details.
+	</p>
+<p>
+	  Note: <span class="command"><strong>dnssec-keymgr</strong></span> depends on Python and on
+	  the Python lex/yacc module, PLY. The other Python-based tools,
+	  <span class="command"><strong>dnssec-coverage</strong></span> and
+	  <span class="command"><strong>dnssec-checkds</strong></span>, have been
+	  refactored and updated as part of this work.
+	</p>
+<p>
+	  (Many thanks to Sebastián
+	  Castro for his assistance in developing this tool at the IETF
+	  95 Hackathon in Buenos Aires, April 2016.)
+	</p>
+</li>
 <li class="listitem"><p>
 	  The serial number of a dynamically updatable zone can
 	  now be set using
