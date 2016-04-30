@@ -1,5 +1,5 @@
 <!--
- - Copyright (C) 2013-2015 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2013-2016 Internet Systems Consortium, Inc. ("ISC")
  - 
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -27,7 +27,7 @@
 </div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">dnssec-coverage</code>  [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-f <em class="replaceable"><code>file</code></em></code>] [<code class="option">-d <em class="replaceable"><code>DNSKEY TTL</code></em></code>] [<code class="option">-m <em class="replaceable"><code>max TTL</code></em></code>] [<code class="option">-r <em class="replaceable"><code>interval</code></em></code>] [<code class="option">-c <em class="replaceable"><code>compilezone path</code></em></code>] [zone]</p></div>
+<div class="cmdsynopsis"><p><code class="command">dnssec-coverage</code>  [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-f <em class="replaceable"><code>file</code></em></code>] [<code class="option">-d <em class="replaceable"><code>DNSKEY TTL</code></em></code>] [<code class="option">-m <em class="replaceable"><code>max TTL</code></em></code>] [<code class="option">-r <em class="replaceable"><code>interval</code></em></code>] [<code class="option">-c <em class="replaceable"><code>compilezone path</code></em></code>] [<code class="option">-k</code>] [<code class="option">-z</code>] [zone...]</p></div>
 </div>
 <div class="refsection">
 <a name="id-1.7"></a><h2>DESCRIPTION</h2>
@@ -90,10 +90,15 @@
             'd' for days, 'w' for weeks, 'mo' for months, 'y' for years.
           </p>
 <p>
-            This option is mandatory unless the <code class="option">-f</code> has
-            been used to specify a zone file.  (If <code class="option">-f</code> has
+            This option is not necessary if the <code class="option">-f</code> has
+            been used to specify a zone file.  If <code class="option">-f</code> has
             been specified, this option may still be used; it will override
-            the value found in the file.)
+            the value found in the file.
+          </p>
+<p>
+            If this option is not used and the maximum TTL cannot be retrieved
+            from a zone file, a warning is generated and a default value of
+            1 week is used.
           </p>
 </dd>
 <dt><span class="term">-d <em class="replaceable"><code>DNSKEY TTL</code></em></span></dt>
@@ -102,11 +107,10 @@
             Sets the value to be used as the DNSKEY TTL for the zone or
             zones being analyzed when determining whether there is a
             possibility of validation failure.  When a key is rolled (that
-            is, replaced with a new key), there must be enough time
-            for the old DNSKEY RRset to have expired from resolver caches
-            before the new key is activated and begins generating
-            signatures.  If that condition does not apply, a warning
-            will be generated.
+            is, replaced with a new key), there must be enough time for the
+            old DNSKEY RRset to have expired from resolver caches before
+            the new key is activated and begins generating signatures.  If
+            that condition does not apply, a warning will be generated.
           </p>
 <p>
             The length of the TTL can be set in seconds, or in larger units
@@ -114,12 +118,18 @@
             'd' for days, 'w' for weeks, 'mo' for months, 'y' for years.
           </p>
 <p>
-            This option is mandatory unless the <code class="option">-f</code> has
-            been used to specify a zone file, or a default key TTL was
-            set with the <code class="option">-L</code> to
-            <span class="command"><strong>dnssec-keygen</strong></span>.  (If either of those is true,
-            this option may still be used; it will override the value found
-            in the zone or key file.)
+            This option is not necessary if <code class="option">-f</code> has
+            been used to specify a zone file from which the TTL
+            of the DNSKEY RRset can be read, or if a default key TTL was
+            set using ith the <code class="option">-L</code> to
+            <span class="command"><strong>dnssec-keygen</strong></span>.  If either of those is true,
+            this option may still be used; it will override the values
+            found in the zone file or the key file.
+          </p>
+<p>
+            If this option is not used and the key TTL cannot be retrieved
+            from the zone file or the key file, then a warning is generated
+            and a default value of 1 day is used.
           </p>
 </dd>
 <dt><span class="term">-r <em class="replaceable"><code>resign interval</code></em></span></dt>
