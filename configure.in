@@ -245,6 +245,7 @@ case "$use_python" in
 				AC_MSG_CHECKING([python module 'argparse'])
 				if ${PYTHON:-false} -c "$testargparse"; then
 					AC_MSG_RESULT([found])
+					break
                                 else
                                         AC_MSG_RESULT([not found])
                                         unset ac_cv_path_PYTHON
