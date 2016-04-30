@@ -11865,6 +11865,7 @@ $as_echo_n "checking python module 'argparse'... " >&6; }
 				if ${PYTHON:-false} -c "$testargparse"; then
 					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
+					break
                                 else
                                         { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
