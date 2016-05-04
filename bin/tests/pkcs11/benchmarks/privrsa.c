@@ -56,6 +56,7 @@
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #include <pk11/pk11.h>
 #include <pk11/result.h>
@@ -65,15 +66,22 @@
 #endif
 
 #ifndef HAVE_CLOCK_GETTIME
+
+#include <sys/time.h>
+
 #ifndef CLOCK_REALTIME
 #define CLOCK_REALTIME 0
 #endif
 
-int
+static int clock_gettime(int32_t id, struct timespec *tp);
+
+static int
 clock_gettime(int32_t id, struct timespec *tp)
 {
 	struct timeval tv;
 	int result;
+
+	UNUSED(id);
 
 	result = gettimeofday(&tv, NULL);
 	if (result)
