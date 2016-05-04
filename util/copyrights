@@ -309,9 +309,9 @@
 ./bin/pkcs11/.gitignore				X	2014
 ./bin/pkcs11/Makefile.in			MAKE	2009,2012
 ./bin/pkcs11/OLD-PKCS11-NOTES			X	2009
-./bin/pkcs11/include/pkcs11.h			X	2009
-./bin/pkcs11/include/pkcs11f.h			X	2009
-./bin/pkcs11/include/pkcs11t.h			X	2009
+./bin/pkcs11/include/pkcs11.h			X	2009,2016
+./bin/pkcs11/include/pkcs11f.h			X	2009,2016
+./bin/pkcs11/include/pkcs11t.h			X	2009,2016
 ./bin/pkcs11/openssl-0.9.8zh-patch		X	2015
 ./bin/pkcs11/openssl-1.0.0t-patch		X	2015
 ./bin/pkcs11/openssl-1.0.1q-patch		X	2015
@@ -1040,7 +1040,7 @@
 ./bin/tests/system/dlvauto/ns2/named.conf	CONF-C	2011
 ./bin/tests/system/dlvauto/prereq.sh		SH	2014
 ./bin/tests/system/dlvauto/setup.sh		SH	2011,2012,2014
-./bin/tests/system/dlvauto/tests.sh		SH	2011,2012,2014
+./bin/tests/system/dlvauto/tests.sh		SH	2011,2012,2014,2016
 ./bin/tests/system/dlz/.gitignore		X	2012
 ./bin/tests/system/dlz/clean.sh			SH	2010,2012
 ./bin/tests/system/dlz/ns1/dns-root/com/broken/dns.d/@/DNAME=10=example.net.=	TXT.BRIEF	2015
