@@ -1,3 +1,5 @@
+4353.	[cleanup]	Update PKCS#11 header files. [RT #42175]
+
 4352.	[cleanup]	The ISC DNSSEC Lookaside Validation (DLV) service
 			is scheduled to be disabled in 2017.  A warning is
 			now logged when named is configured to use it,
