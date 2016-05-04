@@ -12,8 +12,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2011/03/03 16:16:46 each Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -22,9 +20,17 @@ DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
 status=0
 n=1
 
+echo "I:checking that a warning was logged about the ISC DLV service ($n)"
+ret=0
+warnings=`grep "WARNING: the DLV server at 'dlv.isc.org'" ns2/named.run`
+[ -z "$warnings" ] && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 #
 #  When this was initialy reported there was a REQUIRE failure on restarting.
 #
+n=`expr $n + 1`
 echo "I:checking dnssec-lookaside "'"auto"'"; with views of multiple classes ($n)" 
 if [ -s  ns2/named.pid ]
 then

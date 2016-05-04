@@ -123,6 +123,15 @@
     <itemizedlist>
       <listitem>
         <para>
+	  The ISC DNSSEC Lookaside Validation (DLV) service is scheduled
+	  to be disabled in 2017.  A warning is now logged when
+	  <command>named</command> is configured to use this service,
+	  either explicitly or via <option>dnssec-lookaside auto;</option>.
+	  [RT #42207]
+	</para>
+      </listitem>
+      <listitem>
+        <para>
 	  Updated the compiled-in addresses for H.ROOT-SERVERS.NET
 	  and L.ROOT-SERVERS.NET.
 	</para>

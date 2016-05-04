@@ -2096,6 +2096,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	const cfg_obj_t *alternates;
 	const cfg_obj_t *zonelist;
 	const cfg_obj_t *dlz;
+	const cfg_obj_t *dlvobj = NULL;
 	unsigned int dlzargc;
 	char **dlzargv;
 	const cfg_obj_t *disabled;
@@ -3288,7 +3289,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ns_config_get(optionmaps, "dnssec-lookaside", &obj);
 	if (result == ISC_R_SUCCESS) {
 		/* If set to "auto", use the version from the defaults */
-		const cfg_obj_t *dlvobj;
 		const char *dom;
 		dlvobj = cfg_listelt_value(cfg_list_first(obj));
 		dom = cfg_obj_asstring(cfg_tuple_get(dlvobj, "domain"));
@@ -3306,18 +3306,34 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	}
 
 	if (result == ISC_R_SUCCESS) {
+		dns_name_t *dlv, *iscdlv;
+		dns_fixedname_t f;
+		dns_fixedname_init(&f);
+
+		iscdlv = dns_fixedname_name(&f);
+		CHECK(dns_name_fromstring(iscdlv, "dlv.isc.org", 0, NULL));
+
 		for (element = cfg_list_first(obj);
 		     element != NULL;
 		     element = cfg_list_next(element))
 		{
-			dns_name_t *dlv;
-
 			obj = cfg_listelt_value(element);
 			obj = cfg_tuple_get(obj, "trust-anchor");
+
 			dlv = dns_fixedname_name(&view->dlv_fixed);
 			CHECK(dns_name_fromstring(dlv, cfg_obj_asstring(obj),
 						  DNS_NAME_DOWNCASE, NULL));
 			view->dlv = dns_fixedname_name(&view->dlv_fixed);
+
+			if (dns_name_equal(view->dlv, iscdlv)) {
+				if (auto_dlv)
+					obj = dlvobj;
+				cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+					    "WARNING: the DLV server at "
+					    "'dlv.isc.org' is expected to "
+					    "cease operation by the end "
+					    "of 2017");
+			}
 		}
 	} else
 		view->dlv = NULL;
