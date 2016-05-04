@@ -1,3 +1,9 @@
+4352.	[cleanup]	The ISC DNSSEC Lookaside Validation (DLV) service
+			is scheduled to be disabled in 2017.  A warning is
+			now logged when named is configured to use it,
+			either explicitly or via "dnssec-lookaside auto;"
+			[RT #42207]
+
 4351.	[bug]		'dig +noignore' didn't work. [RT #42273]
 
 4350.	[contrib]	Declare result in  dlz_filesystem_dynamic.c.

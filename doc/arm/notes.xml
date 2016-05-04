@@ -486,6 +486,15 @@
     <itemizedlist>
       <listitem>
         <para>
+	  The ISC DNSSEC Lookaside Validation (DLV) service is scheduled
+	  to be disabled in 2017.  A warning is now logged when
+	  <command>named</command> is configured to use this service,
+	  either explicitly or via <option>dnssec-lookaside auto;</option>.
+	  [RT #42207]
+	</para>
+      </listitem>
+      <listitem>
+        <para>
 	  The timers returned by the statistics channel (indicating current
 	  time, server boot time, and most recent reconfiguration time) are
 	  now reported with millisecond accuracy. [RT #40082]
