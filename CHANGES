@@ -1,3 +1,8 @@
+4354.	[bug]		Check that the received HMAC length matches the
+			expected length prior to check the contents on the
+			control channel.  This prevents a OOB read error.
+			[RT #42215]
+
 4353.	[cleanup]	Update PKCS#11 header files. [RT #42175]
 
 4352.	[cleanup]	The ISC DNSSEC Lookaside Validation (DLV) service
