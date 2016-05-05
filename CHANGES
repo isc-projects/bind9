@@ -1,3 +1,6 @@
+4359.	[bug]		Inherited 'also-notify' lists were not being checked
+			by named-checkconf. [RT #42174]
+
 4354.	[bug]		Check that the received HMAC length matches the
 			expected length prior to check the contents on the
 			control channel.  This prevents a OOB read error.
