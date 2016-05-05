@@ -218,6 +218,8 @@ static void reset_client(isc_httpd_t *httpd);
 static isc_httpdaction_t render_404;
 static isc_httpdaction_t render_500;
 
+static void (*finishhook)(void) = NULL;
+
 static void
 destroy_client(isc_httpd_t **httpdp) {
 	isc_httpd_t *httpd = *httpdp;
@@ -244,6 +246,9 @@ destroy_client(isc_httpd_t **httpdp) {
 	isc_mem_put(httpdmgr->mctx, httpd, sizeof(isc_httpd_t));
 
 	UNLOCK(&httpdmgr->lock);
+
+	if (finishhook != NULL)
+		finishhook();
 
 	httpdmgr_destroy(httpdmgr);
 }
@@ -1257,4 +1262,10 @@ isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
 	ISC_LIST_APPEND(httpdmgr->urls, item, link);
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+isc_httpd_setfinishhook(void (*fn)(void))
+{
+	finishhook = fn;
 }

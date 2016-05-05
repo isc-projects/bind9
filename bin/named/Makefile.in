@@ -86,7 +86,7 @@ TARGETS =	named@EXEEXT@ lwresd@EXEEXT@
 GEOIPLINKOBJS = geoip.@O@
 
 OBJS =		builtin.@O@ client.@O@ config.@O@ control.@O@ \
-		controlconf.@O@ @GEOIPLINKOBJS@ interfacemgr.@O@ \
+		controlconf.@O@ fuzz.@O@ @GEOIPLINKOBJS@ interfacemgr.@O@ \
 		listenlist.@O@ log.@O@ logconf.@O@ main.@O@ notify.@O@ \
 		query.@O@ server.@O@ sortlist.@O@ statschannel.@O@ \
 		tkeyconf.@O@ tsigconf.@O@ update.@O@ xfrout.@O@ \
@@ -102,7 +102,7 @@ SYMOBJS =	symtbl.@O@
 GEOIPLINKSRCS = geoip.c
 
 SRCS =		builtin.c client.c config.c control.c \
-		controlconf.c @GEOIPLINKSRCS@ interfacemgr.c \
+		controlconf.c fuzz.c @GEOIPLINKSRCS@ interfacemgr.c \
 		listenlist.c log.c logconf.c main.c notify.c \
 		query.c server.c sortlist.c statschannel.c \
 		tkeyconf.c tsigconf.c update.c xfrout.c \

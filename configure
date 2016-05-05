@@ -996,6 +996,7 @@ enable_libbind
 enable_warn_shadow
 enable_warn_error
 enable_developer
+enable_afl
 enable_seccomp
 with_python
 enable_kqueue
@@ -1693,6 +1694,7 @@ Optional Features:
   --enable-warn-shadow	  turn on -Wshadow when compiling
   --enable-warn-error	  turn on -Werror when compiling
   --enable-developer      enable developer build settings
+  --enable-afl		  enable American Fuzzy Lop test harness [default=no]
   --enable-seccomp        enable support for libseccomp system call filtering
                           [default=no]
   --enable-kqueue         use BSD kqueue when available [default=yes]
@@ -11467,6 +11469,20 @@ yes)
 	test "${enable_warn_error+set}" = set || enable_warn_error=yes
 	test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
 	test "${with_zlib+set}" = set || with_zlib=yes
+	;;
+esac
+
+# American Fuzzy Lop
+# Check whether --enable-afl was given.
+if test "${enable_afl+set}" = set; then :
+  enableval=$enable_afl;
+$as_echo "#define ENABLE_AFL 1" >>confdefs.h
+
+fi
+
+case "$enable_afl" in
+yes)
+	LIBS="$LIBS -lpthread"
 	;;
 esac
 

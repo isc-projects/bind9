@@ -30,6 +30,7 @@
 #include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/httpd.h>
 #include <isc/os.h>
 #include <isc/platform.h>
 #include <isc/print.h>
@@ -46,6 +47,7 @@
 #include <dns/dyndb.h>
 #include <dns/name.h>
 #include <dns/result.h>
+#include <dns/resolver.h>
 #include <dns/view.h>
 
 #include <dst/result.h>
@@ -68,6 +70,7 @@
 
 #include <named/builtin.h>
 #include <named/control.h>
+#include <named/fuzz.h>
 #include <named/globals.h>	/* Explicit, though named/log.h includes it. */
 #include <named/interfacemgr.h>
 #include <named/log.h>
@@ -436,6 +439,29 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 }
 
 static void
+parse_fuzz_arg(void) {
+	if (!strncmp(isc_commandline_argument, "client:", 7)) {
+		ns_g_fuzz_named_addr = isc_commandline_argument + 7;
+		ns_g_fuzz_type = ns_fuzz_client;
+	} else if (!strncmp(isc_commandline_argument, "tcp:", 4)) {
+		ns_g_fuzz_named_addr = isc_commandline_argument + 4;
+		ns_g_fuzz_type = ns_fuzz_tcpclient;
+	} else if (!strncmp(isc_commandline_argument, "resolver:", 9)) {
+		ns_g_fuzz_named_addr = isc_commandline_argument + 9;
+		ns_g_fuzz_type = ns_fuzz_resolver;
+	} else if (!strncmp(isc_commandline_argument, "http:", 5)) {
+		ns_g_fuzz_named_addr = isc_commandline_argument + 5;
+		ns_g_fuzz_type = ns_fuzz_http;
+	} else if (!strncmp(isc_commandline_argument, "rndc:", 5)) {
+		ns_g_fuzz_named_addr = isc_commandline_argument + 5;
+		ns_g_fuzz_type = ns_fuzz_rndc;
+	} else {
+		ns_main_earlyfatal("unknown fuzzing type '%s'",
+				   isc_commandline_argument);
+	}
+}
+
+static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
 	int port;
@@ -465,6 +491,9 @@ parse_command_line(int argc, char *argv[]) {
 				ns_main_earlyfatal("IPv6 not supported by OS");
 			isc_net_disableipv4();
 			ns_g_disable4 = ISC_TRUE;
+			break;
+		case 'A':
+			parse_fuzz_arg();
 			break;
 		case 'c':
 			ns_g_conffile = isc_commandline_argument;
@@ -1315,6 +1344,17 @@ main(int argc, char *argv[]) {
 
 	parse_command_line(argc, argv);
 
+#ifdef ENABLE_AFL
+	if (ns_g_fuzz_type != ns_fuzz_none) {
+		named_fuzz_setup();
+	}
+
+	if (ns_g_fuzz_type == ns_fuzz_resolver) {
+		dns_resolver_setfuzzing();
+	} else if (ns_g_fuzz_type == ns_fuzz_http) {
+		isc_httpd_setfinishhook(named_fuzz_notify);
+	}
+#endif
 	/*
 	 * Warn about common configuration error.
 	 */

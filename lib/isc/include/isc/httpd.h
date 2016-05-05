@@ -83,4 +83,7 @@ isc_httpd_addheaderuint(isc_httpd_t *httpd, const char *name, int val);
 
 isc_result_t isc_httpd_endheaders(isc_httpd_t *httpd);
 
+void
+isc_httpd_setfinishhook(void (*fn)(void));
+
 #endif /* ISC_HTTPD_H */

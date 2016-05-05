@@ -183,6 +183,11 @@ maybe_free_connection(controlconnection_t *conn) {
 	}
 
 	ISC_LIST_UNLINK(listener->connections, conn, link);
+#ifdef ENABLE_AFL
+	if (ns_g_fuzz_type == ns_fuzz_rndc) {
+		named_fuzz_notify();
+	}
+#endif
 	isc_mem_put(listener->mctx, conn, sizeof(*conn));
 }
 
@@ -600,6 +605,11 @@ newconnection(controllistener_t *listener, isc_socket_t *sock) {
 	if (conn->timer != NULL)
 		isc_timer_detach(&conn->timer);
 	isc_mem_put(listener->mctx, conn, sizeof(*conn));
+#ifdef ENABLE_AFL
+	if (ns_g_fuzz_type == ns_fuzz_rndc) {
+		named_fuzz_notify();
+	}
+#endif
 	return (result);
 }
 

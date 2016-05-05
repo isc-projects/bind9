@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2013, 2015  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,28 +14,22 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef NAMED_MAIN_H
-#define NAMED_MAIN_H 1
-
-/*! \file */
-
-#ifdef ISC_MAIN_HOOK
-#define main(argc, argv) bindmain(argc, argv)
-#endif
-
-/*
- * Commandline arguments for named; also referenced in win32/ntservice.c
- */
-#define NS_MAIN_ARGS "46A:c:C:d:D:E:fFgi:lL:M:m:n:N:p:P:sS:t:T:U:u:vVx:X:"
-
-ISC_PLATFORM_NORETURN_PRE void
-ns_main_earlyfatal(const char *format, ...)
-ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
+#ifndef NAMED_FUZZ_H
+#define NAMED_FUZZ_H
 
 void
-ns_main_earlywarning(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+named_fuzz_notify(void);
 
 void
-ns_main_setmemstats(const char *);
+named_fuzz_setup(void);
 
-#endif /* NAMED_MAIN_H */
+typedef enum {
+	ns_fuzz_none,
+	ns_fuzz_client,
+	ns_fuzz_tcpclient,
+	ns_fuzz_resolver,
+	ns_fuzz_http,
+	ns_fuzz_rndc
+} ns_fuzz_t;
+
+#endif /* NAMED_FUZZ_H */

@@ -97,6 +97,15 @@ yes)
 	;;
 esac
 
+# American Fuzzy Lop
+AC_ARG_ENABLE(afl, [  --enable-afl		  enable American Fuzzy Lop test harness [[default=no]]],
+	     [AC_DEFINE([ENABLE_AFL], [1], [Define to enable American Fuzzy Lop test harness])])
+case "$enable_afl" in
+yes)
+	LIBS="$LIBS -lpthread"
+	;;
+esac
+
 #libseccomp sandboxing
 AC_ARG_ENABLE(seccomp,
 	AS_HELP_STRING([--enable-seccomp],[enable support for libseccomp system call filtering [default=no]]))

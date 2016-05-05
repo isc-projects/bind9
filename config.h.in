@@ -173,6 +173,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to enable "rrset-order fixed" syntax. */
 #undef DNS_RDATASET_FIXED
 
+/* Define to enable American Fuzzy Lop test harness */
+#undef ENABLE_AFL
+
 /* Define to enable rpz-nsdname rules. */
 #undef ENABLE_RPZ_NSDNAME
 

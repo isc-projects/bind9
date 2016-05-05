@@ -699,6 +699,14 @@ void
 dns_resolver_dumpfetches(dns_resolver_t *resolver,
 			 isc_statsformat_t format, FILE *fp);
 
+
+#ifdef ENABLE_AFL
+/*%
+ * Enable fuzzing of resolver, changes behaviour and eliminates retries
+ */
+void dns_resolver_setfuzzing(void);
+#endif
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RESOLVER_H */

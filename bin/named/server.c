@@ -7113,6 +7113,9 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	isc_hash_init();
 
 	CHECKFATAL(load_zones(server, ISC_TRUE), "loading zones");
+#ifdef ENABLE_AFL
+	ns_g_run_done = ISC_TRUE;
+#endif
 }
 
 void

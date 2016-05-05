@@ -33,6 +33,7 @@
 #include <dst/dst.h>
 
 #include <named/types.h>
+#include <named/fuzz.h>
 
 #undef EXTERN
 #undef INIT
@@ -57,6 +58,9 @@ EXTERN isc_entropy_t *		ns_g_entropy		INIT(NULL);
 EXTERN isc_entropy_t *		ns_g_fallbackentropy	INIT(NULL);
 EXTERN unsigned int		ns_g_cpus_detected	INIT(1);
 
+#ifdef ENABLE_AFL
+EXTERN isc_boolean_t		ns_g_run_done		INIT(ISC_FALSE);
+#endif
 /*
  * XXXRTH  We're going to want multiple timer managers eventually.  One
  *         for really short timers, another for client timers, and one
@@ -185,6 +189,9 @@ EXTERN isc_boolean_t		ns_g_disable4		INIT(ISC_FALSE);
 #ifdef HAVE_GEOIP
 EXTERN dns_geoip_databases_t	*ns_g_geoip		INIT(NULL);
 #endif
+
+EXTERN const char *		ns_g_fuzz_named_addr	INIT(NULL);
+EXTERN ns_fuzz_t		ns_g_fuzz_type		INIT(ns_fuzz_none);
 
 #undef EXTERN
 #undef INIT

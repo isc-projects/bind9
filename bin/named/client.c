@@ -35,10 +35,12 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/adb.h>
 #include <dns/badcache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/dnstap.h>
+#include <dns/cache.h>
 #include <dns/edns.h>
 #include <dns/events.h>
 #include <dns/message.h>
@@ -54,6 +56,7 @@
 #include <dns/view.h>
 #include <dns/zone.h>
 
+#include <named/fuzz.h>
 #include <named/interfacemgr.h>
 #include <named/log.h>
 #include <named/notify.h>
@@ -702,8 +705,15 @@ ns_client_endrequest(ns_client_t *client) {
 		client->next = NULL;
 	}
 
-	if (client->view != NULL)
+	if (client->view != NULL) {
+#ifdef ENABLE_AFL
+		if (ns_g_fuzz_type == ns_fuzz_resolver) {
+			dns_cache_clean(client->view->cache, INT_MAX);
+			dns_adb_flush(client->view->adb);
+		}
+#endif
 		dns_view_detach(&client->view);
+	}
 	if (client->opt != NULL) {
 		INSIST(dns_rdataset_isassociated(client->opt));
 		dns_rdataset_disassociate(client->opt);
@@ -727,6 +737,14 @@ ns_client_endrequest(ns_client_t *client) {
 	 * the request; that's all except the TCP flag.
 	 */
 	client->attributes &= NS_CLIENTATTR_TCP;
+#ifdef ENABLE_AFL
+	if (ns_g_fuzz_type == ns_fuzz_client ||
+	    ns_g_fuzz_type == ns_fuzz_tcpclient ||
+	    ns_g_fuzz_type == ns_fuzz_resolver) {
+		named_fuzz_notify();
+	}
+#endif /* ENABLE_AFL */
+
 }
 
 void

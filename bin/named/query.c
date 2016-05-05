@@ -6771,9 +6771,19 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	 */
 	if (RECURSIONOK(client)) {
 		flags = 0;
+#ifdef ENABLE_AFL
+		if (ns_g_fuzz_type == ns_fuzz_resolver) {
+			failcache = ISC_FALSE;
+		} else {
+			failcache = dns_badcache_find(client->view->failcache,
+						      client->query.qname, qtype,
+						      &flags, &client->tnow);
+		}
+#else
 		failcache = dns_badcache_find(client->view->failcache,
 					      client->query.qname, qtype,
 					      &flags, &client->tnow);
+#endif
 		if (failcache &&
 		    (((flags & NS_FAILCACHE_CD) != 0) ||
 		     ((client->message->flags & DNS_MESSAGEFLAG_CD) == 0)))

@@ -548,6 +548,13 @@ struct dns_resolver {
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 #define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
 
+#ifdef ENABLE_AFL
+static isc_boolean_t fuzzing_resolver = ISC_FALSE;
+void dns_resolver_setfuzzing() {
+	fuzzing_resolver = ISC_TRUE;
+}
+#endif
+
 static void destroy(dns_resolver_t *res);
 static void empty_bucket(dns_resolver_t *res);
 static isc_result_t resquery_send(resquery_t *query);
@@ -1890,6 +1897,10 @@ static void
 add_bad_edns(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	isc_sockaddr_t *sa;
 
+#ifdef ENABLE_AFL
+	if (fuzzing_resolver)
+		return;
+#endif
 	if (bad_edns(fctx, address))
 		return;
 
@@ -2836,6 +2847,11 @@ mark_bad(fetchctx_t *fctx) {
 	dns_adbaddrinfo_t *addrinfo;
 	isc_boolean_t all_bad = ISC_TRUE;
 
+#ifdef ENABLE_AFL
+	if (fuzzing_resolver)
+		return ISC_FALSE;
+#endif
+
 	/*
 	 * Mark all known bad servers, so we don't try to talk to them
 	 * again.
@@ -2910,6 +2926,11 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
 	isc_sockaddr_t *sa;
 	const char *spc = "";
 	isc_sockaddr_t *address = &addrinfo->sockaddr;
+
+#ifdef ENABLE_AFL
+	if (fuzzing_resolver)
+		return;
+#endif
 
 	if (reason == DNS_R_LAME)
 		fctx->lamecount++;
@@ -8478,6 +8499,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	fctx_cancelquery(&query, &devent, finish, no_response, ISC_FALSE);
 
+#ifdef ENABLE_AFL
+	if (fuzzing_resolver && (keep_trying || resend)) {
+		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+		return;
+	} else
+#endif
 	if (keep_trying) {
 		if (result == DNS_R_FORMERR)
 			broken_server = DNS_R_FORMERR;
@@ -9695,8 +9722,13 @@ void
 dns_resolver_addbadcache(dns_resolver_t *resolver, dns_name_t *name,
 			 dns_rdatatype_t type, isc_time_t *expire)
 {
-	(void) dns_badcache_add(resolver->badcache, name, type,
-				ISC_FALSE, 0, expire);
+#ifdef ENABLE_AFL
+	if (!fuzzing_resolver)
+#endif
+	{
+		(void) dns_badcache_add(resolver->badcache, name, type,
+					ISC_FALSE, 0, expire);
+	}
 }
 
 isc_boolean_t
