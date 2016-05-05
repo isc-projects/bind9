@@ -23,7 +23,7 @@ SUBDIRS	=	tests
 PYTHON	=	@PYTHON@
 
 PYSRCS =	__init__.py dnskey.py eventlist.py keydict.py \
-		keyevent.py keyzone.py policy.py
+		keyevent.py keyzone.py policy.py rndc.py
 TARGETS =	parsetab.py
 
 @BIND9_MAKE_RULES@

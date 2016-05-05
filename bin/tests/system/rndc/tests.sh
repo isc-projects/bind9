@@ -448,4 +448,20 @@ grep "^running on " rndc.output > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+if [ -x "$PYTHON" ]; then
+    echo "I:test rndc python bindings"
+    ret=0
+    $PYTHON > rndc.output << EOF
+import sys
+sys.path.insert(0, '../../../../bin/python')
+from isc import *
+r = rndc(('10.53.0.5', 9953), 'hmac-sha256', '1234abcd8765')
+result = r.call('status')
+print(result['text'])
+EOF
+    grep 'server is up and running' rndc.output > /dev/null 2>&1 || ret=1
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+fi
+
 exit $status
