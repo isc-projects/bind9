@@ -1,3 +1,6 @@
+4359.	[bug]		Inherited 'also-notify' lists were not being checked
+			by named-checkconf. [RT #42174]
+
 4358.	[test]		Added American Fuzzy Lop harness that allows
 			feeding fuzzed packets into BIND.
 			[RT #41723]
