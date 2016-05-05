@@ -279,6 +279,8 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	isccc_sexpr_t *_auth, *hmd5;
 	unsigned char digest[ISC_MD5_DIGESTLENGTH];
 	unsigned char digestb64[ISC_MD5_DIGESTLENGTH * 4];
+	isccc_region_t *region;
+	unsigned char *value;
 
 	/*
 	 * Extract digest.
@@ -307,11 +309,15 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	 */
 	target.rstart -= 2;
 	*target.rstart++ = '\0';
+
 	/*
 	 * Verify.
 	 */
-	if (!isc_safe_memequal((unsigned char *) isccc_sexpr_tostring(hmd5),
-			       digestb64, HMD5_LENGTH))
+	region = isccc_sexpr_tobinary(hmd5);
+	if ((region->rend - region->rstart) != HMD5_LENGTH)
+		return (ISCCC_R_BADAUTH);
+	value = region->rstart;
+	if (!isc_safe_memequal(value, digestb64, HMD5_LENGTH))
 		return (ISCCC_R_BADAUTH);
 
 	return (ISC_R_SUCCESS);
