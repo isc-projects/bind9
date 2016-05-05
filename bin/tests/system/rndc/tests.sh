@@ -448,6 +448,55 @@ grep "^running on " rndc.output > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:test 'rndc reconfig' with loading of a large zone"
+ret=0
+cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns6/named.run`
+cp ns6/named.conf ns6/named.conf.save
+echo "zone \"huge.zone\" { type master; file \"huge.zone.db\"; };" >> ns6/named.conf
+echo " I:reloading config"
+$RNDC -s 10.53.0.6 -p 9953 -c ../common/rndc.conf reconfig > rndc.output 2>&1 || ret=1
+if [ $ret != 0 ]; then echo " I:failed"; fi
+status=`expr $status + $ret`
+sleep 1
+echo " I:check if zone load was scheduled"
+grep "scheduled loading new zones" ns6/named.run > /dev/null || ret=1
+if [ $ret != 0 ]; then echo " I:failed"; fi
+status=`expr $status + $ret`
+
+echo " I:check if query for the zone returns SERVFAIL"
+$DIG @10.53.0.6 -p 5300 -t soa huge.zone > dig.out
+grep "SERVFAIL" dig.out > /dev/null || ret=1
+if [ $ret != 0 ]; then echo " I:failed"; fi
+status=`expr $status + $ret`
+
+echo " I:wait for the zones to be loaded"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns6/named.run | grep "any newly configured zones are now loaded" > /dev/null && {
+        ret=0
+        break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo " I:failed"; fi
+status=`expr $status + $ret`
+
+echo " I:check if query for the zone returns NOERROR"
+$DIG @10.53.0.6 -p 5300 -t soa huge.zone > dig.out
+grep "NOERROR" dig.out > /dev/null || ret=1
+if [ $ret != 0 ]; then echo " I:failed"; fi
+status=`expr $status + $ret`
+
+mv ns6/named.conf.save ns6/named.conf
+sleep 1
+$RNDC -s 10.53.0.6 -p 9953 -c ../common/rndc.conf reconfig > /dev/null || ret=1
+sleep 1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 if [ -x "$PYTHON" ]; then
     echo "I:test rndc python bindings"
     ret=0

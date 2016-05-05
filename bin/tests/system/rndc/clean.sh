@@ -23,5 +23,8 @@ rm -f ns*/named.run
 rm -f ns4/*.conf
 rm -f rndc.status
 rm -f rndc.output
+rm -f dig.out
 rm -f ns*/named.lock
 rm -f ns4/*.nta
+rm -f ns6/named.conf
+rm -f ns6/huge.zone.db

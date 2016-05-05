@@ -694,6 +694,11 @@
 	  Added support for the AVC resource record type (Application
 	  Visibility and Control).
 	</para>
+	<para>
+	  Changed <command>rndc reconfig</command> behaviour so that newly
+	  added zones are loaded asynchronously and the loading does not
+	  block the server.
+	</para>
       </listitem>
     </itemizedlist>
   </section>

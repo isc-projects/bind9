@@ -25,7 +25,12 @@ $SHELL ../genzone.sh 2 >ns2/nil.db
 $SHELL ../genzone.sh 2 >ns2/other.db
 $SHELL ../genzone.sh 2 >ns2/static.db
 
+$SHELL ../genzone.sh 2 >ns6/huge.zone.db
+awk 'END { for (i = 1; i <= 1000000; i++)
+     printf "host%u IN A 10.53.0.6\n", i; }' < /dev/null >> ns6/huge.zone.db
+
 cat ns4/named.conf.in > ns4/named.conf
+cat ns6/named.conf.in > ns6/named.conf
 
 make_key () {
     $RNDCCONFGEN -r $RANDFILE -k key$1 -A $2 -s 10.53.0.4 -p 995${1} \

@@ -271,6 +271,7 @@ typedef struct ns_cfgctx {
  */
 typedef struct {
 		ns_server_t *server;
+		isc_boolean_t reconfig;
 		isc_refcount_t refs;
 } ns_zoneload_t;
 
@@ -6928,6 +6929,7 @@ view_loaded(void *arg) {
 	isc_result_t result;
 	ns_zoneload_t *zl = (ns_zoneload_t *) arg;
 	ns_server_t *server = zl->server;
+	isc_boolean_t reconfig = zl->reconfig;
 	unsigned int refs;
 
 
@@ -6946,8 +6948,21 @@ view_loaded(void *arg) {
 	isc_refcount_destroy(&zl->refs);
 	isc_mem_put(server->mctx, zl, sizeof (*zl));
 
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_NOTICE, "all zones loaded");
+	/*
+	 * To maintain compatibility with log parsing tools that might
+	 * be looking for this string after "rndc reconfig", we keep it
+	 * as it is
+	 */
+	if (reconfig) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "any newly configured zones are now loaded");
+	} else {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_NOTICE,
+			      "all zones loaded");
+	}
+
 	CHECKFATAL(dns_zonemgr_forcemaint(server->zonemgr),
 		   "forcing zone maintenance");
 
@@ -6959,7 +6974,7 @@ view_loaded(void *arg) {
 }
 
 static isc_result_t
-load_zones(ns_server_t *server, isc_boolean_t init) {
+load_zones(ns_server_t *server, isc_boolean_t init, isc_boolean_t reconfig) {
 	isc_result_t result;
 	dns_view_t *view;
 	ns_zoneload_t *zl;
@@ -6969,6 +6984,7 @@ load_zones(ns_server_t *server, isc_boolean_t init) {
 	if (zl == NULL)
 		return (ISC_R_NOMEMORY);
 	zl->server = server;
+	zl->reconfig = reconfig;
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -7026,39 +7042,6 @@ load_zones(ns_server_t *server, isc_boolean_t init) {
 	return (result);
 }
 
-static isc_result_t
-load_new_zones(ns_server_t *server, isc_boolean_t stop) {
-	isc_result_t result;
-	dns_view_t *view;
-
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	/*
-	 * Load zone data from disk.
-	 */
-	for (view = ISC_LIST_HEAD(server->viewlist);
-	     view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
-		CHECK(dns_view_loadnew(view, stop));
-
-		/* Load managed-keys data */
-		if (view->managed_keys != NULL)
-			CHECK(dns_zone_loadnew(view->managed_keys));
-		if (view->redirect != NULL)
-			CHECK(dns_zone_loadnew(view->redirect));
-	}
-
-	/*
-	 * Resume zone XFRs.
-	 */
-	dns_zonemgr_resumexfrs(server->zonemgr);
- cleanup:
-	isc_task_endexclusive(server->task);
-	return (result);
-}
-
 static void
 run_server(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
@@ -7112,7 +7095,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_hash_init();
 
-	CHECKFATAL(load_zones(server, ISC_TRUE), "loading zones");
+	CHECKFATAL(load_zones(server, ISC_TRUE, ISC_FALSE), "loading zones");
 #ifdef ENABLE_AFL
 	ns_g_run_done = ISC_TRUE;
 #endif
@@ -7611,7 +7594,7 @@ reload(ns_server_t *server) {
 	isc_result_t result;
 	CHECK(loadconfig(server));
 
-	result = load_zones(server, ISC_FALSE);
+	result = load_zones(server, ISC_FALSE, ISC_FALSE);
 	if (result == ISC_R_SUCCESS)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -7926,11 +7909,11 @@ ns_server_reconfigcommand(ns_server_t *server) {
 
 	CHECK(loadconfig(server));
 
-	result = load_new_zones(server, ISC_FALSE);
+	result = load_zones(server, ISC_FALSE, ISC_TRUE);
 	if (result == ISC_R_SUCCESS)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "any newly configured zones are now loaded");
+			      "scheduled loading new zones");
 	else
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
