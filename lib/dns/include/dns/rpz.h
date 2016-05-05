@@ -176,6 +176,7 @@ struct dns_rpz_popt {
 	dns_rpz_zbits_t	    no_log;
 	isc_boolean_t	    break_dnssec;
 	isc_boolean_t	    qname_wait_recurse;
+	isc_boolean_t	    nsip_wait_recurse;
 	unsigned int	    min_ns_labels;
 	dns_rpz_num_t	    num_zones;
 };

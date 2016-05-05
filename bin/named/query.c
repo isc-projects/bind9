@@ -4258,6 +4258,49 @@ rpz_get_zbits(ns_client_t *client,
 	return (zbits);
 }
 
+static void
+query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
+	isc_result_t result;
+	isc_sockaddr_t *peeraddr;
+	dns_rdataset_t *tmprdataset;
+	ns_client_t *dummy = NULL;
+	unsigned int options;
+
+	if (client->query.prefetch != NULL)
+		return;
+
+	if (client->recursionquota == NULL) {
+		result = isc_quota_attach(&ns_g_server->recursionquota,
+					  &client->recursionquota);
+		if (result == ISC_R_SUCCESS && !client->mortal && !TCP(client))
+			result = ns_client_replace(client);
+		if (result != ISC_R_SUCCESS)
+			return;
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_recursclients);
+	}
+
+	tmprdataset = query_newrdataset(client);
+	if (tmprdataset == NULL)
+		return;
+	if (!TCP(client))
+		peeraddr = &client->peeraddr;
+	else
+		peeraddr = NULL;
+	ns_client_attach(client, &dummy);
+	options = client->query.fetchoptions;
+	result = dns_resolver_createfetch3(client->view->resolver, qname, type,
+					   NULL, NULL, NULL, peeraddr,
+					   client->message->id, options, 0,
+					   NULL, client->task, prefetch_done,
+					   client, tmprdataset, NULL,
+					   &client->query.prefetch);
+	if (result != ISC_R_SUCCESS) {
+		query_putrdataset(client, &tmprdataset);
+		ns_client_detach(&dummy);
+	}
+}
+
 /*
  * Get an NS, A, or AAAA rrset related to the response for the client
  * to check the contents of that rrset for hits by eligible policy zones.
@@ -4358,6 +4401,9 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 		 * Do not recurse for addresses for the query name.
 		 */
 		if (rpz_type == DNS_RPZ_TYPE_IP) {
+			result = DNS_R_NXRRSET;
+		} else if (!client->view->rpzs->p.nsip_wait_recurse) {
+			query_rpzfetch(client, name, type);
 			result = DNS_R_NXRRSET;
 		} else {
 			dns_name_copy(name, st->r_name, NULL);

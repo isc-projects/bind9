@@ -156,15 +156,15 @@ options {
         fetches-per-server <integer> [ ( drop | fail ) ];
         fetches-per-zone <integer> [ ( drop | fail ) ];
         files ( unlimited | default | <sizeval> );
-        filter-aaaa { <address_match_element>; ... }; // not configured
-        filter-aaaa-on-v4 ( break-dnssec | <boolean> ); // not configured
-        filter-aaaa-on-v6 ( break-dnssec | <boolean> ); // not configured
+        filter-aaaa { <address_match_element>; ... };
+        filter-aaaa-on-v4 ( break-dnssec | <boolean> );
+        filter-aaaa-on-v6 ( break-dnssec | <boolean> );
         flush-zones-on-shutdown <boolean>;
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
-        geoip-directory ( <quoted_string> | none ); // not configured
-        geoip-use-ecs ( <quoted_string> | none ); // not configured
+        geoip-directory ( <quoted_string> | none );
+        geoip-use-ecs <boolean>;
         has-old-clients <boolean>; // obsolete
         heartbeat-interval <integer>;
         host-statistics <boolean>; // not implemented
@@ -267,13 +267,13 @@ options {
         require-server-cookie <boolean>;
         reserved-sockets <integer>;
         resolver-query-timeout <integer>;
-        response-policy { zone <quoted_string> [ policy ( given | disabled
-            | passthru | no-op | drop | tcp-only | nxdomain | nodata |
-            cname <quoted_string> ) ] [ recursive-only <boolean> ] [ log
-            <boolean> ] [ max-policy-ttl <integer> ]; ... } [
-            recursive-only <boolean> ] [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ] [ min-ns-dots <integer> ] [
-            qname-wait-recurse <boolean> ];
+        response-policy { zone <quoted_string> [ log <boolean> ] [
+            max-policy-ttl <integer> ] [ policy ( given | disabled |
+            passthru | no-op | drop | tcp-only | nxdomain | nodata | cname
+            <quoted_string> ) ] [ recursive-only <boolean> ]; ... } [
+            break-dnssec <boolean> ] [ max-policy-ttl <integer> ] [
+            min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
+            qname-wait-recurse <boolean> ] [ recursive-only <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
@@ -452,9 +452,9 @@ view <string> [ <class> ] {
         fetch-quota-params <integer> <fixedpoint> <fixedpoint> <fixedpoint>;
         fetches-per-server <integer> [ ( drop | fail ) ];
         fetches-per-zone <integer> [ ( drop | fail ) ];
-        filter-aaaa { <address_match_element>; ... }; // not configured
-        filter-aaaa-on-v4 ( break-dnssec | <boolean> ); // not configured
-        filter-aaaa-on-v6 ( break-dnssec | <boolean> ); // not configured
+        filter-aaaa { <address_match_element>; ... };
+        filter-aaaa-on-v4 ( break-dnssec | <boolean> );
+        filter-aaaa-on-v6 ( break-dnssec | <boolean> );
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
@@ -542,13 +542,13 @@ view <string> [ <class> ] {
         request-sit <boolean>; // obsolete
         require-server-cookie <boolean>;
         resolver-query-timeout <integer>;
-        response-policy { zone <quoted_string> [ policy ( given | disabled
-            | passthru | no-op | drop | tcp-only | nxdomain | nodata |
-            cname <quoted_string> ) ] [ recursive-only <boolean> ] [ log
-            <boolean> ] [ max-policy-ttl <integer> ]; ... } [
-            recursive-only <boolean> ] [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ] [ min-ns-dots <integer> ] [
-            qname-wait-recurse <boolean> ];
+        response-policy { zone <quoted_string> [ log <boolean> ] [
+            max-policy-ttl <integer> ] [ policy ( given | disabled |
+            passthru | no-op | drop | tcp-only | nxdomain | nodata | cname
+            <quoted_string> ) ] [ recursive-only <boolean> ]; ... } [
+            break-dnssec <boolean> ] [ max-policy-ttl <integer> ] [
+            min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
+            qname-wait-recurse <boolean> ] [ recursive-only <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name

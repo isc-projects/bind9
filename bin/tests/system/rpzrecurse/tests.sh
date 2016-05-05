@@ -310,4 +310,30 @@ grep "status: NOERROR" dig.out.${t}.2 > /dev/null || {
     status=1
 }
 
+t=`expr $t + 1`
+echo "I:checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' ($t)"
+echo "I:timing 'nsip-wait-recurse yes' (default)"
+ret=0
+t1=`$PERL -e 'print time()."\n";'`
+$DIG -p 5300 @10.53.0.3 foo.child.example.tld a > dig.out.yes.$t
+t2=`$PERL -e 'print time()."\n";'`
+p1=`expr $t2 - $t1`
+echo "I:elasped time $p1 seconds"
+
+$RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p 9953 flush
+cp -f ns3/named2.conf ns3/named.conf
+$RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload > /dev/null
+
+echo "I:timing 'nsip-wait-recurse no'"
+t3=`$PERL -e 'print time()."\n";'`
+$DIG -p 5300 @10.53.0.3 foo.child.example.tld a > dig.out.no.$t
+t4=`$PERL -e 'print time()."\n";'`
+p2=`expr $t4 - $t3`
+echo "I:elasped time $p2 seconds"
+
+if test $p1 -le $p2; then ret=1; fi
+if test $ret != 0; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+
 exit $status

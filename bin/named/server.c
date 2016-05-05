@@ -1933,6 +1933,12 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	else
 		new->p.qname_wait_recurse = ISC_FALSE;
 
+	sub_obj = cfg_tuple_get(rpz_obj, "nsip-wait-recurse");
+	if (cfg_obj_isvoid(sub_obj) || cfg_obj_asboolean(sub_obj))
+		new->p.nsip_wait_recurse = ISC_TRUE;
+	else
+		new->p.nsip_wait_recurse = ISC_FALSE;
+
 	pview = NULL;
 	result = dns_viewlist_find(&ns_g_server->viewlist,
 				   view->name, view->rdclass, &pview);

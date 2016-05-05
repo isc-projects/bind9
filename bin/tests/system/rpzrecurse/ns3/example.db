@@ -1,0 +1,6 @@
+$TTL 0
+@			SOA	. . 0 0 0 0 0
+@			NS	ns
+ns			A	10.53.0.3
+child			NS	ns.child
+ns.child		A	10.53.0.4

@@ -1,0 +1,4 @@
+$TTL 0
+@			SOA	. . 0 0 0 0 0
+@			NS	.
+32.100.0.53.10.rpz-nsip	CNAME	.

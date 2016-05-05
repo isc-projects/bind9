@@ -19,3 +19,4 @@ SYSTEMTESTTOP=..
 
 perl testgen.pl
 cp -f ns2/named.default.conf ns2/named.conf
+cp -f ns3/named1.conf ns3/named.conf

@@ -4669,6 +4669,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       <optional> max-policy-ttl <replaceable>number</replaceable> </optional>
       <optional> break-dnssec <replaceable>yes_or_no</replaceable> </optional>
       <optional> min-ns-dots <replaceable>number</replaceable> </optional>
+      <optional> nsip-wait-recurse <replaceable>yes_or_no</replaceable> </optional>
       <optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> </optional>
       <optional> automatic-interface-scan <replaceable>yes_or_no</replaceable> </optional>
     ; </optional>
@@ -10057,12 +10058,32 @@ deny-answer-aliases { "example.net"; };
 		<term><command>RPZ-NSIP</command></term>
 		<listitem>
 		  <para>
-		    NSIP triggers are encoded like IP triggers except as
+		    NSIP triggers match the IP addresses of authoritative
+		    servers.  They are enncoded like IP triggers, except as
 		    subdomains of <command>rpz-nsip</command>.
 		    NSDNAME and NSIP triggers are checked only for names with at
 		    least <command>min-ns-dots</command> dots.
-		    The default value of <command>min-ns-dots</command> is 1 to
-		    exclude top level domains.
+		    The default value of <command>min-ns-dots</command> is
+		    1, to exclude top level domains.
+		  </para>
+		  <para>
+		    If a name server's IP address is not yet known,
+		    <command>named</command> will recursively look up
+		    the IP address before applying an RPZ-NSIP rule.
+		    This can cause a processing delay. To speed up
+		    processing at the cost of precision, the
+		    <command>nsip-wait-recurse</command> option
+		    can be used: when set to <userinput>no</userinput>,
+		    RPZ-NSIP rules will only be applied when a name
+		    servers's IP address has already been looked up and
+		    cached.  If a server's IP address is not in the
+		    cache, then the RPZ-NSIP rule will be ignored,
+		    but the address will be looked up in the
+		    background, and the rule will be applied
+		    to subsequent queries.  The default is
+		    <userinput>yes</userinput>, meaning RPZ-NSIP
+		    rules should always be applied even if an
+		    address needs to be looked up first.
 		  </para>
 		</listitem>
 	      </varlistentry>

@@ -1440,10 +1440,10 @@ static cfg_type_t cfg_type_rpz_policy = {
 };
 static cfg_tuplefielddef_t rpz_zone_fields[] = {
 	{ "zone name", &cfg_type_rpz_zone, 0 },
-	{ "policy", &cfg_type_rpz_policy, 0 },
-	{ "recursive-only", &cfg_type_boolean, 0 },
 	{ "log", &cfg_type_boolean, 0 },
 	{ "max-policy-ttl", &cfg_type_uint32, 0 },
+	{ "policy", &cfg_type_rpz_policy, 0 },
+	{ "recursive-only", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_rpz_tuple = {
@@ -1458,11 +1458,12 @@ static cfg_type_t cfg_type_rpz_list = {
 };
 static cfg_tuplefielddef_t rpz_fields[] = {
 	{ "zone list", &cfg_type_rpz_list, 0 },
-	{ "recursive-only", &cfg_type_boolean, 0 },
 	{ "break-dnssec", &cfg_type_boolean, 0 },
 	{ "max-policy-ttl", &cfg_type_uint32, 0 },
 	{ "min-ns-dots", &cfg_type_uint32, 0 },
+	{ "nsip-wait-recurse", &cfg_type_boolean, 0 },
 	{ "qname-wait-recurse", &cfg_type_boolean, 0 },
+	{ "recursive-only", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_rpz = {
