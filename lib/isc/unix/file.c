@@ -149,11 +149,11 @@ isc_file_getmodtime(const char *file, isc_time_t *modtime) {
 	result = file_stats(file, &stats);
 
 	if (result == ISC_R_SUCCESS)
-		/*
-		 * XXXDCL some operating systems provide nanoseconds, too,
-		 * such as BSD/OS via st_mtimespec.
-		 */
+#ifdef ISC_PLATFORM_HAVESTATNSEC
+		isc_time_set(modtime, stats.st_mtime, stats.st_mtim.tv_nsec);
+#else
 		isc_time_set(modtime, stats.st_mtime, 0);
+#endif
 
 	return (result);
 }
