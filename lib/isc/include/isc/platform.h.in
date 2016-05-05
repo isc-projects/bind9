@@ -250,6 +250,11 @@
 @ISC_PLATFORM_KRB5HEADER@
 
 /*
+ * Define if the system has nanosecond-level accuracy in file stats.
+ */
+@ISC_PLATFORM_HAVESTATNSEC@
+
+/*
  * Type used for resource limits.
  */
 @ISC_PLATFORM_RLIMITTYPE@
