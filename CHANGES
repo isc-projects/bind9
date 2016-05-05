@@ -1,6 +1,7 @@
 4354.	[bug]		Check that the received HMAC length matches the
 			expected length prior to check the contents on the
 			control channel.  This prevents a OOB read error.
+			This was reported by Lian Yihan, <lianyihan@360.cn>.
 			[RT #42215]
 
 4353.	[cleanup]	Update PKCS#11 header files. [RT #42175]
