@@ -311,6 +311,7 @@ isc_hmacsha512_verify
 isc_httpd_addheader
 isc_httpd_addheaderuint
 isc_httpd_response
+isc_httpd_setfinishhook
 isc_httpdmgr_addurl
 isc_httpdmgr_addurl2
 isc_httpdmgr_create
