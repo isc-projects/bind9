@@ -12,7 +12,7 @@
 
 4356.	[func]		Add the ability to specify whether to wait for
 			nameserver addresses to be looked up or not to
-			rpz with a new modifying directive 'nsip-wait-recurse'.
+			RPZ with a new modifying directive 'nsip-wait-recurse'.
 			[RT #35009]
 
 4355.	[func]		"pkcs11-list" now displays the extractability
