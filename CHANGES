@@ -1,3 +1,6 @@
+4360.	[bug]		Silence spurious 'bad key type' message when there is
+			a existing TSIG key. [RT #42195]
+
 4359.	[bug]		Inherited 'also-notify' lists were not being checked
 			by named-checkconf. [RT #42174]
 

@@ -1411,6 +1411,7 @@ dns_dnssec_findmatchingkeys2(dns_name_t *origin, const char *directory,
 			     isc_stdtime_t now, isc_mem_t *mctx,
 			     dns_dnsseckeylist_t *keylist)
 {
+	const char *digits = "0123456789";
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_boolean_t dir_open = ISC_FALSE;
 	dns_dnsseckeylist_t list;
@@ -1419,7 +1420,7 @@ dns_dnssec_findmatchingkeys2(dns_name_t *origin, const char *directory,
 	dst_key_t *dstkey = NULL;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	isc_buffer_t b;
-	unsigned int len, i;
+	unsigned int len, i, alg;
 
 	REQUIRE(keylist != NULL);
 	ISC_LIST_INIT(list);
@@ -1442,11 +1443,20 @@ dns_dnssec_findmatchingkeys2(dns_name_t *origin, const char *directory,
 		    strncasecmp(dir.entry.name + 1, namebuf, len) != 0)
 			continue;
 
-		for (i = len + 1 + 1; i < dir.entry.length ; i++)
+		alg = 0;
+		for (i = len + 1 + 1; i < dir.entry.length ; i++) {
 			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
 				break;
+			alg *= 10;
+			alg += strchr(digits, dir.entry.name[i]) - digits;
+		}
 
-		if (i == len + 1 + 1 || i >= dir.entry.length ||
+		/*
+		 * Did we not read exactly 3 digits?
+		 * Did we overflow?
+		 * Did we correctly terminate?
+		 */
+		if (i != len + 1 + 1 + 3 || i >= dir.entry.length ||
 		    dir.entry.name[i] != '+')
 			continue;
 
@@ -1454,7 +1464,13 @@ dns_dnssec_findmatchingkeys2(dns_name_t *origin, const char *directory,
 			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
 				break;
 
-		if (strcmp(dir.entry.name + i, ".private") != 0)
+		/*
+		 * Did we not read exactly 5 more digits?
+		 * Did we overflow?
+		 * Did we correctly terminate?
+		 */
+		if (i != len + 1 + 1 + 3 + 1 + 5 || i >= dir.entry.length ||
+		    strcmp(dir.entry.name + i, ".private") != 0)
 				continue;
 
 		dstkey = NULL;
@@ -1463,6 +1479,17 @@ dns_dnssec_findmatchingkeys2(dns_name_t *origin, const char *directory,
 					       DST_TYPE_PUBLIC |
 					       DST_TYPE_PRIVATE,
 					       mctx, &dstkey);
+
+		switch (alg) {
+		case DST_ALG_HMACMD5:
+		case DST_ALG_HMACSHA1:
+		case DST_ALG_HMACSHA224:
+		case DST_ALG_HMACSHA256:
+		case DST_ALG_HMACSHA384:
+		case DST_ALG_HMACSHA512:
+			if (result == DST_R_BADKEYTYPE)
+				continue;
+		}
 
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx,
