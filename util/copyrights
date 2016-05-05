@@ -333,8 +333,8 @@
 ./bin/pkcs11/pkcs11-keygen.docbook		SGML	2009,2014,2015
 ./bin/pkcs11/pkcs11-keygen.html			HTML	DOCBOOK
 ./bin/pkcs11/pkcs11-list.8			MAN	DOCBOOK
-./bin/pkcs11/pkcs11-list.c			X	2009,2014,2015
-./bin/pkcs11/pkcs11-list.docbook		SGML	2009,2014,2015
+./bin/pkcs11/pkcs11-list.c			C	2009,2014,2015,2016
+./bin/pkcs11/pkcs11-list.docbook		SGML	2009,2014,2015,2016
 ./bin/pkcs11/pkcs11-list.html			HTML	DOCBOOK
 ./bin/pkcs11/pkcs11-tokens.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-tokens.c			C	2014,2015

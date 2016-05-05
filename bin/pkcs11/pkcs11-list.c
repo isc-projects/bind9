@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2014-2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -196,10 +196,16 @@ main(int argc, char *argv[]) {
 			CK_OBJECT_CLASS oclass = 0;
 			CK_BYTE labelbuf[64 + 1];
 			CK_BYTE idbuf[64];
+			CK_BBOOL extract = TRUE;
+			CK_BBOOL never = FALSE;
 			CK_ATTRIBUTE template[] = {
 				{CKA_CLASS, &oclass, sizeof(oclass)},
 				{CKA_LABEL, labelbuf, sizeof(labelbuf) - 1},
 				{CKA_ID, idbuf, sizeof(idbuf)}
+			};
+			CK_ATTRIBUTE priv_template[] = {
+				{CKA_EXTRACTABLE, &extract, sizeof(extract)},
+				{CKA_NEVER_EXTRACTABLE, &never, sizeof(never)}
 			};
 
 			memset(labelbuf, 0, sizeof(labelbuf));
@@ -233,7 +239,7 @@ main(int argc, char *argv[]) {
 			if (len == 2) {
 				id = (idbuf[0] << 8) & 0xff00;
 				id |= idbuf[1] & 0xff;
-				printf("%u\n", id);
+				printf("%u", id);
 			} else {
 				if (len > 8)
 					len = 8;
@@ -242,10 +248,17 @@ main(int argc, char *argv[]) {
 				for (j = 0; j < len; j++)
 					printf("%02x", idbuf[j]);
 				if (template[2].ulValueLen > len)
-					printf("...\n");
-				else
-					printf("\n");
+					printf("...");
 			}
+			if ((oclass == CKO_PRIVATE_KEY ||
+			     oclass == CKO_SECRET_KEY) &&
+			    pkcs_C_GetAttributeValue(hSession, akey[i],
+					priv_template, 2) == CKR_OK) {
+				printf(" E:%s",
+				       extract ? "true" :
+				       (never ? "never" : "false"));
+			}
+			printf("\n");
 		}
 	}
 
