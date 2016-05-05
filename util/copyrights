@@ -1592,7 +1592,7 @@
 ./bin/tests/system/keymgr/17-noforce/expect	X	2016
 ./bin/tests/system/keymgr/clean.sh		SH	2016
 ./bin/tests/system/keymgr/policy.conf		CONF-C	2016
-./bin/tests/system/keymgr/policy.good		CONF-C	2016
+./bin/tests/system/keymgr/policy.good		X	2016
 ./bin/tests/system/keymgr/policy.sample		CONF-C	2016
 ./bin/tests/system/keymgr/prereq.sh		SH	2016
 ./bin/tests/system/keymgr/setup.sh		SH	2016
