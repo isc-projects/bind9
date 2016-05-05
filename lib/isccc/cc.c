@@ -503,16 +503,29 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	 * Verify.
 	 */
 	if (algorithm == ISCCC_ALG_HMACMD5) {
+		isccc_region_t *region;
 		unsigned char *value;
 
-		value = (unsigned char *) isccc_sexpr_tostring(hmac);
+		region = isccc_sexpr_tobinary(hmac);
+		if ((region->rend - region->rstart) != HMD5_LENGTH)
+			return (ISCCC_R_BADAUTH);
+		value = region->rstart;
 		if (!isc_safe_memequal(value, digestb64, HMD5_LENGTH))
 			return (ISCCC_R_BADAUTH);
 	} else {
+		isccc_region_t *region;
 		unsigned char *value;
 		isc_uint32_t valalg;
 
-		value = (unsigned char *) isccc_sexpr_tostring(hmac);
+		region = isccc_sexpr_tobinary(hmac);
+
+		/*
+		 * Note: with non-MD5 algorithms, there's an extra octet
+		 * to identify which algorithm is in use.
+		 */
+		if ((region->rend - region->rstart) != HSHA_LENGTH + 1)
+			return (ISCCC_R_BADAUTH);
+		value = region->rstart;
 		GET8(valalg, value);
 		if ((valalg != algorithm) ||
 		    !isc_safe_memequal(value, digestb64, HSHA_LENGTH))
