@@ -1785,7 +1785,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			tresult = cfg_map_get(voptions, "also-notify", &obj);
 		if (tresult != ISC_R_SUCCESS && goptions != NULL)
 			tresult = cfg_map_get(goptions, "also-notify", &obj);
-	        if (tresult == ISC_R_SUCCESS && donotify) {
+		if (tresult == ISC_R_SUCCESS && donotify) {
 			isc_uint32_t count;
 			tresult = validate_masters(obj, config, &count,
 						   logctx, mctx);

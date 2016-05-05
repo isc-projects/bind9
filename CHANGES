@@ -1,5 +1,5 @@
-4362.	[func]		Changed rndc reconfig behaviour so that newly added 
-			zones are loaded asynchronously and the loading does 
+4362.	[func]		Changed rndc reconfig behaviour so that newly added
+			zones are loaded asynchronously and the loading does
 			not block the server. [RT #41934]
 
 4361.	[cleanup]	Where supported, file modification times returned

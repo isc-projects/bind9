@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015,2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -252,7 +252,7 @@ fuzz_main_resolver(void *arg) {
 
 		socklen = sizeof(recvaddr);
 		sent = recvfrom(listenfd, rbuf, 65536, 0,
-		                (struct sockaddr *) &recvaddr, &socklen);
+				(struct sockaddr *) &recvaddr, &socklen);
 		RUNTIME_CHECK(sent > 0);
 
 		/* Copy QID and set QR so that response is always processed. */
@@ -261,7 +261,7 @@ fuzz_main_resolver(void *arg) {
 		buf[2] |= 0x80;
 
 		sent = sendto(listenfd, buf, length, 0,
-		              (struct sockaddr *) &recvaddr, sizeof(recvaddr));
+			      (struct sockaddr *) &recvaddr, sizeof(recvaddr));
 		RUNTIME_CHECK(sent == length);
 
 		/* We might get additional questions here (e.g. for CNAME). */
