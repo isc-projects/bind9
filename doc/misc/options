@@ -156,15 +156,15 @@ options {
         fetches-per-server <integer> [ ( drop | fail ) ];
         fetches-per-zone <integer> [ ( drop | fail ) ];
         files ( unlimited | default | <sizeval> );
-        filter-aaaa { <address_match_element>; ... };
-        filter-aaaa-on-v4 ( break-dnssec | <boolean> );
-        filter-aaaa-on-v6 ( break-dnssec | <boolean> );
+        filter-aaaa { <address_match_element>; ... }; // not configured
+        filter-aaaa-on-v4 ( break-dnssec | <boolean> ); // not configured
+        filter-aaaa-on-v6 ( break-dnssec | <boolean> ); // not configured
         flush-zones-on-shutdown <boolean>;
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
-        geoip-directory ( <quoted_string> | none );
-        geoip-use-ecs <boolean>;
+        geoip-directory ( <quoted_string> | none ); // not configured
+        geoip-use-ecs ( <quoted_string> | none ); // not configured
         has-old-clients <boolean>; // obsolete
         heartbeat-interval <integer>;
         host-statistics <boolean>; // not implemented
@@ -452,9 +452,9 @@ view <string> [ <class> ] {
         fetch-quota-params <integer> <fixedpoint> <fixedpoint> <fixedpoint>;
         fetches-per-server <integer> [ ( drop | fail ) ];
         fetches-per-zone <integer> [ ( drop | fail ) ];
-        filter-aaaa { <address_match_element>; ... };
-        filter-aaaa-on-v4 ( break-dnssec | <boolean> );
-        filter-aaaa-on-v6 ( break-dnssec | <boolean> );
+        filter-aaaa { <address_match_element>; ... }; // not configured
+        filter-aaaa-on-v4 ( break-dnssec | <boolean> ); // not configured
+        filter-aaaa-on-v6 ( break-dnssec | <boolean> ); // not configured
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };

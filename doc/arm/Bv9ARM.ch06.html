@@ -2548,6 +2548,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> </span>]
       [<span class="optional"> break-dnssec <em class="replaceable"><code>yes_or_no</code></em> </span>]
       [<span class="optional"> min-ns-dots <em class="replaceable"><code>number</code></em> </span>]
+      [<span class="optional"> nsip-wait-recurse <em class="replaceable"><code>yes_or_no</code></em> </span>]
       [<span class="optional"> qname-wait-recurse <em class="replaceable"><code>yes_or_no</code></em> </span>]
       [<span class="optional"> automatic-interface-scan <em class="replaceable"><code>yes_or_no</code></em> </span>]
     ; </span>]
@@ -6986,14 +6987,36 @@ deny-answer-aliases { "example.net"; };
                     policy records.
                   </p></dd>
 <dt><span class="term"><span class="command"><strong>RPZ-NSIP</strong></span></span></dt>
-<dd><p>
-                    NSIP triggers are encoded like IP triggers except as
+<dd>
+<p>
+                    NSIP triggers match the IP addresses of authoritative
+                    servers.  They are enncoded like IP triggers, except as
                     subdomains of <span class="command"><strong>rpz-nsip</strong></span>.
                     NSDNAME and NSIP triggers are checked only for names with at
                     least <span class="command"><strong>min-ns-dots</strong></span> dots.
-                    The default value of <span class="command"><strong>min-ns-dots</strong></span> is 1 to
-                    exclude top level domains.
-                  </p></dd>
+                    The default value of <span class="command"><strong>min-ns-dots</strong></span> is
+                    1, to exclude top level domains.
+                  </p>
+<p>
+                    If a name server's IP address is not yet known,
+                    <span class="command"><strong>named</strong></span> will recursively look up
+                    the IP address before applying an RPZ-NSIP rule.
+                    This can cause a processing delay. To speed up
+                    processing at the cost of precision, the
+                    <span class="command"><strong>nsip-wait-recurse</strong></span> option
+                    can be used: when set to <strong class="userinput"><code>no</code></strong>,
+                    RPZ-NSIP rules will only be applied when a name
+                    servers's IP address has already been looked up and
+                    cached.  If a server's IP address is not in the
+                    cache, then the RPZ-NSIP rule will be ignored,
+                    but the address will be looked up in the
+                    background, and the rule will be applied
+                    to subsequent queries.  The default is
+                    <strong class="userinput"><code>yes</code></strong>, meaning RPZ-NSIP
+                    rules should always be applied even if an
+                    address needs to be looked up first.
+                  </p>
+</dd>
 </dl></div>
 <p>
           </p>

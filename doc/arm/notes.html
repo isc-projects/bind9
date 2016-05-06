@@ -542,6 +542,18 @@
 	  on Linux is now supported.
 	</p></li>
 <li class="listitem"><p>
+	  A new <code class="option">nsip-wait-recurse</code> directive has been
+	  added to RPZ, specifying whether to look up unknown name server
+	  IP addresses and wait for a response before applying RPZ-NSIP rules.
+	  The default is <strong class="userinput"><code>yes</code></strong>. If set to
+	  <strong class="userinput"><code>no</code></strong>, <span class="command"><strong>named</strong></span> will only
+	  apply RPZ-NSIP rules to servers whose addresses are already cached.
+	  The addresses will be looked up in the background so the rule can
+	  be applied on subsequent queries. This improves performance when
+	  the cache is cold, at the cost of temporary imprecision in applying
+	  policy directives. [RT #35009]
+	</p></li>
+<li class="listitem"><p>
 	  Within the <code class="option">response-policy</code> option, it is now
 	  possible to configure RPZ rewrite logging on a per-zone basis
 	  using the <code class="option">log</code> clause.
@@ -559,10 +571,17 @@
 	  Zone transfers now use smaller message sizes to improve
 	  message compression. This results in reduced network usage.
 	</p></li>
-<li class="listitem"><p>
+<li class="listitem">
+<p>
 	  Added support for the AVC resource record type (Application
 	  Visibility and Control).
-	</p></li>
+	</p>
+<p>
+	  Changed <span class="command"><strong>rndc reconfig</strong></span> behaviour so that newly
+	  added zones are loaded asynchronously and the loading does not
+	  block the server.
+	</p>
+</li>
 </ul></div>
 </div>
 <div class="section">
