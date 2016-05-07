@@ -27,7 +27,7 @@ $SHELL ../genzone.sh 2 >ns2/static.db
 
 $SHELL ../genzone.sh 2 >ns6/huge.zone.db
 awk 'END { for (i = 1; i <= 1000000; i++)
-     printf "host%u IN A 10.53.0.6\n", i; }' < /dev/null >> ns6/huge.zone.db
+     printf "host%d IN A 10.53.0.6\n", i; }' < /dev/null >> ns6/huge.zone.db
 
 cat ns4/named.conf.in > ns4/named.conf
 cat ns6/named.conf.in > ns6/named.conf
