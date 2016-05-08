@@ -371,8 +371,8 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:testing automatic zones are reported ($n)"
 ret=0
-$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf status > rndc.status || ret=1
-grep "number of zones: 198 (196 automatic)" rndc.status > /dev/null || ret=1
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf status > rndc.output.test$n || ret=1
+grep "number of zones: 198 (196 automatic)" rndc.output.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -424,8 +424,8 @@ do
 	n=`expr $n + 1`
 	echo "I:testing rndc buffer size limits (size=${i}) ($n)"
 	ret=0
-	$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf testgen ${i} 2>&1 > rndc.output || ret=1
-	actual_size=`./gencheck rndc.output`
+	$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf testgen ${i} 2>&1 > rndc.output.test$n || ret=1
+	actual_size=`./gencheck rndc.output.test$n`
 	if [ "$?" = "0" ]; then
 	    expected_size=`expr $i + 1`
 	    if [ $actual_size != $expected_size ]; then ret=1; fi
@@ -440,16 +440,16 @@ done
 n=`expr $n + 1`
 echo "I:testing rndc -r (show result) ($n)"
 ret=0
-$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf -r testgen 0 2>&1 > rndc.output || ret=1
-grep "ISC_R_SUCCESS 0" rndc.output > /dev/null || ret=1
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf -r testgen 0 2>&1 > rndc.output.test$n || ret=1
+grep "ISC_R_SUCCESS 0" rndc.output.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I:testing rndc with a token containing a space ($n)"
 ret=0
-$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf -r flush '"view with a space"' 2>&1 > rndc.output || ret=1
-grep "not found" rndc.output > /dev/null && ret=1
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf -r flush '"view with a space"' 2>&1 > rndc.output.test$n || ret=1
+grep "not found" rndc.output.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -460,8 +460,8 @@ $RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf reconfig > /dev/null || ret=1
 sleep 1
 mv ns4/named.conf ns4/named.conf.save
 echo "error error error" >> ns4/named.conf
-$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf reconfig > rndc.output 2>&1 && ret=1
-grep "rndc: 'reconfig' failed: unexpected token" rndc.output > /dev/null || ret=1
+$RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf reconfig > rndc.output.test$n 2>&1 && ret=1
+grep "rndc: 'reconfig' failed: unexpected token" rndc.output.test$n > /dev/null || ret=1
 mv ns4/named.conf.save ns4/named.conf
 sleep 1
 $RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf reconfig > /dev/null || ret=1
@@ -481,8 +481,8 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:test rndc status shows running on ($n)"
 ret=0
-$RNDC -s 10.53.0.5 -p 9953 -c ../common/rndc.conf status > rndc.output /dev/null 2>&1 || ret=1
-grep "^running on " rndc.output > /dev/null || ret=1
+$RNDC -s 10.53.0.5 -p 9953 -c ../common/rndc.conf status > rndc.output.test$n /dev/null 2>&1 || ret=1
+grep "^running on " rndc.output.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -493,7 +493,7 @@ cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns6/named.run`
 cp ns6/named.conf ns6/named.conf.save
 echo "zone \"huge.zone\" { type master; file \"huge.zone.db\"; };" >> ns6/named.conf
 echo " I:reloading config"
-$RNDC -s 10.53.0.6 -p 9953 -c ../common/rndc.conf reconfig > rndc.output 2>&1 || ret=1
+$RNDC -s 10.53.0.6 -p 9953 -c ../common/rndc.conf reconfig > rndc.output.test$n 2>&1 || ret=1
 if [ $ret != 0 ]; then echo " I:failed"; fi
 status=`expr $status + $ret`
 sleep 1
@@ -505,8 +505,8 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo " I:check if query for the zone returns SERVFAIL ($n)"
-$DIG @10.53.0.6 -p 5300 -t soa huge.zone > dig.out
-grep "SERVFAIL" dig.out > /dev/null || ret=1
+$DIG @10.53.0.6 -p 5300 -t soa huge.zone > dig.out.test$n
+grep "SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo " I:failed"; fi
 status=`expr $status + $ret`
 
@@ -528,8 +528,8 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo " I:check if query for the zone returns NOERROR ($n)"
-$DIG @10.53.0.6 -p 5300 -t soa huge.zone > dig.out
-grep "NOERROR" dig.out > /dev/null || ret=1
+$DIG @10.53.0.6 -p 5300 -t soa huge.zone > dig.out.test$n
+grep "NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo " I:failed"; fi
 status=`expr $status + $ret`
 
@@ -544,7 +544,7 @@ if [ -x "$PYTHON" ]; then
     n=`expr $n + 1`
     echo "I:test rndc python bindings ($n)"
     ret=0
-    $PYTHON > rndc.output << EOF
+    $PYTHON > rndc.output.test$n << EOF
 import sys
 sys.path.insert(0, '../../../../bin/python')
 from isc import *
@@ -552,7 +552,7 @@ r = rndc(('10.53.0.5', 9953), 'hmac-sha256', '1234abcd8765')
 result = r.call('status')
 print(result['text'])
 EOF
-    grep 'server is up and running' rndc.output > /dev/null 2>&1 || ret=1
+    grep 'server is up and running' rndc.output.test$n > /dev/null 2>&1 || ret=1
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
 fi
