@@ -17123,16 +17123,15 @@ allow-query { !{ !10/8; any; }; key example; };
 
 	  <para>
 	    In order for a <command>chroot</command> environment
-	    to
-	    work properly in a particular directory
-	    (for example, <filename>/var/named</filename>),
-	    you will need to set up an environment that includes everything
-	    <acronym>BIND</acronym> needs to run.
-	    From <acronym>BIND</acronym>'s point of view, <filename>/var/named</filename> is
-	    the root of the filesystem.  You will need to adjust the values of
-	    options like
-	    like <command>directory</command> and <command>pid-file</command> to account
-	    for this.
+	    to work properly in a particular directory (for example,
+	    <filename>/var/named</filename>), you will need to set
+	    up an environment that includes everything
+	    <acronym>BIND</acronym> needs to run.  From
+	    <acronym>BIND</acronym>'s point of view,
+	    <filename>/var/named</filename> is the root of the
+	    filesystem.  You will need to adjust the values of
+	    options like <command>directory</command> and
+	    <command>pid-file</command> to account for this.
 	  </para>
 	  <para>
 	    Unlike with earlier versions of BIND, you typically will
