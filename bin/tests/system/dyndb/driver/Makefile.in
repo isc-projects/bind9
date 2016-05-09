@@ -51,7 +51,7 @@ lib/sample.@SO@: sample.@SO@
 	$(SHELL) ${top_srcdir}/mkinstalldirs `pwd`/lib
 	${LIBTOOL_MODE_INSTALL} ${INSTALL} sample.@SO@ `pwd`/lib
 
-sample.@SO@: ${OBJS}
+sample.@SO@: ${OBJS} ${DNSDEPLIBS} ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} -o $@ ${OBJS} \
 		${DNSLIBS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ ${LIBS}
 
