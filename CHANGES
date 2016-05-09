@@ -1,3 +1,6 @@
+4363.	[port]		Turn off triggering UAC when running BINDInstall
+			temporarily.
+
 4361.	[cleanup]	Where supported, file modification times returned
 			by isc_file_getmodtime() are now accurate to the
 			nanosecond. [RT #41968]
