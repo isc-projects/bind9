@@ -1,3 +1,6 @@
+4363.	[port]		Turn off triggering UAC when running BINDInstall
+			temporarily.
+
 	--- 9.9.9 released ---
 
 	--- 9.9.9rc1 released ---
