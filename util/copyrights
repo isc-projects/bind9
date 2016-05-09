@@ -1338,7 +1338,7 @@
 ./bin/tests/system/dyndb/driver/.gitignore	X	2015
 ./bin/tests/system/dyndb/driver/AUTHORS		X	2015
 ./bin/tests/system/dyndb/driver/COPYING		X	2015
-./bin/tests/system/dyndb/driver/Makefile.in	MAKE	2015
+./bin/tests/system/dyndb/driver/Makefile.in	MAKE	2015,2016
 ./bin/tests/system/dyndb/driver/README		X	2015
 ./bin/tests/system/dyndb/driver/db.c		X	2015,2016
 ./bin/tests/system/dyndb/driver/db.h		X	2015
