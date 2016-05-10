@@ -142,16 +142,15 @@ zone "example.com" {
 <a name="chroot"></a>The <span class="command"><strong>chroot</strong></span> Environment</h3></div></div></div>
 <p>
             In order for a <span class="command"><strong>chroot</strong></span> environment
-            to
-            work properly in a particular directory
-            (for example, <code class="filename">/var/named</code>),
-            you will need to set up an environment that includes everything
-            <acronym class="acronym">BIND</acronym> needs to run.
-            From <acronym class="acronym">BIND</acronym>'s point of view, <code class="filename">/var/named</code> is
-            the root of the filesystem.  You will need to adjust the values of
-            options like
-            like <span class="command"><strong>directory</strong></span> and <span class="command"><strong>pid-file</strong></span> to account
-            for this.
+            to work properly in a particular directory (for example,
+            <code class="filename">/var/named</code>), you will need to set
+            up an environment that includes everything
+            <acronym class="acronym">BIND</acronym> needs to run.  From
+            <acronym class="acronym">BIND</acronym>'s point of view,
+            <code class="filename">/var/named</code> is the root of the
+            filesystem.  You will need to adjust the values of
+            options like <span class="command"><strong>directory</strong></span> and
+            <span class="command"><strong>pid-file</strong></span> to account for this.
           </p>
 <p>
             Unlike with earlier versions of BIND, you typically will
