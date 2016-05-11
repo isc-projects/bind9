@@ -87,10 +87,16 @@ doc man:: ${MANOBJS}
 docclean manclean maintainer-clean::
 	rm -f ${MANOBJS}
 
+clean::
+	rm -f timestamp
+
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man3
 
 man3 = ${DESTDIR}${mandir}/man3
+
+timestamp: ${MANOBJS}
+	touch timestamp
 
 install:: installdirs
 	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man3; done
