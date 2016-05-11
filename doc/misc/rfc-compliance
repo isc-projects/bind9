@@ -84,6 +84,7 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC7043
   RFC7314
   RFC7477
+  RFC7830 [16]
 
 The following DNS related RFC have been obsoleted
 
@@ -153,3 +154,6 @@ CD=0 and then send CD=1 iff SERVFAIL is returned in case the recurive
 server has a bad clock and/or bad trust anchor.  Alternatively one
 can send CD=1 then CD=0 on validation failure in case the recursive
 server is under attack or there is stale / bogus authoritative data.
+
+[16] Named doesn't currently encrypt DNS requests so the PAD option
+is accepted but not returned in responses.
