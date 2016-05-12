@@ -4640,8 +4640,8 @@ if test "$dlopen" = "yes"; then
 			fi
 			;;
 		*-freebsd*|*-openbsd*)
+			LDFLAGS="${LDFLAGS} -Wl,-E"
 			SO_CFLAGS="-fpic"
-			elf=`${CC} -dM -E - < /dev/null | grep __ELF__`
 			if test "$use_libtool" = "yes"; then
 				SO_LDFLAGS="-Xcompiler -shared"
 				SO_LD="${CC}"

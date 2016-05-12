@@ -1,3 +1,5 @@
+4364.	[port]		freebsd: add -Wl,-E to loader flags [RT #41690]
+
 4363.	[port]		Turn off triggering UAC when running BINDInstall
 			temporarily.
 
