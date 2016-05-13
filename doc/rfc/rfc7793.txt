@@ -1,0 +1,339 @@
+
+
+
+
+
+
+Internet Engineering Task Force (IETF)                        M. Andrews
+Request for Comments: 7793                                           ISC
+BCP: 163                                                        May 2016
+Category: Best Current Practice
+ISSN: 2070-1721
+
+
+                  Adding 100.64.0.0/10 Prefixes to the
+                 IPv4 Locally-Served DNS Zones Registry
+
+Abstract
+
+   RFC 6598 specifies that "Reverse DNS queries for Shared Address Space
+   addresses [100.64.0.0/10] MUST NOT be forwarded to the global DNS
+   infrastructure."
+
+   This document formally directs IANA to add the associated zones to
+   the "IPv4 Locally-Served DNS Zones Registry" to prevent such queries
+   from accidentally leaking to the global DNS infrastructure.
+
+Status of This Memo
+
+   This memo documents an Internet Best Current Practice.
+
+   This document is a product of the Internet Engineering Task Force
+   (IETF).  It represents the consensus of the IETF community.  It has
+   received public review and has been approved for publication by the
+   Internet Engineering Steering Group (IESG).  Further information on
+   BCPs is available in Section 2 of RFC 5741.
+
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   http://www.rfc-editor.org/info/rfc7793.
+
+Copyright Notice
+
+   Copyright (c) 2016 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+Andrews                   Best Current Practice                 [Page 1]
+
+RFC 7793         IPv4 Locally-Served DNS Zones Additions        May 2016
+
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Changes to the IPv4 Locally-Served DNS Zones Registry . . . .   2
+     2.1.  RFC 6598 Zones  . . . . . . . . . . . . . . . . . . . . .   2
+   3.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   5
+   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   5
+   5.  Normative References  . . . . . . . . . . . . . . . . . . . .   5
+   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .   6
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   6
+
+1.  Introduction
+
+   [RFC6598] specifies that "Reverse DNS queries for Shared Address
+   Space addresses [100.64.0.0/10] MUST NOT be forwarded to the global
+   DNS infrastructure."  [RFC6303] provides guidance on handling such
+   queries.
+
+   This document directs the IANA to add the IPv4 reverse zones
+   corresponding to 100.64.0.0/10, a netblock reserved in [RFC6598], to
+   the "IPv4 Locally-Served DNS Zone Registry" established in [RFC6303].
+
+   Unlike the addresses described in [RFC1918], which are not expected
+   to be seen by other parties, the addresses defined by [RFC6598] are
+   expected to be seen by parties other than those deploying the
+   addresses.  Therefore, it is more crucial that recursive nameservers
+   default to serving these zones locally.
+
+2.  Changes to the IPv4 Locally-Served DNS Zones Registry
+
+   IANA has added the zones listed in "RFC 6598 Zones" (Section 2.1) to
+   the "IPv4 Locally-Served DNS Zone Registry".
+
+2.1.  RFC 6598 Zones
+
+      64.100.IN-ADDR.ARPA
+
+      65.100.IN-ADDR.ARPA
+
+      66.100.IN-ADDR.ARPA
+
+      67.100.IN-ADDR.ARPA
+
+      68.100.IN-ADDR.ARPA
+
+      69.100.IN-ADDR.ARPA
+
+      70.100.IN-ADDR.ARPA
+
+
+
+Andrews                   Best Current Practice                 [Page 2]
+
+RFC 7793         IPv4 Locally-Served DNS Zones Additions        May 2016
+
+
+      71.100.IN-ADDR.ARPA
+
+      72.100.IN-ADDR.ARPA
+
+      73.100.IN-ADDR.ARPA
+
+      74.100.IN-ADDR.ARPA
+
+      75.100.IN-ADDR.ARPA
+
+      76.100.IN-ADDR.ARPA
+
+      77.100.IN-ADDR.ARPA
+
+      78.100.IN-ADDR.ARPA
+
+      79.100.IN-ADDR.ARPA
+
+      80.100.IN-ADDR.ARPA
+
+      81.100.IN-ADDR.ARPA
+
+      82.100.IN-ADDR.ARPA
+
+      83.100.IN-ADDR.ARPA
+
+      84.100.IN-ADDR.ARPA
+
+      85.100.IN-ADDR.ARPA
+
+      86.100.IN-ADDR.ARPA
+
+      87.100.IN-ADDR.ARPA
+
+      88.100.IN-ADDR.ARPA
+
+      89.100.IN-ADDR.ARPA
+
+      90.100.IN-ADDR.ARPA
+
+      91.100.IN-ADDR.ARPA
+
+      92.100.IN-ADDR.ARPA
+
+      93.100.IN-ADDR.ARPA
+
+      94.100.IN-ADDR.ARPA
+
+
+
+
+Andrews                   Best Current Practice                 [Page 3]
+
+RFC 7793         IPv4 Locally-Served DNS Zones Additions        May 2016
+
+
+      95.100.IN-ADDR.ARPA
+
+      96.100.IN-ADDR.ARPA
+
+      97.100.IN-ADDR.ARPA
+
+      98.100.IN-ADDR.ARPA
+
+      99.100.IN-ADDR.ARPA
+
+      100.100.IN-ADDR.ARPA
+
+      101.100.IN-ADDR.ARPA
+
+      102.100.IN-ADDR.ARPA
+
+      103.100.IN-ADDR.ARPA
+
+      104.100.IN-ADDR.ARPA
+
+      105.100.IN-ADDR.ARPA
+
+      106.100.IN-ADDR.ARPA
+
+      107.100.IN-ADDR.ARPA
+
+      108.100.IN-ADDR.ARPA
+
+      109.100.IN-ADDR.ARPA
+
+      110.100.IN-ADDR.ARPA
+
+      111.100.IN-ADDR.ARPA
+
+      112.100.IN-ADDR.ARPA
+
+      113.100.IN-ADDR.ARPA
+
+      114.100.IN-ADDR.ARPA
+
+      115.100.IN-ADDR.ARPA
+
+      116.100.IN-ADDR.ARPA
+
+      117.100.IN-ADDR.ARPA
+
+      118.100.IN-ADDR.ARPA
+
+
+
+
+Andrews                   Best Current Practice                 [Page 4]
+
+RFC 7793         IPv4 Locally-Served DNS Zones Additions        May 2016
+
+
+      119.100.IN-ADDR.ARPA
+
+      120.100.IN-ADDR.ARPA
+
+      121.100.IN-ADDR.ARPA
+
+      122.100.IN-ADDR.ARPA
+
+      123.100.IN-ADDR.ARPA
+
+      124.100.IN-ADDR.ARPA
+
+      125.100.IN-ADDR.ARPA
+
+      126.100.IN-ADDR.ARPA
+
+      127.100.IN-ADDR.ARPA
+
+3.  IANA Considerations
+
+   Per this document, IANA has added the zones listed in "RFC 6598
+   Zones" (Section 2.1) to the "IPv4 Locally-Served DNS Zone Registry".
+
+   IANA is reminded that an insecure delegation for these zones is
+   required for compliance with [RFC6303] to break the DNSSEC chain of
+   trust.
+
+4.  Security Considerations
+
+   This document does not present additional security risks to the
+   Internet than those described in [RFC6303] and [RFC6598].
+
+5.  Normative References
+
+   [RFC1918]  Rekhter, Y., Moskowitz, B., Karrenberg, D., de Groot, G.,
+              and E. Lear, "Address Allocation for Private Internets",
+              BCP 5, RFC 1918, DOI 10.17487/RFC1918, February 1996,
+              <http://www.rfc-editor.org/info/rfc1918>.
+
+   [RFC6303]  Andrews, M., "Locally Served DNS Zones", BCP 163,
+              RFC 6303, DOI 10.17487/RFC6303, July 2011,
+              <http://www.rfc-editor.org/info/rfc6303>.
+
+   [RFC6598]  Weil, J., Kuarsingh, V., Donley, C., Liljenstolpe, C., and
+              M. Azinger, "IANA-Reserved IPv4 Prefix for Shared Address
+              Space", BCP 153, RFC 6598, DOI 10.17487/RFC6598, April
+              2012, <http://www.rfc-editor.org/info/rfc6598>.
+
+
+
+
+Andrews                   Best Current Practice                 [Page 5]
+
+RFC 7793         IPv4 Locally-Served DNS Zones Additions        May 2016
+
+
+Acknowledgements
+
+   The author would like to thank Joe Abley for his review comments.
+
+Author's Address
+
+   M. Andrews
+   Internet Systems Consortium
+   950 Charter Street
+   Redwood City, CA  94063
+   United States
+
+   Email: marka@isc.org
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Andrews                   Best Current Practice                 [Page 6]
+
