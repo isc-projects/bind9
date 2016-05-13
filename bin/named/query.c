@@ -6384,6 +6384,8 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 			     &db, &version, &is_zonep);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOTFOUND);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 
 	/*
 	 * Lookup the requested data in the redirect zone.
@@ -7966,6 +7968,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			client->query.redirect.authoritative = authoritative;
 			db = NULL;
 			node = NULL;
+			zone = NULL;
 			rdataset = NULL;
 			sigrdataset = NULL;
 			goto cleanup;

@@ -1,3 +1,6 @@
+4365.	[bug]		Address zone reference counting errors involving
+			nxdomain-redirect. [RT #42258]
+
 4364.	[port]		freebsd: add -Wl,-E to loader flags [RT #41690]
 
 4363.	[port]		Turn off triggering UAC when running BINDInstall
