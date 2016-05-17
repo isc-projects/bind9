@@ -1,3 +1,5 @@
+	--- 9.9.9-P1 released ---
+
 4366.	[bug]		Address race condition when updating rbtnode bit
 			fields. [RT #42379]
 
