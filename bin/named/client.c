@@ -1922,7 +1922,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	 * If we have already seen a ECS option skip this ECS option.
 	 */
 	if ((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) {
-		isc_buffer_forward(buf, optlen);
+		isc_buffer_forward(buf, (unsigned int)optlen);
 		return (ISC_R_SUCCESS);
 	}
 
