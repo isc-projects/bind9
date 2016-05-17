@@ -21,12 +21,14 @@
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
     <para>
-      This document summarizes significant changes since the last
-      production release of BIND on the corresponding major release
-      branch.
-      Please see the CHANGES file for a further list of bug fixes and
-      other changes.
+      This document summarizes changes since BIND 9.10.4:
     </para>
+    <para>
+      BIND 9.10.4-P1 addresses Windows installation issues and a race
+      condition in the rbt/rbtdb implementation resulting in named
+      exiting due to assertion failures being detected.
+    </para>
+
   </section>
 
   <section xml:id="relnotes_download"><info><title>Download</title></info>
@@ -43,53 +45,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  Duplicate EDNS COOKIE options in a response could trigger
-	  an assertion failure. This flaw is disclosed in CVE-2016-2088.
-	  [RT #41809]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The resolver could abort with an assertion failure due to
-	  improper DNAME handling when parsing fetch reply
-	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Malformed control messages can trigger assertions in named
-	  and rndc. This flaw is disclosed in CVE-2016-1285. [RT
-	  #41666]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Certain errors that could be encountered when printing out
-	  or logging an OPT record containing a CLIENT-SUBNET option
-	  could be mishandled, resulting in an assertion failure.
-	  This flaw is disclosed in CVE-2015-8705. [RT #41397]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Specific APL data could trigger an INSIST.  This flaw
-	  is disclosed in CVE-2015-8704. [RT #41396]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Incorrect reference counting could result in an INSIST
-	  failure if a socket error occurred while performing a
-	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Insufficient testing when parsing a message allowed
-	  records with an incorrect class to be be accepted,
-	  triggering a REQUIRE failure when those records
-	  were subsequently cached.  This flaw is disclosed
-	  in CVE-2015-8000. [RT #40987]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -100,34 +56,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  The following resource record types have been implemented:
-	  AVC, CSYNC, NINFO, RKEY, SINK, SMIMEA, TA, TALINK.
- 	</para>
-      </listitem>
-      <listitem>
-        <para>
-	  Added a warning for a common misconfiguration involving forwarded
-	  RFC 1918 and IPv6 ULA (Universal Local Address) zones.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Contributed software from Nominum is included in the source at
-	  contrib/dnsperf-2.1.0.0-1/. It includes dnsperf for measuring
-	  the performance of authoritative DNS servers, resperf for
-	  testing the resolution performance of a caching DNS server,
-	  resperf-report for generating a resperf report in HTML with
-	  gnuplot graphs, and queryparse to extract DNS queries from
-	  pcap capture files. This software is not installed by default
-	  with BIND.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When loading a signed zone, <command>named</command> will
-	  now check whether an RRSIG's inception time is in the future,
-	  and if so, it will regenerate the RRSIG immediately. This helps
-	  when a system's clock needs to be reset backwards.
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -137,32 +66,7 @@
     <itemizedlist>
       <listitem>
         <para>
-	  Updated the compiled-in addresses for H.ROOT-SERVERS.NET
-	  and L.ROOT-SERVERS.NET.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The default preferred glue is now the address type of the
-	  transport the query was received over.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  On machines with 2 or more processors (CPU), the default value
-	  for the number of UDP listeners has been changed to the number
-	  of detected processors minus one.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Zone transfers now use smaller message sizes to improve
-	  message compression. This results in reduced network usage.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  named -V output now also includes operating system details.
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -172,14 +76,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  The Microsoft Windows install tool
-	  <command>BINDInstall.exe</command> which requires a
-	  non-free version of Visual Studio to be built, now uses two
-	  files (lists of flags and files) created by the Configure
-	  perl script with all the needed information which were
-	  previously compiled in the binary. Read
-	  <filename>win32utils/build.txt</filename> for more details.
-	  [RT #38915]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -189,61 +86,14 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  rndc flushtree now works even if there wasn't a cached node
-	  at the specified name. [RT #41846]
+	  Windows installs were failing due to triggering UAC without
+	  the installation binary being signed.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Don't emit records with zero TTL unless the records were
-	  received with a zero TTL. After being returned to waiting
-	  clients, the answer will be discarded from the cache. [RT #41687]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  For Windows platforms, the SIT (Source Identity Token) support
-	  was restored. (It was mistakenly partially replaced in a
-	  previous beta with new 9.11 COOKIE support.) [RT #41905]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When deleting records from a zone database, interior nodes
-	  could be left empty but not deleted, damaging search
-	  performance afterward. [RT #40997] [RT #41941]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The server could crash due to a use-after-free if a
-	  zone transfer timed out. [RT #41297]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Authoritative servers that were marked as bogus (e.g. blackholed
-	  in configuration or with invalid addresses) were being queried
-	  anyway. [RT #41321]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Some of the options for GeoIP ACLs, including "areacode",
-	  "metrocode", and "timezone", were incorrectly documented
-	  as "area", "metro" and "tz".  Both the long and abbreviated
-	  versions are now accepted.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Zones configured to use <command>map</command> format
-	  master files can't be used as policy zones because RPZ
-	  summary data isn't compiled when such zones are mapped into
-	  memory.  This limitation may be fixed in a future release,
-	  but in the meantime it has been documented, and attempting
-	  to use such zones in <command>response-policy</command>
-	  statements is now a configuration error.  [RT #38321]
+	  A race condition in rbt/rbtdb was leading to INSISTs being
+	  triggered.
 	</para>
       </listitem>
     </itemizedlist>
