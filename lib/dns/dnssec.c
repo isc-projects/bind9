@@ -1348,10 +1348,11 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 
 		alg = 0;
 		for (i = len + 1 + 1; i < dir.entry.length ; i++) {
-			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
+			const char *digit = strchr(digits, dir.entry.name[i]);
+			if (digit == NULL)
 				break;
 			alg *= 10;
-			alg += strchr(digits, dir.entry.name[i]) - digits;
+			alg += (int)(digit - digits);
 		}
 
 		/*
