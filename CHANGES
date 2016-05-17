@@ -1,3 +1,6 @@
+4366.	[bug]		Address race condition when updating rbtnode bit
+			fields. [RT #42379]
+
 4365.	[bug]		Address zone reference counting errors involving
 			nxdomain-redirect. [RT #42258]
 
