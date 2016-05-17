@@ -717,7 +717,14 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  Windows installs were failing due to triggering UAC without
+	  the installation binary being signed.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  A race condition in rbt/rbtdb was leading to INSISTs being
+	  triggered.
 	</para>
       </listitem>
     </itemizedlist>
