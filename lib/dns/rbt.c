@@ -2895,6 +2895,18 @@ check_properties_helper(dns_rbtnode_t *node) {
 			return (ISC_FALSE);
 	}
 
+	if ((DOWN(node) != NULL) && (!IS_ROOT(DOWN(node))))
+		return (ISC_FALSE);
+
+	if (IS_ROOT(node)) {
+		if ((PARENT(node) != NULL) &&
+		    (DOWN(PARENT(node)) != node))
+			return (ISC_FALSE);
+
+		if (get_upper_node(node) != PARENT(node))
+			return (ISC_FALSE);
+	}
+
 	/* If node is assigned to the down_ pointer of its parent, it is
 	 * a subtree root and must have the flag set.
 	 */
