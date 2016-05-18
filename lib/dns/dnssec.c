@@ -1311,7 +1311,6 @@ isc_result_t
 dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 			    isc_mem_t *mctx, dns_dnsseckeylist_t *keylist)
 {
-	const char *digits = "0123456789";
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_boolean_t dir_open = ISC_FALSE;
 	dns_dnsseckeylist_t list;
@@ -1348,11 +1347,10 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 
 		alg = 0;
 		for (i = len + 1 + 1; i < dir.entry.length ; i++) {
-			const char *digit = strchr(digits, dir.entry.name[i]);
-			if (digit == NULL)
+			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
 				break;
 			alg *= 10;
-			alg += (int)(digit - digits);
+			alg += dir.entry.name[i] - '0';
 		}
 
 		/*
