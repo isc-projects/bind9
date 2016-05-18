@@ -1,3 +1,6 @@
+4367.	[bug]		Remove unnecessary assignment of loadtime in
+			zone_touched. [RT #42440]
+
 4366.	[bug]		Address race condition when updating rbtnode bit
 			fields. [RT #42379]
 
