@@ -51,6 +51,14 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.9.9-P1
+
+	This version contains two urgent fixes to BIND 9.9.9:
+	1) Windows installation was failing without manual updating
+	   of BINDinstall's attributes.
+	2) A race condition was causing instability in the rbt
+	   tree state.
+
 BIND 9.9.9
 
 	BIND 9.9.9 is a maintenance release and addresses bugs found
