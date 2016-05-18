@@ -1759,10 +1759,7 @@ zone_touched(dns_zone_t *zone) {
 	result = isc_file_getmodtime(zone->masterfile, &modtime);
 	if (result != ISC_R_SUCCESS ||
 	    isc_time_compare(&modtime, &zone->loadtime) > 0)
-	{
-		zone->loadtime = modtime;
 		return (ISC_TRUE);
-	}
 
 	for (include = ISC_LIST_HEAD(zone->includes);
 	     include != NULL;
