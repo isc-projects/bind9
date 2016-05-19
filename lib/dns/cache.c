@@ -1414,7 +1414,8 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 		"cache records deleted due to TTL expiration");
 	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db),
 		"cache database nodes");
-	fprintf(fp, "%20zu %s\n", dns_db_hashsize(cache->db),
+	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
+		(isc_uint64_t) dns_db_hashsize(cache->db),
 		"cache database hash buckets");
 
 	fprintf(fp, "%20u %s\n", (unsigned int) isc_mem_total(cache->mctx),

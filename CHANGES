@@ -1,5 +1,10 @@
 	--- 9.10.4-P1 released ---
 
+4368.	[bug]		Fix a crash when calling "rndc stats" on some
+			Windows builds because some Visual Studio compilers
+			generated crashing code for the "%z" printf()
+			format specifier. [RT #42380]
+
 4366.	[bug]		Address race condition when updating rbtnode bit
 			fields. [RT #42379]
 
