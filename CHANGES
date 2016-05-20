@@ -1,9 +1,9 @@
+	--- 9.11.0a1 released ---
+
 4368.	[bug]		Fix a crash when calling "rndc stats" on some
 			Windows builds because some Visual Studio compilers
 			generated crashing code for the "%z" printf()
 			format specifier. [RT #42380]
-
-	--- 9.11.0a1 released ---
 
 4367.	[bug]		Remove unnecessary assignment of loadtime in
 			zone_touched. [RT #42440]
@@ -16,8 +16,8 @@
 
 4364.	[port]		freebsd: add -Wl,-E to loader flags [RT #41690]
 
-4363.	[port]		Turn off triggering UAC when running BINDInstall
-			temporarily.
+4363.	[port]		win32: Disable explict triggering UAC when running
+			BINDInstall.
 
 4362.	[func]		Changed rndc reconfig behaviour so that newly added
 			zones are loaded asynchronously and the loading does
