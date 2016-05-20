@@ -1,8 +1,8 @@
 4366.	[bug]		Address race condition when updating rbtnode bit
 			fields. [RT #42379]
 
-4363.	[port]		Turn off triggering UAC when running BINDInstall
-			temporarily.
+4363.	[port]		win32: Disable explict triggering UAC when running
+			BINDInstall.
 
 4361.	[cleanup]	Where supported, file modification times returned
 			by isc_file_getmodtime() are now accurate to the
