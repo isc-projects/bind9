@@ -16,7 +16,7 @@
 
 4364.	[port]		freebsd: add -Wl,-E to loader flags [RT #41690]
 
-4363.	[port]		win32: Disable explict triggering UAC when running
+4363.	[port]		win32: Disable explicit triggering UAC when running
 			BINDInstall.
 
 4362.	[func]		Changed rndc reconfig behaviour so that newly added
