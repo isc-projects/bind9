@@ -8,7 +8,7 @@
 4366.	[bug]		Address race condition when updating rbtnode bit
 			fields. [RT #42379]
 
-4363.	[port]		win32: Disable explict triggering UAC when running
+4363.	[port]		win32: Disable explicit triggering UAC when running
 			BINDInstall.
 
 	--- 9.10.4 released ---
