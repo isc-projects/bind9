@@ -1,4 +1,4 @@
-	--- 9.11.0a1 released ---
+	--- 9.11.0a2 released ---
 
 4368.	[bug]		Fix a crash when calling "rndc stats" on some
 			Windows builds because some Visual Studio compilers
