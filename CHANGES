@@ -1,3 +1,6 @@
+4369.	[bug]		Fix 'make' and 'make install' out-of-tree python
+			support. [RT #42484]
+
 4366.	[bug]		Address race condition when updating rbtnode bit
 			fields. [RT #42379]
 
