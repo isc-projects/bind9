@@ -1,3 +1,6 @@
+4369.	[bug]		Fix 'make' and 'make install' out-of-tree python
+			support. [RT #42484]
+
 4368.	[bug]		Fix a crash when calling "rndc stats" on some
 			Windows builds because some Visual Studio compilers
 			generated crashing code for the "%z" printf()

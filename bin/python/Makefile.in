@@ -53,7 +53,7 @@ install:: ${TARGETS} installdirs
 	${INSTALL_SCRIPT} dnssec-coverage ${DESTDIR}${sbindir}
 	${INSTALL_DATA} ${srcdir}/dnssec-checkds.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/dnssec-coverage.8 ${DESTDIR}${mandir}/man8
-	test -z "${PYTHON}" || ${PYTHON} setup.py install --prefix=${DESTDIR}${prefix}
+	test -z "${PYTHON}" || ${PYTHON} ${srcdir}/setup.py install --prefix=${DESTDIR}${prefix}
 
 clean distclean::
 	rm -f ${TARGETS}
