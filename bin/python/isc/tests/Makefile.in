@@ -26,7 +26,7 @@ PYTESTS =	dnskey_test.py policy_test.py
 
 check test:
 	for test in $(PYTESTS); do \
-		$(PYTHON) $$test; \
+		PYTHONPATH=${srcdir}/../.. $(PYTHON) ${srcdir}/$$test; \
 	done
 
 clean distclean::
