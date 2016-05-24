@@ -56,6 +56,11 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Added rndc python module.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Added support for DynDB, a new interface for loading zone data
 	  from an external database, developed by Red Hat for the FreeIPA
 	  project.  (Thanks in particular to Adam Tkac and Petr

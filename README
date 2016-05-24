@@ -56,6 +56,8 @@ BIND 9.11.0
 	BIND 9.11.0 includes a number of changes from BIND 9.10 and earlier
 	releases.  New features include:
 
+	- Added nsip-wait-recurse switch to rpz.
+	- Added python RNDC module.
 	- Added support for "dnstap", a fast and flexible method of
 	  capturing and logging DNS traffic.
 	- Added support for "dyndb", a new API for loading zone data
