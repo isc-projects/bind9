@@ -24,9 +24,10 @@
       This document summarizes changes since BIND 9.10.4:
     </para>
     <para>
-      BIND 9.10.4-P1 addresses Windows installation issues and a race
-      condition in the rbt/rbtdb implementation resulting in named
-      exiting due to assertion failures being detected.
+      BIND 9.10.4-P1 addresses Windows installation issues, the %z
+      modifier is not supported under Windows and a race condition
+      in the rbt/rbtdb implementation resulting in named exiting
+      due to assertion failures being detected.
     </para>
 
   </section>
