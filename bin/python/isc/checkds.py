@@ -128,23 +128,23 @@ def check(zone, args, masterfile=None, lookaside=None):
         klist.append(SECRR(line, lookaside))
 
     if len(klist) < 1:
-        print ("No DNSKEY records found in zone apex")
+        print("No DNSKEY records found in zone apex")
         return False
 
     found = False
     for rr in klist:
         if rr in rrlist:
-            print ("%s for KSK %s/%03d/%05d (%s) found in parent" %
-                   (rr.rrtype, rr.rrname.strip('.'), rr.keyalg,
-                    rr.keyid, SECRR.hashalgs[rr.hashalg]))
+            print("%s for KSK %s/%03d/%05d (%s) found in parent" %
+                  (rr.rrtype, rr.rrname.strip('.'), rr.keyalg,
+                   rr.keyid, SECRR.hashalgs[rr.hashalg]))
             found = True
         else:
-            print ("%s for KSK %s/%03d/%05d (%s) missing from parent" %
-                   (rr.rrtype, rr.rrname.strip('.'), rr.keyalg,
-                    rr.keyid, SECRR.hashalgs[rr.hashalg]))
+            print("%s for KSK %s/%03d/%05d (%s) missing from parent" %
+                  (rr.rrtype, rr.rrname.strip('.'), rr.keyalg,
+                   rr.keyid, SECRR.hashalgs[rr.hashalg]))
 
     if not found:
-        print ("No %s records were found for any DNSKEY" % ("DLV" if lookaside else "DS"))
+        print("No %s records were found for any DNSKEY" % ("DLV" if lookaside else "DS"))
 
     return found
 
