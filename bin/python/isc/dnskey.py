@@ -230,7 +230,7 @@ class dnskey:
             raise Exception('unable to generate key: ' + stderr)
 
         try:
-            keystr = stdout.splitlines()[0]
+            keystr = stdout.splitlines()[0].decode('ascii')
             newkey = dnskey(keystr, self._dir, self.ttl)
             return newkey
         except:
