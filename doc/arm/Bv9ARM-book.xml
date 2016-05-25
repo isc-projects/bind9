@@ -4438,6 +4438,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> has-old-clients <replaceable>yes_or_no</replaceable>; </optional>
     <optional> host-statistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> host-statistics-max <replaceable>number</replaceable>; </optional>
+    <optional> minimal-any <replaceable>yes_or_no</replaceable>; </optional>
     <optional> minimal-responses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> multiple-cnames <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable>; </optional>
@@ -6195,6 +6196,30 @@ options {
 		</para>
 	      </listitem>
 	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>minimal-any</command></term>
+	      <listitem>
+		<para>
+		  If set to <userinput>yes</userinput>, then when
+		  generating a positive response to a query of type
+		  ANY over UDP, the server will reply with only one
+		  of the RRsets for the query name, and its covering
+		  RRSIGs if any, instead of replying with all known
+		  RRsets for the name.  Similarly, a query for type
+		  RRSIG will be answered with the RRSIG records covering
+		  only one type. This can reduce the impact of some kinds
+		  of attack traffic, without harming legitimate
+		  clients.  (Note, however, that the RRset returned is the
+		  first one found in the database; it is not necessarily
+		  the smallest available RRset.)
+		  Additionally, <option>minimal-responses</option> is
+		  turned on for these queries, so no unnecessary records
+		  will be added to the authority or additional sections.
+		  The default is <userinput>no</userinput>.
+		</para>
+	    </listitem>
+	  </varlistentry>
 
 	    <varlistentry>
 	      <term><command>multiple-cnames</command></term>

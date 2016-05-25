@@ -118,4 +118,25 @@ echo "I:testing with 'minimal-responses no;'"
 minimal=no
 dotests
 
+echo "I:testing with 'minimal-any no;'"
+n=`expr $n + 1`
+$DIG -t ANY www.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+grep "ANSWER: 3, AUTHORITY: 1, ADDITIONAL: 2" dig.out.$n > /dev/null || ret=1
+if [ $ret -eq 1 ] ; then
+    echo "I: failed"; status=1
+fi
+
+echo "I:reconfiguring server"
+cp ns1/named3.conf ns1/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reconfig 2>&1 | sed 's/^/I:ns1 /'
+sleep 2
+
+echo "I:testing with 'minimal-any yes;'"
+n=`expr $n + 1`
+$DIG -t ANY www.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+grep "ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1" dig.out.$n > /dev/null || ret=1
+if [ $ret -eq 1 ] ; then
+    echo "I: failed"; status=1
+fi
+
 exit $status

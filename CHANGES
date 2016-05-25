@@ -1,3 +1,8 @@
+4371.	[func]		New "minimal-any" option reduces the size of UDP
+			responses for qtype ANY by returning a single
+			arbitrarily selected RRset instead of all RRsets.
+			Thanks to Tony Finch. [RT #41615]
+
 4370.	[bug]		Address python3 compatibility issues with RNDC module.
 			[RT #42499]
 

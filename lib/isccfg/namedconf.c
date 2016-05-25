@@ -1685,6 +1685,7 @@ view_clauses[] = {
 	{ "max-recursion-queries", &cfg_type_uint32, 0 },
 	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "min-roots", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTIMP },
+	{ "minimal-any", &cfg_type_boolean, 0 },
 	{ "minimal-responses", &cfg_type_boolean, 0 },
 	{ "nta-recheck", &cfg_type_ttlval, 0 },
 	{ "nta-lifetime", &cfg_type_ttlval, 0 },

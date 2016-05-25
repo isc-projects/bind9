@@ -8339,6 +8339,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 #endif
 
 	if (type == dns_rdatatype_any) {
+		/*
+		 * For minimal-any, we only add records that
+		 * match this type or cover this type.
+		 */
+		dns_rdatatype_t onetype = 0;
 #ifdef ALLOW_FILTER_AAAA
 		isc_boolean_t have_aaaa, have_a, have_sig;
 
@@ -8402,6 +8407,21 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * ANY queries.
 				 */
 				dns_rdataset_disassociate(rdataset);
+			} else if (client->view->minimal_any &&
+				   !TCP(client) && !WANTDNSSEC(client) &&
+				   qtype == dns_rdatatype_any &&
+				   (rdataset->type == dns_rdatatype_sig ||
+				    rdataset->type == dns_rdatatype_rrsig)) {
+				CTRACE(ISC_LOG_DEBUG(5), "query_find: "
+				       "minimal-any skip signature");
+				dns_rdataset_disassociate(rdataset);
+			} else if (client->view->minimal_any &&
+				   !TCP(client) && onetype != 0 &&
+				   rdataset->type != onetype &&
+				   rdataset->covers != onetype) {
+				CTRACE(ISC_LOG_DEBUG(5), "query_find: "
+				       "minimal-any skip rdataset");
+				dns_rdataset_disassociate(rdataset);
 			} else if ((qtype == dns_rdatatype_any ||
 			     rdataset->type == qtype) && rdataset->type != 0) {
 #ifdef ALLOW_FILTER_AAAA
@@ -8421,6 +8441,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					name = (fname != NULL) ? fname : tname;
 					query_prefetch(client, name, rdataset);
 				}
+				/*
+				 * Remember the first RRtype we find so we
+				 * can skip others with minimal-any.
+				 */
+				if (rdataset->type == dns_rdatatype_sig ||
+				    rdataset->type == dns_rdatatype_rrsig)
+					onetype = rdataset->covers;
+				else
+					onetype = rdataset->type;
 				query_addrrset(client,
 					       fname != NULL ? &fname : &tname,
 					       &rdataset, NULL,
@@ -9093,6 +9122,14 @@ ns_query_start(ns_client_t *client) {
 	 * Turn on minimal response for DNSKEY and DS queries.
 	 */
 	if (qtype == dns_rdatatype_dnskey || qtype == dns_rdatatype_ds)
+		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
+					     NS_QUERYATTR_NOADDITIONAL);
+
+	/*
+	 * Maybe turn on minimal responses for ANY queries.
+	 */
+	if (qtype == dns_rdatatype_any &&
+	    client->view->minimal_any && !TCP(client))
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
 

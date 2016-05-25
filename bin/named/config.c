@@ -141,6 +141,7 @@ options {\n\
 #	sortlist <none>\n\
 #	topology <none>\n\
 	auth-nxdomain false;\n\
+	minimal-any false;\n\
 	minimal-responses false;\n\
 	recursion true;\n\
 	provide-ixfr true;\n\

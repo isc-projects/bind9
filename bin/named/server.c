@@ -3546,6 +3546,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	view->auth_nxdomain = cfg_obj_asboolean(obj);
 
 	obj = NULL;
+	result = ns_config_get(maps, "minimal-any", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->minimal_any = cfg_obj_asboolean(obj);
+
+	obj = NULL;
 	result = ns_config_get(maps, "minimal-responses", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->minimalresponses = cfg_obj_asboolean(obj);

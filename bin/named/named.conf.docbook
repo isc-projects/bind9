@@ -248,6 +248,7 @@ options {
 	sortlist { <replaceable>address_match_element</replaceable>; ... };
 	topology { <replaceable>address_match_element</replaceable>; ... }; // not implemented
 	auth-nxdomain <replaceable>boolean</replaceable>; // default changed
+	minimal-any <replaceable>boolean</replaceable>;
 	minimal-responses <replaceable>boolean</replaceable>;
 	recursion <replaceable>boolean</replaceable>;
 	rrset-order {
@@ -446,6 +447,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	sortlist { <replaceable>address_match_element</replaceable>; ... };
 	topology { <replaceable>address_match_element</replaceable>; ... }; // not implemented
 	auth-nxdomain <replaceable>boolean</replaceable>; // default changed
+	minimal-any <replaceable>boolean</replaceable>;
 	minimal-responses <replaceable>boolean</replaceable>;
 	recursion <replaceable>boolean</replaceable>;
 	rrset-order {
