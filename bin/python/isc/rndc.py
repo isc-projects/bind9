@@ -20,7 +20,6 @@
 ############################################################################
 
 from collections import OrderedDict
-from exceptions import TypeError
 import time
 import struct
 import hashlib

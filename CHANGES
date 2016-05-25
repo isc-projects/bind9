@@ -1,3 +1,6 @@
+4370.	[bug]		Address python3 compatibility issues with RNDC module.
+			[RT #42499]
+
 	--- 9.11.0a2 released ---
 
 4369.	[bug]		Fix 'make' and 'make install' out-of-tree python
