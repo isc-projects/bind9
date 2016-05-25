@@ -39,7 +39,7 @@ for dir in [0-9][0-9]-*; do
         . $dir/expect
 
         # run keymgr to update keys
-        $KEYMGR -K $dir -s $SETTIME $kargs > keymgr.$n 2>&1
+        $KEYMGR -K $dir -g $KEYGEN -s $SETTIME $kargs > keymgr.$n 2>&1
         # check that return code matches expectations
         found=$?
         if [ $found -ne $kret ]; then
