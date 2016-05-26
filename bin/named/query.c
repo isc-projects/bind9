@@ -7613,6 +7613,38 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	case DNS_R_CNAME:
 		/*
+		 * If we have a zero ttl from the cache refetch it.
+		 */
+		if (!is_zone && event == NULL && rdataset->ttl == 0 &&
+		    RECURSIONOK(client))
+		{
+			if (dns_rdataset_isassociated(rdataset))
+				dns_rdataset_disassociate(rdataset);
+			if (sigrdataset != NULL &&
+			    dns_rdataset_isassociated(sigrdataset))
+				dns_rdataset_disassociate(sigrdataset);
+			if (node != NULL)
+				dns_db_detachnode(db, &node);
+
+			INSIST(!REDIRECT(client));
+			result = query_recurse(client, qtype,
+					       client->query.qname,
+					       NULL, NULL, resuming);
+			if (result == ISC_R_SUCCESS) {
+				client->query.attributes |=
+					NS_QUERYATTR_RECURSING;
+				if (dns64)
+					client->query.attributes |=
+						NS_QUERYATTR_DNS64;
+				if (dns64_exclude)
+					client->query.attributes |=
+					      NS_QUERYATTR_DNS64EXCLUDE;
+			} else
+				RECURSE_ERROR(result);
+			goto cleanup;
+		}
+
+		/*
 		 * Keep a copy of the rdataset.  We have to do this because
 		 * query_addrrset may clear 'rdataset' (to prevent the
 		 * cleanup code from cleaning it up).
@@ -8022,6 +8054,38 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * This is the "normal" case -- an ordinary question to which
 		 * we know the answer.
 		 */
+
+		/*
+		 * If we have a zero ttl from the cache refetch it.
+		 */
+		if (!is_zone && event == NULL && rdataset->ttl == 0 &&
+		    RECURSIONOK(client))
+		{
+			if (dns_rdataset_isassociated(rdataset))
+				dns_rdataset_disassociate(rdataset);
+			if (sigrdataset != NULL &&
+			    dns_rdataset_isassociated(sigrdataset))
+				dns_rdataset_disassociate(sigrdataset);
+			if (node != NULL)
+				dns_db_detachnode(db, &node);
+
+			INSIST(!REDIRECT(client));
+			result = query_recurse(client, qtype,
+					       client->query.qname,
+					       NULL, NULL, resuming);
+			if (result == ISC_R_SUCCESS) {
+				client->query.attributes |=
+					NS_QUERYATTR_RECURSING;
+				if (dns64)
+					client->query.attributes |=
+						NS_QUERYATTR_DNS64;
+				if (dns64_exclude)
+					client->query.attributes |=
+					      NS_QUERYATTR_DNS64EXCLUDE;
+			} else
+				RECURSE_ERROR(result);
+			goto cleanup;
+		}
 
 #ifdef ALLOW_FILTER_AAAA
 		/*
