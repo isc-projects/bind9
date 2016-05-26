@@ -132,7 +132,7 @@
 	<listitem>
 	  <para>
 	    "All". The <option>-a</option> option is normally equivalent
-	    to <option>-v</option> <option>-t</option> <literal>ANY</literal>.
+	    to <option>-v -t <literal>ANY</literal></option>.
 	    It also affects the behaviour of the <option>-l</option>
 	    list zone option.
 	  </para>
@@ -143,8 +143,8 @@
 	<term>-c <replaceable class="parameter">class</replaceable></term>
 	<listitem>
 	  <para>
-	    Query class: This can be used to lookup Hesiod or Chaosnet
-	    class resource records. The default class is IN
+	    Query class: This can be used to lookup HS (Hesiod) or CH
+	    (Chaosnet) class resource records. The default class is IN
 	    (Internet).
 	  </para>
 	</listitem>
@@ -190,12 +190,12 @@
 	<listitem>
 	  <para>
 	    List zone:
-	    The <command>host</command> performs a zone transfer of
+	    The <command>host</command> command performs a zone transfer of
 	    zone <parameter>name</parameter> and prints out the NS,
 	    PTR and address records (A/AAAA).
 	  </para>
 	  <para>
-	    Together, the <option>-l</option> <option>-a</option>
+	    Together, the <option>-l -a</option>
 	    options print all records in the zone.
 	  </para>
 	</listitem>
@@ -223,10 +223,10 @@
 	<listitem>
 	  <para>
 	    Non-recursive query:
-	    Setting this option clears the <type>RD</type> &mdash;
-	    recursion desired &mdash; bit in the query. This should
-	    mean that the name server receiving the query will not
-	    attempt to resolve <parameter>name</parameter>.
+	    Setting this option clears the RD (recursion desired) bit
+	    in the query. This should mean that the name server
+	    receiving the query will not attempt to
+	    resolve <parameter>name</parameter>.
 	    The <option>-r</option> option
 	    enables <command>host</command> to mimic the behavior of a
 	    name server by making non-recursive queries and expecting
@@ -266,7 +266,7 @@
 	<listitem>
 	  <para>
 	    Query type:
-	    the <parameter>type</parameter> argument can be any
+	    The <parameter>type</parameter> argument can be any
 	    recognized query type: CNAME, NS, SOA, TXT, DNSKEY, AXFR, etc.
 	  </para>
 	  <para>
@@ -284,7 +284,7 @@
 	    If a query type of IXFR is chosen the starting serial
 	    number can be specified by appending an equal followed by
 	    the starting serial number
-	    (e.g. <option>-t</option> <literal>IXFR=12345678</literal>).
+	    (like <option>-t <literal>IXFR=12345678</literal></option>).
 	  </para>
 	</listitem>
       </varlistentry>
@@ -324,7 +324,7 @@
 	    Equivalent to the <option>-d</option> debug option.
 	    Verbose output can also be enabled by setting
 	    the <parameter>debug</parameter> option
-	    in<filename>/etc/resolv.conf</filename>.
+	    in <filename>/etc/resolv.conf</filename>.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -342,7 +342,7 @@
 	<term>-w</term>
 	<listitem>
 	  <para>
-	    Wait forever: the query timeout is set to the maximum possible.
+	    Wait forever: The query timeout is set to the maximum possible.
 	    See also the <option>-W</option> option.
 	  </para>
 	</listitem>
@@ -352,7 +352,7 @@
 	<term>-W <replaceable class="parameter">wait</replaceable></term>
 	<listitem>
 	  <para>
-	    Timeout: wait for up to <parameter>wait</parameter>
+	    Timeout: Wait for up to <parameter>wait</parameter>
 	    seconds for a reply. If <parameter>wait</parameter> is
 	    less than one, the wait interval is set to one second.
 	  </para>
