@@ -324,6 +324,9 @@ Building
 	To support compression on the HTTP statistics channel, the
 	server must be linked against libzlib (--with-zlib=/prefix).
 
+	Python requires 'argparse' and 'ply' to be available.
+	'argparse' is a standard module as of Python 2.7 and Python 3.2.
+
 	On some platforms it is necessary to explicitly request large
 	file support to handle files bigger than 2GB.  This can be
 	done by "--enable-largefile" on the configure command line.
