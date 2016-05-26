@@ -47,7 +47,6 @@
       <command>dnssec-keymgr</command>
       <arg choice="opt" rep="norepeat"><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-c <replaceable class="parameter">file</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-d <replaceable class="parameter">time</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-f</option></arg>
       <arg choice="opt" rep="norepeat"><option>-k</option></arg>
       <arg choice="opt" rep="norepeat"><option>-q</option></arg>
@@ -148,6 +147,16 @@
             Specifies a path to a <command>dnssec-keygen</command> binary.
             Used for testing.
             See also the <option>-s</option> option.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-h</term>
+        <listitem>
+          <para>
+            Print the <command>dnssec-keymgr</command> help summary
+            and exit.
           </para>
         </listitem>
       </varlistentry>
