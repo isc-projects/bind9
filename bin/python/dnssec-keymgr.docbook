@@ -48,7 +48,10 @@
       <arg choice="opt" rep="norepeat"><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-c <replaceable class="parameter">file</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-d <replaceable class="parameter">time</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-f</option></arg>
       <arg choice="opt" rep="norepeat"><option>-k</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-q</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-v</option></arg>
       <arg choice="opt" rep="norepeat"><option>-z</option></arg>
       <arg choice="opt" rep="norepeat"><option>-g <replaceable class="parameter">path</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-s <replaceable class="parameter">path</replaceable></option></arg>
@@ -139,7 +142,7 @@
       </varlistentry>
 
       <varlistentry>
-        <term>-g <replaceable class="parameter">keygen path</replaceable></term>
+        <term>-g <replaceable class="parameter">keygen-path</replaceable></term>
         <listitem>
           <para>
             Specifies a path to a <command>dnssec-keygen</command> binary.
@@ -180,12 +183,21 @@
       </varlistentry>
 
       <varlistentry>
-        <term>-s <replaceable class="parameter">settime path</replaceable></term>
+        <term>-s <replaceable class="parameter">settime-path</replaceable></term>
         <listitem>
           <para>
             Specifies a path to a <command>dnssec-settime</command> binary.
             Used for testing.
             See also the <option>-g</option> option.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-v</term>
+        <listitem>
+          <para>
+	    Print the <command>dnssec-keymgr</command> version and exit.
           </para>
         </listitem>
       </varlistentry>
