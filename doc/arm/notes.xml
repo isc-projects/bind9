@@ -486,8 +486,8 @@
       </listitem>
       <listitem>
 	<para>
-	  The new <command>minimal-any</option> reduces the size of
-	  answers to UDP queries for type ANY by implementing one of
+	  The new <command>minimal-any</command> option reduces the size
+	  of answers to UDP queries for type ANY by implementing one of
 	  the strategies in "draft-ietf-dnsop-refuse-any": returning
 	  a single arbitrarily-selected RRset that matches the query
 	  name rather than returning all of the matching RRsets.
