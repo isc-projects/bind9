@@ -295,7 +295,7 @@ t_main(int argc, char **argv)
 
 	tnum = 0;
 	pts = &T_testlist[0];
-	while (*pts->pfv != NULL) {
+	while (pts->pfv != NULL) {
 		if (T_tvec[tnum / 8] & (0x01 << (tnum % 8))) {
 #ifndef WIN32
 			if (subprocs) {
@@ -841,7 +841,7 @@ t_settests(const testspec_t list[]) {
 
 	pts = &list[0];
 	for (tnum = 0; tnum < T_MAXTESTS - 1; pts++, tnum++) {
-		if (*pts->pfv == NULL)
+		if (pts->pfv == NULL)
 			break;
 		T_testlist[tnum] = *pts;
 	}
