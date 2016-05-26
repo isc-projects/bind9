@@ -1,3 +1,5 @@
+4372.	[bug]		Address undefined behaviour in libt_api. [RT #42480]
+
 4369.	[bug]		Fix 'make' and 'make install' out-of-tree python
 			support. [RT #42484]
 
