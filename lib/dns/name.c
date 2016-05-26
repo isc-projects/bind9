@@ -1566,9 +1566,13 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 	if (nlen != 0 && trem == 0)
 		return (ISC_R_NOSPACE);
 
-	if (!saw_root || omit_final_dot)
+	if (!saw_root || omit_final_dot) {
 		trem++;
-
+		tdata--;
+	}
+	if (trem > 0) {
+		*tdata = 0;
+	}
 	isc_buffer_add(target, tlen - trem);
 
 #ifdef ISC_PLATFORM_USETHREADS

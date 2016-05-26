@@ -19,6 +19,7 @@
 #define ISC_HASH_H 1
 
 #include <isc/types.h>
+#include <isc/util.h>
 
 /*****
  ***** Module Info
@@ -105,7 +106,8 @@ isc_hash_create(isc_mem_t *mctx, isc_entropy_t *entropy, size_t limit);
  */
 
 void
-isc_hash_ctxattach(isc_hash_t *hctx, isc_hash_t **hctxp);
+isc_hash_ctxattach(isc_hash_t *hctx, isc_hash_t **hctxp)
+	ISC_DEPRECATED;
 /*!<
  * \brief Attach to a hash object.
  *
@@ -113,7 +115,8 @@ isc_hash_ctxattach(isc_hash_t *hctx, isc_hash_t **hctxp);
  */
 
 void
-isc_hash_ctxdetach(isc_hash_t **hctxp);
+isc_hash_ctxdetach(isc_hash_t **hctxp)
+	ISC_DEPRECATED;
 /*!<
  * \brief Detach from a hash object.
  *
@@ -158,10 +161,12 @@ isc_hash_init(void);
 /*@{*/
 unsigned int
 isc_hash_ctxcalc(isc_hash_t *hctx, const unsigned char *key,
-		 unsigned int keylen, isc_boolean_t case_sensitive);
+		 unsigned int keylen, isc_boolean_t case_sensitive)
+	ISC_DEPRECATED;
 unsigned int
 isc_hash_calc(const unsigned char *key, unsigned int keylen,
-	      isc_boolean_t case_sensitive);
+	      isc_boolean_t case_sensitive)
+	ISC_DEPRECATED;
 /*!<
  * \brief Calculate a hash value.
  *
@@ -183,7 +188,8 @@ isc_hash_calc(const unsigned char *key, unsigned int keylen,
 /*@}*/
 
 void
-isc__hash_setvec(const isc_uint16_t *vec);
+isc__hash_setvec(const isc_uint16_t *vec)
+	ISC_DEPRECATED;
 
 /*!<
  * \brief Set the contents of the random vector used in hashing.

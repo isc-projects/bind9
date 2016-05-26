@@ -68,7 +68,7 @@ RANDFILE=$TOP/bin/tests/system/random.data
 # load on the machine to make it unusable to other users.
 # v6synth
 SUBDIRS="acl additional allow_query addzone autosign builtin
-	 cacheclean case checkconf @CHECKDS@ checknames checkzone
+	 cacheclean case catz checkconf @CHECKDS@ checknames checkzone
 	 cookie @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal
 	 dname dns64 dnssec dsdigest dscp @DNSTAP@ dyndb ecdsa ednscompliance
 	 emptyzones fetchlimit filter-aaaa formerr forward geoip glue gost

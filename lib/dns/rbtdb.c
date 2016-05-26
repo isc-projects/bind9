@@ -1159,6 +1159,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	char buf[DNS_NAME_FORMATSIZE];
 	dns_rbt_t **treep;
 	isc_time_t start;
+	dns_dbonupdatelistener_t *listener, *listener_next;
 
 	if (IS_CACHE(rbtdb) && rbtdb->common.rdclass == dns_rdataclass_in)
 		overmem((dns_db_t *)rbtdb, (isc_boolean_t)-1);
@@ -1316,6 +1317,16 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	if (rbtdb->mmap_location != NULL)
 		isc_file_munmap(rbtdb->mmap_location,
 				(size_t) rbtdb->mmap_size);
+
+	for (listener = ISC_LIST_HEAD(rbtdb->common.update_listeners);
+	     listener != NULL;
+	     listener = listener_next)
+	{
+		listener_next = ISC_LIST_NEXT(listener, link);
+		ISC_LIST_UNLINK(rbtdb->common.update_listeners, listener, link);
+		isc_mem_put(rbtdb->common.mctx, listener,
+			    sizeof(dns_dbonupdatelistener_t));
+	}
 
 	isc_mem_putanddetach(&rbtdb->common.mctx, rbtdb, sizeof(*rbtdb));
 	isc_ondestroy_notify(&ondest, rbtdb);
@@ -8165,6 +8176,8 @@ dns_rbtdb_create
 		rbtdb->common.methods = &zone_methods;
 	rbtdb->common.rdclass = rdclass;
 	rbtdb->common.mctx = NULL;
+
+	ISC_LIST_INIT(rbtdb->common.update_listeners);
 
 	result = RBTDB_INITLOCK(&rbtdb->lock);
 	if (result != ISC_R_SUCCESS)

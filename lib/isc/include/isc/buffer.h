@@ -184,6 +184,8 @@ struct isc_buffer {
 	ISC_LINK(isc_buffer_t)	link;
 	/*! private internal elements */
 	isc_mem_t	       *mctx;
+	/* automatically realloc buffer at put* */
+	isc_boolean_t		autore;
 };
 
 /***
@@ -314,6 +316,16 @@ isc__buffer_invalidate(isc_buffer_t *b);
  * Ensures:
  *\li	If assertion checking is enabled, future attempts to use 'b' without
  *	calling isc_buffer_init() on it will cause an assertion failure.
+ */
+
+void
+isc_buffer_setautorealloc(isc_buffer_t *b, isc_boolean_t enable);
+/*!<
+ * \brief Enable or disable autoreallocation on 'b'.
+ *
+ * Requires:
+ *\li	'b' is a valid dynamic buffer (b->mctx != NULL).
+ *
  */
 
 void
@@ -530,7 +542,8 @@ isc__buffer_putuint8(isc_buffer_t *b, isc_uint8_t val);
  * Requires:
  *\li	'b' is a valid buffer.
  *
- *\li	The length of the unused region of 'b' is at least 1.
+ *\li	The length of the unused region of 'b' is at least 1
+ *	or the buffer has autoreallocation enabled.
  *
  * Ensures:
  *\li	The used pointer in 'b' is advanced by 1.
@@ -546,7 +559,8 @@ isc_buffer_getuint16(isc_buffer_t *b);
  *
  *\li	'b' is a valid buffer.
  *
- *\li	The length of the available region of 'b' is at least 2.
+ *\li	The length of the available region of 'b' is at least 2
+ *	or the buffer has autoreallocation enabled.
  *
  * Ensures:
  *
@@ -566,7 +580,8 @@ isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val);
  * Requires:
  *\li	'b' is a valid buffer.
  *
- *\li	The length of the unused region of 'b' is at least 2.
+ *\li	The length of the unused region of 'b' is at least 2
+ *	or the buffer has autoreallocation enabled.
  *
  * Ensures:
  *\li	The used pointer in 'b' is advanced by 2.
@@ -602,7 +617,8 @@ isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val);
  * Requires:
  *\li	'b' is a valid buffer.
  *
- *\li	The length of the unused region of 'b' is at least 4.
+ *\li	The length of the unused region of 'b' is at least 4
+ *	or the buffer has autoreallocation enabled.
  *
  * Ensures:
  *\li	The used pointer in 'b' is advanced by 4.
@@ -638,7 +654,8 @@ isc__buffer_putuint48(isc_buffer_t *b, isc_uint64_t val);
  * Requires:
  *\li	'b' is a valid buffer.
  *
- *\li	The length of the unused region of 'b' is at least 6.
+ *\li	The length of the unused region of 'b' is at least 6
+ *	or the buffer has autoreallocation enabled.
  *
  * Ensures:
  *\li	The used pointer in 'b' is advanced by 6.
@@ -653,7 +670,8 @@ isc__buffer_putuint24(isc_buffer_t *b, isc_uint32_t val);
  * Requires:
  *\li	'b' is a valid buffer.
  *
- *	The length of the unused region of 'b' is at least 3.
+ *	The length of the unused region of 'b' is at least 3
+ *	or the buffer has autoreallocation enabled.
  *
  * Ensures:
  *\li	The used pointer in 'b' is advanced by 3.
@@ -666,7 +684,8 @@ isc__buffer_putmem(isc_buffer_t *b, const unsigned char *base,
  * \brief Copy 'length' bytes of memory at 'base' into 'b'.
  *
  * Requires:
- *\li	'b' is a valid buffer.
+ *\li	'b' is a valid buffer, and it has at least 'length'
+ *	or the buffer has autoreallocation enabled.
  *
  *\li	'base' points to 'length' bytes of valid memory.
  *
@@ -682,7 +701,7 @@ isc__buffer_putstr(isc_buffer_t *b, const char *source);
  *
  *\li	'source' to be a valid NULL terminated string.
  *
- *\li	strlen(source) <= isc_buffer_available(b)
+ *\li	strlen(source) <= isc_buffer_available(b) || b->mctx != NULL
  */
 
 isc_result_t
@@ -738,6 +757,7 @@ ISC_LANG_ENDDECLS
 		(_b)->mctx = NULL; \
 		ISC_LINK_INIT(_b, link); \
 		(_b)->magic = ISC_BUFFER_MAGIC; \
+		(_b)->autore = ISC_FALSE; \
 	} while (0)
 
 #define ISC__BUFFER_INITNULL(_b) ISC__BUFFER_INIT(_b, NULL, 0)

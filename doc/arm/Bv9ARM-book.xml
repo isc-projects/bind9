@@ -2373,6 +2373,8 @@ options {
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="dyndb.xml"/>
 
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="catz.xml"/>
+
     <section xml:id="ipv6"><info><title>IPv6 Support in <acronym>BIND</acronym> 9</title></info>
       <para>
 	<acronym>BIND</acronym> 9 fully supports all currently
@@ -4673,6 +4675,16 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       <optional> nsip-wait-recurse <replaceable>yes_or_no</replaceable> </optional>
       <optional> qname-wait-recurse <replaceable>yes_or_no</replaceable> </optional>
       <optional> automatic-interface-scan <replaceable>yes_or_no</replaceable> </optional>
+    ; </optional>
+    <optional> catalog-zones {
+        zone <replaceable>quoted_string</replaceable>
+            <optional> default-masters
+	        <optional>port <replaceable>ip_port</replaceable></optional>
+	        <optional>dscp <replaceable>ip_dscp</replaceable></optional>
+		{ ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> }</optional>
+	  <optional>in-memory <replaceable>yes_or_no</replaceable></optional>
+	  <optional>min-update-interval <replaceable>interval</replaceable></optional>
+	; <optional>...</optional> };
     ; </optional>
     <optional>v6-bias <replaceable>number</replaceable> ; </optional>
 };

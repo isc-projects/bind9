@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 /***
@@ -307,6 +305,8 @@ dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 
 isc_result_t
 dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
+	dns_dbonupdatelistener_t *listener;
+
 	/*
 	 * Finish loading 'db'.
 	 */
@@ -314,6 +314,11 @@ dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(DNS_CALLBACK_VALID(callbacks));
 	REQUIRE(callbacks->add_private != NULL);
+
+	for (listener = ISC_LIST_HEAD(db->update_listeners);
+	     listener != NULL;
+	     listener = ISC_LIST_NEXT(listener, link))
+		listener->onupdate(db, listener->onupdate_arg);
 
 	return ((db->methods->endload)(db, callbacks));
 }
@@ -330,7 +335,8 @@ dns_db_load2(dns_db_t *db, const char *filename, dns_masterformat_t format) {
 
 isc_result_t
 dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
-	     unsigned int options) {
+	     unsigned int options)
+{
 	isc_result_t result, eresult;
 	dns_rdatacallbacks_t callbacks;
 
@@ -445,6 +451,7 @@ void
 dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		    isc_boolean_t commit)
 {
+	dns_dbonupdatelistener_t *listener;
 
 	/*
 	 * Close version '*versionp'.
@@ -455,6 +462,13 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	REQUIRE(versionp != NULL && *versionp != NULL);
 
 	(db->methods->closeversion)(db, versionp, commit);
+
+	if (commit == ISC_TRUE) {
+		for (listener = ISC_LIST_HEAD(db->update_listeners);
+		     listener != NULL;
+		     listener = ISC_LIST_NEXT(listener, link))
+			listener->onupdate(db, listener->onupdate_arg);
+	}
 
 	ENSURE(*versionp == NULL);
 }
@@ -1042,4 +1056,56 @@ dns_db_rpz_ready(dns_db_t *db) {
 	if (db->methods->rpz_ready == NULL)
 		return (ISC_R_SUCCESS);
 	return ((db->methods->rpz_ready)(db));
+}
+
+/**
+ * Attach a notify-on-update function the database
+ */
+isc_result_t
+dns_db_updatenotify_register(dns_db_t *db,
+			     dns_dbupdate_callback_t fn,
+			     void *fn_arg)
+{
+	dns_dbonupdatelistener_t *listener;
+
+	REQUIRE(db != NULL);
+	REQUIRE(fn != NULL);
+
+	listener = isc_mem_get(db->mctx, sizeof(dns_dbonupdatelistener_t));
+	if (listener == NULL)
+		return (ISC_R_NOMEMORY);
+
+	listener->onupdate = fn;
+	listener->onupdate_arg = fn_arg;
+
+	ISC_LINK_INIT(listener, link);
+	ISC_LIST_APPEND(db->update_listeners, listener, link);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_db_updatenotify_unregister(dns_db_t *db,
+			       dns_dbupdate_callback_t fn,
+			       void *fn_arg)
+{
+	dns_dbonupdatelistener_t *listener;
+
+	REQUIRE(db != NULL);
+
+	for (listener = ISC_LIST_HEAD(db->update_listeners);
+	     listener != NULL;
+	     listener = ISC_LIST_NEXT(listener, link))
+	{
+		if ((listener->onupdate == fn) &&
+		    (listener->onupdate_arg == fn_arg))
+		{
+			ISC_LIST_UNLINK(db->update_listeners, listener, link);
+			isc_mem_put(db->mctx, listener,
+				    sizeof(dns_dbonupdatelistener_t));
+			return (ISC_R_SUCCESS);
+		}
+	}
+
+	return (ISC_R_NOTFOUND);
 }

@@ -45,6 +45,12 @@ typedef struct dns_adbfind			dns_adbfind_t;
 typedef ISC_LIST(dns_adbfind_t)			dns_adbfindlist_t;
 typedef struct dns_badcache 			dns_badcache_t;
 typedef struct dns_byaddr			dns_byaddr_t;
+typedef struct dns_catz_zonemodmethods		dns_catz_zonemodmethods_t;
+typedef struct dns_catz_entry_options		dns_catz_options_t;
+typedef struct dns_catz_entry			dns_catz_entry_t;
+typedef struct dns_catz_zone			dns_catz_zone_t;
+typedef struct dns_catz_changed			dns_catz_changed_t;
+typedef struct dns_catz_zones			dns_catz_zones_t;
 typedef struct dns_client			dns_client_t;
 typedef void					dns_clientrestrans_t;
 typedef void					dns_clientreqtrans_t;
@@ -57,6 +63,7 @@ typedef struct dns_dbimplementation		dns_dbimplementation_t;
 typedef struct dns_dbiterator			dns_dbiterator_t;
 typedef void					dns_dbload_t;
 typedef void					dns_dbnode_t;
+typedef struct dns_dbonupdatelistener		dns_dbonupdatelistener_t;
 typedef struct dns_dbtable			dns_dbtable_t;
 typedef void					dns_dbversion_t;
 typedef struct dns_dlzimplementation		dns_dlzimplementation_t;
@@ -146,6 +153,7 @@ typedef struct dns_zone				dns_zone_t;
 typedef ISC_LIST(dns_zone_t)			dns_zonelist_t;
 typedef struct dns_zonemgr			dns_zonemgr_t;
 typedef struct dns_zt				dns_zt_t;
+typedef struct dns_ipkeylist 			dns_ipkeylist_t;
 
 /*
  * If we are not using GSSAPI, define the types we use as opaque types here.

@@ -576,9 +576,7 @@ get_masters_def(const cfg_obj_t *cctx, const char *name,
 
 isc_result_t
 ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
-			  isc_mem_t *mctx, isc_sockaddr_t **addrsp,
-			  isc_dscp_t **dscpsp, dns_name_t ***keysp,
-			  isc_uint32_t *countp)
+			  isc_mem_t *mctx, dns_ipkeylist_t *ipkl)
 {
 	isc_uint32_t addrcount = 0, dscpcount = 0, keycount = 0, i = 0;
 	isc_uint32_t listcount = 0, l = 0, j;
@@ -601,10 +599,10 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 		isc_dscp_t dscp;
 	} *stack = NULL;
 
-	REQUIRE(addrsp != NULL && *addrsp == NULL);
-	REQUIRE(dscpsp != NULL && *dscpsp == NULL);
-	REQUIRE(keysp != NULL && *keysp == NULL);
-	REQUIRE(countp != NULL);
+	REQUIRE(ipkl != NULL);
+	REQUIRE(ipkl->addrs == NULL);
+	REQUIRE(ipkl->keys == NULL);
+	REQUIRE(ipkl->dscps == NULL);
 
 	/*
 	 * Get system defaults.
@@ -857,10 +855,10 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 
 	INSIST(keycount == addrcount);
 
-	*addrsp = addrs;
-	*dscpsp = dscps;
-	*keysp = keys;
-	*countp = addrcount;
+	ipkl->addrs = addrs;
+	ipkl->dscps = dscps;
+	ipkl->keys = keys;
+	ipkl->count = addrcount;
 
 	return (ISC_R_SUCCESS);
 
@@ -884,37 +882,6 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	if (stack != NULL)
 		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
 	return (result);
-}
-
-void
-ns_config_putipandkeylist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
-			  isc_dscp_t **dscpsp, dns_name_t ***keysp,
-			  isc_uint32_t count)
-{
-	unsigned int i;
-	dns_name_t **keys;
-
-	REQUIRE(addrsp != NULL && *addrsp != NULL);
-	REQUIRE(dscpsp == NULL || *dscpsp != NULL);
-	REQUIRE(keysp != NULL && *keysp != NULL);
-
-	keys = *keysp;
-
-	isc_mem_put(mctx, *addrsp, count * sizeof(isc_sockaddr_t));
-	if (dscpsp != NULL)
-		isc_mem_put(mctx, *dscpsp, count * sizeof(isc_dscp_t));
-	for (i = 0; i < count; i++) {
-		if (keys[i] == NULL)
-			continue;
-		if (dns_name_dynamic(keys[i]))
-			dns_name_free(keys[i], mctx);
-		isc_mem_put(mctx, keys[i], sizeof(dns_name_t));
-	}
-	isc_mem_put(mctx, *keysp, count * sizeof(dns_name_t *));
-	*addrsp = NULL;
-	if (dscpsp != NULL)
-		*dscpsp = NULL;
-	*keysp = NULL;
 }
 
 isc_result_t

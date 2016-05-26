@@ -229,6 +229,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->v6_aaaa = dns_aaaa_ok;
 	view->aaaa_acl = NULL;
 	view->rpzs = NULL;
+	view->catzs = NULL;
 	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
 	view->redirect = NULL;
@@ -379,6 +380,8 @@ destroy(dns_view_t *view) {
 	dns_rrl_view_destroy(view);
 	if (view->rpzs != NULL)
 		dns_rpz_detach_rpzs(&view->rpzs);
+	if (view->catzs != NULL)
+		dns_catz_catzs_detach(&view->catzs);
 	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched);
 	     dlzdb != NULL;
 	     dlzdb = ISC_LIST_HEAD(view->dlz_searched)) {
@@ -577,6 +580,9 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 			view->redirect = NULL;
 			if (view->flush)
 				dns_zone_flush(rdzone);
+		}
+		if (view->catzs != NULL) {
+			dns_catz_catzs_detach(&view->catzs);
 		}
 		done = all_done(view);
 		UNLOCK(&view->lock);

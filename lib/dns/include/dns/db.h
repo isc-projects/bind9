@@ -203,6 +203,9 @@ typedef isc_result_t
 		      unsigned int argc, char *argv[], void *driverarg,
 		      dns_db_t **dbp);
 
+typedef isc_result_t
+(*dns_dbupdate_callback_t)(dns_db_t *db, void *fn_arg);
+
 #define DNS_DB_MAGIC		ISC_MAGIC('D','N','S','D')
 #define DNS_DB_VALID(db)	ISC_MAGIC_VALID(db, DNS_DB_MAGIC)
 
@@ -216,18 +219,25 @@ typedef isc_result_t
  * invariants.
  */
 struct dns_db {
-	unsigned int			magic;
-	unsigned int			impmagic;
-	dns_dbmethods_t *		methods;
-	isc_uint16_t			attributes;
-	dns_rdataclass_t		rdclass;
-	dns_name_t			origin;
-	isc_ondestroy_t			ondest;
-	isc_mem_t *			mctx;
+	unsigned int				magic;
+	unsigned int				impmagic;
+	dns_dbmethods_t *			methods;
+	isc_uint16_t				attributes;
+	dns_rdataclass_t			rdclass;
+	dns_name_t				origin;
+	isc_ondestroy_t				ondest;
+	isc_mem_t *				mctx;
+	ISC_LIST(dns_dbonupdatelistener_t)	update_listeners;
 };
 
 #define DNS_DBATTR_CACHE		0x01
 #define DNS_DBATTR_STUB			0x02
+
+struct dns_dbonupdatelistener {
+	dns_dbupdate_callback_t			onupdate;
+	void *					onupdate_arg;
+	ISC_LINK(dns_dbonupdatelistener_t)	link;
+};
 
 /*@{*/
 /*%
@@ -1622,6 +1632,35 @@ isc_result_t
 dns_db_rpz_ready(dns_db_t *db);
 /*%<
  * Finish loading a response policy zone.
+ */
+
+isc_result_t
+dns_db_updatenotify_register(dns_db_t *db,
+			     dns_dbupdate_callback_t fn,
+			     void *fn_arg);
+/*%<
+ * Register a notify-on-update callback function to a database.
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database
+ * \li	'db' does not have an update callback registered
+ * \li	'fn' is not NULL
+ *
+ */
+
+isc_result_t
+dns_db_updatenotify_unregister(dns_db_t *db,
+			       dns_dbupdate_callback_t fn,
+			       void *fn_arg);
+/*%<
+ * Unregister a notify-on-update callback.
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database
+ * \li	'db' has update callback registered
+ *
  */
 
 ISC_LANG_ENDDECLS

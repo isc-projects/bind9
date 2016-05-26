@@ -583,7 +583,7 @@ initialize_action(void) {
 }
 
 /*
- * Called via isc_radix_walk() to find IP table nodes that are
+ * Called via isc_radix_process() to find IP table nodes that are
  * insecure.
  */
 static void

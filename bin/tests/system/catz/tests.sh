@@ -1,0 +1,305 @@
+#!/bin/sh -x
+#
+# Copyright (C) 2014-2016  Internet Systems Consortium, Inc. ("ISC")
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+status=0
+n=0
+
+n=`expr $n + 1`
+echo "I:checking that dom1.example is not served by master ($n)"
+ret=0
+$DIG soa dom1.example @10.53.0.1 -p 5300 > dig.out.test$n
+grep "status: REFUSED" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:Adding a domain dom1.example to master via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom1.example.db
+echo "@ IN NS invalid." >> ns1/dom1.example.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953  addzone dom1.example '{type master; file "dom1.example.db";};' || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom1.example is now served by master ($n)"
+ret=0
+$DIG soa dom1.example @10.53.0.1 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
+
+n=`expr $n + 1`
+echo "I:Adding domain dom1.example to catalog zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update add e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog.example 3600 IN PTR dom1.example.
+    send
+END
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom1.example' from catalog 'catalog.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom1.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom1.example is served by slave ($n)"
+ret=0
+$DIG soa dom1.example @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:Removing domain dom1.example from catalog zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+   server 10.53.0.1 5300
+   update delete e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog.example
+   send
+END
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom1.example' from catalog 'catalog.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom1.example is not served by slave ($n)"
+ret=0
+$DIG soa dom1.example @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: REFUSED" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:Adding a domain dom2.example to master via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom2.example.db
+echo "@ IN NS invalid." >> ns1/dom2.example.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953  addzone dom2.example '{type master; file "dom2.example.db";};' || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:Adding domains dom2.example, dom3.example and some trash to catalog zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update add 636722929740e507aaf27c502812fc395d30fb17.zones.catalog.example 3600 IN PTR dom2.example.
+    update add b901f492f3ebf6c1e5b597e51766f02f0479eb03.zones.catalog.example 3600 IN PTR dom3.example.
+    update add e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog.example 3600 IN NS foo.bar.
+    update add trash.catalog.example 3600 IN A 1.2.3.4
+    update add trash2.foo.catalog.example 3600 IN A 1.2.3.4
+    update add trash3.zones.catalog.example 3600 IN NS a.dom2.example.
+    send
+END
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is not served by master ($n)"
+ret=0
+$DIG soa dom3.example @10.53.0.1 -p 5300 > dig.out.test$n
+grep "status: REFUSED" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:Adding a domain dom3.example to master via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom3.example.db
+echo "@ IN NS invalid." >> ns1/dom3.example.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953  addzone dom3.example '{type master; file "dom3.example.db"; also-notify { 10.53.0.2; }; };' || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is served by master ($n)"
+ret=0
+$DIG soa dom2.example @10.53.0.1 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom3.example' from catalog 'catalog.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom3.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is served by slave ($n)"
+ret=0
+$DIG soa dom3.example @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:Adding dom4.example with 'masters' defined and a random label ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update add somerandomlabel.zones.catalog.example 3600 IN PTR dom4.example.
+    update add masters.somerandomlabel.zones.catalog.example 3600 IN A 10.53.0.3
+    send
+END
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom4.example' from catalog 'catalog.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom4.example/IN' from 10.53.0.3#5300: Transfer status: success" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom4.example is served by slave ($n)"
+ret=0
+$DIG soa dom4.example @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:Removing domain dom2.example from catalog zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update delete 636722929740e507aaf27c502812fc395d30fb17.zones.catalog.example
+    send
+END
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom2.example' from catalog 'catalog.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+
+n=`expr $n + 1`
+echo "I:checking that dom2.example is not served by slave ($n)"
+ret=0
+$DIG soa dom2.example @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: REFUSED" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is still served by slave ($n)"
+ret=0
+$DIG soa dom3.example @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:exit status: $status"
+exit $status

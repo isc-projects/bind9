@@ -1723,7 +1723,10 @@ isc__task_beginexclusive(isc_task_t *task0) {
 	isc__taskmgr_t *manager = task->manager;
 
 	REQUIRE(task->state == task_state_running);
-	/* XXX: Require task == manager->excl? */
+/*
+ *  TODO REQUIRE(task == task->manager->excl);
+ *  it should be here, it fails on shutdown server->task
+ */
 
 	LOCK(&manager->lock);
 	if (manager->exclusive_requested) {

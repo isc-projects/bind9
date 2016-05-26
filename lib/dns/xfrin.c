@@ -30,6 +30,7 @@
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
+#include <dns/catz.h>
 #include <dns/db.h>
 #include <dns/diff.h>
 #include <dns/events.h>
@@ -279,8 +280,10 @@ axfr_makedb(dns_xfrin_ctx_t *xfr, dns_db_t **dbp) {
 			       xfr->rdclass,
 			       0, NULL, /* XXX guess */
 			       dbp);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		dns_zone_rpz_enable_db(xfr->zone, *dbp);
+		dns_zone_catz_enable_db(xfr->zone, *dbp);
+	}
 	return (result);
 }
 

@@ -27,6 +27,7 @@
 
 #include <dns/acl.h>
 #include <dns/db.h>
+#include <dns/ipkeylist.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/name.h>
@@ -805,9 +806,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const char *filename = NULL;
 	const char *dupcheck;
 	dns_notifytype_t notifytype = dns_notifytype_yes;
-	isc_sockaddr_t *addrs;
-	isc_dscp_t *dscps;
-	dns_name_t **keynames;
 	isc_uint32_t count;
 	unsigned int dbargc;
 	char **dbargv;
@@ -1149,23 +1147,19 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		     (notifytype == dns_notifytype_masteronly &&
 		      ztype == dns_zone_master)))
 		{
-			isc_uint32_t addrcount;
-			addrs = NULL;
-			keynames = NULL;
-			dscps = NULL;
+			dns_ipkeylist_t ipkl;
+			ipkl.count = 0;
+			ipkl.addrs = NULL;
+			ipkl.dscps = NULL;
+			ipkl.keys = NULL;
 			RETERR(ns_config_getipandkeylist(config, obj, mctx,
-							 &addrs, &dscps,
-							 &keynames,
-							 &addrcount));
-			result = dns_zone_setalsonotifydscpkeys(zone, addrs,
-								dscps, keynames,
-								addrcount);
-			if (addrcount != 0)
-				ns_config_putipandkeylist(mctx, &addrs, &dscps,
-							  &keynames, addrcount);
-			else
-				INSIST(addrs == NULL && dscps == NULL &&
-				       keynames == NULL);
+							 &ipkl));
+			result = dns_zone_setalsonotifydscpkeys(zone,
+								ipkl.addrs,
+								ipkl.dscps,
+								ipkl.keys,
+								ipkl.count);
+			dns_ipkeylist_clear(mctx, &ipkl);
 			RETERR(result);
 		} else
 			RETERR(dns_zone_setalsonotify(zone, NULL, 0));
@@ -1628,19 +1622,19 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "masters", &obj);
 		if (obj != NULL) {
-			addrs = NULL;
-			dscps = NULL;
-			keynames = NULL;
+			dns_ipkeylist_t ipkl;
+			ipkl.count = 0;
+			ipkl.addrs = NULL;
+			ipkl.dscps = NULL;
+			ipkl.keys = NULL;
 			RETERR(ns_config_getipandkeylist(config, obj, mctx,
-							 &addrs, &dscps,
-							 &keynames, &count));
-			result = dns_zone_setmasterswithkeys(mayberaw, addrs,
-							     keynames, count);
-			if (count != 0)
-				ns_config_putipandkeylist(mctx, &addrs, &dscps,
-							  &keynames, count);
-			else
-				INSIST(addrs == NULL && keynames == NULL);
+							 &ipkl));
+			result = dns_zone_setmasterswithkeys(mayberaw,
+							     ipkl.addrs,
+							     ipkl.keys,
+							     ipkl.count);
+			dns_ipkeylist_clear(mctx, &ipkl);
+			RETERR(result);
 		} else
 			result = dns_zone_setmasters(mayberaw, NULL, 0);
 		RETERR(result);

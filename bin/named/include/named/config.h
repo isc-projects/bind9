@@ -31,11 +31,11 @@ isc_result_t
 ns_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf);
 
 isc_result_t
-ns_config_get(cfg_obj_t const * const *maps, const char* name,
+ns_config_get(cfg_obj_t const * const *maps, const char *name,
 	      const cfg_obj_t **obj);
 
 isc_result_t
-ns_checknames_get(const cfg_obj_t **maps, const char* name,
+ns_checknames_get(const cfg_obj_t **maps, const char *name,
 		  const cfg_obj_t **obj);
 
 int
@@ -64,14 +64,7 @@ ns_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
 
 isc_result_t
 ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
-			  isc_mem_t *mctx, isc_sockaddr_t **addrsp,
-			  isc_dscp_t **dscpp, dns_name_t ***keys,
-			  isc_uint32_t *countp);
-
-void
-ns_config_putipandkeylist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
-			  isc_dscp_t **dscpsp, dns_name_t ***keys,
-			  isc_uint32_t count);
+			  isc_mem_t *mctx, dns_ipkeylist_t *ipkl);
 
 isc_result_t
 ns_config_getport(const cfg_obj_t *config, in_port_t *portp);

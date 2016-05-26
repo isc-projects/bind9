@@ -675,7 +675,6 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 		new_size = size;
 		goto done;
 	}
-
 	/*
 	 * If there are no blocks in the free list for this size, get a chunk
 	 * of memory and then break it up into "new_size"-sized blocks, adding
@@ -687,8 +686,10 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 	/*
 	 * The free list uses the "rounded-up" size "new_size".
 	 */
+
 	ret = ctx->freelists[new_size];
 	ctx->freelists[new_size] = ctx->freelists[new_size]->next;
+
 
 	/*
 	 * The stats[] uses the _actual_ "size" requested by the

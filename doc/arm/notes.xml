@@ -55,6 +55,35 @@
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
     <itemizedlist>
       <listitem>
+        <para>
+	  A new method of provisioning secondary servers called
+	  "Catalog Zones" has been added. This is an implementation of
+	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/draft-muks-dnsop-dns-catalog-zones/">
+	    draft-muks-dnsop-dns-catalog-zones/
+	  </link>.
+        </para>
+        <para>
+	  A catalog zone is a regular DNS zone which contains a list
+	  of "member zones", along with the configuration options for
+	  each of those zones.  When a server is configured to use a
+	  catalog zone, all the zones listed in the catalog zone are
+	  added to the local server as slave zones.  When the catalog
+	  zone is updated (e.g., by adding or removing zones, or
+	  changing configuration options for existing zones) those
+	  changes will be put into effect.  Since the catalog zone is
+	  itself a DNS zone, this means configuration changes can be
+	  propagated to slaves using the standard AXFR/IXFR update
+	  mechanism.
+        </para>
+        <para>
+          This feature should be considered experimental. It currently
+	  supports only basic features; more advanced features such as
+	  ACLs and TSIG keys are not yet supported. Example catalog
+	  zone configurations can be found in the Chapter 9 of the
+	  BIND Administrator Reference Manual.
+        </para>
+      </listitem>
+      <listitem>
 	<para>
 	  Added rndc python module.
 	</para>

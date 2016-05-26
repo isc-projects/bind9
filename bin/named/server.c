@@ -65,11 +65,13 @@
 #include <dns/adb.h>
 #include <dns/badcache.h>
 #include <dns/cache.h>
+#include <dns/catz.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/dlz.h>
 #include <dns/dns64.h>
 #include <dns/dyndb.h>
+#include <dns/events.h>
 #include <dns/forward.h>
 #include <dns/journal.h>
 #include <dns/keytable.h>
@@ -274,6 +276,19 @@ typedef struct {
 		isc_boolean_t reconfig;
 		isc_refcount_t refs;
 } ns_zoneload_t;
+
+typedef struct {
+	ns_server_t *server;
+} catz_cb_data_t;
+
+typedef struct catz_chgzone_event {
+	ISC_EVENT_COMMON(struct catz_chgzone_event);
+	dns_catz_entry_t *entry;
+	dns_catz_zone_t *origin;
+	dns_view_t *view;
+	catz_cb_data_t *cbd;
+	isc_boolean_t mod;
+} catz_chgzone_event_t;
 
 /*
  * These zones should not leak onto the Internet.
@@ -1990,10 +2005,437 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 			    "updated RPZ policy: version %d",
 			    view->rpzs->rpz_ver);
 	}
+
 	if (pview != NULL)
 		dns_view_detach(&pview);
 
 	return (ISC_R_SUCCESS);
+}
+
+static void
+catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
+	catz_chgzone_event_t *ev = (catz_chgzone_event_t *) event0;
+	isc_result_t result;
+	isc_buffer_t namebuf;
+	isc_buffer_t *confbuf;
+	char nameb[DNS_NAME_FORMATSIZE];
+	const cfg_obj_t *zlist = NULL;
+	cfg_obj_t *zoneconf = NULL;
+	cfg_obj_t *zoneobj = NULL;
+	ns_cfgctx_t *cfg;
+	dns_zone_t *zone = NULL;
+
+	cfg = (ns_cfgctx_t *) ev->view->new_zone_config;
+	if (cfg == NULL) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "catz: allow-new-zones statement missing from "
+			      "config; cannot add zone from the catalog");
+		goto cleanup;
+	}
+
+	isc_buffer_init(&namebuf, nameb, DNS_NAME_FORMATSIZE);
+	dns_name_totext(dns_catz_entry_getname(ev->entry), ISC_TRUE, &namebuf);
+	isc_buffer_putuint8(&namebuf, 0);
+
+	/* Zone shouldn't already exist */
+	result = dns_zt_find(ev->view->zonetable,
+			     dns_catz_entry_getname(ev->entry), 0, NULL, &zone);
+	if (result == ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "catz: zone \"%s\" already exists", nameb);
+		goto cleanup;
+	} else if (result == DNS_R_PARTIALMATCH) {
+		/* Create our sub-zone anyway */
+		dns_zone_detach(&zone);
+		zone = NULL;
+	} else if (result != ISC_R_NOTFOUND) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "catz: error \"%s\" while trying to "
+			      "add zone \"%s\"",
+			      isc_result_totext(result), nameb);
+		goto cleanup;
+	}
+
+	/* Create a config for new zone */
+	confbuf = NULL;
+	dns_catz_generate_zonecfg(ev->origin, ev->entry, &confbuf);
+	cfg_parser_reset(cfg->add_parser);
+	result = cfg_parse_buffer2(cfg->add_parser, confbuf, "catz",
+				   &cfg_type_addzoneconf, &zoneconf);
+	isc_buffer_free(&confbuf);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "catz: error \"%s\" while trying to generate "
+			      "config for zone \"%s\"",
+			      isc_result_totext(result), nameb);
+		goto cleanup;
+	}
+	CHECK(cfg_map_get(zoneconf, "zone", &zlist));
+	if (!cfg_obj_islist(zlist))
+		CHECK(ISC_R_FAILURE);
+
+	/* For now we only support adding one zone at a time */
+	zoneobj = cfg_listelt_value(cfg_list_first(zlist));
+
+	/* Mark view unfrozen so that zone can be added */
+
+	result = isc_task_beginexclusive(task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	dns_view_thaw(ev->view);
+	result = configure_zone(cfg->config, zoneobj, cfg->vconfig,
+				ev->cbd->server->mctx, ev->view, NULL,
+				cfg->actx, ISC_TRUE, ISC_FALSE, ev->mod);
+	dns_view_freeze(ev->view);
+	isc_task_endexclusive(task);
+
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "catz: failed to configure zone \"%s\" - %d",
+			      nameb, result);
+		goto cleanup;
+	}
+
+	/* Is it there yet? */
+	CHECK(dns_zt_find(ev->view->zonetable,
+			dns_catz_entry_getname(ev->entry), 0, NULL, &zone));
+
+	/*
+	 * Load the zone from the master file.	If this fails, we'll
+	 * need to undo the configuration we've done already.
+	 */
+	result = dns_zone_loadnew(zone);
+	if (result != ISC_R_SUCCESS) {
+		dns_db_t *dbp = NULL;
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "catz: dns_zone_loadnew() failed "
+			      "with %s; reverting.",
+			      isc_result_totext(result));
+
+		/* If the zone loaded partially, unload it */
+		if (dns_zone_getdb(zone, &dbp) == ISC_R_SUCCESS) {
+			dns_db_detach(&dbp);
+			dns_zone_unload(zone);
+		}
+
+		/* Remove the zone from the zone table */
+		dns_zt_unmount(ev->view->zonetable, zone);
+		goto cleanup;
+	}
+
+	/* Flag the zone as having been added at runtime */
+	dns_zone_setadded(zone, ISC_TRUE);
+
+ cleanup:
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	if (zoneconf != NULL)
+		cfg_obj_destroy(cfg->add_parser, &zoneconf);
+	dns_catz_entry_detach(ev->origin, &ev->entry);
+	dns_catz_zone_detach(&ev->origin);
+	dns_view_detach(&ev->view);
+	isc_event_free(ISC_EVENT_PTR(&ev));
+}
+
+static void
+catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
+	catz_chgzone_event_t *ev = (catz_chgzone_event_t *) event0;
+	isc_result_t result;
+	dns_zone_t *zone = NULL;
+	dns_db_t *dbp = NULL;
+	char cname[DNS_NAME_FORMATSIZE];
+	const char * file;
+
+	result = isc_task_beginexclusive(task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	dns_name_format(dns_catz_entry_getname(ev->entry), cname,
+	DNS_NAME_FORMATSIZE);
+	result = dns_zt_find(ev->view->zonetable,
+			     dns_catz_entry_getname(ev->entry), 0, NULL, &zone);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "catz: catz_delzone_taskaction: "
+			      "zone '%s' not found", cname);
+		goto cleanup;
+	}
+
+	/* TODO make other flag for CZ zones */
+	/* TODO2 make sure that we delete only 'own' zones */
+	if (!dns_zone_getadded(zone)) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "catz: catz_delzone_taskaction: "
+			      "zone '%s' is not a dynamically added zone",
+			      cname);
+		goto cleanup;
+	}
+
+	/* Stop answering for this zone */
+	if (dns_zone_getdb(zone, &dbp) == ISC_R_SUCCESS) {
+		dns_db_detach(&dbp);
+		dns_zone_unload(zone);
+	}
+
+	CHECK(dns_zt_unmount(ev->view->zonetable, zone));
+	file = dns_zone_getfile(zone);
+	isc_file_remove(file);
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+		      "catz: catz_delzone_taskaction: "
+		      "zone '%s' deleted", cname);
+  cleanup:
+	isc_task_endexclusive(task);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	dns_catz_entry_detach(ev->origin, &ev->entry);
+	dns_catz_zone_detach(&ev->origin);
+	dns_view_detach(&ev->view);
+	isc_event_free(ISC_EVENT_PTR(&ev));
+}
+
+static isc_result_t
+catz_create_chg_task(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
+		     dns_view_t *view, isc_taskmgr_t *taskmgr, void *udata,
+		     isc_eventtype_t type)
+{
+	catz_chgzone_event_t *event;
+	isc_task_t *task;
+	isc_result_t result;
+	isc_taskaction_t action;
+
+	switch (type) {
+	case DNS_EVENT_CATZADDZONE:
+	case DNS_EVENT_CATZMODZONE:
+		action = catz_addmodzone_taskaction;
+		break;
+	case DNS_EVENT_CATZDELZONE:
+		action = catz_delzone_taskaction;
+		break;
+	default:
+		REQUIRE(0);
+	}
+
+	event = (catz_chgzone_event_t *) isc_event_allocate(view->mctx, origin,
+							    type, action, NULL,
+							    sizeof(*event));
+	if (event == NULL)
+		return (ISC_R_NOMEMORY);
+
+	event->cbd = (catz_cb_data_t *) udata;
+	event->entry = NULL;
+	event->origin = NULL;
+	event->view = NULL;
+	event->mod = ISC_TF(type == DNS_EVENT_CATZMODZONE);
+	dns_catz_entry_attach(entry, &event->entry);
+	dns_catz_zone_attach(origin, &event->origin);
+	dns_view_attach(view, &event->view);
+
+	task = NULL;
+	result = isc_taskmgr_excltask(taskmgr, &task);
+	REQUIRE(result == ISC_R_SUCCESS);
+	isc_task_send(task, ISC_EVENT_PTR(&event));
+	isc_task_detach(&task);
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+catz_addzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
+	     dns_view_t *view, isc_taskmgr_t *taskmgr, void *udata)
+{
+	return (catz_create_chg_task(entry, origin, view, taskmgr, udata,
+				     DNS_EVENT_CATZADDZONE));
+}
+
+static isc_result_t
+catz_delzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
+	     dns_view_t *view, isc_taskmgr_t *taskmgr, void *udata)
+{
+	return (catz_create_chg_task(entry, origin, view, taskmgr, udata,
+				     DNS_EVENT_CATZDELZONE));
+}
+
+static isc_result_t
+catz_modzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
+	     dns_view_t *view, isc_taskmgr_t *taskmgr, void *udata)
+{
+	return (catz_create_chg_task(entry, origin, view, taskmgr, udata,
+				     DNS_EVENT_CATZMODZONE));
+}
+
+static isc_result_t
+configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
+		    const cfg_listelt_t *element)
+{
+	const cfg_obj_t *catz_obj, *obj;
+	dns_catz_zone_t *zone = NULL;
+	const char *str;
+	isc_result_t result;
+	dns_name_t origin;
+	dns_catz_options_t *opts;
+	dns_view_t *pview = NULL;
+
+	dns_name_init(&origin, NULL);
+	catz_obj = cfg_listelt_value(element);
+
+	str = cfg_obj_asstring(cfg_tuple_get(catz_obj, "zone name"));
+
+	result = dns_name_fromstring(&origin, str, DNS_NAME_DOWNCASE,
+				     view->mctx);
+	if (result == ISC_R_SUCCESS && dns_name_equal(&origin, dns_rootname))
+		result = DNS_R_EMPTYLABEL;
+
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(catz_obj, ns_g_lctx, DNS_CATZ_ERROR_LEVEL,
+			    "catz: invalid zone name '%s'", str);
+		goto cleanup;
+	}
+
+	result = dns_catz_add_zone(view->catzs, &origin, &zone);
+	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
+		cfg_obj_log(catz_obj, ns_g_lctx, DNS_CATZ_ERROR_LEVEL,
+			    "catz: unable to create catalog zone '%s', "
+			    "error %s",
+			    str, isc_result_totext(result));
+		goto cleanup;
+	}
+
+	if (result == ISC_R_EXISTS) {
+		isc_ht_iter_t *it = NULL;
+
+		result = dns_viewlist_find(&ns_g_server->viewlist,
+					   view->name,
+					   view->rdclass, &pview);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		/*
+		 * xxxwpk todo: reconfigure the zone!!!!
+		 */
+		cfg_obj_log(catz_obj, ns_g_lctx, DNS_CATZ_ERROR_LEVEL,
+			    "catz: catalog zone '%s' will not be reconfigured",
+			    str);
+		/*
+		 * We have to walk through all the member zones and attach
+		 * them to current view
+		 */
+		result = dns_catz_get_iterator(zone, &it);
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(catz_obj, ns_g_lctx, DNS_CATZ_ERROR_LEVEL,
+				    "catz: unable to create iterator");
+			goto cleanup;
+		}
+
+		for (result = isc_ht_iter_first(it);
+		     result == ISC_R_SUCCESS;
+		     result = isc_ht_iter_next(it))
+		{
+			dns_name_t *name = NULL;
+			dns_zone_t *dnszone = NULL;
+			dns_catz_entry_t *entry = NULL;
+			isc_result_t tresult;
+
+			isc_ht_iter_current(it, (void **) &entry);
+			name = dns_catz_entry_getname(entry);
+
+			tresult = dns_view_findzone(pview, name, &dnszone);
+			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
+
+			dns_zone_setview(dnszone, view);
+			if (view->acache != NULL)
+				dns_zone_setacache(dnszone, view->acache);
+			dns_view_addzone(view, dnszone);
+		}
+
+		isc_ht_iter_destroy(&it);
+
+		result = ISC_R_SUCCESS;
+	}
+
+	dns_catz_zone_resetdefoptions(zone);
+	opts = dns_catz_zone_getdefoptions(zone);
+
+	obj = cfg_tuple_get(catz_obj, "default-masters");
+	if (obj != NULL)
+		result = ns_config_getipandkeylist(config, obj,
+						   view->mctx, &opts->masters);
+
+	obj = cfg_tuple_get(catz_obj, "in-memory");
+	if (obj != NULL && cfg_obj_isboolean(obj))
+		opts->in_memory = cfg_obj_asboolean(obj);
+
+	obj = cfg_tuple_get(catz_obj, "min-update-interval");
+	if (obj != NULL && cfg_obj_isuint32(obj))
+		opts->min_update_interval = cfg_obj_asuint32(obj);
+
+  cleanup:
+	if (pview != NULL)
+		dns_view_detach(&pview);
+	dns_name_free(&origin, view->mctx);
+
+	return (result);
+}
+
+static catz_cb_data_t ns_catz_cbdata;
+static dns_catz_zonemodmethods_t ns_catz_zonemodmethods = {
+	catz_addzone,
+	catz_modzone,
+	catz_delzone,
+	&ns_catz_cbdata
+};
+
+static isc_result_t
+configure_catz(dns_view_t *view, const cfg_obj_t *config,
+	       const cfg_obj_t *catz_obj)
+{
+	const cfg_listelt_t *zone_element;
+	const dns_catz_zones_t *old = NULL;
+	dns_view_t *pview = NULL;
+	isc_result_t result;
+
+	/* xxxwpk TODO do it cleaner, once, somewhere */
+	ns_catz_cbdata.server = ns_g_server;
+
+	zone_element = cfg_list_first(cfg_tuple_get(catz_obj, "zone list"));
+	if (zone_element == NULL)
+		return (ISC_R_SUCCESS);
+
+	CHECK(dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods,
+				 view->mctx, ns_g_taskmgr, ns_g_timermgr));
+
+	result = dns_viewlist_find(&ns_g_server->viewlist, view->name,
+				   view->rdclass, &pview);
+	if (result == ISC_R_SUCCESS)
+		old = pview->catzs;
+
+	if (old != NULL) {
+		dns_catz_catzs_detach(&view->catzs);
+		dns_catz_catzs_attach(pview->catzs, &view->catzs);
+		dns_catz_prereconfig(view->catzs);
+	}
+
+	while (zone_element != NULL) {
+		CHECK(configure_catz_zone(view, config, zone_element));
+		zone_element = cfg_list_next(zone_element);
+	}
+
+	if (old != NULL)
+		dns_catz_postreconfig(view->catzs);
+
+	result = ISC_R_SUCCESS;
+
+  cleanup:
+	if (pview != NULL)
+		dns_view_detach(&pview);
+
+	return (result);
 }
 
 #define CHECK_RRL(cond, pat, val1, val2)				\
@@ -2691,6 +3133,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	if (view->rdclass == dns_rdataclass_in && need_hints &&
 	    ns_config_get(maps, "response-policy", &obj) == ISC_R_SUCCESS) {
 		CHECK(configure_rpz(view, obj, &old_rpz_ok));
+	}
+
+	obj = NULL;
+	if (view->rdclass == dns_rdataclass_in && need_hints &&
+	    ns_config_get(maps, "catalog-zones", &obj) == ISC_R_SUCCESS) {
+		CHECK(configure_catz(view, config, obj));
 	}
 
 	/*
@@ -4574,6 +5022,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	dns_rdataclass_t zclass;
 	const char *ztypestr;
 	dns_rpz_num_t rpz_num;
+	isc_boolean_t zone_is_catz = ISC_FALSE;
 
 	options = NULL;
 	(void)cfg_map_get(config, "options", &options);
@@ -4801,6 +5250,10 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			break;
 	}
 
+	if (view->catzs != NULL &&
+	    dns_catz_get_zone(view->catzs, origin) != NULL)
+		zone_is_catz = ISC_TRUE;
+
 	/*
 	 * See if we can reuse an existing zone.  This is
 	 * only possible if all of these are true:
@@ -4850,7 +5303,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
 		dns_zone_setstats(zone, ns_g_server->zonestats);
 	}
-
 	if (rpz_num != DNS_RPZ_INVALID_NUM) {
 		result = dns_zone_rpz_enable(zone, view->rpzs, rpz_num);
 		if (result != ISC_R_SUCCESS) {
@@ -4863,6 +5315,9 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			goto cleanup;
 		}
 	}
+
+	if (zone_is_catz)
+		dns_zone_catz_enable(zone, view->catzs);
 
 	/*
 	 * If the zone contains a 'forwarders' statement, configure
@@ -4919,7 +5374,19 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 * Add the zone to its view in the new view list.
 	 */
 	if (!modify)
-		CHECK(dns_view_addzone(view, zone));
+	CHECK(dns_view_addzone(view, zone));
+
+	if (zone_is_catz) {
+		/*
+		 * force catz reload if the zone is loaded;
+		 * if it's not it'll get reloaded on zone load
+		 */
+		dns_db_t *db = NULL;
+
+		tresult = dns_zone_getdb(zone, &db);
+		if (tresult == ISC_R_SUCCESS)
+			dns_catz_dbupdate_callback(db, view->catzs);
+	}
 
 	/*
 	 * Ensure that zone keys are reloaded on reconfig
@@ -5683,6 +6150,20 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ns_config_get(maps, "allow-new-zones", &nz);
 	if (result == ISC_R_SUCCESS)
 		allow = cfg_obj_asboolean(nz);
+
+	/*
+	 * A non-empty catalog-zones statement implies allow-new-zones
+	 */
+	if (!allow) {
+		const cfg_obj_t *cz = NULL;
+		result = ns_config_get(maps, "catalog-zones", &cz);
+		if (result == ISC_R_SUCCESS) {
+			const cfg_listelt_t *e =
+				cfg_list_first(cfg_tuple_get(cz, "zone list"));
+			if (e != NULL)
+				allow = ISC_TRUE;
+		}
+	}
 
 	if (!allow) {
 		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);

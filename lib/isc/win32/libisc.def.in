@@ -308,6 +308,13 @@ isc_hmacsha512_invalidate
 isc_hmacsha512_sign
 isc_hmacsha512_update
 isc_hmacsha512_verify
+isc_ht_init
+isc_ht_destroy
+isc_ht_find
+isc_ht_delete
+isc_ht_iter_get
+isc_ht_iter_inc
+isc_ht_iter_value
 isc_httpd_addheader
 isc_httpd_addheaderuint
 isc_httpd_response

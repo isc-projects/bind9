@@ -70,6 +70,7 @@
 #include <isc/stdtime.h>
 
 #include <dns/acl.h>
+#include <dns/catz.h>
 #include <dns/clientinfo.h>
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>
@@ -178,6 +179,7 @@ struct dns_view {
 	dns_dns64list_t 		dns64;
 	unsigned int 			dns64cnt;
 	dns_rpz_zones_t			*rpzs;
+	dns_catz_zones_t		*catzs;
 	dns_dlzdblist_t 		dlz_searched;
 	dns_dlzdblist_t 		dlz_unsearched;
 	isc_uint32_t			fail_ttl;

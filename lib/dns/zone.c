@@ -43,6 +43,7 @@
 #include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/callbacks.h>
+#include <dns/catz.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dlz.h>
@@ -379,6 +380,11 @@ struct dns_zone {
 	 */
 	dns_rpz_zones_t		*rpzs;
 	dns_rpz_num_t		rpz_num;
+
+	/*%
+	 * catalog zone data
+	 */
+	dns_catz_zones_t		*catzs;
 
 	/*%
 	 * Serial number update method.
@@ -1036,6 +1042,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->automatic = ISC_FALSE;
 	zone->rpzs = NULL;
 	zone->rpz_num = DNS_RPZ_INVALID_NUM;
+
+	zone->catzs = NULL;
+
 	ISC_LIST_INIT(zone->forwards);
 	zone->raw = NULL;
 	zone->secure = NULL;
@@ -1169,6 +1178,9 @@ zone_free(dns_zone_t *zone) {
 		REQUIRE(zone->rpz_num < zone->rpzs->p.num_zones);
 		dns_rpz_detach_rpzs(&zone->rpzs);
 		zone->rpz_num = DNS_RPZ_INVALID_NUM;
+	}
+	if (zone->catzs != NULL) {
+		dns_catz_catzs_detach(&zone->catzs);
 	}
 	zone_freedbargs(zone);
 	RUNTIME_CHECK(dns_zone_setmasterswithkeys(zone, NULL, NULL, 0)
@@ -1747,6 +1759,34 @@ dns_zone_rpz_enable_db(dns_zone_t *zone, dns_db_t *db) {
 		dns_db_rpz_attach(db, zone->rpzs, zone->rpz_num);
 	}
 }
+
+void
+dns_zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(catzs != NULL);
+
+	LOCK_ZONE(zone);
+	INSIST(zone->catzs == NULL || zone->catzs == catzs);
+	dns_catz_catzs_set_view(catzs, zone->view);
+	if (zone->catzs == NULL)
+		dns_catz_catzs_attach(catzs, &zone->catzs);
+	UNLOCK_ZONE(zone);
+}
+
+/*
+ * If a zone is a catalog zone, attach it to update notification in database.
+ */
+void
+dns_zone_catz_enable_db(dns_zone_t *zone, dns_db_t *db) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(db != NULL);
+
+	if (zone->catzs != NULL) {
+		dns_db_updatenotify_register(db, dns_catz_dbupdate_callback,
+					     zone->catzs);
+	}
+}
+
 
 static isc_boolean_t
 zone_touched(dns_zone_t *zone) {
@@ -2344,6 +2384,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	unsigned int options;
 
 	dns_zone_rpz_enable_db(zone, db);
+	dns_zone_catz_enable_db(zone, db);
 	options = get_master_options(zone);
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
 		options |= DNS_MASTER_MANYERRORS;

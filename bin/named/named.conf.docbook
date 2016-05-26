@@ -283,6 +283,16 @@ options {
 	check-mx-cname ( fail | warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
 	cache-file <replaceable>quoted_string</replaceable>; // test option
+	catalog-zones {
+	    zone <replaceable>quoted_string</replaceable>
+		<optional> default-masters
+		<optional>port <replaceable>ip_port</replaceable></optional>
+		<optional>dscp <replaceable>ip_dscp</replaceable></optional>
+		{ ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> }</optional>
+	    <optional>in-memory <replaceable>yes_or_no</replaceable></optional>
+	    <optional>min-update-interval <replaceable>interval</replaceable></optional>
+	    ; ... };
+	;
 	suppress-initial-notify <replaceable>boolean</replaceable>; // not yet implemented
 	preferred-glue <replaceable>string</replaceable>;
 	dual-stack-servers <optional> port <replaceable>integer</replaceable> </optional> {

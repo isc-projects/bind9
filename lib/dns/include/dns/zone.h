@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
 
@@ -32,6 +30,7 @@
 #include <isc/lang.h>
 #include <isc/rwlock.h>
 
+#include <dns/catz.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/rdatastruct.h>
@@ -2392,6 +2391,30 @@ dns_zone_rpz_enable_db(dns_zone_t *zone, dns_db_t *db);
 
 dns_rpz_num_t
 dns_zone_get_rpz_num(dns_zone_t *zone);
+
+void
+dns_zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs);
+/*%<
+ * Enable zone as catalog zone.
+ *
+ * Requires:
+ *
+ * \li	'zone' is a valid zone object
+ * \li	'catzs' is not NULL
+ * \li	prior to calling, zone->catzs is NULL or is equal to 'catzs'
+ */
+
+void
+dns_zone_catz_enable_db(dns_zone_t *zone, dns_db_t *db);
+/*%<
+ * If 'zone' is a catalog zone, then set up a notify-on-update trigger
+ * in its database. (If not a catalog zone, this function has no effect.)
+ *
+ * Requires:
+ *
+ * \li	'zone' is a valid zone object
+ * \li	'db' is not NULL
+ */
 
 void
 dns_zone_setstatlevel(dns_zone_t *zone, dns_zonestat_level_t level);

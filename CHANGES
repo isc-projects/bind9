@@ -1,3 +1,11 @@
+4376.	[experimental]	Added support for Catalog Zones, a new method for
+			provisioning secondary servers in which a list of
+			zones to be served is stored in a DNS zone and can
+			be propagated to slaves via AXFR/IXFR. [RT #41581]
+
+4375.	[func]		Add support for automatic reallocation of isc_buffer
+			to isc_buffer_put* functions. [RT #42394]
+
 4374.	[bug]		Use SAVE/RESTORE macros in query.c to reduce the
 			probability of reference counting errors as seen
 			in 4365. [RT #42405]

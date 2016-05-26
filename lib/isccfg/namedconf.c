@@ -1472,6 +1472,42 @@ static cfg_type_t cfg_type_rpz = {
 	rpz_fields
 };
 
+/*
+ * Catalog zones
+ */
+static cfg_type_t cfg_type_catz_zone = {
+	"zone", parse_keyvalue, print_keyvalue,
+	doc_keyvalue, &cfg_rep_string,
+	&zone_kw
+};
+
+static cfg_tuplefielddef_t catz_zone_fields[] = {
+	{ "zone name", &cfg_type_catz_zone, 0 },
+	{ "default-masters", &cfg_type_namesockaddrkeylist, 0 },
+	{ "in-memory", &cfg_type_boolean, 0 },
+	{ "min-update-interval", &cfg_type_uint32, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_catz_tuple = {
+	"catz tuple", cfg_parse_kv_tuple,
+	cfg_print_kv_tuple, cfg_doc_kv_tuple, &cfg_rep_tuple,
+	catz_zone_fields
+};
+static cfg_type_t cfg_type_catz_list = {
+	"zone list", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list,
+	&cfg_type_catz_tuple
+};
+static cfg_tuplefielddef_t catz_fields[] = {
+	{ "zone list", &cfg_type_catz_list, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_catz = {
+	"catz", cfg_parse_kv_tuple, cfg_print_kv_tuple,
+	cfg_doc_kv_tuple, &cfg_rep_tuple, catz_fields
+};
+
+
 
 /*
  * rate-limit
@@ -1627,6 +1663,7 @@ view_clauses[] = {
 	{ "attach-cache", &cfg_type_astring, 0 },
 	{ "auth-nxdomain", &cfg_type_boolean, CFG_CLAUSEFLAG_NEWDEFAULT },
 	{ "cache-file", &cfg_type_qstring, 0 },
+	{ "catalog-zones", &cfg_type_catz, 0 },
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },
 	{ "cleaning-interval", &cfg_type_uint32, 0 },
 	{ "clients-per-query", &cfg_type_uint32, 0 },
