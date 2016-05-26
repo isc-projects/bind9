@@ -1,3 +1,5 @@
+4373.	[bug]		Address undefined behaviour in getaddrinfo. [RT #42479]
+
 4372.	[bug]		Address undefined behaviour in libt_api. [RT #42480]
 
 4371.	[func]		New "minimal-any" option reduces the size of UDP

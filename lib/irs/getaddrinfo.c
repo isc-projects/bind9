@@ -417,7 +417,7 @@ getaddrinfo(const char *hostname, const char *servname,
 				goto inet6_addr;
 			}
 			addrsize = sizeof(struct in_addr);
-			addroff = (char *)(&SIN(0)->sin_addr) - (char *)0;
+			addroff = offsetof(struct sockaddr_in, sin_addr);
 			family = AF_INET;
 			goto common;
 #ifdef IRS_HAVE_SIN6_SCOPE_ID
@@ -426,7 +426,7 @@ getaddrinfo(const char *hostname, const char *servname,
 			if (family && family != AF_INET6)
 				return (EAI_NONAME);
 			addrsize = sizeof(struct in6_addr);
-			addroff = (char *)(&SIN6(0)->sin6_addr) - (char *)0;
+			addroff = offsetof(struct sockaddr_in6, sin6_addr);
 			family = AF_INET6;
 			goto common;
 #endif
@@ -435,7 +435,7 @@ getaddrinfo(const char *hostname, const char *servname,
 				return (EAI_NONAME);
 		inet6_addr:
 			addrsize = sizeof(struct in6_addr);
-			addroff = (char *)(&SIN6(0)->sin6_addr) - (char *)0;
+			addroff = offsetof(struct sockaddr_in6, sin6_addr);
 			family = AF_INET6;
 
 		common:
