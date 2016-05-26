@@ -102,8 +102,11 @@ def parse_args():
     if args.no_zsk and args.no_ksk:
         fatal("ERROR: -z and -k cannot be used together.")
 
-    if args.keygen is None or args.settime is None:
-        fatal("ERROR: dnssec-keygen/dnssec-settime not found")
+    if args.keygen is None:
+        fatal("ERROR: dnssec-keygen not found")
+
+    if args.settime is None:
+        fatal("ERROR: dnssec-settime not found")
 
     # if a policy file was specified, check that it exists.
     # if not, use the default file, unless it doesn't exist
