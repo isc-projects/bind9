@@ -174,6 +174,19 @@ client_trace(ns_client_t *client, int level, const char *message) {
 
 #define PENDINGOK(x)	(((x) & DNS_DBFIND_PENDINGOK) != 0)
 
+/*
+ * These have the same semantics as:
+ *
+ * 	foo_attach(b, a);
+ *	foo_detach(&a);
+ *
+ * without the locking and magic testing.
+ *
+ * We use SAVE and RESTORE as that shows the operation being performed.
+ */
+#define SAVE(a, b) do { INSIST(a == NULL); a = b; b = NULL; } while (0)
+#define RESTORE(a, b) SAVE(a, b)
+
 typedef struct client_additionalctx {
 	ns_client_t *client;
 	dns_rdataset_t *rdataset;
@@ -3189,16 +3202,12 @@ query_addbestns(ns_client_t *client) {
 			goto cleanup;
 		if (USECACHE(client)) {
 			query_keepname(client, fname, dbuf);
-			zdb = db;
-			zfname = fname;
-			fname = NULL;
-			zrdataset = rdataset;
-			rdataset = NULL;
-			zsigrdataset = sigrdataset;
-			sigrdataset = NULL;
 			dns_db_detachnode(db, &node);
+			SAVE(zdb, db);
+			SAVE(zfname, fname);
+			SAVE(zrdataset, rdataset);
+			SAVE(zsigrdataset, sigrdataset);
 			version = NULL;
-			db = NULL;
 			dns_db_attach(client->view->cachedb, &db);
 			is_zone = ISC_FALSE;
 			goto db_find;
@@ -3229,8 +3238,6 @@ query_addbestns(ns_client_t *client) {
 
 	if (use_zone) {
 		query_releasename(client, &fname);
-		fname = zfname;
-		zfname = NULL;
 		/*
 		 * We've already done query_keepname() on
 		 * zfname, so we must set dbuf to NULL to
@@ -3241,10 +3248,10 @@ query_addbestns(ns_client_t *client) {
 		query_putrdataset(client, &rdataset);
 		if (sigrdataset != NULL)
 			query_putrdataset(client, &sigrdataset);
-		rdataset = zrdataset;
-		zrdataset = NULL;
-		sigrdataset = zsigrdataset;
-		zsigrdataset = NULL;
+		
+		RESTORE(fname, zfname);
+		RESTORE(rdataset, zrdataset);
+		RESTORE(sigrdataset, zsigrdataset);
 	}
 
 	/*
@@ -4544,7 +4551,7 @@ rpz_save_p(dns_rpz_st_t *st, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	   dns_dbnode_t **nodep, dns_rdataset_t **rdatasetp,
 	   dns_dbversion_t *version)
 {
-	dns_rdataset_t *trdataset;
+	dns_rdataset_t *trdataset = NULL;
 
 	rpz_match_clear(st);
 	st->m.rpz = rpz;
@@ -4553,25 +4560,22 @@ rpz_save_p(dns_rpz_st_t *st, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	dns_name_copy(p_name, st->p_name, NULL);
 	st->m.prefix = prefix;
 	st->m.result = result;
-	st->m.zone = *zonep;
-	*zonep = NULL;
-	st->m.db = *dbp;
-	*dbp = NULL;
-	st->m.node = *nodep;
-	*nodep = NULL;
+	SAVE(st->m.zone, *zonep);
+	SAVE(st->m.db, *dbp);
+	SAVE(st->m.node, *nodep);
 	if (*rdatasetp != NULL && dns_rdataset_isassociated(*rdatasetp)) {
 		/*
 		 * Save the replacement rdataset from the policy
 		 * and make the previous replacement rdataset scratch.
 		 */
-		trdataset = st->m.rdataset;
-		st->m.rdataset = *rdatasetp;
-		*rdatasetp = trdataset;
+		SAVE(trdataset, st->m.rdataset);
+		SAVE(st->m.rdataset, *rdatasetp);
+		SAVE(*rdatasetp, trdataset);
 		st->m.ttl = ISC_MIN(st->m.rdataset->ttl, rpz->max_policy_ttl);
 	} else {
 		st->m.ttl = ISC_MIN(DNS_RPZ_TTL_DEFAULT, rpz->max_policy_ttl);
 	}
-	st->m.version = version;
+	SAVE(st->m.version, version);
 }
 
 /*
@@ -6061,12 +6065,12 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
 			     aaaaok, count)) {
 		for (i = 0; i < count; i++) {
 			if (aaaaok != NULL && !aaaaok[i]) {
-				client->query.dns64_aaaaok = aaaaok;
+				SAVE(client->query.dns64_aaaaok, aaaaok);
 				client->query.dns64_aaaaoklen = count;
 				break;
 			}
 		}
-		if (i == count && aaaaok != NULL)
+		if (aaaaok != NULL)
 			isc_mem_put(client->mctx, aaaaok,
 				    sizeof(isc_boolean_t) * count);
 		return (ISC_TRUE);
@@ -6341,16 +6345,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 			is_zone = rpz_st->q.is_zone;
 			authoritative = rpz_st->q.authoritative;
-			zone = rpz_st->q.zone;
-			rpz_st->q.zone = NULL;
-			node = rpz_st->q.node;
-			rpz_st->q.node = NULL;
-			db = rpz_st->q.db;
-			rpz_st->q.db = NULL;
-			rdataset = rpz_st->q.rdataset;
-			rpz_st->q.rdataset = NULL;
-			sigrdataset = rpz_st->q.sigrdataset;
-			rpz_st->q.sigrdataset = NULL;
+			RESTORE(zone, rpz_st->q.zone);
+			RESTORE(node, rpz_st->q.node);
+			RESTORE(db, rpz_st->q.db);
+			RESTORE(rdataset, rpz_st->q.rdataset);
+			RESTORE(sigrdataset, rpz_st->q.sigrdataset);
 			qtype = rpz_st->q.qtype;
 
 			rpz_st->r.db = event->db;
@@ -6518,9 +6517,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				dns_db_detach(&db);
 			if (zone != NULL)
 				dns_zone_detach(&zone);
-			version = tversion;
-			db = tdb;
-			zone = tzone;
+			version = NULL;
+			RESTORE(version, tversion);
+			RESTORE(db, tdb);
+			RESTORE(zone, tzone);
 			is_zone = ISC_TRUE;
 			result = ISC_R_SUCCESS;
 		} else {
@@ -6764,16 +6764,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			rpz_st->q.qtype = qtype;
 			rpz_st->q.is_zone = is_zone;
 			rpz_st->q.authoritative = authoritative;
-			rpz_st->q.zone = zone;
-			zone = NULL;
-			rpz_st->q.db = db;
-			db = NULL;
-			rpz_st->q.node = node;
-			node = NULL;
-			rpz_st->q.rdataset = rdataset;
-			rdataset = NULL;
-			rpz_st->q.sigrdataset = sigrdataset;
-			sigrdataset = NULL;
+			SAVE(rpz_st->q.zone, zone);
+			SAVE(rpz_st->q.db, db);
+			SAVE(rpz_st->q.node, node);
+			SAVE(rpz_st->q.rdataset, rdataset);
+			SAVE(rpz_st->q.sigrdataset, sigrdataset);
 			dns_name_copy(fname, rpz_st->fname, NULL);
 			rpz_st->q.result = result;
 			client->query.attributes |= NS_QUERYATTR_RECURSING;
@@ -6803,20 +6798,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			rpz_clean(&zone, &db, &node, NULL);
 			if (rpz_st->m.rdataset != NULL) {
 				query_putrdataset(client, &rdataset);
-				rdataset = rpz_st->m.rdataset;
-				rpz_st->m.rdataset = NULL;
+				RESTORE(rdataset, rpz_st->m.rdataset);
 			} else if (rdataset != NULL &&
 				   dns_rdataset_isassociated(rdataset)) {
 				dns_rdataset_disassociate(rdataset);
 			}
-			node = rpz_st->m.node;
-			rpz_st->m.node = NULL;
-			db = rpz_st->m.db;
-			rpz_st->m.db = NULL;
-			version = rpz_st->m.version;
-			rpz_st->m.version = NULL;
-			zone = rpz_st->m.zone;
-			rpz_st->m.zone = NULL;
+			version = NULL;
+
+			RESTORE(node, rpz_st->m.node);
+			RESTORE(db, rpz_st->m.db);
+			RESTORE(version, rpz_st->m.version);
+			RESTORE(zone, rpz_st->m.zone);
 
 			switch (rpz_st->m.policy) {
 			case DNS_RPZ_POLICY_TCP_ONLY:
@@ -7026,9 +7018,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 						dns_db_detach(&db);
 					if (zone != NULL)
 						dns_zone_detach(&zone);
-					version = tversion;
-					db = tdb;
-					zone = tzone;
+					version = NULL;
+					RESTORE(version, tversion);
+					RESTORE(db, tdb);
+					RESTORE(zone, tzone);
 					authoritative = ISC_TRUE;
 					goto db_find;
 				}
@@ -7091,17 +7084,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * use it instead.
 				 */
 				query_keepname(client, fname, dbuf);
-				zdb = db;
-				zfname = fname;
-				fname = NULL;
-				zrdataset = rdataset;
-				rdataset = NULL;
-				zsigrdataset = sigrdataset;
-				sigrdataset = NULL;
 				dns_db_detachnode(db, &node);
-				zversion = version;
-				version = NULL;
-				db = NULL;
+				SAVE(zdb, db);
+				SAVE(zfname, fname);
+				SAVE(zrdataset, rdataset);
+				SAVE(zsigrdataset, sigrdataset);
+				SAVE(zversion, version);
 				dns_db_attach(client->view->cachedb, &db);
 				is_zone = ISC_FALSE;
 				goto db_find;
@@ -7126,8 +7114,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 *    static-stub zone.
 				 */
 				query_releasename(client, &fname);
-				fname = zfname;
-				zfname = NULL;
 				/*
 				 * We've already done query_keepname() on
 				 * zfname, so we must set dbuf to NULL to
@@ -7139,12 +7125,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				if (sigrdataset != NULL)
 					query_putrdataset(client,
 							  &sigrdataset);
-				rdataset = zrdataset;
-				zrdataset = NULL;
-				sigrdataset = zsigrdataset;
-				zsigrdataset = NULL;
-				version = zversion;
-				zversion = NULL;
+				version = NULL;
+
+				RESTORE(fname, zfname);
+				RESTORE(rdataset, zrdataset);
+				RESTORE(sigrdataset, zsigrdataset);
+				RESTORE(version, zversion);
 				/*
 				 * We don't clean up zdb here because we
 				 * may still need it.  It will get cleaned
@@ -7239,10 +7225,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				query_putrdataset(client, &rdataset);
 			if (sigrdataset != NULL)
 				query_putrdataset(client, &sigrdataset);
-			rdataset = client->query.dns64_aaaa;
-			sigrdataset = client->query.dns64_sigaaaa;
-			client->query.dns64_aaaa = NULL;
-			client->query.dns64_sigaaaa = NULL;
+			RESTORE(rdataset, client->query.dns64_aaaa);
+			RESTORE(sigrdataset, client->query.dns64_sigaaaa);
 			if (fname == NULL) {
 				dbuf = query_getnamebuf(client);
 				if (dbuf == NULL) {
@@ -7279,15 +7263,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Look to see if there are A records for this
 			 * name.
 			 */
-			INSIST(client->query.dns64_aaaa == NULL);
-			INSIST(client->query.dns64_sigaaaa == NULL);
-			client->query.dns64_aaaa = rdataset;
-			client->query.dns64_sigaaaa = sigrdataset;
+			SAVE(client->query.dns64_aaaa, rdataset);
+			SAVE(client->query.dns64_sigaaaa, sigrdataset);
 			client->query.dns64_ttl = dns64_ttl(db, version);
 			query_releasename(client, &fname);
 			dns_db_detachnode(db, &node);
-			rdataset = NULL;
-			sigrdataset = NULL;
 			type = qtype = dns_rdatatype_a;
 			rpz_st = client->query.rpz_st;
 			if (rpz_st != NULL) {
@@ -7556,10 +7536,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				query_putrdataset(client, &rdataset);
 			if (sigrdataset != NULL)
 				query_putrdataset(client, &sigrdataset);
-			rdataset = client->query.dns64_aaaa;
-			sigrdataset = client->query.dns64_sigaaaa;
-			client->query.dns64_aaaa = NULL;
-			client->query.dns64_sigaaaa = NULL;
+			RESTORE(rdataset, client->query.dns64_aaaa);
+			RESTORE(sigrdataset, client->query.dns64_sigaaaa);
 			if (fname == NULL) {
 				dbuf = query_getnamebuf(client);
 				if (dbuf == NULL) {
@@ -7593,10 +7571,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Look to see if there are A records for this
 			 * name.
 			 */
-			INSIST(client->query.dns64_aaaa == NULL);
-			INSIST(client->query.dns64_sigaaaa == NULL);
-			client->query.dns64_aaaa = rdataset;
-			client->query.dns64_sigaaaa = sigrdataset;
+
 			/*
 			 * If the ttl is zero we need to workout if we have just
 			 * decremented to zero or if there was no negative cache
@@ -7606,11 +7581,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				client->query.dns64_ttl = rdataset->ttl;
 			else if (dns_rdataset_first(rdataset) == ISC_R_SUCCESS)
 				client->query.dns64_ttl = 0;
+			SAVE(client->query.dns64_aaaa, rdataset);
+			SAVE(client->query.dns64_sigaaaa, sigrdataset);
 			query_releasename(client, &fname);
 			dns_db_detachnode(db, &node);
-			rdataset = NULL;
-			sigrdataset = NULL;
-			fname = NULL;
 			type = qtype = dns_rdatatype_a;
 			rpz_st = client->query.rpz_st;
 			if (rpz_st != NULL) {
@@ -8146,13 +8120,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Look to see if there are A records for this
 			 * name.
 			 */
-			client->query.dns64_aaaa = rdataset;
-			client->query.dns64_sigaaaa = sigrdataset;
 			client->query.dns64_ttl = rdataset->ttl;
+			SAVE(client->query.dns64_aaaa, rdataset);
+			SAVE(client->query.dns64_sigaaaa, sigrdataset);
 			query_releasename(client, &fname);
 			dns_db_detachnode(db, &node);
-			rdataset = NULL;
-			sigrdataset = NULL;
 			type = qtype = dns_rdatatype_a;
 			rpz_st = client->query.rpz_st;
 			if (rpz_st != NULL) {
