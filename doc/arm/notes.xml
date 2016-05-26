@@ -184,8 +184,23 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  rndc flushtree now works even if there wasn't a cached node at the
-	  specified name. [RT #41846]
+	  Windows installs were failing due to triggering UAC without
+	  the installation binary being signed.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  A change in the internal binary represetation of the RBT database
+	  node structure enabled a race condition to occur (especially when
+	  BIND was built with certain compilers or optimizer settings),
+	  leading to inconsistent database state which caused random
+	  assertion failures. [RT #42380]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>rndc flushtree</command> now works even if there
+	  wasn't a cached node at the specified name. [RT #41846]
 	</para>
       </listitem>
       <listitem>
