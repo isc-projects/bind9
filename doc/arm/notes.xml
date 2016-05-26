@@ -190,7 +190,7 @@
       </listitem>
       <listitem>
 	<para>
-	  A change in the internal binary represetation of the RBT database
+	  A change in the internal binary representation of the RBT database
 	  node structure enabled a race condition to occur (especially when
 	  BIND was built with certain compilers or optimizer settings),
 	  leading to inconsistent database state which caused random
