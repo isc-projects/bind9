@@ -1,3 +1,7 @@
+4374.	[bug]		Use SAVE/RESTORE macros in query.c to reduce the
+			probability of reference counting errors as seen
+			in 4365. [RT #42405]
+
 4373.	[bug]		Address undefined behaviour in getaddrinfo. [RT #42479]
 
 4372.	[bug]		Address undefined behaviour in libt_api. [RT #42480]
