@@ -3248,7 +3248,7 @@ query_addbestns(ns_client_t *client) {
 		query_putrdataset(client, &rdataset);
 		if (sigrdataset != NULL)
 			query_putrdataset(client, &sigrdataset);
-		
+
 		RESTORE(fname, zfname);
 		RESTORE(rdataset, zrdataset);
 		RESTORE(sigrdataset, zsigrdataset);
