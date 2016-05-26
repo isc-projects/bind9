@@ -6,7 +6,7 @@
 			Thanks to Tony Finch. [RT #41615]
 
 4370.	[bug]		Address python3 compatibility issues with RNDC module.
-			[RT #42499]
+			[RT #42499] [RT #42506]
 
 	--- 9.11.0a2 released ---
 

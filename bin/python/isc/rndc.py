@@ -62,13 +62,16 @@ class rndc(object):
         return dict(self.__command(type=cmd)['_data'])
 
     def __serialize_dict(self, data, ignore_auth=False):
-        rv = ''
-        for k, v in data.iteritems():
+        rv = bytearray()
+        for k, v in data.items():
             if ignore_auth and k == '_auth':
                 continue
-            rv += chr(len(k))
-            rv += k
+            rv += struct.pack('B', len(k)) + k.encode('ascii')
             if type(v) == str:
+                rv += struct.pack('>BI', 1, len(v)) + v.encode('ascii')
+            elif type(v) == bytes:
+                rv += struct.pack('>BI', 1, len(v)) + v
+            elif type(v) == bytearray:
                 rv += struct.pack('>BI', 1, len(v)) + v
             elif type(v) == OrderedDict:
                 sd = self.__serialize_dict(v)
@@ -99,8 +102,8 @@ class rndc(object):
         if self.algo == 'md5':
             d['_auth']['hmd5'] = struct.pack('22s', bhash)
         else:
-            d['_auth']['hsha'] = struct.pack('B88s',
-                                             self.__algos[self.algo], bhash)
+            d['_auth']['hsha'] = bytearray(struct.pack('B88s',
+                                             self.__algos[self.algo], bhash))
         msg = self.__serialize_dict(d)
         msg = struct.pack('>II', len(msg) + 4, 1) + msg
         return msg
@@ -108,7 +111,12 @@ class rndc(object):
     def __verify_msg(self, msg):
         if self.nonce is not None and msg['_ctrl']['_nonce'] != self.nonce:
             return False
-        bhash = msg['_auth']['hmd5' if self.algo == 'md5' else 'hsha']
+        if self.algo == 'md5':
+            bhash = msg['_auth']['hmd5']
+        else:
+            bhash = msg['_auth']['hsha'][1:]
+        if type(bhash) == bytes:
+            bhash = bhash.decode('ascii')
         bhash += '=' * (4 - (len(bhash) % 4))
         remote_hash = base64.b64decode(bhash)
         my_msg = self.__serialize_dict(msg, ignore_auth=True)
@@ -136,6 +144,8 @@ class rndc(object):
         if len(data) != length:
             raise IOError("Can't read response data")
 
+        if type(data) == str:
+            data = bytearray(data)
         msg = self.__parse_message(data)
         if not self.__verify_msg(msg):
             raise IOError("Authentication failure")
@@ -150,11 +160,11 @@ class rndc(object):
 
     def __parse_element(self, input):
         pos = 0
-        labellen = ord(input[pos])
+        labellen = input[pos]
         pos += 1
-        label = input[pos:pos+labellen]
+        label = input[pos:pos+labellen].decode('ascii')
         pos += labellen
-        type = ord(input[pos])
+        type = input[pos]
         pos += 1
         datalen = struct.unpack('>I', input[pos:pos+4])[0]
         pos += 4
