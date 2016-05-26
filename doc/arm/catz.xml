@@ -13,6 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
+
 <section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="catz-info"><info><title>Catalog Zones</title></info>
 
   <para>
@@ -119,7 +120,7 @@ catalog-zones {
       be a slave zone.
     </para>
     <para>
-      The <option>default-masters</option> option defines the default masters 
+      The <option>default-masters</option> option defines the default masters
       for member zones listed in a catalog zone. This can be overriden by
       options within a catalog zone. If no such options are included, then
       member zones will transfer their contents from the servers listed in

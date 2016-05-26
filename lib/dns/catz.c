@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,9 +16,13 @@
 
 /*! \file */
 
+#include <config.h>
+
 #include <isc/hex.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/result.h>
+#include <isc/sha2.h>
 #include <isc/task.h>
 
 #include <dns/catz.h>
@@ -27,8 +31,7 @@
 #include <dns/rdatasetiter.h>
 #include <dns/view.h>
 #include <dns/zone.h>
-#include <isc/sha2.h>
-#include <isc/parseint.h>
+
 
 /*%
  * Single member zone in a catalog

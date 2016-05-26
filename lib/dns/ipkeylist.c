@@ -14,6 +14,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <config.h>
+
 #include <isc/mem.h>
 #include <isc/sockaddr.h>
 #include <isc/util.h>

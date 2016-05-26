@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,6 +13,8 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+
+#include <config.h>
 
 #include <string.h>
 
@@ -326,7 +328,7 @@ isc_ht_walk(isc_ht_t *ht, isc_ht_walkfn walkfn, void *udata) {
 					prev->next = cur;
 				}
 				isc_mem_put(ht->mctx, tmp,
-				        sizeof(isc_ht_node_t) + tmp->keysize);
+					sizeof(isc_ht_node_t) + tmp->keysize);
 				ht->count--;
 			} else {
 				prev = cur;

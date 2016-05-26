@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -454,7 +454,7 @@ isc_result_t
 dns_catz_get_iterator(dns_catz_zone_t *catz, isc_ht_iter_t **itp);
 /*%<
  * Get the hashtable iterator on catalog zone members, point '*itp' to it.
- * 
+ *
  * Returns:
  * \li #ISC_R_SUCCESS		-- success
  * \li Any other value		-- failure
