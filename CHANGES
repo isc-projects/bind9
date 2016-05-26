@@ -1,3 +1,7 @@
+4377.	[bug]		Don't reuse zero TTL responses beyond the current
+			client set (excludes ANY/SIG/RRSIG queries).
+			[RT #42142]
+
 4376.	[experimental]	Added support for Catalog Zones, a new method for
 			provisioning secondary servers in which a list of
 			zones to be served is stored in a DNS zone and can
