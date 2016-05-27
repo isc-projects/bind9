@@ -16,6 +16,8 @@
 
 #include <config.h>
 
+#include <string.h>
+
 #include <isc/mem.h>
 #include <isc/sockaddr.h>
 #include <isc/util.h>
