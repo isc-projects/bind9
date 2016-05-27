@@ -59,6 +59,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/result.h>
 #include <dns/stats.h>
+#include <dns/time.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zonekey.h>
@@ -347,6 +348,7 @@ typedef struct rdatasetheader {
 	dns_trust_t                     trust;
 	struct noqname                  *noqname;
 	struct noqname                  *closest;
+	unsigned int 			resign_lsb : 1;
 	/*%<
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers, and is doubly linked.
@@ -907,7 +909,8 @@ resign_sooner(void *v1, void *v2) {
 	rdatasetheader_t *h1 = v1;
 	rdatasetheader_t *h2 = v2;
 
-	if (isc_serial_lt(h1->resign, h2->resign))
+	if (h1->resign < h2->resign ||
+	    (h1->resign == h2->resign && h1->resign_lsb < h2->resign_lsb))
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }
@@ -2980,7 +2983,7 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	 */
 	if (RESIGN(header)) {
 		rdataset->attributes |=  DNS_RDATASETATTR_RESIGN;
-		rdataset->resign = header->resign;
+		rdataset->resign = (header->resign << 1) | header->resign_lsb;
 	} else
 		rdataset->resign = 0;
 }
@@ -5665,7 +5668,8 @@ printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
 					current->rdh_ttl,
 					current->trust,
 					current->attributes,
-					current->resign);
+					(current->resign << 1) |
+					current->resign_lsb);
 				current = current->down;
 			} while (current != NULL);
 		}
@@ -6290,8 +6294,11 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				init_rdataset(rbtdb, newheader);
 				if (loading && RESIGN(newheader) &&
 				    RESIGN(header) &&
-				    header->resign < newheader->resign)
+				    header->resign < newheader->resign) {
 					newheader->resign = header->resign;
+					newheader->resign_lsb =
+							header->resign_lsb;
+				}
 			} else {
 				free_rdataset(rbtdb, rbtdb->common.mctx,
 					      newheader);
@@ -6697,12 +6704,17 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 		if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 			newheader->attributes |= RDATASET_ATTR_RESIGN;
-			newheader->resign = rdataset->resign;
-		} else
+			newheader->resign =
+			            dns_time64_from32(rdataset->resign) >> 1;
+			newheader->resign_lsb = rdataset->resign & 0x1;
+		} else {
 			newheader->resign = 0;
+			newheader->resign_lsb = 0;
+		}
 	} else {
 		newheader->serial = 1;
 		newheader->resign = 0;
+		newheader->resign_lsb = 0;
 		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
 			newheader->attributes |= RDATASET_ATTR_NEGATIVE;
 		if ((rdataset->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
@@ -6878,9 +6890,12 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->node = rbtnode;
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 		newheader->attributes |= RDATASET_ATTR_RESIGN;
-		newheader->resign = rdataset->resign;
-	} else
+		newheader->resign = dns_time64_from32(rdataset->resign) >> 1;
+		newheader->resign_lsb = rdataset->resign & 0x1;
+	} else {
 		newheader->resign = 0;
+		newheader->resign_lsb = 0;
+	}
 
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_write);
@@ -6967,6 +6982,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader->additional_glue = NULL;
 			newheader->node = rbtnode;
 			newheader->resign = 0;
+			newheader->resign_lsb = 0;
 			newheader->last_used = 0;
 		} else {
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
@@ -7250,9 +7266,12 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->node = node;
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 		newheader->attributes |= RDATASET_ATTR_RESIGN;
-		newheader->resign = rdataset->resign;
-	} else
+		newheader->resign = dns_time64_from32(rdataset->resign) >> 1;
+		newheader->resign_lsb = rdataset->resign & 0x1;
+	} else {
 		newheader->resign = 0;
+		newheader->resign_lsb = 0;
+	}
 
 	result = add32(rbtdb, node, rbtdb->current_version, newheader,
 		       DNS_DBADD_MERGE, ISC_TRUE, NULL, 0);
@@ -7526,7 +7545,8 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 		  isc_rwlocktype_write);
 
 	oldresign = header->resign;
-	header->resign = resign;
+	header->resign = dns_time64_from32(resign) >> 1;
+	header->resign_lsb = resign & 0x1;
 	if (header->heap_index != 0) {
 		INSIST(RESIGN(header));
 		if (resign == 0) {
