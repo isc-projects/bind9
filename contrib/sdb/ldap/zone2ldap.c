@@ -25,6 +25,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
+#include <isc/string.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>

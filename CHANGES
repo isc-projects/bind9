@@ -1,3 +1,6 @@
+4378.	[contrib]	#include <isc/string.h> for strlcat in zone2ldap.c.
+			[RT #42525]
+
 4377.	[bug]		Don't reuse zero TTL responses beyond the current
 			client set (excludes ANY/SIG/RRSIG queries).
 			[RT #42142]
