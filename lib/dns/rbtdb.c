@@ -6659,7 +6659,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 			newheader->attributes |= RDATASET_ATTR_RESIGN;
 			newheader->resign =
-			            dns_time64_from32(rdataset->resign) >> 1;
+				    dns_time64_from32(rdataset->resign) >> 1;
 			newheader->resign_lsb = rdataset->resign & 0x1;
 		} else {
 			newheader->resign = 0;
