@@ -7626,7 +7626,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			if (node != NULL)
 				dns_db_detachnode(db, &node);
 
-			INSIST(!REDIRECT(client));
 			result = query_recurse(client, qtype,
 					       client->query.qname,
 					       NULL, NULL, resuming);
@@ -8069,7 +8068,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			if (node != NULL)
 				dns_db_detachnode(db, &node);
 
-			INSIST(!REDIRECT(client));
 			result = query_recurse(client, qtype,
 					       client->query.qname,
 					       NULL, NULL, resuming);
