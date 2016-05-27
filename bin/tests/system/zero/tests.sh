@@ -46,13 +46,13 @@ status=`expr $status + $ret`
 
 echo "I:check repeated recursive lookups of non recurring zero ttl responses get new values"
 count=`(
-dig +short -p 5300 @10.53.0.3 foo.increment
-dig +short -p 5300 @10.53.0.3 foo.increment
-dig +short -p 5300 @10.53.0.3 foo.increment
-dig +short -p 5300 @10.53.0.3 foo.increment
-dig +short -p 5300 @10.53.0.3 foo.increment
-dig +short -p 5300 @10.53.0.3 foo.increment
-dig +short -p 5300 @10.53.0.3 foo.increment
+$DIG +short -p 5300 @10.53.0.3 foo.increment
+$DIG +short -p 5300 @10.53.0.3 foo.increment
+$DIG +short -p 5300 @10.53.0.3 foo.increment
+$DIG +short -p 5300 @10.53.0.3 foo.increment
+$DIG +short -p 5300 @10.53.0.3 foo.increment
+$DIG +short -p 5300 @10.53.0.3 foo.increment
+$DIG +short -p 5300 @10.53.0.3 foo.increment
 ) | sort -u | wc -l `
 if [ $count -ne 7 ] ; then echo "I:failed (count=$count)"; ret=1; fi
 status=`expr $status + $ret`
