@@ -23,8 +23,8 @@
     When a catalog zone is loaded or transferred to a slave server
     which supports this functionality, the slave server will create
     the member zones automatically. When the catalog zone is updated
-    is updated (for example, to add or delete member zones, or change
-    their configuration aprameters) those changes are immediately put
+    (for example, to add or delete member zones, or change
+    their configuration parameters) those changes are immediately put
     into effect. Because the catalog zone is a normal DNS zone, these
     configuration changes can be propagated using the standard AXFR/IXFR
     zone transfer mechanism.
@@ -95,7 +95,7 @@
       catalog cone is propagated to the slave server using the normal AXFR/IXFR
       transfer mechanism.  The slave server, on processing the update, will
       notice that the member zone has been removed.  It will stop serving the
-      zone and remove it froms its list of configured zones.  (Removing the
+      zone and remove it from its list of configured zones.  (Removing the
       member zone from the master server has to be done in the normal way,
       by editing the configuration file or running
       <command>rndc delzone</command>.)
@@ -121,7 +121,7 @@ catalog-zones {
     </para>
     <para>
       The <option>default-masters</option> option defines the default masters
-      for member zones listed in a catalog zone. This can be overriden by
+      for member zones listed in a catalog zone. This can be overridden by
       options within a catalog zone. If no such options are included, then
       member zones will transfer their contents from the servers listed in
       this option.
@@ -178,7 +178,7 @@ version.catalog.example.    IN TXT "1"
       all member zones, overriding the settings for the catalog zone
       in the configuration file.  Currently only the "masters" option
       is supported:
-      <!-- TODO masters IN MX (with TSIG), allow-query, allow-tranfer -->
+      <!-- TODO masters IN MX (with TSIG), allow-query, allow-transfer -->
     </para>
 <screen>
 masters.catalog.example    IN A 192.0.2.1
