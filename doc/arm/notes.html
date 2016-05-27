@@ -169,8 +169,24 @@
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
-	  rndc flushtree now works even if there wasn't a cached node
-	  at the specified name. [RT #41846]
+	  Fixed a crash when calling <span class="command"><strong>rndc stats</strong></span> on some
+	  Windows builds: some Visual Studio compilers generate code that
+	  crashes when the "%z" printf() format specifier is used. [RT #42380]
+	</p></li>
+<li class="listitem"><p>
+	  Windows installs were failing due to triggering UAC without
+	  the installation binary being signed.
+	</p></li>
+<li class="listitem"><p>
+	  A change in the internal binary representation of the RBT database
+	  node structure enabled a race condition to occur (especially when
+	  BIND was built with certain compilers or optimizer settings),
+	  leading to inconsistent database state which caused random
+	  assertion failures. [RT #42380]
+	</p></li>
+<li class="listitem"><p>
+	  <span class="command"><strong>rndc flushtree</strong></span> now works even if there wasn't
+	  a cached node at the specified name. [RT #41846]
 	</p></li>
 <li class="listitem"><p>
 	  Don't emit records with zero TTL unless the records were

@@ -86,14 +86,14 @@ option\&.
 "All"\&. The
 \fB\-a\fR
 option is normally equivalent to
-\fB\-v\fR\fB\-t\fRANY\&. It also affects the behaviour of the
+\fB\-v \-t \fR\fBANY\fR\&. It also affects the behaviour of the
 \fB\-l\fR
 list zone option\&.
 .RE
 .PP
 \-c \fIclass\fR
 .RS 4
-Query class: This can be used to lookup Hesiod or Chaosnet class resource records\&. The default class is IN (Internet)\&.
+Query class: This can be used to lookup HS (Hesiod) or CH (Chaosnet) class resource records\&. The default class is IN (Internet)\&.
 .RE
 .PP
 \-C
@@ -121,12 +121,12 @@ Obsolete\&. Use the IP6\&.INT domain for reverse lookups of IPv6 addresses as de
 .RS 4
 List zone: The
 \fBhost\fR
-performs a zone transfer of zone
+command performs a zone transfer of zone
 \fIname\fR
 and prints out the NS, PTR and address records (A/AAAA)\&.
 .sp
 Together, the
-\fB\-l\fR\fB\-a\fR
+\fB\-l \-a\fR
 options print all records in the zone\&.
 .RE
 .PP
@@ -145,9 +145,7 @@ directive in
 .PP
 \-r
 .RS 4
-Non\-recursive query: Setting this option clears the
-\fBRD\fR
-\(em recursion desired \(em bit in the query\&. This should mean that the name server receiving the query will not attempt to resolve
+Non\-recursive query: Setting this option clears the RD (recursion desired) bit in the query\&. This should mean that the name server receiving the query will not attempt to resolve
 \fIname\fR\&. The
 \fB\-r\fR
 option enables
@@ -171,7 +169,7 @@ send the query to the next nameserver if any server responds with a SERVFAIL res
 .PP
 \-t \fItype\fR
 .RS 4
-Query type: the
+Query type: The
 \fItype\fR
 argument can be any recognized query type: CNAME, NS, SOA, TXT, DNSKEY, AXFR, etc\&.
 .sp
@@ -185,8 +183,8 @@ is a dotted\-decimal IPv4 address or colon\-delimited IPv6 address,
 \fBhost\fR
 will query for PTR records\&.
 .sp
-If a query type of IXFR is chosen the starting serial number can be specified by appending an equal followed by the starting serial number (e\&.g\&.
-\fB\-t\fRIXFR=12345678)\&.
+If a query type of IXFR is chosen the starting serial number can be specified by appending an equal followed by the starting serial number (like
+\fB\-t \fR\fBIXFR=12345678\fR)\&.
 .RE
 .PP
 \-T
@@ -222,14 +220,14 @@ Print the version number and exit\&.
 .PP
 \-w
 .RS 4
-Wait forever: the query timeout is set to the maximum possible\&. See also the
+Wait forever: The query timeout is set to the maximum possible\&. See also the
 \fB\-W\fR
 option\&.
 .RE
 .PP
 \-W \fIwait\fR
 .RS 4
-Timeout: wait for up to
+Timeout: Wait for up to
 \fIwait\fR
 seconds for a reply\&. If
 \fIwait\fR
