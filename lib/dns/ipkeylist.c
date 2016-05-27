@@ -30,16 +30,19 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
 	isc_uint32_t i;
 
 	REQUIRE(ipkl != NULL);
-	REQUIRE(ipkl->addrs != NULL);
-	REQUIRE(ipkl->keys != NULL);
+	REQUIRE(ipkl->count == 0 || ipkl->keys != NULL);
 
 	if (ipkl->count == 0)
 		return;
 
-	isc_mem_put(mctx, ipkl->addrs, ipkl->count * sizeof(isc_sockaddr_t));
+	if (ipkl != NULL)
+		isc_mem_put(mctx, ipkl->addrs,
+			    ipkl->count * sizeof(isc_sockaddr_t));
+
 	if (ipkl->dscps != NULL)
 		isc_mem_put(mctx, ipkl->dscps,
 			    ipkl->count * sizeof(isc_dscp_t));
+
 	for (i = 0; i < ipkl->count; i++) {
 		if (ipkl->keys[i] == NULL)
 			continue;
@@ -47,7 +50,9 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
 			dns_name_free(ipkl->keys[i], mctx);
 		isc_mem_put(mctx, ipkl->keys[i], sizeof(dns_name_t));
 	}
+
 	isc_mem_put(mctx, ipkl->keys, ipkl->count * sizeof(dns_name_t *));
+
 	ipkl->count = 0;
 	ipkl->addrs = NULL;
 	ipkl->dscps = NULL;

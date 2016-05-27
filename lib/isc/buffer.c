@@ -60,7 +60,7 @@ isc_buffer_reinit(isc_buffer_t *b, void *base, unsigned int length) {
 	 */
 	REQUIRE(b->length <= length);
 	REQUIRE(base != NULL);
-	REQUIRE(b->autore = ISC_FALSE);
+	REQUIRE(!b->autore);
 
 	(void)memmove(base, b->base, b->length);
 	b->base = base;
@@ -372,7 +372,7 @@ void
 isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val) {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
-	if (b->autore == ISC_TRUE) {
+	if (b->autore) {
 		result = isc_buffer_reserve(&b, 4);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -413,7 +413,7 @@ isc__buffer_putuint48(isc_buffer_t *b, isc_uint64_t val) {
 	isc_uint32_t vallo;
 
 	REQUIRE(ISC_BUFFER_VALID(b));
-	if (b->autore == ISC_TRUE) {
+	if (b->autore) {
 		result = isc_buffer_reserve(&b, 6);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -431,7 +431,7 @@ isc__buffer_putmem(isc_buffer_t *b, const unsigned char *base,
 {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
-	if (b->autore == ISC_TRUE) {
+	if (b->autore) {
 		result = isc_buffer_reserve(&b, length);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -453,7 +453,7 @@ isc__buffer_putstr(isc_buffer_t *b, const char *source) {
 	 * Do not use ISC__BUFFER_PUTSTR(), so strlen is only done once.
 	 */
 	l = strlen(source);
-	if (b->autore == ISC_TRUE) {
+	if (b->autore) {
 		result = isc_buffer_reserve(&b, l);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
