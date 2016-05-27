@@ -277,9 +277,10 @@ isc_ht_iter_next(isc_ht_iter_t *it) {
 
 	it->cur = it->cur->next;
 	if (it->cur == NULL) {
-		while (it->i < it->ht->size && it->ht->table[it->i] == NULL)
+		do {
 			it->i++;
-		if (it->i < it->ht->size)
+		} while (it->i < it->ht->size && it->ht->table[it->i] == NULL);
+		if (it->i >= it->ht->size)
 			return (ISC_R_NOMORE);
 		it->cur = it->ht->table[it->i];
 	}
