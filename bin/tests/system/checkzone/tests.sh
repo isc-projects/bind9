@@ -141,5 +141,34 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking that expirations that loop using serial arithmetic are handled ($n)"
+ret=0
+q=-q
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+test $ret -eq 1 || $CHECKZONE $q dyn.example.net zones/crashzone.db || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status
