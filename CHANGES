@@ -1,3 +1,7 @@
+4379.   [bug]           An INSIST could be triggered if a zone contains
+			RRSIG records with expiry fields that loop
+			using serial number arithmetic. [RT #40571]
+
 4378.	[contrib]	#include <isc/string.h> for strlcat in zone2ldap.c.
 			[RT #42525]
 
