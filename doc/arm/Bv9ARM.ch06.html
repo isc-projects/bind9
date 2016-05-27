@@ -2317,6 +2317,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     [<span class="optional"> has-old-clients <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> host-statistics <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> host-statistics-max <em class="replaceable"><code>number</code></em>; </span>]
+    [<span class="optional"> minimal-any <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> minimal-responses <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> multiple-cnames <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> notify <em class="replaceable"><code>yes_or_no</code></em> | <em class="replaceable"><code>explicit</code></em> | <em class="replaceable"><code>master-only</code></em>; </span>]
@@ -2551,6 +2552,16 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       [<span class="optional"> nsip-wait-recurse <em class="replaceable"><code>yes_or_no</code></em> </span>]
       [<span class="optional"> qname-wait-recurse <em class="replaceable"><code>yes_or_no</code></em> </span>]
       [<span class="optional"> automatic-interface-scan <em class="replaceable"><code>yes_or_no</code></em> </span>]
+    ; </span>]
+    [<span class="optional"> catalog-zones {
+        zone <em class="replaceable"><code>quoted_string</code></em>
+            [<span class="optional"> default-masters
+                [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>]
+                [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>]
+                { ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">key <em class="replaceable"><code>key</code></em></span>] ) ; [<span class="optional">...</span>] }</span>]
+          [<span class="optional">in-memory <em class="replaceable"><code>yes_or_no</code></em></span>]
+          [<span class="optional">min-update-interval <em class="replaceable"><code>interval</code></em></span>]
+        ; [<span class="optional">...</span>] };
     ; </span>]
     [<span class="optional">v6-bias <em class="replaceable"><code>number</code></em> ; </span>]
 };
@@ -3808,6 +3819,25 @@ options {
                   and additional data sections when they are required (e.g.
                   delegations, negative responses).  This may improve the
                   performance of the server.
+                  The default is <strong class="userinput"><code>no</code></strong>.
+                </p></dd>
+<dt><span class="term"><span class="command"><strong>minimal-any</strong></span></span></dt>
+<dd><p>
+                  If set to <strong class="userinput"><code>yes</code></strong>, then when
+                  generating a positive response to a query of type
+                  ANY over UDP, the server will reply with only one
+                  of the RRsets for the query name, and its covering
+                  RRSIGs if any, instead of replying with all known
+                  RRsets for the name.  Similarly, a query for type
+                  RRSIG will be answered with the RRSIG records covering
+                  only one type. This can reduce the impact of some kinds
+                  of attack traffic, without harming legitimate
+                  clients.  (Note, however, that the RRset returned is the
+                  first one found in the database; it is not necessarily
+                  the smallest available RRset.)
+                  Additionally, <code class="option">minimal-responses</code> is
+                  turned on for these queries, so no unnecessary records
+                  will be added to the authority or additional sections.
                   The default is <strong class="userinput"><code>no</code></strong>.
                 </p></dd>
 <dt><span class="term"><span class="command"><strong>multiple-cnames</strong></span></span></dt>

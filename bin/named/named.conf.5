@@ -264,6 +264,7 @@ options {
 	sortlist { \fIaddress_match_element\fR; \&.\&.\&. };
 	topology { \fIaddress_match_element\fR; \&.\&.\&. }; // not implemented
 	auth\-nxdomain \fIboolean\fR; // default changed
+	minimal\-any \fIboolean\fR;
 	minimal\-responses \fIboolean\fR;
 	recursion \fIboolean\fR;
 	rrset\-order {
@@ -298,6 +299,16 @@ options {
 	check\-mx\-cname ( fail | warn | ignore );
 	check\-srv\-cname ( fail | warn | ignore );
 	cache\-file \fIquoted_string\fR; // test option
+	catalog\-zones {
+	    zone \fIquoted_string\fR
+		[ default\-masters
+		[port \fIip_port\fR]
+		[dscp \fIip_dscp\fR]
+		{ ( \fImasters_list\fR | \fIip_addr\fR [port \fIip_port\fR] [key \fIkey\fR] ) ; [\&.\&.\&.] }]
+	    [in\-memory \fIyes_or_no\fR]
+	    [min\-update\-interval \fIinterval\fR]
+	    ; \&.\&.\&. };
+	;
 	suppress\-initial\-notify \fIboolean\fR; // not yet implemented
 	preferred\-glue \fIstring\fR;
 	dual\-stack\-servers [ port \fIinteger\fR ] {
@@ -446,6 +457,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	sortlist { \fIaddress_match_element\fR; \&.\&.\&. };
 	topology { \fIaddress_match_element\fR; \&.\&.\&. }; // not implemented
 	auth\-nxdomain \fIboolean\fR; // default changed
+	minimal\-any \fIboolean\fR;
 	minimal\-responses \fIboolean\fR;
 	recursion \fIboolean\fR;
 	rrset\-order {

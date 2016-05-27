@@ -90,6 +90,11 @@ options {
         bindkeys-file <quoted_string>;
         blackhole { <address_match_element>; ... };
         cache-file <quoted_string>;
+        catalog-zones { zone <quoted_string> [ default-masters [ port
+            <integer> ] [ dscp <integer> ] { ( <masters> | <ipv4_address> [
+            port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
+            <string> ]; ... } ] [ in-memory <boolean> ] [
+            min-update-interval <integer> ]; ... };
         check-dup-records ( fail | warn | ignore );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
@@ -210,6 +215,7 @@ options {
         min-refresh-time <integer>;
         min-retry-time <integer>;
         min-roots <integer>; // not implemented
+        minimal-any <boolean>;
         minimal-responses <boolean>;
         multi-master <boolean>;
         multiple-cnames <boolean>; // obsolete
@@ -395,6 +401,11 @@ view <string> [ <class> ] {
         auth-nxdomain <boolean>; // default changed
         auto-dnssec ( allow | maintain | off );
         cache-file <quoted_string>;
+        catalog-zones { zone <quoted_string> [ default-masters [ port
+            <integer> ] [ dscp <integer> ] { ( <masters> | <ipv4_address> [
+            port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
+            <string> ]; ... } ] [ in-memory <boolean> ] [
+            min-update-interval <integer> ]; ... };
         check-dup-records ( fail | warn | ignore );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
@@ -495,6 +506,7 @@ view <string> [ <class> ] {
         min-refresh-time <integer>;
         min-retry-time <integer>;
         min-roots <integer>; // not implemented
+        minimal-any <boolean>;
         minimal-responses <boolean>;
         multi-master <boolean>;
         no-case-compress { <address_match_element>; ... };

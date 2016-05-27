@@ -68,14 +68,14 @@
 <dt><span class="term">-a</span></dt>
 <dd><p>
 	    "All". The <code class="option">-a</code> option is normally equivalent
-	    to <code class="option">-v</code> <code class="option">-t</code> <code class="literal">ANY</code>.
+	    to <code class="option">-v -t <code class="literal">ANY</code></code>.
 	    It also affects the behaviour of the <code class="option">-l</code>
 	    list zone option.
 	  </p></dd>
 <dt><span class="term">-c <em class="replaceable"><code>class</code></em></span></dt>
 <dd><p>
-	    Query class: This can be used to lookup Hesiod or Chaosnet
-	    class resource records. The default class is IN
+	    Query class: This can be used to lookup HS (Hesiod) or CH
+	    (Chaosnet) class resource records. The default class is IN
 	    (Internet).
 	  </p></dd>
 <dt><span class="term">-C</span></dt>
@@ -102,12 +102,12 @@
 <dd>
 <p>
 	    List zone:
-	    The <span class="command"><strong>host</strong></span> performs a zone transfer of
+	    The <span class="command"><strong>host</strong></span> command performs a zone transfer of
 	    zone <em class="parameter"><code>name</code></em> and prints out the NS,
 	    PTR and address records (A/AAAA).
 	  </p>
 <p>
-	    Together, the <code class="option">-l</code> <code class="option">-a</code>
+	    Together, the <code class="option">-l -a</code>
 	    options print all records in the zone.
 	  </p>
 </dd>
@@ -126,10 +126,10 @@
 <dt><span class="term">-r</span></dt>
 <dd><p>
 	    Non-recursive query:
-	    Setting this option clears the <span class="type">RD</span> &#8212;
-	    recursion desired &#8212; bit in the query. This should
-	    mean that the name server receiving the query will not
-	    attempt to resolve <em class="parameter"><code>name</code></em>.
+	    Setting this option clears the RD (recursion desired) bit
+	    in the query. This should mean that the name server
+	    receiving the query will not attempt to
+	    resolve <em class="parameter"><code>name</code></em>.
 	    The <code class="option">-r</code> option
 	    enables <span class="command"><strong>host</strong></span> to mimic the behavior of a
 	    name server by making non-recursive queries and expecting
@@ -155,7 +155,7 @@
 <dd>
 <p>
 	    Query type:
-	    the <em class="parameter"><code>type</code></em> argument can be any
+	    The <em class="parameter"><code>type</code></em> argument can be any
 	    recognized query type: CNAME, NS, SOA, TXT, DNSKEY, AXFR, etc.
 	  </p>
 <p>
@@ -173,7 +173,7 @@
 	    If a query type of IXFR is chosen the starting serial
 	    number can be specified by appending an equal followed by
 	    the starting serial number
-	    (e.g. <code class="option">-t</code> <code class="literal">IXFR=12345678</code>).
+	    (like <code class="option">-t <code class="literal">IXFR=12345678</code></code>).
 	  </p>
 </dd>
 <dt><span class="term">-T</span></dt>
@@ -199,7 +199,7 @@
 	    Equivalent to the <code class="option">-d</code> debug option.
 	    Verbose output can also be enabled by setting
 	    the <em class="parameter"><code>debug</code></em> option
-	    in<code class="filename">/etc/resolv.conf</code>.
+	    in <code class="filename">/etc/resolv.conf</code>.
 	  </p></dd>
 <dt><span class="term">-V</span></dt>
 <dd><p>
@@ -207,13 +207,13 @@
 	  </p></dd>
 <dt><span class="term">-w</span></dt>
 <dd><p>
-	    Wait forever: the query timeout is set to the maximum possible.
+	    Wait forever: The query timeout is set to the maximum possible.
 	    See also the <code class="option">-W</code> option.
 	  </p></dd>
 <dt><span class="term">-W <em class="replaceable"><code>wait</code></em></span></dt>
 <dd>
 <p>
-	    Timeout: wait for up to <em class="parameter"><code>wait</code></em>
+	    Timeout: Wait for up to <em class="parameter"><code>wait</code></em>
 	    seconds for a reply. If <em class="parameter"><code>wait</code></em> is
 	    less than one, the wait interval is set to one second.
 	  </p>

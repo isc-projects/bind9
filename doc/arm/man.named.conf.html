@@ -226,6 +226,7 @@ options {<br>
 	sortlist { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	topology { <em class="replaceable"><code>address_match_element</code></em>; ... }; // not implemented<br>
 	auth-nxdomain <em class="replaceable"><code>boolean</code></em>; // default changed<br>
+	minimal-any <em class="replaceable"><code>boolean</code></em>;<br>
 	minimal-responses <em class="replaceable"><code>boolean</code></em>;<br>
 	recursion <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order {<br>
@@ -260,6 +261,16 @@ options {<br>
 	check-mx-cname ( fail | warn | ignore );<br>
 	check-srv-cname ( fail | warn | ignore );<br>
 	cache-file <em class="replaceable"><code>quoted_string</code></em>; // test option<br>
+	catalog-zones {<br>
+	    zone <em class="replaceable"><code>quoted_string</code></em><br>
+		[<span class="optional"> default-masters<br>
+		[<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>]<br>
+		[<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>]<br>
+		{ ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">key <em class="replaceable"><code>key</code></em></span>] ) ; [<span class="optional">...</span>] }</span>]<br>
+	    [<span class="optional">in-memory <em class="replaceable"><code>yes_or_no</code></em></span>]<br>
+	    [<span class="optional">min-update-interval <em class="replaceable"><code>interval</code></em></span>]<br>
+	    ; ... };<br>
+	;<br>
 	suppress-initial-notify <em class="replaceable"><code>boolean</code></em>; // not yet implemented<br>
 	preferred-glue <em class="replaceable"><code>string</code></em>;<br>
 	dual-stack-servers [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
@@ -423,6 +434,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	sortlist { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	topology { <em class="replaceable"><code>address_match_element</code></em>; ... }; // not implemented<br>
 	auth-nxdomain <em class="replaceable"><code>boolean</code></em>; // default changed<br>
+	minimal-any <em class="replaceable"><code>boolean</code></em>;<br>
 	minimal-responses <em class="replaceable"><code>boolean</code></em>;<br>
 	recursion <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order {<br>
