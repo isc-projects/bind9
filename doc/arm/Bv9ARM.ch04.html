@@ -2342,8 +2342,8 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
     When a catalog zone is loaded or transferred to a slave server
     which supports this functionality, the slave server will create
     the member zones automatically. When the catalog zone is updated
-    is updated (for example, to add or delete member zones, or change
-    their configuration aprameters) those changes are immediately put
+    (for example, to add or delete member zones, or change
+    their configuration parameters) those changes are immediately put
     into effect. Because the catalog zone is a normal DNS zone, these
     configuration changes can be propagated using the standard AXFR/IXFR
     zone transfer mechanism.
@@ -2413,7 +2413,7 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
       catalog cone is propagated to the slave server using the normal AXFR/IXFR
       transfer mechanism.  The slave server, on processing the update, will
       notice that the member zone has been removed.  It will stop serving the
-      zone and remove it froms its list of configured zones.  (Removing the
+      zone and remove it from its list of configured zones.  (Removing the
       member zone from the master server has to be done in the normal way,
       by editing the configuration file or running
       <span class="command"><strong>rndc delzone</strong></span>.)
@@ -2440,7 +2440,7 @@ catalog-zones {
     </p>
 <p>
       The <code class="option">default-masters</code> option defines the default masters
-      for member zones listed in a catalog zone. This can be overriden by
+      for member zones listed in a catalog zone. This can be overridden by
       options within a catalog zone. If no such options are included, then
       member zones will transfer their contents from the servers listed in
       this option.
