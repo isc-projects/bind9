@@ -483,9 +483,9 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 
 	new_zone->updatetimer = NULL;
 	result = isc_timer_create(catzs->timermgr, isc_timertype_inactive,
-			          NULL, NULL, catzs->updater,
-			          dns_catz_update_taskaction,
-			          new_zone, &new_zone->updatetimer);
+				  NULL, NULL, catzs->updater,
+				  dns_catz_update_taskaction,
+				  new_zone, &new_zone->updatetimer);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_ht;
 
@@ -1162,7 +1162,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 		if (entry->opts.masters.keys[i] != NULL) {
 			isc_buffer_putstr(buffer, " key ");
 			result = dns_name_totext(entry->opts.masters.keys[i],
-					         ISC_TRUE, buffer);
+						 ISC_TRUE, buffer);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 		}
@@ -1247,8 +1247,8 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 			dns_db_attach(db, &zone->db);
 			dns_db_currentversion(db, &zone->dbversion);
 			result = isc_timer_reset(zone->updatetimer,
-					         isc_timertype_once,
-					         NULL, &interval, ISC_TRUE);
+						 isc_timertype_once,
+						 NULL, &interval, ISC_TRUE);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 		} else {
