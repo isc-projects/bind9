@@ -35,7 +35,7 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
 	if (ipkl->count == 0)
 		return;
 
-	if (ipkl != NULL)
+	if (ipkl->addrs != NULL)
 		isc_mem_put(mctx, ipkl->addrs,
 			    ipkl->count * sizeof(isc_sockaddr_t));
 
@@ -59,10 +59,11 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
 	ipkl->keys = NULL;
 }
 
-void
+isc_result_t
 dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 		   dns_ipkeylist_t *dst)
 {
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_uint32_t i;
 
 	REQUIRE(dst != NULL);
@@ -70,32 +71,69 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 		dst->addrs == NULL && dst->keys == NULL && dst->dscps == NULL);
 
 	if (src->count == 0)
-		return;
+		return (ISC_R_SUCCESS);
 
 	dst->count = src->count;
 
 	dst->addrs = isc_mem_get(mctx,
 				 src->count * sizeof(isc_sockaddr_t));
-	memmove(dst->addrs, src->addrs,
-		src->count * sizeof(isc_sockaddr_t));
+	if (dst->addrs == NULL)
+		return (ISC_R_NOMEMORY);
+
+	memmove(dst->addrs, src->addrs, src->count * sizeof(isc_sockaddr_t));
 
 	if (src->dscps != NULL) {
 		dst->dscps = isc_mem_get(mctx,
 					 src->count * sizeof(isc_dscp_t));
+		if (dst->dscps == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup_addrs;
+		}
 		memmove(dst->dscps, src->dscps,
 			src->count * sizeof(isc_dscp_t));
 	}
 
 	if (src->keys != NULL) {
-		dst->keys = isc_mem_get(mctx, src->count * sizeof(dns_name_t *));
+		dst->keys = isc_mem_get(mctx,
+					src->count * sizeof(dns_name_t *));
+		if (dst->keys == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup_dscps;
+		}
+
 		for (i = 0; i < src->count; i++) {
 			if (src->keys[i] != NULL) {
 				dst->keys[i] = isc_mem_get(mctx,
 							   sizeof(dns_name_t));
-				dns_name_dup(src->keys[i], mctx, dst->keys[i]);
+				if (dst->keys[i] == NULL) {
+					result = ISC_R_NOMEMORY;
+					goto cleanup_keys;
+				}
+				dns_name_init(dst->keys[i], NULL);
+				result = dns_name_dup(src->keys[i], mctx,
+						      dst->keys[i]);
+				if (result != ISC_R_SUCCESS)
+					goto cleanup_keys;
 			} else {
 				dst->keys[i] = NULL;
 			}
 		}
 	}
+
+	return (ISC_R_SUCCESS);
+
+  cleanup_keys:
+	do {
+		if (dst->keys[i] != NULL) {
+			if (dns_name_dynamic(dst->keys[i]))
+				dns_name_free(dst->keys[i], mctx);
+			isc_mem_put(mctx, dst->keys[i], sizeof(dns_name_t));
+		}
+	} while (i-- > 0);
+	isc_mem_put(mctx, dst->keys, src->count * sizeof(dns_name_t *));
+  cleanup_dscps:
+	isc_mem_put(mctx, dst->dscps, src->count * sizeof(isc_dscp_t));
+  cleanup_addrs:
+	isc_mem_put(mctx, dst->addrs, src->count * sizeof(isc_sockaddr_t));
+	return (result);
 }

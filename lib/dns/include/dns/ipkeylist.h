@@ -45,7 +45,7 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl);
  *      allocated. 'dscps' might be NULL.
  */
 
-void
+isc_result_t
 dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 		   dns_ipkeylist_t *dst);
 /*%<
@@ -56,6 +56,10 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
  *\li	'src' to be non NULL
  *\li	'dst' to be non NULL and point to an empty \ref dns_ipkeylist_t
  *       with all pointers set to `NULL` and count set to 0.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS	-- success
+ *\li	any other value -- failure
  */
 
 #endif
