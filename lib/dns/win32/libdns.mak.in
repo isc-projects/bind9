@@ -154,6 +154,7 @@ CLEAN :
 	-@erase "$(INTDIR)\gssapictx.obj"
 	-@erase "$(INTDIR)\spnego.obj"
 	-@erase "$(INTDIR)\hmac_link.obj"
+	-@erase "$(INTDIR)\ipkeylist.obj"
 	-@erase "$(INTDIR)\iptable.obj"
 	-@erase "$(INTDIR)\journal.obj"
 	-@erase "$(INTDIR)\key.obj"
@@ -306,6 +307,7 @@ LINK32_OBJS= \
 @IF GEOIP
 	"$(INTDIR)\geoip.obj" \
 @END GEOIP
+	"$(INTDIR)\ipkeylist.obj" \
 	"$(INTDIR)\iptable.obj" \
 	"$(INTDIR)\journal.obj" \
 	"$(INTDIR)\keydata.obj" \
@@ -484,6 +486,8 @@ CLEAN :
 	-@erase "$(INTDIR)\spnego.sbr"
 	-@erase "$(INTDIR)\hmac_link.obj"
 	-@erase "$(INTDIR)\hmac_link.sbr"
+	-@erase "$(INTDIR)\ipkeylist.obj"
+	-@erase "$(INTDIR)\ipkeylist.sbr"
 	-@erase "$(INTDIR)\iptable.obj"
 	-@erase "$(INTDIR)\iptable.sbr"
 	-@erase "$(INTDIR)\journal.obj"
@@ -705,6 +709,7 @@ BSC32_SBRS= \
 @IF GEOIP
 	"$(INTDIR)\geoip.sbr" \
 @END GEOIP
+	"$(INTDIR)\ipkeylist.sbr" \
 	"$(INTDIR)\iptable.sbr" \
 	"$(INTDIR)\journal.sbr" \
 	"$(INTDIR)\keydata.sbr" \
@@ -823,6 +828,7 @@ LINK32_OBJS= \
 @IF GEOIP
 	"$(INTDIR)\geoip.obj" \
 @END GEOIP
+	"$(INTDIR)\ipkeylist.obj" \
 	"$(INTDIR)\iptable.obj" \
 	"$(INTDIR)\journal.obj" \
 	"$(INTDIR)\key.obj" \
@@ -1046,6 +1052,24 @@ SOURCE=..\callbacks.c
 
 
 "$(INTDIR)\callbacks.obj"	"$(INTDIR)\callbacks.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\catz.c
+
+!IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
+
+
+"$(INTDIR)\catz.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\catz.obj"	"$(INTDIR)\catz.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -1360,6 +1384,24 @@ SOURCE=..\geoip.c
 
 !ENDIF 
 @END GEOIP
+
+SOURCE=..\ipkeylist.c
+
+!IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
+
+
+"$(INTDIR)\ipkeylist.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\ipkeylist.obj" "$(INTDIR)\ipkeylist.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
 
 SOURCE=..\iptable.c
 

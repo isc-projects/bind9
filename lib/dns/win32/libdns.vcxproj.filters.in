@@ -51,6 +51,9 @@
     <ClCompile Include="..\callbacks.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\catz.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\client.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -101,6 +104,9 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
 @END GEOIP
+    <ClCompile Include="..\ipkeylist.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\iptable.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -371,6 +377,9 @@
     <ClInclude Include="..\include\dns\callbacks.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\dns\catz.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\dns\cert.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -445,6 +454,9 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
 @END GEOIP
+    <ClInclude Include="..\include\dns\ipkeylist.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\dns\iptable.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>

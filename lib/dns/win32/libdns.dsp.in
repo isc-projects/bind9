@@ -130,6 +130,10 @@ SOURCE=..\include\dns\callbacks.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\catz.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\cert.h
 # End Source File
 # Begin Source File
@@ -226,6 +230,10 @@ SOURCE=..\include\dns\forward.h
 SOURCE=..\include\dns\geoip.h
 # End Source File
 @END GEOIP
+# Begin Source File
+
+SOURCE=..\include\dns\ipkeylist.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\include\dns\iptable.h
@@ -520,6 +528,10 @@ SOURCE=..\callbacks.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\catz.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\client.c
 # End Source File
 # Begin Source File
@@ -588,6 +600,10 @@ SOURCE=..\forward.c
 SOURCE=..\geoip.c
 # End Source File
 @END GEOIP
+# Begin Source File
+
+SOURCE=..\ipkeylist.c
+# End Source File
 # Begin Source File
 
 SOURCE=..\iptable.c

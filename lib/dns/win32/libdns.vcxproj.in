@@ -114,6 +114,7 @@
     <ClCompile Include="..\byaddr.c" />
     <ClCompile Include="..\cache.c" />
     <ClCompile Include="..\callbacks.c" />
+    <ClCompile Include="..\catz.c" />
     <ClCompile Include="..\client.c" />
     <ClCompile Include="..\clientinfo.c" />
     <ClCompile Include="..\compress.c" />
@@ -139,6 +140,7 @@
     <ClCompile Include="..\gssapictx.c" />
     <ClCompile Include="..\gssapi_link.c" />
     <ClCompile Include="..\hmac_link.c" />
+    <ClCompile Include="..\ipkeylist.c" />
     <ClCompile Include="..\iptable.c" />
     <ClCompile Include="..\journal.c" />
     <ClCompile Include="..\key.c" />
@@ -234,6 +236,7 @@
     <ClInclude Include="..\include\dns\byaddr.h" />
     <ClInclude Include="..\include\dns\cache.h" />
     <ClInclude Include="..\include\dns\callbacks.h" />
+    <ClInclude Include="..\include\dns\catz.h" />
     <ClInclude Include="..\include\dns\cert.h" />
     <ClInclude Include="..\include\dns\client.h" />
     <ClInclude Include="..\include\dns\clientinfo.h" />
@@ -260,6 +263,7 @@
 @IF GEOIP
     <ClInclude Include="..\include\dns\geoip.h" />
 @END GEOIP
+    <ClInclude Include="..\include\dns\ipkeylist.h" />
     <ClInclude Include="..\include\dns\iptable.h" />
     <ClInclude Include="..\include\dns\journal.h" />
     <ClInclude Include="..\include\dns\keydata.h" />

@@ -571,6 +571,7 @@ isc_sha224_init
 isc_sha224_invalidate
 isc_sha224_update
 isc_sha256_data
+isc_sha256_end
 isc_sha256_final
 isc_sha256_init
 isc_sha256_invalidate

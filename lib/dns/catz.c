@@ -1204,7 +1204,8 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
 				      "catz: new zone version came too soon, "
 				      "deferring update");
-			isc_interval_set(&interval, 5 - tdiff, 0);
+			isc_interval_set(&interval,
+					 5 - (unsigned int)tdiff, 0);
 			zone->updatepending = ISC_TRUE;
 			dns_db_attach(db, &zone->db);
 			dns_db_currentversion(db, &zone->dbversion);
