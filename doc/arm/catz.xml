@@ -110,7 +110,11 @@
     </para>
 <screen>
 catalog-zones {
-    zone "catalog.example" default-masters { 10.53.0.1; } in-memory true min-update-interval 10;
+	zone "catalog.example"
+	     default-masters { 10.53.0.1; } 
+	     in-memory no
+	     zone-directory "catzones"
+	     min-update-interval 10;
 };
 </screen>
     <para>
@@ -118,6 +122,10 @@ catalog-zones {
       <literal>catalog.example</literal> is a catalog zone. This zone must be
       properly configured in the same view. In most configurations, it would
       be a slave zone.
+    </para>
+    <para>
+      The options following the zone name are not required, and may be
+      specified in any order:
     </para>
     <para>
       The <option>default-masters</option> option defines the default masters
@@ -133,6 +141,14 @@ catalog-zones {
       option.  The default is <literal>no</literal>; member zones' content
       will be stored locally in a file whose name is automatically generated
       from the view name, catalog zone name, and member zone name.
+    </para>
+    <para>
+      The <option>zone-directory</option> option causes local copies of
+      member zones' master files (if <option>in-memory</option> is not set
+      to <literal>yes</literal>) to be stored in the specified directory.
+      The default is to store zone files in the server's working directory.
+      A non-absolute pathname in <option>zone-directory</option> is
+      assumed to be relative to the working directory.
     </para>
     <para>
       The <option>min-update-interval</option> option sets the minimum

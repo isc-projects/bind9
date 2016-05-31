@@ -301,5 +301,13 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:checking that zone-directory is populated ($n)"
+ret=0
+[ -f "ns2/zonedir/__catz___default_catalog.example_dom3.example.db" ] || ret=1
+[ -f "ns2/zonedir/__catz___default_catalog.example_dom4.example.db" ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 exit $status

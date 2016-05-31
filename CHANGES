@@ -1,3 +1,9 @@
+4380.	[experimental]	Added a "zone-directory" option to "catalog-zones"
+			syntax, allowing local masterfiles for slaves
+			that are provisioned by catalog zones to be stored
+			in a directory other than the server's working
+			directory. [RT #42527]
+
 4379.   [bug]           An INSIST could be triggered if a zone contains
 			RRSIG records with expiry fields that loop
 			using serial number arithmetic. [RT #40571]

@@ -51,12 +51,15 @@ struct dns_catz_entry_options {
 	/*
 	 * Options that can be overriden in catalog zone
 	 */
-	/* masters definition */
+	/* default-masters definition */
 	dns_ipkeylist_t masters;
 
 	/*
 	 * Options that are only set in named.conf
 	 */
+	/* zone-directory definition */
+	char *zonedir;
+
 	/* zone should not be stored on disk (no 'file' statement in def */
 	isc_boolean_t in_memory;
 	/*

@@ -96,12 +96,17 @@ dns_catz_options_init(dns_catz_options_t *options) {
 
 	options->in_memory = ISC_FALSE;
 	options->min_update_interval = 5;
+	options->zonedir = NULL;
 }
 
 void
 dns_catz_options_free(dns_catz_options_t *options, isc_mem_t *mctx) {
 	if (options->masters.count > 0)
 		dns_ipkeylist_clear(mctx, &options->masters);
+	if (options->zonedir != NULL) {
+		isc_mem_free(mctx, options->zonedir);
+		options->zonedir = NULL;
+	}
 }
 
 isc_result_t
@@ -112,9 +117,16 @@ dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *src,
 	REQUIRE(dst != NULL);
 	REQUIRE(dst->masters.count == 0);
 
-	if (src->masters.count != 0) {
+	if (src->masters.count != 0)
 		dns_ipkeylist_copy(mctx, &src->masters, &dst->masters);
+
+	if (dst->zonedir != NULL) {
+		isc_mem_free(mctx, dst->zonedir);
+		dst->zonedir = NULL;
 	}
+
+	if (src->zonedir != NULL)
+		dst->zonedir = isc_mem_strdup(mctx, src->zonedir);
 
 	return (ISC_R_SUCCESS);
 }
@@ -125,6 +137,8 @@ dns_catz_options_setdefault(isc_mem_t *mctx, const dns_catz_options_t *defaults,
 {
 	if (opts->masters.count == 0)
 		dns_catz_options_copy(mctx, defaults, opts);
+	else if (defaults->zonedir != NULL)
+		opts->zonedir = isc_mem_strdup(mctx, defaults->zonedir);
 
 	/* This option is always taken from config, so it's always 'default' */
 	opts->in_memory = defaults->in_memory;
@@ -233,7 +247,6 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb) {
 	/* xxxwpk TODO compare dscps/keys! */
 	return (ISC_TRUE);
 }
-
 
 dns_name_t *
 dns_catz_zone_getname(dns_catz_zone_t *zone) {
@@ -1072,6 +1085,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_sha256_t sha256;
 	isc_region_t r;
 	isc_result_t result;
+	size_t rlen;
 
 	REQUIRE(zone != NULL);
 	REQUIRE(entry != NULL);
@@ -1079,25 +1093,37 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 
 	result = isc_buffer_allocate(zone->catzs->mctx, &tbuf,
 				     strlen(zone->catzs->view->name) +
-				     2*DNS_NAME_FORMATSIZE + 2);
+				     2 * DNS_NAME_FORMATSIZE + 2);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	INSIST(tbuf != NULL);
+
 	isc_buffer_putstr(tbuf, zone->catzs->view->name);
 	isc_buffer_putstr(tbuf, "_");
 	result = dns_name_totext(&zone->name, ISC_TRUE, tbuf);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+
 	isc_buffer_putstr(tbuf, "_");
 	result = dns_name_totext(&entry->name, ISC_TRUE, tbuf);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = isc_buffer_reserve(buffer, strlen("__catz__") +
-				    ISC_SHA256_DIGESTSTRINGLENGTH +
-				    strlen(".db"));
+	/* __catz__<digest>.db */
+	rlen = ISC_SHA256_DIGESTSTRINGLENGTH + 12;
+
+	/* optionally prepend with <zonedir>/ */
+	if (entry->opts.zonedir != NULL)
+		rlen += strlen(entry->opts.zonedir) + 1;
+
+	result = isc_buffer_reserve(buffer, rlen);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+
+	if (entry->opts.zonedir != NULL) {
+		isc_buffer_putstr(*buffer, entry->opts.zonedir);
+		isc_buffer_putstr(*buffer, "/");
+	}
 
 	isc_buffer_usedregion(tbuf, &r);
 	isc_buffer_putstr(*buffer, "__catz__");
@@ -1110,11 +1136,13 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	} else {
 		isc_buffer_copyregion(*buffer, &r);
 	}
+
 	isc_buffer_putstr(*buffer, ".db");
 	result = ISC_R_SUCCESS;
 
 cleanup:
-	isc_buffer_free(&tbuf);
+	if (tbuf != NULL)
+		isc_buffer_free(&tbuf);
 	return (result);
 }
 
