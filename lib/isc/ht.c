@@ -301,7 +301,7 @@ isc_ht_iter_delcurrent_next(isc_ht_iter_t *it) {
 	it->cur = it->cur->next;
 	if (it->cur == NULL) {
 		do {
-		        it->i++;
+			it->i++;
 		} while (it->i < ht->size && ht->table[it->i] == NULL);
 		if (it->i >= ht->size)
 			result = ISC_R_NOMORE;
