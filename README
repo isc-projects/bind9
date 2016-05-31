@@ -56,8 +56,12 @@ BIND 9.11.0
 	BIND 9.11.0 includes a number of changes from BIND 9.10 and earlier
 	releases.  New features include:
 
-	- Added nsip-wait-recurse switch to rpz.
-	- Added python RNDC module.
+	- Added support for Catalog Zones, a new method for provisioning
+	  servers: a list of zones to be served is stored in a DNS zone,
+	  along with their configuration parameters. Changes to the
+	  catalog zone are propagated to slaves via normal AXFR/IXFR,
+	  whereupon the zones that are listed in it are automatically
+	  added, deleted or reconfigured.
 	- Added support for "dnstap", a fast and flexible method of
 	  capturing and logging DNS traffic.
 	- Added support for "dyndb", a new API for loading zone data
@@ -91,6 +95,12 @@ BIND 9.11.0
 	  (defaulting to 1 second, with an upper limit of 30).
 	  This can reduce the frequency of retries when a query is
 	  persistently failing.
+	- Added an "nsip-wait-recurse" switch to RPZ. This causes NSIP
+	  rules to be skipped if a name server IP address isn't in the
+	  cache yet; the address will be looked up and the rule will be
+	  applied on future queries.
+	- Added a Python RNDC module. This allows multiple commands to
+	  sent over a persistent RNDC channel, which saves time.
 	- The "controls" block in named.conf can now grant read-only
 	  "rndc" access to specified clients or keys. Read-only clients
 	  could, for example, check "rndc status" but could not
@@ -135,6 +145,9 @@ BIND 9.11.0
 	  and deletion times of CDS and CDNSKEY parent-synchronization
 	  records.  Both named and dnssec-signzone can now publish and
 	  remove these records at the scheduled times.
+	- A new "minimal-any" option reduces the size of UDP responses
+	  for query type ANY by returning a single arbitrarily selected
+	  RRset instead of all RRsets.
 	- A new "masterfile-style" zone option controls the formatting
 	  of text zone files:  When set to "full", a zone file is dumped
 	  in single-line-per-record format.
