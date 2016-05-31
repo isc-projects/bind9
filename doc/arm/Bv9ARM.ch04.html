@@ -2429,7 +2429,11 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
     </p>
 <pre class="screen">
 catalog-zones {
-    zone "catalog.example" default-masters { 10.53.0.1; } in-memory true min-update-interval 10;
+	zone "catalog.example"
+	     default-masters { 10.53.0.1; } 
+	     in-memory no
+	     zone-directory "catzones"
+	     min-update-interval 10;
 };
 </pre>
 <p>
@@ -2437,6 +2441,10 @@ catalog-zones {
       <code class="literal">catalog.example</code> is a catalog zone. This zone must be
       properly configured in the same view. In most configurations, it would
       be a slave zone.
+    </p>
+<p>
+      The options following the zone name are not required, and may be
+      specified in any order:
     </p>
 <p>
       The <code class="option">default-masters</code> option defines the default masters
@@ -2452,6 +2460,14 @@ catalog-zones {
       option.  The default is <code class="literal">no</code>; member zones' content
       will be stored locally in a file whose name is automatically generated
       from the view name, catalog zone name, and member zone name.
+    </p>
+<p>
+      The <code class="option">zone-directory</code> option causes local copies of
+      member zones' master files (if <code class="option">in-memory</code> is not set
+      to <code class="literal">yes</code>) to be stored in the specified directory.
+      The default is to store zone files in the server's working directory.
+      A non-absolute pathname in <code class="option">zone-directory</code> is
+      assumed to be relative to the working directory.
     </p>
 <p>
       The <code class="option">min-update-interval</code> option sets the minimum
@@ -2642,6 +2658,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0a2</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0a3</p>
 </body>
 </html>

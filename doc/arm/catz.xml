@@ -111,7 +111,7 @@
 <screen>
 catalog-zones {
 	zone "catalog.example"
-	     default-masters { 10.53.0.1; } 
+	     default-masters { 10.53.0.1; }
 	     in-memory no
 	     zone-directory "catzones"
 	     min-update-interval 10;
