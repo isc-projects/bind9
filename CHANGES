@@ -1,3 +1,5 @@
+	--- 9.11.0a3 released ---
+
 4380.	[experimental]	Added a "zone-directory" option to "catalog-zones"
 			syntax, allowing local masterfiles for slaves
 			that are provisioned by catalog zones to be stored
