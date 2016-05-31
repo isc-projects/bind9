@@ -317,6 +317,8 @@ isc_ht_find
 isc_ht_init
 isc_ht_iter_create
 isc_ht_iter_current
+isc_ht_iter_currentkey
+isc_ht_iter_delcurrent_next
 isc_ht_iter_destroy
 isc_ht_iter_first
 isc_ht_iter_next
