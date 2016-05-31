@@ -94,10 +94,6 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
 isc_result_t
 isc_ht_delete(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize);
 
-
-typedef isc_result_t (*isc_ht_walkfn)(void *udata, const unsigned char *key,
-		isc_uint32_t keysize, void *data);
-
 /*%
  * Create an iterator for the hashtable; point '*itp' to it.
  */
@@ -131,30 +127,28 @@ isc_result_t
 isc_ht_iter_next(isc_ht_iter_t *it);
 
 /*%
+ * Delete current entry and set an iterator to the next entry.
+ *
+ * Returns:
+ * \li 	#ISC_R_SUCCESS	-- success
+ * \li	#ISC_R_NOMORE	-- end of hashtable reached
+ */
+isc_result_t
+isc_ht_iter_delcurrent_next(isc_ht_iter_t *it);
+
+
+/*%
  * Set 'value' to the current value under the iterator
  */
 void
 isc_ht_iter_current(isc_ht_iter_t *it, void **valuep);
 
 /*%
- * Walks the hashtable, calling 'walkfn' on each node
- *
- * \li If 'walkfn' returns ISC_R_SUCCESS, walk is continued
- * \li If 'walkfn' returns ISC_R_EXISTS, walk is continued but the
- *     node is removed
- * \li If 'walkfn' returns anything else, walk is aborted and function returns
- *     this value
- *
- * Requires:
- * \li	'ht' is a valid hashtable
- * \li  'walkfn' is not NULL
- *
- * Returns:
- * \li	#ISC_R_SUCCESS		-- all is well
- * \li	Any other, as returned by 'walkfn'
+ * Set 'key' and 'keysize to the current key and keysize for the value
+ * under the iterator
  */
-isc_result_t
-isc_ht_walk(isc_ht_t *ht, isc_ht_walkfn walkfn, void *udata);
+void
+isc_ht_iter_currentkey(isc_ht_iter_t *it, unsigned char **key, size_t *keysize);
 
 /*%
  * Returns the number of items in the hashtable.

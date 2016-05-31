@@ -164,57 +164,18 @@ static void test_ht_full(int bits, int count) {
 	ATF_REQUIRE_EQ(ht, NULL);
 }
 
-static isc_uint32_t walked = 0;
-
-typedef enum {
-	REGULAR,
-	ERASEEVEN,
-	ERASEODD,
-	CRASH
-} walkmode_t;
-
-static isc_result_t walker(void *udata, const unsigned char *key,
-			   isc_uint32_t keysize, void *data)
-{
-	char mykey[16];
-	isc_uint64_t ii = (isc_uint64_t) data;
-	walkmode_t mode = (isc_uint64_t) udata;
-	ATF_REQUIRE_EQ(keysize, 16);
-
-	snprintf(mykey, 16, "%lld key of a raw hashtable!!", ii);
-	ATF_REQUIRE_EQ(memcmp(mykey, key, 16), 0);
-
-	walked++;
-	switch (mode) {
-	case REGULAR:
-		break;
-	case ERASEEVEN:
-		if (ii % 2 == 0) {
-			return (ISC_R_EXISTS);
-		}
-		break;
-	case ERASEODD:
-		if (ii % 2 != 0) {
-			return (ISC_R_EXISTS);
-		}
-		break;
-	case CRASH:
-		if (walked == 100) {
-			/* something as odd as possible */
-			return (ISC_R_HOSTUNREACH);
-		}
-		break;
-	}
-
-	return (ISC_R_SUCCESS);
-}
-
-static void test_ht_walk() {
+static void test_ht_iterator() {
 	isc_ht_t *ht = NULL;
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
+	isc_ht_iter_t * iter = NULL;
 	isc_int64_t i;
+	isc_int64_t v;
 	isc_uint32_t count = 10000;
+	isc_uint32_t walked;
+	unsigned char key[16];
+	unsigned char *tkey;
+	size_t tksize;
 
 	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
 				  NULL, &mctx, 0);
@@ -228,35 +189,76 @@ static void test_ht_walk() {
 		 * Note that the string we're snprintfing is always > 16 bytes
 		 * so we are always filling the key.
 		 */
-		unsigned char key[16];
 		snprintf((char *)key, 16, "%lld key of a raw hashtable!!", i);
 		result = isc_ht_add(ht, key, 16, (void *) i);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	}
 
 	walked = 0;
-	result = isc_ht_walk(ht, walker, (void *) REGULAR);
+	result = isc_ht_iter_create(ht, &iter);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	for (result = isc_ht_iter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_next(iter))
+	{
+		isc_ht_iter_current(iter, (void**) &v);
+		isc_ht_iter_currentkey(iter, &tkey, &tksize);
+		ATF_REQUIRE_EQ(tksize, 16);
+		snprintf((char *)key, 16, "%lld key of a raw hashtable!!", v);
+		ATF_REQUIRE_EQ(memcmp(key, tkey, 16), 0);
+		walked++;
+	}
+	ATF_REQUIRE_EQ(walked, count);
+	ATF_REQUIRE_EQ(result, ISC_R_NOMORE);
+
+	/* erase odd */
+	walked = 0;
+	result = isc_ht_iter_first(iter);
+	while (result == ISC_R_SUCCESS) {
+		isc_ht_iter_current(iter, (void**) &v);
+		isc_ht_iter_currentkey(iter, &tkey, &tksize);
+		ATF_REQUIRE_EQ(tksize, 16);
+		snprintf((char *)key, 16, "%lld key of a raw hashtable!!", v);
+		ATF_REQUIRE_EQ(memcmp(key, tkey, 16), 0);
+		if (v % 2 == 0) {
+			result = isc_ht_iter_delcurrent_next(iter);
+		} else {
+			result = isc_ht_iter_next(iter);
+		}
+		walked++;
+	}
+	ATF_REQUIRE_EQ(result, ISC_R_NOMORE);
 	ATF_REQUIRE_EQ(walked, count);
 
+	/* erase even */
 	walked = 0;
-	result = isc_ht_walk(ht, walker, (void *) CRASH);
-	ATF_REQUIRE_EQ(result, ISC_R_HOSTUNREACH);
-	ATF_REQUIRE_EQ(walked, 100);
-
-	walked = 0;
-	result = isc_ht_walk(ht, walker, (void *) ERASEODD);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	ATF_REQUIRE_EQ(walked, count);
-
-	walked = 0;
-	result = isc_ht_walk(ht, walker, (void *) ERASEEVEN);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = isc_ht_iter_first(iter);
+	while (result == ISC_R_SUCCESS) {
+		isc_ht_iter_current(iter, (void**) &v);
+		isc_ht_iter_currentkey(iter, &tkey, &tksize);
+		ATF_REQUIRE_EQ(tksize, 16);
+		snprintf((char *)key, 16, "%lld key of a raw hashtable!!", v);
+		ATF_REQUIRE_EQ(memcmp(key, tkey, 16), 0);
+		if (v % 2 == 1) {
+			result = isc_ht_iter_delcurrent_next(iter);
+		} else {
+			result = isc_ht_iter_next(iter);
+		}
+		walked++;
+	}
+	ATF_REQUIRE_EQ(result, ISC_R_NOMORE);
 	ATF_REQUIRE_EQ(walked, count/2);
 
 	walked = 0;
-	result = isc_ht_walk(ht, walker, (void *) REGULAR);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	for (result = isc_ht_iter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_next(iter))
+	{
+		walked++;
+	}
+
+	ATF_REQUIRE_EQ(result, ISC_R_NOMORE);
 	ATF_REQUIRE_EQ(walked, 0);
 
 	isc_ht_destroy(&ht);
@@ -304,14 +306,14 @@ ATF_TC_BODY(isc_ht_32, tc) {
 	test_ht_full(32, 10000);
 }
 
-ATF_TC(isc_ht_walk);
-ATF_TC_HEAD(isc_ht_walk, tc) {
-	atf_tc_set_md_var(tc, "descr", "hashtable walking");
+ATF_TC(isc_ht_iterator);
+ATF_TC_HEAD(isc_ht_iterator, tc) {
+	atf_tc_set_md_var(tc, "descr", "hashtable iterator");
 }
 
-ATF_TC_BODY(isc_ht_walk, tc) {
+ATF_TC_BODY(isc_ht_iterator, tc) {
 	UNUSED(tc);
-	test_ht_walk();
+	test_ht_iterator();
 }
 
 /*
@@ -322,7 +324,7 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_ht_8);
 	ATF_TP_ADD_TC(tp, isc_ht_1);
 	ATF_TP_ADD_TC(tp, isc_ht_32);
-	ATF_TP_ADD_TC(tp, isc_ht_walk);
+	ATF_TP_ADD_TC(tp, isc_ht_iterator);
 	return (atf_no_error());
 }
 

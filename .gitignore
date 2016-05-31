@@ -12,6 +12,8 @@ autom4te.cache/
 *.so
 *.a
 *.la
+*.gcno
+*.gcda
 *_test
 *-symtbl.c
 timestamp

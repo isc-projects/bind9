@@ -101,7 +101,7 @@ dns_catz_options_init(dns_catz_options_t *options) {
 
 void
 dns_catz_options_free(dns_catz_options_t *options, isc_mem_t *mctx) {
-	if (options->masters.count > 0)
+	if (options->masters.count != 0)
 		dns_ipkeylist_clear(mctx, &options->masters);
 	if (options->zonedir != NULL) {
 		isc_mem_free(mctx, options->zonedir);
@@ -270,134 +270,126 @@ dns_catz_zone_resetdefoptions(dns_catz_zone_t *zone) {
 	dns_catz_options_init(&zone->defoptions);
 }
 
-static isc_result_t
-newzonewalk(void *udata, const unsigned char *key, isc_uint32_t keysize,
-	    void *data)
-{
-	isc_result_t result;
-	dns_catz_zone_t *zone = udata;
-	dns_catz_entry_t *nentry = (dns_catz_entry_t *) data;
-	dns_catz_entry_t *oentry;
-	char cznamebuf[DNS_NAME_FORMATSIZE];
-	char znamebuf[DNS_NAME_FORMATSIZE];
-	isc_buffer_t czname;
-	isc_buffer_t zname;
-
-	REQUIRE(zone != NULL);
-	REQUIRE(zone->catzs->view != NULL);
-
-	dns_catz_options_setdefault(zone->catzs->mctx, &zone->zoneoptions,
-				    &nentry->opts);
-	isc_buffer_init(&czname, cznamebuf, DNS_NAME_FORMATSIZE);
-	isc_buffer_init(&zname, znamebuf, DNS_NAME_FORMATSIZE);
-	dns_name_totext(&zone->name, ISC_TRUE, &czname);
-	isc_buffer_putuint8(&czname, 0);
-	dns_name_totext(&nentry->name, ISC_TRUE, &zname);
-	isc_buffer_putuint8(&zname, 0);
-
-	result = isc_ht_find(zone->entries, key, keysize, (void **) &oentry);
-	if (result != ISC_R_SUCCESS) {
-		result = zone->catzs->zmm->addzone(nentry, zone,
-						   zone->catzs->view,
-						   zone->catzs->taskmgr,
-						   zone->catzs->zmm->udata);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
-			      "catz: adding zone '%s' from catalog '%s' - %s",
-			      znamebuf, cznamebuf, isc_result_totext(result));
-		return (ISC_R_SUCCESS);
-	}
-
-	if (dns_catz_entry_cmp(oentry, nentry) != ISC_TRUE) {
-		result = zone->catzs->zmm->modzone(nentry, zone,
-						   zone->catzs->view,
-						   zone->catzs->taskmgr,
-						   zone->catzs->zmm->udata);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
-			      "catz: modifying zone '%s' from catalog "
-			      "'%s' - %s",
-			      znamebuf, cznamebuf,
-			      isc_result_totext(result));
-	}
-
-	dns_catz_entry_detach(zone, &oentry);
-	result = isc_ht_delete(zone->entries, key, keysize);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-oldzonewalk(void *udata, const unsigned char *key, isc_uint32_t keysize,
-	    void *data)
-{
-	isc_result_t result;
-	dns_catz_zone_t *zone = udata;
-	dns_catz_entry_t *entry = (dns_catz_entry_t *) data;
-	char cznamebuf[DNS_NAME_FORMATSIZE];
-	char znamebuf[DNS_NAME_FORMATSIZE];
-	isc_buffer_t czname;
-	isc_buffer_t zname;
-
-	UNUSED(key);
-	UNUSED(keysize);
-
-	REQUIRE(zone != NULL);
-	REQUIRE(zone->catzs->view != NULL);
-
-	isc_buffer_init(&czname, cznamebuf, DNS_NAME_MAXTEXT);
-	isc_buffer_init(&zname, znamebuf, DNS_NAME_MAXTEXT);
-	dns_name_totext(&zone->name, ISC_TRUE, &czname);
-	isc_buffer_putuint8(&czname, 0);
-	dns_name_totext(&entry->name, ISC_TRUE, &zname);
-	isc_buffer_putuint8(&czname, 0);
-	result = zone->catzs->zmm->delzone(entry, zone, zone->catzs->view,
-				  zone->catzs->taskmgr,
-				  zone->catzs->zmm->udata);
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-		      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
-		      "catz: deleting zone '%s' from catalog '%s' - %s",
-		      znamebuf, cznamebuf, isc_result_totext(result));
-	dns_catz_entry_detach(zone, &entry);
-
-	return (ISC_R_EXISTS);
-}
-
 isc_result_t
 dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 	isc_result_t result;
-
+	isc_ht_iter_t *iter = NULL;
+	char cznamebuf[DNS_NAME_FORMATSIZE];
+	char znamebuf[DNS_NAME_FORMATSIZE];
+	isc_buffer_t czname;
+	isc_buffer_t zname;
+	dns_catz_zoneop_fn_t addzone, modzone, delzone;
 	REQUIRE(target != NULL);
 	REQUIRE(newzone != NULL);
 
 	/* TODO verify the new zone first! */
 
+	addzone = target->catzs->zmm->addzone;
+	modzone = target->catzs->zmm->modzone;
+	delzone = target->catzs->zmm->delzone;
+
 	/* Copy zoneoptions from newzone into target. */
+
 	dns_catz_options_free(&target->zoneoptions, target->catzs->mctx);
 	dns_catz_options_copy(target->catzs->mctx, &newzone->zoneoptions,
 			      &target->zoneoptions);
 	dns_catz_options_setdefault(target->catzs->mctx, &target->defoptions,
 				    &target->zoneoptions);
 
+	isc_buffer_init(&czname, cznamebuf, DNS_NAME_FORMATSIZE);
+	isc_buffer_init(&zname, znamebuf, DNS_NAME_FORMATSIZE);
+	dns_name_totext(&target->name, ISC_TRUE, &czname);
+	isc_buffer_putuint8(&czname, 0);
+
 	/*
 	 * first - walk the new zone and find all nodes that are not in the
 	 * old zone, or are in both zones and are modified
 	 */
-	result = isc_ht_walk(newzone->entries, newzonewalk, target);
-	/* newzonewalk always returns ISC_R_SUCCESS */
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	result = isc_ht_iter_create(newzone->entries, &iter);
+	INSIST(result == ISC_R_SUCCESS);
+
+	result = isc_ht_iter_first(iter);
+	for (result = isc_ht_iter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_next(iter))
+	{
+		dns_catz_entry_t *nentry;
+		dns_catz_entry_t *oentry;
+		unsigned char * key;
+		size_t keysize;
+
+		isc_ht_iter_current(iter, (void **) &nentry);
+		isc_ht_iter_currentkey(iter, &key, &keysize);
+
+		isc_buffer_clear(&zname);
+		dns_name_totext(&nentry->name, ISC_TRUE, &zname);
+		isc_buffer_putuint8(&zname, 0);
+
+		dns_catz_options_setdefault(target->catzs->mctx,
+					    &target->zoneoptions,
+					    &nentry->opts);
+
+		result = isc_ht_find(target->entries, key, keysize,
+				     (void **) &oentry);
+		if (result != ISC_R_SUCCESS) {
+			result = addzone(nentry, target, target->catzs->view,
+				      target->catzs->taskmgr,
+				      target->catzs->zmm->udata);
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+				      "catz: adding zone '%s' from catalog "
+				      "'%s' - %s",
+				      znamebuf, cznamebuf,
+				      isc_result_totext(result));
+			continue;
+		}
+
+		if (dns_catz_entry_cmp(oentry, nentry) != ISC_TRUE) {
+			result = modzone(nentry, target, target->catzs->view,
+				      target->catzs->taskmgr,
+				      target->catzs->zmm->udata);
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+				      "catz: modifying zone '%s' from catalog "
+				      "'%s' - %s",
+				      znamebuf, cznamebuf,
+				      isc_result_totext(result));
+		}
+
+		dns_catz_entry_detach(target, &oentry);
+		result = isc_ht_delete(target->entries, key, keysize);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
+	RUNTIME_CHECK(result == ISC_R_NOMORE);
+	isc_ht_iter_destroy(&iter);
 
 	/*
 	 * then - walk the old zone; only deleted entries should remain
-	 * return (ISC_R_SUCCESS);
 	 */
-	result = isc_ht_walk(target->entries, oldzonewalk, target);
-	/*
-	 * oldzonewalk always returns ISC_R_EXISTS, so walk should return
-	 * ISC_R_SUCCESS
-	 */
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	result = isc_ht_iter_create(target->entries, &iter);
+	INSIST(result == ISC_R_SUCCESS);
+
+	for (result = isc_ht_iter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_delcurrent_next(iter))
+	{
+		dns_catz_entry_t *entry;
+		isc_ht_iter_current(iter, (void **) &entry);
+
+		isc_buffer_clear(&zname);
+		dns_name_totext(&entry->name, ISC_TRUE, &zname);
+		isc_buffer_putuint8(&zname, 0);
+		result = delzone(entry, target, target->catzs->view,
+			      target->catzs->taskmgr,
+			      target->catzs->zmm->udata);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "catz: deleting zone '%s' from catalog '%s' - %s",
+			      znamebuf, cznamebuf, isc_result_totext(result));
+		dns_catz_entry_detach(target, &entry);
+	}
+	RUNTIME_CHECK(result == ISC_R_NOMORE);
+	isc_ht_iter_destroy(&iter);
 
 	/* at this moment target->entries has to be be empty */
 	INSIST(isc_ht_count(target->entries) == 0);
@@ -467,6 +459,7 @@ dns_catz_catzs_set_view(dns_catz_zones_t *catzs, dns_view_t *view) {
 	REQUIRE(view != NULL);
 	/* either it's a new one or it's being reconfigured */
 	REQUIRE(catzs->view == NULL || !strcmp(catzs->view->name, view->name));
+
 	catzs->view = view;
 }
 
@@ -588,21 +581,6 @@ dns_catz_catzs_attach(dns_catz_zones_t *catzs, dns_catz_zones_t **catzsp) {
 	*catzsp = catzs;
 }
 
-static isc_result_t
-freewalk(void *udata, const unsigned char *key, isc_uint32_t keysize,
-	 void *data)
-{
-	dns_catz_zone_t *zone = (dns_catz_zone_t *) udata;
-	dns_catz_entry_t *entry = (dns_catz_entry_t *) data;
-
-	UNUSED(key);
-	UNUSED(keysize);
-
-	dns_catz_entry_detach(zone, &entry);
-
-	return (ISC_R_EXISTS);
-}
-
 void
 dns_catz_zone_attach(dns_catz_zone_t *zone, dns_catz_zone_t **zonep) {
 	REQUIRE(zonep != NULL && *zonep == NULL);
@@ -613,6 +591,7 @@ dns_catz_zone_attach(dns_catz_zone_t *zone, dns_catz_zone_t **zonep) {
 void
 dns_catz_zone_detach(dns_catz_zone_t **zonep) {
 	dns_catz_zone_t *zone;
+	isc_ht_iter_t *iter = NULL;
 	isc_mem_t *mctx;
 	unsigned int refs;
 
@@ -625,13 +604,18 @@ dns_catz_zone_detach(dns_catz_zone_t **zonep) {
 		if (zone->entries != NULL) {
 			isc_result_t result;
 
-			/*
-			 * freewalk always returns ISC_R_EXISTS, triggering
-			 * isc_ht_walk to delete the node.  If isc_ht_walk
-			 * returns an error, it is a critical condition
-			 */
-			result = isc_ht_walk(zone->entries, freewalk, zone);
+			result = isc_ht_iter_create(zone->entries, &iter);
 			INSIST(result == ISC_R_SUCCESS);
+			for (result = isc_ht_iter_first(iter);
+			     result == ISC_R_SUCCESS;
+			     result = isc_ht_iter_delcurrent_next(iter))
+			{
+				dns_catz_entry_t *entry;
+				isc_ht_iter_current(iter, (void **) &entry);
+				dns_catz_entry_detach(zone, &entry);
+			}
+			INSIST(result == ISC_R_NOMORE);
+			isc_ht_iter_destroy(&iter);
 
 			/* the hashtable has to be empty now */
 			INSIST(isc_ht_count(zone->entries) == 0);
@@ -648,27 +632,14 @@ dns_catz_zone_detach(dns_catz_zone_t **zonep) {
 	}
 }
 
-static isc_result_t
-catzsfreewalk(void *udata, const unsigned char *key, isc_uint32_t keysize,
-	      void *data)
-{
-	dns_catz_zones_t *catzs = (dns_catz_zones_t *) udata;
-	dns_catz_zone_t *zone = (dns_catz_zone_t *) data;
-
-	UNUSED(key);
-	UNUSED(keysize);
-	UNUSED(catzs);
-
-	dns_catz_zone_detach(&zone);
-
-	return (ISC_R_EXISTS);
-}
-
 void
 dns_catz_catzs_detach(dns_catz_zones_t ** catzsp) {
 	dns_catz_zones_t *catzs;
+	isc_ht_iter_t *iter = NULL;
 	isc_result_t result;
 	unsigned int refs;
+	dns_catz_zone_t *zone;
+
 
 	REQUIRE(catzsp != NULL);
 	catzs = *catzsp;
@@ -680,9 +651,17 @@ dns_catz_catzs_detach(dns_catz_zones_t ** catzsp) {
 	if (refs == 0) {
 		DESTROYLOCK(&catzs->lock);
 		if (catzs->zones != NULL) {
-			result = isc_ht_walk(catzs->zones, catzsfreewalk,
-					     catzs);
+			result = isc_ht_iter_create(catzs->zones, &iter);
 			INSIST(result == ISC_R_SUCCESS);
+			for (result = isc_ht_iter_first(iter);
+			     result == ISC_R_SUCCESS;
+			     result = isc_ht_iter_delcurrent_next(iter))
+			{
+				isc_ht_iter_current(iter, (void **) &zone);
+				dns_catz_zone_detach(&zone);
+			}
+			INSIST(result == ISC_R_NOMORE);
+			isc_ht_iter_destroy(&iter);
 			INSIST(isc_ht_count(catzs->zones) == 0);
 			isc_ht_destroy(&catzs->zones);
 		}
@@ -1130,7 +1109,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	if (tbuf->used > ISC_SHA256_DIGESTSTRINGLENGTH) {
 		isc_sha256_init(&sha256);
 		isc_sha256_update(&sha256, r.base, r.length);
-		/* we can do that because digest string < 2*DNS_NAME */
+		/* we can do that because digest string < 2 * DNS_NAME */
 		isc_sha256_end(&sha256, (char *) r.base);
 		isc_buffer_putstr(*buffer, (char *) r.base);
 	} else {
@@ -1250,7 +1229,7 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(fn_arg != NULL);
-	catzs = (dns_catz_zones_t*) fn_arg;
+	catzs = (dns_catz_zones_t *) fn_arg;
 
 	dns_name_toregion(&db->origin, &r);
 
@@ -1473,70 +1452,66 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 		      "catz: update_from_db: new zone merged");
 }
 
-
-static isc_result_t
-resetactivebitwalk(void *udata, const unsigned char *key, isc_uint32_t keysize,
-		   void *data)
-{
-	dns_catz_zone_t *zone = (dns_catz_zone_t *) data;
-
-	UNUSED(udata);
-	UNUSED(key);
-	UNUSED(keysize);
-
-	zone->active = ISC_FALSE;
-	return (ISC_R_SUCCESS);
-}
-
-
 void
 dns_catz_prereconfig(dns_catz_zones_t *catzs) {
-	isc_ht_walk(catzs->zones, resetactivebitwalk, NULL);
-}
-
-static isc_result_t
-postreconfigwalk(void *udata, const unsigned char *key, isc_uint32_t keysize,
-		 void *data)
-{
 	isc_result_t result;
-	dns_catz_zone_t *newzone = NULL;
-	dns_catz_zones_t *catzs = (dns_catz_zones_t *) udata;
-	dns_catz_zone_t *zone = (dns_catz_zone_t *) data;
-
-	UNUSED(key);
-	UNUSED(keysize);
+	isc_ht_iter_t *iter = NULL;
+	dns_catz_zone_t *zone;
 
 	REQUIRE(catzs != NULL);
-	REQUIRE(zone != NULL);
 
-	if (zone->active == ISC_FALSE) {
-		char cname[DNS_NAME_FORMATSIZE];
-		dns_name_format(&zone->name, cname, DNS_NAME_FORMATSIZE);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER,
-			      ISC_LOG_WARNING,
-			      "catz: removing catalog zone %s", cname);
-
-		/* Merge the old zone with an empty one to remove all members */
-		result = dns_catz_new_zone(catzs, &newzone, &zone->name);
-		INSIST(result == ISC_R_SUCCESS);
-		dns_catz_zones_merge(zone, newzone);
-		dns_catz_zone_detach(&newzone);
-
-		/* Make sure that we have an empty catalog zone */
-		INSIST(isc_ht_count(zone->entries) == 0);
-
-		dns_catz_zone_detach(&zone);
-		return (ISC_R_EXISTS);
+	result = isc_ht_iter_create(catzs->zones, &iter);
+	INSIST(result == ISC_R_SUCCESS);
+	for (result = isc_ht_iter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_next(iter))
+	{
+		isc_ht_iter_current(iter, (void **) &zone);
+		zone->active = ISC_FALSE;
 	}
-
-	return (ISC_R_SUCCESS);
+	INSIST(result == ISC_R_NOMORE);
+	isc_ht_iter_destroy(&iter);
 }
-
 
 void
 dns_catz_postreconfig(dns_catz_zones_t *catzs) {
-	isc_ht_walk(catzs->zones, postreconfigwalk, catzs);
+	isc_result_t result;
+	dns_catz_zone_t *newzone = NULL;
+	isc_ht_iter_t *iter = NULL;
+	dns_catz_zone_t *zone;
+
+	result = isc_ht_iter_create(catzs->zones, &iter);
+	INSIST(result == ISC_R_SUCCESS);
+	for (result = isc_ht_iter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_next(iter))
+	{
+		isc_ht_iter_current(iter, (void **) &zone);
+		if (zone->active == ISC_FALSE) {
+			char cname[DNS_NAME_FORMATSIZE];
+			dns_name_format(&zone->name, cname, DNS_NAME_FORMATSIZE);
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTER,
+				      ISC_LOG_WARNING,
+				      "catz: removing catalog zone %s", cname);
+
+			/*
+			 * Merge the old zone with an empty one to remove
+			 * all members
+			 */
+			result = dns_catz_new_zone(catzs, &newzone,
+						   &zone->name);
+			INSIST(result == ISC_R_SUCCESS);
+			dns_catz_zones_merge(zone, newzone);
+			dns_catz_zone_detach(&newzone);
+
+			/* Make sure that we have an empty catalog zone */
+			INSIST(isc_ht_count(zone->entries) == 0);
+			dns_catz_zone_detach(&zone);
+		}
+	}
+	RUNTIME_CHECK(result == ISC_R_NOMORE);
+	isc_ht_iter_destroy(&iter);
 }
 
 isc_result_t

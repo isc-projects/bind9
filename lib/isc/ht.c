@@ -224,9 +224,6 @@ isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp) {
 	REQUIRE(ISC_HT_VALID(ht));
 	REQUIRE(itp != NULL && *itp == NULL);
 
-	if (ht->count == 0)
-		return (ISC_R_NOMORE);
-
 	it = isc_mem_get(ht->mctx, sizeof(isc_ht_iter_t));
 	if (it == NULL)
 		return (ISC_R_NOMEMORY);
@@ -288,6 +285,51 @@ isc_ht_iter_next(isc_ht_iter_t *it) {
 	return (ISC_R_SUCCESS);
 }
 
+isc_result_t
+isc_ht_iter_delcurrent_next(isc_ht_iter_t *it) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_ht_node_t *to_delete = NULL;
+	isc_ht_node_t *prev = NULL;
+	isc_ht_node_t *node = NULL;
+	isc_uint32_t hash;
+	isc_ht_t *ht;
+	REQUIRE(it != NULL);
+	REQUIRE(it->cur != NULL);
+	to_delete = it->cur;
+	ht = it->ht;
+
+	it->cur = it->cur->next;
+	if (it->cur == NULL) {
+		do {
+		        it->i++;
+		} while (it->i < ht->size && ht->table[it->i] == NULL);
+		if (it->i >= ht->size)
+			result = ISC_R_NOMORE;
+		else
+			it->cur = ht->table[it->i];
+	}
+
+	hash = isc_hash_function(to_delete->key, to_delete->keysize, ISC_TRUE,
+				 NULL);
+	node = ht->table[hash & ht->mask];
+	while (node != to_delete) {
+		prev = node;
+		node = node->next;
+		INSIST(node != NULL);
+	}
+
+	if (prev == NULL) {
+		ht->table[hash & ht->mask] = node->next;
+	} else {
+		prev->next = node->next;
+	}
+	isc_mem_put(ht->mctx, node,
+		    sizeof(isc_ht_node_t) + node->keysize);
+	ht->count--;
+
+	return (result);
+}
+
 void
 isc_ht_iter_current(isc_ht_iter_t *it, void **valuep) {
 	REQUIRE(it != NULL);
@@ -295,48 +337,18 @@ isc_ht_iter_current(isc_ht_iter_t *it, void **valuep) {
 	*valuep = it->cur->value;
 }
 
+void
+isc_ht_iter_currentkey(isc_ht_iter_t *it, unsigned char **key, size_t *keysize)
+{
+	REQUIRE(it != NULL);
+	REQUIRE(it->cur != NULL);
+	*key = it->cur->key;
+	*keysize = it->cur->keysize;
+}
+
 unsigned int
 isc_ht_count(isc_ht_t *ht) {
 	REQUIRE(ISC_HT_VALID(ht));
 
 	return(ht->count);
-}
-
-isc_result_t
-isc_ht_walk(isc_ht_t *ht, isc_ht_walkfn walkfn, void *udata) {
-	isc_uint32_t i;
-	isc_result_t res;
-
-	REQUIRE(ISC_HT_VALID(ht));
-
-	for (i = 0; i < ht->size; i++) {
-		isc_ht_node_t *cur = ht->table[i];
-		isc_ht_node_t *prev = NULL;
-		while (cur != NULL) {
-			if (walkfn == NULL) {
-				continue;
-			}
-			res = walkfn(udata, cur->key, cur->keysize, cur->value);
-			if (res != ISC_R_SUCCESS && res != ISC_R_EXISTS) {
-				return (res);
-			}
-			if (res == ISC_R_EXISTS) { /* remove this node */
-				isc_ht_node_t *tmp = cur;
-				cur = cur->next;
-				if (prev == NULL) {
-					ht->table[i] = cur;
-				} else {
-					prev->next = cur;
-				}
-				isc_mem_put(ht->mctx, tmp,
-					sizeof(isc_ht_node_t) + tmp->keysize);
-				ht->count--;
-			} else {
-				prev = cur;
-				cur = cur->next;
-			}
-		}
-	}
-
-	return (ISC_R_SUCCESS);
 }
