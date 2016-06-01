@@ -29,7 +29,7 @@ HEADERS =	aes.h app.h assertions.h backtrace.h base32.h base64.h \
 		commandline.h counter.h crc64.h entropy.h error.h event.h \
 		eventclass.h file.h formatcheck.h fsaccess.h \
 		hash.h heap.h hex.h hmacmd5.h hmacsha.h ht.h httpd.h \
-		interfaceiter.h ipkeylist.h @ISC_IPV6_H@ iterated_hash.h \
+		interfaceiter.h @ISC_IPV6_H@ iterated_hash.h \
 		json.h lang.h lex.h lfsr.h lib.h list.h log.h \
 		magic.h md5.h mem.h meminfo.h msgcat.h msgs.h mutexblock.h \
 		netaddr.h netscope.h ondestroy.h os.h parseint.h \
