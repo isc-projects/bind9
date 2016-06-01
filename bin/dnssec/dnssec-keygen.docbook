@@ -594,7 +594,7 @@
     </para>
     <para>
       Both <filename>.key</filename> and <filename>.private</filename>
-      files are generated for symmetric encryption algorithms such as
+      files are generated for symmetric cryptography algorithms such as
       HMAC-MD5, even though the public and private key are equivalent.
     </para>
   </refsection>
