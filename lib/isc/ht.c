@@ -71,8 +71,8 @@ isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits) {
 	ht->mctx = NULL;
 	isc_mem_attach(mctx, &ht->mctx);
 
-	ht->size = (1<<bits);
-	ht->mask = (1<<bits)-1;
+	ht->size = ((size_t)1<<bits);
+	ht->mask = ((size_t)1<<bits)-1;
 	ht->count = 0;
 
 	ht->table = isc_mem_get(ht->mctx, ht->size * sizeof(isc_ht_node_t*));
