@@ -296,6 +296,8 @@ ATF_TC_BODY(isc_ht_1, tc) {
 	test_ht_full(1, 100);
 }
 
+/* xxxwpk we should limit the size of hashtable, 32bit doesn't make sense */
+#if 0
 ATF_TC(isc_ht_32);
 ATF_TC_HEAD(isc_ht_32, tc) {
 	atf_tc_set_md_var(tc, "descr", "32 bit, 10000 elements corner case test");
@@ -305,6 +307,7 @@ ATF_TC_BODY(isc_ht_32, tc) {
 	UNUSED(tc);
 	test_ht_full(32, 10000);
 }
+#endif
 
 ATF_TC(isc_ht_iterator);
 ATF_TC_HEAD(isc_ht_iterator, tc) {
@@ -323,7 +326,7 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_ht_20);
 	ATF_TP_ADD_TC(tp, isc_ht_8);
 	ATF_TP_ADD_TC(tp, isc_ht_1);
-	ATF_TP_ADD_TC(tp, isc_ht_32);
+/*	ATF_TP_ADD_TC(tp, isc_ht_32); */
 	ATF_TP_ADD_TC(tp, isc_ht_iterator);
 	return (atf_no_error());
 }
