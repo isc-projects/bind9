@@ -621,8 +621,8 @@ pre_parse_args(int argc, char **argv) {
 			memdebugging = ISC_TRUE;
 			if (strcasecmp("trace", isc_commandline_argument) == 0)
 				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
-			else if (!strcasecmp("record",
-					     isc_commandline_argument) == 0)
+			else if (strcasecmp("record",
+					    isc_commandline_argument) == 0)
 				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 			else if (strcasecmp("usage",
 					    isc_commandline_argument) == 0)

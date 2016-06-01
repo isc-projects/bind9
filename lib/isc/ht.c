@@ -50,7 +50,7 @@ struct isc_ht {
 
 struct isc_ht_iter {
 	isc_ht_t *ht;
-	isc_uint32_t i;
+	size_t i;
 	isc_ht_node_t *cur;
 };
 
@@ -109,7 +109,7 @@ isc_ht_destroy(isc_ht_t **htp) {
 			isc_ht_node_t *next = node->next;
 			ht->count--;
 			isc_mem_put(ht->mctx, node,
-					sizeof(isc_ht_node_t) + node->keysize);
+				    sizeof(isc_ht_node_t) + node->keysize);
 			node = next;
 		}
 	}
@@ -136,17 +136,15 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key,
 	node = ht->table[hash & ht->mask];
 	while (node != NULL) {
 		if (keysize == node->keysize &&
-		    memcmp(key, node->key, keysize) == 0)
-		{
+		    memcmp(key, node->key, keysize) == 0) {
 			return (ISC_R_EXISTS);
 		}
 		node = node->next;
 	}
 
 	node = isc_mem_get(ht->mctx, sizeof(isc_ht_node_t) + keysize);
-	if (node == NULL) {
+	if (node == NULL)
 		return (ISC_R_NOMEMORY);
-	}
 
 	memmove(node->key, key, keysize);
 	node->keysize = keysize;
@@ -173,8 +171,7 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
 	node = ht->table[hash & ht->mask];
 	while (node != NULL) {
 		if (keysize == node->keysize &&
-		    memcmp(key, node->key, keysize) == 0)
-		{
+		    memcmp(key, node->key, keysize) == 0) {
 			*valuep = node->value;
 			return (ISC_R_SUCCESS);
 		}
@@ -197,15 +194,13 @@ isc_ht_delete(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize) {
 	node = ht->table[hash & ht->mask];
 	while (node != NULL) {
 		if (keysize == node->keysize &&
-		    memcmp(key, node->key, keysize) == 0)
-		{
-			if (prev == NULL) {
+		    memcmp(key, node->key, keysize) == 0) {
+			if (prev == NULL)
 				ht->table[hash & ht->mask] = node->next;
-			} else {
+			else
 				prev->next = node->next;
-			}
 			isc_mem_put(ht->mctx, node,
-					sizeof(isc_ht_node_t) + node->keysize);
+				    sizeof(isc_ht_node_t) + node->keysize);
 			ht->count--;
 
 			return (ISC_R_SUCCESS);
@@ -259,7 +254,7 @@ isc_ht_iter_first(isc_ht_iter_t *it) {
 	while (it->i < it->ht->size && it->ht->table[it->i] == NULL)
 		it->i++;
 
-	if(it->i == it->ht->size)
+	if (it->i == it->ht->size)
 		return (ISC_R_NOMORE);
 
 	it->cur = it->ht->table[it->i];
@@ -318,11 +313,10 @@ isc_ht_iter_delcurrent_next(isc_ht_iter_t *it) {
 		INSIST(node != NULL);
 	}
 
-	if (prev == NULL) {
+	if (prev == NULL)
 		ht->table[hash & ht->mask] = node->next;
-	} else {
+	else
 		prev->next = node->next;
-	}
 	isc_mem_put(ht->mctx, node,
 		    sizeof(isc_ht_node_t) + node->keysize);
 	ht->count--;
