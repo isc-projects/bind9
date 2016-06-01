@@ -57,7 +57,7 @@ struct isc_ht_iter {
 isc_result_t
 isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits) {
 	isc_ht_t *ht = NULL;
-	isc_uint32_t i;
+	size_t i;
 
 	REQUIRE(htp != NULL && *htp == NULL);
 	REQUIRE(mctx != NULL);
@@ -94,7 +94,7 @@ isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits) {
 void
 isc_ht_destroy(isc_ht_t **htp) {
 	isc_ht_t *ht;
-	isc_uint32_t i;
+	size_t i;
 
 	REQUIRE(htp != NULL);
 
