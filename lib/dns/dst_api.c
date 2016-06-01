@@ -1526,6 +1526,11 @@ issymmetric(const dst_key_t *key) {
 	case DST_ALG_ECDSA384:
 		return (ISC_FALSE);
 	case DST_ALG_HMACMD5:
+	case DST_ALG_HMACSHA1:
+	case DST_ALG_HMACSHA224:
+	case DST_ALG_HMACSHA256:
+	case DST_ALG_HMACSHA384:
+	case DST_ALG_HMACSHA512:
 	case DST_ALG_GSSAPI:
 		return (ISC_TRUE);
 	default:
