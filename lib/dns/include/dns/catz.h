@@ -177,7 +177,7 @@ dns_catz_entry_detach(dns_catz_zone_t *zone, dns_catz_entry_t **entryp);
  * \li	entryp is not NULL, *entryp is not NULL
  */
 
-isc_result_t
+isc_boolean_t
 dns_catz_entry_validate(const dns_catz_entry_t *entry);
 /*%<
  * Validate whether entry is correct.
