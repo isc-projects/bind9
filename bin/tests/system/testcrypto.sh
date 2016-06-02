@@ -26,7 +26,7 @@ alg="-a RSAMD5 -b 512"
 quiet=0
 
 msg1="cryptography"
-msg2="--with-openssl, or --enable-native-pkcs11 --with-pkcs11"
+msg2="--with-openssl"
 while test "$#" -gt 0; do
         case $1 in
         -q)
