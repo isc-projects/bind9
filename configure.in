@@ -1414,21 +1414,22 @@ fi
 AC_MSG_CHECKING(for OpenSSL library)
 OPENSSL_WARNING=
 openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
+if test "$want_native_pkcs11" = "yes"
+then
+	use_openssl="native_pkcs11"
+	AC_MSG_RESULT(use of native PKCS11 instead)
+fi
+
 if test "$use_openssl" = "auto"
 then
-	if test "$want_native_pkcs11" = "yes"
-	then
-		use_openssl="native_pkcs11"
-	else
-		for d in $openssldirs
-		do
-			if test -f $d/include/openssl/opensslv.h
-			then
-				use_openssl=$d
-				break
-			fi
-		done
-	fi
+	for d in $openssldirs
+	do
+		if test -f $d/include/openssl/opensslv.h
+		then
+			use_openssl=$d
+			break
+		fi
+	done
 fi
 OPENSSL_ECDSA=""
 OPENSSL_GOST=""
