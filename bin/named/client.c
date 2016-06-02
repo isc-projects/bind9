@@ -384,7 +384,7 @@ exit_check(ns_client_t *client) {
 		INSIST(client->newstate <= NS_CLIENTSTATE_READY);
 		if (client->nreads > 0)
 			dns_tcpmsg_cancelread(&client->tcpmsg);
-		if (! client->nreads == 0) {
+		if (client->nreads != 0) {
 			/* Still waiting for read cancel completion. */
 			return (ISC_TRUE);
 		}
