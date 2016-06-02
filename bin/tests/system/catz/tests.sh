@@ -48,11 +48,11 @@ status=`expr $status + $ret`
 cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
 
 n=`expr $n + 1`
-echo "I:Adding domain dom1.example to catalog zone ($n)"
+echo "I:Adding domain dom1.example to catalog1 zone ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 5300
-    update add e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog.example 3600 IN PTR dom1.example.
+    update add e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog1.example 3600 IN PTR dom1.example.
     send
 END
 if [ $ret != 0 ]; then echo "I:failed"; fi
@@ -65,7 +65,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom1.example' from catalog 'catalog.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom1.example' from catalog 'catalog1.example'" > /dev/null && {
 	ret=0
 	break
     }
@@ -93,11 +93,11 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I:Removing domain dom1.example from catalog zone ($n)"
+echo "I:Removing domain dom1.example from catalog1 zone ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
    server 10.53.0.1 5300
-   update delete e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog.example
+   update delete e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog1.example
    send
 END
 if [ $ret != 0 ]; then echo "I:failed"; fi
@@ -110,7 +110,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom1.example' from catalog 'catalog.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom1.example' from catalog 'catalog1.example'" > /dev/null && {
 	ret=0
 	break
     }
@@ -137,20 +137,76 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I:Adding domains dom2.example, dom3.example and some trash to catalog zone ($n)"
+echo "I:Adding a domain dom5.example to master via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom5.example.db
+echo "@ IN NS invalid." >> ns1/dom5.example.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953  addzone dom5.example '{type master; file "dom5.example.db";};' || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:Adding domains dom2.example, dom3.example and some trash to catalog1 zone ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 5300
-    update add 636722929740e507aaf27c502812fc395d30fb17.zones.catalog.example 3600 IN PTR dom2.example.
-    update add b901f492f3ebf6c1e5b597e51766f02f0479eb03.zones.catalog.example 3600 IN PTR dom3.example.
-    update add e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog.example 3600 IN NS foo.bar.
-    update add trash.catalog.example 3600 IN A 1.2.3.4
-    update add trash2.foo.catalog.example 3600 IN A 1.2.3.4
-    update add trash3.zones.catalog.example 3600 IN NS a.dom2.example.
+    update add 636722929740e507aaf27c502812fc395d30fb17.zones.catalog1.example 3600 IN PTR dom2.example.
+    update add b901f492f3ebf6c1e5b597e51766f02f0479eb03.zones.catalog1.example 3600 IN PTR dom3.example.
+    update add e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog1.example 3600 IN NS foo.bar.
+    update add trash.catalog1.example 3600 IN A 1.2.3.4
+    update add trash2.foo.catalog1.example 3600 IN A 1.2.3.4
+    update add trash3.zones.catalog1.example 3600 IN NS a.dom2.example.
     send
 END
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:Adding domains dom5.example to catalog2 zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update add de26b88d855397a03f77ff1162fd055d8b419584.zones.catalog2.example 3600 IN PTR dom5.example.
+    send
+END
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+
+n=`expr $n + 1`
+echo "I:waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom5.example' from catalog 'catalog2.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom5.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom5.example is served by slave ($n)"
+ret=0
+$DIG soa dom5.example @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 
 n=`expr $n + 1`
 echo "I:checking that dom3.example is not served by master ($n)"
@@ -184,7 +240,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom3.example' from catalog 'catalog.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom3.example' from catalog 'catalog1.example'" > /dev/null && {
 	ret=0
 	break
     }
@@ -216,8 +272,8 @@ echo "I:Adding dom4.example with 'masters' defined and a random label ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 5300
-    update add somerandomlabel.zones.catalog.example 3600 IN PTR dom4.example.
-    update add masters.somerandomlabel.zones.catalog.example 3600 IN A 10.53.0.3
+    update add somerandomlabel.zones.catalog1.example 3600 IN PTR dom4.example.
+    update add masters.somerandomlabel.zones.catalog1.example 3600 IN A 10.53.0.3
     send
 END
 if [ $ret != 0 ]; then echo "I:failed"; fi
@@ -230,7 +286,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom4.example' from catalog 'catalog.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom4.example' from catalog 'catalog1.example'" > /dev/null && {
 	ret=0
 	break
     }
@@ -258,11 +314,11 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I:Removing domain dom2.example from catalog zone ($n)"
+echo "I:Removing domain dom2.example from catalog1 zone ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 5300
-    update delete 636722929740e507aaf27c502812fc395d30fb17.zones.catalog.example
+    update delete 636722929740e507aaf27c502812fc395d30fb17.zones.catalog1.example
     send
 END
 if [ $ret != 0 ]; then echo "I:failed"; fi
@@ -275,7 +331,7 @@ try=0
 while test $try -lt 45
 do
     sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom2.example' from catalog 'catalog.example'" > /dev/null && {
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom2.example' from catalog 'catalog1.example'" > /dev/null && {
 	ret=0
 	break
     }
@@ -304,8 +360,15 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:checking that zone-directory is populated ($n)"
 ret=0
-[ -f "ns2/zonedir/__catz___default_catalog.example_dom3.example.db" ] || ret=1
-[ -f "ns2/zonedir/__catz___default_catalog.example_dom4.example.db" ] || ret=1
+[ -f "ns2/zonedir/__catz___default_catalog1.example_dom3.example.db" ] || ret=1
+[ -f "ns2/zonedir/__catz___default_catalog1.example_dom4.example.db" ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that a missing zone directory forces in-memory ($n)"
+ret=0
+grep "'nonexistent' not found; zone files will not be saved" ns2/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

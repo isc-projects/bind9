@@ -18,7 +18,8 @@ rm -f ns*/named.memstats
 rm -f ns*/named.run
 rm -f ns*/named.lock
 rm -f ns1/*dom*example.db
-rm -f ns{1,2}/catalog.example.db
+rm -f ns{1,2}/catalog{1,2,3}.example.db
+rm -f ns2/__catz__*db
 rm -rf ns2/zonedir
 rm -f ns*/*.jnl
 rm -f ns*/*.nzf

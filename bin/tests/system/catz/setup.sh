@@ -19,5 +19,7 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-cat ns1/catalog.example.db.in > ns1/catalog.example.db
+cat ns1/catalog.example.db.in > ns1/catalog1.example.db
+cat ns1/catalog.example.db.in > ns1/catalog2.example.db
+cat ns1/catalog.example.db.in > ns1/catalog3.example.db
 mkdir ns2/zonedir

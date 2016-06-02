@@ -2367,14 +2367,22 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 		result = ns_config_getipandkeylist(config, obj,
 						   view->mctx, &opts->masters);
 
-	obj = cfg_tuple_get(catz_obj, "zone-directory");
-	if (obj != NULL)
-		opts->zonedir = isc_mem_strdup(view->mctx,
-					       cfg_obj_asstring(obj));
-
 	obj = cfg_tuple_get(catz_obj, "in-memory");
 	if (obj != NULL && cfg_obj_isboolean(obj))
 		opts->in_memory = cfg_obj_asboolean(obj);
+
+	obj = cfg_tuple_get(catz_obj, "zone-directory");
+	if (!opts->in_memory && obj != NULL && cfg_obj_isstring(obj)) {
+		opts->zonedir = isc_mem_strdup(view->mctx,
+					       cfg_obj_asstring(obj));
+		if (isc_file_isdirectory(opts->zonedir) != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, ns_g_lctx, DNS_CATZ_ERROR_LEVEL,
+				    "catz: zone-directory '%s' "
+				    "not found; zone files will not be "
+				    "saved", opts->zonedir);
+			opts->in_memory = ISC_TRUE;
+		}
+	}
 
 	obj = cfg_tuple_get(catz_obj, "min-update-interval");
 	if (obj != NULL && cfg_obj_isuint32(obj))
