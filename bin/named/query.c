@@ -3302,6 +3302,7 @@ query_addbestns(ns_client_t *client) {
 		if (sigrdataset != NULL)
 			query_putrdataset(client, &sigrdataset);
 
+		RESTORE(db, zdb);
 		RESTORE(fname, zfname);
 		RESTORE(rdataset, zrdataset);
 		RESTORE(sigrdataset, zsigrdataset);
@@ -6821,6 +6822,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	want_restart = ISC_FALSE;
 	authoritative = ISC_FALSE;
 	version = NULL;
+	zversion = NULL;
 	need_wildcardproof = ISC_FALSE;
 
 	if (client->view->checknames &&
@@ -7463,9 +7465,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				dns_db_detachnode(db, &node);
 				SAVE(zdb, db);
 				SAVE(zfname, fname);
+				SAVE(zversion, version);
 				SAVE(zrdataset, rdataset);
 				SAVE(zsigrdataset, sigrdataset);
-				SAVE(zversion, version);
 				dns_db_attach(client->view->cachedb, &db);
 				is_zone = ISC_FALSE;
 				goto db_find;
@@ -7504,9 +7506,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				version = NULL;
 
 				RESTORE(fname, zfname);
+				RESTORE(version, zversion);
 				RESTORE(rdataset, zrdataset);
 				RESTORE(sigrdataset, zsigrdataset);
-				RESTORE(version, zversion);
 				/*
 				 * We don't clean up zdb here because we
 				 * may still need it.  It will get cleaned
