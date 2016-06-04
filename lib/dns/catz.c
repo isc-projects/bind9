@@ -1120,8 +1120,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	result = ISC_R_SUCCESS;
 
 cleanup:
-	if (tbuf != NULL)
-		isc_buffer_free(&tbuf);
+	isc_buffer_free(&tbuf);
 	return (result);
 }
 
