@@ -1209,8 +1209,9 @@ dns_catz_update_taskaction(isc_task_t *task, isc_event_t *event) {
 	zone->updatepending = ISC_FALSE;
 	dns_catz_update_from_db(zone->db, zone->catzs);
 	dns_db_detach(&zone->db);
-	isc_timer_reset(zone->updatetimer, isc_timertype_inactive,
-			NULL, NULL, ISC_TRUE);
+	result = isc_timer_reset(zone->updatetimer, isc_timertype_inactive,
+				 NULL, NULL, ISC_TRUE);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_event_free(&event);
 	result = isc_time_now(&zone->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
