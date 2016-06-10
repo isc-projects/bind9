@@ -189,16 +189,8 @@ if [ -x ${DIG} ] ; then
     echo "I:IPv6 unavailable; skipping"
   fi
   
-# n=`expr $n + 1`
-# echo "I:checking dig +subnet ($n)"
-# ret=0
-# $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=127.0.0.1 A a.example > dig.out.test$n 2>&1 || ret=1
-# grep "CLIENT-SUBNET: 127.0.0.1/32/0" < dig.out.test$n > /dev/null || ret=1
-# if [ $ret != 0 ]; then echo "I:failed"; fi
-# status=`expr $status + $ret`
-  
   n=`expr $n + 1`
-  echo "I:checking dig +sp works as an abbriviated form of split ($n)"
+  echo "I:checking dig +sp works as an abbreviated form of split ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +sp=4 -t sshfp foo.example > dig.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < dig.out.test$n > /dev/null || ret=1
