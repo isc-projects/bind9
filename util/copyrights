@@ -781,7 +781,7 @@
 ./bin/tests/system/addzone/ns2/added.db		ZONE	2010,2013
 ./bin/tests/system/addzone/ns2/default.nzf.in	X	2010
 ./bin/tests/system/addzone/ns2/inline.db	ZONE	2013
-./bin/tests/system/addzone/ns2/named1.conf	CONF-C	2010
+./bin/tests/system/addzone/ns2/named1.conf	CONF-C	2010,2016
 ./bin/tests/system/addzone/ns2/named2.conf	CONF-C	2010,2011,2016
 ./bin/tests/system/addzone/ns2/normal.db	ZONE	2010
 ./bin/tests/system/addzone/ns2/previous.db	ZONE	2010
