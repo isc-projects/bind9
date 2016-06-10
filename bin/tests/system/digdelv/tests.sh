@@ -260,6 +260,32 @@ if [ -x ${DIG} ] ; then
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
+  echo "I:checking dig +subnet with various prefix lengths ($n)"
+  ret=0
+  for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24; do
+      $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=255.255.255.255/$i A a.example > dig.out.test$n 2>&1 || ret=1
+      case $i in
+      1|9|17) octet=128 ;;
+      2|10|18) octet=192 ;;
+      3|11|19) octet=224 ;;
+      4|12|20) octet=240 ;;
+      5|13|21) octet=248 ;;
+      6|14|22) octet=252 ;;
+      7|15|23) octet=254 ;;
+      8|16|24) octet=255 ;;
+      esac
+      case $i in
+      1|2|3|4|5|6|7|8) addr="${octet}.0.0.0";;
+      9|10|11|12|13|14|15|16) addr="255.${octet}.0.0";;
+      17|18|19|20|21|22|23|24) addr="255.255.${octet}.0" ;;
+      esac
+      grep "FORMERR" < dig.out.test.$p.$n > /dev/null && ret=1
+      grep "CLIENT-SUBNET: $addr/$i/0" < dig.out.test$n > /dev/null || ret=1
+  done
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
   echo "I:checking dig +subnet=0/0 ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=0/0 A a.example > dig.out.test$n 2>&1 || ret=1
@@ -295,7 +321,7 @@ if [ -x ${DIG} ] ; then
   status=`expr $status + $ret`
   
   n=`expr $n + 1`
-  echo "I:checking dig +sp works as an abbriviated form of split ($n)"
+  echo "I:checking dig +sp works as an abbreviated form of split ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +sp=4 -t sshfp foo.example > dig.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < dig.out.test$n > /dev/null || ret=1
