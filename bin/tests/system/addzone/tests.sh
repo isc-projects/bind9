@@ -162,6 +162,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking rndc showzone with a normally-loaded zone with trailing dot ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone finaldot.example > rndc.out.ns2.$n
+expected='zone "finaldot.example." { type master; file "normal.db"; };'
+[ "`cat rndc.out.ns2.$n`" = "$expected" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:delete a normally-loaded zone ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone normal.example 2> rndc.out.ns2.$n

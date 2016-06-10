@@ -10098,6 +10098,12 @@ add_comment(FILE *fp, const char *viewname) {
 	return (result);
 }
 
+#if 0
+/*
+ * XXXMPA When we move to using a database instead of a flat file
+ * we will use nzf_remove.  Remember that we need to use a cannonical
+ * form of the zone name when we do.
+ */
 static isc_result_t
 nzf_remove(const char *nzfile, const char *viewname, const char *zonename) {
 	isc_result_t result;
@@ -10222,6 +10228,7 @@ nzf_remove(const char *nzfile, const char *viewname, const char *zonename) {
 
 	return (result);
 }
+#endif
 
 static void
 dumpzone(void *arg, const char *buf, int len) {
@@ -10331,12 +10338,43 @@ newzone_parse(ns_server_t *server, char *command, dns_view_t **viewp,
 }
 
 static isc_result_t
+nzf_writeconf(const cfg_obj_t *config, dns_view_t *view) {
+	FILE *fp = NULL;
+	char tmp[1024];
+	isc_result_t result;
+
+	result = isc_file_template("", "nzf-XXXXXXXX", tmp, sizeof(tmp));
+	if (result == ISC_R_SUCCESS)
+		result = isc_file_openunique(tmp, &fp);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	CHECK(add_comment(fp, view->name));	/* force a comment */
+
+	cfg_printx(config, CFG_PRINTER_ONELINE, dumpzone, fp);
+
+	CHECK(isc_stdio_flush(fp));
+	CHECK(isc_stdio_close(fp));
+	CHECK(isc_file_rename(tmp, view->new_zone_file));
+	return (result);
+
+ cleanup:
+	if (fp != NULL)
+		(void) isc_stdio_close(fp);
+	isc_file_remove(tmp);
+	return (result);
+}
+
+static isc_result_t
 delete_zoneconf(cfg_parser_t *pctx, const cfg_obj_t *config,
-		const char *zname)
+		const dns_name_t *zname)
 {
 	const cfg_listelt_t *elt = NULL;
 	const cfg_obj_t *zl = NULL;
 	cfg_list_t *list;
+	dns_fixedname_t fixed;
+	dns_name_t *myname;
+	isc_result_t result;
 
 	REQUIRE(pctx != NULL);
 	REQUIRE(config != NULL);
@@ -10348,6 +10386,8 @@ delete_zoneconf(cfg_parser_t *pctx, const cfg_obj_t *config,
 		return (ISC_R_FAILURE);
 	DE_CONST(&zl->value.list, list);
 
+	dns_fixedname_init(&fixed);
+	myname = dns_fixedname_name(&fixed);
 	for (elt = ISC_LIST_HEAD(*list);
 	     elt != NULL;
 	     elt = ISC_LIST_NEXT(elt, link))
@@ -10357,7 +10397,8 @@ delete_zoneconf(cfg_parser_t *pctx, const cfg_obj_t *config,
 		cfg_listelt_t *e;
 
 		zn = cfg_obj_asstring(cfg_tuple_get(zconf, "name"));
-		if (strcasecmp(zname, zn) != 0)
+		result = dns_name_fromstring(myname, zn, 0, NULL);
+		if (result != ISC_R_SUCCESS || !dns_name_equal(zname, myname))
 			continue;
 
 		DE_CONST(elt, e);
@@ -10532,15 +10573,19 @@ do_modzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 
 	/* Remove old zone from configuration (and NZF file if applicable) */
 	if (added) {
-		delete_zoneconf(cfg->add_parser, cfg->nzconfig, zname);
-		nzf_remove(view->new_zone_file, view->name, zname);
+		delete_zoneconf(cfg->add_parser, cfg->nzconfig,
+				dns_zone_getorigin(zone));
+		nzf_writeconf(cfg->nzconfig, view);
+		/* nzf_remove(view->new_zone_file, view->name, zname); */
 	} else {
 		if (cfg->vconfig == NULL)
-			delete_zoneconf(cfg->conf_parser, cfg->config, zname);
+			delete_zoneconf(cfg->conf_parser, cfg->config,
+					dns_zone_getorigin(zone));
 		else {
 			const cfg_obj_t *voptions =
 				cfg_tuple_get(cfg->vconfig, "options");
-			delete_zoneconf(cfg->conf_parser, voptions, zname);
+			delete_zoneconf(cfg->conf_parser, voptions,
+					dns_zone_getorigin(zone));
 		}
 	}
 
@@ -10755,21 +10800,20 @@ ns_server_delzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 
 	/* Remove the zone from the new_zone_file if applicable */
 	added = dns_zone_getadded(zone);
-	if (added) {
+	if (added && cfg != NULL) {
+		delete_zoneconf(cfg->add_parser, cfg->nzconfig,
+				dns_zone_getorigin(zone));
 		if (view->new_zone_file != NULL)
-			nzf_remove(view->new_zone_file, view->name, zonename);
-		if (cfg != NULL)
-			delete_zoneconf(cfg->add_parser, cfg->nzconfig,
-					zonename);
+			nzf_writeconf(cfg->nzconfig, view);
 	} else if (cfg != NULL) {
 		if (cfg->vconfig != NULL) {
 			const cfg_obj_t *voptions =
 				cfg_tuple_get(cfg->vconfig, "options");
 			delete_zoneconf(cfg->conf_parser, voptions,
-					zonename);
+					dns_zone_getorigin(zone));
 		} else {
 			delete_zoneconf(cfg->conf_parser, cfg->config,
-					zonename);
+					dns_zone_getorigin(zone));
 		}
 	}
 
@@ -10865,7 +10909,19 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 {
 	const cfg_obj_t *list = NULL;
 	const cfg_listelt_t *element;
-	const cfg_obj_t *result = NULL;
+	const cfg_obj_t *obj = NULL;
+	dns_fixedname_t fixed1, fixed2;
+	dns_name_t *name1 = NULL, *name2;
+	isc_result_t result;
+
+	if (strcmp(map_key_for_list, "zone") == 0) {
+		dns_fixedname_init(&fixed1);
+		dns_fixedname_init(&fixed2);
+		name1 = dns_fixedname_name(&fixed1);
+		name2 = dns_fixedname_name(&fixed2);
+		result = dns_name_fromstring(name1, name, 0, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
 
 	cfg_map_get(config, map_key_for_list, &list);
 	for (element = cfg_list_first(list);
@@ -10873,15 +10929,27 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 	     element = cfg_list_next(element))
 	{
 		const char *vname;
-		result = cfg_listelt_value(element);
-		INSIST(result != NULL);
-		vname = cfg_obj_asstring(cfg_tuple_get(result, "name"));
-		if (vname != NULL && !strcasecmp(vname, name))
+
+		obj = cfg_listelt_value(element);
+		INSIST(obj != NULL);
+		vname = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+		if (vname == NULL) {
+			obj = NULL;
+			continue;
+		}
+
+		if (name1 != NULL) {
+			result = dns_name_fromstring(name2, vname, 0, NULL);
+			if (result == ISC_R_SUCCESS &&
+			    dns_name_equal(name1, name2))
+				break;
+		} else if (strcasecmp(vname, name) == 0)
 			break;
-		result = NULL;
+
+		obj = NULL;
 	}
 
-	return (result);
+	return (obj);
 }
 
 static void
@@ -10932,7 +11000,7 @@ ns_server_showzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		map = cfg->config;
 
 	zconfig = find_name_in_list_from_map(map, "zone", zonename);
-	if (zconfig == NULL)
+	if (zconfig == NULL && cfg->nzconfig != NULL)
 		zconfig = find_name_in_list_from_map(cfg->nzconfig,
 						     "zone", zonename);
 	if (zconfig == NULL)

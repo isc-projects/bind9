@@ -1,3 +1,7 @@
+4382.	[bug]		rndc {addzone,modzone,delzone,showzone} should all
+			compare the zone name using a canonical format.
+			[RT #42630]
+
 4381.	[bug]		Missing "zone-directory" option in catalog zone
 			definition caused BIND to crash. [RT #42579]
 
