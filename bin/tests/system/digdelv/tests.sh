@@ -276,7 +276,7 @@ if [ -x ${DELV} ] ; then
   status=`expr $status + $ret`
   
   n=`expr $n + 1`
-  echo "I:checking delv +sp works as an abbriviated form of split ($n)"
+  echo "I:checking delv +sp works as an abbreviated form of split ($n)"
   ret=0
   $DELV $DELVOPTS @10.53.0.3 +sp=4 -t sshfp foo.example > delv.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < delv.out.test$n > /dev/null || ret=1
