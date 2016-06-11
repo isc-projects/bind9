@@ -10234,7 +10234,7 @@ static void
 dumpzone(void *arg, const char *buf, int len) {
 	FILE *fp = arg;
 
-	isc_stdio_write(buf, len, 1, fp, NULL);
+	(void) isc_stdio_write(buf, len, 1, fp, NULL);
 }
 
 static isc_result_t
@@ -10355,6 +10355,7 @@ nzf_writeconf(const cfg_obj_t *config, dns_view_t *view) {
 
 	CHECK(isc_stdio_flush(fp));
 	CHECK(isc_stdio_close(fp));
+	fp = NULL;
 	CHECK(isc_file_rename(tmp, view->new_zone_file));
 	return (result);
 
